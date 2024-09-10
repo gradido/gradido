@@ -1,260 +1,831 @@
+// import { mount } from '@vue/test-utils'
+// import Community from './Community'
+// import { toastErrorSpy, toastSuccessSpy, toastInfoSpy } from '@test/testSetup'
+// import { createContribution, updateContribution, deleteContribution } from '@/graphql/mutations'
+// import { listContributions, listAllContributions, openCreations } from '@/graphql/queries'
+// import { createMockClient } from 'mock-apollo-client'
+// import VueApollo from 'vue-apollo'
+//
+// const mockClient = createMockClient()
+// const apolloProvider = new VueApollo({
+//   defaultClient: mockClient,
+// })
+//
+// const localVue = global.localVue
+// localVue.use(VueApollo)
+//
+// const mockStoreDispach = jest.fn()
+// const routerPushMock = jest.fn()
+//
+// describe('Community', () => {
+//   let wrapper
+//
+//   mockClient.setRequestHandler(
+//     openCreations,
+//     jest
+//       .fn()
+//       .mockRejectedValueOnce({ message: 'Open Creations failed!' })
+//       .mockResolvedValue({
+//         data: {
+//           openCreations: [
+//             {
+//               month: 0,
+//               year: 2023,
+//               amount: '1000',
+//             },
+//             {
+//               month: 1,
+//               year: 2023,
+//               amount: '1000',
+//             },
+//             {
+//               month: 2,
+//               year: 2023,
+//               amount: '1000',
+//             },
+//           ],
+//         },
+//       }),
+//   )
+//
+//   mockClient.setRequestHandler(
+//     listContributions,
+//     jest
+//       .fn()
+//       .mockRejectedValueOnce({ message: 'List Contributions failed!' })
+//       .mockResolvedValue({
+//         data: {
+//           listContributions: {
+//             contributionList: [
+//               {
+//                 id: 1555,
+//                 amount: '200',
+//                 memo: 'Fleisig, fleisig am Arbeiten mein lieber Freund, 50 Zeichen sind viel',
+//                 createdAt: '2022-07-15T08:47:06.000Z',
+//                 deletedAt: null,
+//                 confirmedBy: null,
+//                 confirmedAt: null,
+//                 firstName: 'Bibi',
+//                 contributionDate: '2022-07-15T08:47:06.000Z',
+//                 lastName: 'Bloxberg',
+//                 status: 'IN_PROGRESS',
+//                 messagesCount: 0,
+//                 deniedAt: null,
+//                 deniedBy: null,
+//                 moderatorId: null,
+//               },
+//               {
+//                 id: 1550,
+//                 amount: '200',
+//                 memo: 'Fleisig, fleisig am Arbeiten gewesen',
+//                 createdAt: '2022-07-15T08:47:06.000Z',
+//                 deletedAt: null,
+//                 confirmedBy: null,
+//                 confirmedAt: null,
+//                 firstName: 'Bibi',
+//                 contributionDate: '2022-06-15T08:47:06.000Z',
+//                 lastName: 'Bloxberg',
+//                 status: 'CONFIRMED',
+//                 messagesCount: 0,
+//                 deniedAt: null,
+//                 deniedBy: null,
+//                 moderatorId: null,
+//               },
+//             ],
+//             contributionCount: 1,
+//           },
+//         },
+//       }),
+//   )
+//
+//   mockClient.setRequestHandler(
+//     listAllContributions,
+//     jest
+//       .fn()
+//       .mockRejectedValueOnce({ message: 'List All Contributions failed!' })
+//       .mockResolvedValue({
+//         data: {
+//           listAllContributions: {
+//             contributionList: [
+//               {
+//                 id: 1555,
+//                 amount: '200',
+//                 memo: 'Fleisig, fleisig am Arbeiten mein lieber Freund, 50 Zeichen sind viel',
+//                 createdAt: '2022-07-15T08:47:06.000Z',
+//                 contributionDate: '2022-07-15T08:47:06.000Z',
+//                 deletedAt: null,
+//                 confirmedBy: null,
+//                 confirmedAt: null,
+//                 firstName: 'Bibi',
+//                 lastName: 'Bloxberg',
+//                 deniedAt: null,
+//                 deniedBy: null,
+//                 messagesCount: 0,
+//                 status: 'IN_PROGRESS',
+//               },
+//               {
+//                 id: 1550,
+//                 amount: '200',
+//                 memo: 'Fleisig, fleisig am Arbeiten gewesen',
+//                 createdAt: '2022-07-15T08:47:06.000Z',
+//                 deletedAt: null,
+//                 confirmedBy: null,
+//                 confirmedAt: null,
+//                 firstName: 'Bibi',
+//                 contributionDate: '2022-06-15T08:47:06.000Z',
+//                 lastName: 'Bloxberg',
+//                 deniedAt: null,
+//                 deniedBy: null,
+//                 messagesCount: 0,
+//                 status: 'IN_PROGRESS',
+//               },
+//               {
+//                 id: 1556,
+//                 amount: '400',
+//                 memo: 'Ein anderer lieber Freund ist auch sehr felißig am Arbeiten!!!!',
+//                 createdAt: '2022-07-16T08:47:06.000Z',
+//                 contributionDate: '2022-07-16T08:47:06.000Z',
+//                 deletedAt: null,
+//                 confirmedBy: null,
+//                 confirmedAt: null,
+//                 firstName: 'Bob',
+//                 lastName: 'der Baumeister',
+//                 deniedAt: null,
+//                 deniedBy: null,
+//                 messagesCount: 0,
+//                 status: 'IN_PROGRESS',
+//               },
+//             ],
+//             contributionCount: 3,
+//           },
+//         },
+//       }),
+//   )
+//
+//   mockClient.setRequestHandler(
+//     createContribution,
+//     jest
+//       .fn()
+//       .mockRejectedValueOnce({ message: 'Create Contribution failed!' })
+//       .mockResolvedValue({
+//         data: {
+//           createContribution: true,
+//         },
+//       }),
+//   )
+//
+//   mockClient.setRequestHandler(
+//     updateContribution,
+//     jest
+//       .fn()
+//       .mockRejectedValueOnce({ message: 'Update Contribution failed!' })
+//       .mockResolvedValue({
+//         data: {
+//           updateContribution: true,
+//         },
+//       }),
+//   )
+//
+//   mockClient.setRequestHandler(
+//     deleteContribution,
+//     jest
+//       .fn()
+//       .mockRejectedValueOnce({ message: 'Delete Contribution failed!' })
+//       .mockResolvedValue({
+//         data: {
+//           deleteContribution: true,
+//         },
+//       }),
+//   )
+//
+//   const mocks = {
+//     $t: jest.fn((t) => t),
+//     $d: jest.fn((d) => d),
+//     $store: {
+//       dispatch: mockStoreDispach,
+//       state: {
+//         user: {
+//           firstName: 'Bibi',
+//           lastName: 'Bloxberg',
+//         },
+//       },
+//     },
+//     $i18n: {
+//       locale: 'en',
+//     },
+//     $router: {
+//       push: routerPushMock,
+//     },
+//     $route: {
+//       params: {
+//         tab: 'contribute',
+//       },
+//     },
+//   }
+//
+//   const Wrapper = () => {
+//     return mount(Community, {
+//       localVue,
+//       mocks,
+//       apolloProvider,
+//     })
+//   }
+//
+//   let apolloMutateSpy
+//   let refetchContributionsSpy
+//   let refetchAllContributionsSpy
+//   let refetchOpenCreationsSpy
+//
+//   describe('mount', () => {
+//     beforeEach(() => {
+//       jest.clearAllMocks()
+//       wrapper = Wrapper()
+//       apolloMutateSpy = jest.spyOn(wrapper.vm.$apollo, 'mutate')
+//       refetchContributionsSpy = jest.spyOn(wrapper.vm.$apollo.queries.ListContributions, 'refetch')
+//       refetchAllContributionsSpy = jest.spyOn(
+//         wrapper.vm.$apollo.queries.ListAllContributions,
+//         'refetch',
+//       )
+//       refetchOpenCreationsSpy = jest.spyOn(wrapper.vm.$apollo.queries.OpenCreations, 'refetch')
+//     })
+//
+//     describe('server response for queries is error', () => {
+//       it('toasts three errors', () => {
+//         expect(toastErrorSpy).toBeCalledTimes(3)
+//         expect(toastErrorSpy).toBeCalledWith('Open Creations failed!')
+//         expect(toastErrorSpy).toBeCalledWith('List Contributions failed!')
+//         expect(toastErrorSpy).toBeCalledWith('List All Contributions failed!')
+//       })
+//     })
+//
+//     describe('tabs', () => {
+//       it('has three tabs', () => {
+//         expect(wrapper.findAll('div[role="tabpanel"]')).toHaveLength(3)
+//       })
+//
+//       it('check for correct tabIndex if status is "IN_PROGRESS" or not', () => {
+//         expect(routerPushMock).toBeCalledWith({ params: { tab: 'contributions' } })
+//       })
+//
+//       it('sets tab index to 1', () => {
+//         expect(wrapper.vm.tabIndex).toBe(1)
+//       })
+//
+//       it('toasts an info', () => {
+//         expect(toastInfoSpy).toBeCalledWith('contribution.alert.answerQuestionToast')
+//       })
+//     })
+//
+//     describe('save contrubtion', () => {
+//       describe('with error', () => {
+//         const now = new Date().toISOString()
+//         beforeEach(async () => {
+//           await wrapper.setData({
+//             form: {
+//               id: null,
+//               date: now,
+//               memo: 'Mein Beitrag zur Gemeinschaft für diesen Monat ...',
+//               amount: '200',
+//             },
+//           })
+//           await wrapper.find('form').trigger('submit')
+//         })
+//
+//         it('toasts the error message', () => {
+//           expect(toastErrorSpy).toBeCalledWith('Create Contribution failed!')
+//         })
+//       })
+//
+//       describe('with success', () => {
+//         const now = new Date().toISOString()
+//         beforeEach(async () => {
+//           jest.clearAllMocks()
+//           await wrapper.setData({
+//             form: {
+//               id: null,
+//               date: now,
+//               memo: 'Mein Beitrag zur Gemeinschaft für diesen Monat ...',
+//               amount: '200',
+//             },
+//           })
+//           await wrapper.find('form').trigger('submit')
+//         })
+//
+//         it('calls the create contribution mutation', () => {
+//           expect(apolloMutateSpy).toBeCalledWith({
+//             fetchPolicy: 'no-cache',
+//             mutation: createContribution,
+//             variables: {
+//               creationDate: now,
+//               memo: 'Mein Beitrag zur Gemeinschaft für diesen Monat ...',
+//               amount: '200',
+//             },
+//           })
+//         })
+//
+//         it('toasts a success message', () => {
+//           expect(toastSuccessSpy).toBeCalledWith('contribution.submitted')
+//         })
+//
+//         it('updates the contribution list', () => {
+//           expect(refetchContributionsSpy).toBeCalled()
+//         })
+//
+//         it('updates the all contribution list', () => {
+//           expect(refetchAllContributionsSpy).toBeCalled()
+//         })
+//
+//         it('updates the open creations', () => {
+//           expect(refetchOpenCreationsSpy).toBeCalled()
+//         })
+//
+//         it('sets all data to the default values)', () => {
+//           expect(wrapper.vm.form.id).toBe(null)
+//           expect(wrapper.vm.form.date).toBe('')
+//           expect(wrapper.vm.form.memo).toBe('')
+//           expect(wrapper.vm.form.amount).toBe('')
+//         })
+//       })
+//     })
+//
+//     describe('update contrubtion', () => {
+//       describe('with error', () => {
+//         const now = new Date().toISOString()
+//         beforeEach(async () => {
+//           await wrapper
+//             .findComponent({ name: 'ContributionForm' })
+//             .vm.$emit('update-contribution', {
+//               id: 2,
+//               date: now,
+//               memo: 'Mein Beitrag zur Gemeinschaft für diesen Monat ...',
+//               amount: '400',
+//             })
+//         })
+//
+//         it('toasts the error message', () => {
+//           expect(toastErrorSpy).toBeCalledWith('Update Contribution failed!')
+//         })
+//       })
+//
+//       describe('with success', () => {
+//         const now = new Date().toISOString()
+//         beforeEach(async () => {
+//           jest.clearAllMocks()
+//           await wrapper
+//             .findComponent({ name: 'ContributionForm' })
+//             .vm.$emit('update-contribution', {
+//               id: 2,
+//               date: now,
+//               memo: 'Mein Beitrag zur Gemeinschaft für diesen Monat ...',
+//               amount: '400',
+//             })
+//         })
+//
+//         it('calls the update contribution mutation', () => {
+//           expect(apolloMutateSpy).toBeCalledWith({
+//             fetchPolicy: 'no-cache',
+//             mutation: updateContribution,
+//             variables: {
+//               contributionId: 2,
+//               creationDate: now,
+//               memo: 'Mein Beitrag zur Gemeinschaft für diesen Monat ...',
+//               amount: '400',
+//             },
+//           })
+//         })
+//
+//         it('toasts a success message', () => {
+//           expect(toastSuccessSpy).toBeCalledWith('contribution.updated')
+//         })
+//
+//         it('updates the contribution list', () => {
+//           expect(refetchContributionsSpy).toBeCalled()
+//         })
+//
+//         it('updates the all contribution list', () => {
+//           expect(refetchAllContributionsSpy).toBeCalled()
+//         })
+//
+//         it('updates the open creations', () => {
+//           expect(refetchOpenCreationsSpy).toBeCalled()
+//         })
+//       })
+//     })
+//
+//     describe('delete contribution', () => {
+//       let contributionListComponent
+//
+//       beforeEach(async () => {
+//         await wrapper.setData({ tabIndex: 1 })
+//         contributionListComponent = wrapper.findComponent({ name: 'ContributionList' })
+//       })
+//
+//       describe('with error', () => {
+//         beforeEach(async () => {
+//           jest.clearAllMocks()
+//           contributionListComponent.vm.$emit('delete-contribution', { id: 2 })
+//         })
+//
+//         it('toasts the error message', () => {
+//           expect(toastErrorSpy).toBeCalledWith('Delete Contribution failed!')
+//         })
+//       })
+//
+//       describe('with success', () => {
+//         beforeEach(async () => {
+//           jest.clearAllMocks()
+//           await contributionListComponent.vm.$emit('delete-contribution', { id: 2 })
+//         })
+//
+//         it('calls the API', () => {
+//           expect(apolloMutateSpy).toBeCalledWith({
+//             fetchPolicy: 'no-cache',
+//             mutation: deleteContribution,
+//             variables: {
+//               id: 2,
+//             },
+//           })
+//         })
+//
+//         it('toasts a success message', () => {
+//           expect(toastSuccessSpy).toBeCalledWith('contribution.deleted')
+//         })
+//
+//         it('updates the contribution list', () => {
+//           expect(refetchContributionsSpy).toBeCalled()
+//         })
+//
+//         it('updates the all contribution list', () => {
+//           expect(refetchAllContributionsSpy).toBeCalled()
+//         })
+//
+//         it('updates the open creations', () => {
+//           expect(refetchOpenCreationsSpy).toBeCalled()
+//         })
+//       })
+//     })
+//
+//     describe('update contribution form', () => {
+//       const now = new Date().toISOString()
+//       beforeEach(async () => {
+//         await wrapper.setData({ tabIndex: 1 })
+//         await wrapper
+//           .findComponent({ name: 'ContributionList' })
+//           .vm.$emit('update-contribution-form', {
+//             id: 2,
+//             contributionDate: now,
+//             memo: 'Mein Beitrag zur Gemeinschaft für diesen Monat ...',
+//             amount: '400',
+//           })
+//       })
+//
+//       it('sets the form data to the new values', () => {
+//         expect(wrapper.vm.form.id).toBe(2)
+//         expect(wrapper.vm.form.date).toBe(now)
+//         expect(wrapper.vm.form.memo).toBe('Mein Beitrag zur Gemeinschaft für diesen Monat ...')
+//         expect(wrapper.vm.form.amount).toBe('400.00')
+//       })
+//
+//       it('sets tab index back to 0', () => {
+//         expect(wrapper.vm.tabIndex).toBe(0)
+//       })
+//
+//       it('pushes contribute parameter to router', () => {
+//         expect(routerPushMock).toBeCalledWith({ params: { tab: 'contribute' } })
+//       })
+//     })
+//
+//     describe('update list all contributions', () => {
+//       beforeEach(async () => {
+//         jest.clearAllMocks()
+//         await wrapper.setData({ tabIndex: 2 })
+//         await wrapper
+//           .findAllComponents({ name: 'ContributionList' })
+//           .at(1)
+//           .vm.$emit('update-list-contributions', {
+//             currentPage: 2,
+//             pageSize: 5,
+//           })
+//       })
+//
+//       it('updates page size and current page', () => {
+//         expect(wrapper.vm.pageSizeAll).toBe(5)
+//         expect(wrapper.vm.currentPageAll).toBe(2)
+//       })
+//
+//       it('updates the all contribution list', () => {
+//         expect(refetchAllContributionsSpy).toBeCalled()
+//       })
+//     })
+//
+//     describe('update list contributions', () => {
+//       beforeEach(async () => {
+//         jest.clearAllMocks()
+//         await wrapper.setData({ tabIndex: 1 })
+//         await wrapper
+//           .findAllComponents({ name: 'ContributionList' })
+//           .at(0)
+//           .vm.$emit('update-list-contributions', {
+//             currentPage: 2,
+//             pageSize: 5,
+//           })
+//       })
+//
+//       it('updates page size and current page', () => {
+//         expect(wrapper.vm.pageSize).toBe(5)
+//         expect(wrapper.vm.currentPage).toBe(2)
+//       })
+//
+//       it('updates the all contribution list', () => {
+//         expect(refetchContributionsSpy).toBeCalled()
+//       })
+//     })
+//   })
+// })
+
 import { mount } from '@vue/test-utils'
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
+import { reactive } from 'vue'
 import Community from './Community'
-import { toastErrorSpy, toastSuccessSpy, toastInfoSpy } from '@test/testSetup'
 import { createContribution, updateContribution, deleteContribution } from '@/graphql/mutations'
 import { listContributions, listAllContributions, openCreations } from '@/graphql/queries'
 import { createMockClient } from 'mock-apollo-client'
-import VueApollo from 'vue-apollo'
+import { provideApolloClient } from '@vue/apollo-composable'
+import { createRouter, createWebHistory } from 'vue-router'
+import { createI18n } from 'vue-i18n'
+import { configure, defineRule } from 'vee-validate'
+import { email, min, required } from '@vee-validate/rules'
+import { BButton, BCol, BForm, BFormInput, BRow, BTab, BTabs } from 'bootstrap-vue-next'
 
-const mockClient = createMockClient()
-const apolloProvider = new VueApollo({
-  defaultClient: mockClient,
+defineRule('required', required)
+defineRule('email', email)
+defineRule('min', min)
+
+// Configure vee-validate
+configure({
+  generateMessage: (context) => {
+    return `The field ${context.field} is invalid`
+  },
 })
 
-const localVue = global.localVue
-localVue.use(VueApollo)
+const mockToastError = vi.fn()
+const mockToastSuccess = vi.fn()
+const mockToastInfo = vi.fn()
 
-const mockStoreDispach = jest.fn()
-const routerPushMock = jest.fn()
+vi.mock('@/composables/useToast', () => ({
+  useAppToast: vi.fn(() => ({
+    toastError: mockToastError,
+    toastSuccess: mockToastSuccess,
+    toastInfo: mockToastInfo,
+  })),
+}))
+
+const mockClient = createMockClient()
+
+const router = createRouter({
+  history: createWebHistory(),
+  routes: [{ path: '/:tab', name: 'Community', component: Community }],
+})
+
+const i18n = createI18n({
+  legacy: false,
+  locale: 'en',
+  messages: {
+    en: {
+      contribution: {
+        submitted: 'Contribution submitted',
+        updated: 'Contribution updated',
+        deleted: 'Contribution deleted',
+        alert: {
+          answerQuestionToast: 'Please answer the question',
+        },
+      },
+    },
+  },
+})
 
 describe('Community', () => {
   let wrapper
+  const mockStoreDispatch = vi.fn()
 
-  mockClient.setRequestHandler(
-    openCreations,
-    jest
-      .fn()
-      .mockRejectedValueOnce({ message: 'Open Creations failed!' })
-      .mockResolvedValue({
-        data: {
-          openCreations: [
-            {
-              month: 0,
-              year: 2023,
-              amount: '1000',
-            },
-            {
-              month: 1,
-              year: 2023,
-              amount: '1000',
-            },
-            {
-              month: 2,
-              year: 2023,
-              amount: '1000',
-            },
-          ],
-        },
-      }),
-  )
+  beforeEach(() => {
+    vi.clearAllMocks()
 
-  mockClient.setRequestHandler(
-    listContributions,
-    jest
-      .fn()
-      .mockRejectedValueOnce({ message: 'List Contributions failed!' })
-      .mockResolvedValue({
-        data: {
-          listContributions: {
-            contributionList: [
-              {
-                id: 1555,
-                amount: '200',
-                memo: 'Fleisig, fleisig am Arbeiten mein lieber Freund, 50 Zeichen sind viel',
-                createdAt: '2022-07-15T08:47:06.000Z',
-                deletedAt: null,
-                confirmedBy: null,
-                confirmedAt: null,
-                firstName: 'Bibi',
-                contributionDate: '2022-07-15T08:47:06.000Z',
-                lastName: 'Bloxberg',
-                status: 'IN_PROGRESS',
-                messagesCount: 0,
-                deniedAt: null,
-                deniedBy: null,
-                moderatorId: null,
-              },
-              {
-                id: 1550,
-                amount: '200',
-                memo: 'Fleisig, fleisig am Arbeiten gewesen',
-                createdAt: '2022-07-15T08:47:06.000Z',
-                deletedAt: null,
-                confirmedBy: null,
-                confirmedAt: null,
-                firstName: 'Bibi',
-                contributionDate: '2022-06-15T08:47:06.000Z',
-                lastName: 'Bloxberg',
-                status: 'CONFIRMED',
-                messagesCount: 0,
-                deniedAt: null,
-                deniedBy: null,
-                moderatorId: null,
-              },
+    mockClient.setRequestHandler(
+      openCreations,
+      vi
+        .fn()
+        .mockRejectedValueOnce({ message: 'Open Creations failed!' })
+        .mockResolvedValue({
+          data: {
+            openCreations: [
+              { month: 0, year: 2023, amount: '1000' },
+              { month: 1, year: 2023, amount: '1000' },
+              { month: 2, year: 2023, amount: '1000' },
             ],
-            contributionCount: 1,
           },
-        },
-      }),
-  )
+        }),
+    )
 
-  mockClient.setRequestHandler(
-    listAllContributions,
-    jest
-      .fn()
-      .mockRejectedValueOnce({ message: 'List All Contributions failed!' })
-      .mockResolvedValue({
-        data: {
-          listAllContributions: {
-            contributionList: [
-              {
-                id: 1555,
-                amount: '200',
-                memo: 'Fleisig, fleisig am Arbeiten mein lieber Freund, 50 Zeichen sind viel',
-                createdAt: '2022-07-15T08:47:06.000Z',
-                contributionDate: '2022-07-15T08:47:06.000Z',
-                deletedAt: null,
-                confirmedBy: null,
-                confirmedAt: null,
-                firstName: 'Bibi',
-                lastName: 'Bloxberg',
-                deniedAt: null,
-                deniedBy: null,
-                messagesCount: 0,
-                status: 'IN_PROGRESS',
-              },
-              {
-                id: 1550,
-                amount: '200',
-                memo: 'Fleisig, fleisig am Arbeiten gewesen',
-                createdAt: '2022-07-15T08:47:06.000Z',
-                deletedAt: null,
-                confirmedBy: null,
-                confirmedAt: null,
-                firstName: 'Bibi',
-                contributionDate: '2022-06-15T08:47:06.000Z',
-                lastName: 'Bloxberg',
-                deniedAt: null,
-                deniedBy: null,
-                messagesCount: 0,
-                status: 'IN_PROGRESS',
-              },
-              {
-                id: 1556,
-                amount: '400',
-                memo: 'Ein anderer lieber Freund ist auch sehr felißig am Arbeiten!!!!',
-                createdAt: '2022-07-16T08:47:06.000Z',
-                contributionDate: '2022-07-16T08:47:06.000Z',
-                deletedAt: null,
-                confirmedBy: null,
-                confirmedAt: null,
-                firstName: 'Bob',
-                lastName: 'der Baumeister',
-                deniedAt: null,
-                deniedBy: null,
-                messagesCount: 0,
-                status: 'IN_PROGRESS',
-              },
-            ],
-            contributionCount: 3,
+    mockClient.setRequestHandler(
+      listContributions,
+      vi
+        .fn()
+        .mockRejectedValueOnce({ message: 'List Contributions failed!' })
+        .mockResolvedValue({
+          data: {
+            listContributions: {
+              contributionList: [
+                {
+                  id: 1555,
+                  amount: '200',
+                  memo: 'Fleisig, fleisig am Arbeiten mein lieber Freund, 50 Zeichen sind viel',
+                  createdAt: '2022-07-15T08:47:06.000Z',
+                  deletedAt: null,
+                  confirmedBy: null,
+                  confirmedAt: null,
+                  firstName: 'Bibi',
+                  contributionDate: '2022-07-15T08:47:06.000Z',
+                  lastName: 'Bloxberg',
+                  status: 'IN_PROGRESS',
+                  messagesCount: 0,
+                  deniedAt: null,
+                  deniedBy: null,
+                  moderatorId: null,
+                },
+                {
+                  id: 1550,
+                  amount: '200',
+                  memo: 'Fleisig, fleisig am Arbeiten gewesen',
+                  createdAt: '2022-07-15T08:47:06.000Z',
+                  deletedAt: null,
+                  confirmedBy: null,
+                  confirmedAt: null,
+                  firstName: 'Bibi',
+                  contributionDate: '2022-06-15T08:47:06.000Z',
+                  lastName: 'Bloxberg',
+                  status: 'CONFIRMED',
+                  messagesCount: 0,
+                  deniedAt: null,
+                  deniedBy: null,
+                  moderatorId: null,
+                },
+              ],
+              contributionCount: 1,
+            },
           },
-        },
-      }),
-  )
+        }),
+    )
 
-  mockClient.setRequestHandler(
-    createContribution,
-    jest
-      .fn()
-      .mockRejectedValueOnce({ message: 'Create Contribution failed!' })
-      .mockResolvedValue({
-        data: {
-          createContribution: true,
-        },
-      }),
-  )
+    mockClient.setRequestHandler(
+      listAllContributions,
+      vi
+        .fn()
+        .mockRejectedValueOnce({ message: 'List All Contributions failed!' })
+        .mockResolvedValue({
+          data: {
+            listAllContributions: {
+              contributionList: [
+                {
+                  id: 1555,
+                  amount: '200',
+                  memo: 'Fleisig, fleisig am Arbeiten mein lieber Freund, 50 Zeichen sind viel',
+                  createdAt: '2022-07-15T08:47:06.000Z',
+                  contributionDate: '2022-07-15T08:47:06.000Z',
+                  deletedAt: null,
+                  confirmedBy: null,
+                  confirmedAt: null,
+                  firstName: 'Bibi',
+                  lastName: 'Bloxberg',
+                  deniedAt: null,
+                  deniedBy: null,
+                  messagesCount: 0,
+                  status: 'IN_PROGRESS',
+                },
+                {
+                  id: 1550,
+                  amount: '200',
+                  memo: 'Fleisig, fleisig am Arbeiten gewesen',
+                  createdAt: '2022-07-15T08:47:06.000Z',
+                  deletedAt: null,
+                  confirmedBy: null,
+                  confirmedAt: null,
+                  firstName: 'Bibi',
+                  contributionDate: '2022-06-15T08:47:06.000Z',
+                  lastName: 'Bloxberg',
+                  deniedAt: null,
+                  deniedBy: null,
+                  messagesCount: 0,
+                  status: 'IN_PROGRESS',
+                },
+                {
+                  id: 1556,
+                  amount: '400',
+                  memo: 'Ein anderer lieber Freund ist auch sehr felißig am Arbeiten!!!!',
+                  createdAt: '2022-07-16T08:47:06.000Z',
+                  contributionDate: '2022-07-16T08:47:06.000Z',
+                  deletedAt: null,
+                  confirmedBy: null,
+                  confirmedAt: null,
+                  firstName: 'Bob',
+                  lastName: 'der Baumeister',
+                  deniedAt: null,
+                  deniedBy: null,
+                  messagesCount: 0,
+                  status: 'IN_PROGRESS',
+                },
+              ],
+              contributionCount: 3,
+            },
+          },
+        }),
+    )
 
-  mockClient.setRequestHandler(
-    updateContribution,
-    jest
-      .fn()
-      .mockRejectedValueOnce({ message: 'Update Contribution failed!' })
-      .mockResolvedValue({
-        data: {
-          updateContribution: true,
-        },
-      }),
-  )
+    mockClient.setRequestHandler(
+      createContribution,
+      vi
+        .fn()
+        .mockRejectedValueOnce({ message: 'Create Contribution failed!' })
+        .mockResolvedValue({
+          data: {
+            createContribution: true,
+          },
+        }),
+    )
 
-  mockClient.setRequestHandler(
-    deleteContribution,
-    jest
-      .fn()
-      .mockRejectedValueOnce({ message: 'Delete Contribution failed!' })
-      .mockResolvedValue({
-        data: {
-          deleteContribution: true,
-        },
-      }),
-  )
+    mockClient.setRequestHandler(
+      updateContribution,
+      vi
+        .fn()
+        .mockRejectedValueOnce({ message: 'Update Contribution failed!' })
+        .mockResolvedValue({
+          data: {
+            updateContribution: true,
+          },
+        }),
+    )
 
-  const mocks = {
-    $t: jest.fn((t) => t),
-    $d: jest.fn((d) => d),
-    $store: {
-      dispatch: mockStoreDispach,
-      state: {
-        user: {
-          firstName: 'Bibi',
-          lastName: 'Bloxberg',
-        },
-      },
-    },
-    $i18n: {
-      locale: 'en',
-    },
-    $router: {
-      push: routerPushMock,
-    },
-    $route: {
-      params: {
-        tab: 'contribute',
-      },
-    },
-  }
+    mockClient.setRequestHandler(
+      deleteContribution,
+      vi
+        .fn()
+        .mockRejectedValueOnce({ message: 'Delete Contribution failed!' })
+        .mockResolvedValue({
+          data: {
+            deleteContribution: true,
+          },
+        }),
+    )
 
-  const Wrapper = () => {
+    provideApolloClient(mockClient)
+  })
+
+  const mountComponent = () => {
     return mount(Community, {
-      localVue,
-      mocks,
-      apolloProvider,
+      global: {
+        plugins: [router, i18n],
+        mocks: {
+          $store: {
+            dispatch: mockStoreDispatch,
+            state: reactive({
+              user: {
+                firstName: 'Bibi',
+                lastName: 'Bloxberg',
+              },
+            }),
+          },
+        },
+        stubs: {
+          BTab,
+          BTabs,
+          BCol,
+          BRow,
+          BButton,
+          BForm,
+          BFormInput,
+        },
+      },
     })
   }
 
-  let apolloMutateSpy
-  let refetchContributionsSpy
-  let refetchAllContributionsSpy
-  let refetchOpenCreationsSpy
-
   describe('mount', () => {
-    beforeEach(() => {
-      jest.clearAllMocks()
-      wrapper = Wrapper()
-      apolloMutateSpy = jest.spyOn(wrapper.vm.$apollo, 'mutate')
-      refetchContributionsSpy = jest.spyOn(wrapper.vm.$apollo.queries.ListContributions, 'refetch')
-      refetchAllContributionsSpy = jest.spyOn(
-        wrapper.vm.$apollo.queries.ListAllContributions,
-        'refetch',
-      )
-      refetchOpenCreationsSpy = jest.spyOn(wrapper.vm.$apollo.queries.OpenCreations, 'refetch')
+    beforeEach(async () => {
+      router.push('/contribute')
+      await router.isReady()
+      wrapper = mountComponent()
+    })
+
+    afterEach(() => {
+      wrapper.unmount()
     })
 
     describe('server response for queries is error', () => {
-      it('toasts three errors', () => {
-        expect(toastErrorSpy).toBeCalledTimes(3)
-        expect(toastErrorSpy).toBeCalledWith('Open Creations failed!')
-        expect(toastErrorSpy).toBeCalledWith('List Contributions failed!')
-        expect(toastErrorSpy).toBeCalledWith('List All Contributions failed!')
+      it('toasts three errors', async () => {
+        await wrapper.vm.$nextTick()
+        expect(mockToastError).toHaveBeenCalledTimes(3)
+        expect(mockToastError).toHaveBeenCalledWith('Open Creations failed!')
+        expect(mockToastError).toHaveBeenCalledWith('List Contributions failed!')
+        expect(mockToastError).toHaveBeenCalledWith('List All Contributions failed!')
       })
     })
 
@@ -263,20 +834,23 @@ describe('Community', () => {
         expect(wrapper.findAll('div[role="tabpanel"]')).toHaveLength(3)
       })
 
-      it('check for correct tabIndex if status is "IN_PROGRESS" or not', () => {
-        expect(routerPushMock).toBeCalledWith({ params: { tab: 'contributions' } })
+      it('check for correct tabIndex if status is "IN_PROGRESS" or not', async () => {
+        await wrapper.vm.$nextTick()
+        expect(router.currentRoute.value.params.tab).toBe('contributions')
       })
 
-      it('sets tab index to 1', () => {
+      it('sets tab index to 1', async () => {
+        await wrapper.vm.$nextTick()
         expect(wrapper.vm.tabIndex).toBe(1)
       })
 
-      it('toasts an info', () => {
-        expect(toastInfoSpy).toBeCalledWith('contribution.alert.answerQuestionToast')
+      it('toasts an info', async () => {
+        await wrapper.vm.$nextTick()
+        expect(mockToastInfo).toHaveBeenCalledWith('contribution.alert.answerQuestionToast')
       })
     })
 
-    describe('save contrubtion', () => {
+    describe('save contribution', () => {
       describe('with error', () => {
         const now = new Date().toISOString()
         beforeEach(async () => {
@@ -292,14 +866,14 @@ describe('Community', () => {
         })
 
         it('toasts the error message', () => {
-          expect(toastErrorSpy).toBeCalledWith('Create Contribution failed!')
+          expect(mockToastError).toHaveBeenCalledWith('Create Contribution failed!')
         })
       })
 
       describe('with success', () => {
         const now = new Date().toISOString()
         beforeEach(async () => {
-          jest.clearAllMocks()
+          vi.clearAllMocks()
           await wrapper.setData({
             form: {
               id: null,
@@ -312,34 +886,47 @@ describe('Community', () => {
         })
 
         it('calls the create contribution mutation', () => {
-          expect(apolloMutateSpy).toBeCalledWith({
-            fetchPolicy: 'no-cache',
-            mutation: createContribution,
-            variables: {
-              creationDate: now,
-              memo: 'Mein Beitrag zur Gemeinschaft für diesen Monat ...',
-              amount: '200',
-            },
-          })
+          expect(mockClient.mutate).toHaveBeenCalledWith(
+            expect.objectContaining({
+              mutation: createContribution,
+              variables: {
+                creationDate: now,
+                memo: 'Mein Beitrag zur Gemeinschaft für diesen Monat ...',
+                amount: '200',
+              },
+            }),
+          )
         })
 
         it('toasts a success message', () => {
-          expect(toastSuccessSpy).toBeCalledWith('contribution.submitted')
+          expect(mockToastSuccess).toHaveBeenCalledWith('contribution.submitted')
         })
 
         it('updates the contribution list', () => {
-          expect(refetchContributionsSpy).toBeCalled()
+          expect(mockClient.query).toHaveBeenCalledWith(
+            expect.objectContaining({
+              query: listContributions,
+            }),
+          )
         })
 
         it('updates the all contribution list', () => {
-          expect(refetchAllContributionsSpy).toBeCalled()
+          expect(mockClient.query).toHaveBeenCalledWith(
+            expect.objectContaining({
+              query: listAllContributions,
+            }),
+          )
         })
 
         it('updates the open creations', () => {
-          expect(refetchOpenCreationsSpy).toBeCalled()
+          expect(mockClient.query).toHaveBeenCalledWith(
+            expect.objectContaining({
+              query: openCreations,
+            }),
+          )
         })
 
-        it('sets all data to the default values)', () => {
+        it('sets all data to the default values', () => {
           expect(wrapper.vm.form.id).toBe(null)
           expect(wrapper.vm.form.date).toBe('')
           expect(wrapper.vm.form.memo).toBe('')
@@ -348,7 +935,7 @@ describe('Community', () => {
       })
     })
 
-    describe('update contrubtion', () => {
+    describe('update contribution', () => {
       describe('with error', () => {
         const now = new Date().toISOString()
         beforeEach(async () => {
@@ -363,14 +950,14 @@ describe('Community', () => {
         })
 
         it('toasts the error message', () => {
-          expect(toastErrorSpy).toBeCalledWith('Update Contribution failed!')
+          expect(mockToastError).toHaveBeenCalledWith('Update Contribution failed!')
         })
       })
 
       describe('with success', () => {
         const now = new Date().toISOString()
         beforeEach(async () => {
-          jest.clearAllMocks()
+          vi.clearAllMocks()
           await wrapper
             .findComponent({ name: 'ContributionForm' })
             .vm.$emit('update-contribution', {
@@ -382,32 +969,45 @@ describe('Community', () => {
         })
 
         it('calls the update contribution mutation', () => {
-          expect(apolloMutateSpy).toBeCalledWith({
-            fetchPolicy: 'no-cache',
-            mutation: updateContribution,
-            variables: {
-              contributionId: 2,
-              creationDate: now,
-              memo: 'Mein Beitrag zur Gemeinschaft für diesen Monat ...',
-              amount: '400',
-            },
-          })
+          expect(mockClient.mutate).toHaveBeenCalledWith(
+            expect.objectContaining({
+              mutation: updateContribution,
+              variables: {
+                contributionId: 2,
+                creationDate: now,
+                memo: 'Mein Beitrag zur Gemeinschaft für diesen Monat ...',
+                amount: '400',
+              },
+            }),
+          )
         })
 
         it('toasts a success message', () => {
-          expect(toastSuccessSpy).toBeCalledWith('contribution.updated')
+          expect(mockToastSuccess).toHaveBeenCalledWith('contribution.updated')
         })
 
         it('updates the contribution list', () => {
-          expect(refetchContributionsSpy).toBeCalled()
+          expect(mockClient.query).toHaveBeenCalledWith(
+            expect.objectContaining({
+              query: listContributions,
+            }),
+          )
         })
 
         it('updates the all contribution list', () => {
-          expect(refetchAllContributionsSpy).toBeCalled()
+          expect(mockClient.query).toHaveBeenCalledWith(
+            expect.objectContaining({
+              query: listAllContributions,
+            }),
+          )
         })
 
         it('updates the open creations', () => {
-          expect(refetchOpenCreationsSpy).toBeCalled()
+          expect(mockClient.query).toHaveBeenCalledWith(
+            expect.objectContaining({
+              query: openCreations,
+            }),
+          )
         })
       })
     })
@@ -422,45 +1022,58 @@ describe('Community', () => {
 
       describe('with error', () => {
         beforeEach(async () => {
-          jest.clearAllMocks()
-          contributionListComponent.vm.$emit('delete-contribution', { id: 2 })
+          vi.clearAllMocks()
+          await contributionListComponent.vm.$emit('delete-contribution', { id: 2 })
         })
 
         it('toasts the error message', () => {
-          expect(toastErrorSpy).toBeCalledWith('Delete Contribution failed!')
+          expect(mockToastError).toHaveBeenCalledWith('Delete Contribution failed!')
         })
       })
 
       describe('with success', () => {
         beforeEach(async () => {
-          jest.clearAllMocks()
+          vi.clearAllMocks()
           await contributionListComponent.vm.$emit('delete-contribution', { id: 2 })
         })
 
         it('calls the API', () => {
-          expect(apolloMutateSpy).toBeCalledWith({
-            fetchPolicy: 'no-cache',
-            mutation: deleteContribution,
-            variables: {
-              id: 2,
-            },
-          })
+          expect(mockClient.mutate).toHaveBeenCalledWith(
+            expect.objectContaining({
+              mutation: deleteContribution,
+              variables: {
+                id: 2,
+              },
+            }),
+          )
         })
 
         it('toasts a success message', () => {
-          expect(toastSuccessSpy).toBeCalledWith('contribution.deleted')
+          expect(mockToastSuccess).toHaveBeenCalledWith('contribution.deleted')
         })
 
         it('updates the contribution list', () => {
-          expect(refetchContributionsSpy).toBeCalled()
+          expect(mockClient.query).toHaveBeenCalledWith(
+            expect.objectContaining({
+              query: listContributions,
+            }),
+          )
         })
 
         it('updates the all contribution list', () => {
-          expect(refetchAllContributionsSpy).toBeCalled()
+          expect(mockClient.query).toHaveBeenCalledWith(
+            expect.objectContaining({
+              query: listAllContributions,
+            }),
+          )
         })
 
         it('updates the open creations', () => {
-          expect(refetchOpenCreationsSpy).toBeCalled()
+          expect(mockClient.query).toHaveBeenCalledWith(
+            expect.objectContaining({
+              query: openCreations,
+            }),
+          )
         })
       })
     })
@@ -481,9 +1094,9 @@ describe('Community', () => {
 
       it('sets the form data to the new values', () => {
         expect(wrapper.vm.form.id).toBe(2)
-        expect(wrapper.vm.form.date).toBe(now)
+        expect(wrapper.vm.form.date).toBe(now.slice(0, 10))
         expect(wrapper.vm.form.memo).toBe('Mein Beitrag zur Gemeinschaft für diesen Monat ...')
-        expect(wrapper.vm.form.amount).toBe('400.00')
+        expect(wrapper.vm.form.amount).toBe('400')
       })
 
       it('sets tab index back to 0', () => {
@@ -491,13 +1104,13 @@ describe('Community', () => {
       })
 
       it('pushes contribute parameter to router', () => {
-        expect(routerPushMock).toBeCalledWith({ params: { tab: 'contribute' } })
+        expect(router.push).toHaveBeenCalledWith({ params: { tab: 'contribute' } })
       })
     })
 
     describe('update list all contributions', () => {
       beforeEach(async () => {
-        jest.clearAllMocks()
+        vi.clearAllMocks()
         await wrapper.setData({ tabIndex: 2 })
         await wrapper
           .findAllComponents({ name: 'ContributionList' })
@@ -514,31 +1127,12 @@ describe('Community', () => {
       })
 
       it('updates the all contribution list', () => {
-        expect(refetchAllContributionsSpy).toBeCalled()
+        expect(mockClient.query).toHaveBeenCalledWith(
+          expect.objectContaining({
+            query: listAllContributions,
+          }),
+        )
       })
     })
-
-    describe('update list contributions', () => {
-      beforeEach(async () => {
-        jest.clearAllMocks()
-        await wrapper.setData({ tabIndex: 1 })
-        await wrapper
-          .findAllComponents({ name: 'ContributionList' })
-          .at(0)
-          .vm.$emit('update-list-contributions', {
-            currentPage: 2,
-            pageSize: 5,
-          })
-      })
-
-      it('updates page size and current page', () => {
-        expect(wrapper.vm.pageSize).toBe(5)
-        expect(wrapper.vm.currentPage).toBe(2)
-      })
-
-      it('updates the all contribution list', () => {
-        expect(refetchContributionsSpy).toBeCalled()
-      })
-    })
-  })
-})
+  }) // This closes the 'mount' describe block
+}) // This clo

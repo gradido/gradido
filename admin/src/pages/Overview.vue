@@ -1,24 +1,10 @@
 <template>
   <div class="admin-overview">
     <BCard
-      v-show="openCreations > 0"
-      border-variant="primary"
-      :header="$t('open_creations')"
-      header-bg-variant="danger"
-      header-text-variant="white"
-      align="center"
-    >
-      <BCardText>
-        <BLink to="creation-confirm">
-          <h1>{{ openCreations }}</h1>
-        </BLink>
-      </BCardText>
-    </BCard>
-    <BCard
-      v-show="openCreations < 1"
-      border-variant="success"
-      :header="$t('not_open_creations')"
-      header-bg-variant="success"
+      data-test="open-creations-card"
+      :border-variant="borderVariant"
+      :header="creationsHeader"
+      :header-bg-variant="variant"
       header-text-variant="white"
       align="center"
     >
@@ -37,10 +23,13 @@ import { useStore } from 'vuex'
 import { useQuery } from '@vue/apollo-composable'
 import { BCard, BCardText, BLink } from 'bootstrap-vue-next'
 import { useAppToast } from '@/composables/useToast'
+import { useI18n } from 'vue-i18n'
 
 const store = useStore()
 
 const statusFilter = ref(['IN_PROGRESS', 'PENDING'])
+
+const { t } = useI18n()
 
 const { toastError } = useAppToast()
 
@@ -50,7 +39,7 @@ const { result, onResult, onError } = useQuery(adminListContributions, {
 })
 
 onResult(({ data }) => {
-  store.commit('setOpenCreations', data.adminListContributions.contributionCount)
+  store.commit('setOpenCreations', data?.adminListContributions.contributionCount)
 })
 
 onError((error) => {
@@ -58,4 +47,9 @@ onError((error) => {
 })
 
 const openCreations = computed(() => result.value?.adminListContributions.contributionCount || 0)
+const creationsHeader = computed(() =>
+  openCreations.value < 1 ? t('not_open_creations') : t('open_creations'),
+)
+const variant = computed(() => (openCreations.value < 1 ? 'danger' : 'success'))
+const borderVariant = computed(() => (openCreations.value < 1 ? 'primary' : 'success'))
 </script>

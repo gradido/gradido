@@ -1,39 +1,49 @@
 import { mount } from '@vue/test-utils'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import OpenCreationsAmount from './OpenCreationsAmount'
+import { BCol, BRow } from 'bootstrap-vue-next'
 
-const localVue = global.localVue
+const mockT = vi.fn((key) => key)
+const mockD = vi.fn((date, formatter = null) => ({ date, formatter }))
+
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({
+    t: mockT,
+    d: mockD,
+  }),
+}))
 
 describe('OpenCreationsAmount', () => {
   let wrapper
 
-  const mocks = {
-    $t: jest.fn((t) => t),
-    $d: jest.fn((date, formatter = null) => {
-      return { date, formatter }
-    }),
-  }
-
   const thisMonth = new Date()
   const lastMonth = new Date(thisMonth.getFullYear(), thisMonth.getMonth() - 1)
 
-  const propsData = {
-    minimalDate: lastMonth,
-    maxGddLastMonth: 400,
-    maxGddThisMonth: 600,
-  }
-
-  const Wrapper = () => {
+  const createWrapper = (props = {}) => {
     return mount(OpenCreationsAmount, {
-      localVue,
-      mocks,
-      propsData,
+      global: {
+        components: {
+          BRow,
+          BCol,
+        },
+        mocks: {
+          $t: mockT,
+          $d: mockD,
+        },
+      },
+      props: {
+        minimalDate: lastMonth,
+        maxGddLastMonth: 400,
+        maxGddThisMonth: 600,
+        ...props,
+      },
     })
   }
 
   describe('mount', () => {
     beforeEach(() => {
-      jest.clearAllMocks()
-      wrapper = Wrapper()
+      vi.clearAllMocks()
+      wrapper = createWrapper()
     })
 
     it('renders the component', () => {
@@ -41,62 +51,72 @@ describe('OpenCreationsAmount', () => {
     })
 
     it('renders two dates', () => {
-      expect(mocks.$d).toBeCalledTimes(2)
+      expect(mockD).toHaveBeenCalledTimes(2)
     })
 
     it('renders the date of last month', () => {
-      expect(mocks.$d).toBeCalledWith(lastMonth, 'monthAndYear')
+      expect(mockD).toHaveBeenCalledWith(lastMonth, 'monthAndYear')
     })
 
     it('renders the date of this month', () => {
-      expect(mocks.$d).toBeCalledWith(expect.any(Date), 'monthAndYear')
+      expect(mockD).toHaveBeenCalledWith(expect.any(Date), 'monthAndYear')
     })
 
     describe('open creations for both months', () => {
       it('renders submitted contributions text', () => {
-        expect(mocks.$t).toBeCalledWith('contribution.submit')
+        const statusElements = wrapper.findAll('.fw-bold .d-none.d-md-inline:not(.text-gold)')
+        expect(statusElements.at(0).text()).toBe('contribution.submit')
+        expect(statusElements.at(1).text()).toBe('contribution.submit')
       })
 
       it('does not render max reached text', () => {
-        expect(mocks.$t).not.toBeCalledWith('maxReached')
+        expect(wrapper.text()).not.toContain('maxReached')
       })
 
       it('renders submitted hours last month', () => {
-        expect(wrapper.findAll('div.row').at(1).findAll('div.col').at(2).text()).toBe('30 h')
+        const submittedHours = wrapper.findAll('.fw-bold .text-gold').at(0)
+        expect(submittedHours.text()).toBe('30 h')
       })
 
       it('renders available hours last month', () => {
-        expect(wrapper.findAll('div.row').at(1).findAll('div.col').at(3).text()).toBe('20 h')
+        const availableHours = wrapper.findAll('.fw-bold .text-green').at(0)
+        expect(availableHours.text()).toBe('20 h')
       })
 
       it('renders submitted hours this month', () => {
-        expect(wrapper.findAll('div.row').at(2).findAll('div.col').at(2).text()).toBe('20 h')
+        const submittedHours = wrapper.findAll('.fw-bold .text-gold').at(1)
+        expect(submittedHours.text()).toBe('20 h')
       })
 
       it('renders available hours this month', () => {
-        expect(wrapper.findAll('div.row').at(2).findAll('div.col').at(3).text()).toBe('30 h')
+        const availableHours = wrapper.findAll('.fw-bold .text-green').at(1)
+        expect(availableHours.text()).toBe('30 h')
       })
     })
 
     describe('no creations available for last month', () => {
       beforeEach(() => {
-        wrapper.setProps({ maxGddLastMonth: 0 })
+        wrapper = createWrapper({ maxGddLastMonth: 0 })
       })
 
-      it('renders submitted contributions text', () => {
-        expect(mocks.$t).toBeCalledWith('contribution.submit')
+      it('renders submitted contributions text for this month', () => {
+        const statusElements = wrapper.findAll('.fw-bold .d-none.d-md-inline:not(.text-gold)')
+        expect(statusElements.at(1).text()).toBe('contribution.submit')
       })
 
-      it('renders max reached text', () => {
-        expect(mocks.$t).toBeCalledWith('maxReached')
+      it('renders max reached text for last month', () => {
+        const statusElements = wrapper.findAll('.fw-bold .d-none.d-md-inline')
+        expect(statusElements.at(0).text()).toBe('maxReached')
       })
 
       it('renders submitted hours last month', () => {
-        expect(wrapper.findAll('div.row').at(1).findAll('div.col').at(2).text()).toBe('50 h')
+        const submittedHours = wrapper.findAll('.fw-bold .text-gold').at(0)
+        expect(submittedHours.text()).toBe('50 h')
       })
 
       it('renders available hours last month', () => {
-        expect(wrapper.findAll('div.row').at(1).findAll('div.col').at(3).text()).toBe('0 h')
+        const availableHours = wrapper.findAll('.fw-bold .text-green').at(0)
+        expect(availableHours.text()).toBe('0 h')
       })
     })
   })

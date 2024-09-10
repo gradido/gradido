@@ -3,6 +3,7 @@ import { createApp } from 'vue'
 import { vi } from 'vitest'
 
 import { createI18n } from 'vue-i18n'
+import { createBootstrap } from 'bootstrap-vue-next'
 
 const mockToastSuccess = vi.fn()
 const mockToastError = vi.fn()
@@ -30,6 +31,7 @@ const i18n = createI18n({
 const app = createApp({})
 
 app.use(i18n)
+app.use(createBootstrap())
 
 config.global.plugins = [i18n]
 

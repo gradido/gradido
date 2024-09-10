@@ -290,13 +290,6 @@ watch(
       return { ...item, _showDetails: false }
     })
   },
+  { immediate: true },
 )
-
-onMounted(() => {
-  setTimeout(() => {
-    myItems.value = props.items.map((item) => {
-      return { ...item, _showDetails: false }
-    })
-  }, 500)
-})
 </script>

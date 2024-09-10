@@ -42,8 +42,7 @@
             <b>{{ $t('statistic.totalGradidoCreated') }}</b>
           </BTd>
           <BTd class="text-end">
-            <!--            {{ $n(props.statistics.totalGradidoCreated, 'decimal') }} {{ $t('GDD') }}-->
-            4500
+            {{ getDecimal(props.statistics.totalGradidoCreated) }} {{ $t('GDD') }}
           </BTd>
           <BTd class="text-end">
             {{ props.statistics.totalGradidoCreated }}
@@ -54,7 +53,7 @@
             <b>{{ $t('statistic.totalGradidoDecayed') }}</b>
           </BTd>
           <BTd class="text-end">
-            {{ $n(parseFloat(props.statistics.totalGradidoDecayed), 'decimal') }} {{ $t('GDD') }}
+            {{ getDecimal(props.statistics.totalGradidoDecayed) }} {{ $t('GDD') }}
           </BTd>
           <BTd class="text-end">{{ props.statistics.totalGradidoDecayed }}</BTd>
         </BTr>
@@ -63,7 +62,7 @@
             <b>{{ $t('statistic.totalGradidoAvailable') }}</b>
           </BTd>
           <BTd class="text-end">
-            {{ $n(parseFloat(props.statistics.totalGradidoAvailable), 'decimal') }} {{ $t('GDD') }}
+            {{ getDecimal(props.statistics.totalGradidoAvailable) }} {{ $t('GDD') }}
           </BTd>
           <BTd class="text-end">
             {{ props.statistics.totalGradidoAvailable }}
@@ -74,7 +73,7 @@
             <b>{{ $t('statistic.totalGradidoUnbookedDecayed') }}</b>
           </BTd>
           <BTd class="text-end">
-            {{ $n(parseFloat(props.statistics.totalGradidoUnbookedDecayed), 'decimal') }}
+            {{ getDecimal(props.statistics.totalGradidoUnbookedDecayed) }}
             {{ $t('GDD') }}
           </BTd>
           <BTd class="text-end">{{ props.statistics.totalGradidoUnbookedDecayed }}</BTd>
@@ -92,4 +91,6 @@ const props = defineProps({
     required: true,
   },
 })
+
+const getDecimal = (toBeParsed) => parseFloat(toBeParsed).toFixed(2)
 </script>

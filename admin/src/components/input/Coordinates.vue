@@ -1,39 +1,39 @@
 <template>
   <div>
-    <b-form-group
+    <BFormGroup
       :label="$t('geo-coordinates.label')"
       :invalid-feedback="$t('geo-coordinates.both-or-none')"
       :state="isValid"
     >
-      <b-form-group
+      <BFormGroup
         :label="$t('latitude-longitude-smart')"
         label-for="home-community-latitude-longitude-smart"
         :description="$t('geo-coordinates.latitude-longitude-smart.describe')"
       >
-        <b-form-input
+        <BFormInput
           id="home-community-latitude-longitude-smart"
           v-model="locationString"
           type="text"
           @input="splitCoordinates"
         />
-      </b-form-group>
-      <b-form-group :label="$t('latitude')" label-for="home-community-latitude">
-        <b-form-input
+      </BFormGroup>
+      <BFormGroup :label="$t('latitude')" label-for="home-community-latitude">
+        <BFormInput
           id="home-community-latitude"
           v-model="inputValue.latitude"
           type="text"
           @input="valueUpdated"
         />
-      </b-form-group>
-      <b-form-group :label="$t('longitude')" label-for="home-community-longitude">
-        <b-form-input
+      </BFormGroup>
+      <BFormGroup :label="$t('longitude')" label-for="home-community-longitude">
+        <BFormInput
           id="home-community-longitude"
           v-model="inputValue.longitude"
           type="text"
           @input="valueUpdated"
         />
-      </b-form-group>
-    </b-form-group>
+      </BFormGroup>
+    </BFormGroup>
   </div>
 </template>
 
@@ -69,7 +69,7 @@ export default {
   methods: {
     splitCoordinates(value) {
       // default format for geo-coordinates: 'latitude, longitude'
-      const parts = value.split(',').map((part) => part.trim())
+      const parts = this.locationString.split(',').map((part) => part.trim())
 
       if (parts.length === 2) {
         const [lat, lon] = parts
@@ -96,7 +96,7 @@ export default {
     getLatitudeLongitudeString({ latitude, longitude } = {}) {
       return latitude && longitude ? this.$t('geo-coordinates.format', { latitude, longitude }) : ''
     },
-    valueUpdated(value) {
+    valueUpdated() {
       this.locationString = this.getLatitudeLongitudeString(this.inputValue)
       this.inputValue = this.sanitizeLocation(this.inputValue)
 

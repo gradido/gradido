@@ -165,6 +165,7 @@ const combineResubmissionDateAndTime = () => {
 
 const onSubmit = () => {
   loading.value = true
+  console.log('sdcsopidnc')
   let mutation
   let updateOnlyResubmissionAt = false
   const resubmissionAtDate = showResubmissionDate.value ? combineResubmissionDateAndTime() : null

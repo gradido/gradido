@@ -344,7 +344,9 @@ onError((error) => {
 onResult(() => {
   rows.value = result.value.adminListContributions.contributionCount
   items.value = result.value.adminListContributions.contributionList
+  console.log(rows.value)
   if (statusFilter.value.toString() === FILTER_TAB_MAP[0].toString()) {
+    console.log(result.value.adminListContributions.contributionCount)
     store.commit('setOpenCreations', result.value.adminListContributions.contributionCount)
   }
 })

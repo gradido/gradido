@@ -174,11 +174,9 @@ const toggleDetails = () => {
 const handleUpdateHomeCommunity = async () => {
   try {
     await updateHomeCommunityMutation({
-      variables: {
-        uuid: item.value.uuid,
-        gmsApiKey: gmsApiKey.value,
-        location: location.value,
-      },
+      uuid: item.value.uuid,
+      gmsApiKey: gmsApiKey.value,
+      location: location.value,
     })
 
     if (isLocationChanged.value && isGMSApiKeyChanged.value) {
