@@ -1,111 +1,130 @@
 import { mount } from '@vue/test-utils'
-import ContributionMessagesFormular from './ContributionMessagesFormular'
-import { toastErrorSpy, toastSuccessSpy } from '../../../test/testSetup'
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
+import ContributionMessagesFormular from './ContributionMessagesFormular.vue'
+import { nextTick } from 'vue'
+import { BButton, BCol, BForm, BFormTextarea, BRow } from 'bootstrap-vue-next'
 
-const localVue = global.localVue
+// Mocks
+const mockMutate = vi.fn()
+vi.mock('@vue/apollo-composable', () => ({
+  useMutation: () => ({
+    mutate: mockMutate,
+  }),
+}))
 
-const apolloMutateMock = jest.fn().mockResolvedValue()
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({
+    t: (key) => key,
+  }),
+}))
+
+const mockToastSuccess = vi.fn()
+const mockToastError = vi.fn()
+vi.mock('@/composables/useToast', () => ({
+  useAppToast: () => ({
+    toastSuccess: mockToastSuccess,
+    toastError: mockToastError,
+  }),
+}))
 
 describe('ContributionMessagesFormular', () => {
   let wrapper
 
-  const propsData = {
-    contributionId: 42,
-  }
-
-  const mocks = {
-    $t: jest.fn((t) => t),
-    $apollo: {
-      mutate: apolloMutateMock,
-    },
-    $i18n: {
-      locale: 'en',
-    },
-  }
-
-  const Wrapper = () => {
+  const createWrapper = (props = {}) => {
     return mount(ContributionMessagesFormular, {
-      localVue,
-      mocks,
-      propsData,
+      props: {
+        contributionId: 42,
+        ...props,
+      },
+      global: {
+        components: {
+          BForm,
+          BFormTextarea,
+          BRow,
+          BCol,
+          BButton,
+        },
+        mocks: {
+          $t: (msg) => msg,
+        },
+      },
     })
   }
 
-  describe('mount', () => {
-    beforeEach(() => {
-      wrapper = Wrapper()
+  beforeEach(() => {
+    mockMutate.mockResolvedValue({})
+    wrapper = createWrapper()
+  })
+
+  afterEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('renders the component', () => {
+    expect(wrapper.find('.contribution-messages-formular').exists()).toBe(true)
+  })
+
+  it('resets the form on reset event', async () => {
+    await wrapper.find('form').trigger('reset')
+    expect(wrapper.vm.form.text).toBe('')
+  })
+
+  describe('form submission', () => {
+    beforeEach(async () => {
+      await wrapper.find('textarea#textarea').setValue('test message')
+      await wrapper.find('form').trigger('submit')
     })
 
-    it('has a DIV .contribution-messages-formular', () => {
-      expect(wrapper.find('div.contribution-messages-formular').exists()).toBe(true)
-    })
-
-    describe('on trigger reset', () => {
-      beforeEach(async () => {
-        wrapper.setData({
-          form: {
-            text: 'text form message',
-          },
-        })
-        await wrapper.find('form').trigger('reset')
-      })
-
-      it('form has empty text', () => {
-        expect(wrapper.vm.form).toEqual({
-          text: '',
-        })
-      })
-    })
-
-    describe('on trigger submit', () => {
-      beforeEach(async () => {
-        wrapper.setData({
-          form: {
-            text: 'text form message',
-          },
-        })
-        await wrapper.find('form').trigger('submit')
-      })
-
-      it('emitted "get-list-contribution-messages" with false', async () => {
-        expect(wrapper.emitted('get-list-contribution-messages')).toEqual(
-          expect.arrayContaining([expect.arrayContaining([false])]),
-        )
-      })
-
-      it('emitted "update-status" with data', async () => {
-        expect(wrapper.emitted('update-status')).toEqual(
-          expect.arrayContaining([expect.arrayContaining([42])]),
-        )
+    it('calls the mutation', () => {
+      expect(mockMutate).toHaveBeenCalledWith({
+        contributionId: 42,
+        message: 'test message',
       })
     })
 
-    describe('send contribution message with error', () => {
-      beforeEach(async () => {
-        apolloMutateMock.mockRejectedValue({ message: 'OUCH!' })
-        wrapper = Wrapper()
-        await wrapper.find('form').trigger('submit')
-      })
-
-      it('toasts an error message', () => {
-        expect(toastErrorSpy).toBeCalledWith('OUCH!')
-      })
+    it('emits get-list-contribution-messages event', async () => {
+      await nextTick()
+      expect(wrapper.emitted('get-list-contribution-messages')).toEqual([[false]])
     })
 
-    describe('send contribution message with success', () => {
-      beforeEach(async () => {
-        wrapper.setData({
-          form: {
-            text: 'text form message',
-          },
-        })
-        wrapper = Wrapper()
-        await wrapper.find('form').trigger('submit')
-      })
-
-      it('toasts an success message', () => {
-        expect(toastSuccessSpy).toBeCalledWith('message.reply')
-      })
+    it('emits update-status event', async () => {
+      await nextTick()
+      expect(wrapper.emitted('update-status')).toEqual([[42]])
     })
+
+    it('resets the form text', async () => {
+      await nextTick()
+      expect(wrapper.vm.form.text).toBe('')
+    })
+
+    it('shows success toast', async () => {
+      await nextTick()
+      expect(mockToastSuccess).toHaveBeenCalledWith('message.reply')
+    })
+  })
+
+  describe('form submission with error', () => {
+    beforeEach(async () => {
+      mockMutate.mockRejectedValue(new Error('OUCH!'))
+      await wrapper.find('textarea#textarea').setValue('test message')
+      await wrapper.find('form').trigger('submit')
+    })
+
+    it('shows error toast', async () => {
+      await nextTick()
+      expect(mockToastError).toHaveBeenCalledWith('OUCH!')
+    })
+  })
+
+  it('disables submit button when form is empty', async () => {
+    const submitButton = wrapper.find('button[type="submit"]')
+    expect(submitButton.attributes('diabled')).toBeUndefined()
+  })
+
+  it('enables submit button when form has text', async () => {
+    await wrapper.find('textarea#textarea').setValue('test message')
+    await nextTick()
+    const submitButton = wrapper.find('button[type="submit"]')
+    expect(submitButton.attributes('disabled')).toBeUndefined()
   })
 })

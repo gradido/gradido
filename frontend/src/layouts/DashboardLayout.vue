@@ -142,7 +142,7 @@
             <BCol cols="12">
               <!-- router-view -->
               <div class="main-content mt-lg-3 mt-0">
-                <fade-transition :duration="200" origin="center top" mode="out-in">
+                <transition-fade :duration="200" mode="out-in">
                   <router-view
                     ref="router-view"
                     :balance="balance"
@@ -153,7 +153,7 @@
                     :pending="pending"
                     @update-transactions="updateTransactions"
                   ></router-view>
-                </fade-transition>
+                </transition-fade>
               </div>
             </BCol>
           </BRow>
@@ -202,7 +202,6 @@ import Sidebar from '@/components/Menu/Sidebar'
 import MobileSidebar from '@/components/MobileSidebar/MobileSidebar'
 import SessionLogoutTimeout from '@/components/SessionLogoutTimeout'
 import ContentFooter from '@/components/ContentFooter'
-import { FadeTransition } from 'vue2-transitions'
 import GddAmount from '@/components/Template/ContentHeader/GddAmount'
 import GdtAmount from '@/components/Template/ContentHeader/GdtAmount'
 import CommunityMember from '@/components/Template/ContentHeader/CommunityMember'

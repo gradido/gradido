@@ -1,87 +1,119 @@
 import { mount } from '@vue/test-utils'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import InputTextarea from './InputTextarea'
+import { useField } from 'vee-validate'
+import { BFormGroup, BFormInvalidFeedback, BFormTextarea } from 'bootstrap-vue-next'
 
-const localVue = global.localVue
+vi.mock('vee-validate', () => ({
+  useField: vi.fn(),
+}))
 
 describe('InputTextarea', () => {
   let wrapper
 
-  const mocks = {
-    $t: jest.fn((t) => t),
-    $i18n: {
-      locale: jest.fn(() => 'en'),
-    },
-    $n: jest.fn((n) => String(n)),
-    $route: {
-      params: {},
-    },
+  const createWrapper = (props = {}) => {
+    return mount(InputTextarea, {
+      props: {
+        rules: {},
+        name: 'input-field-name',
+        label: 'input-field-label',
+        placeholder: 'input-field-placeholder',
+        ...props,
+      },
+      global: {
+        components: {
+          BFormGroup,
+          BFormTextarea,
+          BFormInvalidFeedback,
+        },
+      },
+    })
   }
 
-  describe('mount', () => {
-    const propsData = {
-      rules: {},
-      name: 'input-field-name',
-      label: 'input-field-label',
-      placeholder: 'input-field-placeholder',
-      value: 'Long enough',
-    }
+  beforeEach(() => {
+    vi.mocked(useField).mockReturnValue({
+      value: '',
+      errorMessage: '',
+      meta: { valid: true },
+    })
+    wrapper = createWrapper()
+  })
 
-    const Wrapper = () => {
-      return mount(InputTextarea, {
-        localVue,
-        mocks,
-        propsData,
-      })
-    }
+  it('renders the component InputTextarea', () => {
+    expect(wrapper.find('[data-test="input-textarea"]').exists()).toBe(true)
+  })
 
-    beforeEach(() => {
-      wrapper = Wrapper()
+  it('has a textarea field', () => {
+    expect(wrapper.findComponent({ name: 'BFormTextarea' }).exists()).toBe(true)
+  })
+
+  describe('properties', () => {
+    it('has the correct id', () => {
+      const textarea = wrapper.findComponent({ name: 'BFormTextarea' })
+      expect(textarea.attributes('id')).toBe('input-field-name-input-field')
     })
 
-    it('renders the component InputTextarea', () => {
-      expect(wrapper.findComponent({ name: 'InputTextarea' }).exists()).toBe(true)
+    it('has the correct placeholder', () => {
+      const textarea = wrapper.findComponent({ name: 'BFormTextarea' })
+      expect(textarea.attributes('placeholder')).toBe('input-field-placeholder')
     })
 
-    it('has an textarea field', () => {
-      expect(wrapper.find('textarea').exists()).toBeTruthy()
+    it('has the correct label', () => {
+      const label = wrapper.find('label')
+      expect(label.text()).toBe('input-field-label')
     })
 
-    describe('properties', () => {
-      it('has the id "input-field-name-input-field"', () => {
-        expect(wrapper.find('textarea').attributes('id')).toEqual('input-field-name-input-field')
+    it('has the correct label-for attribute', () => {
+      const label = wrapper.find('label')
+      expect(label.attributes('for')).toBe('input-field-name-input-field')
+    })
+  })
+
+  describe('input value changes', () => {
+    it('updates the model value when input changes', async () => {
+      const wrapper = mount(InputTextarea, {
+        props: {
+          rules: {},
+          name: 'input-field-name',
+          label: 'input-field-label',
+          placeholder: 'input-field-placeholder',
+        },
+        global: {
+          components: {
+            BFormGroup,
+            BFormInvalidFeedback,
+            BFormTextarea,
+          },
+        },
       })
 
-      it('has the placeholder "input-field-placeholder"', () => {
-        expect(wrapper.find('textarea').attributes('placeholder')).toEqual(
-          'input-field-placeholder',
-        )
-      })
+      const textarea = wrapper.find('textarea')
+      await textarea.setValue('New Text')
 
-      it('has the value ""', () => {
-        expect(wrapper.vm.currentValue).toEqual('Long enough')
-      })
+      expect(wrapper.vm.currentValue).toBe('New Text')
+    })
+  })
 
-      it('has the label "input-field-label"', () => {
-        expect(wrapper.find('label').text()).toEqual('input-field-label')
-      })
+  describe('disabled state', () => {
+    it('disables the textarea when disabled prop is true', async () => {
+      await wrapper.setProps({ disabled: true })
+      const textarea = wrapper.findComponent({ name: 'BFormTextarea' })
+      expect(textarea.attributes('disabled')).toBeDefined()
+    })
+  })
 
-      it('has the label for "input-field-name-input-field"', () => {
-        expect(wrapper.find('label').attributes('for')).toEqual('input-field-name-input-field')
-      })
+  it('shows error message when there is an error', async () => {
+    vi.mocked(useField).mockReturnValue({
+      value: '',
+      errorMessage: 'This field is required',
+      meta: { valid: false },
     })
 
-    describe('input value changes', () => {
-      it('emits input with new value', async () => {
-        await wrapper.find('textarea').setValue('New Text')
-        expect(wrapper.emitted('input')).toEqual([['New Text']])
-      })
-    })
+    wrapper = createWrapper()
+    await wrapper.vm.$nextTick()
 
-    describe('value property changes', () => {
-      it('updates data model', async () => {
-        await wrapper.setProps({ value: 'new text message' })
-        expect(wrapper.vm.currentValue).toEqual('new text message')
-      })
-    })
+    const errorFeedback = wrapper.findComponent({ name: 'BFormInvalidFeedback' })
+    expect(errorFeedback.exists()).toBe(true)
+    expect(errorFeedback.text()).toBe('This field is required')
   })
 })

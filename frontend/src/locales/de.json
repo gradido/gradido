@@ -340,7 +340,6 @@
     },
     "info": "Transaktionen können nun per Benutzername oder E-Mail-Adresse getätigt werden.",
     "language": {
-      "changeLanguage": "Sprache ändern",
       "de": "Deutsch",
       "en": "English",
       "error": "Die Spracheinstellungen konnten nicht aktualisiert werden.",
@@ -350,7 +349,6 @@
       "success": "Deine Sprache wurde erfolgreich geändert."
     },
     "name": {
-      "change-name": "Name ändern",
       "change-success": "Dein Name wurde erfolgreich geändert.",
       "enterFirstname": "Vorname eingeben",
       "enterLastname": "Nachname eingeben"

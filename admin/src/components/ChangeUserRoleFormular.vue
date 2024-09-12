@@ -2,7 +2,7 @@
   <div class="change-user-role-formular">
     <div class="shadow p-3 mb-5 bg-white rounded">
       <div v-if="!isModeratorRoleAdmin" class="m-3 mb-4">
-        {{ roles.find((role) => role.value === currentRole.value).text }}
+        {{ roles.find((role) => role.value === currentRole.value)?.text }}
       </div>
       <div v-else-if="item.userId === moderatorId" class="m-3 mb-4">
         {{ $t('userRole.notChangeYourSelf') }}

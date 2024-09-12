@@ -131,7 +131,6 @@
 </template>
 
 <script>
-import { toggleRowDetails } from '../../mixins/toggleRowDetails'
 import RowDetails from '../RowDetails'
 import EditCreationFormular from '../EditCreationFormular'
 import ContributionMessagesList from '../ContributionMessages/ContributionMessagesList'
@@ -151,7 +150,6 @@ export default {
     RowDetails,
     ContributionMessagesList,
   },
-  mixins: [toggleRowDetails],
   props: {
     items: {
       type: Array,
@@ -171,6 +169,13 @@ export default {
     },
   },
   emits: ['update-contributions', 'reload-contribution', 'update-status', 'show-overlay'],
+  data() {
+    return {
+      slotIndex: 0,
+      openRow: null,
+      creationUserData: {},
+    }
+  },
   methods: {
     myself(item) {
       return item.userId === this.$store.state.moderator.id
@@ -194,6 +199,29 @@ export default {
     },
     updateContributions() {
       this.$emit('update-contributions')
+    },
+    rowToggleDetails(row, index) {
+      if (this.openRow) {
+        if (this.openRow.index === row.index) {
+          if (index === this.slotIndex) {
+            row.toggleDetails()
+            this.openRow = null
+          } else {
+            this.slotIndex = index
+          }
+        } else {
+          this.openRow.toggleDetails()
+          row.toggleDetails()
+          this.slotIndex = index
+          this.openRow = row
+          this.creationUserData = row.item
+        }
+      } else {
+        row.toggleDetails()
+        this.slotIndex = index
+        this.openRow = row
+        this.creationUserData = row.item
+      }
     },
   },
 }

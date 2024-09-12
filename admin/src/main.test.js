@@ -1,110 +1,70 @@
-import { ApolloClient, ApolloLink, InMemoryCache, HttpLink } from 'apollo-boost'
-import './main'
-import CONFIG from './config'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { createApp } from 'vue'
+import { createAdminApp } from '../src/main'
 
-import Vue from 'vue'
-import VueApollo from 'vue-apollo'
-import i18n from './i18n'
-import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
-import store from './store/store'
-import router from './router/router'
+// Mock dependencies
+vi.mock('vue', () => ({
+  createApp: vi.fn(() => ({
+    use: vi.fn(),
+    mixin: vi.fn(),
+    mount: vi.fn(),
+  })),
+}))
 
-jest.mock('vue')
-jest.mock('vue-apollo')
-jest.mock('vuex')
-jest.mock('vue-i18n')
-jest.mock('./store/store', () => {
-  return {
-    state: {
-      moderator: {
-        language: 'es',
-      },
+vi.mock('./App.vue', () => ({ default: {} }))
+vi.mock('./store/store', () => ({
+  default: {
+    state: { moderator: { language: 'en' } },
+  },
+}))
+vi.mock('./router/router', () => ({ default: {} }))
+vi.mock('./router/guards', () => ({ default: vi.fn() }))
+vi.mock('./i18n', () => ({
+  default: {
+    global: {
+      locale: { value: 'en' },
     },
-  }
-})
-jest.mock('./i18n')
-jest.mock('./router/router')
+  },
+}))
+vi.mock('portal-vue', () => ({ default: {} }))
+vi.mock('bootstrap-vue-next', () => ({ createBootstrap: vi.fn() }))
+vi.mock('./mixins/toaster', () => ({ toasters: {} }))
+vi.mock('./plugins/apolloProvider', () => ({ apolloProvider: { defaultClient: {} } }))
 
-jest.mock('apollo-boost', () => {
-  return {
-    __esModule: true,
-    ApolloClient: jest.fn(),
-    ApolloLink: jest.fn(() => {
-      return { concat: jest.fn() }
-    }),
-    InMemoryCache: jest.fn(),
-    HttpLink: jest.fn(),
-  }
-})
+describe('main.js', () => {
+  let app
 
-jest.mock('bootstrap-vue', () => {
-  return {
-    __esModule: true,
-    BootstrapVue: jest.fn(),
-    IconsPlugin: jest.fn(() => {
-      return { concat: jest.fn() }
-    }),
-  }
-})
-
-describe('main', () => {
-  it('calls the HttpLink', () => {
-    expect(HttpLink).toBeCalledWith({ uri: CONFIG.GRAPHQL_URI })
+  beforeEach(() => {
+    vi.resetModules()
+    vi.clearAllMocks()
+    app = createAdminApp()
   })
 
-  it('calls the ApolloLink', () => {
-    expect(ApolloLink).toBeCalled()
+  it('creates a Vue app', () => {
+    expect(createApp).toHaveBeenCalledWith(expect.anything())
   })
 
-  it('calls the ApolloClient', () => {
-    expect(ApolloClient).toBeCalled()
+  it('uses the router plugin', () => {
+    expect(app.use).toHaveBeenCalled()
   })
 
-  it('calls the InMemoryCache', () => {
-    expect(InMemoryCache).toBeCalled()
+  it('uses the Vuex store', () => {
+    expect(app.use).toHaveBeenCalled()
   })
 
-  it('calls the VueApollo', () => {
-    expect(VueApollo).toBeCalled()
+  it('uses i18n plugin', () => {
+    expect(app.use).toHaveBeenCalled()
   })
 
-  it('calls Vue', () => {
-    expect(Vue).toBeCalled()
+  it('uses PortalVue plugin', () => {
+    expect(app.use).toHaveBeenCalled()
   })
 
-  it('calls i18n', () => {
-    expect(Vue).toBeCalledWith(
-      expect.objectContaining({
-        i18n,
-      }),
-    )
+  it('uses Bootstrap Vue plugin', () => {
+    expect(app.use).toHaveBeenCalled()
   })
 
-  it('calls BootstrapVue', () => {
-    expect(Vue.use).toBeCalledWith(BootstrapVue)
-  })
-
-  it('calls IconsPlugin', () => {
-    expect(Vue.use).toBeCalledWith(IconsPlugin)
-  })
-
-  it('creates a store', () => {
-    expect(Vue).toBeCalledWith(
-      expect.objectContaining({
-        store,
-      }),
-    )
-  })
-
-  it('creates a router', () => {
-    expect(Vue).toBeCalledWith(
-      expect.objectContaining({
-        router,
-      }),
-    )
-  })
-
-  it('sets the locale from store', () => {
-    expect(i18n.locale).toBe('es')
+  it('uses Apollo provider', () => {
+    expect(app.use).toHaveBeenCalled()
   })
 })

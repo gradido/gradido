@@ -1,147 +1,122 @@
 import { mount } from '@vue/test-utils'
-import ContributionLinkList from './ContributionLinkList'
-import { toastSuccessSpy, toastErrorSpy } from '../../../test/testSetup'
-// import { deleteContributionLink } from '../graphql/deleteContributionLink'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+import ContributionLinkList from './ContributionLinkList.vue'
+import { BButton, BCard, BCardText, BModal, BTable } from 'bootstrap-vue-next'
+import * as apolloComposable from '@vue/apollo-composable'
 
-const localVue = global.localVue
+vi.mock('vue-i18n', () => ({
+  useI18n: vi.fn(() => ({
+    t: (key) => key,
+    d: (date) => date.toISOString(),
+  })),
+}))
 
-const mockAPIcall = jest.fn()
+vi.mock('@vue/apollo-composable', () => ({
+  useMutation: vi.fn(() => ({
+    mutate: vi.fn(),
+  })),
+}))
 
-const mocks = {
-  $t: jest.fn((t) => t),
-  $d: jest.fn((d) => d),
-  $apollo: {
-    mutate: mockAPIcall,
-  },
-}
-
-const propsData = {
-  items: [
-    {
-      id: 1,
-      name: 'Meditation',
-      memo: 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut l',
-      amount: '200',
-      validFrom: '2022-04-01',
-      validTo: '2022-08-01',
-      cycle: 'täglich',
-      maxPerCycle: '3',
-      maxAmountPerMonth: 0,
-      link: 'https://localhost/redeem/CL-1a2345678',
-    },
-  ],
-}
+// Mock useAppToast
+const mockToastError = vi.fn()
+const mockToastSuccess = vi.fn()
+vi.mock('@/composables/useToast', () => ({
+  useAppToast: vi.fn(() => ({
+    toastError: mockToastError,
+    toastSuccess: mockToastSuccess,
+  })),
+}))
 
 describe('ContributionLinkList', () => {
   let wrapper
+  let mutateMock
 
-  const Wrapper = () => {
-    return mount(ContributionLinkList, { localVue, mocks, propsData })
+  const createWrapper = () => {
+    return mount(ContributionLinkList, {
+      props: {
+        items: [
+          {
+            id: 1,
+            name: 'Meditation',
+            memo: 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut l',
+            amount: '200',
+            validFrom: '2022-04-01',
+            validTo: '2022-08-01',
+            cycle: 'täglich',
+            maxPerCycle: '3',
+            maxAmountPerMonth: 0,
+            link: 'https://localhost/redeem/CL-1a2345678',
+          },
+        ],
+      },
+      global: {
+        components: {
+          BTable,
+          BButton,
+          BModal,
+          BCard,
+          BCardText,
+        },
+        stubs: {
+          IBiTrash: true,
+          IBiPencil: true,
+          IBiEye: true,
+          FigureQrCode: true,
+        },
+      },
+    })
   }
 
-  describe('mount', () => {
-    beforeEach(() => {
-      wrapper = Wrapper()
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mutateMock = vi.fn()
+    vi.spyOn(apolloComposable, 'useMutation').mockReturnValue({ mutate: mutateMock })
+    wrapper = createWrapper()
+  })
+
+  it('renders the Div Element ".contribution-link-list"', () => {
+    expect(wrapper.find('div.contribution-link-list').exists()).toBe(true)
+  })
+
+  it('renders table with contribution link', () => {
+    expect(wrapper.findComponent({ name: 'BTable' }).exists()).toBe(true)
+  })
+
+  describe('edit contribution link', () => {
+    it('emits editContributionLinkData', async () => {
+      await wrapper.vm.editContributionLink({ id: 1 })
+      expect(wrapper.emitted('edit-contribution-link-data')).toBeTruthy()
     })
+  })
 
-    it('renders the Div Element ".contribution-link-list"', () => {
-      expect(wrapper.find('div.contribution-link-list').exists()).toBe(true)
-    })
-
-    it('renders table with contribution link', () => {
-      expect(wrapper.findAll('table').at(0).findAll('tbody > tr').at(0).text()).toContain(
-        'Meditation',
-      )
-    })
-
-    describe('edit contribution link', () => {
-      beforeEach(() => {
-        wrapper.vm.editContributionLink()
-      })
-
-      it('emits editContributionLinkData', async () => {
-        expect(wrapper.vm.$emit('editContributionLinkData')).toBeTruthy()
-      })
-    })
-
-    describe('delete contribution link', () => {
-      let spy
-
+  describe('delete contribution link', () => {
+    describe('with success', () => {
       beforeEach(async () => {
-        jest.clearAllMocks()
-        wrapper.vm.deleteContributionLink()
+        mutateMock.mockResolvedValue({})
+        await wrapper.vm.handleDelete({ item: { id: 1, name: 'Test' } })
+        await wrapper.vm.executeDelete()
       })
 
-      describe('with success', () => {
-        beforeEach(async () => {
-          spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
-          spy.mockImplementation(() => Promise.resolve('some value'))
-          mockAPIcall.mockResolvedValue()
-          await wrapper.find('.test-delete-link').trigger('click')
-        })
-
-        it('opens the modal ', () => {
-          expect(spy).toBeCalled()
-        })
-
-        it.skip('calls the API', () => {
-          // expect(mockAPIcall).toBeCalledWith(
-          //   expect.objectContaining({
-          //     mutation: deleteContributionLink,
-          //     variables: {
-          //       id: 1,
-          //     },
-          //   }),
-          // )
-        })
-
-        it('toasts a success message', () => {
-          expect(toastSuccessSpy).toBeCalledWith('contributionLink.deleted')
-        })
+      it('calls the mutation and emits events', async () => {
+        expect(mutateMock).toHaveBeenCalledWith({ id: 1 })
+        expect(wrapper.emitted('close-contribution-form')).toBeTruthy()
+        expect(wrapper.emitted('get-contribution-links')).toBeTruthy()
       })
 
-      describe('with error', () => {
-        beforeEach(async () => {
-          spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
-          spy.mockImplementation(() => Promise.resolve('some value'))
-          mockAPIcall.mockRejectedValue({ message: 'Something went wrong :(' })
-          await wrapper.find('.test-delete-link').trigger('click')
-        })
-
-        it('toasts an error message', () => {
-          expect(toastErrorSpy).toBeCalledWith('Something went wrong :(')
-        })
-      })
-
-      describe('cancel delete', () => {
-        beforeEach(async () => {
-          spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
-          spy.mockImplementation(() => Promise.resolve(false))
-          mockAPIcall.mockResolvedValue()
-          await wrapper.find('.test-delete-link').trigger('click')
-        })
-
-        it('does not call the API', () => {
-          expect(mockAPIcall).not.toBeCalled()
-        })
+      it('toasts a success message', () => {
+        expect(mockToastSuccess).toHaveBeenCalledWith('contributionLink.deleted')
       })
     })
 
-    describe('onClick showButton', () => {
-      it('modelData contains contribution link', () => {
-        wrapper.find('button.test-show').trigger('click')
-        expect(wrapper.vm.modalData).toEqual({
-          amount: '200',
-          cycle: 'täglich',
-          id: 1,
-          link: 'https://localhost/redeem/CL-1a2345678',
-          maxAmountPerMonth: 0,
-          maxPerCycle: '3',
-          memo: 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut l',
-          name: 'Meditation',
-          validFrom: '2022-04-01',
-          validTo: '2022-08-01',
-        })
+    describe('with error', () => {
+      beforeEach(async () => {
+        mutateMock.mockRejectedValue(new Error('Something went wrong :('))
+        await wrapper.vm.handleDelete({ item: { id: 1, name: 'Test' } })
+        await wrapper.vm.executeDelete()
+      })
+
+      it('toasts an error message', () => {
+        expect(mockToastError).toHaveBeenCalledWith('Something went wrong :(')
       })
     })
   })

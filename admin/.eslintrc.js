@@ -3,7 +3,6 @@ module.exports = {
   env: {
     browser: true,
     node: true,
-    jest: true,
     'vue/setup-compiler-macros': true,
   },
   parserOptions: {
@@ -17,7 +16,7 @@ module.exports = {
     'prettier',
   ],
   // required to lint *.vue files
-  plugins: ['vue', 'prettier', 'jest'],
+  plugins: ['vue', 'prettier'],
   overrides: [
     {
       files: ['*.json'],
@@ -28,6 +27,7 @@ module.exports = {
   rules: {
     'no-console': ['error'],
     'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
+    'node/no-callback-literal': 0, // This is here to allow tests run properly
     'vue/component-name-in-template-casing': ['error', 'kebab-case'],
     // 'vue/no-static-inline-styles': [
     //   'error',

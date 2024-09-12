@@ -59,7 +59,7 @@
                 type="button"
                 variant="success"
                 class="test-submit"
-                :disabled="selected === '' || value <= 0 || text.length < 10"
+                :disabled="submitDisabled"
                 @click="submitCreation"
               >
                 {{ $t('creation_form.update_creation') }}
@@ -101,22 +101,30 @@ const props = defineProps({
 const emit = defineEmits(['update-creation-data'])
 const creationMonths = useCreationMonths()
 
-const { t, d } = useI18n()
+const { t } = useI18n()
 const { toastSuccess, toastError } = useAppToast()
 const text = ref(props.creationUserData.memo || '')
 const value = ref(props.creationUserData.amount ? Number(props.creationUserData.amount) : 0)
 const rangeMin = ref(0)
 
 const creationIndex = computed(() => {
-  const month = d(new Date(props.item.contributionDate), 'month')
+  const date = new Date(props.item.contributionDate)
+  const month = date.toLocaleString('default', { month: 'short' })
   return creationMonths.radioOptions().findIndex((obj) => obj.item.short === month)
 })
 
-const selectedComputed = computed(() => creationMonths.radioOptions()[creationIndex.value].item)
+const selectedComputed = computed(() => {
+  const index = creationIndex.value > -1 ? creationIndex.value : 0
+  return creationMonths.radioOptions()[index].item
+})
 const selected = ref(selectedComputed.value)
 const rangeMax = computed(
   () => Number(creationMonths.creation.value[creationIndex.value]) + Number(props.item.amount),
 )
+
+const submitDisabled = computed(() => {
+  return selected.value === '' || value.value <= 0 || text.value.length < 10
+})
 
 watch(selectedComputed, () => {
   selected.value = selectedComputed.value

@@ -125,7 +125,7 @@
   </div>
 </template>
 <script setup>
-import { ref, nextTick, onMounted, watch, computed } from 'vue'
+import { ref, nextTick, watch, computed } from 'vue'
 import { BTable, BTab, BTabs, BCard, useModalController } from 'bootstrap-vue-next'
 import { useStore } from 'vuex'
 import { useI18n } from 'vue-i18n'
@@ -290,13 +290,6 @@ watch(
       return { ...item, _showDetails: false }
     })
   },
+  { immediate: true },
 )
-
-onMounted(() => {
-  setTimeout(() => {
-    myItems.value = props.items.map((item) => {
-      return { ...item, _showDetails: false }
-    })
-  }, 500)
-})
 </script>

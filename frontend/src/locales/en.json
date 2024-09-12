@@ -340,7 +340,6 @@
     },
     "info": "Transactions can now be made by username or email address.",
     "language": {
-      "changeLanguage": "Change language",
       "de": "Deutsch",
       "en": "English",
       "error": "Failed to update language settings.",
@@ -350,7 +349,6 @@
       "success": "Your language has been successfully updated."
     },
     "name": {
-      "change-name": "Change name",
       "change-success": "Your name has been successfully changed.",
       "enterFirstname": "Enter your firstname",
       "enterLastname": "Enter your lastname"

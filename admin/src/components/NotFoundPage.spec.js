@@ -1,30 +1,33 @@
 import { mount } from '@vue/test-utils'
-import NotFoundPage from './NotFoundPage'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+import NotFoundPage from './NotFoundPage.vue'
+import { useI18n } from 'vue-i18n'
 
-const localVue = global.localVue
-
-const mocks = {
-  $t: jest.fn((t) => t),
-}
+// Mock vue-i18n
+vi.mock('vue-i18n')
 
 describe('NotFoundPage', () => {
   let wrapper
 
-  const Wrapper = () => {
-    return mount(NotFoundPage, { localVue, mocks })
-  }
+  beforeEach(() => {
+    // Mock the t function from useI18n
+    const mockT = vi.fn((key) => key)
+    useI18n.mockReturnValue({ t: mockT })
 
-  describe('mount', () => {
-    beforeEach(() => {
-      wrapper = Wrapper()
+    wrapper = mount(NotFoundPage, {
+      global: {
+        mocks: {
+          $t: mockT,
+        },
+      },
     })
+  })
 
-    it('has a svg', () => {
-      expect(wrapper.find('svg').exists()).toBeTruthy()
-    })
+  it('renders an SVG', () => {
+    expect(wrapper.find('svg').exists()).toBe(true)
+  })
 
-    it('has a back button', () => {
-      expect(wrapper.find('.test-back').exists()).toBeTruthy()
-    })
+  it('renders a back button', () => {
+    expect(wrapper.find('.test-back').exists()).toBe(true)
   })
 })

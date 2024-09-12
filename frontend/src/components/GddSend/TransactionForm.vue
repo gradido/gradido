@@ -167,7 +167,7 @@ const radioSelected = ref(props.selected)
 const userName = ref('')
 const recipientCommunity = ref({ uuid: '', name: '' })
 
-const { handleSubmit, resetForm, defineField } = useForm({
+const { handleSubmit, resetForm, defineField, values } = useForm({
   initialValues: {
     identifier: props.identifier,
     amount: props.amount ? String(props.amount) : '',

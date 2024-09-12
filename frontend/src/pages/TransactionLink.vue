@@ -72,7 +72,7 @@ const {
 } = useMutation(redeemTransactionLink)
 
 const isContributionLink = computed(() => {
-  return params.code.search(/^CL-/) === 0
+  return params.code?.search(/^CL-/) === 0
 })
 
 const tokenExpiresInSeconds = computed(() => {

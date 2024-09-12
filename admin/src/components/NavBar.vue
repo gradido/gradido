@@ -66,6 +66,10 @@ const route = useRoute()
 
 const openCreations = computed(() => store.state.openCreations)
 
+const currentRouteName = computed(() => {
+  return route.name
+})
+
 const { mutate: executeLogout } = useMutation(logout)
 
 const handleLogout = async () => {
@@ -81,7 +85,7 @@ const handleWallet = () => {
 }
 
 const isActive = (tabRoute) => {
-  return tabRoute === route.name
+  return tabRoute === currentRouteName.value
 }
 </script>
 <style lang="scss" scoped>

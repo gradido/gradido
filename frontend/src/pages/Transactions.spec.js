@@ -1,191 +1,164 @@
 import { mount } from '@vue/test-utils'
-import Transactions from './Transactions'
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
+import { nextTick, ref } from 'vue'
+import Transactions from './Transactions.vue'
 import { GdtEntryType } from '@/graphql/enums'
-import { listGDTEntriesQuery } from '@/graphql/queries'
 
-import { toastErrorSpy } from '@test/testSetup'
+const mockScrollTo = vi.fn()
+window.scrollTo = mockScrollTo
 
-const localVue = global.localVue
+const mockRoute = { path: '/transactions' }
+const mockRouterReplace = vi.fn()
+const mockRouter = {
+  replace: mockRouterReplace,
+}
+vi.mock('vue-router', () => ({
+  useRoute: vi.fn(() => mockRoute),
+  useRouter: vi.fn(() => mockRouter),
+}))
 
-const mockRouterReplace = jest.fn()
-const windowScrollToMock = jest.fn()
-window.scrollTo = windowScrollToMock
+const mockLoadGdt = vi.fn()
+const mockOnResult = vi.fn()
+const mockOnError = vi.fn()
+vi.mock('@vue/apollo-composable', () => ({
+  useLazyQuery: vi.fn(() => ({
+    load: mockLoadGdt,
+    onResult: mockOnResult,
+    onError: mockOnError,
+  })),
+}))
 
-const apolloMock = jest.fn().mockResolvedValue({
-  data: {
-    listGDTEntries: {
-      count: 0,
-      gdtEntries: [],
-    },
+const mockToastError = vi.fn()
+vi.mock('@/composables/useToast', () => ({
+  useAppToast: vi.fn(() => ({
+    toastError: mockToastError,
+  })),
+}))
+
+// Mock GddTransactionList and GdtTransactionList components
+vi.mock('@/components/GddTransactionList', () => ({
+  default: {
+    name: 'GddTransactionList',
+    template: '<div class="mock-gdd-transaction-list"></div>',
   },
-})
+}))
+
+vi.mock('@/components/GdtTransactionList', () => ({
+  default: {
+    name: 'GdtTransactionList',
+    template: '<div class="mock-gdt-transaction-list"></div>',
+  },
+}))
 
 describe('Transactions', () => {
   let wrapper
 
-  const state = {
-    language: 'en',
+  const createWrapper = (props = {}) => {
+    return mount(Transactions, {
+      props,
+      global: {
+        mocks: {
+          $t: (key) => key,
+          $n: (n) => String(n),
+          $d: (d) => d,
+        },
+      },
+    })
   }
 
-  const mocks = {
-    $store: {
-      state,
-      commit: jest.fn(),
-    },
-    $t: jest.fn((t) => t),
-    $n: jest.fn((n) => String(n)),
-    $d: jest.fn((d) => d),
-    $i18n: {
-      locale: jest.fn(() => 'en'),
-    },
-    $apollo: {
-      query: apolloMock,
-    },
-    $router: {
-      replace: mockRouterReplace,
-    },
-  }
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
 
-  const Wrapper = (propsData = {}) => {
-    return mount(Transactions, { localVue, mocks, propsData })
-  }
+  afterEach(() => {
+    wrapper.unmount()
+  })
 
-  describe('mount', () => {
+  it('renders page', () => {
+    wrapper = createWrapper()
+    expect(wrapper.find('.transactions').exists()).toBe(true)
+  })
+
+  it('renders the GDD transaction table when gdt is false', () => {
+    wrapper = createWrapper({ gdt: false })
+    expect(wrapper.find('.mock-gdd-transaction-list').exists()).toBe(true)
+  })
+
+  it('renders the GDT transaction table when gdt is true', () => {
+    wrapper = createWrapper({ gdt: true })
+    expect(wrapper.find('.mock-gdt-transaction-list').exists()).toBe(true)
+  })
+
+  it('emits update-transactions when update-transactions is called', async () => {
+    wrapper = createWrapper()
+    await wrapper
+      .findComponent({ name: 'GddTransactionList' })
+      .vm.$emit('update-transactions', { currentPage: 2, pageSize: 25 })
+    expect(wrapper.emitted('update-transactions')).toEqual([[{ currentPage: 2, pageSize: 25 }]])
+  })
+
+  describe('GDT transactions', () => {
     beforeEach(() => {
-      wrapper = Wrapper()
+      wrapper = createWrapper({ gdt: true })
     })
 
-    it('renders page', () => {
-      expect(wrapper.find('.transactions').exists()).toBe(true)
+    it('calls loadGdt on mount', () => {
+      expect(mockLoadGdt).toHaveBeenCalled()
     })
 
-    it('renders the transaction table', () => {
-      expect(wrapper.findComponent({ name: 'GddTransactionList' }).exists()).toBeTruthy()
-    })
-
-    it('emits update-transactions after creation', () => {
-      expect(wrapper.emitted('update-transactions')).toEqual(
-        expect.arrayContaining([expect.arrayContaining([{ currentPage: 1, pageSize: 25 }])]),
-      )
-    })
-
-    it('emits update-transactions when update-transactions is called', () => {
-      wrapper
-        .findComponent({ name: 'GddTransactionList' })
-        .vm.$emit('update-transactions', { currentPage: 2, pageSize: 25 })
-      expect(wrapper.emitted('update-transactions')).toEqual(
-        expect.arrayContaining([expect.arrayContaining([{ currentPage: 2, pageSize: 25 }])]),
-      )
-    })
-
-    it('renders the transaction gradido transform table when gdt is true', async () => {
-      await wrapper.setProps({
-        gdt: true,
-      })
-      expect(wrapper.findComponent({ name: 'GdtTransactionList' }).exists()).toBeTruthy()
-    })
-
-    describe('update gdt with success', () => {
-      beforeEach(() => {
-        apolloMock.mockResolvedValue({
-          data: {
-            listGDTEntries: {
-              count: 4,
-              gdtEntries: [
-                {
-                  id: 1,
-                  amount: 100,
-                  gdt: 1700,
-                  factor: 17,
-                  comment: '',
-                  date: '2021-05-02T17:20:11+00:00',
-                  gdtEntryType: GdtEntryType.FORM,
-                },
-                {
-                  id: 2,
-                  amount: 1810,
-                  gdt: 362,
-                  factor: 0.2,
-                  comment: 'Dezember 20',
-                  date: '2020-12-31T12:00:00+00:00',
-                  gdtEntryType: GdtEntryType.GLOBAL_MODIFICATOR,
-                },
-                {
-                  id: 3,
-                  amount: 100,
-                  gdt: 1700,
-                  factor: 17,
-                  comment: '',
-                  date: '2020-05-07T17:00:00+00:00',
-                  gdtEntryType: GdtEntryType.FORM,
-                },
-                {
-                  id: 4,
-                  amount: 100,
-                  gdt: 110,
-                  factor: 22,
-                  comment: '',
-                  date: '2020-04-10T13:28:00+00:00',
-                  gdtEntryType: GdtEntryType.ELOPAGE_PUBLISHER,
-                },
-              ],
-            },
+    it('updates GDT transactions on successful query', async () => {
+      const mockResult = {
+        data: {
+          listGDTEntries: {
+            count: 4,
+            gdtEntries: [
+              {
+                id: 1,
+                amount: 100,
+                gdt: 1700,
+                factor: 17,
+                comment: '',
+                date: '2021-05-02T17:20:11+00:00',
+                gdtEntryType: GdtEntryType.FORM,
+              },
+            ],
           },
-        })
-        wrapper = Wrapper({ gdt: true })
-      })
+        },
+      }
 
-      it('calls the API', () => {
-        expect(apolloMock).toBeCalledWith({
-          query: listGDTEntriesQuery,
-          variables: {
-            currentPage: 1,
-            pageSize: 25,
-          },
-          fetchPolicy: 'network-only',
-        })
-      })
+      mockOnResult.mock.calls[0][0](mockResult)
+      await nextTick()
 
-      it('does not show the GDD transactions', () => {
-        expect(wrapper.findAll('div.gdd-transaction-list').exists()).toBeFalsy()
-      })
-
-      it('shows the GDT transactions', () => {
-        expect(wrapper.findAll('div.gdt-transaction-list').exists()).toBeTruthy()
-      })
-
-      it('scrolls to (0, 0) after API call', () => {
-        expect(windowScrollToMock).toBeCalledWith(0, 0)
-      })
-
-      describe('update current page', () => {
-        beforeEach(() => {
-          jest.clearAllMocks()
-          wrapper.vm.currentPage = 2
-        })
-
-        it('calls the API again', () => {
-          expect(apolloMock).toBeCalledWith({
-            query: listGDTEntriesQuery,
-            variables: {
-              currentPage: 2,
-              pageSize: 25,
-            },
-            fetchPolicy: 'network-only',
-          })
-        })
-      })
+      expect(wrapper.vm.transactionsGdt).toEqual(mockResult.data.listGDTEntries.gdtEntries)
+      expect(wrapper.vm.transactionGdtCount).toBe(4)
     })
 
-    describe('update gdt with error', () => {
-      beforeEach(() => {
-        apolloMock.mockRejectedValue({ message: 'Oh no!' })
-        wrapper = Wrapper({ gdt: true })
-      })
+    it('calls router.replace when on /transactions path', async () => {
+      const mockResult = { data: { listGDTEntries: { count: 0, gdtEntries: [] } } }
+      mockOnResult.mock.calls[0][0](mockResult)
+      await nextTick()
 
-      it('toasts the error', () => {
-        expect(toastErrorSpy).toBeCalledWith('Oh no!')
-      })
+      expect(mockRouterReplace).toHaveBeenCalledWith('/gdt')
+      expect(mockScrollTo).toHaveBeenCalledWith(0, 0)
+    })
+
+    it('handles error in GDT query', async () => {
+      const error = new Error('API Error')
+      mockOnError.mock.calls[0][0](error)
+      await nextTick()
+
+      expect(wrapper.vm.transactionGdtCount).toBe(-1)
+      expect(mockToastError).toHaveBeenCalledWith('API Error')
+    })
+
+    it('updates GDT transactions when currentPage changes', async () => {
+      await wrapper.setProps({ gdt: true })
+      vi.clearAllMocks()
+
+      wrapper.vm.currentPage = 2
+      await nextTick()
+
+      expect(mockLoadGdt).toHaveBeenCalled()
     })
   })
 })

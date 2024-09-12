@@ -1,88 +1,108 @@
 import { mount } from '@vue/test-utils'
-import InputHour from './InputHour'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { ref } from 'vue'
+import InputHour from './InputHour.vue'
+import { useField } from 'vee-validate'
+import { BFormGroup, BFormInput, BFormInvalidFeedback } from 'bootstrap-vue-next'
 
-const localVue = global.localVue
+// Mock vee-validate
+vi.mock('vee-validate', () => ({
+  useField: vi.fn(),
+}))
 
 describe('InputHour', () => {
   let wrapper
 
-  const mocks = {
-    $t: jest.fn((t) => t),
-    $i18n: {
-      locale: jest.fn(() => 'en'),
-    },
-    $n: jest.fn((n) => String(n)),
-    $route: {
-      params: {},
-    },
+  const createWrapper = (propsData = {}) => {
+    return mount(InputHour, {
+      props: {
+        rules: {},
+        name: 'input-field-name',
+        label: 'input-field-label',
+        placeholder: 'input-field-placeholder',
+        validMaxTime: 25,
+        ...propsData,
+      },
+      global: {
+        components: {
+          BFormGroup,
+          BFormInput,
+          BFormInvalidFeedback,
+        },
+        mocks: {
+          $t: (t) => t,
+          $i18n: {
+            locale: () => 'en',
+          },
+          $n: (n) => String(n),
+          $route: {
+            params: {},
+          },
+        },
+      },
+    })
   }
 
-  describe('mount', () => {
-    const propsData = {
-      rules: {},
-      name: 'input-field-name',
-      label: 'input-field-label',
-      placeholder: 'input-field-placeholder',
-      value: 500,
-      validMaxTime: 25,
-    }
-
-    const Wrapper = () => {
-      return mount(InputHour, {
-        localVue,
-        mocks,
-        propsData,
-      })
-    }
-
-    beforeEach(() => {
-      wrapper = Wrapper()
-      // await wrapper.setData({ currentValue: 15 })
+  beforeEach(() => {
+    useField.mockReturnValue({
+      value: ref(0),
+      errorMessage: ref(''),
+      meta: ref({ valid: true }),
     })
+    wrapper = createWrapper()
+  })
 
-    it('renders the component input-hour', () => {
-      expect(wrapper.find('div.input-hour').exists()).toBe(true)
-    })
+  it('renders the component input-hour', () => {
+    expect(wrapper.find('div.input-hour').exists()).toBe(true)
+  })
 
-    it('has an input field', () => {
-      expect(wrapper.find('input').exists()).toBeTruthy()
-    })
+  it('has an input field', () => {
+    expect(wrapper.findComponent({ name: 'BFormInput' }).exists()).toBe(true)
+  })
 
-    describe('properties', () => {
-      it('has the id "input-field-name-input-field"', () => {
-        expect(wrapper.find('input').attributes('id')).toEqual('input-field-name-input-field')
-      })
-
-      it('has the placeholder "input-field-placeholder"', () => {
-        expect(wrapper.find('input').attributes('placeholder')).toEqual('input-field-placeholder')
-      })
-
-      it('has the value 0', () => {
-        expect(wrapper.vm.currentValue).toEqual(0)
-      })
-
-      it('has the label "input-field-label"', () => {
-        expect(wrapper.find('label').text()).toEqual('input-field-label')
-      })
-
-      it('has the label for "input-field-name-input-field"', () => {
-        expect(wrapper.find('label').attributes('for')).toEqual('input-field-name-input-field')
+  describe('properties', () => {
+    it('passes correct props to BFormInput', () => {
+      const input = wrapper.findComponent({ name: 'BFormInput' })
+      expect(input.props()).toMatchObject({
+        id: 'input-field-name-input-field',
+        modelValue: 0,
+        name: 'input-field-name',
+        placeholder: 'input-field-placeholder',
+        type: 'number',
+        state: true,
+        step: '0.25',
+        min: '0',
+        max: 25,
       })
     })
 
-    describe('input value changes', () => {
-      it('emits input with new value', async () => {
-        await wrapper.find('input').setValue('12')
-        expect(wrapper.emitted('input')).toBeTruthy()
-        expect(wrapper.emitted('input')).toEqual([[12]])
+    it('passes correct props to BFormGroup', () => {
+      const formGroup = wrapper.findComponent({ name: 'BFormGroup' })
+      expect(formGroup.props()).toMatchObject({
+        label: 'input-field-label',
+        labelFor: 'input-field-name-input-field',
       })
     })
+  })
 
-    describe('value property changes', () => {
-      it('updates data model', async () => {
-        await wrapper.setProps({ value: 15 })
-        expect(wrapper.vm.currentValue).toEqual(15)
+  describe('input value changes', () => {
+    it('updates currentValue when input changes', async () => {
+      await wrapper.findComponent({ name: 'BFormInput' }).vm.$emit('update:modelValue', 12)
+      expect(wrapper.vm.currentValue).toBe(12)
+    })
+  })
+
+  describe('error handling', () => {
+    it('displays error message when present', async () => {
+      useField.mockReturnValue({
+        value: ref(0),
+        errorMessage: ref('Error message'),
+        meta: ref({ valid: false }),
       })
+      wrapper = createWrapper()
+
+      expect(wrapper.findComponent({ name: 'BFormInvalidFeedback' }).exists()).toBe(true)
+      expect(wrapper.findComponent({ name: 'BFormInvalidFeedback' }).text()).toBe('Error message')
     })
   })
 })
