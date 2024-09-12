@@ -3,8 +3,6 @@
 # is required to explicitly define if you want an production build:
 # > docker-compose -f docker-compose.yml up 
 
-version: "3.4"
-
 services:
 
   ########################################################
@@ -67,7 +65,7 @@ services:
       context: ./mariadb
       target: mariadb_server
     environment:
-      - MARIADB_ALLOW_EMPTY_ROOT_PASSWORD=1
+      - MARIADB_ALLOW_EMPTY_PASSWORD=1
       - MARIADB_USER=root
     networks: 
       - internal-net

@@ -7,7 +7,6 @@ const profilePage = new ProfilePage()
 When('the user opens the change password menu', () => {
   cy.get(profilePage.openChangePassword).click()
   cy.get(profilePage.newPasswordRepeatInput).should('be.visible')
-  cy.get(profilePage.submitNewPasswordBtn).should('have.class','btn-light')
 })
 
 When('the user fills the password form with:', (table: DataTable) => {

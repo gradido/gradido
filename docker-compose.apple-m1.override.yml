@@ -3,8 +3,6 @@
 # To use it it is required to explicitly define if you want to build with it:
 # > docker-compose -f docker-compose.yml -f docker-compose.override.yml -f docker-compose.apple-m1.override.yml up
 
-version: "3.4"
-
 services:
   ########################################################
   # FRONTEND #############################################
