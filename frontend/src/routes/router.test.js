@@ -91,22 +91,11 @@ describe('router', () => {
 
           // Handle different component definition patterns
           if (typeof component === 'function') {
-            try {
-              const importedModule = await component()
-              component = importedModule.default || importedModule
-            } catch (error) {
-              console.error(`Error loading component for route ${path}:`, error)
-            }
+            const importedModule = await component()
+            component = importedModule.default || importedModule
           }
 
           const componentName = getComponentName(component)
-
-          if (!componentName) {
-            console.warn(
-              `Unable to determine component name for route ${path}. Component:`,
-              component,
-            )
-          }
 
           expect(componentName).toBe(expectedName)
         })

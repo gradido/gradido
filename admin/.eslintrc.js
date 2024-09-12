@@ -27,6 +27,7 @@ module.exports = {
   rules: {
     'no-console': ['error'],
     'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
+    'node/no-callback-literal': 0, // This is here to allow tests run properly
     'vue/component-name-in-template-casing': ['error', 'kebab-case'],
     // 'vue/no-static-inline-styles': [
     //   'error',

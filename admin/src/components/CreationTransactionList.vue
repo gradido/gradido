@@ -101,7 +101,6 @@ const { result, refetch } = useQuery(adminListContributions, {
 })
 
 watch(result, (newResult) => {
-  console.log('???')
   if (newResult && newResult.adminListContributions) {
     rows.value = newResult.adminListContributions.contributionCount
     items.value = newResult.adminListContributions.contributionList

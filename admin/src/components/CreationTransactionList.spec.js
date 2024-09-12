@@ -10,64 +10,6 @@ vi.mock('@vue/apollo-composable')
 vi.mock('vue-i18n')
 vi.mock('@/composables/useToast')
 
-const defaultData = {
-  adminListContributions: {
-    contributionCount: 2,
-    contributionList: [
-      {
-        id: 1,
-        firstName: 'Bibi',
-        lastName: 'Bloxberg',
-        userId: 99,
-        email: 'bibi@bloxberg.de',
-        amount: 500,
-        memo: 'Danke für alles',
-        date: new Date(),
-        moderator: 1,
-        status: 'PENDING',
-        creation: [500, 500, 500],
-        messagesCount: 0,
-        deniedBy: null,
-        deniedAt: null,
-        confirmedBy: null,
-        confirmedAt: null,
-        contributionDate: new Date(),
-        deletedBy: null,
-        deletedAt: null,
-        updatedAt: null,
-        updatedBy: null,
-        createdAt: new Date(),
-        moderatorId: null,
-      },
-      {
-        id: 2,
-        firstName: 'Räuber',
-        lastName: 'Hotzenplotz',
-        userId: 100,
-        email: 'raeuber@hotzenplotz.de',
-        amount: 1000000,
-        memo: 'Gut Ergattert',
-        date: new Date(),
-        moderator: 1,
-        status: 'PENDING',
-        creation: [500, 500, 500],
-        messagesCount: 0,
-        deniedBy: null,
-        deniedAt: null,
-        confirmedBy: null,
-        confirmedAt: new Date(),
-        contributionDate: new Date(),
-        deletedBy: null,
-        deletedAt: null,
-        updatedAt: null,
-        updatedBy: null,
-        createdAt: new Date(),
-        moderatorId: null,
-      },
-    ],
-  },
-}
-
 describe('CreationTransactionList', () => {
   let wrapper
   const mockResult = vi.fn()

@@ -17,7 +17,7 @@ export const createFilters = (i18n) => {
     const numValue = Number(value)
     if (isNaN(numValue)) return formattedAmount + ' GDD'
 
-    const prefix = numValue > 0 ? '+ ' : numValue < 0 ? '' : ''
+    const prefix = numValue >= 0 ? '+ ' : numValue < 0 ? '' : ''
     return prefix + formattedAmount + ' GDD'
   }
 

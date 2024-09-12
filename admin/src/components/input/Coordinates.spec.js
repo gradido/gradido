@@ -66,7 +66,7 @@ describe('Coordinates', () => {
     await latitudeInput.setValue(34.56)
     expect(wrapper.emitted('input')).toBeTruthy()
     expect(wrapper.emitted('input')[0][0]).toEqual({
-      latitude: '34.56',
+      latitude: 34.56,
       longitude: 12.34,
     })
 

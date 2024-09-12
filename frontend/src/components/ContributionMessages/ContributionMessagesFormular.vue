@@ -59,7 +59,6 @@ const disabled = computed(() => {
 async function onSubmit() {
   isSubmitting.value = true
 
-  console.log('is submitting?')
   try {
     await createContributionMessageMutation({
       contributionId: props.contributionId,

@@ -38,10 +38,5 @@ config.global.plugins = [i18n]
 app.config.warnHandler = (warning) => {
   throw new Error(warning)
 }
-const getVueInstance = () => {
-  const testApp = createApp({})
-  testApp.use(i18n)
-  return testApp
-}
 
-export { mockToastSuccess, mockToastError, mockToast, getVueInstance, i18n }
+export { mockToastSuccess, mockToastError, mockToast, i18n }

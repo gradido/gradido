@@ -14,14 +14,13 @@ vi.mock('../config', () => ({
 }))
 
 describe('Navigation Guards', () => {
-  let router, store, apollo, i18n, storeCommitMock, apolloQueryMock, i18nLocaleMock
+  let router, store, apollo, i18n, storeCommitMock, apolloQueryMock
 
   beforeEach(() => {
     vi.clearAllMocks()
 
     storeCommitMock = vi.fn()
     apolloQueryMock = vi.fn()
-    i18nLocaleMock = vi.fn()
 
     router = {
       beforeEach: vi.fn(),

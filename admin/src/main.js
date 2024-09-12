@@ -11,8 +11,6 @@ import addNavigationGuards from './router/guards'
 
 import i18n from './i18n'
 
-// import VueApollo from 'vue-apollo'
-
 import PortalVue from 'portal-vue'
 
 import { createBootstrap } from 'bootstrap-vue-next'
@@ -20,8 +18,6 @@ import { createBootstrap } from 'bootstrap-vue-next'
 // Add the necessary CSS
 import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue-next/dist/bootstrap-vue-next.css'
-
-import { toasters } from './mixins/toaster'
 
 import { apolloProvider } from './plugins/apolloProvider'
 

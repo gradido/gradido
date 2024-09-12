@@ -96,7 +96,7 @@ const { mutate: updateUserInfo } = useMutation(updateUserInfos)
 const onSubmit = handleSubmit(async () => {
   try {
     await updateUserInfo({ alias: values.username })
-    store.commit('username', username.value)
+    store.commit('username', values.username)
     toastSuccess(t('settings.username.change-success'))
   } catch (error) {
     toastError(error.message)

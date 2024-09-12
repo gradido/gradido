@@ -151,13 +151,13 @@ async function sendTransaction() {
     } else {
       throw new Error(`undefined transactionData.selected : ${transactionData.selected}`)
     }
-  } catch (error) {
+  } catch (err) {
     if (transactionData.selected === SEND_TYPES.send) {
-      errorResult.value = error.message
+      errorResult.value = err.message
       error.value = true
       currentTransactionStep.value = TRANSACTION_STEPS.transactionResultSendError
     } else {
-      toastError(error.message)
+      toastError(err.message)
     }
   } finally {
     loading.value = false

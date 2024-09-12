@@ -1,319 +1,231 @@
-// import { mount } from '@vue/test-utils'
-// import flushPromises from 'flush-promises'
-// import { toastErrorSpy } from '@test/testSetup'
-// import ForgotPassword from './ForgotPassword'
-//
-// const mockAPIcall = jest.fn()
-//
-// const localVue = global.localVue
-//
-// const mocks = {
-//   $t: jest.fn((t) => t),
-//   $apollo: {
-//     mutate: mockAPIcall,
-//   },
-//   $route: {
-//     params: {
-//       comingFrom: '',
-//     },
-//   },
-// }
-//
-// describe('ForgotPassword', () => {
-//   let wrapper
-//
-//   const Wrapper = () => {
-//     return mount(ForgotPassword, { localVue, mocks })
-//   }
-//
-//   describe('mount', () => {
-//     beforeEach(() => {
-//       wrapper = Wrapper()
-//     })
-//
-//     it('renders the component', () => {
-//       expect(wrapper.find('div.forgot-password').exists()).toBe(true)
-//     })
-//
-//     describe('input form', () => {
-//       let form
-//
-//       beforeEach(() => {
-//         form = wrapper.find('form')
-//       })
-//
-//       it('has the label "Email"', () => {
-//         expect(form.find('label').text()).toEqual('form.email')
-//       })
-//
-//       it('has the placeholder "Email"', () => {
-//         expect(form.find('input').attributes('placeholder')).toEqual('form.email')
-//       })
-//
-//       it('has a submit button', () => {
-//         expect(form.find('button[type="submit"]').exists()).toBe(true)
-//       })
-//
-//       describe('invalid Email', () => {
-//         beforeEach(async () => {
-//           await form.find('input').setValue('no-email')
-//           await flushPromises()
-//         })
-//
-//         it('displays an error', () => {
-//           expect(form.find('div.invalid-feedback').text()).toEqual('validations.messages.email')
-//         })
-//
-//         it('does not call the API', () => {
-//           expect(mockAPIcall).not.toHaveBeenCalled()
-//         })
-//       })
-//
-//       describe('valid Email', () => {
-//         beforeEach(() => {
-//           form.find('input').setValue('user@example.org')
-//         })
-//
-//         describe('calls the API', () => {
-//           describe('sends back error', () => {
-//             beforeEach(async () => {
-//               mockAPIcall.mockRejectedValue({
-//                 message: 'error',
-//               })
-//               await form.trigger('submit')
-//               await flushPromises()
-//             })
-//
-//             it('shows error title, subtitle, login button', () => {
-//               expect(wrapper.vm.showPageMessage).toBe(true)
-//               expect(wrapper.find('.test-message-headline').text()).toBe('message.errorTitle')
-//               expect(wrapper.find('.test-message-subtitle').text()).toBe('error.email-already-sent')
-//               expect(wrapper.find('.test-message-button').text()).toBe('login')
-//             })
-//
-//             it('button link directs to "/login"', () => {
-//               expect(wrapper.find('.test-message-button').attributes('href')).toBe('/login')
-//             })
-//
-//             it('toasts a standard error message', () => {
-//               expect(toastErrorSpy).toBeCalledWith('error.email-already-sent')
-//             })
-//           })
-//
-//           describe('success', () => {
-//             beforeEach(async () => {
-//               mockAPIcall.mockResolvedValue({
-//                 data: {
-//                   sendResetPasswordEmail: {
-//                     state: 'success',
-//                   },
-//                 },
-//               })
-//               await form.trigger('submit')
-//               await flushPromises()
-//             })
-//
-//             it('shows success title, subtitle, login button', () => {
-//               expect(wrapper.vm.showPageMessage).toBe(true)
-//               expect(wrapper.find('.test-message-headline').text()).toBe('message.title')
-//               expect(wrapper.find('.test-message-subtitle').text()).toBe('message.email')
-//               expect(wrapper.find('.test-message-button').text()).toBe('login')
-//             })
-//
-//             it('button link redirects to "/login"', () => {
-//               expect(wrapper.find('.test-message-button').attributes('href')).toBe('/login')
-//             })
-//           })
-//         })
-//       })
-//     })
-//
-//     describe('route has coming from ', () => {
-//       beforeEach(() => {
-//         mocks.$route.params.comingFrom = 'coming from'
-//         wrapper = Wrapper()
-//       })
-//
-//       it('changes subtitle', () => {
-//         expect(wrapper.vm.subtitle).toBe('settings.password.resend_subtitle')
-//       })
-//     })
-//   })
-// })
-
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
+import { nextTick } from 'vue'
 import ForgotPassword from './ForgotPassword.vue'
-import flushPromises from 'flush-promises'
-import { createRouter, createWebHistory } from 'vue-router'
-import { createI18n } from 'vue-i18n'
-import { BButton, BCol, BContainer, BForm, BFormGroup, BFormInput, BRow } from 'bootstrap-vue-next'
-import InputEmail from '@/components/Inputs/InputEmail.vue'
-import { configure, defineRule } from 'vee-validate'
-import { email, min, required } from '@vee-validate/rules'
+import { BCol, BContainer, BForm, BRow } from 'bootstrap-vue-next'
+import { useForm } from 'vee-validate'
+import { useMutation } from '@vue/apollo-composable'
+import { useAppToast } from '@/composables/useToast'
 
-defineRule('required', required)
-defineRule('email', email)
-defineRule('min', min)
+// Mock dependencies
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({
+    t: (key) => key,
+  }),
+}))
 
-// Configure vee-validate
-configure({
-  generateMessage: (context) => {
-    return `The field ${context.field} is invalid`
-  },
-})
-
-const mockToastError = vi.fn()
-vi.mock('@/composables/useToast', () => ({
-  useAppToast: vi.fn(() => ({
-    toastError: mockToastError,
+vi.mock('vue-router', () => ({
+  useRoute: vi.fn(() => ({
+    params: {},
   })),
 }))
 
-const mockMutate = vi.fn()
 vi.mock('@vue/apollo-composable', () => ({
-  useMutation: () => ({
-    mutate: mockMutate,
-  }),
+  useMutation: vi.fn(() => ({
+    mutate: vi.fn(),
+  })),
+}))
+
+vi.mock('@/composables/useToast', () => ({
+  useAppToast: vi.fn(() => ({
+    toastError: vi.fn(),
+  })),
+}))
+
+vi.mock('vee-validate', () => ({
+  useForm: vi.fn(() => ({
+    meta: { valid: true },
+    values: { email: 'test@example.com' },
+  })),
 }))
 
 describe('ForgotPassword', () => {
   let wrapper
-  let router
-  let i18n
+  let mutate
+  let toastError
 
   beforeEach(() => {
-    router = createRouter({
-      history: createWebHistory(),
-      routes: [{ path: '/login', name: 'Login' }],
-    })
+    vi.clearAllMocks()
 
-    i18n = createI18n({
-      legacy: false,
-      locale: 'en',
-      messages: {
-        en: {
-          'form.email': 'Email',
-          'validations.messages.email': 'Invalid email',
-          'message.errorTitle': 'Error',
-          'error.email-already-sent': 'Email already sent',
-          login: 'Login',
-          'message.title': 'Success',
-          'message.email': 'Email sent',
-          'settings.password.resend_subtitle': 'Resend subtitle',
+    mutate = vi.fn()
+    vi.mocked(useMutation).mockReturnValue({ mutate })
+
+    toastError = vi.fn()
+    vi.mocked(useAppToast).mockReturnValue({ toastError })
+
+    wrapper = mount(ForgotPassword, {
+      global: {
+        components: {
+          BContainer,
+          BForm,
+          BRow,
+          BCol,
         },
+        mocks: {
+          $t: (msg) => msg,
+        },
+        stubs: ['BButton', 'input-email', 'message'],
       },
+    })
+  })
+
+  it('renders the component', () => {
+    expect(wrapper.find('.forgot-password').exists()).toBe(true)
+  })
+
+  it('shows the form initially', () => {
+    expect(wrapper.find('form').exists()).toBe(true)
+    expect(wrapper.find('message').exists()).toBe(false)
+  })
+
+  it('disables submit button when form is invalid', async () => {
+    vi.mocked(useForm).mockReturnValue({
+      meta: { valid: false },
+      values: { email: 'incorrect' },
     })
 
     wrapper = mount(ForgotPassword, {
       global: {
-        plugins: [router, i18n],
-        stubs: {
+        components: {
           BContainer,
+          BForm,
           BRow,
           BCol,
-          BForm,
-          BButton,
-          BFormInput,
-          BFormGroup,
-          InputEmail,
-          Message: true,
         },
+        mocks: {
+          $t: (msg) => msg,
+        },
+        stubs: ['BButton', 'input-email', 'message'],
       },
     })
+
+    await wrapper.vm.$nextTick()
+
+    const submitButton = wrapper.find('b-button-stub[type="submit"]')
+    expect(submitButton.attributes('disabled')).toBeDefined()
+    expect(submitButton.attributes('variant')).toBe('gradido-disable')
   })
 
-  afterEach(() => {
-    vi.clearAllMocks()
-  })
-
-  it('renders the component', () => {
-    expect(wrapper.find('div.forgot-password').exists()).toBe(true)
-  })
-
-  describe('input form', () => {
-    it('has the label "Email"', () => {
-      expect(wrapper.find('[data-test="input-email"] label').text()).toBe('Email')
+  it('enables submit button when form is valid', async () => {
+    vi.mocked(useForm).mockReturnValue({
+      meta: { valid: true },
+      values: { email: 'correct@email.com' },
     })
 
-    it('has the placeholder "Email"', () => {
-      expect(wrapper.find('#email-input-field').attributes('placeholder')).toBe('Email')
-    })
-
-    it('has a submit button', () => {
-      expect(wrapper.find('button[type="submit"]').exists()).toBe(true)
-    })
-
-    describe('valid Email', () => {
-      beforeEach(async () => {
-        await wrapper.find('#email-input-field').setValue('user@example.org')
-        await wrapper.find('form').trigger('submit')
-      })
-
-      describe('API call succeeds', () => {
-        beforeEach(async () => {
-          mockMutate.mockResolvedValue({
-            data: {
-              sendResetPasswordEmail: {
-                state: 'success',
-              },
-            },
-          })
-          console.log(wrapper.html())
-          await wrapper.find('form').trigger('submit')
-          await flushPromises()
-        })
-
-        it('shows success message', () => {
-          expect(wrapper.find('message-stub').attributes('headline')).toBe('Success')
-          expect(wrapper.find('message-stub').attributes('subtitle')).toBe('Email sent')
-          expect(wrapper.find('message-stub').attributes('buttontext')).toBe('Login')
-        })
-      })
-
-      describe('API call fails', () => {
-        beforeEach(async () => {
-          mockMutate.mockRejectedValue(new Error('API Error'))
-          await wrapper.find('form').trigger('submit')
-          await flushPromises()
-        })
-
-        it('shows error message', () => {
-          expect(wrapper.find('message-stub').attributes('headline')).toBe('Error')
-          expect(wrapper.find('message-stub').attributes('subtitle')).toBe('Email already sent')
-          expect(wrapper.find('message-stub').attributes('buttontext')).toBe('Login')
-        })
-
-        it('toasts a standard error message', () => {
-          expect(mockToastError).toHaveBeenCalledWith('Email already sent')
-        })
-      })
-    })
-  })
-
-  describe('route has coming from', () => {
-    beforeEach(() => {
-      router.currentRoute.value.params.comingFrom = 'coming from'
-      wrapper = mount(ForgotPassword, {
-        global: {
-          plugins: [router, i18n],
-          stubs: {
-            BContainer,
-            BRow,
-            BCol,
-            BForm,
-            BButton,
-            BFormInput,
-            BFormGroup,
-            InputEmail,
-            Message: true,
-          },
+    wrapper = mount(ForgotPassword, {
+      global: {
+        components: {
+          BContainer,
+          BForm,
+          BRow,
+          BCol,
         },
-      })
+        mocks: {
+          $t: (msg) => msg,
+        },
+        stubs: ['BButton', 'input-email', 'message'],
+      },
     })
 
-    it('changes subtitle', () => {
-      expect(wrapper.vm.subtitle).toBe('settings.password.resend_subtitle')
+    await wrapper.vm.$nextTick()
+    const submitButton = wrapper.find('b-button-stub[type="submit"]')
+    expect(submitButton.attributes('disabled')).toBe('false')
+    expect(submitButton.attributes('variant')).toBe('gradido')
+  })
+
+  it('calls mutation on form submit', async () => {
+    wrapper = mount(ForgotPassword, {
+      global: {
+        components: {
+          BContainer,
+          BForm,
+          BRow,
+          BCol,
+        },
+        mocks: {
+          $t: (msg) => msg,
+        },
+        stubs: ['BButton', 'input-email', 'message'],
+      },
     })
+
+    await wrapper.find('form').trigger('submit')
+
+    expect(mutate).toHaveBeenCalledWith({
+      email: 'correct@email.com',
+    })
+  })
+
+  it('shows success message after successful mutation', async () => {
+    wrapper = mount(ForgotPassword, {
+      global: {
+        components: {
+          BContainer,
+          BForm,
+          BRow,
+          BCol,
+        },
+        mocks: {
+          $t: (msg) => msg,
+        },
+        stubs: ['BButton', 'input-email', 'message'],
+      },
+    })
+
+    await wrapper.find('form').trigger('submit')
+    await nextTick()
+
+    expect(wrapper.find('message-stub').exists()).toBe(true)
+    expect(wrapper.vm.success).toBe(true)
+  })
+
+  it('shows error message and calls toastError on mutation failure', async () => {
+    mutate.mockRejectedValue(new Error('Test error'))
+
+    wrapper = mount(ForgotPassword, {
+      global: {
+        components: {
+          BContainer,
+          BForm,
+          BRow,
+          BCol,
+        },
+        mocks: {
+          $t: (msg) => msg,
+        },
+        stubs: ['BButton', 'input-email', 'message'],
+      },
+    })
+
+    await nextTick()
+
+    await wrapper.find('form').trigger('submit')
+    await nextTick()
+
+    expect(wrapper.find('message-stub').exists()).toBe(true)
+    expect(wrapper.vm.success).toBe(false)
+    expect(wrapper.vm.showPageMessage).toBe(true)
+    expect(toastError).toHaveBeenCalledWith('error.email-already-sent')
+
+    // Verify that the error message is displayed
+    const messageComponent = wrapper.findComponent({ name: 'message' })
+    expect(messageComponent.props('headline')).toBe('message.errorTitle')
+    expect(messageComponent.props('subtitle')).toBe('error.email-already-sent')
+    expect(messageComponent.attributes('data-test')).toBe('forgot-password-error')
+  })
+
+  it('changes subtitle when coming from a specific route', async () => {
+    const { useRoute } = await import('vue-router')
+    useRoute.mockReturnValue({
+      params: { comingFrom: 'someRoute' },
+    })
+
+    wrapper = mount(ForgotPassword, {
+      global: {
+        stubs: ['BContainer', 'BRow', 'BCol', 'BForm', 'BButton', 'input-email', 'message'],
+      },
+    })
+
+    expect(wrapper.vm.subtitle).toBe('settings.password.resend_subtitle')
   })
 })

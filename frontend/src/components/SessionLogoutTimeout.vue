@@ -7,6 +7,8 @@
       hide-header
       hide-footer
       no-close-on-backdrop
+      :model-value="sessionModalModel"
+      @update:modelValue="sessionModalModel = $event"
     >
       <BCard header-tag="header" footer-tag="footer">
         <BCardText>
@@ -49,6 +51,10 @@ import { useModal } from 'bootstrap-vue-next'
 
 const store = useStore()
 
+const emit = defineEmits(['logout'])
+
+const sessionModalModel = ref(false)
+
 const { show: showModal, hide: hideModal } = useModal('modalSessionTimeOut')
 
 const { load: verifyLoginQuery, loading, error } = useLazyQuery(verifyLogin)
@@ -69,7 +75,7 @@ const updateNow = () => {
 }
 
 const checkExpiration = () => {
-  if (tokenExpiresInSeconds.value < 75 && !timerInterval.value) {
+  if (tokenExpiresInSeconds.value < 75 && timerInterval.value && !sessionModalModel.value) {
     showModal()
   }
   if (tokenExpiresInSeconds.value === 0) {
@@ -124,6 +130,4 @@ onBeforeUnmount(() => {
 })
 
 checkExpiration()
-
-const emit = defineEmits(['logout'])
 </script>

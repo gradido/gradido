@@ -47,24 +47,13 @@
           </BButton>
           <div>
             <BButton
-              v-if="pagetype === 'PageCreationConfirm'"
               type="button"
               variant="success"
               class="test-submit"
-              :disabled="selected === '' || value <= 0 || text.length < 10"
+              :disabled="disabled"
               @click="submitCreation"
             >
-              {{ $t('creation_form.update_creation') }}
-            </BButton>
-            <BButton
-              v-else
-              type="button"
-              variant="success"
-              class="test-submit"
-              :disabled="selected === '' || value <= 0 || text.length < 10"
-              @click="submitCreation"
-            >
-              {{ $t('creation_form.submit_creation') }}
+              {{ submitBtnText }}
             </BButton>
           </div>
         </div>
@@ -128,7 +117,7 @@ const text = ref(!props.creationUserData.memo ? '' : props.creationUserData.memo
 const value = ref(!props.creationUserData.amount ? 0 : props.creationUserData.amount)
 const rangeMin = ref(0)
 const rangeMax = ref(1000)
-const selected = ref()
+const selected = ref(null)
 const creationForm = ref(null)
 
 const radioOptions = computed(() => {
@@ -138,6 +127,16 @@ const radioOptions = computed(() => {
       name: obj.short + (props.creation[idx] ? ' ' + props.creation[idx] + ' GDD' : ''),
     }
   })
+})
+
+const disabled = computed(() => {
+  return selected.value === '' || value.value <= 0 || text.value.length < 10
+})
+
+const submitBtnText = computed(() => {
+  return props.pagetype === 'PageCreationConfirm'
+    ? t('creation_form.update_creation')
+    : t('creation_form.submit_creation')
 })
 
 const updateRadioSelected = (name) => {
@@ -189,11 +188,13 @@ const submitCreation = async () => {
 watch(
   () => selected.value,
   async (newValue, oldValue) => {
-    if (newValue !== oldValue && selected.value !== '') {
+    if (newValue !== oldValue && selected.value !== '' && selected.value !== null) {
       updateRadioSelected(newValue)
     }
   },
 )
+
+defineExpose({ submitCreation })
 </script>
 <style scoped>
 .buttons-wrapper {

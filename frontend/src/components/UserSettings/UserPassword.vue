@@ -11,8 +11,6 @@
             <span class="pointer me-3">{{ $t('settings.password.change-password') }}</span>
             <IBiPencil v-if="showPassword" />
             <IBiXCircle v-else class="color-danger" />
-            <!-- <b-icon v-if="showPassword" class="pointer ml-3" icon="pencil"></b-icon>
-            <b-icon v-else icon="x-circle" class="pointer ml-3" variant="danger"></b-icon> -->
           </BButton>
         </BCol>
       </BRow>

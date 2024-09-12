@@ -21,6 +21,7 @@
     "@babel/core": "^7.13.13",
     "@babel/node": "^7.13.13",
     "@babel/preset-env": "^7.13.12",
+    "@morev/vue-transitions": "^3.0.2",
     "@vee-validate/i18n": "^4.13.2",
     "@vee-validate/rules": "^4.13.2",
     "@vee-validate/yup": "^4.13.2",
@@ -60,7 +61,6 @@
     "vue-router": "^4.4.0",
     "vue-timer-hook": "^1.0.84",
     "vue-timers": "^2.0.4",
-    "vue2-transitions": "^0.2.3",
     "vuex": "^4.1.0",
     "vuex-persistedstate": "^4.1.0",
     "yup": "^1.4.0"
