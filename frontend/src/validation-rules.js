@@ -71,27 +71,33 @@ export const loadAllRules = (i18nCallback, apollo) => {
   })
 
   defineRule('containsLowercaseCharacter', (value) => {
-    return !!value.match(/[a-z]+/) || i18nCallback.t('site.signup.lowercase')
+    const isMatch = value && !!value.match(/[a-z]+/)
+    return isMatch || i18nCallback.t('site.signup.lowercase')
   })
 
   defineRule('containsUppercaseCharacter', (value) => {
-    return !!value.match(/[A-Z]+/) || i18nCallback.t('site.signup.uppercase')
+    const isMatch = value && !!value.match(/[A-Z]+/)
+    return isMatch || i18nCallback.t('site.signup.uppercase')
   })
 
   defineRule('containsNumericCharacter', (value) => {
-    return !!value.match(/[0-9]+/) || i18nCallback.t('site.signup.one_number')
+    const isMatch = value && !!value.match(/[0-9]+/)
+    return isMatch || i18nCallback.t('site.signup.one_number')
   })
 
   defineRule('atLeastEightCharacters', (value) => {
-    return !!value.match(/.{8,}/) || i18nCallback.t('site.signup.minimum')
+    const isMatch = value && !!value.match(/.{8,}/)
+    return isMatch || i18nCallback.t('site.signup.minimum')
   })
 
   defineRule('atLeastOneSpecialCharacter', (value) => {
-    return !!value.match(/[^a-zA-Z0-9 \t\n\r]/) || i18nCallback.t('site.signup.special-char')
+    const isMatch = value && !!value.match(/[^a-zA-Z0-9 \t\n\r]/)
+    return isMatch || i18nCallback.t('site.signup.special-char')
   })
 
   defineRule('noWhitespaceCharacters', (value) => {
-    return !value.match(/[ \t\n\r]+/) || i18nCallback.t('site.signup.no-whitespace')
+    const isMatch = value && !value.match(/[ \t\n\r]+/)
+    return isMatch || i18nCallback.t('site.signup.no-whitespace')
   })
 
   defineRule('samePassword', (value, [pwd], ctx) => {
@@ -99,16 +105,13 @@ export const loadAllRules = (i18nCallback, apollo) => {
   })
 
   defineRule('usernameAllowedChars', (value) => {
-    return (
-      !!value.match(/^[a-zA-Z0-9_-]+$/) || i18nCallback.t('form.validation.username-allowed-chars')
-    )
+    const isMatch = value && !!value.match(/^[a-zA-Z0-9_-]+$/)
+    return isMatch || i18nCallback.t('form.validation.username-allowed-chars')
   })
 
   defineRule('usernameHyphens', (value) => {
-    return (
-      !!value.match(/^[a-zA-Z0-9]+(?:[_-][a-zA-Z0-9]+?)*$/) ||
-      i18nCallback.t('form.validation.username-hyphens')
-    )
+    const isMatch = value && !!value.match(/^[a-zA-Z0-9]+(?:[_-][a-zA-Z0-9]+?)*$/)
+    return isMatch || i18nCallback.t('form.validation.username-hyphens')
   })
 
   defineRule('usernameUnique', async (value) => {
