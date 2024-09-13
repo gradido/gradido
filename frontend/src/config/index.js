@@ -54,8 +54,8 @@ const BACKEND_MODULE_URL =
   process.env.BACKEND_MODULE_PORT
 
 const endpoints = {
-  
-  GRAPHQL_URI: process.env.GRAPHQL_URI ?? (BACKEND_MODULE_URL +  process.env.GRAPHQL_PATH ?? '/graphql'),
+  GRAPHQL_URI:
+    process.env.GRAPHQL_URI ?? BACKEND_MODULE_URL + process.env.GRAPHQL_PATH ?? '/graphql',
   // ADMIN_AUTH_URL:
   //  COMMUNITY_URL + (process.env.ADMIN_AUTH_PATH ?? '/admin/authenticate?token={token}'),
   ADMIN_AUTH_URL:
