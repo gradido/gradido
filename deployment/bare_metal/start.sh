@@ -91,6 +91,7 @@ cd $PROJECT_ROOT
 git fetch --all
 git checkout $BRANCH
 git pull
+git status
 export BUILD_COMMIT="$(git rev-parse HEAD)"
 
 # Generate gradido.conf from template
@@ -172,6 +173,15 @@ envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/frontend/.env
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/admin/.env.template > $PROJECT_ROOT/admin/.env
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/dht-node/.env.template > $PROJECT_ROOT/dht-node/.env
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/federation/.env.template > $PROJECT_ROOT/federation/.env
+
+# log all environment settings to logfile
+echo '--------------------------------------------------------------' >> $UPDATE_HTML
+echo ' List all exported environment variables' >> $UPDATE_HTML
+echo '--------------------------------------------------------------' >> $UPDATE_HTML
+env >> $UPDATE_HTML
+echo '--------------------------------------------------------------' >> $UPDATE_HTML
+env
+
 
 # Install & build database
 echo 'Updating database' >> $UPDATE_HTML
