@@ -1,5 +1,4 @@
 import { defineConfig } from 'vite'
-// import { fileURLToPath, URL } from 'url';
 import path from 'path'
 import commonjs from 'vite-plugin-commonjs'
 import vue from '@vitejs/plugin-vue'
@@ -7,10 +6,10 @@ import Components from 'unplugin-vue-components/vite'
 import Icons from 'unplugin-icons/vite'
 import IconsResolve from 'unplugin-icons/resolver'
 import EnvironmentPlugin from 'vite-plugin-environment'
+import { createHtmlPlugin } from 'vite-plugin-html'
 
 import { BootstrapVueNextResolver } from 'bootstrap-vue-next'
-
-// const path = require('path')
+import CONFIG from './src/config'
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -27,6 +26,21 @@ export default defineConfig({
     extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json', '.vue'],
   },
   plugins: [
+    createHtmlPlugin({
+      minify: true,
+      inject: {
+        data: {
+          VITE_META_TITLE_DE: CONFIG.META_TITLE_DE,
+          VITE_META_TITLE_EN: CONFIG.META_TITLE_EN,
+          VITE_META_DESCRIPTION_DE: CONFIG.META_DESCRIPTION_DE,
+          VITE_META_DESCRIPTION_EN: CONFIG.META_DESCRIPTION_EN,
+          VITE_META_KEYWORDS_DE: CONFIG.META_KEYWORDS_DE,
+          VITE_META_KEYWORDS_EN: CONFIG.META_KEYWORDS_EN,
+          VITE_META_AUTHOR: CONFIG.META_AUTHOR,
+          VITE_META_URL: CONFIG.META_URL,
+        },
+      },
+    }),
     vue({
       template: {
         compilerOptions: {
