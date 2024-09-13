@@ -1,6 +1,5 @@
 // ATTENTION: DO NOT PUT ANY SECRETS IN HERE (or the .env)
 /* eslint-disable n/no-process-env */
-
 import { Decimal } from 'decimal.js-light'
 import dotenv from 'dotenv'
 
@@ -19,19 +18,29 @@ const constants = {
   LOG_LEVEL: process.env.LOG_LEVEL ?? 'info',
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-    EXPECTED: 'v23.2024-04-04',
+    EXPECTED: 'v24.2024-08-06',
     CURRENT: '',
   },
 }
 
 const server = {
-  PORT: process.env.PORT ?? 4000,
+  BACKEND_MODULE_PROTOCOL: process.env.BACKEND_MODULE_PROTOCOL ?? 'http',
+  BACKEND_MODULE_HOST: process.env.BACKEND_MODULE_HOST ?? 'localhost',
+  BACKEND_MODULE_PORT: process.env.BACKEND_MODULE_PORT ?? '4000',
+  // PORT: process.env.PORT ?? 4000,
   JWT_SECRET: process.env.JWT_SECRET ?? 'secret123',
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN ?? '10m',
+  // Switch to aktivate the graphQL-Playground for development and tests
   GRAPHIQL: process.env.GRAPHIQL === 'true' || false,
   GDT_API_URL: process.env.GDT_API_URL ?? 'https://gdt.gradido.net',
   PRODUCTION: process.env.NODE_ENV === 'production' || false,
 }
+const BACKEND_MODULE_URL =
+  server.BACKEND_MODULE_PROTOCOL +
+  '://' +
+  server.BACKEND_MODULE_HOST +
+  ':' +
+  server.BACKEND_MODULE_PORT
 
 const database = {
   DB_HOST: process.env.DB_HOST ?? 'localhost',
@@ -51,9 +60,9 @@ const klicktipp = {
   KLICKTIPP_APIKEY_EN: process.env.KLICKTIPP_APIKEY_EN ?? 'SomeFakeKeyEN',
 }
 
-const COMMUNITY_HOST = process.env.COMMUNITY_HOST ?? 'localhost'
-const URL_PROTOCOL = process.env.URL_PROTOCOL ?? 'http'
-const COMMUNITY_URL = process.env.COMMUNITY_URL ?? `${URL_PROTOCOL}://${COMMUNITY_HOST}`
+// const COMMUNITY_HOST = process.env.COMMUNITY_HOST ?? 'localhost'
+// const URL_PROTOCOL = process.env.URL_PROTOCOL ?? 'http'
+const COMMUNITY_URL = process.env.COMMUNITY_URL ?? `${BACKEND_MODULE_URL}` // ${URL_PROTOCOL}://${COMMUNITY_HOST}`
 const DLT_CONNECTOR_PORT = process.env.DLT_CONNECTOR_PORT ?? 6010
 
 const dltConnector = {
