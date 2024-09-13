@@ -17,28 +17,18 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta name="title" lang="de" content="VITE test">
-  <meta name="title" lang="en" content="VITE test">
-  <meta name="description" lang="de" content="VITE test">
-  <meta name="description" lang="en" content="VITE test">
-  <meta name="keywords" lang="de" content="VITE test">
-  <meta name="keywords" lang="en" content="VITE test">
-  <meta name="author" content="VITE test">
-  <meta name="url" content="VITE test">
-  <meta name="identifier-URL" content="VITE test">
-<!--  <meta name="title" lang="de" content="<%= htmlWebpackPlugin.options.meta.title_de %>">-->
-<!--  <meta name="title" lang="en" content="<%= htmlWebpackPlugin.options.meta.title_en %>">-->
-<!--  <meta name="description" lang="de" content="<%= htmlWebpackPlugin.options.meta.description_de %>">-->
-<!--  <meta name="description" lang="en" content="<%= htmlWebpackPlugin.options.meta.description_en %>">-->
-<!--  <meta name="keywords" lang="de" content="<%= htmlWebpackPlugin.options.meta.keywords_de %>">-->
-<!--  <meta name="keywords" lang="en" content="<%= htmlWebpackPlugin.options.meta.keywords_en %>">-->
-<!--  <meta name="author" content="<%= htmlWebpackPlugin.options.meta.author %>">-->
-<!--  <meta name="url" content="<%= htmlWebpackPlugin.options.meta.url %>">-->
-<!--  <meta name="identifier-URL" content="<%= htmlWebpackPlugin.options.meta.url %>">-->
+  <meta name="title" lang="de" content="<%= VITE_META_TITLE_DE %>">
+  <meta name="title" lang="en" content="<%= VITE_META_TITLE_EN %>">
+  <meta name="description" lang="de" content="<%= VITE_META_DESCRIPTION_DE %>">
+  <meta name="description" lang="en" content="<%= VITE_META_DESCRIPTION_EN %>">
+  <meta name="keywords" lang="de" content="<%= VITE_META_KEYWORDS_DE %>">
+  <meta name="keywords" lang="en" content="<%= VITE_META_KEYWORDS_EN %>">
+  <meta name="author" content="<%= VITE_META_AUTHOR %>">
+  <meta name="url" content="<%= VITE_META_URL %>">
+  <meta name="identifier-URL" content="<%= VITE_META_URL %>">
   <meta charset="utf-8">
   <meta name="robots" content="index,follow">
-  <link rel='canonical' href='VITE test'>
-<!--  <link rel='canonical' href='<%= htmlWebpackPlugin.options.meta.url %>'>-->
+  <link rel='canonical' href='<%= VITE_META_URL %>'>
   <link rel="icon" type="image/png" sizes="96x96" href="/favicon.png">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
@@ -47,17 +37,17 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700">
   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
 
-<!--  <meta property="og:title" content="<%= htmlWebpackPlugin.options.meta.title_de %>" />-->
-<!--  <meta property="og:description" content="<%= htmlWebpackPlugin.options.meta.description_de %>" />-->
-<!--  <meta property="og:type" content="Website" />-->
-<!--  <meta property="og:url" content="<%= htmlWebpackPlugin.options.meta.url %>" />-->
-<!--  <meta property="og:image" content="<%= htmlWebpackPlugin.options.meta.url %>/img/gradido-wallet-650-400.jpg" />-->
+  <meta property="og:title" content="<%= VITE_META_TITLE_DE %>" />
+  <meta property="og:description" content="<%= VITE_META_DESCRIPTION_DE %>" />
+  <meta property="og:type" content="Website" />
+  <meta property="og:url" content="<%= VITE_META_URL %>" />
+  <meta property="og:image" content="<%= VITE_META_URL %>/img/gradido-wallet-650-400.jpg" />
 
-<!--  <meta lang="de" name="twitter:title" content="<%= htmlWebpackPlugin.options.meta.title_de %>">-->
-<!--  <meta lang="en" name="twitter:title" content="<%= htmlWebpackPlugin.options.meta.title_en %>">-->
-<!--  <meta lang="de" name="twitter:description" content="<%= htmlWebpackPlugin.options.meta.description_de %>">-->
-<!--  <meta lang="en" name="twitter:description" content="<%= htmlWebpackPlugin.options.meta.description_en %>">-->
-<!--  <meta name="twitter:image" content="<%= htmlWebpackPlugin.options.meta.url %>/img/gradido-wallet-650-400.jpg">-->
+  <meta lang="de" name="twitter:title" content="<%= VITE_META_TITLE_DE %>">
+  <meta lang="en" name="twitter:title" content="<%= VITE_META_TITLE_EN %>">
+  <meta lang="de" name="twitter:description" content="<%= VITE_META_DESCRIPTION_DE %>">
+  <meta lang="en" name="twitter:description" content="<%= VITE_META_DESCRIPTION_EN %>">
+  <meta name="twitter:image" content="<%= VITE_META_URL %>/img/gradido-wallet-650-400.jpg">
   <meta name="twitter:card" content="summary_large_image">
 
 </head>
