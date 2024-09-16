@@ -4,12 +4,14 @@ import { Field, Message, OneOf } from 'protobufjs'
 import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
 import { CommunityDraft } from '@/graphql/input/CommunityDraft'
 import { TransactionDraft } from '@/graphql/input/TransactionDraft'
+import { UserAccountDraft } from '@/graphql/input/UserAccountDraft'
 import { TransactionError } from '@/graphql/model/TransactionError'
 import { logger } from '@/logging/logger'
 import { LogError } from '@/server/LogError'
 import { timestampToDate } from '@/utils/typeConverter'
 
 import { AbstractTransaction } from '../AbstractTransaction'
+import { determineCrossGroupType, determineOtherGroup } from '../transactionBody.logic'
 
 import { CommunityRoot } from './CommunityRoot'
 import { PROTO_TRANSACTION_BODY_VERSION_NUMBER } from './const'
@@ -25,14 +27,21 @@ import { Timestamp } from './Timestamp'
 // https://www.npmjs.com/package/@apollo/protobufjs
 // eslint-disable-next-line no-use-before-define
 export class TransactionBody extends Message<TransactionBody> {
-  public constructor(transaction?: TransactionDraft | CommunityDraft) {
+  public constructor(transaction?: TransactionDraft | CommunityDraft | UserAccountDraft) {
     if (transaction) {
+      let type = CrossGroupType.LOCAL
+      let otherGroup = ''
+      if (transaction instanceof TransactionDraft) {
+        type = determineCrossGroupType(transaction)
+        otherGroup = determineOtherGroup(type, transaction)
+      }
+
       super({
         memo: 'Not implemented yet',
         createdAt: new Timestamp(new Date(transaction.createdAt)),
         versionNumber: PROTO_TRANSACTION_BODY_VERSION_NUMBER,
-        type: CrossGroupType.LOCAL,
-        otherGroup: '',
+        type,
+        otherGroup,
       })
     } else {
       super()

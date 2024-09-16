@@ -73,4 +73,10 @@ export const CommunityRepository = getDataSource()
       }
       return new KeyPair(community)
     },
+
+    async loadHomeCommunity(): Promise<Community> {
+      return await this.findOneOrFail({
+        where: { foreign: false },
+      })
+    },
   })

@@ -1,5 +1,6 @@
 import { Account } from '@entity/Account'
 import { User } from '@entity/User'
+import { FindOptionsRelations } from 'typeorm'
 
 import { UserIdentifier } from '@/graphql/input/UserIdentifier'
 import { getDataSource } from '@/typeorm/DataSource'
@@ -20,5 +21,12 @@ export const UserRepository = getDataSource()
         account.user = user
         return account
       }
+    },
+
+    findByGradidoId(
+      { uuid }: UserIdentifier,
+      relations?: FindOptionsRelations<User>,
+    ): Promise<User | null> {
+      return User.findOne({ where: { gradidoID: uuid }, relations })
     },
   })

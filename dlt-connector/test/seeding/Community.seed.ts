@@ -20,7 +20,7 @@ export const communitySeed = async (
 
   const community = await Community.findOneOrFail({ where: { iotaTopic } })
   if (foreign && keyPair) {
-    // that isn't entirely correct, normally only the public key from foreign community is know, and will be come form blockchain
+    // that isn't entirely correct, normally only the public key from foreign community is known, and will be come form blockchain
     keyPair.fillInCommunityKeys(community)
     await community.save()
   }
