@@ -1,156 +1,133 @@
-import { mount } from '@vue/test-utils'
-import OpenCreationsTable from './OpenCreationsTable'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { shallowMount } from '@vue/test-utils'
+import { createStore } from 'vuex'
+import OpenCreationsTable from './OpenCreationsTable.vue'
 
-const localVue = global.localVue
-
-const apolloMutateMock = jest.fn().mockResolvedValue({})
-const apolloQueryMock = jest.fn().mockResolvedValue({})
-
-const propsData = {
-  items: [
-    {
-      id: 4,
-      firstName: 'Bob',
-      lastName: 'der Baumeister',
-      email: 'bob@baumeister.de',
-      amount: 300,
-      memo: 'Aktives Grundeinkommen für Januar 2022',
-      date: '2022-01-01T00:00:00.000Z',
-      moderatorId: 1,
-      creation: [700, 1000, 1000],
-      __typename: 'PendingCreation',
-    },
-    {
-      id: 5,
-      firstName: 'Räuber',
-      lastName: 'Hotzenplotz',
-      email: 'raeuber@hotzenplotz.de',
-      amount: 210,
-      memo: 'Aktives Grundeinkommen für Januar 2022',
-      date: '2022-01-01T00:00:00.000Z',
-      moderatorId: null,
-      creation: [790, 1000, 1000],
-      __typename: 'PendingCreation',
-    },
-    {
-      id: 6,
-      firstName: 'Stephen',
-      lastName: 'Hawking',
-      email: 'stephen@hawking.uk',
-      amount: 330,
-      memo: 'Aktives Grundeinkommen für Januar 2022',
-      date: '2022-01-01T00:00:00.000Z',
-      moderatorId: 1,
-      creation: [670, 1000, 1000],
-      __typename: 'PendingCreation',
-    },
-  ],
-  fields: [
-    { key: 'bookmark', label: 'delete' },
-    { key: 'email', label: 'e_mail' },
-    { key: 'firstName', label: 'firstname' },
-    { key: 'lastName', label: 'lastname' },
-    {
-      key: 'amount',
-      label: 'creation',
-      formatter: (value) => {
-        return value + ' GDD'
-      },
-    },
-    { key: 'memo', label: 'text', class: 'text-break' },
-    {
-      key: 'date',
-      label: 'date',
-      formatter: (value) => {
-        return value
-      },
-    },
-    { key: 'moderator', label: 'moderator' },
-    { key: 'editCreation', label: 'edit' },
-    { key: 'confirm', label: 'save' },
-  ],
-  toggleDetails: false,
-  hideResubmission: true,
-}
-
-const mocks = {
-  $t: jest.fn((t) => t),
-  $d: jest.fn((d) => d),
-  $apollo: {
-    mutate: apolloMutateMock,
-    query: apolloQueryMock,
-  },
-  $store: {
-    state: {
-      moderator: {
-        id: 1,
-        name: 'test moderator',
-      },
-    },
-  },
-}
+vi.mock('../RowDetails', () => ({ default: { name: 'RowDetails' } }))
+vi.mock('../EditCreationFormular', () => ({ default: { name: 'EditCreationFormular' } }))
+vi.mock('../ContributionMessages/ContributionMessagesList', () => ({
+  default: { name: 'ContributionMessagesList' },
+}))
 
 describe('OpenCreationsTable', () => {
   let wrapper
+  let store
 
-  const Wrapper = () => {
-    return mount(OpenCreationsTable, { localVue, mocks, propsData })
-  }
+  const mockItems = [
+    { id: 1, status: 'PENDING', userId: 2, moderatorId: null, messagesCount: 0 },
+    { id: 2, status: 'CONFIRMED', userId: 3, moderatorId: 1, messagesCount: 2 },
+  ]
 
-  describe('mount', () => {
-    beforeEach(() => {
-      wrapper = Wrapper()
+  const mockFields = [
+    { key: 'status', label: 'Status' },
+    { key: 'bookmark', label: 'Bookmark' },
+    { key: 'memo', label: 'Memo' },
+    { key: 'editCreation', label: 'Edit' },
+    { key: 'chatCreation', label: 'Chat' },
+    { key: 'deny', label: 'Deny' },
+    { key: 'confirm', label: 'Confirm' },
+  ]
+
+  beforeEach(() => {
+    store = createStore({
+      state: {
+        moderator: {
+          id: 1,
+        },
+      },
     })
 
-    it('has a DIV element with the class .open-creations-table', () => {
-      expect(wrapper.find('div.open-creations-table').exists()).toBe(true)
+    wrapper = shallowMount(OpenCreationsTable, {
+      props: {
+        items: mockItems,
+        fields: mockFields,
+        hideResubmission: false,
+      },
+      global: {
+        plugins: [store],
+        mocks: {
+          $t: (key) => key,
+        },
+        stubs: {
+          BTableLite: true,
+          BButton: true,
+          IBiQuestionSquare: true,
+          IBiBellFill: true,
+          IBiCheck: true,
+          IBiXCircle: true,
+          IBiTrash: true,
+          IBiPencilSquare: true,
+          IBiChatDots: true,
+          IBiExclamationCircleFill: true,
+          IBiQuestionDiamond: true,
+          IBiX: true,
+        },
+      },
     })
+  })
 
-    it('has a table with three rows', () => {
-      expect(wrapper.findAll('tbody > tr')).toHaveLength(3)
-    })
+  it('renders the component', () => {
+    expect(wrapper.exists()).toBe(true)
+    expect(wrapper.findComponent({ name: 'BTableLite' }).exists()).toBe(true)
+  })
 
-    it('find first button.bi-pencil-square for open EditCreationFormular ', () => {
-      expect(wrapper.findAll('tr').at(1).find('.bi-pencil-square').exists()).toBe(true)
-    })
+  it('applies correct row class based on status', () => {
+    const rowClass = wrapper.vm.rowClass({ status: 'CONFIRMED' }, 'row')
+    expect(rowClass).toBe('table-success')
+  })
 
-    it('has no button.bi-pencil-square for user contribution ', () => {
-      expect(wrapper.findAll('tr').at(2).find('.bi-pencil-square').exists()).toBe(false)
-    })
+  it('emits show-overlay event when calling $emit', async () => {
+    const mockItem = mockItems[0]
+    await wrapper.vm.$emit('show-overlay', mockItem, 'delete')
+    expect(wrapper.emitted('show-overlay')).toBeTruthy()
+    expect(wrapper.emitted('show-overlay')[0]).toEqual([mockItem, 'delete'])
+  })
 
-    describe('show edit details', () => {
-      beforeEach(async () => {
-        await wrapper.findAll('tr').at(1).find('.bi-pencil-square').trigger('click')
-      })
+  it('toggles row details correctly', () => {
+    const mockRow = {
+      toggleDetails: vi.fn(),
+      detailsShowing: false,
+      index: 0,
+      item: mockItems[0],
+    }
 
-      it.skip('has a component element with name EditCreationFormular', () => {
-        expect(wrapper.findComponent({ name: 'EditCreationFormular' }).exists()).toBe(true)
-      })
+    wrapper.vm.rowToggleDetails(mockRow, 0)
+    expect(mockRow.toggleDetails).toHaveBeenCalled()
+    expect(wrapper.vm.openRow).toEqual(mockRow)
+    expect(wrapper.vm.slotIndex).toBe(0)
+    expect(wrapper.vm.creationUserData).toEqual(mockItems[0])
+  })
 
-      it.skip('renders the component component-edit-creation-formular', () => {
-        expect(wrapper.find('div.component-edit-creation-formular').exists()).toBe(true)
-      })
-    })
+  it('identifies if the item belongs to the current user', () => {
+    expect(wrapper.vm.myself({ userId: 1 })).toBe(true)
+    expect(wrapper.vm.myself({ userId: 2 })).toBe(false)
+  })
 
-    describe('call updateStatus', () => {
-      beforeEach(() => {
-        wrapper.vm.updateStatus(4)
-      })
+  it('emits update-contributions event', async () => {
+    await wrapper.vm.updateContributions()
+    expect(wrapper.emitted('update-contributions')).toBeTruthy()
+  })
 
-      it('emits update-status', () => {
-        expect(wrapper.vm.$root.$emit('update-status', 4)).toBeTruthy()
-      })
-    })
+  it('emits update-status event', async () => {
+    const id = 1
+    await wrapper.vm.updateStatus(id)
+    expect(wrapper.emitted('update-status')).toBeTruthy()
+    expect(wrapper.emitted('update-status')[0]).toEqual([id])
+  })
 
-    describe('test reload-contribution', () => {
-      beforeEach(() => {
-        wrapper.vm.reloadContribution(3)
-      })
+  it('emits reload-contribution event', async () => {
+    const id = 1
+    await wrapper.vm.reloadContribution(id)
+    expect(wrapper.emitted('reload-contribution')).toBeTruthy()
+    expect(wrapper.emitted('reload-contribution')[0]).toEqual([id])
+  })
 
-      it('emits reload-contribution', () => {
-        expect(wrapper.emitted('reload-contribution')).toBeTruthy()
-        expect(wrapper.emitted('reload-contribution')[0]).toEqual([3])
-      })
-    })
+  it('gets correct status icon', () => {
+    expect(wrapper.vm.getStatusIcon('IN_PROGRESS')).toBe('question-square')
+    expect(wrapper.vm.getStatusIcon('PENDING')).toBe('bell-fill')
+    expect(wrapper.vm.getStatusIcon('CONFIRMED')).toBe('check')
+    expect(wrapper.vm.getStatusIcon('DENIED')).toBe('x-circle')
+    expect(wrapper.vm.getStatusIcon('DELETED')).toBe('trash')
+    expect(wrapper.vm.getStatusIcon('UNKNOWN')).toBe('default-icon')
   })
 })

@@ -42,6 +42,7 @@ When('the user enters the e-mail address {string}', (email: string) => {
 
 When('the user submits the e-mail form', () => {
   forgotPasswordPage.submitEmail()
+  cy.get(forgotPasswordPage.successComponent).debug()
   cy.get(forgotPasswordPage.successComponent).should('be.visible')
 })
 

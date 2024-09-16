@@ -1,58 +1,63 @@
 <template>
   <div class="form-user-switch" @click="onClick">
-    <b-form-checkbox
+    <BFormCheckbox
       test="BFormCheckbox"
-      v-model="value"
       name="check-button"
       :disabled="disabled"
       switch
-      @change="onChange"
-    ></b-form-checkbox>
+      :model-value="props.initialValue"
+      @update:model-value="onChange"
+    />
   </div>
 </template>
-<script>
+<script setup>
+import { ref, computed } from 'vue'
+import { useStore } from 'vuex'
 import { updateUserInfos } from '@/graphql/mutations'
+import { useMutation } from '@vue/apollo-composable'
+import { BFormCheckbox } from 'bootstrap-vue-next'
+import { useAppToast } from '@/composables/useToast'
 
-export default {
-  name: 'UserSettingsSwitch',
-  props: {
-    initialValue: { type: Boolean, default: false },
-    attrName: { type: String },
-    enabledText: { type: String },
-    disabledText: { type: String },
-    disabled: { type: Boolean, default: false },
-    notAllowedText: { type: String, default: undefined },
-  },
-  data() {
-    return {
-      value: this.initialValue,
-    }
-  },
-  methods: {
-    async onChange() {
-      if (this.isDisabled) return
-      const variables = []
-      variables[this.attrName] = this.value
-      this.$apollo
-        .mutate({
-          mutation: updateUserInfos,
-          variables,
-        })
-        .then(() => {
-          this.$store.commit(this.attrName, this.value)
-          this.$emit('valueChanged', this.value)
-          this.toastSuccess(this.value ? this.enabledText : this.disabledText)
-        })
-        .catch((error) => {
-          this.value = this.initialValue
-          this.toastError(error.message)
-        })
-    },
-    onClick() {
-      if (this.notAllowedText && this.disabled) {
-        this.toastError(this.notAllowedText)
-      }
-    },
-  },
+const store = useStore()
+const { toastSuccess, toastError } = useAppToast()
+
+const props = defineProps({
+  initialValue: { type: Boolean, default: false },
+  attrName: { type: String },
+  enabledText: { type: String },
+  disabledText: { type: String },
+  disabled: { type: Boolean, default: false },
+  notAllowedText: { type: String, default: undefined },
+})
+
+const value = ref(props.initialValue)
+
+const isDisabled = computed(() => {
+  return props.disabled
+})
+
+const { mutate: updateUserData } = useMutation(updateUserInfos)
+
+const onChange = async (evtPayload) => {
+  if (isDisabled.value) return
+  const variables = []
+  variables[props.attrName] = evtPayload
+  try {
+    await updateUserData({ ...variables })
+    store.commit(props.attrName, evtPayload)
+    emit('value-changed', evtPayload)
+    toastSuccess(evtPayload ? props.enabledText : props.disabledText)
+  } catch (error) {
+    value.value = props.initialValue
+    toastError(error.message)
+  }
 }
+
+const onClick = () => {
+  if (props.notAllowedText && props.disabled) {
+    toastError(props.notAllowedText)
+  }
+}
+
+const emit = defineEmits(['value-changed'])
 </script>

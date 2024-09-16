@@ -1,5 +1,3 @@
-version: "3.4"
-
 services:
   ########################################################
   # FRONTEND #############################################
@@ -95,6 +93,9 @@ services:
   #########################################################
   mariadb:
     image: gradido/mariadb:test
+    environment:
+      - MARIADB_ALLOW_EMPTY_ROOT_PASSWORD=1
+      - MARIADB_USER=root
     networks: 
       - internal-net
       - external-net

@@ -1,78 +1,82 @@
 <template>
   <div class="contribution-messages-formular">
-    <small class="pl-2 pt-3">{{ $t('form.reply') }}</small>
+    <small class="ps-2 pt-3">{{ $t('form.reply') }}</small>
     <div>
-      <b-form @submit.prevent="onSubmit" @reset="onReset">
-        <b-form-textarea
+      <BForm @submit.prevent="onSubmit" @reset="onReset">
+        <BFormTextarea
           id="textarea"
-          v-model="form.text"
+          :model-value="form.text"
           :placeholder="$t('form.memo')"
-          rows="3"
-        ></b-form-textarea>
-        <b-row class="mt-4 mb-4">
-          <b-col>
-            <b-button type="reset" variant="secondary">{{ $t('form.cancel') }}</b-button>
-          </b-col>
-          <b-col class="text-right">
-            <b-button type="submit" variant="gradido" :disabled="disabled">
+          :rows="3"
+          @update:model-value="form.text = $event"
+        />
+        <BRow class="mt-4 mb-4">
+          <BCol>
+            <BButton type="reset" variant="secondary">{{ $t('form.cancel') }}</BButton>
+          </BCol>
+          <BCol class="text-end">
+            <BButton type="submit" variant="gradido" :disabled="disabled">
               {{ $t('form.reply') }}
-            </b-button>
-          </b-col>
-        </b-row>
-      </b-form>
+            </BButton>
+          </BCol>
+        </BRow>
+      </BForm>
     </div>
   </div>
 </template>
-<script>
-import { createContributionMessage } from '../../graphql/mutations.js'
 
-export default {
-  name: 'ContributionMessagesFormular',
-  props: {
-    contributionId: {
-      type: Number,
-      required: true,
-    },
+<script setup>
+import { ref, computed } from 'vue'
+import { useMutation } from '@vue/apollo-composable'
+import { useI18n } from 'vue-i18n'
+import { createContributionMessage } from '@/graphql/mutations.js'
+import { useAppToast } from '@/composables/useToast'
+
+const props = defineProps({
+  contributionId: {
+    type: Number,
+    required: true,
   },
-  data() {
-    return {
-      form: {
-        text: '',
-      },
-      isSubmitting: false,
-    }
-  },
-  methods: {
-    onSubmit() {
-      this.isSubmitting = true
-      this.$apollo
-        .mutate({
-          mutation: createContributionMessage,
-          variables: {
-            contributionId: this.contributionId,
-            message: this.form.text,
-          },
-        })
-        .then((result) => {
-          this.$emit('get-list-contribution-messages', false)
-          this.$emit('update-status', this.contributionId)
-          this.form.text = ''
-          this.toastSuccess(this.$t('message.reply'))
-          this.isSubmitting = false
-        })
-        .catch((error) => {
-          this.toastError(error.message)
-          this.isSubmitting = false
-        })
-    },
-    onReset() {
-      this.form.text = ''
-    },
-  },
-  computed: {
-    disabled() {
-      return this.form.text === '' || this.isSubmitting
-    },
-  },
+})
+
+const emit = defineEmits(['get-list-contribution-messages', 'update-status'])
+
+const { t } = useI18n()
+const { toastSuccess, toastError } = useAppToast()
+
+const { mutate: createContributionMessageMutation } = useMutation(createContributionMessage)
+
+const form = ref({
+  text: '',
+})
+
+const isSubmitting = ref(false)
+
+const disabled = computed(() => {
+  return form.value.text === '' || isSubmitting.value
+})
+
+async function onSubmit() {
+  isSubmitting.value = true
+
+  try {
+    await createContributionMessageMutation({
+      contributionId: props.contributionId,
+      message: form.value.text,
+    })
+
+    emit('get-list-contribution-messages', false)
+    emit('update-status', props.contributionId)
+    form.value.text = ''
+    toastSuccess(t('message.reply'))
+  } catch (error) {
+    toastError(error.message)
+  } finally {
+    isSubmitting.value = false
+  }
+}
+
+function onReset() {
+  form.value.text = ''
 }
 </script>

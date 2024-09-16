@@ -1,163 +1,156 @@
 import { mount } from '@vue/test-utils'
-import EditCreationFormular from './EditCreationFormular'
-import { toastErrorSpy, toastSuccessSpy } from '../../test/testSetup'
-import VueApollo from 'vue-apollo'
-import { createMockClient } from 'mock-apollo-client'
-import { adminOpenCreations } from '../graphql/adminOpenCreations'
-import { adminUpdateContribution } from '../graphql/adminUpdateContribution'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+import EditCreationFormular from './EditCreationFormular.vue'
+import { useMutation, useQuery } from '@vue/apollo-composable'
+import { useI18n } from 'vue-i18n'
+import { useAppToast } from '@/composables/useToast'
+import useCreationMonths from '@/composables/useCreationMonths'
+import {
+  BButton,
+  BCol,
+  BForm,
+  BFormInput,
+  BFormRadioGroup,
+  BFormTextarea,
+  BInputGroup,
+  BRow,
+} from 'bootstrap-vue-next'
+import { nextTick } from 'vue'
 
-const mockClient = createMockClient()
-const apolloProvider = new VueApollo({
-  defaultClient: mockClient,
-})
-
-const localVue = global.localVue
-localVue.use(VueApollo)
-
-const stateCommitMock = jest.fn()
-
-const mocks = {
-  $t: jest.fn((t) => t),
-  $d: jest.fn((d) => {
-    const date = new Date(d)
-    return date.toISOString().split('T')[0]
-  }),
-  $store: {
-    commit: stateCommitMock,
-  },
-}
-
-const now = new Date()
-const getCreationDate = (sub) => {
-  const date = sub === 0 ? now : new Date(now.getFullYear(), now.getMonth() - sub, 1, 0)
-  return date.toISOString().split('T')[0]
-}
-
-const propsData = {
-  creationUserData: {
-    memo: 'Test schöpfung 1',
-    amount: 100,
-    date: getCreationDate(0),
-  },
-  item: {
-    id: 0,
-    amount: '300',
-    contributionDate: `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`,
-  },
-}
-
-const data = () => {
-  return { creation: ['1000', '1000', '400'] }
-}
+vi.mock('@vue/apollo-composable')
+vi.mock('vue-i18n')
+vi.mock('@/composables/useToast')
+vi.mock('@/composables/useCreationMonths')
 
 describe('EditCreationFormular', () => {
   let wrapper
-
-  const adminUpdateContributionMock = jest.fn()
-  const adminOpenCreationsMock = jest.fn()
-  mockClient.setRequestHandler(
-    adminOpenCreations,
-    adminOpenCreationsMock.mockResolvedValue({
-      data: {
-        adminOpenCreations: [
-          {
-            month: new Date(now.getFullYear(), now.getMonth() - 2).getMonth(),
-            year: new Date(now.getFullYear(), now.getMonth() - 2).getFullYear(),
-            amount: '1000',
-          },
-          {
-            month: new Date(now.getFullYear(), now.getMonth() - 1).getMonth(),
-            year: new Date(now.getFullYear(), now.getMonth() - 1).getFullYear(),
-            amount: '1000',
-          },
-          {
-            month: now.getMonth(),
-            year: now.getFullYear(),
-            amount: '400',
-          },
-        ],
-      },
-    }),
-  )
-  mockClient.setRequestHandler(
-    adminUpdateContribution,
-    adminUpdateContributionMock.mockResolvedValue({
-      data: {
-        adminUpdateContribution: {
-          amount: '600',
-          date: new Date(),
-          memo: 'This is my memo',
-        },
-      },
-    }),
-  )
-
-  const Wrapper = () => {
-    return mount(EditCreationFormular, { localVue, mocks, propsData, data, apolloProvider })
+  let mockMutate
+  let mockOnDone
+  let mockOnError
+  const mockRefetch = vi.fn()
+  const mockT = vi.fn((key) => key)
+  const mockD = vi.fn((date) => new Date(date).toISOString().split('T')[0])
+  const mockToastSuccess = vi.fn()
+  const mockToastError = vi.fn()
+  const mockCreationMonths = {
+    radioOptions: vi.fn(() => [
+      { item: { short: 'Jan', date: '2023-01-01' }, name: 'January' },
+      { item: { short: 'Feb', date: '2023-02-01' }, name: 'February' },
+      { item: { short: 'Mar', date: '2023-03-01' }, name: 'March' },
+    ]),
+    creation: { value: [1000, 1000, 1000] },
   }
 
-  describe('mount', () => {
-    beforeEach(async () => {
-      wrapper = Wrapper()
-      await wrapper.vm.$nextTick()
+  beforeEach(() => {
+    mockMutate = vi.fn()
+    mockOnDone = vi.fn()
+    mockOnError = vi.fn()
+    useMutation.mockReturnValue({
+      mutate: mockMutate,
+      onDone: mockOnDone,
+      onError: mockOnError,
     })
+    useQuery.mockReturnValue({ refetch: mockRefetch })
+    useI18n.mockReturnValue({ t: mockT, d: mockD })
+    useAppToast.mockReturnValue({ toastSuccess: mockToastSuccess, toastError: mockToastError })
+    useCreationMonths.mockReturnValue(mockCreationMonths)
 
-    it('has a DIV element with the class.component-edit-creation-formular', () => {
-      expect(wrapper.find('.component-edit-creation-formular').exists()).toBeTruthy()
+    wrapper = mount(EditCreationFormular, {
+      props: {
+        item: {
+          id: 1,
+          contributionDate: '2023-02-15',
+          amount: '300',
+          email: 'test@example.com',
+        },
+        creationUserData: {
+          id: 1,
+          memo: 'Initial memo',
+          amount: 200,
+        },
+      },
+      global: {
+        stubs: {
+          BForm,
+          BRow,
+          BCol,
+          BButton,
+          BFormRadioGroup,
+          BInputGroup,
+          BFormInput,
+          BFormTextarea,
+        },
+      },
     })
+  })
 
-    describe('radio buttons to select month', () => {
-      it('has three radio buttons', () => {
-        expect(wrapper.findAll('input[type="radio"]').length).toBe(3)
-      })
+  it('renders the component', () => {
+    expect(wrapper.find('.component-edit-creation-formular').exists()).toBe(true)
+  })
 
-      it('has the third radio button checked', () => {
-        expect(wrapper.findAll('input[type="radio"]').at(0).element.checked).toBeFalsy()
-        expect(wrapper.findAll('input[type="radio"]').at(1).element.checked).toBeFalsy()
-        expect(wrapper.findAll('input[type="radio"]').at(2).element.checked).toBeTruthy()
-      })
+  it('initializes form with correct values', () => {
+    expect(wrapper.vm.text).toBe('Initial memo')
+    expect(wrapper.vm.value).toBe(200)
+    expect(wrapper.vm.selected).toEqual({ short: 'Feb', date: '2023-02-01' })
+  })
 
-      it('has rangeMax of 700', () => {
-        expect(wrapper.find('input[type="number"]').attributes('max')).toBe('700')
-      })
+  it('computes rangeMax correctly', () => {
+    expect(wrapper.vm.rangeMax).toBe(1300) // 1000 + 300
+  })
 
-      describe('change and save memo and value with success', () => {
-        beforeEach(async () => {
-          await wrapper.find('input[type="number"]').setValue(500)
-          await wrapper.find('textarea').setValue('Test Schöpfung 2')
-          await wrapper.find('.test-submit').trigger('click')
-        })
+  it('disables submit button when form is invalid', async () => {
+    wrapper.vm.text = 'memo'
+    const submitButton = wrapper.find('.test-submit')
+    await nextTick()
+    expect(submitButton.attributes('disabled')).toBeDefined()
+  })
 
-        it('calls the API', () => {
-          expect(adminUpdateContributionMock).toBeCalledWith({
-            id: 0,
-            creationDate: getCreationDate(0),
-            amount: 500,
-            memo: 'Test Schöpfung 2',
-          })
-        })
+  it('enables submit button when form is valid', async () => {
+    wrapper.vm.text = 'Valid long text'
+    wrapper.vm.value = 100
+    const submitButton = wrapper.find('.test-submit')
+    await nextTick()
+    expect(submitButton.attributes('disabled')).toBeUndefined()
+  })
 
-        it('emits update-creation-data', () => {
-          expect(wrapper.emitted('update-creation-data')).toBeTruthy()
-        })
+  it('calls mutation on form submit', async () => {
+    wrapper.vm.text = 'New memo valid'
+    wrapper.vm.value = 250
+    await wrapper.find('.test-submit').trigger('click')
 
-        it('toasts a success message', () => {
-          expect(toastSuccessSpy).toBeCalledWith('creation_form.toasted_update')
-        })
-      })
-
-      describe('change and save memo and value with error', () => {
-        beforeEach(async () => {
-          adminUpdateContributionMock.mockRejectedValue({ message: 'Oh no!' })
-          await wrapper.find('input[type="number"]').setValue(500)
-          await wrapper.find('textarea').setValue('Test Schöpfung 2')
-          await wrapper.find('.test-submit').trigger('click')
-        })
-
-        it('toasts an error message', () => {
-          expect(toastErrorSpy).toBeCalledWith('Oh no!')
-        })
-      })
+    expect(mockMutate).toHaveBeenCalledWith({
+      id: 1,
+      creationDate: '2023-02-01',
+      amount: 250,
+      memo: 'New memo valid',
     })
+  })
+
+  it('handles successful mutation', async () => {
+    wrapper.vm.text = 'New memo valid'
+    wrapper.vm.value = 250
+    await wrapper.find('.test-submit').trigger('click')
+
+    // Simulate successful mutation
+    const onDoneCallback = mockOnDone.mock.calls[0][0]
+    onDoneCallback()
+
+    expect(wrapper.emitted('update-creation-data')).toBeTruthy()
+    expect(mockToastSuccess).toHaveBeenCalledWith('creation_form.toasted_update')
+    expect(mockRefetch).toHaveBeenCalled()
+    expect(wrapper.vm.value).toBe(0) // Check if form was reset
+  })
+
+  it('handles failed mutation', async () => {
+    wrapper.vm.text = 'New memo valid'
+    wrapper.vm.value = 250
+    await wrapper.find('.test-submit').trigger('click')
+
+    // Simulate failed mutation
+    const onErrorCallback = mockOnError.mock.calls[0][0]
+    onErrorCallback({ message: 'API Error' })
+
+    expect(mockToastError).toHaveBeenCalledWith('API Error')
+    expect(wrapper.vm.value).toBe(0) // Check if form was reset
   })
 })

@@ -1,138 +1,150 @@
 import { mount } from '@vue/test-utils'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import GdtAmount from './GdtAmount'
 import { updateUserInfos } from '@/graphql/mutations'
-import flushPromises from 'flush-promises'
+import { nextTick, ref, toRef } from 'vue'
+import { BBadge, BCol, BRow } from 'bootstrap-vue-next'
 
-import { toastErrorSpy, toastSuccessSpy } from '@test/testSetup'
-
-const localVue = global.localVue
-
-const mockAPICall = jest.fn()
-const storeCommitMock = jest.fn()
-
-const state = {
-  hideAmountGDT: false,
-}
-
-const mocks = {
-  $store: {
-    state,
-    commit: storeCommitMock,
+// Mock vuex store
+const mockHideAmountGDT = ref(false)
+const mockCommit = vi.fn((mutation, value) => {
+  if (mutation === 'hideAmountGDT') {
+    mockHideAmountGDT.value = value
+  }
+})
+const mockStore = {
+  state: {
+    get hideAmountGDT() {
+      return mockHideAmountGDT.value
+    },
   },
-  $i18n: {
-    locale: 'en',
-  },
-  $apollo: {
-    mutate: mockAPICall,
-  },
-  $t: jest.fn((t) => t),
-  $n: jest.fn((n) => n),
+  commit: mockCommit,
 }
+vi.mock('vuex', () => ({
+  useStore: () => mockStore,
+}))
 
-const propsData = {
-  path: 'string',
-  GdtBalance: 123.45,
-  badgeShow: false,
-  showStatus: false,
-}
+// Mock vue-i18n
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({
+    t: (key) => key,
+    n: (num) => num,
+  }),
+}))
+
+// Mock apollo
+const mockMutate = vi.fn()
+vi.mock('@vue/apollo-composable', () => ({
+  useMutation: () => ({
+    mutate: mockMutate,
+  }),
+}))
+
+// Mock toast
+const mockToastError = vi.fn()
+const mockToastSuccess = vi.fn()
+vi.mock('@/composables/useToast', () => ({
+  useAppToast: vi.fn(() => ({
+    toastError: mockToastError,
+    toastSuccess: mockToastSuccess,
+  })),
+}))
 
 describe('GdtAmount', () => {
   let wrapper
 
-  const Wrapper = () => {
-    return mount(GdtAmount, { localVue, mocks, propsData })
+  const createWrapper = (props = {}) => {
+    return mount(GdtAmount, {
+      props: {
+        gdtBalance: 123.45,
+        badgeShow: false,
+        showStatus: false,
+        ...props,
+      },
+      global: {
+        mocks: {
+          $t: (key) => key,
+          $store: mockStore,
+        },
+        stubs: {
+          IBiLayers: true,
+          IBiEyeSlash: true,
+          IBiEye: true,
+        },
+        components: {
+          BBadge,
+          BRow,
+          BCol,
+        },
+      },
+    })
   }
-  describe('mount', () => {
-    beforeEach(() => {
-      wrapper = Wrapper()
-    })
 
-    it('renders the component gdt-amount', () => {
-      expect(wrapper.find('div.gdt-amount').exists()).toBe(true)
-    })
-
-    describe('API throws exception', () => {
-      beforeEach(async () => {
-        mockAPICall.mockRejectedValue({
-          message: 'Ouch',
-        })
-        jest.clearAllMocks()
-        await wrapper.find('div.border-left svg').trigger('click')
-        await flushPromises()
-      })
-
-      it('toasts an error message', () => {
-        expect(toastErrorSpy).toBeCalledWith('Ouch')
-      })
-    })
-
-    describe('API call successful', () => {
-      beforeEach(async () => {
-        mockAPICall.mockResolvedValue({
-          data: {
-            updateUserInfos: {
-              validValues: 1,
-            },
-          },
-        })
-        jest.clearAllMocks()
-        await wrapper.find('div.border-left svg').trigger('click')
-        await flushPromises()
-      })
-
-      it('calls the API', () => {
-        expect(mockAPICall).toBeCalledWith(
-          expect.objectContaining({
-            mutation: updateUserInfos,
-            variables: {
-              hideAmountGDT: true,
-            },
-          }),
-        )
-      })
-
-      it('commits hideAmountGDT to store', () => {
-        expect(storeCommitMock).toBeCalledWith('hideAmountGDT', true)
-      })
-
-      it('toasts a success message', () => {
-        expect(toastSuccessSpy).toBeCalledWith('settings.showAmountGDT')
-      })
-    })
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockHideAmountGDT.value = false
+    wrapper = createWrapper()
   })
 
-  describe('second call to API', () => {
-    beforeEach(async () => {
-      mockAPICall.mockResolvedValue({
+  it('renders the component gdt-amount', () => {
+    expect(wrapper.find('div.gdt-amount').exists()).toBe(true)
+  })
+
+  describe('API calls', () => {
+    it('handles API exception', async () => {
+      mockMutate.mockRejectedValue({ message: 'Ouch' })
+
+      await wrapper.find('div.border-start button').trigger('click')
+      await nextTick()
+
+      expect(mockToastError).toHaveBeenCalledWith('Ouch')
+    })
+
+    it('handles successful API call when hideAmountGDT is false', async () => {
+      mockMutate.mockResolvedValue({
         data: {
           updateUserInfos: {
             validValues: 1,
           },
         },
       })
-      jest.clearAllMocks()
-      wrapper.vm.$store.state.hideAmountGDT = true
-      await wrapper.find('div.border-left svg').trigger('click')
-      await flushPromises()
+
+      await wrapper.find('div.border-start button').trigger('click')
+      await nextTick()
+
+      expect(mockMutate).toHaveBeenCalledWith({
+        hideAmountGDT: true,
+      })
+      expect(mockCommit).toHaveBeenCalledWith('hideAmountGDT', true)
+      expect(mockToastSuccess).toHaveBeenCalledWith('settings.hideAmountGDT')
+
+      // Verify that the component updates its display
+      expect(wrapper.find('.gradido-global-color-accent').text()).toBe('asterisks')
     })
 
-    it('calls the API', () => {
-      expect(mockAPICall).toBeCalledWith(
-        expect.objectContaining({
-          mutation: updateUserInfos,
-          variables: {
-            hideAmountGDT: false,
+    it('handles successful API call when hideAmountGDT is true', async () => {
+      mockHideAmountGDT.value = true
+      await nextTick()
+
+      mockMutate.mockResolvedValue({
+        data: {
+          updateUserInfos: {
+            validValues: 1,
           },
-        }),
-      )
-    })
+        },
+      })
 
-    it('commits hideAmountGDT to store', () => {
-      expect(storeCommitMock).toBeCalledWith('hideAmountGDT', false)
-    })
+      await wrapper.find('div.border-start button').trigger('click')
+      await nextTick()
 
-    it('toasts a success message', () => {
-      expect(toastSuccessSpy).toBeCalledWith('settings.hideAmountGDT')
+      expect(mockMutate).toHaveBeenCalledWith({
+        hideAmountGDT: false,
+      })
+      expect(mockCommit).toHaveBeenCalledWith('hideAmountGDT', false)
+      expect(mockToastSuccess).toHaveBeenCalledWith('settings.showAmountGDT')
+
+      // Verify that the component updates its display
+      expect(wrapper.find('.gradido-global-color-accent').text()).toBe('123.45 GDT')
     })
   })
 })

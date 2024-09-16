@@ -1,16 +1,18 @@
 <template>
   <div class="contribution-messages-list-item clearfix">
-    <div v-if="isModeratorMessage" class="text-right p-2 rounded-sm mb-3" :class="boxClass">
-      <small class="ml-4" data-test="moderator-label">
+    <div v-if="isModeratorMessage" class="text-end p-2 rounded-sm mb-3" :class="boxClass">
+      <small class="ms-4" data-test="moderator-label">
         {{ $t('moderator.moderator') }}
       </small>
-      <small class="ml-2" data-test="moderator-date">
+      <small class="ms-2" data-test="moderator-date">
         {{ $d(new Date(message.createdAt), 'short') }}
       </small>
-      <span class="ml-2 mr-2" data-test="moderator-name">
+      <span class="ms-2 me-2" data-test="moderator-name">
         {{ message.userFirstName }} {{ message.userLastName }}
       </span>
-      <b-avatar square variant="warning"></b-avatar>
+      <BAvatar square variant="warning">
+        <variant-icon icon="person-fill" variant="black" />
+      </BAvatar>
       <small v-if="isHistory">
         <hr />
         {{ $t('moderator.history') }}
@@ -22,12 +24,14 @@
         {{ $t('moderator.request') }}
       </small>
     </div>
-    <div v-else class="text-left p-2 rounded-sm mb-3" :class="boxClass">
-      <b-avatar variant="info"></b-avatar>
-      <span class="ml-2 mr-2" data-test="user-name">
+    <div v-else class="text-start p-2 rounded-sm mb-3" :class="boxClass">
+      <BAvatar variant="info">
+        <variant-icon icon="person-fill" variant="white" />
+      </BAvatar>
+      <span class="ms-2 me-2" data-test="user-name">
         {{ message.userFirstName }} {{ message.userLastName }}
       </span>
-      <small class="ml-2" data-test="user-date">
+      <small class="ms-2" data-test="user-date">
         {{ $d(new Date(message.createdAt), 'short') }}
       </small>
       <small v-if="isHistory">
@@ -82,20 +86,25 @@ export default {
   float: right;
   width: 75%;
 }
+
 .is-moderator-message {
-  background-color: rgb(228, 237, 245);
+  background-color: rgb(228 237 245);
 }
+
 .is-moderator-hidden-message {
-  background-color: rgb(217, 161, 228);
+  background-color: rgb(217 161 228);
 }
+
 .is-user {
   clear: both;
   width: 75%;
 }
+
 .is-user-message {
-  background-color: rgb(236, 235, 213);
+  background-color: rgb(236 235 213);
 }
+
 .is-user-history-message {
-  background-color: rgb(235, 226, 57);
+  background-color: rgb(235 226 57);
 }
 </style>

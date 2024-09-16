@@ -1,30 +1,39 @@
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import CommunityTemplate from './CommunityTemplate'
+import ContributionInfo from '@/components/Template/RightSide/ContributionInfo.vue'
 
-const localVue = global.localVue
-
-const mocks = {
-  $i18n: {
-    locale: 'en',
-  },
-  $t: jest.fn((t) => t),
-  $d: jest.fn((d) => d),
-  $route: {
-    params: {
-      tab: 'contribute',
-    },
-  },
-}
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({
+    t: (key) => key, // Mock translation function
+  }),
+}))
 
 describe('CommunityTemplate', () => {
   let wrapper
 
-  const Wrapper = () => {
-    return mount(CommunityTemplate, { localVue, mocks })
+  const createWrapper = (tab) => {
+    return mount(CommunityTemplate, {
+      global: {
+        components: {
+          ContributionInfo,
+        },
+        mocks: {
+          $t: (msg) => msg,
+          $route: {
+            params: { tab },
+          },
+        },
+        stubs: {
+          'variant-icon': true,
+        },
+      },
+    })
   }
+
   describe('mount', () => {
     beforeEach(() => {
-      wrapper = Wrapper()
+      wrapper = createWrapper('contribute')
     })
 
     it('renders the component', () => {
@@ -33,10 +42,10 @@ describe('CommunityTemplate', () => {
 
     describe('mounted with parameter contributions', () => {
       beforeEach(() => {
-        mocks.$route.params.tab = 'contributions'
+        wrapper = createWrapper('contributions')
       })
 
-      it('has a header related to "my contribitions"', () => {
+      it('has a header related to "my contributions"', () => {
         expect(wrapper.find('h4.alert-heading').text()).toBe('community.myContributions')
       })
 
@@ -47,23 +56,26 @@ describe('CommunityTemplate', () => {
       it('has a legend to explain the icons', () => {
         const listItems = wrapper.findAll('li')
 
-        expect(listItems.at(0).find('svg').attributes('aria-label')).toEqual('bell fill')
-        expect(listItems.at(0).text()).toBe('contribution.alert.pending')
+        expect(listItems[0].find('variant-icon-stub').attributes('icon')).toBe('bell-fill')
+        expect(listItems[0].text()).toContain('contribution.alert.pending')
 
-        expect(listItems.at(1).find('svg').attributes('aria-label')).toEqual('question')
-        expect(listItems.at(1).text()).toBe('contribution.alert.in_progress')
+        expect(listItems[1].find('variant-icon-stub').attributes('icon')).toBe('question')
+        expect(listItems[1].text()).toContain('contribution.alert.in_progress')
 
-        expect(listItems.at(2).find('svg').attributes('aria-label')).toEqual('check')
-        expect(listItems.at(2).text()).toBe('contribution.alert.confirm')
+        expect(listItems[2].find('variant-icon-stub').attributes('icon')).toBe('check')
+        expect(listItems[2].text()).toContain('contribution.alert.confirm')
 
-        expect(listItems.at(3).find('svg').attributes('aria-label')).toEqual('x circle')
-        expect(listItems.at(3).text()).toBe('contribution.alert.denied')
+        expect(listItems[3].find('variant-icon-stub').attributes('icon')).toBe('x-circle')
+        expect(listItems[3].text()).toContain('contribution.alert.denied')
+
+        expect(listItems[4].find('variant-icon-stub').attributes('icon')).toBe('trash')
+        expect(listItems[4].text()).toContain('contribution.alert.deleted')
       })
     })
 
     describe('mounted with parameter community', () => {
       beforeEach(() => {
-        mocks.$route.params.tab = 'community'
+        wrapper = createWrapper('community')
       })
 
       it('has a header related to "the community"', () => {
@@ -77,26 +89,28 @@ describe('CommunityTemplate', () => {
       it('has a legend to explain the icons', () => {
         const listItems = wrapper.findAll('li')
 
-        expect(listItems.at(0).find('svg').attributes('aria-label')).toEqual('bell fill')
-        expect(listItems.at(0).text()).toBe('contribution.alert.pending')
+        expect(listItems[0].find('variant-icon-stub').attributes('icon')).toBe('bell-fill')
+        expect(listItems[0].text()).toContain('contribution.alert.pending')
 
-        expect(listItems.at(1).find('svg').attributes('aria-label')).toEqual('question')
-        expect(listItems.at(1).text()).toBe('contribution.alert.in_progress')
+        expect(listItems[1].find('variant-icon-stub').attributes('icon')).toBe('question')
+        expect(listItems[1].text()).toContain('contribution.alert.in_progress')
 
-        expect(listItems.at(2).find('svg').attributes('aria-label')).toEqual('check')
-        expect(listItems.at(2).text()).toBe('contribution.alert.confirm')
+        expect(listItems[2].find('variant-icon-stub').attributes('icon')).toBe('check')
+        expect(listItems[2].text()).toContain('contribution.alert.confirm')
 
-        expect(listItems.at(3).find('svg').attributes('aria-label')).toEqual('x circle')
-        expect(listItems.at(3).text()).toBe('contribution.alert.denied')
+        expect(listItems[3].find('variant-icon-stub').attributes('icon')).toBe('x-circle')
+        expect(listItems[3].text()).toContain('contribution.alert.denied')
+
+        expect(listItems).toHaveLength(4) // 'trash' icon should not be present
       })
     })
 
     describe('mounted with parameter contribute', () => {
       beforeEach(() => {
-        mocks.$route.params.tab = 'contribute'
+        wrapper = createWrapper('contribute')
       })
 
-      it('has a header related to "the community"', () => {
+      it('has a header related to "your contribution"', () => {
         expect(wrapper.find('h3').text()).toBe('contribution.formText.yourContribution')
       })
 

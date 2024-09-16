@@ -26,9 +26,9 @@ export default {
       type: String,
       required: true,
     },
-    type: {
+    messageType: {
       type: String,
-      reuired: true,
+      required: true,
     },
   },
   computed: {
@@ -36,7 +36,7 @@ export default {
       let string = this.message
       const linkified = []
       let amount
-      if (this.type === 'HISTORY') {
+      if (this.messageType === 'HISTORY') {
         const split = string.split(/\n\s*---\n\s*/)
         string = split[1]
         linkified.push({ type: 'date', text: split[0].trim() })

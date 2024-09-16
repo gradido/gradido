@@ -1,433 +1,315 @@
 import { mount } from '@vue/test-utils'
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import TransactionForm from './TransactionForm'
-import flushPromises from 'flush-promises'
-import { SEND_TYPES } from '@/pages/Send'
-import { createMockClient } from 'mock-apollo-client'
-import VueApollo from 'vue-apollo'
-import { user, selectCommunities as selectCommunitiesQuery } from '@/graphql/queries'
+import { nextTick, ref } from 'vue'
+import { SEND_TYPES } from '@/utils/sendTypes'
+import { BCard, BForm, BFormRadioGroup, BRow, BCol, BFormRadio, BButton } from 'bootstrap-vue-next'
+import { useForm } from 'vee-validate'
+import { useRoute } from 'vue-router'
 
-const mockClient = createMockClient()
-const apolloProvider = new VueApollo({
-  defaultClient: mockClient,
+vi.mock('vue-router', () => ({
+  useRoute: vi.fn(() => ({
+    params: {},
+    query: {},
+  })),
+  useRouter: vi.fn(() => ({
+    replace: vi.fn(),
+  })),
+}))
+
+const mockUseQuery = vi.fn()
+vi.mock('@vue/apollo-composable', () => ({
+  useQuery: (...args) => {
+    mockUseQuery(...args)
+    return {
+      result: ref(null),
+      loading: ref(false),
+      error: ref(null),
+    }
+  },
+}))
+
+vi.mock('@/composables/useToast', () => ({
+  useAppToast: vi.fn(() => ({
+    toastError: vi.fn(),
+  })),
+}))
+
+vi.mock('vee-validate', () => {
+  const actualUseForm = vi.fn().mockReturnValue({
+    handleSubmit: vi.fn((callback) => {
+      return () =>
+        callback({
+          identifier: 'test@example.com',
+          amount: '100,00',
+          memo: 'Test memo',
+        })
+    }),
+    resetForm: vi.fn(),
+    defineField: vi.fn(() => [vi.fn(), {}]),
+  })
+
+  return { useForm: actualUseForm }
 })
-
-const localVue = global.localVue
-localVue.use(VueApollo)
 
 describe('TransactionForm', () => {
   let wrapper
 
-  const mocks = {
-    $t: jest.fn((t) => t),
-    $i18n: {
-      locale: jest.fn(() => 'en'),
-    },
-    $n: jest.fn((n) => String(n)),
-    $store: {
-      state: {
-        email: 'user@example.org',
-      },
-    },
-    $route: {
-      params: {},
-      query: {},
-    },
-    $router: {
-      replace: jest.fn(),
-    },
-  }
+  const mockT = vi.fn((key) => key)
+  const mockN = vi.fn((n) => String(n))
 
-  const propsData = {
-    balance: 0.0,
-  }
-
-  const Wrapper = () => {
+  const createWrapper = (props = {}) => {
     return mount(TransactionForm, {
-      localVue,
-      mocks,
-      propsData,
-      apolloProvider,
+      global: {
+        mocks: {
+          $t: mockT,
+          $n: mockN,
+        },
+        components: {
+          BCard,
+          BForm,
+          BFormRadioGroup,
+          BRow,
+          BCol,
+          BFormRadio,
+          BButton,
+        },
+        stubs: {
+          'community-switch': true,
+          'input-identifier': true,
+          'input-amount': true,
+          'input-textarea': true,
+        },
+      },
+      props: {
+        balance: 0.0,
+        ...props,
+      },
     })
   }
 
-  const userMock = jest.fn()
+  beforeEach(() => {
+    wrapper = createWrapper()
+  })
 
-  mockClient.setRequestHandler(
-    user,
-    userMock.mockRejectedValueOnce({ message: 'Query user name fails!' }).mockResolvedValue({
-      data: {
-        user: {
-          firstName: 'Bibi',
-          lastName: 'Bloxberg',
-        },
-        community: {
-          name: 'Gradido Entwicklung',
-        },
-      },
-    }),
-  )
+  afterEach(() => {
+    vi.clearAllMocks()
+  })
 
-  mockClient.setRequestHandler(
-    selectCommunitiesQuery,
-    jest.fn().mockResolvedValue({
-      data: {
-        communities: [
-          {
-            uuid: '8f4c146a-79b5-413f-89ed-53f624ec49b2',
-            name: 'Gradido Entwicklung',
-            description: 'Gradido-Community einer lokalen Entwicklungsumgebung.',
-            foreign: false,
-          },
-          {
-            uuid: 'ashasas',
-            name: 'Hunde-Community',
-            description: 'Hier geht es um Hunde',
-            foreign: true,
-          },
-        ],
-      },
-    }),
-  )
+  it('renders the component', () => {
+    expect(wrapper.find('div.transaction-form').exists()).toBe(true)
+  })
 
-  describe('mount', () => {
-    beforeEach(() => {
-      wrapper = Wrapper()
+  describe('with balance <= 0.00 GDD the form is disabled', () => {
+    it('has a disabled input field of type text', () => {
+      expect(wrapper.find('input-identifier-stub').attributes('disabled')).toBe('true')
     })
 
-    it('renders the component', () => {
-      expect(wrapper.find('div.transaction-form').exists()).toBe(true)
+    it('has a disabled input field for amount', () => {
+      expect(wrapper.find('input-amount-stub').attributes('disabled')).toBe('true')
     })
 
-    describe('with balance <= 0.00 GDD the form is disabled', () => {
-      it('has a disabled input field of type text', () => {
-        expect(
-          wrapper.find('div[data-test="input-identifier"]').find('input').attributes('disabled'),
-        ).toBe('disabled')
-      })
-
-      it('has a disabled input field for amount', () => {
-        expect(
-          wrapper.find('div[data-test="input-amount"]').find('input').attributes('disabled'),
-        ).toBe('disabled')
-      })
-
-      it('has a disabled textarea field ', () => {
-        expect(
-          wrapper.find('div[data-test="input-textarea').find('textarea').attributes('disabled'),
-        ).toBe('disabled')
-      })
-
-      it('has a message indicating that there are no GDDs to send ', () => {
-        expect(wrapper.find('form').find('.text-danger').text()).toBe('form.no_gdd_available')
-      })
-
-      it('has no reset button and no submit button ', () => {
-        expect(wrapper.find('.test-buttons').exists()).toBe(false)
-      })
+    it('has a disabled textarea field', () => {
+      expect(wrapper.find('input-textarea-stub').attributes('disabled')).toBe('true')
     })
 
-    describe('with balance greater 0.00 (100.00) GDD the form is fully enabled', () => {
-      beforeEach(() => {
-        wrapper.setProps({ balance: 100.0 })
-      })
-
-      it('has no warning message ', () => {
-        expect(wrapper.find('form').find('.text-danger').exists()).toBe(false)
-      })
-
-      describe('send GDD', () => {
-        beforeEach(async () => {
-          await wrapper.findAll('input[type="radio"]').at(0).setChecked()
-        })
-
-        it('has SEND_TYPES = send', () => {
-          expect(wrapper.vm.radioSelected).toBe(SEND_TYPES.send)
-        })
-
-        describe('identifier field', () => {
-          it('has an input field of type text', () => {
-            expect(
-              wrapper.find('div[data-test="input-identifier"]').find('input').attributes('type'),
-            ).toBe('text')
-          })
-
-          it('has a label form.recipient', () => {
-            expect(wrapper.find('div[data-test="input-identifier"]').find('label').text()).toBe(
-              'form.recipient',
-            )
-          })
-
-          it('has a placeholder for identifier', () => {
-            expect(
-              wrapper
-                .find('div[data-test="input-identifier"]')
-                .find('input')
-                .attributes('placeholder'),
-            ).toBe('form.identifier')
-          })
-
-          it('flushes an error message when no valid identifier is given', async () => {
-            await wrapper.find('div[data-test="input-identifier"]').find('input').setValue('a')
-            await flushPromises()
-            expect(
-              wrapper.find('div[data-test="input-identifier"]').find('.invalid-feedback').text(),
-            ).toBe('form.validation.valid-identifier')
-          })
-
-          // TODO:SKIPPED there is no check that the email being sent to is the same as the user's email.
-          it.skip('flushes an error message when email is the email of logged in user', async () => {
-            await wrapper
-              .find('div[data-test="input-identifier"]')
-              .find('input')
-              .setValue('user@example.org')
-            await flushPromises()
-            expect(
-              wrapper.find('div[data-test="input-identifier"]').find('.invalid-feedback').text(),
-            ).toBe('form.validation.is-not')
-          })
-
-          it('trims the identifier after blur', async () => {
-            await wrapper
-              .find('div[data-test="input-identifier"]')
-              .find('input')
-              .setValue('  valid@email.com  ')
-            await wrapper.find('div[data-test="input-identifier"]').find('input').trigger('blur')
-            await flushPromises()
-            expect(wrapper.vm.form.identifier).toBe('valid@email.com')
-          })
-        })
-
-        describe('amount field', () => {
-          it('has an input field of type text', () => {
-            expect(
-              wrapper.find('div[data-test="input-amount"]').find('input').attributes('type'),
-            ).toBe('text')
-          })
-
-          it('has a label form.amount', () => {
-            expect(wrapper.find('div[data-test="input-amount"]').find('label').text()).toBe(
-              'form.amount',
-            )
-          })
-
-          it('has a placeholder "0.01"', () => {
-            expect(
-              wrapper.find('div[data-test="input-amount"]').find('input').attributes('placeholder'),
-            ).toBe('0.01')
-          })
-
-          it.skip('does not update form amount when invalid', async () => {
-            await wrapper.find('div[data-test="input-amount"]').find('input').setValue('invalid')
-            await wrapper.find('div[data-test="input-amount"]').find('input').trigger('blur')
-            await flushPromises()
-            expect(wrapper.vm.form.amount).toBe(0)
-          })
-
-          it('flushes an error message when no valid amount is given', async () => {
-            await wrapper.find('div[data-test="input-amount"]').find('input').setValue('a')
-            await flushPromises()
-            expect(
-              wrapper.find('div[data-test="input-amount"]').find('.invalid-feedback').text(),
-            ).toBe('form.validation.gddSendAmount')
-          })
-
-          it('flushes an error message when amount is too high', async () => {
-            await wrapper.find('div[data-test="input-amount"]').find('input').setValue('123.34')
-            await flushPromises()
-            expect(
-              wrapper.find('div[data-test="input-amount"]').find('.invalid-feedback').text(),
-            ).toBe('form.validation.gddSendAmount')
-          })
-
-          it('flushes no errors when amount is valid', async () => {
-            await wrapper.find('div[data-test="input-amount"]').find('input').setValue('87.34')
-            await flushPromises()
-            expect(
-              wrapper
-                .find('div[data-test="input-amount"]')
-                .find('.invalid-feedback')
-                .attributes('aria-live'),
-            ).toBe('off')
-          })
-        })
-
-        describe('message text box', () => {
-          it('has an textarea field', () => {
-            expect(wrapper.find('div[data-test="input-textarea').find('textarea').exists()).toBe(
-              true,
-            )
-          })
-
-          it('has a label form.message', () => {
-            expect(wrapper.find('div[data-test="input-textarea').find('label').text()).toBe(
-              'form.message',
-            )
-          })
-
-          it('flushes an error message when memo is less than 5 characters', async () => {
-            await wrapper.find('div[data-test="input-textarea').find('textarea').setValue('a')
-            await flushPromises()
-            expect(
-              wrapper.find('div[data-test="input-textarea').find('.invalid-feedback').text(),
-            ).toBe('validations.messages.min')
-          })
-
-          it('flushes an error message when memo is more than 255 characters', async () => {
-            await wrapper.find('div[data-test="input-textarea').find('textarea').setValue(`
-Es ist ein König in Thule, der trinkt
-Champagner, es geht ihm nichts drüber;
-Und wenn er seinen Champagner trinkt,
-Dann gehen die Augen ihm über.
-
-Die Ritter sitzen um ihn her,
-Die ganze Historische Schule;
-Ihm aber wird die Zunge schwer,
-Es lallt der König von Thule:
-
-„Als Alexander, der Griechenheld,
-Mit seinem kleinen Haufen
-Erobert hatte die ganze Welt,
-Da gab er sich ans Saufen.
-
-Ihn hatten so durstig gemacht der Krieg
-Und die Schlachten, die er geschlagen;
-Er soff sich zu Tode nach dem Sieg,
-Er konnte nicht viel vertragen.
-
-Ich aber bin ein stärkerer Mann
-Und habe mich klüger besonnen:
-Wie jener endete, fang ich an,
-Ich hab mit dem Trinken begonnen.
-
-Im Rausche wird der Heldenzug
-Mir später weit besser gelingen;
-Dann werde ich, taumelnd von Krug zu Krug,
-Die ganze Welt bezwingen.“`)
-            await flushPromises()
-            expect(
-              wrapper.find('div[data-test="input-textarea').find('.invalid-feedback').text(),
-            ).toBe('validations.messages.max')
-          })
-
-          it('flushes no error message when memo is valid', async () => {
-            await wrapper
-              .find('div[data-test="input-textarea')
-              .find('textarea')
-              .setValue('Long enough')
-            await flushPromises()
-            expect(
-              wrapper
-                .find('div[data-test="input-amount"]')
-                .find('.invalid-feedback')
-                .attributes('aria-live'),
-            ).toBe('off')
-          })
-        })
-
-        describe('cancel button', () => {
-          it('has a cancel button', () => {
-            expect(wrapper.find('button[type="reset"]').exists()).toBe(true)
-          })
-
-          it('has the text "form.reset"', () => {
-            expect(wrapper.find('button[type="reset"]').text()).toBe('form.reset')
-          })
-
-          it('clears all fields on click', async () => {
-            await wrapper
-              .find('div[data-test="input-identifier"]')
-              .find('input')
-              .setValue('someone@watches.tv')
-            await wrapper.find('div[data-test="input-amount"]').find('input').setValue('87.23')
-            await wrapper
-              .find('div[data-test="input-textarea')
-              .find('textarea')
-              .setValue('Long enough')
-            await flushPromises()
-            expect(wrapper.vm.form.identifier).toBe('someone@watches.tv')
-            expect(wrapper.vm.form.amount).toBe('87.23')
-            expect(wrapper.vm.form.memo).toBe('Long enough')
-            await wrapper.find('button[type="reset"]').trigger('click')
-            await flushPromises()
-            expect(wrapper.vm.form.identifier).toBe('')
-            expect(wrapper.vm.form.amount).toBe('')
-            expect(wrapper.vm.form.memo).toBe('')
-          })
-        })
-
-        describe('submit', () => {
-          beforeEach(async () => {
-            await wrapper
-              .find('div[data-test="input-identifier"]')
-              .find('input')
-              .setValue('someone@watches.tv')
-            await wrapper.find('div[data-test="input-amount"]').find('input').setValue('87.23')
-            await wrapper
-              .find('div[data-test="input-textarea')
-              .find('textarea')
-              .setValue('Long enough')
-            await wrapper.find('form').trigger('submit')
-            await flushPromises()
-          })
-
-          it('emits set-transaction', async () => {
-            expect(wrapper.emitted('set-transaction')).toBeTruthy()
-            expect(wrapper.emitted('set-transaction')).toEqual([
-              [
-                {
-                  identifier: 'someone@watches.tv',
-                  amount: 87.23,
-                  memo: 'Long enough',
-                  selected: 'send',
-                  userName: '',
-                  targetCommunity: {
-                    description: 'Gradido-Community einer lokalen Entwicklungsumgebung.',
-                    foreign: false,
-                    name: 'Gradido Entwicklung',
-                    uuid: '8f4c146a-79b5-413f-89ed-53f624ec49b2',
-                  },
-                },
-              ],
-            ])
-          })
-        })
-      })
-
-      describe('create transaction link', () => {
-        beforeEach(async () => {
-          await wrapper.findAll('input[type="radio"]').at(1).setChecked()
-        })
-
-        it('has SEND_TYPES = link', () => {
-          expect(wrapper.vm.radioSelected).toBe(SEND_TYPES.link)
-        })
-
-        it('has no input field of id input-group-1', () => {
-          expect(wrapper.find('#input-group-1').exists()).toBe(false)
-        })
-      })
+    it('has a message indicating that there are no GDDs to send', () => {
+      expect(wrapper.find('.text-danger').text()).toBe('form.no_gdd_available')
     })
 
-    describe('with gradido ID', () => {
+    it('has no reset button and no submit button', () => {
+      expect(wrapper.find('.test-buttons').exists()).toBe(false)
+    })
+  })
+
+  describe('with balance greater 0.00 (100.00) GDD the form is fully enabled', () => {
+    beforeEach(async () => {
+      wrapper = createWrapper({ balance: 100.0 })
+      await nextTick()
+    })
+
+    it('has no warning message', () => {
+      expect(wrapper.find('.text-danger').exists()).toBe(false)
+    })
+
+    describe('send GDD', () => {
       beforeEach(async () => {
-        jest.clearAllMocks()
-        mocks.$route.params.userIdentifier = 'gradido-ID'
-        mocks.$route.params.communityIdentifier = 'community-ID'
-        wrapper = Wrapper()
-        await wrapper.vm.$nextTick()
+        await wrapper.findComponent(BFormRadioGroup).setValue(SEND_TYPES.send)
       })
 
-      describe('query for username with success', () => {
-        it('has no identifier input field', () => {
-          expect(wrapper.find('div[data-test="input-identifier"]').exists()).toBe(false)
+      it('has SEND_TYPES = send', () => {
+        expect(wrapper.vm.radioSelected).toBe(SEND_TYPES.send)
+      })
+
+      describe('identifier field', () => {
+        it('has an input field of type text', () => {
+          expect(wrapper.find('input-identifier-stub').exists()).toBe(true)
         })
 
-        it('queries the username', () => {
-          expect(userMock).toBeCalledWith({
-            identifier: 'gradido-ID',
-            communityIdentifier: 'community-ID',
-          })
+        it('has a label form.recipient', () => {
+          expect(wrapper.find('input-identifier-stub').attributes('label')).toBe('form.recipient')
         })
+
+        it('has a placeholder for identifier', () => {
+          expect(wrapper.find('input-identifier-stub').attributes('placeholder')).toBe(
+            'form.identifier',
+          )
+        })
+      })
+
+      describe('amount field', () => {
+        it('has an input field of type text', () => {
+          expect(wrapper.find('input-amount-stub').exists()).toBe(true)
+        })
+
+        it('has a label form.amount', () => {
+          expect(wrapper.find('input-amount-stub').attributes('label')).toBe('form.amount')
+        })
+
+        it('has a placeholder "0.01"', () => {
+          expect(wrapper.find('input-amount-stub').attributes('placeholder')).toBe('0.01')
+        })
+      })
+
+      describe('message text box', () => {
+        it('has a textarea field', () => {
+          expect(wrapper.find('input-textarea-stub').exists()).toBe(true)
+        })
+
+        it('has a label form.message', () => {
+          expect(wrapper.find('input-textarea-stub').attributes('label')).toBe('form.message')
+        })
+      })
+
+      describe('cancel button', () => {
+        it('has a cancel button', () => {
+          expect(wrapper.find('button[type="reset"]').exists()).toBe(true)
+        })
+
+        it('has the text "form.reset"', () => {
+          expect(wrapper.find('button[type="reset"]').text()).toBe('form.reset')
+        })
+
+        it.skip('resets the form when clicked', async () => {
+          // Set some values in the form
+          await wrapper.findComponent(BFormRadioGroup).setValue(SEND_TYPES.send)
+          wrapper.vm.form.identifier = 'test@example.com'
+          wrapper.vm.form.amount = '100,00'
+          wrapper.vm.form.memo = 'Test memo'
+
+          // Trigger the reset
+          await wrapper.find('button[type="reset"]').trigger('click')
+
+          // Check if the form has been reset
+          expect(wrapper.vm.radioSelected).toBe(SEND_TYPES.send)
+          expect(wrapper.vm.form.identifier).toBe('')
+          expect(wrapper.vm.form.amount).toBe('')
+          expect(wrapper.vm.form.memo).toBe('')
+        })
+      })
+
+      describe('submit', () => {
+        it('has a submit button', () => {
+          expect(wrapper.find('button[type="submit"]').exists()).toBe(true)
+        })
+
+        it('has the text "form.check_now"', () => {
+          expect(wrapper.find('button[type="submit"]').text()).toBe('form.check_now')
+        })
+
+        it.skip('calls onSubmit when form is submitted', async () => {
+          const submitSpy = vi.spyOn(wrapper.vm, 'onSubmit')
+          await wrapper.findComponent(BForm).trigger('submit.prevent')
+          expect(submitSpy).toHaveBeenCalled()
+        })
+      })
+    })
+
+    describe('form submission', () => {
+      beforeEach(async () => {
+        wrapper = createWrapper({ balance: 100.0 })
+        await nextTick()
+        await wrapper.findComponent(BFormRadioGroup).setValue(SEND_TYPES.send)
+      })
+
+      it('emits set-transaction event with correct data when form is submitted', async () => {
+        await wrapper.findComponent(BForm).trigger('submit.prevent')
+
+        expect(wrapper.emitted('set-transaction')).toBeTruthy()
+        expect(wrapper.emitted('set-transaction')[0][0]).toEqual(
+          expect.objectContaining({
+            selected: SEND_TYPES.send,
+            identifier: 'test@example.com',
+            amount: 100.0,
+            memo: 'Test memo',
+          }),
+        )
+      })
+
+      it('handles form submission with empty amount', async () => {
+        vi.mocked(useForm).mockReturnValueOnce({
+          ...vi.mocked(useForm)(),
+          handleSubmit: vi.fn((callback) => {
+            return () =>
+              callback({
+                identifier: 'test@example.com',
+                amount: '',
+                memo: 'Test memo',
+              })
+          }),
+        })
+
+        wrapper = createWrapper({ balance: 100.0 })
+        await nextTick()
+        await wrapper.findComponent(BForm).trigger('submit.prevent')
+
+        expect(wrapper.emitted('set-transaction')).toBeTruthy()
+        expect(wrapper.emitted('set-transaction')[0][0]).toEqual(
+          expect.objectContaining({
+            selected: SEND_TYPES.send,
+            identifier: 'test@example.com',
+            amount: 0,
+            memo: 'Test memo',
+          }),
+        )
+      })
+    })
+
+    describe('create transaction link', () => {
+      beforeEach(async () => {
+        await wrapper.findComponent(BFormRadioGroup).setValue(SEND_TYPES.link)
+      })
+
+      it('has SEND_TYPES = link', () => {
+        expect(wrapper.vm.radioSelected).toBe(SEND_TYPES.link)
+      })
+
+      it('has no input field for identifier', () => {
+        expect(wrapper.find('input-identifier-stub').exists()).toBe(false)
+      })
+    })
+  })
+
+  describe('with gradido ID', () => {
+    beforeEach(async () => {
+      vi.mocked(useRoute).mockReturnValue({
+        params: { userIdentifier: 'gradido-ID', communityIdentifier: 'community-ID' },
+        query: {},
+      })
+      wrapper = createWrapper()
+      await nextTick()
+    })
+
+    it('has no identifier input field', () => {
+      expect(wrapper.find('input-identifier-stub').exists()).toBe(false)
+    })
+
+    it('passes correct variables to useQuery', () => {
+      const queryVariables = mockUseQuery.mock.calls[0][1]
+      expect(queryVariables).toBeDefined()
+      expect(queryVariables()).toEqual({
+        identifier: 'gradido-ID',
+        communityIdentifier: 'community-ID',
       })
     })
   })

@@ -1,14 +1,14 @@
 <template>
   <div class="mt-1">
-    <span v-for="({ type, text }, index) in parsedMessage" :key="index">
-      <b-link v-if="type === 'link'" :href="text" target="_blank">{{ text }}</b-link>
-      <span v-else-if="type === 'date'">
+    <span v-for="({ type: messageType, text }, index) in parsedMessage" :key="index">
+      <b-link v-if="messageType === 'link'" :href="text" target="_blank">{{ text }}</b-link>
+      <span v-else-if="messageType === 'date'">
         {{ $d(new Date(text), 'short') }}
         <br />
       </span>
-      <span v-else-if="type === 'amount'">
+      <span v-else-if="messageType === 'amount'">
         <br />
-        {{ text | GDD }}
+        {{ $filters.GDD(text) }}
       </span>
       <span v-else>{{ text }}</span>
     </span>
@@ -16,7 +16,8 @@
 </template>
 
 <script>
-const LINK_REGEX_PATTERN = /(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*))/i
+const LINK_REGEX_PATTERN =
+  /(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*))/i
 
 export default {
   name: 'ParseMessage',
@@ -27,7 +28,7 @@ export default {
     },
     type: {
       type: String,
-      reuired: true,
+      required: true,
     },
   },
   computed: {

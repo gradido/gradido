@@ -4,7 +4,7 @@ module.exports = function (api) {
   const presets = ['@babel/preset-env']
   const plugins = []
 
-  if (process.env.NODE_ENV === 'test') {
+  if (import.meta.env.NODE_ENV === 'test') {
     plugins.push('transform-require-context')
   }
 

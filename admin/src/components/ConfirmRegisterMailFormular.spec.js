@@ -1,69 +1,72 @@
 import { mount } from '@vue/test-utils'
-import ConfirmRegisterMailFormular from './ConfirmRegisterMailFormular'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+import ConfirmRegisterMailFormular from './ConfirmRegisterMailFormular.vue'
+import { useMutation } from '@vue/apollo-composable'
+import { useI18n } from 'vue-i18n'
+import { useAppToast } from '@/composables/useToast'
 
-import { toastErrorSpy, toastSuccessSpy } from '../../test/testSetup'
-
-const localVue = global.localVue
-
-const apolloMutateMock = jest.fn().mockResolvedValue()
-
-const mocks = {
-  $t: jest.fn((t) => t),
-  $apollo: {
-    mutate: apolloMutateMock,
-  },
-}
-
-const propsData = {
-  checked: false,
-  email: 'bob@baumeister.de',
-  dateLastSend: '',
-}
+vi.mock('@vue/apollo-composable')
+vi.mock('vue-i18n')
+vi.mock('@/composables/useToast')
 
 describe('ConfirmRegisterMailFormular', () => {
   let wrapper
+  const mockMutate = vi.fn()
+  const mockT = vi.fn((key) => key)
+  const mockToastSuccess = vi.fn()
+  const mockToastError = vi.fn()
 
-  const Wrapper = () => {
-    return mount(ConfirmRegisterMailFormular, { localVue, mocks, propsData })
-  }
-
-  describe('mount', () => {
-    beforeEach(() => {
-      wrapper = Wrapper()
+  beforeEach(() => {
+    useMutation.mockReturnValue({
+      mutate: mockMutate,
     })
 
-    it('has a DIV element with the class.component-confirm-register-mail', () => {
-      expect(wrapper.find('.component-confirm-register-mail').exists()).toBeTruthy()
+    useI18n.mockReturnValue({
+      t: mockT,
     })
 
-    describe('send register mail with success', () => {
-      beforeEach(() => {
-        wrapper.find('button.test-button').trigger('click')
-      })
+    useAppToast.mockReturnValue({
+      toastSuccess: mockToastSuccess,
+      toastError: mockToastError,
+    })
 
-      it('calls the API with email', () => {
-        expect(apolloMutateMock).toBeCalledWith(
-          expect.objectContaining({
-            variables: { email: 'bob@baumeister.de' },
-          }),
-        )
-      })
+    wrapper = mount(ConfirmRegisterMailFormular, {
+      props: {
+        checked: false,
+        email: 'bob@baumeister.de',
+        dateLastSend: '',
+      },
+      global: {
+        mocks: {
+          $t: mockT,
+        },
+      },
+    })
+  })
 
-      it('toasts a success message', () => {
-        expect(toastSuccessSpy).toBeCalledWith('unregister_mail.success')
+  it('renders the component', () => {
+    expect(wrapper.find('.component-confirm-register-mail').exists()).toBe(true)
+  })
+
+  describe('send register mail', () => {
+    it('calls the API with email on button click', async () => {
+      mockMutate.mockResolvedValueOnce({})
+      await wrapper.find('button.test-button').trigger('click')
+      expect(mockMutate).toHaveBeenCalledWith({
+        email: 'bob@baumeister.de',
       })
     })
 
-    describe('send register mail with error', () => {
-      beforeEach(() => {
-        apolloMutateMock.mockRejectedValue({ message: 'OUCH!' })
-        wrapper = Wrapper()
-        wrapper.find('button.test-button').trigger('click')
-      })
+    it('shows success message on successful API call', async () => {
+      mockMutate.mockResolvedValueOnce({})
+      await wrapper.find('button.test-button').trigger('click')
+      expect(mockToastSuccess).toHaveBeenCalledWith('unregister_mail.success')
+    })
 
-      it('toasts an error message', () => {
-        expect(toastErrorSpy).toBeCalledWith('unregister_mail.error')
-      })
+    it('shows error message on failed API call', async () => {
+      mockMutate.mockRejectedValueOnce(new Error('OUCH!'))
+      await wrapper.find('button.test-button').trigger('click')
+      expect(mockToastError).toHaveBeenCalledWith('unregister_mail.error')
     })
   })
 })

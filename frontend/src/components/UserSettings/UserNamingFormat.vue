@@ -1,90 +1,92 @@
 <template>
   <div class="user-naming-format">
-    <b-dropdown v-model="selectedOption">
-      <template slot="button-content">{{ selectedOptionLabel }}</template>
-      <b-dropdown-item
+    <BDropdown v-model="selectedOption">
+      <template #button-content>{{ selectedOptionLabel }}</template>
+      <BDropdownItem
         v-for="option in dropdownOptions"
-        @click.prevent="update(option)"
         :key="option.value"
         :value="option.value"
         :title="option.title"
+        @click.prevent="update(option)"
       >
         {{ option.label }}
-      </b-dropdown-item>
-    </b-dropdown>
+      </BDropdownItem>
+    </BDropdown>
   </div>
 </template>
-<script>
-import { updateUserInfos } from '@/graphql/mutations'
 
-export default {
-  name: 'UserNamingFormat',
-  props: {
-    initialValue: { type: String, default: 'PUBLISH_NAME_ALIAS_OR_INITALS' },
-    attrName: { type: String },
-    successMessage: { type: String },
+<script setup>
+import { ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useStore } from 'vuex'
+import { useMutation } from '@vue/apollo-composable'
+import { updateUserInfos } from '@/graphql/mutations'
+import { BDropdownItem, BDropdown } from 'bootstrap-vue-next'
+import { useAppToast } from '@/composables/useToast'
+
+const { t } = useI18n()
+const store = useStore()
+const { toastSuccess, toastError } = useAppToast()
+
+const props = defineProps({
+  initialValue: { type: String, default: 'PUBLISH_NAME_ALIAS_OR_INITALS' },
+  attrName: { type: String },
+  successMessage: { type: String },
+})
+
+const emit = defineEmits(['valueChanged'])
+
+const selectedOption = ref(props.initialValue)
+const dropdownOptions = [
+  {
+    label: t('settings.publish-name.alias-or-initials'),
+    title: t('settings.publish-name.alias-or-initials-tooltip'),
+    value: 'PUBLISH_NAME_ALIAS_OR_INITALS',
   },
-  data() {
-    return {
-      selectedOption: this.initialValue,
-      dropdownOptions: [
-        {
-          label: this.$t('settings.publish-name.alias-or-initials'),
-          title: this.$t('settings.publish-name.alias-or-initials-tooltip'),
-          value: 'PUBLISH_NAME_ALIAS_OR_INITALS',
-        },
-        {
-          label: this.$t('settings.publish-name.initials'),
-          title: this.$t('settings.publish-name.initials-tooltip'),
-          value: 'PUBLISH_NAME_INITIALS',
-        },
-        {
-          label: this.$t('settings.publish-name.first'),
-          title: this.$t('settings.publish-name.first-tooltip'),
-          value: 'PUBLISH_NAME_FIRST',
-        },
-        {
-          label: this.$t('settings.publish-name.first-initial'),
-          title: this.$t('settings.publish-name.first-initial-tooltip'),
-          value: 'PUBLISH_NAME_FIRST_INITIAL',
-        },
-        {
-          label: this.$t('settings.publish-name.name-full'),
-          title: this.$t('settings.publish-name.name-full-tooltip'),
-          value: 'PUBLISH_NAME_FULL',
-        },
-      ],
-    }
+  {
+    label: t('settings.publish-name.initials'),
+    title: t('settings.publish-name.initials-tooltip'),
+    value: 'PUBLISH_NAME_INITIALS',
   },
-  computed: {
-    selectedOptionLabel() {
-      const selected = this.dropdownOptions.find((option) => option.value === this.selectedOption)
-        .label
-      return selected || this.$t('settings.publish-name.alias-or-initials')
-      // return this.dropdownOptions.find((option) => option.value === this.selectedOption).label
-    },
+  {
+    label: t('settings.publish-name.first'),
+    title: t('settings.publish-name.first-tooltip'),
+    value: 'PUBLISH_NAME_FIRST',
   },
-  methods: {
-    async update(option) {
-      if (option.value === this.selectedOption) {
-        return
-      }
-      try {
-        const variables = []
-        variables[this.attrName] = option.value
-        await this.$apollo.mutate({
-          mutation: updateUserInfos,
-          variables,
-        })
-        this.toastSuccess(this.successMessage)
-        this.selectedOption = option.value
-        this.$store.commit(this.attrName, option.value)
-        this.$emit('valueChanged', option.value)
-      } catch (error) {
-        this.toastError(error.message)
-      }
-    },
+  {
+    label: t('settings.publish-name.first-initial'),
+    title: t('settings.publish-name.first-initial-tooltip'),
+    value: 'PUBLISH_NAME_FIRST_INITIAL',
   },
+  {
+    label: t('settings.publish-name.name-full'),
+    title: t('settings.publish-name.name-full-tooltip'),
+    value: 'PUBLISH_NAME_FULL',
+  },
+]
+
+const selectedOptionLabel = computed(() => {
+  const selected = dropdownOptions.find((option) => option.value === selectedOption.value)?.label
+  return selected || t('settings.publish-name.alias-or-initials')
+})
+
+const { mutate: updateUserData } = useMutation(updateUserInfos)
+
+const update = async (option) => {
+  if (option.value === selectedOption.value) {
+    return
+  }
+  try {
+    const variables = {}
+    variables[props.attrName] = option.value
+    await updateUserData({ variables })
+    toastSuccess(props.successMessage)
+    selectedOption.value = option.value
+    store.commit(props.attrName, option.value)
+    emit('valueChanged', option.value)
+  } catch (error) {
+    toastError(error.message)
+  }
 }
 </script>
 <style>

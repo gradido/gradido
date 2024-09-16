@@ -16,6 +16,7 @@ set +o allexport
 
 # enable nvm 
 export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+nvm use default
 
 # NOTE: all config values will be in process.env when starting
 # the services and will therefore take precedence over the .env
@@ -206,6 +207,9 @@ echo 'Updating frontend' >> $UPDATE_HTML
 cd $PROJECT_ROOT/frontend
 # TODO maybe handle this differently?
 unset NODE_ENV
+nvm use
+nvm install
+npm i -g yarn
 yarn install
 yarn build
 # TODO maybe handle this differently?
@@ -216,10 +220,15 @@ echo 'Updating admin' >> $UPDATE_HTML
 cd $PROJECT_ROOT/admin
 # TODO maybe handle this differently?
 unset NODE_ENV
+nvm use
+nvm install
+npm i -g yarn
 yarn install
 yarn build
 # TODO maybe handle this differently?
 export NODE_ENV=production
+
+nvm use default
 
 # Install & build dht-node
 echo 'Updating dht-node' >> $UPDATE_HTML
@@ -241,6 +250,7 @@ yarn build
 # TODO maybe handle this differently?
 export NODE_ENV=production
 
+nvm use default
 # start after building all to use up less ressources
 pm2 start --name gradido-backend "yarn --cwd $PROJECT_ROOT/backend start" -l $GRADIDO_LOG_PATH/pm2.backend.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
 #pm2 start --name gradido-frontend "yarn --cwd $PROJECT_ROOT/frontend start" -l $GRADIDO_LOG_PATH/pm2.frontend.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'

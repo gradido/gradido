@@ -2,6 +2,7 @@ import { ApolloClient, ApolloLink, InMemoryCache, HttpLink } from 'apollo-boost'
 import VueApollo from 'vue-apollo'
 import CONFIG from '../config'
 import store from '../store/store'
+import { provideApolloClient } from '@vue/apollo-composable'
 
 const httpLink = new HttpLink({ uri: CONFIG.GRAPHQL_URI })
 
@@ -29,6 +30,8 @@ const apolloClient = new ApolloClient({
   link: authLink.concat(httpLink),
   cache: new InMemoryCache(),
 })
+
+provideApolloClient(apolloClient)
 
 export const apolloProvider = new VueApollo({
   defaultClient: apolloClient,

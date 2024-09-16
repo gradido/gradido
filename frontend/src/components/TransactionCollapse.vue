@@ -1,26 +1,26 @@
 <template>
   <div class="gdt-transaction-collapse py-4 mb-4 gradido-no-border">
-    <b-row class="gdt-list-collapse-header-text mb-3">
-      <b-col class="collapse-headline">
+    <BRow class="gdt-list-collapse-header-text mb-3">
+      <BCol class="collapse-headline">
         <b>{{ getLinesByType.headline }}</b>
-      </b-col>
-    </b-row>
-    <b-row class="gdt-list-collapse-box--all">
-      <b-col cols="12" lg="4" md="4">
+      </BCol>
+    </BRow>
+    <BRow class="gdt-list-collapse-box--all">
+      <BCol cols="12" lg="4" md="4">
         <div class="collapse-first">{{ getLinesByType.first }}</div>
         <div class="collapse-second">{{ getLinesByType.second }}</div>
-      </b-col>
-      <b-col offset="1" offset-md="0" offset-lg="0">
+      </BCol>
+      <BCol offset="1" offset-md="0" offset-lg="0">
         <div class="collapse-firstMath">{{ getLinesByType.firstMath }}</div>
         <div class="collapse-secondMath">
           {{ getLinesByType.secondMath }}
         </div>
-      </b-col>
-    </b-row>
+      </BCol>
+    </BRow>
   </div>
 </template>
 <script>
-import { GdtEntryType } from '../graphql/enums'
+import { GdtEntryType } from '@/graphql/enums'
 
 export default {
   name: 'TransactionCollapse',

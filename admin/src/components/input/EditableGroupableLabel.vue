@@ -1,7 +1,7 @@
 <template>
-  <b-form-group :label="label" :label-for="idName">
-    <b-form-input :id="idName" v-model="inputValue" @input="updateValue" />
-  </b-form-group>
+  <BFormGroup :label="label" :label-for="idName">
+    <BFormInput :id="idName" v-model="inputValue" @input="updateValue" />
+  </BFormGroup>
 </template>
 
 <script>
@@ -22,6 +22,7 @@ export default {
       required: true,
     },
   },
+  emits: ['input'],
   data() {
     return {
       inputValue: this.value,

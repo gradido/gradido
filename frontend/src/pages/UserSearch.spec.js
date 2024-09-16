@@ -1,73 +1,106 @@
 import { mount } from '@vue/test-utils'
-import UserSearch from './UserSearch'
-import { toastErrorSpy } from '../../test/testSetup'
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
+import { nextTick, ref } from 'vue'
+import UserSearch from './UserSearch.vue'
 import { authenticateGmsUserSearch } from '@/graphql/queries'
+import { BButton, BCol, BContainer, BRow } from 'bootstrap-vue-next'
+import * as apolloComposable from '@vue/apollo-composable'
 
-const localVue = global.localVue
+const mockToastError = vi.fn()
+vi.mock('@/composables/useToast', () => ({
+  useAppToast: vi.fn(() => ({
+    toastError: mockToastError,
+  })),
+}))
 
-window.scrollTo = jest.fn()
-
-const apolloQueryMock = jest
-  .fn()
-  .mockResolvedValueOnce({
-    data: {
-      authenticateGmsUserSearch: {
-        gmsUri: 'http://localhost:8080/playground?not initialized',
-      },
-    },
-  })
-  .mockResolvedValue('default')
+vi.mock('@vue/apollo-composable', () => ({
+  useQuery: vi.fn(() => ({
+    onResult: vi.fn(),
+    onError: vi.fn(),
+    result: { value: null },
+    loading: { value: false },
+  })),
+}))
 
 describe('UserSearch', () => {
   let wrapper
+  let mockOnResult
+  let mockOnError
 
-  const mocks = {
-    $t: jest.fn((t) => t),
-    $n: jest.fn(),
-    $i18n: {
-      locale: 'en',
-    },
-    $apollo: {
-      query: apolloQueryMock,
-    },
-  }
-
-  const Wrapper = () => {
+  const createWrapper = () => {
     return mount(UserSearch, {
-      localVue,
-      mocks,
+      global: {
+        mocks: {
+          $t: (key) => key,
+          $n: vi.fn(),
+          $i18n: {
+            locale: 'en',
+          },
+        },
+        stubs: {
+          BButton,
+          BCol,
+          BRow,
+          BContainer,
+        },
+      },
     })
   }
 
-  describe('mount', () => {
-    beforeEach(() => {
-      wrapper = Wrapper()
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockOnResult = vi.fn()
+    mockOnError = vi.fn()
+    vi.spyOn(apolloComposable, 'useQuery').mockReturnValue({
+      onResult: mockOnResult,
+      onError: mockOnError,
+      result: ref(null),
+      loading: ref(false),
+    })
+  })
+
+  afterEach(() => {
+    wrapper.unmount()
+  })
+
+  it('renders the usersearch page', async () => {
+    wrapper = createWrapper()
+    await nextTick()
+    expect(wrapper.find('div.usersearch').exists()).toBe(true)
+  })
+
+  it('calls authenticateGmsUserSearch', async () => {
+    wrapper = createWrapper()
+    await nextTick()
+    expect(apolloComposable.useQuery).toHaveBeenCalledWith(authenticateGmsUserSearch)
+  })
+
+  it('updates gmsUri when onResult is called', async () => {
+    wrapper = createWrapper()
+    await nextTick()
+
+    const onResultCallback = mockOnResult.mock.calls[0][0]
+    onResultCallback({
+      data: {
+        authenticateGmsUserSearch: {
+          url: 'http://example.com',
+          token: '1234',
+        },
+      },
     })
 
-    it('renders the usersearch page', () => {
-      expect(wrapper.find('div.usersearch').exists()).toBeTruthy()
-    })
+    await nextTick()
+    expect(wrapper.vm.gmsUri).toBe('http://example.com?accesstoken=1234')
+  })
 
-    it('calls authenticateGmsUserSearch', () => {
-      expect(apolloQueryMock).toBeCalledWith(
-        expect.objectContaining({
-          query: authenticateGmsUserSearch,
-        }),
-      )
-    })
+  it('calls toastError when onError is called', async () => {
+    wrapper = createWrapper()
+    await nextTick()
 
-    describe('error apolloQueryMock', () => {
-      beforeEach(async () => {
-        jest.clearAllMocks()
-        apolloQueryMock.mockRejectedValue({
-          message: 'uups',
-        })
-        wrapper = Wrapper()
-      })
+    const onErrorCallback = mockOnError.mock.calls[0][0]
+    onErrorCallback(new Error('Test error'))
 
-      it('toasts an error message', () => {
-        expect(toastErrorSpy).toBeCalledWith('authenticateGmsUserSearch failed!')
-      })
-    })
+    await nextTick()
+    expect(mockToastError).toHaveBeenCalledWith('authenticateGmsUserSearch failed!')
   })
 })

@@ -1,22 +1,25 @@
 import { mount } from '@vue/test-utils'
+import { describe, it, expect } from 'vitest'
 import EditableGroup from './EditableGroup.vue'
+import { BButton, BFormGroup } from 'bootstrap-vue-next'
 
-const localVue = global.localVue
 const viewValue = 'test label value'
 const editValue = 'test edit value'
 
-const mocks = {
-  $t: jest.fn((t) => t),
-}
-
 describe('EditableGroup', () => {
-  let wrapper
-
-  const createWrapper = (propsData) => {
+  const createWrapper = (props = {}) => {
     return mount(EditableGroup, {
-      localVue,
-      propsData,
-      mocks,
+      props,
+      global: {
+        mocks: {
+          $t: (key) => key,
+        },
+        stubs: {
+          BFormGroup,
+          BButton,
+          IBiPencilFill: true,
+        },
+      },
       slots: {
         view: `<div>${viewValue}</div>`,
         edit: `<div class='test-edit'>${editValue}</div>`,
@@ -25,68 +28,52 @@ describe('EditableGroup', () => {
   }
 
   it('renders the view slot when not editing', () => {
-    wrapper = createWrapper({ allowEdit: true })
-
-    expect(wrapper.find('div').text()).toBe(viewValue)
+    const wrapper = createWrapper({ allowEdit: true })
+    expect(wrapper.text()).toContain(viewValue)
   })
 
   it('renders the edit slot when editing', async () => {
-    wrapper = createWrapper({ allowEdit: true })
-
+    const wrapper = createWrapper({ allowEdit: true })
     await wrapper.find('button').trigger('click')
-
     expect(wrapper.find('.test-edit').text()).toBe(editValue)
   })
 
   it('emits save event when clicking save button', async () => {
-    wrapper = createWrapper({ allowEdit: true })
-
-    await wrapper.find('button').trigger('click') // Click to enable editing
-    await wrapper.vm.$emit('input', 'New Value') // Simulate input change
-    await wrapper.setData({ isValueChanged: true }) // Set valueChanged to true
-    await wrapper.find('button').trigger('click') // Click to save
-
-    expect(wrapper.emitted().save).toBeTruthy()
+    const wrapper = createWrapper({ allowEdit: true })
+    await wrapper.find('button').trigger('click')
+    await wrapper.vm.valueChanged()
+    await wrapper.find('.save-button').trigger('click')
+    expect(wrapper.emitted('save')).toBeTruthy()
   })
 
   it('disables save button when value is not changed', async () => {
-    wrapper = createWrapper({ allowEdit: true })
-
-    await wrapper.find('button').trigger('click') // Click to enable editing
-
-    expect(wrapper.find('button').attributes('disabled')).toBe('disabled')
+    const wrapper = createWrapper({ allowEdit: true })
+    await wrapper.find('button').trigger('click')
+    expect(wrapper.find('.save-button').attributes('disabled')).toBeDefined()
   })
 
   it('enables save button when value is changed', async () => {
-    wrapper = createWrapper({ allowEdit: true })
-
-    await wrapper.find('button').trigger('click') // Click to enable editing
-    await wrapper.vm.$emit('input', 'New Value') // Simulate input change
-    await wrapper.setData({ isValueChanged: true }) // Set valueChanged to true
-
-    expect(wrapper.find('button').attributes('disabled')).toBeFalsy()
+    const wrapper = createWrapper({ allowEdit: true })
+    await wrapper.find('button').trigger('click')
+    await wrapper.vm.valueChanged()
+    expect(wrapper.find('.save-button').attributes('disabled')).toBeFalsy()
   })
 
   it('updates variant to success when editing', async () => {
-    wrapper = createWrapper({ allowEdit: true })
-
-    await wrapper.find('button').trigger('click') // Click to enable editing
-
+    const wrapper = createWrapper({ allowEdit: true })
+    await wrapper.find('button').trigger('click')
     expect(wrapper.vm.variant).toBe('success')
   })
 
-  it('updates variant to prime when not editing', async () => {
-    wrapper = createWrapper({ allowEdit: true })
-
+  it('updates variant to prime when not editing', () => {
+    const wrapper = createWrapper({ allowEdit: true })
     expect(wrapper.vm.variant).toBe('prime')
   })
 
   it('emits reset event when clicking close button', async () => {
-    wrapper = createWrapper({ allowEdit: true })
-
-    await wrapper.find('button').trigger('click') // Click to enable editing
-    await wrapper.find('button.close-button').trigger('click') // Click close button
-
-    expect(wrapper.emitted().reset).toBeTruthy()
+    const wrapper = createWrapper({ allowEdit: true })
+    await wrapper.find('button').trigger('click')
+    await wrapper.find('.close-button').trigger('click')
+    expect(wrapper.emitted('reset')).toBeTruthy()
   })
 })
