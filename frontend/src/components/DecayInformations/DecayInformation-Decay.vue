@@ -1,31 +1,31 @@
 <template>
   <div class="decayinformation-decay">
-    <div class="mb-3">
-      <b-icon icon="droplet-half" class="mr-2" />
+    <div class="mb-3 d-flex align-items-center">
+      <IBiDropletHalf class="me-2" />
       <b>{{ $t('decay.calculation_decay') }}</b>
     </div>
-    <b-row>
-      <b-col>
-        <b-row>
-          <b-col cols="12" lg="4" md="4">
+    <BRow>
+      <BCol>
+        <BRow>
+          <BCol cols="12" lg="4" md="4">
             <div>{{ $t('decay.decay') }}</div>
-          </b-col>
-          <b-col offset="1" offset-md="0" offset-lg="0">
+          </BCol>
+          <BCol offset="1" offset-md="0" offset-lg="0">
             <div>
-              {{ previousBalance | GDD }}
+              {{ $filters.GDD(previousBalance) }}
               {{ decay === '0' ? $t('math.minus') : '' }}
-              {{ decay | GDD }} {{ $t('math.equal') }}
-              <b>{{ balance | GDD }}</b>
+              {{ $filters.GDD(decay) }} {{ $t('math.equal') }}
+              <b>{{ $filters.GDD(balance) }}</b>
             </div>
-          </b-col>
-        </b-row>
-      </b-col>
-    </b-row>
+          </BCol>
+        </BRow>
+      </BCol>
+    </BRow>
   </div>
 </template>
 <script>
 export default {
-  name: 'DecayInformation-Decay',
+  name: 'DecayInformationDecay',
   props: {
     balance: {
       type: String,
@@ -42,3 +42,10 @@ export default {
   },
 }
 </script>
+
+<style scoped lang="scss">
+:deep(svg.me-2) {
+  width: 1rem;
+  height: 1rem;
+}
+</style>

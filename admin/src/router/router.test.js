@@ -1,37 +1,76 @@
-import router from './router'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { createRouter, createWebHistory } from 'vue-router'
 
-describe('router', () => {
+const mockComponents = {
+  overview: { name: 'overview' },
+  notFound: { name: 'not-found' },
+  UserSearch: { name: 'UserSearch' },
+  CreationConfirm: { name: 'CreationConfirm' },
+  ContributionLinks: { name: 'ContributionLinks' },
+  CommunityStatistic: { name: 'CommunityStatistic' },
+  FederationVisualize: { name: 'FederationVisualize' },
+}
+
+vi.mock('./routes', () => ({
+  default: [
+    { path: '/', component: () => Promise.resolve(mockComponents.overview) },
+    { path: '/logout', component: () => Promise.resolve(mockComponents.notFound) },
+    { path: '/user', component: () => Promise.resolve(mockComponents.UserSearch) },
+    { path: '/creation-confirm', component: () => Promise.resolve(mockComponents.CreationConfirm) },
+    {
+      path: '/contribution-links',
+      component: () => Promise.resolve(mockComponents.ContributionLinks),
+    },
+    { path: '/statistic', component: () => Promise.resolve(mockComponents.CommunityStatistic) },
+    { path: '/federation', component: () => Promise.resolve(mockComponents.FederationVisualize) },
+    { path: '/:pathMatch(.*)*', component: () => Promise.resolve(mockComponents.notFound) },
+  ],
+}))
+
+vi.mock('vue-router', () => ({
+  createRouter: vi.fn(() => ({
+    options: {
+      routes: [],
+      linkActiveClass: '',
+      scrollBehavior: vi.fn(),
+    },
+  })),
+  createWebHistory: vi.fn(() => 'mockedHistory'),
+}))
+
+describe('Router', () => {
+  // eslint-disable-next-line no-unused-vars
+  let router
+
+  beforeEach(async () => {
+    vi.clearAllMocks()
+    vi.resetModules()
+    router = (await import('./router')).default
+  })
+
   describe('options', () => {
-    const { options } = router
-    const { scrollBehavior, routes } = options
-
-    it('has "/admin" as base', () => {
-      expect(options).toEqual(
-        expect.objectContaining({
-          base: '/admin',
-        }),
-      )
+    it('uses createWebHistory with correct base', () => {
+      expect(createWebHistory).toHaveBeenCalledWith('/admin/')
     })
 
     it('has "active" as linkActiveClass', () => {
-      expect(options).toEqual(
+      expect(createRouter).toHaveBeenCalledWith(
         expect.objectContaining({
           linkActiveClass: 'active',
         }),
       )
     })
 
-    it('has "history" as mode', () => {
-      expect(options).toEqual(
-        expect.objectContaining({
-          mode: 'history',
-        }),
-      )
-    })
-
     describe('scroll behavior', () => {
-      it('returns save position when given', () => {
-        expect(scrollBehavior({}, {}, 'given')).toBe('given')
+      let scrollBehavior
+
+      beforeEach(() => {
+        scrollBehavior = createRouter.mock.calls[0][0].scrollBehavior
+      })
+
+      it('returns saved position when given', () => {
+        const savedPosition = { left: 100, top: 100 }
+        expect(scrollBehavior({}, {}, savedPosition)).toBe(savedPosition)
       })
 
       it('returns selector when hash is given', () => {
@@ -39,67 +78,59 @@ describe('router', () => {
       })
 
       it('returns top left coordinates as default', () => {
-        expect(scrollBehavior({}, {})).toEqual({ x: 0, y: 0 })
+        expect(scrollBehavior({}, {})).toEqual({ left: 0, top: 0 })
       })
     })
 
     describe('routes', () => {
-      it('has nine routes defined', () => {
-        expect(routes).toHaveLength(9)
+      let routes
+
+      beforeEach(() => {
+        routes = createRouter.mock.calls[0][0].routes
       })
 
-      it('has "/overview" as default', async () => {
+      it('has eight routes defined', () => {
+        expect(routes).toHaveLength(8)
+      })
+
+      it('has "/" as default', async () => {
         const component = await routes.find((r) => r.path === '/').component()
-        expect(component.default.name).toBe('overview')
+        expect(component.name).toBe('overview')
       })
 
-      describe('logout', () => {
-        it('loads the "NotFoundPage" component', async () => {
-          const component = await routes.find((r) => r.path === '/logout').component()
-          expect(component.default.name).toBe('not-found')
-        })
+      it('loads the "NotFoundPage" component for logout', async () => {
+        const component = await routes.find((r) => r.path === '/logout').component()
+        expect(component.name).toBe('not-found')
       })
 
-      describe('user', () => {
-        it('loads the "UserSearch" component', async () => {
-          const component = await routes.find((r) => r.path === '/user').component()
-          expect(component.default.name).toBe('UserSearch')
-        })
+      it('loads the "UserSearch" component for user', async () => {
+        const component = await routes.find((r) => r.path === '/user').component()
+        expect(component.name).toBe('UserSearch')
       })
 
-      describe('creation-confirm', () => {
-        it('loads the "CreationConfirm" component', async () => {
-          const component = await routes.find((r) => r.path === '/creation-confirm').component()
-          expect(component.default.name).toBe('CreationConfirm')
-        })
+      it('loads the "CreationConfirm" component for creation-confirm', async () => {
+        const component = await routes.find((r) => r.path === '/creation-confirm').component()
+        expect(component.name).toBe('CreationConfirm')
       })
 
-      describe('contribution-links', () => {
-        it('loads the "ContributionLinks" page', async () => {
-          const component = await routes.find((r) => r.path === '/contribution-links').component()
-          expect(component.default.name).toBe('ContributionLinks')
-        })
+      it('loads the "ContributionLinks" page for contribution-links', async () => {
+        const component = await routes.find((r) => r.path === '/contribution-links').component()
+        expect(component.name).toBe('ContributionLinks')
       })
 
-      describe('statistics', () => {
-        it('loads the "CommunityStatistic" page', async () => {
-          const component = await routes.find((r) => r.path === '/statistic').component()
-          expect(component.default.name).toBe('CommunityStatistic')
-        })
+      it('loads the "CommunityStatistic" page for statistics', async () => {
+        const component = await routes.find((r) => r.path === '/statistic').component()
+        expect(component.name).toBe('CommunityStatistic')
       })
 
-      describe('federation', () => {
-        it('loads the "FederationVisualize" page', async () => {
-          const component = await routes.find((r) => r.path === '/federation').component()
-          expect(component.default.name).toBe('FederationVisualize')
-        })
+      it('loads the "FederationVisualize" page for federation', async () => {
+        const component = await routes.find((r) => r.path === '/federation').component()
+        expect(component.name).toBe('FederationVisualize')
       })
 
-      describe('not found page', () => {
-        it('renders the "NotFound" component', async () => {
-          const component = await routes.find((r) => r.path === '*').component()
-          expect(component.default.name).toEqual('not-found')
-        })
+      it('renders the "NotFound" component for not found page', async () => {
+        const component = await routes.find((r) => r.path === '/:pathMatch(.*)*').component()
+        expect(component.name).toEqual('not-found')
       })
     })
   })

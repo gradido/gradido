@@ -1,220 +1,212 @@
 import { mount } from '@vue/test-utils'
-import DeletedUserFormular from './DeletedUserFormular'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+import DeletedUserFormular from './DeletedUserFormular.vue'
 import { deleteUser } from '../graphql/deleteUser'
 import { unDeleteUser } from '../graphql/unDeleteUser'
-import { toastErrorSpy } from '../../test/testSetup'
+import { useApolloClient } from '@vue/apollo-composable'
+import { useI18n } from 'vue-i18n'
+import { useAppToast } from '@/composables/useToast'
+import { createStore } from 'vuex'
+import { BButton } from 'bootstrap-vue-next'
 
-const localVue = global.localVue
+vi.mock('@vue/apollo-composable')
+vi.mock('vue-i18n')
+vi.mock('@/composables/useToast')
 
-const date = new Date()
-
-const apolloMutateMock = jest.fn().mockResolvedValue({
-  data: {
-    deleteUser: date,
-  },
-})
-
-const mocks = {
-  $t: jest.fn((t) => t),
-  $apollo: {
-    mutate: apolloMutateMock,
-  },
-  $store: {
+const createVuexStore = (moderatorId = 0) => {
+  return createStore({
     state: {
       moderator: {
-        id: 0,
+        id: moderatorId,
         name: 'test moderator',
       },
     },
-  },
-}
-
-const propsData = {
-  item: {},
+  })
 }
 
 describe('DeletedUserFormular', () => {
   let wrapper
-  let spy
+  let store
+  const mockMutate = vi.fn()
+  const mockT = vi.fn((key) => key)
+  const mockToastError = vi.fn()
+  const date = new Date()
 
-  const Wrapper = () => {
-    return mount(DeletedUserFormular, { localVue, mocks, propsData })
-  }
+  beforeEach(() => {
+    store = createVuexStore()
 
-  describe('mount', () => {
+    useApolloClient.mockReturnValue({
+      client: {
+        mutate: mockMutate,
+      },
+    })
+
+    useI18n.mockReturnValue({
+      t: mockT,
+    })
+
+    useAppToast.mockReturnValue({
+      toastError: mockToastError,
+    })
+
+    wrapper = mount(DeletedUserFormular, {
+      props: {
+        item: {
+          userId: 1,
+          deletedAt: null,
+        },
+      },
+      global: {
+        plugins: [store],
+        mocks: {
+          $t: mockT,
+        },
+        stubs: {
+          BButton,
+        },
+      },
+    })
+  })
+
+  it('renders the component', () => {
+    expect(wrapper.find('.deleted-user-formular').exists()).toBe(true)
+  })
+
+  describe('when user is not a moderator', () => {
+    it('shows delete button when user is not deleted', () => {
+      expect(wrapper.find('button').text()).toBe('delete_user')
+    })
+
+    it('shows undelete button when user is deleted', async () => {
+      await wrapper.setProps({
+        item: {
+          userId: 1,
+          deletedAt: date,
+        },
+      })
+      expect(wrapper.find('button').text()).toBe('undelete_user')
+    })
+
+    it('emits show-delete-modal when delete button is clicked', async () => {
+      await wrapper.find('button').trigger('click')
+      expect(wrapper.emitted('show-delete-modal')).toBeTruthy()
+    })
+
+    it('emits show-undelete-modal when undelete button is clicked', async () => {
+      await wrapper.setProps({
+        item: {
+          userId: 1,
+          deletedAt: date,
+        },
+      })
+      await wrapper.find('button').trigger('click')
+      expect(wrapper.emitted('show-undelete-modal')).toBeTruthy()
+    })
+  })
+
+  describe('when user is a moderator', () => {
     beforeEach(() => {
-      jest.clearAllMocks()
-      wrapper = Wrapper()
-    })
-
-    it('has a DIV element with the class.delete-user-formular', () => {
-      expect(wrapper.find('.deleted-user-formular').exists()).toBe(true)
-    })
-
-    describe('delete self', () => {
-      beforeEach(() => {
-        wrapper.setProps({
-          item: {
-            userId: 0,
-          },
-        })
-      })
-
-      it('shows a text that you cannot delete yourself', () => {
-        expect(wrapper.text()).toBe('removeNotSelf')
-      })
-
-      it('has no "delete_user" button', () => {
-        expect(wrapper.find('button').exists()).toBe(false)
-      })
-    })
-
-    describe('delete other user', () => {
-      beforeEach(() => {
-        wrapper.setProps({
+      store = createVuexStore(1)
+      wrapper = mount(DeletedUserFormular, {
+        props: {
           item: {
             userId: 1,
             deletedAt: null,
           },
-          static: true,
-        })
-      })
-
-      it('shows the text "delete_user"', () => {
-        expect(wrapper.text()).toBe('delete_user')
-      })
-
-      it('has a "delete_user" button', () => {
-        expect(wrapper.find('button').text()).toBe('delete_user')
-      })
-
-      describe('click on "delete_user" button', () => {
-        beforeEach(async () => {
-          spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
-          spy.mockImplementation(() => Promise.resolve(true))
-          await wrapper.find('button').trigger('click')
-          await wrapper.vm.$nextTick()
-        })
-
-        it('calls the modal', () => {
-          expect(wrapper.emitted('showDeleteModal'))
-          expect(spy).toHaveBeenCalled()
-        })
-
-        describe('confirm delete with success', () => {
-          it('calls the API', () => {
-            expect(apolloMutateMock).toBeCalledWith(
-              expect.objectContaining({
-                mutation: deleteUser,
-                variables: {
-                  userId: 1,
-                },
-              }),
-            )
-          })
-
-          it('emits update deleted At', () => {
-            expect(wrapper.emitted('updateDeletedAt')).toEqual(
-              expect.arrayContaining([
-                expect.arrayContaining([
-                  {
-                    userId: 1,
-                    deletedAt: date,
-                  },
-                ]),
-              ]),
-            )
-          })
-        })
-
-        describe('confirm delete with error', () => {
-          beforeEach(async () => {
-            spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
-            apolloMutateMock.mockRejectedValue({ message: 'Oh no!' })
-            await wrapper.find('button').trigger('click')
-            await wrapper.vm.$nextTick()
-          })
-
-          it('toasts an error message', () => {
-            expect(toastErrorSpy).toBeCalledWith('Oh no!')
-          })
-        })
+        },
+        global: {
+          plugins: [store],
+          mocks: {
+            $t: mockT,
+          },
+        },
       })
     })
 
-    describe('recover user', () => {
-      beforeEach(() => {
-        wrapper.setProps({
-          item: {
+    it('shows removeNotSelf message', () => {
+      expect(wrapper.text()).toBe('removeNotSelf')
+    })
+
+    it('does not show any button', () => {
+      expect(wrapper.find('button').exists()).toBe(false)
+    })
+  })
+
+  describe('deleteUserMutation', () => {
+    beforeEach(() => {
+      mockMutate.mockResolvedValue({
+        data: {
+          deleteUser: date,
+        },
+      })
+    })
+
+    it('calls the mutation with correct parameters', async () => {
+      await wrapper.vm.deleteUserMutation()
+      expect(mockMutate).toHaveBeenCalledWith({
+        mutation: deleteUser,
+        variables: {
+          userId: 1,
+        },
+      })
+    })
+
+    it('emits update-deleted-at with correct data on success', async () => {
+      await wrapper.vm.deleteUserMutation()
+      expect(wrapper.emitted('update-deleted-at')).toEqual([
+        [
+          {
             userId: 1,
             deletedAt: date,
           },
-        })
+        ],
+      ])
+    })
+
+    it('calls toastError on failure', async () => {
+      const error = new Error('Delete failed')
+      mockMutate.mockRejectedValueOnce(error)
+      await wrapper.vm.deleteUserMutation()
+      expect(mockToastError).toHaveBeenCalledWith('Delete failed')
+    })
+  })
+
+  describe('undeleteUserMutation', () => {
+    beforeEach(() => {
+      mockMutate.mockResolvedValue({
+        data: {
+          unDeleteUser: null,
+        },
       })
+    })
 
-      it('shows the text "undelete_user"', () => {
-        expect(wrapper.text()).toBe('undelete_user')
+    it('calls the mutation with correct parameters', async () => {
+      await wrapper.vm.undeleteUserMutation()
+      expect(mockMutate).toHaveBeenCalledWith({
+        mutation: unDeleteUser,
+        variables: {
+          userId: 1,
+        },
       })
+    })
 
-      it('has a "undelete_user" button', () => {
-        expect(wrapper.find('button').text()).toBe('undelete_user')
-      })
+    it('emits update-deleted-at with correct data on success', async () => {
+      await wrapper.vm.undeleteUserMutation()
+      expect(wrapper.emitted('update-deleted-at')).toEqual([
+        [
+          {
+            userId: 1,
+            deletedAt: null,
+          },
+        ],
+      ])
+    })
 
-      describe('click on "undelete_user" button', () => {
-        beforeEach(async () => {
-          apolloMutateMock.mockResolvedValue({
-            data: {
-              unDeleteUser: null,
-            },
-          })
-          spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
-          spy.mockImplementation(() => Promise.resolve(true))
-          await wrapper.find('button').trigger('click')
-          await wrapper.vm.$nextTick()
-        })
-
-        it('calls the modal', () => {
-          expect(wrapper.emitted('showUndeleteModal'))
-          expect(spy).toHaveBeenCalled()
-        })
-
-        describe('confirm recover with success', () => {
-          it('calls the API', () => {
-            expect(apolloMutateMock).toBeCalledWith(
-              expect.objectContaining({
-                mutation: unDeleteUser,
-                variables: {
-                  userId: 1,
-                },
-              }),
-            )
-          })
-
-          it('emits update deleted At', () => {
-            expect(wrapper.emitted('updateDeletedAt')).toMatchObject(
-              expect.arrayContaining([
-                expect.arrayContaining([
-                  {
-                    userId: 1,
-                    deletedAt: null,
-                  },
-                ]),
-              ]),
-            )
-          })
-        })
-
-        describe('confirm recover with error', () => {
-          beforeEach(async () => {
-            apolloMutateMock.mockRejectedValue({ message: 'Oh no!' })
-            await wrapper.find('button').trigger('click')
-          })
-
-          it('toasts an error message', () => {
-            expect(toastErrorSpy).toBeCalledWith('Oh no!')
-          })
-        })
-      })
+    it('calls toastError on failure', async () => {
+      const error = new Error('Undelete failed')
+      mockMutate.mockRejectedValueOnce(error)
+      await wrapper.vm.undeleteUserMutation()
+      expect(mockToastError).toHaveBeenCalledWith('Undelete failed')
     })
   })
 })

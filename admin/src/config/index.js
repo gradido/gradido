@@ -21,9 +21,9 @@ const version = {
 }
 
 const environment = {
-  NODE_ENV: process.env.NODE_ENV,
-  DEBUG: process.env.NODE_ENV !== 'production' ?? false,
-  PRODUCTION: process.env.NODE_ENV === 'production' ?? false,
+  NODE_ENV: import.meta.env.NODE_ENV,
+  DEBUG: import.meta.env.NODE_ENV !== 'production' ?? false,
+  PRODUCTION: import.meta.env.NODE_ENV === 'production' ?? false,
 }
 
 const COMMUNITY_HOST = process.env.COMMUNITY_HOST ?? undefined
@@ -64,4 +64,4 @@ const CONFIG = {
   ...debug,
 }
 
-module.exports = CONFIG
+export default CONFIG

@@ -2,9 +2,9 @@
 
 export class Toasts {
   // selectors
-  toastSlot = '.b-toaster-slot'
-  toastTypeSuccess = '.b-toast-success'
-  toastTypeError = '.b-toast-danger'
+  toastSlot = '#__BVID__toaster-container'
+  toastTypeSuccess = '.toast.text-bg-success'
+  toastTypeError = '.toast.text-bg-danger'
   toastTitle = '.gdd-toaster-title'
   toastMessage = '.gdd-toaster-body'
 }

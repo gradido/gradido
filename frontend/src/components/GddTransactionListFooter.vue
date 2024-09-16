@@ -1,15 +1,15 @@
 <template>
   <div>
-    <b-list-group>
-      <b-list-group-item v-if="count > 5">
+    <BListGroup>
+      <BListGroupItem v-if="count > 5">
         <!-- eslint-disable @intlify/vue-i18n/no-v-html -->
         <router-link
           to="/transactions"
           v-html="$t('transaction.show_all', { count })"
         ></router-link>
         <!-- eslint-enable @intlify/vue-i18n/no-v-html -->
-      </b-list-group-item>
-    </b-list-group>
+      </BListGroupItem>
+    </BListGroup>
   </div>
 </template>
 
@@ -17,7 +17,7 @@
 export default {
   name: 'GddTransactionListFooter',
   props: {
-    count: { count: Number },
+    count: { type: Number },
   },
 }
 </script>

@@ -1,71 +1,149 @@
-import { mount, RouterLinkStub } from '@vue/test-utils'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { mount } from '@vue/test-utils'
 import AuthLayout from './AuthLayout'
+import {
+  BAvatar,
+  BButton,
+  BCard,
+  BCardBody,
+  BCol,
+  BImg,
+  BLink,
+  BPopover,
+  BRow,
+} from 'bootstrap-vue-next'
 
-const localVue = global.localVue
+// Mock child components
+vi.mock('@/components/Auth/AuthNavbar', () => ({
+  default: { name: 'AuthNavbar', template: '<div>AuthNavbar</div>' },
+}))
+vi.mock('@/components/Auth/AuthNavbarSmall', () => ({
+  default: { name: 'AuthNavbarSmall', template: '<div>AuthNavbarSmall</div>' },
+}))
+vi.mock('@/components/Auth/AuthCarousel', () => ({
+  default: { name: 'AuthCarousel', template: '<div>AuthCarousel</div>' },
+}))
+vi.mock('@/components/LanguageSwitch2', () => ({
+  default: { name: 'LanguageSwitch2', template: '<div>LanguageSwitch2</div>' },
+}))
+vi.mock('@/components/Auth/AuthFooter', () => ({
+  default: { name: 'AuthFooter', template: '<div>AuthFooter</div>' },
+}))
+
+// Mock CONFIG
+vi.mock('@/config', () => ({
+  default: {
+    COMMUNITY_NAME: 'Test Community',
+  },
+}))
 
 describe('AuthLayout', () => {
   let wrapper
 
-  const mocks = {
-    $i18n: {
-      locale: 'en',
-    },
-    $t: jest.fn((t) => t),
-    $store: {
-      state: {},
-      commit: jest.fn(),
-    },
-    $route: {
-      meta: {
-        requiresAuth: false,
+  const createWrapper = () => {
+    return mount(AuthLayout, {
+      global: {
+        components: {
+          BLink,
+          BButton,
+          BRow,
+          BCol,
+          BCard,
+          BCardBody,
+          BAvatar,
+          BImg,
+          BPopover,
+        },
+        mocks: {
+          $i18n: {
+            locale: 'en',
+          },
+          $t: (key) => key,
+          $route: {
+            meta: {
+              hideFooter: false,
+            },
+          },
+        },
+        stubs: {
+          RouterView: true,
+        },
       },
-      params: {},
-    },
-  }
-
-  const stubs = {
-    RouterLink: RouterLinkStub,
-    RouterView: true,
-  }
-
-  const Wrapper = () => {
-    return mount(AuthLayout, { localVue, mocks, stubs })
+    })
   }
 
   describe('mount', () => {
     beforeEach(() => {
-      wrapper = Wrapper()
+      wrapper = createWrapper()
     })
 
-    describe('Desktop Version Start', () => {
-      beforeEach(() => {
-        wrapper.vm.mobileStart = false
-      })
+    it('renders the component', () => {
+      expect(wrapper.find('.auth-template').exists()).toBe(true)
+    })
 
-      it('has Component AuthNavbar', () => {
-        expect(wrapper.findComponent({ name: 'AuthNavbar' }).exists()).toBe(true)
-      })
+    it('has Component AuthNavbar', () => {
+      expect(wrapper.findComponent({ name: 'AuthNavbar' }).exists()).toBe(true)
+    })
 
-      it('has Component AuthCarousel', () => {
-        expect(wrapper.findComponent({ name: 'AuthCarousel' }).exists()).toBe(true)
-      })
+    it('has Component AuthCarousel', () => {
+      expect(wrapper.findComponent({ name: 'AuthCarousel' }).exists()).toBe(true)
+    })
 
-      it('has Component AuthFooter', () => {
-        expect(wrapper.findComponent({ name: 'AuthFooter' }).exists()).toBe(true)
-      })
+    it('has Component AuthFooter', () => {
+      expect(wrapper.findComponent({ name: 'AuthFooter' }).exists()).toBe(true)
+    })
 
-      it('has no sidebar', () => {
-        expect(wrapper.find('nav#sidenav-main').exists()).not.toBeTruthy()
-      })
+    it('has no sidebar', () => {
+      expect(wrapper.find('nav#sidenav-main').exists()).toBe(false)
+    })
 
-      it('has LanguageSwitch', () => {
-        expect(wrapper.findComponent({ name: 'LanguageSwitch' }).exists()).toBeTruthy()
-      })
+    it('has LanguageSwitch2', () => {
+      expect(wrapper.findComponent({ name: 'LanguageSwitch2' }).exists()).toBe(true)
+    })
 
-      test('test size in setTextSize ', () => {
-        wrapper.vm.setTextSize('85')
-        expect(wrapper.vm.$refs.pageFontSize.style.fontSize).toBe('85rem')
+    it('displays the community name', () => {
+      expect(wrapper.find('.h1').text()).toBe('Test Community')
+    })
+
+    it('test size in setTextSize', async () => {
+      await wrapper.vm.setTextSize(0.85)
+      expect(wrapper.vm.$refs.pageFontSize.$el.style.fontSize).toBe('0.85rem')
+    })
+  })
+
+  describe('when hideFooter is true', () => {
+    beforeEach(() => {
+      wrapper = mount(AuthLayout, {
+        global: {
+          mocks: {
+            $i18n: {
+              locale: 'en',
+            },
+            $t: (key) => key,
+            $route: {
+              meta: {
+                hideFooter: true,
+              },
+            },
+          },
+          stubs: {
+            BLink: true,
+            BButton: true,
+            BRow: true,
+            BCol: true,
+            BCard: true,
+            BCardBody: true,
+            BAvatar: true,
+            BImg: true,
+            BPopover: true,
+            RouterView: true,
+          },
+        },
       })
+    })
+
+    it('does not render AuthFooter', () => {
+      expect(wrapper.findComponent({ name: 'AuthFooter' }).exists()).toBe(false)
     })
   })
 })

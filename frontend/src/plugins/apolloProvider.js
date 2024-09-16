@@ -1,11 +1,12 @@
-import { ApolloClient, ApolloLink, InMemoryCache, HttpLink } from 'apollo-boost'
-import VueApollo from 'vue-apollo'
 import CONFIG from '../config'
-import { store } from '../store/store'
+import { store } from '@/store/store'
 import router from '../routes/router'
 import i18n from '../i18n'
+import { createHttpLink, ApolloLink, ApolloClient, InMemoryCache } from '@apollo/client/core'
+import { createApolloProvider } from '@vue/apollo-option'
+import { provideApolloClient } from '@vue/apollo-composable'
 
-const httpLink = new HttpLink({ uri: CONFIG.GRAPHQL_URI })
+const httpLink = createHttpLink({ uri: CONFIG.GRAPHQL_URI })
 
 const authLink = new ApolloLink((operation, forward) => {
   const token = store.state.token
@@ -17,7 +18,7 @@ const authLink = new ApolloLink((operation, forward) => {
   })
   return forward(operation).map((response) => {
     if (response.errors && response.errors[0].message === '403.13 - Client certificate revoked') {
-      response.errors[0].message = i18n.t('error.session-expired')
+      response.errors[0].message = i18n.global.t('error.session-expired')
       store.dispatch('logout', null)
       if (router.currentRoute.path !== '/login') router.push('/login')
       return response
@@ -37,6 +38,8 @@ const apolloClient = new ApolloClient({
   }),
 })
 
-export const apolloProvider = new VueApollo({
+provideApolloClient(apolloClient)
+
+export const apolloProvider = createApolloProvider({
   defaultClient: apolloClient,
 })

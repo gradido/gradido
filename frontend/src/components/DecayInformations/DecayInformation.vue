@@ -5,16 +5,16 @@
       v-else-if="isStartBlock"
       :amount="amount"
       :decay="decay"
-      :typeId="typeId"
+      :type-id="typeId"
     />
     <decay-information-long
       v-else
       :amount="amount"
       :decay="decay"
-      :typeId="typeId"
+      :type-id="typeId"
       :memo="memo"
       :balance="balance"
-      :previousBalance="previousBalance"
+      :previous-balance="previousBalance"
     />
   </div>
 </template>

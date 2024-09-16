@@ -10,3 +10,5 @@ coverage/
 
 # emacs
 *~
+
+components.d.ts

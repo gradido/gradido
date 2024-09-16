@@ -1,13 +1,13 @@
 <template>
   <div class="duration-row">
-    <b-row>
-      <b-col cols="6" lg="4" md="6" sm="6">
+    <BRow>
+      <BCol cols="6" lg="4" md="6" sm="6">
         <div>{{ $t('decay.past_time') }}</div>
-      </b-col>
-      <b-col offset="0" class="text-right mr-0">
+      </BCol>
+      <BCol offset="0" class="text-end me-0">
         <span v-if="duration">{{ duration }}</span>
-      </b-col>
-    </b-row>
+      </BCol>
+    </BRow>
   </div>
 </template>
 <script>

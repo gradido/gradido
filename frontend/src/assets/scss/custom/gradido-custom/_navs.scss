@@ -1,20 +1,20 @@
 // Navs
 @use "sass:color";
 
-$nav-link-padding-y: 0.25rem !default;
-$nav-link-padding-x: 0.75rem !default;
-$nav-link-color: $gray-700 !default;
-$nav-link-hover-color: theme-color("primary") !default;
-$nav-link-disabled-color: $gray-600 !default;
-$nav-pills-padding-y: 0.75rem !default;
-$nav-pills-padding-x: 1rem !default;
-$nav-pills-space-x: 1rem !default;
-$nav-pills-bg: $white !default;
-$nav-pills-border-width: 1px !default;
-$nav-pills-border-color: theme-color("primary") !default;
-$nav-pills-border-radius: $border-radius !default;
-$nav-pills-link-color: theme-color("primary") !default;
-$nav-pills-link-hover-color: color.adjust(theme-color("primary"), $lightness: -5%) !default;
-$nav-pills-link-active-color: color-yiq(theme-color("primary")) !default;
-$nav-pills-link-active-bg: theme-color("primary") !default;
-$nav-pills-box-shadow: $btn-box-shadow !default;
+$nav-link-padding-y: 0.25rem ;
+$nav-link-padding-x: 0.75rem ;
+$nav-link-color: $gray-700 ;
+$nav-link-hover-color: $primary ;
+$nav-link-disabled-color: $gray-600 ;
+$nav-pills-padding-y: 0.75rem ;
+$nav-pills-padding-x: 1rem ;
+$nav-pills-space-x: 1rem ;
+$nav-pills-bg: $white ;
+$nav-pills-border-width: 1px ;
+$nav-pills-border-color: $primary ;
+$nav-pills-border-radius: $border-radius ;
+$nav-pills-link-color: $primary ;
+$nav-pills-link-hover-color: color.adjust($primary, $lightness: -5%) ;
+$nav-pills-link-active-color: color-yiq($primary) ;
+$nav-pills-link-active-bg: $primary ;
+$nav-pills-box-shadow: $btn-box-shadow ;

@@ -124,6 +124,7 @@
     "memo": "Mesaj",
     "message": "Mesaj",
     "new_balance": "Onay sonrası hesap bakiyesi",
+    "newPasswordRepeat": "Yeni şifreyi tekrarla",
     "no_gdd_available": "Göndermek için GDD'niz yok.",
     "password": "Şifre",
     "passwordRepeat": "Şifreyi tekrarla",
@@ -146,6 +147,7 @@
     "validation": {
       "gddSendAmount": "Bu alan {_field_} {min}  {max} arasında ondalık noktadan sonra en fazla iki basamaklı bir sayı olmalıdır",
       "is-not": "Gradidoları kendine gönderemezsin",
+      "requiredField": "{fieldName} alanı zorunludur",
       "usernmae-regex": "Kullanıcı adı bir harfle başlamalı, ardından en az iki alfasayısal karakter gelmelidir.",
       "usernmae-unique": "Bu kullanıcı adı zaten alınmış."
     },
@@ -247,6 +249,7 @@
       "changeLanguage": "Dili değiştir",
       "de": "Deutsch",
       "en": "English",
+      "error": "Dil ayarları güncellenemedi.",
       "es": "Español",
       "fr": "Français",
       "nl": "Nederlands",

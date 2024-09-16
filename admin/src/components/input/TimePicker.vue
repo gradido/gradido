@@ -1,11 +1,11 @@
 <template>
   <div>
     <input
-      type="text"
       v-model="timeValue"
+      type="text"
+      placeholder="hh:mm"
       @input="updateValues"
       @blur="validateAndCorrect"
-      placeholder="hh:mm"
     />
   </div>
 </template>
@@ -20,6 +20,7 @@ export default {
       default: '00:00',
     },
   },
+  emits: ['input'],
   data() {
     return {
       timeValue: this.value,

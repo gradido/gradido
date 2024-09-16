@@ -1,7 +1,7 @@
 <template>
   <div class="gdd-status">
     <div class="p-0 gdd-status-div">
-      <b-icon v-if="pending" icon="three-dots" animation="cylon" class="test-pending-icon"></b-icon>
+      <IBiThreeDots v-if="pending" animation="cylon" font-scale="4" class="test-pending-icon" />
       <div v-else>
         {{ pending || balance === null ? $t('em-dash') : $n(balance, 'decimal') }} {{ statusText }}
       </div>

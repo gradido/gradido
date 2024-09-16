@@ -93,4 +93,4 @@ const CONFIG = {
   ...meta,
 }
 
-module.exports = CONFIG
+export default CONFIG

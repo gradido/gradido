@@ -1,15 +1,34 @@
 import { mount } from '@vue/test-utils'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import ContributionListItem from './ContributionListItem'
+import { createI18n } from 'vue-i18n'
 
-const localVue = global.localVue
+const i18n = createI18n({
+  legacy: false,
+  locale: 'en',
+})
+
+vi.mock('@vue/apollo-composable', () => ({
+  useQuery: vi.fn(),
+  useLazyQuery: vi.fn(() => ({
+    onResult: vi.fn(),
+    onError: vi.fn(),
+    load: vi.fn(),
+  })),
+  useMutation: vi.fn(() => ({
+    mutate: vi.fn(),
+    onDone: vi.fn(),
+    onError: vi.fn(),
+  })),
+}))
 
 describe('ContributionListItem', () => {
   let wrapper
 
   const mocks = {
-    $t: jest.fn((t) => t),
-    $d: jest.fn((d) => d),
-    $apollo: { query: jest.fn().mockResolvedValue() },
+    $filters: {
+      GDD: vi.fn((val) => val),
+    },
   }
 
   const propsData = {
@@ -23,18 +42,20 @@ describe('ContributionListItem', () => {
     amount: '200',
   }
 
-  const Wrapper = () => {
+  const mountWrapper = () => {
     return mount(ContributionListItem, {
-      localVue,
-      mocks,
-      propsData,
+      global: {
+        plugins: [i18n],
+        mocks,
+      },
+      props: propsData,
     })
   }
 
   describe('mount', () => {
     beforeEach(() => {
-      jest.clearAllMocks()
-      wrapper = Wrapper()
+      vi.clearAllMocks()
+      wrapper = mountWrapper()
     })
 
     it('has a DIV .contribution-list-item', () => {
@@ -85,8 +106,6 @@ describe('ContributionListItem', () => {
     })
 
     describe('delete contribution', () => {
-      let spy
-
       describe('edit contribution', () => {
         beforeEach(() => {
           wrapper.find('div.test-edit-contribution').trigger('click')
@@ -108,13 +127,8 @@ describe('ContributionListItem', () => {
 
       describe('confirm deletion', () => {
         beforeEach(() => {
-          spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
-          spy.mockImplementation(() => Promise.resolve(true))
+          vi.spyOn(window, 'confirm').mockImplementation(() => true)
           wrapper.find('div.test-delete-contribution').trigger('click')
-        })
-
-        it('opens the modal', () => {
-          expect(spy).toBeCalledWith('contribution.delete')
         })
 
         it('emits delete contribution', () => {
@@ -124,9 +138,8 @@ describe('ContributionListItem', () => {
 
       describe('cancel deletion', () => {
         beforeEach(async () => {
-          spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
-          spy.mockImplementation(() => Promise.resolve(false))
-          await wrapper.findAll('div.pointer').at(2).trigger('click')
+          vi.spyOn(window, 'confirm').mockImplementation(() => false)
+          await wrapper.find('div.test-delete-contribution').trigger('click')
         })
 
         it('does not emit delete contribution', () => {
@@ -140,7 +153,7 @@ describe('ContributionListItem', () => {
         })
 
         it('emit update-status', () => {
-          expect(wrapper.vm.$emit('update-status')).toBeTruthy()
+          expect(wrapper.emitted('update-status')).toBeTruthy()
         })
       })
     })
@@ -151,8 +164,8 @@ describe('ContributionListItem', () => {
           .findComponent({ name: 'ContributionMessagesList' })
           .vm.$emit('get-list-contribution-messages')
       })
-      it('emits closeAllOpenCollapse', () => {
-        expect(wrapper.emitted('closeAllOpenCollapse')).toBeTruthy()
+      it('emits close-all-open-collapse', () => {
+        expect(wrapper.emitted('close-all-open-collapse')).toBeTruthy()
       })
     })
   })

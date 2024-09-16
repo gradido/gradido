@@ -1,45 +1,62 @@
 import { mount } from '@vue/test-utils'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import UserGMSLocationFormat from './UserGMSLocationFormat.vue'
-import { toastErrorSpy } from '@test/testSetup'
+import { useI18n } from 'vue-i18n'
+import { useStore } from 'vuex'
+import { useMutation } from '@vue/apollo-composable'
+import { useAppToast } from '@/composables/useToast'
 
-const mockAPIcall = jest.fn()
-
-const storeCommitMock = jest.fn()
-
-const localVue = global.localVue
+// Mock dependencies
+vi.mock('vue-i18n')
+vi.mock('vuex')
+vi.mock('@vue/apollo-composable')
+vi.mock('@/composables/useToast')
+vi.mock('bootstrap-vue-next', () => ({
+  BDropdown: {
+    name: 'BDropdown',
+    template: '<div><slot name="button-content"></slot><slot></slot></div>',
+  },
+  BDropdownItem: {
+    name: 'BDropdownItem',
+    template: '<div class="dropdown-item"><slot></slot></div>',
+  },
+}))
 
 describe('UserGMSLocationFormat', () => {
   let wrapper
+  const mockStore = {
+    state: {
+      gmsPublishLocation: 'GMS_LOCATION_TYPE_RANDOM',
+    },
+    commit: vi.fn(),
+  }
+  const mockMutate = vi.fn()
+  const mockToastSuccess = vi.fn()
+  const mockToastError = vi.fn()
+
   beforeEach(() => {
-    wrapper = mount(UserGMSLocationFormat, {
-      mocks: {
-        $t: (key) => key, // Mocking the translation function
-        $store: {
-          state: {
-            gmsPublishLocation: null,
-          },
-          commit: storeCommitMock,
-        },
-        $apollo: {
-          mutate: mockAPIcall,
-        },
-      },
-      localVue,
-      propsData: {
-        selectedOption: 'GMS_LOCATION_TYPE_RANDOM',
-      },
+    useI18n.mockReturnValue({
+      t: (key) => key,
     })
+    useStore.mockReturnValue(mockStore)
+    useMutation.mockReturnValue({ mutate: mockMutate })
+    useAppToast.mockReturnValue({
+      toastSuccess: mockToastSuccess,
+      toastError: mockToastError,
+    })
+
+    wrapper = mount(UserGMSLocationFormat)
   })
 
   afterEach(() => {
-    wrapper.destroy()
+    vi.clearAllMocks()
   })
 
   it('renders the correct dropdown options', () => {
     const dropdownItems = wrapper.findAll('.dropdown-item')
     expect(dropdownItems.length).toBe(3)
 
-    const labels = dropdownItems.wrappers.map((item) => item.text())
+    const labels = dropdownItems.map((item) => item.text())
     expect(labels).toEqual([
       'settings.GMS.publish-location.exact',
       'settings.GMS.publish-location.approximate',
@@ -48,32 +65,38 @@ describe('UserGMSLocationFormat', () => {
   })
 
   it('updates selected option on click', async () => {
+    mockMutate.mockResolvedValue({})
+
     const dropdownItem = wrapper.findAll('.dropdown-item').at(1) // Click the second item
     await dropdownItem.trigger('click')
 
-    expect(wrapper.emitted().gmsPublishLocation).toBeTruthy()
-    expect(wrapper.emitted().gmsPublishLocation.length).toBe(1)
-    expect(wrapper.emitted().gmsPublishLocation[0]).toEqual(['GMS_LOCATION_TYPE_APPROXIMATE'])
+    expect(mockMutate).toHaveBeenCalledWith({
+      gmsPublishLocation: 'GMS_LOCATION_TYPE_APPROXIMATE',
+    })
+    expect(mockToastSuccess).toHaveBeenCalledWith('settings.GMS.publish-location.updated')
+    expect(mockStore.commit).toHaveBeenCalledWith(
+      'gmsPublishLocation',
+      'GMS_LOCATION_TYPE_APPROXIMATE',
+    )
+    // Check for emitted event
+    expect(wrapper.emitted('gmsPublishLocation')).toBeTruthy()
+    expect(wrapper.emitted('gmsPublishLocation')[0]).toEqual(['GMS_LOCATION_TYPE_APPROXIMATE'])
   })
 
   it('does not update when clicking on already selected option', async () => {
     const dropdownItem = wrapper.findAll('.dropdown-item').at(2) // Click the third item (which is already selected)
     await dropdownItem.trigger('click')
 
-    expect(wrapper.emitted().gmsPublishLocation).toBeFalsy()
+    expect(mockMutate).not.toHaveBeenCalled()
+    expect(wrapper.emitted('gmsPublishLocation')).toBeFalsy()
   })
 
-  describe('update with error', () => {
-    beforeEach(async () => {
-      mockAPIcall.mockRejectedValue({
-        message: 'Ouch',
-      })
-      const dropdownItem = wrapper.findAll('.dropdown-item').at(1) // Click the second item
-      await dropdownItem.trigger('click')
-    })
+  it('handles error when updating', async () => {
+    mockMutate.mockRejectedValue(new Error('Ouch'))
 
-    it('toasts an error message', () => {
-      expect(toastErrorSpy).toBeCalledWith('Ouch')
-    })
+    const dropdownItem = wrapper.findAll('.dropdown-item').at(1) // Click the second item
+    await dropdownItem.trigger('click')
+
+    expect(mockToastError).toHaveBeenCalledWith('Ouch')
   })
 })

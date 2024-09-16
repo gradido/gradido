@@ -1,9 +1,27 @@
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import addNavigationGuards from './guards'
-import router from './router'
+import { createRouter, createWebHistory } from 'vue-router'
+import { verifyLogin } from '../graphql/queries'
 
-const storeCommitMock = jest.fn()
-const storeDispatchMock = jest.fn()
-const apolloQueryMock = jest.fn().mockResolvedValue({
+vi.mock('../graphql/queries', () => ({
+  verifyLogin: 'mocked-verify-login-query',
+}))
+
+const router = createRouter({
+  history: createWebHistory(),
+  routes: [
+    { path: '/authenticate', name: 'Authenticate' },
+    { path: '/overview', name: 'Overview' },
+    { path: '/login', name: 'Login' },
+    { path: '/register', name: 'Register' },
+    { path: '/forgot-password', name: 'ForgotPassword' },
+    { path: '/protected', name: 'Protected', meta: { requiresAuth: true } },
+  ],
+})
+
+const storeCommitMock = vi.fn()
+const storeDispatchMock = vi.fn()
+const apolloQueryMock = vi.fn().mockResolvedValue({
   data: {
     verifyLogin: {
       firstName: 'Peter',
@@ -23,82 +41,104 @@ const apollo = {
   query: apolloQueryMock,
 }
 
-const i18n = {
-  locale: jest.fn(),
+const addedGuards = []
+const originalBeforeEach = router.beforeEach.bind(router)
+router.beforeEach = (guard) => {
+  addedGuards.push(guard)
+  return originalBeforeEach(guard)
 }
 
-addNavigationGuards(router, store, apollo, i18n)
+addNavigationGuards(router, store, apollo)
 
 describe('navigation guards', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
+    store.state.token = null
   })
 
   describe('publisher ID', () => {
     it('commits the pid to the store when present', async () => {
-      await router.push({ path: 'register', query: { pid: 42 } })
-      expect(storeCommitMock).toBeCalledWith('publisherId', '42')
+      await router.push({ path: '/register', query: { pid: '42' } })
+      expect(storeCommitMock).toHaveBeenCalledWith('publisherId', '42')
     })
 
     it('does not commit the pid when not present', async () => {
-      await router.push({ path: 'forgot-password' })
-      expect(storeCommitMock).not.toBeCalled()
+      await router.push({ path: '/forgot-password' })
+      expect(storeCommitMock).not.toHaveBeenCalledWith('publisherId', expect.anything())
     })
   })
 
   describe('authenticate', () => {
-    const navGuard = router.beforeHooks[1]
-    const next = jest.fn()
+    it('handles valid token correctly', async () => {
+      await router.push({ path: '/authenticate', query: { token: 'valid-token' } })
 
-    describe('with valid token', () => {
-      beforeEach(() => {
-        navGuard({ path: '/authenticate', query: { token: 'valid-token' } }, {}, next)
+      expect(storeCommitMock).toHaveBeenCalledWith('token', 'valid-token')
+      expect(apolloQueryMock).toHaveBeenCalledWith({
+        query: verifyLogin,
+        fetchPolicy: 'network-only',
       })
-
-      it('commts the token to the store', () => {
-        expect(storeCommitMock).toBeCalledWith('token', 'valid-token')
-      })
-
-      it('calls verifyLogin', () => {
-        expect(apolloQueryMock).toBeCalled()
-      })
-
-      it('commits login to the store', () => {
-        expect(storeDispatchMock).toBeCalledWith('login', { firstName: 'Peter' })
-      })
+      expect(storeDispatchMock).toHaveBeenCalledWith('login', { firstName: 'Peter' })
+      expect(router.currentRoute.value.path).toBe('/overview')
     })
 
-    describe('with valid token and server error', () => {
-      beforeEach(() => {
-        apolloQueryMock.mockRejectedValue({
-          message: 'Ouch!',
-        })
-        navGuard({ path: '/authenticate', query: { token: 'valid-token' } }, {}, next)
-      })
+    it('handles server error correctly', async () => {
+      apolloQueryMock.mockRejectedValueOnce(new Error('Server error'))
 
-      it('dispatches logout to store', () => {
-        expect(storeDispatchMock).toBeCalledWith('logout')
-      })
+      await router.push({ path: '/authenticate', query: { token: 'invalid-token' } })
 
-      it('calls next', () => {
-        expect(next).toBeCalledWith()
-      })
+      expect(storeCommitMock).toHaveBeenCalledWith('token', 'invalid-token')
+      expect(apolloQueryMock).toHaveBeenCalled()
+      expect(storeDispatchMock).toHaveBeenCalledWith('logout')
+      expect(router.currentRoute.value.path).toBe('/authenticate')
     })
   })
 
   describe('authorization', () => {
-    const navGuard = router.beforeHooks[2]
-    const next = jest.fn()
+    it('redirects to login when not authorized', async () => {
+      const to = { path: '/protected', meta: { requiresAuth: true } }
+      const from = {}
+      let nextCalled = false
+      let nextArg = null
 
-    it('redirects to login when not authorized', () => {
-      navGuard({ meta: { requiresAuth: true }, query: {} }, {}, next)
-      expect(next).toBeCalledWith({ path: '/login' })
+      const next = (arg) => {
+        nextCalled = true
+        nextArg = arg
+      }
+
+      const authGuard = addedGuards.find(
+        (guard) =>
+          guard.toString().includes('requiresAuth') && guard.toString().includes('redirectPath'),
+      )
+
+      await authGuard(to, from, next)
+
+      expect(nextCalled).toBe(true)
+      expect(nextArg).toEqual({ path: '/login' })
+      expect(storeCommitMock).toHaveBeenCalledWith('redirectPath', '/protected')
     })
 
-    it('does not redirect to login when authorized', () => {
-      store.state.token = 'valid token'
-      navGuard({ meta: { requiresAuth: true }, query: {} }, {}, next)
-      expect(next).toBeCalledWith()
+    it('does not redirect to login when authorized', async () => {
+      store.state.token = 'valid-token'
+
+      const to = { path: '/protected', meta: { requiresAuth: true } }
+      const from = {}
+      let nextCalled = false
+      let nextArg = null
+
+      const next = (arg) => {
+        nextCalled = true
+        nextArg = arg
+      }
+
+      const authGuard = addedGuards.find(
+        (guard) =>
+          guard.toString().includes('requiresAuth') && guard.toString().includes('redirectPath'),
+      )
+
+      await authGuard(to, from, next)
+
+      expect(nextCalled).toBe(true)
+      expect(nextArg).toBeUndefined()
     })
   })
 })

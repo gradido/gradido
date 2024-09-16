@@ -1,14 +1,13 @@
 import { mount } from '@vue/test-utils'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import Status from './Status'
-
-const localVue = global.localVue
 
 describe('Status', () => {
   let wrapper
 
   const mocks = {
-    $t: jest.fn((t) => t),
-    $n: jest.fn((n) => n),
+    $t: vi.fn((t) => t),
+    $n: vi.fn((n) => n),
   }
 
   const propsData = {
@@ -16,13 +15,18 @@ describe('Status', () => {
     statusText: 'GDD',
   }
 
-  const Wrapper = () => {
-    return mount(Status, { localVue, mocks, propsData })
+  const createWrapper = () => {
+    return mount(Status, {
+      global: {
+        mocks,
+      },
+      props: propsData,
+    })
   }
 
   describe('mount', () => {
     beforeEach(() => {
-      wrapper = Wrapper()
+      wrapper = createWrapper()
     })
 
     describe('balance is pending', () => {
@@ -32,8 +36,8 @@ describe('Status', () => {
     })
 
     describe('balance is loaded', () => {
-      beforeEach(() => {
-        wrapper.setProps({
+      beforeEach(async () => {
+        await wrapper.setProps({
           pending: false,
         })
       })
@@ -42,7 +46,7 @@ describe('Status', () => {
         expect(wrapper.find('.test-pending-icon').exists()).toBe(false)
       })
 
-      it('it displays the ammount of GDD', () => {
+      it('displays the amount of GDD', () => {
         expect(wrapper.find('div.gdd-status-div').text()).toEqual('1234 GDD')
       })
     })

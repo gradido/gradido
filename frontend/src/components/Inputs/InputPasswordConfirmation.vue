@@ -1,86 +1,54 @@
 <template>
   <div>
-    <b-row class="mb-2">
-      <b-col>
+    <BRow class="mb-2">
+      <BCol>
         <input-password
+          id="new-password-input-field"
           :rules="{
             required: true,
             containsLowercaseCharacter: true,
             containsUppercaseCharacter: true,
             containsNumericCharacter: true,
             atLeastEightCharacters: true,
-            atLeastOneSpecialCharater: true,
+            atLeastOneSpecialCharacter: true,
             noWhitespaceCharacters: true,
           }"
-          id="new-password-input-field"
           :label="register ? $t('form.password') : $t('form.password_new')"
-          :showAllErrors="true"
-          :immediate="true"
-          :name="createId(register ? $t('form.password') : $t('form.password_new'))"
+          immediate
+          name="newPassword"
           :placeholder="register ? $t('form.password') : $t('form.password_new')"
-          v-model="password"
-        ></input-password>
-      </b-col>
-    </b-row>
-    <b-row class="mb-2">
-      <b-col>
+          allow-full-validation
+        />
+      </BCol>
+    </BRow>
+    <BRow class="mb-2">
+      <BCol>
         <input-password
+          id="repeat-new-password-input-field"
           :rules="{
             required: true,
-            samePassword: value.password,
+            samePassword: 'newPassword',
           }"
-          id="repeat-new-password-input-field"
           :label="register ? $t('form.passwordRepeat') : $t('form.password_new_repeat')"
-          :immediate="true"
-          :name="createId(register ? $t('form.passwordRepeat') : $t('form.password_new_repeat'))"
+          immediate
+          name="newPasswordRepeat"
           :placeholder="register ? $t('form.passwordRepeat') : $t('form.password_new_repeat')"
-          v-model="passwordRepeat"
-        ></input-password>
-      </b-col>
-    </b-row>
+        />
+      </BCol>
+    </BRow>
   </div>
 </template>
-<script>
+<script setup>
 import InputPassword from './InputPassword'
 
-export default {
-  name: 'InputPasswordConfirm',
-  components: {
-    InputPassword,
+defineProps({
+  modelValue: {
+    type: Object,
+    required: true,
   },
-  props: {
-    value: {
-      type: Object,
-      required: true,
-    },
-    register: {
-      type: Boolean,
-      required: false,
-    },
+  register: {
+    type: Boolean,
+    required: false,
   },
-  data() {
-    return {
-      password: '',
-      passwordRepeat: '',
-    }
-  },
-  methods: {
-    createId(text) {
-      return text.replace(/ +/g, '-')
-    },
-  },
-  computed: {
-    passwordObject() {
-      return { password: this.password, passwordRepeat: this.passwordRepeat }
-    },
-  },
-  watch: {
-    password() {
-      this.$emit('input', this.passwordObject)
-    },
-    passwordRepeat() {
-      this.$emit('input', this.passwordObject)
-    },
-  },
-}
+})
 </script>

@@ -1,18 +1,18 @@
 <template>
   <div class="redeem-valid">
-    <redeem-information v-bind="linkData" :isContributionLink="isContributionLink" />
-    <b-jumbotron>
+    <redeem-information v-bind="linkData" :is-contribution-link="isContributionLink" />
+    <BCard>
       <div class="mb-3 text-center">
-        <b-button
+        <BButton
           variant="gradido"
-          @click="$emit('mutation-link', linkData.amount)"
           size="lg"
           :disabled="!validLink"
+          @click="$emit('mutation-link', linkData.amount)"
         >
           {{ $t('gdd_per_link.redeem') }}
-        </b-button>
+        </BButton>
       </div>
-    </b-jumbotron>
+    </BCard>
   </div>
 </template>
 <script>

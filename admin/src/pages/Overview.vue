@@ -1,64 +1,55 @@
 <template>
   <div class="admin-overview">
-    <b-card
-      v-show="$store.state.openCreations > 0"
-      border-variant="primary"
-      :header="$t('open_creations')"
-      header-bg-variant="danger"
+    <BCard
+      data-test="open-creations-card"
+      :border-variant="borderVariant"
+      :header="creationsHeader"
+      :header-bg-variant="variant"
       header-text-variant="white"
       align="center"
     >
-      <b-card-text>
-        <b-link to="creation-confirm">
-          <h1>{{ $store.state.openCreations }}</h1>
-        </b-link>
-      </b-card-text>
-    </b-card>
-    <b-card
-      v-show="$store.state.openCreations < 1"
-      border-variant="success"
-      :header="$t('not_open_creations')"
-      header-bg-variant="success"
-      header-text-variant="white"
-      align="center"
-    >
-      <b-card-text>
-        <b-link to="creation-confirm">
-          <h1 data-test="open-creation">{{ $store.state.openCreations }}</h1>
-        </b-link>
-      </b-card-text>
-    </b-card>
+      <BCardText>
+        <BLink to="creation-confirm">
+          <h1 data-test="open-creation">{{ openCreations }}</h1>
+        </BLink>
+      </BCardText>
+    </BCard>
   </div>
 </template>
-<script>
-import { adminListContributions } from '../graphql/adminListContributions'
+<script setup>
+import { adminListContributions } from '@/graphql/adminListContributions'
+import { ref, computed } from 'vue'
+import { useStore } from 'vuex'
+import { useQuery } from '@vue/apollo-composable'
+import { BCard, BCardText, BLink } from 'bootstrap-vue-next'
+import { useAppToast } from '@/composables/useToast'
+import { useI18n } from 'vue-i18n'
 
-export default {
-  name: 'overview',
-  data() {
-    return {
-      statusFilter: ['IN_PROGRESS', 'PENDING'],
-    }
-  },
-  apollo: {
-    AllContributions: {
-      query() {
-        return adminListContributions
-      },
-      variables() {
-        // may be at some point we need a pagination here
-        return {
-          statusFilter: this.statusFilter,
-          hideResubmission: true,
-        }
-      },
-      update({ adminListContributions }) {
-        this.$store.commit('setOpenCreations', adminListContributions.contributionCount)
-      },
-      error({ message }) {
-        this.toastError(message)
-      },
-    },
-  },
-}
+const store = useStore()
+
+const statusFilter = ref(['IN_PROGRESS', 'PENDING'])
+
+const { t } = useI18n()
+
+const { toastError } = useAppToast()
+
+const { result, onResult, onError } = useQuery(adminListContributions, {
+  statusFilter: statusFilter.value,
+  hideResubmission: true,
+})
+
+onResult(({ data }) => {
+  store.commit('setOpenCreations', data?.adminListContributions.contributionCount)
+})
+
+onError((error) => {
+  toastError(error.message)
+})
+
+const openCreations = computed(() => result.value?.adminListContributions.contributionCount || 0)
+const creationsHeader = computed(() =>
+  openCreations.value < 1 ? t('not_open_creations') : t('open_creations'),
+)
+const variant = computed(() => (openCreations.value < 1 ? 'danger' : 'success'))
+const borderVariant = computed(() => (openCreations.value < 1 ? 'primary' : 'success'))
 </script>

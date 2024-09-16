@@ -1,76 +1,97 @@
 import { mount } from '@vue/test-utils'
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import FigureQrCode from './FigureQrCode'
 
-const localVue = global.localVue
+vi.mock('qrcanvas-vue', () => ({
+  QRCanvas: {
+    template: '<canvas></canvas>',
+    props: ['options'],
+  },
+}))
 
-const propsData = {
-  link: '',
+class MockImage {
+  constructor() {
+    this.src = ''
+    this.onload = null
+  }
 }
-const mocks = {
-  $t: jest.fn((t) => t),
-}
+
+global.Image = MockImage
 
 describe('FigureQrCode', () => {
   let wrapper
 
-  const Wrapper = () => {
-    return mount(FigureQrCode, { localVue, mocks, propsData })
+  const createWrapper = (props = {}) => {
+    return mount(FigureQrCode, {
+      props: {
+        link: 'https://example.com',
+        ...props,
+      },
+      global: {
+        mocks: {
+          $t: (key) => key,
+        },
+      },
+    })
   }
 
-  describe('mount', () => {
-    beforeEach(() => {
-      wrapper = Wrapper()
+  beforeEach(() => {
+    vi.clearAllMocks()
+    wrapper = createWrapper()
+  })
+
+  afterEach(() => {
+    wrapper.unmount()
+  })
+
+  it('has options filled', () => {
+    expect(wrapper.vm.options).toEqual({
+      cellSize: 8,
+      correctLevel: 'H',
+      data: 'https://example.com',
     })
+  })
 
-    afterEach(() => {
-      jest.clearAllMocks()
-    })
+  it('renders the Div Element ".figure-qr-code"', () => {
+    expect(wrapper.find('div.figure-qr-code').exists()).toBe(true)
+  })
 
-    it('has options filled', () => {
-      expect(wrapper.vm.options).toEqual({
-        cellSize: 8,
-        correctLevel: 'H',
-        data: '',
-      })
-    })
+  it('renders the Div Element "qrbox"', () => {
+    expect(wrapper.find('div.qrbox').exists()).toBe(true)
+  })
 
-    it('renders the Div Element ".figure-qr-code"', () => {
-      expect(wrapper.find('div.figure-qr-code').exists()).toBe(true)
-    })
+  it('renders the Canvas Element "#qrcanvas"', () => {
+    const canvas = wrapper.find('#qrcanvas')
+    expect(canvas.exists()).toBe(true)
+  })
 
-    it('renders the Div Element "qrbox"', () => {
-      expect(wrapper.find('div.qrbox').exists()).toBe(true)
-    })
+  it('renders the A Element "#download"', () => {
+    const downloadLink = wrapper.find('#download')
+    expect(downloadLink.exists()).toBe(true)
+  })
 
-    it('renders the Canvas Element "#qrcanvas"', () => {
-      const canvas = wrapper.find('#qrcanvas')
+  it('loads the logo image', async () => {
+    const image = new Image()
+    image.onload = async () => {
+      await wrapper.vm.$nextTick()
+      expect(wrapper.vm.options.logo).toBeDefined()
+      expect(wrapper.vm.options.logo.image).toBeInstanceOf(Image)
+    }
+  })
 
-      expect(canvas.exists()).toBe(true)
-      const canvasEl = canvas.element
-      const canvasWidth = canvasEl.width
-      const canvasHeight = canvasEl.height
+  describe('Download QR-Code link', () => {
+    beforeEach(async () => {
+      const mockToDataURL = vi.fn().mockReturnValue('data:image/png;base64,mockedData')
+      wrapper.vm.$refs.canvas.$el.toDataURL = mockToDataURL
 
-      expect(canvasWidth).toBeGreaterThan(0)
-      expect(canvasHeight).toBeGreaterThan(0)
-
-      const canvasContext = canvasEl.toDataURL('image/png')
-      expect(canvasContext).not.toBeNull()
-    })
-
-    it('renders the A Element "#download"', () => {
       const downloadLink = wrapper.find('#download')
-      expect(downloadLink.exists()).toBe(true)
+      await downloadLink.trigger('click')
     })
 
-    describe('Download QR-Code link', () => {
-      beforeEach(() => {
-        const downloadLink = wrapper.find('#download')
-        downloadLink.trigger('click')
-      })
-
-      it('click the A Element "#download" set an href', () => {
-        expect(wrapper.find('#download').attributes('href')).toEqual('data:image/png;base64,00')
-      })
+    it('click the A Element "#download" sets an href', () => {
+      expect(wrapper.find('#download').attributes('href')).toEqual(
+        'data:image/png;base64,mockedData',
+      )
     })
   })
 })

@@ -1,24 +1,35 @@
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import RightSide from './RightSide'
 
-const localVue = global.localVue
+vi.mock('bootstrap-vue-next', () => ({
+  BContainer: {
+    name: 'BContainer',
+    template: '<div><slot></slot></div>',
+  },
+}))
 
 describe('RightSide', () => {
   let wrapper
 
-  const mocks = {
-    $route: {
-      path: '/community/contribute',
-    },
-  }
-
-  const Wrapper = () => {
-    return mount(RightSide, { localVue, mocks })
+  const createWrapper = (routePath) => {
+    return mount(RightSide, {
+      global: {
+        mocks: {
+          $route: {
+            path: routePath,
+          },
+        },
+        stubs: {
+          BContainer: true,
+        },
+      },
+    })
   }
 
   describe('at /community/contribute', () => {
     beforeEach(() => {
-      wrapper = Wrapper()
+      wrapper = createWrapper('/community/contribute')
     })
 
     it('has name set to "community"', () => {
@@ -28,8 +39,7 @@ describe('RightSide', () => {
 
   describe('at /settings', () => {
     beforeEach(() => {
-      mocks.$route.path = '/settings'
-      wrapper = Wrapper()
+      wrapper = createWrapper('/settings')
     })
 
     it('has name set to "empty"', () => {
@@ -39,8 +49,7 @@ describe('RightSide', () => {
 
   describe('at /overview', () => {
     beforeEach(() => {
-      mocks.$route.path = '/overview'
-      wrapper = Wrapper()
+      wrapper = createWrapper('/overview')
     })
 
     it('has name set to "transactions"', () => {

@@ -1,151 +1,141 @@
 import { mount } from '@vue/test-utils'
-import Overview from './Overview'
-import { adminListContributions } from '../graphql/adminListContributions'
-import VueApollo from 'vue-apollo'
-import { createMockClient } from 'mock-apollo-client'
-import { toastErrorSpy } from '../../test/testSetup'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { nextTick, ref } from 'vue'
+import Overview from './Overview.vue'
+import { adminListContributions } from '@/graphql/adminListContributions'
+import { useQuery } from '@vue/apollo-composable'
+import { createStore } from 'vuex'
+import { useAppToast } from '@/composables/useToast'
+import { useI18n } from 'vue-i18n'
 
-const mockClient = createMockClient()
-const apolloProvider = new VueApollo({
-  defaultClient: mockClient,
-})
+vi.mock('@vue/apollo-composable')
+vi.mock('@/composables/useToast')
+vi.mock('vue-i18n')
 
-const localVue = global.localVue
-
-localVue.use(VueApollo)
-
-const storeCommitMock = jest.fn()
-
-const mocks = {
-  $t: jest.fn((t) => t),
-  $n: jest.fn((n) => n),
-  $d: jest.fn((d) => d),
-  $store: {
-    commit: storeCommitMock,
+const createVuexStore = () => {
+  return createStore({
     state: {
-      openCreations: 1,
+      openCreations: 0,
     },
-  },
-}
-
-const defaultData = () => {
-  return {
-    adminListContributions: {
-      contributionCount: 2,
-      contributionList: [
-        {
-          id: 1,
-          firstName: 'Bibi',
-          lastName: 'Bloxberg',
-          userId: 99,
-          email: 'bibi@bloxberg.de',
-          amount: 500,
-          memo: 'Danke für alles',
-          date: new Date(),
-          moderatorId: 1,
-          status: 'PENDING',
-          creation: [500, 500, 500],
-          messagesCount: 0,
-          deniedBy: null,
-          deniedAt: null,
-          confirmedBy: null,
-          confirmedAt: null,
-          contributionDate: new Date(),
-          deletedBy: null,
-          deletedAt: null,
-          updatedAt: null,
-          updatedBy: null,
-          createdAt: new Date(),
-        },
-        {
-          id: 2,
-          firstName: 'Räuber',
-          lastName: 'Hotzenplotz',
-          userId: 100,
-          email: 'raeuber@hotzenplotz.de',
-          amount: 1000000,
-          memo: 'Gut Ergattert',
-          date: new Date(),
-          moderatorId: 1,
-          status: 'PENDING',
-          creation: [500, 500, 500],
-          messagesCount: 0,
-          deniedBy: null,
-          deniedAt: null,
-          confirmedBy: null,
-          confirmedAt: null,
-          contributionDate: new Date(),
-          deletedBy: null,
-          deletedAt: null,
-          updatedAt: null,
-          updatedBy: null,
-          createdAt: new Date(),
-        },
-      ],
+    mutations: {
+      setOpenCreations(state, count) {
+        state.openCreations = count
+      },
     },
-  }
+  })
 }
 
 describe('Overview', () => {
   let wrapper
-  const adminListContributionsMock = jest.fn()
+  let store
+  let mockResult
+  let mockOnResult
+  let mockOnError
+  const mockToastError = vi.fn()
+  const mockT = vi.fn((key) => key)
 
-  mockClient.setRequestHandler(
-    adminListContributions,
-    adminListContributionsMock
-      .mockRejectedValueOnce({ message: 'Ouch!' })
-      .mockResolvedValue({ data: defaultData() }),
-  )
+  beforeEach(() => {
+    store = createVuexStore()
+    mockResult = ref(null)
+    mockOnResult = vi.fn()
+    mockOnError = vi.fn()
 
-  const Wrapper = () => {
-    return mount(Overview, { localVue, mocks, apolloProvider })
+    useQuery.mockReturnValue({
+      result: mockResult,
+      onResult: mockOnResult,
+      onError: mockOnError,
+    })
+
+    useAppToast.mockReturnValue({
+      toastError: mockToastError,
+    })
+
+    useI18n.mockReturnValue({
+      t: mockT,
+    })
+
+    wrapper = mount(Overview, {
+      global: {
+        plugins: [store],
+        stubs: {
+          BCard: true,
+          BCardText: true,
+          BLink: true,
+        },
+      },
+    })
+  })
+
+  const updateQueryResult = async (count) => {
+    mockResult.value = { adminListContributions: { contributionCount: count } }
+    await nextTick()
   }
 
-  describe('mount', () => {
-    beforeEach(() => {
-      jest.clearAllMocks()
-      wrapper = Wrapper()
+  it('calls useQuery with correct parameters', () => {
+    expect(useQuery).toHaveBeenCalledWith(adminListContributions, {
+      statusFilter: ['IN_PROGRESS', 'PENDING'],
+      hideResubmission: true,
     })
+  })
 
-    describe('server response for get pending creations is error', () => {
-      it('toast an error message', () => {
-        expect(toastErrorSpy).toBeCalledWith('Ouch!')
-      })
-    })
+  it('updates store when query result is received', async () => {
+    const resultHandler = mockOnResult.mock.calls[0][0]
+    resultHandler({ data: { adminListContributions: { contributionCount: 3 } } })
+    await nextTick()
+    expect(store.state.openCreations).toBe(3)
+  })
 
-    it('calls the adminListContributions query', () => {
-      expect(adminListContributionsMock).toBeCalledWith({
-        currentPage: 1,
-        hideResubmission: true,
-        order: 'DESC',
-        pageSize: 25,
-        statusFilter: ['IN_PROGRESS', 'PENDING'],
-      })
-    })
+  it('calls toastError when query encounters an error', () => {
+    const errorHandler = mockOnError.mock.calls[0][0]
+    errorHandler({ message: 'Test error' })
+    expect(mockToastError).toHaveBeenCalledWith('Test error')
+  })
 
-    it('commits three pending creations to store', () => {
-      expect(storeCommitMock).toBeCalledWith('setOpenCreations', 2)
-    })
+  it('displays correct header and styling when there are open creations', async () => {
+    await updateQueryResult(2)
+    const card = wrapper.find('[data-test="open-creations-card"]')
+    expect(card.attributes('header')).toBe('open_creations')
+    expect(card.attributes('headerbgvariant')).toBe('success')
+    expect(card.attributes('bordervariant')).toBe('success')
+    expect(wrapper.vm.openCreations).toBe(2)
+  })
 
-    describe('with open creations', () => {
-      beforeEach(() => {
-        mocks.$store.state.openCreations = 2
-      })
-      it('renders a link to confirm 2 creations', () => {
-        expect(wrapper.find('[data-test="open-creation"]').text()).toContain('2')
-        expect(wrapper.find('a[href="creation-confirm"]').exists()).toBeTruthy()
-      })
-    })
+  it('displays correct header and styling when there are no open creations', async () => {
+    await updateQueryResult(0)
+    const card = wrapper.find('[data-test="open-creations-card"]')
+    expect(card.attributes('header')).toBe('not_open_creations')
+    expect(card.attributes('headerbgvariant')).toBe('danger')
+    expect(card.attributes('bordervariant')).toBe('primary')
+    expect(wrapper.vm.openCreations).toBe(0)
+  })
 
-    describe('without open creations', () => {
-      beforeEach(() => {
-        mocks.$store.state.openCreations = 0
-      })
+  it('reactively updates card based on query result changes', async () => {
+    // Initial state: no open creations
+    await updateQueryResult(0)
+    expect(wrapper.find('[data-test="open-creations-card"]').attributes('header')).toBe(
+      'not_open_creations',
+    )
 
-      it('renders a link to confirm creations', () => {
-        expect(wrapper.find('[data-test="open-creation"]').text()).toContain('0')
-        expect(wrapper.find('a[href="creation-confirm"]').exists()).toBeTruthy()
-      })
-    })
+    // Update to having open creations
+    await updateQueryResult(1)
+    expect(wrapper.find('[data-test="open-creations-card"]').attributes('header')).toBe(
+      'open_creations',
+    )
+  })
+
+  it('translates headers correctly', async () => {
+    await updateQueryResult(0)
+    expect(mockT).toHaveBeenCalledWith('not_open_creations')
+
+    await updateQueryResult(1)
+    expect(mockT).toHaveBeenCalledWith('open_creations')
+  })
+
+  it('correct number of open creations', async () => {
+    await updateQueryResult(5)
+    expect(wrapper.vm.openCreations).toBe(5)
+
+    await updateQueryResult(0)
+    expect(wrapper.vm.openCreations).toBe(0)
   })
 })

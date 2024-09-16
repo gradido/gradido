@@ -1,8 +1,6 @@
 <template>
-  <b-button>{{ $t('settings.GMS.location.button') }}</b-button>
+  <BButton>{{ $t('settings.GMS.location.button') }}</BButton>
 </template>
-<script>
-export default {
-  name: 'UserGMSLocation',
-}
+<script setup>
+import { BButton } from 'bootstrap-vue-next'
 </script>

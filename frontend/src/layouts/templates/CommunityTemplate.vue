@@ -1,7 +1,7 @@
 <template>
   <contribution-info>
     <template #contribute>
-      <div show fade variant="secondary" class="text-dark">
+      <div class="text-dark">
         <div>
           <h3>{{ $t('contribution.formText.yourContribution') }}</h3>
           {{ $t('contribution.formText.bringYourTalentsTo') }}
@@ -13,70 +13,71 @@
       </div>
     </template>
     <template #contributions>
-      <div show fade variant="secondary" class="text-dark">
+      <div class="text-dark">
         <h4 class="alert-heading">{{ $t('community.myContributions') }}</h4>
         <p>
           {{ $t('contribution.alert.myContributionNoteList') }}
         </p>
         <ul>
-          <li>
-            <b-icon icon="bell-fill" variant="primary"></b-icon>
-            {{ $t('contribution.alert.pending') }}
-          </li>
-          <li>
-            <b-icon icon="question" variant="205"></b-icon>
-            {{ $t('contribution.alert.in_progress') }}
-          </li>
-          <li>
-            <b-icon icon="check" variant="success"></b-icon>
-            {{ $t('contribution.alert.confirm') }}
-          </li>
-          <li>
-            <b-icon icon="x-circle" variant="warning"></b-icon>
-            {{ $t('contribution.alert.denied') }}
-          </li>
-          <li>
-            <b-icon icon="trash" variant="danger"></b-icon>
-            {{ $t('contribution.alert.deleted') }}
+          <li v-for="descriptionData in contributionInfoDescriptions" :key="descriptionData.icon">
+            <variant-icon :icon="descriptionData.icon" :variant="descriptionData.variant" />
+            {{ descriptionData.description }}
           </li>
         </ul>
       </div>
     </template>
     <template #community>
-      <div show fade variant="secondary" class="text-dark">
+      <div class="text-dark">
         <h4 class="alert-heading">{{ $t('navigation.community') }}</h4>
         <p>
           {{ $t('contribution.alert.communityNoteList') }}
         </p>
         <ul>
-          <li>
-            <b-icon icon="bell-fill" variant="primary"></b-icon>
-            {{ $t('contribution.alert.pending') }}
-          </li>
-          <li>
-            <b-icon icon="question" variant="205"></b-icon>
-            {{ $t('contribution.alert.in_progress') }}
-          </li>
-          <li>
-            <b-icon icon="check" variant="success"></b-icon>
-            {{ $t('contribution.alert.confirm') }}
-          </li>
-          <li>
-            <b-icon icon="x-circle" variant="warning"></b-icon>
-            {{ $t('contribution.alert.denied') }}
-          </li>
+          <template
+            v-for="descriptionData in contributionInfoDescriptions"
+            :key="descriptionData.icon"
+          >
+            <li v-if="descriptionData.icon !== 'trash'">
+              <variant-icon :icon="descriptionData.icon" :variant="descriptionData.variant" />
+              {{ descriptionData.description }}
+            </li>
+          </template>
         </ul>
       </div>
     </template>
   </contribution-info>
 </template>
-<script>
+<script setup>
 import ContributionInfo from '@/components/Template/RightSide/ContributionInfo.vue'
+import { useI18n } from 'vue-i18n'
 
-export default {
-  name: 'CommunityTemplate',
-  components: {
-    ContributionInfo,
+const { t } = useI18n()
+
+const contributionInfoDescriptions = [
+  {
+    icon: 'bell-fill',
+    variant: 'primary',
+    description: t('contribution.alert.pending'),
   },
-}
+  {
+    icon: 'question',
+    variant: '205',
+    description: t('contribution.alert.in_progress'),
+  },
+  {
+    icon: 'check',
+    variant: 'success',
+    description: t('contribution.alert.confirm'),
+  },
+  {
+    icon: 'x-circle',
+    variant: 'warning',
+    description: t('contribution.alert.denied'),
+  },
+  {
+    icon: 'trash',
+    variant: 'danger',
+    description: t('contribution.alert.deleted'),
+  },
+]
 </script>

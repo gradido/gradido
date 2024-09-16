@@ -1,47 +1,47 @@
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
-import TransactionCollapse from './TransactionCollapse'
-import { GdtEntryType } from '../graphql/enums'
+import TransactionCollapse from './TransactionCollapse.vue'
+import { GdtEntryType } from '@/graphql/enums'
 
-import Vue from 'vue'
-
-const localVue = global.localVue
-
-const consoleErrorMock = jest.fn()
+const mockToastError = vi.fn()
+vi.mock('@/composables/useToast', () => ({
+  useAppToast: vi.fn(() => ({
+    toastError: mockToastError,
+  })),
+}))
 
 describe('TransactionCollapse', () => {
   let wrapper
 
   const mocks = {
-    $t: jest.fn((t) => t),
-    $n: jest.fn((n) => n),
+    $t: vi.fn((t) => t),
+    $n: vi.fn((n) => n),
   }
 
   const Wrapper = (propsData) => {
-    return mount(TransactionCollapse, { localVue, mocks, propsData })
+    return mount(TransactionCollapse, { global: { mocks }, props: propsData })
   }
 
   describe('no valid GDT entry type', () => {
-    beforeEach(async () => {
-      // disable throwing Errors on warnings to catch the warning
-      Vue.config.warnHandler = (w) => {}
-      // eslint-disable-next-line no-console
-      console.error = consoleErrorMock
-      const propsData = {
-        amount: 100,
-        gdt: 110,
-        factor: 22,
-        gdtEntryType: GdtEntryType.FORM,
-      }
-      wrapper = Wrapper(propsData)
-      await wrapper.setProps({ gdtEntryType: 'NOT_VALID' })
-    })
+    it('throws an error for invalid gdtEntryType', async () => {
+      const wrapper = mount(TransactionCollapse, {
+        props: {
+          amount: 100,
+          gdt: 110,
+          factor: 22,
+          gdtEntryType: GdtEntryType.FORM,
+        },
+        global: {
+          mocks: {
+            $t: (msg) => msg,
+            $n: (n) => n,
+          },
+        },
+      })
 
-    it('throws an error', () => {
-      expect(consoleErrorMock).toBeCalledWith(
-        expect.objectContaining({
-          message: 'no additional transaction info for this type: NOT_VALID',
-        }),
-      )
+      await expect(async () => {
+        await wrapper.setProps({ gdtEntryType: 'NOT_VALID' })
+      }).rejects.toThrow('no additional transaction info for this type: NOT_VALID')
     })
   })
 
@@ -57,7 +57,7 @@ describe('TransactionCollapse', () => {
     })
 
     it('renders the component', () => {
-      expect(wrapper.find('div.gdt-transaction-collapse').exists()).toBeTruthy()
+      expect(wrapper.find('div.gdt-transaction-collapse').exists()).toBe(true)
     })
 
     it('checks the prop gdtEntryType', () => {
@@ -65,7 +65,7 @@ describe('TransactionCollapse', () => {
     })
 
     it('renders the component collapse-header', () => {
-      expect(wrapper.find('.gdt-list-collapse-header-text')).toBeTruthy()
+      expect(wrapper.find('.gdt-list-collapse-header-text').exists()).toBe(true)
     })
 
     it('renders the component collapse-headline', () => {
@@ -102,7 +102,7 @@ describe('TransactionCollapse', () => {
     })
 
     it('renders the component', () => {
-      expect(wrapper.find('div.gdt-transaction-collapse').exists()).toBeTruthy()
+      expect(wrapper.find('div.gdt-transaction-collapse').exists()).toBe(true)
     })
 
     it('checks the prop gdtEntryType', () => {
@@ -110,7 +110,7 @@ describe('TransactionCollapse', () => {
     })
 
     it('renders the component collapse-header', () => {
-      expect(wrapper.find('.gdt-list-collapse-header-text')).toBeTruthy()
+      expect(wrapper.find('.gdt-list-collapse-header-text').exists()).toBe(true)
     })
 
     it('renders the component collapse-headline', () => {
@@ -147,7 +147,7 @@ describe('TransactionCollapse', () => {
     })
 
     it('renders the component', () => {
-      expect(wrapper.find('div.gdt-transaction-collapse').exists()).toBeTruthy()
+      expect(wrapper.find('div.gdt-transaction-collapse').exists()).toBe(true)
     })
 
     it('checks the prop gdtEntryType', () => {
@@ -155,7 +155,7 @@ describe('TransactionCollapse', () => {
     })
 
     it('renders the component collapse-header', () => {
-      expect(wrapper.find('.gdt-list-collapse-header-text')).toBeTruthy()
+      expect(wrapper.find('.gdt-list-collapse-header-text').exists()).toBe(true)
     })
 
     it('renders the component collapse-headline', () => {

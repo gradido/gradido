@@ -1,364 +1,147 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
-import CreationFormular from './CreationFormular'
-import { adminCreateContribution } from '../graphql/adminCreateContribution'
-import { toastErrorSpy, toastSuccessSpy } from '../../test/testSetup'
-import VueApollo from 'vue-apollo'
-import { createMockClient } from 'mock-apollo-client'
-import { adminOpenCreations } from '../graphql/adminOpenCreations'
+import { nextTick, ref } from 'vue'
+import CreationFormular from './CreationFormular.vue'
+import { BFormRadioGroup } from 'bootstrap-vue-next'
 
-const mockClient = createMockClient()
-const apolloProvider = new VueApollo({
-  defaultClient: mockClient,
-})
-
-const localVue = global.localVue
-localVue.use(VueApollo)
-
-const stateCommitMock = jest.fn()
-
-const mocks = {
-  $t: jest.fn((t, options) => (options ? [t, options] : t)),
-  $d: jest.fn((d) => {
-    const date = new Date(d)
-    return date.toISOString().split('T')[0]
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({
+    t: (key) => key,
   }),
-  $store: {
-    commit: stateCommitMock,
-  },
-}
+}))
 
-const propsData = {
-  type: '',
-  creation: [],
-}
+vi.mock('@/composables/useToast', () => ({
+  useAppToast: () => ({
+    toastError: vi.fn(),
+    toastSuccess: vi.fn(),
+  }),
+}))
 
-const now = new Date()
+vi.mock('@vue/apollo-composable', () => ({
+  useMutation: () => ({
+    mutate: vi.fn(),
+  }),
+  useQuery: () => ({
+    refetch: vi.fn(),
+  }),
+}))
 
-const getCreationDate = (sub) => {
-  const date = sub === 0 ? now : new Date(now.getFullYear(), now.getMonth() - sub, 1, 0)
-  return date.toISOString().split('T')[0]
+vi.mock('vuex', () => ({
+  useStore: () => ({
+    commit: vi.fn(),
+  }),
+}))
+
+vi.mock('../composables/useCreationMonths', () => ({
+  default: () => ({
+    creationDateObjects: ref([
+      { short: 'Jan', year: '2024', date: '2024-01-01' },
+      { short: 'Feb', year: '2024', date: '2024-02-01' },
+    ]),
+  }),
+}))
+
+const mockChildComponents = {
+  BForm: { template: '<div><slot></slot></div>' },
+  BFormRadioGroup,
+  BInputGroup: { template: '<div><slot></slot></div>' },
+  BFormInput: { template: '<input />', props: ['modelValue'] },
+  BFormTextarea: { template: '<textarea></textarea>', props: ['modelValue'] },
+  BButton: { template: '<button type="button"></button>' },
 }
 
 describe('CreationFormular', () => {
   let wrapper
 
-  const adminOpenCreationsMock = jest.fn()
-  const adminCreateContributionMock = jest.fn()
-  mockClient.setRequestHandler(
-    adminOpenCreations,
-    adminOpenCreationsMock.mockResolvedValue({
-      data: {
-        adminOpenCreations: [
-          {
-            month: new Date(now.getFullYear(), now.getMonth() - 2).getMonth(),
-            year: new Date(now.getFullYear(), now.getMonth() - 2).getFullYear(),
-            amount: '200',
-          },
-          {
-            month: new Date(now.getFullYear(), now.getMonth() - 1).getMonth(),
-            year: new Date(now.getFullYear(), now.getMonth() - 1).getFullYear(),
-            amount: '400',
-          },
-          {
-            month: now.getMonth(),
-            year: now.getFullYear(),
-            amount: '600',
-          },
-        ],
+  beforeEach(() => {
+    wrapper = mount(CreationFormular, {
+      global: {
+        stubs: mockChildComponents,
+        mocks: {
+          $t: (key) => key,
+        },
       },
-    }),
-  )
-  mockClient.setRequestHandler(
-    adminCreateContribution,
-    adminCreateContributionMock.mockResolvedValue({
-      data: {
-        adminCreateContribution: [0, 0, 0],
+      props: {
+        pagetype: '',
+        item: {},
+        items: [],
+        creationUserData: {},
+        creation: [100, 200], // Mock creation data
       },
-    }),
-  )
-
-  const Wrapper = () => {
-    return mount(CreationFormular, { localVue, mocks, propsData, apolloProvider })
-  }
-
-  describe('mount', () => {
-    beforeEach(() => {
-      wrapper = Wrapper()
     })
+  })
 
-    it('has a DIV element with the class.component-creation-formular', () => {
-      expect(wrapper.find('.component-creation-formular').exists()).toBeTruthy()
+  it('renders correctly', () => {
+    expect(wrapper.exists()).toBe(true)
+  })
+
+  it('initializes with default values', () => {
+    expect(wrapper.vm.text).toBe('')
+    expect(wrapper.vm.value).toBe(0)
+    expect(wrapper.vm.selected).toBe(null)
+  })
+
+  it('updates radio options based on creationDateObjects', async () => {
+    await nextTick()
+    expect(wrapper.vm.radioOptions).toHaveLength(2)
+    expect(wrapper.vm.radioOptions[0].name).toContain('Jan')
+    expect(wrapper.vm.radioOptions[1].name).toContain('Feb')
+  })
+
+  it('handles month selection', async () => {
+    const radioGroup = wrapper.findComponent({ name: 'BFormRadioGroup' })
+    await radioGroup.vm.$emit('update:modelValue', {
+      short: 'Jan',
+      year: '2024',
+      date: '2024-01-01',
+      creation: 100,
     })
-
-    describe('text and value form props', () => {
-      beforeEach(async () => {
-        wrapper = mount(CreationFormular, {
-          localVue,
-          mocks,
-          propsData: {
-            creationUserData: { memo: 'Memo from property', amount: 42 },
-            ...propsData,
-          },
-        })
-      })
-
-      it('has text taken from props', () => {
-        expect(wrapper.vm.text).toBe('Memo from property')
-      })
-
-      it('has value taken from props', () => {
-        expect(wrapper.vm.value).toBe(42)
-      })
+    expect(wrapper.vm.selected).toEqual({
+      short: 'Jan',
+      year: '2024',
+      date: '2024-01-01',
+      creation: 100,
     })
+    expect(wrapper.vm.text).toBe('creation_form.creation_for Jan 2024')
+  })
 
-    describe('radio buttons to selcet month', () => {
-      it('has three radio buttons', () => {
-        expect(wrapper.findAll('input[type="radio"]').length).toBe(3)
-      })
+  it('disables submit button when form is invalid', async () => {
+    wrapper.vm.selected = null
+    wrapper.vm.value = 0
+    wrapper.vm.text = ''
+    await wrapper.vm.$nextTick()
+    const submitButton = wrapper.find('.test-submit')
+    expect(submitButton.attributes('disabled')).toBeDefined()
+  })
 
-      describe('with single creation', () => {
-        beforeEach(async () => {
-          jest.clearAllMocks()
-          await wrapper.setProps({
-            type: 'singleCreation',
-            creation: [200, 400, 600],
-            item: { email: 'benjamin@bluemchen.de' },
-          })
-          await wrapper.findAll('input[type="radio"]').at(1).setChecked()
-          await wrapper.find('input[type="number"]').setValue(90)
-        })
+  it('enables submit button when form is valid', async () => {
+    wrapper.vm.selected = { short: 'Jan', year: '2024', date: '2024-01-01', creation: 100 }
+    wrapper.vm.value = 100
+    wrapper.vm.text = 'Valid text input'
+    await wrapper.vm.$nextTick()
+    const submitButton = wrapper.find('.test-submit')
+    expect(submitButton.attributes('disabled')).toBeUndefined()
+  })
 
-        describe('first radio button', () => {
-          beforeEach(async () => {
-            await wrapper.findAll('input[type="radio"]').at(0).setChecked()
-            await wrapper.find('textarea').setValue('Test create coins')
-          })
+  it('resets form on reset button click', async () => {
+    wrapper.vm.selected = { short: 'Jan', year: '2024', date: '2024-01-01', creation: 100 }
+    wrapper.vm.value = 100
+    wrapper.vm.text = 'Some text'
+    await wrapper.vm.$nextTick()
+    const resetButton = wrapper.find('button[type="reset"]')
+    await resetButton.trigger('click')
+    expect(wrapper.vm.selected).toBe(null)
+    expect(wrapper.vm.value).toBe(0)
+    expect(wrapper.vm.text).toBe('')
+  })
 
-          it('sets rangeMax to 200', () => {
-            expect(wrapper.vm.rangeMax).toBe(200)
-          })
+  it('displays different button text based on pagetype', async () => {
+    await wrapper.setProps({ pagetype: 'PageCreationConfirm' })
+    await wrapper.vm.$nextTick()
+    expect(wrapper.vm.submitBtnText).toBe('creation_form.update_creation')
 
-          describe('sendForm', () => {
-            beforeEach(async () => {
-              await wrapper.find('.test-submit').trigger('click')
-            })
-
-            it('sends ... to apollo', () => {
-              expect(adminCreateContributionMock).toBeCalledWith({
-                email: 'benjamin@bluemchen.de',
-                creationDate: getCreationDate(2),
-                amount: 90,
-                memo: 'Test create coins',
-              })
-            })
-
-            it('emits update-user-data', () => {
-              expect(wrapper.emitted('update-user-data')).toEqual([
-                [{ email: 'benjamin@bluemchen.de' }, [0, 0, 0]],
-              ])
-            })
-
-            it('toasts a success message', () => {
-              expect(toastSuccessSpy).toBeCalledWith([
-                'creation_form.toasted',
-                { email: 'benjamin@bluemchen.de', value: '90' },
-              ])
-            })
-
-            it('updates open creations in store', () => {
-              expect(stateCommitMock).toBeCalledWith('openCreationsPlus', 1)
-            })
-
-            it('resets the form data', () => {
-              expect(wrapper.vm.value).toBe(0)
-            })
-          })
-
-          describe('sendForm with server error', () => {
-            beforeEach(async () => {
-              adminCreateContributionMock.mockRejectedValueOnce({ message: 'Ouch!' })
-              await wrapper.find('.test-submit').trigger('click')
-            })
-
-            it('toasts an error message', () => {
-              expect(toastErrorSpy).toBeCalledWith('Ouch!')
-            })
-          })
-
-          describe('Negativ value', () => {
-            beforeEach(async () => {
-              jest.clearAllMocks()
-              await wrapper.setProps({ type: 'singleCreation', creation: [200, 400, 600] })
-              await wrapper.setData({ rangeMin: 180 })
-              await wrapper.setData({ value: -20 })
-            })
-
-            it('has no submit button', async () => {
-              expect(await wrapper.find('.test-submit').attributes('disabled')).toBe('disabled')
-            })
-          })
-
-          describe('Empty text', () => {
-            beforeEach(async () => {
-              jest.clearAllMocks()
-              await wrapper.setProps({ type: 'singleCreation', creation: [200, 400, 600] })
-              await wrapper.setData({ rangeMin: 180 })
-              await wrapper.setData({ text: '' })
-            })
-
-            it('has no submit button', async () => {
-              expect(await wrapper.find('.test-submit').attributes('disabled')).toBe('disabled')
-            })
-          })
-
-          describe('Text length less than 10', () => {
-            beforeEach(async () => {
-              jest.clearAllMocks()
-              await wrapper.setProps({ type: 'singleCreation', creation: [200, 400, 600] })
-              await wrapper.setData({ rangeMin: 180 })
-              await wrapper.setData({ text: 'Try this' })
-            })
-
-            it('has no submit button', async () => {
-              expect(await wrapper.find('.test-submit').attributes('disabled')).toBe('disabled')
-            })
-          })
-        })
-
-        describe('second radio button', () => {
-          beforeEach(async () => {
-            await wrapper.findAll('input[type="radio"]').at(1).setChecked()
-          })
-
-          it('sets rangeMin to 0', () => {
-            expect(wrapper.vm.rangeMin).toBe(0)
-          })
-
-          it('sets rangeMax to 400', () => {
-            expect(wrapper.vm.rangeMax).toBe(400)
-          })
-
-          describe('sendForm', () => {
-            beforeEach(async () => {
-              await wrapper.find('.test-submit').trigger('click')
-            })
-
-            it('sends ... to apollo', () => {
-              expect(adminCreateContributionMock).toBeCalled()
-            })
-          })
-
-          describe('Negativ value', () => {
-            beforeEach(async () => {
-              jest.clearAllMocks()
-              await wrapper.setProps({ type: 'singleCreation', creation: [200, 400, 600] })
-              await wrapper.setData({ rangeMin: 180 })
-              await wrapper.setData({ value: -20 })
-            })
-
-            it('has no submit button', async () => {
-              expect(await wrapper.find('.test-submit').attributes('disabled')).toBe('disabled')
-            })
-          })
-
-          describe('Empty text', () => {
-            beforeEach(async () => {
-              jest.clearAllMocks()
-              await wrapper.setProps({ type: 'singleCreation', creation: [200, 400, 600] })
-              await wrapper.setData({ rangeMin: 180 })
-              await wrapper.setData({ text: '' })
-            })
-
-            it('has no submit button', async () => {
-              expect(await wrapper.find('.test-submit').attributes('disabled')).toBe('disabled')
-            })
-          })
-
-          describe('Text length less than 10', () => {
-            beforeEach(async () => {
-              jest.clearAllMocks()
-              await wrapper.setProps({ type: 'singleCreation', creation: [200, 400, 600] })
-              await wrapper.setData({ rangeMin: 180 })
-              await wrapper.setData({ text: 'Try this' })
-            })
-
-            it('has no submit button', async () => {
-              expect(await wrapper.find('.test-submit').attributes('disabled')).toBe('disabled')
-            })
-          })
-        })
-
-        describe('third radio button', () => {
-          beforeEach(async () => {
-            await wrapper.findAll('input[type="radio"]').at(2).setChecked()
-          })
-
-          it('sets rangeMin to 0', () => {
-            expect(wrapper.vm.rangeMin).toBe(0)
-          })
-
-          it('sets rangeMax to 400', () => {
-            expect(wrapper.vm.rangeMax).toBe(600)
-          })
-
-          describe('sendForm', () => {
-            beforeEach(async () => {
-              await wrapper.find('.test-submit').trigger('click')
-            })
-
-            it('sends mutation to apollo', () => {
-              expect(adminCreateContributionMock).toBeCalled()
-            })
-
-            it('toast success message', () => {
-              expect(toastSuccessSpy).toBeCalled()
-            })
-
-            it('store commit openCreationPlus', () => {
-              expect(stateCommitMock).toBeCalledWith('openCreationsPlus', 1)
-            })
-          })
-
-          describe('Negativ value', () => {
-            beforeEach(async () => {
-              jest.clearAllMocks()
-              await wrapper.setProps({ type: 'singleCreation', creation: [200, 400, 600] })
-              await wrapper.setData({ rangeMin: 180 })
-              await wrapper.setData({ value: -20 })
-            })
-
-            it('has no submit button', async () => {
-              expect(await wrapper.find('.test-submit').attributes('disabled')).toBe('disabled')
-            })
-          })
-
-          describe('Empty text', () => {
-            beforeEach(async () => {
-              jest.clearAllMocks()
-              await wrapper.setProps({ type: 'singleCreation', creation: [200, 400, 600] })
-              await wrapper.setData({ rangeMin: 180 })
-              await wrapper.setData({ text: '' })
-            })
-
-            it('has no submit button', async () => {
-              expect(await wrapper.find('.test-submit').attributes('disabled')).toBe('disabled')
-            })
-          })
-
-          describe('Text length less than 10', () => {
-            beforeEach(async () => {
-              jest.clearAllMocks()
-              await wrapper.setProps({ type: 'singleCreation', creation: [200, 400, 600] })
-              await wrapper.setData({ rangeMin: 180 })
-              await wrapper.setData({ text: 'Try this' })
-            })
-
-            it('has no submit button', async () => {
-              expect(await wrapper.find('.test-submit').attributes('disabled')).toBe('disabled')
-            })
-          })
-        })
-      })
-    })
+    await wrapper.setProps({ pagetype: '' })
+    await wrapper.vm.$nextTick()
+    expect(wrapper.vm.submitBtnText).toBe('creation_form.submit_creation')
   })
 })

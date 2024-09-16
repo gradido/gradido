@@ -1,103 +1,106 @@
 <template>
   <div class="contribution-list">
-    <div class="mb-3" v-for="item in items" :key="item.id + 'a'">
+    <div v-for="item in items" :key="item.id + 'a'" class="mb-3">
       <contribution-list-item
         v-if="item.status === 'IN_PROGRESS'"
         v-bind="item"
-        @closeAllOpenCollapse="$emit('closeAllOpenCollapse')"
-        :contributionId="item.id"
-        :allContribution="allContribution"
+        :contribution-id="item.id"
+        :all-contribution="allContribution"
+        @close-all-open-collapse="$emit('close-all-open-collapse')"
         @update-contribution-form="updateContributionForm"
         @delete-contribution="deleteContribution"
         @update-status="updateStatus"
       />
     </div>
-    <div class="mb-3" v-for="item2 in items" :key="item2.id">
+    <div v-for="item2 in items" :key="item2.id" class="mb-3">
       <contribution-list-item
         v-if="item2.status !== 'IN_PROGRESS'"
         v-bind="item2"
-        @closeAllOpenCollapse="$emit('closeAllOpenCollapse')"
-        :contributionId="item2.id"
-        :allContribution="allContribution"
+        :contribution-id="item2.id"
+        :all-contribution="allContribution"
+        @close-all-open-collapse="$emit('close-all-open-collapse')"
         @update-contribution-form="updateContributionForm"
         @delete-contribution="deleteContribution"
         @update-status="updateStatus"
       />
     </div>
-    <b-pagination
+    <BPagination
       v-if="isPaginationVisible"
+      :model-value="currentPage"
       class="mt-3"
       pills
       size="lg"
-      v-model="currentPage"
       :per-page="pageSize"
       :total-rows="contributionCount"
       align="center"
       :hide-ellipsis="true"
-    ></b-pagination>
+      @update:model-value="currentPage = $event"
+    />
   </div>
 </template>
-<script>
-import ContributionListItem from '@/components/Contributions/ContributionListItem'
+<script setup>
+import { ref, computed, watch } from 'vue'
+import ContributionListItem from '@/components/Contributions/ContributionListItem.vue'
 
-export default {
-  name: 'ContributionList',
-  components: {
-    ContributionListItem,
+const props = defineProps({
+  items: {
+    type: Array,
+    required: true,
   },
-  props: {
-    items: {
-      type: Array,
-      required: true,
-    },
-    contributionCount: {
-      type: Number,
-      required: true,
-    },
-    showPagination: {
-      type: Boolean,
-      required: true,
-    },
-    pageSize: { type: Number, default: 25 },
-    allContribution: {
-      type: Boolean,
-      required: false,
-      default: false,
-    },
+  contributionCount: {
+    type: Number,
+    required: true,
   },
-  data() {
-    return {
-      currentPage: 1,
-      messages: [],
-    }
+  showPagination: {
+    type: Boolean,
+    required: true,
   },
-  methods: {
-    updateListContributions() {
-      this.$emit('update-list-contributions', {
-        currentPage: this.currentPage,
-        pageSize: this.pageSize,
-      })
-      window.scrollTo(0, 0)
-    },
-    updateContributionForm(item) {
-      this.$emit('update-contribution-form', item)
-    },
-    deleteContribution(item) {
-      this.$emit('delete-contribution', item)
-    },
-    updateStatus(id) {
-      this.$emit('update-status', id)
-    },
+  pageSize: {
+    type: Number,
+    default: 25,
   },
-  computed: {
-    isPaginationVisible() {
-      return this.showPagination && this.pageSize < this.contributionCount
-    },
+  allContribution: {
+    type: Boolean,
+    required: false,
+    default: false,
   },
-  watch: {
-    currentPage() {
-      this.updateListContributions()
-    },
-  },
+})
+
+const emit = defineEmits([
+  'update-list-contributions',
+  'update-contribution-form',
+  'delete-contribution',
+  'update-status',
+])
+
+const currentPage = ref(1)
+const messages = ref([])
+
+const isPaginationVisible = computed(() => {
+  return props.showPagination && props.pageSize < props.contributionCount
+})
+
+watch(currentPage, () => {
+  updateListContributions()
+})
+
+const updateListContributions = () => {
+  emit('update-list-contributions', {
+    currentPage: currentPage.value,
+    pageSize: props.pageSize,
+  })
+  window.scrollTo(0, 0)
+}
+
+const updateContributionForm = (item) => {
+  emit('update-contribution-form', item)
+}
+
+const deleteContribution = (item) => {
+  emit('delete-contribution', item)
+}
+
+const updateStatus = (id) => {
+  emit('update-status', id)
 }
 </script>
