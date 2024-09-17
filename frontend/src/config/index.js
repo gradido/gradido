@@ -47,7 +47,7 @@ const environment = {
 const COMMUNITY_URL = process.env.COMMUNITY_URL ?? `${FRONTEND_MODULE_URI}` // ${URL_PROTOCOL}://${COMMUNITY_HOST}`
 
 const endpoints = {
-  GRAPHQL_URI: process.env.GRAPHQL_URI ?? (COMMUNITY_URL + (process.env.GRAPHQL_PATH ?? '/graphql'),
+  GRAPHQL_URI: process.env.GRAPHQL_URI ?? (COMMUNITY_URL + (process.env.GRAPHQL_PATH ?? '/graphql')),
   // ADMIN_AUTH_URL:
   //  COMMUNITY_URL + (process.env.ADMIN_AUTH_PATH ?? '/admin/authenticate?token={token}'),
   ADMIN_AUTH_URL:
