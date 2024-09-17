@@ -198,6 +198,7 @@ fi
 # Install & build backend
 echo 'Updating backend' >> $UPDATE_HTML
 cd $PROJECT_ROOT/backend
+nvm use
 # TODO maybe handle this differently?
 unset NODE_ENV
 yarn install
@@ -212,6 +213,7 @@ export NODE_ENV=production
 # Install & build frontend
 echo 'Updating frontend' >> $UPDATE_HTML
 cd $PROJECT_ROOT/frontend
+nvm use
 # TODO maybe handle this differently?
 unset NODE_ENV
 yarn install
@@ -222,6 +224,7 @@ export NODE_ENV=production
 # Install & build admin
 echo 'Updating admin' >> $UPDATE_HTML
 cd $PROJECT_ROOT/admin
+nvm use
 # TODO maybe handle this differently?
 unset NODE_ENV
 yarn install
@@ -232,6 +235,7 @@ export NODE_ENV=production
 # Install & build dht-node
 echo 'Updating dht-node' >> $UPDATE_HTML
 cd $PROJECT_ROOT/dht-node
+nvm use
 # TODO maybe handle this differently?
 unset NODE_ENV
 yarn install
@@ -242,6 +246,7 @@ export NODE_ENV=production
 # Install & build federation
 echo 'Updating federation' >> $UPDATE_HTML
 cd $PROJECT_ROOT/federation
+nvm use
 # TODO maybe handle this differently?
 unset NODE_ENV
 yarn install
