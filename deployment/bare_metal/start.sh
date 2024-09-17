@@ -219,6 +219,7 @@ unset NODE_ENV
 export NODE_OPTIONS=--openssl-legacy-provider
 yarn install
 yarn build
+unset NODE_OPTIONS
 # TODO maybe handle this differently?
 export NODE_ENV=production
 
