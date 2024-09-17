@@ -216,6 +216,7 @@ cd $PROJECT_ROOT/frontend
 nvm use
 # TODO maybe handle this differently?
 unset NODE_ENV
+export NODE_OPTIONS=--openssl-legacy-provider
 yarn install
 yarn build
 # TODO maybe handle this differently?
@@ -224,7 +225,7 @@ export NODE_ENV=production
 # Install & build admin
 echo 'Updating admin' >> $UPDATE_HTML
 cd $PROJECT_ROOT/admin
-nvm use
+nvm use default
 # TODO maybe handle this differently?
 unset NODE_ENV
 yarn install
