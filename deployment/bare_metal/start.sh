@@ -90,7 +90,7 @@ cd $PROJECT_ROOT
 # TODO: this overfetches alot, but ensures we can use start.sh with tags
 git fetch --all
 git checkout $BRANCH
-git pull $BRANCH
+git pull
 export BUILD_COMMIT="$(git rev-parse HEAD)"
 
 # Generate gradido.conf from template
