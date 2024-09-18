@@ -23,7 +23,21 @@ const version = {
   BUILD_COMMIT_SHORT: (process.env.BUILD_COMMIT ?? '0000000').slice(0, 7),
 }
 
-const FRONTEND_MODULE_URI = version.FRONTEND_MODULE_PROTOCOL + '://' + version.FRONTEND_MODULE_HOST // +
+let FRONTEND_MODULE_URL
+// in case of hosting the frontend module with a nodejs-instance
+if (process.env.FRONTEND_HOSTING === 'nodejs') {
+  FRONTEND_MODULE_URL = 
+    version.FRONTEND_MODULE_PROTOCOL + 
+      '://' + 
+      version.FRONTEND_MODULE_HOST +
+      ':' +
+      version.FRONTEND_MODULE_PORT
+} else {
+  // in case of hosting the frontend module with a nginx
+  FRONTEND_MODULE_URL = version.FRONTEND_MODULE_PROTOCOL + '://' + version.FRONTEND_MODULE_HOST
+}
+
+// const FRONTEND_MODULE_URI = version.FRONTEND_MODULE_PROTOCOL + '://' + version.FRONTEND_MODULE_HOST // +
 // ':' +
 // version.FRONTEND_MODULE_PORT
 
@@ -41,7 +55,7 @@ const environment = {
 
 // const COMMUNITY_HOST = process.env.COMMUNITY_HOST ?? 'localhost'
 // const URL_PROTOCOL = process.env.URL_PROTOCOL ?? 'http'
-const COMMUNITY_URL = process.env.COMMUNITY_URL ?? `${FRONTEND_MODULE_URI}` // ${URL_PROTOCOL}://${COMMUNITY_HOST}`
+const COMMUNITY_URL = process.env.COMMUNITY_URL ?? FRONTEND_MODULE_URL
 
 const endpoints = {
   GRAPHQL_URI: process.env.GRAPHQL_URI ?? COMMUNITY_URL + (process.env.GRAPHQL_PATH ?? '/graphql'),

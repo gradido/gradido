@@ -22,12 +22,20 @@ const version = {
   BUILD_COMMIT_SHORT: (process.env.BUILD_COMMIT ?? '0000000').slice(0, 7),
 }
 
-const ADMIN_MODULE_URL =
-  version.ADMIN_MODULE_PROTOCOL +
-  '://' +
-  version.ADMIN_MODULE_HOST +
-  ':' +
-  version.ADMIN_MODULE_PORT
+let ADMIN_MODULE_URL
+// in case of hosting the admin module with a nodejs-instance
+if (process.env.ADMIN_HOSTING === 'nodejs') {
+  ADMIN_MODULE_URL = 
+    version.ADMIN_MODULE_PROTOCOL + 
+      '://' + 
+      version.ADMIN_MODULE_HOST +
+      ':' +
+      version.ADMIN_MODULE_PORT
+} else {
+  // in case of hosting the admin module with a nginx
+  ADMIN_MODULE_URL = version.ADMIN_MODULE_PROTOCOL + '://' + version.ADMIN_MODULE_HOST
+}
+
 
 const environment = {
   NODE_ENV: process.env.NODE_ENV,
@@ -39,13 +47,11 @@ const environment = {
 // const URL_PROTOCOL = process.env.URL_PROTOCOL ?? 'http'
 // const COMMUNITY_URL =
 //   COMMUNITY_HOST && URL_PROTOCOL ? URL_PROTOCOL + '://' + COMMUNITY_HOST : undefined
-const COMMUNITY_URL = process.env.COMMUNITY_URL ?? `${ADMIN_MODULE_URL}`
+const COMMUNITY_URL = process.env.COMMUNITY_URL ?? ADMIN_MODULE_URL
 const WALLET_URL = process.env.WALLET_URL ?? COMMUNITY_URL ?? 'http://localhost'
 
 const endpoints = {
-  GRAPHQL_URL:
-    (process.env.GRAPHQL_URL ?? COMMUNITY_URL ?? 'http://localhost:4000') +
-      process.env.GRAPHQL_PATH ?? '/graphql',
+  GRAPHQL_URI: process.env.GRAPHQL_URI ?? COMMUNITY_URL + (process.env.GRAPHQL_PATH ?? '/graphql'),
   WALLET_AUTH_URL: WALLET_URL + (process.env.WALLET_AUTH_PATH ?? '/authenticate?token={token}'),
   WALLET_LOGIN_URL: WALLET_URL + (process.env.WALLET_LOGIN_PATH ?? '/login'),
 }
