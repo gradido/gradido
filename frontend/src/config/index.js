@@ -23,12 +23,9 @@ const version = {
   BUILD_COMMIT_SHORT: (process.env.BUILD_COMMIT ?? '0000000').slice(0, 7),
 }
 
-const FRONTEND_MODULE_URI =
-  version.FRONTEND_MODULE_PROTOCOL +
-  '://' +
-  version.FRONTEND_MODULE_HOST // +
-  // ':' +
-  // version.FRONTEND_MODULE_PORT
+const FRONTEND_MODULE_URI = version.FRONTEND_MODULE_PROTOCOL + '://' + version.FRONTEND_MODULE_HOST // +
+// ':' +
+// version.FRONTEND_MODULE_PORT
 
 const features = {
   GMS_ACTIVE: process.env.GMS_ACTIVE ?? false,
@@ -47,12 +44,10 @@ const environment = {
 const COMMUNITY_URL = process.env.COMMUNITY_URL ?? `${FRONTEND_MODULE_URI}` // ${URL_PROTOCOL}://${COMMUNITY_HOST}`
 
 const endpoints = {
-  GRAPHQL_URI: process.env.GRAPHQL_URI ?? (COMMUNITY_URL + (process.env.GRAPHQL_PATH ?? '/graphql')),
-  // ADMIN_AUTH_URL:
-  //  COMMUNITY_URL + (process.env.ADMIN_AUTH_PATH ?? '/admin/authenticate?token={token}'),
+  GRAPHQL_URI: process.env.GRAPHQL_URI ?? COMMUNITY_URL + (process.env.GRAPHQL_PATH ?? '/graphql'),
   ADMIN_AUTH_URL:
-    process.env.ADMIN_AUTH_URL +
-    (process.env.ADMIN_AUTH_PATH ?? '/admin/authenticate?token={token}'),
+    process.env.ADMIN_AUTH_URL ??
+    COMMUNITY_URL + (process.env.ADMIN_AUTH_PATH ?? '/admin/authenticate?token={token}'),
 }
 
 const community = {
