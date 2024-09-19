@@ -5,8 +5,8 @@ const express = require('express')
 const path = require('path')
 
 // Host & Port
-const hostname = CONFIG.ADMIN_MODULE_HOST //'127.0.0.1'
-const port = CONFIG.ADMIN_MODULE_PORT //process.env.PORT || 8080
+const hostname = CONFIG.ADMIN_MODULE_HOST // '127.0.0.1'
+const port = CONFIG.ADMIN_MODULE_PORT // process.env.PORT || 8080
 
 // Express Server
 const app = express()

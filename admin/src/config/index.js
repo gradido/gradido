@@ -25,17 +25,16 @@ const version = {
 let ADMIN_MODULE_URL
 // in case of hosting the admin module with a nodejs-instance
 if (process.env.ADMIN_HOSTING === 'nodejs') {
-  ADMIN_MODULE_URL = 
-    version.ADMIN_MODULE_PROTOCOL + 
-      '://' + 
-      version.ADMIN_MODULE_HOST +
-      ':' +
-      version.ADMIN_MODULE_PORT
+  ADMIN_MODULE_URL =
+    version.ADMIN_MODULE_PROTOCOL +
+    '://' +
+    version.ADMIN_MODULE_HOST +
+    ':' +
+    version.ADMIN_MODULE_PORT
 } else {
   // in case of hosting the admin module with a nginx
   ADMIN_MODULE_URL = version.ADMIN_MODULE_PROTOCOL + '://' + version.ADMIN_MODULE_HOST
 }
-
 
 const environment = {
   NODE_ENV: process.env.NODE_ENV,
