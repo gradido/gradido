@@ -26,12 +26,12 @@ const version = {
 let FRONTEND_MODULE_URL
 // in case of hosting the frontend module with a nodejs-instance
 if (process.env.FRONTEND_HOSTING === 'nodejs') {
-  FRONTEND_MODULE_URL = 
-    version.FRONTEND_MODULE_PROTOCOL + 
-      '://' + 
-      version.FRONTEND_MODULE_HOST +
-      ':' +
-      version.FRONTEND_MODULE_PORT
+  FRONTEND_MODULE_URL =
+    version.FRONTEND_MODULE_PROTOCOL +
+    '://' +
+    version.FRONTEND_MODULE_HOST +
+    ':' +
+    version.FRONTEND_MODULE_PORT
 } else {
   // in case of hosting the frontend module with a nginx
   FRONTEND_MODULE_URL = version.FRONTEND_MODULE_PROTOCOL + '://' + version.FRONTEND_MODULE_HOST
