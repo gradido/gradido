@@ -2,7 +2,8 @@ import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToOne, JoinColu
 import { Decimal } from 'decimal.js-light'
 
 import { DecimalTransformer } from '../../src/typeorm/DecimalTransformer'
-import { Transaction } from '../Transaction'
+// BackendTransaction was removed in newer migrations, so only the version from this folder can be linked
+import { Transaction } from './Transaction'
 
 @Entity('backend_transactions')
 export class BackendTransaction extends BaseEntity {

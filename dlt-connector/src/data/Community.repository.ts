@@ -66,9 +66,9 @@ export const CommunityRepository = getDataSource()
     async loadHomeCommunityKeyPair(): Promise<KeyPair> {
       const community = await this.findOneOrFail({
         where: { foreign: false },
-        select: { rootChaincode: true, rootPubkey: true, rootPrivkey: true },
+        select: { rootChaincode: true, rootPubkey: true, rootEncryptedPrivkey: true },
       })
-      if (!community.rootChaincode || !community.rootPrivkey) {
+      if (!community.rootChaincode || !community.rootEncryptedPrivkey) {
         throw new LogError('Missing chaincode or private key for home community')
       }
       return new KeyPair(community)

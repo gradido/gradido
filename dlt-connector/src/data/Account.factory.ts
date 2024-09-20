@@ -1,8 +1,13 @@
+/* eslint-disable camelcase */
 import { Account } from '@entity/Account'
 import Decimal from 'decimal.js-light'
+import {
+  AddressType,
+  AddressType_COMMUNITY_AUF,
+  AddressType_COMMUNITY_GMW,
+} from 'gradido-blockchain-js'
 
 import { KeyPair } from '@/data/KeyPair'
-import { AddressType } from '@/data/proto/3_3/enum/AddressType'
 import { UserAccountDraft } from '@/graphql/input/UserAccountDraft'
 import { hardenDerivationIndex } from '@/utils/derivationHelper'
 import { accountTypeToAddressType } from '@/utils/typeConverter'
@@ -44,7 +49,7 @@ export class AccountFactory {
     return AccountFactory.createAccount(
       createdAt,
       hardenDerivationIndex(GMW_ACCOUNT_DERIVATION_INDEX),
-      AddressType.COMMUNITY_GMW,
+      AddressType_COMMUNITY_GMW,
       keyPair,
     )
   }
@@ -53,7 +58,7 @@ export class AccountFactory {
     return AccountFactory.createAccount(
       createdAt,
       hardenDerivationIndex(AUF_ACCOUNT_DERIVATION_INDEX),
-      AddressType.COMMUNITY_AUF,
+      AddressType_COMMUNITY_AUF,
       keyPair,
     )
   }

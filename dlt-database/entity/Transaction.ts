@@ -1,1 +1,1 @@
-export { Transaction } from './0004-fix_spelling/Transaction'
+export { Transaction } from './0005-refactor_with_gradido_blockchain_lib/Transaction'

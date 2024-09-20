@@ -104,6 +104,10 @@ export class DltConnectorClient {
    * and update dltTransactionId of transaction in db with iota message id
    */
   public async transmitTransaction(transaction: DbTransaction): Promise<boolean> {
+    // we don't need the receive transactions, there contain basically the same data as the send transactions
+    if ((transaction.typeId as TransactionTypeId) === TransactionTypeId.RECEIVE) {
+      return true
+    }
     const typeString = getTransactionTypeString(transaction.typeId)
     // no negative values in dlt connector, gradido concept don't use negative values so the code don't use it too
     const amountString = transaction.amount.abs().toString()

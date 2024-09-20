@@ -18,6 +18,7 @@ import { getDataSource } from '@/typeorm/DataSource'
 import { CreateTransactionRecipeContext } from '../transaction/CreateTransactionRecipe.context'
 
 import { CommunityRole } from './Community.role'
+import { TransactionLoggingView } from '@/logging/TransactionLogging.view'
 
 export class HomeCommunityRole extends CommunityRole {
   private transactionRecipe: Transaction

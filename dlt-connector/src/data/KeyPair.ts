@@ -1,40 +1,52 @@
 import { Community } from '@entity/Community'
-
 // https://www.npmjs.com/package/bip32-ed25519
+import {
+  KeyPairEd25519,
+  MemoryBlock,
+  Passphrase,
+  SecretKeyCryptography,
+  SignaturePair,
+} from 'gradido-blockchain-js'
+
+import { CONFIG } from '@/config'
 import { LogError } from '@/server/LogError'
-
-import { toPublic, derivePrivate, sign, verify, generateFromSeed } from 'bip32-ed25519'
-
-import { Mnemonic } from './Mnemonic'
-import { SignaturePair } from './proto/3_3/SignaturePair'
 
 /**
  * Class Managing Key Pair and also generate, sign and verify signature with it
  */
 export class KeyPair {
-  private _publicKey: Buffer
-  private _chainCode: Buffer
-  private _privateKey: Buffer
-
+  private _ed25519KeyPair: KeyPairEd25519
   /**
-   * @param input: Mnemonic = Mnemonic or Passphrase which work as seed for generating algorithms
-   * @param input: Buffer = extended private key, returned from bip32-ed25519 generateFromSeed or from derivePrivate
+   * @param input: KeyPairEd25519 = already loaded KeyPairEd25519
+   * @param input: Passphrase = Passphrase which work as seed for generating algorithms
+   * @param input: MemoryBlock = a seed at least 32 byte
    * @param input: Community = community entity with keys loaded from db
-   *
    */
-  public constructor(input: Mnemonic | Buffer | Community) {
-    if (input instanceof Mnemonic) {
-      this.loadFromExtendedPrivateKey(generateFromSeed(input.seed))
-    } else if (input instanceof Buffer) {
-      this.loadFromExtendedPrivateKey(input)
+  public constructor(input: KeyPairEd25519 | Passphrase | MemoryBlock | Community) {
+    let keyPair: KeyPairEd25519 | null = null
+    if (input instanceof KeyPairEd25519) {
+      keyPair = input
+    } else if (input instanceof Passphrase) {
+      keyPair = KeyPairEd25519.create(input)
+    } else if (input instanceof MemoryBlock) {
+      keyPair = KeyPairEd25519.create(input)
     } else if (input instanceof Community) {
-      if (!input.rootPrivkey || !input.rootChaincode || !input.rootPubkey) {
-        throw new LogError('missing private key or chaincode or public key in commmunity entity')
+      if (!input.rootEncryptedPrivkey || !input.rootChaincode || !input.rootPubkey) {
+        throw new LogError(
+          'missing encrypted private key or chaincode or public key in commmunity entity',
+        )
       }
-      this._privateKey = input.rootPrivkey
-      this._publicKey = input.rootPubkey
-      this._chainCode = input.rootChaincode
+      const secretBox = this.createSecretBox(input.iotaTopic)
+      keyPair = new KeyPairEd25519(
+        new MemoryBlock(input.rootPubkey),
+        secretBox.decrypt(new MemoryBlock(input.rootEncryptedPrivkey)),
+        new MemoryBlock(input.rootChaincode),
+      )
     }
+    if (!keyPair) {
+      throw new LogError("couldn't create KeyPairEd25519 from input")
+    }
+    this._ed25519KeyPair = keyPair
   }
 
   /**
@@ -42,47 +54,54 @@ export class KeyPair {
    * @param community
    */
   public fillInCommunityKeys(community: Community) {
-    community.rootPubkey = this._publicKey
-    community.rootPrivkey = this._privateKey
-    community.rootChaincode = this._chainCode
-  }
-
-  private loadFromExtendedPrivateKey(extendedPrivateKey: Buffer) {
-    if (extendedPrivateKey.length !== 96) {
-      throw new LogError('invalid extended private key')
-    }
-    this._privateKey = extendedPrivateKey.subarray(0, 64)
-    this._chainCode = extendedPrivateKey.subarray(64, 96)
-    this._publicKey = toPublic(extendedPrivateKey).subarray(0, 32)
-  }
-
-  public getExtendPrivateKey(): Buffer {
-    return Buffer.concat([this._privateKey, this._chainCode])
-  }
-
-  public getExtendPublicKey(): Buffer {
-    return Buffer.concat([this._publicKey, this._chainCode])
+    const secretBox = this.createSecretBox(community.iotaTopic)
+    community.rootPubkey = this._ed25519KeyPair.getPublicKey()?.data()
+    community.rootEncryptedPrivkey = this._ed25519KeyPair.getCryptedPrivKey(secretBox).data()
+    community.rootChaincode = this._ed25519KeyPair.getChainCode()?.data()
   }
 
   public get publicKey(): Buffer {
-    return this._publicKey
+    const publicKey = this._ed25519KeyPair.getPublicKey()
+    if (!publicKey) {
+      throw new LogError('invalid key pair, get empty public key')
+    }
+    return publicKey.data()
+  }
+
+  public get keyPair(): KeyPairEd25519 {
+    return this._ed25519KeyPair
   }
 
   public derive(path: number[]): KeyPair {
-    const extendedPrivateKey = this.getExtendPrivateKey()
     return new KeyPair(
       path.reduce(
-        (extendPrivateKey: Buffer, node: number) => derivePrivate(extendPrivateKey, node),
-        extendedPrivateKey,
+        (keyPair: KeyPairEd25519, node: number) => keyPair.deriveChild(node),
+        this._ed25519KeyPair,
       ),
     )
   }
 
   public sign(message: Buffer): Buffer {
-    return sign(message, this.getExtendPrivateKey())
+    return this._ed25519KeyPair.sign(new MemoryBlock(message)).data()
   }
 
-  public static verify(message: Buffer, { signature, pubKey }: SignaturePair): boolean {
-    return verify(message, signature, pubKey)
+  public static verify(message: Buffer, signaturePair: SignaturePair): boolean {
+    const publicKeyPair = new KeyPairEd25519(signaturePair.getPubkey())
+    const signature = signaturePair.getSignature()
+    if (!signature) {
+      throw new LogError('missing signature')
+    }
+    return publicKeyPair.verify(new MemoryBlock(message), signature)
+  }
+
+  private createSecretBox(salt: string): SecretKeyCryptography {
+    if (!CONFIG.GRADIDO_BLOCKCHAIN_PRIVATE_KEY_ENCRYPTION_PASSWORD) {
+      throw new LogError(
+        'missing GRADIDO_BLOCKCHAIN_PRIVATE_KEY_ENCRYPTION_PASSWORD in env or config',
+      )
+    }
+    const secretBox = new SecretKeyCryptography()
+    secretBox.createKey(salt, CONFIG.GRADIDO_BLOCKCHAIN_PRIVATE_KEY_ENCRYPTION_PASSWORD)
+    return secretBox
   }
 }

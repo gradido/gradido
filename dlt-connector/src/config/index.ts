@@ -4,12 +4,12 @@ dotenv.config()
 
 const constants = {
   LOG4JS_CONFIG: 'log4js-config.json',
-  DB_VERSION: '0004-fix_spelling',
+  DB_VERSION: '0005-refactor_with_gradido_blockchain_lib',
   // default log level on production should be info
   LOG_LEVEL: process.env.LOG_LEVEL ?? 'info',
   CONFIG_VERSION: {
     DEFAULT: 'DEFAULT',
-    EXPECTED: 'v6.2024-02-20',
+    EXPECTED: 'v7.2024-09-24',
     CURRENT: '',
   },
 }
@@ -39,6 +39,15 @@ const dltConnector = {
   DLT_CONNECTOR_PORT: process.env.DLT_CONNECTOR_PORT ?? 6010,
 }
 
+const gradidoBlockchain = {
+  GRADIDO_BLOCKCHAIN_CRYPTO_APP_SECRET:
+    process.env.GRADIDO_BLOCKCHAIN_CRYPTO_APP_SECRET ?? 'invalid',
+  GRADIDO_BLOCKCHAIN_SERVER_CRYPTO_KEY:
+    process.env.GRADIDO_BLOCKCHAIN_SERVER_CRYPTO_KEY ?? 'invalid',
+  GRADIDO_BLOCKCHAIN_PRIVATE_KEY_ENCRYPTION_PASSWORD:
+    process.env.GRADIDO_BLOCKCHAIN_PRIVATE_KEY_ENCRYPTION_PASSWORD,
+}
+
 const backendServer = {
   BACKEND_SERVER_URL: process.env.BACKEND_SERVER_URL ?? 'http://backend:4000',
 }
@@ -61,5 +70,6 @@ export const CONFIG = {
   ...database,
   ...iota,
   ...dltConnector,
+  ...gradidoBlockchain,
   ...backendServer,
 }

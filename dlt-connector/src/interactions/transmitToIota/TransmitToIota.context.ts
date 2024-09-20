@@ -1,7 +1,15 @@
+/* eslint-disable camelcase */
 import { Transaction } from '@entity/Transaction'
+import {
+  CrossGroupType_INBOUND,
+  CrossGroupType_LOCAL,
+  CrossGroupType_OUTBOUND,
+  InteractionDeserialize,
+  MemoryBlock,
+} from 'gradido-blockchain-js'
 
-import { CrossGroupType } from '@/data/proto/3_3/enum/CrossGroupType'
-import { TransactionBody } from '@/data/proto/3_3/TransactionBody'
+import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
+import { TransactionError } from '@/graphql/model/TransactionError'
 import { logger } from '@/logging/logger'
 import { TransactionLoggingView } from '@/logging/TransactionLogging.view'
 import { LogError } from '@/server/LogError'
@@ -21,19 +29,27 @@ export class TransmitToIotaContext {
   private transactionRecipeRole: AbstractTransactionRecipeRole
 
   public constructor(transaction: Transaction) {
-    const transactionBody = TransactionBody.fromBodyBytes(transaction.bodyBytes)
-    switch (transactionBody.type) {
-      case CrossGroupType.LOCAL:
+    const deserializer = new InteractionDeserialize(new MemoryBlock(transaction.bodyBytes))
+    deserializer.run()
+    const transactionBody = deserializer.getTransactionBody()
+    if (!transactionBody) {
+      throw new TransactionError(
+        TransactionErrorType.PROTO_DECODE_ERROR,
+        'error decoding body bytes',
+      )
+    }
+    switch (transactionBody.getType()) {
+      case CrossGroupType_LOCAL:
         this.transactionRecipeRole = new LocalTransactionRecipeRole(transaction)
         break
-      case CrossGroupType.INBOUND:
+      case CrossGroupType_INBOUND:
         this.transactionRecipeRole = new InboundTransactionRecipeRole(transaction)
         break
-      case CrossGroupType.OUTBOUND:
+      case CrossGroupType_OUTBOUND:
         this.transactionRecipeRole = new OutboundTransactionRecipeRole(transaction)
         break
       default:
-        throw new LogError('unknown cross group type', transactionBody.type)
+        throw new LogError('unknown cross group type', transactionBody.getType())
     }
   }
 

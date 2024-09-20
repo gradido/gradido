@@ -5,12 +5,11 @@ import { TransactionDraft } from '@input/TransactionDraft'
 import { TRANSMIT_TO_IOTA_INTERRUPTIVE_SLEEP_KEY } from '@/data/const'
 import { TransactionRepository } from '@/data/Transaction.repository'
 import { CreateTransactionRecipeContext } from '@/interactions/backendToDb/transaction/CreateTransactionRecipe.context'
-import { BackendTransactionLoggingView } from '@/logging/BackendTransactionLogging.view'
 import { logger } from '@/logging/logger'
 import { TransactionLoggingView } from '@/logging/TransactionLogging.view'
 import { InterruptiveSleepManager } from '@/manager/InterruptiveSleepManager'
-import { LogError } from '@/server/LogError'
 
+import { TransactionErrorType } from '../enum/TransactionErrorType'
 import { TransactionError } from '../model/TransactionError'
 import { TransactionRecipe } from '../model/TransactionRecipe'
 import { TransactionResult } from '../model/TransactionResult'
@@ -24,30 +23,30 @@ export class TransactionResolver {
   ): Promise<TransactionResult> {
     const createTransactionRecipeContext = new CreateTransactionRecipeContext(transactionDraft)
     try {
-      await createTransactionRecipeContext.run()
+      const result = await createTransactionRecipeContext.run()
+      if (!result) {
+        return new TransactionResult(
+          new TransactionError(
+            TransactionErrorType.MISSING_PARAMETER,
+            'cannot work with this parameters',
+          ),
+        )
+      }
       const transactionRecipe = createTransactionRecipeContext.getTransactionRecipe()
       // check if a transaction with this signature already exist
       const existingRecipe = await TransactionRepository.findBySignature(
         transactionRecipe.signature,
       )
       if (existingRecipe) {
-        // transaction recipe with this signature already exist, we need only to store the backendTransaction
-        if (transactionRecipe.backendTransactions.length !== 1) {
-          throw new LogError('unexpected backend transaction count', {
-            count: transactionRecipe.backendTransactions.length,
-            transactionId: transactionRecipe.id,
-          })
-        }
-        const backendTransaction = transactionRecipe.backendTransactions[0]
-        backendTransaction.transactionId = transactionRecipe.id
-        logger.debug(
-          'store backendTransaction',
-          new BackendTransactionLoggingView(backendTransaction),
+        return new TransactionResult(
+          new TransactionError(
+            TransactionErrorType.ALREADY_EXIST,
+            'Transaction with same signature already exist',
+          ),
         )
-        await backendTransaction.save()
       } else {
         logger.debug('store transaction recipe', new TransactionLoggingView(transactionRecipe))
-        // we can store the transaction and with that automatic the backend transaction
+        // we store the transaction
         await transactionRecipe.save()
       }
       InterruptiveSleepManager.getInstance().interrupt(TRANSMIT_TO_IOTA_INTERRUPTIVE_SLEEP_KEY)

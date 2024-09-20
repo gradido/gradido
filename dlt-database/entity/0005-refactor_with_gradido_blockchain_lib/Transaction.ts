@@ -6,15 +6,10 @@ import {
   OneToOne,
   JoinColumn,
   BaseEntity,
-  OneToMany,
 } from 'typeorm'
-import { Decimal } from 'decimal.js-light'
 
-import { DecimalTransformer } from '../../src/typeorm/DecimalTransformer'
 import { Account } from '../Account'
 import { Community } from '../Community'
-// BackendTransaction was removed in newer migrations, so only the version from this folder can be linked
-import { BackendTransaction } from './BackendTransaction'
 
 @Entity('transactions')
 export class Transaction extends BaseEntity {
@@ -26,10 +21,10 @@ export class Transaction extends BaseEntity {
 
   @OneToOne(() => Transaction, { cascade: ['update'] })
   // eslint-disable-next-line no-use-before-define
-  paringTransaction?: Transaction
+  pairingTransaction?: Transaction
 
-  @Column({ name: 'paring_transaction_id', type: 'bigint', unsigned: true, nullable: true })
-  paringTransactionId?: number
+  @Column({ name: 'pairing_transaction_id', type: 'bigint', unsigned: true, nullable: true })
+  pairingTransactionId?: number
 
   // if transaction has a sender than it is also the sender account
   @ManyToOne(() => Account, (account) => account.transactionSigning)
@@ -63,24 +58,18 @@ export class Transaction extends BaseEntity {
   otherCommunityId?: number
 
   @Column({
-    type: 'decimal',
-    precision: 40,
-    scale: 20,
+    type: 'bigint',
     nullable: true,
-    transformer: DecimalTransformer,
   })
-  amount?: Decimal
+  amount?: number
 
   // account balance for sender based on creation date
   @Column({
     name: 'account_balance_on_creation',
-    type: 'decimal',
-    precision: 40,
-    scale: 20,
+    type: 'bigint',
     nullable: true,
-    transformer: DecimalTransformer,
   })
-  accountBalanceOnCreation?: Decimal
+  accountBalanceOnCreation?: number
 
   @Column({ type: 'tinyint' })
   type: number
@@ -106,13 +95,10 @@ export class Transaction extends BaseEntity {
   // account balance for sender based on confirmation date (iota milestone)
   @Column({
     name: 'account_balance_on_confirmation',
-    type: 'decimal',
-    precision: 40,
-    scale: 20,
+    type: 'bigint',
     nullable: true,
-    transformer: DecimalTransformer,
   })
-  accountBalanceOnConfirmation?: Decimal
+  accountBalanceOnConfirmation?: number
 
   @Column({ name: 'iota_milestone', type: 'bigint', nullable: true })
   iotaMilestone?: number
@@ -120,10 +106,4 @@ export class Transaction extends BaseEntity {
   // use timestamp from iota milestone which is only in seconds precision, so no need to use 3 Bytes extra here
   @Column({ name: 'confirmed_at', type: 'datetime', nullable: true })
   confirmedAt?: Date
-
-  @OneToMany(() => BackendTransaction, (backendTransaction) => backendTransaction.transaction, {
-    cascade: ['insert', 'update'],
-  })
-  @JoinColumn({ name: 'transaction_id' })
-  backendTransactions: BackendTransaction[]
 }

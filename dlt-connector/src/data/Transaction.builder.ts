@@ -1,18 +1,17 @@
 import { Account } from '@entity/Account'
 import { Community } from '@entity/Community'
 import { Transaction } from '@entity/Transaction'
+import {
+  GradidoTransaction,
+  InteractionSerialize,
+  InteractionToJson,
+  TransactionBody,
+} from 'gradido-blockchain-js'
 
-import { GradidoTransaction } from '@/data/proto/3_3/GradidoTransaction'
-import { TransactionBody } from '@/data/proto/3_3/TransactionBody'
-import { TransactionDraft } from '@/graphql/input/TransactionDraft'
 import { UserIdentifier } from '@/graphql/input/UserIdentifier'
 import { LogError } from '@/server/LogError'
-import { bodyBytesToTransactionBody, transactionBodyToBodyBytes } from '@/utils/typeConverter'
 
-import { AccountRepository } from './Account.repository'
-import { BackendTransactionFactory } from './BackendTransaction.factory'
 import { CommunityRepository } from './Community.repository'
-import { TransactionBodyBuilder } from './proto/TransactionBody.builder'
 
 export class TransactionBuilder {
   private transaction: Transaction
@@ -97,16 +96,6 @@ export class TransactionBuilder {
     return this
   }
 
-  public addBackendTransaction(transactionDraft: TransactionDraft): TransactionBuilder {
-    if (!this.transaction.backendTransactions) {
-      this.transaction.backendTransactions = []
-    }
-    this.transaction.backendTransactions.push(
-      BackendTransactionFactory.createFromTransactionDraft(transactionDraft),
-    )
-    return this
-  }
-
   public async setCommunityFromUser(user: UserIdentifier): Promise<TransactionBuilder> {
     // get sender community
     const community = await CommunityRepository.getCommunityForUserIdentifier(user)
@@ -122,58 +111,43 @@ export class TransactionBuilder {
     return this.setOtherCommunity(otherCommunity)
   }
 
-  public async fromGradidoTransactionSearchForAccounts(
-    gradidoTransaction: GradidoTransaction,
-  ): Promise<TransactionBuilder> {
-    this.transaction.bodyBytes = Buffer.from(gradidoTransaction.bodyBytes)
-    const transactionBody = bodyBytesToTransactionBody(this.transaction.bodyBytes)
-    this.fromTransactionBody(transactionBody)
-
-    const firstSigPair = gradidoTransaction.getFirstSignature()
-    // TODO: adapt if transactions with more than one signatures where added
-
-    // get recipient and signer accounts if not already set
-    this.transaction.signingAccount ??= await AccountRepository.findAccountByPublicKey(
-      firstSigPair.pubKey,
-    )
-    this.transaction.recipientAccount ??= await AccountRepository.findAccountByPublicKey(
-      transactionBody.getRecipientPublicKey(),
-    )
-    this.transaction.signature = Buffer.from(firstSigPair.signature)
-
-    return this
+  public fromGradidoTransaction(transaction: GradidoTransaction): TransactionBuilder {
+    const body = transaction.getTransactionBody()
+    if (!body) {
+      throw new LogError('missing transaction body on Gradido Transaction')
+    }
+    // set first signature
+    const firstSignature = transaction.getSignatureMap().getSignaturePairs().get(0).getSignature()
+    if (!firstSignature) {
+      throw new LogError('error missing first signature')
+    }
+    this.transaction.signature = firstSignature.data()
+    return this.fromTransactionBody(body, transaction.getBodyBytes()?.data())
   }
 
-  public fromGradidoTransaction(gradidoTransaction: GradidoTransaction): TransactionBuilder {
-    this.transaction.bodyBytes = Buffer.from(gradidoTransaction.bodyBytes)
-    const transactionBody = bodyBytesToTransactionBody(this.transaction.bodyBytes)
-    this.fromTransactionBody(transactionBody)
-
-    const firstSigPair = gradidoTransaction.getFirstSignature()
-    // TODO: adapt if transactions with more than one signatures where added
-    this.transaction.signature = Buffer.from(firstSigPair.signature)
-
-    return this
-  }
-
-  public fromTransactionBody(transactionBody: TransactionBody): TransactionBuilder {
-    transactionBody.fillTransactionRecipe(this.transaction)
-    this.transaction.bodyBytes ??= transactionBodyToBodyBytes(transactionBody)
-    return this
-  }
-
-  public fromTransactionBodyBuilder(
-    transactionBodyBuilder: TransactionBodyBuilder,
+  public fromTransactionBody(
+    transactionBody: TransactionBody,
+    bodyBytes: Buffer | null | undefined,
   ): TransactionBuilder {
-    const signingAccount = transactionBodyBuilder.getSigningAccount()
-    if (signingAccount) {
-      this.setSigningAccount(signingAccount)
+    if (!bodyBytes) {
+      bodyBytes = new InteractionSerialize(transactionBody).run()?.data()
     }
-    const recipientAccount = transactionBodyBuilder.getRecipientAccount()
-    if (recipientAccount) {
-      this.setRecipientAccount(recipientAccount)
+    if (!bodyBytes) {
+      throw new LogError(
+        'cannot serialize TransactionBody',
+        JSON.parse(new InteractionToJson(transactionBody).run()),
+      )
     }
-    this.fromTransactionBody(transactionBodyBuilder.getTransactionBody())
+    this.transaction.type = transactionBody.getTransactionType()
+    this.transaction.createdAt = new Date(transactionBody.getCreatedAt().getDate())
+    this.transaction.protocolVersion = transactionBody.getVersionNumber()
+
+    const transferAmount = transactionBody.getTransferAmount()
+    this.transaction.amount = transferAmount
+      ? transferAmount.getAmount().getGradidoCent()
+      : undefined
+
+    this.transaction.bodyBytes ??= bodyBytes
     return this
   }
 }

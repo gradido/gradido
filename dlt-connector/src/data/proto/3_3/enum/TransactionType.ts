@@ -4,8 +4,8 @@
  * for storing type in db as number
  */
 export enum TransactionType {
-  GRADIDO_TRANSFER = 1,
-  GRADIDO_CREATION = 2,
+  GRADIDO_CREATION = 1,
+  GRADIDO_TRANSFER = 2,
   GROUP_FRIENDS_UPDATE = 3,
   REGISTER_ADDRESS = 4,
   GRADIDO_DEFERRED_TRANSFER = 5,

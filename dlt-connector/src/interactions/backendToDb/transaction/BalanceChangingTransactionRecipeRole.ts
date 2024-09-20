@@ -1,13 +1,7 @@
-import { Community } from '@entity/Community'
-
+/* eslint-disable camelcase */
 import { AccountLogic } from '@/data/Account.logic'
 import { KeyPair } from '@/data/KeyPair'
-import { CrossGroupType } from '@/data/proto/3_3/enum/CrossGroupType'
-import { TransactionBodyBuilder } from '@/data/proto/TransactionBody.builder'
-import { UserRepository } from '@/data/User.repository'
-import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
 import { TransactionDraft } from '@/graphql/input/TransactionDraft'
-import { TransactionError } from '@/graphql/model/TransactionError'
 
 import { AbstractTransactionRole } from './AbstractTransaction.role'
 import { AbstractTransactionRecipeRole } from './AbstractTransactionRecipeRole'
@@ -17,62 +11,30 @@ export class BalanceChangingTransactionRecipeRole extends AbstractTransactionRec
     transactionDraft: TransactionDraft,
     transactionTypeRole: AbstractTransactionRole,
   ): Promise<BalanceChangingTransactionRecipeRole> {
-    const signingUser = transactionTypeRole.getSigningUser()
-    const recipientUser = transactionTypeRole.getRecipientUser()
-
     // loading signing and recipient account
-    // TODO: look for ways to use only one db call for both
-    const signingAccount = await UserRepository.findAccountByUserIdentifier(signingUser)
-    if (!signingAccount) {
-      throw new TransactionError(
-        TransactionErrorType.NOT_FOUND,
-        "couldn't found sender user account in db",
-      )
-    }
-    const recipientAccount = await UserRepository.findAccountByUserIdentifier(recipientUser)
-    if (!recipientAccount) {
-      throw new TransactionError(
-        TransactionErrorType.NOT_FOUND,
-        "couldn't found recipient user account in db",
-      )
-    }
-    // create proto transaction body
-    const transactionBodyBuilder = new TransactionBodyBuilder()
-      .setSigningAccount(signingAccount)
-      .setRecipientAccount(recipientAccount)
-      .fromTransactionDraft(transactionDraft)
-      .setCrossGroupType(transactionTypeRole.getCrossGroupType())
-      .setOtherGroup(transactionTypeRole.getOtherGroup())
+    const signingAccount = await transactionTypeRole.loadUser(transactionTypeRole.getSigningUser())
+    const recipientAccount = await transactionTypeRole.loadUser(
+      transactionTypeRole.getRecipientUser(),
+    )
+    const accountLogic = new AccountLogic(signingAccount)
+    await this.transactionBuilder.setCommunityFromUser(transactionDraft.user)
+    const communityKeyPair = new KeyPair(this.transactionBuilder.getCommunity())
+
+    const gradidoTransactionBuilder = await transactionTypeRole.getGradidoTransactionBuilder()
+    const transaction = gradidoTransactionBuilder
+      .setCreatedAt(new Date(transactionDraft.createdAt))
+      .sign(accountLogic.calculateKeyPair(communityKeyPair).keyPair)
+      .build()
 
     // build transaction entity
     this.transactionBuilder
-      .fromTransactionBodyBuilder(transactionBodyBuilder)
-      .addBackendTransaction(transactionDraft)
+      .fromGradidoTransaction(transaction)
+      .setRecipientAccount(recipientAccount)
+      .setSigningAccount(signingAccount)
 
-    await this.transactionBuilder.setCommunityFromUser(transactionDraft.user)
-    if (recipientUser.communityUuid !== signingUser.communityUuid) {
+    if (transactionTypeRole.isCrossGroupTransaction()) {
       await this.transactionBuilder.setOtherCommunityFromUser(transactionDraft.linkedUser)
     }
-    const transaction = this.transactionBuilder.getTransaction()
-    const communityKeyPair = new KeyPair(
-      this.getSigningCommunity(transactionTypeRole.getCrossGroupType()),
-    )
-    const accountLogic = new AccountLogic(signingAccount)
-    // sign
-    this.transactionBuilder.setSignature(
-      accountLogic.calculateKeyPair(communityKeyPair).sign(transaction.bodyBytes),
-    )
     return this
-  }
-
-  public getSigningCommunity(crossGroupType: CrossGroupType): Community {
-    if (crossGroupType === CrossGroupType.INBOUND) {
-      const otherCommunity = this.transactionBuilder.getOtherCommunity()
-      if (!otherCommunity) {
-        throw new TransactionError(TransactionErrorType.NOT_FOUND, 'missing other community')
-      }
-      return otherCommunity
-    }
-    return this.transactionBuilder.getCommunity()
   }
 }

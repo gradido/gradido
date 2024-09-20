@@ -1,7 +1,8 @@
+/* eslint-disable camelcase */
 import { Community } from '@entity/Community'
+import { MemoryBlock, GradidoTransactionBuilder, TransferAmount } from 'gradido-blockchain-js'
 
 import { CommunityRepository } from '@/data/Community.repository'
-import { CrossGroupType } from '@/data/proto/3_3/enum/CrossGroupType'
 import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
 import { UserIdentifier } from '@/graphql/input/UserIdentifier'
 import { TransactionError } from '@/graphql/model/TransactionError'
@@ -19,15 +20,31 @@ export class CreationTransactionRole extends AbstractTransactionRole {
     return this.self.user
   }
 
-  public getCrossGroupType(): CrossGroupType {
-    return CrossGroupType.LOCAL
+  public async getGradidoTransactionBuilder(): Promise<GradidoTransactionBuilder> {
+    const builder = new GradidoTransactionBuilder()
+    const recipientUser = await this.loadUser(this.self.user)
+    if (!this.self.targetDate) {
+      throw new TransactionError(
+        TransactionErrorType.MISSING_PARAMETER,
+        'missing targetDate for contribution',
+      )
+    }
+    return builder
+      .setTransactionCreation(
+        new TransferAmount(
+          new MemoryBlock(recipientUser.derive2Pubkey),
+          this.self.amount.toString(),
+        ),
+        new Date(this.self.targetDate),
+      )
+      .setMemo('dummy memo for creation')
   }
 
   public async getCommunity(): Promise<Community> {
     if (this.self.user.communityUuid !== this.self.linkedUser.communityUuid) {
       throw new TransactionError(
         TransactionErrorType.LOGIC_ERROR,
-        'mismatch community uuids on creation transaction',
+        'mismatch community uuids on contribution',
       )
     }
     const community = await CommunityRepository.getCommunityForUserIdentifier(this.self.user)

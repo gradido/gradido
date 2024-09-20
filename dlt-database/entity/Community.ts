@@ -1,1 +1,1 @@
-export { Community } from './0003-refactor_transaction_recipe/Community'
+export { Community } from './0005-refactor_with_gradido_blockchain_lib/Community'

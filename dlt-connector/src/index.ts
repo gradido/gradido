@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import 'reflect-metadata'
 
+import { loadCryptoKeys, MemoryBlock } from 'gradido-blockchain-js'
+
 import { CONFIG } from '@/config'
 
 import { BackendClient } from './client/BackendClient'
 import { CommunityRepository } from './data/Community.repository'
-import { Mnemonic } from './data/Mnemonic'
 import { CommunityDraft } from './graphql/input/CommunityDraft'
 import { AddCommunityContext } from './interactions/backendToDb/community/AddCommunity.context'
 import { logger } from './logging/logger'
@@ -39,8 +40,22 @@ async function waitForServer(
 
 async function main() {
   if (CONFIG.IOTA_HOME_COMMUNITY_SEED) {
-    Mnemonic.validateSeed(CONFIG.IOTA_HOME_COMMUNITY_SEED)
+    try {
+      const seed = MemoryBlock.fromHex(CONFIG.IOTA_HOME_COMMUNITY_SEED)
+      if (seed.size() < 32) {
+        throw new Error('seed need to be greater than 32 Bytes')
+      }
+    } catch (_) {
+      throw new LogError(
+        'IOTA_HOME_COMMUNITY_SEED must be a valid hex string, at least 64 characters long',
+      )
+    }
   }
+  // load crypto keys for gradido blockchain lib
+  loadCryptoKeys(
+    MemoryBlock.fromHex(CONFIG.GRADIDO_BLOCKCHAIN_CRYPTO_APP_SECRET),
+    MemoryBlock.fromHex(CONFIG.GRADIDO_BLOCKCHAIN_SERVER_CRYPTO_KEY),
+  )
   // eslint-disable-next-line no-console
   console.log(`DLT_CONNECTOR_PORT=${CONFIG.DLT_CONNECTOR_PORT}`)
   const { app } = await createServer()

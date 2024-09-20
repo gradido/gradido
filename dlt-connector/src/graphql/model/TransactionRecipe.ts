@@ -7,7 +7,7 @@ import { getEnumValue } from '@/utils/typeConverter'
 
 @ObjectType()
 export class TransactionRecipe {
-  public constructor({ id, createdAt, type, community }: Transaction) {
+  public constructor({ id, createdAt, type, community, signature }: Transaction) {
     const transactionType = getEnumValue(TransactionType, type)
     if (!transactionType) {
       throw new LogError('invalid transaction, type is missing')
@@ -16,6 +16,7 @@ export class TransactionRecipe {
     this.createdAt = createdAt.toString()
     this.type = transactionType.toString()
     this.topic = community.iotaTopic
+    this.signatureHex = signature.toString('hex')
   }
 
   @Field(() => Int)
@@ -29,4 +30,7 @@ export class TransactionRecipe {
 
   @Field(() => String)
   topic: string
+
+  @Field(() => String)
+  signatureHex: string
 }

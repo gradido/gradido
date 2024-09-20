@@ -13,7 +13,8 @@ import { Decimal } from 'decimal.js-light'
 import { DecimalTransformer } from '../../src/typeorm/DecimalTransformer'
 import { Account } from '../Account'
 import { Community } from '../Community'
-import { BackendTransaction } from '../BackendTransaction'
+// BackendTransaction was removed in newer migrations, so only the version from this folder can be linked
+import { BackendTransaction } from '../0003-refactor_transaction_recipe/BackendTransaction'
 
 @Entity('transactions')
 export class Transaction extends BaseEntity {

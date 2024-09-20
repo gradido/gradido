@@ -12,6 +12,7 @@ export enum TransactionErrorType {
   INVALID_SIGNATURE = 'Invalid Signature',
   LOGIC_ERROR = 'Logic Error',
   NOT_FOUND = 'Not found',
+  VALIDATION_ERROR = 'Validation Error',
 }
 
 registerEnumType(TransactionErrorType, {

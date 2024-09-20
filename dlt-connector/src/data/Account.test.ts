@@ -1,7 +1,14 @@
+/* eslint-disable camelcase */
 import 'reflect-metadata'
 import { Decimal } from 'decimal.js-light'
 
 import { TestDB } from '@test/TestDB'
+
+import {
+  AddressType_COMMUNITY_AUF,
+  AddressType_COMMUNITY_GMW,
+  AddressType_COMMUNITY_HUMAN,
+} from 'gradido-blockchain-js'
 
 import { AccountType } from '@/graphql/enum/AccountType'
 import { UserAccountDraft } from '@/graphql/input/UserAccountDraft'
@@ -11,7 +18,6 @@ import { AccountFactory } from './Account.factory'
 import { AccountRepository } from './Account.repository'
 import { KeyPair } from './KeyPair'
 import { Mnemonic } from './Mnemonic'
-import { AddressType } from './proto/3_3/enum/AddressType'
 import { UserFactory } from './User.factory'
 import { UserLogic } from './User.logic'
 
@@ -37,14 +43,14 @@ describe('data/Account test factory and repository', () => {
     })
 
     it('test createAccount', () => {
-      const account = AccountFactory.createAccount(now, 1, AddressType.COMMUNITY_HUMAN, keyPair1)
+      const account = AccountFactory.createAccount(now, 1, AddressType_COMMUNITY_HUMAN, keyPair1)
       expect(account).toMatchObject({
         derivationIndex: 1,
         derive2Pubkey: Buffer.from(
           'cb88043ef4833afc01d6ed9b34e1aa48e79dce5ff97c07090c6600ec05f6d994',
           'hex',
         ),
-        type: AddressType.COMMUNITY_HUMAN,
+        type: AddressType_COMMUNITY_HUMAN,
         createdAt: now,
         balanceCreatedAt: now,
         balanceOnConfirmation: new Decimal(0),
@@ -65,7 +71,7 @@ describe('data/Account test factory and repository', () => {
           'cb88043ef4833afc01d6ed9b34e1aa48e79dce5ff97c07090c6600ec05f6d994',
           'hex',
         ),
-        type: AddressType.COMMUNITY_HUMAN,
+        type: AddressType_COMMUNITY_HUMAN,
         createdAt: now,
         balanceCreatedAt: now,
         balanceOnConfirmation: new Decimal(0),
@@ -81,7 +87,7 @@ describe('data/Account test factory and repository', () => {
           '05f0060357bb73bd290283870fc47a10b3764f02ca26938479ed853f46145366',
           'hex',
         ),
-        type: AddressType.COMMUNITY_GMW,
+        type: AddressType_COMMUNITY_GMW,
         createdAt: now,
         balanceCreatedAt: now,
         balanceOnConfirmation: new Decimal(0),
@@ -97,7 +103,7 @@ describe('data/Account test factory and repository', () => {
           '6c749f8693a4a58c948e5ae54df11e2db33d2f98673b56e0cf19c0132614ab59',
           'hex',
         ),
-        type: AddressType.COMMUNITY_AUF,
+        type: AddressType_COMMUNITY_AUF,
         createdAt: now,
         balanceCreatedAt: now,
         balanceOnConfirmation: new Decimal(0),
@@ -151,7 +157,7 @@ describe('data/Account test factory and repository', () => {
               '0fa996b73b624592fe326b8500cb1e3f10026112b374d84c87d097f4d489c019',
               'hex',
             ),
-            type: AddressType.COMMUNITY_GMW,
+            type: AddressType_COMMUNITY_GMW,
           }),
           expect.objectContaining({
             derivationIndex: 2147483650,
@@ -159,7 +165,7 @@ describe('data/Account test factory and repository', () => {
               '6c749f8693a4a58c948e5ae54df11e2db33d2f98673b56e0cf19c0132614ab59',
               'hex',
             ),
-            type: AddressType.COMMUNITY_AUF,
+            type: AddressType_COMMUNITY_AUF,
           }),
         ]),
       )
@@ -176,7 +182,7 @@ describe('data/Account test factory and repository', () => {
           '6c749f8693a4a58c948e5ae54df11e2db33d2f98673b56e0cf19c0132614ab59',
           'hex',
         ),
-        type: AddressType.COMMUNITY_AUF,
+        type: AddressType_COMMUNITY_AUF,
       })
     })
 
@@ -190,7 +196,7 @@ describe('data/Account test factory and repository', () => {
           '2099c004a26e5387c9fbbc9bb0f552a9642d3fd7c710ae5802b775d24ff36f93',
           'hex',
         ),
-        type: AddressType.COMMUNITY_HUMAN,
+        type: AddressType_COMMUNITY_HUMAN,
       })
     })
   })

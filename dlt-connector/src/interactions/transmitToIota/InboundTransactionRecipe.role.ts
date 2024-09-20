@@ -1,6 +1,6 @@
 import { Transaction } from '@entity/Transaction'
+import { MemoryBlock } from 'gradido-blockchain-js'
 
-import { TransactionLogic } from '@/data/Transaction.logic'
 import { logger } from '@/logging/logger'
 import { TransactionLoggingView } from '@/logging/TransactionLogging.view'
 import { LogError } from '@/server/LogError'
@@ -12,9 +12,13 @@ import { AbstractTransactionRecipeRole } from './AbstractTransactionRecipe.role'
  * need to set gradido id from OUTBOUND transaction!
  */
 export class InboundTransactionRecipeRole extends AbstractTransactionRecipeRole {
+  public getCrossGroupTypeName(): string {
+    return 'INBOUND'
+  }
+
   public async transmitToIota(): Promise<Transaction> {
     logger.debug('transmit INBOUND transaction to iota', new TransactionLoggingView(this.self))
-    const gradidoTransaction = this.getGradidoTransaction()
+    const builder = this.getGradidoTransactionBuilder()
     const pairingTransaction = await new TransactionLogic(this.self).findPairTransaction()
     if (!pairingTransaction.iotaMessageId || pairingTransaction.iotaMessageId.length !== 32) {
       throw new LogError(
@@ -22,7 +26,7 @@ export class InboundTransactionRecipeRole extends AbstractTransactionRecipeRole 
         new TransactionLoggingView(pairingTransaction),
       )
     }
-    gradidoTransaction.parentMessageId = pairingTransaction.iotaMessageId
+    builder.setParentMessageId(new MemoryBlock(pairingTransaction.iotaMessageId))
     this.self.pairingTransactionId = pairingTransaction.id
     this.self.pairingTransaction = pairingTransaction
     pairingTransaction.pairingTransactionId = this.self.id
@@ -32,7 +36,7 @@ export class InboundTransactionRecipeRole extends AbstractTransactionRecipeRole 
     }
 
     this.self.iotaMessageId = await this.sendViaIota(
-      gradidoTransaction,
+      this.validate(builder),
       this.self.otherCommunity.iotaTopic,
     )
     return this.self

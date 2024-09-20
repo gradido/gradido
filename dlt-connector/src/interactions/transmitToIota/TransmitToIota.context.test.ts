@@ -1,6 +1,7 @@
 import 'reflect-metadata'
 import { Account } from '@entity/Account'
 import { Decimal } from 'decimal.js-light'
+import { CrossGroupType_INBOUND, CrossGroupType_OUTBOUND, InteractionDeserialize, InteractionToJson, InteractionValidate, MemoryBlock } from 'gradido-blockchain-js'
 import { v4 } from 'uuid'
 
 import { TestDB } from '@test/TestDB'
@@ -8,8 +9,6 @@ import { TestDB } from '@test/TestDB'
 import { CONFIG } from '@/config'
 import { KeyPair } from '@/data/KeyPair'
 import { Mnemonic } from '@/data/Mnemonic'
-import { CrossGroupType } from '@/data/proto/3_3/enum/CrossGroupType'
-import { TransactionBody } from '@/data/proto/3_3/TransactionBody'
 import { InputTransactionType } from '@/graphql/enum/InputTransactionType'
 import { TransactionDraft } from '@/graphql/input/TransactionDraft'
 import { logger } from '@/logging/logger'
@@ -76,7 +75,7 @@ describe('interactions/transmitToIota/TransmitToIotaContext', () => {
 
   it('LOCAL transaction', async () => {
     const creationTransactionDraft = new TransactionDraft()
-    creationTransactionDraft.amount = new Decimal('2000')
+    creationTransactionDraft.amount = new Decimal('1000')
     creationTransactionDraft.backendTransactionId = 1
     creationTransactionDraft.createdAt = new Date().toISOString()
     creationTransactionDraft.linkedUser = moderator.identifier
@@ -116,8 +115,11 @@ describe('interactions/transmitToIota/TransmitToIotaContext', () => {
     await transactionRecipeContext.run()
     const transaction = transactionRecipeContext.getTransactionRecipe()
     await transaction.save()
-    const body = TransactionBody.fromBodyBytes(transaction.bodyBytes)
-    expect(body.type).toBe(CrossGroupType.OUTBOUND)
+    const deserializer = new InteractionDeserialize(new MemoryBlock(transaction.bodyBytes))
+    deserializer.run()
+    const body = deserializer.getTransactionBody()
+    expect(body).not.toBeNull()
+    expect(body?.getType()).toEqual(CrossGroupType_OUTBOUND)
     const context = new TransmitToIotaContext(transaction)
     const debugSpy = jest.spyOn(logger, 'debug')
     await context.run()
@@ -148,8 +150,10 @@ describe('interactions/transmitToIota/TransmitToIotaContext', () => {
     const transaction = transactionRecipeContext.getTransactionRecipe()
     await transaction.save()
     // console.log(new TransactionLoggingView(transaction))
-    const body = TransactionBody.fromBodyBytes(transaction.bodyBytes)
-    expect(body.type).toBe(CrossGroupType.INBOUND)
+    const deserializer = new InteractionDeserialize(new MemoryBlock(transaction.bodyBytes))
+    deserializer.run()
+    const body = deserializer.getTransactionBody()
+    expect(body?.getType()).toEqual(CrossGroupType_INBOUND)
 
     const context = new TransmitToIotaContext(transaction)
     const debugSpy = jest.spyOn(logger, 'debug')

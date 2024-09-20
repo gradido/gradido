@@ -14,7 +14,6 @@ import { AbstractTransactionRecipeRole } from './AbstractTransactionRecipeRole'
 import { BalanceChangingTransactionRecipeRole } from './BalanceChangingTransactionRecipeRole'
 import { CommunityRootTransactionRole } from './CommunityRootTransaction.role'
 import { CreationTransactionRole } from './CreationTransaction.role'
-import { ReceiveTransactionRole } from './ReceiveTransaction.role'
 import { RegisterAddressTransactionRole } from './RegisterAddressTransaction.role'
 import { SendTransactionRole } from './SendTransaction.role'
 
@@ -55,8 +54,7 @@ export class CreateTransactionRecipeContext {
           transactionTypeRole = new SendTransactionRole(this.draft)
           break
         case InputTransactionType.RECEIVE:
-          transactionTypeRole = new ReceiveTransactionRole(this.draft)
-          break
+          return false
       }
       this.transactionRecipe = await new BalanceChangingTransactionRecipeRole().create(
         this.draft,

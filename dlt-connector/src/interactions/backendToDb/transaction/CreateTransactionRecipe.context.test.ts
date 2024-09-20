@@ -1,18 +1,23 @@
+/* eslint-disable camelcase */
 import 'reflect-metadata'
 import { Account } from '@entity/Account'
 import { Community } from '@entity/Community'
-import { Decimal } from 'decimal.js-light'
+import {
+  AddressType_COMMUNITY_HUMAN,
+  CrossGroupType_INBOUND,
+  CrossGroupType_LOCAL,
+  CrossGroupType_OUTBOUND,
+  InteractionDeserialize,
+  MemoryBlock,
+  TransactionType_CREATION,
+} from 'gradido-blockchain-js'
 import { v4 } from 'uuid'
 
 import { TestDB } from '@test/TestDB'
 
 import { CONFIG } from '@/config'
 import { KeyPair } from '@/data/KeyPair'
-import { Mnemonic } from '@/data/Mnemonic'
-import { AddressType } from '@/data/proto/3_3/enum/AddressType'
-import { CrossGroupType } from '@/data/proto/3_3/enum/CrossGroupType'
 import { TransactionType } from '@/data/proto/3_3/enum/TransactionType'
-import { TransactionBody } from '@/data/proto/3_3/TransactionBody'
 import { AccountType } from '@/graphql/enum/AccountType'
 import { InputTransactionType } from '@/graphql/enum/InputTransactionType'
 import { TransactionDraft } from '@/graphql/input/TransactionDraft'
@@ -34,9 +39,9 @@ CONFIG.IOTA_HOME_COMMUNITY_SEED = '034b0229a2ba4e98e1cc5e8767dca886279b484303ffa
 const homeCommunityUuid = v4()
 const foreignCommunityUuid = v4()
 
-const keyPair = new KeyPair(new Mnemonic(CONFIG.IOTA_HOME_COMMUNITY_SEED))
+const keyPair = new KeyPair(MemoryBlock.fromHex(CONFIG.IOTA_HOME_COMMUNITY_SEED))
 const foreignKeyPair = new KeyPair(
-  new Mnemonic('5d4e163c078cc6b51f5c88f8422bc8f21d1d59a284515ab1ea79e1c176ebec50'),
+  MemoryBlock.fromHex('5d4e163c078cc6b51f5c88f8422bc8f21d1d59a284515ab1ea79e1c176ebec50'),
 )
 
 let moderator: UserSet
@@ -94,16 +99,17 @@ describe('interactions/backendToDb/transaction/Create Transaction Recipe Context
         derive2Pubkey: firstUser.account.derive2Pubkey,
       },
     })
-
-    const body = TransactionBody.fromBodyBytes(transaction.bodyBytes)
-    expect(body.registerAddress).toBeDefined()
-    if (!body.registerAddress) throw new Error()
+    const deserializer = new InteractionDeserialize(new MemoryBlock(transaction.bodyBytes))
+    deserializer.run()
+    const body = deserializer.getTransactionBody()
+    expect(body).not.toBeNull()
+    expect(body?.isRegisterAddress()).toBeTruthy()
 
     expect(body).toMatchObject({
-      type: CrossGroupType.LOCAL,
+      type: CrossGroupType_LOCAL,
       registerAddress: {
         derivationIndex: 1,
-        addressType: AddressType.COMMUNITY_HUMAN,
+        addressType: AddressType_COMMUNITY_HUMAN,
       },
     })
   })
@@ -121,9 +127,8 @@ describe('interactions/backendToDb/transaction/Create Transaction Recipe Context
     await context.run()
     const transaction = context.getTransactionRecipe()
 
-    // console.log(new TransactionLoggingView(transaction))
     expect(transaction).toMatchObject({
-      type: TransactionType.GRADIDO_CREATION,
+      type: TransactionType_CREATION,
       protocolVersion: '3.3',
       community: {
         rootPubkey: keyPair.publicKey,
@@ -144,15 +149,23 @@ describe('interactions/backendToDb/transaction/Create Transaction Recipe Context
       ],
     })
 
-    const body = TransactionBody.fromBodyBytes(transaction.bodyBytes)
+    const deserializer = new InteractionDeserialize(new MemoryBlock(transaction.bodyBytes))
+    deserializer.run()
+    const body = deserializer.getTransactionBody()
+    expect(body).not.toBeNull()
     // console.log(new TransactionBodyLoggingView(body))
-    expect(body.creation).toBeDefined()
-    if (!body.creation) throw new Error()
-    const bodyReceiverPubkey = Buffer.from(body.creation.recipient.pubkey)
-    expect(bodyReceiverPubkey.compare(firstUser.account.derive2Pubkey)).toBe(0)
+    expect(body?.isCreation()).toBeTruthy()
+
+    expect(
+      body
+        ?.getCreation()
+        ?.getRecipient()
+        .getPubkey()
+        ?.equal(new MemoryBlock(firstUser.account.derive2Pubkey)),
+    ).toBeTruthy()
 
     expect(body).toMatchObject({
-      type: CrossGroupType.LOCAL,
+      type: CrossGroupType_LOCAL,
       creation: {
         recipient: {
           amount: '2000',
@@ -196,16 +209,23 @@ describe('interactions/backendToDb/transaction/Create Transaction Recipe Context
       ],
     })
 
-    const body = TransactionBody.fromBodyBytes(transaction.bodyBytes)
+    const deserializer = new InteractionDeserialize(new MemoryBlock(transaction.bodyBytes))
+    deserializer.run()
+    const body = deserializer.getTransactionBody()
+    expect(body).not.toBeNull()
     // console.log(new TransactionBodyLoggingView(body))
-    expect(body.transfer).toBeDefined()
-    if (!body.transfer) throw new Error()
-    expect(Buffer.from(body.transfer.recipient).compare(secondUser.account.derive2Pubkey)).toBe(0)
-    expect(Buffer.from(body.transfer.sender.pubkey).compare(firstUser.account.derive2Pubkey)).toBe(
-      0,
-    )
+    expect(body?.isTransfer()).toBeTruthy()
+    const transfer = body?.getTransfer()
+    expect(transfer).not.toBeNull()
+    expect(
+      transfer?.getRecipient()?.equal(new MemoryBlock(secondUser.account.derive2Pubkey)),
+    ).toBeTruthy()
+    expect(
+      transfer?.getSender().getPubkey()?.equal(new MemoryBlock(firstUser.account.derive2Pubkey)),
+    ).toBeTruthy()
+
     expect(body).toMatchObject({
-      type: CrossGroupType.LOCAL,
+      type: CrossGroupType_LOCAL,
       transfer: {
         sender: {
           amount: '100',
@@ -248,16 +268,22 @@ describe('interactions/backendToDb/transaction/Create Transaction Recipe Context
       ],
     })
 
-    const body = TransactionBody.fromBodyBytes(transaction.bodyBytes)
-    // console.log(new TransactionBodyLoggingView(body))
-    expect(body.transfer).toBeDefined()
-    if (!body.transfer) throw new Error()
-    expect(Buffer.from(body.transfer.recipient).compare(secondUser.account.derive2Pubkey)).toBe(0)
-    expect(Buffer.from(body.transfer.sender.pubkey).compare(firstUser.account.derive2Pubkey)).toBe(
-      0,
-    )
+    const deserializer = new InteractionDeserialize(new MemoryBlock(transaction.bodyBytes))
+    deserializer.run()
+    const body = deserializer.getTransactionBody()
+    expect(body).not.toBeNull()
+    expect(body?.isTransfer()).toBeTruthy()
+    const transfer = body?.getTransfer()
+    expect(transfer).not.toBeNull()
+    expect(
+      transfer?.getRecipient()?.equal(new MemoryBlock(secondUser.account.derive2Pubkey)),
+    ).toBeTruthy()
+    expect(
+      transfer?.getSender().getPubkey()?.equal(new MemoryBlock(firstUser.account.derive2Pubkey)),
+    ).toBeTruthy()
+
     expect(body).toMatchObject({
-      type: CrossGroupType.LOCAL,
+      type: CrossGroupType_LOCAL,
       transfer: {
         sender: {
           amount: '100',
@@ -304,16 +330,22 @@ describe('interactions/backendToDb/transaction/Create Transaction Recipe Context
         },
       ],
     })
-    const body = TransactionBody.fromBodyBytes(transaction.bodyBytes)
+    const deserializer = new InteractionDeserialize(new MemoryBlock(transaction.bodyBytes))
+    deserializer.run()
+    const body = deserializer.getTransactionBody()
+    expect(body).not.toBeNull()
     // console.log(new TransactionBodyLoggingView(body))
-    expect(body.transfer).toBeDefined()
-    if (!body.transfer) throw new Error()
-    expect(Buffer.from(body.transfer.recipient).compare(foreignUser.account.derive2Pubkey)).toBe(0)
-    expect(Buffer.from(body.transfer.sender.pubkey).compare(firstUser.account.derive2Pubkey)).toBe(
-      0,
-    )
+    expect(body?.isTransfer()).toBeTruthy()
+    const transfer = body?.getTransfer()
+    expect(transfer).not.toBeNull()
+    expect(
+      transfer?.getRecipient()?.equal(new MemoryBlock(foreignUser.account.derive2Pubkey)),
+    ).toBeTruthy()
+    expect(
+      transfer?.getSender().getPubkey()?.equal(new MemoryBlock(firstUser.account.derive2Pubkey)),
+    ).toBeTruthy()
     expect(body).toMatchObject({
-      type: CrossGroupType.OUTBOUND,
+      type: CrossGroupType_OUTBOUND,
       otherGroup: foreignTopic,
       transfer: {
         sender: {
@@ -361,16 +393,22 @@ describe('interactions/backendToDb/transaction/Create Transaction Recipe Context
         },
       ],
     })
-    const body = TransactionBody.fromBodyBytes(transaction.bodyBytes)
+    const deserializer = new InteractionDeserialize(new MemoryBlock(transaction.bodyBytes))
+    deserializer.run()
+    const body = deserializer.getTransactionBody()
+    expect(body).not.toBeNull()
     // console.log(new TransactionBodyLoggingView(body))
-    expect(body.transfer).toBeDefined()
-    if (!body.transfer) throw new Error()
-    expect(Buffer.from(body.transfer.recipient).compare(foreignUser.account.derive2Pubkey)).toBe(0)
-    expect(Buffer.from(body.transfer.sender.pubkey).compare(firstUser.account.derive2Pubkey)).toBe(
-      0,
-    )
+    expect(body?.isTransfer()).toBeTruthy()
+    const transfer = body?.getTransfer()
+    expect(transfer).not.toBeNull()
+    expect(
+      transfer?.getRecipient()?.equal(new MemoryBlock(foreignUser.account.derive2Pubkey)),
+    ).toBeTruthy()
+    expect(
+      transfer?.getSender().getPubkey()?.equal(new MemoryBlock(firstUser.account.derive2Pubkey)),
+    ).toBeTruthy()
     expect(body).toMatchObject({
-      type: CrossGroupType.INBOUND,
+      type: CrossGroupType_INBOUND,
       otherGroup: topic,
       transfer: {
         sender: {
