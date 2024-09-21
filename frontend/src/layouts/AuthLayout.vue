@@ -1,81 +1,86 @@
 <template>
   <div class="auth-template">
     <div class="h-100 align-middle">
-      <auth-navbar class="zindex10" />
+      <auth-navbar class="index10" />
 
       <div class="left-content-box position-fixed d-none d-lg-block">
         <div class="bg-img-box position-absolute w-100">
           <auth-carousel class="carousel" />
         </div>
         <div class="bg-txt-box position-relative d-none d-lg-block text-center align-self-center">
-          <b-link :href="`https://gradido.net/${$i18n.locale}`" target="_blank">
-            <b-button variant="gradido">
+          <BLink :href="`https://gradido.net/${$i18n.locale}`" target="_blank">
+            <BButton variant="gradido">
               {{ $t('auth.left.learnMore') }}
-            </b-button>
-          </b-link>
+            </BButton>
+          </BLink>
         </div>
       </div>
-      <b-row class="justify-content-md-center justify-content-lg-end">
-        <b-col sm="12" md="8" lg="6" class="zindex1000">
-          <div class="ml-3 ml-sm-4 mr-3 mr-sm-4">
-            <b-row class="d-none d-md-block d-lg-none">
-              <b-col class="mb--4">
+      <BRow class="justify-content-md-center justify-content-lg-end">
+        <BCol sm="12" md="8" lg="6" class="zindex1000">
+          <div class="ms-3 ms-sm-4 me-3 me-sm-4">
+            <BRow class="d-none d-md-block d-lg-none">
+              <BCol class="mb--4">
                 <auth-navbar-small />
-              </b-col>
-            </b-row>
-            <b-row class="mt-0 mt-md-5 pl-2 pl-md-0 pl-lg-0">
-              <b-col lg="9" md="9" sm="12">
+              </BCol>
+            </BRow>
+            <BRow class="mt-0 mt-md-5 ps-2 ps-md-0 ps-lg-0">
+              <BCol lg="9" md="9" sm="12">
                 <div class="mb--2">{{ $t('welcome') }}</div>
                 <div class="h1 mb-0">{{ communityName }}</div>
                 <div class="mb-0">{{ $t('1000thanks') }}</div>
-              </b-col>
-              <b-col cols="3" class="text-right d-none d-sm-none d-md-inline">
-                <b-avatar src="/img/brand/gradido_coin●.png" size="6rem"></b-avatar>
-              </b-col>
-            </b-row>
-            <b-card no-body ref="pageFontSize" class="border-0 mt-4 gradido-custom-background">
-              <b-row class="p-4">
-                <b-col cols="10">
-                  <language-switch class="ml-3" />
-                </b-col>
-                <b-col cols="2" class="text-right">
+              </BCol>
+              <BCol cols="3" class="text-end d-none d-sm-none d-md-inline">
+                <BAvatar src="/img/brand/gradido_coin●.png" size="6rem" />
+              </BCol>
+            </BRow>
+            <BCard ref="pageFontSize" no-body class="border-0 mt-4 gradido-custom-background">
+              <BRow class="p-4">
+                <BCol cols="10">
+                  <language-switch-2 class="ms-3" />
+                </BCol>
+                <BCol cols="2" class="text-end">
                   <div id="popover-target-1" class="pointer">
-                    <b-img src="/img/svg/type.svg" width="19" class="svgType"></b-img>
+                    <BImg src="/img/svg/type.svg" width="19" class="svg-type"></BImg>
                   </div>
-                  <b-popover
+                  <BPopover
                     target="popover-target-1"
                     triggers="click"
                     placement="top"
                     variant="dark"
+                    custom-class="login-size-controller"
                   >
                     <div class="text-light">
                       <span class="pointer" @click="setTextSize(0.85)">{{ $t('85') }}</span>
-                      {{ $t('math.pipe') }}
+                      {{ $t('|') }}
                       <span class="pointer" @click="setTextSize(1)">{{ $t('100') }}</span>
-                      {{ $t('math.pipe') }}
+                      {{ $t('|') }}
                       <span class="pointer" @click="setTextSize(1.25)">{{ $t('125') }}</span>
                     </div>
-                  </b-popover>
-                </b-col>
-              </b-row>
-              <b-row class="d-inline d-sm-inline d-md-none d-lg-none mb-3">
-                <b-col class="text-center">
-                  <b-avatar src="/img/brand/gradido_coin●.png" size="6rem"></b-avatar>
-                  <b-row>
-                    <b-col class="zindex1000 d-flex justify-content-center">
+                  </BPopover>
+                </BCol>
+              </BRow>
+              <BRow class="d-inline d-sm-inline d-md-none d-lg-none mb-3">
+                <BCol class="text-center">
+                  <BAvatar
+                    src="/img/brand/gradido_coin●.png"
+                    size="6rem"
+                    bg-variant="transparent"
+                  ></BAvatar>
+                  <BRow>
+                    <BCol class="zindex1000 d-flex justify-content-center">
                       <auth-navbar-small />
-                    </b-col>
-                  </b-row>
-                </b-col>
-              </b-row>
-              <b-card-body class="">
+                    </BCol>
+                  </BRow>
+                </BCol>
+              </BRow>
+              <BCardBody class="">
                 <router-view></router-view>
-              </b-card-body>
-            </b-card>
+              </BCardBody>
+            </BCard>
           </div>
-          <auth-footer v-if="!$route.meta.hideFooter" class="pr-5 mb-5"></auth-footer>
-        </b-col>
-      </b-row>
+          <auth-footer v-if="!$route.meta.hideFooter" class="pe-5 mb-5"></auth-footer>
+        </BCol>
+      </BRow>
     </div>
   </div>
 </template>
@@ -84,7 +89,7 @@
 import AuthNavbar from '@/components/Auth/AuthNavbar'
 import AuthNavbarSmall from '@/components/Auth/AuthNavbarSmall'
 import AuthCarousel from '@/components/Auth/AuthCarousel'
-import LanguageSwitch from '@/components/LanguageSwitch2'
+import LanguageSwitch2 from '@/components/LanguageSwitch2'
 import AuthFooter from '@/components/Auth/AuthFooter'
 import CONFIG from '@/config'
 
@@ -94,7 +99,7 @@ export default {
     AuthNavbar,
     AuthNavbarSmall,
     AuthCarousel,
-    LanguageSwitch,
+    LanguageSwitch2,
     AuthFooter,
   },
   data() {
@@ -104,39 +109,41 @@ export default {
   },
   methods: {
     setTextSize(size) {
-      this.$refs.pageFontSize.style.fontSize = size + 'rem'
+      this.$refs.pageFontSize.$el.style.fontSize = size + 'rem'
     },
   },
 }
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 /* left  */
 .left-content-box {
   width: 40%;
-  top: 0px;
-  bottom: 0px;
+  top: 0;
+  bottom: 0;
 }
 
 .bg-img-box {
-  top: 0px;
-  bottom: 0px;
+  top: 0;
+  bottom: 0;
 }
 
 /* right */
 .right-content-box {
   max-width: 640px;
 }
+
 .page-font-size {
   font-size: 1rem;
 }
+
 .auth-template {
   overflow-x: hidden;
 }
 
 .bg-txt-box {
   margin-top: 520px;
-  text-shadow: 2px 2px 8px #000000;
+  text-shadow: 2px 2px 8px #000;
   max-width: 733px;
 }
 
@@ -145,13 +152,31 @@ export default {
   overflow: hidden;
 }
 
-.svgType:hover {
+.svg-type:hover {
   filter: invert(38%) sepia(18%) saturate(5307%) hue-rotate(179deg) brightness(89%) contrast(89%);
 }
-@media screen and (min-width: 2000px) {
+
+@media screen and (width >= 2000px) {
   .right-content-box {
     max-width: 60%;
     font-size: xx-large;
   }
+}
+
+.login-size-controller {
+  background-color: #212529;
+}
+
+:deep(.b-avatar.text-bg-secondary) {
+  background-color: transparent !important;
+}
+
+:deep(.popover-body) {
+  background-color: #383838;
+}
+
+:deep(.popover-arrow::after),
+:deep(.popover-arrow::before) {
+  border-top-color: #383838;
 }
 </style>

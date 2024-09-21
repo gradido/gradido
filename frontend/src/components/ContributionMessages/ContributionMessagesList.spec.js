@@ -1,35 +1,56 @@
 import { mount } from '@vue/test-utils'
-import ContributionMessagesList from './ContributionMessagesList'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+import ContributionMessagesList from './ContributionMessagesList.vue'
+import { BButton } from 'bootstrap-vue-next'
 
-const localVue = global.localVue
+// Mock child components
+vi.mock('@/components/ContributionMessages/ContributionMessagesListItem', () => ({
+  default: {
+    name: 'ContributionMessagesListItem',
+    template: '<div class="contribution-messages-list-item-mock"></div>',
+    props: ['message'],
+  },
+}))
+
+vi.mock('@/components/ContributionMessages/ContributionMessagesFormular', () => ({
+  default: {
+    name: 'ContributionMessagesFormular',
+    template: '<div class="contribution-messages-formular-mock"></div>',
+    props: ['contributionId'],
+  },
+}))
 
 describe('ContributionMessagesList', () => {
   let wrapper
 
-  const propsData = {
-    contributionId: 42,
-    status: 'IN_PROGRESS',
-    messages: [],
-  }
-
-  const mocks = {
-    $t: jest.fn((t) => t),
-    $i18n: {
-      locale: 'en',
-    },
-  }
-
-  const Wrapper = () => {
+  const createWrapper = (props = {}) => {
     return mount(ContributionMessagesList, {
-      localVue,
-      mocks,
-      propsData,
+      props: {
+        contributionId: 42,
+        status: 'IN_PROGRESS',
+        messages: [],
+        ...props,
+      },
+      global: {
+        components: {
+          BButton,
+        },
+        mocks: {
+          $t: (key) => key,
+        },
+        stubs: {
+          IBiArrowUpShort: true,
+        },
+        directives: {
+          bToggle: {},
+        },
+      },
     })
   }
 
   describe('mount', () => {
     beforeEach(() => {
-      wrapper = Wrapper()
+      wrapper = createWrapper()
     })
 
     it('has a DIV .contribution-messages-list', () => {
@@ -40,14 +61,32 @@ describe('ContributionMessagesList', () => {
       expect(wrapper.findComponent({ name: 'ContributionMessagesFormular' }).exists()).toBe(true)
     })
 
-    describe('update Status', () => {
-      beforeEach(() => {
-        wrapper.vm.updateStatus()
+    it('renders ContributionMessagesListItem for each message', async () => {
+      await wrapper.setProps({
+        messages: [{ id: 1 }, { id: 2 }],
       })
+      expect(wrapper.findAll('.contribution-messages-list-item-mock').length).toBe(2)
+    })
 
-      it('emits getListContributionMessages', async () => {
-        expect(wrapper.vm.$emit('update-status')).toBeTruthy()
-      })
+    it('does not render ContributionMessagesFormular when status is not PENDING or IN_PROGRESS', async () => {
+      await wrapper.setProps({ status: 'COMPLETED' })
+      expect(wrapper.findComponent({ name: 'ContributionMessagesFormular' }).exists()).toBe(false)
+    })
+
+    it('renders close button', () => {
+      expect(wrapper.find('button').text()).toContain('form.close')
+    })
+  })
+
+  describe('events', () => {
+    beforeEach(() => {
+      wrapper = createWrapper()
+    })
+
+    it('emits update-status event when updateStatus method is called', async () => {
+      await wrapper.vm.updateStatus(42)
+      expect(wrapper.emitted('update-status')).toBeTruthy()
+      expect(wrapper.emitted('update-status')[0]).toEqual([42])
     })
   })
 })

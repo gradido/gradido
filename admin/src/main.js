@@ -1,5 +1,5 @@
-import Vue from 'vue'
-import App from './App'
+import { createApp } from 'vue'
+import App from './App.vue'
 
 // without this async calls are not working
 import 'regenerator-runtime'
@@ -11,36 +11,36 @@ import addNavigationGuards from './router/guards'
 
 import i18n from './i18n'
 
-import VueApollo from 'vue-apollo'
-
 import PortalVue from 'portal-vue'
 
-import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
-import 'bootstrap/dist/css/bootstrap.css'
-import 'bootstrap-vue/dist/bootstrap-vue.css'
+import { createBootstrap } from 'bootstrap-vue-next'
 
-import { toasters } from './mixins/toaster'
+// Add the necessary CSS
+import 'bootstrap/dist/css/bootstrap.css'
+import 'bootstrap-vue-next/dist/bootstrap-vue-next.css'
 
 import { apolloProvider } from './plugins/apolloProvider'
 
-Vue.use(PortalVue)
-Vue.use(BootstrapVue)
+export function createAdminApp() {
+  const app = createApp(App)
 
-Vue.use(IconsPlugin)
+  app.use(router)
+  app.use(store)
 
-Vue.use(VueApollo)
+  i18n.global.locale.value =
+    store.state.moderator && store.state.moderator.language ? store.state.moderator.language : 'en'
 
-Vue.mixin(toasters)
+  app.use(i18n)
+  app.use(PortalVue)
+  app.use(createBootstrap())
 
-addNavigationGuards(router, store, apolloProvider.defaultClient, i18n)
+  app.use(() => apolloProvider)
 
-i18n.locale =
-  store.state.moderator && store.state.moderator.language ? store.state.moderator.language : 'en'
+  addNavigationGuards(router, store, apolloProvider.defaultClient, i18n)
+  return app
+}
 
-new Vue({
-  router,
-  store,
-  i18n,
-  apolloProvider,
-  render: (h) => h(App),
-}).$mount('#app')
+if (process.env.NODE_ENV !== 'test') {
+  const app = createAdminApp()
+  app.mount('#app')
+}

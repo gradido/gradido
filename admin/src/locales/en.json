@@ -4,11 +4,11 @@
   "back": "back",
   "change_user_role": "Change user role",
   "chat": "Chat",
+  "close": "Close",
   "contributionLink": {
     "amount": "Amount",
     "changeSaved": "Changes saved",
     "clear": "Clear",
-    "close": "Close",
     "contributionLinks": "Contribution Links",
     "create": "Create",
     "cycle": "Cycle",
@@ -69,6 +69,7 @@
   "deleted_user": "All deleted user",
   "deny": "Reject",
   "e_mail": "E-mail",
+  "edit": "edit",
   "enabled": "enabled",
   "error": "Error",
   "expired": "expired",
@@ -76,9 +77,12 @@
     "apiVersion": "API Version",
     "authenticatedAt": "verified at:",
     "communityUuid": "Community UUID:",
+    "coordinates": "Coordinates:",
     "createdAt": "Created At ",
     "gmsApiKey": "GMS API Key:",
+    "toast_gmsApiKeyAndLocationUpdated": "The GMS Api Key and the location have been successfully updated!",
     "toast_gmsApiKeyUpdated": "The GMS Api Key has been successfully updated!",
+    "toast_gmsLocationUpdated": "The GMS location has been successfully updated!",
     "gradidoInstances": "Gradido Instances",
     "lastAnnouncedAt": "Last Announced",
     "lastErrorAt": "last error at",
@@ -100,6 +104,14 @@
   "form": {
     "cancel": "Cancel"
   },
+  "geo-coordinates": {
+    "both-or-none": "Please enter both or none!",
+    "label": "geo-coordinates",
+    "format": "{latitude}, {longitude}",
+    "latitude-longitude-smart": {
+      "describe": "Automatically splits coordinates in the format 'latitude, longitude'. Simply enter your coordinates from Google Maps here, for example: 49.28187664243721, 9.740672183943639."
+    }
+  },
   "help": {
     "help": "Help",
     "transactionlist": {
@@ -113,6 +125,9 @@
   "hide_resubmission": "Hide resubmission",
   "hide_resubmission_tooltip": "Hides all creations for which a moderator has set a reminder date.",
   "lastname": "Lastname",
+  "latitude": "Latitude:",
+  "latitude-longitude-smart": "Latitude, Longitude",
+  "longitude": "Longitude:",
   "math": {
     "equals": "=",
     "pipe": "|",

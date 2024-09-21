@@ -1,124 +1,130 @@
 import { mount } from '@vue/test-utils'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import NavBar from './NavBar'
+import { createStore } from 'vuex'
+import { createRouter, createWebHistory } from 'vue-router'
+import CONFIG from '../config'
+import { BNavbar, BNavbarNav, BNavItem } from 'bootstrap-vue-next'
 
-const localVue = global.localVue
+// Mock vue-router
+vi.mock('vue-router', async () => {
+  const actual = await vi.importActual('vue-router')
+  return {
+    ...actual,
+    useRoute: vi.fn(() => ({
+      name: 'user',
+    })),
+  }
+})
 
-const apolloMutateMock = jest.fn()
-const storeDispatchMock = jest.fn()
-const routerPushMock = jest.fn()
-
-const stubs = {
-  RouterLink: true,
-}
-
-const mocks = {
-  $t: jest.fn((t) => t),
-  $apollo: {
-    mutate: apolloMutateMock,
-  },
-  $store: {
+const createVuexStore = () =>
+  createStore({
     state: {
       openCreations: 1,
       token: 'valid-token',
     },
-    dispatch: storeDispatchMock,
-  },
-  $router: {
-    push: routerPushMock,
-  },
-}
+    actions: {
+      logout: vi.fn(),
+    },
+  })
+
+vi.mock('@vue/apollo-composable', () => ({
+  useMutation: vi.fn(() => ({
+    mutate: vi.fn(),
+  })),
+}))
 
 describe('NavBar', () => {
   let wrapper
+  let store
+  let router
+  let originalWindow
 
-  const Wrapper = () => {
-    return mount(NavBar, { mocks, localVue, stubs })
+  const createWrapper = () => {
+    return mount(NavBar, {
+      global: {
+        components: {
+          BNavbarNav,
+          BNavItem,
+          BNavbar,
+        },
+        plugins: [store, router],
+        mocks: {
+          $t: (key) => key,
+        },
+        stubs: {
+          BCollapse: { template: '<div><slot></slot></div>' },
+          BNavbarBrand: { template: '<div><slot></slot></div>' },
+          BBadge: { template: '<div><slot></slot></div>' },
+          BNavbarToggle: { template: '<div><slot></slot></div>' },
+        },
+        directives: {
+          vBToggle: {},
+          vBColorMode: {},
+        },
+      },
+    })
   }
 
-  describe('mount', () => {
-    beforeEach(() => {
-      wrapper = Wrapper()
+  beforeEach(() => {
+    store = createVuexStore()
+    router = createRouter({
+      history: createWebHistory(),
+      routes: [
+        { path: '/user', name: 'user' },
+        { path: '/creation-confirm', name: 'creation-confirm' },
+        { path: '/contribution-links', name: 'contribution-links' },
+        { path: '/federation', name: 'federation' },
+        { path: '/statistic', name: 'statistic' },
+      ],
     })
+    originalWindow = global.window
+    const windowMock = {
+      location: {
+        assign: vi.fn(),
+      },
+    }
+    vi.stubGlobal('window', windowMock)
 
-    it('has a DIV element with the class.component-nabvar', () => {
-      expect(wrapper.find('.component-nabvar').exists()).toBeTruthy()
-    })
+    wrapper = createWrapper()
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+    global.window = originalWindow
+  })
+
+  it('renders the component', () => {
+    expect(wrapper.find('.component-nabvar').exists()).toBe(true)
   })
 
   describe('Navbar Menu', () => {
-    it('has a link to /user', () => {
-      expect(wrapper.findAll('.nav-item').at(0).find('a').attributes('href')).toBe('/user')
-    })
-
-    it('has a link to /creation-confirm', () => {
-      expect(wrapper.findAll('.nav-item').at(1).find('a').attributes('href')).toBe(
-        '/creation-confirm',
-      )
-    })
-
-    it('has a link to /contribution-links', () => {
-      expect(wrapper.findAll('.nav-item').at(2).find('a').attributes('href')).toBe(
-        '/contribution-links',
-      )
-    })
-
-    it('has a link to /federation', () => {
-      expect(wrapper.findAll('.nav-item').at(3).find('a').attributes('href')).toBe('/federation')
-    })
-
-    it('has a link to /statistic', () => {
-      expect(wrapper.findAll('.nav-item').at(4).find('a').attributes('href')).toBe('/statistic')
+    it('has correct menu items', () => {
+      const navItems = wrapper.findAll('.nav-item a')
+      expect(navItems).toHaveLength(7)
+      expect(navItems[0].attributes('href')).toBe('/user')
+      expect(navItems[1].attributes('href')).toBe('/creation-confirm')
+      expect(navItems[2].attributes('href')).toBe('/contribution-links')
+      expect(navItems[3].attributes('href')).toBe('/federation')
+      expect(navItems[4].attributes('href')).toBe('/statistic')
     })
   })
 
   describe('wallet', () => {
-    const windowLocation = window.location
-    beforeEach(async () => {
-      delete window.location
-      window.location = ''
-      await wrapper.findAll('.nav-item').at(5).find('a').trigger('click')
-    })
-
-    afterEach(() => {
-      delete window.location
-      window.location = windowLocation
-    })
-
-    it('changes window location to wallet', () => {
-      expect(window.location).toBe('http://localhost/authenticate?token=valid-token')
-    })
-
-    it('dispatches logout to store', () => {
-      expect(storeDispatchMock).toBeCalledWith('logout')
+    it('changes window location to wallet and dispatches logout', async () => {
+      const dispatchSpy = vi.spyOn(store, 'dispatch')
+      await wrapper.vm.handleWallet()
+      expect(window.location).toBe(CONFIG.WALLET_AUTH_URL.replace('{token}', 'valid-token'))
+      expect(dispatchSpy).toHaveBeenCalledWith('logout')
     })
   })
 
   describe('logout', () => {
-    const windowLocationMock = jest.fn()
-    const windowLocation = window.location
-    beforeEach(async () => {
-      delete window.location
-      window.location = {
-        assign: windowLocationMock,
-      }
-      await wrapper.findAll('.nav-item').at(6).find('a').trigger('click')
-    })
-
-    afterEach(() => {
-      delete window.location
-      window.location = windowLocation
-    })
-
-    it('redirects to /logout', () => {
-      expect(windowLocationMock).toBeCalledWith('http://localhost/login')
-    })
-
-    it('dispatches logout to store', () => {
-      expect(storeDispatchMock).toBeCalledWith('logout')
-    })
-
-    it('has called logout mutation', () => {
-      expect(apolloMutateMock).toBeCalled()
+    it('redirects to login page and dispatches logout', async () => {
+      const dispatchSpy = vi.spyOn(store, 'dispatch')
+      await wrapper.vm.handleLogout()
+      expect(window.location.assign).toHaveBeenCalledWith(CONFIG.WALLET_LOGIN_URL)
+      expect(dispatchSpy).toHaveBeenCalledWith('logout')
     })
   })
 })

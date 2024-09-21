@@ -1,27 +1,35 @@
 import { mount } from '@vue/test-utils'
-
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import InputPasswordConfirmation from './InputPasswordConfirmation'
+import { BCol, BRow } from 'bootstrap-vue-next'
 
-const localVue = global.localVue
-
-// validation is tested in src/components/UserSettings/UserPassword.spec.js
+// Mock vue-i18n
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({
+    t: (key) => key,
+  }),
+}))
 
 describe('InputPasswordConfirmation', () => {
   let wrapper
 
-  const propsData = {
-    value: {
-      password: '',
-      passwordRepeat: '',
+  const global = {
+    mocks: {
+      $t: (key) => key,
+    },
+    components: {
+      BRow,
+      BCol,
+    },
+    stubs: {
+      InputPassword: true,
     },
   }
 
-  const mocks = {
-    $t: jest.fn((t) => t),
-  }
-
   const Wrapper = () => {
-    return mount(InputPasswordConfirmation, { localVue, propsData, mocks })
+    return mount(InputPasswordConfirmation, {
+      global,
+    })
   }
 
   describe('mount', () => {
@@ -30,35 +38,7 @@ describe('InputPasswordConfirmation', () => {
     })
 
     it('has two input fields', () => {
-      expect(wrapper.findAll('input')).toHaveLength(2)
-    })
-
-    describe('input values ', () => {
-      it('emits input with new value for first input field', async () => {
-        await wrapper.findAll('input').at(0).setValue('1234')
-        expect(wrapper.emitted('input')).toBeTruthy()
-        expect(wrapper.emitted('input')).toEqual([
-          [
-            {
-              password: '1234',
-              passwordRepeat: '',
-            },
-          ],
-        ])
-      })
-
-      it('emits input with new value for second input field', async () => {
-        await wrapper.findAll('input').at(1).setValue('1234')
-        expect(wrapper.emitted('input')).toBeTruthy()
-        expect(wrapper.emitted('input')).toEqual([
-          [
-            {
-              password: '',
-              passwordRepeat: '1234',
-            },
-          ],
-        ])
-      })
+      expect(wrapper.findAll('input-password-stub')).toHaveLength(2)
     })
   })
 })

@@ -1,8 +1,8 @@
 <template>
   <div class="right-side mt-3 mt-lg-0">
-    <b-container>
+    <BContainer>
       <slot :name="name" />
-    </b-container>
+    </BContainer>
   </div>
 </template>
 <script>

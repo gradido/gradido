@@ -4,11 +4,11 @@
   "back": "zurück",
   "change_user_role": "Nutzerrolle ändern",
   "chat": "Chat",
+  "close": "Schließen",
   "contributionLink": {
     "amount": "Betrag",
     "changeSaved": "Änderungen gespeichert",
     "clear": "Löschen",
-    "close": "Schließen",
     "contributionLinks": "Beitragslinks",
     "create": "Anlegen",
     "cycle": "Zyklus",
@@ -69,6 +69,7 @@
   "deleted_user": "Alle gelöschten Nutzer",
   "deny": "Ablehnen",
   "e_mail": "E-Mail",
+  "edit": "bearbeiten",
   "enabled": "aktiviert",
   "error": "Fehler",
   "expired": "abgelaufen",
@@ -76,9 +77,12 @@
     "apiVersion": "API Version",
     "authenticatedAt": "Verifiziert am:",
     "communityUuid": "Community UUID:",
+    "coordinates": "Koordinaten:",
     "createdAt": "Erstellt am",
     "gmsApiKey": "GMS API Key:",
+    "toast_gmsApiKeyAndLocationUpdated": "Der GMS Api Key und die Location wurden erfolgreich aktualisiert!",
     "toast_gmsApiKeyUpdated": "Der GMS Api Key wurde erfolgreich aktualisiert!",
+    "toast_gmsLocationUpdated": "Die GMS Location wurde erfolgreich aktualisiert!",
     "gradidoInstances": "Gradido Instanzen",
     "lastAnnouncedAt": "letzte Bekanntgabe",
     "lastErrorAt": "Letzer Fehler am",
@@ -100,6 +104,14 @@
   "form": {
     "cancel": "Abbrechen"
   },
+  "geo-coordinates": {
+    "both-or-none": "Bitte beide oder keine eingeben!",
+    "format": "{latitude}, {longitude}",
+    "label": "Geo-Koordinaten",
+    "latitude-longitude-smart": {
+      "describe": "Teilt Koordinaten im Format 'Breitengrad, Längengrad' automatisch auf. Fügen sie hier einfach z.B. ihre Koordinaten von Google Maps, zum Beispiel: 49.28187664243721, 9.740672183943639, ein."
+    }
+  },
   "help": {
     "help": "Hilfe",
     "transactionlist": {
@@ -113,6 +125,9 @@
   "hide_resubmission": "Wiedervorlage verbergen",
   "hide_resubmission_tooltip": "Verbirgt alle Schöpfungen für die ein Moderator ein Erinnerungsdatum festgelegt hat.",
   "lastname": "Nachname",
+  "latitude": "Breitengrad:",
+  "latitude-longitude-smart": "Breitengrad, Längengrad",
+  "longitude": "Längengrad:",
   "math": {
     "equals": "=",
     "pipe": "|",

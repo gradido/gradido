@@ -121,7 +121,6 @@
   "error": {
     "email-already-sent": "We already sent you an email less than 10 minutes ago.",
     "empty-transactionlist": "There was an error with the transmission of the number of your transactions.",
-    "error": "Error!",
     "no-account": "Unfortunately we could not find an (activated) account to the given data.",
     "no-transactionlist": "Unfortunately, there was an error. No transactions have been sent from the server.",
     "no-user": "No user with this credentials.",
@@ -160,7 +159,9 @@
     "memo": "Message",
     "message": "Message",
     "new_balance": "Account balance after confirmation",
+    "newPasswordRepeat": "Repeat new password",
     "no_gdd_available": "You do not have GDD to send.",
+    "ok": "Ok",
     "password": "Password",
     "passwordRepeat": "Repeat password",
     "password_new": "New password",
@@ -187,6 +188,7 @@
       "gddCreationTime": "The field {_field_} must be a number between {min} and {max} with at most one decimal place.",
       "gddSendAmount": "The {_field_} field must be a number between {min} and {max} with at most two digits after the decimal point",
       "is-not": "You cannot send Gradidos to yourself",
+      "requiredField": "The {fieldName} field is required",
       "username-allowed-chars": "The username may only contain letters, numbers, hyphens or underscores.",
       "username-hyphens": "Hyphens or underscores must be in between letters or numbers.",
       "username-unique": "This username is already taken.",
@@ -221,7 +223,6 @@
     "redeem": "Redeem",
     "redeemed": "Successfully redeemed! Your account has been credited with {n} GDD.",
     "redeemed-at": "The link was already redeemed on {date}.",
-    "redeemed-title": "redeemed",
     "redeemlink-error": "This redemption link is not complete.",
     "to-login": "Log in",
     "to-register": "Register a new account.",
@@ -252,8 +253,7 @@
   "math": {
     "asterisk": "*",
     "equal": "=",
-    "minus": "−",
-    "pipe": "|"
+    "minus": "−"
   },
   "maxReached": "Max. reached",
   "member": "Member",
@@ -299,7 +299,6 @@
   "send_gdd": "Send GDD",
   "send_per_link": "Send GDD via Link",
   "session": {
-    "automaticallyLoggedOut": "You have been automatically logged out.",
     "extend": "Stay logged in",
     "lightText": "If you have not performed any action for more than 10 minutes, you will be logged out for security reasons.",
     "logoutIn": "Log out in ",
@@ -341,16 +340,15 @@
     },
     "info": "Transactions can now be made by username or email address.",
     "language": {
-      "changeLanguage": "Change language",
       "de": "Deutsch",
       "en": "English",
+      "error": "Failed to update language settings.",
       "es": "Español",
       "fr": "Français",
       "nl": "Nederlands",
       "success": "Your language has been successfully updated."
     },
     "name": {
-      "change-name": "Change name",
       "change-success": "Your name has been successfully changed.",
       "enterFirstname": "Enter your firstname",
       "enterLastname": "Enter your lastname"

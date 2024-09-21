@@ -121,7 +121,6 @@
   "error": {
     "email-already-sent": "Wir haben dir bereits eine E-Mail vor weniger als 10 Minuten geschickt.",
     "empty-transactionlist": "Es gab einen Fehler mit der Übermittlung der Anzahl deiner Transaktionen.",
-    "error": "Fehler!",
     "no-account": "Leider konnten wir keinen (aktivierten) Account mit diesen Daten finden.",
     "no-transactionlist": "Es gab leider einen Fehler. Es wurden keine Transaktionen vom Server übermittelt.",
     "no-user": "Kein Benutzer mit diesen Anmeldedaten.",
@@ -160,7 +159,9 @@
     "memo": "Nachricht",
     "message": "Nachricht",
     "new_balance": "Neuer Kontostand nach Bestätigung",
+    "newPasswordRepeat": "Neues Passwort wiederholen",
     "no_gdd_available": "Du hast keine GDD zum versenden.",
+    "ok": "Ok",
     "password": "Passwort",
     "passwordRepeat": "Passwort wiederholen",
     "password_new": "Neues Passwort",
@@ -187,6 +188,7 @@
       "gddCreationTime": "Das Feld {_field_} muss eine Zahl zwischen {min} und {max} mit höchstens einer Nachkommastelle sein",
       "gddSendAmount": "Das Feld {_field_} muss eine Zahl zwischen {min} und {max} mit höchstens zwei Nachkommastellen sein",
       "is-not": "Du kannst dir selbst keine Gradidos überweisen",
+      "requiredField": "{fieldName} ist ein Pflichtfeld",
       "username-allowed-chars": "Der Nutzername darf nur aus Buchstaben (ohne Umlaute), Zahlen, Binde- oder Unterstrichen bestehen.",
       "username-hyphens": "Binde- oder Unterstriche müssen zwischen Buchstaben oder Zahlen stehen.",
       "username-unique": "Der Nutzername ist bereits vergeben.",
@@ -221,7 +223,6 @@
     "redeem": "Einlösen",
     "redeemed": "Erfolgreich eingelöst! Deinem Konto wurden {n} GDD gutgeschrieben.",
     "redeemed-at": "Der Link wurde bereits am {date} eingelöst.",
-    "redeemed-title": "eingelöst",
     "redeemlink-error": "Dieser Einlöse-Link ist nicht vollständig.",
     "to-login": "Log dich ein",
     "to-register": "Registriere ein neues Konto.",
@@ -252,8 +253,7 @@
   "math": {
     "asterisk": "*",
     "equal": "=",
-    "minus": "−",
-    "pipe": "|"
+    "minus": "−"
   },
   "maxReached": "Max. erreicht",
   "member": "Mitglied",
@@ -299,7 +299,6 @@
   "send_gdd": "GDD versenden",
   "send_per_link": "GDD versenden per Link",
   "session": {
-    "automaticallyLoggedOut": "Du wurdest automatisch abgemeldet",
     "extend": "Angemeldet bleiben",
     "lightText": "Wenn du länger als 10 Minuten keine Aktion getätigt hast, wirst du aus Sicherheitsgründen abgemeldet.",
     "logoutIn": "Abmelden in ",
@@ -341,16 +340,15 @@
     },
     "info": "Transaktionen können nun per Benutzername oder E-Mail-Adresse getätigt werden.",
     "language": {
-      "changeLanguage": "Sprache ändern",
       "de": "Deutsch",
       "en": "English",
+      "error": "Die Spracheinstellungen konnten nicht aktualisiert werden.",
       "es": "Español",
       "fr": "Français",
       "nl": "Nederlands",
       "success": "Deine Sprache wurde erfolgreich geändert."
     },
     "name": {
-      "change-name": "Name ändern",
       "change-success": "Dein Name wurde erfolgreich geändert.",
       "enterFirstname": "Vorname eingeben",
       "enterLastname": "Nachname eingeben"

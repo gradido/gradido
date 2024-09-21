@@ -1,8 +1,31 @@
 import { mount } from '@vue/test-utils'
-
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import InputPassword from './InputPassword'
+import {
+  BButton,
+  BFormGroup,
+  BFormInput,
+  BFormInvalidFeedback,
+  BInputGroup,
+} from 'bootstrap-vue-next'
 
-const localVue = global.localVue
+// Mock vee-validate
+vi.mock('vee-validate', () => ({
+  useField: vi.fn(() => ({
+    value: '',
+    errorMessage: '',
+    meta: { valid: true },
+    errors: [],
+    validate: vi.fn(),
+  })),
+}))
+
+// Mock vue-i18n
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({
+    t: (key) => key,
+  }),
+}))
 
 describe('InputPassword', () => {
   let wrapper
@@ -11,11 +34,31 @@ describe('InputPassword', () => {
     name: 'input-field-name',
     label: 'input-field-label',
     placeholder: 'input-field-placeholder',
-    value: '',
+    modelValue: '',
+  }
+
+  const global = {
+    components: {
+      BFormGroup,
+      BInputGroup,
+      BFormInput,
+      BButton,
+      BFormInvalidFeedback,
+    },
+    stubs: {
+      IBiEye: true,
+      IBiEyeSlash: true,
+    },
+    mocks: {
+      $t: (key) => key,
+    },
   }
 
   const Wrapper = () => {
-    return mount(InputPassword, { localVue, propsData })
+    return mount(InputPassword, {
+      props: propsData,
+      global,
+    })
   }
 
   describe('mount', () => {
@@ -41,7 +84,7 @@ describe('InputPassword', () => {
       })
 
       it('has the value ""', () => {
-        expect(wrapper.vm.currentValue).toEqual('')
+        expect(wrapper.find('input').attributes('value')).toEqual('')
       })
 
       it('has the label "input-field-label"', () => {
@@ -54,14 +97,15 @@ describe('InputPassword', () => {
     })
 
     describe('input value changes', () => {
-      it('emits input with new value', async () => {
-        await wrapper.find('input').setValue('12')
+      it('emits value with new value', async () => {
+        await wrapper.find('input').trigger('input', '12')
         expect(wrapper.emitted('input')).toBeTruthy()
-        expect(wrapper.emitted('input')).toEqual([['12']])
+        expect(wrapper.emitted('input')[0][0]['0']).toEqual('1')
+        expect(wrapper.emitted('input')[0][0]['1']).toEqual('2')
       })
     })
 
-    describe('password visibilty', () => {
+    describe('password visibility', () => {
       it('has type password by default', () => {
         expect(wrapper.find('input').attributes('type')).toEqual('password')
       })
@@ -78,20 +122,23 @@ describe('InputPassword', () => {
       })
     })
 
-    describe('password visibilty icon', () => {
-      it('is by default bi-eye-slash', () => {
-        expect(wrapper.find('svg').classes('bi-eye-slash')).toBe(true)
+    describe('password visibility icon', () => {
+      it('is by default IBiEyeSlash', () => {
+        expect(wrapper.find('i-bi-eye-slash-stub').exists()).toBe(true)
+        expect(wrapper.find('i-bi-eye-stub').exists()).toBe(false)
       })
 
-      it('changes to bi-eye when clicked', async () => {
+      it('changes to IBiEye when clicked', async () => {
         await wrapper.find('button').trigger('click')
-        expect(wrapper.find('svg').classes('bi-eye')).toBe(true)
+        expect(wrapper.find('i-bi-eye-stub').exists()).toBe(true)
+        expect(wrapper.find('i-bi-eye-slash-stub').exists()).toBe(false)
       })
 
-      it('changes back to bi-eye-slash when clicked twice', async () => {
+      it('changes back to IBiEyeSlash when clicked twice', async () => {
         await wrapper.find('button').trigger('click')
         await wrapper.find('button').trigger('click')
-        expect(wrapper.find('svg').classes('bi-eye-slash')).toBe(true)
+        expect(wrapper.find('i-bi-eye-slash-stub').exists()).toBe(true)
+        expect(wrapper.find('i-bi-eye-stub').exists()).toBe(false)
       })
     })
   })

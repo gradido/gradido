@@ -1,9 +1,9 @@
 import { mount } from '@vue/test-utils'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import Name from './Name'
+import { BLink } from 'bootstrap-vue-next'
 
-const localVue = global.localVue
-
-const routerPushMock = jest.fn()
+const routerPushMock = vi.fn()
 
 const mocks = {
   $router: {
@@ -18,16 +18,42 @@ const propsData = {
   text: 'Plaintext Name',
 }
 
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({
+    t: (key) => key,
+  }),
+}))
+
+vi.mock('@vue/apollo-composable', () => ({
+  useQuery: vi.fn(),
+  useMutation: vi.fn(),
+}))
+
+const mockToastError = vi.fn()
+vi.mock('@/composables/useToast', () => ({
+  useAppToast: vi.fn(() => ({
+    toastError: mockToastError,
+  })),
+}))
+
 describe('Name', () => {
   let wrapper
 
-  const Wrapper = () => {
-    return mount(Name, { localVue, mocks, propsData })
+  const createWrapper = () => {
+    return mount(Name, {
+      global: {
+        mocks,
+        stubs: {
+          BLink,
+        },
+      },
+      props: propsData,
+    })
   }
 
   describe('mount', () => {
     beforeEach(() => {
-      wrapper = Wrapper()
+      wrapper = createWrapper()
     })
 
     it('renders the component', () => {
@@ -61,22 +87,27 @@ describe('Name', () => {
       })
 
       it('has a link', () => {
-        expect(wrapper.find('div.gdd-transaction-list-item-name').find('a').exists()).toBe(true)
+        expect(
+          wrapper
+            .find('div.gdd-transaction-list-item-name')
+            .findComponent({ name: 'BLink' })
+            .exists(),
+        ).toBe(true)
       })
 
       describe('click link', () => {
         beforeEach(async () => {
-          await wrapper.find('div.gdd-transaction-list-item-name').find('a').trigger('click')
+          await wrapper.findComponent({ name: 'BLink' }).trigger('click')
         })
 
         it('pushes router to send', () => {
-          expect(routerPushMock).toBeCalledWith({
+          expect(routerPushMock).toHaveBeenCalledWith({
             path: '/send',
           })
         })
 
         it('pushes params for gradidoID and community UUID', () => {
-          expect(routerPushMock).toBeCalledWith({
+          expect(routerPushMock).toHaveBeenCalledWith({
             params: {
               communityIdentifier: 'community UUID',
               userIdentifier: 'gradido-ID',

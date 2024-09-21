@@ -18,6 +18,7 @@ import {
   getCommunityByUuid,
   getHomeCommunity,
 } from './util/communities'
+import { Location2Point } from './util/Location2Point'
 
 @Resolver()
 export class CommunityResolver {
@@ -78,7 +79,9 @@ export class CommunityResolver {
 
   @Authorized([RIGHTS.COMMUNITY_UPDATE])
   @Mutation(() => Community)
-  async updateHomeCommunity(@Args() { uuid, gmsApiKey }: EditCommunityInput): Promise<Community> {
+  async updateHomeCommunity(
+    @Args() { uuid, gmsApiKey, location }: EditCommunityInput,
+  ): Promise<Community> {
     const homeCom = await getCommunityByUuid(uuid)
     if (!homeCom) {
       throw new LogError('HomeCommunity with uuid not found: ', uuid)
@@ -86,8 +89,11 @@ export class CommunityResolver {
     if (homeCom.foreign) {
       throw new LogError('Error: Only the HomeCommunity could be modified!')
     }
-    if (homeCom.gmsApiKey !== gmsApiKey) {
-      homeCom.gmsApiKey = gmsApiKey
+    if (homeCom.gmsApiKey !== gmsApiKey || homeCom.location !== location) {
+      homeCom.gmsApiKey = gmsApiKey ?? null
+      if (location) {
+        homeCom.location = Location2Point(location)
+      }
       await DbCommunity.save(homeCom)
     }
     return new Community(homeCom)

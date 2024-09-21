@@ -1,45 +1,31 @@
 <template>
   <div class="contribution-link">
-    <contribution-link
-      :items="items"
-      :count="count"
-      @get-contribution-links="getContributionLinks"
-    />
+    <contribution-link :items="items" :count="count" @get-contribution-links="refetch" />
   </div>
 </template>
-<script>
+
+<script setup>
+import { computed, watch } from 'vue'
+import { useQuery } from '@vue/apollo-composable'
 import { listContributionLinks } from '@/graphql/listContributionLinks.js'
 import ContributionLink from '../components/ContributionLink/ContributionLink'
+import { useAppToast } from '@/composables/useToast'
 
-export default {
-  name: 'ContributionLinks',
-  components: {
-    ContributionLink,
-  },
-  data() {
-    return {
-      items: [],
-      count: 0,
-    }
-  },
-  methods: {
-    getContributionLinks() {
-      this.$apollo
-        .query({
-          query: listContributionLinks,
-          fetchPolicy: 'network-only',
-        })
-        .then((result) => {
-          this.count = result.data.listContributionLinks.count
-          this.items = result.data.listContributionLinks.links
-        })
-        .catch(() => {
-          this.toastError('listContributionLinks has no result, use default data')
-        })
-    },
-  },
-  created() {
-    this.getContributionLinks()
-  },
-}
+const { toastError } = useAppToast()
+
+const { result, error, refetch } = useQuery(listContributionLinks, null, {
+  fetchPolicy: 'network-only',
+})
+
+const items = computed(() => {
+  return result.value?.listContributionLinks?.links || []
+})
+
+const count = computed(() => {
+  return result.value?.listContributionLinks?.count || 0
+})
+
+watch(error, () => {
+  toastError('listContributionLinks has no result, use default data')
+})
 </script>

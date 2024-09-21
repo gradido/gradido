@@ -1,6 +1,6 @@
 <template>
   <div class="userdata-card">
-    <div class="centerPerMargin">
+    <div class="center-per-margin">
       <avatar
         :username="username.username"
         :initials="username.initials"
@@ -10,36 +10,36 @@
     </div>
 
     <div class="justify-content-center mt-5 mb-5">
-      <b-row align-v="stretch">
-        <b-col cols="4">
-          <div class="text-center font-weight-bold">
+      <BRow align-v="stretch">
+        <BCol cols="4">
+          <div class="text-center fw-bold">
             {{ $n(balance, 'decimal') }}
           </div>
-        </b-col>
-        <b-col cols="4">
-          <div class="text-center font-weight-bold">
+        </BCol>
+        <BCol cols="4">
+          <div class="text-center fw-bold">
             {{ transactionCount }}
           </div>
-        </b-col>
-        <b-col cols="4">
-          <div class="text-center font-weight-bold">{{ CONFIG.COMMUNITY_NAME }}</div>
-        </b-col>
-      </b-row>
-      <b-row>
-        <b-col cols="4">
+        </BCol>
+        <BCol cols="4">
+          <div class="text-center fw-bold">{{ CONFIG.COMMUNITY_NAME }}</div>
+        </BCol>
+      </BRow>
+      <BRow>
+        <BCol cols="4">
           <div class="text-center">{{ $t('GDD') }}</div>
-        </b-col>
-        <b-col cols="4">
+        </BCol>
+        <BCol cols="4">
           <div class="text-center">
             {{ $t('navigation.transactions') }}
           </div>
-        </b-col>
-        <b-col cols="4">
+        </BCol>
+        <BCol cols="4">
           <div class="text-center">
             {{ $t('community.community') }}
           </div>
-        </b-col>
-      </b-row>
+        </BCol>
+      </BRow>
     </div>
   </div>
 </template>
@@ -72,16 +72,18 @@ export default {
 }
 </script>
 <style scoped>
-.centerPerMargin {
+.center-per-margin {
   padding-left: 44%;
 }
-@media screen and (max-width: 850px) {
-  .centerPerMargin {
+
+@media screen and (width <= 850px) {
+  .center-per-margin {
     padding-left: 38%;
   }
 }
-@media screen and (max-width: 450px) {
-  .centerPerMargin {
+
+@media screen and (width <= 450px) {
+  .center-per-margin {
     padding-left: 34%;
   }
 }

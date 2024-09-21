@@ -1,40 +1,50 @@
-import { RouterLinkStub, mount } from '@vue/test-utils'
-import Overview from './Overview'
-import VueRouter from 'vue-router'
+import { mount } from '@vue/test-utils'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+import Overview from './Overview.vue'
+import { createRouter, createWebHistory } from 'vue-router'
+import { createI18n } from 'vue-i18n'
 
-const localVue = global.localVue
-localVue.use(VueRouter)
-
-window.scrollTo = jest.fn()
+vi.mock('@/components/Overview/CommunityNews', () => ({
+  default: {
+    name: 'CommunityNews',
+    template: '<div class="community-news"></div>',
+  },
+}))
 
 describe('Overview', () => {
   let wrapper
+  let router
+  let i18n
 
-  const mocks = {
-    $t: jest.fn((t) => t),
-    $n: jest.fn(),
-    $i18n: {
+  beforeEach(() => {
+    router = createRouter({
+      history: createWebHistory(),
+      routes: [],
+    })
+
+    i18n = createI18n({
+      legacy: false,
       locale: 'en',
-    },
-  }
-
-  const Wrapper = () => {
-    return mount(Overview, {
-      localVue,
-      mocks,
-      stubs: {
-        RouterLink: RouterLinkStub,
+      messages: {
+        en: {},
       },
     })
-  }
+
+    window.scrollTo = vi.fn()
+
+    wrapper = mount(Overview, {
+      global: {
+        plugins: [router, i18n],
+        stubs: {
+          RouterLink: true,
+        },
+      },
+    })
+  })
 
   describe('mount', () => {
-    beforeEach(() => {
-      wrapper = Wrapper()
-    })
-
     it('has a community news element', () => {
-      expect(wrapper.find('div.community-news').exists()).toBeTruthy()
+      expect(wrapper.find('div.community-news').exists()).toBe(true)
     })
   })
 })

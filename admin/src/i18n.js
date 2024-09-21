@@ -1,20 +1,6 @@
-import Vue from 'vue'
-import VueI18n from 'vue-i18n'
-
-Vue.use(VueI18n)
-
-const loadLocaleMessages = () => {
-  const locales = require.context('./locales/', true, /[A-Za-z0-9-_,\s]+\.json$/i)
-  const messages = {}
-  locales.keys().forEach((key) => {
-    const matched = key.match(/([A-Za-z0-9-_]+)\./i)
-    if (matched && matched.length > 1) {
-      const locale = matched[1]
-      messages[locale] = locales(key)
-    }
-  })
-  return messages
-}
+import { createI18n } from 'vue-i18n'
+import de from './locales/de.json'
+import en from './locales/en.json'
 
 const numberFormats = {
   en: {
@@ -45,7 +31,7 @@ const numberFormats = {
   },
 }
 
-const dateTimeFormats = {
+const datetimeFormats = {
   en: {
     short: {
       year: 'numeric',
@@ -96,12 +82,13 @@ const dateTimeFormats = {
   },
 }
 
-const i18n = new VueI18n({
+const i18n = createI18n({
   locale: 'en',
+  legacy: false,
   fallbackLocale: 'en',
-  messages: loadLocaleMessages(),
+  messages: { de, en },
   numberFormats,
-  dateTimeFormats,
+  datetimeFormats,
 })
 
 export default i18n

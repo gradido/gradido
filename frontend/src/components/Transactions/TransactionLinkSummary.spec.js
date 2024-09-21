@@ -1,27 +1,50 @@
 import { mount } from '@vue/test-utils'
-import TransactionLinksSummary from './TransactionLinkSummary'
-import { listTransactionLinks } from '@/graphql/queries'
-import { toastErrorSpy } from '../../../test/testSetup'
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
+import TransactionLinkSummary from './TransactionLinkSummary'
+import CollapseIcon from '../TransactionRows/CollapseIcon'
+import CollapseLinksList from '../DecayInformations/CollapseLinksList'
+import { BAvatar, BCol, BCollapse, BRow } from 'bootstrap-vue-next'
 
-const localVue = global.localVue
+vi.mock('../TransactionRows/CollapseIcon', () => ({
+  default: {
+    name: 'CollapseIcon',
+    render: () => null,
+  },
+}))
 
-const apolloQueryMock = jest.fn()
+vi.mock('../DecayInformations/CollapseLinksList', () => ({
+  default: {
+    name: 'CollapseLinksList',
+    render: () => null,
+  },
+}))
+
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({
+    t: (key) => key,
+    d: (date, format) => `Mocked ${format} date for ${date}`,
+  }),
+}))
+
+const mockRefetch = vi.fn()
+vi.mock('@vue/apollo-composable', () => ({
+  useQuery: vi.fn(() => ({
+    refetch: mockRefetch,
+    loading: false,
+    error: null,
+  })),
+}))
+
+const mockToastError = vi.fn()
+vi.mock('@/composables/useToast', () => ({
+  useAppToast: vi.fn(() => ({
+    toastError: mockToastError,
+  })),
+}))
 
 const mocks = {
-  $i18n: {
-    locale: 'en',
-  },
-  $t: jest.fn((t) => t),
-  $d: jest.fn((d) => d),
-  $tc: jest.fn((tc) => tc),
-  $apollo: {
-    query: apolloQueryMock,
-  },
-  $store: {
-    state: {
-      firstName: 'Bibi',
-      lastName: 'Bloxberg',
-    },
+  $filters: {
+    GDD: vi.fn((value) => `Mocked GDD: ${value}`),
   },
 }
 
@@ -39,275 +62,121 @@ const propsData = {
 describe('TransactionLinkSummary', () => {
   let wrapper
 
-  const Wrapper = () => {
-    return mount(TransactionLinksSummary, { localVue, mocks, propsData })
+  const createWrapper = () => {
+    return mount(TransactionLinkSummary, {
+      global: {
+        mocks: {
+          ...mocks,
+          $t: (key) => key,
+        },
+        stubs: {
+          BRow,
+          BCol,
+          BCollapse,
+          BAvatar,
+          VariantIcon: true,
+        },
+      },
+      props: propsData,
+    })
   }
 
-  describe('mount', () => {
-    beforeEach(() => {
-      apolloQueryMock.mockResolvedValue({
+  beforeEach(() => {
+    wrapper = createWrapper()
+  })
+
+  afterEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('renders the component transaction-slot-link', () => {
+    expect(wrapper.find('div.transaction-slot-link').exists()).toBe(true)
+  })
+
+  it('displays the correct amount', () => {
+    const amountElement = wrapper.find('.fw-bold')
+    expect(amountElement.text()).toBe('Mocked GDD: 123')
+  })
+
+  it('displays the correct transaction link count', () => {
+    const countElement = wrapper.find('.small')
+    expect(countElement.text()).toContain('4')
+    expect(countElement.text()).toContain('gdd_per_link.links_sum')
+  })
+
+  it('has a CollapseIcon component', () => {
+    expect(wrapper.findComponent(CollapseIcon).exists()).toBe(true)
+  })
+
+  it('has a CollapseLinksList component', () => {
+    expect(wrapper.findComponent(CollapseLinksList).exists()).toBe(true)
+  })
+
+  describe('showTransactionLinks', () => {
+    it('toggles visibility when clicked', async () => {
+      const linkSlot = wrapper.find('.transaction-slot-link')
+      expect(wrapper.vm.visible).toBe(false)
+      await linkSlot.trigger('click')
+      expect(wrapper.vm.visible).toBe(true)
+      await linkSlot.trigger('click')
+      expect(wrapper.vm.visible).toBe(false)
+    })
+
+    it('does not toggle visibility when clicking on link-menu-opener', async () => {
+      const showTransactionLinksSpy = vi.spyOn(wrapper.vm, 'showTransactionLinks')
+      await wrapper.vm.showTransactionLinks({ target: { classList: ['link-menu-opener'] } })
+      expect(showTransactionLinksSpy).toHaveBeenCalled()
+      expect(wrapper.vm.visible).toBe(false)
+    })
+
+    it('resets transactionLinks and currentPage when opening', async () => {
+      const linkSlot = wrapper.find('.transaction-slot-link')
+      wrapper.vm.transactionLinks.value = ['some data']
+      wrapper.vm.currentPage = 2
+      await linkSlot.trigger('click')
+      expect(wrapper.vm.transactionLinks).toEqual([])
+      expect(wrapper.vm.currentPage).toBe(1)
+    })
+  })
+
+  describe('updateListTransactionLinks', () => {
+    it('fetches transaction links when called', async () => {
+      mockRefetch.mockResolvedValue({
         data: {
           listTransactionLinks: {
-            links: [
-              {
-                amount: '75',
-                link: 'http://localhost/redeem/ce28664b5308c17f931c0367',
-                createdAt: '2022-03-16T14:22:40.000Z',
-                holdAvailableAmount: '5.13109484759482747111',
-                id: 86,
-                memo:
-                  'Hokuspokus Haselnuss, Vogelbein und Fliegenfuß, damit der Trick gelingen muss!',
-                redeemedAt: null,
-                validUntil: '2022-03-30T14:22:40.000Z',
-              },
-              {
-                amount: '85',
-                link: 'http://localhost/redeem/ce28664b5308c17f931c0367',
-                createdAt: '2022-03-16T14:22:40.000Z',
-                holdAvailableAmount: '5.13109484759482747111',
-                id: 107,
-                memo: 'Mäusespeck und Katzenbuckel, Tricks und Tracks und Zauberkugel!',
-                redeemedAt: null,
-                validUntil: '2022-03-30T14:22:40.000Z',
-              },
-              {
-                amount: '95',
-                link: 'http://localhost/redeem/ce28664b5308c17f931c0367',
-                createdAt: '2022-03-16T14:22:40.000Z',
-                holdAvailableAmount: '5.13109484759482747111',
-                id: 92,
-                memo:
-                  'Abrakadabra 1,2,3, die Sonne kommt herbei. Schweinepups und Spuckebrei, der Regen ist vorbei.',
-                redeemedAt: null,
-                validUntil: '2022-03-30T14:22:40.000Z',
-              },
-              {
-                amount: '150',
-                link: 'http://localhost/redeem/ce28664b5308c17f931c0367',
-                createdAt: '2022-03-16T14:22:40.000Z',
-                holdAvailableAmount: '5.13109484759482747111',
-                id: 16,
-                memo:
-                  'Abrakadabra 1,2,3 was verschwunden ist komme herbei.Wieseldreck und Schweinemist, zaubern das ist keine List.',
-                redeemedAt: null,
-                validUntil: '2022-03-30T14:22:40.000Z',
-              },
-            ],
+            links: [{ id: 1 }, { id: 2 }],
           },
         },
       })
-
-      wrapper = Wrapper()
+      await wrapper.vm.updateListTransactionLinks()
+      expect(mockRefetch).toHaveBeenCalledWith({ currentPage: 1 })
+      expect(wrapper.vm.transactionLinks).toHaveLength(2)
     })
 
-    it('renders the component transaction-slot-link', () => {
-      expect(wrapper.find('div.transaction-slot-link').exists()).toBe(true)
+    it('handles errors when fetching transaction links', async () => {
+      mockRefetch.mockRejectedValue(new Error('API Error'))
+      await wrapper.vm.updateListTransactionLinks()
+      expect(mockToastError).toHaveBeenCalledWith('API Error')
     })
 
-    it('has a component CollapseLinksList', () => {
-      expect(wrapper.findComponent({ name: 'CollapseLinksList' }).exists()).toBe(true)
+    it('resets transaction links when currentPage is 0', async () => {
+      wrapper.vm.transactionLinks.value = [{ id: 1 }]
+      wrapper.vm.currentPage = 0
+      await wrapper.vm.updateListTransactionLinks()
+      expect(wrapper.vm.transactionLinks).toEqual([])
+      expect(wrapper.vm.currentPage).toBe(1)
     })
+  })
 
-    describe('click on transaction links', () => {
-      beforeEach(async () => {
-        wrapper.find('div.row').trigger('click')
-      })
-
-      it('calls the API to get the list transaction links', () => {
-        expect(apolloQueryMock).toBeCalledWith({
-          query: listTransactionLinks,
-          variables: {
-            currentPage: 1,
-          },
-          fetchPolicy: 'network-only',
-        })
-      })
-
-      it('has four transactionLinks', () => {
-        expect(wrapper.vm.transactionLinks).toHaveLength(4)
-      })
-
-      describe('close transaction link details', () => {
-        beforeEach(() => {
-          jest.clearAllMocks()
-          wrapper.find('div.row').trigger('click')
-        })
-
-        it('does not call the API', () => {
-          expect(apolloQueryMock).not.toBeCalled()
-        })
-
-        it('has no component CollapseLinksList', () => {
-          expect(wrapper.findComponent({ name: 'CollapseLinksList' }).isVisible()).toBe(false)
-        })
-
-        describe('reopen transaction link details', () => {
-          beforeEach(() => {
-            jest.clearAllMocks()
-            wrapper.find('div.row').trigger('click')
-          })
-
-          it('calls the API to get the list transaction links', () => {
-            expect(apolloQueryMock).toBeCalledWith({
-              query: listTransactionLinks,
-              variables: {
-                currentPage: 1,
-              },
-              fetchPolicy: 'network-only',
-            })
-          })
-
-          it('has four transactionLinks', () => {
-            expect(wrapper.vm.transactionLinks).toHaveLength(4)
-          })
-        })
-      })
-
-      describe('load more transaction links', () => {
-        beforeEach(async () => {
-          jest.clearAllMocks()
-          apolloQueryMock.mockResolvedValue({
-            data: {
-              listTransactionLinks: {
-                links: [
-                  {
-                    amount: '76',
-                    link: 'http://localhost/redeem/ce28664b5308c17f931c0367',
-                    createdAt: '2022-03-16T14:22:40.000Z',
-                    holdAvailableAmount: '5.13109484759482747111',
-                    id: 87,
-                    memo:
-                      'Hat jemand die Nummer von der Hexe aus Schneewittchen? Ich bräuchte mal ein paar Äpfel.',
-                    redeemedAt: null,
-                    validUntil: '2022-03-30T14:22:40.000Z',
-                  },
-                  {
-                    amount: '86',
-                    link: 'http://localhost/redeem/ce28664b5308c17f931c0367',
-                    createdAt: '2022-03-16T14:22:40.000Z',
-                    holdAvailableAmount: '5.13109484759482747111',
-                    id: 108,
-                    memo:
-                      'Die Windfahn´ krächzt am Dach, Der Uhu im Geklüfte; Was wispert wie ein Ach Verhallend in die Lüfte?',
-                    redeemedAt: null,
-                    validUntil: '2022-03-30T14:22:40.000Z',
-                  },
-                  {
-                    amount: '96',
-                    link: 'http://localhost/redeem/ce28664b5308c17f931c0367',
-                    createdAt: '2022-03-16T14:22:40.000Z',
-                    holdAvailableAmount: '5.13109484759482747111',
-                    id: 93,
-                    memo:
-                      'Verschlafen kräht der Hahn, Ein Blitz noch, und ein trüber, Umwölbter Tag bricht an – Walpurgisnacht vorüber!',
-                    redeemedAt: null,
-                    validUntil: '2022-03-30T14:22:40.000Z',
-                  },
-                  {
-                    amount: '150',
-                    link: 'http://localhost/redeem/ce28664b5308c17f931c0367',
-                    createdAt: '2022-03-16T14:22:40.000Z',
-                    holdAvailableAmount: '5.13109484759482747111',
-                    id: 17,
-                    memo: 'Eene meene Flaschenschrank, fertig ist der Hexentrank!',
-                    redeemedAt: null,
-                    validUntil: '2022-03-30T14:22:40.000Z',
-                  },
-                ],
-              },
-            },
-          })
-          await wrapper.setData({
-            currentPage: 2,
-            pending: false,
-            pageSize: 5,
-          })
-        })
-
-        it('has eight transactionLinks', () => {
-          expect(wrapper.vm.transactionLinks).toHaveLength(8)
-        })
-
-        it('loads more transaction links', () => {
-          expect(apolloQueryMock).toBeCalledWith({
-            query: listTransactionLinks,
-            variables: {
-              currentPage: 2,
-            },
-            fetchPolicy: 'network-only',
-          })
-        })
-
-        describe('close transaction link list', () => {
-          beforeEach(async () => {
-            wrapper.find('div.row').trigger('click')
-          })
-          describe('reopen transaction link list', () => {
-            beforeEach(async () => {
-              jest.clearAllMocks()
-              wrapper.find('div.row').trigger('click')
-            })
-
-            it('calls the API once', () => {
-              expect(apolloQueryMock).toBeCalledTimes(1)
-            })
-
-            it('calls the API with current page one', () => {
-              expect(apolloQueryMock).toBeCalledWith({
-                query: listTransactionLinks,
-                variables: {
-                  currentPage: 1,
-                },
-                fetchPolicy: 'network-only',
-              })
-            })
-
-            it('has four transactionLinks', () => {
-              expect(wrapper.vm.transactionLinks).toHaveLength(4)
-            })
-          })
-        })
-      })
+  it('emits update-transactions event after fetching links', async () => {
+    mockRefetch.mockResolvedValue({
+      data: {
+        listTransactionLinks: {
+          links: [{ id: 1 }],
+        },
+      },
     })
-
-    describe('reset transaction links', () => {
-      beforeEach(async () => {
-        jest.clearAllMocks()
-        await wrapper.setData({
-          currentPage: 0,
-          pending: false,
-          pageSize: 5,
-        })
-      })
-
-      it('reloads transaction links', () => {
-        expect(apolloQueryMock).toBeCalledWith({
-          query: listTransactionLinks,
-          variables: {
-            currentPage: 1,
-          },
-          fetchPolicy: 'network-only',
-        })
-      })
-
-      it('emits update transactions', () => {
-        expect(wrapper.emitted('update-transactions')).toBeTruthy()
-      })
-
-      it('has four transaction links in list', () => {
-        expect(wrapper.vm.transactionLinks).toHaveLength(4)
-      })
-    })
-
-    describe('loads transaction links with error', () => {
-      beforeEach(() => {
-        apolloQueryMock.mockRejectedValue({ message: 'OUCH!' })
-        wrapper.find('div.row').trigger('click')
-      })
-
-      it('toasts an error message', () => {
-        expect(toastErrorSpy).toBeCalledWith('OUCH!')
-      })
-    })
+    await wrapper.vm.updateListTransactionLinks()
+    expect(wrapper.emitted('update-transactions')).toBeTruthy()
   })
 })

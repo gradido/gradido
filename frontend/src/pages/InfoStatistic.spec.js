@@ -1,131 +1,153 @@
-import { mount, RouterLinkStub } from '@vue/test-utils'
-import InfoStatistic from './InfoStatistic'
-import { toastErrorSpy } from '../../test/testSetup'
-import { listContributionLinks, communityStatistics, searchAdminUsers } from '@/graphql/queries'
+import { mount } from '@vue/test-utils'
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
+import InfoStatistic from './InfoStatistic.vue'
+import { createRouter, createWebHistory } from 'vue-router'
+import { createI18n } from 'vue-i18n'
+import { listContributionLinks, searchAdminUsers } from '@/graphql/queries'
+import { BContainer, BLink } from 'bootstrap-vue-next'
 
-const localVue = global.localVue
+const mockToastError = vi.fn()
+vi.mock('../composables/useToast', () => ({
+  useAppToast: vi.fn(() => ({
+    toastError: mockToastError,
+  })),
+}))
 
-const stubs = {
-  RouterLink: RouterLinkStub,
-}
-
-const apolloQueryMock = jest
-  .fn()
-  .mockResolvedValueOnce({
-    data: {
-      listContributionLinks: {
-        count: 2,
-        links: [
-          {
-            id: 1,
-            amount: 200,
-            name: 'Dokumenta 2017',
-            memo: 'Vielen Dank für deinen Besuch bei der Dokumenta 2017',
-            cycle: 'ONCE',
-          },
-          {
-            id: 2,
-            amount: 200,
-            name: 'Dokumenta 2022',
-            memo: 'Vielen Dank für deinen Besuch bei der Dokumenta 2022',
-            cycle: 'ONCE',
-          },
-        ],
-      },
-    },
-  })
-  .mockResolvedValueOnce({
-    data: {
-      searchAdminUsers: {
-        userCount: 2,
-        userList: [
-          { firstName: 'Peter', lastName: 'Lustig' },
-          { firstName: 'Super', lastName: 'Admin' },
-        ],
-      },
-    },
-  })
-  .mockResolvedValueOnce({
-    data: {
-      // communityStatistics: {
-      //   // totalUsers: 3113,
-      //   // activeUsers: 1057,
-      //   // deletedUsers: 35,
-      //   // totalGradidoCreated: '4083774.05000000000000000000',
-      //   // totalGradidoDecayed: '-1062639.13634129622923372197',
-      //   // totalGradidoAvailable: '2513565.869444365732411569',
-      //   // totalGradidoUnbookedDecayed: '-500474.6738366222166261272',
-      // },
-    },
-  })
-  .mockResolvedValue('default')
+const mockQueryImplementation = vi.fn()
+vi.mock('@vue/apollo-composable', () => ({
+  useQuery: (query) => {
+    return {
+      onResult: mockQueryImplementation(query).onResult,
+      onError: mockQueryImplementation(query).onError,
+    }
+  },
+}))
 
 describe('InfoStatistic', () => {
   let wrapper
+  let router
+  let i18n
 
-  const mocks = {
-    $i18n: {
+  beforeEach(() => {
+    router = createRouter({
+      history: createWebHistory(),
+      routes: [],
+    })
+
+    i18n = createI18n({
+      legacy: false,
       locale: 'en',
-    },
-    $t: jest.fn((t) => t),
-    $apollo: {
-      query: apolloQueryMock,
-    },
-  }
+      messages: {
+        en: {
+          communityInfo: 'Community Info',
+          'community.admins': 'Admins',
+          'community.moderators': 'Moderators',
+          contact: 'Contact',
+        },
+      },
+    })
 
-  const Wrapper = () => {
-    return mount(InfoStatistic, { localVue, mocks, stubs })
-  }
+    vi.mock('@/config', () => ({
+      default: {
+        COMMUNITY_DESCRIPTION: 'Test Community',
+        COMMUNITY_URL: 'https://test.com',
+        COMMUNITY_SUPPORT_MAIL: 'support@test.com',
+      },
+    }))
 
-  describe('mount', () => {
+    mockQueryImplementation.mockImplementation((query) => ({
+      onResult: (callback) => {
+        if (query === listContributionLinks) {
+          callback({
+            data: {
+              listContributionLinks: {
+                count: 2,
+                links: [
+                  { id: 1, amount: 200, name: 'Dokumenta 2017', memo: 'Memo 1', cycle: 'ONCE' },
+                  { id: 2, amount: 200, name: 'Dokumenta 2022', memo: 'Memo 2', cycle: 'ONCE' },
+                ],
+              },
+            },
+          })
+        } else if (query === searchAdminUsers) {
+          callback({
+            data: {
+              searchAdminUsers: {
+                userCount: 2,
+                userList: [
+                  { firstName: 'Peter', lastName: 'Lustig', role: 'ADMIN' },
+                  { firstName: 'Super', lastName: 'Admin', role: 'MODERATOR' },
+                ],
+              },
+            },
+          })
+        }
+      },
+      onError: vi.fn(),
+    }))
+
+    wrapper = mount(InfoStatistic, {
+      global: {
+        plugins: [router, i18n],
+        stubs: {
+          BContainer,
+          BLink,
+        },
+      },
+    })
+  })
+
+  afterEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('renders the info page', () => {
+    expect(wrapper.find('div.info-statistic').exists()).toBe(true)
+  })
+
+  it('displays community information', () => {
+    expect(wrapper.text()).toContain('Test Community')
+    expect(wrapper.text()).toContain('https://test.com')
+  })
+
+  it('displays admin and moderator information', async () => {
+    await wrapper.vm.$nextTick()
+    expect(wrapper.text()).toContain('Peter Lustig')
+    expect(wrapper.text()).toContain('Super Admin')
+  })
+
+  it('displays contact information', () => {
+    expect(wrapper.text()).toContain('support@test.com')
+  })
+
+  describe('error handling', () => {
     beforeEach(() => {
-      wrapper = Wrapper()
-    })
+      mockQueryImplementation.mockImplementation((query) => ({
+        onResult: vi.fn(),
+        onError: (errorCallback) => {
+          errorCallback(new Error('API Error'))
+        },
+      }))
 
-    it('renders the info page', () => {
-      expect(wrapper.find('div.info-statistic').exists()).toBe(true)
-    })
-
-    it('calls listContributionLinks', () => {
-      expect(apolloQueryMock).toBeCalledWith(
-        expect.objectContaining({
-          query: listContributionLinks,
-        }),
-      )
-    })
-
-    it('calls searchAdminUsers', () => {
-      expect(apolloQueryMock).toBeCalledWith(
-        expect.objectContaining({
-          query: searchAdminUsers,
-        }),
-      )
-    })
-
-    it.skip('calls getCommunityStatistics', () => {
-      expect(apolloQueryMock).toBeCalledWith(
-        expect.objectContaining({
-          query: communityStatistics,
-        }),
-      )
-    })
-
-    describe('error apolloQueryMock', () => {
-      beforeEach(async () => {
-        jest.clearAllMocks()
-        apolloQueryMock.mockRejectedValue({
-          message: 'uups',
-        })
-        wrapper = Wrapper()
+      wrapper = mount(InfoStatistic, {
+        global: {
+          plugins: [router, i18n],
+          stubs: {
+            BContainer: true,
+            BLink: true,
+          },
+        },
       })
+    })
 
-      it('toasts two error messages', () => {
-        expect(toastErrorSpy).toBeCalledWith(
-          'listContributionLinks has no result, use default data',
-        )
-        expect(toastErrorSpy).toBeCalledWith('searchAdminUsers has no result, use default data')
-        // expect(toastErrorSpy).toBeCalledWith('communityStatistics has no result, use default data')
-      })
+    it('toasts error messages', async () => {
+      await wrapper.vm.$nextTick()
+      expect(mockToastError).toHaveBeenCalledWith(
+        'listContributionLinks has no result, use default data',
+      )
+      expect(mockToastError).toHaveBeenCalledWith(
+        'searchAdminUsers has no result, use default data',
+      )
     })
   })
 })

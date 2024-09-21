@@ -1,87 +1,111 @@
 <template>
-  <validation-provider
-    tag="div"
-    :rules="rules"
-    :name="name"
-    :bails="!showAllErrors"
-    :immediate="immediate"
-    v-slot="{ errors, valid, validated, ariaInput, ariaMsg }"
-  >
-    <b-form-group :label="label" :label-for="labelFor">
-      <b-input-group>
-        <b-form-input
-          v-model="currentValue"
-          v-bind="ariaInput"
+  <div>
+    <BFormGroup :label="defaultTranslations.label" :label-for="labelFor">
+      <BInputGroup>
+        <BFormInput
           :id="labelFor"
+          :model-value="value"
           :name="name"
-          :placeholder="placeholder"
+          :placeholder="defaultTranslations.placeholder"
           :type="showPassword ? 'text' : 'password'"
-          :state="validated ? valid : false"
+          :state="meta.valid"
           data-test="password-input-field"
-        ></b-form-input>
-        <b-input-group-append>
-          <b-button
+          v-bind="ariaInput"
+          @update:modelValue="value = $event"
+        />
+        <template #append>
+          <BButton
             variant="outline-light"
-            @click="toggleShowPassword"
-            class="border-left-0 rounded-right"
+            class="border-start-0 rounded-end"
             tabindex="-1"
+            @click="toggleShowPassword"
           >
-            <b-icon :icon="showPassword ? 'eye' : 'eye-slash'" />
-          </b-button>
-        </b-input-group-append>
-        <b-form-invalid-feedback v-bind="ariaMsg">
-          <div v-if="showAllErrors">
+            <IBiEye v-if="showPassword" />
+            <IBiEyeSlash v-else />
+          </BButton>
+        </template>
+      </BInputGroup>
+      <BFormInvalidFeedback v-if="errorMessage || errors.length" force-show v-bind="ariaMsg">
+        <template #default>
+          <div v-if="allowFullValidation">
             <span v-for="error in errors" :key="error">
               {{ error }}
               <br />
             </span>
           </div>
-          <div v-else>
-            {{ errors[0] }}
-          </div>
-        </b-form-invalid-feedback>
-      </b-input-group>
-    </b-form-group>
-  </validation-provider>
+          <template v-else>{{ errorMessage }}</template>
+        </template>
+      </BFormInvalidFeedback>
+    </BFormGroup>
+  </div>
 </template>
-<script>
-export default {
-  name: 'InputPassword',
-  props: {
-    rules: {
-      default: () => {
-        return {
-          required: true,
-        }
-      },
-    },
-    name: { type: String, default: 'password' },
-    label: { type: String, default: 'Password' },
-    placeholder: { type: String, default: 'Password' },
-    value: { required: true, type: String },
-    showAllErrors: { type: Boolean, default: false },
-    immediate: { type: Boolean, default: false },
+
+<script setup>
+import { ref, computed, watch, defineProps, defineEmits, toRef, onMounted, nextTick } from 'vue'
+import { useField } from 'vee-validate'
+import { useI18n } from 'vue-i18n'
+
+const props = defineProps({
+  name: {
+    type: String,
+    default: 'password',
   },
-  data() {
-    return {
-      currentValue: '',
-      showPassword: false,
-    }
+  label: {
+    type: String,
+    default: 'Password',
   },
-  computed: {
-    labelFor() {
-      return this.name + '-input-field'
-    },
+  placeholder: {
+    type: String,
+    default: 'Password',
   },
-  methods: {
-    toggleShowPassword() {
-      this.showPassword = !this.showPassword
-    },
+  immediate: {
+    type: Boolean,
+    default: false,
   },
-  watch: {
-    currentValue() {
-      this.$emit('input', this.currentValue)
-    },
+  rules: {
+    type: Object || String,
+    default: 'required',
   },
+  allowFullValidation: {
+    type: Boolean,
+    default: false,
+  },
+})
+
+const name = toRef(props, 'name')
+const { value, errorMessage, meta, errors, validate } = useField(name, props.rules, {
+  bails: !props.allowFullValidation,
+  validateOnMount: props.immediate,
+})
+
+// onMounted(async () => {
+//   await nextTick()
+//   if (props.immediate) {
+//     await validate()
+//   }
+// })
+
+const { t } = useI18n()
+
+const defaultTranslations = computed(() => ({
+  label: props.label ?? t('form.password'),
+  placeholder: props.placeholder ?? t('form.password'),
+}))
+
+const showPassword = ref(false)
+
+const toggleShowPassword = () => {
+  showPassword.value = !showPassword.value
 }
+
+const ariaInput = computed(() => ({
+  'aria-invalid': meta.valid ? false : 'true',
+  'aria-describedby': `${props.name}-feedback`,
+}))
+
+const ariaMsg = computed(() => ({
+  id: `${props.name}-feedback`,
+}))
+
+const labelFor = computed(() => `${props.name}-input-field`)
 </script>

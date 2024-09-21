@@ -38,6 +38,7 @@ import { calculateBalance } from '@/util/validate'
 import { virtualLinkTransaction, virtualDecayTransaction } from '@/util/virtualTransactions'
 
 import { BalanceResolver } from './BalanceResolver'
+import { GdtResolver } from './GdtResolver'
 import { getCommunityByIdentifier, getCommunityName, isHomeCommunity } from './util/communities'
 import { findUserByIdentifier } from './util/findUserByIdentifier'
 import { getLastTransaction } from './util/getLastTransaction'
@@ -229,8 +230,11 @@ export class TransactionResolver {
     logger.addContext('user', user.id)
     logger.info(`transactionList(user=${user.firstName}.${user.lastName}, ${user.emailId})`)
 
+    const gdtResolver = new GdtResolver()
+    const balanceGDTPromise = gdtResolver.gdtBalance(context)
+
     // find current balance
-    const lastTransaction = await getLastTransaction(user.id, ['contribution'])
+    const lastTransaction = await getLastTransaction(user.id)
     logger.debug(`lastTransaction=${lastTransaction}`)
 
     const balanceResolver = new BalanceResolver()
@@ -319,6 +323,7 @@ export class TransactionResolver {
 
     const { sumHoldAvailableAmount, sumAmount, lastDate, firstDate, transactionLinkcount } =
       await transactionLinkSummary(user.id, now)
+
     context.linkCount = transactionLinkcount
     logger.debug(`transactionLinkcount=${transactionLinkcount}`)
     context.sumHoldAvailableAmount = sumHoldAvailableAmount
@@ -413,6 +418,8 @@ export class TransactionResolver {
         ).toDecimalPlaces(2, Decimal.ROUND_HALF_UP)
       }
     })
+    const balanceGDT = await balanceGDTPromise
+    context.balanceGDT = balanceGDT
 
     // Construct Result
     return new TransactionList(await balanceResolver.balance(context), transactions)

@@ -1,20 +1,20 @@
 <template>
   <div class="show-transaction-link-informations">
     <div class="mt-4">
-      <transaction-link-item :type="itemType">
+      <transaction-link-item :type="itemTypeExt">
         <template #LOGGED_OUT>
-          <redeem-logged-out :linkData="linkData" :isContributionLink="isContributionLink" />
+          <redeem-logged-out :link-data="linkData" :is-contribution-link="isContributionLink" />
         </template>
 
         <template #SELF_CREATOR>
-          <redeem-self-creator :linkData="linkData" />
+          <redeem-self-creator :link-data="linkData" />
         </template>
 
         <template #VALID>
           <redeem-valid
-            :linkData="linkData"
-            :isContributionLink="isContributionLink"
-            :validLink="validLink"
+            :link-data="linkData"
+            :is-contribution-link="isContributionLink"
+            :valid-link="validLink"
             @mutation-link="mutationLink"
           />
         </template>
@@ -26,138 +26,149 @@
     </div>
   </div>
 </template>
-<script>
+
+<script setup>
+import { ref, computed, onMounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useStore } from 'vuex'
+import { useQuery, useMutation } from '@vue/apollo-composable'
 import TransactionLinkItem from '@/components/TransactionLinkItem'
 import RedeemLoggedOut from '@/components/LinkInformations/RedeemLoggedOut'
 import RedeemSelfCreator from '@/components/LinkInformations/RedeemSelfCreator'
 import RedeemValid from '@/components/LinkInformations/RedeemValid'
 import RedeemedTextBox from '@/components/LinkInformations/RedeemedTextBox'
+import { useAppToast } from '@/composables/useToast'
 import { queryTransactionLink } from '@/graphql/queries'
 import { redeemTransactionLink } from '@/graphql/mutations'
+import { useI18n } from 'vue-i18n'
 
-export default {
-  name: 'TransactionLink',
-  components: {
-    TransactionLinkItem,
-    RedeemLoggedOut,
-    RedeemSelfCreator,
-    RedeemValid,
-    RedeemedTextBox,
+const { toastError, toastSuccess } = useAppToast()
+const router = useRouter()
+const { params } = useRoute()
+const store = useStore()
+const { d, t } = useI18n()
+
+const linkData = ref({
+  __typename: 'TransactionLink',
+  amount: '',
+  memo: '',
+  user: {
+    firstName: '',
   },
-  data() {
-    return {
-      linkData: {
-        __typename: 'TransactionLink',
-        amount: '',
-        memo: '',
-        user: {
-          firstName: '',
-        },
-        deletedAt: null,
-        validLink: false,
-      },
+  deletedAt: null,
+  validLink: false,
+})
+
+const redeemedBoxText = ref('')
+
+const { result, onResult, loading, error, onError } = useQuery(queryTransactionLink, {
+  code: params.code,
+})
+
+const {
+  mutate: redeemMutate,
+  loading: redeemLoading,
+  error: redeemError,
+} = useMutation(redeemTransactionLink)
+
+const isContributionLink = computed(() => {
+  return params.code?.search(/^CL-/) === 0
+})
+
+const tokenExpiresInSeconds = computed(() => {
+  const remainingSecs = Math.floor(
+    (new Date(store.state.tokenTime * 1000).getTime() - new Date().getTime()) / 1000,
+  )
+  return remainingSecs <= 0 ? 0 : remainingSecs
+})
+
+const validLink = computed(() => {
+  return new Date(linkData.value.validUntil) > new Date()
+})
+
+const itemType = computed(() => {
+  if (linkData.value.deletedAt) return 'TEXT_DELETED'
+  if (new Date(linkData.value.validUntil) < new Date()) return 'TEXT_EXPIRED'
+  if (linkData.value.redeemedAt) return 'TEXT_REDEEMED'
+
+  if (store.state.token && store.state.tokenTime) {
+    if (tokenExpiresInSeconds.value < 5) return 'LOGGED_OUT'
+    if (linkData.value.user && store.state.gradidoID === linkData.value.user.gradidoID)
+      return 'SELF_CREATOR'
+    if (!linkData.value.redeemedAt && !linkData.value.deletedAt) return 'VALID'
+  }
+
+  return 'LOGGED_OUT'
+})
+
+const itemTypeExt = computed(() => {
+  if (itemType.value.startsWith('TEXT')) {
+    return 'TEXT'
+  }
+  return itemType.value
+})
+
+watch(itemType, (newItemType) => {
+  updateRedeemedBoxText(newItemType)
+})
+
+function updateRedeemedBoxText(type) {
+  switch (type) {
+    case 'TEXT_DELETED':
+      redeemedBoxText.value = t('gdd_per_link.link-deleted', {
+        date: d(new Date(linkData.value.deletedAt), 'long'),
+      })
+      break
+    case 'TEXT_EXPIRED':
+      redeemedBoxText.value = t('gdd_per_link.link-expired', {
+        date: d(new Date(linkData.value.validUntil), 'long'),
+      })
+      break
+    case 'TEXT_REDEEMED':
+      redeemedBoxText.value = t('gdd_per_link.redeemed-at', {
+        date: d(new Date(linkData.value.redeemedAt), 'long'),
+      })
+      break
+    default:
+      redeemedBoxText.value = ''
+  }
+}
+
+const emit = defineEmits(['set-mobile-start'])
+
+onMounted(() => {
+  emit('set-mobile-start', false)
+})
+
+onResult(() => {
+  if (!result || !result.value) return
+  setTransactionLinkInformation()
+})
+
+onError(() => {
+  toastError(t('gdd_per_link.redeemlink-error'))
+})
+
+function setTransactionLinkInformation() {
+  const { queryTransactionLink } = result.value
+  if (queryTransactionLink) {
+    linkData.value = queryTransactionLink
+    if (linkData.value.__typename === 'ContributionLink' && store.state.token) {
+      mutationLink(linkData.value.amount)
     }
-  },
-  methods: {
-    setTransactionLinkInformation() {
-      this.$apollo
-        .query({
-          fetchPolicy: 'no-cache',
-          query: queryTransactionLink,
-          variables: {
-            code: this.$route.params.code,
-          },
-        })
-        .then((result) => {
-          this.validLink = true
-          this.linkData = result.data.queryTransactionLink
-          if (this.linkData.__typename === 'ContributionLink' && this.$store.state.token) {
-            this.mutationLink(this.linkData.amount)
-          }
-        })
-        .catch(() => {
-          this.toastError(this.$t('gdd_per_link.redeemlink-error'))
-        })
-    },
-    mutationLink(amount) {
-      this.$apollo
-        .mutate({
-          mutation: redeemTransactionLink,
-          variables: {
-            code: this.$route.params.code,
-          },
-        })
-        .then(() => {
-          this.toastSuccess(
-            this.$t('gdd_per_link.redeemed', {
-              n: amount,
-            }),
-          )
-          this.$router.push('/overview')
-        })
-        .catch((err) => {
-          this.toastError(err.message)
-          this.$router.push('/overview')
-        })
-    },
-  },
-  computed: {
-    isContributionLink() {
-      return this.$route.params.code.search(/^CL-/) === 0
-    },
-    tokenExpiresInSeconds() {
-      const remainingSecs = Math.floor(
-        (new Date(this.$store.state.tokenTime * 1000).getTime() - new Date().getTime()) / 1000,
-      )
-      return remainingSecs <= 0 ? 0 : remainingSecs
-    },
-    itemType() {
-      // link is deleted: at, from
-      if (this.linkData.deletedAt) {
-        // eslint-disable-next-line vue/no-side-effects-in-computed-properties
-        this.redeemedBoxText = this.$t('gdd_per_link.link-deleted', {
-          date: this.$d(new Date(this.linkData.deletedAt), 'long'),
-        })
-        return `TEXT`
-      }
-      // link ist abgelaufen, nicht gelöscht
-      if (new Date(this.linkData.validUntil) < new Date()) {
-        // eslint-disable-next-line vue/no-side-effects-in-computed-properties
-        this.redeemedBoxText = this.$t('gdd_per_link.link-expired', {
-          date: this.$d(new Date(this.linkData.validUntil), 'long'),
-        })
-        return `TEXT`
-      }
+  }
+}
 
-      // der link wurde eingelöst, nicht gelöscht
-      if (this.linkData.redeemedAt) {
-        // eslint-disable-next-line vue/no-side-effects-in-computed-properties
-        this.redeemedBoxText = this.$t('gdd_per_link.redeemed-at', {
-          date: this.$d(new Date(this.linkData.redeemedAt), 'long'),
-        })
-        return `TEXT`
-      }
-
-      if (this.$store.state.token && this.$store.state.tokenTime) {
-        if (this.tokenExpiresInSeconds < 5) return `LOGGED_OUT`
-
-        // logged in, nicht berechtigt einzulösen, eigener link
-        if (this.linkData.user && this.$store.state.gradidoID === this.linkData.user.gradidoID) {
-          return `SELF_CREATOR`
-        }
-
-        // logged in und berechtigt einzulösen
-        if (!this.linkData.redeemedAt && !this.linkData.deletedAt) {
-          return `VALID`
-        }
-      }
-
-      return `LOGGED_OUT`
-    },
-  },
-  created() {
-    this.setTransactionLinkInformation()
-    this.$emit('set-mobile-start', false)
-  },
+async function mutationLink(amount) {
+  try {
+    await redeemMutate({
+      code: params.code,
+    })
+    toastSuccess(t('gdd_per_link.redeemed', { n: amount }))
+    await router.push('/overview')
+  } catch (err) {
+    toastError(err.message)
+    await router.push('/overview')
+  }
 }
 </script>

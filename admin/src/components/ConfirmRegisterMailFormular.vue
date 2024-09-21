@@ -1,64 +1,64 @@
 <template>
   <div class="component-confirm-register-mail">
     <div class="shadow p-3 mb-5 bg-white rounded">
-      <div v-if="checked">{{ $t('unregister_mail.text_true') }}</div>
+      <div v-if="props.checked">{{ $t('unregister_mail.text_true') }}</div>
       <div v-else>
         {{
-          dateLastSend === ''
-            ? $t('unregister_mail.never_sent', { email })
-            : $t('unregister_mail.text_false', { date: dateLastSend, email })
+          props.dateLastSend === ''
+            ? $t('unregister_mail.never_sent', { email: props.email })
+            : $t('unregister_mail.text_false', { date: props.dateLastSend, email: props.email })
         }}
-
         <!-- Using components -->
-        <b-input-group :prepend="$t('unregister_mail.info')" class="mt-3">
-          <b-form-input readonly :value="email"></b-form-input>
-          <b-input-group-append>
-            <b-button variant="outline-success" class="test-button" @click="sendRegisterMail">
-              {{ $t('unregister_mail.button') }}
-            </b-button>
-          </b-input-group-append>
-        </b-input-group>
+        <BInputGroup :prepend="$t('unregister_mail.info')" class="mt-3">
+          <BFormInput v-model="email" readonly />
+          <BButton variant="outline-success" append class="test-button" @click="sendRegisterMail">
+            {{ $t('unregister_mail.button') }}
+          </BButton>
+        </BInputGroup>
       </div>
     </div>
   </div>
 </template>
-<script>
+<script setup>
+import { ref } from 'vue'
 import { sendActivationEmail } from '../graphql/sendActivationEmail'
+import { BButton, BFormInput, BInputGroup } from 'bootstrap-vue-next'
+import { useI18n } from 'vue-i18n'
+import { useMutation } from '@vue/apollo-composable'
+import { useAppToast } from '@/composables/useToast'
 
-export default {
-  name: 'ConfirmRegisterMail',
-  props: {
-    checked: {
-      type: Boolean,
-    },
-    email: {
-      type: String,
-    },
-    dateLastSend: {
-      type: String,
-    },
+const props = defineProps({
+  checked: {
+    type: Boolean,
   },
-  methods: {
-    sendRegisterMail() {
-      this.$apollo
-        .mutate({
-          mutation: sendActivationEmail,
-          variables: {
-            email: this.email,
-          },
-        })
-        .then(() => {
-          this.toastSuccess(this.$t('unregister_mail.success', { email: this.email }))
-        })
-        .catch((error) => {
-          this.toastError(this.$t('unregister_mail.error', { message: error.message }))
-        })
-    },
+  email: {
+    type: String,
   },
+  dateLastSend: {
+    type: String,
+  },
+})
+
+const { t } = useI18n()
+const { toastError, toastSuccess } = useAppToast()
+
+const email = ref(props.email)
+
+const { mutate: activateEmail } = useMutation(sendActivationEmail)
+
+const sendRegisterMail = async () => {
+  try {
+    await activateEmail({
+      email: email.value,
+    })
+    toastSuccess(t('unregister_mail.success', { email: email.value }))
+  } catch (error) {
+    toastError(t('unregister_mail.error', { message: error.message }))
+  }
 }
 </script>
 <style>
 .input-group-text {
-  background-color: rgb(255, 252, 205);
+  background-color: rgb(255 252 205);
 }
 </style>

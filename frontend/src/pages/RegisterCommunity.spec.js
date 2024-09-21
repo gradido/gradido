@@ -1,90 +1,106 @@
-import { mount, RouterLinkStub } from '@vue/test-utils'
-import RegisterCommunity from './RegisterCommunity'
+import { mount } from '@vue/test-utils'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+import RegisterCommunity from './RegisterCommunity.vue'
+import { createRouter, createWebHistory } from 'vue-router'
+import { createStore } from 'vuex'
+import { BButton, BCol, BContainer, BRow } from 'bootstrap-vue-next'
 
-const localVue = global.localVue
-
-const mockStoreCommit = jest.fn()
+// Mock the CONFIG import
+vi.mock('@/config', () => ({
+  default: {
+    COMMUNITY_NAME: 'Gradido Entwicklung',
+    COMMUNITY_DESCRIPTION: 'Die lokale Entwicklungsumgebung von Gradido.',
+    COMMUNITY_URL: 'http://localhost/',
+  },
+}))
 
 describe('RegisterCommunity', () => {
   let wrapper
+  let router
+  let store
 
-  const mocks = {
-    $i18n: {
-      locale: 'en',
-    },
-    $t: jest.fn((t) => t),
-    $store: {
-      commit: mockStoreCommit,
+  const createVuexStore = () => {
+    return createStore({
       state: {
         community: {
           name: '',
           description: '',
+          url: '',
         },
       },
-    },
+    })
   }
 
-  const stubs = {
-    RouterLink: RouterLinkStub,
-  }
+  beforeEach(() => {
+    router = createRouter({
+      history: createWebHistory(),
+      routes: [
+        { path: '/register', name: 'Register' },
+        { path: '/select-community', name: 'SelectCommunity' },
+        { path: '/login', name: 'Login' },
+      ],
+    })
+    store = createVuexStore()
 
-  const Wrapper = () => {
-    return mount(RegisterCommunity, { localVue, mocks, stubs })
-  }
+    wrapper = mount(RegisterCommunity, {
+      global: {
+        plugins: [router, store],
+        stubs: {
+          BRow,
+          BCol,
+          BContainer,
+          BButton,
+        },
+        mocks: {
+          $t: (key) => key,
+        },
+      },
+    })
+  })
 
-  describe('mount', () => {
-    beforeEach(() => {
-      wrapper = Wrapper()
+  it('renders the Div Element "#register-community"', () => {
+    expect(wrapper.find('div#register-community').exists()).toBe(true)
+  })
+
+  describe('Community data', () => {
+    it('displays the community name', () => {
+      expect(wrapper.find('.justify-content-center h1').text()).toBe('Gradido Entwicklung')
     })
 
-    it('renders the Div Element "#register-community"', () => {
-      expect(wrapper.find('div#register-community').exists()).toBeTruthy()
+    it('displays the community description', () => {
+      expect(wrapper.find('.justify-content-center p.text-lead').text()).toBe(
+        'Die lokale Entwicklungsumgebung von Gradido.',
+      )
     })
 
-    describe('Community data already loaded', () => {
-      beforeEach(() => {
-        jest.clearAllMocks()
-        mocks.$store.state.community = {
-          name: 'Gradido Entwicklung',
-          url: 'http://localhost/',
-          registerUrl: 'http://localhost/register',
-          description: 'Die lokale Entwicklungsumgebung von Gradido.',
-        }
-        wrapper = Wrapper()
-      })
+    it('displays the community URL', () => {
+      expect(wrapper.find('.community-location').text()).toBe('http://localhost/')
+    })
+  })
 
-      it('has a Community name', () => {
-        expect(wrapper.find('.justify-content-center h1').text()).toBe('Gradido Entwicklung')
-      })
-
-      it('has a Community description', () => {
-        expect(wrapper.find('.justify-content-center p').text()).toBe(
-          'Die lokale Entwicklungsumgebung von Gradido.',
-        )
-      })
+  describe('buttons and links', () => {
+    it('has a button "Continue to registration"', () => {
+      expect(wrapper.findAll('button').at(0).text()).toEqual('community.continue-to-registration')
     })
 
-    describe('buttons and links', () => {
-      it('has a button "Continue to registration?"', () => {
-        expect(wrapper.findAll('a').at(0).text()).toEqual('community.continue-to-registration')
-      })
-      it('button links to /register when clicking "Continue to registration"', () => {
-        expect(wrapper.findAll('a').at(0).props().to).toBe('/register')
-      })
+    it('button links to /register when clicking "Continue to registration"', () => {
+      expect(wrapper.findAll('a').at(0).attributes('href')).toBe('/register')
+    })
 
-      it('has a button "Choose another community?"', () => {
-        expect(wrapper.findAll('a').at(1).text()).toEqual('community.choose-another-community')
-      })
-      it('button links to /select-community when clicking "Choose another community"', () => {
-        expect(wrapper.findAll('a').at(1).props().to).toBe('/select-community')
-      })
+    it('has a button "Choose another community"', () => {
+      expect(wrapper.findAll('button').at(1).text()).toEqual('community.choose-another-community')
+    })
 
-      it('has a button "Back to Login?"', () => {
-        expect(wrapper.findAll('a').at(2).text()).toEqual('back')
-      })
-      it('button links to /login when clicking "Back to Login"', () => {
-        expect(wrapper.findAll('a').at(2).props().to).toBe('/login')
-      })
+    it('button links to /select-community when clicking "Choose another community"', () => {
+      expect(wrapper.findAll('a').at(1).attributes('href')).toBe('/select-community')
+    })
+
+    it('has a button "Back to Login"', () => {
+      expect(wrapper.findAll('button').at(2).text()).toEqual('back')
+    })
+
+    it('button links to /login when clicking "Back to Login"', () => {
+      expect(wrapper.findAll('a').at(2).attributes('href')).toBe('/login')
     })
   })
 })

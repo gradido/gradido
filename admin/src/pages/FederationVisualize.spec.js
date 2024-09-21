@@ -1,137 +1,110 @@
 import { mount } from '@vue/test-utils'
-import FederationVisualize from './FederationVisualize'
-import VueApollo from 'vue-apollo'
-import { createMockClient } from 'mock-apollo-client'
-import { allCommunities } from '@/graphql/allCommunities'
-import { toastErrorSpy } from '../../test/testSetup'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { nextTick, ref } from 'vue'
+import FederationVisualize from './FederationVisualize.vue'
+import { useQuery } from '@vue/apollo-composable'
+import { useAppToast } from '@/composables/useToast'
+import { BButton, BListGroup, BRow, BCol, BListGroupItem } from 'bootstrap-vue-next'
 
-const mockClient = createMockClient()
-const apolloProvider = new VueApollo({
-  defaultClient: mockClient,
-})
-
-const localVue = global.localVue
-
-localVue.use(VueApollo)
-
-const mocks = {
-  $t: (key) => key,
-  $d: jest.fn((d) => d),
-  $i18n: {
-    locale: 'en',
-    t: (key) => key,
-  },
-}
-
-const defaultData = () => {
-  return {
-    allCommunities: [
-      {
-        id: 1,
-        foreign: false,
-        url: 'http://localhost/api/',
-        publicKey: '4007170edd8d33fb009cd99ee4e87f214e7cd21b668d45540a064deb42e243c2',
-        communityUuid: '5ab0befd-b150-4f31-a631-7f3637e47b21',
-        authenticatedAt: null,
-        name: 'Gradido Test',
-        description: 'Gradido Community zum testen',
-        gmsApiKey: '<api key>',
-        creationDate: '2024-01-09T15:56:40.592Z',
-        createdAt: '2024-01-09T15:56:40.595Z',
-        updatedAt: '2024-01-16T11:17:15.000Z',
-        federatedCommunities: [
-          {
-            id: 2046,
-            apiVersion: '2_0',
-            endPoint: 'http://localhost/api/',
-            lastAnnouncedAt: null,
-            verifiedAt: null,
-            lastErrorAt: null,
-            createdAt: '2024-01-16T10:08:21.544Z',
-            updatedAt: null,
-          },
-          {
-            id: 2045,
-            apiVersion: '1_1',
-            endPoint: 'http://localhost/api/',
-            lastAnnouncedAt: null,
-            verifiedAt: null,
-            lastErrorAt: null,
-            createdAt: '2024-01-16T10:08:21.550Z',
-            updatedAt: null,
-            __typename: 'FederatedCommunity',
-          },
-          {
-            id: 2044,
-            apiVersion: '1_0',
-            endPoint: 'http://localhost/api/',
-            lastAnnouncedAt: null,
-            verifiedAt: null,
-            lastErrorAt: null,
-            createdAt: '2024-01-16T10:08:21.544Z',
-            updatedAt: null,
-            __typename: 'FederatedCommunity',
-          },
-        ],
-      },
-    ],
-  }
-}
+vi.mock('@vue/apollo-composable')
+vi.mock('@/composables/useToast')
 
 describe('FederationVisualize', () => {
   let wrapper
-  const allCommunitiesMock = jest.fn()
+  let mockResult
+  let mockLoading
+  let mockRefetch
+  let mockError
+  const mockToastError = vi.fn()
 
-  mockClient.setRequestHandler(
-    allCommunities,
-    allCommunitiesMock
-      .mockRejectedValueOnce({ message: 'Ouch!' })
-      .mockResolvedValue({ data: defaultData() }),
-  )
+  beforeEach(() => {
+    mockResult = ref(null)
+    mockLoading = ref(false)
+    mockRefetch = vi.fn()
+    mockError = ref(null)
 
-  const Wrapper = () => {
-    return mount(FederationVisualize, { localVue, mocks, apolloProvider })
-  }
-
-  describe('mount', () => {
-    beforeEach(() => {
-      jest.clearAllMocks()
-      wrapper = Wrapper()
+    useQuery.mockReturnValue({
+      result: mockResult,
+      loading: mockLoading,
+      refetch: mockRefetch,
+      error: mockError,
     })
 
-    describe('server error', () => {
-      it('toast error', () => {
-        expect(toastErrorSpy).toBeCalledWith('Ouch!')
-      })
+    useAppToast.mockReturnValue({
+      toastError: mockToastError,
     })
 
-    describe('sever success', () => {
-      it('sends query to Apollo when created', () => {
-        expect(allCommunitiesMock).toBeCalled()
-      })
-
-      it('has a DIV element with the class "federation-visualize"', () => {
-        expect(wrapper.find('div.federation-visualize').exists()).toBe(true)
-      })
-
-      it('has a refresh button', () => {
-        expect(wrapper.find('[data-test="federation-communities-refresh-btn"]').exists()).toBe(true)
-      })
-
-      it('renders 1 community list item', () => {
-        expect(wrapper.findAll('.list-group-item').length).toBe(1)
-      })
-
-      describe('cklicking the refresh button', () => {
-        beforeEach(async () => {
-          jest.clearAllMocks()
-          await wrapper.find('[data-test="federation-communities-refresh-btn"]').trigger('click')
-        })
-
-        it('calls the API', async () => {
-          expect(allCommunitiesMock).toBeCalled()
-        })
-      })
+    wrapper = mount(FederationVisualize, {
+      global: {
+        mocks: {
+          $t: (key) => key,
+        },
+        stubs: {
+          BButton,
+          BListGroup,
+          BRow,
+          BCol,
+          BListGroupItem,
+          IBiArrowClockwise: true,
+          'community-visualize-item': true,
+        },
+      },
     })
+  })
+
+  it('renders the component', () => {
+    expect(wrapper.find('.federation-visualize').exists()).toBe(true)
+  })
+
+  it('displays the correct header', () => {
+    expect(wrapper.find('.h2').text()).toBe('federation.gradidoInstances')
+  })
+
+  it('renders the refresh button', () => {
+    const refreshButton = wrapper.find('[data-test="federation-communities-refresh-btn"]')
+    expect(refreshButton.exists()).toBe(true)
+  })
+
+  it('calls refetch when refresh button is clicked', async () => {
+    const refreshButton = wrapper.find('[data-test="federation-communities-refresh-btn"]')
+    await refreshButton.trigger('click')
+    expect(mockRefetch).toHaveBeenCalled()
+  })
+
+  it('displays communities when data is loaded', async () => {
+    const mockCommunities = [
+      { publicKey: '1', foreign: true },
+      { publicKey: '2', foreign: false },
+    ]
+    mockResult.value = { allCommunities: mockCommunities }
+    await nextTick()
+
+    const listItems = wrapper.findAllComponents({ name: 'BListGroupItem' })
+    expect(listItems).toHaveLength(2)
+
+    expect(listItems[0].props('variant')).toBe('warning')
+    expect(listItems[1].props('variant')).toBe('primary')
+  })
+
+  it('shows loading animation when fetching data', async () => {
+    mockLoading.value = true
+    await nextTick()
+    const refreshButton = wrapper.find('[data-test="federation-communities-refresh-btn"]')
+    expect(refreshButton.attributes('animation')).toBe('spin')
+  })
+
+  it('displays error toast when query fails', async () => {
+    mockError.value = new Error('Test error')
+    await nextTick()
+    expect(mockToastError).toHaveBeenCalledWith('Test error')
+  })
+
+  it('renders correct column headers', () => {
+    const columns = wrapper.findAll('.list-group > .row > div')
+    expect(columns[0].text()).toBe('federation.verified')
+    expect(columns[1].text()).toBe('federation.url')
+    expect(columns[2].text()).toBe('federation.name')
+    expect(columns[3].text()).toBe('federation.lastAnnouncedAt')
+    expect(columns[4].text()).toBe('federation.createdAt')
   })
 })

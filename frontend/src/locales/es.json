@@ -131,6 +131,7 @@
     "memo": "Mensaje",
     "message": "Noticia",
     "new_balance": "Saldo de cuenta nuevo depués de confirmación",
+    "newPasswordRepeat": "Repetir contraseña nueva",
     "no_gdd_available": "No dispones de GDD para enviar.",
     "password": "Contraseña",
     "passwordRepeat": "Repetir contraseña",
@@ -155,6 +156,7 @@
     "validation": {
       "gddSendAmount": "El campo {_field_} debe ser un número entre {min} y {max} con un máximo de dos decimales",
       "is-not": "No es posible  transferirte Gradidos a ti mismo",
+      "requiredField": "El campo {fieldName} es obligatorio",
       "usernmae-regex": "El nombre de usuario debe comenzar con una letra seguida de al menos dos caracteres alfanuméricos.",
       "usernmae-unique": "Este nombre de usuario ya está adjudicado."
     },
@@ -270,6 +272,7 @@
       "changeLanguage": "Cambiar idioma",
       "de": "Deutsch",
       "en": "English",
+      "error": "No se ha podido actualizar la configuración de idioma.",
       "es": "Español",
       "fr": "Français",
       "nl": "Nederlands",

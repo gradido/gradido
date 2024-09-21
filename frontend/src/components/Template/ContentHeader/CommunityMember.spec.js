@@ -1,32 +1,58 @@
 import { mount } from '@vue/test-utils'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import CommunityMember from './CommunityMember'
+import CONFIG from '@/config'
 
-const localVue = global.localVue
-
-const mocks = {
-  $i18n: {
-    locale: 'en',
-  },
-  $t: jest.fn((t) => t),
-}
-
-const propsData = {
-  totalUsers: 123,
-}
+// Mock vue-i18n
+const mockT = vi.fn((key) => key)
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({
+    t: mockT,
+  }),
+}))
 
 describe('CommunityMember', () => {
   let wrapper
 
-  const Wrapper = () => {
-    return mount(CommunityMember, { localVue, mocks, propsData })
+  const createWrapper = (props = {}) => {
+    return mount(CommunityMember, {
+      props: {
+        totalUsers: 123,
+        ...props,
+      },
+      global: {
+        mocks: {
+          $t: mockT,
+          CONFIG,
+        },
+      },
+    })
   }
-  describe('mount', () => {
-    beforeEach(() => {
-      wrapper = Wrapper()
-    })
 
-    it('renders the component community-member', () => {
-      expect(wrapper.find('div.community-member').exists()).toBe(true)
-    })
+  beforeEach(() => {
+    vi.clearAllMocks()
+    wrapper = createWrapper()
+  })
+
+  it('renders the component community-member', () => {
+    expect(wrapper.find('div.community-member').exists()).toBe(true)
+  })
+
+  it('displays the correct number of total users', () => {
+    expect(wrapper.text()).toContain('123')
+  })
+
+  it('displays the community name from CONFIG', () => {
+    expect(wrapper.text()).toContain(CONFIG.COMMUNITY_NAME)
+  })
+
+  it('uses the correct translations', () => {
+    expect(mockT).toHaveBeenCalledWith('member')
+    expect(mockT).toHaveBeenCalledWith('community.communityMember')
+  })
+
+  it('updates when totalUsers prop changes', async () => {
+    await wrapper.setProps({ totalUsers: 456 })
+    expect(wrapper.text()).toContain('456')
   })
 })

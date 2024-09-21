@@ -2,25 +2,25 @@
 @use "sass:map";
 @use "sass:color";
 
-$white: #fff !default;
-$gray-100: #f6f9fc !default;
-$gray-200: #e9ecef !default;
-$gray-300: #dee2e6 !default;
-$gray-400: #ced4da !default;
-$gray-500: #adb5bd !default;
-$gray-600: #8898aa !default;   // Line footer color
-$gray-700: #525f7f !default;   // Line p color
-$gray-800: #32325d !default;   // Line heading color
-$gray-900: #212529 !default;
-$gradido-f5: #f5f5f5 !default;
-$gradido-248: rgb(248 248 248) !default;
-$gradido-140: rgb(140 66 5) !default;
-$gradido-205: rgb(205 86 86) !default;
-$gradido-197: rgb(197 141 56) !default;
-$gradido-209: rgb(209 209 209) !default;
-$gradido-4: rgb(4 112 6) !default;
-$black: #000 !default;
-$grays: () !default;
+$white: #fff ;
+$gray-100: #f6f9fc ;
+$gray-200: #e9ecef ;
+$gray-300: #dee2e6 ;
+$gray-400: #ced4da ;
+$gray-500: #adb5bd ;
+$gray-600: #8898aa ;   // Line footer color
+$gray-700: #525f7f;   // Line p color
+$gray-800: #32325d;   // Line heading color
+$gray-900: #212529;
+$gradido-f5: #f5f5f5 ;
+$gradido-248: rgb(248 248 248) ;
+$gradido-140: rgb(140 66 5) ;
+$gradido-205: rgb(205 86 86) ;
+$gradido-197: rgb(197 141 56) ;
+$gradido-209: rgb(209 209 209) ;
+$gradido-4: rgb(4 112 6) ;
+$black: #000 ;
+$grays: () ;
 $grays: map.merge(
   (
     "100": $gray-100,
@@ -42,19 +42,19 @@ $grays: map.merge(
   ),
   $grays
 );
-$blue: #5e72e4 !default;
-$indigo: #5603ad !default;
-$purple: #8965e0 !default;
-$pink: #f3a4b5 !default;
-$red: #f5365c !default;
+$blue: #5e72e4 ;
+$indigo: #5603ad ;
+$purple: #8965e0 ;
+$pink: #f3a4b5 ;
+$red: #f5365c ;
 
-// $orange: #fb6340 !default;
-$orange: #8c0505 !default;
-$yellow: #ffd600 !default;
-$green: #2dce89 !default;
-$teal: #11cdef !default;
-$cyan: #2bffc6 !default;
-$colors: () !default;
+// $orange: #fb6340 ;
+$orange: #8c0505 ;
+$yellow: #ffd600 ;
+$green: #2dce89 ;
+$teal: #11cdef ;
+$cyan: #2bffc6 ;
+$colors: () ;
 $colors: map.merge(
   (
     "blue":       $blue,
@@ -82,27 +82,27 @@ $colors: map.merge(
   ),
   $colors
 );
-$f5f5f5: $gradido-f5 !default;
-$default: #172b4d !default;
-$primary: #5e72e4 !default;
-$secondary: #f7fafc !default;
-$success: $green !default;
-$info: $teal !default;
-$warning: $orange !default;
-$danger: $red !default;
-$light: $gray-500 !default;
-$dark: $gray-900 !default;
-$darker: color.adjust($gray-900, $lightness: -15%) !default;
-$facebook: #3b5999 !default;
-$twitter: #1da1f2 !default;
-$google-plus: #dd4b39 !default;
-$instagram: #e4405f !default;
-$pinterest: #bd081c !default;
-$youtube: #cd201f !default;
-$slack: #3aaf85 !default;
-$dribbble: #ea4c89 !default;
-$github: #222 !default;
-$theme-colors: () !default;
+$f5f5f5: $gradido-f5 ;
+$default: #172b4d ;
+$primary: #5e72e4 ;
+$secondary: #f7fafc ;
+$success: $green ;
+$info: $teal ;
+$warning: $orange ;
+$danger: $red ;
+$light: $gray-500 ;
+$dark: $gray-900 ;
+$darker: color.adjust($gray-900, $lightness: -15%) ;
+$facebook: #3b5999 ;
+$twitter: #1da1f2 ;
+$google-plus: #dd4b39 ;
+$instagram: #e4405f ;
+$pinterest: #bd081c ;
+$youtube: #cd201f ;
+$slack: #3aaf85 ;
+$dribbble: #ea4c89 ;
+$github: #222 ;
+$theme-colors: () ;
 $theme-colors: map.merge(
   (
     "default":      $default,
@@ -126,7 +126,7 @@ $theme-colors: map.merge(
   ),
   $theme-colors
 );
-$brand-colors: () !default;
+$brand-colors: () ;
 $brand-colors: map.merge(
   (
     "facebook":     $facebook,
@@ -141,7 +141,7 @@ $brand-colors: map.merge(
   ),
   $brand-colors
 );
-$shape-colors: () !default;
+$shape-colors: () ;
 $shape-colors: map.merge(
   (
     "default":      #32325d,
@@ -152,7 +152,7 @@ $shape-colors: map.merge(
   ),
   $shape-colors
 );
-$shapes-primary-colors: () !default;
+$shapes-primary-colors: () ;
 $shapes-primary-colors: map.merge(
   (
     "step-1-gradient-bg":         #281483,
@@ -166,7 +166,7 @@ $shapes-primary-colors: map.merge(
   ),
   $shapes-primary-colors
 );
-$shapes-default-colors: () !default;
+$shapes-default-colors: () ;
 $shapes-default-colors: map.merge(
   (
     "step-1-gradient-bg":         #7795f8,
@@ -180,7 +180,7 @@ $shapes-default-colors: map.merge(
   ),
   $shapes-default-colors
 );
-$shapes-light-colors: () !default;
+$shapes-light-colors: () ;
 $shapes-light-colors: map.merge(
   (
     "step-1-gradient-bg":         #b2cbe1,
@@ -194,7 +194,7 @@ $shapes-light-colors: map.merge(
   ),
   $shapes-light-colors
 );
-$shapes-dark-colors: () !default;
+$shapes-dark-colors: () ;
 $shapes-dark-colors: map.merge(
   (
     "step-1-gradient-bg":         #32325d,
@@ -210,23 +210,23 @@ $shapes-dark-colors: map.merge(
 );
 
 // Translucent color variations
-$translucent-color-opacity: 0.6 !default;
+$translucent-color-opacity: 0.6 ;
 
 // Set a specific jump point for requesting color jumps
-$theme-color-interval: 8% !default;
+$theme-color-interval: 8% ;
 
 // The yiq lightness value that determines when the lightness of color changes
 // from "dark" to "light". Acceptable values are between 0 and 255.
-$yiq-contrasted-threshold: 200 !default;
+$yiq-contrasted-threshold: 200 ;
 
 // Customize the light and dark text colors for use in our YIQ color contrast function.
-$yiq-text-dark: $gray-900 !default;
-$yiq-text-light: $white !default;
+$yiq-text-dark: $gray-900 ;
+$yiq-text-light: $white ;
 
 // Action colors
 
-$star-rating-color: $gray-400 !default;
-$star-rating-color-active: $yellow !default;
-$favorite-color: $yellow !default;
-$like-color: $blue !default;
-$love-color: $red !default;
+$star-rating-color: $gray-400 ;
+$star-rating-color-active: $yellow ;
+$favorite-color: $yellow ;
+$like-color: $blue ;
+$love-color: $red ;
