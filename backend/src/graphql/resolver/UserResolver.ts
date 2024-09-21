@@ -30,7 +30,6 @@ import { GmsUserAuthenticationResult } from '@model/GmsUserAuthenticationResult'
 import { User } from '@model/User'
 import { UserAdmin, SearchUsersResult } from '@model/UserAdmin'
 
-import { DltConnectorClient } from '@/apis/dltConnector/DltConnectorClient'
 import { updateGmsUser } from '@/apis/gms/GmsClient'
 import { GmsUser } from '@/apis/gms/model/GmsUser'
 import { HumHubClient } from '@/apis/humhub/HumHubClient'
@@ -67,6 +66,7 @@ import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 import { communityDbUser } from '@/util/communityUser'
 import { hasElopageBuys } from '@/util/hasElopageBuys'
+import { InterruptiveSleepManager, TRANSMIT_TO_IOTA_INTERRUPTIVE_SLEEP_KEY } from '@/util/InterruptiveSleepManager'
 import { getTimeDurationObject, printTimeDuration } from '@/util/time'
 
 import random from 'random-bigint'
@@ -385,11 +385,8 @@ export class UserResolver {
     }
     logger.info('createUser() successful...')
 
-    const dltConnector = DltConnectorClient.getInstance()
-    if (dltConnector) {
-      const r = await dltConnector.registerAddress(dbUser)
-      console.log('result from dlt', r)
-    }
+    // notify dlt-connector loop for new work
+    InterruptiveSleepManager.getInstance().interrupt(TRANSMIT_TO_IOTA_INTERRUPTIVE_SLEEP_KEY)
 
     if (redeemCode) {
       eventRegisterRedeem.affectedUser = dbUser

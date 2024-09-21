@@ -32,6 +32,10 @@ import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 import { communityUser } from '@/util/communityUser'
+import {
+  InterruptiveSleepManager,
+  TRANSMIT_TO_IOTA_INTERRUPTIVE_SLEEP_KEY,
+} from '@/util/InterruptiveSleepManager'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 import { fullName } from '@/util/utilities'
 import { calculateBalance } from '@/util/validate'
@@ -47,7 +51,6 @@ import {
   processXComCommittingSendCoins,
   processXComPendingSendCoins,
 } from './util/processXComSendCoins'
-import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
 import { storeForeignUser } from './util/storeForeignUser'
 import { transactionLinkSummary } from './util/transactionLinkSummary'
 
@@ -177,8 +180,8 @@ export const executeTransaction = async (
         transactionReceive.amount,
       )
 
-      // trigger to send transaction via dlt-connector
-      void sendTransactionsToDltConnector()
+      // notify dlt-connector loop for new work
+      InterruptiveSleepManager.getInstance().interrupt(TRANSMIT_TO_IOTA_INTERRUPTIVE_SLEEP_KEY)
     } catch (e) {
       await queryRunner.rollbackTransaction()
       throw new LogError('Transaction was not successful', e)

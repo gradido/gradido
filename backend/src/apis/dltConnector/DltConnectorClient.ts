@@ -103,10 +103,12 @@ export class DltConnectorClient {
    * transmit transaction via dlt-connector to iota
    * and update dltTransactionId of transaction in db with iota message id
    */
-  public async transmitTransaction(transaction: DbTransaction): Promise<boolean> {
+  public async transmitTransaction(
+    transaction: DbTransaction,
+  ): Promise<TransactionResult | undefined> {
     // we don't need the receive transactions, there contain basically the same data as the send transactions
     if ((transaction.typeId as TransactionTypeId) === TransactionTypeId.RECEIVE) {
-      return true
+      return
     }
     const typeString = getTransactionTypeString(transaction.typeId)
     // no negative values in dlt connector, gradido concept don't use negative values so the code don't use it too
@@ -132,17 +134,15 @@ export class DltConnectorClient {
       // TODO: add account nr for user after they have also more than one account in backend
       logger.debug('transmit transaction to dlt connector', params)
       const {
-        data: {
-          sendTransaction: { error, succeed },
-        },
+        data: { sendTransaction: result },
       } = await this.client.rawRequest<{ sendTransaction: TransactionResult }>(
         sendTransaction,
         params,
       )
-      if (error) {
-        throw new Error(error.message)
+      if (result.error) {
+        throw new Error(result.error.message)
       }
-      return succeed
+      return result
     } catch (e) {
       throw new LogError('Error send sending transaction to dlt-connector: ', e)
     }
