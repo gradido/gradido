@@ -1,1 +1,1 @@
-export { User } from './0084-introduce_humhub_registration/User'
+export { User } from './0087-add_dlt_users_table/User'
