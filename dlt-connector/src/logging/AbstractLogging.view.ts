@@ -1,6 +1,5 @@
 import util from 'util'
 
-import { Decimal } from 'decimal.js-light'
 import { Timestamp, TimestampSeconds } from 'gradido-blockchain-js'
 
 export abstract class AbstractLoggingView {
@@ -21,13 +20,6 @@ export abstract class AbstractLoggingView {
   protected dateToString(date: Date | undefined | null): string | undefined {
     if (date) {
       return date.toISOString()
-    }
-    return undefined
-  }
-
-  protected decimalToString(number: Decimal | undefined | null): string | undefined {
-    if (number) {
-      return number.toString()
     }
     return undefined
   }

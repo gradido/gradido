@@ -1,16 +1,12 @@
+/* eslint-disable camelcase */
+import { AddressType_NONE } from 'gradido-blockchain-js'
 import { Arg, Mutation, Query, Resolver } from 'type-graphql'
-import { QueryFailedError } from 'typeorm'
 
-import { TransactionRecipe } from '@model/TransactionRecipe'
-
-import { TRANSMIT_TO_IOTA_INTERRUPTIVE_SLEEP_KEY } from '@/data/const'
-import { UserRepository } from '@/data/User.repository'
-import { RegisterAddressContext } from '@/interactions/backendToDb/account/RegisterAddress.context'
-import { AccountLoggingView } from '@/logging/AccountLogging.view'
+import { getAddressType } from '@/client/GradidoNode'
+import { KeyPairCalculation } from '@/interactions/keyPairCalculation/KeyPairCalculation.context'
+import { SendToIotaContext } from '@/interactions/sendToIota/SendToIota.context'
 import { logger } from '@/logging/logger'
-import { TransactionLoggingView } from '@/logging/TransactionLogging.view'
-import { InterruptiveSleepManager } from '@/manager/InterruptiveSleepManager'
-import { getDataSource } from '@/typeorm/DataSource'
+import { uuid4ToHash } from '@/utils/typeConverter'
 
 import { TransactionErrorType } from '../enum/TransactionErrorType'
 import { UserAccountDraft } from '../input/UserAccountDraft'
@@ -22,8 +18,20 @@ import { TransactionResult } from '../model/TransactionResult'
 export class AccountResolver {
   @Query(() => Boolean)
   async isAccountExist(@Arg('data') userIdentifier: UserIdentifier): Promise<boolean> {
+    const accountKeyPair = await KeyPairCalculation(userIdentifier)
+    const publicKey = accountKeyPair.getPublicKey()
+    if (!publicKey) {
+      throw new TransactionResult(
+        new TransactionError(TransactionErrorType.NOT_FOUND, 'cannot get user public key'),
+      )
+    }
+    // ask gradido node server for account type, if type !== NONE account exist
+    const addressType = await getAddressType(
+      publicKey.data(),
+      uuid4ToHash(userIdentifier.communityUuid).convertToHex(),
+    )
     logger.info('isAccountExist', userIdentifier)
-    return !!(await UserRepository.findAccountByUserIdentifier(userIdentifier))
+    return addressType !== AddressType_NONE
   }
 
   @Mutation(() => TransactionResult)
@@ -31,30 +39,10 @@ export class AccountResolver {
     @Arg('data')
     userAccountDraft: UserAccountDraft,
   ): Promise<TransactionResult> {
-    const registerAddressContext = new RegisterAddressContext(userAccountDraft)
     try {
-      const { transaction, account } = await registerAddressContext.run()
-      logger.info('register address', {
-        account: new AccountLoggingView(account),
-        transaction: new TransactionLoggingView(transaction),
-      })
-      await getDataSource().transaction(async (transactionalEntityManager) => {
-        await transactionalEntityManager.save(account)
-        await transactionalEntityManager.save(transaction)
-        logger.debug('store register address transaction', new TransactionLoggingView(transaction))
-      })
-      InterruptiveSleepManager.getInstance().interrupt(TRANSMIT_TO_IOTA_INTERRUPTIVE_SLEEP_KEY)
-      return new TransactionResult(new TransactionRecipe(transaction))
+      return await SendToIotaContext(userAccountDraft)
     } catch (err) {
-      if (err instanceof QueryFailedError) {
-        logger.error('error saving user or new account or transaction into db: %s', err)
-        return new TransactionResult(
-          new TransactionError(
-            TransactionErrorType.DB_ERROR,
-            'error saving user or new account or transaction into db',
-          ),
-        )
-      } else if (err instanceof TransactionError) {
+      if (err instanceof TransactionError) {
         return new TransactionResult(err)
       } else {
         logger.error('error in register address: ', err)

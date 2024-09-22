@@ -7,12 +7,13 @@ import { CONFIG } from '@/config'
 
 import { BackendClient } from './client/BackendClient'
 import { CommunityDraft } from './graphql/input/CommunityDraft'
-import { AddCommunityContext } from './interactions/backendToDb/community/AddCommunity.context'
 import { logger } from './logging/logger'
 import { KeyPairCacheManager } from './manager/KeyPairCacheManager'
 import createServer from './server/createServer'
 import { LogError } from './server/LogError'
-import { stopTransmitToIota, transmitToIota } from './tasks/transmitToIota'
+import { getTransaction } from './client/GradidoNode'
+import { uuid4ToHash } from './utils/typeConverter'
+import { SendToIotaContext } from './interactions/sendToIota/SendToIota.context'
 
 async function waitForServer(
   backend: BackendClient,
@@ -70,11 +71,12 @@ async function main() {
 
   const communityDraft = await backend.getHomeCommunityDraft()
   KeyPairCacheManager.getInstance().setHomeCommunityUUID(communityDraft.uuid)
-  const addCommunityContext = new AddCommunityContext(communityDraft)
-  await addCommunityContext.run()
-
-  // loop run all the time, check for new transaction for sending to iota
-  void transmitToIota()
+  // ask gradido node if community blockchain was created
+  const firstTransaction = await getTransaction(1, uuid4ToHash(communityDraft.uuid).convertToHex())
+  if (!firstTransaction) {
+    // if not exist, create community root transaction
+    await SendToIotaContext(communityDraft)
+  }
   app.listen(CONFIG.DLT_CONNECTOR_PORT, () => {
     // eslint-disable-next-line no-console
     console.log(`Server is running at http://localhost:${CONFIG.DLT_CONNECTOR_PORT}`)
@@ -82,7 +84,6 @@ async function main() {
 
   process.on('exit', () => {
     // Add shutdown logic here.
-    stopTransmitToIota()
   })
 }
 

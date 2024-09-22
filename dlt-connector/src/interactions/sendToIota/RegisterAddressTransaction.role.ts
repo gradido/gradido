@@ -1,9 +1,9 @@
 /* eslint-disable camelcase */
-import { AddressType_COMMUNITY_HUMAN, GradidoTransactionBuilder } from 'gradido-blockchain-js'
+import { GradidoTransactionBuilder } from 'gradido-blockchain-js'
 
 import { UserAccountDraft } from '@/graphql/input/UserAccountDraft'
 import { LogError } from '@/server/LogError'
-import { uuid4ToHash } from '@/utils/typeConverter'
+import { accountTypeToAddressType, uuid4ToHash } from '@/utils/typeConverter'
 
 import { KeyPairCalculation } from '../keyPairCalculation/KeyPairCalculation.context'
 
@@ -30,7 +30,7 @@ export class RegisterAddressTransactionRole extends AbstractTransactionRole {
       .setCreatedAt(new Date(this.self.createdAt))
       .setRegisterAddress(
         accountKeyPair.getPublicKey(),
-        AddressType_COMMUNITY_HUMAN,
+        accountTypeToAddressType(this.self.accountType),
         uuid4ToHash(this.self.user.uuid),
       )
       .sign(communityKeyPair)
