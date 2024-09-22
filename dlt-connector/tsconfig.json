@@ -53,14 +53,9 @@
       "@input/*": ["src/graphql/input/*"],
       "@model/*": ["src/graphql/model/*"],
       "@resolver/*": ["src/graphql/resolver/*"],
-      "@scalar/*": ["src/graphql/scalar/*"],
       "@test/*": ["test/*"],
       "@proto/*" : ["src/proto/*"],      
       "@validator/*" : ["src/graphql/validator/*"],
-      "@typeorm/*" : ["src/typeorm/*"],
-      /* external */
-      "@dbTools/*": ["../dlt-database/src/*", "../../dlt-database/build/src/*"],
-      "@entity/*": ["../dlt-database/entity/*", "../../dlt-database/build/entity/*"]
     },
     // "rootDirs": [],                              /* List of root folders whose combined content represents the structure of the project at runtime. */
     "typeRoots": ["node_modules/@types", "@types"],           /* List of folders to include type definitions from. */
@@ -86,7 +81,6 @@
   },
   "references": [
     {
-      "path": "../dlt-database/tsconfig.json",
       // add 'prepend' if you want to include the referenced project in your output file
       // "prepend": true
     }

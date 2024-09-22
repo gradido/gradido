@@ -6,14 +6,14 @@ import { loadCryptoKeys, MemoryBlock } from 'gradido-blockchain-js'
 import { CONFIG } from '@/config'
 
 import { BackendClient } from './client/BackendClient'
+import { getTransaction } from './client/GradidoNode'
 import { CommunityDraft } from './graphql/input/CommunityDraft'
+import { SendToIotaContext } from './interactions/sendToIota/SendToIota.context'
 import { logger } from './logging/logger'
 import { KeyPairCacheManager } from './manager/KeyPairCacheManager'
 import createServer from './server/createServer'
 import { LogError } from './server/LogError'
-import { getTransaction } from './client/GradidoNode'
 import { uuid4ToHash } from './utils/typeConverter'
-import { SendToIotaContext } from './interactions/sendToIota/SendToIota.context'
 
 async function waitForServer(
   backend: BackendClient,
@@ -46,9 +46,10 @@ async function main() {
       if (seed.size() < 32) {
         throw new Error('seed need to be greater than 32 Bytes')
       }
-    } catch (_) {
+    } catch (error) {
       throw new LogError(
         'IOTA_HOME_COMMUNITY_SEED must be a valid hex string, at least 64 characters long',
+        error,
       )
     }
   }

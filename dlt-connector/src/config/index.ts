@@ -4,7 +4,6 @@ dotenv.config()
 
 const constants = {
   LOG4JS_CONFIG: 'log4js-config.json',
-  DB_VERSION: '0005-refactor_with_gradido_blockchain_lib',
   // default log level on production should be info
   LOG_LEVEL: process.env.LOG_LEVEL ?? 'info',
   CONFIG_VERSION: {
@@ -19,20 +18,10 @@ const server = {
   JWT_SECRET: process.env.JWT_SECRET ?? 'secret123',
 }
 
-const database = {
-  DB_HOST: process.env.DB_HOST ?? 'localhost',
-  DB_PORT: process.env.DB_PORT ? parseInt(process.env.DB_PORT) : 3306,
-  DB_USER: process.env.DB_USER ?? 'root',
-  DB_PASSWORD: process.env.DB_PASSWORD ?? '',
-  DB_DATABASE: process.env.DB_DATABASE ?? 'gradido_dlt',
-  DB_DATABASE_TEST: process.env.DB_DATABASE_TEST ?? 'gradido_dlt_test',
-  TYPEORM_LOGGING_RELATIVE_PATH: process.env.TYPEORM_LOGGING_RELATIVE_PATH ?? 'typeorm.backend.log',
-}
-
 const iota = {
   IOTA_API_URL: process.env.IOTA_API_URL ?? 'https://chrysalis-nodes.iota.org',
   IOTA_COMMUNITY_ALIAS: process.env.IOTA_COMMUNITY_ALIAS ?? 'GRADIDO: TestHelloWelt2',
-  IOTA_HOME_COMMUNITY_SEED: process.env.IOTA_HOME_COMMUNITY_SEED?.substring(0, 32) ?? null,
+  IOTA_HOME_COMMUNITY_SEED: process.env.IOTA_HOME_COMMUNITY_SEED ?? null,
 }
 
 const dltConnector = {
@@ -69,7 +58,6 @@ if (
 export const CONFIG = {
   ...constants,
   ...server,
-  ...database,
   ...iota,
   ...dltConnector,
   ...nodeServer,
