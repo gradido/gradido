@@ -22,7 +22,7 @@ import { AccountType } from '@/graphql/enum/AccountType'
 import { InputTransactionType } from '@/graphql/enum/InputTransactionType'
 import { TransactionDraft } from '@/graphql/input/TransactionDraft'
 import { UserAccountDraft } from '@/graphql/input/UserAccountDraft'
-import { iotaTopicFromCommunityUUID } from '@/utils/typeConverter'
+import { uuid4ToHash } from '@/utils/typeConverter'
 
 import { CreateTransactionRecipeContext } from './CreateTransactionRecipe.context'
 
@@ -50,8 +50,8 @@ let secondUser: UserSet
 let foreignUser: UserSet
 let homeCommunity: Community
 
-const topic = iotaTopicFromCommunityUUID(homeCommunityUuid)
-const foreignTopic = iotaTopicFromCommunityUUID(foreignCommunityUuid)
+const topic = uuid4ToHash(homeCommunityUuid)
+const foreignTopic = uuid4ToHash(foreignCommunityUuid)
 
 describe('interactions/backendToDb/transaction/Create Transaction Recipe Context Test', () => {
   beforeAll(async () => {

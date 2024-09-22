@@ -1,6 +1,6 @@
 import 'reflect-metadata'
 
-import { base64ToBuffer, iotaTopicFromCommunityUUID, uuid4ToBuffer } from './typeConverter'
+import { base64ToBuffer, uuid4ToHash, uuid4ToBuffer } from './typeConverter'
 
 describe('utils/typeConverter', () => {
   it('uuid4ToBuffer', () => {
@@ -10,7 +10,7 @@ describe('utils/typeConverter', () => {
   })
 
   it('iotaTopicFromCommunityUUID', () => {
-    expect(iotaTopicFromCommunityUUID('4f28e081-5c39-4dde-b6a4-3bde71de8d65')).toBe(
+    expect(uuid4ToHash('4f28e081-5c39-4dde-b6a4-3bde71de8d65')).toBe(
       '3138b3590311fdf0a823e173caa9487b7d275c23fab07106b4b1364cb038affd',
     )
   })

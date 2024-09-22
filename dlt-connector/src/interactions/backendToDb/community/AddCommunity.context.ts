@@ -1,5 +1,5 @@
 import { CommunityDraft } from '@/graphql/input/CommunityDraft'
-import { iotaTopicFromCommunityUUID } from '@/utils/typeConverter'
+import { uuid4ToHash } from '@/utils/typeConverter'
 
 import { CommunityRole } from './Community.role'
 import { ForeignCommunityRole } from './ForeignCommunity.role'
@@ -15,7 +15,7 @@ export class AddCommunityContext {
   private iotaTopic: string
   public constructor(private communityDraft: CommunityDraft, iotaTopic?: string) {
     if (!iotaTopic) {
-      this.iotaTopic = iotaTopicFromCommunityUUID(this.communityDraft.uuid)
+      this.iotaTopic = uuid4ToHash(this.communityDraft.uuid)
     } else {
       this.iotaTopic = iotaTopic
     }

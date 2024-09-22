@@ -39,13 +39,15 @@ const dltConnector = {
   DLT_CONNECTOR_PORT: process.env.DLT_CONNECTOR_PORT ?? 6010,
 }
 
+const nodeServer = {
+  NODE_SERVER_URL: process.env.NODE_SERVER_URL ?? 'http://localhost:8340',
+}
+
 const gradidoBlockchain = {
   GRADIDO_BLOCKCHAIN_CRYPTO_APP_SECRET:
     process.env.GRADIDO_BLOCKCHAIN_CRYPTO_APP_SECRET ?? 'invalid',
   GRADIDO_BLOCKCHAIN_SERVER_CRYPTO_KEY:
     process.env.GRADIDO_BLOCKCHAIN_SERVER_CRYPTO_KEY ?? 'invalid',
-  GRADIDO_BLOCKCHAIN_PRIVATE_KEY_ENCRYPTION_PASSWORD:
-    process.env.GRADIDO_BLOCKCHAIN_PRIVATE_KEY_ENCRYPTION_PASSWORD,
 }
 
 const backendServer = {
@@ -70,6 +72,7 @@ export const CONFIG = {
   ...database,
   ...iota,
   ...dltConnector,
+  ...nodeServer,
   ...gradidoBlockchain,
   ...backendServer,
 }

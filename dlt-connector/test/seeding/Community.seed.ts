@@ -3,7 +3,7 @@ import { Community } from '@entity/Community'
 import { KeyPair } from '@/data/KeyPair'
 import { CommunityDraft } from '@/graphql/input/CommunityDraft'
 import { AddCommunityContext } from '@/interactions/backendToDb/community/AddCommunity.context'
-import { iotaTopicFromCommunityUUID } from '@/utils/typeConverter'
+import { uuid4ToHash } from '@/utils/typeConverter'
 
 export const communitySeed = async (
   uuid: string,
@@ -14,7 +14,7 @@ export const communitySeed = async (
   homeCommunityDraft.uuid = uuid
   homeCommunityDraft.foreign = foreign
   homeCommunityDraft.createdAt = new Date().toISOString()
-  const iotaTopic = iotaTopicFromCommunityUUID(uuid)
+  const iotaTopic = uuid4ToHash(uuid)
   const addCommunityContext = new AddCommunityContext(homeCommunityDraft, iotaTopic)
   await addCommunityContext.run()
 

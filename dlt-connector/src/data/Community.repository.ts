@@ -8,7 +8,7 @@ import { UserIdentifier } from '@/graphql/input/UserIdentifier'
 import { TransactionError } from '@/graphql/model/TransactionError'
 import { LogError } from '@/server/LogError'
 import { getDataSource } from '@/typeorm/DataSource'
-import { iotaTopicFromCommunityUUID } from '@/utils/typeConverter'
+import { uuid4ToHash } from '@/utils/typeConverter'
 
 import { KeyPair } from './KeyPair'
 
@@ -17,7 +17,7 @@ export const CommunityRepository = getDataSource()
   .extend({
     async isExist(community: CommunityDraft | string): Promise<boolean> {
       const iotaTopic =
-        community instanceof CommunityDraft ? iotaTopicFromCommunityUUID(community.uuid) : community
+        community instanceof CommunityDraft ? uuid4ToHash(community.uuid) : community
       const result = await this.find({
         where: { iotaTopic },
       })
@@ -27,7 +27,7 @@ export const CommunityRepository = getDataSource()
     async findByCommunityArg({ uuid, foreign, confirmed }: CommunityArg): Promise<Community[]> {
       return await this.find({
         where: {
-          ...(uuid && { iotaTopic: iotaTopicFromCommunityUUID(uuid) }),
+          ...(uuid && { iotaTopic: uuid4ToHash(uuid) }),
           ...(foreign && { foreign }),
           ...(confirmed && { confirmedAt: Not(IsNull()) }),
         },
@@ -35,7 +35,7 @@ export const CommunityRepository = getDataSource()
     },
 
     async findByCommunityUuid(communityUuid: string): Promise<Community | null> {
-      return await this.findOneBy({ iotaTopic: iotaTopicFromCommunityUUID(communityUuid) })
+      return await this.findOneBy({ iotaTopic: uuid4ToHash(communityUuid) })
     },
 
     async findByIotaTopic(iotaTopic: string): Promise<Community | null> {
@@ -54,7 +54,7 @@ export const CommunityRepository = getDataSource()
       }
       return (
         (await this.findOneBy({
-          iotaTopic: iotaTopicFromCommunityUUID(identifier.communityUuid),
+          iotaTopic: uuid4ToHash(identifier.communityUuid),
         })) ?? undefined
       )
     },

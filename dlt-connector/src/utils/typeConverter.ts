@@ -8,10 +8,14 @@ import {
   AddressType_CRYPTO_ACCOUNT,
   AddressType_NONE,
   AddressType_SUBACCOUNT,
+  ConfirmedTransaction,
+  DeserializeType_CONFIRMED_TRANSACTION,
+  InteractionDeserialize,
+  MemoryBlock,
 } from 'gradido-blockchain-js'
-import { crypto_generichash as cryptoHash } from 'sodium-native'
 
 import { AccountType } from '@/graphql/enum/AccountType'
+import { LogError } from '@/server/LogError'
 
 export const uuid4ToBuffer = (uuid: string): Buffer => {
   // Remove dashes from the UUIDv4 string
@@ -23,10 +27,13 @@ export const uuid4ToBuffer = (uuid: string): Buffer => {
   return buffer
 }
 
-export const iotaTopicFromCommunityUUID = (communityUUID: string): string => {
-  const hash = Buffer.alloc(32)
-  cryptoHash(hash, uuid4ToBuffer(communityUUID))
-  return hash.toString('hex')
+export const uuid4ToMemoryBlock = (uuid: string): MemoryBlock => {
+  // Remove dashes from the UUIDv4 string
+  return MemoryBlock.fromHex(uuid.replace(/-/g, ''))
+}
+
+export const uuid4ToHash = (communityUUID: string): MemoryBlock => {
+  return uuid4ToMemoryBlock(communityUUID).calculateHash()
 }
 
 export const base64ToBuffer = (base64: string): Buffer => {
@@ -85,4 +92,17 @@ export const addressTypeToAccountType = (type: AddressType): AccountType => {
     default:
       return AccountType.NONE
   }
+}
+
+export const confirmedTransactionFromBase64 = (base64: string): ConfirmedTransaction => {
+  const deserializer = new InteractionDeserialize(
+    MemoryBlock.fromBase64(base64),
+    DeserializeType_CONFIRMED_TRANSACTION,
+  )
+  deserializer.run()
+  const confirmedTransaction = deserializer.getConfirmedTransaction()
+  if (!confirmedTransaction) {
+    throw new LogError("invalid data, couldn't deserialize")
+  }
+  return confirmedTransaction
 }

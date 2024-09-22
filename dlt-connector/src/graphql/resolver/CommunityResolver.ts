@@ -10,7 +10,7 @@ import { CommunityRepository } from '@/data/Community.repository'
 import { AddCommunityContext } from '@/interactions/backendToDb/community/AddCommunity.context'
 import { logger } from '@/logging/logger'
 import { LogError } from '@/server/LogError'
-import { iotaTopicFromCommunityUUID } from '@/utils/typeConverter'
+import { uuid4ToHash } from '@/utils/typeConverter'
 
 @Resolver()
 export class CommunityResolver {
@@ -46,7 +46,7 @@ export class CommunityResolver {
     communityDraft: CommunityDraft,
   ): Promise<TransactionResult> {
     logger.info('addCommunity', communityDraft)
-    const topic = iotaTopicFromCommunityUUID(communityDraft.uuid)
+    const topic = uuid4ToHash(communityDraft.uuid)
     // check if community was already written to db
     if (await CommunityRepository.isExist(topic)) {
       return new TransactionResult(
