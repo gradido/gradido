@@ -1,8 +1,8 @@
 // https://www.npmjs.com/package/@apollo/protobufjs
 import { InputTransactionType } from '@enum/InputTransactionType'
 import { isValidDateString, isValidNumberString } from '@validator/DateString'
-import { IsEnum, IsObject, IsPositive, ValidateNested } from 'class-validator'
-import { InputType, Field, Int } from 'type-graphql'
+import { IsEnum, IsObject, ValidateNested } from 'class-validator'
+import { InputType, Field } from 'type-graphql'
 
 import { UserIdentifier } from './UserIdentifier'
 
@@ -17,10 +17,6 @@ export class TransactionDraft {
   @IsObject()
   @ValidateNested()
   linkedUser: UserIdentifier
-
-  @Field(() => Int)
-  @IsPositive()
-  backendTransactionId: number
 
   @Field(() => String)
   @isValidNumberString()

@@ -1,13 +1,13 @@
 import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn } from 'typeorm'
-import { User } from '../User'
+import { Transaction } from '../Transaction'
 
-@Entity('dlt_users', { engine: 'InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci' })
-export class DltUser extends BaseEntity {
+@Entity('dlt_transactions', { engine: 'InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci' })
+export class DltTransaction extends BaseEntity {
   @PrimaryGeneratedColumn('increment', { unsigned: true })
   id: number
 
-  @Column({ name: 'user_id', type: 'int', unsigned: true, nullable: false })
-  userId: number
+  @Column({ name: 'transaction_id', type: 'int', unsigned: true, nullable: false })
+  transactionId: number
 
   @Column({
     name: 'message_id',
@@ -30,7 +30,7 @@ export class DltUser extends BaseEntity {
   @Column({ name: 'error', type: 'text', nullable: true })
   error: string | null
 
-  @OneToOne(() => User, (user) => user.dltUser)
-  @JoinColumn({ name: 'user_id' })
-  user?: User | null
+  @OneToOne(() => Transaction, (transaction) => transaction.dltTransaction)
+  @JoinColumn({ name: 'transaction_id' })
+  transaction?: Transaction | null
 }

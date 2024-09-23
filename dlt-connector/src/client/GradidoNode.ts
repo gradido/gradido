@@ -6,7 +6,7 @@ import { JsonRpcEitherResponse } from 'jsonrpc-ts-client/dist/types/utils/jsonrp
 import { CONFIG } from '@/config'
 import { logger } from '@/logging/logger'
 import { LogError } from '@/server/LogError'
-import { confirmedTransactionFromBase64, getEnumValue } from '@/utils/typeConverter'
+import { confirmedTransactionFromBase64 } from '@/utils/typeConverter'
 
 const client = new JsonRpcClient({
   url: CONFIG.NODE_SERVER_URL,

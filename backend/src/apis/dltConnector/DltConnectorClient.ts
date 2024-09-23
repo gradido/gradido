@@ -13,13 +13,18 @@ import { UserAccountDraft } from './model/UserAccountDraft'
 import { UserIdentifier } from './model/UserIdentifier'
 
 const sendTransaction = gql`
-  mutation ($input: TransactionInput!) {
+  mutation ($input: TransactionDraft!) {
     sendTransaction(data: $input) {
       error {
         message
         name
       }
       succeed
+      recipe {
+        createdAt
+        type
+        messageIdHex
+      }
     }
   }
 `
@@ -32,6 +37,11 @@ const registerAddress = gql`
         name
       }
       succeed
+      recipe {
+        createdAt
+        type
+        messageIdHex
+      }
     }
   }
 `
@@ -126,7 +136,6 @@ export class DltConnectorClient {
         amount: amountString,
         type: typeString,
         createdAt: transaction.balanceDate.toISOString(),
-        backendTransactionId: transaction.id,
         targetDate: transaction.creationDate?.toISOString(),
       },
     }
@@ -142,9 +151,14 @@ export class DltConnectorClient {
       if (result.error) {
         throw new Error(result.error.message)
       }
+      console.log(result)
       return result
     } catch (e) {
-      throw new LogError('Error send sending transaction to dlt-connector: ', e)
+      if (e instanceof Error) {
+        throw new LogError(`from dlt-connector: ${e.message}`)
+      } else {
+        throw new LogError('Exception sending transfer transaction to dlt-connector', e)
+      }
     }
   }
 
@@ -172,11 +186,15 @@ export class DltConnectorClient {
         result,
       })
       if (result.error) {
-        logger.error('Error sending register address transaction to dlt-connector', result.error)
+        throw new Error(result.error.message)
       }
       return result
     } catch (e) {
-      logger.error('Exception sending register address transaction to dlt-connector', e)
+      if (e instanceof Error) {
+        throw new LogError(`from dlt-connector: ${e.message}`)
+      } else {
+        throw new LogError('Exception sending register address transaction to dlt-connector', e)
+      }
     }
   }
 }

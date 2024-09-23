@@ -72,9 +72,21 @@ async function main() {
 
   const communityDraft = await backend.getHomeCommunityDraft()
   KeyPairCacheManager.getInstance().setHomeCommunityUUID(communityDraft.uuid)
+  logger.info('home community topic: %s', uuid4ToHash(communityDraft.uuid).convertToHex())
+  logger.info('gradido node server: %s', CONFIG.NODE_SERVER_URL)
   // ask gradido node if community blockchain was created
-  const firstTransaction = await getTransaction(1, uuid4ToHash(communityDraft.uuid).convertToHex())
-  if (!firstTransaction) {
+  try {
+    const firstTransaction = await getTransaction(
+      1,
+      uuid4ToHash(communityDraft.uuid).convertToHex(),
+    )
+    if (!firstTransaction) {
+      // if not exist, create community root transaction
+      await SendToIotaContext(communityDraft)
+    }
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    // console.log('error requesting gradido node: ', e)
     // if not exist, create community root transaction
     await SendToIotaContext(communityDraft)
   }

@@ -29,6 +29,7 @@ export class CreationTransactionRole extends AbstractTransactionRole {
     }
     builder
       .setCreatedAt(new Date(this.self.createdAt))
+      .setMemo('dummy memo for creation')
       .setTransactionCreation(
         new TransferAmount(recipientKeyPair.getPublicKey(), this.self.amount.toString()),
         new Date(this.self.targetDate),

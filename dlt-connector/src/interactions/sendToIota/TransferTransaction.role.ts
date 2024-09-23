@@ -26,6 +26,7 @@ export class TransferTransactionRole extends AbstractTransactionRole {
     const recipientKeyPair = await KeyPairCalculation(this.self.linkedUser)
     builder
       .setCreatedAt(new Date(this.self.createdAt))
+      .setMemo('dummy memo for transfer')
       .setTransactionTransfer(
         new TransferAmount(senderKeyPair.getPublicKey(), this.self.amount.toString()),
         recipientKeyPair.getPublicKey(),

@@ -33,31 +33,60 @@ export async function sendTransactionsToDltConnector(): Promise<void> {
       while (true) {
         const pendingTransaction = await findNextPendingTransaction()
         if (pendingTransaction instanceof User) {
-          const result = await dltConnector.registerAddress(pendingTransaction)
-          if (result?.succeed && result.recipe) {
-            const dltUser = DltUser.create()
-            dltUser.userId = pendingTransaction.id
-            dltUser.messageId = result.recipe.messageIdHex
-            // wait until saved, necessary before next call to findNextPendingTransaction
-            await DltUser.save(dltUser)
-            logger.info('store dltUser: messageId=%s in dltTx=%d', dltUser.messageId, dltUser.id)
+          const dltUser = DltUser.create()
+          dltUser.userId = pendingTransaction.id
+          try {
+            const result = await dltConnector.registerAddress(pendingTransaction)
+            if (result?.succeed && result.recipe) {
+              dltUser.messageId = result.recipe.messageIdHex
+            }
+          } catch (e) {
+            if (e instanceof Error) {
+              dltUser.error = e.message
+            } else if (typeof e === 'string') {
+              dltUser.error = e
+            }
+          }
+          // wait until saved, necessary before next call to findNextPendingTransaction
+          await DltUser.save(dltUser)
+          if (dltUser.messageId) {
+            logger.info('store dltUser: messageId=%s, id=%d', dltUser.messageId, dltUser.id)
+          } else {
+            logger.error('store dltUser with error: id=%d, error=%s', dltUser.id, dltUser.error)
           }
         } else if (pendingTransaction instanceof Transaction) {
-          const result = await dltConnector.transmitTransaction(pendingTransaction)
-          if (result?.succeed && result.recipe) {
-            const dltTransaction = DltTransaction.create()
-            dltTransaction.transactionId = pendingTransaction.id
-            dltTransaction.messageId = result.recipe.messageIdHex
-            // wait until saved, necessary before next call to findNextPendingTransaction
-            await DltTransaction.save(dltTransaction)
+          const dltTransaction = DltTransaction.create()
+          dltTransaction.transactionId = pendingTransaction.id
+          try {
+            const result = await dltConnector.transmitTransaction(pendingTransaction)
+            if (result?.succeed && result.recipe) {
+              dltTransaction.messageId = result.recipe.messageIdHex
+            } else {
+              dltTransaction.error = 'skipped'
+            }
+          } catch (e) {
+            if (e instanceof Error) {
+              dltTransaction.error = e.message
+            } else if (typeof e === 'string') {
+              dltTransaction.error = e
+            }
+          }
+          // wait until saved, necessary before next call to findNextPendingTransaction
+          await DltTransaction.save(dltTransaction)
+          if (dltTransaction.messageId) {
             logger.info(
-              'store dltTransaction: messageId=%s in dltTx=%d',
+              'store dltTransaction: messageId=%s, id=%d',
               dltTransaction.messageId,
               dltTransaction.id,
             )
+          } else {
+            logger.error(
+              'store dltTransaction with error: id=%d, error=%s',
+              dltTransaction.id,
+              dltTransaction.error,
+            )
           }
         } else {
-          // nothing to do, break inner loop and sleep until new work has arrived
           break
         }
       }
@@ -72,22 +101,21 @@ export async function sendTransactionsToDltConnector(): Promise<void> {
 }
 
 async function findNextPendingTransaction(): Promise<Transaction | User | null> {
-  const lastTransactionPromise: Promise<Transaction | undefined> = Transaction.createQueryBuilder()
-    .select()
-    .leftJoin(DltTransaction, 'dltTransaction', 'transaction.id = dltTransaction.transactionId')
-    .where('dltTransaction.transactionId IS NULL')
+  const lastTransactionPromise: Promise<Transaction | null> = Transaction.createQueryBuilder()
+    .leftJoin(DltTransaction, 'dltTransaction', 'Transaction.id = dltTransaction.transactionId')
+    .where('dltTransaction.transaction_id IS NULL')
     // eslint-disable-next-line camelcase
-    .orderBy({ balance_date: 'ASC', id: 'ASC' })
+    .orderBy({ balance_date: 'ASC', Transaction_id: 'ASC' })
     .limit(1)
-    .getRawOne()
+    .getOne()
 
-  const lastUserPromise: Promise<User | undefined> = User.createQueryBuilder()
-    .leftJoin(DltUser, 'dltUser', 'user.id = dltUser.userId')
-    .where('dltUser.userId IS NULL')
+  const lastUserPromise: Promise<User | null> = User.createQueryBuilder()
+    .leftJoin(DltUser, 'dltUser', 'User.id = dltUser.userId')
+    .where('dltUser.user_id IS NULL')
     // eslint-disable-next-line camelcase
-    .orderBy({ created_at: 'ASC', id: 'ASC' })
+    .orderBy({ User_created_at: 'ASC', User_id: 'ASC' })
     .limit(1)
-    .getRawOne()
+    .getOne()
 
   const results = await Promise.all([lastTransactionPromise, lastUserPromise])
   if (results[0] && results[1]) {
