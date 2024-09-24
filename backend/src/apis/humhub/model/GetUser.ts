@@ -10,12 +10,6 @@ export class GetUser {
     this.profile = new Profile(user)
   }
 
-  public getAvatarUrl(): string | null {
-    if (this.guid) {
-      return CONFIG.HUM
-    }
-  }
-
   id: number
   guid: string
   // eslint-disable-next-line camelcase

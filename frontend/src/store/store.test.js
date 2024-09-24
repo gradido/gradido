@@ -29,6 +29,7 @@ const {
   humhubAllowed,
   gmsPublishName,
   humhubPublishName,
+  humhubAvatarUrl,
   gmsPublishLocation,
   publisherId,
   roles,
@@ -135,6 +136,7 @@ describe('Vuex store', () => {
         humhubAllowed: false,
         gmsPublishName: 'GMS_PUBLISH_NAME_FULL',
         humhubPublishName: 'GMS_PUBLISH_NAME_FULL',
+        humhubAvatarUrl: '',
         gmsPublishLocation: 'GMS_LOCATION_TYPE_EXACT',
         hasElopage: false,
         publisherId: 1234,
@@ -144,9 +146,9 @@ describe('Vuex store', () => {
         darkMode: true,
       }
 
-      it('calls seventeen commits', () => {
+      it('calls eighteen commits', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenCalledTimes(17)
+        expect(commit).toHaveBeenCalledTimes(18)
       })
 
       // ... (other login action tests remain largely the same)
@@ -161,9 +163,9 @@ describe('Vuex store', () => {
       const commit = vi.fn()
       const state = {}
 
-      it('calls nineteen commits', () => {
+      it('calls twenty commits', () => {
         logout({ commit, state })
-        expect(commit).toHaveBeenCalledTimes(19)
+        expect(commit).toHaveBeenCalledTimes(20)
       })
 
       // ... (other logout action tests remain largely the same)

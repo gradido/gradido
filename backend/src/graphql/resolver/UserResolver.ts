@@ -34,6 +34,7 @@ import { updateGmsUser } from '@/apis/gms/GmsClient'
 import { GmsUser } from '@/apis/gms/model/GmsUser'
 import { HumHubClient } from '@/apis/humhub/HumHubClient'
 import { GetUser } from '@/apis/humhub/model/GetUser'
+import { getAvatarUrl } from '@/apis/humhub/utils'
 import { subscribe } from '@/apis/KlicktippController'
 import { encode } from '@/auth/JWT'
 import { RIGHTS } from '@/auth/RIGHTS'
@@ -206,7 +207,9 @@ export class UserResolver {
       try {
         const result = await humhubUserPromise
         user.humhubAllowed = result?.result?.account.status === 1
-        user.humhubAvatarUrl = result?.result?.guid
+        if (result?.result) {
+          user.humhubAvatarUrl = getAvatarUrl(result.result)
+        }
       } catch (e) {
         logger.error("couldn't reach out to humhub, disable for now", e)
         user.humhubAllowed = false

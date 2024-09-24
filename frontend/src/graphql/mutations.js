@@ -180,6 +180,7 @@ export const login = gql`
       humhubAllowed
       gmsPublishName
       humhubPublishName
+      humhubAvatarUrl
       gmsPublishLocation
       hasElopage
       publisherId
