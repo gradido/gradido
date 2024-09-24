@@ -22,13 +22,13 @@ export class PublishNameLogic {
       return this.user.firstName
     }
     if (PublishNameType.PUBLISH_NAME_INITIALS === publishNameType) {
-      return this.user.firstName.substring(0, 1)
+      return this.user.firstName.substring(0, 2)
     }
     if (PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS === publishNameType) {
       if (this.user.alias) {
         return this.user.alias
       } else {
-        return this.user.firstName.substring(0, 1)
+        return this.user.firstName.substring(0, 2)
       }
     }
     return ''
@@ -48,12 +48,12 @@ export class PublishNameLogic {
         publishNameType,
       )
     ) {
-      return this.user.lastName.substring(0, 1)
+      return this.user.lastName.substring(0, 2)
     } else if (
       PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS === publishNameType &&
       !this.user.alias
     ) {
-      return this.user.lastName.substring(0, 1)
+      return this.user.lastName.substring(0, 2)
     }
 
     return ''
