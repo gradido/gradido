@@ -206,6 +206,7 @@ export class UserResolver {
       try {
         const result = await humhubUserPromise
         user.humhubAllowed = result?.result?.account.status === 1
+        user.humhubAvatarUrl = result?.result?.guid
       } catch (e) {
         logger.error("couldn't reach out to humhub, disable for now", e)
         user.humhubAllowed = false

@@ -94,6 +94,9 @@ export class User {
   @Field(() => PublishNameType, { nullable: true })
   humhubPublishName: PublishNameType | null
 
+  @Field(() => String, { nullable: true })
+  humhubAvatarUrl: string | null
+
   @Field(() => GmsPublishLocationType, { nullable: true })
   gmsPublishLocation: GmsPublishLocationType | null
 
