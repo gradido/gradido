@@ -46,6 +46,9 @@ export const mutations = {
   humhubPublishName: (state, humhubPublishName) => {
     state.humhubPublishName = humhubPublishName
   },
+  humhubAvatarUrl: (state, humhubAvatarUrl) => {
+    state.humhubAvatarUrl = humhubAvatarUrl
+  },
   gmsPublishLocation: (state, gmsPublishLocation) => {
     state.gmsPublishLocation = gmsPublishLocation
   },
@@ -89,6 +92,7 @@ export const actions = {
     commit('humhubAllowed', data.humhubAllowed)
     commit('gmsPublishName', data.gmsPublishName)
     commit('humhubPublishName', data.humhubPublishName)
+    commit('humhubAvatarUrl', data.humhubAvatarUrl)
     commit('gmsPublishLocation', data.gmsPublishLocation)
     commit('hasElopage', data.hasElopage)
     commit('publisherId', data.publisherId)
@@ -108,6 +112,7 @@ export const actions = {
     commit('humhubAllowed', null)
     commit('gmsPublishName', null)
     commit('humhubPublishName', null)
+    commit('humhubAvatarUrl', null)
     commit('gmsPublishLocation', null)
     commit('hasElopage', false)
     commit('publisherId', null)
@@ -145,6 +150,7 @@ try {
       humhubAllowed: null,
       gmsPublishName: null,
       humhubPublishName: null,
+      humhubAvatarUrl: null,
       gmsPublishLocation: null,
       hasElopage: false,
       publisherId: null,

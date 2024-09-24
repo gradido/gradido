@@ -25,6 +25,7 @@
                   :initials="username.initials"
                   :color="'#fff'"
                   :size="61"
+                  :src="$store.state.humhubAvatarUrl"
                 ></avatar>
               </div>
               <div>
