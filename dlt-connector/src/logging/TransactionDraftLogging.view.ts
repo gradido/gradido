@@ -15,8 +15,7 @@ export class TransactionDraftLoggingView extends AbstractLoggingView {
     return {
       user: new UserIdentifierLoggingView(this.self.user).toJSON(),
       linkedUser: new UserIdentifierLoggingView(this.self.linkedUser).toJSON(),
-      backendTransactionId: this.self.backendTransactionId,
-      amount: this.decimalToString(this.self.amount),
+      amount: Number(this.self.amount),
       type: getEnumValue(InputTransactionType, this.self.type),
       createdAt: this.self.createdAt,
       targetDate: this.self.targetDate,

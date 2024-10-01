@@ -1,4 +1,5 @@
 import { Transaction as DbTransaction } from '@entity/Transaction'
+import { User } from '@entity/User'
 import { gql, GraphQLClient } from 'graphql-request'
 
 import { CONFIG } from '@/config'
@@ -6,13 +7,41 @@ import { TransactionTypeId } from '@/graphql/enum/TransactionTypeId'
 import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 
+import { AccountType } from './enum/AccountType'
 import { TransactionResult } from './model/TransactionResult'
+import { UserAccountDraft } from './model/UserAccountDraft'
 import { UserIdentifier } from './model/UserIdentifier'
 
 const sendTransaction = gql`
-  mutation ($input: TransactionInput!) {
+  mutation ($input: TransactionDraft!) {
     sendTransaction(data: $input) {
-      dltTransactionIdHex
+      error {
+        message
+        name
+      }
+      succeed
+      recipe {
+        createdAt
+        type
+        messageIdHex
+      }
+    }
+  }
+`
+
+const registerAddress = gql`
+  mutation ($input: UserAccountDraft!) {
+    registerAddress(data: $input) {
+      error {
+        message
+        name
+      }
+      succeed
+      recipe {
+        createdAt
+        type
+        messageIdHex
+      }
     }
   }
 `
@@ -63,7 +92,10 @@ export class DltConnectorClient {
     if (!DltConnectorClient.instance.client) {
       try {
         DltConnectorClient.instance.client = new GraphQLClient(CONFIG.DLT_CONNECTOR_URL, {
-          method: 'GET',
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
           jsonSerializer: {
             parse: JSON.parse,
             stringify: JSON.stringify,
@@ -81,7 +113,13 @@ export class DltConnectorClient {
    * transmit transaction via dlt-connector to iota
    * and update dltTransactionId of transaction in db with iota message id
    */
-  public async transmitTransaction(transaction: DbTransaction): Promise<boolean> {
+  public async transmitTransaction(
+    transaction: DbTransaction,
+  ): Promise<TransactionResult | undefined> {
+    // we don't need the receive transactions, there contain basically the same data as the send transactions
+    if ((transaction.typeId as TransactionTypeId) === TransactionTypeId.RECEIVE) {
+      return
+    }
     const typeString = getTransactionTypeString(transaction.typeId)
     // no negative values in dlt connector, gradido concept don't use negative values so the code don't use it too
     const amountString = transaction.amount.abs().toString()
@@ -98,7 +136,6 @@ export class DltConnectorClient {
         amount: amountString,
         type: typeString,
         createdAt: transaction.balanceDate.toISOString(),
-        backendTransactionId: transaction.id,
         targetDate: transaction.creationDate?.toISOString(),
       },
     }
@@ -106,19 +143,58 @@ export class DltConnectorClient {
       // TODO: add account nr for user after they have also more than one account in backend
       logger.debug('transmit transaction to dlt connector', params)
       const {
-        data: {
-          sendTransaction: { error, succeed },
-        },
+        data: { sendTransaction: result },
       } = await this.client.rawRequest<{ sendTransaction: TransactionResult }>(
         sendTransaction,
         params,
       )
-      if (error) {
-        throw new Error(error.message)
+      if (result.error) {
+        throw new Error(result.error.message)
       }
-      return succeed
+      console.log(result)
+      return result
     } catch (e) {
-      throw new LogError('Error send sending transaction to dlt-connector: ', e)
+      if (e instanceof Error) {
+        throw new LogError(`from dlt-connector: ${e.message}`)
+      } else {
+        throw new LogError('Exception sending transfer transaction to dlt-connector', e)
+      }
+    }
+  }
+
+  public async registerAddress(dbUser: User): Promise<TransactionResult | undefined> {
+    const params = {
+      input: {
+        user: {
+          uuid: dbUser.gradidoID,
+          communityUuid: dbUser.communityUuid,
+          accountNr: 1,
+        } as UserIdentifier,
+        createdAt: dbUser.createdAt.toISOString(),
+        accountType: AccountType.COMMUNITY_HUMAN,
+      } as UserAccountDraft,
+    }
+    try {
+      const {
+        data: { registerAddress: result },
+      } = await this.client.rawRequest<{ registerAddress: TransactionResult }>(
+        registerAddress,
+        params,
+      )
+      logger.info('send register address transaction to dlt-connector', {
+        params,
+        result,
+      })
+      if (result.error) {
+        throw new Error(result.error.message)
+      }
+      return result
+    } catch (e) {
+      if (e instanceof Error) {
+        throw new LogError(`from dlt-connector: ${e.message}`)
+      } else {
+        throw new LogError('Exception sending register address transaction to dlt-connector', e)
+      }
     }
   }
 }

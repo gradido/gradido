@@ -66,6 +66,10 @@ import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 import { communityDbUser } from '@/util/communityUser'
 import { hasElopageBuys } from '@/util/hasElopageBuys'
+import {
+  InterruptiveSleepManager,
+  TRANSMIT_TO_IOTA_INTERRUPTIVE_SLEEP_KEY,
+} from '@/util/InterruptiveSleepManager'
 import { getTimeDurationObject, printTimeDuration } from '@/util/time'
 
 import random from 'random-bigint'
@@ -383,6 +387,9 @@ export class UserResolver {
       await queryRunner.release()
     }
     logger.info('createUser() successful...')
+
+    // notify dlt-connector loop for new work
+    InterruptiveSleepManager.getInstance().interrupt(TRANSMIT_TO_IOTA_INTERRUPTIVE_SLEEP_KEY)
 
     if (redeemCode) {
       eventRegisterRedeem.affectedUser = dbUser
