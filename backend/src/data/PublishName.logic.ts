@@ -1,9 +1,17 @@
 import { User } from '@entity/User'
 
 import { PublishNameType } from '@/graphql/enum/PublishNameType'
+import { LogError } from '@/server/LogError'
 
 export class PublishNameLogic {
   constructor(private user: User) {}
+
+  private firstUpperCaseSecondLowerCase(substring: string) {
+    if (substring.length !== 2) {
+      throw new LogError("substring hasn't expected length of 2")
+    }
+    return substring.charAt(0).toUpperCase() + substring.charAt(1).toLocaleLowerCase()
+  }
 
   /**
    * get first name based on publishNameType: PublishNameType value
@@ -22,13 +30,13 @@ export class PublishNameLogic {
       return this.user.firstName
     }
     if (PublishNameType.PUBLISH_NAME_INITIALS === publishNameType) {
-      return this.user.firstName.substring(0, 2)
+      return this.user.firstName.substring(0, 1)
     }
     if (PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS === publishNameType) {
       if (this.user.alias) {
         return this.user.alias
       } else {
-        return this.user.firstName.substring(0, 2)
+        return this.firstUpperCaseSecondLowerCase(this.user.firstName.substring(0, 2))
       }
     }
     return ''
@@ -48,12 +56,12 @@ export class PublishNameLogic {
         publishNameType,
       )
     ) {
-      return this.user.lastName.substring(0, 2)
+      return this.user.lastName.substring(0, 1)
     } else if (
       PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS === publishNameType &&
       !this.user.alias
     ) {
-      return this.user.lastName.substring(0, 2)
+      return this.firstUpperCaseSecondLowerCase(this.user.lastName.substring(0, 2))
     }
 
     return ''
