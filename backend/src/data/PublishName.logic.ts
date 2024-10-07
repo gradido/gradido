@@ -30,7 +30,7 @@ export class PublishNameLogic {
       return this.user.firstName
     }
     if (PublishNameType.PUBLISH_NAME_INITIALS === publishNameType) {
-      return this.user.firstName.substring(0, 1)
+      return this.firstUpperCaseSecondLowerCase(this.user.firstName.substring(0, 2))
     }
     if (PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS === publishNameType) {
       if (this.user.alias) {
@@ -51,15 +51,11 @@ export class PublishNameLogic {
   public getLastName(publishNameType: PublishNameType): string {
     if (PublishNameType.PUBLISH_NAME_FULL === publishNameType) {
       return this.user.lastName
-    } else if (
-      [PublishNameType.PUBLISH_NAME_FIRST_INITIAL, PublishNameType.PUBLISH_NAME_INITIALS].includes(
-        publishNameType,
-      )
-    ) {
+    } else if (PublishNameType.PUBLISH_NAME_FIRST_INITIAL === publishNameType) {
       return this.user.lastName.substring(0, 1)
     } else if (
-      PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS === publishNameType &&
-      !this.user.alias
+      (PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS === publishNameType && !this.user.alias) ||
+      PublishNameType.PUBLISH_NAME_INITIALS === publishNameType
     ) {
       return this.firstUpperCaseSecondLowerCase(this.user.lastName.substring(0, 2))
     }
