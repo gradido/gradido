@@ -1,42 +1,42 @@
 [
   {
     "locale": "de",
-    "text": "Gradido-Kreise: neue interne Kooperationsplattform",
-    "button": "Jetzt freischalten...",
-    "internUrl": "https://gradido.net/de/gradido-kreise-gemeinsam-mit-freunden-die-zukunft-gestalten",
-    "extra": "Gemeinsam unterstützen wir einander, achtsam in Kreiskultur. In geschützten Räumen können wir nun frei kommunizieren und zusammenarbeiten, ohne auf die sozialen Medien angewiesen zu sein.",
-    "extra2": "Schalte Gradido-Kreise in den Einstellungen/Community frei und klicke anschließend auf das Menü \"Kreise\"!"
+    "text": "Kreise haben jetzt sichere Video-Meetings!",
+    "extra": "In unserer geschützten Community unterstützen wir einander, achtsam in Kreiskultur.",
+    "extra2": "Wähle hier, wie dein Name angezeigt werden soll:",
+    "button": "Namensanzeige wählen",
+    "internUrl": "/settings/extern"
   },
   {
     "locale": "en",
-    "text": "Gradido circles: new internal cooperation platform",
-    "button": "Activate now...",
-    "internUrl": "https://gradido.net/en/gradido-kreise-gemeinsam-mit-freunden-die-zukunft-gestalten/",
-    "extra": "Together, we support each other, mindfully in a circular culture. We can now communicate and collaborate freely in protected spaces without having to rely on social media.",
-    "extra2": "Activate Gradido circles in the settings/community and then click on the menu \"Circles\"!"
+    "text": "Circles now have safe video meetings!",
+    "extra": "In our protected community we support each other, mindful in circle culture.",
+    "extra2": "Choose here how your name should be displayed:",
+    "button": "Choose name display",
+    "internUrl": "/settings/extern"
   },
   {
     "locale": "fr",
-    "text": "Cercles Gradido : nouvelle plateforme de coopération interne",
-    "button": "En savoir plus",
-    "internUrl": "https://gradido.net/fr/gradido-kreise-gemeinsam-mit-freunden-die-zukunft-gestalten/",
-    "extra": "Ensemble, nous nous soutenons mutuellement, en étant attentifs à la culture du cercle. Dans des espaces protégés, nous pouvons désormais communiquer et collaborer librement, sans être tributaires des médias sociaux.",
-    "extra2": "Débloque les cercles Gradido dans les paramètres/communauté et clique ensuite sur le menu \"Cercles\" !"
+    "text": "Les Cercles ont désormais des réunions vidéo sécurisées !",
+    "extra": "Dans notre communauté protégée, nous nous soutenons mutuellement, en faisant attention à la culture des cercles.",
+    "extra2": "Choisis ici comment ton nom doit être affiché :",
+    "button": "Choisir l'affichage du nom",
+    "internUrl": "/settings/extern"
   },
   {
     "locale": "es",
-    "text": "Círculos Gradido: nueva plataforma de cooperación interna",
-    "button": "Activar ahora...",
-    "internUrl": "https://gradido.net/es/gradido-kreise-gemeinsam-mit-freunden-die-zukunft-gestalten/",
-    "extra": "Juntos, nos apoyamos mutuamente, de forma consciente, en una cultura circular. Ahora podemos comunicarnos y colaborar libremente en espacios protegidos sin tener que depender de las redes sociales.",
-    "extra2": "Activa los círculos de Gradido en los ajustes/comunidad y luego haz clic en el menú \"Círculos\"."
+    "text": "¡Los Círculos ahora tienen reuniones de vídeo seguras!",
+    "extra": "En nuestra comunidad protegida nos apoyamos mutuamente, conscientes de la cultura del círculo.",
+    "extra2": "Elige aquí cómo se mostrará tu nombre:",
+    "button": "Seleccione la visualización del nombre",
+    "internUrl": "/settings/extern"
   },
   {
     "locale": "nl",
-    "text": "Gradido cirkels: nieuw intern samenwerkingsplatform",
-    "button": "Nu activeren...",
-    "internUrl": "https://gradido.net/nl/gradido-kreise-gemeinsam-mit-freunden-die-zukunft-gestalten/",
-    "extra": "Samen ondersteunen we elkaar, mindful in een circulaire cultuur. We kunnen nu vrij communiceren en samenwerken in beschermde ruimtes zonder afhankelijk te zijn van sociale media.",
-    "extra2": "Activeer Gradido cirkels in de instellingen/community en klik dan op het menu \"Cirkels\"!"
+    "text": "Cirkels hebben nu veilige videomeetings!",
+    "extra": "In onze beschermde gemeenschap steunen we elkaar, mindful in de kringcultuur.",
+    "extra2": "Kies hier hoe je naam moet worden weergegeven:",
+    "button": "Selecteer naamweergave",
+    "internUrl": "/settings/extern"
   }
 ]

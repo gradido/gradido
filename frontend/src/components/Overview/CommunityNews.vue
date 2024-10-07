@@ -30,7 +30,7 @@
                 <BButton v-if="item.url" variant="gradido" :href="item.url" target="_blank">
                   {{ item.button }}
                 </BButton>
-                <RouterLink v-else-if="item.internUrl" to="/settings/extern">
+                <RouterLink v-else-if="item.internUrl" :to="item.internUrl">
                   <BButton variant="gradido">
                     {{ item.button }}
                   </BButton>
