@@ -317,6 +317,8 @@ export class UserResolver {
     dbUser.firstName = firstName
     dbUser.lastName = lastName
     dbUser.language = language
+    // enable humhub from now on for new user
+    dbUser.humhubAllowed = true
     if (alias && (await validateAlias(alias))) {
       dbUser.alias = alias
     }
@@ -387,7 +389,9 @@ export class UserResolver {
       await queryRunner.release()
     }
     logger.info('createUser() successful...')
-    void syncHumhub(null, dbUser)
+    if (CONFIG.HUMHUB_ACTIVE) {
+      void syncHumhub(null, dbUser)
+    }
 
     if (redeemCode) {
       eventRegisterRedeem.affectedUser = dbUser
