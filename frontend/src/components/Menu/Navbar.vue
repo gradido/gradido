@@ -129,8 +129,9 @@ button.navbar-toggler > span.navbar-toggler-icon {
   .navbar-element {
     z-index: 1000;
     position: fixed;
-    width: 100%;
     background-color: #f5f5f5e6;
+    left: 0;
+    right: 0;
   }
 
   .sheet-img {

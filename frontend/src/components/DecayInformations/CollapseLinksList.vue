@@ -13,7 +13,7 @@
           <div class="mb-3">
             <BButton
               v-if="!pending && transactionLinks.length < transactionLinkCount"
-              class="test-button-load-more"
+              class="test-button-load-more w-100 rounded-5"
               block
               variant="outline-primary"
               @click.stop="loadMoreLinks"
