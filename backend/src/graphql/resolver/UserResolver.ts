@@ -385,7 +385,9 @@ export class UserResolver {
       await queryRunner.release()
     }
     logger.info('createUser() successful...')
-    
+    if (CONFIG.HUMHUB_ACTIVE) {
+      void syncHumhub(null, dbUser)
+    }
 
     if (redeemCode) {
       eventRegisterRedeem.affectedUser = dbUser
