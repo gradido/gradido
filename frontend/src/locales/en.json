@@ -32,8 +32,8 @@
   "back": "Back",
   "circles": {
     "headline": "Together we support each other - mindful in circle culture.",
-    "text": "We can communicate and collaborate freely in protected spaces without having to rely on social media. Click on the button to open the collaboration platform in a new browser window.",
-    "button": "Gradido circles start..."
+    "text": "Click on the button to open the cooperation platform in a new browser window.",
+    "button": "Start Circles..."
   },
   "community": {
     "admins": "Administrators",
@@ -160,7 +160,9 @@
     "memo": "Message",
     "message": "Message",
     "new_balance": "Account balance after confirmation",
+    "newPasswordRepeat": "Repeat new password",
     "no_gdd_available": "You do not have GDD to send.",
+    "ok": "Ok",
     "password": "Password",
     "passwordRepeat": "Repeat password",
     "password_new": "New password",
@@ -187,6 +189,7 @@
       "gddCreationTime": "The field {_field_} must be a number between {min} and {max} with at most one decimal place.",
       "gddSendAmount": "The {_field_} field must be a number between {min} and {max} with at most two digits after the decimal point",
       "is-not": "You cannot send Gradidos to yourself",
+      "requiredField": "The {fieldName} field is required",
       "username-allowed-chars": "The username may only contain letters, numbers, hyphens or underscores.",
       "username-hyphens": "Hyphens or underscores must be in between letters or numbers.",
       "username-unique": "This username is already taken.",
@@ -278,7 +281,7 @@
     "overview": "Overview",
     "send": "Send",
     "settings": "Settings",
-    "circles": "Circle",
+    "circles": "Circles",
     "support": "Support",
     "transactions": "Transactions",
     "usersearch": "Geographical User Search"
@@ -292,7 +295,7 @@
     "send": "Send Gradidos",
     "settings": "Settings",
     "transactions": "Your transactions",
-    "circles": "Gradido Circles (Beta)",
+    "circles": "Gradido Circles",
     "usersearch": "Geographical User Search"
   },
   "qrCode": "QR Code",

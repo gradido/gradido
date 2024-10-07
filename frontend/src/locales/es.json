@@ -20,6 +20,11 @@
     }
   },
   "back": "Volver",
+  "circles": {
+    "headline": "Juntos nos apoyamos - atentos a la cultura de los círculos.",
+    "text": "Haga clic en el botón para abrir la plataforma de cooperación en una nueva ventana del navegador.",
+    "button": "Iniciar Círculos..."
+  },
   "community": {
     "admins": "Administradores",
     "choose-another-community": "Escoger otra comunidad",
@@ -131,6 +136,7 @@
     "memo": "Mensaje",
     "message": "Noticia",
     "new_balance": "Saldo de cuenta nuevo depués de confirmación",
+    "newPasswordRepeat": "Repetir contraseña nueva",
     "no_gdd_available": "No dispones de GDD para enviar.",
     "password": "Contraseña",
     "passwordRepeat": "Repetir contraseña",
@@ -155,6 +161,7 @@
     "validation": {
       "gddSendAmount": "El campo {_field_} debe ser un número entre {min} y {max} con un máximo de dos decimales",
       "is-not": "No es posible  transferirte Gradidos a ti mismo",
+      "requiredField": "El campo {fieldName} es obligatorio",
       "usernmae-regex": "El nombre de usuario debe comenzar con una letra seguida de al menos dos caracteres alfanuméricos.",
       "usernmae-unique": "Este nombre de usuario ya está adjudicado."
     },
@@ -241,6 +248,7 @@
     "overview": "Resumen",
     "profile": "Mi Perfil",
     "send": "Enviar",
+    "circles": "Círculos",
     "support": "Soporte",
     "transactions": "Transacciones",
     "usersearch": "Buscar usuarios"
@@ -254,6 +262,7 @@
     "send": "Enviar Gradidos",
     "settings": "Soporte",
     "transactions": "Tu Transacciones",
+    "circles": "Círculos Gradido",
     "usersearch": "Búsqueda geográfica de usuarios"
   },
   "qrCode": "Código QR",
@@ -270,6 +279,7 @@
       "changeLanguage": "Cambiar idioma",
       "de": "Deutsch",
       "en": "English",
+      "error": "No se ha podido actualizar la configuración de idioma.",
       "es": "Español",
       "fr": "Français",
       "nl": "Nederlands",

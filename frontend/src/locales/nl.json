@@ -20,6 +20,11 @@
     }
   },
   "back": "Terug",
+  "circles": {
+    "headline": "Samen ondersteunen we elkaar - mindful in de cirkelcultuur.",
+    "text": "Klik op de knop om het samenwerkingsplatform te openen in een nieuw browservenster.",
+    "button": "Cirkels starten..."
+  },
   "community": {
     "admins": "Beheerders",
     "choose-another-community": "Kies een andere gemeenschap",
@@ -131,6 +136,7 @@
     "memo": "Memo",
     "message": "Bericht",
     "new_balance": "Nieuw banksaldo na bevestiging",
+    "newPasswordRepeat": "Nieuw wachtwoord herhalen",
     "no_gdd_available": "Je hebt geen GDD om te versturen.",
     "password": "Wachtwoord",
     "passwordRepeat": "Wachtwoord herhalen",
@@ -155,6 +161,7 @@
     "validation": {
       "gddSendAmount": "Het veld {_field_} moet een getal tussen {min} en {max} met maximaal twee cijfers achter de komma zijn",
       "is-not": "Je kunt geen Gradidos aan jezelf overmaken",
+      "requiredField": "{fieldName} is verplicht",
       "usernmae-regex": "De gebruikersnaam moet met een letter beginnen, waarop minimaal twee alfanumerieke tekens dienen te volgen.",
       "usernmae-unique": "De gebruikersnaam is al bezet."
     },
@@ -241,6 +248,7 @@
     "overview": "Overzicht",
     "profile": "Mijn profiel",
     "send": "Sturen",
+    "circles": "Cirkels",
     "support": "Support",
     "transactions": "Transacties",
     "usersearch": "Gebruiker zoeken"
@@ -254,6 +262,7 @@
     "send": "Send Gradidos",
     "settings": "Settings",
     "transactions": "Your transactions",
+    "circles": "Gradido Cirkels",
     "usersearch": "Geografisch zoeken naar gebruikers"
   },
   "qrCode": "QR Code",
@@ -270,6 +279,7 @@
       "changeLanguage": "Taal veranderen",
       "de": "Deutsch",
       "en": "English",
+      "error": "Het is niet gelukt om de taalinstellingen bij te werken.",
       "es": "Español",
       "fr": "Français",
       "nl": "Nederlands",

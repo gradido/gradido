@@ -32,8 +32,8 @@
   "back": "Zurück",
   "circles": {
     "headline": "Gemeinsam unterstützen wir einander –  achtsam in Kreiskultur.",
-    "text": "In geschützten Räumen können wir frei kommunizieren und kooperieren, ohne auf die sozialen Medien angewiesen zu sein. Mit Klick auf den Button öffnest Du die Kooperationsplattform in einem neuen Browser-Fenster.",
-    "button": "Gradido-Kreise starten..."
+    "text": "Mit Klick auf den Button öffnest Du die Kooperationsplattform in einem neuen Browser-Fenster.",
+    "button": "Kreise starten..."
   },
   "community": {
     "admins": "Administratoren",
@@ -160,7 +160,9 @@
     "memo": "Nachricht",
     "message": "Nachricht",
     "new_balance": "Neuer Kontostand nach Bestätigung",
+    "newPasswordRepeat": "Neues Passwort wiederholen",
     "no_gdd_available": "Du hast keine GDD zum versenden.",
+    "ok": "Ok",
     "password": "Passwort",
     "passwordRepeat": "Passwort wiederholen",
     "password_new": "Neues Passwort",
@@ -187,6 +189,7 @@
       "gddCreationTime": "Das Feld {_field_} muss eine Zahl zwischen {min} und {max} mit höchstens einer Nachkommastelle sein",
       "gddSendAmount": "Das Feld {_field_} muss eine Zahl zwischen {min} und {max} mit höchstens zwei Nachkommastellen sein",
       "is-not": "Du kannst dir selbst keine Gradidos überweisen",
+      "requiredField": "{fieldName} ist ein Pflichtfeld",
       "username-allowed-chars": "Der Nutzername darf nur aus Buchstaben (ohne Umlaute), Zahlen, Binde- oder Unterstrichen bestehen.",
       "username-hyphens": "Binde- oder Unterstriche müssen zwischen Buchstaben oder Zahlen stehen.",
       "username-unique": "Der Nutzername ist bereits vergeben.",
@@ -291,7 +294,7 @@
     "overview": "Willkommen {name}",
     "send": "Sende Gradidos",
     "settings": "Einstellungen",
-    "circles": "Gradido Kreise (Beta)",
+    "circles": "Gradido Kreise",
     "transactions": "Deine Transaktionen",
     "usersearch": "Geografische Nutzersuche"
   },
