@@ -219,7 +219,7 @@ const {
   load: useTransactionsQuery,
   refetch: useRefetchTransactionsQuery,
   result: transactionQueryResult,
-} = useLazyQuery(transactionsQuery)
+} = useLazyQuery(transactionsQuery, {}, { fetchPolicy: 'network-only' })
 const { mutate: useLogoutMutation } = useMutation(logout)
 const { t } = useI18n()
 const { toastError } = useAppToast()
@@ -242,9 +242,9 @@ const testModal = () => {
   sessionModal.value.showTimeoutModalForTesting()
 }
 
-onMounted(() => {
-  updateTransactions({ currentPage: 0, pageSize: 10 })
-  getCommunityStatistics()
+onMounted(async () => {
+  await updateTransactions()
+  await getCommunityStatistics()
   setTimeout(() => {
     skeleton.value = false
   }, 1500)
@@ -261,11 +261,10 @@ const logoutUser = async () => {
   }
 }
 
-const updateTransactions = async ({ currentPage, pageSize }) => {
+const updateTransactions = async () => {
   pending.value = true
   try {
     await loadOrFetchTransactionQuery()
-    if (!transactionQueryResult) return // TODO this return mitigate an error when this method is called second time but without actual request
     const { transactionList } = transactionQueryResult.value
     GdtBalance.value =
       transactionList.balance.balanceGDT === null ? 0 : Number(transactionList.balance.balanceGDT)
