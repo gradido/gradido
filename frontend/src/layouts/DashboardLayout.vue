@@ -243,7 +243,7 @@ const testModal = () => {
 }
 
 onMounted(() => {
-  updateTransactions({ currentPage: 0, pageSize: 10 })
+  updateTransactions({ currentPage: 1, pageSize: 10 })
   getCommunityStatistics()
   setTimeout(() => {
     skeleton.value = false
@@ -264,8 +264,8 @@ const logoutUser = async () => {
 const updateTransactions = async ({ currentPage, pageSize }) => {
   pending.value = true
   try {
-    await loadOrFetchTransactionQuery()
-    if (!transactionQueryResult) return // TODO this return mitigate an error when this method is called second time but without actual request
+    await loadOrFetchTransactionQuery({ currentPage, pageSize })
+    if (!transactionQueryResult) return
     const { transactionList } = transactionQueryResult.value
     GdtBalance.value =
       transactionList.balance.balanceGDT === null ? 0 : Number(transactionList.balance.balanceGDT)
@@ -281,8 +281,11 @@ const updateTransactions = async ({ currentPage, pageSize }) => {
   }
 }
 
-const loadOrFetchTransactionQuery = () => {
-  return useTransactionsQuery() || useRefetchTransactionsQuery()
+const loadOrFetchTransactionQuery = async (queryVariables = { currentPage: 1, pageSize: 25 }) => {
+  return (
+    (await useTransactionsQuery(transactionsQuery, queryVariables)) ||
+    (await useRefetchTransactionsQuery(queryVariables))
+  )
 }
 
 const getCommunityStatistics = async () => {
