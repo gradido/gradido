@@ -215,7 +215,11 @@ import { useAppToast } from '@/composables/useToast'
 const store = useStore()
 const router = useRouter()
 const { load: useCommunityStatsQuery } = useLazyQuery(communityStatistics)
-const { load: useTransactionsQuery } = useLazyQuery(transactionsQuery)
+const {
+  load: useTransactionsQuery,
+  refetch: useRefetchTransactionsQuery,
+  result: transactionQueryResult,
+} = useLazyQuery(transactionsQuery)
 const { mutate: useLogoutMutation } = useMutation(logout)
 const { t } = useI18n()
 const { toastError } = useAppToast()
@@ -239,7 +243,7 @@ const testModal = () => {
 }
 
 onMounted(() => {
-  updateTransactions({ currentPage: 0, pageSize: 10 })
+  updateTransactions({ currentPage: 1, pageSize: 10 })
   getCommunityStatistics()
   setTimeout(() => {
     skeleton.value = false
@@ -260,9 +264,9 @@ const logoutUser = async () => {
 const updateTransactions = async ({ currentPage, pageSize }) => {
   pending.value = true
   try {
-    const result = await useTransactionsQuery()
-    if (!result) return // TODO this return mitigate an error when this method is called second time but without actual request
-    const { transactionList } = result
+    await loadOrFetchTransactionQuery({ currentPage, pageSize })
+    if (!transactionQueryResult) return
+    const { transactionList } = transactionQueryResult.value
     GdtBalance.value =
       transactionList.balance.balanceGDT === null ? 0 : Number(transactionList.balance.balanceGDT)
     transactions.value = transactionList.transactions
@@ -275,6 +279,13 @@ const updateTransactions = async ({ currentPage, pageSize }) => {
     transactionCount.value = -1
     toastError(error.message)
   }
+}
+
+const loadOrFetchTransactionQuery = async (queryVariables = { currentPage: 1, pageSize: 25 }) => {
+  return (
+    (await useTransactionsQuery(transactionsQuery, queryVariables)) ||
+    (await useRefetchTransactionsQuery(queryVariables))
+  )
 }
 
 const getCommunityStatistics = async () => {

@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
-import { nextTick } from 'vue'
+import { nextTick, ref } from 'vue'
 import DashboardLayout from './DashboardLayout'
 import { createStore } from 'vuex'
 import { createRouter, createWebHistory } from 'vue-router'
@@ -15,11 +15,15 @@ vi.mock('@/composables/useToast', () => ({
 }))
 
 const mockQueryFn = vi.fn()
+const mockRefetchFn = vi.fn()
 const mockMutateFn = vi.fn()
+const mockQueryResult = ref(null)
 
 vi.mock('@vue/apollo-composable', () => ({
   useLazyQuery: vi.fn(() => ({
     load: mockQueryFn,
+    refetch: mockRefetchFn,
+    result: mockQueryResult,
     onResult: vi.fn(),
     onError: vi.fn(),
   })),
@@ -136,25 +140,25 @@ describe('DashboardLayout', () => {
 
     describe('update transactions', () => {
       beforeEach(async () => {
-        mockQueryFn.mockResolvedValue({
+        mockQueryResult.value = {
           transactionList: {
             balance: {
-              balanceGDT: 100,
+              balanceGDT: '100',
               count: 4,
               linkCount: 8,
-              balance: 1450,
-              decay: 1250,
+              balance: '1450',
             },
-            transactions: ['transaction', 'transaction', 'transaction', 'transaction'],
+            transactions: ['transaction1', 'transaction2', 'transaction3', 'transaction4'],
           },
-        })
-        await wrapper
-          .findComponent({ ref: 'router-view' })
-          .vm.$emit('update-transactions', { currentPage: 2, pageSize: 5 })
-        await nextTick()
+        }
+
+        mockQueryFn.mockResolvedValue(mockQueryResult.value)
+
+        await wrapper.vm.updateTransactions({ currentPage: 2, pageSize: 5 })
+        await nextTick() // Ensure all promises are resolved
       })
 
-      it('calls the API', () => {
+      it('load call to the API', () => {
         expect(mockQueryFn).toHaveBeenCalled()
       })
 
@@ -164,10 +168,10 @@ describe('DashboardLayout', () => {
 
       it('updates transactions', () => {
         expect(wrapper.vm.transactions).toEqual([
-          'transaction',
-          'transaction',
-          'transaction',
-          'transaction',
+          'transaction1',
+          'transaction2',
+          'transaction3',
+          'transaction4',
         ])
       })
 
