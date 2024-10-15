@@ -309,6 +309,7 @@ const setVisible = (bool) => {
 <style>
 .breadcrumb {
   background-color: transparent;
+  padding: 0.75rem 1rem;
 }
 
 .main-page {

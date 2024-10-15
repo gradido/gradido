@@ -1,5 +1,6 @@
 <template>
   <div>
+    <slot name="item" />
     <slot :name="typeId"></slot>
   </div>
 </template>

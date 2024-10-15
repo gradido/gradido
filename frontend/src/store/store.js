@@ -75,6 +75,9 @@ export const mutations = {
   redirectPath: (state, redirectPath) => {
     state.redirectPath = redirectPath || '/overview'
   },
+  setTransactionToHighlightId: (state, id) => {
+    state.transactionToHighlightId = id
+  },
 }
 
 export const actions = {
@@ -119,6 +122,9 @@ export const actions = {
     commit('redirectPath', '/overview')
     localStorage.clear()
   },
+  changeTransactionToHighlightId({ commit }, id) {
+    commit('setTransactionToHighlightId', id)
+  },
 }
 
 let store
@@ -153,6 +159,7 @@ try {
       email: '',
       darkMode: false,
       redirectPath: '/overview',
+      transactionToHighlightId: '',
     },
     getters: {},
     // Synchronous mutation of the state
