@@ -242,9 +242,9 @@ const testModal = () => {
   sessionModal.value.showTimeoutModalForTesting()
 }
 
-onMounted(async () => {
-  await updateTransactions({ currentPage: 1, pageSize: 10 })
-  await getCommunityStatistics()
+onMounted(() => {
+  updateTransactions({ currentPage: 1, pageSize: 10 })
+  getCommunityStatistics()
   setTimeout(() => {
     skeleton.value = false
   }, 1500)
