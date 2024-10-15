@@ -80,7 +80,7 @@ describe('InputPassword', () => {
       })
 
       it('has the placeholder "input-field-placeholder"', () => {
-        expect(wrapper.find('input').attributes('placeholder')).toEqual('input-field-placeholder')
+        expect(wrapper.find('input').attributes('placeholder')).toEqual('form.password')
       })
 
       it('has the value ""', () => {
@@ -88,7 +88,7 @@ describe('InputPassword', () => {
       })
 
       it('has the label "input-field-label"', () => {
-        expect(wrapper.find('label').text()).toEqual('input-field-label')
+        expect(wrapper.find('label').text()).toEqual('form.password')
       })
 
       it('has the label for "input-field-name-input-field"', () => {

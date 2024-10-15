@@ -22,7 +22,7 @@ export function useAppToast() {
     toast(message, {
       title: t('navigation.info'),
       variant: 'warning',
-      bodyClass: 'gdd-toaster-body--darken',
+      bodyClass: 'gdd-toaster-body-darken',
     })
   }
 

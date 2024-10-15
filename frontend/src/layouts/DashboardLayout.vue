@@ -243,7 +243,7 @@ const testModal = () => {
 }
 
 onMounted(async () => {
-  await updateTransactions()
+  await updateTransactions({ currentPage: 1, pageSize: 10 })
   await getCommunityStatistics()
   setTimeout(() => {
     skeleton.value = false
@@ -261,10 +261,11 @@ const logoutUser = async () => {
   }
 }
 
-const updateTransactions = async () => {
+const updateTransactions = async ({ currentPage, pageSize }) => {
   pending.value = true
   try {
-    await loadOrFetchTransactionQuery()
+    await loadOrFetchTransactionQuery({ currentPage, pageSize })
+    if (!transactionQueryResult) return
     const { transactionList } = transactionQueryResult.value
     GdtBalance.value =
       transactionList.balance.balanceGDT === null ? 0 : Number(transactionList.balance.balanceGDT)
@@ -280,8 +281,11 @@ const updateTransactions = async () => {
   }
 }
 
-const loadOrFetchTransactionQuery = () => {
-  return useTransactionsQuery() || useRefetchTransactionsQuery()
+const loadOrFetchTransactionQuery = async (queryVariables = { currentPage: 1, pageSize: 25 }) => {
+  return (
+    (await useTransactionsQuery(transactionsQuery, queryVariables)) ||
+    (await useRefetchTransactionsQuery(queryVariables))
+  )
 }
 
 const getCommunityStatistics = async () => {
