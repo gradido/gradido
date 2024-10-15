@@ -38,6 +38,7 @@ const routes = [
   //   },
   // },
   {
+    name: 'Transactions',
     path: '/transactions',
     component: () => import('@/pages/Transactions'),
     props: { gdt: false },

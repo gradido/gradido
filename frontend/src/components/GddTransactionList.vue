@@ -24,27 +24,18 @@
         </transaction-list-item>
       </div>
       <div class="mt-3">
-        <div v-for="({ id, typeId }, index) in transactions" :key="`l2-` + id">
+        <div v-for="transaction in transactions" :key="`l2-` + transaction.id">
           <transaction-list-item
-            v-if="typeId !== 'DECAY'"
-            :type-id="typeId"
+            v-if="transaction.typeId !== 'DECAY'"
+            :type-id="transaction.typeId"
             class="pointer mb-3 bg-white app-box-shadow gradido-border-radius p-3 test-list-group-item"
           >
-            <template #SEND>
-              <transaction-send v-bind="transactions[index]" />
+            <template v-if="transaction.typeId !== 'LINK_SUMMARY'" #item>
+              <gdd-transaction :transaction="transaction" />
             </template>
-
-            <template #RECEIVE>
-              <transaction-receive v-bind="transactions[index]" />
-            </template>
-
-            <template #CREATION>
-              <transaction-creation v-bind="transactions[index]" />
-            </template>
-
-            <template #LINK_SUMMARY>
+            <template v-else #LINK_SUMMARY>
               <transaction-link-summary
-                v-bind="transactions[index]"
+                v-bind="transaction"
                 :transaction-link-count="transactionLinkCount"
                 @update-transactions="updateTransactions"
               />
@@ -75,19 +66,15 @@
 <script>
 import TransactionListItem from '@/components/TransactionListItem'
 import TransactionDecay from '@/components/Transactions/TransactionDecay'
-import TransactionSend from '@/components/Transactions/TransactionSend'
-import TransactionReceive from '@/components/Transactions/TransactionReceive'
-import TransactionCreation from '@/components/Transactions/TransactionCreation'
 import TransactionLinkSummary from '@/components/Transactions/TransactionLinkSummary'
+import GddTransaction from '@/components/Transactions/GddTransaction.vue'
 
 export default {
   name: 'GddTransactionList',
   components: {
+    GddTransaction,
     TransactionListItem,
     TransactionDecay,
-    TransactionSend,
-    TransactionReceive,
-    TransactionCreation,
     TransactionLinkSummary,
   },
   props: {
