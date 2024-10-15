@@ -140,3 +140,9 @@ button.navbar-toggler > span.navbar-toggler-icon {
   }
 }
 </style>
+
+<style scoped>
+:deep(.container-fluid) {
+  padding: 0 !important;
+}
+</style>

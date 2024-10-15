@@ -1,5 +1,5 @@
 <template>
-  <div class="breadcrumb bg-transparent">
+  <div class="page-breadcrumb breadcrumb bg-transparent">
     <h1>{{ pageTitle }}</h1>
   </div>
 </template>
@@ -17,3 +17,10 @@ export default {
   },
 }
 </script>
+
+<style scoped>
+.page-breadcrumb {
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+}
+</style>
