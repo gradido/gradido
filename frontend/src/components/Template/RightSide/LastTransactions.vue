@@ -84,6 +84,7 @@ const filteredTransactions = computed(() => {
   border-bottom: 1px solid transparent;
   transition: border-bottom-color 0.15s ease-in-out;
 }
+
 .transaction-details-link:hover {
   border-color: #383838;
 }
