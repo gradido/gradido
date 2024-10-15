@@ -219,7 +219,7 @@ const {
   load: useTransactionsQuery,
   refetch: useRefetchTransactionsQuery,
   result: transactionQueryResult,
-} = useLazyQuery(transactionsQuery)
+} = useLazyQuery(transactionsQuery, {}, { fetchPolicy: 'network-only' })
 const { mutate: useLogoutMutation } = useMutation(logout)
 const { t } = useI18n()
 const { toastError } = useAppToast()
