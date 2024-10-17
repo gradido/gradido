@@ -13,6 +13,13 @@ export class PublishNameLogic {
     return substring.charAt(0).toUpperCase() + substring.charAt(1).toLocaleLowerCase()
   }
 
+  public hasAlias(): boolean {
+    if (this.user.alias && this.user.alias.length >= 3) {
+      return true
+    }
+    return false
+  }
+
   /**
    * get first name based on publishNameType: PublishNameType value
    * @param publishNameType
@@ -57,11 +64,11 @@ export class PublishNameLogic {
         PublishNameType.PUBLISH_NAME_INITIALS,
       ].includes(publishNameType)
     ) {
-      return publishNameType === PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS && this.user.alias
+      return publishNameType === PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS && this.hasAlias()
         ? this.user.alias
         : this.firstUpperCaseSecondLowerCase(this.user.firstName) +
             this.firstUpperCaseSecondLowerCase(this.user.lastName)
     }
-    return this.user.alias ? this.user.alias : this.user.gradidoID
+    return this.hasAlias() ? this.user.alias : this.user.gradidoID
   }
 }
