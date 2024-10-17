@@ -7,8 +7,8 @@ export class PublishNameLogic {
   constructor(private user: User) {}
 
   private firstUpperCaseSecondLowerCase(substring: string) {
-    if (substring.length !== 2) {
-      throw new LogError("substring hasn't expected length of 2")
+    if (!substring || substring.length < 2) {
+      throw new LogError('substring is to small, it need at least two characters', { substring })
     }
     return substring.charAt(0).toUpperCase() + substring.charAt(1).toLocaleLowerCase()
   }
