@@ -245,6 +245,23 @@
     "warningText": "Hala orada mısın?"
   },
   "settings": {
+    "GMS": {
+      "location": {
+        "button": "Buraya tıklayın!",
+        "label": "Tam konum",
+        "saveLocation": "Konumu Kaydet",
+        "updateSuccess": "Konum başarıyla kaydedildi"
+      },
+      "map": {
+        "communityCoords": "Topluluk Konumunuz: Enlem {lat}, Boylam {lng}",
+        "communityLocationLabel": "Topluluk Konumunuz",
+        "headline": "Kullanıcının Coğrafi Konum Tespiti",
+        "userCoords": "Konumunuz: Enlem {lat}, Boylam {lng}",
+        "userLocationLabel": "Konumunuz",
+        "search": "Konum ara",
+        "success": "Konum başarıyla kaydedildi"
+      }
+    },
     "language": {
       "changeLanguage": "Dili değiştir",
       "de": "Deutsch",

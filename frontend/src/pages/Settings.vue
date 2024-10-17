@@ -81,100 +81,102 @@
           </BCol>
         </BRow>
       </BTab>
-      <div v-if="isCommunityService">
-        <BTab class="community-service-tabs" :title="$t('settings.community')">
-          <div class="h2">{{ $t('settings.allow-community-services') }}</div>
-          <div v-if="isHumhub" class="mt-3">
-            <BRow>
+      <BTab
+        v-if="isCommunityService"
+        class="community-service-tabs"
+        :title="$t('settings.community')"
+      >
+        <div class="h2">{{ $t('settings.allow-community-services') }}</div>
+        <div v-if="isHumhub" class="mt-3">
+          <BRow>
+            <BCol cols="12" md="6" lg="6">
+              <div class="h3">{{ $t('Humhub.title') }}</div>
+            </BCol>
+            <BCol cols="12" md="6" lg="6" class="text-end">
+              <user-settings-switch
+                :initial-value="$store.state.humhubAllowed"
+                :attr-name="'humhubAllowed'"
+                :disabled="isHumhubActivated"
+                :enabled-text="$t('settings.humhub.enabled')"
+                :disabled-text="$t('settings.humhub.disabled')"
+                :not-allowed-text="$t('settings.humhub.delete-disabled')"
+                @value-changed="humhubStateSwitch"
+              />
+            </BCol>
+          </BRow>
+          <div class="h4">{{ $t('Humhub.desc') }}</div>
+          <BRow v-if="humhubAllowed" class="mb-4 humhub-publish-name-row">
+            <BCol cols="12" md="6" lg="6">
+              {{ $t('settings.humhub.naming-format') }}
+            </BCol>
+            <BCol cols="12" md="6" lg="6">
+              <user-naming-format
+                :initial-value="$store.state.humhubPublishName"
+                :attr-name="'humhubPublishName'"
+                :success-message="$t('settings.humhub.publish-name.updated')"
+              />
+            </BCol>
+          </BRow>
+        </div>
+        <div v-if="isGMS" class="mt-3">
+          <BRow>
+            <BCol cols="12" md="6" lg="6">
+              <div class="h3">{{ $t('GMS.title') }}</div>
+            </BCol>
+            <BCol cols="12" md="6" lg="6" class="text-end">
+              <user-settings-switch
+                :initial-value="$store.state.gmsAllowed"
+                :attr-name="'gmsAllowed'"
+                :enabled-text="$t('settings.GMS.enabled')"
+                :disabled-text="$t('settings.GMS.disabled')"
+                @value-changed="gmsStateSwitch"
+              />
+            </BCol>
+          </BRow>
+          <div class="h4 mt-3">{{ $t('GMS.desc') }}</div>
+          <div v-if="gmsAllowed">
+            <BRow class="mb-4">
               <BCol cols="12" md="6" lg="6">
-                <div class="h3">{{ $t('Humhub.title') }}</div>
-              </BCol>
-              <BCol cols="12" md="6" lg="6" class="text-end">
-                <user-settings-switch
-                  :initial-value="$store.state.humhubAllowed"
-                  :attr-name="'humhubAllowed'"
-                  :disabled="isHumhubActivated"
-                  :enabled-text="$t('settings.humhub.enabled')"
-                  :disabled-text="$t('settings.humhub.disabled')"
-                  :not-allowed-text="$t('settings.humhub.delete-disabled')"
-                  @value-changed="humhubStateSwitch"
-                />
-              </BCol>
-            </BRow>
-            <div class="h4">{{ $t('Humhub.desc') }}</div>
-            <BRow v-if="humhubAllowed" class="mb-4 humhub-publish-name-row">
-              <BCol cols="12" md="6" lg="6">
-                {{ $t('settings.humhub.naming-format') }}
+                {{ $t('settings.GMS.naming-format') }}
               </BCol>
               <BCol cols="12" md="6" lg="6">
                 <user-naming-format
-                  :initial-value="$store.state.humhubPublishName"
-                  :attr-name="'humhubPublishName'"
-                  :success-message="$t('settings.humhub.publish-name.updated')"
+                  :initial-value="$store.state.gmsPublishName"
+                  :attr-name="'gmsPublishName'"
+                  :success-message="$t('settings.GMS.publish-name.updated')"
                 />
               </BCol>
             </BRow>
-          </div>
-          <div v-if="isGMS" class="mt-3">
-            <BRow>
+            <BRow class="mb-4">
               <BCol cols="12" md="6" lg="6">
-                <div class="h3">{{ $t('GMS.title') }}</div>
+                {{ $t('settings.GMS.location-format') }}
               </BCol>
-              <BCol cols="12" md="6" lg="6" class="text-end">
-                <user-settings-switch
-                  :initial-value="$store.state.gmsAllowed"
-                  :attr-name="'gmsAllowed'"
-                  :enabled-text="$t('settings.GMS.enabled')"
-                  :disabled-text="$t('settings.GMS.disabled')"
-                  @value-changed="gmsStateSwitch"
-                />
+              <BCol cols="12" md="6" lg="6">
+                <user-g-m-s-location-format />
               </BCol>
             </BRow>
-            <div class="h4 mt-3">{{ $t('GMS.desc') }}</div>
-            <div v-if="gmsAllowed">
-              <BRow class="mb-4">
-                <BCol cols="12" md="6" lg="6">
-                  {{ $t('settings.GMS.naming-format') }}
-                </BCol>
-                <BCol cols="12" md="6" lg="6">
-                  <user-naming-format
-                    :initial-value="$store.state.gmsPublishName"
-                    :attr-name="'gmsPublishName'"
-                    :success-message="$t('settings.GMS.publish-name.updated')"
-                  />
-                </BCol>
-              </BRow>
-              <BRow class="mb-4">
-                <BCol cols="12" md="6" lg="6">
-                  {{ $t('settings.GMS.location-format') }}
-                </BCol>
-                <BCol cols="12" md="6" lg="6">
-                  <user-g-m-s-location-format />
-                </BCol>
-              </BRow>
-              <BRow class="mb-5">
-                <BCol cols="12" md="6" lg="6">
-                  {{ $t('settings.GMS.location.label') }}
-                </BCol>
-                <BCol cols="12" md="6" lg="6">
-                  <user-g-m-s-location />
-                </BCol>
-              </BRow>
-            </div>
-          </div>
-          <div v-else>
-            <BRow>
+            <BRow class="mb-5">
               <BCol cols="12" md="6" lg="6">
-                <div class="h3 text-muted">{{ $t('GMS.title') }}</div>
+                {{ $t('settings.GMS.location.label') }}
               </BCol>
-              <BCol cols="12" md="6" lg="6" class="text-end">
-                <user-settings-switch :disabled="true" />
+              <BCol cols="12" md="6" lg="6">
+                <user-gms-location-capturing />
               </BCol>
             </BRow>
-            <div class="h4 mt-3 text-muted">{{ $t('GMS.desc') }}</div>
           </div>
-        </BTab>
-      </div>
+        </div>
+        <div v-else>
+          <BRow>
+            <BCol cols="12" md="6" lg="6">
+              <div class="h3 text-muted">{{ $t('GMS.title') }}</div>
+            </BCol>
+            <BCol cols="12" md="6" lg="6" class="text-end">
+              <user-settings-switch :disabled="true" />
+            </BCol>
+          </BRow>
+          <div class="h4 mt-3 text-muted">{{ $t('GMS.desc') }}</div>
+        </div>
+      </BTab>
     </BTabs>
 
     <!-- TODO<BRow>
@@ -200,7 +202,7 @@ import UserPassword from '@/components/UserSettings/UserPassword'
 import UserSettingsSwitch from '../components/UserSettings/UserSettingsSwitch.vue'
 import UserNamingFormat from '@/components/UserSettings/UserNamingFormat'
 import UserGMSLocationFormat from '@/components/UserSettings/UserGMSLocationFormat'
-import UserGMSLocation from '@/components/UserSettings/UserGMSLocation'
+import UserGmsLocationCapturing from '@/components/UserSettings/UserGmsLocationCapturing'
 import UserNewsletter from '@/components/UserSettings/UserNewsletter.vue'
 import { BTabs, BTab, BRow, BCol, BFormInput, BFormGroup, BForm, BButton } from 'bootstrap-vue-next'
 
@@ -304,5 +306,13 @@ const humhubStateSwitch = (eventData) => {
 <style scoped>
 :deep(.form-label) {
   padding-bottom: 0;
+}
+
+:deep(.nav-link) {
+  color: #383838 !important;
+}
+
+:deep(.nav-link.active) {
+  color: #525f7f !important;
 }
 </style>
