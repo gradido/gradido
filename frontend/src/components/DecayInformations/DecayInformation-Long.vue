@@ -2,7 +2,7 @@
   <div class="decayinformation-long px-1">
     <div class="word-break mb-5 mt-lg-3">
       <div class="fw-bold pb-2">{{ $t('form.memo') }}</div>
-      <div v-html="displayData" @click.stop />
+      <div @click.stop v-html="displayData" />
     </div>
     <div class="mb-3">
       <IBiDropletHalf class="me-2" />
