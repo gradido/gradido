@@ -2,15 +2,13 @@
 import { User } from '@entity/User'
 
 import { convertGradidoLanguageToHumhub } from '@/apis/humhub/convertLanguage'
+import { PublishNameLogic } from '@/data/PublishName.logic'
+import { PublishNameType } from '@/graphql/enum/PublishNameType'
 
 export class Account {
   public constructor(user: User) {
-    if (user.alias && user.alias.length > 2) {
-      this.username = user.alias
-    } else {
-      this.username = user.gradidoID
-    }
-
+    const publishNameLogic = new PublishNameLogic(user)
+    this.username = publishNameLogic.getUsername(user.humhubPublishName as PublishNameType)
     this.email = user.emailContact.email
     this.language = convertGradidoLanguageToHumhub(user.language)
     this.status = 1
