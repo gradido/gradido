@@ -197,6 +197,7 @@ watch(userPosition, (newPosition) => {
   height: 400px;
   width: 100%;
 }
+
 .leaflet-control-custom a {
   background-color: #fff;
   width: 30px;
@@ -206,9 +207,11 @@ watch(userPosition, (newPosition) => {
   text-decoration: none;
   color: black;
 }
+
 .leaflet-control-custom a:hover {
   background-color: #f4f4f4;
 }
+
 :deep(.leaflet-control-zoom > a) {
   color: #555 !important;
 }

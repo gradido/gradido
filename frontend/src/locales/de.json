@@ -324,8 +324,7 @@
         "headline": "Geografische Standorterfassung des Benutzers",
         "userCoords": "Ihr Standort: Breitengrad {lat}, Längengrad {lng}",
         "userLocationLabel": "Ihr Standort",
-        "search": "Nach einem Standort suchen",
-        "success": "Standort erfolgreich gespeichert"
+        "search": "Nach einem Standort suchen"
       },
       "naming-format": "Namen anzeigen:",
       "publish-location": {

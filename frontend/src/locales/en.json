@@ -324,8 +324,7 @@
         "headline": "Geographic Location-Capturing of the User",
         "userCoords": "Your Location: Lat {lat}, Lng {lng}",
         "userLocationLabel": "Your Location",
-        "search": "Search for a location",
-        "success": "Location successfully saved"
+        "search": "Search for a location"
       },
       "naming-format": "Show Name:",
       "publish-location": {

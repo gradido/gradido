@@ -57,6 +57,7 @@ onResult(({ data }) => {
 onError((err) => {
   userLocation.value = defaultLocation.value
   communityLocation.value = defaultLocation.value
+  toastError(err.message)
 })
 
 const defaultLocation = computed(() => {
@@ -88,5 +89,3 @@ const updateUserLocation = (currentUserLocation) => {
   capturedLocation.value = currentUserLocation
 }
 </script>
-
-<style scoped></style>

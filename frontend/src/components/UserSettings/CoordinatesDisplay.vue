@@ -12,7 +12,7 @@
       </span>
     </div>
     <div class="p-2">
-      <BButton class="me-1" @click="emit('centerMap', 'COMMUNITY')" size="sm">
+      <BButton class="me-1" size="sm" @click="emit('centerMap', 'COMMUNITY')">
         <IBiPinMap />
       </BButton>
       <span>
