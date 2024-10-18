@@ -276,6 +276,23 @@
     "warningText": "Êtes-vous toujours connecté?"
   },
   "settings": {
+    "GMS": {
+      "location": {
+        "button": "Cliquez ici !",
+        "label": "Emplacement précis",
+        "saveLocation": "Enregistrer l'emplacement",
+        "updateSuccess": "Emplacement enregistré avec succès"
+      },
+      "map": {
+        "communityCoords": "Emplacement de votre communauté : Lat {lat}, Long {lng}",
+        "communityLocationLabel": "Emplacement de votre communauté",
+        "headline": "Capture de la localisation géographique de l'utilisateur",
+        "userCoords": "Votre emplacement : Lat {lat}, Long {lng}",
+        "userLocationLabel": "Votre emplacement",
+        "search": "Rechercher un emplacement",
+        "success": "Emplacement enregistré avec succès"
+      }
+    },
     "hideAmountGDD": "Votre montant GDD est caché.",
     "hideAmountGDT": "Votre montant GDT est caché.",
     "language": {
