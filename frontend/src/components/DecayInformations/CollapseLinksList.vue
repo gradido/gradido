@@ -50,8 +50,8 @@ export default {
     buttonText() {
       const i = this.transactionLinkCount - this.transactionLinks.length
       if (i === 1) return this.$t('link-load', 0)
-      if (i <= this.pageSize) return this.$t('link-load', 1, { n: i })
-      return this.$t('link-load', 2, { n: this.pageSize })
+      if (i <= this.pageSize) return this.$t('link-load', { n: i })
+      return this.$t('link-load-more', { n: this.pageSize })
     },
   },
   methods: {

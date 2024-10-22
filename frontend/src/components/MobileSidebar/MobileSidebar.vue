@@ -7,23 +7,33 @@
     no-header-close
     horizontal
     skip-animation
+    :model-value="isMobileMenuOpen"
     @update:model-value="isMobileMenuOpen = $event"
   >
     <div class="mobile-sidebar-wrapper py-2">
       <BImg src="img/svg/lines.png" />
-      <sidebar :shadow="false" @admin="emit('admin')" @logout="emit('logout')" />
+      <sidebar
+        :shadow="false"
+        @admin="emit('admin')"
+        @close-sidebar="closeMenu"
+        @logout="emit('logout')"
+      />
     </div>
     <div v-b-toggle.sidebar-mobile class="simple-overlay" />
   </BCollapse>
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { onUnmounted, ref, watch } from 'vue'
 import { lock, unlock } from 'tua-body-scroll-lock'
 
 const isMobileMenuOpen = ref(false)
 
 const emit = defineEmits(['admin', 'logout'])
+
+const closeMenu = () => {
+  isMobileMenuOpen.value = false
+}
 
 watch(
   () => isMobileMenuOpen.value,
@@ -35,6 +45,10 @@ watch(
     }
   },
 )
+
+onUnmounted(() => {
+  unlock()
+})
 </script>
 
 <style>

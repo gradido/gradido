@@ -204,7 +204,8 @@
     "recruited-member": "Davetli üye"
   },
   "language": "Dil",
-  "link-load": "Son linki yükle| Son {n} linki yükle |  {n} link daha yükle",
+  "link-load": "Son linki yükle| Son {n} linki yükle",
+  "link-load-more": "{n} link daha yükle",
   "login": "Giriş",
   "math": {
     "aprox": "~",
