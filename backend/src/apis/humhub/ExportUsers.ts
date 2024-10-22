@@ -9,8 +9,8 @@ import { checkDBVersion } from '@/typeorm/DBVersion'
 
 import { HumHubClient } from './HumHubClient'
 import { GetUser } from './model/GetUser'
-import { ExecutedHumhubAction, syncUser } from './syncUser'
 import { UsersResponse } from './model/UsersResponse'
+import { ExecutedHumhubAction, syncUser } from './syncUser'
 
 const USER_BULK_SIZE = 20
 const HUMHUB_BULK_SIZE = 50
