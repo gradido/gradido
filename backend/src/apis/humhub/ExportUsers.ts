@@ -45,17 +45,22 @@ async function loadUsersFromHumHub(client: HumHubClient): Promise<Map<string, Ge
   })
   let page = 1
   while (humhubUsers.size < firstPage.total) {
+    process.stdout.write(
+      `load users from humhub: ${humhubUsers.size}/${firstPage.total}, skipped: ${skippedUsersCount}\r`,
+    )
     const usersPage = await client.users(page, HUMHUB_BULK_SIZE)
     if (!usersPage) {
       throw new LogError('error requesting next users page from humhub')
     }
     usersPage.results.forEach((user) => {
-      humhubUsers.set(user.account.email.trim(), user)
+      // deleted users have empty emails
+      if (user.account.email) {
+        humhubUsers.set(user.account.email.trim(), user)
+      } else {
+        skippedUsersCount++
+      }
     })
     page++
-    process.stdout.write(
-      `load users from humhub: ${humhubUsers.size}/${usersPage.total}, skipped: ${skippedUsersCount}\r`,
-    )
   }
   const elapsed = new Date().getTime() - start
   logger.info('load users from humhub', {
