@@ -9,9 +9,11 @@ import { checkDBVersion } from '@/typeorm/DBVersion'
 
 import { HumHubClient } from './HumHubClient'
 import { GetUser } from './model/GetUser'
+import { UsersResponse } from './model/UsersResponse'
 import { ExecutedHumhubAction, syncUser } from './syncUser'
 
 const USER_BULK_SIZE = 20
+const HUMHUB_BULK_SIZE = 50
 
 function getUsersPage(page: number, limit: number): Promise<[User[], number]> {
   return User.findAndCount({
@@ -29,24 +31,28 @@ function getUsersPage(page: number, limit: number): Promise<[User[], number]> {
 async function loadUsersFromHumHub(client: HumHubClient): Promise<Map<string, GetUser>> {
   const start = new Date().getTime()
   const humhubUsers = new Map<string, GetUser>()
-  const firstPage = await client.users(0, 50)
-  if (!firstPage) {
-    throw new LogError('not a single user found on humhub, please check config and setup')
-  }
-  firstPage.results.forEach((user) => {
-    humhubUsers.set(user.account.email.trim(), user)
-  })
-  let page = 1
-  while (humhubUsers.size < firstPage.total) {
-    const usersPage = await client.users(page, 50)
+  let page = 0
+  let skippedUsersCount = 0
+  let usersPage: UsersResponse | null = null
+  do {
+    usersPage = await client.users(page, HUMHUB_BULK_SIZE)
     if (!usersPage) {
       throw new LogError('error requesting next users page from humhub')
     }
     usersPage.results.forEach((user) => {
-      humhubUsers.set(user.account.email.trim(), user)
+      // deleted users have empty emails
+      if (user.account.email) {
+        humhubUsers.set(user.account.email.trim(), user)
+      } else {
+        skippedUsersCount++
+      }
     })
     page++
-  }
+    process.stdout.write(
+      `load users from humhub: ${humhubUsers.size}/${usersPage.total}, skipped: ${skippedUsersCount}\r`,
+    )
+  } while (usersPage && usersPage.results.length === HUMHUB_BULK_SIZE)
+
   const elapsed = new Date().getTime() - start
   logger.info('load users from humhub', {
     total: humhubUsers.size,
