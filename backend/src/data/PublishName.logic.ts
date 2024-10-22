@@ -1,16 +1,25 @@
 import { User } from '@entity/User'
+import XRegExp from 'xregexp'
 
 import { PublishNameType } from '@/graphql/enum/PublishNameType'
-import { LogError } from '@/server/LogError'
 
 export class PublishNameLogic {
+  // allowed characters for humhub usernames
+  private usernameRegex: RegExp = XRegExp('[\\p{L}\\d_\\-@\\.]', 'g')
+
   constructor(private user: User) {}
 
-  private firstUpperCaseSecondLowerCase(substring: string) {
-    if (!substring || substring.length < 2) {
-      throw new LogError('substring is to small, it need at least two characters', { substring })
+  private firstUpperCaseSecondLowerCase(name: string) {
+    if (name && name.length >= 2) {
+      return name.charAt(0).toUpperCase() + name.charAt(1).toLocaleLowerCase()
     }
-    return substring.charAt(0).toUpperCase() + substring.charAt(1).toLocaleLowerCase()
+    return name
+  }
+
+  // remove character which are invalid for humhub username
+  private filterOutInvalidChar(name: string) {
+    // eslint-disable-next-line import/no-named-as-default-member
+    return XRegExp.match(name, this.usernameRegex, 'all').join('')
   }
 
   public hasAlias(): boolean {
@@ -65,9 +74,9 @@ export class PublishNameLogic {
       ].includes(publishNameType)
     ) {
       return publishNameType === PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS && this.hasAlias()
-        ? this.user.alias
-        : this.firstUpperCaseSecondLowerCase(this.user.firstName) +
-            this.firstUpperCaseSecondLowerCase(this.user.lastName)
+        ? this.filterOutInvalidChar(this.user.alias)
+        : this.firstUpperCaseSecondLowerCase(this.filterOutInvalidChar(this.user.firstName)) +
+            this.firstUpperCaseSecondLowerCase(this.filterOutInvalidChar(this.user.lastName))
     }
     return this.hasAlias() ? this.user.alias : this.user.gradidoID
   }
