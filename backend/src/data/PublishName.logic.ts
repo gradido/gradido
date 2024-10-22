@@ -1,16 +1,15 @@
 import { User } from '@entity/User'
 
 import { PublishNameType } from '@/graphql/enum/PublishNameType'
-import { LogError } from '@/server/LogError'
 
 export class PublishNameLogic {
   constructor(private user: User) {}
 
   private firstUpperCaseSecondLowerCase(substring: string) {
-    if (!substring || substring.length < 2) {
-      throw new LogError('substring is to small, it need at least two characters', { substring })
+    if (substring && substring.length >= 2) {
+      return substring.charAt(0).toUpperCase() + substring.charAt(1).toLocaleLowerCase()
     }
-    return substring.charAt(0).toUpperCase() + substring.charAt(1).toLocaleLowerCase()
+    return substring
   }
 
   public hasAlias(): boolean {
