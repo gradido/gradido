@@ -1,6 +1,6 @@
 <template>
   <BFormGroup :label="label" :label-for="idName">
-    <BFormInput :id="idName" v-model="inputValue" @input="updateValue" />
+    <BFormInput :id="idName" :model-value="modelValue" @update:model-value="inputValue = $event" />
   </BFormGroup>
 </template>
 
@@ -8,7 +8,7 @@
 export default {
   name: 'EditableGroupableLabel',
   props: {
-    value: {
+    modelValue: {
       type: String,
       required: false,
       default: null,
@@ -22,16 +22,20 @@ export default {
       required: true,
     },
   },
-  emits: ['input'],
+  emits: ['update:model-value'],
   data() {
     return {
-      inputValue: this.value,
-      originalValue: this.value,
+      inputValue: this.modelValue,
+      originalValue: this.modelValue,
     }
   },
+  watch: {
+    inputValue() {
+      this.updateValue()
+    },
+  },
   methods: {
-    updateValue(value) {
-      this.inputValue = value
+    updateValue() {
       if (this.inputValue !== this.originalValue) {
         if (this.$parent.valueChanged) {
           this.$parent.valueChanged()
@@ -41,7 +45,7 @@ export default {
           this.$parent.invalidValues()
         }
       }
-      this.$emit('input', this.inputValue)
+      this.$emit('update:model-value', this.inputValue)
     },
   },
 }

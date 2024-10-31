@@ -3,7 +3,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import Coordinates from './Coordinates.vue'
 import { BFormGroup, BFormInput } from 'bootstrap-vue-next'
 
-const value = {
+const modelValue = {
   latitude: 56.78,
   longitude: 12.34,
 }
@@ -14,7 +14,7 @@ describe('Coordinates', () => {
   const createWrapper = (props = {}) => {
     return mount(Coordinates, {
       props: {
-        value,
+        modelValue,
         ...props,
       },
       global: {

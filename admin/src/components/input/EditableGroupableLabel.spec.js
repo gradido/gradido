@@ -3,7 +3,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import EditableGroupableLabel from './EditableGroupableLabel.vue'
 import { BFormGroup, BFormInput } from 'bootstrap-vue-next'
 
-const value = 'test label value'
+const modelValue = 'test label value'
 const label = 'Test Label'
 const idName = 'test-id-name'
 
@@ -16,7 +16,7 @@ describe('EditableGroupableLabel', () => {
       components: {
         EditableGroupableLabel,
       },
-      props: ['value', 'label', 'idName'],
+      props: ['modelValue', 'label', 'idName'],
       methods: {
         onInput: vi.fn(),
         ...parentMethods,
@@ -24,7 +24,7 @@ describe('EditableGroupableLabel', () => {
     }
     return mount(Parent, {
       props: {
-        value,
+        modelValue,
         label,
         idName,
         ...props,
@@ -55,7 +55,7 @@ describe('EditableGroupableLabel', () => {
   it('renders BFormInput with correct props', () => {
     const formInput = wrapper.findComponent({ name: 'BFormInput' })
     expect(formInput.props('id')).toBe(idName)
-    expect(formInput.props('modelValue')).toBe(value)
+    expect(formInput.props('modelValue')).toBe(modelValue)
   })
 
   // it('emits input event with the correct value when input changes', async () => {
@@ -87,7 +87,7 @@ describe('EditableGroupableLabel', () => {
 
     const input = wrapper.findComponent({ name: 'BFormInput' })
     await input.vm.$emit('input', 'new label value')
-    await input.vm.$emit('input', value)
+    await input.vm.$emit('input', modelValue)
 
     expect(invalidValuesMock).toHaveBeenCalled()
   })
@@ -97,7 +97,7 @@ describe('EditableGroupableLabel', () => {
     wrapper = createWrapper({}, { valueChanged: valueChangedMock })
 
     const input = wrapper.findComponent({ name: 'BFormInput' })
-    await input.vm.$emit('input', value)
+    await input.vm.$emit('input', modelValue)
 
     expect(valueChangedMock).not.toHaveBeenCalled()
   })
