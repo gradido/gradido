@@ -5,6 +5,7 @@ import { GmsPublishPhoneType } from '@/graphql/enum/GmsPublishPhoneType'
 import { PublishNameType } from '@/graphql/enum/PublishNameType'
 
 export class GmsUser {
+
   constructor(user: dbUser) {
     this.userUuid = user.gradidoID
     // this.communityUuid = user.communityUuid
@@ -64,7 +65,7 @@ export class GmsUser {
       ((!user.alias && user.gmsPublishName === PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS) ||
         user.gmsPublishName === PublishNameType.PUBLISH_NAME_INITIALS)
     ) {
-      return user.firstName.substring(0, 1)
+      return this.firstUpperCaseSecondLowerCase(user.firstName)
     }
   }
 
@@ -78,7 +79,7 @@ export class GmsUser {
         user.gmsPublishName === PublishNameType.PUBLISH_NAME_FIRST_INITIAL ||
         user.gmsPublishName === PublishNameType.PUBLISH_NAME_INITIALS)
     ) {
-      return user.lastName.substring(0, 1)
+      return this.firstUpperCaseSecondLowerCase(user.lastName)
     }
   }
 
@@ -105,5 +106,12 @@ export class GmsUser {
     ) {
       return user.emailContact.phone
     }
+  }
+
+  private firstUpperCaseSecondLowerCase(name: string) {
+    if (name && name.length >= 2) {
+      return name.charAt(0).toUpperCase() + name.charAt(1).toLocaleLowerCase()
+    }
+    return name
   }
 }
