@@ -189,8 +189,10 @@ a:hover,
 
 // .btn-primary pim {
 .btn-primary {
-  background-color: #5a7b02;
-  border-color: #5e72e4;
+  background-color: #5a7b02 !important;
+  border-color: #5e72e4 !important;
+  border-radius: 25px !important;
+  color: #ffffff !important;
 }
 
 .gradido-font-large {

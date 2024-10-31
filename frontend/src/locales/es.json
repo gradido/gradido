@@ -213,7 +213,8 @@
     "recruited-member": "Miembro invitado"
   },
   "language": "Idioma",
-  "link-load": "recargar el último enlace |recargar los últimos {n} enlaces  | descargar más {n} enlaces",
+  "link-load": "recargar el último enlace | recargar los últimos {n} enlaces",
+  "link-load-more": "descargar más {n} enlaces",
   "login": "iniciar sesión",
   "math": {
     "aprox": "~",

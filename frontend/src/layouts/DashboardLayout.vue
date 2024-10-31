@@ -181,7 +181,7 @@
           <content-footer v-if="!$route.meta.hideFooter" />
         </BCol>
       </BRow>
-      <!--      <session-logout-timeout @logout="logoutUser" ref="sessionModal" />-->
+      <session-logout-timeout @logout="logoutUser" />
     </div>
   </div>
 </template>
@@ -236,12 +236,6 @@ const darkMode = ref(false)
 const skeleton = ref(true)
 const totalUsers = ref(null)
 
-const sessionModal = ref(null)
-
-const testModal = () => {
-  sessionModal.value.showTimeoutModalForTesting()
-}
-
 onMounted(() => {
   updateTransactions({ currentPage: 1, pageSize: 10 })
   getCommunityStatistics()
@@ -255,7 +249,7 @@ const logoutUser = async () => {
     await useLogoutMutation()
     await store.dispatch('logout')
     await router.push('/login')
-  } catch {
+  } catch (err) {
     await store.dispatch('logout')
     if (router.currentRoute.value.path !== '/login') await router.push('/login')
   }
@@ -354,7 +348,7 @@ const setVisible = (bool) => {
 
 @media screen and (width <= 450px) {
   .breadcrumb {
-    padding-top: 60px;
+    padding-top: 55px !important;
   }
 }
 </style>

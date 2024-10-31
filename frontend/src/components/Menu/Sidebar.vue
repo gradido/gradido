@@ -107,6 +107,8 @@ const props = defineProps({
   shadow: { type: Boolean, default: true },
 })
 
+const emit = defineEmits(['closeSidebar'])
+
 const route = useRoute()
 const communityLink = ref(null)
 
@@ -134,6 +136,7 @@ watch(
       link.classList.remove('active-route')
       link.classList.remove('router-link-exact-active')
     }
+    emit('closeSidebar')
   },
 )
 </script>

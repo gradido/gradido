@@ -213,7 +213,8 @@
     "recruited-member": "Uitgenodigd lid"
   },
   "language": "Taal",
-  "link-load": "de laatste link herladen | de laatste links herladen |  verdere {n} links herladen",
+  "link-load": "de laatste link herladen | de laatste links herladen",
+  "link-load-more": "verdere {n} links herladen",
   "login": "Aanmelding",
   "math": {
     "aprox": "~",

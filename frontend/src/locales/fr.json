@@ -221,7 +221,8 @@
   },
   "h": "h",
   "language": "Langage",
-  "link-load": "Enregistrer le dernier lien | Enregistrer les derniers {n} liens |  Enregistrer plus de {n} liens",
+  "link-load": "Enregistrer le dernier lien | Enregistrer les derniers {n} liens",
+  "link-load-more": "Enregistrer plus de {n} liens",
   "login": "Connexion",
   "math": {
     "asterisk": "*",
