@@ -76,7 +76,7 @@ describe('EditableGroupableLabel', () => {
 
     const newValue = 'new label value'
     const input = wrapper.findComponent({ name: 'BFormInput' })
-    await input.vm.$emit('input', newValue)
+    await input.vm.$emit('update:model-value', newValue)
 
     expect(valueChangedMock).toHaveBeenCalled()
   })
@@ -86,8 +86,8 @@ describe('EditableGroupableLabel', () => {
     wrapper = createWrapper({}, { invalidValues: invalidValuesMock })
 
     const input = wrapper.findComponent({ name: 'BFormInput' })
-    await input.vm.$emit('input', 'new label value')
-    await input.vm.$emit('input', modelValue)
+    await input.vm.$emit('update:model-value', 'new label value')
+    await input.vm.$emit('update:model-value', modelValue)
 
     expect(invalidValuesMock).toHaveBeenCalled()
   })
