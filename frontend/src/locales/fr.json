@@ -22,6 +22,11 @@
     }
   },
   "back": "Retour",
+  "circles": {
+    "headline": "Ensemble, nous nous soutenons mutuellement - attentifs à la culture du cercle.",
+    "text": "En cliquant sur le bouton, tu ouvres la plateforme de coopération dans une nouvelle fenêtre de navigation.",
+    "button": "Démarrer les Cercles..."
+  },
   "community": {
     "admins": "Administrateurs",
     "choose-another-community": "Choisissez une autre communauté",
@@ -251,6 +256,7 @@
     "overview": "Aperçu",
     "send": "Envoyer",
     "settings": "Configuration",
+    "circles": "Cercles",
     "support": "Aide",
     "transactions": "Transactions",
     "usersearch": "Recherche d'utilisateurs"
@@ -264,6 +270,7 @@
     "send": "Envoyé Gradidos",
     "settings": "Configuration",
     "transactions": "Vos transactions",
+    "circles": "Cercles Gradido",
     "usersearch": "Recherche géographique d'utilisateurs"
   },
   "qrCode": "QR Code",
