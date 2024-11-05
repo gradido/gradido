@@ -51,7 +51,7 @@ const {
   onError,
 } = useQuery(authenticateHumhubAutoLogin, null, {
   fetchPolicy: 'network-only',
-  enabled: false,
+  enabled: true,
 })
 
 onResult(({ data }) => {
