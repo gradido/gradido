@@ -1,1 +1,1 @@
-export { User } from './0087-add_dlt_users_table/User'
+export { User } from './0088-merge_dlt_tables/User'

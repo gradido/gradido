@@ -1,5 +1,6 @@
 import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn } from 'typeorm'
-import { User } from '../User'
+// this Entity was removed in current code and isn't any longer compatible with user
+import { User } from './User'
 
 @Entity('dlt_users', { engine: 'InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci' })
 export class DltUser extends BaseEntity {

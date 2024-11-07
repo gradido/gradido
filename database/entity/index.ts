@@ -13,7 +13,6 @@ import { Community } from './Community'
 import { FederatedCommunity } from './FederatedCommunity'
 import { UserRole } from './UserRole'
 import { DltTransaction } from './DltTransaction'
-import { DltUser } from './DltUser'
 import { PendingTransaction } from './0071-add-pending_transactions-table/PendingTransaction'
 
 export const entities = [
@@ -22,7 +21,6 @@ export const entities = [
   ContributionLink,
   ContributionMessage,
   DltTransaction,
-  DltUser,
   Event,
   FederatedCommunity,
   LoginElopageBuys,
