@@ -43,6 +43,10 @@ import { Context, getUser, getClientTimezoneOffset } from '@/server/context'
 import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 import { calculateDecay } from '@/util/decay'
+import {
+  InterruptiveSleepManager,
+  TRANSMIT_TO_IOTA_INTERRUPTIVE_SLEEP_KEY,
+} from '@/util/InterruptiveSleepManager'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 import { fullName } from '@/util/utilities'
 
@@ -50,7 +54,6 @@ import { findContribution } from './util/contributions'
 import { getUserCreation, validateContribution, getOpenCreations } from './util/creations'
 import { findContributions } from './util/findContributions'
 import { getLastTransaction } from './util/getLastTransaction'
-import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
 
 @Resolver()
 export class ContributionResolver {
@@ -473,8 +476,8 @@ export class ContributionResolver {
 
         await queryRunner.commitTransaction()
 
-        // trigger to send transaction via dlt-connector
-        void sendTransactionsToDltConnector()
+        // notify dlt-connector loop for new work
+        InterruptiveSleepManager.getInstance().interrupt(TRANSMIT_TO_IOTA_INTERRUPTIVE_SLEEP_KEY)
 
         logger.info('creation commited successfuly.')
         void sendContributionConfirmedEmail({

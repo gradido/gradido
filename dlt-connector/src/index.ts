@@ -1,17 +1,19 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import 'reflect-metadata'
 
+import { loadCryptoKeys, MemoryBlock } from 'gradido-blockchain-js'
+
 import { CONFIG } from '@/config'
 
 import { BackendClient } from './client/BackendClient'
-import { CommunityRepository } from './data/Community.repository'
-import { Mnemonic } from './data/Mnemonic'
+import { getTransaction } from './client/GradidoNode'
 import { CommunityDraft } from './graphql/input/CommunityDraft'
-import { AddCommunityContext } from './interactions/backendToDb/community/AddCommunity.context'
+import { SendToIotaContext } from './interactions/sendToIota/SendToIota.context'
 import { logger } from './logging/logger'
+import { KeyPairCacheManager } from './manager/KeyPairCacheManager'
 import createServer from './server/createServer'
 import { LogError } from './server/LogError'
-import { stopTransmitToIota, transmitToIota } from './tasks/transmitToIota'
+import { uuid4ToHash } from './utils/typeConverter'
 
 async function waitForServer(
   backend: BackendClient,
@@ -39,30 +41,55 @@ async function waitForServer(
 
 async function main() {
   if (CONFIG.IOTA_HOME_COMMUNITY_SEED) {
-    Mnemonic.validateSeed(CONFIG.IOTA_HOME_COMMUNITY_SEED)
+    try {
+      const seed = MemoryBlock.fromHex(CONFIG.IOTA_HOME_COMMUNITY_SEED)
+      if (seed.size() < 32) {
+        throw new Error('seed need to be greater than 32 Bytes')
+      }
+    } catch (error) {
+      throw new LogError(
+        'IOTA_HOME_COMMUNITY_SEED must be a valid hex string, at least 64 characters long',
+        error,
+      )
+    }
   }
+  // load crypto keys for gradido blockchain lib
+  loadCryptoKeys(
+    MemoryBlock.fromHex(CONFIG.GRADIDO_BLOCKCHAIN_CRYPTO_APP_SECRET),
+    MemoryBlock.fromHex(CONFIG.GRADIDO_BLOCKCHAIN_SERVER_CRYPTO_KEY),
+  )
   // eslint-disable-next-line no-console
   console.log(`DLT_CONNECTOR_PORT=${CONFIG.DLT_CONNECTOR_PORT}`)
   const { app } = await createServer()
 
   // ask backend for home community if we haven't one
-  try {
-    await CommunityRepository.loadHomeCommunityKeyPair()
-  } catch (e) {
-    const backend = BackendClient.getInstance()
-    if (!backend) {
-      throw new LogError('cannot create backend client')
-    }
-    // wait for backend server to be ready
-    await waitForServer(backend, 2500, 10)
-
-    const communityDraft = await backend.getHomeCommunityDraft()
-    const addCommunityContext = new AddCommunityContext(communityDraft)
-    await addCommunityContext.run()
+  const backend = BackendClient.getInstance()
+  if (!backend) {
+    throw new LogError('cannot create backend client')
   }
+  // wait for backend server to be ready
+  await waitForServer(backend, 2500, 10)
 
-  // loop run all the time, check for new transaction for sending to iota
-  void transmitToIota()
+  const communityDraft = await backend.getHomeCommunityDraft()
+  KeyPairCacheManager.getInstance().setHomeCommunityUUID(communityDraft.uuid)
+  logger.info('home community topic: %s', uuid4ToHash(communityDraft.uuid).convertToHex())
+  logger.info('gradido node server: %s', CONFIG.NODE_SERVER_URL)
+  // ask gradido node if community blockchain was created
+  try {
+    const firstTransaction = await getTransaction(
+      1,
+      uuid4ToHash(communityDraft.uuid).convertToHex(),
+    )
+    if (!firstTransaction) {
+      // if not exist, create community root transaction
+      await SendToIotaContext(communityDraft)
+    }
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    // console.log('error requesting gradido node: ', e)
+    // if not exist, create community root transaction
+    await SendToIotaContext(communityDraft)
+  }
   app.listen(CONFIG.DLT_CONNECTOR_PORT, () => {
     // eslint-disable-next-line no-console
     console.log(`Server is running at http://localhost:${CONFIG.DLT_CONNECTOR_PORT}`)
@@ -70,7 +97,6 @@ async function main() {
 
   process.on('exit', () => {
     // Add shutdown logic here.
-    stopTransmitToIota()
   })
 }
 

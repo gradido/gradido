@@ -1,4 +1,6 @@
 export const HARDENED_KEY_BITMASK = 0x80000000
+export const GMW_ACCOUNT_DERIVATION_INDEX = 1
+export const AUF_ACCOUNT_DERIVATION_INDEX = 2
 
 /*
  * change derivation index from x => x'

@@ -12,7 +12,6 @@ import { Logger } from 'log4js'
 
 import { schema } from '@/graphql/schema'
 import { logger as dltLogger } from '@/logging/logger'
-import { Connection } from '@/typeorm/DataSource'
 
 type ServerDef = { apollo: ApolloServer; app: Express }
 
@@ -29,8 +28,6 @@ const createServer = async (
   logger.addContext('user', 'unknown')
   logger.debug('createServer...')
 
-  // connect to db and test db version
-  await Connection.getInstance().init()
   // Express Server
   const app = express()
 

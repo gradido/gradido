@@ -1,10 +1,6 @@
 import util from 'util'
 
-import { Decimal } from 'decimal.js-light'
-
-import { Timestamp } from '@/data/proto/3_3/Timestamp'
-import { TimestampSeconds } from '@/data/proto/3_3/TimestampSeconds'
-import { timestampSecondsToDate, timestampToDate } from '@/utils/typeConverter'
+import { Timestamp, TimestampSeconds } from 'gradido-blockchain-js'
 
 export abstract class AbstractLoggingView {
   protected bufferStringFormat: BufferEncoding = 'hex'
@@ -28,22 +24,15 @@ export abstract class AbstractLoggingView {
     return undefined
   }
 
-  protected decimalToString(number: Decimal | undefined | null): string | undefined {
-    if (number) {
-      return number.toString()
-    }
-    return undefined
-  }
-
   protected timestampSecondsToDateString(timestamp: TimestampSeconds): string | undefined {
-    if (timestamp && timestamp.seconds) {
-      return timestampSecondsToDate(timestamp).toISOString()
+    if (timestamp && timestamp.getSeconds()) {
+      return timestamp.getDate().toISOString()
     }
   }
 
   protected timestampToDateString(timestamp: Timestamp): string | undefined {
-    if (timestamp && (timestamp.seconds || timestamp.nanoSeconds)) {
-      return timestampToDate(timestamp).toISOString()
+    if (timestamp && (timestamp.getSeconds() || timestamp.getNanos())) {
+      return timestamp.getDate().toISOString()
     }
   }
 }
