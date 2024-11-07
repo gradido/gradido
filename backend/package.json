@@ -61,6 +61,7 @@
     "@types/jest": "^27.0.2",
     "@types/lodash.clonedeep": "^4.5.6",
     "@types/node": "^16.10.3",
+    "@types/node-fetch": "^2.6.11",
     "@types/nodemailer": "^6.4.4",
     "@types/sodium-native": "^2.3.5",
     "@types/uuid": "^8.3.4",

@@ -1,5 +1,6 @@
-import { TransactionDraft } from '@input/TransactionDraft'
 import { Resolver, Arg, Mutation } from 'type-graphql'
+
+import { TransactionDraft } from '@input/TransactionDraft'
 
 import { SendToIotaContext } from '@/interactions/sendToIota/SendToIota.context'
 

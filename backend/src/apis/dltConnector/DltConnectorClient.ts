@@ -1,16 +1,17 @@
 import { Transaction as DbTransaction } from '@entity/Transaction'
 import { User } from '@entity/User'
 import { gql, GraphQLClient } from 'graphql-request'
+// eslint-disable-next-line import/named, n/no-extraneous-import
+import { FetchError } from 'node-fetch'
 
 import { CONFIG } from '@/config'
 import { TransactionTypeId } from '@/graphql/enum/TransactionTypeId'
 import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 
-import { AccountType } from './enum/AccountType'
+import { TransactionDraft } from './model/TransactionDraft'
 import { TransactionResult } from './model/TransactionResult'
 import { UserAccountDraft } from './model/UserAccountDraft'
-import { UserIdentifier } from './model/UserIdentifier'
 
 const sendTransaction = gql`
   mutation ($input: TransactionDraft!) {
@@ -45,17 +46,6 @@ const registerAddress = gql`
     }
   }
 `
-
-// from ChatGPT
-function getTransactionTypeString(id: TransactionTypeId): string {
-  const key = Object.keys(TransactionTypeId).find(
-    (key) => TransactionTypeId[key as keyof typeof TransactionTypeId] === id,
-  )
-  if (key === undefined) {
-    throw new LogError('invalid transaction type id: ' + id.toString())
-  }
-  return key
-}
 
 // Source: https://refactoring.guru/design-patterns/singleton/typescript/example
 // and ../federation/client/FederationClientFactory.ts
@@ -109,91 +99,73 @@ export class DltConnectorClient {
     return DltConnectorClient.instance
   }
 
+  private getTransactionParams(input: DbTransaction | User): TransactionDraft | UserAccountDraft {
+    if (input instanceof DbTransaction) {
+      return new TransactionDraft(input)
+    } else if (input instanceof User) {
+      return new UserAccountDraft(input)
+    }
+    throw new LogError('transaction should be either Transaction or User Entity')
+  }
+
+  private handleTransactionResult(result: TransactionResult) {
+    if (result.error) {
+      throw new Error(result.error.message)
+    }
+    return result
+  }
+
+  private async sendTransaction(input: TransactionDraft) {
+    const {
+      data: { sendTransaction: result },
+    } = await this.client.rawRequest<{ sendTransaction: TransactionResult }>(sendTransaction, {
+      input,
+    })
+    return this.handleTransactionResult(result)
+  }
+
+  private async registerAddress(input: UserAccountDraft) {
+    const {
+      data: { registerAddress: result },
+    } = await this.client.rawRequest<{ registerAddress: TransactionResult }>(registerAddress, {
+      input,
+    })
+    return this.handleTransactionResult(result)
+  }
+
   /**
    * transmit transaction via dlt-connector to iota
    * and update dltTransactionId of transaction in db with iota message id
    */
   public async transmitTransaction(
-    transaction: DbTransaction,
+    transaction: DbTransaction | User,
   ): Promise<TransactionResult | undefined> {
     // we don't need the receive transactions, there contain basically the same data as the send transactions
-    if ((transaction.typeId as TransactionTypeId) === TransactionTypeId.RECEIVE) {
+    if (
+      transaction instanceof DbTransaction &&
+      (transaction.typeId as TransactionTypeId) === TransactionTypeId.RECEIVE
+    ) {
       return
     }
-    const typeString = getTransactionTypeString(transaction.typeId)
-    // no negative values in dlt connector, gradido concept don't use negative values so the code don't use it too
-    const amountString = transaction.amount.abs().toString()
-    const params = {
-      input: {
-        user: {
-          uuid: transaction.userGradidoID,
-          communityUuid: transaction.userCommunityUuid,
-        } as UserIdentifier,
-        linkedUser: {
-          uuid: transaction.linkedUserGradidoID,
-          communityUuid: transaction.linkedUserCommunityUuid,
-        } as UserIdentifier,
-        amount: amountString,
-        type: typeString,
-        createdAt: transaction.balanceDate.toISOString(),
-        targetDate: transaction.creationDate?.toISOString(),
-      },
-    }
+
+    const input = this.getTransactionParams(transaction)
     try {
-      // TODO: add account nr for user after they have also more than one account in backend
-      logger.debug('transmit transaction to dlt connector', params)
-      const {
-        data: { sendTransaction: result },
-      } = await this.client.rawRequest<{ sendTransaction: TransactionResult }>(
-        sendTransaction,
-        params,
-      )
-      if (result.error) {
-        throw new Error(result.error.message)
+      logger.debug('transmit transaction or user to dlt connector', input)
+      if (input instanceof TransactionDraft) {
+        return await this.sendTransaction(input)
+      } else if (input instanceof UserAccountDraft) {
+        return await this.registerAddress(input)
+      } else {
+        throw new LogError('unhandled branch reached')
       }
-      console.log(result)
-      return result
     } catch (e) {
-      if (e instanceof Error) {
+      logger.error(e)
+      if (e instanceof FetchError) {
+        throw e
+      } else if (e instanceof Error) {
         throw new LogError(`from dlt-connector: ${e.message}`)
       } else {
         throw new LogError('Exception sending transfer transaction to dlt-connector', e)
-      }
-    }
-  }
-
-  public async registerAddress(dbUser: User): Promise<TransactionResult | undefined> {
-    const params = {
-      input: {
-        user: {
-          uuid: dbUser.gradidoID,
-          communityUuid: dbUser.communityUuid,
-          accountNr: 1,
-        } as UserIdentifier,
-        createdAt: dbUser.createdAt.toISOString(),
-        accountType: AccountType.COMMUNITY_HUMAN,
-      } as UserAccountDraft,
-    }
-    try {
-      const {
-        data: { registerAddress: result },
-      } = await this.client.rawRequest<{ registerAddress: TransactionResult }>(
-        registerAddress,
-        params,
-      )
-      logger.info('send register address transaction to dlt-connector', {
-        params,
-        result,
-      })
-      if (result.error) {
-        throw new Error(result.error.message)
-      }
-      return result
-    } catch (e) {
-      if (e instanceof Error) {
-        throw new LogError(`from dlt-connector: ${e.message}`)
-      } else {
-        throw new LogError('Exception sending register address transaction to dlt-connector', e)
       }
     }
   }

@@ -38,7 +38,7 @@ import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 import { fullName } from '@/util/utilities'
 import { calculateBalance } from '@/util/validate'
 
-import { sendTransactionsToDltConnector } from '../../tasks/sendTransactionsToDltConnector'
+import { sendTransactionsToDltConnector } from '../../apis/dltConnector/sendTransactionsToDltConnector'
 
 import { executeTransaction } from './TransactionResolver'
 import { getUserCreation, validateContribution } from './util/creations'

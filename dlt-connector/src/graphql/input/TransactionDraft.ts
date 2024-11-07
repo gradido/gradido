@@ -1,8 +1,9 @@
 // https://www.npmjs.com/package/@apollo/protobufjs
-import { InputTransactionType } from '@enum/InputTransactionType'
-import { isValidDateString, isValidNumberString } from '@validator/DateString'
 import { IsEnum, IsObject, ValidateNested } from 'class-validator'
 import { InputType, Field } from 'type-graphql'
+
+import { InputTransactionType } from '@enum/InputTransactionType'
+import { isValidDateString, isValidNumberString } from '@validator/DateString'
 
 import { UserIdentifier } from './UserIdentifier'
 

@@ -12,7 +12,7 @@ import { UserKeyPairRole } from './UserKeyPair.role'
 
 /**
  * @DCI-Context
- * Context for calculating key pair for signing transactions 
+ * Context for calculating key pair for signing transactions
  */
 export async function KeyPairCalculation(input: UserIdentifier | string): Promise<KeyPairEd25519> {
   const cache = KeyPairCacheManager.getInstance()
