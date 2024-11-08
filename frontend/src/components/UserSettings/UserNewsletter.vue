@@ -36,13 +36,9 @@ watch(localNewsletterState, async (newValue, oldValue) => {
 
 const onSubmit = async () => {
   try {
-    if (localNewsletterState.value) {
-      await newsletterSubscribe()
-    } else {
-      await newsletterUnsubscribe()
-    }
+    localNewsletterState.value ? await newsletterSubscribe() : await newsletterUnsubscribe()
 
-    store.commit('setNewsletterState', localNewsletterState.value)
+    store.commit('newsletterState', localNewsletterState.value)
 
     toastSuccess(
       localNewsletterState.value

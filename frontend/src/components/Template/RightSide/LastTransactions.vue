@@ -8,12 +8,20 @@
       <BRow align-v="center" class="mb-4">
         <BCol cols="auto">
           <div class="align-items-center">
-            <avatar
+            <!--            <avatar-->
+            <!--              class="vue3-avatar"-->
+            <!--              :size="72"-->
+            <!--              :color="'#fff'"-->
+            <!--              :name="`${transaction.linkedUser.firstName} ${transaction.linkedUser.lastName}`"-->
+            <!--              :initials="`${transaction.linkedUser.firstName[0]}${transaction.linkedUser.lastName[0]}`"-->
+            <!--              :border="false"-->
+            <!--            />-->
+            <app-avatar
               :size="72"
               :color="'#fff'"
-              :username="`${transaction.linkedUser.firstName} ${transaction.linkedUser.lastName}`"
+              :name="`${transaction.linkedUser.firstName} ${transaction.linkedUser.lastName}`"
               :initials="`${transaction.linkedUser.firstName[0]}${transaction.linkedUser.lastName[0]}`"
-            ></avatar>
+            />
           </div>
         </BCol>
         <BCol class="p-1">
@@ -43,11 +51,11 @@
   </div>
 </template>
 <script setup>
-import Avatar from 'vue-avatar'
 import Name from '@/components/TransactionRows/Name'
 import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import { computed } from 'vue'
+import AppAvatar from '@/components/AppAvatar.vue'
 const props = defineProps({
   transactions: {
     default: () => [],

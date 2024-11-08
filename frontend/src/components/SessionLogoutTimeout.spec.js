@@ -1,9 +1,10 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { mount } from '@vue/test-utils'
-import { nextTick } from 'vue'
+import { nextTick, ref } from 'vue'
 import SessionLogoutTimeout from './SessionLogoutTimeout.vue'
 import { useLazyQuery } from '@vue/apollo-composable'
 import { useStore } from 'vuex'
+import { useModal } from 'bootstrap-vue-next'
 
 // Mock external dependencies
 vi.mock('vuex', () => ({
@@ -13,17 +14,15 @@ vi.mock('vuex', () => ({
 vi.mock('@vue/apollo-composable', () => ({
   useLazyQuery: vi.fn(() => ({
     load: vi.fn(),
-    loading: false,
-    error: { value: null },
+    loading: ref(false),
+    error: ref(null),
   })),
 }))
 
 // Mock bootstrap-vue-next
-const mockShow = vi.fn()
 const mockHide = vi.fn()
 vi.mock('bootstrap-vue-next', () => ({
   useModal: vi.fn(() => ({
-    show: mockShow,
     hide: mockHide,
   })),
   BModal: { template: '<div><slot></slot><slot name="modal-footer"></slot></div>' },
@@ -59,12 +58,12 @@ describe('SessionLogoutTimeout', () => {
 
   beforeEach(() => {
     vi.useFakeTimers()
-    mockShow.mockClear()
     mockHide.mockClear()
   })
 
   afterEach(() => {
     vi.clearAllMocks()
+    vi.useRealTimers()
   })
 
   it('renders the component div.session-logout-timeout', () => {
@@ -72,69 +71,115 @@ describe('SessionLogoutTimeout', () => {
     expect(wrapper.find('div.session-logout-timeout').exists()).toBe(true)
   })
 
-  describe('tokenExpiresInSeconds computed property', () => {
-    it('returns 0 when token is expired', async () => {
-      wrapper = createWrapper(setTokenTime(-60))
-      await nextTick()
-      expect(wrapper.vm.tokenExpiresInSeconds).toBe(0)
-    })
-
-    it('returns remaining seconds when token is not expired', async () => {
-      wrapper = createWrapper(setTokenTime(120))
-      await nextTick()
-      expect(wrapper.vm.tokenExpiresInSeconds).toBeGreaterThan(0)
-      expect(wrapper.vm.tokenExpiresInSeconds).toBeLessThanOrEqual(120)
-    })
-  })
-
-  describe('checkExpiration', () => {
-    it('shows modal when token expires in less than 75 seconds', async () => {
+  describe('token expiration', () => {
+    it('shows modal when remaining time is 75 seconds or less', async () => {
       wrapper = createWrapper(setTokenTime(74))
       await nextTick()
 
-      vi.runAllTimers()
-
+      vi.runOnlyPendingTimers()
       await nextTick()
-      expect(mockShow).toHaveBeenCalled()
+
+      const modal = wrapper.findComponent({ name: 'BModal' })
+      expect(modal.props('modelValue')).toBe(true)
     })
 
-    it('emits logout when token is expired', async () => {
-      wrapper = createWrapper(setTokenTime(-1))
+    it('does not show modal when remaining time is more than 75 seconds', async () => {
+      wrapper = createWrapper(setTokenTime(76))
       await nextTick()
+
+      vi.runOnlyPendingTimers()
+      await nextTick()
+
+      const modal = wrapper.findComponent({ name: 'BModal' })
+      expect(modal.props('modelValue')).toBe(false)
+    })
+
+    it('emits logout when time expires', async () => {
+      wrapper = createWrapper(setTokenTime(1))
+      await nextTick()
+
+      vi.runAllTimers()
+      await nextTick()
+
       expect(wrapper.emitted('logout')).toBeTruthy()
     })
   })
 
   describe('handleOk', () => {
-    it('hides modal and does not emit logout on successful verification', async () => {
+    it('hides modal and continues session on successful verification', async () => {
       const mockLoad = vi.fn().mockResolvedValue({})
       vi.mocked(useLazyQuery).mockReturnValue({
         load: mockLoad,
-        loading: false,
-        error: { value: null },
+        loading: ref(false),
+        error: ref(null),
       })
 
       wrapper = createWrapper()
-      await wrapper.vm.handleOk({ preventDefault: vi.fn() })
+      await wrapper.findComponent({ name: 'BButton' }).trigger('click')
+      await nextTick()
 
       expect(mockLoad).toHaveBeenCalled()
       expect(mockHide).toHaveBeenCalledWith('modalSessionTimeOut')
       expect(wrapper.emitted('logout')).toBeFalsy()
     })
 
-    it('emits logout on failed verification', async () => {
-      const mockLoad = vi.fn().mockRejectedValue(new Error('Verification failed'))
+    it('emits logout on verification failure', async () => {
+      const mockLoad = vi.fn().mockResolvedValue({})
       vi.mocked(useLazyQuery).mockReturnValue({
         load: mockLoad,
-        loading: false,
-        error: { value: new Error('Verification failed') },
+        loading: ref(false),
+        error: ref(new Error('Verification failed')),
       })
 
       wrapper = createWrapper()
-      await wrapper.vm.handleOk({ preventDefault: vi.fn() })
+      await wrapper.findComponent({ name: 'BButton' }).trigger('click')
+      await nextTick()
 
       expect(mockLoad).toHaveBeenCalled()
       expect(wrapper.emitted('logout')).toBeTruthy()
+    })
+
+    it('emits logout when verification throws an error', async () => {
+      const mockLoad = vi.fn().mockRejectedValue(new Error('Network error'))
+      vi.mocked(useLazyQuery).mockReturnValue({
+        load: mockLoad,
+        loading: ref(false),
+        error: ref(null),
+      })
+
+      wrapper = createWrapper()
+      await wrapper.findComponent({ name: 'BButton' }).trigger('click')
+      await nextTick()
+
+      expect(mockLoad).toHaveBeenCalled()
+      expect(wrapper.emitted('logout')).toBeTruthy()
+    })
+  })
+
+  describe('time formatting', () => {
+    it('formats remaining time correctly', async () => {
+      wrapper = createWrapper(setTokenTime(65))
+      await nextTick()
+
+      const warningText = wrapper.find('.text-warning')
+      expect(warningText.text()).toContain('65')
+    })
+
+    it('shows 00 when time is expired', async () => {
+      wrapper = createWrapper(setTokenTime(-1))
+      await nextTick()
+
+      const warningText = wrapper.find('.text-warning')
+      expect(warningText.text()).toContain('00')
+    })
+  })
+
+  describe('cleanup', () => {
+    it('clears interval on unmount', () => {
+      const clearIntervalSpy = vi.spyOn(window, 'clearInterval')
+      wrapper = createWrapper()
+      wrapper.unmount()
+      expect(clearIntervalSpy).toHaveBeenCalled()
     })
   })
 })
