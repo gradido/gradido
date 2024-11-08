@@ -20,12 +20,14 @@
           <router-link to="/settings">
             <div class="d-flex align-items-center">
               <div class="me-3">
-                <avatar
-                  :username="username.username"
+                <app-avatar
+                  class="vue3-avatar"
+                  :name="username.username"
                   :initials="username.initials"
+                  :border="false"
                   :color="'#fff'"
                   :size="61"
-                ></avatar>
+                />
               </div>
               <div>
                 <div data-test="navbar-item-username">{{ username.username }}</div>
@@ -45,13 +47,8 @@
 </template>
 
 <script>
-import Avatar from 'vue-avatar'
-
 export default {
   name: 'Navbar',
-  components: {
-    Avatar,
-  },
   props: {
     balance: { type: Number, required: true },
   },

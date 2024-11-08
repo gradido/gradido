@@ -60,11 +60,11 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { useStore } from 'vuex'
-import Avatar from 'vue-avatar'
 import CollapseIcon from '../TransactionRows/CollapseIcon'
 import Name from '../TransactionRows/Name'
 import DecayInformation from '../DecayInformations/DecayInformation'
 import { BAvatar, BRow } from 'bootstrap-vue-next'
+import AppAvatar from '@/components/AppAvatar.vue'
 
 const props = defineProps({
   transaction: {
@@ -92,7 +92,7 @@ const isCreationType = computed(() => {
 })
 
 const avatarComponent = computed(() => {
-  return isCreationType.value ? BAvatar : Avatar
+  return isCreationType.value ? BAvatar : AppAvatar
 })
 
 const avatarProps = computed(() => {

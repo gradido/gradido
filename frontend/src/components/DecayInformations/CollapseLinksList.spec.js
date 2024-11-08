@@ -162,10 +162,11 @@ describe('CollapseLinksList', () => {
           transactionLinks: [{ id: 1 }, { id: 2 }],
           pageSize: 5,
         })
+        await wrapper.vm.$nextTick()
       })
 
-      it('renders text in plural with page size links to load', () => {
-        expect(mockT).toHaveBeenCalledWith('link-load', 2, { n: 5 })
+      it('renders text with pageSize as number of links to load', () => {
+        expect(mockT).toHaveBeenCalledWith('link-load-more', { n: 5 })
       })
     })
   })
