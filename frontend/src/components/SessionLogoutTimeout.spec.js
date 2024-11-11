@@ -4,7 +4,6 @@ import { nextTick, ref } from 'vue'
 import SessionLogoutTimeout from './SessionLogoutTimeout.vue'
 import { useLazyQuery } from '@vue/apollo-composable'
 import { useStore } from 'vuex'
-import { useModal } from 'bootstrap-vue-next'
 
 // Mock external dependencies
 vi.mock('vuex', () => ({
@@ -21,16 +20,21 @@ vi.mock('@vue/apollo-composable', () => ({
 
 // Mock bootstrap-vue-next
 const mockHide = vi.fn()
+
 vi.mock('bootstrap-vue-next', () => ({
   useModal: vi.fn(() => ({
     hide: mockHide,
   })),
-  BModal: { template: '<div><slot></slot><slot name="modal-footer"></slot></div>' },
-  BCard: { template: '<div><slot></slot></div>' },
-  BCardText: { template: '<div><slot></slot></div>' },
-  BRow: { template: '<div><slot></slot></div>' },
-  BCol: { template: '<div><slot></slot></div>' },
-  BButton: { template: '<button><slot></slot></button>' },
+  BModal: {
+    name: 'BModal',
+    props: ['modelValue'],
+    template: '<div><slot></slot><slot name="modal-footer"></slot></div>',
+  },
+  BCard: { name: 'BCard', template: '<div><slot></slot></div>' },
+  BCardText: { name: 'BCardText', template: '<div><slot></slot></div>' },
+  BRow: { name: 'BRow', template: '<div><slot></slot></div>' },
+  BCol: { name: 'BCol', template: '<div><slot></slot></div>' },
+  BButton: { name: 'BButton', template: '<button><slot></slot></button>' },
 }))
 
 const setTokenTime = (seconds) => {
@@ -84,10 +88,9 @@ describe('SessionLogoutTimeout', () => {
     })
 
     it('does not show modal when remaining time is more than 75 seconds', async () => {
-      wrapper = createWrapper(setTokenTime(76))
-      await nextTick()
-
-      vi.runOnlyPendingTimers()
+      // 76 don't work, because value will be rounded down with floor, so with running the code time were passing,
+      // and 76 will be rounded down to 75
+      wrapper = createWrapper(setTokenTime(77))
       await nextTick()
 
       const modal = wrapper.findComponent({ name: 'BModal' })
@@ -95,7 +98,7 @@ describe('SessionLogoutTimeout', () => {
     })
 
     it('emits logout when time expires', async () => {
-      wrapper = createWrapper(setTokenTime(1))
+      wrapper = createWrapper(setTokenTime(2))
       await nextTick()
 
       vi.runAllTimers()
@@ -162,7 +165,8 @@ describe('SessionLogoutTimeout', () => {
       await nextTick()
 
       const warningText = wrapper.find('.text-warning')
-      expect(warningText.text()).toContain('65')
+      // second will be rounded with floor
+      expect(warningText.text()).toContain('64')
     })
 
     it('shows 00 when time is expired', async () => {

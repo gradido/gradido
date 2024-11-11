@@ -29,7 +29,7 @@ const { mutate: newsletterSubscribe } = useMutation(subscribeNewsletter)
 const { mutate: newsletterUnsubscribe } = useMutation(unsubscribeNewsletter)
 
 watch(localNewsletterState, async (newValue, oldValue) => {
-  if (newValue && newValue !== oldValue) {
+  if (newValue !== undefined && newValue !== null && newValue !== oldValue) {
     await onSubmit()
   }
 })

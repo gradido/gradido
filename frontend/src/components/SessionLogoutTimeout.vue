@@ -43,11 +43,11 @@
 </template>
 
 <script setup>
-import { ref, computed, onBeforeUnmount, watch, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useStore } from 'vuex'
 import { useLazyQuery } from '@vue/apollo-composable'
 import { verifyLogin } from '@/graphql/queries'
-import { useModal } from 'bootstrap-vue-next'
+import { BButton, BCard, BCardText, BCol, BModal, BRow, useModal } from 'bootstrap-vue-next'
 
 const store = useStore()
 const emit = defineEmits(['logout'])
@@ -82,9 +82,7 @@ const calculateRemainingTime = () => {
 
 const formatTime = (seconds) => {
   if (seconds <= 0) return '00'
-
-  const remainingSeconds = seconds % 60
-  return `${remainingSeconds.toString().padStart(2, '0')}`
+  return `${seconds.toString().padStart(2, '0')}`
 }
 
 onMounted(() => {

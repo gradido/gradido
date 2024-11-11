@@ -79,7 +79,7 @@ describe('UserNamingFormat', () => {
     await dropdownItems[3].trigger('click')
 
     expect(mockUpdateUserData).toHaveBeenCalledWith({
-      variables: { gmsPublishName: 'PUBLISH_NAME_FIRST_INITIAL' },
+      gmsPublishName: 'PUBLISH_NAME_FIRST_INITIAL',
     })
     expect(mockToastSuccess).toHaveBeenCalledWith('success message')
     expect(mockStore.commit).toHaveBeenCalledWith('gmsPublishName', 'PUBLISH_NAME_FIRST_INITIAL')

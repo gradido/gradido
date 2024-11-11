@@ -28,6 +28,7 @@ vi.mock('@vue/apollo-composable', () => ({
     } else if (mutation === unsubscribeNewsletter) {
       return { mutate: mockUnsubscribeMutate }
     }
+    throw new Error(`Unrecognized mutation: ${mutation}`)
   }),
 }))
 
