@@ -20,6 +20,11 @@
     }
   },
   "back": "Volver",
+  "circles": {
+    "headline": "Juntos nos apoyamos - atentos a la cultura de los círculos.",
+    "text": "Haga clic en el botón para abrir la plataforma de cooperación en una nueva ventana del navegador.",
+    "button": "Iniciar Círculos..."
+  },
   "community": {
     "admins": "Administradores",
     "choose-another-community": "Escoger otra comunidad",
@@ -244,6 +249,7 @@
     "overview": "Resumen",
     "profile": "Mi Perfil",
     "send": "Enviar",
+    "circles": "Círculos",
     "support": "Soporte",
     "transactions": "Transacciones",
     "usersearch": "Buscar usuarios"
@@ -257,6 +263,7 @@
     "send": "Enviar Gradidos",
     "settings": "Soporte",
     "transactions": "Tu Transacciones",
+    "circles": "Círculos Gradido",
     "usersearch": "Búsqueda geográfica de usuarios"
   },
   "qrCode": "Código QR",

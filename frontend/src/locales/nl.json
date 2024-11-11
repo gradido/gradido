@@ -20,6 +20,11 @@
     }
   },
   "back": "Terug",
+  "circles": {
+    "headline": "Samen ondersteunen we elkaar - mindful in de cirkelcultuur.",
+    "text": "Klik op de knop om het samenwerkingsplatform te openen in een nieuw browservenster.",
+    "button": "Cirkels starten..."
+  },
   "community": {
     "admins": "Beheerders",
     "choose-another-community": "Kies een andere gemeenschap",
@@ -244,6 +249,7 @@
     "overview": "Overzicht",
     "profile": "Mijn profiel",
     "send": "Sturen",
+    "circles": "Cirkels",
     "support": "Support",
     "transactions": "Transacties",
     "usersearch": "Gebruiker zoeken"
@@ -257,6 +263,7 @@
     "send": "Send Gradidos",
     "settings": "Settings",
     "transactions": "Your transactions",
+    "circles": "Gradido Cirkels",
     "usersearch": "Geografisch zoeken naar gebruikers"
   },
   "qrCode": "QR Code",
