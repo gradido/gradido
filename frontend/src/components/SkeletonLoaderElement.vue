@@ -63,17 +63,14 @@ const computedRadius = computed(() => {
 
 .with-animation::after {
   position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
+  inset: 0;
   transform: translateX(-100%);
   background: linear-gradient(
     90deg,
-    rgba(255, 255, 255, 0) 0%,
-    rgba(255, 255, 255, 0.2) 20%,
-    rgba(255, 255, 255, 0.5) 60%,
-    rgba(255, 255, 255, 0) 100%
+    rgb(255 255 255 / 0%) 0%,
+    rgb(255 255 255 / 20%) 20%,
+    rgb(255 255 255 / 50%) 60%,
+    rgb(255 255 255 / 0%) 100%
   );
   animation: shimmer 2s infinite;
   content: '';
