@@ -38,6 +38,7 @@ import { subscribe } from '@/apis/KlicktippController'
 import { encode } from '@/auth/JWT'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { CONFIG } from '@/config'
+import { PublishNameLogic } from '@/data/PublishName.logic'
 import {
   sendAccountActivationEmail,
   sendAccountMultiRegistrationEmail,
@@ -59,6 +60,7 @@ import {
   EVENT_ADMIN_USER_DELETE,
   EVENT_ADMIN_USER_UNDELETE,
 } from '@/event/Events'
+import { PublishNameType } from '@/graphql/enum/PublishNameType'
 import { isValidPassword } from '@/password/EncryptorUtils'
 import { encryptPassword, verifyPassword } from '@/password/PasswordEncryptor'
 import { Context, getUser, getClientTimezoneOffset } from '@/server/context'
@@ -168,8 +170,9 @@ export class UserResolver {
     let humhubUserPromise: Promise<IRestResponse<GetUser>> | undefined
     const klicktippStatePromise = getKlicktippState(dbUser.emailContact.email)
     if (CONFIG.HUMHUB_ACTIVE && dbUser.humhubAllowed) {
+      const publishNameLogic = new PublishNameLogic(dbUser)
       humhubUserPromise = HumHubClient.getInstance()?.userByUsernameAsync(
-        dbUser.alias ?? dbUser.gradidoID,
+        publishNameLogic.getUsername(dbUser.humhubPublishName as PublishNameType),
       )
     }
 
