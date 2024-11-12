@@ -1,12 +1,14 @@
 <template>
   <div class="userdata-card">
     <div class="center-per-margin">
-      <avatar
-        :username="username.username"
+      <app-avatar
+        class="vue3-avatar"
+        :name="username.username"
         :initials="username.initials"
         :color="'#fff'"
         :size="90"
-      ></avatar>
+        :border="false"
+      />
     </div>
 
     <div class="justify-content-center mt-5 mb-5">
@@ -44,14 +46,10 @@
   </div>
 </template>
 <script>
-import Avatar from 'vue-avatar'
 import CONFIG from '@/config'
 
 export default {
   name: 'UserCard',
-  components: {
-    Avatar,
-  },
   props: {
     balance: { type: Number, default: 0 },
     transactionCount: { type: Number, default: 0 },

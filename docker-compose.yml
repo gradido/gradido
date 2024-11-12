@@ -1,7 +1,7 @@
 # This file defines the production settings. It is overwritten by docker-compose.override.yml,
 # which defines the development settings. The override.yml is loaded by default. Therefore it
 # is required to explicitly define if you want an production build:
-# > docker-compose -f docker-compose.yml up 
+# > docker-compose -f docker-compose.yml up
 
 services:
 
@@ -67,13 +67,13 @@ services:
     environment:
       - MARIADB_ALLOW_EMPTY_PASSWORD=1
       - MARIADB_USER=root
-    networks: 
+    networks:
       - internal-net
-    ports: 
+    ports:
       - 3306:3306
-    volumes: 
+    volumes:
       - db_vol:/var/lib/mysql
-      
+
   ########################################################
   # BACKEND ##############################################
   ########################################################
@@ -264,12 +264,12 @@ services:
       # Application only envs
     #env_file:
     #  - ./frontend/.env
-    
+
   #########################################################
   ## NGINX ################################################
   #########################################################
   nginx:
-    build: 
+    build:
       context: ./nginx/
     networks:
       - external-net
@@ -277,17 +277,17 @@ services:
     depends_on:
       - frontend
       - backend
-      - admin 
+      - admin
     ports:
       - 80:80
-    volumes: 
-      - ./logs/nginx:/var/log/nginx 
-  
+    volumes:
+      - ./logs/nginx:/var/log/nginx
+
 networks:
   external-net:
   internal-net:
     internal: true
 
 volumes:
-  db_vol: 
-  
+  db_vol:
+

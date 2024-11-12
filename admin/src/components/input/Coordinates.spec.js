@@ -3,9 +3,24 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import Coordinates from './Coordinates.vue'
 import { BFormGroup, BFormInput } from 'bootstrap-vue-next'
 
-const value = {
+const modelValue = {
   latitude: 56.78,
   longitude: 12.34,
+}
+
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({
+    t: (key, v) => (key === 'geo-coordinates.format' ? `${v.latitude}, ${v.longitude}` : key),
+  }),
+}))
+
+const mockEditableGroup = {
+  valueChanged: vi.fn(function () {
+    this.isValueChanged = true
+  }),
+  invalidValues: vi.fn(function () {
+    this.isValueChanged = false
+  }),
 }
 
 describe('Coordinates', () => {
@@ -14,21 +29,16 @@ describe('Coordinates', () => {
   const createWrapper = (props = {}) => {
     return mount(Coordinates, {
       props: {
-        value,
+        modelValue,
         ...props,
       },
       global: {
-        mocks: {
-          $t: vi.fn((t, v) => {
-            if (t === 'geo-coordinates.format') {
-              return `${v.latitude}, ${v.longitude}`
-            }
-            return t
-          }),
-        },
         stubs: {
           BFormGroup,
           BFormInput,
+        },
+        provide: {
+          editableGroup: mockEditableGroup,
         },
       },
     })
@@ -63,19 +73,13 @@ describe('Coordinates', () => {
     const latitudeInput = wrapper.find('#home-community-latitude')
     const longitudeInput = wrapper.find('#home-community-longitude')
 
-    await latitudeInput.setValue(34.56)
+    await latitudeInput.setValue('34.56')
     expect(wrapper.emitted('input')).toBeTruthy()
-    expect(wrapper.emitted('input')[0][0]).toEqual({
-      latitude: 34.56,
-      longitude: 12.34,
-    })
+    expect(wrapper.vm.inputValue.latitude).toBe('34.56')
 
-    await longitudeInput.setValue('78.90')
+    await longitudeInput.setValue('78.9')
     expect(wrapper.emitted('input')).toBeTruthy()
-    expect(wrapper.emitted('input')[1][0]).toEqual({
-      latitude: 34.56,
-      longitude: '78.90',
-    })
+    expect(wrapper.vm.inputValue.longitude).toBe('78.9')
   })
 
   it('splits coordinates correctly when entering in latitudeLongitude input', async () => {

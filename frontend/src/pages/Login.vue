@@ -19,10 +19,11 @@
           </BCol>
         </BRow>
         <BRow>
-          <BCol cols="12" lg="6">
+          <BCol class="col-lg-6 col-12">
             <BButton
               ref="submitBtn"
               type="submit"
+              class="w-100 fs-7"
               :variant="meta.valid ? 'gradido' : 'gradido-disable'"
               block
               :disabled="!meta.valid"

@@ -11,6 +11,7 @@
         :placeholder="defaultTranslations.placeholder"
         type="email"
         trim
+        class="rounded-input"
         :class="$route.path === '/send' ? 'bg-248' : ''"
         :disabled="disabled"
         autocomplete="off"
@@ -33,14 +34,6 @@ const props = defineProps({
     type: String,
     default: 'email',
   },
-  label: {
-    type: String,
-    default: 'Email',
-  },
-  placeholder: {
-    type: String,
-    default: 'Email',
-  },
   disabled: {
     type: Boolean,
     default: false,
@@ -54,8 +47,8 @@ const { value, errorMessage, validate, meta } = useField(() => props.name, 'requ
 const { t } = useI18n()
 
 const defaultTranslations = computed(() => ({
-  label: props.label ?? t('form.email'),
-  placeholder: props.placeholder ?? t('form.email'),
+  label: t('form.email'),
+  placeholder: t('form.email'),
 }))
 
 const normalizeEmail = (emailAddress) => {

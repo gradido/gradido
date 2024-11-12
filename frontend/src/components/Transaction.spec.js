@@ -245,6 +245,7 @@ import { BAvatar, BCol, BCollapse, BRow } from 'bootstrap-vue-next'
 import TransactionCollapse from '@/components/TransactionCollapse.vue'
 import { GdtEntryType } from '@/graphql/enums'
 import VariantIcon from '@/components/VariantIcon.vue'
+import { createStore } from 'vuex'
 
 const mockToastError = vi.fn()
 vi.mock('@/composables/useToast', () => ({
@@ -268,6 +269,13 @@ describe('Transaction', () => {
   const Wrapper = () => {
     return mount(Transaction, {
       global: {
+        plugins: [
+          createStore({
+            state: {
+              transactionToHighlightId: '',
+            },
+          }),
+        ],
         mocks: {
           $d: (value) => value?.toString() ?? '',
           $n: (value) => value?.toString() ?? '',

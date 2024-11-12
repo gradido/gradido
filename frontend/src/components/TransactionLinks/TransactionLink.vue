@@ -1,6 +1,6 @@
 <template>
   <div class="transaction-link gradido-custom-background">
-    <BRow :class="validLink ? '' : 'bg-muted text-dark'" class="mb-2 pt-2 pb-2">
+    <BRow :class="{ 'light-gray-text': !validLink }" class="mb-2 pt-2 pb-2">
       <BCol cols="1">
         <variant-icon icon="link45deg" variant="danger" />
       </BCol>
@@ -152,5 +152,9 @@ const toggleQrModal = () => {
   margin-left: 0.5rem;
   width: 1.5rem;
   height: 1.5rem;
+}
+
+.light-gray-text {
+  color: #adb5bd !important;
 }
 </style>

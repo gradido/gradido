@@ -22,8 +22,10 @@ export default defineConfig({
     transformMode: {
       web: [/\.[jt]sx$/],
     },
-    deps: {
-      inline: [/vee-validate/, 'vitest-canvas-mock'],
+    server: {
+      deps: {
+        inline: [/vee-validate/, 'vitest-canvas-mock'],
+      },
     },
     alias: {
       '@': path.resolve(__dirname, './src'),
