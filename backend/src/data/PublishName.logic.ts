@@ -66,7 +66,8 @@ export class PublishNameLogic {
    * @returns user.alias for publishNameType = PUBLISH_NAME_ALIAS_OR_INITALS and user has alias
    *   else return user.firstName[0,2] + user.lastName[0,2] for publishNameType = [PUBLISH_NAME_ALIAS_OR_INITALS, PUBLISH_NAME_INITIALS]
    */
-  public getUsername(publishNameType: PublishNameType): string {
+  public getUsername(): string {
+    const publishNameType = this.user.humhubPublishName as PublishNameType
     if (
       [
         PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS,
