@@ -686,17 +686,25 @@ export class UserResolver {
     await EVENT_USER_INFO_UPDATE(user)
 
     // validate if user settings are changed with relevance to update gms-user
-    if (CONFIG.GMS_ACTIVE && updateUserInGMS) {
-      logger.debug(`changed user-settings relevant for gms-user update...`)
-      const homeCom = await getHomeCommunity()
-      if (homeCom.gmsApiKey !== null) {
-        logger.debug(`gms-user update...`, user)
-        await updateGmsUser(homeCom.gmsApiKey, new GmsUser(user))
-        logger.debug(`gms-user update successfully.`)
+    try {
+      if (CONFIG.GMS_ACTIVE && updateUserInGMS) {
+        logger.debug(`changed user-settings relevant for gms-user update...`)
+        const homeCom = await getHomeCommunity()
+        if (homeCom.gmsApiKey !== null) {
+          logger.debug(`gms-user update...`, user)
+          await updateGmsUser(homeCom.gmsApiKey, new GmsUser(user))
+          logger.debug(`gms-user update successfully.`)
+        }
       }
+    } catch (e) {
+      logger.error('error sync user with gms', e)
     }
-    if (CONFIG.HUMHUB_ACTIVE) {
-      await syncHumhub(updateUserInfosArgs, user)
+    try {
+      if (CONFIG.HUMHUB_ACTIVE) {
+        await syncHumhub(updateUserInfosArgs, user)
+      }
+    } catch (e) {
+      logger.error('error sync user with humhub', e)
     }
 
     return true
