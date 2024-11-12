@@ -741,7 +741,8 @@ export class UserResolver {
     if (!humhubClient) {
       throw new LogError('cannot create humhub client')
     }
-    const username = dbUser.alias ?? dbUser.gradidoID
+    const usernameLogic = new PublishNameLogic(dbUser)
+    const username = usernameLogic.getUsername(dbUser.humhubPublishName as PublishNameType)
     let humhubUser = await humhubClient.userByUsername(username)
     if (!humhubUser) {
       humhubUser = await humhubClient.userByEmail(dbUser.emailContact.email)
