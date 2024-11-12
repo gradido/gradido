@@ -1,35 +1,29 @@
-import { GradidoTransactionBuilder, TransferAmount } from 'gradido-blockchain-js'
+import { GradidoTransactionBuilder, GradidoTransfer, TransferAmount } from 'gradido-blockchain-js'
 
-import { TransactionDraft } from '@/graphql/input/TransactionDraft'
+import { LogError } from '@/server/LogError'
 import { uuid4ToHash } from '@/utils/typeConverter'
 
 import { KeyPairCalculation } from '../keyPairCalculation/KeyPairCalculation.context'
 
-import { AbstractTransactionRole } from './AbstractTransaction.role'
+import { TransferTransactionRole } from './TransferTransaction.role'
 
-export class TransferTransactionRole extends AbstractTransactionRole {
-  constructor(protected self: TransactionDraft) {
-    super()
-  }
-
-  getSenderCommunityUuid(): string {
-    return this.self.user.communityUuid
-  }
-
-  getRecipientCommunityUuid(): string {
-    return this.self.linkedUser.communityUuid
-  }
-
+export class DeferredTransferTransactionRole extends TransferTransactionRole {
   public async getGradidoTransactionBuilder(): Promise<GradidoTransactionBuilder> {
     const builder = new GradidoTransactionBuilder()
     const senderKeyPair = await KeyPairCalculation(this.self.user)
     const recipientKeyPair = await KeyPairCalculation(this.self.linkedUser)
+    if (!this.self.timeoutDate) {
+      throw new LogError('timeoutDate date missing for deferred transfer transaction')
+    }
     builder
       .setCreatedAt(new Date(this.self.createdAt))
       .setMemo('dummy memo for transfer')
-      .setTransactionTransfer(
-        new TransferAmount(senderKeyPair.getPublicKey(), this.self.amount.toString()),
-        recipientKeyPair.getPublicKey(),
+      .setDeferredTransfer(
+        new GradidoTransfer(
+          new TransferAmount(senderKeyPair.getPublicKey(), this.self.amount.toString()),
+          recipientKeyPair.getPublicKey(),
+        ),
+        new Date(this.self.timeoutDate),
       )
     const senderCommunity = this.self.user.communityUuid
     const recipientCommunity = this.self.linkedUser.communityUuid

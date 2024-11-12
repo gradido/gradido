@@ -35,4 +35,9 @@ export class TransactionDraft {
   @Field(() => String, { nullable: true })
   @isValidDateString()
   targetDate?: string
+
+  // only for transaction links
+  @Field(() => String, { nullable: true })
+  @isValidDateString()
+  timeoutDate?: string
 }

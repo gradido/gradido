@@ -10,6 +10,7 @@ import {
 } from 'typeorm'
 import { DecimalTransformer } from '../../src/typeorm/DecimalTransformer'
 import { DltTransaction } from '../DltTransaction'
+import { User } from '../User'
 
 @Entity('transaction_links')
 export class TransactionLink extends BaseEntity {
@@ -71,4 +72,8 @@ export class TransactionLink extends BaseEntity {
   @OneToOne(() => DltTransaction, (dlt) => dlt.transactionLinkId)
   @JoinColumn({ name: 'id', referencedColumnName: 'transactionLinkId' })
   dltTransaction?: DltTransaction | null
+
+  @OneToOne(() => User, (user) => user.transactionLink)
+  @JoinColumn({ name: 'userId' })
+  user: User
 }

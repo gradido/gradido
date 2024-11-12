@@ -1,7 +1,7 @@
+import { sendTransactionsToDltConnector } from './apis/dltConnector/sendTransactionsToDltConnector'
 import { CONFIG } from './config'
 import { startValidateCommunities } from './federation/validateCommunities'
 import { createServer } from './server/createServer'
-import { sendTransactionsToDltConnector } from './apis/dltConnector/sendTransactionsToDltConnector'
 
 async function main() {
   const { app } = await createServer()

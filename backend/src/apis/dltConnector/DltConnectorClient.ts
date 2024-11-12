@@ -1,4 +1,5 @@
 import { Transaction as DbTransaction } from '@entity/Transaction'
+import { TransactionLink } from '@entity/TransactionLink'
 import { User } from '@entity/User'
 import { gql, GraphQLClient } from 'graphql-request'
 // eslint-disable-next-line import/named, n/no-extraneous-import
@@ -99,8 +100,10 @@ export class DltConnectorClient {
     return DltConnectorClient.instance
   }
 
-  private getTransactionParams(input: DbTransaction | User): TransactionDraft | UserAccountDraft {
-    if (input instanceof DbTransaction) {
+  private getTransactionParams(
+    input: DbTransaction | User | TransactionLink,
+  ): TransactionDraft | UserAccountDraft {
+    if (input instanceof DbTransaction || input instanceof TransactionLink) {
       return new TransactionDraft(input)
     } else if (input instanceof User) {
       return new UserAccountDraft(input)
@@ -138,7 +141,7 @@ export class DltConnectorClient {
    * and update dltTransactionId of transaction in db with iota message id
    */
   public async transmitTransaction(
-    transaction: DbTransaction | User,
+    transaction: DbTransaction | User | TransactionLink,
   ): Promise<TransactionResult | undefined> {
     // we don't need the receive transactions, there contain basically the same data as the send transactions
     if (

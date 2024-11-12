@@ -38,8 +38,6 @@ import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 import { fullName } from '@/util/utilities'
 import { calculateBalance } from '@/util/validate'
 
-import { sendTransactionsToDltConnector } from '../../apis/dltConnector/sendTransactionsToDltConnector'
-
 import { executeTransaction } from './TransactionResolver'
 import { getUserCreation, validateContribution } from './util/creations'
 import { getLastTransaction } from './util/getLastTransaction'
@@ -311,8 +309,6 @@ export class TransactionLinkResolver {
       } finally {
         releaseLock()
       }
-      // trigger to send transaction via dlt-connector
-      void sendTransactionsToDltConnector()
       return true
     } else {
       const now = new Date()

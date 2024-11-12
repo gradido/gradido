@@ -17,6 +17,7 @@ import { UserRole } from '../UserRole'
 import { GeometryTransformer } from '../../src/typeorm/GeometryTransformer'
 import { Community } from '../Community'
 import { DltTransaction } from '../DltTransaction'
+import { TransactionLink } from './TransactionLink'
 
 @Entity('users', { engine: 'InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci' })
 export class User extends BaseEntity {
@@ -178,4 +179,8 @@ export class User extends BaseEntity {
   @OneToOne(() => DltTransaction, (dlt) => dlt.userId)
   @JoinColumn({ name: 'id', referencedColumnName: 'userId' })
   dltTransaction?: DltTransaction | null
+
+  @OneToOne(() => TransactionLink, (transactionLink) => transactionLink.userId)
+  @JoinColumn({ name: 'id', referencedColumnName: 'userId' })
+  transactionLink?: TransactionLink | null
 }
