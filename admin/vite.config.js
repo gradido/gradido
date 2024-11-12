@@ -57,6 +57,7 @@ export default defineConfig({
   ],
   build: {
     outDir: path.resolve(__dirname, './build'),
+    chunkSizeWarningLimit: 1600,
   },
   publicDir: '/admin',
 })
