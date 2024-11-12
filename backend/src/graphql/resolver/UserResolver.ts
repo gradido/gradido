@@ -316,6 +316,8 @@ export class UserResolver {
     dbUser.firstName = firstName
     dbUser.lastName = lastName
     dbUser.language = language
+    // enable humhub from now on for new user
+    dbUser.humhubAllowed = true
     if (alias && (await validateAlias(alias))) {
       dbUser.alias = alias
     }
@@ -386,6 +388,9 @@ export class UserResolver {
       await queryRunner.release()
     }
     logger.info('createUser() successful...')
+    if (CONFIG.HUMHUB_ACTIVE) {
+      void syncHumhub(null, dbUser)
+    }
 
     if (redeemCode) {
       eventRegisterRedeem.affectedUser = dbUser
@@ -744,7 +749,8 @@ export class UserResolver {
     if (!humhubClient) {
       throw new LogError('cannot create humhub client')
     }
-    const username = dbUser.alias ?? dbUser.gradidoID
+    const userNameLogic = new PublishNameLogic(dbUser)
+    const username = userNameLogic.getUsername(dbUser.humhubPublishName as PublishNameType)
     let humhubUser = await humhubClient.userByUsername(username)
     if (!humhubUser) {
       humhubUser = await humhubClient.userByEmail(dbUser.emailContact.email)

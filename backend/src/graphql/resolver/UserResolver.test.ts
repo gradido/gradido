@@ -185,7 +185,7 @@ describe('UserResolver', () => {
               communityUuid: homeCom.communityUuid,
               foreign: false,
               gmsAllowed: true,
-              humhubAllowed: false,
+              humhubAllowed: true,
               gmsPublishName: 0,
               humhubPublishName: 0,
               gmsPublishLocation: 2,
