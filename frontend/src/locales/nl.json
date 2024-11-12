@@ -218,7 +218,8 @@
     "recruited-member": "Uitgenodigd lid"
   },
   "language": "Taal",
-  "link-load": "de laatste link herladen | de laatste links herladen |  verdere {n} links herladen",
+  "link-load": "de laatste link herladen | de laatste links herladen",
+  "link-load-more": "verdere {n} links herladen",
   "login": "Aanmelding",
   "math": {
     "aprox": "~",
@@ -275,6 +276,23 @@
     "warningText": "Ben je er nog?"
   },
   "settings": {
+    "GMS": {
+      "location": {
+        "button": "Klik hier!",
+        "label": "Exacte locatie",
+        "saveLocation": "Locatie opslaan",
+        "updateSuccess": "Locatie succesvol opgeslagen"
+      },
+      "map": {
+        "communityCoords": "Locatie van je gemeenschap: Lat {lat}, Lng {lng}",
+        "communityLocationLabel": "Locatie van je gemeenschap",
+        "headline": "Geografische locatiebepaling van de gebruiker",
+        "userCoords": "Jouw locatie: Lat {lat}, Lng {lng}",
+        "userLocationLabel": "Jouw locatie",
+        "search": "Zoek een locatie",
+        "success": "Locatie succesvol opgeslagen"
+      }
+    },
     "language": {
       "changeLanguage": "Taal veranderen",
       "de": "Deutsch",

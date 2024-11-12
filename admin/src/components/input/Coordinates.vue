@@ -1,14 +1,14 @@
 <template>
-  <div>
+  <div class="mb-4">
     <BFormGroup
-      :label="$t('geo-coordinates.label')"
-      :invalid-feedback="$t('geo-coordinates.both-or-none')"
+      :label="t('geo-coordinates.label')"
+      :invalid-feedback="t('geo-coordinates.both-or-none')"
       :state="isValid"
     >
       <BFormGroup
-        :label="$t('latitude-longitude-smart')"
+        :label="t('latitude-longitude-smart')"
         label-for="home-community-latitude-longitude-smart"
-        :description="$t('geo-coordinates.latitude-longitude-smart.describe')"
+        :description="t('geo-coordinates.latitude-longitude-smart.describe')"
       >
         <BFormInput
           id="home-community-latitude-longitude-smart"
@@ -17,7 +17,7 @@
           @input="splitCoordinates"
         />
       </BFormGroup>
-      <BFormGroup :label="$t('latitude')" label-for="home-community-latitude">
+      <BFormGroup :label="t('latitude')" label-for="home-community-latitude">
         <BFormInput
           id="home-community-latitude"
           v-model="inputValue.latitude"
@@ -25,7 +25,7 @@
           @input="valueUpdated"
         />
       </BFormGroup>
-      <BFormGroup :label="$t('longitude')" label-for="home-community-longitude">
+      <BFormGroup :label="t('longitude')" label-for="home-community-longitude">
         <BFormInput
           id="home-community-longitude"
           v-model="inputValue.longitude"
@@ -37,81 +37,94 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'Coordinates',
-  props: {
-    value: {
-      type: Object,
-      default: null,
-    },
+<script setup>
+import { ref, computed, watch, inject } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { BFormGroup, BFormInput } from 'bootstrap-vue-next'
+
+const props = defineProps({
+  modelValue: {
+    type: Object,
+    default: null,
   },
-  emits: ['input'],
-  data() {
-    return {
-      inputValue: this.value,
-      originalValue: this.value,
-      locationString: this.getLatitudeLongitudeString(this.value),
+})
+
+const emit = defineEmits(['update:modelValue'])
+const { t } = useI18n()
+
+const editableGroup = inject('editableGroup')
+
+const inputValue = ref(sanitizeLocation(props.modelValue))
+const originalValue = ref(props.modelValue)
+const locationString = ref(getLatitudeLongitudeString(props.modelValue))
+
+const isValid = computed(() => {
+  return (
+    (!isNaN(parseFloat(inputValue.value.longitude)) &&
+      !isNaN(parseFloat(inputValue.value.latitude))) ||
+    (inputValue.value.longitude === '' && inputValue.value.latitude === '')
+  )
+})
+
+const isChanged = computed(() => {
+  return inputValue.value !== originalValue.value
+})
+
+function splitCoordinates() {
+  const parts = locationString.value.split(',').map((part) => part.trim())
+
+  if (parts.length === 2) {
+    const [lat, lon] = parts
+    if (!isNaN(parseFloat(lon)) && !isNaN(parseFloat(lat))) {
+      inputValue.value.longitude = parseFloat(lon)
+      inputValue.value.latitude = parseFloat(lat)
     }
-  },
-  computed: {
-    isValid() {
-      return (
-        (!isNaN(parseFloat(this.inputValue.longitude)) &&
-          !isNaN(parseFloat(this.inputValue.latitude))) ||
-        (this.inputValue.longitude === '' && this.inputValue.latitude === '')
-      )
-    },
-    isChanged() {
-      return this.inputValue !== this.originalValue
-    },
-  },
-  methods: {
-    splitCoordinates(value) {
-      // default format for geo-coordinates: 'latitude, longitude'
-      const parts = this.locationString.split(',').map((part) => part.trim())
-
-      if (parts.length === 2) {
-        const [lat, lon] = parts
-        if (!isNaN(parseFloat(lon) && !isNaN(parseFloat(lat)))) {
-          this.inputValue.longitude = parseFloat(lon)
-          this.inputValue.latitude = parseFloat(lat)
-        }
-      }
-      this.valueUpdated()
-    },
-    sanitizeLocation(location) {
-      if (!location) return { latitude: '', longitude: '' }
-
-      const parseNumber = (value) => {
-        const number = parseFloat(value)
-        return isNaN(number) ? '' : number
-      }
-
-      return {
-        latitude: parseNumber(location.latitude),
-        longitude: parseNumber(location.longitude),
-      }
-    },
-    getLatitudeLongitudeString({ latitude, longitude } = {}) {
-      return latitude && longitude ? this.$t('geo-coordinates.format', { latitude, longitude }) : ''
-    },
-    valueUpdated() {
-      this.locationString = this.getLatitudeLongitudeString(this.inputValue)
-      this.inputValue = this.sanitizeLocation(this.inputValue)
-
-      if (this.isValid && this.isChanged) {
-        if (this.$parent.valueChanged) {
-          this.$parent.valueChanged()
-        }
-      } else {
-        if (this.$parent.invalidValues) {
-          this.$parent.invalidValues()
-        }
-      }
-
-      this.$emit('input', this.inputValue)
-    },
-  },
+  }
+  valueUpdated()
 }
+
+function sanitizeLocation(location) {
+  if (!location) return { latitude: '', longitude: '' }
+
+  const parseNumber = (value) => {
+    const number = parseFloat(value)
+    return isNaN(number) ? '' : number
+  }
+
+  return {
+    latitude: parseNumber(location.latitude),
+    longitude: parseNumber(location.longitude),
+  }
+}
+
+function getLatitudeLongitudeString(locationData) {
+  return locationData?.latitude && locationData?.longitude
+    ? t('geo-coordinates.format', {
+        latitude: locationData.latitude,
+        longitude: locationData.longitude,
+      })
+    : ''
+}
+
+function valueUpdated() {
+  locationString.value = getLatitudeLongitudeString(inputValue.value)
+  inputValue.value = sanitizeLocation(inputValue.value)
+
+  if (isValid.value && isChanged.value) {
+    editableGroup.valueChanged()
+  } else {
+    editableGroup.invalidValues()
+  }
+
+  emit('update:modelValue', inputValue.value)
+}
+
+watch(
+  () => props.modelValue,
+  (newValue) => {
+    inputValue.value = sanitizeLocation(newValue)
+    originalValue.value = newValue
+    locationString.value = getLatitudeLongitudeString(newValue)
+  },
+)
 </script>

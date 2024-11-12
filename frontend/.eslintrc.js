@@ -50,7 +50,6 @@ module.exports = {
     'vue/v-on-event-hyphenation': 0, // TODO remove at the end of migration and fix
     'vue/require-default-prop': 0, // TODO remove at the end of migration and fix
     'vue/no-computed-properties-in-data': 0, // TODO remove at the end of migration and fix
-    '@intlify/vue-i18n/no-dynamic-keys': 'error',
     '@intlify/vue-i18n/no-missing-keys': 0, // TODO remove at the end of migration and fix
     '@intlify/vue-i18n/no-unused-keys': [
       'error',

@@ -48,7 +48,6 @@ const transactionsGdt = ref([])
 const transactionGdtCount = ref(0)
 const currentPage = ref(1)
 const pageSize = ref(25)
-// const tabIndex = ref(0)
 
 const { toastError } = useAppToast()
 

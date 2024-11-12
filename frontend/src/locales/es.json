@@ -218,7 +218,8 @@
     "recruited-member": "Miembro invitado"
   },
   "language": "Idioma",
-  "link-load": "recargar el último enlace |recargar los últimos {n} enlaces  | descargar más {n} enlaces",
+  "link-load": "recargar el último enlace | recargar los últimos {n} enlaces",
+  "link-load-more": "descargar más {n} enlaces",
   "login": "iniciar sesión",
   "math": {
     "aprox": "~",
@@ -275,6 +276,23 @@
     "warningText": "Aún estas?"
   },
   "settings": {
+    "GMS": {
+      "location": {
+        "button": "¡Haz clic aquí!",
+        "label": "Ubicación exacta",
+        "saveLocation": "Guardar ubicación",
+        "updateSuccess": "Ubicación guardada exitosamente"
+      },
+      "map": {
+        "communityCoords": "Ubicación de tu comunidad: Lat {lat}, Lng {lng}",
+        "communityLocationLabel": "Ubicación de tu comunidad",
+        "headline": "Captura de ubicación geográfica del usuario",
+        "userCoords": "Tu ubicación: Lat {lat}, Lng {lng}",
+        "userLocationLabel": "Tu ubicación",
+        "search": "Buscar una ubicación",
+        "success": "Ubicación guardada exitosamente"
+      }
+    },
     "language": {
       "changeLanguage": "Cambiar idioma",
       "de": "Deutsch",

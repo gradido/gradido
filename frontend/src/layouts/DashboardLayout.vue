@@ -181,7 +181,7 @@
           <content-footer v-if="!$route.meta.hideFooter" />
         </BCol>
       </BRow>
-      <!--      <session-logout-timeout @logout="logoutUser" ref="sessionModal" />-->
+      <session-logout-timeout @logout="logoutUser" />
     </div>
   </div>
 </template>
@@ -215,7 +215,11 @@ import { useAppToast } from '@/composables/useToast'
 const store = useStore()
 const router = useRouter()
 const { load: useCommunityStatsQuery } = useLazyQuery(communityStatistics)
-const { load: useTransactionsQuery } = useLazyQuery(transactionsQuery)
+const {
+  load: useTransactionsQuery,
+  refetch: useRefetchTransactionsQuery,
+  result: transactionQueryResult,
+} = useLazyQuery(transactionsQuery, {}, { fetchPolicy: 'network-only' })
 const { mutate: useLogoutMutation } = useMutation(logout)
 const { t } = useI18n()
 const { toastError } = useAppToast()
@@ -232,14 +236,8 @@ const darkMode = ref(false)
 const skeleton = ref(true)
 const totalUsers = ref(null)
 
-const sessionModal = ref(null)
-
-const testModal = () => {
-  sessionModal.value.showTimeoutModalForTesting()
-}
-
 onMounted(() => {
-  updateTransactions({ currentPage: 0, pageSize: 10 })
+  updateTransactions({ currentPage: 1, pageSize: 10 })
   getCommunityStatistics()
   setTimeout(() => {
     skeleton.value = false
@@ -251,7 +249,7 @@ const logoutUser = async () => {
     await useLogoutMutation()
     await store.dispatch('logout')
     await router.push('/login')
-  } catch {
+  } catch (err) {
     await store.dispatch('logout')
     if (router.currentRoute.value.path !== '/login') await router.push('/login')
   }
@@ -260,9 +258,9 @@ const logoutUser = async () => {
 const updateTransactions = async ({ currentPage, pageSize }) => {
   pending.value = true
   try {
-    const result = await useTransactionsQuery()
-    if (!result) return // TODO this return mitigate an error when this method is called second time but without actual request
-    const { transactionList } = result
+    await loadOrFetchTransactionQuery({ currentPage, pageSize })
+    if (!transactionQueryResult) return
+    const { transactionList } = transactionQueryResult.value
     GdtBalance.value =
       transactionList.balance.balanceGDT === null ? 0 : Number(transactionList.balance.balanceGDT)
     transactions.value = transactionList.transactions
@@ -275,6 +273,13 @@ const updateTransactions = async ({ currentPage, pageSize }) => {
     transactionCount.value = -1
     toastError(error.message)
   }
+}
+
+const loadOrFetchTransactionQuery = async (queryVariables = { currentPage: 1, pageSize: 25 }) => {
+  return (
+    (await useTransactionsQuery(transactionsQuery, queryVariables)) ||
+    (await useRefetchTransactionsQuery(queryVariables))
+  )
 }
 
 const getCommunityStatistics = async () => {
@@ -298,6 +303,7 @@ const setVisible = (bool) => {
 <style>
 .breadcrumb {
   background-color: transparent;
+  padding: 0.75rem 1rem;
 }
 
 .main-page {
@@ -342,7 +348,7 @@ const setVisible = (bool) => {
 
 @media screen and (width <= 450px) {
   .breadcrumb {
-    padding-top: 60px;
+    padding-top: 55px !important;
   }
 }
 </style>

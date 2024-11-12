@@ -4,8 +4,10 @@ import UserNewsletter from './UserNewsletter'
 import { unsubscribeNewsletter, subscribeNewsletter } from '@/graphql/mutations'
 import { createStore } from 'vuex'
 import { createI18n } from 'vue-i18n'
-import { BFormCheckbox } from 'bootstrap-vue-next'
+import * as bootstrapVueNext from 'bootstrap-vue-next'
+import { nextTick } from 'vue'
 
+// Mock composables and dependencies
 const mockToastError = vi.fn()
 const mockToastSuccess = vi.fn()
 
@@ -26,6 +28,7 @@ vi.mock('@vue/apollo-composable', () => ({
     } else if (mutation === unsubscribeNewsletter) {
       return { mutate: mockUnsubscribeMutate }
     }
+    throw new Error(`Unrecognized mutation: ${mutation}`)
   }),
 }))
 
@@ -34,7 +37,7 @@ describe('UserNewsletter', () => {
   let store
   let i18n
 
-  const createVuexStore = (initialState) =>
+  const createVuexStore = (initialState = {}) =>
     createStore({
       state: {
         language: 'de',
@@ -42,7 +45,7 @@ describe('UserNewsletter', () => {
         ...initialState,
       },
       mutations: {
-        setNewsletterState(state, value) {
+        newsletterState(state, value) {
           state.newsletterState = value
         },
       },
@@ -63,11 +66,14 @@ describe('UserNewsletter', () => {
   const createWrapper = (storeState = {}) => {
     store = createVuexStore(storeState)
     i18n = createI18nInstance()
+
     return mount(UserNewsletter, {
       global: {
-        plugins: [store, i18n],
-        stubs: {
-          BFormCheckbox: true,
+        plugins: [store, i18n, bootstrapVueNext],
+        config: {
+          compilerOptions: {
+            isCustomElement: (tag) => tag.startsWith('b-'),
+          },
         },
       },
     })
@@ -82,8 +88,9 @@ describe('UserNewsletter', () => {
     expect(wrapper.find('div.formusernewsletter').exists()).toBe(true)
   })
 
-  it('has an edit BFormCheckbox switch', () => {
-    expect(wrapper.find('[test="BFormCheckbox"]').exists()).toBe(true)
+  it('has a BFormCheckbox switch', () => {
+    const checkbox = wrapper.findComponent({ name: 'BFormCheckbox' })
+    expect(checkbox.exists()).toBe(true)
   })
 
   describe('unsubscribe with success', () => {
@@ -94,7 +101,12 @@ describe('UserNewsletter', () => {
           unsubscribeNewsletter: true,
         },
       })
-      wrapper.vm.localNewsletterState = false
+
+      const checkbox = wrapper.findComponent({ name: 'BFormCheckbox' })
+      await checkbox.setValue(false)
+      await nextTick()
+      // Ensure all promises are resolved
+      await Promise.resolve()
     })
 
     it('calls the unsubscribe mutation', () => {
@@ -118,7 +130,12 @@ describe('UserNewsletter', () => {
           subscribeNewsletter: true,
         },
       })
-      wrapper.vm.localNewsletterState = true
+
+      const checkbox = wrapper.findComponent({ name: 'BFormCheckbox' })
+      await checkbox.setValue(true)
+      await nextTick()
+      // Ensure all promises are resolved
+      await Promise.resolve()
     })
 
     it('calls the subscribe mutation', () => {
@@ -138,7 +155,12 @@ describe('UserNewsletter', () => {
     beforeEach(async () => {
       wrapper = createWrapper({ newsletterState: true })
       mockUnsubscribeMutate.mockRejectedValue(new Error('Ouch'))
-      wrapper.vm.localNewsletterState = false
+
+      const checkbox = wrapper.findComponent({ name: 'BFormCheckbox' })
+      await checkbox.setValue(false)
+      await nextTick()
+      // Ensure all promises are resolved
+      await Promise.resolve()
     })
 
     it('resets the newsletterState', () => {

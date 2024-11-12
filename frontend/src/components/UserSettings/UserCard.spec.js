@@ -2,6 +2,7 @@ import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import UserCard from './UserCard.vue'
 import { BCol, BRow } from 'bootstrap-vue-next'
+import AppAvatar from '@/components/AppAvatar.vue'
 
 vi.mock('vue-avatar', () => ({
   default: {
@@ -39,6 +40,7 @@ describe('UserCard', () => {
         components: {
           BRow,
           BCol,
+          AppAvatar,
         },
         mocks,
       },
@@ -53,12 +55,12 @@ describe('UserCard', () => {
     expect(wrapper.find('.userdata-card').exists()).toBe(true)
   })
 
-  it('renders the SPAN Element ".vue-avatar--wrapper"', () => {
-    expect(wrapper.find('.vue-avatar--wrapper').exists()).toBe(true)
+  it('renders the DIV Element ".app-avatar"', () => {
+    expect(wrapper.find('.app-avatar').exists()).toBe(true)
   })
 
   it('displays the first letters of the firstName and lastName', () => {
-    expect(wrapper.find('.vue-avatar--wrapper span').text()).toBe('BB')
+    expect(wrapper.find('.app-avatar').text()).toBe('BB')
   })
 
   it('displays the correct balance', () => {

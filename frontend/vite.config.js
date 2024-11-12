@@ -19,13 +19,13 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      vue: '@vue/compat',
       '@': path.resolve(__dirname, './src'),
       assets: path.join(__dirname, 'src/assets'),
     },
     extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json', '.vue'],
   },
   plugins: [
+    vue(),
     createHtmlPlugin({
       minify: true,
       inject: {
@@ -38,15 +38,6 @@ export default defineConfig({
           VITE_META_KEYWORDS_EN: CONFIG.META_KEYWORDS_EN,
           VITE_META_AUTHOR: CONFIG.META_AUTHOR,
           VITE_META_URL: CONFIG.META_URL,
-        },
-      },
-    }),
-    vue({
-      template: {
-        compilerOptions: {
-          compatConfig: {
-            MODE: 2,
-          },
         },
       },
     }),

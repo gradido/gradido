@@ -64,11 +64,11 @@ describe('InputEmail', () => {
       })
 
       it('has the placeholder "input-field-placeholder"', () => {
-        expect(wrapper.find('input').attributes('placeholder')).toBe('input-field-placeholder')
+        expect(wrapper.find('input').attributes('placeholder')).toBe('form.email')
       })
 
       it('has the label "input-field-label"', () => {
-        expect(wrapper.find('label').text()).toBe('input-field-label')
+        expect(wrapper.find('label').text()).toBe('form.email')
       })
 
       it('has the label for "input-field-name-input-field"', () => {

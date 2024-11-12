@@ -6,13 +6,21 @@
     >
       <BRow>
         <BCol cols="3" lg="2" md="2">
-          <avatar
+          <!--          <avatar-->
+          <!--            v-if="firstName"-->
+          <!--            :name="username.username"-->
+          <!--            :initials="username.initials"-->
+          <!--            :border="false"-->
+          <!--            color="#fff"-->
+          <!--            class="vue3-avatar fw-bold"-->
+          <!--          />-->
+          <app-avatar
             v-if="firstName"
-            :username="username.username"
+            :name="username.username"
             :initials="username.initials"
             color="#fff"
-            class="fw-bold"
-          ></avatar>
+            class="vue3-avatar fw-bold"
+          />
           <BAvatar v-else rounded="lg" :variant="variant" size="4.55em">
             <variant-icon :icon="icon" variant="white" />
           </BAvatar>
@@ -112,13 +120,13 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import Avatar from 'vue-avatar'
 import CollapseIcon from '../TransactionRows/CollapseIcon'
 import ContributionMessagesList from '@/components/ContributionMessages/ContributionMessagesList'
 import { listContributionMessages } from '@/graphql/queries'
 import { useAppToast } from '@/composables/useToast'
 import { useI18n } from 'vue-i18n'
 import { useLazyQuery, useQuery } from '@vue/apollo-composable'
+import AppAvatar from '@/components/AppAvatar.vue'
 
 const props = defineProps({
   id: {

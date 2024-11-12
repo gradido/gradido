@@ -3,12 +3,14 @@
     <BRow class="align-items-center">
       <BCol cols="3" lg="2" md="2">
         <!-- <b-avatar :text="avatarText" variant="success" size="3em"></b-avatar> -->
-        <avatar
-          :username="username.username"
+        <app-avatar
+          class="vue3-avatar"
+          :name="username.username"
           :initials="username.initials"
           :color="'#fff'"
           :size="42"
-        ></avatar>
+          :border="false"
+        />
       </BCol>
       <BCol>
         <div>
@@ -46,7 +48,6 @@
   </div>
 </template>
 <script>
-import Avatar from 'vue-avatar'
 import CollapseIcon from '../TransactionRows/CollapseIcon'
 import Name from '../TransactionRows/Name'
 import DecayInformation from '../DecayInformations/DecayInformation'
@@ -54,7 +55,6 @@ import DecayInformation from '../DecayInformations/DecayInformation'
 export default {
   name: 'TransactionReceive',
   components: {
-    Avatar,
     CollapseIcon,
     Name,
     DecayInformation,
