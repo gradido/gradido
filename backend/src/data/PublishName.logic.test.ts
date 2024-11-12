@@ -9,17 +9,15 @@ describe('test publish name logic', () => {
     it('alias or initials with alias set', () => {
       const user = new User()
       user.alias = 'alias'
-      user.humhubPublishName = PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS
       const logic = new PublishNameLogic(user)
-      expect(logic.getUsername()).toBe(user.alias)
+      expect(logic.getUsername(PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS)).toBe(user.alias)
     })
     it('alias or initials with empty alias', () => {
       const user = new User()
       user.firstName = 'John'
       user.lastName = 'Smith'
-      user.humhubPublishName = PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS
       const logic = new PublishNameLogic(user)
-      expect(logic.getUsername()).toBe('JoSm')
+      expect(logic.getUsername(PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS)).toBe('JoSm')
     })
   })
 })

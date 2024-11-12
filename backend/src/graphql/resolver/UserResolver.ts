@@ -60,6 +60,7 @@ import {
   EVENT_ADMIN_USER_DELETE,
   EVENT_ADMIN_USER_UNDELETE,
 } from '@/event/Events'
+import { PublishNameType } from '@/graphql/enum/PublishNameType'
 import { isValidPassword } from '@/password/EncryptorUtils'
 import { encryptPassword, verifyPassword } from '@/password/PasswordEncryptor'
 import { Context, getUser, getClientTimezoneOffset } from '@/server/context'
@@ -171,7 +172,7 @@ export class UserResolver {
     if (CONFIG.HUMHUB_ACTIVE && dbUser.humhubAllowed) {
       const publishNameLogic = new PublishNameLogic(dbUser)
       humhubUserPromise = HumHubClient.getInstance()?.userByUsernameAsync(
-        publishNameLogic.getUsername(),
+        publishNameLogic.getUsername(dbUser.humhubPublishName as PublishNameType),
       )
     }
 
@@ -741,7 +742,7 @@ export class UserResolver {
       throw new LogError('cannot create humhub client')
     }
     const userNameLogic = new PublishNameLogic(dbUser)
-    const username = userNameLogic.getUsername()
+    const username = userNameLogic.getUsername(dbUser.humhubPublishName as PublishNameType)
     let humhubUser = await humhubClient.userByUsername(username)
     if (!humhubUser) {
       humhubUser = await humhubClient.userByEmail(dbUser.emailContact.email)
