@@ -387,15 +387,15 @@
     },
     "publish-name": {
       "alias-or-initials": "Username or initials (Default)",
-      "alias-or-initials-tooltip": "username if exists or Initials of firstname and lastname",
-      "first": "firstname",
-      "first-tooltip": "the firstname only",
-      "first-initial": "firstname and initial",
-      "first-initial-tooltip": "firstname plus initial of lastname",
+      "alias-or-initials-tooltip": "username, if available, or the initials of the first name and last name, the first two letters in each case",
+      "first": "Firstname",
+      "first-tooltip": "the first name only",
+      "first-initial": "First name and initial",
+      "first-initial-tooltip": "first name plus the first two initial letters of the last name",
       "initials": "Initials",
-      "initials-tooltip": "Initials of firstname and lastname independent if username exists",
-      "name-full": "firstname and lastname",
-      "name-full-tooltip": "fullname: firstname plus lastname"
+      "initials-tooltip": "Initials of first name and last name, i.e. the first two letters of each regardless of the existence of the user name",
+      "name-full": "first name and last name",
+      "name-full-tooltip": "full name: first name plus last name"
     },
     "showAmountGDD": "Your GDD amount is visible.",
     "showAmountGDT": "Your GDT amount is visible.",
