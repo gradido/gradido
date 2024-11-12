@@ -5,7 +5,6 @@
   "author": "Moriz Wahl",
   "version": "2.3.1",
   "license": "Apache-2.0",
-  "private": false,
   "scripts": {
     "start": "node run/server.js",
     "dev": "vite",
@@ -103,5 +102,6 @@
     "strip-ansi": "6.0.1",
     "string-width": "4.2.2",
     "wrap-ansi": "7.0.0"
-  }
+  },
+  "packageManager": "yarn@4.5.1"
 }
