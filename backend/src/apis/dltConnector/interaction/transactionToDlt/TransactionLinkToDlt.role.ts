@@ -14,10 +14,10 @@ import { AbstractTransactionToDltRole } from './AbstractTransactionToDlt.role'
 export class TransactionLinkToDltRole extends AbstractTransactionToDltRole<TransactionLink> {
   async initWithLast(): Promise<this> {
     this.self = await this.createQueryForPendingItems(
-      TransactionLink.createQueryBuilder().leftJoinAndSelect('transactionLink.user', 'user'),
+      TransactionLink.createQueryBuilder().leftJoinAndSelect('TransactionLink.user', 'user'),
       'TransactionLink.id = dltTransaction.transactionLinkId',
       // eslint-disable-next-line camelcase
-      { TransactionLinkId_created_at: 'ASC', User_id: 'ASC' },
+      { TransactionLink_createdAt: 'ASC', User_id: 'ASC' },
     )
     return this
   }

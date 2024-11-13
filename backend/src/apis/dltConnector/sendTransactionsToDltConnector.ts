@@ -1,5 +1,5 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { EntityPropertyNotFoundError } from '@dbTools/typeorm'
+import { TypeORMError } from '@dbTools/typeorm'
 // eslint-disable-next-line import/named, n/no-extraneous-import
 import { FetchError } from 'node-fetch'
 
@@ -43,9 +43,6 @@ export async function sendTransactionsToDltConnector(): Promise<void> {
         1000,
       )
     } catch (e) {
-      if (e instanceof EntityPropertyNotFoundError) {
-        throw new LogError(e.message, e.stack)
-      }
       // couldn't connect to dlt-connector? We wait
       if (e instanceof FetchError) {
         logger.error(`error connecting dlt-connector, wait 5 seconds before retry: ${String(e)}`)
@@ -54,7 +51,12 @@ export async function sendTransactionsToDltConnector(): Promise<void> {
           5000,
         )
       } else {
-        logger.error(`Error while sending to DLT-connector or writing messageId`, e)
+        if (e instanceof TypeORMError) {
+          // seems to be a error in code, so let better stop here
+          throw new LogError(e.message, e.stack)
+        } else {
+          logger.error(`Error while sending to DLT-connector or writing messageId`, e)
+        }
       }
     }
   }

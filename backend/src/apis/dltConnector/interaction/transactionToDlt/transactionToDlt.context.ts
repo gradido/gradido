@@ -1,3 +1,4 @@
+import { EntityPropertyNotFoundError, QueryFailedError, TypeORMError } from '@dbTools/typeorm'
 import { Transaction } from '@entity/Transaction'
 import { TransactionLink } from '@entity/TransactionLink'
 import { User } from '@entity/User'
@@ -33,7 +34,6 @@ export async function transactionToDlt(dltConnector: DltConnectorClient): Promis
     })
     return results[0]
   }
-
   while (true) {
     const pendingTransactionRole = await findNextPendingTransaction()
     const pendingTransaction = pendingTransactionRole.getEntity()
@@ -54,9 +54,6 @@ export async function transactionToDlt(dltConnector: DltConnectorClient): Promis
         error = 'skipped'
       }
     } catch (e) {
-      if (e instanceof FetchError) {
-        throw e
-      }
       error = e instanceof Error ? e.message : String(e)
     }
 
