@@ -7,13 +7,19 @@ import IconsResolve from 'unplugin-icons/resolver'
 import { BootstrapVueNextResolver } from 'bootstrap-vue-next'
 import EnvironmentPlugin from 'vite-plugin-environment'
 
+import dotenv from 'dotenv'
+
+dotenv.config() // load env vars from .env
+
+const CONFIG = require('./src/config')
+
 const path = require('path')
 
 export default defineConfig({
   base: '/admin/',
   server: {
-    host: '0.0.0.0',
-    port: 8080,
+    host: CONFIG.ADMIN_MODULE_HOST, // '0.0.0.0',
+    port: CONFIG.ADMIN_MODULE_PORT, // 8080,
   },
   resolve: {
     alias: {
