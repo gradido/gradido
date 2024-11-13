@@ -14,6 +14,7 @@ import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 
 import { DltConnectorClient } from './DltConnectorClient'
+import { TransactionDraft } from './model/TransactionDraft'
 
 let con: Connection
 
@@ -113,7 +114,9 @@ describe('transmitTransaction', () => {
     const localTransaction = new DbTransaction()
     localTransaction.typeId = 12
     try {
-      await DltConnectorClient.getInstance()?.transmitTransaction(localTransaction)
+      await DltConnectorClient.getInstance()?.transmitTransaction(
+        new TransactionDraft(localTransaction),
+      )
     } catch (e) {
       expect(e).toMatchObject(
         new LogError('invalid transaction type id: ' + localTransaction.typeId.toString()),

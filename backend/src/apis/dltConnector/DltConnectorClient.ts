@@ -1,6 +1,3 @@
-import { Transaction as DbTransaction } from '@entity/Transaction'
-import { TransactionLink } from '@entity/TransactionLink'
-import { User } from '@entity/User'
 import { gql, GraphQLClient } from 'graphql-request'
 // eslint-disable-next-line import/named, n/no-extraneous-import
 import { FetchError } from 'node-fetch'
@@ -9,6 +6,7 @@ import { CONFIG } from '@/config'
 import { TransactionTypeId } from '@/graphql/enum/TransactionTypeId'
 import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
+// eslint-disable-next-line import/named, n/no-extraneous-import
 
 import { TransactionDraft } from './model/TransactionDraft'
 import { TransactionResult } from './model/TransactionResult'
@@ -100,17 +98,6 @@ export class DltConnectorClient {
     return DltConnectorClient.instance
   }
 
-  private getTransactionParams(
-    input: DbTransaction | User | TransactionLink,
-  ): TransactionDraft | UserAccountDraft {
-    if (input instanceof DbTransaction || input instanceof TransactionLink) {
-      return new TransactionDraft(input)
-    } else if (input instanceof User) {
-      return new UserAccountDraft(input)
-    }
-    throw new LogError('transaction should be either Transaction or User Entity')
-  }
-
   private handleTransactionResult(result: TransactionResult) {
     if (result.error) {
       throw new Error(result.error.message)
@@ -141,17 +128,16 @@ export class DltConnectorClient {
    * and update dltTransactionId of transaction in db with iota message id
    */
   public async transmitTransaction(
-    transaction: DbTransaction | User | TransactionLink,
+    input: TransactionDraft | UserAccountDraft,
   ): Promise<TransactionResult | undefined> {
     // we don't need the receive transactions, there contain basically the same data as the send transactions
     if (
-      transaction instanceof DbTransaction &&
-      (transaction.typeId as TransactionTypeId) === TransactionTypeId.RECEIVE
+      input instanceof TransactionDraft &&
+      TransactionTypeId[input.type as keyof typeof TransactionTypeId] === TransactionTypeId.RECEIVE
     ) {
       return
     }
 
-    const input = this.getTransactionParams(transaction)
     try {
       logger.debug('transmit transaction or user to dlt connector', input)
       if (input instanceof TransactionDraft) {

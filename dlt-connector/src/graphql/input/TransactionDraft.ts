@@ -5,6 +5,7 @@ import { InputType, Field } from 'type-graphql'
 import { InputTransactionType } from '@enum/InputTransactionType'
 import { isValidDateString, isValidNumberString } from '@validator/DateString'
 
+import { IdentifierSeed } from './IdentifierSeed'
 import { UserIdentifier } from './UserIdentifier'
 
 @InputType()
@@ -17,7 +18,7 @@ export class TransactionDraft {
   @Field(() => UserIdentifier)
   @IsObject()
   @ValidateNested()
-  linkedUser: UserIdentifier
+  linkedUser: UserIdentifier | IdentifierSeed
 
   @Field(() => String)
   @isValidNumberString()

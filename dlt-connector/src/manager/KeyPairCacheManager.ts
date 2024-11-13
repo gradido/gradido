@@ -1,5 +1,6 @@
 import { KeyPairEd25519 } from 'gradido-blockchain-js'
 
+import { IdentifierSeed } from '@/graphql/input/IdentifierSeed'
 import { UserIdentifier } from '@/graphql/input/UserIdentifier'
 import { LogError } from '@/server/LogError'
 
@@ -44,11 +45,14 @@ export class KeyPairCacheManager {
     return this.homeCommunityUUID
   }
 
-  public findKeyPair(input: UserIdentifier | string): KeyPairEd25519 | undefined {
+  public findKeyPair(input: UserIdentifier | string | IdentifierSeed): KeyPairEd25519 | undefined {
     return this.cache.get(this.getKey(input))
   }
 
-  public addKeyPair(input: UserIdentifier | string, keyPair: KeyPairEd25519): void {
+  public addKeyPair(
+    input: UserIdentifier | string | IdentifierSeed,
+    keyPair: KeyPairEd25519,
+  ): void {
     const key = this.getKey(input)
     if (this.cache.has(key)) {
       throw new LogError('key already exist, cannot add', key)
@@ -56,9 +60,11 @@ export class KeyPairCacheManager {
     this.cache.set(key, keyPair)
   }
 
-  protected getKey(input: UserIdentifier | string): string {
+  protected getKey(input: UserIdentifier | string | IdentifierSeed): string {
     if (input instanceof UserIdentifier) {
       return input.uuid
+    } else if (input instanceof IdentifierSeed) {
+      return input.seed
     } else {
       return input
     }

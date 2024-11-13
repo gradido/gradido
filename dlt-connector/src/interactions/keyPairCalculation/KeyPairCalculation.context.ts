@@ -1,12 +1,13 @@
 import { KeyPairEd25519 } from 'gradido-blockchain-js'
 
+import { IdentifierSeed } from '@/graphql/input/IdentifierSeed'
 import { UserIdentifier } from '@/graphql/input/UserIdentifier'
 import { KeyPairCacheManager } from '@/manager/KeyPairCacheManager'
 
-import { AbstractRemoteKeyPairRole } from './AbstractRemoteKeyPair.role'
 import { AccountKeyPairRole } from './AccountKeyPair.role'
 import { ForeignCommunityKeyPairRole } from './ForeignCommunityKeyPair.role'
 import { HomeCommunityKeyPairRole } from './HomeCommunityKeyPair.role'
+import { LinkedTransactionKeyPairRole } from './LinkedTransactionKeyPair.role'
 import { RemoteAccountKeyPairRole } from './RemoteAccountKeyPair.role'
 import { UserKeyPairRole } from './UserKeyPair.role'
 
@@ -14,43 +15,49 @@ import { UserKeyPairRole } from './UserKeyPair.role'
  * @DCI-Context
  * Context for calculating key pair for signing transactions
  */
-export async function KeyPairCalculation(input: UserIdentifier | string): Promise<KeyPairEd25519> {
+export async function KeyPairCalculation(
+  input: UserIdentifier | string | IdentifierSeed,
+): Promise<KeyPairEd25519> {
   const cache = KeyPairCacheManager.getInstance()
-  const keyPair = cache.findKeyPair(input)
+
+  // Try cache lookup first
+  let keyPair = cache.findKeyPair(input)
   if (keyPair) {
     return keyPair
   }
-  let communityUUID: string
-  if (input instanceof UserIdentifier) {
-    communityUUID = input.communityUuid
-  } else {
-    communityUUID = input
-  }
 
-  if (cache.getHomeCommunityUUID() !== communityUUID) {
-    // it isn't home community so we can only retrieve public keys
-    let role: AbstractRemoteKeyPairRole
-    if (input instanceof UserIdentifier) {
-      role = new RemoteAccountKeyPairRole(input)
-    } else {
-      role = new ForeignCommunityKeyPairRole(input)
+  const retrieveKeyPair = async (
+    input: UserIdentifier | string | IdentifierSeed,
+  ): Promise<KeyPairEd25519> => {
+    if (input instanceof IdentifierSeed) {
+      return new LinkedTransactionKeyPairRole(input.seed).generateKeyPair()
     }
-    const keyPair = await role.retrieveKeyPair()
-    cache.addKeyPair(input, keyPair)
-    return keyPair
+
+    const communityUUID = input instanceof UserIdentifier ? input.communityUuid : input
+
+    // If input does not belong to the home community, handle as remote key pair
+    if (cache.getHomeCommunityUUID() !== communityUUID) {
+      const role =
+        input instanceof UserIdentifier
+          ? new RemoteAccountKeyPairRole(input)
+          : new ForeignCommunityKeyPairRole(input)
+      return await role.retrieveKeyPair()
+    }
+
+    let communityKeyPair = cache.findKeyPair(communityUUID)
+    if (!communityKeyPair) {
+      communityKeyPair = new HomeCommunityKeyPairRole().generateKeyPair()
+      cache.addKeyPair(communityUUID, communityKeyPair)
+    }
+    if (input instanceof UserIdentifier) {
+      const userKeyPair = new UserKeyPairRole(input, communityKeyPair).generateKeyPair()
+      const accountNr = input.accountNr ?? 1
+      return new AccountKeyPairRole(accountNr, userKeyPair).generateKeyPair()
+    }
+    return communityKeyPair
   }
 
-  let communityKeyPair = cache.findKeyPair(communityUUID)
-  if (!communityKeyPair) {
-    communityKeyPair = new HomeCommunityKeyPairRole().generateKeyPair()
-    cache.addKeyPair(communityUUID, communityKeyPair)
-  }
-  if (input instanceof UserIdentifier) {
-    const userKeyPair = new UserKeyPairRole(input, communityKeyPair).generateKeyPair()
-    const accountNr = input.accountNr ?? 1
-    const accountKeyPair = new AccountKeyPairRole(accountNr, userKeyPair).generateKeyPair()
-    cache.addKeyPair(input, accountKeyPair)
-    return accountKeyPair
-  }
-  return communityKeyPair
+  keyPair = await retrieveKeyPair(input)
+  cache.addKeyPair(input, keyPair)
+  return keyPair
 }
