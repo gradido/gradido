@@ -1,4 +1,3 @@
-import { TransactionLinkDraft } from '@input/TransactionLinkDraft'
 import { Resolver, Arg, Mutation } from 'type-graphql'
 
 import { SendToIotaContext } from '@/interactions/sendToIota/SendToIota.context'
@@ -16,23 +15,6 @@ export class TransactionResolver {
   ): Promise<TransactionResult> {
     try {
       return await SendToIotaContext(transactionDraft)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      if (error instanceof TransactionError) {
-        return new TransactionResult(error)
-      } else {
-        throw error
-      }
-    }
-  }
-
-  @Mutation(() => TransactionResult)
-  async deferredTransfer(
-    @Arg('data')
-    transactionLinkDraft: TransactionLinkDraft,
-  ): Promise<TransactionResult> {
-    try {
-      return await SendToIotaContext(transactionLinkDraft)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       if (error instanceof TransactionError) {

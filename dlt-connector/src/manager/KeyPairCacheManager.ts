@@ -45,14 +45,11 @@ export class KeyPairCacheManager {
     return this.homeCommunityUUID
   }
 
-  public findKeyPair(input: UserIdentifier | string | IdentifierSeed): KeyPairEd25519 | undefined {
+  public findKeyPair(input: UserIdentifier | string): KeyPairEd25519 | undefined {
     return this.cache.get(this.getKey(input))
   }
 
-  public addKeyPair(
-    input: UserIdentifier | string | IdentifierSeed,
-    keyPair: KeyPairEd25519,
-  ): void {
+  public addKeyPair(input: UserIdentifier | string, keyPair: KeyPairEd25519): void {
     const key = this.getKey(input)
     if (this.cache.has(key)) {
       throw new LogError('key already exist, cannot add', key)
@@ -60,13 +57,17 @@ export class KeyPairCacheManager {
     this.cache.set(key, keyPair)
   }
 
-  protected getKey(input: UserIdentifier | string | IdentifierSeed): string {
+  protected getKey(input: UserIdentifier | string): string {
     if (input instanceof UserIdentifier) {
-      return input.uuid
-    } else if (input instanceof IdentifierSeed) {
-      return input.seed
-    } else {
+      if (input.communityUser) {
+        return input.communityUser.uuid
+      } else if (input.seed) {
+        return input.seed.seed
+      }
+      throw new LogError('unhandled branch')
+    } else if (typeof input === 'string') {
       return input
     }
+    throw new LogError('unhandled input type')
   }
 }

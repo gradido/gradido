@@ -13,7 +13,11 @@ export class RemoteAccountKeyPairRole extends AbstractRemoteKeyPairRole {
   }
 
   public async retrieveKeyPair(): Promise<KeyPairEd25519> {
-    const nameHash = uuid4ToHash(this.user.uuid)
+    if (!this.user.communityUser) {
+      throw new LogError('missing community user')
+    }
+
+    const nameHash = uuid4ToHash(this.user.communityUser.uuid)
     const confirmedTransactions = await getTransactions(
       0,
       30,

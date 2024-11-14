@@ -1,9 +1,11 @@
 import { DltTransaction } from '@entity/DltTransaction'
 import { TransactionLink } from '@entity/TransactionLink'
 
+import { TransactionType } from '@dltConnector/enum/TransactionType'
+import { CommunityUser } from '@dltConnector/model/CommunityUser'
+import { IdentifierSeed } from '@dltConnector/model/IdentifierSeed'
 import { TransactionDraft } from '@dltConnector/model/TransactionDraft'
-import { TransactionLinkDraft } from '@dltConnector/model/TransactionLinkDraft'
-import { UserAccountDraft } from '@dltConnector/model/UserAccountDraft'
+import { UserIdentifier } from '@dltConnector/model/UserIdentifier'
 
 import { LogError } from '@/server/LogError'
 
@@ -19,7 +21,7 @@ export class TransactionLinkToDltRole extends AbstractTransactionToDltRole<Trans
       'TransactionLink.id = dltTransaction.transactionLinkId',
       // eslint-disable-next-line camelcase
       { TransactionLink_createdAt: 'ASC', User_id: 'ASC' },
-    )
+    ).getOne()
     return this
   }
 
@@ -30,11 +32,19 @@ export class TransactionLinkToDltRole extends AbstractTransactionToDltRole<Trans
     return this.self.createdAt.getTime()
   }
 
-  public convertToGraphqlInput(): TransactionDraft | UserAccountDraft | TransactionLinkDraft {
+  public convertToGraphqlInput(): TransactionDraft {
     if (!this.self) {
       throw new LogError('try to create dlt entry for empty transaction link')
     }
-    return new TransactionLinkDraft(this.self)
+    const draft = new TransactionDraft()
+    draft.amount = this.self.amount.abs().toString()
+    const user = this.self.user
+    draft.user = new UserIdentifier(user.communityUuid, new CommunityUser(user.gradidoID))
+    draft.linkedUser = new UserIdentifier(user.communityUuid, new IdentifierSeed(this.self.code))
+    draft.createdAt = this.self.createdAt.toISOString()
+    draft.timeoutDate = this.self.validUntil.toISOString()
+    draft.type = TransactionType.GRADIDO_DEFERRED_TRANSFER
+    return draft
   }
 
   protected setJoinId(dltTransaction: DltTransaction): void {

@@ -1,6 +1,9 @@
 import { GradidoTransactionBuilder, TransferAmount } from 'gradido-blockchain-js'
 
+import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
 import { TransactionDraft } from '@/graphql/input/TransactionDraft'
+import { UserIdentifier } from '@/graphql/input/UserIdentifier'
+import { TransactionError } from '@/graphql/model/TransactionError'
 import { uuid4ToHash } from '@/utils/typeConverter'
 
 import { KeyPairCalculation } from '../keyPairCalculation/KeyPairCalculation.context'
@@ -8,8 +11,16 @@ import { KeyPairCalculation } from '../keyPairCalculation/KeyPairCalculation.con
 import { AbstractTransactionRole } from './AbstractTransaction.role'
 
 export class TransferTransactionRole extends AbstractTransactionRole {
-  constructor(protected self: TransactionDraft) {
+  private linkedUser: UserIdentifier
+  constructor(private self: TransactionDraft) {
     super()
+    if (!this.self.linkedUser) {
+      throw new TransactionError(
+        TransactionErrorType.MISSING_PARAMETER,
+        'transfer: linked user missing',
+      )
+    }
+    this.linkedUser = this.self.linkedUser
   }
 
   getSenderCommunityUuid(): string {
@@ -17,13 +28,16 @@ export class TransferTransactionRole extends AbstractTransactionRole {
   }
 
   getRecipientCommunityUuid(): string {
-    return this.self.linkedUser.communityUuid
+    return this.linkedUser.communityUuid
   }
 
   public async getGradidoTransactionBuilder(): Promise<GradidoTransactionBuilder> {
+    if (!this.self.amount) {
+      throw new TransactionError(TransactionErrorType.MISSING_PARAMETER, 'transfer: amount missing')
+    }
     const builder = new GradidoTransactionBuilder()
     const senderKeyPair = await KeyPairCalculation(this.self.user)
-    const recipientKeyPair = await KeyPairCalculation(this.self.linkedUser)
+    const recipientKeyPair = await KeyPairCalculation(this.linkedUser)
     builder
       .setCreatedAt(new Date(this.self.createdAt))
       .setMemo('dummy memo for transfer')
@@ -32,7 +46,7 @@ export class TransferTransactionRole extends AbstractTransactionRole {
         recipientKeyPair.getPublicKey(),
       )
     const senderCommunity = this.self.user.communityUuid
-    const recipientCommunity = this.self.linkedUser.communityUuid
+    const recipientCommunity = this.linkedUser.communityUuid
     if (senderCommunity !== recipientCommunity) {
       // we have a cross group transaction
       builder

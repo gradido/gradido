@@ -4,6 +4,8 @@ import { isValidDateString, isValidNumberString } from '@validator/DateString'
 import { IsEnum, IsObject, ValidateNested } from 'class-validator'
 import { InputType, Field } from 'type-graphql'
 
+import { AccountType } from '@/graphql/enum/AccountType'
+
 import { UserIdentifier } from './UserIdentifier'
 
 @InputType()
@@ -13,14 +15,16 @@ export class TransactionDraft {
   @ValidateNested()
   user: UserIdentifier
 
-  @Field(() => UserIdentifier)
+  // not used for simply register address
+  @Field(() => UserIdentifier, { nullable: true })
   @IsObject()
   @ValidateNested()
-  linkedUser: UserIdentifier
+  linkedUser?: UserIdentifier
 
-  @Field(() => String)
+  // not used for register address
+  @Field(() => String, { nullable: true })
   @isValidNumberString()
-  amount: string
+  amount?: string
 
   @Field(() => InputTransactionType)
   @IsEnum(InputTransactionType)
@@ -34,4 +38,14 @@ export class TransactionDraft {
   @Field(() => String, { nullable: true })
   @isValidDateString()
   targetDate?: string
+
+  // only for deferred transaction
+  @Field(() => String, { nullable: true })
+  @isValidDateString()
+  timeoutDate?: string
+
+  // only for register address
+  @Field(() => AccountType, { nullable: true })
+  @IsEnum(AccountType)
+  accountType?: AccountType
 }

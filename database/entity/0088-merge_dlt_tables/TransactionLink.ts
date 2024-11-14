@@ -7,10 +7,12 @@ import {
   DeleteDateColumn,
   OneToOne,
   JoinColumn,
+  OneToMany,
 } from 'typeorm'
 import { DecimalTransformer } from '../../src/typeorm/DecimalTransformer'
 import { DltTransaction } from '../DltTransaction'
 import { User } from '../User'
+import { Transaction } from '../Transaction'
 
 @Entity('transaction_links')
 export class TransactionLink extends BaseEntity {
@@ -76,4 +78,8 @@ export class TransactionLink extends BaseEntity {
   @OneToOne(() => User, (user) => user.transactionLink)
   @JoinColumn({ name: 'userId' })
   user: User
+
+  @OneToMany(() => Transaction, (transaction) => transaction.transactionLink)
+  @JoinColumn({ referencedColumnName: 'transactionLinkId' })
+  transactions: Transaction[]
 }

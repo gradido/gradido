@@ -1,55 +1,15 @@
 import { gql, GraphQLClient } from 'graphql-request'
-// eslint-disable-next-line import/named, n/no-extraneous-import
-import { FetchError } from 'node-fetch'
 
 import { CONFIG } from '@/config'
-import { TransactionTypeId } from '@/graphql/enum/TransactionTypeId'
-import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 // eslint-disable-next-line import/named, n/no-extraneous-import
 
 import { TransactionDraft } from './model/TransactionDraft'
-import { TransactionLinkDraft } from './model/TransactionLinkDraft'
 import { TransactionResult } from './model/TransactionResult'
-import { UserAccountDraft } from './model/UserAccountDraft'
 
 const sendTransaction = gql`
   mutation ($input: TransactionDraft!) {
     sendTransaction(data: $input) {
-      error {
-        message
-        name
-      }
-      succeed
-      recipe {
-        createdAt
-        type
-        messageIdHex
-      }
-    }
-  }
-`
-
-const deferredTransfer = gql`
-  mutation ($input: TransactionLinkDraft!) {
-    deferredTransfer(data: $input) {
-      error {
-        message
-        name
-      }
-      succeed
-      recipe {
-        createdAt
-        type
-        messageIdHex
-      }
-    }
-  }
-`
-
-const registerAddress = gql`
-  mutation ($input: UserAccountDraft!) {
-    registerAddress(data: $input) {
       error {
         message
         name
@@ -116,75 +76,17 @@ export class DltConnectorClient {
     return DltConnectorClient.instance
   }
 
-  private handleTransactionResult(result: TransactionResult) {
-    if (result.error) {
-      throw new Error(result.error.message)
-    }
-    return result
-  }
-
-  private async sendTransaction(input: TransactionDraft) {
+  /**
+   * transmit transaction via dlt-connector to iota
+   * and update dltTransactionId of transaction in db with iota message id
+   */
+  public async sendTransaction(input: TransactionDraft): Promise<TransactionResult | undefined> {
+    logger.debug('transmit transaction or user to dlt connector', input)
     const {
       data: { sendTransaction: result },
     } = await this.client.rawRequest<{ sendTransaction: TransactionResult }>(sendTransaction, {
       input,
     })
-    return this.handleTransactionResult(result)
-  }
-
-  private async deferredTransfer(input: TransactionLinkDraft) {
-    const {
-      data: { deferredTransfer: result },
-    } = await this.client.rawRequest<{ deferredTransfer: TransactionResult }>(deferredTransfer, {
-      input,
-    })
-    return this.handleTransactionResult(result)
-  }
-
-  private async registerAddress(input: UserAccountDraft) {
-    const {
-      data: { registerAddress: result },
-    } = await this.client.rawRequest<{ registerAddress: TransactionResult }>(registerAddress, {
-      input,
-    })
-    return this.handleTransactionResult(result)
-  }
-
-  /**
-   * transmit transaction via dlt-connector to iota
-   * and update dltTransactionId of transaction in db with iota message id
-   */
-  public async transmitTransaction(
-    input: TransactionDraft | UserAccountDraft | TransactionLinkDraft,
-  ): Promise<TransactionResult | undefined> {
-    // we don't need the receive transactions, there contain basically the same data as the send transactions
-    if (
-      input instanceof TransactionDraft &&
-      TransactionTypeId[input.type as keyof typeof TransactionTypeId] === TransactionTypeId.RECEIVE
-    ) {
-      return
-    }
-
-    try {
-      logger.debug('transmit transaction or user to dlt connector', input)
-      if (input instanceof TransactionDraft) {
-        return await this.sendTransaction(input)
-      } else if (input instanceof UserAccountDraft) {
-        return await this.registerAddress(input)
-      } else if (input instanceof TransactionLinkDraft) {
-        return await this.deferredTransfer(input)
-      } else {
-        throw new LogError('unhandled branch reached')
-      }
-    } catch (e) {
-      logger.error(e)
-      if (e instanceof FetchError) {
-        throw e
-      } else if (e instanceof Error) {
-        throw new LogError(`from dlt-connector: ${e.message}`)
-      } else {
-        throw new LogError('Exception sending transfer transaction to dlt-connector', e)
-      }
-    }
+    return result
   }
 }

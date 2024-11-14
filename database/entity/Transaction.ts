@@ -1,1 +1,1 @@
-export { Transaction } from './0072-add_communityuuid_to_transactions_table/Transaction'
+export { Transaction } from './0088-merge_dlt_tables/Transaction'

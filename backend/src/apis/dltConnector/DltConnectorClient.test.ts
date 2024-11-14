@@ -109,21 +109,6 @@ describe('transmitTransaction', () => {
     expect(result).toBe(false)
   })
   */
-
-  it('invalid transaction type', async () => {
-    const localTransaction = new DbTransaction()
-    localTransaction.typeId = 12
-    try {
-      await DltConnectorClient.getInstance()?.transmitTransaction(
-        new TransactionDraft(localTransaction),
-      )
-    } catch (e) {
-      expect(e).toMatchObject(
-        new LogError('invalid transaction type id: ' + localTransaction.typeId.toString()),
-      )
-    }
-  })
-
   /*
   it.skip('should transmit the transaction and update the dltTransactionId in the database', async () => {
     await transaction.save()

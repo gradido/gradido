@@ -12,8 +12,6 @@ import { InputTransactionType } from '@/graphql/enum/InputTransactionType'
 import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
 import { CommunityDraft } from '@/graphql/input/CommunityDraft'
 import { TransactionDraft } from '@/graphql/input/TransactionDraft'
-import { TransactionLinkDraft } from '@/graphql/input/TransactionLinkDraft'
-import { UserAccountDraft } from '@/graphql/input/UserAccountDraft'
 import { TransactionError } from '@/graphql/model/TransactionError'
 import { TransactionRecipe } from '@/graphql/model/TransactionRecipe'
 import { TransactionResult } from '@/graphql/model/TransactionResult'
@@ -34,7 +32,7 @@ import { TransferTransactionRole } from './TransferTransaction.role'
  * send every transaction only once to iota!
  */
 export async function SendToIotaContext(
-  input: TransactionDraft | UserAccountDraft | CommunityDraft | TransactionLinkDraft,
+  input: TransactionDraft | CommunityDraft,
 ): Promise<TransactionResult> {
   const validate = (transaction: GradidoTransaction): void => {
     try {
@@ -76,17 +74,25 @@ export async function SendToIotaContext(
 
   let role: AbstractTransactionRole
   if (input instanceof TransactionDraft) {
-    if (input.type === InputTransactionType.CREATION) {
-      role = new CreationTransactionRole(input)
-    } else if (input.type === InputTransactionType.SEND) {
-      role = new TransferTransactionRole(input)
-    } else {
-      throw new LogError('not supported transaction type')
+    switch (input.type) {
+      case InputTransactionType.GRADIDO_CREATION:
+        role = new CreationTransactionRole(input)
+        break
+      case InputTransactionType.GRADIDO_TRANSFER:
+        role = new TransferTransactionRole(input)
+        break
+      case InputTransactionType.REGISTER_ADDRESS:
+        role = new RegisterAddressTransactionRole(input)
+        break
+      case InputTransactionType.GRADIDO_DEFERRED_TRANSFER:
+        role = new DeferredTransferTransactionRole(input)
+        break
+      default:
+        throw new TransactionError(
+          TransactionErrorType.NOT_IMPLEMENTED_YET,
+          'not supported transaction type: ' + input.type,
+        )
     }
-  } else if (input instanceof TransactionLinkDraft) {
-    role = new DeferredTransferTransactionRole(input)
-  } else if (input instanceof UserAccountDraft) {
-    role = new RegisterAddressTransactionRole(input)
   } else if (input instanceof CommunityDraft) {
     role = new CommunityRootTransactionRole(input)
   } else {

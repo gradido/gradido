@@ -15,9 +15,7 @@ import { UserKeyPairRole } from './UserKeyPair.role'
  * @DCI-Context
  * Context for calculating key pair for signing transactions
  */
-export async function KeyPairCalculation(
-  input: UserIdentifier | string | IdentifierSeed,
-): Promise<KeyPairEd25519> {
+export async function KeyPairCalculation(input: UserIdentifier | string): Promise<KeyPairEd25519> {
   const cache = KeyPairCacheManager.getInstance()
 
   // Try cache lookup first
@@ -26,11 +24,9 @@ export async function KeyPairCalculation(
     return keyPair
   }
 
-  const retrieveKeyPair = async (
-    input: UserIdentifier | string | IdentifierSeed,
-  ): Promise<KeyPairEd25519> => {
-    if (input instanceof IdentifierSeed) {
-      return new LinkedTransactionKeyPairRole(input.seed).generateKeyPair()
+  const retrieveKeyPair = async (input: UserIdentifier | string): Promise<KeyPairEd25519> => {
+    if (input instanceof UserIdentifier && input.seed) {
+      return new LinkedTransactionKeyPairRole(input.seed.seed).generateKeyPair()
     }
 
     const communityUUID = input instanceof UserIdentifier ? input.communityUuid : input
@@ -51,7 +47,7 @@ export async function KeyPairCalculation(
     }
     if (input instanceof UserIdentifier) {
       const userKeyPair = new UserKeyPairRole(input, communityKeyPair).generateKeyPair()
-      const accountNr = input.accountNr ?? 1
+      const accountNr = input.communityUser?.accountNr ?? 1
       return new AccountKeyPairRole(accountNr, userKeyPair).generateKeyPair()
     }
     return communityKeyPair

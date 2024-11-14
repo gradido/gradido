@@ -1,39 +1,21 @@
 // https://www.npmjs.com/package/@apollo/protobufjs
-import { Transaction } from '@entity/Transaction'
-
-import { TransactionTypeId } from '@/graphql/enum/TransactionTypeId'
-import { LogError } from '@/server/LogError'
+import { AccountType } from '@dltConnector/enum/AccountType'
+import { TransactionType } from '@dltConnector/enum/TransactionType'
 
 import { UserIdentifier } from './UserIdentifier'
 
 export class TransactionDraft {
   user: UserIdentifier
-  linkedUser: UserIdentifier
-  amount: string
-  type: string
+  // not used for simply register address
+  linkedUser?: UserIdentifier
+  // not used for register address
+  amount?: string
+  type: TransactionType
   createdAt: string
-  // only for creation transactions
+  // only for creation transaction
   targetDate?: string
-
-  constructor(transaction: Transaction) {
-    this.amount = transaction.amount.abs().toString()
-
-    if (
-      !transaction.linkedUserGradidoID ||
-      !transaction.linkedUserCommunityUuid ||
-      !transaction.userCommunityUuid
-    ) {
-      throw new LogError(
-        `missing necessary field in transaction: ${transaction.id}, need linkedUserGradidoID, linkedUserCommunityUuid and userCommunityUuid`,
-      )
-    }
-    this.user = new UserIdentifier(transaction.userGradidoID, transaction.userCommunityUuid)
-    this.linkedUser = new UserIdentifier(
-      transaction.linkedUserGradidoID,
-      transaction.linkedUserCommunityUuid,
-    )
-    this.createdAt = transaction.balanceDate.toISOString()
-    this.targetDate = transaction.creationDate?.toISOString()
-    this.type = TransactionTypeId[transaction.typeId]
-  }
+  // only for deferred transaction
+  timeoutDate?: string
+  // only for register address
+  accountType?: AccountType
 }

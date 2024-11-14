@@ -1,11 +1,17 @@
-export class UserIdentifier {
-  uuid: string
-  communityUuid: string
-  accountNr?: number
+import { CommunityUser } from './CommunityUser'
+import { IdentifierSeed } from './IdentifierSeed'
 
-  constructor(uuid: string, communityUuid: string, accountNr?: number) {
-    this.uuid = uuid
+export class UserIdentifier {
+  communityUuid: string
+  communityUser?: CommunityUser
+  seed?: IdentifierSeed // used for deferred transfers
+
+  constructor(communityUuid: string, input: CommunityUser | IdentifierSeed) {
+    if (input instanceof CommunityUser) {
+      this.communityUser = input
+    } else if (input instanceof IdentifierSeed) {
+      this.seed = input
+    }
     this.communityUuid = communityUuid
-    this.accountNr = accountNr
   }
 }

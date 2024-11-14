@@ -1,15 +1,14 @@
 /* eslint-disable camelcase */
 import { AddressType_NONE } from 'gradido-blockchain-js'
-import { Arg, Mutation, Query, Resolver } from 'type-graphql'
+import { Arg, Query, Resolver } from 'type-graphql'
 
 import { getAddressType } from '@/client/GradidoNode'
 import { KeyPairCalculation } from '@/interactions/keyPairCalculation/KeyPairCalculation.context'
-import { SendToIotaContext } from '@/interactions/sendToIota/SendToIota.context'
 import { logger } from '@/logging/logger'
+import { KeyPairCacheManager } from '@/manager/KeyPairCacheManager'
 import { uuid4ToHash } from '@/utils/typeConverter'
 
 import { TransactionErrorType } from '../enum/TransactionErrorType'
-import { UserAccountDraft } from '../input/UserAccountDraft'
 import { UserIdentifier } from '../input/UserIdentifier'
 import { TransactionError } from '../model/TransactionError'
 import { TransactionResult } from '../model/TransactionResult'
@@ -25,6 +24,7 @@ export class AccountResolver {
         new TransactionError(TransactionErrorType.NOT_FOUND, 'cannot get user public key'),
       )
     }
+
     // ask gradido node server for account type, if type !== NONE account exist
     const addressType = await getAddressType(
       publicKey.data(),
@@ -32,22 +32,5 @@ export class AccountResolver {
     )
     logger.info('isAccountExist', userIdentifier)
     return addressType !== AddressType_NONE
-  }
-
-  @Mutation(() => TransactionResult)
-  async registerAddress(
-    @Arg('data')
-    userAccountDraft: UserAccountDraft,
-  ): Promise<TransactionResult> {
-    try {
-      return await SendToIotaContext(userAccountDraft)
-    } catch (err) {
-      if (err instanceof TransactionError) {
-        return new TransactionResult(err)
-      } else {
-        logger.error('error in register address: ', err)
-        throw err
-      }
-    }
   }
 }

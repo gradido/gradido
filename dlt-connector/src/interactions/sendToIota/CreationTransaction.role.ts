@@ -1,7 +1,8 @@
 import { GradidoTransactionBuilder, TransferAmount } from 'gradido-blockchain-js'
 
+import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
 import { TransactionDraft } from '@/graphql/input/TransactionDraft'
-import { LogError } from '@/server/LogError'
+import { TransactionError } from '@/graphql/model/TransactionError'
 
 import { KeyPairCalculation } from '../keyPairCalculation/KeyPairCalculation.context'
 
@@ -17,12 +18,27 @@ export class CreationTransactionRole extends AbstractTransactionRole {
   }
 
   getRecipientCommunityUuid(): string {
-    throw new LogError('cannot be used as cross group transaction')
+    throw new TransactionError(
+      TransactionErrorType.LOGIC_ERROR,
+      'creation: cannot be used as cross group transaction',
+    )
   }
 
   public async getGradidoTransactionBuilder(): Promise<GradidoTransactionBuilder> {
     if (!this.self.targetDate) {
-      throw new LogError('target date missing for creation transaction')
+      throw new TransactionError(
+        TransactionErrorType.MISSING_PARAMETER,
+        'creation: target date missing',
+      )
+    }
+    if (!this.self.linkedUser) {
+      throw new TransactionError(
+        TransactionErrorType.MISSING_PARAMETER,
+        'creation: linked user missing',
+      )
+    }
+    if (!this.self.amount) {
+      throw new TransactionError(TransactionErrorType.MISSING_PARAMETER, 'creation: amount missing')
     }
     const builder = new GradidoTransactionBuilder()
     const recipientKeyPair = await KeyPairCalculation(this.self.user)

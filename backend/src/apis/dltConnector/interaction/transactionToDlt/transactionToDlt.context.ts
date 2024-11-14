@@ -1,12 +1,9 @@
-import { EntityPropertyNotFoundError, QueryFailedError, TypeORMError } from '@dbTools/typeorm'
 import { Transaction } from '@entity/Transaction'
 import { TransactionLink } from '@entity/TransactionLink'
 import { User } from '@entity/User'
-// eslint-disable-next-line import/named, n/no-extraneous-import
-import { FetchError } from 'node-fetch'
 
 import { DltConnectorClient } from '@/apis/dltConnector/DltConnectorClient'
-import { TransactionResult } from '@/apis/dltConnector/model/TransactionResult'
+import { backendLogger as logger } from '@/server/logger'
 
 import { AbstractTransactionToDltRole } from './AbstractTransactionToDlt.role'
 import { TransactionLinkToDltRole } from './TransactionLinkToDlt.role'
@@ -40,21 +37,17 @@ export async function transactionToDlt(dltConnector: DltConnectorClient): Promis
     if (!pendingTransaction) {
       break
     }
-    let result: TransactionResult | undefined
     let messageId = ''
     let error: string | null = null
 
-    try {
-      result = await dltConnector.transmitTransaction(
-        pendingTransactionRole.convertToGraphqlInput(),
-      )
-      if (result?.succeed && result.recipe) {
-        messageId = result.recipe.messageIdHex
-      } else {
-        error = 'skipped'
-      }
-    } catch (e) {
-      error = e instanceof Error ? e.message : String(e)
+    const result = await dltConnector.sendTransaction(
+      pendingTransactionRole.convertToGraphqlInput(),
+    )
+    if (result?.succeed && result.recipe) {
+      messageId = result.recipe.messageIdHex
+    } else if (result?.error) {
+      error = result.error.message
+      logger.error('error from dlt-connector', result.error)
     }
 
     await pendingTransactionRole.saveTransactionResult(messageId, error)

@@ -3,8 +3,6 @@ import { ObjectLiteral, OrderByCondition, SelectQueryBuilder } from '@dbTools/ty
 import { DltTransaction } from '@entity/DltTransaction'
 
 import { TransactionDraft } from '@dltConnector/model/TransactionDraft'
-import { TransactionLinkDraft } from '@dltConnector/model/TransactionLinkDraft'
-import { UserAccountDraft } from '@dltConnector/model/UserAccountDraft'
 
 import { backendLogger as logger } from '@/server/logger'
 
@@ -14,10 +12,7 @@ export abstract class AbstractTransactionToDltRole<T extends ObjectLiteral> {
   // public interface
   public abstract initWithLast(): Promise<this>
   public abstract getTimestamp(): number
-  public abstract convertToGraphqlInput():
-    | TransactionDraft
-    | UserAccountDraft
-    | TransactionLinkDraft
+  public abstract convertToGraphqlInput(): TransactionDraft
 
   public getEntity(): T | null {
     return this.self
@@ -48,7 +43,7 @@ export abstract class AbstractTransactionToDltRole<T extends ObjectLiteral> {
     qb: SelectQueryBuilder<T>,
     joinCondition: string,
     orderBy: OrderByCondition,
-  ): Promise<T | null> {
+  ): SelectQueryBuilder<T> {
     return qb
       .leftJoin(DltTransaction, 'dltTransaction', joinCondition)
       .where('dltTransaction.user_id IS NULL')
@@ -56,7 +51,6 @@ export abstract class AbstractTransactionToDltRole<T extends ObjectLiteral> {
       .andWhere('dltTransaction.transaction_link_Id IS NULL')
       .orderBy(orderBy)
       .limit(1)
-      .getOne()
   }
 
   protected createDltTransactionEntry(messageId: string, error: string | null): DltTransaction {
