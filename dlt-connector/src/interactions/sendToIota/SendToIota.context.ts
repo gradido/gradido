@@ -12,6 +12,7 @@ import { InputTransactionType } from '@/graphql/enum/InputTransactionType'
 import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
 import { CommunityDraft } from '@/graphql/input/CommunityDraft'
 import { TransactionDraft } from '@/graphql/input/TransactionDraft'
+import { TransactionLinkDraft } from '@/graphql/input/TransactionLinkDraft'
 import { UserAccountDraft } from '@/graphql/input/UserAccountDraft'
 import { TransactionError } from '@/graphql/model/TransactionError'
 import { TransactionRecipe } from '@/graphql/model/TransactionRecipe'
@@ -23,6 +24,7 @@ import { uuid4ToHash } from '@/utils/typeConverter'
 import { AbstractTransactionRole } from './AbstractTransaction.role'
 import { CommunityRootTransactionRole } from './CommunityRootTransaction.role'
 import { CreationTransactionRole } from './CreationTransaction.role'
+import { DeferredTransferTransactionRole } from './DeferredTransferTransaction.role'
 import { RegisterAddressTransactionRole } from './RegisterAddressTransaction.role'
 import { TransferTransactionRole } from './TransferTransaction.role'
 
@@ -32,7 +34,7 @@ import { TransferTransactionRole } from './TransferTransaction.role'
  * send every transaction only once to iota!
  */
 export async function SendToIotaContext(
-  input: TransactionDraft | UserAccountDraft | CommunityDraft,
+  input: TransactionDraft | UserAccountDraft | CommunityDraft | TransactionLinkDraft,
 ): Promise<TransactionResult> {
   const validate = (transaction: GradidoTransaction): void => {
     try {
@@ -81,6 +83,8 @@ export async function SendToIotaContext(
     } else {
       throw new LogError('not supported transaction type')
     }
+  } else if (input instanceof TransactionLinkDraft) {
+    role = new DeferredTransferTransactionRole(input)
   } else if (input instanceof UserAccountDraft) {
     role = new RegisterAddressTransactionRole(input)
   } else if (input instanceof CommunityDraft) {

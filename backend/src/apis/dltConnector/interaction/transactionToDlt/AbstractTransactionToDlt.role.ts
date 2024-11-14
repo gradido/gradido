@@ -3,6 +3,7 @@ import { ObjectLiteral, OrderByCondition, SelectQueryBuilder } from '@dbTools/ty
 import { DltTransaction } from '@entity/DltTransaction'
 
 import { TransactionDraft } from '@dltConnector/model/TransactionDraft'
+import { TransactionLinkDraft } from '@dltConnector/model/TransactionLinkDraft'
 import { UserAccountDraft } from '@dltConnector/model/UserAccountDraft'
 
 import { backendLogger as logger } from '@/server/logger'
@@ -13,7 +14,11 @@ export abstract class AbstractTransactionToDltRole<T extends ObjectLiteral> {
   // public interface
   public abstract initWithLast(): Promise<this>
   public abstract getTimestamp(): number
-  public abstract convertToGraphqlInput(): TransactionDraft | UserAccountDraft
+  public abstract convertToGraphqlInput():
+    | TransactionDraft
+    | UserAccountDraft
+    | TransactionLinkDraft
+
   public getEntity(): T | null {
     return this.self
   }

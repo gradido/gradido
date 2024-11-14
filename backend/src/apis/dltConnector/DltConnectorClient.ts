@@ -9,12 +9,30 @@ import { backendLogger as logger } from '@/server/logger'
 // eslint-disable-next-line import/named, n/no-extraneous-import
 
 import { TransactionDraft } from './model/TransactionDraft'
+import { TransactionLinkDraft } from './model/TransactionLinkDraft'
 import { TransactionResult } from './model/TransactionResult'
 import { UserAccountDraft } from './model/UserAccountDraft'
 
 const sendTransaction = gql`
   mutation ($input: TransactionDraft!) {
     sendTransaction(data: $input) {
+      error {
+        message
+        name
+      }
+      succeed
+      recipe {
+        createdAt
+        type
+        messageIdHex
+      }
+    }
+  }
+`
+
+const deferredTransfer = gql`
+  mutation ($input: TransactionLinkDraft!) {
+    deferredTransfer(data: $input) {
       error {
         message
         name
@@ -114,6 +132,15 @@ export class DltConnectorClient {
     return this.handleTransactionResult(result)
   }
 
+  private async deferredTransfer(input: TransactionLinkDraft) {
+    const {
+      data: { deferredTransfer: result },
+    } = await this.client.rawRequest<{ deferredTransfer: TransactionResult }>(deferredTransfer, {
+      input,
+    })
+    return this.handleTransactionResult(result)
+  }
+
   private async registerAddress(input: UserAccountDraft) {
     const {
       data: { registerAddress: result },
@@ -128,7 +155,7 @@ export class DltConnectorClient {
    * and update dltTransactionId of transaction in db with iota message id
    */
   public async transmitTransaction(
-    input: TransactionDraft | UserAccountDraft,
+    input: TransactionDraft | UserAccountDraft | TransactionLinkDraft,
   ): Promise<TransactionResult | undefined> {
     // we don't need the receive transactions, there contain basically the same data as the send transactions
     if (
@@ -144,6 +171,8 @@ export class DltConnectorClient {
         return await this.sendTransaction(input)
       } else if (input instanceof UserAccountDraft) {
         return await this.registerAddress(input)
+      } else if (input instanceof TransactionLinkDraft) {
+        return await this.deferredTransfer(input)
       } else {
         throw new LogError('unhandled branch reached')
       }

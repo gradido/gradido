@@ -1,37 +1,30 @@
 // https://www.npmjs.com/package/@apollo/protobufjs
-import { InputTransactionType } from '@enum/InputTransactionType'
 import { isValidDateString, isValidNumberString } from '@validator/DateString'
-import { IsEnum, IsObject, ValidateNested } from 'class-validator'
+import { IsObject, IsString, ValidateNested } from 'class-validator'
 import { InputType, Field } from 'type-graphql'
 
 import { UserIdentifier } from './UserIdentifier'
 
 @InputType()
-export class TransactionDraft {
+export class TransactionLinkDraft {
   @Field(() => UserIdentifier)
   @IsObject()
   @ValidateNested()
   user: UserIdentifier
 
-  @Field(() => UserIdentifier)
-  @IsObject()
-  @ValidateNested()
-  linkedUser: UserIdentifier
+  @Field(() => String)
+  @IsString()
+  seed: string
 
   @Field(() => String)
   @isValidNumberString()
   amount: string
 
-  @Field(() => InputTransactionType)
-  @IsEnum(InputTransactionType)
-  type: InputTransactionType
-
   @Field(() => String)
   @isValidDateString()
   createdAt: string
 
-  // only for creation transactions
-  @Field(() => String, { nullable: true })
+  @Field(() => String)
   @isValidDateString()
-  targetDate?: string
+  timeoutDate: string
 }

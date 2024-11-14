@@ -1,8 +1,6 @@
 import { GradidoTransactionBuilder, TransferAmount } from 'gradido-blockchain-js'
 
-import { IdentifierSeed } from '@/graphql/input/IdentifierSeed'
 import { TransactionDraft } from '@/graphql/input/TransactionDraft'
-import { LogError } from '@/server/LogError'
 import { uuid4ToHash } from '@/utils/typeConverter'
 
 import { KeyPairCalculation } from '../keyPairCalculation/KeyPairCalculation.context'
@@ -19,17 +17,10 @@ export class TransferTransactionRole extends AbstractTransactionRole {
   }
 
   getRecipientCommunityUuid(): string {
-    if (this.self.linkedUser instanceof IdentifierSeed) {
-      throw new LogError('invalid recipient, it is a IdentifierSeed instead of a UserIdentifier')
-    }
     return this.self.linkedUser.communityUuid
   }
 
   public async getGradidoTransactionBuilder(): Promise<GradidoTransactionBuilder> {
-    if (this.self.linkedUser instanceof IdentifierSeed) {
-      throw new LogError('invalid recipient, it is a IdentifierSeed instead of a UserIdentifier')
-    }
-
     const builder = new GradidoTransactionBuilder()
     const senderKeyPair = await KeyPairCalculation(this.self.user)
     const recipientKeyPair = await KeyPairCalculation(this.self.linkedUser)

@@ -1,6 +1,5 @@
 import { GradidoTransactionBuilder, TransferAmount } from 'gradido-blockchain-js'
 
-import { IdentifierSeed } from '@/graphql/input/IdentifierSeed'
 import { TransactionDraft } from '@/graphql/input/TransactionDraft'
 import { LogError } from '@/server/LogError'
 
@@ -22,9 +21,6 @@ export class CreationTransactionRole extends AbstractTransactionRole {
   }
 
   public async getGradidoTransactionBuilder(): Promise<GradidoTransactionBuilder> {
-    if (this.self.linkedUser instanceof IdentifierSeed) {
-      throw new LogError('invalid recipient, it is a IdentifierSeed instead of a UserIdentifier')
-    }
     if (!this.self.targetDate) {
       throw new LogError('target date missing for creation transaction')
     }

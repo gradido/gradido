@@ -2,6 +2,7 @@ import { DltTransaction } from '@entity/DltTransaction'
 import { TransactionLink } from '@entity/TransactionLink'
 
 import { TransactionDraft } from '@dltConnector/model/TransactionDraft'
+import { TransactionLinkDraft } from '@dltConnector/model/TransactionLinkDraft'
 import { UserAccountDraft } from '@dltConnector/model/UserAccountDraft'
 
 import { LogError } from '@/server/LogError'
@@ -29,11 +30,11 @@ export class TransactionLinkToDltRole extends AbstractTransactionToDltRole<Trans
     return this.self.createdAt.getTime()
   }
 
-  public convertToGraphqlInput(): TransactionDraft | UserAccountDraft {
+  public convertToGraphqlInput(): TransactionDraft | UserAccountDraft | TransactionLinkDraft {
     if (!this.self) {
       throw new LogError('try to create dlt entry for empty transaction link')
     }
-    return new TransactionDraft(this.self)
+    return new TransactionLinkDraft(this.self)
   }
 
   protected setJoinId(dltTransaction: DltTransaction): void {

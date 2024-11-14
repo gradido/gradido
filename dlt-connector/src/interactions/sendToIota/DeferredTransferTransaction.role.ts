@@ -1,27 +1,30 @@
 import { GradidoTransactionBuilder, GradidoTransfer, TransferAmount } from 'gradido-blockchain-js'
 
-import { UserIdentifier } from '@/graphql/input/UserIdentifier'
+import { IdentifierSeed } from '@/graphql/input/IdentifierSeed'
+import { TransactionLinkDraft } from '@/graphql/input/TransactionLinkDraft'
 import { LogError } from '@/server/LogError'
 
 import { KeyPairCalculation } from '../keyPairCalculation/KeyPairCalculation.context'
 
-import { TransferTransactionRole } from './TransferTransaction.role'
+import { AbstractTransactionRole } from './AbstractTransaction.role'
 
-export class DeferredTransferTransactionRole extends TransferTransactionRole {
+export class DeferredTransferTransactionRole extends AbstractTransactionRole {
+  constructor(protected self: TransactionLinkDraft) {
+    super()
+  }
+
+  getSenderCommunityUuid(): string {
+    return this.self.user.communityUuid
+  }
+
   getRecipientCommunityUuid(): string {
     throw new LogError('cannot be used as cross group transaction')
   }
 
   public async getGradidoTransactionBuilder(): Promise<GradidoTransactionBuilder> {
-    if (this.self.linkedUser instanceof UserIdentifier) {
-      throw new LogError('invalid recipient, it is a UserIdentifier instead of a IdentifierSeed')
-    }
-    if (!this.self.timeoutDate) {
-      throw new LogError('timeoutDate date missing for deferred transfer transaction')
-    }
     const builder = new GradidoTransactionBuilder()
     const senderKeyPair = await KeyPairCalculation(this.self.user)
-    const recipientKeyPair = await KeyPairCalculation(this.self.linkedUser)
+    const recipientKeyPair = await KeyPairCalculation(new IdentifierSeed(this.self.seed))
 
     builder
       .setCreatedAt(new Date(this.self.createdAt))
