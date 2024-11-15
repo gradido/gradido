@@ -2,6 +2,7 @@ import { DltTransaction } from '@entity/DltTransaction'
 import { User } from '@entity/User'
 
 import { AccountType } from '@dltConnector/enum/AccountType'
+import { DltTransactionType } from '@dltConnector/enum/DltTransactionType'
 import { TransactionType } from '@dltConnector/enum/TransactionType'
 import { CommunityUser } from '@dltConnector/model/CommunityUser'
 import { TransactionDraft } from '@dltConnector/model/TransactionDraft'
@@ -44,10 +45,11 @@ export class UserToDltRole extends AbstractTransactionToDltRole<User> {
     return draft
   }
 
-  protected setJoinId(dltTransaction: DltTransaction): void {
+  protected setJoinIdAndType(dltTransaction: DltTransaction): void {
     if (!this.self) {
       throw new LogError('try to create dlt entry for empty user')
     }
     dltTransaction.userId = this.self.id
+    dltTransaction.typeId = DltTransactionType.REGISTER_ADDRESS
   }
 }

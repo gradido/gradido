@@ -22,7 +22,7 @@ export abstract class AbstractTransactionToDltRole<T extends ObjectLiteral> {
     const dltTransaction = DltTransaction.create()
     dltTransaction.messageId = messageId
     dltTransaction.error = error
-    this.setJoinId(dltTransaction)
+    this.setJoinIdAndType(dltTransaction)
     await DltTransaction.save(dltTransaction)
     if (dltTransaction.error) {
       logger.error(
@@ -36,7 +36,7 @@ export abstract class AbstractTransactionToDltRole<T extends ObjectLiteral> {
   }
 
   // intern
-  protected abstract setJoinId(dltTransaction: DltTransaction): void
+  protected abstract setJoinIdAndType(dltTransaction: DltTransaction): void
 
   // helper
   protected createQueryForPendingItems(
@@ -50,7 +50,6 @@ export abstract class AbstractTransactionToDltRole<T extends ObjectLiteral> {
       .andWhere('dltTransaction.transaction_id IS NULL')
       .andWhere('dltTransaction.transaction_link_Id IS NULL')
       .orderBy(orderBy)
-      .limit(1)
   }
 
   protected createDltTransactionEntry(messageId: string, error: string | null): DltTransaction {

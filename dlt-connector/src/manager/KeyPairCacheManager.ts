@@ -1,7 +1,7 @@
 import { KeyPairEd25519 } from 'gradido-blockchain-js'
 
-import { IdentifierSeed } from '@/graphql/input/IdentifierSeed'
 import { UserIdentifier } from '@/graphql/input/UserIdentifier'
+import { logger } from '@/logging/logger'
 import { LogError } from '@/server/LogError'
 
 // Source: https://refactoring.guru/design-patterns/singleton/typescript/example
@@ -52,7 +52,8 @@ export class KeyPairCacheManager {
   public addKeyPair(input: UserIdentifier | string, keyPair: KeyPairEd25519): void {
     const key = this.getKey(input)
     if (this.cache.has(key)) {
-      throw new LogError('key already exist, cannot add', key)
+      logger.warn('key already exist, cannot add', key)
+      return
     }
     this.cache.set(key, keyPair)
   }

@@ -7,7 +7,9 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
     ALTER TABLE \`dlt_transactions\`
     CHANGE \`transaction_id\` \`transaction_id\` INT(10) UNSIGNED NULL DEFAULT NULL,
     ADD \`user_id\` INT UNSIGNED NULL DEFAULT NULL AFTER \`transaction_id\`,
-    ADD \`transaction_link_id\` INT UNSIGNED NULL DEFAULT NULL AFTER \`user_id\`;
+    ADD \`transaction_link_id\` INT UNSIGNED NULL DEFAULT NULL AFTER \`user_id\`
+    ADD \`type_id\` INT UNSIGNED NOT NULL AFTER \`transaction_link_id\`
+    ;
   `)
 }
 
@@ -28,6 +30,8 @@ export async function downgrade(queryFn: (query: string, values?: any[]) => Prom
     ALTER TABLE \`dlt_transactions\`
     CHANGE \`transaction_id\` \`transaction_id\` INT(10) UNSIGNED NOT NULL,
     DROP COLUMN \`user_id\`,
-    DROP COLUMN \`transaction_link_id\`;
+    DROP COLUMN \`transaction_link_id\`
+    DROP COLUMN \`type_id\`
+    ;
   `)
 }

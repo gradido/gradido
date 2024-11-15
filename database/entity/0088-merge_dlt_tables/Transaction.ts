@@ -171,6 +171,6 @@ export class Transaction extends BaseEntity {
   previousTransaction?: Transaction | null
 
   @ManyToOne(() => TransactionLink, (transactionLink) => transactionLink.transactions)
-  @JoinColumn({ name: 'transactionLinkId' })
+  @JoinColumn({ name: 'transaction_link_id' })
   transactionLink?: TransactionLink | null
 }

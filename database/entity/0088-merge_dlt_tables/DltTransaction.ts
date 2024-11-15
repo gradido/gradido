@@ -17,6 +17,9 @@ export class DltTransaction extends BaseEntity {
   @Column({ name: 'transaction_link_id', type: 'int', unsigned: true, nullable: true })
   transactionLinkId?: number | null
 
+  @Column({ name: 'type_id', unsigned: true, nullable: false })
+  typeId: number
+
   @Column({
     name: 'message_id',
     length: 64,

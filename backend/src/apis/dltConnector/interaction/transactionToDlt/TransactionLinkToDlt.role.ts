@@ -1,6 +1,7 @@
 import { DltTransaction } from '@entity/DltTransaction'
 import { TransactionLink } from '@entity/TransactionLink'
 
+import { DltTransactionType } from '@dltConnector/enum/DltTransactionType'
 import { TransactionType } from '@dltConnector/enum/TransactionType'
 import { CommunityUser } from '@dltConnector/model/CommunityUser'
 import { IdentifierSeed } from '@dltConnector/model/IdentifierSeed'
@@ -47,10 +48,11 @@ export class TransactionLinkToDltRole extends AbstractTransactionToDltRole<Trans
     return draft
   }
 
-  protected setJoinId(dltTransaction: DltTransaction): void {
+  protected setJoinIdAndType(dltTransaction: DltTransaction): void {
     if (!this.self) {
       throw new LogError('try to create dlt entry for empty transaction link')
     }
     dltTransaction.transactionLinkId = this.self.id
+    dltTransaction.typeId = DltTransactionType.DEFERRED_TRANSFER
   }
 }

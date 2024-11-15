@@ -1,6 +1,7 @@
 import { DltTransaction } from '@entity/DltTransaction'
 import { Transaction } from '@entity/Transaction'
 
+import { DltTransactionType } from '@dltConnector/enum/DltTransactionType'
 import { TransactionType } from '@dltConnector/enum/TransactionType'
 import { CommunityUser } from '@dltConnector/model/CommunityUser'
 import { IdentifierSeed } from '@dltConnector/model/IdentifierSeed'
@@ -16,6 +17,7 @@ import { AbstractTransactionToDltRole } from './AbstractTransactionToDlt.role'
  * send transfer and creations transactions to dlt connector as GradidoTransfer and GradidoCreation
  */
 export class TransactionToDltRole extends AbstractTransactionToDltRole<Transaction> {
+  private type: DltTransactionType
   async initWithLast(): Promise<this> {
     this.self = await this.createQueryForPendingItems(
       Transaction.createQueryBuilder().leftJoinAndSelect(
@@ -27,7 +29,7 @@ export class TransactionToDltRole extends AbstractTransactionToDltRole<Transacti
       { balance_date: 'ASC', Transaction_id: 'ASC' },
     )
       // we don't need the receive transactions, there contain basically the same data as the send transactions
-      .andWhere('transaction.typeId NOT :typeId', { typeId: TransactionTypeId.RECEIVE })
+      .andWhere('Transaction.type_id <> :typeId', { typeId: TransactionTypeId.RECEIVE })
       .getOne()
     return this
   }
@@ -55,6 +57,19 @@ export class TransactionToDltRole extends AbstractTransactionToDltRole<Transacti
         `missing necessary field in transaction: ${this.self.id}, need linkedUserGradidoID, linkedUserCommunityUuid and userCommunityUuid`,
       )
     }
+    switch (this.self.typeId as TransactionTypeId) {
+      case TransactionTypeId.CREATION:
+        draft.type = TransactionType.GRADIDO_CREATION
+        this.type = DltTransactionType.CREATION
+        break
+      case TransactionTypeId.SEND:
+      case TransactionTypeId.RECEIVE:
+        draft.type = TransactionType.GRADIDO_TRANSFER
+        this.type = DltTransactionType.TRANSFER
+        break
+      default:
+        throw new LogError('wrong role for type', this.self.typeId as TransactionTypeId)
+    }
     // it is a redeem of a transaction link?
     const transactionLink = this.self.transactionLink
     if (transactionLink) {
@@ -62,6 +77,7 @@ export class TransactionToDltRole extends AbstractTransactionToDltRole<Transacti
         this.self.userCommunityUuid,
         new IdentifierSeed(transactionLink.code),
       )
+      this.type = DltTransactionType.REDEEM_DEFERRED_TRANSFER
     } else {
       draft.user = new UserIdentifier(
         this.self.userCommunityUuid,
@@ -74,24 +90,14 @@ export class TransactionToDltRole extends AbstractTransactionToDltRole<Transacti
     )
     draft.createdAt = this.self.balanceDate.toISOString()
     draft.targetDate = this.self.creationDate?.toISOString()
-    switch (this.self.typeId as TransactionTypeId) {
-      case TransactionTypeId.CREATION:
-        draft.type = TransactionType.GRADIDO_CREATION
-        break
-      case TransactionTypeId.SEND:
-      case TransactionTypeId.RECEIVE:
-        draft.type = TransactionType.GRADIDO_TRANSFER
-        break
-      default:
-        throw new LogError('wrong role for type', this.self.typeId as TransactionTypeId)
-    }
     return draft
   }
 
-  protected setJoinId(dltTransaction: DltTransaction): void {
+  protected setJoinIdAndType(dltTransaction: DltTransaction): void {
     if (!this.self) {
       throw new LogError('try to create dlt entry for empty transaction')
     }
     dltTransaction.transactionId = this.self.id
+    dltTransaction.typeId = this.type
   }
 }

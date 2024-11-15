@@ -80,6 +80,6 @@ export class TransactionLink extends BaseEntity {
   user: User
 
   @OneToMany(() => Transaction, (transaction) => transaction.transactionLink)
-  @JoinColumn({ referencedColumnName: 'transactionLinkId' })
+  @JoinColumn({ referencedColumnName: 'transaction_link_id' })
   transactions: Transaction[]
 }

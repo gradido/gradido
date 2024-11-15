@@ -6,6 +6,7 @@ import { DltConnectorClient } from '@/apis/dltConnector/DltConnectorClient'
 import { backendLogger as logger } from '@/server/logger'
 
 import { AbstractTransactionToDltRole } from './AbstractTransactionToDlt.role'
+import { TransactionLinkDeleteToDltRole } from './TransactionLinkDeleteToDlt.role'
 import { TransactionLinkToDltRole } from './TransactionLinkToDlt.role'
 import { TransactionToDltRole } from './TransactionToDlt.role'
 import { UserToDltRole } from './UserToDlt.role'
@@ -23,6 +24,7 @@ export async function transactionToDlt(dltConnector: DltConnectorClient): Promis
       new TransactionToDltRole().initWithLast(),
       new UserToDltRole().initWithLast(),
       new TransactionLinkToDltRole().initWithLast(),
+      new TransactionLinkDeleteToDltRole().initWithLast(),
     ])
 
     // sort array to get oldest at first place
