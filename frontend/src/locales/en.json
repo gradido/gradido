@@ -32,8 +32,8 @@
   "back": "Back",
   "circles": {
     "headline": "Together we support each other - mindful in circle culture.",
-    "text": "We can communicate and collaborate freely in protected spaces without having to rely on social media. Click on the button to open the collaboration platform in a new browser window.",
-    "button": "Gradido circles start..."
+    "text": "Click on the button to open the cooperation platform in a new browser window.",
+    "button": "Start Circles..."
   },
   "community": {
     "admins": "Administrators",
@@ -248,7 +248,8 @@
   },
   "h": "h",
   "language": "Language",
-  "link-load": "Load the last link | Load the last {n} links |  Load more {n} links",
+  "link-load": "Load the last link | Load the last {n} links",
+  "link-load-more": "Load more {n} links",
   "login": "Sign in",
   "math": {
     "asterisk": "*",
@@ -278,7 +279,7 @@
     "overview": "Overview",
     "send": "Send",
     "settings": "Settings",
-    "circles": "Circle",
+    "circles": "Circles",
     "support": "Support",
     "transactions": "Transactions",
     "usersearch": "Geographical User Search"
@@ -292,7 +293,7 @@
     "send": "Send Gradidos",
     "settings": "Settings",
     "transactions": "Your transactions",
-    "circles": "Gradido Circles (Beta)",
+    "circles": "Gradido Circles",
     "usersearch": "Geographical User Search"
   },
   "qrCode": "QR Code",
@@ -312,10 +313,20 @@
       "disabled": "Data not exported to GMS",
       "enabled": "Data exported to GMS",
       "location": {
-        "label": "pinpoint location",
-        "button": "click me!"
+        "button": "Click me!",
+        "label": "Pinpoint location",
+        "saveLocation": "Save Location",
+        "updateSuccess": "Location successfully saved"
       },
       "location-format": "Show position on map:",
+      "map": {
+        "communityCoords": "Your Community Location: Lat {lat}, Lng {lng}",
+        "communityLocationLabel": "Your Community-Location",
+        "headline": "Geographic Location-Capturing of the User",
+        "userCoords": "Your Location: Lat {lat}, Lng {lng}",
+        "userLocationLabel": "Your Location",
+        "search": "Search for a location"
+      },
       "naming-format": "Show Name:",
       "publish-location": {
         "exact": "exact position",
@@ -376,15 +387,15 @@
     },
     "publish-name": {
       "alias-or-initials": "Username or initials (Default)",
-      "alias-or-initials-tooltip": "username if exists or Initials of firstname and lastname",
-      "first": "firstname",
-      "first-tooltip": "the firstname only",
-      "first-initial": "firstname and initial",
-      "first-initial-tooltip": "firstname plus initial of lastname",
+      "alias-or-initials-tooltip": "username, if available, or the initials of the first name and last name, the first two letters in each case",
+      "first": "Firstname",
+      "first-tooltip": "the first name only",
+      "first-initial": "First name and initial",
+      "first-initial-tooltip": "first name plus the first two initial letters of the last name",
       "initials": "Initials",
-      "initials-tooltip": "Initials of firstname and lastname independent if username exists",
-      "name-full": "firstname and lastname",
-      "name-full-tooltip": "fullname: firstname plus lastname"
+      "initials-tooltip": "Initials of first name and last name, i.e. the first two letters of each regardless of the existence of the user name",
+      "name-full": "first name and last name",
+      "name-full-tooltip": "full name: first name plus last name"
     },
     "showAmountGDD": "Your GDD amount is visible.",
     "showAmountGDT": "Your GDT amount is visible.",

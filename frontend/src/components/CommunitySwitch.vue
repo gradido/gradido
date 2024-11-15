@@ -90,5 +90,4 @@ function setDefaultCommunity() {
 }
 
 onMounted(setDefaultCommunity)
-onUpdated(setDefaultCommunity)
 </script>

@@ -189,8 +189,10 @@ a:hover,
 
 // .btn-primary pim {
 .btn-primary {
-  background-color: #5a7b02;
-  border-color: #5e72e4;
+  background-color: #5a7b02 !important;
+  border-color: #5e72e4 !important;
+  border-radius: 25px !important;
+  color: #fff !important;
 }
 
 .gradido-font-large {
@@ -344,4 +346,25 @@ a:hover,
 
 .gdd-toaster-body {
   color: rgb(255 255 255);
+}
+
+.gdd-toaster-body-darken {
+  color: #2c2c2c;
+}
+
+input.rounded-input {
+  border-radius: 17px;
+}
+
+.fs-7 {
+  font-size: 14px !important;
+}
+
+.vue3-avatar.container {
+  padding: 0 !important;
+}
+
+.avatar {
+  font-family: inherit !important;
+  font-weight: normal !important;
 }

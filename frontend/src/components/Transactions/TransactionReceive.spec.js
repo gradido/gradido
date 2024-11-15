@@ -1,16 +1,16 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import TransactionReceive from './TransactionReceive'
-import Avatar from 'vue-avatar'
 import CollapseIcon from '../TransactionRows/CollapseIcon'
 import Name from '../TransactionRows/Name'
 import DecayInformation from '../DecayInformations/DecayInformation'
 import { BCol, BCollapse, BRow } from 'bootstrap-vue-next'
+import AppAvatar from '@/components/AppAvatar.vue'
 
 // Mock child components
-vi.mock('vue-avatar', () => ({
+vi.mock('app-avatar', () => ({
   default: {
-    name: 'Avatar',
+    name: 'AppAvatar',
     render: () => null,
   },
 }))
@@ -86,7 +86,7 @@ describe('TransactionReceive', () => {
           $d: (date, format) => `Mocked ${format} date for ${date}`,
         },
         components: {
-          Avatar,
+          AppAvatar,
           CollapseIcon,
           Name,
           DecayInformation,

@@ -203,5 +203,3 @@ volumes:
   federation_database_build:
   database_node_modules:
   database_build:
-  dlt-database_node_modules:
-  dlt-database_build:

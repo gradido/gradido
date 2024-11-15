@@ -79,7 +79,7 @@ const update = async (option) => {
   try {
     const variables = {}
     variables[props.attrName] = option.value
-    await updateUserData({ variables })
+    await updateUserData({ ...variables })
     toastSuccess(props.successMessage)
     selectedOption.value = option.value
     store.commit(props.attrName, option.value)

@@ -22,6 +22,11 @@
     }
   },
   "back": "Retour",
+  "circles": {
+    "headline": "Ensemble, nous nous soutenons mutuellement - attentifs à la culture du cercle.",
+    "text": "En cliquant sur le bouton, tu ouvres la plateforme de coopération dans une nouvelle fenêtre de navigation.",
+    "button": "Démarrer les Cercles..."
+  },
   "community": {
     "admins": "Administrateurs",
     "choose-another-community": "Choisissez une autre communauté",
@@ -221,7 +226,8 @@
   },
   "h": "h",
   "language": "Langage",
-  "link-load": "Enregistrer le dernier lien | Enregistrer les derniers {n} liens |  Enregistrer plus de {n} liens",
+  "link-load": "Enregistrer le dernier lien | Enregistrer les derniers {n} liens",
+  "link-load-more": "Enregistrer plus de {n} liens",
   "login": "Connexion",
   "math": {
     "asterisk": "*",
@@ -251,6 +257,7 @@
     "overview": "Aperçu",
     "send": "Envoyer",
     "settings": "Configuration",
+    "circles": "Cercles",
     "support": "Aide",
     "transactions": "Transactions",
     "usersearch": "Recherche d'utilisateurs"
@@ -264,6 +271,7 @@
     "send": "Envoyé Gradidos",
     "settings": "Configuration",
     "transactions": "Vos transactions",
+    "circles": "Cercles Gradido",
     "usersearch": "Recherche géographique d'utilisateurs"
   },
   "qrCode": "QR Code",
@@ -276,6 +284,23 @@
     "warningText": "Êtes-vous toujours connecté?"
   },
   "settings": {
+    "GMS": {
+      "location": {
+        "button": "Cliquez ici !",
+        "label": "Emplacement précis",
+        "saveLocation": "Enregistrer l'emplacement",
+        "updateSuccess": "Emplacement enregistré avec succès"
+      },
+      "map": {
+        "communityCoords": "Emplacement de votre communauté : Lat {lat}, Long {lng}",
+        "communityLocationLabel": "Emplacement de votre communauté",
+        "headline": "Capture de la localisation géographique de l'utilisateur",
+        "userCoords": "Votre emplacement : Lat {lat}, Long {lng}",
+        "userLocationLabel": "Votre emplacement",
+        "search": "Rechercher un emplacement",
+        "success": "Emplacement enregistré avec succès"
+      }
+    },
     "hideAmountGDD": "Votre montant GDD est caché.",
     "hideAmountGDT": "Votre montant GDT est caché.",
     "language": {

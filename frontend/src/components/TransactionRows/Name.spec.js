@@ -1,4 +1,4 @@
-import { mount } from '@vue/test-utils'
+import { mount, RouterLinkStub } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import Name from './Name'
 import { BLink } from 'bootstrap-vue-next'
@@ -44,7 +44,7 @@ describe('Name', () => {
       global: {
         mocks,
         stubs: {
-          BLink,
+          RouterLink: RouterLinkStub,
         },
       },
       props: propsData,
@@ -88,31 +88,18 @@ describe('Name', () => {
 
       it('has a link', () => {
         expect(
-          wrapper
-            .find('div.gdd-transaction-list-item-name')
-            .findComponent({ name: 'BLink' })
-            .exists(),
+          wrapper.find('div.gdd-transaction-list-item-name').findComponent(RouterLinkStub).exists(),
         ).toBe(true)
       })
 
-      describe('click link', () => {
-        beforeEach(async () => {
-          await wrapper.findComponent({ name: 'BLink' }).trigger('click')
-        })
-
-        it('pushes router to send', () => {
-          expect(routerPushMock).toHaveBeenCalledWith({
-            path: '/send',
-          })
-        })
-
-        it('pushes params for gradidoID and community UUID', () => {
-          expect(routerPushMock).toHaveBeenCalledWith({
-            params: {
-              communityIdentifier: 'community UUID',
-              userIdentifier: 'gradido-ID',
-            },
-          })
+      it('RouterLink has correct to prop', () => {
+        const routerLink = wrapper.findComponent(RouterLinkStub)
+        expect(routerLink.props().to).toEqual({
+          name: 'Send',
+          params: {
+            communityIdentifier: 'community UUID',
+            userIdentifier: 'gradido-ID',
+          },
         })
       })
     })

@@ -2,9 +2,9 @@
   <div class="name">
     <div class="gdd-transaction-list-item-name">
       <div v-if="linkedUser && linkedUser.gradidoID">
-        <BLink :class="fontColor" @click.stop="tunnelEmail">
+        <router-link :class="fontColor" :to="pushTo">
           {{ itemText }}
-        </BLink>
+        </router-link>
       </div>
       <span v-else>{{ itemText }}</span>
     </div>
@@ -44,6 +44,15 @@ export default {
             this.linkedUser.lastName +
             (this.linkedUser.communityName ? ' / ' + this.linkedUser.communityName : '')
         : this.text
+    },
+    pushTo() {
+      return {
+        name: 'Send',
+        params: {
+          userIdentifier: this.linkedUser.gradidoID,
+          communityIdentifier: this.linkedUser.communityUuid,
+        },
+      }
     },
   },
   methods: {
