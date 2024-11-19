@@ -55,10 +55,7 @@ export default defineConfig({
       CONFIG_VERSION: null,
     }),
     commonjs(),
-    purgecss({
-      content: ['./index.html', './src/**/*.{vue,js,ts,jsx,tsx}'],
-      defaultExtractor: (content) => content.match(/[\w-/:]+(?<!:)/g) || [],
-    }),
+    purgecss({ variables: true }),
   ],
   build: {
     outDir: path.resolve(__dirname, './build'),
