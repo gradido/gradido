@@ -50,7 +50,7 @@ const COMMUNITY_URL = process.env.COMMUNITY_URL ?? ADMIN_MODULE_URL
 const WALLET_URL = process.env.WALLET_URL ?? COMMUNITY_URL ?? 'http://localhost'
 
 const endpoints = {
-  GRAPHQL_URI: process.env.GRAPHQL_URI ?? COMMUNITY_URL + (process.env.GRAPHQL_PATH ?? '/graphql'),
+  GRAPHQL_URI: process.env.GRAPHQL_URL ?? COMMUNITY_URL + (process.env.GRAPHQL_PATH ?? '/graphql'),
   WALLET_AUTH_URL: WALLET_URL + (process.env.WALLET_AUTH_PATH ?? '/authenticate?token={token}'),
   WALLET_LOGIN_URL: WALLET_URL + (process.env.WALLET_LOGIN_PATH ?? '/login'),
 }
