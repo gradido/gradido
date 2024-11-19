@@ -1,7 +1,7 @@
 import { Community as DbCommunity } from '@entity/Community'
 import { User as DbUser } from '@entity/User'
 
-import { createGmsUser } from '@/apis/gms/GmsClient'
+import { createGmsUser, updateGmsUser } from '@/apis/gms/GmsClient'
 import { GmsUser } from '@/apis/gms/model/GmsUser'
 import { CONFIG } from '@/config'
 import { LogError } from '@/server/LogError'
@@ -14,13 +14,26 @@ export async function sendUserToGms(user: DbUser, homeCom: DbCommunity): Promise
   logger.debug('User send to GMS:', user)
   const gmsUser = new GmsUser(user)
   try {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    if (await createGmsUser(homeCom.gmsApiKey, gmsUser)) {
-      logger.debug('GMS user published successfully:', gmsUser)
-      user.gmsRegistered = true
-      user.gmsRegisteredAt = new Date()
-      await DbUser.save(user)
-      logger.debug('mark user as gms published:', user)
+    if (!user.gmsRegistered && user.gmsRegisteredAt === null) {
+      logger.debug('create user in gms:', gmsUser)
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+      if (await createGmsUser(homeCom.gmsApiKey, gmsUser)) {
+        logger.debug('GMS user published successfully:', gmsUser)
+        user.gmsRegistered = true
+        user.gmsRegisteredAt = new Date()
+        await DbUser.save(user)
+        logger.debug('mark user as gms published:', user)
+      }
+    } else {
+      logger.debug('update user in gms:', gmsUser)
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+      if (await updateGmsUser(homeCom.gmsApiKey, gmsUser)) {
+        logger.debug('GMS user published successfully:', gmsUser)
+        user.gmsRegistered = true
+        user.gmsRegisteredAt = new Date()
+        await DbUser.save(user)
+        logger.debug('mark user as gms published:', user)
+      }
     }
   } catch (err) {
     if (CONFIG.GMS_CREATE_USER_THROW_ERRORS) {
