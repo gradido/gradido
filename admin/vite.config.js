@@ -6,6 +6,7 @@ import Components from 'unplugin-vue-components/vite'
 import IconsResolve from 'unplugin-icons/resolver'
 import { BootstrapVueNextResolver } from 'bootstrap-vue-next'
 import EnvironmentPlugin from 'vite-plugin-environment'
+import purgecss from 'vite-plugin-purgecss'
 
 const path = require('path')
 
@@ -54,6 +55,10 @@ export default defineConfig({
       CONFIG_VERSION: null,
     }),
     commonjs(),
+    purgecss({
+      content: ['./index.html', './src/**/*.{vue,js,ts,jsx,tsx}'],
+      defaultExtractor: (content) => content.match(/[\w-/:]+(?<!:)/g) || [],
+    }),
   ],
   build: {
     outDir: path.resolve(__dirname, './build'),
