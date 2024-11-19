@@ -77,7 +77,7 @@ export default defineConfig({
       CONFIG_VERSION: null,
     }),
     commonjs(),
-    purgecss({ variables: true }),
+    purgecss(),
   ],
   css: {
     extract: true,

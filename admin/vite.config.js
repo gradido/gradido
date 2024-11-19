@@ -55,7 +55,7 @@ export default defineConfig({
       CONFIG_VERSION: null,
     }),
     commonjs(),
-    purgecss({ variables: true }),
+    purgecss(),
   ],
   build: {
     outDir: path.resolve(__dirname, './build'),
