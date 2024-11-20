@@ -48,8 +48,8 @@ export default defineConfig({
     }),
     EnvironmentPlugin({
       BUILD_COMMIT: null,
-      PORT: CONFIG.ADMIN_MODULE_PORT, //null,
-      COMMUNITY_HOST: CONFIG.ADMIN_MODULE_HOST, //null,
+      PORT: CONFIG.ADMIN_MODULE_PORT, // null,
+      COMMUNITY_HOST: CONFIG.ADMIN_MODULE_HOST, // null,
       URL_PROTOCOL: CONFIG.ADMIN_MODULE_PROTOCOL, // null,
       WALLET_URL: CONFIG.WALLET_AUTH_URL, // null,
       GRAPHQL_URL: CONFIG.GRAPHQL_URI, // null,

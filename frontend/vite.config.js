@@ -18,8 +18,8 @@ const CONFIG = require('./src/config')
 // https://vitejs.dev/config/
 export default defineConfig({
   server: {
-    host: CONFIG.FRONTEND_MODULE_HOST , //'0.0.0.0',
-    port: CONFIG.FRONTEND_MODULE_PORT , // 3000,
+    host: CONFIG.FRONTEND_MODULE_HOST, // '0.0.0.0',
+    port: CONFIG.FRONTEND_MODULE_PORT, // 3000,
   },
   resolve: {
     alias: {
@@ -64,9 +64,9 @@ export default defineConfig({
       URL_PROTOCOL: null,
       COMMUNITY_URL: null,
       GRAPHQL_PATH: null,
-      GRAPHQL_URI: CONFIG.GRAPHQL_URI , // null,
+      GRAPHQL_URI: CONFIG.GRAPHQL_URI, // null,
       ADMIN_AUTH_PATH: CONFIG.ADMIN_AUTH_PATH, // null,
-      ADMIN_AUTH_URL: CONFIG.ADMIN_AUTH_URL , // null,
+      ADMIN_AUTH_URL: CONFIG.ADMIN_AUTH_URL, // null,
       COMMUNITY_NAME: null,
       COMMUNITY_REGISTER_PATH: null,
       COMMUNITY_REGISTER_URL: null,
