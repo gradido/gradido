@@ -42,6 +42,14 @@ EXPOSE ${PORT}
 RUN mkdir -p ${DOCKER_WORKDIR}
 WORKDIR ${DOCKER_WORKDIR}
 
+# upgrade yarn and node versions
+nvm use v20.0.0
+yarn set version stable
+yarn cache clear
+yarn install
+yarn build
+
+
 ##################################################################################
 # DEVELOPMENT (Connected to the local environment, to reload on demand) ##########
 ##################################################################################
@@ -63,8 +71,7 @@ FROM base as build
 # Copy everything
 COPY . .
 # yarn install
-# RUN yarn install --production=false --frozen-lockfile --non-interactive
-RUN yarn install --frozen-lockfile --non-interactive
+RUN yarn install --production=false --frozen-lockfile --non-interactive
 # yarn build
 RUN yarn run build
 
