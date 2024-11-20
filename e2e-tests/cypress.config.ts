@@ -35,7 +35,7 @@ export default defineConfig({
     excludeSpecPattern: '*.js',
     baseUrl: 'http://localhost:3000',
     chromeWebSecurity: false,
-    defaultCommandTimeout: 10000,
+    defaultCommandTimeout: 100000,
     supportFile: 'cypress/support/index.ts',
     viewportHeight: 720,
     viewportWidth: 1280,

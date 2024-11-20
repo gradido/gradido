@@ -11,7 +11,7 @@
           <div class="mb-3"></div>
           <contribution-form
             :key="computedKeyFromForm"
-            :model-value="form"
+            v-model="form"
             :is-this-month="isThisMonth"
             :minimal-date="minimalDate"
             :max-gdd-last-month="maxForMonths[0]"

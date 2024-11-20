@@ -316,6 +316,8 @@ export class UserResolver {
     dbUser.firstName = firstName
     dbUser.lastName = lastName
     dbUser.language = language
+    // enable humhub from now on for new user
+    dbUser.humhubAllowed = true
     if (alias && (await validateAlias(alias))) {
       dbUser.alias = alias
     }
@@ -386,6 +388,9 @@ export class UserResolver {
       await queryRunner.release()
     }
     logger.info('createUser() successful...')
+    if (CONFIG.HUMHUB_ACTIVE) {
+      void syncHumhub(null, dbUser)
+    }
 
     if (redeemCode) {
       eventRegisterRedeem.affectedUser = dbUser
@@ -686,17 +691,25 @@ export class UserResolver {
     await EVENT_USER_INFO_UPDATE(user)
 
     // validate if user settings are changed with relevance to update gms-user
-    if (CONFIG.GMS_ACTIVE && updateUserInGMS) {
-      logger.debug(`changed user-settings relevant for gms-user update...`)
-      const homeCom = await getHomeCommunity()
-      if (homeCom.gmsApiKey !== null) {
-        logger.debug(`gms-user update...`, user)
-        await updateGmsUser(homeCom.gmsApiKey, new GmsUser(user))
-        logger.debug(`gms-user update successfully.`)
+    try {
+      if (CONFIG.GMS_ACTIVE && updateUserInGMS) {
+        logger.debug(`changed user-settings relevant for gms-user update...`)
+        const homeCom = await getHomeCommunity()
+        if (homeCom.gmsApiKey !== null) {
+          logger.debug(`gms-user update...`, user)
+          await updateGmsUser(homeCom.gmsApiKey, new GmsUser(user))
+          logger.debug(`gms-user update successfully.`)
+        }
       }
+    } catch (e) {
+      logger.error('error sync user with gms', e)
     }
-    if (CONFIG.HUMHUB_ACTIVE) {
-      await syncHumhub(updateUserInfosArgs, user)
+    try {
+      if (CONFIG.HUMHUB_ACTIVE) {
+        await syncHumhub(updateUserInfosArgs, user)
+      }
+    } catch (e) {
+      logger.error('error sync user with humhub', e)
     }
 
     return true
@@ -736,7 +749,8 @@ export class UserResolver {
     if (!humhubClient) {
       throw new LogError('cannot create humhub client')
     }
-    const username = dbUser.alias ?? dbUser.gradidoID
+    const userNameLogic = new PublishNameLogic(dbUser)
+    const username = userNameLogic.getUsername(dbUser.humhubPublishName as PublishNameType)
     let humhubUser = await humhubClient.userByUsername(username)
     if (!humhubUser) {
       humhubUser = await humhubClient.userByEmail(dbUser.emailContact.email)
