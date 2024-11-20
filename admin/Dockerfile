@@ -42,14 +42,6 @@ EXPOSE ${PORT}
 RUN mkdir -p ${DOCKER_WORKDIR}
 WORKDIR ${DOCKER_WORKDIR}
 
-# upgrade yarn and node versions
-nvm use v20.0.0
-yarn set version stable
-yarn cache clear
-yarn install
-yarn build
-
-
 ##################################################################################
 # DEVELOPMENT (Connected to the local environment, to reload on demand) ##########
 ##################################################################################
