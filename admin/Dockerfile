@@ -63,7 +63,8 @@ FROM base as build
 # Copy everything
 COPY . .
 # yarn install
-RUN yarn install --production=false --frozen-lockfile --non-interactive
+# RUN yarn install --production=false --frozen-lockfile --non-interactive
+RUN yarn install --frozen-lockfile --non-interactive
 # yarn build
 RUN yarn run build
 
