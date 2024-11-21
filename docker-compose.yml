@@ -62,10 +62,9 @@ services:
   #########################################################
   mariadb:
     build:
-      context: ./mariadb
-      target: mariadb_server
+      mariadb:10.5
     environment:
-      - MARIADB_ALLOW_EMPTY_PASSWORD=1
+      - MARIADB_ALLOW_EMPTY_ROOT_PASSWORD=1
       - MARIADB_USER=root
     networks:
       - internal-net
