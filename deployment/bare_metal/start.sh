@@ -201,42 +201,32 @@ export NODE_ENV=production
 
 
 # Install & build frontend
-echo "====================================================================================================" >> $UPDATE_HTML
 echo 'Updating frontend' >> $UPDATE_HTML
-echo "====================================================================================================" >> $UPDATE_HTML
 cd $PROJECT_ROOT/frontend
 # TODO maybe handle this differently?
 unset NODE_ENV
-# TODO this is the quick&dirty solution for the openssl security topic, please see https://stackoverflow.com/questions/69692842/error-message-error0308010cdigital-envelope-routinesunsupported
-export NODE_OPTIONS=--openssl-legacy-provider
-
-# upgrade yarn and node versions
-nvm use v20.0.0
-yarn set version stable
-yarn cache clear
+nvm use
+nvm install
+npm i -g yarn
 yarn install
 yarn build
 # TODO maybe handle this differently?
 export NODE_ENV=production
 
-unset NODE_OPTIONS
-export NODE_OPTIONS
-
 # Install & build admin
-echo "====================================================================================================" >> $UPDATE_HTML
 echo 'Updating admin' >> $UPDATE_HTML
-echo "====================================================================================================" >> $UPDATE_HTML
 cd $PROJECT_ROOT/admin
 # TODO maybe handle this differently?
 unset NODE_ENV
-# downgrade yarn and node versions
-nvm use default
-yarn set version 1.22.19
-yarn cache clear
+nvm use
+nvm install
+npm i -g yarn
 yarn install
 yarn build
 # TODO maybe handle this differently?
 export NODE_ENV=production
+
+nvm use default
 
 # Install & build dht-node
 echo 'Updating dht-node' >> $UPDATE_HTML
