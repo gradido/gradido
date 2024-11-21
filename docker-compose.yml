@@ -61,8 +61,7 @@ services:
   ## MARIADB ##############################################
   #########################################################
   mariadb:
-    build:
-      mariadb:10.5
+    image: mariadb:10.5
     environment:
       - MARIADB_ALLOW_EMPTY_ROOT_PASSWORD=1
       - MARIADB_USER=root
