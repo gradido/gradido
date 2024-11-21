@@ -23,7 +23,7 @@ import { useAuthLinks } from '@/composables/useAuthLinks'
 const { login, register } = useAuthLinks()
 
 const backgroundHeader = '/img/template/gradido_background_header.png'
-const logo = '/img/brand/gradido-logo.png'
+const logo = '/img/brand/gradido-logo_200x59.png'
 const sheet = '/img/template/Blaetter.png'
 </script>
 

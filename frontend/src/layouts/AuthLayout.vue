@@ -30,7 +30,7 @@
                 <div class="mb-0">{{ $t('1000thanks') }}</div>
               </BCol>
               <BCol cols="3" class="text-end d-none d-sm-none d-md-inline">
-                <BAvatar src="/img/brand/gradido_coin●.png" size="6rem" />
+                <BAvatar src="/img/brand/gradido_coin_128x128.png" size="6rem" />
               </BCol>
             </BRow>
             <BCard ref="pageFontSize" no-body class="border-0 mt-4 gradido-custom-background">
@@ -62,7 +62,7 @@
               <BRow class="d-inline d-sm-inline d-md-none d-lg-none mb-3">
                 <BCol class="text-center">
                   <BAvatar
-                    src="/img/brand/gradido_coin●.png"
+                    src="/img/brand/gradido_coin_128x128.png"
                     size="6rem"
                     bg-variant="transparent"
                   ></BAvatar>
