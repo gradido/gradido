@@ -696,9 +696,9 @@ export class UserResolver {
         logger.debug(`changed user-settings relevant for gms-user update...`)
         const homeCom = await getHomeCommunity()
         if (homeCom.gmsApiKey !== null) {
-          logger.debug(`gms-user update...`, user)
-          await updateGmsUser(homeCom.gmsApiKey, new GmsUser(user))
-          logger.debug(`gms-user update successfully.`)
+          logger.debug(`send User to Gms...`, user)
+          await sendUserToGms(user, homeCom)
+          logger.debug(`sendUserToGms successfully.`)
         }
       }
     } catch (e) {

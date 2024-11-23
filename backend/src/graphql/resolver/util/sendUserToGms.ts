@@ -19,20 +19,14 @@ export async function sendUserToGms(user: DbUser, homeCom: DbCommunity): Promise
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       if (await createGmsUser(homeCom.gmsApiKey, gmsUser)) {
         logger.debug('GMS user published successfully:', gmsUser)
-        user.gmsRegistered = true
-        user.gmsRegisteredAt = new Date()
-        await DbUser.save(user)
-        logger.debug('mark user as gms published:', user)
+        await updateUserGmsStatus(user)
       }
     } else {
       logger.debug('update user in gms:', gmsUser)
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       if (await updateGmsUser(homeCom.gmsApiKey, gmsUser)) {
         logger.debug('GMS user published successfully:', gmsUser)
-        user.gmsRegistered = true
-        user.gmsRegisteredAt = new Date()
-        await DbUser.save(user)
-        logger.debug('mark user as gms published:', user)
+        await updateUserGmsStatus(user)
       }
     }
   } catch (err) {
@@ -42,4 +36,12 @@ export async function sendUserToGms(user: DbUser, homeCom: DbCommunity): Promise
       logger.warn('publishing user fails with ', err)
     }
   }
+}
+
+async function updateUserGmsStatus(user: DbUser) {
+  logger.debug('updateUserGmsStatus:', user)
+  user.gmsRegistered = true
+  user.gmsRegisteredAt = new Date()
+  await DbUser.save(user)
+  logger.debug('mark user as gms published:', user)
 }
