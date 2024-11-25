@@ -728,14 +728,18 @@ export class UserResolver {
   @Authorized([RIGHTS.GMS_USER_PLAYGROUND])
   @Query(() => GmsUserAuthenticationResult)
   async authenticateGmsUserSearch(@Ctx() context: Context): Promise<GmsUserAuthenticationResult> {
-    logger.info(`authUserForGmsUserSearch()...`)
+    logger.info(`authenticateGmsUserSearch()...`)
     const dbUser = getUser(context)
-    let result: GmsUserAuthenticationResult
+    let result = new GmsUserAuthenticationResult()
     if (context.token) {
-      result = await authenticateGmsUserPlayground(context.token, dbUser)
-      logger.info('authUserForGmsUserSearch=', result)
+      const homeCom = await getHomeCommunity()
+      if (!homeCom.gmsApiKey) {
+        throw new LogError('authenticateGmsUserSearch missing HomeCommunity GmsApiKey')
+      }
+      result = await authenticateGmsUserPlayground(homeCom.gmsApiKey, context.token, dbUser)
+      logger.info('authenticateGmsUserSearch=', result)
     } else {
-      throw new LogError('authUserForGmsUserSearch without token')
+      throw new LogError('authenticateGmsUserSearch missing valid user login-token')
     }
     return result
   }
