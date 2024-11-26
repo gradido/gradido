@@ -58,7 +58,8 @@ onUnmounted(() => {
 })
 
 function initMap() {
-  console.log('initMap()...')
+  console.log('initMap()... mapContainer.value=',mapContainer.value)
+  console.log('initMap()... map.value=',map.value)
   if (mapContainer.value && !map.value) {
     map.value = L.map(mapContainer.value, {
       center: [userPosition.value.lat, userPosition.value.lng],
