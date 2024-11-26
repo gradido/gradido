@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-import { getConnection, In } from '@dbTools/typeorm'
+import { getConnection, In, Point } from '@dbTools/typeorm'
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
 import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
 import { User as DbUser } from '@entity/User'
@@ -29,6 +29,7 @@ import { SearchAdminUsersResult } from '@model/AdminUser'
 import { GmsUserAuthenticationResult } from '@model/GmsUserAuthenticationResult'
 import { User } from '@model/User'
 import { UserAdmin, SearchUsersResult } from '@model/UserAdmin'
+import { UserLocationResult } from '@model/UserLocationResult'
 
 import { updateGmsUser } from '@/apis/gms/GmsClient'
 import { GmsUser } from '@/apis/gms/model/GmsUser'
@@ -81,7 +82,7 @@ import { getUserCreations } from './util/creations'
 import { findUserByIdentifier } from './util/findUserByIdentifier'
 import { findUsers } from './util/findUsers'
 import { getKlicktippState } from './util/getKlicktippState'
-import { Location2Point } from './util/Location2Point'
+import { Location2Point, Point2Location } from './util/Location2Point'
 import { setUserRole, deleteUserRole } from './util/modifyUserRole'
 import { sendUserToGms } from './util/sendUserToGms'
 import { syncHumhub } from './util/syncHumhub'
@@ -740,6 +741,23 @@ export class UserResolver {
       logger.info('authenticateGmsUserSearch=', result)
     } else {
       throw new LogError('authenticateGmsUserSearch missing valid user login-token')
+    }
+    return result
+  }
+
+  @Authorized([RIGHTS.GMS_USER_PLAYGROUND])
+  @Query(() => UserLocationResult)
+  async userLocation(@Ctx() context: Context): Promise<UserLocationResult> {
+    logger.info(`userLocation()...`)
+    const dbUser = getUser(context)
+    const result = new UserLocationResult()
+    if (context.token) {
+      const homeCom = await getHomeCommunity()
+      result.communityLocation = Point2Location(homeCom.location as Point)
+      result.userLocation = Point2Location(dbUser.location as Point)
+      logger.info('userLocation=', result)
+    } else {
+      throw new LogError('userLocation missing valid user login-token')
     }
     return result
   }
