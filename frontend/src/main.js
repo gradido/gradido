@@ -38,6 +38,7 @@ app.use(GlobalDirectives)
 app.use(PortalVue)
 app.use(FlatPickr)
 app.use(() => apolloProvider)
+// app.use(VueTimers)
 app.use(vueTransitionsPlugin())
 
 const filters = createFilters(i18n)
