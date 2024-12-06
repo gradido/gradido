@@ -94,7 +94,7 @@
             </BCol>
             <BCol cols="12" md="6" lg="6" class="text-end">
               <user-settings-switch
-                :initial-value="$store.state.humhubAllowed"
+                :initial-value="state.humhubAllowed"
                 :attr-name="'humhubAllowed'"
                 :disabled="isHumhubActivated"
                 :enabled-text="$t('settings.humhub.enabled')"
@@ -111,7 +111,7 @@
             </BCol>
             <BCol cols="12" md="6" lg="6">
               <user-naming-format
-                :initial-value="$store.state.humhubPublishName"
+                :initial-value="state.humhubPublishName"
                 :attr-name="'humhubPublishName'"
                 :success-message="$t('settings.humhub.publish-name.updated')"
               />
@@ -125,7 +125,7 @@
             </BCol>
             <BCol cols="12" md="6" lg="6" class="text-end">
               <user-settings-switch
-                :initial-value="$store.state.gmsAllowed"
+                :initial-value="state.gmsAllowed"
                 :attr-name="'gmsAllowed'"
                 :enabled-text="$t('settings.GMS.enabled')"
                 :disabled-text="$t('settings.GMS.disabled')"
@@ -141,7 +141,7 @@
               </BCol>
               <BCol cols="12" md="6" lg="6">
                 <user-naming-format
-                  :initial-value="$store.state.gmsPublishName"
+                  :initial-value="state.gmsPublishName"
                   :attr-name="'gmsPublishName'"
                   :success-message="$t('settings.GMS.publish-name.updated')"
                 />
