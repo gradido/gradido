@@ -1,6 +1,7 @@
 <template>
   <div>
     <coordinates-display
+      v-if="map"
       :community-position="communityPosition"
       :user-position="userPosition"
       @centerMap="handleMapCenter"
@@ -45,8 +46,7 @@ onMounted(async () => {
   }
   console.log('onMounted() userPosition=', userPosition)
   console.log('onMounted() communityPosition=', communityPosition)
-  await nextTick()
-  initMap()
+  setTimeout(() => initMap(), 250)
   window.addEventListener('resize', handleResize)
 })
 
@@ -58,13 +58,14 @@ onUnmounted(() => {
 })
 
 function initMap() {
-  console.log('initMap()... mapContainer.value=',mapContainer.value)
-  console.log('initMap()... map.value=',map.value)
+  console.log('initMap()... mapContainer.value=', mapContainer.value)
+  console.log('initMap()... map.value=', map.value)
   if (mapContainer.value && !map.value) {
     map.value = L.map(mapContainer.value, {
       center: [userPosition.value.lat, userPosition.value.lng],
       zoom: defaultZoom,
       zoomControl: false,
+      closePopupOnClick: false,
     })
     console.log('initMap() map=', map)
 
@@ -78,6 +79,7 @@ function initMap() {
     // User marker (movable)
     userMarker.value = L.marker([userPosition.value.lat, userPosition.value.lng], {
       draggable: true,
+      interactive: false,
       icon: L.icon({
         iconUrl:
           'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
@@ -90,11 +92,18 @@ function initMap() {
     }).addTo(map.value)
     console.log('initMap() userMarker=', userMarker)
 
-    userMarker.value.bindPopup(t('settings.GMS.map.userLocationLabel')).openPopup()
+    userMarker.value
+      .bindPopup(t('settings.GMS.map.userLocationLabel'), {
+        autoClose: false,
+        closeOnClick: false,
+        closeButton: false,
+      })
+      .openPopup()
 
     // Community marker (fixed)
     communityMarker.value = L.marker([communityPosition.value.lat, communityPosition.value.lng], {
       draggable: false,
+      interactive: false,
       icon: L.icon({
         iconUrl:
           'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
@@ -107,7 +116,13 @@ function initMap() {
     }).addTo(map.value)
     console.log('initMap() communityMarker=', communityMarker)
 
-    communityMarker.value.bindPopup(t('settings.GMS.map.communityLocationLabel'))
+    communityMarker.value
+      .bindPopup(t('settings.GMS.map.communityLocationLabel'), {
+        autoClose: false,
+        closeOnClick: false,
+        closeButton: false,
+      })
+      .openPopup()
 
     map.value.on('click', onMapClick)
     userMarker.value.on('dragend', onMarkerDragEnd)
