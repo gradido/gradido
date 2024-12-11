@@ -1,6 +1,7 @@
+import { Geometry } from '@dbTools/typeorm'
 import { User as dbUser } from '@entity/User'
 
-import { GmsPublishLocationType } from '@/graphql/enum/GmsPublishLocationType'
+// import { GmsPublishLocationType } from '@/graphql/enum/GmsPublishLocationType'
 import { GmsPublishPhoneType } from '@/graphql/enum/GmsPublishPhoneType'
 import { PublishNameType } from '@/graphql/enum/PublishNameType'
 
@@ -15,8 +16,8 @@ export class GmsUser {
     this.firstName = this.getGmsFirstName(user)
     this.lastName = this.getGmsLastName(user)
     this.alias = this.getGmsAlias(user)
-    this.type = GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM
-    this.location = null
+    this.type = user.gmsPublishLocation // GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM
+    this.location = user.location
   }
 
   id: number
@@ -38,7 +39,7 @@ export class GmsUser {
   country: string | undefined
   zipCode: string | undefined
   language: string
-  location: unknown
+  location: Geometry | null | undefined
 
   private getGmsAlias(user: dbUser): string | undefined {
     if (
