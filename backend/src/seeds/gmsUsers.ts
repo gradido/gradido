@@ -59,8 +59,8 @@ const run = async () => {
   const userIds = await DbUser.createQueryBuilder()
     .select('id')
     .where({ foreign: false })
-    .andWhere('deleted_at is null')
-    .andWhere({ gmsRegistered: false })
+    // .andWhere('deleted_at is null')
+    // .andWhere({ gmsRegistered: false })
     .getRawMany()
   logger.debug('userIds:', userIds)
 
