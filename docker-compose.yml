@@ -90,7 +90,6 @@ services:
       - 4000:4000
     depends_on:
       - mariadb
-    restart: always
     environment:
       # Envs used in Dockerfile
       # - DOCKER_WORKDIR="/app"
@@ -126,7 +125,6 @@ services:
     #  - 5000:5000
     depends_on:
       - mariadb
-    restart: always
     environment:
       # Envs used in Dockerfile
       # - DOCKER_WORKDIR="/app"
@@ -160,7 +158,6 @@ services:
       - external-net
     ports:
       - 6010:6010
-    restart: always
     environment:
       # Envs used in Dockerfile
       # - DOCKER_WORKDIR="/app"
@@ -194,7 +191,6 @@ services:
       - 5010:5010
     depends_on:
       - mariadb
-    restart: always
     environment:
       # Envs used in Dockerfile
       # - DOCKER_WORKDIR="/app"
