@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite'
 import path from 'path'
+import purgecss from 'vite-plugin-purgecss'
 import commonjs from 'vite-plugin-commonjs'
 import vue from '@vitejs/plugin-vue'
 import Components from 'unplugin-vue-components/vite'
@@ -76,6 +77,7 @@ export default defineConfig({
       CONFIG_VERSION: null,
     }),
     commonjs(),
+    purgecss(),
   ],
   css: {
     extract: true,
