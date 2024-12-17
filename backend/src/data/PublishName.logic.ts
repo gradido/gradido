@@ -67,17 +67,25 @@ export class PublishNameLogic {
    *   else return user.firstName[0,2] + user.lastName[0,2] for publishNameType = [PUBLISH_NAME_ALIAS_OR_INITALS, PUBLISH_NAME_INITIALS]
    */
   public getUsername(publishNameType: PublishNameType): string {
-    if (
-      [
-        PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS,
-        PublishNameType.PUBLISH_NAME_INITIALS,
-      ].includes(publishNameType)
-    ) {
-      return publishNameType === PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS && this.hasAlias()
-        ? this.filterOutInvalidChar(this.user.alias)
-        : this.firstUpperCaseSecondLowerCase(this.filterOutInvalidChar(this.user.firstName)) +
-            this.firstUpperCaseSecondLowerCase(this.filterOutInvalidChar(this.user.lastName))
+    if (this.isUsernameFromInitials(publishNameType)) {
+      return this.filterOutInvalidChar(
+        this.firstUpperCaseSecondLowerCase(this.user.firstName) +
+          this.firstUpperCaseSecondLowerCase(this.user.lastName),
+      )
+    } else if (this.isUsernameFromAlias(publishNameType)) {
+      return this.filterOutInvalidChar(this.user.alias)
     }
-    return this.hasAlias() ? this.user.alias : this.user.gradidoID
+    return this.user.gradidoID
+  }
+
+  public isUsernameFromInitials(publishNameType: PublishNameType): boolean {
+    return (
+      PublishNameType.PUBLISH_NAME_INITIALS === publishNameType ||
+      (PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS === publishNameType && !this.hasAlias())
+    )
+  }
+
+  public isUsernameFromAlias(publishNameType: PublishNameType): boolean {
+    return PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS === publishNameType && this.hasAlias()
   }
 }

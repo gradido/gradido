@@ -1,19 +1,15 @@
 import { User } from '@entity/User'
 
-import { Account } from './Account'
-import { Profile } from './Profile'
+import { AbstractUser } from './AbstractUser'
 
-export class GetUser {
+export class GetUser extends AbstractUser {
   public constructor(user: User, id: number) {
+    super(user)
     this.id = id
-    this.account = new Account(user)
-    this.profile = new Profile(user)
   }
 
   id: number
   guid: string
   // eslint-disable-next-line camelcase
   display_name: string
-  account: Account
-  profile: Profile
 }

@@ -112,6 +112,7 @@ beforeAll(async () => {
   mutate = testEnv.mutate
   query = testEnv.query
   con = testEnv.con
+  CONFIG.HUMHUB_ACTIVE = false
   await cleanDB()
 })
 
