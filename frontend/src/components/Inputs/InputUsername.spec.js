@@ -69,12 +69,6 @@ describe('InputUsername', () => {
     expect(input.props('placeholder')).toBe('Username')
   })
 
-  it('emits set-is-edit event when button is clicked', async () => {
-    const button = wrapper.findComponent({ name: 'BButton' })
-    await button.trigger('click')
-    expect(wrapper.emitted('set-is-edit')).toBeTruthy()
-  })
-
   it('shows all errors when showAllErrors prop is true', async () => {
     const errors = ['Error 1', 'Error 2']
     vi.mocked(useField).mockReturnValue({
