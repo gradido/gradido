@@ -4,6 +4,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import axios from 'axios'
 
+import { httpAgent, httpsAgent } from '@/apis/ConnectionAgents'
 import { CONFIG } from '@/config'
 import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
@@ -126,9 +127,10 @@ export async function createGmsUser(apiKey: string, user: GmsUser): Promise<bool
         accept: 'application/json',
         language: 'en',
         timezone: 'UTC',
-        connection: 'keep-alive',
         authorization: apiKey,
       },
+      httpAgent,
+      httpsAgent,
     }
     try {
       const result = await axios.post(baseUrl.concat(service), user, config)
@@ -160,9 +162,10 @@ export async function updateGmsUser(apiKey: string, user: GmsUser): Promise<bool
         accept: 'application/json',
         language: 'en',
         timezone: 'UTC',
-        connection: 'keep-alive',
         authorization: apiKey,
       },
+      httpAgent,
+      httpsAgent,
     }
     try {
       const result = await axios.patch(baseUrl.concat(service), user, config)
@@ -197,9 +200,10 @@ export async function verifyAuthToken(
       accept: 'application/json',
       language: 'en',
       timezone: 'UTC',
-      connection: 'keep-alive',
       // authorization: apiKey,
     },
+    httpAgent,
+    httpsAgent,
   }
   try {
     const result = await axios.get(baseUrl.concat(service), config)
