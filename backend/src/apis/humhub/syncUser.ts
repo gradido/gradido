@@ -31,7 +31,7 @@ export async function syncUser(
   humhubUsers: Map<string, GetUser>,
 ): Promise<ExecutedHumhubAction> {
   const postUser = new PostUser(user)
-  const humhubUser = humhubUsers.get(user.emailContact.email.trim())
+  const humhubUser = humhubUsers.get(user.getPrimaryUserContact().email.trim())
   const humHubClient = HumHubClient.getInstance()
   if (!humHubClient) {
     throw new LogError('Error creating humhub client')

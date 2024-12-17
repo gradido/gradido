@@ -211,7 +211,7 @@ export class ContributionResolver {
     const emailContact = await UserContact.findOne({
       where: { email },
       withDeleted: true,
-      relations: ['user'],
+      relations: { user: true },
     })
     if (!emailContact?.user) {
       throw new LogError('Could not find user', email)
@@ -300,13 +300,13 @@ export class ContributionResolver {
     if (createdByUserChangedByModerator && adminUpdateContributionArgs.memo) {
       const user = await DbUser.findOneOrFail({
         where: { id: contribution.userId },
-        relations: ['emailContact'],
+        relations: { userContacts: true },
       })
 
       void sendContributionChangedByModeratorEmail({
         firstName: user.firstName,
         lastName: user.lastName,
-        email: user.emailContact.email,
+        email: user.getPrimaryUserContact().email,
         language: user.language,
         senderFirstName: moderator.firstName,
         senderLastName: moderator.lastName,
@@ -326,7 +326,7 @@ export class ContributionResolver {
   ): Promise<ContributionListResult> {
     const [dbContributions, count] = await findContributions(paginated, filter, true, {
       user: {
-        emailContact: true,
+        UserContacts: true,
       },
       messages: true,
     })
@@ -359,7 +359,7 @@ export class ContributionResolver {
     }
     const user = await DbUser.findOneOrFail({
       where: { id: contribution.userId },
-      relations: ['emailContact'],
+      relations: { userContacts: true },
     })
     contribution.contributionStatus = ContributionStatus.DELETED
     contribution.deletedBy = moderator.id
@@ -374,7 +374,7 @@ export class ContributionResolver {
     void sendContributionDeletedEmail({
       firstName: user.firstName,
       lastName: user.lastName,
-      email: user.emailContact.email,
+      email: user.getPrimaryUserContact().email,
       language: user.language,
       senderFirstName: moderator.firstName,
       senderLastName: moderator.lastName,
@@ -411,7 +411,7 @@ export class ContributionResolver {
       const user = await DbUser.findOneOrFail({
         where: { id: contribution.userId },
         withDeleted: true,
-        relations: ['emailContact'],
+        relations: { userContacts: true },
       })
       if (user.deletedAt) {
         throw new LogError('Can not confirm contribution since the user was deleted')
@@ -480,7 +480,7 @@ export class ContributionResolver {
         void sendContributionConfirmedEmail({
           firstName: user.firstName,
           lastName: user.lastName,
-          email: user.emailContact.email,
+          email: user.getPrimaryUserContact().email,
           language: user.language,
           senderFirstName: moderatorUser.firstName,
           senderLastName: moderatorUser.lastName,
@@ -543,7 +543,7 @@ export class ContributionResolver {
     const moderator = getUser(context)
     const user = await DbUser.findOne({
       where: { id: contributionToUpdate.userId },
-      relations: ['emailContact'],
+      relations: { userContacts: true },
     })
     if (!user) {
       throw new LogError('Could not find User of the Contribution', contributionToUpdate.userId)
@@ -563,7 +563,7 @@ export class ContributionResolver {
     void sendContributionDeniedEmail({
       firstName: user.firstName,
       lastName: user.lastName,
-      email: user.emailContact.email,
+      email: user.getPrimaryUserContact().email,
       language: user.language,
       senderFirstName: moderator.firstName,
       senderLastName: moderator.lastName,

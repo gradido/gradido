@@ -14,8 +14,6 @@ const communityDbUser: dbUser = {
   gradidoID: '11111111-2222-4333-4444-55555555',
   alias: '',
   // email: 'support@gradido.net',
-  emailContact: new UserContact(),
-  emailId: -1,
   firstName: 'Gradido',
   lastName: 'Akademie',
   deletedAt: null,
@@ -48,6 +46,12 @@ const communityDbUser: dbUser = {
   reload: function (): Promise<void> {
     throw new Error('Function not implemented.')
   },
+  getPrimaryUserContact: function (): UserContact {
+    if (this.userContacts.length === 0) {
+      this.userContacts.push(new UserContact())
+    }
+    return this.userContacts[0]
+  },
   foreign: false,
   communityUuid: '55555555-4444-4333-2222-11111111',
   community: null,
@@ -59,6 +63,7 @@ const communityDbUser: dbUser = {
   gmsPublishLocation: 2,
   gmsRegistered: false,
   gmsRegisteredAt: null,
+  userContacts: [new UserContact()],
 }
 const communityUser = new User(communityDbUser)
 

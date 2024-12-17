@@ -26,7 +26,7 @@ export async function syncUser(
   user: User,
   humhubUsers: Map<string, GetUser>,
 ): Promise<ExecutedHumhubAction> {
-  const humhubUser = humhubUsers.get(user.emailContact.email.trim())
+  const humhubUser = humhubUsers.get(user.getPrimaryUserContact().email.trim())
   if (humhubUser) {
     if (!user.humhubAllowed) {
       return Promise.resolve(ExecutedHumhubAction.DELETE)

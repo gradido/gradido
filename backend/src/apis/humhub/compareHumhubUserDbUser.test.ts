@@ -11,7 +11,7 @@ describe('isHumhubUserIdenticalToDbUser', () => {
         defaultUser.firstName = 'first name'
         defaultUser.lastName = 'last name'
         defaultUser.alias = 'alias'
-        defaultUser.emailContact.email = 'email@gmail.com'
+        defaultUser.getPrimaryUserContact().email = 'email@gmail.com'
         defaultUser.language = 'en'
     })
 

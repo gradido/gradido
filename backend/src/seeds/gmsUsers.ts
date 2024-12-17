@@ -68,7 +68,7 @@ const run = async () => {
     logger.debug('Id:', idStr.id)
     const user = await DbUser.findOne({
       where: { id: idStr.id },
-      relations: ['emailContact'],
+      relations: { userContacts: true },
     })
     if (user) {
       logger.debug('found local User:', user)

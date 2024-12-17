@@ -57,7 +57,7 @@ export const findUsers = async (
     },
   ]
   const selectFind = Object.fromEntries(select.map((item) => [item, true]))
-  const relations = ['emailContact', 'userRoles']
+  const relations = { emailContacts: true, userRoles: true }
   const orderFind = {
     id: order,
   }

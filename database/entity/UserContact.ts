@@ -1,1 +1,1 @@
-export { UserContact } from './0082-introduce_gms_registration/UserContact'
+export { UserContact } from './0087-fix_incomplete_user_contact_relation/UserContact'

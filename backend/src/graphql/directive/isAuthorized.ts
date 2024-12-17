@@ -45,7 +45,7 @@ export const isAuthorized: AuthChecker<Context> = async ({ context }, rights) =>
       const user = await User.findOneOrFail({
         where: { gradidoID: decoded.gradidoID },
         withDeleted: true,
-        relations: ['emailContact', 'userRoles'],
+        relations: { userContacts: true, userRoles: true },
       })
       context.user = user
       context.role = ROLE_USER

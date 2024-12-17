@@ -18,6 +18,7 @@ export class UserContactLoggingView extends AbstractLoggingView {
     return {
       id: this.self.id,
       type: this.self.type,
+      isPrimary: this.self.isPrimary,
       user: this.self.user
         ? new UserLoggingView(this.self.user).toJSON()
         : { id: this.self.userId },

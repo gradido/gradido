@@ -138,7 +138,7 @@ export class ContributionMessageResolver {
     )
     const relations: FindOptionsRelations<DbContribution> =
       messageType === ContributionMessageType.DIALOG
-        ? { user: { emailContact: true } }
+        ? { user: { userContacts: true } }
         : { user: true }
     let finalContribution: DbContribution | undefined
     let finalContributionMessage: DbContributionMessage | undefined
@@ -180,7 +180,7 @@ export class ContributionMessageResolver {
       void sendAddedContributionMessageEmail({
         firstName: finalContribution.user.firstName,
         lastName: finalContribution.user.lastName,
-        email: finalContribution.user.emailContact.email,
+        email: finalContribution.user.getPrimaryUserContact().email,
         language: finalContribution.user.language,
         senderFirstName: moderator.firstName,
         senderLastName: moderator.lastName,

@@ -12,7 +12,7 @@ export class KlicktippResolver {
   async unsubscribeNewsletter(@Ctx() context: Context): Promise<boolean> {
     const user = getUser(context)
     await EVENT_NEWSLETTER_UNSUBSCRIBE(user)
-    return unsubscribe(user.emailContact.email)
+    return unsubscribe(user.getPrimaryUserContact().email)
   }
 
   @Authorized([RIGHTS.SUBSCRIBE_NEWSLETTER])
@@ -20,6 +20,6 @@ export class KlicktippResolver {
   async subscribeNewsletter(@Ctx() context: Context): Promise<boolean> {
     const user = getUser(context)
     await EVENT_NEWSLETTER_SUBSCRIBE(user)
-    return subscribe(user.emailContact.email, user.language)
+    return subscribe(user.getPrimaryUserContact().email, user.language)
   }
 }

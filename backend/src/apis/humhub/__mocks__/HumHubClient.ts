@@ -6,6 +6,15 @@ import { GetUser } from '@/apis/humhub/model/GetUser'
 import { PostUser } from '@/apis/humhub/model/PostUser'
 import { UsersResponse } from '@/apis/humhub/model/UsersResponse'
 
+function createUserWithEmail(email: string): User {
+  const user = new User()
+  const userContact = new UserContact()
+  userContact.isPrimary = true
+  userContact.email = email
+  user.userContacts = [userContact]
+  return user
+}
+
 /**
  * HumHubClient as singleton class
  */
@@ -28,28 +37,20 @@ export class HumHubClient {
   }
 
   public async userByEmail(email: string): Promise<GetUser | null> {
-    const user = new User()
-    user.emailContact = new UserContact()
-    user.emailContact.email = email
-    return Promise.resolve(new GetUser(user, 1))
+    return Promise.resolve(new GetUser(createUserWithEmail(email), 1))
   }
 
   public async userByEmailAsync(email: string): Promise<IRestResponse<GetUser>> {
-    const user = new User()
-    user.emailContact = new UserContact()
-    user.emailContact.email = email
     return Promise.resolve({
       statusCode: 200,
-      result: new GetUser(user, 1),
+      result: new GetUser(createUserWithEmail(email), 1),
       headers: {},
     })
   }
 
   public async userByUsername(username: string): Promise<GetUser | null> {
-    const user = new User()
+    const user = createUserWithEmail('testemail@gmail.com')
     user.alias = username
-    user.emailContact = new UserContact()
-    user.emailContact.email = 'testemail@gmail.com'
     return Promise.resolve(new GetUser(user, 1))
   }
 
@@ -58,10 +59,7 @@ export class HumHubClient {
   }
 
   public async updateUser(inputUser: PostUser, humhubUserId: number): Promise<GetUser | null> {
-    const user = new User()
-    user.emailContact = new UserContact()
-    user.emailContact.email = inputUser.account.email
-    return Promise.resolve(new GetUser(user, humhubUserId))
+    return Promise.resolve(new GetUser(createUserWithEmail(inputUser.account.email), humhubUserId))
   }
 
   public async deleteUser(): Promise<void> {

@@ -18,9 +18,7 @@ export class User {
       }
       this.gradidoID = user.gradidoID
       this.alias = user.alias
-      if (user.emailContact) {
-        this.emailChecked = user.emailContact.emailChecked
-      }
+      this.emailChecked = user.getPrimaryUserContact().emailChecked
       this.firstName = user.firstName
       this.lastName = user.lastName
       this.deletedAt = user.deletedAt

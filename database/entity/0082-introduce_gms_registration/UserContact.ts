@@ -8,7 +8,8 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm'
-import { User } from '../User'
+// use local user because of changes in current user
+import { User } from './User'
 
 @Entity('user_contacts', { engine: 'InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci' })
 export class UserContact extends BaseEntity {

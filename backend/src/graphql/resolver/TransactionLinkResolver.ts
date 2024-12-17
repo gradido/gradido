@@ -326,7 +326,7 @@ export class TransactionLinkResolver {
           where: {
             id: transactionLink.userId,
           },
-          relations: ['emailContact'],
+          relations: { userContacts: true },
         })
 
         if (!linkedUser) {

@@ -25,9 +25,6 @@ export class UserLoggingView extends AbstractLoggingView {
       gradidoID: this.self.gradidoID,
       communityUuid: this.self.communityUuid,
       alias: this.self.alias?.substring(0, 3) + '...',
-      emailContact: this.self.emailContact
-        ? new UserContactLoggingView(this.self.emailContact).toJSON()
-        : { id: this.self.emailId },
       firstName: this.self.firstName?.substring(0, 3) + '...',
       lastName: this.self.lastName?.substring(0, 3) + '...',
       createdAt: this.dateToString(this.self.createdAt),

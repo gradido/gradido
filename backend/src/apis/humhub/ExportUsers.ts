@@ -17,10 +17,10 @@ const HUMHUB_BULK_SIZE = 50
 
 function getUsersPage(page: number, limit: number): Promise<[User[], number]> {
   return User.findAndCount({
-    relations: { emailContact: true },
+    relations: { userContacts: true },
     skip: page * limit,
     take: limit,
-    where: { emailContact: { email: Not(IsNull()) } },
+    where: { userContacts: { email: Not(IsNull()) } },
   })
 }
 

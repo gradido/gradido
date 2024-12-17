@@ -1,15 +1,13 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
-import { User } from '@entity/User'
-import { UserContact } from '@entity/UserContact'
+import { communityDbUser } from '@/util/communityUser'
 
 import { GetUser } from './model/GetUser'
 import { syncUser, ExecutedHumhubAction } from './syncUser'
 
 jest.mock('@/apis/humhub/HumHubClient')
 
-const defaultUser = new User()
-defaultUser.emailContact = new UserContact()
-defaultUser.emailContact.email = 'email@gmail.com'
+const defaultUser = communityDbUser
+defaultUser.getPrimaryUserContact().email = 'email@gmail.com'
 
 describe('syncUser function', () => {
   afterAll(() => {
@@ -28,7 +26,7 @@ describe('syncUser function', () => {
 
   it('When humhubUser exists and user.humhubAllowed is false, should return DELETE action', async () => {
     const humhubUsers = new Map<string, GetUser>()
-    humhubUsers.set(defaultUser.emailContact.email, new GetUser(defaultUser, 1))
+    humhubUsers.set(defaultUser.getPrimaryUserContact().email, new GetUser(defaultUser, 1))
 
     defaultUser.humhubAllowed = false
     const result = await syncUser(defaultUser, humhubUsers)
@@ -40,7 +38,7 @@ describe('syncUser function', () => {
     const humhubUsers = new Map<string, GetUser>()
     const humhubUser = new GetUser(defaultUser, 1)
     humhubUser.account.username = 'test username'
-    humhubUsers.set(defaultUser.emailContact.email, humhubUser)
+    humhubUsers.set(defaultUser.getPrimaryUserContact().email, humhubUser)
 
     defaultUser.humhubAllowed = true
     const result = await syncUser(defaultUser, humhubUsers)
@@ -51,7 +49,7 @@ describe('syncUser function', () => {
   it('When humhubUser exists and user.humhubAllowed is true and there are no changes in user data, should return SKIP action', async () => {
     const humhubUsers = new Map<string, GetUser>()
     const humhubUser = new GetUser(defaultUser, 1)
-    humhubUsers.set(defaultUser.emailContact.email, humhubUser)
+    humhubUsers.set(defaultUser.getPrimaryUserContact().email, humhubUser)
 
     defaultUser.humhubAllowed = true
     const result = await syncUser(defaultUser, humhubUsers)

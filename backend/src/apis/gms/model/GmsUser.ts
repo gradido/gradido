@@ -83,27 +83,30 @@ export class GmsUser {
   }
 
   private getGmsEmail(user: dbUser): string | undefined {
-    if (user.gmsAllowed && user.emailContact.gmsPublishEmail) {
-      return user.emailContact.email
+    const primaryContact = user.getPrimaryUserContact()
+    if (user.gmsAllowed && primaryContact.gmsPublishEmail) {
+      return primaryContact.email
     }
   }
 
   private getGmsCountryCode(user: dbUser): string | undefined {
+    const primaryContact = user.getPrimaryUserContact()
     if (
       user.gmsAllowed &&
-      (user.emailContact.gmsPublishPhone === GmsPublishPhoneType.GMS_PUBLISH_PHONE_COUNTRY ||
-        user.emailContact.gmsPublishPhone === GmsPublishPhoneType.GMS_PUBLISH_PHONE_FULL)
+      (primaryContact.gmsPublishPhone === GmsPublishPhoneType.GMS_PUBLISH_PHONE_COUNTRY ||
+        primaryContact.gmsPublishPhone === GmsPublishPhoneType.GMS_PUBLISH_PHONE_FULL)
     ) {
-      return user.emailContact.countryCode
+      return primaryContact.countryCode
     }
   }
 
   private getGmsPhone(user: dbUser): string | undefined {
+    const primaryContact = user.getPrimaryUserContact()
     if (
       user.gmsAllowed &&
-      user.emailContact.gmsPublishPhone === GmsPublishPhoneType.GMS_PUBLISH_PHONE_FULL
+      primaryContact.gmsPublishPhone === GmsPublishPhoneType.GMS_PUBLISH_PHONE_FULL
     ) {
-      return user.emailContact.phone
+      return primaryContact.phone
     }
   }
 }
