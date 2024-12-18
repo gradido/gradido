@@ -32,7 +32,7 @@ export const findUsers = async (
     {
       firstName: likeQuery(searchCriteria),
       deletedAt: deletedAtQuery(filters),
-      emailContact: filters
+      userContacts: filters
         ? {
             emailChecked: emailCheckedQuery(filters),
           }
@@ -41,14 +41,14 @@ export const findUsers = async (
     {
       lastName: likeQuery(searchCriteria),
       deletedAt: deletedAtQuery(filters),
-      emailContact: filters
+      userContacts: filters
         ? {
             emailChecked: emailCheckedQuery(filters),
           }
         : undefined,
     },
     {
-      emailContact: {
+      userContacts: {
         // ...(filters ?? emailChecked: filters.byActivated)
         emailChecked: filters ? emailCheckedQuery(filters) : undefined,
         email: likeQuery(searchCriteria),
@@ -57,7 +57,7 @@ export const findUsers = async (
     },
   ]
   const selectFind = Object.fromEntries(select.map((item) => [item, true]))
-  const relations = { emailContacts: true, userRoles: true }
+  const relations = { userContacts: true, userRoles: true }
   const orderFind = {
     id: order,
   }

@@ -326,7 +326,7 @@ export class ContributionResolver {
   ): Promise<ContributionListResult> {
     const [dbContributions, count] = await findContributions(paginated, filter, true, {
       user: {
-        UserContacts: true,
+        userContacts: true,
       },
       messages: true,
     })

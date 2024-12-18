@@ -160,7 +160,7 @@ describe('UserResolver', () => {
       })
 
       describe('filling all tables', () => {
-        it('saves the user in users table', () => {
+        it('saves the user with user contact in users table', () => {
           expect(user).toEqual([
             {
               id: expect.any(Number),
@@ -168,7 +168,26 @@ describe('UserResolver', () => {
               hideAmountGDD: expect.any(Boolean),
               hideAmountGDT: expect.any(Boolean),
               alias: null,
-              userContacts: [],
+              userContacts: [
+                {
+                  id: expect.any(Number),
+                  type: UserContactType.USER_CONTACT_EMAIL,
+                  isPrimary: true,
+                  userId: user[0].id,
+                  email: 'peter@lustig.de',
+                  emailChecked: false,
+                  emailVerificationCode: expect.any(String),
+                  emailOptInTypeId: OptInType.EMAIL_OPT_IN_REGISTER,
+                  emailResendCount: 0,
+                  countryCode: null,
+                  phone: null,
+                  createdAt: expect.any(Date),
+                  deletedAt: null,
+                  updatedAt: null,
+                  gmsPublishEmail: false,
+                  gmsPublishPhone: 0,
+                },
+              ],
               firstName: 'Peter',
               lastName: 'Lustig',
               password: '0',
@@ -197,26 +216,6 @@ describe('UserResolver', () => {
           const verUUID = versionUUID(user[0].gradidoID)
           expect(valUUID).toEqual(true)
           expect(verUUID).toEqual(4)
-        })
-
-        it('creates an email contact', () => {
-          expect(user[0].getPrimaryUserContact()).toEqual({
-            id: expect.any(Number),
-            type: UserContactType.USER_CONTACT_EMAIL,
-            userId: user[0].id,
-            email: 'peter@lustig.de',
-            emailChecked: false,
-            emailVerificationCode: expect.any(String),
-            emailOptInTypeId: OptInType.EMAIL_OPT_IN_REGISTER,
-            emailResendCount: 0,
-            countryCode: null,
-            phone: null,
-            createdAt: expect.any(Date),
-            deletedAt: null,
-            updatedAt: null,
-            gmsPublishEmail: false,
-            gmsPublishPhone: 0,
-          })
         })
       })
 
@@ -2746,11 +2745,11 @@ describe('UserResolver', () => {
             }),
           ).resolves.toEqual(
             expect.objectContaining({
-              errors: [new GraphQLError('No user with this credentials')],
+              errors: [new GraphQLError('No user found to given identifier(s)')],
             }),
           )
           expect(logger.error).toBeCalledWith(
-            'No user with this credentials',
+            'No user found to given identifier(s)',
             'bibi@bloxberg.de',
             foreignCom1.communityUuid,
           )
