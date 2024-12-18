@@ -69,6 +69,7 @@ import { backendLogger as logger } from '@/server/logger'
 import { communityDbUser } from '@/util/communityUser'
 import { hasElopageBuys } from '@/util/hasElopageBuys'
 import { getTimeDurationObject, printTimeDuration } from '@/util/time'
+import { delay } from '@/util/utilities'
 
 import random from 'random-bigint'
 import { randombytes_random } from 'sodium-native'
@@ -86,7 +87,6 @@ import { setUserRole, deleteUserRole } from './util/modifyUserRole'
 import { sendUserToGms } from './util/sendUserToGms'
 import { syncHumhub } from './util/syncHumhub'
 import { validateAlias } from './util/validateAlias'
-import { delay } from '@/util/utilities'
 
 const LANGUAGES = ['de', 'en', 'es', 'fr', 'nl']
 const DEFAULT_LANGUAGE = 'de'
