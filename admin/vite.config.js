@@ -53,7 +53,7 @@ export default defineConfig({
       URL_PROTOCOL: CONFIG.ADMIN_MODULE_PROTOCOL, // null,
       WALLET_URL: CONFIG.WALLET_AUTH_URL, // null,
       GRAPHQL_URL: CONFIG.GRAPHQL_URI, // null,
-      GRAPHQL_PATH: process.env.GRAPHQL_PATH, // null,
+      GRAPHQL_PATH: process.env.GRAPHQL_PATH ?? '/graphql', // null,
       WALLET_AUTH_PATH: CONFIG.WALLET_AUTH_URL, // null,
       WALLET_LOGIN_PATH: CONFIG.WALLET_LOGIN_URL, // null,
       DEBUG_DISABLE_AUTH: CONFIG.DEBUG_DISABLE_AUTH, // null,
