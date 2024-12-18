@@ -189,6 +189,7 @@ export class UserResolver {
     i18n.setLocale(user.language)
 
     // Elopage Status & Stored PublisherId
+    // TODO: it is still even used?
     user.hasElopage = await this.hasElopage({ ...context, user: dbUser })
     logger.info('user.hasElopage', user.hasElopage)
     if (!user.hasElopage && publisherId) {
@@ -196,13 +197,8 @@ export class UserResolver {
       dbUser.publisherId = publisherId
       await DbUser.save(dbUser)
     }
-
-    context.setHeaders.push({
-      key: 'token',
-      value: await encode(dbUser.gradidoID),
-    })
-
-    await EVENT_USER_LOGIN(dbUser)
+    const encodeJwtPromise = encode(dbUser.gradidoID)
+    const storeEventPromise = EVENT_USER_LOGIN(dbUser)
     // load humhub state
     if (humhubUserPromise) {
       try {
@@ -214,6 +210,11 @@ export class UserResolver {
       }
     }
     user.klickTipp = await klicktippStatePromise
+    context.setHeaders.push({
+      key: 'token',
+      value: await encodeJwtPromise,
+    })
+    await storeEventPromise
     logger.info(`successful Login: ${JSON.stringify(user, null, 2)}`)
     return user
   }
