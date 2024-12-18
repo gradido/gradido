@@ -86,6 +86,7 @@ import { setUserRole, deleteUserRole } from './util/modifyUserRole'
 import { sendUserToGms } from './util/sendUserToGms'
 import { syncHumhub } from './util/syncHumhub'
 import { validateAlias } from './util/validateAlias'
+import { delay } from '@/util/utilities'
 
 const LANGUAGES = ['de', 'en', 'es', 'fr', 'nl']
 const DEFAULT_LANGUAGE = 'de'
@@ -150,7 +151,16 @@ export class UserResolver {
   ): Promise<User> {
     logger.info(`login with ${email}, ***, ${publisherId} ...`)
     email = email.trim().toLowerCase()
-    const dbUser = await findUserByEmail(email)
+    let dbUser: DbUser
+
+    try {
+      dbUser = await findUserByEmail(email)
+    } catch (e) {
+      // simulate delay which occur on password encryption 650 ms +- 50 rnd
+      await delay(650 + Math.floor(Math.random() * 101) - 50)
+      throw e
+    }
+
     if (dbUser.deletedAt) {
       throw new LogError('This user was permanently deleted. Contact support for questions', dbUser)
     }
