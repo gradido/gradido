@@ -162,7 +162,7 @@ export class UserResolver {
       // TODO we want to catch this on the frontend and ask the user to check his emails or resend code
       throw new LogError('The User has not set a password yet', dbUser)
     }
-    if (!verifyPassword(dbUser, password)) {
+    if (!(await verifyPassword(dbUser, password))) {
       throw new LogError('No user with this credentials', dbUser)
     }
 
@@ -178,7 +178,7 @@ export class UserResolver {
 
     if (dbUser.passwordEncryptionType !== PasswordEncryptionType.GRADIDO_ID) {
       dbUser.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
-      dbUser.password = encryptPassword(dbUser, password)
+      dbUser.password = await encryptPassword(dbUser, password)
       await dbUser.save()
     }
     // add pubKey in logger-context for layout-pattern X{user} to print it in each logging message
@@ -502,7 +502,7 @@ export class UserResolver {
 
     // Update Password
     user.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
-    user.password = encryptPassword(user, password)
+    user.password = await encryptPassword(user, password)
     logger.debug('User credentials updated ...')
 
     const queryRunner = getConnection().createQueryRunner()
@@ -632,13 +632,13 @@ export class UserResolver {
         )
       }
 
-      if (!verifyPassword(user, password)) {
+      if (!(await verifyPassword(user, password))) {
         throw new LogError(`Old password is invalid`)
       }
 
       // Save new password hash and newly encrypted private key
       user.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
-      user.password = encryptPassword(user, passwordNew)
+      user.password = await encryptPassword(user, passwordNew)
     }
 
     // Save hideAmountGDD value
