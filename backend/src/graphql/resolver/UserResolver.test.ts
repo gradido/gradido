@@ -587,8 +587,8 @@ describe('UserResolver', () => {
         expect(newUser.emailContact.emailChecked).toBeTruthy()
       })
 
-      it('updates the password', () => {
-        const encryptedPass = encryptPassword(newUser, 'Aa12345_')
+      it('updates the password', async () => {
+        const encryptedPass = await encryptPassword(newUser, 'Aa12345_')
         expect(newUser.password.toString()).toEqual(encryptedPass.toString())
       })
 
@@ -1546,7 +1546,9 @@ describe('UserResolver', () => {
 
         expect(bibi).toEqual(
           expect.objectContaining({
-            password: SecretKeyCryptographyCreateKey(bibi.gradidoID.toString(), 'Aa12345_')[0]
+            password: Buffer.from(
+              (await SecretKeyCryptographyCreateKey(bibi.gradidoID.toString(), 'Aa12345_'))[0],
+            )
               .readBigUInt64LE()
               .toString(),
             passwordEncryptionType: PasswordEncryptionType.GRADIDO_ID,
@@ -1570,10 +1572,9 @@ describe('UserResolver', () => {
         })
         bibi = usercontact.user
         bibi.passwordEncryptionType = PasswordEncryptionType.EMAIL
-        bibi.password = SecretKeyCryptographyCreateKey(
-          'bibi@bloxberg.de',
-          'Aa12345_',
-        )[0].readBigUInt64LE()
+        bibi.password = Buffer.from(
+          (await SecretKeyCryptographyCreateKey('bibi@bloxberg.de', 'Aa12345_'))[0],
+        ).readBigUInt64LE()
 
         await bibi.save()
       })
@@ -1590,7 +1591,9 @@ describe('UserResolver', () => {
         expect(bibi).toEqual(
           expect.objectContaining({
             firstName: 'Bibi',
-            password: SecretKeyCryptographyCreateKey(bibi.gradidoID.toString(), 'Aa12345_')[0]
+            password: Buffer.from(
+              (await SecretKeyCryptographyCreateKey(bibi.gradidoID.toString(), 'Aa12345_'))[0],
+            )
               .readBigUInt64LE()
               .toString(),
             passwordEncryptionType: PasswordEncryptionType.GRADIDO_ID,

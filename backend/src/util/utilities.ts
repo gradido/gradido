@@ -1,3 +1,5 @@
+import { promisify } from 'util'
+
 import { Decimal } from 'decimal.js-light'
 import i18n from 'i18n'
 
@@ -29,6 +31,8 @@ export function resetInterface<T extends Record<string, any>>(obj: T): T {
   }
   return obj
 }
+
+export const delay = promisify(setTimeout)
 
 export const ensureUrlEndsWithSlash = (url: string): string => {
   return url.endsWith('/') ? url : url.concat('/')
