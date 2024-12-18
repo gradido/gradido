@@ -31,8 +31,6 @@ import { User } from '@model/User'
 import { UserAdmin, SearchUsersResult } from '@model/UserAdmin'
 import { UserLocationResult } from '@model/UserLocationResult'
 
-import { updateGmsUser } from '@/apis/gms/GmsClient'
-import { GmsUser } from '@/apis/gms/model/GmsUser'
 import { HumHubClient } from '@/apis/humhub/HumHubClient'
 import { GetUser } from '@/apis/humhub/model/GetUser'
 import { subscribe } from '@/apis/KlicktippController'
