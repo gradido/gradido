@@ -122,7 +122,7 @@ describe('GdtTransactionList', () => {
       it('emits input event after currentPage changes', async () => {
         await wrapper.findComponent({ name: 'BPagination' }).vm.$emit('update:modelValue', 2)
         await nextTick()
-        expect(wrapper.emitted('input')).toEqual([[2]])
+        expect(wrapper.emitted('update:modelValue')).toEqual([[2]])
       })
 
       describe('pagination buttons', () => {

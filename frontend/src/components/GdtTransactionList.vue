@@ -29,7 +29,7 @@
     </div>
     <BPagination
       v-if="transactionGdtCount > pageSize"
-      :model-value="currentPage"
+      v-model="currentPage"
       class="mt-3"
       pills
       size="lg"
@@ -37,7 +37,6 @@
       :total-rows="transactionGdtCount"
       align="center"
       :hide-ellipsis="true"
-      @update:model-value="currentPage = $event"
     />
   </div>
 </template>
@@ -61,13 +60,16 @@ export default {
   },
   data() {
     return {
-      currentPage: this.value,
+      currentPage: this.modelValue,
       link: 'https://gradido.net/' + this.$store.state.language + '/memberships/',
     }
   },
   watch: {
-    currentPage() {
-      if (this.modelValue !== this.currentPage) this.$emit('input', this.currentPage)
+    modelValue(newValue) {
+      this.currentPage = newValue
+    },
+    currentPage(newValue) {
+      if (this.modelValue !== newValue) this.$emit('update:modelValue', newValue)
     },
   },
 }
