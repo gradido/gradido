@@ -1,21 +1,20 @@
 import { User } from '@entity/User'
-import { UserContact } from '@entity/UserContact'
 
 import { HumHubClient } from '@/apis/humhub/HumHubClient'
 import { GetUser } from '@/apis/humhub/model/GetUser'
 import { UpdateUserInfosArgs } from '@/graphql/arg/UpdateUserInfosArgs'
 import { PublishNameType } from '@/graphql/enum/PublishNameType'
 import { backendLogger as logger } from '@/server/logger'
+import { communityDbUser } from '@/util/communityUser'
 
 import { syncHumhub } from './syncHumhub'
 
 jest.mock('@/apis/humhub/HumHubClient')
 jest.mock('@/apis/humhub/syncUser')
 
-const mockUser = new User()
+const mockUser = communityDbUser
 mockUser.humhubAllowed = true
-mockUser.emailContact = new UserContact()
-mockUser.emailContact.email = 'email@gmail.com'
+mockUser.getPrimaryUserContact().email = 'email@gmail.com'
 mockUser.humhubPublishName = PublishNameType.PUBLISH_NAME_FULL
 const mockUpdateUserInfosArg = new UpdateUserInfosArgs()
 const mockHumHubUser = new GetUser(mockUser, 1)
@@ -41,7 +40,6 @@ describe('syncHumhub', () => {
 
   it('Should retrieve user from humhub and sync if relevant changes', async () => {
     mockUpdateUserInfosArg.firstName = 'New' // Relevant changes
-    mockUser.firstName = 'New'
     await syncHumhub(mockUpdateUserInfosArg, mockUser)
     expect(logger.debug).toHaveBeenCalledTimes(8) // Four language logging calls, two debug calls in function, one for not syncing
     expect(logger.info).toHaveBeenLastCalledWith('finished sync user with humhub', {

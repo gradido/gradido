@@ -29,7 +29,9 @@ export class GdtResolver {
     try {
       const resultGDT = await apiGet(
         // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-        `${CONFIG.GDT_API_URL}/GdtEntries/listPerEmailApi/${userEntity.emailContact.email}/${currentPage}/${pageSize}/${order}`,
+        `${CONFIG.GDT_API_URL}/GdtEntries/listPerEmailApi/${
+          userEntity.getPrimaryUserContact().email
+        }/${currentPage}/${pageSize}/${order}`,
       )
       if (!resultGDT.success) {
         return new GdtEntryList()
@@ -54,7 +56,7 @@ export class GdtResolver {
     const user = getUser(context)
     try {
       const resultGDTSum = await apiPost(`${CONFIG.GDT_API_URL}/GdtEntries/sumPerEmailApi`, {
-        email: user.emailContact.email,
+        email: user.getPrimaryUserContact().email,
       })
       if (!resultGDTSum.success) {
         throw new LogError('Call not successful')

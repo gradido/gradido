@@ -53,9 +53,9 @@ describe('EmailOptinCodes', () => {
     } = await mutate({ mutation: createUser, variables })
     const dbObject = await DbUser.findOneOrFail({
       where: { id: user.id },
-      relations: ['emailContact'],
+      relations: { userContacts: true },
     })
-    optinCode = dbObject.emailContact.emailVerificationCode.toString()
+    optinCode = dbObject.getPrimaryUserContact().emailVerificationCode.toString()
   })
 
   describe('queryOptIn', () => {

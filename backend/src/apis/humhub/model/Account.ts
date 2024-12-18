@@ -9,7 +9,7 @@ export class Account {
   public constructor(user: User) {
     const publishNameLogic = new PublishNameLogic(user)
     this.username = publishNameLogic.getUsername(user.humhubPublishName as PublishNameType)
-    this.email = user.emailContact.email
+    this.email = user.getPrimaryUserContact().email
     this.language = convertGradidoLanguageToHumhub(user.language)
     this.status = 1
   }

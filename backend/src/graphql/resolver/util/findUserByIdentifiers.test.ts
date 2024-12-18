@@ -66,7 +66,7 @@ describe('graphql/resolver/util/findUserByIdentifier', () => {
     })
 
     it('userIdentifier is email', async () => {
-      const user = await findUserByIdentifier(userBibi.emailContact.email, communityUuid)
+      const user = await findUserByIdentifier(userBibi.getPrimaryUserContact().email, communityUuid)
       user.userRoles = []
       expect(user).toMatchObject(userBibi)
     })
@@ -86,7 +86,7 @@ describe('graphql/resolver/util/findUserByIdentifier', () => {
     })
 
     it('userIdentifier is email', async () => {
-      const user = await findUserByIdentifier(userBibi.emailContact.email, communityName)
+      const user = await findUserByIdentifier(userBibi.getPrimaryUserContact().email, communityName)
       user.userRoles = []
       expect(user).toMatchObject(userBibi)
     })
