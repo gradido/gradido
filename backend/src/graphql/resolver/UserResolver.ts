@@ -974,7 +974,7 @@ export async function findUserByEmail(email: string): Promise<DbUser> {
       userContacts: { email },
     },
     withDeleted: true,
-    relations: ['userContacts', 'userRoles'],
+    relations: { userContacts: true, userRoles: true },
   }).catch(() => {
     throw new LogError('No user with this credentials', email)
   })
