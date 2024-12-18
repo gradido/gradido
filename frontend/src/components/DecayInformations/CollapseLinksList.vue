@@ -42,7 +42,7 @@ export default {
       type: Number,
       required: true,
     },
-    value: { type: Number, required: true },
+    modelValue: { type: Number, required: true },
     pageSize: { type: Number, default: 5 },
     pending: { type: Boolean, default: false },
   },
@@ -56,10 +56,10 @@ export default {
   },
   methods: {
     resetTransactionLinkList() {
-      this.$emit('input', 0)
+      this.$emit('update:modelValue', 0)
     },
     loadMoreLinks() {
-      this.$emit('input', this.value + 1)
+      this.$emit('update:modelValue', this.modelValue + 1)
     },
   },
 }

@@ -1,6 +1,7 @@
 node_modules/
 build/
 .cache/
+.yarn/install-state.gz
 
 /.env
 /.env.bak

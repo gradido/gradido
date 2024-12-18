@@ -28,8 +28,8 @@ export class GmsUser {
   status: number
   createdAt: Date
   updatedAt: Date
-  firstName: string | undefined
-  lastName: string | undefined
+  firstName: string | null | undefined
+  lastName: string | null | undefined
   alias: string | undefined
   type: number
   address: string | undefined
@@ -48,9 +48,19 @@ export class GmsUser {
     ) {
       return user.alias
     }
+    if (
+      user.gmsAllowed &&
+      ((!user.alias && user.gmsPublishName === PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS) ||
+        user.gmsPublishName === PublishNameType.PUBLISH_NAME_INITIALS)
+    ) {
+      return (
+        this.firstUpperCaseSecondLowerCase(user.firstName) +
+        this.firstUpperCaseSecondLowerCase(user.lastName)
+      )
+    }
   }
 
-  private getGmsFirstName(user: dbUser): string | undefined {
+  private getGmsFirstName(user: dbUser): string | null | undefined {
     if (
       user.gmsAllowed &&
       (user.gmsPublishName === PublishNameType.PUBLISH_NAME_FIRST ||
@@ -64,22 +74,30 @@ export class GmsUser {
       ((!user.alias && user.gmsPublishName === PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS) ||
         user.gmsPublishName === PublishNameType.PUBLISH_NAME_INITIALS)
     ) {
-      return user.firstName.substring(0, 1)
+      // return this.firstUpperCaseSecondLowerCase(user.firstName)
+      return null // cause to delete firstname in gms
     }
   }
 
-  private getGmsLastName(user: dbUser): string | undefined {
+  private getGmsLastName(user: dbUser): string | null | undefined {
     if (user.gmsAllowed && user.gmsPublishName === PublishNameType.PUBLISH_NAME_FULL) {
       return user.lastName
     }
+    if (user.gmsAllowed && user.gmsPublishName === PublishNameType.PUBLISH_NAME_FIRST_INITIAL) {
+      return this.firstUpperCaseSecondLowerCase(user.lastName)
+    }
+    return null // cause to delete lastname in gms
+
+    /*
     if (
       user.gmsAllowed &&
       ((!user.alias && user.gmsPublishName === PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS) ||
         user.gmsPublishName === PublishNameType.PUBLISH_NAME_FIRST_INITIAL ||
         user.gmsPublishName === PublishNameType.PUBLISH_NAME_INITIALS)
     ) {
-      return user.lastName.substring(0, 1)
+      return this.firstUpperCaseSecondLowerCase(user.lastName)
     }
+    */
   }
 
   private getGmsEmail(user: dbUser): string | undefined {
@@ -105,5 +123,12 @@ export class GmsUser {
     ) {
       return user.emailContact.phone
     }
+  }
+
+  private firstUpperCaseSecondLowerCase(name: string) {
+    if (name && name.length >= 2) {
+      return name.charAt(0).toUpperCase() + name.charAt(1).toLocaleLowerCase()
+    }
+    return name
   }
 }
