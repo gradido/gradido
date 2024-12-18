@@ -20,7 +20,9 @@ export class HumHubClient {
 
   // eslint-disable-next-line no-useless-constructor, @typescript-eslint/no-empty-function
   private constructor() {
-    this.restClient = new RestClient('gradido-backend', CONFIG.HUMHUB_API_URL)
+    this.restClient = new RestClient('gradido-backend', CONFIG.HUMHUB_API_URL, undefined, {
+      keepAlive: true,
+    })
     logger.info('create rest client for', CONFIG.HUMHUB_API_URL)
   }
 
