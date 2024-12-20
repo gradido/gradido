@@ -16,6 +16,8 @@ import { peterLustig } from '@/seeds/users/peter-lustig'
 
 import { findUserByIdentifier } from './findUserByIdentifier'
 
+jest.mock('@/password/EncryptorUtils')
+
 let con: Connection
 let testEnv: {
   mutate: ApolloServerTestClient['mutate']

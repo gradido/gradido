@@ -21,7 +21,7 @@ const configLoginServerKey = Buffer.from(CONFIG.LOGIN_SERVER_KEY, 'hex')
 
 // TODO: put maxQueueSize into config
 const encryptionWorkerPool = pool(
-  path.join(__dirname, '..', '..', 'build', 'src', 'password', '/EncryptionWorker.js'),
+  path.join(__dirname, '..', '..', 'build', 'src', 'password', '/EncryptionWorker.ts'),
   {
     maxQueueSize: 30 * cpus().length,
   },

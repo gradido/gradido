@@ -74,6 +74,7 @@ import { objectValuesToArray } from '@/util/utilities'
 import { Location2Point } from './util/Location2Point'
 
 jest.mock('@/apis/humhub/HumHubClient')
+jest.mock('@/password/EncryptorUtils')
 
 jest.mock('@/emails/sendEmailVariants', () => {
   const originalModule = jest.requireActual('@/emails/sendEmailVariants')

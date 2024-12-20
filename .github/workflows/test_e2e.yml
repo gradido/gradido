@@ -35,7 +35,7 @@ jobs:
           cd database
           yarn && yarn dev_reset
           cd ../backend
-          yarn && yarn seed
+          yarn && yarn build && yarn seed
 
       - name: Boot up test system | docker-compose mailserver
         run: docker compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps mailserver
