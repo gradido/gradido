@@ -1,5 +1,7 @@
 import { worker } from 'workerpool'
 
+import { CONFIG } from '@/config'
+
 import {
   crypto_box_SEEDBYTES,
   crypto_hash_sha512_init,
@@ -45,6 +47,8 @@ export const SecretKeyCryptographyCreateKey = (
   return [new Uint8Array(encryptionKeyHash), new Uint8Array(encryptionKey)]
 }
 
-worker({
-  SecretKeyCryptographyCreateKey,
-})
+if (CONFIG.USE_CRYPTO_WORKER) {
+  worker({
+    SecretKeyCryptographyCreateKey,
+  })
+}
