@@ -24,6 +24,15 @@ export const authenticateGmsUserSearch = gql`
   }
 `
 
+export const userLocationQuery = gql`
+  query {
+    userLocation {
+      userLocation
+      communityLocation
+    }
+  }
+`
+
 export const queryOptIn = gql`
   query ($optIn: String!) {
     queryOptIn(optIn: $optIn)

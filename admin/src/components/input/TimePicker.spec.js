@@ -19,8 +19,8 @@ describe('TimePicker', () => {
     expect(wrapper.vm.timeValue).toBe('23:45')
 
     // Check if update:modelValue event is emitted with updated value
-    expect(wrapper.emitted('input')).toBeTruthy()
-    expect(wrapper.emitted('input')[0]).toEqual(['23:45'])
+    expect(wrapper.emitted('update:modelValue')).toBeTruthy()
+    expect(wrapper.emitted('update:modelValue')[0]).toEqual(['23:45'])
   })
 
   it('validates and corrects time format on blur', async () => {
@@ -30,8 +30,8 @@ describe('TimePicker', () => {
 
     // Simulate user input
     await input.setValue('99:99')
-    expect(wrapper.emitted('input')).toBeTruthy()
-    expect(wrapper.emitted('input')[0]).toEqual(['99:99'])
+    expect(wrapper.emitted('update:modelValue')).toBeTruthy()
+    expect(wrapper.emitted('update:modelValue')[0]).toEqual(['99:99'])
 
     // Trigger blur event
     await input.trigger('blur')
@@ -40,8 +40,8 @@ describe('TimePicker', () => {
     expect(wrapper.vm.timeValue).toBe('23:59') // Maximum allowed value for hours and minutes
 
     // Check if update:modelValue event is emitted with corrected value
-    expect(wrapper.emitted('input')).toBeTruthy()
-    expect(wrapper.emitted('input')[1]).toEqual(['23:59'])
+    expect(wrapper.emitted('update:modelValue')).toBeTruthy()
+    expect(wrapper.emitted('update:modelValue')[1]).toEqual(['23:59'])
   })
 
   it('checks handling of empty input', async () => {
@@ -58,7 +58,7 @@ describe('TimePicker', () => {
     expect(wrapper.vm.timeValue).toBe('00:00')
 
     // Check if update:modelValue event is emitted with default value
-    expect(wrapper.emitted('input')).toBeTruthy()
-    expect(wrapper.emitted('input')[1]).toEqual(['00:00'])
+    expect(wrapper.emitted('update:modelValue')).toBeTruthy()
+    expect(wrapper.emitted('update:modelValue')[1]).toEqual(['00:00'])
   })
 })

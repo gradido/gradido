@@ -1,9 +1,9 @@
 import { useI18n } from 'vue-i18n'
-import { useToast } from 'bootstrap-vue-next'
+import { useToastController } from 'bootstrap-vue-next'
 
 export function useAppToast() {
   const { t } = useI18n()
-  const { show } = useToast()
+  const { show } = useToastController()
   const toastSuccess = (message) => {
     toast(message, {
       title: t('success'),
