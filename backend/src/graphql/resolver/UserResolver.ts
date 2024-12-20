@@ -33,6 +33,7 @@ import { UserLocationResult } from '@model/UserLocationResult'
 
 import { HumHubClient } from '@/apis/humhub/HumHubClient'
 import { GetUser } from '@/apis/humhub/model/GetUser'
+import { PostUser } from '@/apis/humhub/model/PostUser'
 import { subscribe } from '@/apis/KlicktippController'
 import { encode } from '@/auth/JWT'
 import { RIGHTS } from '@/auth/RIGHTS'
@@ -169,9 +170,9 @@ export class UserResolver {
     let humhubUserPromise: Promise<IRestResponse<GetUser>> | undefined
     const klicktippStatePromise = getKlicktippState(dbUser.emailContact.email)
     if (CONFIG.HUMHUB_ACTIVE && dbUser.humhubAllowed) {
-      const publishNameLogic = new PublishNameLogic(dbUser)
+      const getHumhubUser = new PostUser(dbUser)
       humhubUserPromise = HumHubClient.getInstance()?.userByUsernameAsync(
-        publishNameLogic.getUsername(dbUser.humhubPublishName as PublishNameType),
+        getHumhubUser.account.username,
       )
     }
 
