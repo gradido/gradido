@@ -24,9 +24,12 @@ export const userFactory = async (
     },
   } = await mutate({ mutation: createUser, variables: user })
   // get user from database
-  let dbUser = await User.findOneOrFail({ where: { id }, relations: ['emailContact', 'userRoles'] })
+  let dbUser = await User.findOneOrFail({
+    where: { id },
+    relations: { userContacts: true, userRoles: true },
+  })
 
-  const emailContact = dbUser.emailContact
+  const emailContact = dbUser.getPrimaryUserContact()
 
   if (user.emailChecked) {
     await mutate({
@@ -63,7 +66,7 @@ export const userFactory = async (
   dbUser = await User.findOneOrFail({
     where: { id },
     withDeleted: true,
-    relations: ['emailContact', 'userRoles'],
+    relations: { userContacts: true, userRoles: true },
   })
   return dbUser
 }

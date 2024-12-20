@@ -326,7 +326,7 @@ export class TransactionLinkResolver {
           where: {
             id: transactionLink.userId,
           },
-          relations: ['emailContact'],
+          relations: { userContacts: true },
         })
 
         if (!linkedUser) {
@@ -393,7 +393,7 @@ export class TransactionLinkResolver {
     @Arg('userId', () => Int)
     userId: number,
   ): Promise<TransactionLinkResult> {
-    const user = await DbUser.findOne({ where: { id: userId } })
+    const user = await DbUser.findOne({ where: { id: userId }, relations: { userContacts: true } })
     if (!user) {
       throw new LogError('Could not find requested User', userId)
     }

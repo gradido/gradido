@@ -14,7 +14,7 @@ export const findUserByIdentifier = async (
   if (validate(identifier) && version(identifier) === 4) {
     user = await DbUser.findOne({
       where: { gradidoID: identifier, communityUuid: communityIdentifier },
-      relations: ['emailContact'],
+      relations: { userContacts: true },
     })
     if (!user) {
       throw new LogError('No user found to given identifier(s)', identifier, communityIdentifier)
@@ -41,11 +41,10 @@ export const findUserByIdentifier = async (
       )
     }
     user = userContact.user
-    user.emailContact = userContact
   } else if (VALID_ALIAS_REGEX.exec(identifier)) {
     user = await DbUser.findOne({
       where: { alias: identifier, communityUuid: communityIdentifier },
-      relations: ['emailContact'],
+      relations: { userContacts: true },
     })
     if (!user) {
       throw new LogError('No user found to given identifier(s)', identifier, communityIdentifier)

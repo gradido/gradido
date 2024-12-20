@@ -110,7 +110,7 @@ describe('send coins', () => {
       password: 'Aa12345_',
     }
 
-    user = await User.find({ relations: ['emailContact'] })
+    user = await User.find({ relations: { userContacts: true } })
   })
 
   afterAll(async () => {
@@ -136,14 +136,14 @@ describe('send coins', () => {
         }),
       ).toEqual(
         expect.objectContaining({
-          errors: [new GraphQLError('No user with this credentials')],
+          errors: [new GraphQLError('No user found to given identifier(s)')],
         }),
       )
     })
 
     it('logs the error thrown', () => {
       expect(logger.error).toBeCalledWith(
-        'No user with this credentials',
+        'No user found to given identifier(s)',
         'wrong@email.com',
         homeCom.communityUuid,
       )
@@ -169,14 +169,14 @@ describe('send coins', () => {
           }),
         ).toEqual(
           expect.objectContaining({
-            errors: [new GraphQLError('No user with this credentials')],
+            errors: [new GraphQLError('No user found to given identifier(s)')],
           }),
         )
       })
 
       it('logs the error thrown', () => {
         expect(logger.error).toBeCalledWith(
-          'No user with this credentials',
+          'No user found to given identifier(s)',
           'stephen@hawking.uk',
           homeCom.communityUuid,
         )
@@ -203,14 +203,14 @@ describe('send coins', () => {
           }),
         ).toEqual(
           expect.objectContaining({
-            errors: [new GraphQLError('No user with this credentials')],
+            errors: [new GraphQLError('No user found to given identifier(s)')],
           }),
         )
       })
 
       it('logs the error thrown', () => {
         expect(logger.error).toBeCalledWith(
-          'No user with this credentials',
+          'No user found to given identifier(s)',
           'garrick@ollivander.com',
           homeCom.communityUuid,
         )

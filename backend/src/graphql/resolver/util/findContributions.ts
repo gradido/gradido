@@ -70,7 +70,7 @@ export const findContributions = async (
         if (relations?.user) {
           qb.orWhere('user.first_name LIKE :firstName', { firstName: queryString })
             .orWhere('user.last_name LIKE :lastName', { lastName: queryString })
-            .orWhere('emailContact.email LIKE :emailContact', { emailContact: queryString })
+            .orWhere('userContacts.email LIKE :userContacts', { userContacts: queryString })
             .orWhere({ memo: Like(queryString) })
         }
       }),

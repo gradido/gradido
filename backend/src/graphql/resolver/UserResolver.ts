@@ -7,7 +7,7 @@ import { ContributionLink as DbContributionLink } from '@entity/ContributionLink
 import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
 import { User as DbUser } from '@entity/User'
 import { UserContact as DbUserContact } from '@entity/UserContact'
-import { UserRole } from '@entity/UserRole'
+import { UserContactLoggingView } from '@logging/UserContactLogging.view'
 import i18n from 'i18n'
 import { Resolver, Query, Args, Arg, Authorized, Ctx, Mutation, Int } from 'type-graphql'
 import { IRestResponse } from 'typed-rest-client'
@@ -94,11 +94,10 @@ const isLanguage = (language: string): boolean => {
   return LANGUAGES.includes(language)
 }
 
-const newEmailContact = (email: string, userId: number): DbUserContact => {
+const newEmailContact = (email: string): DbUserContact => {
   logger.trace(`newEmailContact...`)
   const emailContact = new DbUserContact()
   emailContact.email = email
-  emailContact.userId = userId
   emailContact.type = UserContactType.USER_CONTACT_EMAIL
   emailContact.emailChecked = false
   emailContact.emailOptInTypeId = OptInType.EMAIL_OPT_IN_REGISTER
@@ -139,7 +138,7 @@ export class UserResolver {
     user.hasElopage = await this.hasElopage(context)
 
     logger.debug(`verifyLogin... successful: ${user.firstName}.${user.lastName}`)
-    user.klickTipp = await getKlicktippState(userEntity.emailContact.email)
+    user.klickTipp = await getKlicktippState(userEntity.getPrimaryUserContact().email)
     return user
   }
 
@@ -155,7 +154,7 @@ export class UserResolver {
     if (dbUser.deletedAt) {
       throw new LogError('This user was permanently deleted. Contact support for questions', dbUser)
     }
-    if (!dbUser.emailContact.emailChecked) {
+    if (!dbUser.getPrimaryUserContact().emailChecked) {
       throw new LogError('The Users email is not validate yet', dbUser)
     }
     // TODO: at least in test this does not work since `dbUser.password = 0` and `BigInto(0) = 0n`
@@ -169,7 +168,7 @@ export class UserResolver {
 
     // request to humhub and klicktipp run in parallel
     let humhubUserPromise: Promise<IRestResponse<GetUser>> | undefined
-    const klicktippStatePromise = getKlicktippState(dbUser.emailContact.email)
+    const klicktippStatePromise = getKlicktippState(dbUser.getPrimaryUserContact().email)
     if (CONFIG.HUMHUB_ACTIVE && dbUser.humhubAllowed) {
       const getHumhubUser = new PostUser(dbUser)
       humhubUserPromise = HumHubClient.getInstance()?.userByUsernameAsync(
@@ -191,6 +190,7 @@ export class UserResolver {
     i18n.setLocale(user.language)
 
     // Elopage Status & Stored PublisherId
+    // TODO: it is still even used?
     user.hasElopage = await this.hasElopage({ ...context, user: dbUser })
     logger.info('user.hasElopage', user.hasElopage)
     if (!user.hasElopage && publisherId) {
@@ -198,13 +198,8 @@ export class UserResolver {
       dbUser.publisherId = publisherId
       await DbUser.save(dbUser)
     }
-
-    context.setHeaders.push({
-      key: 'token',
-      value: await encode(dbUser.gradidoID),
-    })
-
-    await EVENT_USER_LOGIN(dbUser)
+    const encodeJwtPromise = encode(dbUser.gradidoID)
+    const storeEventPromise = EVENT_USER_LOGIN(dbUser)
     // load humhub state
     if (humhubUserPromise) {
       try {
@@ -216,6 +211,11 @@ export class UserResolver {
       }
     }
     user.klickTipp = await klicktippStatePromise
+    context.setHeaders.push({
+      key: 'token',
+      value: await encodeJwtPromise,
+    })
+    await storeEventPromise
     logger.info(`successful Login: ${JSON.stringify(user, null, 2)}`)
     return user
   }
@@ -349,20 +349,13 @@ export class UserResolver {
     await queryRunner.connect()
     await queryRunner.startTransaction('REPEATABLE READ')
     try {
+      const emailContact = newEmailContact(email)
+      emailContact.isPrimary = true
+      dbUser.userContacts = [emailContact]
+      // save user contact alongside user with cascading
       dbUser = await queryRunner.manager.save(dbUser).catch((error) => {
         throw new LogError('Error while saving dbUser', error)
       })
-      let emailContact = newEmailContact(email, dbUser.id)
-      emailContact = await queryRunner.manager.save(emailContact).catch((error) => {
-        throw new LogError('Error while saving user email contact', error)
-      })
-
-      dbUser.emailContact = emailContact
-      dbUser.emailId = emailContact.id
-      await queryRunner.manager.save(dbUser).catch((error) => {
-        throw new LogError('Error while updating dbUser', error)
-      })
-
       const activationLink = CONFIG.EMAIL_LINK_VERIFICATION.replace(
         /{optin}/g,
         emailContact.emailVerificationCode.toString(),
@@ -433,28 +426,32 @@ export class UserResolver {
       logger.warn(`no user found with ${email}`)
       return true
     }
-    if (!canEmailResend(user.emailContact.updatedAt || user.emailContact.createdAt)) {
+    const primaryContact = user.getPrimaryUserContact()
+    if (!canEmailResend(primaryContact.updatedAt || primaryContact.createdAt)) {
       throw new LogError(
         `Email already sent less than ${printTimeDuration(CONFIG.EMAIL_CODE_REQUEST_TIME)} ago`,
       )
     }
 
-    user.emailContact.updatedAt = new Date()
-    user.emailContact.emailResendCount++
-    user.emailContact.emailVerificationCode = random(64).toString()
-    user.emailContact.emailOptInTypeId = OptInType.EMAIL_OPT_IN_RESET_PASSWORD
-    await user.emailContact.save().catch(() => {
-      throw new LogError('Unable to save email verification code', user.emailContact)
+    primaryContact.updatedAt = new Date()
+    primaryContact.emailResendCount++
+    primaryContact.emailVerificationCode = random(64).toString()
+    primaryContact.emailOptInTypeId = OptInType.EMAIL_OPT_IN_RESET_PASSWORD
+    await primaryContact.save().catch(() => {
+      throw new LogError(
+        'Unable to save email verification code',
+        new UserContactLoggingView(primaryContact),
+      )
     })
 
-    logger.info('optInCode for', email, user.emailContact)
+    logger.info('optInCode for', email, primaryContact)
 
     void sendResetPasswordEmail({
       firstName: user.firstName,
       lastName: user.lastName,
       email,
       language: user.language,
-      resetLink: activationLink(user.emailContact.emailVerificationCode),
+      resetLink: activationLink(primaryContact.emailVerificationCode),
       timeDurationObject: getTimeDurationObject(CONFIG.EMAIL_CODE_VALID_TIME),
     })
 
@@ -721,7 +718,7 @@ export class UserResolver {
   async hasElopage(@Ctx() context: Context): Promise<boolean> {
     logger.info(`hasElopage()...`)
     const userEntity = getUser(context)
-    const elopageBuys = hasElopageBuys(userEntity.emailContact.email)
+    const elopageBuys = hasElopageBuys(userEntity.getPrimaryUserContact().email)
     logger.debug('has ElopageBuys', elopageBuys)
     return elopageBuys
   }
@@ -754,7 +751,7 @@ export class UserResolver {
     const username = userNameLogic.getUsername(dbUser.humhubPublishName as PublishNameType)
     let humhubUser = await humhubClient.userByUsername(username)
     if (!humhubUser) {
-      humhubUser = await humhubClient.userByEmail(dbUser.emailContact.email)
+      humhubUser = await humhubClient.userByEmail(dbUser.getPrimaryUserContact().email)
     }
     if (!humhubUser) {
       throw new LogError("user don't exist (any longer) on humhub")
@@ -805,7 +802,7 @@ export class UserResolver {
     @Ctx() context: Context,
   ): Promise<SearchUsersResult> {
     const clientTimezoneOffset = getClientTimezoneOffset(context)
-    const userFields = ['id', 'firstName', 'lastName', 'emailId', 'emailContact', 'deletedAt']
+    const userFields = ['id', 'firstName', 'lastName', 'userContacts', 'deletedAt']
     const [users, count] = await findUsers(
       userFields,
       query,
@@ -830,18 +827,19 @@ export class UserResolver {
     const adminUsers = await Promise.all(
       users.map(async (user) => {
         let emailConfirmationSend = ''
-        if (!user.emailContact?.emailChecked) {
-          if (user.emailContact?.updatedAt) {
-            emailConfirmationSend = user.emailContact?.updatedAt.toISOString()
+        const primaryContact = user.getPrimaryUserContact()
+        if (!primaryContact.emailChecked) {
+          if (primaryContact.updatedAt) {
+            emailConfirmationSend = primaryContact.updatedAt.toISOString()
           } else {
-            emailConfirmationSend = user.emailContact?.createdAt.toISOString()
+            emailConfirmationSend = primaryContact.createdAt.toISOString()
           }
         }
         const userCreations = creations.find((c) => c.id === user.id)
         const adminUser = new UserAdmin(
           user,
           userCreations ? userCreations.creations : FULL_CREATION_AVAILABLE,
-          await hasElopageBuys(user.emailContact?.email),
+          await hasElopageBuys(primaryContact.email),
           emailConfirmationSend,
         )
         return adminUser
@@ -937,12 +935,13 @@ export class UserResolver {
     email = email.trim().toLowerCase()
     // const user = await dbUser.findOne({ id: emailContact.userId })
     const user = await findUserByEmail(email)
-    if (user.deletedAt || user.emailContact.deletedAt) {
+    const primaryContact = user.getPrimaryUserContact()
+    if (user.deletedAt || primaryContact.deletedAt) {
       throw new LogError('User with given email contact is deleted', email)
     }
 
-    user.emailContact.emailResendCount++
-    await user.emailContact.save()
+    primaryContact.emailResendCount++
+    await primaryContact.save()
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     void sendAccountActivationEmail({
@@ -950,7 +949,7 @@ export class UserResolver {
       lastName: user.lastName,
       email,
       language: user.language,
-      activationLink: activationLink(user.emailContact.emailVerificationCode),
+      activationLink: activationLink(primaryContact.emailVerificationCode),
       timeDurationObject: getTimeDurationObject(CONFIG.EMAIL_CODE_VALID_TIME),
     })
 
@@ -972,16 +971,15 @@ export class UserResolver {
 }
 
 export async function findUserByEmail(email: string): Promise<DbUser> {
-  const dbUserContact = await DbUserContact.findOneOrFail({
-    where: { email },
+  const dbUser = await DbUser.findOneOrFail({
+    where: {
+      userContacts: { email },
+    },
     withDeleted: true,
-    relations: ['user'],
+    relations: { userContacts: true, userRoles: true },
   }).catch(() => {
     throw new LogError('No user with this credentials', email)
   })
-  const dbUser = dbUserContact.user
-  dbUser.emailContact = dbUserContact
-  dbUser.userRoles = await UserRole.find({ where: { userId: dbUser.id } })
   return dbUser
 }
 

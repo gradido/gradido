@@ -103,8 +103,7 @@ describe('SendCoinsResolver', () => {
     sendContact = await newEmailContact('send.user@email.de', sendUser.id)
     sendContact = await DbUserContact.save(sendContact)
 
-    sendUser.emailContact = sendContact
-    sendUser.emailId = sendContact.id
+    sendUser.userContacts = [sendContact]
     await DbUser.save(sendUser)
 
     recipUser = DbUser.create()
@@ -118,8 +117,7 @@ describe('SendCoinsResolver', () => {
     recipContact = await newEmailContact('recip.user@email.de', recipUser.id)
     recipContact = await DbUserContact.save(recipContact)
 
-    recipUser.emailContact = recipContact
-    recipUser.emailId = recipContact.id
+    recipUser.userContacts = [recipContact]
     await DbUser.save(recipUser)
   })
 
@@ -668,6 +666,7 @@ async function newEmailContact(email: string, userId: number): Promise<DbUserCon
   emailContact.email = email
   emailContact.userId = userId
   emailContact.type = 'EMAIL'
+  emailContact.isPrimary = true
   emailContact.emailChecked = true
   emailContact.emailOptInTypeId = 1
   emailContact.emailVerificationCode = '1' + userId

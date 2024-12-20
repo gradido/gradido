@@ -6,15 +6,15 @@ import { EventType } from '@/event/EventType'
 import { lastDateTimeEvents } from '@/graphql/resolver/util/eventList'
 
 export async function retrieveNotRegisteredEmails(): Promise<string[]> {
-  const users = await User.find({ relations: ['emailContact'] })
+  const users = await User.find({ relations: { userContacts: true } })
   const notRegisteredUser = []
   for (const user of users) {
     try {
-      await getKlickTippUser(user.emailContact.email)
+      await getKlickTippUser(user.getPrimaryUserContact().email)
     } catch (err) {
-      notRegisteredUser.push(user.emailContact.email)
+      notRegisteredUser.push(user.getPrimaryUserContact().email)
       // eslint-disable-next-line no-console
-      console.log(`${user.emailContact.email}`)
+      console.log(`${user.getPrimaryUserContact().email}`)
     }
   }
   // eslint-disable-next-line no-console

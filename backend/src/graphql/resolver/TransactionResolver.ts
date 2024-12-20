@@ -185,25 +185,27 @@ export const executeTransaction = async (
     } finally {
       await queryRunner.release()
     }
+    const primaryRecipientContact = recipient.getPrimaryUserContact()
+    const primarySenderContact = sender.getPrimaryUserContact()
     void sendTransactionReceivedEmail({
       firstName: recipient.firstName,
       lastName: recipient.lastName,
-      email: recipient.emailContact.email,
+      email: primaryRecipientContact.email,
       language: recipient.language,
       senderFirstName: sender.firstName,
       senderLastName: sender.lastName,
-      senderEmail: sender.emailContact.email,
+      senderEmail: primarySenderContact.email,
       transactionAmount: amount,
     })
     if (transactionLink) {
       void sendTransactionLinkRedeemedEmail({
         firstName: sender.firstName,
         lastName: sender.lastName,
-        email: sender.emailContact.email,
+        email: primarySenderContact.email,
         language: sender.language,
         senderFirstName: recipient.firstName,
         senderLastName: recipient.lastName,
-        senderEmail: recipient.emailContact.email,
+        senderEmail: primaryRecipientContact.email,
         transactionAmount: amount,
         transactionMemo: memo,
       })
@@ -228,7 +230,7 @@ export class TransactionResolver {
     const user = getUser(context)
 
     logger.addContext('user', user.id)
-    logger.info(`transactionList(user=${user.firstName}.${user.lastName}, ${user.emailId})`)
+    logger.info(`transactionList(user=${user.firstName}.${user.lastName})`)
 
     const gdtResolver = new GdtResolver()
     const balanceGDTPromise = gdtResolver.gdtBalance(context)
@@ -313,7 +315,7 @@ export class TransactionResolver {
     const involvedDbUsers = await dbUser.find({
       where: { id: In(involvedUserIds) },
       withDeleted: true,
-      relations: ['emailContact'],
+      relations: { userContacts: true },
     })
     const involvedUsers = involvedDbUsers.map((u) => new User(u))
     logger.debug(`involvedUsers=`, involvedUsers)

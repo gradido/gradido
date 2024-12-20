@@ -3024,6 +3024,12 @@ describe('ContributionResolver', () => {
 
       describe('with user query', () => {
         it('returns only contributions of the queried user', async () => {
+          await query({
+            query: adminListContributions,
+            variables: {
+              query: 'Peter',
+            },
+          })
           const {
             data: { adminListContributions: contributionListObject },
           } = await query({

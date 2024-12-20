@@ -5,12 +5,14 @@ import { ObjectType, Field, Int } from 'type-graphql'
 @ObjectType()
 export class UserAdmin {
   constructor(user: User, creation: Decimal[], hasElopage: boolean, emailConfirmationSend: string) {
+    const primaryContact = user.getPrimaryUserContact()
+
     this.userId = user.id
-    this.email = user.emailContact?.email
+    this.email = primaryContact.email
     this.firstName = user.firstName
     this.lastName = user.lastName
     this.creation = creation
-    this.emailChecked = user.emailContact?.emailChecked
+    this.emailChecked = primaryContact.emailChecked
     this.hasElopage = hasElopage
     this.deletedAt = user.deletedAt
     this.emailConfirmationSend = emailConfirmationSend

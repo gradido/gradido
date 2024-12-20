@@ -155,13 +155,13 @@ describe('UserResolver', () => {
     describe('valid input data', () => {
       // let loginEmailOptIn: LoginEmailOptIn[]
       beforeAll(async () => {
-        user = await User.find({ relations: ['emailContact', 'userRoles'] })
+        user = await User.find({ relations: { userContacts: true, userRoles: true } })
         // loginEmailOptIn = await LoginEmailOptIn.find()
-        emailVerificationCode = user[0].emailContact.emailVerificationCode.toString()
+        emailVerificationCode = user[0].getPrimaryUserContact().emailVerificationCode.toString()
       })
 
       describe('filling all tables', () => {
-        it('saves the user in users table', () => {
+        it('saves the user with user contact in users table', () => {
           expect(user).toEqual([
             {
               id: expect.any(Number),
@@ -169,8 +169,26 @@ describe('UserResolver', () => {
               hideAmountGDD: expect.any(Boolean),
               hideAmountGDT: expect.any(Boolean),
               alias: null,
-              emailContact: expect.any(UserContact), // 'peter@lustig.de',
-              emailId: expect.any(Number),
+              userContacts: [
+                {
+                  id: expect.any(Number),
+                  type: UserContactType.USER_CONTACT_EMAIL,
+                  isPrimary: true,
+                  userId: user[0].id,
+                  email: 'peter@lustig.de',
+                  emailChecked: false,
+                  emailVerificationCode: expect.any(String),
+                  emailOptInTypeId: OptInType.EMAIL_OPT_IN_REGISTER,
+                  emailResendCount: 0,
+                  countryCode: null,
+                  phone: null,
+                  createdAt: expect.any(Date),
+                  deletedAt: null,
+                  updatedAt: null,
+                  gmsPublishEmail: false,
+                  gmsPublishPhone: 0,
+                },
+              ],
               firstName: 'Peter',
               lastName: 'Lustig',
               password: '0',
@@ -199,26 +217,6 @@ describe('UserResolver', () => {
           const verUUID = versionUUID(user[0].gradidoID)
           expect(valUUID).toEqual(true)
           expect(verUUID).toEqual(4)
-        })
-
-        it('creates an email contact', () => {
-          expect(user[0].emailContact).toEqual({
-            id: expect.any(Number),
-            type: UserContactType.USER_CONTACT_EMAIL,
-            userId: user[0].id,
-            email: 'peter@lustig.de',
-            emailChecked: false,
-            emailVerificationCode: expect.any(String),
-            emailOptInTypeId: OptInType.EMAIL_OPT_IN_REGISTER,
-            emailResendCount: 0,
-            countryCode: null,
-            phone: null,
-            createdAt: expect.any(Date),
-            deletedAt: null,
-            updatedAt: null,
-            gmsPublishEmail: false,
-            gmsPublishPhone: 0,
-          })
         })
       })
 
@@ -338,12 +336,14 @@ describe('UserResolver', () => {
           mutation: createUser,
           variables: { ...variables, email: 'raeuber@hotzenplotz.de', publisherId: undefined },
         })
-        await expect(User.find({ relations: ['emailContact'] })).resolves.toEqual(
+        await expect(User.find({ relations: { userContacts: true } })).resolves.toEqual(
           expect.arrayContaining([
             expect.objectContaining({
-              emailContact: expect.objectContaining({
-                email: 'raeuber@hotzenplotz.de',
-              }),
+              userContacts: expect.arrayContaining([
+                expect.objectContaining({
+                  email: 'raeuber@hotzenplotz.de',
+                }),
+              ]),
               publisherId: 0,
             }),
           ]),
@@ -576,7 +576,7 @@ describe('UserResolver', () => {
         })
         newUser = await User.findOneOrFail({
           where: { id: emailContact.userId },
-          relations: ['emailContact'],
+          relations: { userContacts: true },
         })
       })
 
@@ -585,7 +585,7 @@ describe('UserResolver', () => {
       })
 
       it('sets email checked to true', () => {
-        expect(newUser.emailContact.emailChecked).toBeTruthy()
+        expect(newUser.getPrimaryUserContact().emailChecked).toBeTruthy()
       })
 
       it('updates the password', () => {
@@ -595,7 +595,7 @@ describe('UserResolver', () => {
 
       it('calls the klicktipp API', () => {
         expect(subscribe).toBeCalledWith(
-          newUser.emailContact.email,
+          newUser.getPrimaryUserContact().email,
           newUser.language,
           newUser.firstName,
           newUser.lastName,
@@ -2746,11 +2746,11 @@ describe('UserResolver', () => {
             }),
           ).resolves.toEqual(
             expect.objectContaining({
-              errors: [new GraphQLError('No user with this credentials')],
+              errors: [new GraphQLError('No user found to given identifier(s)')],
             }),
           )
           expect(logger.error).toBeCalledWith(
-            'No user with this credentials',
+            'No user found to given identifier(s)',
             'bibi@bloxberg.de',
             foreignCom1.communityUuid,
           )

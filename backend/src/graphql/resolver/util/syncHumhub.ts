@@ -31,11 +31,11 @@ export async function syncHumhub(
   logger.debug('retrieve user from humhub')
   let humhubUser = await humhubClient.userByUsername(user.alias ?? user.gradidoID)
   if (!humhubUser) {
-    humhubUser = await humhubClient.userByEmail(user.emailContact.email)
+    humhubUser = await humhubClient.userByEmail(user.getPrimaryUserContact().email)
   }
   const humhubUsers = new Map<string, GetUser>()
   if (humhubUser) {
-    humhubUsers.set(user.emailContact.email, humhubUser)
+    humhubUsers.set(user.getPrimaryUserContact().email, humhubUser)
   }
   logger.debug('update user at humhub')
   const result = await syncUser(user, humhubUsers)
