@@ -22,6 +22,8 @@ import { listContributionLinks } from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 
+jest.mock('@/password/EncryptorUtils')
+
 let mutate: ApolloServerTestClient['mutate'],
   query: ApolloServerTestClient['query'],
   con: Connection

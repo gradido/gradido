@@ -32,6 +32,8 @@ import { raeuberHotzenplotz } from '@/seeds/users/raeuber-hotzenplotz'
 
 import { sendTransactionsToDltConnector } from './sendTransactionsToDltConnector'
 
+jest.mock('@/password/EncryptorUtils')
+
 /*
 // Mock the GraphQLClient
 jest.mock('graphql-request', () => {

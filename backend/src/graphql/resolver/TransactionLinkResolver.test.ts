@@ -38,6 +38,8 @@ import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 
 import { transactionLinkCode } from './TransactionLinkResolver'
 
+jest.mock('@/password/EncryptorUtils')
+
 // mock semaphore to allow use fake timers
 jest.mock('@/util/TRANSACTIONS_LOCK')
 TRANSACTIONS_LOCK.acquire = jest.fn().mockResolvedValue(jest.fn())

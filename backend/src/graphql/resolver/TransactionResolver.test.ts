@@ -37,6 +37,8 @@ import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
 
+jest.mock('@/password/EncryptorUtils')
+
 let mutate: ApolloServerTestClient['mutate'], con: Connection
 let query: ApolloServerTestClient['query']
 

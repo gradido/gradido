@@ -15,6 +15,8 @@ import { userFactory } from '@/seeds/factory/user'
 import { login, subscribeNewsletter, unsubscribeNewsletter } from '@/seeds/graphql/mutations'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 
+jest.mock('@/password/EncryptorUtils')
+
 let testEnv: any, mutate: any, con: any
 
 beforeAll(async () => {
