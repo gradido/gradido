@@ -15,7 +15,7 @@ const constants = {
 
 const version = {
   FRONTEND_MODULE_PROTOCOL: process.env.FRONTEND_MODULE_PROTOCOL ?? 'http',
-  FRONTEND_MODULE_HOST: process.env.FRONTEND_MODULE_HOST ?? 'localhost',
+  FRONTEND_MODULE_HOST: process.env.FRONTEND_MODULE_HOST ?? '0.0.0.0',
   FRONTEND_MODULE_PORT: process.env.FRONTEND_MODULE_PORT ?? '3000',
   APP_VERSION: pkg.version,
   BUILD_COMMIT: process.env.BUILD_COMMIT ?? null,

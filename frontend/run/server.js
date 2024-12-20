@@ -4,7 +4,7 @@ const path = require('path')
 
 // Host & Port
 const hostname = '127.0.0.1'
-const port = import.meta.env.PORT || 3000
+const port = process.env.PORT || 3000
 
 // Express Server
 const app = express()
