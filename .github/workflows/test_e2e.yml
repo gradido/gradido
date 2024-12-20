@@ -51,8 +51,18 @@ jobs:
       - name: Wait for the frontend to be ready
         run: |
           for i in {1..10}; do
-            curl -s http://localhost:3000/login && break || sleep 5
+            if curl -s --connect-timeout 5 http://localhost:3000/login > /dev/null; then
+              break
+            else
+              echo "Connection failed. Try $i from 10. Wait 5 Seconds..."
+              sleep 5
+            fi
           done
+
+          if [ $i -eq 10 ]; then
+            echo "Server not reachable after 10 tries."
+            exit 1
+          fi
 
       - name: End-to-end tests | run tests
         id: e2e-tests
