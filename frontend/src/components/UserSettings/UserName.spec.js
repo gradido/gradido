@@ -103,7 +103,7 @@ describe('UserName Form', () => {
 
   describe('when no username is set', () => {
     it('renders the component', () => {
-      expect(wrapper.find('div#username_form').exists()).toBe(true)
+      expect(wrapper.find('div#username-form').exists()).toBe(true)
     })
 
     it('displays the no-username alert', () => {

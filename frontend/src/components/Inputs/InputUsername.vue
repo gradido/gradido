@@ -74,7 +74,7 @@ const labelFor = computed(() => `${props.name}-input-field`)
 </script>
 
 <style>
-div#username_form > div > label {
+div#username-form > div > label {
   margin-bottom: 8px;
 }
 </style>

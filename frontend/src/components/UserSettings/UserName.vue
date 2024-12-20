@@ -1,5 +1,5 @@
 <template>
-  <div id="username_form">
+  <div id="username-form">
     <div v-if="store.state.username">
       <label>{{ $t('form.username') }}</label>
       <BFormGroup
