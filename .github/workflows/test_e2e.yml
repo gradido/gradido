@@ -13,16 +13,6 @@ jobs:
       - name: Boot up test system | docker-compose mariadb
         run: docker compose -f docker-compose.yml -f docker-compose.test.yml up --detach mariadb
 
-      - name: Boot up test system | docker-compose backend
-        run: |
-          cd backend
-          cp .env.test_e2e .env
-          cd ..
-          docker compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps backend 
-
-      - name: Boot up test system | docker-compose frontends
-        run: docker compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps frontend admin nginx
-
       - name: Sleep for 10 seconds
         run: sleep 10s
 
@@ -34,11 +24,12 @@ jobs:
           cd ../backend
           yarn && yarn seed
 
-      - name: Sleep for 1 minutes
-        run: sleep 1m
-
-      - name: Boot up test system | docker-compose mailserver
-        run: docker compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps mailserver
+      - name: Boot up test system | docker-compose backend, frontend, admin, nginx, mailserver
+        run: |
+          cd backend
+          cp .env.test_e2e .env
+          cd ..
+          docker compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps backend frontend admin nginx mailserver
 
       - name: End-to-end tests | prepare
         run: |
