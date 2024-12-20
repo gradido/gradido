@@ -13,9 +13,6 @@ jobs:
       - name: Boot up test system | docker-compose mariadb
         run: docker compose -f docker-compose.yml -f docker-compose.test.yml up --detach mariadb
 
-      - name: Boot up test system | docker-compose database
-        run: docker compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps database
-
       - name: Boot up test system | docker-compose backend
         run: |
           cd backend
@@ -37,6 +34,9 @@ jobs:
           cd ../backend
           yarn && yarn seed
 
+      - name: Sleep for 10 minutes
+        run: sleep 10m
+
       - name: Boot up test system | docker-compose mailserver
         run: docker compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps mailserver
 
@@ -47,22 +47,6 @@ jobs:
           sudo ln -fs /opt/cucumber-json-formatter /usr/bin/cucumber-json-formatter
           cd e2e-tests/
           yarn
-
-      - name: Wait for the frontend to be ready
-        run: |
-          for i in {1..100}; do
-            if curl -s --connect-timeout 5 http://localhost:3000/login > /dev/null; then
-              break
-            else
-              echo "Connection failed. Try $i from 100. Wait 10 Seconds..."
-              sleep 10
-            fi
-          done
-
-          if [ $i -eq 100 ]; then
-            echo "Server not reachable after 100 tries."
-            exit 1
-          fi
 
       - name: End-to-end tests | run tests
         id: e2e-tests
