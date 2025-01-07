@@ -5,6 +5,7 @@ import { GetUser } from '@/apis/humhub/model/GetUser'
 import { ExecutedHumhubAction, syncUser } from '@/apis/humhub/syncUser'
 import { UpdateUserInfosArgs } from '@/graphql/arg/UpdateUserInfosArgs'
 import { backendLogger as logger } from '@/server/logger'
+import { CacheManager } from '@/cache/CacheManager'
 
 export async function syncHumhub(
   updateUserInfosArg: UpdateUserInfosArgs | null,
@@ -39,6 +40,7 @@ export async function syncHumhub(
   }
   logger.debug('update user at humhub')
   const result = await syncUser(user, humhubUsers)
+  await CacheManager.getInstance().setHumhubAccountState(user, user.humhubAllowed)
   logger.info('finished sync user with humhub', {
     localId: user.id,
     externId: humhubUser?.id,

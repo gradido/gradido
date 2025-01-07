@@ -37,6 +37,7 @@ import { GetUser } from '@/apis/humhub/model/GetUser'
 import { subscribe } from '@/apis/KlicktippController'
 import { encode } from '@/auth/JWT'
 import { RIGHTS } from '@/auth/RIGHTS'
+import { CacheManager } from '@/cache/CacheManager'
 import { CONFIG } from '@/config'
 import { PublishNameLogic } from '@/data/PublishName.logic'
 import {
@@ -80,7 +81,6 @@ import { compareGmsRelevantUserSettings } from './util/compareGmsRelevantUserSet
 import { getUserCreations } from './util/creations'
 import { findUserByIdentifier } from './util/findUserByIdentifier'
 import { findUsers } from './util/findUsers'
-import { getKlicktippState } from './util/getKlicktippState'
 import { Location2Point } from './util/Location2Point'
 import { setUserRole, deleteUserRole } from './util/modifyUserRole'
 import { sendUserToGms } from './util/sendUserToGms'
@@ -131,6 +131,7 @@ export class UserResolver {
   @Query(() => User)
   async verifyLogin(@Ctx() context: Context): Promise<User> {
     logger.info('verifyLogin...')
+    const cm = CacheManager.getInstance()
     // TODO refactor and do not have duplicate code with login(see below)
     const userEntity = getUser(context)
     const user = new User(userEntity)
@@ -138,7 +139,7 @@ export class UserResolver {
     user.hasElopage = await this.hasElopage(context)
 
     logger.debug(`verifyLogin... successful: ${user.firstName}.${user.lastName}`)
-    user.klickTipp = await getKlicktippState(userEntity.emailContact.email)
+    user.klickTipp = await cm.getKlicktippState(userEntity.emailContact.email)
     return user
   }
 
@@ -149,6 +150,7 @@ export class UserResolver {
     @Ctx() context: Context,
   ): Promise<User> {
     logger.info(`login with ${email}, ***, ${publisherId} ...`)
+    const cm = CacheManager.getInstance()
     email = email.trim().toLowerCase()
     const dbUser = await findUserByEmail(email)
     if (dbUser.deletedAt) {
@@ -162,18 +164,13 @@ export class UserResolver {
       // TODO we want to catch this on the frontend and ask the user to check his emails or resend code
       throw new LogError('The User has not set a password yet', dbUser)
     }
+    // request to humhub and klicktipp run in parallel with password encryption
+    // also check first in cache if data less than 10 minutes old already there
+    const klicktippStatePromise = cm.getKlicktippState(dbUser.emailContact.email)
+    const humhubUserPromise = cm.getHumhubUserAccountState(dbUser)
+
     if (!verifyPassword(dbUser, password)) {
       throw new LogError('No user with this credentials', dbUser)
-    }
-
-    // request to humhub and klicktipp run in parallel
-    let humhubUserPromise: Promise<IRestResponse<GetUser>> | undefined
-    const klicktippStatePromise = getKlicktippState(dbUser.emailContact.email)
-    if (CONFIG.HUMHUB_ACTIVE && dbUser.humhubAllowed) {
-      const publishNameLogic = new PublishNameLogic(dbUser)
-      humhubUserPromise = HumHubClient.getInstance()?.userByUsernameAsync(
-        publishNameLogic.getUsername(dbUser.humhubPublishName as PublishNameType),
-      )
     }
 
     if (dbUser.passwordEncryptionType !== PasswordEncryptionType.GRADIDO_ID) {
@@ -190,6 +187,7 @@ export class UserResolver {
     i18n.setLocale(user.language)
 
     // Elopage Status & Stored PublisherId
+    // TODO: discuss removal
     user.hasElopage = await this.hasElopage({ ...context, user: dbUser })
     logger.info('user.hasElopage', user.hasElopage)
     if (!user.hasElopage && publisherId) {
@@ -205,15 +203,7 @@ export class UserResolver {
 
     await EVENT_USER_LOGIN(dbUser)
     // load humhub state
-    if (humhubUserPromise) {
-      try {
-        const result = await humhubUserPromise
-        user.humhubAllowed = result?.result?.account.status === 1
-      } catch (e) {
-        logger.error("couldn't reach out to humhub, disable for now", e)
-        user.humhubAllowed = false
-      }
-    }
+    user.humhubAllowed = await humhubUserPromise
     user.klickTipp = await klicktippStatePromise
     logger.info(`successful Login: ${JSON.stringify(user, null, 2)}`)
     return user
