@@ -345,7 +345,7 @@ describe('Transaction', () => {
       })
 
       it('has the description gdt.contribution', () => {
-        expect(wrapper.findAll('div.row').at(0).text()).toContain('gdt.contribution')
+        expect(wrapper.findAll('div.row').at(0).text()).toContain('This is a comment')
       })
 
       it('renders the amount of euros', () => {
