@@ -97,6 +97,8 @@ jest.mock('@/apis/KlicktippController', () => {
   }
 })
 
+CONFIG.EMAIL_CODE_REQUEST_TIME = 10
+
 let admin: User
 let user: User
 let mutate: ApolloServerTestClient['mutate'],
@@ -1548,11 +1550,9 @@ describe('UserResolver', () => {
 
         expect(bibi).toEqual(
           expect.objectContaining({
-            password: Buffer.from(
-              (await SecretKeyCryptographyCreateKey(bibi.gradidoID.toString(), 'Aa12345_'))[0],
-            )
-              .readBigUInt64LE()
-              .toString(),
+            password: (
+              await SecretKeyCryptographyCreateKey(bibi.gradidoID.toString(), 'Aa12345_')
+            ).toString(),
             passwordEncryptionType: PasswordEncryptionType.GRADIDO_ID,
           }),
         )
@@ -1574,9 +1574,7 @@ describe('UserResolver', () => {
         })
         bibi = usercontact.user
         bibi.passwordEncryptionType = PasswordEncryptionType.EMAIL
-        bibi.password = Buffer.from(
-          (await SecretKeyCryptographyCreateKey('bibi@bloxberg.de', 'Aa12345_'))[0],
-        ).readBigUInt64LE()
+        bibi.password = await SecretKeyCryptographyCreateKey('bibi@bloxberg.de', 'Aa12345_')
 
         await bibi.save()
       })
@@ -1593,11 +1591,9 @@ describe('UserResolver', () => {
         expect(bibi).toEqual(
           expect.objectContaining({
             firstName: 'Bibi',
-            password: Buffer.from(
-              (await SecretKeyCryptographyCreateKey(bibi.gradidoID.toString(), 'Aa12345_'))[0],
-            )
-              .readBigUInt64LE()
-              .toString(),
+            password: (
+              await SecretKeyCryptographyCreateKey(bibi.gradidoID.toString(), 'Aa12345_')
+            ).toString(),
             passwordEncryptionType: PasswordEncryptionType.GRADIDO_ID,
           }),
         )

@@ -46,7 +46,7 @@ export const isValidPassword = (password: string): boolean => {
 export const SecretKeyCryptographyCreateKey = async (
   salt: string,
   password: string,
-): Promise<Uint8Array[]> => {
+): Promise<bigint> => {
   try {
     logger.trace('call worker for: SecretKeyCryptographyCreateKey')
     if (configLoginServerKey.length !== crypto_shorthash_KEYBYTES) {
@@ -56,14 +56,14 @@ export const SecretKeyCryptographyCreateKey = async (
         crypto_shorthash_KEYBYTES,
       )
     }
-    let result: Promise<Uint8Array[]>
+    let result: Promise<bigint>
     if (encryptionWorkerPool) {
       result = (await encryptionWorkerPool.exec('SecretKeyCryptographyCreateKey', [
         salt,
         password,
         configLoginAppSecret,
         configLoginServerKey,
-      ])) as Promise<Uint8Array[]>
+      ])) as Promise<bigint>
     } else {
       result = Promise.resolve(
         SecretKeyCryptographyCreateKeySync(

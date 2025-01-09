@@ -20,7 +20,7 @@ export const SecretKeyCryptographyCreateKey = (
   password: string,
   configLoginAppSecret: Buffer,
   configLoginServerKey: Buffer,
-): Uint8Array[] => {
+): bigint => {
   const state = Buffer.alloc(crypto_hash_sha512_STATEBYTES)
   crypto_hash_sha512_init(state)
   crypto_hash_sha512_update(state, Buffer.from(salt))
@@ -43,8 +43,7 @@ export const SecretKeyCryptographyCreateKey = (
 
   const encryptionKeyHash = Buffer.alloc(crypto_shorthash_BYTES)
   crypto_shorthash(encryptionKeyHash, encryptionKey, configLoginServerKey)
-
-  return [new Uint8Array(encryptionKeyHash), new Uint8Array(encryptionKey)]
+  return encryptionKeyHash.readBigUInt64LE()
 }
 
 if (CONFIG.USE_CRYPTO_WORKER) {

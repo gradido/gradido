@@ -29,7 +29,7 @@ const SecretKeyCryptographyCreateKeyMock = (
   password: string,
   configLoginAppSecret: Buffer,
   configLoginServerKey: Buffer,
-): Uint8Array[] => {
+): bigint => {
   const state = Buffer.alloc(crypto_hash_sha512_STATEBYTES)
   crypto_hash_sha512_init(state)
   crypto_hash_sha512_update(state, Buffer.from(salt))
@@ -53,7 +53,7 @@ const SecretKeyCryptographyCreateKeyMock = (
   const encryptionKeyHash = Buffer.alloc(crypto_shorthash_BYTES)
   crypto_shorthash(encryptionKeyHash, encryptionKey, configLoginServerKey)
 
-  return [new Uint8Array(encryptionKeyHash), new Uint8Array(encryptionKey)]
+  return encryptionKeyHash.readBigUInt64LE()
 }
 
 const configLoginAppSecret = Buffer.from(CONFIG.LOGIN_APP_SECRET, 'hex')
@@ -72,7 +72,7 @@ export const isValidPassword = (password: string): boolean => {
 export const SecretKeyCryptographyCreateKey = async (
   salt: string,
   password: string,
-): Promise<Uint8Array[]> => {
+): Promise<bigint> => {
   try {
     logger.trace('call worker for: SecretKeyCryptographyCreateKey')
     if (configLoginServerKey.length !== crypto_shorthash_KEYBYTES) {
