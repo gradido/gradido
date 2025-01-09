@@ -5,7 +5,7 @@ import { getUserCryptographicSalt, SecretKeyCryptographyCreateKey } from './Encr
 
 export const encryptPassword = async (dbUser: User, password: string): Promise<bigint> => {
   const salt = getUserCryptographicSalt(dbUser)
-  const keyBuffer = await SecretKeyCryptographyCreateKey(salt, password) // return short and long hash
+  const keyBuffer: Uint8Array[] = await SecretKeyCryptographyCreateKey(salt, password) // returns Uint8Array[short hash, long hash]
   const passwordHash = Buffer.from(keyBuffer[0]).readBigUInt64LE()
   return passwordHash
 }
