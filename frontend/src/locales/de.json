@@ -231,7 +231,6 @@
   },
   "gdt": {
     "calculation": "Berechnung der Gradido Transform",
-    "contribution": "Beitrag",
     "conversion": "Umrechnung",
     "conversion-gdt-euro": "Umrechnung Euro / Gradido Transform (GDT)",
     "credit": "Gutschrift",
