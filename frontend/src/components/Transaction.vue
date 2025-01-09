@@ -91,7 +91,7 @@ const getLinesByType = computed(() => {
         icon: 'heart',
         iconclasses: 'gradido-global-color-accent',
         iconColor: '4',
-        description: t('gdt.contribution'),
+        description: props.comment, // t('gdt.contribution'),
         descriptiontext: n(props.amount, 'decimal') + ' €',
         credittext: n(props.gdt, 'decimal') + ' GDT',
       }
