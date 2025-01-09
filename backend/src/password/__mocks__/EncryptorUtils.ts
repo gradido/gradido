@@ -22,6 +22,8 @@ import {
   crypto_pwhash_SALTBYTES,
   crypto_pwhash,
   crypto_shorthash,
+  crypto_pwhash_OPSLIMIT_MIN,
+  crypto_pwhash_MEMLIMIT_MIN,
 } from 'sodium-native'
 
 const SecretKeyCryptographyCreateKeyMock = (
@@ -38,8 +40,8 @@ const SecretKeyCryptographyCreateKeyMock = (
   crypto_hash_sha512_final(state, hash)
 
   const encryptionKey = Buffer.alloc(crypto_box_SEEDBYTES)
-  const opsLimit = 10
-  const memLimit = 33554432
+  const opsLimit = crypto_pwhash_OPSLIMIT_MIN
+  const memLimit = crypto_pwhash_MEMLIMIT_MIN
   const algo = 2
   crypto_pwhash(
     encryptionKey,
