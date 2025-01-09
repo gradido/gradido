@@ -3,9 +3,9 @@ import { User } from '@entity/User'
 import { HumHubClient } from '@/apis/humhub/HumHubClient'
 import { GetUser } from '@/apis/humhub/model/GetUser'
 import { ExecutedHumhubAction, syncUser } from '@/apis/humhub/syncUser'
+import { CacheManager } from '@/cache/CacheManager'
 import { UpdateUserInfosArgs } from '@/graphql/arg/UpdateUserInfosArgs'
 import { backendLogger as logger } from '@/server/logger'
-import { CacheManager } from '@/cache/CacheManager'
 
 export async function syncHumhub(
   updateUserInfosArg: UpdateUserInfosArgs | null,
