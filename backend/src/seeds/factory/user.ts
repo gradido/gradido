@@ -29,7 +29,7 @@ export const userFactory = async (
     relations: { userContacts: true, userRoles: true },
   })
 
-  const emailContact = dbUser.getPrimaryUserContact()
+  const emailContact = dbUser.emailContact.email
 
   if (user.emailChecked) {
     await mutate({

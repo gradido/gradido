@@ -138,7 +138,7 @@ export class UserResolver {
     user.hasElopage = await this.hasElopage(context)
 
     logger.debug(`verifyLogin... successful: ${user.firstName}.${user.lastName}`)
-    user.klickTipp = await getKlicktippState(userEntity.getPrimaryUserContact().email)
+    user.klickTipp = await getKlicktippState(userEntity.emailContact.email)
     return user
   }
 
@@ -154,7 +154,7 @@ export class UserResolver {
     if (dbUser.deletedAt) {
       throw new LogError('This user was permanently deleted. Contact support for questions', dbUser)
     }
-    if (!dbUser.getPrimaryUserContact().emailChecked) {
+    if (!dbUser.emailContact.emailChecked) {
       throw new LogError('The Users email is not validate yet', dbUser)
     }
     // TODO: at least in test this does not work since `dbUser.password = 0` and `BigInto(0) = 0n`
@@ -168,7 +168,7 @@ export class UserResolver {
 
     // request to humhub and klicktipp run in parallel
     let humhubUserPromise: Promise<IRestResponse<GetUser>> | undefined
-    const klicktippStatePromise = getKlicktippState(dbUser.getPrimaryUserContact().email)
+    const klicktippStatePromise = getKlicktippState(dbUser.emailContact.email)
     if (CONFIG.HUMHUB_ACTIVE && dbUser.humhubAllowed) {
       const getHumhubUser = new PostUser(dbUser)
       humhubUserPromise = HumHubClient.getInstance()?.userByUsernameAsync(
@@ -350,7 +350,6 @@ export class UserResolver {
     await queryRunner.startTransaction('REPEATABLE READ')
     try {
       const emailContact = newEmailContact(email)
-      emailContact.isPrimary = true
       dbUser.userContacts = [emailContact]
       // save user contact alongside user with cascading
       dbUser = await queryRunner.manager.save(dbUser).catch((error) => {
@@ -718,7 +717,7 @@ export class UserResolver {
   async hasElopage(@Ctx() context: Context): Promise<boolean> {
     logger.info(`hasElopage()...`)
     const userEntity = getUser(context)
-    const elopageBuys = hasElopageBuys(userEntity.getPrimaryUserContact().email)
+    const elopageBuys = hasElopageBuys(userEntity.emailContact.email)
     logger.debug('has ElopageBuys', elopageBuys)
     return elopageBuys
   }
@@ -751,7 +750,7 @@ export class UserResolver {
     const username = userNameLogic.getUsername(dbUser.humhubPublishName as PublishNameType)
     let humhubUser = await humhubClient.userByUsername(username)
     if (!humhubUser) {
-      humhubUser = await humhubClient.userByEmail(dbUser.getPrimaryUserContact().email)
+      humhubUser = await humhubClient.userByEmail(dbUser.emailContact.email)
     }
     if (!humhubUser) {
       throw new LogError("user don't exist (any longer) on humhub")

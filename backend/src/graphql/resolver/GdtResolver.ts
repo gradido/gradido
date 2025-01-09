@@ -30,7 +30,7 @@ export class GdtResolver {
       const resultGDT = await apiGet(
         // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
         `${CONFIG.GDT_API_URL}/GdtEntries/listPerEmailApi/${
-          userEntity.getPrimaryUserContact().email
+          userEntity.emailContact.email
         }/${currentPage}/${pageSize}/${order}`,
       )
       if (!resultGDT.success) {

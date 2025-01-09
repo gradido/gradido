@@ -72,7 +72,7 @@ export const getUserCryptographicSalt = (dbUser: User): string => {
     case PasswordEncryptionType.NO_PASSWORD:
       throw new LogError('User has no password set', dbUser.id)
     case PasswordEncryptionType.EMAIL:
-      return dbUser.getPrimaryUserContact().email
+      return dbUser.emailContact.email.email
     case PasswordEncryptionType.GRADIDO_ID:
       return dbUser.gradidoID
     default:
