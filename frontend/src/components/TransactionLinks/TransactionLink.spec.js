@@ -127,7 +127,8 @@ describe('TransactionLink.vue', () => {
     expect(wrapper.vm.decay).toBe('100')
   })
 
-  it('computes validLink correctly when link is valid', () => {
+  it('computes validLink correctly when link is valid', async () => {
+    await wrapper.setProps({ validUntil: new Date(new Date().getTime() + 1000000) })
     expect(wrapper.vm.validLink).toBe(true)
   })
 
