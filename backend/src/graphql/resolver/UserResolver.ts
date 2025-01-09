@@ -7,7 +7,6 @@ import { ContributionLink as DbContributionLink } from '@entity/ContributionLink
 import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
 import { User as DbUser } from '@entity/User'
 import { UserContact as DbUserContact } from '@entity/UserContact'
-import { UserRole } from '@entity/UserRole'
 import i18n from 'i18n'
 import { Resolver, Query, Args, Arg, Authorized, Ctx, Mutation, Int } from 'type-graphql'
 import { IRestResponse } from 'typed-rest-client'
