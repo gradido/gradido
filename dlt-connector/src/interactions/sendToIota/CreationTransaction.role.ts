@@ -1,8 +1,16 @@
-import { GradidoTransactionBuilder, TransferAmount } from 'gradido-blockchain-js'
+import {
+  AuthenticatedEncryption,
+  EncryptedMemo,
+  GradidoTransactionBuilder,
+  GradidoUnit,
+  TransferAmount,
+} from 'gradido-blockchain-js'
 
+import { KeyPairIdentifier } from '@/data/KeyPairIdentifier'
 import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
 import { TransactionDraft } from '@/graphql/input/TransactionDraft'
 import { TransactionError } from '@/graphql/model/TransactionError'
+import { KeyPairCacheManager } from '@/manager/KeyPairCacheManager'
 
 import { KeyPairCalculation } from '../keyPairCalculation/KeyPairCalculation.context'
 
@@ -40,15 +48,25 @@ export class CreationTransactionRole extends AbstractTransactionRole {
     if (!this.self.amount) {
       throw new TransactionError(TransactionErrorType.MISSING_PARAMETER, 'creation: amount missing')
     }
+    if (!this.self.memo) {
+      throw new TransactionError(TransactionErrorType.MISSING_PARAMETER, 'creation: memo missing')
+    }
+
     const builder = new GradidoTransactionBuilder()
-    const recipientKeyPair = await KeyPairCalculation(this.self.user)
-    const signerKeyPair = await KeyPairCalculation(this.self.linkedUser)
+    const recipientKeyPair = await KeyPairCalculation(new KeyPairIdentifier(this.self.user))
+    const signerKeyPair = await KeyPairCalculation(new KeyPairIdentifier(this.self.linkedUser))
+    const homeCommunityKeyPair = await KeyPairCalculation(
+      new KeyPairIdentifier(KeyPairCacheManager.getInstance().getHomeCommunityUUID()),
+    )
 
     builder
       .setCreatedAt(new Date(this.self.createdAt))
-      .setMemo('dummy memo for creation')
+      .addMemo(new EncryptedMemo(this.self.memo, new AuthenticatedEncryption(homeCommunityKeyPair)))
       .setTransactionCreation(
-        new TransferAmount(recipientKeyPair.getPublicKey(), this.self.amount.toString()),
+        new TransferAmount(
+          recipientKeyPair.getPublicKey(),
+          GradidoUnit.fromString(this.self.amount),
+        ),
         new Date(this.self.targetDate),
       )
       .sign(signerKeyPair)

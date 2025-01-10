@@ -32,12 +32,24 @@ export const uuid4ToMemoryBlock = (uuid: string): MemoryBlock => {
   return MemoryBlock.fromHex(uuid.replace(/-/g, ''))
 }
 
+export const uuid4sToMemoryBlock = (uuid: string[]): MemoryBlock => {
+  let resultHexString = ''
+  for (let i = 0; i < uuid.length; i++) {
+    resultHexString += uuid[i].replace(/-/g, '')
+  }
+  return MemoryBlock.fromHex(resultHexString)
+}
+
 export const uuid4ToHash = (communityUUID: string): MemoryBlock => {
   return uuid4ToMemoryBlock(communityUUID).calculateHash()
 }
 
 export const base64ToBuffer = (base64: string): Buffer => {
   return Buffer.from(base64, 'base64')
+}
+
+export const communityUuidToTopic = (communityUUID: string): string => {
+  return uuid4ToHash(communityUUID).convertToHex()
 }
 
 export function getEnumValue<T extends Record<string, unknown>>(

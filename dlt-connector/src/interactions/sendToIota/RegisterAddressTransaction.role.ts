@@ -1,6 +1,7 @@
 /* eslint-disable camelcase */
 import { GradidoTransactionBuilder } from 'gradido-blockchain-js'
 
+import { KeyPairIdentifier } from '@/data/KeyPairIdentifier'
 import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
 import { TransactionDraft } from '@/graphql/input/TransactionDraft'
 import { TransactionError } from '@/graphql/model/TransactionError'
@@ -40,17 +41,25 @@ export class RegisterAddressTransactionRole extends AbstractTransactionRole {
     }
 
     const builder = new GradidoTransactionBuilder()
-    const communityKeyPair = await KeyPairCalculation(this.self.user.communityUuid)
-    const accountKeyPair = await KeyPairCalculation(this.self.user)
+    const communityKeyPair = await KeyPairCalculation(
+      new KeyPairIdentifier(this.self.user.communityUuid),
+    )
+    const keyPairIdentifer = new KeyPairIdentifier(this.self.user)
+    const accountKeyPair = await KeyPairCalculation(keyPairIdentifer)
+    // unsetting accountNr change identifier from account key pair to user key pair
+    keyPairIdentifer.accountNr = undefined
+    const userKeyPair = await KeyPairCalculation(keyPairIdentifer)
     builder
       .setCreatedAt(new Date(this.self.createdAt))
       .setRegisterAddress(
-        accountKeyPair.getPublicKey(),
+        userKeyPair.getPublicKey(),
         accountTypeToAddressType(this.self.accountType),
         uuid4ToHash(this.self.user.communityUser.uuid),
+        accountKeyPair.getPublicKey(),
       )
       .sign(communityKeyPair)
       .sign(accountKeyPair)
+      .sign(userKeyPair)
     return builder
   }
 }

@@ -17,12 +17,13 @@ import { TransactionRecipe } from '@/graphql/model/TransactionRecipe'
 import { TransactionResult } from '@/graphql/model/TransactionResult'
 import { logger } from '@/logging/logger'
 import { LogError } from '@/server/LogError'
-import { uuid4ToHash } from '@/utils/typeConverter'
+import { communityUuidToTopic } from '@/utils/typeConverter'
 
 import { AbstractTransactionRole } from './AbstractTransaction.role'
 import { CommunityRootTransactionRole } from './CommunityRootTransaction.role'
 import { CreationTransactionRole } from './CreationTransaction.role'
 import { DeferredTransferTransactionRole } from './DeferredTransferTransaction.role'
+import { RedeemDeferredTransferTransactionRole } from './RedeemDeferredTransferTransaction.role'
 import { RegisterAddressTransactionRole } from './RegisterAddressTransaction.role'
 import { TransferTransactionRole } from './TransferTransaction.role'
 
@@ -87,6 +88,9 @@ export async function SendToIotaContext(
       case InputTransactionType.GRADIDO_DEFERRED_TRANSFER:
         role = new DeferredTransferTransactionRole(input)
         break
+      case InputTransactionType.GRADIDO_REDEEM_DEFERRED_TRANSFER:
+        role = new RedeemDeferredTransferTransactionRole(input)
+        break
       default:
         throw new TransactionError(
           TransactionErrorType.NOT_IMPLEMENTED_YET,
@@ -104,22 +108,19 @@ export async function SendToIotaContext(
     validate(outboundTransaction)
     const outboundIotaMessageId = await sendViaIota(
       outboundTransaction,
-      uuid4ToHash(role.getSenderCommunityUuid()).convertToHex(),
+      communityUuidToTopic(role.getSenderCommunityUuid()),
     )
     builder.setParentMessageId(outboundIotaMessageId)
     const inboundTransaction = builder.buildInbound()
     validate(inboundTransaction)
-    await sendViaIota(
-      inboundTransaction,
-      uuid4ToHash(role.getRecipientCommunityUuid()).convertToHex(),
-    )
+    await sendViaIota(inboundTransaction, communityUuidToTopic(role.getRecipientCommunityUuid()))
     return new TransactionResult(new TransactionRecipe(outboundTransaction, outboundIotaMessageId))
   } else {
     const transaction = builder.build()
     validate(transaction)
     const iotaMessageId = await sendViaIota(
       transaction,
-      uuid4ToHash(role.getSenderCommunityUuid()).convertToHex(),
+      communityUuidToTopic(role.getSenderCommunityUuid()),
     )
     return new TransactionResult(new TransactionRecipe(transaction, iotaMessageId))
   }

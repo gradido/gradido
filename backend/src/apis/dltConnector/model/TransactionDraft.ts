@@ -10,12 +10,13 @@ export class TransactionDraft {
   linkedUser?: UserIdentifier
   // not used for register address
   amount?: string
+  memo?: string
   type: TransactionType
   createdAt: string
   // only for creation transaction
   targetDate?: string
   // only for deferred transaction
-  timeoutDate?: string
+  timeoutDuration?: number
   // only for register address
   accountType?: AccountType
 }

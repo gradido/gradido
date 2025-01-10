@@ -1,5 +1,6 @@
 import { GradidoTransactionBuilder } from 'gradido-blockchain-js'
 
+import { KeyPairIdentifier } from '@/data/KeyPairIdentifier'
 import { CommunityDraft } from '@/graphql/input/CommunityDraft'
 import { LogError } from '@/server/LogError'
 import {
@@ -27,7 +28,7 @@ export class CommunityRootTransactionRole extends AbstractTransactionRole {
 
   public async getGradidoTransactionBuilder(): Promise<GradidoTransactionBuilder> {
     const builder = new GradidoTransactionBuilder()
-    const communityKeyPair = await KeyPairCalculation(this.self.uuid)
+    const communityKeyPair = await KeyPairCalculation(new KeyPairIdentifier(this.self.uuid))
     const gmwKeyPair = communityKeyPair.deriveChild(
       hardenDerivationIndex(GMW_ACCOUNT_DERIVATION_INDEX),
     )

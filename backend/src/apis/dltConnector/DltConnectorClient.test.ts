@@ -10,11 +10,9 @@ import { Decimal } from 'decimal.js-light'
 import { cleanDB, testEnvironment } from '@test/helpers'
 
 import { CONFIG } from '@/config'
-import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 
 import { DltConnectorClient } from './DltConnectorClient'
-import { TransactionDraft } from './model/TransactionDraft'
 
 let con: Connection
 

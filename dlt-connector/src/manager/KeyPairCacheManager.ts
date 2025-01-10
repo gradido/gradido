@@ -1,8 +1,7 @@
 import { KeyPairEd25519 } from 'gradido-blockchain-js'
 
-import { UserIdentifier } from '@/graphql/input/UserIdentifier'
+import { KeyPairIdentifier } from '@/data/KeyPairIdentifier'
 import { logger } from '@/logging/logger'
-import { LogError } from '@/server/LogError'
 
 // Source: https://refactoring.guru/design-patterns/singleton/typescript/example
 // and ../federation/client/FederationClientFactory.ts
@@ -45,30 +44,19 @@ export class KeyPairCacheManager {
     return this.homeCommunityUUID
   }
 
-  public findKeyPair(input: UserIdentifier | string): KeyPairEd25519 | undefined {
-    return this.cache.get(this.getKey(input))
+  public findKeyPair(input: KeyPairIdentifier): KeyPairEd25519 | undefined {
+    return this.cache.get(input.getKey())
   }
 
-  public addKeyPair(input: UserIdentifier | string, keyPair: KeyPairEd25519): void {
-    const key = this.getKey(input)
+  public addKeyPair(input: KeyPairIdentifier, keyPair: KeyPairEd25519): void {
+    const key = input.getKey()
     if (this.cache.has(key)) {
-      logger.warn('key already exist, cannot add', key)
+      logger.warn('key already exist, cannot add', {
+        key,
+        publicKey: keyPair.getPublicKey()?.convertToHex(),
+      })
       return
     }
     this.cache.set(key, keyPair)
-  }
-
-  protected getKey(input: UserIdentifier | string): string {
-    if (input instanceof UserIdentifier) {
-      if (input.communityUser) {
-        return input.communityUser.uuid
-      } else if (input.seed) {
-        return input.seed.seed
-      }
-      throw new LogError('unhandled branch')
-    } else if (typeof input === 'string') {
-      return input
-    }
-    throw new LogError('unhandled input type')
   }
 }

@@ -1,9 +1,10 @@
 // https://www.npmjs.com/package/@apollo/protobufjs
 import { InputTransactionType } from '@enum/InputTransactionType'
 import { isValidDateString, isValidNumberString } from '@validator/DateString'
-import { IsEnum, IsObject, ValidateNested } from 'class-validator'
+import { IsEnum, IsObject, IsPositive, MaxLength, MinLength, ValidateNested } from 'class-validator'
 import { InputType, Field } from 'type-graphql'
 
+import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from '@/graphql//const'
 import { AccountType } from '@/graphql/enum/AccountType'
 
 import { UserIdentifier } from './UserIdentifier'
@@ -26,6 +27,11 @@ export class TransactionDraft {
   @isValidNumberString()
   amount?: string
 
+  @Field(() => String, { nullable: true })
+  @MaxLength(MEMO_MAX_CHARS)
+  @MinLength(MEMO_MIN_CHARS)
+  memo?: string
+
   @Field(() => InputTransactionType)
   @IsEnum(InputTransactionType)
   type: InputTransactionType
@@ -40,9 +46,10 @@ export class TransactionDraft {
   targetDate?: string
 
   // only for deferred transaction
-  @Field(() => String, { nullable: true })
-  @isValidDateString()
-  timeoutDate?: string
+  // duration in seconds
+  @Field(() => Number, { nullable: true })
+  @IsPositive()
+  timeoutDuration?: number
 
   // only for register address
   @Field(() => AccountType, { nullable: true })

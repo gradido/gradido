@@ -3277,9 +3277,9 @@ graceful-fs@^4.1.6, graceful-fs@^4.2.0, graceful-fs@^4.2.4, graceful-fs@^4.2.9:
   resolved "https://registry.yarnpkg.com/graceful-fs/-/graceful-fs-4.2.11.tgz#4183e4e8bf08bb6e05bbb2f7d2e0c8f712ca40e3"
   integrity sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==
 
-"gradido-blockchain-js@git+https://github.com/gradido/gradido-blockchain-js#master":
+"gradido-blockchain-js@git+https://github.com/gradido/gradido-blockchain-js#1c75576":
   version "0.0.1"
-  resolved "git+https://github.com/gradido/gradido-blockchain-js#5e7bc50af82d30ef0fdbe48414b1f916c592b6f4"
+  resolved "git+https://github.com/gradido/gradido-blockchain-js#1c755763b7f3f71c2ee9f396da5e9512fa666ee4"
   dependencies:
     bindings "^1.5.0"
     nan "^2.20.0"

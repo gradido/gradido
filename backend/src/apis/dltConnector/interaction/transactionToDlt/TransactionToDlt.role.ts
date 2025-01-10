@@ -81,13 +81,14 @@ export class TransactionToDltRole extends AbstractTransactionToDltRole<Transacti
     } else {
       draft.user = new UserIdentifier(
         this.self.userCommunityUuid,
-        new CommunityUser(this.self.userGradidoID),
+        new CommunityUser(this.self.userGradidoID, 1),
       )
     }
     draft.linkedUser = new UserIdentifier(
       this.self.linkedUserCommunityUuid,
-      new CommunityUser(this.self.linkedUserGradidoID),
+      new CommunityUser(this.self.linkedUserGradidoID, 1),
     )
+    draft.memo = this.self.memo
     draft.createdAt = this.self.balanceDate.toISOString()
     draft.targetDate = this.self.creationDate?.toISOString()
     return draft

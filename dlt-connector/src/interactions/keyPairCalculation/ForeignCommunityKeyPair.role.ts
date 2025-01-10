@@ -26,6 +26,6 @@ export class ForeignCommunityKeyPairRole extends AbstractRemoteKeyPairRole {
     if (!communityRoot) {
       throw new LogError('invalid confirmed transaction')
     }
-    return new KeyPairEd25519(communityRoot.getPubkey())
+    return new KeyPairEd25519(communityRoot.getPublicKey())
   }
 }

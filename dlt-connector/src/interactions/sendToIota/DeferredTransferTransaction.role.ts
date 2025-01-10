@@ -1,5 +1,13 @@
-import { GradidoTransactionBuilder, GradidoTransfer, TransferAmount } from 'gradido-blockchain-js'
+import {
+  AuthenticatedEncryption,
+  EncryptedMemo,
+  GradidoTransactionBuilder,
+  GradidoTransfer,
+  GradidoUnit,
+  TransferAmount,
+} from 'gradido-blockchain-js'
 
+import { KeyPairIdentifier } from '@/data/KeyPairIdentifier'
 import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
 import { TransactionDraft } from '@/graphql/input/TransactionDraft'
 import { TransactionError } from '@/graphql/model/TransactionError'
@@ -37,27 +45,42 @@ export class DeferredTransferTransactionRole extends AbstractTransactionRole {
         'deferred transfer: amount missing',
       )
     }
-    if (!this.self.timeoutDate) {
+    if (!this.self.memo) {
       throw new TransactionError(
         TransactionErrorType.MISSING_PARAMETER,
-        'deferred transfer: timeout date missing',
+        'deferred transfer: memo missing',
+      )
+    }
+    if (!this.self.timeoutDuration) {
+      throw new TransactionError(
+        TransactionErrorType.MISSING_PARAMETER,
+        'deferred transfer: timeout duration missing',
       )
     }
     const builder = new GradidoTransactionBuilder()
-    const senderKeyPair = await KeyPairCalculation(this.self.user)
-    const recipientKeyPair = await KeyPairCalculation(this.self.linkedUser)
+    const senderKeyPair = await KeyPairCalculation(new KeyPairIdentifier(this.self.user))
+    const recipientKeyPair = await KeyPairCalculation(new KeyPairIdentifier(this.self.linkedUser))
 
     builder
       .setCreatedAt(new Date(this.self.createdAt))
-      .setMemo('dummy memo for transfer')
+      .addMemo(
+        new EncryptedMemo(
+          this.self.memo,
+          new AuthenticatedEncryption(senderKeyPair),
+          new AuthenticatedEncryption(recipientKeyPair),
+        ),
+      )
       .setDeferredTransfer(
         new GradidoTransfer(
-          new TransferAmount(senderKeyPair.getPublicKey(), this.self.amount.toString()),
+          new TransferAmount(
+            senderKeyPair.getPublicKey(),
+            GradidoUnit.fromString(this.self.amount),
+          ),
           recipientKeyPair.getPublicKey(),
         ),
-        new Date(this.self.timeoutDate),
+        this.self.timeoutDuration,
       )
-    builder.sign(senderKeyPair)
+      .sign(senderKeyPair)
     return builder
   }
 }

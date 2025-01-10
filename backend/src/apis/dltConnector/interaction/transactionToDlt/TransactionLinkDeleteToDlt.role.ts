@@ -25,6 +25,7 @@ export class TransactionLinkDeleteToDltRole extends AbstractTransactionToDltRole
     )
       .andWhere('TransactionLink.deletedAt IS NOT NULL')
       .withDeleted()
+    /*
     const queryBuilder2 = TransactionLink.createQueryBuilder()
       .leftJoinAndSelect('TransactionLink.user', 'user')
       .where('TransactionLink.deletedAt IS NOT NULL')
@@ -41,6 +42,7 @@ export class TransactionLinkDeleteToDltRole extends AbstractTransactionToDltRole
       .withDeleted()
       // eslint-disable-next-line camelcase
       .orderBy({ TransactionLink_deletedAt: 'ASC', User_id: 'ASC' })
+      */
     // console.log('query: ', queryBuilder.getSql())
     this.self = await queryBuilder.getOne()
     return this
@@ -67,9 +69,9 @@ export class TransactionLinkDeleteToDltRole extends AbstractTransactionToDltRole
     draft.amount = this.self.amount.abs().toString()
     const user = this.self.user
     draft.user = new UserIdentifier(user.communityUuid, new IdentifierSeed(this.self.code))
-    draft.linkedUser = new UserIdentifier(user.communityUuid, new CommunityUser(user.gradidoID))
+    draft.linkedUser = new UserIdentifier(user.communityUuid, new CommunityUser(user.gradidoID, 1))
     draft.createdAt = this.self.deletedAt.toISOString()
-    draft.type = TransactionType.GRADIDO_TRANSFER
+    draft.type = TransactionType.GRADIDO_REDEEM_DEFERRED_TRANSFER
     return draft
   }
 

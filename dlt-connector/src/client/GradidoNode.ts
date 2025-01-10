@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-import { AddressType, ConfirmedTransaction, stringToAddressType } from 'gradido-blockchain-js'
+import { AddressType, ConfirmedTransaction, MemoryBlock, stringToAddressType } from 'gradido-blockchain-js'
 import JsonRpcClient from 'jsonrpc-ts-client'
 import { JsonRpcEitherResponse } from 'jsonrpc-ts-client/dist/types/utils/jsonrpc'
 
@@ -121,4 +121,36 @@ async function getAddressType(pubkey: Buffer, iotaTopic: string): Promise<Addres
   )
 }
 
-export { getTransaction, getLastTransaction, getTransactions, getAddressType }
+async function getTransactionsForAccount(
+  pubkey: MemoryBlock,
+  iotaTopic: string,
+  maxResultCount = 0,
+  firstTransactionNr = 1,
+): Promise<ConfirmedTransaction[] | undefined> {
+  const parameter = {
+    pubkey: pubkey.convertToHex(),
+    format: 'base64',
+    firstTransactionNr,
+    maxResultCount,
+    communityId: iotaTopic,
+  }
+  logger.info('call listtransactionsforaddress on Node Server via jsonrpc 2.0', parameter)
+  const response = await client.exec<ConfirmedTransactionList>(
+    'listtransactionsforaddress',
+    parameter,
+  )
+  return resolveResponse(response, (result: ConfirmedTransactionList) => {
+    logger.debug('GradidoNode used time', result.timeUsed)
+    return result.transactions.map((transactionBase64) =>
+      confirmedTransactionFromBase64(transactionBase64),
+    )
+  })
+}
+
+export {
+  getTransaction,
+  getLastTransaction,
+  getTransactions,
+  getAddressType,
+  getTransactionsForAccount,
+}

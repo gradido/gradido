@@ -40,10 +40,11 @@ export class TransactionLinkToDltRole extends AbstractTransactionToDltRole<Trans
     const draft = new TransactionDraft()
     draft.amount = this.self.amount.abs().toString()
     const user = this.self.user
-    draft.user = new UserIdentifier(user.communityUuid, new CommunityUser(user.gradidoID))
+    draft.user = new UserIdentifier(user.communityUuid, new CommunityUser(user.gradidoID, 1))
     draft.linkedUser = new UserIdentifier(user.communityUuid, new IdentifierSeed(this.self.code))
     draft.createdAt = this.self.createdAt.toISOString()
-    draft.timeoutDate = this.self.validUntil.toISOString()
+    draft.timeoutDuration = (this.self.validUntil.getTime() - this.self.createdAt.getTime()) / 1000
+    draft.memo = this.self.memo
     draft.type = TransactionType.GRADIDO_DEFERRED_TRANSFER
     return draft
   }
