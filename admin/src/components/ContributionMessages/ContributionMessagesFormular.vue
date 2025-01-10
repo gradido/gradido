@@ -7,9 +7,9 @@
             {{ $t('moderator.show-submission-form') }}
           </BFormCheckbox>
         </BFormGroup>
-        <BFormGroup v-if="showResubmissionDate" class="d-flex my-2" group-class="custom-wrapper">
-          <Datepicker v-model="resubmissionDate" type="date" :lower-limit="now"></Datepicker>
-          <time-picker v-model="resubmissionTime"></time-picker>
+        <BFormGroup v-if="showResubmissionDate">
+          <Datepicker v-model="resubmissionDate" type="date" :lower-limit="now" />
+          <time-picker v-model="resubmissionTime" />
         </BFormGroup>
         <BTabs v-model="tabindex" content-class="mt-3" data-test="message-type-tabs">
           <BTab active>

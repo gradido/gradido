@@ -11,39 +11,53 @@
 </template>
 
 <script>
+import { ref, watch } from 'vue'
+
 export default {
-  // Code written from chatGPT 3.5
   name: 'TimePicker',
   props: {
-    value: {
+    modelValue: {
       type: String,
       default: '00:00',
     },
   },
-  emits: ['input'],
-  data() {
-    return {
-      timeValue: this.value,
-    }
-  },
-  methods: {
-    updateValues(event) {
+  emits: ['update:modelValue'],
+  setup(props, { emit }) {
+    // reactive state
+    const timeValue = ref(props.modelValue)
+
+    // watch for prop changes
+    watch(
+      () => props.modelValue,
+      (newVal) => {
+        timeValue.value = newVal
+      },
+    )
+
+    const updateValues = (event) => {
       // Allow only numbers and ":"
       const inputValue = event.target.value.replace(/[^0-9:]/g, '')
-      this.timeValue = inputValue
-      this.$emit('input', inputValue)
-    },
-    validateAndCorrect() {
-      let [hours, minutes] = this.timeValue.split(':')
+      timeValue.value = inputValue
+      emit('update:modelValue', inputValue)
+    }
+
+    const validateAndCorrect = () => {
+      let [hours, minutes] = timeValue.value.split(':')
 
       // Validate hours and minutes
       hours = Math.min(parseInt(hours) || 0, 23)
       minutes = Math.min(parseInt(minutes) || 0, 59)
 
       // Update the value with correct format
-      this.timeValue = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`
-      this.$emit('input', this.timeValue)
-    },
+      timeValue.value = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`
+      emit('update:modelValue', timeValue.value)
+    }
+
+    return {
+      timeValue,
+      updateValues,
+      validateAndCorrect,
+    }
   },
 }
 </script>
