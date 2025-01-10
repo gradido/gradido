@@ -19,7 +19,7 @@
         required
         :no-flip="true"
         type="date"
-        @update:model-value="date = $event"
+        @update:model-value="handleDateChange"
       >
         <template #nav-prev-year><span></span></template>
         <template #nav-next-year><span></span></template>
@@ -127,6 +127,11 @@ const {
 const [date, dateProps] = defineField('date')
 
 const { meta: dataFieldMeta } = useField('date', 'required')
+
+const handleDateChange = (newDate) => {
+  date.value = newDate
+  emit('update:model-value', { ...props.modelValue, date: newDate })
+}
 
 const showMessage = computed(() => {
   if (props.maxGddThisMonth <= 0 && props.maxGddLastMonth <= 0) return true
