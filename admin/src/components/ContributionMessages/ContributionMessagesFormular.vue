@@ -7,8 +7,8 @@
             {{ $t('moderator.show-submission-form') }}
           </BFormCheckbox>
         </BFormGroup>
-        <BFormGroup v-if="showResubmissionDate">
-          <BFormInput v-model="resubmissionDate" type="date" :min="now"></BFormInput>
+        <BFormGroup v-if="showResubmissionDate" class="d-flex my-2" group-class="custom-wrapper">
+          <Datepicker v-model="resubmissionDate" type="date" :lower-limit="now"></Datepicker>
           <time-picker v-model="resubmissionTime"></time-picker>
         </BFormGroup>
         <BTabs v-model="tabindex" content-class="mt-3" data-test="message-type-tabs">
@@ -81,6 +81,7 @@ import { ref, computed } from 'vue'
 import { useMutation } from '@vue/apollo-composable'
 import { useI18n } from 'vue-i18n'
 
+import Datepicker from 'vue3-datepicker'
 import TimePicker from '@/components/input/TimePicker'
 import { adminCreateContributionMessage } from '@/graphql/adminCreateContributionMessage'
 import { adminUpdateContribution } from '@/graphql/adminUpdateContribution'
