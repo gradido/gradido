@@ -76,6 +76,7 @@ const community = {
 const loginServer = {
   LOGIN_APP_SECRET: process.env.LOGIN_APP_SECRET ?? '21ffbbc616fe',
   LOGIN_SERVER_KEY: process.env.LOGIN_SERVER_KEY ?? 'a51ef8ac7ef1abf162fb7a65261acd7a',
+  USE_CRYPTO_WORKER: process.env.USE_CRYPTO_WORKER ?? false,
 }
 
 const email = {

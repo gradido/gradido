@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-import { getConnection, In } from '@dbTools/typeorm'
+import { getConnection, In, Point } from '@dbTools/typeorm'
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
 import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
 import { User as DbUser } from '@entity/User'
@@ -28,9 +28,8 @@ import { SearchAdminUsersResult } from '@model/AdminUser'
 import { GmsUserAuthenticationResult } from '@model/GmsUserAuthenticationResult'
 import { User } from '@model/User'
 import { UserAdmin, SearchUsersResult } from '@model/UserAdmin'
+import { UserLocationResult } from '@model/UserLocationResult'
 
-import { updateGmsUser } from '@/apis/gms/GmsClient'
-import { GmsUser } from '@/apis/gms/model/GmsUser'
 import { HumHubClient } from '@/apis/humhub/HumHubClient'
 import { GetUser } from '@/apis/humhub/model/GetUser'
 import { PostUser } from '@/apis/humhub/model/PostUser'
@@ -69,6 +68,7 @@ import { backendLogger as logger } from '@/server/logger'
 import { communityDbUser } from '@/util/communityUser'
 import { hasElopageBuys } from '@/util/hasElopageBuys'
 import { getTimeDurationObject, printTimeDuration } from '@/util/time'
+import { delay } from '@/util/utilities'
 
 import random from 'random-bigint'
 import { randombytes_random } from 'sodium-native'
@@ -81,7 +81,7 @@ import { getUserCreations } from './util/creations'
 import { findUserByIdentifier } from './util/findUserByIdentifier'
 import { findUsers } from './util/findUsers'
 import { getKlicktippState } from './util/getKlicktippState'
-import { Location2Point } from './util/Location2Point'
+import { Location2Point, Point2Location } from './util/Location2Point'
 import { setUserRole, deleteUserRole } from './util/modifyUserRole'
 import { sendUserToGms } from './util/sendUserToGms'
 import { syncHumhub } from './util/syncHumhub'
@@ -150,7 +150,16 @@ export class UserResolver {
   ): Promise<User> {
     logger.info(`login with ${email}, ***, ${publisherId} ...`)
     email = email.trim().toLowerCase()
-    const dbUser = await findUserByEmail(email)
+    let dbUser: DbUser
+
+    try {
+      dbUser = await findUserByEmail(email)
+    } catch (e) {
+      // simulate delay which occur on password encryption 650 ms +- 50 rnd
+      await delay(650 + Math.floor(Math.random() * 101) - 50)
+      throw e
+    }
+
     if (dbUser.deletedAt) {
       throw new LogError('This user was permanently deleted. Contact support for questions', dbUser)
     }
@@ -162,7 +171,7 @@ export class UserResolver {
       // TODO we want to catch this on the frontend and ask the user to check his emails or resend code
       throw new LogError('The User has not set a password yet', dbUser)
     }
-    if (!verifyPassword(dbUser, password)) {
+    if (!(await verifyPassword(dbUser, password))) {
       throw new LogError('No user with this credentials', dbUser)
     }
 
@@ -178,7 +187,7 @@ export class UserResolver {
 
     if (dbUser.passwordEncryptionType !== PasswordEncryptionType.GRADIDO_ID) {
       dbUser.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
-      dbUser.password = encryptPassword(dbUser, password)
+      dbUser.password = await encryptPassword(dbUser, password)
       await dbUser.save()
     }
     // add pubKey in logger-context for layout-pattern X{user} to print it in each logging message
@@ -502,7 +511,7 @@ export class UserResolver {
 
     // Update Password
     user.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
-    user.password = encryptPassword(user, password)
+    user.password = await encryptPassword(user, password)
     logger.debug('User credentials updated ...')
 
     const queryRunner = getConnection().createQueryRunner()
@@ -632,13 +641,13 @@ export class UserResolver {
         )
       }
 
-      if (!verifyPassword(user, password)) {
+      if (!(await verifyPassword(user, password))) {
         throw new LogError(`Old password is invalid`)
       }
 
       // Save new password hash and newly encrypted private key
       user.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
-      user.password = encryptPassword(user, passwordNew)
+      user.password = await encryptPassword(user, passwordNew)
     }
 
     // Save hideAmountGDD value
@@ -696,9 +705,9 @@ export class UserResolver {
         logger.debug(`changed user-settings relevant for gms-user update...`)
         const homeCom = await getHomeCommunity()
         if (homeCom.gmsApiKey !== null) {
-          logger.debug(`gms-user update...`, user)
-          await updateGmsUser(homeCom.gmsApiKey, new GmsUser(user))
-          logger.debug(`gms-user update successfully.`)
+          logger.debug(`send User to Gms...`, user)
+          await sendUserToGms(user, homeCom)
+          logger.debug(`sendUserToGms successfully.`)
         }
       }
     } catch (e) {
@@ -728,14 +737,35 @@ export class UserResolver {
   @Authorized([RIGHTS.GMS_USER_PLAYGROUND])
   @Query(() => GmsUserAuthenticationResult)
   async authenticateGmsUserSearch(@Ctx() context: Context): Promise<GmsUserAuthenticationResult> {
-    logger.info(`authUserForGmsUserSearch()...`)
+    logger.info(`authenticateGmsUserSearch()...`)
     const dbUser = getUser(context)
-    let result: GmsUserAuthenticationResult
+    let result = new GmsUserAuthenticationResult()
     if (context.token) {
-      result = await authenticateGmsUserPlayground(context.token, dbUser)
-      logger.info('authUserForGmsUserSearch=', result)
+      const homeCom = await getHomeCommunity()
+      if (!homeCom.gmsApiKey) {
+        throw new LogError('authenticateGmsUserSearch missing HomeCommunity GmsApiKey')
+      }
+      result = await authenticateGmsUserPlayground(homeCom.gmsApiKey, context.token, dbUser)
+      logger.info('authenticateGmsUserSearch=', result)
     } else {
-      throw new LogError('authUserForGmsUserSearch without token')
+      throw new LogError('authenticateGmsUserSearch missing valid user login-token')
+    }
+    return result
+  }
+
+  @Authorized([RIGHTS.GMS_USER_PLAYGROUND])
+  @Query(() => UserLocationResult)
+  async userLocation(@Ctx() context: Context): Promise<UserLocationResult> {
+    logger.info(`userLocation()...`)
+    const dbUser = getUser(context)
+    const result = new UserLocationResult()
+    if (context.token) {
+      const homeCom = await getHomeCommunity()
+      result.communityLocation = Point2Location(homeCom.location as Point)
+      result.userLocation = Point2Location(dbUser.location as Point)
+      logger.info('userLocation=', result)
+    } else {
+      throw new LogError('userLocation missing valid user login-token')
     }
     return result
   }

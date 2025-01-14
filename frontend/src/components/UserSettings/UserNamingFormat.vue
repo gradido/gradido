@@ -1,7 +1,6 @@
 <template>
   <div class="user-naming-format">
-    <BDropdown v-model="selectedOption">
-      <template #button-content>{{ selectedOptionLabel }}</template>
+    <BDropdown :text="selectedOptionLabel">
       <BDropdownItem
         v-for="option in dropdownOptions"
         :key="option.value"

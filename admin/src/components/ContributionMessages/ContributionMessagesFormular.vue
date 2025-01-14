@@ -8,10 +8,12 @@
           </BFormCheckbox>
         </BFormGroup>
         <BFormGroup v-if="showResubmissionDate">
-          <Datepicker v-model="resubmissionDate" type="date" :lower-limit="now" />
-          <time-picker v-model="resubmissionTime" />
+          <div class="d-flex my-2">
+            <Datepicker v-model="resubmissionDate" :lower-limit="now" class="form-control" />
+            <time-picker v-model="resubmissionTime" class="ms-2" />
+          </div>
         </BFormGroup>
-        <BTabs v-model="tabindex" content-class="mt-3" data-test="message-type-tabs">
+        <BTabs v-model="tabindex" class="mt-3" content-class="mt-3" data-test="message-type-tabs">
           <BTab active>
             <template #title>
               <span id="message-tab-title">{{ $t('moderator.message') }}</span>
@@ -24,7 +26,7 @@
               v-model="form.text"
               :placeholder="$t('contributionLink.memo')"
               rows="3"
-            ></BFormTextarea>
+            />
           </BTab>
           <BTab>
             <template #title>
@@ -38,7 +40,7 @@
               v-model="form.text"
               :placeholder="$t('moderator.notice')"
               rows="3"
-            ></BFormTextarea>
+            />
           </BTab>
           <BTab>
             <template #title>
@@ -52,7 +54,7 @@
               v-model="form.memo"
               :placeholder="$t('contributionLink.memo')"
               rows="3"
-            ></BFormTextarea>
+            />
           </BTab>
         </BTabs>
         <BRow class="mt-4 mb-6">
@@ -116,7 +118,6 @@ const emit = defineEmits([
 
 const { t } = useI18n()
 const { toastError, toastSuccess } = useAppToast()
-
 const form = ref({
   text: '',
   memo: props.contributionMemo,
@@ -142,14 +143,20 @@ const messageType = {
   MODERATOR: 'MODERATOR',
 }
 
-const disabled = computed(() => {
-  return (
-    (tabindex.value === 0 && form.value.text === '') ||
+const isTextTabValid = computed(() => form.value.text !== '')
+
+const isMemoTabValid = computed(() => form.value.memo.length >= 5)
+
+const disabled = computed(
+  () =>
     loading.value ||
-    (tabindex.value === 1 && form.value.memo.length < 5) ||
-    (showResubmissionDate.value && !resubmissionDate.value)
-  )
-})
+    (!(showResubmissionDate.value && resubmissionDate.value) &&
+      ([0, 1].includes(tabindex.value)
+        ? !isTextTabValid.value
+        : tabindex.value === 2
+          ? !isMemoTabValid.value
+          : false)),
+)
 
 const now = computed(() => new Date())
 

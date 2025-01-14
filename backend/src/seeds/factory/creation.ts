@@ -23,7 +23,6 @@ export const creationFactory = async (
     mutation: login,
     variables: { email: creation.email, password: 'Aa12345_' },
   })
-
   const {
     data: { createContribution: contribution },
   } = await mutate({ mutation: createContribution, variables: { ...creation } })

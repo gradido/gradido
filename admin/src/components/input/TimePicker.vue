@@ -2,6 +2,7 @@
   <div>
     <input
       v-model="timeValue"
+      class="timer-input"
       type="text"
       placeholder="hh:mm"
       @input="updateValues"
@@ -61,3 +62,11 @@ export default {
   },
 }
 </script>
+
+<style scoped>
+.timer-input {
+  border: 1px solid rgb(222 226 230);
+  border-radius: 6px;
+  padding: 6px 12px;
+}
+</style>
