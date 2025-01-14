@@ -19,7 +19,7 @@ export class TransactionResult {
   @Field(() => TransactionError, { nullable: true })
   error?: TransactionError
 
-  // if no error happend, the message id of the iota transaction
+  // if no error happened, the message id of the iota transaction
   @Field(() => TransactionRecipe, { nullable: true })
   recipe?: TransactionRecipe
 

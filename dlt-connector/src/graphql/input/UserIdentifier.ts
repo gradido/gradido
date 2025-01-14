@@ -1,19 +1,24 @@
 // https://www.npmjs.com/package/@apollo/protobufjs
 
-import { IsPositive, IsUUID } from 'class-validator'
-import { Field, Int, InputType } from 'type-graphql'
+import { IsObject, IsUUID, ValidateNested } from 'class-validator'
+import { Field, InputType } from 'type-graphql'
+
+import { CommunityUser } from './CommunityUser'
+import { IdentifierSeed } from './IdentifierSeed'
 
 @InputType()
 export class UserIdentifier {
   @Field(() => String)
   @IsUUID('4')
-  uuid: string
-
-  @Field(() => String)
-  @IsUUID('4')
   communityUuid: string
 
-  @Field(() => Int, { defaultValue: 1, nullable: true })
-  @IsPositive()
-  accountNr?: number
+  @Field(() => CommunityUser, { nullable: true })
+  @IsObject()
+  @ValidateNested()
+  communityUser?: CommunityUser
+
+  @Field(() => IdentifierSeed, { nullable: true })
+  @IsObject()
+  @ValidateNested()
+  seed?: IdentifierSeed
 }

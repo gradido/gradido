@@ -3,9 +3,13 @@ import { registerEnumType } from 'type-graphql'
 // enum for graphql but with int because it is the same in backend
 // for transaction type from backend
 export enum InputTransactionType {
-  CREATION = 1,
-  SEND = 2,
-  RECEIVE = 3,
+  GRADIDO_TRANSFER = 'GRADIDO_TRANSFER',
+  GRADIDO_CREATION = 'GRADIDO_CREATION',
+  GROUP_FRIENDS_UPDATE = 'GROUP_FRIENDS_UPDATE',
+  REGISTER_ADDRESS = 'REGISTER_ADDRESS',
+  GRADIDO_DEFERRED_TRANSFER = 'GRADIDO_DEFERRED_TRANSFER',
+  GRADIDO_REDEEM_DEFERRED_TRANSFER = 'GRADIDO_REDEEM_DEFERRED_TRANSFER',
+  COMMUNITY_ROOT = 'COMMUNITY_ROOT',
 }
 
 registerEnumType(InputTransactionType, {

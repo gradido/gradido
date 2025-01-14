@@ -19,3 +19,23 @@ export function isValidDateString(validationOptions?: ValidationOptions) {
     })
   }
 }
+
+export function isValidNumberString(validationOptions?: ValidationOptions) {
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  return function (object: Object, propertyName: string) {
+    registerDecorator({
+      name: 'isValidNumberString',
+      target: object.constructor,
+      propertyName,
+      options: validationOptions,
+      validator: {
+        validate(value: string): boolean {
+          return !isNaN(parseFloat(value))
+        },
+        defaultMessage(): string {
+          return `${propertyName} must be a valid number string`
+        },
+      },
+    })
+  }
+}

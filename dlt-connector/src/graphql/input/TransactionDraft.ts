@@ -1,11 +1,11 @@
 // https://www.npmjs.com/package/@apollo/protobufjs
-import { IsEnum, IsObject, IsPositive, ValidateNested } from 'class-validator'
-import { Decimal } from 'decimal.js-light'
-import { InputType, Field, Int } from 'type-graphql'
-
 import { InputTransactionType } from '@enum/InputTransactionType'
-import { isValidDateString } from '@validator/DateString'
-import { IsPositiveDecimal } from '@validator/Decimal'
+import { isValidDateString, isValidNumberString } from '@validator/DateString'
+import { IsEnum, IsObject, IsPositive, MaxLength, MinLength, ValidateNested } from 'class-validator'
+import { InputType, Field } from 'type-graphql'
+
+import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from '@/graphql//const'
+import { AccountType } from '@/graphql/enum/AccountType'
 
 import { UserIdentifier } from './UserIdentifier'
 
@@ -16,18 +16,21 @@ export class TransactionDraft {
   @ValidateNested()
   user: UserIdentifier
 
-  @Field(() => UserIdentifier)
+  // not used for simply register address
+  @Field(() => UserIdentifier, { nullable: true })
   @IsObject()
   @ValidateNested()
-  linkedUser: UserIdentifier
+  linkedUser?: UserIdentifier
 
-  @Field(() => Int)
-  @IsPositive()
-  backendTransactionId: number
+  // not used for register address
+  @Field(() => String, { nullable: true })
+  @isValidNumberString()
+  amount?: string
 
-  @Field(() => Decimal)
-  @IsPositiveDecimal()
-  amount: Decimal
+  @Field(() => String, { nullable: true })
+  @MaxLength(MEMO_MAX_CHARS)
+  @MinLength(MEMO_MIN_CHARS)
+  memo?: string
 
   @Field(() => InputTransactionType)
   @IsEnum(InputTransactionType)
@@ -41,4 +44,15 @@ export class TransactionDraft {
   @Field(() => String, { nullable: true })
   @isValidDateString()
   targetDate?: string
+
+  // only for deferred transaction
+  // duration in seconds
+  @Field(() => Number, { nullable: true })
+  @IsPositive()
+  timeoutDuration?: number
+
+  // only for register address
+  @Field(() => AccountType, { nullable: true })
+  @IsEnum(AccountType)
+  accountType?: AccountType
 }

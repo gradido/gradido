@@ -22,18 +22,7 @@ module.exports = {
     '@input/(.*)': '<rootDir>/src/graphql/input/$1',
     '@proto/(.*)': '<rootDir>/src/proto/$1',
     '@test/(.*)': '<rootDir>/test/$1',
-    '@typeorm/(.*)': '<rootDir>/src/typeorm/$1',
     '@client/(.*)': '<rootDir>/src/client/$1',
-    '@entity/(.*)':
-      // eslint-disable-next-line n/no-process-env
-      process.env.NODE_ENV === 'development'
-        ? '<rootDir>/../dlt-database/entity/$1'
-        : '<rootDir>/../dlt-database/build/entity/$1',
-    '@dbTools/(.*)':
-      // eslint-disable-next-line n/no-process-env
-      process.env.NODE_ENV === 'development'
-        ? '<rootDir>/../dlt-database/src/$1'
-        : '<rootDir>/../dlt-database/build/src/$1',
     '@validator/(.*)': '<rootDir>/src/graphql/validator/$1',
   },
 }

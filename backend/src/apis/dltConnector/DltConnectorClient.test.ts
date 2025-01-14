@@ -10,7 +10,6 @@ import { Decimal } from 'decimal.js-light'
 import { cleanDB, testEnvironment } from '@test/helpers'
 
 import { CONFIG } from '@/config'
-import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 
 import { DltConnectorClient } from './DltConnectorClient'
@@ -108,19 +107,6 @@ describe('transmitTransaction', () => {
     expect(result).toBe(false)
   })
   */
-
-  it('invalid transaction type', async () => {
-    const localTransaction = new DbTransaction()
-    localTransaction.typeId = 12
-    try {
-      await DltConnectorClient.getInstance()?.transmitTransaction(localTransaction)
-    } catch (e) {
-      expect(e).toMatchObject(
-        new LogError('invalid transaction type id: ' + localTransaction.typeId.toString()),
-      )
-    }
-  })
-
   /*
   it.skip('should transmit the transaction and update the dltTransactionId in the database', async () => {
     await transaction.save()

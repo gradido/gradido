@@ -1,1 +1,1 @@
-export { DltTransaction } from './0070-add_dlt_transactions_table/DltTransaction'
+export { DltTransaction } from './0088-merge_dlt_tables/DltTransaction'

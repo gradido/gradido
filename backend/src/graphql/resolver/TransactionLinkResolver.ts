@@ -33,6 +33,10 @@ import { Context, getUser, getClientTimezoneOffset } from '@/server/context'
 import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 import { calculateDecay } from '@/util/decay'
+import {
+  InterruptiveSleepManager,
+  TRANSMIT_TO_IOTA_INTERRUPTIVE_SLEEP_KEY,
+} from '@/util/InterruptiveSleepManager'
 import { TRANSACTION_LINK_LOCK } from '@/util/TRANSACTION_LINK_LOCK'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 import { fullName } from '@/util/utilities'
@@ -41,7 +45,6 @@ import { calculateBalance } from '@/util/validate'
 import { executeTransaction } from './TransactionResolver'
 import { getUserCreation, validateContribution } from './util/creations'
 import { getLastTransaction } from './util/getLastTransaction'
-import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
 import { transactionLinkList } from './util/transactionLinkList'
 
 // TODO: do not export, test it inside the resolver
@@ -301,6 +304,8 @@ export class TransactionLinkResolver {
             contributionLink,
             contributionLink.amount,
           )
+          // notify dlt-connector loop for new work
+          InterruptiveSleepManager.getInstance().interrupt(TRANSMIT_TO_IOTA_INTERRUPTIVE_SLEEP_KEY)
         } catch (e) {
           await queryRunner.rollbackTransaction()
           throw new LogError('Creation from contribution link was not successful', e)
@@ -310,8 +315,6 @@ export class TransactionLinkResolver {
       } finally {
         releaseLock()
       }
-      // trigger to send transaction via dlt-connector
-      void sendTransactionsToDltConnector()
       return true
     } else {
       const now = new Date()
@@ -357,6 +360,8 @@ export class TransactionLinkResolver {
           transactionLink,
           transactionLink.amount,
         )
+        // notify dlt-connector loop for new work
+        InterruptiveSleepManager.getInstance().interrupt(TRANSMIT_TO_IOTA_INTERRUPTIVE_SLEEP_KEY)
       } finally {
         releaseLinkLock()
       }
