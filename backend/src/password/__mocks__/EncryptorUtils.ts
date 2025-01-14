@@ -2,11 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { cpus } from 'os'
-import path from 'path'
-
 import { User } from '@entity/User'
-import { Pool, pool } from 'workerpool'
 
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
 
@@ -14,24 +10,56 @@ import { CONFIG } from '@/config'
 import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 
-import { crypto_shorthash_KEYBYTES } from 'sodium-native'
+import {
+  crypto_shorthash_KEYBYTES,
+  crypto_box_SEEDBYTES,
+  crypto_hash_sha512_init,
+  crypto_hash_sha512_update,
+  crypto_hash_sha512_final,
+  crypto_hash_sha512_BYTES,
+  crypto_hash_sha512_STATEBYTES,
+  crypto_shorthash_BYTES,
+  crypto_pwhash_SALTBYTES,
+  crypto_pwhash,
+  crypto_shorthash,
+  crypto_pwhash_OPSLIMIT_MIN,
+  crypto_pwhash_MEMLIMIT_MIN,
+} from 'sodium-native'
 
-import { SecretKeyCryptographyCreateKey as SecretKeyCryptographyCreateKeySync } from './EncryptionWorker'
+const SecretKeyCryptographyCreateKeyMock = (
+  salt: string,
+  password: string,
+  configLoginAppSecret: Buffer,
+  configLoginServerKey: Buffer,
+): bigint => {
+  const state = Buffer.alloc(crypto_hash_sha512_STATEBYTES)
+  crypto_hash_sha512_init(state)
+  crypto_hash_sha512_update(state, Buffer.from(salt))
+  crypto_hash_sha512_update(state, configLoginAppSecret)
+  const hash = Buffer.alloc(crypto_hash_sha512_BYTES)
+  crypto_hash_sha512_final(state, hash)
+
+  const encryptionKey = Buffer.alloc(crypto_box_SEEDBYTES)
+  const opsLimit = crypto_pwhash_OPSLIMIT_MIN
+  const memLimit = crypto_pwhash_MEMLIMIT_MIN
+  const algo = 2
+  crypto_pwhash(
+    encryptionKey,
+    Buffer.from(password),
+    hash.slice(0, crypto_pwhash_SALTBYTES),
+    opsLimit,
+    memLimit,
+    algo,
+  )
+
+  const encryptionKeyHash = Buffer.alloc(crypto_shorthash_BYTES)
+  crypto_shorthash(encryptionKeyHash, encryptionKey, configLoginServerKey)
+
+  return encryptionKeyHash.readBigUInt64LE()
+}
 
 const configLoginAppSecret = Buffer.from(CONFIG.LOGIN_APP_SECRET, 'hex')
 const configLoginServerKey = Buffer.from(CONFIG.LOGIN_SERVER_KEY, 'hex')
-
-let encryptionWorkerPool: Pool | undefined
-
-if (CONFIG.USE_CRYPTO_WORKER) {
-  encryptionWorkerPool = pool(
-    path.join(__dirname, '..', '..', 'build', 'src', 'password', '/EncryptionWorker.js'),
-    {
-      // TODO: put maxQueueSize into config
-      maxQueueSize: 30 * cpus().length,
-    },
-  )
-}
 
 // We will reuse this for changePassword
 export const isValidPassword = (password: string): boolean => {
@@ -56,25 +84,14 @@ export const SecretKeyCryptographyCreateKey = async (
         crypto_shorthash_KEYBYTES,
       )
     }
-    let result: Promise<bigint>
-    if (encryptionWorkerPool) {
-      result = (await encryptionWorkerPool.exec('SecretKeyCryptographyCreateKey', [
+    return Promise.resolve(
+      SecretKeyCryptographyCreateKeyMock(
         salt,
         password,
         configLoginAppSecret,
         configLoginServerKey,
-      ])) as Promise<bigint>
-    } else {
-      result = Promise.resolve(
-        SecretKeyCryptographyCreateKeySync(
-          salt,
-          password,
-          configLoginAppSecret,
-          configLoginServerKey,
-        ),
-      )
-    }
-    return result
+      ),
+    )
   } catch (e) {
     // pool is throwing this error
     // throw new Error('Max queue size of ' + this.maxQueueSize + ' reached');
