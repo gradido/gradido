@@ -7,7 +7,6 @@ import { ContributionLink as DbContributionLink } from '@entity/ContributionLink
 import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
 import { User as DbUser } from '@entity/User'
 import { UserContact as DbUserContact } from '@entity/UserContact'
-import { UserRole } from '@entity/UserRole'
 import i18n from 'i18n'
 import { Resolver, Query, Args, Arg, Authorized, Ctx, Mutation, Int } from 'type-graphql'
 import { IRestResponse } from 'typed-rest-client'
@@ -972,16 +971,15 @@ export class UserResolver {
 }
 
 export async function findUserByEmail(email: string): Promise<DbUser> {
-  const dbUserContact = await DbUserContact.findOneOrFail({
-    where: { email },
+  const dbUser = await DbUser.findOneOrFail({
+    where: {
+      emailContact: { email },
+    },
     withDeleted: true,
-    relations: ['user'],
+    relations: { userRoles: true, emailContact: true },
   }).catch(() => {
     throw new LogError('No user with this credentials', email)
   })
-  const dbUser = dbUserContact.user
-  dbUser.emailContact = dbUserContact
-  dbUser.userRoles = await UserRole.find({ where: { userId: dbUser.id } })
   return dbUser
 }
 
