@@ -47,11 +47,12 @@ const communityLocation = ref({ lat: 0, lng: 0 })
 const emit = defineEmits(['close'])
 
 onResult(({ data }) => {
-  communityLocation.value.lng = data.userLocation.longitude
-  communityLocation.value.lat = data.userLocation.latitude
+  const locationData = data.userLocation
+  communityLocation.value.lng = locationData.communityLocation.longitude
+  communityLocation.value.lat = locationData.communityLocation.latitude
 
-  userLocation.value.lng = data?.userLocation?.longitude ?? communityLocation.value.lng
-  userLocation.value.lat = data?.userLocation?.latitude ?? communityLocation.value.lat
+  userLocation.value.lng = locationData.userLocation?.longitude ?? communityLocation.value.lng
+  userLocation.value.lat = locationData.userLocation?.latitude ?? communityLocation.value.lat
 })
 
 onError((err) => {
@@ -79,6 +80,7 @@ const saveUserLocation = async () => {
       },
     })
     toastSuccess(t('settings.GMS.location.updateSuccess'))
+    userLocation.value = capturedLocation.value
     isModalOpen.value = false
   } catch (error) {
     toastError(error.message)
