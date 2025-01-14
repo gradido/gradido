@@ -1,5 +1,6 @@
 import {
   AuthenticatedEncryption,
+  DurationSeconds,
   EncryptedMemo,
   GradidoTransactionBuilder,
   GradidoTransfer,
@@ -74,11 +75,13 @@ export class DeferredTransferTransactionRole extends AbstractTransactionRole {
         new GradidoTransfer(
           new TransferAmount(
             senderKeyPair.getPublicKey(),
-            GradidoUnit.fromString(this.self.amount),
+            GradidoUnit.fromString(this.self.amount).calculateCompoundInterest(
+              this.self.timeoutDuration,
+            ),
           ),
           recipientKeyPair.getPublicKey(),
         ),
-        this.self.timeoutDuration,
+        new DurationSeconds(this.self.timeoutDuration),
       )
       .sign(senderKeyPair)
     return builder

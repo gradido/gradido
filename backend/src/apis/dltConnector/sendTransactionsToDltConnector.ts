@@ -1,4 +1,6 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
+import { CONFIG } from '@/config'
+import { backendLogger as logger } from '@/server/logger'
 import { TypeORMError } from '@dbTools/typeorm'
 // eslint-disable-next-line import/named, n/no-extraneous-import
 import { FetchError } from 'node-fetch'
@@ -6,7 +8,6 @@ import { FetchError } from 'node-fetch'
 import { DltConnectorClient } from '@dltConnector/DltConnectorClient'
 
 import { LogError } from '@/server/LogError'
-import { backendLogger as logger } from '@/server/logger'
 import {
   InterruptiveSleepManager,
   TRANSMIT_TO_IOTA_INTERRUPTIVE_SLEEP_KEY,
@@ -40,7 +41,9 @@ export async function sendTransactionsToDltConnector(): Promise<void> {
       await transactionToDlt(dltConnector)
       await InterruptiveSleepManager.getInstance().sleep(
         TRANSMIT_TO_IOTA_INTERRUPTIVE_SLEEP_KEY,
-        1000,
+        // TODO: put sleep time into config, because it influence performance,
+        // transactionToDlt call 4 db queries to look for new transactions
+        CONFIG.PRODUCTION ? 100000 : 1000,
       )
     } catch (e) {
       // couldn't connect to dlt-connector? We wait

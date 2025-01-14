@@ -48,15 +48,6 @@ export class TransactionToDltRole extends AbstractTransactionToDltRole<Transacti
     const draft = new TransactionDraft()
     draft.amount = this.self.amount.abs().toString()
 
-    if (
-      !this.self.linkedUserGradidoID ||
-      !this.self.linkedUserCommunityUuid ||
-      !this.self.userCommunityUuid
-    ) {
-      throw new LogError(
-        `missing necessary field in transaction: ${this.self.id}, need linkedUserGradidoID, linkedUserCommunityUuid and userCommunityUuid`,
-      )
-    }
     switch (this.self.typeId as TransactionTypeId) {
       case TransactionTypeId.CREATION:
         draft.type = TransactionType.GRADIDO_CREATION
@@ -68,7 +59,17 @@ export class TransactionToDltRole extends AbstractTransactionToDltRole<Transacti
         this.type = DltTransactionType.TRANSFER
         break
       default:
+        this.type = DltTransactionType.UNKNOWN
         throw new LogError('wrong role for type', this.self.typeId as TransactionTypeId)
+    }
+    if (
+      !this.self.linkedUserGradidoID ||
+      !this.self.linkedUserCommunityUuid ||
+      !this.self.userCommunityUuid
+    ) {
+      throw new LogError(
+        `missing necessary field in transaction: ${this.self.id}, need linkedUserGradidoID, linkedUserCommunityUuid and userCommunityUuid`,
+      )
     }
     // it is a redeem of a transaction link?
     const transactionLink = this.self.transactionLink
@@ -77,6 +78,7 @@ export class TransactionToDltRole extends AbstractTransactionToDltRole<Transacti
         this.self.userCommunityUuid,
         new IdentifierSeed(transactionLink.code),
       )
+      draft.type = TransactionType.GRADIDO_REDEEM_DEFERRED_TRANSFER
       this.type = DltTransactionType.REDEEM_DEFERRED_TRANSFER
     } else {
       draft.user = new UserIdentifier(

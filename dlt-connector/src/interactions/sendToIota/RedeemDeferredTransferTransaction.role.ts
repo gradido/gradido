@@ -75,10 +75,8 @@ export class RedeemDeferredTransferTransactionRole extends AbstractTransactionRo
     }
     const recipientKeyPair = await KeyPairCalculation(new KeyPairIdentifier(this.linkedUser))
 
-    // TODO: fix getMemos in gradido-blockchain-js to return correct data
     builder
       .setCreatedAt(new Date(this.self.createdAt))
-      .addMemo(deferredTransferBody.getMemos()[0])
       .setRedeemDeferredTransfer(
         deferredTransfer.getId(),
         new GradidoTransfer(
@@ -89,6 +87,10 @@ export class RedeemDeferredTransferTransactionRole extends AbstractTransactionRo
           recipientKeyPair.getPublicKey(),
         ),
       )
+    const memos = deferredTransferBody.getMemos()
+    for (let i = 0; i < memos.size(); i++) {
+      builder.addMemo(memos.get(i))
+    }
     const senderCommunity = this.self.user.communityUuid
     const recipientCommunity = this.linkedUser.communityUuid
     if (senderCommunity !== recipientCommunity) {

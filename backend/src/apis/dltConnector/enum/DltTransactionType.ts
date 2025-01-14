@@ -1,4 +1,5 @@
 export enum DltTransactionType {
+  UNKNOWN = 0,
   REGISTER_ADDRESS = 1,
   CREATION = 2,
   TRANSFER = 3,

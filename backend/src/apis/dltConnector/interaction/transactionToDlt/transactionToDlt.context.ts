@@ -3,6 +3,7 @@ import { TransactionLink } from '@entity/TransactionLink'
 import { User } from '@entity/User'
 
 import { DltConnectorClient } from '@/apis/dltConnector/DltConnectorClient'
+import { TransactionResult } from '@/apis/dltConnector/model/TransactionResult'
 import { backendLogger as logger } from '@/server/logger'
 
 import { AbstractTransactionToDltRole } from './AbstractTransactionToDlt.role'
@@ -41,10 +42,18 @@ export async function transactionToDlt(dltConnector: DltConnectorClient): Promis
     }
     let messageId = ''
     let error: string | null = null
-
-    const result = await dltConnector.sendTransaction(
-      pendingTransactionRole.convertToGraphqlInput(),
-    )
+    let result: TransactionResult | undefined
+    try {
+      result = await dltConnector.sendTransaction(pendingTransactionRole.convertToGraphqlInput())
+    } catch (e) {
+      if (e instanceof Error) {
+        error = e.message
+      } else if (typeof e === 'string') {
+        error = e
+      } else {
+        throw e
+      }
+    }
     if (result?.succeed && result.recipe) {
       messageId = result.recipe.messageIdHex
     } else if (result?.error) {
