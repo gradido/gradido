@@ -125,6 +125,7 @@ import { createContributionLink } from '@/graphql/createContributionLink.js'
 import { updateContributionLink } from '@/graphql/updateContributionLink.js'
 import { useAppToast } from '@/composables/useToast'
 import { useI18n } from 'vue-i18n'
+import { useDateFormatter } from '@/composables/useDateFormatter'
 
 const props = defineProps({
   contributionLinkData: {
@@ -137,6 +138,8 @@ const props = defineProps({
 const emit = defineEmits(['get-contribution-links', 'close-contribution-form'])
 
 const { t } = useI18n()
+
+const { formatDateFromDateTime } = useDateFormatter()
 
 const contributionLinkForm = ref(null)
 
@@ -199,11 +202,6 @@ const onSubmit = async () => {
   } catch (error) {
     toastError(error.message)
   }
-}
-
-const formatDateFromDateTime = (datetimeString) => {
-  if (!datetimeString || !datetimeString?.includes('T')) return datetimeString
-  return datetimeString.split('T')[0]
 }
 
 const onReset = () => {
