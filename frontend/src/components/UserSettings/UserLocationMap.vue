@@ -1,6 +1,7 @@
 <template>
   <div>
     <coordinates-display
+      v-if="map"
       :community-position="communityPosition"
       :user-position="userPosition"
       @centerMap="handleMapCenter"
@@ -21,7 +22,6 @@ const mapContainer = ref(null)
 const map = ref(null)
 const userMarker = ref(null)
 const communityMarker = ref(null)
-const searchQuery = ref('')
 const userPosition = ref({ lat: 0, lng: 0 })
 const communityPosition = ref({ lat: 0, lng: 0 })
 const defaultZoom = 13
@@ -42,8 +42,7 @@ onMounted(async () => {
   if (props.communityMarkerCoords) {
     communityPosition.value = props.communityMarkerCoords
   }
-  await nextTick()
-  initMap()
+  setTimeout(() => initMap(), 250)
   window.addEventListener('resize', handleResize)
 })
 
@@ -60,6 +59,7 @@ function initMap() {
       center: [userPosition.value.lat, userPosition.value.lng],
       zoom: defaultZoom,
       zoomControl: false,
+      closePopupOnClick: false,
     })
 
     L.control.zoom({ position: 'topleft' }).addTo(map.value)
@@ -72,6 +72,7 @@ function initMap() {
     // User marker (movable)
     userMarker.value = L.marker([userPosition.value.lat, userPosition.value.lng], {
       draggable: true,
+      interactive: false,
       icon: L.icon({
         iconUrl:
           'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
@@ -83,11 +84,18 @@ function initMap() {
       }),
     }).addTo(map.value)
 
-    userMarker.value.bindPopup(t('settings.GMS.map.userLocationLabel')).openPopup()
+    userMarker.value
+      .bindPopup(t('settings.GMS.map.userLocationLabel'), {
+        autoClose: false,
+        closeOnClick: false,
+        closeButton: false,
+      })
+      .openPopup()
 
     // Community marker (fixed)
     communityMarker.value = L.marker([communityPosition.value.lat, communityPosition.value.lng], {
       draggable: false,
+      interactive: false,
       icon: L.icon({
         iconUrl:
           'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
@@ -99,7 +107,13 @@ function initMap() {
       }),
     }).addTo(map.value)
 
-    communityMarker.value.bindPopup(t('settings.GMS.map.communityLocationLabel'))
+    communityMarker.value
+      .bindPopup(t('settings.GMS.map.communityLocationLabel'), {
+        autoClose: false,
+        closeOnClick: false,
+        closeButton: false,
+      })
+      .openPopup()
 
     map.value.on('click', onMapClick)
     userMarker.value.on('dragend', onMarkerDragEnd)

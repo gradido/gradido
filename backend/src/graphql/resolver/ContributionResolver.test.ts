@@ -59,6 +59,7 @@ import { stephenHawking } from '@/seeds/users/stephen-hawking'
 import { getFirstDayOfPreviousNMonth } from '@/util/utilities'
 
 jest.mock('@/emails/sendEmailVariants')
+jest.mock('@/password/EncryptorUtils')
 
 let mutate: ApolloServerTestClient['mutate'],
   query: ApolloServerTestClient['query'],

@@ -12,7 +12,7 @@ Decimal.set({
 })
 
 const constants = {
-  DB_VERSION: '0088-merge_dlt_tables',
+  DB_VERSION: '0089-merge_dlt_tables',
   DECAY_START_TIME: new Date('2021-05-13 17:46:31-0000'), // GMT+0
   LOG4JS_CONFIG: 'log4js-config.json',
   // default log level on production should be info
@@ -76,6 +76,7 @@ const community = {
 const loginServer = {
   LOGIN_APP_SECRET: process.env.LOGIN_APP_SECRET ?? '21ffbbc616fe',
   LOGIN_SERVER_KEY: process.env.LOGIN_SERVER_KEY ?? 'a51ef8ac7ef1abf162fb7a65261acd7a',
+  USE_CRYPTO_WORKER: process.env.USE_CRYPTO_WORKER ?? false,
 }
 
 const email = {

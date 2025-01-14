@@ -14,7 +14,10 @@
       </BCol>
       <BCol>
         <div>
-          <component :is="nameComponent" v-bind="nameProps" />
+          <Name v-if="useNameComponent" v-bind="nameProps" />
+          <div v-else :class="nameProps.class">
+            {{ nameProps.creationLinkedUser }}
+          </div>
         </div>
         <span class="small">{{ $d(new Date(props.transaction.balanceDate), 'short') }}</span>
         <span class="ms-4 small">{{ $d(new Date(props.transaction.balanceDate), 'time') }}</span>
@@ -112,14 +115,15 @@ const avatarProps = computed(() => {
   }
 })
 
-const nameComponent = computed(() => {
-  return isCreationType.value ? 'div' : Name
+const useNameComponent = computed(() => {
+  return !isCreationType.value
 })
 
 const nameProps = computed(() => {
   if (isCreationType.value) {
     return {
       class: 'fw-bold',
+      creationLinkedUser: `${props.transaction.linkedUser.firstName} ${props.transaction.linkedUser.lastName}`,
     }
   } else {
     return {

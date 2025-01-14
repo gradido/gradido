@@ -51,7 +51,8 @@
     "type-graphql": "^1.1.1",
     "typed-rest-client": "^1.8.11",
     "uuid": "^8.3.2",
-    "xregexp": "^5.1.1"
+    "xregexp": "^5.1.1",
+    "workerpool": "^9.2.0"
   },
   "devDependencies": {
     "@eslint-community/eslint-plugin-eslint-comments": "^3.2.1",

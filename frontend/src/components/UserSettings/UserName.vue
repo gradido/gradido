@@ -1,5 +1,5 @@
 <template>
-  <div id="username_form">
+  <div id="username-form">
     <div v-if="store.state.username">
       <label>{{ $t('form.username') }}</label>
       <BFormGroup
@@ -21,16 +21,13 @@
           <BRow class="mb-3">
             <BCol class="col-12">
               <input-username
-                :model-value="username"
                 name="username"
                 :placeholder="$t('form.username-placeholder')"
                 show-all-errors
                 :unique="true"
                 :rules="rules"
-                :is-edit="isEdit"
                 data-test="component-input-username"
-                @set-is-edit="setIsEdit(true)"
-                @update:model-value="username = $event"
+                :initial-username-value="username"
               />
             </BCol>
             <BCol class="col-12">
@@ -64,7 +61,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
 import { useStore } from 'vuex'
 import { useMutation } from '@vue/apollo-composable'
 import { useI18n } from 'vue-i18n'
@@ -78,9 +75,6 @@ const store = useStore()
 const { toastError, toastSuccess } = useAppToast()
 const { t } = useI18n()
 
-const isEdit = ref(false)
-const username = ref(store.state.username || '')
-const usernameUnique = ref(false)
 const rules = {
   required: true,
   min: 3,
@@ -103,12 +97,9 @@ const onSubmit = handleSubmit(async () => {
   }
 })
 
-const setIsEdit = (bool) => {
-  username.value = store.state.username
-  isEdit.value = bool
-}
+const username = computed(() => store.state.username || '')
 
-const newUsername = computed(() => username.value !== store.state.username)
+const newUsername = computed(() => values.username && values.username !== store.state.username)
 
 const disabled = (err) => {
   return !newUsername.value || !!Object.keys(err).length

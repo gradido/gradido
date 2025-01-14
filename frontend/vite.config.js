@@ -9,18 +9,34 @@ import EnvironmentPlugin from 'vite-plugin-environment'
 import { createHtmlPlugin } from 'vite-plugin-html'
 
 import { BootstrapVueNextResolver } from 'bootstrap-vue-next'
-import CONFIG from './src/config'
+import dotenv from 'dotenv'
+
+dotenv.config() // load env vars from .env
+
+const CONFIG = require('./src/config')
 
 // https://vitejs.dev/config/
 export default defineConfig({
   server: {
-    host: '0.0.0.0',
-    port: 3000,
+    host: CONFIG.FRONTEND_MODULE_HOST, // '0.0.0.0',
+    port: CONFIG.FRONTEND_MODULE_PORT, // 3000,
   },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
       assets: path.join(__dirname, 'src/assets'),
+      '@vee-validate/i18n/dist/locale/en.json':
+        '/node_modules/@vee-validate/i18n/dist/locale/en.json',
+      '@vee-validate/i18n/dist/locale/de.json':
+        '/node_modules/@vee-validate/i18n/dist/locale/de.json',
+      '@vee-validate/i18n/dist/locale/es.json':
+        '/node_modules/@vee-validate/i18n/dist/locale/es.json',
+      '@vee-validate/i18n/dist/locale/fr.json':
+        '/node_modules/@vee-validate/i18n/dist/locale/fr.json',
+      '@vee-validate/i18n/dist/locale/nl.json':
+        '/node_modules/@vee-validate/i18n/dist/locale/nl.json',
+      '@vee-validate/i18n/dist/locale/tr.json':
+        '/node_modules/@vee-validate/i18n/dist/locale/tr.json',
     },
     extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json', '.vue'],
   },
@@ -60,9 +76,12 @@ export default defineConfig({
       URL_PROTOCOL: null,
       COMMUNITY_URL: null,
       GRAPHQL_PATH: null,
-      ADMIN_AUTH_PATH: null,
+      GRAPHQL_URI: CONFIG.GRAPHQL_URI, // null,
+      ADMIN_AUTH_PATH: CONFIG.ADMIN_AUTH_PATH ?? null, // it is the only env without exported default
+      ADMIN_AUTH_URL: CONFIG.ADMIN_AUTH_URL, // null,
       COMMUNITY_NAME: null,
       COMMUNITY_REGISTER_PATH: null,
+      COMMUNITY_REGISTER_URL: null,
       COMMUNITY_DESCRIPTION: null,
       COMMUNITY_SUPPORT_MAIL: null,
       META_URL: null,
@@ -87,5 +106,6 @@ export default defineConfig({
   },
   build: {
     outDir: path.resolve(__dirname, './build'),
+    chunkSizeWarningLimit: 1600,
   },
 })
