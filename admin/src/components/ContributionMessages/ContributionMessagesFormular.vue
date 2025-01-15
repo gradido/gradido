@@ -9,11 +9,11 @@
         </BFormGroup>
         <BFormGroup v-if="showResubmissionDate">
           <div class="d-flex my-2">
-            <BFormInput v-model="resubmissionDate" type="date" :min="now" class="w-25 me-2" />
-            <time-picker v-model="resubmissionTime" />
+            <Datepicker v-model="resubmissionDate" :lower-limit="now" class="form-control" />
+            <time-picker v-model="resubmissionTime" class="ms-2" />
           </div>
         </BFormGroup>
-        <BTabs v-model="tabindex" content-class="mt-3" data-test="message-type-tabs">
+        <BTabs v-model="tabindex" class="mt-3" content-class="mt-3" data-test="message-type-tabs">
           <BTab active>
             <template #title>
               <span id="message-tab-title">{{ $t('moderator.message') }}</span>
@@ -83,11 +83,11 @@ import { ref, computed } from 'vue'
 import { useMutation } from '@vue/apollo-composable'
 import { useI18n } from 'vue-i18n'
 
+import Datepicker from 'vue3-datepicker'
 import TimePicker from '@/components/input/TimePicker'
 import { adminCreateContributionMessage } from '@/graphql/adminCreateContributionMessage'
 import { adminUpdateContribution } from '@/graphql/adminUpdateContribution'
 import { useAppToast } from '@/composables/useToast'
-import { useDateFormatter } from '@/composables/useDateFormatter'
 
 const props = defineProps({
   contributionId: {
@@ -118,8 +118,6 @@ const emit = defineEmits([
 
 const { t } = useI18n()
 const { toastError, toastSuccess } = useAppToast()
-const { formatDateFromDateTime } = useDateFormatter()
-
 const form = ref({
   text: '',
   memo: props.contributionMemo,
@@ -129,7 +127,7 @@ const loading = ref(false)
 const localInputResubmissionDate = props.inputResubmissionDate
   ? new Date(props.inputResubmissionDate)
   : null
-const resubmissionDate = ref(formatDateFromDateTime(props.inputResubmissionDate))
+const resubmissionDate = ref(localInputResubmissionDate)
 const resubmissionTime = ref(
   localInputResubmissionDate
     ? localInputResubmissionDate.toLocaleTimeString('de-DE', {

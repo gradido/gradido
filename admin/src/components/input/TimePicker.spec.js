@@ -16,7 +16,7 @@ describe('TimePicker', () => {
     await input.setValue('23:45')
 
     // Check if timeValue is updated
-    expect(wrapper.vm.timeValue).toBe('23:45')
+    expect(wrapper.vm.timeValue).toBe('23:45') // test for Vue 3 composition state directly, if possible
 
     // Check if update:modelValue event is emitted with updated value
     expect(wrapper.emitted('update:modelValue')).toBeTruthy()
@@ -24,7 +24,11 @@ describe('TimePicker', () => {
   })
 
   it('validates and corrects time format on blur', async () => {
-    const wrapper = mount(TimePicker)
+    const wrapper = mount(TimePicker, {
+      props: {
+        modelValue: '99:99', // Set an invalid value initially
+      },
+    })
 
     const input = wrapper.find('input[type="text"]')
 
@@ -45,7 +49,11 @@ describe('TimePicker', () => {
   })
 
   it('checks handling of empty input', async () => {
-    const wrapper = mount(TimePicker)
+    const wrapper = mount(TimePicker, {
+      props: {
+        modelValue: '', // Set initial empty value
+      },
+    })
     const input = wrapper.find('input[type="text"]')
 
     // Simulate user input with empty string

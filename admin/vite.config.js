@@ -57,7 +57,7 @@ export default defineConfig({
       WALLET_AUTH_PATH: CONFIG.WALLET_AUTH_URL, // null,
       WALLET_LOGIN_PATH: CONFIG.WALLET_LOGIN_URL, // null,
       DEBUG_DISABLE_AUTH: CONFIG.DEBUG_DISABLE_AUTH, // null,
-      CONFIG_VERSION: CONFIG.CONFIG_VERSION, // null,
+      // CONFIG_VERSION: CONFIG.CONFIG_VERSION, // null,
     }),
     commonjs(),
   ],
