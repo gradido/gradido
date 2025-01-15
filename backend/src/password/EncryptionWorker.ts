@@ -46,7 +46,7 @@ export const SecretKeyCryptographyCreateKey = (
   return encryptionKeyHash.readBigUInt64LE()
 }
 
-if (CONFIG.USE_CRYPTO_WORKER) {
+if (CONFIG.USE_CRYPTO_WORKER === true) {
   worker({
     SecretKeyCryptographyCreateKey,
   })
