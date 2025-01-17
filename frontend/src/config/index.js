@@ -3,7 +3,7 @@
 //            The whole contents is exposed to the client
 
 // Load Package Details for some default values
-import schema from './config.schema'
+import schema from './schema'
 import { validateAndExport } from '../../../config'
 
 const CONFIG = {

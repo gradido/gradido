@@ -14,7 +14,7 @@ module.exports = commonSchema.keys({
     .description(
       `
       Host (domain, IPv4, or localhost) for the frontend when running Vite as a standalone Node.js instance;
-      internally, nginx forwards requests to this address.
+      internally, nginx forward requests to this address.
       `,
     )
     .default('0.0.0.0'),
