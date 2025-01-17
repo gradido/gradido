@@ -14,7 +14,7 @@
             data-test="username"
             @update:modelValue="usernameValue = $event"
           />
-          <BButton size="md" text="Button" variant="secondary" append @click="clearInput">
+          <BButton size="md" text="Button" variant="secondary" append @click="emitSetIsEdit">
             <IBiXCircle style="height: 17px; width: 17px" />
           </BButton>
         </BInputGroup>
@@ -47,17 +47,18 @@ import { ref, computed, watch, defineProps, defineEmits } from 'vue'
 import { useField, useForm } from 'vee-validate'
 
 const props = defineProps({
+  isEdit: { type: Boolean, default: false },
   rules: { type: Object, default: () => ({ required: true }) },
   name: { type: String, default: 'username' },
   label: { type: String, default: 'Username' },
   placeholder: { type: String, default: 'Username' },
+  modelValue: { type: String, required: true },
   showAllErrors: { type: Boolean, default: false },
   immediate: { type: Boolean, default: false },
   unique: { type: Boolean, required: true },
-  initialUsernameValue: { type: String, default: '' },
 })
 
-const currentValue = ref(props.initialUsernameValue)
+const currentValue = ref(props?.modelValue)
 
 const {
   meta: usernameMeta,
@@ -68,13 +69,11 @@ const {
   initialValue: currentValue,
 })
 
-const clearInput = () => (usernameValue.value = '')
+const emit = defineEmits(['update:modelValue', 'set-is-edit'])
 
 const labelFor = computed(() => `${props.name}-input-field`)
-</script>
 
-<style>
-div#username_form > div > label {
-  margin-bottom: 8px;
+const emitSetIsEdit = (bool) => {
+  emit('set-is-edit', bool)
 }
-</style>
+</script>

@@ -231,7 +231,6 @@
   },
   "gdt": {
     "calculation": "Calculation of Gradido Transform",
-    "contribution": "Contribution",
     "conversion": "Conversion",
     "conversion-gdt-euro": "Conversion Euro / Gradido Transform (GDT)",
     "credit": "Credit",

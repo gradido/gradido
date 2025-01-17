@@ -8,10 +8,8 @@
           </BFormCheckbox>
         </BFormGroup>
         <BFormGroup v-if="showResubmissionDate">
-          <div class="d-flex my-2">
-            <BFormInput v-model="resubmissionDate" type="date" :min="now" class="w-25 me-2" />
-            <time-picker v-model="resubmissionTime" />
-          </div>
+          <BFormInput v-model="resubmissionDate" type="date" :min="now"></BFormInput>
+          <time-picker v-model="resubmissionTime"></time-picker>
         </BFormGroup>
         <BTabs v-model="tabindex" content-class="mt-3" data-test="message-type-tabs">
           <BTab active>
@@ -26,7 +24,7 @@
               v-model="form.text"
               :placeholder="$t('contributionLink.memo')"
               rows="3"
-            />
+            ></BFormTextarea>
           </BTab>
           <BTab>
             <template #title>
@@ -40,7 +38,7 @@
               v-model="form.text"
               :placeholder="$t('moderator.notice')"
               rows="3"
-            />
+            ></BFormTextarea>
           </BTab>
           <BTab>
             <template #title>
@@ -54,7 +52,7 @@
               v-model="form.memo"
               :placeholder="$t('contributionLink.memo')"
               rows="3"
-            />
+            ></BFormTextarea>
           </BTab>
         </BTabs>
         <BRow class="mt-4 mb-6">
@@ -87,7 +85,6 @@ import TimePicker from '@/components/input/TimePicker'
 import { adminCreateContributionMessage } from '@/graphql/adminCreateContributionMessage'
 import { adminUpdateContribution } from '@/graphql/adminUpdateContribution'
 import { useAppToast } from '@/composables/useToast'
-import { useDateFormatter } from '@/composables/useDateFormatter'
 
 const props = defineProps({
   contributionId: {
@@ -118,7 +115,6 @@ const emit = defineEmits([
 
 const { t } = useI18n()
 const { toastError, toastSuccess } = useAppToast()
-const { formatDateFromDateTime } = useDateFormatter()
 
 const form = ref({
   text: '',
@@ -129,7 +125,7 @@ const loading = ref(false)
 const localInputResubmissionDate = props.inputResubmissionDate
   ? new Date(props.inputResubmissionDate)
   : null
-const resubmissionDate = ref(formatDateFromDateTime(props.inputResubmissionDate))
+const resubmissionDate = ref(localInputResubmissionDate)
 const resubmissionTime = ref(
   localInputResubmissionDate
     ? localInputResubmissionDate.toLocaleTimeString('de-DE', {
@@ -145,20 +141,14 @@ const messageType = {
   MODERATOR: 'MODERATOR',
 }
 
-const isTextTabValid = computed(() => form.value.text !== '')
-
-const isMemoTabValid = computed(() => form.value.memo.length >= 5)
-
-const disabled = computed(
-  () =>
+const disabled = computed(() => {
+  return (
+    (tabindex.value === 0 && form.value.text === '') ||
     loading.value ||
-    (!(showResubmissionDate.value && resubmissionDate.value) &&
-      ([0, 1].includes(tabindex.value)
-        ? !isTextTabValid.value
-        : tabindex.value === 2
-          ? !isMemoTabValid.value
-          : false)),
-)
+    (tabindex.value === 1 && form.value.memo.length < 5) ||
+    (showResubmissionDate.value && !resubmissionDate.value)
+  )
+})
 
 const now = computed(() => new Date())
 

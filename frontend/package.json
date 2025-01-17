@@ -23,9 +23,9 @@
     "@babel/preset-env": "^7.13.12",
     "@morev/vue-transitions": "^3.0.2",
     "@types/leaflet": "^1.9.12",
-    "@vee-validate/i18n": "^4.13.2",
-    "@vee-validate/rules": "^4.13.2",
-    "@vee-validate/yup": "^4.13.2",
+    "@vee-validate/i18n": "^4.14.7",
+    "@vee-validate/rules": "^4.14.1",
+    "@vee-validate/yup": "^4.14.1",
     "@vitejs/plugin-vue": "5.1.4",
     "@vue-leaflet/vue-leaflet": "^0.10.1",
     "@vue/apollo-composable": "^4.0.2",
@@ -126,6 +126,5 @@
     "strip-ansi": "6.0.1",
     "string-width": "4.2.2",
     "wrap-ansi": "7.0.0"
-  },
-  "packageManager": "yarn@4.5.1"
+  }
 }

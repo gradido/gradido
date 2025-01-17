@@ -25,6 +25,18 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, './src'),
       assets: path.join(__dirname, 'src/assets'),
+      '@vee-validate/i18n/dist/locale/en.json':
+        '/node_modules/@vee-validate/i18n/dist/locale/en.json',
+      '@vee-validate/i18n/dist/locale/de.json':
+        '/node_modules/@vee-validate/i18n/dist/locale/de.json',
+      '@vee-validate/i18n/dist/locale/es.json':
+        '/node_modules/@vee-validate/i18n/dist/locale/es.json',
+      '@vee-validate/i18n/dist/locale/fr.json':
+        '/node_modules/@vee-validate/i18n/dist/locale/fr.json',
+      '@vee-validate/i18n/dist/locale/nl.json':
+        '/node_modules/@vee-validate/i18n/dist/locale/nl.json',
+      '@vee-validate/i18n/dist/locale/tr.json':
+        '/node_modules/@vee-validate/i18n/dist/locale/tr.json',
     },
     extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json', '.vue'],
   },
@@ -65,7 +77,7 @@ export default defineConfig({
       COMMUNITY_URL: null,
       GRAPHQL_PATH: null,
       GRAPHQL_URI: CONFIG.GRAPHQL_URI, // null,
-      ADMIN_AUTH_PATH: CONFIG.ADMIN_AUTH_PATH, // null,
+      ADMIN_AUTH_PATH: CONFIG.ADMIN_AUTH_PATH ?? null, // it is the only env without exported default
       ADMIN_AUTH_URL: CONFIG.ADMIN_AUTH_URL, // null,
       COMMUNITY_NAME: null,
       COMMUNITY_REGISTER_PATH: null,

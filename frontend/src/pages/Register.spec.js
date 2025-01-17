@@ -130,18 +130,32 @@ describe('Register', () => {
     })
 
     it('displays a message that firstname is required', async () => {
+      // First set some value to make the field dirty
+      await wrapper.find('#registerFirstname').setValue('test')
+      await wrapper.find('#registerFirstname').trigger('blur')
+
+      // Then clear it to trigger validation
       await wrapper.find('#registerFirstname').setValue('')
       await wrapper.find('#registerFirstname').trigger('blur')
       await flushPromises()
+
+      expect(wrapper.find('#registerFirstnameLiveFeedback').exists()).toBe(true)
       expect(wrapper.find('#registerFirstnameLiveFeedback').text()).toBe(
         'The field firstname is invalid',
       )
     })
 
     it('displays a message that lastname is required', async () => {
+      // First set some value to make the field dirty
+      await wrapper.find('#registerLastname').setValue('test')
+      await wrapper.find('#registerLastname').trigger('blur')
+
+      // Then clear it to trigger validation
       await wrapper.find('#registerLastname').setValue('')
       await wrapper.find('#registerLastname').trigger('blur')
       await flushPromises()
+
+      expect(wrapper.find('#registerLastnameLiveFeedback').exists()).toBe(true)
       expect(wrapper.find('#registerLastnameLiveFeedback').text()).toBe(
         'The field lastname is invalid',
       )

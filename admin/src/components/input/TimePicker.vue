@@ -2,7 +2,6 @@
   <div>
     <input
       v-model="timeValue"
-      class="timer-input"
       type="text"
       placeholder="hh:mm"
       @input="updateValues"
@@ -16,15 +15,15 @@ export default {
   // Code written from chatGPT 3.5
   name: 'TimePicker',
   props: {
-    modelValue: {
+    value: {
       type: String,
       default: '00:00',
     },
   },
-  emits: ['update:modelValue'],
+  emits: ['input'],
   data() {
     return {
-      timeValue: this.modelValue,
+      timeValue: this.value,
     }
   },
   methods: {
@@ -32,7 +31,7 @@ export default {
       // Allow only numbers and ":"
       const inputValue = event.target.value.replace(/[^0-9:]/g, '')
       this.timeValue = inputValue
-      this.$emit('update:modelValue', inputValue)
+      this.$emit('input', inputValue)
     },
     validateAndCorrect() {
       let [hours, minutes] = this.timeValue.split(':')
@@ -43,16 +42,8 @@ export default {
 
       // Update the value with correct format
       this.timeValue = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`
-      this.$emit('update:modelValue', this.timeValue)
+      this.$emit('input', this.timeValue)
     },
   },
 }
 </script>
-
-<style scoped>
-.timer-input {
-  border: 1px solid rgb(222, 226, 230);
-  border-radius: 6px;
-  padding: 6px 12px;
-}
-</style>
