@@ -15,6 +15,8 @@ dotenv.config() // load env vars from .env
 
 const CONFIG = require('./src/config')
 
+console.log(CONFIG)
+
 // https://vitejs.dev/config/
 export default defineConfig({
   server: {
@@ -76,7 +78,7 @@ export default defineConfig({
       URL_PROTOCOL: null,
       COMMUNITY_URL: null,
       GRAPHQL_PATH: null,
-      GRAPHQL_URI: CONFIG.GRAPHQL_URI, // null,
+      EXTERNAL_BACKEND_URL: CONFIG.EXTERNAL_BACKEND_URL, // null,
       ADMIN_AUTH_PATH: CONFIG.ADMIN_AUTH_PATH ?? null, // it is the only env without exported default
       ADMIN_AUTH_URL: CONFIG.ADMIN_AUTH_URL, // null,
       COMMUNITY_NAME: null,
@@ -107,5 +109,8 @@ export default defineConfig({
   build: {
     outDir: path.resolve(__dirname, './build'),
     chunkSizeWarningLimit: 1600,
+    rollupOptions: {
+      external: ['joi'],
+    },
   },
 })

@@ -64,7 +64,6 @@ const dltConnector = {
 const community = {
   COMMUNITY_NAME: process.env.COMMUNITY_NAME ?? 'Gradido Entwicklung',
   COMMUNITY_URL,
-  COMMUNITY_REGISTER_URL: COMMUNITY_URL + (process.env.COMMUNITY_REGISTER_PATH ?? '/register'),
   COMMUNITY_REDEEM_URL: COMMUNITY_URL + (process.env.COMMUNITY_REDEEM_PATH ?? '/redeem/{code}'),
   COMMUNITY_REDEEM_CONTRIBUTION_URL:
     COMMUNITY_URL + (process.env.COMMUNITY_REDEEM_CONTRIBUTION_PATH ?? '/redeem/CL-{code}'),
