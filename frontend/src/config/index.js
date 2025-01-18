@@ -4,18 +4,19 @@
 // Load Package Details for some default values
 const pkg = require('../../package')
 const schema = require('./schema')
-const joi = require('joi')
+// const joi = require('joi')
 
 const constants = {
   DECAY_START_TIME: new Date('2021-05-13 17:46:31-0000'), // GMT+0
 }
 
 const version = {
+  BROWSER_PROTOCOL: process.env.BROWSER_PROTOCOL ?? 'http',
   FRONTEND_MODULE_PROTOCOL: process.env.FRONTEND_MODULE_PROTOCOL ?? 'http',
   FRONTEND_MODULE_HOST: process.env.FRONTEND_MODULE_HOST ?? '0.0.0.0',
   FRONTEND_MODULE_PORT: process.env.FRONTEND_MODULE_PORT ?? '3000',
   APP_VERSION: pkg.version,
-  BUILD_COMMIT: process.env.BUILD_COMMIT ?? null,
+  BUILD_COMMIT: process.env.BUILD_COMMIT ?? undefined,
   // self reference of `version.BUILD_COMMIT` is not possible at this point, hence the duplicate code
   BUILD_COMMIT_SHORT: (process.env.BUILD_COMMIT ?? '0000000').slice(0, 7),
 }
@@ -47,7 +48,6 @@ const environment = {
   NODE_ENV: process.env.NODE_ENV,
   DEBUG: process.env.NODE_ENV !== 'production' ?? false,
   PRODUCTION: process.env.NODE_ENV === 'production' ?? false,
-  DEFAULT_PUBLISHER_ID: process.env.DEFAULT_PUBLISHER_ID ?? 2896,
 }
 
 // const COMMUNITY_HOST = process.env.COMMUNITY_HOST ?? 'localhost'
@@ -91,7 +91,6 @@ const meta = {
 }
 
 const CONFIG = {
-  ...constants,
   ...version,
   ...features,
   ...environment,
@@ -100,8 +99,24 @@ const CONFIG = {
   ...meta,
 }
 
-// Check config 
+// Check config
 // TODO: use validate and construct error message including description
-joi.attempt(CONFIG, schema)
+// joi.attempt(CONFIG, schema)
 
-module.exports = CONFIG
+const { error } = schema.validate(CONFIG, { stack: true, debug: true })
+const schemaJson = schema.describe()
+if (error) {
+  error.details.forEach((err) => {
+    const key = err.context.key
+    const description = schemaJson.keys[key]
+      ? schema.describe().keys[key].flags.description
+      : 'No description available'
+    if (CONFIG[key] === undefined) {
+      throw new Error(`Environment Variable '${key}' is missing. ${description}`)
+    } else {
+      throw new Error(`Error on Environment Variable '${key}': ${err.message}. ${description}`)
+    }
+  })
+}
+
+module.exports = { ...CONFIG, ...constants }

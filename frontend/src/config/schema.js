@@ -1,12 +1,67 @@
-const commonSchema = require('../../../config/common.schema')
+import {
+  APP_VERSION,
+  BROWSER_PROTOCOL,
+  BUILD_COMMIT,
+  BUILD_COMMIT_SHORT,
+  COMMUNITY_DESCRIPTION,
+  COMMUNITY_NAME,
+  COMMUNITY_SUPPORT_MAIL,
+  COMMUNITY_LOCATION,
+  COMMUNITY_URL,
+  DEBUG,
+  GMS_ACTIVE,
+  GRAPHQL_URI,
+  HUMHUB_ACTIVE,
+  NODE_ENV,
+  PRODUCTION,
+} from '../../../config/common.schema'
 const Joi = require('joi')
 
-module.exports = commonSchema.keys({
+// console.log(commonSchema)
+
+module.exports = Joi.object({
+  APP_VERSION,
+  BROWSER_PROTOCOL,
+  BUILD_COMMIT,
+  BUILD_COMMIT_SHORT,
+  COMMUNITY_DESCRIPTION,
+  COMMUNITY_NAME,
+  COMMUNITY_SUPPORT_MAIL,
+  COMMUNITY_LOCATION,
+  COMMUNITY_URL,
+  DEBUG,
+  GMS_ACTIVE,
+  GRAPHQL_URI,
+  HUMHUB_ACTIVE,
+  NODE_ENV,
+  PRODUCTION,
+
+  ADMIN_AUTH_URL: Joi.string()
+    .uri({ scheme: ['http', 'https'] })
+    .when('browser_protocol', {
+      is: 'https',
+      then: Joi.string().uri({ scheme: 'https' }),
+      otherwise: Joi.string().uri({ scheme: 'http' }),
+    })
+    .description('Extern Url for admin-frontend')
+    .default('http://0.0.0.0/admin/authenticate?token=')
+    .required(),
+
+  COMMUNITY_REGISTER_URL: Joi.string()
+    .uri({ scheme: ['http', 'https'] })
+    .when('browser_protocol', {
+      is: 'https',
+      then: Joi.string().uri({ scheme: 'https' }),
+      otherwise: Joi.string().uri({ scheme: 'http' }),
+    })
+    .description('URL for Register a new Account in frontend.')
+    .required(),
+
   FRONTEND_MODULE_PROTOCOL: Joi.string()
     .valid('http', 'https')
     .when('BROWSER_PROTOCOL', {
       is: 'https',
-      then: Joi.string().uri({ scheme: 'https' }), 
+      then: Joi.string().uri({ scheme: 'https' }),
       otherwise: Joi.string().uri({ scheme: 'http' }),
     })
     .description(
@@ -14,7 +69,7 @@ module.exports = commonSchema.keys({
     )
     .default('http')
     .required(),
-    
+
   FRONTEND_HOSTING: Joi.string()
     .valid('nodejs')
     .description('set to `nodejs` if frontend is hosted by vite with a own nodejs instance')
@@ -26,13 +81,22 @@ module.exports = commonSchema.keys({
       Joi.string()
         .ip({ version: ['ipv4'] })
         .messages({ 'string.ip': 'Must be a valid IPv4 address' }),
-      Joi.string().domain().messages({ 'string.domain': 'Must be a valid domain' }),
+      Joi.string().domain().messages({ 'string.domain': 'Must be a valid domain' })
     )
+    .when('FRONTEND_HOSTING', {
+      is: 'nodejs',
+      then: Joi.required(),
+      otherwise: Joi.optional(),
+    })
+    .when('COMMUNITY_URL', {
+      is: null,
+      then: Joi.required(),
+      otherwise: Joi.optional(),
+    })
     .description(
-      'Host (domain, IPv4, or localhost) for the frontend, default is 0.0.0.0 for local hosting during develop',
+      'Host (domain, IPv4, or localhost) for the frontend, default is 0.0.0.0 for local hosting during development.',
     )
-    .default('0.0.0.0')
-    .required(), // required only if community_url isn't set or FRONTEND_HOSTING is nodejs
+    .default('0.0.0.0'),
 
   FRONTEND_MODULE_PORT: Joi.number()
     .integer()
@@ -40,17 +104,11 @@ module.exports = commonSchema.keys({
     .max(49151)
     .description('Port for hosting Frontend with Vite as a Node.js instance, default: 3000')
     .default(3000)
-    .required(), // required only if FRONTEND_HOSTING is nodejs
-
-  ADMIN_AUTH_URL: Joi.string()
-    .uri({ scheme: ['http', 'https'] })
-    .when('browser_protocol', {
-      is: 'https',
-      then: Joi.string().uri({ scheme: 'https' }),
-      otherwise: Joi.string().uri({ scheme: 'http' }),
-    })
-    .description('Extern Url for admin-frontend')
-    .default('http://0.0.0.0/admin/authenticate?token='),
+    .when('FRONTEND_HOSTING', {
+      is: 'nodejs',
+      then: Joi.required(),
+      otherwise: Joi.optional(),
+    }),
 
   META_URL: Joi.string()
     .uri({ scheme: ['http', 'https'] })
