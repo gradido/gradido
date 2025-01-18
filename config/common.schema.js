@@ -169,7 +169,7 @@ module.exports = {
     .required(),
 
   NODE_ENV: Joi.string()
-    .valid('production', 'development')
+    .valid('production', 'development', 'test')
     .default('development')
     .description('Specifies the environment in which the application is running.'),
 

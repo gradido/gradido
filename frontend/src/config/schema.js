@@ -89,7 +89,7 @@ module.exports = Joi.object({
       Joi.string()
         .ip({ version: ['ipv4'] })
         .messages({ 'string.ip': 'Must be a valid IPv4 address' }),
-      Joi.string().domain().messages({ 'string.domain': 'Must be a valid domain' })
+      Joi.string().domain().messages({ 'string.domain': 'Must be a valid domain' }),
     )
     .when('FRONTEND_HOSTING', {
       is: 'nodejs',
