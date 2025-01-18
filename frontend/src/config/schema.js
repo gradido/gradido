@@ -1,6 +1,6 @@
-import {
+const {
+  browserUrls,
   APP_VERSION,
-  BROWSER_PROTOCOL,
   BUILD_COMMIT,
   BUILD_COMMIT_SHORT,
   COMMUNITY_DESCRIPTION,
@@ -9,19 +9,20 @@ import {
   COMMUNITY_LOCATION,
   COMMUNITY_URL,
   DEBUG,
+  DECAY_START_TIME,
   GMS_ACTIVE,
   GRAPHQL_URI,
   HUMHUB_ACTIVE,
   NODE_ENV,
   PRODUCTION,
-} from '../../../config/common.schema'
+} = require('../../../config/common.schema') // from '../../../config/common.schema'
 const Joi = require('joi')
 
 // console.log(commonSchema)
 
 module.exports = Joi.object({
+  browserUrls,
   APP_VERSION,
-  BROWSER_PROTOCOL,
   BUILD_COMMIT,
   BUILD_COMMIT_SHORT,
   COMMUNITY_DESCRIPTION,
@@ -30,6 +31,7 @@ module.exports = Joi.object({
   COMMUNITY_LOCATION,
   COMMUNITY_URL,
   DEBUG,
+  DECAY_START_TIME,
   GMS_ACTIVE,
   GRAPHQL_URI,
   HUMHUB_ACTIVE,
@@ -38,40 +40,46 @@ module.exports = Joi.object({
 
   ADMIN_AUTH_URL: Joi.string()
     .uri({ scheme: ['http', 'https'] })
-    .when('browser_protocol', {
-      is: 'https',
-      then: Joi.string().uri({ scheme: 'https' }),
-      otherwise: Joi.string().uri({ scheme: 'http' }),
-    })
     .description('Extern Url for admin-frontend')
     .default('http://0.0.0.0/admin/authenticate?token=')
     .required(),
 
   COMMUNITY_REGISTER_URL: Joi.string()
     .uri({ scheme: ['http', 'https'] })
-    .when('browser_protocol', {
-      is: 'https',
-      then: Joi.string().uri({ scheme: 'https' }),
-      otherwise: Joi.string().uri({ scheme: 'http' }),
-    })
     .description('URL for Register a new Account in frontend.')
     .required(),
 
-  FRONTEND_MODULE_PROTOCOL: Joi.string()
-    .valid('http', 'https')
-    .when('BROWSER_PROTOCOL', {
-      is: 'https',
-      then: Joi.string().uri({ scheme: 'https' }),
-      otherwise: Joi.string().uri({ scheme: 'http' }),
+  FRONTEND_MODULE_URL: Joi.string()
+    .uri({ scheme: ['http', 'https'] })
+    .when('COMMUNITY_URL', {
+      is: Joi.exist(),
+      then: Joi.optional(), // not required if COMMUNITY_URL is provided
+      otherwise: Joi.required(), // required if COMMUNITY_URL is missing
     })
     .description(
-      'Protocol for frontend module hosting, has to be the same as for backend api url and admin to prevent mixed block errors'
+      "Base Url for reaching frontend in browser, only needed if COMMUNITY_URL wasn't set",
+    )
+    .optional(), // optional in general, but conditionally required
+
+  FRONTEND_MODULE_PROTOCOL: Joi.string()
+    .when('FRONTEND_HOSTING', {
+      is: Joi.valid('nodejs'),
+      then: Joi.valid('http').required(),
+      otherwise: Joi.valid('http', 'https').required(),
+    })
+    .description(
+      `
+      Protocol for frontend module hosting
+      - it has to be the same as for backend api url and admin to prevent mixed block errors,
+      - if frontend is served with nodejs:
+          is have to be http or setup must be updated to include a ssl certificate
+      `,
     )
     .default('http')
     .required(),
 
   FRONTEND_HOSTING: Joi.string()
-    .valid('nodejs')
+    .valid('nodejs', 'nginx')
     .description('set to `nodejs` if frontend is hosted by vite with a own nodejs instance')
     .optional(),
 

@@ -1,37 +1,45 @@
 const Joi = require('joi')
 
 module.exports = {
-  BROWSER_PROTOCOL: Joi.string()
-    .valid('http', 'https')
-    .description(
-      'Protocol for all URLs in the browser, must be either http or https to prevent mixed content issues.',
-    )
-    .default('http')
+  browserUrls: Joi.array()
+    .items(Joi.string().uri()) 
+    .custom((value, helpers) => {
+      const protocol = new URL(value[0]).protocol
+      for (const url of value) {
+        if (new URL(url).protocol !== protocol) {
+          return helpers.error('any.invalid')
+        }
+      }
+      return value;
+    })
+    .required()
+    .description('All URLs need to have same protocol to prevent mixed block errors'),
+
+  DECAY_START_TIME: Joi.date()
+    .iso() // ISO 8601 format for date validation
+    .description('The start time for decay, expected in ISO 8601 format (e.g. 2021-05-13T17:46:31Z)')
+    .default(new Date('2021-05-13T17:46:31Z')) // default to the specified date if not provided
     .required(),
 
   COMMUNITY_URL: Joi.string()
     .uri({ scheme: ['http', 'https'] })
-    .when('BROWSER_PROTOCOL', {
-      is: 'https',
-      then: Joi.string().uri({ scheme: 'https' }), 
-      otherwise: Joi.string().uri({ scheme: 'http' }),
+    .custom((value, helpers) => {
+      if (value.endsWith('/')) {
+        return helpers.error('any.invalid', { message: 'URL should not end with a slash (/)' })
+      }
+      return value;
     })
-    .description('The base URL of the community, should have the same scheme like frontend, admin and backend api to prevent mixed contend issues.')
+    .description('The base URL of the community, should have the same protocol as frontend, admin and backend api to prevent mixed contend issues.')
     .default('http://0.0.0.0')
     .required(),
 
   GRAPHQL_URI: Joi.string()
     .uri({ scheme: ['http', 'https'] })
-    .when('BROWSER_PROTOCOL', {
-      is: 'https',
-      then: Joi.string().uri({ scheme: 'https' }), 
-      otherwise: Joi.string().uri({ scheme: 'http' }),
-    })
     .description(
       `
       The external URL of the backend service,
       accessible from outside the server (e.g., via Nginx or the server's public URL),
-      must use the same protocol as browser_protocol.      
+      should have the same protocol as frontend and admin to prevent mixed contend issues.
     `,
     )
     .default('http://0.0.0.0/graphql')
@@ -67,7 +75,7 @@ module.exports = {
     .description('Geographical location of the community in "latitude, longitude" format')
     .default('49.280377, 9.690151'),    
   
-    GRAPHIQL: Joi.boolean()
+  GRAPHIQL: Joi.boolean()
       .description('Flag for enabling GraphQL playground for debugging.')
       .default(false)
       .when('NODE_ENV', {
@@ -163,7 +171,7 @@ module.exports = {
   NODE_ENV: Joi.string()
     .valid('production', 'development')
     .default('development')
-    .description('Specifies the environment in which the application is running, "production" or "development".'),
+    .description('Specifies the environment in which the application is running.'),
 
   DEBUG: Joi.boolean()
     .description('Indicates whether the application is in debugging mode. Set to true when NODE_ENV is not "production".')

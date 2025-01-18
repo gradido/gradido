@@ -3,15 +3,12 @@
 
 // Load Package Details for some default values
 const pkg = require('../../package')
-const schema = require('./schema')
-// const joi = require('joi')
 
 const constants = {
   DECAY_START_TIME: new Date('2021-05-13 17:46:31-0000'), // GMT+0
 }
 
 const version = {
-  BROWSER_PROTOCOL: process.env.BROWSER_PROTOCOL ?? 'http',
   FRONTEND_MODULE_PROTOCOL: process.env.FRONTEND_MODULE_PROTOCOL ?? 'http',
   FRONTEND_MODULE_HOST: process.env.FRONTEND_MODULE_HOST ?? '0.0.0.0',
   FRONTEND_MODULE_PORT: process.env.FRONTEND_MODULE_PORT ?? '3000',
@@ -21,7 +18,9 @@ const version = {
   BUILD_COMMIT_SHORT: (process.env.BUILD_COMMIT ?? '0000000').slice(0, 7),
 }
 
-let FRONTEND_MODULE_URL
+// in case of hosting the frontend module with a nginx
+let FRONTEND_MODULE_URL = version.FRONTEND_MODULE_PROTOCOL + '://' + version.FRONTEND_MODULE_HOST
+
 // in case of hosting the frontend module with a nodejs-instance
 if (process.env.FRONTEND_HOSTING === 'nodejs') {
   FRONTEND_MODULE_URL =
@@ -30,9 +29,6 @@ if (process.env.FRONTEND_HOSTING === 'nodejs') {
     version.FRONTEND_MODULE_HOST +
     ':' +
     version.FRONTEND_MODULE_PORT
-} else {
-  // in case of hosting the frontend module with a nginx
-  FRONTEND_MODULE_URL = version.FRONTEND_MODULE_PROTOCOL + '://' + version.FRONTEND_MODULE_HOST
 }
 
 // const FRONTEND_MODULE_URI = version.FRONTEND_MODULE_PROTOCOL + '://' + version.FRONTEND_MODULE_HOST // +
@@ -97,26 +93,8 @@ const CONFIG = {
   ...endpoints,
   ...community,
   ...meta,
+  ...constants,
+  FRONTEND_MODULE_URL,
 }
 
-// Check config
-// TODO: use validate and construct error message including description
-// joi.attempt(CONFIG, schema)
-
-const { error } = schema.validate(CONFIG, { stack: true, debug: true })
-const schemaJson = schema.describe()
-if (error) {
-  error.details.forEach((err) => {
-    const key = err.context.key
-    const description = schemaJson.keys[key]
-      ? schema.describe().keys[key].flags.description
-      : 'No description available'
-    if (CONFIG[key] === undefined) {
-      throw new Error(`Environment Variable '${key}' is missing. ${description}`)
-    } else {
-      throw new Error(`Error on Environment Variable '${key}': ${err.message}. ${description}`)
-    }
-  })
-}
-
-module.exports = { ...CONFIG, ...constants }
+module.exports = CONFIG
