@@ -22,6 +22,7 @@ export default defineConfig({
   server: {
     host: CONFIG.FRONTEND_MODULE_HOST, // '0.0.0.0',
     port: CONFIG.FRONTEND_MODULE_PORT, // 3000,
+    https: CONFIG.FRONTEND_MODULE_PROTOCOL === 'https',
   },
   resolve: {
     alias: {

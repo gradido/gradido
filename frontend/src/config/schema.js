@@ -2,8 +2,25 @@ const commonSchema = require('../../../config/common.schema')
 const Joi = require('joi')
 
 module.exports = commonSchema.keys({
-  // export default Joi.object({
-  frontend_vite_host: Joi.alternatives()
+  FRONTEND_MODULE_PROTOCOL: Joi.string()
+    .valid('http', 'https')
+    .when('BROWSER_PROTOCOL', {
+      is: 'https',
+      then: Joi.string().uri({ scheme: 'https' }), 
+      otherwise: Joi.string().uri({ scheme: 'http' }),
+    })
+    .description(
+      'Protocol for frontend module hosting, has to be the same as for backend api url and admin to prevent mixed block errors'
+    )
+    .default('http')
+    .required(),
+    
+  FRONTEND_HOSTING: Joi.string()
+    .valid('nodejs')
+    .description('set to `nodejs` if frontend is hosted by vite with a own nodejs instance')
+    .optional(),
+
+  FRONTEND_MODULE_HOST: Joi.alternatives()
     .try(
       Joi.string().valid('localhost').messages({ 'any.invalid': 'Must be localhost' }),
       Joi.string()
@@ -12,21 +29,20 @@ module.exports = commonSchema.keys({
       Joi.string().domain().messages({ 'string.domain': 'Must be a valid domain' }),
     )
     .description(
-      `
-      Host (domain, IPv4, or localhost) for the frontend when running Vite as a standalone Node.js instance;
-      internally, nginx forward requests to this address.
-      `,
+      'Host (domain, IPv4, or localhost) for the frontend, default is 0.0.0.0 for local hosting during develop',
     )
-    .default('0.0.0.0'),
+    .default('0.0.0.0')
+    .required(), // required only if community_url isn't set or FRONTEND_HOSTING is nodejs
 
-  frontend_vite_port: Joi.number()
+  FRONTEND_MODULE_PORT: Joi.number()
     .integer()
     .min(1024)
     .max(49151)
-    .description('Port for hosting Frontend with Vite as a Node.js instance')
-    .default(3000),
+    .description('Port for hosting Frontend with Vite as a Node.js instance, default: 3000')
+    .default(3000)
+    .required(), // required only if FRONTEND_HOSTING is nodejs
 
-  admin_auth_url: Joi.string()
+  ADMIN_AUTH_URL: Joi.string()
     .uri({ scheme: ['http', 'https'] })
     .when('browser_protocol', {
       is: 'https',
@@ -36,44 +52,52 @@ module.exports = commonSchema.keys({
     .description('Extern Url for admin-frontend')
     .default('http://0.0.0.0/admin/authenticate?token='),
 
-  meta_url: Joi.string()
+  META_URL: Joi.string()
     .uri({ scheme: ['http', 'https'] })
     .description('The base URL for the meta tags.')
-    .default('http://localhost'),
+    .default('http://localhost')
+    .required(),
 
-  meta_title_de: Joi.string()
+  META_TITLE_DE: Joi.string()
     .description('Meta title in German.')
-    .default('Gradido – Dein Dankbarkeitskonto'),
+    .default('Gradido – Dein Dankbarkeitskonto')
+    .required(),
 
-  meta_title_en: Joi.string()
+  META_TITLE_EN: Joi.string()
     .description('Meta title in English.')
-    .default('Gradido - Your gratitude account'),
+    .default('Gradido - Your gratitude account')
+    .required(),
 
-  meta_description_de: Joi.string()
+  META_DESCRIPTION_DE: Joi.string()
     .description('Meta description in German.')
     .default(
       'Dankbarkeit ist die Währung der neuen Zeit. Immer mehr Menschen entfalten ihr Potenzial und gestalten eine gute Zukunft für alle.',
-    ),
+    )
+    .required(),
 
-  meta_description_en: Joi.string()
+  META_DESCRIPTION_EN: Joi.string()
     .description('Meta description in English.')
     .default(
       'Gratitude is the currency of the new age. More and more people are unleashing their potential and shaping a good future for all.',
-    ),
+    )
+    .required(),
 
-  meta_keywords_de: Joi.string()
+  META_KEYWORDS_DE: Joi.string()
     .description('Meta keywords in German.')
     .default(
       'Grundeinkommen, Währung, Dankbarkeit, Schenk-Ökonomie, Natürliche Ökonomie des Lebens, Ökonomie, Ökologie, Potenzialentfaltung, Schenken und Danken, Kreislauf des Lebens, Geldsystem',
-    ),
+    )
+    .required(),
 
-  meta_keywords_en: Joi.string()
+  META_KEYWORDS_EN: Joi.string()
     .description('Meta keywords in English.')
     .default(
       'Basic Income, Currency, Gratitude, Gift Economy, Natural Economy of Life, Economy, Ecology, Potential Development, Giving and Thanking, Cycle of Life, Monetary System',
-    ),
+    )
+    .required(),
 
-  meta_author: Joi.string()
+  META_AUTHOR: Joi.string()
     .description('The author for the meta tags.')
-    .default('Bernd Hückstädt - Gradido-Akademie'),
+    .default('Bernd Hückstädt - Gradido-Akademie')
+    .required(),
 })

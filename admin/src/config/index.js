@@ -3,14 +3,8 @@
 
 // Load Package Details for some default values
 const pkg = require('../../package')
-
-const constants = {
-  CONFIG_VERSION: {
-    DEFAULT: 'DEFAULT',
-    EXPECTED: 'v3.2024-08-06',
-    CURRENT: '',
-  },
-}
+const schema = require('./schema')
+const joi = require('joi')
 
 const version = {
   ADMIN_MODULE_PROTOCOL: process.env.ADMIN_MODULE_PROTOCOL ?? 'http',
@@ -47,11 +41,11 @@ const environment = {
 // const COMMUNITY_URL =
 //   COMMUNITY_HOST && URL_PROTOCOL ? URL_PROTOCOL + '://' + COMMUNITY_HOST : undefined
 const COMMUNITY_URL = process.env.COMMUNITY_URL ?? ADMIN_MODULE_URL
-const WALLET_URL = process.env.WALLET_URL ?? COMMUNITY_URL ?? 'http://localhost'
+const WALLET_URL = process.env.WALLET_URL ?? COMMUNITY_URL ?? 'http://0.0.0.0'
 
 const endpoints = {
   GRAPHQL_URI: process.env.GRAPHQL_URL ?? COMMUNITY_URL + (process.env.GRAPHQL_PATH ?? '/graphql'),
-  WALLET_AUTH_URL: WALLET_URL + (process.env.WALLET_AUTH_PATH ?? '/authenticate?token={token}'),
+  WALLET_AUTH_URL: WALLET_URL + (process.env.WALLET_AUTH_PATH ?? '/authenticate?token='),
   WALLET_LOGIN_URL: WALLET_URL + (process.env.WALLET_LOGIN_PATH ?? '/login'),
 }
 
@@ -59,24 +53,15 @@ const debug = {
   DEBUG_DISABLE_AUTH: process.env.DEBUG_DISABLE_AUTH === 'true' ?? false,
 }
 
-// Check config version
-constants.CONFIG_VERSION.CURRENT = process.env.CONFIG_VERSION ?? constants.CONFIG_VERSION.DEFAULT
-if (
-  ![constants.CONFIG_VERSION.EXPECTED, constants.CONFIG_VERSION.DEFAULT].includes(
-    constants.CONFIG_VERSION.CURRENT,
-  )
-) {
-  throw new Error(
-    `Fatal: Config Version incorrect - expected "${constants.CONFIG_VERSION.EXPECTED}" or "${constants.CONFIG_VERSION.DEFAULT}", but found "${constants.CONFIG_VERSION.CURRENT}"`,
-  )
-}
-
 const CONFIG = {
-  ...constants,
   ...version,
   ...environment,
   ...endpoints,
   ...debug,
 }
+
+// Check config version
+// TODO: use validate and construct error message including description
+joi.attempt(CONFIG, schema)
 
 module.exports = CONFIG
