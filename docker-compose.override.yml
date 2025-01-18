@@ -27,7 +27,7 @@ services:
     build:
       target: development
     environment:
-      - NODE_ENV="development"
+      - NODE_ENV=development
       # - DEBUG=true
     volumes:
       # This makes sure the docker container has its own node modules.

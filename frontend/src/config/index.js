@@ -18,8 +18,7 @@ const version = {
   BUILD_COMMIT_SHORT: (process.env.BUILD_COMMIT ?? '0000000').slice(0, 7),
 }
 
-// in case of hosting the frontend module with a nginx
-let FRONTEND_MODULE_URL = version.FRONTEND_MODULE_PROTOCOL + '://' + version.FRONTEND_MODULE_HOST
+let FRONTEND_MODULE_URL
 
 // in case of hosting the frontend module with a nodejs-instance
 if (process.env.FRONTEND_HOSTING === 'nodejs') {
@@ -29,6 +28,9 @@ if (process.env.FRONTEND_HOSTING === 'nodejs') {
     version.FRONTEND_MODULE_HOST +
     ':' +
     version.FRONTEND_MODULE_PORT
+} else {
+  // in case of hosting the frontend module with a nginx
+  FRONTEND_MODULE_URL = version.FRONTEND_MODULE_PROTOCOL + '://' + version.FRONTEND_MODULE_HOST
 }
 
 // const FRONTEND_MODULE_URI = version.FRONTEND_MODULE_PROTOCOL + '://' + version.FRONTEND_MODULE_HOST // +

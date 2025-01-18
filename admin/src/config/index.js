@@ -3,15 +3,13 @@
 
 // Load Package Details for some default values
 const pkg = require('../../package')
-const schema = require('./schema')
-const joi = require('joi')
 
 const version = {
   ADMIN_MODULE_PROTOCOL: process.env.ADMIN_MODULE_PROTOCOL ?? 'http',
   ADMIN_MODULE_HOST: process.env.ADMIN_MODULE_HOST ?? '0.0.0.0',
   ADMIN_MODULE_PORT: process.env.ADMIN_MODULE_PORT ?? '8080',
   APP_VERSION: pkg.version,
-  BUILD_COMMIT: process.env.BUILD_COMMIT ?? null,
+  BUILD_COMMIT: process.env.BUILD_COMMIT ?? undefined,
   // self reference of `version.BUILD_COMMIT` is not possible at this point, hence the duplicate code
   BUILD_COMMIT_SHORT: (process.env.BUILD_COMMIT ?? '0000000').slice(0, 7),
 }
@@ -58,10 +56,8 @@ const CONFIG = {
   ...environment,
   ...endpoints,
   ...debug,
+  ADMIN_MODULE_URL,
+  COMMUNITY_URL,
 }
-
-// Check config version
-// TODO: use validate and construct error message including description
-joi.attempt(CONFIG, schema)
 
 module.exports = CONFIG

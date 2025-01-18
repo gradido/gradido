@@ -49,6 +49,11 @@ module.exports = Joi.object({
     .description('URL for Register a new Account in frontend.')
     .required(),
 
+  FRONTEND_HOSTING: Joi.string()
+    .valid('nodejs', 'nginx')
+    .description('set to `nodejs` if frontend is hosted by vite with a own nodejs instance')
+    .optional(),
+
   FRONTEND_MODULE_URL: Joi.string()
     .uri({ scheme: ['http', 'https'] })
     .when('COMMUNITY_URL', {
@@ -77,11 +82,6 @@ module.exports = Joi.object({
     )
     .default('http')
     .required(),
-
-  FRONTEND_HOSTING: Joi.string()
-    .valid('nodejs', 'nginx')
-    .description('set to `nodejs` if frontend is hosted by vite with a own nodejs instance')
-    .optional(),
 
   FRONTEND_MODULE_HOST: Joi.alternatives()
     .try(
