@@ -1,8 +1,13 @@
 // ATTENTION: DO NOT PUT ANY SECRETS IN HERE (or the .env)
 /* eslint-disable n/no-process-env */
 
+// eslint-disable-next-line import/no-unresolved
+import { latestDbVersion } from '@dbTools/config/detectLastDBVersion'
 import { Decimal } from 'decimal.js-light'
 import dotenv from 'dotenv'
+import { validate } from 'gradido-config'
+
+import { schema } from './schema'
 
 dotenv.config()
 
@@ -12,7 +17,8 @@ Decimal.set({
 })
 
 const constants = {
-  DB_VERSION: '0087-add_index_on_user_roles',
+  // DB_VERSION: '0087-add_index_on_user_roles',
+  DB_VERSION: latestDbVersion,
   DECAY_START_TIME: new Date('2021-05-13 17:46:31-0000'), // GMT+0
   LOG4JS_CONFIG: 'log4js-config.json',
 }
@@ -22,6 +28,7 @@ const server = {
   JWT_SECRET: process.env.JWT_SECRET ?? 'secret123',
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN ?? '10m',
   GRAPHIQL: process.env.GRAPHIQL === 'true' || false,
+  GDT_ACTIVE: process.env.GDT_ACTIVE === 'true' || false,
   GDT_API_URL: process.env.GDT_API_URL ?? 'https://gdt.gradido.net',
   PRODUCTION: process.env.NODE_ENV === 'production' || false,
   // default log level on production should be info
@@ -59,9 +66,9 @@ const dltConnector = {
 const community = {
   COMMUNITY_NAME: process.env.COMMUNITY_NAME ?? 'Gradido Entwicklung',
   COMMUNITY_URL,
-  COMMUNITY_REDEEM_URL: COMMUNITY_URL + (process.env.COMMUNITY_REDEEM_PATH ?? '/redeem/{code}'),
+  COMMUNITY_REDEEM_URL: COMMUNITY_URL + (process.env.COMMUNITY_REDEEM_PATH ?? '/redeem/'),
   COMMUNITY_REDEEM_CONTRIBUTION_URL:
-    COMMUNITY_URL + (process.env.COMMUNITY_REDEEM_CONTRIBUTION_PATH ?? '/redeem/CL-{code}'),
+    COMMUNITY_URL + (process.env.COMMUNITY_REDEEM_CONTRIBUTION_PATH ?? '/redeem/CL-'),
   COMMUNITY_DESCRIPTION:
     process.env.COMMUNITY_DESCRIPTION ?? 'Die lokale Entwicklungsumgebung von Gradido.',
   COMMUNITY_SUPPORT_MAIL: process.env.COMMUNITY_SUPPORT_MAIL ?? 'support@supportmail.com',
@@ -80,14 +87,14 @@ const email = {
   EMAIL_USERNAME: process.env.EMAIL_USERNAME ?? '',
   EMAIL_SENDER: process.env.EMAIL_SENDER ?? 'info@gradido.net',
   EMAIL_PASSWORD: process.env.EMAIL_PASSWORD ?? '',
-  EMAIL_SMTP_URL: process.env.EMAIL_SMTP_URL ?? 'mailserver',
+  EMAIL_SMTP_HOST: process.env.EMAIL_SMTP_HOST ?? 'mailserver',
   EMAIL_SMTP_PORT: Number(process.env.EMAIL_SMTP_PORT) || 1025,
   // eslint-disable-next-line no-unneeded-ternary
   EMAIL_TLS: process.env.EMAIL_TLS === 'false' ? false : true,
   EMAIL_LINK_VERIFICATION:
-    COMMUNITY_URL + (process.env.EMAIL_LINK_VERIFICATION_PATH ?? '/checkEmail/{optin}{code}'),
+    COMMUNITY_URL + (process.env.EMAIL_LINK_VERIFICATION_PATH ?? '/checkEmail/'),
   EMAIL_LINK_SETPASSWORD:
-    COMMUNITY_URL + (process.env.EMAIL_LINK_SETPASSWORD_PATH ?? '/reset-password/{optin}'),
+    COMMUNITY_URL + (process.env.EMAIL_LINK_SETPASSWORD_PATH ?? '/reset-password/'),
   EMAIL_LINK_FORGOTPASSWORD:
     COMMUNITY_URL + (process.env.EMAIL_LINK_FORGOTPASSWORD_PATH ?? '/forgot-password'),
   EMAIL_LINK_OVERVIEW: COMMUNITY_URL + (process.env.EMAIL_LINK_OVERVIEW_PATH ?? '/overview'),
@@ -154,3 +161,5 @@ export const CONFIG = {
   ...gms,
   ...humhub,
 }
+
+validate(schema, CONFIG)

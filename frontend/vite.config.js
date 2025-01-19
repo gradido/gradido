@@ -8,6 +8,7 @@ import IconsResolve from 'unplugin-icons/resolver'
 import EnvironmentPlugin from 'vite-plugin-environment'
 import { createHtmlPlugin } from 'vite-plugin-html'
 import schema from './src/config/schema'
+import { validate } from '../config'
 
 import { BootstrapVueNextResolver } from 'bootstrap-vue-next'
 import dotenv from 'dotenv'
@@ -35,24 +36,7 @@ export default defineConfig(({ command }) => {
       CONFIG.FRONTEND_MODULE_URL,
     ],
   }
-  const { error } = schema.validate(configDataForValidation, { stack: true })
-  const schemaJson = schema.describe()
-  if (error) {
-    error.details.forEach((err) => {
-      const key = err.context.key
-      const value = err.context.value
-      const description = schemaJson.keys[key]
-        ? schema.describe().keys[key].flags.description
-        : 'No description available'
-      if (configDataForValidation[key] === undefined) {
-        throw new Error(`Environment Variable '${key}' is missing. ${description}`)
-      } else {
-        throw new Error(
-          `Error on Environment Variable ${key} with value = ${value}: ${err.message}. ${description}`,
-        )
-      }
-    })
-  }
+  validate(schema, configDataForValidation)
 
   return {
     server: {

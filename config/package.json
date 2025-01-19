@@ -1,0 +1,26 @@
+{
+  "name": "gradido-config",
+  "version": "1.0.0",
+  "description": "Gradido Config for validate config",
+  "main": "dist/index.js",
+  "types": "dist/types",
+  "type": "commonjs",
+  "repository": "https://github.com/gradido/gradido/config",
+  "author": "einhornimmond",
+  "license": "Apache-2.0",
+  "private": false,
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "prepare": "npm run clean && npm run build",
+    "test": "node test/index"
+  },
+  "devDependencies": {
+    "@types/joi": "^17.2.3",
+    "@types/node": "^22.10.7",
+    "typescript": "^5.7.3"
+  },
+  "dependencies": {
+    "joi": "^17.13.3"
+  }
+}

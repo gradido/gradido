@@ -8,7 +8,7 @@ import { CONFIG } from '@/config'
 import { sendEmailTranslated } from './sendEmailTranslated'
 
 CONFIG.EMAIL = false
-CONFIG.EMAIL_SMTP_URL = 'EMAIL_SMTP_URL'
+CONFIG.EMAIL_SMTP_HOST = 'EMAIL_SMTP_HOST'
 CONFIG.EMAIL_SMTP_PORT = 1234
 CONFIG.EMAIL_SENDER = 'info@gradido.net'
 CONFIG.EMAIL_USERNAME = 'user'
@@ -73,7 +73,7 @@ describe('sendEmailTranslated', () => {
 
     it('calls the transporter', () => {
       expect(createTransport).toBeCalledWith({
-        host: 'EMAIL_SMTP_URL',
+        host: 'EMAIL_SMTP_HOST',
         port: 1234,
         secure: false,
         requireTLS: true,
