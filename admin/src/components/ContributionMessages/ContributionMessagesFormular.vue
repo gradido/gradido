@@ -8,12 +8,10 @@
           </BFormCheckbox>
         </BFormGroup>
         <BFormGroup v-if="showResubmissionDate">
-          <div class="d-flex my-2">
-            <Datepicker v-model="resubmissionDate" :lower-limit="now" class="form-control" />
-            <time-picker v-model="resubmissionTime" class="ms-2" />
-          </div>
+          <BFormInput v-model="resubmissionDate" type="date" :min="now"></BFormInput>
+          <time-picker v-model="resubmissionTime"></time-picker>
         </BFormGroup>
-        <BTabs v-model="tabindex" class="mt-3" content-class="mt-3" data-test="message-type-tabs">
+        <BTabs v-model="tabindex" content-class="mt-3" data-test="message-type-tabs">
           <BTab active>
             <template #title>
               <span id="message-tab-title">{{ $t('moderator.message') }}</span>
@@ -26,7 +24,7 @@
               v-model="form.text"
               :placeholder="$t('contributionLink.memo')"
               rows="3"
-            />
+            ></BFormTextarea>
           </BTab>
           <BTab>
             <template #title>
@@ -40,7 +38,7 @@
               v-model="form.text"
               :placeholder="$t('moderator.notice')"
               rows="3"
-            />
+            ></BFormTextarea>
           </BTab>
           <BTab>
             <template #title>
@@ -54,7 +52,7 @@
               v-model="form.memo"
               :placeholder="$t('contributionLink.memo')"
               rows="3"
-            />
+            ></BFormTextarea>
           </BTab>
         </BTabs>
         <BRow class="mt-4 mb-6">
@@ -83,7 +81,6 @@ import { ref, computed } from 'vue'
 import { useMutation } from '@vue/apollo-composable'
 import { useI18n } from 'vue-i18n'
 
-import Datepicker from 'vue3-datepicker'
 import TimePicker from '@/components/input/TimePicker'
 import { adminCreateContributionMessage } from '@/graphql/adminCreateContributionMessage'
 import { adminUpdateContribution } from '@/graphql/adminUpdateContribution'
@@ -118,6 +115,7 @@ const emit = defineEmits([
 
 const { t } = useI18n()
 const { toastError, toastSuccess } = useAppToast()
+
 const form = ref({
   text: '',
   memo: props.contributionMemo,
@@ -143,20 +141,14 @@ const messageType = {
   MODERATOR: 'MODERATOR',
 }
 
-const isTextTabValid = computed(() => form.value.text !== '')
-
-const isMemoTabValid = computed(() => form.value.memo.length >= 5)
-
-const disabled = computed(
-  () =>
+const disabled = computed(() => {
+  return (
+    (tabindex.value === 0 && form.value.text === '') ||
     loading.value ||
-    (!(showResubmissionDate.value && resubmissionDate.value) &&
-      ([0, 1].includes(tabindex.value)
-        ? !isTextTabValid.value
-        : tabindex.value === 2
-          ? !isMemoTabValid.value
-          : false)),
-)
+    (tabindex.value === 1 && form.value.memo.length < 5) ||
+    (showResubmissionDate.value && !resubmissionDate.value)
+  )
+})
 
 const now = computed(() => new Date())
 
