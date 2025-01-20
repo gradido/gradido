@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PRODUCTION = exports.DEBUG = exports.NODE_ENV = exports.BUILD_COMMIT_SHORT = exports.BUILD_COMMIT = exports.APP_VERSION = exports.DB_DATABASE = exports.DB_PASSWORD = exports.DB_USER = exports.DB_PORT = exports.DB_HOST = exports.TYPEORM_LOGGING_RELATIVE_PATH = exports.LOG4JS_CONFIG = exports.LOG_LEVEL = exports.HUMHUB_ACTIVE = exports.GDT_API_URL = exports.GDT_ACTIVE = exports.GMS_ACTIVE = exports.GRAPHIQL = exports.COMMUNITY_LOCATION = exports.COMMUNITY_SUPPORT_MAIL = exports.COMMUNITY_DESCRIPTION = exports.COMMUNITY_NAME = exports.GRAPHQL_URI = exports.COMMUNITY_URL = exports.DB_VERSION = exports.DECAY_START_TIME = exports.browserUrls = void 0;
+exports.PRODUCTION = exports.DEBUG = exports.NODE_ENV = exports.BUILD_COMMIT_SHORT = exports.BUILD_COMMIT = exports.APP_VERSION = exports.DB_DATABASE = exports.DB_PASSWORD = exports.DB_USER = exports.DB_PORT = exports.DB_HOST = exports.TYPEORM_LOGGING_RELATIVE_PATH = exports.LOGIN_SERVER_KEY = exports.LOGIN_APP_SECRET = exports.LOG4JS_CONFIG = exports.LOG_LEVEL = exports.HUMHUB_ACTIVE = exports.GDT_API_URL = exports.GDT_ACTIVE = exports.GMS_ACTIVE = exports.GRAPHIQL = exports.COMMUNITY_LOCATION = exports.COMMUNITY_SUPPORT_MAIL = exports.COMMUNITY_DESCRIPTION = exports.COMMUNITY_NAME = exports.GRAPHQL_URI = exports.COMMUNITY_URL = exports.DB_VERSION = exports.DECAY_START_TIME = exports.browserUrls = void 0;
 const joi_1 = __importDefault(require("joi"));
 exports.browserUrls = joi_1.default.array()
     .items(joi_1.default.string().uri())
@@ -110,6 +110,19 @@ exports.LOG4JS_CONFIG = joi_1.default.string()
     .description('config file name for log4js config file')
     .default('log4js-config.json')
     .required();
+exports.LOGIN_APP_SECRET = joi_1.default.string()
+    .pattern(/^[a-fA-F0-9]+$/)
+    .message('need to be valid hex')
+    .default('21ffbbc616fe')
+    .description('App secret for salt component for libsodium crypto_pwhash')
+    .required();
+exports.LOGIN_SERVER_KEY = joi_1.default.string()
+    .pattern(/^[a-fA-F0-9]+$/)
+    .length(32)
+    .message('need to be valid hex and 32 character')
+    .default('a51ef8ac7ef1abf162fb7a65261acd7a')
+    .description('Server key for password hashing as additional salt for libsodium crypto_shorthash_keygen')
+    .required();
 exports.TYPEORM_LOGGING_RELATIVE_PATH = joi_1.default.string()
     .pattern(/^[a-zA-Z0-9-_\.]+\.log$/)
     .message('TYPEORM_LOGGING_RELATIVE_PATH must be a valid filename ending with .log')
@@ -117,7 +130,7 @@ exports.TYPEORM_LOGGING_RELATIVE_PATH = joi_1.default.string()
     .default('typeorm.log')
     .required();
 exports.DB_HOST = joi_1.default.string()
-    .pattern(/^[a-zA-Z0-9.-]+$/)
+    .hostname()
     .message('must be a valid host with alphanumeric characters, numbers, points and -')
     .description("database host like 'localhost' or 'mariadb' in docker setup")
     .default('localhost')

@@ -1,5 +1,5 @@
 const Joi = require('joi')
-const commonSchema = require('../src/commonSchema')
+const commonSchema = require('../dist/commonSchema')
 
 const schema = Joi.object({
   commonSchema

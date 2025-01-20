@@ -15,6 +15,8 @@ export declare const GDT_API_URL: Joi.StringSchema<string>;
 export declare const HUMHUB_ACTIVE: Joi.BooleanSchema<boolean>;
 export declare const LOG_LEVEL: Joi.StringSchema<string>;
 export declare const LOG4JS_CONFIG: Joi.StringSchema<string>;
+export declare const LOGIN_APP_SECRET: Joi.StringSchema<string>;
+export declare const LOGIN_SERVER_KEY: Joi.StringSchema<string>;
 export declare const TYPEORM_LOGGING_RELATIVE_PATH: Joi.StringSchema<string>;
 export declare const DB_HOST: Joi.StringSchema<string>;
 export declare const DB_PORT: Joi.NumberSchema<number>;

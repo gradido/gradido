@@ -13,8 +13,12 @@ import {
   DECAY_START_TIME,
   GDT_API_URL,
   GDT_ACTIVE,
+  GMS_ACTIVE,
   GRAPHIQL,
+  HUMHUB_ACTIVE,
   LOG4JS_CONFIG,
+  LOGIN_APP_SECRET,
+  LOGIN_SERVER_KEY,
   LOG_LEVEL,
   NODE_ENV,
   PRODUCTION,
@@ -36,8 +40,12 @@ export const schema = Joi.object({
   DECAY_START_TIME,
   GDT_API_URL,
   GDT_ACTIVE,
+  GMS_ACTIVE,
   GRAPHIQL,
+  HUMHUB_ACTIVE,
   LOG4JS_CONFIG,
+  LOGIN_APP_SECRET,
+  LOGIN_SERVER_KEY,
   LOG_LEVEL,
   NODE_ENV,
   PRODUCTION,
@@ -205,14 +213,86 @@ export const schema = Joi.object({
     .positive()
     .max(43200) // max at 30 days
     .default(1440)
-    .description('Time in minutes a code is valid'),
+    .description('Time in minutes a code is valid')
+    .required(),
 
   EMAIL_CODE_REQUEST_TIME: Joi.number()
     .integer()
     .positive()
     .max(43200) // max at 30 days
     .default(10)
-    .description('Time in minutes before a new code can be requested'),
+    .description('Time in minutes before a new code can be requested')
+    .required(),
+
+  FEDERATION_BACKEND_SEND_ON_API: Joi.string()
+    .pattern(/^\d+_\d+$/)
+    .default('1_0')
+    .description('API Version of sending requests to another communities, e.g., "1_0"')
+    .required(),
+
+  FEDERATION_VALIDATE_COMMUNITY_TIMER: Joi.number()
+    .integer()
+    .min(1000)
+    .default(60000)
+    .description('Timer interval in milliseconds for community validation')
+    .required(),
+
+  FEDERATION_XCOM_SENDCOINS_ENABLED: Joi.boolean()
+    .default(false)
+    .description('Enable or disable the federation send coins feature')
+    .optional(),
+
+  FEDERATION_XCOM_RECEIVER_COMMUNITY_UUID: Joi.string()
+    .uuid()
+    .default('56a55482-909e-46a4-bfa2-cd025e894ebc')
+    .description(
+      'UUID of the receiver community for federation cross-community transactions if the receiver is unknown',
+    )
+    .required(),
+
+  FEDERATION_XCOM_MAXREPEAT_REVERTSENDCOINS: Joi.number()
+    .integer()
+    .min(0)
+    .default(3)
+    .description('Maximum number of retries for reverting send coins transactions')
+    .required(),
+
+  GMS_CREATE_USER_THROW_ERRORS: Joi.boolean()
+    .default(false)
+    .when('GMS_ACTIVE', { is: true, then: Joi.required(), otherwise: Joi.optional() })
+    .description('Whether errors should be thrown when creating users in GMS'),
+
+  GMS_API_URL: Joi.string()
+    .uri({ scheme: ['http', 'https'] })
+    .when('GMS_ACTIVE', { is: true, then: Joi.required(), otherwise: Joi.optional() })
+    .default('http://localhost:4044/')
+    .description('The API URL for the GMS service'),
+
+  GMS_DASHBOARD_URL: Joi.string()
+    .uri({ scheme: ['http', 'https'] })
+    .when('GMS_ACTIVE', { is: true, then: Joi.required(), otherwise: Joi.optional() })
+    .default('http://localhost:8080/')
+    .description('The URL for the GMS dashboard'),
+
+  GMS_WEBHOOK_SECRET: Joi.string()
+    .min(1)
+    .default('secret')
+    .when('GMS_ACTIVE', { is: true, then: Joi.required(), otherwise: Joi.optional() })
+    .description('The secret postfix for the GMS webhook endpoint'),
+
+  HUMHUB_API_URL: Joi.string()
+    .uri({ scheme: ['http', 'https'] })
+    .when('HUMHUB_ACTIVE', { is: true, then: Joi.required(), otherwise: Joi.optional() })
+    .description('The API URL for HumHub integration'),
+
+  HUMHUB_JWT_KEY: Joi.string()
+    .min(1)
+    .when('HUMHUB_ACTIVE', {
+      is: true,
+      then: Joi.required(),
+      otherwise: Joi.string().allow('').optional(),
+    })
+    .description('JWT key for HumHub integration, must be the same as configured in humhub'),
 
   PORT: Joi.number()
     .integer()
@@ -246,6 +326,12 @@ export const schema = Joi.object({
     .default('SomeFakeKeyEN')
     .description('The API key for Klicktipp (English version)'),
 
+  USE_CRYPTO_WORKER: Joi.boolean()
+    .default(false)
+    .description(
+      'Flag to enable or disable password encryption in separate thread, should be enabled if possible',
+    ),
+
   // TODO: check format
   JWT_SECRET: Joi.string()
     .default('secret123')
@@ -264,4 +350,6 @@ export const schema = Joi.object({
     )
     .required()
     .description('Time for JWT token to expire, auto logout'),
+
+  WEBHOOK_ELOPAGE_SECRET: Joi.string().description("isn't really used any more").optional(),
 })
