@@ -36,15 +36,15 @@ const props = defineProps({
 const { t } = useI18n()
 
 onMounted(async () => {
-  console.log('onMounted() props=', props)
+  // console.log('onMounted() props=', props)
   if (props.userMarkerCoords) {
     userPosition.value = props.userMarkerCoords
   }
   if (props.communityMarkerCoords) {
     communityPosition.value = props.communityMarkerCoords
   }
-  console.log('onMounted() userPosition=', userPosition)
-  console.log('onMounted() communityPosition=', communityPosition)
+  // console.log('onMounted() userPosition=', userPosition)
+  // console.log('onMounted() communityPosition=', communityPosition)
   await nextTick()
   initMap()
   window.addEventListener('resize', handleResize)
@@ -58,15 +58,15 @@ onUnmounted(() => {
 })
 
 function initMap() {
-  console.log('initMap()... mapContainer.value=',mapContainer.value)
-  console.log('initMap()... map.value=',map.value)
+  // console.log('initMap()... mapContainer.value=',mapContainer.value)
+  // console.log('initMap()... map.value=',map.value)
   if (mapContainer.value && !map.value) {
     map.value = L.map(mapContainer.value, {
       center: [userPosition.value.lat, userPosition.value.lng],
       zoom: defaultZoom,
       zoomControl: false,
     })
-    console.log('initMap() map=', map)
+    // console.log('initMap() map=', map)
 
     L.control.zoom({ position: 'topleft' }).addTo(map.value)
 
@@ -88,7 +88,7 @@ function initMap() {
         shadowSize: [41, 41],
       }),
     }).addTo(map.value)
-    console.log('initMap() userMarker=', userMarker)
+    // console.log('initMap() userMarker=', userMarker)
 
     userMarker.value.bindPopup(t('settings.GMS.map.userLocationLabel')).openPopup()
 
@@ -105,7 +105,7 @@ function initMap() {
         shadowSize: [41, 41],
       }),
     }).addTo(map.value)
-    console.log('initMap() communityMarker=', communityMarker)
+    // console.log('initMap() communityMarker=', communityMarker)
 
     communityMarker.value.bindPopup(t('settings.GMS.map.communityLocationLabel'))
 
