@@ -23,7 +23,7 @@ const configLoginServerKey = Buffer.from(CONFIG.LOGIN_SERVER_KEY, 'hex')
 
 let encryptionWorkerPool: Pool | undefined
 
-if (CONFIG.USE_CRYPTO_WORKER) {
+if (CONFIG.USE_CRYPTO_WORKER === true) {
   encryptionWorkerPool = pool(
     path.join(__dirname, '..', '..', 'build', 'src', 'password', '/EncryptionWorker.js'),
     {
