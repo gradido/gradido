@@ -55,9 +55,12 @@ services:
       - backend_node_modules:/app/node_modules
       - backend_database_node_modules:/database/node_modules
       - backend_database_build:/database/build
+      - backend_config_node_modules:/config/node_modules
+      - backend_config_build:/config/build
       # bind the local folder to the docker to allow live reload
       - ./backend:/app
       - ./database:/database
+      - ./config:/config
 
   ########################################################
   # DHT-NODE #############################################
@@ -78,9 +81,12 @@ services:
       - dht_node_modules:/app/node_modules
       - dht_database_node_modules:/database/node_modules
       - dht_database_build:/database/build
+      - dht_config_node_modules:/config/node_modules
+      - dht_config_build:/config/build
       # bind the local folder to the docker to allow live reload
       - ./dht-node:/app
       - ./database:/database
+      - ./config:/config
 
   ########################################################
   # DLT-CONNECTOR ########################################
@@ -122,9 +128,12 @@ services:
       - federation_node_modules:/app/node_modules
       - federation_database_node_modules:/database/node_modules
       - federation_database_build:/database/build
+      - federation_config_node_modules:/config/node_modules
+      - federation_config_build:/config/build
       # bind the local folder to the docker to allow live reload
       - ./federation:/app
       - ./database:/database
+      - ./config:/config
 
   ########################################################
   # DATABASE ##############################################
@@ -216,13 +225,19 @@ volumes:
   backend_node_modules:
   backend_database_node_modules:
   backend_database_build:
+  backend_config_node_modules:
+  backend_config_build:
   dht_node_modules:
   dht_database_node_modules:
   dht_database_build:
+  dht_config_node_modules:
+  dht_config_build:
   dlt_connector_modules:
   federation_node_modules:
   federation_database_node_modules:
   federation_database_build:
+  federation_config_node_modules:
+  federation_config_build:
   database_node_modules:
   database_build:
   dlt-database_node_modules:
