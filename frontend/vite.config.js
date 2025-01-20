@@ -8,7 +8,7 @@ import IconsResolve from 'unplugin-icons/resolver'
 import EnvironmentPlugin from 'vite-plugin-environment'
 import { createHtmlPlugin } from 'vite-plugin-html'
 import schema from './src/config/schema'
-import { validate } from '../config'
+import { validate } from 'gradido-config'
 
 import { BootstrapVueNextResolver } from 'bootstrap-vue-next'
 import dotenv from 'dotenv'
