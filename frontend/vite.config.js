@@ -100,12 +100,16 @@ export default defineConfig({
     extract: true,
     preprocessorOptions: {
       scss: {
-        additionalData: `@import "@/assets/scss/gradido.scss";`,
+        additionalData: `@use "@/assets/scss/custom/gradido-custom/color" as *;`,
       },
     },
   },
   build: {
     outDir: path.resolve(__dirname, './build'),
     chunkSizeWarningLimit: 1600,
+  },
+  optimizeDeps: {
+    include: ['vue', 'vue-router', 'bootstrap'],
+    exclude: ['@popperjs/core'],
   },
 })

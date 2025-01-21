@@ -278,13 +278,12 @@ label {
   position: relative;
   display: flex !important;
   justify-content: space-between;
-
-  > div > input {
-    position: absolute;
-    right: 35px;
-    top: 50%;
-    transform: translateY(-70%);
-  }
+}
+.transaction-form-radio > div > input {
+  position: absolute;
+  right: 35px;
+  top: 50%;
+  transform: translateY(-70%);
 }
 </style>
 
