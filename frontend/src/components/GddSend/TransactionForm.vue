@@ -279,6 +279,7 @@ label {
   display: flex !important;
   justify-content: space-between;
 }
+
 .transaction-form-radio > div > input {
   position: absolute;
   right: 35px;
