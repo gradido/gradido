@@ -55,6 +55,13 @@ export const sendEmailTranslated = async ({
     },
   })
 
+  // eslint-disable-next-line promise/prefer-await-to-callbacks
+  transport.verify(function (error) {
+    if (error) {
+      logger.error('verify Mail-Server Connection failed', error)
+    }
+  })
+
   i18n.setLocale(locals.locale as string) // for email
 
   // TESTING: see 'README.md'
