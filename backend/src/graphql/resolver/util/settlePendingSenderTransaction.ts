@@ -114,7 +114,7 @@ export async function settlePendingSenderTransaction(
     releaseLock()
   }
   /*
-    void sendTransactionReceivedEmail({
+    await sendTransactionReceivedEmail({
       firstName: recipient.firstName,
       lastName: recipient.lastName,
       email: recipient.emailContact.email,
@@ -125,7 +125,7 @@ export async function settlePendingSenderTransaction(
       transactionAmount: amount,
     })
     if (transactionLink) {
-      void sendTransactionLinkRedeemedEmail({
+      await sendTransactionLinkRedeemedEmail({
         firstName: sender.firstName,
         lastName: sender.lastName,
         email: sender.emailContact.email,

@@ -177,7 +177,7 @@ export class ContributionMessageResolver {
     const moderator = getUser(context)
     if (messageType === ContributionMessageType.DIALOG) {
       // send email (never for moderator messages)
-      void sendAddedContributionMessageEmail({
+      await sendAddedContributionMessageEmail({
         firstName: finalContribution.user.firstName,
         lastName: finalContribution.user.lastName,
         email: finalContribution.user.emailContact.email,

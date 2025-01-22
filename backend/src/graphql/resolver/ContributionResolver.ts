@@ -303,7 +303,7 @@ export class ContributionResolver {
         relations: ['emailContact'],
       })
 
-      void sendContributionChangedByModeratorEmail({
+      await sendContributionChangedByModeratorEmail({
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.emailContact.email,
@@ -371,7 +371,7 @@ export class ContributionResolver {
       contribution,
       contribution.amount,
     )
-    void sendContributionDeletedEmail({
+    await sendContributionDeletedEmail({
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.emailContact.email,
@@ -477,7 +477,7 @@ export class ContributionResolver {
         void sendTransactionsToDltConnector()
 
         logger.info('creation commited successfuly.')
-        void sendContributionConfirmedEmail({
+        await sendContributionConfirmedEmail({
           firstName: user.firstName,
           lastName: user.lastName,
           email: user.emailContact.email,
@@ -560,7 +560,7 @@ export class ContributionResolver {
       contributionToUpdate.amount,
     )
 
-    void sendContributionDeniedEmail({
+    await sendContributionDeniedEmail({
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.emailContact.email,
