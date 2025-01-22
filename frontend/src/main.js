@@ -1,7 +1,9 @@
 import { createApp } from 'vue'
 
-import 'bootstrap/dist/css/bootstrap.css'
+// import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue-next/dist/bootstrap-vue-next.css'
+import './assets/css/gradido.css'
+// import './assets/scss/gradido.scss'
 
 import App from './App'
 import i18n from './i18n.js'
