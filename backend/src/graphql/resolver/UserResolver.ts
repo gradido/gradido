@@ -791,7 +791,7 @@ export class UserResolver {
     if (humhubUser.account.status !== 1) {
       throw new LogError('user status is not 1', humhubUser.account.status)
     }
-    return await humhubClient.createAutoLoginUrl(username)
+    return await humhubClient.createAutoLoginUrl(humhubUser.account.username)
   }
 
   @Authorized([RIGHTS.SEARCH_ADMIN_USERS])
