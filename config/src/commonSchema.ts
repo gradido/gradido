@@ -2,7 +2,7 @@ import Joi from 'joi'
 
 export const browserUrls = Joi.array()
   .items(Joi.string().uri()) 
-  .custom((value, helpers) => {
+  .custom((value: Joi.string, helpers: Joi.helpers<Joi.string>) => {
     const protocol = new URL(value[0]).protocol
     for (const url of value) {
       if (new URL(url).protocol !== protocol) {
@@ -28,7 +28,7 @@ export const DB_VERSION = Joi.string()
 
 export const COMMUNITY_URL = Joi.string()
   .uri({ scheme: ['http', 'https'] })
-  .custom((value, helpers) => {
+  .custom((value: Joi.string, helpers: Joi.helpers<Joi.string>) => {
     if (value.endsWith('/')) {
       return helpers.error('any.invalid', { message: 'URL should not end with a slash (/)' })
     }
@@ -124,19 +124,19 @@ export const LOG4JS_CONFIG = Joi.string()
   .required()
 
 export const LOGIN_APP_SECRET = Joi.string()
-    .pattern(/^[a-fA-F0-9]+$/) 
-    .message('need to be valid hex')
-    .default('21ffbbc616fe')
-    .description('App secret for salt component for libsodium crypto_pwhash')
-    .required()
+  .pattern(/^[a-fA-F0-9]+$/) 
+  .message('need to be valid hex')
+  .default('21ffbbc616fe')
+  .description('App secret for salt component for libsodium crypto_pwhash')
+  .required()
 
 export const LOGIN_SERVER_KEY = Joi.string()
-    .pattern(/^[a-fA-F0-9]+$/)
-    .length(32)
-    .message('need to be valid hex and 32 character')
-    .default('a51ef8ac7ef1abf162fb7a65261acd7a')
-    .description('Server key for password hashing as additional salt for libsodium crypto_shorthash_keygen')
-    .required()
+  .pattern(/^[a-fA-F0-9]+$/)
+  .length(32)
+  .message('need to be valid hex and 32 character')
+  .default('a51ef8ac7ef1abf162fb7a65261acd7a')
+  .description('Server key for password hashing as additional salt for libsodium crypto_shorthash_keygen')
+  .required()
 
 export const TYPEORM_LOGGING_RELATIVE_PATH = Joi.string()
   .pattern(/^[a-zA-Z0-9-_\.]+\.log$/) 
