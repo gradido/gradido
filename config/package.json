@@ -2,8 +2,8 @@
   "name": "gradido-config",
   "version": "1.0.0",
   "description": "Gradido Config for validate config",
-  "main": "dist/index.js",
-  "types": "dist/types",
+  "main": "build/index.js",
+  "types": "build/types",
   "type": "commonjs",
   "repository": "https://github.com/gradido/gradido/config",
   "author": "einhornimmond",
@@ -11,7 +11,7 @@
   "private": false,
   "scripts": {
     "build": "tsc",
-    "clean": "rm -rf dist",
+    "clean": "rm -rf build",
     "prepare": "npm run clean && npm run build",
     "test": "node test/index"
   },
