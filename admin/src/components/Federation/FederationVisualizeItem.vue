@@ -30,10 +30,8 @@
 </template>
 <script>
 import { formatDistanceToNow } from 'date-fns'
-import { de, enUS as en, fr, es, nl } from 'date-fns/locale'
+import { useDateLocale } from '@/composables/useDateLocale'
 import VariantIcon from '@/components/VariantIcon.vue'
-
-const locales = { en, de, es, fr, nl }
 
 export default {
   name: 'FederationVisualizeItem',
@@ -58,7 +56,7 @@ export default {
         ? formatDistanceToNow(new Date(dateString), {
             includeSecond: true,
             addSuffix: true,
-            locale: locales[this.$i18n.locale],
+            locale: useDateLocale,
           })
         : ''
     },
