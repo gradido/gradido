@@ -35,7 +35,7 @@ jobs:
           docker save "gradido/federation:test" > /tmp/federation.tar
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: docker-federation-test
           path: /tmp/federation.tar
@@ -62,7 +62,7 @@ jobs:
         uses: actions/checkout@v3
       
       - name: Download Docker Image
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: docker-federation-test
           path: /tmp
