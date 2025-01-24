@@ -89,9 +89,9 @@
 <script setup>
 import { ref, computed, toRefs } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useDateLocale } from '@/composables/useDateLocale'
 import { useMutation } from '@vue/apollo-composable'
 import { formatDistanceToNow } from 'date-fns'
-import { de, enUS as en, fr, es, nl } from 'date-fns/locale'
 import EditableGroup from '@/components/input/EditableGroup.vue'
 import FederationVisualizeItem from './FederationVisualizeItem.vue'
 import { updateHomeCommunity } from '@/graphql/updateHomeCommunity'
@@ -99,15 +99,13 @@ import Coordinates from '../input/Coordinates.vue'
 import EditableGroupableLabel from '../input/EditableGroupableLabel.vue'
 import { useAppToast } from '@/composables/useToast'
 
-const locales = { en, de, es, fr, nl }
-
 const props = defineProps({
   item: { type: Object, required: true },
 })
 
 const { item } = toRefs(props)
 
-const { t, locale } = useI18n()
+const { t } = useI18n()
 
 const { toastSuccess, toastError } = useAppToast()
 
@@ -147,7 +145,7 @@ const lastAnnouncedAt = computed(() => {
     return formatDistanceToNow(lastAnnouncedAt, {
       includeSecond: true,
       addSuffix: true,
-      locale: locales[locale.value],
+      locale: useDateLocale(),
     })
   }
   return ''
@@ -158,7 +156,7 @@ const createdAt = computed(() => {
     return formatDistanceToNow(new Date(item.value.createdAt), {
       includeSecond: true,
       addSuffix: true,
-      locale: locales[locale.value],
+      locale: useDateLocale(),
     })
   }
   return ''
