@@ -12,7 +12,7 @@ import {
   NODE_ENV,
   PRODUCTION,
   TYPEORM_LOGGING_RELATIVE_PATH,
-} from 'gradido-config'
+} from '@config/commonSchema'
 import Joi from 'joi'
 
 export const schema = Joi.object({

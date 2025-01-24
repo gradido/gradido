@@ -1,7 +1,7 @@
 /* eslint-disable n/no-process-env */
+import { validate } from '@config/index'
 import { latestDbVersion } from '@dbTools/config/detectLastDBVersion'
 import dotenv from 'dotenv'
-import { validate } from 'gradido-config'
 
 import { schema } from './schema'
 

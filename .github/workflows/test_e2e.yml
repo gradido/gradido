@@ -22,7 +22,7 @@ jobs:
           cd database
           yarn && yarn dev_reset
           cd ../config
-          yarn && yarn build
+          yarn install
           cd ../backend
           yarn && yarn seed
 

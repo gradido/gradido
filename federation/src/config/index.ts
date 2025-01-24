@@ -3,7 +3,7 @@ import { Decimal } from 'decimal.js-light'
 import { latestDbVersion } from '@dbTools/config/detectLastDBVersion'
 import dotenv from 'dotenv'
 
-import { validate } from 'gradido-config'
+import { validate } from '@config/index'
 
 import { schema } from './schema'
 

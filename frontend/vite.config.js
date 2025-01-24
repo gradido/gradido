@@ -95,7 +95,6 @@ export default defineConfig(({ command }) => {
         autoInstall: true,
       }),
       EnvironmentPlugin({
-        BUILD_COMMIT: null,
         GMS_ACTIVE: null,
         HUMHUB_ACTIVE: null,
         DEFAULT_PUBLISHER_ID: null,
@@ -127,7 +126,7 @@ export default defineConfig(({ command }) => {
       extract: CONFIG.PRODUCTION === true,
       preprocessorOptions: {
         scss: {
-          additionalData: `@import "@/assets/scss/gradido.scss";`,
+          additionalData: `@use "@/assets/scss/custom/gradido-custom/color" as *;`,
         },
       },
     },
