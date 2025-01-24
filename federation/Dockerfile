@@ -71,23 +71,20 @@ COPY ./database/ ../database/
 # Copy everything from config
 COPY ./config/ ../config/
 
+# yarn install and build config
+RUN cd ../config && yarn install --production=false --frozen-lockfile --non-interactive && yarn run build
+
 # yarn install federation
 RUN yarn install --production=false --frozen-lockfile --non-interactive
 
 # yarn install database
 RUN cd ../database && yarn install --production=false --frozen-lockfile --non-interactive
 
-# yarn install config
-RUN cd ../config && yarn install --production=false --frozen-lockfile --non-interactive
-
 # yarn build
 RUN yarn run build
 
 # yarn build database
 RUN cd ../database && yarn run build
-
-# yarn build config
-RUN cd ../config && yarn run build
 
 ##################################################################################
 # TEST ###########################################################################
