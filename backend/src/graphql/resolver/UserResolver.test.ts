@@ -244,10 +244,10 @@ describe('UserResolver', () => {
 
     describe('account activation email', () => {
       it('sends an account activation email', () => {
-        const activationLink = CONFIG.EMAIL_LINK_VERIFICATION.replace(
-          /{optin}/g,
-          emailVerificationCode,
-        ).replace(/{code}/g, '')
+        const activationLink = `${
+          CONFIG.EMAIL_LINK_VERIFICATION
+        }${emailVerificationCode.toString()}`
+
         expect(sendAccountActivationEmail).toBeCalledWith({
           firstName: 'Peter',
           lastName: 'Lustig',
@@ -2230,14 +2230,13 @@ describe('UserResolver', () => {
           })
 
           it('sends an account activation email', async () => {
-            const userConatct = await UserContact.findOneOrFail({
+            const userContact = await UserContact.findOneOrFail({
               where: { email: 'bibi@bloxberg.de' },
               relations: ['user'],
             })
-            const activationLink = CONFIG.EMAIL_LINK_VERIFICATION.replace(
-              /{optin}/g,
-              userConatct.emailVerificationCode.toString(),
-            ).replace(/{code}/g, '')
+            const activationLink = `${
+              CONFIG.EMAIL_LINK_VERIFICATION
+            }${userContact.emailVerificationCode.toString()}`
             expect(sendAccountActivationEmail).toBeCalledWith({
               firstName: 'Bibi',
               lastName: 'Bloxberg',
@@ -2252,14 +2251,14 @@ describe('UserResolver', () => {
           })
 
           it('stores the EMAIL_ADMIN_CONFIRMATION event in the database', async () => {
-            const userConatct = await UserContact.findOneOrFail({
+            const userContact = await UserContact.findOneOrFail({
               where: { email: 'bibi@bloxberg.de' },
               relations: ['user'],
             })
             await expect(DbEvent.find()).resolves.toContainEqual(
               expect.objectContaining({
                 type: EventType.EMAIL_ADMIN_CONFIRMATION,
-                affectedUserId: userConatct.user.id,
+                affectedUserId: userContact.user.id,
                 actingUserId: admin.id,
               }),
             )

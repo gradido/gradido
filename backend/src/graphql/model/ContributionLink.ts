@@ -19,7 +19,7 @@ export class ContributionLink {
     this.cycle = contributionLink.cycle
     this.maxPerCycle = contributionLink.maxPerCycle
     this.code = contributionLink.code
-    this.link = CONFIG.COMMUNITY_REDEEM_CONTRIBUTION_URL.replace(/{code}/g, this.code)
+    this.link = CONFIG.COMMUNITY_REDEEM_CONTRIBUTION_URL + this.code
   }
 
   @Field(() => Int)

@@ -6,11 +6,6 @@ const pkg = require('../../package')
 
 const constants = {
   DECAY_START_TIME: new Date('2021-05-13 17:46:31-0000'), // GMT+0
-  CONFIG_VERSION: {
-    DEFAULT: 'DEFAULT',
-    EXPECTED: 'v7.2024-08-06',
-    CURRENT: '',
-  },
 }
 
 const version = {
@@ -18,12 +13,13 @@ const version = {
   FRONTEND_MODULE_HOST: process.env.FRONTEND_MODULE_HOST ?? '0.0.0.0',
   FRONTEND_MODULE_PORT: process.env.FRONTEND_MODULE_PORT ?? '3000',
   APP_VERSION: pkg.version,
-  BUILD_COMMIT: process.env.BUILD_COMMIT ?? null,
+  BUILD_COMMIT: process.env.BUILD_COMMIT ?? undefined,
   // self reference of `version.BUILD_COMMIT` is not possible at this point, hence the duplicate code
   BUILD_COMMIT_SHORT: (process.env.BUILD_COMMIT ?? '0000000').slice(0, 7),
 }
 
 let FRONTEND_MODULE_URL
+
 // in case of hosting the frontend module with a nodejs-instance
 if (process.env.FRONTEND_HOSTING === 'nodejs') {
   FRONTEND_MODULE_URL =
@@ -50,7 +46,6 @@ const environment = {
   NODE_ENV: process.env.NODE_ENV,
   DEBUG: process.env.NODE_ENV !== 'production' ?? false,
   PRODUCTION: process.env.NODE_ENV === 'production' ?? false,
-  DEFAULT_PUBLISHER_ID: process.env.DEFAULT_PUBLISHER_ID ?? 2896,
 }
 
 // const COMMUNITY_HOST = process.env.COMMUNITY_HOST ?? 'localhost'
@@ -61,7 +56,7 @@ const endpoints = {
   GRAPHQL_URI: process.env.GRAPHQL_URI ?? COMMUNITY_URL + (process.env.GRAPHQL_PATH ?? '/graphql'),
   ADMIN_AUTH_URL:
     process.env.ADMIN_AUTH_URL ??
-    COMMUNITY_URL + (process.env.ADMIN_AUTH_PATH ?? '/admin/authenticate?token={token}'),
+    COMMUNITY_URL + (process.env.ADMIN_AUTH_PATH ?? '/admin/authenticate?token='),
 }
 
 const community = {
@@ -93,26 +88,15 @@ const meta = {
   META_AUTHOR: process.env.META_AUTHOR ?? 'Bernd Hückstädt - Gradido-Akademie',
 }
 
-// Check config version
-constants.CONFIG_VERSION.CURRENT = process.env.CONFIG_VERSION ?? constants.CONFIG_VERSION.DEFAULT
-if (
-  ![constants.CONFIG_VERSION.EXPECTED, constants.CONFIG_VERSION.DEFAULT].includes(
-    constants.CONFIG_VERSION.CURRENT,
-  )
-) {
-  throw new Error(
-    `Fatal: Config Version incorrect - expected "${constants.CONFIG_VERSION.EXPECTED}" or "${constants.CONFIG_VERSION.DEFAULT}", but found "${constants.CONFIG_VERSION.CURRENT}"`,
-  )
-}
-
 const CONFIG = {
-  ...constants,
   ...version,
   ...features,
   ...environment,
   ...endpoints,
   ...community,
   ...meta,
+  ...constants,
+  FRONTEND_MODULE_URL,
 }
 
 module.exports = CONFIG

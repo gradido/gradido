@@ -80,7 +80,7 @@ const handleLogout = async () => {
 }
 
 const handleWallet = () => {
-  window.location = CONFIG.WALLET_AUTH_URL.replace('{token}', store.state.token)
+  window.location = CONFIG.WALLET_AUTH_URL + store.state.token
   store.dispatch('logout') // logout without redirect
 }
 

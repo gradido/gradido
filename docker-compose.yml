@@ -12,7 +12,8 @@ services:
     # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
     image: gradido/frontend:local-production
     build:
-      context: ./frontend
+      context: ./
+      dockerfile: ./frontend/Dockerfile
       target: production
     networks:
       - external-net
@@ -26,7 +27,9 @@ services:
       # - BUILD_DATE="1970-01-01T00:00:00.00Z"
       # - BUILD_VERSION="0.0.0.0"
       # - BUILD_COMMIT="0000000"
-      - NODE_ENV="production"
+      - NODE_ENV=production
+    volumes:
+      - ./config:/config
     # env_file:
       # - ./.env
       # - ./frontend/.env
@@ -38,7 +41,8 @@ services:
     # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
     image: gradido/admin:local-production
     build:
-      context: ./admin
+      context: ./
+      dockerfile: ./admin/Dockerfile
       target: production
     networks:
       - external-net
@@ -52,7 +56,9 @@ services:
       # - BUILD_DATE="1970-01-01T00:00:00.00Z"
       # - BUILD_VERSION="0.0.0.0"
       # - BUILD_COMMIT="0000000"
-      - NODE_ENV="production"
+      - NODE_ENV=production
+    volumes:
+      - ./config:/config
     # env_file:
       # - ./.env
       # - ./admin/.env
