@@ -6,7 +6,7 @@
 
 import { entities } from '@entity/index'
 import { createTestClient } from 'apollo-server-testing'
-import { name, internet, datatype } from 'faker'
+import { faker } from '@faker-js/faker'
 
 import { CONFIG } from '@/config'
 import { createServer } from '@/server/createServer'
@@ -70,10 +70,10 @@ const run = async () => {
   // seed 100 random users
   for (let i = 0; i < 100; i++) {
     await userFactory(seedClient, {
-      firstName: name.firstName(),
-      lastName: name.lastName(),
-      email: internet.email(),
-      language: datatype.boolean() ? 'en' : 'de',
+      firstName: faker.name.firstName(),
+      lastName: faker.name.lastName(),
+      email: faker.internet.email(),
+      language: faker.datatype.boolean() ? 'en' : 'de',
     })
     logger.info(`##seed## seed ${i}. random user`)
   }
