@@ -2,7 +2,7 @@ import Joi from 'joi'
 
 export const browserUrls = Joi.array()
   .items(Joi.string().uri()) 
-  .custom((value: Joi.string, helpers: Joi.helpers<Joi.string>) => {
+  .custom((value: string[], helpers: Joi.CustomHelpers<string[]>) => {
     const protocol = new URL(value[0]).protocol
     for (const url of value) {
       if (new URL(url).protocol !== protocol) {
@@ -28,7 +28,7 @@ export const DB_VERSION = Joi.string()
 
 export const COMMUNITY_URL = Joi.string()
   .uri({ scheme: ['http', 'https'] })
-  .custom((value: Joi.string, helpers: Joi.helpers<Joi.string>) => {
+  .custom((value: string, helpers: Joi.CustomHelpers<string>) => {
     if (value.endsWith('/')) {
       return helpers.error('any.invalid', { message: 'URL should not end with a slash (/)' })
     }

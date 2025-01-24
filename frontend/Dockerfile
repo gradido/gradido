@@ -68,12 +68,12 @@ COPY ./frontend ./
 # Copy everything from config
 COPY ./config/  ../config/
 
+# install and build config
+RUN cd ../config && yarn install --production=false --frozen-lockfile --non-interactive && yarn build
+
 # npm install
 RUN yarn global add node-gyp && yarn install --production=false --frozen-lockfile --non-interactive
 
-# install and build config
-RUN cd ../config && yarn install --production=false --frozen-lockfile --non-interactive
-RUN cd ../config && yarn build
 # npm build
 RUN yarn run build
 

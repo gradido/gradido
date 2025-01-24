@@ -67,11 +67,12 @@ COPY ./admin/ .
 # Copy everything from config
 COPY ./config/ ../config/
 
+# yarn install and build config
+RUN cd ../config && yarn install --production=false --frozen-lockfile --non-interactive && yarn build
+
 # yarn install admin
 RUN yarn install --production=false --frozen-lockfile --non-interactive
-# yarn install config
-RUN cd ../config && yarn install --production=false --frozen-lockfile --non-interactive
-RUN cd ../config && yarn build
+
 # yarn build
 RUN yarn run build
 
