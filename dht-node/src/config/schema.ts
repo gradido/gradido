@@ -57,7 +57,7 @@ export const schema = Joi.object({
     .required(),
 
   FEDERATION_COMMUNITY_APIS: Joi.string()
-    .valid('1_0', '2_0')
+    .valid('1_0', '1_1')
     .default('1_0')
     .description('Federation community API version, defaults to 1_0')
     .required(),
