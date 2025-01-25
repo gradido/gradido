@@ -2,23 +2,23 @@
   "name": "gradido-config",
   "version": "1.0.0",
   "description": "Gradido Config for validate config",
-  "main": "build/index.js",
-  "types": "build/types",
-  "type": "commonjs",
+  "main": "src/index.ts",
   "repository": "https://github.com/gradido/gradido/config",
   "author": "einhornimmond",
   "license": "Apache-2.0",
   "private": false,
   "scripts": {
-    "build": "tsc",
-    "clean": "rm -rf build",
+    "build": "mkdirp build/src/ && ncp src build/src && tsc --build",
+    "clean": "tsc --build --clean",
     "prepare": "npm run clean && npm run build",
     "test": "node test/index"
   },
   "devDependencies": {
     "@types/joi": "^17.2.3",
-    "@types/node": "^22.10.7",
-    "typescript": "^5.7.3"
+    "@types/node": "^16.10.3",
+    "typescript": "^4.3.5",
+    "mkdirp": "^3.0.1",
+    "ncp": "^2.0.0"
   },
   "dependencies": {
     "joi": "^17.13.3"
