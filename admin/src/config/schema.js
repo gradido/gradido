@@ -1,5 +1,4 @@
 const {
-  browserUrls,
   APP_VERSION,
   BUILD_COMMIT,
   BUILD_COMMIT_SHORT,
@@ -12,7 +11,6 @@ const {
 const Joi = require('joi')
 
 module.exports = Joi.object({
-  browserUrls,
   APP_VERSION,
   BUILD_COMMIT,
   BUILD_COMMIT_SHORT,
