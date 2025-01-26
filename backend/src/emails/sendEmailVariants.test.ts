@@ -27,10 +27,12 @@ import {
 
 const testMailServerHost = 'localhost'
 const testMailServerPort = 1025
+const testMailTLS = false
 
 CONFIG.EMAIL_SENDER = 'info@gradido.net'
 CONFIG.EMAIL_SMTP_HOST = testMailServerHost
 CONFIG.EMAIL_SMTP_PORT = testMailServerPort
+CONFIG.EMAIL_TLS = testMailTLS
 
 let con: Connection
 let testEnv: {
