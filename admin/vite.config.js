@@ -7,7 +7,7 @@ import IconsResolve from 'unplugin-icons/resolver'
 import { BootstrapVueNextResolver } from 'bootstrap-vue-next'
 import EnvironmentPlugin from 'vite-plugin-environment'
 import schema from './src/config/schema'
-import { validate } from 'gradido-config/build/src/index.js'
+import { validate, browserUrls } from 'gradido-config/build/src/index.js'
 
 import dotenv from 'dotenv'
 
@@ -24,19 +24,15 @@ export default defineConfig(({ command }) => {
     CONFIG.ADMIN_HOSTING = 'nginx'
   }
   // Check config
-  const configDataForValidation = {
-    ...CONFIG,
-    // make sure that all urls used in browser have the same protocol to prevent mixed content errors
-    browserUrls: [
-      CONFIG.WALLET_AUTH_URL,
-      CONFIG.COMMUNITY_URL,
-      CONFIG.WALLET_LOGIN_URL,
-      CONFIG.GRAPHQL_URI,
-      CONFIG.ADMIN_MODULE_URL,
-    ],
-  }
-
-  validate(schema, configDataForValidation)
+  validate(schema, CONFIG)
+  // make sure that all urls used in browser have the same protocol to prevent mixed content errors
+  validate(browserUrls, [
+    CONFIG.ADMIN_AUTH_URL,
+    CONFIG.COMMUNITY_URL,
+    CONFIG.COMMUNITY_REGISTER_URL,
+    CONFIG.GRAPHQL_URI,
+    CONFIG.FRONTEND_MODULE_URL,
+  ])
 
   return {
     base: '/admin/',

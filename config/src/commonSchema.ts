@@ -2,10 +2,17 @@ import Joi from 'joi'
 
 export const browserUrls = Joi.array()
   .items(Joi.string().uri()) 
+  .sparse(true)
   .custom((value: string[], helpers: Joi.CustomHelpers<string[]>) => {
-    const protocol = new URL(value[0]).protocol
+    let protocol: string | undefined
     for (const url of value) {
-      if (new URL(url).protocol !== protocol) {
+      if (url === undefined) { 
+        continue 
+      }
+      const urlObject = new URL(url)
+      if(!protocol) {
+        protocol = urlObject.protocol
+      } else if(urlObject.protocol !== protocol) {
         return helpers.error('any.invalid')
       }
     }
