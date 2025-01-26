@@ -8,7 +8,7 @@ const {
   GRAPHQL_URI,
   NODE_ENV,
   PRODUCTION,
-} = require('gradido-config')
+} = require('gradido-config/build/src/commonSchema.js')
 const Joi = require('joi')
 
 module.exports = Joi.object({

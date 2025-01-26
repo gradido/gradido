@@ -15,7 +15,7 @@ const {
   HUMHUB_ACTIVE,
   NODE_ENV,
   PRODUCTION,
-} = require('gradido-config')
+} = require('gradido-config/build/src/commonSchema.js')
 const Joi = require('joi')
 
 // console.log(commonSchema)
