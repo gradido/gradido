@@ -15,6 +15,7 @@
     // "sourceMap": true,                           /* Generates corresponding '.map' file. */
     // "outFile": "./",                             /* Concatenate and emit output to single file. */
     "outDir": "./build",                            /* Redirect output structure to the directory. */
+    // "rootDir" : ".",
     // "rootDir": "./",                             /* Specify the root directory of input files. Use to control the output directory structure with --outDir. */
     // "composite": true,                           /* Enable project compilation */
     // "tsBuildInfoFile": "./",                     /* Specify file to store incremental compilation information */
@@ -60,7 +61,8 @@
       /* external */
       "@dbTools/*": ["../database/src/*", "../../database/build/src/*"],
       "@entity/*": ["../database/entity/*", "../../database/build/entity/*"],
-      "@logging/*": ["../database/logging/*", "../../database/build/logging/*"]
+      "@logging/*": ["../database/logging/*", "../../database/build/logging/*"],
+      "@config/*": ["../config/src/*", "../../config/build/src/*"]
     },
     // "rootDirs": [],                              /* List of root folders whose combined content represents the structure of the project at runtime. */
     "typeRoots": ["@types", "node_modules/@types"],   /* List of folders to include type definitions from. */
@@ -86,9 +88,12 @@
   },
   "references": [
     {
-      "path": "../database/tsconfig.json",
+      "path": "../database/tsconfig.json"
       // add 'prepend' if you want to include the referenced project in your output file
       // "prepend": true
+    },
+    {
+      "path": "../config/tsconfig.json"
     }
   ]
 }

@@ -24,6 +24,16 @@ export class GdtResolver {
     { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
     @Ctx() context: Context,
   ): Promise<GdtEntryList> {
+    if (!CONFIG.GDT_ACTIVE) {
+      return new GdtEntryList(
+        'disabled',
+        0,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any
+        [],
+        0,
+        0,
+      )
+    }
     const userEntity = getUser(context)
 
     try {
@@ -51,6 +61,9 @@ export class GdtResolver {
   @Authorized([RIGHTS.GDT_BALANCE])
   @Query(() => Float, { nullable: true })
   async gdtBalance(@Ctx() context: Context): Promise<number | null> {
+    if (!CONFIG.GDT_ACTIVE) {
+      return null
+    }
     const user = getUser(context)
     try {
       const resultGDTSum = await apiPost(`${CONFIG.GDT_API_URL}/GdtEntries/sumPerEmailApi`, {
@@ -71,6 +84,9 @@ export class GdtResolver {
   @Query(() => Int)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async existPid(@Arg('pid', () => Int) pid: number): Promise<number> {
+    if (!CONFIG.GDT_ACTIVE) {
+      return 0
+    }
     // load user
     const resultPID = await apiGet(`${CONFIG.GDT_API_URL}/publishers/checkPidApi/${pid}`)
     if (!resultPID.success) {

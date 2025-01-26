@@ -230,8 +230,11 @@ export class TransactionResolver {
     logger.addContext('user', user.id)
     logger.info(`transactionList(user=${user.firstName}.${user.lastName}, ${user.emailId})`)
 
-    const gdtResolver = new GdtResolver()
-    const balanceGDTPromise = gdtResolver.gdtBalance(context)
+    let balanceGDTPromise: Promise<number | null> = Promise.resolve(null)
+    if (CONFIG.GDT_ACTIVE) {
+      const gdtResolver = new GdtResolver()
+      balanceGDTPromise = gdtResolver.gdtBalance(context)
+    }
 
     // find current balance
     const lastTransaction = await getLastTransaction(user.id)
@@ -418,8 +421,10 @@ export class TransactionResolver {
         ).toDecimalPlaces(2, Decimal.ROUND_HALF_UP)
       }
     })
-    const balanceGDT = await balanceGDTPromise
-    context.balanceGDT = balanceGDT
+    if (CONFIG.GDT_ACTIVE) {
+      const balanceGDT = await balanceGDTPromise
+      context.balanceGDT = balanceGDT
+    }
 
     // Construct Result
     return new TransactionList(await balanceResolver.balance(context), transactions)

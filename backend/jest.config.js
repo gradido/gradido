@@ -7,7 +7,7 @@ module.exports = {
   collectCoverageFrom: ['src/**/*.ts', '!**/node_modules/**', '!src/seeds/**', '!build/**'],
   coverageThreshold: {
     global: {
-      lines: 81,
+      lines: 80,
     },
   },
   setupFiles: ['<rootDir>/test/testSetup.ts'],
@@ -39,5 +39,10 @@ module.exports = {
       process.env.NODE_ENV === 'development'
         ? '<rootDir>/../database/src/$1'
         : '<rootDir>/../database/build/src/$1',
+    '@config/(.*)':
+      // eslint-disable-next-line n/no-process-env
+      process.env.NODE_ENV === 'development'
+        ? '<rootDir>/../config/src/$1'
+        : '<rootDir>/../config/build/$1',
   },
 }

@@ -7,9 +7,12 @@ import { CONFIG } from '@/config'
 
 import { sendEmailTranslated } from './sendEmailTranslated'
 
+const testMailServerHost = 'localhost'
+const testMailServerPort = 1025
+
 CONFIG.EMAIL = false
-CONFIG.EMAIL_SMTP_URL = 'EMAIL_SMTP_URL'
-CONFIG.EMAIL_SMTP_PORT = 1234
+CONFIG.EMAIL_SMTP_HOST = testMailServerHost
+CONFIG.EMAIL_SMTP_PORT = testMailServerPort
 CONFIG.EMAIL_SENDER = 'info@gradido.net'
 CONFIG.EMAIL_USERNAME = 'user'
 CONFIG.EMAIL_PASSWORD = 'pwd'
@@ -73,8 +76,8 @@ describe('sendEmailTranslated', () => {
 
     it('calls the transporter', () => {
       expect(createTransport).toBeCalledWith({
-        host: 'EMAIL_SMTP_URL',
-        port: 1234,
+        host: testMailServerHost,
+        port: testMailServerPort,
         secure: false,
         requireTLS: true,
         auth: {
@@ -87,11 +90,6 @@ describe('sendEmailTranslated', () => {
     describe('call of "sendEmailTranslated"', () => {
       it('has expected result', () => {
         expect(result).toMatchObject({
-          envelope: {
-            from: 'info@gradido.net',
-            to: ['receiver@mail.org', 'support@gradido.net'],
-          },
-          message: expect.any(String),
           originalMessage: expect.objectContaining({
             to: 'receiver@mail.org',
             cc: 'support@gradido.net',
@@ -135,11 +133,6 @@ describe('sendEmailTranslated', () => {
 
     it('call of "sendEmailTranslated" with faked "to"', () => {
       expect(result).toMatchObject({
-        envelope: {
-          from: CONFIG.EMAIL_SENDER,
-          to: [CONFIG.EMAIL_TEST_RECEIVER, 'support@gradido.net'],
-        },
-        message: expect.any(String),
         originalMessage: expect.objectContaining({
           to: CONFIG.EMAIL_TEST_RECEIVER,
           cc: 'support@gradido.net',

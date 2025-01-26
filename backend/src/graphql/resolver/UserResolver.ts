@@ -109,7 +109,7 @@ const newEmailContact = (email: string, userId: number): DbUserContact => {
 // eslint-disable-next-line @typescript-eslint/ban-types
 export const activationLink = (verificationCode: string): string => {
   logger.debug(`activationLink(${verificationCode})...`)
-  return CONFIG.EMAIL_LINK_SETPASSWORD.replace(/{optin}/g, verificationCode.toString())
+  return CONFIG.EMAIL_LINK_SETPASSWORD + verificationCode.toString()
 }
 
 const newGradidoID = async (): Promise<string> => {
@@ -371,10 +371,9 @@ export class UserResolver {
         throw new LogError('Error while updating dbUser', error)
       })
 
-      const activationLink = CONFIG.EMAIL_LINK_VERIFICATION.replace(
-        /{optin}/g,
-        emailContact.emailVerificationCode.toString(),
-      ).replace(/{code}/g, redeemCode ? '/' + redeemCode : '')
+      const activationLink = `${
+        CONFIG.EMAIL_LINK_VERIFICATION
+      }${emailContact.emailVerificationCode.toString()}${redeemCode ? `/${redeemCode}` : ''}`
 
       void sendAccountActivationEmail({
         firstName,
