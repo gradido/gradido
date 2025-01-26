@@ -25,9 +25,12 @@ import {
   sendContributionChangedByModeratorEmail,
 } from './sendEmailVariants'
 
+const testMailServerHost = 'localhost'
+const testMailServerPort = 1025
+
 CONFIG.EMAIL_SENDER = 'info@gradido.net'
-CONFIG.EMAIL_SMTP_HOST = 'localhost'
-CONFIG.EMAIL_SMTP_PORT = 1025
+CONFIG.EMAIL_SMTP_HOST = testMailServerHost
+CONFIG.EMAIL_SMTP_PORT = testMailServerPort
 
 let con: Connection
 let testEnv: {
