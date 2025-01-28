@@ -6,18 +6,19 @@ import { GmsPublishPhoneType } from '@/graphql/enum/GmsPublishPhoneType'
 import { PublishNameType } from '@/graphql/enum/PublishNameType'
 
 export class GmsUser {
-  private pnLogic: PublishNameLogic
-
   constructor(user: dbUser) {
-    this.pnLogic = new PublishNameLogic(user)
+    const pnLogic = new PublishNameLogic(user)
+
     this.userUuid = user.gradidoID
     // this.communityUuid = user.communityUuid
     this.language = user.language
     this.email = this.getGmsEmail(user)
     this.countryCode = this.getGmsCountryCode(user)
     this.mobile = this.getGmsPhone(user)
-    this.firstName = this.pnLogic.getFirstName(user.gmsPublishName) // getGmsFirstName(user)
-    this.lastName = this.pnLogic.getLastName(user.gmsPublishName) // getGmsLastName(user)
+    const fn = pnLogic.getFirstName(user.gmsPublishName)
+    this.firstName = fn !== '' ? fn : null // getGmsFirstName(user)
+    const ln = pnLogic.getLastName(user.gmsPublishName)
+    this.lastName = ln !== '' ? ln : null // getGmsLastName(user)
     this.alias = this.getGmsAlias(user)
     this.type = user.gmsPublishLocation // GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM
     this.location = user.location
