@@ -21,6 +21,7 @@ vi.mock('@vue/apollo-composable', () => ({
 
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
+    locale: { value: 'en' },
     t: (key) => key,
   }),
 }))

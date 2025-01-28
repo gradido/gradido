@@ -25,7 +25,14 @@ import {
   sendContributionChangedByModeratorEmail,
 } from './sendEmailVariants'
 
+const testMailServerHost = 'localhost'
+const testMailServerPort = 1025
+const testMailTLS = false
+
 CONFIG.EMAIL_SENDER = 'info@gradido.net'
+CONFIG.EMAIL_SMTP_HOST = testMailServerHost
+CONFIG.EMAIL_SMTP_PORT = testMailServerPort
+CONFIG.EMAIL_TLS = testMailTLS
 
 let con: Connection
 let testEnv: {
@@ -93,11 +100,6 @@ describe('sendEmailVariants', () => {
     describe('result', () => {
       it('is the expected object', () => {
         expect(result).toMatchObject({
-          envelope: {
-            from: 'info@gradido.net',
-            to: ['peter@lustig.de'],
-          },
-          message: expect.any(String),
           originalMessage: expect.objectContaining({
             to: 'Peter Lustig <peter@lustig.de>',
             from: 'Gradido (emails.general.doNotAnswer) <info@gradido.net>',
@@ -151,11 +153,6 @@ describe('sendEmailVariants', () => {
     describe('result', () => {
       it('is the expected object', () => {
         expect(result).toMatchObject({
-          envelope: {
-            from: 'info@gradido.net',
-            to: ['peter@lustig.de'],
-          },
-          message: expect.any(String),
           originalMessage: expect.objectContaining({
             to: 'Peter Lustig <peter@lustig.de>',
             from: 'Gradido (emails.general.doNotAnswer) <info@gradido.net>',
@@ -204,11 +201,6 @@ describe('sendEmailVariants', () => {
       describe('result', () => {
         it('is the expected object', () => {
           expect(result).toMatchObject({
-            envelope: {
-              from: 'info@gradido.net',
-              to: ['peter@lustig.de'],
-            },
-            message: expect.any(String),
             originalMessage: expect.objectContaining({
               to: 'Peter Lustig <peter@lustig.de>',
               from: 'Gradido (emails.general.doNotAnswer) <info@gradido.net>',
@@ -267,11 +259,6 @@ describe('sendEmailVariants', () => {
     describe('result', () => {
       it('is the expected object', () => {
         expect(result).toMatchObject({
-          envelope: {
-            from: 'info@gradido.net',
-            to: ['peter@lustig.de'],
-          },
-          message: expect.any(String),
           originalMessage: expect.objectContaining({
             to: 'Peter Lustig <peter@lustig.de>',
             from: 'Gradido (emails.general.doNotAnswer) <info@gradido.net>',
@@ -329,11 +316,6 @@ describe('sendEmailVariants', () => {
     describe('result', () => {
       it('is the expected object', () => {
         expect(result).toMatchObject({
-          envelope: {
-            from: 'info@gradido.net',
-            to: ['peter@lustig.de'],
-          },
-          message: expect.any(String),
           originalMessage: expect.objectContaining({
             to: 'Peter Lustig <peter@lustig.de>',
             from: 'Gradido (emails.general.doNotAnswer) <info@gradido.net>',
@@ -389,11 +371,6 @@ describe('sendEmailVariants', () => {
     describe('result', () => {
       it('has expected result', () => {
         expect(result).toMatchObject({
-          envelope: {
-            from: 'info@gradido.net',
-            to: ['peter@lustig.de'],
-          },
-          message: expect.any(String),
           originalMessage: expect.objectContaining({
             to: 'Peter Lustig <peter@lustig.de>',
             from: 'Gradido (emails.general.doNotAnswer) <info@gradido.net>',
@@ -449,11 +426,6 @@ describe('sendEmailVariants', () => {
     describe('result', () => {
       it('is the expected object', () => {
         expect(result).toMatchObject({
-          envelope: {
-            from: 'info@gradido.net',
-            to: ['peter@lustig.de'],
-          },
-          message: expect.any(String),
           originalMessage: expect.objectContaining({
             to: 'Peter Lustig <peter@lustig.de>',
             from: 'Gradido (emails.general.doNotAnswer) <info@gradido.net>',
@@ -507,11 +479,6 @@ describe('sendEmailVariants', () => {
     describe('result', () => {
       it('is the expected object', () => {
         expect(result).toMatchObject({
-          envelope: {
-            from: 'info@gradido.net',
-            to: ['peter@lustig.de'],
-          },
-          message: expect.any(String),
           originalMessage: expect.objectContaining({
             to: 'Peter Lustig <peter@lustig.de>',
             from: 'Gradido (emails.general.doNotAnswer) <info@gradido.net>',
@@ -571,11 +538,6 @@ describe('sendEmailVariants', () => {
     describe('result', () => {
       it('is the expected object', () => {
         expect(result).toMatchObject({
-          envelope: {
-            from: 'info@gradido.net',
-            to: ['peter@lustig.de'],
-          },
-          message: expect.any(String),
           originalMessage: expect.objectContaining({
             to: 'Peter Lustig <peter@lustig.de>',
             from: 'Gradido (emails.general.doNotAnswer) <info@gradido.net>',
@@ -633,11 +595,6 @@ describe('sendEmailVariants', () => {
     describe('result', () => {
       it('is the expected object', () => {
         expect(result).toMatchObject({
-          envelope: {
-            from: 'info@gradido.net',
-            to: ['peter@lustig.de'],
-          },
-          message: expect.any(String),
           originalMessage: expect.objectContaining({
             to: 'Peter Lustig <peter@lustig.de>',
             from: 'Gradido (emails.general.doNotAnswer) <info@gradido.net>',

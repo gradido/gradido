@@ -114,7 +114,7 @@ describe('NavBar', () => {
     it('changes window location to wallet and dispatches logout', async () => {
       const dispatchSpy = vi.spyOn(store, 'dispatch')
       await wrapper.vm.handleWallet()
-      expect(window.location).toBe(CONFIG.WALLET_AUTH_URL.replace('{token}', 'valid-token'))
+      expect(window.location).toBe(CONFIG.WALLET_AUTH_URL + 'valid-token')
       expect(dispatchSpy).toHaveBeenCalledWith('logout')
     })
   })

@@ -21,6 +21,8 @@ jobs:
           sudo chown runner:docker -R *
           cd database
           yarn && yarn dev_reset
+          cd ../config
+          yarn install
           cd ../backend
           yarn && yarn seed
 
