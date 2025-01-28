@@ -105,7 +105,7 @@ export const sendEmailTranslated = async ({
     })
     .catch((error: unknown) => {
       logger.error('Error sending notification email', error)
-      return false
+      return error
     })
 
   return resultSend
