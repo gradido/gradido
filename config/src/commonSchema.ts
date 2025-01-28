@@ -146,7 +146,7 @@ export const LOGIN_SERVER_KEY = Joi.string()
   .required()
 
 export const TYPEORM_LOGGING_RELATIVE_PATH = Joi.string()
-  .pattern(/^[a-zA-Z0-9-_\.]+\.log$/) 
+  .pattern(new RegExp('^[a-zA-Z0-9-_\./]+\.log$')) 
   .message('TYPEORM_LOGGING_RELATIVE_PATH must be a valid filename ending with .log')
   .description('log file name for logging typeorm activities')
   .default('typeorm.log')
