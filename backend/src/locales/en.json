@@ -89,6 +89,7 @@
     },
     "transactionReceived": {
       "haveReceivedAmountGDDFrom": "You have just received {transactionAmount} GDD from {senderFirstName} {senderLastName} ({senderEmail}).",
+      "replySubject": "RE: {senderFirstName} {senderLastName} has sent you {transactionAmount} Gradido",
       "subject": "{senderFirstName} {senderLastName} has sent you {transactionAmount} Gradido",
       "title": "{senderFirstName} {senderLastName} has sent you {transactionAmount} Gradido"
     }

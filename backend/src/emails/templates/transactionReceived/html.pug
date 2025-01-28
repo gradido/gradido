@@ -10,7 +10,7 @@ block content
     .child-left
       div(class="p_content")= memo
     .child-right
-      a.button-5(href= `mailto:${senderEmail}?subject=${encodeURIComponent(t('emails.transactionReceived.subject', { senderFirstName, senderLastName, transactionAmount }))}`)  
+      a.button-5(href= `mailto:${senderEmail}?subject=${encodeURIComponent(t('emails.transactionReceived.replySubject', { senderFirstName, senderLastName, transactionAmount }))}`)  
         include ../includes/chatbox-icon.pug 
         span #{t('emails.general.answerNow')}
     
