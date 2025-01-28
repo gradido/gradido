@@ -68,9 +68,9 @@ export class PublishNameLogic {
    */
   public getUsername(publishNameType: PublishNameType): string {
     if (this.isUsernameFromInitials(publishNameType)) {
-      return this.filterOutInvalidChar(
-        this.firstUpperCaseSecondLowerCase(this.user.firstName) +
-          this.firstUpperCaseSecondLowerCase(this.user.lastName),
+      return (
+        this.firstUpperCaseSecondLowerCase(this.filterOutInvalidChar(this.user.firstName)) +
+        this.firstUpperCaseSecondLowerCase(this.filterOutInvalidChar(this.user.lastName))
       )
     } else if (this.isUsernameFromAlias(publishNameType)) {
       return this.filterOutInvalidChar(this.user.alias)

@@ -61,7 +61,8 @@
       "@typeorm/*": ["../backend/src/typeorm/*", "../../backend/src/typeorm/*"],
       "@dbTools/*": ["../database/src/*", "../../database/build/src/*"],
       "@entity/*": ["../database/entity/*", "../../database/build/entity/*"],
-      "@logging/*": ["../database/logging/*", "../../database/build/logging/*"]
+      "@logging/*": ["../database/logging/*", "../../database/build/logging/*"],
+      "@config/*": ["../config/src/*", "../../config/build/src/*"]
     },
     // "rootDirs": [],                              /* List of root folders whose combined content represents the structure of the project at runtime. */
     "typeRoots": ["node_modules/@types"],           /* List of folders to include type definitions from. */
@@ -88,6 +89,11 @@
   "references": [
     {
       "path": "../database/tsconfig.json",
+      // add 'prepend' if you want to include the referenced project in your output file
+      // "prepend": true
+    },
+    {
+      "path": "../config/tsconfig.json",
       // add 'prepend' if you want to include the referenced project in your output file
       // "prepend": true
     }
