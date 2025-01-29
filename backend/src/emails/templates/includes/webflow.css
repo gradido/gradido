@@ -86,6 +86,13 @@ h2 {
   box-shadow: 20px 25px 30px rgba(56, 56, 56, 0.4);
 }
 
+.chatbox-wrapper {
+  margin-right: 8px;
+}
+.bi-chatbox {
+  margin-bottom: -5px;
+}
+
 .child-right {
   text-align: right;
 }

@@ -88,7 +88,7 @@
       "title": "{senderFirstName} {senderLastName} has redeemed your Gradido link"
     },
     "transactionReceived": {
-      "haveReceivedAmountGDDFrom": "You have just received {transactionAmount} GDD from {senderFirstName} {senderLastName} (mailto:{senderEmail}).",
+      "haveReceivedAmountGDDFrom": "You have just received {transactionAmount} GDD from {senderFirstName} {senderLastName}",
       "replySubject": "RE: {senderFirstName} {senderLastName} has sent you {transactionAmount} Gradido",
       "subject": "{senderFirstName} {senderLastName} has sent you {transactionAmount} Gradido",
       "title": "{senderFirstName} {senderLastName} has sent you {transactionAmount} Gradido"
