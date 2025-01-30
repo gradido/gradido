@@ -56,6 +56,7 @@
     },
     "general": {
       "amountGDD": "Betrag: {amountGDD} GDD",
+      "answerNow": "Jetzt antworten",
       "completeRegistration": "Registrierung abschließen",
       "contribution": "Gemeinwohl-Beitrag: {contributionMemo}",
       "contributionDetails": "Beitragsdetails",
@@ -63,6 +64,7 @@
       "helloName": "Hallo {firstName} {lastName},",
       "linkValidity": "Der Link hat eine Gültigkeit von {hours} Stunden.\nSollte die Gültigkeit des Links bereits abgelaufen sein, kannst du dir hier einen neuen Link schicken lassen.",
       "linkValidityWithMinutes": "Der Link hat eine Gültigkeit von {hours} Stunden und {minutes} Minuten.\nSollte die Gültigkeit des Links bereits abgelaufen sein, kannst du dir hier einen neuen Link schicken lassen.",
+      "message": "Nachricht",
       "newLink": "Neuer Link",
       "orCopyLink": "Oder kopiere den Link in dein Browserfenster.",
       "pleaseDoNotReply": "Bitte antworte nicht auf diese E-Mail.",
@@ -86,8 +88,9 @@
       "title": "{senderFirstName} {senderLastName} hat deinen Gradido-Link eingelöst"
     },
     "transactionReceived": {
-      "haveReceivedAmountGDDFrom": "du hast soeben {transactionAmount} GDD von {senderFirstName} {senderLastName} ({senderEmail}) erhalten.",
+      "haveReceivedAmountGDDFrom": "du hast soeben {transactionAmount} GDD erhalten von {senderFirstName} {senderLastName}",
       "subject": "{senderFirstName} {senderLastName} hat dir {transactionAmount} Gradido gesendet",
+      "replySubject": "Re: {senderFirstName} {senderLastName} hat dir {transactionAmount} Gradido gesendet",
       "title": "{senderFirstName} {senderLastName} hat dir {transactionAmount} Gradido gesendet"
     }
   },

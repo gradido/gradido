@@ -99,13 +99,18 @@ export const sendEmailTranslated = async ({
             path: path.join(__dirname, 'templates/includes/youtube-icon.png'),
             cid: 'youtubeicon',
           },
+          {
+            filename: 'chatbox-icon.png',
+            path: path.join(__dirname, 'templates/includes/chatbox-icon.png'),
+            cid: 'chatboxicon',
+          },
         ],
       },
       locals, // the 'locale' in here seems not to be used by 'email-template', because it doesn't work if the language isn't set before by 'i18n.setLocale'
     })
     .catch((error: unknown) => {
       logger.error('Error sending notification email', error)
-      return false
+      return error
     })
 
   return resultSend
