@@ -8,6 +8,7 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm'
+import type { Community as CommunityType } from '../Community'
 import { Community } from '../Community'
 
 @Entity('federated_communities')
@@ -54,5 +55,5 @@ export class FederatedCommunity extends BaseEntity {
 
   @ManyToOne(() => Community, (community) => community.federatedCommunities)
   @JoinColumn({ name: 'public_key', referencedColumnName: 'publicKey' })
-  community?: Community
+  community?: CommunityType
 }

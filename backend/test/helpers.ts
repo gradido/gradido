@@ -12,6 +12,8 @@ import { createServer } from '@/server/createServer'
 
 import { i18n, logger } from './testSetup'
 
+import { jest } from 'bun:test'
+
 export const headerPushMock = jest.fn((t) => {
   context.token = t.value
 })

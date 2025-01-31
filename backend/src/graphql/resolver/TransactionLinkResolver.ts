@@ -29,7 +29,8 @@ import {
   EVENT_TRANSACTION_LINK_DELETE,
   EVENT_TRANSACTION_LINK_REDEEM,
 } from '@/event/Events'
-import { Context, getUser, getClientTimezoneOffset } from '@/server/context'
+import { getUser, getClientTimezoneOffset } from '@/server/context'
+import type { Context } from '@/server/context'
 import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 import { calculateDecay } from '@/util/decay'

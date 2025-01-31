@@ -12,7 +12,8 @@ import { GdtEntryList } from '@model/GdtEntryList'
 import { apiGet, apiPost } from '@/apis/HttpRequest'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { CONFIG } from '@/config'
-import { Context, getUser } from '@/server/context'
+import { getUser } from '@/server/context'
+import type { Context } from '@/server/context'
 import { LogError } from '@/server/LogError'
 
 @Resolver()

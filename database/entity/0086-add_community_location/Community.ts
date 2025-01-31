@@ -7,8 +7,8 @@ import {
   UpdateDateColumn,
   OneToMany,
   JoinColumn,
-  Geometry,
 } from 'typeorm'
+import type { Geometry } from 'typeorm'
 import { FederatedCommunity } from '../FederatedCommunity'
 import { GeometryTransformer } from '../../src/typeorm/GeometryTransformer'
 import { User } from '../User'

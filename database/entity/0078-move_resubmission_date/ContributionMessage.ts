@@ -10,7 +10,9 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm'
+import type { Contribution as ContributionType } from '../Contribution'
 import { Contribution } from '../Contribution'
+import type { User as UserType } from '../User'
 import { User } from '../User'
 
 @Entity('contribution_messages', {
@@ -26,14 +28,14 @@ export class ContributionMessage extends BaseEntity {
 
   @ManyToOne(() => Contribution, (contribution) => contribution.messages)
   @JoinColumn({ name: 'contribution_id' })
-  contribution: Contribution
+  contribution: ContributionType
 
   @Column({ name: 'user_id', unsigned: true, nullable: false })
   userId: number
 
   @ManyToOne(() => User, (user) => user.messages)
   @JoinColumn({ name: 'user_id' })
-  user: User
+  user: UserType
 
   @Column({ length: 2000, nullable: false, collation: 'utf8mb4_unicode_ci' })
   message: string

@@ -8,6 +8,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm'
+import type { User as UserType } from '../User'
 import { User } from '../User'
 
 @Entity('user_contacts', { engine: 'InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci' })
@@ -25,7 +26,7 @@ export class UserContact extends BaseEntity {
   type: string
 
   @OneToOne(() => User, (user) => user.emailContact)
-  user: User
+  user: UserType
 
   @Column({ name: 'user_id', type: 'int', unsigned: true, nullable: false })
   userId: number

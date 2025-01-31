@@ -18,8 +18,10 @@ import { peterLustig } from '@/seeds/users/peter-lustig'
 
 import { exportEventDataToKlickTipp } from './klicktipp'
 
-jest.mock('@/apis/KlicktippController')
-jest.mock('@/password/EncryptorUtils')
+import { describe, it, expect, beforeAll, afterAll, mock } from 'bun:test'
+
+mock.module('@/apis/KlicktippController')
+mock.module('@/password/EncryptorUtils')
 
 let mutate: ApolloServerTestClient['mutate'], con: Connection
 let testEnv: {

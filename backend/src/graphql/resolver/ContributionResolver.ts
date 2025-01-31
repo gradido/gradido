@@ -39,7 +39,8 @@ import {
   EVENT_ADMIN_CONTRIBUTION_DENY,
 } from '@/event/Events'
 import { UpdateUnconfirmedContributionContext } from '@/interactions/updateUnconfirmedContribution/UpdateUnconfirmedContribution.context'
-import { Context, getUser, getClientTimezoneOffset } from '@/server/context'
+import { getUser, getClientTimezoneOffset } from '@/server/context'
+import type { Context } from '@/server/context'
 import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 import { calculateDecay } from '@/util/decay'

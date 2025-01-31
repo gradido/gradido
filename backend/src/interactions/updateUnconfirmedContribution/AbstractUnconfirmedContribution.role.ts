@@ -6,7 +6,8 @@ import { Role } from '@/auth/Role'
 import { ContributionLogic } from '@/data/Contribution.logic'
 import { ContributionMessageBuilder } from '@/data/ContributionMessage.builder'
 import { ContributionStatus } from '@/graphql/enum/ContributionStatus'
-import { Context, getClientTimezoneOffset } from '@/server/context'
+import { getClientTimezoneOffset } from '@/server/context'
+import type { Context } from '@/server/context'
 import { LogError } from '@/server/LogError'
 
 export abstract class AbstractUnconfirmedContributionRole {
