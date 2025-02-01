@@ -1,14 +1,13 @@
 import { CONFIG } from '@/config'
 import { i18n } from '@/server/localization'
 import { backendLogger as logger } from '@/server/logger'
-import { jest, mock } from 'bun:test'
 
 CONFIG.EMAIL = true
 CONFIG.EMAIL_TEST_MODUS = false
 
 jest.setTimeout(1000000)
 
-mock.module('@/server/logger', () => {
+jest.mock('@/server/logger', () => {
   // const originalModule = jest.requireActual<typeof logger>('@/server/logger')
   return {
     __esModule: true,
@@ -25,7 +24,7 @@ mock.module('@/server/logger', () => {
   }
 })
 
-mock.module('@/server/localization', () => {
+jest.mock('@/server/localization', () => {
   // const originalModule = jest.requireActual<typeof i18n>('@/server/localization')
   return {
     __esModule: true,
