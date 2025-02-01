@@ -11,7 +11,7 @@ import { logger, i18n as localization } from '@test/testSetup'
 
 import { CONFIG } from '@/config'
 
-import { sendEmailTranslated } from './sendEmailTranslated'
+import * as sendEmailTranslatedApi  from './sendEmailTranslated'
 import {
   sendAddedContributionMessageEmail,
   sendAccountActivationEmail,
@@ -50,13 +50,7 @@ afterAll(async () => {
   await con.close()
 })
 
-jest.mock('./sendEmailTranslated', () => {
-  const originalModule = jest.requireActual('./sendEmailTranslated')
-  return {
-    __esModule: true,
-    sendEmailTranslated: jest.fn((a) => originalModule.sendEmailTranslated(a)),
-  }
-})
+const sendEmailTranslatedSpy = jest.spyOn(sendEmailTranslatedApi, 'sendEmailTranslated')
 
 describe('sendEmailVariants', () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -77,7 +71,7 @@ describe('sendEmailVariants', () => {
 
     describe('calls "sendEmailTranslated"', () => {
       it('with expected parameters', () => {
-        expect(sendEmailTranslated).toBeCalledWith({
+        expect(sendEmailTranslatedSpy).toBeCalledWith({
           receiver: {
             to: 'Peter Lustig <peter@lustig.de>',
           },
@@ -131,7 +125,7 @@ describe('sendEmailVariants', () => {
 
     describe('calls "sendEmailTranslated"', () => {
       it('with expected parameters', () => {
-        expect(sendEmailTranslated).toBeCalledWith({
+        expect(sendEmailTranslatedSpy).toBeCalledWith({
           receiver: {
             to: 'Peter Lustig <peter@lustig.de>',
           },
@@ -182,7 +176,7 @@ describe('sendEmailVariants', () => {
 
     describe('calls "sendEmailTranslated"', () => {
       it('with expected parameters', () => {
-        expect(sendEmailTranslated).toBeCalledWith({
+        expect(sendEmailTranslatedSpy).toBeCalledWith({
           receiver: {
             to: 'Peter Lustig <peter@lustig.de>',
           },
@@ -235,7 +229,7 @@ describe('sendEmailVariants', () => {
 
     describe('calls "sendEmailTranslated"', () => {
       it('with expected parameters', () => {
-        expect(sendEmailTranslated).toBeCalledWith({
+        expect(sendEmailTranslatedSpy).toBeCalledWith({
           receiver: {
             to: 'Peter Lustig <peter@lustig.de>',
           },
@@ -292,7 +286,7 @@ describe('sendEmailVariants', () => {
 
     describe('calls "sendEmailTranslated"', () => {
       it('with expected parameters', () => {
-        expect(sendEmailTranslated).toBeCalledWith({
+        expect(sendEmailTranslatedSpy).toBeCalledWith({
           receiver: {
             to: 'Peter Lustig <peter@lustig.de>',
           },
@@ -348,7 +342,7 @@ describe('sendEmailVariants', () => {
 
     describe('calls "sendEmailTranslated"', () => {
       it('with expected parameters', () => {
-        expect(sendEmailTranslated).toBeCalledWith({
+        expect(sendEmailTranslatedSpy).toBeCalledWith({
           receiver: {
             to: 'Peter Lustig <peter@lustig.de>',
           },
@@ -403,7 +397,7 @@ describe('sendEmailVariants', () => {
 
     describe('calls "sendEmailTranslated"', () => {
       it('with expected parameters', () => {
-        expect(sendEmailTranslated).toBeCalledWith({
+        expect(sendEmailTranslatedSpy).toBeCalledWith({
           receiver: {
             to: 'Peter Lustig <peter@lustig.de>',
           },
@@ -457,7 +451,7 @@ describe('sendEmailVariants', () => {
 
     describe('calls "sendEmailTranslated"', () => {
       it('with expected parameters', () => {
-        expect(sendEmailTranslated).toBeCalledWith({
+        expect(sendEmailTranslatedSpy).toBeCalledWith({
           receiver: {
             to: 'Peter Lustig <peter@lustig.de>',
           },
@@ -513,7 +507,7 @@ describe('sendEmailVariants', () => {
 
     describe('calls "sendEmailTranslated"', () => {
       it('with expected parameters', () => {
-        expect(sendEmailTranslated).toBeCalledWith({
+        expect(sendEmailTranslatedSpy).toBeCalledWith({
           receiver: {
             to: 'Peter Lustig <peter@lustig.de>',
           },
@@ -572,7 +566,7 @@ describe('sendEmailVariants', () => {
 
     describe('calls "sendEmailTranslated"', () => {
       it('with expected parameters', () => {
-        expect(sendEmailTranslated).toBeCalledWith({
+        expect(sendEmailTranslatedSpy).toBeCalledWith({
           receiver: {
             to: 'Peter Lustig <peter@lustig.de>',
           },
