@@ -11,7 +11,8 @@ import { logger, i18n as localization } from '@test/testSetup'
 
 import { CONFIG } from '@/config'
 
-import * as sendEmailTranslatedApi  from './sendEmailTranslated'
+// eslint-disable-next-line import/no-namespace
+import * as sendEmailTranslatedApi from './sendEmailTranslated'
 import {
   sendAddedContributionMessageEmail,
   sendAccountActivationEmail,
