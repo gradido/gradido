@@ -35,6 +35,21 @@ CONFIG.EMAIL_SMTP_HOST = testMailServerHost
 CONFIG.EMAIL_SMTP_PORT = testMailServerPort
 CONFIG.EMAIL_TLS = testMailTLS
 
+jest.mock('nodemailer', () => {
+  return {
+    __esModule: true,
+    createTransport: jest.fn(() => {
+      return {
+        sendMail: () => {
+          return {
+            messageId: 'message',
+          }
+        },
+      }
+    }),
+  }
+})
+
 let con: Connection
 let testEnv: {
   mutate: ApolloServerTestClient['mutate']
