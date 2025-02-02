@@ -232,9 +232,8 @@ fi
 # Install & build frontend
 echo 'Updating frontend' >> $UPDATE_HTML
 cd $PROJECT_ROOT/frontend
-bun install &> /dev/null
-bun compile-scss
-bunx vite build
+yarn 
+yarn build
 
 # Install & build admin
 echo 'Updating admin' >> $UPDATE_HTML
