@@ -204,15 +204,15 @@ npm i -g yarn bun
 source $HOME/.cargo/env
 
 # Install & build config
-echo 'Updating config' >> $UPDATE_HTML
+echo 'Updating config'
 cd $PROJECT_ROOT/config
 bun install &> /dev/null
 yarn build
 
 # Install & build database
-echo 'Updating database' >> $UPDATE_HTML
+echo 'Updating database'
 cd $PROJECT_ROOT/database
-yarn 
+yarn install
 yarn build
 if [ "$DEPLOY_SEED_DATA" = "true" ]; then
   yarn dev_up
@@ -222,7 +222,7 @@ else
 fi
 
 # Install & build backend
-echo 'Updating backend' >> $UPDATE_HTML
+echo 'Updating backend'
 cd $PROJECT_ROOT/backend
 bun install &> /dev/null
 if [ "$DEPLOY_SEED_DATA" = "true" ]; then
@@ -230,19 +230,19 @@ if [ "$DEPLOY_SEED_DATA" = "true" ]; then
 fi
 
 # Install & build frontend
-echo 'Updating frontend' >> $UPDATE_HTML
+echo 'Updating frontend'
 cd $PROJECT_ROOT/frontend
 yarn 
 yarn build
 
 # Install & build admin
-echo 'Updating admin' >> $UPDATE_HTML
+echo 'Updating admin'
 cd $PROJECT_ROOT/admin
 bun install &> /dev/null
 bunx --bun vite build
 
 # Install & build dht-node
-echo 'Updating dht-node' >> $UPDATE_HTML
+echo 'Updating dht-node'
 cd $PROJECT_ROOT/dht-node
 # TODO maybe handle this differently?
 unset NODE_ENV
@@ -252,7 +252,7 @@ yarn build
 export NODE_ENV=production
 
 # Install & build federation
-echo 'Updating federation' >> $UPDATE_HTML
+echo 'Updating federation'
 cd $PROJECT_ROOT/federation
 bun install &> /dev/null
 
