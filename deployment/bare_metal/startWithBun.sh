@@ -200,7 +200,7 @@ envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/dht-node/.env
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/federation/.env.template > $PROJECT_ROOT/federation/.env
 
 # Install & build database
-echo 'Updating database'
+echo '==== Updating database ===='
 cd $PROJECT_ROOT/database
 yarn install
 yarn build
@@ -216,77 +216,51 @@ npm i -g yarn bun
 source $HOME/.cargo/env
 
 # Install & build config
-echo 'Updating config'
+echo '====  Updating config ===='
 cd $PROJECT_ROOT/config
+echo "install node_modules with bun"
 bun install &> /dev/null
 yarn build
 
-update_backend() {
-  # Install & build backend
-  echo 'Updating backend'
-  cd $PROJECT_ROOT/backend
-  bun install &> /dev/null
-  if [ "$DEPLOY_SEED_DATA" = "true" ]; then
-    TZ=UTC NODE_ENV=development bun src/seeds/index.ts
-  fi
-}
 
-update_frontend() {
-  # Install & build frontend
-  echo 'Updating frontend'
-  cd $PROJECT_ROOT/frontend
-  yarn 
-  yarn build
-}
+# Install & build backend
+echo '==== Updating backend ===='
+cd $PROJECT_ROOT/backend
+echo "install node_modules with bun"
+bun install &> /dev/null
+if [ "$DEPLOY_SEED_DATA" = "true" ]; then
+  TZ=UTC NODE_ENV=development bun src/seeds/index.ts
+fi
 
-update_admin() {
-  # Install & build admin
-  echo 'Updating admin'
-  cd $PROJECT_ROOT/admin
-  bun install &> /dev/null
-  bunx --bun vite build
-}
+# Install & build frontend
+echo '==== Updating frontend ===='
+cd $PROJECT_ROOT/frontend
+yarn 
+yarn build
 
-update_dht() {
-  # Install & build dht-node
-  echo 'Updating dht-node'
-  cd $PROJECT_ROOT/dht-node
-  # TODO maybe handle this differently?
-  unset NODE_ENV
-  bun install &> /dev/null
-  yarn build
-  # TODO maybe handle this differently?
-  export NODE_ENV=production
-}
+# Install & build admin
+echo '==== Updating admin ===='
+cd $PROJECT_ROOT/admin
+echo "install node_modules with bun"
+bun install &> /dev/null
+bunx --bun vite build
 
-update_federation() {
-  # Install & build federation
-  echo 'Updating federation'
-  cd $PROJECT_ROOT/federation
-  bun install &> /dev/null
-}
+# Install & build dht-node
+echo '==== Updating dht-node ===='
+cd $PROJECT_ROOT/dht-node
+# TODO maybe handle this differently?
+unset NODE_ENV
+echo "install node_modules with bun"
+bun install &> /dev/null
+yarn build
+# TODO maybe handle this differently?
+export NODE_ENV=production
 
-# Run module setups parallel
-update_backend &
-BACKEND_PID=$!
-update_frontend &
-FRONTEND_PID=$!
-update_admin &
-ADMIN_PID=$!
-update_dht &
-DHT_PID=$!
-update_federation &
-FEDERATION_PID=$!
-
-# Warten, bis alle Hintergrundprozesse abgeschlossen sind
-echo 'Waiting for processes to complete...'
-wait $BACKEND_PID
-wait $FRONTEND_PID
-wait $ADMIN_PID
-wait $DHT_PID
-wait $FEDERATION_PID
-
-echo 'All tasks completed.'
+# Install & build federation
+echo '==== Updating federation ===='
+cd $PROJECT_ROOT/federation
+echo "install node_modules with bun"
+bun install &> /dev/null
 
 nvm use default
 
