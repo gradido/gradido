@@ -200,14 +200,13 @@ envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/dht-node/.env
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/federation/.env.template > $PROJECT_ROOT/federation/.env
 
 nvm install v18.20
-nvm use v18.20
 npm i -g yarn bun
 source $HOME/.cargo/env
 
 # Install & build config
 echo 'Updating config' >> $UPDATE_HTML
 cd $PROJECT_ROOT/config
-bun install 
+bun install &> /dev/null
 yarn build
 
 # Install & build database
@@ -225,7 +224,7 @@ fi
 # Install & build backend
 echo 'Updating backend' >> $UPDATE_HTML
 cd $PROJECT_ROOT/backend
-bun install
+bun install &> /dev/null
 if [ "$DEPLOY_SEED_DATA" = "true" ]; then
   TZ=UTC NODE_ENV=development bun src/seeds/index.ts
 fi
@@ -233,14 +232,14 @@ fi
 # Install & build frontend
 echo 'Updating frontend' >> $UPDATE_HTML
 cd $PROJECT_ROOT/frontend
-bun install
+bun install &> /dev/null
 bun compile-scss
 bunx vite build
 
 # Install & build admin
 echo 'Updating admin' >> $UPDATE_HTML
 cd $PROJECT_ROOT/admin
-bun install
+bun install &> /dev/null
 bunx --bun vite build
 
 # Install & build dht-node
@@ -248,7 +247,7 @@ echo 'Updating dht-node' >> $UPDATE_HTML
 cd $PROJECT_ROOT/dht-node
 # TODO maybe handle this differently?
 unset NODE_ENV
-bun install
+bun install &> /dev/null
 yarn build
 # TODO maybe handle this differently?
 export NODE_ENV=production
@@ -256,7 +255,7 @@ export NODE_ENV=production
 # Install & build federation
 echo 'Updating federation' >> $UPDATE_HTML
 cd $PROJECT_ROOT/federation
-bun install
+bun install &> /dev/null
 
 nvm use default
 
