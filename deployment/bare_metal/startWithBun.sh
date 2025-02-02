@@ -266,13 +266,27 @@ update_federation() {
   bun install &> /dev/null
 }
 
-// run module setups parallel
+# Run module setups parallel
 update_backend &
+BACKEND_PID=$!
 update_frontend &
+FRONTEND_PID=$!
 update_admin &
+ADMIN_PID=$!
 update_dht &
+DHT_PID=$!
 update_federation &
-wait
+FEDERATION_PID=$!
+
+# Warten, bis alle Hintergrundprozesse abgeschlossen sind
+echo 'Waiting for processes to complete...'
+wait $BACKEND_PID
+wait $FRONTEND_PID
+wait $ADMIN_PID
+wait $DHT_PID
+wait $FEDERATION_PID
+
+echo 'All tasks completed.'
 
 nvm use default
 
