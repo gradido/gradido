@@ -19,8 +19,10 @@ export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 nvm use default
 # install bun global
 if ! command -v bun 
+then
   npm install bun -g
 fi
+
 # install grass a fast rust bases scss compiler if not exist
 if ! command -v grass
 then 
