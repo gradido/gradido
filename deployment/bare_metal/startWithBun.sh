@@ -20,7 +20,7 @@ nvm use default
 # install bun global
 if ! command -v bun 
   npm install bun -g
-fi 
+fi
 # install grass a fast rust bases scss compiler if not exist
 if ! command -v grass
 then 
