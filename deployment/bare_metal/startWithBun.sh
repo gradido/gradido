@@ -27,7 +27,7 @@ fi
 if ! command -v grass
 then 
     # check if rust is already installed
-    if ! command -v rustc &> /dev/null
+    if ! command -v rustc 
     then
         echo "install Rust ..."
         # install rust (see https://www.rust-lang.org/tools/install)
@@ -201,13 +201,19 @@ envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/federation/.e
 # Install & build config
 echo 'Updating config' >> $UPDATE_HTML
 cd $PROJECT_ROOT/config
+nvm install
+nvm use
+npm i -g yarn
 bun install 
+yarn build
+nvm use default
 
 # Install & build database
 echo 'Updating database' >> $UPDATE_HTML
 cd $PROJECT_ROOT/database
 nvm install
 nvm use
+npm i -g yarn
 yarn 
 yarn build
 if [ "$DEPLOY_SEED_DATA" = "true" ]; then
@@ -244,6 +250,9 @@ echo 'Updating dht-node' >> $UPDATE_HTML
 cd $PROJECT_ROOT/dht-node
 # TODO maybe handle this differently?
 unset NODE_ENV
+nvm install
+nvm use
+npm i -g yarn
 bun install
 yarn build
 # TODO maybe handle this differently?
