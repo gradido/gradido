@@ -24,16 +24,17 @@ then
 fi
 
 # install grass a fast rust bases scss compiler if not exist
-if ! command -v grass --version
+source $HOME/.cargo/env
+if ! command -v grass --version &> /dev/null
 then 
     # check if rust is already installed
-    if ! command -v rustc --version 
+    if ! command -v rustc --version  &> /dev/null
     then
         echo "install Rust ..."
         # install rust (see https://www.rust-lang.org/tools/install)
         curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
         source $HOME/.cargo/env
-    fi
+    fi   
 
     # install Grass via Cargo 
     echo "Install Grass..."
@@ -198,22 +199,20 @@ envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/admin/.env.te
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/dht-node/.env.template > $PROJECT_ROOT/dht-node/.env
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/federation/.env.template > $PROJECT_ROOT/federation/.env
 
+nvm install v18.20
+nvm use v18.20
+npm i -g yarn bun
+source $HOME/.cargo/env
+
 # Install & build config
 echo 'Updating config' >> $UPDATE_HTML
 cd $PROJECT_ROOT/config
-nvm install
-nvm use
-npm i -g yarn bun
 bun install 
 yarn build
-nvm use default
 
 # Install & build database
 echo 'Updating database' >> $UPDATE_HTML
 cd $PROJECT_ROOT/database
-nvm install
-nvm use
-npm i -g yarn
 yarn 
 yarn build
 if [ "$DEPLOY_SEED_DATA" = "true" ]; then
@@ -222,7 +221,6 @@ if [ "$DEPLOY_SEED_DATA" = "true" ]; then
 else
   yarn up
 fi
-nvm use default
 
 # Install & build backend
 echo 'Updating backend' >> $UPDATE_HTML
@@ -235,49 +233,37 @@ fi
 # Install & build frontend
 echo 'Updating frontend' >> $UPDATE_HTML
 cd $PROJECT_ROOT/frontend
-nvm install
-nvm use
-npm i -g yarn bun
 bun install
 bun compile-scss
-bunx --bun vite build
-nvm use default
+bunx vite build
 
 # Install & build admin
 echo 'Updating admin' >> $UPDATE_HTML
 cd $PROJECT_ROOT/admin
-nvm install
-nvm use
-npm i -g yarn bun
 bun install
 bunx --bun vite build
-nvm use default
 
 # Install & build dht-node
 echo 'Updating dht-node' >> $UPDATE_HTML
 cd $PROJECT_ROOT/dht-node
 # TODO maybe handle this differently?
 unset NODE_ENV
-nvm install
-nvm use
-npm i -g yarn bun
 bun install
 yarn build
 # TODO maybe handle this differently?
 export NODE_ENV=production
-nvm use default
 
 # Install & build federation
 echo 'Updating federation' >> $UPDATE_HTML
 cd $PROJECT_ROOT/federation
 bun install
 
+nvm use default
+
 # start after building all to use up less ressources
 pm2 start --interpreter bun --name gradido-backend $PROJECT_ROOT/backend/src/index.ts -l $GRADIDO_LOG_PATH/pm2.backend.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
-pm2 save
 if [ ! -z $FEDERATION_DHT_TOPIC ]; then
   pm2 start --name gradido-dht-node "yarn --cwd $PROJECT_ROOT/dht-node start" -l $GRADIDO_LOG_PATH/pm2.dht-node.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
-  pm2 save
 else
   echo "=====================================================================" >> $UPDATE_HTML
   echo "WARNING: FEDERATION_DHT_TOPIC not configured. DHT-Node not started..."  >> $UPDATE_HTML
@@ -302,9 +288,8 @@ do
   echo "====================================================" >> $UPDATE_HTML
 #  pm2 delete $MODULENAME
   pm2 start --interpreter bun --name $MODULENAME $PROJECT_ROOT/federation/src/index.ts -l $GRADIDO_LOG_PATH/pm2.$MODULENAME.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
-  pm2 save
 done
-
+pm2 save
 # let nginx showing gradido
 echo 'Configuring nginx to serve gradido again' >> $UPDATE_HTML
 ln -sf $SCRIPT_DIR/nginx/sites-available/gradido.conf $SCRIPT_DIR/nginx/sites-enabled/default
