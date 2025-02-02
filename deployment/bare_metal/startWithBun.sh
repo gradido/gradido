@@ -204,6 +204,7 @@ cd $PROJECT_ROOT/config
 nvm install
 nvm use
 npm i -g yarn
+yarn global add bun
 bun install 
 yarn build
 nvm use default
@@ -253,6 +254,7 @@ unset NODE_ENV
 nvm install
 nvm use
 npm i -g yarn
+yarn global add bun
 bun install
 yarn build
 # TODO maybe handle this differently?
