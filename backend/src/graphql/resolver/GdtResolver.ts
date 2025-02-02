@@ -67,9 +67,7 @@ export class GdtResolver {
     }
     const user = getUser(context)
     try {
-      const resultGDTSum = await apiPost(`${CONFIG.GDT_API_URL}/GdtEntries/sumPerEmailApi`, {
-        email: user.emailContact.email,
-      })
+      const resultGDTSum = await apiGet(`${CONFIG.GDT_API_URL}/GdtEntries/sumPerEmailApi/${user.emailContact.email}`)
       if (!resultGDTSum.success) {
         throw new LogError('Call not successful')
       }

@@ -199,16 +199,6 @@ envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/admin/.env.te
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/dht-node/.env.template > $PROJECT_ROOT/dht-node/.env
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/federation/.env.template > $PROJECT_ROOT/federation/.env
 
-nvm install v18.20
-npm i -g yarn bun
-source $HOME/.cargo/env
-
-# Install & build config
-echo 'Updating config'
-cd $PROJECT_ROOT/config
-bun install &> /dev/null
-yarn build
-
 # Install & build database
 echo 'Updating database'
 cd $PROJECT_ROOT/database
@@ -221,40 +211,68 @@ else
   yarn up
 fi
 
-# Install & build backend
-echo 'Updating backend'
-cd $PROJECT_ROOT/backend
-bun install &> /dev/null
-if [ "$DEPLOY_SEED_DATA" = "true" ]; then
-  TZ=UTC NODE_ENV=development bun src/seeds/index.ts
-fi
+nvm install v18.20
+npm i -g yarn bun
+source $HOME/.cargo/env
 
-# Install & build frontend
-echo 'Updating frontend'
-cd $PROJECT_ROOT/frontend
-yarn 
-yarn build
-
-# Install & build admin
-echo 'Updating admin'
-cd $PROJECT_ROOT/admin
-bun install &> /dev/null
-bunx --bun vite build
-
-# Install & build dht-node
-echo 'Updating dht-node'
-cd $PROJECT_ROOT/dht-node
-# TODO maybe handle this differently?
-unset NODE_ENV
+# Install & build config
+echo 'Updating config'
+cd $PROJECT_ROOT/config
 bun install &> /dev/null
 yarn build
-# TODO maybe handle this differently?
-export NODE_ENV=production
 
-# Install & build federation
-echo 'Updating federation'
-cd $PROJECT_ROOT/federation
-bun install &> /dev/null
+update_backend() {
+  # Install & build backend
+  echo 'Updating backend'
+  cd $PROJECT_ROOT/backend
+  bun install &> /dev/null
+  if [ "$DEPLOY_SEED_DATA" = "true" ]; then
+    TZ=UTC NODE_ENV=development bun src/seeds/index.ts
+  fi
+}
+
+update_frontend() {
+  # Install & build frontend
+  echo 'Updating frontend'
+  cd $PROJECT_ROOT/frontend
+  yarn 
+  yarn build
+}
+
+update_admin() {
+  # Install & build admin
+  echo 'Updating admin'
+  cd $PROJECT_ROOT/admin
+  bun install &> /dev/null
+  bunx --bun vite build
+}
+
+update_dht() {
+  # Install & build dht-node
+  echo 'Updating dht-node'
+  cd $PROJECT_ROOT/dht-node
+  # TODO maybe handle this differently?
+  unset NODE_ENV
+  bun install &> /dev/null
+  yarn build
+  # TODO maybe handle this differently?
+  export NODE_ENV=production
+}
+
+update_federation() {
+  # Install & build federation
+  echo 'Updating federation'
+  cd $PROJECT_ROOT/federation
+  bun install &> /dev/null
+}
+
+// run module setups parallel
+update_backend &
+update_frontend &
+update_admin &
+update_dht &
+update_federation &
+wait
 
 nvm use default
 
