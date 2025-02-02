@@ -20,7 +20,7 @@ nvm use default
 # install bun global
 npm install bun -g
 # install grass a fast rust bases scss compiler if not exist
-if !command -v grass
+if ! command -v grass
 then 
     # check if rust is already installed
     if ! command -v rustc &> /dev/null
@@ -202,7 +202,9 @@ bun install
 # Install & build database
 echo 'Updating database' >> $UPDATE_HTML
 cd $PROJECT_ROOT/database
-bun install
+nvm install
+nvm use
+yarn install
 yarn build
 if [ "$DEPLOY_SEED_DATA" = "true" ]; then
   yarn dev_up
@@ -210,6 +212,7 @@ if [ "$DEPLOY_SEED_DATA" = "true" ]; then
 else
   yarn up
 fi
+nvm use default
 
 # Install & build backend
 echo 'Updating backend' >> $UPDATE_HTML
