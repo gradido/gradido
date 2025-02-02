@@ -259,6 +259,7 @@ bun install
 yarn build
 # TODO maybe handle this differently?
 export NODE_ENV=production
+nvm use default
 
 # Install & build federation
 echo 'Updating federation' >> $UPDATE_HTML
