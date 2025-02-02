@@ -18,16 +18,16 @@ set +o allexport
 export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 nvm use default
 # install bun global
-if ! command -v bun 
+if ! command -v bun
 then
   npm install bun -g
 fi
 
 # install grass a fast rust bases scss compiler if not exist
-if ! command -v grass
+if ! command -v grass --version
 then 
     # check if rust is already installed
-    if ! command -v rustc 
+    if ! command -v rustc --version 
     then
         echo "install Rust ..."
         # install rust (see https://www.rust-lang.org/tools/install)
@@ -203,8 +203,7 @@ echo 'Updating config' >> $UPDATE_HTML
 cd $PROJECT_ROOT/config
 nvm install
 nvm use
-npm i -g yarn
-yarn global add bun
+npm i -g yarn bun
 bun install 
 yarn build
 nvm use default
@@ -253,8 +252,7 @@ cd $PROJECT_ROOT/dht-node
 unset NODE_ENV
 nvm install
 nvm use
-npm i -g yarn
-yarn global add bun
+npm i -g yarn bun
 bun install
 yarn build
 # TODO maybe handle this differently?
