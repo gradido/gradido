@@ -235,15 +235,23 @@ fi
 # Install & build frontend
 echo 'Updating frontend' >> $UPDATE_HTML
 cd $PROJECT_ROOT/frontend
+nvm install
+nvm use
+npm i -g yarn bun
 bun install
 bun compile-scss
 bunx --bun vite build
+nvm use default
 
 # Install & build admin
 echo 'Updating admin' >> $UPDATE_HTML
 cd $PROJECT_ROOT/admin
+nvm install
+nvm use
+npm i -g yarn bun
 bun install
 bunx --bun vite build
+nvm use default
 
 # Install & build dht-node
 echo 'Updating dht-node' >> $UPDATE_HTML
