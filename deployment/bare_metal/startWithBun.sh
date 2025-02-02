@@ -18,7 +18,9 @@ set +o allexport
 export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 nvm use default
 # install bun global
-npm install bun -g
+if ! command -v bun 
+  npm install bun -g
+fi 
 # install grass a fast rust bases scss compiler if not exist
 if ! command -v grass
 then 
@@ -27,7 +29,7 @@ then
     then
         echo "install Rust ..."
         # install rust (see https://www.rust-lang.org/tools/install)
-        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
         source $HOME/.cargo/env
     fi
 
@@ -204,7 +206,7 @@ echo 'Updating database' >> $UPDATE_HTML
 cd $PROJECT_ROOT/database
 nvm install
 nvm use
-yarn install
+yarn 
 yarn build
 if [ "$DEPLOY_SEED_DATA" = "true" ]; then
   yarn dev_up
