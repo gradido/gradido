@@ -5,26 +5,18 @@
       class="form-style p-3 bg-white app-box-shadow gradido-border-radius"
       @submit.prevent="submit"
     >
-      <label>{{ $t('contribution.selectDate') }}</label>
-      <BFormInput
+      <ValidatedInput
         id="contribution-date"
-        :model-value="date"
+        :model-value="formValues.date"
+        name="date"
         :state="dataFieldMeta.valid"
-        :locale="$i18n.locale"
-        :max="getMaximalDate"
-        :min="minimalDate.toISOString().slice(0, 10)"
-        class="mb-4 bg-248"
-        reset-value=""
-        :label-no-date-selected="$t('contribution.noDateSelected')"
-        required
+        :label="$t('contribution.selectDate')"
         :no-flip="true"
+        class="mb-4 bg-248"
         type="date"
-        @update:model-value="handleDateChange"
-      >
-        <template #nav-prev-year><span></span></template>
-        <template #nav-next-year><span></span></template>
-      </BFormInput>
-
+        :schema-description="schemaDescription.fields.date"
+        @update:model-value="updateField"
+      />
       <div v-if="showMessage" class="p-3" data-test="contribtion-message">
         {{ noOpenCreation }}
       </div>
@@ -39,12 +31,12 @@
         <input-hour
           name="hours"
           :label="$t('form.hours')"
-          placeholder="0.25"
+          placeholder="0.01"
           :rules="{
             required: true,
-            min: 0.25,
+            // decimal: 2,
+            min: 0.01,
             max: validMaxTime,
-            gddCreationTime: { min: 0.25, max: validMaxTime },
           }"
           :valid-max-time="validMaxTime"
         />
@@ -88,12 +80,14 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import InputHour from '@/components/Inputs/InputHour'
 import InputAmount from '@/components/Inputs/InputAmount'
 import InputTextarea from '@/components/Inputs/InputTextarea'
-import { useField, useForm } from 'vee-validate'
+import ValidatedInput from '@/components/Inputs/ValidatedInput.vue'
+import { createContributionFormValidation } from '@/validationSchemas'
+import { useForm, useField } from 'vee-validate'
 
 const props = defineProps({
   modelValue: { type: Object, required: true },
@@ -109,11 +103,14 @@ const { t } = useI18n()
 
 const form = ref({ ...props.modelValue })
 
+const validationSchema = createContributionFormValidation(t)
+const schemaDescription = validationSchema.describe()
+// console.log(schemaDescription)
+
 const {
   values: formValues,
   meta: formMeta,
   resetForm,
-  defineField,
   setFieldValue,
 } = useForm({
   initialValues: {
@@ -122,15 +119,15 @@ const {
     hours: props.modelValue.hours,
     amount: props.modelValue.amount,
   },
+  validationSchema
 })
 
-const [date, dateProps] = defineField('date')
+const { meta: dataFieldMeta } = useField('date')
 
-const { meta: dataFieldMeta } = useField('date', 'required')
-
-const handleDateChange = (newDate) => {
-  date.value = newDate
-  emit('update:model-value', { ...props.modelValue, date: newDate })
+const updateField = (newValue, name) => {
+  if(typeof name === 'string' && name.length) {
+    setFieldValue(name, newValue)
+  }
 }
 
 const showMessage = computed(() => {
@@ -146,8 +143,8 @@ const showMessage = computed(() => {
 const disabled = computed(() => {
   return (
     !formMeta.value.valid ||
-    (props.isThisMonth && parseInt(form.value.amount) > parseInt(props.maxGddThisMonth)) ||
-    (!props.isThisMonth && parseInt(form.value.amount) > parseInt(props.maxGddLastMonth))
+    (props.isThisMonth && parseFloat(form.value.amount) > parseFloat(props.maxGddThisMonth)) ||
+    (!props.isThisMonth && parseFloat(form.value.amount) > parseFloat(props.maxGddLastMonth))
   )
 })
 
@@ -172,15 +169,11 @@ const noOpenCreation = computed(() => {
   return ''
 })
 
-const getMaximalDate = computed(() => {
-  return new Date().toISOString().slice(0, 10)
-})
-
 watch(
   () => formValues.hours,
   () => {
     updateAmount(formValues.hours)
-  },
+  }
 )
 
 function updateAmount(hours) {

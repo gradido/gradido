@@ -3,16 +3,15 @@
     <BFormGroup :label="label" :label-for="labelFor">
       <BFormInput
         :id="labelFor"
-        :model-value="currentValue"
+        v-model="currentValue"
         :name="name"
         :placeholder="placeholder"
         type="number"
         :state="meta.valid"
-        step="0.25"
+        step="0.01"
         min="0"
         :max="validMaxTime"
         class="bg-248"
-        @update:model-value="currentValue = $event"
       />
       <BFormInvalidFeedback v-if="errorMessage">
         {{ errorMessage }}
