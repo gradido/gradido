@@ -54,6 +54,7 @@ export default {
     font-size: 14px;
     text-wrap: nowrap;
     color: black !important;
+    border-radius: 25px;
   }
 }
 

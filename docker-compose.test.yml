@@ -7,7 +7,7 @@ services:
     build:
       target: test
     environment:
-      - NODE_ENV="test"
+      - NODE_ENV=test
   
   ########################################################
   # ADMIN INTERFACE ######################################
@@ -17,7 +17,7 @@ services:
     build:
       target: test
     environment:
-      - NODE_ENV="test"
+      - NODE_ENV=test
 
   ########################################################
   # BACKEND ##############################################
@@ -31,7 +31,7 @@ services:
       - external-net
       - internal-net
     environment:
-      - NODE_ENV="test"
+      - NODE_ENV=test
       - DB_HOST=mariadb
 
   ########################################################
@@ -46,7 +46,7 @@ services:
       - external-net
       - internal-net
     environment:
-      - NODE_ENV="test"
+      - NODE_ENV="test
       - DB_HOST=mariadb
 
   ########################################################
@@ -61,7 +61,7 @@ services:
       - external-net
       - internal-net
     environment:
-      - NODE_ENV="test"
+      - NODE_ENV=test
       - DB_HOST=mariadb
 
   ########################################################
@@ -73,7 +73,7 @@ services:
       context: ./database
       target: test_up
     environment:
-      - NODE_ENV="test"
+      - NODE_ENV=test
   #  restart: always # this is very dangerous, but worth a test for the delayed mariadb startup at first run
 
   ########################################################
@@ -85,17 +85,13 @@ services:
       context: ./dlt-database
       target: test_up
     environment:
-      - NODE_ENV="test"
+      - NODE_ENV=test
   #  restart: always # this is very dangerous, but worth a test for the delayed mariadb startup at first run
 
   #########################################################
   ## MARIADB ##############################################
   #########################################################
   mariadb:
-    image: gradido/mariadb:test
-    environment:
-      - MARIADB_ALLOW_EMPTY_ROOT_PASSWORD=1
-      - MARIADB_USER=root
     networks: 
       - internal-net
       - external-net

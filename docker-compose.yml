@@ -1,7 +1,7 @@
 # This file defines the production settings. It is overwritten by docker-compose.override.yml,
 # which defines the development settings. The override.yml is loaded by default. Therefore it
 # is required to explicitly define if you want an production build:
-# > docker-compose -f docker-compose.yml up 
+# > docker-compose -f docker-compose.yml up
 
 services:
 
@@ -12,7 +12,8 @@ services:
     # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
     image: gradido/frontend:local-production
     build:
-      context: ./frontend
+      context: ./
+      dockerfile: ./frontend/Dockerfile
       target: production
     networks:
       - external-net
@@ -26,7 +27,9 @@ services:
       # - BUILD_DATE="1970-01-01T00:00:00.00Z"
       # - BUILD_VERSION="0.0.0.0"
       # - BUILD_COMMIT="0000000"
-      - NODE_ENV="production"
+      - NODE_ENV=production
+    volumes:
+      - ./config:/config
     # env_file:
       # - ./.env
       # - ./frontend/.env
@@ -38,7 +41,8 @@ services:
     # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
     image: gradido/admin:local-production
     build:
-      context: ./admin
+      context: ./
+      dockerfile: ./admin/Dockerfile
       target: production
     networks:
       - external-net
@@ -52,7 +56,9 @@ services:
       # - BUILD_DATE="1970-01-01T00:00:00.00Z"
       # - BUILD_VERSION="0.0.0.0"
       # - BUILD_COMMIT="0000000"
-      - NODE_ENV="production"
+      - NODE_ENV=production
+    volumes:
+      - ./config:/config
     # env_file:
       # - ./.env
       # - ./admin/.env
@@ -61,19 +67,17 @@ services:
   ## MARIADB ##############################################
   #########################################################
   mariadb:
-    build:
-      context: ./mariadb
-      target: mariadb_server
+    image: mariadb:10.5
     environment:
-      - MARIADB_ALLOW_EMPTY_PASSWORD=1
+      - MARIADB_ALLOW_EMPTY_ROOT_PASSWORD=1
       - MARIADB_USER=root
-    networks: 
+    networks:
       - internal-net
-    ports: 
+    ports:
       - 3306:3306
-    volumes: 
+    volumes:
       - db_vol:/var/lib/mysql
-      
+
   ########################################################
   # BACKEND ##############################################
   ########################################################
@@ -92,7 +96,6 @@ services:
       - 4000:4000
     depends_on:
       - mariadb
-    restart: always
     environment:
       # Envs used in Dockerfile
       # - DOCKER_WORKDIR="/app"
@@ -128,7 +131,6 @@ services:
     #  - 5000:5000
     depends_on:
       - mariadb
-    restart: always
     environment:
       # Envs used in Dockerfile
       # - DOCKER_WORKDIR="/app"
@@ -162,7 +164,6 @@ services:
       - external-net
     ports:
       - 6010:6010
-    restart: always
     environment:
       # Envs used in Dockerfile
       # - DOCKER_WORKDIR="/app"
@@ -196,7 +197,6 @@ services:
       - 5010:5010
     depends_on:
       - mariadb
-    restart: always
     environment:
       # Envs used in Dockerfile
       # - DOCKER_WORKDIR="/app"
@@ -264,12 +264,12 @@ services:
       # Application only envs
     #env_file:
     #  - ./frontend/.env
-    
+
   #########################################################
   ## NGINX ################################################
   #########################################################
   nginx:
-    build: 
+    build:
       context: ./nginx/
     networks:
       - external-net
@@ -277,17 +277,17 @@ services:
     depends_on:
       - frontend
       - backend
-      - admin 
+      - admin
     ports:
       - 80:80
-    volumes: 
-      - ./logs/nginx:/var/log/nginx 
-  
+    volumes:
+      - ./logs/nginx:/var/log/nginx
+
 networks:
   external-net:
   internal-net:
     internal: true
 
 volumes:
-  db_vol: 
-  
+  db_vol:
+

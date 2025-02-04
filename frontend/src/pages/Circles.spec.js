@@ -76,7 +76,7 @@ describe('Circles', () => {
       null,
       expect.objectContaining({
         fetchPolicy: 'network-only',
-        enabled: false,
+        enabled: true,
       }),
     )
     expect(mockRefetch).toHaveBeenCalled()

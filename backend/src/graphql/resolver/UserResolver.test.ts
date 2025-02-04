@@ -74,6 +74,7 @@ import { objectValuesToArray } from '@/util/utilities'
 import { Location2Point } from './util/Location2Point'
 
 jest.mock('@/apis/humhub/HumHubClient')
+jest.mock('@/password/EncryptorUtils')
 
 jest.mock('@/emails/sendEmailVariants', () => {
   const originalModule = jest.requireActual('@/emails/sendEmailVariants')
@@ -96,6 +97,8 @@ jest.mock('@/apis/KlicktippController', () => {
   }
 })
 
+CONFIG.EMAIL_CODE_REQUEST_TIME = 10
+
 let admin: User
 let user: User
 let mutate: ApolloServerTestClient['mutate'],
@@ -112,6 +115,7 @@ beforeAll(async () => {
   mutate = testEnv.mutate
   query = testEnv.query
   con = testEnv.con
+  CONFIG.HUMHUB_ACTIVE = false
   await cleanDB()
 })
 
@@ -185,7 +189,7 @@ describe('UserResolver', () => {
               communityUuid: homeCom.communityUuid,
               foreign: false,
               gmsAllowed: true,
-              humhubAllowed: false,
+              humhubAllowed: true,
               gmsPublishName: 0,
               humhubPublishName: 0,
               gmsPublishLocation: 2,
@@ -240,10 +244,10 @@ describe('UserResolver', () => {
 
     describe('account activation email', () => {
       it('sends an account activation email', () => {
-        const activationLink = CONFIG.EMAIL_LINK_VERIFICATION.replace(
-          /{optin}/g,
-          emailVerificationCode,
-        ).replace(/{code}/g, '')
+        const activationLink = `${
+          CONFIG.EMAIL_LINK_VERIFICATION
+        }${emailVerificationCode.toString()}`
+
         expect(sendAccountActivationEmail).toBeCalledWith({
           firstName: 'Peter',
           lastName: 'Lustig',
@@ -587,8 +591,8 @@ describe('UserResolver', () => {
         expect(newUser.emailContact.emailChecked).toBeTruthy()
       })
 
-      it('updates the password', () => {
-        const encryptedPass = encryptPassword(newUser, 'Aa12345_')
+      it('updates the password', async () => {
+        const encryptedPass = await encryptPassword(newUser, 'Aa12345_')
         expect(newUser.password.toString()).toEqual(encryptedPass.toString())
       })
 
@@ -1546,9 +1550,9 @@ describe('UserResolver', () => {
 
         expect(bibi).toEqual(
           expect.objectContaining({
-            password: SecretKeyCryptographyCreateKey(bibi.gradidoID.toString(), 'Aa12345_')[0]
-              .readBigUInt64LE()
-              .toString(),
+            password: (
+              await SecretKeyCryptographyCreateKey(bibi.gradidoID.toString(), 'Aa12345_')
+            ).toString(),
             passwordEncryptionType: PasswordEncryptionType.GRADIDO_ID,
           }),
         )
@@ -1570,10 +1574,7 @@ describe('UserResolver', () => {
         })
         bibi = usercontact.user
         bibi.passwordEncryptionType = PasswordEncryptionType.EMAIL
-        bibi.password = SecretKeyCryptographyCreateKey(
-          'bibi@bloxberg.de',
-          'Aa12345_',
-        )[0].readBigUInt64LE()
+        bibi.password = await SecretKeyCryptographyCreateKey('bibi@bloxberg.de', 'Aa12345_')
 
         await bibi.save()
       })
@@ -1590,9 +1591,9 @@ describe('UserResolver', () => {
         expect(bibi).toEqual(
           expect.objectContaining({
             firstName: 'Bibi',
-            password: SecretKeyCryptographyCreateKey(bibi.gradidoID.toString(), 'Aa12345_')[0]
-              .readBigUInt64LE()
-              .toString(),
+            password: (
+              await SecretKeyCryptographyCreateKey(bibi.gradidoID.toString(), 'Aa12345_')
+            ).toString(),
             passwordEncryptionType: PasswordEncryptionType.GRADIDO_ID,
           }),
         )
@@ -2229,14 +2230,13 @@ describe('UserResolver', () => {
           })
 
           it('sends an account activation email', async () => {
-            const userConatct = await UserContact.findOneOrFail({
+            const userContact = await UserContact.findOneOrFail({
               where: { email: 'bibi@bloxberg.de' },
               relations: ['user'],
             })
-            const activationLink = CONFIG.EMAIL_LINK_VERIFICATION.replace(
-              /{optin}/g,
-              userConatct.emailVerificationCode.toString(),
-            ).replace(/{code}/g, '')
+            const activationLink = `${
+              CONFIG.EMAIL_LINK_VERIFICATION
+            }${userContact.emailVerificationCode.toString()}`
             expect(sendAccountActivationEmail).toBeCalledWith({
               firstName: 'Bibi',
               lastName: 'Bloxberg',
@@ -2251,14 +2251,14 @@ describe('UserResolver', () => {
           })
 
           it('stores the EMAIL_ADMIN_CONFIRMATION event in the database', async () => {
-            const userConatct = await UserContact.findOneOrFail({
+            const userContact = await UserContact.findOneOrFail({
               where: { email: 'bibi@bloxberg.de' },
               relations: ['user'],
             })
             await expect(DbEvent.find()).resolves.toContainEqual(
               expect.objectContaining({
                 type: EventType.EMAIL_ADMIN_CONFIRMATION,
-                affectedUserId: userConatct.user.id,
+                affectedUserId: userContact.user.id,
                 actingUserId: admin.id,
               }),
             )

@@ -35,7 +35,10 @@
               @reset="resetHomeCommunityEditable"
             >
               <template #view>
-                <label>{{ $t('federation.gmsApiKey') }}&nbsp;{{ gmsApiKey }}</label>
+                <div class="d-flex">
+                  <p style="text-wrap: nowrap">{{ $t('federation.gmsApiKey') }}&nbsp;</p>
+                  <span class="d-block" style="overflow-x: auto">{{ gmsApiKey }}</span>
+                </div>
                 <BFormGroup>
                   {{ $t('federation.coordinates') }}
                   <span v-if="isValidLocation">
@@ -86,9 +89,9 @@
 <script setup>
 import { ref, computed, toRefs } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useDateLocale } from '@/composables/useDateLocale'
 import { useMutation } from '@vue/apollo-composable'
 import { formatDistanceToNow } from 'date-fns'
-import { de, enUS as en, fr, es, nl } from 'date-fns/locale'
 import EditableGroup from '@/components/input/EditableGroup.vue'
 import FederationVisualizeItem from './FederationVisualizeItem.vue'
 import { updateHomeCommunity } from '@/graphql/updateHomeCommunity'
@@ -96,15 +99,13 @@ import Coordinates from '../input/Coordinates.vue'
 import EditableGroupableLabel from '../input/EditableGroupableLabel.vue'
 import { useAppToast } from '@/composables/useToast'
 
-const locales = { en, de, es, fr, nl }
-
 const props = defineProps({
   item: { type: Object, required: true },
 })
 
 const { item } = toRefs(props)
 
-const { t, locale } = useI18n()
+const { t } = useI18n()
 
 const { toastSuccess, toastError } = useAppToast()
 
@@ -144,7 +145,7 @@ const lastAnnouncedAt = computed(() => {
     return formatDistanceToNow(lastAnnouncedAt, {
       includeSecond: true,
       addSuffix: true,
-      locale: locales[locale.value],
+      locale: useDateLocale(),
     })
   }
   return ''
@@ -155,7 +156,7 @@ const createdAt = computed(() => {
     return formatDistanceToNow(new Date(item.value.createdAt), {
       includeSecond: true,
       addSuffix: true,
-      locale: locales[locale.value],
+      locale: useDateLocale(),
     })
   }
   return ''
@@ -198,131 +199,3 @@ const resetHomeCommunityEditable = () => {
   gmsApiKey.value = originalGmsApiKey.value
 }
 </script>
-
-<!--<script>-->
-<!--import { formatDistanceToNow } from 'date-fns'-->
-<!--import { de, enUS as en, fr, es, nl } from 'date-fns/locale'-->
-<!--import EditableGroup from '@/components/input/EditableGroup'-->
-<!--import FederationVisualizeItem from './FederationVisualizeItem.vue'-->
-<!--import { updateHomeCommunity } from '../../graphql/updateHomeCommunity'-->
-<!--import Coordinates from '../input/Coordinates.vue'-->
-<!--import EditableGroupableLabel from '../input/EditableGroupableLabel.vue'-->
-
-<!--const locales = { en, de, es, fr, nl }-->
-
-<!--export default {-->
-<!--  name: 'CommunityVisualizeItem',-->
-<!--  components: {-->
-<!--    Coordinates,-->
-<!--    EditableGroup,-->
-<!--    FederationVisualizeItem,-->
-<!--    EditableGroupableLabel,-->
-<!--  },-->
-<!--  props: {-->
-<!--    item: { type: Object },-->
-<!--  },-->
-<!--  data() {-->
-<!--    return {-->
-<!--      formatDistanceToNow,-->
-<!--      locale: this.$i18n.locale,-->
-<!--      details: false,-->
-<!--      gmsApiKey: this.item.gmsApiKey,-->
-<!--      location: this.item.location,-->
-<!--      originalGmsApiKey: this.item.gmsApiKey,-->
-<!--      originalLocation: this.item.location,-->
-<!--    }-->
-<!--  },-->
-<!--  computed: {-->
-<!--    verified() {-->
-<!--      if (!this.item.federatedCommunities || this.item.federatedCommunities.length === 0) {-->
-<!--        return false-->
-<!--      }-->
-<!--      return (-->
-<!--        this.item.federatedCommunities.filter(-->
-<!--          (federatedCommunity) =>-->
-<!--            new Date(federatedCommunity.verifiedAt) >= new Date(federatedCommunity.lastAnnouncedAt),-->
-<!--        ).length > 0-->
-<!--      )-->
-<!--    },-->
-<!--    icon() {-->
-<!--      return this.verified ? 'check' : 'x-circle'-->
-<!--    },-->
-<!--    variant() {-->
-<!--      return this.verified ? 'success' : 'danger'-->
-<!--    },-->
-<!--    lastAnnouncedAt() {-->
-<!--      if (!this.item.federatedCommunities || this.item.federatedCommunities.length === 0) return ''-->
-<!--      const minDate = new Date(0)-->
-<!--      const lastAnnouncedAt = this.item.federatedCommunities.reduce(-->
-<!--        (lastAnnouncedAt, federateCommunity) => {-->
-<!--          if (!federateCommunity.lastAnnouncedAt) return lastAnnouncedAt-->
-<!--          const date = new Date(federateCommunity.lastAnnouncedAt)-->
-<!--          return date > lastAnnouncedAt ? date : lastAnnouncedAt-->
-<!--        },-->
-<!--        minDate,-->
-<!--      )-->
-<!--      if (lastAnnouncedAt !== minDate) {-->
-<!--        return formatDistanceToNow(lastAnnouncedAt, {-->
-<!--          includeSecond: true,-->
-<!--          addSuffix: true,-->
-<!--          locale: locales[this.locale],-->
-<!--        })-->
-<!--      }-->
-<!--      return ''-->
-<!--    },-->
-<!--    createdAt() {-->
-<!--      if (this.item.createdAt) {-->
-<!--        return formatDistanceToNow(new Date(this.item.createdAt), {-->
-<!--          includeSecond: true,-->
-<!--          addSuffix: true,-->
-<!--          locale: locales[this.locale],-->
-<!--        })-->
-<!--      }-->
-<!--      return ''-->
-<!--    },-->
-<!--    isLocationChanged() {-->
-<!--      return this.originalLocation !== this.location-->
-<!--    },-->
-<!--    isGMSApiKeyChanged() {-->
-<!--      return this.originalGmsApiKey !== this.gmsApiKey-->
-<!--    },-->
-<!--    isValidLocation() {-->
-<!--      return this.location && this.location.latitude && this.location.longitude-->
-<!--    },-->
-<!--  },-->
-<!--  methods: {-->
-<!--    toggleDetails() {-->
-<!--      this.details = !this.details-->
-<!--    },-->
-<!--    handleUpdateHomeCommunity() {-->
-<!--      this.$apollo-->
-<!--        .mutate({-->
-<!--          mutation: updateHomeCommunity,-->
-<!--          variables: {-->
-<!--            uuid: this.item.uuid,-->
-<!--            gmsApiKey: this.gmsApiKey,-->
-<!--            location: this.location,-->
-<!--          },-->
-<!--        })-->
-<!--        .then(() => {-->
-<!--          if (this.isLocationChanged && this.isGMSApiKeyChanged) {-->
-<!--            this.toastSuccess(this.$t('federation.toast_gmsApiKeyAndLocationUpdated'))-->
-<!--          } else if (this.isGMSApiKeyChanged) {-->
-<!--            this.toastSuccess(this.$t('federation.toast_gmsApiKeyUpdated'))-->
-<!--          } else if (this.isLocationChanged) {-->
-<!--            this.toastSuccess(this.$t('federation.toast_gmsLocationUpdated'))-->
-<!--          }-->
-<!--          this.originalLocation = this.location-->
-<!--          this.originalGmsApiKey = this.gmsApiKey-->
-<!--        })-->
-<!--        .catch((error) => {-->
-<!--          this.toastError(error.message)-->
-<!--        })-->
-<!--    },-->
-<!--    resetHomeCommunityEditable() {-->
-<!--      this.location = this.originalLocation-->
-<!--      this.gmsApiKey = this.originalGmsApiKey-->
-<!--    },-->
-<!--  },-->
-<!--}-->
-<!--</script>-->

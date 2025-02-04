@@ -16,7 +16,17 @@
           <parse-message v-bind="message" data-test="message" class="p-2"></parse-message>
         </BCol>
         <BCol cols="2">
-          <avatar :username="storeName.username" :initials="storeName.initials"></avatar>
+          <!--          <avatar-->
+          <!--            class="vue3-avatar"-->
+          <!--            :name="storeName.username"-->
+          <!--            :initials="storeName.initials"-->
+          <!--            :border="false"-->
+          <!--          />-->
+          <app-avatar
+            class="vue3-avatar"
+            :name="storeName.username"
+            :initials="storeName.initials"
+          />
         </BCol>
       </BRow>
     </div>
@@ -28,14 +38,30 @@
           <parse-message v-bind="message" data-test="message"></parse-message>
         </BCol>
         <BCol cols="2">
-          <avatar :username="storeName.username" :initials="storeName.initials"></avatar>
+          <!--          <avatar-->
+          <!--            class="vue3-avatar"-->
+          <!--            :name="storeName.username"-->
+          <!--            :initials="storeName.initials"-->
+          <!--            :border="false"-->
+          <!--          />-->
+          <app-avatar
+            class="vue3-avatar"
+            :name="storeName.username"
+            :initials="storeName.initials"
+          />
         </BCol>
       </BRow>
     </div>
     <div v-else>
       <BRow class="mb-3 p-2 is-moderator">
         <BCol cols="2">
-          <avatar :username="moderationName.username" :initials="moderationName.initials"></avatar>
+          <!--          <avatar-->
+          <!--            class="vue3-avatar"-->
+          <!--            :name="moderationName.username"-->
+          <!--            :initials="moderationName.initials"-->
+          <!--            :border="false"-->
+          <!--          />-->
+          <app-avatar :name="moderationName.username" :initials="moderationName.initials" />
         </BCol>
         <BCol cols="10">
           <div class="font-weight-bold">
@@ -54,13 +80,13 @@
 </template>
 
 <script>
-import Avatar from 'vue-avatar'
 import ParseMessage from '@/components/ContributionMessages/ParseMessage'
+import AppAvatar from '@/components/AppAvatar.vue'
 
 export default {
   name: 'ContributionMessagesListItem',
   components: {
-    Avatar,
+    AppAvatar,
     ParseMessage,
   },
   props: {

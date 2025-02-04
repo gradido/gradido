@@ -11,7 +11,7 @@
           <div class="mb-3"></div>
           <contribution-form
             :key="computedKeyFromForm"
-            :model-value="form"
+            v-model="form"
             :is-this-month="isThisMonth"
             :minimal-date="minimalDate"
             :max-gdd-last-month="maxForMonths[0]"
@@ -137,7 +137,13 @@ const computedKeyFromForm = computed(() => {
   return `${form.value.id}_${form.value.date}_${form.value.memo}_${form.value.amount}_${form.value.hours}`
 })
 
-const { onResult: onOpenCreationsResult, refetch: refetchOpenCreations } = useQuery(openCreations)
+const { onResult: onOpenCreationsResult, refetch: refetchOpenCreations } = useQuery(
+  openCreations,
+  () => ({}),
+  {
+    fetchPolicy: 'network-only',
+  },
+)
 const { onResult: onListAllContributionsResult, refetch: refetchAllContributions } = useQuery(
   listAllContributions,
   () => ({

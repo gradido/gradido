@@ -50,14 +50,6 @@ const props = defineProps({
     type: String,
     default: 'password',
   },
-  label: {
-    type: String,
-    default: 'Password',
-  },
-  placeholder: {
-    type: String,
-    default: 'Password',
-  },
   immediate: {
     type: Boolean,
     default: false,
@@ -78,18 +70,11 @@ const { value, errorMessage, meta, errors, validate } = useField(name, props.rul
   validateOnMount: props.immediate,
 })
 
-// onMounted(async () => {
-//   await nextTick()
-//   if (props.immediate) {
-//     await validate()
-//   }
-// })
-
 const { t } = useI18n()
 
 const defaultTranslations = computed(() => ({
-  label: props.label ?? t('form.password'),
-  placeholder: props.placeholder ?? t('form.password'),
+  label: t('form.password'),
+  placeholder: t('form.password'),
 }))
 
 const showPassword = ref(false)
@@ -109,3 +94,9 @@ const ariaMsg = computed(() => ({
 
 const labelFor = computed(() => `${props.name}-input-field`)
 </script>
+
+<style scoped>
+input {
+  border-radius: 17px 0 0 17px;
+}
+</style>

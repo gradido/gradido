@@ -1,7 +1,6 @@
 <template>
   <div class="user-naming-format">
-    <BDropdown v-model="selectedOption">
-      <template #button-content>{{ selectedOptionLabel }}</template>
+    <BDropdown :text="selectedOptionLabel">
       <BDropdownItem
         v-for="option in dropdownOptions"
         :key="option.value"
@@ -79,7 +78,7 @@ const update = async (option) => {
   try {
     const variables = {}
     variables[props.attrName] = option.value
-    await updateUserData({ variables })
+    await updateUserData({ ...variables })
     toastSuccess(props.successMessage)
     selectedOption.value = option.value
     store.commit(props.attrName, option.value)

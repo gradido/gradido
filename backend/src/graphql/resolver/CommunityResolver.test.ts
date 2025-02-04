@@ -28,6 +28,8 @@ import { peterLustig } from '@/seeds/users/peter-lustig'
 
 import { getCommunityByUuid } from './util/communities'
 
+jest.mock('@/password/EncryptorUtils')
+
 // to do: We need a setup for the tests that closes the connection
 let mutate: ApolloServerTestClient['mutate'],
   query: ApolloServerTestClient['query'],

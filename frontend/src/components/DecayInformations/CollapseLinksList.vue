@@ -13,7 +13,7 @@
           <div class="mb-3">
             <BButton
               v-if="!pending && transactionLinks.length < transactionLinkCount"
-              class="test-button-load-more"
+              class="test-button-load-more w-100 rounded-5"
               block
               variant="outline-primary"
               @click.stop="loadMoreLinks"
@@ -42,7 +42,7 @@ export default {
       type: Number,
       required: true,
     },
-    value: { type: Number, required: true },
+    modelValue: { type: Number, required: true },
     pageSize: { type: Number, default: 5 },
     pending: { type: Boolean, default: false },
   },
@@ -50,16 +50,16 @@ export default {
     buttonText() {
       const i = this.transactionLinkCount - this.transactionLinks.length
       if (i === 1) return this.$t('link-load', 0)
-      if (i <= this.pageSize) return this.$t('link-load', 1, { n: i })
-      return this.$t('link-load', 2, { n: this.pageSize })
+      if (i <= this.pageSize) return this.$t('link-load', { n: i })
+      return this.$t('link-load-more', { n: this.pageSize })
     },
   },
   methods: {
     resetTransactionLinkList() {
-      this.$emit('input', 0)
+      this.$emit('update:modelValue', 0)
     },
     loadMoreLinks() {
-      this.$emit('input', this.value + 1)
+      this.$emit('update:modelValue', this.modelValue + 1)
     },
   },
 }

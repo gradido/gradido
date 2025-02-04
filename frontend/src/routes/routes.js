@@ -23,6 +23,8 @@ const routes = [
     // communityIdentifier can be community name or community UUID
     path: '/send/:communityIdentifier?/:userIdentifier?',
     component: () => import('@/pages/Send'),
+    name: 'Send',
+    props: true,
     meta: {
       requiresAuth: true,
       pageTitle: 'send',
@@ -36,6 +38,7 @@ const routes = [
   //   },
   // },
   {
+    name: 'Transactions',
     path: '/transactions',
     component: () => import('@/pages/Transactions'),
     props: { gdt: false },

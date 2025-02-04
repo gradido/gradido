@@ -32,8 +32,8 @@
   "back": "Zurück",
   "circles": {
     "headline": "Gemeinsam unterstützen wir einander –  achtsam in Kreiskultur.",
-    "text": "In geschützten Räumen können wir frei kommunizieren und kooperieren, ohne auf die sozialen Medien angewiesen zu sein. Mit Klick auf den Button öffnest Du die Kooperationsplattform in einem neuen Browser-Fenster.",
-    "button": "Gradido-Kreise starten..."
+    "text": "Mit Klick auf den Button öffnest Du die Kooperationsplattform in einem neuen Browser-Fenster.",
+    "button": "Kreise starten..."
   },
   "community": {
     "admins": "Administratoren",
@@ -231,7 +231,6 @@
   },
   "gdt": {
     "calculation": "Berechnung der Gradido Transform",
-    "contribution": "Beitrag",
     "conversion": "Umrechnung",
     "conversion-gdt-euro": "Umrechnung Euro / Gradido Transform (GDT)",
     "credit": "Gutschrift",
@@ -248,7 +247,8 @@
   },
   "h": "h",
   "language": "Sprache",
-  "link-load": "den letzten Link nachladen | die letzten {n} Links nachladen |  weitere {n} Links nachladen",
+  "link-load": "den letzten Link nachladen | die letzten {n} Links nachladen",
+  "link-load-more": "weitere {n} Links nachladen",
   "login": "Anmelden",
   "math": {
     "asterisk": "*",
@@ -291,7 +291,7 @@
     "overview": "Willkommen {name}",
     "send": "Sende Gradidos",
     "settings": "Einstellungen",
-    "circles": "Gradido Kreise (Beta)",
+    "circles": "Gradido Kreise",
     "transactions": "Deine Transaktionen",
     "usersearch": "Geografische Nutzersuche"
   },
@@ -312,10 +312,20 @@
       "disabled": "Daten werden nicht nach GMS exportiert",
       "enabled": "Daten werden nach GMS exportiert",
       "location": {
+        "button": "Klick mich!",
         "label": "Positionsbestimmung",
-        "button": "Klick mich!"
+        "saveLocation": "Standort speichern",
+        "updateSuccess": "Standort erfolgreich gespeichert"
       },
       "location-format": "Position auf Karte anzeigen:",
+      "map": {
+        "communityCoords": "Ihr Gemeinschafts-Standort: Breitengrad {lat}, Längengrad {lng}",
+        "communityLocationLabel": "Ihr Gemeinschafts-Standort",
+        "headline": "Geografische Standorterfassung des Benutzers",
+        "userCoords": "Ihr Standort: Breitengrad {lat}, Längengrad {lng}",
+        "userLocationLabel": "Ihr Standort",
+        "search": "Nach einem Standort suchen"
+      },
       "naming-format": "Namen anzeigen:",
       "publish-location": {
         "exact": "Genaue Position",
@@ -376,13 +386,13 @@
     },
     "publish-name": {
       "alias-or-initials": "Benutzername oder Initialen",
-      "alias-or-initials-tooltip": "Benutzername, falls vorhanden, oder die Initialen von Vorname und Nachname",
+      "alias-or-initials-tooltip": "Benutzername, falls vorhanden, oder die Initialen von Vorname und Nachname jeweils die ersten zwei Buchstaben",
       "first": "Vorname",
       "first-tooltip": "Nur der Vornamen",
       "first-initial": "Vorname und Initial",
-      "first-initial-tooltip": "Vornamen plus Anfangsbuchstabe des Nachnamens",
+      "first-initial-tooltip": "Vornamen plus die ersten beiden Anfangsbuchstabe des Nachnamens",
       "initials": "Initialen",
-      "initials-tooltip": "Initialen von Vor- und Nachname unabhängig von der Existenz des Benutzernamens",
+      "initials-tooltip": "Initialen von Vor- und Nachname also jeweils die ersten zwei Buchstaben unabhängig von der Existenz des Benutzernamens",
       "name-full": "Vorname und Nachname",
       "name-full-tooltip": "Vollständiger Name: Vorname plus Nachname"
     },

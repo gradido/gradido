@@ -11,27 +11,19 @@
             >
               <BRow class="mb-4 gap-5">
                 <BCol>
-                  <BRow class="bg-248 gradido-border-radius position-relative">
-                    <BFormRadio
-                      name="shipping"
-                      size="md"
-                      reverse
-                      :value="SEND_TYPES.send"
-                      class="transaction-form-radio"
-                    >
+                  <BRow
+                    class="bg-248 gradido-border-radius position-relative transaction-form-radio"
+                  >
+                    <BFormRadio name="shipping" size="md" reverse :value="SEND_TYPES.send">
                       {{ $t('send_gdd') }}
                     </BFormRadio>
                   </BRow>
                 </BCol>
                 <BCol>
-                  <BRow class="bg-248 gradido-border-radius position-relative">
-                    <BFormRadio
-                      name="shipping"
-                      :value="SEND_TYPES.link"
-                      size="md"
-                      reverse
-                      class="transaction-form-radio"
-                    >
+                  <BRow
+                    class="bg-248 gradido-border-radius position-relative transaction-form-radio"
+                  >
+                    <BFormRadio name="shipping" :value="SEND_TYPES.link" size="md" reverse>
                       {{ $t('send_per_link') }}
                     </BFormRadio>
                   </BRow>
@@ -286,13 +278,13 @@ label {
   position: relative;
   display: flex !important;
   justify-content: space-between;
+}
 
-  > input {
-    position: absolute;
-    right: 35px;
-    top: 50%;
-    transform: translateY(-70%);
-  }
+.transaction-form-radio > div > input {
+  position: absolute;
+  right: 35px;
+  top: 50%;
+  transform: translateY(-70%);
 }
 </style>
 

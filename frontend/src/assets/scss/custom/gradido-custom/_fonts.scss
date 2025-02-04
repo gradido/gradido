@@ -19,7 +19,7 @@ $h3-font-size: $font-size-base * 1.0625 ;
 $h4-font-size: $font-size-base * 0.9375 ;
 $h5-font-size: $font-size-base * 0.8125 ;
 $h6-font-size: $font-size-base * 0.625 ;
-$headings-margin-bottom: ($spacer / 2);
+$headings-margin-bottom: calc($spacer / 2);
 $headings-font-family: inherit ;
 $headings-font-weight: $font-weight-bold ;
 $headings-line-height: 1.5 ;

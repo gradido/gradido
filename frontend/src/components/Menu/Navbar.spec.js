@@ -4,6 +4,7 @@ import { createRouter, createWebHistory, RouterLink } from 'vue-router'
 import { createStore } from 'vuex'
 import Navbar from './Navbar.vue'
 import { BImg, BNavbar, BNavbarBrand, BNavbarNav } from 'bootstrap-vue-next'
+import AppAvatar from '@/components/AppAvatar.vue'
 
 // Mock vue-avatar
 vi.mock('vue-avatar', () => ({
@@ -50,6 +51,7 @@ describe('Navbar', () => {
           BNavbarBrand,
           BImg,
           RouterLink,
+          AppAvatar,
         },
       },
       props: {
@@ -72,11 +74,11 @@ describe('Navbar', () => {
 
   describe('.avatar element', () => {
     it('is rendered', () => {
-      expect(wrapper.findComponent({ name: 'Avatar' }).exists()).toBe(true)
+      expect(wrapper.findComponent({ name: 'AppAvatar' }).exists()).toBe(true)
     })
 
     it("has the user's initials", () => {
-      const avatar = wrapper.findComponent({ name: 'Avatar' })
+      const avatar = wrapper.findComponent({ name: 'AppAvatar' })
       expect(avatar.props('initials')).toBe('TU')
     })
   })

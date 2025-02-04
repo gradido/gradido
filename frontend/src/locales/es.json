@@ -20,6 +20,11 @@
     }
   },
   "back": "Volver",
+  "circles": {
+    "headline": "Juntos nos apoyamos - atentos a la cultura de los círculos.",
+    "text": "Haga clic en el botón para abrir la plataforma de cooperación en una nueva ventana del navegador.",
+    "button": "Iniciar Círculos..."
+  },
   "community": {
     "admins": "Administradores",
     "choose-another-community": "Escoger otra comunidad",
@@ -213,7 +218,8 @@
     "recruited-member": "Miembro invitado"
   },
   "language": "Idioma",
-  "link-load": "recargar el último enlace |recargar los últimos {n} enlaces  | descargar más {n} enlaces",
+  "link-load": "recargar el último enlace | recargar los últimos {n} enlaces",
+  "link-load-more": "descargar más {n} enlaces",
   "login": "iniciar sesión",
   "math": {
     "aprox": "~",
@@ -243,6 +249,7 @@
     "overview": "Resumen",
     "profile": "Mi Perfil",
     "send": "Enviar",
+    "circles": "Círculos",
     "support": "Soporte",
     "transactions": "Transacciones",
     "usersearch": "Buscar usuarios"
@@ -256,6 +263,7 @@
     "send": "Enviar Gradidos",
     "settings": "Soporte",
     "transactions": "Tu Transacciones",
+    "circles": "Círculos Gradido",
     "usersearch": "Búsqueda geográfica de usuarios"
   },
   "qrCode": "Código QR",
@@ -268,6 +276,23 @@
     "warningText": "Aún estas?"
   },
   "settings": {
+    "GMS": {
+      "location": {
+        "button": "¡Haz clic aquí!",
+        "label": "Ubicación exacta",
+        "saveLocation": "Guardar ubicación",
+        "updateSuccess": "Ubicación guardada exitosamente"
+      },
+      "map": {
+        "communityCoords": "Ubicación de tu comunidad: Lat {lat}, Lng {lng}",
+        "communityLocationLabel": "Ubicación de tu comunidad",
+        "headline": "Captura de ubicación geográfica del usuario",
+        "userCoords": "Tu ubicación: Lat {lat}, Lng {lng}",
+        "userLocationLabel": "Tu ubicación",
+        "search": "Buscar una ubicación",
+        "success": "Ubicación guardada exitosamente"
+      }
+    },
     "language": {
       "changeLanguage": "Cambiar idioma",
       "de": "Deutsch",

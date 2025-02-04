@@ -7,11 +7,12 @@ import { UpdateUserInfosArgs } from '@/graphql/arg/UpdateUserInfosArgs'
 import { backendLogger as logger } from '@/server/logger'
 
 export async function syncHumhub(
-  updateUserInfosArg: UpdateUserInfosArgs,
+  updateUserInfosArg: UpdateUserInfosArgs | null,
   user: User,
 ): Promise<void> {
   // check for humhub relevant changes
   if (
+    updateUserInfosArg &&
     updateUserInfosArg.alias === undefined &&
     updateUserInfosArg.firstName === undefined &&
     updateUserInfosArg.lastName === undefined &&

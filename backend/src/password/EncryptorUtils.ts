@@ -2,7 +2,11 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
+import { cpus } from 'os'
+import path from 'path'
+
 import { User } from '@entity/User'
+import { Pool, pool } from 'workerpool'
 
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
 
@@ -10,61 +14,73 @@ import { CONFIG } from '@/config'
 import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 
-import {
-  crypto_shorthash_KEYBYTES,
-  crypto_box_SEEDBYTES,
-  crypto_hash_sha512_init,
-  crypto_hash_sha512_update,
-  crypto_hash_sha512_final,
-  crypto_hash_sha512_BYTES,
-  crypto_hash_sha512_STATEBYTES,
-  crypto_shorthash_BYTES,
-  crypto_pwhash_SALTBYTES,
-  crypto_pwhash,
-  crypto_shorthash,
-} from 'sodium-native'
+import { crypto_shorthash_KEYBYTES } from 'sodium-native'
+
+import { SecretKeyCryptographyCreateKey as SecretKeyCryptographyCreateKeySync } from './EncryptionWorker'
+
+const configLoginAppSecret = Buffer.from(CONFIG.LOGIN_APP_SECRET, 'hex')
+const configLoginServerKey = Buffer.from(CONFIG.LOGIN_SERVER_KEY, 'hex')
+
+let encryptionWorkerPool: Pool | undefined
+
+if (CONFIG.USE_CRYPTO_WORKER === true) {
+  encryptionWorkerPool = pool(
+    path.join(__dirname, '..', '..', 'build', 'src', 'password', '/EncryptionWorker.js'),
+    {
+      // TODO: put maxQueueSize into config
+      maxQueueSize: 30 * cpus().length,
+    },
+  )
+}
 
 // We will reuse this for changePassword
 export const isValidPassword = (password: string): boolean => {
   return !!password.match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^a-zA-Z0-9 \\t\\n\\r]).{8,}$/)
 }
 
-export const SecretKeyCryptographyCreateKey = (salt: string, password: string): Buffer[] => {
-  logger.trace('SecretKeyCryptographyCreateKey...')
-  const configLoginAppSecret = Buffer.from(CONFIG.LOGIN_APP_SECRET, 'hex')
-  const configLoginServerKey = Buffer.from(CONFIG.LOGIN_SERVER_KEY, 'hex')
-  if (configLoginServerKey.length !== crypto_shorthash_KEYBYTES) {
-    throw new LogError(
-      'ServerKey has an invalid size',
-      configLoginServerKey.length,
-      crypto_shorthash_KEYBYTES,
-    )
+/**
+ * @param salt
+ * @param password
+ * @returns can throw an exception if worker pool is full, if more than 30 * cpu core count logins happen in a time range of 30 seconds
+ */
+export const SecretKeyCryptographyCreateKey = async (
+  salt: string,
+  password: string,
+): Promise<bigint> => {
+  try {
+    logger.trace('call worker for: SecretKeyCryptographyCreateKey')
+    if (configLoginServerKey.length !== crypto_shorthash_KEYBYTES) {
+      throw new LogError(
+        'ServerKey has an invalid size',
+        configLoginServerKey.length,
+        crypto_shorthash_KEYBYTES,
+      )
+    }
+    let result: Promise<bigint>
+    if (encryptionWorkerPool) {
+      result = (await encryptionWorkerPool.exec('SecretKeyCryptographyCreateKey', [
+        salt,
+        password,
+        configLoginAppSecret,
+        configLoginServerKey,
+      ])) as Promise<bigint>
+    } else {
+      result = Promise.resolve(
+        SecretKeyCryptographyCreateKeySync(
+          salt,
+          password,
+          configLoginAppSecret,
+          configLoginServerKey,
+        ),
+      )
+    }
+    return result
+  } catch (e) {
+    // pool is throwing this error
+    // throw new Error('Max queue size of ' + this.maxQueueSize + ' reached');
+    // will be shown in frontend to user
+    throw new LogError('Server is full, please try again in 10 minutes.', e)
   }
-
-  const state = Buffer.alloc(crypto_hash_sha512_STATEBYTES)
-  crypto_hash_sha512_init(state)
-  crypto_hash_sha512_update(state, Buffer.from(salt))
-  crypto_hash_sha512_update(state, configLoginAppSecret)
-  const hash = Buffer.alloc(crypto_hash_sha512_BYTES)
-  crypto_hash_sha512_final(state, hash)
-
-  const encryptionKey = Buffer.alloc(crypto_box_SEEDBYTES)
-  const opsLimit = 10
-  const memLimit = 33554432
-  const algo = 2
-  crypto_pwhash(
-    encryptionKey,
-    Buffer.from(password),
-    hash.slice(0, crypto_pwhash_SALTBYTES),
-    opsLimit,
-    memLimit,
-    algo,
-  )
-
-  const encryptionKeyHash = Buffer.alloc(crypto_shorthash_BYTES)
-  crypto_shorthash(encryptionKeyHash, encryptionKey, configLoginServerKey)
-
-  return [encryptionKeyHash, encryptionKey]
 }
 
 export const getUserCryptographicSalt = (dbUser: User): string => {

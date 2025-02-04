@@ -1,6 +1,11 @@
 // ATTENTION: DO NOT PUT ANY SECRETS IN HERE (or the .env)
 import { Decimal } from 'decimal.js-light'
+import { latestDbVersion } from '@dbTools/config/detectLastDBVersion'
 import dotenv from 'dotenv'
+
+import { validate } from '@config/index'
+
+import { schema } from './schema'
 
 dotenv.config()
 
@@ -10,16 +15,11 @@ Decimal.set({
 })
 
 const constants = {
-  DB_VERSION: '0086-add_community_location',
+  DB_VERSION: latestDbVersion,
   DECAY_START_TIME: new Date('2021-05-13 17:46:31-0000'), // GMT+0
   LOG4JS_CONFIG: 'log4js-config.json',
   // default log level on production should be info
   LOG_LEVEL: process.env.LOG_LEVEL ?? 'info',
-  CONFIG_VERSION: {
-    DEFAULT: 'DEFAULT',
-    EXPECTED: 'v2.2023-08-24',
-    CURRENT: '',
-  },
 }
 
 const server = {
@@ -36,18 +36,6 @@ const database = {
   DB_PASSWORD: process.env.DB_PASSWORD ?? '',
   DB_DATABASE: process.env.DB_DATABASE ?? 'gradido_community',
   TYPEORM_LOGGING_RELATIVE_PATH: process.env.TYPEORM_LOGGING_RELATIVE_PATH ?? 'typeorm.backend.log',
-}
-
-// Check config version
-constants.CONFIG_VERSION.CURRENT = process.env.CONFIG_VERSION ?? constants.CONFIG_VERSION.DEFAULT
-if (
-  ![constants.CONFIG_VERSION.EXPECTED, constants.CONFIG_VERSION.DEFAULT].includes(
-    constants.CONFIG_VERSION.CURRENT,
-  )
-) {
-  throw new Error(
-    `Fatal: Config Version incorrect - expected "${constants.CONFIG_VERSION.EXPECTED}" or "${constants.CONFIG_VERSION.DEFAULT}", but found "${constants.CONFIG_VERSION.CURRENT}"`,
-  )
 }
 
 const COMMUNITY_HOST = process.env.COMMUNITY_HOST ?? 'localhost'
@@ -73,5 +61,7 @@ export const CONFIG = {
   // ...eventProtocol,
   ...federation,
 }
+
+validate(schema, CONFIG)
 
 export default CONFIG

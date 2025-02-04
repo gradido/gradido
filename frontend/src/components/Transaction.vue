@@ -49,11 +49,12 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, getCurrentInstance } from 'vue'
+import { ref, computed, onMounted, getCurrentInstance, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import CollapseIcon from './TransactionRows/CollapseIcon'
 import TransactionCollapse from './TransactionCollapse'
 import { GdtEntryType } from '../graphql/enums'
+import { useStore } from 'vuex'
 
 const props = defineProps({
   amount: Number,
@@ -71,9 +72,13 @@ const props = defineProps({
 const collapseStatus = ref([])
 const visible = ref(false)
 
+const store = useStore()
+
 const { t, n } = useI18n()
 
 const collapseId = computed(() => 'gdt-collapse-' + String(props.id))
+
+const transactionToHighlightId = computed(() => store.state.transactionToHighlightId)
 
 const getLinesByType = computed(() => {
   switch (props.gdtEntryType) {
@@ -86,7 +91,7 @@ const getLinesByType = computed(() => {
         icon: 'heart',
         iconclasses: 'gradido-global-color-accent',
         iconColor: '4',
-        description: t('gdt.contribution'),
+        description: props.comment, // t('gdt.contribution'),
         descriptiontext: n(props.amount, 'decimal') + ' €',
         credittext: n(props.gdt, 'decimal') + ' GDT',
       }
@@ -113,6 +118,12 @@ const getLinesByType = computed(() => {
     }
     default:
       throw new Error('no lines for this type: ' + props.gdtEntryType)
+  }
+})
+
+watch(transactionToHighlightId, () => {
+  if (parseInt(transactionToHighlightId.value) === props.id) {
+    visible.value = true
   }
 })
 

@@ -147,6 +147,7 @@ rm -Rf ~/.cache/yarn
 # Remove node_modules folders
 # we had problems with corrupted node_modules folder
 rm -Rf $PROJECT_ROOT/database/node_modules
+rm -Rf $PROJECT_ROOT/config/node_modules
 rm -Rf $PROJECT_ROOT/backend/node_modules
 rm -Rf $PROJECT_ROOT/frontend/node_modules
 rm -Rf $PROJECT_ROOT/admin/node_modules
@@ -156,6 +157,7 @@ rm -Rf $PROJECT_ROOT/federation/node_modules
 # Remove build folders
 # we had problems with corrupted incremtal builds
 rm -Rf $PROJECT_ROOT/database/build
+rm -Rf $PROJECT_ROOT/config/build
 rm -Rf $PROJECT_ROOT/backend/build
 rm -Rf $PROJECT_ROOT/frontend/build
 rm -Rf $PROJECT_ROOT/admin/build
@@ -187,6 +189,12 @@ if [ "$DEPLOY_SEED_DATA" = "true" ]; then
 else
   yarn up
 fi
+
+# Install & build config
+echo 'Updating config' >> $UPDATE_HTML
+cd $PROJECT_ROOT/config
+yarn install
+yarn build
 
 # Install & build backend
 echo 'Updating backend' >> $UPDATE_HTML

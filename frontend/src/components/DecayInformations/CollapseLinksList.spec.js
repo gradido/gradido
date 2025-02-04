@@ -1,13 +1,24 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import CollapseLinksList from './CollapseLinksList'
+import CollapseLinksList from './CollapseLinksList.vue'
 import { createStore } from 'vuex'
 import { createI18n } from 'vue-i18n'
 import { BButton } from 'bootstrap-vue-next'
 
-// Mock vue-i18n
-const mockT = vi.fn((key, value) => `${key} ${value}`)
+// Mock translations
+const mockT = vi.fn((key, params) => {
+  switch (key) {
+    case 'link-load':
+      if (params === 0) return '1 more link'
+      return `${params.n} more links`
+    case 'link-load-more':
+      return `Load ${params.n} more links`
+    default:
+      return key
+  }
+})
 
+// Mock vue-i18n
 vi.mock('vue-i18n', () => ({
   createI18n: vi.fn(() => ({
     global: {
@@ -64,6 +75,7 @@ describe('CollapseLinksList', () => {
         },
       },
       props: {
+        modelValue: 1,
         transactionLinks: [
           {
             amount: '5',
@@ -89,7 +101,6 @@ describe('CollapseLinksList', () => {
           },
         ],
         transactionLinkCount: 3,
-        value: 1,
         pending: false,
         pageSize: 5,
         ...props,
@@ -111,8 +122,8 @@ describe('CollapseLinksList', () => {
       await wrapper.find('.test-button-load-more').trigger('click')
     })
 
-    it('emits input', () => {
-      expect(wrapper.emitted('input')).toEqual([[2]])
+    it('emits update:modelValue', () => {
+      expect(wrapper.emitted('update:modelValue')).toEqual([[2]])
     })
   })
 
@@ -123,8 +134,8 @@ describe('CollapseLinksList', () => {
         .vm.$emit('reset-transaction-link-list')
     })
 
-    it('emits input ', () => {
-      expect(wrapper.emitted('input')).toEqual([[0]])
+    it('emits update:modelValue', () => {
+      expect(wrapper.emitted('update:modelValue')).toEqual([[0]])
     })
   })
 
@@ -138,7 +149,7 @@ describe('CollapseLinksList', () => {
       })
 
       it('renders text in singular', () => {
-        expect(mockT).toHaveBeenCalledWith('link-load', 0)
+        expect(wrapper.find('.test-button-load-more').text()).toBe('1 more link')
       })
     })
 
@@ -151,7 +162,7 @@ describe('CollapseLinksList', () => {
       })
 
       it('renders text in plural and shows the correct count of links', () => {
-        expect(mockT).toHaveBeenCalledWith('link-load', 0)
+        expect(wrapper.find('.test-button-load-more').text()).toBe('4 more links')
       })
     })
 
@@ -164,8 +175,8 @@ describe('CollapseLinksList', () => {
         })
       })
 
-      it('renders text in plural with page size links to load', () => {
-        expect(mockT).toHaveBeenCalledWith('link-load', 2, { n: 5 })
+      it('renders text with pageSize as number of links to load', () => {
+        expect(wrapper.find('.test-button-load-more').text()).toBe('Load 5 more links')
       })
     })
   })
