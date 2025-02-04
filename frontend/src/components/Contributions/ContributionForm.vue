@@ -119,13 +119,13 @@ const {
     hours: props.modelValue.hours,
     amount: props.modelValue.amount,
   },
-  validationSchema
+  validationSchema,
 })
 
 const { meta: dataFieldMeta } = useField('date')
 
 const updateField = (newValue, name) => {
-  if(typeof name === 'string' && name.length) {
+  if (typeof name === 'string' && name.length) {
     setFieldValue(name, newValue)
   }
 }
@@ -173,7 +173,7 @@ watch(
   () => formValues.hours,
   () => {
     updateAmount(formValues.hours)
-  }
+  },
 )
 
 function updateAmount(hours) {

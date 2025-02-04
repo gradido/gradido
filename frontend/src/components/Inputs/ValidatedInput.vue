@@ -19,10 +19,10 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, defineOptions } from 'vue'
 
 defineOptions({
-  inheritAttrs: false
+  inheritAttrs: false,
 })
 
 const props = defineProps({
@@ -38,26 +38,21 @@ const props = defineProps({
     type: String,
     required: true,
   },
-  name: {
-    type: String,
-    required: true,
-  },
+  name: [String, Number],
   schemaDescription: {
     type: Object,
     required: true,
   },
 })
 
-const emit = defineEmits()
+const emit = defineEmits('update:modelValue')
 const updateValue = (newValue) => emit('update:modelValue', newValue, props.name)
 
 // extract additional parameter like min and max from schema
-const getDateOnly = (rules, name) => rules.find(test => test.name === name)?.params[name]
+const getDateOnly = (rules, name) => rules.find((test) => test.name === name)?.params[name]
 
-const rules = props.schemaDescription.tests
-const minValue = getDateOnly(rules, 'min')
-const maxValue = getDateOnly(rules, 'max')
-
+const minValue = computed(() => getDateOnly(props.schemaDescription.tests, 'min'))
+const maxValue = computed(() => getDateOnly(props.schemaDescription.tests, 'max'))
 const wrapperClassName = computed(() => `input-${props.name}`)
 const labelFor = computed(() => `${props.name}-input-field`)
 </script>
