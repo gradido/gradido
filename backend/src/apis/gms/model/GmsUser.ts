@@ -114,19 +114,19 @@ export class GmsUser {
   private getGmsCountryCode(user: dbUser): string | undefined {
     if (
       user.gmsAllowed &&
-      (user.emailContact.gmsPublishPhone === GmsPublishPhoneType.GMS_PUBLISH_PHONE_COUNTRY ||
-        user.emailContact.gmsPublishPhone === GmsPublishPhoneType.GMS_PUBLISH_PHONE_FULL)
+      (user.emailContact?.gmsPublishPhone === GmsPublishPhoneType.GMS_PUBLISH_PHONE_COUNTRY ||
+        user.emailContact?.gmsPublishPhone === GmsPublishPhoneType.GMS_PUBLISH_PHONE_FULL)
     ) {
-      return user.emailContact.countryCode
+      return user.emailContact?.countryCode
     }
   }
 
   private getGmsPhone(user: dbUser): string | undefined {
     if (
       user.gmsAllowed &&
-      user.emailContact.gmsPublishPhone === GmsPublishPhoneType.GMS_PUBLISH_PHONE_FULL
+      user.emailContact?.gmsPublishPhone === GmsPublishPhoneType.GMS_PUBLISH_PHONE_FULL
     ) {
-      return user.emailContact.phone
+      return user.emailContact?.phone
     }
   }
 
