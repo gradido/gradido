@@ -106,7 +106,7 @@ export class GmsUser {
   }
 
   private getGmsEmail(user: dbUser): string | undefined {
-    if (user.gmsAllowed && user.emailContact.gmsPublishEmail) {
+    if (user.gmsAllowed && user.emailContact?.gmsPublishEmail) {
       return user.emailContact.email
     }
   }
