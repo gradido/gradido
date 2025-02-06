@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 // eslint-disable-next-line import/no-unresolved
 import {
   COMMUNITY_NAME,
