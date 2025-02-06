@@ -63,6 +63,7 @@ describe('InputHour', () => {
   describe('properties', () => {
     it('passes correct props to BFormInput', () => {
       const input = wrapper.findComponent({ name: 'BFormInput' })
+      console.log(input.props())
       expect(input.props()).toMatchObject({
         id: 'input-field-name-input-field',
         modelValue: 0,
@@ -70,7 +71,7 @@ describe('InputHour', () => {
         placeholder: 'input-field-placeholder',
         type: 'number',
         state: true,
-        step: '0.25',
+        step: '0.01',
         min: '0',
         max: 25,
       })

@@ -39,12 +39,12 @@
         <input-hour
           name="hours"
           :label="$t('form.hours')"
-          placeholder="0.25"
+          placeholder="0.01"
           :rules="{
             required: true,
-            min: 0.25,
+            min: 0.01,
             max: validMaxTime,
-            gddCreationTime: { min: 0.25, max: validMaxTime },
+            gddCreationTime: { min: 0.01, max: validMaxTime },
           }"
           :valid-max-time="validMaxTime"
         />
@@ -109,6 +109,15 @@ const { t } = useI18n()
 
 const form = ref({ ...props.modelValue })
 
+const validMaxGDD = computed(() => {
+  return Number(props.isThisMonth ? props.maxGddThisMonth : props.maxGddLastMonth)
+})
+
+const validMaxTime = computed(() => {
+  return Number(validMaxGDD.value / 20)
+})
+
+
 const {
   values: formValues,
   meta: formMeta,
@@ -122,6 +131,16 @@ const {
     hours: props.modelValue.hours,
     amount: props.modelValue.amount,
   },
+  validationSchema: {
+    hours: {
+      required: true,
+      min: 0.01,
+      max: 50,
+      gddCreationTime: { min: 0.01, max: 50 },
+    },
+    memo: {required: true, min: 5, max: 255},
+    date: { required: true }
+  }
 })
 
 const [date, dateProps] = defineField('date')
@@ -144,19 +163,12 @@ const showMessage = computed(() => {
 })
 
 const disabled = computed(() => {
+  console.log({ formMeta })
   return (
     !formMeta.value.valid ||
     (props.isThisMonth && parseInt(form.value.amount) > parseInt(props.maxGddThisMonth)) ||
     (!props.isThisMonth && parseInt(form.value.amount) > parseInt(props.maxGddLastMonth))
   )
-})
-
-const validMaxGDD = computed(() => {
-  return Number(props.isThisMonth ? props.maxGddThisMonth : props.maxGddLastMonth)
-})
-
-const validMaxTime = computed(() => {
-  return Number(validMaxGDD.value / 20)
 })
 
 const noOpenCreation = computed(() => {
