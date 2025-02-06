@@ -9,12 +9,11 @@
         id="contribution-date"
         :model-value="formValues.date"
         name="date"
-        :state="dataFieldMeta.valid"
         :label="$t('contribution.selectDate')"
         :no-flip="true"
         class="mb-4 bg-248"
         type="date"
-        :schema-description="schemaDescription.fields.date"
+        :rules="validationSchema"
         @update:model-value="updateField"
       />
       <div v-if="showMessage" class="p-3" data-test="contribtion-message">
@@ -23,33 +22,33 @@
       <div v-else>
         <input-textarea
           id="contribution-memo"
+          :model-value="formValues.memo"
           name="memo"
           :label="$t('contribution.activity')"
           :placeholder="$t('contribution.yourActivity')"
-          :rules="{ required: true, min: 5, max: 255 }"
+          :rules="validationSchema"
+          @update:model-value="updateField"
         />
-        <input-hour
+        <ValidatedInput
           name="hours"
+          :model-value="formValues.hours"
           :label="$t('form.hours')"
           placeholder="0.01"
-          :rules="{
-            required: true,
-            // decimal: 2,
-            min: 0.01,
-            max: validMaxTime,
-          }"
-          :valid-max-time="validMaxTime"
+          step="0.01"
+          type="number"
+          :rules="validationSchema"
+          @update:model-value="updateField"
         />
-        <input-amount
+        <LabeledInput
           id="contribution-amount"
           class="mt-3"
           name="amount"
           :label="$t('form.amount')"
           placeholder="20"
-          :rules="{ required: true, gddSendAmount: { min: 20, max: validMaxGDD } }"
-          typ="ContributionForm"
+          readonly
+          type="text"
+          trim
         />
-
         <BRow class="mt-5">
           <BCol>
             <BButton
@@ -80,14 +79,14 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import InputHour from '@/components/Inputs/InputHour'
-import InputAmount from '@/components/Inputs/InputAmount'
 import InputTextarea from '@/components/Inputs/InputTextarea'
-import ValidatedInput from '@/components/Inputs/ValidatedInput.vue'
-import { createContributionFormValidation } from '@/validationSchemas'
-import { useForm, useField } from 'vee-validate'
+import ValidatedInput from '@/components/Inputs/ValidatedInput'
+import LabeledInput from '@/components/Inputs/LabeledInput'
+import { memo } from '@/validationSchemas'
+import { useForm } from 'vee-validate'
+import { object, date, number } from 'yup'
 
 const props = defineProps({
   modelValue: { type: Object, required: true },
@@ -103,10 +102,34 @@ const { t } = useI18n()
 
 const form = ref({ ...props.modelValue })
 
-const validationSchema = createContributionFormValidation(t)
-const schemaDescription = validationSchema.describe()
-// console.log(schemaDescription)
+const maxHours = computed(() => Number(props.isThisMonth ? props.maxGddThisMonth : props.maxGddLastMonth / 20))
 
+const validationSchema = computed(() => {
+  // const maxGDD = Number(props.isThisMonth ? props.maxGddThisMonth : props.maxGddLastMonth)
+  // const maxHours = Number(maxGDD / 20)
+  console.log('compute validationSchema', { maxHours })
+  return object({
+    // The date field is required and needs to be a valid date
+    // contribution date
+    date: date()
+      .required('contribution.noDateSelected')
+      .min(new Date(new Date().setMonth(new Date().getMonth() - 1, 1)).toISOString().slice(0, 10))  // min date is first day of last month
+      .max(new Date().toISOString().slice(0, 10))
+      .default(''), // date cannot be in the future
+    memo,
+    hours: number().required('contribution.noHours')
+      .min(0.01, ({min}) => ({ key: 'form.validation.gddCreationTime.min', values: { min } }))
+      .max(maxHours.value, ({max}) => ({ key: 'form.validation.gddCreationTime.max', values: { max } }))
+      .test(
+        'decimal-places',
+        'form.validation.gddCreationTime.decimal-places',
+        (value) => {
+          if (value === undefined || value === null) return true
+          return /^\d+(\.\d{0,2})?$/.test(value.toString())
+        }
+      ),
+  })  
+})
 const {
   values: formValues,
   meta: formMeta,
@@ -119,14 +142,15 @@ const {
     hours: props.modelValue.hours,
     amount: props.modelValue.amount,
   },
-  validationSchema,
+  validationSchema: validationSchema.value,
 })
-
-const { meta: dataFieldMeta } = useField('date')
 
 const updateField = (newValue, name) => {
   if (typeof name === 'string' && name.length) {
     setFieldValue(name, newValue)
+  }
+  if (name === 'hours') {
+    setFieldValue('amount', (newValue * 20).toFixed(2).toString())
   }
 }
 
@@ -148,14 +172,6 @@ const disabled = computed(() => {
   )
 })
 
-const validMaxGDD = computed(() => {
-  return Number(props.isThisMonth ? props.maxGddThisMonth : props.maxGddLastMonth)
-})
-
-const validMaxTime = computed(() => {
-  return Number(validMaxGDD.value / 20)
-})
-
 const noOpenCreation = computed(() => {
   if (props.maxGddThisMonth <= 0 && props.maxGddLastMonth <= 0) {
     return t('contribution.noOpenCreation.allMonth')
@@ -168,17 +184,6 @@ const noOpenCreation = computed(() => {
   }
   return ''
 })
-
-watch(
-  () => formValues.hours,
-  () => {
-    updateAmount(formValues.hours)
-  },
-)
-
-function updateAmount(hours) {
-  setFieldValue('amount', (hours * 20).toFixed(2).toString())
-}
 
 function submit() {
   const dataToSave = { ...formValues }
@@ -194,12 +199,11 @@ function submit() {
 function fullFormReset() {
   resetForm({
     values: {
-      id: null,
       date: '',
       memo: '',
-      hours: 0,
+      hours: 0.0,
       amount: '',
-    },
+    }
   })
 }
 </script>

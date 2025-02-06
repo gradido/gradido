@@ -77,6 +77,7 @@
       "myContributions": "You have not submitted any entries yet."
     },
     "noDateSelected": "Choose any date in the month",
+    "noHours": "Please enter your hours",
     "noOpenCreation": {
       "allMonth": "For all two months your creation limit is reached. The next month you can create 1000 GDD again.",
       "lastMonth": "The creation limit is reached for the selected month.",
@@ -188,6 +189,10 @@
       "gddCreationTime": "The field {_field_} must be a number between {min} and {max} with at most one decimal place.",
       "gddSendAmount": "The {_field_} field must be a number between {min} and {max} with at most two digits after the decimal point",
       "is-not": "You cannot send Gradidos to yourself",
+      "memo": {
+        "min": "The job description should be at least {min} characters long",
+        "max": "The job description should not be longer than {max} characters"
+      },
       "requiredField": "The {fieldName} field is required",
       "username-allowed-chars": "The username may only contain letters, numbers, hyphens or underscores.",
       "username-hyphens": "Hyphens or underscores must be in between letters or numbers.",

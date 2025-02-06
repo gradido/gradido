@@ -1,14 +1,10 @@
-import { object, string, date } from 'yup'
+import { string } from 'yup'
 
-export const createContributionFormValidation = (t) => {
-  return object({
-    // The date field is required and needs to be a valid date
-    // contribution date
-    date: date()
-      .required(t('contribution.noDateSelected'))
-      .min(new Date(new Date().setMonth(new Date().getMonth() - 1, 1)).toISOString().slice(0, 10)) // min date is first day of last month
-      .max(new Date().toISOString().slice(0, 10))
-      .default(''), // date cannot be in the future
-    memo: string().required(t('')).min(5).max(255),
-  })
-}
+// TODO: only needed for grace period, before all inputs updated for using veeValidate + yup
+export const isLanguageKey = (str) => str.match(/^(?!\.)[a-z][a-zA-Z0-9]*([.][a-z][a-zA-Z0-9]*)*(?<!\.)$/)
+
+export const memo = string()
+  .required('contribution.yourActivity')
+  .min(5, ({min}) => ({ key: 'form.validation.memo.min', values: { min } }))
+  .max(255, ({max}) => ({ key: 'form.validation.memo.max', values: { max } }))
+
