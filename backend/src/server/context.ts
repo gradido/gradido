@@ -7,7 +7,7 @@ import { Role } from '@/auth/Role'
 
 import { LogError } from './LogError'
 
-export interface Context {
+export type Context = {
   token: string | null
   setHeaders: { key: string; value: string }[]
   role?: Role

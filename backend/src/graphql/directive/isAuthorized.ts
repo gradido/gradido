@@ -13,7 +13,7 @@ import {
   ROLE_MODERATOR,
   ROLE_DLT_CONNECTOR,
 } from '@/auth/ROLES'
-import { Context } from '@/server/context'
+import type { Context } from '@/server/context'
 import { LogError } from '@/server/LogError'
 
 export const isAuthorized: AuthChecker<Context> = async ({ context }, rights) => {

@@ -12,7 +12,8 @@ import { GdtEntryList } from '@model/GdtEntryList'
 import { apiGet, apiPost } from '@/apis/HttpRequest'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { CONFIG } from '@/config'
-import { Context, getUser } from '@/server/context'
+import { getUser } from '@/server/context'
+import type { Context } from '@/server/context'
 import { LogError } from '@/server/LogError'
 
 @Resolver()
@@ -66,9 +67,7 @@ export class GdtResolver {
     }
     const user = getUser(context)
     try {
-      const resultGDTSum = await apiPost(`${CONFIG.GDT_API_URL}/GdtEntries/sumPerEmailApi`, {
-        email: user.emailContact.email,
-      })
+      const resultGDTSum = await apiGet(`${CONFIG.GDT_API_URL}/GdtEntries/sumPerEmailApi/${user.emailContact.email}`)
       if (!resultGDTSum.success) {
         throw new LogError('Call not successful')
       }

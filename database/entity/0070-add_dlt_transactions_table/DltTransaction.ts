@@ -1,4 +1,5 @@
 import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn } from 'typeorm'
+import type { Transaction as TransactionType } from '../Transaction'
 import { Transaction } from '../Transaction'
 
 @Entity('dlt_transactions', { engine: 'InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci' })
@@ -29,5 +30,5 @@ export class DltTransaction extends BaseEntity {
 
   @OneToOne(() => Transaction, (transaction) => transaction.dltTransaction)
   @JoinColumn({ name: 'transactions_id' })
-  transaction?: Transaction | null
+  transaction?: TransactionType | null
 }

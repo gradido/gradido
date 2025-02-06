@@ -7,14 +7,19 @@ import {
   OneToMany,
   JoinColumn,
   OneToOne,
-  Geometry,
   ManyToOne,
 } from 'typeorm'
+import type { Geometry } from 'typeorm'
+import type { Contribution as ContributionType } from '../Contribution'
 import { Contribution } from '../Contribution'
+import type { ContributionMessage as ContributionMessageType } from '../ContributionMessage'
 import { ContributionMessage } from '../ContributionMessage'
+import type { UserContact as UserContactType } from '../UserContact'
 import { UserContact } from '../UserContact'
+import type { UserRole as UserRoleType } from '../UserRole'
 import { UserRole } from '../UserRole'
 import { GeometryTransformer } from '../../src/typeorm/GeometryTransformer'
+import type { Community as CommunityType } from '../Community'
 import { Community } from '../Community'
 
 @Entity('users', { engine: 'InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci' })
@@ -44,7 +49,7 @@ export class User extends BaseEntity {
 
   @ManyToOne(() => Community, (community) => community.users)
   @JoinColumn({ name: 'community_uuid', referencedColumnName: 'communityUuid' })
-  community: Community | null
+  community: CommunityType | null
 
   @Column({
     name: 'alias',
@@ -57,7 +62,7 @@ export class User extends BaseEntity {
 
   @OneToOne(() => UserContact, (emailContact: UserContact) => emailContact.user)
   @JoinColumn({ name: 'email_id' })
-  emailContact: UserContact
+  emailContact: UserContactType
 
   @Column({ name: 'email_id', type: 'int', unsigned: true, nullable: true, default: null })
   emailId: number | null
@@ -115,7 +120,7 @@ export class User extends BaseEntity {
 
   @OneToMany(() => UserRole, (userRole) => userRole.user)
   @JoinColumn({ name: 'user_id' })
-  userRoles: UserRole[]
+  userRoles: UserRoleType[]
 
   @Column({ name: 'referrer_id', type: 'int', unsigned: true, nullable: true, default: null })
   referrerId?: number | null
@@ -164,13 +169,13 @@ export class User extends BaseEntity {
 
   @OneToMany(() => Contribution, (contribution) => contribution.user)
   @JoinColumn({ name: 'user_id' })
-  contributions?: Contribution[]
+  contributions?: ContributionType[]
 
   @OneToMany(() => ContributionMessage, (message) => message.user)
   @JoinColumn({ name: 'user_id' })
-  messages?: ContributionMessage[]
+  messages?: ContributionMessageType[]
 
   @OneToMany(() => UserContact, (userContact: UserContact) => userContact.user)
   @JoinColumn({ name: 'user_id' })
-  userContacts?: UserContact[]
+  userContacts?: UserContactType[]
 }
