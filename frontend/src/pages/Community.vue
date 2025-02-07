@@ -94,7 +94,7 @@ const form = ref({
   id: null,
   date: '',
   memo: '',
-  hours: 0.0,
+  hours: 0,
   amount: '',
 })
 const originalContributionDate = ref('')
