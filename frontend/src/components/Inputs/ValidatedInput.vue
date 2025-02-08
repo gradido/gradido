@@ -9,7 +9,7 @@
     :required="!isOptional"
     :label="props.label"
     :name="props.name"
-    :state="meta.valid"
+    :state="valid"
     @input="updateValue($event.target.value)">
     <BFormInvalidFeedback v-if="errorMessage">
         {{ $t(translatedErrorString) }}
@@ -18,7 +18,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import LabeledInput from './LabeledInput'
 import { useI18n } from 'vue-i18n'
 import { isLanguageKey } from '@/validationSchemas'
@@ -41,11 +41,15 @@ const props = defineProps({
   },
 })
 
+let valid = ref(false)
+let errorMessage = ref('')
+let currentValue = ref(props.modelValue)
+
 const { t } = useI18n()
 const translatedErrorString = computed(() => {
   const error = errorMessage.value
   const type = typeof error
-  console.log(error)
+  // console.log(error)
   if (type === 'object') {
     return t(error.key, error.values)
   } else if (type === 'string' && error.length > 0 && isLanguageKey(error)) {
@@ -56,7 +60,28 @@ const translatedErrorString = computed(() => {
 })
 
 const emit = defineEmits(['update:modelValue'])
-const updateValue = (newValue) => emit('update:modelValue', newValue, props.name)
+const updateValue = ((newValue) => {
+  // emit('update:modelValue', newValue, props.name)
+
+  const data = new Object()
+  data[props.name] = newValue
+  
+  const result = props.rules.validateSyncAt(props.name, data)
+  console.log('result: ', JSON.stringify(result, null, 2))
+  /*
+  .then(() => {
+    valid = true
+    console.log("%s is valid, emit event", props.name)
+    emit('update:modelValue', newValue, props.name)
+  })
+  .catch((e) => {
+    valid = false
+    console.log(t(e.message))
+    errorMessage = e.message
+    console.log('max value: %o for name: %s, rules: %o', maxValue.value, props.name, props.rules)    
+  })
+*/  
+})
 
 // extract additional parameter like min and max from schema
 const getDateOnly = (schemaDescription, name) => schemaDescription.fields[props.name].tests.find((test) => test.name === name)?.params[name]
@@ -68,6 +93,6 @@ const maxValue = computed(() => getDateOnly(schemaDescription.value, 'max'))
 const resetValue = computed(() => schemaDescription.value.fields[props.name].default)
 const isOptional = computed(() => schemaDescription.value.fields[props.name].optional)
 
-const { value: currentValue, errorMessage, meta } = useField(props.name, props.rules)
-console.log('max value: ', maxValue)
+// const { value: currentValue, errorMessage, meta } = useField(props.name, props.rules)
+
 </script>

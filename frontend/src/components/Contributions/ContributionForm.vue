@@ -99,6 +99,7 @@ const props = defineProps({
 const emit = defineEmits(['update-contribution', 'set-contribution'])
 
 const { t } = useI18n()
+let allFieldsValid = ref(false)
 
 const form = ref({ ...props.modelValue })
 
@@ -152,6 +153,17 @@ const updateField = (newValue, name) => {
   if (name === 'hours') {
     setFieldValue('amount', (newValue * 20).toFixed(2).toString())
   }
+  /*
+  validationSchema.value.validateAt(name, formValues)
+  .then(() => {
+    allFieldsValid = true
+  })
+  .catch((e) => {
+    allFieldsValid = false
+    console.log('validation error')
+    console.log(JSON.stringify(e, null, 2))
+    //errorMessage = e.message
+  })*/
 }
 
 const showMessage = computed(() => {
@@ -165,11 +177,13 @@ const showMessage = computed(() => {
 })
 
 const disabled = computed(() => {
+  return !allFieldsValid 
+  /*
   return (
     !formMeta.value.valid ||
     (props.isThisMonth && parseFloat(form.value.amount) > parseFloat(props.maxGddThisMonth)) ||
     (!props.isThisMonth && parseFloat(form.value.amount) > parseFloat(props.maxGddLastMonth))
-  )
+  )*/
 })
 
 const noOpenCreation = computed(() => {

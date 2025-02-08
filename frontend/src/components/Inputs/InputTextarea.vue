@@ -54,7 +54,7 @@ const props = defineProps({
 const { value: currentValue, errorMessage, meta } = useField(props.name, props.rules)
 const { t } = useI18n()
 const translatedErrorString = computed(() => {
-  console.log(errorMessage)
+  // console.log(errorMessage)
   if (typeof errorMessage.value === 'object') {
     return t(errorMessage.value.key, errorMessage.value.values)
   } else if (isLanguageKey(errorMessage.value)) {
