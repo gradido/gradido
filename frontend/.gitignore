@@ -28,3 +28,5 @@ coverage/
 *~
 
 components.d.ts
+src/assets/css/gradido.css
+src/assets/css/gradido.css.map

@@ -14,7 +14,8 @@ import {
   EVENT_ADMIN_CONTRIBUTION_LINK_DELETE,
   EVENT_ADMIN_CONTRIBUTION_LINK_UPDATE,
 } from '@/event/Events'
-import { Context, getUser } from '@/server/context'
+import { getUser } from '@/server/context'
+import type { Context } from '@/server/context'
 import { LogError } from '@/server/LogError'
 
 import { transactionLinkCode as contributionLinkCode } from './TransactionLinkResolver'
