@@ -9,7 +9,7 @@
       <BFormInput
         id="contribution-date"
         :model-value="date"
-        :state="dataFieldMeta.valid"
+        :state="dateFieldMeta.valid"
         :locale="$i18n.locale"
         :max="getMaximalDate"
         :min="minimalDate.toISOString().slice(0, 10)"
@@ -24,7 +24,6 @@
         <template #nav-prev-year><span></span></template>
         <template #nav-next-year><span></span></template>
       </BFormInput>
-
       <div v-if="showMessage" class="p-3" data-test="contribtion-message">
         {{ noOpenCreation }}
       </div>
@@ -39,12 +38,12 @@
         <input-hour
           name="hours"
           :label="$t('form.hours')"
-          placeholder="0.25"
+          placeholder="0.01"
           :rules="{
             required: true,
-            min: 0.25,
+            min: 0.01,
             max: validMaxTime,
-            gddCreationTime: { min: 0.25, max: validMaxTime },
+            gddCreationTime: { min: 0.01, max: validMaxTime },
           }"
           :valid-max-time="validMaxTime"
         />
@@ -54,7 +53,7 @@
           name="amount"
           :label="$t('form.amount')"
           placeholder="20"
-          :rules="{ required: true, gddSendAmount: { min: 20, max: validMaxGDD } }"
+          :rules="{ required: true, gddSendAmount: { min: 0.2, max: validMaxGDD } }"
           typ="ContributionForm"
         />
 
@@ -88,7 +87,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import InputHour from '@/components/Inputs/InputHour'
 import InputAmount from '@/components/Inputs/InputAmount'
@@ -101,6 +100,18 @@ const props = defineProps({
   minimalDate: { type: Date, required: true },
   maxGddLastMonth: { type: Number, required: true },
   maxGddThisMonth: { type: Number, required: true },
+})
+
+const getMaximalDate = computed(() => {
+  return new Date().toISOString().slice(0, 10)
+})
+
+const validMaxGDD = computed(() => {
+  return Number(props.isThisMonth ? props.maxGddThisMonth : props.maxGddLastMonth)
+})
+
+const validMaxTime = computed(() => {
+  return Number(validMaxGDD.value / 20)
 })
 
 const emit = defineEmits(['update-contribution', 'set-contribution'])
@@ -124,9 +135,9 @@ const {
   },
 })
 
-const [date, dateProps] = defineField('date')
+const [date] = defineField('date')
 
-const { meta: dataFieldMeta } = useField('date', 'required')
+const { meta: dateFieldMeta } = useField('date', 'required')
 
 const handleDateChange = (newDate) => {
   date.value = newDate
@@ -151,14 +162,6 @@ const disabled = computed(() => {
   )
 })
 
-const validMaxGDD = computed(() => {
-  return Number(props.isThisMonth ? props.maxGddThisMonth : props.maxGddLastMonth)
-})
-
-const validMaxTime = computed(() => {
-  return Number(validMaxGDD.value / 20)
-})
-
 const noOpenCreation = computed(() => {
   if (props.maxGddThisMonth <= 0 && props.maxGddLastMonth <= 0) {
     return t('contribution.noOpenCreation.allMonth')
@@ -170,10 +173,6 @@ const noOpenCreation = computed(() => {
     return t('contribution.noOpenCreation.lastMonth')
   }
   return ''
-})
-
-const getMaximalDate = computed(() => {
-  return new Date().toISOString().slice(0, 10)
 })
 
 watch(

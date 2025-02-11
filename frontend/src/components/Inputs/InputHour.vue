@@ -8,7 +8,7 @@
         :placeholder="placeholder"
         type="number"
         :state="meta.valid"
-        step="0.25"
+        step="0.01"
         min="0"
         :max="validMaxTime"
         class="bg-248"
@@ -22,7 +22,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { computed } from 'vue'
 import { useField } from 'vee-validate'
 
 const props = defineProps({
