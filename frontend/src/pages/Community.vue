@@ -10,9 +10,7 @@
           />
           <div class="mb-3"></div>
           <contribution-form
-            :key="computedKeyFromForm"
             v-model="form"
-            :is-this-month="isThisMonth"
             :minimal-date="minimalDate"
             :max-gdd-last-month="maxForMonths[0]"
             :max-gdd-this-month="maxForMonths[1]"
@@ -95,7 +93,7 @@ const form = ref({
   date: '',
   memo: '',
   hours: 0,
-  amount: '',
+  amount: 20,
 })
 const originalContributionDate = ref('')
 const updateAmount = ref('')
@@ -105,14 +103,6 @@ const openCreationsData = ref([])
 const minimalDate = computed(() => {
   const date = new Date(maximalDate.value)
   return new Date(date.setMonth(date.getMonth() - 1, 1))
-})
-
-const isThisMonth = computed(() => {
-  const formDate = new Date(form.value.date)
-  return (
-    formDate.getFullYear() === maximalDate.value.getFullYear() &&
-    formDate.getMonth() === maximalDate.value.getMonth()
-  )
 })
 
 const amountToAdd = computed(() => (form.value.id ? parseInt(updateAmount.value) : 0))
@@ -273,13 +263,20 @@ const handleUpdateListContributions = (pagination) => {
 }
 
 const handleUpdateContributionForm = (item) => {
+  /*Object.assign(form.value, {
+    id: item.id,
+    date: new Date(item.contributionDate).toISOString().slice(0, 10),
+    memo: item.memo,
+    amount: item.amount,
+    hours: item.amount / 20,
+  })*/
   form.value = {
     id: item.id,
     date: new Date(item.contributionDate).toISOString().slice(0, 10),
     memo: item.memo,
     amount: item.amount,
     hours: item.amount / 20,
-  }
+  }//*/
   originalContributionDate.value = item.contributionDate
   updateAmount.value = item.amount
   tabIndex.value = 0

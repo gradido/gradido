@@ -3,96 +3,82 @@
     v-bind="$attrs"
     :min="minValue"
     :max="maxValue"
-    :model-value="currentValue"
+    :model-value="model"
     :reset-value="resetValue"
     :locale="$i18n.locale"
     :required="!isOptional"
-    :label="props.label"
-    :name="props.name"
+    :label="label"
+    :name="name"
     :state="valid"
-    @input="updateValue($event.target.value)">
+    @update:modelValue="updateValue"
+    >
     <BFormInvalidFeedback v-if="errorMessage">
-        {{ $t(translatedErrorString) }}
+        {{ errorMessage }}
     </BFormInvalidFeedback>
   </LabeledInput>
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
-import LabeledInput from './LabeledInput'
+import { computed, ref, watchEffect, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { isLanguageKey } from '@/validationSchemas'
-import { useField } from 'vee-validate'
+import LabeledInput from './LabeledInput'
+import { translateYupErrorString } from '@/validationSchemas'
 
 const props = defineProps({
-  errorMessage: [String, Object],
   label: {
     type: String,
     required: true,
   },
-  modelValue: [String, Number],
+  modelValue: [String, Number, Date],
   name: {
     type: String,
     required: true,
   },
   rules: {
     type: Object,
-    default: () => ({}),
+    required: true,
   },
 })
+const model = ref(props.modelValue)
+let wasUpdated = false
 
-let valid = ref(false)
-let errorMessage = ref('')
-let currentValue = ref(props.modelValue)
+function updateErrorMessage() {
+  try {
+    props.rules.validateSync(model.value)
+    errorMessage.value = undefined
+  } catch(e) {
+    errorMessage.value = translateYupErrorString(e.message, t)
+  }
+}
 
 const { t } = useI18n()
-const translatedErrorString = computed(() => {
-  const error = errorMessage.value
-  const type = typeof error
-  // console.log(error)
-  if (type === 'object') {
-    return t(error.key, error.values)
-  } else if (type === 'string' && error.length > 0 && isLanguageKey(error)) {
-    return t(error)
-  } else {
-    return error
-  }
-})
+const errorMessage = ref()
+const valid = computed(() => props.rules.isValidSync(model.value))
 
 const emit = defineEmits(['update:modelValue'])
 const updateValue = ((newValue) => {
-  // emit('update:modelValue', newValue, props.name)
+  wasUpdated = true
+  model.value = newValue
+  updateErrorMessage()
+  emit('update:modelValue', newValue, props.name)  
+})
 
-  const data = new Object()
-  data[props.name] = newValue
-  
-  const result = props.rules.validateSyncAt(props.name, data)
-  console.log('result: ', JSON.stringify(result, null, 2))
-  /*
-  .then(() => {
-    valid = true
-    console.log("%s is valid, emit event", props.name)
-    emit('update:modelValue', newValue, props.name)
-  })
-  .catch((e) => {
-    valid = false
-    console.log(t(e.message))
-    errorMessage = e.message
-    console.log('max value: %o for name: %s, rules: %o', maxValue.value, props.name, props.rules)    
-  })
-*/  
+// validate on rule change, but only if updateValue was called at least one
+watch(() => props.rules, () => {
+  if(wasUpdated) {
+    updateErrorMessage()
+  }
+})
+// update model if parent change
+watch(() => props.modelValue, () => {
+  model.value = props.modelValue
 })
 
 // extract additional parameter like min and max from schema
-const getDateOnly = (schemaDescription, name) => schemaDescription.fields[props.name].tests.find((test) => test.name === name)?.params[name]
-
 const schemaDescription = computed(() => props.rules.describe())
-console.log(schemaDescription.value)
-const minValue = computed(() => getDateOnly(schemaDescription.value, 'min'))
-const maxValue = computed(() => getDateOnly(schemaDescription.value, 'max'))
-const resetValue = computed(() => schemaDescription.value.fields[props.name].default)
-const isOptional = computed(() => schemaDescription.value.fields[props.name].optional)
-
-// const { value: currentValue, errorMessage, meta } = useField(props.name, props.rules)
-
+const getTestParameter = (name) => schemaDescription.value?.tests?.find(t => t.name === name)?.params[name]
+const minValue = computed(() => getTestParameter('min'))
+const maxValue = computed(() => getTestParameter('max'))
+const resetValue = computed(() => schemaDescription.default)
+const isOptional = computed(() => schemaDescription.optional)
 </script>
