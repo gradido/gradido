@@ -115,18 +115,13 @@ const maxForMonths = computed(() => {
         creation.year === originalDate.getFullYear() &&
         creation.month === originalDate.getMonth()
       ) {
-        return parseFloat(creation.amount)
+        return parseFloat(creation.amount) + amountToAdd
       }
       return parseFloat(creation.amount)
     })
   }
   return [0, 0]
 })
-
-const computedKeyFromForm = computed(() => {
-  return `${form.value.id}_${form.value.date}_${form.value.memo}_${form.value.amount}_${form.value.hours}`
-})
-
 const { onResult: onOpenCreationsResult, refetch: refetchOpenCreations } = useQuery(
   openCreations,
   () => ({}),
@@ -263,13 +258,6 @@ const handleUpdateListContributions = (pagination) => {
 }
 
 const handleUpdateContributionForm = (item) => {
-  /* Object.assign(form.value, {
-    id: item.id,
-    date: new Date(item.contributionDate).toISOString().slice(0, 10),
-    memo: item.memo,
-    amount: item.amount,
-    hours: item.amount / 20,
-  }) */
   form.value = {
     id: item.id,
     date: new Date(item.contributionDate).toISOString().slice(0, 10),
