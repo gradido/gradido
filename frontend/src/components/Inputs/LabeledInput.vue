@@ -19,7 +19,7 @@
 </template>
 
 <script setup>
-import { computed, defineOptions, watchEffect, ref, defineModel } from 'vue'
+import { computed, defineOptions, defineModel } from 'vue'
 defineOptions({
   inheritAttrs: false,
 })
@@ -33,7 +33,6 @@ const props = defineProps({
     type: String,
     required: true,
   },
-  // modelValue: [String, Number, Date],
   textarea: {
     type: Boolean,
     required: false,
@@ -42,18 +41,7 @@ const props = defineProps({
 })
 
 const model = defineModel()
-// const model = ref(props.modelValue)
-/*const model = computed({
-  get: () => props.modelValue,
-  set: (val) => emit('update:modelValue', val)
-})*/
+
 const wrapperClassName = computed(() => props.name ? `input-${props.name}` : 'input')
 const labelFor = computed(() => `${props.name}-input-field`)
-
-// const emit = defineEmits(['update:modelValue'])
-
-watchEffect(() => {
-  console.log(`${props.name}: ${props.modelValue}`)
-  // model.value = props.modelValue
-})
 </script>

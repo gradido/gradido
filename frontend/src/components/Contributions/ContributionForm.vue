@@ -81,7 +81,7 @@
 </template>
 
 <script setup>
-import { reactive, computed, watchEffect, watch, ref } from 'vue'
+import { reactive, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ValidatedInput from '@/components/Inputs/ValidatedInput'
 import LabeledInput from '@/components/Inputs/LabeledInput'
@@ -105,7 +105,7 @@ const form = reactive({ ...props.modelValue })
 watch(() => props.modelValue, (newValue) => Object.assign(form, newValue))
 
 // use computed to make sure child input update if props from parent from this component change
-const amount = computed(() => (form.hours * 20).toFixed(2).toString())
+const amount = computed(() => form.hours ? (form.hours * 20).toFixed(2).toString() : '20')
 const date = computed(() => form.date)
 const hours = computed(() => form.hours)
 const memo = computed(() => form.memo)
@@ -115,9 +115,6 @@ const isThisMonth = computed(() => {
   const now = new Date()
   return formDate.getMonth() === now.getMonth() && formDate.getFullYear() === now.getFullYear()
 });
-
-// const maxHours = computed(() => Number((isThisMonth.value ? props.maxGddThisMonth : props.maxGddLastMonth) / 20))
-// const maxAmounts = computed(() => Number(isThisMonth.value ? parseFloat(props.maxGddThisMonth): parseFloat(props.maxGddLastMonth)))
 
 const validationSchema = computed(() => {
   const maxHours = Number((isThisMonth.value ? props.maxGddThisMonth : props.maxGddLastMonth) / 20)
@@ -150,14 +147,14 @@ const validationSchema = computed(() => {
   })
 })
 
-const updateField = (newValue, name) => {
+const updateField = (newValue, name, valid) => {
   if (typeof name === 'string' && name.length) {
     form[name] = newValue
     if (name === 'hours') {
       form.amount = (newValue * 20).toFixed(2).toString()
     }
   }
-  console.log('update field', { newValue, name, form, amount: amount.value })
+  // console.log('update field', { newValue, name, form, amount: amount.value })
   emit('update:modelValue', form)  
 }
 
@@ -190,12 +187,12 @@ function submit() {
 }
 
 function fullFormReset() {
-  form = {
-    date: '',
+  emit('update:modelValue', {
+    date: null,
     memo: '',
-    hours: 0.0,
-    amount: 0.0,
-  }
+    hours: '',
+    amount: null,
+  })
 }
 </script>
 <style>

@@ -90,9 +90,9 @@ const contributionCount = ref(0)
 const contributionCountAll = ref(0)
 const form = ref({
   id: null,
-  date: '',
+  date: null,
   memo: '',
-  hours: 0,
+  hours: '',
   amount: 20,
 })
 const originalContributionDate = ref('')

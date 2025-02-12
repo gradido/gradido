@@ -19,7 +19,7 @@
 </template>
 
 <script setup>
-import { computed, ref, watchEffect, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import LabeledInput from './LabeledInput'
 import { translateYupErrorString } from '@/validationSchemas'
@@ -39,37 +39,31 @@ const props = defineProps({
     required: true,
   },
 })
-const model = ref(props.modelValue)
-let wasUpdated = false
-
-function updateErrorMessage() {
-  try {
-    props.rules.validateSync(model.value)
-    errorMessage.value = undefined
-  } catch(e) {
-    errorMessage.value = translateYupErrorString(e.message, t)
-  }
-}
 
 const { t } = useI18n()
-const errorMessage = ref()
-const valid = computed(() => props.rules.isValidSync(model.value))
+
+const model = ref(props.modelValue)
+
+const valid = computed(() => props.rules.isValidSync(props.modelValue))
+const errorMessage = computed(() => {
+  if (props.modelValue === undefined || props.modelValue === '' || props.modelValue === null) {
+    return undefined
+  } 
+  try {
+    props.rules.validateSync(props.modelValue)
+    return undefined
+  } catch(e) {
+    return translateYupErrorString(e.message, t)
+  }
+})
 
 const emit = defineEmits(['update:modelValue'])
 const updateValue = ((newValue) => {
-  wasUpdated = true
-  model.value = newValue
-  updateErrorMessage()
-  emit('update:modelValue', newValue, props.name)  
+  emit('update:modelValue', newValue, props.name, valid.value)  
 })
 
-// validate on rule change, but only if updateValue was called at least one
-watch(() => props.rules, () => {
-  if(wasUpdated) {
-    updateErrorMessage()
-  }
-})
-// update model if parent change
+// update model and if value changed and model isn't null, check validation,
+// for loading Input with existing value and show correct validation state
 watch(() => props.modelValue, () => {
   model.value = props.modelValue
 })
@@ -82,3 +76,4 @@ const maxValue = computed(() => getTestParameter('max'))
 const resetValue = computed(() => schemaDescription.default)
 const isOptional = computed(() => schemaDescription.optional)
 </script>
+
