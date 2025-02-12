@@ -1,5 +1,5 @@
 <template>
-  <LabeledInput 
+  <LabeledInput
     v-bind="$attrs"
     :min="minValue"
     :max="maxValue"
@@ -11,9 +11,9 @@
     :name="name"
     :state="valid"
     @update:modelValue="updateValue"
-    >
+  >
     <BFormInvalidFeedback v-if="errorMessage">
-        {{ errorMessage }}
+      {{ errorMessage }}
     </BFormInvalidFeedback>
   </LabeledInput>
 </template>
@@ -48,32 +48,35 @@ const valid = computed(() => props.rules.isValidSync(props.modelValue))
 const errorMessage = computed(() => {
   if (props.modelValue === undefined || props.modelValue === '' || props.modelValue === null) {
     return undefined
-  } 
+  }
   try {
     props.rules.validateSync(props.modelValue)
     return undefined
-  } catch(e) {
+  } catch (e) {
     return translateYupErrorString(e.message, t)
   }
 })
 
 const emit = defineEmits(['update:modelValue'])
-const updateValue = ((newValue) => {
-  emit('update:modelValue', newValue, props.name, valid.value)  
-})
+const updateValue = (newValue) => {
+  emit('update:modelValue', newValue, props.name, valid.value)
+}
 
 // update model and if value changed and model isn't null, check validation,
 // for loading Input with existing value and show correct validation state
-watch(() => props.modelValue, () => {
-  model.value = props.modelValue
-})
+watch(
+  () => props.modelValue,
+  () => {
+    model.value = props.modelValue
+  },
+)
 
 // extract additional parameter like min and max from schema
 const schemaDescription = computed(() => props.rules.describe())
-const getTestParameter = (name) => schemaDescription.value?.tests?.find(t => t.name === name)?.params[name]
+const getTestParameter = (name) =>
+  schemaDescription.value?.tests?.find((t) => t.name === name)?.params[name]
 const minValue = computed(() => getTestParameter('min'))
 const maxValue = computed(() => getTestParameter('max'))
-const resetValue = computed(() => schemaDescription.default)
-const isOptional = computed(() => schemaDescription.optional)
+const resetValue = computed(() => schemaDescription.value.default)
+const isOptional = computed(() => schemaDescription.value.optional)
 </script>
-

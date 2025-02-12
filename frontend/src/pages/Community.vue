@@ -105,7 +105,7 @@ const minimalDate = computed(() => {
   return new Date(date.setMonth(date.getMonth() - 1, 1))
 })
 
-const amountToAdd = computed(() => (form.value.id ? parseInt(updateAmount.value) : 0))
+const amountToAdd = computed(() => (form.value.id ? parseFloat(updateAmount.value) : 0.0))
 
 const maxForMonths = computed(() => {
   const originalDate = new Date(originalContributionDate.value)
@@ -115,9 +115,9 @@ const maxForMonths = computed(() => {
         creation.year === originalDate.getFullYear() &&
         creation.month === originalDate.getMonth()
       ) {
-        return parseInt(creation.amount) + amountToAdd.value
+        return parseFloat(creation.amount)
       }
-      return parseInt(creation.amount)
+      return parseFloat(creation.amount)
     })
   }
   return [0, 0]
@@ -263,20 +263,20 @@ const handleUpdateListContributions = (pagination) => {
 }
 
 const handleUpdateContributionForm = (item) => {
-  /*Object.assign(form.value, {
+  /* Object.assign(form.value, {
     id: item.id,
     date: new Date(item.contributionDate).toISOString().slice(0, 10),
     memo: item.memo,
     amount: item.amount,
     hours: item.amount / 20,
-  })*/
+  }) */
   form.value = {
     id: item.id,
     date: new Date(item.contributionDate).toISOString().slice(0, 10),
     memo: item.memo,
     amount: item.amount,
     hours: item.amount / 20,
-  }//*/
+  } //* /
   originalContributionDate.value = item.contributionDate
   updateAmount.value = item.amount
   tabIndex.value = 0

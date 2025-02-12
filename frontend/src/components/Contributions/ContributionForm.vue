@@ -27,8 +27,8 @@
           :label="$t('contribution.activity')"
           :placeholder="$t('contribution.yourActivity')"
           :rules="validationSchema.fields.memo"
-          @update:model-value="updateField"
           textarea="true"
+          @update:model-value="updateField"
         />
         <ValidatedInput
           name="hours"
@@ -102,10 +102,13 @@ const form = reactive({ ...props.modelValue })
 
 // update local form if in parent form changed, it is necessary because the community page will reuse this form also for editing existing
 // contributions, and it will reusing a existing instance of this component
-watch(() => props.modelValue, (newValue) => Object.assign(form, newValue))
+watch(
+  () => props.modelValue,
+  (newValue) => Object.assign(form, newValue),
+)
 
 // use computed to make sure child input update if props from parent from this component change
-const amount = computed(() => form.hours ? (form.hours * 20).toFixed(2).toString() : '20')
+const amount = computed(() => form.amount)
 const date = computed(() => form.date)
 const hours = computed(() => form.hours)
 const memo = computed(() => form.memo)
@@ -114,49 +117,36 @@ const isThisMonth = computed(() => {
   const formDate = new Date(form.date)
   const now = new Date()
   return formDate.getMonth() === now.getMonth() && formDate.getFullYear() === now.getFullYear()
-});
+})
 
+// reactive validation schema, because some boundaries depend on form input and existing data
 const validationSchema = computed(() => {
-  const maxHours = Number((isThisMonth.value ? props.maxGddThisMonth : props.maxGddLastMonth) / 20)
-  const maxAmounts = Number(isThisMonth.value ? parseFloat(props.maxGddThisMonth): parseFloat(props.maxGddLastMonth))
+  const maxAmounts = Number(
+    isThisMonth.value ? parseFloat(props.maxGddThisMonth) : parseFloat(props.maxGddLastMonth),
+  )
+  const maxHours = Number(maxAmounts / 20)
 
   return object({
     // The date field is required and needs to be a valid date
     // contribution date
     date: dateSchema()
       .required('contribution.noDateSelected')
-      .min(new Date(new Date().setMonth(new Date().getMonth() - 1, 1)).toISOString().slice(0, 10))  // min date is first day of last month
+      .min(new Date(new Date().setMonth(new Date().getMonth() - 1, 1)).toISOString().slice(0, 10)) // min date is first day of last month
       .max(new Date().toISOString().slice(0, 10))
       .default(''), // date cannot be in the future
     memo: memoSchema,
-    hours: number().transform((value, originalValue) => 
-        originalValue === "" ? undefined : value
-      )
+    hours: number()
+      .transform((value, originalValue) => (originalValue === '' ? undefined : value))
       .required('contribution.noHours')
-      .min(0.01, ({min}) => ({ key: 'form.validation.gddCreationTime.min', values: { min } }))
-      .max(maxHours, ({max}) => ({ key: 'form.validation.gddCreationTime.max', values: { max } }))
-      .test(
-        'decimal-places',
-        'form.validation.gddCreationTime.decimal-places',
-        (value) => {
-          if (value === undefined || value === null) return true
-          return /^\d+(\.\d{0,2})?$/.test(value.toString())
-        }
-      ),
-    amount: number().max(maxAmounts)
+      .min(0.01, ({ min }) => ({ key: 'form.validation.gddCreationTime.min', values: { min } }))
+      .max(maxHours, ({ max }) => ({ key: 'form.validation.gddCreationTime.max', values: { max } }))
+      .test('decimal-places', 'form.validation.gddCreationTime.decimal-places', (value) => {
+        if (value === undefined || value === null) return true
+        return /^\d+(\.\d{0,2})?$/.test(value.toString())
+      }),
+    amount: number().max(maxAmounts),
   })
 })
-
-const updateField = (newValue, name, valid) => {
-  if (typeof name === 'string' && name.length) {
-    form[name] = newValue
-    if (name === 'hours') {
-      form.amount = (newValue * 20).toFixed(2).toString()
-    }
-  }
-  // console.log('update field', { newValue, name, form, amount: amount.value })
-  emit('update:modelValue', form)  
-}
 
 const disabled = computed(() => !validationSchema.value.isValidSync(form))
 
@@ -175,6 +165,16 @@ const noOpenCreation = computed(() => {
   return undefined
 })
 
+const updateField = (newValue, name) => {
+  if (typeof name === 'string' && name.length) {
+    form[name] = newValue
+    if (name === 'hours') {
+      form.amount = form.hours ? (form.hours * 20).toFixed(2).toString() : '20'
+    }
+  }
+  emit('update:modelValue', form)
+}
+
 function submit() {
   const dataToSave = { ...form }
   let emitOption = 'set-contribution'
@@ -188,6 +188,7 @@ function submit() {
 
 function fullFormReset() {
   emit('update:modelValue', {
+    id: undefined,
     date: null,
     memo: '',
     hours: '',

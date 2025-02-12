@@ -33,6 +33,9 @@
   </div>
 </template>
 <script>
+function afterComma(input) {
+  return input.toFixed(2).toString()
+}
 export default {
   name: 'OpenCreationsAmount',
   props: {
@@ -42,16 +45,16 @@ export default {
   },
   computed: {
     hoursSubmittedThisMonth() {
-      return (1000 - this.maxGddThisMonth) / 20
+      return afterComma((1000 - this.maxGddThisMonth) / 20)
     },
     hoursSubmittedLastMonth() {
-      return (1000 - this.maxGddLastMonth) / 20
+      return afterComma((1000 - this.maxGddLastMonth) / 20)
     },
     hoursAvailableThisMonth() {
-      return this.maxGddThisMonth / 20
+      return afterComma(this.maxGddThisMonth / 20)
     },
     hoursAvailableLastMonth() {
-      return this.maxGddLastMonth / 20
+      return afterComma(this.maxGddLastMonth / 20)
     },
   },
 }

@@ -4,13 +4,6 @@ import ContributionForm from './ContributionForm.vue'
 import { useForm } from 'vee-validate'
 
 // Mock external components and dependencies
-vi.mock('@/components/Inputs/InputHour', () => ({
-  default: {
-    name: 'InputHour',
-    template: '<input data-testid="input-hour" />',
-  },
-}))
-
 vi.mock('@/components/Inputs/InputAmount', () => ({
   default: {
     name: 'InputAmount',

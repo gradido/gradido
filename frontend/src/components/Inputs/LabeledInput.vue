@@ -1,18 +1,16 @@
 <template>
   <div :class="wrapperClassName">
     <BFormGroup :label="label" :label-for="labelFor">
-      <BFormTextarea v-if="textarea" 
+      <BFormTextarea
+        v-if="textarea"
         v-bind="{ ...$attrs, id: labelFor, name }"
         v-model="model"
         trim
         :rows="4"
         :max-rows="4"
         no-resize
-        />
-      <BFormInput v-else 
-        v-bind="{ ...$attrs, id: labelFor, name }"
-        v-model="model"
-      />      
+      />
+      <BFormInput v-else v-bind="{ ...$attrs, id: labelFor, name }" v-model="model" />
       <slot></slot>
     </BFormGroup>
   </div>
@@ -37,11 +35,11 @@ const props = defineProps({
     type: Boolean,
     required: false,
     default: false,
-  }
+  },
 })
 
 const model = defineModel()
 
-const wrapperClassName = computed(() => props.name ? `input-${props.name}` : 'input')
+const wrapperClassName = computed(() => (props.name ? `input-${props.name}` : 'input'))
 const labelFor = computed(() => `${props.name}-input-field`)
 </script>
