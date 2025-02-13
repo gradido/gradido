@@ -67,22 +67,22 @@ describe('ContributionForm', () => {
   describe('compute isThisMonth', () => {
     it('return true', async () => {
       await wrapper.setProps({
-        modelValue: { date: new Date().toISOString() }
+        modelValue: { date: new Date().toISOString() },
       })
-      expect(wrapper.vm.isThisMonth).toBe(true)  
+      expect(wrapper.vm.isThisMonth).toBe(true)
     })
     it('return false', async () => {
       const now = new Date()
       const lastMonth = new Date(now.setMonth(now.getMonth() - 1, 1))
       await wrapper.setProps({
-        modelValue: { date: lastMonth.toISOString() }
+        modelValue: { date: lastMonth.toISOString() },
       })
-      expect(wrapper.vm.isThisMonth).toBe(false)  
+      expect(wrapper.vm.isThisMonth).toBe(false)
     })
   })
 
   describe('noOpenCreations return correct translation key', () => {
-    it("if both max gdd are > 0", () => {
+    it('if both max gdd are > 0', () => {
       expect(wrapper.vm.noOpenCreation).toBeUndefined()
     })
     it('if max gdd for this month is 0, and form.date is in last month', async () => {
@@ -90,14 +90,14 @@ describe('ContributionForm', () => {
       const lastMonth = new Date(now.setMonth(now.getMonth() - 1, 1))
       await wrapper.setProps({
         maxGddThisMonth: 0,
-        modelValue: { date: lastMonth.toISOString() }
+        modelValue: { date: lastMonth.toISOString() },
       })
       expect(wrapper.vm.noOpenCreation).toBeUndefined()
     })
     it('if max gdd for last month is 0, and form.date is in this month', async () => {
       await wrapper.setProps({
         maxGddLastMonth: 0,
-        modelValue: { date: new Date().toISOString() }
+        modelValue: { date: new Date().toISOString() },
       })
       expect(wrapper.vm.noOpenCreation).toBeUndefined()
     })
@@ -106,23 +106,23 @@ describe('ContributionForm', () => {
         maxGddThisMonth: 0,
         maxGddLastMonth: 0,
       })
-      expect(wrapper.vm.noOpenCreation).toBe('contribution.noOpenCreation.allMonth')  
+      expect(wrapper.vm.noOpenCreation).toBe('contribution.noOpenCreation.allMonth')
     })
     it('if max gdd this month is zero and form.date is inside this month', async () => {
       await wrapper.setProps({
         maxGddThisMonth: 0,
-        modelValue: { date: new Date().toISOString() }
+        modelValue: { date: new Date().toISOString() },
       })
-      expect(wrapper.vm.noOpenCreation).toBe('contribution.noOpenCreation.thisMonth')  
+      expect(wrapper.vm.noOpenCreation).toBe('contribution.noOpenCreation.thisMonth')
     })
     it('if max gdd last month is zero and form.date is inside last month', async () => {
       const now = new Date()
       const lastMonth = new Date(now.setMonth(now.getMonth() - 1, 1))
       await wrapper.setProps({
         maxGddLastMonth: 0,
-        modelValue: { date: lastMonth.toISOString() }
+        modelValue: { date: lastMonth.toISOString() },
       })
-      expect(wrapper.vm.noOpenCreation).toBe('contribution.noOpenCreation.lastMonth')  
+      expect(wrapper.vm.noOpenCreation).toBe('contribution.noOpenCreation.lastMonth')
     })
   })
 
@@ -130,16 +130,15 @@ describe('ContributionForm', () => {
     expect(wrapper.vm.disabled).toBe(true)
 
     await wrapper.setProps({
-      modelValue: { date: new Date().toISOString().slice(0, 10) }
+      modelValue: { date: new Date().toISOString().slice(0, 10) },
     })
 
     wrapper.vm.form.amount = 100
-    
+
     expect(wrapper.vm.disabled).toBe(false)
-  })  
+  })
 
   it('updates amount when hours change', async () => {
-    
     wrapper = mount(ContributionForm, {
       props: defaultProps,
       global: {
