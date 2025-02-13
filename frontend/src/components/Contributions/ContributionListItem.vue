@@ -48,7 +48,7 @@
         </BCol>
         <BCol cols="9" lg="3" offset="3" offset-md="0" offset-lg="0">
           <div class="small">
-            {{ $t('creation') }} {{ $t('(') }}{{ amount / 20 }} {{ $t('h') }}{{ $t(')') }}
+            {{ $t('creation') }} {{ $t('(') }}{{ hours }} {{ $t('h') }}{{ $t(')') }}
           </div>
           <div v-if="status === 'DENIED' && allContribution" class="fw-bold">
             <variant-icon icon="x-circle" variant="danger" />
@@ -232,6 +232,8 @@ const username = computed(() => ({
   username: `${props.firstName} ${props.lastName}`,
   initials: `${props.firstName[0]}${props.lastName[0]}`,
 }))
+
+const hours = computed(() => parseFloat((props.amount / 20).toFixed(2)))
 
 watch(
   () => visible.value,

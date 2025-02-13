@@ -34,7 +34,7 @@
 </template>
 <script>
 function afterComma(input) {
-  return input.toFixed(2).toString()
+  return parseFloat(input.toFixed(2)).toString()
 }
 export default {
   name: 'OpenCreationsAmount',

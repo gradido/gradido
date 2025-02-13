@@ -1,7 +1,6 @@
 <template>
   <div class="contribution-form">
     <BForm
-      ref="form"
       class="form-style p-3 bg-white app-box-shadow gradido-border-radius"
       @submit.prevent="submit"
     >
@@ -16,7 +15,7 @@
         :rules="validationSchema.fields.date"
         @update:model-value="updateField"
       />
-      <div v-if="noOpenCreation" class="p-3" data-test="contribtion-message">
+      <div v-if="noOpenCreation" class="p-3" data-test="contribution-message">
         {{ noOpenCreation }}
       </div>
       <div v-else>
@@ -124,20 +123,20 @@ const validationSchema = computed(() => {
   const maxAmounts = Number(
     isThisMonth.value ? parseFloat(props.maxGddThisMonth) : parseFloat(props.maxGddLastMonth),
   )
-  const maxHours = Number(maxAmounts / 20)
+  const maxHours = parseFloat(Number(maxAmounts / 20).toFixed(2))
 
   return object({
     // The date field is required and needs to be a valid date
     // contribution date
     date: dateSchema()
-      .required('contribution.noDateSelected')
+      .required()
       .min(new Date(new Date().setMonth(new Date().getMonth() - 1, 1)).toISOString().slice(0, 10)) // min date is first day of last month
       .max(new Date().toISOString().slice(0, 10))
       .default(''), // date cannot be in the future
     memo: memoSchema,
     hours: number()
+      .required()
       .transform((value, originalValue) => (originalValue === '' ? undefined : value))
-      .required('contribution.noHours')
       .min(0.01, ({ min }) => ({ key: 'form.validation.gddCreationTime.min', values: { min } }))
       .max(maxHours, ({ max }) => ({ key: 'form.validation.gddCreationTime.max', values: { max } }))
       .test('decimal-places', 'form.validation.gddCreationTime.decimal-places', (value) => {
@@ -155,10 +154,10 @@ const noOpenCreation = computed(() => {
     return t('contribution.noOpenCreation.allMonth')
   }
   if (form.date) {
-    if (props.isThisMonth && props.maxGddThisMonth <= 0) {
+    if (isThisMonth.value && props.maxGddThisMonth <= 0) {
       return t('contribution.noOpenCreation.thisMonth')
     }
-    if (!props.isThisMonth && props.maxGddLastMonth <= 0) {
+    if (!isThisMonth.value && props.maxGddLastMonth <= 0) {
       return t('contribution.noOpenCreation.lastMonth')
     }
   }
@@ -192,7 +191,7 @@ function fullFormReset() {
     date: null,
     memo: '',
     hours: '',
-    amount: null,
+    amount: undefined,
   })
 }
 </script>

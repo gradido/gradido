@@ -90,7 +90,7 @@ const contributionCount = ref(0)
 const contributionCountAll = ref(0)
 const form = ref({
   id: null,
-  date: null,
+  date: undefined,
   memo: '',
   hours: '',
   amount: 20,
@@ -115,7 +115,7 @@ const maxForMonths = computed(() => {
         creation.year === originalDate.getFullYear() &&
         creation.month === originalDate.getMonth()
       ) {
-        return parseFloat(creation.amount) + amountToAdd
+        return parseFloat(creation.amount) + amountToAdd.value
       }
       return parseFloat(creation.amount)
     })

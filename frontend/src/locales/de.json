@@ -76,8 +76,6 @@
       "allContributions": "Es wurden noch keine Beiträge eingereicht.",
       "myContributions": "Du hast noch keine Beiträge eingereicht."
     },
-    "noDateSelected": "Wähle irgendein Datum im Monat",
-    "noHours": "Bitte trage deine Stunden ein",
     "noOpenCreation": {
       "allMonth": "Für alle beiden Monate ist dein Schöpfungslimit erreicht. Den Nächsten Monat kannst du wieder 1000 GDD Schöpfen.",
       "lastMonth": "Für den ausgewählten Monat ist das Schöpfungslimit erreicht.",
@@ -188,7 +186,7 @@
     "validation": {
       "gddCreationTime": {
         "min": "Die Stunden sollten mindestens {min} groß sein",
-        "max": "Die Stunden sollten höchsten {max} groß sein",
+        "max": "Die Stunden sollten höchstens {max} groß sein",
         "decimal-places": "Die Stunden sollten maximal zwei Nachkommastellen enthalten"
       },
       "gddSendAmount": "Das Feld {_field_} muss eine Zahl zwischen {min} und {max} mit höchstens zwei Nachkommastellen sein",

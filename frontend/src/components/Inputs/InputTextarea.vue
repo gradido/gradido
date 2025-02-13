@@ -26,7 +26,7 @@
 import { computed } from 'vue'
 import { useField } from 'vee-validate'
 import { useI18n } from 'vue-i18n'
-import { isLanguageKey } from '@/validationSchemas'
+import { translateYupErrorString } from '@/validationSchemas'
 
 const props = defineProps({
   rules: {
@@ -53,16 +53,7 @@ const props = defineProps({
 
 const { value: currentValue, errorMessage, meta } = useField(props.name, props.rules)
 const { t } = useI18n()
-const translatedErrorString = computed(() => {
-  // console.log(errorMessage)
-  if (typeof errorMessage.value === 'object') {
-    return t(errorMessage.value.key, errorMessage.value.values)
-  } else if (isLanguageKey(errorMessage.value)) {
-    return t(errorMessage.value)
-  } else {
-    return errorMessage
-  }
-})
+const translatedErrorString = computed(() => translateYupErrorString(errorMessage, t))
 const labelFor = computed(() => `${props.name}-input-field`)
 </script>
 
