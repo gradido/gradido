@@ -8,6 +8,12 @@ vi.mock('vee-validate', () => ({
   useField: vi.fn(),
 }))
 
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({
+    t: (key) => key,
+  }),
+}))
+
 describe('InputTextarea', () => {
   let wrapper
 

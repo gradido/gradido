@@ -10,9 +10,7 @@
           />
           <div class="mb-3"></div>
           <contribution-form
-            :key="computedKeyFromForm"
             v-model="form"
-            :is-this-month="isThisMonth"
             :minimal-date="minimalDate"
             :max-gdd-last-month="maxForMonths[0]"
             :max-gdd-this-month="maxForMonths[1]"
@@ -92,10 +90,10 @@ const contributionCount = ref(0)
 const contributionCountAll = ref(0)
 const form = ref({
   id: null,
-  date: '',
+  date: undefined,
   memo: '',
-  hours: 0,
-  amount: '',
+  hours: '',
+  amount: 20,
 })
 const originalContributionDate = ref('')
 const updateAmount = ref('')
@@ -107,15 +105,7 @@ const minimalDate = computed(() => {
   return new Date(date.setMonth(date.getMonth() - 1, 1))
 })
 
-const isThisMonth = computed(() => {
-  const formDate = new Date(form.value.date)
-  return (
-    formDate.getFullYear() === maximalDate.value.getFullYear() &&
-    formDate.getMonth() === maximalDate.value.getMonth()
-  )
-})
-
-const amountToAdd = computed(() => (form.value.id ? parseInt(updateAmount.value) : 0))
+const amountToAdd = computed(() => (form.value.id ? parseFloat(updateAmount.value) : 0.0))
 
 const maxForMonths = computed(() => {
   const originalDate = new Date(originalContributionDate.value)
@@ -125,18 +115,13 @@ const maxForMonths = computed(() => {
         creation.year === originalDate.getFullYear() &&
         creation.month === originalDate.getMonth()
       ) {
-        return parseInt(creation.amount) + amountToAdd.value
+        return parseFloat(creation.amount) + amountToAdd.value
       }
-      return parseInt(creation.amount)
+      return parseFloat(creation.amount)
     })
   }
   return [0, 0]
 })
-
-const computedKeyFromForm = computed(() => {
-  return `${form.value.id}_${form.value.date}_${form.value.memo}_${form.value.amount}_${form.value.hours}`
-})
-
 const { onResult: onOpenCreationsResult, refetch: refetchOpenCreations } = useQuery(
   openCreations,
   () => ({}),
@@ -279,7 +264,7 @@ const handleUpdateContributionForm = (item) => {
     memo: item.memo,
     amount: item.amount,
     hours: item.amount / 20,
-  }
+  } //* /
   originalContributionDate.value = item.contributionDate
   updateAmount.value = item.amount
   tabIndex.value = 0
