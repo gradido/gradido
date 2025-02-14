@@ -12,7 +12,7 @@ import { backendLogger as logger } from '@/server/logger'
 export class ProjectBrandingResolver {
   @Query(() => [ProjectBranding])
   @Authorized([RIGHTS.PROJECT_BRANDING_VIEW])
-  async getProjectBrandings(): Promise<ProjectBranding[]> {
+  async projectBrandings(): Promise<ProjectBranding[]> {
     return (await DbProjectBranding.find()).map(
       (entity: DbProjectBranding) => new ProjectBranding(entity),
     )
@@ -20,7 +20,7 @@ export class ProjectBrandingResolver {
 
   @Query(() => ProjectBranding, { nullable: true })
   @Authorized([RIGHTS.PROJECT_BRANDING_VIEW])
-  async getProjectBranding(@Arg('id', () => Int) id: number): Promise<ProjectBranding | null> {
+  async projectBranding(@Arg('id', () => Int) id: number): Promise<ProjectBranding | null> {
     const projectBrandingEntity = await DbProjectBranding.findOneBy({ id })
     if (!projectBrandingEntity) {
       throw new LogError(`Project Branding with id: ${id} not found`)
@@ -30,9 +30,7 @@ export class ProjectBrandingResolver {
 
   @Query(() => String, { nullable: true })
   @Authorized([RIGHTS.PROJECT_BRANDING_BANNER])
-  async getProjectBrandingBanner(
-    @Arg('alias', () => String) alias: string,
-  ): Promise<string | null> {
+  async projectBrandingBanner(@Arg('alias', () => String) alias: string): Promise<string | null> {
     const projectBrandingEntity = await DbProjectBranding.findOne({
       where: { alias },
       select: { logoUrl: true },
