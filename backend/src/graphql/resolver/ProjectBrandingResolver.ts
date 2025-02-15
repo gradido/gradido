@@ -1,5 +1,5 @@
 import { ProjectBranding as DbProjectBranding } from '@entity/ProjectBranding'
-import { Resolver, Query, Mutation, Arg, Int, Authorized } from 'type-graphql'
+import { Resolver, Query, Mutation, Arg, Int, Authorized, ID } from 'type-graphql'
 
 import { ProjectBrandingInput } from '@input/ProjectBrandingInput'
 import { ProjectBranding } from '@model/ProjectBranding'
@@ -44,13 +44,13 @@ export class ProjectBrandingResolver {
   @Mutation(() => ProjectBranding, { nullable: true })
   @Authorized([RIGHTS.PROJECT_BRANDING_MUTATE])
   async upsertProjectBranding(
-    @Arg('data') data: ProjectBrandingInput,
+    @Arg('input') input: ProjectBrandingInput,
   ): Promise<ProjectBranding | null> {
-    const projectBranding = data.id
-      ? await DbProjectBranding.findOneOrFail({ where: { id: data.id } })
+    const projectBranding = input.id
+      ? await DbProjectBranding.findOneOrFail({ where: { id: input.id } })
       : new DbProjectBranding()
 
-    Object.assign(projectBranding, data)
+    Object.assign(projectBranding, input)
     await projectBranding.save()
 
     return new ProjectBranding(projectBranding)
@@ -58,7 +58,7 @@ export class ProjectBrandingResolver {
 
   @Mutation(() => Boolean)
   @Authorized([RIGHTS.PROJECT_BRANDING_MUTATE])
-  async deleteProjectBranding(@Arg('id', () => Int) id: number): Promise<boolean> {
+  async deleteProjectBranding(@Arg('id', () => ID) id: number): Promise<boolean> {
     try {
       await DbProjectBranding.delete({ id })
       return true

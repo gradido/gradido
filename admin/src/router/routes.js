@@ -37,6 +37,11 @@ const routes = [
     component: () => import('@/pages/FederationVisualize.vue'),
   },
   {
+    path: '/projectBranding',
+    name: 'projectBranding',
+    component: () => import('@/pages/ProjectBranding.vue'),
+  },
+  {
     path: '/:catchAll(.*)',
     name: 'NotFound',
     component: () => import('@/components/NotFoundPage.vue'),

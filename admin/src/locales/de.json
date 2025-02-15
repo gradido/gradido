@@ -1,5 +1,7 @@
 {
   "GDD": "GDD",
+  "actions": "Aktionen",
+  "alias": "Alias",
   "all_emails": "Alle Nutzer",
   "back": "zurück",
   "change_user_role": "Nutzerrolle ändern",
@@ -52,7 +54,6 @@
     "enter_text": "Text eintragen",
     "form": "Schöpfungsformular",
     "min_characters": "Mindestens 10 Zeichen eingeben",
-    "reset": "Zurücksetzen",
     "select_month": "Monat auswählen",
     "select_value": "Betrag auswählen",
     "submit_creation": "Schöpfung einreichen",
@@ -68,6 +69,7 @@
   "deleted": "gelöscht",
   "deleted_user": "Alle gelöschten Nutzer",
   "deny": "Ablehnen",
+  "description": "Beschreibung",
   "e_mail": "E-Mail",
   "edit": "bearbeiten",
   "enabled": "aktiviert",
@@ -127,6 +129,7 @@
   "lastname": "Nachname",
   "latitude": "Breitengrad:",
   "latitude-longitude-smart": "Breitengrad, Längengrad",
+  "logo": "Logo",
   "longitude": "Längengrad:",
   "math": {
     "equals": "=",
@@ -155,6 +158,8 @@
     "instances": "Instanzen",
     "logout": "Abmelden",
     "my-account": "Mein Konto",
+    "projectBranding": "Projekt Branding",
+    "projectBrandingTooltip": "Nutze ein eigenes Logo im Gradido Login und füge neue Benutzer einem Humhub-Space hinzu",
     "statistic": "Statistik",
     "user_search": "Nutzersuche"
   },
@@ -199,8 +204,15 @@
       "yes": "Ja, Nutzer wiederherstellen"
     }
   },
+  "projectBranding": {
+    "addTooltip": "Neuen Projekt Branding Eintrag hinzufügen",
+    "title": "Projekt Brandings",
+    "newUserToSpace": "Benutzer hinzufügen?",
+    "newUserToSpaceTooltip": "Neue Benutzer automatisch zum Space hinzufügen, falls Space vorhanden"
+  },
   "redeemed": "eingelöst",
   "removeNotSelf": "Als Admin/Moderator kannst du dich nicht selber löschen.",
+  "reset": "Zurücksetzen",
   "save": "Speichern",
   "statistic": {
     "activeUsers": "Aktive Mitglieder",
