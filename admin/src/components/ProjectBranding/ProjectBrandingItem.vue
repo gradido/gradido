@@ -4,7 +4,9 @@
       <BCol cols="3">{{ item.name }}</BCol>
       <BCol cols="2">{{ item.alias }}</BCol>
       <BCol cols="2">{{ item.newUserToSpace }}</BCol>
-      <BCol cols="3"><img :src="item.logoUrl" :alt="item.logoUrl" /></BCol>
+      <BCol cols="3" class="me-2">
+        <img class="img-fluid" :src="item.logoUrl" :alt="item.logoUrl" />
+      </BCol>
       <BCol cols="1">
         <BButton v-b-tooltip.hover variant="danger" :title="$t('delete')" @click.stop="deleteItem">
           <i class="fas fa-trash-alt"></i>

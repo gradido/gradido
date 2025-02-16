@@ -93,7 +93,7 @@ const validationSchema = object({
     .required(),
   description: string().nullable().optional(),
   newUserToSpace: boolean().optional(),
-  logoUrl: string().url('Logo URL must be a valid URL.').nullable().optional(),
+  logoUrl: string().url('Logo URL must be a valid URL.').max(255).nullable().optional(),
 })
 
 function updateField(value, name) {
