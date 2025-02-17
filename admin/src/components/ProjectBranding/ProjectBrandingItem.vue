@@ -6,6 +6,7 @@
         <br />
         {{ frontendLoginUrl }}
         <BButton
+          v-if="frontendLoginUrl"
           v-b-tooltip.hover
           variant="secondary"
           :title="$t('copy-to-clipboard')"
