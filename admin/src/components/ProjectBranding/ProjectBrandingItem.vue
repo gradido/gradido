@@ -62,7 +62,10 @@ const details = ref(false)
 
 const emit = defineEmits(['update:item', 'deleted:item'])
 const frontendLoginUrl = computed(() => {
-  return `${CONFIG.WALLET_LOGIN_URL}?project=${item.value.alias}`
+  if (item.value.alias && item.value.alias.length > 0) {
+    return `${CONFIG.WALLET_LOGIN_URL}?project=${item.value.alias}`
+  }
+  return undefined
 })
 
 async function copyToClipboard(text) {
