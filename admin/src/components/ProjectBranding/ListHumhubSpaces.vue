@@ -31,6 +31,7 @@
       :total-rows="result.spaces.total"
       :per-page="ITEMS_PER_PAGE"
       aria-controls="list-humhub-spaces"
+      @update:model-value="refetch({ page: $event })"
     />
   </div>
 </template>
@@ -54,8 +55,8 @@ const page = ref(1)
 const selectedSpaceId = ref(props.modelValue)
 const { result, refetch } = useQuery(
   gql`
-    query spaces($page: Int!) {
-      spaces(page: $page) {
+    query spaces($page: Int!, $limit: Int!) {
+      spaces(page: $page, limit: $limit) {
         total
         page
         pages
@@ -78,40 +79,21 @@ watch(
   (newValue) => emit('update:modelValue', newValue),
 )
 
-watch(
-  () => props.modelValue,
-  (newValue) => {
-    console.log('space id updated, new value:', newValue)
-  },
-)
-
 onMounted(() => {
-  console.log('on mounted', props.modelValue)
-  if (props.spaceId) {
-    const targetPage = Math.ceil(props.spaceId / ITEMS_PER_PAGE)
+  if (props.modelValue) {
+    const targetPage = Math.ceil(props.modelValue / ITEMS_PER_PAGE)
     page.value = targetPage
     refetch({ page: targetPage })
   }
 })
-
-const prevPage = () => {
-  if (page.value > 1) {
-    page.value -= 1
-    refetch({ page: page.value })
-  }
-}
-
-const nextPage = () => {
-  if (hasMore.value) {
-    page.value += 1
-    refetch({ page: page.value })
-  }
-}
 </script>
 <style scoped>
 .list-group-item-action:hover:not(.active) {
   background-color: #ececec;
   color: #0056b3;
   transition: background-color 0.2s ease-in-out;
+}
+.list-group-item-action.active > a {
+  color: white;
 }
 </style>

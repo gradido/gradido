@@ -111,12 +111,11 @@ const GET_SPACE = gql`
     }
   }
 `
-const { result, loading } = useQuery(GET_SPACE, () => ({ id: spaceId.value }), {
+const { result } = useQuery(GET_SPACE, () => ({ id: spaceId.value }), {
   enabled: computed(() => !!spaceId.value),
 })
 
 const selectedSpaceText = computed(() => {
-  console.log('selectedSpaceText: ', result.value)
   if (!spaceId.value) {
     return t('projectBranding.selectSpace')
   }
