@@ -1,6 +1,8 @@
 import { ProjectBranding as dbProjectBranding } from '@entity/ProjectBranding'
 import { ObjectType, Field, Int } from 'type-graphql'
 
+import { Space } from './Space'
+
 @ObjectType()
 export class ProjectBranding {
   constructor(projectBranding: dbProjectBranding) {
@@ -21,6 +23,9 @@ export class ProjectBranding {
 
   @Field(() => Int, { nullable: true })
   spaceId: number | null
+
+  @Field(() => Space, { nullable: true })
+  space: Space | null
 
   @Field(() => Boolean)
   newUserToSpace: boolean

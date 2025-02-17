@@ -44,6 +44,8 @@
     "denied": "Rejected",
     "open": "Open"
   },
+  "copy-to-clipboard": "Copy to clipboard",
+  "copied-to-clipboard": "Copied to clipboard",
   "created": "Created for",
   "createdAt": "Created at",
   "creation": "Creation",
@@ -130,6 +132,7 @@
   "lastname": "Lastname",
   "latitude": "Latitude:",
   "latitude-longitude-smart": "Latitude, Longitude",
+  "link": "Link",
   "logo": "Logo",
   "longitude": "Longitude:",
   "math": {
@@ -207,6 +210,11 @@
   },
   "projectBranding": {
     "addTooltip": "Add new project branding entry",
+    "chosenSpace": "Choosen Humhub Space: {space}",
+    "noAccessRightSpace": "Selected space: {spaceId} (No access rights)",
+    "openSpaceInHumhub": "Open in Humhub",
+    "spaceId": "Humhub Space ID",
+    "selectSpace": "Select Humhub Space",
     "title": "Project Branding",
     "newUserToSpace": "Add user?",
     "newUserToSpaceTooltip": "The hours should contain a maximum of two decimal places"

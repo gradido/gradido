@@ -1,14 +1,17 @@
 import { ProjectBranding as DbProjectBranding } from '@entity/ProjectBranding'
-import { Resolver, Query, Mutation, Arg, Int, Authorized, ID } from 'type-graphql'
+import { Resolver, Query, Mutation, Arg, Int, Authorized, ID, FieldResolver, Root } from 'type-graphql'
 
 import { ProjectBrandingInput } from '@input/ProjectBrandingInput'
 import { ProjectBranding } from '@model/ProjectBranding'
+import { Space } from '@model/Space'
+import { SpaceList } from '@model/SpaceList'
 
+import { HumHubClient } from '@/apis/humhub/HumHubClient'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 
-@Resolver()
+@Resolver(() => ProjectBranding)
 export class ProjectBrandingResolver {
   @Query(() => [ProjectBranding])
   @Authorized([RIGHTS.PROJECT_BRANDING_VIEW])
@@ -66,5 +69,38 @@ export class ProjectBrandingResolver {
       logger.error(err)
       return false
     }
+  }
+
+  @Query(() => Space)
+  @Authorized([RIGHTS.LIST_HUMHUB_SPACES])
+  async space(@Arg('id', () => ID) id: number): Promise<Space> {
+    const humhub = HumHubClient.getInstance()
+    if (!humhub) {
+      throw new LogError('HumHub client not initialized')
+    }
+
+    const space = await humhub.space(id)
+    if (!space) {
+      throw new LogError(`Error requesting space with id: ${id} from HumHub`)
+    }
+    return new Space(space)
+  }
+
+  @Query(() => SpaceList)
+  @Authorized([RIGHTS.LIST_HUMHUB_SPACES])
+  async spaces(
+    @Arg('page', () => Int, { defaultValue: 1 }) page: number,
+    @Arg('limit', () => Int, { defaultValue: 20 }) limit: number,
+  ): Promise<SpaceList> {
+    const humhub = HumHubClient.getInstance()
+    if (!humhub) {
+      throw new LogError('HumHub client not initialized')
+    }
+    const offset = (page - 1) * limit
+    const spaces = await humhub.spaces(offset, limit)
+    if (!spaces) {
+      throw new LogError('Error requesting spaces from HumHub')
+    }
+    return new SpaceList(spaces)
   }
 }

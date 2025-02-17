@@ -26,6 +26,14 @@
         class="mb-3"
         @update:model-value="updateField"
       />
+      <BButton
+        variant="outline-secondary"
+        class="mb-3"
+        :title="result?.space.description"
+        @click="isModalVisible = true"
+      >
+        {{ selectedSpaceText }}
+      </BButton>
       <BFormGroup
         :label="$t('projectBranding.newUserToSpace')"
         label-for="newUserToSpace-input-field"
@@ -58,20 +66,32 @@
         <BButton type="reset" variant="secondary" @click="resetForm">{{ $t('reset') }}</BButton>
       </div>
     </BForm>
+    <BModal v-model="isModalVisible" title="Select Space" hide-footer>
+      <ListHumhubSpaces
+        :model-value="spaceId"
+        @update:model-value="(value) => updateField(value, 'spaceId')"
+      />
+    </BModal>
   </div>
 </template>
 
 <script setup>
 import ValidatedInput from '@/components/input/ValidatedInput'
+import ListHumhubSpaces from '@/components/ProjectBranding/ListHumhubSpaces.vue'
+import { useI18n } from 'vue-i18n'
 import { reactive, computed, watch, ref } from 'vue'
-import { object, string, boolean } from 'yup'
+import { object, string, boolean, number } from 'yup'
+import { useQuery } from '@vue/apollo-composable'
+import gql from 'graphql-tag'
 
 const props = defineProps({
   modelValue: { type: Object, required: true },
 })
 
 const form = reactive({ ...props.modelValue })
+const isModalVisible = ref(false)
 const errorMessage = ref('')
+const { t } = useI18n()
 watch(
   () => props.modelValue,
   (newValue) => Object.assign(form, newValue),
@@ -79,8 +99,32 @@ watch(
 const name = computed(() => form.name)
 const alias = computed(() => form.alias)
 const description = computed(() => form.description)
+const spaceId = computed(() => form.spaceId)
 const newUserToSpace = computed(() => form.newUserToSpace)
 const logoUrl = computed(() => form.logoUrl)
+// show space
+const GET_SPACE = gql`
+  query space($id: ID!) {
+    space(id: $id) {
+      name
+      description
+    }
+  }
+`
+const { result, loading } = useQuery(GET_SPACE, () => ({ id: spaceId.value }), {
+  enabled: computed(() => !!spaceId.value),
+})
+
+const selectedSpaceText = computed(() => {
+  console.log('selectedSpaceText: ', result.value)
+  if (!spaceId.value) {
+    return t('projectBranding.selectSpace')
+  }
+  if (!result.value?.space) {
+    return t('projectBranding.noAccessRightSpace', { spaceId: spaceId.value })
+  }
+  return t('projectBranding.chosenSpace', { space: result.value.space.name })
+})
 
 const validationSchema = object({
   name: string().min(3).max(255).required(),
@@ -92,12 +136,14 @@ const validationSchema = object({
     .max(32)
     .required(),
   description: string().nullable().optional(),
+  spaceId: number().nullable().optional(),
   newUserToSpace: boolean().optional(),
   logoUrl: string().url('Logo URL must be a valid URL.').max(255).nullable().optional(),
 })
 
 function updateField(value, name) {
   form[name] = value
+  console.log('updateField called with', { value, name })
 }
 const emit = defineEmits(['update:modelValue'])
 function submit() {
@@ -117,6 +163,7 @@ function resetForm() {
       name: '',
       alias: '',
       description: undefined,
+      spaceId: undefined,
       newUserToSpace: false,
       logoUrl: undefined,
     })

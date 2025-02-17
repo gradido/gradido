@@ -26,7 +26,7 @@
     </div>
     <BListGroup>
       <BRow>
-        <BCol cols="3" class="ms-1">{{ $t('name') }}</BCol>
+        <BCol cols="3" class="ms-1">{{ $t('name') }} + {{ $t('link') }}</BCol>
         <BCol cols="2">{{ $t('alias') }}</BCol>
         <BCol cols="2" :title="$t('projectBranding.newUserToSpaceTooltip')">
           {{ $t('projectBranding.newUserToSpace') }}

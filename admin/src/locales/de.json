@@ -44,6 +44,8 @@
     "denied": "Abgelehnt",
     "open": "Offen"
   },
+  "copy-to-clipboard": "In die Zwischenablage kopieren",
+  "copied-to-clipboard": "In die Zwischenablage kopiert",
   "created": "Geschöpft",
   "createdAt": "Angelegt",
   "creation": "Schöpfung",
@@ -129,6 +131,7 @@
   "lastname": "Nachname",
   "latitude": "Breitengrad:",
   "latitude-longitude-smart": "Breitengrad, Längengrad",
+  "link": "Link",
   "logo": "Logo",
   "longitude": "Längengrad:",
   "math": {
@@ -206,6 +209,11 @@
   },
   "projectBranding": {
     "addTooltip": "Neuen Projekt Branding Eintrag hinzufügen",
+    "chosenSpace": "Gewählter Space: {space}",
+    "noAccessRightSpace": "Gewählter Space: {spaceId} (Keine Zugriffsrechte)",
+    "openSpaceInHumhub": "In Humhub öffnen",
+    "spaceId": "Humhub Space ID",
+    "selectSpace": "Humhub Space auswählen",
     "title": "Projekt Brandings",
     "newUserToSpace": "Benutzer hinzufügen?",
     "newUserToSpaceTooltip": "Neue Benutzer automatisch zum Space hinzufügen, falls Space vorhanden"

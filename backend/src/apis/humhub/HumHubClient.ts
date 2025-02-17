@@ -8,7 +8,9 @@ import { backendLogger as logger } from '@/server/logger'
 import { PostUserLoggingView } from './logging/PostUserLogging.view'
 import { GetUser } from './model/GetUser'
 import { PostUser } from './model/PostUser'
+import { SpacesResponse } from './model/SpacesResponse'
 import { UsersResponse } from './model/UsersResponse'
+import { Space } from './model/Space'
 
 /**
  * HumHubClient as singleton class
@@ -185,6 +187,29 @@ export class HumHubClient {
     } else if (response.statusCode !== 200) {
       throw new LogError('error deleting user', { userId: humhubUserId, response })
     }
+  }
+
+  // get spaces from humhub
+  // https://marketplace.humhub.com/module/rest/docs/html/space.html#tag/Space/paths/~1space/get
+  public async spaces(page = 0, limit = 20): Promise<SpacesResponse | null> {
+    const options = await this.createRequestOptions({ page, limit })
+    const response = await this.restClient.get<SpacesResponse>('/api/v1/space', options)
+    if (response.statusCode !== 200) {
+      throw new LogError('error requesting spaces from humhub', response)
+    }
+    return response.result
+  }
+
+  // get space by id  from humhub instance
+  // https://marketplace.humhub.com/module/rest/docs/html/space.html#tag/Space/paths/~1space~1{id}/get
+  public async space(spaceId: number): Promise<Space | null> {
+    const options = await this.createRequestOptions()
+    const response = await this.restClient.get<Space>(`/api/v1/space/${spaceId}`, options)
+    console.log(response)
+    if (response.statusCode !== 200) {
+      throw new LogError('error requesting space from humhub', response)
+    }
+    return response.result
   }
 }
 
