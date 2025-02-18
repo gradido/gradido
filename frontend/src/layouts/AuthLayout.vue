@@ -23,7 +23,16 @@
                 <auth-navbar-small />
               </BCol>
             </BRow>
-            <BRow class="mt-0 mt-md-5 ps-2 ps-md-0 ps-lg-0">
+            <BRow v-if="projectBannerResult || projectBannerLoading" class="d-none d-md-block">
+              <BCol>
+                <BImg
+                  :src="projectBannerResult.projectBrandingBanner"
+                  class="img-fluid"
+                  alt="project banner"
+                />
+              </BCol>
+            </BRow>
+            <BRow v-else class="mt-0 mt-md-5 ps-2 ps-md-0 ps-lg-0">
               <BCol lg="9" md="9" sm="12">
                 <div class="mb--2">{{ $t('welcome') }}</div>
                 <div class="h1 mb-0">{{ communityName }}</div>
@@ -85,34 +94,37 @@
   </div>
 </template>
 
-<script>
+<script setup>
+import { ref, computed } from 'vue'
+import { useQuery } from '@vue/apollo-composable'
 import AuthNavbar from '@/components/Auth/AuthNavbar'
 import AuthNavbarSmall from '@/components/Auth/AuthNavbarSmall'
 import AuthCarousel from '@/components/Auth/AuthCarousel'
 import LanguageSwitch2 from '@/components/LanguageSwitch2'
 import AuthFooter from '@/components/Auth/AuthFooter'
 import CONFIG from '@/config'
+import gql from 'graphql-tag'
 
-export default {
-  name: 'AuthLayout',
-  components: {
-    AuthNavbar,
-    AuthNavbarSmall,
-    AuthCarousel,
-    LanguageSwitch2,
-    AuthFooter,
-  },
-  data() {
-    return {
-      communityName: CONFIG.COMMUNITY_NAME,
-    }
-  },
-  methods: {
-    setTextSize(size) {
-      this.$refs.pageFontSize.$el.style.fontSize = size + 'rem'
-    },
-  },
+const communityName = CONFIG.COMMUNITY_NAME
+
+const setTextSize = (size) => {
+  document.querySelector('.page-font-size').style.fontSize = size + 'rem'
 }
+
+const project = computed(() => {
+  const urlParams = new URLSearchParams(window.location.search)
+  return urlParams.get('project')
+})
+
+const { result: projectBannerResult, loading: projectBannerLoading } = useQuery(
+  gql`
+    query ($project: String!) {
+      projectBrandingBanner(alias: $project)
+    }
+  `,
+  { project },
+  { enabled: !!project.value },
+)
 </script>
 
 <style lang="scss" scoped>
