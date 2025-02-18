@@ -1,6 +1,6 @@
 <template>
   <div class="project-branding-item">
-    <BRow :title="item.description" @click="details = !details">
+    <BRow :title="item.description" @click="toggleDetails">
       <BCol cols="3">
         {{ item.name }}
         <br />
@@ -27,7 +27,7 @@
       <BCol cols="3" class="me-2">
         <img class="img-fluid" :src="item.logoUrl" :alt="item.logoUrl" />
       </BCol>
-      <BCol cols="1">
+      <BCol v-if="store.state.moderator.roles.includes('ADMIN')" cols="1">
         <BButton v-b-tooltip.hover variant="danger" :title="$t('delete')" @click.stop="deleteItem">
           <i class="fas fa-trash-alt"></i>
         </BButton>
@@ -47,12 +47,14 @@
 import { computed, ref, toRefs } from 'vue'
 import ProjectBrandingForm from './ProjectBrandingForm.vue'
 import { useI18n } from 'vue-i18n'
+import { useStore } from 'vuex'
 import { useMutation } from '@vue/apollo-composable'
 import CONFIG from '@/config'
 import gql from 'graphql-tag'
 import { useAppToast } from '@/composables/useToast'
 
 const { t } = useI18n()
+const store = useStore()
 const { toastSuccess, toastError } = useAppToast()
 
 const props = defineProps({
@@ -75,6 +77,12 @@ async function copyToClipboard(text) {
     toastSuccess(t('copied-to-clipboard'))
   } catch (err) {
     toastError(err.message)
+  }
+}
+
+function toggleDetails() {
+  if (store.state.moderator.roles.includes('ADMIN')) {
+    details.value = !details.value
   }
 }
 

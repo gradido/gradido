@@ -4,6 +4,7 @@
       <span class="h2">{{ $t('projectBranding.title') }}</span>
       <div>
         <BButton
+          v-if="store.state.moderator.roles.includes('ADMIN')"
           variant="primary"
           data-test="project-branding-add-btn"
           font-scale="2"
@@ -32,7 +33,9 @@
           {{ $t('projectBranding.newUserToSpace') }}
         </BCol>
         <BCol cols="3">{{ $t('logo') }}</BCol>
-        <BCol cols="1">{{ $t('actions') }}</BCol>
+        <BCol v-if="store.state.moderator.roles.includes('ADMIN')" cols="1">
+          {{ $t('actions') }}
+        </BCol>
       </BRow>
       <BListGroupItem v-for="item in projectBrandings" :key="item.id">
         <project-branding-item
@@ -48,10 +51,12 @@
 <script setup>
 import { computed, watch, ref } from 'vue'
 import { useQuery } from '@vue/apollo-composable'
+import { useStore } from 'vuex'
 import { useAppToast } from '@/composables/useToast'
 import gql from 'graphql-tag'
 
 const { toastError } = useAppToast()
+const store = useStore()
 
 const { result, loading, refetch, error } = useQuery(
   gql`
