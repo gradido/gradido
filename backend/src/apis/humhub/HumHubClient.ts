@@ -11,6 +11,7 @@ import { PostUser } from './model/PostUser'
 import { SpacesResponse } from './model/SpacesResponse'
 import { UsersResponse } from './model/UsersResponse'
 import { Space } from './model/Space'
+import { ProjectBranding } from '@entity/ProjectBranding'
 
 /**
  * HumHubClient as singleton class
@@ -63,16 +64,31 @@ export class HumHubClient {
     return token
   }
 
-  public async createAutoLoginUrl(username: string) {
+  public async createAutoLoginUrl(username: string, project?: string | null) {
     const secret = new TextEncoder().encode(CONFIG.HUMHUB_JWT_KEY)
     logger.info(`user ${username} as username for humhub auto-login`)
+    let projectBrandingPromise: Promise<ProjectBranding | null> | undefined
+    if (project) {
+      projectBrandingPromise = ProjectBranding.findOne({
+        where: { alias: project },
+        select: { spaceUrl: true },
+      })
+    }
     const token = await new SignJWT({ username })
       .setProtectedHeader({ alg: 'HS256' })
       .setIssuedAt()
       .setExpirationTime(CONFIG.JWT_EXPIRES_IN)
       .sign(secret)
 
-    return `${CONFIG.HUMHUB_API_URL}user/auth/external?authclient=jwt&jwt=${token}`
+    let loginUrl = `${CONFIG.HUMHUB_API_URL}user/auth/external?authclient=jwt&jwt=${token}`
+    if (projectBrandingPromise) {
+      const projectBranding = await projectBrandingPromise
+      if (projectBranding?.spaceUrl) {
+        loginUrl += `&redirect=${projectBranding.spaceUrl as string}`
+      }
+    }
+
+    return loginUrl
   }
 
   /**
@@ -205,12 +221,23 @@ export class HumHubClient {
   public async space(spaceId: number): Promise<Space | null> {
     const options = await this.createRequestOptions()
     const response = await this.restClient.get<Space>(`/api/v1/space/${spaceId}`, options)
-    console.log(response)
     if (response.statusCode !== 200) {
       throw new LogError('error requesting space from humhub', response)
     }
     return response.result
   }
-}
 
-// new RestClient('gradido', 'api/v1/')
+  // add user to space
+  // https://marketplace.humhub.com/module/rest/docs/html/space.html#tag/Membership/paths/~1space~1%7Bid%7D~1membership~1%7BuserId%7D/post
+  public async addUserToSpace(userId: number, spaceId: number): Promise<void> {
+    const options = await this.createRequestOptions()
+    const response = await this.restClient.create(
+      `/api/v1/space/${spaceId}/membership/${userId}`,
+      { userId },
+      options,
+    )
+    if (response.statusCode !== 200) {
+      throw new LogError('error adding user to space', response)
+    }
+  }
+}

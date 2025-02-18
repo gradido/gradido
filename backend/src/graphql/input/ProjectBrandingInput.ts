@@ -26,6 +26,12 @@ export class ProjectBrandingInput {
   @IsOptional()
   spaceId: number | null | undefined
 
+  @Field(() => String, { nullable: true })
+  @IsOptional()
+  @IsString()
+  @IsUrl()
+  spaceUrl: string | null | undefined
+
   @Field(() => Boolean)
   @IsBoolean()
   newUserToSpace: boolean

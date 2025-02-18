@@ -6,10 +6,17 @@ import { ExecutedHumhubAction, syncUser } from '@/apis/humhub/syncUser'
 import { UpdateUserInfosArgs } from '@/graphql/arg/UpdateUserInfosArgs'
 import { backendLogger as logger } from '@/server/logger'
 
+/**
+ * Syncs the user with humhub
+ * @param updateUserInfosArg
+ * @param user
+ * @returns humhub user id or undefined
+ */
 export async function syncHumhub(
   updateUserInfosArg: UpdateUserInfosArgs | null,
   user: User,
-): Promise<void> {
+  spaceId?: number | null,
+): Promise<number | undefined> {
   // check for humhub relevant changes
   if (
     updateUserInfosArg &&
@@ -47,4 +54,9 @@ export async function syncHumhub(
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     result: ExecutedHumhubAction[result as ExecutedHumhubAction],
   })
+  if (spaceId && humhubUser) {
+    logger.debug(`add user to space ${spaceId}`)
+    await humhubClient.addUserToSpace(humhubUser.id, spaceId)
+  }
+  return user.id
 }

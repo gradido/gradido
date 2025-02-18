@@ -17,6 +17,9 @@ export class ProjectBranding extends BaseEntity {
   @Column({ name: 'space_id', type: 'int', unsigned: true, nullable: true, default: null })
   spaceId: number | null
 
+  @Column({ name: 'space_url', type: 'varchar', length: 255, nullable: true, default: null })
+  spaceUrl: string | null
+
   @Column({ name: 'new_user_to_space', type: 'tinyint', width: 1, default: 0 })
   newUserToSpace: boolean
 

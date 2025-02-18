@@ -42,6 +42,11 @@ export const authenticateHumhubAutoLogin = gql`
     authenticateHumhubAutoLogin
   }
 `
+export const authenticateHumhubAutoLoginProject = gql`
+  query ($project: String!) {
+    authenticateHumhubAutoLogin(project: $project)
+  }
+`
 
 export const transactionsQuery = gql`
   query ($currentPage: Int = 1, $pageSize: Int = 25, $order: Order = DESC) {

@@ -87,7 +87,6 @@ function toggleDetails() {
 }
 
 function update(form) {
-  details.value = false
   const { mutate } = useMutation(gql`
     mutation upsertProjectBranding($input: ProjectBrandingInput!) {
       upsertProjectBranding(input: $input) {
@@ -96,6 +95,7 @@ function update(form) {
         alias
         description
         spaceId
+        spaceUrl
         newUserToSpace
         logoUrl
       }
@@ -104,9 +104,19 @@ function update(form) {
 
   mutate({
     input: { ...form },
-  }).then(({ data }) => {
-    emit('update:item', data.upsertProjectBranding)
   })
+    .then(({ data }) => {
+      emit('update:item', data.upsertProjectBranding)
+      if (form.id) {
+        toastSuccess(t('projectBranding.updated'))
+      } else {
+        toastSuccess(t('projectBranding.created'))
+      }
+      details.value = false
+    })
+    .catch((error) => {
+      toastError(t('projectBranding.error', { message: error.message }))
+    })
 }
 function deleteItem() {
   const { mutate } = useMutation(gql`

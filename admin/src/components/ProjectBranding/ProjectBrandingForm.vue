@@ -67,10 +67,7 @@
       </div>
     </BForm>
     <BModal v-model="isModalVisible" title="Select Space" hide-footer>
-      <ListHumhubSpaces
-        :model-value="spaceId"
-        @update:model-value="(value) => updateField(value, 'spaceId')"
-      />
+      <ListHumhubSpaces :model-value="spaceId" @choose-space="chooseSpace" />
     </BModal>
   </div>
 </template>
@@ -136,13 +133,18 @@ const validationSchema = object({
     .required(),
   description: string().nullable().optional(),
   spaceId: number().nullable().optional(),
+  spaceUrl: string().url('Space URL must be a valid URL.').max(255).nullable().optional(),
   newUserToSpace: boolean().optional(),
   logoUrl: string().url('Logo URL must be a valid URL.').max(255).nullable().optional(),
 })
 
+function chooseSpace(value) {
+  updateField(value.id, 'spaceId')
+  updateField(value.url, 'spaceUrl')
+}
+
 function updateField(value, name) {
   form[name] = value
-  console.log('updateField called with', { value, name })
 }
 const emit = defineEmits(['update:modelValue'])
 function submit() {
@@ -163,6 +165,7 @@ function resetForm() {
       alias: '',
       description: undefined,
       spaceId: undefined,
+      spaceUrl: undefined,
       newUserToSpace: false,
       logoUrl: undefined,
     })

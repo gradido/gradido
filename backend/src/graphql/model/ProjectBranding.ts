@@ -24,8 +24,8 @@ export class ProjectBranding {
   @Field(() => Int, { nullable: true })
   spaceId: number | null
 
-  @Field(() => Space, { nullable: true })
-  space: Space | null
+  @Field(() => String, { nullable: true })
+  spaceUrl: string | null
 
   @Field(() => Boolean)
   newUserToSpace: boolean

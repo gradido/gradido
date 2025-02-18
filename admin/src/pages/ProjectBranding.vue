@@ -99,6 +99,7 @@ function createEntry() {
     alias: '',
     description: undefined,
     spaceId: undefined,
+    spaceUrl: undefined,
     newUserToSpace: false,
     logoUrl: undefined,
   })

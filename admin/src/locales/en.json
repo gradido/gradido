@@ -211,11 +211,14 @@
   "projectBranding": {
     "addTooltip": "Add new project branding entry",
     "chosenSpace": "Choosen Humhub Space: {space}",
+    "created": "New project branding entry has been created.",
+    "error": "Error when creating the project branding entry: {message}",
     "noAccessRightSpace": "Selected space: {spaceId} (No access rights)",
     "openSpaceInHumhub": "Open in Humhub",
     "spaceId": "Humhub Space ID",
     "selectSpace": "Select Humhub Space",
     "title": "Project Branding",
+    "updated": "Project branding entry has been updated.",
     "newUserToSpace": "Add user?",
     "newUserToSpaceTooltip": "The hours should contain a maximum of two decimal places"
   },

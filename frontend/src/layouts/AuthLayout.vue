@@ -26,6 +26,7 @@
             <BRow v-if="projectBannerResult || projectBannerLoading" class="d-none d-md-block">
               <BCol>
                 <BImg
+                  v-if="projectBannerResult"
                   :src="projectBannerResult.projectBrandingBanner"
                   class="img-fluid"
                   alt="project banner"
@@ -95,7 +96,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { onMounted, computed } from 'vue'
 import { useQuery } from '@vue/apollo-composable'
 import AuthNavbar from '@/components/Auth/AuthNavbar'
 import AuthNavbarSmall from '@/components/Auth/AuthNavbarSmall'
@@ -103,28 +104,39 @@ import AuthCarousel from '@/components/Auth/AuthCarousel'
 import LanguageSwitch2 from '@/components/LanguageSwitch2'
 import AuthFooter from '@/components/Auth/AuthFooter'
 import CONFIG from '@/config'
+import { useStore } from 'vuex'
 import gql from 'graphql-tag'
 
 const communityName = CONFIG.COMMUNITY_NAME
+const store = useStore()
 
 const setTextSize = (size) => {
   document.querySelector('.page-font-size').style.fontSize = size + 'rem'
 }
 
-const project = computed(() => {
-  const urlParams = new URLSearchParams(window.location.search)
-  return urlParams.get('project')
-})
+const project = computed(() => store.state.project)
 
-const { result: projectBannerResult, loading: projectBannerLoading } = useQuery(
+const {
+  result: projectBannerResult,
+  loading: projectBannerLoading,
+  refetch,
+} = useQuery(
   gql`
     query ($project: String!) {
       projectBrandingBanner(alias: $project)
     }
   `,
   { project },
-  { enabled: !!project.value },
 )
+onMounted(async () => {
+  const urlParams = new URLSearchParams(window.location.search)
+  const projectValue = urlParams.get('project')
+  if (projectValue) {
+    store.commit('project', projectValue)
+  } else {
+    store.commit('project', '')
+  }
+})
 </script>
 
 <style lang="scss" scoped>

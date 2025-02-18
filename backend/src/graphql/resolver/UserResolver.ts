@@ -4,6 +4,7 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { getConnection, In, Point } from '@dbTools/typeorm'
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
+import { ProjectBranding } from '@entity/ProjectBranding'
 import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
 import { User as DbUser } from '@entity/User'
 import { UserContact as DbUserContact } from '@entity/UserContact'
@@ -249,6 +250,7 @@ export class UserResolver {
       language,
       publisherId = null,
       redeemCode = null,
+      project = null,
     }: CreateUserArgs,
   ): Promise<User> {
     logger.addContext('user', 'unknown')
@@ -397,7 +399,17 @@ export class UserResolver {
     }
     logger.info('createUser() successful...')
     if (CONFIG.HUMHUB_ACTIVE) {
-      void syncHumhub(null, dbUser)
+      let spaceId: number | null = null
+      if (project) {
+        const projectBranding = await ProjectBranding.findOne({
+          where: { alias: project, newUserToSpace: true },
+          select: { spaceId: true },
+        })
+        if (projectBranding) {
+          spaceId = projectBranding.spaceId
+        }
+      }
+      void syncHumhub(null, dbUser, spaceId)
     }
 
     if (redeemCode) {
@@ -771,7 +783,10 @@ export class UserResolver {
 
   @Authorized([RIGHTS.HUMHUB_AUTO_LOGIN])
   @Query(() => String)
-  async authenticateHumhubAutoLogin(@Ctx() context: Context): Promise<string> {
+  async authenticateHumhubAutoLogin(
+    @Ctx() context: Context,
+    @Arg('project', () => String, { nullable: true }) project?: string | null,
+  ): Promise<string> {
     logger.info(`authenticateHumhubAutoLogin()...`)
     const dbUser = getUser(context)
     const humhubClient = HumHubClient.getInstance()
@@ -790,7 +805,7 @@ export class UserResolver {
     if (humhubUser.account.status !== 1) {
       throw new LogError('user status is not 1', humhubUser.account.status)
     }
-    return await humhubClient.createAutoLoginUrl(humhubUser.account.username)
+    return await humhubClient.createAutoLoginUrl(humhubUser.account.username, project)
   }
 
   @Authorized([RIGHTS.SEARCH_ADMIN_USERS])

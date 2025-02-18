@@ -210,11 +210,14 @@
   "projectBranding": {
     "addTooltip": "Neuen Projekt Branding Eintrag hinzufügen",
     "chosenSpace": "Gewählter Space: {space}",
+    "created": "Neuer Projekt Branding Eintrag wurde erstellt.",
+    "error": "Fehler beim Erstellen des Projekt Branding Eintrags: {message}",
     "noAccessRightSpace": "Gewählter Space: {spaceId} (Keine Zugriffsrechte)",
     "openSpaceInHumhub": "In Humhub öffnen",
     "spaceId": "Humhub Space ID",
     "selectSpace": "Humhub Space auswählen",
     "title": "Projekt Brandings",
+    "updated": "Projekt Branding Eintrag wurde aktualisiert.",
     "newUserToSpace": "Benutzer hinzufügen?",
     "newUserToSpaceTooltip": "Neue Benutzer automatisch zum Space hinzufügen, falls Space vorhanden"
   },

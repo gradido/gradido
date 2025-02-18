@@ -13,8 +13,9 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
       \`alias\` VARCHAR(32) NOT NULL,
       \`description\` TEXT NULL DEFAULT NULL,
       \`space_id\` INT UNSIGNED NULL DEFAULT NULL,
+      \`space_url\` VARCHAR(255) NULL DEFAULT NULL,
       \`new_user_to_space\` TINYINT(1) NOT NULL DEFAULT FALSE,
-      \`logo_url\` VARCHAR(255) NULL DEFAULT NULL,    
+      \`logo_url\` VARCHAR(255) NULL DEFAULT NULL,
       PRIMARY KEY(\`id\`)
     ) ENGINE = InnoDB;
   `)

@@ -14,7 +14,7 @@
           'cursor-pointer',
           { active: space.id === selectedSpaceId },
         ]"
-        @click="selectedSpaceId = space.id"
+        @click="chooseSpace(space)"
       >
         <div>
           <input v-model="selectedSpaceId" type="radio" :value="space.id" class="me-2" />
@@ -37,7 +37,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useQuery } from '@vue/apollo-composable'
 import gql from 'graphql-tag'
 
@@ -48,7 +48,11 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['chooseSpace'])
+function chooseSpace(space) {
+  selectedSpaceId.value = space.id
+  emit('chooseSpace', space)
+}
 
 const ITEMS_PER_PAGE = 20
 const page = ref(1)
@@ -74,16 +78,13 @@ const { result, refetch } = useQuery(
 
 const spaces = computed(() => result.value?.spaces?.results || [])
 
-watch(
-  () => selectedSpaceId.value,
-  (newValue) => emit('update:modelValue', newValue),
-)
-
 onMounted(() => {
   if (props.modelValue) {
-    const targetPage = Math.ceil(props.modelValue / ITEMS_PER_PAGE)
-    page.value = targetPage
-    refetch({ page: targetPage })
+    if (!spaces.value.some((space) => space.id === props.modelValue)) {
+      const targetPage = Math.ceil(props.modelValue / ITEMS_PER_PAGE)
+      page.value = targetPage
+      refetch({ page: targetPage })
+    }
   }
 })
 </script>
