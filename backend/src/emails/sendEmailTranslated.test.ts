@@ -23,11 +23,11 @@ jest.mock('nodemailer', () => {
     __esModule: true,
     createTransport: jest.fn(() => {
       return {
-        sendMail: jest.fn(() => {
+        sendMail: () => {
           return {
             messageId: 'message',
           }
-        }),
+        },
       }
     }),
   }
