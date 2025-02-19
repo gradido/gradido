@@ -1,22 +1,27 @@
 import { User as dbUser } from '@entity/User'
 
-import { GmsPublishLocationType } from '@/graphql/enum/GmsPublishLocationType'
+import { PublishNameLogic } from '@/data/PublishName.logic'
+// import { GmsPublishLocationType } from '@/graphql/enum/GmsPublishLocationType'
 import { GmsPublishPhoneType } from '@/graphql/enum/GmsPublishPhoneType'
 import { PublishNameType } from '@/graphql/enum/PublishNameType'
 
 export class GmsUser {
   constructor(user: dbUser) {
+    const pnLogic = new PublishNameLogic(user)
+
     this.userUuid = user.gradidoID
     // this.communityUuid = user.communityUuid
     this.language = user.language
     this.email = this.getGmsEmail(user)
     this.countryCode = this.getGmsCountryCode(user)
     this.mobile = this.getGmsPhone(user)
-    this.firstName = this.getGmsFirstName(user)
-    this.lastName = this.getGmsLastName(user)
+    const fn = pnLogic.getFirstName(user.gmsPublishName)
+    this.firstName = fn !== '' ? fn : null // getGmsFirstName(user)
+    const ln = pnLogic.getLastName(user.gmsPublishName)
+    this.lastName = ln !== '' ? ln : null // getGmsLastName(user)
     this.alias = this.getGmsAlias(user)
-    this.type = GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM
-    this.location = null
+    this.type = user.gmsPublishLocation // GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM
+    this.location = user.location
   }
 
   id: number
@@ -101,7 +106,7 @@ export class GmsUser {
   }
 
   private getGmsEmail(user: dbUser): string | undefined {
-    if (user.gmsAllowed && user.emailContact.gmsPublishEmail) {
+    if (user.gmsAllowed && user.emailContact?.gmsPublishEmail) {
       return user.emailContact.email
     }
   }
@@ -109,19 +114,19 @@ export class GmsUser {
   private getGmsCountryCode(user: dbUser): string | undefined {
     if (
       user.gmsAllowed &&
-      (user.emailContact.gmsPublishPhone === GmsPublishPhoneType.GMS_PUBLISH_PHONE_COUNTRY ||
-        user.emailContact.gmsPublishPhone === GmsPublishPhoneType.GMS_PUBLISH_PHONE_FULL)
+      (user.emailContact?.gmsPublishPhone === GmsPublishPhoneType.GMS_PUBLISH_PHONE_COUNTRY ||
+        user.emailContact?.gmsPublishPhone === GmsPublishPhoneType.GMS_PUBLISH_PHONE_FULL)
     ) {
-      return user.emailContact.countryCode
+      return user.emailContact?.countryCode
     }
   }
 
   private getGmsPhone(user: dbUser): string | undefined {
     if (
       user.gmsAllowed &&
-      user.emailContact.gmsPublishPhone === GmsPublishPhoneType.GMS_PUBLISH_PHONE_FULL
+      user.emailContact?.gmsPublishPhone === GmsPublishPhoneType.GMS_PUBLISH_PHONE_FULL
     ) {
-      return user.emailContact.phone
+      return user.emailContact?.phone
     }
   }
 
