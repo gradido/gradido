@@ -38,7 +38,7 @@ jobs:
           docker build --target production -t "gradido/frontend:latest" -t "gradido/frontend:production" -t "gradido/frontend:${VERSION}" -t "gradido/frontend:${BUILD_VERSION}" frontend/
           docker save "gradido/frontend" > /tmp/frontend.tar
       - name: Upload Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: docker-frontend-production
           path: /tmp/frontend.tar
@@ -75,7 +75,7 @@ jobs:
           docker build -f ./backend/Dockerfile --target production -t "gradido/backend:latest" -t "gradido/backend:production" -t "gradido/backend:${VERSION}" -t "gradido/backend:${BUILD_VERSION}" .
           docker save "gradido/backend" > /tmp/backend.tar
       - name: Upload Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: docker-backend-production
           path: /tmp/backend.tar
@@ -101,7 +101,7 @@ jobs:
           docker build --target production_up -t "gradido/database:production_up" database/
           docker save "gradido/database:production_up" > /tmp/database_up.tar
       - name: Upload Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: docker-database-production_up
           path: /tmp/database_up.tar
@@ -138,7 +138,7 @@ jobs:
           docker build -t "gradido/mariadb:latest" -t "gradido/mariadb:production" -t "gradido/mariadb:${VERSION}" -t "gradido/mariadb:${BUILD_VERSION}" -f ./mariadb/Dockerfile ./
           docker save "gradido/mariadb" > /tmp/mariadb.tar
       - name: Upload Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: docker-mariadb-production
           path: /tmp/mariadb.tar
@@ -175,7 +175,7 @@ jobs:
           docker build -t "gradido/nginx:latest" -t "gradido/nginx:production" -t "gradido/nginx:${VERSION}" -t "gradido/nginx:${BUILD_VERSION}" nginx/
           docker save "gradido/nginx" > /tmp/nginx.tar
       - name: Upload Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: docker-nginx-production
           path: /tmp/nginx.tar
@@ -200,35 +200,35 @@ jobs:
       # DOWNLOAD DOCKER IMAGES #################################################
       ##########################################################################
       - name: Download Docker Image (Frontend)
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: docker-frontend-production
           path: /tmp
       - name: Load Docker Image
         run: docker load < /tmp/frontend.tar
       - name: Download Docker Image (Backend)
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: docker-backend-production
           path: /tmp
       - name: Load Docker Image
         run: docker load < /tmp/backend.tar
       - name: Download Docker Image (Database)
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: docker-database-production_up
           path: /tmp
       - name: Load Docker Image
         run: docker load < /tmp/database_up.tar
       - name: Download Docker Image (MariaDB)
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: docker-mariadb-production
           path: /tmp
       - name: Load Docker Image
         run: docker load < /tmp/mariadb.tar
       - name: Download Docker Image (Nginx)
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: docker-nginx-production
           path: /tmp

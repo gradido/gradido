@@ -1,11 +1,14 @@
 {
   "name": "bootstrap-vue-gradido-wallet",
-  "version": "2.4.4",
+  "version": "2.4.5",
   "private": true,
   "scripts": {
     "start": "node run/server.js",
+    "predev": "yarn compile-scss",
     "dev": "vite",
+    "prebuild": "yarn compile-scss",
     "build": "vite build",
+    "preserve": "yarn compile-scss",
     "serve": "vite preview",
     "postbuild": "find build -type f -regex '.*\\.\\(html\\|js\\|css\\|svg\\|json\\)' -exec gzip -9 -k {} +",
     "analyse-bundle": "yarn build && webpack-bundle-analyzer build/webpack.stats.json",
@@ -15,7 +18,8 @@
     "test:coverage": "cross-env TZ=UTC vitest run --coverage",
     "test:debug": "cross-env TZ=UTC node --inspect-brk ./node_modules/vitest/vitest.mjs",
     "test:watch": "cross-env TZ=UTC vitest",
-    "locales": "scripts/sort.sh"
+    "locales": "scripts/sort.sh",
+    "compile-scss": "sass --load-path=node_modules --load-path=src/assets/scss src/assets/scss/gradido.scss src/assets/css/gradido.css"
   },
   "dependencies": {
     "@babel/core": "^7.13.13",
@@ -87,13 +91,15 @@
     "eslint-plugin-promise": "^5.1.1",
     "eslint-plugin-vitest": "^0.5.4",
     "eslint-plugin-vue": "8.7.1",
+    "gradido-config": "file:../config",
+    "joi": "^17.13.3",
     "jsdom": "^25.0.0",
     "mock-apollo-client": "^1.2.1",
     "postcss": "^8.4.8",
     "postcss-html": "^1.3.0",
     "postcss-scss": "^4.0.3",
     "prettier": "^3.3.3",
-    "sass": "1.77.6",
+    "sass": "^1.83.4",
     "stylelint": "16.7.0",
     "stylelint-config-recommended-vue": "1.5.0",
     "stylelint-config-standard-scss": "13.1.0",

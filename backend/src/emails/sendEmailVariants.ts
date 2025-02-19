@@ -247,6 +247,7 @@ export const sendTransactionReceivedEmail = (data: {
   senderFirstName: string
   senderLastName: string
   senderEmail: string
+  memo: string
   transactionAmount: Decimal
 }): Promise<Record<string, unknown> | boolean | null> => {
   return sendEmailTranslated({
@@ -256,6 +257,7 @@ export const sendTransactionReceivedEmail = (data: {
       firstName: data.firstName,
       lastName: data.lastName,
       locale: data.language,
+      memo: data.memo,
       senderFirstName: data.senderFirstName,
       senderLastName: data.senderLastName,
       senderEmail: data.senderEmail,

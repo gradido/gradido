@@ -1,6 +1,6 @@
 {
   "name": "gradido-federation",
-  "version": "2.4.4",
+  "version": "2.4.5",
   "description": "Gradido federation module providing Gradido-Hub-Federation and versioned API for inter community communication",
   "main": "src/index.ts",
   "repository": "https://github.com/gradido/gradido/federation",
@@ -28,6 +28,7 @@
     "graphql": "15.5.1",
     "graphql-request": "5.0.0",
     "helmet": "^7.1.0",
+    "joi": "^17.13.3",
     "lodash.clonedeep": "^4.5.0",
     "log4js": "^6.7.1",
     "reflect-metadata": "^0.1.13",
@@ -38,6 +39,7 @@
   "devDependencies": {
     "@types/express": "4.17.12",
     "@types/jest": "27.0.2",
+    "@types/joi": "^17.2.3",
     "@types/lodash.clonedeep": "^4.5.6",
     "@types/node": "^16.10.3",
     "@types/sodium-native": "^2.3.5",
@@ -56,6 +58,7 @@
     "eslint-plugin-promise": "^6.1.1",
     "eslint-plugin-security": "^1.7.1",
     "eslint-plugin-type-graphql": "^1.0.0",
+    "gradido-config": "../config",
     "graphql-tag": "^2.12.6",
     "jest": "^27.2.4",
     "nodemon": "^2.0.7",

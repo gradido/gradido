@@ -1,18 +1,17 @@
 /* eslint-disable n/no-process-env */
+import { validate } from '@config/index'
+import { latestDbVersion } from '@dbTools/config/detectLastDBVersion'
 import dotenv from 'dotenv'
+
+import { schema } from './schema'
 
 dotenv.config()
 
 const constants = {
-  DB_VERSION: '0087-add_index_on_user_roles',
+  DB_VERSION: latestDbVersion,
   LOG4JS_CONFIG: 'log4js-config.json',
   // default log level on production should be info
   LOG_LEVEL: process.env.LOG_LEVEL ?? 'info',
-  CONFIG_VERSION: {
-    DEFAULT: 'DEFAULT',
-    EXPECTED: 'v4.2024-01-17',
-    CURRENT: '',
-  },
 }
 
 const server = {
@@ -46,18 +45,6 @@ const federation = {
   FEDERATION_COMMUNITY_APIS: process.env.FEDERATION_COMMUNITY_APIS ?? '1_0',
 }
 
-// Check config version
-constants.CONFIG_VERSION.CURRENT = process.env.CONFIG_VERSION ?? constants.CONFIG_VERSION.DEFAULT
-if (
-  ![constants.CONFIG_VERSION.EXPECTED, constants.CONFIG_VERSION.DEFAULT].includes(
-    constants.CONFIG_VERSION.CURRENT,
-  )
-) {
-  throw new Error(
-    `Fatal: Config Version incorrect - expected "${constants.CONFIG_VERSION.EXPECTED}" or "${constants.CONFIG_VERSION.DEFAULT}", but found "${constants.CONFIG_VERSION.CURRENT}"`,
-  )
-}
-
 export const CONFIG = {
   ...constants,
   ...server,
@@ -65,3 +52,4 @@ export const CONFIG = {
   ...community,
   ...federation,
 }
+validate(schema, CONFIG)

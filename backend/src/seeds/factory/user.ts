@@ -18,11 +18,18 @@ export const userFactory = async (
 
   const homeCom = await writeHomeCommunityEntry()
 
+  const response = await mutate({ mutation: createUser, variables: user })
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+  if (!response?.data?.createUser) {
+    // eslint-disable-next-line no-console
+    console.log(response)
+    throw new Error('createUser mutation returned unexpected response')
+  }
   const {
     data: {
       createUser: { id },
     },
-  } = await mutate({ mutation: createUser, variables: user })
+  } = response
   // get user from database
   let dbUser = await User.findOneOrFail({ where: { id }, relations: ['emailContact', 'userRoles'] })
 

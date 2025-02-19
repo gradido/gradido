@@ -292,7 +292,7 @@ const getCommunityStatistics = async () => {
 }
 
 const admin = () => {
-  window.location.assign(CONFIG.ADMIN_AUTH_URL.replace('{token}', store.state.token))
+  window.location.assign(CONFIG.ADMIN_AUTH_URL + store.state.token)
   store.dispatch('logout') // logout without redirect
 }
 

@@ -8,8 +8,16 @@
           </BFormCheckbox>
         </BFormGroup>
         <BFormGroup v-if="showResubmissionDate">
-          <BFormInput v-model="resubmissionDate" type="date" :min="now"></BFormInput>
-          <time-picker v-model="resubmissionTime"></time-picker>
+          <div class="d-flex my-2">
+            <Datepicker
+              v-model="resubmissionDate"
+              :locale="dateLocale"
+              input-format="P"
+              :lower-limit="now"
+              class="form-control"
+            />
+            <time-picker v-model="resubmissionTime" class="ms-2" />
+          </div>
         </BFormGroup>
         <BTabs v-model="tabindex" content-class="mt-3" data-test="message-type-tabs">
           <BTab active>
@@ -78,9 +86,10 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { useDateLocale } from '@/composables/useDateLocale'
 import { useMutation } from '@vue/apollo-composable'
 import { useI18n } from 'vue-i18n'
-
+import Datepicker from 'vue3-datepicker'
 import TimePicker from '@/components/input/TimePicker'
 import { adminCreateContributionMessage } from '@/graphql/adminCreateContributionMessage'
 import { adminUpdateContribution } from '@/graphql/adminUpdateContribution'
@@ -114,6 +123,7 @@ const emit = defineEmits([
 ])
 
 const { t } = useI18n()
+const dateLocale = useDateLocale()
 const { toastError, toastSuccess } = useAppToast()
 
 const form = ref({

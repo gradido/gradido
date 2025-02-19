@@ -3,7 +3,7 @@
   "description": "Administration Interface for Gradido",
   "main": "index.js",
   "author": "Moriz Wahl",
-  "version": "2.4.4",
+  "version": "2.4.5",
   "license": "Apache-2.0",
   "scripts": {
     "start": "node run/server.js",
@@ -74,6 +74,8 @@
     "eslint-plugin-prettier": "5.2.1",
     "eslint-plugin-promise": "^5.1.1",
     "eslint-plugin-vue": "8.7.1",
+    "gradido-config": "../config",
+    "joi": "^17.13.3",
     "jsdom": "^25.0.0",
     "mock-apollo-client": "^1.2.1",
     "postcss": "^8.4.8",
