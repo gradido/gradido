@@ -1,15 +1,24 @@
 <template>
   <div class="overview">
-    <community-news />
+    <BRow>
+      <BCol>
+        <card-circles />
+      </BCol>
+      <BCol>
+        <card-user-search />
+      </BCol>
+    </BRow>
   </div>
 </template>
 <script>
-import CommunityNews from '@/components/Overview/CommunityNews'
-
+// import CommunityNews from '@/components/Overview/CommunityNews'
+import CardCircles from '@/components/Overview/CardCircles'
+import CardUserSearch from '@/components/Overview/CardUserSearch'
 export default {
   name: 'Overview',
   components: {
-    CommunityNews,
+    CardCircles,
+    CardUserSearch,
   },
 }
 </script>
