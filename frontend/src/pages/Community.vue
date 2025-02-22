@@ -68,6 +68,7 @@ import { createContribution, updateContribution, deleteContribution } from '@/gr
 import { listContributions, listAllContributions, openCreations } from '@/graphql/queries'
 import { useAppToast } from '@/composables/useToast'
 import { useI18n } from 'vue-i18n'
+import { GDD_PER_HOUR } from '../constants'
 
 const COMMUNITY_TABS = ['contribute', 'contributions', 'community']
 
@@ -93,7 +94,7 @@ const form = ref({
   date: undefined,
   memo: '',
   hours: '',
-  amount: 20,
+  amount: GDD_PER_HOUR,
 })
 const originalContributionDate = ref('')
 const updateAmount = ref('')

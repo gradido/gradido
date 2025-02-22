@@ -32,32 +32,29 @@
     </div>
   </div>
 </template>
-<script>
+
+<script setup>
+import { computed } from 'vue'
+import { GDD_PER_HOUR } from '../../constants'
+
+const props = defineProps({
+  minimalDate: { type: Date, required: true },
+  maxGddLastMonth: { type: Number, required: true },
+  maxGddThisMonth: { type: Number, required: true },
+})
+
 function afterComma(input) {
   return parseFloat(input.toFixed(2)).toString()
 }
-export default {
-  name: 'OpenCreationsAmount',
-  props: {
-    minimalDate: { type: Date, required: true },
-    maxGddLastMonth: { type: Number, required: true },
-    maxGddThisMonth: { type: Number, required: true },
-  },
-  computed: {
-    hoursSubmittedThisMonth() {
-      return afterComma((1000 - this.maxGddThisMonth) / 20)
-    },
-    hoursSubmittedLastMonth() {
-      return afterComma((1000 - this.maxGddLastMonth) / 20)
-    },
-    hoursAvailableThisMonth() {
-      return afterComma(this.maxGddThisMonth / 20)
-    },
-    hoursAvailableLastMonth() {
-      return afterComma(this.maxGddLastMonth / 20)
-    },
-  },
-}
+
+const hoursSubmittedThisMonth = computed(() =>
+  afterComma((1000 - props.maxGddThisMonth) / GDD_PER_HOUR),
+)
+const hoursSubmittedLastMonth = computed(() =>
+  afterComma((1000 - props.maxGddLastMonth) / GDD_PER_HOUR),
+)
+const hoursAvailableThisMonth = computed(() => afterComma(props.maxGddThisMonth / GDD_PER_HOUR))
+const hoursAvailableLastMonth = computed(() => afterComma(props.maxGddLastMonth / GDD_PER_HOUR))
 </script>
 
 <style lang="scss" scoped>

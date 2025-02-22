@@ -45,7 +45,7 @@
           class="mt-3"
           name="amount"
           :label="$t('form.amount')"
-          placeholder="20"
+          :placeholder="GDD_PER_HOUR"
           readonly
           type="text"
           trim
@@ -86,6 +86,7 @@ import ValidatedInput from '@/components/Inputs/ValidatedInput'
 import LabeledInput from '@/components/Inputs/LabeledInput'
 import { memo as memoSchema } from '@/validationSchemas'
 import { object, date as dateSchema, number } from 'yup'
+import { GDD_PER_HOUR } from '../../constants'
 
 const props = defineProps({
   modelValue: { type: Object, required: true },
@@ -123,7 +124,7 @@ const validationSchema = computed(() => {
   const maxAmounts = Number(
     isThisMonth.value ? parseFloat(props.maxGddThisMonth) : parseFloat(props.maxGddLastMonth),
   )
-  const maxHours = parseFloat(Number(maxAmounts / 20).toFixed(2))
+  const maxHours = parseFloat(Number(maxAmounts / GDD_PER_HOUR).toFixed(2))
 
   return object({
     // The date field is required and needs to be a valid date
@@ -143,7 +144,7 @@ const validationSchema = computed(() => {
         if (value === undefined || value === null) return true
         return /^\d+(\.\d{0,2})?$/.test(value.toString())
       }),
-    amount: number().max(maxAmounts),
+    amount: number().min(0.01).max(maxAmounts),
   })
 })
 
@@ -168,7 +169,8 @@ const updateField = (newValue, name) => {
   if (typeof name === 'string' && name.length) {
     form[name] = newValue
     if (name === 'hours') {
-      form.amount = form.hours ? (form.hours * 20).toFixed(2).toString() : '20'
+      const amount = form.hours ? (form.hours * GDD_PER_HOUR).toFixed(2) : GDD_PER_HOUR
+      form.amount = amount.toString()
     }
   }
   emit('update:modelValue', form)

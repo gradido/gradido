@@ -125,8 +125,9 @@ import ContributionMessagesList from '@/components/ContributionMessages/Contribu
 import { listContributionMessages } from '@/graphql/queries'
 import { useAppToast } from '@/composables/useToast'
 import { useI18n } from 'vue-i18n'
-import { useLazyQuery, useQuery } from '@vue/apollo-composable'
+import { useLazyQuery } from '@vue/apollo-composable'
 import AppAvatar from '@/components/AppAvatar.vue'
+import { GDD_PER_HOUR } from '../../constants'
 
 const props = defineProps({
   id: {
@@ -201,10 +202,9 @@ const props = defineProps({
   },
 })
 
-const { toastError, toastSuccess } = useAppToast()
+const { toastError } = useAppToast()
 const { t } = useI18n()
 
-const inProcess = ref(true)
 const messagesGet = ref([])
 const visible = ref(false)
 
@@ -224,8 +224,6 @@ const icon = computed(() => {
   return 'bell-fill'
 })
 
-const date = computed(() => props.createdAt)
-
 const collapseId = computed(() => 'collapse' + String(props.id))
 
 const username = computed(() => ({
@@ -233,7 +231,7 @@ const username = computed(() => ({
   initials: `${props.firstName[0]}${props.lastName[0]}`,
 }))
 
-const hours = computed(() => parseFloat((props.amount / 20).toFixed(2)))
+const hours = computed(() => parseFloat((props.amount / GDD_PER_HOUR).toFixed(2)))
 
 watch(
   () => visible.value,
