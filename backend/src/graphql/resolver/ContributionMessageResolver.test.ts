@@ -153,7 +153,7 @@ describe('ContributionMessageResolver', () => {
               message: 'Test',
             },
           })
-          expect(logger.debug).toBeCalledTimes(9)
+          expect(logger.debug).toBeCalledTimes(8)
           expect(logger.debug).toHaveBeenNthCalledWith(
             8,
             'use UnconfirmedContributionUserAddMessageRole',

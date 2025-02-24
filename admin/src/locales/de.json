@@ -44,8 +44,8 @@
     "denied": "Abgelehnt",
     "open": "Offen"
   },
-  "copy-to-clipboard": "In die Zwischenablage kopieren",
   "copied-to-clipboard": "In die Zwischenablage kopiert",
+  "copy-to-clipboard": "In die Zwischenablage kopieren",
   "created": "Geschöpft",
   "createdAt": "Angelegt",
   "creation": "Schöpfung",

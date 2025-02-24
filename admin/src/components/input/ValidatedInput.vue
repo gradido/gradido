@@ -20,9 +20,7 @@
 
 <script setup>
 import { computed, ref, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
 import LabeledInput from './LabeledInput'
-import { translateYupErrorString } from '@/validationSchemas'
 
 const props = defineProps({
   label: {
@@ -39,8 +37,6 @@ const props = defineProps({
     required: true,
   },
 })
-
-const { t } = useI18n()
 
 const model = ref(props.modelValue)
 
@@ -61,7 +57,7 @@ const errorMessage = computed(() => {
     props.rules.validateSync(props.modelValue)
     return undefined
   } catch (e) {
-    return translateYupErrorString(e.message, t)
+    return e.message
   }
 })
 
