@@ -97,11 +97,10 @@
 
 <script setup>
 import { onMounted, computed } from 'vue'
-import { useQuery } from '@vue/apollo-composable'
+import { useLazyQuery } from '@vue/apollo-composable'
 import AuthNavbar from '@/components/Auth/AuthNavbar'
 import AuthNavbarSmall from '@/components/Auth/AuthNavbarSmall'
 import AuthCarousel from '@/components/Auth/AuthCarousel'
-import LanguageSwitch2 from '@/components/LanguageSwitch2'
 import AuthFooter from '@/components/Auth/AuthFooter'
 import CONFIG from '@/config'
 import { useStore } from 'vuex'
@@ -119,8 +118,8 @@ const project = computed(() => store.state.project)
 const {
   result: projectBannerResult,
   loading: projectBannerLoading,
-  refetch,
-} = useQuery(
+  load,
+} = useLazyQuery(
   gql`
     query ($project: String!) {
       projectBrandingBanner(alias: $project)
@@ -132,6 +131,8 @@ onMounted(async () => {
   const urlParams = new URLSearchParams(window.location.search)
   const projectValue = urlParams.get('project')
   if (projectValue) {
+    console.log('project value: ', projectValue)
+    load()
     store.commit('project', projectValue)
   } else {
     store.commit('project', '')

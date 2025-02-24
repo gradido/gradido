@@ -67,28 +67,25 @@ export class HumHubClient {
   public async createAutoLoginUrl(username: string, project?: string | null) {
     const secret = new TextEncoder().encode(CONFIG.HUMHUB_JWT_KEY)
     logger.info(`user ${username} as username for humhub auto-login`)
-    let projectBrandingPromise: Promise<ProjectBranding | null> | undefined
+    let redirectLink: string | undefined
     if (project) {
-      projectBrandingPromise = ProjectBranding.findOne({
+      const projectBranding = await ProjectBranding.findOne({
         where: { alias: project },
         select: { spaceUrl: true },
       })
+      if (projectBranding?.spaceUrl) {
+        redirectLink = projectBranding.spaceUrl
+      }
     }
-    const token = await new SignJWT({ username })
+    const token = await new SignJWT({ username, redirectLink })
       .setProtectedHeader({ alg: 'HS256' })
       .setIssuedAt()
       .setExpirationTime(CONFIG.JWT_EXPIRES_IN)
       .sign(secret)
 
-    let loginUrl = `${CONFIG.HUMHUB_API_URL}user/auth/external?authclient=jwt&jwt=${token}`
-    if (projectBrandingPromise) {
-      const projectBranding = await projectBrandingPromise
-      if (projectBranding?.spaceUrl) {
-        loginUrl += `&redirect=${projectBranding.spaceUrl as string}`
-      }
-    }
-
-    return loginUrl
+    return `${CONFIG.HUMHUB_API_URL}${
+      CONFIG.HUMHUB_API_URL.endsWith('/') ? '' : '/'
+    }user/auth/external?authclient=jwt&jwt=${token}`
   }
 
   /**

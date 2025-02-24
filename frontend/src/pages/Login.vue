@@ -93,6 +93,7 @@ const onSubmit = handleSubmit(async (values) => {
       email: values.email,
       password: values.password,
       publisherId: store.state.publisherId,
+      project: store.state.project,
     })
     const { login: loginResponse } = result.data
     await store.dispatch('login', loginResponse)

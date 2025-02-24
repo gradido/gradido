@@ -55,8 +55,8 @@ export async function syncHumhub(
     result: ExecutedHumhubAction[result as ExecutedHumhubAction],
   })
   if (spaceId && humhubUser) {
-    logger.debug(`add user to space ${spaceId}`)
     await humhubClient.addUserToSpace(humhubUser.id, spaceId)
+    logger.debug(`user added to space ${spaceId}`)
   }
   return user.id
 }
