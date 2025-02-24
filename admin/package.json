@@ -55,7 +55,8 @@
     "vue-router": "4.4.0",
     "vue3-datepicker": "^0.4.0",
     "vuex": "4.1.0",
-    "vuex-persistedstate": "4.1.0"
+    "vuex-persistedstate": "4.1.0",
+    "yup": "^1.6.1"
   },
   "devDependencies": {
     "@apollo/client": "^3.10.8",

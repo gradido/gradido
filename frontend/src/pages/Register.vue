@@ -96,19 +96,19 @@ const { mutate } = useMutation(createUser)
 
 const { values: formValues, meta: formMeta, defineField, handleSubmit } = useForm()
 
-const [firstname, firstnameProps] = defineField('firstname')
+const [firstname] = defineField('firstname')
 const { meta: firstnameMeta, errorMessage: firstnameError } = useField('firstname', {
   required: true,
   min: 3,
 })
 
-const [lastname, lastnameProps] = defineField('lastname')
+const [lastname] = defineField('lastname')
 const { meta: lastnameMeta, errorMessage: lastnameError } = useField('lastname', {
   required: true,
   min: 2,
 })
 
-const [agree, agreeProps] = defineField('agree')
+const [agree] = defineField('agree')
 const { meta: agreeMeta } = useField('agree', 'required')
 
 const { t } = useI18n()
@@ -116,10 +116,8 @@ const store = useStore()
 const { params } = useRoute()
 
 const showPageMessage = ref(false)
-const submitted = ref(false)
 const publisherId = ref(store.state.publisherId)
 const redeemCode = ref(params.code)
-const CONFIG = window.config
 
 const enterData = computed(() => {
   return !showPageMessage.value
@@ -134,6 +132,7 @@ async function onSubmit() {
       language: store.state.language,
       publisherId: publisherId.value,
       redeemCode: redeemCode.value,
+      project: store.state.project,
     })
     showPageMessage.value = true
   } catch (error) {

@@ -22,6 +22,12 @@ vi.mock('@vue/apollo-composable', () => ({
   })),
 }))
 
+vi.mock('@/composables/useToast', () => ({
+  useAppToast: vi.fn(() => ({
+    addToast: vi.fn(),
+  })),
+}))
+
 describe('ContributionListItem', () => {
   let wrapper
 
@@ -96,12 +102,6 @@ describe('ContributionListItem', () => {
       it('is warning at when status is IN_PROGRESS', async () => {
         await wrapper.setProps({ status: 'IN_PROGRESS' })
         expect(wrapper.vm.variant).toBe('205')
-      })
-    })
-
-    describe('date', () => {
-      it('is equal to createdAt', () => {
-        expect(wrapper.vm.date).toBe(wrapper.vm.createdAt)
       })
     })
 

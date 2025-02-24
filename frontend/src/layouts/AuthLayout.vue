@@ -23,7 +23,17 @@
                 <auth-navbar-small />
               </BCol>
             </BRow>
-            <BRow class="mt-0 mt-md-5 ps-2 ps-md-0 ps-lg-0">
+            <BRow v-if="projectBannerResult || projectBannerLoading" class="d-none d-md-block">
+              <BCol>
+                <BImg
+                  v-if="projectBannerResult"
+                  :src="projectBannerResult.projectBrandingBanner"
+                  class="img-fluid"
+                  alt="project banner"
+                />
+              </BCol>
+            </BRow>
+            <BRow v-else class="mt-0 mt-md-5 ps-2 ps-md-0 ps-lg-0">
               <BCol lg="9" md="9" sm="12">
                 <div class="mb--2">{{ $t('welcome') }}</div>
                 <div class="h1 mb-0">{{ communityName }}</div>
@@ -33,7 +43,7 @@
                 <BAvatar src="/img/brand/gradido_coin_128x128.png" size="6rem" />
               </BCol>
             </BRow>
-            <BCard ref="pageFontSize" no-body class="border-0 mt-4 gradido-custom-background">
+            <BCard no-body class="border-0 mt-4 gradido-custom-background page-font-size">
               <BRow class="p-4">
                 <BCol cols="10">
                   <language-switch-2 class="ms-3" />
@@ -85,34 +95,48 @@
   </div>
 </template>
 
-<script>
+<script setup>
+import { onMounted, computed } from 'vue'
+import { useLazyQuery } from '@vue/apollo-composable'
 import AuthNavbar from '@/components/Auth/AuthNavbar'
 import AuthNavbarSmall from '@/components/Auth/AuthNavbarSmall'
 import AuthCarousel from '@/components/Auth/AuthCarousel'
-import LanguageSwitch2 from '@/components/LanguageSwitch2'
 import AuthFooter from '@/components/Auth/AuthFooter'
 import CONFIG from '@/config'
+import { useStore } from 'vuex'
+import gql from 'graphql-tag'
 
-export default {
-  name: 'AuthLayout',
-  components: {
-    AuthNavbar,
-    AuthNavbarSmall,
-    AuthCarousel,
-    LanguageSwitch2,
-    AuthFooter,
-  },
-  data() {
-    return {
-      communityName: CONFIG.COMMUNITY_NAME,
-    }
-  },
-  methods: {
-    setTextSize(size) {
-      this.$refs.pageFontSize.$el.style.fontSize = size + 'rem'
-    },
-  },
+const communityName = CONFIG.COMMUNITY_NAME
+const store = useStore()
+
+const setTextSize = (size) => {
+  document.querySelector('.page-font-size').style.fontSize = size + 'rem'
 }
+
+const project = computed(() => store.state.project)
+
+const {
+  result: projectBannerResult,
+  loading: projectBannerLoading,
+  load,
+} = useLazyQuery(
+  gql`
+    query ($project: String!) {
+      projectBrandingBanner(alias: $project)
+    }
+  `,
+  { project },
+)
+onMounted(async () => {
+  const urlParams = new URLSearchParams(window.location.search)
+  const projectValue = urlParams.get('project')
+  if (projectValue) {
+    load()
+    store.commit('project', projectValue)
+  } else {
+    store.commit('project', '')
+  }
+})
 </script>
 
 <style lang="scss" scoped>
