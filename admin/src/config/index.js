@@ -6,7 +6,7 @@ const pkg = require('../../package')
 
 const version = {
   ADMIN_MODULE_PROTOCOL: process.env.ADMIN_MODULE_PROTOCOL ?? 'http',
-  ADMIN_MODULE_HOST: process.env.ADMIN_MODULE_HOST ?? '0.0.0.0',
+  ADMIN_MODULE_HOST: process.env.ADMIN_MODULE_HOST ?? 'localhost',
   ADMIN_MODULE_PORT: process.env.ADMIN_MODULE_PORT ?? '8080',
   APP_VERSION: pkg.version,
   BUILD_COMMIT: process.env.BUILD_COMMIT ?? undefined,
