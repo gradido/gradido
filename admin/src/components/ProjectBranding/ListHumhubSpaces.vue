@@ -94,6 +94,7 @@ onMounted(() => {
   color: #0056b3;
   transition: background-color 0.2s ease-in-out;
 }
+
 .list-group-item-action.active > a {
   color: white;
 }
