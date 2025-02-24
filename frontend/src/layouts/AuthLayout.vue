@@ -43,7 +43,7 @@
                 <BAvatar src="/img/brand/gradido_coin_128x128.png" size="6rem" />
               </BCol>
             </BRow>
-            <BCard ref="pageFontSize" no-body class="border-0 mt-4 gradido-custom-background">
+            <BCard no-body class="border-0 mt-4 gradido-custom-background page-font-size">
               <BRow class="p-4">
                 <BCol cols="10">
                   <language-switch-2 class="ms-3" />
@@ -131,7 +131,6 @@ onMounted(async () => {
   const urlParams = new URLSearchParams(window.location.search)
   const projectValue = urlParams.get('project')
   if (projectValue) {
-    console.log('project value: ', projectValue)
     load()
     store.commit('project', projectValue)
   } else {

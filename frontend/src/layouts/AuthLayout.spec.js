@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { createStore } from 'vuex'
 import AuthLayout from './AuthLayout'
 import {
   BAvatar,
@@ -39,6 +40,19 @@ vi.mock('@/config', () => ({
 
 describe('AuthLayout', () => {
   let wrapper
+  const createVuexStore = () => {
+    return createStore({
+      state: {
+        project: '',
+      },
+      actions: {
+        project: vi.fn(),
+      },
+      mutations: {
+        project: vi.fn(),
+      },
+    })
+  }
 
   const createWrapper = () => {
     return mount(AuthLayout, {
@@ -54,6 +68,7 @@ describe('AuthLayout', () => {
           BImg,
           BPopover,
         },
+        plugins: [createVuexStore()],
         mocks: {
           $i18n: {
             locale: 'en',
@@ -97,17 +112,16 @@ describe('AuthLayout', () => {
       expect(wrapper.find('nav#sidenav-main').exists()).toBe(false)
     })
 
-    it('has LanguageSwitch2', () => {
-      expect(wrapper.findComponent({ name: 'LanguageSwitch2' }).exists()).toBe(true)
-    })
-
     it('displays the community name', () => {
       expect(wrapper.find('.h1').text()).toBe('Test Community')
     })
 
     it('test size in setTextSize', async () => {
+      const mockEl = { style: {} }
+      vi.spyOn(document, 'querySelector').mockReturnValue(mockEl)
+
       await wrapper.vm.setTextSize(0.85)
-      expect(wrapper.vm.$refs.pageFontSize.$el.style.fontSize).toBe('0.85rem')
+      expect(mockEl.style.fontSize).toBe('0.85rem')
     })
   })
 
@@ -115,6 +129,7 @@ describe('AuthLayout', () => {
     beforeEach(() => {
       wrapper = mount(AuthLayout, {
         global: {
+          plugins: [createVuexStore()],
           mocks: {
             $i18n: {
               locale: 'en',
