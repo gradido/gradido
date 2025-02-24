@@ -1,8 +1,6 @@
 import { ProjectBranding as dbProjectBranding } from '@entity/ProjectBranding'
 import { ObjectType, Field, Int } from 'type-graphql'
 
-import { Space } from './Space'
-
 @ObjectType()
 export class ProjectBranding {
   constructor(projectBranding: dbProjectBranding) {

@@ -74,7 +74,7 @@ const form = ref({
   password: '',
 })
 
-const { handleSubmit, meta, values } = useForm({
+const { handleSubmit, meta } = useForm({
   initialValues: form.value,
 })
 

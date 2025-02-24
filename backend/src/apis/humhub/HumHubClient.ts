@@ -1,3 +1,4 @@
+import { ProjectBranding } from '@entity/ProjectBranding'
 import { SignJWT } from 'jose'
 import { IRequestOptions, IRestResponse, RestClient } from 'typed-rest-client'
 
@@ -8,10 +9,9 @@ import { backendLogger as logger } from '@/server/logger'
 import { PostUserLoggingView } from './logging/PostUserLogging.view'
 import { GetUser } from './model/GetUser'
 import { PostUser } from './model/PostUser'
+import { Space } from './model/Space'
 import { SpacesResponse } from './model/SpacesResponse'
 import { UsersResponse } from './model/UsersResponse'
-import { Space } from './model/Space'
-import { ProjectBranding } from '@entity/ProjectBranding'
 
 /**
  * HumHubClient as singleton class

@@ -153,9 +153,9 @@ describe('ContributionMessageResolver', () => {
               message: 'Test',
             },
           })
-          expect(logger.debug).toBeCalledTimes(4)
+          expect(logger.debug).toBeCalledTimes(9)
           expect(logger.debug).toHaveBeenNthCalledWith(
-            4,
+            8,
             'use UnconfirmedContributionUserAddMessageRole',
           )
           expect(mutationResult).toEqual(
@@ -351,9 +351,9 @@ describe('ContributionMessageResolver', () => {
             },
           })
 
-          expect(logger.debug).toBeCalledTimes(4)
+          expect(logger.debug).toBeCalledTimes(8)
           expect(logger.debug).toHaveBeenNthCalledWith(
-            4,
+            8,
             'use UnconfirmedContributionAdminAddMessageRole',
           )
 
@@ -386,9 +386,9 @@ describe('ContributionMessageResolver', () => {
             },
           })
 
-          expect(logger.debug).toBeCalledTimes(4)
+          expect(logger.debug).toBeCalledTimes(8)
           expect(logger.debug).toHaveBeenNthCalledWith(
-            4,
+            8,
             'use UnconfirmedContributionAdminAddMessageRole',
           )
 
@@ -404,7 +404,7 @@ describe('ContributionMessageResolver', () => {
         })
 
         it('logs the error "ContributionMessage was not sent successfully: Error: missing right ADMIN_CREATE_CONTRIBUTION_MESSAGE for user"', () => {
-          expect(logger.debug).toBeCalledTimes(4)
+          expect(logger.debug).toBeCalledTimes(8)
           expect(logger.error).toHaveBeenNthCalledWith(
             1,
             'missing right ADMIN_CREATE_CONTRIBUTION_MESSAGE for user',

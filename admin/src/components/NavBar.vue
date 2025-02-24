@@ -32,7 +32,11 @@
           <BNavItem to="/federation" :active="isActive('federation')">
             {{ $t('navbar.instances') }}
           </BNavItem>
-          <BNavItem to="/projectBranding" :active="isActive('projectBranding')" :title="$t('navbar.projectBrandingTooltip')">
+          <BNavItem
+            to="/projectBranding"
+            :active="isActive('projectBranding')"
+            :title="$t('navbar.projectBrandingTooltip')"
+          >
             {{ $t('navbar.projectBranding') }}
           </BNavItem>
           <BNavItem to="/statistic" :active="isActive('statistic')">

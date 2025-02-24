@@ -125,7 +125,7 @@ import ContributionMessagesList from '@/components/ContributionMessages/Contribu
 import { listContributionMessages } from '@/graphql/queries'
 import { useAppToast } from '@/composables/useToast'
 import { useI18n } from 'vue-i18n'
-import { useLazyQuery, useQuery } from '@vue/apollo-composable'
+import { useLazyQuery } from '@vue/apollo-composable'
 import AppAvatar from '@/components/AppAvatar.vue'
 
 const props = defineProps({
@@ -201,10 +201,9 @@ const props = defineProps({
   },
 })
 
-const { toastError, toastSuccess } = useAppToast()
+const { toastError } = useAppToast()
 const { t } = useI18n()
 
-const inProcess = ref(true)
 const messagesGet = ref([])
 const visible = ref(false)
 
@@ -223,8 +222,6 @@ const icon = computed(() => {
   if (props.status === 'IN_PROGRESS') return 'question'
   return 'bell-fill'
 })
-
-const date = computed(() => props.createdAt)
 
 const collapseId = computed(() => 'collapse' + String(props.id))
 
