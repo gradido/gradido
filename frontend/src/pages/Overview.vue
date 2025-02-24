@@ -1,13 +1,13 @@
 <template>
   <div class="overview">
-    <BRow>
-      <BCol>
+    <BCol>
+      <BRow>
         <card-circles />
-      </BCol>
-      <BCol>
+      </BRow>
+      <BRow>
         <card-user-search />
-      </BCol>
-    </BRow>
+      </BRow>
+    </BCol>
   </div>
 </template>
 <script>

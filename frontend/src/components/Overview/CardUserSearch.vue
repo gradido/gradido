@@ -1,5 +1,5 @@
 <template>
-  <div class="card-user-search">
+  <div class="mb-3 p-3 card-user-search">
     <BContainer class="bg-white app-box-shadow gradido-border-radius p-4 mt--3">
       <div class="h3">{{ $t('card-user-search.headline') }}</div>
       <div v-if="gmsAllowed" class="my-4 text-small">
@@ -14,7 +14,7 @@
           <br />
         </span>
       </div>
-      <BRow class="my-5">
+      <BRow class="my-2">
         <BCol cols="12">
           <div class="text-lg-end">
             <BButton v-if="gmsAllowed" variant="gradido" :href="gmsUri" target="_blank">
@@ -33,19 +33,21 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useQuery } from '@vue/apollo-composable'
 import { useAppToast } from '@/composables/useToast'
 import { authenticateGmsUserSearch } from '@/graphql/queries'
+import { useStore } from 'vuex'
 
 const { toastError } = useAppToast()
+const store = useStore()
 
 const gmsUri = ref('not initialized')
 const gmsAllowed = computed(() => store.state.userLocation !== null)
 
+const { onResult, result, loading, onError } = useQuery(authenticateGmsUserSearch)
 
 onResult(({ data }) => {
-  const { onResult, result, loading, onError } = useQuery(authenticateGmsUserSearch)
   gmsUri.value = `${data.authenticateGmsUserSearch.url}?accesstoken=${data.authenticateGmsUserSearch.token}`
 })
 

@@ -1,5 +1,5 @@
 <template>
-  <div class="card-circles">
+  <div class="mb-3 p-3 card-circles">
   <BContainer class="bg-white app-box-shadow gradido-border-radius p-4 mt--3">
     <div class="h3">{{ $t('card-circles.headline') }}</div>
     <div v-if="humhubAllowed" class="my-4 text-small">
@@ -14,7 +14,7 @@
         <br />
       </span>
     </div>
-    <BRow class="my-5">
+    <BRow class="my-2">
       <BCol cols="12">
         <div class="text-lg-end">
           <BButton
