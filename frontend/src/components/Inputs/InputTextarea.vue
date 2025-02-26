@@ -16,7 +16,7 @@
         @update:modelValue="currentValue = $event"
       />
       <BFormInvalidFeedback v-if="errorMessage">
-        {{ errorMessage }}
+        {{ translatedErrorString }}
       </BFormInvalidFeedback>
     </BFormGroup>
   </div>
@@ -25,6 +25,8 @@
 <script setup>
 import { computed } from 'vue'
 import { useField } from 'vee-validate'
+import { useI18n } from 'vue-i18n'
+import { translateYupErrorString } from '@/validationSchemas'
 
 const props = defineProps({
   rules: {
@@ -50,7 +52,8 @@ const props = defineProps({
 })
 
 const { value: currentValue, errorMessage, meta } = useField(props.name, props.rules)
-
+const { t } = useI18n()
+const translatedErrorString = computed(() => translateYupErrorString(errorMessage, t))
 const labelFor = computed(() => `${props.name}-input-field`)
 </script>
 
