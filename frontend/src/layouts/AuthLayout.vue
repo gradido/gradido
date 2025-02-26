@@ -19,7 +19,7 @@
         <BCol sm="12" md="8" lg="6" class="zindex1000">
           <div class="ms-3 ms-sm-4 me-3 me-sm-4">
             <BRow class="d-none d-md-block d-lg-none">
-              <BCol class="mb--4">
+              <BCol>
                 <auth-navbar-small />
               </BCol>
             </BRow>
@@ -28,7 +28,7 @@
                 <BImg
                   v-if="projectBannerResult"
                   :src="projectBannerResult.projectBrandingBanner"
-                  class="img-fluid"
+                  class="img-fluid rounded-like-card"
                   alt="project banner"
                 />
               </BCol>
@@ -71,7 +71,14 @@
               </BRow>
               <BRow class="d-inline d-sm-inline d-md-none d-lg-none mb-3">
                 <BCol class="text-center">
+                  <BImg
+                    v-if="projectBannerResult"
+                    :src="projectBannerResult.projectBrandingBanner"
+                    class="img-fluid ms-1 me-1 col-xs-10 col-sm-10 rounded-20"
+                    alt="project banner"
+                  />
                   <BAvatar
+                    v-else
                     src="/img/brand/gradido_coin_128x128.png"
                     size="6rem"
                     bg-variant="transparent"
