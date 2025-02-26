@@ -33,12 +33,12 @@
           </BCol>
         </BRow>
         <BRow>
-          <BCol class="col-lg-6 col-12 mt-3">
+          <BCol class="mt-3">
             {{ $t('missingGradidoAccount', { communityName: CONFIG.COMMUNITY_NAME }) }}
           </BCol>
         </BRow>
         <BRow>
-          <BCol class="col-lg-6 col-12 mt-1">
+          <BCol class="mt-1">
             <BLink :to="register()" class="register-nav-item">
               {{ $t('signup') }}
             </BLink>
