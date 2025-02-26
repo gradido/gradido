@@ -2,19 +2,19 @@
   <div class="mb-3 p-3 card-user-search">
     <BContainer class="bg-white app-box-shadow gradido-border-radius p-4 mt--3">
       <div class="h3">{{ $t('card-user-search.headline') }}</div>
-      <div v-if="gmsAllowed" class="my-4 text-small">
+      <div v-if="gmsAllowed" class="my-2 text-small">
         <span v-for="(line, lineNumber) of $t('card-user-search.allowed.text').split('\n')" :key="lineNumber">
           {{ line }}
           <br />
         </span>
       </div>
-      <div v-else class="my-4 text-small">
+      <div v-else class="my-2 text-small">
         <span v-for="(line, lineNumber) of $t('card-user-search.not-allowed.text').split('\n')" :key="lineNumber">
           {{ line }}
           <br />
         </span>
       </div>
-      <BRow class="my-2">
+      <BRow class="my-1">
         <BCol cols="12">
           <div class="text-lg-end">
             <BButton v-if="gmsAllowed" variant="gradido" :href="gmsUri" target="_blank">

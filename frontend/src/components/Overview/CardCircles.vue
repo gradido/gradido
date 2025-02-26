@@ -2,19 +2,19 @@
   <div class="mb-3 p-3 card-circles">
   <BContainer class="bg-white app-box-shadow gradido-border-radius p-4 mt--3">
     <div class="h3">{{ $t('card-circles.headline') }}</div>
-    <div v-if="humhubAllowed" class="my-4 text-small">
+    <div v-if="humhubAllowed" class="my-3 text-small">
       <span v-for="(line, lineNumber) of $t('card-circles.allowed.text').split('\n')" :key="lineNumber">
         {{ line }}
         <br />
       </span>
     </div>
-    <div v-else class="my-4 text-small">
+    <div v-else class="my-3 text-small">
       <span v-for="(line, lineNumber) of $t('card-circles.not-allowed.text').split('\n')" :key="lineNumber">
         {{ line }}
         <br />
       </span>
     </div>
-    <BRow class="my-2">
+    <BRow class="my-1">
       <BCol cols="12">
         <div class="text-lg-end">
           <BButton
