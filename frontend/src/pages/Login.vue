@@ -161,6 +161,7 @@ const enterData = computed(() => !showPageMessage.value)
   padding-right: 0;
   padding-left: 0;
 }
+
 a.register-nav-item {
   color: #0e79bc !important;
 }

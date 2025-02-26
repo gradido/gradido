@@ -166,6 +166,7 @@ async function onSubmit() {
   padding-right: 0;
   padding-left: 0;
 }
+
 a.login-nav-item {
   color: #0e79bc !important;
 }
