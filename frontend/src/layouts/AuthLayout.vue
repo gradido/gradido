@@ -74,7 +74,7 @@
                   <BImg
                     v-if="projectBannerResult"
                     :src="projectBannerResult.projectBrandingBanner"
-                    class="img-fluid ms-1 me-1 col-xs-10 col-sm-10 rounded-20"
+                    class="img-fluid ms-1 me-1 col-10 col-sm-10 rounded-20"
                     alt="project banner"
                   />
                   <BAvatar

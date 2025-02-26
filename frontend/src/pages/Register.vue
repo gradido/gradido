@@ -70,6 +70,18 @@
             </BButton>
           </BCol>
         </BRow>
+        <BRow>
+          <BCol class="col-lg-6 col-12 mt-3">
+            {{ $t('existingGradidoAccount', { communityName: CONFIG.COMMUNITY_NAME }) }}
+          </BCol>
+        </BRow>
+        <BRow>
+          <BCol class="col-lg-6 col-12 mt-1">
+            <BLink :to="login()" class="login-nav-item">
+              {{ $t('signin') }}
+            </BLink>
+          </BCol>
+        </BRow>
       </BForm>
     </BContainer>
     <BContainer v-else>
@@ -89,8 +101,11 @@ import { createUser } from '@/graphql/mutations'
 import { useI18n } from 'vue-i18n'
 import { useStore } from 'vuex'
 import { useRoute } from 'vue-router'
+import { useAuthLinks } from '@/composables/useAuthLinks'
+import CONFIG from '@/config'
 
 const { toastError } = useAppToast()
+const { login } = useAuthLinks()
 
 const { mutate } = useMutation(createUser)
 
@@ -150,5 +165,8 @@ async function onSubmit() {
 :deep(.btn-gradido-disable) {
   padding-right: 0;
   padding-left: 0;
+}
+a.login-nav-item {
+  color: #0e79bc !important;
 }
 </style>

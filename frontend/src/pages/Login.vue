@@ -32,6 +32,18 @@
             </BButton>
           </BCol>
         </BRow>
+        <BRow>
+          <BCol class="col-lg-6 col-12 mt-3">
+            {{ $t('missingGradidoAccount', { communityName: CONFIG.COMMUNITY_NAME }) }}
+          </BCol>
+        </BRow>
+        <BRow>
+          <BCol class="col-lg-6 col-12 mt-1">
+            <BLink :to="register()" class="register-nav-item">
+              {{ $t('signup') }}
+            </BLink>
+          </BCol>
+        </BRow>
       </form>
     </BContainer>
     <BContainer v-else>
@@ -58,6 +70,8 @@ import { useRouter, useRoute } from 'vue-router'
 import { useForm } from 'vee-validate'
 import { useMutation, useLazyQuery } from '@vue/apollo-composable'
 import { useAppToast } from '@/composables/useToast'
+import { useAuthLinks } from '@/composables/useAuthLinks'
+import CONFIG from '@/config'
 // import { useLoading } from 'vue-loading-overlay'
 
 const router = useRouter()
@@ -68,6 +82,7 @@ const { mutate } = useMutation(login)
 const { load } = useLazyQuery(authenticateHumhubAutoLoginProject)
 // const $loading = useLoading() // TODO needs to be updated but there is some sort of an issue that breaks the app.
 const { toastError } = useAppToast()
+const { register } = useAuthLinks()
 
 const form = ref({
   email: '',
@@ -145,5 +160,8 @@ const enterData = computed(() => !showPageMessage.value)
 .btn-gradido-disable {
   padding-right: 0;
   padding-left: 0;
+}
+a.register-nav-item {
+  color: #0e79bc !important;
 }
 </style>

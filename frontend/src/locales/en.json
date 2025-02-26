@@ -127,6 +127,7 @@
     "session-expired": "The session was closed for security reasons.",
     "unknown-error": "Unknown error: "
   },
+  "existingGradidoAccount": "Already have a {communityName} account?",
   "followUs": "follow us:",
   "footer": {
     "app_version": "App version {version}",
@@ -268,6 +269,7 @@
     "title": "Thank you!",
     "unsetPassword": "Your password has not been set yet. Please set it again."
   },
+  "missingGradidoAccount": "Don't have a {communityName} account yet?",
   "moderatorChangedMemo": "Text edited by moderator",
   "moderatorChat": "Moderator Chat",
   "navigation": {
