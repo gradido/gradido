@@ -25,7 +25,7 @@ const { t } = useI18n()
 const store = useStore()
 const { toastError, toastSuccess } = useAppToast()
 
-const selectedOption = ref(store.state.gmsPublishLocation ?? 'GMS_LOCATION_TYPE_RANDOM')
+const selectedOption = ref(store.state.gmsPublishLocation ?? 'GMS_LOCATION_TYPE_APPROXIMATE')
 const dropdownOptions = [
   {
     label: t('settings.GMS.publish-location.exact'),
@@ -35,10 +35,12 @@ const dropdownOptions = [
     label: t('settings.GMS.publish-location.approximate'),
     value: 'GMS_LOCATION_TYPE_APPROXIMATE',
   },
+  /*
   {
     label: t('settings.GMS.publish-location.random'),
     value: 'GMS_LOCATION_TYPE_RANDOM',
   },
+  */
 ]
 
 const selectedOptionLabel = computed(() => {
