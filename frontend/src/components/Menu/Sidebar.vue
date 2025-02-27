@@ -102,12 +102,14 @@
 import CONFIG from '../../config'
 import { useRoute } from 'vue-router'
 import { ref, watch, computed } from 'vue'
+import { useStore } from 'vuex'
 
 const props = defineProps({
   shadow: { type: Boolean, default: true },
 })
 
 const emit = defineEmits(['closeSidebar'])
+const store = useStore()
 
 const route = useRoute()
 const communityLink = ref(null)
@@ -122,7 +124,7 @@ const isHumhub = computed(() => {
   return CONFIG.HUMHUB_ACTIVE === 'true'
 })
 const isGMS = computed(() => {
-  return CONFIG.GMS_ACTIVE === 'true'
+  return CONFIG.GMS_ACTIVE === 'true' && store.state.userLocation !== null
 })
 
 watch(
