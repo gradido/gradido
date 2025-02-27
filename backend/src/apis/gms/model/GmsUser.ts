@@ -1,3 +1,4 @@
+import { Geometry } from '@dbTools/typeorm'
 import { User as dbUser } from '@entity/User'
 
 import { PublishNameLogic } from '@/data/PublishName.logic'
@@ -43,7 +44,7 @@ export class GmsUser {
   country: string | undefined
   zipCode: string | undefined
   language: string
-  location: unknown
+  location: Geometry | null | undefined
 
   private getGmsAlias(user: dbUser): string | undefined {
     if (

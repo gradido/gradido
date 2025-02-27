@@ -11,6 +11,7 @@ import { FederatedCommunity } from '@model/FederatedCommunity'
 
 import { RIGHTS } from '@/auth/RIGHTS'
 import { LogError } from '@/server/LogError'
+import { backendLogger as logger } from '@/server/logger'
 
 import {
   getAllCommunities,
@@ -25,6 +26,7 @@ export class CommunityResolver {
   @Authorized([RIGHTS.COMMUNITIES])
   @Query(() => [FederatedCommunity])
   async getCommunities(): Promise<FederatedCommunity[]> {
+    logger.debug('getCommunities...')
     const dbFederatedCommunities: DbFederatedCommunity[] = await DbFederatedCommunity.find({
       order: {
         foreign: 'ASC',
@@ -40,12 +42,14 @@ export class CommunityResolver {
   @Authorized([RIGHTS.COMMUNITIES])
   @Query(() => [AdminCommunityView])
   async allCommunities(@Args() paginated: Paginated): Promise<AdminCommunityView[]> {
+    logger.debug('allCommunities...')
     return (await getAllCommunities(paginated)).map((dbCom) => new AdminCommunityView(dbCom))
   }
 
   @Authorized([RIGHTS.COMMUNITIES])
   @Query(() => [Community])
   async communities(): Promise<Community[]> {
+    logger.info('communities...')
     const dbCommunities: DbCommunity[] = await DbCommunity.find({
       where: { communityUuid: Not(IsNull()) }, //, authenticatedAt: Not(IsNull()) },
       order: {
@@ -60,6 +64,7 @@ export class CommunityResolver {
   async communityByIdentifier(
     @Arg('communityIdentifier') communityIdentifier: string,
   ): Promise<Community> {
+    logger.debug('communityByIdentifier...')
     const community = await getCommunityByIdentifier(communityIdentifier)
     if (!community) {
       throw new LogError('community not found', communityIdentifier)
@@ -70,6 +75,7 @@ export class CommunityResolver {
   @Authorized([RIGHTS.HOME_COMMUNITY])
   @Query(() => Community)
   async homeCommunity(): Promise<Community> {
+    logger.debug('homeCommunity...')
     const community = await getHomeCommunity()
     if (!community) {
       throw new LogError('no home community exist')
@@ -82,6 +88,7 @@ export class CommunityResolver {
   async updateHomeCommunity(
     @Args() { uuid, gmsApiKey, location }: EditCommunityInput,
   ): Promise<Community> {
+    logger.debug('updateHomeCommunity...location:', location)
     const homeCom = await getCommunityByUuid(uuid)
     if (!homeCom) {
       throw new LogError('HomeCommunity with uuid not found: ', uuid)
