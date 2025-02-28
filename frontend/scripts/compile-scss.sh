@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # check if grass as rust based scss compiler is installed
 if command -v grass &> /dev/null
