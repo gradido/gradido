@@ -19,7 +19,7 @@
     "test:debug": "cross-env TZ=UTC node --inspect-brk ./node_modules/vitest/vitest.mjs",
     "test:watch": "cross-env TZ=UTC vitest",
     "locales": "scripts/sort.sh",
-    "compile-scss": "sass --load-path=node_modules --load-path=src/assets/scss src/assets/scss/gradido.scss src/assets/css/gradido.css"
+    "compile-scss": "./scripts/compile-scss.sh"
   },
   "dependencies": {
     "@babel/core": "^7.13.13",

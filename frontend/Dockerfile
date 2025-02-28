@@ -55,7 +55,7 @@ FROM base as development
 # Run command
 # (for development we need to execute npm install since the
 #  node_modules are on another volume and need updating)
-CMD /bin/sh -c "cd /config && yarn install && yarn build && cd /app && yarn install && yarn run dev"
+CMD /bin/sh -c "cd /config && yarn install && yarn build && cd /app && yarn install && ls ./scripts -lah && yarn run dev"
 
 ##################################################################################
 # BUILD (Does contain all files and is therefore bloated) ########################

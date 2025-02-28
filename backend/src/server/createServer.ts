@@ -21,6 +21,11 @@ import { i18n } from './localization'
 import { apolloLogger } from './logger'
 import { plugins } from './plugins'
 
+const http = require('http')
+
+// Erhöht die maximale Anzahl von offenen Verbindungen
+http.globalAgent.maxSockets = Infinity; // Entfernt die Grenze
+
 // TODO implement
 // import queryComplexity, { simpleEstimator, fieldConfigEstimator } from "graphql-query-complexity";
 
@@ -61,10 +66,10 @@ export const createServer = async (
 
   // Helmet helps secure Express apps by setting HTTP response headers.
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-  app.use(helmet())
+  //app.use(helmet())
 
   // rate limiter/ slow down to many requests
-  const limiter = slowDown({
+  /*const limiter = slowDown({
     windowMs: 1000, // 1 second
     delayAfter: 10, // Allow 10 requests per 1 second.
     delayMs: (hits) => hits * 50, // Add 100 ms of delay to every request after the 10th one.
@@ -78,10 +83,10 @@ export const createServer = async (
      *
      * and so on. After 1 seconds, the delay is reset to 0.
      */
-  })
-  app.use(limiter)
+  // })
+  // app.use(limiter)
   // because of nginx proxy, needed for limiter
-  app.set('trust proxy', 1)
+  // app.set('trust proxy', 1)
 
   // bodyparser json
   app.use(json())

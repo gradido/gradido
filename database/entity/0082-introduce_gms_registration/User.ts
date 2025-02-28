@@ -7,9 +7,9 @@ import {
   OneToMany,
   JoinColumn,
   OneToOne,
-  Geometry,
   ManyToOne,
 } from 'typeorm'
+import type { Geometry } from 'typeorm'
 import { Contribution } from '../Contribution'
 import { ContributionMessage } from '../ContributionMessage'
 import { UserContact } from '../UserContact'

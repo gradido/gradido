@@ -7,7 +7,7 @@ import { AdminUpdateContributionArgs } from '@arg/AdminUpdateContributionArgs'
 import { ContributionArgs } from '@arg/ContributionArgs'
 
 import { ContributionMessageArgs } from '@/graphql/arg/ContributionMessageArgs'
-import { Context } from '@/server/context'
+import type { Context } from '@/server/context'
 import { LogError } from '@/server/LogError'
 
 import { AbstractUnconfirmedContributionRole } from './AbstractUnconfirmedContribution.role'

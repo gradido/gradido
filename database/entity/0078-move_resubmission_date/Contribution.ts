@@ -11,8 +11,11 @@ import {
   OneToOne,
 } from 'typeorm'
 import { DecimalTransformer } from '../../src/typeorm/DecimalTransformer'
+import type { User as UserType } from '../User'
 import { User } from '../User'
+import type { ContributionMessage as ContributionMessageType } from '../ContributionMessage'
 import { ContributionMessage } from '../ContributionMessage'
+import  type { Transaction as TransactionType } from '../Transaction'
 import { Transaction } from '../Transaction'
 
 @Entity('contributions')
@@ -25,7 +28,7 @@ export class Contribution extends BaseEntity {
 
   @ManyToOne(() => User, (user) => user.contributions)
   @JoinColumn({ name: 'user_id' })
-  user: User
+  user: UserType
 
   @Column({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', name: 'created_at' })
   createdAt: Date
@@ -99,9 +102,9 @@ export class Contribution extends BaseEntity {
 
   @OneToMany(() => ContributionMessage, (message) => message.contribution)
   @JoinColumn({ name: 'contribution_id' })
-  messages?: ContributionMessage[]
+  messages?: ContributionMessageType[]
 
   @OneToOne(() => Transaction, (transaction) => transaction.contribution)
   @JoinColumn({ name: 'transaction_id' })
-  transaction?: Transaction | null
+  transaction?: TransactionType | null
 }
