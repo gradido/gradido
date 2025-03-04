@@ -105,17 +105,17 @@
 <script setup>
 import { onBeforeMount, computed, watchEffect } from 'vue'
 import { useQuery } from '@vue/apollo-composable'
+import { projectBrandingBanner } from '@/graphql/projectBranding.graphql'
 import AuthNavbar from '@/components/Auth/AuthNavbar'
 import AuthNavbarSmall from '@/components/Auth/AuthNavbarSmall'
 import AuthCarousel from '@/components/Auth/AuthCarousel'
 import AuthFooter from '@/components/Auth/AuthFooter'
 import CONFIG from '@/config'
 import { useStore } from 'vuex'
-import gql from 'graphql-tag'
 
 const communityName = CONFIG.COMMUNITY_NAME
 const store = useStore()
-const projectValue = computed(() => {
+const project = computed(() => {
   const urlParams = new URLSearchParams(window.location.search)
   return urlParams.get('project')
 })
@@ -125,15 +125,9 @@ const setTextSize = (size) => {
 }
 
 const { result: projectBannerResult, loading: projectBannerLoading } = useQuery(
-  gql`
-    query ($project: String!) {
-      projectBrandingBanner(alias: $project)
-    }
-  `,
-  {
-    project: projectValue.value,
-  },
-  { enabled: !!projectValue.value },
+  projectBrandingBanner,
+  { project: project.value },
+  { enabled: !!project.value },
 )
 
 onBeforeMount(() => {
@@ -144,7 +138,7 @@ onBeforeMount(() => {
 // put project value into store, if projectBrandingBanner query don't throw an error, so project exists
 watchEffect(() => {
   if (projectBannerResult.value) {
-    store.commit('project', projectValue.value)
+    store.commit('project', project.value)
   }
 })
 </script>

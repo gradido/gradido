@@ -75,11 +75,11 @@
 <script setup>
 import ValidatedInput from '@/components/input/ValidatedInput'
 import ListHumhubSpaces from '@/components/ProjectBranding/ListHumhubSpaces.vue'
+import { spaceWithNameAndDescription } from '@/graphql/projectBranding.graphql'
 import { useI18n } from 'vue-i18n'
 import { reactive, computed, watch, ref } from 'vue'
 import { object, string, boolean, number } from 'yup'
 import { useQuery } from '@vue/apollo-composable'
-import gql from 'graphql-tag'
 
 const props = defineProps({
   modelValue: { type: Object, required: true },
@@ -99,17 +99,10 @@ const description = computed(() => form.description)
 const spaceId = computed(() => form.spaceId)
 const newUserToSpace = computed(() => form.newUserToSpace)
 const logoUrl = computed(() => form.logoUrl)
+
 // show space
-const getSpace = gql`
-  query ($id: ID!) {
-    space(id: $id) {
-      name
-      description
-    }
-  }
-`
-const { result } = useQuery(getSpace, () => ({ id: spaceId.value }), {
-  enabled: computed(() => !!spaceId.value),
+const { result } = useQuery(spaceWithNameAndDescription, () => ({ id: spaceId.value }), {
+  enabled: !!spaceId.value,
 })
 
 const selectedSpaceText = computed(() => {
