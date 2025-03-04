@@ -1,5 +1,11 @@
 #import './fragments.graphql'
 
+query projectBrandings {
+  projectBrandings {
+    ...ProjectBrandingCommonFields
+  }
+}
+
 mutation upsertProjectBranding($input: ProjectBrandingInput!) {
   upsertProjectBranding(input: $input) {
     ...ProjectBrandingCommonFields

@@ -53,30 +53,14 @@ import { computed, watch, ref } from 'vue'
 import { useQuery } from '@vue/apollo-composable'
 import { useStore } from 'vuex'
 import { useAppToast } from '@/composables/useToast'
-import gql from 'graphql-tag'
+import { projectBrandings as projectBrandingsQuery } from '@/graphql/projectBranding.graphql'
 
 const { toastError } = useAppToast()
 const store = useStore()
 
-const { result, loading, refetch, error } = useQuery(
-  gql`
-    query {
-      projectBrandings {
-        id
-        name
-        alias
-        description
-        spaceId
-        newUserToSpace
-        logoUrl
-      }
-    }
-  `,
-  null,
-  {
-    fetchPolicy: 'network-only',
-  },
-)
+const { result, loading, refetch, error } = useQuery(projectBrandingsQuery, null, {
+  fetchPolicy: 'network-only',
+})
 
 const projectBrandings = ref([])
 
