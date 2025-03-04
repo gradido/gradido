@@ -49,7 +49,7 @@
 </template>
 
 <script setup>
-import { computed, watch } from 'vue'
+import { computed, watch, ref } from 'vue'
 import { useQuery } from '@vue/apollo-composable'
 import { useStore } from 'vuex'
 import { useAppToast } from '@/composables/useToast'
@@ -62,11 +62,19 @@ const { result, loading, refetch, error } = useQuery(projectBrandingsQuery, null
   fetchPolicy: 'network-only',
 })
 
-const projectBrandings = computed(() => result.value?.projectBrandings || [])
+const projectBrandings = ref([])
 
 const isAddButtonDisabled = computed(() => {
   return projectBrandings.value.some((item) => item.id === undefined)
 })
+
+watch(
+  result,
+  () => {
+    projectBrandings.value = result.value?.projectBrandings || []
+  },
+  { immediate: true },
+)
 
 function createEntry() {
   projectBrandings.value.push({
