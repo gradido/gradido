@@ -19,11 +19,21 @@
         <BCol sm="12" md="8" lg="6" class="zindex1000">
           <div class="ms-3 ms-sm-4 me-3 me-sm-4">
             <BRow class="d-none d-md-block d-lg-none">
-              <BCol class="mb--4">
+              <BCol>
                 <auth-navbar-small />
               </BCol>
             </BRow>
-            <BRow class="mt-0 mt-md-5 ps-2 ps-md-0 ps-lg-0">
+            <BRow v-if="projectBannerResult || projectBannerLoading" class="d-none d-md-block">
+              <BCol>
+                <BImg
+                  v-if="projectBannerResult"
+                  :src="projectBannerResult.projectBrandingBanner"
+                  class="img-fluid rounded-like-card"
+                  alt="project banner"
+                />
+              </BCol>
+            </BRow>
+            <BRow v-else class="mt-0 mt-md-5 ps-2 ps-md-0 ps-lg-0">
               <BCol lg="9" md="9" sm="12">
                 <div class="mb--2">{{ $t('welcome') }}</div>
                 <div class="h1 mb-0">{{ communityName }}</div>
@@ -33,7 +43,7 @@
                 <BAvatar src="/img/brand/gradido_coin_128x128.png" size="6rem" />
               </BCol>
             </BRow>
-            <BCard ref="pageFontSize" no-body class="border-0 mt-4 gradido-custom-background">
+            <BCard no-body class="border-0 mt-4 gradido-custom-background page-font-size">
               <BRow class="p-4">
                 <BCol cols="10">
                   <language-switch-2 class="ms-3" />
@@ -61,7 +71,14 @@
               </BRow>
               <BRow class="d-inline d-sm-inline d-md-none d-lg-none mb-3">
                 <BCol class="text-center">
+                  <BImg
+                    v-if="projectBannerResult"
+                    :src="projectBannerResult.projectBrandingBanner"
+                    class="img-fluid ms-1 me-1 col-10 col-sm-10 rounded-20"
+                    alt="project banner"
+                  />
                   <BAvatar
+                    v-else
                     src="/img/brand/gradido_coin_128x128.png"
                     size="6rem"
                     bg-variant="transparent"
@@ -85,34 +102,45 @@
   </div>
 </template>
 
-<script>
+<script setup>
+import { onBeforeMount, computed, watchEffect } from 'vue'
+import { useQuery } from '@vue/apollo-composable'
+import { projectBrandingBanner } from '@/graphql/projectBranding.graphql'
 import AuthNavbar from '@/components/Auth/AuthNavbar'
 import AuthNavbarSmall from '@/components/Auth/AuthNavbarSmall'
 import AuthCarousel from '@/components/Auth/AuthCarousel'
-import LanguageSwitch2 from '@/components/LanguageSwitch2'
 import AuthFooter from '@/components/Auth/AuthFooter'
 import CONFIG from '@/config'
+import { useStore } from 'vuex'
 
-export default {
-  name: 'AuthLayout',
-  components: {
-    AuthNavbar,
-    AuthNavbarSmall,
-    AuthCarousel,
-    LanguageSwitch2,
-    AuthFooter,
-  },
-  data() {
-    return {
-      communityName: CONFIG.COMMUNITY_NAME,
-    }
-  },
-  methods: {
-    setTextSize(size) {
-      this.$refs.pageFontSize.$el.style.fontSize = size + 'rem'
-    },
-  },
+const communityName = CONFIG.COMMUNITY_NAME
+const store = useStore()
+const project = computed(() => {
+  const urlParams = new URLSearchParams(window.location.search)
+  return urlParams.get('project')
+})
+
+const setTextSize = (size) => {
+  document.querySelector('.page-font-size').style.fontSize = size + 'rem'
 }
+
+const { result: projectBannerResult, loading: projectBannerLoading } = useQuery(
+  projectBrandingBanner,
+  { project: project.value },
+  { enabled: !!project.value },
+)
+
+onBeforeMount(() => {
+  // clear state
+  store.commit('project', null)
+})
+
+// put project value into store, if projectBrandingBanner query don't throw an error, so project exists
+watchEffect(() => {
+  if (projectBannerResult.value) {
+    store.commit('project', project.value)
+  }
+})
 </script>
 
 <style lang="scss" scoped>

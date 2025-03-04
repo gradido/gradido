@@ -1,5 +1,7 @@
 {
   "GDD": "GDD",
+  "actions": "Actions",
+  "alias": "Alias",
   "all_emails": "All users",
   "back": "back",
   "change_user_role": "Change user role",
@@ -42,6 +44,8 @@
     "denied": "Rejected",
     "open": "Open"
   },
+  "copied-to-clipboard": "Copied to clipboard",
+  "copy-to-clipboard": "Copy to clipboard",
   "created": "Created for",
   "createdAt": "Created at",
   "creation": "Creation",
@@ -68,6 +72,7 @@
   "deleted": "deleted",
   "deleted_user": "All deleted user",
   "deny": "Reject",
+  "description": "Description",
   "e_mail": "E-mail",
   "edit": "edit",
   "enabled": "enabled",
@@ -127,6 +132,8 @@
   "lastname": "Lastname",
   "latitude": "Latitude:",
   "latitude-longitude-smart": "Latitude, Longitude",
+  "link": "Link",
+  "logo": "Logo",
   "longitude": "Longitude:",
   "math": {
     "equals": "=",
@@ -155,6 +162,8 @@
     "instances": "Instances",
     "logout": "Logout",
     "my-account": "My Account",
+    "projectBranding": "Project Branding",
+    "projectBrandingTooltip": "Use your own logo in the Gradido login and add new users to a Humhub space",
     "statistic": "Statistic",
     "user_search": "User search"
   },
@@ -199,9 +208,24 @@
       "yes": "Yes,undelete user"
     }
   },
+  "projectBranding": {
+    "addTooltip": "Add new project branding entry",
+    "chosenSpace": "Choosen Humhub Space: {space}",
+    "created": "New project branding entry has been created.",
+    "error": "Error when creating the project branding entry: {message}",
+    "noAccessRightSpace": "Selected space: {spaceId} (No access rights)",
+    "openSpaceInHumhub": "Open in Humhub",
+    "spaceId": "Humhub Space ID",
+    "selectSpace": "Select Humhub Space",
+    "title": "Project Branding",
+    "updated": "Project branding entry has been updated.",
+    "newUserToSpace": "Add user?",
+    "newUserToSpaceTooltip": "The hours should contain a maximum of two decimal places"
+  },
   "redeemed": "redeemed",
   "removeNotSelf": "As an admin/moderator, you cannot delete yourself.",
-  "save": "Speichern",
+  "reset": "Reset",
+  "save": "Save",
   "statistic": {
     "activeUsers": "Active members",
     "count": "Count",
