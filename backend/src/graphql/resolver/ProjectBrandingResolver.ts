@@ -36,7 +36,7 @@ export class ProjectBrandingResolver {
   async projectBrandingBanner(@Arg('alias', () => String) alias: string): Promise<string | null> {
     const projectBrandingEntity = await DbProjectBranding.findOne({
       where: { alias },
-      select: { logoUrl: true },
+      select: { id: true, logoUrl: true },
     })
     if (!projectBrandingEntity) {
       throw new LogError(`Project Branding with alias: ${alias} not found`)

@@ -141,8 +141,9 @@ onBeforeMount(() => {
   store.commit('project', null)
 })
 
+// put project value into store, if projectBrandingBanner query don't throw an error, so project exists
 watchEffect(() => {
-  if (projectBannerResult.value?.projectBrandingBanner) {
+  if (projectBannerResult.value) {
     store.commit('project', projectValue.value)
   }
 })
