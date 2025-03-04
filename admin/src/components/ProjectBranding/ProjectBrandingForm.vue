@@ -100,7 +100,7 @@ const spaceId = computed(() => form.spaceId)
 const newUserToSpace = computed(() => form.newUserToSpace)
 const logoUrl = computed(() => form.logoUrl)
 // show space
-const GET_SPACE = gql`
+const getSpace = gql`
   query space($id: ID!) {
     space(id: $id) {
       name
@@ -108,7 +108,7 @@ const GET_SPACE = gql`
     }
   }
 `
-const { result } = useQuery(GET_SPACE, () => ({ id: spaceId.value }), {
+const { result } = useQuery(getSpace, () => ({ id: spaceId.value }), {
   enabled: computed(() => !!spaceId.value),
 })
 

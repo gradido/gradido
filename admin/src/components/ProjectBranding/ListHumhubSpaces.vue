@@ -26,9 +26,9 @@
       </li>
     </ul>
     <b-pagination
-      v-if="result && result.spaces.total > ITEMS_PER_PAGE"
-      v-model="result.spaces.page"
-      :total-rows="result.spaces.total"
+      v-if="result && pagination.total > ITEMS_PER_PAGE"
+      v-model="pagination.page"
+      :total-rows="pagination.total"
       :per-page="ITEMS_PER_PAGE"
       aria-controls="list-humhub-spaces"
       @update:model-value="refetch({ page: $event })"
@@ -38,8 +38,8 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+import { spaces as spacesQuery } from '@/graphql/projectBranding.graphql'
 import { useQuery } from '@vue/apollo-composable'
-import gql from 'graphql-tag'
 
 const props = defineProps({
   modelValue: {
@@ -57,26 +57,10 @@ function chooseSpace(space) {
 const ITEMS_PER_PAGE = 20
 const page = ref(1)
 const selectedSpaceId = ref(props.modelValue)
-const { result, refetch } = useQuery(
-  gql`
-    query spaces($page: Int!, $limit: Int!) {
-      spaces(page: $page, limit: $limit) {
-        total
-        page
-        pages
-        results {
-          id
-          name
-          description
-          url
-        }
-      }
-    }
-  `,
-  { page: page.value, limit: ITEMS_PER_PAGE },
-)
+const { result, refetch } = useQuery(spacesQuery, { page: page.value, limit: ITEMS_PER_PAGE })
 
 const spaces = computed(() => result.value?.spaces?.results || [])
+const pagination = computed(() => result.value?.spaces?.pagination || {})
 
 onMounted(() => {
   if (props.modelValue) {

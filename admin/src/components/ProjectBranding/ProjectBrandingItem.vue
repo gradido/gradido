@@ -46,11 +46,11 @@
 <script setup>
 import { computed, ref, toRefs } from 'vue'
 import ProjectBrandingForm from './ProjectBrandingForm.vue'
+import { deleteProjectBranding, upsertProjectBranding } from '@/graphql/projectBranding.graphql'
 import { useI18n } from 'vue-i18n'
 import { useStore } from 'vuex'
 import { useMutation } from '@vue/apollo-composable'
 import CONFIG from '@/config'
-import gql from 'graphql-tag'
 import { useAppToast } from '@/composables/useToast'
 
 const { t } = useI18n()
@@ -87,20 +87,7 @@ function toggleDetails() {
 }
 
 function update(form) {
-  const { mutate } = useMutation(gql`
-    mutation upsertProjectBranding($input: ProjectBrandingInput!) {
-      upsertProjectBranding(input: $input) {
-        id
-        name
-        alias
-        description
-        spaceId
-        spaceUrl
-        newUserToSpace
-        logoUrl
-      }
-    }
-  `)
+  const { mutate } = useMutation(upsertProjectBranding)
 
   mutate({
     input: { ...form },
@@ -119,11 +106,7 @@ function update(form) {
     })
 }
 function deleteItem() {
-  const { mutate } = useMutation(gql`
-    mutation deleteProjectBranding($id: ID!) {
-      deleteProjectBranding(id: $id)
-    }
-  `)
+  const { mutate } = useMutation(deleteProjectBranding)
 
   mutate({
     id: item.value.id,
