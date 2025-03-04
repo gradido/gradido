@@ -101,7 +101,7 @@ const newUserToSpace = computed(() => form.newUserToSpace)
 const logoUrl = computed(() => form.logoUrl)
 // show space
 const getSpace = gql`
-  query space($id: ID!) {
+  query ($id: ID!) {
     space(id: $id) {
       name
       description

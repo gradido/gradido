@@ -21,9 +21,9 @@ export class ProjectBrandingResolver {
     )
   }
 
-  @Query(() => ProjectBranding, { nullable: true })
+  @Query(() => ProjectBranding)
   @Authorized([RIGHTS.PROJECT_BRANDING_VIEW])
-  async projectBranding(@Arg('id', () => Int) id: number): Promise<ProjectBranding | null> {
+  async projectBranding(@Arg('id', () => Int) id: number): Promise<ProjectBranding> {
     const projectBrandingEntity = await DbProjectBranding.findOneBy({ id })
     if (!projectBrandingEntity) {
       throw new LogError(`Project Branding with id: ${id} not found`)
