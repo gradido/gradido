@@ -3,7 +3,7 @@
   "description": "Administration Interface for Gradido",
   "main": "index.js",
   "author": "Moriz Wahl",
-  "version": "2.5.0",
+  "version": "2.5.1",
   "license": "Apache-2.0",
   "scripts": {
     "start": "node run/server.js",
