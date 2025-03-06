@@ -48,7 +48,7 @@
         </BCol>
         <BCol cols="9" lg="3" offset="3" offset-md="0" offset-lg="0">
           <div class="small">
-            {{ $t('creation') }} {{ $t('(') }}{{ amount / 20 }} {{ $t('h') }}{{ $t(')') }}
+            {{ $t('creation') }} {{ $t('(') }}{{ hours }} {{ $t('h') }}{{ $t(')') }}
           </div>
           <div v-if="status === 'DENIED' && allContribution" class="fw-bold">
             <variant-icon icon="x-circle" variant="danger" />
@@ -125,8 +125,9 @@ import ContributionMessagesList from '@/components/ContributionMessages/Contribu
 import { listContributionMessages } from '@/graphql/queries'
 import { useAppToast } from '@/composables/useToast'
 import { useI18n } from 'vue-i18n'
-import { useLazyQuery, useQuery } from '@vue/apollo-composable'
+import { useLazyQuery } from '@vue/apollo-composable'
 import AppAvatar from '@/components/AppAvatar.vue'
+import { GDD_PER_HOUR } from '../../constants'
 
 const props = defineProps({
   id: {
@@ -201,10 +202,9 @@ const props = defineProps({
   },
 })
 
-const { toastError, toastSuccess } = useAppToast()
+const { toastError } = useAppToast()
 const { t } = useI18n()
 
-const inProcess = ref(true)
 const messagesGet = ref([])
 const visible = ref(false)
 
@@ -224,14 +224,14 @@ const icon = computed(() => {
   return 'bell-fill'
 })
 
-const date = computed(() => props.createdAt)
-
 const collapseId = computed(() => 'collapse' + String(props.id))
 
 const username = computed(() => ({
   username: `${props.firstName} ${props.lastName}`,
   initials: `${props.firstName[0]}${props.lastName[0]}`,
 }))
+
+const hours = computed(() => parseFloat((props.amount / GDD_PER_HOUR).toFixed(2)))
 
 watch(
   () => visible.value,
