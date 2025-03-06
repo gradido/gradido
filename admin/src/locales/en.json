@@ -35,7 +35,8 @@
     "validTo": "End-Date"
   },
   "contributionMessagesForm": {
-    "resubmissionDateInPast": "Resubmission date is in the past!"
+    "resubmissionDateInPast": "Resubmission date is in the past!",
+    "userDetailsRegisteredAt": "{firstName} {lastName} <{email}> registered on {createdAt}."
   },
   "contributions": {
     "all": "All",
@@ -74,6 +75,7 @@
   "deny": "Reject",
   "description": "Description",
   "e_mail": "E-mail",
+  "details": "Details",
   "edit": "edit",
   "enabled": "enabled",
   "error": "Error",

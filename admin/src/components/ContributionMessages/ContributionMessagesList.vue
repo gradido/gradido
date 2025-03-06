@@ -1,17 +1,27 @@
 <template>
   <div class="contribution-messages-list">
+    <BListGroup>
+      <BListGroupItem>
+        {{
+          $t('contributionMessagesForm.userDetailsRegisteredAt', {
+            ...contribution,
+            createdAt: new Date(contribution.createdAt).toLocaleString(),
+          })
+        }}
+      </BListGroupItem>
+    </BListGroup>
     <BContainer>
       <div v-for="message in messages" :key="message.id">
         <contribution-messages-list-item
           :message="message"
-          :contribution-user-id="contributionUserId"
+          :contribution-user-id="contribution.userId"
         />
       </div>
     </BContainer>
-    <div v-if="contributionStatus === 'PENDING' || contributionStatus === 'IN_PROGRESS'">
+    <div v-if="contribution.status === 'PENDING' || contribution.status === 'IN_PROGRESS'">
       <contribution-messages-formular
-        :contribution-id="contributionId"
-        :contribution-memo="contributionMemo"
+        :contribution-id="contribution.id"
+        :contribution-memo="contribution.memo"
         :hide-resubmission="hideResubmission"
         :input-resubmission-date="resubmissionAt"
         @get-list-contribution-messages="refetch"
@@ -31,20 +41,8 @@ import { adminListContributionMessages } from '../../graphql/adminListContributi
 import { useAppToast } from '@/composables/useToast'
 
 const props = defineProps({
-  contributionId: {
-    type: Number,
-    required: true,
-  },
-  contributionMemo: {
-    type: String,
-    required: true,
-  },
-  contributionStatus: {
-    type: String,
-    required: true,
-  },
-  contributionUserId: {
-    type: Number,
+  contribution: {
+    type: Object,
     required: true,
   },
   hideResubmission: {
@@ -65,7 +63,7 @@ const messages = ref([])
 const { onResult, onError, result, refetch } = useQuery(
   adminListContributionMessages,
   {
-    contributionId: props.contributionId,
+    contributionId: props.contribution.id,
   },
   {
     fetchPolicy: 'no-cache',

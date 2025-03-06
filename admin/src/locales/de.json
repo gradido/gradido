@@ -35,7 +35,8 @@
     "validTo": "Enddatum"
   },
   "contributionMessagesForm": {
-    "resubmissionDateInPast": "Wiedervorlage Datum befindet sich in der Vergangenheit!"
+    "resubmissionDateInPast": "Wiedervorlage Datum befindet sich in der Vergangenheit!",
+    "userDetailsRegisteredAt": "{firstName} {lastName} <{email}> hat sich am {createdAt} registriert."
   },
   "contributions": {
     "all": "Alle",
@@ -73,6 +74,7 @@
   "deleted_user": "Alle gelöschten Nutzer",
   "deny": "Ablehnen",
   "description": "Beschreibung",
+  "details": "Details",
   "e_mail": "E-Mail",
   "edit": "bearbeiten",
   "enabled": "aktiviert",
