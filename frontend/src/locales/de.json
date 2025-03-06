@@ -51,8 +51,8 @@
   "contribution": {
     "activity": "Tätigkeit",
     "alert": {
-      "answerQuestion": "Bitte beantworte diese Rückfrage.",
-      "answerQuestionToast": "Du hast eine Rückfrage auf einen Beitrag. Bitte antworte auf diese.",
+      "answerQuestion": "Zu diesem Beitrag liegt eine neue Nachricht vor.",
+      "answerQuestionToast": "Du hast neue Nachrichten.",
       "communityNoteList": "Hier findest du alle eingereichten und bestätigten Beiträge von allen Mitgliedern aus dieser Gemeinschaft.",
       "confirm": "bestätigt",
       "deleted": "gelöscht",

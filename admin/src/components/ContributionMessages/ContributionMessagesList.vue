@@ -2,9 +2,12 @@
   <div class="contribution-messages-list">
     <BListGroup>
       <BListGroupItem>
+        <a :href="mailtoLink">
+          {{ contribution.firstName }} {{ contribution.lastName }} &lt;{{ contribution.email }}&gt;
+        </a>
+        &nbsp;
         {{
-          $t('contributionMessagesForm.userDetailsRegisteredAt', {
-            ...contribution,
+          $t('contributionMessagesForm.hasRegisteredAt', {
             createdAt: new Date(contribution.createdAt).toLocaleString(),
           })
         }}
@@ -34,7 +37,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useQuery } from '@vue/apollo-composable'
 
 import { adminListContributionMessages } from '../../graphql/adminListContributionMessages.js'
@@ -57,6 +60,9 @@ const props = defineProps({
 
 const emit = defineEmits(['update-status', 'reload-contribution', 'update-contributions'])
 const { toastError } = useAppToast()
+const mailtoLink = computed(() => {
+  return `mailto:${props.contribution.email}`
+})
 
 const messages = ref([])
 

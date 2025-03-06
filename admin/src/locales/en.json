@@ -36,7 +36,7 @@
   },
   "contributionMessagesForm": {
     "resubmissionDateInPast": "Resubmission date is in the past!",
-    "userDetailsRegisteredAt": "{firstName} {lastName} <{email}> registered on {createdAt}."
+    "hasRegisteredAt": "registered on {createdAt}."
   },
   "contributions": {
     "all": "All",
@@ -74,8 +74,8 @@
   "deleted_user": "All deleted user",
   "deny": "Reject",
   "description": "Description",
-  "e_mail": "E-mail",
   "details": "Details",
+  "e_mail": "E-mail",
   "edit": "edit",
   "enabled": "enabled",
   "error": "Error",
@@ -143,7 +143,7 @@
     "plus": "+"
   },
   "message": {
-    "request": "Request has been sent."
+    "request": "The entry has been saved."
   },
   "moderator": {
     "history": "The data has been changed. This is the old data.",

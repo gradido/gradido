@@ -36,7 +36,7 @@
   },
   "contributionMessagesForm": {
     "resubmissionDateInPast": "Wiedervorlage Datum befindet sich in der Vergangenheit!",
-    "userDetailsRegisteredAt": "{firstName} {lastName} <{email}> hat sich am {createdAt} registriert."
+    "hasRegisteredAt": "hat sich am {createdAt} registriert."
   },
   "contributions": {
     "all": "Alle",
@@ -143,7 +143,7 @@
     "plus": "+"
   },
   "message": {
-    "request": "Die Anfrage wurde gesendet."
+    "request": "Die Eingabe wurde gespeichert."
   },
   "moderator": {
     "history": "Die Daten wurden geändert. Dies sind die alten Daten.",

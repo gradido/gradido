@@ -181,6 +181,12 @@ export default {
       creationUserData: {},
     }
   },
+  mounted() {
+    this.addClipboardListener()
+  },
+  beforeUnmount() {
+    this.removeClipboardListener()
+  },
   methods: {
     myself(item) {
       return item.userId === this.$store.state.moderator.id
@@ -220,6 +226,23 @@ export default {
         this.slotIndex = index
         this.openRow = row
         this.creationUserData = row.item
+      }
+    },
+    addClipboardListener() {
+      document.addEventListener('copy', this.handleCopy)
+    },
+    removeClipboardListener() {
+      document.removeEventListener('copy', this.handleCopy)
+    },
+    handleCopy(event) {
+      // get from user selected text
+      const selectedText = window.getSelection().toString()
+
+      if (selectedText) {
+        // remove hashtags
+        const cleanedText = selectedText.replace(/#[a-zA-Z0-9_-]*/g, '')
+        event.clipboardData.setData('text/plain', cleanedText)
+        event.preventDefault()
       }
     },
   },
