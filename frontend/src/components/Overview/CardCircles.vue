@@ -1,40 +1,46 @@
 <template>
   <div v-if="humhubAllowed" class="mb-3 p-3 card-circles">
-  <BContainer class="bg-white app-box-shadow gradido-border-radius p-4 mt--3">
-    <div class="h3">{{ $t('card-circles.headline') }}</div>
-    <div v-if="humhubAllowed" class="my-3 text-small">
-      <span v-for="(line, lineNumber) of $t('card-circles.allowed.text').split('\n')" :key="lineNumber">
-        {{ line }}
-        <br />
-      </span>
-    </div>
-    <div v-else class="my-3 text-small">
-      <span v-for="(line, lineNumber) of $t('card-circles.not-allowed.text').split('\n')" :key="lineNumber">
-        {{ line }}
-        <br />
-      </span>
-    </div>
-    <BRow class="my-1">
-      <BCol cols="12">
-        <div class="text-lg-end">
-          <BButton
-            v-if="humhubAllowed"
-            :href="humhubUri"
-            variant="gradido"
-            :disabled="enableButton === false"
-            target="_blank"
-          >
-            {{ $t('card-circles.allowed.button') }}
-          </BButton>
-          <RouterLink v-else to="/settings/extern">
-            <BButton variant="gradido">
-              {{ $t('card-circles.not-allowed.button') }}
+    <BContainer class="bg-white app-box-shadow gradido-border-radius p-4 mt--3">
+      <div class="h3">{{ $t('card-circles.headline') }}</div>
+      <div v-if="humhubAllowed" class="my-3 text-small">
+        <span
+          v-for="(line, lineNumber) of $t('card-circles.allowed.text').split('\n')"
+          :key="lineNumber"
+        >
+          {{ line }}
+          <br />
+        </span>
+      </div>
+      <div v-else class="my-3 text-small">
+        <span
+          v-for="(line, lineNumber) of $t('card-circles.not-allowed.text').split('\n')"
+          :key="lineNumber"
+        >
+          {{ line }}
+          <br />
+        </span>
+      </div>
+      <BRow class="my-1">
+        <BCol cols="12">
+          <div class="text-lg-end">
+            <BButton
+              v-if="humhubAllowed"
+              :href="humhubUri"
+              variant="gradido"
+              :disabled="enableButton === false"
+              target="_blank"
+            >
+              {{ $t('card-circles.allowed.button') }}
             </BButton>
-          </RouterLink>
-        </div>
-      </BCol>
-    </BRow>
-  </BContainer>
+            <RouterLink v-else to="/settings/extern">
+              <BButton variant="gradido">
+                {{ $t('card-circles.not-allowed.button') }}
+              </BButton>
+            </RouterLink>
+          </div>
+        </BCol>
+      </BRow>
+    </BContainer>
   </div>
 </template>
 <script setup>

@@ -3,13 +3,19 @@
     <BContainer class="bg-white app-box-shadow gradido-border-radius p-4 mt--3">
       <div class="h3">{{ $t('card-user-search.headline') }}</div>
       <div v-if="gmsAllowed" class="my-3 text-small">
-        <span v-for="(line, lineNumber) of $t('card-user-search.allowed.text').split('\n')" :key="lineNumber">
+        <span
+          v-for="(line, lineNumber) of $t('card-user-search.allowed.text').split('\n')"
+          :key="lineNumber"
+        >
           {{ line }}
           <br />
         </span>
       </div>
       <div v-else class="my-3 text-small">
-        <span v-for="(line, lineNumber) of $t('card-user-search.not-allowed.text').split('\n')" :key="lineNumber">
+        <span
+          v-for="(line, lineNumber) of $t('card-user-search.not-allowed.text').split('\n')"
+          :key="lineNumber"
+        >
           {{ line }}
           <br />
         </span>
