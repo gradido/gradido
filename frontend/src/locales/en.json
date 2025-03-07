@@ -285,10 +285,8 @@
     "overview": "Overview",
     "send": "Send",
     "settings": "Settings",
-    "circles": "Circles",
     "support": "Support",
-    "transactions": "Transactions",
-    "usersearch": "Geographical User Search"
+    "transactions": "Transactions"
   },
   "openHours": "Open Hours",
   "pageTitle": {
@@ -312,14 +310,13 @@
     "warningText": "Are you still there?"
   },
   "settings": {
-    "allow-community-services": "Allow Community Services",
     "community": "Community",
     "emailInfo": "Cannot be changed at this time.",
     "GMS": {
       "disabled": "Data not exported to GMS",
       "enabled": "Data exported to GMS",
       "location": {
-        "button": "Click me!",
+        "button": "Open Map",
         "label": "Pinpoint location",
         "saveLocation": "Save Location",
         "updateSuccess": "Location successfully saved"
