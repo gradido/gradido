@@ -306,11 +306,9 @@
     "logout": "Abmelden",
     "overview": "Übersicht",
     "send": "Senden",
-    "settings": "Einstellung",
-    "circles": "Kreise",
+    "settings": "Einstellungen",
     "support": "Support",
-    "transactions": "Transaktionen",
-    "usersearch": "Nutzersuche"
+    "transactions": "Transaktionen"
   },
   "openHours": "Offene Stunden",
   "pageTitle": {
@@ -334,15 +332,14 @@
     "warningText": "Bist du noch da?"
   },
   "settings": {
-    "allow-community-services": "Community-Dienste erlauben",
-    "community": "Community",
+    "community": "Kreise & Mitgliedsuche",
     "emailInfo": "Kann aktuell noch nicht geändert werden.",
     "GMS": {
       "disabled": "Daten werden nicht nach GMS exportiert",
       "enabled": "Daten werden nach GMS exportiert",
       "location": {
-        "button": "Klick mich!",
-        "label": "Positionsbestimmung",
+        "button": "Karte öffnen",
+        "label": "Dein Standort",
         "saveLocation": "Standort speichern",
         "updateSuccess": "Standort erfolgreich gespeichert"
       },

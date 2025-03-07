@@ -257,10 +257,8 @@
     "overview": "Aperçu",
     "send": "Envoyer",
     "settings": "Configuration",
-    "circles": "Cercles",
     "support": "Aide",
-    "transactions": "Transactions",
-    "usersearch": "Recherche d'utilisateurs"
+    "transactions": "Transactions"
   },
   "openHours": "Heures ouverte",
   "pageTitle": {

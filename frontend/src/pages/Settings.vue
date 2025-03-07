@@ -86,7 +86,6 @@
         class="community-service-tabs"
         :title="$t('settings.community')"
       >
-        <div class="h2">{{ $t('settings.allow-community-services') }}</div>
         <div v-if="isHumhub" class="mt-3">
           <BRow>
             <BCol cols="12" md="6" lg="6">
