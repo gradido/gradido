@@ -122,7 +122,7 @@
             <BCol cols="12" md="6" lg="6">
               <div class="h3">{{ $t('GMS.title') }}</div>
             </BCol>
-            <BCol cols="12" md="6" lg="6" class="text-end">
+            <BCol cols="12" md="6" lg="6" class="text-start">
               <user-settings-switch
                 :initial-value="state.gmsAllowed"
                 :attr-name="'gmsAllowed'"
