@@ -40,6 +40,7 @@ export const sendAccountActivationEmail = (data: {
   language: string
   activationLink: string
   timeDurationObject: Record<string, unknown>
+  logoUrl?: string | null
 }): Promise<Record<string, unknown> | boolean | null> => {
   return sendEmailTranslated({
     receiver: { to: `${data.firstName} ${data.lastName} <${data.email}>` },
@@ -50,6 +51,7 @@ export const sendAccountActivationEmail = (data: {
       locale: data.language,
       activationLink: data.activationLink,
       timeDurationObject: data.timeDurationObject,
+      logoUrl: data.logoUrl,
       resendLink: CONFIG.EMAIL_LINK_FORGOTPASSWORD,
       supportEmail: CONFIG.COMMUNITY_SUPPORT_MAIL,
       communityURL: CONFIG.COMMUNITY_URL,

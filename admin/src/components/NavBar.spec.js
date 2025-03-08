@@ -101,12 +101,13 @@ describe('NavBar', () => {
   describe('Navbar Menu', () => {
     it('has correct menu items', () => {
       const navItems = wrapper.findAll('.nav-item a')
-      expect(navItems).toHaveLength(7)
+      expect(navItems).toHaveLength(8)
       expect(navItems[0].attributes('href')).toBe('/user')
       expect(navItems[1].attributes('href')).toBe('/creation-confirm')
       expect(navItems[2].attributes('href')).toBe('/contribution-links')
       expect(navItems[3].attributes('href')).toBe('/federation')
-      expect(navItems[4].attributes('href')).toBe('/statistic')
+      expect(navItems[4].attributes('href')).toBe('/projectBranding')
+      expect(navItems[5].attributes('href')).toBe('/statistic')
     })
   })
 
