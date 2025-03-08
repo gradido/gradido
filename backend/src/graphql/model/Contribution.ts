@@ -10,6 +10,7 @@ export class Contribution {
     this.firstName = user?.firstName ?? null
     this.lastName = user?.lastName ?? null
     this.email = user?.emailContact?.email ?? null
+    this.username = user?.alias ?? null
     this.amount = contribution.amount
     this.memo = contribution.memo
     this.createdAt = contribution.createdAt
@@ -40,6 +41,9 @@ export class Contribution {
 
   @Field(() => String, { nullable: true })
   email: string | null
+
+  @Field(() => String, { nullable: true })
+  username: string | null
 
   @Field(() => Decimal)
   amount: Decimal

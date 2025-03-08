@@ -2,15 +2,17 @@
   <div class="contribution-messages-list">
     <BListGroup>
       <BListGroupItem>
-        <a :href="mailtoLink">
-          {{ contribution.firstName }} {{ contribution.lastName }} &lt;{{ contribution.email }}&gt;
-        </a>
+        <routerLink :to="searchLink" :title="$t('goTo.userSearch')">
+          {{ contribution.firstName }} {{ contribution.lastName }}
+        </routerLink>
         &nbsp;
-        {{
-          $t('contributionMessagesForm.hasRegisteredAt', {
-            createdAt: new Date(contribution.createdAt).toLocaleString(),
-          })
-        }}
+        <a :href="mailtoLink">{{ contribution.email }}</a>
+        &nbsp;
+        {{ contribution.username }}
+        &nbsp; Humhub-Profil
+      </BListGroupItem>
+      <BListGroupItem>
+        {{ $t('registered') }}: {{ new Date(contribution.createdAt).toLocaleString() }}
       </BListGroupItem>
     </BListGroup>
     <BContainer>
@@ -42,6 +44,7 @@ import { useQuery } from '@vue/apollo-composable'
 
 import { adminListContributionMessages } from '../../graphql/adminListContributionMessages.js'
 import { useAppToast } from '@/composables/useToast'
+import { BListGroupItem } from 'bootstrap-vue-next'
 
 const props = defineProps({
   contribution: {
@@ -62,6 +65,9 @@ const emit = defineEmits(['update-status', 'reload-contribution', 'update-contri
 const { toastError } = useAppToast()
 const mailtoLink = computed(() => {
   return `mailto:${props.contribution.email}`
+})
+const searchLink = computed(() => {
+  return `/user?search=${props.contribution.email}`
 })
 
 const messages = ref([])

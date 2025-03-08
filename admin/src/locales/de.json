@@ -119,6 +119,10 @@
       "describe": "Teilt Koordinaten im Format 'Breitengrad, Längengrad' automatisch auf. Fügen sie hier einfach z.B. ihre Koordinaten von Google Maps, zum Beispiel: 49.28187664243721, 9.740672183943639, ein."
     }
   },
+  "goTo": {
+    "userSearch": "Zur Nutzersuche gehen",
+    "humhubProfile": "Zum Humhub Profil gehen"
+  },
   "help": {
     "help": "Hilfe",
     "transactionlist": {
@@ -226,6 +230,7 @@
   },
   "redeemed": "eingelöst",
   "removeNotSelf": "Als Admin/Moderator kannst du dich nicht selber löschen.",
+  "registered": "Registriert",
   "reset": "Zurücksetzen",
   "save": "Speichern",
   "statistic": {

@@ -119,6 +119,10 @@
       "describe": "Automatically splits coordinates in the format 'latitude, longitude'. Simply enter your coordinates from Google Maps here, for example: 49.28187664243721, 9.740672183943639."
     }
   },
+  "goTo": {
+    "userSearch": "Go to user search",
+    "humhubProfile": "Go to Humhub profile"
+  },
   "help": {
     "help": "Help",
     "transactionlist": {
@@ -226,6 +230,7 @@
   },
   "redeemed": "redeemed",
   "removeNotSelf": "As an admin/moderator, you cannot delete yourself.",
+  "registered": "Registered",
   "reset": "Reset",
   "save": "Save",
   "statistic": {

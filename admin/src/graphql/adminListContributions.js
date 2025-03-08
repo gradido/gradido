@@ -27,6 +27,7 @@ export const adminListContributions = gql`
         firstName
         lastName
         email
+        username
         amount
         memo
         createdAt
