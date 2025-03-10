@@ -119,6 +119,7 @@ const searchForEmail = () => {
 .temp-message {
   margin-top: 50px;
 }
+
 .cursor-pointer {
   cursor: pointer;
 }
