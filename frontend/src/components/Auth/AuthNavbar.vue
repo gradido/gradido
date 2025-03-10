@@ -31,19 +31,6 @@ const sheet = '/img/template/Blaetter.png'
 .auth-navbar {
   display: flex;
   align-content: center;
-
-  > * {
-    text-decoration: none;
-  }
-}
-
-.auth-navbar > :deep(a) {
-  color: #0e79bc !important;
-  padding: 4px 16px;
-}
-
-.auth-navbar > :deep(.router-link-exact-active) {
-  color: #383838 !important;
 }
 
 .auth-header {

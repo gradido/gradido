@@ -79,16 +79,8 @@ export default {
   height: 150px;
 }
 
-.auth-navbar > .nav-link {
-  color: #383838 !important;
-}
-
 .navbar-toggler {
   font-size: 2.25rem;
-}
-
-.auth-navbar > .router-link-exact-active {
-  color: #0e79bc !important;
 }
 
 button.navbar-toggler > span.navbar-toggler-icon {

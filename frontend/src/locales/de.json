@@ -126,6 +126,7 @@
     "session-expired": "Die Sitzung wurde aus Sicherheitsgründen beendet.",
     "unknown-error": "Unbekannter Fehler: "
   },
+  "existingGradidoAccount": "Du hast schon ein {communityName} Konto?",
   "followUs": "folge uns:",
   "footer": {
     "app_version": "App version {version}",
@@ -275,6 +276,7 @@
     "title": "Danke!",
     "unsetPassword": "Dein Passwort wurde noch nicht gesetzt. Bitte setze es neu."
   },
+  "missingGradidoAccount": "Noch kein {communityName} Konto?",
   "moderatorChangedMemo": "Text vom Moderator bearbeitet",
   "moderatorChat": "Moderator Chat",
   "navigation": {
