@@ -99,6 +99,9 @@
     "verified": "Verifiziert",
     "verifiedAt": "Verifiziert am"
   },
+  "filter": {
+    "byEmail": "Nach E-Mail filtern"
+  },
   "firstname": "Vorname",
   "footer": {
     "app_version": "App version {version}",

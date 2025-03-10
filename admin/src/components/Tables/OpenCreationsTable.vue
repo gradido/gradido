@@ -126,6 +126,7 @@
                 @update-status="updateStatus"
                 @reload-contribution="reloadContribution"
                 @update-contributions="updateContributions"
+                @search-for-email="$emit('search-for-email', $event)"
               />
             </div>
           </template>
@@ -173,7 +174,13 @@ export default {
       required: false,
     },
   },
-  emits: ['update-contributions', 'reload-contribution', 'update-status', 'show-overlay'],
+  emits: [
+    'update-contributions',
+    'reload-contribution',
+    'update-status',
+    'show-overlay',
+    'search-for-email',
+  ],
   data() {
     return {
       slotIndex: 0,

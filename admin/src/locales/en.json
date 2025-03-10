@@ -99,6 +99,9 @@
     "verified": "Verified",
     "verifiedAt": "Verified at"
   },
+  "filter": {
+    "byEmail": "Filter by email"
+  },
   "firstname": "Firstname",
   "footer": {
     "app_version": "App version {version}",

@@ -7,6 +7,10 @@
         </routerLink>
         &nbsp;
         <a :href="mailtoLink">{{ contribution.email }}</a>
+        <IBiFilter id="filter-by-email" class="ps-1 cursor-pointer" @click="searchForEmail" />
+        <BTooltip target="filter-by-email" triggers="hover">
+          {{ $t('filter.byEmail') }}
+        </BTooltip>
         &nbsp;
         {{ contribution.username }}
         &nbsp; Humhub-Profil
@@ -61,7 +65,12 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['update-status', 'reload-contribution', 'update-contributions'])
+const emit = defineEmits([
+  'update-status',
+  'reload-contribution',
+  'update-contributions',
+  'search-for-email',
+])
 const { toastError } = useAppToast()
 const mailtoLink = computed(() => {
   return `mailto:${props.contribution.email}`
@@ -101,9 +110,16 @@ const reloadContribution = (id) => {
 const updateContributions = () => {
   emit('update-contributions')
 }
+
+const searchForEmail = () => {
+  emit('search-for-email', props.contribution.email)
+}
 </script>
 <style scoped>
 .temp-message {
   margin-top: 50px;
+}
+.cursor-pointer {
+  cursor: pointer;
 }
 </style>

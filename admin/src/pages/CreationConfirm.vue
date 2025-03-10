@@ -58,6 +58,7 @@
       @update-status="updateStatus"
       @reload-contribution="reloadContribution"
       @update-contributions="refetch"
+      @search-for-email="query = $event"
     />
 
     <BPagination
