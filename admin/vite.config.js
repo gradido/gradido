@@ -17,7 +17,8 @@ const CONFIG = require('./src/config')
 
 const path = require('path')
 
-export default defineConfig(({ command }) => {
+export default defineConfig(async ({ command }) => {
+  const { vitePluginGraphqlLoader } = await import('vite-plugin-graphql-loader')
   if (command === 'serve') {
     CONFIG.ADMIN_HOSTING = 'nodejs'
   } else {
@@ -79,6 +80,7 @@ export default defineConfig(({ command }) => {
         DEBUG_DISABLE_AUTH: CONFIG.DEBUG_DISABLE_AUTH ?? null, // null,
         // CONFIG_VERSION: CONFIG.CONFIG_VERSION, // null,
       }),
+      vitePluginGraphqlLoader(),
       commonjs(),
     ],
     build: {

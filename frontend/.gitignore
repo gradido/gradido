@@ -2,6 +2,7 @@
 node_modules/
 build/
 src/assets/css/gradido.css
+src/assets/css/gradido.css.map
 .cache/
 .yarn/install-state.gz
 

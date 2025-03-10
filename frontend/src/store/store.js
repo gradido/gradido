@@ -49,6 +49,9 @@ export const mutations = {
   gmsPublishLocation: (state, gmsPublishLocation) => {
     state.gmsPublishLocation = gmsPublishLocation
   },
+  project: (state, project) => {
+    state.project = project
+  },
   publisherId: (state, publisherId) => {
     let pubId = parseInt(publisherId)
     if (isNaN(pubId)) pubId = null
@@ -113,6 +116,7 @@ export const actions = {
     commit('humhubPublishName', null)
     commit('gmsPublishLocation', null)
     commit('hasElopage', false)
+    commit('project', null)
     commit('publisherId', null)
     commit('roles', null)
     commit('hideAmountGDD', false)
@@ -153,6 +157,7 @@ try {
       humhubPublishName: null,
       gmsPublishLocation: null,
       hasElopage: false,
+      project: null,
       publisherId: null,
       hideAmountGDD: null,
       hideAmountGDT: null,

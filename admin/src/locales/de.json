@@ -1,5 +1,7 @@
 {
   "GDD": "GDD",
+  "actions": "Aktionen",
+  "alias": "Alias",
   "all_emails": "Alle Nutzer",
   "back": "zurück",
   "change_user_role": "Nutzerrolle ändern",
@@ -33,7 +35,8 @@
     "validTo": "Enddatum"
   },
   "contributionMessagesForm": {
-    "resubmissionDateInPast": "Wiedervorlage Datum befindet sich in der Vergangenheit!"
+    "resubmissionDateInPast": "Wiedervorlage Datum befindet sich in der Vergangenheit!",
+    "hasRegisteredAt": "hat sich am {createdAt} registriert."
   },
   "contributions": {
     "all": "Alle",
@@ -42,6 +45,8 @@
     "denied": "Abgelehnt",
     "open": "Offen"
   },
+  "copied-to-clipboard": "In die Zwischenablage kopiert",
+  "copy-to-clipboard": "In die Zwischenablage kopieren",
   "created": "Geschöpft",
   "createdAt": "Angelegt",
   "creation": "Schöpfung",
@@ -68,6 +73,8 @@
   "deleted": "gelöscht",
   "deleted_user": "Alle gelöschten Nutzer",
   "deny": "Ablehnen",
+  "description": "Beschreibung",
+  "details": "Details",
   "e_mail": "E-Mail",
   "edit": "bearbeiten",
   "enabled": "aktiviert",
@@ -92,6 +99,9 @@
     "verified": "Verifiziert",
     "verifiedAt": "Verifiziert am"
   },
+  "filter": {
+    "byEmail": "Nach E-Mail filtern"
+  },
   "firstname": "Vorname",
   "footer": {
     "app_version": "App version {version}",
@@ -112,6 +122,10 @@
       "describe": "Teilt Koordinaten im Format 'Breitengrad, Längengrad' automatisch auf. Fügen sie hier einfach z.B. ihre Koordinaten von Google Maps, zum Beispiel: 49.28187664243721, 9.740672183943639, ein."
     }
   },
+  "goTo": {
+    "userSearch": "Zur Nutzersuche gehen",
+    "humhubProfile": "Zum Humhub Profil gehen"
+  },
   "help": {
     "help": "Hilfe",
     "transactionlist": {
@@ -127,6 +141,8 @@
   "lastname": "Nachname",
   "latitude": "Breitengrad:",
   "latitude-longitude-smart": "Breitengrad, Längengrad",
+  "link": "Link",
+  "logo": "Logo",
   "longitude": "Längengrad:",
   "math": {
     "equals": "=",
@@ -134,7 +150,7 @@
     "plus": "+"
   },
   "message": {
-    "request": "Die Anfrage wurde gesendet."
+    "request": "Die Eingabe wurde gespeichert."
   },
   "moderator": {
     "history": "Die Daten wurden geändert. Dies sind die alten Daten.",
@@ -155,6 +171,8 @@
     "instances": "Instanzen",
     "logout": "Abmelden",
     "my-account": "Mein Konto",
+    "projectBranding": "Projekt Branding",
+    "projectBrandingTooltip": "Nutze ein eigenes Logo im Gradido Login und füge neue Benutzer einem Humhub-Space hinzu",
     "statistic": "Statistik",
     "user_search": "Nutzersuche"
   },
@@ -199,8 +217,24 @@
       "yes": "Ja, Nutzer wiederherstellen"
     }
   },
+  "projectBranding": {
+    "addTooltip": "Neuen Projekt Branding Eintrag hinzufügen",
+    "chosenSpace": "Gewählter Space: {space}",
+    "created": "Neuer Projekt Branding Eintrag wurde erstellt.",
+    "error": "Fehler beim Erstellen des Projekt Branding Eintrags: {message}",
+    "noAccessRightSpace": "Gewählter Space: {spaceId} (Keine Zugriffsrechte)",
+    "openSpaceInHumhub": "In Humhub öffnen",
+    "spaceId": "Humhub Space ID",
+    "selectSpace": "Humhub Space auswählen",
+    "title": "Projekt Brandings",
+    "updated": "Projekt Branding Eintrag wurde aktualisiert.",
+    "newUserToSpace": "Benutzer hinzufügen?",
+    "newUserToSpaceTooltip": "Neue Benutzer automatisch zum Space hinzufügen, falls Space vorhanden"
+  },
   "redeemed": "eingelöst",
+  "registered": "Registriert",
   "removeNotSelf": "Als Admin/Moderator kannst du dich nicht selber löschen.",
+  "reset": "Zurücksetzen",
   "save": "Speichern",
   "statistic": {
     "activeUsers": "Aktive Mitglieder",
