@@ -229,8 +229,8 @@
     "newUserToSpaceTooltip": "Neue Benutzer automatisch zum Space hinzufügen, falls Space vorhanden"
   },
   "redeemed": "eingelöst",
-  "removeNotSelf": "Als Admin/Moderator kannst du dich nicht selber löschen.",
   "registered": "Registriert",
+  "removeNotSelf": "Als Admin/Moderator kannst du dich nicht selber löschen.",
   "reset": "Zurücksetzen",
   "save": "Speichern",
   "statistic": {

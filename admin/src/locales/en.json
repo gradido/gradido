@@ -229,8 +229,8 @@
     "newUserToSpaceTooltip": "The hours should contain a maximum of two decimal places"
   },
   "redeemed": "redeemed",
-  "removeNotSelf": "As an admin/moderator, you cannot delete yourself.",
   "registered": "Registered",
+  "removeNotSelf": "As an admin/moderator, you cannot delete yourself.",
   "reset": "Reset",
   "save": "Save",
   "statistic": {
