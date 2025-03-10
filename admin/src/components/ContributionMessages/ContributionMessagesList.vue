@@ -7,7 +7,7 @@
         </routerLink>
         &nbsp;
         <a :href="mailtoLink">{{ contribution.email }}</a>
-        <IBiFilter id="filter-by-email" class="ps-1 cursor-pointer" @click="searchForEmail" />
+        <IBiFilter id="filter-by-email" class="ms-1 pointer" @click="searchForEmail" />
         <BTooltip target="filter-by-email" triggers="hover">
           {{ $t('filter.byEmail') }}
         </BTooltip>
@@ -118,9 +118,5 @@ const searchForEmail = () => {
 <style scoped>
 .temp-message {
   margin-top: 50px;
-}
-
-.cursor-pointer {
-  cursor: pointer;
 }
 </style>
