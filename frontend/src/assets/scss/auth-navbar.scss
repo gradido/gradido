@@ -5,3 +5,9 @@
 .auth-navbar > a.router-link-exact-active {
   color: #383838;
 }
+
+.auth-template a:hover,
+.auth-template .btn:hover,
+.auth-template .language-switch .locales:hover {
+  text-decoration: underline;
+}
