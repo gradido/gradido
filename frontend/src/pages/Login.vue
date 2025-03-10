@@ -38,8 +38,8 @@
           </BCol>
         </BRow>
         <BRow>
-          <BCol class="mt-1">
-            <BLink :to="register()" class="register-nav-item">
+          <BCol class="mt-1 auth-navbar">
+            <BLink :to="register()">
               {{ $t('signup') }}
             </BLink>
           </BCol>
@@ -160,9 +160,5 @@ const enterData = computed(() => !showPageMessage.value)
 .btn-gradido-disable {
   padding-right: 0;
   padding-left: 0;
-}
-
-a.register-nav-item {
-  color: #0e79bc !important;
 }
 </style>

@@ -1,7 +1,8 @@
 // Links
 @use "sass:color";
 
-$link-color: $primary ;
+$link-color: $gradido-4;
 $link-decoration: none ;
-$link-hover-color: color.adjust($link-color, $lightness: -15%) ;
+$link-hover-color: $gradido-56;
 $link-hover-decoration: none ;
+$link-active-color: $gradido-56;

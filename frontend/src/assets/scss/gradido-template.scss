@@ -45,23 +45,6 @@ html > body {
   box-shadow: 20pt 20pt 50pt 0 #3838384f !important;
 }
 
-/* Navbar  */
-a,
-.navbar-light,
-.navbar-nav,
-.nav-link {
-  color: #047006 !important;
-}
-
-a:hover,
-.nav-link:hover {
-  color: #383838 !important;
-}
-
-.navbar-light .navbar-nav .nav-link.active {
-  color: rgb(35 121 188 / 90%);
-}
-
 /* Button */
 .btn {
   border-radius: 25px;
