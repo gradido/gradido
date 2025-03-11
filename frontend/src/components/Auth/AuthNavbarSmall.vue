@@ -2,9 +2,9 @@
   <div class="navbar-small">
     <BNavbar class="navi">
       <BNavbarNav>
-        <BNavItem :to="register()" class="auth-navbar">{{ $t('signup') }}</BNavItem>
+        <NavItem :to="register()" class="auth-navbar">{{ $t('signup') }}</NavItem>
         <span class="mt-1">{{ $t('|') }}</span>
-        <BNavItem :to="login()" class="auth-navbar">{{ $t('signin') }}</BNavItem>
+        <NavItem :to="login()" class="auth-navbar">{{ $t('signin') }}</NavItem>
       </BNavbarNav>
     </BNavbar>
   </div>
@@ -12,6 +12,7 @@
 
 <script setup>
 import { useAuthLinks } from '@/composables/useAuthLinks'
+import NavItem from '../Menu/NavItem.vue'
 
 const { login, register } = useAuthLinks()
 </script>
