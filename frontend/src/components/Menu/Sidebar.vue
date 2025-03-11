@@ -23,7 +23,7 @@
           <BNavItem to="/transactions" :class="transactionClass" active-class="active-route">
             <div class="sidebar-menu-item-wrapper">
               <i-ion-layers-sharp class="svg-icon" />
-              <span class="ms-1">{{ $t('navigation.transactions') }}</span>
+              <span class="ms-2">{{ $t('navigation.transactions') }}</span>
             </div>
           </BNavItem>
           <BNavItem ref="communityLink" to="/community" class="mb-3" active-class="active-route">
@@ -35,7 +35,7 @@
           <BNavItem to="/information" class="mb-3" active-class="active-route">
             <div class="sidebar-menu-item-wrapper">
               <i-mdi-information class="svg-icon" />
-              <span class="ms-1">{{ $t('navigation.info') }}</span>
+              <span class="ms-2">{{ $t('navigation.info') }}</span>
             </div>
           </BNavItem>
           <BNavItem v-if="isHumhub" to="/circles" class="mb-3" active-class="active-route">
@@ -62,7 +62,7 @@
             <div class="sidebar-menu-item-wrapper">
               <div>
                 <i-mdi-settings class="svg-icon" />
-                <span class="ms-1">{{ $t('navigation.settings') }}</span>
+                <span class="ms-2">{{ $t('navigation.settings') }}</span>
               </div>
               <BBadge v-if="!$store.state.username" variant="warning">
                 {{ $t('settings.newSettings') }}
