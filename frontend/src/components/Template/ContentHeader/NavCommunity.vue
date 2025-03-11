@@ -20,7 +20,7 @@
         variant="link"
         class="nav-community__btn"
       >
-        <b-img src="/img/svg/my_profil.svg" height="20" class="svg-icon" />
+        <i-ion-person-sharp class="svg-icon" />
         {{ $t('community.myContributions') }}
       </BButton>
       <BButton
@@ -30,7 +30,7 @@
         variant="link"
         class="nav-community__btn"
       >
-        <b-img src="/img/svg/community.svg" height="20" class="svg-icon" />
+        <i-mdi-people-group class="svg-icon" />
         {{ $t('community.community') }}
       </BButton>
     </div>

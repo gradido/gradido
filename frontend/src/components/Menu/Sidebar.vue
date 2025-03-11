@@ -89,7 +89,7 @@
             @click="$emit('logout')"
           >
             <div class="sidebar-menu-item-wrapper">
-              <BImg src="/img/svg/logout.svg" height="20" class="svg-icon" />
+              <i-humbleicons-logout class="svg-icon logout-icon" />
               <span class="ms-2 logout-text">{{ $t('navigation.logout') }}</span>
             </div>
           </BNavItem>
@@ -158,7 +158,8 @@ watch(
   padding: 0;
 }
 
-.logout-text {
+.logout-text,
+.logout-icon {
   color: #cd5556;
 }
 

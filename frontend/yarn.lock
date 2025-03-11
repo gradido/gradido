@@ -1125,6 +1125,13 @@
   dependencies:
     "@iconify/types" "*"
 
+"@iconify-json/humbleicons@^1.2.6":
+  version "1.2.6"
+  resolved "https://registry.yarnpkg.com/@iconify-json/humbleicons/-/humbleicons-1.2.6.tgz#00189eaaf590ff80feeba05c1c5793dc7efe4c79"
+  integrity sha512-B5Ayka2mYbT8BxltoOEebe8XPfq0vpt2vzTGt/WJmapsapaLfAm00KdSEgIJ58VcBPWPtPI94FQ/97Yi/RAtAw==
+  dependencies:
+    "@iconify/types" "*"
+
 "@iconify-json/ion@^1.2.2":
   version "1.2.2"
   resolved "https://registry.yarnpkg.com/@iconify-json/ion/-/ion-1.2.2.tgz#ec1afaa19b82c2856eaa6a0ec976209538cd1bae"

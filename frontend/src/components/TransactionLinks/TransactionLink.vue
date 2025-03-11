@@ -35,7 +35,7 @@
                 class="pt-3 pb-3 test-qr-code"
                 @click.stop="toggleQrModal"
               >
-                <BImg src="img/svg/qr-code.svg" width="18" class="filter"></BImg>
+                <IBiQrCode class="filter"></IBiQrCode>
                 {{ $t('qrCode') }}
               </BDropdownItem>
               <BDropdownItem class="test-delete-link" @click.stop="toggleDeleteModal">
