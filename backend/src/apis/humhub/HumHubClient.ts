@@ -150,14 +150,15 @@ export class HumHubClient {
    * https://marketplace.humhub.com/module/rest/docs/html/user.html#tag/User/paths/~1user/post
    * @param user for saving on humhub instance
    */
-  public async createUser(user: PostUser): Promise<void> {
+  public async createUser(user: PostUser): Promise<GetUser> {
     logger.info('create new humhub user', new PostUserLoggingView(user))
     const options = await this.createRequestOptions()
     try {
-      const response = await this.restClient.create('/api/v1/user', user, options)
-      if (response.statusCode !== 200) {
+      const response = await this.restClient.create<GetUser>('/api/v1/user', user, options)
+      if (response.statusCode !== 200 || !response.result) {
         throw new LogError('error creating user on humhub', { user, response })
       }
+      return response.result
     } catch (error) {
       throw new LogError('error on creating new user', {
         user,

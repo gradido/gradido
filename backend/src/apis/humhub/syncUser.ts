@@ -1,11 +1,24 @@
 import { User } from '@entity/User'
+import { UserLoggingView } from '@logging/UserLogging.view'
 
 import { LogError } from '@/server/LogError'
+import { backendLogger as logger } from '@/server/logger'
 
 import { isHumhubUserIdenticalToDbUser } from './compareHumhubUserDbUser'
 import { HumHubClient } from './HumHubClient'
 import { GetUser } from './model/GetUser'
 import { PostUser } from './model/PostUser'
+
+function setHumhubUserUuid(user: User, humhubUser: GetUser): void {
+  user.humhubUserUuid = humhubUser.guid
+  // eslint-disable-next-line promise/prefer-await-to-callbacks
+  user.save().catch((error) => {
+    logger.error('Error saving user with humhub user uuid', {
+      user: new UserLoggingView(user),
+      error: JSON.stringify(error, null, 2),
+    })
+  })
+}
 
 export enum ExecutedHumhubAction {
   UPDATE,
@@ -42,6 +55,10 @@ export async function syncUser(
       await humHubClient.deleteUser(humhubUser.id)
       return ExecutedHumhubAction.DELETE
     }
+    // sync back humhub user uuid in our own db
+    if (user.humhubUserUuid !== humhubUser.guid) {
+      setHumhubUserUuid(user, humhubUser)
+    }
     if (!isHumhubUserIdenticalToDbUser(humhubUser, user)) {
       // if humhub allowed
       await humHubClient.updateUser(postUser, humhubUser.id)
@@ -49,7 +66,8 @@ export async function syncUser(
     }
   } else {
     if (user.humhubAllowed) {
-      await humHubClient.createUser(postUser)
+      const humhubUser = await humHubClient.createUser(postUser)
+      setHumhubUserUuid(user, humhubUser)
       return ExecutedHumhubAction.CREATE
     }
   }
