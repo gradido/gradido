@@ -1,4 +1,4 @@
-{
+card-circles{
   "(": "(",
   ")": ")",
   "100": "100%",
@@ -44,11 +44,11 @@
   "card-user-search": {
     "headline": "Geografische Nutzersuche",
     "allowed": {
-      "text": "Mit dem Geo-Matching-System findest du Mitglieder aller Communities auf einer Landkarte.\n\nMit dem Button wird ein neues Browser-Fenster geöffnet, in dem dir die Nutzer in deinem Umfeld auf einer Karte angezeigt werden.",
+      "text": "Finde Mitglieder aller Communities auf einer Landkarte.",
       "button": "Öffne Nutzersuche..."
     },
     "not-allowed": {
-      "text": "Du möchtest die Standorte anderer Mitglieder sehen? Dann musst du selbst erst deinen Standort festlegen.",
+      "text": "Finde Mitglieder aller Communities auf einer Landkarte? Dann musst du selbst erst deinen Standort festlegen.",
       "button": "Standort festlegen..."
     }
   },

@@ -30,6 +30,28 @@
     }
   },
   "back": "Back",
+  "card-circles": {
+    "headline": "Together we support each other - mindful in circle culture.",
+    "allowed": {
+      "text": "Click on the button to open the cooperation platform in a new browser window.",
+      "button": "Start Circles..."
+    },
+    "not-allowed": {
+      "text": "Your Circles are not configured yet! Please open the Circles-Configuration first.",
+      "button": "Start Circles-Configuration..."
+    }
+  },
+  "card-user-search": {
+    "headline": "Geografice Usersearch",
+    "allowed": {
+      "text": "Find Members of all Communities on a Map.",
+      "button": "Start Usersearch..."
+    },
+    "not-allowed": {
+      "text": "Find Members of all Communities on a Map? Then you have to capture your Location first.",
+      "button": "Start Location-Capturing..."
+    }
+  },
   "circles": {
     "headline": "Together we support each other - mindful in circle culture.",
     "text": "Click on the button to open the cooperation platform in a new browser window.",
