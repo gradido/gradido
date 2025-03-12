@@ -50,12 +50,17 @@ const endpoints = {
 const debug = {
   DEBUG_DISABLE_AUTH: process.env.DEBUG_DISABLE_AUTH === 'true' ?? false,
 }
+const humhub = {
+  HUMHUB_ACTIVE: process.env.HUMHUB_ACTIVE === 'true' || false,
+  HUMHUB_API_URL: process.env.HUMHUB_API_URL ?? COMMUNITY_URL + '/community/',
+}
 
 const CONFIG = {
   ...version,
   ...environment,
   ...endpoints,
   ...debug,
+  ...humhub,
   ADMIN_MODULE_URL,
   COMMUNITY_URL,
 }

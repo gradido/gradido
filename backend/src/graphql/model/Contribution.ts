@@ -3,6 +3,10 @@ import { User } from '@entity/User'
 import { Decimal } from 'decimal.js-light'
 import { ObjectType, Field, Int } from 'type-graphql'
 
+import { PublishNameType } from '@enum/PublishNameType'
+
+import { PublishNameLogic } from '@/data/PublishName.logic'
+
 @ObjectType()
 export class Contribution {
   constructor(contribution: dbContribution, user?: User | null) {
@@ -11,6 +15,10 @@ export class Contribution {
     this.lastName = user?.lastName ?? null
     this.email = user?.emailContact?.email ?? null
     this.username = user?.alias ?? null
+    if (user) {
+      const publishNameLogic = new PublishNameLogic(user)
+      this.humhubUsername = publishNameLogic.getUsername(user.humhubPublishName as PublishNameType)
+    }
     this.amount = contribution.amount
     this.memo = contribution.memo
     this.createdAt = contribution.createdAt
@@ -44,6 +52,9 @@ export class Contribution {
 
   @Field(() => String, { nullable: true })
   username: string | null
+
+  @Field(() => String, { nullable: true })
+  humhubUsername: string | null
 
   @Field(() => Decimal)
   amount: Decimal

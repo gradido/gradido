@@ -13,7 +13,20 @@
         </BTooltip>
         &nbsp;
         {{ contribution.username }}
-        &nbsp; Humhub-Profil
+        &nbsp;
+        <span>
+          <a
+            v-if="humhubProfileLink"
+            id="humhub-username"
+            :href="humhubProfileLink"
+            target="_blank"
+          >
+            <i-arcticons-circles class="svg-icon" />
+          </a>
+          <BTooltip target="humhub-username" triggers="hover">
+            {{ $t('goTo.humhubProfile') }}
+          </BTooltip>
+        </span>
       </BListGroupItem>
       <BListGroupItem>
         {{ $t('registered') }}: {{ new Date(contribution.createdAt).toLocaleString() }}
@@ -45,10 +58,10 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useQuery } from '@vue/apollo-composable'
-
 import { adminListContributionMessages } from '../../graphql/adminListContributionMessages.js'
 import { useAppToast } from '@/composables/useToast'
 import { BListGroupItem } from 'bootstrap-vue-next'
+import CONFIG from '@/config'
 
 const props = defineProps({
   contribution: {
@@ -77,6 +90,16 @@ const mailtoLink = computed(() => {
 })
 const searchLink = computed(() => {
   return `/user?search=${props.contribution.email}`
+})
+const humhubProfileLink = computed(() => {
+  if (CONFIG.HUMHUB_ACTIVE !== true) {
+    return undefined
+  }
+  let url = CONFIG.HUMHUB_API_URL
+  if (url.endsWith('/')) {
+    url = url.slice(0, -1)
+  }
+  return `${url}/u/${props.contribution.humhubUsername}`
 })
 
 const messages = ref([])

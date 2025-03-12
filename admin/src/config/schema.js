@@ -5,6 +5,8 @@ const {
   COMMUNITY_URL,
   DEBUG,
   GRAPHQL_URI,
+  HUMHUB_ACTIVE,
+  HUMHUB_API_URL,
   NODE_ENV,
   PRODUCTION,
 } = require('gradido-config/build/src/commonSchema.js')
@@ -17,8 +19,15 @@ module.exports = Joi.object({
   COMMUNITY_URL,
   DEBUG,
   GRAPHQL_URI,
+  HUMHUB_ACTIVE,
+  // HUMHUB_API_URL,
   NODE_ENV,
   PRODUCTION,
+
+  HUMHUB_API_URL: Joi.string()
+    .uri({ scheme: ['http', 'https'] })
+    .when('HUMHUB_ACTIVE', { is: true, then: Joi.required(), otherwise: Joi.optional() })
+    .description('The API URL for HumHub integration'),
 
   ADMIN_HOSTING: Joi.string()
     .valid('nodejs', 'nginx')

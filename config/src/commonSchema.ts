@@ -117,6 +117,11 @@ export const HUMHUB_ACTIVE = Joi.boolean()
   .default(false)
   .required()
 
+export const HUMHUB_API_URL = Joi.string()
+  .uri({ scheme: ['http', 'https'] })
+  .when('HUMHUB_ACTIVE', { is: true, then: Joi.required(), otherwise: Joi.optional() })
+  .description('The API URL for HumHub integration')
+
 export const LOG_LEVEL = Joi.string()
   .valid('all', 'mark', 'trace', 'debug', 'info', 'warn', 'error', 'fatal', 'off') 
   .description('set log level')

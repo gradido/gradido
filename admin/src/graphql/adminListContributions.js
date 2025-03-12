@@ -28,6 +28,7 @@ export const adminListContributions = gql`
         lastName
         email
         username
+        humhubUsername
         amount
         memo
         createdAt
