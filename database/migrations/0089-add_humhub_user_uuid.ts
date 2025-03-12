@@ -8,7 +8,7 @@
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   await queryFn(`
     ALTER TABLE users
-    ADD COLUMN humhub_user_uuid varchar(36) char(36) NULL;
+    ADD COLUMN humhub_user_uuid char(36) NULL;
   `)
 }
 

@@ -1,1 +1,1 @@
-export { User } from './0084-introduce_humhub_registration/User'
+export { User } from './0089-add_humhub_user_uuid/User'
