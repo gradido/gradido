@@ -356,7 +356,6 @@
       "publish-location": {
         "exact": "Genaue Position",
         "approximate": "Ungefähre Position",
-        "random": "Zufallsposition",
         "updated": "Positionstyp für GMS aktualisiert"
       },
       "publish-name": {

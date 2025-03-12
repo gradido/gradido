@@ -356,7 +356,6 @@
       "publish-location": {
         "exact": "exact position",
         "approximate": "approximate position",
-        "random": "random position",
         "updated": "format of location for GMS updated"
       },
       "publish-name": {
