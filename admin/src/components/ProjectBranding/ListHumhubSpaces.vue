@@ -26,9 +26,9 @@
       </li>
     </ul>
     <b-pagination
-      v-if="result && pagination.total > ITEMS_PER_PAGE"
-      v-model="pagination.page"
-      :total-rows="pagination.total"
+      v-if="result && paginationTotal > ITEMS_PER_PAGE"
+      v-model="paginationPage"
+      :total-rows="paginationTotal"
       :per-page="ITEMS_PER_PAGE"
       aria-controls="list-humhub-spaces"
       @update:model-value="refetch({ page: $event })"
@@ -60,7 +60,8 @@ const selectedSpaceId = ref(props.modelValue)
 const { result, refetch } = useQuery(spacesQuery, { page: page.value, limit: ITEMS_PER_PAGE })
 
 const spaces = computed(() => result.value?.spaces?.results || [])
-const pagination = computed(() => result.value?.spaces?.pagination || {})
+const paginationTotal = computed(() => result.value?.spaces?.pagination?.total || 0)
+const paginationPage = computed(() => result.value?.spaces?.pagination?.page || 1)
 
 onMounted(() => {
   if (props.modelValue) {

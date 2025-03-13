@@ -96,8 +96,7 @@ export class ProjectBrandingResolver {
     if (!humhub) {
       throw new LogError('HumHub client not initialized')
     }
-    const offset = (page - 1) * limit
-    const spaces = await humhub.spaces(offset, limit)
+    const spaces = await humhub.spaces(page, limit)
     if (!spaces) {
       throw new LogError('Error requesting spaces from HumHub')
     }
