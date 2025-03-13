@@ -4,6 +4,7 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { getConnection, In, Point } from '@dbTools/typeorm'
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
+import { ProjectBranding } from '@entity/ProjectBranding'
 import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
 import { User as DbUser } from '@entity/User'
 import { UserContact as DbUserContact } from '@entity/UserContact'
@@ -145,10 +146,10 @@ export class UserResolver {
   @Authorized([RIGHTS.LOGIN])
   @Mutation(() => User)
   async login(
-    @Args() { email, password, publisherId }: UnsecureLoginArgs,
+    @Args() { email, password, publisherId, project }: UnsecureLoginArgs,
     @Ctx() context: Context,
   ): Promise<User> {
-    logger.info(`login with ${email}, ***, ${publisherId} ...`)
+    logger.info(`login with ${email}, ***, ${publisherId}, project=${project} ...`)
     email = email.trim().toLowerCase()
     let dbUser: DbUser
 
@@ -177,12 +178,19 @@ export class UserResolver {
 
     // request to humhub and klicktipp run in parallel
     let humhubUserPromise: Promise<IRestResponse<GetUser>> | undefined
+    let projectBrandingPromise: Promise<ProjectBranding | null> | undefined
     const klicktippStatePromise = getKlicktippState(dbUser.emailContact.email)
     if (CONFIG.HUMHUB_ACTIVE && dbUser.humhubAllowed) {
       const getHumhubUser = new PostUser(dbUser)
       humhubUserPromise = HumHubClient.getInstance()?.userByUsernameAsync(
         getHumhubUser.account.username,
       )
+    }
+    if (project) {
+      projectBrandingPromise = ProjectBranding.findOne({
+        where: { alias: project },
+        select: { spaceId: true },
+      })
     }
 
     if (dbUser.passwordEncryptionType !== PasswordEncryptionType.GRADIDO_ID) {
@@ -213,11 +221,20 @@ export class UserResolver {
     })
 
     await EVENT_USER_LOGIN(dbUser)
+    const projectBranding = await projectBrandingPromise
+    logger.debug('project branding: ', projectBranding)
     // load humhub state
     if (humhubUserPromise) {
       try {
         const result = await humhubUserPromise
         user.humhubAllowed = result?.result?.account.status === 1
+        if (user.humhubAllowed) {
+          let spaceId = null
+          if (projectBranding) {
+            spaceId = projectBranding.spaceId
+          }
+          void syncHumhub(null, dbUser, spaceId)
+        }
       } catch (e) {
         logger.error("couldn't reach out to humhub, disable for now", e)
         user.humhubAllowed = false
@@ -249,11 +266,12 @@ export class UserResolver {
       language,
       publisherId = null,
       redeemCode = null,
+      project = null,
     }: CreateUserArgs,
   ): Promise<User> {
     logger.addContext('user', 'unknown')
     logger.info(
-      `createUser(email=${email}, firstName=${firstName}, lastName=${lastName}, language=${language}, publisherId=${publisherId}, redeemCode =${redeemCode})`,
+      `createUser(email=${email}, firstName=${firstName}, lastName=${lastName}, language=${language}, publisherId=${publisherId}, redeemCode=${redeemCode}, project=${project})`,
     )
     // TODO: wrong default value (should be null), how does graphql work here? Is it an required field?
     // default int publisher_id = 0;
@@ -308,7 +326,13 @@ export class UserResolver {
         return user
       }
     }
-
+    let projectBrandingPromise: Promise<ProjectBranding | null> | undefined
+    if (project) {
+      projectBrandingPromise = ProjectBranding.findOne({
+        where: { alias: project },
+        select: { logoUrl: true, spaceId: true },
+      })
+    }
     const gradidoID = await newGradidoID()
 
     const eventRegisterRedeem = Event(
@@ -356,6 +380,7 @@ export class UserResolver {
     const queryRunner = getConnection().createQueryRunner()
     await queryRunner.connect()
     await queryRunner.startTransaction('REPEATABLE READ')
+    let projectBranding: ProjectBranding | null | undefined
     try {
       dbUser = await queryRunner.manager.save(dbUser).catch((error) => {
         throw new LogError('Error while saving dbUser', error)
@@ -373,8 +398,11 @@ export class UserResolver {
 
       const activationLink = `${
         CONFIG.EMAIL_LINK_VERIFICATION
-      }${emailContact.emailVerificationCode.toString()}${redeemCode ? `/${redeemCode}` : ''}`
+      }${emailContact.emailVerificationCode.toString()}${redeemCode ? `/${redeemCode}` : ''}${
+        project ? `?project=` + project : ''
+      }`
 
+      projectBranding = projectBrandingPromise ? await projectBrandingPromise : undefined
       void sendAccountActivationEmail({
         firstName,
         lastName,
@@ -382,6 +410,7 @@ export class UserResolver {
         language,
         activationLink,
         timeDurationObject: getTimeDurationObject(CONFIG.EMAIL_CODE_VALID_TIME),
+        logoUrl: projectBranding?.logoUrl,
       })
       logger.info(`sendAccountActivationEmail of ${firstName}.${lastName} to ${email}`)
 
@@ -397,7 +426,11 @@ export class UserResolver {
     }
     logger.info('createUser() successful...')
     if (CONFIG.HUMHUB_ACTIVE) {
-      void syncHumhub(null, dbUser)
+      let spaceId: number | null = null
+      if (projectBranding) {
+        spaceId = projectBranding.spaceId
+      }
+      void syncHumhub(null, dbUser, spaceId)
     }
 
     if (redeemCode) {
@@ -771,7 +804,10 @@ export class UserResolver {
 
   @Authorized([RIGHTS.HUMHUB_AUTO_LOGIN])
   @Query(() => String)
-  async authenticateHumhubAutoLogin(@Ctx() context: Context): Promise<string> {
+  async authenticateHumhubAutoLogin(
+    @Ctx() context: Context,
+    @Arg('project', () => String, { nullable: true }) project?: string | null,
+  ): Promise<string> {
     logger.info(`authenticateHumhubAutoLogin()...`)
     const dbUser = getUser(context)
     const humhubClient = HumHubClient.getInstance()
@@ -790,7 +826,7 @@ export class UserResolver {
     if (humhubUser.account.status !== 1) {
       throw new LogError('user status is not 1', humhubUser.account.status)
     }
-    return await humhubClient.createAutoLoginUrl(humhubUser.account.username)
+    return await humhubClient.createAutoLoginUrl(humhubUser.account.username, project)
   }
 
   @Authorized([RIGHTS.SEARCH_ADMIN_USERS])

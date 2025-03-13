@@ -18,7 +18,8 @@ dotenv.config() // load env vars from .env
 const CONFIG = require('./src/config')
 
 // https://vitejs.dev/config/
-export default defineConfig(({ command }) => {
+export default defineConfig(async ({ command }) => {
+  const { vitePluginGraphqlLoader } = await import('vite-plugin-graphql-loader')
   if (command === 'serve') {
     CONFIG.FRONTEND_HOSTING = 'nodejs'
   } else {
@@ -117,6 +118,7 @@ export default defineConfig(({ command }) => {
         META_KEYWORDS_EN: null,
         META_AUTHOR: null,
       }),
+      vitePluginGraphqlLoader(),
       commonjs(),
     ],
     css: {

@@ -22,6 +22,12 @@ vi.mock('@vue/apollo-composable', () => ({
   })),
 }))
 
+vi.mock('@/composables/useToast', () => ({
+  useAppToast: vi.fn(() => ({
+    addToast: vi.fn(),
+  })),
+}))
+
 describe('ContributionListItem', () => {
   let wrapper
 

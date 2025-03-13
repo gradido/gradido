@@ -1,5 +1,7 @@
 {
   "GDD": "GDD",
+  "actions": "Aktionen",
+  "alias": "Alias",
   "all_emails": "Alle Nutzer",
   "back": "zurück",
   "change_user_role": "Nutzerrolle ändern",
@@ -42,6 +44,8 @@
     "denied": "Abgelehnt",
     "open": "Offen"
   },
+  "copied-to-clipboard": "In die Zwischenablage kopiert",
+  "copy-to-clipboard": "In die Zwischenablage kopieren",
   "created": "Geschöpft",
   "createdAt": "Angelegt",
   "creation": "Schöpfung",
@@ -68,6 +72,7 @@
   "deleted": "gelöscht",
   "deleted_user": "Alle gelöschten Nutzer",
   "deny": "Ablehnen",
+  "description": "Beschreibung",
   "e_mail": "E-Mail",
   "edit": "bearbeiten",
   "enabled": "aktiviert",
@@ -127,6 +132,8 @@
   "lastname": "Nachname",
   "latitude": "Breitengrad:",
   "latitude-longitude-smart": "Breitengrad, Längengrad",
+  "link": "Link",
+  "logo": "Logo",
   "longitude": "Längengrad:",
   "math": {
     "equals": "=",
@@ -155,6 +162,8 @@
     "instances": "Instanzen",
     "logout": "Abmelden",
     "my-account": "Mein Konto",
+    "projectBranding": "Projekt Branding",
+    "projectBrandingTooltip": "Nutze ein eigenes Logo im Gradido Login und füge neue Benutzer einem Humhub-Space hinzu",
     "statistic": "Statistik",
     "user_search": "Nutzersuche"
   },
@@ -199,8 +208,23 @@
       "yes": "Ja, Nutzer wiederherstellen"
     }
   },
+  "projectBranding": {
+    "addTooltip": "Neuen Projekt Branding Eintrag hinzufügen",
+    "chosenSpace": "Gewählter Space: {space}",
+    "created": "Neuer Projekt Branding Eintrag wurde erstellt.",
+    "error": "Fehler beim Erstellen des Projekt Branding Eintrags: {message}",
+    "noAccessRightSpace": "Gewählter Space: {spaceId} (Keine Zugriffsrechte)",
+    "openSpaceInHumhub": "In Humhub öffnen",
+    "spaceId": "Humhub Space ID",
+    "selectSpace": "Humhub Space auswählen",
+    "title": "Projekt Brandings",
+    "updated": "Projekt Branding Eintrag wurde aktualisiert.",
+    "newUserToSpace": "Benutzer hinzufügen?",
+    "newUserToSpaceTooltip": "Neue Benutzer automatisch zum Space hinzufügen, falls Space vorhanden"
+  },
   "redeemed": "eingelöst",
   "removeNotSelf": "Als Admin/Moderator kannst du dich nicht selber löschen.",
+  "reset": "Zurücksetzen",
   "save": "Speichern",
   "statistic": {
     "activeUsers": "Aktive Mitglieder",

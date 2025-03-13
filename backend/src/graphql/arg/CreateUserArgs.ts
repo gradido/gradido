@@ -30,4 +30,8 @@ export class CreateUserArgs {
   @Field(() => String, { nullable: true })
   @IsString()
   redeemCode?: string | null
+
+  @Field(() => String, { nullable: true })
+  @IsString()
+  project?: string | null
 }
