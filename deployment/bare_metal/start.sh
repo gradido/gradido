@@ -17,11 +17,6 @@ set +o allexport
 # enable nvm 
 export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 nvm use default
-// upgrade node js version
-nvm install 18.20.7
-nvm use 18.20.7
-nvm alias default 18.20.7
-npm install -g pm2 yarn
 
 # NOTE: all config values will be in process.env when starting
 # the services and will therefore take precedence over the .env
@@ -88,6 +83,11 @@ sudo /etc/init.d/nginx restart
 echo 'Stop and delete all Gradido services' >> $UPDATE_HTML
 pm2 delete all
 pm2 save
+# upgrade node js version
+nvm install 18.20.7
+nvm use 18.20.7
+nvm alias default 18.20.7
+npm install -g pm2 yarn
 
 # git
 BRANCH=$1
