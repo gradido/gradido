@@ -67,6 +67,7 @@
         <BButton v-if="row.item.messagesCount > 0" @click="rowToggleDetails(row, 0)">
           <IBiChatDots />
         </BButton>
+        <collapse-icon v-else :visible="row.detailsShowing" @click="rowToggleDetails(row, 0)" />
       </template>
       <template #cell(deny)="row">
         <div v-if="!myself(row.item)">
@@ -92,6 +93,12 @@
           </BButton>
         </div>
       </template>
+      <template #cell(firstName)="row">
+        <div class="no-select">{{ row.item.firstName }}</div>
+      </template>
+      <template #cell(lastName)="row">
+        <div class="no-select">{{ row.item.lastName }}</div>
+      </template>
       <template #row-details="row">
         <row-details
           :row="row"
@@ -103,6 +110,7 @@
           <template #show-creation>
             <div v-if="row.item.moderatorId">
               <edit-creation-formular
+                v-if="row.item.confirmedAt === null"
                 type="singleCreation"
                 :item="row.item"
                 :row="row"
@@ -112,15 +120,13 @@
             </div>
             <div v-else>
               <contribution-messages-list
-                :contribution-id="row.item.id"
-                :contribution-status="row.item.status"
-                :contribution-user-id="row.item.userId"
-                :contribution-memo="row.item.memo"
+                :contribution="row.item"
                 :resubmission-at="row.item.resubmissionAt"
                 :hide-resubmission="hideResubmission"
                 @update-status="updateStatus"
                 @reload-contribution="reloadContribution"
                 @update-contributions="updateContributions"
+                @search-for-email="$emit('search-for-email', $event)"
               />
             </div>
           </template>
@@ -168,13 +174,25 @@ export default {
       required: false,
     },
   },
-  emits: ['update-contributions', 'reload-contribution', 'update-status', 'show-overlay'],
+  emits: [
+    'update-contributions',
+    'reload-contribution',
+    'update-status',
+    'show-overlay',
+    'search-for-email',
+  ],
   data() {
     return {
       slotIndex: 0,
       openRow: null,
       creationUserData: {},
     }
+  },
+  mounted() {
+    this.addClipboardListener()
+  },
+  beforeUnmount() {
+    this.removeClipboardListener()
   },
   methods: {
     myself(item) {
@@ -201,26 +219,37 @@ export default {
       this.$emit('update-contributions')
     },
     rowToggleDetails(row, index) {
-      if (this.openRow) {
-        if (this.openRow.index === row.index) {
-          if (index === this.slotIndex) {
-            row.toggleDetails()
-            this.openRow = null
-          } else {
-            this.slotIndex = index
-          }
-        } else {
-          this.openRow.toggleDetails()
-          row.toggleDetails()
-          this.slotIndex = index
-          this.openRow = row
-          this.creationUserData = row.item
-        }
+      const isSameRow = this.openRow && this.openRow.index === row.index
+      const isSameSlot = index === this.slotIndex
+
+      if (isSameRow && isSameSlot) {
+        row.toggleDetails()
+        this.openRow = null
       } else {
+        if (this.openRow) {
+          this.openRow.toggleDetails()
+        }
         row.toggleDetails()
         this.slotIndex = index
         this.openRow = row
         this.creationUserData = row.item
+      }
+    },
+    addClipboardListener() {
+      document.addEventListener('copy', this.handleCopy)
+    },
+    removeClipboardListener() {
+      document.removeEventListener('copy', this.handleCopy)
+    },
+    handleCopy(event) {
+      // get from user selected text
+      const selectedText = window.getSelection().toString()
+
+      if (selectedText) {
+        // remove hashtags
+        const cleanedText = selectedText.replace(/#[a-zA-Z0-9_-]*/g, '')
+        event.clipboardData.setData('text/plain', cleanedText)
+        event.preventDefault()
       }
     },
   },
@@ -230,5 +259,9 @@ export default {
 .btn-warning {
   background-color: #e1a908;
   border-color: #e1a908;
+}
+
+.no-select {
+  user-select: none;
 }
 </style>

@@ -5,6 +5,8 @@ const {
   COMMUNITY_URL,
   DEBUG,
   GRAPHQL_URI,
+  HUMHUB_ACTIVE,
+  HUMHUB_API_URL,
   NODE_ENV,
   PRODUCTION,
 } = require('gradido-config/build/src/commonSchema.js')
@@ -17,6 +19,8 @@ module.exports = Joi.object({
   COMMUNITY_URL,
   DEBUG,
   GRAPHQL_URI,
+  HUMHUB_ACTIVE,
+  HUMHUB_API_URL,
   NODE_ENV,
   PRODUCTION,
 

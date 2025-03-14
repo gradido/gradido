@@ -35,7 +35,8 @@
     "validTo": "End-Date"
   },
   "contributionMessagesForm": {
-    "resubmissionDateInPast": "Resubmission date is in the past!"
+    "resubmissionDateInPast": "Resubmission date is in the past!",
+    "hasRegisteredAt": "registered on {createdAt}."
   },
   "contributions": {
     "all": "All",
@@ -73,6 +74,7 @@
   "deleted_user": "All deleted user",
   "deny": "Reject",
   "description": "Description",
+  "details": "Details",
   "e_mail": "E-mail",
   "edit": "edit",
   "enabled": "enabled",
@@ -97,6 +99,9 @@
     "verified": "Verified",
     "verifiedAt": "Verified at"
   },
+  "filter": {
+    "byEmail": "Filter by email"
+  },
   "firstname": "Firstname",
   "footer": {
     "app_version": "App version {version}",
@@ -116,6 +121,10 @@
     "latitude-longitude-smart": {
       "describe": "Automatically splits coordinates in the format 'latitude, longitude'. Simply enter your coordinates from Google Maps here, for example: 49.28187664243721, 9.740672183943639."
     }
+  },
+  "goTo": {
+    "userSearch": "Go to user search",
+    "humhubProfile": "Go to Humhub profile"
   },
   "help": {
     "help": "Help",
@@ -141,7 +150,7 @@
     "plus": "+"
   },
   "message": {
-    "request": "Request has been sent."
+    "request": "The entry has been saved."
   },
   "moderator": {
     "history": "The data has been changed. This is the old data.",
@@ -223,6 +232,7 @@
     "newUserToSpaceTooltip": "The hours should contain a maximum of two decimal places"
   },
   "redeemed": "redeemed",
+  "registered": "Registered",
   "removeNotSelf": "As an admin/moderator, you cannot delete yourself.",
   "reset": "Reset",
   "save": "Save",
