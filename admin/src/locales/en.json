@@ -3,9 +3,13 @@
   "actions": "Actions",
   "alias": "Alias",
   "all_emails": "All users",
+  "ai": {
+    "chat": "Chat",
+    "chat-open": "Open chat",
+    "chat-placeholder": "Type your message here..."
+  },
   "back": "back",
   "change_user_role": "Change user role",
-  "chat": "Chat",
   "close": "Close",
   "contributionLink": {
     "amount": "Amount",
@@ -226,6 +230,7 @@
   "removeNotSelf": "As an admin/moderator, you cannot delete yourself.",
   "reset": "Reset",
   "save": "Save",
+  "send": "Send",
   "statistic": {
     "activeUsers": "Active members",
     "count": "Count",

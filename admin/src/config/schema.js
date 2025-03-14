@@ -6,6 +6,7 @@ const {
   DEBUG,
   GRAPHQL_URI,
   NODE_ENV,
+  OPENAI_ACTIVE,
   PRODUCTION,
 } = require('gradido-config/build/src/commonSchema.js')
 const Joi = require('joi')
@@ -18,6 +19,7 @@ module.exports = Joi.object({
   DEBUG,
   GRAPHQL_URI,
   NODE_ENV,
+  OPENAI_ACTIVE,
   PRODUCTION,
 
   ADMIN_HOSTING: Joi.string()

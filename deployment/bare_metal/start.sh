@@ -17,6 +17,11 @@ set +o allexport
 # enable nvm 
 export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 nvm use default
+// upgrade node js version
+nvm install 18.20.7
+nvm use 18.20.7
+nvm alias default 18.20.7
+npm install -g pm2 yarn
 
 # NOTE: all config values will be in process.env when starting
 # the services and will therefore take precedence over the .env
@@ -201,6 +206,9 @@ echo 'Updating backend' >> $UPDATE_HTML
 cd $PROJECT_ROOT/backend
 # TODO maybe handle this differently?
 unset NODE_ENV
+nvm use
+nvm install
+npm i -g yarn
 yarn install
 yarn build
 if [ "$DEPLOY_SEED_DATA" = "true" ]; then

@@ -1,57 +1,76 @@
 <template>
   <div class="chat-container">
-    <!-- Chat-Toggle-Button -->
-    <b-button class="chat-toggle-button" variant="primary" @click="toggleChat">
-      {{ isChatOpen ? 'Schließen' : 'Chat öffnen' }}
+    <b-button class="chat-toggle-button" :variant="toggleButtonVariant" @click="toggleChat">
+      {{ isChatOpen ? $t('close') : $t('ai.chat-open') }}
     </b-button>
 
-    <!-- Chat-Fenster -->
     <div v-if="isChatOpen" class="chat-window">
-      <!-- Nachrichtenbereich -->
       <div class="messages">
-        <div v-for="(message, index) in messages" :key="index" :class="['message', message.sender]">
+        <div v-for="(message, index) in messages" :key="index" :class="['message', message.role]">
           <div class="message-content">
-            {{ message.text }}
+            {{ message.content }}
           </div>
         </div>
       </div>
 
-      <!-- Eingabebereich -->
       <div class="input-area">
         <BFormTextarea
           v-model="newMessage"
-          placeholder="Schreibe eine Nachricht..."
+          :placeholder="$t('ai.chat-placeholder')"
           rows="3"
           no-resize
+          :disabled="loading"
           @keyup.enter="sendMessage"
         ></BFormTextarea>
-        <b-button variant="primary" @click="sendMessage">Senden</b-button>
+        <b-button variant="primary" :disabled="loading" @click="sendMessage">
+          {{ buttonText }}
+        </b-button>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useMutation } from '@vue/apollo-composable'
+import { sendMessage as sendMessageMutation } from '../graphql/aiChat.graphql'
+import { useAppToast } from '@/composables/useToast'
 
-// Zustand für den Chat
+const { t } = useI18n()
+const { toastError } = useAppToast()
+const response = useMutation(sendMessageMutation, { input: ref('') })
+
 const isChatOpen = ref(false)
 const newMessage = ref('')
+const threadId = ref('')
 const messages = ref([])
+const loading = ref(false)
+const buttonText = computed(() => t('send') + (loading.value ? '...' : ''))
+const toggleButtonVariant = computed(() => (isChatOpen.value ? 'secondary' : 'primary'))
 
-// Funktionen
 const toggleChat = () => {
   isChatOpen.value = !isChatOpen.value
 }
 
 const sendMessage = () => {
   if (newMessage.value.trim()) {
-    messages.value.push({ text: newMessage.value, sender: 'user' })
+    loading.value = true
+    messages.value.push({ content: newMessage.value, role: 'user' })
+    response
+      .mutate({ input: { message: newMessage.value, threadId: threadId.value } })
+      .then(({ data }) => {
+        if (data && data.sendMessage) {
+          threadId.value = data.sendMessage.threadId
+          messages.value.push(data.sendMessage)
+        }
+        loading.value = false
+      })
+      .catch((error) => {
+        loading.value = false
+        toastError('Error sending message:', error)
+      })
     newMessage.value = ''
-    // Hier könntest du eine Antwort vom Server simulieren
-    setTimeout(() => {
-      messages.value.push({ text: 'Das ist eine automatische Antwort.', sender: 'bot' })
-    }, 1000)
   }
 }
 </script>
@@ -68,11 +87,12 @@ const sendMessage = () => {
   position: absolute;
   bottom: 0;
   right: 0;
+  border: 1px solid darkblue;
 }
 
 .chat-window {
-  width: 300px;
-  height: 400px;
+  width: 450px;
+  height: 600px;
   background-color: white;
   border: 1px solid #ccc;
   border-radius: 8px;
@@ -109,11 +129,11 @@ const sendMessage = () => {
   margin-left: auto;
 }
 
-.message.bot {
+.message.assistant {
   text-align: left;
 }
 
-.message.bot .message-content {
+.message.assistant .message-content {
   background-color: #e9ecef;
   color: black;
   margin-right: auto;

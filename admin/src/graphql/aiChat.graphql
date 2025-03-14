@@ -1,0 +1,7 @@
+mutation sendMessage($input: OpenaiMessage!) {
+  sendMessage(input: $input) {
+    content
+    role
+    threadId
+  }
+}
