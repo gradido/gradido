@@ -276,6 +276,7 @@
     "selectRoles": {
       "admin": "administrator",
       "moderator": "moderator",
+      "moderatorAi": "ai-moderator",
       "user": "usual user"
     },
     "successfullyChangedTo": "User is now \"{role}\".",

@@ -276,6 +276,7 @@
     "selectRoles": {
       "admin": "Administrator",
       "moderator": "Moderator",
+      "moderatorAi": "KI-Moderator",
       "user": "einfacher Nutzer"
     },
     "successfullyChangedTo": "Nutzer ist jetzt „{role}“.",
