@@ -17,6 +17,7 @@ import {
   GMS_ACTIVE,
   GRAPHIQL,
   HUMHUB_ACTIVE,
+  HUMHUB_API_URL,
   LOG4JS_CONFIG,
   LOGIN_APP_SECRET,
   LOGIN_SERVER_KEY,
@@ -45,6 +46,7 @@ export const schema = Joi.object({
   GMS_ACTIVE,
   GRAPHIQL,
   HUMHUB_ACTIVE,
+  HUMHUB_API_URL,
   LOG4JS_CONFIG,
   LOGIN_APP_SECRET,
   LOGIN_SERVER_KEY,
@@ -282,11 +284,6 @@ export const schema = Joi.object({
     .default('secret')
     .when('GMS_ACTIVE', { is: true, then: Joi.required(), otherwise: Joi.optional() })
     .description('The secret postfix for the GMS webhook endpoint'),
-
-  HUMHUB_API_URL: Joi.string()
-    .uri({ scheme: ['http', 'https'] })
-    .when('HUMHUB_ACTIVE', { is: true, then: Joi.required(), otherwise: Joi.optional() })
-    .description('The API URL for HumHub integration'),
 
   HUMHUB_JWT_KEY: Joi.string()
     .min(1)

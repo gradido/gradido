@@ -58,6 +58,7 @@
       @update-status="updateStatus"
       @reload-contribution="reloadContribution"
       @update-contributions="refetch"
+      @search-for-email="query = $event"
     />
 
     <BPagination
@@ -154,7 +155,7 @@ const fields = computed(
           formatter: (value) => formatDateOrDash(value),
         },
         { key: 'moderatorId', label: t('moderator.moderator') },
-        { key: 'editCreation', label: t('chat') },
+        { key: 'editCreation', label: t('details') },
         { key: 'confirm', label: t('save') },
       ],
       // confirmed contributions
@@ -183,7 +184,7 @@ const fields = computed(
           formatter: (value) => formatDateOrDash(value),
         },
         { key: 'confirmedBy', label: t('moderator.moderator') },
-        { key: 'chatCreation', label: t('chat') },
+        { key: 'chatCreation', label: t('details') },
       ],
       // denied contributions
       [
@@ -211,7 +212,7 @@ const fields = computed(
           formatter: (value) => formatDateOrDash(value),
         },
         { key: 'deniedBy', label: t('moderator.moderator') },
-        { key: 'chatCreation', label: t('chat') },
+        { key: 'chatCreation', label: t('details') },
       ],
       // deleted contributions
       [
@@ -239,7 +240,7 @@ const fields = computed(
           formatter: (value) => formatDateOrDash(value),
         },
         { key: 'deletedBy', label: t('moderator.moderator') },
-        { key: 'chatCreation', label: t('chat') },
+        { key: 'chatCreation', label: t('details') },
       ],
       // all contributions
       [
@@ -268,7 +269,7 @@ const fields = computed(
           formatter: (value) => formatDateOrDash(value),
         },
         { key: 'confirmedBy', label: t('moderator.moderator') },
-        { key: 'chatCreation', label: t('chat') },
+        { key: 'chatCreation', label: t('details') },
       ],
     ][tabIndex.value],
 )

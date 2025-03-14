@@ -76,8 +76,8 @@
           </BCol>
         </BRow>
         <BRow>
-          <BCol class="mt-1">
-            <BLink :to="login()" class="login-nav-item">
+          <BCol class="mt-1 auth-navbar">
+            <BLink :to="login()">
               {{ $t('signin') }}
             </BLink>
           </BCol>
@@ -165,9 +165,5 @@ async function onSubmit() {
 :deep(.btn-gradido-disable) {
   padding-right: 0;
   padding-left: 0;
-}
-
-a.login-nav-item {
-  color: #0e79bc !important;
 }
 </style>

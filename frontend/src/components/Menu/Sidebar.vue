@@ -10,43 +10,43 @@
         <BNav vertical class="w-200">
           <BNavItem to="/overview" class="mb-3" active-class="active-route">
             <div class="sidebar-menu-item-wrapper">
-              <BImg src="/img/svg/home.svg" height="20" class="svg-icon" />
+              <i-fa-home class="svg-icon" />
               <span class="ms-2">{{ $t('navigation.overview') }}</span>
             </div>
           </BNavItem>
           <BNavItem to="/send" class="mb-3" active-class="active-route">
             <div class="sidebar-menu-item-wrapper">
-              <IBiCash />
+              <IBiCash class="svg-icon" />
               <span class="ms-2">{{ $t('navigation.send') }}</span>
             </div>
           </BNavItem>
           <BNavItem to="/transactions" :class="transactionClass" active-class="active-route">
             <div class="sidebar-menu-item-wrapper">
-              <BImg src="/img/svg/transaction.svg" height="20" class="svg-icon" />
+              <i-ion-layers-sharp class="svg-icon" />
               <span class="ms-2">{{ $t('navigation.transactions') }}</span>
             </div>
           </BNavItem>
           <BNavItem ref="communityLink" to="/community" class="mb-3" active-class="active-route">
             <div class="sidebar-menu-item-wrapper">
-              <BImg src="/img/svg/community.svg" height="20" class="svg-icon" />
+              <i-mdi-people-group class="svg-icon" />
               <span class="ms-2">{{ $t('creation') }}</span>
             </div>
           </BNavItem>
           <BNavItem to="/information" class="mb-3" active-class="active-route">
             <div class="sidebar-menu-item-wrapper">
-              <BImg src="/img/svg/info.svg" height="20" class="svg-icon" />
+              <i-mdi-information class="svg-icon" />
               <span class="ms-2">{{ $t('navigation.info') }}</span>
             </div>
           </BNavItem>
           <BNavItem v-if="isHumhub" to="/circles" class="mb-3" active-class="active-route">
             <div class="sidebar-menu-item-wrapper">
-              <BImg src="/img/svg/circles.svg" height="20" class="svg-icon" />
+              <i-arcticons-circles class="svg-icon" />
               <span class="ms-2">{{ $t('navigation.circles') }}</span>
             </div>
           </BNavItem>
           <BNavItem v-if="isGMS" to="/usersearch" active-class="active-route">
             <div class="sidebar-menu-item-wrapper">
-              <BImg src="/img/loupe.png" height="20" />
+              <i-mdi-map-search class="svg-icon" />
               <span class="ms-2">{{ $t('navigation.usersearch') }}</span>
             </div>
           </BNavItem>
@@ -61,7 +61,7 @@
           >
             <div class="sidebar-menu-item-wrapper">
               <div>
-                <BImg src="/img/svg/settings.svg" height="20" class="svg-icon" />
+                <i-mdi-settings class="svg-icon" />
                 <span class="ms-2">{{ $t('navigation.settings') }}</span>
               </div>
               <BBadge v-if="!$store.state.username" variant="warning">
@@ -89,7 +89,7 @@
             @click="$emit('logout')"
           >
             <div class="sidebar-menu-item-wrapper">
-              <BImg src="/img/svg/logout.svg" height="20" class="svg-icon" />
+              <i-humbleicons-logout class="svg-icon logout-icon" />
               <span class="ms-2 logout-text">{{ $t('navigation.logout') }}</span>
             </div>
           </BNavItem>
@@ -158,7 +158,8 @@ watch(
   padding: 0;
 }
 
-.logout-text {
+.logout-text,
+.logout-icon {
   color: #cd5556;
 }
 

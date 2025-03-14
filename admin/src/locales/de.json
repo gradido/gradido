@@ -39,7 +39,8 @@
     "validTo": "Enddatum"
   },
   "contributionMessagesForm": {
-    "resubmissionDateInPast": "Wiedervorlage Datum befindet sich in der Vergangenheit!"
+    "resubmissionDateInPast": "Wiedervorlage Datum befindet sich in der Vergangenheit!",
+    "hasRegisteredAt": "hat sich am {createdAt} registriert."
   },
   "contributions": {
     "all": "Alle",
@@ -77,6 +78,7 @@
   "deleted_user": "Alle gelöschten Nutzer",
   "deny": "Ablehnen",
   "description": "Beschreibung",
+  "details": "Details",
   "e_mail": "E-Mail",
   "edit": "bearbeiten",
   "enabled": "aktiviert",
@@ -101,6 +103,9 @@
     "verified": "Verifiziert",
     "verifiedAt": "Verifiziert am"
   },
+  "filter": {
+    "byEmail": "Nach E-Mail filtern"
+  },
   "firstname": "Vorname",
   "footer": {
     "app_version": "App version {version}",
@@ -120,6 +125,10 @@
     "latitude-longitude-smart": {
       "describe": "Teilt Koordinaten im Format 'Breitengrad, Längengrad' automatisch auf. Fügen sie hier einfach z.B. ihre Koordinaten von Google Maps, zum Beispiel: 49.28187664243721, 9.740672183943639, ein."
     }
+  },
+  "goTo": {
+    "userSearch": "Zur Nutzersuche gehen",
+    "humhubProfile": "Zum Humhub Profil gehen"
   },
   "help": {
     "help": "Hilfe",
@@ -145,7 +154,7 @@
     "plus": "+"
   },
   "message": {
-    "request": "Die Anfrage wurde gesendet."
+    "request": "Die Eingabe wurde gespeichert."
   },
   "moderator": {
     "history": "Die Daten wurden geändert. Dies sind die alten Daten.",
@@ -227,6 +236,7 @@
     "newUserToSpaceTooltip": "Neue Benutzer automatisch zum Space hinzufügen, falls Space vorhanden"
   },
   "redeemed": "eingelöst",
+  "registered": "Registriert",
   "removeNotSelf": "Als Admin/Moderator kannst du dich nicht selber löschen.",
   "reset": "Zurücksetzen",
   "save": "Speichern",

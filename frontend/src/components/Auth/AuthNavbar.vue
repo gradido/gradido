@@ -8,9 +8,13 @@
       <BImg class="sheet-img position-absolute d-block d-lg-none zindex1000" :src="sheet"></BImg>
       <BCollapse id="nav-collapse" is-nav>
         <BNavbarNav class="ms-auto me-4 d-none d-lg-flex" right>
-          <BNavItem :to="register()" class="auth-navbar ms-lg-5">{{ $t('signup') }}</BNavItem>
+          <NavItem :to="register()" class="auth-navbar ms-lg-5">
+            {{ $t('signup') }}
+          </NavItem>
           <span class="d-none d-lg-block py-1">{{ $t('|') }}</span>
-          <BNavItem :to="login()" class="auth-navbar">{{ $t('signin') }}</BNavItem>
+          <NavItem :to="login()" class="auth-navbar">
+            {{ $t('signin') }}
+          </NavItem>
         </BNavbarNav>
       </BCollapse>
     </BNavbar>
@@ -19,6 +23,7 @@
 
 <script setup>
 import { useAuthLinks } from '@/composables/useAuthLinks'
+import NavItem from '../Menu/NavItem.vue'
 
 const { login, register } = useAuthLinks()
 
@@ -31,19 +36,6 @@ const sheet = '/img/template/Blaetter.png'
 .auth-navbar {
   display: flex;
   align-content: center;
-
-  > * {
-    text-decoration: none;
-  }
-}
-
-.auth-navbar > :deep(a) {
-  color: #0e79bc !important;
-  padding: 4px 16px;
-}
-
-.auth-navbar > :deep(.router-link-exact-active) {
-  color: #383838 !important;
 }
 
 .auth-header {

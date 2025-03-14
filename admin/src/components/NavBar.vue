@@ -43,6 +43,13 @@
             {{ $t('navbar.statistic') }}
           </BNavItem>
           <BNavItem @click="handleWallet">{{ $t('navbar.my-account') }}</BNavItem>
+          <BLink
+            href="https://gradido.net/coin/moderators-tutorial/"
+            class="nav-link"
+            target="_blank"
+          >
+            {{ $t('help.help') }}
+          </BLink>
           <BNavItem @click="handleLogout">{{ $t('navbar.logout') }}</BNavItem>
         </BNavbarNav>
       </BCollapse>
@@ -65,6 +72,7 @@ import {
   BNavbarToggle,
   vBToggle,
   vBColorMode,
+  BLink,
 } from 'bootstrap-vue-next'
 import { useRoute } from 'vue-router'
 
