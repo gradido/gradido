@@ -15,6 +15,11 @@ vi.mock('@/composables/useToast', () => ({
     toastSuccess: vi.fn(),
   }),
 }))
+vi.mock('vue-router', () => ({
+  useRoute: () => ({
+    query: {},
+  }),
+}))
 
 // Mock icon components
 const mockIconComponent = {

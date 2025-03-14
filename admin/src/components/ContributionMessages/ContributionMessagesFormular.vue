@@ -222,6 +222,10 @@ const onSubmit = () => {
         }
       }
       toastSuccess(t('message.request'))
+      form.value = {
+        text: '',
+        memo: props.contributionMemo,
+      }
       loading.value = false
     })
     .catch((error) => {
