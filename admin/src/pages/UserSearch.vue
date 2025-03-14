@@ -43,8 +43,9 @@
   </div>
 </template>
 <script setup>
-import { ref, reactive, computed, watch, watchEffect } from 'vue'
+import { ref, reactive, computed, watch, watchEffect, onMounted } from 'vue'
 import { useQuery } from '@vue/apollo-composable'
+import { useRoute } from 'vue-router'
 import { searchUsers } from '../graphql/searchUsers.js'
 import useCreationMonths from '../composables/useCreationMonths'
 import SearchUserTable from '../components/Tables/SearchUserTable'
@@ -68,6 +69,7 @@ const response = ref()
 
 const { creationLabel } = useCreationMonths()
 const { toastSuccess } = useAppToast()
+const route = useRoute()
 
 const { result, refetch } = useQuery(searchUsers, {
   query: criteria.value,
@@ -104,6 +106,13 @@ const deletedUserSearch = () => {
   filters.byDeleted = filters.byDeleted === null ? true : null
   refetch()
 }
+
+onMounted(() => {
+  const searchQuery = route.query.search
+  if (searchQuery) {
+    criteria.value = searchQuery
+  }
+})
 
 const fields = computed(() => [
   { key: 'email', label: t('e_mail') },

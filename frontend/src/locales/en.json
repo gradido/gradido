@@ -51,8 +51,8 @@
   "contribution": {
     "activity": "Activity",
     "alert": {
-      "answerQuestion": "Please answer the question.",
-      "answerQuestionToast": "You have a question about a post. Please reply to it.",
+      "answerQuestion": "There is a new message for this article.",
+      "answerQuestionToast": "You have new messages.",
       "communityNoteList": "Here you will find all submitted and confirmed contributions from all members of this community.",
       "confirm": "confirmed",
       "deleted": "deleted",
