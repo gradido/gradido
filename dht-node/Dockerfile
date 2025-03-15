@@ -1,7 +1,7 @@
 ##################################################################################
 # BASE ###########################################################################
 ##################################################################################
-FROM node:19.5.0-alpine3.17 as base
+FROM node:18.20.7-alpine3.21 as base
 #FROM ubuntu:latest as base
 
 # ENVs (available in production aswell, can be overwritten by commandline or env file)
