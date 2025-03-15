@@ -226,9 +226,6 @@ log_step 'Updating frontend'
 cd $PROJECT_ROOT/frontend
 # TODO maybe handle this differently?
 unset NODE_ENV
-nvm use
-nvm install
-npm i -g yarn
 yarn install
 yarn build
 # TODO maybe handle this differently?
@@ -239,15 +236,10 @@ log_step 'Updating admin'
 cd $PROJECT_ROOT/admin
 # TODO maybe handle this differently?
 unset NODE_ENV
-nvm use
-nvm install
-npm i -g yarn
 yarn install
 yarn build
 # TODO maybe handle this differently?
 export NODE_ENV=production
-
-nvm use default
 
 # Install & build dht-node
 log_step 'Updating dht-node'
