@@ -91,11 +91,6 @@ sudo /etc/init.d/nginx restart
 log_step "Stop and delete all Gradido services"
 pm2 delete all
 pm2 save
-# upgrade node js version
-nvm install 18.20.7
-nvm use 18.20.7
-nvm alias default 18.20.7
-npm install -g pm2 yarn
 
 # git
 BRANCH=$1
@@ -217,9 +212,6 @@ log_step 'Updating backend'
 cd $PROJECT_ROOT/backend
 # TODO maybe handle this differently?
 unset NODE_ENV
-nvm use
-nvm install
-npm i -g yarn
 yarn install
 yarn build
 if [ "$DEPLOY_SEED_DATA" = "true" ]; then
