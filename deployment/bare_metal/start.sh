@@ -3,8 +3,8 @@
 # helper functions
 log_step() {
     local message="$1"
-    echo -e "\e[34m$message\e[0m" # blue in console
-    echo "<div color='blue'>$message</div>" >> "$UPDATE_HTML" # blue in html 
+    echo -e "\e[34m$message\e[0m" > /dev/tty # blue in console
+    echo "<p style="color:blue">$message</p>" >> "$UPDATE_HTML" # blue in html 
 }
 
 # check for parameter
