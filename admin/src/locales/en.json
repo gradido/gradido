@@ -1,13 +1,13 @@
 {
   "GDD": "GDD",
   "actions": "Actions",
-  "alias": "Alias",
-  "all_emails": "All users",
   "ai": {
     "chat": "Chat",
     "chat-open": "Open chat",
     "chat-placeholder": "Type your message here..."
   },
+  "alias": "Alias",
+  "all_emails": "All users",
   "back": "back",
   "change_user_role": "Change user role",
   "close": "Close",

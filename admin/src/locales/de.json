@@ -1,13 +1,13 @@
 {
   "GDD": "GDD",
   "actions": "Aktionen",
-  "alias": "Alias",
-  "all_emails": "Alle Nutzer",
   "ai": {
     "chat": "Chat",
     "chat-open": "Chat öffnen",
     "chat-placeholder": "Schreibe eine Nachricht..."
   },
+  "alias": "Alias",
+  "all_emails": "Alle Nutzer",
   "back": "zurück",
   "change_user_role": "Nutzerrolle ändern",
   "close": "Schließen",
