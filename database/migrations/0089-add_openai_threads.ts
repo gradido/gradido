@@ -2,11 +2,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
-  await queryFn(
-    'ALTER TABLE `communities` ADD COLUMN IF NOT EXISTS `location` geometry DEFAULT NULL NULL AFTER `gms_api_key`;',
-  )
+  await queryFn(`
+    CREATE TABLE openai_threads (
+      id VARCHAR(128) PRIMARY KEY,
+      createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      user_id int(10) unsigned NOT NULL
+    ) ENGINE = InnoDB;
+  `)
 }
 
 export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
-  await queryFn('ALTER TABLE `communities` DROP COLUMN IF EXISTS `location`;')
+  await queryFn(`DROP TABLE openai_threads`)
 }

@@ -70,7 +70,7 @@
       align="center"
       :hide-ellipsis="true"
     />
-
+    <ai-chat v-if="CONFIG.OPENAI_ACTIVE" />
     <div v-if="overlay" id="overlay" @dblclick="overlay = false">
       <Overlay :item="item" @overlay-cancel="overlay = false">
         <template #title>
@@ -101,12 +101,14 @@ import { useI18n } from 'vue-i18n'
 import Overlay from '../components/Overlay'
 import OpenCreationsTable from '../components/Tables/OpenCreationsTable'
 import UserQuery from '../components/UserQuery'
+import AiChat from '../components/AiChat'
 import { adminListContributions } from '../graphql/adminListContributions'
 import { adminDeleteContribution } from '../graphql/adminDeleteContribution'
 import { confirmContribution } from '../graphql/confirmContribution'
 import { denyContribution } from '../graphql/denyContribution'
 import { getContribution } from '../graphql/getContribution'
 import { useAppToast } from '@/composables/useToast'
+import CONFIG from '@/config'
 
 const FILTER_TAB_MAP = [
   ['IN_PROGRESS', 'PENDING'],

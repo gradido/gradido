@@ -52,7 +52,8 @@ export const userFactory = async (
     if (user.deletedAt) {
       dbUser.deletedAt = user.deletedAt
     }
-    if (user.role && (user.role === RoleNames.ADMIN || user.role === RoleNames.MODERATOR)) {
+    const userRole = user.role as RoleNames
+    if (userRole && (userRole === RoleNames.ADMIN || userRole === RoleNames.MODERATOR)) {
       await setUserRole(dbUser, user.role)
     }
     await dbUser.save()

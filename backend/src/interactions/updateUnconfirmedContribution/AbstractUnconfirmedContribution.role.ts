@@ -38,7 +38,7 @@ export abstract class AbstractUnconfirmedContributionRole {
       throw new LogError('Month of contribution can not be changed')
     }
 
-    if (this.self.contributionStatus === ContributionStatus.CONFIRMED) {
+    if ((this.self.contributionStatus as ContributionStatus) === ContributionStatus.CONFIRMED) {
       throw new LogError('the contribution is already confirmed, cannot be changed anymore')
     }
 

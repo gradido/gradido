@@ -37,6 +37,7 @@ const { toastError, toastSuccess } = useAppToast()
 const rolesValues = {
   ADMIN: 'ADMIN',
   MODERATOR: 'MODERATOR',
+  MODERATOR_AI: 'MODERATOR_AI',
   USER: 'USER',
 }
 const props = defineProps({
@@ -59,6 +60,7 @@ const moderatorId = computed(() => store.state.moderator.id)
 const roles = computed(() => [
   { value: rolesValues.USER, text: t('userRole.selectRoles.user') },
   { value: rolesValues.MODERATOR, text: t('userRole.selectRoles.moderator') },
+  { value: rolesValues.MODERATOR_AI, text: t('userRole.selectRoles.moderatorAi') },
   { value: rolesValues.ADMIN, text: t('userRole.selectRoles.admin') },
 ])
 

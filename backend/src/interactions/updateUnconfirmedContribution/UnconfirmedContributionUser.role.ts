@@ -35,9 +35,10 @@ export class UnconfirmedContributionUserRole extends AbstractUnconfirmedContribu
       throw new LogError('Can not update contribution of another user', this.self, user.id)
     }
     // only admins and moderators can update it when status is other than progress or pending
+    const contributionStatus = this.self.contributionStatus as ContributionStatus
     if (
-      this.self.contributionStatus !== ContributionStatus.IN_PROGRESS &&
-      this.self.contributionStatus !== ContributionStatus.PENDING
+      contributionStatus !== ContributionStatus.IN_PROGRESS &&
+      contributionStatus !== ContributionStatus.PENDING
     ) {
       throw new LogError(
         'Contribution can not be updated due to status',

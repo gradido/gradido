@@ -1,11 +1,15 @@
 {
   "GDD": "GDD",
   "actions": "Aktionen",
+  "ai": {
+    "chat": "Chat",
+    "chat-open": "Chat öffnen",
+    "chat-placeholder": "Schreibe eine Nachricht..."
+  },
   "alias": "Alias",
   "all_emails": "Alle Nutzer",
   "back": "zurück",
   "change_user_role": "Nutzerrolle ändern",
-  "chat": "Chat",
   "close": "Schließen",
   "contributionLink": {
     "amount": "Betrag",
@@ -236,6 +240,7 @@
   "removeNotSelf": "Als Admin/Moderator kannst du dich nicht selber löschen.",
   "reset": "Zurücksetzen",
   "save": "Speichern",
+  "send": "Senden",
   "statistic": {
     "activeUsers": "Aktive Mitglieder",
     "count": "Menge",
@@ -281,6 +286,7 @@
     "selectRoles": {
       "admin": "Administrator",
       "moderator": "Moderator",
+      "moderatorAi": "KI-Moderator",
       "user": "einfacher Nutzer"
     },
     "successfullyChangedTo": "Nutzer ist jetzt „{role}“.",
