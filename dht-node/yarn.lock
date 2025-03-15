@@ -2435,7 +2435,7 @@ graceful-fs@^4.2.4:
     joi "^17.13.3"
 
 "gradido-database@file:../database":
-  version "2.4.4"
+  version "2.5.1"
   dependencies:
     "@types/uuid" "^8.3.4"
     cross-env "^7.0.3"

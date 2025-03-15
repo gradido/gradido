@@ -2,6 +2,7 @@ import { Point } from '@dbTools/typeorm'
 import { User as DbUser } from '@entity/User'
 
 import { UpdateUserInfosArgs } from '@/graphql/arg/UpdateUserInfosArgs'
+import { GmsPublishLocationType } from '@/graphql/enum/GmsPublishLocationType'
 import { PublishNameType } from '@/graphql/enum/PublishNameType'
 import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
@@ -44,13 +45,14 @@ export function compareGmsRelevantUserSettings(
   }
   if (
     updateUserInfosArgs.gmsPublishLocation &&
-    orgUser.gmsPublishLocation !== updateUserInfosArgs.gmsPublishLocation
+    (orgUser.gmsPublishLocation as GmsPublishLocationType) !==
+      updateUserInfosArgs.gmsPublishLocation
   ) {
     return true
   }
   if (
     updateUserInfosArgs.gmsPublishName &&
-    orgUser.gmsPublishName !== updateUserInfosArgs.gmsPublishName
+    (orgUser.gmsPublishName as PublishNameType) !== updateUserInfosArgs.gmsPublishName
   ) {
     return true
   }

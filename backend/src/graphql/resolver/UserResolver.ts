@@ -193,7 +193,10 @@ export class UserResolver {
       })
     }
 
-    if (dbUser.passwordEncryptionType !== PasswordEncryptionType.GRADIDO_ID) {
+    if (
+      (dbUser.passwordEncryptionType as PasswordEncryptionType) !==
+      PasswordEncryptionType.GRADIDO_ID
+    ) {
       dbUser.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
       dbUser.password = await encryptPassword(dbUser, password)
       await dbUser.save()
@@ -571,7 +574,7 @@ export class UserResolver {
 
     // Sign into Klicktipp
     // TODO do we always signUp the user? How to handle things with old users?
-    if (userContact.emailOptInTypeId === OptInType.EMAIL_OPT_IN_REGISTER) {
+    if ((userContact.emailOptInTypeId as OptInType) === OptInType.EMAIL_OPT_IN_REGISTER) {
       try {
         await subscribe(userContact.email, user.language, user.firstName, user.lastName)
         logger.debug(
