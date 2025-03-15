@@ -22,7 +22,7 @@ export class UnconfirmedContributionUserAddMessageRole extends AbstractUnconfirm
 
   protected update(): void {
     if (
-      this.self.contributionStatus === ContributionStatus.IN_PROGRESS ||
+      (this.self.contributionStatus as ContributionStatus) === ContributionStatus.IN_PROGRESS ||
       this.self.resubmissionAt !== null
     ) {
       this.self.contributionStatus = ContributionStatus.PENDING
@@ -38,9 +38,10 @@ export class UnconfirmedContributionUserAddMessageRole extends AbstractUnconfirm
     }
     // only admins and moderators can update it when status is other than progress or pending
     // but we are in the user add message role.. we are currently not admin or moderator
+    const contributionStatus = this.self.contributionStatus as ContributionStatus
     if (
-      this.self.contributionStatus !== ContributionStatus.IN_PROGRESS &&
-      this.self.contributionStatus !== ContributionStatus.PENDING
+      contributionStatus !== ContributionStatus.IN_PROGRESS &&
+      contributionStatus !== ContributionStatus.PENDING
     ) {
       throw new LogError(
         'Contribution can not be updated due to status',

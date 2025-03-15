@@ -266,7 +266,7 @@ export class TransactionResolver {
     // userTransactions.forEach((transaction: dbTransaction) => {
     // use normal for loop because of timing problems with await in forEach-loop
     for (const transaction of userTransactions) {
-      if (transaction.typeId === TransactionTypeId.CREATION) {
+      if ((transaction.typeId as TransactionTypeId) === TransactionTypeId.CREATION) {
         continue
       }
       if (transaction.linkedUserId && !involvedUserIds.includes(transaction.linkedUserId)) {
@@ -398,7 +398,7 @@ export class TransactionResolver {
           : involvedUsers.find((u) => u.id === userTransaction.linkedUserId)
       */
       let linkedUser: User | undefined
-      if (userTransaction.typeId === TransactionTypeId.CREATION) {
+      if ((userTransaction.typeId as TransactionTypeId) === TransactionTypeId.CREATION) {
         linkedUser = communityUser
         logger.debug('CREATION-linkedUser=', linkedUser)
       } else if (userTransaction.linkedUserId) {

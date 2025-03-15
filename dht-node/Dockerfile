@@ -1,7 +1,7 @@
 ##################################################################################
 # BASE ###########################################################################
 ##################################################################################
-FROM node:19.5.0-alpine3.17 as base
+FROM node:18.20.7-alpine3.21 as base
 #FROM ubuntu:latest as base
 
 # ENVs (available in production aswell, can be overwritten by commandline or env file)
@@ -33,10 +33,10 @@ LABEL maintainer="support@gradido.net"
 
 # Install Additional Software
 ## install: sodium requirements
-RUN apk add --no-cache --virtual build-deps python3 alpine-sdk autoconf libtool automake && \
-  mkdir -p /prebuilds && cd /prebuilds && npm init -y && npm install sodium-native@3.1.1 && \
-  apk del build-deps
-ENV SODIUM_NATIVE_PREBUILD=/prebuilds/node_modules/sodium-native/
+#RUN apk add --no-cache --virtual build-deps python3 alpine-sdk autoconf libtool automake && \
+#  mkdir -p /prebuilds && cd /prebuilds && npm init -y && npm install sodium-native@3.1.1 && \
+#  apk del build-deps
+#ENV SODIUM_NATIVE_PREBUILD=/prebuilds/node_modules/sodium-native/
 
 # Settings
 ## Expose Container Port
