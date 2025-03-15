@@ -124,11 +124,11 @@ sudo systemctl daemon-reload
 # setup https with certbot
 certbot certonly --nginx --non-interactive --agree-tos --domains $COMMUNITY_HOST --email $COMMUNITY_SUPPORT_MAIL
 
-# Install node 16. with nvm, with nodesource is depracted
+# Install node 18
 sudo -u gradido bash -c 'curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash'
 # Close and reopen your terminal to start using nvm or run the following to use it now:
 sudo -u gradido bash -c 'export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"'
-sudo -u gradido bash -c '. $HOME/.nvm/nvm.sh && nvm install 16' # first installed version will be set to default automatic
+sudo -u gradido bash -c '. $HOME/.nvm/nvm.sh && nvm install v18.20.7' # first installed version will be set to default automatic
 
 # Install yarn
 sudo -u gradido bash -c '. $HOME/.nvm/nvm.sh && npm i -g yarn'
