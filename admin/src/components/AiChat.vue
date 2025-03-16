@@ -5,19 +5,22 @@
     </b-button>
 
     <div v-if="isChatOpen" class="chat-window">
-      <div class="messages">
-        <div v-for="(message, index) in messages" :key="index" :class="['message', message.role]">
-          <div class="message-content">
-            {{ message.content }}
+      <div ref="chatContainer" class="messages-scroll-container">
+        <TransitionGroup class="messages" tag="div" name="chat">
+          <div v-for="(message, index) in messages" :key="index" :class="['message', message.role]">
+            <div class="message-content">
+              {{ message.content }}
+            </div>
           </div>
-        </div>
+        </TransitionGroup>
       </div>
 
       <div class="input-area">
         <BFormTextarea
           v-model="newMessage"
+          class="fs-6"
           :placeholder="$t('ai.chat-placeholder')"
-          rows="3"
+          rows="2"
           no-resize
           :disabled="loading"
           @keyup.enter="sendMessage"
@@ -31,7 +34,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useMutation, useQuery } from '@vue/apollo-composable'
 import {
@@ -48,6 +51,7 @@ const deleteResponse = useMutation(deleteThread, { threadId: ref('') })
 const { result: resumeChatResult, refetch: resumeChatRefetch } = useQuery(resumeChat)
 
 const isChatOpen = ref(false)
+const chatContainer = ref(null)
 const newMessage = ref('')
 const threadId = ref('')
 const messages = ref([])
@@ -57,6 +61,9 @@ const toggleButtonVariant = computed(() => (isChatOpen.value ? 'secondary' : 'pr
 
 const toggleChat = () => {
   isChatOpen.value = !isChatOpen.value
+  if (isChatOpen.value && messages.value.length > 0) {
+    scrollDown()
+  }
   if (!isChatOpen.value && threadId.value && threadId.value.length > 0) {
     // delete thread on closing chat
     deleteResponse
@@ -74,10 +81,21 @@ const toggleChat = () => {
   }
 }
 
+function scrollDown() {
+  nextTick(() => {
+    if (!chatContainer.value) return
+    chatContainer.value.scrollTo({
+      top: chatContainer.value.scrollHeight,
+      behavior: 'smooth',
+    })
+  })
+}
+
 const sendMessage = () => {
   if (newMessage.value.trim()) {
     loading.value = true
     messages.value.push({ content: newMessage.value, role: 'user' })
+    scrollDown()
     response
       .mutate({ input: { message: newMessage.value, threadId: threadId.value } })
       .then(({ data }) => {
@@ -86,6 +104,7 @@ const sendMessage = () => {
           messages.value.push(data.sendMessage)
         }
         loading.value = false
+        scrollDown()
       })
       .catch((error) => {
         loading.value = false
@@ -103,6 +122,7 @@ onMounted(async () => {
     if (messagesFromServer && messagesFromServer.length > 0) {
       threadId.value = messagesFromServer[0].threadId
       messages.value = messagesFromServer
+      scrollDown()
     }
     loading.value = false
   }
@@ -115,6 +135,7 @@ onMounted(async () => {
   bottom: 20px;
   right: 20px;
   z-index: 1000;
+  font-size: 12px;
 }
 
 .chat-toggle-button {
@@ -125,8 +146,8 @@ onMounted(async () => {
 }
 
 .chat-window {
-  width: 450px;
-  height: 600px;
+  width: 550px;
+  height: 300px;
   background-color: white;
   border: 1px solid #ccc;
   border-radius: 8px;
@@ -134,11 +155,12 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
 }
-
+.messages-scroll-container {
+  overflow-y: auto;
+}
 .messages {
   flex: 1;
   padding: 10px;
-  overflow-y: auto;
   background-color: #f9f9f9;
 }
 
@@ -158,9 +180,10 @@ onMounted(async () => {
 }
 
 .message.user .message-content {
-  background-color: #007bff;
-  color: white;
+  background-color: white;
+  color: black;
   margin-left: auto;
+  border: 1px solid #e9ecef;
 }
 
 .message.assistant {
@@ -190,5 +213,21 @@ onMounted(async () => {
 
 .input-area button {
   border-radius: 4px;
+}
+
+/* Animations für den Einblendeffekt */
+.chat-enter-active,
+.chat-leave-active {
+  transition:
+    transform 0.5s ease-out,
+    opacity 0.5s;
+}
+.chat-enter-from {
+  transform: translateY(30px);
+  opacity: 0;
+}
+.chat-enter-to {
+  transform: translateY(0);
+  opacity: 1;
 }
 </style>
