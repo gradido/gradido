@@ -156,10 +156,10 @@ onMounted(async () => {
   flex-direction: column;
 }
 .messages-scroll-container {
+  flex: 1;
   overflow-y: auto;
 }
 .messages {
-  flex: 1;
   padding: 10px;
   background-color: #f9f9f9;
 }
