@@ -71,6 +71,49 @@ export class OpenaiClient {
     return messageThread.id
   }
 
+  /**
+   * Resumes the last message thread for the given user.
+   * @param user
+   * @returns
+   */
+  public async resumeThread(user: User): Promise<MessageModel[]> {
+    const openaiThreadEntity = await OpenaiThreads.findOne({
+      where: { userId: user.id },
+      order: { createdAt: 'DESC' },
+    })
+    if (!openaiThreadEntity) {
+      // logger.warn(`No openai thread found for user: ${user.id}`)
+      return []
+    }
+    const threadMessages = (
+      await this.openai.beta.threads.messages.list(openaiThreadEntity.id, { order: 'desc' })
+    ).getPaginatedItems()
+
+    logger.info(`Resumed thread: ${openaiThreadEntity.id}`)
+    return threadMessages
+      .map(
+        (message) =>
+          new MessageModel(
+            this.messageContentToString(message),
+            message.role,
+            openaiThreadEntity.id,
+          ),
+      )
+      .reverse()
+  }
+
+  public async deleteThread(threadId: string): Promise<boolean> {
+    const result = await this.openai.beta.threads.del(threadId)
+    if (result.deleted) {
+      await OpenaiThreads.delete({ id: threadId })
+      logger.info(`Deleted thread: ${threadId}`)
+      return true
+    } else {
+      logger.warn(`Failed to delete thread: ${threadId}`)
+      return false
+    }
+  }
+
   public async addMessage(message: MessageModel, threadId: string): Promise<void> {
     const threadMessages = await this.openai.beta.threads.messages.create(threadId, message)
     logger.info(`Added message to thread: ${threadMessages.id}`)
@@ -94,7 +137,7 @@ export class OpenaiClient {
     return new MessageModel(this.messageContentToString(message), 'assistant')
   }
 
-  messageContentToString(message: Message): string {
+  private messageContentToString(message: Message): string {
     if (message.content.length > 1) {
       logger.warn(`More than one content in message: ${message.id}`, message.content)
     }

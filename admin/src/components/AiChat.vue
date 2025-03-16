@@ -31,15 +31,21 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useMutation } from '@vue/apollo-composable'
-import { sendMessage as sendMessageMutation } from '../graphql/aiChat.graphql'
+import { useMutation, useQuery } from '@vue/apollo-composable'
+import {
+  sendMessage as sendMessageMutation,
+  resumeChat,
+  deleteThread,
+} from '../graphql/aiChat.graphql'
 import { useAppToast } from '@/composables/useToast'
 
 const { t } = useI18n()
-const { toastError } = useAppToast()
+const { toastError, toastSuccess } = useAppToast()
 const response = useMutation(sendMessageMutation, { input: ref('') })
+const deleteResponse = useMutation(deleteThread, { threadId: ref('') })
+const { result: resumeChatResult, refetch: resumeChatRefetch } = useQuery(resumeChat)
 
 const isChatOpen = ref(false)
 const newMessage = ref('')
@@ -51,6 +57,21 @@ const toggleButtonVariant = computed(() => (isChatOpen.value ? 'secondary' : 'pr
 
 const toggleChat = () => {
   isChatOpen.value = !isChatOpen.value
+  if (!isChatOpen.value && threadId.value && threadId.value.length > 0) {
+    // delete thread on closing chat
+    deleteResponse
+      .mutate({ threadId: threadId.value })
+      .then((result) => {
+        threadId.value = ''
+        messages.value = []
+        if (result.data.deleteThread) {
+          toastSuccess(t('ai.chat-thread-deleted'))
+        }
+      })
+      .catch((error) => {
+        toastError(t('ai.error-chat-thread-deleted', { error }))
+      })
+  }
 }
 
 const sendMessage = () => {
@@ -73,6 +94,19 @@ const sendMessage = () => {
     newMessage.value = ''
   }
 }
+
+onMounted(async () => {
+  if (messages.value.length === 0) {
+    loading.value = true
+    await resumeChatRefetch()
+    const messagesFromServer = resumeChatResult.value.resumeChat
+    if (messagesFromServer && messagesFromServer.length > 0) {
+      threadId.value = messagesFromServer[0].threadId
+      messages.value = messagesFromServer
+    }
+    loading.value = false
+  }
+})
 </script>
 
 <style scoped>

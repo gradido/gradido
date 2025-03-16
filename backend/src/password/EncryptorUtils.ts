@@ -58,6 +58,7 @@ export const SecretKeyCryptographyCreateKey = async (
     }
     let result: Promise<bigint>
     if (encryptionWorkerPool) {
+      console.log('encrypt password with worker')
       result = (await encryptionWorkerPool.exec('SecretKeyCryptographyCreateKey', [
         salt,
         password,
@@ -65,6 +66,7 @@ export const SecretKeyCryptographyCreateKey = async (
         configLoginServerKey,
       ])) as Promise<bigint>
     } else {
+      console.log('encrypt password without worker')
       result = Promise.resolve(
         SecretKeyCryptographyCreateKeySync(
           salt,

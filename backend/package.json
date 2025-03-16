@@ -50,7 +50,7 @@
     "pug": "^3.0.2",
     "random-bigint": "^0.0.1",
     "reflect-metadata": "^0.1.13",
-    "sodium-native": "^3.3.0",
+    "sodium-native": "^3.4.1",
     "type-graphql": "^1.1.1",
     "typed-rest-client": "^1.8.11",
     "uuid": "^8.3.2",

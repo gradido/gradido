@@ -4,7 +4,9 @@
   "ai": {
     "chat": "Chat",
     "chat-open": "Chat öffnen",
-    "chat-placeholder": "Schreibe eine Nachricht..."
+    "chat-placeholder": "Schreibe eine Nachricht...",
+    "chat-thread-deleted": "Chatverlauf gelöscht",
+    "error-chat-thread-deleted": "Fehler beim Löschen des Chatverlaufs: {error}"
   },
   "alias": "Alias",
   "all_emails": "Alle Nutzer",

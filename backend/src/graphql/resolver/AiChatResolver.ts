@@ -1,4 +1,4 @@
-import { Resolver, Mutation, Authorized, Ctx, Arg } from 'type-graphql'
+import { Resolver, Mutation, Authorized, Ctx, Arg, Query } from 'type-graphql'
 
 import { OpenaiMessage } from '@input/OpenaiMessage'
 import { ChatGptMessage } from '@model/ChatGptMessage'
@@ -10,6 +10,30 @@ import { Context } from '@/server/context'
 
 @Resolver()
 export class AiChatResolver {
+  @Authorized([RIGHTS.AI_SEND_MESSAGE])
+  @Query(() => [ChatGptMessage])
+  async resumeChat(@Ctx() context: Context): Promise<ChatGptMessage[]> {
+    const openaiClient = OpenaiClient.getInstance()
+    if (!openaiClient) {
+      return Promise.resolve([new ChatGptMessage({ content: 'OpenAI API is not enabled' })])
+    }
+    if (!context.user) {
+      return Promise.resolve([new ChatGptMessage({ content: 'User not found' })])
+    }
+    const messages = await openaiClient.resumeThread(context.user)
+    return messages.map((message) => new ChatGptMessage(message))
+  }
+
+  @Authorized([RIGHTS.AI_SEND_MESSAGE])
+  @Mutation(() => Boolean)
+  async deleteThread(@Arg('threadId') threadId: string): Promise<boolean> {
+    const openaiClient = OpenaiClient.getInstance()
+    if (!openaiClient) {
+      return false
+    }
+    return openaiClient.deleteThread(threadId)
+  }
+
   @Authorized([RIGHTS.AI_SEND_MESSAGE])
   @Mutation(() => ChatGptMessage)
   async sendMessage(
