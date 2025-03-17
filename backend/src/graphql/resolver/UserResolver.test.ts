@@ -2484,6 +2484,7 @@ describe('UserResolver', () => {
         }
 
         beforeAll(async () => {
+          jest.clearAllMocks()
           admin = await userFactory(testEnv, peterLustig)
           await mutate({
             mutation: login,
