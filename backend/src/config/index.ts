@@ -169,5 +169,4 @@ export const CONFIG = {
   ...humhub,
   ...openai,
 }
-
 validate(schema, CONFIG)
