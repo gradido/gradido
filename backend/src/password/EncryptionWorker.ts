@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto'
+
 import { worker } from 'workerpool'
 
 import { CONFIG } from '@/config'
@@ -14,7 +16,6 @@ import {
   crypto_pwhash,
   crypto_shorthash,
 } from 'sodium-native'
-import { createHash } from 'node:crypto'
 
 export const SecretKeyCryptographyCreateKey = (
   salt: string,
