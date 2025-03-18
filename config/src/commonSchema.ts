@@ -153,6 +153,7 @@ export const LOGIN_SERVER_KEY = Joi.string()
 export const OPENAI_ACTIVE = Joi.boolean()
   .default(false)
   .description('Flag to enable or disable OpenAI API')
+  .required()
 
 export const TYPEORM_LOGGING_RELATIVE_PATH = Joi.string()
   .pattern(new RegExp('^[a-zA-Z0-9-_\./]+\.log$')) 
