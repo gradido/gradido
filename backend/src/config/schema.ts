@@ -328,14 +328,22 @@ export const schema = Joi.object({
 
   OPENAI_API_KEY: Joi.string()
     .pattern(/^sk-[A-Za-z0-9-_]{20,}$/)
-    .when('OPENAI_ACTIVE', { is: true, then: Joi.required(), otherwise: Joi.optional() })
+    .when(Joi.ref('OPENAI_ACTIVE', { adjust: (v) => Boolean(v) }), {
+      is: true,
+      then: Joi.required(),
+      otherwise: Joi.optional(),
+    })
     .description(
       'API key for OpenAI, must be at least 20 characters long and contain only alphanumeric characters, dashes, or underscores',
     ),
 
   OPENAI_ASSISTANT_ID: Joi.string()
     .pattern(/^asst_[A-Za-z0-9-]{20,}$/)
-    .when('OPENAI_ACTIVE', { is: true, then: Joi.required(), otherwise: Joi.optional() })
+    .when(Joi.ref('OPENAI_ACTIVE', { adjust: (v) => Boolean(v) }), {
+      is: true,
+      then: Joi.required(),
+      otherwise: Joi.optional(),
+    })
     .description('Assistant ID for OpenAI'),
 
   USE_CRYPTO_WORKER: Joi.boolean()
