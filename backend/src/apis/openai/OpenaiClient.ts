@@ -103,13 +103,15 @@ export class OpenaiClient {
   }
 
   public async deleteThread(threadId: string): Promise<boolean> {
-    const result = await this.openai.beta.threads.del(threadId)
+    const [, result] = await Promise.all([
+      OpenaiThreads.delete({ id: threadId }),
+      this.openai.beta.threads.del(threadId),
+    ])
     if (result.deleted) {
-      await OpenaiThreads.delete({ id: threadId })
       logger.info(`Deleted thread: ${threadId}`)
       return true
     } else {
-      logger.warn(`Failed to delete thread: ${threadId}`)
+      logger.warn(`Failed to delete thread: ${threadId}, remove from db anyway`)
       return false
     }
   }
