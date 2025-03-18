@@ -200,6 +200,7 @@ onMounted(async () => {
 }
 
 .messages-scroll-container {
+  border-radius: 8px;
   flex: 1;
   overflow-y: auto;
 }
