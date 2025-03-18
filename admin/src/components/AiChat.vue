@@ -194,14 +194,16 @@ onMounted(async () => {
   background-color: white;
   border: 1px solid #ccc;
   border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 8px rgb(0 0 0 / 10%);
   display: flex;
   flex-direction: column;
 }
+
 .messages-scroll-container {
   flex: 1;
   overflow-y: auto;
 }
+
 .messages {
   padding: 10px;
   background-color: #f9f9f9;
@@ -265,24 +267,27 @@ onMounted(async () => {
     transform 0.5s ease-out,
     opacity 0.5s;
 }
+
 .chat-enter-from {
   transform: translateY(30px);
   opacity: 0;
 }
+
 .chat-enter-to {
   transform: translateY(0);
   opacity: 1;
 }
 
 .slide-up-animation {
-  animation: slideUp 1s ease-out;
+  animation: slide-up 1s ease-out;
   opacity: 1;
 }
 
-@keyframes slideUp {
+@keyframes slide-up {
   from {
     transform: translateY(100%);
   }
+
   to {
     transform: translateY(0);
   }

@@ -70,7 +70,7 @@
       align="center"
       :hide-ellipsis="true"
     />
-    <ai-chat v-if="CONFIG.OPENAI_ACTIVE" />
+    <ai-chat v-if="CONFIG.OPENAI_ACTIVE && isAiUser" />
     <div v-if="overlay" id="overlay" @dblclick="overlay = false">
       <Overlay :item="item" @overlay-cancel="overlay = false">
         <template #title>
@@ -307,6 +307,9 @@ const overlayIcon = computed(() => {
 const showResubmissionCheckbox = computed(() => tabIndex.value === 0)
 const hideResubmission = computed(() =>
   showResubmissionCheckbox.value ? hideResubmissionModel.value : false,
+)
+const isAiUser = computed(() =>
+  store.state.moderator?.roles.some((role) => ['ADMIN', 'MODERATOR_AI'].includes(role)),
 )
 
 watch(tabIndex, () => {
