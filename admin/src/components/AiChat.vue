@@ -8,6 +8,11 @@
     ></b-button>
 
     <div v-if="isChatOpen" class="chat-window">
+      <div class="d-flex justify-content-start">
+        <b-button variant="light" class="chat-close-button mt-1 ms-1 btn-sm" @click="closeChat">
+          <IIcBaselineClose />
+        </b-button>
+      </div>
       <div ref="chatContainer" class="messages-scroll-container">
         <TransitionGroup class="messages" tag="div" name="chat">
           <div v-for="(message, index) in messages" :key="index" :class="['message', message.role]">
@@ -17,11 +22,11 @@
           </div>
         </TransitionGroup>
       </div>
-      <div class="d-flex justify-content-end position-absolute top-0 start-0">
+      <!--<div class="d-flex justify-content-end position-absolute top-0 start-0">
         <b-button variant="light" class="chat-close-button mt-1 ms-1 btn-sm" @click="closeChat">
           <IIcBaselineClose />
         </b-button>
-      </div>
+      </div> -->
 
       <div class="input-area">
         <BFormTextarea

@@ -82,7 +82,7 @@ export class OpenaiClient {
       order: { createdAt: 'DESC' },
     })
     if (!openaiThreadEntity) {
-      // logger.warn(`No openai thread found for user: ${user.id}`)
+      logger.warn(`No openai thread found for user: ${user.id}`)
       return []
     }
     const threadMessages = (
