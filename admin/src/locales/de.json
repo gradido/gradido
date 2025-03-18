@@ -4,9 +4,12 @@
   "ai": {
     "chat": "Chat",
     "chat-open": "Chat öffnen",
+    "chat-clear": "Chat-Verlauf löschen",
     "chat-placeholder": "Schreibe eine Nachricht...",
+    "chat-placeholder-loading": "Warte, ich denke nach...",
     "chat-thread-deleted": "Chatverlauf gelöscht",
-    "error-chat-thread-deleted": "Fehler beim Löschen des Chatverlaufs: {error}"
+    "error-chat-thread-deleted": "Fehler beim Löschen des Chatverlaufs: {error}",
+    "start-prompt": "Sprache: Deutsch\nTonfall: Freundlich, per Du\nKontext: Du bist \"Crea\", ein Support-Assistent im Admin-Interface des Gradido-Kontos. Deine Aufgabe ist es, Moderatoren bei der Bearbeitung von Gemeinwohl-Beiträgen zu unterstützen.\nBegrüßung:\n\"Hallo, ich bin Crea! Ich unterstütze Dich bei der Beantwortung der eingereichten Gemeinwohl-Beiträge. Damit ich Deine Antworten personalisieren kann, nenne mir bitte Deinen Namen. 😊\"\nWarte nun die Eingabe des Namens ab!\nNach Eingabe des Namens:\n\"Danke, [Name]! Schön, mit Dir zusammenzuarbeiten. 😊 Kopiere nun bitte einen oder mehrere Gemeinwohl-Beiträge in das Textfeld, und ich helfe Dir bei der Bearbeitung.\""
   },
   "alias": "Alias",
   "all_emails": "Alle Nutzer",

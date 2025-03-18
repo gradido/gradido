@@ -1,32 +1,45 @@
 <template>
   <div class="chat-container">
-    <b-button class="chat-toggle-button" :variant="toggleButtonVariant" @click="toggleChat">
-      {{ isChatOpen ? $t('close') : $t('ai.chat-open') }}
-    </b-button>
+    <b-button
+      v-if="!isChatOpen"
+      :class="['chat-toggle-button', 'bg-crea-img', { 'slide-up-animation': !hasBeenOpened }]"
+      :variant="light"
+      @click="openChat"
+    ></b-button>
 
     <div v-if="isChatOpen" class="chat-window">
       <div ref="chatContainer" class="messages-scroll-container">
         <TransitionGroup class="messages" tag="div" name="chat">
           <div v-for="(message, index) in messages" :key="index" :class="['message', message.role]">
             <div class="message-content">
-              {{ message.content }}
+              <span v-html="message.content.replace(/\n/g, '<br>')"></span>
             </div>
           </div>
         </TransitionGroup>
+      </div>
+      <div class="d-flex justify-content-end position-absolute top-0 start-0">
+        <b-button variant="light" class="chat-close-button mt-1 ms-1 btn-sm" @click="closeChat">
+          <IIcBaselineClose />
+        </b-button>
       </div>
 
       <div class="input-area">
         <BFormTextarea
           v-model="newMessage"
           class="fs-6"
-          :placeholder="$t('ai.chat-placeholder')"
+          :placeholder="textareaPlaceholder"
           rows="2"
           no-resize
           :disabled="loading"
-          @keyup.enter="sendMessage"
+          @keydown.ctrl.enter="sendMessage"
         ></BFormTextarea>
-        <b-button variant="primary" :disabled="loading" @click="sendMessage">
+        <b-button variant="light" :disabled="loading" @click="sendMessage">
           {{ buttonText }}
+        </b-button>
+      </div>
+      <div class="d-flex justify-content-start">
+        <b-button variant="light" class="chat-clear-button" @click="clearChat">
+          {{ $t('ai.chat-clear') }}
         </b-button>
       </div>
     </div>
@@ -56,15 +69,27 @@ const newMessage = ref('')
 const threadId = ref('')
 const messages = ref([])
 const loading = ref(false)
+const hasBeenOpened = ref(false)
 const buttonText = computed(() => t('send') + (loading.value ? '...' : ''))
-const toggleButtonVariant = computed(() => (isChatOpen.value ? 'secondary' : 'primary'))
+const textareaPlaceholder = computed(() =>
+  loading.value ? t('ai.chat-placeholder-loading') : t('ai.chat-placeholder'),
+)
 
-const toggleChat = () => {
-  isChatOpen.value = !isChatOpen.value
-  if (isChatOpen.value && messages.value.length > 0) {
+function openChat() {
+  isChatOpen.value = true
+  if (messages.value.length > 0) {
     scrollDown()
   }
-  if (!isChatOpen.value && threadId.value && threadId.value.length > 0) {
+}
+
+function closeChat() {
+  hasBeenOpened.value = true
+  isChatOpen.value = false
+}
+
+// clear
+function clearChat() {
+  if (threadId.value && threadId.value.length > 0) {
     // delete thread on closing chat
     deleteResponse
       .mutate({ threadId: threadId.value })
@@ -73,6 +98,8 @@ const toggleChat = () => {
         messages.value = []
         if (result.data.deleteThread) {
           toastSuccess(t('ai.chat-thread-deleted'))
+          newMessage.value = t('ai.start-prompt')
+          sendMessage()
         }
       })
       .catch((error) => {
@@ -123,8 +150,11 @@ onMounted(async () => {
       threadId.value = messagesFromServer[0].threadId
       messages.value = messagesFromServer
       scrollDown()
+      loading.value = false
+    } else {
+      newMessage.value = t('ai.start-prompt')
+      sendMessage()
     }
-    loading.value = false
   }
 })
 </script>
@@ -143,6 +173,19 @@ onMounted(async () => {
   bottom: 0;
   right: 0;
   border: 1px solid darkblue;
+}
+
+.chat-clear-button {
+  font-size: 12px;
+}
+
+.bg-crea-img {
+  background-image: url('../../public/img/Crea.webp');
+  background-size: cover;
+  background-position: center;
+  width: 250px;
+  height: 142px;
+  z-index: 100;
 }
 
 .chat-window {
@@ -229,5 +272,19 @@ onMounted(async () => {
 .chat-enter-to {
   transform: translateY(0);
   opacity: 1;
+}
+
+.slide-up-animation {
+  animation: slideUp 1s ease-out;
+  opacity: 1;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
 }
 </style>
