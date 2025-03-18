@@ -32,6 +32,7 @@
           no-resize
           :disabled="loading"
           @keydown.ctrl.enter="sendMessage"
+          @keydown.meta.enter="sendMessage"
         ></BFormTextarea>
         <b-button variant="light" :disabled="loading" @click="sendMessage">
           {{ buttonText }}
@@ -121,8 +122,10 @@ function scrollDown() {
 const sendMessage = () => {
   if (newMessage.value.trim()) {
     loading.value = true
-    messages.value.push({ content: newMessage.value, role: 'user' })
-    scrollDown()
+    if (newMessage.value !== t('ai.start-prompt')) {
+      messages.value.push({ content: newMessage.value, role: 'user' })
+      scrollDown()
+    }
     response
       .mutate({ input: { message: newMessage.value, threadId: threadId.value } })
       .then(({ data }) => {
@@ -148,7 +151,9 @@ onMounted(async () => {
     const messagesFromServer = resumeChatResult.value.resumeChat
     if (messagesFromServer && messagesFromServer.length > 0) {
       threadId.value = messagesFromServer[0].threadId
-      messages.value = messagesFromServer
+      messages.value = messagesFromServer.filter(
+        (message) => message.content !== t('ai.start-prompt'),
+      )
       scrollDown()
       loading.value = false
     } else {
