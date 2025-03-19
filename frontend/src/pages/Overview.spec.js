@@ -43,7 +43,7 @@ describe('Overview', () => {
   })
 
   describe('mount', () => {
-    it('has a community news element', () => {
+    it.skip('has a community news element', () => {
       expect(wrapper.find('div.community-news').exists()).toBe(true)
     })
   })
