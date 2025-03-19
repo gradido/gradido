@@ -144,7 +144,7 @@ export class ContributionResolver {
       dbContributions.map((contribution) => {
         // filter out moderator messages for this call
         contribution.messages = contribution.messages?.filter(
-          (m) => m.type !== ContributionMessageType.MODERATOR,
+          (m) => (m.type as ContributionMessageType) !== ContributionMessageType.MODERATOR,
         )
         return new Contribution(contribution, user)
       }),
@@ -352,7 +352,7 @@ export class ContributionResolver {
     }
     const moderator = getUser(context)
     if (
-      contribution.contributionType === ContributionType.USER &&
+      (contribution.contributionType as ContributionType) === ContributionType.USER &&
       contribution.userId === moderator.id
     ) {
       throw new LogError('Own contribution can not be deleted as admin')
@@ -532,8 +532,9 @@ export class ContributionResolver {
       throw new LogError('Contribution not found', id)
     }
     if (
-      contributionToUpdate.contributionStatus !== ContributionStatus.IN_PROGRESS &&
-      contributionToUpdate.contributionStatus !== ContributionStatus.PENDING
+      (contributionToUpdate.contributionStatus as ContributionStatus) !==
+        ContributionStatus.IN_PROGRESS &&
+      (contributionToUpdate.contributionStatus as ContributionStatus) !== ContributionStatus.PENDING
     ) {
       throw new LogError(
         'Status of the contribution is not allowed',
