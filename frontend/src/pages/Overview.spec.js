@@ -13,7 +13,8 @@ vi.mock('@/components/Overview/CommunityNews', () => ({
 
 vi.mock('@vue/apollo-composable', () => ({
   useQuery: vi.fn().mockReturnValue({
-    result: { value: {} },
+    onResult: vi.fn(),
+    onError: vi.fn(),
     loading: { value: false },
     error: { value: null },
     refetch: vi.fn(),
