@@ -1,6 +1,6 @@
 <template>
   <div class="mb-3 p-3 card-user-search">
-    <BContainer class="bg-white app-box-shadow gradido-border-radius p-4 mt--3">
+    <BContainer class="bg-white app-box-shadow gradido-border-radius p-4 mt--3 container">
       <div class="h3">{{ $t('card-user-search.headline') }}</div>
       <div v-if="gmsAllowed" class="my-3 text-small">
         <span
@@ -61,3 +61,12 @@ onError(() => {
   toastError('authenticateGmsUserSearch failed!')
 })
 </script>
+<style scoped>
+.container {
+  background-attachment: absolute;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 380px 180px;
+  background-image: url('/img/svg/usersearchmap5.jpg') !important;
+}
+</style>
