@@ -64,9 +64,9 @@ onError(() => {
 <style scoped>
 .container {
   background-attachment: absolute;
-  background-position: center;
+  background-position: left;
   background-repeat: no-repeat;
   background-size: 380px 180px;
-  background-image: url('/img/svg/usersearchmap5.jpg') !important;
+  background-image: url('/img/svg/usersearchmap6.jpg') !important;
 }
 </style>
