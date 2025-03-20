@@ -1,8 +1,6 @@
 import { createApp } from 'vue'
 import App from './App.vue'
 
-import Chat from 'vue3-beautiful-chat'
-
 // without this async calls are not working
 import 'regenerator-runtime'
 
@@ -37,7 +35,6 @@ export function createAdminApp() {
   app.use(createBootstrap())
 
   app.use(() => apolloProvider)
-  app.use(Chat)
 
   addNavigationGuards(router, store, apolloProvider.defaultClient, i18n)
   return app
