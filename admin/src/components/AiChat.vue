@@ -16,8 +16,17 @@
       <div ref="chatContainer" class="messages-scroll-container">
         <TransitionGroup class="messages" tag="div" name="chat">
           <div v-for="(message, index) in messages" :key="index" :class="['message', message.role]">
-            <div class="message-content">
-              <span v-html="message.content.replace(/\n/g, '<br>')"></span>
+            <div class="message-content position-relative inner-container">
+              <span v-html="formatMessage(message)"></span>
+              <b-button
+                v-if="message.role === 'assistant'"
+                variant="light"
+                class="copy-clipboard-button"
+                :title="$t('copy-to-clipboard')"
+                @click="copyToClipboard(message.content)"
+              >
+                <IBiClipboard></IBiClipboard>
+              </b-button>
             </div>
           </div>
         </TransitionGroup>
@@ -80,6 +89,15 @@ const buttonText = computed(() => t('send') + (loading.value ? '...' : ''))
 const textareaPlaceholder = computed(() =>
   loading.value ? t('ai.chat-placeholder-loading') : t('ai.chat-placeholder'),
 )
+
+function formatMessage(message) {
+  return message.content.replace(/\n/g, '<br>')
+}
+
+function copyToClipboard(content) {
+  navigator.clipboard.writeText(content)
+  toastSuccess(t('copied-to-clipboard'))
+}
 
 function openChat() {
   isChatOpen.value = true
@@ -200,13 +218,22 @@ onMounted(async () => {
 
 .chat-window {
   width: 550px;
-  height: 300px;
+  height: 330px;
   background-color: white;
   border: 1px solid #ccc;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgb(0 0 0 / 10%);
   display: flex;
   flex-direction: column;
+}
+
+.copy-clipboard-button {
+  position: absolute;
+  top: 20%;
+  right: -12%;
+  padding-top: 2px;
+  padding-left: 6px;
+  padding-right: 6px;
 }
 
 .messages-scroll-container {
