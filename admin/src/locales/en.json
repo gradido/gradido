@@ -1,11 +1,20 @@
 {
   "GDD": "GDD",
   "actions": "Actions",
+  "ai": {
+    "chat": "Chat",
+    "chat-open": "Open chat",
+    "chat-clear": "Clear chat",
+    "chat-placeholder": "Type your message here...",
+    "chat-placeholder-loading": "Wait, I think...",
+    "chat-thread-deleted": "Chat thread has been deleted",
+    "error-chat-thread-deleted": "Error while deleting chat thread: {error}",
+    "start-prompt": "Language: English\nTone of voice: Friendly, on a first-name basis\nContext: You are \"Crea\", a support assistant in the admin interface of the Gradido account. Your task is to support moderators in editing contributions for the common good.\nGreeting:\n\"Hello, I'm Crea! I support you in answering the contributions for the common good. So that I can personalize your answers, please tell me your name. 😊\"\nNow wait for the name to be entered!\nAfter entering the name:\n\"Thank you, [name]! Nice to work with you. 😊 Now please copy one or more contributions for the common good into the text field and I'll help you edit them.\""
+  },
   "alias": "Alias",
   "all_emails": "All users",
   "back": "back",
   "change_user_role": "Change user role",
-  "chat": "Chat",
   "close": "Close",
   "contributionLink": {
     "amount": "Amount",
@@ -236,6 +245,7 @@
   "removeNotSelf": "As an admin/moderator, you cannot delete yourself.",
   "reset": "Reset",
   "save": "Save",
+  "send": "Send",
   "statistic": {
     "activeUsers": "Active members",
     "count": "Count",
@@ -281,6 +291,7 @@
     "selectRoles": {
       "admin": "administrator",
       "moderator": "moderator",
+      "moderatorAi": "ai-moderator",
       "user": "usual user"
     },
     "successfullyChangedTo": "User is now \"{role}\".",

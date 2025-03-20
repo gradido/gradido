@@ -1,0 +1,3 @@
+import { RIGHTS } from './RIGHTS'
+
+export const MODERATOR_AI_RIGHTS = [RIGHTS.AI_SEND_MESSAGE]

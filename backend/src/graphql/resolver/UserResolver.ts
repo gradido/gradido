@@ -520,7 +520,6 @@ export class UserResolver {
         'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
       )
     }
-
     // load code
     const userContact = await DbUserContact.findOneOrFail({
       where: { emailVerificationCode: code },

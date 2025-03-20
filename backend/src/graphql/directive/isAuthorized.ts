@@ -11,6 +11,7 @@ import {
   ROLE_USER,
   ROLE_ADMIN,
   ROLE_MODERATOR,
+  ROLE_MODERATOR_AI,
   ROLE_DLT_CONNECTOR,
 } from '@/auth/ROLES'
 import { Context } from '@/server/context'
@@ -56,6 +57,9 @@ export const isAuthorized: AuthChecker<Context> = async ({ context }, rights) =>
             break
           case RoleNames.MODERATOR:
             context.role = ROLE_MODERATOR
+            break
+          case RoleNames.MODERATOR_AI:
+            context.role = ROLE_MODERATOR_AI
             break
           default:
             context.role = ROLE_USER

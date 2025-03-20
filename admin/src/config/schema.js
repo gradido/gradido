@@ -8,6 +8,7 @@ const {
   HUMHUB_ACTIVE,
   HUMHUB_API_URL,
   NODE_ENV,
+  OPENAI_ACTIVE,
   PRODUCTION,
 } = require('gradido-config/build/src/commonSchema.js')
 const Joi = require('joi')
@@ -22,6 +23,7 @@ module.exports = Joi.object({
   HUMHUB_ACTIVE,
   HUMHUB_API_URL,
   NODE_ENV,
+  OPENAI_ACTIVE,
   PRODUCTION,
 
   ADMIN_HOSTING: Joi.string()

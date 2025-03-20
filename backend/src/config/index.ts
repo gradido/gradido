@@ -127,8 +127,9 @@ const federation = {
   // default value for community-uuid is equal uuid of stage-3
   FEDERATION_XCOM_RECEIVER_COMMUNITY_UUID:
     process.env.FEDERATION_XCOM_RECEIVER_COMMUNITY_UUID ?? '56a55482-909e-46a4-bfa2-cd025e894ebc',
-  FEDERATION_XCOM_MAXREPEAT_REVERTSENDCOINS:
-    process.env.FEDERATION_XCOM_MAXREPEAT_REVERTSENDCOINS ?? 3,
+  FEDERATION_XCOM_MAXREPEAT_REVERTSENDCOINS: parseInt(
+    process.env.FEDERATION_XCOM_MAXREPEAT_REVERTSENDCOINS ?? '3',
+  ),
 }
 
 const gms = {
@@ -147,6 +148,12 @@ const humhub = {
   HUMHUB_JWT_KEY: process.env.HUMHUB_JWT_KEY ?? '',
 }
 
+const openai = {
+  OPENAI_ACTIVE: process.env.OPENAI_ACTIVE === 'true' || false,
+  OPENAI_API_KEY: process.env.OPENAI_API_KEY ?? '',
+  OPENAI_ASSISTANT_ID: process.env.OPENAI_ASSISTANT_ID ?? '',
+}
+
 export const CONFIG = {
   ...constants,
   ...server,
@@ -160,6 +167,6 @@ export const CONFIG = {
   ...federation,
   ...gms,
   ...humhub,
+  ...openai,
 }
-
 validate(schema, CONFIG)
