@@ -32,10 +32,24 @@
           <BNavItem to="/federation" :active="isActive('federation')">
             {{ $t('navbar.instances') }}
           </BNavItem>
+          <BNavItem
+            to="/projectBranding"
+            :active="isActive('projectBranding')"
+            :title="$t('navbar.projectBrandingTooltip')"
+          >
+            {{ $t('navbar.projectBranding') }}
+          </BNavItem>
           <BNavItem to="/statistic" :active="isActive('statistic')">
             {{ $t('navbar.statistic') }}
           </BNavItem>
           <BNavItem @click="handleWallet">{{ $t('navbar.my-account') }}</BNavItem>
+          <BLink
+            href="https://gradido.net/coin/moderators-tutorial/"
+            class="nav-link"
+            target="_blank"
+          >
+            {{ $t('help.help') }}
+          </BLink>
           <BNavItem @click="handleLogout">{{ $t('navbar.logout') }}</BNavItem>
         </BNavbarNav>
       </BCollapse>
@@ -58,6 +72,7 @@ import {
   BNavbarToggle,
   vBToggle,
   vBColorMode,
+  BLink,
 } from 'bootstrap-vue-next'
 import { useRoute } from 'vue-router'
 

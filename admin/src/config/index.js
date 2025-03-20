@@ -6,7 +6,7 @@ const pkg = require('../../package')
 
 const version = {
   ADMIN_MODULE_PROTOCOL: process.env.ADMIN_MODULE_PROTOCOL ?? 'http',
-  ADMIN_MODULE_HOST: process.env.ADMIN_MODULE_HOST ?? 'localhost',
+  ADMIN_MODULE_HOST: process.env.ADMIN_MODULE_HOST ?? '0.0.0.0',
   ADMIN_MODULE_PORT: process.env.ADMIN_MODULE_PORT ?? '8080',
   APP_VERSION: pkg.version,
   BUILD_COMMIT: process.env.BUILD_COMMIT ?? undefined,
@@ -50,12 +50,17 @@ const endpoints = {
 const debug = {
   DEBUG_DISABLE_AUTH: process.env.DEBUG_DISABLE_AUTH === 'true' ?? false,
 }
+const humhub = {
+  HUMHUB_ACTIVE: process.env.HUMHUB_ACTIVE === 'true' || false,
+  HUMHUB_API_URL: process.env.HUMHUB_API_URL ?? COMMUNITY_URL + '/community/',
+}
 
 const CONFIG = {
   ...version,
   ...environment,
   ...endpoints,
   ...debug,
+  ...humhub,
   ADMIN_MODULE_URL,
   COMMUNITY_URL,
 }

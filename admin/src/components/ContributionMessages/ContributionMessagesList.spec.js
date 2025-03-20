@@ -93,10 +93,12 @@ describe('ContributionMessagesList', () => {
 
     wrapper = mount(ContributionMessagesList, {
       props: {
-        contributionId: 42,
-        contributionMemo: 'test memo',
-        contributionUserId: 108,
-        contributionStatus: 'PENDING',
+        contribution: {
+          id: 42,
+          memo: 'test memo',
+          userId: 108,
+          status: 'PENDING',
+        },
         hideResubmission: true,
       },
       global: {
@@ -137,7 +139,7 @@ describe('ContributionMessagesList', () => {
   })
 
   it('does not render the ContributionMessagesFormular when status is not PENDING or IN_PROGRESS', async () => {
-    await wrapper.setProps({ contributionStatus: 'COMPLETED' })
+    await wrapper.setProps({ contribution: { status: 'COMPLETED' } })
     expect(wrapper.find('contribution-messages-formular-stub').exists()).toBe(false)
   })
 

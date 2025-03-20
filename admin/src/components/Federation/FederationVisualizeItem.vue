@@ -56,7 +56,7 @@ export default {
         ? formatDistanceToNow(new Date(dateString), {
             includeSecond: true,
             addSuffix: true,
-            locale: useDateLocale,
+            locale: useDateLocale(),
           })
         : ''
     },

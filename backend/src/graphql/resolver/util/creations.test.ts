@@ -5,6 +5,7 @@ import { ApolloServerTestClient } from 'apollo-server-testing'
 
 import { testEnvironment, cleanDB, contributionDateFormatter } from '@test/helpers'
 
+import { CONFIG } from '@/config'
 import { userFactory } from '@/seeds/factory/user'
 import { login, createContribution, adminCreateContribution } from '@/seeds/graphql/mutations'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
@@ -13,6 +14,8 @@ import { peterLustig } from '@/seeds/users/peter-lustig'
 import { getOpenCreations, getUserCreation } from './creations'
 
 jest.mock('@/password/EncryptorUtils')
+
+CONFIG.HUMHUB_ACTIVE = false
 
 let mutate: ApolloServerTestClient['mutate'], con: Connection
 let testEnv: {
@@ -272,6 +275,7 @@ describe('util/creation', () => {
       })
     })
   })
+
   describe('getOpenCreations', () => {
     beforeAll(() => {
       // enable Fake timers

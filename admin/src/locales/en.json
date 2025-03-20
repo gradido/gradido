@@ -1,5 +1,7 @@
 {
   "GDD": "GDD",
+  "actions": "Actions",
+  "alias": "Alias",
   "all_emails": "All users",
   "back": "back",
   "change_user_role": "Change user role",
@@ -33,7 +35,8 @@
     "validTo": "End-Date"
   },
   "contributionMessagesForm": {
-    "resubmissionDateInPast": "Resubmission date is in the past!"
+    "resubmissionDateInPast": "Resubmission date is in the past!",
+    "hasRegisteredAt": "registered on {createdAt}."
   },
   "contributions": {
     "all": "All",
@@ -42,6 +45,8 @@
     "denied": "Rejected",
     "open": "Open"
   },
+  "copied-to-clipboard": "Copied to clipboard",
+  "copy-to-clipboard": "Copy to clipboard",
   "created": "Created for",
   "createdAt": "Created at",
   "creation": "Creation",
@@ -68,6 +73,8 @@
   "deleted": "deleted",
   "deleted_user": "All deleted user",
   "deny": "Reject",
+  "description": "Description",
+  "details": "Details",
   "e_mail": "E-mail",
   "edit": "edit",
   "enabled": "enabled",
@@ -92,6 +99,9 @@
     "verified": "Verified",
     "verifiedAt": "Verified at"
   },
+  "filter": {
+    "byEmail": "Filter by email"
+  },
   "firstname": "Firstname",
   "footer": {
     "app_version": "App version {version}",
@@ -112,6 +122,10 @@
       "describe": "Automatically splits coordinates in the format 'latitude, longitude'. Simply enter your coordinates from Google Maps here, for example: 49.28187664243721, 9.740672183943639."
     }
   },
+  "goTo": {
+    "userSearch": "Go to user search",
+    "humhubProfile": "Go to Humhub profile"
+  },
   "help": {
     "help": "Help",
     "transactionlist": {
@@ -127,6 +141,8 @@
   "lastname": "Lastname",
   "latitude": "Latitude:",
   "latitude-longitude-smart": "Latitude, Longitude",
+  "link": "Link",
+  "logo": "Logo",
   "longitude": "Longitude:",
   "math": {
     "equals": "=",
@@ -134,7 +150,7 @@
     "plus": "+"
   },
   "message": {
-    "request": "Request has been sent."
+    "request": "The entry has been saved."
   },
   "moderator": {
     "history": "The data has been changed. This is the old data.",
@@ -155,6 +171,8 @@
     "instances": "Instances",
     "logout": "Logout",
     "my-account": "My Account",
+    "projectBranding": "Project Branding",
+    "projectBrandingTooltip": "Use your own logo in the Gradido login and add new users to a Humhub space",
     "statistic": "Statistic",
     "user_search": "User search"
   },
@@ -199,9 +217,25 @@
       "yes": "Yes,undelete user"
     }
   },
+  "projectBranding": {
+    "addTooltip": "Add new project branding entry",
+    "chosenSpace": "Choosen Humhub Space: {space}",
+    "created": "New project branding entry has been created.",
+    "error": "Error when creating the project branding entry: {message}",
+    "noAccessRightSpace": "Selected space: {spaceId} (No access rights)",
+    "openSpaceInHumhub": "Open in Humhub",
+    "spaceId": "Humhub Space ID",
+    "selectSpace": "Select Humhub Space",
+    "title": "Project Branding",
+    "updated": "Project branding entry has been updated.",
+    "newUserToSpace": "Add user?",
+    "newUserToSpaceTooltip": "The hours should contain a maximum of two decimal places"
+  },
   "redeemed": "redeemed",
+  "registered": "Registered",
   "removeNotSelf": "As an admin/moderator, you cannot delete yourself.",
-  "save": "Speichern",
+  "reset": "Reset",
+  "save": "Save",
   "statistic": {
     "activeUsers": "Active members",
     "count": "Count",

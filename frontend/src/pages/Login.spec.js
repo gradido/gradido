@@ -34,6 +34,9 @@ vi.mock('@vue/apollo-composable', () => ({
   useMutation: () => ({
     mutate: mockMutate,
   }),
+  useLazyQuery: () => ({
+    load: vi.fn(),
+  }),
 }))
 
 describe('Login', () => {

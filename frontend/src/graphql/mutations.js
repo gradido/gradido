@@ -68,6 +68,7 @@ export const createUser = gql`
     $language: String!
     $publisherId: Int
     $redeemCode: String
+    $project: String
   ) {
     createUser(
       email: $email
@@ -76,6 +77,7 @@ export const createUser = gql`
       language: $language
       publisherId: $publisherId
       redeemCode: $redeemCode
+      project: $project
     ) {
       id
     }
@@ -166,8 +168,8 @@ export const createContributionMessage = gql`
 `
 
 export const login = gql`
-  mutation ($email: String!, $password: String!, $publisherId: Int) {
-    login(email: $email, password: $password, publisherId: $publisherId) {
+  mutation ($email: String!, $password: String!, $publisherId: Int, $project: String) {
+    login(email: $email, password: $password, publisherId: $publisherId, project: $project) {
       gradidoID
       alias
       firstName

@@ -73,8 +73,8 @@
   "contribution": {
     "activity": "Activity",
     "alert": {
-      "answerQuestion": "Please answer the question.",
-      "answerQuestionToast": "You have a question about a post. Please reply to it.",
+      "answerQuestion": "There is a new message for this article.",
+      "answerQuestionToast": "You have new messages.",
       "communityNoteList": "Here you will find all submitted and confirmed contributions from all members of this community.",
       "confirm": "confirmed",
       "deleted": "deleted",
@@ -148,6 +148,7 @@
     "session-expired": "The session was closed for security reasons.",
     "unknown-error": "Unknown error: "
   },
+  "existingGradidoAccount": "Already have a {communityName} account?",
   "followUs": "follow us:",
   "footer": {
     "app_version": "App version {version}",
@@ -297,6 +298,7 @@
     "title": "Thank you!",
     "unsetPassword": "Your password has not been set yet. Please set it again."
   },
+  "missingGradidoAccount": "Don't have a {communityName} account yet?",
   "moderatorChangedMemo": "Text edited by moderator",
   "moderatorChat": "Moderator Chat",
   "navigation": {

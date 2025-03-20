@@ -1,0 +1,23 @@
+
+fragment SpaceFields on Space {
+  id
+  name
+  description
+  url
+}
+
+fragment PaginationFields on Pagination {
+  total
+  page
+  pages
+}
+
+fragment ProjectBrandingCommonFields on ProjectBranding {
+  id
+  name
+  alias
+  description
+  spaceId
+  newUserToSpace
+  logoUrl
+}

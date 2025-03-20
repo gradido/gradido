@@ -17,13 +17,13 @@ const CONFIG = require('./src/config')
 
 const path = require('path')
 
-export default defineConfig(({ command }) => {
+export default defineConfig(async ({ command }) => {
+  const { vitePluginGraphqlLoader } = await import('vite-plugin-graphql-loader')
   if (command === 'serve') {
     CONFIG.ADMIN_HOSTING = 'nodejs'
   } else {
     CONFIG.ADMIN_HOSTING = 'nginx'
   }
-  // Check config
   validate(schema, CONFIG)
   // make sure that all urls used in browser have the same protocol to prevent mixed content errors
   validate(browserUrls, [
@@ -77,8 +77,11 @@ export default defineConfig(({ command }) => {
         WALLET_AUTH_PATH: CONFIG.WALLET_AUTH_PATH ?? null,
         WALLET_LOGIN_PATH: CONFIG.WALLET_LOGIN_URL ?? null, // null,
         DEBUG_DISABLE_AUTH: CONFIG.DEBUG_DISABLE_AUTH ?? null, // null,
+        HUMHUB_ACTIVE: CONFIG.HUMHUB_ACTIVE ?? null, // null,
+        HUMHUB_API_URL: CONFIG.HUMHUB_API_URL ?? null, // null,
         // CONFIG_VERSION: CONFIG.CONFIG_VERSION, // null,
       }),
+      vitePluginGraphqlLoader(),
       commonjs(),
     ],
     build: {
