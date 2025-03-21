@@ -146,7 +146,7 @@ describe('Vuex store', () => {
 
       it('calls seventeen commits', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenCalledTimes(17)
+        expect(commit).toHaveBeenCalledTimes(18)
       })
 
       // ... (other login action tests remain largely the same)
@@ -161,9 +161,9 @@ describe('Vuex store', () => {
       const commit = vi.fn()
       const state = {}
 
-      it('calls twenty commits', () => {
+      it('calls twenty-one commits', () => {
         logout({ commit, state })
-        expect(commit).toHaveBeenCalledTimes(20)
+        expect(commit).toHaveBeenCalledTimes(21)
       })
 
       // ... (other logout action tests remain largely the same)

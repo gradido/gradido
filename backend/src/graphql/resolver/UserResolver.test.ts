@@ -485,7 +485,6 @@ describe('UserResolver', () => {
           })
 
           transactionLink = await TransactionLink.findOneOrFail({ where: { userId: bob.id } })
-
           resetToken()
 
           // create new user using transaction link of bob
@@ -504,7 +503,7 @@ describe('UserResolver', () => {
             UserContact.findOne({ where: { email: 'which@ever.de' }, relations: ['user'] }),
           ).resolves.toEqual(
             expect.objectContaining({
-              user: expect.objectContaining({ referrerId: bob.data.login.id }),
+              user: expect.objectContaining({ referrerId: transactionLink.userId }), // bob.data.login.id }),
             }),
           )
         })
@@ -721,9 +720,17 @@ describe('UserResolver', () => {
           expect.objectContaining({
             data: {
               login: {
+                alias: 'BBB',
                 firstName: 'Bibi',
+                gmsAllowed: true,
+                gmsPublishLocation: 'GMS_LOCATION_TYPE_RANDOM',
+                gmsPublishName: 'PUBLISH_NAME_ALIAS_OR_INITALS',
+                gradidoID: expect.any(String),
                 hasElopage: false,
-                id: expect.any(Number),
+                hideAmountGDD: false,
+                hideAmountGDT: false,
+                humhubAllowed: true,
+                humhubPublishName: 'PUBLISH_NAME_ALIAS_OR_INITALS',
                 klickTipp: {
                   newsletterState: false,
                 },
@@ -731,6 +738,7 @@ describe('UserResolver', () => {
                 lastName: 'Bloxberg',
                 publisherId: 1234,
                 roles: [],
+                userLocation: null,
               },
             },
           }),
@@ -1605,9 +1613,17 @@ describe('UserResolver', () => {
           expect.objectContaining({
             data: {
               login: {
+                alias: 'BBB',
                 firstName: 'Bibi',
+                gmsAllowed: true,
+                gmsPublishLocation: 'GMS_LOCATION_TYPE_RANDOM',
+                gmsPublishName: 'PUBLISH_NAME_ALIAS_OR_INITALS',
+                gradidoID: expect.any(String),
                 hasElopage: false,
-                id: expect.any(Number),
+                hideAmountGDD: false,
+                hideAmountGDT: false,
+                humhubAllowed: true,
+                humhubPublishName: 'PUBLISH_NAME_ALIAS_OR_INITALS',
                 klickTipp: {
                   newsletterState: false,
                 },
@@ -1615,6 +1631,7 @@ describe('UserResolver', () => {
                 lastName: 'Bloxberg',
                 publisherId: 1234,
                 roles: [],
+                userLocation: null,
               },
             },
           }),
@@ -2467,6 +2484,7 @@ describe('UserResolver', () => {
         }
 
         beforeAll(async () => {
+          jest.clearAllMocks()
           admin = await userFactory(testEnv, peterLustig)
           await mutate({
             mutation: login,

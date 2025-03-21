@@ -30,6 +30,28 @@
     }
   },
   "back": "Back",
+  "card-circles": {
+    "headline": "Together we support each other - mindful in circle culture.",
+    "allowed": {
+      "text": "Click on the button to open the cooperation platform in a new browser window.",
+      "button": "Start Circles..."
+    },
+    "not-allowed": {
+      "text": "Your Circles are not configured yet! Please open the Circles-Configuration first.",
+      "button": "Start Circles-Configuration..."
+    }
+  },
+  "card-user-search": {
+    "headline": "Geografice Usersearch",
+    "allowed": {
+      "text": "Find Members of all Communities on a Map.",
+      "button": "Start Usersearch..."
+    },
+    "not-allowed": {
+      "text": "Find Members of all Communities on a Map? Then you have to capture your Location first.",
+      "button": "Start Location-Capturing..."
+    }
+  },
   "circles": {
     "headline": "Together we support each other - mindful in circle culture.",
     "text": "Click on the button to open the cooperation platform in a new browser window.",
@@ -287,10 +309,8 @@
     "overview": "Overview",
     "send": "Send",
     "settings": "Settings",
-    "circles": "Circles",
     "support": "Support",
-    "transactions": "Transactions",
-    "usersearch": "Geographical User Search"
+    "transactions": "Transactions"
   },
   "openHours": "Open Hours",
   "pageTitle": {
@@ -314,14 +334,13 @@
     "warningText": "Are you still there?"
   },
   "settings": {
-    "allow-community-services": "Allow Community Services",
     "community": "Community",
     "emailInfo": "Cannot be changed at this time.",
     "GMS": {
       "disabled": "Data not exported to GMS",
       "enabled": "Data exported to GMS",
       "location": {
-        "button": "Click me!",
+        "button": "Open Map",
         "label": "Pinpoint location",
         "saveLocation": "Save Location",
         "updateSuccess": "Location successfully saved"
@@ -339,7 +358,6 @@
       "publish-location": {
         "exact": "exact position",
         "approximate": "approximate position",
-        "random": "random position",
         "updated": "format of location for GMS updated"
       },
       "publish-name": {

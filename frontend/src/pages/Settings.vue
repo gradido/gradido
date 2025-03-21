@@ -86,7 +86,6 @@
         class="community-service-tabs"
         :title="$t('settings.community')"
       >
-        <div class="h2">{{ $t('settings.allow-community-services') }}</div>
         <div v-if="isHumhub" class="mt-3">
           <BRow>
             <BCol cols="12" md="6" lg="6">
@@ -123,7 +122,7 @@
             <BCol cols="12" md="6" lg="6">
               <div class="h3">{{ $t('GMS.title') }}</div>
             </BCol>
-            <BCol cols="12" md="6" lg="6" class="text-end">
+            <BCol cols="12" md="6" lg="6" class="text-start">
               <user-settings-switch
                 :initial-value="state.gmsAllowed"
                 :attr-name="'gmsAllowed'"
