@@ -70,7 +70,7 @@ describe('UserGMSLocationFormat', () => {
     await dropdownItem.trigger('click')
 
     expect(mockMutate).toHaveBeenCalledWith({
-      gmsPublishLocation: 'GMS_LOCATION_TYPE_APPROXIMATE'
+      gmsPublishLocation: 'GMS_LOCATION_TYPE_APPROXIMATE',
     })
     expect(mockToastSuccess).toHaveBeenCalledWith('settings.GMS.publish-location.updated')
     expect(mockStore.commit).toHaveBeenCalledWith(

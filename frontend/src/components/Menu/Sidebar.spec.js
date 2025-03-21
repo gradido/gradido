@@ -111,7 +111,6 @@ describe('Sidebar', () => {
       it('has nav-item "navigation.info" in navbar', () => {
         expect(wrapper.findAll('.nav-item').at(4).text()).toContain('Info')
       })
-
     })
 
     describe('the specific section', () => {
