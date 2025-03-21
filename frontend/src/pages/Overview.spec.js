@@ -11,6 +11,23 @@ vi.mock('@/components/Overview/CommunityNews', () => ({
   },
 }))
 
+vi.mock('@vue/apollo-composable', () => ({
+  useQuery: vi.fn().mockReturnValue({
+    onResult: vi.fn(),
+    onError: vi.fn(),
+    loading: { value: false },
+    error: { value: null },
+    refetch: vi.fn(),
+  }),
+}))
+
+vi.mock('@/components/Overview/CardCircles', () => ({
+  default: {
+    name: 'CardCircles',
+    template: '<div class="card-circles"></div>',
+  },
+}))
+
 describe('Overview', () => {
   let wrapper
   let router
