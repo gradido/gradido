@@ -301,9 +301,7 @@ onMounted(async () => {
 /* Animations für den Einblendeffekt */
 .chat-enter-active,
 .chat-leave-active {
-  transition:
-    transform 0.5s ease-out,
-    opacity 0.5s;
+  transition: transform 0.5s ease-out, opacity 0.5s;
 }
 
 .chat-enter-from {

@@ -161,8 +161,8 @@ const disabled = computed(
       ([0, 1].includes(tabindex.value)
         ? !isTextTabValid.value
         : tabindex.value === 2
-          ? !isMemoTabValid.value
-          : false)),
+        ? !isMemoTabValid.value
+        : false)),
 )
 
 const now = computed(() => new Date())

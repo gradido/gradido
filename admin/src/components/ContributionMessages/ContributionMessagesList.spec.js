@@ -81,7 +81,7 @@ describe('ContributionMessagesList', () => {
     ref.mockReturnValueOnce(mockMessages)
 
     useQuery.mockReturnValue({
-      onResult: vi.fn((callback) => callback({ result: defaultData })),
+      onResult: vi.fn((callback) => callback(null, { result: defaultData })),
       onError: vi.fn(),
       result: { value: defaultData },
       refetch: mockRefetch,

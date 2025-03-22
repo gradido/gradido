@@ -22,7 +22,9 @@
     "watch-scss": "sass --watch --load-path=../node_modules --load-path=src/assets/scss src/assets/scss/gradido.scss src/assets/css/gradido.css"
   },
   "workspaces": {
-    "nohoist": ["@vee-validate/i18n"]
+    "nohoist": [
+      "@vee-validate/i18n"
+    ]
   },
   "dependencies": {
     "@babel/core": "^7.13.13",
@@ -71,7 +73,7 @@
     "vue-timer-hook": "^1.0.84",
     "vuex": "^4.1.0",
     "vuex-persistedstate": "^4.1.0",
-    "yup": "^1.4.0"
+    "yup": "^1.6.1"
   },
   "devDependencies": {
     "@apollo/client": "^3.10.8",
@@ -84,21 +86,21 @@
     "@intlify/eslint-plugin-vue-i18n": "^1.4.0",
     "@vitest/coverage-v8": "^2.0.5",
     "@vue/eslint-config-prettier": "^4.0.1",
-    "@vue/test-utils": "^2.4.5",
+    "@vue/test-utils": "^2.4.6",
     "babel-plugin-component": "^1.1.0",
     "babel-plugin-transform-require-context": "^0.1.1",
     "concurrently": "^9.1.2",
     "config": "*",
     "cross-env": "^7.0.3",
     "dotenv-webpack": "^7.0.3",
-    "eslint": "8.57.0",
-    "eslint-config-prettier": "8.10.0",
-    "eslint-config-standard": "^16.0.3",
+    "eslint": "8.57.1",
+    "eslint-config-prettier": "8.8.0",
+    "eslint-config-standard": "^17.0.0",
     "eslint-loader": "^4.0.2",
     "eslint-plugin-import": "^2.25.2",
     "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-prettier": "5.2.1",
-    "eslint-plugin-promise": "^5.1.1",
+    "eslint-plugin-prettier": "4.2.1",
+    "eslint-plugin-promise": "^6.1.1",
     "eslint-plugin-vitest": "^0.5.4",
     "eslint-plugin-vue": "8.7.1",
     "joi": "^17.13.3",

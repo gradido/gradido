@@ -61,7 +61,7 @@ const endpoints = {
 
 const community = {
   COMMUNITY_NAME: process.env.COMMUNITY_NAME ?? 'Gradido Entwicklung',
-  COMMUNITY_URL: COMMUNITY_URL,
+  COMMUNITY_URL,
   COMMUNITY_REGISTER_URL: COMMUNITY_URL + (process.env.COMMUNITY_REGISTER_PATH ?? '/register'),
   COMMUNITY_DESCRIPTION:
     process.env.COMMUNITY_DESCRIPTION ?? 'Die lokale Entwicklungsumgebung von Gradido.',

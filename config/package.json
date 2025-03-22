@@ -22,5 +22,8 @@
   },
   "dependencies": {
     "joi": "^17.13.3"
+  },
+  "engines": {
+    "node": ">=18"
   }
 }

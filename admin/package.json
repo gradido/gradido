@@ -25,7 +25,7 @@
     "@babel/node": "^7.15.8",
     "@babel/preset-env": "^7.15.8",
     "@iconify/json": "^2.2.228",
-    "@vitejs/plugin-vue": "3.2.0",
+    "@vitejs/plugin-vue": "5.1.4",
     "@vue/apollo-composable": "^4.0.2",
     "@vue/apollo-option": "^4.0.0",
     "@vue/compat": "3.4.31",
@@ -67,14 +67,14 @@
     "babel-plugin-transform-require-context": "^0.1.1",
     "config": "*",
     "cross-env": "^7.0.3",
-    "eslint": "8.57.0",
-    "eslint-config-prettier": "8.10.0",
-    "eslint-config-standard": "^16.0.3",
+    "eslint": "8.57.1",
+    "eslint-config-prettier": "8.8.0",
+    "eslint-config-standard": "^17.0.0",
     "eslint-loader": "^4.0.2",
     "eslint-plugin-import": "^2.25.2",
     "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-prettier": "5.2.1",
-    "eslint-plugin-promise": "^5.1.1",
+    "eslint-plugin-prettier": "4.2.1",
+    "eslint-plugin-promise": "^6.1.1",
     "eslint-plugin-vue": "8.7.1",
     "joi": "^17.13.3",
     "jsdom": "^25.0.0",
@@ -107,5 +107,8 @@
     "strip-ansi": "6.0.1",
     "string-width": "4.2.2",
     "wrap-ansi": "7.0.0"
+  },
+  "engines": {
+    "node": ">=18"
   }
 }

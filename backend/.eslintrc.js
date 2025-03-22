@@ -13,7 +13,7 @@ module.exports = {
     'plugin:import/recommended',
     'plugin:import/typescript',
     'plugin:security/recommended',
-    'plugin:@eslint-community/eslint-comments/recommended',
+    'plugin:@eslint-community/eslint-comments/recommended'
   ],
   settings: {
     'import/parsers': {
@@ -110,7 +110,7 @@ module.exports = {
     'n/no-exports-assign': 'error',
     'n/no-extraneous-import': 'error',
     'n/no-extraneous-require': 'error',
-    'n/no-hide-core-modules': 'error',
+    'n/no-hide-core-modules': 'off', // is deprecated https://github.com/mysticatea/eslint-plugin-node/blob/master/docs/rules/no-hide-core-modules.md
     'n/no-missing-import': 'off', // not compatible with typescript
     'n/no-missing-require': 'error',
     'n/no-new-require': 'error',

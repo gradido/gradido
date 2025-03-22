@@ -50,7 +50,9 @@ export default {
       minutes = Math.min(parseInt(minutes) || 0, 59)
 
       // Update the value with correct format
-      timeValue.value = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`
+      timeValue.value = `${hours.toString().padStart(2, '0')}:${minutes
+        .toString()
+        .padStart(2, '0')}`
       emit('update:modelValue', timeValue.value)
     }
 
