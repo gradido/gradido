@@ -27,9 +27,6 @@
     ]
   },
   "dependencies": {
-    "@babel/core": "^7.13.13",
-    "@babel/node": "^7.13.13",
-    "@babel/preset-env": "^7.13.12",
     "@morev/vue-transitions": "^3.0.2",
     "@types/leaflet": "^1.9.12",
     "@vee-validate/i18n": "^4.15.0",
@@ -41,8 +38,6 @@
     "@vue/apollo-option": "^4.0.0",
     "apollo-boost": "^0.4.9",
     "autoprefixer": "^10.4.19",
-    "babel-core": "^7.0.0-bridge.0",
-    "babel-preset-vue": "^2.0.2",
     "bootstrap": "^5.3.3",
     "bootstrap-vue-next": "0.26.8",
     "clipboard-polyfill": "^4.0.0-rc1",
@@ -87,8 +82,6 @@
     "@vitest/coverage-v8": "^2.0.5",
     "@vue/eslint-config-prettier": "^4.0.1",
     "@vue/test-utils": "^2.4.6",
-    "babel-plugin-component": "^1.1.0",
-    "babel-plugin-transform-require-context": "^0.1.1",
     "concurrently": "^9.1.2",
     "config": "*",
     "cross-env": "^7.0.3",
