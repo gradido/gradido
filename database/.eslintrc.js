@@ -51,7 +51,6 @@ module.exports = {
     'import/no-nodejs-modules': 'off',
     'import/unambiguous': 'error',
     'import/default': 'error',
-    'import/named': 'error',
     'import/namespace': 'error',
     'import/no-absolute-path': 'error',
     // 'import/no-cycle': 'error',
@@ -106,7 +105,6 @@ module.exports = {
     'n/no-exports-assign': 'error',
     // 'n/no-extraneous-import': 'error',
     'n/no-extraneous-require': 'error',
-    'n/no-hide-core-modules': 'error',
     'n/no-missing-import': 'off', // not compatible with typescript
     'n/no-missing-require': 'error',
     'n/no-new-require': 'error',

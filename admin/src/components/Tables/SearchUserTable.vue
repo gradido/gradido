@@ -181,8 +181,8 @@ const showModal = async () => {
           userChangeForm.value.roleSelected === rolesValues.ADMIN
             ? t('userRole.selectRoles.admin')
             : userChangeForm.value.roleSelected === rolesValues.MODERATOR
-            ? t('userRole.selectRoles.moderator')
-            : t('userRole.selectRoles.user'),
+              ? t('userRole.selectRoles.moderator')
+              : t('userRole.selectRoles.user'),
       }),
     },
   })

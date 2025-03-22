@@ -54,8 +54,8 @@ export class PublishNameLogic {
     return publishNameType === PublishNameType.PUBLISH_NAME_FULL
       ? this.user.lastName
       : publishNameType === PublishNameType.PUBLISH_NAME_FIRST_INITIAL
-      ? this.user.lastName.charAt(0)
-      : ''
+        ? this.user.lastName.charAt(0)
+        : ''
   }
 
   /**

@@ -13,7 +13,7 @@ module.exports = {
     'plugin:import/recommended',
     'plugin:import/typescript',
     'plugin:security/recommended',
-    'plugin:@eslint-community/eslint-comments/recommended'
+    'plugin:@eslint-community/eslint-comments/recommended',
   ],
   settings: {
     'import/parsers': {
