@@ -108,7 +108,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await cleanDB()
-  await con.close()
+  con.close()
 })
 
 describe('federation', () => {
@@ -249,7 +249,7 @@ describe('federation', () => {
               it('logs an error of unexpected data format and structure', () => {
                 expect(logger.error).toBeCalledWith(
                   'Error on receiving data from socket:',
-                  new SyntaxError('Unexpected token \'o\', "no-json string" is not valid JSON'),
+                  new SyntaxError('Unexpected token o in JSON at position 1'),
                 )
               })
             })
@@ -291,7 +291,7 @@ describe('federation', () => {
               it('logs an error of unexpected data format and structure', () => {
                 expect(logger.error).toBeCalledWith(
                   'Error on receiving data from socket:',
-                  new SyntaxError('Unexpected token \'i\', "invalid ty"... is not valid JSON'),
+                  new SyntaxError('Unexpected token i in JSON at position 0'),
                 )
               })
             })
@@ -315,7 +315,7 @@ describe('federation', () => {
               it('logs an error of unexpected data format and structure', () => {
                 expect(logger.error).toBeCalledWith(
                   'Error on receiving data from socket:',
-                  new SyntaxError('Unexpected token \'a\', "api,url,in"... is not valid JSON'),
+                  new SyntaxError('Unexpected token a in JSON at position 0'),
                 )
               })
             })
