@@ -10,7 +10,7 @@ const {
   NODE_ENV,
   OPENAI_ACTIVE,
   PRODUCTION,
-} = require('gradido-config/build/src/commonSchema.js')
+} = require('config')
 const Joi = require('joi')
 
 module.exports = Joi.object({

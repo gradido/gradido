@@ -1,6 +1,6 @@
 {
-  "name": "gradido-config",
-  "version": "1.0.0",
+  "name": "config",
+  "version": "2.5.1",
   "description": "Gradido Config for validate config",
   "main": "build/src/index.js",
   "types": "build/src/index.d.ts",

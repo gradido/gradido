@@ -1,5 +1,5 @@
 {
-  "name": "bootstrap-vue-gradido-wallet",
+  "name": "frontend",
   "version": "2.5.1",
   "private": true,
   "scripts": {
@@ -18,8 +18,11 @@
     "test:debug": "cross-env TZ=UTC node --inspect-brk ./node_modules/vitest/vitest.mjs",
     "test:watch": "cross-env TZ=UTC vitest",
     "locales": "scripts/sort.sh",
-    "compile-scss": "sass --load-path=node_modules --load-path=src/assets/scss src/assets/scss/gradido.scss src/assets/css/gradido.css",
-    "watch-scss": "sass --watch --load-path=node_modules --load-path=src/assets/scss src/assets/scss/gradido.scss src/assets/css/gradido.css"
+    "compile-scss": "sass --load-path=../node_modules --load-path=src/assets/scss src/assets/scss/gradido.scss src/assets/css/gradido.css",
+    "watch-scss": "sass --watch --load-path=../node_modules --load-path=src/assets/scss src/assets/scss/gradido.scss src/assets/css/gradido.css"
+  },
+  "workspaces": {
+    "nohoist": ["@vee-validate/i18n"]
   },
   "dependencies": {
     "@babel/core": "^7.13.13",
@@ -27,7 +30,7 @@
     "@babel/preset-env": "^7.13.12",
     "@morev/vue-transitions": "^3.0.2",
     "@types/leaflet": "^1.9.12",
-    "@vee-validate/i18n": "^4.14.7",
+    "@vee-validate/i18n": "^4.15.0",
     "@vee-validate/rules": "^4.14.1",
     "@vee-validate/yup": "^4.14.1",
     "@vitejs/plugin-vue": "5.1.4",
@@ -46,7 +49,7 @@
     "express": "^4.17.1",
     "flatpickr": "^4.5.7",
     "flush-promises": "^1.0.2",
-    "graphql": "^16.9.0",
+    "graphql": "^15.10.1",
     "graphql-tag": "^2.12.6",
     "identity-obj-proxy": "^3.0.0",
     "jwt-decode": "^3.1.2",
@@ -85,6 +88,7 @@
     "babel-plugin-component": "^1.1.0",
     "babel-plugin-transform-require-context": "^0.1.1",
     "concurrently": "^9.1.2",
+    "config": "*",
     "cross-env": "^7.0.3",
     "dotenv-webpack": "^7.0.3",
     "eslint": "8.57.0",
@@ -97,7 +101,6 @@
     "eslint-plugin-promise": "^5.1.1",
     "eslint-plugin-vitest": "^0.5.4",
     "eslint-plugin-vue": "8.7.1",
-    "gradido-config": "file:../config",
     "joi": "^17.13.3",
     "jsdom": "^25.0.0",
     "mock-apollo-client": "^1.2.1",

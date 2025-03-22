@@ -1,5 +1,5 @@
 {
-  "name": "gradido-database",
+  "name": "database",
   "version": "2.5.1",
   "description": "Gradido Database Tool to execute database migrations",
   "main": "src/index.ts",

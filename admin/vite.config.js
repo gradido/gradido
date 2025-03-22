@@ -7,7 +7,7 @@ import IconsResolve from 'unplugin-icons/resolver'
 import { BootstrapVueNextResolver } from 'bootstrap-vue-next'
 import EnvironmentPlugin from 'vite-plugin-environment'
 import schema from './src/config/schema'
-import { validate, browserUrls } from 'gradido-config/build/src/index.js'
+import { validate, browserUrls } from 'config'
 
 import dotenv from 'dotenv'
 
