@@ -39,7 +39,7 @@
     "qrcanvas-vue": "3.0.0",
     "regenerator-runtime": "^0.13.9",
     "sass": "^1.77.8",
-    "vite": "3.2.10",
+    "vite": "^6.2.2",
     "vite-plugin-commonjs": "^0.10.1",
     "vue": "3.5.13",
     "vue-apollo": "3.1.2",
