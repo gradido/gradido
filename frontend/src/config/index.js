@@ -38,8 +38,8 @@ if (process.env.FRONTEND_HOSTING === 'nodejs') {
 // version.FRONTEND_MODULE_PORT
 
 const features = {
-  GMS_ACTIVE: process.env.GMS_ACTIVE === 'true' ? true : false,
-  HUMHUB_ACTIVE: process.env.HUMHUB_ACTIVE === 'true' ? true : false,
+  GMS_ACTIVE: process.env.GMS_ACTIVE === 'true',
+  HUMHUB_ACTIVE: process.env.HUMHUB_ACTIVE === 'true',
 }
 
 const environment = {

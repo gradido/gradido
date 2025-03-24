@@ -66,9 +66,9 @@ onResult(({ data }) => {
 onError(() => {
   if (gmsActive && gmsUserLocationExists) {
     toastError('authenticateGmsUserSearch failed!')
-  }
-  else if (gmsActive && !gmsUserLocationExists) {
+  } else if (gmsActive && !gmsUserLocationExists) {
     // toastError('capture your location first!')
+    // eslint-disable-next-line no-console
     console.log('capture your location first...')
   }
 })
