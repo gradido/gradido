@@ -72,6 +72,7 @@ import { useMutation, useLazyQuery } from '@vue/apollo-composable'
 import { useAppToast } from '@/composables/useToast'
 import { useAuthLinks } from '@/composables/useAuthLinks'
 import CONFIG from '@/config'
+
 // import { useLoading } from 'vue-loading-overlay'
 
 const router = useRouter()
@@ -112,6 +113,7 @@ const onSubmit = handleSubmit(async (values) => {
     })
     const { login: loginResponse } = result.data
     await store.dispatch('login', loginResponse)
+    store.commit('gmsActive', CONFIG.GMS_ACTIVE)
     store.commit('email', values.email)
     // await loader.hide()
 
