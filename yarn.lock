@@ -13761,7 +13761,7 @@ ts-jest@^27.0.5:
     semver "7.x"
     yargs-parser "20.x"
 
-ts-mysql-migrate@^1.1.2:
+ts-mysql-migrate@^1.0.2:
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/ts-mysql-migrate/-/ts-mysql-migrate-1.1.2.tgz#6f280f4684cb95440ffa7254b926b494badb8cf3"
   integrity sha512-jwhVaMrYBNNhAoZ5XISxzqbnXTHqwazqu/r1UQ6kUaGNPGL43ZFnBiXVj4Gm3pfe3xtCGIaNInehDfdDuigPgw==

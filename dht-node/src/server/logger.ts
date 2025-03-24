@@ -1,3 +1,4 @@
+/* eslint-disable n/no-sync */
 import { readFileSync } from 'fs'
 
 import { configure, getLogger } from 'log4js'
