@@ -23,7 +23,13 @@
       <BRow class="my-1">
         <BCol cols="12">
           <div class="text-lg-end">
-            <BButton v-if="gmsUserLocationExists" :disabled="isUserSearchDisabled" variant="gradido" :href="gmsUri" target="_blank">
+            <BButton
+              v-if="gmsUserLocationExists"
+              :disabled="isUserSearchDisabled"
+              variant="gradido"
+              :href="gmsUri"
+              target="_blank"
+            >
               {{ $t('card-user-search.allowed.button') }}
             </BButton>
             <RouterLink v-else to="/settings/extern">
