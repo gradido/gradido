@@ -33,6 +33,9 @@ export class HumHubClient {
     if (!CONFIG.HUMHUB_ACTIVE || !CONFIG.HUMHUB_API_URL) {
       logger.info(`humhub are disabled via config...`)
       return
+    } else {
+      console.log(`humhub will be loaded with ${CONFIG.HUMHUB_API_URL}`)
+      logger.error(`humhub will be loaded with ${CONFIG.HUMHUB_API_URL}`)
     }
     if (!HumHubClient.instance) {
       HumHubClient.instance = new HumHubClient()
