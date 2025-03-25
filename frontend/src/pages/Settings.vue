@@ -238,17 +238,10 @@ const isHumhubActivated = computed(() => {
   return humhubAllowed.value === true
 })
 
-const isGMS = computed(() => {
-  return CONFIG.GMS_ACTIVE === 'true'
-})
-
-const isHumhub = computed(() => {
-  return CONFIG.HUMHUB_ACTIVE === 'true'
-})
-
-const isCommunityService = computed(() => {
-  return isGMS.value || isHumhub.value
-})
+// setting if gms and/or humhub are enabled in frontend config .env
+const isGMS = CONFIG.GMS_ACTIVE
+const isHumhub = CONFIG.HUMHUB_ACTIVE
+const isCommunityService = isGMS || isHumhub
 
 const { mutate: updateUserData } = useMutation(updateUserInfos)
 
