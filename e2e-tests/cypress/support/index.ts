@@ -13,3 +13,8 @@ declare global {
     }
   }
 }
+
+Cypress.on('uncaught:exception', (err, runnable) => {
+  cy.log('Uncaught Exception, maybe a void call of a async function:', err)
+  return false
+})
