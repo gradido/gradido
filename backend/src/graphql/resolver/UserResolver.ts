@@ -236,7 +236,7 @@ export class UserResolver {
           if (projectBranding) {
             spaceId = projectBranding.spaceId
           }
-          void syncHumhub(null, dbUser, spaceId)
+          await  syncHumhub(null, dbUser, spaceId)
         }
       } catch (e) {
         logger.error("couldn't reach out to humhub, disable for now", e)
@@ -311,7 +311,7 @@ export class UserResolver {
         }
         logger.debug('partly faked user', user)
 
-        void sendAccountMultiRegistrationEmail({
+        await  sendAccountMultiRegistrationEmail({
           firstName: foundUser.firstName, // this is the real name of the email owner, but just "firstName" would be the name of the new registrant which shall not be passed to the outside
           lastName: foundUser.lastName, // this is the real name of the email owner, but just "lastName" would be the name of the new registrant which shall not be passed to the outside
           email,
@@ -406,7 +406,7 @@ export class UserResolver {
       }`
 
       projectBranding = projectBrandingPromise ? await projectBrandingPromise : undefined
-      void sendAccountActivationEmail({
+      await  sendAccountActivationEmail({
         firstName,
         lastName,
         email,
@@ -433,7 +433,7 @@ export class UserResolver {
       if (projectBranding) {
         spaceId = projectBranding.spaceId
       }
-      void syncHumhub(null, dbUser, spaceId)
+      await  syncHumhub(null, dbUser, spaceId)
     }
 
     if (redeemCode) {
@@ -492,7 +492,7 @@ export class UserResolver {
 
     logger.info('optInCode for', email, user.emailContact)
 
-    void sendResetPasswordEmail({
+    await  sendResetPasswordEmail({
       firstName: user.firstName,
       lastName: user.lastName,
       email,
@@ -1012,7 +1012,7 @@ export class UserResolver {
     await user.emailContact.save()
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    void sendAccountActivationEmail({
+    await  sendAccountActivationEmail({
       firstName: user.firstName,
       lastName: user.lastName,
       email,
