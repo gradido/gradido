@@ -128,7 +128,6 @@
         "@types/faker": "^5.5.9",
         "@types/i18n": "^0.13.4",
         "@types/jest": "^29.5.14",
-        "@types/joi": "^17.2.3",
         "@types/lodash.clonedeep": "^4.5.6",
         "@types/node": "^17.0.21",
         "@types/nodemailer": "^6.4.4",
@@ -169,7 +168,6 @@
         "joi": "^17.13.3",
       },
       "devDependencies": {
-        "@types/joi": "^17.2.3",
         "@types/node": "^17.0.21",
         "mkdirp": "^3.0.1",
         "ncp": "^2.0.0",
@@ -233,7 +231,6 @@
       "devDependencies": {
         "@eslint-community/eslint-plugin-eslint-comments": "^3.2.1",
         "@types/jest": "^29.5.14",
-        "@types/joi": "^17.2.3",
         "@types/node": "^17.0.21",
         "@types/uuid": "^8.3.4",
         "@typescript-eslint/eslint-plugin": "^5.62.0",
@@ -287,7 +284,6 @@
       "devDependencies": {
         "@types/express": "4.17.12",
         "@types/jest": "^29.5.14",
-        "@types/joi": "^17.2.3",
         "@types/lodash.clonedeep": "^4.5.6",
         "@types/node": "^17.0.21",
         "@types/sodium-native": "^2.3.5",
@@ -899,8 +895,6 @@
     "@types/istanbul-reports": ["@types/istanbul-reports@3.0.4", "", { "dependencies": { "@types/istanbul-lib-report": "*" } }, "sha512-pk2B1NWalF9toCRu6gjBzR69syFjP4Od8WRAX+0mmf9lAjCRicLOWc+ZrxZHx/0XRjotgkF9t6iaMJ+aXcOdZQ=="],
 
     "@types/jest": ["@types/jest@29.5.14", "", { "dependencies": { "expect": "^29.0.0", "pretty-format": "^29.0.0" } }, "sha512-ZN+4sdnLUbo8EVvVc2ao0GFW6oVrQRPn4K2lglySj7APvSrgzxHiNNK99us4WDMi57xxA2yggblIAMNhXOotLQ=="],
-
-    "@types/joi": ["@types/joi@17.2.3", "", { "dependencies": { "joi": "*" } }, "sha512-dGjs/lhrWOa+eO0HwgxCSnDm5eMGCsXuvLglMghJq32F6q5LyyNuXb41DHzrg501CKNOSSAHmfB7FDGeUnDmzw=="],
 
     "@types/json-schema": ["@types/json-schema@7.0.15", "", {}, "sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA=="],
 

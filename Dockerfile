@@ -47,6 +47,8 @@ RUN bun install --global turbo
 # Add bun's global bin directory to PATH
 ENV PATH="/root/.bun/bin:${PATH}"
 
+# RUN yarn global add turbo
+
 # Settings
 ## Expose Container Port
 EXPOSE ${BACKEND_PORT}
@@ -80,7 +82,7 @@ FROM base as install
 COPY ./ ./
 
 # yarn install
-RUN bun install --frozen-lockfile
+RUN bun install --frozen-lockfile --non-interactive
 
 # try with bun, use yarn if problems occur
 # go into admin folder and use yarn to install local dependencies which need to use nohoist for @vee-validate/i18n which isn't supported by bun
@@ -108,6 +110,7 @@ CMD /bin/sh -c "cd database && yarn run reset"
 ##################################################################################
 FROM install as build
 
+RUN printenv
 # turbo build
 RUN turbo build --env-mode=loose
 
