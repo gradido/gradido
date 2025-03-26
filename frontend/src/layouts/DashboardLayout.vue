@@ -233,20 +233,15 @@ const pending = ref(true)
 const visible = ref(false)
 const hamburger = ref(true)
 const darkMode = ref(false)
-const skeleton = ref(false)
+const skeleton = ref(true)
 const totalUsers = ref(null)
 
 onMounted(() => {
-  console.log('onMounted')
   updateTransactions({ currentPage: 1, pageSize: 10 })
   getCommunityStatistics()
-  console.log('before setTimeout')
-
-  /*setTimeout(() => {
-    console.log('after setTimeout')
-    console.log('skeleton', skeleton)
+  setTimeout(() => {
     skeleton.value = false
-  }, 1500)*/
+  }, 1500)
 })
 
 const logoutUser = async () => {
