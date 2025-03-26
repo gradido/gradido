@@ -1,0 +1,120 @@
+##################################################################################
+# BASE ###########################################################################
+##################################################################################
+FROM node:18.20.7-bookworm as base
+
+# ENVs (available in production aswell, can be overwritten by commandline or env file)
+## DOCKER_WORKDIR would be a classical ARG, but that is not multi layer persistent - shame
+ENV DOCKER_WORKDIR="/app"
+## We Cannot do `$(date -u +'%Y-%m-%dT%H:%M:%SZ')` here so we use unix timestamp=0
+ENV BUILD_DATE="1970-01-01T00:00:00.00Z"
+## We cannot do $(npm run version).${BUILD_NUMBER} here so we default to 0.0.0.0
+ENV BUILD_VERSION="0.0.0.0"
+## We cannot do `$(git rev-parse --short HEAD)` here so we default to 0000000
+ENV BUILD_COMMIT="0000000"
+## SET NODE_ENV
+ENV NODE_ENV="production"
+## App relevant Envs
+ENV BACKEND_PORT="4000"
+ENV FEDERATION_PORT="5010"
+ENV FRONTEND_MODULE_PORT="3000"
+ENV ADMIN_MODULE_PORT="8080"
+
+# Labels
+LABEL org.label-schema.build-date="${BUILD_DATE}"
+LABEL org.label-schema.name="gradido:backend"
+LABEL org.label-schema.description="Gradido GraphQL Backend"
+LABEL org.label-schema.usage="https://github.com/gradido/gradido/blob/master/README.md"
+LABEL org.label-schema.url="https://gradido.net"
+LABEL org.label-schema.vcs-url="https://github.com/gradido/gradido/tree/master/backend"
+LABEL org.label-schema.vcs-ref="${BUILD_COMMIT}"
+LABEL org.label-schema.vendor="Gradido Community"
+LABEL org.label-schema.version="${BUILD_VERSION}"
+LABEL org.label-schema.schema-version="1.0"
+LABEL maintainer="support@gradido.net"
+
+# Install Additional Software
+## install: git
+#apk add --no-cache libc6-compat
+#RUN apk --no-cache add git
+#RUN yarn global add turbo bun
+# Install bun
+#RUN apt-get update && apt-get install -y curl unzip
+RUN curl -fsSL https://bun.sh/install | BUN_INSTALL=/usr/local bash
+# Add bun to PATH
+# Install turbo globally
+RUN bun install --global turbo
+# Add bun's global bin directory to PATH
+ENV PATH="/root/.bun/bin:${PATH}"
+
+# Settings
+## Expose Container Port
+EXPOSE ${BACKEND_PORT}
+EXPOSE ${FEDERATION_PORT}
+EXPOSE ${FRONTEND_MODULE_PORT}
+EXPOSE ${ADMIN_MODULE_PORT}
+
+## Workdir
+RUN mkdir -p ${DOCKER_WORKDIR}
+WORKDIR ${DOCKER_WORKDIR}
+
+##################################################################################
+# DEVELOPMENT (Connected to the local environment, to reload on demand) ##########
+##################################################################################
+FROM base as development
+
+# We don't need to copy or build anything since we gonna bind to the
+# local filesystem which will need a rebuild anyway
+
+# Run command
+# (for development we need to execute yarn install since the
+#  node_modules are on another volume and need updating)
+CMD /bin/sh -c "bun install && turbo dev --env-mode=loose"
+
+##################################################################################
+# INSTALL (Does contain all node_modules) ########################################
+##################################################################################
+FROM base as install
+
+# Copy everything
+COPY ./ ./
+
+# yarn install
+RUN bun install --frozen-lockfile
+
+# try with bun, use yarn if problems occur
+# go into admin folder and use yarn to install local dependencies which need to use nohoist for @vee-validate/i18n which isn't supported by bun
+#RUN bun install --frozen-lockfile
+
+
+##################################################################################
+# TEST ###########################################################################
+##################################################################################
+FROM install as test
+
+# Run command
+CMD /bin/sh -c "turbo test --env-mode=loose"
+
+##################################################################################
+# RESET DB #######################################################################
+##################################################################################
+FROM install as reset
+
+# Run command
+CMD /bin/sh -c "cd database && yarn run reset"
+
+##################################################################################
+# BUILD (Does contain all files and is therefore bloated) ########################
+##################################################################################
+FROM install as build
+
+# turbo build
+RUN turbo build --env-mode=loose
+
+##################################################################################
+# PRODUCTION #####################################################################
+##################################################################################
+FROM build as production
+
+# Run command
+CMD /bin/sh -c "turbo start serve --env-mode=loose"

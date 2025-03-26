@@ -1,4 +1,4 @@
-const {
+import {
   APP_VERSION,
   BUILD_COMMIT,
   BUILD_COMMIT_SHORT,
@@ -14,12 +14,12 @@ const {
   HUMHUB_ACTIVE,
   NODE_ENV,
   PRODUCTION,
-} = require('config')
-const Joi = require('joi')
+} from 'config'
+import Joi from 'joi'
 
 // console.log(commonSchema)
 
-module.exports = Joi.object({
+export default Joi.object({
   APP_VERSION,
   BUILD_COMMIT,
   BUILD_COMMIT_SHORT,

@@ -4,64 +4,35 @@
 # > docker-compose -f docker-compose.yml up
 
 services:
-
   ########################################################
-  # FRONTEND #############################################
+  # Gradido ##############################################
   ########################################################
-  frontend:
-    # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
-    image: gradido/frontend:local-production
+  gradido:
+    image: gradido/gradido:local-production
     build:
       context: ./
-      dockerfile: ./frontend/Dockerfile
+      dockerfile: ./Dockerfile
       target: production
+    depends_on:
+      - mariadb
     networks:
-      - external-net
       - internal-net
     ports:
-      - 3000:3000
+      - ${BACKEND_PORT:-4000}:${BACKEND_PORT:-4000}
+      - ${FEDERATION_PORT:-5010}:${FEDERATION_PORT:-5010}
+      - ${FRONTEND_MODULE_PORT:-3000}:${FRONTEND_MODULE_PORT:-3000}
+      - ${ADMIN_MODULE_PORT:-8080}:${ADMIN_MODULE_PORT:-8080}
     environment:
       # Envs used in Dockerfile
       # - DOCKER_WORKDIR="/app"
-      # - PORT=3000
-      # - BUILD_DATE="1970-01-01T00:00:00.00Z"
-      # - BUILD_VERSION="0.0.0.0"
-      # - BUILD_COMMIT="0000000"
+      # - PORT=4000
+      - BUILD_DATE
+      - BUILD_VERSION
+      - BUILD_COMMIT
       - NODE_ENV=production
+      - DB_HOST=mariadb
     volumes:
-      - ./config:/config
-    # env_file:
-      # - ./.env
-      # - ./frontend/.env
-
-  ########################################################
-  # ADMIN INTERFACE ######################################
-  ########################################################
-  admin:
-    # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
-    image: gradido/admin:local-production
-    build:
-      context: ./
-      dockerfile: ./admin/Dockerfile
-      target: production
-    networks:
-      - external-net
-      - internal-net
-    ports:
-      - 8080:8080
-    environment:
-      # Envs used in Dockerfile
-      # - DOCKER_WORKDIR="/app"
-      # - PORT=8090
-      # - BUILD_DATE="1970-01-01T00:00:00.00Z"
-      # - BUILD_VERSION="0.0.0.0"
-      # - BUILD_COMMIT="0000000"
-      - NODE_ENV=production
-    volumes:
-      - ./config:/config
-    # env_file:
-      # - ./.env
-      # - ./admin/.env
+      - ./logs/backend:/logs/backend
 
   #########################################################
   ## MARIADB ##############################################
@@ -78,193 +49,6 @@ services:
     volumes:
       - db_vol:/var/lib/mysql
 
-  ########################################################
-  # BACKEND ##############################################
-  ########################################################
-  backend:
-    # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
-    image: gradido/backend:local-production
-    build:
-      # since we have to include the entities from ./database we cannot define the context as ./backend
-      # this might blow build image size to the moon ?!
-      context: ./
-      dockerfile: ./backend/Dockerfile
-      target: production
-    networks:
-      - internal-net
-    ports:
-      - 4000:4000
-    depends_on:
-      - mariadb
-    environment:
-      # Envs used in Dockerfile
-      # - DOCKER_WORKDIR="/app"
-      # - PORT=4000
-      - BUILD_DATE
-      - BUILD_VERSION
-      - BUILD_COMMIT
-      - NODE_ENV="production"
-      - DB_HOST=mariadb
-      # Application only envs
-    #env_file:
-    #  - ./frontend/.env
-    volumes:
-      # <host_machine_directory>:<container_directory> – mirror bidirectional path in local context with path in Docker container
-      - ./logs/backend:/logs/backend
-
-  ########################################################
-  # DHT-NODE #############################################
-  ########################################################
-  dht-node:
-    # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
-    image: gradido/dht-node:local-production
-    build:
-      # since we have to include the entities from ./database we cannot define the context as ./backend
-      # this might blow build image size to the moon ?!
-      context: ./
-      dockerfile: ./dht-node/Dockerfile
-      target: production
-    networks:
-      - internal-net
-      - external-net
-    #ports:
-    #  - 5000:5000
-    depends_on:
-      - mariadb
-    environment:
-      # Envs used in Dockerfile
-      # - DOCKER_WORKDIR="/app"
-      # - PORT=5000
-      - BUILD_DATE
-      - BUILD_VERSION
-      - BUILD_COMMIT
-      - NODE_ENV="production"
-      - DB_HOST=mariadb
-      # Application only envs
-    #env_file:
-    #  - ./frontend/.env
-    volumes:
-      # <host_machine_directory>:<container_directory> – mirror bidirectional path in local context with path in Docker container
-      - ./logs/dht-node:/logs/dht-node
-
-  ########################################################
-  # DLT-Connector ########################################
-  ########################################################
-  dlt-connector:
-    # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
-    image: gradido/dlt-connector:local-production
-    build:
-      # since we have to include the entities from ./database we cannot define the context as ./backend
-      # this might blow build image size to the moon ?!
-      context: ./dlt-connector
-      dockerfile: ./Dockerfile
-      target: production
-    networks:
-      - internal-net
-      - external-net
-    ports:
-      - 6010:6010
-    environment:
-      # Envs used in Dockerfile
-      # - DOCKER_WORKDIR="/app"
-      - PORT=6010
-      - BUILD_DATE
-      - BUILD_VERSION
-      - BUILD_COMMIT
-      - NODE_ENV="production"
-      - DB_HOST=mariadb
-      # Application only envs
-    volumes:
-      # <host_machine_directory>:<container_directory> – mirror bidirectional path in local context with path in Docker container
-      - ./logs/dlt-connector:/logs/dlt-connector
-
-  ########################################################
-  # FEDERATION ###########################################
-  ########################################################
-  federation:
-    # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
-    image: gradido/federation:local-production
-    build:
-      # since we have to include the entities from ./database we cannot define the context as ./federation
-      # this might blow build image size to the moon ?!
-      context: ./
-      dockerfile: ./federation/Dockerfile
-      target: production
-    networks:
-      - internal-net
-      - external-net
-    ports:
-      - 5010:5010
-    depends_on:
-      - mariadb
-    environment:
-      # Envs used in Dockerfile
-      # - DOCKER_WORKDIR="/app"
-      - PORT=5010
-      - BUILD_DATE
-      - BUILD_VERSION
-      - BUILD_COMMIT
-      - NODE_ENV="production"
-      - DB_HOST=mariadb
-      # Application only envs
-    #env_file:
-    #  - ./frontend/.env
-    volumes:
-      # <host_machine_directory>:<container_directory> – mirror bidirectional path in local context with path in Docker container
-      - ./logs/federation:/logs/federation
-
-  ########################################################
-  # DATABASE #############################################
-  ########################################################
-  database:
-    # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
-    image: gradido/database:local-production_up
-    build:
-      context: ./database
-      target: production_up
-    depends_on:
-      - mariadb
-    networks:
-      - internal-net
-      - external-net # this is required to fetch the packages
-    environment:
-      # Envs used in Dockerfile
-      # - DOCKER_WORKDIR="/app"
-      - BUILD_DATE
-      - BUILD_VERSION
-      - BUILD_COMMIT
-      - NODE_ENV="production"
-      - DB_HOST=mariadb
-      # Application only envs
-    #env_file:
-    #  - ./frontend/.env
-
-  ########################################################
-  # DLT-DATABASE #############################################
-  ########################################################
-  dlt-database:
-    # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
-    image: gradido/dlt-database:local-production_up
-    build:
-      context: ./dlt-database
-      target: production_up
-    depends_on:
-      - mariadb
-    networks:
-      - internal-net
-      - external-net # this is required to fetch the packages
-    environment:
-      # Envs used in Dockerfile
-      # - DOCKER_WORKDIR="/app"
-      - BUILD_DATE
-      - BUILD_VERSION
-      - BUILD_COMMIT
-      - NODE_ENV="production"
-      - DB_HOST=mariadb
-      # Application only envs
-    #env_file:
-    #  - ./frontend/.env
-
   #########################################################
   ## NGINX ################################################
   #########################################################
@@ -275,9 +59,7 @@ services:
       - external-net
       - internal-net
     depends_on:
-      - frontend
-      - backend
-      - admin
+      - gradido
     ports:
       - 80:80
     volumes:

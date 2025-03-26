@@ -26,7 +26,7 @@ import {
   OPENAI_ACTIVE,
   PRODUCTION,
   TYPEORM_LOGGING_RELATIVE_PATH,
-} from '@config/commonSchema'
+} from 'config'
 import Joi from 'joi'
 
 export const schema = Joi.object({

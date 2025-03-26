@@ -2,8 +2,8 @@
 /* eslint-disable n/no-process-env */
 
 // eslint-disable-next-line import/no-unresolved
-import { validate } from '@config/index'
-import { latestDbVersion } from '@dbTools/config/detectLastDBVersion'
+import { validate } from 'config'
+import { latestDbVersion } from 'database/build/src/config/detectLastDBVersion'
 import { Decimal } from 'decimal.js-light'
 import dotenv from 'dotenv'
 

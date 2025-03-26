@@ -13,7 +13,11 @@
     "up": "cross-env TZ=UTC ts-node src/index.ts up",
     "down": "cross-env TZ=UTC ts-node src/index.ts down",
     "reset": "cross-env TZ=UTC ts-node src/index.ts reset",
-    "lint": "eslint --max-warnings=0 --ext .js,.ts ."
+    "lint": "eslint --max-warnings=0 --ext .js,.ts .",
+    "up:backend_test": "cross-env TZ=UTC DB_DATABASE=gradido_test_backend ts-node src/index.ts up",
+    "up:federation_test": "cross-env TZ=UTC DB_DATABASE=gradido_test_federation ts-node src/index.ts up",
+    "up:dht_test": "cross-env TZ=UTC DB_DATABASE=gradido_test_dht ts-node src/index.ts up",
+    "up:test": "yarn up:backend_test && yarn up:federation_test && yarn up:dht_test"
   },
   "devDependencies": {
     "@eslint-community/eslint-plugin-eslint-comments": "^3.2.1",

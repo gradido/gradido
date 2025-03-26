@@ -7,15 +7,18 @@ import Icons from 'unplugin-icons/vite'
 import IconsResolve from 'unplugin-icons/resolver'
 import EnvironmentPlugin from 'vite-plugin-environment'
 import { createHtmlPlugin } from 'vite-plugin-html'
-import schema from './src/config/schema'
+import schema from './src/config/schema.js'
+import CONFIG from './src/config'
 import { validate, browserUrls } from 'config'
 
 import { BootstrapVueNextResolver } from 'bootstrap-vue-next'
+import { createRequire } from 'module'
 import dotenv from 'dotenv'
 
 dotenv.config() // load env vars from .env
+const require = createRequire(import.meta.url)
 
-const CONFIG = require('./src/config')
+// const CONFIG = require('./src/config')
 
 // https://vitejs.dev/config/
 export default defineConfig(async ({ command }) => {
@@ -48,33 +51,32 @@ export default defineConfig(async ({ command }) => {
         minify: CONFIG.PRODUCTION === true,
       },
     },
+    preview: {
+      port: CONFIG.FRONTEND_MODULE_PORT,
+      host: CONFIG.FRONTEND_MODULE_HOST,
+      https: CONFIG.FRONTEND_MODULE_PROTOCOL === 'https',
+    },
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src'),
         assets: path.join(__dirname, 'src/assets'),
-        '@vee-validate/i18n/dist/locale/en.json': path.resolve(
-          __dirname,
-          'node_modules/@vee-validate/i18n/dist/locale/en.json',
+        '@vee-validate/i18n/dist/locale/en.json': require.resolve(
+          '@vee-validate/i18n/dist/locale/en.json',
         ),
-        '@vee-validate/i18n/dist/locale/de.json': path.resolve(
-          __dirname,
-          'node_modules/@vee-validate/i18n/dist/locale/de.json',
+        '@vee-validate/i18n/dist/locale/de.json': require.resolve(
+          '@vee-validate/i18n/dist/locale/de.json',
         ),
-        '@vee-validate/i18n/dist/locale/es.json': path.resolve(
-          __dirname,
-          'node_modules/@vee-validate/i18n/dist/locale/es.json',
+        '@vee-validate/i18n/dist/locale/es.json': require.resolve(
+          '@vee-validate/i18n/dist/locale/es.json',
         ),
-        '@vee-validate/i18n/dist/locale/fr.json': path.resolve(
-          __dirname,
-          'node_modules/@vee-validate/i18n/dist/locale/fr.json',
+        '@vee-validate/i18n/dist/locale/fr.json': require.resolve(
+          '@vee-validate/i18n/dist/locale/fr.json',
         ),
-        '@vee-validate/i18n/dist/locale/nl.json': path.resolve(
-          __dirname,
-          'node_modules/@vee-validate/i18n/dist/locale/nl.json',
+        '@vee-validate/i18n/dist/locale/nl.json': require.resolve(
+          '@vee-validate/i18n/dist/locale/nl.json',
         ),
-        '@vee-validate/i18n/dist/locale/tr.json': path.resolve(
-          __dirname,
-          'node_modules/@vee-validate/i18n/dist/locale/tr.json',
+        '@vee-validate/i18n/dist/locale/tr.json': require.resolve(
+          '@vee-validate/i18n/dist/locale/tr.json',
         ),
       },
       extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json', '.vue'],

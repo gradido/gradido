@@ -1,7 +1,9 @@
 .dbeaver
 .project
+.turbo
 *.log
 *.bak
+vite.config.mjs.timestamp-*
 /node_modules/*
 messages.pot
 nbproject

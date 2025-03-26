@@ -10,7 +10,7 @@
   "scripts": {
     "build": "tsc --build && mkdirp build/src/emails/templates/ && ncp src/emails/templates build/src/emails/templates && mkdirp build/src/locales/ && ncp src/locales build/src/locales",
     "clean": "tsc --build --clean",
-    "start": "cross-env TZ=UTC TS_NODE_BASEURL=./build node -r tsconfig-paths/register build/src/index.js",
+    "start": "cross-env TZ=UTC TS_NODE_BASEURL=./build ts-node -r tsconfig-paths/register build/src/index.js",
     "dev": "cross-env TZ=UTC nodemon -w src --ext ts,pug,json,css --exec ts-node -r tsconfig-paths/register src/index.ts",
     "lint": "eslint --max-warnings=0 .",
     "test": "cross-env TZ=UTC NODE_ENV=development jest --runInBand --forceExit --detectOpenHandles",

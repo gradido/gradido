@@ -3,7 +3,7 @@
   "version": "2.5.1",
   "private": true,
   "scripts": {
-    "dev": "concurrently \"yarn watch-scss\" \"vite\"",
+    "dev": "vite",
     "prebuild": "yarn compile-scss",
     "build": "vite build",
     "preserve": "yarn compile-scss",
@@ -78,6 +78,7 @@
     "@iconify-json/ion": "^1.2.2",
     "@iconify-json/mdi": "^1.2.3",
     "@intlify/eslint-plugin-vue-i18n": "^1.4.0",
+    "@intlify/unplugin-vue-i18n": "^6.0.5",
     "@vitest/coverage-v8": "^2.0.5",
     "@vue/eslint-config-prettier": "^10.2.0",
     "@vue/test-utils": "^2.4.6",

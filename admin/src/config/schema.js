@@ -1,4 +1,4 @@
-const {
+import {
   APP_VERSION,
   BUILD_COMMIT,
   BUILD_COMMIT_SHORT,
@@ -10,10 +10,10 @@ const {
   NODE_ENV,
   OPENAI_ACTIVE,
   PRODUCTION,
-} = require('config')
-const Joi = require('joi')
+} from 'config'
+import Joi from 'joi'
 
-module.exports = Joi.object({
+export default Joi.object({
   APP_VERSION,
   BUILD_COMMIT,
   BUILD_COMMIT_SHORT,
