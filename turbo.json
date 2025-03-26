@@ -10,6 +10,8 @@
     "test": {
       "dependsOn": ["database#up:test"]
     },
+    "compile-scss": {
+    },
     "watch-scss": {
       "cache": false,
       "persistent": true
@@ -17,13 +19,13 @@
     "up": {
     },
     "dev": {
-      "dependsOn": ["database#build", "config#build", "database#up"],
+      "dependsOn": ["database#build", "config#build", "database#up", "compile-scss"],
       "persistent": true,
       "cache": false
     },
     "build": {
       "outputs": ["build/**"],
-      "dependsOn": ["^build"],
+      "dependsOn": ["^build", "compile-scss"],
       "cache": true
     },
     "start": {
