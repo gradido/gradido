@@ -50,7 +50,7 @@ export const ensureUrlEndsWithSlash = (url: string): string => {
  * @returns {Date} A new Date object set to the first day of the month, `monthsAgo` months before the `startDate`.
  *
  * @example
- * // Calculate the date for the first day of the month, 3 months prior to March 15, 2024
+ * Calculate the date for the first day of the month, 3 months prior to March 15, 2024
  * const date = getFirstDayOfPreviousNMonth(new Date(2024, 4, 31), 3);
  * console.log(date); // Output: Fri Feb 01 2024 00:00:00 GMT+0000 (Coordinated Universal Time)
  */

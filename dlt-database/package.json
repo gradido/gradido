@@ -1,5 +1,5 @@
 {
-  "name": "gradido-database",
+  "name": "dlt-database",
   "version": "1.23.2",
   "description": "Gradido Database Tool to execute database migrations",
   "main": "src/index.ts",

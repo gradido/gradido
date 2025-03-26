@@ -38,14 +38,14 @@ if (process.env.FRONTEND_HOSTING === 'nodejs') {
 // version.FRONTEND_MODULE_PORT
 
 const features = {
-  GMS_ACTIVE: process.env.GMS_ACTIVE ?? false,
-  HUMHUB_ACTIVE: process.env.HUMHUB_ACTIVE ?? false,
+  GMS_ACTIVE: process.env.GMS_ACTIVE === 'true',
+  HUMHUB_ACTIVE: process.env.HUMHUB_ACTIVE === 'true',
 }
 
 const environment = {
   NODE_ENV: process.env.NODE_ENV,
-  DEBUG: process.env.NODE_ENV !== 'production' ?? false,
-  PRODUCTION: process.env.NODE_ENV === 'production' ?? false,
+  DEBUG: process.env.NODE_ENV !== 'production',
+  PRODUCTION: process.env.NODE_ENV === 'production',
 }
 
 // const COMMUNITY_HOST = process.env.COMMUNITY_HOST ?? 'localhost'
@@ -61,7 +61,7 @@ const endpoints = {
 
 const community = {
   COMMUNITY_NAME: process.env.COMMUNITY_NAME ?? 'Gradido Entwicklung',
-  COMMUNITY_URL: COMMUNITY_URL,
+  COMMUNITY_URL,
   COMMUNITY_REGISTER_URL: COMMUNITY_URL + (process.env.COMMUNITY_REGISTER_PATH ?? '/register'),
   COMMUNITY_DESCRIPTION:
     process.env.COMMUNITY_DESCRIPTION ?? 'Die lokale Entwicklungsumgebung von Gradido.',

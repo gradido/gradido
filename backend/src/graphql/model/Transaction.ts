@@ -46,7 +46,7 @@ export class Transaction {
     this.linkedTransactionId = transaction.linkedTransactionId ?? null
     this.linkId = transaction.contribution
       ? transaction.contribution.contributionLinkId
-      : transaction.transactionLinkId ?? null
+      : (transaction.transactionLinkId ?? null)
     this.previousBalance =
       transaction.previousTransaction?.balance.toDecimalPlaces(2, Decimal.ROUND_DOWN) ??
       new Decimal(0)

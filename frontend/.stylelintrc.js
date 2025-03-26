@@ -13,6 +13,18 @@ module.exports = {
       customSyntax: "postcss-html",
       extends: ["stylelint-config-recommended-vue"],
     }
-  ]
-
+  ],
+  rules: {
+    "at-rule-descriptor-value-no-unknown": null,
+    "declaration-property-value-no-unknown": [
+      true,
+      {
+        ignoreProperties: {
+          "background-attachment": ["absolute"],
+          "color": ["v-bind('color')"],
+          "text-align": ["-webkit-right"]
+        }
+      }
+    ]
+  }
 };

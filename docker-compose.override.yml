@@ -1,183 +1,28 @@
 services:
 
   ########################################################
-  # FRONTEND #############################################
+  # Gradido ##############################################
   ########################################################
-  frontend:
-    # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
-    image: gradido/frontend:local-development
+  gradido:
+    image: gradido/gradido:local-development
     build:
       target: development
+    networks:
+      - external-net
+      - internal-net
     environment:
       - NODE_ENV=development
-      # - DEBUG=true
+    ulimits:
+      nofile:
+        soft: 200000
+        hard: 400000
     volumes:
       # This makes sure the docker container has its own node modules.
       # Therefore it is possible to have a different node version on the host machine
-      - frontend_node_modules:/app/node_modules
+      - node_modules:/app/node_modules
+      - turbo_cache:/app/.turbo
       # bind the local folder to the docker to allow live reload
-      - ./frontend:/app
-
-  ########################################################
-  # ADMIN INTERFACE ######################################
-  ########################################################
-  admin:
-    # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
-    image: gradido/admin:local-development
-    build:
-      target: development
-    environment:
-      - NODE_ENV=development
-      # - DEBUG=true
-    volumes:
-      # This makes sure the docker container has its own node modules.
-      # Therefore it is possible to have a different node version on the host machine
-      - admin_node_modules:/app/node_modules
-      # bind the local folder to the docker to allow live reload
-      - ./admin:/app
-
-  ########################################################
-  # BACKEND ##############################################
-  ########################################################
-  backend:
-    # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
-    image: gradido/backend:local-development
-    build:
-      target: development
-    networks:
-      - external-net
-      - internal-net
-    environment:
-      - NODE_ENV="development"
-    volumes:
-      # This makes sure the docker container has its own node modules.
-      # Therefore it is possible to have a different node version on the host machine
-      - backend_node_modules:/app/node_modules
-      - backend_database_node_modules:/database/node_modules
-      - backend_database_build:/database/build
-      - backend_config_node_modules:/config/node_modules
-      - backend_config_build:/config/build
-      # bind the local folder to the docker to allow live reload
-      - ./backend:/app
-      - ./database:/database
-      - ./config:/config
-
-  ########################################################
-  # DHT-NODE #############################################
-  ########################################################
-  dht-node:
-    # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
-    image: gradido/dht-node:local-development
-    build:
-      target: development
-    networks:
-      - external-net
-      - internal-net
-    environment:
-      - NODE_ENV="development"
-    volumes:
-      # This makes sure the docker container has its own node modules.
-      # Therefore it is possible to have a different node version on the host machine
-      - dht_node_modules:/app/node_modules
-      - dht_database_node_modules:/database/node_modules
-      - dht_database_build:/database/build
-      - dht_config_node_modules:/config/node_modules
-      - dht_config_build:/config/build
-      # bind the local folder to the docker to allow live reload
-      - ./dht-node:/app
-      - ./database:/database
-      - ./config:/config
-
-  ########################################################
-  # DLT-CONNECTOR ########################################
-  ########################################################
-  dlt-connector:
-    # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
-    image: gradido/dlt-connector:local-development
-    build:
-      target: development
-    networks:
-      - external-net
-      - internal-net
-    environment:
-      - NODE_ENV="development"
-    volumes:
-      # This makes sure the docker container has its own node modules.
-      # Therefore it is possible to have a different node version on the host machine
-      - dlt_connector_modules:/app/node_modules
-      # bind the local folder to the docker to allow live reload
-      - ./dlt-connector:/app
-      - ./dlt-database:/dlt-database
-
-  ########################################################
-  # FEDERATION ###########################################
-  ########################################################
-  federation:
-    # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
-    image: gradido/federation:local-development
-    build:
-      target: development
-    networks:
-      - external-net
-      - internal-net
-    environment:
-      - NODE_ENV="development"
-    volumes:
-      # This makes sure the docker container has its own node modules.
-      # Therefore it is possible to have a different node version on the host machine
-      - federation_node_modules:/app/node_modules
-      - federation_database_node_modules:/database/node_modules
-      - federation_database_build:/database/build
-      - federation_config_node_modules:/config/node_modules
-      - federation_config_build:/config/build
-      # bind the local folder to the docker to allow live reload
-      - ./federation:/app
-      - ./database:/database
-      - ./config:/config
-
-  ########################################################
-  # DATABASE ##############################################
-  ########################################################
-  database:
-    # we always run on production here since else the service lingers
-    #  feel free to change this behaviour if it seems useful
-    #  Due to problems with the volume caching the built files
-    #  we changed this to test build. This keeps the service running.
-    # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
-    image: gradido/database:local-test_up
-    build:
-      target: test_up
-    environment:
-      - NODE_ENV="development"
-    volumes:
-      # This makes sure the docker container has its own node modules.
-      # Therefore it is possible to have a different node version on the host machine
-      - database_node_modules:/app/node_modules
-      - database_build:/app/build
-      # bind the local folder to the docker to allow live reload
-      - ./database:/app
-
-  ########################################################
-  # DLT-DATABASE ##############################################
-  ########################################################
-  dlt-database:
-    # we always run on production here since else the service lingers
-    #  feel free to change this behaviour if it seems useful
-    #  Due to problems with the volume caching the built files
-    #  we changed this to test build. This keeps the service running.
-    # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
-    image: gradido/dlt-database:local-test_up
-    build:
-      target: test_up
-    environment:
-      - NODE_ENV="development"
-    volumes:
-      # This makes sure the docker container has its own node modules.
-      # Therefore it is possible to have a different node version on the host machine
-      - dlt-database_node_modules:/app/node_modules
-      - dlt-database_build:/app/build
-      # bind the local folder to the docker to allow live reload
-      - ./dlt-database:/app
+      - ./:/app
 
   #########################################################
   ## MARIADB ##############################################
@@ -191,7 +36,6 @@ services:
   ## NGINX ################################################
   #########################################################
   # nginx:
-  
   #########################################################
   ## PHPMYADMIN ###########################################
   #########################################################
@@ -220,25 +64,5 @@ services:
       - external-net
 
 volumes:
-  frontend_node_modules:
-  admin_node_modules:
-  backend_node_modules:
-  backend_database_node_modules:
-  backend_database_build:
-  backend_config_node_modules:
-  backend_config_build:
-  dht_node_modules:
-  dht_database_node_modules:
-  dht_database_build:
-  dht_config_node_modules:
-  dht_config_build:
-  dlt_connector_modules:
-  federation_node_modules:
-  federation_database_node_modules:
-  federation_database_build:
-  federation_config_node_modules:
-  federation_config_build:
-  database_node_modules:
-  database_build:
-  dlt-database_node_modules:
-  dlt-database_build:
+  node_modules:
+  turbo_cache:

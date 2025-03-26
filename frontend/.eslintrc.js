@@ -29,6 +29,7 @@ module.exports = {
   ],
   // add your custom rules here
   rules: {
+    'n/no-callback-literal': 0,
     'no-console': ['error'],
     'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
     'no-useless-escape': 0,

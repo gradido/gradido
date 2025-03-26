@@ -268,6 +268,7 @@ const updateTransactions = async ({ currentPage, pageSize }) => {
     transactionCount.value = transactionList.balance.count
     transactionLinkCount.value = transactionList.balance.linkCount
     pending.value = false
+    // skeleton.value = false
   } catch (error) {
     pending.value = true
     transactionCount.value = -1

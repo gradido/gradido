@@ -14,4 +14,7 @@ module.exports = {
       extends: ['stylelint-config-recommended-vue'],
     },
   ],
+  "rules": {
+    "declaration-property-value-no-unknown": null
+  }
 }

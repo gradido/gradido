@@ -7,9 +7,12 @@ import { connection } from './typeorm/connection'
 import { checkDBVersion } from './typeorm/DBVersion'
 
 async function main() {
+  process.stdout.write('Test stdout log\n')
+  process.stderr.write('Test stderr log\n')
+
   // open mysql connection
   const con = await connection()
-  if (!con || !con.isConnected) {
+  if (!con?.isConnected) {
     logger.fatal(`Couldn't open connection to database!`)
     throw new Error(`Fatal: Couldn't open connection to database`)
   }

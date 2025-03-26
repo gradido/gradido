@@ -121,7 +121,7 @@ function initMap() {
     // GeoSearch control
     const provider = new OpenStreetMapProvider()
     const searchControl = new GeoSearchControl({
-      provider: provider,
+      provider,
       style: 'button',
       showMarker: false,
       showPopup: false,

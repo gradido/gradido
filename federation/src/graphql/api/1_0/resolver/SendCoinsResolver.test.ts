@@ -41,9 +41,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   // await cleanDB()
-  if (!testEnv.con || !testEnv.con.isConnected) {
-    await testEnv.con.close()
-  }
+  await testEnv.con.close()
 })
 
 describe('SendCoinsResolver', () => {

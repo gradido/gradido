@@ -1,0 +1,40 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "tasks": {
+    "stylelint": {
+    },
+    "locales": {
+    },
+    "lint": {
+    },
+    "test": {
+      "dependsOn": ["database#up:test"]
+    },
+    "watch-scss": {
+      "cache": false,
+      "persistent": true
+    },
+    "up": {
+    },
+    "dev": {
+      "dependsOn": ["database#build", "config#build", "database#up"],
+      "persistent": true,
+      "cache": false
+    },
+    "build": {
+      "outputs": ["build/**"],
+      "dependsOn": ["^build"],
+      "cache": true
+    },
+    "start": {
+      "dependsOn": ["build", "database#up"],
+      "persistent": true,
+      "cache": false
+    },
+    "serve": {
+      "dependsOn": ["frontend#build", "admin#build"],
+      "persistent": true,
+      "cache": false
+    }
+  }
+}

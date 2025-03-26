@@ -30,8 +30,8 @@ if (process.env.ADMIN_HOSTING === 'nodejs') {
 
 const environment = {
   NODE_ENV: process.env.NODE_ENV,
-  DEBUG: process.env.NODE_ENV !== 'production' ?? false,
-  PRODUCTION: process.env.NODE_ENV === 'production' ?? false,
+  DEBUG: process.env.NODE_ENV !== 'production',
+  PRODUCTION: process.env.NODE_ENV === 'production',
 }
 
 // const COMMUNITY_HOST = process.env.COMMUNITY_HOST ?? undefined
@@ -48,14 +48,14 @@ const endpoints = {
 }
 
 const debug = {
-  DEBUG_DISABLE_AUTH: process.env.DEBUG_DISABLE_AUTH === 'true' ?? false,
+  DEBUG_DISABLE_AUTH: process.env.DEBUG_DISABLE_AUTH === 'true',
 }
 const humhub = {
-  HUMHUB_ACTIVE: process.env.HUMHUB_ACTIVE === 'true' || false,
+  HUMHUB_ACTIVE: process.env.HUMHUB_ACTIVE === 'true',
   HUMHUB_API_URL: process.env.HUMHUB_API_URL ?? COMMUNITY_URL + '/community/',
 }
 
-const OPENAI_ACTIVE = process.env.OPENAI_ACTIVE === 'true' ?? false
+const OPENAI_ACTIVE = process.env.OPENAI_ACTIVE === 'true'
 
 const CONFIG = {
   ...version,
