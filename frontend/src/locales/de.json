@@ -33,29 +33,30 @@
   "card-circles": {
     "headline": "Gemeinsam unterstützen wir einander –  achtsam in Kreiskultur.",
     "allowed": {
-      "text": "Mit Klick auf den Button öffnest Du die Kooperationsplattform in einem neuen Browser-Fenster.",
-      "button": "Kreise starten..."
+      "button": "Kreise starten...",
+      "text": "Mit Klick auf den Button öffnest Du die Kooperationsplattform in einem neuen Browser-Fenster."
     },
     "not-allowed": {
-      "text": "Du hast Kreise noch nicht konfiguriert! Öffne zuerst die Kreise-Konfiguration.",
-      "button": "Konfiguration starten..."
+      "button": "Konfiguration starten...",
+      "text": "Du hast Kreise noch nicht konfiguriert! Öffne zuerst die Kreise-Konfiguration."
     }
   },
   "card-user-search": {
-    "headline": "Geografische Nutzersuche",
+    "headline": "Geografische Nutzersuche (experimentell)",
     "allowed": {
-      "text": "Finde Mitglieder aller Communities auf einer Landkarte.",
-      "button": "Öffne Nutzersuche..."
+      "button": "Öffne Nutzersuche...",
+      "disabled-button": "GMS offline...",
+      "text": "Finde Mitglieder aller Communities auf einer Landkarte."
     },
     "not-allowed": {
-      "text": "Finde Mitglieder aller Communities auf einer Landkarte? Dann musst du selbst erst deinen Standort festlegen.",
-      "button": "Standort festlegen..."
+      "button": "Standort festlegen...",
+      "text": "Finde Mitglieder aller Communities auf einer Landkarte? Dann musst du selbst erst deinen Standort festlegen."
     }
   },
   "circles": {
+    "button": "Kreise starten...",
     "headline": "Gemeinsam unterstützen wir einander –  achtsam in Kreiskultur.",
-    "text": "Mit Klick auf den Button öffnest Du die Kooperationsplattform in einem neuen Browser-Fenster.",
-    "button": "Kreise starten..."
+    "text": "Mit Klick auf den Button öffnest Du die Kooperationsplattform in einem neuen Browser-Fenster."
   },
   "community": {
     "admins": "Administratoren",
