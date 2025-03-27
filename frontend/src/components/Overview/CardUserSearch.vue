@@ -1,5 +1,5 @@
 <template>
-  <div v-if="gmsActive" class="mb-3 p-3 card-user-search">
+  <div class="mb-3 p-3 card-user-search">
     <BContainer class="bg-white app-box-shadow gradido-border-radius p-4 mt--3 container">
       <div class="h3">{{ $t('card-user-search.headline') }}</div>
       <div v-if="gmsUserLocationExists" class="my-3 text-small">
@@ -23,20 +23,32 @@
       <BRow class="my-1">
         <BCol cols="12">
           <div class="text-lg-end">
-            <BButton
-              v-if="gmsUserLocationExists"
-              :disabled="isUserSearchDisabled"
-              variant="gradido"
-              :href="gmsUri"
-              target="_blank"
-            >
-              {{ $t('card-user-search.allowed.button') }}
-            </BButton>
-            <RouterLink v-else to="/settings/extern">
-              <BButton variant="gradido">
-                {{ $t('card-user-search.not-allowed.button') }}
+            <div v-if="gmsUserLocationExists">
+              <BButton
+                v-if="isUserSearchDisabled"
+                :disabled="isUserSearchDisabled"
+                variant="gradido"
+                :href="gmsUri"
+                target="_blank"
+              >
+                {{ $t('card-user-search.allowed.disabled-button') }}
               </BButton>
-            </RouterLink>
+              <BButton
+                v-else
+                variant="gradido"
+                :href="gmsUri"
+                target="_blank"
+              >
+                {{ $t('card-user-search.allowed.button') }}
+              </BButton>
+            </div>
+            <div v-else> 
+              <RouterLink to="/settings/extern">
+                <BButton variant="gradido">
+                  {{ $t('card-user-search.not-allowed.button') }}
+                </BButton>
+              </RouterLink>
+            </div>
           </div>
         </BCol>
       </BRow>
@@ -55,25 +67,25 @@ const { toastError } = useAppToast()
 const store = useStore()
 
 const gmsUri = ref('not initialized')
-// console.log('store.state: gmsActive gmsAllowed userLocation=', store.state.gmsActive, store.state.gmsAllowed, store.state.userLocation)
-const gmsActive = store.state.gmsActive
-// console.log('gmsActive=', gmsActive)
+console.log('store.state: gmsAllowed userLocation=', store.state.gmsAllowed, store.state.userLocation)
+const gmsAllowed = store.state.gmsAllowed
+console.log('gmsAllowed=', gmsAllowed)
 const gmsUserLocationExists = store.state.userLocation !== null
-// console.log('gmsUserLocationExists=', gmsUserLocationExists)
+console.log('gmsUserLocationExists=', gmsUserLocationExists)
 const isUserSearchDisabled = computed(() => gmsUri.value !== null)
 
 const { onResult, result, loading, onError } = useQuery(authenticateGmsUserSearch)
 
 onResult(({ data }) => {
-  if (gmsActive && gmsUserLocationExists && data !== undefined) {
+  if (gmsAllowed && gmsUserLocationExists && data !== undefined) {
     gmsUri.value = `${data.authenticateGmsUserSearch.url}?accesstoken=${data.authenticateGmsUserSearch.token}`
   }
 })
 
 onError(() => {
-  if (gmsActive && gmsUserLocationExists) {
+  if (gmsAllowed && gmsUserLocationExists) {
     toastError('authenticateGmsUserSearch failed!')
-  } else if (gmsActive && !gmsUserLocationExists) {
+  } else if (gmsAllowed && !gmsUserLocationExists) {
     // toastError('capture your location first!')
     // eslint-disable-next-line no-console
     console.log('capture your location first...')
@@ -86,6 +98,6 @@ onError(() => {
   background-position: left;
   background-repeat: no-repeat;
   background-size: 380px 180px;
-  background-image: url('/img/svg/usersearchmap6.jpg') !important;
+  background-image: url('/img/svg/usersearchmap5.jpg') !important;
 }
 </style>
