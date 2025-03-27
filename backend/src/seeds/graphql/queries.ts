@@ -309,30 +309,19 @@ export const adminListContributions = gql`
           emailContact {
             email
           }
-          id
           firstName
           lastName
-          alias
-          humhubUsername
-          createdAt
         }
         amount
         memo
         createdAt
-        contributionDate
         confirmedAt
         confirmedBy
-        updatedAt
-        updatedBy
+        contributionDate
         status
         messagesCount
         deniedAt
         deniedBy
-        deletedAt
-        deletedBy
-        moderatorId
-        userId
-        resubmissionAt
       }
     }
   }
