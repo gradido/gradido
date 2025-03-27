@@ -29,7 +29,8 @@
         </span>
       </BListGroupItem>
       <BListGroupItem>
-        {{ $t('registered') }}: {{ new Date(contribution.user.createdAt).toLocaleString() }}
+        {{ $t('registered') }}: {{ new Date(contribution.user.createdAt).toLocaleDateString() }},
+        {{ $t('createdAt') }}: {{ new Date(contribution.createdAt).toLocaleDateString() }}
       </BListGroupItem>
     </BListGroup>
     <BContainer>
