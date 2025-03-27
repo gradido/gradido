@@ -4,7 +4,10 @@ import { ObjectType, Field, Int } from 'type-graphql'
 import { GmsPublishLocationType } from '@enum/GmsPublishLocationType'
 import { PublishNameType } from '@enum/PublishNameType'
 
+import { PublishNameLogic } from '@/data/PublishName.logic'
+
 import { KlickTipp } from './KlickTipp'
+import { UserContact } from './UserContact'
 
 @ObjectType()
 export class User {
@@ -18,8 +21,13 @@ export class User {
       }
       this.gradidoID = user.gradidoID
       this.alias = user.alias
+
+      const publishNameLogic = new PublishNameLogic(user)
+      this.humhubUsername = publishNameLogic.getUsername(user.humhubPublishName as PublishNameType)
+
       if (user.emailContact) {
         this.emailChecked = user.emailContact.emailChecked
+        this.emailContact = new UserContact(user.emailContact)
       }
       this.firstName = user.firstName
       this.lastName = user.lastName
@@ -57,6 +65,9 @@ export class User {
 
   @Field(() => String, { nullable: true })
   alias: string | null
+
+  @Field(() => String, { nullable: true })
+  humhubUsername: string | null
 
   @Field(() => String, { nullable: true })
   firstName: string | null
@@ -109,4 +120,7 @@ export class User {
 
   @Field(() => [String])
   roles: string[]
+
+  @Field(() => UserContact, { nullable: true })
+  emailContact: UserContact | null
 }

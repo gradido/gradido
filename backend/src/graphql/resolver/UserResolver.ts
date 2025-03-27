@@ -8,8 +8,21 @@ import { ProjectBranding } from '@entity/ProjectBranding'
 import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
 import { User as DbUser } from '@entity/User'
 import { UserContact as DbUserContact } from '@entity/UserContact'
+import { GraphQLResolveInfo } from 'graphql'
 import i18n from 'i18n'
-import { Resolver, Query, Args, Arg, Authorized, Ctx, Mutation, Int } from 'type-graphql'
+import {
+  Resolver,
+  Query,
+  Args,
+  Arg,
+  Authorized,
+  Ctx,
+  Mutation,
+  Int,
+  Root,
+  FieldResolver,
+  Info,
+} from 'type-graphql'
 import { IRestResponse } from 'typed-rest-client'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -29,6 +42,7 @@ import { SearchAdminUsersResult } from '@model/AdminUser'
 import { GmsUserAuthenticationResult } from '@model/GmsUserAuthenticationResult'
 import { User } from '@model/User'
 import { UserAdmin, SearchUsersResult } from '@model/UserAdmin'
+import { UserContact } from '@model/UserContact'
 import { UserLocationResult } from '@model/UserLocationResult'
 
 import { HumHubClient } from '@/apis/humhub/HumHubClient'
@@ -79,6 +93,7 @@ import { authenticateGmsUserPlayground } from './util/authenticateGmsUserPlaygro
 import { getHomeCommunity } from './util/communities'
 import { compareGmsRelevantUserSettings } from './util/compareGmsRelevantUserSettings'
 import { getUserCreations } from './util/creations'
+import { extractGraphQLFieldsForSelect } from './util/extractGraphQLFields'
 import { findUserByIdentifier } from './util/findUserByIdentifier'
 import { findUsers } from './util/findUsers'
 import { getKlicktippState } from './util/getKlicktippState'
@@ -126,7 +141,7 @@ const newGradidoID = async (): Promise<string> => {
   return gradidoId
 }
 
-@Resolver()
+@Resolver(() => User)
 export class UserResolver {
   @Authorized([RIGHTS.VERIFY_LOGIN])
   @Query(() => User)
@@ -1034,6 +1049,30 @@ export class UserResolver {
     const foundDbUser = await findUserByIdentifier(identifier, communityIdentifier)
     const modelUser = new User(foundDbUser)
     return modelUser
+  }
+
+  // FIELD RESOLVERS
+  @FieldResolver(() => UserContact)
+  async emailContact(
+    @Root() user: DbUser,
+    @Ctx() context: Context,
+    @Info() info: GraphQLResolveInfo,
+  ): Promise<UserContact> {
+    // Check if user has the necessary permissions to view user contact
+    // Either they need VIEW_USER_CONTACT right, or they need VIEW_OWN_USER_CONTACT and must be viewing their own contact
+    if (!context.role?.hasRight(RIGHTS.VIEW_USER_CONTACT)) {
+      if (!context.role?.hasRight(RIGHTS.VIEW_OWN_USER_CONTACT) || context.user?.id !== user.id) {
+        throw new LogError('User does not have permission to view this user contact', user.id)
+      }
+    }
+    let userContact = user.emailContact
+    if (!userContact) {
+      const queryBuilder = DbUserContact.createQueryBuilder('userContact')
+      queryBuilder.where('userContact.userId = :userId', { userId: user.id })
+      extractGraphQLFieldsForSelect(info, queryBuilder, 'userContact')
+      userContact = await queryBuilder.getOneOrFail()
+    }
+    return new UserContact(userContact)
   }
 }
 

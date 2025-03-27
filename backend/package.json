@@ -36,6 +36,7 @@
     "gradido-config": "file:../config",
     "gradido-database": "file:../database",
     "graphql": "^15.5.1",
+    "graphql-parse-resolve-info": "^4.13.0",
     "graphql-request": "5.0.0",
     "graphql-type-json": "0.3.2",
     "helmet": "^5.1.1",

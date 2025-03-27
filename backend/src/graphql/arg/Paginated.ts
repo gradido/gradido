@@ -1,20 +1,27 @@
 /* eslint-disable type-graphql/invalid-nullable-input-type */
 import { IsPositive, IsEnum } from 'class-validator'
-import { ArgsType, Field, Int } from 'type-graphql'
+import { ArgsType, Field, Int, InputType } from 'type-graphql'
 
 import { Order } from '@enum/Order'
 
 @ArgsType()
+@InputType()
 export class Paginated {
-  @Field(() => Int, { nullable: true })
+  @Field(() => Int)
   @IsPositive()
-  currentPage?: number
+  currentPage: number
 
-  @Field(() => Int, { nullable: true })
+  @Field(() => Int)
   @IsPositive()
-  pageSize?: number
+  pageSize: number
 
-  @Field(() => Order, { nullable: true })
+  @Field(() => Order)
   @IsEnum(Order)
-  order?: Order
+  order: Order
+
+  public constructor(pageSize?: number, currentPage?: number, order?: Order) {
+    this.pageSize = pageSize ?? 3
+    this.currentPage = currentPage ?? 1
+    this.order = order ?? Order.DESC
+  }
 }

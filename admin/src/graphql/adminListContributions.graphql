@@ -1,13 +1,10 @@
 #import './fragments.graphql'
 
 query adminListContributions(
-  $filter: SearchContributionsFilterArgs!
+  $filter: SearchContributionsFilterArgs
   $paginated: Paginated
 ) {
-  adminListContributions(
-    paginated: $paginated,
-    filter: $filter
-  ) {
+  adminListContributions(paginated: $paginated, filter: $filter) {
     contributionCount
     contributionList {
       id
@@ -41,7 +38,7 @@ query adminListContributions(
 }
 
 query adminListContributionsShort(
-  $filter: SearchContributionsFilterArgs!
+  $filter: SearchContributionsFilterArgs
   $paginated: Paginated
 ) {
   adminListContributions(
@@ -63,7 +60,7 @@ query adminListContributionsShort(
 
 
 query adminListContributionsCount(
-  $filter: SearchContributionsFilterArgs!
+  $filter: SearchContributionsFilterArgs
 ) {
   adminListContributions(
     filter: $filter
