@@ -6,7 +6,7 @@
           {{ contribution.user.firstName }} {{ contribution.user.lastName }}
         </routerLink>
         &nbsp;
-        <a :href="mailtoLink">{{ contribution.user.emailContact.email }}</a>
+        <a :href="mailtoLink">{{ email }}</a>
         <IBiFilter id="filter-by-email" class="ms-1 pointer" @click="searchForEmail" />
         <BTooltip target="filter-by-email" triggers="hover">
           {{ $t('filter.byEmail') }}
@@ -84,12 +84,15 @@ const emit = defineEmits([
   'update-contributions',
   'search-for-email',
 ])
+const email = computed(() => {
+  return props.contribution.user.emailContact.email
+})
 const { toastError } = useAppToast()
 const mailtoLink = computed(() => {
-  return `mailto:${props.contribution.email}`
+  return `mailto:${email.value}`
 })
 const searchLink = computed(() => {
-  return `/user?search=${props.contribution.email}`
+  return `/user?search=${email.value}`
 })
 const humhubProfileLink = computed(() => {
   if (CONFIG.HUMHUB_ACTIVE !== true) {
@@ -135,7 +138,7 @@ const updateContributions = () => {
 }
 
 const searchForEmail = () => {
-  emit('search-for-email', props.contribution.email)
+  emit('search-for-email', email.value)
 }
 </script>
 <style scoped>
