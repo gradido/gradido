@@ -27,3 +27,10 @@ fragment AiChatMessageFields on ChatGptMessage {
   role
   threadId
 }
+
+fragment UserCommonFields on User {
+  id
+  firstName
+  lastName
+  alias
+}

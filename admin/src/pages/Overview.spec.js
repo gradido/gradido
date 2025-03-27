@@ -2,7 +2,7 @@ import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { nextTick, ref } from 'vue'
 import Overview from './Overview.vue'
-import { adminListContributions } from '@/graphql/adminListContributions'
+import { adminListContributionsCount } from '@/graphql/adminListContributions.graphql'
 import { useQuery } from '@vue/apollo-composable'
 import { createStore } from 'vuex'
 import { useAppToast } from '@/composables/useToast'
@@ -72,9 +72,11 @@ describe('Overview', () => {
   }
 
   it('calls useQuery with correct parameters', () => {
-    expect(useQuery).toHaveBeenCalledWith(adminListContributions, {
-      statusFilter: ['IN_PROGRESS', 'PENDING'],
-      hideResubmission: true,
+    expect(useQuery).toHaveBeenCalledWith(adminListContributionsCount, {
+      filter: {
+        statusFilter: ['IN_PROGRESS', 'PENDING'],
+        hideResubmission: true,
+      },
     })
   })
 

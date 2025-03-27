@@ -68,6 +68,16 @@ const defaultData = {
   },
 }
 
+const defaultUser = {
+  firstName: 'Peter',
+  lastName: 'Lustig',
+  humhubUsername: 'peter.lustig',
+  createdAt: new Date().toString(),
+  emailContact: {
+    email: 'peter.lustig@example.com',
+  },
+}
+
 describe('ContributionMessagesList', () => {
   let wrapper
   let mockMessages
@@ -98,6 +108,7 @@ describe('ContributionMessagesList', () => {
           memo: 'test memo',
           userId: 108,
           status: 'PENDING',
+          user: defaultUser,
         },
         hideResubmission: true,
       },
@@ -139,7 +150,12 @@ describe('ContributionMessagesList', () => {
   })
 
   it('does not render the ContributionMessagesFormular when status is not PENDING or IN_PROGRESS', async () => {
-    await wrapper.setProps({ contribution: { status: 'COMPLETED' } })
+    await wrapper.setProps({
+      contribution: {
+        status: 'COMPLETED',
+        user: defaultUser,
+      },
+    })
     expect(wrapper.find('contribution-messages-formular-stub').exists()).toBe(false)
   })
 

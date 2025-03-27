@@ -102,7 +102,7 @@ import Overlay from '../components/Overlay'
 import OpenCreationsTable from '../components/Tables/OpenCreationsTable'
 import UserQuery from '../components/UserQuery'
 import AiChat from '../components/AiChat'
-import { adminListContributions } from '../graphql/adminListContributions'
+import { adminListContributions } from '../graphql/adminListContributions.graphql'
 import { adminDeleteContribution } from '../graphql/adminDeleteContribution'
 import { confirmContribution } from '../graphql/confirmContribution'
 import { denyContribution } from '../graphql/denyContribution'
@@ -320,12 +320,17 @@ watch(tabIndex, () => {
 const { onResult, onError, result, refetch } = useQuery(
   adminListContributions,
   {
-    currentPage: currentPage.value,
-    pageSize: pageSize.value,
-    statusFilter: statusFilter.value,
-    query: query.value,
-    noHashtag: noHashtag.value,
-    hideResubmission: hideResubmission.value,
+    filter: {
+      statusFilter: statusFilter.value,
+      query: query.value,
+      noHashtag: noHashtag.value,
+      hideResubmission: hideResubmission.value,
+    },
+    paginated: {
+      currentPage: currentPage.value,
+      pageSize: pageSize.value,
+      order: 'DESC',
+    },
   },
   {
     fetchPolicy: 'no-cache',

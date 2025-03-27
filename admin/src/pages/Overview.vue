@@ -17,7 +17,7 @@
   </div>
 </template>
 <script setup>
-import { adminListContributions } from '@/graphql/adminListContributions'
+import { adminListContributionsCount } from '@/graphql/adminListContributions.graphql'
 import { ref, computed } from 'vue'
 import { useStore } from 'vuex'
 import { useQuery } from '@vue/apollo-composable'
@@ -33,9 +33,11 @@ const { t } = useI18n()
 
 const { toastError } = useAppToast()
 
-const { result, onResult, onError } = useQuery(adminListContributions, {
-  statusFilter: statusFilter.value,
-  hideResubmission: true,
+const { result, onResult, onError } = useQuery(adminListContributionsCount, {
+  filter: {
+    statusFilter: statusFilter.value,
+    hideResubmission: true,
+  },
 })
 
 onResult(({ data }) => {

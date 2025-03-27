@@ -3,16 +3,16 @@
     <BListGroup>
       <BListGroupItem>
         <routerLink :to="searchLink" :title="$t('goTo.userSearch')">
-          {{ contribution.firstName }} {{ contribution.lastName }}
+          {{ contribution.user.firstName }} {{ contribution.user.lastName }}
         </routerLink>
         &nbsp;
-        <a :href="mailtoLink">{{ contribution.email }}</a>
+        <a :href="mailtoLink">{{ contribution.user.emailContact.email }}</a>
         <IBiFilter id="filter-by-email" class="ms-1 pointer" @click="searchForEmail" />
         <BTooltip target="filter-by-email" triggers="hover">
           {{ $t('filter.byEmail') }}
         </BTooltip>
         &nbsp;
-        {{ contribution.username }}
+        {{ contribution.user.humhubUsername }}
         &nbsp;
         <span>
           <a
@@ -29,7 +29,7 @@
         </span>
       </BListGroupItem>
       <BListGroupItem>
-        {{ $t('registered') }}: {{ new Date(contribution.createdAt).toLocaleString() }}
+        {{ $t('registered') }}: {{ new Date(contribution.user.createdAt).toLocaleString() }}
       </BListGroupItem>
     </BListGroup>
     <BContainer>
