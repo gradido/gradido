@@ -150,6 +150,11 @@ export const LOGIN_SERVER_KEY = Joi.string()
   .description('Server key for password hashing as additional salt for libsodium crypto_shorthash_keygen')
   .required()
 
+export const OPENAI_ACTIVE = Joi.boolean()
+  .default(false)
+  .description('Flag to enable or disable OpenAI API')
+  .required()
+
 export const TYPEORM_LOGGING_RELATIVE_PATH = Joi.string()
   .pattern(new RegExp('^[a-zA-Z0-9-_\./]+\.log$')) 
   .message('TYPEORM_LOGGING_RELATIVE_PATH must be a valid filename ending with .log')

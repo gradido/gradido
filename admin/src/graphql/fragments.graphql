@@ -21,3 +21,9 @@ fragment ProjectBrandingCommonFields on ProjectBranding {
   newUserToSpace
   logoUrl
 }
+
+fragment AiChatMessageFields on ChatGptMessage {
+  content
+  role
+  threadId
+}

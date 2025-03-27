@@ -99,6 +99,9 @@
       <template #cell(lastName)="row">
         <div class="no-select">{{ row.item.lastName }}</div>
       </template>
+      <template #cell(contributionDate)="row">
+        <div class="no-select">{{ row.item.contributionDate }}</div>
+      </template>
       <template #row-details="row">
         <row-details
           :row="row"
