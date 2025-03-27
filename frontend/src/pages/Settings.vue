@@ -239,11 +239,11 @@ const isHumhubActivated = computed(() => {
 })
 
 const isGMS = computed(() => {
-  return CONFIG.GMS_ACTIVE === 'true'
+  return CONFIG.GMS_ACTIVE === true
 })
 
 const isHumhub = computed(() => {
-  return CONFIG.HUMHUB_ACTIVE === 'true'
+  return CONFIG.HUMHUB_ACTIVE === true
 })
 
 const isCommunityService = computed(() => {
