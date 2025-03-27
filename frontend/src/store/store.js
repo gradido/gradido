@@ -34,9 +34,6 @@ export const mutations = {
   newsletterState: (state, newsletterState) => {
     state.newsletterState = newsletterState
   },
-  gmsActive: (state, gmsActive) => {
-    state.gmsActive = gmsActive
-  },
   gmsAllowed: (state, gmsAllowed) => {
     state.gmsAllowed = gmsAllowed
   },
@@ -117,7 +114,6 @@ export const actions = {
     commit('firstName', '')
     commit('lastName', '')
     commit('newsletterState', null)
-    commit('gmsActive', null)
     commit('gmsAllowed', null)
     commit('humhubAllowed', null)
     commit('gmsPublishName', null)
@@ -160,7 +156,6 @@ try {
       tokenTime: null,
       roles: [],
       newsletterState: null,
-      gmsActive: null,
       gmsAllowed: null,
       humhubAllowed: null,
       gmsPublishName: null,
