@@ -339,12 +339,16 @@ const { onResult, onError, result, refetch } = useQuery(
 
 watch([statusFilter, query, noHashtag, hideResubmission, currentPage], () => {
   refetch({
-    currentPage: currentPage.value,
-    pageSize: pageSize.value,
-    statusFilter: statusFilter.value,
-    query: query.value,
-    noHashtag: noHashtag.value,
-    hideResubmission: hideResubmission.value,
+    filter: {
+      statusFilter: statusFilter.value,
+      query: query.value,
+      noHashtag: noHashtag.value,
+      hideResubmission: hideResubmission.value,
+    },
+    paginated: {
+      currentPage: currentPage.value,
+      pageSize: pageSize.value,
+    },
   })
 })
 
