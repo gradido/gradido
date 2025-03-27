@@ -113,7 +113,6 @@ const onSubmit = handleSubmit(async (values) => {
     })
     const { login: loginResponse } = result.data
     await store.dispatch('login', loginResponse)
-    store.commit('gmsActive', CONFIG.GMS_ACTIVE)
     store.commit('email', values.email)
     // await loader.hide()
 
