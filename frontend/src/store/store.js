@@ -75,6 +75,9 @@ export const mutations = {
   setDarkMode: (state, darkMode) => {
     state.darkMode = !!darkMode
   },
+  userLocation: (state, userLocation) => {
+    state.userLocation = userLocation
+  },
   redirectPath: (state, redirectPath) => {
     state.redirectPath = redirectPath || '/overview'
   },
@@ -102,6 +105,7 @@ export const actions = {
     commit('hideAmountGDD', data.hideAmountGDD)
     commit('hideAmountGDT', data.hideAmountGDT)
     commit('setDarkMode', data.darkMode)
+    commit('userLocation', data.userLocation)
   },
   logout: ({ commit, state }) => {
     commit('token', null)
@@ -123,6 +127,7 @@ export const actions = {
     commit('hideAmountGDT', true)
     commit('email', '')
     commit('setDarkMode', false)
+    commit('userLocation', null)
     commit('redirectPath', '/overview')
     localStorage.clear()
   },
@@ -163,6 +168,7 @@ try {
       hideAmountGDT: null,
       email: '',
       darkMode: false,
+      userLocation: null,
       redirectPath: '/overview',
       transactionToHighlightId: '',
     },

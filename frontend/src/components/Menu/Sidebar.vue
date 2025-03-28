@@ -38,18 +38,6 @@
               <span class="ms-2">{{ $t('navigation.info') }}</span>
             </div>
           </BNavItem>
-          <BNavItem v-if="isHumhub" to="/circles" class="mb-3" active-class="active-route">
-            <div class="sidebar-menu-item-wrapper">
-              <i-arcticons-circles class="svg-icon" />
-              <span class="ms-2">{{ $t('navigation.circles') }}</span>
-            </div>
-          </BNavItem>
-          <BNavItem v-if="isGMS" to="/usersearch" active-class="active-route">
-            <div class="sidebar-menu-item-wrapper">
-              <i-mdi-map-search class="svg-icon" />
-              <span class="ms-2">{{ $t('navigation.usersearch') }}</span>
-            </div>
-          </BNavItem>
         </BNav>
         <hr class="m-3" />
         <BNav vertical class="w-100">
@@ -99,7 +87,6 @@
   </div>
 </template>
 <script setup>
-import CONFIG from '../../config'
 import { useRoute } from 'vue-router'
 import { ref, watch, computed } from 'vue'
 
@@ -117,12 +104,6 @@ const transactionClass = computed(() => {
     return 'mb-3 active-route'
   }
   return 'mb-3'
-})
-const isHumhub = computed(() => {
-  return CONFIG.HUMHUB_ACTIVE === 'true'
-})
-const isGMS = computed(() => {
-  return CONFIG.GMS_ACTIVE === 'true'
 })
 
 watch(

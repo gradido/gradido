@@ -183,6 +183,7 @@ export const login = gql`
       gmsPublishName
       humhubPublishName
       gmsPublishLocation
+      userLocation
       hasElopage
       publisherId
       roles

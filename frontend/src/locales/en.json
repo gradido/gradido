@@ -30,10 +30,33 @@
     }
   },
   "back": "Back",
-  "circles": {
+  "card-circles": {
     "headline": "Together we support each other - mindful in circle culture.",
-    "text": "Click on the button to open the cooperation platform in a new browser window.",
-    "button": "Start Circles..."
+    "allowed": {
+      "button": "Start Circles...",
+      "text": "Click on the button to open the cooperation platform in a new browser window."
+    },
+    "not-allowed": {
+      "button": "Start Circles-Configuration...",
+      "text": "Your Circles are not configured yet! Please open the Circles-Configuration first."
+    }
+  },
+  "card-user-search": {
+    "headline": "Geografice Usersearch (experimentel)",
+    "allowed": {
+      "button": "Start Usersearch...",
+      "disabled-button": "GMS offline...",
+      "text": "Find Members of all Communities on a Map."
+    },
+    "not-allowed": {
+      "button": "Start Location-Capturing...",
+      "text": "Find Members of all Communities on a Map? Then you have to capture your Location first."
+    }
+  },
+  "circles": {
+    "button": "Start Circles...",
+    "headline": "Together we support each other - mindful in circle culture.",
+    "text": "Click on the button to open the cooperation platform in a new browser window."
   },
   "community": {
     "admins": "Administrators",
@@ -287,10 +310,8 @@
     "overview": "Overview",
     "send": "Send",
     "settings": "Settings",
-    "circles": "Circles",
     "support": "Support",
-    "transactions": "Transactions",
-    "usersearch": "Geographical User Search"
+    "transactions": "Transactions"
   },
   "openHours": "Open Hours",
   "pageTitle": {
@@ -314,14 +335,13 @@
     "warningText": "Are you still there?"
   },
   "settings": {
-    "allow-community-services": "Allow Community Services",
     "community": "Community",
     "emailInfo": "Cannot be changed at this time.",
     "GMS": {
       "disabled": "Data not exported to GMS",
       "enabled": "Data exported to GMS",
       "location": {
-        "button": "Click me!",
+        "button": "Open Map",
         "label": "Pinpoint location",
         "saveLocation": "Save Location",
         "updateSuccess": "Location successfully saved"
@@ -339,7 +359,6 @@
       "publish-location": {
         "exact": "exact position",
         "approximate": "approximate position",
-        "random": "random position",
         "updated": "format of location for GMS updated"
       },
       "publish-name": {
