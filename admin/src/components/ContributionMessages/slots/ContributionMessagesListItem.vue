@@ -7,7 +7,7 @@
       <small class="ms-2" data-test="moderator-date">
         {{ $d(new Date(message.createdAt), 'short') }}
       </small>
-      <span class="ms-2 me-2" data-test="moderator-name">
+      <span class="ms-2 me-2 no-select" data-test="moderator-name">
         {{ message.userFirstName }} {{ message.userLastName }}
       </span>
       <BAvatar square variant="warning">
@@ -28,7 +28,7 @@
       <BAvatar variant="info">
         <variant-icon icon="person-fill" variant="white" />
       </BAvatar>
-      <span class="ms-2 me-2" data-test="user-name">
+      <span class="ms-2 me-2 no-select" data-test="user-name">
         {{ message.userFirstName }} {{ message.userLastName }}
       </span>
       <small class="ms-2" data-test="user-date">

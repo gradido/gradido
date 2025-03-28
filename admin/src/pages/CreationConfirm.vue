@@ -119,7 +119,7 @@ const FILTER_TAB_MAP = [
 ]
 
 const store = useStore()
-const { t, d } = useI18n()
+const { t } = useI18n()
 const { toastError, toastSuccess } = useAppToast()
 
 const tabIndex = ref(0)
@@ -134,6 +134,33 @@ const query = ref('')
 const noHashtag = ref(null)
 const hideResubmissionModel = ref(true)
 
+const formatDateOrDash = (value) => (value ? new Date(value).toLocaleDateString() : '—')
+const baseFields = {
+  firstName: { key: 'firstName', label: t('firstname'), class: 'no-select' },
+  lastName: { key: 'lastName', label: t('lastname'), class: 'no-select' },
+  amount: { key: 'amount', label: t('creation'), formatter: (value) => value + ' GDD' },
+  memo: { key: 'memo', label: t('text'), class: 'text-break' },
+  contributionDate: {
+    key: 'contributionDate',
+    label: t('created'),
+    class: 'no-select',
+    formatter: formatDateOrDash,
+  },
+  createdAt: {
+    key: 'createdAt',
+    label: t('createdAt'),
+    class: 'no-select',
+    formatter: formatDateOrDash,
+  },
+  confirmedAt: {
+    key: 'confirmedAt',
+    label: t('contributions.confirms'),
+    class: 'no-select',
+    formatter: formatDateOrDash,
+  },
+  confirmedBy: { key: 'confirmedBy', label: t('moderator.moderator'), class: 'no-select' },
+}
+
 const fields = computed(
   () =>
     [
@@ -141,103 +168,54 @@ const fields = computed(
       [
         { key: 'bookmark', label: t('delete') },
         { key: 'deny', label: t('deny') },
-        { key: 'firstName', label: t('firstname') },
-        { key: 'lastName', label: t('lastname') },
-        {
-          key: 'amount',
-          label: t('creation'),
-          formatter: (value) => value + ' GDD',
-        },
-        { key: 'memo', label: t('text'), class: 'text-break' },
-        {
-          key: 'contributionDate',
-          label: t('created'),
-          formatter: (value) => formatDateOrDash(value),
-        },
-        { key: 'moderatorId', label: t('moderator.moderator') },
+        baseFields.firstName,
+        baseFields.lastName,
+        baseFields.amount,
+        baseFields.memo,
+        baseFields.contributionDate,
+        { key: 'moderatorId', label: t('moderator.moderator'), class: 'no-select' },
         { key: 'editCreation', label: t('details') },
         { key: 'confirm', label: t('save') },
       ],
       // confirmed contributions
       [
-        { key: 'firstName', label: t('firstname') },
-        { key: 'lastName', label: t('lastname') },
-        {
-          key: 'amount',
-          label: t('creation'),
-          formatter: (value) => value + ' GDD',
-        },
-        { key: 'memo', label: t('text'), class: 'text-break' },
-        {
-          key: 'contributionDate',
-          label: t('created'),
-          formatter: (value) => formatDateOrDash(value),
-        },
-        {
-          key: 'createdAt',
-          label: t('createdAt'),
-          formatter: (value) => formatDateOrDash(value),
-        },
-        {
-          key: 'confirmedAt',
-          label: t('contributions.confirms'),
-          formatter: (value) => formatDateOrDash(value),
-        },
-        { key: 'confirmedBy', label: t('moderator.moderator') },
+        baseFields.firstName,
+        baseFields.lastName,
+        baseFields.memo,
+        baseFields.contributionDate,
+        baseFields.createdAt,
+        baseFields.confirmedAt,
+        baseFields.confirmedBy,
         { key: 'chatCreation', label: t('details') },
       ],
       // denied contributions
       [
-        { key: 'firstName', label: t('firstname') },
-        { key: 'lastName', label: t('lastname') },
-        {
-          key: 'amount',
-          label: t('creation'),
-          formatter: (value) => value + ' GDD',
-        },
-        { key: 'memo', label: t('text'), class: 'text-break' },
-        {
-          key: 'contributionDate',
-          label: t('created'),
-          formatter: (value) => formatDateOrDash(value),
-        },
-        {
-          key: 'createdAt',
-          label: t('createdAt'),
-          formatter: (value) => formatDateOrDash(value),
-        },
+        baseFields.firstName,
+        baseFields.lastName,
+        baseFields.amount,
+        baseFields.memo,
+        baseFields.contributionDate,
+        baseFields.createdAt,
         {
           key: 'deniedAt',
           label: t('contributions.denied'),
-          formatter: (value) => formatDateOrDash(value),
+          formatter: formatDateOrDash,
         },
         { key: 'deniedBy', label: t('moderator.moderator') },
         { key: 'chatCreation', label: t('details') },
       ],
       // deleted contributions
       [
-        { key: 'firstName', label: t('firstname') },
-        { key: 'lastName', label: t('lastname') },
-        {
-          key: 'amount',
-          label: t('creation'),
-          formatter: (value) => value + ' GDD',
-        },
-        { key: 'memo', label: t('text'), class: 'text-break' },
-        {
-          key: 'contributionDate',
-          label: t('created'),
-          formatter: (value) => formatDateOrDash(value),
-        },
-        {
-          key: 'createdAt',
-          label: t('createdAt'),
-          formatter: (value) => formatDateOrDash(value),
-        },
+        baseFields.firstName,
+        baseFields.lastName,
+        baseFields.amount,
+        baseFields.memo,
+        baseFields.contributionDate,
+        baseFields.createdAt,
         {
           key: 'deletedAt',
           label: t('contributions.deleted'),
-          formatter: (value) => formatDateOrDash(value),
+          formatter: formatDateOrDash,
         },
         { key: 'deletedBy', label: t('moderator.moderator') },
         { key: 'chatCreation', label: t('details') },
@@ -245,30 +223,14 @@ const fields = computed(
       // all contributions
       [
         { key: 'status', label: t('status') },
-        { key: 'firstName', label: t('firstname') },
-        { key: 'lastName', label: t('lastname') },
-        {
-          key: 'amount',
-          label: t('creation'),
-          formatter: (value) => value + ' GDD',
-        },
-        { key: 'memo', label: t('text'), class: 'text-break' },
-        {
-          key: 'contributionDate',
-          label: t('created'),
-          formatter: (value) => formatDateOrDash(value),
-        },
-        {
-          key: 'createdAt',
-          label: t('createdAt'),
-          formatter: (value) => formatDateOrDash(value),
-        },
-        {
-          key: 'confirmedAt',
-          label: t('contributions.confirms'),
-          formatter: (value) => formatDateOrDash(value),
-        },
-        { key: 'confirmedBy', label: t('moderator.moderator') },
+        baseFields.firstName,
+        baseFields.lastName,
+        baseFields.amount,
+        baseFields.memo,
+        baseFields.contributionDate,
+        baseFields.createdAt,
+        baseFields.confirmedAt,
+        baseFields.confirmedBy,
         { key: 'chatCreation', label: t('details') },
       ],
     ][tabIndex.value],
@@ -455,10 +417,6 @@ const updateStatus = (id) => {
     target.status = 'IN_PROGRESS'
   }
 }
-
-const formatDateOrDash = (value) => {
-  return value ? d(new Date(value), 'short') : '—'
-}
 </script>
 
 <style>
@@ -473,5 +431,9 @@ const formatDateOrDash = (value) => {
   background-color: rgb(12 11 11 / 78.1%);
   z-index: 1000000;
   cursor: pointer;
+}
+
+.no-select {
+  user-select: none;
 }
 </style>
