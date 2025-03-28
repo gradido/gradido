@@ -1,11 +1,12 @@
 import { IsBoolean, IsPositive, IsString } from 'class-validator'
-import { Field, ArgsType, Int } from 'type-graphql'
+import { Field, ArgsType, Int, InputType } from 'type-graphql'
 
 import { ContributionStatus } from '@enum/ContributionStatus'
 
 import { isContributionStatusArray } from '@/graphql/validator/ContributionStatusArray'
 
 @ArgsType()
+@InputType()
 export class SearchContributionsFilterArgs {
   @Field(() => [ContributionStatus], { nullable: true, defaultValue: null })
   @isContributionStatusArray()

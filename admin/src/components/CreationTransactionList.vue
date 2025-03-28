@@ -45,7 +45,7 @@
 <script setup>
 import { ref, watch } from 'vue'
 import { useQuery } from '@vue/apollo-composable'
-import { adminListContributions } from '../graphql/adminListContributions'
+import { adminListContributionsShort } from '../graphql/adminListContributions.graphql'
 import { BTable, BPagination, BButton, BCollapse, vBToggle } from 'bootstrap-vue-next'
 import { useI18n } from 'vue-i18n'
 
@@ -93,11 +93,15 @@ const fields = [
   { key: 'memo', label: t('transactionlist.memo'), class: 'text-break' },
 ]
 
-const { result, refetch } = useQuery(adminListContributions, {
-  currentPage: currentPage.value,
-  pageSize: perPage.value,
-  order: 'DESC',
-  userId: props.userId,
+const { result, refetch } = useQuery(adminListContributionsShort, {
+  filter: {
+    userId: props.userId,
+  },
+  paginated: {
+    currentPage: currentPage.value,
+    pageSize: perPage.value,
+    order: 'DESC',
+  },
 })
 
 watch(result, (newResult) => {

@@ -1,24 +1,16 @@
 import { Contribution as dbContribution } from '@entity/Contribution'
-import { User } from '@entity/User'
+import { User as DbUser } from '@entity/User'
 import { Decimal } from 'decimal.js-light'
 import { ObjectType, Field, Int } from 'type-graphql'
 
-import { PublishNameType } from '@enum/PublishNameType'
-
-import { PublishNameLogic } from '@/data/PublishName.logic'
+import { User } from './User'
 
 @ObjectType()
 export class Contribution {
-  constructor(contribution: dbContribution, user?: User | null) {
+  constructor(contribution: dbContribution, user?: DbUser | null) {
     this.id = contribution.id
     this.firstName = user?.firstName ?? null
     this.lastName = user?.lastName ?? null
-    this.email = user?.emailContact?.email ?? null
-    this.username = user?.alias ?? null
-    if (user) {
-      const publishNameLogic = new PublishNameLogic(user)
-      this.humhubUsername = publishNameLogic.getUsername(user.humhubPublishName as PublishNameType)
-    }
     this.amount = contribution.amount
     this.memo = contribution.memo
     this.createdAt = contribution.createdAt
@@ -36,25 +28,25 @@ export class Contribution {
     this.moderatorId = contribution.moderatorId
     this.userId = contribution.userId
     this.resubmissionAt = contribution.resubmissionAt
+    if (user) {
+      this.user = new User(user)
+    }
   }
 
   @Field(() => Int)
   id: number
+
+  @Field(() => Int, { nullable: true })
+  userId: number | null
+
+  @Field(() => User, { nullable: true })
+  user: User | null
 
   @Field(() => String, { nullable: true })
   firstName: string | null
 
   @Field(() => String, { nullable: true })
   lastName: string | null
-
-  @Field(() => String, { nullable: true })
-  email: string | null
-
-  @Field(() => String, { nullable: true })
-  username: string | null
-
-  @Field(() => String, { nullable: true })
-  humhubUsername: string | null
 
   @Field(() => Decimal)
   amount: Decimal
@@ -100,9 +92,6 @@ export class Contribution {
 
   @Field(() => Int, { nullable: true })
   moderatorId: number | null
-
-  @Field(() => Int, { nullable: true })
-  userId: number | null
 
   @Field(() => Date, { nullable: true })
   resubmissionAt: Date | null

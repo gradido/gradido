@@ -2,7 +2,7 @@ import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import CreationTransactionList from './CreationTransactionList.vue'
 import { useQuery } from '@vue/apollo-composable'
-import { adminListContributions } from '../graphql/adminListContributions'
+import { adminListContributionsShort } from '../graphql/adminListContributions.graphql'
 import { useI18n } from 'vue-i18n'
 import { useAppToast } from '@/composables/useToast'
 
@@ -65,13 +65,17 @@ describe('CreationTransactionList', () => {
   it('calls useQuery with correct parameters', () => {
     expect(useQuery).toHaveBeenCalled()
     const call = useQuery.mock.calls[0]
-    expect(call[0]).toBe(adminListContributions)
+    expect(call[0]).toBe(adminListContributionsShort)
     expect(call[1]).toEqual(
       expect.objectContaining({
-        currentPage: expect.any(Number),
-        pageSize: expect.any(Number),
-        order: 'DESC',
-        userId: 1,
+        filter: {
+          userId: 1,
+        },
+        paginated: {
+          currentPage: expect.any(Number),
+          pageSize: expect.any(Number),
+          order: 'DESC',
+        },
       }),
     )
   })

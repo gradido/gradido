@@ -4,7 +4,20 @@ import { Transaction as DbTransaction } from '@entity/Transaction'
 import { User as DbUser } from '@entity/User'
 import { UserContact } from '@entity/UserContact'
 import { Decimal } from 'decimal.js-light'
-import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
+import { GraphQLResolveInfo } from 'graphql'
+import {
+  Arg,
+  Args,
+  Authorized,
+  Ctx,
+  FieldResolver,
+  Info,
+  Int,
+  Mutation,
+  Query,
+  Resolver,
+  Root,
+} from 'type-graphql'
 
 import { AdminCreateContributionArgs } from '@arg/AdminCreateContributionArgs'
 import { AdminUpdateContributionArgs } from '@arg/AdminUpdateContributionArgs'
@@ -20,6 +33,7 @@ import { Contribution, ContributionListResult } from '@model/Contribution'
 import { Decay } from '@model/Decay'
 import { OpenCreation } from '@model/OpenCreation'
 import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
+import { User } from '@model/User'
 
 import { RIGHTS } from '@/auth/RIGHTS'
 import {
@@ -48,11 +62,12 @@ import { fullName } from '@/util/utilities'
 
 import { findContribution } from './util/contributions'
 import { getUserCreation, validateContribution, getOpenCreations } from './util/creations'
+import { extractGraphQLFields, extractGraphQLFieldsForSelect } from './util/extractGraphQLFields'
 import { findContributions } from './util/findContributions'
 import { getLastTransaction } from './util/getLastTransaction'
 import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
 
-@Resolver()
+@Resolver(() => Contribution)
 export class ContributionResolver {
   @Authorized([RIGHTS.ADMIN_LIST_CONTRIBUTIONS])
   @Query(() => Contribution)
@@ -321,15 +336,37 @@ export class ContributionResolver {
   @Authorized([RIGHTS.ADMIN_LIST_CONTRIBUTIONS])
   @Query(() => ContributionListResult)
   async adminListContributions(
-    @Args() paginated: Paginated,
-    @Args() filter: SearchContributionsFilterArgs,
-  ): Promise<ContributionListResult> {
-    const [dbContributions, count] = await findContributions(paginated, filter, true, {
-      user: {
-        emailContact: true,
-      },
-      messages: true,
+    @Arg('filter', () => SearchContributionsFilterArgs, {
+      defaultValue: new SearchContributionsFilterArgs(),
     })
+    filter: SearchContributionsFilterArgs,
+    @Arg('paginated', () => Paginated, { defaultValue: new Paginated() }) paginated: Paginated,
+    @Info() info: GraphQLResolveInfo,
+  ): Promise<ContributionListResult> {
+    // Check if only count was requested (without contributionList)
+    const fields = Object.keys(extractGraphQLFields(info))
+    const countOnly: boolean = fields.includes('contributionCount') && fields.length === 1
+    // check if related user was requested
+    const userRequested =
+      fields.includes('user') || filter.userId !== undefined || filter.query !== undefined
+    // check if related emailContact was requested
+    const emailContactRequested = fields.includes('user.emailContact') || filter.query !== undefined
+    // check if related messages were requested
+    const messagesRequested = ['messagesCount', 'messages'].some((field) => fields.includes(field))
+    const [dbContributions, count] = await findContributions(
+      paginated,
+      filter,
+      true,
+      {
+        user: userRequested
+          ? {
+              emailContact: emailContactRequested,
+            }
+          : false,
+        messages: messagesRequested,
+      },
+      countOnly,
+    )
 
     return new ContributionListResult(
       count,
@@ -572,5 +609,22 @@ export class ContributionResolver {
     })
 
     return !!res
+  }
+
+  // Field resolvers
+  @Authorized([RIGHTS.USER])
+  @FieldResolver(() => User)
+  async user(
+    @Root() contribution: DbContribution,
+    @Info() info: GraphQLResolveInfo,
+  ): Promise<User> {
+    let user = contribution.user
+    if (!user) {
+      const queryBuilder = DbUser.createQueryBuilder('user')
+      queryBuilder.where('user.id = :userId', { userId: contribution.userId })
+      extractGraphQLFieldsForSelect(info, queryBuilder, 'user')
+      user = await queryBuilder.getOneOrFail()
+    }
+    return new User(user)
   }
 }

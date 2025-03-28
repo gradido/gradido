@@ -2782,13 +2782,15 @@ describe('ContributionResolver', () => {
         const { errors: errorObjects } = await query({
           query: adminListContributions,
           variables: {
-            statusFilter: ['INVALID_STATUS'],
+            filter: {
+              statusFilter: ['INVALID_STATUS'],
+            },
           },
         })
         expect(errorObjects).toMatchObject([
           {
             message:
-              'Variable "$statusFilter" got invalid value "INVALID_STATUS" at "statusFilter[0]"; Value "INVALID_STATUS" does not exist in "ContributionStatus" enum.',
+              'Variable "$filter" got invalid value "INVALID_STATUS" at "filter.statusFilter[0]"; Value "INVALID_STATUS" does not exist in "ContributionStatus" enum.',
             extensions: {
               code: 'BAD_USER_INPUT',
             },
@@ -2801,6 +2803,7 @@ describe('ContributionResolver', () => {
           data: { adminListContributions: contributionListObject },
         } = await query({
           query: adminListContributions,
+          variables: { paginated: { pageSize: 20 } },
         })
 
         expect(contributionListObject.contributionList).toHaveLength(18)
@@ -2809,165 +2812,255 @@ describe('ContributionResolver', () => {
           contributionList: expect.arrayContaining([
             expect.objectContaining({
               amount: expect.decimalEqual(100),
-              firstName: 'Peter',
               id: expect.any(Number),
-              lastName: 'Lustig',
               memo: '#firefighters',
               messagesCount: 0,
               status: 'PENDING',
+              user: expect.objectContaining({
+                firstName: 'Peter',
+                lastName: 'Lustig',
+                emailContact: expect.objectContaining({
+                  email: 'peter@lustig.de',
+                }),
+              }),
             }),
             expect.objectContaining({
               amount: expect.decimalEqual(50),
-              firstName: 'Bibi',
               id: expect.any(Number),
-              lastName: 'Bloxberg',
               memo: 'Herzlich Willkommen bei Gradido liebe Bibi!',
               messagesCount: 0,
               status: 'CONFIRMED',
+              user: expect.objectContaining({
+                firstName: 'Bibi',
+                lastName: 'Bloxberg',
+                emailContact: expect.objectContaining({
+                  email: 'bibi@bloxberg.de',
+                }),
+              }),
             }),
             expect.objectContaining({
               amount: expect.decimalEqual(50),
-              firstName: 'Bibi',
               id: expect.any(Number),
-              lastName: 'Bloxberg',
               memo: 'Herzlich Willkommen bei Gradido liebe Bibi!',
               messagesCount: 0,
               status: 'CONFIRMED',
+              user: expect.objectContaining({
+                firstName: 'Bibi',
+                lastName: 'Bloxberg',
+                emailContact: expect.objectContaining({
+                  email: 'bibi@bloxberg.de',
+                }),
+              }),
             }),
             expect.objectContaining({
               amount: expect.decimalEqual(450),
-              firstName: 'Bibi',
               id: expect.any(Number),
-              lastName: 'Bloxberg',
               memo: 'Herzlich Willkommen bei Gradido liebe Bibi!',
               messagesCount: 0,
               status: 'CONFIRMED',
+              user: expect.objectContaining({
+                firstName: 'Bibi',
+                lastName: 'Bloxberg',
+                emailContact: expect.objectContaining({
+                  email: 'bibi@bloxberg.de',
+                }),
+              }),
             }),
             expect.objectContaining({
               amount: expect.decimalEqual(400),
-              firstName: 'Peter',
               id: expect.any(Number),
-              lastName: 'Lustig',
               memo: 'Herzlich Willkommen bei Gradido!',
               messagesCount: 0,
               status: 'PENDING',
+              user: expect.objectContaining({
+                firstName: 'Peter',
+                lastName: 'Lustig',
+                emailContact: expect.objectContaining({
+                  email: 'peter@lustig.de',
+                }),
+              }),
             }),
             expect.objectContaining({
               amount: expect.decimalEqual(100),
-              firstName: 'Bob',
               id: expect.any(Number),
-              lastName: 'der Baumeister',
               memo: 'Confirmed Contribution',
               messagesCount: 0,
               status: 'CONFIRMED',
+              user: expect.objectContaining({
+                firstName: 'Bob',
+                lastName: 'der Baumeister',
+                emailContact: expect.objectContaining({
+                  email: 'bob@baumeister.de',
+                }),
+              }),
             }),
             expect.objectContaining({
               amount: expect.decimalEqual(100),
-              firstName: 'Peter',
               id: expect.any(Number),
-              lastName: 'Lustig',
               memo: 'Test env contribution',
               messagesCount: 0,
               status: 'PENDING',
+              user: expect.objectContaining({
+                firstName: 'Peter',
+                lastName: 'Lustig',
+                emailContact: expect.objectContaining({
+                  email: 'peter@lustig.de',
+                }),
+              }),
             }),
             expect.objectContaining({
               amount: expect.decimalEqual(200),
-              firstName: 'Bibi',
               id: expect.any(Number),
-              lastName: 'Bloxberg',
               memo: 'Aktives Grundeinkommen',
               messagesCount: 0,
               status: 'PENDING',
+              user: expect.objectContaining({
+                firstName: 'Bibi',
+                lastName: 'Bloxberg',
+                emailContact: expect.objectContaining({
+                  email: 'bibi@bloxberg.de',
+                }),
+              }),
             }),
             expect.objectContaining({
               amount: expect.decimalEqual(200),
-              firstName: 'Peter',
               id: expect.any(Number),
-              lastName: 'Lustig',
               memo: 'Das war leider zu Viel!',
               messagesCount: 1,
               status: 'DELETED',
+              user: expect.objectContaining({
+                firstName: 'Peter',
+                lastName: 'Lustig',
+                emailContact: expect.objectContaining({
+                  email: 'peter@lustig.de',
+                }),
+              }),
             }),
             expect.objectContaining({
               amount: expect.decimalEqual(166),
-              firstName: 'Räuber',
               id: expect.any(Number),
-              lastName: 'Hotzenplotz',
               memo: 'Whatever contribution',
               messagesCount: 0,
               status: 'DENIED',
+              user: expect.objectContaining({
+                firstName: 'Räuber',
+                lastName: 'Hotzenplotz',
+                emailContact: expect.objectContaining({
+                  email: 'raeuber@hotzenplotz.de',
+                }),
+              }),
             }),
             expect.objectContaining({
               amount: expect.decimalEqual(166),
-              firstName: 'Räuber',
               id: expect.any(Number),
-              lastName: 'Hotzenplotz',
               memo: 'Whatever contribution',
               messagesCount: 0,
               status: 'DELETED',
+              user: expect.objectContaining({
+                firstName: 'Räuber',
+                lastName: 'Hotzenplotz',
+                emailContact: expect.objectContaining({
+                  email: 'raeuber@hotzenplotz.de',
+                }),
+              }),
             }),
             expect.objectContaining({
               amount: expect.decimalEqual(166),
-              firstName: 'Räuber',
               id: expect.any(Number),
-              lastName: 'Hotzenplotz',
               memo: 'Whatever contribution',
               messagesCount: 0,
               status: 'CONFIRMED',
+              user: expect.objectContaining({
+                firstName: 'Räuber',
+                lastName: 'Hotzenplotz',
+                emailContact: expect.objectContaining({
+                  email: 'raeuber@hotzenplotz.de',
+                }),
+              }),
             }),
             expect.objectContaining({
               amount: expect.decimalEqual(100),
-              firstName: 'Bibi',
               id: expect.any(Number),
-              lastName: 'Bloxberg',
               memo: 'Test contribution to delete',
               messagesCount: 0,
               status: 'DELETED',
+              user: expect.objectContaining({
+                firstName: 'Bibi',
+                lastName: 'Bloxberg',
+                emailContact: expect.objectContaining({
+                  email: 'bibi@bloxberg.de',
+                }),
+              }),
             }),
             expect.objectContaining({
               amount: expect.decimalEqual(100),
-              firstName: 'Bibi',
               id: expect.any(Number),
-              lastName: 'Bloxberg',
               memo: 'Test contribution to deny',
               messagesCount: 0,
               status: 'DENIED',
+              user: expect.objectContaining({
+                firstName: 'Bibi',
+                lastName: 'Bloxberg',
+                emailContact: expect.objectContaining({
+                  email: 'bibi@bloxberg.de',
+                }),
+              }),
             }),
             expect.objectContaining({
               amount: expect.decimalEqual(100),
-              firstName: 'Bibi',
               id: expect.any(Number),
-              lastName: 'Bloxberg',
               memo: 'Test contribution to confirm',
               messagesCount: 0,
               status: 'CONFIRMED',
+              user: expect.objectContaining({
+                firstName: 'Bibi',
+                lastName: 'Bloxberg',
+                emailContact: expect.objectContaining({
+                  email: 'bibi@bloxberg.de',
+                }),
+              }),
             }),
             expect.objectContaining({
               amount: expect.decimalEqual(100),
-              firstName: 'Bibi',
               id: expect.any(Number),
-              lastName: 'Bloxberg',
               memo: 'Test IN_PROGRESS contribution',
               messagesCount: 1,
               status: 'IN_PROGRESS',
+              user: expect.objectContaining({
+                firstName: 'Bibi',
+                lastName: 'Bloxberg',
+                emailContact: expect.objectContaining({
+                  email: 'bibi@bloxberg.de',
+                }),
+              }),
             }),
             expect.objectContaining({
               amount: expect.decimalEqual(10),
-              firstName: 'Bibi',
               id: expect.any(Number),
-              lastName: 'Bloxberg',
               memo: 'Test PENDING contribution update',
               messagesCount: 2,
               status: 'PENDING',
+              user: expect.objectContaining({
+                firstName: 'Bibi',
+                lastName: 'Bloxberg',
+                emailContact: expect.objectContaining({
+                  email: 'bibi@bloxberg.de',
+                }),
+              }),
             }),
             expect.objectContaining({
               amount: expect.decimalEqual(1000),
-              firstName: 'Bibi',
               id: expect.any(Number),
-              lastName: 'Bloxberg',
               memo: 'Herzlich Willkommen bei Gradido!',
               messagesCount: 0,
               status: 'CONFIRMED',
+              user: expect.objectContaining({
+                firstName: 'Bibi',
+                lastName: 'Bloxberg',
+                emailContact: expect.objectContaining({
+                  email: 'bibi@bloxberg.de',
+                }),
+              }),
             }),
           ]),
         })
@@ -2979,10 +3072,14 @@ describe('ContributionResolver', () => {
         } = await query({
           query: adminListContributions,
           variables: {
-            currentPage: 1,
-            pageSize: 2,
-            order: Order.DESC,
-            statusFilter: ['PENDING'],
+            paginated: {
+              currentPage: 1,
+              pageSize: 2,
+              order: Order.DESC,
+            },
+            filter: {
+              statusFilter: ['PENDING'],
+            },
           },
         })
         expect(contributionListObject.contributionList).toHaveLength(2)
@@ -2991,21 +3088,31 @@ describe('ContributionResolver', () => {
           contributionList: expect.arrayContaining([
             expect.objectContaining({
               amount: '100',
-              firstName: 'Peter',
               id: expect.any(Number),
-              lastName: 'Lustig',
               memo: '#firefighters',
               messagesCount: 0,
               status: 'PENDING',
+              user: expect.objectContaining({
+                firstName: 'Peter',
+                lastName: 'Lustig',
+                emailContact: expect.objectContaining({
+                  email: 'peter@lustig.de',
+                }),
+              }),
             }),
             expect.objectContaining({
               amount: '400',
-              firstName: 'Peter',
               id: expect.any(Number),
-              lastName: 'Lustig',
               memo: 'Herzlich Willkommen bei Gradido!',
               messagesCount: 0,
               status: 'PENDING',
+              user: expect.objectContaining({
+                firstName: 'Peter',
+                lastName: 'Lustig',
+                emailContact: expect.objectContaining({
+                  email: 'peter@lustig.de',
+                }),
+              }),
             }),
             expect.not.objectContaining({
               status: 'DENIED',
@@ -3030,7 +3137,10 @@ describe('ContributionResolver', () => {
           } = await query({
             query: adminListContributions,
             variables: {
-              query: 'Peter',
+              filter: {
+                query: 'Peter',
+              },
+              paginated: { pageSize: 20 },
             },
           })
           expect(contributionListObject.contributionList).toHaveLength(4)
@@ -3039,39 +3149,59 @@ describe('ContributionResolver', () => {
             contributionList: expect.arrayContaining([
               expect.objectContaining({
                 amount: expect.decimalEqual(100),
-                firstName: 'Peter',
                 id: expect.any(Number),
-                lastName: 'Lustig',
                 memo: '#firefighters',
                 messagesCount: 0,
                 status: 'PENDING',
+                user: expect.objectContaining({
+                  firstName: 'Peter',
+                  lastName: 'Lustig',
+                  emailContact: expect.objectContaining({
+                    email: 'peter@lustig.de',
+                  }),
+                }),
               }),
               expect.objectContaining({
                 amount: expect.decimalEqual(400),
-                firstName: 'Peter',
                 id: expect.any(Number),
-                lastName: 'Lustig',
                 memo: 'Herzlich Willkommen bei Gradido!',
                 messagesCount: 0,
                 status: 'PENDING',
+                user: expect.objectContaining({
+                  firstName: 'Peter',
+                  lastName: 'Lustig',
+                  emailContact: expect.objectContaining({
+                    email: 'peter@lustig.de',
+                  }),
+                }),
               }),
               expect.objectContaining({
                 amount: expect.decimalEqual(100),
-                firstName: 'Peter',
                 id: expect.any(Number),
-                lastName: 'Lustig',
                 memo: 'Test env contribution',
                 messagesCount: 0,
                 status: 'PENDING',
+                user: expect.objectContaining({
+                  firstName: 'Peter',
+                  lastName: 'Lustig',
+                  emailContact: expect.objectContaining({
+                    email: 'peter@lustig.de',
+                  }),
+                }),
               }),
               expect.objectContaining({
                 amount: expect.decimalEqual(200),
-                firstName: 'Peter',
                 id: expect.any(Number),
-                lastName: 'Lustig',
                 memo: 'Das war leider zu Viel!',
                 messagesCount: 1,
                 status: 'DELETED',
+                user: expect.objectContaining({
+                  firstName: 'Peter',
+                  lastName: 'Lustig',
+                  emailContact: expect.objectContaining({
+                    email: 'peter@lustig.de',
+                  }),
+                }),
               }),
             ]),
           })
@@ -3083,8 +3213,11 @@ describe('ContributionResolver', () => {
           } = await query({
             query: adminListContributions,
             variables: {
-              query: 'Peter',
-              noHashtag: true,
+              filter: {
+                query: 'Peter',
+                noHashtag: true,
+              },
+              paginated: { pageSize: 20 },
             },
           })
           expect(contributionListObject.contributionList).toHaveLength(3)
@@ -3093,30 +3226,45 @@ describe('ContributionResolver', () => {
             contributionList: expect.arrayContaining([
               expect.objectContaining({
                 amount: expect.decimalEqual(400),
-                firstName: 'Peter',
                 id: expect.any(Number),
-                lastName: 'Lustig',
                 memo: 'Herzlich Willkommen bei Gradido!',
                 messagesCount: 0,
                 status: 'PENDING',
+                user: expect.objectContaining({
+                  firstName: 'Peter',
+                  lastName: 'Lustig',
+                  emailContact: expect.objectContaining({
+                    email: 'peter@lustig.de',
+                  }),
+                }),
               }),
               expect.objectContaining({
                 amount: expect.decimalEqual(100),
-                firstName: 'Peter',
                 id: expect.any(Number),
-                lastName: 'Lustig',
                 memo: 'Test env contribution',
                 messagesCount: 0,
                 status: 'PENDING',
+                user: expect.objectContaining({
+                  firstName: 'Peter',
+                  lastName: 'Lustig',
+                  emailContact: expect.objectContaining({
+                    email: 'peter@lustig.de',
+                  }),
+                }),
               }),
               expect.objectContaining({
                 amount: expect.decimalEqual(200),
-                firstName: 'Peter',
                 id: expect.any(Number),
-                lastName: 'Lustig',
                 memo: 'Das war leider zu Viel!',
                 messagesCount: 1,
                 status: 'DELETED',
+                user: expect.objectContaining({
+                  firstName: 'Peter',
+                  lastName: 'Lustig',
+                  emailContact: expect.objectContaining({
+                    email: 'peter@lustig.de',
+                  }),
+                }),
               }),
             ]),
           })
@@ -3128,7 +3276,9 @@ describe('ContributionResolver', () => {
           } = await query({
             query: adminListContributions,
             variables: {
-              query: '#firefighter',
+              filter: {
+                query: '#firefighter',
+              },
             },
           })
           expect(contributionListObject.contributionList).toHaveLength(1)
@@ -3137,12 +3287,17 @@ describe('ContributionResolver', () => {
             contributionList: expect.arrayContaining([
               expect.objectContaining({
                 amount: expect.decimalEqual(100),
-                firstName: 'Peter',
                 id: expect.any(Number),
-                lastName: 'Lustig',
                 memo: '#firefighters',
                 messagesCount: 0,
                 status: 'PENDING',
+                user: expect.objectContaining({
+                  firstName: 'Peter',
+                  lastName: 'Lustig',
+                  emailContact: expect.objectContaining({
+                    email: 'peter@lustig.de',
+                  }),
+                }),
               }),
             ]),
           })
@@ -3154,8 +3309,10 @@ describe('ContributionResolver', () => {
           } = await query({
             query: adminListContributions,
             variables: {
-              query: '#firefighter',
-              noHashtag: true,
+              filter: {
+                query: '#firefighter',
+                noHashtag: true,
+              },
             },
           })
           expect(contributionListObject.contributionList).toHaveLength(0)
@@ -3171,7 +3328,10 @@ describe('ContributionResolver', () => {
           } = await query({
             query: adminListContributions,
             variables: {
-              query: 'RAEUBER', // only found in lowercase in the email
+              filter: {
+                query: 'RAEUBER', // only found in lowercase in the email
+              },
+              paginated: { pageSize: 20 },
             },
           })
           expect(contributionListObject.contributionList).toHaveLength(3)
@@ -3180,30 +3340,45 @@ describe('ContributionResolver', () => {
             contributionList: expect.arrayContaining([
               expect.objectContaining({
                 amount: expect.decimalEqual(166),
-                firstName: 'Räuber',
                 id: expect.any(Number),
-                lastName: 'Hotzenplotz',
                 memo: 'Whatever contribution',
                 messagesCount: 0,
                 status: 'DENIED',
+                user: expect.objectContaining({
+                  firstName: 'Räuber',
+                  lastName: 'Hotzenplotz',
+                  emailContact: expect.objectContaining({
+                    email: 'raeuber@hotzenplotz.de',
+                  }),
+                }),
               }),
               expect.objectContaining({
                 amount: expect.decimalEqual(166),
-                firstName: 'Räuber',
                 id: expect.any(Number),
-                lastName: 'Hotzenplotz',
                 memo: 'Whatever contribution',
                 messagesCount: 0,
                 status: 'DELETED',
+                user: expect.objectContaining({
+                  firstName: 'Räuber',
+                  lastName: 'Hotzenplotz',
+                  emailContact: expect.objectContaining({
+                    email: 'raeuber@hotzenplotz.de',
+                  }),
+                }),
               }),
               expect.objectContaining({
                 amount: expect.decimalEqual(166),
-                firstName: 'Räuber',
                 id: expect.any(Number),
-                lastName: 'Hotzenplotz',
                 memo: 'Whatever contribution',
                 messagesCount: 0,
                 status: 'CONFIRMED',
+                user: expect.objectContaining({
+                  firstName: 'Räuber',
+                  lastName: 'Hotzenplotz',
+                  emailContact: expect.objectContaining({
+                    email: 'raeuber@hotzenplotz.de',
+                  }),
+                }),
               }),
             ]),
           })
