@@ -28,13 +28,11 @@ export default {
   },
   computed: {
     isGmsActive() {
-      console.log('isGmsActive=', CONFIG.GMS_ACTIVE)
       return CONFIG.GMS_ACTIVE === true
     },
     isHumhubActive() {
-      console.log('isHumhubActive=', CONFIG.HUMHUB_ACTIVE)
       return CONFIG.HUMHUB_ACTIVE === true
     },
-  }
+  },
 }
 </script>

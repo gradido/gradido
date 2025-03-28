@@ -26,9 +26,9 @@ const store = useStore()
 const { toastError, toastSuccess } = useAppToast()
 
 const selectedOption = ref(
-  store.state.gmsPublishLocation === 'GMS_LOCATION_TYPE_RANDOM' ? 
-  'GMS_LOCATION_TYPE_APPROXIMATE' : 
-  store.state.gmsPublishLocation
+  store.state.gmsPublishLocation === 'GMS_LOCATION_TYPE_RANDOM'
+    ? 'GMS_LOCATION_TYPE_APPROXIMATE'
+    : store.state.gmsPublishLocation,
 )
 const dropdownOptions = [
   {

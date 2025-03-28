@@ -33,16 +33,11 @@
               >
                 {{ $t('card-user-search.allowed.disabled-button') }}
               </BButton>
-              <BButton
-                v-else
-                variant="gradido"
-                :href="gmsUri"
-                target="_blank"
-              >
+              <BButton v-else variant="gradido" :href="gmsUri" target="_blank">
                 {{ $t('card-user-search.allowed.button') }}
               </BButton>
             </div>
-            <div v-else> 
+            <div v-else>
               <RouterLink to="/settings/extern">
                 <BButton variant="gradido">
                   {{ $t('card-user-search.not-allowed.button') }}
@@ -67,11 +62,17 @@ const { toastError } = useAppToast()
 const store = useStore()
 
 const gmsUri = ref('not initialized')
-console.log('store.state: gmsAllowed userLocation=', store.state.gmsAllowed, store.state.userLocation)
+/*
+console.log(
+  'store.state: gmsAllowed userLocation=',
+  store.state.gmsAllowed,
+  store.state.userLocation,
+)
+*/
 const gmsAllowed = store.state.gmsAllowed
-console.log('gmsAllowed=', gmsAllowed)
+// console.log('gmsAllowed=', gmsAllowed)
 const gmsUserLocationExists = store.state.userLocation !== null
-console.log('gmsUserLocationExists=', gmsUserLocationExists)
+// console.log('gmsUserLocationExists=', gmsUserLocationExists)
 const isUserSearchDisabled = computed(() => gmsUri.value !== null)
 
 const { onResult, result, loading, onError } = useQuery(authenticateGmsUserSearch)
