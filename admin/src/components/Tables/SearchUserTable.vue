@@ -156,6 +156,7 @@ const props = defineProps({
 const rolesValues = {
   ADMIN: 'ADMIN',
   MODERATOR: 'MODERATOR',
+  MODERATOR_AI: 'MODERATOR_AI',
   USER: 'USER',
 }
 
@@ -166,6 +167,28 @@ const myItems = ref()
 const creationUserData = ref({})
 const rowDetails = ref()
 
+const userRoleChangeConfirmationBody = computed(() => {
+  let roleLabel = ''
+  switch (userChangeForm.value.roleSelected) {
+    case rolesValues.ADMIN:
+      roleLabel = t('userRole.selectRoles.admin')
+      break
+    case rolesValues.MODERATOR:
+      roleLabel = t('userRole.selectRoles.moderator')
+      break
+    case rolesValues.MODERATOR_AI:
+      roleLabel = t('userRole.selectRoles.moderatorAi')
+      break
+    default:
+      roleLabel = t('userRole.selectRoles.user')
+      break
+  }
+  return t('overlay.changeUserRole.question', {
+    username: `${selectedRow.value.firstName} ${selectedRow.value.lastName}`,
+    newRole: roleLabel,
+  })
+})
+
 const showModal = async () => {
   await confirm?.({
     props: {
@@ -175,15 +198,7 @@ const showModal = async () => {
       title: t('overlay.changeUserRole.title'),
       okTitle: t('overlay.changeUserRole.yes'),
       okVariant: 'danger',
-      body: t('overlay.changeUserRole.question', {
-        username: `${selectedRow.value.firstName} ${selectedRow.value.lastName}`,
-        newRole:
-          userChangeForm.value.roleSelected === rolesValues.ADMIN
-            ? t('userRole.selectRoles.admin')
-            : userChangeForm.value.roleSelected === rolesValues.MODERATOR
-              ? t('userRole.selectRoles.moderator')
-              : t('userRole.selectRoles.user'),
-      }),
+      body: userRoleChangeConfirmationBody.value,
     },
   })
     .then((ok) => {
