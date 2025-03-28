@@ -54,8 +54,8 @@ const createVuexStore = (state = {}) =>
     },
   })
 
-CONFIG.GMS_ACTIVE = 'true'
-CONFIG.HUMHUB_ACTIVE = 'true'
+CONFIG.GMS_ACTIVE = true
+CONFIG.HUMHUB_ACTIVE = true
 
 describe('Sidebar', () => {
   let wrapper

@@ -41,7 +41,6 @@ export class User {
       this.gmsPublishName = user.gmsPublishName
       this.humhubPublishName = user.humhubPublishName
       this.gmsPublishLocation = user.gmsPublishLocation
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       this.userLocation = user.location ? Point2Location(user.location as Point) : null
     }
   }
