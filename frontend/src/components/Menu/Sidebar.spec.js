@@ -54,8 +54,8 @@ const createVuexStore = (state = {}) =>
     },
   })
 
-CONFIG.GMS_ACTIVE = 'true'
-CONFIG.HUMHUB_ACTIVE = 'true'
+CONFIG.GMS_ACTIVE = true
+CONFIG.HUMHUB_ACTIVE = true
 
 describe('Sidebar', () => {
   let wrapper
@@ -89,7 +89,7 @@ describe('Sidebar', () => {
     describe('the general section', () => {
       it('has seven nav-items', () => {
         const generalSection = wrapper.findAll('ul')[0]
-        expect(generalSection.findAll('.nav-item')).toHaveLength(7)
+        expect(generalSection.findAll('.nav-item')).toHaveLength(5)
       })
 
       it('has nav-item "navigation.overview" in navbar', () => {
@@ -111,14 +111,6 @@ describe('Sidebar', () => {
       it('has nav-item "navigation.info" in navbar', () => {
         expect(wrapper.findAll('.nav-item').at(4).text()).toContain('Info')
       })
-
-      it('has nav-item "navigation.circles" in navbar', () => {
-        expect(wrapper.findAll('.nav-item').at(5).text()).toContain('Circles')
-      })
-
-      it('has nav-item "navigation.usersearch" in navbar', () => {
-        expect(wrapper.findAll('.nav-item').at(6).text()).toContain('User Search')
-      })
     })
 
     describe('the specific section', () => {
@@ -128,7 +120,7 @@ describe('Sidebar', () => {
         })
 
         it('has two nav-items', () => {
-          expect(wrapper.findAll('.nav-item').slice(7)).toHaveLength(2)
+          expect(wrapper.findAll('.nav-item').slice(6)).toHaveLength(1)
         })
 
         it('has nav-item "navigation.settings" in navbar', () => {
@@ -146,7 +138,7 @@ describe('Sidebar', () => {
         })
 
         it('has three nav-items', () => {
-          expect(wrapper.findAll('.nav-item').slice(7)).toHaveLength(3)
+          expect(wrapper.findAll('.nav-item').slice(6)).toHaveLength(2)
         })
 
         it('has nav-item "navigation.settings" in navbar', () => {
@@ -154,9 +146,9 @@ describe('Sidebar', () => {
         })
 
         it('has nav-item "navigation.admin_area" in navbar', () => {
-          const adminItems = wrapper.findAll('.nav-item').slice(7)
-          expect(adminItems.length).toBeGreaterThan(1)
-          expect(adminItems[1].text()).toContain('Admin Area')
+          const adminItems = wrapper.findAll('.nav-item').slice(6)
+          expect(adminItems.length).toBeGreaterThan(0)
+          expect(adminItems[0].text()).toContain('Admin Area')
         })
 
         it('has nav-item "navigation.logout" in navbar', () => {

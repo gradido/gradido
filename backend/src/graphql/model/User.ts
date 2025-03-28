@@ -1,3 +1,4 @@
+import { Point } from '@dbTools/typeorm'
 import { User as dbUser } from '@entity/User'
 import { ObjectType, Field, Int } from 'type-graphql'
 
@@ -5,8 +6,10 @@ import { GmsPublishLocationType } from '@enum/GmsPublishLocationType'
 import { PublishNameType } from '@enum/PublishNameType'
 
 import { PublishNameLogic } from '@/data/PublishName.logic'
+import { Point2Location } from '@/graphql/resolver/util/Location2Point'
 
 import { KlickTipp } from './KlickTipp'
+import { Location } from './Location'
 import { UserContact } from './UserContact'
 
 @ObjectType()
@@ -45,6 +48,7 @@ export class User {
       this.gmsPublishName = user.gmsPublishName
       this.humhubPublishName = user.humhubPublishName
       this.gmsPublishLocation = user.gmsPublishLocation
+      this.userLocation = user.location ? Point2Location(user.location as Point) : null
     }
   }
 
@@ -123,4 +127,7 @@ export class User {
 
   @Field(() => UserContact, { nullable: true })
   emailContact: UserContact | null
+
+  @Field(() => Location, { nullable: true })
+  userLocation: Location | null
 }
