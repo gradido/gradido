@@ -97,7 +97,7 @@ onError(() => {
   background-attachment: absolute;
   background-position: left;
   background-repeat: no-repeat;
-  background-size: 380px 180px;
+  background-size: 380px 100%;
   background-image: url('/img/svg/usersearchmap5.jpg') !important;
 }
 </style>
