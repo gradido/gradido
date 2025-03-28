@@ -30,10 +30,33 @@
     }
   },
   "back": "Zurück",
-  "circles": {
+  "card-circles": {
     "headline": "Gemeinsam unterstützen wir einander –  achtsam in Kreiskultur.",
-    "text": "Mit Klick auf den Button öffnest Du die Kooperationsplattform in einem neuen Browser-Fenster.",
-    "button": "Kreise starten..."
+    "allowed": {
+      "button": "Kreise starten...",
+      "text": "Mit Klick auf den Button öffnest Du die Kooperationsplattform in einem neuen Browser-Fenster."
+    },
+    "not-allowed": {
+      "button": "Konfiguration starten...",
+      "text": "Du hast Kreise noch nicht konfiguriert! Öffne zuerst die Kreise-Konfiguration."
+    }
+  },
+  "card-user-search": {
+    "headline": "Geografische Nutzersuche (experimentell)",
+    "allowed": {
+      "button": "Öffne Nutzersuche...",
+      "disabled-button": "GMS offline...",
+      "text": "Finde Mitglieder aller Communities auf einer Landkarte."
+    },
+    "not-allowed": {
+      "button": "Standort festlegen...",
+      "text": "Finde Mitglieder aller Communities auf einer Landkarte? Dann musst du selbst erst deinen Standort festlegen."
+    }
+  },
+  "circles": {
+    "button": "Kreise starten...",
+    "headline": "Gemeinsam unterstützen wir einander –  achtsam in Kreiskultur.",
+    "text": "Mit Klick auf den Button öffnest Du die Kooperationsplattform in einem neuen Browser-Fenster."
   },
   "community": {
     "admins": "Administratoren",
@@ -287,10 +310,8 @@
     "overview": "Übersicht",
     "send": "Senden",
     "settings": "Einstellungen",
-    "circles": "Kreise",
     "support": "Support",
-    "transactions": "Transaktionen",
-    "usersearch": "Nutzersuche"
+    "transactions": "Transaktionen"
   },
   "openHours": "Offene Stunden",
   "pageTitle": {
@@ -314,15 +335,14 @@
     "warningText": "Bist du noch da?"
   },
   "settings": {
-    "allow-community-services": "Community-Dienste erlauben",
-    "community": "Community",
+    "community": "Kreise & Mitgliedsuche",
     "emailInfo": "Kann aktuell noch nicht geändert werden.",
     "GMS": {
       "disabled": "Daten werden nicht nach GMS exportiert",
       "enabled": "Daten werden nach GMS exportiert",
       "location": {
-        "button": "Klick mich!",
-        "label": "Positionsbestimmung",
+        "button": "Karte öffnen",
+        "label": "Dein Standort",
         "saveLocation": "Standort speichern",
         "updateSuccess": "Standort erfolgreich gespeichert"
       },
@@ -339,7 +359,6 @@
       "publish-location": {
         "exact": "Genaue Position",
         "approximate": "Ungefähre Position",
-        "random": "Zufallsposition",
         "updated": "Positionstyp für GMS aktualisiert"
       },
       "publish-name": {
