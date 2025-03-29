@@ -1,5 +1,5 @@
 <template>
-  <div v-if="humhubAllowed" class="mb-3 p-3 card-circles">
+  <div class="mb-3 p-3 card-circles">
     <BContainer class="bg-white app-box-shadow gradido-border-radius p-4 mt--3">
       <div class="h3">{{ $t('card-circles.headline') }}</div>
       <div v-if="humhubAllowed" class="my-3 text-small">
@@ -56,11 +56,7 @@ const humhubUri = ref('')
 
 const humhubAllowed = computed(() => store.state.humhubAllowed)
 
-const {
-  refetch: refetchAuthenticateHumhub,
-  onResult,
-  onError,
-} = useQuery(authenticateHumhubAutoLogin, null, {
+const { onResult, onError } = useQuery(authenticateHumhubAutoLogin, null, {
   fetchPolicy: 'network-only',
   enabled: true,
 })
@@ -76,16 +72,6 @@ onError(() => {
   enableButton.value = true
   humhubUri.value = ''
   store.commit('humhubAllowed', false)
-})
-
-const handleAuthenticateHumhubAutoLogin = async () => {
-  enableButton.value = false
-  humhubUri.value = null
-  await refetchAuthenticateHumhub()
-}
-
-onMounted(() => {
-  handleAuthenticateHumhubAutoLogin()
 })
 </script>
 <style scoped>
