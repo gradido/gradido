@@ -73,7 +73,7 @@ const gmsAllowed = store.state.gmsAllowed
 // console.log('gmsAllowed=', gmsAllowed)
 const gmsUserLocationExists = store.state.userLocation !== null
 // console.log('gmsUserLocationExists=', gmsUserLocationExists)
-const isUserSearchDisabled = computed(() => gmsUri.value !== null)
+const isUserSearchDisabled = computed(() => gmsUri.value === null)
 
 const { onResult, result, loading, onError } = useQuery(authenticateGmsUserSearch, null, {
   fetchPolicy: 'network-only',
