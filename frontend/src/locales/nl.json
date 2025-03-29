@@ -20,6 +20,28 @@
     }
   },
   "back": "Terug",
+  "card-circles": {
+    "headline": "Samenwerkingsplatform “Gradido Kringen”",
+    "text": "Lokale kringen, studiekringen, projecten, evenementen en congressen",
+    "allowed": {
+      "button": "Kringen starten..."
+    },
+    "not-allowed": {
+      "button": "Configureren..."
+    }
+  },
+  "card-user-search": {
+    "headline": "Geografisch leden zoeken (experimenteel)",
+    "allowed": {
+      "button": "Zoeken naar gebruikers starten...",
+      "disabled-button": "GMS offline...",
+      "text": "Vind leden van alle gemeenschappen op een kaart."
+    },
+    "not-allowed": {
+      "button": "Locatie instellen...",
+      "text": "Vind leden van alle gemeenschappen op een kaart? Dan moet je eerst je locatie instellen."
+    }
+  },
   "circles": {
     "headline": "Samen ondersteunen we elkaar - mindful in de cirkelcultuur.",
     "text": "Klik op de knop om het samenwerkingsplatform te openen in een nieuw browservenster.",
@@ -261,7 +283,7 @@
     "send": "Send Gradidos",
     "settings": "Settings",
     "transactions": "Your transactions",
-    "circles": "Gradido Cirkels",
+    "circles": "Gradido Kringen",
     "usersearch": "Geografisch leden zoeken (experimenteel)"
   },
   "qrCode": "QR Code",

@@ -22,6 +22,28 @@
     }
   },
   "back": "Retour",
+  "card-circles": {
+    "headline": "Plate-forme de coopération «Cercles Gradido»",
+    "text": "Cercles locaux, cercles d'études, projets, événements et congrès",
+    "allowed": {
+      "button": "Démarrer les cercles..."
+    },
+    "not-allowed": {
+      "button": "Configurer..."
+    }
+  },
+  "card-user-search": {
+    "headline": "Recherche géographique de membres (expérimentale)",
+    "allowed": {
+      "button": "Commencer la recherche d'utilisateurs...",
+      "disabled-button": "GMS offline...",
+      "text": "Trouve des membres de toutes les communautés sur une carte."
+    },
+    "not-allowed": {
+      "button": "Configuration de l'emplacement...",
+      "text": "Trouve des membres de toutes les communautés sur une carte? Alors tu dois d'abord définir ton emplacement."
+    }
+  },
   "circles": {
     "headline": "Ensemble, nous nous soutenons mutuellement - attentifs à la culture du cercle.",
     "text": "En cliquant sur le bouton, tu ouvres la plateforme de coopération dans une nouvelle fenêtre de navigation.",
