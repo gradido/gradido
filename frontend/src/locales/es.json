@@ -262,7 +262,7 @@
     "settings": "Soporte",
     "transactions": "Tu Transacciones",
     "circles": "Círculos Gradido",
-    "usersearch": "Búsqueda geográfica de usuarios"
+    "usersearch": "Búsqueda geográfica de miembros (experimental)"
   },
   "qrCode": "Código QR",
   "send_gdd": "Enviar GDD",
