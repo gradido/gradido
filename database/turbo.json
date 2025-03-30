@@ -12,6 +12,12 @@
     },
     "up": {
       "cache": false
+    },
+    "down": {
+      "cache": false
+    },
+    "reset": {
+      "cache": false
     }
   }
 }
