@@ -1,6 +1,9 @@
 {
   "extends": ["//"],
   "tasks": {
+    "clear": {
+      "cache": false
+    },
     "up:backend_test": {
       "cache": false
     },

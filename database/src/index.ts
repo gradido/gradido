@@ -6,8 +6,16 @@ import { createPool } from 'mysql2'
 import { Migration, MigrationConnection } from 'ts-mysql-migrate'
 import path from 'path'
 import { latestDbVersion } from './config/detectLastDBVersion'
+import { clearDatabase } from './clear'
 
 const run = async (command: string) => {
+  if (command === 'clear') {
+    if (CONFIG.NODE_ENV === 'production') {
+      throw new Error('Clearing database in production is not allowed')
+    }
+    await clearDatabase()
+    return
+  }
   // Database actions not supported by our migration library
   // await createDatabase()
   const state = await getDatabaseState()
@@ -55,7 +63,9 @@ const run = async (command: string) => {
       await migration.down() // use for downgrade script
       break
     case 'reset':
-      // TODO protect from production
+      if (CONFIG.NODE_ENV === 'production') {
+        throw new Error('Resetting database in production is not allowed')
+      }
       await migration.reset()
       break
     default:
