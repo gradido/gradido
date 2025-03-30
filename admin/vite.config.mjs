@@ -7,13 +7,17 @@ import IconsResolve from 'unplugin-icons/resolver'
 import { BootstrapVueNextResolver } from 'bootstrap-vue-next'
 import EnvironmentPlugin from 'vite-plugin-environment'
 import schema from './src/config/schema.js'
-import CONFIG from './src/config'
+
 import { validate, browserUrls } from 'config'
 import path from 'path'
 
 import dotenv from 'dotenv'
 
 dotenv.config() // load env vars from .env
+
+// need to be imported after dotenv.config()
+// eslint-disable-next-line import/first
+import CONFIG from './src/config'
 
 export default defineConfig(async ({ command }) => {
   const { vitePluginGraphqlLoader } = await import('vite-plugin-graphql-loader')
@@ -28,7 +32,7 @@ export default defineConfig(async ({ command }) => {
     CONFIG.ADMIN_AUTH_URL,
     CONFIG.COMMUNITY_URL,
     CONFIG.COMMUNITY_REGISTER_URL,
-    CONFIG.GRAPHQL_URI,
+    CONFIG.GRAPHQL_URL,
     CONFIG.FRONTEND_MODULE_URL,
   ])
 
@@ -73,11 +77,8 @@ export default defineConfig(async ({ command }) => {
         COMMUNITY_HOST: CONFIG.ADMIN_MODULE_HOST ?? null, // null,
         COMMUNITY_URL: CONFIG.COMMUNITY_URL ?? null,
         URL_PROTOCOL: CONFIG.ADMIN_MODULE_PROTOCOL ?? null, // null,
-        WALLET_AUTH_URL: CONFIG.WALLET_AUTH_URL ?? null,
-        GRAPHQL_URL: CONFIG.GRAPHQL_URI ?? null, // null,
-        GRAPHQL_PATH: process.env.GRAPHQL_PATH ?? '/graphql', // null,
-        WALLET_AUTH_PATH: CONFIG.WALLET_AUTH_PATH ?? null,
-        WALLET_LOGIN_PATH: CONFIG.WALLET_LOGIN_URL ?? null, // null,
+        WALLET_URL: CONFIG.WALLET_URL ?? null,
+        GRAPHQL_URL: CONFIG.GRAPHQL_URL ?? null, // null,
         DEBUG_DISABLE_AUTH: CONFIG.DEBUG_DISABLE_AUTH ?? null, // null,
         OPENAI_ACTIVE: CONFIG.OPENAI_ACTIVE ?? null, // null,
         HUMHUB_ACTIVE: CONFIG.HUMHUB_ACTIVE ?? null, // null,

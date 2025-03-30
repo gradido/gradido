@@ -45,7 +45,20 @@ export const COMMUNITY_URL = Joi.string()
   .default('http://0.0.0.0')
   .required()
 
+// TODO: deprecated
 export const GRAPHQL_URI = Joi.string()
+  .uri({ scheme: ['http', 'https'] })
+  .description(
+    `
+    The external URL of the backend service,
+    accessible from outside the server (e.g., via Nginx or the server's public URL),
+    should have the same protocol as frontend and admin to prevent mixed contend issues.
+  `,
+  )
+  .default('http://0.0.0.0/graphql')
+  .required()
+
+export const GRAPHQL_URL = Joi.string()
   .uri({ scheme: ['http', 'https'] })
   .description(
     `

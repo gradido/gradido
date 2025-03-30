@@ -4,7 +4,7 @@ import CONFIG from '../config'
 import store from '../store/store'
 import { provideApolloClient } from '@vue/apollo-composable'
 
-const httpLink = new HttpLink({ uri: CONFIG.GRAPHQL_URI })
+const httpLink = new HttpLink({ uri: CONFIG.GRAPHQL_URL })
 
 const authLink = new ApolloLink((operation, forward) => {
   const token = store.state.token

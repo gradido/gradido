@@ -13,7 +13,7 @@
     "start": "cross-env TZ=UTC TS_NODE_BASEURL=./build ts-node -r tsconfig-paths/register build/src/index.js",
     "dev": "cross-env TZ=UTC nodemon -w src --ext ts,pug,json,css --exec ts-node -r tsconfig-paths/register src/index.ts",
     "lint": "eslint --max-warnings=0 .",
-    "test": "cross-env TZ=UTC NODE_ENV=development jest --runInBand --forceExit --detectOpenHandles",
+    "test": "cross-env TZ=UTC NODE_ENV=development DB_DATABASE=gradido_test_backend jest --runInBand --forceExit --detectOpenHandles",
     "seed": "cross-env TZ=UTC NODE_ENV=development ts-node -r tsconfig-paths/register src/seeds/index.ts",
     "klicktipp": "cross-env TZ=UTC NODE_ENV=development ts-node -r tsconfig-paths/register src/util/executeKlicktipp.ts",
     "gmsusers": "cross-env TZ=UTC NODE_ENV=development ts-node -r tsconfig-paths/register src/seeds/gmsUsers.ts",
@@ -94,6 +94,7 @@
     "ts-jest": "^27.0.5",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.1.1",
+    "tsx": "^4.19.3",
     "typescript": "^4.9.5"
   },
   "nodemonConfig": {

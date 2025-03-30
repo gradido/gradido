@@ -6,7 +6,7 @@ const pkg = require('../../package')
 
 const version = {
   ADMIN_MODULE_PROTOCOL: process.env.ADMIN_MODULE_PROTOCOL ?? 'http',
-  ADMIN_MODULE_HOST: process.env.ADMIN_MODULE_HOST ?? '0.0.0.0',
+  ADMIN_MODULE_HOST: process.env.ADMIN_MODULE_HOST ?? '127.0.0.1',
   ADMIN_MODULE_PORT: process.env.ADMIN_MODULE_PORT ?? '8080',
   APP_VERSION: pkg.version,
   BUILD_COMMIT: process.env.BUILD_COMMIT ?? undefined,
@@ -39,10 +39,10 @@ const environment = {
 // const COMMUNITY_URL =
 //   COMMUNITY_HOST && URL_PROTOCOL ? URL_PROTOCOL + '://' + COMMUNITY_HOST : undefined
 const COMMUNITY_URL = process.env.COMMUNITY_URL ?? ADMIN_MODULE_URL
-const WALLET_URL = process.env.WALLET_URL ?? COMMUNITY_URL ?? 'http://0.0.0.0'
+const WALLET_URL = process.env.WALLET_URL ?? COMMUNITY_URL ?? 'http://127.0.0.1'
 
 const endpoints = {
-  GRAPHQL_URI: process.env.GRAPHQL_URL ?? COMMUNITY_URL + (process.env.GRAPHQL_PATH ?? '/graphql'),
+  GRAPHQL_URL: process.env.GRAPHQL_URL ?? COMMUNITY_URL + (process.env.GRAPHQL_PATH ?? '/graphql'),
   WALLET_AUTH_URL: WALLET_URL + (process.env.WALLET_AUTH_PATH ?? '/authenticate?token='),
   WALLET_LOGIN_URL: WALLET_URL + (process.env.WALLET_LOGIN_PATH ?? '/login'),
 }

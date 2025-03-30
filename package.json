@@ -18,7 +18,8 @@
     "frontend"
   ],
   "scripts": {
-    "release": "scripts/release.sh"
+    "release": "scripts/release.sh",
+    "docker": "docker compose up mariadb phpmyadmin mailserver"
   },
   "dependencies": {
     "auto-changelog": "^2.4.0",

@@ -6,6 +6,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 
 import { entities } from '@entity/index'
+import { Migration } from '@entity/Migration'
 import { createTestClient } from 'apollo-server-testing'
 
 import { createServer } from '@/server/createServer'
@@ -42,11 +43,10 @@ export const testEnvironment = async (testLogger = logger, testI18n = i18n) => {
 }
 
 export const resetEntity = async (entity: any) => {
-  const items = await entity.find({ withDeleted: true })
-  if (items.length > 0) {
-    const ids = items.map((e: any) => e.id)
-    await entity.delete(ids)
+  if (entity === Migration) {
+    return
   }
+  await entity.clear()
 }
 
 export const resetToken = () => {

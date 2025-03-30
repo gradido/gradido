@@ -15,7 +15,7 @@
       "persistent": true
     },
     "dev": {
-      "dependsOn": ["watch-scss"]
+      "dependsOn": ["compile-scss"]
     },
     "build": {
       "dependsOn": ["compile-scss"]

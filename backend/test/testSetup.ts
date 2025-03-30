@@ -1,4 +1,6 @@
 // eslint-disable-next-line import/no-unassigned-import
+import 'reflect-metadata'
+// eslint-disable-next-line import/no-unassigned-import
 import 'openai/shims/node'
 import { CONFIG } from '@/config'
 import { i18n } from '@/server/localization'

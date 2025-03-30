@@ -36,7 +36,7 @@ const server = {
 }
 
 const database = {
-  DB_HOST: process.env.DB_HOST ?? 'localhost',
+  DB_HOST: process.env.DB_HOST ?? '127.0.0.1',
   DB_PORT: process.env.DB_PORT ? parseInt(process.env.DB_PORT) : 3306,
   DB_USER: process.env.DB_USER ?? 'root',
   DB_PASSWORD: process.env.DB_PASSWORD ?? '',
@@ -81,16 +81,16 @@ const loginServer = {
 }
 
 const email = {
-  EMAIL: process.env.EMAIL === 'true' || false,
+  EMAIL: process.env.EMAIL === 'true' || true,
   EMAIL_TEST_MODUS: process.env.EMAIL_TEST_MODUS === 'true' || false,
   EMAIL_TEST_RECEIVER: process.env.EMAIL_TEST_RECEIVER ?? 'stage1@gradido.net',
   EMAIL_USERNAME: process.env.EMAIL_USERNAME ?? '',
   EMAIL_SENDER: process.env.EMAIL_SENDER ?? 'info@gradido.net',
   EMAIL_PASSWORD: process.env.EMAIL_PASSWORD ?? '',
-  EMAIL_SMTP_HOST: process.env.EMAIL_SMTP_HOST ?? 'mailserver',
+  EMAIL_SMTP_HOST: process.env.EMAIL_SMTP_HOST ?? '127.0.0.1',
   EMAIL_SMTP_PORT: Number(process.env.EMAIL_SMTP_PORT) || 1025,
   // eslint-disable-next-line no-unneeded-ternary
-  EMAIL_TLS: process.env.EMAIL_TLS === 'false' ? false : true,
+  EMAIL_TLS: process.env.EMAIL_TLS === 'false' ? false : !!process.env.EMAIL_SMTP_PORT,
   EMAIL_LINK_VERIFICATION:
     COMMUNITY_URL + (process.env.EMAIL_LINK_VERIFICATION_PATH ?? '/checkEmail/'),
   EMAIL_LINK_SETPASSWORD:
@@ -107,6 +107,7 @@ const email = {
     ? (parseInt(process.env.EMAIL_CODE_REQUEST_TIME) ?? 10)
     : 10,
 }
+// console.log(email)
 
 const webhook = {
   // Elopage
