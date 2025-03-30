@@ -30,6 +30,7 @@ module.exports = {
     'no-console': 'error',
     camelcase: 'error',
     'no-debugger': 'error',
+    'no-unused-vars': 'off', // switch off, because it can't handle enum
     'prettier/prettier': [
       'error',
       {
@@ -152,6 +153,7 @@ module.exports = {
     // 'promise/valid-params': 'warn',
     // 'promise/prefer-await-to-callbacks': 'error',
     // 'promise/no-multiple-resolved': 'error',
+    '@typescript-eslint/no-unused-vars': 'error',
     // eslint comments
     '@eslint-community/eslint-comments/disable-enable-pair': ['error', { allowWholeFile: true }],
     '@eslint-community/eslint-comments/no-restricted-disable': 'error',

@@ -1,4 +1,5 @@
 import { ObjectSchema } from 'joi'
+
 export * from './commonSchema'
 
 export function validate(schema: ObjectSchema, data: any) {

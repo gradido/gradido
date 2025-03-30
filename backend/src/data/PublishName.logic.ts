@@ -51,6 +51,9 @@ export class PublishNameLogic {
    *   first initial from user.lastName for PUBLISH_NAME_FIRST_INITIAL
    */
   public getLastName(publishNameType: PublishNameType): string {
+    // Return the full last name for PUBLISH_NAME_FULL
+    // Return only the first character of last name for PUBLISH_NAME_FIRST_INITIAL
+    // Return empty string for all other publish name types
     return publishNameType === PublishNameType.PUBLISH_NAME_FULL
       ? this.user.lastName
       : publishNameType === PublishNameType.PUBLISH_NAME_FIRST_INITIAL

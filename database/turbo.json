@@ -1,0 +1,17 @@
+{
+  "extends": ["//"],
+  "tasks": {
+    "up:backend_test": {
+      "cache": false
+    },
+    "up:federation_test": {
+      "cache": false
+    },
+    "up:dht_test": {
+      "cache": false
+    },
+    "up": {
+      "cache": false
+    }
+  }
+}

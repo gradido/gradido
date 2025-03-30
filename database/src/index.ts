@@ -1,14 +1,25 @@
-import { createDatabase } from './prepare'
+import { DatabaseState, getDatabaseState } from './prepare'
 import { CONFIG } from './config'
 
-import { createPool } from 'mysql'
-import { Migration } from 'ts-mysql-migrate'
+import { createPool } from 'mysql2'
+import { Migration, MigrationConnection } from 'ts-mysql-migrate'
 import path from 'path'
 
 const run = async (command: string) => {
   // Database actions not supported by our migration library
-  await createDatabase()
-
+  // await createDatabase()
+  const state = await getDatabaseState()
+  if (state === DatabaseState.NOT_CONNECTED) {
+    throw new Error('Database not connected')
+  }
+  if (state === DatabaseState.HIGHER_VERSION) {
+    throw new Error('Database version is higher than required, please switch to the correct branch')
+  }
+  if (state === DatabaseState.SAME_VERSION) {
+    // eslint-disable-next-line no-console
+    console.log('Database is up to date')
+    return
+  }
   // Initialize Migrations
   const pool = createPool({
     host: CONFIG.DB_HOST,
@@ -18,7 +29,7 @@ const run = async (command: string) => {
     database: CONFIG.DB_DATABASE,
   })
   const migration = new Migration({
-    conn: pool,
+    conn: pool as unknown as MigrationConnection,
     tableName: CONFIG.MIGRATIONS_TABLE,
     silent: true,
     dir: path.join(__dirname, '..', 'migrations'),

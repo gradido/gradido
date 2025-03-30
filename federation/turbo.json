@@ -1,0 +1,11 @@
+{
+  "extends": ["//"],
+  "tasks": {
+    "test": {
+      "dependsOn": ["database#up:federation_test"]
+    },
+    "dev": {
+      "dependsOn": ["database#up"]
+    }
+  }
+}
