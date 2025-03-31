@@ -136,8 +136,8 @@ const hideResubmissionModel = ref(true)
 
 const formatDateOrDash = (value) => (value ? new Date(value).toLocaleDateString() : '—')
 const baseFields = {
-  firstName: { key: 'firstName', label: t('firstname'), class: 'no-select' },
-  lastName: { key: 'lastName', label: t('lastname'), class: 'no-select' },
+  firstName: { key: 'user.firstName', label: t('firstname'), class: 'no-select' },
+  lastName: { key: 'user.lastName', label: t('lastname'), class: 'no-select' },
   amount: { key: 'amount', label: t('creation'), formatter: (value) => value + ' GDD' },
   memo: { key: 'memo', label: t('text'), class: 'text-break' },
   contributionDate: {
