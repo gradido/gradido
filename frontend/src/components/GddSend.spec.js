@@ -1,21 +1,24 @@
 import { mount } from '@vue/test-utils'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import GddSend from './GddSend'
-
-const localVue = global.localVue
 
 describe('GddSend', () => {
   let wrapper
 
   const mocks = {
-    $t: jest.fn((t) => t),
+    $t: vi.fn((t) => t),
     $i18n: {
-      locale: jest.fn(() => 'en'),
+      locale: vi.fn(() => 'en'),
     },
-    $n: jest.fn((n) => String(n)),
+    $n: vi.fn((n) => String(n)),
   }
 
   const Wrapper = () => {
-    return mount(GddSend, { localVue, mocks })
+    return mount(GddSend, {
+      global: {
+        mocks,
+      },
+    })
   }
 
   describe('mount', () => {
@@ -24,7 +27,7 @@ describe('GddSend', () => {
     })
 
     it('renders the component', () => {
-      expect(wrapper.find('div.gdd-send').exists()).toBeTruthy()
+      expect(wrapper.find('div.gdd-send').exists()).toBe(true)
     })
   })
 })

@@ -1,103 +1,189 @@
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { mount } from '@vue/test-utils'
-import SessionLogoutTimeout from './SessionLogoutTimeout'
+import { nextTick, ref } from 'vue'
+import SessionLogoutTimeout from './SessionLogoutTimeout.vue'
+import { useLazyQuery } from '@vue/apollo-composable'
+import { useStore } from 'vuex'
 
-const localVue = global.localVue
+// Mock external dependencies
+vi.mock('vuex', () => ({
+  useStore: vi.fn(),
+}))
 
-const apolloQueryMock = jest.fn()
+vi.mock('@vue/apollo-composable', () => ({
+  useLazyQuery: vi.fn(() => ({
+    load: vi.fn(),
+    loading: ref(false),
+    error: ref(null),
+  })),
+}))
+
+// Mock bootstrap-vue-next
+const mockHide = vi.fn()
+
+vi.mock('bootstrap-vue-next', () => ({
+  useModal: vi.fn(() => ({
+    hide: mockHide,
+  })),
+  BModal: {
+    name: 'BModal',
+    props: ['modelValue'],
+    template: '<div><slot></slot><slot name="modal-footer"></slot></div>',
+  },
+  BCard: { name: 'BCard', template: '<div><slot></slot></div>' },
+  BCardText: { name: 'BCardText', template: '<div><slot></slot></div>' },
+  BRow: { name: 'BRow', template: '<div><slot></slot></div>' },
+  BCol: { name: 'BCol', template: '<div><slot></slot></div>' },
+  BButton: { name: 'BButton', template: '<button><slot></slot></button>' },
+}))
 
 const setTokenTime = (seconds) => {
   const now = new Date()
   return Math.floor(new Date(now.setSeconds(now.getSeconds() + seconds)).getTime() / 1000)
 }
 
-const mocks = {
-  $store: {
-    state: {
-      token: '1234',
-      tokenTime: setTokenTime(120),
-    },
-  },
-  $i18n: {
-    locale: 'en',
-  },
-  $t: jest.fn((t) => t),
-  $apollo: {
-    query: apolloQueryMock,
-  },
-  $route: {
-    meta: {
-      requiresAuth: true,
-    },
-  },
-}
-
 describe('SessionLogoutTimeout', () => {
-  let wrapper, spy
+  let wrapper
 
-  const Wrapper = () => {
-    return mount(SessionLogoutTimeout, { localVue, mocks })
+  const createWrapper = (tokenTime = setTokenTime(120)) => {
+    vi.mocked(useStore).mockReturnValue({
+      state: {
+        tokenTime: tokenTime,
+      },
+    })
+    return mount(SessionLogoutTimeout, {
+      global: {
+        mocks: {
+          $t: (key) => key,
+        },
+      },
+    })
   }
 
-  describe('mount', () => {
-    beforeEach(() => {
-      jest.clearAllMocks()
-      wrapper = Wrapper()
+  beforeEach(() => {
+    vi.useFakeTimers()
+    mockHide.mockClear()
+  })
+
+  afterEach(() => {
+    vi.clearAllMocks()
+    vi.useRealTimers()
+  })
+
+  it('renders the component div.session-logout-timeout', () => {
+    wrapper = createWrapper()
+    expect(wrapper.find('div.session-logout-timeout').exists()).toBe(true)
+  })
+
+  describe('token expiration', () => {
+    it('shows modal when remaining time is 75 seconds or less', async () => {
+      wrapper = createWrapper(setTokenTime(74))
+      await nextTick()
+
+      vi.runOnlyPendingTimers()
+      await nextTick()
+
+      const modal = wrapper.findComponent({ name: 'BModal' })
+      expect(modal.props('modelValue')).toBe(true)
     })
 
-    it('renders the component div.session-logout-timeout', () => {
-      expect(wrapper.find('div.session-logout-timeout').exists()).toBe(true)
+    it('does not show modal when remaining time is more than 75 seconds', async () => {
+      // 76 don't work, because value will be rounded down with floor, so with running the code time were passing,
+      // and 76 will be rounded down to 75
+      wrapper = createWrapper(setTokenTime(77))
+      await nextTick()
+
+      const modal = wrapper.findComponent({ name: 'BModal' })
+      expect(modal.props('modelValue')).toBe(false)
     })
 
-    describe('timers', () => {
-      it('has a token expires timer', () => {
-        expect(wrapper.vm.$options.timers).toEqual({
-          tokenExpires: expect.objectContaining({
-            name: 'tokenExpires',
-            time: 15000,
-            repeat: true,
-            immediate: true,
-            autostart: true,
-            isSwitchTab: false,
-          }),
-        })
+    it('emits logout when time expires', async () => {
+      wrapper = createWrapper(setTokenTime(2))
+      await nextTick()
+
+      vi.runAllTimers()
+      await nextTick()
+
+      expect(wrapper.emitted('logout')).toBeTruthy()
+    })
+  })
+
+  describe('handleOk', () => {
+    it('hides modal and continues session on successful verification', async () => {
+      const mockLoad = vi.fn().mockResolvedValue({})
+      vi.mocked(useLazyQuery).mockReturnValue({
+        load: mockLoad,
+        loading: ref(false),
+        error: ref(null),
       })
 
-      describe('token is expired for several seconds', () => {
-        beforeEach(() => {
-          mocks.$store.state.tokenTime = setTokenTime(-60)
-          wrapper = Wrapper()
-        })
+      wrapper = createWrapper()
+      await wrapper.findComponent({ name: 'BButton' }).trigger('click')
+      await nextTick()
 
-        it('has value for remaining seconds equal 0', () => {
-          expect(wrapper.tokenExpiresInSeconds === 0)
-        })
+      expect(mockLoad).toHaveBeenCalled()
+      expect(mockHide).toHaveBeenCalledWith('modalSessionTimeOut')
+      expect(wrapper.emitted('logout')).toBeFalsy()
+    })
 
-        it('emits logout', () => {
-          expect(wrapper.emitted('logout')).toBeTruthy()
-        })
+    it('emits logout on verification failure', async () => {
+      const mockLoad = vi.fn().mockResolvedValue({})
+      vi.mocked(useLazyQuery).mockReturnValue({
+        load: mockLoad,
+        loading: ref(false),
+        error: ref(new Error('Verification failed')),
       })
 
-      describe('token time less than 75 seconds', () => {
-        beforeEach(() => {
-          mocks.$store.state.tokenTime = setTokenTime(60)
-          jest.useFakeTimers()
-          wrapper = Wrapper()
-          spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
-          spy.mockImplementation(() => Promise.resolve(true))
-        })
+      wrapper = createWrapper()
+      await wrapper.findComponent({ name: 'BButton' }).trigger('click')
+      await nextTick()
 
-        it('sets the timer to 1000', () => {
-          expect(wrapper.vm.timers.tokenExpires.time).toBe(1000)
-        })
+      expect(mockLoad).toHaveBeenCalled()
+      expect(wrapper.emitted('logout')).toBeTruthy()
+    })
 
-        it.skip('opens the modal', () => {
-          jest.advanceTimersByTime(1000)
-          jest.advanceTimersByTime(1000)
-          jest.advanceTimersByTime(1000)
-          jest.advanceTimersByTime(1000)
-          expect(spy).toBeCalled()
-        })
+    it('emits logout when verification throws an error', async () => {
+      const mockLoad = vi.fn().mockRejectedValue(new Error('Network error'))
+      vi.mocked(useLazyQuery).mockReturnValue({
+        load: mockLoad,
+        loading: ref(false),
+        error: ref(null),
       })
+
+      wrapper = createWrapper()
+      await wrapper.findComponent({ name: 'BButton' }).trigger('click')
+      await nextTick()
+
+      expect(mockLoad).toHaveBeenCalled()
+      expect(wrapper.emitted('logout')).toBeTruthy()
+    })
+  })
+
+  describe('time formatting', () => {
+    it('formats remaining time correctly', async () => {
+      wrapper = createWrapper(setTokenTime(65))
+      await nextTick()
+
+      const warningText = wrapper.find('.text-warning')
+      // second will be rounded with floor
+      expect(warningText.text()).toContain('64')
+    })
+
+    it('shows 00 when time is expired', async () => {
+      wrapper = createWrapper(setTokenTime(-1))
+      await nextTick()
+
+      const warningText = wrapper.find('.text-warning')
+      expect(warningText.text()).toContain('00')
+    })
+  })
+
+  describe('cleanup', () => {
+    it('clears interval on unmount', () => {
+      const clearIntervalSpy = vi.spyOn(window, 'clearInterval')
+      wrapper = createWrapper()
+      wrapper.unmount()
+      expect(clearIntervalSpy).toHaveBeenCalled()
     })
   })
 })

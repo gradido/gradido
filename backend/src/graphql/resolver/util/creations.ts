@@ -10,6 +10,7 @@ import { OpenCreation } from '@model/OpenCreation'
 import { FULL_CREATION_AVAILABLE, MAX_CREATION_AMOUNT } from '@/graphql/resolver/const/const'
 import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
+import { getFirstDayOfPreviousNMonth } from '@/util/utilities'
 
 interface CreationMap {
   id: number
@@ -115,8 +116,8 @@ const getCreationDates = (timezoneOffset: number): Date[] => {
     `getCreationMonths -- offset: ${timezoneOffset} -- clientNow: ${clientNow.toISOString()}`,
   )
   return [
-    new Date(clientNow.getFullYear(), clientNow.getMonth() - 2, 1),
-    new Date(clientNow.getFullYear(), clientNow.getMonth() - 1, 1),
+    getFirstDayOfPreviousNMonth(clientNow, 2),
+    getFirstDayOfPreviousNMonth(clientNow, 1),
     clientNow,
   ]
 }

@@ -40,6 +40,7 @@ export const sendAccountActivationEmail = (data: {
   language: string
   activationLink: string
   timeDurationObject: Record<string, unknown>
+  logoUrl?: string | null
 }): Promise<Record<string, unknown> | boolean | null> => {
   return sendEmailTranslated({
     receiver: { to: `${data.firstName} ${data.lastName} <${data.email}>` },
@@ -50,6 +51,7 @@ export const sendAccountActivationEmail = (data: {
       locale: data.language,
       activationLink: data.activationLink,
       timeDurationObject: data.timeDurationObject,
+      logoUrl: data.logoUrl,
       resendLink: CONFIG.EMAIL_LINK_FORGOTPASSWORD,
       supportEmail: CONFIG.COMMUNITY_SUPPORT_MAIL,
       communityURL: CONFIG.COMMUNITY_URL,
@@ -247,6 +249,7 @@ export const sendTransactionReceivedEmail = (data: {
   senderFirstName: string
   senderLastName: string
   senderEmail: string
+  memo: string
   transactionAmount: Decimal
 }): Promise<Record<string, unknown> | boolean | null> => {
   return sendEmailTranslated({
@@ -256,6 +259,7 @@ export const sendTransactionReceivedEmail = (data: {
       firstName: data.firstName,
       lastName: data.lastName,
       locale: data.language,
+      memo: data.memo,
       senderFirstName: data.senderFirstName,
       senderLastName: data.senderLastName,
       senderEmail: data.senderEmail,

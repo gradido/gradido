@@ -1,144 +1,153 @@
 import { mount } from '@vue/test-utils'
-import ContributionLinkForm from './ContributionLinkForm'
-import { toastErrorSpy, toastSuccessSpy } from '../../../test/testSetup'
-import { createContributionLink } from '@/graphql/createContributionLink.js'
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
+import ContributionLinkForm from './ContributionLinkForm.vue'
 
-const localVue = global.localVue
+// Mock external dependencies
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({
+    t: (key) => key,
+  }),
+}))
 
-global.alert = jest.fn()
+const mockMutate = vi.fn()
+vi.mock('@vue/apollo-composable', () => ({
+  useMutation: () => ({
+    mutate: mockMutate,
+  }),
+}))
 
-const propsData = {
-  contributionLinkData: {},
-  editContributionLink: false,
+const mockToastError = vi.fn()
+const mockToastSuccess = vi.fn()
+vi.mock('@/composables/useToast', () => ({
+  useAppToast: () => ({
+    toastError: mockToastError,
+    toastSuccess: mockToastSuccess,
+  }),
+}))
+
+const mockRouter = {
+  push: vi.fn(),
 }
-const apolloMutateMock = jest.fn().mockResolvedValue()
-
-const mocks = {
-  $t: jest.fn((t) => t),
-  $apollo: {
-    mutate: apolloMutateMock,
-  },
-}
-
-// const mockAPIcall = jest.fn()
+vi.mock('vue-router', () => ({
+  useRouter: () => mockRouter,
+}))
 
 describe('ContributionLinkForm', () => {
   let wrapper
 
-  const Wrapper = () => {
-    return mount(ContributionLinkForm, { localVue, mocks, propsData })
+  const createWrapper = (props = {}) => {
+    return mount(ContributionLinkForm, {
+      props: {
+        contributionLinkData: {},
+        editContributionLink: false,
+        ...props,
+      },
+      global: {
+        mocks: {
+          $t: (key) => key,
+        },
+        stubs: {
+          BForm: true,
+          BRow: true,
+          BCol: true,
+          BFormGroup: true,
+          BFormInput: true,
+          BFormTextarea: true,
+          BFormSelect: true,
+          BButton: true,
+        },
+      },
+    })
   }
 
-  describe('mount', () => {
-    beforeEach(() => {
-      wrapper = Wrapper()
-    })
+  beforeEach(() => {
+    wrapper = createWrapper()
+  })
 
-    it('renders the Div Element ".contribution-link-form"', () => {
-      expect(wrapper.find('div.contribution-link-form').exists()).toBe(true)
-    })
+  afterEach(() => {
+    vi.clearAllMocks()
+  })
 
-    describe('call onReset', () => {
-      it('form has the set data', () => {
-        beforeEach(() => {
-          wrapper.setData({
-            form: {
-              name: 'name',
-              memo: 'memo',
-              amount: 100,
-              validFrom: 'validFrom',
-              validTo: 'validTo',
-              cycle: 'ONCE',
-              maxPerCycle: 1,
-              maxAmountPerMonth: 100,
-            },
-          })
-          wrapper.vm.onReset()
-        })
-        expect(wrapper.vm.form).toEqual({
-          amount: null,
-          cycle: 'ONCE',
-          validTo: null,
-          maxAmountPerMonth: '0',
-          memo: null,
-          name: null,
-          maxPerCycle: 1,
-          validFrom: null,
-        })
+  it('renders the Div Element ".contribution-link-form"', () => {
+    expect(wrapper.find('div.contribution-link-form').exists()).toBe(true)
+  })
+
+  describe('onReset', () => {
+    it('resets the form data', async () => {
+      wrapper.vm.form = {
+        name: 'name',
+        memo: 'memo',
+        amount: 100,
+        validFrom: 'validFrom',
+        validTo: 'validTo',
+        cycle: 'ONCE',
+        maxPerCycle: 1,
+        maxAmountPerMonth: 100,
+      }
+      await wrapper.vm.$nextTick()
+      await wrapper.vm.onReset()
+      expect(wrapper.vm.form).toEqual({
+        validTo: null,
+        validFrom: null,
       })
     })
+  })
 
-    describe('call onSubmit', () => {
-      it('response with the contribution link url', () => {
-        wrapper.vm.onSubmit()
-      })
+  describe('onSubmit', () => {
+    const validFormData = {
+      validFrom: '2022-6-18',
+      validTo: '2022-7-18',
+      name: 'test name',
+      memo: 'test memo',
+      amount: '100',
+      cycle: 'ONCE',
+      maxPerCycle: 1,
+      maxAmountPerMonth: '0',
+    }
+
+    beforeEach(async () => {
+      wrapper.vm.form = validFormData
     })
 
-    describe('successfull submit', () => {
-      beforeEach(async () => {
-        apolloMutateMock.mockResolvedValue({
-          data: {
-            createContributionLink: {
-              link: 'https://localhost/redeem/CL-1a2345678',
-            },
+    it('calls the API and toasts success message on successful submission', async () => {
+      mockMutate.mockResolvedValue({
+        data: {
+          createContributionLink: {
+            link: 'https://localhost/redeem/CL-1a2345678',
           },
-        })
-        await wrapper
-          .findAllComponents({ name: 'BFormDatepicker' })
-          .at(0)
-          .vm.$emit('input', '2022-6-18')
-        await wrapper
-          .findAllComponents({ name: 'BFormDatepicker' })
-          .at(1)
-          .vm.$emit('input', '2022-7-18')
-        await wrapper.find('input.test-name').setValue('test name')
-        await wrapper.find('textarea.test-memo').setValue('test memo')
-        await wrapper.find('input.test-amount').setValue('100')
-        await wrapper.find('form').trigger('submit')
+        },
       })
 
-      it('calls the API', () => {
-        expect(apolloMutateMock).toHaveBeenCalledWith({
-          mutation: createContributionLink,
-          variables: {
-            validFrom: '2022-6-18',
-            validTo: '2022-7-18',
-            name: 'test name',
-            amount: '100',
-            memo: 'test memo',
-            cycle: 'ONCE',
-            maxPerCycle: 1,
-            maxAmountPerMonth: '0',
-            id: null,
-          },
-        })
+      await wrapper.vm.onSubmit()
+
+      expect(mockMutate).toHaveBeenCalledWith({
+        ...validFormData,
+        id: null,
       })
 
-      it('toasts a succes message', () => {
-        expect(toastSuccessSpy).toBeCalledWith('https://localhost/redeem/CL-1a2345678')
-      })
+      expect(mockToastSuccess).toHaveBeenCalledWith('https://localhost/redeem/CL-1a2345678')
     })
 
-    describe('send createContributionLink with error', () => {
-      beforeEach(async () => {
-        apolloMutateMock.mockRejectedValue({ message: 'OUCH!' })
-        await wrapper
-          .findAllComponents({ name: 'BFormDatepicker' })
-          .at(0)
-          .vm.$emit('input', '2022-6-18')
-        await wrapper
-          .findAllComponents({ name: 'BFormDatepicker' })
-          .at(1)
-          .vm.$emit('input', '2022-7-18')
-        await wrapper.find('input.test-name').setValue('test name')
-        await wrapper.find('textarea.test-memo').setValue('test memo')
-        await wrapper.find('input.test-amount').setValue('100')
-        await wrapper.find('form').trigger('submit')
-      })
+    it('toasts an error message on API error', async () => {
+      mockMutate.mockRejectedValue({ message: 'OUCH!' })
 
-      it('toasts an error message', () => {
-        expect(toastErrorSpy).toBeCalledWith('OUCH!')
-      })
+      await wrapper.vm.onSubmit()
+
+      expect(mockToastError).toHaveBeenCalledWith('OUCH!')
+    })
+
+    it('shows error when validFrom is not set', async () => {
+      wrapper.vm.form = { ...validFormData, validFrom: null }
+      await wrapper.vm.$nextTick()
+      await wrapper.vm.onSubmit()
+      expect(mockToastError).toHaveBeenCalledWith('contributionLink.noStartDate')
+    })
+
+    it('shows error when validTo is not set', async () => {
+      wrapper.vm.form = { ...validFormData, validTo: null }
+      await wrapper.vm.$nextTick()
+      await wrapper.vm.onSubmit()
+      expect(mockToastError).toHaveBeenCalledWith('contributionLink.noEndDate')
     })
   })
 })

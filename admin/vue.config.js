@@ -7,7 +7,7 @@ const CONFIG = require('./src/config')
 // vue.config.js
 module.exports = {
   devServer: {
-    port: CONFIG.PORT,
+    port: CONFIG.ADMIN_MODULE_PORT,
   },
   pluginOptions: {
     i18n: {
@@ -20,6 +20,23 @@ module.exports = {
   },
   lintOnSave: true,
   publicPath: '/admin',
+  chainWebpack: (config) => {
+    config.resolve.alias.set('vue', '@vue/compat')
+
+    config.module
+      .rule('vue')
+      .use('vue-loader')
+      .tap((options) => {
+        return {
+          ...options,
+          compilerOptions: {
+            compatConfig: {
+              MODE: 2,
+            },
+          },
+        }
+      })
+  },
   configureWebpack: {
     // Set up all the aliases we use in our app.
     resolve: {
@@ -35,14 +52,14 @@ module.exports = {
         // 'process.env.DOCKER_WORKDIR': JSON.stringify(process.env.DOCKER_WORKDIR),
         // 'process.env.BUILD_DATE': JSON.stringify(process.env.BUILD_DATE),
         // 'process.env.BUILD_VERSION': JSON.stringify(process.env.BUILD_VERSION),
-        'process.env.BUILD_COMMIT': JSON.stringify(CONFIG.BUILD_COMMIT),
+        'import.meta.env.BUILD_COMMIT': JSON.stringify(CONFIG.BUILD_COMMIT),
         // 'process.env.PORT': JSON.stringify(process.env.PORT),
       }),
       // generate webpack stats to allow analysis of the bundlesize
       new StatsPlugin('webpack.stats.json'),
     ],
     infrastructureLogging: {
-      level: 'warn', // 'none' | 'error' | 'warn' | 'info' | 'log' | 'verbose'
+      level: 'info', // 'none' | 'error' | 'warn' | 'info' | 'log' | 'verbose'
     },
   },
   css: {

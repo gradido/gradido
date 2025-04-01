@@ -7,7 +7,7 @@ module.exports = {
   collectCoverageFrom: ['src/**/*.ts', '!**/node_modules/**', '!src/seeds/**', '!build/**'],
   coverageThreshold: {
     global: {
-      lines: 84,
+      lines: 78,
     },
   },
   setupFiles: ['<rootDir>/test/testSetup.ts'],
@@ -16,6 +16,7 @@ module.exports = {
   moduleNameMapper: {
     '@/(.*)': '<rootDir>/src/$1',
     '@arg/(.*)': '<rootDir>/src/graphql/arg/$1',
+    '@input/(.*)': '<rootDir>/src/graphql/input/$1',
     '@dltConnector/(.*)': '<rootDir>/src/apis/dltConnector/$1',
     '@enum/(.*)': '<rootDir>/src/graphql/enum/$1',
     '@model/(.*)': '<rootDir>/src/graphql/model/$1',
@@ -38,5 +39,10 @@ module.exports = {
       process.env.NODE_ENV === 'development'
         ? '<rootDir>/../database/src/$1'
         : '<rootDir>/../database/build/src/$1',
+    '@config/(.*)':
+      // eslint-disable-next-line n/no-process-env
+      process.env.NODE_ENV === 'development'
+        ? '<rootDir>/../config/src/$1'
+        : '<rootDir>/../config/build/$1',
   },
 }

@@ -1,4 +1,12 @@
 #!/bin/bash
+
+# helper functions
+log_step() {
+    local message="$1"
+    echo -e "\e[34m$message\e[0m" > /dev/tty # blue in console
+    echo "<p style="color:blue">$message</p>" >> "$UPDATE_HTML" # blue in html 
+}
+
 # check for parameter
 if [ -z "$1" ]; then
     echo "Usage: Please provide a branch name as the first argument."
@@ -16,6 +24,7 @@ set +o allexport
 
 # enable nvm 
 export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+nvm use default
 
 # NOTE: all config values will be in process.env when starting
 # the services and will therefore take precedence over the .env
@@ -74,18 +83,18 @@ TODAY=$(date +"%Y-%m-%d")
 exec > >(tee -a $UPDATE_HTML) 2>&1
 
 # configure nginx for the update-page
-echo 'Configuring nginx to serve the update-page' >> $UPDATE_HTML
+log_step 'Configuring nginx to serve the update-page'
 ln -sf $SCRIPT_DIR/nginx/sites-available/update-page.conf $SCRIPT_DIR/nginx/sites-enabled/default
 sudo /etc/init.d/nginx restart
 
 # stop all services
-echo 'Stop and delete all Gradido services' >> $UPDATE_HTML
+log_step "Stop and delete all Gradido services"
 pm2 delete all
 pm2 save
 
 # git
 BRANCH=$1
-echo "Starting with git pull - branch:$BRANCH" >> $UPDATE_HTML
+log_step "Starting with git pull - branch:$BRANCH"
 cd $PROJECT_ROOT
 # TODO: this overfetches alot, but ensures we can use start.sh with tags
 git fetch --all
@@ -98,7 +107,7 @@ export BUILD_COMMIT="$(git rev-parse HEAD)"
 # *** set FEDERATION_PORT from FEDERATION_COMMUNITY_APIS and create gradido-federation.conf file
 rm -f $NGINX_CONFIG_DIR/gradido.conf.tmp
 rm -f $NGINX_CONFIG_DIR/gradido-federation.conf.locations
-echo "====================================================================================================" >> $UPDATE_HTML
+log_step "===================================================================================================="
 IFS="," read -a API_ARRAY <<< $FEDERATION_COMMUNITY_APIS
 for api in "${API_ARRAY[@]}"
 do
@@ -108,18 +117,18 @@ do
   FEDERATION_PORT=${FEDERATION_COMMUNITY_API_PORT:-5000}
   FEDERATION_PORT=$(($FEDERATION_PORT + $port))
   export FEDERATION_PORT
-  echo "create ngingx config: location /api/$FEDERATION_APIVERSION  to  http://127.0.0.1:$FEDERATION_PORT" >> $UPDATE_HTML
+  log_step "create ngingx config: location /api/$FEDERATION_APIVERSION  to  http://127.0.0.1:$FEDERATION_PORT"
   envsubst '$FEDERATION_APIVERSION, $FEDERATION_PORT' < $NGINX_CONFIG_DIR/gradido-federation.conf.template >> $NGINX_CONFIG_DIR/gradido-federation.conf.locations
 done
 unset FEDERATION_APIVERSION
 unset FEDERATION_PORT
-echo "====================================================================================================" >> $UPDATE_HTML
+log_step "===================================================================================================="
 
 # *** 2nd read gradido-federation.conf file in env variable to be replaced in 3rd step
 export FEDERATION_NGINX_CONF=$(< $NGINX_CONFIG_DIR/gradido-federation.conf.locations)
 
 # *** 3rd generate gradido nginx config including federation modules per api-version
-echo 'Generate new gradido nginx config' >> $UPDATE_HTML
+log_step 'Generate new gradido nginx config'
 case "$URL_PROTOCOL" in
  'https') TEMPLATE_FILE="gradido.conf.ssl.template" ;;
        *) TEMPLATE_FILE="gradido.conf.template" ;;
@@ -131,19 +140,24 @@ rm $NGINX_CONFIG_DIR/gradido.conf.tmp
 rm $NGINX_CONFIG_DIR/gradido-federation.conf.locations
 
 # Generate update-page.conf from template
-echo 'Generate new update-page nginx config' >> $UPDATE_HTML
+log_step 'Generate new update-page nginx config'
 case "$URL_PROTOCOL" in
  'https') TEMPLATE_FILE="update-page.conf.ssl.template" ;;
        *) TEMPLATE_FILE="update-page.conf.template" ;;
 esac
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $NGINX_CONFIG_DIR/$TEMPLATE_FILE > $NGINX_CONFIG_DIR/update-page.conf
 
+log_step 'Clean tmp and yarn cache'
 # Clean tmp folder - remove yarn files
 find /tmp -name "yarn--*" -exec rm -r {} \;
+# Clean user cache folder
+rm -Rf ~/.cache/yarn
 
+log_step 'Remove all node_modules and build folders'
 # Remove node_modules folders
 # we had problems with corrupted node_modules folder
 rm -Rf $PROJECT_ROOT/database/node_modules
+rm -Rf $PROJECT_ROOT/config/node_modules
 rm -Rf $PROJECT_ROOT/backend/node_modules
 rm -Rf $PROJECT_ROOT/frontend/node_modules
 rm -Rf $PROJECT_ROOT/admin/node_modules
@@ -153,12 +167,14 @@ rm -Rf $PROJECT_ROOT/federation/node_modules
 # Remove build folders
 # we had problems with corrupted incremtal builds
 rm -Rf $PROJECT_ROOT/database/build
+rm -Rf $PROJECT_ROOT/config/build
 rm -Rf $PROJECT_ROOT/backend/build
 rm -Rf $PROJECT_ROOT/frontend/build
 rm -Rf $PROJECT_ROOT/admin/build
 rm -Rf $PROJECT_ROOT/dht-node/build
 rm -Rf $PROJECT_ROOT/federation/build
 
+log_step 'Regenerate .env files'
 # Regenerate .env files
 cp -f $PROJECT_ROOT/database/.env $PROJECT_ROOT/database/.env.bak
 cp -f $PROJECT_ROOT/backend/.env $PROJECT_ROOT/backend/.env.bak
@@ -174,7 +190,7 @@ envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/dht-node/.env
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/federation/.env.template > $PROJECT_ROOT/federation/.env
 
 # Install & build database
-echo 'Updating database' >> $UPDATE_HTML
+log_step 'Updating database'
 cd $PROJECT_ROOT/database
 yarn install
 yarn build
@@ -185,8 +201,14 @@ else
   yarn up
 fi
 
+# Install & build config
+log_step 'Updating config'
+cd $PROJECT_ROOT/config
+yarn install
+yarn build
+
 # Install & build backend
-echo 'Updating backend' >> $UPDATE_HTML
+log_step 'Updating backend'
 cd $PROJECT_ROOT/backend
 # TODO maybe handle this differently?
 unset NODE_ENV
@@ -200,7 +222,7 @@ export NODE_ENV=production
 
 
 # Install & build frontend
-echo 'Updating frontend' >> $UPDATE_HTML
+log_step 'Updating frontend'
 cd $PROJECT_ROOT/frontend
 # TODO maybe handle this differently?
 unset NODE_ENV
@@ -210,7 +232,7 @@ yarn build
 export NODE_ENV=production
 
 # Install & build admin
-echo 'Updating admin' >> $UPDATE_HTML
+log_step 'Updating admin'
 cd $PROJECT_ROOT/admin
 # TODO maybe handle this differently?
 unset NODE_ENV
@@ -220,7 +242,7 @@ yarn build
 export NODE_ENV=production
 
 # Install & build dht-node
-echo 'Updating dht-node' >> $UPDATE_HTML
+log_step 'Updating dht-node'
 cd $PROJECT_ROOT/dht-node
 # TODO maybe handle this differently?
 unset NODE_ENV
@@ -230,7 +252,7 @@ yarn build
 export NODE_ENV=production
 
 # Install & build federation
-echo 'Updating federation' >> $UPDATE_HTML
+log_step 'Updating federation'
 cd $PROJECT_ROOT/federation
 # TODO maybe handle this differently?
 unset NODE_ENV
@@ -239,43 +261,44 @@ yarn build
 # TODO maybe handle this differently?
 export NODE_ENV=production
 
+nvm use default
 # start after building all to use up less ressources
 pm2 start --name gradido-backend "yarn --cwd $PROJECT_ROOT/backend start" -l $GRADIDO_LOG_PATH/pm2.backend.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
-pm2 start --name gradido-frontend "yarn --cwd $PROJECT_ROOT/frontend start" -l $GRADIDO_LOG_PATH/pm2.frontend.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
-pm2 start --name gradido-admin "yarn --cwd $PROJECT_ROOT/admin start" -l $GRADIDO_LOG_PATH/pm2.admin.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
+#pm2 start --name gradido-frontend "yarn --cwd $PROJECT_ROOT/frontend start" -l $GRADIDO_LOG_PATH/pm2.frontend.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
+#pm2 start --name gradido-admin "yarn --cwd $PROJECT_ROOT/admin start" -l $GRADIDO_LOG_PATH/pm2.admin.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
 pm2 save
 if [ ! -z $FEDERATION_DHT_TOPIC ]; then
   pm2 start --name gradido-dht-node "yarn --cwd $PROJECT_ROOT/dht-node start" -l $GRADIDO_LOG_PATH/pm2.dht-node.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
   pm2 save
 else
-  echo "=====================================================================" >> $UPDATE_HTML
-  echo "WARNING: FEDERATION_DHT_TOPIC not configured. DHT-Node not started..."  >> $UPDATE_HTML
-  echo "=====================================================================" >> $UPDATE_HTML
-fi  
+  log_step "====================================================================="
+  log_step "WARNING: FEDERATION_DHT_TOPIC not configured. DHT-Node not started..."
+  log_step "====================================================================="
+fi
 
 # set FEDERATION_PORT from FEDERATION_COMMUNITY_APIS
 IFS="," read -a API_ARRAY <<< $FEDERATION_COMMUNITY_APIS
 for api in "${API_ARRAY[@]}"
 do
   export FEDERATION_API=$api
-  echo "FEDERATION_API=$FEDERATION_API" >> $UPDATE_HTML
+  log_step "FEDERATION_API=$FEDERATION_API"
   export MODULENAME=gradido-federation-$api
-  echo "MODULENAME=$MODULENAME" >> $UPDATE_HTML
+  log_step "MODULENAME=$MODULENAME"
   # calculate port by remove '_' and add value of api to baseport
   port=${api//_/}
   FEDERATION_PORT=${FEDERATION_COMMUNITY_API_PORT:-5000}
   FEDERATION_PORT=$(($FEDERATION_PORT + $port))
   export FEDERATION_PORT
-  echo "====================================================" >> $UPDATE_HTML
-  echo " start $MODULENAME listening on port=$FEDERATION_PORT" >> $UPDATE_HTML
-  echo "====================================================" >> $UPDATE_HTML
+  log_step "===================================================="
+  log_step " start $MODULENAME listening on port=$FEDERATION_PORT"
+  log_step "===================================================="
 #  pm2 delete $MODULENAME
   pm2 start --name $MODULENAME "yarn --cwd $PROJECT_ROOT/federation start" -l $GRADIDO_LOG_PATH/pm2.$MODULENAME.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
   pm2 save
 done
 
 # let nginx showing gradido
-echo 'Configuring nginx to serve gradido again' >> $UPDATE_HTML
+log_step 'Configuring nginx to serve gradido again'
 ln -sf $SCRIPT_DIR/nginx/sites-available/gradido.conf $SCRIPT_DIR/nginx/sites-enabled/default
 sudo /etc/init.d/nginx restart
 

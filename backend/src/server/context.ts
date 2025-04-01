@@ -16,6 +16,7 @@ export interface Context {
   gradidoID?: string
   // hack to use less DB calls for Balance Resolver
   lastTransaction?: dbTransaction | null
+  balanceGDT?: number | null
   transactionCount?: number
   linkCount?: number
   sumHoldAvailableAmount?: Decimal

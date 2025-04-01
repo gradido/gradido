@@ -1,23 +1,23 @@
 <template>
-  <div class="community-member mt-3 mt-lg-0">
-    <div class="text-center bg-gradient">
-      <b-badge class="position-absolute mt--2 ml--5 px-3 bg-gradient">
+  <div class="community-member mt-3 mt-lg-0 position-relative">
+    <div class="text-center bg-gradido-gradient">
+      <BBadge class="position-absolute mt--2 ms--5 px-3 bg-gradido-gradient">
         {{ $t('member') }}
-      </b-badge>
+      </BBadge>
     </div>
     <div
-      class="community-member bg-white appBoxShadow gradido-border-radius p-4 border border-success"
+      class="community-member bg-white app-box-shadow gradido-border-radius p-4 border border-success"
     >
-      <b-row>
-        <b-col cols="9">
+      <BRow>
+        <BCol cols="9">
           <div class="h4">{{ $t('community.communityMember') }}</div>
           <div>{{ CONFIG.COMMUNITY_NAME }}</div>
-        </b-col>
-        <b-col cols="3" align-self="end" class="border-left border-light">
-          <b-icon icon="people"></b-icon>
+        </BCol>
+        <BCol cols="3" align-self="end" class="border-start border-dark">
+          <IBiPeople />
           {{ totalUsers }}
-        </b-col>
-      </b-row>
+        </BCol>
+      </BRow>
     </div>
   </div>
 </template>
@@ -36,3 +36,9 @@ export default {
   },
 }
 </script>
+
+<style lang="scss" scoped>
+span.bg-gradido-gradient.text-bg-secondary {
+  color: $white !important;
+}
+</style>

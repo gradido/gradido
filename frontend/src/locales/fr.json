@@ -22,6 +22,11 @@
     }
   },
   "back": "Retour",
+  "circles": {
+    "headline": "Ensemble, nous nous soutenons mutuellement - attentifs à la culture du cercle.",
+    "text": "En cliquant sur le bouton, tu ouvres la plateforme de coopération dans une nouvelle fenêtre de navigation.",
+    "button": "Démarrer les Cercles..."
+  },
   "community": {
     "admins": "Administrateurs",
     "choose-another-community": "Choisissez une autre communauté",
@@ -137,6 +142,7 @@
     "memo": "Note",
     "message": "Message",
     "new_balance": "Montant du solde après confirmation",
+    "newPasswordRepeat": "Répétez le nouveau mot de passe",
     "no_gdd_available": "Vous n'avez pas de GDD à envoyer.",
     "password": "Mot de passe",
     "passwordRepeat": "Répétez le mot de passe",
@@ -161,6 +167,7 @@
       "gddCreationTime": "Le champ {_field_} doit comprendre un nombre entre {min} et {max} avec un maximum de une décimale.",
       "gddSendAmount": "Le champ {_field_} doit comprendre un nombre entre {min} et {max} avec un maximum de deux chiffres après la virgule",
       "is-not": "Vous ne pouvez pas vous envoyer de Gradido à vous-même",
+      "requiredField": "Le champ {fieldName} est obligatoire",
       "usernmae-regex": "Le nom d'utilisateur doit commencer par une lettre, suivi d'au moins deux caractères alphanumériques.",
       "usernmae-unique": "Ce nom d'utilisateur est déjà pris."
     },
@@ -219,7 +226,8 @@
   },
   "h": "h",
   "language": "Langage",
-  "link-load": "Enregistrer le dernier lien | Enregistrer les derniers {n} liens |  Enregistrer plus de {n} liens",
+  "link-load": "Enregistrer le dernier lien | Enregistrer les derniers {n} liens",
+  "link-load-more": "Enregistrer plus de {n} liens",
   "login": "Connexion",
   "math": {
     "asterisk": "*",
@@ -260,7 +268,9 @@
     "overview": "Bienvenue {name}",
     "send": "Envoyé Gradidos",
     "settings": "Configuration",
-    "transactions": "Vos transactions"
+    "transactions": "Vos transactions",
+    "circles": "Cercles Gradido",
+    "usersearch": "Recherche géographique d'utilisateurs"
   },
   "qrCode": "QR Code",
   "send_gdd": "Envoyer GDD",
@@ -272,12 +282,30 @@
     "warningText": "Êtes-vous toujours connecté?"
   },
   "settings": {
+    "GMS": {
+      "location": {
+        "button": "Cliquez ici !",
+        "label": "Emplacement précis",
+        "saveLocation": "Enregistrer l'emplacement",
+        "updateSuccess": "Emplacement enregistré avec succès"
+      },
+      "map": {
+        "communityCoords": "Emplacement de votre communauté : Lat {lat}, Long {lng}",
+        "communityLocationLabel": "Emplacement de votre communauté",
+        "headline": "Capture de la localisation géographique de l'utilisateur",
+        "userCoords": "Votre emplacement : Lat {lat}, Long {lng}",
+        "userLocationLabel": "Votre emplacement",
+        "search": "Rechercher un emplacement",
+        "success": "Emplacement enregistré avec succès"
+      }
+    },
     "hideAmountGDD": "Votre montant GDD est caché.",
     "hideAmountGDT": "Votre montant GDT est caché.",
     "language": {
       "changeLanguage": "Changer la langue",
       "de": "Deutsch",
       "en": "English",
+      "error": "Échec de la mise à jour des paramètres linguistiques.",
       "es": "Español",
       "fr": "Français",
       "nl": "Nederlands",
@@ -351,6 +379,11 @@
   },
   "transaction-link": {
     "send_you": "veut vous envoyer"
+  },
+  "usersearch": {
+    "headline": "Recherche géographique d'utilisateurs",
+    "text": "Quelle que soit la communauté à laquelle tu appartiens, le système de géo-matching te permet de trouver des membres de toutes les communautés sur une carte géographique. Tu peux filtrer selon les offres et les besoins et afficher les utilisateurs qui te correspondent.\n\nEn cliquant sur le bouton, une nouvelle fenêtre de navigateur s'ouvre et t'affiche les utilisateurs de ton entourage sur une carte.",
+    "button": "Commence la recherche d'utilisateurs..."
   },
   "via_link": "par lien",
   "welcome": "Bienvenu dans la communauté"

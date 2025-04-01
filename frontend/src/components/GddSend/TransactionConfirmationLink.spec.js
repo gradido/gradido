@@ -1,84 +1,132 @@
 import { mount } from '@vue/test-utils'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import TransactionConfirmationLink from './TransactionConfirmationLink'
+import { BButton, BCol, BRow } from 'bootstrap-vue-next'
 
-const localVue = global.localVue
+// Mock the useAppToast composable
+const mockToastError = vi.fn()
+vi.mock('@/composables/useToast', () => ({
+  useAppToast: vi.fn(() => ({
+    toastError: mockToastError,
+  })),
+}))
 
-describe('GddSend confirm', () => {
+// Mock the i18n plugin
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({
+    t: (key) => key,
+    locale: 'en',
+  }),
+}))
+
+// Mock the Vuex store
+vi.mock('vuex', () => ({
+  useStore: vi.fn(() => ({
+    // Add any necessary store mock implementations here
+  })),
+}))
+
+describe('TransactionConfirmationLink', () => {
   let wrapper
 
-  const mocks = {
-    $t: jest.fn((t) => t),
-    $i18n: {
-      locale: jest.fn(() => 'en'),
-    },
+  const createWrapper = (props = {}) => {
+    return mount(TransactionConfirmationLink, {
+      global: {
+        components: {
+          BRow,
+          BCol,
+          BButton,
+        },
+        stubs: {
+          'variant-icon': true,
+        },
+        mocks: {
+          $t: (msg) => msg,
+          $filters: {
+            GDD: vi.fn((value) => `${value} GDD`),
+          },
+        },
+      },
+      props: {
+        balance: 1234,
+        email: 'user@example.org',
+        amount: 12.34,
+        memo: 'Pessimisten stehen im Regen, Optimisten duschen unter den Wolken.',
+        loading: false,
+        ...props,
+      },
+    })
   }
 
-  const propsData = {
-    balance: 1234,
-    email: 'user@example.org',
-    amount: 12.34,
-    memo: 'Pessimisten stehen im Regen, Optimisten duschen unter den Wolken.',
-    loading: false,
-    selected: 'send',
-  }
+  beforeEach(() => {
+    wrapper = createWrapper()
+  })
 
-  const Wrapper = () => {
-    return mount(TransactionConfirmationLink, { localVue, mocks, propsData })
-  }
+  it('renders the component div.transaction-confirm-link', () => {
+    expect(wrapper.find('div.transaction-confirm-link').exists()).toBe(true)
+  })
 
-  describe('mount', () => {
+  describe('totalBalance computed property', () => {
+    it('disables the send button when totalBalance is negative', async () => {
+      await wrapper.setProps({ balance: 10 })
+      expect(wrapper.vm.disabled).toBe(true)
+      expect(wrapper.find('.send-button').attributes('disabled')).toBe('')
+    })
+  })
+
+  describe('disabled computed property', () => {
+    it('returns true when totalBalance is negative', async () => {
+      await wrapper.setProps({ balance: 10 })
+      expect(wrapper.vm.disabled).toBe(true)
+    })
+
+    it('returns true when loading is true', async () => {
+      await wrapper.setProps({ loading: true })
+      expect(wrapper.vm.disabled).toBe(true)
+    })
+
+    it('returns false when totalBalance is positive and not loading', () => {
+      expect(wrapper.vm.disabled).toBe(false)
+    })
+  })
+
+  describe('send now button', () => {
     beforeEach(() => {
-      wrapper = Wrapper()
+      vi.clearAllMocks()
     })
 
-    it('renders the component div.transaction-confirm-link', () => {
-      expect(wrapper.find('div.transaction-confirm-link').exists()).toBeTruthy()
+    it('emits send-transaction event on click', async () => {
+      await wrapper.find('.send-button').trigger('click')
+      expect(wrapper.emitted('send-transaction')).toHaveLength(1)
     })
 
-    describe('has selected "link"', () => {
-      beforeEach(async () => {
-        await wrapper.setProps({
-          selected: 'link',
-        })
-      })
+    it('does not emit send-transaction event when disabled', async () => {
+      await wrapper.setProps({ loading: true })
+      await wrapper.find('.send-button').trigger('click')
+      expect(wrapper.emitted('send-transaction')).toBeUndefined()
+    })
+  })
+
+  describe('back button', () => {
+    it('emits on-back event when clicked', async () => {
+      await wrapper.find('button:not(.send-button)').trigger('click')
+      expect(wrapper.emitted('on-back')).toHaveLength(1)
+    })
+  })
+
+  describe('displays correct information', () => {
+    it('shows the correct balance', () => {
+      expect(wrapper.text()).toContain('1234 GDD')
     })
 
-    describe('has totalBalance under 0', () => {
-      beforeEach(async () => {
-        await wrapper.setProps({
-          balance: 0,
-        })
-      })
-
-      it('has send button disabled', () => {
-        expect(wrapper.find('.send-button').attributes('disabled')).toBe('disabled')
-      })
+    it('shows the correct amount', () => {
+      expect(wrapper.text()).toContain('12.34 GDD')
     })
 
-    describe('send now button', () => {
-      beforeEach(() => {
-        jest.clearAllMocks()
-      })
-
-      describe('single click', () => {
-        beforeEach(async () => {
-          await wrapper.find('button.btn.btn-gradido').trigger('click')
-        })
-
-        it('emits send transaction one time', () => {
-          expect(wrapper.emitted('send-transaction')).toHaveLength(1)
-        })
-      })
-
-      describe('double click', () => {
-        beforeEach(async () => {
-          await wrapper.find('button.btn.btn-gradido').trigger('click')
-        })
-
-        it('emits send transaction one time', () => {
-          expect(wrapper.emitted('send-transaction')).toHaveLength(1)
-        })
-      })
+    it('shows the correct memo', () => {
+      expect(wrapper.text()).toContain(
+        'Pessimisten stehen im Regen, Optimisten duschen unter den Wolken.',
+      )
     })
   })
 })

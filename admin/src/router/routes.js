@@ -8,6 +8,7 @@ const routes = [
   },
   {
     path: '/statistic',
+    name: 'statistic',
     component: () => import('@/pages/CommunityStatistic.vue'),
   },
   {
@@ -17,23 +18,33 @@ const routes = [
   },
   {
     path: '/user',
+    name: 'user',
     component: () => import('@/pages/UserSearch.vue'),
   },
   {
     path: '/creation-confirm',
+    name: 'creation-confirm',
     component: () => import('@/pages/CreationConfirm.vue'),
   },
   {
     path: '/contribution-links',
+    name: 'contribution-links',
     component: () => import('@/pages/ContributionLinks.vue'),
   },
   {
-    path: '*',
-    component: () => import('@/components/NotFoundPage.vue'),
+    path: '/federation',
+    name: 'federation',
+    component: () => import('@/pages/FederationVisualize.vue'),
   },
   {
-    path: '/federation',
-    component: () => import('@/pages/FederationVisualize.vue'),
+    path: '/projectBranding',
+    name: 'projectBranding',
+    component: () => import('@/pages/ProjectBranding.vue'),
+  },
+  {
+    path: '/:catchAll(.*)',
+    name: 'NotFound',
+    component: () => import('@/components/NotFoundPage.vue'),
   },
 ]
 

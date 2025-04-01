@@ -6,22 +6,22 @@
         <div>
           <transaction-link
             v-for="item in transactionLinks"
-            :key="item.id"
             v-bind="item"
+            :key="item.id"
             @reset-transaction-link-list="resetTransactionLinkList"
           />
           <div class="mb-3">
-            <b-button
-              class="test-button-load-more"
+            <BButton
               v-if="!pending && transactionLinks.length < transactionLinkCount"
+              class="test-button-load-more w-100 rounded-5"
               block
               variant="outline-primary"
-              @click="loadMoreLinks"
+              @click.stop="loadMoreLinks"
             >
               {{ buttonText }}
-            </b-button>
+            </BButton>
             <div class="text-center">
-              <b-icon v-if="pending" icon="three-dots" animation="cylon" font-scale="4"></b-icon>
+              <IBiThreeDots v-if="pending" animation="cylon" font-scale="4" />
             </div>
           </div>
         </div>
@@ -42,24 +42,24 @@ export default {
       type: Number,
       required: true,
     },
-    value: { type: Number, required: true },
+    modelValue: { type: Number, required: true },
     pageSize: { type: Number, default: 5 },
     pending: { type: Boolean, default: false },
-  },
-  methods: {
-    resetTransactionLinkList() {
-      this.$emit('input', 0)
-    },
-    loadMoreLinks() {
-      this.$emit('input', this.value + 1)
-    },
   },
   computed: {
     buttonText() {
       const i = this.transactionLinkCount - this.transactionLinks.length
-      if (i === 1) return this.$tc('link-load', 0)
-      if (i <= this.pageSize) return this.$tc('link-load', 1, { n: i })
-      return this.$tc('link-load', 2, { n: this.pageSize })
+      if (i === 1) return this.$t('link-load', 0)
+      if (i <= this.pageSize) return this.$t('link-load', { n: i })
+      return this.$t('link-load-more', { n: this.pageSize })
+    },
+  },
+  methods: {
+    resetTransactionLinkList() {
+      this.$emit('update:modelValue', 0)
+    },
+    loadMoreLinks() {
+      this.$emit('update:modelValue', this.modelValue + 1)
     },
   },
 }

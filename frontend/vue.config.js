@@ -2,7 +2,7 @@ const path = require('path')
 const webpack = require('webpack')
 const Dotenv = require('dotenv-webpack')
 const StatsPlugin = require('stats-webpack-plugin')
-const HtmlWebpackPlugin = require('vue-html-webpack-plugin')
+// const HtmlWebpackPlugin = require('vue-html-webpack-plugin')
 const CONFIG = require('./src/config')
 
 // vue.config.js
@@ -33,28 +33,28 @@ module.exports = {
       new Dotenv(),
       new webpack.DefinePlugin({
         // Those are Environment Variables transmitted via Docker and are only available when defined here aswell
-        // 'process.env.DOCKER_WORKDIR': JSON.stringify(process.env.DOCKER_WORKDIR),
-        // 'process.env.BUILD_DATE': JSON.stringify(process.env.BUILD_DATE),
-        // 'process.env.BUILD_VERSION': JSON.stringify(process.env.BUILD_VERSION),
-        'process.env.BUILD_COMMIT': JSON.stringify(CONFIG.BUILD_COMMIT),
-        // 'process.env.PORT': JSON.stringify(process.env.PORT),
+        // 'import.meta.env.DOCKER_WORKDIR': JSON.stringify(import.meta.env.DOCKER_WORKDIR),
+        // 'import.meta.env.BUILD_DATE': JSON.stringify(import.meta.env.BUILD_DATE),
+        // 'import.meta.env.BUILD_VERSION': JSON.stringify(import.meta.env.BUILD_VERSION),
+        'import.meta.env.BUILD_COMMIT': JSON.stringify(CONFIG.BUILD_COMMIT),
+        // 'import.meta.env.PORT': JSON.stringify(import.meta.env.PORT),
       }),
       // generate webpack stats to allow analysis of the bundlesize
       new StatsPlugin('webpack.stats.json'),
-      new HtmlWebpackPlugin({
-        vue: true,
-        template: 'public/index.html',
-        meta: {
-          title_de: CONFIG.META_TITLE_DE,
-          title_en: CONFIG.META_TITLE_EN,
-          description_de: CONFIG.META_DESCRIPTION_DE,
-          description_en: CONFIG.META_DESCRIPTION_EN,
-          keywords_de: CONFIG.META_KEYWORDS_DE,
-          keywords_en: CONFIG.META_KEYWORDS_EN,
-          author: CONFIG.META_AUTHOR,
-          url: CONFIG.META_URL,
-        },
-      }),
+      // new HtmlWebpackPlugin({
+      //   vue: true,
+      //   template: 'public/index.html',
+      //   meta: {
+      //     title_de: CONFIG.META_TITLE_DE,
+      //     title_en: CONFIG.META_TITLE_EN,
+      //     description_de: CONFIG.META_DESCRIPTION_DE,
+      //     description_en: CONFIG.META_DESCRIPTION_EN,
+      //     keywords_de: CONFIG.META_KEYWORDS_DE,
+      //     keywords_en: CONFIG.META_KEYWORDS_EN,
+      //     author: CONFIG.META_AUTHOR,
+      //     url: CONFIG.META_URL,
+      //   },
+      // }),
     ],
     infrastructureLogging: {
       level: 'warn', // 'none' | 'error' | 'warn' | 'info' | 'log' | 'verbose'

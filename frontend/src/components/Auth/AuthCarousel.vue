@@ -1,19 +1,19 @@
 <template>
   <div>
-    <b-carousel :interval="13000">
-      <b-carousel-slide img-src="/img/template/Foto_01_2400_small.jpg">
+    <BCarousel :interval="13000" ride="carousel">
+      <BCarouselSlide img-src="/img/template/Foto_01_2400_small.jpg">
         <div class="caption-first-text">{{ $t('auth.left.gratitude') }}</div>
         <div class="caption-second-text">{{ $t('auth.left.oneGratitude') }}</div>
-      </b-carousel-slide>
-      <b-carousel-slide img-src="/img/template/Foto_02_2400_small.jpg">
+      </BCarouselSlide>
+      <BCarouselSlide img-src="/img/template/Foto_02_2400_small.jpg">
         <div class="caption-first-text">{{ $t('auth.left.dignity') }}</div>
         <div class="caption-second-text">{{ $t('auth.left.oneDignity') }}</div>
-      </b-carousel-slide>
-      <b-carousel-slide img-src="/img/template/Foto_03_2400_small.jpg">
+      </BCarouselSlide>
+      <BCarouselSlide img-src="/img/template/Foto_03_2400_small.jpg">
         <div class="caption-first-text">{{ $t('auth.left.donation') }}</div>
         <div class="caption-second-text">{{ $t('auth.left.oneDonation') }}</div>
-      </b-carousel-slide>
-    </b-carousel>
+      </BCarouselSlide>
+    </BCarousel>
   </div>
 </template>
 
@@ -27,7 +27,7 @@ export default {
 .carousel-caption {
   color: #fff;
   top: 317px;
-  text-shadow: 2px 2px 8px #000000;
+  text-shadow: 2px 2px 8px #000;
   font-size: xx-large;
 }
 
@@ -48,10 +48,7 @@ export default {
 .carousel-inner {
   height: 100%;
   border-radius: 0% 49% 49% 0% / 0% 51% 49% 0%;
-  -webkit-border-radius: 0% 49% 49% 0% / 0% 51% 49% 0%;
   backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
   transform: translate3d(0, 0, 0);
-  -webkit-transform: translate3d(0, 0, 0);
 }
 </style>

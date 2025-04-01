@@ -1,14 +1,25 @@
 {
   "GDD": "GDD",
+  "actions": "Aktionen",
+  "ai": {
+    "chat": "Chat",
+    "chat-open": "Chat öffnen",
+    "chat-clear": "Chat-Verlauf löschen",
+    "chat-placeholder": "Schreibe eine Nachricht...",
+    "chat-placeholder-loading": "Warte, ich denke nach...",
+    "chat-thread-deleted": "Chatverlauf gelöscht",
+    "error-chat-thread-deleted": "Fehler beim Löschen des Chatverlaufs: {error}",
+    "start-prompt": "Sprache: Deutsch\nTonfall: Freundlich, per Du\nKontext: Du bist \"Crea\", ein Support-Assistent im Admin-Interface des Gradido-Kontos. Deine Aufgabe ist es, Moderatoren bei der Bearbeitung von Gemeinwohl-Beiträgen zu unterstützen.\nBegrüßung:\n\"Hallo, ich bin Crea! Ich unterstütze Dich bei der Beantwortung der eingereichten Gemeinwohl-Beiträge. Damit ich Deine Antworten personalisieren kann, nenne mir bitte Deinen Namen. 😊\"\nWarte nun die Eingabe des Namens ab!\nNach Eingabe des Namens:\n\"Danke, [Name]! Schön, mit Dir zusammenzuarbeiten. 😊 Kopiere nun bitte einen oder mehrere Gemeinwohl-Beiträge in das Textfeld, und ich helfe Dir bei der Bearbeitung.\""
+  },
+  "alias": "Alias",
   "all_emails": "Alle Nutzer",
   "back": "zurück",
   "change_user_role": "Nutzerrolle ändern",
-  "chat": "Chat",
+  "close": "Schließen",
   "contributionLink": {
     "amount": "Betrag",
     "changeSaved": "Änderungen gespeichert",
     "clear": "Löschen",
-    "close": "Schließen",
     "contributionLinks": "Beitragslinks",
     "create": "Anlegen",
     "cycle": "Zyklus",
@@ -33,7 +44,8 @@
     "validTo": "Enddatum"
   },
   "contributionMessagesForm": {
-    "resubmissionDateInPast": "Wiedervorlage Datum befindet sich in der Vergangenheit!"
+    "resubmissionDateInPast": "Wiedervorlage Datum befindet sich in der Vergangenheit!",
+    "hasRegisteredAt": "hat sich am {createdAt} registriert."
   },
   "contributions": {
     "all": "Alle",
@@ -42,6 +54,8 @@
     "denied": "Abgelehnt",
     "open": "Offen"
   },
+  "copied-to-clipboard": "In die Zwischenablage kopiert",
+  "copy-to-clipboard": "In die Zwischenablage kopieren",
   "created": "Geschöpft",
   "createdAt": "Angelegt",
   "creation": "Schöpfung",
@@ -68,16 +82,34 @@
   "deleted": "gelöscht",
   "deleted_user": "Alle gelöschten Nutzer",
   "deny": "Ablehnen",
+  "description": "Beschreibung",
+  "details": "Details",
   "e_mail": "E-Mail",
+  "edit": "bearbeiten",
   "enabled": "aktiviert",
   "error": "Fehler",
   "expired": "abgelaufen",
   "federation": {
+    "apiVersion": "API Version",
+    "authenticatedAt": "Verifiziert am:",
+    "communityUuid": "Community UUID:",
+    "coordinates": "Koordinaten:",
     "createdAt": "Erstellt am",
+    "gmsApiKey": "GMS API Key:",
+    "toast_gmsApiKeyAndLocationUpdated": "Der GMS Api Key und die Location wurden erfolgreich aktualisiert!",
+    "toast_gmsApiKeyUpdated": "Der GMS Api Key wurde erfolgreich aktualisiert!",
+    "toast_gmsLocationUpdated": "Die GMS Location wurde erfolgreich aktualisiert!",
     "gradidoInstances": "Gradido Instanzen",
     "lastAnnouncedAt": "letzte Bekanntgabe",
+    "lastErrorAt": "Letzer Fehler am",
+    "name": "Name",
+    "publicKey": "PublicKey:",
     "url": "Url",
-    "verified": "Verifiziert"
+    "verified": "Verifiziert",
+    "verifiedAt": "Verifiziert am"
+  },
+  "filter": {
+    "byEmail": "Nach E-Mail filtern"
   },
   "firstname": "Vorname",
   "footer": {
@@ -90,6 +122,18 @@
   },
   "form": {
     "cancel": "Abbrechen"
+  },
+  "geo-coordinates": {
+    "both-or-none": "Bitte beide oder keine eingeben!",
+    "format": "{latitude}, {longitude}",
+    "label": "Geo-Koordinaten",
+    "latitude-longitude-smart": {
+      "describe": "Teilt Koordinaten im Format 'Breitengrad, Längengrad' automatisch auf. Fügen sie hier einfach z.B. ihre Koordinaten von Google Maps, zum Beispiel: 49.28187664243721, 9.740672183943639, ein."
+    }
+  },
+  "goTo": {
+    "userSearch": "Zur Nutzersuche gehen",
+    "humhubProfile": "Zum Humhub Profil gehen"
   },
   "help": {
     "help": "Hilfe",
@@ -104,13 +148,18 @@
   "hide_resubmission": "Wiedervorlage verbergen",
   "hide_resubmission_tooltip": "Verbirgt alle Schöpfungen für die ein Moderator ein Erinnerungsdatum festgelegt hat.",
   "lastname": "Nachname",
+  "latitude": "Breitengrad:",
+  "latitude-longitude-smart": "Breitengrad, Längengrad",
+  "link": "Link",
+  "logo": "Logo",
+  "longitude": "Längengrad:",
   "math": {
     "equals": "=",
     "pipe": "|",
     "plus": "+"
   },
   "message": {
-    "request": "Die Anfrage wurde gesendet."
+    "request": "Die Eingabe wurde gespeichert."
   },
   "moderator": {
     "history": "Die Daten wurden geändert. Dies sind die alten Daten.",
@@ -131,6 +180,8 @@
     "instances": "Instanzen",
     "logout": "Abmelden",
     "my-account": "Mein Konto",
+    "projectBranding": "Projekt Branding",
+    "projectBrandingTooltip": "Nutze ein eigenes Logo im Gradido Login und füge neue Benutzer einem Humhub-Space hinzu",
     "statistic": "Statistik",
     "user_search": "Nutzersuche"
   },
@@ -175,9 +226,26 @@
       "yes": "Ja, Nutzer wiederherstellen"
     }
   },
+  "projectBranding": {
+    "addTooltip": "Neuen Projekt Branding Eintrag hinzufügen",
+    "chosenSpace": "Gewählter Space: {space}",
+    "created": "Neuer Projekt Branding Eintrag wurde erstellt.",
+    "error": "Fehler beim Erstellen des Projekt Branding Eintrags: {message}",
+    "noAccessRightSpace": "Gewählter Space: {spaceId} (Keine Zugriffsrechte)",
+    "openSpaceInHumhub": "In Humhub öffnen",
+    "spaceId": "Humhub Space ID",
+    "selectSpace": "Humhub Space auswählen",
+    "title": "Projekt Brandings",
+    "updated": "Projekt Branding Eintrag wurde aktualisiert.",
+    "newUserToSpace": "Benutzer hinzufügen?",
+    "newUserToSpaceTooltip": "Neue Benutzer automatisch zum Space hinzufügen, falls Space vorhanden"
+  },
   "redeemed": "eingelöst",
+  "registered": "Registriert",
   "removeNotSelf": "Als Admin/Moderator kannst du dich nicht selber löschen.",
+  "reset": "Zurücksetzen",
   "save": "Speichern",
+  "send": "Senden",
   "statistic": {
     "activeUsers": "Aktive Mitglieder",
     "count": "Menge",
@@ -223,6 +291,7 @@
     "selectRoles": {
       "admin": "Administrator",
       "moderator": "Moderator",
+      "moderatorAi": "KI-Moderator",
       "user": "einfacher Nutzer"
     },
     "successfullyChangedTo": "Nutzer ist jetzt „{role}“.",

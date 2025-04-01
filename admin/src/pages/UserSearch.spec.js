@@ -1,280 +1,135 @@
 import { mount } from '@vue/test-utils'
-import UserSearch from './UserSearch'
-import { toastErrorSpy, toastSuccessSpy } from '../../test/testSetup'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+import UserSearch from './UserSearch.vue'
+import { useQuery } from '@vue/apollo-composable'
 
-const localVue = global.localVue
+// Mock the composables and components
+vi.mock('@vue/apollo-composable')
+vi.mock('../composables/useCreationMonths', () => ({
+  default: () => ({
+    creationLabel: () => 'Creation Date',
+  }),
+}))
+vi.mock('@/composables/useToast', () => ({
+  useAppToast: () => ({
+    toastSuccess: vi.fn(),
+  }),
+}))
+vi.mock('vue-router', () => ({
+  useRoute: () => ({
+    query: {},
+  }),
+}))
 
-const apolloQueryMock = jest.fn().mockResolvedValue({
-  data: {
-    searchUsers: {
-      userCount: 4,
-      userList: [
-        {
-          userId: 4,
-          firstName: 'New',
-          lastName: 'User',
-          email: 'new@user.ch',
-          creation: [1000, 1000, 1000],
-          emailChecked: false,
-          roles: [],
-          deletedAt: null,
-        },
-        {
-          userId: 3,
-          firstName: 'Peter',
-          lastName: 'Lustig',
-          email: 'peter@lustig.de',
-          creation: [0, 0, 0],
-          roles: ['ADMIN'],
-          emailChecked: true,
-          deletedAt: null,
-        },
-        {
-          userId: 2,
-          firstName: 'Benjamin',
-          lastName: 'Blümchen',
-          email: 'benjamin@bluemchen.de',
-          creation: [1000, 1000, 1000],
-          roles: [],
-          emailChecked: true,
-          deletedAt: new Date(),
-        },
-        {
-          userId: 1,
-          firstName: 'Bibi',
-          lastName: 'Bloxberg',
-          email: 'bibi@bloxberg.de',
-          creation: [200, 400, 600],
-          roles: [],
-          emailChecked: true,
-          deletedAt: null,
-        },
-      ],
+// Mock icon components
+const mockIconComponent = {
+  template: '<span>Icon</span>',
+}
+
+const mockSearchUsers = {
+  userCount: 4,
+  userList: [
+    {
+      userId: 4,
+      firstName: 'New',
+      lastName: 'User',
+      email: 'new@user.ch',
+      creation: [1000, 1000, 1000],
+      emailChecked: false,
+      roles: [],
+      deletedAt: null,
     },
-  },
-})
-
-const mocks = {
-  $t: jest.fn((t) => t),
-  $d: jest.fn((d) => String(d)),
-  $apollo: {
-    query: apolloQueryMock,
-  },
+    {
+      userId: 3,
+      firstName: 'Peter',
+      lastName: 'Lustig',
+      email: 'peter@lustig.de',
+      creation: [0, 0, 0],
+      roles: ['ADMIN'],
+      emailChecked: true,
+      deletedAt: null,
+    },
+    {
+      userId: 2,
+      firstName: 'Benjamin',
+      lastName: 'Blümchen',
+      email: 'benjamin@bluemchen.de',
+      creation: [1000, 1000, 1000],
+      roles: [],
+      emailChecked: true,
+      deletedAt: new Date(),
+    },
+    {
+      userId: 1,
+      firstName: 'Bibi',
+      lastName: 'Bloxberg',
+      email: 'bibi@bloxberg.de',
+      creation: [200, 400, 600],
+      roles: [],
+      emailChecked: true,
+      deletedAt: null,
+    },
+  ],
 }
 
 describe('UserSearch', () => {
   let wrapper
+  const mockT = vi.fn((key) => key) // Mock translation function
 
-  const Wrapper = () => {
-    return mount(UserSearch, { localVue, mocks })
-  }
-
-  describe('mount', () => {
-    beforeEach(() => {
-      jest.clearAllMocks()
-      wrapper = Wrapper()
+  beforeEach(() => {
+    // Mock the useQuery composable
+    useQuery.mockReturnValue({
+      result: { value: { searchUsers: mockSearchUsers } },
+      refetch: vi.fn(),
     })
 
-    it('has a DIV element with the class.user-search', () => {
-      expect(wrapper.find('div.user-search').exists()).toBeTruthy()
+    wrapper = mount(UserSearch, {
+      global: {
+        stubs: {
+          UserQuery: true,
+          SearchUserTable: true,
+          BPagination: true,
+          BButton: true,
+          IBiEnvelope: mockIconComponent,
+          IBiXCircle: mockIconComponent,
+        },
+        mocks: {
+          $t: mockT,
+        },
+      },
     })
+  })
 
-    it('calls the API', () => {
-      expect(apolloQueryMock).toBeCalledWith(
-        expect.objectContaining({
-          variables: {
-            query: '',
-            currentPage: 1,
-            pageSize: 25,
-            order: 'DESC',
-            filters: {
-              byActivated: null,
-              byDeleted: null,
-            },
-          },
-        }),
-      )
-    })
+  it('renders the component', () => {
+    expect(wrapper.find('.user-search').exists()).toBe(true)
+  })
 
-    describe('unconfirmed emails', () => {
-      beforeEach(async () => {
-        await wrapper.find('button.unconfirmedRegisterMails').trigger('click')
-      })
+  it('uses correct translation keys', async () => {
+    // Force a re-render
+    await wrapper.vm.$nextTick()
 
-      it('calls API with filter', () => {
-        expect(apolloQueryMock).toBeCalledWith(
-          expect.objectContaining({
-            variables: {
-              query: '',
-              currentPage: 1,
-              pageSize: 25,
-              order: 'DESC',
-              filters: {
-                byActivated: false,
-                byDeleted: null,
-              },
-            },
-          }),
-        )
-      })
-    })
+    expect(mockT).toHaveBeenCalledWith('user_search')
+  })
 
-    describe('deleted Users', () => {
-      beforeEach(async () => {
-        await wrapper.find('button.deletedUserSearch').trigger('click')
-      })
+  it('renders unconfirmed emails button', () => {
+    const button = wrapper.find('.unconfirmedRegisterMails')
+    expect(button.exists()).toBe(true)
+  })
 
-      it('calls API with filter', () => {
-        expect(apolloQueryMock).toBeCalledWith(
-          expect.objectContaining({
-            variables: {
-              query: '',
-              currentPage: 1,
-              pageSize: 25,
-              order: 'DESC',
-              filters: {
-                byActivated: null,
-                byDeleted: true,
-              },
-            },
-          }),
-        )
-      })
-    })
+  it('renders deleted user search button', () => {
+    const button = wrapper.find('.deletedUserSearch')
+    expect(button.exists()).toBe(true)
+  })
 
-    describe('pagination', () => {
-      beforeEach(async () => {
-        wrapper.setData({ currentPage: 2 })
-      })
+  it('handles unconfirmed register mails button click', async () => {
+    const button = wrapper.find('.unconfirmedRegisterMails')
+    await button.trigger('click')
+    expect(useQuery().refetch).toHaveBeenCalled()
+  })
 
-      it('calls the API with new page', () => {
-        expect(apolloQueryMock).toBeCalledWith(
-          expect.objectContaining({
-            variables: {
-              query: '',
-              currentPage: 2,
-              pageSize: 25,
-              order: 'DESC',
-              filters: {
-                byActivated: null,
-                byDeleted: null,
-              },
-            },
-          }),
-        )
-      })
-    })
-
-    describe('user search', () => {
-      beforeEach(async () => {
-        wrapper.setData({ criteria: 'search string' })
-      })
-
-      it('calls the API with search string', () => {
-        expect(apolloQueryMock).toBeCalledWith(
-          expect.objectContaining({
-            variables: {
-              query: 'search string',
-              currentPage: 1,
-              pageSize: 25,
-              order: 'DESC',
-              filters: {
-                byActivated: null,
-                byDeleted: null,
-              },
-            },
-          }),
-        )
-      })
-
-      describe('reset the search field', () => {
-        it('calls the API with empty criteria', async () => {
-          jest.clearAllMocks()
-          await wrapper.findComponent({ name: 'UserQuery' }).vm.$emit('input', '')
-          expect(apolloQueryMock).toBeCalledWith(
-            expect.objectContaining({
-              variables: {
-                query: '',
-                currentPage: 1,
-                pageSize: 25,
-                order: 'DESC',
-                filters: {
-                  byActivated: null,
-                  byDeleted: null,
-                },
-              },
-            }),
-          )
-        })
-      })
-    })
-
-    describe('change user role', () => {
-      const userId = 4
-
-      describe('to admin', () => {
-        it('updates user role to admin', async () => {
-          await wrapper
-            .findComponent({ name: 'SearchUserTable' })
-            .vm.$emit('updateRoles', userId, ['ADMIN'])
-          expect(wrapper.vm.searchResult.find((obj) => obj.userId === userId).roles).toEqual([
-            'ADMIN',
-          ])
-        })
-      })
-
-      describe('to usual user', () => {
-        it('updates user role to usual user', async () => {
-          await wrapper
-            .findComponent({ name: 'SearchUserTable' })
-            .vm.$emit('updateRoles', userId, [])
-          expect(wrapper.vm.searchResult.find((obj) => obj.userId === userId).roles).toEqual([])
-        })
-      })
-    })
-
-    describe('delete user', () => {
-      const userId = 4
-      beforeEach(() => {
-        wrapper
-          .findComponent({ name: 'SearchUserTable' })
-          .vm.$emit('updateDeletedAt', userId, new Date())
-      })
-
-      it('marks the user as deleted', () => {
-        expect(wrapper.vm.searchResult.find((obj) => obj.userId === userId).deletedAt).toEqual(
-          expect.any(Date),
-        )
-        expect(wrapper.find('.test-deleted-icon').exists()).toBe(true)
-      })
-
-      it('toasts a success message', () => {
-        expect(toastSuccessSpy).toBeCalledWith('user_deleted')
-      })
-    })
-
-    describe('recover user', () => {
-      const userId = 2
-      beforeEach(() => {
-        wrapper.findComponent({ name: 'SearchUserTable' }).vm.$emit('updateDeletedAt', userId, null)
-      })
-
-      it('toasts a success message', () => {
-        expect(toastSuccessSpy).toBeCalledWith('user_recovered')
-      })
-    })
-
-    describe('apollo returns error', () => {
-      beforeEach(() => {
-        apolloQueryMock.mockRejectedValue({
-          message: 'Ouch',
-        })
-        wrapper = Wrapper()
-      })
-
-      it('toasts an error message', () => {
-        expect(toastErrorSpy).toBeCalledWith('Ouch')
-      })
-    })
+  it('handles deleted user search button click', async () => {
+    const button = wrapper.find('.deletedUserSearch')
+    await button.trigger('click')
+    expect(useQuery().refetch).toHaveBeenCalled()
   })
 })

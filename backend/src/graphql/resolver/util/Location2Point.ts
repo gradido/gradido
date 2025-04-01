@@ -19,7 +19,7 @@ export function Location2Point(location: Location): Point {
 
 export function Point2Location(point: Point): Location {
   const location = new Location()
-  if (point.type === 'Point' && point.coordinates.length === 2) {
+  if (point?.type === 'Point' && point?.coordinates.length === 2) {
     location.longitude = point.coordinates[0]
     location.latitude = point.coordinates[1]
   }

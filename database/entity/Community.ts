@@ -1,1 +1,1 @@
-export { Community } from './0082-introduce_gms_registration/Community'
+export { Community } from './0086-add_community_location/Community'

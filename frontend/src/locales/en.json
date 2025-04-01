@@ -7,6 +7,14 @@
   "85": "85%",
   "GDD": "GDD",
   "GDT": "GDT",
+  "GMS": {
+    "title": "Geo Matching System GMS (in develop)",
+    "desc": "Find members of all communities on a map."
+  },
+  "Humhub": {
+    "title": "Gradido-circles",
+    "desc": "Together we support each other - mindful in circle culture."
+  },
   "PersonalDetails": "Personal details",
   "advanced-calculation": "Advanced calculation",
   "asterisks": "****",
@@ -22,6 +30,34 @@
     }
   },
   "back": "Back",
+  "card-circles": {
+    "headline": "Together we support each other - mindful in circle culture.",
+    "allowed": {
+      "button": "Start Circles...",
+      "text": "Click on the button to open the cooperation platform in a new browser window."
+    },
+    "not-allowed": {
+      "button": "Start Circles-Configuration...",
+      "text": "Your Circles are not configured yet! Please open the Circles-Configuration first."
+    }
+  },
+  "card-user-search": {
+    "headline": "Geografice Usersearch (experimentel)",
+    "allowed": {
+      "button": "Start Usersearch...",
+      "disabled-button": "GMS offline...",
+      "text": "Find Members of all Communities on a Map."
+    },
+    "not-allowed": {
+      "button": "Start Location-Capturing...",
+      "text": "Find Members of all Communities on a Map? Then you have to capture your Location first."
+    }
+  },
+  "circles": {
+    "button": "Start Circles...",
+    "headline": "Together we support each other - mindful in circle culture.",
+    "text": "Click on the button to open the cooperation platform in a new browser window."
+  },
   "community": {
     "admins": "Administrators",
     "choose-another-community": "Choose another community",
@@ -38,8 +74,8 @@
   "contribution": {
     "activity": "Activity",
     "alert": {
-      "answerQuestion": "Please answer the question.",
-      "answerQuestionToast": "You have a question about a post. Please reply to it.",
+      "answerQuestion": "There is a new message for this article.",
+      "answerQuestionToast": "You have new messages.",
       "communityNoteList": "Here you will find all submitted and confirmed contributions from all members of this community.",
       "confirm": "confirmed",
       "deleted": "deleted",
@@ -63,7 +99,6 @@
       "allContributions": "No contributions have been submitted yet.",
       "myContributions": "You have not submitted any entries yet."
     },
-    "noDateSelected": "Choose any date in the month",
     "noOpenCreation": {
       "allMonth": "For all two months your creation limit is reached. The next month you can create 1000 GDD again.",
       "lastMonth": "The creation limit is reached for the selected month.",
@@ -108,13 +143,13 @@
   "error": {
     "email-already-sent": "We already sent you an email less than 10 minutes ago.",
     "empty-transactionlist": "There was an error with the transmission of the number of your transactions.",
-    "error": "Error!",
     "no-account": "Unfortunately we could not find an (activated) account to the given data.",
     "no-transactionlist": "Unfortunately, there was an error. No transactions have been sent from the server.",
     "no-user": "No user with this credentials.",
     "session-expired": "The session was closed for security reasons.",
     "unknown-error": "Unknown error: "
   },
+  "existingGradidoAccount": "Already have a {communityName} account?",
   "followUs": "follow us:",
   "footer": {
     "app_version": "App version {version}",
@@ -147,7 +182,9 @@
     "memo": "Message",
     "message": "Message",
     "new_balance": "Account balance after confirmation",
+    "newPasswordRepeat": "Repeat new password",
     "no_gdd_available": "You do not have GDD to send.",
+    "ok": "Ok",
     "password": "Password",
     "passwordRepeat": "Repeat password",
     "password_new": "New password",
@@ -171,9 +208,18 @@
     "username": "Username",
     "username-placeholder": "Choose your username",
     "validation": {
-      "gddCreationTime": "The field {_field_} must be a number between {min} and {max} with at most one decimal place.",
+      "gddCreationTime": {
+        "min": "The hours should be at least {min} in size",
+        "max": "The hours should not be larger than {max}",
+        "decimal-places": "The hours should contain a maximum of two decimal places"
+      },
       "gddSendAmount": "The {_field_} field must be a number between {min} and {max} with at most two digits after the decimal point",
       "is-not": "You cannot send Gradidos to yourself",
+      "memo": {
+        "min": "The job description should be at least {min} characters long",
+        "max": "The job description should not be longer than {max} characters"
+      },
+      "requiredField": "The {fieldName} field is required",
       "username-allowed-chars": "The username may only contain letters, numbers, hyphens or underscores.",
       "username-hyphens": "Hyphens or underscores must be in between letters or numbers.",
       "username-unique": "This username is already taken.",
@@ -208,7 +254,6 @@
     "redeem": "Redeem",
     "redeemed": "Successfully redeemed! Your account has been credited with {n} GDD.",
     "redeemed-at": "The link was already redeemed on {date}.",
-    "redeemed-title": "redeemed",
     "redeemlink-error": "This redemption link is not complete.",
     "to-login": "Log in",
     "to-register": "Register a new account.",
@@ -217,7 +262,6 @@
   },
   "gdt": {
     "calculation": "Calculation of Gradido Transform",
-    "contribution": "Contribution",
     "conversion": "Conversion",
     "conversion-gdt-euro": "Conversion Euro / Gradido Transform (GDT)",
     "credit": "Credit",
@@ -234,13 +278,13 @@
   },
   "h": "h",
   "language": "Language",
-  "link-load": "Load the last link | Load the last {n} links |  Load more {n} links",
+  "link-load": "Load the last link | Load the last {n} links",
+  "link-load-more": "Load more {n} links",
   "login": "Sign in",
   "math": {
     "asterisk": "*",
     "equal": "=",
-    "minus": "−",
-    "pipe": "|"
+    "minus": "−"
   },
   "maxReached": "Max. reached",
   "member": "Member",
@@ -255,6 +299,7 @@
     "title": "Thank you!",
     "unsetPassword": "Your password has not been set yet. Please set it again."
   },
+  "missingGradidoAccount": "Don't have a {communityName} account yet?",
   "moderatorChangedMemo": "Text edited by moderator",
   "moderatorChat": "Moderator Chat",
   "navigation": {
@@ -276,34 +321,72 @@
     "overview": "Welcome {name}",
     "send": "Send Gradidos",
     "settings": "Settings",
-    "transactions": "Your transactions"
+    "transactions": "Your transactions",
+    "circles": "Gradido Circles",
+    "usersearch": "Geographical User Search"
   },
   "qrCode": "QR Code",
   "send_gdd": "Send GDD",
   "send_per_link": "Send GDD via Link",
   "session": {
-    "automaticallyLoggedOut": "You have been automatically logged out.",
     "extend": "Stay logged in",
     "lightText": "If you have not performed any action for more than 10 minutes, you will be logged out for security reasons.",
     "logoutIn": "Log out in ",
     "warningText": "Are you still there?"
   },
   "settings": {
+    "community": "Community",
     "emailInfo": "Cannot be changed at this time.",
+    "GMS": {
+      "disabled": "Data not exported to GMS",
+      "enabled": "Data exported to GMS",
+      "location": {
+        "button": "Open Map",
+        "label": "Pinpoint location",
+        "saveLocation": "Save Location",
+        "updateSuccess": "Location successfully saved"
+      },
+      "location-format": "Show position on map:",
+      "map": {
+        "communityCoords": "Your Community Location: Lat {lat}, Lng {lng}",
+        "communityLocationLabel": "Your Community-Location",
+        "headline": "Geographic Location-Capturing of the User",
+        "userCoords": "Your Location: Lat {lat}, Lng {lng}",
+        "userLocationLabel": "Your Location",
+        "search": "Search for a location"
+      },
+      "naming-format": "Show Name:",
+      "publish-location": {
+        "exact": "exact position",
+        "approximate": "approximate position",
+        "updated": "format of location for GMS updated"
+      },
+      "publish-name": {
+        "updated": "format of name for GMS updated"
+      }
+    },
     "hideAmountGDD": "Your GDD amount is hidden.",
     "hideAmountGDT": "Your GDT amount is hidden.",
+    "humhub": {
+      "delete-disabled": "The user account can only be deleted in the profile menu of the cooperation platform.",
+      "disabled": "Data not exported into the Gradido Community",
+      "enabled": "Data exported into the Gradido Community",
+      "naming-format": "Show Name:",
+      "publish-name": {
+        "updated": "Format of name for the Gradido Community updated."
+      }
+    },
     "info": "Transactions can now be made by username or email address.",
     "language": {
-      "changeLanguage": "Change language",
       "de": "Deutsch",
       "en": "English",
+      "error": "Failed to update language settings.",
       "es": "Español",
       "fr": "Français",
       "nl": "Nederlands",
       "success": "Your language has been successfully updated."
     },
     "name": {
-      "change-name": "Change name",
       "change-success": "Your name has been successfully changed.",
       "enterFirstname": "Enter your firstname",
       "enterLastname": "Enter your lastname"
@@ -328,6 +411,18 @@
         "text": "Now save your new password, which you can use to log in to your Gradido account in the future."
       },
       "subtitle": "If you have forgotten your password, you can reset it here."
+    },
+    "publish-name": {
+      "alias-or-initials": "Username or initials (Default)",
+      "alias-or-initials-tooltip": "username, if available, or the initials of the first name and last name, the first two letters in each case",
+      "first": "Firstname",
+      "first-tooltip": "the first name only",
+      "first-initial": "First name and initial",
+      "first-initial-tooltip": "first name plus the first two initial letters of the last name",
+      "initials": "Initials",
+      "initials-tooltip": "Initials of first name and last name, i.e. the first two letters of each regardless of the existence of the user name",
+      "name-full": "first name and last name",
+      "name-full-tooltip": "full name: first name plus last name"
     },
     "showAmountGDD": "Your GDD amount is visible.",
     "showAmountGDT": "Your GDT amount is visible.",
@@ -378,6 +473,11 @@
   },
   "transaction-link": {
     "send_you": "wants to send you"
+  },
+  "usersearch": {
+    "headline": "Geographical User Search",
+    "text": "No matter which community you belong to, with the Geo Matching System you can find members of all communities on a map. You can filter according to offers and needs and display the users that match you.\n\nThe button opens a new browser window in which the users in your area are displayed on a map.",
+    "button": "Start user search... "
   },
   "via_link": "via Link",
   "welcome": "Welcome to the community"

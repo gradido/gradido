@@ -1,178 +1,174 @@
 import { mount } from '@vue/test-utils'
-import UserName from './UserName'
-import flushPromises from 'flush-promises'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { ref } from 'vue'
+import UserName from './UserName.vue'
+import { createStore } from 'vuex'
+import { createI18n } from 'vue-i18n'
 
-import { toastErrorSpy, toastSuccessSpy } from '@test/testSetup'
+vi.mock('@/components/Inputs/InputUsername', () => ({
+  default: {
+    name: 'InputUsername',
+    template: '<div></div>',
+  },
+}))
 
-const localVue = global.localVue
+vi.mock('bootstrap-vue-next', () => ({
+  BRow: { template: '<div><slot></slot></div>' },
+  BCol: { template: '<div><slot></slot></div>' },
+  BFormInput: { template: '<input />' },
+  BFormGroup: { template: '<div><slot></slot></div>' },
+  BForm: { template: '<form><slot></slot></form>' },
+  BButton: { template: '<button><slot></slot></button>' },
+}))
 
-const mockAPIcall = jest.fn()
+const i18n = createI18n({
+  legacy: false,
+  locale: 'en',
+  messages: {
+    en: {
+      'settings.username.no-username': 'No username set',
+      'settings.username.change-success': 'Username changed successfully',
+    },
+  },
+})
 
-const storeCommitMock = jest.fn()
+const createVuexStore = (initialState = {}) =>
+  createStore({
+    state: () => ({
+      username: null,
+      ...initialState,
+    }),
+    mutations: {
+      username(state, newUsername) {
+        state.username = newUsername
+      },
+    },
+  })
+
+const mutationMock = vi.fn()
+vi.mock('@vue/apollo-composable', () => ({
+  useMutation: vi.fn(() => ({
+    mutate: mutationMock,
+  })),
+}))
+
+const toastErrorMock = vi.fn()
+const toastSuccessMock = vi.fn()
+vi.mock('@/composables/useToast', () => ({
+  useAppToast: () => ({
+    toastError: toastErrorMock,
+    toastSuccess: toastSuccessMock,
+  }),
+}))
+
+// Updated to use Vue's reactivity
+const valuesMock = ref({ username: '' })
+const errorsMock = ref({})
+const setFieldValueMock = vi.fn((field, value) => {
+  valuesMock.value[field] = value
+})
+const handleSubmitMock = vi.fn((callback) => {
+  return () => callback(valuesMock.value)
+})
+
+vi.mock('vee-validate', () => ({
+  useForm: () => ({
+    handleSubmit: handleSubmitMock,
+    setFieldValue: setFieldValueMock,
+    values: valuesMock.value,
+    errors: errorsMock.value,
+  }),
+}))
 
 describe('UserName Form', () => {
   let wrapper
 
-  const mocks = {
-    $t: jest.fn((t) => t),
-    $store: {
-      state: {
-        username: null,
+  const mountComponent = (storeState = {}) => {
+    const store = createVuexStore(storeState)
+    return mount(UserName, {
+      global: {
+        plugins: [store, i18n],
+        stubs: {
+          InputUsername: true,
+        },
       },
-      commit: storeCommitMock,
-    },
-    $apollo: {
-      mutate: mockAPIcall,
-    },
-  }
-
-  const Wrapper = () => {
-    return mount(UserName, { localVue, mocks })
-  }
-
-  describe('mount', () => {
-    beforeEach(() => {
-      wrapper = Wrapper()
     })
+  }
 
+  beforeEach(() => {
+    vi.clearAllMocks()
+    valuesMock.value.username = ''
+    wrapper = mountComponent()
+  })
+
+  describe('when no username is set', () => {
     it('renders the component', () => {
-      expect(wrapper.find('div#username_form').exists()).toBe(true)
+      expect(wrapper.find('div#username-form').exists()).toBe(true)
     })
 
-    describe('has no username', () => {
-      // it('renders the username', () => {
-      //   expect(wrapper.find('[data-test="username-input-group"]')).toBe(true)
-      // })
-
-      it('has a component username change ', () => {
-        expect(wrapper.findComponent({ name: 'InputUsername' }).exists()).toBe(true)
-      })
+    it('displays the no-username alert', () => {
+      expect(wrapper.find('[data-test="username-alert"]').text()).toBe('No username set')
     })
-    describe('change / edit  username', () => {
-      beforeEach(async () => {
-        wrapper.vm.isEdit = true
-      })
 
-      it('has no the username', () => {
-        expect(wrapper.find('[data-test="username-input-group"]')).toBeTruthy()
-      })
+    it('renders the InputUsername component', () => {
+      expect(wrapper.findComponent({ name: 'InputUsername' }).exists()).toBe(true)
+    })
+  })
 
-      it('has a component username change ', () => {
-        expect(wrapper.findComponent({ name: 'InputUsername' }).exists()).toBeTruthy()
-      })
+  describe('when username is set', () => {
+    beforeEach(() => {
+      wrapper = mountComponent({ username: 'existingUser' })
+    })
 
-      it('first step is username empty ', () => {
-        expect(wrapper.vm.username).toEqual('')
-      })
+    it('displays the username in a readonly input', () => {
+      expect(wrapper.find('[data-test="username-input-readonly"]').exists()).toBe(true)
+    })
 
-      describe('change / edit  username', () => {
-        beforeEach(async () => {
-          mocks.$store.state.username = ''
-          await wrapper.setData({ isEdit: true })
-        })
+    it('does not render the InputUsername component', () => {
+      expect(wrapper.findComponent({ name: 'InputUsername' }).exists()).toBe(false)
+    })
+  })
 
-        it('first step is isEdit false ', () => {
-          expect(wrapper.vm.isEdit).toEqual(true)
-        })
-        it(' has username-alert text ', () => {
-          expect(wrapper.find('[data-test="username-alert"]').text()).toBe(
-            'settings.username.no-username',
-          )
-        })
-        it('has a submit button with disabled true', () => {
-          expect(wrapper.find('[data-test="submit-username-button"]').exists()).toBe(false)
-        })
-      })
+  describe('username submission', () => {
+    beforeEach(() => {
+      wrapper = mountComponent()
+    })
 
-      describe('edit username', () => {
-        beforeEach(async () => {
-          await wrapper.setData({ username: 'petra' })
-        })
+    it('enables submit button when a new username is entered', async () => {
+      valuesMock.value.username = 'newUser' // Directly set the reactive value
+      await wrapper.vm.$nextTick()
 
-        it('has a submit button', () => {
-          expect(wrapper.find('[data-test="submit-username-button"]').exists()).toBe(true)
-        })
+      // Trigger input change to ensure reactivity
+      await wrapper.find('[data-test="component-input-username"]').trigger('input')
+      await wrapper.vm.$nextTick()
 
-        describe('successfull submit', () => {
-          beforeEach(async () => {
-            mockAPIcall.mockResolvedValue({
-              data: {
-                updateUserInfos: {
-                  validValues: 3,
-                },
-              },
-            })
-            jest.clearAllMocks()
-            await wrapper.find('input').setValue('petra')
-            await wrapper.find('form').trigger('keyup')
-            await wrapper.find('[data-test="submit-username-button"]').trigger('submit')
-            await flushPromises()
-          })
+      expect(wrapper.find('[data-test="submit-username-button"]').exists()).toBe(true)
+      expect(
+        wrapper.find('[data-test="submit-username-button"]').attributes('disabled'),
+      ).toBeFalsy()
+    })
 
-          it('calls the API', () => {
-            expect(mockAPIcall).toBeCalledWith(
-              expect.objectContaining({
-                variables: {
-                  alias: 'petra',
-                },
-              }),
-            )
-          })
+    it('submits the form and updates the store on success', async () => {
+      mutationMock.mockResolvedValue({ data: { updateUserInfos: { validValues: 3 } } })
 
-          it('commits username to store', () => {
-            expect(storeCommitMock).toBeCalledWith('username', 'petra')
-          })
+      valuesMock.value.username = 'newUser'
+      await wrapper.vm.$nextTick()
+      await wrapper.find('form').trigger('submit')
 
-          it('toasts a success message', () => {
-            expect(toastSuccessSpy).toBeCalledWith('settings.username.change-success')
-          })
-        })
+      expect(mutationMock).toHaveBeenCalledWith({ alias: 'newUser' })
+      expect(wrapper.vm.store.state.username).toBe('newUser')
+      expect(toastSuccessMock).toHaveBeenCalledWith('Username changed successfully')
+    })
 
-        describe('submit results in server error', () => {
-          beforeEach(async () => {
-            mockAPIcall.mockRejectedValue({
-              message: 'Error',
-            })
-            jest.clearAllMocks()
-            await wrapper.find('input').setValue('petra')
-            await wrapper.find('form').trigger('keyup')
-            await wrapper.find('[data-test="submit-username-button"]').trigger('submit')
-            await flushPromises()
-          })
+    it('shows an error toast on submission failure', async () => {
+      mutationMock.mockRejectedValue(new Error('API Error'))
 
-          it('calls the API', () => {
-            expect(mockAPIcall).toBeCalledWith(
-              expect.objectContaining({
-                variables: {
-                  alias: 'petra',
-                },
-              }),
-            )
-          })
+      valuesMock.value.username = 'newUser'
+      await wrapper.vm.$nextTick()
+      await wrapper.find('form').trigger('submit')
 
-          it('toasts an error message', () => {
-            expect(toastErrorSpy).toBeCalledWith('Error')
-          })
-        })
-      })
-
-      describe('has a username', () => {
-        beforeEach(async () => {
-          mocks.$store.state.username = 'petra'
-        })
-
-        it('has isEdit true', () => {
-          expect(wrapper.vm.isEdit).toBe(true)
-        })
-
-        it(' has no username-alert text ', () => {
-          expect(wrapper.find('[data-test="username-alert"]').exists()).toBe(false)
-        })
-
-        it('has no component username change ', () => {
-          expect(wrapper.findComponent({ name: 'InputUsername' }).exists()).toBe(false)
-        })
-      })
+      expect(mutationMock).toHaveBeenCalledWith({ alias: 'newUser' })
+      expect(toastErrorMock).toHaveBeenCalledWith('API Error')
     })
   })
 })

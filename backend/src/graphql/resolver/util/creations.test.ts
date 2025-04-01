@@ -5,12 +5,17 @@ import { ApolloServerTestClient } from 'apollo-server-testing'
 
 import { testEnvironment, cleanDB, contributionDateFormatter } from '@test/helpers'
 
+import { CONFIG } from '@/config'
 import { userFactory } from '@/seeds/factory/user'
 import { login, createContribution, adminCreateContribution } from '@/seeds/graphql/mutations'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 
-import { getUserCreation } from './creations'
+import { getOpenCreations, getUserCreation } from './creations'
+
+jest.mock('@/password/EncryptorUtils')
+
+CONFIG.HUMHUB_ACTIVE = false
 
 let mutate: ApolloServerTestClient['mutate'], con: Connection
 let testEnv: {
@@ -268,6 +273,52 @@ describe('util/creation', () => {
           })
         })
       })
+    })
+  })
+
+  describe('getOpenCreations', () => {
+    beforeAll(() => {
+      // enable Fake timers
+      jest.useFakeTimers()
+      // jest.setSystemTime(new Date('2022-01-01T00:00:00Z'))
+    })
+
+    afterAll(() => {
+      // disable Fake timers and set time back to system time
+      jest.useRealTimers()
+    })
+    it('test default case', async () => {
+      jest.setSystemTime(new Date('2022-01-10T00:00:00Z'))
+      const creationDates = await getOpenCreations(user.id, 0)
+      expect(creationDates).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ month: 10 }),
+          expect.objectContaining({ month: 11 }),
+          expect.objectContaining({ month: 0 }),
+        ]),
+      )
+    })
+    it('test edge case with february', async () => {
+      jest.setSystemTime(new Date('2022-05-31T00:00:00Z'))
+      const creationDates = await getOpenCreations(user.id, 0)
+      expect(creationDates).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ month: 2 }),
+          expect.objectContaining({ month: 3 }),
+          expect.objectContaining({ month: 4 }),
+        ]),
+      )
+    })
+    it('test edge case with july', async () => {
+      jest.setSystemTime(new Date('2022-07-31T00:00:00Z'))
+      const creationDates = await getOpenCreations(user.id, 0)
+      expect(creationDates).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ month: 4 }),
+          expect.objectContaining({ month: 5 }),
+          expect.objectContaining({ month: 6 }),
+        ]),
+      )
     })
   })
 })

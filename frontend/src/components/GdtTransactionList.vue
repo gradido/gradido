@@ -4,40 +4,40 @@
       <div v-if="transactionGdtCount === 0" class="text-center">
         {{ $t('gdt.no-transactions') }}
         <hr />
-        <b-button class="gdt-funding" :href="link" target="_blank">
+        <BButton class="gdt-funding" :href="link" target="_blank">
           {{ $t('gdt.funding') }}
-        </b-button>
+        </BButton>
       </div>
       <div v-else-if="transactionGdtCount === -1" class="text-center">
         {{ $t('gdt.not-reachable') }}
       </div>
       <div
-        v-else
         v-for="{ id, amount, date, comment, gdtEntryType, factor, gdt } in transactionsGdt"
+        v-else
         :key="id"
       >
         <transaction
+          :id="id"
           :amount="amount"
           :date="date"
           :comment="comment"
-          :gdtEntryType="gdtEntryType"
+          :gdt-entry-type="gdtEntryType"
           :factor="factor"
           :gdt="gdt"
-          :id="id"
-        ></transaction>
+        />
       </div>
     </div>
-    <b-pagination
+    <BPagination
       v-if="transactionGdtCount > pageSize"
+      v-model="currentPage"
       class="mt-3"
       pills
       size="lg"
-      v-model="currentPage"
       :per-page="pageSize"
       :total-rows="transactionGdtCount"
       align="center"
       :hide-ellipsis="true"
-    ></b-pagination>
+    />
   </div>
 </template>
 
@@ -56,25 +56,28 @@ export default {
     },
     transactionGdtCount: { type: Number, required: true },
     pageSize: { type: Number, required: true },
-    value: { type: Number, required: true },
+    modelValue: { type: Number, required: true },
   },
   data() {
     return {
-      currentPage: this.value,
+      currentPage: this.modelValue,
       link: 'https://gradido.net/' + this.$store.state.language + '/memberships/',
     }
   },
   watch: {
-    currentPage() {
-      if (this.value !== this.currentPage) this.$emit('input', this.currentPage)
+    modelValue(newValue) {
+      this.currentPage = newValue
+    },
+    currentPage(newValue) {
+      if (this.modelValue !== newValue) this.$emit('update:modelValue', newValue)
     },
   },
 }
 </script>
 <style>
 .el-table .cell {
-  padding-left: 0px;
-  padding-right: 0px;
+  padding-left: 0;
+  padding-right: 0;
 }
 
 .nav-tabs .nav-link.active,

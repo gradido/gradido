@@ -1,15 +1,14 @@
 <template>
   <div class="language-switch-select">
-    <b-form-select
-      v-model="selected"
-      :options="options"
-      class="selectedLanguage mb-3"
-    ></b-form-select>
+    <BFormSelect v-model="selected" :options="options" class="selectedLanguage mb-3"></BFormSelect>
   </div>
 </template>
 <script>
 export default {
   name: 'LanguageSwitch',
+  props: {
+    language: { type: String },
+  },
   data() {
     return {
       selected: null,
@@ -22,12 +21,6 @@ export default {
       ],
     }
   },
-  props: {
-    language: { type: String },
-  },
-  created() {
-    this.selected = this.$store.state.language
-  },
   computed: {
     languageObject() {
       return this.selected
@@ -37,6 +30,9 @@ export default {
     selected() {
       this.$emit('update-language', this.languageObject)
     },
+  },
+  created() {
+    this.selected = this.$store.state.language
   },
 }
 </script>

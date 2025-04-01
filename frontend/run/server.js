@@ -1,10 +1,15 @@
 // Imports
+const dotenv = require('dotenv')
 const express = require('express')
 const path = require('path')
 
+dotenv.config() // load env vars from .env
+
+const CONFIG = require('../src/config')
+
 // Host & Port
-const hostname = '127.0.0.1'
-const port = process.env.PORT || 3000
+const hostname = CONFIG.FRONTEND_MODULE_HOST
+const port = CONFIG.FRONTEND_MODULE_PORT
 
 // Express Server
 const app = express()

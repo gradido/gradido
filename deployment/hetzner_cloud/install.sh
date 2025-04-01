@@ -104,14 +104,31 @@ ln -s $SCRIPT_PATH/nginx/common /etc/nginx/
 rmdir /etc/nginx/conf.d
 ln -s $SCRIPT_PATH/nginx/conf.d /etc/nginx/
 
+# Make nginx restart automatic
+mkdir /etc/systemd/system/nginx.service.d
+# Define the content to be put into the override.conf file
+CONFIG_CONTENT="[Unit]
+StartLimitIntervalSec=500
+StartLimitBurst=5
+
+[Service]
+Restart=on-failure
+RestartSec=5s"
+
+# Write the content to the override.conf file
+echo "$CONFIG_CONTENT" | sudo tee /etc/systemd/system/nginx.service.d/override.conf >/dev/null
+
+# Reload systemd to apply the changes
+sudo systemctl daemon-reload
+
 # setup https with certbot
 certbot certonly --nginx --non-interactive --agree-tos --domains $COMMUNITY_HOST --email $COMMUNITY_SUPPORT_MAIL
 
-# Install node 16. with nvm, with nodesource is depracted
+# Install node 18
 sudo -u gradido bash -c 'curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash'
 # Close and reopen your terminal to start using nvm or run the following to use it now:
 sudo -u gradido bash -c 'export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"'
-sudo -u gradido bash -c '. $HOME/.nvm/nvm.sh && nvm install 16' # first installed version will be set to default automatic
+sudo -u gradido bash -c '. $HOME/.nvm/nvm.sh && nvm install v18.20.7' # first installed version will be set to default automatic
 
 # Install yarn
 sudo -u gradido bash -c '. $HOME/.nvm/nvm.sh && npm i -g yarn'
@@ -127,7 +144,13 @@ cp $SCRIPT_PATH/logrotate/gradido.conf /etc/logrotate.d/gradido.conf
 export DB_USER=gradido
 # create a new password only if it not already exist
 if [ -z "${DB_PASSWORD}" ]; then
-    export DB_PASSWORD=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-32};echo);
+    export DB_PASSWORD=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c 32; echo);
+fi
+
+# Check if DB_PASSWORD is still empty, then exit with an error
+if [ -z "${DB_PASSWORD}" ]; then
+    echo "Error: Failed to generate DB_PASSWORD."
+    exit 1
 fi
 mysql <<EOFMYSQL
     CREATE USER IF NOT EXISTS '$DB_USER'@'localhost' IDENTIFIED BY '$DB_PASSWORD';
@@ -139,7 +162,7 @@ EOFMYSQL
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/database/.env.template > $PROJECT_ROOT/database/.env
 
 # Configure backend
-export JWT_SECRET=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-32};echo);
+export JWT_SECRET=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c 32; echo);
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/backend/.env.template > $PROJECT_ROOT/backend/.env
 
 # Configure frontend
@@ -149,7 +172,7 @@ envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/frontend/.env
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/admin/.env.template > $PROJECT_ROOT/admin/.env
 
 # Configure dht-node
-export FEDERATION_DHT_SEED=$(< /dev/urandom tr -dc a-f0-9 | head -c 32;echo);
+export FEDERATION_DHT_SEED=$(< /dev/urandom tr -dc a-f0-9 | head -c 32; echo);
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/dht-node/.env.template > $PROJECT_ROOT/dht-node/.env
 
 # Configure federation
@@ -163,4 +186,4 @@ sudo -u gradido crontab < $LOCAL_SCRIPT_DIR/crontabs.txt
 
 # Start gradido
 # Note: on first startup some errors will occur - nothing serious
-sudo -u gradido $SCRIPT_PATH/start.sh 
+sudo -u gradido $SCRIPT_PATH/start.sh $1

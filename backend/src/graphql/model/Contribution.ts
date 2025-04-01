@@ -1,14 +1,16 @@
 import { Contribution as dbContribution } from '@entity/Contribution'
-import { User } from '@entity/User'
+import { User as DbUser } from '@entity/User'
 import { Decimal } from 'decimal.js-light'
 import { ObjectType, Field, Int } from 'type-graphql'
 
+import { User } from './User'
+
 @ObjectType()
 export class Contribution {
-  constructor(contribution: dbContribution, user?: User | null) {
+  constructor(contribution: dbContribution, user?: DbUser | null) {
     this.id = contribution.id
-    this.firstName = user ? user.firstName : null
-    this.lastName = user ? user.lastName : null
+    this.firstName = user?.firstName ?? null
+    this.lastName = user?.lastName ?? null
     this.amount = contribution.amount
     this.memo = contribution.memo
     this.createdAt = contribution.createdAt
@@ -26,10 +28,19 @@ export class Contribution {
     this.moderatorId = contribution.moderatorId
     this.userId = contribution.userId
     this.resubmissionAt = contribution.resubmissionAt
+    if (user) {
+      this.user = new User(user)
+    }
   }
 
   @Field(() => Int)
   id: number
+
+  @Field(() => Int, { nullable: true })
+  userId: number | null
+
+  @Field(() => User, { nullable: true })
+  user: User | null
 
   @Field(() => String, { nullable: true })
   firstName: string | null
@@ -81,9 +92,6 @@ export class Contribution {
 
   @Field(() => Int, { nullable: true })
   moderatorId: number | null
-
-  @Field(() => Int, { nullable: true })
-  userId: number | null
 
   @Field(() => Date, { nullable: true })
   resubmissionAt: Date | null

@@ -1,16 +1,24 @@
 import { IsNull, Not } from '@dbTools/typeorm'
 import { Community as DbCommunity } from '@entity/Community'
 import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
-import { Resolver, Query, Authorized, Arg, Mutation, Args } from 'type-graphql'
+import { Resolver, Query, Authorized, Mutation, Args, Arg } from 'type-graphql'
 
-import { CommunityArgs } from '@arg//CommunityArgs'
+import { Paginated } from '@arg/Paginated'
+import { EditCommunityInput } from '@input/EditCommunityInput'
+import { AdminCommunityView } from '@model/AdminCommunityView'
 import { Community } from '@model/Community'
 import { FederatedCommunity } from '@model/FederatedCommunity'
 
 import { RIGHTS } from '@/auth/RIGHTS'
 import { LogError } from '@/server/LogError'
 
-import { getCommunityByUuid } from './util/communities'
+import {
+  getAllCommunities,
+  getCommunityByIdentifier,
+  getCommunityByUuid,
+  getHomeCommunity,
+} from './util/communities'
+import { Location2Point } from './util/Location2Point'
 
 @Resolver()
 export class CommunityResolver {
@@ -30,6 +38,12 @@ export class CommunityResolver {
   }
 
   @Authorized([RIGHTS.COMMUNITIES])
+  @Query(() => [AdminCommunityView])
+  async allCommunities(@Args() paginated: Paginated): Promise<AdminCommunityView[]> {
+    return (await getAllCommunities(paginated)).map((dbCom) => new AdminCommunityView(dbCom))
+  }
+
+  @Authorized([RIGHTS.COMMUNITIES])
   @Query(() => [Community])
   async communities(): Promise<Community[]> {
     const dbCommunities: DbCommunity[] = await DbCommunity.find({
@@ -41,41 +55,47 @@ export class CommunityResolver {
     return dbCommunities.map((dbCom: DbCommunity) => new Community(dbCom))
   }
 
-  @Authorized([RIGHTS.COMMUNITY_BY_UUID])
+  @Authorized([RIGHTS.COMMUNITY_BY_IDENTIFIER])
   @Query(() => Community)
-  async community(@Arg('communityUuid') communityUuid: string): Promise<Community> {
-    const com: DbCommunity | null = await getCommunityByUuid(communityUuid)
-    if (!com) {
-      throw new LogError('community not found', communityUuid)
+  async communityByIdentifier(
+    @Arg('communityIdentifier') communityIdentifier: string,
+  ): Promise<Community> {
+    const community = await getCommunityByIdentifier(communityIdentifier)
+    if (!community) {
+      throw new LogError('community not found', communityIdentifier)
     }
-    return new Community(com)
+    return new Community(community)
+  }
+
+  @Authorized([RIGHTS.HOME_COMMUNITY])
+  @Query(() => Community)
+  async homeCommunity(): Promise<Community> {
+    const community = await getHomeCommunity()
+    if (!community) {
+      throw new LogError('no home community exist')
+    }
+    return new Community(community)
   }
 
   @Authorized([RIGHTS.COMMUNITY_UPDATE])
   @Mutation(() => Community)
-  async updateHomeCommunity(@Args() { uuid, gmsApiKey }: CommunityArgs): Promise<Community> {
-    let homeCom: DbCommunity | null
-    let com: Community
-    if (uuid) {
-      let toUpdate = false
-      homeCom = await getCommunityByUuid(uuid)
-      if (!homeCom) {
-        throw new LogError('HomeCommunity with uuid not found: ', uuid)
-      }
-      if (homeCom.foreign) {
-        throw new LogError('Error: Only the HomeCommunity could be modified!')
-      }
-      if (homeCom.gmsApiKey !== gmsApiKey) {
-        homeCom.gmsApiKey = gmsApiKey
-        toUpdate = true
-      }
-      if (toUpdate) {
-        await DbCommunity.save(homeCom)
-      }
-      com = new Community(homeCom)
-    } else {
-      throw new LogError(`HomeCommunity without an uuid can't be modified!`)
+  async updateHomeCommunity(
+    @Args() { uuid, gmsApiKey, location }: EditCommunityInput,
+  ): Promise<Community> {
+    const homeCom = await getCommunityByUuid(uuid)
+    if (!homeCom) {
+      throw new LogError('HomeCommunity with uuid not found: ', uuid)
     }
-    return com
+    if (homeCom.foreign) {
+      throw new LogError('Error: Only the HomeCommunity could be modified!')
+    }
+    if (homeCom.gmsApiKey !== gmsApiKey || homeCom.location !== location) {
+      homeCom.gmsApiKey = gmsApiKey ?? null
+      if (location) {
+        homeCom.location = Location2Point(location)
+      }
+      await DbCommunity.save(homeCom)
+    }
+    return new Community(homeCom)
   }
 }

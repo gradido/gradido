@@ -1,70 +1,99 @@
 <template>
   <div class="rightside-last-transactions d-none d-lg-block">
-    <b-row class="mb-3">
-      <b-col class="h3">{{ $t('transaction.lastTransactions') }}</b-col>
-      <!-- <b-col cols="1" class="text-right">
-        <b-icon icon="three-dots-vertical"></b-icon>
-      </b-col> -->
-    </b-row>
+    <BRow class="mb-3">
+      <BCol class="h3">{{ $t('transaction.lastTransactions') }}</BCol>
+    </BRow>
 
-    <div v-for="(transaction, index) in transactions" :key="transaction.id">
-      <b-row
-        align-v="center"
-        v-if="
-          index <= 8 &&
-          transaction.typeId !== 'DECAY' &&
-          transaction.typeId !== 'LINK_SUMMARY' &&
-          transaction.typeId !== 'CREATION'
-        "
-        class="mb-4"
-      >
-        <b-col cols="auto">
+    <div v-for="transaction in filteredTransactions" :key="transaction.id">
+      <BRow align-v="center" class="mb-4">
+        <BCol cols="auto">
           <div class="align-items-center">
-            <avatar
+            <!--            <avatar-->
+            <!--              class="vue3-avatar"-->
+            <!--              :size="72"-->
+            <!--              :color="'#fff'"-->
+            <!--              :name="`${transaction.linkedUser.firstName} ${transaction.linkedUser.lastName}`"-->
+            <!--              :initials="`${transaction.linkedUser.firstName[0]}${transaction.linkedUser.lastName[0]}`"-->
+            <!--              :border="false"-->
+            <!--            />-->
+            <app-avatar
               :size="72"
               :color="'#fff'"
-              :username="`${transaction.linkedUser.firstName} ${transaction.linkedUser.lastName}`"
+              :name="`${transaction.linkedUser.firstName} ${transaction.linkedUser.lastName}`"
               :initials="`${transaction.linkedUser.firstName[0]}${transaction.linkedUser.lastName[0]}`"
-            ></avatar>
+            />
           </div>
-        </b-col>
-        <b-col class="p-1">
-          <b-row>
-            <b-col>
-              <div class="font-weight-bold">
-                <name :linkedUser="transaction.linkedUser" fontColor="text-dark" />
+        </BCol>
+        <BCol class="p-1">
+          <BRow>
+            <BCol>
+              <div class="fw-bold">
+                <name :linked-user="transaction.linkedUser" font-color="text-dark" />
               </div>
-              <div class="d-flex mt-3">
-                <div class="small">
-                  {{ transaction.amount | GDD }}
-                </div>
-                <div class="small ml-3 text-right">
+              <button
+                class="transaction-details-link d-flex mt-3"
+                role="link"
+                :data-href="`/transactions#transaction-${transaction.id}`"
+                @click="handleRedirect(transaction.id)"
+              >
+                <span class="small">
+                  {{ $filters.GDD(transaction.amount) }}
+                </span>
+                <span class="small ms-3 text-end">
                   {{ $d(new Date(transaction.balanceDate), 'short') }}
-                </div>
-              </div>
-            </b-col>
-          </b-row>
-        </b-col>
-      </b-row>
+                </span>
+              </button>
+            </BCol>
+          </BRow>
+        </BCol>
+      </BRow>
     </div>
   </div>
 </template>
-<script>
-import Avatar from 'vue-avatar'
+<script setup>
 import Name from '@/components/TransactionRows/Name'
+import { useRoute, useRouter } from 'vue-router'
+import { useStore } from 'vuex'
+import { computed } from 'vue'
+import AppAvatar from '@/components/AppAvatar.vue'
+const props = defineProps({
+  transactions: {
+    default: () => [],
+    type: Array,
+  },
+})
 
-export default {
-  name: 'LastTransactions',
-  components: {
-    Avatar,
-    Name,
-  },
-  props: {
-    transactions: {
-      default: () => [],
-    },
-    transactionCount: { type: Number, default: 0 },
-    transactionLinkCount: { type: Number, default: 0 },
-  },
+const router = useRouter()
+const route = useRoute()
+const store = useStore()
+
+const handleRedirect = (id) => {
+  store.dispatch('changeTransactionToHighlightId', id)
+  if (route.name !== 'Transactions') router.replace({ name: 'Transactions' })
 }
+
+const filteredTransactions = computed(() => {
+  return props.transactions
+    .filter(
+      (transaction) =>
+        transaction.typeId !== 'DECAY' &&
+        transaction.typeId !== 'LINK_SUMMARY' &&
+        transaction.typeId !== 'CREATION',
+    )
+    .slice(0, 8)
+})
 </script>
+
+<style scoped lang="scss">
+.transaction-details-link {
+  color: var(--bs-body-color) !important;
+  border: none;
+  background-color: transparent;
+  border-bottom: 1px solid transparent;
+  transition: border-bottom-color 0.15s ease-in-out;
+}
+
+.transaction-details-link:hover {
+  border-color: #383838;
+}
+</style>

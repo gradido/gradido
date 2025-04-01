@@ -1,7 +1,16 @@
+import { Point } from '@dbTools/typeorm'
 import { User as dbUser } from '@entity/User'
 import { ObjectType, Field, Int } from 'type-graphql'
 
+import { GmsPublishLocationType } from '@enum/GmsPublishLocationType'
+import { PublishNameType } from '@enum/PublishNameType'
+
+import { PublishNameLogic } from '@/data/PublishName.logic'
+import { Point2Location } from '@/graphql/resolver/util/Location2Point'
+
 import { KlickTipp } from './KlickTipp'
+import { Location } from './Location'
+import { UserContact } from './UserContact'
 
 @ObjectType()
 export class User {
@@ -15,8 +24,13 @@ export class User {
       }
       this.gradidoID = user.gradidoID
       this.alias = user.alias
+
+      const publishNameLogic = new PublishNameLogic(user)
+      this.humhubUsername = publishNameLogic.getUsername(user.humhubPublishName as PublishNameType)
+
       if (user.emailContact) {
         this.emailChecked = user.emailContact.emailChecked
+        this.emailContact = new UserContact(user.emailContact)
       }
       this.firstName = user.firstName
       this.lastName = user.lastName
@@ -29,6 +43,12 @@ export class User {
       this.hasElopage = null
       this.hideAmountGDD = user.hideAmountGDD
       this.hideAmountGDT = user.hideAmountGDT
+      this.humhubAllowed = user.humhubAllowed
+      this.gmsAllowed = user.gmsAllowed
+      this.gmsPublishName = user.gmsPublishName
+      this.humhubPublishName = user.humhubPublishName
+      this.gmsPublishLocation = user.gmsPublishLocation
+      this.userLocation = user.location ? Point2Location(user.location as Point) : null
     }
   }
 
@@ -49,6 +69,9 @@ export class User {
 
   @Field(() => String, { nullable: true })
   alias: string | null
+
+  @Field(() => String, { nullable: true })
+  humhubUsername: string | null
 
   @Field(() => String, { nullable: true })
   firstName: string | null
@@ -74,6 +97,21 @@ export class User {
   @Field(() => Boolean)
   hideAmountGDT: boolean
 
+  @Field(() => Boolean)
+  humhubAllowed: boolean
+
+  @Field(() => Boolean)
+  gmsAllowed: boolean
+
+  @Field(() => PublishNameType, { nullable: true })
+  gmsPublishName: PublishNameType | null
+
+  @Field(() => PublishNameType, { nullable: true })
+  humhubPublishName: PublishNameType | null
+
+  @Field(() => GmsPublishLocationType, { nullable: true })
+  gmsPublishLocation: GmsPublishLocationType | null
+
   // This is not the users publisherId, but the one of the users who recommend him
   @Field(() => Int, { nullable: true })
   publisherId: number | null
@@ -86,4 +124,10 @@ export class User {
 
   @Field(() => [String])
   roles: string[]
+
+  @Field(() => UserContact, { nullable: true })
+  emailContact: UserContact | null
+
+  @Field(() => Location, { nullable: true })
+  userLocation: Location | null
 }

@@ -1,0 +1,35 @@
+#import './fragments.graphql'
+
+query projectBrandings {
+  projectBrandings {
+    ...ProjectBrandingCommonFields
+  }
+}
+
+mutation upsertProjectBranding($input: ProjectBrandingInput!) {
+  upsertProjectBranding(input: $input) {
+    ...ProjectBrandingCommonFields
+  }
+}
+
+mutation deleteProjectBranding($id: ID!) {
+  deleteProjectBranding(id: $id)
+}
+
+query spaces($page: Int!, $limit: Int!) {
+  spaces(page: $page, limit: $limit) {
+    pagination {
+      ...PaginationFields
+    }
+    results {
+      ...SpaceFields
+    }
+  }
+}
+
+query spaceWithNameAndDescription($id: ID!) {
+  space(id: $id) {
+    name
+    description
+  }
+}

@@ -1,60 +1,73 @@
 import { mount } from '@vue/test-utils'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import GdtTransactionList from './GdtTransactionList'
 import { GdtEntryType } from '@/graphql/enums'
+import { createStore } from 'vuex'
+import { nextTick } from 'vue'
+import { BButton, BPagination } from 'bootstrap-vue-next'
 
-const localVue = global.localVue
+const mockStore = createStore({
+  state: {
+    language: 'en',
+  },
+})
 
-const state = {
-  language: 'en',
+const mockI18n = {
+  locale: 'en',
+  t: (key) => key,
 }
 
-describe('GdtTransactionList ', () => {
+describe('GdtTransactionList', () => {
   let wrapper
 
-  const mocks = {
-    $store: {
-      state,
-      commit: jest.fn(),
-    },
-    $i18n: {
-      locale: 'en',
-    },
-    $t: jest.fn((t) => t),
-    $n: jest.fn((n) => n),
-    $d: jest.fn((d) => d),
+  const globalMocks = {
+    $store: mockStore,
+    $i18n: mockI18n,
+    $t: vi.fn((t) => t),
+    $n: vi.fn((n) => n),
+    $d: vi.fn((d) => d),
   }
 
-  const propsData = {
+  const defaultProps = {
     transactionsGdt: [],
     transactionGdtCount: 0,
     pageSize: 25,
-    value: 1,
+    modelValue: 1,
   }
 
-  const Wrapper = () => {
-    return mount(GdtTransactionList, { localVue, mocks, propsData })
+  const mountComponent = (props = {}) => {
+    return mount(GdtTransactionList, {
+      props: { ...defaultProps, ...props },
+      global: {
+        mocks: globalMocks,
+        stubs: {
+          BButton,
+          BPagination,
+          Transaction: true,
+        },
+      },
+    })
   }
 
   describe('transactionGdtCount is 0', () => {
     beforeEach(() => {
-      wrapper = Wrapper()
+      wrapper = mountComponent()
     })
 
-    it('renders the funding button ', () => {
+    it('renders the funding button', () => {
       expect(wrapper.find('.gdt-funding').exists()).toBe(true)
     })
 
-    it('links to https://gradido.net/en/memberships/ when clicking', async () => {
+    it('links to correct memberships URL when clicking', async () => {
       expect(wrapper.find('.gdt-funding').attributes('href')).toBe(
-        'https://gradido.net/' + state.language + '/memberships/',
+        'https://gradido.net/en/memberships/',
       )
     })
   })
 
   describe('Transactions are loaded', () => {
     beforeEach(async () => {
-      wrapper = Wrapper()
-      await wrapper.setProps({
+      wrapper = mountComponent({
         transactionGdtCount: 42,
         transactionsGdt: [
           {
@@ -98,51 +111,40 @@ describe('GdtTransactionList ', () => {
     })
 
     it('renders the component', () => {
-      expect(wrapper.find('div.gdt-transaction-list').exists()).toBeTruthy()
+      expect(wrapper.find('div.gdt-transaction-list').exists()).toBe(true)
     })
 
-    it('does not render the funding button ', () => {
+    it('does not render the funding button', () => {
       expect(wrapper.find('.gdt-funding').exists()).toBe(false)
     })
 
     describe('change of currentPage', () => {
-      it('calls the API after currentPage changes', async () => {
-        jest.clearAllMocks()
-        await wrapper.findComponent({ name: 'BPagination' }).vm.$emit('input', 2)
-        expect(wrapper.emitted('input')).toEqual([[2]])
+      it('emits input event after currentPage changes', async () => {
+        await wrapper.findComponent({ name: 'BPagination' }).vm.$emit('update:modelValue', 2)
+        await nextTick()
+        expect(wrapper.emitted('update:modelValue')).toEqual([[2]])
       })
 
       describe('pagination buttons', () => {
-        describe('with transactionCount > pageSize', () => {
-          it('shows the pagination buttons', () => {
-            expect(wrapper.find('ul.pagination').exists()).toBe(true)
-          })
+        it('shows the pagination buttons when transactionCount > pageSize', () => {
+          expect(wrapper.findComponent({ name: 'BPagination' }).exists()).toBe(true)
         })
 
-        describe('with transactionCount < pageSize', () => {
-          beforeEach(() => {
-            wrapper.setProps({
-              transactionGdtCount: 10,
-            })
-          })
-
-          it('shows no pagination buttons', () => {
-            expect(wrapper.find('ul.pagination').exists()).toBe(false)
-          })
+        it('hides pagination buttons when transactionCount < pageSize', async () => {
+          await wrapper.setProps({ transactionGdtCount: 10 })
+          expect(wrapper.findComponent({ name: 'BPagination' }).exists()).toBe(false)
         })
       })
     })
+  })
 
-    describe('server not reachable', () => {
-      beforeEach(() => {
-        wrapper.setProps({
-          transactionGdtCount: -1,
-        })
-      })
+  describe('server not reachable', () => {
+    beforeEach(() => {
+      wrapper = mountComponent({ transactionGdtCount: -1 })
+    })
 
-      it('renders the not-reachable text', () => {
-        expect(wrapper.text()).toBe('gdt.not-reachable')
-      })
+    it('renders the not-reachable text', () => {
+      expect(wrapper.text()).toContain('gdt.not-reachable')
     })
   })
 })

@@ -1,40 +1,46 @@
 import { mount, RouterLinkStub } from '@vue/test-utils'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import GddTransactionListFooter from './GddTransactionListFooter'
-
-const localVue = global.localVue
+import { BListGroup, BListGroupItem } from 'bootstrap-vue-next'
 
 describe('GddTransactionListFooter', () => {
   let wrapper
 
-  const mocks = {
-    $t: jest.fn((t) => t),
+  const global = {
+    mocks: {
+      $t: vi.fn((t) => t),
+    },
+    stubs: {
+      RouterLink: RouterLinkStub,
+      BListGroup,
+      BListGroupItem,
+    },
   }
 
-  const stubs = {
-    RouterLink: RouterLinkStub,
-  }
-
-  const Wrapper = () => {
-    return mount(GddTransactionListFooter, { localVue, mocks, stubs })
+  const mountComponent = (props = {}) => {
+    return mount(GddTransactionListFooter, {
+      props,
+      global,
+    })
   }
 
   describe('mount', () => {
     beforeEach(() => {
-      wrapper = Wrapper()
+      wrapper = mountComponent()
     })
 
     it('renders the component', () => {
-      expect(wrapper.find('div.list-group').exists()).toBeTruthy()
+      expect(wrapper.find('div').exists()).toBe(true)
     })
 
-    it('contains no text', () => {
+    it('contains no text when count is not provided', () => {
       expect(wrapper.text()).toBe('')
     })
   })
 
   describe('count property is greater than 5', () => {
-    beforeEach(async () => {
-      wrapper.setProps({ count: 6 })
+    beforeEach(() => {
+      wrapper = mountComponent({ count: 6 })
     })
 
     it('renders a link to show all', () => {

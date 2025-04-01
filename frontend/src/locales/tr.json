@@ -124,6 +124,7 @@
     "memo": "Mesaj",
     "message": "Mesaj",
     "new_balance": "Onay sonrası hesap bakiyesi",
+    "newPasswordRepeat": "Yeni şifreyi tekrarla",
     "no_gdd_available": "Göndermek için GDD'niz yok.",
     "password": "Şifre",
     "passwordRepeat": "Şifreyi tekrarla",
@@ -146,6 +147,7 @@
     "validation": {
       "gddSendAmount": "Bu alan {_field_} {min}  {max} arasında ondalık noktadan sonra en fazla iki basamaklı bir sayı olmalıdır",
       "is-not": "Gradidoları kendine gönderemezsin",
+      "requiredField": "{fieldName} alanı zorunludur",
       "usernmae-regex": "Kullanıcı adı bir harfle başlamalı, ardından en az iki alfasayısal karakter gelmelidir.",
       "usernmae-unique": "Bu kullanıcı adı zaten alınmış."
     },
@@ -202,7 +204,8 @@
     "recruited-member": "Davetli üye"
   },
   "language": "Dil",
-  "link-load": "Son linki yükle| Son {n} linki yükle |  {n} link daha yükle",
+  "link-load": "Son linki yükle| Son {n} linki yükle",
+  "link-load-more": "{n} link daha yükle",
   "login": "Giriş",
   "math": {
     "aprox": "~",
@@ -243,10 +246,28 @@
     "warningText": "Hala orada mısın?"
   },
   "settings": {
+    "GMS": {
+      "location": {
+        "button": "Buraya tıklayın!",
+        "label": "Tam konum",
+        "saveLocation": "Konumu Kaydet",
+        "updateSuccess": "Konum başarıyla kaydedildi"
+      },
+      "map": {
+        "communityCoords": "Topluluk Konumunuz: Enlem {lat}, Boylam {lng}",
+        "communityLocationLabel": "Topluluk Konumunuz",
+        "headline": "Kullanıcının Coğrafi Konum Tespiti",
+        "userCoords": "Konumunuz: Enlem {lat}, Boylam {lng}",
+        "userLocationLabel": "Konumunuz",
+        "search": "Konum ara",
+        "success": "Konum başarıyla kaydedildi"
+      }
+    },
     "language": {
       "changeLanguage": "Dili değiştir",
       "de": "Deutsch",
       "en": "English",
+      "error": "Dil ayarları güncellenemedi.",
       "es": "Español",
       "fr": "Français",
       "nl": "Nederlands",

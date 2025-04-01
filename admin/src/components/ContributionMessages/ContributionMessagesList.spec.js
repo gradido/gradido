@@ -1,170 +1,185 @@
 import { mount } from '@vue/test-utils'
-import ContributionMessagesList from './ContributionMessagesList'
-import VueApollo from 'vue-apollo'
-import { createMockClient } from 'mock-apollo-client'
-import { adminListContributionMessages } from '../../graphql/adminListContributionMessages.js'
-import { toastErrorSpy } from '../../../test/testSetup'
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
+import { ref } from 'vue'
+import ContributionMessagesList from './ContributionMessagesList.vue'
+import { useQuery } from '@vue/apollo-composable'
+import { useAppToast } from '@/composables/useToast'
+import { BContainer } from 'bootstrap-vue-next'
 
-const mockClient = createMockClient()
-const apolloProvider = new VueApollo({
-  defaultClient: mockClient,
-})
-
-const localVue = global.localVue
-
-localVue.use(VueApollo)
-
-const defaultData = () => {
+vi.mock('vue', async () => {
+  const actual = await vi.importActual('vue')
   return {
-    adminListContributionMessages: {
-      count: 4,
-      messages: [
-        {
-          id: 43,
-          message: 'A DIALOG message',
-          createdAt: new Date().toString(),
-          updatedAt: null,
-          type: 'DIALOG',
-          userFirstName: 'Peter',
-          userLastName: 'Lustig',
-          userId: 1,
-          isModerator: true,
-        },
-        {
-          id: 44,
-          message: 'Another DIALOG message',
-          createdAt: new Date().toString(),
-          updatedAt: null,
-          type: 'DIALOG',
-          userFirstName: 'Bibi',
-          userLastName: 'Bloxberg',
-          userId: 2,
-          isModerator: false,
-        },
-        {
-          id: 45,
-          message: `DATE
----
-A HISTORY message
----
-AMOUNT`,
-          createdAt: new Date().toString(),
-          updatedAt: null,
-          type: 'HISTORY',
-          userFirstName: 'Bibi',
-          userLastName: 'Bloxberg',
-          userId: 2,
-          isModerator: false,
-        },
-        {
-          id: 46,
-          message: 'A MODERATOR message',
-          createdAt: new Date().toString(),
-          updatedAt: null,
-          type: 'MODERATOR',
-          userFirstName: 'Peter',
-          userLastName: 'Lustig',
-          userId: 1,
-          isModerator: true,
-        },
-      ],
-    },
+    ...actual,
+    ref: vi.fn(actual.ref),
   }
+})
+vi.mock('@vue/apollo-composable')
+vi.mock('@/composables/useToast')
+
+const defaultData = {
+  adminListContributionMessages: {
+    count: 4,
+    messages: [
+      {
+        id: 43,
+        message: 'A DIALOG message',
+        createdAt: new Date().toString(),
+        updatedAt: null,
+        type: 'DIALOG',
+        userFirstName: 'Peter',
+        userLastName: 'Lustig',
+        userId: 1,
+        isModerator: true,
+      },
+      {
+        id: 44,
+        message: 'Another DIALOG message',
+        createdAt: new Date().toString(),
+        updatedAt: null,
+        type: 'DIALOG',
+        userFirstName: 'Bibi',
+        userLastName: 'Bloxberg',
+        userId: 2,
+        isModerator: false,
+      },
+      {
+        id: 45,
+        message: `DATE\n---\nA HISTORY message\n---\nAMOUNT`,
+        createdAt: new Date().toString(),
+        updatedAt: null,
+        type: 'HISTORY',
+        userFirstName: 'Bibi',
+        userLastName: 'Bloxberg',
+        userId: 2,
+        isModerator: false,
+      },
+      {
+        id: 46,
+        message: 'A MODERATOR message',
+        createdAt: new Date().toString(),
+        updatedAt: null,
+        type: 'MODERATOR',
+        userFirstName: 'Peter',
+        userLastName: 'Lustig',
+        userId: 1,
+        isModerator: true,
+      },
+    ],
+  },
+}
+
+const defaultUser = {
+  firstName: 'Peter',
+  lastName: 'Lustig',
+  humhubUsername: 'peter.lustig',
+  createdAt: new Date().toString(),
+  emailContact: {
+    email: 'peter.lustig@example.com',
+  },
 }
 
 describe('ContributionMessagesList', () => {
   let wrapper
+  let mockMessages
+  const mockRefetch = vi.fn()
+  const mockToastError = vi.fn()
 
-  const adminListContributionMessagessMock = jest.fn()
+  beforeEach(async () => {
+    vi.clearAllMocks()
 
-  mockClient.setRequestHandler(
-    adminListContributionMessages,
-    adminListContributionMessagessMock
-      .mockRejectedValueOnce({ message: 'Auaa!' })
-      .mockResolvedValue({ data: defaultData() }),
-  )
+    mockMessages = ref([])
+    ref.mockReturnValueOnce(mockMessages)
 
-  const propsData = {
-    contributionId: 42,
-    contributionMemo: 'test memo',
-    contributionUserId: 108,
-    contributionStatus: 'PENDING',
-    hideResubmission: true,
-  }
-
-  const mocks = {
-    $t: jest.fn((t) => t),
-    $d: jest.fn((d) => d),
-    $n: jest.fn((n) => n),
-    $i18n: {
-      locale: 'en',
-    },
-  }
-
-  const Wrapper = () => {
-    return mount(ContributionMessagesList, {
-      localVue,
-      mocks,
-      propsData,
-      apolloProvider,
-    })
-  }
-
-  describe('mount', () => {
-    beforeEach(() => {
-      jest.clearAllMocks()
-      wrapper = Wrapper()
+    useQuery.mockReturnValue({
+      onResult: vi.fn((callback) => callback({ result: defaultData })),
+      onError: vi.fn(),
+      result: { value: defaultData },
+      refetch: mockRefetch,
     })
 
-    describe('server response for admin list contribution messages is error', () => {
-      it('toast an error message', () => {
-        expect(toastErrorSpy).toBeCalledWith('Auaa!')
-      })
+    useAppToast.mockReturnValue({
+      toastError: mockToastError,
     })
 
-    describe('server response is succes', () => {
-      it('has a DIV .contribution-messages-list', () => {
-        expect(wrapper.find('div.contribution-messages-list').exists()).toBe(true)
-      })
-
-      it('has 4 messages', () => {
-        expect(wrapper.findAll('div.contribution-messages-list-item')).toHaveLength(4)
-      })
-
-      it('has a Component ContributionMessagesFormular', () => {
-        expect(wrapper.findComponent({ name: 'ContributionMessagesFormular' }).exists()).toBe(true)
-      })
+    wrapper = mount(ContributionMessagesList, {
+      props: {
+        contribution: {
+          id: 42,
+          memo: 'test memo',
+          userId: 108,
+          status: 'PENDING',
+          user: defaultUser,
+        },
+        hideResubmission: true,
+      },
+      global: {
+        components: {
+          BContainer,
+        },
+        mocks: {
+          $t: (key) => key,
+          $d: (date) => date,
+          $n: (number) => number,
+        },
+        stubs: {
+          'contribution-messages-list-item': true,
+          'contribution-messages-formular': true,
+        },
+      },
     })
 
-    describe('call updateStatus', () => {
-      beforeEach(() => {
-        wrapper.vm.updateStatus(4)
-      })
+    await wrapper.vm.$nextTick()
+  })
 
-      it('emits update-status', () => {
-        expect(wrapper.vm.$root.$emit('update-status', 4)).toBeTruthy()
-      })
+  afterEach(() => {
+    wrapper.unmount()
+  })
+
+  it('renders the component', () => {
+    expect(wrapper.find('.contribution-messages-list').exists()).toBe(true)
+  })
+
+  it('renders the correct number of messages', async () => {
+    wrapper.vm.messages = defaultData.adminListContributionMessages.messages
+    await wrapper.vm.$nextTick()
+    expect(wrapper.findAll('contribution-messages-list-item-stub')).toHaveLength(4)
+  })
+
+  it('renders the ContributionMessagesFormular when status is PENDING', () => {
+    expect(wrapper.find('contribution-messages-formular-stub').exists()).toBe(true)
+  })
+
+  it('does not render the ContributionMessagesFormular when status is not PENDING or IN_PROGRESS', async () => {
+    await wrapper.setProps({
+      contribution: {
+        status: 'COMPLETED',
+        user: defaultUser,
+      },
     })
+    expect(wrapper.find('contribution-messages-formular-stub').exists()).toBe(false)
+  })
 
-    describe('test reload-contribution', () => {
-      beforeEach(() => {
-        wrapper.vm.reloadContribution(3)
-      })
+  it('updates messages when result changes', async () => {
+    const newMessages = [{ id: 1, message: 'New message' }]
+    mockMessages.value = newMessages
+    await wrapper.vm.$nextTick()
+    expect(wrapper.findAll('contribution-messages-list-item-stub')).toHaveLength(1)
+  })
 
-      it('emits reload-contribution', () => {
-        expect(wrapper.emitted('reload-contribution')).toBeTruthy()
-        expect(wrapper.emitted('reload-contribution')[0]).toEqual([3])
-      })
-    })
+  it('emits update-status event', async () => {
+    await wrapper.vm.updateStatus(4)
+    expect(wrapper.emitted('update-status')).toBeTruthy()
+    expect(wrapper.emitted('update-status')[0]).toEqual([4])
+  })
 
-    describe('test update-contributions', () => {
-      beforeEach(() => {
-        wrapper.vm.updateContributions()
-      })
+  it('emits reload-contribution event', async () => {
+    await wrapper.vm.reloadContribution(3)
+    expect(wrapper.emitted('reload-contribution')).toBeTruthy()
+    expect(wrapper.emitted('reload-contribution')[0]).toEqual([3])
+  })
 
-      it('emits update-contributions', () => {
-        expect(wrapper.emitted('update-contributions')).toBeTruthy()
-      })
-    })
+  it('emits update-contributions event', async () => {
+    await wrapper.vm.updateContributions()
+    expect(wrapper.emitted('update-contributions')).toBeTruthy()
   })
 })

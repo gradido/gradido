@@ -2,9 +2,9 @@
   <div class="name">
     <div class="gdd-transaction-list-item-name">
       <div v-if="linkedUser && linkedUser.gradidoID">
-        <b-link @click.stop="tunnelEmail" :class="fontColor">
+        <router-link :class="fontColor" :to="pushTo">
           {{ itemText }}
-        </b-link>
+        </router-link>
       </div>
       <span v-else>{{ itemText }}</span>
     </div>
@@ -33,17 +33,6 @@ export default {
       default: null,
     },
   },
-  methods: {
-    async tunnelEmail() {
-      if (this.$route.path !== '/send') await this.$router.push({ path: '/send' })
-      this.$router.push({
-        params: {
-          userIdentifier: this.linkedUser.gradidoID,
-          communityIdentifier: this.linkedUser.communityUuid,
-        },
-      })
-    },
-  },
   computed: {
     itemText() {
       return this.linkedUser
@@ -55,6 +44,26 @@ export default {
             this.linkedUser.lastName +
             (this.linkedUser.communityName ? ' / ' + this.linkedUser.communityName : '')
         : this.text
+    },
+    pushTo() {
+      return {
+        name: 'Send',
+        params: {
+          userIdentifier: this.linkedUser.gradidoID,
+          communityIdentifier: this.linkedUser.communityUuid,
+        },
+      }
+    },
+  },
+  methods: {
+    async tunnelEmail() {
+      if (this.$route.path !== '/send') await this.$router.push({ path: '/send' })
+      this.$router.push({
+        params: {
+          userIdentifier: this.linkedUser.gradidoID,
+          communityIdentifier: this.linkedUser.communityUuid,
+        },
+      })
     },
   },
 }

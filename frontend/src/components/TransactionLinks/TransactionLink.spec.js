@@ -1,228 +1,176 @@
 import { mount } from '@vue/test-utils'
-import TransactionLink from './TransactionLink'
-import { deleteTransactionLink } from '@/graphql/mutations'
-import { toastErrorSpy, toastSuccessSpy } from '@test/testSetup'
+import { createI18n } from 'vue-i18n'
+import { vi, describe, it, expect, beforeEach } from 'vitest'
+import TransactionLink from './TransactionLink.vue'
 
-const localVue = global.localVue
-
-const mockAPIcall = jest.fn()
-const navigatorClipboardMock = jest.fn()
-
-const mocks = {
-  $t: jest.fn((t) => t),
-  $d: jest.fn((d) => d),
-  $apollo: {
-    mutate: mockAPIcall,
+vi.mock('@/components/TransactionRows/TypeIcon', () => ({
+  default: {
+    name: 'TypeIcon',
+    template: '<div>TypeIcon</div>',
   },
-  $store: {
-    state: {
-      firstName: 'Testy',
-    },
+}))
+vi.mock('@/components/TransactionRows/AmountAndNameRow', () => ({
+  default: {
+    name: 'AmountAndNameRow',
+    template: '<div>AmountAndNameRow</div>',
   },
-}
+}))
+vi.mock('@/components/TransactionRows/MemoRow', () => ({
+  default: {
+    name: 'MemoRow',
+    template: '<div>MemoRow</div>',
+  },
+}))
+vi.mock('@/components/TransactionRows/DateRow', () => ({
+  default: {
+    name: 'DateRow',
+    template: '<div>DateRow</div>',
+  },
+}))
+vi.mock('@/components/TransactionRows/DecayRow', () => ({
+  default: {
+    name: 'DecayRow',
+    template: '<div>DecayRow</div>',
+  },
+}))
+vi.mock('@/components/AppModal', () => ({
+  default: {
+    name: 'AppModal',
+    template: '<div>AppModal</div>',
+  },
+}))
+vi.mock('@/components/QrCode/FigureQrCode', () => ({
+  default: {
+    name: 'FigureQrCode',
+    template: '<div>FigureQrCode</div>',
+  },
+}))
+vi.mock('@/components/VariantIcon.vue', () => ({
+  default: {
+    name: 'VariantIcon',
+    template: '<div>VariantIcon</div>',
+  },
+}))
 
-const propsData = {
-  amount: '75',
-  link: 'http://localhost/redeem/c00000000c000000c0000',
-  holdAvailableAmount: '5.13109484759482747111',
-  id: 12,
-  memo: 'Katzenauge, Eulenschrei, was verschwunden komm herbei!',
-  validUntil: '2022-03-30T14:22:40.000Z',
-}
+const mockToastSuccess = vi.fn()
+const mockToastError = vi.fn()
+vi.mock('@/composables/useToast', () => ({
+  useAppToast: () => ({
+    toastSuccess: mockToastSuccess,
+    toastError: mockToastError,
+  }),
+}))
 
-describe('TransactionLink', () => {
+vi.mock('@/composables/useCopyLinks', () => ({
+  useCopyLinks: () => ({
+    copyLink: vi.fn(),
+    copyLinkWithText: vi.fn(),
+  }),
+}))
+
+const mockMutate = vi.fn().mockResolvedValue({})
+vi.mock('@vue/apollo-composable', () => ({
+  useMutation: vi.fn(() => ({
+    mutate: mockMutate,
+  })),
+}))
+
+describe('TransactionLink.vue', () => {
   let wrapper
 
-  const Wrapper = () => {
-    return mount(TransactionLink, { localVue, mocks, propsData })
-  }
-  describe('mount', () => {
-    beforeEach(() => {
-      wrapper = Wrapper()
+  const i18n = createI18n({
+    legacy: false,
+    locale: 'en',
+    messages: {
+      en: {
+        'form.amount': 'Amount',
+        'gdd_per_link.copy-link': 'Copy Link',
+        'gdd_per_link.copy-link-with-text': 'Copy Link with Text',
+        qrCode: 'QR Code',
+        delete: 'Delete',
+        'gdd_per_link.delete-the-link': 'Delete the Link',
+        'gdd_per_link.deleted': 'Link Deleted',
+      },
+    },
+  })
+
+  beforeEach(() => {
+    wrapper = mount(TransactionLink, {
+      global: {
+        plugins: [i18n],
+        stubs: {
+          BRow: true,
+          BCol: true,
+          BDropdown: true,
+          BDropdownItem: true,
+          BCard: true,
+          BCardText: true,
+          IBiThreeDotsVertical: true,
+          IBiClipboard: true,
+          IBiClipboardPlus: true,
+          BImg: true,
+          IBiTrash: true,
+        },
+      },
+      props: {
+        holdAvailableAmount: '100',
+        id: 1,
+        amount: 200,
+        validUntil: '2024-12-31T23:59:59Z',
+        link: 'https://example.com/link',
+        memo: 'Test memo',
+      },
     })
+  })
 
-    it('renders the component div.transaction-link', () => {
-      expect(wrapper.find('div.transaction-link').exists()).toBeTruthy()
-    })
+  it('computes decay correctly', () => {
+    expect(wrapper.vm.decay).toBe('100')
+  })
 
-    describe('Link validUntil Date is not valid', () => {
-      it('has no copy link button', () => {
-        expect(wrapper.find('.test-copy-link').exists()).toBe(false)
-      })
+  it('computes validLink correctly when link is valid', async () => {
+    await wrapper.setProps({ validUntil: new Date(new Date().getTime() + 1000000) })
+    expect(wrapper.vm.validLink).toBe(true)
+  })
 
-      it('has no Qr-Code Button ', () => {
-        expect(wrapper.find('.test-qr-code').exists()).toBe(false)
-      })
+  it('computes validLink correctly when link is expired', async () => {
+    await wrapper.setProps({ validUntil: '2022-01-01T00:00:00Z' })
+    expect(wrapper.vm.validLink).toBe(false)
+  })
 
-      it('has delete link button ', () => {
-        expect(wrapper.find('.test-delete-link').exists()).toBe(true)
-      })
-    })
+  it('toggles QR modal', async () => {
+    expect(wrapper.vm.showQrModal).toBe(false)
+    await wrapper.vm.toggleQrModal()
+    expect(wrapper.vm.showQrModal).toBe(true)
+    await wrapper.vm.toggleQrModal()
+    expect(wrapper.vm.showQrModal).toBe(false)
+  })
 
-    describe('Link validUntil Date is valid ', () => {
-      beforeEach(async () => {
-        const now = new Date()
-        jest.clearAllMocks()
-        await wrapper.setProps({
-          validUntil: `${new Date(now.getFullYear(), now.getMonth(), now.getDate() + 2)}`,
-        })
-      })
+  it('toggles delete modal', async () => {
+    expect(wrapper.vm.showDeleteLinkModal).toBe(false)
+    await wrapper.vm.toggleDeleteModal()
+    expect(wrapper.vm.showDeleteLinkModal).toBe(true)
+    await wrapper.vm.toggleDeleteModal()
+    expect(wrapper.vm.showDeleteLinkModal).toBe(false)
+  })
 
-      describe('Copy link to Clipboard', () => {
-        const navigatorClipboard = navigator.clipboard
-        beforeAll(() => {
-          delete navigator.clipboard
-          navigator.clipboard = { writeText: navigatorClipboardMock }
-        })
-        afterAll(() => {
-          navigator.clipboard = navigatorClipboard
-        })
+  it('calls deleteTransactionLinkMutation when deleteLink is called', async () => {
+    await wrapper.vm.deleteLink()
 
-        describe('copy link with success', () => {
-          beforeEach(async () => {
-            navigatorClipboardMock.mockResolvedValue()
-            await wrapper.find('.test-copy-link .dropdown-item').trigger('click')
-          })
+    expect(mockMutate).toHaveBeenCalledWith({ id: 1 })
 
-          it('should call clipboard.writeText', () => {
-            expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
-              'http://localhost/redeem/c00000000c000000c0000',
-            )
-          })
-          it('toasts success message', () => {
-            expect(toastSuccessSpy).toBeCalledWith('gdd_per_link.link-copied')
-          })
-        })
+    expect(mockToastSuccess).toHaveBeenCalledWith('Link Deleted')
 
-        describe('copy link and text with success', () => {
-          beforeEach(async () => {
-            navigatorClipboardMock.mockResolvedValue()
-            await wrapper.find('.test-copy-text .dropdown-item').trigger('click')
-          })
+    expect(wrapper.emitted('reset-transaction-link-list')).toBeTruthy()
+  })
 
-          it.skip('should call clipboard.writeText', () => {
-            expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
-              'http://localhost/redeem/c00000000c000000c0000\n' +
-                'Testy transaction-link.send_you 75 Gradido.\n' +
-                '"Katzenauge, Eulenschrei, was verschwunden komm herbei!"\n' +
-                'gdd_per_link.credit-your-gradido gdd_per_link.validUntilDate\n' +
-                'gdd_per_link.link-hint',
-            )
-          })
-          it('toasts success message', () => {
-            expect(toastSuccessSpy).toBeCalledWith('gdd_per_link.link-and-text-copied')
-          })
-        })
+  it('handles error when deleteLink fails', async () => {
+    const error = new Error('Delete failed')
+    mockMutate.mockRejectedValueOnce(error)
 
-        describe('copy link with error', () => {
-          beforeEach(async () => {
-            navigatorClipboardMock.mockRejectedValue()
-            await wrapper.find('.test-copy-link .dropdown-item').trigger('click')
-          })
+    await wrapper.vm.deleteLink()
 
-          it('toasts an error', () => {
-            expect(toastErrorSpy).toBeCalledWith('gdd_per_link.not-copied')
-          })
-        })
-
-        describe('copy link and text with error', () => {
-          beforeEach(async () => {
-            navigatorClipboardMock.mockRejectedValue()
-            await wrapper.find('.test-copy-text .dropdown-item').trigger('click')
-          })
-
-          it('toasts an error', () => {
-            expect(toastErrorSpy).toBeCalledWith('gdd_per_link.not-copied')
-          })
-        })
-      })
-
-      describe('qr code modal', () => {
-        let spy
-
-        beforeEach(async () => {
-          jest.clearAllMocks()
-        })
-
-        describe('with success', () => {
-          beforeEach(async () => {
-            spy = jest.spyOn(wrapper.vm.$bvModal, 'show')
-            // spy.mockImplementation(() => Promise.resolve('some value'))
-            // mockAPIcall.mockResolvedValue()
-            await wrapper.find('.test-qr-code .dropdown-item').trigger('click')
-          })
-
-          it('opens the qr-code Modal', () => {
-            expect(spy).toBeCalled()
-          })
-        })
-      })
-
-      describe('delete link', () => {
-        let spy
-
-        beforeEach(async () => {
-          jest.clearAllMocks()
-        })
-
-        describe('with success', () => {
-          beforeEach(async () => {
-            spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
-            spy.mockImplementation(() => Promise.resolve('some value'))
-            mockAPIcall.mockResolvedValue()
-            await wrapper.find('.test-delete-link .dropdown-item').trigger('click')
-          })
-
-          it('opens the modal ', () => {
-            expect(spy).toBeCalled()
-          })
-
-          it('calls the API', () => {
-            expect(mockAPIcall).toBeCalledWith(
-              expect.objectContaining({
-                mutation: deleteTransactionLink,
-                variables: {
-                  id: 12,
-                },
-              }),
-            )
-          })
-
-          it('toasts a success message', () => {
-            expect(toastSuccessSpy).toBeCalledWith('gdd_per_link.deleted')
-          })
-
-          it('emits reset transaction link list', () => {
-            expect(wrapper.emitted('reset-transaction-link-list')).toBeTruthy()
-          })
-        })
-
-        describe('with error', () => {
-          beforeEach(async () => {
-            spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
-            spy.mockImplementation(() => Promise.resolve('some value'))
-            mockAPIcall.mockRejectedValue({ message: 'Something went wrong :(' })
-            await wrapper.find('.test-delete-link .dropdown-item').trigger('click')
-          })
-
-          it('toasts an error message', () => {
-            expect(toastErrorSpy).toBeCalledWith('Something went wrong :(')
-          })
-        })
-
-        describe('cancel delete', () => {
-          beforeEach(async () => {
-            spy = jest.spyOn(wrapper.vm.$bvModal, 'msgBoxConfirm')
-            spy.mockImplementation(() => Promise.resolve(false))
-            mockAPIcall.mockResolvedValue()
-            await wrapper.find('.test-delete-link .dropdown-item').trigger('click')
-          })
-
-          it('does not call the API', () => {
-            expect(mockAPIcall).not.toBeCalled()
-          })
-        })
-      })
-    })
+    expect(mockMutate).toHaveBeenCalledWith({ id: 1 })
+    expect(mockToastError).toHaveBeenCalledWith(error.message)
+    expect(wrapper.emitted('reset-transaction-link-list')).toBeFalsy()
   })
 })

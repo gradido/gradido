@@ -1,38 +1,57 @@
+import { describe, it, expect, vi } from 'vitest'
 import router from './router'
+import routes from './routes'
 import NotFound from '@/pages/NotFoundPage'
 
-describe('router', () => {
-  describe('options', () => {
-    const { options } = router
-    const { scrollBehavior, routes } = options
+vi.mock('vue', async () => {
+  const actual = await vi.importActual('vue')
+  return {
+    ...actual,
+    defineComponent: (options) => options,
+  }
+})
 
-    it('has "/" as base', () => {
-      expect(options).toEqual(
-        expect.objectContaining({
-          base: '/',
-        }),
-      )
+vi.mock('@/pages/Send', () => ({
+  default: { name: 'Send' },
+}))
+
+vi.mock('@/pages/Transactions', () => ({
+  default: { name: 'Transactions' },
+}))
+
+const getComponentName = (component) => {
+  if (typeof component === 'object') {
+    return (
+      component.name ||
+      component.displayName ||
+      component.__name ||
+      (component.setup && component.setup.name) ||
+      (component.render && component.render.name)
+    )
+  }
+  return undefined
+}
+
+describe('router', () => {
+  describe('configuration', () => {
+    it('uses createWebHistory', () => {
+      expect(router.options.history.constructor.name).toBe('Object')
+    })
+
+    it('has empty string as base', () => {
+      expect(router.options.history.base).toBe('')
     })
 
     it('has "active" as linkActiveClass', () => {
-      expect(options).toEqual(
-        expect.objectContaining({
-          linkActiveClass: 'active',
-        }),
-      )
-    })
-
-    it('has "history" as mode', () => {
-      expect(options).toEqual(
-        expect.objectContaining({
-          mode: 'history',
-        }),
-      )
+      expect(router.options.linkActiveClass).toBe('active')
     })
 
     describe('scroll behavior', () => {
-      it('returns save position when given', () => {
-        expect(scrollBehavior({}, {}, 'given')).toBe('given')
+      const { scrollBehavior } = router.options
+
+      it('returns saved position when given', () => {
+        const savedPosition = { left: 100, top: 100 }
+        expect(scrollBehavior({}, {}, savedPosition)).toEqual(savedPosition)
       })
 
       it('returns selector when hash is given', () => {
@@ -40,192 +59,77 @@ describe('router', () => {
       })
 
       it('returns top left coordinates as default', () => {
-        expect(scrollBehavior({}, {})).toEqual({ x: 0, y: 0 })
+        expect(scrollBehavior({}, {})).toEqual({ left: 0, top: 0 })
+      })
+    })
+  })
+
+  describe('routes', () => {
+    it('has "/" as default redirect to "/login"', () => {
+      const defaultRoute = routes.find((r) => r.path === '/')
+      expect(defaultRoute.redirect()).toEqual({ path: '/login' })
+    })
+
+    it('has 21 routes defined', () => {
+      expect(routes).toHaveLength(21)
+    })
+
+    const testRoute = (path, expectedName, requiresAuth = true) => {
+      describe(path, () => {
+        const route = routes.find(
+          (r) => r.path === path || (r.path.startsWith(path) && r.path.endsWith('?')),
+        )
+
+        if (requiresAuth) {
+          it('requires authorization', () => {
+            expect(route.meta.requiresAuth).toBe(true)
+          })
+        }
+
+        it(`loads the "${expectedName}" page`, async () => {
+          let component = route.component
+
+          // Handle different component definition patterns
+          if (typeof component === 'function') {
+            const importedModule = await component()
+            component = importedModule.default || importedModule
+          }
+
+          const componentName = getComponentName(component)
+
+          expect(componentName).toBe(expectedName)
+        })
+      })
+    }
+    testRoute('/overview', 'Overview')
+    testRoute('/send/:communityIdentifier?/:userIdentifier?', 'Send')
+    testRoute('/transactions', 'Transactions')
+    testRoute('/community', 'Community')
+    testRoute('/information', 'InfoStatistic')
+    testRoute('/usersearch', 'UserSearch')
+    testRoute('/gdt', 'Transactions')
+    testRoute('/login/:code?', 'Login', false)
+    testRoute('/register/:code?', 'Register', false)
+    testRoute('/forgot-password', 'ForgotPassword', false)
+    testRoute('/register-community', 'RegisterCommunity', false)
+    testRoute('/reset-password/:optin', 'ResetPassword', false)
+    testRoute('/checkEmail/:optin/:code?', 'ResetPassword', false)
+    testRoute('/redeem/:code', 'TransactionLink', false)
+
+    describe('community without tab parameter', () => {
+      it('redirects to contribute tab', () => {
+        const route = routes.find((r) => r.path === '/community')
+        expect(route.redirect()).toEqual({ path: '/community/contribute' })
       })
     })
 
-    describe('routes', () => {
-      it('has "/login" as default', () => {
-        expect(routes.find((r) => r.path === '/').redirect()).toEqual({ path: '/login' })
-      })
-
-      it('has 19 routes defined', () => {
-        expect(routes).toHaveLength(19)
-      })
-
-      describe('overview', () => {
-        it('requires authorization', () => {
-          expect(routes.find((r) => r.path === '/overview').meta.requiresAuth).toBeTruthy()
-        })
-
-        it('loads the "Overview" page', async () => {
-          const component = await routes.find((r) => r.path === '/overview').component()
-          expect(component.default.name).toBe('Overview')
-        })
-      })
-
-      describe('send', () => {
-        it('requires authorization', () => {
-          expect(routes.find((r) => r.path.startsWith('/send')).meta.requiresAuth).toBeTruthy()
-        })
-
-        it('loads the "Send" page', async () => {
-          const component = await routes.find((r) => r.path.startsWith('/send')).component()
-          expect(component.default.name).toBe('Send')
-        })
-      })
-
-      describe('community without tab parameter', () => {
-        it('requires authorization', () => {
-          expect(routes.find((r) => r.path === '/community').meta.requiresAuth).toBeTruthy()
-        })
-
-        it('redirects to contribute tab', async () => {
-          expect(routes.find((r) => r.path === '/community').redirect()).toEqual({
-            path: '/community/contribute',
-          })
-        })
-      })
-
-      describe('community with tab parameter', () => {
-        it('requires authorization', () => {
-          expect(routes.find((r) => r.path === '/community').meta.requiresAuth).toBeTruthy()
-        })
-
-        it('loads the "Community" page', async () => {
-          const component = await routes.find((r) => r.path === '/community').component()
-          expect(component.default.name).toBe('Community')
-        })
-      })
-
-      describe.skip('profile', () => {
-        it('requires authorization', () => {
-          expect(routes.find((r) => r.path === '/profile').meta.requiresAuth).toBeTruthy()
-        })
-
-        it('loads the "Profile" page', async () => {
-          const component = await routes.find((r) => r.path === '/profile').component()
-          expect(component.default.name).toBe('Profile')
-        })
-      })
-
-      describe('transactions', () => {
-        it('requires authorization', () => {
-          expect(routes.find((r) => r.path === '/transactions').meta.requiresAuth).toBeTruthy()
-        })
-
-        it('loads the "Transactions" page', async () => {
-          const component = await routes.find((r) => r.path === '/transactions').component()
-          expect(component.default.name).toBe('Transactions')
-        })
-      })
-
-      describe('community', () => {
-        it('requires authorization', () => {
-          expect(routes.find((r) => r.path === '/community').meta.requiresAuth).toBeTruthy()
-        })
-
-        it('loads the "Community" page', async () => {
-          const component = await routes.find((r) => r.path === '/community').component()
-          expect(component.default.name).toBe('Community')
-        })
-      })
-
-      describe('info', () => {
-        it('requires authorization', () => {
-          expect(routes.find((r) => r.path === '/information').meta.requiresAuth).toBeTruthy()
-        })
-
-        it('loads the "InfoStatistic" page', async () => {
-          const component = await routes.find((r) => r.path === '/information').component()
-          expect(component.default.name).toBe('InfoStatistic')
-        })
-      })
-
-      describe('gdt', () => {
-        it('requires authorization', () => {
-          expect(routes.find((r) => r.path === '/gdt').meta.requiresAuth).toBeTruthy()
-        })
-
-        it('loads the "GDT" page', async () => {
-          const component = await routes.find((r) => r.path === '/gdt').component()
-          expect(component.default.name).toBe('Transactions')
-        })
-      })
-
-      describe('login', () => {
-        it('loads the "Login" page', async () => {
-          const component = await routes.find((r) => r.path === '/login/:code?').component()
-          expect(component.default.name).toBe('Login')
-        })
-      })
-
-      describe('register', () => {
-        it('loads the "register" page', async () => {
-          const component = await routes.find((r) => r.path === '/register/:code?').component()
-          expect(component.default.name).toBe('Register')
-        })
-      })
-
-      describe('forgot password', () => {
-        it('loads the "ForgotPassword" page', async () => {
-          const component = await routes.find((r) => r.path === '/forgot-password').component()
-          expect(component.default.name).toBe('ForgotPassword')
-        })
-      })
-
-      describe('password with param comingFrom', () => {
-        it('loads the "ForgotPassword" page', async () => {
-          const component = await routes
-            .find((r) => r.path === '/forgot-password/:comingFrom')
-            .component()
-          expect(component.default.name).toBe('ForgotPassword')
-        })
-      })
-
-      describe('register-community', () => {
-        it('loads the "registerCommunity" page', async () => {
-          const component = await routes.find((r) => r.path === '/register-community').component()
-          expect(component.default.name).toBe('RegisterCommunity')
-        })
-      })
-
-      describe.skip('select-community', () => {
-        it('loads the "SelectCommunity" page', async () => {
-          const component = await routes.find((r) => r.path === '/select-community').component()
-          expect(component.default.name).toBe('SelectCommunity')
-        })
-      })
-
-      describe('reset password', () => {
-        it('loads the "ResetPassword" page', async () => {
-          const component = await routes
-            .find((r) => r.path === '/reset-password/:optin')
-            .component()
-          expect(component.default.name).toBe('ResetPassword')
-        })
-      })
-
-      describe('checkEmail', () => {
-        it('loads the "CheckEmail" page', async () => {
-          const component = await routes
-            .find((r) => r.path === '/checkEmail/:optin/:code?')
-            .component()
-          expect(component.default.name).toBe('ResetPassword')
-        })
-      })
-
-      describe('redeem', () => {
-        it('loads the "TransactionLink" page', async () => {
-          const component = await routes.find((r) => r.path === '/redeem/:code').component()
-          expect(component.default.name).toBe('TransactionLink')
-        })
-      })
-
-      describe('not found page', () => {
-        it('renders the "NotFound" page', async () => {
-          expect(routes.find((r) => r.path === '*').component).toEqual(NotFound)
-        })
+    describe('not found page', () => {
+      it('renders the "NotFound" page', () => {
+        const notFoundRoute = routes.find(
+          (r) => r.path === '/:pathMatch(.*)*' || r.path === '/:catchAll(.*)' || r.path === '*',
+        )
+        expect(notFoundRoute).toBeDefined()
+        expect(notFoundRoute.component).toEqual(NotFound)
       })
     })
   })

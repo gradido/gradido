@@ -38,7 +38,8 @@ import { calculateBalance } from '@/util/validate'
 import { virtualLinkTransaction, virtualDecayTransaction } from '@/util/virtualTransactions'
 
 import { BalanceResolver } from './BalanceResolver'
-import { getCommunityByUuid, getCommunityName, isHomeCommunity } from './util/communities'
+import { GdtResolver } from './GdtResolver'
+import { getCommunityByIdentifier, getCommunityName, isHomeCommunity } from './util/communities'
 import { findUserByIdentifier } from './util/findUserByIdentifier'
 import { getLastTransaction } from './util/getLastTransaction'
 import { getTransactionList } from './util/getTransactionList'
@@ -189,6 +190,7 @@ export const executeTransaction = async (
       lastName: recipient.lastName,
       email: recipient.emailContact.email,
       language: recipient.language,
+      memo,
       senderFirstName: sender.firstName,
       senderLastName: sender.lastName,
       senderEmail: sender.emailContact.email,
@@ -229,8 +231,14 @@ export class TransactionResolver {
     logger.addContext('user', user.id)
     logger.info(`transactionList(user=${user.firstName}.${user.lastName}, ${user.emailId})`)
 
+    let balanceGDTPromise: Promise<number | null> = Promise.resolve(null)
+    if (CONFIG.GDT_ACTIVE) {
+      const gdtResolver = new GdtResolver()
+      balanceGDTPromise = gdtResolver.gdtBalance(context)
+    }
+
     // find current balance
-    const lastTransaction = await getLastTransaction(user.id, ['contribution'])
+    const lastTransaction = await getLastTransaction(user.id)
     logger.debug(`lastTransaction=${lastTransaction}`)
 
     const balanceResolver = new BalanceResolver()
@@ -258,7 +266,7 @@ export class TransactionResolver {
     // userTransactions.forEach((transaction: dbTransaction) => {
     // use normal for loop because of timing problems with await in forEach-loop
     for (const transaction of userTransactions) {
-      if (transaction.typeId === TransactionTypeId.CREATION) {
+      if ((transaction.typeId as TransactionTypeId) === TransactionTypeId.CREATION) {
         continue
       }
       if (transaction.linkedUserId && !involvedUserIds.includes(transaction.linkedUserId)) {
@@ -319,6 +327,7 @@ export class TransactionResolver {
 
     const { sumHoldAvailableAmount, sumAmount, lastDate, firstDate, transactionLinkcount } =
       await transactionLinkSummary(user.id, now)
+
     context.linkCount = transactionLinkcount
     logger.debug(`transactionLinkcount=${transactionLinkcount}`)
     context.sumHoldAvailableAmount = sumHoldAvailableAmount
@@ -389,7 +398,7 @@ export class TransactionResolver {
           : involvedUsers.find((u) => u.id === userTransaction.linkedUserId)
       */
       let linkedUser: User | undefined
-      if (userTransaction.typeId === TransactionTypeId.CREATION) {
+      if ((userTransaction.typeId as TransactionTypeId) === TransactionTypeId.CREATION) {
         linkedUser = communityUser
         logger.debug('CREATION-linkedUser=', linkedUser)
       } else if (userTransaction.linkedUserId) {
@@ -413,6 +422,10 @@ export class TransactionResolver {
         ).toDecimalPlaces(2, Decimal.ROUND_HALF_UP)
       }
     })
+    if (CONFIG.GDT_ACTIVE) {
+      const balanceGDT = await balanceGDTPromise
+      context.balanceGDT = balanceGDT
+    }
 
     // Construct Result
     return new TransactionList(await balanceResolver.balance(context), transactions)
@@ -452,7 +465,7 @@ export class TransactionResolver {
       if (!CONFIG.FEDERATION_XCOM_SENDCOINS_ENABLED) {
         throw new LogError('X-Community sendCoins disabled per configuration!')
       }
-      const recipCom = await getCommunityByUuid(recipientCommunityIdentifier)
+      const recipCom = await getCommunityByIdentifier(recipientCommunityIdentifier)
       logger.debug('recipient commuity: ', recipCom)
       if (recipCom === null) {
         throw new LogError(

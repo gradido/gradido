@@ -1,21 +1,27 @@
 import { User as dbUser } from '@entity/User'
 
-import { GmsPublishLocationType } from '@/graphql/enum/GmsPublishLocationType'
-import { GmsPublishNameType } from '@/graphql/enum/GmsPublishNameType'
+import { PublishNameLogic } from '@/data/PublishName.logic'
+// import { GmsPublishLocationType } from '@/graphql/enum/GmsPublishLocationType'
 import { GmsPublishPhoneType } from '@/graphql/enum/GmsPublishPhoneType'
+import { PublishNameType } from '@/graphql/enum/PublishNameType'
 
 export class GmsUser {
   constructor(user: dbUser) {
+    const pnLogic = new PublishNameLogic(user)
+
     this.userUuid = user.gradidoID
     // this.communityUuid = user.communityUuid
+    this.language = user.language
     this.email = this.getGmsEmail(user)
     this.countryCode = this.getGmsCountryCode(user)
     this.mobile = this.getGmsPhone(user)
-    this.firstName = this.getGmsFirstName(user)
-    this.lastName = this.getGmsLastName(user)
+    const fn = pnLogic.getFirstName(user.gmsPublishName)
+    this.firstName = fn !== '' ? fn : null // getGmsFirstName(user)
+    const ln = pnLogic.getLastName(user.gmsPublishName)
+    this.lastName = ln !== '' ? ln : null // getGmsLastName(user)
     this.alias = this.getGmsAlias(user)
-    this.type = GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM
-    this.location = null
+    this.type = user.gmsPublishLocation // GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM
+    this.location = user.location
   }
 
   id: number
@@ -27,8 +33,8 @@ export class GmsUser {
   status: number
   createdAt: Date
   updatedAt: Date
-  firstName: string | undefined
-  lastName: string | undefined
+  firstName: string | null | undefined
+  lastName: string | null | undefined
   alias: string | undefined
   type: number
   address: string | undefined
@@ -43,48 +49,74 @@ export class GmsUser {
     if (
       user.gmsAllowed &&
       user.alias &&
-      user.gmsPublishName === GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS
+      (user.gmsPublishName as PublishNameType) === PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS
     ) {
       return user.alias
     }
-  }
-
-  private getGmsFirstName(user: dbUser): string | undefined {
     if (
       user.gmsAllowed &&
-      (user.gmsPublishName === GmsPublishNameType.GMS_PUBLISH_NAME_FIRST ||
-        user.gmsPublishName === GmsPublishNameType.GMS_PUBLISH_NAME_FIRST_INITIAL ||
-        user.gmsPublishName === GmsPublishNameType.GMS_PUBLISH_NAME_FULL)
+      ((!user.alias &&
+        (user.gmsPublishName as PublishNameType) ===
+          PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS) ||
+        (user.gmsPublishName as PublishNameType) === PublishNameType.PUBLISH_NAME_INITIALS)
+    ) {
+      return (
+        this.firstUpperCaseSecondLowerCase(user.firstName) +
+        this.firstUpperCaseSecondLowerCase(user.lastName)
+      )
+    }
+  }
+
+  private getGmsFirstName(user: dbUser): string | null | undefined {
+    if (
+      user.gmsAllowed &&
+      ((user.gmsPublishName as PublishNameType) === PublishNameType.PUBLISH_NAME_FIRST ||
+        (user.gmsPublishName as PublishNameType) === PublishNameType.PUBLISH_NAME_FIRST_INITIAL ||
+        (user.gmsPublishName as PublishNameType) === PublishNameType.PUBLISH_NAME_FULL)
     ) {
       return user.firstName
     }
     if (
       user.gmsAllowed &&
       ((!user.alias &&
-        user.gmsPublishName === GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS) ||
-        user.gmsPublishName === GmsPublishNameType.GMS_PUBLISH_NAME_INITIALS)
+        (user.gmsPublishName as PublishNameType) ===
+          PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS) ||
+        (user.gmsPublishName as PublishNameType) === PublishNameType.PUBLISH_NAME_INITIALS)
     ) {
-      return user.firstName.substring(0, 1)
+      // return this.firstUpperCaseSecondLowerCase(user.firstName)
+      return null // cause to delete firstname in gms
     }
   }
 
-  private getGmsLastName(user: dbUser): string | undefined {
-    if (user.gmsAllowed && user.gmsPublishName === GmsPublishNameType.GMS_PUBLISH_NAME_FULL) {
+  private getGmsLastName(user: dbUser): string | null | undefined {
+    if (
+      user.gmsAllowed &&
+      (user.gmsPublishName as PublishNameType) === PublishNameType.PUBLISH_NAME_FULL
+    ) {
       return user.lastName
     }
     if (
       user.gmsAllowed &&
-      ((!user.alias &&
-        user.gmsPublishName === GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS) ||
-        user.gmsPublishName === GmsPublishNameType.GMS_PUBLISH_NAME_FIRST_INITIAL ||
-        user.gmsPublishName === GmsPublishNameType.GMS_PUBLISH_NAME_INITIALS)
+      (user.gmsPublishName as PublishNameType) === PublishNameType.PUBLISH_NAME_FIRST_INITIAL
     ) {
-      return user.lastName.substring(0, 1)
+      return this.firstUpperCaseSecondLowerCase(user.lastName)
     }
+    return null // cause to delete lastname in gms
+
+    /*
+    if (
+      user.gmsAllowed &&
+      ((!user.alias && user.gmsPublishName === PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS) ||
+        user.gmsPublishName === PublishNameType.PUBLISH_NAME_FIRST_INITIAL ||
+        user.gmsPublishName === PublishNameType.PUBLISH_NAME_INITIALS)
+    ) {
+      return this.firstUpperCaseSecondLowerCase(user.lastName)
+    }
+    */
   }
 
   private getGmsEmail(user: dbUser): string | undefined {
-    if (user.gmsAllowed && user.emailContact.gmsPublishEmail) {
+    if (user.gmsAllowed && user.emailContact?.gmsPublishEmail) {
       return user.emailContact.email
     }
   }
@@ -92,19 +124,29 @@ export class GmsUser {
   private getGmsCountryCode(user: dbUser): string | undefined {
     if (
       user.gmsAllowed &&
-      (user.emailContact.gmsPublishPhone === GmsPublishPhoneType.GMS_PUBLISH_PHONE_COUNTRY ||
-        user.emailContact.gmsPublishPhone === GmsPublishPhoneType.GMS_PUBLISH_PHONE_FULL)
+      ((user.emailContact?.gmsPublishPhone as GmsPublishPhoneType) ===
+        GmsPublishPhoneType.GMS_PUBLISH_PHONE_COUNTRY ||
+        (user.emailContact?.gmsPublishPhone as GmsPublishPhoneType) ===
+          GmsPublishPhoneType.GMS_PUBLISH_PHONE_FULL)
     ) {
-      return user.emailContact.countryCode
+      return user.emailContact?.countryCode
     }
   }
 
   private getGmsPhone(user: dbUser): string | undefined {
     if (
       user.gmsAllowed &&
-      user.emailContact.gmsPublishPhone === GmsPublishPhoneType.GMS_PUBLISH_PHONE_FULL
+      (user.emailContact?.gmsPublishPhone as GmsPublishPhoneType) ===
+        GmsPublishPhoneType.GMS_PUBLISH_PHONE_FULL
     ) {
-      return user.emailContact.phone
+      return user.emailContact?.phone
     }
+  }
+
+  private firstUpperCaseSecondLowerCase(name: string) {
+    if (name && name.length >= 2) {
+      return name.charAt(0).toUpperCase() + name.charAt(1).toLocaleLowerCase()
+    }
+    return name
   }
 }

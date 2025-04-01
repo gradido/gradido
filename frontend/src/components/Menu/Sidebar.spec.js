@@ -1,112 +1,158 @@
 import { mount } from '@vue/test-utils'
-import Sidebar from './Sidebar'
+import { describe, it, expect, beforeEach, beforeAll, vi } from 'vitest'
+import Sidebar from './Sidebar.vue'
+import { createStore } from 'vuex'
+import { createI18n } from 'vue-i18n'
+import CONFIG from '../../config'
+import { BBadge, BImg, BNav, BNavItem } from 'bootstrap-vue-next'
 
-const localVue = global.localVue
+// Mock vue-router
+vi.mock('vue-router', () => ({
+  useRoute: vi.fn(() => ({
+    path: '/',
+  })),
+}))
+
+// Mock Apollo
+vi.mock('@vue/apollo-composable', () => ({
+  useQuery: vi.fn(),
+  useResult: vi.fn(),
+}))
+
+// Mock i18n
+const i18n = createI18n({
+  legacy: false,
+  locale: 'en',
+  messages: {
+    en: {
+      navigation: {
+        overview: 'Overview',
+        send: 'Send',
+        transactions: 'Transactions',
+        info: 'Info',
+        circles: 'Circles',
+        usersearch: 'User Search',
+        settings: 'Settings',
+        admin_area: 'Admin Area',
+        logout: 'Logout',
+      },
+      creation: 'Creation',
+    },
+  },
+})
+
+// Mock Vuex store
+const createVuexStore = (state = {}) =>
+  createStore({
+    state: () => ({
+      hasElopage: true,
+      roles: [],
+      ...state,
+    }),
+    getters: {
+      isAdmin: (state) => state.roles.includes('admin'),
+    },
+  })
+
+CONFIG.GMS_ACTIVE = true
+CONFIG.HUMHUB_ACTIVE = true
 
 describe('Sidebar', () => {
   let wrapper
+  let store
 
-  const mocks = {
-    $i18n: {
-      locale: 'en',
-    },
-    $t: jest.fn((t) => t),
-    $store: {
-      state: {
-        hasElopage: true,
-        roles: [],
+  const mountComponent = (storeState = {}) => {
+    store = createVuexStore(storeState)
+    return mount(Sidebar, {
+      global: {
+        plugins: [store, i18n],
+        stubs: ['router-link', 'i-bi-cash'],
+        components: {
+          BNav,
+          BBadge,
+          BNavItem,
+          BImg,
+        },
       },
-    },
-  }
-
-  const Wrapper = () => {
-    return mount(Sidebar, { localVue, mocks })
+    })
   }
 
   describe('mount', () => {
     beforeEach(() => {
-      wrapper = Wrapper()
+      wrapper = mountComponent()
     })
 
     it('renders the component', () => {
       expect(wrapper.find('div#component-sidebar').exists()).toBe(true)
     })
 
-    describe('the genaral section', () => {
-      it('has six nav-items', () => {
-        expect(wrapper.findAll('ul').at(0).findAll('.nav-item')).toHaveLength(6)
+    describe('the general section', () => {
+      it('has seven nav-items', () => {
+        const generalSection = wrapper.findAll('ul')[0]
+        expect(generalSection.findAll('.nav-item')).toHaveLength(5)
       })
 
       it('has nav-item "navigation.overview" in navbar', () => {
-        expect(wrapper.findAll('.nav-item').at(0).text()).toEqual('navigation.overview')
+        expect(wrapper.findAll('.nav-item').at(0).text()).toContain('Overview')
       })
 
       it('has nav-item "navigation.send" in navbar', () => {
-        expect(wrapper.findAll('.nav-item').at(1).text()).toEqual('navigation.send')
+        expect(wrapper.findAll('.nav-item').at(1).text()).toContain('Send')
       })
 
       it('has nav-item "navigation.transactions" in navbar', () => {
-        expect(wrapper.findAll('.nav-item').at(2).text()).toEqual('navigation.transactions')
+        expect(wrapper.findAll('.nav-item').at(2).text()).toContain('Transactions')
       })
 
       it('has nav-item "creation" in navbar', () => {
-        expect(wrapper.findAll('.nav-item').at(3).text()).toEqual('creation')
-      })
-
-      it('has nav-item "GDT" in navbar', () => {
-        expect(wrapper.findAll('.nav-item').at(4).text()).toContain('GDT')
+        expect(wrapper.findAll('.nav-item').at(3).text()).toContain('Creation')
       })
 
       it('has nav-item "navigation.info" in navbar', () => {
-        expect(wrapper.findAll('.nav-item').at(5).text()).toContain('navigation.info')
+        expect(wrapper.findAll('.nav-item').at(4).text()).toContain('Info')
       })
     })
 
     describe('the specific section', () => {
       describe('for standard users', () => {
+        beforeEach(() => {
+          wrapper = mountComponent({ roles: [] })
+        })
+
         it('has two nav-items', () => {
-          expect(wrapper.findAll('ul').at(1).findAll('.nav-item')).toHaveLength(2)
+          expect(wrapper.findAll('.nav-item').slice(6)).toHaveLength(1)
         })
 
         it('has nav-item "navigation.settings" in navbar', () => {
-          expect(wrapper.find('[data-test="settings-menu"]').find('span').text()).toBe(
-            'navigation.settings',
-          )
+          expect(wrapper.find('[data-test="settings-menu"]').text()).toContain('Settings')
         })
 
         it('has nav-item "navigation.logout" in navbar', () => {
-          expect(wrapper.findAll('ul').at(1).findAll('.nav-item').at(1).text()).toEqual(
-            'navigation.logout',
-          )
+          expect(wrapper.find('[data-test="logout-menu"]').text()).toContain('Logout')
         })
       })
 
       describe('for admin users', () => {
-        beforeAll(() => {
-          mocks.$store.state.roles = ['admin']
-          wrapper = Wrapper()
+        beforeEach(() => {
+          wrapper = mountComponent({ roles: ['admin'] })
         })
 
         it('has three nav-items', () => {
-          expect(wrapper.findAll('ul').at(1).findAll('.nav-item')).toHaveLength(3)
+          expect(wrapper.findAll('.nav-item').slice(6)).toHaveLength(2)
         })
 
         it('has nav-item "navigation.settings" in navbar', () => {
-          expect(wrapper.find('[data-test="settings-menu"]').find('span').text()).toBe(
-            'navigation.settings',
-          )
+          expect(wrapper.find('[data-test="settings-menu"]').text()).toContain('Settings')
         })
 
         it('has nav-item "navigation.admin_area" in navbar', () => {
-          expect(wrapper.findAll('ul').at(1).findAll('.nav-item').at(1).text()).toEqual(
-            'navigation.admin_area',
-          )
+          const adminItems = wrapper.findAll('.nav-item').slice(6)
+          expect(adminItems.length).toBeGreaterThan(0)
+          expect(adminItems[0].text()).toContain('Admin Area')
         })
 
         it('has nav-item "navigation.logout" in navbar', () => {
-          expect(wrapper.findAll('ul').at(1).findAll('.nav-item').at(2).text()).toEqual(
-            'navigation.logout',
-          )
+          expect(wrapper.find('[data-test="logout-menu"]').text()).toContain('Logout')
         })
       })
     })

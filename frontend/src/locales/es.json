@@ -20,6 +20,11 @@
     }
   },
   "back": "Volver",
+  "circles": {
+    "headline": "Juntos nos apoyamos - atentos a la cultura de los círculos.",
+    "text": "Haga clic en el botón para abrir la plataforma de cooperación en una nueva ventana del navegador.",
+    "button": "Iniciar Círculos..."
+  },
   "community": {
     "admins": "Administradores",
     "choose-another-community": "Escoger otra comunidad",
@@ -131,6 +136,7 @@
     "memo": "Mensaje",
     "message": "Noticia",
     "new_balance": "Saldo de cuenta nuevo depués de confirmación",
+    "newPasswordRepeat": "Repetir contraseña nueva",
     "no_gdd_available": "No dispones de GDD para enviar.",
     "password": "Contraseña",
     "passwordRepeat": "Repetir contraseña",
@@ -155,6 +161,7 @@
     "validation": {
       "gddSendAmount": "El campo {_field_} debe ser un número entre {min} y {max} con un máximo de dos decimales",
       "is-not": "No es posible  transferirte Gradidos a ti mismo",
+      "requiredField": "El campo {fieldName} es obligatorio",
       "usernmae-regex": "El nombre de usuario debe comenzar con una letra seguida de al menos dos caracteres alfanuméricos.",
       "usernmae-unique": "Este nombre de usuario ya está adjudicado."
     },
@@ -211,7 +218,8 @@
     "recruited-member": "Miembro invitado"
   },
   "language": "Idioma",
-  "link-load": "recargar el último enlace |recargar los últimos {n} enlaces  | descargar más {n} enlaces",
+  "link-load": "recargar el último enlace | recargar los últimos {n} enlaces",
+  "link-load-more": "descargar más {n} enlaces",
   "login": "iniciar sesión",
   "math": {
     "aprox": "~",
@@ -244,6 +252,18 @@
     "support": "Soporte",
     "transactions": "Transacciones"
   },
+  "openHours": "Open Hours",
+  "pageTitle": {
+    "community": "Create Gradido",
+    "gdt": "Tu GDT Transacciones",
+    "information": "{community}",
+    "overview": "Welcome {name}",
+    "send": "Enviar Gradidos",
+    "settings": "Soporte",
+    "transactions": "Tu Transacciones",
+    "circles": "Círculos Gradido",
+    "usersearch": "Búsqueda geográfica de usuarios"
+  },
   "qrCode": "Código QR",
   "send_gdd": "Enviar GDD",
   "send_per_link": "Enviar GDD mediante un enlace",
@@ -254,10 +274,28 @@
     "warningText": "Aún estas?"
   },
   "settings": {
+    "GMS": {
+      "location": {
+        "button": "¡Haz clic aquí!",
+        "label": "Ubicación exacta",
+        "saveLocation": "Guardar ubicación",
+        "updateSuccess": "Ubicación guardada exitosamente"
+      },
+      "map": {
+        "communityCoords": "Ubicación de tu comunidad: Lat {lat}, Lng {lng}",
+        "communityLocationLabel": "Ubicación de tu comunidad",
+        "headline": "Captura de ubicación geográfica del usuario",
+        "userCoords": "Tu ubicación: Lat {lat}, Lng {lng}",
+        "userLocationLabel": "Tu ubicación",
+        "search": "Buscar una ubicación",
+        "success": "Ubicación guardada exitosamente"
+      }
+    },
     "language": {
       "changeLanguage": "Cambiar idioma",
       "de": "Deutsch",
       "en": "English",
+      "error": "No se ha podido actualizar la configuración de idioma.",
       "es": "Español",
       "fr": "Français",
       "nl": "Nederlands",
@@ -333,6 +371,11 @@
   },
   "transaction-link": {
     "send_you": "te envía"
+  },
+  "usersearch": {
+    "headline": "Búsqueda geográfica de usuarios",
+    "text": "No importa a qué comunidad pertenezcas, con el Geo Matching System puedes encontrar miembros de todas las comunidades en un mapa. Puedes filtrar según ofertas y requisitos y visualizar los usuarios que coinciden con tu perfil.\n\nEl botón abre una nueva ventana del navegador en la que se muestran en un mapa los usuarios de tu zona.",
+    "button": "Iniciar la búsqueda de usuarios..."
   },
   "via_link": "atraves de un enlace",
   "welcome": "Bienvenido a la comunidad."

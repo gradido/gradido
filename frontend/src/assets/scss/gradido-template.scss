@@ -1,18 +1,18 @@
-html,
-body {
+html > body {
   background-color: #f5f5f5;
   height: 100%;
   transition: background-color 0.5s ease, color 0.5s ease;
+  overflow-x: hidden;
 }
 
 .pointer {
   cursor: pointer;
 }
 
-.bg-gradient {
+.bg-gradido-gradient {
   background: rgb(4 112 6);
-  background: linear-gradient(90deg, rgb(4 112 6 / 100%) 22%, rgb(197 141 56 / 100%) 98%);
-  color: white;
+  background: linear-gradient(90deg, rgb(4 112 6 / 100%) 22%, rgb(197 141 56 / 100%) 98%) !important;
+  color: white !important;
 }
 
 .hover-icon:hover {
@@ -41,21 +41,8 @@ body {
   color: #0e79bc !important;
 }
 
-/* Navbar  */
-a,
-.navbar-light,
-.navbar-nav,
-.nav-link {
-  color: #047006;
-}
-
-a:hover,
-.nav-link:hover {
-  color: #383838 !important;
-}
-
-.navbar-light .navbar-nav .nav-link.active {
-  color: rgb(35 121 188 / 90%);
+.app-box-shadow {
+  box-shadow: 20pt 20pt 50pt 0 #3838384f !important;
 }
 
 /* Button */
@@ -64,18 +51,18 @@ a:hover,
 }
 
 .btn-gradido {
-  display: inline-block;
-  padding: 0.6em 3em;
+  display: inline-block !important;
+  padding: 0.6em 3em !important;
   letter-spacing: 0.05em;
-  color: #fff;
-  transition: all 0.5s ease;
+  color: #fff !important;
+  transition: all 0.5s ease !important;
   background: rgb(249 205 105);
   background: linear-gradient(135deg, rgb(249 205 105 / 100%) 2%, rgb(197 141 56 / 100%) 55%);
   box-shadow: rgb(0 0 0 / 40%) 0 30px 90px;
-  border-radius: 26px;
-  padding-right: 50px;
-  padding-left: 50px;
-  border-style: none;
+  border-radius: 26px !important;
+  padding-right: 50px !important;
+  padding-left: 50px !important;
+  border-style: none !important;
 }
 
 .btn-gradido:hover {
@@ -88,17 +75,17 @@ a:hover,
 }
 
 .btn-gradido-disable {
-  padding: 0.6em 3em;
+  padding: 0.6em 3em !important;
   letter-spacing: 0.05em;
-  color: #fff;
-  transition: all 0.5s ease;
+  color: #fff !important;
+  transition: all 0.5s ease !important;
   background: rgb(97 97 97);
   background: linear-gradient(135deg, rgb(180 180 180 / 100%) 46%, rgb(180 180 180 / 100%) 99%);
   box-shadow: rgb(0 0 0 / 40%) 0 30px 90px;
-  border-radius: 26px;
-  padding-right: 50px;
-  padding-left: 50px;
-  border-style: none;
+  border-radius: 26px !important;
+  padding-right: 50px !important;
+  padding-left: 50px !important;
+  border-style: none !important;
 }
 
 .btn-gradido-disable:hover {
@@ -116,18 +103,26 @@ a:hover,
 }
 
 .form-control,
-.custom-select {
+.form-select {
   border-radius: 17px;
   height: 50px;
 }
 
-.input-group .rounded-right {
+.input-group .rounded-end {
   border-top-right-radius: 17px !important;
   border-bottom-right-radius: 17px !important;
 }
 
 .rounded-26 {
   border-radius: 26px;
+}
+
+.rounded-20 {
+  border-radius: 20px;
+}
+
+.rounded-like-card {
+  border-radius: 23pt;
 }
 
 .alert {
@@ -185,8 +180,10 @@ a:hover,
 
 // .btn-primary pim {
 .btn-primary {
-  background-color: #5a7b02;
-  border-color: #5e72e4;
+  background-color: #5a7b02 !important;
+  border-color: #5e72e4 !important;
+  border-radius: 25px !important;
+  color: #fff !important;
 }
 
 .gradido-font-large {
@@ -256,7 +253,7 @@ a:hover,
 
 .gradido-custom-background {
   background-color: #ebebeba3 !important;
-  border-radius: 25pt;
+  border-radius: 25pt !important;
 }
 
 .gradido-bg-f5 {
@@ -276,7 +273,7 @@ a:hover,
 }
 
 .gradido-border-radius {
-  border-radius: 26px;
+  border-radius: 26px!important;
   overflow: hidden;
 }
 
@@ -327,4 +324,38 @@ a:hover,
   100% {
     box-shadow: 0 0 0 0 rgb(204 169 44 / 0%);
   }
+}
+
+.transparent-button {
+  background-color: transparent;
+  border: none;
+}
+
+.text-color-gdd-yellow {
+  color: rgb(197 141 56);
+}
+
+.gdd-toaster-body {
+  color: rgb(255 255 255);
+}
+
+.gdd-toaster-body-darken {
+  color: #2c2c2c;
+}
+
+input.rounded-input {
+  border-radius: 17px;
+}
+
+.fs-7 {
+  font-size: 14px !important;
+}
+
+.vue3-avatar.container {
+  padding: 0 !important;
+}
+
+.avatar {
+  font-family: inherit !important;
+  font-weight: normal !important;
 }

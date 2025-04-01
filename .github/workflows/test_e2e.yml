@@ -5,23 +5,13 @@ on: push
 jobs:
   end-to-end-tests:
     name: End-to-End Tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
       - name: Boot up test system | docker-compose mariadb
-        run: docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach mariadb
-
-      - name: Boot up test system | docker-compose database
-        run: docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps database
-
-      - name: Boot up test system | docker-compose backend
-        run: |
-          cd backend
-          cp .env.test_e2e .env
-          cd ..
-          docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps backend 
+        run: docker compose -f docker-compose.yml -f docker-compose.test.yml up --detach mariadb
 
       - name: Sleep for 10 seconds
         run: sleep 10s
@@ -31,14 +21,17 @@ jobs:
           sudo chown runner:docker -R *
           cd database
           yarn && yarn dev_reset
+          cd ../config
+          yarn install
           cd ../backend
           yarn && yarn seed
 
-      - name: Boot up test system | docker-compose frontends
-        run: docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps frontend admin nginx
-
-      - name: Boot up test system | docker-compose mailserver
-        run: docker-compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps mailserver
+      - name: Boot up test system | docker-compose backend, frontend, admin, nginx, mailserver
+        run: |
+          cd backend
+          cp .env.test_e2e .env
+          cd ..
+          docker compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps backend frontend admin nginx mailserver
 
       - name: End-to-end tests | prepare
         run: |
@@ -68,7 +61,7 @@ jobs:
       - name: End-to-end tests | if tests failed, upload report
         id: e2e-report
         if: ${{ failure() && steps.e2e-tests.conclusion == 'failure' }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: cypress-report-pr-#${{ steps.pr.outputs.number }}
           path: /home/runner/work/gradido/gradido/e2e-tests/cypress/reports/cucumber_html_report

@@ -45,7 +45,7 @@ export const sendEmailTranslated = async ({
     receiver.to = CONFIG.EMAIL_TEST_RECEIVER
   }
   const transport = createTransport({
-    host: CONFIG.EMAIL_SMTP_URL,
+    host: CONFIG.EMAIL_SMTP_HOST,
     port: CONFIG.EMAIL_SMTP_PORT,
     secure: false, // true for 465, false for other ports
     requireTLS: CONFIG.EMAIL_TLS,
@@ -62,6 +62,7 @@ export const sendEmailTranslated = async ({
     message: {
       from: `Gradido (${i18n.__('emails.general.doNotAnswer')}) <${CONFIG.EMAIL_SENDER}>`,
     },
+    send: CONFIG.EMAIL,
     transport,
     preview: false,
     // i18n, // is only needed if you don't install i18n
@@ -98,13 +99,18 @@ export const sendEmailTranslated = async ({
             path: path.join(__dirname, 'templates/includes/youtube-icon.png'),
             cid: 'youtubeicon',
           },
+          {
+            filename: 'chatbox-icon.png',
+            path: path.join(__dirname, 'templates/includes/chatbox-icon.png'),
+            cid: 'chatboxicon',
+          },
         ],
       },
       locals, // the 'locale' in here seems not to be used by 'email-template', because it doesn't work if the language isn't set before by 'i18n.setLocale'
     })
     .catch((error: unknown) => {
       logger.error('Error sending notification email', error)
-      return false
+      return error
     })
 
   return resultSend

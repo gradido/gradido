@@ -1,295 +1,158 @@
 import { mount } from '@vue/test-utils'
-import ContributionMessagesList from './ContributionMessagesList'
-import ContributionMessagesListItem from './ContributionMessagesListItem'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+import ContributionMessagesListItem from './ContributionMessagesListItem.vue'
+import message from '../Message/Message.vue'
+import { defineComponent } from 'vue'
+import { BCol, BRow } from 'bootstrap-vue-next'
 
-const localVue = global.localVue
-let wrapper
-
-const dateMock = jest.fn((d) => d)
-
-const mocks = {
-  $t: jest.fn((t) => t),
-  $d: dateMock,
-  $store: {
-    state: {
-      firstName: 'Peter',
-      lastName: 'Lustig',
+export default defineComponent({
+  computed: {
+    message() {
+      return message
     },
   },
-}
-
-describe('ContributionMessagesList', () => {
-  const propsData = {
-    contributionId: 42,
-    status: 'PENDING',
-    messages: [
-      {
-        id: 111,
-        message: 'Lorem ipsum?',
-        createdAt: '2022-08-29T12:23:27.000Z',
-        updatedAt: null,
-        type: 'DIALOG',
-        userFirstName: 'Peter',
-        userLastName: 'Lustig',
-        userId: 107,
-        __typename: 'ContributionMessage',
-      },
-      {
-        id: 113,
-        message: 'Asda sdad ad asdasd, das Ass das Das. ',
-        createdAt: '2022-08-29T12:25:34.000Z',
-        updatedAt: null,
-        type: 'DIALOG',
-        userFirstName: 'Bibi',
-        userLastName: 'Bloxberg',
-        userId: 108,
-        __typename: 'ContributionMessage',
-      },
-    ],
-  }
-
-  const ListWrapper = () => {
-    return mount(ContributionMessagesList, {
-      localVue,
-      mocks,
-      propsData,
-    })
-  }
-
-  describe('mount', () => {
-    beforeEach(() => {
-      wrapper = ListWrapper()
-    })
-
-    it('has two DIV .contribution-messages-list-item elements', () => {
-      expect(wrapper.findAll('div.contribution-messages-list-item').length).toBe(2)
-    })
-  })
 })
 
+// Mocks
+const mockT = vi.fn((key) => key)
+const mockD = vi.fn((date) => `Formatted: ${date}`)
+
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({
+    t: mockT,
+    d: mockD,
+  }),
+}))
+
+vi.mock('vue-avatar', () => ({
+  default: {
+    name: 'Avatar',
+    template: '<div class="avatar-mock"></div>',
+  },
+}))
+
+vi.mock('@/components/ContributionMessages/ParseMessage', () => ({
+  default: {
+    name: 'ParseMessage',
+    template: '<div class="parse-message-mock">{{ message }}</div>',
+    props: ['message'],
+  },
+}))
+
 describe('ContributionMessagesListItem', () => {
-  describe('if message author has moderator role', () => {
-    const propsData = {
-      message: {
-        id: 113,
-        message: 'Asda sdad ad asdasd, das Ass das Das. ',
-        createdAt: '2022-08-29T12:25:34.000Z',
-        updatedAt: null,
-        type: 'DIALOG',
-        userFirstName: 'Bibi',
-        userLastName: 'Bloxberg',
-        userId: 108,
-        __typename: 'ContributionMessage',
+  let wrapper
+  const createWrapper = (propsData, store = {}) => {
+    return mount(ContributionMessagesListItem, {
+      props: propsData,
+      global: {
+        mocks: {
+          $t: mockT,
+          $d: mockD,
+          $store: {
+            state: {
+              firstName: 'Peter',
+              lastName: 'Lustig',
+              ...store,
+            },
+          },
+        },
+        components: {
+          BRow,
+          BCol,
+        },
       },
-    }
+    })
+  }
 
-    const ItemWrapper = () => {
-      return mount(ContributionMessagesListItem, {
-        localVue,
-        mocks,
-        propsData,
+  describe('HISTORY message type', () => {
+    beforeEach(() => {
+      wrapper = createWrapper({
+        message: {
+          type: 'HISTORY',
+          createdAt: '2022-08-29T12:23:27.000Z',
+          message: 'This is a history message',
+          userFirstName: 'Peter',
+          userLastName: 'Lustig',
+        },
       })
-    }
+    })
 
-    describe('mount', () => {
-      beforeAll(() => {
-        wrapper = ItemWrapper()
-      })
+    it('renders the HISTORY message layout', () => {
+      expect(wrapper.find('.contribution-messages-list-item > div > .mb-3.border').exists()).toBe(
+        true,
+      )
+    })
 
-      it('has a DIV .is-moderator', () => {
-        expect(wrapper.find('div.is-moderator').exists()).toBe(true)
-      })
+    it('displays the formatted date', () => {
+      expect(wrapper.find('small').text()).toContain('Formatted:')
+    })
 
-      it('has the complete user name', () => {
-        expect(wrapper.find('span[data-test="username"]').text()).toBe('Bibi Bloxberg')
-      })
-
-      it('has the message creation date', () => {
-        expect(wrapper.find('div[data-test="date"]').text()).toMatch(
-          'Mon Aug 29 2022 12:25:34 GMT+0000',
-        )
-      })
-
-      it('has the moderator label', () => {
-        expect(wrapper.find('span[data-test="moderator"]').text()).toBe('community.moderator')
-      })
-
-      it('has the message', () => {
-        expect(wrapper.find('div[data-test="message"]').text()).toBe(
-          'Asda sdad ad asdasd, das Ass das Das.',
-        )
-      })
+    it('renders ParseMessage component', () => {
+      expect(wrapper.find('.parse-message-mock').exists()).toBe(true)
     })
   })
 
-  describe('if message author does not have moderator role', () => {
-    const propsData = {
-      message: {
-        id: 111,
-        message: 'Lorem ipsum?',
-        createdAt: '2022-08-29T12:23:27.000Z',
-        updatedAt: null,
-        type: 'DIALOG',
-        userFirstName: 'Peter',
-        userLastName: 'Lustig',
-        userId: 107,
-        __typename: 'ContributionMessage',
-      },
-    }
-
-    const ModeratorItemWrapper = () => {
-      return mount(ContributionMessagesListItem, {
-        localVue,
-        mocks,
-        propsData,
+  describe('Non-moderator message', () => {
+    beforeEach(() => {
+      wrapper = createWrapper({
+        message: {
+          type: 'DIALOG',
+          createdAt: '2022-08-29T12:23:27.000Z',
+          message: 'User message',
+          userFirstName: 'Peter',
+          userLastName: 'Lustig',
+        },
       })
-    }
+    })
 
-    describe('mount', () => {
-      beforeAll(() => {
-        wrapper = ModeratorItemWrapper()
-      })
+    it('renders the non-moderator layout', () => {
+      expect(wrapper.find('.is-not-moderator').exists()).toBe(true)
+    })
 
-      it('has a DIV .is-not-moderator', () => {
-        expect(wrapper.find('div.is-not-moderator').exists()).toBe(true)
-      })
+    it('displays the user name', () => {
+      expect(wrapper.find('[data-test="username"]').text()).toBe('Peter Lustig')
+    })
 
-      it('has the complete user name', () => {
-        expect(wrapper.find('div[data-test="username"]').text()).toBe('Peter Lustig')
-      })
+    it('displays the formatted date', () => {
+      expect(wrapper.find('[data-test="date"]').text()).toContain('Formatted:')
+    })
 
-      it('has the message creation date', () => {
-        expect(wrapper.find('div[data-test="date"]').text()).toMatch(
-          'Mon Aug 29 2022 12:23:27 GMT+0000',
-        )
-      })
-
-      it('has the message', () => {
-        expect(wrapper.find('div[data-test="message"]').text()).toBe('Lorem ipsum?')
-      })
+    it('renders ParseMessage component', () => {
+      expect(wrapper.find('.parse-message-mock').exists()).toBe(true)
     })
   })
 
-  describe('links in contribtion message', () => {
-    const propsData = {
-      message: {
-        id: 111,
-        message: 'Lorem ipsum?',
-        createdAt: '2022-08-29T12:23:27.000Z',
-        updatedAt: null,
-        type: 'DIALOG',
-        userFirstName: 'Peter',
-        userLastName: 'Lustig',
-        userId: 107,
-        __typename: 'ContributionMessage',
-      },
-    }
-
-    const ModeratorItemWrapper = () => {
-      return mount(ContributionMessagesListItem, {
-        localVue,
-        mocks,
-        propsData,
-      })
-    }
-
-    let messageField
-
-    describe('message of only one link', () => {
-      beforeEach(() => {
-        propsData.message.message = 'https://gradido.net/de/'
-        wrapper = ModeratorItemWrapper()
-        messageField = wrapper.find('div[data-test="message"]')
-      })
-
-      it('contains the link as text', () => {
-        expect(messageField.text()).toBe('https://gradido.net/de/')
-      })
-
-      it('contains a link to the given address', () => {
-        expect(messageField.find('a').attributes('href')).toBe('https://gradido.net/de/')
+  describe('Moderator message', () => {
+    beforeEach(() => {
+      wrapper = createWrapper({
+        message: {
+          type: 'DIALOG',
+          createdAt: '2022-08-29T12:23:27.000Z',
+          message: 'Moderator message',
+          userFirstName: 'Mod',
+          userLastName: 'Erator',
+        },
       })
     })
 
-    describe('message with text and two links', () => {
-      beforeEach(() => {
-        propsData.message.message = `Here you find all you need to know about Gradido: https://gradido.net/de/
-and here is the link to the repository: https://github.com/gradido/gradido`
-        wrapper = ModeratorItemWrapper()
-        messageField = wrapper.find('div[data-test="message"]')
-      })
-
-      it('contains the whole text', () => {
-        expect(messageField.text())
-          .toBe(`Here you find all you need to know about Gradido: https://gradido.net/de/
-and here is the link to the repository: https://github.com/gradido/gradido`)
-      })
-
-      it('contains the two links', () => {
-        expect(messageField.findAll('a').at(0).attributes('href')).toBe('https://gradido.net/de/')
-        expect(messageField.findAll('a').at(1).attributes('href')).toBe(
-          'https://github.com/gradido/gradido',
-        )
-      })
+    it('renders the moderator layout', () => {
+      expect(wrapper.find('.is-moderator').exists()).toBe(true)
     })
-  })
 
-  describe('contribution message type HISTORY', () => {
-    const propsData = {
-      message: {
-        id: 111,
-        message: `Sun Nov 13 2022 13:05:48 GMT+0100 (Central European Standard Time)
----
-This message also contains a link: https://gradido.net/de/
----
-350.00`,
-        createdAt: '2022-08-29T12:23:27.000Z',
-        updatedAt: null,
-        type: 'HISTORY',
-        userFirstName: 'Peter',
-        userLastName: 'Lustig',
-        userId: 107,
-        __typename: 'ContributionMessage',
-      },
-    }
+    it('displays the moderator name', () => {
+      expect(wrapper.find('[data-test="username"]').text()).toBe('Mod Erator')
+    })
 
-    const itemWrapper = () => {
-      return mount(ContributionMessagesListItem, {
-        localVue,
-        mocks,
-        propsData,
-      })
-    }
+    it('displays the moderator label', () => {
+      expect(wrapper.find('[data-test="moderator"]').text()).toBe('community.moderator')
+    })
 
-    let messageField
+    it('displays the formatted date', () => {
+      expect(wrapper.find('[data-test="date"]').text()).toContain('Formatted:')
+    })
 
-    describe('render HISTORY message', () => {
-      beforeEach(() => {
-        jest.clearAllMocks()
-        wrapper = itemWrapper()
-        messageField = wrapper.find('div[data-test="message"]')
-      })
-
-      it('renders the date', () => {
-        expect(dateMock).toBeCalledWith(
-          new Date('Sun Nov 13 2022 13:05:48 GMT+0100 (Central European Standard Time'),
-          'short',
-        )
-      })
-
-      it('renders the amount', () => {
-        expect(messageField.text()).toContain('350.00 GDD')
-      })
-
-      it('contains the link as text', () => {
-        expect(messageField.text()).toContain(
-          'This message also contains a link: https://gradido.net/de/',
-        )
-      })
-
-      it('contains a link to the given address', () => {
-        expect(messageField.find('a').attributes('href')).toBe('https://gradido.net/de/')
-      })
+    it('renders ParseMessage component', () => {
+      expect(wrapper.find('.parse-message-mock').exists()).toBe(true)
     })
   })
 })

@@ -1,117 +1,174 @@
 import { mount } from '@vue/test-utils'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import UserNewsletter from './UserNewsletter'
 import { unsubscribeNewsletter, subscribeNewsletter } from '@/graphql/mutations'
+import { createStore } from 'vuex'
+import { createI18n } from 'vue-i18n'
+import * as bootstrapVueNext from 'bootstrap-vue-next'
+import { nextTick } from 'vue'
 
-import { toastErrorSpy, toastSuccessSpy } from '@test/testSetup'
+// Mock composables and dependencies
+const mockToastError = vi.fn()
+const mockToastSuccess = vi.fn()
 
-const localVue = global.localVue
+vi.mock('@/composables/useToast', () => ({
+  useAppToast: vi.fn(() => ({
+    toastError: mockToastError,
+    toastSuccess: mockToastSuccess,
+  })),
+}))
 
-const mockAPIcall = jest.fn()
+const mockSubscribeMutate = vi.fn()
+const mockUnsubscribeMutate = vi.fn()
 
-const storeCommitMock = jest.fn()
+vi.mock('@vue/apollo-composable', () => ({
+  useMutation: vi.fn((mutation) => {
+    if (mutation === subscribeNewsletter) {
+      return { mutate: mockSubscribeMutate }
+    } else if (mutation === unsubscribeNewsletter) {
+      return { mutate: mockUnsubscribeMutate }
+    }
+    throw new Error(`Unrecognized mutation: ${mutation}`)
+  }),
+}))
 
-describe('UserCard_Newsletter', () => {
+describe('UserNewsletter', () => {
   let wrapper
+  let store
+  let i18n
 
-  const mocks = {
-    $t: jest.fn((t) => t),
-    $store: {
+  const createVuexStore = (initialState = {}) =>
+    createStore({
       state: {
         language: 'de',
         newsletterState: true,
+        ...initialState,
       },
-      commit: storeCommitMock,
-    },
-    $apollo: {
-      mutate: mockAPIcall,
-    },
+      mutations: {
+        newsletterState(state, value) {
+          state.newsletterState = value
+        },
+      },
+    })
+
+  const createI18nInstance = () =>
+    createI18n({
+      legacy: false,
+      locale: 'de',
+      messages: {
+        de: {
+          'settings.newsletter.newsletterTrue': 'Newsletter subscribed',
+          'settings.newsletter.newsletterFalse': 'Newsletter unsubscribed',
+        },
+      },
+    })
+
+  const createWrapper = (storeState = {}) => {
+    store = createVuexStore(storeState)
+    i18n = createI18nInstance()
+
+    return mount(UserNewsletter, {
+      global: {
+        plugins: [store, i18n, bootstrapVueNext],
+        config: {
+          compilerOptions: {
+            isCustomElement: (tag) => tag.startsWith('b-'),
+          },
+        },
+      },
+    })
   }
 
-  const Wrapper = () => {
-    return mount(UserNewsletter, { localVue, mocks })
-  }
+  beforeEach(() => {
+    vi.clearAllMocks()
+    wrapper = createWrapper()
+  })
 
-  describe('mount', () => {
-    beforeEach(() => {
-      jest.clearAllMocks()
-      wrapper = Wrapper()
+  it('renders the component', () => {
+    expect(wrapper.find('div.formusernewsletter').exists()).toBe(true)
+  })
+
+  it('has a BFormCheckbox switch', () => {
+    const checkbox = wrapper.findComponent({ name: 'BFormCheckbox' })
+    expect(checkbox.exists()).toBe(true)
+  })
+
+  describe('unsubscribe with success', () => {
+    beforeEach(async () => {
+      wrapper = createWrapper({ newsletterState: true })
+      mockUnsubscribeMutate.mockResolvedValue({
+        data: {
+          unsubscribeNewsletter: true,
+        },
+      })
+
+      const checkbox = wrapper.findComponent({ name: 'BFormCheckbox' })
+      await checkbox.setValue(false)
+      await nextTick()
+      // Ensure all promises are resolved
+      await Promise.resolve()
     })
 
-    it('renders the component', () => {
-      expect(wrapper.find('div.formusernewsletter').exists()).toBeTruthy()
+    it('calls the unsubscribe mutation', () => {
+      expect(mockUnsubscribeMutate).toHaveBeenCalledTimes(1)
     })
 
-    it('has an edit BFormCheckbox switch', () => {
-      expect(wrapper.find('[test="BFormCheckbox"]').exists()).toBeTruthy()
+    it('updates the store', () => {
+      expect(store.state.newsletterState).toBe(false)
     })
 
-    describe('unsubscribe with success', () => {
-      beforeEach(async () => {
-        wrapper.setData({ newsletterState: true })
-        mockAPIcall.mockResolvedValue({
-          data: {
-            unsubscribeNewsletter: true,
-          },
-        })
-        wrapper.find('input').setChecked(false)
+    it('toasts a success message', () => {
+      expect(mockToastSuccess).toHaveBeenCalledWith('Newsletter unsubscribed')
+    })
+  })
+
+  describe('subscribe with success', () => {
+    beforeEach(async () => {
+      wrapper = createWrapper({ newsletterState: false })
+      mockSubscribeMutate.mockResolvedValue({
+        data: {
+          subscribeNewsletter: true,
+        },
       })
 
-      it('calls the unsubscribe mutation', () => {
-        expect(mockAPIcall).toBeCalledWith({
-          mutation: unsubscribeNewsletter,
-        })
-      })
-
-      it('updates the store', () => {
-        expect(storeCommitMock).toBeCalledWith('newsletterState', false)
-      })
-
-      it('toasts a success message', () => {
-        expect(toastSuccessSpy).toBeCalledWith('settings.newsletter.newsletterFalse')
-      })
+      const checkbox = wrapper.findComponent({ name: 'BFormCheckbox' })
+      await checkbox.setValue(true)
+      await nextTick()
+      // Ensure all promises are resolved
+      await Promise.resolve()
     })
 
-    describe('subscribe with success', () => {
-      beforeEach(async () => {
-        await wrapper.setData({ newsletterState: false })
-        mockAPIcall.mockResolvedValue({
-          data: {
-            subscribeNewsletter: true,
-          },
-        })
-        await wrapper.find('input').setChecked()
-      })
-
-      it('calls the subscribe mutation', () => {
-        expect(mockAPIcall).toBeCalledWith({
-          mutation: subscribeNewsletter,
-        })
-      })
-
-      it('updates the store', () => {
-        expect(storeCommitMock).toBeCalledWith('newsletterState', true)
-      })
-
-      it('toasts a success message', () => {
-        expect(toastSuccessSpy).toBeCalledWith('settings.newsletter.newsletterTrue')
-      })
+    it('calls the subscribe mutation', () => {
+      expect(mockSubscribeMutate).toHaveBeenCalledTimes(1)
     })
 
-    describe('unsubscribe with server error', () => {
-      beforeEach(() => {
-        mockAPIcall.mockRejectedValue({
-          message: 'Ouch',
-        })
-        wrapper.find('input').trigger('change')
-      })
+    it('updates the store', () => {
+      expect(store.state.newsletterState).toBe(true)
+    })
 
-      it('resets the newsletterState', () => {
-        expect(wrapper.vm.newsletterState).toBeTruthy()
-      })
+    it('toasts a success message', () => {
+      expect(mockToastSuccess).toHaveBeenCalledWith('Newsletter subscribed')
+    })
+  })
 
-      it('toasts an error message', () => {
-        expect(toastErrorSpy).toBeCalledWith('Ouch')
-      })
+  describe('unsubscribe with server error', () => {
+    beforeEach(async () => {
+      wrapper = createWrapper({ newsletterState: true })
+      mockUnsubscribeMutate.mockRejectedValue(new Error('Ouch'))
+
+      const checkbox = wrapper.findComponent({ name: 'BFormCheckbox' })
+      await checkbox.setValue(false)
+      await nextTick()
+      // Ensure all promises are resolved
+      await Promise.resolve()
+    })
+
+    it('resets the newsletterState', () => {
+      expect(store.state.newsletterState).toBe(true)
+    })
+
+    it('toasts an error message', () => {
+      expect(mockToastError).toHaveBeenCalledWith('Ouch')
     })
   })
 })

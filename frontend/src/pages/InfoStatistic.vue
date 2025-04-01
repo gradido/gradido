@@ -1,41 +1,16 @@
 <template>
   <div class="info-statistic">
-    <b-container class="bg-white appBoxShadow gradido-border-radius p-4 mt--3">
+    <BContainer class="bg-white app-box-shadow gradido-border-radius p-4 mt--3">
       <div>{{ $t('communityInfo') }}</div>
       <div class="h3">
         {{ CONFIG.COMMUNITY_DESCRIPTION }}
       </div>
       <div>
-        <b-link :href="CONFIG.COMMUNITY_URL">
+        <BLink :href="CONFIG.COMMUNITY_URL">
           {{ CONFIG.COMMUNITY_URL }}
-        </b-link>
+        </BLink>
       </div>
       <hr />
-      <!--<div class="h3">{{ $t('community.openContributionLinks') }}</div>
-      <div v-if="count > 0">
-        {{
-          $t('community.openContributionLinkText', {
-            name: CONFIG.COMMUNITY_NAME,
-            count,
-          })
-        }}
-      </div>
-      <div v-else>
-        {{ $t('community.noOpenContributionLinkText') }}
-      </div>
-      <ul>
-        <li v-for="item in itemsContributionLinks" v-bind:key="item.id">
-          <div>{{ item.name }}</div>
-          <div>{{ item.memo }}</div>
-          <div>
-            {{ item.amount | GDD }}
-            <span v-if="item.cycle === 'ONCE'">{{ $t('contribution-link.unique') }}</span>
-          </div>
-        </li>
-      </ul>
-
-      <hr />-->
-
       <div class="h3">{{ $t('community.admins') }}</div>
       <ul>
         <li v-for="item in admins" :key="item.id">{{ item.firstName }} {{ item.lastName }}</li>
@@ -48,119 +23,61 @@
       <hr />
 
       <div class="h3">{{ $t('contact') }}</div>
-      <b-link :href="`mailto:${supportMail}`">{{ supportMail }}</b-link>
-    </b-container>
-    <!-- 
-    <hr />
-    <b-container>
-      <div class="h3">{{ $t('community.statistic') }}</div>
-      <div>
-        <div>
-          {{ $t('community.members') }}
-          <span class="h4">{{ totalUsers }}</span>
-        </div>
-        <div>
-          {{ $t('statistic.totalGradidoCreated') }}
-          <span class="h4">{{ totalGradidoCreated | GDD }}</span>
-        </div>
-        <div>
-          {{ $t('statistic.totalGradidoDecayed') }}
-          <span class="h4">{{ totalGradidoDecayed | GDD }}</span>
-        </div>
-        <div>
-          {{ $t('statistic.totalGradidoAvailable') }}
-          <span class="h4">{{ totalGradidoAvailable | GDD }}</span>
-        </div>
-      </div>
-    </b-container>
-    -->
+      <BLink :href="`mailto:${supportMail}`">{{ supportMail }}</BLink>
+    </BContainer>
   </div>
 </template>
-<script>
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import { useQuery } from '@vue/apollo-composable'
 import CONFIG from '@/config'
 import { listContributionLinks, searchAdminUsers } from '@/graphql/queries'
-// , communityStatistics
+import { useAppToast } from '../composables/useToast'
 
-export default {
-  name: 'InfoStatistic',
-  data() {
-    return {
-      CONFIG,
-      count: null,
-      countAdminUser: null,
-      itemsContributionLinks: [],
-      itemsAdminUser: [],
-      supportMail: CONFIG.COMMUNITY_SUPPORT_MAIL,
-      membersCount: '1203',
-      totalUsers: null,
-      totalGradidoCreated: null,
-      totalGradidoDecayed: null,
-      totalGradidoAvailable: null,
-    }
-  },
-  computed: {
-    admins() {
-      return this.itemsAdminUser.filter((item) => item.role === 'ADMIN')
-    },
-    moderators() {
-      return this.itemsAdminUser.filter((item) => item.role === 'MODERATOR')
-    },
-  },
-  methods: {
-    getContributionLinks() {
-      this.$apollo
-        .query({
-          query: listContributionLinks,
-        })
-        .then((result) => {
-          this.count = result.data.listContributionLinks.count
-          this.itemsContributionLinks = result.data.listContributionLinks.links
-        })
-        .catch(() => {
-          this.toastError('listContributionLinks has no result, use default data')
-        })
-    },
-    getAdminUsers() {
-      this.$apollo
-        .query({
-          query: searchAdminUsers,
-        })
-        .then((result) => {
-          this.countAdminUser = result.data.searchAdminUsers.userCount
-          this.itemsAdminUser = result.data.searchAdminUsers.userList
-        })
-        .catch(() => {
-          this.toastError('searchAdminUsers has no result, use default data')
-        })
-    },
-    /*
-        getCommunityStatistics() {
-        this.$apollo
-        .query({
-        query: communityStatistics,
-        })
-        .then((result) => {
-        this.totalUsers = result.data.communityStatistics.totalUsers
-        this.totalGradidoCreated = result.data.communityStatistics.totalGradidoCreated
-        this.totalGradidoDecayed =
-        Number(result.data.communityStatistics.totalGradidoDecayed) +
-        Number(result.data.communityStatistics.totalGradidoUnbookedDecayed)
-        this.totalGradidoAvailable = result.data.communityStatistics.totalGradidoAvailable
-        })
-        .catch(() => {
-        this.toastError('communityStatistics has no result, use default data')
-        })
-        },
-      */
-    updateTransactions(pagination) {
-      this.$emit('update-transactions', pagination)
-    },
-  },
-  created() {
-    this.getContributionLinks()
-    this.getAdminUsers()
-    // this.getCommunityStatistics()
-    this.updateTransactions(0)
-  },
+const emit = defineEmits(['update-transactions'])
+
+const { toastError } = useAppToast()
+
+const count = ref(null)
+const countAdminUser = ref(null)
+const itemsContributionLinks = ref([])
+const itemsAdminUser = ref([])
+const supportMail = CONFIG.COMMUNITY_SUPPORT_MAIL
+
+const admins = computed(() => itemsAdminUser.value.filter((item) => item.role === 'ADMIN'))
+const moderators = computed(() => itemsAdminUser.value.filter((item) => item.role === 'MODERATOR'))
+
+const { onResult: onContributionLinksResult, onError: onContributionLinksError } =
+  useQuery(listContributionLinks)
+const { onResult: onAdminUsersResult, onError: onAdminUsersError } = useQuery(searchAdminUsers)
+
+onContributionLinksResult(({ data }) => {
+  if (data) {
+    count.value = data.listContributionLinks.count
+    itemsContributionLinks.value = data.listContributionLinks.links
+  }
+})
+
+onAdminUsersResult(({ data }) => {
+  if (data) {
+    countAdminUser.value = data.searchAdminUsers.userCount
+    itemsAdminUser.value = data.searchAdminUsers.userList
+  }
+})
+
+onContributionLinksError(() => {
+  toastError('listContributionLinks has no result, use default data')
+})
+
+onAdminUsersError(() => {
+  toastError('searchAdminUsers has no result, use default data')
+})
+
+const updateTransactions = (pagination) => {
+  emit('update-transactions', pagination)
 }
+
+onMounted(() => {
+  updateTransactions(0)
+})
 </script>

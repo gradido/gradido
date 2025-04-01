@@ -13,19 +13,19 @@ export const unsubscribeNewsletter = gql`
 `
 
 export const setPassword = gql`
-  mutation($code: String!, $password: String!) {
+  mutation ($code: String!, $password: String!) {
     setPassword(code: $code, password: $password)
   }
 `
 
 export const forgotPassword = gql`
-  mutation($email: String!) {
+  mutation ($email: String!) {
     forgotPassword(email: $email)
   }
 `
 
 export const updateUserInfos = gql`
-  mutation(
+  mutation (
     $firstName: String
     $lastName: String
     $alias: String
@@ -35,9 +35,11 @@ export const updateUserInfos = gql`
     $hideAmountGDD: Boolean
     $hideAmountGDT: Boolean
     $gmsAllowed: Boolean
-    $gmsPublishName: Int
+    $humhubAllowed: Boolean
+    $gmsPublishName: PublishNameType
+    $humhubPublishName: PublishNameType
     $gmsLocation: Location
-    $gmsPublishLocation: Int
+    $gmsPublishLocation: GmsPublishLocationType
   ) {
     updateUserInfos(
       firstName: $firstName
@@ -49,7 +51,9 @@ export const updateUserInfos = gql`
       hideAmountGDD: $hideAmountGDD
       hideAmountGDT: $hideAmountGDT
       gmsAllowed: $gmsAllowed
+      humhubAllowed: $humhubAllowed
       gmsPublishName: $gmsPublishName
+      humhubPublishName: $humhubPublishName
       gmsLocation: $gmsLocation
       gmsPublishLocation: $gmsPublishLocation
     )
@@ -57,13 +61,14 @@ export const updateUserInfos = gql`
 `
 
 export const createUser = gql`
-  mutation(
+  mutation (
     $firstName: String!
     $lastName: String!
     $email: String!
     $language: String!
     $publisherId: Int
     $redeemCode: String
+    $project: String
   ) {
     createUser(
       email: $email
@@ -72,6 +77,7 @@ export const createUser = gql`
       language: $language
       publisherId: $publisherId
       redeemCode: $redeemCode
+      project: $project
     ) {
       id
     }
@@ -79,7 +85,7 @@ export const createUser = gql`
 `
 
 export const sendCoins = gql`
-  mutation(
+  mutation (
     $recipientCommunityIdentifier: String!
     $recipientIdentifier: String!
     $amount: Decimal!
@@ -95,7 +101,7 @@ export const sendCoins = gql`
 `
 
 export const createTransactionLink = gql`
-  mutation($amount: Decimal!, $memo: String!) {
+  mutation ($amount: Decimal!, $memo: String!) {
     createTransactionLink(amount: $amount, memo: $memo) {
       link
       amount
@@ -106,19 +112,19 @@ export const createTransactionLink = gql`
 `
 
 export const deleteTransactionLink = gql`
-  mutation($id: Int!) {
+  mutation ($id: Int!) {
     deleteTransactionLink(id: $id)
   }
 `
 
 export const redeemTransactionLink = gql`
-  mutation($code: String!) {
+  mutation ($code: String!) {
     redeemTransactionLink(code: $code)
   }
 `
 
 export const createContribution = gql`
-  mutation($creationDate: String!, $memo: String!, $amount: Decimal!) {
+  mutation ($creationDate: String!, $memo: String!, $amount: Decimal!) {
     createContribution(creationDate: $creationDate, memo: $memo, amount: $amount) {
       amount
       memo
@@ -127,7 +133,7 @@ export const createContribution = gql`
 `
 
 export const updateContribution = gql`
-  mutation($contributionId: Int!, $amount: Decimal!, $memo: String!, $creationDate: String!) {
+  mutation ($contributionId: Int!, $amount: Decimal!, $memo: String!, $creationDate: String!) {
     updateContribution(
       contributionId: $contributionId
       amount: $amount
@@ -142,13 +148,13 @@ export const updateContribution = gql`
 `
 
 export const deleteContribution = gql`
-  mutation($id: Int!) {
+  mutation ($id: Int!) {
     deleteContribution(id: $id)
   }
 `
 
 export const createContributionMessage = gql`
-  mutation($contributionId: Int!, $message: String!) {
+  mutation ($contributionId: Int!, $message: String!) {
     createContributionMessage(contributionId: $contributionId, message: $message) {
       id
       message
@@ -162,8 +168,8 @@ export const createContributionMessage = gql`
 `
 
 export const login = gql`
-  mutation($email: String!, $password: String!, $publisherId: Int) {
-    login(email: $email, password: $password, publisherId: $publisherId) {
+  mutation ($email: String!, $password: String!, $publisherId: Int, $project: String) {
+    login(email: $email, password: $password, publisherId: $publisherId, project: $project) {
       gradidoID
       alias
       firstName
@@ -172,6 +178,12 @@ export const login = gql`
       klickTipp {
         newsletterState
       }
+      gmsAllowed
+      humhubAllowed
+      gmsPublishName
+      humhubPublishName
+      gmsPublishLocation
+      userLocation
       hasElopage
       publisherId
       roles

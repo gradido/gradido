@@ -15,6 +15,23 @@ export const verifyLogin = gql`
     }
   }
 `
+export const authenticateGmsUserSearch = gql`
+  query {
+    authenticateGmsUserSearch {
+      url
+      token
+    }
+  }
+`
+
+export const userLocationQuery = gql`
+  query {
+    userLocation {
+      userLocation
+      communityLocation
+    }
+  }
+`
 
 export const queryOptIn = gql`
   query ($optIn: String!) {
@@ -134,9 +151,25 @@ export const communitiesQuery = gql`
   }
 `
 
-export const getCommunityByUuidQuery = gql`
-  query ($communityUuid: String!) {
-    community(communityUuid: $communityUuid) {
+export const getCommunityByIdentifierQuery = gql`
+  query ($communityIdentifier: String!) {
+    communityByIdentifier(communityIdentifier: $communityIdentifier) {
+      id
+      foreign
+      name
+      description
+      url
+      creationDate
+      uuid
+      authenticatedAt
+      gmsApiKey
+    }
+  }
+`
+
+export const getHomeCommunityQuery = gql`
+  query {
+    homeCommunity {
       id
       foreign
       name
@@ -156,12 +189,41 @@ export const getCommunities = gql`
       id
       foreign
       publicKey
-      url
+      endPoint
+      apiVersion
       lastAnnouncedAt
       verifiedAt
       lastErrorAt
       createdAt
       updatedAt
+    }
+  }
+`
+
+export const allCommunities = gql`
+  query {
+    allCommunities {
+      foreign
+      url
+      publicKey
+      uuid
+      authenticatedAt
+      name
+      description
+      gmsApiKey
+      creationDate
+      createdAt
+      updatedAt
+      federatedCommunities {
+        id
+        apiVersion
+        endPoint
+        lastAnnouncedAt
+        verifiedAt
+        lastErrorAt
+        createdAt
+        updatedAt
+      }
     }
   }
 `
@@ -238,29 +300,18 @@ query ($currentPage: Int = 1, $pageSize: Int = 5, $order: Order = DESC, $statusF
 // from admin interface
 
 export const adminListContributions = gql`
-  query (
-    $currentPage: Int = 1
-    $pageSize: Int = 25
-    $order: Order = DESC
-    $statusFilter: [ContributionStatus!]
-    $userId: Int
-    $query: String
-    $noHashtag: Boolean
-  ) {
-    adminListContributions(
-      currentPage: $currentPage
-      pageSize: $pageSize
-      order: $order
-      statusFilter: $statusFilter
-      userId: $userId
-      query: $query
-      noHashtag: $noHashtag
-    ) {
+  query ($filter: SearchContributionsFilterArgs, $paginated: Paginated) {
+    adminListContributions(filter: $filter, paginated: $paginated) {
       contributionCount
       contributionList {
         id
-        firstName
-        lastName
+        user {
+          emailContact {
+            email
+          }
+          firstName
+          lastName
+        }
         amount
         memo
         createdAt

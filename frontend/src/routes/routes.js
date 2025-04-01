@@ -23,6 +23,8 @@ const routes = [
     // communityIdentifier can be community name or community UUID
     path: '/send/:communityIdentifier?/:userIdentifier?',
     component: () => import('@/pages/Send'),
+    name: 'Send',
+    props: true,
     meta: {
       requiresAuth: true,
       pageTitle: 'send',
@@ -36,6 +38,7 @@ const routes = [
   //   },
   // },
   {
+    name: 'Transactions',
     path: '/transactions',
     component: () => import('@/pages/Transactions'),
     props: { gdt: false },
@@ -80,6 +83,22 @@ const routes = [
       pageTitle: 'information',
     },
   },
+  {
+    path: '/usersearch',
+    component: () => import('@/pages/UserSearch'),
+    meta: {
+      requiresAuth: true,
+      pageTitle: 'usersearch',
+    },
+  },
+  {
+    path: '/circles',
+    component: () => import('@/pages/Circles'),
+    meta: {
+      requiresAuth: true,
+      pageTitle: 'circles',
+    },
+  },
   // {
   //   path: '/storys',
   //   component: () => import('@/pages/TopStorys'),
@@ -95,7 +114,7 @@ const routes = [
   //   },
   // },
   {
-    path: '/settings',
+    path: '/settings/:tabAlias?',
     component: () => import('@/pages/Settings'),
     meta: {
       requiresAuth: true,
@@ -138,7 +157,11 @@ const routes = [
     path: '/redeem/:code',
     component: () => import('@/pages/TransactionLink'),
   },
-  { path: '*', component: NotFound },
+  {
+    path: '/:catchAll(.*)',
+    name: 'NotFound',
+    component: NotFound,
+  },
 ]
 
 export default routes

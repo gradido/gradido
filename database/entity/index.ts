@@ -2,6 +2,8 @@ import { ContributionLink } from './ContributionLink'
 import { LoginElopageBuys } from './LoginElopageBuys'
 import { LoginEmailOptIn } from './LoginEmailOptIn'
 import { Migration } from './Migration'
+import { ProjectBranding } from './ProjectBranding'
+import { OpenaiThreads } from './OpenaiThreads'
 import { Transaction } from './Transaction'
 import { TransactionLink } from './TransactionLink'
 import { User } from './User'
@@ -26,6 +28,8 @@ export const entities = [
   LoginElopageBuys,
   LoginEmailOptIn,
   Migration,
+  ProjectBranding,
+  OpenaiThreads,
   PendingTransaction,
   Transaction,
   TransactionLink,

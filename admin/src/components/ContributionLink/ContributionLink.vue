@@ -1,6 +1,6 @@
 <template>
   <div class="contribution-link">
-    <b-card
+    <BCard
       border-variant="success"
       :header="$t('contributionLink.contributionLinks')"
       header-bg-variant="success"
@@ -8,40 +8,41 @@
       header-class="text-center"
       class="mt-5"
     >
-      <b-button
+      <BButton
         v-if="!editContributionLink"
-        @click="visible = !visible"
         class="my-3 d-flex justify-content-left"
         data-test="new-contribution-link-button"
+        @click="visible = !visible"
       >
         {{ $t('math.plus') }} {{ $t('contributionLink.newContributionLink') }}
-      </b-button>
+      </BButton>
 
-      <b-collapse v-model="visible" id="newContribution" class="mt-2">
-        <b-card>
-          <p class="h2 ml-5">{{ $t('contributionLink.contributionLinks') }}</p>
+      <BCollapse id="newContribution" v-model="visible" class="mt-2">
+        <BCard>
+          <p class="h2 ms-5">{{ $t('contributionLink.contributionLinks') }}</p>
           <contribution-link-form
-            :contributionLinkData="contributionLinkData"
-            :editContributionLink="editContributionLink"
+            :contribution-link-data="contributionLinkData"
+            :edit-contribution-link="editContributionLink"
             @get-contribution-links="$emit('get-contribution-links')"
-            @closeContributionForm="closeContributionForm"
+            @close-contribution-form="closeContributionForm"
           />
-        </b-card>
-      </b-collapse>
+        </BCard>
+      </BCollapse>
 
-      <b-card-text>
+      <BCardText>
         <contribution-link-list
           v-if="count > 0"
           :items="items"
-          @editContributionLinkData="editContributionLinkData"
+          @edit-contribution-link-data="editContributionLinkData"
           @get-contribution-links="$emit('get-contribution-links')"
-          @closeContributionForm="closeContributionForm"
+          @close-contribution-form="closeContributionForm"
         />
         <div v-else>{{ $t('contributionLink.noContributionLinks') }}</div>
-      </b-card-text>
-    </b-card>
+      </BCardText>
+    </BCard>
   </div>
 </template>
+
 <script>
 import ContributionLinkForm from '../ContributionLink/ContributionLinkForm'
 import ContributionLinkList from '../ContributionLink/ContributionLinkList'
@@ -62,6 +63,7 @@ export default {
       required: true,
     },
   },
+  emits: ['get-contribution-links'],
   data: function () {
     return {
       visible: false,
@@ -72,14 +74,14 @@ export default {
   methods: {
     closeContributionForm() {
       if (this.visible) {
-        this.$root.$emit('bv::toggle::collapse', 'newContribution')
+        this.visible = false
         this.editContributionLink = false
         this.contributionLinkData = {}
       }
     },
     editContributionLinkData(data) {
       if (!this.visible) {
-        this.$root.$emit('bv::toggle::collapse', 'newContribution')
+        this.visible = true
       }
       this.contributionLinkData = data
       this.editContributionLink = true

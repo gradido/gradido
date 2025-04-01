@@ -15,8 +15,6 @@ import { ApolloServerTestClient } from 'apollo-server-testing'
 import { GraphQLError } from 'graphql'
 import { v4 as uuidv4 } from 'uuid'
 
-import { GmsPublishLocationType } from '@enum/GmsPublishLocationType'
-import { GmsPublishNameType } from '@enum/GmsPublishNameType'
 import { cleanDB, testEnvironment } from '@test/helpers'
 import { logger } from '@test/testSetup'
 
@@ -38,6 +36,8 @@ import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
+
+jest.mock('@/password/EncryptorUtils')
 
 let mutate: ApolloServerTestClient['mutate'], con: Connection
 let query: ApolloServerTestClient['query']
@@ -530,13 +530,12 @@ describe('send coins', () => {
 
     describe('send coins via alias', () => {
       beforeAll(async () => {
+        // first set alias to null, because updating alias isn't allowed
+        await User.update({ alias: 'MeisterBob' }, { alias: () => 'NULL' })
         await mutate({
           mutation: updateUserInfos,
           variables: {
             alias: 'bob',
-            gmsAllowed: true,
-            gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS,
-            gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM,
           },
         })
         await mutate({

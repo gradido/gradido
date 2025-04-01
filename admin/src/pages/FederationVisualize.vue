@@ -2,68 +2,53 @@
   <div class="federation-visualize">
     <div class="d-flex justify-content-between align-items-center mb-3">
       <span class="h2">{{ $t('federation.gradidoInstances') }}</span>
-      <b-button>
-        <b-icon
-          icon="arrow-clockwise"
-          font-scale="2"
-          :animation="animation"
-          @click="$apollo.queries.GetCommunities.refresh()"
-          data-test="federation-communities-refresh-btn"
-        ></b-icon>
-      </b-button>
+      <BButton
+        :animation="animation"
+        data-test="federation-communities-refresh-btn"
+        font-scale="2"
+        @click="refetch"
+      >
+        <IBiArrowClockwise />
+      </BButton>
     </div>
-    <b-list-group>
-      <b-row>
-        <b-col cols="1" class="ml-1">{{ $t('federation.verified') }}</b-col>
-        <b-col class="ml-3">{{ $t('federation.url') }}</b-col>
-        <b-col cols="2">{{ $t('federation.lastAnnouncedAt') }}</b-col>
-        <b-col cols="2">{{ $t('federation.createdAt') }}</b-col>
-      </b-row>
-      <b-list-group-item
+    <BListGroup>
+      <BRow>
+        <BCol cols="1" class="ms-1">{{ $t('federation.verified') }}</BCol>
+        <BCol class="ms-3">{{ $t('federation.url') }}</BCol>
+        <BCol class="ms-3">{{ $t('federation.name') }}</BCol>
+        <BCol cols="2">{{ $t('federation.lastAnnouncedAt') }}</BCol>
+        <BCol cols="2">{{ $t('federation.createdAt') }}</BCol>
+      </BRow>
+      <BListGroupItem
         v-for="item in communities"
-        :key="item.id"
+        :key="item.publicKey"
         :variant="!item.foreign ? 'primary' : 'warning'"
       >
-        <federation-visualize-item :item="item" />
-      </b-list-group-item>
-    </b-list-group>
+        <community-visualize-item :item="item" />
+      </BListGroupItem>
+    </BListGroup>
   </div>
 </template>
-<script>
-import { getCommunities } from '@/graphql/getCommunities'
 
-import FederationVisualizeItem from '../components/Fedaration/FederationVisualizeItem.vue'
+<script setup>
+import { computed, watch } from 'vue'
+import { useQuery } from '@vue/apollo-composable'
+import { allCommunities } from '@/graphql/allCommunities'
+import { useAppToast } from '@/composables/useToast'
 
-export default {
-  name: 'FederationVisualize',
-  components: {
-    FederationVisualizeItem,
-  },
-  data() {
-    return {
-      oldPublicKey: '',
-      communities: [],
-      icon: '',
-    }
-  },
-  computed: {
-    animation() {
-      return this.$apollo.queries.GetCommunities.loading ? 'spin' : ''
-    },
-  },
-  apollo: {
-    GetCommunities: {
-      fetchPolicy: 'network-only',
-      query() {
-        return getCommunities
-      },
-      update({ getCommunities }) {
-        this.communities = getCommunities
-      },
-      error({ message }) {
-        this.toastError(message)
-      },
-    },
-  },
-}
+const { toastError } = useAppToast()
+
+const { result, loading, refetch, error } = useQuery(allCommunities, () => ({}), {
+  fetchPolicy: 'network-only',
+})
+
+const communities = computed(() => {
+  return result.value?.allCommunities || []
+})
+
+watch(error, () => {
+  if (error.value) toastError(error.value.message)
+})
+
+const animation = computed(() => (loading.value ? 'spin' : ''))
 </script>

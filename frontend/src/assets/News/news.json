@@ -1,37 +1,42 @@
 [
   {
     "locale": "de",
-    "text": "Gradido-Kreise – Gemeinsam mit Freunden die Zukunft gestalten",
-    "button": "Mehr erfahren",
-    "url": "https://gradido.net/de/gradido-kreise-gemeinsam-mit-freunden-die-zukunft-gestalten",
-    "extra": "Ganz gleich, ob Ihr bereits einer Gruppe zugehörig seid oder ob Ihr Euch über Gradido gefunden habt – wenn Ihr gemeinsam Gradido nutzen wollt, braucht Ihr nicht gleich einen eigenen Gradido-Server."
+    "text": "Kreise haben jetzt sichere Video-Meetings!",
+    "extra": "In unserer geschützten Community unterstützen wir einander, achtsam in Kreiskultur.",
+    "extra2": "Wähle hier, wie dein Name angezeigt werden soll:",
+    "button": "Namensanzeige wählen",
+    "internUrl": "/settings/extern"
   },
   {
     "locale": "en",
-    "text": "Gradido circles - Shaping the future together with friends",
-    "button": "Learn more",
-    "url": "https://gradido.net/en/gradido-kreise-gemeinsam-mit-freunden-die-zukunft-gestalten/",
-    "extra": "No matter whether you already belong to a group or whether you found each other via Gradido - if you want to use Gradido together, you don't need your own Gradido server."
+    "text": "Circles now have safe video meetings!",
+    "extra": "In our protected community we support each other, mindful in circle culture.",
+    "extra2": "Choose here how your name should be displayed:",
+    "button": "Choose name display",
+    "internUrl": "/settings/extern"
   },
   {
     "locale": "fr",
-    "text": "Cercles Gradido - Construire l'avenir ensemble avec des amis ",
-    "button": "En savoir plus",
-    "url": "https://gradido.net/fr/gradido-kreise-gemeinsam-mit-freunden-die-zukunft-gestalten/",
-    "extra": "Que vous fassiez déjà partie d'un groupe ou que vous vous soyez trouvés par le biais de Gradido, si vous voulez utiliser Gradido ensemble, vous n'avez pas besoin de votre propre serveur Gradido."
+    "text": "Les Cercles ont désormais des réunions vidéo sécurisées !",
+    "extra": "Dans notre communauté protégée, nous nous soutenons mutuellement, en faisant attention à la culture des cercles.",
+    "extra2": "Choisis ici comment ton nom doit être affiché :",
+    "button": "Choisir l'affichage du nom",
+    "internUrl": "/settings/extern"
   },
   {
     "locale": "es",
-    "text": "Círculos Gradido - Forjar el futuro entre amigos ",
-    "button": "Más información",
-    "url": "https://gradido.net/es/gradido-kreise-gemeinsam-mit-freunden-die-zukunft-gestalten/",
-    "extra": "No importa si ya pertenecéis a un grupo o si os habéis encontrado a través de Gradido: si queréis utilizar Gradido juntos, no necesitáis vuestro propio servidor Gradido."
+    "text": "¡Los Círculos ahora tienen reuniones de vídeo seguras!",
+    "extra": "En nuestra comunidad protegida nos apoyamos mutuamente, conscientes de la cultura del círculo.",
+    "extra2": "Elige aquí cómo se mostrará tu nombre:",
+    "button": "Seleccione la visualización del nombre",
+    "internUrl": "/settings/extern"
   },
   {
     "locale": "nl",
-    "text": "Gradidokringen - Samen met vrienden de toekomst vormgeven",
-    "button": "Meer informatie",
-    "url": "https://gradido.net/nl/gradido-kreise-gemeinsam-mit-freunden-die-zukunft-gestalten/",
-    "extra": "Het maakt niet uit of je al tot een groep behoort of dat je elkaar via Gradido hebt gevonden - als je Gradido samen wilt gebruiken, heb je geen eigen Gradido-server nodig."
+    "text": "Cirkels hebben nu veilige videomeetings!",
+    "extra": "In onze beschermde gemeenschap steunen we elkaar, mindful in de kringcultuur.",
+    "extra2": "Kies hier hoe je naam moet worden weergegeven:",
+    "button": "Selecteer naamweergave",
+    "internUrl": "/settings/extern"
   }
 ]

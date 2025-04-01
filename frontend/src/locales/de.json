@@ -7,6 +7,14 @@
   "85": "85%",
   "GDD": "GDD",
   "GDT": "GDT",
+  "GMS": {
+    "title": "Geo Matching System GMS (in Entwicklung)",
+    "desc": "Finde Mitglieder aller Communities auf einer Landkarte."
+  },
+  "Humhub": {
+    "title": "Gradido-Kreise",
+    "desc": "Gemeinsam unterstützen wir einander –  achtsam in Kreiskultur."
+  },
   "PersonalDetails": "Persönliche Angaben",
   "advanced-calculation": "Vorausberechnung",
   "asterisks": "****",
@@ -22,6 +30,34 @@
     }
   },
   "back": "Zurück",
+  "card-circles": {
+    "headline": "Gemeinsam unterstützen wir einander –  achtsam in Kreiskultur.",
+    "allowed": {
+      "button": "Kreise starten...",
+      "text": "Mit Klick auf den Button öffnest Du die Kooperationsplattform in einem neuen Browser-Fenster."
+    },
+    "not-allowed": {
+      "button": "Konfiguration starten...",
+      "text": "Du hast Kreise noch nicht konfiguriert! Öffne zuerst die Kreise-Konfiguration."
+    }
+  },
+  "card-user-search": {
+    "headline": "Geografische Nutzersuche (experimentell)",
+    "allowed": {
+      "button": "Öffne Nutzersuche...",
+      "disabled-button": "GMS offline...",
+      "text": "Finde Mitglieder aller Communities auf einer Landkarte."
+    },
+    "not-allowed": {
+      "button": "Standort festlegen...",
+      "text": "Finde Mitglieder aller Communities auf einer Landkarte? Dann musst du selbst erst deinen Standort festlegen."
+    }
+  },
+  "circles": {
+    "button": "Kreise starten...",
+    "headline": "Gemeinsam unterstützen wir einander –  achtsam in Kreiskultur.",
+    "text": "Mit Klick auf den Button öffnest Du die Kooperationsplattform in einem neuen Browser-Fenster."
+  },
   "community": {
     "admins": "Administratoren",
     "choose-another-community": "Eine andere Gemeinschaft auswählen",
@@ -38,8 +74,8 @@
   "contribution": {
     "activity": "Tätigkeit",
     "alert": {
-      "answerQuestion": "Bitte beantworte diese Rückfrage.",
-      "answerQuestionToast": "Du hast eine Rückfrage auf einen Beitrag. Bitte antworte auf diese.",
+      "answerQuestion": "Zu diesem Beitrag liegt eine neue Nachricht vor.",
+      "answerQuestionToast": "Du hast neue Nachrichten.",
       "communityNoteList": "Hier findest du alle eingereichten und bestätigten Beiträge von allen Mitgliedern aus dieser Gemeinschaft.",
       "confirm": "bestätigt",
       "deleted": "gelöscht",
@@ -63,7 +99,6 @@
       "allContributions": "Es wurden noch keine Beiträge eingereicht.",
       "myContributions": "Du hast noch keine Beiträge eingereicht."
     },
-    "noDateSelected": "Wähle irgendein Datum im Monat",
     "noOpenCreation": {
       "allMonth": "Für alle beiden Monate ist dein Schöpfungslimit erreicht. Den Nächsten Monat kannst du wieder 1000 GDD Schöpfen.",
       "lastMonth": "Für den ausgewählten Monat ist das Schöpfungslimit erreicht.",
@@ -108,13 +143,13 @@
   "error": {
     "email-already-sent": "Wir haben dir bereits eine E-Mail vor weniger als 10 Minuten geschickt.",
     "empty-transactionlist": "Es gab einen Fehler mit der Übermittlung der Anzahl deiner Transaktionen.",
-    "error": "Fehler!",
     "no-account": "Leider konnten wir keinen (aktivierten) Account mit diesen Daten finden.",
     "no-transactionlist": "Es gab leider einen Fehler. Es wurden keine Transaktionen vom Server übermittelt.",
     "no-user": "Kein Benutzer mit diesen Anmeldedaten.",
     "session-expired": "Die Sitzung wurde aus Sicherheitsgründen beendet.",
     "unknown-error": "Unbekannter Fehler: "
   },
+  "existingGradidoAccount": "Du hast schon ein {communityName} Konto?",
   "followUs": "folge uns:",
   "footer": {
     "app_version": "App version {version}",
@@ -147,7 +182,9 @@
     "memo": "Nachricht",
     "message": "Nachricht",
     "new_balance": "Neuer Kontostand nach Bestätigung",
+    "newPasswordRepeat": "Neues Passwort wiederholen",
     "no_gdd_available": "Du hast keine GDD zum versenden.",
+    "ok": "Ok",
     "password": "Passwort",
     "passwordRepeat": "Passwort wiederholen",
     "password_new": "Neues Passwort",
@@ -171,9 +208,18 @@
     "username": "Benutzername",
     "username-placeholder": "Wähle deinen Benutzernamen",
     "validation": {
-      "gddCreationTime": "Das Feld {_field_} muss eine Zahl zwischen {min} und {max} mit höchstens einer Nachkommastelle sein",
+      "gddCreationTime": {
+        "min": "Die Stunden sollten mindestens {min} groß sein",
+        "max": "Die Stunden sollten höchstens {max} groß sein",
+        "decimal-places": "Die Stunden sollten maximal zwei Nachkommastellen enthalten"
+      },
       "gddSendAmount": "Das Feld {_field_} muss eine Zahl zwischen {min} und {max} mit höchstens zwei Nachkommastellen sein",
       "is-not": "Du kannst dir selbst keine Gradidos überweisen",
+      "memo": {
+        "min": "Die Tätigkeitsbeschreibung sollte mindestens {min} Zeichen lang sein",
+        "max": "Die Tätigkeitsbeschreibung sollte höchstens {max} Zeichen lang sein"
+      },
+      "requiredField": "{fieldName} ist ein Pflichtfeld",
       "username-allowed-chars": "Der Nutzername darf nur aus Buchstaben (ohne Umlaute), Zahlen, Binde- oder Unterstrichen bestehen.",
       "username-hyphens": "Binde- oder Unterstriche müssen zwischen Buchstaben oder Zahlen stehen.",
       "username-unique": "Der Nutzername ist bereits vergeben.",
@@ -208,7 +254,6 @@
     "redeem": "Einlösen",
     "redeemed": "Erfolgreich eingelöst! Deinem Konto wurden {n} GDD gutgeschrieben.",
     "redeemed-at": "Der Link wurde bereits am {date} eingelöst.",
-    "redeemed-title": "eingelöst",
     "redeemlink-error": "Dieser Einlöse-Link ist nicht vollständig.",
     "to-login": "Log dich ein",
     "to-register": "Registriere ein neues Konto.",
@@ -217,7 +262,6 @@
   },
   "gdt": {
     "calculation": "Berechnung der Gradido Transform",
-    "contribution": "Beitrag",
     "conversion": "Umrechnung",
     "conversion-gdt-euro": "Umrechnung Euro / Gradido Transform (GDT)",
     "credit": "Gutschrift",
@@ -234,13 +278,13 @@
   },
   "h": "h",
   "language": "Sprache",
-  "link-load": "den letzten Link nachladen | die letzten {n} Links nachladen |  weitere {n} Links nachladen",
+  "link-load": "den letzten Link nachladen | die letzten {n} Links nachladen",
+  "link-load-more": "weitere {n} Links nachladen",
   "login": "Anmelden",
   "math": {
     "asterisk": "*",
     "equal": "=",
-    "minus": "−",
-    "pipe": "|"
+    "minus": "−"
   },
   "maxReached": "Max. erreicht",
   "member": "Mitglied",
@@ -255,6 +299,7 @@
     "title": "Danke!",
     "unsetPassword": "Dein Passwort wurde noch nicht gesetzt. Bitte setze es neu."
   },
+  "missingGradidoAccount": "Noch kein {communityName} Konto?",
   "moderatorChangedMemo": "Text vom Moderator bearbeitet",
   "moderatorChat": "Moderator Chat",
   "navigation": {
@@ -264,7 +309,7 @@
     "logout": "Abmelden",
     "overview": "Übersicht",
     "send": "Senden",
-    "settings": "Einstellung",
+    "settings": "Einstellungen",
     "support": "Support",
     "transactions": "Transaktionen"
   },
@@ -276,34 +321,72 @@
     "overview": "Willkommen {name}",
     "send": "Sende Gradidos",
     "settings": "Einstellungen",
-    "transactions": "Deine Transaktionen"
+    "circles": "Gradido Kreise",
+    "transactions": "Deine Transaktionen",
+    "usersearch": "Geografische Nutzersuche"
   },
   "qrCode": "QR Code",
   "send_gdd": "GDD versenden",
   "send_per_link": "GDD versenden per Link",
   "session": {
-    "automaticallyLoggedOut": "Du wurdest automatisch abgemeldet",
     "extend": "Angemeldet bleiben",
     "lightText": "Wenn du länger als 10 Minuten keine Aktion getätigt hast, wirst du aus Sicherheitsgründen abgemeldet.",
     "logoutIn": "Abmelden in ",
     "warningText": "Bist du noch da?"
   },
   "settings": {
+    "community": "Kreise & Mitgliedsuche",
     "emailInfo": "Kann aktuell noch nicht geändert werden.",
+    "GMS": {
+      "disabled": "Daten werden nicht nach GMS exportiert",
+      "enabled": "Daten werden nach GMS exportiert",
+      "location": {
+        "button": "Karte öffnen",
+        "label": "Dein Standort",
+        "saveLocation": "Standort speichern",
+        "updateSuccess": "Standort erfolgreich gespeichert"
+      },
+      "location-format": "Position auf Karte anzeigen:",
+      "map": {
+        "communityCoords": "Ihr Gemeinschafts-Standort: Breitengrad {lat}, Längengrad {lng}",
+        "communityLocationLabel": "Ihr Gemeinschafts-Standort",
+        "headline": "Geografische Standorterfassung des Benutzers",
+        "userCoords": "Ihr Standort: Breitengrad {lat}, Längengrad {lng}",
+        "userLocationLabel": "Ihr Standort",
+        "search": "Nach einem Standort suchen"
+      },
+      "naming-format": "Namen anzeigen:",
+      "publish-location": {
+        "exact": "Genaue Position",
+        "approximate": "Ungefähre Position",
+        "updated": "Positionstyp für GMS aktualisiert"
+      },
+      "publish-name": {
+        "updated": "Namensformat für GMS aktualisiert"
+      }
+    },
     "hideAmountGDD": "Dein GDD Betrag ist versteckt.",
     "hideAmountGDT": "Dein GDT Betrag ist versteckt.",
+    "humhub": {
+      "delete-disabled": "Das Benutzerkonto kann nur im Profil-Menü der Kooperationsplattform gelöscht werden.",
+      "disabled": "Daten werden nicht in die Gradido Community exportiert",
+      "enabled": "Daten werden in die Gradido Community exportiert",
+      "naming-format": "Namen anzeigen:",
+      "publish-name": {
+        "updated": "Namensformat für die Gradido Community aktualisiert."
+      }
+    },
     "info": "Transaktionen können nun per Benutzername oder E-Mail-Adresse getätigt werden.",
     "language": {
-      "changeLanguage": "Sprache ändern",
       "de": "Deutsch",
       "en": "English",
+      "error": "Die Spracheinstellungen konnten nicht aktualisiert werden.",
       "es": "Español",
       "fr": "Français",
       "nl": "Nederlands",
       "success": "Deine Sprache wurde erfolgreich geändert."
     },
     "name": {
-      "change-name": "Name ändern",
       "change-success": "Dein Name wurde erfolgreich geändert.",
       "enterFirstname": "Vorname eingeben",
       "enterLastname": "Nachname eingeben"
@@ -328,6 +411,18 @@
         "text": "Speichere nun dein neues Passwort, mit dem du dich zukünftig in deinem Gradido-Konto anmelden kannst."
       },
       "subtitle": "Wenn du dein Passwort vergessen hast, kannst du es hier zurücksetzen."
+    },
+    "publish-name": {
+      "alias-or-initials": "Benutzername oder Initialen",
+      "alias-or-initials-tooltip": "Benutzername, falls vorhanden, oder die Initialen von Vorname und Nachname jeweils die ersten zwei Buchstaben",
+      "first": "Vorname",
+      "first-tooltip": "Nur der Vornamen",
+      "first-initial": "Vorname und Initial",
+      "first-initial-tooltip": "Vornamen plus die ersten beiden Anfangsbuchstabe des Nachnamens",
+      "initials": "Initialen",
+      "initials-tooltip": "Initialen von Vor- und Nachname also jeweils die ersten zwei Buchstaben unabhängig von der Existenz des Benutzernamens",
+      "name-full": "Vorname und Nachname",
+      "name-full-tooltip": "Vollständiger Name: Vorname plus Nachname"
     },
     "showAmountGDD": "Dein GDD Betrag ist sichtbar.",
     "showAmountGDT": "Dein GDT Betrag ist sichtbar.",
@@ -378,6 +473,11 @@
   },
   "transaction-link": {
     "send_you": "sendet dir"
+  },
+  "usersearch": {
+    "headline": "Geografische Nutzersuche",
+    "text": "Ganz gleich zu welcher Community du gehörst, mit dem Geo Matching System findest du Mitglieder aller Communities auf einer Landkarte. Du kannst nach  Angeboten und Bedürfnissen filtern und dir die Nutzer anzeigen lassen, die zu Dir passen.\n\nMit dem Button wird ein neues Browser-Fenster geöffnet, in dem dir die Nutzer in deinem Umfeld auf einer Karte angezeigt werden.",
+    "button": "Starte die Nutzersuche..."
   },
   "via_link": "über einen Link",
   "welcome": "Willkommen in der Gemeinschaft"

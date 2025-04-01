@@ -1,62 +1,64 @@
 <template>
-  <validation-provider
-    tag="div"
-    :rules="rules"
-    :name="name"
-    v-slot="{ errors, valid, validated, ariaInput, ariaMsg }"
-  >
-    <b-form-group :label="label" :label-for="labelFor" data-test="input-textarea">
-      <b-form-textarea
-        v-model="currentValue"
-        v-bind="ariaInput"
+  <div>
+    <BFormGroup :label="label" :label-for="labelFor" data-test="input-textarea">
+      <BFormTextarea
         :id="labelFor"
+        :model-value="currentValue"
         class="bg-248"
         :name="name"
         :placeholder="placeholder"
-        :state="validated ? valid : false"
+        :state="meta.valid"
         trim
-        rows="4"
-        max-rows="4"
+        :rows="4"
+        :max-rows="4"
         :disabled="disabled"
         no-resize
-      ></b-form-textarea>
-      <b-form-invalid-feedback v-bind="ariaMsg">
-        {{ errors[0] }}
-      </b-form-invalid-feedback>
-    </b-form-group>
-  </validation-provider>
+        @update:modelValue="currentValue = $event"
+      />
+      <BFormInvalidFeedback v-if="errorMessage">
+        {{ translatedErrorString }}
+      </BFormInvalidFeedback>
+    </BFormGroup>
+  </div>
 </template>
-<script>
-export default {
-  name: 'InputTextarea',
-  props: {
-    rules: {
-      type: Object,
-      default: () => {},
-    },
-    name: { type: String, required: true },
-    label: { type: String, required: true },
-    placeholder: { type: String, required: true },
-    value: { type: String, required: true },
-    disabled: { required: false, type: Boolean, default: false },
+
+<script setup>
+import { computed } from 'vue'
+import { useField } from 'vee-validate'
+import { useI18n } from 'vue-i18n'
+import { translateYupErrorString } from '@/validationSchemas'
+
+const props = defineProps({
+  rules: {
+    type: Object,
+    default: () => ({}),
   },
-  data() {
-    return {
-      currentValue: this.value,
-    }
+  name: {
+    type: String,
+    required: true,
   },
-  computed: {
-    labelFor() {
-      return this.name + '-input-field'
-    },
+  label: {
+    type: String,
+    required: true,
   },
-  watch: {
-    currentValue() {
-      this.$emit('input', this.currentValue)
-    },
-    value() {
-      if (this.value !== this.currentValue) this.currentValue = this.value
-    },
+  placeholder: {
+    type: String,
+    required: true,
   },
-}
+  disabled: {
+    type: Boolean,
+    default: false,
+  },
+})
+
+const { value: currentValue, errorMessage, meta } = useField(props.name, props.rules)
+const { t } = useI18n()
+const translatedErrorString = computed(() => translateYupErrorString(errorMessage, t))
+const labelFor = computed(() => `${props.name}-input-field`)
 </script>
+
+<style lang="scss" scoped>
+:deep(.form-control) {
+  height: unset;
+}
+</style>

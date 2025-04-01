@@ -17,7 +17,6 @@ import { GraphQLError } from 'graphql'
 import { v4 as uuidv4, validate as validateUUID, version as versionUUID } from 'uuid'
 
 import { GmsPublishLocationType } from '@enum/GmsPublishLocationType'
-import { GmsPublishNameType } from '@enum/GmsPublishNameType'
 import { OptInType } from '@enum/OptInType'
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
 import { RoleNames } from '@enum/RoleNames'
@@ -35,6 +34,7 @@ import {
   sendResetPasswordEmail,
 } from '@/emails/sendEmailVariants'
 import { EventType } from '@/event/Events'
+import { PublishNameType } from '@/graphql/enum/PublishNameType'
 import { SecretKeyCryptographyCreateKey } from '@/password/EncryptorUtils'
 import { encryptPassword } from '@/password/PasswordEncryptor'
 import { writeHomeCommunityEntry } from '@/seeds/community'
@@ -73,6 +73,9 @@ import { objectValuesToArray } from '@/util/utilities'
 
 import { Location2Point } from './util/Location2Point'
 
+jest.mock('@/apis/humhub/HumHubClient')
+jest.mock('@/password/EncryptorUtils')
+
 jest.mock('@/emails/sendEmailVariants', () => {
   const originalModule = jest.requireActual('@/emails/sendEmailVariants')
   return {
@@ -94,6 +97,8 @@ jest.mock('@/apis/KlicktippController', () => {
   }
 })
 
+CONFIG.EMAIL_CODE_REQUEST_TIME = 10
+
 let admin: User
 let user: User
 let mutate: ApolloServerTestClient['mutate'],
@@ -110,6 +115,7 @@ beforeAll(async () => {
   mutate = testEnv.mutate
   query = testEnv.query
   con = testEnv.con
+  CONFIG.HUMHUB_ACTIVE = false
   await cleanDB()
 })
 
@@ -183,7 +189,9 @@ describe('UserResolver', () => {
               communityUuid: homeCom.communityUuid,
               foreign: false,
               gmsAllowed: true,
+              humhubAllowed: true,
               gmsPublishName: 0,
+              humhubPublishName: 0,
               gmsPublishLocation: 2,
               location: null,
               gmsRegistered: false,
@@ -236,10 +244,10 @@ describe('UserResolver', () => {
 
     describe('account activation email', () => {
       it('sends an account activation email', () => {
-        const activationLink = CONFIG.EMAIL_LINK_VERIFICATION.replace(
-          /{optin}/g,
-          emailVerificationCode,
-        ).replace(/{code}/g, '')
+        const activationLink = `${
+          CONFIG.EMAIL_LINK_VERIFICATION
+        }${emailVerificationCode.toString()}`
+
         expect(sendAccountActivationEmail).toBeCalledWith({
           firstName: 'Peter',
           lastName: 'Lustig',
@@ -477,7 +485,6 @@ describe('UserResolver', () => {
           })
 
           transactionLink = await TransactionLink.findOneOrFail({ where: { userId: bob.id } })
-
           resetToken()
 
           // create new user using transaction link of bob
@@ -496,7 +503,7 @@ describe('UserResolver', () => {
             UserContact.findOne({ where: { email: 'which@ever.de' }, relations: ['user'] }),
           ).resolves.toEqual(
             expect.objectContaining({
-              user: expect.objectContaining({ referrerId: bob.data.login.id }),
+              user: expect.objectContaining({ referrerId: transactionLink.userId }), // bob.data.login.id }),
             }),
           )
         })
@@ -583,8 +590,8 @@ describe('UserResolver', () => {
         expect(newUser.emailContact.emailChecked).toBeTruthy()
       })
 
-      it('updates the password', () => {
-        const encryptedPass = encryptPassword(newUser, 'Aa12345_')
+      it('updates the password', async () => {
+        const encryptedPass = await encryptPassword(newUser, 'Aa12345_')
         expect(newUser.password.toString()).toEqual(encryptedPass.toString())
       })
 
@@ -713,9 +720,17 @@ describe('UserResolver', () => {
           expect.objectContaining({
             data: {
               login: {
+                alias: 'BBB',
                 firstName: 'Bibi',
+                gmsAllowed: true,
+                gmsPublishLocation: 'GMS_LOCATION_TYPE_RANDOM',
+                gmsPublishName: 'PUBLISH_NAME_ALIAS_OR_INITALS',
+                gradidoID: expect.any(String),
                 hasElopage: false,
-                id: expect.any(Number),
+                hideAmountGDD: false,
+                hideAmountGDT: false,
+                humhubAllowed: true,
+                humhubPublishName: 'PUBLISH_NAME_ALIAS_OR_INITALS',
                 klickTipp: {
                   newsletterState: false,
                 },
@@ -723,6 +738,7 @@ describe('UserResolver', () => {
                 lastName: 'Bloxberg',
                 publisherId: 1234,
                 roles: [],
+                userLocation: null,
               },
             },
           }),
@@ -1230,7 +1246,7 @@ describe('UserResolver', () => {
               lastName: 'Blümchen',
               language: 'en',
               gmsAllowed: true,
-              gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS,
+              gmsPublishName: PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS,
               gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM,
             }),
           ])
@@ -1258,6 +1274,8 @@ describe('UserResolver', () => {
 
         describe('valid alias', () => {
           it('updates the user in DB', async () => {
+            // first empty alias, because currently updating alias isn't allowed
+            await User.update({ alias: 'BBB' }, { alias: () => 'NULL' })
             await mutate({
               mutation: updateUserInfos,
               variables: {
@@ -1268,7 +1286,7 @@ describe('UserResolver', () => {
               expect.objectContaining({
                 alias: 'bibi_Bloxberg',
                 gmsAllowed: true,
-                gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS,
+                gmsPublishName: PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS,
                 gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM,
               }),
             ])
@@ -1290,7 +1308,7 @@ describe('UserResolver', () => {
             await expect(User.find()).resolves.toEqual([
               expect.objectContaining({
                 gmsAllowed: true,
-                gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS,
+                gmsPublishName: PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS,
                 gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM,
               }),
             ])
@@ -1303,14 +1321,15 @@ describe('UserResolver', () => {
               mutation: updateUserInfos,
               variables: {
                 gmsAllowed: false,
-                gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_FIRST_INITIAL,
-                gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_APPROXIMATE,
+                gmsPublishName: PublishNameType[PublishNameType.PUBLISH_NAME_FIRST_INITIAL],
+                gmsPublishLocation:
+                  GmsPublishLocationType[GmsPublishLocationType.GMS_LOCATION_TYPE_APPROXIMATE],
               },
             })
             await expect(User.find()).resolves.toEqual([
               expect.objectContaining({
                 gmsAllowed: false,
-                gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_FIRST_INITIAL,
+                gmsPublishName: PublishNameType.PUBLISH_NAME_FIRST_INITIAL,
                 gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_APPROXIMATE,
               }),
             ])
@@ -1326,15 +1345,16 @@ describe('UserResolver', () => {
               mutation: updateUserInfos,
               variables: {
                 gmsAllowed: true,
-                gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS,
+                gmsPublishName: PublishNameType[PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS],
                 gmsLocation: loc,
-                gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM,
+                gmsPublishLocation:
+                  GmsPublishLocationType[GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM],
               },
             })
             await expect(User.find()).resolves.toEqual([
               expect.objectContaining({
                 gmsAllowed: true,
-                gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS,
+                gmsPublishName: PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS,
                 location: Location2Point(loc),
                 gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM,
               }),
@@ -1538,9 +1558,9 @@ describe('UserResolver', () => {
 
         expect(bibi).toEqual(
           expect.objectContaining({
-            password: SecretKeyCryptographyCreateKey(bibi.gradidoID.toString(), 'Aa12345_')[0]
-              .readBigUInt64LE()
-              .toString(),
+            password: (
+              await SecretKeyCryptographyCreateKey(bibi.gradidoID.toString(), 'Aa12345_')
+            ).toString(),
             passwordEncryptionType: PasswordEncryptionType.GRADIDO_ID,
           }),
         )
@@ -1562,10 +1582,7 @@ describe('UserResolver', () => {
         })
         bibi = usercontact.user
         bibi.passwordEncryptionType = PasswordEncryptionType.EMAIL
-        bibi.password = SecretKeyCryptographyCreateKey(
-          'bibi@bloxberg.de',
-          'Aa12345_',
-        )[0].readBigUInt64LE()
+        bibi.password = await SecretKeyCryptographyCreateKey('bibi@bloxberg.de', 'Aa12345_')
 
         await bibi.save()
       })
@@ -1582,9 +1599,9 @@ describe('UserResolver', () => {
         expect(bibi).toEqual(
           expect.objectContaining({
             firstName: 'Bibi',
-            password: SecretKeyCryptographyCreateKey(bibi.gradidoID.toString(), 'Aa12345_')[0]
-              .readBigUInt64LE()
-              .toString(),
+            password: (
+              await SecretKeyCryptographyCreateKey(bibi.gradidoID.toString(), 'Aa12345_')
+            ).toString(),
             passwordEncryptionType: PasswordEncryptionType.GRADIDO_ID,
           }),
         )
@@ -1596,9 +1613,17 @@ describe('UserResolver', () => {
           expect.objectContaining({
             data: {
               login: {
+                alias: 'BBB',
                 firstName: 'Bibi',
+                gmsAllowed: true,
+                gmsPublishLocation: 'GMS_LOCATION_TYPE_RANDOM',
+                gmsPublishName: 'PUBLISH_NAME_ALIAS_OR_INITALS',
+                gradidoID: expect.any(String),
                 hasElopage: false,
-                id: expect.any(Number),
+                hideAmountGDD: false,
+                hideAmountGDT: false,
+                humhubAllowed: true,
+                humhubPublishName: 'PUBLISH_NAME_ALIAS_OR_INITALS',
                 klickTipp: {
                   newsletterState: false,
                 },
@@ -1606,6 +1631,7 @@ describe('UserResolver', () => {
                 lastName: 'Bloxberg',
                 publisherId: 1234,
                 roles: [],
+                userLocation: null,
               },
             },
           }),
@@ -2221,14 +2247,13 @@ describe('UserResolver', () => {
           })
 
           it('sends an account activation email', async () => {
-            const userConatct = await UserContact.findOneOrFail({
+            const userContact = await UserContact.findOneOrFail({
               where: { email: 'bibi@bloxberg.de' },
               relations: ['user'],
             })
-            const activationLink = CONFIG.EMAIL_LINK_VERIFICATION.replace(
-              /{optin}/g,
-              userConatct.emailVerificationCode.toString(),
-            ).replace(/{code}/g, '')
+            const activationLink = `${
+              CONFIG.EMAIL_LINK_VERIFICATION
+            }${userContact.emailVerificationCode.toString()}`
             expect(sendAccountActivationEmail).toBeCalledWith({
               firstName: 'Bibi',
               lastName: 'Bloxberg',
@@ -2243,14 +2268,14 @@ describe('UserResolver', () => {
           })
 
           it('stores the EMAIL_ADMIN_CONFIRMATION event in the database', async () => {
-            const userConatct = await UserContact.findOneOrFail({
+            const userContact = await UserContact.findOneOrFail({
               where: { email: 'bibi@bloxberg.de' },
               relations: ['user'],
             })
             await expect(DbEvent.find()).resolves.toContainEqual(
               expect.objectContaining({
                 type: EventType.EMAIL_ADMIN_CONFIRMATION,
-                affectedUserId: userConatct.user.id,
+                affectedUserId: userContact.user.id,
                 actingUserId: admin.id,
               }),
             )
@@ -2459,6 +2484,7 @@ describe('UserResolver', () => {
         }
 
         beforeAll(async () => {
+          jest.clearAllMocks()
           admin = await userFactory(testEnv, peterLustig)
           await mutate({
             mutation: login,
@@ -2670,13 +2696,12 @@ describe('UserResolver', () => {
           mutation: login,
           variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
         })
+        // first set alias to null, because updating alias isn't currently allowed
+        await User.update({ alias: 'BBB' }, { alias: () => 'NULL' })
         await mutate({
           mutation: updateUserInfos,
           variables: {
             alias: 'bibi',
-            gmsAllowed: true,
-            gmsPublishName: GmsPublishNameType.GMS_PUBLISH_NAME_ALIAS_OR_INITALS,
-            gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM,
           },
         })
       })

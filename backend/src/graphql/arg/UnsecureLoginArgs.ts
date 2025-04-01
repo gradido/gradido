@@ -14,4 +14,8 @@ export class UnsecureLoginArgs {
   @Field(() => Int, { nullable: true })
   @IsInt()
   publisherId?: number | null
+
+  @Field(() => String, { nullable: true })
+  @IsString()
+  project?: string | null
 }

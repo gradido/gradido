@@ -1,88 +1,80 @@
 <template>
   <div class="input-username">
-    <validation-provider
-      tag="div"
-      :rules="rules"
-      :name="name"
-      :bails="!showAllErrors"
-      :immediate="immediate"
-      vid="username"
-      v-slot="{ errors, valid, validated, ariaInput, ariaMsg }"
-    >
-      <b-form-group :label="$t('form.username')" :description="$t('settings.usernameInfo')">
-        <b-input-group>
-          <b-form-input
-            v-model="currentValue"
-            v-bind="ariaInput"
+    <div>
+      <BFormGroup :label="$t('form.username')" :description="$t('settings.usernameInfo')">
+        <BInputGroup>
+          <BFormInput
             :id="labelFor"
+            :model-value="usernameValue"
             :name="name"
             :placeholder="placeholder"
             type="text"
-            :state="validated ? valid : false"
+            :state="usernameMeta.valid"
             autocomplete="off"
             data-test="username"
-          ></b-form-input>
-          <b-input-group-append>
-            <b-button
-              size="lg"
-              text="Button"
-              variant="secondary"
-              icon="x-lg"
-              @click="$emit('set-is-edit', false)"
-            >
-              <b-icon-x-circle></b-icon-x-circle>
-            </b-button>
-          </b-input-group-append>
-        </b-input-group>
-        <b-form-invalid-feedback v-bind="ariaMsg">
-          <div v-if="showAllErrors">
-            <span v-for="error in errors" :key="error">
-              {{ error }}
-              <br />
-            </span>
-          </div>
-          <div v-else>
-            {{ errors[0] }}
-          </div>
-        </b-form-invalid-feedback>
-      </b-form-group>
-    </validation-provider>
+            @update:modelValue="usernameValue = $event"
+          />
+          <BButton size="md" text="Button" variant="secondary" append @click="clearInput">
+            <IBiXCircle style="height: 17px; width: 17px" />
+          </BButton>
+        </BInputGroup>
+        <BFormInvalidFeedback v-if="usernameError || usernameErrors.length" force-show>
+          <template #default>
+            <div v-if="props.showAllErrors">
+              <span v-for="error in usernameErrors" :key="error">
+                {{ error }}
+                <br />
+              </span>
+            </div>
+            <div v-else>
+              {{ usernameErrors?.[0] }}
+            </div>
+          </template>
+        </BFormInvalidFeedback>
+      </BFormGroup>
+    </div>
   </div>
 </template>
-<script>
-export default {
-  name: 'InputUsername',
-  props: {
-    isEdit: { type: Boolean, default: false },
-    rules: {
-      default: () => {
-        return {
-          required: true,
-        }
-      },
-    },
-    name: { type: String, default: 'username' },
-    label: { type: String, default: 'Username' },
-    placeholder: { type: String, default: 'Username' },
-    value: { required: true, type: String },
-    showAllErrors: { type: Boolean, default: false },
-    immediate: { type: Boolean, default: false },
-    unique: { type: Boolean, required: true },
-  },
-  data() {
-    return {
-      currentValue: this.value,
-    }
-  },
-  computed: {
-    labelFor() {
-      return this.name + '-input-field'
-    },
-  },
-  watch: {
-    currentValue() {
-      this.$emit('input', this.currentValue)
-    },
-  },
-}
+<script setup>
+import {
+  BFormGroup,
+  BInputGroup,
+  BFormInput,
+  BButton,
+  BFormInvalidFeedback,
+} from 'bootstrap-vue-next'
+import { ref, computed, watch, defineProps, defineEmits } from 'vue'
+import { useField, useForm } from 'vee-validate'
+
+const props = defineProps({
+  rules: { type: Object, default: () => ({ required: true }) },
+  name: { type: String, default: 'username' },
+  label: { type: String, default: 'Username' },
+  placeholder: { type: String, default: 'Username' },
+  showAllErrors: { type: Boolean, default: false },
+  immediate: { type: Boolean, default: false },
+  unique: { type: Boolean, required: true },
+  initialUsernameValue: { type: String, default: '' },
+})
+
+const currentValue = ref(props.initialUsernameValue)
+
+const {
+  meta: usernameMeta,
+  errors: usernameErrors,
+  value: usernameValue,
+  errorMessage: usernameError,
+} = useField(props.name, props.rules, {
+  initialValue: currentValue,
+})
+
+const clearInput = () => (usernameValue.value = '')
+
+const labelFor = computed(() => `${props.name}-input-field`)
 </script>
+
+<style>
+div#username-form > div > label {
+  margin-bottom: 8px;
+}
+</style>

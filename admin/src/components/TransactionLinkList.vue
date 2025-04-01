@@ -1,106 +1,91 @@
 <template>
   <div class="transaction-link-list">
     <div v-if="items.length > 0">
-      <div class="h3">{{ $t('transactionlink.name') }}</div>
-      <b-table striped hover :fields="fields" :items="items"></b-table>
+      <div class="h3">{{ t('transactionlink.name') }}</div>
+      <BTable striped hover :fields="fields" :items="items"></BTable>
     </div>
-    <b-pagination
+    <BPagination
+      v-model="currentPage"
       pills
       size="lg"
-      v-model="currentPage"
       :per-page="perPage"
       :total-rows="rows"
       align="center"
       :hide-ellipsis="true"
-    ></b-pagination>
+    />
   </div>
 </template>
-<script>
+
+<script setup>
+import { ref, watch, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { BTable, BPagination } from 'bootstrap-vue-next'
 import { listTransactionLinksAdmin } from '../graphql/listTransactionLinksAdmin.js'
-export default {
-  name: 'TransactionLinkList',
-  props: {
-    userId: { type: Number, required: true },
+import { useQuery } from '@vue/apollo-composable'
+import { useAppToast } from '@/composables/useToast'
+
+const props = defineProps({
+  userId: { type: Number, required: true },
+})
+
+const { t, d } = useI18n()
+const { toastError } = useAppToast()
+
+const items = ref([])
+const rows = ref(0)
+const currentPage = ref(1)
+const perPage = ref(5)
+
+const fields = computed(() => [
+  {
+    key: 'createdAt',
+    label: t('transactionlink.created'),
+    formatter: (value) => d(new Date(value)),
   },
-  data() {
-    return {
-      items: [],
-      rows: 0,
-      currentPage: 1,
-      perPage: 5,
-    }
+  {
+    key: 'amount',
+    label: t('transactionlist.amount'),
+    formatter: (value) => `${value} GDD`,
   },
-  methods: {
-    getListTransactionLinks() {
-      this.$apollo
-        .query({
-          query: listTransactionLinksAdmin,
-          variables: {
-            currentPage: this.currentPage,
-            pageSize: this.perPage,
-            userId: this.userId,
-          },
-        })
-        .then((result) => {
-          this.rows = result.data.listTransactionLinksAdmin.count
-          this.items = result.data.listTransactionLinksAdmin.links
-        })
-        .catch((error) => {
-          this.toastError(error.message)
-        })
+  { key: 'memo', label: t('transactionlist.memo'), class: 'text-break' },
+  {
+    key: 'validUntil',
+    label: t('transactionlink.valid_until'),
+    formatter: (value) => d(new Date(value)),
+  },
+  {
+    key: 'status',
+    label: 'status',
+    formatter: (value, key, item) => {
+      if (item.deletedAt) return `${t('deleted')}: ${d(new Date(item.deletedAt))}`
+      if (item.redeemedAt) return `${t('redeemed')}: ${d(new Date(item.redeemedAt))}`
+      if (new Date() > new Date(item.validUntil))
+        return `${t('expired')}: ${d(new Date(item.validUntil))}`
+      return t('open')
     },
   },
-  computed: {
-    fields() {
-      return [
-        {
-          key: 'createdAt',
-          label: this.$t('transactionlink.created'),
-          formatter: (value, key, item) => {
-            return this.$d(new Date(value))
-          },
-        },
-        {
-          key: 'amount',
-          label: this.$t('transactionlist.amount'),
-          formatter: (value, key, item) => {
-            return `${value} GDD`
-          },
-        },
-        { key: 'memo', label: this.$t('transactionlist.memo'), class: 'text-break' },
-        {
-          key: 'validUntil',
-          label: this.$t('transactionlink.valid_until'),
-          formatter: (value, key, item) => {
-            return this.$d(new Date(value))
-          },
-        },
-        {
-          key: 'status',
-          label: 'status',
-          formatter: (value, key, item) => {
-            // deleted
-            if (item.deletedAt) return this.$t('deleted') + ': ' + this.$d(new Date(item.deletedAt))
-            // redeemed
-            if (item.redeemedAt)
-              return this.$t('redeemed') + ': ' + this.$d(new Date(item.redeemedAt))
-            // expired
-            if (new Date() > new Date(item.validUntil))
-              return this.$t('expired') + ': ' + this.$d(new Date(item.validUntil))
-            // open
-            return this.$t('open')
-          },
-        },
-      ]
-    },
-  },
-  created() {
-    this.getListTransactionLinks()
-  },
-  watch: {
-    currentPage() {
-      this.getListTransactionLinks()
-    },
-  },
-}
+])
+
+const { result, error, refetch } = useQuery(listTransactionLinksAdmin, () => ({
+  currentPage: currentPage.value,
+  pageSize: perPage.value,
+  userId: props.userId,
+}))
+
+watch(result, (newResult) => {
+  if (newResult && newResult.listTransactionLinksAdmin) {
+    rows.value = newResult.listTransactionLinksAdmin.count
+    items.value = newResult.listTransactionLinksAdmin.links
+  }
+})
+
+watch(error, (err) => {
+  if (err) {
+    toastError(error.message)
+  }
+})
+
+watch([currentPage, perPage], () => {
+  refetch()
+})
 </script>

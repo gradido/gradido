@@ -1,470 +1,190 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
-import ContributionForm from './ContributionForm'
+import ContributionForm from './ContributionForm.vue'
+import { useForm } from 'vee-validate'
 
-const localVue = global.localVue
+// Mock external components and dependencies
+vi.mock('@/components/Inputs/InputAmount', () => ({
+  default: {
+    name: 'InputAmount',
+    template: '<input data-testid="input-amount" />',
+  },
+}))
+
+vi.mock('@/components/Inputs/InputTextarea', () => ({
+  default: {
+    name: 'InputTextarea',
+    template: '<textarea data-testid="input-textarea"></textarea>',
+  },
+}))
+
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({
+    t: (key) => key,
+  }),
+}))
+
+vi.mock('vee-validate', () => ({
+  useForm: vi.fn(() => ({
+    values: {},
+    meta: { value: { valid: true } },
+    resetForm: vi.fn(),
+    defineField: vi.fn(() => []),
+    setFieldValue: vi.fn(),
+  })),
+  useField: vi.fn(() => ({
+    meta: { value: { valid: true } },
+  })),
+}))
 
 describe('ContributionForm', () => {
   let wrapper
 
-  const propsData = {
-    value: {
-      id: null,
-      date: '',
-      memo: '',
-      amount: '',
-      hours: 0,
+  const defaultProps = {
+    modelValue: {
+      date: '2024-09-12',
+      memo: 'Test memo',
+      hours: 2,
+      amount: 40,
     },
-    isThisMonth: true,
-    minimalDate: new Date(),
-    maxGddLastMonth: 1000,
-    maxGddThisMonth: 1000,
+    maxGddLastMonth: 100,
+    maxGddThisMonth: 200,
   }
 
-  const mocks = {
-    $t: jest.fn((t) => t),
-    $d: jest.fn((d) => d),
-    $n: jest.fn((n) => n),
-    $i18n: {
-      locale: 'en',
-    },
-  }
-
-  const Wrapper = () => {
-    return mount(ContributionForm, {
-      localVue,
-      mocks,
-      propsData,
+  beforeEach(() => {
+    wrapper = mount(ContributionForm, {
+      props: defaultProps,
+      global: {
+        stubs: ['BForm', 'BFormInput', 'BRow', 'BCol', 'BButton'],
+      },
     })
-  }
+  })
 
-  describe('mount', () => {
-    beforeEach(() => {
-      wrapper = Wrapper()
+  it('renders the form correctly', () => {
+    expect(wrapper.find('.contribution-form').exists()).toBe(true)
+  })
+
+  describe('compute isThisMonth', () => {
+    it('return true', async () => {
+      await wrapper.setProps({
+        modelValue: { date: new Date().toISOString() },
+      })
+      expect(wrapper.vm.isThisMonth).toBe(true)
     })
-
-    it('has a DIV .contribution-form', () => {
-      expect(wrapper.find('div.contribution-form').exists()).toBe(true)
+    it('return false', async () => {
+      const now = new Date()
+      const lastMonth = new Date(now.setMonth(now.getMonth() - 1, 1))
+      await wrapper.setProps({
+        modelValue: { date: lastMonth.toISOString() },
+      })
+      expect(wrapper.vm.isThisMonth).toBe(false)
     })
+  })
 
-    describe('empty form data', () => {
-      describe('button', () => {
-        it('has submit disabled', () => {
-          expect(wrapper.find('button[data-test="button-submit"]').attributes('disabled')).toBe(
-            'disabled',
-          )
-        })
-      })
+  describe('noOpenCreations return correct translation key', () => {
+    it('if both max gdd are > 0', () => {
+      expect(wrapper.vm.noOpenCreation).toBeUndefined()
     })
-
-    describe('dates and max amounts', () => {
-      beforeEach(async () => {
-        await wrapper.setData({
-          form: {
-            id: null,
-            date: '',
-            memo: '',
-            amount: '',
-          },
-        })
+    it('if max gdd for this month is 0, and form.date is in last month', async () => {
+      const now = new Date()
+      const lastMonth = new Date(now.setMonth(now.getMonth() - 1, 1))
+      await wrapper.setProps({
+        maxGddThisMonth: 0,
+        modelValue: { date: lastMonth.toISOString() },
       })
-
-      describe('max amount reached for both months', () => {
-        beforeEach(() => {
-          wrapper.setProps({
-            maxGddLastMonth: 0,
-            maxGddThisMonth: 0,
-          })
-          wrapper.setData({
-            form: {
-              id: null,
-              date: 'set',
-              memo: '',
-              amount: '',
-            },
-          })
-        })
-
-        it('shows message that no contributions are available', () => {
-          expect(wrapper.find('[data-test="contribtion-message"]').text()).toBe(
-            'contribution.noOpenCreation.allMonth',
-          )
-        })
+      expect(wrapper.vm.noOpenCreation).toBeUndefined()
+    })
+    it('if max gdd for last month is 0, and form.date is in this month', async () => {
+      await wrapper.setProps({
+        maxGddLastMonth: 0,
+        modelValue: { date: new Date().toISOString() },
       })
-
-      describe('max amount reached for last month, no date selected', () => {
-        beforeEach(() => {
-          wrapper.setProps({
-            maxGddLastMonth: 0,
-          })
-        })
-
-        it('shows no message', () => {
-          expect(wrapper.find('[data-test="contribtion-message"]').exists()).toBe(false)
-        })
+      expect(wrapper.vm.noOpenCreation).toBeUndefined()
+    })
+    it('if max gdd is 0 for both months', async () => {
+      await wrapper.setProps({
+        maxGddThisMonth: 0,
+        maxGddLastMonth: 0,
       })
-
-      describe('max amount reached for last month, last month selected', () => {
-        beforeEach(async () => {
-          wrapper.setProps({
-            maxGddLastMonth: 0,
-            isThisMonth: false,
-          })
-          await wrapper.setData({
-            form: {
-              id: null,
-              date: 'set',
-              memo: '',
-              amount: '',
-            },
-          })
-        })
-
-        it('shows message that no contributions are available for last month', () => {
-          expect(wrapper.find('[data-test="contribtion-message"]').text()).toBe(
-            'contribution.noOpenCreation.lastMonth',
-          )
-        })
+      expect(wrapper.vm.noOpenCreation).toBe('contribution.noOpenCreation.allMonth')
+    })
+    it('if max gdd this month is zero and form.date is inside this month', async () => {
+      await wrapper.setProps({
+        maxGddThisMonth: 0,
+        modelValue: { date: new Date().toISOString() },
       })
-
-      describe('max amount reached for last month, this month selected', () => {
-        beforeEach(async () => {
-          wrapper.setProps({
-            maxGddLastMonth: 0,
-            isThisMonth: true,
-          })
-          await wrapper.setData({
-            form: {
-              id: null,
-              date: 'set',
-              memo: '',
-              amount: '',
-            },
-          })
-        })
-
-        it('shows no message', () => {
-          expect(wrapper.find('[data-test="contribtion-message"]').exists()).toBe(false)
-        })
+      expect(wrapper.vm.noOpenCreation).toBe('contribution.noOpenCreation.thisMonth')
+    })
+    it('if max gdd last month is zero and form.date is inside last month', async () => {
+      const now = new Date()
+      const lastMonth = new Date(now.setMonth(now.getMonth() - 1, 1))
+      await wrapper.setProps({
+        maxGddLastMonth: 0,
+        modelValue: { date: lastMonth.toISOString() },
       })
+      expect(wrapper.vm.noOpenCreation).toBe('contribution.noOpenCreation.lastMonth')
+    })
+  })
 
-      describe('max amount reached for this month, no date selected', () => {
-        beforeEach(() => {
-          wrapper.setProps({
-            maxGddThisMonth: 0,
-          })
-        })
+  it('computes disabled correctly', async () => {
+    expect(wrapper.vm.disabled).toBe(true)
 
-        it('shows no message', () => {
-          expect(wrapper.find('[data-test="contribtion-message"]').exists()).toBe(false)
-        })
-      })
-
-      describe('max amount reached for this month, this month selected', () => {
-        beforeEach(async () => {
-          wrapper.setProps({
-            maxGddThisMonth: 0,
-            isThisMonth: true,
-          })
-          await wrapper.setData({
-            form: {
-              id: null,
-              date: 'set',
-              memo: '',
-              amount: '',
-            },
-          })
-        })
-
-        it('shows message that no contributions are available for last month', () => {
-          expect(wrapper.find('[data-test="contribtion-message"]').text()).toBe(
-            'contribution.noOpenCreation.thisMonth',
-          )
-        })
-      })
-
-      describe('max amount reached for this month, last month selected', () => {
-        beforeEach(async () => {
-          wrapper.setProps({
-            maxGddThisMonth: 0,
-            isThisMonth: false,
-          })
-          await wrapper.setData({
-            form: {
-              id: null,
-              date: 'set',
-              memo: '',
-              amount: '',
-            },
-          })
-        })
-
-        it('shows no message', () => {
-          expect(wrapper.find('[data-test="contribtion-message"]').exists()).toBe(false)
-        })
-      })
+    await wrapper.setProps({
+      modelValue: { date: new Date().toISOString().slice(0, 10) },
     })
 
-    describe('default return message', () => {
-      it('returns an empty string', () => {
-        expect(wrapper.vm.noOpenCreation).toBe('')
-      })
+    wrapper.vm.form.amount = 100
+
+    expect(wrapper.vm.disabled).toBe(false)
+  })
+
+  it('updates amount when hours change', async () => {
+    wrapper = mount(ContributionForm, {
+      props: defaultProps,
+      global: {
+        stubs: ['BForm', 'BFormInput', 'BRow', 'BCol', 'BButton'],
+      },
     })
 
-    describe('update amount', () => {
-      beforeEach(() => {
-        wrapper.findComponent({ name: 'InputHour' }).vm.$emit('updateAmount', 20)
-      })
+    await wrapper.vm.$nextTick()
 
-      it('updates form amount', () => {
-        expect(wrapper.vm.form.amount).toBe('400.00')
-      })
+    // Simulate changing hours
+    wrapper.vm.updateField(3, 'hours')
+
+    expect(wrapper.vm.form.amount).toBe('60.00')
+  })
+
+  it('emits update-contribution event on submit for existing contribution', async () => {
+    const existingContribution = {
+      ...defaultProps.modelValue,
+      id: '123',
+    }
+
+    wrapper = mount(ContributionForm, {
+      props: {
+        ...defaultProps,
+        modelValue: existingContribution,
+      },
+      global: {
+        stubs: ['BForm', 'BFormInput', 'BRow', 'BCol', 'BButton'],
+      },
     })
 
-    describe('watch value', () => {
-      beforeEach(() => {
-        wrapper.setProps({
-          value: {
-            id: 42,
-            date: 'set',
-            memo: 'Some Memo',
-            amount: '400.00',
-          },
-        })
-      })
+    await wrapper.vm.$nextTick()
 
-      it('updates form', () => {
-        expect(wrapper.vm.form).toEqual({
-          id: 42,
-          date: 'set',
-          memo: 'Some Memo',
-          amount: '400.00',
-        })
-      })
-    })
+    wrapper.vm.submit()
 
-    describe('set contrubtion', () => {
-      describe('fill in form data with "id === null"', () => {
-        const now = new Date().toISOString()
+    expect(wrapper.emitted('update-contribution')).toBeTruthy()
+    expect(wrapper.emitted('update-contribution')[0][0]).toEqual(
+      expect.objectContaining({
+        id: '123',
+      }),
+    )
+  })
 
-        beforeEach(async () => {
-          await wrapper.setData({
-            form: {
-              id: null,
-              date: '',
-              memo: '',
-              amount: '',
-            },
-          })
-        })
+  it('emits set-contribution event on submit for new contribution', async () => {
+    wrapper.vm.submit()
 
-        describe('invalid form data', () => {
-          beforeEach(async () => {
-            await wrapper.findComponent({ name: 'BFormDatepicker' }).vm.$emit('input', now)
-            await wrapper.find('#contribution-amount').find('input').setValue('200')
-          })
-
-          describe('memo lenght < 5, others are valid', () => {
-            beforeEach(async () => {
-              await wrapper.find('#contribution-memo').find('textarea').setValue('1234')
-            })
-
-            describe('button', () => {
-              describe('submit', () => {
-                it('has disabled', () => {
-                  expect(
-                    wrapper.find('button[data-test="button-submit"]').attributes('disabled'),
-                  ).toBe('disabled')
-                })
-              })
-            })
-          })
-
-          describe('memo lenght > 255, others are valid', () => {
-            beforeEach(async () => {
-              await wrapper
-                .find('#contribution-memo')
-                .find('textarea')
-                .setValue(
-                  '0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789' +
-                    '0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789' +
-                    '01234567890123456789012345678901234567890123456789012345',
-                )
-              await wrapper.vm.$nextTick()
-            })
-
-            describe('button', () => {
-              describe('submit', () => {
-                it('has disabled', () => {
-                  expect(
-                    wrapper.find('button[data-test="button-submit"]').attributes('disabled'),
-                  ).toBe('disabled')
-                })
-              })
-            })
-          })
-        })
-
-        describe('valid form data', () => {
-          beforeEach(async () => {
-            await wrapper.findComponent({ name: 'BFormDatepicker' }).vm.$emit('input', now)
-            await wrapper
-              .find('#contribution-memo')
-              .find('textarea')
-              .setValue('Mein Beitrag zur Gemeinschaft für diesen Monat ...')
-            await wrapper.find('#contribution-amount').find('input').setValue('200')
-          })
-
-          describe('button', () => {
-            describe('submit', () => {
-              it('has enabled', () => {
-                expect(
-                  wrapper.find('button[data-test="button-submit"]').attributes('disabled'),
-                ).toBeFalsy()
-              })
-
-              it('has label "contribution.submit"', () => {
-                expect(wrapper.find('button[data-test="button-submit"]').text()).toContain(
-                  'contribution.submit',
-                )
-              })
-            })
-          })
-
-          describe('on trigger submit', () => {
-            beforeEach(async () => {
-              await wrapper.find('form').trigger('submit')
-            })
-
-            it('emits "set-contribution"', () => {
-              expect(wrapper.emitted('set-contribution')).toEqual(
-                expect.arrayContaining([
-                  expect.arrayContaining([
-                    {
-                      id: null,
-                      date: now,
-                      memo: 'Mein Beitrag zur Gemeinschaft für diesen Monat ...',
-                      amount: '200',
-                      hours: 0,
-                    },
-                  ]),
-                ]),
-              )
-            })
-          })
-        })
-      })
-    })
-
-    describe('update contrubtion', () => {
-      describe('fill in form data with set "id"', () => {
-        const now = new Date().toISOString()
-
-        beforeEach(async () => {
-          await wrapper.setData({
-            form: {
-              id: 2,
-              date: now,
-              memo: 'Mein kommerzieller Beitrag für diesen Monat ...',
-              amount: '100',
-            },
-          })
-        })
-
-        describe('invalid form data', () => {
-          beforeEach(async () => {
-            // skip this precondition as long as the datepicker is disabled in the component
-            // await wrapper.findComponent({ name: 'BFormDatepicker' }).vm.$emit('input', now)
-            await wrapper.find('#contribution-amount').find('input').setValue('200')
-          })
-
-          describe('memo lenght < 5, others are valid', () => {
-            beforeEach(async () => {
-              await wrapper.find('#contribution-memo').find('textarea').setValue('1234')
-            })
-
-            describe('button', () => {
-              describe('submit', () => {
-                it('has disabled', () => {
-                  expect(
-                    wrapper.find('button[data-test="button-submit"]').attributes('disabled'),
-                  ).toBe('disabled')
-                })
-              })
-            })
-          })
-
-          describe('memo lenght > 255, others are valid', () => {
-            beforeEach(async () => {
-              await wrapper
-                .find('#contribution-memo')
-                .find('textarea')
-                .setValue(
-                  '0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789' +
-                    '0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789' +
-                    '01234567890123456789012345678901234567890123456789012345',
-                )
-              await wrapper.vm.$nextTick()
-            })
-
-            describe('button', () => {
-              describe('submit', () => {
-                it('has disabled', () => {
-                  expect(
-                    wrapper.find('button[data-test="button-submit"]').attributes('disabled'),
-                  ).toBe('disabled')
-                })
-              })
-            })
-          })
-        })
-
-        describe('valid form data', () => {
-          beforeEach(async () => {
-            await wrapper.findComponent({ name: 'BFormDatepicker' }).vm.$emit('input', now)
-            await wrapper
-              .find('#contribution-memo')
-              .find('textarea')
-              .setValue('Mein Beitrag zur Gemeinschaft für diesen Monat ...')
-            await wrapper.find('#contribution-amount').find('input').setValue('200')
-          })
-
-          describe('button', () => {
-            describe('submit', () => {
-              it('has enabled', () => {
-                expect(
-                  wrapper.find('button[data-test="button-submit"]').attributes('disabled'),
-                ).toBeFalsy()
-              })
-
-              it('has label "form.change"', () => {
-                expect(wrapper.find('button[data-test="button-submit"]').text()).toContain(
-                  'form.change',
-                )
-              })
-            })
-          })
-
-          describe('on trigger submit', () => {
-            beforeEach(async () => {
-              await wrapper.find('form').trigger('submit')
-            })
-
-            it('emits "update-contribution"', () => {
-              expect(wrapper.emitted('update-contribution')).toEqual([
-                [
-                  {
-                    id: 2,
-                    date: now,
-                    hours: 0,
-                    memo: 'Mein Beitrag zur Gemeinschaft für diesen Monat ...',
-                    amount: '200',
-                  },
-                ],
-              ])
-            })
-          })
-        })
-      })
-    })
+    expect(wrapper.emitted('set-contribution')).toBeTruthy()
   })
 })

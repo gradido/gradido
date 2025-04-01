@@ -20,6 +20,11 @@
     }
   },
   "back": "Terug",
+  "circles": {
+    "headline": "Samen ondersteunen we elkaar - mindful in de cirkelcultuur.",
+    "text": "Klik op de knop om het samenwerkingsplatform te openen in een nieuw browservenster.",
+    "button": "Cirkels starten..."
+  },
   "community": {
     "admins": "Beheerders",
     "choose-another-community": "Kies een andere gemeenschap",
@@ -131,6 +136,7 @@
     "memo": "Memo",
     "message": "Bericht",
     "new_balance": "Nieuw banksaldo na bevestiging",
+    "newPasswordRepeat": "Nieuw wachtwoord herhalen",
     "no_gdd_available": "Je hebt geen GDD om te versturen.",
     "password": "Wachtwoord",
     "passwordRepeat": "Wachtwoord herhalen",
@@ -155,6 +161,7 @@
     "validation": {
       "gddSendAmount": "Het veld {_field_} moet een getal tussen {min} en {max} met maximaal twee cijfers achter de komma zijn",
       "is-not": "Je kunt geen Gradidos aan jezelf overmaken",
+      "requiredField": "{fieldName} is verplicht",
       "usernmae-regex": "De gebruikersnaam moet met een letter beginnen, waarop minimaal twee alfanumerieke tekens dienen te volgen.",
       "usernmae-unique": "De gebruikersnaam is al bezet."
     },
@@ -211,7 +218,8 @@
     "recruited-member": "Uitgenodigd lid"
   },
   "language": "Taal",
-  "link-load": "de laatste link herladen | de laatste links herladen |  verdere {n} links herladen",
+  "link-load": "de laatste link herladen | de laatste links herladen",
+  "link-load-more": "verdere {n} links herladen",
   "login": "Aanmelding",
   "math": {
     "aprox": "~",
@@ -244,6 +252,18 @@
     "support": "Support",
     "transactions": "Transacties"
   },
+  "openHours": "Open Hours",
+  "pageTitle": {
+    "community": "Create Gradido",
+    "gdt": "Your GDT transactions",
+    "information": "{community}",
+    "overview": "Welcome {name}",
+    "send": "Send Gradidos",
+    "settings": "Settings",
+    "transactions": "Your transactions",
+    "circles": "Gradido Cirkels",
+    "usersearch": "Geografisch zoeken naar gebruikers"
+  },
   "qrCode": "QR Code",
   "send_gdd": "GDD sturen",
   "send_per_link": "GDD per link versturen",
@@ -254,10 +274,28 @@
     "warningText": "Ben je er nog?"
   },
   "settings": {
+    "GMS": {
+      "location": {
+        "button": "Klik hier!",
+        "label": "Exacte locatie",
+        "saveLocation": "Locatie opslaan",
+        "updateSuccess": "Locatie succesvol opgeslagen"
+      },
+      "map": {
+        "communityCoords": "Locatie van je gemeenschap: Lat {lat}, Lng {lng}",
+        "communityLocationLabel": "Locatie van je gemeenschap",
+        "headline": "Geografische locatiebepaling van de gebruiker",
+        "userCoords": "Jouw locatie: Lat {lat}, Lng {lng}",
+        "userLocationLabel": "Jouw locatie",
+        "search": "Zoek een locatie",
+        "success": "Locatie succesvol opgeslagen"
+      }
+    },
     "language": {
       "changeLanguage": "Taal veranderen",
       "de": "Deutsch",
       "en": "English",
+      "error": "Het is niet gelukt om de taalinstellingen bij te werken.",
       "es": "Español",
       "fr": "Français",
       "nl": "Nederlands",
@@ -333,6 +371,11 @@
   },
   "transaction-link": {
     "send_you": "stuurt jou"
+  },
+  "usersearch": {
+    "headline": "Geografisch zoeken naar gebruikers",
+    "text": "Het maakt niet uit tot welke community je behoort, met het Geo Matching System kun je leden van alle communities vinden op een kaart. Je kunt filteren op aanbiedingen en vereisten en de gebruikers weergeven die aan je profiel voldoen.\n\nDe knop opent een nieuw browservenster waarin de gebruikers in je omgeving op een kaart worden weergegeven.",
+    "button": "Start het zoeken naar gebruikers..."
   },
   "via_link": "via een link",
   "welcome": "Welkom in de gemeenschap"

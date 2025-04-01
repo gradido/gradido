@@ -1,121 +1,116 @@
 <template>
-  <div id="username_form">
-    <div v-if="$store.state.username">
+  <div id="username-form">
+    <div v-if="store.state.username">
       <label>{{ $t('form.username') }}</label>
-      <b-form-group
+      <BFormGroup
         class="mb-3"
         data-test="username-input-group"
         :description="$t('settings.emailInfo')"
       >
-        <b-form-input
-          v-model="username"
+        <BFormInput
+          :model-value="username"
           readonly
           data-test="username-input-readonly"
-        ></b-form-input>
-      </b-form-group>
+          @update:modelValue="username = $event"
+        />
+      </BFormGroup>
     </div>
     <div v-else>
-      <validation-observer ref="usernameObserver" v-slot="{ handleSubmit, invalid }">
-        <b-form @submit.stop.prevent="handleSubmit(onSubmit)">
-          <b-row class="mb-3">
-            <b-col class="col-12">
+      <div>
+        <BForm @submit.prevent="onSubmit">
+          <BRow class="mb-3">
+            <BCol class="col-12">
               <input-username
-                v-model="username"
-                :name="$t('form.username')"
+                name="username"
                 :placeholder="$t('form.username-placeholder')"
-                :showAllErrors="true"
+                show-all-errors
                 :unique="true"
                 :rules="rules"
-                :isEdit="isEdit"
-                @set-is-edit="setIsEdit"
                 data-test="component-input-username"
+                :initial-username-value="username"
               />
-            </b-col>
-            <b-col class="col-12">
-              <div v-if="!username" class="alert" data-test="username-alert">
+            </BCol>
+            <BCol class="col-12">
+              <div
+                v-if="!store.state.username"
+                class="alert gradido-border-radius"
+                data-test="username-alert"
+              >
                 {{ $t('settings.username.no-username') }}
               </div>
-            </b-col>
-          </b-row>
-          <b-row class="text-right" v-if="newUsername">
-            <b-col>
-              <div class="text-right" ref="submitButton">
-                <b-button
-                  :variant="disabled(invalid) ? 'light' : 'success'"
+            </BCol>
+          </BRow>
+          <BRow v-if="newUsername" class="text-end">
+            <BCol>
+              <div ref="submitButton" class="text-end">
+                <BButton
+                  :variant="disabled(errors) ? 'light' : 'success'"
                   type="submit"
-                  :disabled="disabled(invalid)"
+                  :disabled="disabled(errors)"
                   data-test="submit-username-button"
                 >
                   {{ $t('form.save') }}
-                </b-button>
+                </BButton>
               </div>
-            </b-col>
-          </b-row>
-        </b-form>
-      </validation-observer>
+            </BCol>
+          </BRow>
+        </BForm>
+      </div>
     </div>
   </div>
 </template>
-<script>
-import { updateUserInfos } from '@/graphql/mutations'
-import InputUsername from '@/components/Inputs/InputUsername'
 
-export default {
-  name: 'UserName',
-  components: {
-    InputUsername,
-  },
-  data() {
-    return {
-      isEdit: false,
-      username: this.$store.state.username || '',
-      usernameUnique: false,
-      rules: {
-        required: true,
-        min: 3,
-        max: 20,
-        usernameAllowedChars: true,
-        usernameHyphens: true,
-        usernameUnique: true,
-      },
-    }
-  },
-  methods: {
-    async onSubmit(event) {
-      this.$apollo
-        .mutate({
-          mutation: updateUserInfos,
-          variables: {
-            alias: this.username,
-          },
-        })
-        .then(() => {
-          this.$store.commit('username', this.username)
-          this.toastSuccess(this.$t('settings.username.change-success'))
-        })
-        .catch((error) => {
-          this.toastError(error.message)
-        })
-    },
-    disabled(invalid) {
-      return !this.newUsername || invalid
-    },
-    setIsEdit(bool) {
-      this.username = this.$store.state.username
-      this.isEdit = bool
-    },
-  },
-  computed: {
-    newUsername() {
-      return this.username !== this.$store.state.username
-    },
-  },
+<script setup>
+import { computed } from 'vue'
+import { useStore } from 'vuex'
+import { useMutation } from '@vue/apollo-composable'
+import { useI18n } from 'vue-i18n'
+import { BRow, BCol, BFormInput, BFormGroup, BForm, BButton } from 'bootstrap-vue-next'
+import InputUsername from '@/components/Inputs/InputUsername'
+import { updateUserInfos } from '@/graphql/mutations'
+import { useAppToast } from '@/composables/useToast'
+import { useForm } from 'vee-validate'
+
+const store = useStore()
+const { toastError, toastSuccess } = useAppToast()
+const { t } = useI18n()
+
+const rules = {
+  required: true,
+  min: 3,
+  max: 20,
+  usernameAllowedChars: true,
+  usernameHyphens: true,
+  usernameUnique: true,
+}
+
+const { handleSubmit, errors, values } = useForm()
+const { mutate: updateUserInfo } = useMutation(updateUserInfos)
+
+const onSubmit = handleSubmit(async () => {
+  try {
+    await updateUserInfo({ alias: values.username })
+    store.commit('username', values.username)
+    toastSuccess(t('settings.username.change-success'))
+  } catch (error) {
+    toastError(error.message)
+  }
+})
+
+const username = computed(() => store.state.username || '')
+
+const newUsername = computed(() => values.username && values.username !== store.state.username)
+
+const disabled = (err) => {
+  return !newUsername.value || !!Object.keys(err).length
 }
 </script>
+
 <style>
 .cursor-pointer {
   cursor: pointer;
 }
+
 div.alert {
   color: red;
 }

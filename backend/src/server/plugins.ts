@@ -37,6 +37,7 @@ const logPlugin = {
     const { logger } = requestContext
     const { query, mutation, variables, operationName } = requestContext.request
     if (operationName !== 'IntrospectionQuery') {
+      logger.debug('requestDidStart:', requestContext)
       logger.info(`Request:
 ${mutation || query}variables: ${JSON.stringify(filterVariables(variables), null, 2)}`)
     }

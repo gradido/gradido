@@ -119,6 +119,7 @@ export async function settlePendingSenderTransaction(
       lastName: recipient.lastName,
       email: recipient.emailContact.email,
       language: recipient.language,
+      memo,
       senderFirstName: sender.firstName,
       senderLastName: sender.lastName,
       senderEmail: sender.emailContact.email,

@@ -1,65 +1,146 @@
+import { FindOneOptions } from '@dbTools/typeorm'
 import { Community as DbCommunity } from '@entity/Community'
+import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
 
+import { Paginated } from '@arg/Paginated'
+
+import { LogError } from '@/server/LogError'
+import { Connection } from '@/typeorm/connection'
+
+function findWithCommunityIdentifier(communityIdentifier: string): FindOneOptions<DbCommunity> {
+  return {
+    where: [
+      { communityUuid: communityIdentifier },
+      { name: communityIdentifier },
+      { url: communityIdentifier },
+    ],
+  }
+}
+
+/**
+ * Checks if a community with the given identifier exists and is not foreign.
+ * @param communityIdentifier The identifier (URL, UUID, or name) of the community.
+ * @returns A promise that resolves to true if a non-foreign community exists with the given identifier, otherwise false.
+ */
 export async function isHomeCommunity(communityIdentifier: string): Promise<boolean> {
-  const homeCommunity = await DbCommunity.findOne({
+  // The !! operator in JavaScript or TypeScript is a shorthand for converting a value to a boolean.
+  // It essentially converts any truthy value to true and any falsy value to false.
+  return !!(await DbCommunity.findOne({
     where: [
       { foreign: false, communityUuid: communityIdentifier },
       { foreign: false, name: communityIdentifier },
       { foreign: false, url: communityIdentifier },
     ],
-  })
-  if (homeCommunity) {
-    return true
-  } else {
-    return false
-  }
+  }))
 }
 
+/**
+ * Retrieves the home community, i.e., a community that is not foreign.
+ * @returns A promise that resolves to the home community, or throw if no home community was found
+ */
 export async function getHomeCommunity(): Promise<DbCommunity> {
   return await DbCommunity.findOneOrFail({
     where: [{ foreign: false }],
   })
 }
 
+/**
+ * TODO: Check if it is needed, because currently it isn't used at all
+ * Retrieves the URL of the community with the given identifier.
+ * @param communityIdentifier The identifier (URL, UUID, or name) of the community.
+ * @returns A promise that resolves to the URL of the community or throw if no community with this identifier was found
+ */
 export async function getCommunityUrl(communityIdentifier: string): Promise<string> {
-  const community = await DbCommunity.findOneOrFail({
-    where: [
-      { communityUuid: communityIdentifier },
-      { name: communityIdentifier },
-      { url: communityIdentifier },
-    ],
-  })
-  return community.url
+  return (await DbCommunity.findOneOrFail(findWithCommunityIdentifier(communityIdentifier))).url
 }
 
+/**
+ * TODO: Check if it is needed, because currently it isn't used at all
+ * Checks if a community with the given identifier exists and has an authenticatedAt property set.
+ * @param communityIdentifier The identifier (URL, UUID, or name) of the community.
+ * @returns A promise that resolves to true if a community with an authenticatedAt property exists with the given identifier,
+ *          otherwise false.
+ */
 export async function isCommunityAuthenticated(communityIdentifier: string): Promise<boolean> {
-  const community = await DbCommunity.findOne({
-    where: [
-      { communityUuid: communityIdentifier },
-      { name: communityIdentifier },
-      { url: communityIdentifier },
-    ],
-  })
-  if (community?.authenticatedAt) {
-    return true
-  } else {
-    return false
-  }
+  // The !! operator in JavaScript or TypeScript is a shorthand for converting a value to a boolean.
+  // It essentially converts any truthy value to true and any falsy value to false.
+  return !!(await DbCommunity.findOne(findWithCommunityIdentifier(communityIdentifier)))
+    ?.authenticatedAt
 }
 
+/**
+ * Retrieves the name of the community with the given identifier.
+ * @param communityIdentifier The identifier (URL, UUID) of the community.
+ * @returns A promise that resolves to the name of the community. If the community does not exist or has no name,
+ *          an empty string is returned.
+ */
 export async function getCommunityName(communityIdentifier: string): Promise<string> {
   const community = await DbCommunity.findOne({
     where: [{ communityUuid: communityIdentifier }, { url: communityIdentifier }],
   })
-  if (community?.name) {
-    return community.name
-  } else {
-    return ''
-  }
-}
 
+  return community?.name ? community.name : ''
+}
 export async function getCommunityByUuid(communityUuid: string): Promise<DbCommunity | null> {
   return await DbCommunity.findOne({
     where: [{ communityUuid }],
   })
+}
+
+export async function getCommunityByIdentifier(
+  communityIdentifier: string,
+): Promise<DbCommunity | null> {
+  return await DbCommunity.findOne(findWithCommunityIdentifier(communityIdentifier))
+}
+
+/**
+ * Simulate RIGHT Join between Communities and Federated Communities
+ * select *
+ * Community as c
+ * RIGHT JOIN FederatedCommunity as f
+ * ON(c.public_key = f.public_key)
+ * Typeorm don't has right joins
+ * @returns
+ */
+export async function getAllCommunities({
+  pageSize = 25,
+  currentPage = 1,
+}: Paginated): Promise<DbCommunity[]> {
+  const connection = await Connection.getInstance()
+  if (!connection) {
+    throw new LogError('Cannot connect to db')
+  }
+  // foreign: 'ASC',
+  // createdAt: 'DESC',
+  // lastAnnouncedAt: 'DESC',
+  const result = await connection
+    .getRepository(DbFederatedCommunity)
+    .createQueryBuilder('federatedCommunity')
+    .leftJoinAndSelect('federatedCommunity.community', 'community')
+    .orderBy('federatedCommunity.foreign', 'ASC')
+    .addOrderBy('federatedCommunity.createdAt', 'DESC')
+    .addOrderBy('federatedCommunity.lastAnnouncedAt', 'DESC')
+    .skip((currentPage - 1) * pageSize * 3)
+    .take(pageSize * 3)
+    .getManyAndCount()
+  const communityMap = new Map<string, DbCommunity>()
+  result[0].forEach((value: DbFederatedCommunity) => {
+    const publicKeyHex = value.publicKey.toString('hex')
+    if (!communityMap.has(value.publicKey.toString('hex'))) {
+      let community: DbCommunity = DbCommunity.create()
+      if (value.community) {
+        community = value.community
+      }
+      if (!community.federatedCommunities) {
+        community.federatedCommunities = []
+      }
+      communityMap.set(publicKeyHex, community)
+    }
+    const community = communityMap.get(publicKeyHex)
+    if (!community?.federatedCommunities) {
+      throw new LogError('missing community after set it into map', publicKeyHex)
+    }
+    community.federatedCommunities.push(value)
+  })
+  return Array.from(communityMap.values())
 }

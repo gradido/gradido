@@ -1,127 +1,139 @@
 <template>
   <div class="transaction-link gradido-custom-background">
-    <b-row :class="validLink ? '' : 'bg-muted text-light'" class="mb-2 pt-2 pb-2">
-      <b-col cols="1">
-        <type-icon color="text-danger" icon="link45deg" class="pt-4 pl-2" />
-      </b-col>
-      <b-col cols="11">
-        <b-row>
-          <b-col>
+    <BRow :class="{ 'light-gray-text': !validLink }" class="mb-2 pt-2 pb-2">
+      <BCol cols="1">
+        <variant-icon icon="link45deg" variant="danger" />
+      </BCol>
+      <BCol cols="11">
+        <BRow>
+          <BCol>
             <amount-and-name-row :amount="amount" :text="$t('form.amount')" />
             <memo-row :memo="memo" />
-            <date-row :date="validUntil" :diffNow="true" :validLink="validLink" />
+            <date-row :date="validUntil" :diff-now="true" :valid-link="validLink" />
             <decay-row :decay="decay" />
-          </b-col>
-          <b-col cols="12" lg="1" md="1" class="text-center text-md-right pr-5 pr-lg-4">
-            <b-dropdown no-caret right aria-expanded="false" size="sm">
+          </BCol>
+          <BCol cols="12" lg="1" md="1" class="text-center text-md-right pe-5 pe-lg-4">
+            <BDropdown no-caret right aria-expanded="false" size="sm">
               <template #button-content>
-                <b-icon icon="three-dots-vertical"></b-icon>
+                <IBiThreeDotsVertical class="link-menu-opener" />
               </template>
 
-              <b-dropdown-item v-if="validLink" class="test-copy-link" @click="copyLink">
-                <b-icon icon="clipboard"></b-icon>
+              <BDropdownItem v-if="validLink" class="test-copy-link" @click.stop="copyLink">
+                <IBiClipboard />
                 {{ $t('gdd_per_link.copy-link') }}
-              </b-dropdown-item>
-              <b-dropdown-item
+              </BDropdownItem>
+              <BDropdownItem
                 v-if="validLink"
                 class="test-copy-text pt-3"
-                @click="copyLinkWithText"
+                @click.stop="copyLinkWithText"
               >
-                <b-icon icon="clipboard-plus"></b-icon>
+                <IBiClipboardPlus />
                 {{ $t('gdd_per_link.copy-link-with-text') }}
-              </b-dropdown-item>
-              <b-dropdown-item
+              </BDropdownItem>
+              <BDropdownItem
                 v-if="validLink"
-                @click="$bvModal.show('modalPopover-' + id)"
                 class="pt-3 pb-3 test-qr-code"
+                @click.stop="toggleQrModal"
               >
-                <b-img src="img/svg/qr-code.svg" width="18" class="filter"></b-img>
+                <IBiQrCode class="filter"></IBiQrCode>
                 {{ $t('qrCode') }}
-              </b-dropdown-item>
-              <b-dropdown-item class="test-delete-link" @click="deleteLink()">
-                <b-icon icon="trash"></b-icon>
+              </BDropdownItem>
+              <BDropdownItem class="test-delete-link" @click.stop="toggleDeleteModal">
+                <IBiTrash />
                 {{ $t('delete') }}
-              </b-dropdown-item>
-            </b-dropdown>
-          </b-col>
-        </b-row>
-      </b-col>
-    </b-row>
-    <b-modal :id="'modalPopover-' + id" ok-only hide-header-close>
-      <b-card header-tag="header" footer-tag="footer">
+              </BDropdownItem>
+            </BDropdown>
+          </BCol>
+        </BRow>
+      </BCol>
+    </BRow>
+    <app-modal :model-value="showQrModal" @update:model-value="toggleQrModal">
+      <BCard header-tag="header" footer-tag="footer">
         <template #header>
           <h6 class="mb-0">{{ $t('qrCode') }}</h6>
         </template>
-        <b-card-text><figure-qr-code class="text-center" :link="link" /></b-card-text>
+        <BCardText><figure-qr-code class="text-center" :link="link" /></BCardText>
         <template #footer>
           <em>{{ link }}</em>
         </template>
-      </b-card>
-    </b-modal>
-    <b-modal :id="'modalPopoverCopyError' + id" ok-only hide-header-close>
-      <b-card header-tag="header" footer-tag="footer">
-        <b-card-text>
-          <div class="alert-danger p-3">{{ $t('gdd_per_link.not-copied') }}</div>
-          <div class="alert-muted h3 p-3">{{ link }}</div>
-        </b-card-text>
-      </b-card>
-    </b-modal>
+      </BCard>
+    </app-modal>
+    <app-modal
+      id="delete-link-modal"
+      :model-value="showDeleteLinkModal"
+      ok-only
+      @update:model-value="toggleDeleteModal"
+      @on-ok="deleteLink"
+    >
+      <BCard header-tag="header" footer-tag="footer">
+        <h6 class="mb-0">{{ $t('gdd_per_link.delete-the-link') }}</h6>
+        <br />
+        <em>{{ link }}</em>
+      </BCard>
+    </app-modal>
   </div>
 </template>
-<script>
+
+<script setup>
+import { computed, ref } from 'vue'
+import { useMutation } from '@vue/apollo-composable'
+import { useI18n } from 'vue-i18n'
+import { useAppToast } from '@/composables/useToast'
+import { useCopyLinks } from '@/composables/useCopyLinks'
 import { deleteTransactionLink } from '@/graphql/mutations'
 import TypeIcon from '../TransactionRows/TypeIcon'
 import AmountAndNameRow from '../TransactionRows/AmountAndNameRow'
 import MemoRow from '../TransactionRows/MemoRow'
 import DateRow from '../TransactionRows/DateRow'
 import DecayRow from '../TransactionRows/DecayRow'
+import AppModal from '@/components/AppModal'
 import FigureQrCode from '@/components/QrCode/FigureQrCode'
-import { copyLinks } from '../../mixins/copyLinks'
+import VariantIcon from '@/components/VariantIcon.vue'
 
-export default {
-  name: 'TransactionLink',
-  mixins: [copyLinks],
-  components: {
-    TypeIcon,
-    AmountAndNameRow,
-    MemoRow,
-    DateRow,
-    DecayRow,
-    FigureQrCode,
-  },
-  props: {
-    holdAvailableAmount: { type: String, required: true },
-    id: { type: Number, required: true },
-  },
-  methods: {
-    deleteLink() {
-      this.$bvModal.msgBoxConfirm(this.$t('gdd_per_link.delete-the-link')).then(async (value) => {
-        if (value)
-          await this.$apollo
-            .mutate({
-              mutation: deleteTransactionLink,
-              variables: {
-                id: this.id,
-              },
-            })
-            .then(() => {
-              this.toastSuccess(this.$t('gdd_per_link.deleted'))
-              this.$emit('reset-transaction-link-list')
-            })
-            .catch((err) => {
-              this.toastError(err.message)
-            })
-      })
-    },
-  },
-  computed: {
-    decay() {
-      return `${this.amount - this.holdAvailableAmount}`
-    },
-    validLink() {
-      return new Date(this.validUntil) > new Date()
-    },
-  },
+const props = defineProps({
+  holdAvailableAmount: { type: String, required: true },
+  id: { type: Number, required: true },
+  amount: { type: Number, required: true },
+  validUntil: { type: String, required: true },
+  link: { type: String, required: true },
+  memo: { type: String, required: true },
+})
+
+const showQrModal = ref(false)
+const showDeleteLinkModal = ref(false)
+
+const emit = defineEmits(['reset-transaction-link-list'])
+
+const { t } = useI18n()
+const { toastSuccess, toastError } = useAppToast()
+const { copyLink, copyLinkWithText } = useCopyLinks({
+  amount: props.amount,
+  validUntil: props.validUntil,
+  link: props.link,
+  memo: props.memo,
+})
+
+const { mutate: deleteTransactionLinkMutation } = useMutation(deleteTransactionLink)
+
+const decay = computed(() => `${props.amount - props.holdAvailableAmount}`)
+const validLink = computed(() => new Date(props.validUntil) > new Date())
+
+async function deleteLink() {
+  try {
+    await deleteTransactionLinkMutation({ id: props.id })
+    toastSuccess(t('gdd_per_link.deleted'))
+    emit('reset-transaction-link-list')
+  } catch (err) {
+    toastError(err.message)
+  }
+}
+
+const toggleDeleteModal = () => {
+  showDeleteLinkModal.value = !showDeleteLinkModal.value
+}
+
+const toggleQrModal = () => {
+  showQrModal.value = !showQrModal.value
 }
 </script>
 <style>
@@ -129,7 +141,20 @@ export default {
   position: relative;
   right: 20px;
 }
+
 .filter {
   filter: opacity(0.6);
+}
+</style>
+<style scoped>
+:deep(.col-1 .icon-variant) {
+  margin-top: 1.5rem;
+  margin-left: 0.5rem;
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.light-gray-text {
+  color: #adb5bd !important;
 }
 </style>

@@ -1,0 +1,36 @@
+
+fragment SpaceFields on Space {
+  id
+  name
+  description
+  url
+}
+
+fragment PaginationFields on Pagination {
+  total
+  page
+  pages
+}
+
+fragment ProjectBrandingCommonFields on ProjectBranding {
+  id
+  name
+  alias
+  description
+  spaceId
+  newUserToSpace
+  logoUrl
+}
+
+fragment AiChatMessageFields on ChatGptMessage {
+  content
+  role
+  threadId
+}
+
+fragment UserCommonFields on User {
+  id
+  firstName
+  lastName
+  alias
+}
