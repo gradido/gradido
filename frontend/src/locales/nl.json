@@ -33,7 +33,7 @@
   "card-user-search": {
     "headline": "Geografisch leden zoeken (experimenteel)",
     "allowed": {
-      "button": "Zoeken naar gebruikers starten...",
+      "button": "Zoeken naar leden starten...",
       "disabled-button": "GMS offline...",
       "text": "Vind leden van alle gemeenschappen op een kaart."
     },
