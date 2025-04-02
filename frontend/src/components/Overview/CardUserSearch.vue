@@ -69,9 +69,10 @@ console.log(
   store.state.userLocation,
 )
 */
-const gmsAllowed = store.state.gmsAllowed
+// use computed to react on state change, when user goes to settings and change something an get back here
+const gmsAllowed = computed(() => store.state.gmsAllowed)
 // console.log('gmsAllowed=', gmsAllowed)
-const gmsUserLocationExists = store.state.userLocation !== null
+const gmsUserLocationExists = computed(() => store.state.userLocation !== null)
 // console.log('gmsUserLocationExists=', gmsUserLocationExists)
 const isUserSearchDisabled = computed(() => gmsUri.value === null)
 
