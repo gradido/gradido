@@ -82,7 +82,7 @@ const { onResult, result, loading, onError } = useQuery(authenticateGmsUserSearc
 })
 
 onResult(({ data }) => {
-  if (gmsAllowed && gmsUserLocationExists && data !== undefined) {
+  if (gmsAllowed.value && gmsUserLocationExists.value && data !== undefined) {
     gmsUri.value = `${data.authenticateGmsUserSearch.url}?accesstoken=${data.authenticateGmsUserSearch.token}`
     isUserSearchDisabled.value = false
   }
@@ -90,9 +90,9 @@ onResult(({ data }) => {
 
 onError(() => {
   isUserSearchDisabled.value = true
-  if (gmsAllowed && gmsUserLocationExists) {
+  if (gmsAllowed.value && gmsUserLocationExists.value) {
     toastError('authenticateGmsUserSearch failed!')
-  } else if (gmsAllowed && !gmsUserLocationExists) {
+  } else if (gmsAllowed.value && !gmsUserLocationExists.value) {
     // toastError('capture your location first!')
     // eslint-disable-next-line no-console
     console.log('capture your location first...')
