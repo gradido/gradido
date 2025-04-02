@@ -43,7 +43,7 @@
   "card-user-search": {
     "headline": "Geographic member search (experimental)",
     "allowed": {
-      "button": "Start Usersearch...",
+      "button": "Start Membersearch...",
       "disabled-button": "GMS offline...",
       "text": "Find Members of all Communities on a Map."
     },
