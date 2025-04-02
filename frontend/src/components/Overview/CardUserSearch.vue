@@ -62,6 +62,7 @@ const { toastError } = useAppToast()
 const store = useStore()
 
 const gmsUri = ref('not initialized')
+const isUserSearchDisabled = ref(true)
 /*
 console.log(
   'store.state: gmsAllowed userLocation=',
@@ -74,7 +75,6 @@ const gmsAllowed = computed(() => store.state.gmsAllowed)
 // console.log('gmsAllowed=', gmsAllowed)
 const gmsUserLocationExists = computed(() => store.state.userLocation !== null)
 // console.log('gmsUserLocationExists=', gmsUserLocationExists)
-const isUserSearchDisabled = computed(() => gmsUri.value === null)
 
 const { onResult, result, loading, onError } = useQuery(authenticateGmsUserSearch, null, {
   fetchPolicy: 'network-only',
@@ -84,10 +84,12 @@ const { onResult, result, loading, onError } = useQuery(authenticateGmsUserSearc
 onResult(({ data }) => {
   if (gmsAllowed && gmsUserLocationExists && data !== undefined) {
     gmsUri.value = `${data.authenticateGmsUserSearch.url}?accesstoken=${data.authenticateGmsUserSearch.token}`
+    isUserSearchDisabled.value = false
   }
 })
 
 onError(() => {
+  isUserSearchDisabled.value = true
   if (gmsAllowed && gmsUserLocationExists) {
     toastError('authenticateGmsUserSearch failed!')
   } else if (gmsAllowed && !gmsUserLocationExists) {
