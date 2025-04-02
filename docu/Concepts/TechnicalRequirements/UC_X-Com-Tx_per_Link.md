@@ -26,17 +26,19 @@ With receiving a redeem-link request the payload of this link will be validated:
 
 Only if all validation checks are successful the community will start the _disbursement process_ with the 1st step to select the recipient's community.
 
-#### Community-Selection
+#### Community-Selection on sender-side
 
 In consequence the first shown page for the recipient-user must offer a community-selection to yield the decision for the recipient community.
 
-The current first page the user will see on activating the redeem-link looks like the following page:
+The first page the user will see on activating the redeem-link looks like quite the following page:
 
-![](./image/redeemlink-page_without-comunity-selection.png)
+![](./image/redeemlink-page_with-community-selection.png)
 
-To support a cross community redeem-link activation this page have to be extended with the possibility to select a community. An UI-component will present a list of all known, verified and authenticated communities the sender's home-community is connected over the federation.
+To support a cross community redeem-link activation this page is extended with the possibility to select a _receiver-community_. An UI-component will present a list of all known, verified and authenticated communities the sender's home-community is connected over the federation. Per default the _sender-community_ is selected, the _register-_ and _login_-links are visible and the shown button to switch to the selected community is hidden.
 
-The backend offers for the initialization of this community-list the graphql query:
+Only if the user select a foreign community out of the community-list the _switch-community_-button is visible and both _register-_ and _login_-links are hidden. This force the user to first switch to the _receiver-community_ before he could login or register himself.
+
+The backend offers for the initialization of the community-selection-list the graphql query:
 
 ```
 CommunityResolver.authenticatedCommunities :Promise Community[] 
@@ -58,14 +60,9 @@ Community {
 }
 ```
 
-With the selection of a community-entry from this list the recipient-user must confirm his selection by closing the dialog with the `confirm` or `next`-button.
+With the selection of a community-entry from this list the dialog evaluats the _foreign_-flag of the selected community and shows or hide the _community-switch-button_ and the _login-_ and _register_-links as described above.
 
-After confirming the community-selection the system will check if the selected community of the recipient-user is
-
-* the same community of the sender-user or
-* a different and foreign community
-
-In the first case the system goes on with the local login or registration page for a local `redeem-link activation`.
+If the user doesn't change the default _sender_-community, the system goes on with the local login or registration page for a local `redeem-link activation`.
 
 In case of the recipient community will be a foreign community, the system has to prepare a request with a _Disbursement-JWT-Token_ as parameter to invoke on the foreign community the _disbursement process_ by following the pattern: `community-url of receiver-community`/redeem/`<Disbursement-JWT-Token`
 
@@ -81,20 +78,39 @@ This _Disbursement-JWT-Token_ contains all necessary information to start a _dis
 * the amount of gradidos the sender will send
 * and the memo
 
-#### Disbursement-Process
+#### Disbursement-Process on receiver-side
 
 On receiving a redeem-link request with a `<Disbursement-JWT-Token>` the receiving community will show the following page with content from the `<Disbursement-JWT-Token>`.
 
-![](./image/redeemlink-page_without-comunity-selection.png)
+![](./image/redeemlink-page_without-community-selection.png)
 
-There will no additional community-selection component exist, as it is shown on the sender-community before - see chapter  Community-Selection above.
+There exists no additional community-selection component, as it is shown on the sender-community before - see chapter  _Community-Selection on sender-side_ above.
 
-After the user finished the login or registration on the receiver community successfully the receiver-gradidoID for the disbursement transaction is known. To process the _disbursement process_ the backend offers the graphql query:
+After the user finished the login or registration on the _receiver-community_ successfully, the _receiver-gradidoID_ for the disbursement transaction is known. To process the _disbursement process_ the backend offers the graphql query:
 
 ```
-TransactionResolver.disburse { jwt-token } :Promise boolean 
+TransactionLinkResolver.disburse { jwt-token } :Promise boolean 
 ```
 
 with the _disbursement-jwt-token_ as parameter and returns `true` in case of successful invocation, otherwise `false`.
 
-The backend of the receiver community will prepare the parameters for a disbures-request invocation against the _sender-community_.
+The backend of the _receiver-community_ will prepare the parameters for a _disbures_-request invocation against the _sender-community_-backend-api. The following values and attributes are necessary to transfer back to sender for dibursement:
+
+- endpoint url of sender-community, necessary for _disburse-request-invocation_
+- receiver-community uuid, part of the jwt-token
+- receiver gradidoID, part of the jwt-token
+- original redeem-code, part of the jwt-token
+
+#### Disburse-Request on sender-side
+
+The backend of the _sender-community_ offers a _disburse_-api endpoint to process the _disbursement-process_ of the _receiver-community_. On receiving the _disburse-request_ on the sender-community the given jwt-token is decoded to get the readable attributes. At first the _redeem-code_ is evaluated with the following rules:
+
+* If the _redeem-code_ exists in database
+* If the associated transaction is still open and
+* If the expiration time of the _redeem-code_ is not exceeded
+
+Only if all validation checks are successful the community will go on with the valutation-step of the _disbursement process_.
+
+#### Valutierungsprozess
+
+The details about the _valutation-process-step_ are described in the document  [UseCase Send-Users-Gradido](../BusinessRequirements/UC_Send_Users_Gradido.md) in chapter _Valutierungsprozess_.
