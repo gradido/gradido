@@ -43,7 +43,7 @@
   "card-user-search": {
     "headline": "Geografische Mitgliedssuche (experimentell)",
     "allowed": {
-      "button": "Öffne Nutzersuche...",
+      "button": "Öffne Mitgliedsuche...",
       "disabled-button": "GMS offline...",
       "text": "Finde Mitglieder aller Communities auf einer Landkarte."
     },
