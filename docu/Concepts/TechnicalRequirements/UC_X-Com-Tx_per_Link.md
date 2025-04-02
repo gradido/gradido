@@ -16,7 +16,7 @@ After a user has created a `redeem-Link` to send an other user an amount of grad
 
 example: `https://gdd.gradido.net`/redeem/`3a5839be29f1`
 
-In consequence of these technical details the transaction-link is created, the recipient will be routed on activation to the community of the sender. 
+In consequence of these technical details the transaction-link is created, the recipient will be routed on activation to the community of the sender.
 
 With receiving a redeem-link request the payload of this link will be validated:
 
@@ -67,22 +67,34 @@ After confirming the community-selection the system will check if the selected c
 
 In the first case the system goes on with the local login or registration page for a local `redeem-link activation`.
 
-In case of the recipient community will be a foreign community, the system has to prepare a request with a _securitykey_ to invoke on the foreign community the login- or register-page.
+In case of the recipient community will be a foreign community, the system has to prepare a request with a _Disbursement-JWT-Token_ as parameter to invoke on the foreign community the _disbursement process_ by following the pattern: `community-url of receiver-community`/redeem/`<Disbursement-JWT-Token`
 
-#### Redeem-Activation JWT-Token
+#### Disbursement JWT-Token
 
-This _securityKey_ will be created as a JWT-token, which contains all necessary information to start a _disbursement process_ from the foreign community after the user has done a successful login or registration there. The payload of this token must contain:
-
-* the community-uuid of the sender-community
-* the gradidoID of the sender
-* the code of the redeem-link
-
-The payload of token have to be decrypted by the _publicKey of the recipient-community_ and signed by the _privateKey of the sender-community_.
-
-The JWT-Token will additionaly contain:
+This _Disbursement-JWT-Token_ contains all necessary information to start a _disbursement process_ on the foreign community. The payload of this token contains:
 
 * type of JWT-Token - here `redeem-activation`
+* the community-uuid of the sender-community
+* the gradidoID of the sender
+* the original code of the redeem-link
 * the alias if exists or the firstname of the sender
 * the amount of gradidos the sender will send
+* and the memo
 
-to show without deeper token validation on the login or registerpage on the foreign community the message about the redeem-link activation like it is done currently by a local redeem-link activation.
+#### Disbursement-Process
+
+On receiving a redeem-link request with a `<Disbursement-JWT-Token>` the receiving community will show the following page with content from the `<Disbursement-JWT-Token>`.
+
+![](./image/redeemlink-page_without-comunity-selection.png)
+
+There will no additional community-selection component exist, as it is shown on the sender-community before - see chapter  Community-Selection above.
+
+After the user finished the login or registration on the receiver community successfully the receiver-gradidoID for the disbursement transaction is known. To process the _disbursement process_ the backend offers the graphql query:
+
+```
+TransactionResolver.disburse { jwt-token } :Promise boolean 
+```
+
+with the _disbursement-jwt-token_ as parameter and returns `true` in case of successful invocation, otherwise `false`.
+
+The backend of the receiver community will prepare the parameters for a disbures-request invocation against the _sender-community_.
