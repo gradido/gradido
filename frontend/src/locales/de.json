@@ -31,20 +31,19 @@
   },
   "back": "Zurück",
   "card-circles": {
-    "headline": "Gemeinsam unterstützen wir einander –  achtsam in Kreiskultur.",
+    "headline": "Kooperationsplattform »Gradido-Kreise«",
+    "text": "Lokale Kreise, Studienkreise, Projekte, Events und Kongresse",
     "allowed": {
-      "button": "Kreise starten...",
-      "text": "Mit Klick auf den Button öffnest Du die Kooperationsplattform in einem neuen Browser-Fenster."
+      "button": "Kreise starten..."
     },
     "not-allowed": {
-      "button": "Konfiguration starten...",
-      "text": "Du hast Kreise noch nicht konfiguriert! Öffne zuerst die Kreise-Konfiguration."
+      "button": "Konfigurieren..."
     }
   },
   "card-user-search": {
-    "headline": "Geografische Nutzersuche (experimentell)",
+    "headline": "Geografische Mitgliedssuche (experimentell)",
     "allowed": {
-      "button": "Öffne Nutzersuche...",
+      "button": "Öffne Mitgliedsuche...",
       "disabled-button": "GMS offline...",
       "text": "Finde Mitglieder aller Communities auf einer Landkarte."
     },
@@ -323,7 +322,7 @@
     "settings": "Einstellungen",
     "circles": "Gradido Kreise",
     "transactions": "Deine Transaktionen",
-    "usersearch": "Geografische Nutzersuche"
+    "usersearch": "Geografische Mitgliedssuche (experimentell)"
   },
   "qrCode": "QR Code",
   "send_gdd": "GDD versenden",
