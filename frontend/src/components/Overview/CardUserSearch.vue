@@ -62,6 +62,7 @@ const { toastError } = useAppToast()
 const store = useStore()
 
 const gmsUri = ref('not initialized')
+const isUserSearchDisabled = ref(true)
 /*
 console.log(
   'store.state: gmsAllowed userLocation=',
@@ -69,24 +70,29 @@ console.log(
   store.state.userLocation,
 )
 */
-const gmsAllowed = store.state.gmsAllowed
+// use computed to react on state change, when user goes to settings and change something an get back here
+const gmsAllowed = computed(() => store.state.gmsAllowed)
 // console.log('gmsAllowed=', gmsAllowed)
-const gmsUserLocationExists = store.state.userLocation !== null
+const gmsUserLocationExists = computed(() => store.state.userLocation !== null)
 // console.log('gmsUserLocationExists=', gmsUserLocationExists)
-const isUserSearchDisabled = computed(() => gmsUri.value !== null)
 
-const { onResult, result, loading, onError } = useQuery(authenticateGmsUserSearch)
+const { onResult, result, loading, onError } = useQuery(authenticateGmsUserSearch, null, {
+  fetchPolicy: 'network-only',
+  enabled: true,
+})
 
 onResult(({ data }) => {
-  if (gmsAllowed && gmsUserLocationExists && data !== undefined) {
+  if (gmsAllowed.value && gmsUserLocationExists.value && data !== undefined) {
     gmsUri.value = `${data.authenticateGmsUserSearch.url}?accesstoken=${data.authenticateGmsUserSearch.token}`
+    isUserSearchDisabled.value = false
   }
 })
 
 onError(() => {
-  if (gmsAllowed && gmsUserLocationExists) {
+  isUserSearchDisabled.value = true
+  if (gmsAllowed.value && gmsUserLocationExists.value) {
     toastError('authenticateGmsUserSearch failed!')
-  } else if (gmsAllowed && !gmsUserLocationExists) {
+  } else if (gmsAllowed.value && !gmsUserLocationExists.value) {
     // toastError('capture your location first!')
     // eslint-disable-next-line no-console
     console.log('capture your location first...')

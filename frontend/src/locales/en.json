@@ -31,20 +31,19 @@
   },
   "back": "Back",
   "card-circles": {
-    "headline": "Together we support each other - mindful in circle culture.",
+    "headline": "Cooperation platform “Gradido Circles”",
+    "text": "Local circles, study circles, projects, events and congresses",
     "allowed": {
-      "button": "Start Circles...",
-      "text": "Click on the button to open the cooperation platform in a new browser window."
+      "button": "Start Circles..."
     },
     "not-allowed": {
-      "button": "Start Circles-Configuration...",
-      "text": "Your Circles are not configured yet! Please open the Circles-Configuration first."
+      "button": "Configurate..."
     }
   },
   "card-user-search": {
-    "headline": "Geografice Usersearch (experimentel)",
+    "headline": "Geographic member search (experimental)",
     "allowed": {
-      "button": "Start Usersearch...",
+      "button": "Start Membersearch...",
       "disabled-button": "GMS offline...",
       "text": "Find Members of all Communities on a Map."
     },
@@ -323,7 +322,7 @@
     "settings": "Settings",
     "transactions": "Your transactions",
     "circles": "Gradido Circles",
-    "usersearch": "Geographical User Search"
+    "usersearch": "Geographic member search (experimental)"
   },
   "qrCode": "QR Code",
   "send_gdd": "Send GDD",
