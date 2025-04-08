@@ -138,7 +138,7 @@ const gms = {
   // koordinates of Illuminz-instance of GMS
   GMS_API_URL: process.env.GMS_API_URL ?? 'http://localhost:4044/',
   GMS_DASHBOARD_URL: process.env.GMS_DASHBOARD_URL ?? 'http://localhost:8080/',
-  GMS_PLAYGROUND_ROUTE: process.env.GMS_PLAYGROUND_ROUTE ?? 'usersearch-playground',
+  GMS_USER_SEARCH_FRONTEND_ROUTE: process.env.GMS_USER_SEARCH_FRONTEND_ROUTE ?? 'user-search',
   // used as secret postfix attached at the gms community-auth-url endpoint ('/hook/gms/' + 'secret')
   GMS_WEBHOOK_SECRET: process.env.GMS_WEBHOOK_SECRET ?? 'secret',
 }
