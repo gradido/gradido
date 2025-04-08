@@ -279,6 +279,13 @@ export const schema = Joi.object({
     .default('http://localhost:8080/')
     .description('The URL for the GMS dashboard'),
 
+  GMS_PLAYGROUND_ROUTE: Joi.string()
+    .pattern(/^[\w_-]*$/)
+    .default('usersearch-playground')
+    .description(
+      'gms frontend playground route, playground for standalone playground, usersearch-playground for old',
+    ),
+
   GMS_WEBHOOK_SECRET: Joi.string()
     .min(1)
     .default('secret')

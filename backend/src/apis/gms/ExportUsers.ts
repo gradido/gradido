@@ -4,7 +4,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 
-import { entities } from '@entity/index'
 import { User as DbUser } from '@entity/User'
 // import { createTestClient } from 'apollo-server-testing'
 
@@ -18,6 +17,8 @@ import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 
 CONFIG.EMAIL = false
+// use force to copy over all user even if gmsRegistered is set to true
+const forceMode = process.argv.includes('--force')
 
 const context = {
   token: '',
@@ -29,21 +30,6 @@ const context = {
     forEach: (): void => {},
   },
   clientTimezoneOffset: 0,
-}
-
-export const cleanDB = async () => {
-  // this only works as long we do not have foreign key constraints
-  for (const entity of entities) {
-    await resetEntity(entity)
-  }
-}
-
-const resetEntity = async (entity: any) => {
-  const items = await entity.find({ withDeleted: true })
-  if (items.length > 0) {
-    const ids = items.map((e: any) => e.id)
-    await entity.delete(ids)
-  }
 }
 
 const run = async () => {
@@ -59,8 +45,7 @@ const run = async () => {
   const userIds = await DbUser.createQueryBuilder()
     .select('id')
     .where({ foreign: false })
-    // .andWhere('deleted_at is null')
-    // .andWhere({ gmsRegistered: false })
+    .andWhere('deleted_at is null')
     .getRawMany()
   logger.debug('userIds:', userIds)
 
@@ -73,7 +58,7 @@ const run = async () => {
     if (user) {
       logger.debug('found local User:', user)
       if (user.gmsAllowed) {
-        await sendUserToGms(user, homeCom)
+        await sendUserToGms(user, homeCom, forceMode)
         /*
         const gmsUser = new GmsUser(user)
         try {
