@@ -74,20 +74,27 @@ async function onSwitch(event) {
   event.preventDefault() // Prevent the default navigation
   console.log('RedeemCommunitySelection.onSwitch... props=', props)
   if (isForeignCommunitySelected.value) {
-    const redeemJwtArgs = {
+    console.log('RedeemCommunitySelection.onSwitch vor createRedeemJwt params:', {
       gradidoID: props.linkData.user.gradidoID,
-      firstName: props.linkData.user.firstName,
-      alias: props.linkData.user.alias,
       communityUuid: props.targetCommunity.uuid,
       communityName: props.targetCommunity.name,
       code: props.redeemCode,
       amount: props.linkData.amount,
       memo: props.linkData.memo,
-    }
-
-    console.log('RedeemCommunitySelection.onSwitch vor createRedeemJwt params:', redeemJwtArgs)
+      firstName: props.linkData.user.firstName,
+      alias: props.linkData.user.alias,
+    })
     try {
-      const { data } = await createRedeemJwt({ variables: redeemJwtArgs })
+      const { data } = await createRedeemJwt({
+        gradidoID: props.linkData.user.gradidoID,
+        communityUuid: props.targetCommunity.uuid,
+        communityName: props.targetCommunity.name,
+        code: props.redeemCode,
+        amount: props.linkData.amount,
+        memo: props.linkData.memo,
+        firstName: props.linkData.user.firstName,
+        alias: props.linkData.user.alias,
+      })
       console.log('RedeemCommunitySelection.onSwitch... response=', data)
       if (!data?.createRedeemJwt) {
         throw new Error('Failed to get redeem token')

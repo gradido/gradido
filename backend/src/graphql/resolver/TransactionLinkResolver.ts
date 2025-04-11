@@ -11,7 +11,6 @@ import { Decimal } from 'decimal.js-light'
 import { Resolver, Args, Arg, Authorized, Ctx, Mutation, Query, Int } from 'type-graphql'
 
 import { Paginated } from '@arg/Paginated'
-import { RedeemJwtArgs } from '@arg/RedeemJwtArgs'
 import { TransactionLinkArgs } from '@arg/TransactionLinkArgs'
 import { TransactionLinkFilters } from '@arg/TransactionLinkFilters'
 import { ContributionCycleType } from '@enum/ContributionCycleType'
@@ -402,25 +401,34 @@ export class TransactionLinkResolver {
 
   @Authorized([RIGHTS.QUERY_REDEEM_JWT])
   @Mutation(() => String)
-  async createRedeemJwt(@Args() redeemJwtArgs: RedeemJwtArgs): Promise<string> {
+  async createRedeemJwt(
+    @Arg('gradidoID') gradidoID: string,
+    @Arg('communityUuid') communityUuid: string,
+    @Arg('communityName') communityName: string,
+    @Arg('code') code: string,
+    @Arg('amount') amount: string,
+    @Arg('memo') memo: string,
+    @Arg('firstName', { nullable: true }) firstName?: string,
+    @Arg('alias', { nullable: true }) alias?: string,
+  ): Promise<string> {
     logger.debug('TransactionLinkResolver.queryRedeemJwt... args=', {
-      gradidoID: redeemJwtArgs.gradidoID,
-      alias: redeemJwtArgs.alias,
-      firstName: redeemJwtArgs.firstName,
-      communityUuid: redeemJwtArgs.communityUuid,
-      communityName: redeemJwtArgs.communityName,
-      code: redeemJwtArgs.code,
-      amount: redeemJwtArgs.amount,
-      memo: redeemJwtArgs.memo,
+      gradidoID,
+      communityUuid,
+      communityName,
+      code,
+      amount,
+      memo,
+      firstName,
+      alias,
     })
 
     const disbursementJwtPayloadType = new DisbursementJwtPayloadType(
-      redeemJwtArgs.communityUuid,
-      redeemJwtArgs.gradidoID,
-      redeemJwtArgs.alias ?? redeemJwtArgs.firstName ?? '',
-      redeemJwtArgs.code,
-      redeemJwtArgs.amount.toString(),
-      redeemJwtArgs.memo,
+      communityUuid,
+      gradidoID,
+      alias ?? firstName ?? '',
+      code,
+      amount,
+      memo,
     )
     const homeCom = await getHomeCommunity()
     if (!homeCom.privateKey) {

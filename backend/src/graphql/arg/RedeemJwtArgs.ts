@@ -9,29 +9,29 @@ import { IsPositiveDecimal } from '@/graphql/validator/Decimal'
 @ArgsType()
 export class RedeemJwtArgs {
   @Field(() => String, { nullable: false })
-  gradidoID: string
+  gradidoID!: string
 
   @Field(() => String, { nullable: true })
-  alias?: string | null
+  firstName?: string
 
   @Field(() => String, { nullable: true })
-  firstName?: string | null
+  alias?: string
 
   @Field(() => String, { nullable: false })
-  communityUuid: string
+  communityUuid!: string
 
   @Field(() => String, { nullable: false })
-  communityName: string
+  communityName!: string
 
   @Field(() => String, { nullable: false })
-  code: string
+  code!: string
 
   @Field(() => Decimal, { nullable: false })
   @IsPositiveDecimal()
-  amount: Decimal
+  amount!: Decimal
 
   @Field(() => String, { nullable: false })
   @MaxLength(MEMO_MAX_CHARS)
   @MinLength(MEMO_MIN_CHARS)
-  memo: string
+  memo!: string
 }

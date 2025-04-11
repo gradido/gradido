@@ -202,23 +202,23 @@ export const logout = gql`
 export const createRedeemJwtMutation = gql`
   mutation (
     $gradidoID: String!
-    $firstName: String!
-    $alias: String!
     $communityUuid: String!
     $communityName: String!
     $code: String!
-    $amount: Decimal!
+    $amount: String!
     $memo: String!
+    $firstName: String
+    $alias: String
   ) {
     createRedeemJwt(
       gradidoID: $gradidoID
-      firstName: $firstName
-      alias: $alias
       communityUuid: $communityUuid
       communityName: $communityName
       code: $code
       amount: $amount
       memo: $memo
+      firstName: $firstName
+      alias: $alias
     )
   }
 `
