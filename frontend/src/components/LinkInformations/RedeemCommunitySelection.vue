@@ -12,21 +12,23 @@
           <BRow>
             <BCol>{{ $t('gdd_per_link.recipientCommunity') }}</BCol>
           </BRow>
-          <BRow>
-            <BCol class="fw-bold">
-              <community-switch
-                :disabled="isBalanceDisabled"
-                :model-value="currentReceiverCommunity"
-                @update:model-value="setReceiverCommunity"
-              />
-            </BCol>
-            <BCol v-if="isForeignCommunitySelected" sm="12" md="6" class="mt-2 mt-lg-0">
-              <p>{{ $t('gdd_per_link.switchCommunity') }}</p>
-              <BButton variant="gradido" @click="onSwitch">
-                {{ $t('gdd_per_link.to-switch') }}
-              </BButton>
-            </BCol>
-          </BRow>
+          <h3>
+            <BRow>
+              <BCol class="fw-bold">
+                <community-switch
+                  :disabled="isBalanceDisabled"
+                  :model-value="currentReceiverCommunity"
+                  @update:model-value="setReceiverCommunity"
+                />
+              </BCol>
+              <BCol v-if="isForeignCommunitySelected" sm="12" md="6" class="mt-4 mt-lg-0">
+                <p>{{ $t('gdd_per_link.switchCommunity') }}</p>
+                <BButton variant="gradido" @click="onSwitch">
+                  {{ $t('gdd_per_link.to-switch') }}
+                </BButton>
+              </BCol>
+            </BRow>
+          </h3>
         </BCol>
         <template v-if="linkData.user">
           {{ linkData.user.firstName }}
