@@ -1,7 +1,7 @@
 <template>
   <div class="redeem-select-community">
     <redeem-community-selection
-      v-model:target-community="yourTargetCommunity"
+      v-model:receiver-community="receiverCommunity"
       :link-data="props.linkData"
       :redeem-code="props.redeemCode"
       :is-contribution-link="props.isContributionLink"
@@ -15,13 +15,13 @@
       <BRow>
         <BCol sm="12" md="6">
           <p>{{ $t('gdd_per_link.no-account') }}</p>
-          <BButton variant="primary" :to="register()">
+          <BButton variant="primary" :disabled="isForeignCommunitySelected" :to="register()">
             {{ $t('gdd_per_link.to-register') }}
           </BButton>
         </BCol>
         <BCol sm="12" md="6" class="mt-4 mt-lg-0">
           <p>{{ $t('gdd_per_link.has-account') }}</p>
-          <BButton variant="gradido" :to="login()">
+          <BButton variant="gradido" :disabled="isForeignCommunitySelected" :to="login()">
             {{ $t('gdd_per_link.to-login') }}
           </BButton>
         </BCol>
@@ -31,7 +31,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import CONFIG from '@/config'
 import { useAuthLinks } from '@/composables/useAuthLinks'
 
@@ -42,8 +42,14 @@ const props = defineProps({
   isContributionLink: { type: Boolean, default: false },
 })
 
-const yourTargetCommunity = ref({
+const receiverCommunity = ref({
   uuid: '',
   name: CONFIG.COMMUNITY_NAME,
+  url: CONFIG.COMMUNITY_URL,
+  foreign: false,
+})
+
+const isForeignCommunitySelected = computed(() => {
+  return receiverCommunity.value.foreign === true
 })
 </script>

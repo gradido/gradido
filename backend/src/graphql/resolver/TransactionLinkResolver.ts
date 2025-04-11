@@ -403,8 +403,9 @@ export class TransactionLinkResolver {
   @Mutation(() => String)
   async createRedeemJwt(
     @Arg('gradidoID') gradidoID: string,
-    @Arg('communityUuid') communityUuid: string,
-    @Arg('communityName') communityName: string,
+    @Arg('senderCommunityUuid') senderCommunityUuid: string,
+    @Arg('senderCommunityName') senderCommunityName: string,
+    @Arg('receiverCommunityUuid') receiverCommunityUuid: string,
     @Arg('code') code: string,
     @Arg('amount') amount: string,
     @Arg('memo') memo: string,
@@ -413,8 +414,9 @@ export class TransactionLinkResolver {
   ): Promise<string> {
     logger.debug('TransactionLinkResolver.queryRedeemJwt... args=', {
       gradidoID,
-      communityUuid,
-      communityName,
+      senderCommunityUuid,
+      senderCommunityName,
+      receiverCommunityUuid,
       code,
       amount,
       memo,
@@ -423,18 +425,20 @@ export class TransactionLinkResolver {
     })
 
     const disbursementJwtPayloadType = new DisbursementJwtPayloadType(
-      communityUuid,
+      senderCommunityUuid,
       gradidoID,
       alias ?? firstName ?? '',
       code,
       amount,
       memo,
     )
+    // encode/sign the jwt with the private key of the sender/home community
     const homeCom = await getHomeCommunity()
     if (!homeCom.privateKey) {
       throw new LogError('Home community private key is not set')
     }
     const redeemJwt = await encode(disbursementJwtPayloadType, homeCom.privateKey)
+    // TODO: encrypt the payload with the public key of the target community
     return redeemJwt
   }
 

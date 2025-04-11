@@ -16,11 +16,11 @@
             <BCol class="fw-bold">
               <community-switch
                 :disabled="isBalanceDisabled"
-                :model-value="targetCommunity"
-                @update:model-value="setTargetCommunity"
+                :model-value="currentReceiverCommunity"
+                @update:model-value="setReceiverCommunity"
               />
             </BCol>
-            <BCol v-if="isForeignCommunitySelected" sm="12" md="6" class="mt-4 mt-lg-0">
+            <BCol v-if="isForeignCommunitySelected" sm="12" md="6" class="mt-2 mt-lg-0">
               <p>{{ $t('gdd_per_link.switchCommunity') }}</p>
               <BButton variant="gradido" @click="onSwitch">
                 {{ $t('gdd_per_link.to-switch') }}
@@ -47,25 +47,69 @@ const props = defineProps({
   linkData: { type: Object, required: true },
   redeemCode: { type: String, required: true },
   isContributionLink: { type: Boolean, default: false },
-  targetCommunity: {
+  receiverCommunity: {
     type: Object,
-    required: true,
-    default: () => ({ uuid: '', name: CONFIG.COMMUNITY_NAME }),
+    required: false,
   },
 })
 
-const emit = defineEmits(['update:targetCommunity'])
+const senderCommunity = computed(() => extractHomeCommunityFromLinkData(props.linkData))
+const currentReceiverCommunity = computed(
+  () =>
+    props.receiverCommunity || {
+      uuid: senderCommunity.value.uuid,
+      name: senderCommunity.value.name,
+      url: senderCommunity.value.url,
+      foreign: senderCommunity.value.foreign,
+    },
+)
+
+const emit = defineEmits(['update:receiverCommunity'])
 
 const isForeignCommunitySelected = computed(() => {
-  if (props.targetCommunity.name !== CONFIG.COMMUNITY_NAME) {
-    return true
-  }
-  return false
+  console.log(
+    'RedeemCommunitySelection.isForeignCommunitySelected...receiverCommunity=',
+    currentReceiverCommunity.value,
+  )
+  return currentReceiverCommunity.value.foreign
 })
 
-function setTargetCommunity(community) {
-  console.log('RedeemCommunitySelection.setTargetCommunity...community=', community)
-  emit('update:targetCommunity', community)
+function setReceiverCommunity(community) {
+  console.log('RedeemCommunitySelection.setReceiverCommunity...community=', community)
+  emit('update:receiverCommunity', {
+    uuid: community.uuid,
+    name: community.name,
+    url: community.url,
+    foreign: community.foreign,
+  })
+}
+
+function extractHomeCommunityFromLinkData(linkData) {
+  console.log('RedeemCommunitySelection.extractHomeCommunityFromLinkData...linkData=', linkData)
+  if (linkData.communities.length === 0) {
+    return {
+      uuid: '',
+      name: CONFIG.COMMUNITY_NAME,
+      url: CONFIG.COMMUNITY_URL,
+      foreign: false,
+    }
+  }
+  const communities = linkData.communities
+  console.log(
+    'RedeemCommunitySelection.extractHomeCommunityFromLinkData...communities=',
+    communities,
+  )
+  const homeCommunity = communities.find((c) => c.foreign === false)
+  console.log(
+    'RedeemCommunitySelection.extractHomeCommunityFromLinkData...homeCommunity=',
+    homeCommunity,
+  )
+  return {
+    uuid: homeCommunity.uuid,
+    name: homeCommunity.name,
+    url: homeCommunity.url,
+    foreign: homeCommunity.foreign,
+  }
 }
 
 const { mutate: createRedeemJwt } = useMutation(createRedeemJwtMutation)
@@ -76,8 +120,9 @@ async function onSwitch(event) {
   if (isForeignCommunitySelected.value) {
     console.log('RedeemCommunitySelection.onSwitch vor createRedeemJwt params:', {
       gradidoID: props.linkData.user.gradidoID,
-      communityUuid: props.targetCommunity.uuid,
-      communityName: props.targetCommunity.name,
+      senderCommunityUuid: senderCommunity.value.uuid,
+      senderCommunityName: senderCommunity.value.name,
+      receiverCommunityUuid: currentReceiverCommunity.value.uuid,
       code: props.redeemCode,
       amount: props.linkData.amount,
       memo: props.linkData.memo,
@@ -87,8 +132,9 @@ async function onSwitch(event) {
     try {
       const { data } = await createRedeemJwt({
         gradidoID: props.linkData.user.gradidoID,
-        communityUuid: props.targetCommunity.uuid,
-        communityName: props.targetCommunity.name,
+        senderCommunityUuid: senderCommunity.value.uuid,
+        senderCommunityName: senderCommunity.value.name,
+        receiverCommunityUuid: currentReceiverCommunity.value.uuid,
         code: props.redeemCode,
         amount: props.linkData.amount,
         memo: props.linkData.memo,
@@ -99,7 +145,7 @@ async function onSwitch(event) {
       if (!data?.createRedeemJwt) {
         throw new Error('Failed to get redeem token')
       }
-      const targetUrl = props.targetCommunity.url.replace(/\/api\/?$/, '')
+      const targetUrl = currentReceiverCommunity.value.url.replace(/\/api\/?$/, '')
       window.location.href = targetUrl + '/redeem/' + data.createRedeemJwt
     } catch (error) {
       console.error('RedeemCommunitySelection.onSwitch error:', error)
