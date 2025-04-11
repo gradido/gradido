@@ -1,4 +1,4 @@
-import { FindOneOptions } from '@dbTools/typeorm'
+import { FindOneOptions, IsNull, Not } from '@dbTools/typeorm'
 import { Community as DbCommunity } from '@entity/Community'
 import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
 
@@ -85,6 +85,17 @@ export async function getCommunityByUuid(communityUuid: string): Promise<DbCommu
   return await DbCommunity.findOne({
     where: [{ communityUuid }],
   })
+}
+
+export async function getAuthenticatedCommunities(): Promise<DbCommunity[]> {
+  const dbCommunities: DbCommunity[] = await DbCommunity.find({
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+    where: { communityUuid: Not(IsNull()) }, //, authenticatedAt: Not(IsNull()) },
+    order: {
+      name: 'ASC',
+    },
+  })
+  return dbCommunities
 }
 
 export async function getCommunityByIdentifier(

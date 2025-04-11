@@ -198,3 +198,27 @@ export const logout = gql`
     logout
   }
 `
+
+export const createRedeemJwtMutation = gql`
+  mutation (
+    $gradidoID: String!
+    $firstName: String!
+    $alias: String!
+    $communityUuid: String!
+    $communityName: String!
+    $code: String!
+    $amount: Decimal!
+    $memo: String!
+  ) {
+    createRedeemJwt(
+      gradidoID: $gradidoID
+      firstName: $firstName
+      alias: $alias
+      communityUuid: $communityUuid
+      communityName: $communityName
+      code: $code
+      amount: $amount
+      memo: $memo
+    )
+  }
+`

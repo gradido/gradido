@@ -110,6 +110,7 @@ export const selectCommunities = gql`
       name
       description
       foreign
+      url
     }
   }
 `
@@ -141,6 +142,13 @@ export const queryTransactionLink = gql`
           gradidoID
           firstName
           publisherId
+        }
+        communities {
+          foreign
+          name
+          description
+          url
+          uuid
         }
       }
       ... on ContributionLink {

@@ -12,7 +12,7 @@ export class PublicCommunityInfoLoggingView extends AbstractLoggingView {
     return {
       name: this.self.name,
       description: this.self.description,
-      creationDate: this.dateToString(this.self.creationDate),
+      creationDate: this.self.creationDate,
       publicKey: this.self.publicKey,
     }
   }

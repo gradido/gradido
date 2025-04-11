@@ -78,6 +78,7 @@ export class FederationClient {
       )
       return data.getPublicCommunityInfo
     } catch (err) {
+      logger.warn(' err', err)
       const errorString = JSON.stringify(err)
       logger.warn('Federation: getPublicCommunityInfo failed for endpoint', {
         endpoint: this.endpoint,

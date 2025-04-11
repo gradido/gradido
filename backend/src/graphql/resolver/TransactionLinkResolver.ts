@@ -1,6 +1,7 @@
 import { randomBytes } from 'crypto'
 
 import { getConnection } from '@dbTools/typeorm'
+import { Community as DbCommunity } from '@entity/Community'
 import { Contribution as DbContribution } from '@entity/Contribution'
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
 import { Transaction as DbTransaction } from '@entity/Transaction'
@@ -10,6 +11,7 @@ import { Decimal } from 'decimal.js-light'
 import { Resolver, Args, Arg, Authorized, Ctx, Mutation, Query, Int } from 'type-graphql'
 
 import { Paginated } from '@arg/Paginated'
+import { RedeemJwtArgs } from '@arg/RedeemJwtArgs'
 import { TransactionLinkArgs } from '@arg/TransactionLinkArgs'
 import { TransactionLinkFilters } from '@arg/TransactionLinkFilters'
 import { ContributionCycleType } from '@enum/ContributionCycleType'
@@ -22,6 +24,8 @@ import { TransactionLink, TransactionLinkResult } from '@model/TransactionLink'
 import { User } from '@model/User'
 import { QueryLinkResult } from '@union/QueryLinkResult'
 
+import { decode, encode } from '@/auth/jwt/JWT'
+import { DisbursementJwtPayloadType } from '@/auth/jwt/payloadtypes/DisbursementJwtPayloadType'
 import { RIGHTS } from '@/auth/RIGHTS'
 import {
   EVENT_CONTRIBUTION_LINK_REDEEM,
@@ -39,6 +43,7 @@ import { fullName } from '@/util/utilities'
 import { calculateBalance } from '@/util/validate'
 
 import { executeTransaction } from './TransactionResolver'
+import { getAuthenticatedCommunities, getHomeCommunity } from './util/communities'
 import { getUserCreation, validateContribution } from './util/creations'
 import { getLastTransaction } from './util/getLastTransaction'
 import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
@@ -136,6 +141,8 @@ export class TransactionLinkResolver {
   @Authorized([RIGHTS.QUERY_TRANSACTION_LINK])
   @Query(() => QueryLinkResult)
   async queryTransactionLink(@Arg('code') code: string): Promise<typeof QueryLinkResult> {
+    logger.debug('TransactionLinkResolver.queryTransactionLink... code=', code)
+    const transactionLink = new TransactionLink()
     if (code.match(/^CL-/)) {
       const contributionLink = await DbContributionLink.findOneOrFail({
         where: { code: code.replace('CL-', '') },
@@ -143,19 +150,48 @@ export class TransactionLinkResolver {
       })
       return new ContributionLink(contributionLink)
     } else {
-      const transactionLink = await DbTransactionLink.findOneOrFail({
-        where: { code },
-        withDeleted: true,
-      })
-      const user = await DbUser.findOneOrFail({ where: { id: transactionLink.userId } })
-      let redeemedBy: User | null = null
-      if (transactionLink?.redeemedBy) {
-        redeemedBy = new User(
-          await DbUser.findOneOrFail({ where: { id: transactionLink.redeemedBy } }),
-        )
+      let txLinkFound = false
+      let dbTransactionLink!: DbTransactionLink
+      try {
+        dbTransactionLink = await DbTransactionLink.findOneOrFail({
+          where: { code },
+          withDeleted: true,
+        })
+        txLinkFound = true
+      } catch (err) {
+        txLinkFound = false
       }
-      return new TransactionLink(transactionLink, new User(user), redeemedBy)
+      // normal redeem code
+      if (txLinkFound) {
+        const user = await DbUser.findOneOrFail({ where: { id: dbTransactionLink.userId } })
+        let redeemedBy
+        if (dbTransactionLink.redeemedBy) {
+          redeemedBy = new User(
+            await DbUser.findOneOrFail({ where: { id: dbTransactionLink.redeemedBy } }),
+          )
+        }
+        const communities = await getAuthenticatedCommunities()
+        return new TransactionLink(dbTransactionLink, new User(user), redeemedBy, communities)
+      } else {
+        // disbursement jwt-token
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment
+        const homeCom = await getHomeCommunity()
+        const jwtPayload = decode(code, homeCom.publicKey)
+        if (jwtPayload !== null && jwtPayload instanceof DisbursementJwtPayloadType) {
+          const disburseJwtPayload: DisbursementJwtPayloadType = jwtPayload
+          transactionLink.communityName = homeCom.name !== null ? homeCom.name : 'unknown'
+          // transactionLink.user = new User()
+          transactionLink.user.alias = disburseJwtPayload.sendername
+          transactionLink.amount = new Decimal(disburseJwtPayload.amount)
+          transactionLink.memo = disburseJwtPayload.memo
+          transactionLink.code = disburseJwtPayload.redeemcode
+          return transactionLink
+        } else {
+          throw new LogError('Redeem with wrong type of JWT-Token! jwtType=', jwtPayload)
+        }
+      }
     }
+    return transactionLink
   }
 
   @Authorized([RIGHTS.REDEEM_TRANSACTION_LINK])
@@ -362,6 +398,36 @@ export class TransactionLinkResolver {
       }
       return true
     }
+  }
+
+  @Authorized([RIGHTS.QUERY_REDEEM_JWT])
+  @Mutation(() => String)
+  async createRedeemJwt(@Args() redeemJwtArgs: RedeemJwtArgs): Promise<string> {
+    logger.debug('TransactionLinkResolver.queryRedeemJwt... args=', {
+      gradidoID: redeemJwtArgs.gradidoID,
+      alias: redeemJwtArgs.alias,
+      firstName: redeemJwtArgs.firstName,
+      communityUuid: redeemJwtArgs.communityUuid,
+      communityName: redeemJwtArgs.communityName,
+      code: redeemJwtArgs.code,
+      amount: redeemJwtArgs.amount,
+      memo: redeemJwtArgs.memo,
+    })
+
+    const disbursementJwtPayloadType = new DisbursementJwtPayloadType(
+      redeemJwtArgs.communityUuid,
+      redeemJwtArgs.gradidoID,
+      redeemJwtArgs.alias ?? redeemJwtArgs.firstName ?? '',
+      redeemJwtArgs.code,
+      redeemJwtArgs.amount.toString(),
+      redeemJwtArgs.memo,
+    )
+    const homeCom = await getHomeCommunity()
+    if (!homeCom.privateKey) {
+      throw new LogError('Home community private key is not set')
+    }
+    const redeemJwt = await encode(disbursementJwtPayloadType, homeCom.privateKey)
+    return redeemJwt
   }
 
   @Authorized([RIGHTS.LIST_TRANSACTION_LINKS])
