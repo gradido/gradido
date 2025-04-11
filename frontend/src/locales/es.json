@@ -20,6 +20,28 @@
     }
   },
   "back": "Volver",
+  "card-circles": {
+    "headline": "Plataforma de cooperación «Círculos Gradido»",
+    "text": "Círculos locales, círculos de estudio, proyectos, ev entos y congresos",
+    "allowed": {
+      "button": "Iniciar círculos..."
+    },
+    "not-allowed": {
+      "button": "Configurar..."
+    }
+  },
+  "card-user-search": {
+    "headline": "Búsqueda geográfica de miembros",
+    "allowed": {
+      "button": "Iniciar Búsqueda de Miembros...",
+      "disabled-button": "GMS offline...",
+      "text": "Encuentra Miembros de todas las Comunidades en un Mapa."
+    },
+    "not-allowed": {
+      "button": "Configuración de ubicación...",
+      "text": "Encuentra Miembros de todas las Comunidades en un Mapa? Entonces tienes que establecer tu ubicación primero."
+    }
+  },
   "circles": {
     "headline": "Juntos nos apoyamos - atentos a la cultura de los círculos.",
     "text": "Haga clic en el botón para abrir la plataforma de cooperación en una nueva ventana del navegador.",
@@ -265,7 +287,7 @@
     "settings": "Soporte",
     "transactions": "Tu Transacciones",
     "circles": "Círculos Gradido",
-    "usersearch": "Búsqueda geográfica de usuarios"
+    "usersearch": "Búsqueda geográfica de miembros (experimental)"
   },
   "qrCode": "Código QR",
   "send_gdd": "Enviar GDD",
