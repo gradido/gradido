@@ -49,6 +49,7 @@ const run = async () => {
     .getRawMany()
   logger.debug('userIds:', userIds)
 
+  let alreadyUpdatedUserCount = 0
   for (const idStr of userIds) {
     logger.debug('Id:', idStr.id)
     const user = await DbUser.findOne({
@@ -78,6 +79,8 @@ const run = async () => {
         logger.debug('GMS-Publishing not allowed by user settings:', user)
       }
     }
+    alreadyUpdatedUserCount++
+    process.stdout.write(`updated user: ${alreadyUpdatedUserCount}/${userIds.length}\r`)
   }
   logger.info('##gms## publishing all local users successful...')
 
