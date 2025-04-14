@@ -130,6 +130,7 @@ const itemType = computed(() => {
 })
 
 const itemTypeExt = computed(() => {
+  console.log('TransactionLink.itemTypeExt... itemType=', itemType)
   if (itemType.value.startsWith('TEXT')) {
     return 'TEXT'
   }
@@ -179,6 +180,7 @@ onResult(() => {
 })
 
 onError(() => {
+  console.log('TransactionLink.onError... error=', error)
   toastError(t('gdd_per_link.redeemlink-error'))
 })
 

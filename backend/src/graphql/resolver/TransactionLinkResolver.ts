@@ -175,7 +175,7 @@ export class TransactionLinkResolver {
         // disbursement jwt-token
         // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment
         const homeCom = await getHomeCommunity()
-        const jwtPayload = decode(code, homeCom.publicKey)
+        const jwtPayload = await decode(code, homeCom.publicKey)
         if (jwtPayload !== null && jwtPayload instanceof DisbursementJwtPayloadType) {
           const disburseJwtPayload: DisbursementJwtPayloadType = jwtPayload
           transactionLink.communityName = homeCom.name !== null ? homeCom.name : 'unknown'
