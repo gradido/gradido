@@ -5,21 +5,26 @@ import { backendLogger as logger } from '@/server/logger'
 
 import { JwtPayloadType } from './payloadtypes/JwtPayloadType'
 
-export const decode = async (token: string, signkey: Buffer): Promise<JwtPayloadType | null> => {
+export const verify = async (token: string, signkey: Buffer): Promise<JwtPayloadType | null> => {
   if (!token) throw new LogError('401 Unauthorized')
-  logger.debug('JWT.decode... token, signkey=', token, signkey)
+  logger.debug(
+    'JWT.verify... token, signkey, signkey.toString()',
+    token,
+    signkey,
+    signkey.toString(),
+  )
 
   try {
     const secret = new TextEncoder().encode(signkey.toString())
-    logger.debug('JWT.decode... secret=', secret)
+    logger.debug('JWT.verify... secret=', secret)
     const { payload } = await jwtVerify(token, secret, {
       issuer: 'urn:gradido:issuer',
       audience: 'urn:gradido:audience',
     })
-    logger.debug('JWT.decode after jwtVerify... payload=', payload)
+    logger.debug('JWT.verify after jwtVerify... payload=', payload)
     return payload as unknown as JwtPayloadType
   } catch (err) {
-    logger.error('JWT.decode after jwtVerify... error=', err)
+    logger.error('JWT.verify after jwtVerify... error=', err)
     return null
   }
 }
@@ -27,7 +32,9 @@ export const decode = async (token: string, signkey: Buffer): Promise<JwtPayload
 export const encode = async (payload: JwtPayloadType, signkey: Buffer): Promise<string> => {
   const secret = new TextEncoder().encode(signkey.toString())
   const token = await new SignJWT({ payload, 'urn:gradido:claim': true })
-    .setProtectedHeader({ alg: 'HS256' })
+    .setProtectedHeader({
+      alg: 'RS256',
+    })
     .setIssuedAt()
     .setIssuer('urn:gradido:issuer')
     .setAudience('urn:gradido:audience')
@@ -36,7 +43,7 @@ export const encode = async (payload: JwtPayloadType, signkey: Buffer): Promise<
   return token
 }
 
-export const decodeJwtType = async (token: string, signkey: Buffer): Promise<string> => {
-  const payload = await decode(token, signkey)
+export const verifyJwtType = async (token: string, signkey: Buffer): Promise<string> => {
+  const payload = await verify(token, signkey)
   return payload ? payload.tokentype : 'unknown token type'
 }

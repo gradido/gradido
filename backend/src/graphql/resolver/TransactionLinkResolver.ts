@@ -23,7 +23,7 @@ import { TransactionLink, TransactionLinkResult } from '@model/TransactionLink'
 import { User } from '@model/User'
 import { QueryLinkResult } from '@union/QueryLinkResult'
 
-import { decode, encode } from '@/auth/jwt/JWT'
+import { verify, encode } from '@/auth/jwt/JWT'
 import { DisbursementJwtPayloadType } from '@/auth/jwt/payloadtypes/DisbursementJwtPayloadType'
 import { RIGHTS } from '@/auth/RIGHTS'
 import {
@@ -177,21 +177,27 @@ export class TransactionLinkResolver {
         return new TransactionLink(dbTransactionLink, new User(user), redeemedBy, communities)
       } else {
         // disbursement jwt-token
-        logger.debug(
-          'TransactionLinkResolver.queryTransactionLink... disbursement jwt-token found=',
-        )
+        logger.debug('TransactionLinkResolver.queryTransactionLink... disbursement jwt-token found')
         // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment
         const homeCom = await getHomeCommunity()
-        const jwtPayload = await decode(code, homeCom.publicKey)
+        const jwtPayload = await verify(code, homeCom.publicKey)
         logger.debug('TransactionLinkResolver.queryTransactionLink... jwtPayload=', jwtPayload)
         if (jwtPayload !== null && jwtPayload instanceof DisbursementJwtPayloadType) {
           const disburseJwtPayload: DisbursementJwtPayloadType = jwtPayload
+          logger.debug(
+            'TransactionLinkResolver.queryTransactionLink... disburseJwtPayload=',
+            jwtPayload,
+          )
           transactionLink.communityName = homeCom.name !== null ? homeCom.name : 'unknown'
           // transactionLink.user = new User()
           transactionLink.user.alias = disburseJwtPayload.sendername
           transactionLink.amount = new Decimal(disburseJwtPayload.amount)
           transactionLink.memo = disburseJwtPayload.memo
           transactionLink.code = disburseJwtPayload.redeemcode
+          logger.debug(
+            'TransactionLinkResolver.queryTransactionLink... transactionLink=',
+            transactionLink,
+          )
           return transactionLink
         } else {
           throw new LogError('Redeem with wrong type of JWT-Token! jwtType=', jwtPayload)
