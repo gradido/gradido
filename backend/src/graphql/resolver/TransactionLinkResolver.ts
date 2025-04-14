@@ -162,6 +162,10 @@ export class TransactionLinkResolver {
       }
       // normal redeem code
       if (txLinkFound) {
+        logger.debug(
+          'TransactionLinkResolver.queryTransactionLink... normal redeem code found=',
+          txLinkFound,
+        )
         const user = await DbUser.findOneOrFail({ where: { id: dbTransactionLink.userId } })
         let redeemedBy
         if (dbTransactionLink.redeemedBy) {
@@ -173,9 +177,13 @@ export class TransactionLinkResolver {
         return new TransactionLink(dbTransactionLink, new User(user), redeemedBy, communities)
       } else {
         // disbursement jwt-token
+        logger.debug(
+          'TransactionLinkResolver.queryTransactionLink... disbursement jwt-token found=',
+        )
         // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment
         const homeCom = await getHomeCommunity()
         const jwtPayload = await decode(code, homeCom.publicKey)
+        logger.debug('TransactionLinkResolver.queryTransactionLink... jwtPayload=', jwtPayload)
         if (jwtPayload !== null && jwtPayload instanceof DisbursementJwtPayloadType) {
           const disburseJwtPayload: DisbursementJwtPayloadType = jwtPayload
           transactionLink.communityName = homeCom.name !== null ? homeCom.name : 'unknown'

@@ -1,6 +1,7 @@
 import { SignJWT, jwtVerify } from 'jose'
 
 import { LogError } from '@/server/LogError'
+import { backendLogger as logger } from '@/server/logger'
 
 import { JwtPayloadType } from './payloadtypes/JwtPayloadType'
 
@@ -13,6 +14,7 @@ export const decode = async (token: string, signkey: Buffer): Promise<JwtPayload
       issuer: 'urn:gradido:issuer',
       audience: 'urn:gradido:audience',
     })
+    logger.debug('JWT.decode after jwtVerify... payload=', payload)
     return payload as unknown as JwtPayloadType
   } catch (err) {
     return null
