@@ -1,6 +1,8 @@
 import NotFound from '@/pages/NotFoundPage'
 
 function setReferrerToMeta(to, from) {
+  console.log('setReferrerToMeta... to=', to)
+  console.log('setReferrerToMeta... from=', from) 
   if (Object.keys(from.query).length) {
     to.meta.referrer = from.path
   }
