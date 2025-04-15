@@ -4,7 +4,6 @@
       v-model:receiver-community="receiverCommunity"
       :link-data="props.linkData"
       :redeem-code="props.redeemCode"
-      :referrer="props.referrer"
       :is-contribution-link="props.isContributionLink"
     />
 
@@ -40,7 +39,6 @@ const { login, register } = useAuthLinks()
 const props = defineProps({
   linkData: { type: Object, required: true },
   redeemCode: { type: String, required: true },
-  referrer: { type: String, required: true },
   isContributionLink: { type: Boolean, default: false },
 })
 

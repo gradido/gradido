@@ -1,13 +1,5 @@
 import NotFound from '@/pages/NotFoundPage'
 
-function setReferrerToMeta(to, from) {
-  console.log('setReferrerToMeta... to=', to)
-  console.log('setReferrerToMeta... from=', from) 
-  if (Object.keys(from.query).length) {
-    to.meta.referrer = from.path
-  }
-}
-
 const routes = [
   {
     path: '/authenticate',
@@ -164,13 +156,6 @@ const routes = [
   {
     path: '/redeem/:code',
     component: () => import('@/pages/TransactionLink'),
-    beforeEnter: (to, from) => {
-      setReferrerToMeta(to, from)
-      return true
-    },
-    meta: {
-      referrer: 'unknown',
-    },
   },
   {
     path: '/:catchAll(.*)',

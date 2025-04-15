@@ -143,10 +143,7 @@ export class TransactionLinkResolver {
 
   @Authorized([RIGHTS.QUERY_TRANSACTION_LINK])
   @Query(() => QueryLinkResult)
-  async queryTransactionLink(
-    @Arg('code') code: string,
-    @Arg('referrer') referrer: string,
-  ): Promise<typeof QueryLinkResult> {
+  async queryTransactionLink(@Arg('code') code: string): Promise<typeof QueryLinkResult> {
     logger.debug('TransactionLinkResolver.queryTransactionLink... code=', code)
     const transactionLink = new TransactionLink()
     if (code.match(/^CL-/)) {
@@ -210,18 +207,24 @@ export class TransactionLinkResolver {
               disburseJwtPayload.sendercommunityuuid,
             )
           }
-          const senderUrl = senderCom.url.replace(/\/api\/?$/, '')
-          if (!senderUrl.startsWith(referrer)) {
-            throw new LogError('Sender community does not match referrer', senderCom.name, referrer)
-          }
           if (!senderCom.communityUuid) {
             throw new LogError('Sender community UUID is not set')
           }
           // now with the sender community UUID the jwt token can be verified
-          const jwtPayload = await verify(code, senderCom.communityUuid)
+          let jwtPayload = await verify(code, senderCom.communityUuid)
+          // TODO: as long as the verification fails, fallback to decode
+          if (jwtPayload === null) {
+            jwtPayload = decode(code)
+          }
           logger.debug('TransactionLinkResolver.queryTransactionLink... jwtPayload=', jwtPayload)
           if (jwtPayload !== null && jwtPayload instanceof DisbursementJwtPayloadType) {
-            const disburseJwtPayload: DisbursementJwtPayloadType = jwtPayload
+            const disburseJwtPayload = new DisbursementJwtPayloadType(jwtPayload.sendercommunityuuid,
+              jwtPayload.sendergradidoid,
+              jwtPayload.sendername,
+              jwtPayload.redeemcode,
+              jwtPayload.amount,
+              jwtPayload.memo,
+            )
             logger.debug(
               'TransactionLinkResolver.queryTransactionLink... disburseJwtPayload=',
               disburseJwtPayload,

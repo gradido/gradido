@@ -6,7 +6,6 @@
           <redeem-select-community
             :link-data="linkData"
             :redeem-code="redeemCode"
-            :referrer="referrer"
             :is-contribution-link="isContributionLink"
           />
         </template>
@@ -72,23 +71,17 @@ const linkData = ref({
 
 const redeemedBoxText = ref('')
 
-const { result, onResult, loading, error, onError } = useQuery(queryTransactionLink, {
+const { result, onResult, error, onError } = useQuery(queryTransactionLink, {
   code: params.code,
-  referrer: meta.referrer,
 })
 
-const {
-  mutate: redeemMutate,
-  loading: redeemLoading,
-  error: redeemError,
-} = useMutation(redeemTransactionLink)
+const { mutate: redeemMutate } = useMutation(redeemTransactionLink)
 
 const isContributionLink = computed(() => {
   return params.code?.search(/^CL-/) === 0
 })
 
 const redeemCode = computed(() => params.code)
-const referrer = computed(() => meta.referrer)
 
 const tokenExpiresInSeconds = computed(() => {
   const remainingSecs = Math.floor(
@@ -102,7 +95,6 @@ const validLink = computed(() => {
 })
 
 const itemType = computed(() => {
-  console.log('TransactionLink.itemType... referrer=', referrer.value, meta.referrer)
   if (linkData.value.deletedAt) {
     console.log('TransactionLink.itemType... TEXT_DELETED')
     return 'TEXT_DELETED'
@@ -174,26 +166,22 @@ const emit = defineEmits(['set-mobile-start'])
 
 onMounted(() => {
   console.log('TransactionLink.onMounted... params=', params)
-  console.log('TransactionLink.onMounted... meta=', meta)
   emit('set-mobile-start', false)
 })
 
 onResult(() => {
   console.log('TransactionLink.onResult... result=', result)
-  console.log('TransactionLink.onResult... referrer=', referrer.value, meta.referrer)
   if (!result || !result.value) return
   setTransactionLinkInformation()
 })
 
 onError(() => {
   console.log('TransactionLink.onError... error=', error)
-  console.log('TransactionLink.onError... referrer=', referrer.value, meta.referrer)
   toastError(t('gdd_per_link.redeemlink-error'))
 })
 
 function setTransactionLinkInformation() {
   console.log('TransactionLink.setTransactionLinkInformation... result=', result)
-  console.log('TransactionLink.setTransactionLinkInformation... referrer=', referrer.value, meta.referrer)
   const { queryTransactionLink } = result.value
   console.log(
     'TransactionLink.setTransactionLinkInformation... queryTransactionLink=',
