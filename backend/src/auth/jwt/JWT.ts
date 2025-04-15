@@ -1,20 +1,15 @@
 import { createPrivateKey, sign } from 'node:crypto'
 
-import { SignJWT, jwtVerify } from 'jose'
+import { SignJWT, jwtVerify, decodeJwt, JWTPayload } from 'jose'
 
 import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 
 import { JwtPayloadType } from './payloadtypes/JwtPayloadType'
 
-export const verify = async (token: string, signkey: Buffer): Promise<JwtPayloadType | null> => {
+export const verify = async (token: string, signkey: string): Promise<JwtPayloadType | null> => {
   if (!token) throw new LogError('401 Unauthorized')
-  logger.info(
-    'JWT.verify... token, signkey, signkey.toString(hex)',
-    token,
-    signkey,
-    signkey.toString('hex'),
-  )
+  logger.info('JWT.verify... token, signkey=', token, signkey)
 
   try {
     /*
@@ -28,7 +23,8 @@ export const verify = async (token: string, signkey: Buffer): Promise<JwtPayload
     logger.info('JWT.verify... keyObject.asymmetricKeyType=', keyObject.asymmetricKeyType)
     logger.info('JWT.verify... keyObject.asymmetricKeySize=', keyObject.asymmetricKeySize)
     */
-    const { payload } = await jwtVerify(token, signkey, {
+    const secret = new TextEncoder().encode(signkey)
+    const { payload } = await jwtVerify(token, secret, {
       issuer: 'urn:gradido:issuer',
       audience: 'urn:gradido:audience',
     })
@@ -40,12 +36,11 @@ export const verify = async (token: string, signkey: Buffer): Promise<JwtPayload
   }
 }
 
-export const encode = async (payload: JwtPayloadType, signkey: Buffer): Promise<string> => {
+export const encode = async (payload: JwtPayloadType, signkey: string): Promise<string> => {
   logger.info('JWT.encode... payload=', payload)
   logger.info('JWT.encode... signkey=', signkey)
-  logger.info('JWT.encode... signkey length=', signkey.length)
-  logger.info('JWT.encode... signkey.toString(hex)=', signkey.toString('hex'))
   try {
+    const secret = new TextEncoder().encode(signkey)
     const token = await new SignJWT({ payload, 'urn:gradido:claim': true })
       .setProtectedHeader({
         alg: 'HS256',
@@ -54,7 +49,7 @@ export const encode = async (payload: JwtPayloadType, signkey: Buffer): Promise<
       .setIssuer('urn:gradido:issuer')
       .setAudience('urn:gradido:audience')
       .setExpirationTime(payload.expiration)
-      .sign(signkey)
+      .sign(secret)
     return token
   } catch (e) {
     logger.error('Failed to sign JWT:', e)
@@ -62,7 +57,12 @@ export const encode = async (payload: JwtPayloadType, signkey: Buffer): Promise<
   }
 }
 
-export const verifyJwtType = async (token: string, signkey: Buffer): Promise<string> => {
+export const verifyJwtType = async (token: string, signkey: string): Promise<string> => {
   const payload = await verify(token, signkey)
   return payload ? payload.tokentype : 'unknown token type'
+}
+
+export const decode = (token: string): JwtPayloadType => {
+  const payload = decodeJwt(token)
+  return payload as unknown as JwtPayloadType
 }

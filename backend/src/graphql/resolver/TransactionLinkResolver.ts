@@ -23,7 +23,7 @@ import { TransactionLink, TransactionLinkResult } from '@model/TransactionLink'
 import { User } from '@model/User'
 import { QueryLinkResult } from '@union/QueryLinkResult'
 
-import { verify, encode } from '@/auth/jwt/JWT'
+import { verify, encode, decode } from '@/auth/jwt/JWT'
 import { DisbursementJwtPayloadType } from '@/auth/jwt/payloadtypes/DisbursementJwtPayloadType'
 import { RIGHTS } from '@/auth/RIGHTS'
 import {
@@ -42,7 +42,11 @@ import { fullName } from '@/util/utilities'
 import { calculateBalance } from '@/util/validate'
 
 import { executeTransaction } from './TransactionResolver'
-import { getAuthenticatedCommunities, getHomeCommunity } from './util/communities'
+import {
+  getAuthenticatedCommunities,
+  getCommunityByUuid,
+  getHomeCommunity,
+} from './util/communities'
 import { getUserCreation, validateContribution } from './util/creations'
 import { getLastTransaction } from './util/getLastTransaction'
 import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
@@ -139,7 +143,10 @@ export class TransactionLinkResolver {
 
   @Authorized([RIGHTS.QUERY_TRANSACTION_LINK])
   @Query(() => QueryLinkResult)
-  async queryTransactionLink(@Arg('code') code: string): Promise<typeof QueryLinkResult> {
+  async queryTransactionLink(
+    @Arg('code') code: string,
+    @Arg('referrer') referrer: string,
+  ): Promise<typeof QueryLinkResult> {
     logger.debug('TransactionLinkResolver.queryTransactionLink... code=', code)
     const transactionLink = new TransactionLink()
     if (code.match(/^CL-/)) {
@@ -178,29 +185,54 @@ export class TransactionLinkResolver {
       } else {
         // disbursement jwt-token
         logger.debug('TransactionLinkResolver.queryTransactionLink... disbursement jwt-token found')
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment
-        const homeCom = await getHomeCommunity()
-        const jwtPayload = await verify(code, homeCom.publicKey)
-        logger.debug('TransactionLinkResolver.queryTransactionLink... jwtPayload=', jwtPayload)
-        if (jwtPayload !== null && jwtPayload instanceof DisbursementJwtPayloadType) {
-          const disburseJwtPayload: DisbursementJwtPayloadType = jwtPayload
+        // first check sender of payload against referrer
+        const payload = decode(code)
+        if (!payload) {
+          throw new LogError('Invalid JWT payload', payload)
+        }
+        if (payload instanceof DisbursementJwtPayloadType) {
+          const disburseJwtPayload: DisbursementJwtPayloadType = payload
           logger.debug(
             'TransactionLinkResolver.queryTransactionLink... disburseJwtPayload=',
-            jwtPayload,
+            disburseJwtPayload,
           )
-          transactionLink.communityName = homeCom.name !== null ? homeCom.name : 'unknown'
-          // transactionLink.user = new User()
-          transactionLink.user.alias = disburseJwtPayload.sendername
-          transactionLink.amount = new Decimal(disburseJwtPayload.amount)
-          transactionLink.memo = disburseJwtPayload.memo
-          transactionLink.code = disburseJwtPayload.redeemcode
-          logger.debug(
-            'TransactionLinkResolver.queryTransactionLink... transactionLink=',
-            transactionLink,
-          )
-          return transactionLink
+          const senderCom = await getCommunityByUuid(disburseJwtPayload.sendercommunityuuid)
+          if (!senderCom) {
+            throw new LogError(
+              'Sender community not found:',
+              disburseJwtPayload.sendercommunityuuid,
+            )
+          }
+          const senderUrl = senderCom.url.replace(/\/api\/?$/, '')
+          if (!senderUrl.startsWith(referrer)) {
+            throw new LogError('Sender community does not match referrer', senderCom.name, referrer)
+          }
+          if (!senderCom.communityUuid) {
+            throw new LogError('Sender community UUID is not set')
+          }
+          // now with the sender community UUID the jwt token can be verified
+          const jwtPayload = await verify(code, senderCom.communityUuid)
+          logger.debug('TransactionLinkResolver.queryTransactionLink... jwtPayload=', jwtPayload)
+          if (jwtPayload !== null && jwtPayload instanceof DisbursementJwtPayloadType) {
+            const disburseJwtPayload: DisbursementJwtPayloadType = jwtPayload
+            logger.debug(
+              'TransactionLinkResolver.queryTransactionLink... disburseJwtPayload=',
+              disburseJwtPayload,
+            )
+            transactionLink.communityName = senderCom.name !== null ? senderCom.name : 'unknown'
+            transactionLink.user = new User(null)
+            transactionLink.user.alias = disburseJwtPayload.sendername
+            transactionLink.amount = new Decimal(disburseJwtPayload.amount)
+            transactionLink.memo = disburseJwtPayload.memo
+            transactionLink.code = disburseJwtPayload.redeemcode
+            logger.debug(
+              'TransactionLinkResolver.queryTransactionLink... transactionLink=',
+              transactionLink,
+            )
+            return transactionLink
+          }
         } else {
-          throw new LogError('Redeem with wrong type of JWT-Token! jwtType=', jwtPayload)
+          throw new LogError('Redeem with wrong type of JWT-Token! payload=', payload)
         }
       }
     }
@@ -446,12 +478,12 @@ export class TransactionLinkResolver {
       amount,
       memo,
     )
-    // encode/sign the jwt with the private key of the sender/home community
+    // TODO:encode/sign the jwt normally with the private key of the sender/home community, but interims with uuid
     const homeCom = await getHomeCommunity()
-    if (!homeCom.privateKey) {
-      throw new LogError('Home community private key is not set')
+    if (!homeCom.communityUuid) {
+      throw new LogError('Home community UUID is not set')
     }
-    const redeemJwt = await encode(disbursementJwtPayloadType, homeCom.privateKey)
+    const redeemJwt = await encode(disbursementJwtPayloadType, homeCom.communityUuid)
     // TODO: encrypt the payload with the public key of the target community
     return redeemJwt
   }

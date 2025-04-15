@@ -128,8 +128,8 @@ export const checkUsername = gql`
 `
 
 export const queryTransactionLink = gql`
-  query ($code: String!) {
-    queryTransactionLink(code: $code) {
+  query ($code: String!, $referrer: String!) {
+    queryTransactionLink(code: $code, referrer: $referrer) {
       ... on TransactionLink {
         id
         amount

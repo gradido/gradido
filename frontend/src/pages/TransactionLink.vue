@@ -6,6 +6,7 @@
           <redeem-select-community
             :link-data="linkData"
             :redeem-code="redeemCode"
+            :referrer="referrer"
             :is-contribution-link="isContributionLink"
           />
         </template>
@@ -48,7 +49,7 @@ import { useI18n } from 'vue-i18n'
 
 const { toastError, toastSuccess } = useAppToast()
 const router = useRouter()
-const { params } = useRoute()
+const { params, meta } = useRoute()
 const store = useStore()
 const { d, t } = useI18n()
 
@@ -73,6 +74,7 @@ const redeemedBoxText = ref('')
 
 const { result, onResult, loading, error, onError } = useQuery(queryTransactionLink, {
   code: params.code,
+  referrer: meta.referrer,
 })
 
 const {
@@ -86,6 +88,7 @@ const isContributionLink = computed(() => {
 })
 
 const redeemCode = computed(() => params.code)
+const referrer = computed(() => meta.referrer)
 
 const tokenExpiresInSeconds = computed(() => {
   const remainingSecs = Math.floor(
@@ -170,6 +173,7 @@ const emit = defineEmits(['set-mobile-start'])
 
 onMounted(() => {
   console.log('TransactionLink.onMounted... params=', params)
+  console.log('TransactionLink.onMounted... meta=', meta)
   emit('set-mobile-start', false)
 })
 

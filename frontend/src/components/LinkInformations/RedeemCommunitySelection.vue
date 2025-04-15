@@ -2,6 +2,7 @@
   <div
     :link-data="linkData"
     :redeem-code="redeemCode"
+    :referrer="referrer"
     :is-contribution-link="isContributionLink"
     class="redeem-community-selection"
   >
@@ -48,6 +49,7 @@ import { useMutation } from '@vue/apollo-composable'
 const props = defineProps({
   linkData: { type: Object, required: true },
   redeemCode: { type: String, required: true },
+  referrer: { type: String, required: true },
   isContributionLink: { type: Boolean, default: false },
   receiverCommunity: {
     type: Object,
