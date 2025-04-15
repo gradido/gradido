@@ -102,6 +102,7 @@ const validLink = computed(() => {
 })
 
 const itemType = computed(() => {
+  console.log('TransactionLink.itemType... referrer=', referrer.value, meta.referrer)
   if (linkData.value.deletedAt) {
     console.log('TransactionLink.itemType... TEXT_DELETED')
     return 'TEXT_DELETED'
@@ -133,7 +134,7 @@ const itemType = computed(() => {
 })
 
 const itemTypeExt = computed(() => {
-  console.log('TransactionLink.itemTypeExt... itemType=', itemType)
+  console.log('TransactionLink.itemTypeExt... itemType=', itemType.value)
   if (itemType.value.startsWith('TEXT')) {
     return 'TEXT'
   }
@@ -141,7 +142,7 @@ const itemTypeExt = computed(() => {
 })
 
 watch(itemType, (newItemType) => {
-  console.log('TransactionLink.watch... itemType=', itemType)
+  console.log('TransactionLink.watch... itemType=', itemType.value)
   updateRedeemedBoxText(newItemType)
 })
 
@@ -179,17 +180,20 @@ onMounted(() => {
 
 onResult(() => {
   console.log('TransactionLink.onResult... result=', result)
+  console.log('TransactionLink.onResult... referrer=', referrer.value, meta.referrer)
   if (!result || !result.value) return
   setTransactionLinkInformation()
 })
 
 onError(() => {
   console.log('TransactionLink.onError... error=', error)
+  console.log('TransactionLink.onError... referrer=', referrer.value, meta.referrer)
   toastError(t('gdd_per_link.redeemlink-error'))
 })
 
 function setTransactionLinkInformation() {
   console.log('TransactionLink.setTransactionLinkInformation... result=', result)
+  console.log('TransactionLink.setTransactionLinkInformation... referrer=', referrer.value, meta.referrer)
   const { queryTransactionLink } = result.value
   console.log(
     'TransactionLink.setTransactionLinkInformation... queryTransactionLink=',

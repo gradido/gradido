@@ -191,7 +191,14 @@ export class TransactionLinkResolver {
           throw new LogError('Invalid JWT payload', payload)
         }
         if (payload.tokentype === DisbursementJwtPayloadType.REDEEM_ACTIVATION_TYPE) {
-          const disburseJwtPayload: DisbursementJwtPayloadType = payload
+          const disburseJwtPayload = new DisbursementJwtPayloadType(
+            payload.sendercommunityuuid as string,
+            payload.sendergradidoid as string,
+            payload.sendername as string,
+            payload.redeemcode as string,
+            payload.amount as string,
+            payload.memo as string,
+          )
           logger.debug(
             'TransactionLinkResolver.queryTransactionLink... disburseJwtPayload=',
             disburseJwtPayload,
