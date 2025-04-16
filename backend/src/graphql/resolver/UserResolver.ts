@@ -8,6 +8,7 @@ import { ProjectBranding } from '@entity/ProjectBranding'
 import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
 import { User as DbUser } from '@entity/User'
 import { UserContact as DbUserContact } from '@entity/UserContact'
+import { UserLoggingView } from '@logging/UserLogging.view'
 import { GraphQLResolveInfo } from 'graphql'
 import i18n from 'i18n'
 import {
@@ -738,7 +739,7 @@ export class UserResolver {
       })
 
       await queryRunner.commitTransaction()
-      logger.debug('writing User data successful...', user)
+      logger.debug('writing User data successful...', new UserLoggingView(user))
     } catch (e) {
       await queryRunner.rollbackTransaction()
       throw new LogError('Error on writing updated user data', e)
@@ -832,7 +833,7 @@ export class UserResolver {
       throw new LogError('cannot create humhub client')
     }
     const userNameLogic = new PublishNameLogic(dbUser)
-    const username = userNameLogic.getUsername(dbUser.humhubPublishName as PublishNameType)
+    const username = userNameLogic.getUniqueUsername(dbUser.humhubPublishName as PublishNameType)
     let humhubUser = await humhubClient.userByUsername(username)
     if (!humhubUser) {
       humhubUser = await humhubClient.userByEmail(dbUser.emailContact.email)

@@ -15,11 +15,11 @@ export class GmsUser {
     this.email = this.getGmsEmail(user)
     this.countryCode = this.getGmsCountryCode(user)
     this.mobile = this.getGmsPhone(user)
-    const fn = pnLogic.getFirstName(user.gmsPublishName)
+    const fn = pnLogic.getFirstName(user.gmsPublishName as PublishNameType)
     this.firstName = fn !== '' ? fn : null // getGmsFirstName(user)
-    const ln = pnLogic.getLastName(user.gmsPublishName)
+    const ln = pnLogic.getLastName(user.gmsPublishName as PublishNameType)
     this.lastName = ln !== '' ? ln : null // getGmsLastName(user)
-    this.alias = this.getGmsAlias(user)
+    this.alias = pnLogic.getPublicName(user.gmsPublishName as PublishNameType)
     this.type = user.gmsPublishLocation // GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM
     this.location = user.location
   }

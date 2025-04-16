@@ -13,7 +13,8 @@ query adminListContributions(
           email
         }
         ...UserCommonFields
-        humhubUsername
+        publicName
+        uniqueUsername
         createdAt
       }
       amount

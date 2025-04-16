@@ -12,7 +12,7 @@
           {{ $t('filter.byEmail') }}
         </BTooltip>
         &nbsp;
-        {{ contribution.user.humhubUsername }}
+        {{ contribution.user.publicName }}
         &nbsp;
         <span>
           <a
@@ -103,7 +103,7 @@ const humhubProfileLink = computed(() => {
   if (url.endsWith('/')) {
     url = url.slice(0, -1)
   }
-  return `${url}/u/${props.contribution.humhubUsername}`
+  return `${url}/u/${props.contribution.user.uniqueUsername}`
 })
 
 const messages = ref([])

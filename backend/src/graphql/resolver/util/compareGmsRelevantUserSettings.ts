@@ -1,5 +1,6 @@
 import { Point } from '@dbTools/typeorm'
 import { User as DbUser } from '@entity/User'
+import { UserLoggingView } from '@logging/UserLogging.view'
 
 import { UpdateUserInfosArgs } from '@/graphql/arg/UpdateUserInfosArgs'
 import { GmsPublishLocationType } from '@/graphql/enum/GmsPublishLocationType'
@@ -16,7 +17,7 @@ export function compareGmsRelevantUserSettings(
   if (!orgUser) {
     throw new LogError('comparison without any user is impossible')
   }
-  logger.debug('compareGmsRelevantUserSettings:', orgUser, updateUserInfosArgs)
+  logger.debug('compareGmsRelevantUserSettings:', new UserLoggingView(orgUser), updateUserInfosArgs)
   // nach GMS updaten, wenn alias gesetzt wird oder ist und PublishLevel die alias-Übermittlung erlaubt
   if (
     updateUserInfosArgs.alias &&
