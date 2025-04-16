@@ -833,7 +833,7 @@ export class UserResolver {
       throw new LogError('cannot create humhub client')
     }
     const userNameLogic = new PublishNameLogic(dbUser)
-    const username = userNameLogic.getUniqueUsername(dbUser.humhubPublishName as PublishNameType)
+    const username = userNameLogic.getUserIdentifier(dbUser.humhubPublishName as PublishNameType)
     let humhubUser = await humhubClient.userByUsername(username)
     if (!humhubUser) {
       humhubUser = await humhubClient.userByEmail(dbUser.emailContact.email)

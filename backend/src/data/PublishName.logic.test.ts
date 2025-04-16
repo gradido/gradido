@@ -28,27 +28,27 @@ describe('test publish name logic', () => {
     user.gradidoID = gradidoUuid
     logic = new PublishNameLogic(user)
   })
-  describe('test unique username', () => {
+  describe('test user identifier ', () => {
     it('for alias or initials with alias set', () => {
-      expect(logic.getUniqueUsername(PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS)).toBe('alias')
+      expect(logic.getUserIdentifier(PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS)).toBe('alias')
     })
     it('for alias or initials with empty alias', () => {
       user.alias = ''
-      expect(logic.getUniqueUsername(PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS)).toBe(
+      expect(logic.getUserIdentifier(PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS)).toBe(
         gradidoUuid,
       )
     })
     it('for publish name initials', () => {
-      expect(logic.getUniqueUsername(PublishNameType.PUBLISH_NAME_INITIALS)).toBe(gradidoUuid)
+      expect(logic.getUserIdentifier(PublishNameType.PUBLISH_NAME_INITIALS)).toBe(gradidoUuid)
     })
     it('for publish name first', () => {
-      expect(logic.getUniqueUsername(PublishNameType.PUBLISH_NAME_FIRST)).toBe(gradidoUuid)
+      expect(logic.getUserIdentifier(PublishNameType.PUBLISH_NAME_FIRST)).toBe(gradidoUuid)
     })
     it('for publish name first initial', () => {
-      expect(logic.getUniqueUsername(PublishNameType.PUBLISH_NAME_FIRST_INITIAL)).toBe(gradidoUuid)
+      expect(logic.getUserIdentifier(PublishNameType.PUBLISH_NAME_FIRST_INITIAL)).toBe(gradidoUuid)
     })
     it('for publish name full', () => {
-      expect(logic.getUniqueUsername(PublishNameType.PUBLISH_NAME_FULL)).toBe(gradidoUuid)
+      expect(logic.getUserIdentifier(PublishNameType.PUBLISH_NAME_FULL)).toBe(gradidoUuid)
     })
   })
 

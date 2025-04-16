@@ -28,7 +28,7 @@ export class User {
       const publishNameLogic = new PublishNameLogic(user)
       const publishNameType = user.humhubPublishName as PublishNameType
       this.publicName = publishNameLogic.getPublicName(publishNameType)
-      this.uniqueUsername = publishNameLogic.getUniqueUsername(publishNameType)
+      this.userIdentifier = publishNameLogic.getUserIdentifier(publishNameType)
 
       if (user.emailContact) {
         this.emailChecked = user.emailContact.emailChecked
@@ -76,7 +76,7 @@ export class User {
   publicName: string | null
 
   @Field(() => String, { nullable: true })
-  uniqueUsername: string | null
+  userIdentifier: string | null
 
   @Field(() => String, { nullable: true })
   firstName: string | null

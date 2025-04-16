@@ -103,7 +103,7 @@ const humhubProfileLink = computed(() => {
   if (url.endsWith('/')) {
     url = url.slice(0, -1)
   }
-  return `${url}/u/${props.contribution.user.uniqueUsername}`
+  return `${url}/u/${props.contribution.user.userIdentifier}`
 })
 
 const messages = ref([])

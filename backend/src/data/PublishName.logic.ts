@@ -65,7 +65,7 @@ export class PublishNameLogic {
    * return alias
    * else return gradido id
    */
-  public getUniqueUsername(publishNameType: PublishNameType): string {
+  public getUserIdentifier(publishNameType: PublishNameType): string {
     return this.isUsernameFromAlias(publishNameType)
       ? this.filterOutInvalidChar(this.user.alias)
       : this.user.gradidoID

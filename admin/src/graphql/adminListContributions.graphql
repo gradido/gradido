@@ -14,7 +14,7 @@ query adminListContributions(
         }
         ...UserCommonFields
         publicName
-        uniqueUsername
+        userIdentifier
         createdAt
       }
       amount
