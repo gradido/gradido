@@ -29,7 +29,7 @@ export const verify = async (token: string, signkey: string): Promise<JwtPayload
       audience: 'urn:gradido:audience',
     })
     logger.info('JWT.verify after jwtVerify... payload=', payload)
-    return payload as unknown as JwtPayloadType
+    return payload as JwtPayloadType
   } catch (err) {
     logger.error('JWT.verify after jwtVerify... error=', err)
     return null
@@ -63,6 +63,6 @@ export const verifyJwtType = async (token: string, signkey: string): Promise<str
 }
 
 export const decode = (token: string): JwtPayloadType => {
-  const payload = decodeJwt(token)
-  return payload as unknown as JwtPayloadType
+  const { payload } = decodeJwt(token)
+  return payload as JwtPayloadType
 }

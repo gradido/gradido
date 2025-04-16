@@ -182,16 +182,22 @@ export class TransactionLinkResolver {
       } else {
         // disbursement jwt-token
         logger.debug('TransactionLinkResolver.queryTransactionLink... disbursement jwt-token found')
-        const payload = decode(code)
-        logger.debug('TransactionLinkResolver.queryTransactionLink... payload=', payload)
-        if (payload) {
+        const decodedPayload = decode(code)
+        logger.debug(
+          'TransactionLinkResolver.queryTransactionLink... decodedPayload=',
+          decodedPayload,
+        )
+        if (
+          decodedPayload != null &&
+          decodedPayload.tokentype === DisbursementJwtPayloadType.REDEEM_ACTIVATION_TYPE
+        ) {
           const disburseJwtPayload = new DisbursementJwtPayloadType(
-            payload.sendercommunityuuid,
-            payload.sendergradidoid,
-            payload.sendername,
-            payload.redeemcode,
-            payload.amount,
-            payload.memo,
+            decodedPayload.sendercommunityuuid as string,
+            decodedPayload.sendergradidoid as string,
+            decodedPayload.sendername as string,
+            decodedPayload.redeemcode as string,
+            decodedPayload.amount as string,
+            decodedPayload.memo as string,
           )
           logger.debug(
             'TransactionLinkResolver.queryTransactionLink... disburseJwtPayload=',
@@ -214,14 +220,10 @@ export class TransactionLinkResolver {
             jwtPayload = decode(code)
           }
           logger.debug('TransactionLinkResolver.queryTransactionLink... jwtPayload=', jwtPayload)
-          if (jwtPayload !== null && jwtPayload instanceof DisbursementJwtPayloadType) {
-            const disburseJwtPayload = new DisbursementJwtPayloadType(jwtPayload.sendercommunityuuid,
-              jwtPayload.sendergradidoid,
-              jwtPayload.sendername,
-              jwtPayload.redeemcode,
-              jwtPayload.amount,
-              jwtPayload.memo,
-            )
+          if (
+            jwtPayload !== null &&
+            jwtPayload.tokentype === DisbursementJwtPayloadType.REDEEM_ACTIVATION_TYPE
+          ) {
             logger.debug(
               'TransactionLinkResolver.queryTransactionLink... disburseJwtPayload=',
               disburseJwtPayload,
@@ -239,7 +241,7 @@ export class TransactionLinkResolver {
             return transactionLink
           }
         } else {
-          throw new LogError('Redeem with wrong type of JWT-Token! payload=', payload)
+          throw new LogError('Redeem with wrong type of JWT-Token! decodedPayload=', decodedPayload)
         }
       }
     }
