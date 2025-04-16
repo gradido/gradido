@@ -186,12 +186,12 @@ export class TransactionLinkResolver {
         logger.debug('TransactionLinkResolver.queryTransactionLink... payload=', payload)
         if (payload) {
           const disburseJwtPayload = new DisbursementJwtPayloadType(
-            payload.sendercommunityuuid as string,
-            payload.sendergradidoid as string,
-            payload.sendername as string,
-            payload.redeemcode as string,
-            payload.amount as string,
-            payload.memo as string,
+            payload.sendercommunityuuid,
+            payload.sendergradidoid,
+            payload.sendername,
+            payload.redeemcode,
+            payload.amount,
+            payload.memo,
           )
           logger.debug(
             'TransactionLinkResolver.queryTransactionLink... disburseJwtPayload=',
