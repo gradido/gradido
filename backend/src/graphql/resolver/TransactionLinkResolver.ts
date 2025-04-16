@@ -210,36 +210,53 @@ export class TransactionLinkResolver {
               disburseJwtPayload.sendercommunityuuid,
             )
           }
+          logger.debug('TransactionLinkResolver.queryTransactionLink... senderCom=', senderCom)
           if (!senderCom.communityUuid) {
             throw new LogError('Sender community UUID is not set')
           }
           // now with the sender community UUID the jwt token can be verified
-          let jwtPayload = await verify(code, senderCom.communityUuid)
-          // TODO: as long as the verification fails, fallback to decode
-          if (jwtPayload === null) {
-            jwtPayload = decode(code)
-          }
-          logger.debug('TransactionLinkResolver.queryTransactionLink... jwtPayload=', jwtPayload)
+          const jwtPayload = await verify(code, senderCom.communityUuid)
+          logger.debug(
+            'TransactionLinkResolver.queryTransactionLink... nach verify jwtPayload=',
+            jwtPayload,
+          )
+          let verifiedPayload: DisbursementJwtPayloadType | null = null
           if (
-            jwtPayload !== null &&
+            jwtPayload != null &&
             jwtPayload.tokentype === DisbursementJwtPayloadType.REDEEM_ACTIVATION_TYPE
           ) {
-            logger.debug(
-              'TransactionLinkResolver.queryTransactionLink... disburseJwtPayload=',
-              disburseJwtPayload,
+            verifiedPayload = new DisbursementJwtPayloadType(
+              jwtPayload.sendercommunityuuid as string,
+              jwtPayload.sendergradidoid as string,
+              jwtPayload.sendername as string,
+              jwtPayload.redeemcode as string,
+              jwtPayload.amount as string,
+              jwtPayload.memo as string,
             )
-            transactionLink.communityName = senderCom.name !== null ? senderCom.name : 'unknown'
-            transactionLink.user = new User(null)
-            transactionLink.user.alias = disburseJwtPayload.sendername
-            transactionLink.amount = new Decimal(disburseJwtPayload.amount)
-            transactionLink.memo = disburseJwtPayload.memo
-            transactionLink.code = disburseJwtPayload.redeemcode
             logger.debug(
-              'TransactionLinkResolver.queryTransactionLink... transactionLink=',
-              transactionLink,
+              'TransactionLinkResolver.queryTransactionLink... nach verify verifiedPayload=',
+              verifiedPayload,
             )
-            return transactionLink
           }
+          // TODO: as long as the verification fails, fallback to simply decoded payload
+          if (verifiedPayload === null) {
+            verifiedPayload = disburseJwtPayload
+          }
+          logger.debug(
+            'TransactionLinkResolver.queryTransactionLink... nach decode verifiedPayload=',
+            verifiedPayload,
+          )
+          transactionLink.communityName = senderCom.name !== null ? senderCom.name : 'unknown'
+          transactionLink.user = new User(null)
+          transactionLink.user.alias = verifiedPayload.sendername
+          transactionLink.amount = new Decimal(verifiedPayload.amount)
+          transactionLink.memo = verifiedPayload.memo
+          transactionLink.code = verifiedPayload.redeemcode
+          logger.debug(
+            'TransactionLinkResolver.queryTransactionLink... transactionLink=',
+            transactionLink,
+          )
+          return transactionLink
         } else {
           throw new LogError('Redeem with wrong type of JWT-Token! decodedPayload=', decodedPayload)
         }
