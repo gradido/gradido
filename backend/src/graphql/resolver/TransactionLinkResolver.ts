@@ -182,11 +182,7 @@ export class TransactionLinkResolver {
       } else {
         // disbursement jwt-token
         logger.debug('TransactionLinkResolver.queryTransactionLink... disbursement jwt-token found')
-        // first check sender of payload against referrer
         const payload = decode(code)
-        if (!payload) {
-          throw new LogError('Invalid JWT payload', payload)
-        }
         if (payload.tokentype === DisbursementJwtPayloadType.REDEEM_ACTIVATION_TYPE) {
           const disburseJwtPayload = new DisbursementJwtPayloadType(
             payload.sendercommunityuuid as string,
