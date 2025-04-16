@@ -43,7 +43,7 @@
   "card-user-search": {
     "headline": "Geografische Mitgliedssuche (experimentell)",
     "allowed": {
-      "button": "Öffne Mitgliedsuche...",
+      "button": "Öffne Mitgliedssuche...",
       "disabled-button": "GMS offline...",
       "text": "Finde Mitglieder aller Communities auf einer Landkarte."
     },
@@ -334,7 +334,7 @@
     "warningText": "Bist du noch da?"
   },
   "settings": {
-    "community": "Kreise & Mitgliedsuche",
+    "community": "Kreise & Mitgliedssuche",
     "emailInfo": "Kann aktuell noch nicht geändert werden.",
     "GMS": {
       "disabled": "Daten werden nicht nach GMS exportiert",
