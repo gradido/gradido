@@ -183,7 +183,8 @@ export class TransactionLinkResolver {
         // disbursement jwt-token
         logger.debug('TransactionLinkResolver.queryTransactionLink... disbursement jwt-token found')
         const payload = decode(code)
-        if (payload.tokentype === DisbursementJwtPayloadType.REDEEM_ACTIVATION_TYPE) {
+        logger.debug('TransactionLinkResolver.queryTransactionLink... payload=', payload)
+        if (payload && payload.tokentype === DisbursementJwtPayloadType.REDEEM_ACTIVATION_TYPE) {
           const disburseJwtPayload = new DisbursementJwtPayloadType(
             payload.sendercommunityuuid as string,
             payload.sendergradidoid as string,
