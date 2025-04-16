@@ -45,7 +45,7 @@ export function compareGmsRelevantUserSettings(
     return true
   }
   if (
-    updateUserInfosArgs.gmsPublishLocation &&
+    updateUserInfosArgs.gmsPublishLocation !== undefined &&
     (orgUser.gmsPublishLocation as GmsPublishLocationType) !==
       updateUserInfosArgs.gmsPublishLocation
   ) {
