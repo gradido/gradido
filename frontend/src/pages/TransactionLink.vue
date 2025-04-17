@@ -186,16 +186,14 @@ onMounted(() => {
 
 onResult(() => {
   console.log('TransactionLink.onResult... result=', result)
-  if (!result || !result.value) {
-    console.log('TransactionLink.onResult... no result:', result)
-  } else if (result.value.__typename === 'TransactionLink') {
+  if (result?.value?.__typename === 'TransactionLink') {
     console.log('TransactionLink.onResult... redeeming')
     setTransactionLinkInformation()
-  } else if (result.value.__typename === 'DisbursementLink') {
+  } else if (result?.value?.__typename === 'DisbursementLink') {
     console.log('TransactionLink.onResult... disbursing')
     setDisbursementLinkInformation()
   } else {
-    console.log('TransactionLink.onResult... unknown type:', result.value.__typename)
+    console.log('TransactionLink.onResult... unknown type:', result)
   }
 })
 
@@ -216,10 +214,12 @@ function setTransactionLinkInformation() {
     console.log('TransactionLink.setTransactionLinkInformation... linkData.value=', linkData.value)
     if (linkData.value.__typename === 'ContributionLink' && store.state.token) {
       console.log('TransactionLink.setTransactionLinkInformation... typename === ContributionLink')
+      // explicit no await
       mutationLink(linkData.value.amount)
     }
   }
 }
+
 function setDisbursementLinkInformation() {
   console.log('TransactionLink.setDisbursementLinkInformation... result=', result)
   const { queryDisbursementLink } = result.value
