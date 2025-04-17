@@ -2,6 +2,7 @@ import { User as dbUser } from '@entity/User'
 
 import { PublishNameLogic } from '@/data/PublishName.logic'
 // import { GmsPublishLocationType } from '@/graphql/enum/GmsPublishLocationType'
+import { GmsPublishLocationType } from '@/graphql/enum/GmsPublishLocationType'
 import { GmsPublishPhoneType } from '@/graphql/enum/GmsPublishPhoneType'
 import { PublishNameType } from '@/graphql/enum/PublishNameType'
 
@@ -21,6 +22,9 @@ export class GmsUser {
     this.lastName = ln !== '' ? ln : null // getGmsLastName(user)
     this.alias = pnLogic.getPublicName(user.gmsPublishName as PublishNameType)
     this.type = user.gmsPublishLocation // GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM
+    if ((this.type as GmsPublishLocationType) === GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM) {
+      this.type = GmsPublishLocationType.GMS_LOCATION_TYPE_APPROXIMATE
+    }
     this.location = user.location
   }
 
