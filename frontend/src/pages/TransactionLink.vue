@@ -87,7 +87,7 @@ const isContributionLink = computed(() => {
 })
 
 const isDisbursementLink = computed(() => {
-  if (result?.data?.queryTransactionLink?.__typename === 'DisbursementLink') {
+  if (result?.queryTransactionLink?.__typename === 'DisbursementLink') {
     return true
   }
   return false
@@ -186,10 +186,10 @@ onMounted(() => {
 
 onResult(() => {
   console.log('TransactionLink.onResult... result=', result)
-  if (result?.data?.queryTransactionLink?.__typename === 'TransactionLink') {
+  if (result?.queryTransactionLink?.__typename === 'TransactionLink') {
     console.log('TransactionLink.onResult... redeeming')
     setTransactionLinkInformation()
-  } else if (result?.data?.queryTransactionLink?.__typename === 'DisbursementLink') {
+  } else if (result?.queryTransactionLink?.__typename === 'DisbursementLink') {
     console.log('TransactionLink.onResult... disbursing')
     setDisbursementLinkInformation()
   } else {
@@ -204,7 +204,7 @@ onError(() => {
 
 function setTransactionLinkInformation() {
   console.log('TransactionLink.setTransactionLinkInformation... result=', result)
-  const { queryTransactionLink } = result.data.queryTransactionLink
+  const { queryTransactionLink } = result.queryTransactionLink
   console.log(
     'TransactionLink.setTransactionLinkInformation... queryTransactionLink=',
     queryTransactionLink,
@@ -222,7 +222,7 @@ function setTransactionLinkInformation() {
 
 function setDisbursementLinkInformation() {
   console.log('TransactionLink.setDisbursementLinkInformation... result=', result)
-  const { queryDisbursementLink } = result.data.queryDisbursementLink
+  const { queryDisbursementLink } = result.queryDisbursementLink
   console.log(
     'TransactionLink.setDisbursementLinkInformation... queryDisbursementLink=',
     queryDisbursementLink,
