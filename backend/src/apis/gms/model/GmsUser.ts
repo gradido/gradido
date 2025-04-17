@@ -22,10 +22,13 @@ export class GmsUser {
     this.lastName = ln !== '' ? ln : null // getGmsLastName(user)
     this.alias = pnLogic.getPublicName(user.gmsPublishName as PublishNameType)
     this.type = user.gmsPublishLocation // GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM
+    this.location = user.location
     if ((this.type as GmsPublishLocationType) === GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM) {
       this.type = GmsPublishLocationType.GMS_LOCATION_TYPE_APPROXIMATE
     }
-    this.location = user.location
+    if (!this.location) {
+      this.type = GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM
+    }
   }
 
   id: number
