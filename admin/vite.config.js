@@ -40,6 +40,10 @@ export default defineConfig(async ({ command }) => {
       host: CONFIG.ADMIN_MODULE_HOST, // '0.0.0.0',
       port: CONFIG.ADMIN_MODULE_PORT, // 8080,
     },
+    preview: {
+      host: CONFIG.ADMIN_MODULE_HOST, // '0.0.0.0',
+      port: CONFIG.ADMIN_MODULE_PORT, // 8080,
+    },
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src'),

@@ -48,6 +48,10 @@ export default defineConfig(async ({ command }) => {
         minify: CONFIG.PRODUCTION === true,
       },
     },
+    preview: {
+      host: CONFIG.FRONTEND_MODULE_HOST, // '0.0.0.0',
+      port: CONFIG.FRONTEND_MODULE_PORT, // 3000,
+    },
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src'),

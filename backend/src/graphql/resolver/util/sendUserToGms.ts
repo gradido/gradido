@@ -7,14 +7,18 @@ import { CONFIG } from '@/config'
 import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 
-export async function sendUserToGms(user: DbUser, homeCom: DbCommunity): Promise<void> {
+export async function sendUserToGms(
+  user: DbUser,
+  homeCom: DbCommunity,
+  alwaysCreateUser?: boolean,
+): Promise<void> {
   if (homeCom.gmsApiKey === null) {
     throw new LogError('HomeCommunity needs GMS-ApiKey to publish user data to GMS.')
   }
   logger.debug('User send to GMS:', user)
   const gmsUser = new GmsUser(user)
   try {
-    if (!user.gmsRegistered && user.gmsRegisteredAt === null) {
+    if (alwaysCreateUser === true || (!user.gmsRegistered && user.gmsRegisteredAt === null)) {
       logger.debug('create user in gms:', gmsUser)
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       if (await createGmsUser(homeCom.gmsApiKey, gmsUser)) {

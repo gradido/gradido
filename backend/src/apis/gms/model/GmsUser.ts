@@ -2,6 +2,7 @@ import { User as dbUser } from '@entity/User'
 
 import { PublishNameLogic } from '@/data/PublishName.logic'
 // import { GmsPublishLocationType } from '@/graphql/enum/GmsPublishLocationType'
+import { GmsPublishLocationType } from '@/graphql/enum/GmsPublishLocationType'
 import { GmsPublishPhoneType } from '@/graphql/enum/GmsPublishPhoneType'
 import { PublishNameType } from '@/graphql/enum/PublishNameType'
 
@@ -15,13 +16,19 @@ export class GmsUser {
     this.email = this.getGmsEmail(user)
     this.countryCode = this.getGmsCountryCode(user)
     this.mobile = this.getGmsPhone(user)
-    const fn = pnLogic.getFirstName(user.gmsPublishName)
+    const fn = pnLogic.getFirstName(user.gmsPublishName as PublishNameType)
     this.firstName = fn !== '' ? fn : null // getGmsFirstName(user)
-    const ln = pnLogic.getLastName(user.gmsPublishName)
+    const ln = pnLogic.getLastName(user.gmsPublishName as PublishNameType)
     this.lastName = ln !== '' ? ln : null // getGmsLastName(user)
-    this.alias = this.getGmsAlias(user)
+    this.alias = pnLogic.getPublicName(user.gmsPublishName as PublishNameType)
     this.type = user.gmsPublishLocation // GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM
     this.location = user.location
+    if ((this.type as GmsPublishLocationType) === GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM) {
+      this.type = GmsPublishLocationType.GMS_LOCATION_TYPE_APPROXIMATE
+    }
+    if (!this.location) {
+      this.type = GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM
+    }
   }
 
   id: number

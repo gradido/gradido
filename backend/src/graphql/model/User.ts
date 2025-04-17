@@ -26,7 +26,9 @@ export class User {
       this.alias = user.alias
 
       const publishNameLogic = new PublishNameLogic(user)
-      this.humhubUsername = publishNameLogic.getUsername(user.humhubPublishName as PublishNameType)
+      const publishNameType = user.humhubPublishName as PublishNameType
+      this.publicName = publishNameLogic.getPublicName(publishNameType)
+      this.userIdentifier = publishNameLogic.getUserIdentifier(publishNameType)
 
       if (user.emailContact) {
         this.emailChecked = user.emailContact.emailChecked
@@ -71,7 +73,10 @@ export class User {
   alias: string | null
 
   @Field(() => String, { nullable: true })
-  humhubUsername: string | null
+  publicName: string | null
+
+  @Field(() => String, { nullable: true })
+  userIdentifier: string | null
 
   @Field(() => String, { nullable: true })
   firstName: string | null

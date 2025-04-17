@@ -71,7 +71,8 @@ const defaultData = {
 const defaultUser = {
   firstName: 'Peter',
   lastName: 'Lustig',
-  humhubUsername: 'peter.lustig',
+  uniqueUsername: 'peter.lustig',
+  publicName: 'PeLu',
   createdAt: new Date().toString(),
   emailContact: {
     email: 'peter.lustig@example.com',
