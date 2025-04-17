@@ -3,6 +3,7 @@
     :link-data="linkData"
     :redeem-code="redeemCode"
     :is-contribution-link="isContributionLink"
+    :is-disbursement-link="isDisbursementLink"
     class="redeem-community-selection"
   >
     <BCard bg-variant="muted" text-variant="dark" border-variant="info">
@@ -13,7 +14,7 @@
             <BCol>{{ $t('gdd_per_link.recipientCommunity') }}</BCol>
           </BRow>
           <h3>
-            <BRow>
+            <BRow v-if="!isDisbursementLink">
               <BCol class="fw-bold">
                 <community-switch
                   :disabled="isBalanceDisabled"
@@ -49,6 +50,7 @@ const props = defineProps({
   linkData: { type: Object, required: true },
   redeemCode: { type: String, required: true },
   isContributionLink: { type: Boolean, default: false },
+  isDisbursementLink: { type: Boolean, default: false },
   receiverCommunity: {
     type: Object,
     required: false,

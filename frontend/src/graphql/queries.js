@@ -151,6 +151,25 @@ export const queryTransactionLink = gql`
           uuid
         }
       }
+      ... on DisbursementLink {
+        recipientCommunity {
+          foreign
+          name
+          description
+          url
+          uuid
+        }
+        recipientUser {
+          gradidoID
+          firstName
+          publisherId
+        }
+        senderGradidoID
+        senderName
+        amount
+        memo
+        code
+      }
       ... on ContributionLink {
         id
         validTo

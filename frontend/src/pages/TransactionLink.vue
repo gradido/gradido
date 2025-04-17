@@ -7,6 +7,7 @@
             :link-data="linkData"
             :redeem-code="redeemCode"
             :is-contribution-link="isContributionLink"
+            :is-disbursement-link="isDisbursementLink"
           />
         </template>
 
@@ -18,6 +19,7 @@
           <redeem-valid
             :link-data="linkData"
             :is-contribution-link="isContributionLink"
+            :is-disbursement-link="isDisbursementLink"
             :valid-link="validLink"
             @mutation-link="mutationLink"
           />
@@ -79,6 +81,13 @@ const { mutate: redeemMutate } = useMutation(redeemTransactionLink)
 
 const isContributionLink = computed(() => {
   return params.code?.search(/^CL-/) === 0
+})
+
+const isDisbursementLink = computed(() => {
+  if (result?.value?.__typename === 'DisbursementLink') {
+    return true
+  }
+  return false
 })
 
 const redeemCode = computed(() => params.code)
@@ -172,7 +181,13 @@ onMounted(() => {
 onResult(() => {
   console.log('TransactionLink.onResult... result=', result)
   if (!result || !result.value) return
-  setTransactionLinkInformation()
+  if (result.value.__typename === 'TransactionLink') {
+    console.log('TransactionLink.onResult... redeeming')
+    setTransactionLinkInformation()
+  } else if (result.value.__typename === 'DisbursementLink') {
+    console.log('TransactionLink.onResult... disbursing')
+    setDisbursementLinkInformation()
+  }
 })
 
 onError(() => {
@@ -194,6 +209,18 @@ function setTransactionLinkInformation() {
       console.log('TransactionLink.setTransactionLinkInformation... typename === ContributionLink')
       mutationLink(linkData.value.amount)
     }
+  }
+}
+function setDisbursementLinkInformation() {
+  console.log('TransactionLink.setDisbursementLinkInformation... result=', result)
+  const { queryDisbursementLink } = result.value
+  console.log(
+    'TransactionLink.setDisbursementLinkInformation... queryDisbursementLink=',
+    queryDisbursementLink,
+  )
+  if (queryDisbursementLink) {
+    linkData.value = queryDisbursementLink
+    console.log('TransactionLink.setDisbursementLinkInformation... linkData.value=', linkData.value)
   }
 }
 

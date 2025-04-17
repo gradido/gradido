@@ -17,6 +17,7 @@ import { ContributionCycleType } from '@enum/ContributionCycleType'
 import { ContributionStatus } from '@enum/ContributionStatus'
 import { ContributionType } from '@enum/ContributionType'
 import { TransactionTypeId } from '@enum/TransactionTypeId'
+import { Community } from '@model/Community'
 import { ContributionLink } from '@model/ContributionLink'
 import { Decay } from '@model/Decay'
 import { TransactionLink, TransactionLinkResult } from '@model/TransactionLink'
@@ -51,6 +52,7 @@ import { getUserCreation, validateContribution } from './util/creations'
 import { getLastTransaction } from './util/getLastTransaction'
 import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
 import { transactionLinkList } from './util/transactionLinkList'
+import { DisbursementLink } from '../model/DisbursementLink'
 
 // TODO: do not export, test it inside the resolver
 export const transactionLinkCode = (date: Date): string => {
@@ -145,7 +147,6 @@ export class TransactionLinkResolver {
   @Query(() => QueryLinkResult)
   async queryTransactionLink(@Arg('code') code: string): Promise<typeof QueryLinkResult> {
     logger.debug('TransactionLinkResolver.queryTransactionLink... code=', code)
-    const transactionLink = new TransactionLink()
     if (code.match(/^CL-/)) {
       const contributionLink = await DbContributionLink.findOneOrFail({
         where: { code: code.replace('CL-', '') },
@@ -246,23 +247,19 @@ export class TransactionLinkResolver {
             'TransactionLinkResolver.queryTransactionLink... nach decode verifiedPayload=',
             verifiedPayload,
           )
-          transactionLink.communityName = senderCom.name !== null ? senderCom.name : 'unknown'
-          transactionLink.user = new User(null)
-          transactionLink.user.alias = verifiedPayload.sendername
-          transactionLink.amount = new Decimal(verifiedPayload.amount)
-          transactionLink.memo = verifiedPayload.memo
-          transactionLink.code = verifiedPayload.redeemcode
+          const homeCommunity = await getHomeCommunity()
+          const recipientCommunity = new Community(homeCommunity)
+          const disbursementLink = new DisbursementLink(verifiedPayload, recipientCommunity)
           logger.debug(
-            'TransactionLinkResolver.queryTransactionLink... transactionLink=',
-            transactionLink,
+            'TransactionLinkResolver.queryTransactionLink... disbursementLink=',
+            disbursementLink,
           )
-          return transactionLink
+          return disbursementLink
         } else {
           throw new LogError('Redeem with wrong type of JWT-Token! decodedPayload=', decodedPayload)
         }
       }
     }
-    return transactionLink
   }
 
   @Authorized([RIGHTS.REDEEM_TRANSACTION_LINK])
