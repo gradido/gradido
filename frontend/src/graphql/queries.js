@@ -110,6 +110,7 @@ export const selectCommunities = gql`
       name
       description
       foreign
+      url
     }
   }
 `
@@ -137,7 +138,42 @@ export const queryTransactionLink = gql`
         validUntil
         redeemedAt
         deletedAt
-        user {
+        senderUser {
+          gradidoID
+          firstName
+          publisherId
+        }
+        communities {
+          foreign
+          name
+          description
+          url
+          uuid
+        }
+      }
+      ... on DisbursementLink {
+        amount
+        memo
+        code
+        senderCommunity {
+          foreign
+          name
+          description
+          url
+          uuid
+        }
+        senderUser {
+          gradidoID
+          firstName
+        }
+        recipientCommunity {
+          foreign
+          name
+          description
+          url
+          uuid
+        }
+        recipientUser {
           gradidoID
           firstName
           publisherId

@@ -2,8 +2,13 @@
   <div class="show-transaction-link-informations">
     <div class="mt-4">
       <transaction-link-item :type="itemTypeExt">
-        <template #LOGGED_OUT>
-          <redeem-logged-out :link-data="linkData" :is-contribution-link="isContributionLink" />
+        <template #REDEEM_SELECT_COMMUNITY>
+          <redeem-select-community
+            :link-data="linkData"
+            :redeem-code="redeemCode"
+            :is-contribution-link="isContributionLink"
+            :is-disbursement-link="isDisbursementLink"
+          />
         </template>
 
         <template #SELF_CREATOR>
@@ -14,6 +19,7 @@
           <redeem-valid
             :link-data="linkData"
             :is-contribution-link="isContributionLink"
+            :is-disbursement-link="isDisbursementLink"
             :valid-link="validLink"
             @mutation-link="mutationLink"
           />
@@ -33,7 +39,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import { useQuery, useMutation } from '@vue/apollo-composable'
 import TransactionLinkItem from '@/components/TransactionLinkItem'
-import RedeemLoggedOut from '@/components/LinkInformations/RedeemLoggedOut'
+import RedeemSelectCommunity from '@/components/LinkInformations/RedeemSelectCommunity'
 import RedeemSelfCreator from '@/components/LinkInformations/RedeemSelfCreator'
 import RedeemValid from '@/components/LinkInformations/RedeemValid'
 import RedeemedTextBox from '@/components/LinkInformations/RedeemedTextBox'
@@ -44,36 +50,50 @@ import { useI18n } from 'vue-i18n'
 
 const { toastError, toastSuccess } = useAppToast()
 const router = useRouter()
-const { params } = useRoute()
+const { params, meta } = useRoute()
 const store = useStore()
 const { d, t } = useI18n()
 
 const linkData = ref({
   __typename: 'TransactionLink',
-  amount: '',
+  amount: 0,
   memo: '',
-  user: {
-    firstName: '',
-  },
+  senderCommunity: null,
+  senderUser: null,
+  recipientCommunity: null,
+  recipientUser: null,
   deletedAt: null,
   validLink: false,
+  communities: [],
+  // ContributionLink fields
+  validTo: null,
+  validFrom: null,
+  name: '',
+  cycle: null,
+  link: '',
+  maxAmountPerMonth: null,
 })
 
 const redeemedBoxText = ref('')
 
-const { result, onResult, loading, error, onError } = useQuery(queryTransactionLink, {
+const { result, onResult, error, onError } = useQuery(queryTransactionLink, {
   code: params.code,
 })
 
-const {
-  mutate: redeemMutate,
-  loading: redeemLoading,
-  error: redeemError,
-} = useMutation(redeemTransactionLink)
+const { mutate: redeemMutate } = useMutation(redeemTransactionLink)
 
 const isContributionLink = computed(() => {
   return params.code?.search(/^CL-/) === 0
 })
+
+const isDisbursementLink = computed(() => {
+  if (result?.queryTransactionLink?.__typename === 'DisbursementLink') {
+    return true
+  }
+  return false
+})
+
+const redeemCode = computed(() => params.code)
 
 const tokenExpiresInSeconds = computed(() => {
   const remainingSecs = Math.floor(
@@ -87,21 +107,41 @@ const validLink = computed(() => {
 })
 
 const itemType = computed(() => {
-  if (linkData.value.deletedAt) return 'TEXT_DELETED'
-  if (new Date(linkData.value.validUntil) < new Date()) return 'TEXT_EXPIRED'
-  if (linkData.value.redeemedAt) return 'TEXT_REDEEMED'
-
-  if (store.state.token && store.state.tokenTime) {
-    if (tokenExpiresInSeconds.value < 5) return 'LOGGED_OUT'
-    if (linkData.value.user && store.state.gradidoID === linkData.value.user.gradidoID)
-      return 'SELF_CREATOR'
-    if (!linkData.value.redeemedAt && !linkData.value.deletedAt) return 'VALID'
+  if (linkData.value.deletedAt) {
+    console.log('TransactionLink.itemType... TEXT_DELETED')
+    return 'TEXT_DELETED'
   }
-
-  return 'LOGGED_OUT'
+  if (new Date(linkData.value.validUntil) < new Date()) {
+    console.log('TransactionLink.itemType... TEXT_EXPIRED')
+    return 'TEXT_EXPIRED'
+  }
+  if (linkData.value.redeemedAt) {
+    console.log('TransactionLink.itemType... TEXT_REDEEMED')
+    return 'TEXT_REDEEMED'
+  }
+  if (store.state.token && store.state.tokenTime) {
+    if (tokenExpiresInSeconds.value < 5) {
+      console.log('TransactionLink.itemType... REDEEM_SELECT_COMMUNITY')
+      return 'REDEEM_SELECT_COMMUNITY'
+    }
+    if (
+      linkData.value.recipientUser &&
+      store.state.gradidoID === linkData.value.recipientUser.gradidoID
+    ) {
+      console.log('TransactionLink.itemType... SELF_CREATOR')
+      return 'SELF_CREATOR'
+    }
+    if (!linkData.value.redeemedAt && !linkData.value.deletedAt) {
+      console.log('TransactionLink.itemType... VALID')
+      return 'VALID'
+    }
+  }
+  console.log('TransactionLink.itemType...last return= REDEEM_SELECT_COMMUNITY')
+  return 'REDEEM_SELECT_COMMUNITY'
 })
 
 const itemTypeExt = computed(() => {
+  console.log('TransactionLink.itemTypeExt... itemType=', itemType.value)
   if (itemType.value.startsWith('TEXT')) {
     return 'TEXT'
   }
@@ -109,10 +149,12 @@ const itemTypeExt = computed(() => {
 })
 
 watch(itemType, (newItemType) => {
+  console.log('TransactionLink.watch... itemType=', itemType.value)
   updateRedeemedBoxText(newItemType)
 })
 
 function updateRedeemedBoxText(type) {
+  console.log('TransactionLink.updateRedeemedBoxText... type=', type)
   switch (type) {
     case 'TEXT_DELETED':
       redeemedBoxText.value = t('gdd_per_link.link-deleted', {
@@ -132,37 +174,71 @@ function updateRedeemedBoxText(type) {
     default:
       redeemedBoxText.value = ''
   }
+  console.log('TransactionLink.updateRedeemedBoxText... redeemedBoxText=', redeemedBoxText)
 }
 
 const emit = defineEmits(['set-mobile-start'])
 
 onMounted(() => {
+  console.log('TransactionLink.onMounted... params=', params)
   emit('set-mobile-start', false)
 })
 
 onResult(() => {
-  if (!result || !result.value) return
-  setTransactionLinkInformation()
+  console.log('TransactionLink.onResult... result=', result)
+  console.log('TransactionLink.onResult... result=', JSON.stringify(result))
+  if (result?.queryTransactionLink?.__typename === 'TransactionLink') {
+    console.log('TransactionLink.onResult... redeeming')
+    setTransactionLinkInformation()
+  } else if (result?.queryTransactionLink?.__typename === 'DisbursementLink') {
+    console.log('TransactionLink.onResult... disbursing')
+    setDisbursementLinkInformation()
+  } else {
+    console.log('TransactionLink.onResult... unknown type:', result)
+  }
 })
 
 onError(() => {
+  console.log('TransactionLink.onError... error=', error)
   toastError(t('gdd_per_link.redeemlink-error'))
 })
 
 function setTransactionLinkInformation() {
-  const { queryTransactionLink } = result.value
+  console.log('TransactionLink.setTransactionLinkInformation... result=', result)
+  const { queryTransactionLink } = result.queryTransactionLink
+  console.log(
+    'TransactionLink.setTransactionLinkInformation... queryTransactionLink=',
+    queryTransactionLink,
+  )
   if (queryTransactionLink) {
     linkData.value = queryTransactionLink
+    console.log('TransactionLink.setTransactionLinkInformation... linkData.value=', linkData.value)
     if (linkData.value.__typename === 'ContributionLink' && store.state.token) {
+      console.log('TransactionLink.setTransactionLinkInformation... typename === ContributionLink')
+      // explicit no await
       mutationLink(linkData.value.amount)
     }
   }
 }
 
+function setDisbursementLinkInformation() {
+  console.log('TransactionLink.setDisbursementLinkInformation... result=', result)
+  const { queryDisbursementLink } = result.queryDisbursementLink
+  console.log(
+    'TransactionLink.setDisbursementLinkInformation... queryDisbursementLink=',
+    queryDisbursementLink,
+  )
+  if (queryDisbursementLink) {
+    linkData.value = queryDisbursementLink
+    console.log('TransactionLink.setDisbursementLinkInformation... linkData.value=', linkData.value)
+  }
+}
+
 async function mutationLink(amount) {
+  console.log('TransactionLink.mutationLink... params=', params)
   try {
     await redeemMutate({
-      code: params.code,
+      code: redeemCode.value,
     })
     toastSuccess(t('gdd_per_link.redeemed', { n: amount }))
     await router.push('/overview')
