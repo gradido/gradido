@@ -29,7 +29,7 @@ export class TransactionLink {
       this.redeemedAt = dbTransactionLink.redeemedAt
     }
     if (user !== undefined) {
-      this.user = user
+      this.senderUser = user
     }
     if (redeemedBy !== undefined) {
       this.redeemedBy = redeemedBy
@@ -43,7 +43,7 @@ export class TransactionLink {
   id: number
 
   @Field(() => User)
-  user: User
+  senderUser: User
 
   @Field(() => Decimal)
   amount: Decimal
