@@ -249,7 +249,16 @@ export class TransactionLinkResolver {
           )
           const homeCommunity = await getHomeCommunity()
           const recipientCommunity = new Community(homeCommunity)
-          const disbursementLink = new DisbursementLink(verifiedPayload, recipientCommunity)
+          const senderCommunity = new Community(senderCom)
+          const senderUser = new User(null)
+          senderUser.gradidoID = verifiedPayload.sendergradidoid
+          senderUser.firstName = verifiedPayload.sendername
+          const disbursementLink = new DisbursementLink(
+            verifiedPayload,
+            senderCommunity,
+            senderUser,
+            recipientCommunity,
+          )
           logger.debug(
             'TransactionLinkResolver.queryTransactionLink... disbursementLink=',
             disbursementLink,

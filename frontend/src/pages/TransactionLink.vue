@@ -58,7 +58,10 @@ const linkData = ref({
   __typename: 'TransactionLink',
   amount: 0,
   memo: '',
-  user: null,
+  senderCommunity: null,
+  senderUser: null,
+  recipientCommunity: null,
+  recipientUser: null,
   deletedAt: null,
   validLink: false,
   communities: [],
@@ -121,7 +124,10 @@ const itemType = computed(() => {
       console.log('TransactionLink.itemType... REDEEM_SELECT_COMMUNITY')
       return 'REDEEM_SELECT_COMMUNITY'
     }
-    if (linkData.value.user && store.state.gradidoID === linkData.value.user.gradidoID) {
+    if (
+      linkData.value.recipientUser &&
+      store.state.gradidoID === linkData.value.recipientUser.gradidoID
+    ) {
       console.log('TransactionLink.itemType... SELF_CREATOR')
       return 'SELF_CREATOR'
     }
@@ -180,13 +186,16 @@ onMounted(() => {
 
 onResult(() => {
   console.log('TransactionLink.onResult... result=', result)
-  if (!result || !result.value) return
-  if (result.value.__typename === 'TransactionLink') {
+  if (!result || !result.value) {
+    console.log('TransactionLink.onResult... no result:', result)
+  } else if (result.value.__typename === 'TransactionLink') {
     console.log('TransactionLink.onResult... redeeming')
     setTransactionLinkInformation()
   } else if (result.value.__typename === 'DisbursementLink') {
     console.log('TransactionLink.onResult... disbursing')
     setDisbursementLinkInformation()
+  } else {
+    console.log('TransactionLink.onResult... unknown type:', result.value.__typename)
   }
 })
 

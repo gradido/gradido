@@ -31,8 +31,8 @@
             </BRow>
           </h3>
         </BCol>
-        <template v-if="linkData.user">
-          {{ linkData.user.firstName }}
+        <template v-if="linkData.senderUser">
+          {{ linkData.senderUser.firstName }}
           {{ $t('transaction-link.send_you') }} {{ $filters.GDD(linkData.amount) }}
         </template>
       </h1>
@@ -123,27 +123,27 @@ async function onSwitch(event) {
   console.log('RedeemCommunitySelection.onSwitch... props=', props)
   if (isForeignCommunitySelected.value) {
     console.log('RedeemCommunitySelection.onSwitch vor createRedeemJwt params:', {
-      gradidoID: props.linkData.user.gradidoID,
+      gradidoID: props.linkData.senderUser.gradidoID,
       senderCommunityUuid: senderCommunity.value.uuid,
       senderCommunityName: senderCommunity.value.name,
       receiverCommunityUuid: currentReceiverCommunity.value.uuid,
       code: props.redeemCode,
       amount: props.linkData.amount,
       memo: props.linkData.memo,
-      firstName: props.linkData.user.firstName,
-      alias: props.linkData.user.alias,
+      firstName: props.linkData.senderUser.firstName,
+      alias: props.linkData.senderUser.alias,
     })
     try {
       const { data } = await createRedeemJwt({
-        gradidoID: props.linkData.user.gradidoID,
+        gradidoID: props.linkData.senderUser.gradidoID,
         senderCommunityUuid: senderCommunity.value.uuid,
         senderCommunityName: senderCommunity.value.name,
         receiverCommunityUuid: currentReceiverCommunity.value.uuid,
         code: props.redeemCode,
         amount: props.linkData.amount,
         memo: props.linkData.memo,
-        firstName: props.linkData.user.firstName,
-        alias: props.linkData.user.alias,
+        firstName: props.linkData.senderUser.firstName,
+        alias: props.linkData.senderUser.alias,
       })
       console.log('RedeemCommunitySelection.onSwitch... response=', data)
       if (!data?.createRedeemJwt) {
