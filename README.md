@@ -1,8 +1,8 @@
+![logo](https://gradido.net/wp-content/uploads/2021/06/gradido_logo%E2%97%8Fpreview.png)
+
 # Gradido
 
 Healthy money for a healthy world
-
-![logo](https://gradido.net/wp-content/uploads/2021/06/gradido_logo%E2%97%8Fpreview.png)
 
 The Gradido model can create global prosperity and peace
 The Corona crisis has fundamentally changed our world within a very short time.
@@ -10,62 +10,7 @@ The dominant financial system threatens to fail around the globe, followed by ma
 
 Find out more about the Project on its [Website](https://gradido.net/). It is offering vast resources about the idea. The remaining document will discuss the gradido software only.
 
-## Software requirements
-
-Currently we only support `docker` install instructions to run all services, since many different programming languages and frameworks are used.
-
-- [docker](https://www.docker.com/)
-- [docker-compose]
-- [yarn](https://phoenixnap.com/kb/yarn-windows)
-
-### For Arch Linux
-
-Install the required packages:
-
-```bash
-sudo pacman -S docker
-sudo pacman -S docker-compose
-```
-
-Add group `docker` and then your user to it in order to allow you to run docker without sudo
-
-```bash
-sudo groupadd docker # may already exist `groupadd: group 'docker' already exists`
-sudo usermod -aG docker $USER
-groups # verify you have the group (requires relog)
-```
-
-Start the docker service:
-
-```bash
-sudo systemctrl start docker
-```
-
-### For Windows
-
-#### docker
-
-The installation of dockers depends on your selected product package from the [dockers page](https://www.docker.com/). For windows the product *docker desktop* will be the choice. Please follow the installation instruction of your selected product.
-
-##### known problems
-
-* In case the docker desktop will not start correctly because of previous docker installations, then please clean the used directories of previous docker installation - `C:\Users` -  before you retry starting docker desktop. For further problems executing docker desktop please take a look in this description "[logs and trouble shooting](https://docs.docker.com/desktop/windows/troubleshoot/)"
-* In case your docker desktop installation causes high memory consumption per vmmem process, then please take a look at this description "[vmmen process consuming too much memory (Docker Desktop)](https://dev.to/tallesl/vmmen-process-consuming-too-much-memory-docker-desktop-273p)"
-
-#### yarn
-
-For the Gradido build process the yarn package manager will be used. Please download and install [yarn for windows](https://phoenixnap.com/kb/yarn-windows) by following the instructions there.
-
-## How to run?
-
-As soon as the software requirements are fulfilled and a docker installation is up and running then open a powershell on Windows or an other commandline prompt on Linux.
-
-Create and navigate to the directory, where you want to create the Gradido runtime environment.
-
-```
-mkdir \Gradido
-cd \Gradido
-```
+## Installing / Getting started
 
 ### 1. Clone Sources
 
@@ -73,40 +18,111 @@ Clone the repo and pull all submodules
 
 ```bash
 git clone git@github.com:gradido/gradido.git
-git submodule update --recursive --init
 ```
 
-### 2. Install modules
+You can either run gradido complete in docker or native and only the db in docker
 
-You can go in each under folder (admin, frontend, database, backend, ...) and call ``yarn`` in each folder or you can call ``yarn installAll``.
+### 2a Full Docker
 
-### 3. Run docker-compose
+You need to have docker and docker compose installed
 
-Run docker-compose to bring up the development environment
+- Details for [docker](https://www.docker.com/get-started/) setup
+- Details for [docker compose](https://docs.docker.com/compose/install/) setup
+
+#### For Release
+```bash 
+docker compose -f docker-compose.yml up
+```
+
+#### For Developing
+```bash 
+docker compose up
+```
+
+You can now open gradido at [http://localhost](http://localhost)
+
+That will start gradido in a docker container, together with 
+a docker container for nginx, maildev, phpmyadmin and mariadb
+- nginx listen on port 80
+- phpmyadmin can be opened at [http://localhost:8074](http://localhost:8074)
+- maildev can be opened at [http://localhost:1080](http://localhost:1080)
+
+If localhost didn't work, use http://127.0.0.1:3000 instead
+
+#### Nginx Routes
+```mermaid
+graph TD;
+    A[localhost  nginx] -->|/| B[frontend port 3000]
+    A -->|/admin| C[admin port 8080]
+    A -->|/graphql| D[backend port 4000]
+
+    classDef default fill:#ffdf97,stroke:#333,stroke-width:2px;
+    class A,B,C,D default;
+```
+
+
+### 2b Native, Database in Docker
+You need to have Yarn installed, along with Node.js v18.20.7 or higher. Additionally, you will need Docker and Docker Compose for running the database in a Docker container. Alternatively, you can use a native MariaDB or MySQL installation.
+
+- Details for [yarn](https://phoenixnap.com/kb/yarn-windows) setup
 
 ```bash
-docker-compose up
+yarn global add turbo
+yarn install
+docker compose up mariadb
 ```
+and in a separate terminal
 
-### Additional Build options
+#### For Release
+```bash 
+turbo start
+```
+This will build all modules and start the server
 
-If you want to build for production you can do this aswell:
+#### For Developing
+```bash 
+turbo dev
+```
+This will run all modules in dev mode, reload on change
+
+You can now open gradido at [http://localhost:3000](http://localhost:3000)
+
+If localhost didn't work, use http://127.0.0.1:3000 instead
+
+### ⚡ Workspaces and Bun Compatibility
+The project now uses **Workspaces**, and work is ongoing to make all modules **Bun-compatible**. You can currently use `bun install`, but not all modules are fully Bun-compatible yet.
+
+To install bun, run:
 
 ```bash
-docker-compose -f docker-compose.yml up
+curl -fsSL https://bun.sh/install | bash
 ```
+
+To install dependencies with Bun: 
+```bash
+bun install 
+```
+
+Note that some modules are still not fully compatible with Bun. Therefore, continue using **Yarn** for development if you run into any issues.
+
+##### known problems
+
+* In case the docker desktop will not start correctly because of previous docker installations, then please clean the used directories of previous docker installation - `C:\Users` -  before you retry starting docker desktop. For further problems executing docker desktop please take a look in this description "[logs and trouble shooting](https://docs.docker.com/desktop/windows/troubleshoot/)"
+* In case your docker desktop installation causes high memory consumption per vmmem process, then please take a look at this description "[vmmen process consuming too much memory (Docker Desktop)](https://dev.to/tallesl/vmmen-process-consuming-too-much-memory-docker-desktop-273p)"
+
 
 ## Services defined in this package
 
-- [frontend](./frontend) Wallet frontend
+- [admin](./admin) Wallet backend
 - [backend](./backend) GraphQL & Business logic backend
-- [mariadb](./mariadb) Database backend
+- [config](./config) Contains common configuration schemas
+- [database](./database) Contains EntityORM entities and migration code for database
+- [dht-node](./dht-node) DHT Node Discover other Gradido Communities
+- [dlt-connector](./dlt-connector) DLT Connector (WIP), connect to blockchain
+- [federation](./federation) Federation, process incoming requests from another gradido communities
+- [frontend](./frontend) Wallet frontend
 
-We are currently restructuring the service to reduce dependencies and unify business logic into one place. Furthermore the databases defined for each service will be unified into one.
 
-### Open the wallet
-
-Once you have `docker-compose` up and running, you can open [http://localhost/](http://localhost/) and create yourself a new wallet account.
 
 ## How to release
 
@@ -127,7 +143,7 @@ Note: The Changelog will be regenerated with all tags on release on the external
 
 ## How the different .env work on deploy
 
-Each component (frontend, admin, backend and database) has its own `.env` file. When running in development with docker and nginx you usually do not have to care about the `.env`. The defaults are set by the respective config file, found in the `src/config/` folder of each component. But if you have a local `.env`, the defaults set in the config are overwritten by the `.env`. If you do not use docker, you need the `.env` in the frontend and admin interface because nginx is not running in order to find the backend. 
+Each component has its own `.env` file. When running in development with docker and nginx you usually do not have to care about the `.env`. The defaults are set by the respective config file, found in the `src/config/` folder of each component. But if you have a local `.env`, the defaults set in the config are overwritten by the `.env`. If you do not use docker, you need the `.env` in the frontend and admin interface because nginx is not running in order to find the backend. 
 
 Each component has a `.env.dist` file. This file contains all environment variables used by the component and can be used as pattern. If you want to use a local `.env`, copy the `.env.dist` and adjust the variables accordingly.
 
@@ -135,7 +151,19 @@ Each component has a `.env.template` file. These files are very important on dep
 
 There is one `.env.dist` in the `deployment/bare_metal/` folder. This `.env.dist` contains all variables used by the components, e.g. unites all `.env.dist` from the components. On deploy, we copy this `.env.dist` to `.env` and set all variables in this new file. The deploy script loads this variables and provides them by the `.env.templates` of each component, creating an `.env` for each component (see in `deployment/bare_metal/start.sh` the `envsubst`).
 
-To avoid forgetting to update an existing `.env` in the `deployment/bare_metal/` folder when deploying, we have an environment version variable inside the codebase of each component. You should update this version, when environment variables must be changed or added on deploy. The code checks, that the environement version provided by the `.env` is the one expected by the codebase.
+We have a validation schema for all config variables which will check that all needed config variables are existing and make sense. If some config variables are missing or not correct, the deploy will fail.
+
+
+## Config examples for different working styles
+### Full Docker Development
+- nothing todo here, the defaults are set for this case
+
+### Full Docker Deployment
+
+
+
+### Local Development
+
 
 
 ## Troubleshooting
