@@ -1,4 +1,8 @@
-import { ObjectSchema } from 'joi'
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
+/* eslint-disable security/detect-object-injection */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import { ObjectSchema, ValidationErrorItem } from 'joi'
 
 export * from './commonSchema'
 
@@ -6,7 +10,7 @@ export function validate(schema: ObjectSchema, data: any) {
   const { error } = schema.validate(data)
   const schemaJson = schema.describe()
   if (error) {
-    error.details.forEach((err) => {
+    error.details.forEach((err: ValidationErrorItem) => {
       const details = JSON.stringify(err, null, 2)
       if (!err.context) {
         throw new Error('missing context in config validation with joi: ' + details)
@@ -14,16 +18,18 @@ export function validate(schema: ObjectSchema, data: any) {
       if (!schemaJson) {
         throw new Error('invalid schema in config validation with joi: ' + details)
       }
-      const key = err.context.key
+      const key = err.context?.key
       if (key === undefined) {
         throw new Error('missing key in config validation with joi: ' + details)
       }
-      const value = err.context.value
+      const value = err.context?.value
       const description = schemaJson.keys[key]
         ? schema.describe().keys[key].flags.description
         : 'No description available'
       if (data[key] === undefined) {
-        throw new Error(`Environment Variable '${key}' is missing. ${description}, details: ${details}`)
+        throw new Error(
+          `Environment Variable '${key}' is missing. ${description}, details: ${details}`,
+        )
       } else {
         throw new Error(
           `Error on Environment Variable ${key} with value = ${value}: ${err.message}. ${description}`,
