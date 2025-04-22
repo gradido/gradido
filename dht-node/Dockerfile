@@ -47,18 +47,22 @@ RUN mkdir -p ${DOCKER_WORKDIR}
 WORKDIR ${DOCKER_WORKDIR}
 
 ##################################################################################
+# Base with turbo ################################################################
+##################################################################################
+FROM base as turboBase
+
+RUN apk update && apk add --no-cache libc6-compat \ 
+  && yarn global add turbo@^2 \
+  && rm -rf /tmp/* ~/.cache node_modules/.cache \
+  && yarn cache clean
+
+##################################################################################
 # DEVELOPMENT (Connected to the local environment, to reload on demand) ##########
 ##################################################################################
-FROM base as development
+FROM turboBase as development
 
 # We don't need to copy or build anything since we gonna bind to the
 # local filesystem which will need a rebuild anyway
-
-RUN apk update
-RUN apk add --no-cache libc6-compat
-RUN yarn global add turbo@^2 \
-  && rm -rf /tmp/* ~/.cache node_modules/.cache \
-  && yarn cache clean
 
 # Run command
 # (for development we need to execute yarn install since the
@@ -68,13 +72,7 @@ CMD /bin/sh -c "turbo dev --env-mode=loose"
 ##################################################################################
 # BUILDER (create partly monorepo only with data needed by dht-node) #############
 ##################################################################################
-FROM base as builder
-
-RUN apk update
-RUN apk add --no-cache libc6-compat
-RUN yarn global add turbo@^2 \
-  && rm -rf /tmp/* ~/.cache node_modules/.cache \
-  && yarn cache clean
+FROM turboBase as builder
 
 COPY . . 
 RUN turbo prune dht-node --docker
@@ -82,13 +80,7 @@ RUN turbo prune dht-node --docker
 ##################################################################################
 # INSTALLER (create production image) ##############################################
 ##################################################################################
-FROM base AS installer
-
-RUN apk update
-RUN apk add --no-cache libc6-compat
-RUN yarn global add turbo@^2 \
-  && rm -rf /tmp/* ~/.cache node_modules/.cache \
-  && yarn cache clean
+FROM turboBase AS installer
 
 # First install the dependencies (as they change less often)
 COPY --from=builder /app/out/json/ .
