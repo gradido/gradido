@@ -87,7 +87,7 @@ const isContributionLink = computed(() => {
 })
 
 const isDisbursementLink = computed(() => {
-  if (result?.queryTransactionLink?.__typename === 'DisbursementLink') {
+  if (result.value?.queryTransactionLink?.__typename === 'DisbursementLink') {
     return true
   }
   return false

@@ -11,13 +11,16 @@
       <h1 v-if="!isContributionLink && linkData.amount !== ''">
         <BCol class="mb-4" cols="12">
           <BRow>
-            <BCol>{{ $t('gdd_per_link.recipientCommunity') }}</BCol>
+            <BCol v-if="!isDisbursementLink">
+              {{ $t('gdd_per_link.recipientCommunitySelection') }}
+            </BCol>
+            <BCol v-else>{{ $t('gdd_per_link.recipientCommunityFix') }}</BCol>
           </BRow>
           <h3>
-            <BRow v-if="!isDisbursementLink">
+            <BRow>
               <BCol class="fw-bold">
                 <community-switch
-                  :disabled="isBalanceDisabled"
+                  :disabled="isDisbursementLink"
                   :model-value="currentReceiverCommunity"
                   @update:model-value="setReceiverCommunity"
                 />
