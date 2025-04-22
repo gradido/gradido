@@ -44,7 +44,7 @@ jobs:
   lint:
     name: Lint - DHT Node
     if: needs.files-changed.outputs.dht_node == 'true'
-    needs: files-changed
+    needs: [files-changed, build]
     runs-on: ubuntu-latest
     steps:
       - name: Download Docker Image
