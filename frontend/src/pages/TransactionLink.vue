@@ -185,16 +185,16 @@ onMounted(() => {
 })
 
 onResult(() => {
-  console.log('TransactionLink.onResult... result=', result)
-  console.log('TransactionLink.onResult... stringify result=', JSON.stringify(result))
-  if (result?.queryTransactionLink?.__typename === 'TransactionLink') {
+  console.log('TransactionLink.onResult... result=', result.value)
+  console.log('TransactionLink.onResult... stringify result=', JSON.stringify(result.value))
+  if (result.value?.queryTransactionLink?.__typename === 'TransactionLink') {
     console.log('TransactionLink.onResult... redeeming')
     setTransactionLinkInformation()
-  } else if (result?.queryTransactionLink?.__typename === 'DisbursementLink') {
+  } else if (result.value?.queryTransactionLink?.__typename === 'DisbursementLink') {
     console.log('TransactionLink.onResult... disbursing')
     setDisbursementLinkInformation()
   } else {
-    console.log('TransactionLink.onResult... unknown type:', result)
+    console.log('TransactionLink.onResult... unknown type:', result.value)
   }
 })
 
@@ -204,8 +204,8 @@ onError(() => {
 })
 
 function setTransactionLinkInformation() {
-  console.log('TransactionLink.setTransactionLinkInformation... result=', result)
-  const { queryTransactionLink } = result.queryTransactionLink
+  console.log('TransactionLink.setTransactionLinkInformation... result=', result.value)
+  const { queryTransactionLink } = result.value.queryTransactionLink
   console.log(
     'TransactionLink.setTransactionLinkInformation... queryTransactionLink=',
     queryTransactionLink,
@@ -222,8 +222,8 @@ function setTransactionLinkInformation() {
 }
 
 function setDisbursementLinkInformation() {
-  console.log('TransactionLink.setDisbursementLinkInformation... result=', result)
-  const { queryDisbursementLink } = result.queryDisbursementLink
+  console.log('TransactionLink.setDisbursementLinkInformation... result=', result.value)
+  const { queryDisbursementLink } = result.value.queryDisbursementLink
   console.log(
     'TransactionLink.setDisbursementLinkInformation... queryDisbursementLink=',
     queryDisbursementLink,
