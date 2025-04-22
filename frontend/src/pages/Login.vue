@@ -79,12 +79,7 @@ const route = useRoute()
 const store = useStore()
 const { t } = useI18n()
 const { mutate } = useMutation(login)
-const { mutate: mutateHumhubAutoLogin } = useMutation(authenticateHumhubAutoLoginProject, {
-  variables: {
-    project: store.state.project,
-  },
-  enabled: store.state.project,
-})
+const { mutate: mutateHumhubAutoLogin } = useMutation(authenticateHumhubAutoLoginProject)
 // const $loading = useLoading() // TODO needs to be updated but there is some sort of an issue that breaks the app.
 const { toastError } = useAppToast()
 const { register } = useAuthLinks()
@@ -119,9 +114,10 @@ const onSubmit = handleSubmit(async (values) => {
     await store.dispatch('login', loginResponse)
     store.commit('email', values.email)
     // await loader.hide()
-
     if (store.state.project) {
-      const result = await mutateHumhubAutoLogin()
+      const result = await mutateHumhubAutoLogin({
+        project: store.state.project,
+      })
       window.location.href = result.data.authenticateHumhubAutoLogin
       return
     }
