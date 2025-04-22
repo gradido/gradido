@@ -56,7 +56,9 @@ FROM base as development
 
 RUN apk update
 RUN apk add --no-cache libc6-compat
-RUN yarn global add turbo@^2
+RUN yarn global add turbo@^2 \
+  && rm -rf /tmp/* ~/.cache node_modules/.cache \
+  && yarn cache clean
 
 # Run command
 # (for development we need to execute yarn install since the
@@ -70,7 +72,9 @@ FROM base as builder
 
 RUN apk update
 RUN apk add --no-cache libc6-compat
-RUN yarn global add turbo@^2
+RUN yarn global add turbo@^2 \
+  && rm -rf /tmp/* ~/.cache node_modules/.cache \
+  && yarn cache clean
 
 COPY . . 
 RUN turbo prune dht-node --docker
@@ -82,11 +86,15 @@ FROM base AS installer
 
 RUN apk update
 RUN apk add --no-cache libc6-compat
-RUN yarn global add turbo@^2
+RUN yarn global add turbo@^2 \
+  && rm -rf /tmp/* ~/.cache node_modules/.cache \
+  && yarn cache clean
 
 # First install the dependencies (as they change less often)
 COPY --from=builder /app/out/json/ .
-RUN yarn install --frozen-lockfile --production=false
+RUN yarn install --frozen-lockfile --production=false \
+ && rm -rf /tmp/* ~/.cache node_modules/.cache \
+ && yarn cache clean
  
 # Build the project
 COPY --from=builder /app/out/full/ .
