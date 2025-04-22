@@ -223,13 +223,13 @@ function setTransactionLinkInformation() {
 
 function setDisbursementLinkInformation() {
   console.log('TransactionLink.setDisbursementLinkInformation... result=', result.value)
-  const { queryDisbursementLink } = result.value
+  const { queryTransactionLink } = result.value
   console.log(
     'TransactionLink.setDisbursementLinkInformation... queryDisbursementLink=',
-    queryDisbursementLink,
+    queryTransactionLink,
   )
-  if (queryDisbursementLink) {
-    linkData.value = queryDisbursementLink
+  if (queryTransactionLink) {
+    linkData.value = queryTransactionLink
     console.log('TransactionLink.setDisbursementLinkInformation... linkData.value=', linkData.value)
   }
 }
