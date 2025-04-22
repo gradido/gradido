@@ -52,11 +52,6 @@
       "text": "Find Members of all Communities on a Map? Then you have to capture your Location first."
     }
   },
-  "circles": {
-    "button": "Start Circles...",
-    "headline": "Together we support each other - mindful in circle culture.",
-    "text": "Click on the button to open the cooperation platform in a new browser window."
-  },
   "community": {
     "admins": "Administrators",
     "choose-another-community": "Choose another community",

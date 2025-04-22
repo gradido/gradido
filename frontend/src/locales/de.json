@@ -52,11 +52,6 @@
       "text": "Finde Mitglieder aller Communities auf einer Landkarte? Dann musst du selbst erst deinen Standort festlegen."
     }
   },
-  "circles": {
-    "button": "Kreise starten...",
-    "headline": "Gemeinsam unterstützen wir einander –  achtsam in Kreiskultur.",
-    "text": "Mit Klick auf den Button öffnest Du die Kooperationsplattform in einem neuen Browser-Fenster."
-  },
   "community": {
     "admins": "Administratoren",
     "choose-another-community": "Eine andere Gemeinschaft auswählen",

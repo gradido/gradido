@@ -61,7 +61,7 @@
 import InputPassword from '@/components/Inputs/InputPassword'
 import InputEmail from '@/components/Inputs/InputEmail'
 import Message from '@/components/Message/Message'
-import { login, authenticateHumhubAutoLoginProject } from '@/graphql/mutations '
+import { login, authenticateHumhubAutoLoginProject } from '@/graphql/mutations'
 import { ref, computed } from 'vue'
 import { useStore } from 'vuex'
 import { useI18n } from 'vue-i18n'
