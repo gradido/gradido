@@ -41,12 +41,19 @@ jobs:
           name: docker-dht-node-test
           path: /tmp/dht-node.tar
 
-  lint:
-    name: Lint - DHT Node
-    if: needs.files-changed.outputs.dht_node == 'true'
+  unit_test:
+    name: Unit Tests & Lint - DHT Node
+    if: needs.files-changed.outputs.database == 'true' || needs.files-changed.outputs.dht_node == 'true' || needs.files-changed.outputs.docker-compose == 'true' || needs.files-changed.outputs.mariadb == 'true'
     needs: [files-changed, build]
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # start mariadb first, so it has time to start
+      - name: docker-compose mariadb
+        run: docker compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps mariadb
+
       - name: Download Docker Image
         uses: actions/download-artifact@v4
         with:
@@ -59,32 +66,9 @@ jobs:
       - name: Lint
         run: docker run --env NODE_ENV=test --rm gradido/dht-node:test turbo dht-node#lint
 
-  unit_test:
-    name: Unit Tests - DHT Node
-    if: needs.files-changed.outputs.database == 'true' || needs.files-changed.outputs.dht_node == 'true' || needs.files-changed.outputs.docker-compose == 'true' || needs.files-changed.outputs.mariadb == 'true'
-    needs: [files-changed, build]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Download Docker Image
-        uses: actions/download-artifact@v4
-        with:
-          name: docker-dht-node-test
-          path: /tmp
-
-      - name: Load Docker Image
-        run: docker load < /tmp/dht-node.tar
-
-      - name: docker-compose mariadb
-        run: docker compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps mariadb
-
       - name: Wait for MariaDB to be ready
         run: docker run --rm --network gradido_internal-net busybox sh -c 'until nc -z mariadb 3306; do echo waiting for db; sleep 1; done;'
 
-      #- name: Unit tests
-      #  run: cd database && yarn && yarn build && cd ../config && yarn install && cd ../dht-node && yarn && yarn test
       - name: Unit tests
         run: docker run --env NODE_ENV=test --env DB_HOST=mariadb --network gradido_internal-net --rm gradido/dht-node:test
 
