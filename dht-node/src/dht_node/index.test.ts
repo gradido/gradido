@@ -1,9 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { Community as DbCommunity } from '@entity/Community'
-import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
 import DHT from '@hyperswarm/dht'
+import { FederatedCommunity as DbFederatedCommunity, Community as DbCommunity } from 'database'
 import { validate as validateUUID, version as versionUUID } from 'uuid'
 
 import { testEnvironment, cleanDB } from '@test/helpers'

@@ -1,5 +1,5 @@
 {
-  "name": "config",
+  "name": "config-schema",
   "version": "2.5.1",
   "description": "Gradido Config for validate config",
   "main": "./build/index.js",
@@ -11,7 +11,7 @@
     }
   },
   "repository": "https://github.com/gradido/gradido/config",
-  "author": "einhornimmond",
+  "author": "Gradido Academy - https://www.gradido.net",
   "license": "Apache-2.0",
   "private": false,
   "scripts": {

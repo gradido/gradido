@@ -1,18 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { startDHT } from '@/dht_node/index'
-
 import { CONFIG } from './config'
+import { startDHT } from './dht_node/index'
 import { logger } from './server/logger'
 import { connection } from './typeorm/connection'
 import { checkDBVersion } from './typeorm/DBVersion'
 
 async function main() {
-  process.stdout.write('Test stdout log\n')
-  process.stderr.write('Test stderr log\n')
-
   // open mysql connection
   const con = await connection()
-  if (!con?.isConnected) {
+  if (!con?.isInitialized) {
     logger.fatal(`Couldn't open connection to database!`)
     throw new Error(`Fatal: Couldn't open connection to database`)
   }

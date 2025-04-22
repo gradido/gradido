@@ -1,6 +1,6 @@
 /* eslint-disable n/no-process-env */
-import { validate } from '@config/index'
-import { latestDbVersion } from '@dbTools/config/detectLastDBVersion'
+import { validate } from 'config-schema'
+import { latestDbVersion } from 'database'
 import dotenv from 'dotenv'
 
 import { schema } from './schema'
@@ -15,7 +15,7 @@ const constants = {
 }
 
 const server = {
-  PRODUCTION: process.env.NODE_ENV === 'production' ?? false,
+  PRODUCTION: process.env.NODE_ENV === 'production' || false,
 }
 
 const database = {

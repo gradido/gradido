@@ -46,9 +46,6 @@ LABEL maintainer="support@gradido.net"
 RUN mkdir -p ${DOCKER_WORKDIR}
 WORKDIR ${DOCKER_WORKDIR}
 
-RUN mkdir -p /database
-RUN mkdir -p /config
-
 ##################################################################################
 # DEVELOPMENT (Connected to the local environment, to reload on demand) ##########
 ##################################################################################
@@ -57,45 +54,51 @@ FROM base as development
 # We don't need to copy or build anything since we gonna bind to the
 # local filesystem which will need a rebuild anyway
 
+RUN apk update
+RUN apk add --no-cache libc6-compat
+RUN yarn global add turbo@^2
+
 # Run command
 # (for development we need to execute yarn install since the
 #  node_modules are on another volume and need updating)
-CMD /bin/sh -c "cd /database && yarn install && yarn build && cd /config && yarn install && cd /app && yarn install && yarn run dev"
+CMD /bin/sh -c "turbo dev --env-mode=loose"
 
 ##################################################################################
-# BUILD (Does contain all files and is therefore bloated) ########################
+# BUILDER (create partly monorepo only with data needed by dht-node) #############
 ##################################################################################
-FROM base as build
+FROM base as builder
 
-# Copy everything from dht-node
-COPY ./dht-node/ ./
-# Copy everything from database
-COPY ./database/ ../database/
-# Copy everything from config
-COPY ./config/ ../config/
+RUN apk update
+RUN apk add --no-cache libc6-compat
+RUN yarn global add turbo@^2
 
-# yarn install and build config
-RUN cd ../config && yarn install --production=false --frozen-lockfile --non-interactive && yarn run build
+COPY . . 
+RUN turbo prune dht-node --docker
 
-# yarn install dht-node
-RUN yarn install --production=false --frozen-lockfile --non-interactive
+##################################################################################
+# INSTALLER (create production image) ##############################################
+##################################################################################
+FROM base AS installer
 
-# yarn install database
-RUN cd ../database && yarn install --production=false --frozen-lockfile --non-interactive
+RUN apk update
+RUN apk add --no-cache libc6-compat
+RUN yarn global add turbo@^2
 
-# yarn build
-RUN yarn run build
-
-# yarn build database
-RUN cd ../database && yarn run build
-
+# First install the dependencies (as they change less often)
+COPY --from=builder /app/out/json/ .
+RUN yarn install --frozen-lockfile --production=false
+ 
+# Build the project
+COPY --from=builder /app/out/full/ .
+RUN turbo build
+ 
 ##################################################################################
 # TEST ###########################################################################
 ##################################################################################
-FROM build as test
+FROM installer as test
 
 # Run command
-CMD /bin/sh -c "yarn run start"
+CMD /bin/sh -c "turbo test"
 
 ##################################################################################
 # PRODUCTION (Does contain only "binary"- and static-files to reduce image size) #
@@ -103,25 +106,21 @@ CMD /bin/sh -c "yarn run start"
 FROM base as production
 
 # Copy "binary"-files from build image
-COPY --from=build ${DOCKER_WORKDIR}/build ./build
-COPY --from=build ${DOCKER_WORKDIR}/../database/build ../database/build
-COPY --from=build ${DOCKER_WORKDIR}/../config/build ../config/build
-# We also copy the node_modules express and serve-static for the run script
-COPY --from=build ${DOCKER_WORKDIR}/node_modules ./node_modules
-COPY --from=build ${DOCKER_WORKDIR}/../database/node_modules ../database/node_modules
-COPY --from=build ${DOCKER_WORKDIR}/../config/node_modules ../config/node_modules
+COPY --from=installer ${DOCKER_WORKDIR}/dht-node/build/index.js ./index.js
 
-# Copy static files
-# COPY --from=build ${DOCKER_WORKDIR}/public ./public
-# Copy package.json for script definitions (lock file should not be needed)
-COPY --from=build ${DOCKER_WORKDIR}/package.json ./package.json
-# Copy tsconfig.json to provide alias path definitions
-COPY --from=build ${DOCKER_WORKDIR}/tsconfig.json ./tsconfig.json
+# We also install the native node_modules which cannot be bundled
+# TODO: find a elegant way to use the right versions from yarn.lock
+RUN yarn add udx-native@1.5.3 sodium-native@4.0.0
+#COPY --from=installer ${DOCKER_WORKDIR}/node_modules/sodium-native ./node_modules/sodium-native
+#COPY --from=installer ${DOCKER_WORKDIR}/node_modules/udx-native ./node_modules/udx-native
+# dependencies from udx-native
+#COPY --from=installer ${DOCKER_WORKDIR}/node_modules/b4a ./node_modules/b4a
+#COPY --from=installer ${DOCKER_WORKDIR}/node_modules/require-addon ./node_modules/require-addon
+#COPY --from=installer ${DOCKER_WORKDIR}/node_modules/bare-addon-resolve ./node_modules/bare-addon-resolve
+#COPY --from=installer ${DOCKER_WORKDIR}/node_modules/bare-module-resolve ./node_modules/bare-module-resolve
+
 # Copy log4js-config.json to provide log configuration
-COPY --from=build ${DOCKER_WORKDIR}/log4js-config.json ./log4js-config.json
-
-# Copy run scripts run/
-# COPY --from=build ${DOCKER_WORKDIR}/run ./run
+COPY --from=installer ${DOCKER_WORKDIR}/dht-node/log4js-config.json ./log4js-config.json
 
 # Run command
-CMD /bin/sh -c "yarn run start"
+CMD ["node", "index.js"]

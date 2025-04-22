@@ -48,13 +48,7 @@
     "baseUrl": ".",                                 /* Base directory to resolve non-absolute module names. */
     "paths": {                                      /* A series of entries which re-map imports to lookup locations relative to the 'baseUrl'. */
       "@/*": ["src/*"],
-      "@test/*": ["test/*"],
-      /* external */
-      "@typeorm/*": ["../backend/src/typeorm/*", "../../backend/src/typeorm/*"],
-      "@dbTools/*": ["../database/src/*", "../../database/build/src/*"],
-      "@entity/*": ["../database/entity/*", "../../database/build/entity/*"],
-      "@logging/*": ["../database/logging/*", "../../database/build/logging/*"],
-      "@config/*": ["../config/src/*", "../../config/build/src/*"]
+      "@test/*": ["test/*"]
     },
     // "rootDirs": [],                              /* List of root folders whose combined content represents the structure of the project at runtime. */
     "typeRoots": ["src/dht_node/@types", "node_modules/@types", "../node_modules/@types"],   /* List of folders to include type definitions from. */
@@ -77,18 +71,5 @@
     /* Advanced Options */
     "skipLibCheck": true,                           /* Skip type checking of declaration files. */
     "forceConsistentCasingInFileNames": true        /* Disallow inconsistently-cased references to the same file. */
-  },
-  "references": [
-    {
-      "path": "../database/tsconfig.json",
-      // add 'prepend' if you want to include the referenced project in your output file
-      // "prepend": true
-    },
-    {
-      "path": "../config/tsconfig.json",
-      // add 'prepend' if you want to include the referenced project in your output file
-      // "prepend": true
-    }
-
-  ]
+  }
 }

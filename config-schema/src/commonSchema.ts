@@ -41,6 +41,16 @@ export const COMMUNITY_URL = Joi.string()
   .default('http://0.0.0.0')
   .required()
 
+export const DB_VERSION = Joi.string()
+  .pattern(/^\d{4}-[a-z0-9-_]+$/)
+  .message(
+    'DB_VERSION must be in the format: YYYY-description, e.g. "0087-add_index_on_user_roles".',
+  )
+  .description(
+    'db version string, last migration file name without ending or last folder in entity',
+  )
+  .required()
+
 // TODO: deprecated
 export const GRAPHQL_URI = Joi.string()
   .uri({ scheme: ['http', 'https'] })

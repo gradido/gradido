@@ -6,6 +6,9 @@
     },
     "dev": {
       "dependsOn": ["database#up"]
+    },
+    "start": {
+      "dependsOn": ["database#up"]
     }
   }
 }
