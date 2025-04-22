@@ -205,7 +205,7 @@ onError(() => {
 
 function setTransactionLinkInformation() {
   console.log('TransactionLink.setTransactionLinkInformation... result=', result.value)
-  const { queryTransactionLink } = result.value.queryTransactionLink
+  const { queryTransactionLink } = result.value
   console.log(
     'TransactionLink.setTransactionLinkInformation... queryTransactionLink=',
     queryTransactionLink,
@@ -223,7 +223,7 @@ function setTransactionLinkInformation() {
 
 function setDisbursementLinkInformation() {
   console.log('TransactionLink.setDisbursementLinkInformation... result=', result.value)
-  const { queryDisbursementLink } = result.value.queryDisbursementLink
+  const { queryDisbursementLink } = result.value
   console.log(
     'TransactionLink.setDisbursementLinkInformation... queryDisbursementLink=',
     queryDisbursementLink,
