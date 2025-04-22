@@ -43,7 +43,8 @@ jobs:
         id: lint
         run: |
           docker run --env NODE_ENV=test --rm gradido/dht-node:test turbo dht-node#lint
-          if [ $? -eq 0 ]; then echo "::set-output name=success::true"; else echo "::set-output name=success::false"; fi
+          echo "success=$([ $? -eq 0 ] && echo true || echo false)" >> $GITHUB_OUTPUT
+          
 
       - name: Wait for MariaDB to be ready
         run: docker run --rm --network gradido_internal-net busybox sh -c 'until nc -z mariadb 3306; do echo waiting for db; sleep 1; done;'
@@ -52,7 +53,7 @@ jobs:
         id: test
         run: |
           docker run --env NODE_ENV=test --env DB_HOST=mariadb --network gradido_internal-net --rm gradido/dht-node:test
-          if [ $? -eq 0 ]; then echo "::set-output name=success::true"; else echo "::set-output name=success::false"; fi
+          echo "success=$([ $? -eq 0 ] && echo true || echo false)" >> $GITHUB_OUTPUT
 
   lint:
     name: Lint - DHT Node
