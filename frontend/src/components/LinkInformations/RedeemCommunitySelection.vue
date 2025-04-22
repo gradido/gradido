@@ -130,20 +130,20 @@ async function onSwitch(event) {
       code: props.redeemCode,
       amount: props.linkData.amount,
       memo: props.linkData.memo,
-      firstName: props.linkData.senderUser.firstName,
-      alias: props.linkData.senderUser.alias,
+      firstName: props.linkData.senderUser?.firstName,
+      alias: props.linkData.senderUser?.alias,
     })
     try {
       const { data } = await createRedeemJwt({
-        gradidoID: props.linkData.senderUser.gradidoID,
+        gradidoID: props.linkData.senderUser?.gradidoID,
         senderCommunityUuid: senderCommunity.value.uuid,
         senderCommunityName: senderCommunity.value.name,
         receiverCommunityUuid: currentReceiverCommunity.value.uuid,
         code: props.redeemCode,
         amount: props.linkData.amount,
         memo: props.linkData.memo,
-        firstName: props.linkData.senderUser.firstName,
-        alias: props.linkData.senderUser.alias,
+        firstName: props.linkData.senderUser?.firstName,
+        alias: props.linkData.senderUser?.alias,
       })
       console.log('RedeemCommunitySelection.onSwitch... response=', data)
       if (!data?.createRedeemJwt) {
