@@ -31,15 +31,15 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Build 'test' image
-        run: |
-          docker build --target test -t "gradido/dht-node:test" -f dht-node/Dockerfile .
-          docker save "gradido/dht-node:test" > /tmp/dht-node.tar
-
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: docker/build-push-action@v5
         with:
-          name: docker-dht-node-test
-          path: /tmp/dht-node.tar
+          context: .
+          file: dht-node/Dockerfile
+          push: false
+          load: true
+          tags: gradido/dht-node:test
+          build-args: |
+            TARGET=test
 
   lint:
     name: Lint - DHT Node
@@ -47,15 +47,6 @@ jobs:
     needs: [files-changed, build]
     runs-on: ubuntu-latest
     steps:
-      - name: Download Docker Image
-        uses: actions/download-artifact@v4
-        with:
-          name: docker-dht-node-test
-          path: /tmp
-
-      - name: Load Docker Image
-        run: docker load < /tmp/dht-node.tar
-
       - name: Lint
         run: docker run --env NODE_ENV=test --rm gradido/dht-node:test turbo dht-node#lint
 
@@ -70,15 +61,6 @@ jobs:
 
       - name: docker-compose mariadb
         run: docker compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps mariadb
-
-      - name: Download Docker Image
-        uses: actions/download-artifact@v4
-        with:
-          name: docker-dht-node-test
-          path: /tmp
-
-      - name: Load Docker Image
-        run: docker load < /tmp/dht-node.tar
 
       - name: Wait for MariaDB to be ready
         run: docker run --rm --network gradido_internal-net busybox sh -c 'until nc -z mariadb 3306; do echo waiting for db; sleep 1; done;'
