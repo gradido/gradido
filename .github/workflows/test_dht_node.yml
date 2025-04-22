@@ -60,7 +60,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check result from previous step
-        run: if [ "${{ needs.build.outputs.lint-success }}" != "true" ]; then exit 1 fi
+        run: if [ "${{ needs.build.outputs.lint-success }}" != "true" ]; then exit 1; fi
 
   unit_test:
     name: Unit Tests - DHT Node
@@ -68,5 +68,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check result from previous step
-        run: if [ "${{ needs.build.outputs.test-success }}" != "true" ]; then exit 1 fi
+        run: if [ "${{ needs.build.outputs.test-success }}" != "true" ]; then exit 1; fi
 
