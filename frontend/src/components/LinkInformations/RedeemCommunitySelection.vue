@@ -123,7 +123,7 @@ async function onSwitch(event) {
   console.log('RedeemCommunitySelection.onSwitch... props=', props)
   if (isForeignCommunitySelected.value) {
     console.log('RedeemCommunitySelection.onSwitch vor createRedeemJwt params:', {
-      gradidoID: props.linkData.senderUser.gradidoID,
+      gradidoID: props.linkData.senderUser?.gradidoID,
       senderCommunityUuid: senderCommunity.value.uuid,
       senderCommunityName: senderCommunity.value.name,
       receiverCommunityUuid: currentReceiverCommunity.value.uuid,
