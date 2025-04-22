@@ -61,14 +61,13 @@
 import InputPassword from '@/components/Inputs/InputPassword'
 import InputEmail from '@/components/Inputs/InputEmail'
 import Message from '@/components/Message/Message'
-import { login } from '@/graphql/mutations'
-import { authenticateHumhubAutoLoginProject } from '@/graphql/queries'
+import { login, authenticateHumhubAutoLoginProject } from '@/graphql/mutations '
 import { ref, computed } from 'vue'
 import { useStore } from 'vuex'
 import { useI18n } from 'vue-i18n'
 import { useRouter, useRoute } from 'vue-router'
 import { useForm } from 'vee-validate'
-import { useMutation, useLazyQuery } from '@vue/apollo-composable'
+import { useMutation } from '@vue/apollo-composable'
 import { useAppToast } from '@/composables/useToast'
 import { useAuthLinks } from '@/composables/useAuthLinks'
 import CONFIG from '@/config'
@@ -80,7 +79,12 @@ const route = useRoute()
 const store = useStore()
 const { t } = useI18n()
 const { mutate } = useMutation(login)
-const { load } = useLazyQuery(authenticateHumhubAutoLoginProject)
+const { mutate: mutateHumhubAutoLogin } = useMutation(authenticateHumhubAutoLoginProject, {
+  variables: {
+    project: store.state.project,
+  },
+  enabled: store.state.project,
+})
 // const $loading = useLoading() // TODO needs to be updated but there is some sort of an issue that breaks the app.
 const { toastError } = useAppToast()
 const { register } = useAuthLinks()
@@ -117,10 +121,8 @@ const onSubmit = handleSubmit(async (values) => {
     // await loader.hide()
 
     if (store.state.project) {
-      const result = await load(authenticateHumhubAutoLoginProject, {
-        project: store.state.project,
-      })
-      window.location.href = result.authenticateHumhubAutoLogin
+      const result = await mutateHumhubAutoLogin()
+      window.location.href = result.data.authenticateHumhubAutoLogin
       return
     }
 
