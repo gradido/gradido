@@ -47,17 +47,17 @@ jobs:
     needs: files-changed
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - name: Download Docker Image
+        uses: actions/download-artifact@v4
+        with:
+          name: docker-dht-node-test
+          path: /tmp
 
-      - name: Install turbo
-        run: yarn global add turbo@^2
-
-      - name: Install dependencies
-        run: turbo prune dht-node --docker && cd out/full && yarn
+      - name: Load Docker Image
+        run: docker load < /tmp/dht-node.tar
 
       - name: Lint
-        run: cd out/full/dht-node && yarn run lint
+        run: docker run --env NODE_ENV=test --rm gradido/dht-node:test turbo dht-node#lint
 
   unit_test:
     name: Unit Tests - DHT Node
