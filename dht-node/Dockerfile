@@ -97,8 +97,9 @@ RUN turbo build
 ##################################################################################
 FROM installer as test
 
+ENV DB_HOST=mariadb
 # Run command
-CMD /bin/sh -c "turbo test"
+CMD /bin/sh -c "turbo dht-node#test --env-mode=loose"
 
 ##################################################################################
 # PRODUCTION (Does contain only "binary"- and static-files to reduce image size) #
