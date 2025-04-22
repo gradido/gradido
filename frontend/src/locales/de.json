@@ -43,7 +43,7 @@
   "card-user-search": {
     "headline": "Geografische Mitgliedssuche (experimentell)",
     "allowed": {
-      "button": "Öffne Mitgliedsuche...",
+      "button": "Öffne Mitgliedssuche...",
       "disabled-button": "GMS offline...",
       "text": "Finde Mitglieder aller Communities auf einer Landkarte."
     },
@@ -276,6 +276,7 @@
     "recruited-member": "Eingeladenes Mitglied"
   },
   "h": "h",
+  "info": "Info",
   "language": "Sprache",
   "link-load": "den letzten Link nachladen | die letzten {n} Links nachladen",
   "link-load-more": "weitere {n} Links nachladen",
@@ -334,7 +335,7 @@
     "warningText": "Bist du noch da?"
   },
   "settings": {
-    "community": "Kreise & Mitgliedsuche",
+    "community": "Kreise & Mitgliedssuche",
     "emailInfo": "Kann aktuell noch nicht geändert werden.",
     "GMS": {
       "disabled": "Daten werden nicht nach GMS exportiert",
