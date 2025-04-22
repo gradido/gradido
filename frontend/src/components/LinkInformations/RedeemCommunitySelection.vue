@@ -18,12 +18,15 @@
           </BRow>
           <h3>
             <BRow>
-              <BCol class="fw-bold">
+              <BCol v-if="!isDisbursementLink" class="fw-bold">
                 <community-switch
                   :disabled="isDisbursementLink"
                   :model-value="currentReceiverCommunity"
                   @update:model-value="setReceiverCommunity"
                 />
+              </BCol>
+              <BCol v-else>
+                {{ currentReceiverCommunity.name }}
               </BCol>
               <BCol v-if="isForeignCommunitySelected" sm="12" md="6" class="mt-4 mt-lg-0">
                 <p>{{ $t('gdd_per_link.switchCommunity') }}</p>
