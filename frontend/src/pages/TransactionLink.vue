@@ -186,7 +186,7 @@ onMounted(() => {
 
 onResult(() => {
   console.log('TransactionLink.onResult... result=', result)
-  console.log('TransactionLink.onResult... result=', JSON.stringify(result))
+  console.log('TransactionLink.onResult... stringify result=', JSON.stringify(result))
   if (result?.queryTransactionLink?.__typename === 'TransactionLink') {
     console.log('TransactionLink.onResult... redeeming')
     setTransactionLinkInformation()
