@@ -20,7 +20,7 @@ export class Contribution extends BaseEntity {
   @PrimaryGeneratedColumn('increment', { unsigned: true })
   id: number
 
-  @Column({ unsigned: true, nullable: false, name: 'user_id' })
+  @Column({ type: 'bigint', unsigned: true, nullable: false, name: 'user_id' })
   userId: number
 
   @ManyToOne(() => User, (user) => user.contributions)
@@ -36,7 +36,7 @@ export class Contribution extends BaseEntity {
   @Column({ type: 'datetime', nullable: false, name: 'contribution_date' })
   contributionDate: Date
 
-  @Column({ length: 255, nullable: false, collation: 'utf8mb4_unicode_ci' })
+  @Column({ type: 'varchar', length: 255, nullable: false, collation: 'utf8mb4_unicode_ci' })
   memo: string
 
   @Column({
@@ -48,26 +48,27 @@ export class Contribution extends BaseEntity {
   })
   amount: Decimal
 
-  @Column({ unsigned: true, nullable: true, name: 'moderator_id' })
+  @Column({ type: 'bigint', unsigned: true, nullable: true, name: 'moderator_id' })
   moderatorId: number
 
-  @Column({ unsigned: true, nullable: true, name: 'contribution_link_id' })
+  @Column({ type: 'bigint', unsigned: true, nullable: true, name: 'contribution_link_id' })
   contributionLinkId: number
 
-  @Column({ unsigned: true, nullable: true, name: 'confirmed_by' })
+  @Column({ type: 'bigint', unsigned: true, nullable: true, name: 'confirmed_by' })
   confirmedBy: number
 
-  @Column({ nullable: true, name: 'confirmed_at' })
+  @Column({ type: 'datetime', nullable: true, name: 'confirmed_at' })
   confirmedAt: Date
 
-  @Column({ unsigned: true, nullable: true, name: 'denied_by' })
+  @Column({ type: 'bigint', unsigned: true, nullable: true, name: 'denied_by' })
   deniedBy: number
 
-  @Column({ nullable: true, name: 'denied_at' })
+  @Column({ type: 'datetime', nullable: true, name: 'denied_at' })
   deniedAt: Date
 
   @Column({
     name: 'contribution_type',
+    type: 'varchar',
     length: 12,
     nullable: false,
     collation: 'utf8mb4_unicode_ci',
@@ -76,25 +77,26 @@ export class Contribution extends BaseEntity {
 
   @Column({
     name: 'contribution_status',
+    type: 'varchar',
     length: 12,
     nullable: false,
     collation: 'utf8mb4_unicode_ci',
   })
   contributionStatus: string
 
-  @Column({ unsigned: true, nullable: true, name: 'transaction_id' })
+  @Column({ type: 'bigint', unsigned: true, nullable: true, name: 'transaction_id' })
   transactionId: number
 
-  @Column({ nullable: true, name: 'updated_at' })
+  @Column({ type: 'datetime', nullable: true, name: 'updated_at' })
   updatedAt: Date
 
-  @Column({ nullable: true, unsigned: true, name: 'updated_by', type: 'int' })
+  @Column({ type: 'bigint', nullable: true, unsigned: true, name: 'updated_by' })
   updatedBy: number | null
 
-  @DeleteDateColumn({ name: 'deleted_at' })
+  @DeleteDateColumn({ type: 'datetime', name: 'deleted_at' })
   deletedAt: Date | null
 
-  @DeleteDateColumn({ unsigned: true, nullable: true, name: 'deleted_by' })
+  @DeleteDateColumn({ type: 'bigint', unsigned: true, nullable: true, name: 'deleted_by' })
   deletedBy: number
 
   @OneToMany(() => ContributionMessage, (message) => message.contribution)

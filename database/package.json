@@ -2,14 +2,20 @@
   "name": "database",
   "version": "2.5.1",
   "description": "Gradido Database Tool to execute database migrations",
-  "main": "src/index.ts",
   "repository": "https://github.com/gradido/gradido/database",
-  "author": "Ulf Gebhardt",
+  "author": "Gradido Academy - https://www.gradido.net",
   "license": "Apache-2.0",
+  "main": "./build/index.js",
+  "types": "./entity/index.ts",
+  "exports": {
+    ".": {
+      "import": "./build/index.js",
+      "require": "./build/index.js"
+    }
+  },
   "private": false,
   "scripts": {
-    "build": "tsc --build",
-    "clean": "tsc --build --clean",
+    "build": "tsx ./esbuild.config.ts",
     "up": "cross-env TZ=UTC tsx src/index.ts up",
     "down": "cross-env TZ=UTC tsx src/index.ts down",
     "reset": "cross-env TZ=UTC tsx src/index.ts reset",
@@ -36,8 +42,6 @@
     "eslint-plugin-prettier": "^5.2.3",
     "eslint-plugin-promise": "^6.1.1",
     "eslint-plugin-security": "^1.7.1",
-    "mkdirp": "^3.0.1",
-    "ncp": "^2.0.0",
     "prettier": "^3.5.3",
     "tsx": "^4.19.3",
     "typescript": "^4.9.5"

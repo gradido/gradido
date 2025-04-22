@@ -27,6 +27,7 @@ export class User extends BaseEntity {
 
   @Column({
     name: 'gradido_id',
+    type: 'char',
     length: 36,
     nullable: false,
     collation: 'utf8mb4_unicode_ci',
@@ -48,6 +49,7 @@ export class User extends BaseEntity {
 
   @Column({
     name: 'alias',
+    type: 'varchar',
     length: 20,
     nullable: true,
     default: null,
@@ -64,6 +66,7 @@ export class User extends BaseEntity {
 
   @Column({
     name: 'first_name',
+    type: 'varchar',
     length: 255,
     nullable: true,
     default: null,
@@ -73,6 +76,7 @@ export class User extends BaseEntity {
 
   @Column({
     name: 'last_name',
+    type: 'varchar',
     length: 255,
     nullable: true,
     default: null,
@@ -86,10 +90,15 @@ export class User extends BaseEntity {
   @Column({ name: 'humhub_publish_name', type: 'int', unsigned: true, nullable: false, default: 0 })
   humhubPublishName: number
 
-  @Column({ name: 'created_at', default: () => 'CURRENT_TIMESTAMP(3)', nullable: false })
+  @Column({
+    name: 'created_at',
+    type: 'datetime',
+    default: () => 'CURRENT_TIMESTAMP(3)',
+    nullable: false,
+  })
   createdAt: Date
 
-  @DeleteDateColumn({ name: 'deleted_at', nullable: true })
+  @DeleteDateColumn({ name: 'deleted_at', type: 'datetime', nullable: true })
   deletedAt: Date | null
 
   @Column({ type: 'bigint', default: 0, unsigned: true })
@@ -104,7 +113,13 @@ export class User extends BaseEntity {
   })
   passwordEncryptionType: number
 
-  @Column({ length: 4, default: 'de', collation: 'utf8mb4_unicode_ci', nullable: false })
+  @Column({
+    type: 'varchar',
+    length: 4,
+    default: 'de',
+    collation: 'utf8mb4_unicode_ci',
+    nullable: false,
+  })
   language: string
 
   @Column({ type: 'bool', default: false })
@@ -117,19 +132,19 @@ export class User extends BaseEntity {
   @JoinColumn({ name: 'user_id' })
   userRoles: UserRole[]
 
-  @Column({ name: 'referrer_id', type: 'int', unsigned: true, nullable: true, default: null })
+  @Column({ name: 'referrer_id', type: 'bigint', unsigned: true, nullable: true, default: null })
   referrerId?: number | null
 
   @Column({
     name: 'contribution_link_id',
-    type: 'int',
+    type: 'bigint',
     unsigned: true,
     nullable: true,
     default: null,
   })
   contributionLinkId?: number | null
 
-  @Column({ name: 'publisher_id', default: 0 })
+  @Column({ name: 'publisher_id', type: 'bigint', unsigned: true, default: 0 })
   publisherId: number
 
   @Column({ name: 'gms_allowed', type: 'bool', default: true })

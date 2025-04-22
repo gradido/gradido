@@ -13,7 +13,7 @@ export class Transaction extends BaseEntity {
   @Column({ type: 'int', unsigned: true, unique: true, nullable: true, default: null })
   previous: number | null
 
-  @Column({ name: 'type_id', unsigned: true, nullable: false })
+  @Column({ name: 'type_id', type: 'int', unsigned: true, nullable: false })
   typeId: number
 
   @Column({
@@ -68,13 +68,13 @@ export class Transaction extends BaseEntity {
   })
   decayStart: Date | null
 
-  @Column({ length: 255, nullable: false, collation: 'utf8mb4_unicode_ci' })
+  @Column({ type: 'varchar', length: 255, nullable: false, collation: 'utf8mb4_unicode_ci' })
   memo: string
 
   @Column({ name: 'creation_date', type: 'datetime', nullable: true, default: null })
   creationDate: Date | null
 
-  @Column({ name: 'user_id', unsigned: true, nullable: false })
+  @Column({ name: 'user_id', type: 'bigint', unsigned: true, nullable: false })
   userId: number
 
   @Column({

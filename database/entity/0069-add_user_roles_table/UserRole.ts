@@ -9,13 +9,18 @@ export class UserRole extends BaseEntity {
   @Column({ name: 'user_id', type: 'int', unsigned: true, nullable: false })
   userId: number
 
-  @Column({ length: 40, nullable: false, collation: 'utf8mb4_unicode_ci' })
+  @Column({ type: 'varchar', length: 40, nullable: false, collation: 'utf8mb4_unicode_ci' })
   role: string
 
-  @Column({ name: 'created_at', default: () => 'CURRENT_TIMESTAMP(3)', nullable: false })
+  @Column({
+    name: 'created_at',
+    type: 'datetime',
+    default: () => 'CURRENT_TIMESTAMP(3)',
+    nullable: false,
+  })
   createdAt: Date
 
-  @Column({ name: 'updated_at', nullable: true, default: null, type: 'datetime' })
+  @Column({ name: 'updated_at', type: 'datetime', nullable: true, default: null })
   updatedAt: Date | null
 
   @ManyToOne(() => User, (user) => user.userRoles)

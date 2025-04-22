@@ -7,7 +7,7 @@ export class TransactionLink extends BaseEntity {
   @PrimaryGeneratedColumn('increment', { unsigned: true })
   id: number
 
-  @Column({ unsigned: true, nullable: false })
+  @Column({ type: 'bigint', unsigned: true, nullable: false })
   userId: number
 
   @Column({
@@ -29,10 +29,10 @@ export class TransactionLink extends BaseEntity {
   })
   holdAvailableAmount: Decimal
 
-  @Column({ length: 255, nullable: false, collation: 'utf8mb4_unicode_ci' })
+  @Column({ type: 'varchar', length: 255, nullable: false, collation: 'utf8mb4_unicode_ci' })
   memo: string
 
-  @Column({ length: 24, nullable: false, collation: 'utf8mb4_unicode_ci' })
+  @Column({ type: 'varchar', length: 24, nullable: false, collation: 'utf8mb4_unicode_ci' })
   code: string
 
   @Column({
