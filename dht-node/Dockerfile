@@ -49,7 +49,7 @@ WORKDIR ${DOCKER_WORKDIR}
 ##################################################################################
 # Base with turbo ################################################################
 ##################################################################################
-FROM base as turboBase
+FROM base as turbo-base
 
 RUN apk update && apk add --no-cache libc6-compat \ 
   && yarn global add turbo@^2 \
@@ -59,7 +59,7 @@ RUN apk update && apk add --no-cache libc6-compat \
 ##################################################################################
 # DEVELOPMENT (Connected to the local environment, to reload on demand) ##########
 ##################################################################################
-FROM turboBase as development
+FROM turbo-base as development
 
 # We don't need to copy or build anything since we gonna bind to the
 # local filesystem which will need a rebuild anyway
@@ -72,7 +72,7 @@ CMD /bin/sh -c "turbo dev --env-mode=loose"
 ##################################################################################
 # BUILDER (create partly monorepo only with data needed by dht-node) #############
 ##################################################################################
-FROM turboBase as builder
+FROM turbo-base as builder
 
 COPY . . 
 RUN turbo prune dht-node --docker
@@ -80,7 +80,7 @@ RUN turbo prune dht-node --docker
 ##################################################################################
 # INSTALLER (create production image) ##############################################
 ##################################################################################
-FROM turboBase AS installer
+FROM turbo-base AS installer
 
 # First install the dependencies (as they change less often)
 COPY --from=builder /app/out/json/ .
@@ -111,7 +111,9 @@ COPY --from=installer ${DOCKER_WORKDIR}/dht-node/build/index.js ./index.js
 
 # We also install the native node_modules which cannot be bundled
 # TODO: find a elegant way to use the right versions from yarn.lock
-RUN yarn add udx-native@1.5.3 sodium-native@4.0.0
+RUN yarn add udx-native@1.5.3 sodium-native@4.0.0 \
+  && rm -rf /tmp/* ~/.cache node_modules/.cache \
+  && yarn cache clean
 #COPY --from=installer ${DOCKER_WORKDIR}/node_modules/sodium-native ./node_modules/sodium-native
 #COPY --from=installer ${DOCKER_WORKDIR}/node_modules/udx-native ./node_modules/udx-native
 # dependencies from udx-native
