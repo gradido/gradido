@@ -1,7 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
-/* eslint-disable security/detect-object-injection */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { ObjectSchema, ValidationErrorItem } from 'joi'
 
 export * from './commonSchema'

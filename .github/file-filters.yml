@@ -33,6 +33,9 @@ admin: &admin
 backend: &backend
   - 'backend/**/*'
 
+config: &config
+  - 'config-schema/**/*'
+
 dht_node: &dht_node
   - 'dht-node/**/*'
 

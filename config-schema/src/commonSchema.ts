@@ -97,7 +97,7 @@ export const COMMUNITY_SUPPORT_MAIL = Joi.string()
   .required()
 
 export const COMMUNITY_LOCATION = Joi.string()
-  .pattern(/^[-+]?[0-9]{1,2}(\.[0-9]+)?,\s?[-+]?[0-9]{1,3}(\.[0-9]+)?$/)
+  .pattern(/^-?[0-9]{1,2}(\.[0-9]+)?,\s?-?[0-9]{1,3}(\.[0-9]+)?$/)
   .when('GMS_ACTIVE', {
     is: true,
     then: Joi.string().required(),
