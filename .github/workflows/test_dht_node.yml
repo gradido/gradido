@@ -42,6 +42,12 @@ jobs:
     outputs:
       test-success: ${{ steps.test.outputs.success }}
     steps:
+      - name: Set Node.js version
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.20.7'
+          cache: 'yarn'
+
       - name: Checkout code
         uses: actions/checkout@v3
 
