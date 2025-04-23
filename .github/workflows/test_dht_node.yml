@@ -42,7 +42,7 @@ jobs:
       - name: Lint
         id: lint
         run: |
-          docker run --env NODE_ENV=test --rm gradido/dht-node:test turbo dht-node#lint typecheck
+          docker run --env NODE_ENV=test --rm gradido/dht-node:test turbo dht-node#lint dht-node#typecheck
           echo "success=$([ $? -eq 0 ] && echo true || echo false)" >> $GITHUB_OUTPUT
           
 
