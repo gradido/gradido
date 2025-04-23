@@ -31,7 +31,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Build 'test' image
+      - name: Build 'test' image (typecheck & build)
         run: docker build --target test -t "gradido/dht-node:test" -f dht-node/Dockerfile .
 
   unit_test:
@@ -65,10 +65,10 @@ jobs:
       - name: Wait for MariaDB to be ready
         run: docker run --rm --network gradido_internal-net busybox sh -c 'until nc -z mariadb 3306; do echo waiting for db; sleep 1; done;'
 
-      - name: run unit test & lint & typecheck & build
+      - name: run unit test & lint & build
         id: test
         run: |
-          cd out && turbo dht-node#lint dht-node#typecheck dht-node#test
+          cd out && turbo dht-node#lint dht-node#test
           echo "success=$([ $? -eq 0 ] && echo true || echo false)" >> $GITHUB_OUTPUT
 
   lint:
