@@ -27,8 +27,19 @@ jobs:
     if: needs.files-changed.outputs.config == 'true' || needs.files-changed.outputs.database == 'true' || needs.files-changed.outputs.dht_node == 'true' || needs.files-changed.outputs.docker-compose == 'true'
     needs: files-changed
     runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Build 'test' image
+        run: docker build --target test -t "gradido/dht-node:test" -f dht-node/Dockerfile .
+
+  unit_test:
+    name: Unit Tests - DHT Node
+    if: needs.files-changed.outputs.config == 'true' || needs.files-changed.outputs.database == 'true' || needs.files-changed.outputs.dht_node == 'true' || needs.files-changed.outputs.docker-compose == 'true'
+    needs: files-changed
+    runs-on: ubuntu-latest
     outputs:
-      lint-success: ${{ steps.lint.outputs.success }}
       test-success: ${{ steps.test.outputs.success }}
     steps:
       - name: Checkout code
@@ -37,31 +48,33 @@ jobs:
       - name: docker-compose mariadb
         run: docker compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps mariadb
 
-      - name: Build 'test' image
-        run: docker build --target test -t "gradido/dht-node:test" -f dht-node/Dockerfile .
+      - name: Install turbo
+        run: yarn global add turbo@^2
+
+      - name: Prune dht-node with turbos help
+        run: turbo prune dht-node
+
+      - name: install dependencies
+        run: cd out && yarn install --frozen-lockfile --production=false
 
       - name: Wait for MariaDB to be ready
         run: docker run --rm --network gradido_internal-net busybox sh -c 'until nc -z mariadb 3306; do echo waiting for db; sleep 1; done;'
 
-      - name: Unit tests & lint & typecheck
+      - name: run unit test & lint & typecheck
         id: test
         run: |
-          docker run --env NODE_ENV=test --env DB_HOST=mariadb --network gradido_internal-net --rm gradido/dht-node:test turbo dht-node#lint dht-node#typecheck dht-node#test
+          turbo dht-node#lint dht-node#typecheck dht-node#test
           echo "success=$([ $? -eq 0 ] && echo true || echo false)" >> $GITHUB_OUTPUT
+
 
   lint:
     name: Lint - DHT Node
-    needs: build
+    if: needs.files-changed.outputs.config == 'true' || needs.files-changed.outputs.database == 'true' || needs.files-changed.outputs.dht_node == 'true' || needs.files-changed.outputs.docker-compose == 'true'
+    needs: [files-changed, unit_test]
     runs-on: ubuntu-latest
     steps:
       - name: Check result from previous step
-        run: if [ "${{ needs.build.outputs.test-success }}" != "true" ]; then exit 1; fi
+        run: if [ "${{ needs.unit_test.outputs.test-success }}" != "true" ]; then exit 1; fi
 
-  unit_test:
-    name: Unit Tests - DHT Node
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check result from previous step
-        run: if [ "${{ needs.build.outputs.test-success }}" != "true" ]; then exit 1; fi
+
 
