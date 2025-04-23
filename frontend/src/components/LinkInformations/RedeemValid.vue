@@ -4,6 +4,7 @@
       :link-data="linkData"
       :is-contribution-link="isContributionLink"
       :is-disbursement-link="isDisbursementLink"
+      :valid-link="validLink"
     />
     <BCard>
       <div class="mb-3 text-center">
