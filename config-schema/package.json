@@ -15,7 +15,8 @@
   "license": "Apache-2.0",
   "private": false,
   "scripts": {
-    "build": "esbuild src/index.ts --outdir=build --platform=node --target=node18.20.7 --bundle --packages=external"
+    "build": "esbuild src/index.ts --outdir=build --platform=node --target=node18.20.7 --bundle --packages=external",
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@types/node": "^17.0.21",

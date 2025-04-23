@@ -16,6 +16,7 @@
   "private": false,
   "scripts": {
     "build": "tsx ./esbuild.config.ts",
+    "typecheck": "tsc --noEmit",
     "up": "cross-env TZ=UTC tsx src/index.ts up",
     "down": "cross-env TZ=UTC tsx src/index.ts down",
     "reset": "cross-env TZ=UTC tsx src/index.ts reset",

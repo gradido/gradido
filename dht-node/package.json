@@ -12,6 +12,7 @@
     "start": "cross-env TZ=UTC node build/index.js",
     "dev": "cross-env TZ=UTC tsx watch src/index.ts",
     "lint": "eslint --max-warnings=0 --ext .js,.ts .",
+    "typecheck": "tsc --noEmit",
     "test": "cross-env TZ=UTC NODE_ENV=development DB_DATABASE=gradido_test_dht jest --runInBand --forceExit --detectOpenHandles"
   },
   "dependencies": {
