@@ -508,8 +508,11 @@ export class TransactionLinkResolver {
       )
       let verifiedPayload: DisbursementJwtPayloadType | null = null
       if (jwtPayload != null) {
-        if (jwtPayload.exp && jwtPayload.exp < new Date().getTime()) {
-          throw new LogError('Redeem JWT-Token expired! jwtPayload.exp=', new Date(jwtPayload.exp))
+        if (jwtPayload.exp && new Date(jwtPayload.exp * 1000) < new Date()) {
+          throw new LogError(
+            'Redeem JWT-Token expired! jwtPayload.exp=',
+            new Date(jwtPayload.exp * 1000),
+          )
         } else if (jwtPayload.tokentype === DisbursementJwtPayloadType.REDEEM_ACTIVATION_TYPE) {
           verifiedPayload = new DisbursementJwtPayloadType(
             jwtPayload.sendercommunityuuid as string,
