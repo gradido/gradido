@@ -47,13 +47,13 @@ import { UserContact } from '@model/UserContact'
 import { UserLocationResult } from '@model/UserLocationResult'
 
 import { HumHubClient } from '@/apis/humhub/HumHubClient'
+import { Account as HumhubAccount } from '@/apis/humhub/model/Account'
 import { GetUser } from '@/apis/humhub/model/GetUser'
 import { PostUser } from '@/apis/humhub/model/PostUser'
 import { subscribe } from '@/apis/KlicktippController'
 import { encode } from '@/auth/JWT'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { CONFIG } from '@/config'
-import { PublishNameLogic } from '@/data/PublishName.logic'
 import {
   sendAccountActivationEmail,
   sendAccountMultiRegistrationEmail,
@@ -75,7 +75,6 @@ import {
   EVENT_ADMIN_USER_DELETE,
   EVENT_ADMIN_USER_UNDELETE,
 } from '@/event/Events'
-import { PublishNameType } from '@/graphql/enum/PublishNameType'
 import { isValidPassword } from '@/password/EncryptorUtils'
 import { encryptPassword, verifyPassword } from '@/password/PasswordEncryptor'
 import { Context, getUser, getClientTimezoneOffset } from '@/server/context'
@@ -821,7 +820,7 @@ export class UserResolver {
   }
 
   @Authorized([RIGHTS.HUMHUB_AUTO_LOGIN])
-  @Query(() => String)
+  @Mutation(() => String)
   async authenticateHumhubAutoLogin(
     @Ctx() context: Context,
     @Arg('project', () => String, { nullable: true }) project?: string | null,
@@ -832,19 +831,23 @@ export class UserResolver {
     if (!humhubClient) {
       throw new LogError('cannot create humhub client')
     }
-    const userNameLogic = new PublishNameLogic(dbUser)
-    const username = userNameLogic.getUserIdentifier(dbUser.humhubPublishName as PublishNameType)
-    let humhubUser = await humhubClient.userByUsername(username)
-    if (!humhubUser) {
-      humhubUser = await humhubClient.userByEmail(dbUser.emailContact.email)
+    // should rarely happen, so we don't optimize for parallel processing
+    if (!dbUser.humhubAllowed && project) {
+      await ProjectBranding.findOneOrFail({ where: { alias: project } })
+      dbUser.humhubAllowed = true
+      await dbUser.save()
     }
+    const humhubUserAccount = new HumhubAccount(dbUser)
+    const autoLoginUrlPromise = humhubClient.createAutoLoginUrl(humhubUserAccount.username, project)
+    const humhubUser = await syncHumhub(null, dbUser)
     if (!humhubUser) {
-      throw new LogError("user don't exist (any longer) on humhub")
+      throw new LogError("user don't exist (any longer) on humhub and couldn't be created")
     }
     if (humhubUser.account.status !== 1) {
       throw new LogError('user status is not 1', humhubUser.account.status)
     }
-    return await humhubClient.createAutoLoginUrl(humhubUser.account.username, project)
+    const autoLoginUrl = await autoLoginUrlPromise
+    return autoLoginUrl
   }
 
   @Authorized([RIGHTS.SEARCH_ADMIN_USERS])

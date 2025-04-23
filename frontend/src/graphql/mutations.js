@@ -60,6 +60,17 @@ export const updateUserInfos = gql`
   }
 `
 
+export const authenticateHumhubAutoLogin = gql`
+  mutation {
+    authenticateHumhubAutoLogin
+  }
+`
+export const authenticateHumhubAutoLoginProject = gql`
+  mutation ($project: String!) {
+    authenticateHumhubAutoLogin(project: $project)
+  }
+`
+
 export const createUser = gql`
   mutation (
     $firstName: String!

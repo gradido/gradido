@@ -70,8 +70,8 @@ describe('router', () => {
       expect(defaultRoute.redirect()).toEqual({ path: '/login' })
     })
 
-    it('has 21 routes defined', () => {
-      expect(routes).toHaveLength(21)
+    it('has 20 routes defined', () => {
+      expect(routes).toHaveLength(20)
     })
 
     const testRoute = (path, expectedName, requiresAuth = true) => {
