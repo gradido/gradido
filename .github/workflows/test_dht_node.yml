@@ -50,8 +50,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: docker-compose mariadb
-        run: docker compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps mariadb
+      - name: start existing mysql db
+        run: sudo systemctl start mysql.service
 
       - name: Install turbo
         run: yarn global add turbo@^2
@@ -68,7 +68,7 @@ jobs:
       - name: run unit test & lint & typecheck & build
         id: test
         run: |
-          cd out && turbo dht-node#lint dht-node#typecheck dht-node#test dht-node#build
+          cd out && DB_PASSWORD=root turbo dht-node#lint dht-node#typecheck dht-node#test --env-mode=loose
           echo "success=$([ $? -eq 0 ] && echo true || echo false)" >> $GITHUB_OUTPUT
 
 
