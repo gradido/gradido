@@ -5,6 +5,8 @@
     },
     "test": {
     },
+    "typecheck": {
+    },
     "dev": {
       "dependsOn": ["config#build"],
       "persistent": true,
