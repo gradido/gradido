@@ -40,19 +40,13 @@ jobs:
       - name: Build 'test' image
         run: docker build --target test -t "gradido/dht-node:test" -f dht-node/Dockerfile .
 
-      - name: Lint
-        id: lint
-        run: |
-          docker run --env NODE_ENV=test --rm gradido/dht-node:test turbo dht-node#lint dht-node#typecheck
-          echo "success=$([ $? -eq 0 ] && echo true || echo false)" >> $GITHUB_OUTPUT
-
       - name: Wait for MariaDB to be ready
         run: docker run --rm --network gradido_internal-net busybox sh -c 'until nc -z mariadb 3306; do echo waiting for db; sleep 1; done;'
 
-      - name: Unit tests
+      - name: Unit tests & lint & typecheck
         id: test
         run: |
-          docker run --env NODE_ENV=test --env DB_HOST=mariadb --network gradido_internal-net --rm gradido/dht-node:test
+          docker run --env NODE_ENV=test --env DB_HOST=mariadb --network gradido_internal-net --rm gradido/dht-node:test turbo dht-node#lint dht-node#typecheck dht-node#test
           echo "success=$([ $? -eq 0 ] && echo true || echo false)" >> $GITHUB_OUTPUT
 
   lint:
@@ -61,7 +55,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check result from previous step
-        run: if [ "${{ needs.build.outputs.lint-success }}" != "true" ]; then exit 1; fi
+        run: if [ "${{ needs.build.outputs.test-success }}" != "true" ]; then exit 1; fi
 
   unit_test:
     name: Unit Tests - DHT Node
