@@ -155,6 +155,7 @@ export const queryTransactionLink = gql`
         amount
         memo
         code
+        validUntil
         senderCommunity {
           foreign
           name

@@ -103,6 +103,8 @@ const tokenExpiresInSeconds = computed(() => {
 })
 
 const validLink = computed(() => {
+  console.log('TransactionLink.validLink... linkData.value.validUntil=', linkData.value.validUntil)
+  console.log('TransactionLink.validLink... new Date().getTime()=', new Date().getTime())
   return new Date(linkData.value.validUntil) > new Date()
 })
 
