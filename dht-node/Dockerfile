@@ -90,7 +90,7 @@ RUN yarn install --frozen-lockfile --production=false \
  
 # Build the project
 COPY --chown=app:app --from=builder /app/out/full/ .
-RUN turbo build typecheck#dht-node
+RUN turbo build dht-node#typecheck
  
 ##################################################################################
 # TEST ###########################################################################

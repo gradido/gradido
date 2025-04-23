@@ -45,7 +45,7 @@ jobs:
       - name: Set Node.js version
         uses: actions/setup-node@v4
         with:
-          node-version: '18' # oder '20' oder was dein Herz begehrt 💅
+          node-version: '18.20.7'
 
       - name: Checkout code
         uses: actions/checkout@v3
