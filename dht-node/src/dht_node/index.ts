@@ -3,8 +3,8 @@
 import DHT from '@hyperswarm/dht'
 import {
   CommunityLoggingView,
-  FederatedCommunity as DbFederatedCommunity,
   Community as DbCommunity,
+  FederatedCommunity as DbFederatedCommunity,
 } from 'database'
 import { v4 as uuidv4 } from 'uuid'
 

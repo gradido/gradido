@@ -14,7 +14,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3.3.0
 
-      - name: Check for frontend file changes
+      - name: Check for dht-node, config-schema, database, docker-compose file changes
         uses: dorny/paths-filter@v2.11.1
         id: changes
         with:
@@ -44,7 +44,7 @@ jobs:
         id: lint
         run: |
           docker run --env NODE_ENV=test --rm gradido/dht-node:test turbo dht-node#lint dht-node#typecheck
-          echo "success=$([ $? -eq 0 ] && echo true || echo false)" >> $GITHUB_OUTPUT          
+          echo "success=$([ $? -eq 0 ] && echo true || echo false)" >> $GITHUB_OUTPUT
 
       - name: Wait for MariaDB to be ready
         run: docker run --rm --network gradido_internal-net busybox sh -c 'until nc -z mariadb 3306; do echo waiting for db; sleep 1; done;'

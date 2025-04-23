@@ -74,7 +74,7 @@ CMD /bin/sh -c "turbo dev --env-mode=loose"
 ##################################################################################
 FROM turbo-base as builder
 
-COPY . . 
+COPY --chown=app:app . . 
 RUN turbo prune dht-node --docker
 
 ##################################################################################
@@ -83,13 +83,13 @@ RUN turbo prune dht-node --docker
 FROM turbo-base AS installer
 
 # First install the dependencies (as they change less often)
-COPY --from=builder /app/out/json/ .
+COPY --chown=app:app --from=builder /app/out/json/ .
 RUN yarn install --frozen-lockfile --production=false \
  && rm -rf /tmp/* ~/.cache node_modules/.cache \
  && yarn cache clean
  
 # Build the project
-COPY --from=builder /app/out/full/ .
+COPY --chown=app:app --from=builder /app/out/full/ .
 RUN turbo build
  
 ##################################################################################
@@ -107,7 +107,7 @@ CMD /bin/sh -c "turbo dht-node#test --env-mode=loose"
 FROM base as production
 
 # Copy "binary"-files from build image
-COPY --from=installer ${DOCKER_WORKDIR}/dht-node/build/index.js ./index.js
+COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/dht-node/build/index.js ./index.js
 
 # We also install the native node_modules which cannot be bundled
 # TODO: find a elegant way to use the right versions from yarn.lock
@@ -123,7 +123,7 @@ RUN yarn add udx-native@1.5.3 sodium-native@4.0.0 \
 #COPY --from=installer ${DOCKER_WORKDIR}/node_modules/bare-module-resolve ./node_modules/bare-module-resolve
 
 # Copy log4js-config.json to provide log configuration
-COPY --from=installer ${DOCKER_WORKDIR}/dht-node/log4js-config.json ./log4js-config.json
+COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/dht-node/log4js-config.json ./log4js-config.json
 
 # Run command
 CMD ["node", "index.js"]

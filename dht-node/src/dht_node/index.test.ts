@@ -2,10 +2,10 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import DHT from '@hyperswarm/dht'
-import { FederatedCommunity as DbFederatedCommunity, Community as DbCommunity } from 'database'
+import { Community as DbCommunity, FederatedCommunity as DbFederatedCommunity } from 'database'
 import { validate as validateUUID, version as versionUUID } from 'uuid'
 
-import { testEnvironment, cleanDB } from '@test/helpers'
+import { cleanDB, testEnvironment } from '@test/helpers'
 import { logger } from '@test/testSetup'
 
 import { CONFIG } from '@/config'

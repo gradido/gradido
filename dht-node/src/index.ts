@@ -2,8 +2,8 @@
 import { CONFIG } from './config'
 import { startDHT } from './dht_node/index'
 import { logger } from './server/logger'
-import { connection } from './typeorm/connection'
 import { checkDBVersion } from './typeorm/DBVersion'
+import { connection } from './typeorm/connection'
 
 async function main() {
   // open mysql connection
@@ -29,7 +29,7 @@ async function main() {
 }
 
 main().catch((e) => {
-  // eslint-disable-next-line no-console
+  // biome-ignore lint/suspicious/noConsole: it is on startup
   console.error(e)
   throw e
 })

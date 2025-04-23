@@ -3,6 +3,8 @@
   "tasks": {
     "lint": {
     },
+    "lint:fix": {
+    },
     "test": {
     },
     "typecheck": {
