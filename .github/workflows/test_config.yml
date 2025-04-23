@@ -35,11 +35,11 @@ jobs:
         run: yarn global add turbo@^2
 
       - name: Prune config with turbos help
-        run: turbo prune config-schema --docker
+        run: turbo prune config-schema
 
       - name: install dependencies
-        run: cd out/full/ && yarn install --frozen-lockfile --production=false
+        run: cd out && yarn install --frozen-lockfile --production=false
 
       - name: typecheck and lint
-        run: cd out/full/ && turbo typecheck lint
+        run: cd out && turbo typecheck lint
 
