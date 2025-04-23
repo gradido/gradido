@@ -67,7 +67,7 @@ jobs:
       - name: run unit test & lint & typecheck & build
         id: test
         run: |
-          cd out && turbo dht-node#lint dht-node#typecheck dht-node#test --env-mode=loose
+          cd out && turbo dht-node#lint dht-node#typecheck dht-node#test
           echo "success=$([ $? -eq 0 ] && echo true || echo false)" >> $GITHUB_OUTPUT
 
 
