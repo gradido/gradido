@@ -60,10 +60,10 @@ jobs:
       - name: Wait for MariaDB to be ready
         run: docker run --rm --network gradido_internal-net busybox sh -c 'until nc -z mariadb 3306; do echo waiting for db; sleep 1; done;'
 
-      - name: run unit test & lint & typecheck
+      - name: run unit test & lint & typecheck & build
         id: test
         run: |
-          turbo dht-node#lint dht-node#typecheck dht-node#test
+          cd out && turbo dht-node#lint dht-node#typecheck dht-node#test dht-node#build
           echo "success=$([ $? -eq 0 ] && echo true || echo false)" >> $GITHUB_OUTPUT
 
 
