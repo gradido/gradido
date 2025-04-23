@@ -38,7 +38,7 @@ jobs:
     name: Unit Tests - DHT Node
     if: needs.files-changed.outputs.config == 'true' || needs.files-changed.outputs.database == 'true' || needs.files-changed.outputs.dht_node == 'true' || needs.files-changed.outputs.docker-compose == 'true'
     needs: files-changed
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     outputs:
       test-success: ${{ steps.test.outputs.success }}
     steps:
@@ -46,7 +46,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18.20.7'
-          cache: 'yarn'
 
       - name: Checkout code
         uses: actions/checkout@v3
