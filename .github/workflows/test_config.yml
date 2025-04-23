@@ -1,0 +1,45 @@
+name: Gradido Config Schema Test CI
+
+on: push
+
+jobs:
+  files-changed:
+    name: Detect File Changes - Config-Schema
+    runs-on: ubuntu-latest
+    outputs:
+      config: ${{ steps.changes.outputs.config }}
+      docker-compose: ${{ steps.changes.outputs.docker-compose }}
+    steps:
+      - uses: actions/checkout@v3.3.0
+
+      - name: Check for frontend file changes
+        uses: dorny/paths-filter@v2.11.1
+        id: changes
+        with:
+          token: ${{ github.token }}
+          filters: .github/file-filters.yml
+          list-files: shell
+
+  build:
+    name: typecheck and lint - Config-Schema
+    if: needs.files-changed.outputs.config == 'true' || needs.files-changed.outputs.docker-compose == 'true'
+    needs: files-changed
+    runs-on: ubuntu-latest
+    outputs:
+      lint-success: ${{ steps.lint.outputs.success }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install turbo
+        run: yarn global add turbo@^2
+
+      - name: Prune config with turbos help
+        run: turbo prune config-schema --docker
+
+      - name: install dependencies
+        run: cd out/full/ && yarn install --frozen-lockfile --production=false
+
+      - name: typecheck and lint
+        run: cd out/full/ && turbo typecheck lint
+
