@@ -190,7 +190,9 @@ export class TransactionLinkResolver {
         )
         if (
           decodedPayload != null &&
-          decodedPayload.tokentype === DisbursementJwtPayloadType.REDEEM_ACTIVATION_TYPE
+          decodedPayload.tokentype === DisbursementJwtPayloadType.REDEEM_ACTIVATION_TYPE &&
+          decodedPayload.exp &&
+          decodedPayload.exp > new Date().getTime()
         ) {
           const disburseJwtPayload = new DisbursementJwtPayloadType(
             decodedPayload.sendercommunityuuid as string,
@@ -224,7 +226,9 @@ export class TransactionLinkResolver {
           let verifiedPayload: DisbursementJwtPayloadType | null = null
           if (
             jwtPayload != null &&
-            jwtPayload.tokentype === DisbursementJwtPayloadType.REDEEM_ACTIVATION_TYPE
+            jwtPayload.tokentype === DisbursementJwtPayloadType.REDEEM_ACTIVATION_TYPE &&
+            jwtPayload.exp &&
+            jwtPayload.exp > new Date().getTime()
           ) {
             verifiedPayload = new DisbursementJwtPayloadType(
               jwtPayload.sendercommunityuuid as string,
@@ -265,7 +269,10 @@ export class TransactionLinkResolver {
           )
           return disbursementLink
         } else {
-          throw new LogError('Redeem with wrong type of JWT-Token! decodedPayload=', decodedPayload)
+          throw new LogError(
+            'Redeem with wrong type of JWT-Token or expired! decodedPayload=',
+            decodedPayload,
+          )
         }
       }
     }
