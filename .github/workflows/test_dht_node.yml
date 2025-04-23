@@ -62,9 +62,6 @@ jobs:
       - name: install dependencies
         run: cd out && yarn install --frozen-lockfile --production=false
 
-      - name: Wait for MariaDB to be ready
-        run: docker run --rm --network gradido_internal-net busybox sh -c 'until nc -z mariadb 3306; do echo waiting for db; sleep 1; done;'
-
       - name: run unit test & lint & typecheck & build
         id: test
         run: |
