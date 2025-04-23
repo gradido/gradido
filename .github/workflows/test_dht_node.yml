@@ -52,6 +52,8 @@ jobs:
 
       - name: setup mariadb
         uses: ankane/setup-mariadb@v1
+        with:
+          mariadb-version: "11.4"
 
       - name: Install turbo
         run: yarn global add turbo@^2
@@ -65,7 +67,7 @@ jobs:
       - name: run unit test & lint & typecheck & build
         id: test
         run: |
-          cd out && DB_PASSWORD=root turbo dht-node#lint dht-node#typecheck dht-node#test --env-mode=loose
+          cd out && turbo dht-node#lint dht-node#typecheck dht-node#test --env-mode=loose
           echo "success=$([ $? -eq 0 ] && echo true || echo false)" >> $GITHUB_OUTPUT
 
 
