@@ -67,7 +67,7 @@ export class PublishNameLogic {
    */
   public getUserIdentifier(publishNameType: PublishNameType): string {
     return this.isUsernameFromAlias(publishNameType)
-      ? this.filterOutInvalidChar(this.user.alias)
+      ? this.getUsernameFromAlias()
       : this.user.gradidoID
   }
 
@@ -82,11 +82,21 @@ export class PublishNameLogic {
    */
   public getPublicName(publishNameType: PublishNameType): string {
     return this.isUsernameFromAlias(publishNameType)
-      ? this.filterOutInvalidChar(this.user.alias)
+      ? this.getUsernameFromAlias()
       : this.isUsernameFromInitials(publishNameType)
-      ? this.firstUpperCaseSecondLowerCase(this.user.firstName) +
-        this.firstUpperCaseSecondLowerCase(this.user.lastName)
+      ? this.getUsernameFromInitials()
       : (this.getFirstName(publishNameType) + ' ' + this.getLastName(publishNameType)).trim()
+  }
+
+  public getUsernameFromInitials(): string {
+    return (
+      this.firstUpperCaseSecondLowerCase(this.user.firstName) +
+      this.firstUpperCaseSecondLowerCase(this.user.lastName)
+    ).trim()
+  }
+
+  public getUsernameFromAlias(): string {
+    return this.filterOutInvalidChar(this.user.alias)
   }
 
   public isUsernameFromInitials(publishNameType: PublishNameType): boolean {
