@@ -38,22 +38,20 @@ jobs:
     name: Unit Tests - DHT Node
     if: needs.files-changed.outputs.config == 'true' || needs.files-changed.outputs.database == 'true' || needs.files-changed.outputs.dht_node == 'true' || needs.files-changed.outputs.docker-compose == 'true'
     needs: files-changed
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     outputs:
       test-success: ${{ steps.test.outputs.success }}
     steps:
       - name: Set Node.js version
         uses: actions/setup-node@v4
         with:
-          node-version: '18.20.7'
+          node-version: '18' # oder '20' oder was dein Herz begehrt 💅
 
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: setup mariadb
-        uses: ankane/setup-mariadb@v1
-        with:
-          mariadb-version: "11.4"
+      - name: docker-compose mariadb
+        run: docker compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps mariadb
 
       - name: Install turbo
         run: yarn global add turbo@^2
@@ -64,12 +62,14 @@ jobs:
       - name: install dependencies
         run: cd out && yarn install --frozen-lockfile --production=false
 
+      - name: Wait for MariaDB to be ready
+        run: docker run --rm --network gradido_internal-net busybox sh -c 'until nc -z mariadb 3306; do echo waiting for db; sleep 1; done;'
+
       - name: run unit test & lint & typecheck & build
         id: test
         run: |
           cd out && turbo dht-node#lint dht-node#typecheck dht-node#test
           echo "success=$([ $? -eq 0 ] && echo true || echo false)" >> $GITHUB_OUTPUT
-
 
   lint:
     name: Lint - DHT Node
