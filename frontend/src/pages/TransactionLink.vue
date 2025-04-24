@@ -234,19 +234,21 @@ function setDisbursementLinkInformation() {
   )
   if (queryTransactionLink) {
     // recipientUser is only set if the user is logged in
+    // Make a shallow copy to break reactivity/read-only
+    const linkCopy = { ...queryTransactionLink }
+    // Now you can safely set recipientUser
     if (store.state.gradidoID !== null) {
-      console.log('TransactionLink.setDisbursementLinkInformation... setting recipientUser')
-      queryTransactionLink.recipientUser = {
+      linkCopy.recipientUser = {
         gradidoID: store.state.gradidoID,
         firstName: store.state.firstName,
         alias: store.state.alias,
       }
-      console.log(
-        'TransactionLink.setDisbursementLinkInformation... recipientUser=',
-        queryTransactionLink.recipientUser,
-      )
     }
-    linkData.value = queryTransactionLink
+    console.log(
+      'TransactionLink.setDisbursementLinkInformation... recipientUser=',
+      queryTransactionLink.recipientUser,
+    )
+    linkData.value = linkCopy
     console.log('TransactionLink.setDisbursementLinkInformation... linkData.value=', linkData.value)
   }
 }
