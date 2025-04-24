@@ -210,7 +210,7 @@ export const createRedeemJwtMutation = gql`
     $memo: String!
     $firstName: String
     $alias: String
-    $validUntil: Date
+    $validUntil: String
   ) {
     createRedeemJwt(
       gradidoID: $gradidoID
