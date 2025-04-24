@@ -88,7 +88,7 @@ async function main() {
   const humhubUsers = await loadUsersFromHumHub(humHubClient)
 
   let dbUserCount = 0
-  const executedHumhubActionsCount = [0, 0, 0, 0]
+  const executedHumhubActionsCount = [0, 0, 0, 0, 0]
 
   do {
     try {
@@ -121,6 +121,7 @@ async function main() {
     updatedCount: executedHumhubActionsCount[ExecutedHumhubAction.UPDATE],
     skippedCount: executedHumhubActionsCount[ExecutedHumhubAction.SKIP],
     deletedCount: executedHumhubActionsCount[ExecutedHumhubAction.DELETE],
+    validationErrorCount: executedHumhubActionsCount[ExecutedHumhubAction.VALIDATION_ERROR],
   })
 }
 
