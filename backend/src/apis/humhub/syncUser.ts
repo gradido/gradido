@@ -22,6 +22,10 @@ function isValid(postUser: PostUser, userId: number): boolean {
     logger.error('firstname too long for humhub, for user with id:', userId)
     return false
   }
+  if (postUser.profile.lastname.length > 20) {
+    logger.error('lastname too long for humhub, for user with id:', userId)
+    return false
+  }
   return true
 }
 
