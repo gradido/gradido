@@ -136,6 +136,7 @@ const itemType = computed(() => {
     }
     if (!linkData.value.redeemedAt && !linkData.value.deletedAt) {
       console.log('TransactionLink.itemType... VALID')
+      console.log('TransactionLink.itemType... validLink=', validLink.value)
       return 'VALID'
     }
   }
@@ -234,6 +235,19 @@ function setDisbursementLinkInformation() {
   if (queryTransactionLink) {
     linkData.value = queryTransactionLink
     console.log('TransactionLink.setDisbursementLinkInformation... linkData.value=', linkData.value)
+  }
+  // recipientUser is only set if the user is logged in
+  if (store.state.gradidoID !== null) {
+    console.log('TransactionLink.setDisbursementLinkInformation... setting recipientUser')
+    linkData.value.recipientUser = {
+      gradidoID: store.state.gradidoID,
+      firstName: store.state.firstName,
+      alias: store.state.alias,
+    }
+    console.log(
+      'TransactionLink.setDisbursementLinkInformation... recipientUser=',
+      linkData.value.recipientUser,
+    )
   }
 }
 
