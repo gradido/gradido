@@ -28,7 +28,8 @@ describe('syncUser function', () => {
 
   it('When humhubUser exists and user.humhubAllowed is false, should return DELETE action', async () => {
     const humhubUsers = new Map<string, GetUser>()
-    humhubUsers.set(defaultUser.emailContact.email, new GetUser(defaultUser, 1))
+    const humhubUser = new GetUser(defaultUser, 1)
+    humhubUsers.set(humhubUser.account.username, humhubUser)
 
     defaultUser.humhubAllowed = false
     const result = await syncUser(defaultUser, humhubUsers)
@@ -39,8 +40,8 @@ describe('syncUser function', () => {
   it('When humhubUser exists and user.humhubAllowed is true and there are changes in user data, should return UPDATE action', async () => {
     const humhubUsers = new Map<string, GetUser>()
     const humhubUser = new GetUser(defaultUser, 1)
+    humhubUsers.set(humhubUser.account.username, humhubUser)
     humhubUser.account.username = 'test username'
-    humhubUsers.set(defaultUser.emailContact.email, humhubUser)
 
     defaultUser.humhubAllowed = true
     const result = await syncUser(defaultUser, humhubUsers)
@@ -51,7 +52,7 @@ describe('syncUser function', () => {
   it('When humhubUser exists and user.humhubAllowed is true and there are no changes in user data, should return SKIP action', async () => {
     const humhubUsers = new Map<string, GetUser>()
     const humhubUser = new GetUser(defaultUser, 1)
-    humhubUsers.set(defaultUser.emailContact.email, humhubUser)
+    humhubUsers.set(humhubUser.account.username, humhubUser)
 
     defaultUser.humhubAllowed = true
     const result = await syncUser(defaultUser, humhubUsers)

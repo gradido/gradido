@@ -21,9 +21,8 @@ export enum ExecutedHumhubAction {
  * |      true            |         true             |        false         | SKIP
  * |      false           |         false            |       ignored        | SKIP
  * |      false           |         true             |       ignored        | CREATE
- * @param user
- * @param humHubClient
- * @param humhubUsers
+ * @param user user entity
+ * @param humhubUsers user map indices with username
  * @returns
  */
 export async function syncUser(
@@ -31,7 +30,7 @@ export async function syncUser(
   humhubUsers: Map<string, GetUser>,
 ): Promise<ExecutedHumhubAction> {
   const postUser = new PostUser(user)
-  const humhubUser = humhubUsers.get(user.emailContact.email.trim())
+  const humhubUser = humhubUsers.get(postUser.account.username)
   const humHubClient = HumHubClient.getInstance()
   if (!humHubClient) {
     throw new LogError('Error creating humhub client')

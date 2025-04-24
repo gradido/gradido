@@ -26,7 +26,7 @@ function getUsersPage(page: number, limit: number): Promise<[User[], number]> {
 
 /**
  * @param client
- * @returns user map indices with email
+ * @returns user map indices with username
  */
 async function loadUsersFromHumHub(client: HumHubClient): Promise<Map<string, GetUser>> {
   const start = new Date().getTime()
@@ -43,7 +43,7 @@ async function loadUsersFromHumHub(client: HumHubClient): Promise<Map<string, Ge
     usersPage.results.forEach((user) => {
       // deleted users have empty emails
       if (user.account.email) {
-        humhubUsers.set(user.account.email.trim(), user)
+        humhubUsers.set(user.account.username, user)
       } else {
         skippedUsersCount++
       }
