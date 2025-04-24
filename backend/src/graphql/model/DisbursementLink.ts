@@ -1,5 +1,5 @@
 import { Decimal } from 'decimal.js-light'
-import { ObjectType, Field, Int } from 'type-graphql'
+import { ObjectType, Field } from 'type-graphql'
 
 import { DisbursementJwtPayloadType } from '@/auth/jwt/payloadtypes/DisbursementJwtPayloadType'
 
@@ -27,7 +27,7 @@ export class DisbursementLink {
     this.memo = disbursementPayload.memo
     this.code = disbursementPayload.redeemcode
     if (disbursementPayload.exp) {
-      this.validUntil = disbursementPayload.exp * 1000
+      this.validUntil = new Date(disbursementPayload.exp * 1000)
     }
   }
 
@@ -52,6 +52,6 @@ export class DisbursementLink {
   @Field(() => String)
   code: string
 
-  @Field(() => Int)
-  validUntil: number
+  @Field(() => Date)
+  validUntil: Date
 }

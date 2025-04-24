@@ -104,8 +104,8 @@ const tokenExpiresInSeconds = computed(() => {
 
 const validLink = computed(() => {
   console.log('TransactionLink.validLink... linkData.value.validUntil=', linkData.value.validUntil)
-  console.log('TransactionLink.validLink... new Date().getTime()=', new Date().getTime())
-  return new Date(linkData.value.validUntil) > new Date()
+  console.log('TransactionLink.validLink... new Date()=', new Date())
+  return linkData.value.validUntil > new Date()
 })
 
 const itemType = computed(() => {
@@ -113,7 +113,7 @@ const itemType = computed(() => {
     console.log('TransactionLink.itemType... TEXT_DELETED')
     return 'TEXT_DELETED'
   }
-  if (new Date(linkData.value.validUntil) < new Date()) {
+  if (linkData.value.validUntil < new Date()) {
     console.log('TransactionLink.itemType... TEXT_EXPIRED')
     return 'TEXT_EXPIRED'
   }
@@ -165,7 +165,7 @@ function updateRedeemedBoxText(type) {
       break
     case 'TEXT_EXPIRED':
       redeemedBoxText.value = t('gdd_per_link.link-expired', {
-        date: d(new Date(linkData.value.validUntil), 'long'),
+        date: d(linkData.value.validUntil, 'long'),
       })
       break
     case 'TEXT_REDEEMED':
