@@ -405,7 +405,7 @@ export class TransactionLinkResolver {
     @Arg('memo') memo: string,
     @Arg('firstName', { nullable: true }) firstName?: string,
     @Arg('alias', { nullable: true }) alias?: string,
-    @Arg('validUntil', { nullable: true }) validUntil?: Date,
+    @Arg('validUntil', { nullable: true }) validUntil?: string,
   ): Promise<string> {
     logger.debug('TransactionLinkResolver.queryRedeemJwt... args=', {
       gradidoID,
@@ -427,7 +427,7 @@ export class TransactionLinkResolver {
       code,
       amount,
       memo,
-      validUntil?.toISOString() ?? '',
+      validUntil,
     )
     // TODO:encode/sign the jwt normally with the private key of the sender/home community, but interims with uuid
     const homeCom = await getHomeCommunity()
