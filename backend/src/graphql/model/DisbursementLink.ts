@@ -26,9 +26,7 @@ export class DisbursementLink {
     this.amount = new Decimal(disbursementPayload.amount)
     this.memo = disbursementPayload.memo
     this.code = disbursementPayload.redeemcode
-    if (disbursementPayload.exp) {
-      this.validUntil = new Date(disbursementPayload.exp * 1000)
-    }
+    this.validUntil = new Date(disbursementPayload.validuntil)
   }
 
   @Field(() => Community)

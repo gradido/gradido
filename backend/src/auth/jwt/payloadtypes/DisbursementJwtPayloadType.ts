@@ -10,6 +10,7 @@ export class DisbursementJwtPayloadType extends JwtPayloadType {
   redeemcode: string
   amount: string
   memo: string
+  validuntil: string
 
   constructor(
     senderCom: string,
@@ -18,6 +19,7 @@ export class DisbursementJwtPayloadType extends JwtPayloadType {
     code: string,
     amount: string,
     memo: string,
+    validUntil: string,
   ) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     super()
@@ -29,5 +31,6 @@ export class DisbursementJwtPayloadType extends JwtPayloadType {
     this.redeemcode = code
     this.amount = amount
     this.memo = memo
+    this.validuntil = validUntil
   }
 }

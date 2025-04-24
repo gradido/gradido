@@ -138,6 +138,7 @@ async function onSwitch(event) {
       memo: props.linkData.memo,
       firstName: props.linkData.senderUser?.firstName,
       alias: props.linkData.senderUser?.alias,
+      validUntil: props.linkData.validUntil,
     })
     try {
       const { data } = await createRedeemJwt({
@@ -150,6 +151,7 @@ async function onSwitch(event) {
         memo: props.linkData.memo,
         firstName: props.linkData.senderUser?.firstName,
         alias: props.linkData.senderUser?.alias,
+        validUntil: props.linkData.validUntil,
       })
       console.log('RedeemCommunitySelection.onSwitch... response=', data)
       if (!data?.createRedeemJwt) {

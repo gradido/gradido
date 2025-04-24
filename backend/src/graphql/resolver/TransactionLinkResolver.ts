@@ -405,6 +405,7 @@ export class TransactionLinkResolver {
     @Arg('memo') memo: string,
     @Arg('firstName', { nullable: true }) firstName?: string,
     @Arg('alias', { nullable: true }) alias?: string,
+    @Arg('validUntil', { nullable: true }) validUntil?: Date,
   ): Promise<string> {
     logger.debug('TransactionLinkResolver.queryRedeemJwt... args=', {
       gradidoID,
@@ -416,6 +417,7 @@ export class TransactionLinkResolver {
       memo,
       firstName,
       alias,
+      validUntil,
     })
 
     const disbursementJwtPayloadType = new DisbursementJwtPayloadType(
@@ -425,6 +427,7 @@ export class TransactionLinkResolver {
       code,
       amount,
       memo,
+      validUntil?.toISOString() ?? '',
     )
     // TODO:encode/sign the jwt normally with the private key of the sender/home community, but interims with uuid
     const homeCom = await getHomeCommunity()
@@ -474,6 +477,7 @@ export class TransactionLinkResolver {
 
   async queryDisbursementLink(code: string): Promise<DisbursementLink> {
     logger.debug('TransactionLinkResolver.queryDisbursementLink... disbursement jwt-token found')
+    // decode token first to get the senderCommunityUuid as input for verify token
     const decodedPayload = decode(code)
     logger.debug('TransactionLinkResolver.queryDisbursementLink... decodedPayload=', decodedPayload)
     if (
@@ -487,6 +491,7 @@ export class TransactionLinkResolver {
         decodedPayload.redeemcode as string,
         decodedPayload.amount as string,
         decodedPayload.memo as string,
+        decodedPayload.validuntil as string,
       )
       logger.debug(
         'TransactionLinkResolver.queryDisbursementLink... disburseJwtPayload=',
@@ -508,12 +513,21 @@ export class TransactionLinkResolver {
       )
       let verifiedPayload: DisbursementJwtPayloadType | null = null
       if (jwtPayload !== null) {
-        if (jwtPayload.exp && new Date(jwtPayload.exp * 1000) < new Date()) {
-          throw new LogError(
-            'Redeem JWT-Token expired! jwtPayload.exp=',
-            new Date(jwtPayload.exp * 1000),
+        if (jwtPayload.exp !== undefined) {
+          const expDate = new Date(jwtPayload.exp * 1000)
+          logger.debug(
+            'TransactionLinkResolver.queryDisbursementLink... expDate, exp =',
+            expDate,
+            jwtPayload.exp,
           )
+          if (expDate < new Date()) {
+            throw new LogError('Redeem JWT-Token expired! jwtPayload.exp=', expDate)
+          }
         } else if (jwtPayload.tokentype === DisbursementJwtPayloadType.REDEEM_ACTIVATION_TYPE) {
+          logger.debug(
+            'TransactionLinkResolver.queryDisbursementLink... jwtPayload.tokentype=',
+            jwtPayload.tokentype,
+          )
           verifiedPayload = new DisbursementJwtPayloadType(
             jwtPayload.sendercommunityuuid as string,
             jwtPayload.sendergradidoid as string,
@@ -521,6 +535,7 @@ export class TransactionLinkResolver {
             jwtPayload.redeemcode as string,
             jwtPayload.amount as string,
             jwtPayload.memo as string,
+            jwtPayload.validuntil as string,
           )
           logger.debug(
             'TransactionLinkResolver.queryDisbursementLink... nach verify verifiedPayload=',
@@ -539,6 +554,7 @@ export class TransactionLinkResolver {
           decodedPayload.redeemcode as string,
           decodedPayload.amount as string,
           decodedPayload.memo as string,
+          decodedPayload.validuntil as string,
         )
       } else {
         // TODO: as long as the verification fails, fallback to simply decoded payload

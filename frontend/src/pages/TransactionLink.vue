@@ -56,6 +56,7 @@ const { d, t } = useI18n()
 
 const linkData = ref({
   __typename: 'TransactionLink',
+  validUntil: null,
   amount: 0,
   memo: '',
   senderCommunity: null,

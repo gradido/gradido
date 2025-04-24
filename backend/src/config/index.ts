@@ -27,6 +27,7 @@ const server = {
   PORT: process.env.PORT ?? 4000,
   JWT_SECRET: process.env.JWT_SECRET ?? 'secret123',
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN ?? '10m',
+  REDEEM_JWT_TOKEN_EXPIRATION: process.env.REDEEM_JWT_TOKEN_EXPIRATION ?? '10m',
   GRAPHIQL: process.env.GRAPHIQL === 'true' || false,
   GDT_ACTIVE: process.env.GDT_ACTIVE === 'true' || false,
   GDT_API_URL: process.env.GDT_API_URL ?? 'https://gdt.gradido.net',
