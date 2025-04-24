@@ -427,7 +427,7 @@ export class TransactionLinkResolver {
       code,
       amount,
       memo,
-      validUntil,
+      validUntil ?? '',
     )
     // TODO:encode/sign the jwt normally with the private key of the sender/home community, but interims with uuid
     const homeCom = await getHomeCommunity()
