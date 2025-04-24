@@ -128,8 +128,11 @@ const itemType = computed(() => {
       return 'REDEEM_SELECT_COMMUNITY'
     }
     if (
-      linkData.value.recipientUser &&
-      store.state.gradidoID === linkData.value.recipientUser.gradidoID
+      (!isDisbursementLink.value &&
+        linkData.value.recipientUser &&
+        store.state.gradidoID === linkData.value.recipientUser.gradidoID) ||
+      (isDisbursementLink.value &&
+        linkData.value.senderUser.gradidoID === linkData.value.recipientUser.gradidoID)
     ) {
       console.log('TransactionLink.itemType... SELF_CREATOR')
       return 'SELF_CREATOR'
