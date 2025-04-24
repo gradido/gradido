@@ -233,21 +233,21 @@ function setDisbursementLinkInformation() {
     queryTransactionLink,
   )
   if (queryTransactionLink) {
+    // recipientUser is only set if the user is logged in
+    if (store.state.gradidoID !== null) {
+      console.log('TransactionLink.setDisbursementLinkInformation... setting recipientUser')
+      queryTransactionLink.recipientUser = {
+        gradidoID: store.state.gradidoID,
+        firstName: store.state.firstName,
+        alias: store.state.alias,
+      }
+      console.log(
+        'TransactionLink.setDisbursementLinkInformation... recipientUser=',
+        queryTransactionLink.recipientUser,
+      )
+    }
     linkData.value = queryTransactionLink
     console.log('TransactionLink.setDisbursementLinkInformation... linkData.value=', linkData.value)
-  }
-  // recipientUser is only set if the user is logged in
-  if (store.state.gradidoID !== null) {
-    console.log('TransactionLink.setDisbursementLinkInformation... setting recipientUser')
-    linkData.value.recipientUser = {
-      gradidoID: store.state.gradidoID,
-      firstName: store.state.firstName,
-      alias: store.state.alias,
-    }
-    console.log(
-      'TransactionLink.setDisbursementLinkInformation... recipientUser=',
-      linkData.value.recipientUser,
-    )
   }
 }
 
