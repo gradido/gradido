@@ -34,6 +34,7 @@ async function loadUsersFromHumHub(client: HumHubClient): Promise<Map<string, Ge
   let page = 0
   let skippedUsersCount = 0
   let usersPage: UsersResponse | null = null
+  process.stdout.write('\n')
   do {
     usersPage = await client.users(page, HUMHUB_BULK_SIZE)
     if (!usersPage) {
@@ -52,6 +53,7 @@ async function loadUsersFromHumHub(client: HumHubClient): Promise<Map<string, Ge
       `load users from humhub: ${humhubUsers.size}/${usersPage.total}, skipped: ${skippedUsersCount}\r`,
     )
   } while (usersPage && usersPage.results.length === HUMHUB_BULK_SIZE)
+  process.stdout.write('\n')
 
   const elapsed = new Date().getTime() - start
   logger.info('load users from humhub', {
@@ -89,21 +91,28 @@ async function main() {
   let dbUserCount = 0
   const executedHumhubActionsCount = [0, 0, 0, 0]
 
+  process.stdout.write('\n')
   do {
-    const [users, totalUsers] = await getUsersPage(page, USER_BULK_SIZE)
-    dbUserCount += users.length
-    userCount = users.length
-    page++
-    const promises: Promise<ExecutedHumhubAction>[] = []
-    users.forEach((user: User) => promises.push(syncUser(user, humhubUsers)))
-    const executedActions = await Promise.all(promises)
-    executedActions.forEach((executedAction: ExecutedHumhubAction) => {
-      executedHumhubActionsCount[executedAction as number]++
-    })
-    // using process.stdout.write here so that carriage-return is working analog to c
-    // printf("\rchecked user: %d/%d", dbUserCount, totalUsers);
-    process.stdout.write(`checked user: ${dbUserCount}/${totalUsers}\r`)
+    try {
+      const [users, totalUsers] = await getUsersPage(page, USER_BULK_SIZE)
+      dbUserCount += users.length
+      userCount = users.length
+      page++
+      const promises: Promise<ExecutedHumhubAction>[] = []
+      users.forEach((user: User) => promises.push(syncUser(user, humhubUsers)))
+      const executedActions = await Promise.all(promises)
+      executedActions.forEach((executedAction: ExecutedHumhubAction) => {
+        executedHumhubActionsCount[executedAction as number]++
+      })
+      // using process.stdout.write here so that carriage-return is working analog to c
+      // printf("\rchecked user: %d/%d", dbUserCount, totalUsers);
+      process.stdout.write(`checked user: ${dbUserCount}/${totalUsers}\r`)
+    } catch (e) {
+      process.stdout.write('\n')
+      throw e
+    }
   } while (userCount === USER_BULK_SIZE)
+  process.stdout.write('\n')
 
   await con.destroy()
   const elapsed = new Date().getTime() - start
