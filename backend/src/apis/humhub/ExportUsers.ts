@@ -34,7 +34,6 @@ async function loadUsersFromHumHub(client: HumHubClient): Promise<Map<string, Ge
   let page = 0
   let skippedUsersCount = 0
   let usersPage: UsersResponse | null = null
-  process.stdout.write('\n')
   do {
     usersPage = await client.users(page, HUMHUB_BULK_SIZE)
     if (!usersPage) {
@@ -91,7 +90,6 @@ async function main() {
   let dbUserCount = 0
   const executedHumhubActionsCount = [0, 0, 0, 0]
 
-  process.stdout.write('\n')
   do {
     try {
       const [users, totalUsers] = await getUsersPage(page, USER_BULK_SIZE)
@@ -128,7 +126,7 @@ async function main() {
 
 main().catch((e) => {
   // eslint-disable-next-line no-console
-  console.error(e)
+  console.error(JSON.stringify(e, null, 2))
   // eslint-disable-next-line n/no-process-exit
   process.exit(1)
 })
