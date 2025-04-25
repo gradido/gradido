@@ -200,11 +200,11 @@ onResult(() => {
   console.log('TransactionLink.onResult... result=', result.value)
   console.log('TransactionLink.onResult... stringify result=', JSON.stringify(result.value))
   if (result.value?.queryTransactionLink?.__typename === 'TransactionLink') {
-    console.log('TransactionLink.onResult... redeeming')
+    console.log('TransactionLink.onResult... TransactionLink')
     setTransactionLinkInformation()
-  } else if (result.value?.queryTransactionLink?.__typename === 'DisbursementLink') {
-    console.log('TransactionLink.onResult... disbursing')
-    setDisbursementLinkInformation()
+  } else if (result.value?.queryTransactionLink?.__typename === 'RedeemJwtLink') {
+    console.log('TransactionLink.onResult... RedeemJwtLink')
+    setRedeemJwtLinkInformation()
   } else {
     console.log('TransactionLink.onResult... unknown type:', result.value)
   }
@@ -233,11 +233,11 @@ function setTransactionLinkInformation() {
   }
 }
 
-function setDisbursementLinkInformation() {
-  console.log('TransactionLink.setDisbursementLinkInformation... result=', result.value)
+function setRedeemJwtLinkInformation() {
+  console.log('TransactionLink.setRedeemJwtLinkInformation... result=', result.value)
   const { queryTransactionLink } = result.value
   console.log(
-    'TransactionLink.setDisbursementLinkInformation... queryDisbursementLink=',
+    'TransactionLink.setRedeemJwtLinkInformation... queryTransactionLink=',
     queryTransactionLink,
   )
   if (queryTransactionLink) {
@@ -253,11 +253,11 @@ function setDisbursementLinkInformation() {
       }
     }
     console.log(
-      'TransactionLink.setDisbursementLinkInformation... recipientUser=',
+      'TransactionLink.setRedeemJwtLinkInformation... recipientUser=',
       queryTransactionLink.recipientUser,
     )
     linkData.value = linkCopy
-    console.log('TransactionLink.setDisbursementLinkInformation... linkData.value=', linkData.value)
+    console.log('TransactionLink.setRedeemJwtLinkInformation... linkData.value=', linkData.value)
   }
 }
 
