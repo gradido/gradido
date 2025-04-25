@@ -140,9 +140,13 @@ const itemType = computed(() => {
       console.log('TransactionLink.itemType... SELF_CREATOR')
       return 'SELF_CREATOR'
     }
-    if (!linkData.value.redeemedAt && !linkData.value.deletedAt) {
+    if (
+      (!isRedeemJwtLink.value && !linkData.value.redeemedAt && !linkData.value.deletedAt) ||
+      isRedeemJwtLink.value
+    ) {
       console.log('TransactionLink.itemType... VALID')
       console.log('TransactionLink.itemType... validLink=', validLink.value)
+      console.log('TransactionLink.itemType... linkData=', linkData.value)
       return 'VALID'
     }
   }
