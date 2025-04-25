@@ -7,7 +7,7 @@
         {{ $t('contribution-link.thanksYouWith') }} {{ $filters.GDD(linkData.amount) }}
       </h1>
       <h3 v-if="isDisbursementLink && linkData.amount !== ''">
-        {{ '"' + linkData.senderCommunity.name + '.' + linkData.senderUser.firstName }}
+        {{ '"' + linkData.senderCommunity.name + '.' + linkData.senderUser.firstName + '"' }}
         {{ $t('transaction-link.send_you') }} {{ $filters.GDD(linkData.amount) }}
       </h3>
       <b>{{ linkData.memo }}</b>

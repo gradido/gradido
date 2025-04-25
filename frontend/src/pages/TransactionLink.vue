@@ -106,7 +106,7 @@ const tokenExpiresInSeconds = computed(() => {
 const validLink = computed(() => {
   console.log('TransactionLink.validLink... linkData.value.validUntil=', linkData.value.validUntil)
   console.log('TransactionLink.validLink... new Date()=', new Date())
-  return linkData.value.validUntil > new Date()
+  return !(linkData.value.validUntil < new Date())
 })
 
 const itemType = computed(() => {
@@ -149,6 +149,7 @@ const itemType = computed(() => {
 
 const itemTypeExt = computed(() => {
   console.log('TransactionLink.itemTypeExt... itemType=', itemType.value)
+  console.log('TransactionLink.itemTypeExt... validLink=', validLink.value)
   if (itemType.value.startsWith('TEXT')) {
     return 'TEXT'
   }
@@ -157,11 +158,13 @@ const itemTypeExt = computed(() => {
 
 watch(itemType, (newItemType) => {
   console.log('TransactionLink.watch... itemType=', itemType.value)
+  console.log('TransactionLink.watch... validLink=', validLink.value)
   updateRedeemedBoxText(newItemType)
 })
 
 function updateRedeemedBoxText(type) {
   console.log('TransactionLink.updateRedeemedBoxText... type=', type)
+  console.log('TransactionLink.updateRedeemedBoxText... validLink=', validLink.value)
   switch (type) {
     case 'TEXT_DELETED':
       redeemedBoxText.value = t('gdd_per_link.link-deleted', {
