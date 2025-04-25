@@ -113,6 +113,7 @@ const validLink = computed(() => {
 })
 
 const itemType = computed(() => {
+  console.log('TransactionLink.itemType... linkData=', linkData.value)
   if (linkData.value.deletedAt) {
     console.log('TransactionLink.itemType... TEXT_DELETED')
     return 'TEXT_DELETED'
@@ -222,7 +223,7 @@ onError(() => {
 
 function setTransactionLinkInformation() {
   console.log('TransactionLink.setTransactionLinkInformation... result=', result.value)
-  const { queryTransactionLink } = result.value
+  const queryTransactionLink = { ...result.value }
   console.log(
     'TransactionLink.setTransactionLinkInformation... queryTransactionLink=',
     queryTransactionLink,
@@ -240,18 +241,16 @@ function setTransactionLinkInformation() {
 
 function setRedeemJwtLinkInformation() {
   console.log('TransactionLink.setRedeemJwtLinkInformation... result=', result.value)
-  const { queryTransactionLink } = result.value
+  // Make a shallow copy to break reactivity/read-only
+  const queryTransactionLink = { ...result.value }
   console.log(
     'TransactionLink.setRedeemJwtLinkInformation... queryTransactionLink=',
     queryTransactionLink,
   )
   if (queryTransactionLink) {
     // recipientUser is only set if the user is logged in
-    // Make a shallow copy to break reactivity/read-only
-    const linkCopy = { ...queryTransactionLink }
-    // Now you can safely set recipientUser
     if (store.state.gradidoID !== null) {
-      linkCopy.recipientUser = {
+      queryTransactionLink.recipientUser = {
         gradidoID: store.state.gradidoID,
         firstName: store.state.firstName,
         alias: store.state.alias,
@@ -261,7 +260,7 @@ function setRedeemJwtLinkInformation() {
       'TransactionLink.setRedeemJwtLinkInformation... recipientUser=',
       queryTransactionLink.recipientUser,
     )
-    linkData.value = linkCopy
+    linkData.value = queryTransactionLink
     console.log('TransactionLink.setRedeemJwtLinkInformation... linkData.value=', linkData.value)
   }
 }
