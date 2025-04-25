@@ -21,12 +21,12 @@
               <BCol v-if="!isDisbursementLink" class="fw-bold">
                 <community-switch
                   :disabled="isDisbursementLink"
-                  :model-value="currentReceiverCommunity"
-                  @update:model-value="setReceiverCommunity"
+                  :model-value="currentRecipientCommunity"
+                  @update:model-value="setRecipientCommunity"
                 />
               </BCol>
               <BCol v-else>
-                {{ currentReceiverCommunity.name }}
+                {{ currentRecipientCommunity.name }}
               </BCol>
               <BCol v-if="isForeignCommunitySelected" sm="12" md="6" class="mt-4 mt-lg-0">
                 <p>{{ $t('gdd_per_link.switchCommunity') }}</p>
@@ -57,16 +57,16 @@ const props = defineProps({
   redeemCode: { type: String, required: true },
   isContributionLink: { type: Boolean, default: false },
   isDisbursementLink: { type: Boolean, default: false },
-  receiverCommunity: {
+  recipientCommunity: {
     type: Object,
     required: false,
   },
 })
 
 const senderCommunity = computed(() => extractHomeCommunityFromLinkData(props.linkData))
-const currentReceiverCommunity = computed(
+const currentRecipientCommunity = computed(
   () =>
-    props.receiverCommunity || {
+    props.recipientCommunity || {
       uuid: senderCommunity.value.uuid,
       name: senderCommunity.value.name,
       url: senderCommunity.value.url,
@@ -74,19 +74,19 @@ const currentReceiverCommunity = computed(
     },
 )
 
-const emit = defineEmits(['update:receiverCommunity'])
+const emit = defineEmits(['update:recipientCommunity'])
 
 const isForeignCommunitySelected = computed(() => {
   console.log(
-    'RedeemCommunitySelection.isForeignCommunitySelected...receiverCommunity=',
-    currentReceiverCommunity.value,
+    'RedeemCommunitySelection.isForeignCommunitySelected...recipientCommunity=',
+    currentRecipientCommunity.value,
   )
-  return currentReceiverCommunity.value.foreign
+  return currentRecipientCommunity.value.foreign
 })
 
-function setReceiverCommunity(community) {
-  console.log('RedeemCommunitySelection.setReceiverCommunity...community=', community)
-  emit('update:receiverCommunity', {
+function setRecipientCommunity(community) {
+  console.log('RedeemCommunitySelection.setRecipientCommunity...community=', community)
+  emit('update:recipientCommunity', {
     uuid: community.uuid,
     name: community.name,
     url: community.url,
@@ -129,10 +129,10 @@ async function onSwitch(event) {
   console.log('RedeemCommunitySelection.onSwitch... props=', props)
   if (isForeignCommunitySelected.value) {
     console.log('RedeemCommunitySelection.onSwitch vor createRedeemJwt params:', {
-      gradidoID: props.linkData.senderUser?.gradidoID,
+      gradidoId: props.linkData.senderUser?.gradidoID,
       senderCommunityUuid: senderCommunity.value.uuid,
       senderCommunityName: senderCommunity.value.name,
-      receiverCommunityUuid: currentReceiverCommunity.value.uuid,
+      recipientCommunityUuid: currentRecipientCommunity.value.uuid,
       code: props.redeemCode,
       amount: props.linkData.amount,
       memo: props.linkData.memo,
@@ -142,10 +142,10 @@ async function onSwitch(event) {
     })
     try {
       const { data } = await createRedeemJwt({
-        gradidoID: props.linkData.senderUser?.gradidoID,
+        gradidoId: props.linkData.senderUser?.gradidoID,
         senderCommunityUuid: senderCommunity.value.uuid,
         senderCommunityName: senderCommunity.value.name,
-        receiverCommunityUuid: currentReceiverCommunity.value.uuid,
+        recipientCommunityUuid: currentRecipientCommunity.value.uuid,
         code: props.redeemCode,
         amount: props.linkData.amount,
         memo: props.linkData.memo,
@@ -157,7 +157,7 @@ async function onSwitch(event) {
       if (!data?.createRedeemJwt) {
         throw new Error('Failed to get redeem token')
       }
-      const targetUrl = currentReceiverCommunity.value.url.replace(/\/api\/?$/, '')
+      const targetUrl = currentRecipientCommunity.value.url.replace(/\/api\/?$/, '')
       window.location.href = targetUrl + '/redeem/' + data.createRedeemJwt
     } catch (error) {
       console.error('RedeemCommunitySelection.onSwitch error:', error)
