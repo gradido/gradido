@@ -8,7 +8,7 @@
             :link-data="linkData"
             :redeem-code="redeemCode"
             :is-contribution-link="isContributionLink"
-            :is-disbursement-link="isDisbursementLink"
+            :is-redeem-jwt-link="isRedeemJwtLink"
           />
         </template>
 
@@ -20,7 +20,7 @@
           <redeem-valid
             :link-data="linkData"
             :is-contribution-link="isContributionLink"
-            :is-disbursement-link="isDisbursementLink"
+            :is-redeem-jwt-link="isRedeemJwtLink"
             :valid-link="validLink"
             @mutation-link="mutationLink"
           />
@@ -89,8 +89,8 @@ const isContributionLink = computed(() => {
   return params.code?.search(/^CL-/) === 0
 })
 
-const isDisbursementLink = computed(() => {
-  if (result.value?.queryTransactionLink?.__typename === 'DisbursementLink') {
+const isRedeemJwtLink = computed(() => {
+  if (result.value?.queryTransactionLink?.__typename === 'RedeemJwtLink') {
     return true
   }
   return false
@@ -130,10 +130,10 @@ const itemType = computed(() => {
       return 'REDEEM_SELECT_COMMUNITY'
     }
     if (
-      (!isDisbursementLink.value &&
+      (!isRedeemJwtLink.value &&
         linkData.value.recipientUser &&
         store.state.gradidoID === linkData.value.recipientUser.gradidoID) ||
-      (isDisbursementLink.value &&
+      (isRedeemJwtLink.value &&
         linkData.value.senderUser.gradidoID === linkData.value.recipientUser.gradidoID)
     ) {
       console.log('TransactionLink.itemType... SELF_CREATOR')

@@ -3,7 +3,7 @@
     :link-data="linkData"
     :redeem-code="redeemCode"
     :is-contribution-link="isContributionLink"
-    :is-disbursement-link="isDisbursementLink"
+    :is-redeem-jwt-link="isRedeemJwtLink"
     class="redeem-community-selection"
   >
     <BCard bg-variant="muted" text-variant="dark" border-variant="info">
@@ -11,16 +11,16 @@
       <h1 v-if="!isContributionLink && linkData.amount !== ''">
         <BCol class="mb-4" cols="12">
           <BRow>
-            <BCol v-if="!isDisbursementLink">
+            <BCol v-if="!isRedeemJwtLink">
               {{ $t('gdd_per_link.recipientCommunitySelection') }}
             </BCol>
             <BCol v-else>{{ $t('gdd_per_link.recipientCommunityFix') }}</BCol>
           </BRow>
           <h3>
             <BRow>
-              <BCol v-if="!isDisbursementLink" class="fw-bold">
+              <BCol v-if="!isRedeemJwtLink" class="fw-bold">
                 <community-switch
-                  :disabled="isDisbursementLink"
+                  :disabled="isRedeemJwtLink"
                   :model-value="currentRecipientCommunity"
                   @update:model-value="setRecipientCommunity"
                 />
@@ -56,7 +56,7 @@ const props = defineProps({
   linkData: { type: Object, required: true },
   redeemCode: { type: String, required: true },
   isContributionLink: { type: Boolean, default: false },
-  isDisbursementLink: { type: Boolean, default: false },
+  isRedeemJwtLink: { type: Boolean, default: false },
   recipientCommunity: {
     type: Object,
     required: false,

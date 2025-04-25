@@ -3,7 +3,7 @@
     <redeem-information
       :link-data="linkData"
       :is-contribution-link="isContributionLink"
-      :is-disbursement-link="isDisbursementLink"
+      :is-redeem-jwt-link="isRedeemJwtLink"
       :valid-link="validLink"
     />
     <BCard>
@@ -31,7 +31,7 @@ export default {
   props: {
     linkData: { type: Object, required: true },
     isContributionLink: { type: Boolean, default: false },
-    isDisbursementLink: { type: Boolean, default: false },
+    isRedeemJwtLink: { type: Boolean, default: false },
     validLink: { type: Boolean, default: false },
   },
 }

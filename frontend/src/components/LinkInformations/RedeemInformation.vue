@@ -6,7 +6,7 @@
         {{ CONFIG.COMMUNITY_NAME }}
         {{ $t('contribution-link.thanksYouWith') }} {{ $filters.GDD(linkData.amount) }}
       </h1>
-      <h3 v-if="isDisbursementLink && linkData.amount !== ''">
+      <h3 v-if="isRedeemJwtLink && linkData.amount !== ''">
         {{ '"' + linkData.senderCommunity.name + '.' + linkData.senderUser.firstName + '"' }}
         {{ $t('transaction-link.send_you') }} {{ $filters.GDD(linkData.amount) }}
       </h3>
@@ -22,7 +22,7 @@ export default {
   props: {
     linkData: { type: Object, required: true },
     isContributionLink: { type: Boolean, default: false },
-    isDisbursementLink: { type: Boolean, default: false },
+    isRedeemJwtLink: { type: Boolean, default: false },
   },
   data() {
     return {
