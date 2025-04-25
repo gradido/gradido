@@ -1,7 +1,7 @@
 import { createUnionType } from 'type-graphql'
 
 import { ContributionLink } from '@model/ContributionLink'
-import { RedeemJwtLink } from '@/graphql/model/RedeemJwtLink'
+import { RedeemJwtLink } from '@model/RedeemJwtLink'
 import { TransactionLink } from '@model/TransactionLink'
 
 export const QueryLinkResult = createUnionType({

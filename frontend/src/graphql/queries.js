@@ -151,7 +151,7 @@ export const queryTransactionLink = gql`
           uuid
         }
       }
-      ... on DisbursementLink {
+      ... on RedeemJwtLink {
         amount
         memo
         code

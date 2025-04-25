@@ -1,3 +1,4 @@
+<!-- eslint-disable no-console -->
 <template>
   <div class="show-transaction-link-informations">
     <div class="mt-4">
