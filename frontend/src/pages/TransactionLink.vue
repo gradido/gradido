@@ -65,6 +65,7 @@ const linkData = ref({
   recipientCommunity: null,
   recipientUser: null,
   deletedAt: null,
+  redeemedAt: null,
   validLink: false,
   communities: [],
   // ContributionLink fields
