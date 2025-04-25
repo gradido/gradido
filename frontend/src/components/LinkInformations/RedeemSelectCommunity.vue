@@ -1,7 +1,7 @@
 <template>
   <div class="redeem-select-community">
     <redeem-community-selection
-      v-model:receiver-community="receiverCommunity"
+      v-model:recipient-community="recipientCommunity"
       :link-data="props.linkData"
       :redeem-code="props.redeemCode"
       :is-contribution-link="props.isContributionLink"
@@ -44,7 +44,7 @@ const props = defineProps({
   isDisbursementLink: { type: Boolean, default: false },
 })
 
-const receiverCommunity = ref({
+const recipientCommunity = ref({
   uuid: '',
   name: CONFIG.COMMUNITY_NAME,
   url: CONFIG.COMMUNITY_URL,
@@ -52,6 +52,6 @@ const receiverCommunity = ref({
 })
 
 const isForeignCommunitySelected = computed(() => {
-  return receiverCommunity.value.foreign === true
+  return recipientCommunity.value.foreign === true
 })
 </script>
