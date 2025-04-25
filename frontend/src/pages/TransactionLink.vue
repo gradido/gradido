@@ -45,7 +45,7 @@ import RedeemValid from '@/components/LinkInformations/RedeemValid'
 import RedeemedTextBox from '@/components/LinkInformations/RedeemedTextBox'
 import { useAppToast } from '@/composables/useToast'
 import { queryTransactionLink } from '@/graphql/queries'
-import { redeemTransactionLink } from '@/graphql/mutations'
+import { disburseTransactionLink, redeemTransactionLink } from '@/graphql/mutations'
 import { useI18n } from 'vue-i18n'
 
 const { toastError, toastSuccess } = useAppToast()
@@ -82,6 +82,7 @@ const { result, onResult, error, onError } = useQuery(queryTransactionLink, {
 })
 
 const { mutate: redeemMutate } = useMutation(redeemTransactionLink)
+const { mutate: disburseMutate } = useMutation(disburseTransactionLink)
 
 const isContributionLink = computed(() => {
   return params.code?.search(/^CL-/) === 0
@@ -261,15 +262,30 @@ function setDisbursementLinkInformation() {
 
 async function mutationLink(amount) {
   console.log('TransactionLink.mutationLink... params=', params)
-  try {
-    await redeemMutate({
-      code: redeemCode.value,
-    })
-    toastSuccess(t('gdd_per_link.redeemed', { n: amount }))
-    await router.push('/overview')
-  } catch (err) {
-    toastError(err.message)
-    await router.push('/overview')
+  if (isDisbursementLink.value) {
+    console.log('TransactionLink.mutationLink... trigger disbursement from recipient-community')
+    try {
+      await disburseMutate({
+        code: params.code,
+      })
+      toastSuccess(t('gdd_per_link.disbured', { n: amount }))
+      await router.push('/overview')
+    } catch (err) {
+      toastError(err.message)
+      await router.push('/overview')
+    }
+  } else {
+    console.log('TransactionLink.mutationLink... local transaction or contribution')
+    try {
+      await redeemMutate({
+        code: redeemCode.value,
+      })
+      toastSuccess(t('gdd_per_link.redeemed', { n: amount }))
+      await router.push('/overview')
+    } catch (err) {
+      toastError(err.message)
+      await router.push('/overview')
+    }
   }
 }
 </script>

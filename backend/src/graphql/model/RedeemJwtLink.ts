@@ -1,15 +1,15 @@
 import { Decimal } from 'decimal.js-light'
 import { ObjectType, Field } from 'type-graphql'
 
-import { DisbursementJwtPayloadType } from '@/auth/jwt/payloadtypes/DisbursementJwtPayloadType'
+import { RedeemJwtPayloadType } from '@/auth/jwt/payloadtypes/RedeemJwtPayloadType'
 
 import { Community } from './Community'
 import { User } from './User'
 
 @ObjectType()
-export class DisbursementLink {
+export class RedeemJwtLink {
   constructor(
-    disbursementPayload: DisbursementJwtPayloadType,
+    redeemJwtPayload: RedeemJwtPayloadType,
     senderCommunity: Community,
     senderUser: User,
     recipientCommunity: Community,
@@ -23,10 +23,10 @@ export class DisbursementLink {
     } else {
       this.recipientUser = null
     }
-    this.amount = new Decimal(disbursementPayload.amount)
-    this.memo = disbursementPayload.memo
-    this.code = disbursementPayload.redeemcode
-    this.validUntil = new Date(disbursementPayload.validuntil)
+    this.amount = new Decimal(redeemJwtPayload.amount)
+    this.memo = redeemJwtPayload.memo
+    this.code = redeemJwtPayload.redeemcode
+    this.validUntil = new Date(redeemJwtPayload.validuntil)
   }
 
   @Field(() => Community)

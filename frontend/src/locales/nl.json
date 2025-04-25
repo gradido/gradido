@@ -198,6 +198,7 @@
     "decay-14-day": "Vergankelijkheid voor 14 dagen",
     "delete-the-link": "De link verwijderen?",
     "deleted": "De link werd verwijderd!",
+    "disbured": "Disbursement of the Link-Ammount initiated! The transfer of {n} GDD into your account will be completed shortly.",
     "expiredOn": "Afgelopen op",
     "has-account": "Heb je al een Gradido rekening?",
     "header": "Gradidos per link versturen",

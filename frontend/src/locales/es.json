@@ -198,6 +198,7 @@
     "decay-14-day": "Disminución gradual por 14 días",
     "delete-the-link": "Eliminar el enlace?",
     "deleted": "El enlace ha sido eliminado!",
+    "disbured": "Disbursement of the Link-Ammount initiated! The transfer of {n} GDD into your account will be completed shortly.",
     "expiredOn": "Vencido el:",
     "has-account": "Ya tienes una cuenta Gradido?",
     "header": "Transferir Gradidos por medio de un enlace",

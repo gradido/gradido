@@ -162,6 +162,7 @@
     "decay-14-day": "14 günlük erime",
     "delete-the-link": "Link silinsin mi?",
     "deleted": "Link silindi!",
+    "disbured": "Disbursement of the Link-Ammount initiated! The transfer of {n} GDD into your account will be completed shortly.",
     "expiredOn": "Geçerlilik süresi",
     "has-account": "Halihazırda bir Gradido hesabın var mı?",
     "header": "Gradidoları link yoluyla gönderin",

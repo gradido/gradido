@@ -235,6 +235,7 @@
     "credit-your-gradido": "For the Gradido to be credited, click on the link!",
     "delete-the-link": "Delete the link?",
     "deleted": "The link was deleted!",
+    "disbured": "Disbursement of the Link-Ammount initiated! The transfer of {n} GDD into your account will be completed shortly.",
     "expiredOn": "Expired on",
     "has-account": "You already have a Gradido account?",
     "header": "Send Gradidos via link",

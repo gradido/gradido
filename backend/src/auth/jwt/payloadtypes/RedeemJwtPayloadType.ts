@@ -1,7 +1,7 @@
 // import { JWTPayload } from 'jose'
 import { JwtPayloadType } from './JwtPayloadType'
 
-export class DisbursementJwtPayloadType extends JwtPayloadType {
+export class RedeemJwtPayloadType extends JwtPayloadType {
   static REDEEM_ACTIVATION_TYPE = 'redeem-activation'
 
   sendercommunityuuid: string
@@ -24,7 +24,7 @@ export class DisbursementJwtPayloadType extends JwtPayloadType {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     super()
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    this.tokentype = DisbursementJwtPayloadType.REDEEM_ACTIVATION_TYPE
+    this.tokentype = RedeemJwtPayloadType.REDEEM_ACTIVATION_TYPE
     this.sendercommunityuuid = senderCom
     this.sendergradidoid = senderUser
     this.sendername = sendername
