@@ -1,4 +1,4 @@
-import { Connection, createConnection, ResultSetHeader, RowDataPacket } from 'mysql2/promise'
+import { Connection, ResultSetHeader, RowDataPacket, createConnection } from 'mysql2/promise'
 
 import { CONFIG } from './config'
 import { latestDbVersion } from './config/detectLastDBVersion'

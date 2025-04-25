@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { createConnection, Connection } from 'mysql2/promise'
+import { Connection, createConnection } from 'mysql2/promise'
 import { CONFIG } from './config'
 
 export async function truncateTables(connection: Connection) {

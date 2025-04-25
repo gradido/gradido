@@ -1,5 +1,5 @@
-import path from 'node:path'
 import fs from 'node:fs'
+import path from 'node:path'
 
 // Define the regular expression pattern once
 const DB_VERSION_PATTERN = /^(\d{4}-[a-z0-9-_]+)/

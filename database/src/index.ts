@@ -1,12 +1,12 @@
-/* eslint-disable no-console */
-import { DatabaseState, getDatabaseState } from './prepare'
 import { CONFIG } from './config'
+import { DatabaseState, getDatabaseState } from './prepare'
 
+import path from 'node:path'
 import { createPool } from 'mysql2'
 import { Migration, MigrationConnection } from 'ts-mysql-migrate'
-import path from 'path'
-import { latestDbVersion } from './config/detectLastDBVersion'
 import { clearDatabase } from './clear'
+import { latestDbVersion } from './config/detectLastDBVersion'
+import { logger } from './logger'
 
 const run = async (command: string) => {
   if (command === 'clear') {
@@ -34,7 +34,7 @@ const run = async (command: string) => {
   }
   if (state === DatabaseState.SAME_VERSION) {
     if (command === 'up') {
-      console.log('Database is up to date')
+      logger.info('Database is up to date')
       return
     }
   }
@@ -72,14 +72,14 @@ const run = async (command: string) => {
       throw new Error(`Unsupported command ${command}`)
   }
   if (command === 'reset') {
-    console.log('Database was reset')
+    logger.info('Database was reset')
   } else {
     const currentDbVersion = await migration.getLastVersion()
-    console.log(`Database was ${command} migrated to version: ${currentDbVersion.fileName}`)
+    logger.info(`Database was ${command} migrated to version: ${currentDbVersion.fileName}`)
     if (latestDbVersion === currentDbVersion.fileName.split('.')[0]) {
-      console.log('Database is now up to date')
+      logger.info('Database is now up to date')
     } else {
-      console.log('The latest database version is: ', latestDbVersion)
+      logger.info('The latest database version is: ', latestDbVersion)
     }
   }
   // Terminate connections gracefully
@@ -88,6 +88,7 @@ const run = async (command: string) => {
 
 run(process.argv[2])
   .catch((err) => {
+    // biome-ignore lint/suspicious/noConsole: logger is maybe not initialized
     console.log(err)
     process.exit(1)
   })
