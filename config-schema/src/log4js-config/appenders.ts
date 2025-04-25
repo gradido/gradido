@@ -4,6 +4,7 @@ import type {
   LogLevelFilterAppender,
   StandardOutputAppender,
 } from 'log4js'
+import { CustomFileAppender } from './types'
 
 const pattern = '%d{ISO8601} %p %c [%X{user}] [%f : %l] - %m'
 const stacktracePattern = `${pattern} %s`
@@ -38,29 +39,10 @@ const defaultAppenders = {
     type: 'stdout' as const,
     layout: { type: 'pattern' as const, pattern },
   } as StandardOutputAppender,
-}
-
-/**
- * use default dateFile Template for custom file appenders
- *
- * @example use name for key and filename
- * ```
- * const appenderConfig = createAppenderConfig([
- *   { name: 'info' },
- * ])
- * ```
- *
- * @example if log file should contain the stacktrace
- * ```
- * const appenderConfig = createAppenderConfig([
- *   { name: 'warn', filename: 'warn', stacktrace: true },
- * ])
- * ```
- */
-export type CustomFileAppender = {
-  name: string
-  filename?: string
-  stacktrace?: boolean
+  outStack: {
+    type: 'stdout' as const,
+    layout: { type: 'pattern' as const, pattern: stacktracePattern },
+  } as StandardOutputAppender,
 }
 
 /**
@@ -80,11 +62,7 @@ export type CustomFileAppender = {
 export function createAppenderConfig(
   fileAppenders: CustomFileAppender[],
   basePath?: string,
-  stacktraceOnStdout?: boolean,
 ): { [name: string]: Appender } {
-  if (stacktraceOnStdout) {
-    defaultAppenders.out.layout = { type: 'pattern' as const, pattern: stacktracePattern }
-  }
   if (basePath) {
     defaultAppenders.errorFile.filename = `${basePath}/errors`
   }
