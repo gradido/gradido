@@ -4,7 +4,6 @@ import { User } from '@entity/User'
 
 import { ContributionMessageType } from '@/graphql/enum/ContributionMessageType'
 
-// eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class ContributionMessageBuilder {
   private contributionMessage: ContributionMessage
 

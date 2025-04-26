@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { getConnection } from '@dbTools/typeorm'
 import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
 import { Decimal } from 'decimal.js-light'

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { GraphQLScalarType, Kind } from 'graphql'
 
 import { Location } from '@model/Location'
@@ -17,9 +16,9 @@ export const LocationScalar = new GraphQLScalarType({
   parseValue(value): Location {
     try {
       const loc = new Location()
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+
       loc.longitude = value.longitude
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+
       loc.latitude = value.latitude
       return loc
     } catch (err) {

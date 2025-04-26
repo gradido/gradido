@@ -1,4 +1,3 @@
-// eslint-disable @typescript-eslint/no-explicit-any
 import { User } from '@entity/User'
 
 import { addFieldsToSubscriber, getKlickTippUser } from '@/apis/KlicktippController'
@@ -7,18 +6,14 @@ import { lastDateTimeEvents } from '@/graphql/resolver/util/eventList'
 
 export async function retrieveNotRegisteredEmails(): Promise<string[]> {
   const users = await User.find({ relations: ['emailContact'] })
-  const notRegisteredUser = []
+  const notRegisteredUser: string[] = []
   for (const user of users) {
     try {
       await getKlickTippUser(user.emailContact.email)
-    } catch (err) {
+    } catch (_err) {
       notRegisteredUser.push(user.emailContact.email)
-      // eslint-disable-next-line no-console
-      console.log(`${user.emailContact.email}`)
     }
   }
-  // eslint-disable-next-line no-console
-  console.log('User die nicht bei KlickTipp vorhanden sind: ', notRegisteredUser)
   return notRegisteredUser
 }
 

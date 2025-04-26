@@ -8,8 +8,8 @@ import { checkDBVersion } from '@/typeorm/DBVersion'
 import { Connection } from '@/typeorm/connection'
 
 import { HumHubClient } from './HumHubClient'
-import { GetUser } from './model/GetUser'
-import { UsersResponse } from './model/UsersResponse'
+import type { GetUser } from './model/GetUser'
+import type { UsersResponse } from './model/UsersResponse'
 import { ExecutedHumhubAction, syncUser } from './syncUser'
 
 const USER_BULK_SIZE = 20
@@ -39,14 +39,14 @@ async function loadUsersFromHumHub(client: HumHubClient): Promise<Map<string, Ge
     if (!usersPage) {
       throw new LogError('error requesting next users page from humhub')
     }
-    usersPage.results.forEach((user) => {
+    for (const user of usersPage.results) {
       // deleted users have empty emails
       if (user.account.email) {
         humhubUsers.set(user.account.email.trim(), user)
       } else {
         skippedUsersCount++
       }
-    })
+    }
     page++
     process.stdout.write(
       `load users from humhub: ${humhubUsers.size}/${usersPage.total}, skipped: ${skippedUsersCount}\r`,
@@ -95,11 +95,13 @@ async function main() {
     userCount = users.length
     page++
     const promises: Promise<ExecutedHumhubAction>[] = []
-    users.forEach((user: User) => promises.push(syncUser(user, humhubUsers)))
+    for (const user of users) {
+      promises.push(syncUser(user, humhubUsers))
+    }
     const executedActions = await Promise.all(promises)
-    executedActions.forEach((executedAction: ExecutedHumhubAction) => {
+    for (const executedAction of executedActions) {
       executedHumhubActionsCount[executedAction as number]++
-    })
+    }
     // using process.stdout.write here so that carriage-return is working analog to c
     // printf("\rchecked user: %d/%d", dbUserCount, totalUsers);
     process.stdout.write(`checked user: ${dbUserCount}/${totalUsers}\r`)
@@ -118,8 +120,7 @@ async function main() {
 }
 
 main().catch((e) => {
-  // eslint-disable-next-line no-console
+  // biome-ignore lint/suspicious/noConsole: logger isn't used here
   console.error(e)
-  // eslint-disable-next-line n/no-process-exit
   process.exit(1)
 })

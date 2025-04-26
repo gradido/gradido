@@ -1,7 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { In, Point, getConnection } from '@dbTools/typeorm'
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
 import { ProjectBranding } from '@entity/ProjectBranding'
@@ -122,7 +118,6 @@ const newEmailContact = (email: string, userId: number): DbUserContact => {
   return emailContact
 }
 
-// eslint-disable-next-line @typescript-eslint/ban-types
 export const activationLink = (verificationCode: string): string => {
   logger.debug(`activationLink(${verificationCode})...`)
   return CONFIG.EMAIL_LINK_SETPASSWORD + verificationCode.toString()
@@ -251,7 +246,7 @@ export class UserResolver {
           if (projectBranding) {
             spaceId = projectBranding.spaceId
           }
-          void syncHumhub(null, dbUser, spaceId)
+          await syncHumhub(null, dbUser, spaceId)
         }
       } catch (e) {
         logger.error("couldn't reach out to humhub, disable for now", e)
@@ -326,7 +321,7 @@ export class UserResolver {
         }
         logger.debug('partly faked user', user)
 
-        void sendAccountMultiRegistrationEmail({
+        await sendAccountMultiRegistrationEmail({
           firstName: foundUser.firstName, // this is the real name of the email owner, but just "firstName" would be the name of the new registrant which shall not be passed to the outside
           lastName: foundUser.lastName, // this is the real name of the email owner, but just "lastName" would be the name of the new registrant which shall not be passed to the outside
           email,
@@ -421,7 +416,7 @@ export class UserResolver {
       }`
 
       projectBranding = projectBrandingPromise ? await projectBrandingPromise : undefined
-      void sendAccountActivationEmail({
+      await sendAccountActivationEmail({
         firstName,
         lastName,
         email,
@@ -448,7 +443,7 @@ export class UserResolver {
       if (projectBranding) {
         spaceId = projectBranding.spaceId
       }
-      void syncHumhub(null, dbUser, spaceId)
+      await syncHumhub(null, dbUser, spaceId)
     }
 
     if (redeemCode) {
@@ -507,7 +502,7 @@ export class UserResolver {
 
     logger.info('optInCode for', email, user.emailContact)
 
-    void sendResetPasswordEmail({
+    await sendResetPasswordEmail({
       firstName: user.firstName,
       lastName: user.lastName,
       email,
@@ -794,6 +789,7 @@ export class UserResolver {
       if (!homeCom.gmsApiKey) {
         throw new LogError('authenticateGmsUserSearch missing HomeCommunity GmsApiKey')
       }
+      // TODO: NEVER pass user JWT token to another server - serious security risk! 😱⚠️
       result = await authenticateGmsUserPlayground(homeCom.gmsApiKey, context.token, dbUser)
       logger.info('authenticateGmsUserSearch=', result)
     } else {
@@ -1029,8 +1025,7 @@ export class UserResolver {
     user.emailContact.emailResendCount++
     await user.emailContact.save()
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    void sendAccountActivationEmail({
+    await sendAccountActivationEmail({
       firstName: user.firstName,
       lastName: user.lastName,
       email,

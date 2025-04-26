@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { EntityManager, FindOptionsRelations, getConnection } from '@dbTools/typeorm'
 import { Contribution as DbContribution } from '@entity/Contribution'
 import { ContributionMessage as DbContributionMessage } from '@entity/ContributionMessage'
@@ -175,9 +174,10 @@ export class ContributionMessageResolver {
       throw new LogError('ContributionMessage was not sent successfully')
     }
     const moderator = getUser(context)
+
     if (messageType === ContributionMessageType.DIALOG) {
       // send email (never for moderator messages)
-      void sendAddedContributionMessageEmail({
+      await sendAddedContributionMessageEmail({
         firstName: finalContribution.user.firstName,
         lastName: finalContribution.user.lastName,
         email: finalContribution.user.emailContact.email,

@@ -1,9 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { Connection } from '@dbTools/typeorm'
 import { Community as DbCommunity } from '@entity/Community'
 import { Event as DbEvent } from '@entity/Event'
@@ -101,9 +95,9 @@ CONFIG.EMAIL_CODE_REQUEST_TIME = 10
 
 let admin: User
 let user: User
-let mutate: ApolloServerTestClient['mutate'],
-  query: ApolloServerTestClient['query'],
-  con: Connection
+let mutate: ApolloServerTestClient['mutate']
+let query: ApolloServerTestClient['query']
+let con: Connection
 let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']
@@ -859,7 +853,6 @@ describe('UserResolver', () => {
       })
     })
 
-    // eslint-disable-next-line jest/no-disabled-tests
     describe.skip('user is in database but password is not set', () => {
       beforeAll(async () => {
         jest.clearAllMocks()

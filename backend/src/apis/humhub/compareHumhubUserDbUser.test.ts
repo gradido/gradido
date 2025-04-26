@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import { communityDbUser } from '@/util/communityUser'
 
 import { isHumhubUserIdenticalToDbUser } from './compareHumhubUserDbUser'
@@ -56,7 +55,7 @@ describe('isHumhubUserIdenticalToDbUser', () => {
 
   it('Should return false because gradido_address differ', () => {
     const humhubUser = new GetUser(defaultUser, 1)
-    // eslint-disable-next-line camelcase
+
     humhubUser.profile.gradido_address = 'changed gradido address'
     const result = isHumhubUserIdenticalToDbUser(humhubUser, defaultUser)
     expect(result).toBe(false)

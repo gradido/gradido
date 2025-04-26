@@ -1,7 +1,3 @@
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
-/* eslint-disable new-cap */
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
-
 import { In, IsNull, getConnection } from '@dbTools/typeorm'
 import { Community as DbCommunity } from '@entity/Community'
 import { PendingTransaction as DbPendingTransaction } from '@entity/PendingTransaction'
@@ -178,14 +174,14 @@ export const executeTransaction = async (
       )
 
       // trigger to send transaction via dlt-connector
-      void sendTransactionsToDltConnector()
+      await sendTransactionsToDltConnector()
     } catch (e) {
       await queryRunner.rollbackTransaction()
       throw new LogError('Transaction was not successful', e)
     } finally {
       await queryRunner.release()
     }
-    void sendTransactionReceivedEmail({
+    await sendTransactionReceivedEmail({
       firstName: recipient.firstName,
       lastName: recipient.lastName,
       email: recipient.emailContact.email,
@@ -197,7 +193,7 @@ export const executeTransaction = async (
       transactionAmount: amount,
     })
     if (transactionLink) {
-      void sendTransactionLinkRedeemedEmail({
+      await sendTransactionLinkRedeemedEmail({
         firstName: sender.firstName,
         lastName: sender.lastName,
         email: sender.emailContact.email,

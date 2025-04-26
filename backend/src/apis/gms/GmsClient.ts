@@ -1,7 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import axios from 'axios'
 
 import { httpAgent, httpsAgent } from '@/apis/ConnectionAgents'
@@ -10,7 +6,7 @@ import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 import { ensureUrlEndsWithSlash } from '@/util/utilities'
 
-import { GmsUser } from './model/GmsUser'
+import type { GmsUser } from './model/GmsUser'
 
 /*
 export async function communityList(): Promise<GmsCommunity[] | string | undefined> {
@@ -33,10 +29,10 @@ export async function communityList(): Promise<GmsCommunity[] | string | undefin
       throw new LogError('HTTP Status Error in community/list:', result.status, result.statusText)
     }
     logger.debug('responseData:', result.data.responseData.data)
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+
     // const gmsCom = JSON.parse(result.data.responseData.data)
     // logger.debug('gmsCom:', gmsCom)
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+
     return result.data.responseData.data
   } catch (error: any) {
     logger.error('Error in Get community/list:', error)
@@ -69,10 +65,10 @@ export async function userList(): Promise<GmsUser[] | string | undefined> {
       )
     }
     logger.debug('responseData:', result.data.responseData.data)
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+
     // const gmsUser = JSON.parse(result.data.responseData.data)
     // logger.debug('gmsUser:', gmsUser)
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+
     return result.data.responseData.data
   } catch (error: any) {
     logger.error('Error in Get community-user/list:', error)
@@ -105,10 +101,10 @@ export async function userByUuid(uuid: string): Promise<GmsUser[] | string | und
       )
     }
     logger.debug('responseData:', result.data.responseData.data)
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+
     // const gmsUser = JSON.parse(result.data.responseData.data)
     // logger.debug('gmsUser:', gmsUser)
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+
     return result.data.responseData.data
   } catch (error: any) {
     logger.error('Error in Get community-user/list:', error)
@@ -139,13 +135,16 @@ export async function createGmsUser(apiKey: string, user: GmsUser): Promise<bool
         throw new LogError('HTTP Status Error in community-user:', result.status, result.statusText)
       }
       logger.debug('responseData:', result.data.responseData)
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+
       // const gmsUser = JSON.parse(result.data.responseData)
       // logger.debug('gmsUser:', gmsUser)
       return true
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error('Error in post community-user:', error)
-      throw new LogError(error.message)
+      if (error instanceof Error) {
+        throw new LogError(error.message)
+      }
+      throw new LogError('Unknown error in post community-user')
     }
   } else {
     logger.info('GMS-Communication disabled per ConfigKey GMS_ACTIVE=false!')
@@ -174,13 +173,16 @@ export async function updateGmsUser(apiKey: string, user: GmsUser): Promise<bool
         throw new LogError('HTTP Status Error in community-user:', result.status, result.statusText)
       }
       logger.debug('responseData:', result.data.responseData)
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+
       // const gmsUser = JSON.parse(result.data.responseData)
       // logger.debug('gmsUser:', gmsUser)
       return true
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error('Error in patch community-user:', error)
-      throw new LogError(error.message)
+      if (error instanceof Error) {
+        throw new LogError(error.message)
+      }
+      throw new LogError('Unknown error in patch community-user')
     }
   } else {
     logger.info('GMS-Communication disabled per ConfigKey GMS_ACTIVE=false!')
@@ -194,6 +196,7 @@ export async function verifyAuthToken(
   token: string,
 ): Promise<string> {
   const baseUrl = ensureUrlEndsWithSlash(CONFIG.GMS_API_URL)
+  // TODO: NEVER pass user JWT token to another server - serious security risk! 😱⚠️
   const service = 'verify-auth-token?token='.concat(token).concat('&uuid=').concat(communityUuid)
   const config = {
     headers: {
@@ -216,12 +219,15 @@ export async function verifyAuthToken(
       )
     }
     logger.debug('responseData:', result.data.responseData)
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+
     const token: string = result.data.responseData.token
     logger.debug('verifyAuthToken=', token)
     return token
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Error in verifyAuthToken:', error)
-    throw new LogError(error.message)
+    if (error instanceof Error) {
+      throw new LogError(error.message)
+    }
+    throw new LogError('Unknown error in verifyAuthToken')
   }
 }

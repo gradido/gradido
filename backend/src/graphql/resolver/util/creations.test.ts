@@ -17,7 +17,8 @@ jest.mock('@/password/EncryptorUtils')
 
 CONFIG.HUMHUB_ACTIVE = false
 
-let mutate: ApolloServerTestClient['mutate'], con: Connection
+let mutate: ApolloServerTestClient['mutate']
+let con: Connection
 let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']

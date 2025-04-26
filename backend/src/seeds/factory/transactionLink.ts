@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/unbound-method */
 import { TransactionLink } from '@entity/TransactionLink'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 

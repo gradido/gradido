@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-// eslint-disable-next-line import/no-unresolved
 import {
   COMMUNITY_DESCRIPTION,
   COMMUNITY_NAME,
@@ -61,7 +59,6 @@ export const schema = Joi.object({
     .description('The url for redeeming link transactions, must start with frontend base url')
     .default('http://0.0.0.0/redeem/')
     .custom((value: string, helpers: Joi.CustomHelpers<string>): string | Joi.ErrorReport => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
       if (!value.startsWith(helpers.state.ancestors[0].COMMUNITY_URL)) {
         return helpers.error('string.pattern.base', { value, communityUrl: COMMUNITY_URL })
       }
@@ -72,7 +69,6 @@ export const schema = Joi.object({
   COMMUNITY_REDEEM_CONTRIBUTION_URL: Joi.string()
     .uri({ scheme: ['http', 'https'] })
     .custom((value: string, helpers: Joi.CustomHelpers<string>): string | Joi.ErrorReport => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
       if (!value.startsWith(helpers.state.ancestors[0].COMMUNITY_URL)) {
         return helpers.error('string.pattern.base', { value, communityUrl: COMMUNITY_URL })
       }
@@ -168,7 +164,6 @@ export const schema = Joi.object({
   EMAIL_LINK_VERIFICATION: Joi.string()
     .uri({ scheme: ['http', 'https'] })
     .custom((value: string, helpers: Joi.CustomHelpers<string>): string | Joi.ErrorReport => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
       if (!value.startsWith(helpers.state.ancestors[0].COMMUNITY_URL)) {
         return helpers.error('string.pattern.base', { value, communityUrl: COMMUNITY_URL })
       }
@@ -180,7 +175,6 @@ export const schema = Joi.object({
   EMAIL_LINK_SETPASSWORD: Joi.string()
     .uri({ scheme: ['http', 'https'] })
     .custom((value: string, helpers: Joi.CustomHelpers<string>): string | Joi.ErrorReport => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
       if (!value.startsWith(helpers.state.ancestors[0].COMMUNITY_URL)) {
         return helpers.error('string.pattern.base', { value, communityUrl: COMMUNITY_URL })
       }
@@ -192,7 +186,6 @@ export const schema = Joi.object({
   EMAIL_LINK_FORGOTPASSWORD: Joi.string()
     .uri({ scheme: ['http', 'https'] })
     .custom((value: string, helpers: Joi.CustomHelpers<string>): string | Joi.ErrorReport => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
       if (!value.startsWith(helpers.state.ancestors[0].COMMUNITY_URL)) {
         return helpers.error('string.pattern.base', { value, communityUrl: COMMUNITY_URL })
       }
@@ -204,7 +197,6 @@ export const schema = Joi.object({
   EMAIL_LINK_OVERVIEW: Joi.string()
     .uri({ scheme: ['http', 'https'] })
     .custom((value: string, helpers: Joi.CustomHelpers<string>): string | Joi.ErrorReport => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
       if (!value.startsWith(helpers.state.ancestors[0].COMMUNITY_URL)) {
         return helpers.error('string.pattern.base', { value, communityUrl: COMMUNITY_URL })
       }

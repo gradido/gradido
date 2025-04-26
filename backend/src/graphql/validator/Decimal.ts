@@ -2,7 +2,6 @@ import { ValidationArguments, ValidationOptions, registerDecorator } from 'class
 import { Decimal } from 'decimal.js-light'
 
 export function IsPositiveDecimal(validationOptions?: ValidationOptions) {
-  // eslint-disable-next-line @typescript-eslint/ban-types
   return function (object: Object, propertyName: string) {
     registerDecorator({
       name: 'isPositiveDecimal',

@@ -7,7 +7,6 @@ export class BalanceLoggingView extends AbstractLoggingView {
     super()
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public toJSON(): any {
     return {
       balance: this.decimalToString(this.self.balance),

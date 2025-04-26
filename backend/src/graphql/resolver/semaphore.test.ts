@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { Connection } from '@dbTools/typeorm'
 import { Community as DbCommunity } from '@entity/Community'
 import { ApolloServerTestClient } from 'apollo-server-testing'
@@ -27,7 +24,8 @@ import { peterLustig } from '@/seeds/users/peter-lustig'
 
 jest.mock('@/password/EncryptorUtils')
 
-let mutate: ApolloServerTestClient['mutate'], con: Connection
+let mutate: ApolloServerTestClient['mutate']
+let con: Connection
 let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']

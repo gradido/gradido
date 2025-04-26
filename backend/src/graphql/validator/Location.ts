@@ -5,7 +5,6 @@ import { Location } from '@model/Location'
 import { Location2Point } from '@/graphql/resolver/util/Location2Point'
 
 export function isValidLocation(validationOptions?: ValidationOptions) {
-  // eslint-disable-next-line @typescript-eslint/ban-types
   return function (object: Object, propertyName: string) {
     registerDecorator({
       name: 'isValidLocation',

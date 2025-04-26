@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-empty-function */
 import { User } from '@entity/User'
 import { UserContact } from '@entity/UserContact'
 

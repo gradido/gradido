@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/unbound-method */
 import { ApolloServerTestClient } from 'apollo-server-testing'
 
 import { ContributionLink } from '@model/ContributionLink'
@@ -15,8 +12,7 @@ export const contributionLinkFactory = async (
   const { mutate } = client
 
   // login as admin
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const user = await mutate({
+  await mutate({
     mutation: login,
     variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
   })

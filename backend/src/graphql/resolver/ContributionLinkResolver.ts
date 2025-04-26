@@ -47,8 +47,12 @@ export class ContributionLinkResolver {
     dbContributionLink.createdAt = new Date()
     dbContributionLink.code = contributionLinkCode(dbContributionLink.createdAt)
     dbContributionLink.cycle = cycle
-    if (validFrom) dbContributionLink.validFrom = new Date(validFrom)
-    if (validTo) dbContributionLink.validTo = new Date(validTo)
+    if (validFrom) {
+      dbContributionLink.validFrom = new Date(validFrom)
+    }
+    if (validTo) {
+      dbContributionLink.validTo = new Date(validTo)
+    }
     dbContributionLink.maxAmountPerMonth = maxAmountPerMonth
     dbContributionLink.maxPerCycle = maxPerCycle
     await dbContributionLink.save()
@@ -116,8 +120,12 @@ export class ContributionLinkResolver {
     dbContributionLink.name = name
     dbContributionLink.memo = memo
     dbContributionLink.cycle = cycle
-    if (validFrom) dbContributionLink.validFrom = new Date(validFrom)
-    if (validTo) dbContributionLink.validTo = new Date(validTo)
+    if (validFrom) {
+      dbContributionLink.validFrom = new Date(validFrom)
+    }
+    if (validTo) {
+      dbContributionLink.validTo = new Date(validTo)
+    }
     dbContributionLink.maxAmountPerMonth = maxAmountPerMonth
     dbContributionLink.maxPerCycle = maxPerCycle
     await dbContributionLink.save()

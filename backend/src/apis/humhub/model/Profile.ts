@@ -1,4 +1,3 @@
-/* eslint-disable camelcase */
 import { User } from '@entity/User'
 
 import { CONFIG } from '@/config'

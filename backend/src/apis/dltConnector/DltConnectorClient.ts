@@ -34,16 +34,15 @@ function getTransactionTypeString(id: TransactionTypeId): string {
  * A Singleton class defines the `getInstance` method that lets clients access
  * the unique singleton instance.
  */
-// eslint-disable-next-line @typescript-eslint/no-extraneous-class
+
 export class DltConnectorClient {
-  // eslint-disable-next-line no-use-before-define
   private static instance: DltConnectorClient
   client: GraphQLClient
   /**
    * The Singleton's constructor should always be private to prevent direct
    * construction calls with the `new` operator.
    */
-  // eslint-disable-next-line no-useless-constructor, @typescript-eslint/no-empty-function
+
   private constructor() {}
 
   /**

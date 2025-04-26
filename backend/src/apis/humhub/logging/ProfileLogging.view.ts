@@ -12,7 +12,7 @@ export class ProfileLoggingView extends AbstractLoggingView {
     return {
       firstname: this.self.firstname.substring(0, 3) + '...',
       lastname: this.self.lastname.substring(0, 3) + '...',
-      // eslint-disable-next-line camelcase
+
       gradido_address:
         gradidoAddressParts[0] + '/' + gradidoAddressParts[1].substring(0, 3) + '...',
     }

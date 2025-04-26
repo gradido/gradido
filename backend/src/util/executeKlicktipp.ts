@@ -13,4 +13,8 @@ async function executeKlicktipp(): Promise<boolean> {
   }
 }
 
-void executeKlicktipp()
+executeKlicktipp().catch((e) => {
+  // biome-ignore lint/suspicious/noConsole: logger isn't used here
+  console.error(e)
+  process.exit(1)
+})

@@ -1,4 +1,3 @@
-/* eslint-disable type-graphql/invalid-nullable-input-type */
 import { IsEnum, IsPositive } from 'class-validator'
 import { ArgsType, Field, InputType, Int } from 'type-graphql'
 

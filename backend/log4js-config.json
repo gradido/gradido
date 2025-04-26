@@ -57,6 +57,20 @@
       "fileNameSep" : "_",
       "numBackups" : 30
     },
+    "gms": 
+    {
+      "type": "dateFile",
+      "filename": "../logs/backend/gms.log",
+      "pattern": "yyyy-MM-dd",
+      "layout": 
+      {
+        "type": "pattern", "pattern": "%d{ISO8601} %p %c [%X{user}] [%f : %l] - %m"
+      },
+      "compress": true,
+      "keepFileExt" : true,
+      "fileNameSep" : "_",
+      "numBackups" : 30
+    },
     "errorFile": 
     {
       "type": "dateFile",
@@ -132,6 +146,16 @@
       "appenders":
       [
         "klicktipp",
+        "errors"
+      ],
+      "level": "debug",
+      "enableCallStack": true
+    },
+    "gms":
+    {
+      "appenders":
+      [
+        "gms",
         "errors"
       ],
       "level": "debug",

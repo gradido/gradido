@@ -1,8 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable security/detect-object-injection */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-
 import { Connection } from '@dbTools/typeorm'
 import { Transaction as DbTransaction } from '@entity/Transaction'
 import { Decimal } from 'decimal.js-light'

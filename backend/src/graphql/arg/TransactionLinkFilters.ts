@@ -1,4 +1,3 @@
-/* eslint-disable type-graphql/invalid-nullable-input-type */
 import { IsBoolean } from 'class-validator'
 import { Field, InputType } from 'type-graphql'
 

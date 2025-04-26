@@ -311,7 +311,7 @@ export class TransactionLinkResolver {
         releaseLock()
       }
       // trigger to send transaction via dlt-connector
-      void sendTransactionsToDltConnector()
+      await sendTransactionsToDltConnector()
       return true
     } else {
       const now = new Date()
@@ -387,9 +387,8 @@ export class TransactionLinkResolver {
   async listTransactionLinksAdmin(
     @Args()
     paginated: Paginated,
-    // eslint-disable-next-line type-graphql/wrong-decorator-signature
     @Arg('filters', () => TransactionLinkFilters, { nullable: true })
-    filters: TransactionLinkFilters | null, // eslint-disable-line type-graphql/invalid-nullable-input-type
+    filters: TransactionLinkFilters,
     @Arg('userId', () => Int)
     userId: number,
   ): Promise<TransactionLinkResult> {

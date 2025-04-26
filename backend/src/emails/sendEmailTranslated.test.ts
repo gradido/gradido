@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { createTransport } from 'nodemailer'
 
 import { i18n, logger } from '@test/testSetup'
@@ -103,12 +102,10 @@ describe('sendEmailTranslated', () => {
       })
     })
 
-    // eslint-disable-next-line jest/no-disabled-tests
     it.skip('calls "i18n.setLocale" with "en"', () => {
       expect(i18n.setLocale).toBeCalledWith('en')
     })
 
-    // eslint-disable-next-line jest/no-disabled-tests
     it.skip('calls "i18n.__" for translation', () => {
       expect(i18n.__).toBeCalled()
     })

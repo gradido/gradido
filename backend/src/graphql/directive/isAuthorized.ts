@@ -21,8 +21,11 @@ export const isAuthorized: AuthChecker<Context> = async ({ context }, rights) =>
   context.role = ROLE_UNAUTHORIZED // unauthorized user
 
   // is rights an inalienable right?
-  if ((rights as RIGHTS[]).reduce((acc, right) => acc && INALIENABLE_RIGHTS.includes(right), true))
+  if (
+    (rights as RIGHTS[]).reduce((acc, right) => acc && INALIENABLE_RIGHTS.includes(right), true)
+  ) {
     return true
+  }
 
   // Do we have a token?
   if (!context.token) {

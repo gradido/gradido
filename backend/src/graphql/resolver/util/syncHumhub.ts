@@ -55,7 +55,7 @@ export async function syncHumhub(
     externId: humhubUser?.id,
     // for preventing this warning https://github.com/eslint-community/eslint-plugin-security/blob/main/docs/rules/detect-object-injection.md
     // and possible danger coming with it
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+
     result: ExecutedHumhubAction[result as ExecutedHumhubAction],
   })
   if (spaceId && humhubUser) {

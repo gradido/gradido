@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Field, Float, Int, ObjectType } from 'type-graphql'
 
 import { GdtEntryType } from '@enum/GdtEntryType'
@@ -12,9 +10,9 @@ export class GdtEntry {
     date,
     email,
     comment,
-    // eslint-disable-next-line camelcase
+
     coupon_code,
-    // eslint-disable-next-line camelcase
+
     gdt_entry_type_id,
     factor,
     amount2,
@@ -26,9 +24,9 @@ export class GdtEntry {
     this.date = date
     this.email = email
     this.comment = comment
-    // eslint-disable-next-line camelcase
+
     this.couponCode = coupon_code
-    // eslint-disable-next-line camelcase
+
     this.gdtEntryType = gdt_entry_type_id
     this.factor = factor
     this.amount2 = amount2
