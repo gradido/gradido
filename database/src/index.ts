@@ -5,7 +5,7 @@ import { createPool } from 'mysql'
 import { Migration } from 'ts-mysql-migrate'
 import { clearDatabase } from './clear'
 import { latestDbVersion } from './config/detectLastDBVersion'
-import path from 'path'
+import path from 'node:path'
 
 const run = async (command: string) => {
   if (command === 'clear') {
