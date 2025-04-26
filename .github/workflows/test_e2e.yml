@@ -16,7 +16,7 @@ jobs:
       - name: Prepare test system
         run: |
           sudo chown runner:docker -R *
-          cd database && yarn 
+          cd database && yarn && yarn build
           cd ../backend && yarn
 
       - name: End-to-end tests | prepare

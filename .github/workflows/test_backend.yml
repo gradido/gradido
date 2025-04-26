@@ -68,7 +68,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Backend | Lint
-        run: cd backend && yarn && yarn run lint
+        run: cd database && yarn && cd ../backend && yarn && yarn run lint
 
   locales:
     if: needs.files-changed.outputs.backend == 'true'
