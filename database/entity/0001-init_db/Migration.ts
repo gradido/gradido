@@ -1,4 +1,4 @@
-import { BaseEntity, Entity, PrimaryGeneratedColumn, Column } from 'typeorm'
+import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from 'typeorm'
 
 @Entity('migrations')
 export class Migration extends BaseEntity {

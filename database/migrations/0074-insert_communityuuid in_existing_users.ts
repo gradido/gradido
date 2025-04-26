@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   // read the community uuid of the homeCommunity
   const result = await queryFn(`SELECT c.community_uuid from communities as c WHERE c.foreign = 0`)

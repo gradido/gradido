@@ -24,14 +24,20 @@ export class ContributionMessage extends BaseEntity {
   @Column({ name: 'contribution_id', unsigned: true, nullable: false })
   contributionId: number
 
-  @ManyToOne(() => Contribution, (contribution) => contribution.messages)
+  @ManyToOne(
+    () => Contribution,
+    (contribution) => contribution.messages,
+  )
   @JoinColumn({ name: 'contribution_id' })
   contribution: Contribution
 
   @Column({ name: 'user_id', unsigned: true, nullable: false })
   userId: number
 
-  @ManyToOne(() => User, (user) => user.messages)
+  @ManyToOne(
+    () => User,
+    (user) => user.messages,
+  )
   @JoinColumn({ name: 'user_id' })
   user: User
 

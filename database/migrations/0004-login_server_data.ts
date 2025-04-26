@@ -9,9 +9,6 @@
  * NOTE: This migration does not delete the data when downgrading!
  */
 
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 const LOGIN_SERVER_DB = 'gradido_login'
 
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
@@ -19,7 +16,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
     SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '${LOGIN_SERVER_DB}'
     `)
   if (loginDatabaseExists.length === 0) {
-    // eslint-disable-next-line no-console
+    // biome-ignore lint/suspicious/noConsole: no logger present
     console.log(`Skipping Login Server Database migration - Database ${LOGIN_SERVER_DB} not found`)
     return
   }
@@ -62,6 +59,8 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   `)
 }
 
-export async function downgrade(/* queryFn: (query: string, values?: any[]) => Promise<Array<any>> */) {
+export async function downgrade(
+  /* queryFn: (query: string, values?: any[]) => Promise<Array<any>> */
+) {
   // EMPTY FUNCTION
 }

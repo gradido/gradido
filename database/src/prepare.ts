@@ -28,7 +28,7 @@ export const createDatabase = async (): Promise<void> => {
     )
     if ((<RowDataPacket>rows).length > 0) {
       await con.query(`DROP TABLE \`${CONFIG.DB_DATABASE}\`.\`migrations\``)
-      // eslint-disable-next-line no-console
+
       console.log('Found and dropped old migrations table')
     }
   }

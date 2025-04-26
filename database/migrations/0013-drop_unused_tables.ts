@@ -5,9 +5,6 @@
  * The migration reduces the amount of tables to 28
  */
 
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   await queryFn(`DROP TABLE \`login_app_access_tokens\`;`)
   await queryFn(`DROP TABLE \`pending_transactions\`;`)

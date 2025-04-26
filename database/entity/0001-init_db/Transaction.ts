@@ -1,4 +1,4 @@
-import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, OneToOne } from 'typeorm'
+import { BaseEntity, Column, Entity, OneToOne, PrimaryGeneratedColumn } from 'typeorm'
 import { TransactionCreation } from './TransactionCreation'
 import { TransactionSendCoin } from './TransactionSendCoin'
 
@@ -31,9 +31,15 @@ export class Transaction extends BaseEntity {
   })
   blockchainTypeId: number
 
-  @OneToOne(() => TransactionSendCoin, (transactionSendCoin) => transactionSendCoin.transaction)
+  @OneToOne(
+    () => TransactionSendCoin,
+    (transactionSendCoin) => transactionSendCoin.transaction,
+  )
   transactionSendCoin: TransactionSendCoin
 
-  @OneToOne(() => TransactionCreation, (transactionCreation) => transactionCreation.transaction)
+  @OneToOne(
+    () => TransactionCreation,
+    (transactionCreation) => transactionCreation.transaction,
+  )
   transactionCreation: TransactionCreation
 }

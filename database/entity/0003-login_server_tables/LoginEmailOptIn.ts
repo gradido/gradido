@@ -1,4 +1,4 @@
-import { BaseEntity, Entity, PrimaryGeneratedColumn, Column } from 'typeorm'
+import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from 'typeorm'
 
 // Moriz: I do not like the idea of having two user tables
 @Entity('login_email_opt_in')

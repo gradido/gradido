@@ -5,9 +5,6 @@
  * each send-coins to two transactions per send-coin
  */
 
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   /*
    * This migration has a possible incompatibility

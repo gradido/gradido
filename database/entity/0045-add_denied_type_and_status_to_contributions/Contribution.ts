@@ -2,11 +2,11 @@ import { Decimal } from 'decimal.js-light'
 import {
   BaseEntity,
   Column,
-  Entity,
-  PrimaryGeneratedColumn,
   DeleteDateColumn,
+  Entity,
   JoinColumn,
   ManyToOne,
+  PrimaryGeneratedColumn,
 } from 'typeorm'
 import { DecimalTransformer } from '../../src/typeorm/DecimalTransformer'
 import { User } from '../User'
@@ -19,7 +19,10 @@ export class Contribution extends BaseEntity {
   @Column({ unsigned: true, nullable: false, name: 'user_id' })
   userId: number
 
-  @ManyToOne(() => User, (user) => user.contributions)
+  @ManyToOne(
+    () => User,
+    (user) => user.contributions,
+  )
   @JoinColumn({ name: 'user_id' })
   user: User
 

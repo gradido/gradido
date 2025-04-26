@@ -1,4 +1,4 @@
-import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, JoinColumn, OneToOne } from 'typeorm'
+import { BaseEntity, Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'typeorm'
 import { User } from '../User'
 
 @Entity('state_balances')

@@ -3,9 +3,6 @@
  * This migration adds the table `contribution_links` in order to store all sorts of contribution_links data
  */
 
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   await queryFn(`
       CREATE TABLE IF NOT EXISTS \`contribution_links\` (

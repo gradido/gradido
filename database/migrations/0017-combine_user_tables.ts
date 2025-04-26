@@ -4,9 +4,6 @@
  * the `state_users` table, where the later is the target.
  */
 
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   // Drop column `group_id` since it contains uniform data which is not the same as the uniform data
   // on login_users. Since we do not need this data anyway, we sjust throw it away.

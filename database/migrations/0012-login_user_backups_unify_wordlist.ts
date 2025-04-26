@@ -5,9 +5,6 @@
  * This also removes the trailing space
  */
 
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 import fs from 'fs'
 import path from 'path'
 
@@ -66,6 +63,8 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   })
 }
 
-export async function downgrade(/* queryFn: (query: string, values?: any[]) => Promise<Array<any>> */) {
+export async function downgrade(
+  /* queryFn: (query: string, values?: any[]) => Promise<Array<any>> */
+) {
   // cannot transform things back
 }

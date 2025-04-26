@@ -4,9 +4,6 @@
  * It renames the table to `event`, introduces new fields and renames others.
  */
 
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   await queryFn('RENAME TABLE `event_protocol` TO `events`;')
   await queryFn('ALTER TABLE `events` RENAME COLUMN `user_id` TO `affected_user_id`;')

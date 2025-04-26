@@ -1,9 +1,9 @@
-import { createDatabase } from './prepare'
 import { CONFIG } from './config'
+import { createDatabase } from './prepare'
 
+import path from 'path'
 import { createPool } from 'mysql'
 import { Migration } from 'ts-mysql-migrate'
-import path from 'path'
 
 const run = async (command: string) => {
   // Database actions not supported by our migration library
@@ -47,7 +47,7 @@ const run = async (command: string) => {
 
 run(process.argv[2])
   .catch((err) => {
-    // eslint-disable-next-line no-console
+    // biome-ignore lint/suspicious/noConsole: no logger present
     console.log(err)
     process.exit(1)
   })

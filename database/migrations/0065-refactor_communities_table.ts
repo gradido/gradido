@@ -3,9 +3,6 @@
  * This migration creates the `community` and 'communityfederation' tables in the `apollo` database (`gradido_community`).
  */
 
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   await queryFn(`RENAME TABLE communities TO federated_communities;`)
   await queryFn(`

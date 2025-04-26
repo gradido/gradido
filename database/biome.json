@@ -4,7 +4,7 @@
   "files": {
     "ignoreUnknown": false,
     "ignore": ["build", "node_modules", "coverage"],
-    "include": ["./src/**/*.js", "./src/**/*.ts", "./entity/**/*.ts", "./logging/**/*.ts", "./migrations/**/*.ts"]
+    "include": ["./src/**/*.ts", "./entity/**/*.ts", "./logging/**/*.ts", "./migrations/**/*.ts"]
   },
   "formatter": {
     "enabled": true,
@@ -33,6 +33,7 @@
         "noUselessUndefinedInitialization": "error",
         "noVoid": "error",
         "noWith": "error",
+        "useArrowFunction": "off",
         "useLiteralKeys": "error",
         "useRegexLiterals": "error"
       },
@@ -73,13 +74,16 @@
         "useBlockStatements": "error",
         "useConsistentBuiltinInstantiation": "error",
         "useConst": "error",
-        "useSingleVarDeclarator": "error"
+        "useSingleVarDeclarator": "error",
+        "useThrowOnlyError": "error"
       },
       "suspicious": {
+        "noAssignInExpressions": "error",
         "noAsyncPromiseExecutor": "error",
         "noCatchAssign": "error",
         "noClassAssign": "error",
         "noCompareNegZero": "error",
+        "noConfusingLabels": "error",
         "noConsole": "error",
         "noControlCharactersInRegex": "error",
         "noDebugger": "error",
@@ -105,11 +109,11 @@
         "useValidTypeof": "error"
       }
     },
-    "ignore": ["**/node_modules", "**/*.min.js", "**/build", "**/coverage"]
+    "ignore": ["**/node_modules", "**/*.min.js", "**/build"]
   },
   "javascript": {
     "formatter": {
-      "jsxQuoteStyle": "single",
+      "jsxQuoteStyle": "double",
       "quoteProperties": "asNeeded",
       "trailingCommas": "all",
       "semicolons": "asNeeded",
@@ -119,29 +123,12 @@
       "attributePosition": "auto",
       "bracketSpacing": true
     },
-    "globals": [
-      "document",
-      "navigator",
-      "window",
-      "describe",
-      "test",
-      "it",
-      "expect",
-      "beforeAll",
-      "beforeEach",
-      "afterAll",
-      "afterEach",
-      "jest"
-    ],
-    "parser": {
-      "unsafeParameterDecoratorsEnabled": true
-    }
+    "globals": ["document", "navigator", "window", "BufferEncoding"]
   },
   "overrides": [
     {
       "include": ["*.ts", "*.tsx"],
       "linter": { "rules": { "complexity": { "noVoid": "error" } } }
-    },
-    { "include": ["*.test.ts"], "linter": { "rules": {} } }
+    }
   ]
 }

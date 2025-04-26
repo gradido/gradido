@@ -1,4 +1,4 @@
-import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm'
+import { BaseEntity, Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm'
 import { UserSetting } from '../0002-add_settings/UserSetting'
 
 @Entity('state_users', { engine: 'InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci' })
@@ -69,6 +69,9 @@ export class User extends BaseEntity {
   @Column({ name: 'publisher_id', default: 0 })
   publisherId: number
 
-  @OneToMany(() => UserSetting, (userSetting) => userSetting.user)
+  @OneToMany(
+    () => UserSetting,
+    (userSetting) => userSetting.user,
+  )
   settings: UserSetting[]
 }

@@ -5,9 +5,6 @@
  * new fields.
  */
 
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   await queryFn(
     'ALTER TABLE `events` ADD COLUMN `involved_transaction_link_id` int(10) unsigned DEFAULT NULL AFTER `involved_contribution_message_id`;',

@@ -1,18 +1,18 @@
-import { Contribution } from '../Contribution'
-import { ContributionMessage } from '../ContributionMessage'
-import { User } from '../User'
-import { Transaction } from '../Transaction'
 import { Decimal } from 'decimal.js-light'
 import {
   BaseEntity,
-  Entity,
-  PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
-  ManyToOne,
+  Entity,
   JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
 } from 'typeorm'
 import { DecimalTransformer } from '../../src/typeorm/DecimalTransformer'
+import { Contribution } from '../Contribution'
+import { ContributionMessage } from '../ContributionMessage'
+import { Transaction } from '../Transaction'
+import { User } from '../User'
 
 @Entity('events')
 export class Event extends BaseEntity {

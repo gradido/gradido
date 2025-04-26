@@ -1,4 +1,4 @@
-import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, JoinColumn, OneToOne } from 'typeorm'
+import { BaseEntity, Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'typeorm'
 import { LoginUser } from './LoginUser'
 
 @Entity('login_user_backups')
@@ -15,7 +15,11 @@ export class LoginUserBackup extends BaseEntity {
   @Column({ name: 'mnemonic_type', default: -1 })
   mnemonicType: number
 
-  @OneToOne(() => LoginUser, (loginUser) => loginUser.loginUserBackup, { nullable: false })
+  @OneToOne(
+    () => LoginUser,
+    (loginUser) => loginUser.loginUserBackup,
+    { nullable: false },
+  )
   @JoinColumn({ name: 'user_id' })
   loginUser: LoginUser
 }

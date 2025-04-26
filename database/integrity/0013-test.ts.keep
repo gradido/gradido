@@ -6,7 +6,7 @@
 
 import fs from 'fs'
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+
 const sodium = require('sodium-native')
 
 const PHRASE_WORD_COUNT = 24
@@ -49,7 +49,7 @@ const KeyPairEd25519Create = (passphrase: string[]): Buffer[] => {
 
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   // Delete data with no reference in login_users table
-  // eslint-disable-next-line no-console
+
   // 663 affected rows
   const userBackups = await queryFn(
     `SELECT passphrase, LOWER(HEX(pubkey)) as pubkey, user_id
@@ -59,13 +59,13 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
      // WHERE pubkey is not null`, // todo fix this condition and regenerate
   )
   let i = 0
-  // eslint-disable-next-line no-console
+
   userBackups.forEach(async (userBackup) => {
     const passphrase = userBackup.passphrase.split(' ')
     const keyPair = KeyPairEd25519Create(passphrase)
     if (keyPair[0].toString('hex') !== userBackup.pubkey) {
       i++
-      // eslint-disable-next-line no-console
+
       console.log(
         'Missmatch Pubkey',
         i,
@@ -75,7 +75,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
         `"${userBackup.pubkey}"`,
       )
     } else {
-      // eslint-disable-next-line no-console
+
       // console.log('SUCCESS: ', `"${keyPair[0].toString('hex')}`, `"${userBackup.pubkey}"`)
     }
   })
