@@ -1,5 +1,5 @@
+import { CONFIG } from '@/config'
 import log4js from 'log4js'
-import CONFIG from '@/config'
 
 import { readFileSync } from 'fs'
 

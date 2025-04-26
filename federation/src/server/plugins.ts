@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-
 import clonedeep from 'lodash.clonedeep'
 
 const setHeadersPlugin = {
@@ -23,8 +20,12 @@ const setHeadersPlugin = {
 
 const filterVariables = (variables: any) => {
   const vars = clonedeep(variables)
-  if (vars && vars.password) vars.password = '***'
-  if (vars && vars.passwordNew) vars.passwordNew = '***'
+  if (vars && vars.password) {
+    vars.password = '***'
+  }
+  if (vars && vars.passwordNew) {
+    vars.passwordNew = '***'
+  }
   return vars
 }
 
@@ -39,15 +40,18 @@ ${mutation || query}variables: ${JSON.stringify(filterVariables(variables), null
     return {
       willSendResponse(requestContext: any) {
         if (operationName !== 'IntrospectionQuery') {
-          if (requestContext.context.user) logger.info(`User ID: ${requestContext.context.user.id}`)
+          if (requestContext.context.user) {
+            logger.info(`User ID: ${requestContext.context.user.id}`)
+          }
           if (requestContext.response.data) {
             logger.info('Response Success!')
             logger.trace(`Response-Data:
 ${JSON.stringify(requestContext.response.data, null, 2)}`)
           }
-          if (requestContext.response.errors)
+          if (requestContext.response.errors) {
             logger.error(`Response-Errors:
 ${JSON.stringify(requestContext.response.errors, null, 2)}`)
+          }
         }
         return requestContext
       },
@@ -55,7 +59,5 @@ ${JSON.stringify(requestContext.response.errors, null, 2)}`)
   },
 }
 
-const plugins =
+export const plugins =
   process.env.NODE_ENV === 'development' ? [setHeadersPlugin] : [setHeadersPlugin, logPlugin]
-
-export default plugins
