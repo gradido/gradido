@@ -13,11 +13,11 @@
     "start": "cross-env TZ=UTC TS_NODE_BASEURL=./build node -r tsconfig-paths/register build/src/index.js",
     "dev": "cross-env TZ=UTC nodemon -w src --ext ts,pug,json,css --exec ts-node -r tsconfig-paths/register src/index.ts",
     "lint": "eslint --max-warnings=0 .",
-    "test": "cross-env TZ=UTC NODE_ENV=development jest --runInBand --forceExit --detectOpenHandles",
-    "seed": "cross-env TZ=UTC NODE_ENV=development ts-node -r tsconfig-paths/register src/seeds/index.ts",
-    "klicktipp": "cross-env TZ=UTC NODE_ENV=development ts-node -r tsconfig-paths/register src/util/executeKlicktipp.ts",
-    "gmsusers": "cross-env TZ=UTC NODE_ENV=development ts-node -r tsconfig-paths/register src/apis/gms/ExportUsers.ts",
-    "humhubUserExport": "cross-env TZ=UTC NODE_ENV=development ts-node -r tsconfig-paths/register src/apis/humhub/ExportUsers.ts",
+    "test": "cross-env TZ=UTC NODE_ENV=development DB_DATABASE=gradido_test_backend jest --runInBand --forceExit --detectOpenHandles",
+    "seed": "cross-env TZ=UTC NODE_ENV=development tsx -r tsconfig-paths/register src/seeds/index.ts",
+    "klicktipp": "cross-env TZ=UTC NODE_ENV=development tsx -r tsconfig-paths/register src/util/executeKlicktipp.ts",
+    "gmsusers": "cross-env TZ=UTC NODE_ENV=development tsx -r tsconfig-paths/register src/apis/gms/ExportUsers.ts",
+    "humhubUserExport": "cross-env TZ=UTC NODE_ENV=development tsx -r tsconfig-paths/register src/apis/humhub/ExportUsers.ts",
     "locales": "scripts/sort.sh"
   },
   "dependencies": {
@@ -94,6 +94,7 @@
     "prettier": "^2.8.7",
     "ts-jest": "^27.0.5",
     "ts-node": "^10.9.2",
+    "tsx": "^4.19.3",
     "tsconfig-paths": "^3.14.0",
     "typescript": "^4.9.5"
   },
