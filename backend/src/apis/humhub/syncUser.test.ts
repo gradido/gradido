@@ -3,7 +3,7 @@ import { User } from '@entity/User'
 import { UserContact } from '@entity/UserContact'
 
 import { GetUser } from './model/GetUser'
-import { syncUser, ExecutedHumhubAction } from './syncUser'
+import { ExecutedHumhubAction, syncUser } from './syncUser'
 
 jest.mock('@/apis/humhub/HumHubClient')
 

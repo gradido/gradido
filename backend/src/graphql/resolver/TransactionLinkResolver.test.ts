@@ -12,7 +12,7 @@ import { Decimal } from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
 
 import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
-import { cleanDB, testEnvironment, resetToken, resetEntity } from '@test/helpers'
+import { cleanDB, resetEntity, resetToken, testEnvironment } from '@test/helpers'
 import { logger } from '@test/testSetup'
 
 import { EventType } from '@/event/Events'
@@ -21,14 +21,14 @@ import { creationFactory } from '@/seeds/factory/creation'
 import { transactionLinkFactory } from '@/seeds/factory/transactionLink'
 import { userFactory } from '@/seeds/factory/user'
 import {
-  login,
-  createContributionLink,
-  redeemTransactionLink,
+  confirmContribution,
   createContribution,
-  updateContribution,
+  createContributionLink,
   createTransactionLink,
   deleteTransactionLink,
-  confirmContribution,
+  login,
+  redeemTransactionLink,
+  updateContribution,
 } from '@/seeds/graphql/mutations'
 import { listTransactionLinksAdmin } from '@/seeds/graphql/queries'
 import { transactionLinks } from '@/seeds/transactionLink/index'

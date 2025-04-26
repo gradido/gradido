@@ -18,8 +18,8 @@ import {
   EVENT_CONTRIBUTION_MESSAGE_CREATE,
 } from '@/event/Events'
 import { UpdateUnconfirmedContributionContext } from '@/interactions/updateUnconfirmedContribution/UpdateUnconfirmedContribution.context'
-import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
+import { Context, getUser } from '@/server/context'
 import { backendLogger as logger } from '@/server/logger'
 
 import { findContributionMessages } from './util/findContributionMessages'

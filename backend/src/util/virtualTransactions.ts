@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { SaveOptions, RemoveOptions } from '@dbTools/typeorm'
+import { RemoveOptions, SaveOptions } from '@dbTools/typeorm'
 import { Transaction as dbTransaction } from '@entity/Transaction'
 import { Decimal } from 'decimal.js-light'
 

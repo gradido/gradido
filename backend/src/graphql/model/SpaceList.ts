@@ -1,4 +1,4 @@
-import { ObjectType, Field } from 'type-graphql'
+import { Field, ObjectType } from 'type-graphql'
 
 import { SpacesResponse } from '@/apis/humhub/model/SpacesResponse'
 

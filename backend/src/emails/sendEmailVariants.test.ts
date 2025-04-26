@@ -7,23 +7,23 @@ import { ApolloServerTestClient } from 'apollo-server-testing'
 import { Decimal } from 'decimal.js-light'
 
 import { testEnvironment } from '@test/helpers'
-import { logger, i18n as localization } from '@test/testSetup'
+import { i18n as localization, logger } from '@test/testSetup'
 
 import { CONFIG } from '@/config'
 
 // eslint-disable-next-line import/no-namespace
 import * as sendEmailTranslatedApi from './sendEmailTranslated'
 import {
-  sendAddedContributionMessageEmail,
   sendAccountActivationEmail,
   sendAccountMultiRegistrationEmail,
+  sendAddedContributionMessageEmail,
+  sendContributionChangedByModeratorEmail,
   sendContributionConfirmedEmail,
-  sendContributionDeniedEmail,
   sendContributionDeletedEmail,
+  sendContributionDeniedEmail,
   sendResetPasswordEmail,
   sendTransactionLinkRedeemedEmail,
   sendTransactionReceivedEmail,
-  sendContributionChangedByModeratorEmail,
 } from './sendEmailVariants'
 
 const testMailServerHost = 'localhost'

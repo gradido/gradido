@@ -1,5 +1,5 @@
-import { IsInt, IsString, IsEnum } from 'class-validator'
-import { ArgsType, Field, Int, InputType } from 'type-graphql'
+import { IsEnum, IsInt, IsString } from 'class-validator'
+import { ArgsType, Field, InputType, Int } from 'type-graphql'
 
 import { ContributionMessageType } from '@enum/ContributionMessageType'
 

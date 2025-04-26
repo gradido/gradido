@@ -1,5 +1,5 @@
 import { Decimal } from 'decimal.js-light'
-import { ObjectType, Field, Int, Float } from 'type-graphql'
+import { Field, Float, Int, ObjectType } from 'type-graphql'
 
 @ObjectType()
 export class Balance {

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { createTransport } from 'nodemailer'
 
-import { logger, i18n } from '@test/testSetup'
+import { i18n, logger } from '@test/testSetup'
 
 import { CONFIG } from '@/config'
 

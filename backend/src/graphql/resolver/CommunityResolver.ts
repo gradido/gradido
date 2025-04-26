@@ -1,7 +1,7 @@
 import { IsNull, Not } from '@dbTools/typeorm'
 import { Community as DbCommunity } from '@entity/Community'
 import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
-import { Resolver, Query, Authorized, Mutation, Args, Arg } from 'type-graphql'
+import { Arg, Args, Authorized, Mutation, Query, Resolver } from 'type-graphql'
 
 import { Paginated } from '@arg/Paginated'
 import { EditCommunityInput } from '@input/EditCommunityInput'
@@ -12,13 +12,13 @@ import { FederatedCommunity } from '@model/FederatedCommunity'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { LogError } from '@/server/LogError'
 
+import { Location2Point } from './util/Location2Point'
 import {
   getAllCommunities,
   getCommunityByIdentifier,
   getCommunityByUuid,
   getHomeCommunity,
 } from './util/communities'
-import { Location2Point } from './util/Location2Point'
 
 @Resolver()
 export class CommunityResolver {

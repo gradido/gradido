@@ -10,8 +10,8 @@ import { Logger } from 'log4js'
 
 import { CONFIG } from '@/config'
 import { schema } from '@/graphql/schema'
-import { Connection } from '@/typeorm/connection'
 import { checkDBVersion } from '@/typeorm/DBVersion'
+import { Connection } from '@/typeorm/connection'
 import { elopageWebhook } from '@/webhook/elopage'
 import { gmsWebhook } from '@/webhook/gms'
 

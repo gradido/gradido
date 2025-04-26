@@ -13,16 +13,16 @@ import { GraphQLError } from 'graphql/error/GraphQLError'
 import { v4 as uuidv4 } from 'uuid'
 
 import { cleanDB, testEnvironment } from '@test/helpers'
-import { logger, i18n as localization } from '@test/testSetup'
+import { i18n as localization, logger } from '@test/testSetup'
 
 import { userFactory } from '@/seeds/factory/user'
 import { login, updateHomeCommunityQuery } from '@/seeds/graphql/mutations'
 import {
   allCommunities,
-  getCommunities,
   communitiesQuery,
-  getHomeCommunityQuery,
+  getCommunities,
   getCommunityByIdentifierQuery,
+  getHomeCommunityQuery,
 } from '@/seeds/graphql/queries'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 

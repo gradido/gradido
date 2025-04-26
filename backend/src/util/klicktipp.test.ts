@@ -6,7 +6,7 @@ import { Connection } from '@dbTools/typeorm'
 import { Event as DbEvent } from '@entity/Event'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 
-import { testEnvironment, cleanDB, resetToken } from '@test/helpers'
+import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
 
 import { addFieldsToSubscriber } from '@/apis/KlicktippController'
 import { creations } from '@/seeds/creation'

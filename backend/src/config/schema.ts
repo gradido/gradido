@@ -1,19 +1,19 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 // eslint-disable-next-line import/no-unresolved
 import {
-  COMMUNITY_NAME,
-  COMMUNITY_URL,
   COMMUNITY_DESCRIPTION,
+  COMMUNITY_NAME,
   COMMUNITY_SUPPORT_MAIL,
+  COMMUNITY_URL,
+  DB_DATABASE,
   DB_HOST,
   DB_PASSWORD,
   DB_PORT,
   DB_USER,
   DB_VERSION,
-  DB_DATABASE,
   DECAY_START_TIME,
-  GDT_API_URL,
   GDT_ACTIVE,
+  GDT_API_URL,
   GMS_ACTIVE,
   GRAPHIQL,
   HUMHUB_ACTIVE,

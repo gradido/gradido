@@ -8,7 +8,7 @@ import { UserContact } from '@entity/UserContact'
 import { GraphQLError } from 'graphql'
 
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
-import { logger, i18n as localization } from '@test/testSetup'
+import { i18n as localization, logger } from '@test/testSetup'
 
 import { EventType } from '@/event/Events'
 import { userFactory } from '@/seeds/factory/user'

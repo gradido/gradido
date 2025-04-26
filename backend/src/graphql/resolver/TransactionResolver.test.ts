@@ -20,9 +20,9 @@ import { logger } from '@test/testSetup'
 
 import { CONFIG } from '@/config'
 import { EventType } from '@/event/Events'
+import { SendCoinsClient } from '@/federation/client/1_0/SendCoinsClient'
 import { SendCoinsArgs } from '@/federation/client/1_0/model/SendCoinsArgs'
 import { SendCoinsResult } from '@/federation/client/1_0/model/SendCoinsResult'
-import { SendCoinsClient } from '@/federation/client/1_0/SendCoinsClient'
 import { userFactory } from '@/seeds/factory/user'
 import {
   confirmContribution,

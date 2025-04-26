@@ -8,17 +8,17 @@ import { Decimal } from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
 import { v4 as uuidv4 } from 'uuid'
 
-import { cleanDB, testEnvironment, contributionDateFormatter } from '@test/helpers'
+import { cleanDB, contributionDateFormatter, testEnvironment } from '@test/helpers'
 
 import { creationFactory, nMonthsBefore } from '@/seeds/factory/creation'
 import { userFactory } from '@/seeds/factory/user'
 import {
   confirmContribution,
   createContribution,
-  createTransactionLink,
-  redeemTransactionLink,
-  login,
   createContributionLink,
+  createTransactionLink,
+  login,
+  redeemTransactionLink,
   sendCoins,
 } from '@/seeds/graphql/mutations'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'

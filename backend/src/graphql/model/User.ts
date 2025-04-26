@@ -1,6 +1,6 @@
 import { Point } from '@dbTools/typeorm'
 import { User as dbUser } from '@entity/User'
-import { ObjectType, Field, Int } from 'type-graphql'
+import { Field, Int, ObjectType } from 'type-graphql'
 
 import { GmsPublishLocationType } from '@enum/GmsPublishLocationType'
 import { PublishNameType } from '@enum/PublishNameType'

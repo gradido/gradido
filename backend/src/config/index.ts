@@ -100,11 +100,11 @@ const email = {
   EMAIL_LINK_OVERVIEW: COMMUNITY_URL + (process.env.EMAIL_LINK_OVERVIEW_PATH ?? '/overview'),
   // time in minutes a optin code is valid
   EMAIL_CODE_VALID_TIME: process.env.EMAIL_CODE_VALID_TIME
-    ? parseInt(process.env.EMAIL_CODE_VALID_TIME) ?? 1440
+    ? (parseInt(process.env.EMAIL_CODE_VALID_TIME) ?? 1440)
     : 1440,
   // time in minutes that must pass to request a new optin code
   EMAIL_CODE_REQUEST_TIME: process.env.EMAIL_CODE_REQUEST_TIME
-    ? parseInt(process.env.EMAIL_CODE_REQUEST_TIME) ?? 10
+    ? (parseInt(process.env.EMAIL_CODE_REQUEST_TIME) ?? 10)
     : 10,
 }
 

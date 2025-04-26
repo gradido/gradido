@@ -12,8 +12,8 @@ import { User as DbUser } from '@entity/User'
 import { CONFIG } from '@/config'
 import { getHomeCommunity } from '@/graphql/resolver/util/communities'
 import { sendUserToGms } from '@/graphql/resolver/util/sendUserToGms'
-import { createServer } from '@/server/createServer'
 import { LogError } from '@/server/LogError'
+import { createServer } from '@/server/createServer'
 import { backendLogger as logger } from '@/server/logger'
 
 CONFIG.EMAIL = false

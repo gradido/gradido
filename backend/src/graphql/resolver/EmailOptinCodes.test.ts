@@ -5,11 +5,11 @@ import { User as DbUser } from '@entity/User'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { GraphQLError } from 'graphql'
 
-import { testEnvironment, cleanDB } from '@test/helpers'
+import { cleanDB, testEnvironment } from '@test/helpers'
 
 import { CONFIG } from '@/config'
 import { writeHomeCommunityEntry } from '@/seeds/community'
-import { createUser, setPassword, forgotPassword } from '@/seeds/graphql/mutations'
+import { createUser, forgotPassword, setPassword } from '@/seeds/graphql/mutations'
 import { queryOptIn } from '@/seeds/graphql/queries'
 
 let mutate: ApolloServerTestClient['mutate'],

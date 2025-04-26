@@ -5,10 +5,10 @@ import { User as dbUser } from '@entity/User'
 import { Decimal } from 'decimal.js-light'
 
 import { CONFIG } from '@/config'
-import { SendCoinsArgs } from '@/federation/client/1_0/model/SendCoinsArgs'
-import { SendCoinsResult } from '@/federation/client/1_0/model/SendCoinsResult'
 // eslint-disable-next-line camelcase
 import { SendCoinsClient as V1_0_SendCoinsClient } from '@/federation/client/1_0/SendCoinsClient'
+import { SendCoinsArgs } from '@/federation/client/1_0/model/SendCoinsArgs'
+import { SendCoinsResult } from '@/federation/client/1_0/model/SendCoinsResult'
 import { SendCoinsClientFactory } from '@/federation/client/SendCoinsClientFactory'
 import { PendingTransactionState } from '@/graphql/enum/PendingTransactionState'
 import { TransactionTypeId } from '@/graphql/enum/TransactionTypeId'

@@ -8,7 +8,7 @@ import { ApolloServerTestClient } from 'apollo-server-testing'
 
 import { findUserByEmail } from '@/graphql/resolver/UserResolver'
 import { CreationInterface } from '@/seeds/creation/CreationInterface'
-import { login, createContribution, confirmContribution } from '@/seeds/graphql/mutations'
+import { confirmContribution, createContribution, login } from '@/seeds/graphql/mutations'
 
 export const nMonthsBefore = (date: Date, months = 1): string => {
   return new Date(date.getFullYear(), date.getMonth() - months, 1).toISOString()

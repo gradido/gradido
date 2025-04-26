@@ -2,8 +2,8 @@ import { User } from '@entity/User'
 
 import { LogError } from '@/server/LogError'
 
-import { isHumhubUserIdenticalToDbUser } from './compareHumhubUserDbUser'
 import { HumHubClient } from './HumHubClient'
+import { isHumhubUserIdenticalToDbUser } from './compareHumhubUserDbUser'
 import { GetUser } from './model/GetUser'
 import { PostUser } from './model/PostUser'
 

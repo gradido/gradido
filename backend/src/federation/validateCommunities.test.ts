@@ -11,7 +11,7 @@ import { ApolloServerTestClient } from 'apollo-server-testing'
 import { GraphQLClient } from 'graphql-request'
 import { Response } from 'graphql-request/dist/types'
 
-import { testEnvironment, cleanDB } from '@test/helpers'
+import { cleanDB, testEnvironment } from '@test/helpers'
 import { logger } from '@test/testSetup'
 
 import { validateCommunities } from './validateCommunities'

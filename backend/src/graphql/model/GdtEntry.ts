@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { ObjectType, Field, Float, Int } from 'type-graphql'
+import { Field, Float, Int, ObjectType } from 'type-graphql'
 
 import { GdtEntryType } from '@enum/GdtEntryType'
 

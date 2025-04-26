@@ -1,6 +1,6 @@
 import { Decimal } from 'decimal.js-light'
 
-import { decayFormula, calculateDecay } from './decay'
+import { calculateDecay, decayFormula } from './decay'
 
 describe('utils/decay', () => {
   describe('decayFormula', () => {

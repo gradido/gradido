@@ -1,4 +1,4 @@
-import { registerDecorator, ValidationOptions, ValidationArguments } from 'class-validator'
+import { ValidationArguments, ValidationOptions, registerDecorator } from 'class-validator'
 
 export function isValidDateString(validationOptions?: ValidationOptions) {
   // eslint-disable-next-line @typescript-eslint/ban-types

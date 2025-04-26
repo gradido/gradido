@@ -16,12 +16,12 @@ import { ContributionStatus } from '@enum/ContributionStatus'
 import { Order } from '@enum/Order'
 import {
   cleanDB,
-  resetToken,
-  testEnvironment,
   contributionDateFormatter,
   resetEntity,
+  resetToken,
+  testEnvironment,
 } from '@test/helpers'
-import { logger, i18n as localization } from '@test/testSetup'
+import { i18n as localization, logger } from '@test/testSetup'
 
 import {
   sendContributionConfirmedEmail,
@@ -33,22 +33,22 @@ import { creations } from '@/seeds/creation/index'
 import { creationFactory } from '@/seeds/factory/creation'
 import { userFactory } from '@/seeds/factory/user'
 import {
+  adminCreateContribution,
+  adminCreateContributionMessage,
+  adminDeleteContribution,
+  adminUpdateContribution,
+  confirmContribution,
   createContribution,
-  updateContribution,
   deleteContribution,
   denyContribution,
-  confirmContribution,
-  adminCreateContribution,
-  adminUpdateContribution,
-  adminDeleteContribution,
   login,
   logout,
-  adminCreateContributionMessage,
+  updateContribution,
 } from '@/seeds/graphql/mutations'
 import {
+  adminListContributions,
   listAllContributions,
   listContributions,
-  adminListContributions,
 } from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'

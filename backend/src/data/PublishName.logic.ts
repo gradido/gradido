@@ -54,8 +54,8 @@ export class PublishNameLogic {
     return publishNameType === PublishNameType.PUBLISH_NAME_FULL
       ? this.user.lastName
       : publishNameType === PublishNameType.PUBLISH_NAME_FIRST_INITIAL
-      ? this.user.lastName.charAt(0)
-      : ''
+        ? this.user.lastName.charAt(0)
+        : ''
   }
 
   /**
@@ -84,8 +84,8 @@ export class PublishNameLogic {
     return this.isUsernameFromAlias(publishNameType)
       ? this.getUsernameFromAlias()
       : this.isUsernameFromInitials(publishNameType)
-      ? this.getUsernameFromInitials()
-      : (this.getFirstName(publishNameType) + ' ' + this.getLastName(publishNameType)).trim()
+        ? this.getUsernameFromInitials()
+        : (this.getFirstName(publishNameType) + ' ' + this.getLastName(publishNameType)).trim()
   }
 
   public getUsernameFromInitials(): string {

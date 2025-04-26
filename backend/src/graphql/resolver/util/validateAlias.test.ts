@@ -2,8 +2,8 @@ import { Connection } from '@dbTools/typeorm'
 import { User } from '@entity/User'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 
-import { testEnvironment, cleanDB } from '@test/helpers'
-import { logger, i18n as localization } from '@test/testSetup'
+import { cleanDB, testEnvironment } from '@test/helpers'
+import { i18n as localization, logger } from '@test/testSetup'
 
 import { userFactory } from '@/seeds/factory/user'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'

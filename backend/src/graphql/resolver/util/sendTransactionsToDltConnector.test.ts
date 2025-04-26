@@ -17,8 +17,8 @@ import { GraphQLClient } from 'graphql-request'
 import { Response } from 'graphql-request/dist/types'
 import { v4 as uuidv4 } from 'uuid'
 
-import { testEnvironment, cleanDB } from '@test/helpers'
-import { logger, i18n as localization } from '@test/testSetup'
+import { cleanDB, testEnvironment } from '@test/helpers'
+import { i18n as localization, logger } from '@test/testSetup'
 
 import { CONFIG } from '@/config'
 import { TransactionTypeId } from '@/graphql/enum/TransactionTypeId'

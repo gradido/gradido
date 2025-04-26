@@ -1,4 +1,4 @@
-import { registerDecorator, ValidationOptions, ValidationArguments } from 'class-validator'
+import { ValidationArguments, ValidationOptions, registerDecorator } from 'class-validator'
 
 import { Location } from '@model/Location'
 
