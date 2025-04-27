@@ -32,6 +32,7 @@ import { AdminUpdateContribution } from '@model/AdminUpdateContribution'
 import { Contribution, ContributionListResult } from '@model/Contribution'
 import { Decay } from '@model/Decay'
 import { OpenCreation } from '@model/OpenCreation'
+import { OpenCreations } from '@model/OpenCreations'
 import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
 import { User } from '@model/User'
 
@@ -538,9 +539,11 @@ export class ContributionResolver {
   }
 
   @Authorized([RIGHTS.OPEN_CREATIONS])
-  @Query(() => [OpenCreation])
-  async openCreations(@Ctx() context: Context): Promise<OpenCreation[]> {
-    return getOpenCreations(getUser(context).id, getClientTimezoneOffset(context))
+  @Query(() => OpenCreations)
+  async openCreations(@Ctx() context: Context): Promise<OpenCreations> {
+    return new OpenCreations(
+      await getOpenCreations(getUser(context).id, getClientTimezoneOffset(context)),
+    )
   }
 
   @Authorized([RIGHTS.ADMIN_OPEN_CREATIONS])

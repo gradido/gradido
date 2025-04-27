@@ -1,0 +1,74 @@
+
+fragment contributionFields on Contribution {
+  id
+  amount
+  memo
+  createdAt
+  contributionDate
+  confirmedAt
+  confirmedBy
+  status
+  messagesCount
+  deniedAt
+  deniedBy
+  updatedBy
+  updatedAt
+}
+
+fragment userIdentityFields on User {
+  firstName
+  lastName
+  alias
+}
+
+query listContributions (
+  $currentPage: Int = 1
+  $pageSize: Int = 25
+  $order: Order = DESC
+  $statusFilter: [ContributionStatus!]
+) {
+  listContributions(
+    currentPage: $currentPage
+    pageSize: $pageSize
+    order: $order
+    statusFilter: $statusFilter
+  ) {
+    contributionCount
+    contributionList {
+      deletedAt
+      ...contributionFields
+      moderatorId
+    }
+  }
+}
+
+query listAllContributions (
+  $currentPage: Int = 1
+  $pageSize: Int = 25
+  $order: Order = DESC
+) {
+  listAllContributions(currentPage: $currentPage, pageSize: $pageSize, order: $order) {
+    contributionCount
+    contributionList {
+      ...contributionFields
+      user {
+        ...userIdentityFields
+      }
+    }
+  }
+}
+
+query openCreations {
+  openCreations {
+    lastMonth {
+      year
+      month
+      amount
+    } 
+    thisMonth {
+      year
+      month
+      amount
+    }
+  }
+}

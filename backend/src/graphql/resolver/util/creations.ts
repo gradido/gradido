@@ -163,6 +163,7 @@ export const isValidDateString = (dateString: string): boolean => {
   return new Date(dateString).toString() !== 'Invalid Date'
 }
 
+// TODO: return object instead of array for preventing errors
 export const getOpenCreations = async (
   userId: number,
   timezoneOffset: number,

@@ -84,14 +84,7 @@
           <div
             v-if="!['CONFIRMED', 'DELETED'].includes(status) && !allContribution && !moderatorId"
             class="test-edit-contribution pointer me-3"
-            @click="
-              $emit('update-contribution-form', {
-                id: id,
-                contributionDate: contributionDate,
-                memo: memo,
-                amount: amount,
-              })
-            "
+            @click="updateContributionForm()"
           >
             <IBiPencil />
             <div>{{ $t('edit') }}</div>
@@ -139,13 +132,14 @@ const props = defineProps({
   memo: {
     type: String,
   },
-  firstName: {
-    type: String,
+  user: {
+    type: Object,
     required: false,
-  },
-  lastName: {
-    type: String,
-    required: false,
+    value: {
+      firstName: String,
+      lastName: String,
+      alias: String,
+    },
   },
   createdAt: {
     type: String,
@@ -227,8 +221,8 @@ const icon = computed(() => {
 const collapseId = computed(() => 'collapse' + String(props.id))
 
 const username = computed(() => ({
-  username: `${props.firstName} ${props.lastName}`,
-  initials: `${props.firstName[0]}${props.lastName[0]}`,
+  username: props.user?.alias || `${props.user.firstName} ${props.user.lastName}`,
+  initials: `${props.user.firstName[0]}${props.user.lastName[0]}`,
 }))
 
 const hours = computed(() => parseFloat((props.amount / GDD_PER_HOUR).toFixed(2)))
@@ -244,6 +238,15 @@ function deleteContribution(item) {
   if (window.confirm(t('contribution.delete'))) {
     emit('delete-contribution', item)
   }
+}
+
+function updateContributionForm() {
+  emit('update-contribution-form', {
+    id: props.id,
+    contributionDate: props.contributionDate,
+    memo: props.memo,
+    amount: props.amount,
+  })
 }
 
 const { onResult, onError, load } = useLazyQuery(listContributionMessages, {

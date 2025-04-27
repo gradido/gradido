@@ -1,5 +1,12 @@
 <template>
   <div class="contribution-form">
+    <open-creations-amount
+      v-if="lastMonthOpenCreation && thisMonthOpenCreation"
+      :minimal-date="minimalDate"
+      :max-gdd-last-month="lastMonthOpenCreation.amount"
+      :max-gdd-this-month="thisMonthOpenCreation.amount"
+    />
+    <div class="mb-3"></div>
     <BForm
       class="form-style p-3 bg-white app-box-shadow gradido-border-radius"
       @submit.prevent="submit"
@@ -80,18 +87,20 @@
 </template>
 
 <script setup>
-import { reactive, computed, watch } from 'vue'
+import { reactive, ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useQuery, useMutation } from '@vue/apollo-composable'
+import { openCreations } from '@/graphql/contributions.graphql'
+import { createContribution, updateContribution, deleteContribution } from '@/graphql/mutations'
 import ValidatedInput from '@/components/Inputs/ValidatedInput'
 import LabeledInput from '@/components/Inputs/LabeledInput'
+import OpenCreationsAmount from '@/components/Contributions/OpenCreationsAmount'
 import { memo as memoSchema } from '@/validationSchemas'
 import { object, date as dateSchema, number } from 'yup'
 import { GDD_PER_HOUR } from '../../constants'
 
 const props = defineProps({
   modelValue: { type: Object, required: true },
-  maxGddLastMonth: { type: Number, required: true },
-  maxGddThisMonth: { type: Number, required: true },
 })
 
 const emit = defineEmits(['update-contribution', 'set-contribution', 'update:modelValue'])
@@ -99,6 +108,71 @@ const emit = defineEmits(['update-contribution', 'set-contribution', 'update:mod
 const { t } = useI18n()
 
 const form = reactive({ ...props.modelValue })
+const thisMonthOpenCreation = ref({ month: 0, year: 0, amount: 0 })
+const lastMonthOpenCreation = ref({ month: 0, year: 0, amount: 0 })
+
+const { onResult: onResultOpenCreations, refetch: refetchOpenCreations } = useQuery(
+  openCreations,
+  null,
+  {
+    fetchPolicy: 'network-only',
+  },
+)
+
+function getMonth(value) {
+  if (value instanceof Date) {
+    return value.getMonth()
+  }
+  return value.month
+}
+
+function getYear(value) {
+  if (value instanceof Date) {
+    return value.getFullYear()
+  }
+  return value.year
+}
+
+function isEqualMonthYear(a, b) {
+  return getYear(a) === getYear(b) && getMonth(a) === getMonth(b)
+}
+
+// When form.value.id is defined, the form is in edit mode.
+// In this case, update the open creation for the current month/year
+// by re-adding the value passed from the parent component (props.modelValue.amount).
+// The value must be added back because the contribution already exists
+// and its amount has already been deducted from the open creations.
+function adjustOpenCreationOnEdit(openCreation) {
+  if (!openCreation) return null
+  const result = { ...openCreation }
+  if (form.id && isEqualMonthYear(openCreation, date.value)) {
+    result.amount = parseFloat(openCreation.amount) + parseFloat(props.modelValue.amount)
+  } else {
+    result.amount = parseFloat(openCreation.amount)
+  }
+  return result
+}
+
+const chosenMonthOpenCreation = computed(() => {
+  if (!lastMonthOpenCreation.value) return null
+  if (!form.date) return thisMonthOpenCreation.value
+  return isEqualMonthYear(new Date(form.date), lastMonthOpenCreation.value)
+    ? lastMonthOpenCreation.value
+    : thisMonthOpenCreation.value
+})
+
+onResultOpenCreations(({ data }) => {
+  thisMonthOpenCreation.value = adjustOpenCreationOnEdit(data.openCreations.thisMonth)
+  lastMonthOpenCreation.value = adjustOpenCreationOnEdit(data.openCreations.lastMonth)
+})
+
+// helper
+const thisMonthYear = computed(() => new Date().getMonth())
+const minimalDate = computed(() => {
+  const date = new Date()
+  return new Date(date.setMonth(date.getMonth() - 1, 1))
+})
+const lastMonth = computed(() => minimalDate.value.getMonth())
 
 // update local form if in parent form changed, it is necessary because the community page will reuse this form also for editing existing
 // contributions, and it will reusing a existing instance of this component
@@ -113,17 +187,9 @@ const date = computed(() => form.date)
 const hours = computed(() => form.hours)
 const memo = computed(() => form.memo)
 
-const isThisMonth = computed(() => {
-  const formDate = new Date(form.date)
-  const now = new Date()
-  return formDate.getMonth() === now.getMonth() && formDate.getFullYear() === now.getFullYear()
-})
-
 // reactive validation schema, because some boundaries depend on form input and existing data
 const validationSchema = computed(() => {
-  const maxAmounts = Number(
-    isThisMonth.value ? parseFloat(props.maxGddThisMonth) : parseFloat(props.maxGddLastMonth),
-  )
+  const maxAmounts = Number(chosenMonthOpenCreation.value?.amount || 0)
   const maxHours = parseFloat(Number(maxAmounts / GDD_PER_HOUR).toFixed(2))
 
   return object({
@@ -131,7 +197,7 @@ const validationSchema = computed(() => {
     // contribution date
     date: dateSchema()
       .required()
-      .min(new Date(new Date().setMonth(new Date().getMonth() - 1, 1)).toISOString().slice(0, 10)) // min date is first day of last month
+      .min(minimalDate.value.toISOString().slice(0, 10)) // min date is first day of last month
       .max(new Date().toISOString().slice(0, 10))
       .default(''), // date cannot be in the future
     memo: memoSchema,
@@ -150,15 +216,16 @@ const validationSchema = computed(() => {
 
 const disabled = computed(() => !validationSchema.value.isValidSync(form))
 
+const isThisMonth = computed(() => isEqualMonthYear(new Date(form.date), new Date()))
 const noOpenCreation = computed(() => {
-  if (props.maxGddThisMonth <= 0 && props.maxGddLastMonth <= 0) {
+  if (thisMonthOpenCreation.value?.amount <= 0 && lastMonthOpenCreation.value?.amount <= 0) {
     return t('contribution.noOpenCreation.allMonth')
   }
   if (form.date) {
-    if (isThisMonth.value && props.maxGddThisMonth <= 0) {
+    if (isThisMonth.value && thisMonthOpenCreation.value.amount <= 0) {
       return t('contribution.noOpenCreation.thisMonth')
     }
-    if (!isThisMonth.value && props.maxGddLastMonth <= 0) {
+    if (!isThisMonth.value && lastMonthOpenCreation.value.amount <= 0) {
       return t('contribution.noOpenCreation.lastMonth')
     }
   }

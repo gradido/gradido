@@ -11,6 +11,7 @@
         :contribution-id="contributionId"
         v-bind="$attrs"
         @update-status="updateStatus"
+        @get-list-contribution-messages="getListContributionMessages"
       />
     </div>
 
@@ -49,6 +50,9 @@ export default {
   methods: {
     updateStatus(id) {
       this.$emit('update-status', id)
+    },
+    getListContributionMessages(closeCollapse) {
+      this.$emit('get-list-contribution-messages', closeCollapse)
     },
   },
 }

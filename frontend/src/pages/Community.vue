@@ -3,17 +3,8 @@
     <div>
       <BTabs :model-value="tabIndex" no-nav-style borderless align="center">
         <BTab no-body>
-          <open-creations-amount
-            :minimal-date="minimalDate"
-            :max-gdd-last-month="maxForMonths[0]"
-            :max-gdd-this-month="maxForMonths[1]"
-          />
-          <div class="mb-3"></div>
           <contribution-form
             v-model="form"
-            :minimal-date="minimalDate"
-            :max-gdd-last-month="maxForMonths[0]"
-            :max-gdd-this-month="maxForMonths[1]"
             @set-contribution="handleSaveContribution"
             @update-contribution="handleUpdateContribution"
           />
@@ -29,7 +20,7 @@
               :show-pagination="true"
               :page-size="pageSize"
               @close-all-open-collapse="closeAllOpenCollapse"
-              @update-list-contributions="handleUpdateListAllContributions"
+              @update-list-contributions="handleUpdateListContributions"
               @update-contribution-form="handleUpdateContributionForm"
               @delete-contribution="handleDeleteContribution"
               @update-status="updateStatus"
@@ -48,7 +39,6 @@
               :page-size="pageSizeAll"
               :all-contribution="true"
               @update-list-contributions="handleUpdateListAllContributions"
-              @update-contribution-form="handleUpdateContributionForm"
             />
           </div>
         </BTab>
@@ -61,18 +51,15 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useQuery, useMutation } from '@vue/apollo-composable'
-import OpenCreationsAmount from '@/components/Contributions/OpenCreationsAmount'
 import ContributionForm from '@/components/Contributions/ContributionForm'
 import ContributionList from '@/components/Contributions/ContributionList'
 import { createContribution, updateContribution, deleteContribution } from '@/graphql/mutations'
-import { listContributions, listAllContributions, openCreations } from '@/graphql/queries'
+import { listContributions, listAllContributions } from '@/graphql/contributions.graphql'
 import { useAppToast } from '@/composables/useToast'
 import { useI18n } from 'vue-i18n'
 import { GDD_PER_HOUR } from '../constants'
 
 const COMMUNITY_TABS = ['contribute', 'contributions', 'community']
-
-const emit = defineEmits(['update-transactions'])
 
 const route = useRoute()
 const router = useRouter()
@@ -98,38 +85,7 @@ const form = ref({
 })
 const originalContributionDate = ref('')
 const updateAmount = ref('')
-const maximalDate = ref(new Date())
-const openCreationsData = ref([])
 
-const minimalDate = computed(() => {
-  const date = new Date(maximalDate.value)
-  return new Date(date.setMonth(date.getMonth() - 1, 1))
-})
-
-const amountToAdd = computed(() => (form.value.id ? parseFloat(updateAmount.value) : 0.0))
-
-const maxForMonths = computed(() => {
-  const originalDate = new Date(originalContributionDate.value)
-  if (openCreationsData.value && openCreationsData.value.length) {
-    return openCreationsData.value.slice(1).map((creation) => {
-      if (
-        creation.year === originalDate.getFullYear() &&
-        creation.month === originalDate.getMonth()
-      ) {
-        return parseFloat(creation.amount) + amountToAdd.value
-      }
-      return parseFloat(creation.amount)
-    })
-  }
-  return [0, 0]
-})
-const { onResult: onOpenCreationsResult, refetch: refetchOpenCreations } = useQuery(
-  openCreations,
-  () => ({}),
-  {
-    fetchPolicy: 'network-only',
-  },
-)
 const { onResult: onListAllContributionsResult, refetch: refetchAllContributions } = useQuery(
   listAllContributions,
   () => ({
@@ -150,12 +106,6 @@ const { onResult: onListContributionsResult, refetch: refetchContributions } = u
 const { mutate: createContributionMutation } = useMutation(createContribution)
 const { mutate: updateContributionMutation } = useMutation(updateContribution)
 const { mutate: deleteContributionMutation } = useMutation(deleteContribution)
-
-onOpenCreationsResult(({ data }) => {
-  if (data) {
-    openCreationsData.value = data.openCreations
-  }
-})
 
 onListAllContributionsResult(({ data }) => {
   if (data) {
@@ -199,7 +149,6 @@ const closeAllOpenCollapse = () => {
 const refetchData = () => {
   refetchAllContributions()
   refetchContributions()
-  refetchOpenCreations()
 }
 
 const handleSaveContribution = async (data) => {
@@ -246,16 +195,13 @@ const handleDeleteContribution = async (data) => {
 const handleUpdateListAllContributions = (pagination) => {
   currentPageAll.value = pagination.currentPage
   pageSizeAll.value = pagination.pageSize
-  refetchAllContributions({
-    currentPage: currentPage.value,
-    pageSize: pageSize.value,
-  })
+  refetchAllContributions(pagination)
 }
 
 const handleUpdateListContributions = (pagination) => {
   currentPage.value = pagination.currentPage
   pageSize.value = pagination.pageSize
-  refetchContributions()
+  refetchContributions(pagination)
 }
 
 const handleUpdateContributionForm = (item) => {
@@ -270,10 +216,6 @@ const handleUpdateContributionForm = (item) => {
   updateAmount.value = item.amount
   tabIndex.value = 0
   router.push({ params: { tab: 'contribute' } })
-}
-
-const updateTransactions = (pagination) => {
-  emit('update-transactions', pagination)
 }
 
 const updateStatus = (id) => {
