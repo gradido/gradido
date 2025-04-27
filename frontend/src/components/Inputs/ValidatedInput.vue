@@ -47,18 +47,29 @@ const model = ref(props.modelValue)
 const valid = computed(() => props.rules.isValidSync(props.modelValue))
 const errorMessage = computed(() => {
   if (props.modelValue === undefined || props.modelValue === '' || props.modelValue === null) {
+    console.log('modelValue is empty')
     return undefined
   }
   try {
+    console.log('call validate')
     props.rules.validateSync(props.modelValue)
+    console.log('valid')
     return undefined
   } catch (e) {
+    console.log('error', e)
     return translateYupErrorString(e.message, t)
   }
 })
 
 const emit = defineEmits(['update:modelValue'])
 const updateValue = (newValue) => {
+  console.log('emit updateValue', {
+    newValue,
+    name: props.name,
+    valid: valid.value,
+    modelValue: props.modelValue,
+    model: model.value,
+  })
   emit('update:modelValue', newValue, props.name, valid.value)
 }
 

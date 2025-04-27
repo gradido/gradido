@@ -55,11 +55,12 @@
                   </BCol>
                   <BCol v-if="radioSelected === SEND_TYPES.send" cols="12">
                     <div v-if="!userIdentifier">
-                      <input-identifier
+                      <ValidatedInput
                         name="identifier"
                         :label="$t('form.recipient')"
                         :placeholder="$t('form.identifier')"
                         :disabled="isBalanceDisabled"
+                        :rules="validationSchema.fields.identifier"
                       />
                     </div>
                     <div v-else class="mb-4">
@@ -129,6 +130,9 @@ import { useRoute, useRouter } from 'vue-router'
 import { useQuery } from '@vue/apollo-composable'
 import { useForm } from 'vee-validate'
 import { SEND_TYPES } from '@/utils/sendTypes'
+import { object, number } from 'yup'
+import { memo as memoSchema, identifier as identifierSchema } from '@/validationSchemas'
+import ValidatedInput from '@/components/Inputs/ValidatedInput'
 import InputIdentifier from '@/components/Inputs/InputIdentifier'
 import InputAmount from '@/components/Inputs/InputAmount'
 import InputTextarea from '@/components/Inputs/InputTextarea'
@@ -158,6 +162,14 @@ const { toastError } = useAppToast()
 const radioSelected = ref(props.selected)
 const userName = ref('')
 const recipientCommunity = ref({ uuid: '', name: '' })
+
+const validationSchema = computed(() =>
+  object({
+    identifier: identifierSchema,
+    memo: memoSchema,
+    amount: number().min(0.01).max(props.balance),
+  }),
+)
 
 const { handleSubmit, resetForm, defineField, values } = useForm({
   initialValues: {
