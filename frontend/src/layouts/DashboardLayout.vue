@@ -187,7 +187,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
 import { useQuery, useMutation } from '@vue/apollo-composable'
@@ -214,10 +214,9 @@ import { useAppToast } from '@/composables/useToast'
 const store = useStore()
 const router = useRouter()
 const {
-  data: transactionQueryData,
   refetch: useRefetchTransactionsQuery,
-  loading: transactionQueryLoading,
   onError,
+  onResult,
 } = useQuery(
   transactionsUserCountQuery,
   { currentPage: 1, pageSize: 10, order: 'DESC' },
@@ -226,31 +225,20 @@ const {
 const { mutate: useLogoutMutation } = useMutation(logout)
 const { toastError } = useAppToast()
 
-const pending = computed(() => {
-  return transactionQueryLoading.value
-})
+const balance = ref(0)
+const GdtBalance = ref(0)
+const transactions = ref([])
+const transactionCount = ref(0)
+const transactionLinkCount = ref(0)
+const pending = ref(true)
+const skeleton = ref(true)
+const totalUsers = ref(null)
 
-const totalUsers = computed(() => {
-  return transactionQueryData?.value?.communityStatistics?.totalUsers || null
-})
-const transactions = computed(() => {
-  return transactionQueryData?.value?.transactionList?.transactions || []
-})
-const transactionCount = computed(() => {
-  return transactionQueryData?.value?.transactionList?.balance?.count || 0
-})
-const transactionLinkCount = computed(() => {
-  return transactionQueryData?.value?.transactionList?.balance?.linkCount || 0
-})
-const GdtBalance = computed(() => {
-  const balanceGdt = transactionQueryData?.value?.transactionList?.balance?.balanceGDT || 0
-  return balanceGdt === null ? 0 : Number(balanceGdt)
-})
-const balance = computed(() => {
-  return Number(transactionQueryData?.value?.transactionList?.balance?.balance) || 0
-})
-const skeleton = computed(() => {
-  return pending.value || totalUsers.value === null
+// only error correction, normally skeleton should be visible less than 1500ms
+onMounted(() => {
+  setTimeout(() => {
+    skeleton.value = false
+  }, 1500)
 })
 
 const logoutUser = async () => {
@@ -265,8 +253,27 @@ const logoutUser = async () => {
 }
 
 const updateTransactions = ({ currentPage, pageSize }) => {
+  pending.value = true
   useRefetchTransactionsQuery({ currentPage, pageSize })
 }
+
+onResult((value) => {
+  if (value && value.data) {
+    if (value.data.transactionList) {
+      const tr = value.data.transactionList
+      GdtBalance.value = tr.balance?.balanceGDT === null ? 0 : Number(tr.balance?.balanceGDT)
+      transactions.value = tr.transactions || []
+      balance.value = Number(tr.balance?.balance) || 0
+      transactionCount.value = tr.balance?.count || 0
+      transactionLinkCount.value = tr.balance?.linkCount || 0
+    }
+    if (value.data.communityStatistics) {
+      totalUsers.value = value.data.communityStatistics.totalUsers || 0
+    }
+  }
+  pending.value = false
+  skeleton.value = false
+})
 
 onError((error) => {
   transactionCount.value = -1

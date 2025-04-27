@@ -18,16 +18,17 @@ vi.mock('@/composables/useToast', () => ({
 const mockRefetchFn = vi.fn()
 const mockMutateFn = vi.fn()
 let onErrorHandler
+let onResultHandler
 const mockQueryResult = ref(null)
-const data = ref({})
 const loading = ref(false)
 
 vi.mock('@vue/apollo-composable', () => ({
   useQuery: vi.fn(() => ({
-    data,
     refetch: mockRefetchFn,
     result: mockQueryResult,
-    onResult: vi.fn(),
+    onResult: (handler) => {
+      onResultHandler = handler
+    },
     onError: (handler) => {
       onErrorHandler = handler
     },
@@ -36,7 +37,9 @@ vi.mock('@vue/apollo-composable', () => ({
   useLazyQuery: vi.fn(() => ({
     refetch: mockRefetchFn,
     result: mockQueryResult,
-    onResult: vi.fn(),
+    onResult: (handler) => {
+      onResultHandler = handler
+    },
     onError: (handler) => {
       onErrorHandler = handler
     },
@@ -118,17 +121,6 @@ describe('DashboardLayout', () => {
 
   beforeEach(() => {
     vi.useFakeTimers()
-    data.value = {
-      communityStatistics: {
-        totalUsers: 3113,
-        activeUsers: 1057,
-        deletedUsers: 35,
-        totalGradidoCreated: '4083774.05000000000000000000',
-        totalGradidoDecayed: '-1062639.13634129622923372197',
-        totalGradidoAvailable: '2513565.869444365732411569',
-        totalGradidoUnbookedDecayed: '-500474.6738366222166261272',
-      },
-    }
     wrapper = createWrapper()
   })
 
@@ -142,9 +134,6 @@ describe('DashboardLayout', () => {
   })
 
   describe('at first', () => {
-    beforeEach(() => {
-      data.value = null
-    })
     it('renders a component Skeleton', () => {
       expect(wrapper.findComponent({ name: 'SkeletonOverview' }).exists()).toBe(true)
     })
@@ -159,17 +148,19 @@ describe('DashboardLayout', () => {
 
     describe('update transactions', () => {
       beforeEach(async () => {
-        data.value = {
-          transactionList: {
-            balance: {
-              balanceGDT: '100',
-              count: 4,
-              linkCount: 8,
-              balance: '1450',
+        onResultHandler({
+          data: {
+            transactionList: {
+              balance: {
+                balanceGDT: '100',
+                count: 4,
+                linkCount: 8,
+                balance: '1450',
+              },
+              transactions: ['transaction1', 'transaction2', 'transaction3', 'transaction4'],
             },
-            transactions: ['transaction1', 'transaction2', 'transaction3', 'transaction4'],
           },
-        }
+        })
 
         await wrapper.vm.updateTransactions({ currentPage: 2, pageSize: 5 })
         await nextTick() // Ensure all promises are resolved
@@ -207,10 +198,10 @@ describe('DashboardLayout', () => {
 
     describe('update transactions returns error', () => {
       beforeEach(async () => {
+        wrapper.vm.skeleton = false
         await wrapper
           .findComponent({ ref: 'router-view' })
           .vm.$emit('update-transactions', { currentPage: 2, pageSize: 5 })
-        loading.value = true
         await nextTick()
       })
 
