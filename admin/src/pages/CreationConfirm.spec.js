@@ -158,7 +158,9 @@ describe('CreationConfirm', () => {
 
     expect(mockRefetch).toHaveBeenCalledWith(
       expect.objectContaining({
-        query: 'test query',
+        filter: expect.objectContaining({
+          query: 'test query',
+        }),
       }),
     )
 
@@ -167,7 +169,9 @@ describe('CreationConfirm', () => {
 
     expect(mockRefetch).toHaveBeenCalledWith(
       expect.objectContaining({
-        noHashtag: true,
+        filter: expect.objectContaining({
+          noHashtag: true,
+        }),
       }),
     )
   })
@@ -179,8 +183,12 @@ describe('CreationConfirm', () => {
     expect(wrapper.vm.currentPage).toBe(1)
     expect(mockRefetch).toHaveBeenCalledWith(
       expect.objectContaining({
-        currentPage: 1,
-        statusFilter: ['DENIED'],
+        paginated: expect.objectContaining({
+          currentPage: 1,
+        }),
+        filter: expect.objectContaining({
+          statusFilter: ['DENIED'],
+        }),
       }),
     )
   })
@@ -191,7 +199,9 @@ describe('CreationConfirm', () => {
 
     expect(mockRefetch).toHaveBeenCalledWith(
       expect.objectContaining({
-        currentPage: 2,
+        paginated: expect.objectContaining({
+          currentPage: 2,
+        }),
       }),
     )
   })

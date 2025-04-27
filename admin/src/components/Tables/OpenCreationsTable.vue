@@ -93,12 +93,6 @@
           </BButton>
         </div>
       </template>
-      <template #cell(firstName)="row">
-        <div class="no-select">{{ row.item.firstName }}</div>
-      </template>
-      <template #cell(lastName)="row">
-        <div class="no-select">{{ row.item.lastName }}</div>
-      </template>
       <template #row-details="row">
         <row-details
           :row="row"
@@ -247,7 +241,7 @@ export default {
 
       if (selectedText) {
         // remove hashtags
-        const cleanedText = selectedText.replace(/#[a-zA-Z0-9_-]*/g, '')
+        const cleanedText = selectedText.replace(/#([\p{L}\p{N}_-]+)/gu, '')
         event.clipboardData.setData('text/plain', cleanedText)
         event.preventDefault()
       }
@@ -259,9 +253,5 @@ export default {
 .btn-warning {
   background-color: #e1a908;
   border-color: #e1a908;
-}
-
-.no-select {
-  user-select: none;
 }
 </style>

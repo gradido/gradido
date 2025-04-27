@@ -8,7 +8,7 @@ import { PublishNameType } from '@/graphql/enum/PublishNameType'
 export class Account {
   public constructor(user: User) {
     const publishNameLogic = new PublishNameLogic(user)
-    this.username = publishNameLogic.getUsername(user.humhubPublishName as PublishNameType)
+    this.username = publishNameLogic.getUserIdentifier(user.humhubPublishName as PublishNameType)
     this.email = user.emailContact.email
     this.language = convertGradidoLanguageToHumhub(user.language)
     this.status = 1

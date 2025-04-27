@@ -1,0 +1,71 @@
+#import './fragments.graphql'
+
+query adminListContributions(
+  $filter: SearchContributionsFilterArgs
+  $paginated: Paginated
+) {
+  adminListContributions(paginated: $paginated, filter: $filter) {
+    contributionCount
+    contributionList {
+      id
+      user {
+        emailContact {
+          email
+        }
+        ...UserCommonFields
+        publicName
+        userIdentifier
+        createdAt
+      }
+      amount
+      memo
+      createdAt
+      contributionDate
+      confirmedAt
+      confirmedBy
+      updatedAt
+      updatedBy
+      status
+      messagesCount
+      deniedAt
+      deniedBy
+      deletedAt
+      deletedBy
+      moderatorId
+      userId
+      resubmissionAt
+    }
+  }
+}
+
+query adminListContributionsShort(
+  $filter: SearchContributionsFilterArgs
+  $paginated: Paginated
+) {
+  adminListContributions(
+    paginated: $paginated,
+    filter: $filter
+  ) {
+    contributionCount
+    contributionList {
+      id
+      amount
+      memo
+      createdAt
+      contributionDate
+      confirmedAt
+      status
+    }
+  }
+}
+
+
+query adminListContributionsCount(
+  $filter: SearchContributionsFilterArgs
+) {
+  adminListContributions(
+    filter: $filter
+  ) {
+    contributionCount
+  }
+}

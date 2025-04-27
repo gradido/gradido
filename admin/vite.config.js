@@ -40,6 +40,10 @@ export default defineConfig(async ({ command }) => {
       host: CONFIG.ADMIN_MODULE_HOST, // '0.0.0.0',
       port: CONFIG.ADMIN_MODULE_PORT, // 8080,
     },
+    preview: {
+      host: CONFIG.ADMIN_MODULE_HOST, // '0.0.0.0',
+      port: CONFIG.ADMIN_MODULE_PORT, // 8080,
+    },
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src'),
@@ -77,6 +81,7 @@ export default defineConfig(async ({ command }) => {
         WALLET_AUTH_PATH: CONFIG.WALLET_AUTH_PATH ?? null,
         WALLET_LOGIN_PATH: CONFIG.WALLET_LOGIN_URL ?? null, // null,
         DEBUG_DISABLE_AUTH: CONFIG.DEBUG_DISABLE_AUTH ?? null, // null,
+        OPENAI_ACTIVE: CONFIG.OPENAI_ACTIVE ?? null, // null,
         HUMHUB_ACTIVE: CONFIG.HUMHUB_ACTIVE ?? null, // null,
         HUMHUB_API_URL: CONFIG.HUMHUB_API_URL ?? null, // null,
         // CONFIG_VERSION: CONFIG.CONFIG_VERSION, // null,

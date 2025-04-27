@@ -14,7 +14,6 @@ import { Paginated } from '@arg/Paginated'
 import { SearchContributionsFilterArgs } from '@arg/SearchContributionsFilterArgs'
 import { Connection } from '@typeorm/connection'
 
-import { Order } from '@/graphql/enum/Order'
 import { LogError } from '@/server/LogError'
 
 interface Relations {
@@ -36,10 +35,11 @@ function joinRelationsRecursive(
 }
 
 export const findContributions = async (
-  { pageSize = 3, currentPage = 1, order = Order.DESC }: Paginated,
+  { pageSize, currentPage, order }: Paginated,
   filter: SearchContributionsFilterArgs,
   withDeleted = false,
   relations: Relations | undefined = undefined,
+  countOnly = false,
 ): Promise<[DbContribution[], number]> => {
   const connection = await Connection.getInstance()
   if (!connection) {
@@ -75,6 +75,9 @@ export const findContributions = async (
         }
       }),
     )
+  }
+  if (countOnly) {
+    return [[], await queryBuilder.getCount()]
   }
   return queryBuilder
     .orderBy('Contribution.createdAt', order)

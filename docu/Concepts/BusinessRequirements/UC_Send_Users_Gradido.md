@@ -36,8 +36,11 @@ Mit diesem Usecase soll es zukünftig möglich sein neben dem direkten *synchron
 
 * **asynchrones Senden online**: Es wird im ersten Schritt "nur" ein asynchrones Senden mit Internet-Verbindung (online) unterstützt. Dadurch ist es möglich die zusendenden Daten auf einen einfachen Identifier zu reduzieren. Der Empfänger der Daten muss zur Überprüfung der erhaltenen Daten online sein, da mit dem einfachen Identifier dann erst die eigentlichen fachlichen Daten der Transaktion ausgelesen und angezeigt werden.
 * **asynchrones Senden offline**: Beim asynchronen Senden ohne Internet-Verbindung (offline) müssen die notwendigen fachlichen Daten der Transaktion (Sender, Betrag und ggf. Verwendungszweck) in das Ausgabe-Medium kodiert werden, das dann asynchron vom User über ein anderes Transportmedium ausserhalb der Gradido-Anwendung an den Empfänger übertragen wird. Somit kann der Empfänger auch offline den Inhalt des erhaltenen Mediums mit entsprechenden Tools (noch zu konzipieren) überprüfen. Der Empfänger wird nicht schon wie üblich beim Erfassen der Transaktionsdaten bestimmt, sondern dies erfolgt in einem nachgelagerten Schritt des Übertragungsprozesses zum Beispiel in einem Messenger o.ä. in Eigenverantwortung des Users.
-  * **Ausgabe-Medium als Link** : die Kodierung der Transaktionsdaten in einen Link eröffnen dem User eine Vielzahl an möglichen Übertragungswege. Der Link kann in Emails, Messages und für ihn sonstige verfügbare Medien kopiert werden, wo er dann in Eigenverantwortung aus seinen persönlichen Kontakten den Empfänger bestimmt.
-  * **Ausgabe-Medium als QR-Code** : die Kodierung der Transaktionsdaten in einen QR-Code ist lediglich die Formatierung in Bildformat statt wie der Link in Text-Format. Der User kann auch den QR-Code in Emails, Messages und für ihn sonstige verfügbare Medien kopieren und übertragen. Letztendlich muss der Empfänger ein optischen QR-Scan mit einem ihm verfügbarem Medium wie beispielsweise Handy-, Tablet- oder PC-Kamera durchführen, um den Inhalt des Codes lesen zu können und um daraus wieder den eigentlichen Prozess der Weiterverarbeitung zu starten.
+
+
+* **Ausgabe-Medium als Link** : die Kodierung der Transaktionsdaten in einen Link eröffnen dem User eine Vielzahl an möglichen Übertragungswege. Der Link kann in Emails, Messages und für ihn sonstige verfügbare Medien kopiert werden, wo er dann in Eigenverantwortung aus seinen persönlichen Kontakten den Empfänger bestimmt.
+* **Ausgabe-Medium als QR-Code** : die Kodierung der Transaktionsdaten in einen QR-Code ist lediglich die Formatierung in Bildformat statt wie der Link in Text-Format. Der User kann auch den QR-Code in Emails, Messages und für ihn sonstige verfügbare Medien kopieren und übertragen. Letztendlich muss der Empfänger ein optischen QR-Scan mit einem ihm verfügbarem Medium wie beispielsweise Handy-, Tablet- oder PC-Kamera durchführen, um den Inhalt des Codes lesen zu können und um daraus wieder den eigentlichen Prozess der Weiterverarbeitung zu starten.
+
 
 #### Auswahl des Übertragungsweges
 
@@ -45,7 +48,7 @@ Es stellt sich nun die Frage der User-Experience, ob schon bei der Navigation ü
 
 **Menü-Auswahl**
 
-Wenn die Auswahl des Übertragungsweges ob synchron,  asynchron per Link oder asynchron per QR-Code schon über das Menü stattfinden soll, dann hat das aber auch die Konsequenz, dass für die asynchrone Übertragung ein eigener neuer Erfassungsdialog erstellt werden muss.
+Wenn die Auswahl des Übertragungsweges ob synchron, asynchron, per Link oder per QR-Code schon über das Menü stattfinden soll, dann hat das aber auch die Konsequenz, dass für die asynchrone Übertragung ein eigener neuer Erfassungsdialog erstellt werden muss.
 
 **Dialogänderung**
 

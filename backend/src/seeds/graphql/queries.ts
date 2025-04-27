@@ -300,29 +300,18 @@ query ($currentPage: Int = 1, $pageSize: Int = 5, $order: Order = DESC, $statusF
 // from admin interface
 
 export const adminListContributions = gql`
-  query (
-    $currentPage: Int = 1
-    $pageSize: Int = 25
-    $order: Order = DESC
-    $statusFilter: [ContributionStatus!]
-    $userId: Int
-    $query: String
-    $noHashtag: Boolean
-  ) {
-    adminListContributions(
-      currentPage: $currentPage
-      pageSize: $pageSize
-      order: $order
-      statusFilter: $statusFilter
-      userId: $userId
-      query: $query
-      noHashtag: $noHashtag
-    ) {
+  query ($filter: SearchContributionsFilterArgs, $paginated: Paginated) {
+    adminListContributions(filter: $filter, paginated: $paginated) {
       contributionCount
       contributionList {
         id
-        firstName
-        lastName
+        user {
+          emailContact {
+            email
+          }
+          firstName
+          lastName
+        }
         amount
         memo
         createdAt

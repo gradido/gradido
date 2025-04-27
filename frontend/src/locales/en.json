@@ -30,10 +30,27 @@
     }
   },
   "back": "Back",
-  "circles": {
-    "headline": "Together we support each other - mindful in circle culture.",
-    "text": "Click on the button to open the cooperation platform in a new browser window.",
-    "button": "Start Circles..."
+  "card-circles": {
+    "headline": "Cooperation platform “Gradido Circles”",
+    "text": "Local circles, study circles, projects, events and congresses",
+    "allowed": {
+      "button": "Start Circles..."
+    },
+    "not-allowed": {
+      "button": "Configurate..."
+    }
+  },
+  "card-user-search": {
+    "headline": "Geographic member search (experimental)",
+    "allowed": {
+      "button": "Start Membersearch...",
+      "disabled-button": "GMS offline...",
+      "text": "Find Members of all Communities on a Map."
+    },
+    "not-allowed": {
+      "button": "Start Location-Capturing...",
+      "text": "Find Members of all Communities on a Map? Then you have to capture your Location first."
+    }
   },
   "community": {
     "admins": "Administrators",
@@ -254,6 +271,7 @@
     "recruited-member": "Invited member"
   },
   "h": "h",
+  "info": "Info",
   "language": "Language",
   "link-load": "Load the last link | Load the last {n} links",
   "link-load-more": "Load more {n} links",
@@ -287,10 +305,8 @@
     "overview": "Overview",
     "send": "Send",
     "settings": "Settings",
-    "circles": "Circles",
     "support": "Support",
-    "transactions": "Transactions",
-    "usersearch": "Geographical User Search"
+    "transactions": "Transactions"
   },
   "openHours": "Open Hours",
   "pageTitle": {
@@ -302,7 +318,7 @@
     "settings": "Settings",
     "transactions": "Your transactions",
     "circles": "Gradido Circles",
-    "usersearch": "Geographical User Search"
+    "usersearch": "Geographic member search (experimental)"
   },
   "qrCode": "QR Code",
   "send_gdd": "Send GDD",
@@ -314,14 +330,13 @@
     "warningText": "Are you still there?"
   },
   "settings": {
-    "allow-community-services": "Allow Community Services",
     "community": "Community",
     "emailInfo": "Cannot be changed at this time.",
     "GMS": {
       "disabled": "Data not exported to GMS",
       "enabled": "Data exported to GMS",
       "location": {
-        "button": "Click me!",
+        "button": "Open Map",
         "label": "Pinpoint location",
         "saveLocation": "Save Location",
         "updateSuccess": "Location successfully saved"
@@ -339,7 +354,6 @@
       "publish-location": {
         "exact": "exact position",
         "approximate": "approximate position",
-        "random": "random position",
         "updated": "format of location for GMS updated"
       },
       "publish-name": {

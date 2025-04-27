@@ -1,10 +1,16 @@
+import { Point } from '@dbTools/typeorm'
 import { User as dbUser } from '@entity/User'
 import { ObjectType, Field, Int } from 'type-graphql'
 
 import { GmsPublishLocationType } from '@enum/GmsPublishLocationType'
 import { PublishNameType } from '@enum/PublishNameType'
 
+import { PublishNameLogic } from '@/data/PublishName.logic'
+import { Point2Location } from '@/graphql/resolver/util/Location2Point'
+
 import { KlickTipp } from './KlickTipp'
+import { Location } from './Location'
+import { UserContact } from './UserContact'
 
 @ObjectType()
 export class User {
@@ -18,8 +24,15 @@ export class User {
       }
       this.gradidoID = user.gradidoID
       this.alias = user.alias
+
+      const publishNameLogic = new PublishNameLogic(user)
+      const publishNameType = user.humhubPublishName as PublishNameType
+      this.publicName = publishNameLogic.getPublicName(publishNameType)
+      this.userIdentifier = publishNameLogic.getUserIdentifier(publishNameType)
+
       if (user.emailContact) {
         this.emailChecked = user.emailContact.emailChecked
+        this.emailContact = new UserContact(user.emailContact)
       }
       this.firstName = user.firstName
       this.lastName = user.lastName
@@ -37,6 +50,7 @@ export class User {
       this.gmsPublishName = user.gmsPublishName
       this.humhubPublishName = user.humhubPublishName
       this.gmsPublishLocation = user.gmsPublishLocation
+      this.userLocation = user.location ? Point2Location(user.location as Point) : null
     }
   }
 
@@ -57,6 +71,12 @@ export class User {
 
   @Field(() => String, { nullable: true })
   alias: string | null
+
+  @Field(() => String, { nullable: true })
+  publicName: string | null
+
+  @Field(() => String, { nullable: true })
+  userIdentifier: string | null
 
   @Field(() => String, { nullable: true })
   firstName: string | null
@@ -109,4 +129,10 @@ export class User {
 
   @Field(() => [String])
   roles: string[]
+
+  @Field(() => UserContact, { nullable: true })
+  emailContact: UserContact | null
+
+  @Field(() => Location, { nullable: true })
+  userLocation: Location | null
 }

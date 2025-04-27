@@ -30,10 +30,27 @@
     }
   },
   "back": "Zurück",
-  "circles": {
-    "headline": "Gemeinsam unterstützen wir einander –  achtsam in Kreiskultur.",
-    "text": "Mit Klick auf den Button öffnest Du die Kooperationsplattform in einem neuen Browser-Fenster.",
-    "button": "Kreise starten..."
+  "card-circles": {
+    "headline": "Kooperationsplattform »Gradido-Kreise«",
+    "text": "Lokale Kreise, Studienkreise, Projekte, Events und Kongresse",
+    "allowed": {
+      "button": "Kreise starten..."
+    },
+    "not-allowed": {
+      "button": "Konfigurieren..."
+    }
+  },
+  "card-user-search": {
+    "headline": "Geografische Mitgliedssuche (experimentell)",
+    "allowed": {
+      "button": "Öffne Mitgliedssuche...",
+      "disabled-button": "GMS offline...",
+      "text": "Finde Mitglieder aller Communities auf einer Landkarte."
+    },
+    "not-allowed": {
+      "button": "Standort festlegen...",
+      "text": "Finde Mitglieder aller Communities auf einer Landkarte? Dann musst du selbst erst deinen Standort festlegen."
+    }
   },
   "community": {
     "admins": "Administratoren",
@@ -254,6 +271,7 @@
     "recruited-member": "Eingeladenes Mitglied"
   },
   "h": "h",
+  "info": "Info",
   "language": "Sprache",
   "link-load": "den letzten Link nachladen | die letzten {n} Links nachladen",
   "link-load-more": "weitere {n} Links nachladen",
@@ -286,11 +304,9 @@
     "logout": "Abmelden",
     "overview": "Übersicht",
     "send": "Senden",
-    "settings": "Einstellung",
-    "circles": "Kreise",
+    "settings": "Einstellungen",
     "support": "Support",
-    "transactions": "Transaktionen",
-    "usersearch": "Nutzersuche"
+    "transactions": "Transaktionen"
   },
   "openHours": "Offene Stunden",
   "pageTitle": {
@@ -302,7 +318,7 @@
     "settings": "Einstellungen",
     "circles": "Gradido Kreise",
     "transactions": "Deine Transaktionen",
-    "usersearch": "Geografische Nutzersuche"
+    "usersearch": "Geografische Mitgliedssuche (experimentell)"
   },
   "qrCode": "QR Code",
   "send_gdd": "GDD versenden",
@@ -314,15 +330,14 @@
     "warningText": "Bist du noch da?"
   },
   "settings": {
-    "allow-community-services": "Community-Dienste erlauben",
-    "community": "Community",
+    "community": "Kreise & Mitgliedssuche",
     "emailInfo": "Kann aktuell noch nicht geändert werden.",
     "GMS": {
       "disabled": "Daten werden nicht nach GMS exportiert",
       "enabled": "Daten werden nach GMS exportiert",
       "location": {
-        "button": "Klick mich!",
-        "label": "Positionsbestimmung",
+        "button": "Karte öffnen",
+        "label": "Dein Standort",
         "saveLocation": "Standort speichern",
         "updateSuccess": "Standort erfolgreich gespeichert"
       },
@@ -339,7 +354,6 @@
       "publish-location": {
         "exact": "Genaue Position",
         "approximate": "Ungefähre Position",
-        "random": "Zufallsposition",
         "updated": "Positionstyp für GMS aktualisiert"
       },
       "publish-name": {

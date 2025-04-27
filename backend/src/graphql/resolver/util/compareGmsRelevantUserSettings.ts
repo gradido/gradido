@@ -1,7 +1,9 @@
 import { Point } from '@dbTools/typeorm'
 import { User as DbUser } from '@entity/User'
+import { UserLoggingView } from '@logging/UserLogging.view'
 
 import { UpdateUserInfosArgs } from '@/graphql/arg/UpdateUserInfosArgs'
+import { GmsPublishLocationType } from '@/graphql/enum/GmsPublishLocationType'
 import { PublishNameType } from '@/graphql/enum/PublishNameType'
 import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
@@ -15,7 +17,7 @@ export function compareGmsRelevantUserSettings(
   if (!orgUser) {
     throw new LogError('comparison without any user is impossible')
   }
-  logger.debug('compareGmsRelevantUserSettings:', orgUser, updateUserInfosArgs)
+  logger.debug('compareGmsRelevantUserSettings:', new UserLoggingView(orgUser), updateUserInfosArgs)
   // nach GMS updaten, wenn alias gesetzt wird oder ist und PublishLevel die alias-Übermittlung erlaubt
   if (
     updateUserInfosArgs.alias &&
@@ -43,14 +45,15 @@ export function compareGmsRelevantUserSettings(
     return true
   }
   if (
-    updateUserInfosArgs.gmsPublishLocation &&
-    orgUser.gmsPublishLocation !== updateUserInfosArgs.gmsPublishLocation
+    updateUserInfosArgs.gmsPublishLocation !== undefined &&
+    (orgUser.gmsPublishLocation as GmsPublishLocationType) !==
+      updateUserInfosArgs.gmsPublishLocation
   ) {
     return true
   }
   if (
     updateUserInfosArgs.gmsPublishName &&
-    orgUser.gmsPublishName !== updateUserInfosArgs.gmsPublishName
+    (orgUser.gmsPublishName as PublishNameType) !== updateUserInfosArgs.gmsPublishName
   ) {
     return true
   }

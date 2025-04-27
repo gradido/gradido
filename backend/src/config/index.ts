@@ -127,8 +127,9 @@ const federation = {
   // default value for community-uuid is equal uuid of stage-3
   FEDERATION_XCOM_RECEIVER_COMMUNITY_UUID:
     process.env.FEDERATION_XCOM_RECEIVER_COMMUNITY_UUID ?? '56a55482-909e-46a4-bfa2-cd025e894ebc',
-  FEDERATION_XCOM_MAXREPEAT_REVERTSENDCOINS:
-    process.env.FEDERATION_XCOM_MAXREPEAT_REVERTSENDCOINS ?? 3,
+  FEDERATION_XCOM_MAXREPEAT_REVERTSENDCOINS: parseInt(
+    process.env.FEDERATION_XCOM_MAXREPEAT_REVERTSENDCOINS ?? '3',
+  ),
 }
 
 const gms = {
@@ -137,6 +138,7 @@ const gms = {
   // koordinates of Illuminz-instance of GMS
   GMS_API_URL: process.env.GMS_API_URL ?? 'http://localhost:4044/',
   GMS_DASHBOARD_URL: process.env.GMS_DASHBOARD_URL ?? 'http://localhost:8080/',
+  GMS_USER_SEARCH_FRONTEND_ROUTE: process.env.GMS_USER_SEARCH_FRONTEND_ROUTE ?? 'user-search',
   // used as secret postfix attached at the gms community-auth-url endpoint ('/hook/gms/' + 'secret')
   GMS_WEBHOOK_SECRET: process.env.GMS_WEBHOOK_SECRET ?? 'secret',
 }
@@ -145,6 +147,12 @@ const humhub = {
   HUMHUB_ACTIVE: process.env.HUMHUB_ACTIVE === 'true' || false,
   HUMHUB_API_URL: process.env.HUMHUB_API_URL ?? COMMUNITY_URL + '/community/',
   HUMHUB_JWT_KEY: process.env.HUMHUB_JWT_KEY ?? '',
+}
+
+const openai = {
+  OPENAI_ACTIVE: process.env.OPENAI_ACTIVE === 'true' || false,
+  OPENAI_API_KEY: process.env.OPENAI_API_KEY ?? '',
+  OPENAI_ASSISTANT_ID: process.env.OPENAI_ASSISTANT_ID ?? '',
 }
 
 export const CONFIG = {
@@ -160,6 +168,6 @@ export const CONFIG = {
   ...federation,
   ...gms,
   ...humhub,
+  ...openai,
 }
-
 validate(schema, CONFIG)

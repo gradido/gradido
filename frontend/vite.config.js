@@ -48,6 +48,10 @@ export default defineConfig(async ({ command }) => {
         minify: CONFIG.PRODUCTION === true,
       },
     },
+    preview: {
+      host: CONFIG.FRONTEND_MODULE_HOST, // '0.0.0.0',
+      port: CONFIG.FRONTEND_MODULE_PORT, // 3000,
+    },
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src'),
@@ -93,8 +97,8 @@ export default defineConfig(async ({ command }) => {
         autoInstall: true,
       }),
       EnvironmentPlugin({
-        GMS_ACTIVE: null,
-        HUMHUB_ACTIVE: null,
+        GMS_ACTIVE: CONFIG.GMS_ACTIVE,
+        HUMHUB_ACTIVE: CONFIG.HUMHUB_ACTIVE,
         DEFAULT_PUBLISHER_ID: null,
         PORT: null,
         COMMUNITY_HOST: null,

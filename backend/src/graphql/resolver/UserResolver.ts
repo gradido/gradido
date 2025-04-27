@@ -8,8 +8,22 @@ import { ProjectBranding } from '@entity/ProjectBranding'
 import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
 import { User as DbUser } from '@entity/User'
 import { UserContact as DbUserContact } from '@entity/UserContact'
+import { UserLoggingView } from '@logging/UserLogging.view'
+import { GraphQLResolveInfo } from 'graphql'
 import i18n from 'i18n'
-import { Resolver, Query, Args, Arg, Authorized, Ctx, Mutation, Int } from 'type-graphql'
+import {
+  Resolver,
+  Query,
+  Args,
+  Arg,
+  Authorized,
+  Ctx,
+  Mutation,
+  Int,
+  Root,
+  FieldResolver,
+  Info,
+} from 'type-graphql'
 import { IRestResponse } from 'typed-rest-client'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -29,16 +43,17 @@ import { SearchAdminUsersResult } from '@model/AdminUser'
 import { GmsUserAuthenticationResult } from '@model/GmsUserAuthenticationResult'
 import { User } from '@model/User'
 import { UserAdmin, SearchUsersResult } from '@model/UserAdmin'
+import { UserContact } from '@model/UserContact'
 import { UserLocationResult } from '@model/UserLocationResult'
 
 import { HumHubClient } from '@/apis/humhub/HumHubClient'
+import { Account as HumhubAccount } from '@/apis/humhub/model/Account'
 import { GetUser } from '@/apis/humhub/model/GetUser'
 import { PostUser } from '@/apis/humhub/model/PostUser'
 import { subscribe } from '@/apis/KlicktippController'
 import { encode } from '@/auth/JWT'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { CONFIG } from '@/config'
-import { PublishNameLogic } from '@/data/PublishName.logic'
 import {
   sendAccountActivationEmail,
   sendAccountMultiRegistrationEmail,
@@ -60,7 +75,6 @@ import {
   EVENT_ADMIN_USER_DELETE,
   EVENT_ADMIN_USER_UNDELETE,
 } from '@/event/Events'
-import { PublishNameType } from '@/graphql/enum/PublishNameType'
 import { isValidPassword } from '@/password/EncryptorUtils'
 import { encryptPassword, verifyPassword } from '@/password/PasswordEncryptor'
 import { Context, getUser, getClientTimezoneOffset } from '@/server/context'
@@ -79,6 +93,7 @@ import { authenticateGmsUserPlayground } from './util/authenticateGmsUserPlaygro
 import { getHomeCommunity } from './util/communities'
 import { compareGmsRelevantUserSettings } from './util/compareGmsRelevantUserSettings'
 import { getUserCreations } from './util/creations'
+import { extractGraphQLFieldsForSelect } from './util/extractGraphQLFields'
 import { findUserByIdentifier } from './util/findUserByIdentifier'
 import { findUsers } from './util/findUsers'
 import { getKlicktippState } from './util/getKlicktippState'
@@ -126,7 +141,7 @@ const newGradidoID = async (): Promise<string> => {
   return gradidoId
 }
 
-@Resolver()
+@Resolver(() => User)
 export class UserResolver {
   @Authorized([RIGHTS.VERIFY_LOGIN])
   @Query(() => User)
@@ -193,7 +208,10 @@ export class UserResolver {
       })
     }
 
-    if (dbUser.passwordEncryptionType !== PasswordEncryptionType.GRADIDO_ID) {
+    if (
+      (dbUser.passwordEncryptionType as PasswordEncryptionType) !==
+      PasswordEncryptionType.GRADIDO_ID
+    ) {
       dbUser.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
       dbUser.password = await encryptPassword(dbUser, password)
       await dbUser.save()
@@ -517,7 +535,6 @@ export class UserResolver {
         'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
       )
     }
-
     // load code
     const userContact = await DbUserContact.findOneOrFail({
       where: { emailVerificationCode: code },
@@ -571,7 +588,7 @@ export class UserResolver {
 
     // Sign into Klicktipp
     // TODO do we always signUp the user? How to handle things with old users?
-    if (userContact.emailOptInTypeId === OptInType.EMAIL_OPT_IN_REGISTER) {
+    if ((userContact.emailOptInTypeId as OptInType) === OptInType.EMAIL_OPT_IN_REGISTER) {
       try {
         await subscribe(userContact.email, user.language, user.firstName, user.lastName)
         logger.debug(
@@ -721,7 +738,7 @@ export class UserResolver {
       })
 
       await queryRunner.commitTransaction()
-      logger.debug('writing User data successful...', user)
+      logger.debug('writing User data successful...', new UserLoggingView(user))
     } catch (e) {
       await queryRunner.rollbackTransaction()
       throw new LogError('Error on writing updated user data', e)
@@ -803,7 +820,7 @@ export class UserResolver {
   }
 
   @Authorized([RIGHTS.HUMHUB_AUTO_LOGIN])
-  @Query(() => String)
+  @Mutation(() => String)
   async authenticateHumhubAutoLogin(
     @Ctx() context: Context,
     @Arg('project', () => String, { nullable: true }) project?: string | null,
@@ -814,19 +831,23 @@ export class UserResolver {
     if (!humhubClient) {
       throw new LogError('cannot create humhub client')
     }
-    const userNameLogic = new PublishNameLogic(dbUser)
-    const username = userNameLogic.getUsername(dbUser.humhubPublishName as PublishNameType)
-    let humhubUser = await humhubClient.userByUsername(username)
-    if (!humhubUser) {
-      humhubUser = await humhubClient.userByEmail(dbUser.emailContact.email)
+    // should rarely happen, so we don't optimize for parallel processing
+    if (!dbUser.humhubAllowed && project) {
+      await ProjectBranding.findOneOrFail({ where: { alias: project } })
+      dbUser.humhubAllowed = true
+      await dbUser.save()
     }
+    const humhubUserAccount = new HumhubAccount(dbUser)
+    const autoLoginUrlPromise = humhubClient.createAutoLoginUrl(humhubUserAccount.username, project)
+    const humhubUser = await syncHumhub(null, dbUser)
     if (!humhubUser) {
-      throw new LogError("user don't exist (any longer) on humhub")
+      throw new LogError("user don't exist (any longer) on humhub and couldn't be created")
     }
     if (humhubUser.account.status !== 1) {
       throw new LogError('user status is not 1', humhubUser.account.status)
     }
-    return await humhubClient.createAutoLoginUrl(humhubUser.account.username, project)
+    const autoLoginUrl = await autoLoginUrlPromise
+    return autoLoginUrl
   }
 
   @Authorized([RIGHTS.SEARCH_ADMIN_USERS])
@@ -1032,6 +1053,30 @@ export class UserResolver {
     const foundDbUser = await findUserByIdentifier(identifier, communityIdentifier)
     const modelUser = new User(foundDbUser)
     return modelUser
+  }
+
+  // FIELD RESOLVERS
+  @FieldResolver(() => UserContact)
+  async emailContact(
+    @Root() user: DbUser,
+    @Ctx() context: Context,
+    @Info() info: GraphQLResolveInfo,
+  ): Promise<UserContact> {
+    // Check if user has the necessary permissions to view user contact
+    // Either they need VIEW_USER_CONTACT right, or they need VIEW_OWN_USER_CONTACT and must be viewing their own contact
+    if (!context.role?.hasRight(RIGHTS.VIEW_USER_CONTACT)) {
+      if (!context.role?.hasRight(RIGHTS.VIEW_OWN_USER_CONTACT) || context.user?.id !== user.id) {
+        throw new LogError('User does not have permission to view this user contact', user.id)
+      }
+    }
+    let userContact = user.emailContact
+    if (!userContact) {
+      const queryBuilder = DbUserContact.createQueryBuilder('userContact')
+      queryBuilder.where('userContact.userId = :userId', { userId: user.id })
+      extractGraphQLFieldsForSelect(info, queryBuilder, 'userContact')
+      userContact = await queryBuilder.getOneOrFail()
+    }
+    return new UserContact(userContact)
   }
 }
 

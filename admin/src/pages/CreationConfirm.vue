@@ -70,7 +70,7 @@
       align="center"
       :hide-ellipsis="true"
     />
-
+    <ai-chat v-if="CONFIG.OPENAI_ACTIVE && isAiUser" />
     <div v-if="overlay" id="overlay" @dblclick="overlay = false">
       <Overlay :item="item" @overlay-cancel="overlay = false">
         <template #title>
@@ -101,12 +101,14 @@ import { useI18n } from 'vue-i18n'
 import Overlay from '../components/Overlay'
 import OpenCreationsTable from '../components/Tables/OpenCreationsTable'
 import UserQuery from '../components/UserQuery'
-import { adminListContributions } from '../graphql/adminListContributions'
+import AiChat from '../components/AiChat'
+import { adminListContributions } from '../graphql/adminListContributions.graphql'
 import { adminDeleteContribution } from '../graphql/adminDeleteContribution'
 import { confirmContribution } from '../graphql/confirmContribution'
 import { denyContribution } from '../graphql/denyContribution'
 import { getContribution } from '../graphql/getContribution'
 import { useAppToast } from '@/composables/useToast'
+import CONFIG from '@/config'
 
 const FILTER_TAB_MAP = [
   ['IN_PROGRESS', 'PENDING'],
@@ -117,7 +119,7 @@ const FILTER_TAB_MAP = [
 ]
 
 const store = useStore()
-const { t, d } = useI18n()
+const { t } = useI18n()
 const { toastError, toastSuccess } = useAppToast()
 
 const tabIndex = ref(0)
@@ -132,6 +134,34 @@ const query = ref('')
 const noHashtag = ref(null)
 const hideResubmissionModel = ref(true)
 
+const formatDateOrDash = (value) => (value ? new Date(value).toLocaleDateString() : '—')
+
+const baseFields = {
+  firstName: { key: 'user.firstName', label: t('firstname'), class: 'no-select' },
+  lastName: { key: 'user.lastName', label: t('lastname'), class: 'no-select' },
+  amount: { key: 'amount', label: t('creation'), formatter: (value) => value + ' GDD' },
+  memo: { key: 'memo', label: t('text'), class: 'text-break' },
+  contributionDate: {
+    key: 'contributionDate',
+    label: t('created'),
+    class: 'no-select',
+    formatter: formatDateOrDash,
+  },
+  createdAt: {
+    key: 'createdAt',
+    label: t('createdAt'),
+    class: 'no-select',
+    formatter: formatDateOrDash,
+  },
+  confirmedAt: {
+    key: 'confirmedAt',
+    label: t('contributions.confirms'),
+    class: 'no-select',
+    formatter: formatDateOrDash,
+  },
+  confirmedBy: { key: 'confirmedBy', label: t('moderator.moderator'), class: 'no-select' },
+}
+
 const fields = computed(
   () =>
     [
@@ -139,103 +169,55 @@ const fields = computed(
       [
         { key: 'bookmark', label: t('delete') },
         { key: 'deny', label: t('deny') },
-        { key: 'firstName', label: t('firstname') },
-        { key: 'lastName', label: t('lastname') },
-        {
-          key: 'amount',
-          label: t('creation'),
-          formatter: (value) => value + ' GDD',
-        },
-        { key: 'memo', label: t('text'), class: 'text-break' },
-        {
-          key: 'contributionDate',
-          label: t('created'),
-          formatter: (value) => formatDateOrDash(value),
-        },
-        { key: 'moderatorId', label: t('moderator.moderator') },
+        baseFields.firstName,
+        baseFields.lastName,
+        baseFields.amount,
+        baseFields.memo,
+        baseFields.contributionDate,
+        { key: 'moderatorId', label: t('moderator.moderator'), class: 'no-select' },
         { key: 'editCreation', label: t('details') },
         { key: 'confirm', label: t('save') },
       ],
       // confirmed contributions
       [
-        { key: 'firstName', label: t('firstname') },
-        { key: 'lastName', label: t('lastname') },
-        {
-          key: 'amount',
-          label: t('creation'),
-          formatter: (value) => value + ' GDD',
-        },
-        { key: 'memo', label: t('text'), class: 'text-break' },
-        {
-          key: 'contributionDate',
-          label: t('created'),
-          formatter: (value) => formatDateOrDash(value),
-        },
-        {
-          key: 'createdAt',
-          label: t('createdAt'),
-          formatter: (value) => formatDateOrDash(value),
-        },
-        {
-          key: 'confirmedAt',
-          label: t('contributions.confirms'),
-          formatter: (value) => formatDateOrDash(value),
-        },
-        { key: 'confirmedBy', label: t('moderator.moderator') },
+        baseFields.firstName,
+        baseFields.lastName,
+        baseFields.amount,
+        baseFields.memo,
+        baseFields.contributionDate,
+        baseFields.createdAt,
+        baseFields.confirmedAt,
+        baseFields.confirmedBy,
         { key: 'chatCreation', label: t('details') },
       ],
       // denied contributions
       [
-        { key: 'firstName', label: t('firstname') },
-        { key: 'lastName', label: t('lastname') },
-        {
-          key: 'amount',
-          label: t('creation'),
-          formatter: (value) => value + ' GDD',
-        },
-        { key: 'memo', label: t('text'), class: 'text-break' },
-        {
-          key: 'contributionDate',
-          label: t('created'),
-          formatter: (value) => formatDateOrDash(value),
-        },
-        {
-          key: 'createdAt',
-          label: t('createdAt'),
-          formatter: (value) => formatDateOrDash(value),
-        },
+        baseFields.firstName,
+        baseFields.lastName,
+        baseFields.amount,
+        baseFields.memo,
+        baseFields.contributionDate,
+        baseFields.createdAt,
         {
           key: 'deniedAt',
           label: t('contributions.denied'),
-          formatter: (value) => formatDateOrDash(value),
+          formatter: formatDateOrDash,
         },
         { key: 'deniedBy', label: t('moderator.moderator') },
         { key: 'chatCreation', label: t('details') },
       ],
       // deleted contributions
       [
-        { key: 'firstName', label: t('firstname') },
-        { key: 'lastName', label: t('lastname') },
-        {
-          key: 'amount',
-          label: t('creation'),
-          formatter: (value) => value + ' GDD',
-        },
-        { key: 'memo', label: t('text'), class: 'text-break' },
-        {
-          key: 'contributionDate',
-          label: t('created'),
-          formatter: (value) => formatDateOrDash(value),
-        },
-        {
-          key: 'createdAt',
-          label: t('createdAt'),
-          formatter: (value) => formatDateOrDash(value),
-        },
+        baseFields.firstName,
+        baseFields.lastName,
+        baseFields.amount,
+        baseFields.memo,
+        baseFields.contributionDate,
+        baseFields.createdAt,
         {
           key: 'deletedAt',
           label: t('contributions.deleted'),
-          formatter: (value) => formatDateOrDash(value),
+          formatter: formatDateOrDash,
         },
         { key: 'deletedBy', label: t('moderator.moderator') },
         { key: 'chatCreation', label: t('details') },
@@ -243,30 +225,14 @@ const fields = computed(
       // all contributions
       [
         { key: 'status', label: t('status') },
-        { key: 'firstName', label: t('firstname') },
-        { key: 'lastName', label: t('lastname') },
-        {
-          key: 'amount',
-          label: t('creation'),
-          formatter: (value) => value + ' GDD',
-        },
-        { key: 'memo', label: t('text'), class: 'text-break' },
-        {
-          key: 'contributionDate',
-          label: t('created'),
-          formatter: (value) => formatDateOrDash(value),
-        },
-        {
-          key: 'createdAt',
-          label: t('createdAt'),
-          formatter: (value) => formatDateOrDash(value),
-        },
-        {
-          key: 'confirmedAt',
-          label: t('contributions.confirms'),
-          formatter: (value) => formatDateOrDash(value),
-        },
-        { key: 'confirmedBy', label: t('moderator.moderator') },
+        baseFields.firstName,
+        baseFields.lastName,
+        baseFields.amount,
+        baseFields.memo,
+        baseFields.contributionDate,
+        baseFields.createdAt,
+        baseFields.confirmedAt,
+        baseFields.confirmedBy,
         { key: 'chatCreation', label: t('details') },
       ],
     ][tabIndex.value],
@@ -306,6 +272,9 @@ const showResubmissionCheckbox = computed(() => tabIndex.value === 0)
 const hideResubmission = computed(() =>
   showResubmissionCheckbox.value ? hideResubmissionModel.value : false,
 )
+const isAiUser = computed(() =>
+  store.state.moderator?.roles.some((role) => ['ADMIN', 'MODERATOR_AI'].includes(role)),
+)
 
 watch(tabIndex, () => {
   currentPage.value = 1
@@ -315,12 +284,17 @@ watch(tabIndex, () => {
 const { onResult, onError, result, refetch } = useQuery(
   adminListContributions,
   {
-    currentPage: currentPage.value,
-    pageSize: pageSize.value,
-    statusFilter: statusFilter.value,
-    query: query.value,
-    noHashtag: noHashtag.value,
-    hideResubmission: hideResubmission.value,
+    filter: {
+      statusFilter: statusFilter.value,
+      query: query.value,
+      noHashtag: noHashtag.value,
+      hideResubmission: hideResubmission.value,
+    },
+    paginated: {
+      currentPage: currentPage.value,
+      pageSize: pageSize.value,
+      order: 'DESC',
+    },
   },
   {
     fetchPolicy: 'no-cache',
@@ -329,12 +303,16 @@ const { onResult, onError, result, refetch } = useQuery(
 
 watch([statusFilter, query, noHashtag, hideResubmission, currentPage], () => {
   refetch({
-    currentPage: currentPage.value,
-    pageSize: pageSize.value,
-    statusFilter: statusFilter.value,
-    query: query.value,
-    noHashtag: noHashtag.value,
-    hideResubmission: hideResubmission.value,
+    filter: {
+      statusFilter: statusFilter.value,
+      query: query.value,
+      noHashtag: noHashtag.value,
+      hideResubmission: hideResubmission.value,
+    },
+    paginated: {
+      currentPage: currentPage.value,
+      pageSize: pageSize.value,
+    },
   })
 })
 
@@ -450,10 +428,6 @@ const updateStatus = (id) => {
     target.status = 'IN_PROGRESS'
   }
 }
-
-const formatDateOrDash = (value) => {
-  return value ? d(new Date(value), 'short') : '—'
-}
 </script>
 
 <style>
@@ -468,5 +442,9 @@ const formatDateOrDash = (value) => {
   background-color: rgb(12 11 11 / 78.1%);
   z-index: 1000000;
   cursor: pointer;
+}
+
+.no-select {
+  user-select: none;
 }
 </style>

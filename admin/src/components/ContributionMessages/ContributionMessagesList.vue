@@ -3,16 +3,16 @@
     <BListGroup>
       <BListGroupItem>
         <routerLink :to="searchLink" :title="$t('goTo.userSearch')">
-          {{ contribution.firstName }} {{ contribution.lastName }}
+          {{ contribution.user.firstName }} {{ contribution.user.lastName }}
         </routerLink>
         &nbsp;
-        <a :href="mailtoLink">{{ contribution.email }}</a>
+        <a :href="mailtoLink">{{ email }}</a>
         <IBiFilter id="filter-by-email" class="ms-1 pointer" @click="searchForEmail" />
         <BTooltip target="filter-by-email" triggers="hover">
           {{ $t('filter.byEmail') }}
         </BTooltip>
         &nbsp;
-        {{ contribution.username }}
+        {{ contribution.user.publicName }}
         &nbsp;
         <span>
           <a
@@ -29,7 +29,8 @@
         </span>
       </BListGroupItem>
       <BListGroupItem>
-        {{ $t('registered') }}: {{ new Date(contribution.createdAt).toLocaleString() }}
+        {{ $t('registered') }}: {{ new Date(contribution.user.createdAt).toLocaleDateString() }},
+        {{ $t('createdAt') }}: {{ new Date(contribution.createdAt).toLocaleDateString() }}
       </BListGroupItem>
     </BListGroup>
     <BContainer>
@@ -84,12 +85,15 @@ const emit = defineEmits([
   'update-contributions',
   'search-for-email',
 ])
+const email = computed(() => {
+  return props.contribution.user.emailContact.email
+})
 const { toastError } = useAppToast()
 const mailtoLink = computed(() => {
-  return `mailto:${props.contribution.email}`
+  return `mailto:${email.value}`
 })
 const searchLink = computed(() => {
-  return `/user?search=${props.contribution.email}`
+  return `/user?search=${email.value}`
 })
 const humhubProfileLink = computed(() => {
   if (CONFIG.HUMHUB_ACTIVE !== true) {
@@ -99,7 +103,7 @@ const humhubProfileLink = computed(() => {
   if (url.endsWith('/')) {
     url = url.slice(0, -1)
   }
-  return `${url}/u/${props.contribution.humhubUsername}`
+  return `${url}/u/${props.contribution.user.userIdentifier}`
 })
 
 const messages = ref([])
@@ -135,7 +139,7 @@ const updateContributions = () => {
 }
 
 const searchForEmail = () => {
-  emit('search-for-email', props.contribution.email)
+  emit('search-for-email', email.value)
 }
 </script>
 <style scoped>
