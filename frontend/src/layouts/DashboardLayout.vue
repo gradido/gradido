@@ -187,7 +187,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
 import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
 import { useQuery, useMutation } from '@vue/apollo-composable'
@@ -231,7 +231,7 @@ const pending = computed(() => {
 })
 
 const totalUsers = computed(() => {
-  return transactionQueryData?.value?.communityStatistics?.totalUsers || 0
+  return transactionQueryData?.value?.communityStatistics?.totalUsers || null
 })
 const transactions = computed(() => {
   return transactionQueryData?.value?.transactionList?.transactions || []
