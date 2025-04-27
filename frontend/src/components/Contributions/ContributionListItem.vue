@@ -246,7 +246,7 @@ function deleteContribution(item) {
   }
 }
 
-const { onResult, onError, load } = useLazyQuery(listContributionMessages, {
+const { onResult, onError, load, refetch } = useLazyQuery(listContributionMessages, {
   contributionId: props.contributionId,
 })
 
@@ -254,9 +254,13 @@ function getListContributionMessages(closeCollapse = true) {
   if (closeCollapse) {
     emit('close-all-open-collapse')
   }
-  load(listContributionMessages, {
+  const variables = {
     contributionId: props.contributionId,
-  })
+  }
+  // load return false if called a second time
+  if (!load(listContributionMessages, variables)) {
+    refetch()
+  }
 }
 
 onResult((resultValue) => {
