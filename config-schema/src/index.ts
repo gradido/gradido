@@ -1,6 +1,7 @@
 import { ObjectSchema, ValidationErrorItem } from 'joi'
 
 export * from './commonSchema'
+export * from './log4js-config'
 
 export function validate(schema: ObjectSchema, data: any) {
   const { error } = schema.validate(data)

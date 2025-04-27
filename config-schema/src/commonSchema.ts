@@ -147,6 +147,13 @@ export const LOG_LEVEL = Joi.string()
   .default('info')
   .required()
 
+export const LOG_BASE_PATH = Joi.string()
+  .pattern(/^(?:(?:\/|[a-zA-Z]:[\\/])|(?:\.{1,2}|[a-zA-Z0-9_\-\.]))([a-zA-Z0-9_\-\.\/\\]*[^\/\\])$/)
+  .message('need to be valid absolute or relative folder name')
+  .description('Relative base path for log files')
+  .default('../logs')
+  .optional()
+
 export const LOG4JS_CONFIG = Joi.string()
   .pattern(/^[a-zA-Z0-9-_]+\.json$/)
   .message('LOG4JS_CONFIG must be a valid filename ending with .json')

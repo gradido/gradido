@@ -1,11 +1,11 @@
 import { Configuration } from 'log4js'
 import { createAppenderConfig } from './appenders'
-import { Category, CustomFileAppender } from './types'
+import { Category, CustomFileAppender, LogLevel } from './types'
+
+export { Category, LogLevel }
 
 function getStdoutAppenderName(cat: Category): string | undefined {
-  if (cat.stdoutStack) return 'outStack'
-  if (cat.stdout) return 'out'
-  return undefined
+  return cat.stdoutStack ? 'outStack' : cat.stdout ? 'out' : undefined
 }
 
 /**
@@ -16,7 +16,7 @@ function getStdoutAppenderName(cat: Category): string | undefined {
  * @returns {Configuration} the log4js configuration
  */
 
-export function createConfig(categories: Category[], basePath?: string): Configuration {
+export function createLog4jsConfig(categories: Category[], basePath?: string): Configuration {
   const customFileAppenders: CustomFileAppender[] = []
   const result: Configuration = {
     appenders: {},
