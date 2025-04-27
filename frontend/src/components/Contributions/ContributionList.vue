@@ -67,6 +67,7 @@ const props = defineProps({
 })
 
 const emit = defineEmits([
+  'close-all-open-collapse',
   'update-list-contributions',
   'update-contribution-form',
   'delete-contribution',
