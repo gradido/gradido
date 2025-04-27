@@ -29,7 +29,7 @@
               :show-pagination="true"
               :page-size="pageSize"
               @close-all-open-collapse="closeAllOpenCollapse"
-              @update-list-contributions="handleUpdateListAllContributions"
+              @update-list-contributions="handleUpdateListContributions"
               @update-contribution-form="handleUpdateContributionForm"
               @delete-contribution="handleDeleteContribution"
               @update-status="updateStatus"
