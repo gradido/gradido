@@ -36,6 +36,9 @@ backend: &backend
 config: &config
   - 'config-schema/**/*'
 
+database: &database
+  - 'database/**/*'
+
 dht_node: &dht_node
   - 'dht-node/**/*'
 
