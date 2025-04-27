@@ -1,4 +1,9 @@
-import { Connection, ResultSetHeader, RowDataPacket, createConnection } from 'mysql2/promise'
+import {
+  type Connection,
+  type ResultSetHeader,
+  type RowDataPacket,
+  createConnection,
+} from 'mysql2/promise'
 
 import { CONFIG } from './config'
 import { latestDbVersion } from './config/detectLastDBVersion'
@@ -18,7 +23,7 @@ async function connectToDatabaseServer(): Promise<Connection | null> {
       user: CONFIG.DB_USER,
       password: CONFIG.DB_PASSWORD,
     })
-  } catch (error) {
+  } catch (_error) {
     return null
   }
 }
@@ -36,7 +41,7 @@ export const getDatabaseState = async (): Promise<DatabaseState> => {
       DEFAULT COLLATE utf8mb4_unicode_ci;`)
 
   if (result.affectedRows === 1) {
-    // eslint-disable-next-line no-console
+    // biome-ignore lint/suspicious/noConsole: no logger
     console.log(`Database ${CONFIG.DB_DATABASE} created`)
     return DatabaseState.LOWER_VERSION
   }
@@ -57,7 +62,7 @@ export const getDatabaseState = async (): Promise<DatabaseState> => {
       : dbVersion < latestDbVersion
         ? DatabaseState.LOWER_VERSION
         : DatabaseState.HIGHER_VERSION
-  } catch (error) {
+  } catch (_error) {
     return DatabaseState.LOWER_VERSION
   }
 }

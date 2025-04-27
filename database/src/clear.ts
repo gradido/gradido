@@ -49,6 +49,7 @@ if (require.main === module) {
       process.exit(0)
     })
     .catch((error) => {
+      // biome-ignore lint/suspicious/noConsole: no logger
       console.error('Failed to clear database:', error)
       process.exit(1)
     })

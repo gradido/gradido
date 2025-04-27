@@ -30,8 +30,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Database | Build 'test_up' image
-        run: docker build --target test_up -t "gradido/database:test_up" database/
+      - name: Database | Build 'up' image
+        run: docker build --target up -t "gradido/database:up" -f database/Dockerfile .
 
   database_migration_test:
     if: needs.files-changed.outputs.database == 'true' || needs.files-changed.outputs.docker-compose == 'true'  || needs.files-changed.outputs.mariadb == 'true'
