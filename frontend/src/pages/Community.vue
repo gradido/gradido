@@ -272,10 +272,6 @@ const handleUpdateContributionForm = (item) => {
   router.push({ params: { tab: 'contribute' } })
 }
 
-const updateTransactions = (pagination) => {
-  emit('update-transactions', pagination)
-}
-
 const updateStatus = (id) => {
   const item = items.value.find((item) => item.id === id)
   if (item) {

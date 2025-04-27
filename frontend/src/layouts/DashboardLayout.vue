@@ -187,11 +187,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
-import { useLazyQuery, useMutation } from '@vue/apollo-composable'
-import { useI18n } from 'vue-i18n'
+import { useQuery, useMutation } from '@vue/apollo-composable'
 import ContentHeader from '@/layouts/templates/ContentHeader'
 import CommunityTemplate from '@/layouts/templates/CommunityTemplate'
 import Breadcrumb from '@/components/Breadcrumb/breadcrumb'
@@ -207,41 +206,51 @@ import GdtAmount from '@/components/Template/ContentHeader/GdtAmount'
 import CommunityMember from '@/components/Template/ContentHeader/CommunityMember'
 import NavCommunity from '@/components/Template/ContentHeader/NavCommunity'
 import LastTransactions from '@/components/Template/RightSide/LastTransactions'
-import { transactionsQuery, communityStatistics } from '@/graphql/queries'
+import { transactionsUserCountQuery } from '@/graphql/transactions.graphql'
 import { logout } from '@/graphql/mutations'
 import CONFIG from '@/config'
 import { useAppToast } from '@/composables/useToast'
 
 const store = useStore()
 const router = useRouter()
-const { load: useCommunityStatsQuery } = useLazyQuery(communityStatistics)
 const {
-  load: useTransactionsQuery,
+  data: transactionQueryData,
   refetch: useRefetchTransactionsQuery,
-  result: transactionQueryResult,
-} = useLazyQuery(transactionsQuery, {}, { fetchPolicy: 'network-only' })
+  loading: transactionQueryLoading,
+  onError,
+} = useQuery(
+  transactionsUserCountQuery,
+  { currentPage: 1, pageSize: 10, order: 'DESC' },
+  { fetchPolicy: 'network-only' },
+)
 const { mutate: useLogoutMutation } = useMutation(logout)
-const { t } = useI18n()
 const { toastError } = useAppToast()
 
-const balance = ref(0)
-const GdtBalance = ref(0)
-const transactions = ref([])
-const transactionCount = ref(0)
-const transactionLinkCount = ref(0)
-const pending = ref(true)
-const visible = ref(false)
-const hamburger = ref(true)
-const darkMode = ref(false)
-const skeleton = ref(true)
-const totalUsers = ref(null)
+const pending = computed(() => {
+  return transactionQueryLoading.value
+})
 
-onMounted(() => {
-  updateTransactions({ currentPage: 1, pageSize: 10 })
-  getCommunityStatistics()
-  setTimeout(() => {
-    skeleton.value = false
-  }, 1500)
+const totalUsers = computed(() => {
+  return transactionQueryData?.value?.communityStatistics?.totalUsers || 0
+})
+const transactions = computed(() => {
+  return transactionQueryData?.value?.transactionList?.transactions || []
+})
+const transactionCount = computed(() => {
+  return transactionQueryData?.value?.transactionList?.balance?.count || 0
+})
+const transactionLinkCount = computed(() => {
+  return transactionQueryData?.value?.transactionList?.balance?.linkCount || 0
+})
+const GdtBalance = computed(() => {
+  const balanceGdt = transactionQueryData?.value?.transactionList?.balance?.balanceGDT || 0
+  return balanceGdt === null ? 0 : Number(balanceGdt)
+})
+const balance = computed(() => {
+  return Number(transactionQueryData?.value?.transactionList?.balance?.balance) || 0
+})
+const skeleton = computed(() => {
+  return pending.value || totalUsers.value === null
 })
 
 const logoutUser = async () => {
@@ -255,49 +264,18 @@ const logoutUser = async () => {
   }
 }
 
-const updateTransactions = async ({ currentPage, pageSize }) => {
-  pending.value = true
-  try {
-    await loadOrFetchTransactionQuery({ currentPage, pageSize })
-    if (!transactionQueryResult) return
-    const { transactionList } = transactionQueryResult.value
-    GdtBalance.value =
-      transactionList.balance.balanceGDT === null ? 0 : Number(transactionList.balance.balanceGDT)
-    transactions.value = transactionList.transactions
-    balance.value = Number(transactionList.balance.balance)
-    transactionCount.value = transactionList.balance.count
-    transactionLinkCount.value = transactionList.balance.linkCount
-    pending.value = false
-  } catch (error) {
-    pending.value = true
-    transactionCount.value = -1
-    toastError(error.message)
-  }
+const updateTransactions = ({ currentPage, pageSize }) => {
+  useRefetchTransactionsQuery({ currentPage, pageSize })
 }
 
-const loadOrFetchTransactionQuery = async (queryVariables = { currentPage: 1, pageSize: 25 }) => {
-  return (
-    (await useTransactionsQuery(transactionsQuery, queryVariables)) ||
-    (await useRefetchTransactionsQuery(queryVariables))
-  )
-}
-
-const getCommunityStatistics = async () => {
-  try {
-    const result = await useCommunityStatsQuery()
-    totalUsers.value = result.communityStatistics.totalUsers
-  } catch {
-    toastError(t('communityStatistics has no result, use default data'))
-  }
-}
+onError((error) => {
+  transactionCount.value = -1
+  toastError(error.message)
+})
 
 const admin = () => {
   window.location.assign(CONFIG.ADMIN_AUTH_URL + store.state.token)
   store.dispatch('logout') // logout without redirect
-}
-
-const setVisible = (bool) => {
-  visible.value = bool
 }
 </script>
 <style>
