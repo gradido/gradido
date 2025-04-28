@@ -46,13 +46,43 @@ LABEL maintainer="support@gradido.net"
 RUN mkdir -p ${DOCKER_WORKDIR}
 WORKDIR ${DOCKER_WORKDIR}
 
-RUN mkdir -p /database
-RUN mkdir -p /config
+##################################################################################
+# Base with turbo ################################################################
+##################################################################################
+FROM base as turbo-base
+
+RUN apk update && apk add --no-cache libc6-compat \ 
+  && yarn global add turbo@^2 \
+  && rm -rf /tmp/* ~/.cache node_modules/.cache \
+  && yarn cache clean
+
+##################################################################################
+# BUILDER (create partly monorepo only with data needed by dht-node) #############
+##################################################################################
+FROM turbo-base as builder
+
+COPY --chown=app:app . . 
+RUN turbo prune dht-node --docker
+
+##################################################################################
+# INSTALLER (create production image) ##############################################
+##################################################################################
+FROM turbo-base AS installer
+
+# First install the dependencies (as they change less often)
+COPY --chown=app:app --from=builder /app/out/json/ .
+RUN yarn install --frozen-lockfile --production=false \
+ && rm -rf /tmp/* ~/.cache node_modules/.cache \
+ && yarn cache clean
+ 
+# Build the project
+COPY --chown=app:app --from=builder /app/out/full/ .
+RUN turbo build
 
 ##################################################################################
 # DEVELOPMENT (Connected to the local environment, to reload on demand) ##########
 ##################################################################################
-FROM base as development
+FROM installer as development
 
 # We don't need to copy or build anything since we gonna bind to the
 # local filesystem which will need a rebuild anyway
@@ -60,42 +90,17 @@ FROM base as development
 # Run command
 # (for development we need to execute yarn install since the
 #  node_modules are on another volume and need updating)
-CMD /bin/sh -c "cd /database && yarn install && yarn build && cd /config && yarn install && cd /app && yarn install && yarn run dev"
+CMD /bin/sh -c "turbo dev --env-mode=loose"
 
-##################################################################################
-# BUILD (Does contain all files and is therefore bloated) ########################
-##################################################################################
-FROM base as build
-
-# Copy everything from dht-node
-COPY ./dht-node/ ./
-# Copy everything from database
-COPY ./database/ ../database/
-# Copy everything from config
-COPY ./config/ ../config/
-
-# yarn install and build config
-RUN cd ../config && yarn install --production=false --frozen-lockfile --non-interactive && yarn run build
-
-# yarn install dht-node
-RUN yarn install --production=false --frozen-lockfile --non-interactive
-
-# yarn install database
-RUN cd ../database && yarn install --production=false --frozen-lockfile --non-interactive
-
-# yarn build
-RUN yarn run build
-
-# yarn build database
-RUN cd ../database && yarn run build
-
+ 
 ##################################################################################
 # TEST ###########################################################################
 ##################################################################################
-FROM build as test
+FROM installer as test
 
+ENV DB_HOST=mariadb
 # Run command
-CMD /bin/sh -c "yarn run start"
+CMD /bin/sh -c "turbo dht-node#test --env-mode=loose"
 
 ##################################################################################
 # PRODUCTION (Does contain only "binary"- and static-files to reduce image size) #
@@ -103,25 +108,16 @@ CMD /bin/sh -c "yarn run start"
 FROM base as production
 
 # Copy "binary"-files from build image
-COPY --from=build ${DOCKER_WORKDIR}/build ./build
-COPY --from=build ${DOCKER_WORKDIR}/../database/build ../database/build
-COPY --from=build ${DOCKER_WORKDIR}/../config/build ../config/build
-# We also copy the node_modules express and serve-static for the run script
-COPY --from=build ${DOCKER_WORKDIR}/node_modules ./node_modules
-COPY --from=build ${DOCKER_WORKDIR}/../database/node_modules ../database/node_modules
-COPY --from=build ${DOCKER_WORKDIR}/../config/node_modules ../config/node_modules
+COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/dht-node/build/index.js ./index.js
 
-# Copy static files
-# COPY --from=build ${DOCKER_WORKDIR}/public ./public
-# Copy package.json for script definitions (lock file should not be needed)
-COPY --from=build ${DOCKER_WORKDIR}/package.json ./package.json
-# Copy tsconfig.json to provide alias path definitions
-COPY --from=build ${DOCKER_WORKDIR}/tsconfig.json ./tsconfig.json
+# We also install the native node_modules which cannot be bundled
+# TODO: find a elegant way to use the right versions from yarn.lock
+RUN yarn add udx-native@1.5.3 sodium-native@4.0.0 \
+  && rm -rf /tmp/* ~/.cache node_modules/.cache \
+  && yarn cache clean
+
 # Copy log4js-config.json to provide log configuration
-COPY --from=build ${DOCKER_WORKDIR}/log4js-config.json ./log4js-config.json
-
-# Copy run scripts run/
-# COPY --from=build ${DOCKER_WORKDIR}/run ./run
+COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/dht-node/log4js-config.json ./log4js-config.json
 
 # Run command
-CMD /bin/sh -c "yarn run start"
+CMD ["node", "index.js"]

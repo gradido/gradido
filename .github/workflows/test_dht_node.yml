@@ -7,13 +7,14 @@ jobs:
     name: Detect File Changes - DHT Node
     runs-on: ubuntu-latest
     outputs:
+      config: ${{ steps.changes.outputs.config }}
       database: ${{ steps.changes.outputs.database }}
       dht_node: ${{ steps.changes.outputs.dht_node }}
       docker-compose: ${{ steps.changes.outputs.docker-compose }}
     steps:
       - uses: actions/checkout@v3.3.0
 
-      - name: Check for frontend file changes
+      - name: Check for dht-node, config-schema, database, docker-compose file changes
         uses: dorny/paths-filter@v2.11.1
         id: changes
         with:
@@ -23,69 +24,58 @@ jobs:
 
   build:
     name: Docker Build Test - DHT Node
-    if: needs.files-changed.outputs.dht_node == 'true'
+    if: needs.files-changed.outputs.config == 'true' || needs.files-changed.outputs.database == 'true' || needs.files-changed.outputs.dht_node == 'true' || needs.files-changed.outputs.docker-compose == 'true'
     needs: files-changed
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Build 'test' image
-        run: |
-          docker build --target test -t "gradido/dht-node:test" -f dht-node/Dockerfile .
-          docker save "gradido/dht-node:test" > /tmp/dht-node.tar
-
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: docker-dht-node-test
-          path: /tmp/dht-node.tar
-
-  lint:
-    name: Lint - DHT Node
-    if: needs.files-changed.outputs.dht_node == 'true'
-    needs: files-changed
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Lint
-        run: cd database && yarn && cd ../config && yarn install && cd ../dht-node && yarn && yarn run lint
+      - name: Build 'test' image (typecheck & build)
+        run: docker build --target test -t "gradido/dht-node:test" -f dht-node/Dockerfile .
 
   unit_test:
     name: Unit Tests - DHT Node
-    if: needs.files-changed.outputs.database == 'true' || needs.files-changed.outputs.dht_node == 'true' || needs.files-changed.outputs.docker-compose == 'true' || needs.files-changed.outputs.mariadb == 'true'
-    needs: [files-changed, build]
+    if: needs.files-changed.outputs.config == 'true' || needs.files-changed.outputs.database == 'true' || needs.files-changed.outputs.dht_node == 'true' || needs.files-changed.outputs.docker-compose == 'true'
+    needs: files-changed
     runs-on: ubuntu-latest
+    outputs:
+      test-success: ${{ steps.test.outputs.success }}
     steps:
+      - name: Set Node.js version
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.20.7'
+
       - name: Checkout code
         uses: actions/checkout@v3
-
-      - name: Download Docker Image
-        uses: actions/download-artifact@v4
-        with:
-          name: docker-dht-node-test
-          path: /tmp
-
-      - name: Load Docker Image
-        run: docker load < /tmp/dht-node.tar
 
       - name: docker-compose mariadb
         run: docker compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps mariadb
 
-      - name: Sleep for 30 seconds
-        run: sleep 30s
-        shell: bash
+      - name: Install turbo
+        run: yarn global add turbo@^2
 
-      - name: docker-compose database
-        run: docker compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps database
+      - name: Prune dht-node with turbos help
+        run: turbo prune dht-node
 
-      - name: Sleep for 30 seconds
-        run: sleep 30s
-        shell: bash
+      - name: install dependencies
+        run: cd out && yarn install --frozen-lockfile --production=false
 
-      - name: Unit tests
-        run: cd database && yarn && yarn build && cd ../config && yarn install && cd ../dht-node && yarn && yarn test
-      #- name: Unit tests
-      # run: docker run --env NODE_ENV=test --env DB_HOST=mariadb --network gradido_internal-net --rm gradido/dht-node:test yarn run test
+      - name: Wait for MariaDB to be ready
+        run: docker run --rm --network gradido_internal-net busybox sh -c 'until nc -z mariadb 3306; do echo waiting for db; sleep 1; done;'
+
+      - name: run unit test & lint & build
+        id: test
+        run: |
+          cd out && turbo dht-node#lint dht-node#test
+          echo "success=$([ $? -eq 0 ] && echo true || echo false)" >> $GITHUB_OUTPUT
+
+  lint:
+    name: Lint - DHT Node
+    if: needs.files-changed.outputs.config == 'true' || needs.files-changed.outputs.database == 'true' || needs.files-changed.outputs.dht_node == 'true' || needs.files-changed.outputs.docker-compose == 'true'
+    needs: [files-changed, unit_test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check result from previous step
+        run: if [ "${{ needs.unit_test.outputs.test-success }}" != "true" ]; then exit 1; fi
