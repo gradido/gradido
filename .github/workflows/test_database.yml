@@ -42,24 +42,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: docker-compose mariadb
-        run: docker compose -f docker-compose.yml -f docker-compose.test.yml up --detach mariadb
-      
-      - name: Database | up
-        run: docker compose -f docker-compose.yml up --no-deps database
-      
-      - name: Database | reset
-        run: docker compose -f docker-compose.yml -f docker-compose.reset.yml up --no-deps database
-
-  database_migration_test_turbo:
-    if: needs.files-changed.outputs.database == 'true' || needs.files-changed.outputs.docker-compose == 'true'  || needs.files-changed.outputs.mariadb == 'true'
-    name: Database Migration Test - Up + Reset (Turbo)
-    needs: files-changed
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
       - name: Database | docker-compose
         run: docker compose -f docker-compose.yml -f docker-compose.test.yml up --detach mariadb
 
