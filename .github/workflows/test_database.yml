@@ -80,38 +80,10 @@ jobs:
       
       - name: Database | reset
         run: cd out && turbo reset
-        
+
   lint:
     if: needs.files-changed.outputs.database == 'true'
     name: Lint - Database Up
-    needs: files-changed
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Database | Lint
-        run: cd database && yarn && yarn run lint
-
-  lint_bun:
-    if: needs.files-changed.outputs.database == 'true'
-    name: Lint - Database Up (Bun)
-    needs: files-changed
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
-
-      - name: Database | Lint
-        run: bun install && cd database && bun run lint
-
-  lint_turbo:
-    if: needs.files-changed.outputs.database == 'true'
-    name: Lint - Database Up (Turbo)
     needs: files-changed
     runs-on: ubuntu-latest
     steps:

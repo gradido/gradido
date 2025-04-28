@@ -17,15 +17,6 @@
     "up:dht_test": {
       "dependsOn": ["commonConfig"]
     },
-    "dev_up": {
-      "dependsOn": ["commonConfig"]
-    },
-    "dev_down": {
-      "dependsOn": ["commonConfig"]
-    },
-    "dev_reset": {
-      "dependsOn": ["commonConfig"]
-    },
     "up": {
       "dependsOn": ["commonConfig", "build"]
     },
