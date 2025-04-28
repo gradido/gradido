@@ -218,10 +218,10 @@ services:
   ########################################################
   database:
     # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
-    image: gradido/database:local-production_up
+    image: gradido/database:local-up
     build:
       context: ./database
-      target: production_up
+      target: up
     depends_on:
       - mariadb
     networks:
