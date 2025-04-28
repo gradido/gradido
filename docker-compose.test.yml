@@ -70,7 +70,8 @@ services:
   database:
     image: gradido/database:up
     build:
-      context: ./database
+      context: .
+      dockerfile: ./database/Dockerfile
       target: up
     environment:
       - NODE_ENV=test
