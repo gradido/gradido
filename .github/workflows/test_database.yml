@@ -107,7 +107,7 @@ jobs:
           bun-version: latest
 
       - name: Database | Lint
-        run: bun install && cd database && bunx --bun run lint
+        run: bun install && cd database && bun run lint
 
   lint_turbo:
     if: needs.files-changed.outputs.database == 'true'
