@@ -95,7 +95,11 @@ function setRecipientCommunity(community) {
 }
 
 function extractHomeCommunityFromLinkData(linkData) {
+  console.log('RedeemCommunitySelection.extractHomeCommunityFromLinkData... props.linkData=', props.linkData)
   console.log('RedeemCommunitySelection.extractHomeCommunityFromLinkData...linkData=', linkData)
+  console.log('RedeemCommunitySelection.extractHomeCommunityFromLinkData...communities=', linkData.communities)
+  console.log('RedeemCommunitySelection.extractHomeCommunityFromLinkData...linkData.value=', linkData.value)
+
   if (linkData.communities?.length === 0) {
     return {
       uuid: '',
