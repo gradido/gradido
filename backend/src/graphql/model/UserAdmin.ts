@@ -1,4 +1,4 @@
-import { User } from '@entity/User'
+import { User } from 'database'
 import { Decimal } from 'decimal.js-light'
 import { ObjectType, Field, Int } from 'type-graphql'
 

@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { Connection } from '@dbTools/typeorm'
-import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
-import { Event as DbEvent } from '@entity/Event'
+import { Connection } from 'typeorm'
+import { ContributionLink as DbContributionLink } from 'database'
+import { Event as DbEvent } from 'database'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { Decimal } from 'decimal.js-light'
 import { GraphQLError } from 'graphql'

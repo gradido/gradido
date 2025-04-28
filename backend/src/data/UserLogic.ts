@@ -1,5 +1,5 @@
-import { User } from '@entity/User'
-import { UserRole } from '@entity/UserRole'
+import { User } from 'database'
+import { UserRole } from 'database'
 
 import { RoleNames } from '@enum/RoleNames'
 

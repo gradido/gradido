@@ -1,6 +1,6 @@
-import { Event as DbEvent } from '@entity/Event'
-import { User } from '@entity/User'
-import { UserContact } from '@entity/UserContact'
+import { Event as DbEvent } from 'database'
+import { User } from 'database'
+import { UserContact } from 'database'
 
 export const lastDateTimeEvents = async (
   eventType: string,

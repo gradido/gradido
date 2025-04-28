@@ -1,5 +1,5 @@
-import { User } from '@entity/User'
-import { UserContact } from '@entity/UserContact'
+import { User } from 'database'
+import { UserContact } from 'database'
 import { v4 as uuidv4 } from 'uuid'
 
 import { PublishNameType } from '@/graphql/enum/PublishNameType'

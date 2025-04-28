@@ -1,7 +1,7 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Query, Resolver } from 'type-graphql'
 import { federationLogger as logger } from '@/server/logger'
-import { Community as DbCommunity } from '@entity/Community'
+import { Community as DbCommunity } from 'database'
 import { GetPublicCommunityInfoResult } from '../model/GetPublicCommunityInfoResult'
 import { GetPublicCommunityInfoResultLoggingView } from '../logger/GetPublicCommunityInfoResultLogging.view'
 

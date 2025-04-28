@@ -1,5 +1,5 @@
-import { Connection } from '@dbTools/typeorm'
-import { User } from '@entity/User'
+import { Connection } from 'typeorm'
+import { User } from 'database'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 
 import { testEnvironment, cleanDB } from '@test/helpers'

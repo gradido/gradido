@@ -44,8 +44,8 @@ const features = {
 
 const environment = {
   NODE_ENV: process.env.NODE_ENV,
-  DEBUG: process.env.NODE_ENV !== 'production' ?? false,
-  PRODUCTION: process.env.NODE_ENV === 'production' ?? false,
+  DEBUG: process.env.NODE_ENV !== 'production',
+  PRODUCTION: process.env.NODE_ENV === 'production',
 }
 
 // const COMMUNITY_HOST = process.env.COMMUNITY_HOST ?? 'localhost'

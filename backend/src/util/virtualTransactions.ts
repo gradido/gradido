@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { SaveOptions, RemoveOptions } from '@dbTools/typeorm'
-import { Transaction as dbTransaction } from '@entity/Transaction'
+import { SaveOptions, RemoveOptions } from 'typeorm'
+import { Transaction as dbTransaction } from 'database'
 import { Decimal } from 'decimal.js-light'
 
 import { TransactionTypeId } from '@enum/TransactionTypeId'

@@ -1,4 +1,4 @@
-import { User } from '@entity/User'
+import { User } from 'database'
 import { AuthChecker } from 'type-graphql'
 
 import { RoleNames } from '@enum/RoleNames'

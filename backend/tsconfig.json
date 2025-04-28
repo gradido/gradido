@@ -14,7 +14,7 @@
     // "declarationMap": true,                      /* Generates a sourcemap for each corresponding '.d.ts' file. */
     // "sourceMap": true,                           /* Generates corresponding '.map' file. */
     // "outFile": "./",                             /* Concatenate and emit output to single file. */
-    "outDir": "./build",                            /* Redirect output structure to the directory. */
+    "outDir": "./build/src",                            /* Redirect output structure to the directory. */
     // "rootDir" : ".",
     // "rootDir": "./",                             /* Specify the root directory of input files. Use to control the output directory structure with --outDir. */
     // "composite": true,                           /* Enable project compilation */
@@ -57,12 +57,7 @@
       "@union/*": ["src/graphql/union/*"],
       "@repository/*": ["src/typeorm/repository/*"],
       "@typeorm/*": ["src/typeorm/*"],
-      "@test/*": ["test/*"],
-      /* external */
-      "@dbTools/*": ["../database/src/*", "../../database/build/src/*"],
-      "@entity/*": ["../database/entity/*", "../../database/build/entity/*"],
-      "@logging/*": ["../database/logging/*", "../../database/build/logging/*"],
-      "@config/*": ["../config/src/*", "../../config/build/src/*"]
+      "@test/*": ["test/*"]
     },
     // "rootDirs": [],                              /* List of root folders whose combined content represents the structure of the project at runtime. */
     "typeRoots": ["@types", "node_modules/@types"],   /* List of folders to include type definitions from. */
@@ -84,7 +79,7 @@
 
     /* Advanced Options */
     "skipLibCheck": true,                           /* Skip type checking of declaration files. */
-    "forceConsistentCasingInFileNames": true        /* Disallow inconsistently-cased references to the same file. */
+    "forceConsistentCasingInFileNames": true,        /* Disallow inconsistently-cased references to the same file. */
   },
   "references": [
     {
@@ -92,8 +87,10 @@
       // add 'prepend' if you want to include the referenced project in your output file
       // "prepend": true
     },
-    {
-      "path": "../config/tsconfig.json"
-    }
+  ],
+  "exclude": [
+    "node_modules",
+    "test",
+    "**/*.test.ts"
   ]
 }

@@ -1,5 +1,5 @@
-import { In } from '@dbTools/typeorm'
-import { ContributionMessage as DbContributionMessage } from '@entity/ContributionMessage'
+import { In } from 'typeorm'
+import { ContributionMessage as DbContributionMessage } from 'database'
 
 import { ContributionMessageType } from '@enum/ContributionMessageType'
 import { Order } from '@enum/Order'

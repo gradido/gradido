@@ -1,5 +1,5 @@
-import { Contribution } from '@entity/Contribution'
-import { User } from '@entity/User'
+import { Contribution } from 'database'
+import { User } from 'database'
 import { Decimal } from 'decimal.js-light'
 
 import { Role } from '@/auth/Role'

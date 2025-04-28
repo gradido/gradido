@@ -1,5 +1,5 @@
-import { User } from '@entity/User'
-import { UserContact } from '@entity/UserContact'
+import { User } from 'database'
+import { UserContact } from 'database'
 import { IRestResponse } from 'typed-rest-client'
 
 import { GetUser } from '@/apis/humhub/model/GetUser'

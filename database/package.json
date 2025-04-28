@@ -1,10 +1,17 @@
 {
-  "name": "gradido-database",
+  "name": "database",
   "version": "2.5.1",
   "description": "Gradido Database Tool to execute database migrations",
-  "main": "src/index.ts",
+  "main": "./build/entity/index.js",
+  "types": "./build/entity/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./build/entity/index.js",
+      "require": "./build/entity/index.js"
+    }
+  },
   "repository": "https://github.com/gradido/gradido/database",
-  "author": "Ulf Gebhardt",
+  "author": "Gradido Academy - https://www.gradido.net",
   "license": "Apache-2.0",
   "private": false,
   "scripts": {
@@ -55,6 +62,6 @@
     "wkx": "^0.5.0"
   },
   "engines": {
-    "node": ">=14"
+    "node": ">=18"
   }
 }

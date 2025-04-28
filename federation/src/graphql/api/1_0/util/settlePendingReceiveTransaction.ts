@@ -2,11 +2,17 @@
 /* eslint-disable new-cap */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
-import { getConnection } from '@dbTools/typeorm'
-import { Community as DbCommunity } from '@entity/Community'
-import { PendingTransaction as DbPendingTransaction } from '@entity/PendingTransaction'
-import { Transaction as dbTransaction } from '@entity/Transaction'
-import { User as DbUser } from '@entity/User'
+import { getConnection } from 'typeorm'
+import { 
+  Community as DbCommunity, 
+  CommunityLoggingView, 
+  PendingTransaction as DbPendingTransaction, 
+  PendingTransactionLoggingView, 
+  Transaction as dbTransaction, 
+  TransactionLoggingView, 
+  User as DbUser, 
+  UserLoggingView 
+} from 'database'
 
 import { PendingTransactionState } from '../enum/PendingTransactionState'
 
@@ -17,10 +23,6 @@ import { getLastTransaction } from '@/graphql/util/getLastTransaction'
 import { TRANSACTIONS_LOCK } from '@/graphql/util/TRANSACTIONS_LOCK'
 import { calculateRecipientBalance } from './calculateRecipientBalance'
 import Decimal from 'decimal.js-light'
-import { CommunityLoggingView } from '@logging/CommunityLogging.view'
-import { UserLoggingView } from '@logging/UserLogging.view'
-import { PendingTransactionLoggingView } from '@logging/PendingTransactionLogging.view'
-import { TransactionLoggingView } from '@logging/TransactionLogging.view'
 
 export async function settlePendingReceiveTransaction(
   homeCom: DbCommunity,

@@ -1,4 +1,4 @@
-import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
+import { FederatedCommunity as DbFederatedCommunity } from 'database'
 // eslint-disable-next-line camelcase
 import { AuthenticationClient as V1_0_AuthenticationClient } from './1_0/AuthenticationClient'
 // eslint-disable-next-line camelcase

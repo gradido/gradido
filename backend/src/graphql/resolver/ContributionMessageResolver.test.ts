@@ -3,9 +3,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Connection } from '@dbTools/typeorm'
-import { Contribution as DbContribution } from '@entity/Contribution'
-import { Event as DbEvent } from '@entity/Event'
+import { Connection } from 'typeorm'
+import { Contribution as DbContribution } from 'database'
+import { Event as DbEvent } from 'database'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { GraphQLError } from 'graphql'
 

@@ -2,13 +2,13 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-import { getConnection, In, Point } from '@dbTools/typeorm'
-import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
-import { ProjectBranding } from '@entity/ProjectBranding'
-import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
-import { User as DbUser } from '@entity/User'
-import { UserContact as DbUserContact } from '@entity/UserContact'
-import { UserLoggingView } from '@logging/UserLogging.view'
+import { getConnection, In, Point } from 'typeorm'
+import { ContributionLink as DbContributionLink } from 'database'
+import { ProjectBranding } from 'database'
+import { TransactionLink as DbTransactionLink } from 'database'
+import { User as DbUser } from 'database'
+import { UserContact as DbUserContact } from 'database'
+import { UserLoggingView } from 'database'
 import { GraphQLResolveInfo } from 'graphql'
 import i18n from 'i18n'
 import {

@@ -1,8 +1,8 @@
-import { EntityManager, IsNull, getConnection } from '@dbTools/typeorm'
-import { Contribution as DbContribution } from '@entity/Contribution'
-import { Transaction as DbTransaction } from '@entity/Transaction'
-import { User as DbUser } from '@entity/User'
-import { UserContact } from '@entity/UserContact'
+import { EntityManager, IsNull, getConnection } from 'typeorm'
+import { Contribution as DbContribution } from 'database'
+import { Transaction as DbTransaction } from 'database'
+import { User as DbUser } from 'database'
+import { UserContact } from 'database'
 import { Decimal } from 'decimal.js-light'
 import { GraphQLResolveInfo } from 'graphql'
 import {

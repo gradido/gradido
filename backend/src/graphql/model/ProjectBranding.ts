@@ -1,4 +1,4 @@
-import { ProjectBranding as dbProjectBranding } from '@entity/ProjectBranding'
+import { ProjectBranding as dbProjectBranding } from 'database'
 import { ObjectType, Field, Int } from 'type-graphql'
 
 @ObjectType()

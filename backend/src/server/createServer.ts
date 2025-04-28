@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 /* eslint-disable @typescript-eslint/unbound-method */
-import { Connection as DbConnection } from '@dbTools/typeorm'
+import { Connection as DbConnection } from 'typeorm'
 import { ApolloServer } from 'apollo-server-express'
 import express, { Express, json, urlencoded } from 'express'
 import { slowDown } from 'express-slow-down'

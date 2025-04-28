@@ -1,6 +1,6 @@
-import { Connection } from '@dbTools/typeorm'
-import { Contribution } from '@entity/Contribution'
-import { User } from '@entity/User'
+import { Connection } from 'typeorm'
+import { Contribution } from 'database'
+import { User } from 'database'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 
 import { testEnvironment, cleanDB, contributionDateFormatter } from '@test/helpers'

@@ -5,10 +5,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { Connection } from '@dbTools/typeorm'
-import { Community } from '@entity/Community'
-import { DltTransaction } from '@entity/DltTransaction'
-import { Transaction } from '@entity/Transaction'
+import { Connection } from 'typeorm'
+import { Community } from 'database'
+import { DltTransaction } from 'database'
+import { Transaction } from 'database'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { Decimal } from 'decimal.js-light'
 // import { GraphQLClient } from 'graphql-request'

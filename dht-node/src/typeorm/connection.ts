@@ -1,7 +1,7 @@
 // TODO This is super weird - since the entities are defined in another project they have their own globals.
 //      We cannot use our connection here, but must use the external typeorm installation
-import { Connection, createConnection, FileLogger } from '@dbTools/typeorm'
-import { entities } from '@entity/index'
+import { Connection, createConnection, FileLogger } from 'typeorm'
+import { entities } from 'database'
 
 import { CONFIG } from '@/config'
 

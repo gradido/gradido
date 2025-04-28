@@ -1,7 +1,7 @@
-import { FindOptionsWhere } from '@dbTools/typeorm'
-import { Community } from '@entity/Community'
-import { User as DbUser } from '@entity/User'
-import { UserContact as DbUserContact } from '@entity/UserContact'
+import { FindOptionsWhere } from 'typeorm'
+import { Community } from 'database'
+import { User as DbUser } from 'database'
+import { UserContact as DbUserContact } from 'database'
 import { isURL } from 'class-validator'
 import { validate, version } from 'uuid'
 

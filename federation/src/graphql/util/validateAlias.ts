@@ -1,5 +1,5 @@
-import { Raw } from '@dbTools/typeorm'
-import { User as DbUser } from '@entity/User'
+import { Raw } from 'typeorm'
+import { User as DbUser } from 'database'
 
 import { LogError } from '@/server/LogError'
 

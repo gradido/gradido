@@ -1,5 +1,5 @@
-import { MoreThan, IsNull } from '@dbTools/typeorm'
-import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
+import { MoreThan, IsNull } from 'typeorm'
+import { ContributionLink as DbContributionLink } from 'database'
 import { Resolver, Args, Arg, Authorized, Mutation, Query, Int, Ctx } from 'type-graphql'
 
 import { ContributionLinkArgs } from '@arg/ContributionLinkArgs'

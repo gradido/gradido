@@ -1,0 +1,14 @@
+{
+  "extends": ["//"],
+  "tasks": {
+    "test": {
+      "dependsOn": ["database#up:backend_test"]
+    },
+    "dev": {
+      "dependsOn": ["database#up"]
+    },
+    "start": {
+      "dependsOn": ["database#up"]
+    }
+  }
+}

@@ -1,5 +1,5 @@
 // eslint-disable @typescript-eslint/no-explicit-any
-import { User } from '@entity/User'
+import { User } from 'database'
 
 import { getKlickTippUser, addFieldsToSubscriber } from '@/apis/KlicktippController'
 import { EventType } from '@/event/EventType'

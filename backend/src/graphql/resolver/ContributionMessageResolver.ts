@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-import { EntityManager, FindOptionsRelations, getConnection } from '@dbTools/typeorm'
-import { Contribution as DbContribution } from '@entity/Contribution'
-import { ContributionMessage as DbContributionMessage } from '@entity/ContributionMessage'
-import { User as DbUser } from '@entity/User'
+import { EntityManager, FindOptionsRelations, getConnection } from 'typeorm'
+import { Contribution as DbContribution } from 'database'
+import { ContributionMessage as DbContributionMessage } from 'database'
+import { User as DbUser } from 'database'
 import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
 
 import { ContributionMessageArgs } from '@arg/ContributionMessageArgs'

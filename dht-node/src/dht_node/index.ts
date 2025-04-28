@@ -1,9 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { Community as DbCommunity } from '@entity/Community'
-import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
+import { Community as DbCommunity, CommunityLoggingView, FederatedCommunity as DbFederatedCommunity } from 'database'
 import DHT from '@hyperswarm/dht'
-import { CommunityLoggingView } from '@logging/CommunityLogging.view'
 import { v4 as uuidv4 } from 'uuid'
 
 import { CONFIG } from '@/config'

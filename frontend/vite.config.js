@@ -1,5 +1,5 @@
 import { defineConfig } from 'vite'
-import path from 'path'
+import path from 'node:path'
 import commonjs from 'vite-plugin-commonjs'
 import vue from '@vitejs/plugin-vue'
 import Components from 'unplugin-vue-components/vite'
@@ -8,14 +8,15 @@ import IconsResolve from 'unplugin-icons/resolver'
 import EnvironmentPlugin from 'vite-plugin-environment'
 import { createHtmlPlugin } from 'vite-plugin-html'
 import schema from './src/config/schema'
-import { validate, browserUrls } from 'gradido-config/build/src/index.js'
+import { execSync } from 'node:child_process'
+import { existsSync, constants } from 'node:fs'
+import CONFIG from './src/config'
+import { validate, browserUrls } from 'config-schema'
 
 import { BootstrapVueNextResolver } from 'bootstrap-vue-next'
-import dotenv from 'dotenv'
+import { createRequire } from 'node:module'
 
-dotenv.config() // load env vars from .env
-
-const CONFIG = require('./src/config')
+const require = createRequire(import.meta.url)
 
 // https://vitejs.dev/config/
 export default defineConfig(async ({ command }) => {
@@ -24,6 +25,9 @@ export default defineConfig(async ({ command }) => {
     CONFIG.FRONTEND_HOSTING = 'nodejs'
   } else {
     CONFIG.FRONTEND_HOSTING = 'nginx'
+  }
+  if (existsSync('../.git', constants.F_OK)) {
+    CONFIG.BUILD_COMMIT = execSync('git rev-parse HEAD').toString().trim()
   }
   // Check config
   validate(schema, CONFIG)
@@ -56,18 +60,24 @@ export default defineConfig(async ({ command }) => {
       alias: {
         '@': path.resolve(__dirname, './src'),
         assets: path.join(__dirname, 'src/assets'),
-        '@vee-validate/i18n/dist/locale/en.json':
-          '/node_modules/@vee-validate/i18n/dist/locale/en.json',
-        '@vee-validate/i18n/dist/locale/de.json':
-          '/node_modules/@vee-validate/i18n/dist/locale/de.json',
-        '@vee-validate/i18n/dist/locale/es.json':
-          '/node_modules/@vee-validate/i18n/dist/locale/es.json',
-        '@vee-validate/i18n/dist/locale/fr.json':
-          '/node_modules/@vee-validate/i18n/dist/locale/fr.json',
-        '@vee-validate/i18n/dist/locale/nl.json':
-          '/node_modules/@vee-validate/i18n/dist/locale/nl.json',
-        '@vee-validate/i18n/dist/locale/tr.json':
-          '/node_modules/@vee-validate/i18n/dist/locale/tr.json',
+        '@vee-validate/i18n/dist/locale/en.json': require.resolve(
+          '@vee-validate/i18n/dist/locale/en.json',
+        ),
+        '@vee-validate/i18n/dist/locale/de.json': require.resolve(
+          '@vee-validate/i18n/dist/locale/de.json',
+        ),
+        '@vee-validate/i18n/dist/locale/es.json': require.resolve(
+          '@vee-validate/i18n/dist/locale/es.json',
+        ),
+        '@vee-validate/i18n/dist/locale/fr.json': require.resolve(
+          '@vee-validate/i18n/dist/locale/fr.json',
+        ),
+        '@vee-validate/i18n/dist/locale/nl.json': require.resolve(
+          '@vee-validate/i18n/dist/locale/nl.json',
+        ),
+        '@vee-validate/i18n/dist/locale/tr.json': require.resolve(
+          '@vee-validate/i18n/dist/locale/tr.json',
+        ),
       },
       extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json', '.vue'],
     },
@@ -97,6 +107,7 @@ export default defineConfig(async ({ command }) => {
         autoInstall: true,
       }),
       EnvironmentPlugin({
+        BUILD_COMMIT: CONFIG.BUILD_COMMIT,
         GMS_ACTIVE: CONFIG.GMS_ACTIVE,
         HUMHUB_ACTIVE: CONFIG.HUMHUB_ACTIVE,
         DEFAULT_PUBLISHER_ID: null,

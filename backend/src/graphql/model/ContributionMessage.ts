@@ -1,5 +1,5 @@
-import { ContributionMessage as DbContributionMessage } from '@entity/ContributionMessage'
-import { User } from '@entity/User'
+import { ContributionMessage as DbContributionMessage } from 'database'
+import { User } from 'database'
 import { Field, Int, ObjectType } from 'type-graphql'
 
 @ObjectType()

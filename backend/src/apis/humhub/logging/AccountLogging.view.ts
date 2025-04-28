@@ -1,5 +1,4 @@
-import { AbstractLoggingView } from '@logging/AbstractLogging.view'
-
+import { AbstractLoggingView } from 'database'
 import { Account } from '@/apis/humhub/model/Account'
 
 export class AccountLoggingView extends AbstractLoggingView {

@@ -1,5 +1,5 @@
-import { Contribution as dbContribution } from '@entity/Contribution'
-import { User as DbUser } from '@entity/User'
+import { Contribution as dbContribution } from 'database'
+import { User as DbUser } from 'database'
 import { Decimal } from 'decimal.js-light'
 import { ObjectType, Field, Int } from 'type-graphql'
 

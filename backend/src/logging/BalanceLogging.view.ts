@@ -1,5 +1,4 @@
-import { AbstractLoggingView } from '@logging/AbstractLogging.view'
-
+import { AbstractLoggingView } from 'database'
 import { Balance } from '@/graphql/model/Balance'
 
 export class BalanceLoggingView extends AbstractLoggingView {

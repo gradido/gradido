@@ -1,4 +1,4 @@
-import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
+import { FederatedCommunity as DbFederatedCommunity } from 'database'
 import { ObjectType, Field, Int } from 'type-graphql'
 
 import { ensureUrlEndsWithSlash } from '@/util/utilities'

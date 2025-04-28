@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { createTestClient } from 'apollo-server-testing'
 import createServer from '@/server/createServer'
-import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
+import { FederatedCommunity as DbFederatedCommunity } from 'database'
 import CONFIG from '@/config'
 
 let query: any

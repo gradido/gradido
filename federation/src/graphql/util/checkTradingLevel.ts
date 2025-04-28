@@ -1,5 +1,5 @@
 import CONFIG from '@/config'
-import { Community as DbCommunity } from '@entity/Community'
+import { Community as DbCommunity } from 'database'
 import { Decimal } from 'decimal.js-light'
 import { federationLogger as logger } from '@/server/logger'
 

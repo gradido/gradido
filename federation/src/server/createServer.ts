@@ -20,7 +20,7 @@ import schema from '@/graphql/schema'
 
 // webhooks
 // import { elopageWebhook } from '@/webhook/elopage'
-import { Connection } from '@dbTools/typeorm'
+import { Connection } from 'typeorm'
 
 import { apolloLogger } from './logger'
 import { Logger } from 'log4js'

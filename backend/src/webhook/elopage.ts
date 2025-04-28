@@ -32,8 +32,8 @@
     I assume that the webhook arrives via POST and transmits a string as shown above
 */
 
-import { LoginElopageBuys } from '@entity/LoginElopageBuys'
-import { UserContact as dbUserContact } from '@entity/UserContact'
+import { LoginElopageBuys } from 'database'
+import { UserContact as dbUserContact } from 'database'
 
 import { UserResolver } from '@/graphql/resolver/UserResolver'
 

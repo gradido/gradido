@@ -16,6 +16,30 @@ import { FederatedCommunity } from './FederatedCommunity'
 import { UserRole } from './UserRole'
 import { DltTransaction } from './DltTransaction'
 import { PendingTransaction } from './0071-add-pending_transactions-table/PendingTransaction'
+import { latestDbVersion } from '../src/config/detectLastDBVersion'
+
+export {
+  Community,
+  Contribution,
+  ContributionLink,
+  ContributionMessage,
+  DltTransaction,
+  Event,
+  FederatedCommunity,
+  LoginElopageBuys,
+  LoginEmailOptIn,
+  Migration,
+  ProjectBranding,
+  OpenaiThreads,
+  PendingTransaction,
+  Transaction,
+  TransactionLink,
+  User,
+  UserContact,
+  UserRole,
+  latestDbVersion,
+}
+export * from '../logging'
 
 export const entities = [
   Community,

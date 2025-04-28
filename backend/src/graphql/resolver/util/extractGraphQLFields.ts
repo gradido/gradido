@@ -1,4 +1,4 @@
-import { ObjectLiteral, SelectQueryBuilder } from '@dbTools/typeorm'
+import { ObjectLiteral, SelectQueryBuilder } from 'typeorm'
 import { GraphQLResolveInfo } from 'graphql'
 import {
   parseResolveInfo,

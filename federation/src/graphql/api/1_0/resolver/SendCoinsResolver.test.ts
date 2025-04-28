@@ -1,15 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { ApolloServerTestClient } from 'apollo-server-testing'
-import { Community as DbCommunity } from '@entity/Community'
+import { Community as DbCommunity } from 'database'
 import CONFIG from '@/config'
-import { User as DbUser } from '@entity/User'
-import { UserContact as DbUserContact } from '@entity/UserContact'
+import { User as DbUser } from 'database'
+import { UserContact as DbUserContact } from 'database'
 import { fullName } from '@/graphql/util/fullName'
 import { GraphQLError } from 'graphql'
 import { cleanDB, testEnvironment } from '@test/helpers'
 import { logger } from '@test/testSetup'
-import { Connection } from '@dbTools/typeorm'
+import { Connection } from 'typeorm'
 import Decimal from 'decimal.js-light'
 import { SendCoinsArgs } from '../model/SendCoinsArgs'
 

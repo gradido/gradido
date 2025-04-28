@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-import { IsNull } from '@dbTools/typeorm'
-import { Transaction as dbTransaction } from '@entity/Transaction'
-import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
+import { IsNull } from 'typeorm'
+import { Transaction as dbTransaction } from 'database'
+import { TransactionLink as dbTransactionLink } from 'database'
 import { Decimal } from 'decimal.js-light'
 import { Resolver, Query, Ctx, Authorized } from 'type-graphql'
 

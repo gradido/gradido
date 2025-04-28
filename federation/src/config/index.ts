@@ -1,9 +1,9 @@
 // ATTENTION: DO NOT PUT ANY SECRETS IN HERE (or the .env)
 import { Decimal } from 'decimal.js-light'
-import { latestDbVersion } from '@dbTools/config/detectLastDBVersion'
+import { latestDbVersion } from 'database'
 import dotenv from 'dotenv'
 
-import { validate } from '@config/index'
+import { validate } from 'config-schema'
 
 import { schema } from './schema'
 
@@ -25,13 +25,13 @@ const constants = {
 const server = {
   // JWT_SECRET: process.env.JWT_SECRET || 'secret123',
   // JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '10m',
-  GRAPHIQL: process.env.GRAPHIQL === 'true' ?? false,
+  GRAPHIQL: process.env.GRAPHIQL === 'true',
   // GDT_API_URL: process.env.GDT_API_URL || 'https://gdt.gradido.net',
-  PRODUCTION: process.env.NODE_ENV === 'production' ?? false,
+  PRODUCTION: process.env.NODE_ENV === 'production',
 }
 const database = {
   DB_HOST: process.env.DB_HOST ?? 'localhost',
-  DB_PORT: process.env.DB_PORT ? parseInt(process.env.DB_PORT) : 3306,
+  DB_PORT: process.env.DB_PORT ? Number.parseInt(process.env.DB_PORT) : 3306,
   DB_USER: process.env.DB_USER ?? 'root',
   DB_PASSWORD: process.env.DB_PASSWORD ?? '',
   DB_DATABASE: process.env.DB_DATABASE ?? 'gradido_community',

@@ -4,7 +4,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { User as DbUser } from '@entity/User'
+import { User as DbUser } from 'database'
 
 import { decode } from '@/auth/JWT'
 

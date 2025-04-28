@@ -1,4 +1,4 @@
-import { ProjectBranding } from '@entity/ProjectBranding'
+import { ProjectBranding } from 'database'
 import { SignJWT } from 'jose'
 import { IRequestOptions, IRestResponse, RestClient } from 'typed-rest-client'
 

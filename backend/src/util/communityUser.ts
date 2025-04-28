@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-import { SaveOptions, RemoveOptions } from '@dbTools/typeorm'
-import { User as dbUser } from '@entity/User'
-import { UserContact } from '@entity/UserContact'
+import { SaveOptions, RemoveOptions } from 'typeorm'
+import { User as dbUser } from 'database'
+import { UserContact } from 'database'
 
 import { User } from '@model/User'
 
 import { PasswordEncryptionType } from '@/graphql/enum/PasswordEncryptionType'
-// import { UserContact as EmailContact } from '@entity/UserContact'
+// import { UserContact as EmailContact } from 'database'
 
 const communityDbUser: dbUser = {
   id: -1,

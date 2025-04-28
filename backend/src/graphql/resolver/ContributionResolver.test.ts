@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Connection, Equal } from '@dbTools/typeorm'
-import { Contribution } from '@entity/Contribution'
-import { Event as DbEvent } from '@entity/Event'
-import { Transaction as DbTransaction } from '@entity/Transaction'
-import { User } from '@entity/User'
+import { Connection, Equal } from 'typeorm'
+import { Contribution } from 'database'
+import { Event as DbEvent } from 'database'
+import { Transaction as DbTransaction } from 'database'
+import { User } from 'database'
 import { UserInputError } from 'apollo-server-express'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { Decimal } from 'decimal.js-light'

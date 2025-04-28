@@ -1,5 +1,5 @@
-import { Community as DbCommunity } from '@entity/Community'
-import { User as DbUser } from '@entity/User'
+import { Community as DbCommunity } from 'database'
+import { User as DbUser } from 'database'
 
 import { SendCoinsResult } from '@/federation/client/1_0/model/SendCoinsResult'
 import { backendLogger as logger } from '@/server/logger'

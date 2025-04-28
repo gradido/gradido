@@ -1,7 +1,6 @@
-import { Point } from '@dbTools/typeorm'
-import { User as DbUser } from '@entity/User'
-import { UserLoggingView } from '@logging/UserLogging.view'
-
+import { Point } from 'typeorm'
+import { User as DbUser } from 'database'
+import { UserLoggingView } from 'database'
 import { UpdateUserInfosArgs } from '@/graphql/arg/UpdateUserInfosArgs'
 import { GmsPublishLocationType } from '@/graphql/enum/GmsPublishLocationType'
 import { PublishNameType } from '@/graphql/enum/PublishNameType'
