@@ -80,17 +80,5 @@
     /* Advanced Options */
     "skipLibCheck": true,                           /* Skip type checking of declaration files. */
     "forceConsistentCasingInFileNames": true,        /* Disallow inconsistently-cased references to the same file. */
-  },
-  "references": [
-    {
-      "path": "../database/tsconfig.json"
-      // add 'prepend' if you want to include the referenced project in your output file
-      // "prepend": true
-    },
-  ],
-  "exclude": [
-    "node_modules",
-    "test",
-    "**/*.test.ts"
-  ]
+  }
 }

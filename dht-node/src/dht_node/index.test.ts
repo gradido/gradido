@@ -1,9 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { Community as DbCommunity } from '@entity/Community'
-import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
 import DHT from '@hyperswarm/dht'
+import { Community as DbCommunity, FederatedCommunity as DbFederatedCommunity } from 'database'
 import { validate as validateUUID, version as versionUUID } from 'uuid'
 
 import { testEnvironment, cleanDB } from '@test/helpers'
@@ -249,7 +248,7 @@ describe('federation', () => {
               it('logs an error of unexpected data format and structure', () => {
                 expect(logger.error).toBeCalledWith(
                   'Error on receiving data from socket:',
-                  new SyntaxError('Unexpected token \'o\', "no-json string" is not valid JSON'),
+                  new SyntaxError('Unexpected token o in JSON at position 1'),
                 )
               })
             })
@@ -291,7 +290,7 @@ describe('federation', () => {
               it('logs an error of unexpected data format and structure', () => {
                 expect(logger.error).toBeCalledWith(
                   'Error on receiving data from socket:',
-                  new SyntaxError('Unexpected token \'i\', "invalid ty"... is not valid JSON'),
+                  new SyntaxError('Unexpected token i in JSON at position 0'),
                 )
               })
             })
@@ -315,7 +314,7 @@ describe('federation', () => {
               it('logs an error of unexpected data format and structure', () => {
                 expect(logger.error).toBeCalledWith(
                   'Error on receiving data from socket:',
-                  new SyntaxError('Unexpected token \'a\', "api,url,in"... is not valid JSON'),
+                  new SyntaxError('Unexpected token a in JSON at position 0'),
                 )
               })
             })

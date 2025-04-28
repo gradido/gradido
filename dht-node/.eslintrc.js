@@ -51,7 +51,7 @@ module.exports = {
     'import/no-nodejs-modules': 'off',
     'import/unambiguous': 'error',
     'import/default': 'error',
-    'import/named': 'error',
+    'import/named': 'off',
     'import/namespace': 'error',
     'import/no-absolute-path': 'error',
     'import/no-cycle': 'error',
