@@ -104,7 +104,7 @@ onError(() => {
 </script>
 <style scoped>
 .container {
-  background-attachment: absolute;
+  background-attachment: scroll;
   background-position: left;
   background-repeat: no-repeat;
   background-size: 380px 100%;
