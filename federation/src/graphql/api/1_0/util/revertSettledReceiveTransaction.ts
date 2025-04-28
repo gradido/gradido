@@ -3,10 +3,16 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
 import { getConnection } from 'typeorm'
-import { Community as DbCommunity } from 'database'
-import { PendingTransaction as DbPendingTransaction } from 'database'
-import { Transaction as dbTransaction } from 'database'
-import { User as DbUser } from 'database'
+import {
+  Community as DbCommunity,
+  PendingTransaction as DbPendingTransaction,
+  Transaction as dbTransaction,
+  User as DbUser,
+  CommunityLoggingView,
+  UserLoggingView,
+  PendingTransactionLoggingView,
+  TransactionLoggingView,
+} from 'database'
 
 import { PendingTransactionState } from '../enum/PendingTransactionState'
 
@@ -15,10 +21,6 @@ import { federationLogger as logger } from '@/server/logger'
 
 import { getLastTransaction } from '@/graphql/util/getLastTransaction'
 import { TRANSACTIONS_LOCK } from '@/graphql/util/TRANSACTIONS_LOCK'
-import { CommunityLoggingView } from 'database'
-import { UserLoggingView } from 'database'
-import { PendingTransactionLoggingView } from 'database'
-import { TransactionLoggingView } from 'database'
 
 export async function revertSettledReceiveTransaction(
   homeCom: DbCommunity,

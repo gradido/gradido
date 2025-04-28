@@ -1,10 +1,12 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Arg, Mutation, Resolver } from 'type-graphql'
 import { federationLogger as logger } from '@/server/logger'
-import { Community as DbCommunity } from 'database'
-import { FederatedCommunity as DbFedCommunity } from 'database'
-import { CommunityLoggingView } from 'database'
-import { FederatedCommunityLoggingView } from 'database'
+import {
+  Community as DbCommunity,
+  FederatedCommunity as DbFedCommunity,
+  CommunityLoggingView,
+  FederatedCommunityLoggingView,
+} from 'database'
 import { LogError } from '@/server/LogError'
 import { OpenConnectionArgs } from '../model/OpenConnectionArgs'
 import { startAuthentication, startOpenConnectionCallback } from '../util/authenticateCommunity'

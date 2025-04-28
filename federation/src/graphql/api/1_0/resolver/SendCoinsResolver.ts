@@ -1,8 +1,10 @@
 import { Arg, Mutation, Resolver } from 'type-graphql'
 import { federationLogger as logger } from '@/server/logger'
-import { PendingTransactionLoggingView } from 'database'
-import { Community as DbCommunity } from 'database'
-import { PendingTransaction as DbPendingTransaction } from 'database'
+import {
+  PendingTransactionLoggingView,
+  Community as DbCommunity,
+  PendingTransaction as DbPendingTransaction,
+} from 'database'
 import { SendCoinsArgs } from '../model/SendCoinsArgs'
 import { LogError } from '@/server/LogError'
 import { PendingTransactionState } from '../enum/PendingTransactionState'

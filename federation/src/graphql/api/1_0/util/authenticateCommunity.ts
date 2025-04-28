@@ -1,6 +1,10 @@
 import { OpenConnectionArgs } from '../model/OpenConnectionArgs'
-import { Community as DbCommunity } from 'database'
-import { FederatedCommunity as DbFedCommunity } from 'database'
+import {
+  Community as DbCommunity,
+  FederatedCommunity as DbFedCommunity,
+  CommunityLoggingView,
+  FederatedCommunityLoggingView,
+} from 'database'
 import { federationLogger as logger } from '@/server/logger'
 import { OpenConnectionCallbackArgs } from '../model/OpenConnectionCallbackArgs'
 // eslint-disable-next-line camelcase
@@ -9,8 +13,6 @@ import { AuthenticationClientFactory } from '@/client/AuthenticationClientFactor
 // eslint-disable-next-line camelcase
 import { AuthenticationClient as V1_0_AuthenticationClient } from '@/client/1_0/AuthenticationClient'
 import { AuthenticationArgs } from '../model/AuthenticationArgs'
-import { CommunityLoggingView } from 'database'
-import { FederatedCommunityLoggingView } from 'database'
 
 export async function startOpenConnectionCallback(
   args: OpenConnectionArgs,

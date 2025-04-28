@@ -1,8 +1,7 @@
-import { User as DbUser } from 'database'
+import { User as DbUser, UserLoggingView } from 'database'
 
 import { federationLogger as logger } from '@/server/logger'
 import { SendCoinsArgs } from '../model/SendCoinsArgs'
-import { UserLoggingView } from 'database'
 import { SendCoinsArgsLoggingView } from '../logger/SendCoinsArgsLogging.view'
 
 export async function storeForeignUser(args: SendCoinsArgs): Promise<boolean> {

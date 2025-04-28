@@ -3,15 +3,15 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
 import { getConnection } from 'typeorm'
-import { 
-  Community as DbCommunity, 
-  CommunityLoggingView, 
-  PendingTransaction as DbPendingTransaction, 
-  PendingTransactionLoggingView, 
-  Transaction as dbTransaction, 
-  TransactionLoggingView, 
-  User as DbUser, 
-  UserLoggingView 
+import {
+  Community as DbCommunity,
+  CommunityLoggingView,
+  PendingTransaction as DbPendingTransaction,
+  PendingTransactionLoggingView,
+  Transaction as dbTransaction,
+  TransactionLoggingView,
+  User as DbUser,
+  UserLoggingView,
 } from 'database'
 
 import { PendingTransactionState } from '../enum/PendingTransactionState'

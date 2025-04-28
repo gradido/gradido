@@ -1,10 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { ApolloServerTestClient } from 'apollo-server-testing'
-import { Community as DbCommunity } from 'database'
+import { Community as DbCommunity, User as DbUser, UserContact as DbUserContact } from 'database'
 import CONFIG from '@/config'
-import { User as DbUser } from 'database'
-import { UserContact as DbUserContact } from 'database'
 import { fullName } from '@/graphql/util/fullName'
 import { GraphQLError } from 'graphql'
 import { cleanDB, testEnvironment } from '@test/helpers'
