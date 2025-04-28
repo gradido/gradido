@@ -1,0 +1,39 @@
+{
+  "extends": ["//"],
+  "tasks": {
+    "commonConfig": {
+      "dependsOn": ["config-schema#build"],
+      "cache": false
+    },
+    "clear": {
+      "dependsOn": ["commonConfig"]
+    },
+    "up:backend_test": {
+      "dependsOn": ["commonConfig"]
+    },
+    "up:federation_test": {
+      "dependsOn": ["commonConfig"]
+    },
+    "up:dht_test": {
+      "dependsOn": ["commonConfig"]
+    },
+    "dev_up": {
+      "dependsOn": ["commonConfig"]
+    },
+    "dev_down": {
+      "dependsOn": ["commonConfig"]
+    },
+    "dev_reset": {
+      "dependsOn": ["commonConfig"]
+    },
+    "up": {
+      "dependsOn": ["commonConfig", "build"]
+    },
+    "down": {
+      "dependsOn": ["commonConfig", "build"]
+    },
+    "reset": {
+      "dependsOn": ["commonConfig", "build"]
+    }
+  }
+}

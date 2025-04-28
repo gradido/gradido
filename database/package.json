@@ -55,7 +55,6 @@
   "dependencies": {
     "@types/uuid": "^8.3.4",
     "cross-env": "^7.0.3",
-    "crypto": "^1.0.1",
     "decimal.js-light": "^2.5.1",
     "dotenv": "^10.0.0",
     "geojson": "^0.5.0",
