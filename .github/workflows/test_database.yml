@@ -50,6 +50,36 @@ jobs:
       
       - name: Database | reset
         run: docker compose -f docker-compose.yml -f docker-compose.reset.yml up --no-deps database
+
+  database_migration_test_turbo:
+    if: needs.files-changed.outputs.database == 'true' || needs.files-changed.outputs.docker-compose == 'true'  || needs.files-changed.outputs.mariadb == 'true'
+    name: Database Migration Test - Up + Reset (Turbo)
+    needs: files-changed
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Database | docker-compose
+        run: docker compose -f docker-compose.yml -f docker-compose.test.yml up --detach mariadb
+
+      - name: Install turbo
+        run: yarn global add turbo@^2
+
+      - name: Prune database with turbos help
+        run: turbo prune database
+
+      - name: install dependencies
+        run: cd out && yarn install --frozen-lockfile --production=false
+
+      - name: Wait for MariaDB to be ready
+        run: docker run --rm --network gradido_internal-net busybox sh -c 'until nc -z mariadb 3306; do echo waiting for db; sleep 1; done;'
+      
+      - name: Database | up
+        run: cd out && turbo up
+      
+      - name: Database | reset
+        run: cd out && turbo reset
         
   lint:
     if: needs.files-changed.outputs.database == 'true'
@@ -62,3 +92,40 @@ jobs:
 
       - name: Database | Lint
         run: cd database && yarn && yarn run lint
+
+  lint_bun:
+    if: needs.files-changed.outputs.database == 'true'
+    name: Lint - Database Up (Bun)
+    needs: files-changed
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Database | Lint
+        run: bun install && cd database && bunx --bun run lint
+
+  lint_turbo:
+    if: needs.files-changed.outputs.database == 'true'
+    name: Lint - Database Up (Turbo)
+    needs: files-changed
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install turbo
+        run: yarn global add turbo@^2
+
+      - name: Prune database with turbos help
+        run: turbo prune database
+
+      - name: install dependencies
+        run: cd out && yarn install --frozen-lockfile --production=false
+
+      - name: Database | Lint
+        run: cd out && turbo lint
