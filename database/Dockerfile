@@ -37,94 +37,59 @@ RUN mkdir -p ${DOCKER_WORKDIR}
 WORKDIR ${DOCKER_WORKDIR}
 
 ##################################################################################
-# DEVELOPMENT (Connected to the local environment, to reload on demand) ##########
+# Base with turbo ################################################################
 ##################################################################################
-FROM base as development
+FROM base as turbo-base
 
-# We don't need to copy or build anything since we gonna bind to the
-# local filesystem which will need a rebuild anyway
+RUN apk update && apk add --no-cache libc6-compat \ 
+  && yarn global add turbo@^2 \
+  && rm -rf /tmp/* ~/.cache node_modules/.cache \
+  && yarn cache clean
 
-# Run command
-# (for development we need to execute npm install since the
-#  node_modules are on another volume and need updating)
-CMD /bin/sh -c "yarn install"
 
 ##################################################################################
-# BUILD (Does contain all files and is therefore bloated) ########################
+# BUILDER (create partly monorepo only with data needed by dht-node) #############
 ##################################################################################
-FROM base as build
+FROM turbo-base as builder
 
-# Copy everything
-COPY . .
-# npm install
-RUN yarn install --production=false --frozen-lockfile --non-interactive
-# npm build
-RUN yarn run build
+COPY --chown=app:app . . 
+RUN turbo prune database --docker
 
+##################################################################################
+# INSTALLER (create production image) ##############################################
+##################################################################################
+FROM turbo-base AS installer
+
+# First install the dependencies (as they change less often)
+COPY --chown=app:app --from=builder /app/out/json/ .
+RUN yarn install --frozen-lockfile --production=false \
+ && rm -rf /tmp/* ~/.cache node_modules/.cache \
+ && yarn cache clean
+ 
+# Build the project
+COPY --chown=app:app --from=builder /app/out/full/ .
+#RUN turbo build
+ 
 ##################################################################################
 # TEST UP ########################################################################
 ##################################################################################
-FROM build as test_up
+FROM installer as up
 
 # Run command
-CMD /bin/sh -c "yarn install && yarn run dev_up"
+CMD /bin/sh -c "turbo up"
 
 ##################################################################################
 # TEST RESET #####################################################################
 ##################################################################################
-FROM build as test_reset
+FROM installer as reset
 
 # Run command
-CMD /bin/sh -c "yarn install && yarn run dev_reset"
+CMD /bin/sh -c "turbo reset"
 
 ##################################################################################
 # TEST DOWN ######################################################################
 ##################################################################################
-FROM build as test_down
+FROM installer as down
 
 # Run command
-CMD /bin/sh -c "yarn install && yarn run dev_down"
-
-##################################################################################
-# PRODUCTION (Does contain only "binary"- and static-files to reduce image size) #
-##################################################################################
-FROM base as production
-
-# Copy "binary"-files from build image
-COPY --from=build ${DOCKER_WORKDIR}/build ./build
-# We also copy the node_modules express and serve-static for the run script
-COPY --from=build ${DOCKER_WORKDIR}/node_modules ./node_modules
-# Copy static files
-# COPY --from=build ${DOCKER_WORKDIR}/public ./public
-# Copy package.json for script definitions (lock file should not be needed)
-COPY --from=build ${DOCKER_WORKDIR}/package.json ./package.json
-# Copy Mnemonic files
-COPY --from=build ${DOCKER_WORKDIR}/src/config/*.txt ./src/config/
-# Copy log folder
-COPY --from=build ${DOCKER_WORKDIR}/log ./log
-# Copy run scripts run/
-# COPY --from=build ${DOCKER_WORKDIR}/run ./run
-
-##################################################################################
-# PRODUCTION UP ##################################################################
-##################################################################################
-FROM production as production_up
-
-# Run command
-CMD /bin/sh -c "yarn run up"
-
-##################################################################################
-# PRODUCTION RESET ###############################################################
-##################################################################################
-FROM production as production_reset
-
-# Run command
-CMD /bin/sh -c "yarn run reset"
-
-##################################################################################
-# PRODUCTION DOWN ################################################################
-##################################################################################
-FROM production as production_down
-
-# Run command
-CMD /bin/sh -c "yarn run down"
+CMD /bin/sh -c "turbo down"
