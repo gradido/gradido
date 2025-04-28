@@ -5,7 +5,7 @@
       :link-data="props.linkData"
       :redeem-code="props.redeemCode"
       :is-contribution-link="props.isContributionLink"
-      :is-disbursement-link="props.isDisbursementLink"
+      :is-redeem-jwt-link="props.isRedeemJwtLink"
     />
 
     <BCard>
@@ -41,7 +41,7 @@ const props = defineProps({
   linkData: { type: Object, required: true },
   redeemCode: { type: String, required: true },
   isContributionLink: { type: Boolean, default: false },
-  isDisbursementLink: { type: Boolean, default: false },
+  isRedeemJwtLink: { type: Boolean, default: false },
 })
 
 const recipientCommunity = ref({

@@ -96,7 +96,7 @@ function setRecipientCommunity(community) {
 
 function extractHomeCommunityFromLinkData(linkData) {
   console.log('RedeemCommunitySelection.extractHomeCommunityFromLinkData...linkData=', linkData)
-  if (linkData.communities.length === 0) {
+  if (linkData.communities?.length === 0) {
     return {
       uuid: '',
       name: CONFIG.COMMUNITY_NAME,
@@ -109,7 +109,7 @@ function extractHomeCommunityFromLinkData(linkData) {
     'RedeemCommunitySelection.extractHomeCommunityFromLinkData...communities=',
     communities,
   )
-  const homeCommunity = communities.find((c) => c.foreign === false)
+  const homeCommunity = communities?.find((c) => c.foreign === false)
   console.log(
     'RedeemCommunitySelection.extractHomeCommunityFromLinkData...homeCommunity=',
     homeCommunity,
