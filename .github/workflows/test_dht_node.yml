@@ -31,25 +31,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-<<<<<<< HEAD
       - name: Build 'test' image (typecheck & build)
         run: docker build --target test -t "gradido/dht-node:test" -f dht-node/Dockerfile .
-=======
-      - name: Build 'test' image
-        run: docker build --target test -t "gradido/dht-node:test" -f dht-node/Dockerfile .
-
-  lint:
-    name: Lint - DHT Node
-    if: needs.files-changed.outputs.dht_node == 'true'
-    needs: files-changed
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: DHT-Node | Lint
-        run: cd database && yarn && cd ../dht-node && yarn && yarn run lint
->>>>>>> refactor_database
 
   unit_test:
     name: Unit Tests - DHT Node
@@ -70,7 +53,6 @@ jobs:
       - name: docker-compose mariadb
         run: docker compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps mariadb
 
-<<<<<<< HEAD
       - name: Install turbo
         run: yarn global add turbo@^2
 
@@ -97,17 +79,3 @@ jobs:
     steps:
       - name: Check result from previous step
         run: if [ "${{ needs.unit_test.outputs.test-success }}" != "true" ]; then exit 1; fi
-=======
-      - name: DHT-Node | install and build
-        run: cd database && yarn && yarn build && cd ../config && yarn && cd ../dht-node && yarn && yarn build
-
-      - name: wait for database to be ready
-        run: docker run --rm --network gradido_internal-net busybox sh -c 'until nc -z mariadb 3306; do echo waiting for db; sleep 1; done;'
-
-      - name: DHT-Node | prepare database
-        run: cd database && yarn up:dht_test
-
-      - name: DHT-Node | Unit tests
-        run: cd dht-node && yarn test
-
->>>>>>> refactor_database
