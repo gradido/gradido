@@ -40,7 +40,7 @@ export default defineConfig({
     supportFile: 'cypress/support/index.ts',
     viewportHeight: 720,
     viewportWidth: 1280,
-    video: false,
+    video: true,
     retries: 0,
     env: {
       backendURL: 'http://127.0.0.1:4000',

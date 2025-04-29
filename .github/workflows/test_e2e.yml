@@ -86,6 +86,14 @@ jobs:
         with:
           name: cypress-report-pr-#${{ steps.pr.outputs.number }}
           path: /home/runner/work/gradido/gradido/e2e-tests/cypress/reports/cucumber_html_report
+
+      - name: End-to-end tests | if tests failed, upload video
+        id: e2e-video
+        if: ${{ failure() && steps.e2e-tests.conclusion == 'failure' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-report-pr-#${{ steps.pr.outputs.number }}
+          path: /home/runner/work/gradido/gradido/e2e-tests/cypress/videos
       
       - name: End-to-end tests | if tests failed, upload logs
         if: ${{ failure() && steps.e2e-tests.conclusion == 'failure' }}
