@@ -61,7 +61,7 @@ jobs:
       - name: Admin Interface | Unit tests
         id: test
         run: |
-          turbo admin#test admin#lint
+          cd out && turbo admin#test admin#lint
           echo "success=$([ $? -eq 0 ] && echo true || echo false)" >> $GITHUB_OUTPUT
 
   lint:
