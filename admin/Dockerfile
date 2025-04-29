@@ -1,7 +1,7 @@
 ##################################################################################
 # BASE ###########################################################################
 ##################################################################################
-FROM node:18.20-alpine3.20 as base
+FROM node:18.20.7-alpine3.21 as base
 
 # ENVs (available in production aswell, can be overwritten by commandline or env file)
 ## DOCKER_WORKDIR would be a classical ARG, but that is not multi layer persistent - shame
@@ -9,9 +9,12 @@ ENV DOCKER_WORKDIR="/app"
 ## We Cannot do `$(date -u +'%Y-%m-%dT%H:%M:%SZ')` here so we use unix timestamp=0
 ENV BUILD_DATE="1970-01-01T00:00:00.00Z"
 ## We cannot do $(npm run version).${BUILD_NUMBER} here so we default to 0.0.0.0
-ENV BUILD_VERSION="0.0.0.0"
-## We cannot do `$(git rev-parse --short HEAD)` here so we default to 0000000
-ENV BUILD_COMMIT_SHORT="0000000"
+ARG BUILD_VERSION
+ENV BUILD_VERSION=${BUILD_VERSION}
+ARG BUILD_COMMIT
+ENV BUILD_COMMIT=${BUILD_COMMIT}
+ARG BUILD_COMMIT_SHORT
+ENV BUILD_COMMIT_SHORT=${BUILD_COMMIT_SHORT}
 ## SET NODE_ENV
 ARG NODE_ENV="production"
 ## App relevant Envs
@@ -42,67 +45,57 @@ EXPOSE ${PORT}
 RUN mkdir -p ${DOCKER_WORKDIR}
 WORKDIR ${DOCKER_WORKDIR}
 
-RUN mkdir -p /config
 
 ##################################################################################
-# DEVELOPMENT (Connected to the local environment, to reload on demand) ##########
+# Base with turbo ################################################################
 ##################################################################################
-FROM base as development
+FROM base as turbo-base
 
-# We don't need to copy or build anything since we gonna bind to the
-# local filesystem which will need a rebuild anyway
-
-# Run command
-# (for development we need to execute yarn install since the
-#  node_modules are on another volume and need updating)
-CMD /bin/sh -c "cd /config && yarn install && cd /app && yarn && yarn run dev"
+RUN apk update && apk add --no-cache libc6-compat \ 
+  && yarn global add turbo@^2 \
+  && rm -rf /tmp/* ~/.cache node_modules/.cache \
+  && yarn cache clean
 
 ##################################################################################
-# BUILD (Does contain all files and is therefore bloated) ########################
+# BUILDER (create partly monorepo only with data needed by dht-node) #############
 ##################################################################################
-FROM base as build
+FROM turbo-base as builder
 
-# Copy everything
-COPY ./admin/ .
-# Copy everything from config
-COPY ./config/ ../config/
+COPY --chown=app:app . . 
+RUN turbo prune admin --docker
 
-# yarn install and build config
-RUN cd ../config && yarn install --production=false --frozen-lockfile --non-interactive && yarn build
+##################################################################################
+# INSTALLER (create production image) ##############################################
+##################################################################################
+FROM turbo-base AS installer
 
-# yarn install admin
-RUN yarn install --production=false --frozen-lockfile --non-interactive
-
-# yarn build
-RUN yarn run build
-
+# First install the dependencies (as they change less often)
+COPY --chown=app:app --from=builder /app/out/json/ .
+RUN yarn install --frozen-lockfile --production=false \
+ && rm -rf /tmp/* ~/.cache node_modules/.cache \
+ && yarn cache clean
+ 
+# Build the project
+COPY --chown=app:app --from=builder /app/out/full/ .
+RUN turbo build --env-mode=loose
+RUN pwd && ls -lah && du -d1 -h
+ 
 ##################################################################################
 # TEST ###########################################################################
 ##################################################################################
-FROM build as test
-
-# Install Additional Software
-RUN apk add --no-cache bash jq
+FROM installer as test
 
 # Run command
-CMD /bin/sh -c "yarn run dev"
+CMD /bin/sh -c "turbo admin#test --env-mode=loose"
 
 ##################################################################################
 # PRODUCTION (Does contain only "binary"- and static-files to reduce image size) #
 ##################################################################################
-FROM base as production
+FROM nginx:alpine as production
 
-# Copy "binary"-files from build image
-COPY --from=build ${DOCKER_WORKDIR}/build ./build
-COPY --from=build ${DOCKER_WORKDIR}/../config/build ../config/build
-# We also copy the node_modules express and serve-static for the run script
-COPY --from=build ${DOCKER_WORKDIR}/node_modules ./node_modules
-# Copy static files
-COPY --from=build ${DOCKER_WORKDIR}/public ./public
-# Copy package.json for script definitions (lock file should not be needed)
-COPY --from=build ${DOCKER_WORKDIR}/package.json ./package.json
-# Copy run scripts run/
-COPY --from=build ${DOCKER_WORKDIR}/run ./run
+# copy builded frontend files
+COPY --from=installer /app/admin/build/ /usr/share/nginx/html/
 
-# Run command
-CMD /bin/sh -c "yarn run start"
+# copy nginx config
+COPY nginx/serveAdmin.conf /etc/nginx/conf.d/default.conf
+

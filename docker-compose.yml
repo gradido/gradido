@@ -44,11 +44,15 @@ services:
       context: ./
       dockerfile: ./admin/Dockerfile
       target: production
+      args: 
+        BUILD_COMMIT: ${BUILD_COMMIT}
+        BUILD_COMMIT_SHORT: ${BUILD_COMMIT_SHORT}
+        BUILD_VERSION: ${BUILD_VERSION}
     networks:
       - external-net
       - internal-net
     ports:
-      - 8080:8080
+      - 8080:80
     environment:
       # Envs used in Dockerfile
       # - DOCKER_WORKDIR="/app"
