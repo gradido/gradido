@@ -40,6 +40,8 @@ jobs:
     name: Unit Tests - Admin Interface
     needs: files-changed
     runs-on: ubuntu-latest
+    outputs:
+      test-success: ${{ steps.test.outputs.success }}
     steps:
       - name: Set Node.js version
         uses: actions/setup-node@v4

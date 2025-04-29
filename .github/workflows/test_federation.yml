@@ -37,8 +37,10 @@ jobs:
   unit_test:
     name: Unit Tests - Federation
     if: needs.files-changed.outputs.database == 'true' || needs.files-changed.outputs.docker-compose == 'true' || needs.files-changed.outputs.federation == 'true' || needs.files-changed.outputs.mariadb == 'true'
-    needs: [files-changed, build]
+    needs: files-changed
     runs-on: ubuntu-latest
+    outputs:
+      test-success: ${{ steps.test.outputs.success }}
     steps:
       - name: Set Node.js version
         uses: actions/setup-node@v4
@@ -72,7 +74,7 @@ jobs:
   lint:
     name: Lint - Federation
     if: needs.files-changed.outputs.federation == 'true'
-    needs: files-changed
+    needs: [files-changed, unit_test]
     runs-on: ubuntu-latest
     steps:
       - name: Check result from previous step
