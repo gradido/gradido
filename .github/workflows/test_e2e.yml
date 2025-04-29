@@ -8,17 +8,20 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Boot up test system | docker-compose mariadb
-        run: docker compose -f docker-compose.yml -f docker-compose.test.yml up --detach mariadb
+      - name: install bun 
+        uses: oven-sh/setup-bun@v2
+
+      - name: Boot up test system | docker-compose mariadb mailserver
+        run: docker compose -f docker-compose.yml -f docker-compose.test.yml up --detach mariadb mailserver
 
       - name: Prepare test system
         run: |
           sudo chown runner:docker -R *
-          cd database && yarn && yarn build
-          cd ../config && yarn
-          cd ../backend && yarn
+          bun install
+          cp ./nginx/gradido.conf /etc/nginx/sites-available/default
+          sudo systemctl start nginx
 
       - name: End-to-end tests | prepare
         run: |
@@ -26,22 +29,20 @@ jobs:
           chmod +x /opt/cucumber-json-formatter
           sudo ln -fs /opt/cucumber-json-formatter /usr/bin/cucumber-json-formatter
           cd e2e-tests/
-          yarn
+          yarn install
 
       - name: wait for database to be ready
         run: docker run --rm --network gradido_internal-net busybox sh -c 'until nc -z mariadb 3306; do echo waiting for db; sleep 1; done;'
 
       - name: Boot up test system | seed backend
-        run: |
-          cd database && yarn dev_reset
-          cd ../backend && yarn seed
+        run: bun turbo seed
 
       - name: Boot up test system | docker-compose backend, frontend, admin, nginx, mailserver
         run: |
           cd backend
           cp .env.test_e2e .env
           cd ..
-          docker compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps backend frontend admin nginx mailserver
+          bun turbo dev
 
       - name: End-to-end tests | run tests
         id: e2e-tests

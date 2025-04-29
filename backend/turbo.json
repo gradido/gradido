@@ -1,6 +1,9 @@
 {
   "extends": ["//"],
   "tasks": {
+    "seed": {
+      "dependsOn": ["database#up", "config-schema#build", "database#build"]
+    },    
     "locales": {},
     "lint": {
       "dependsOn": ["locales", "database#build"]
