@@ -1,6 +1,10 @@
 {
   "extends": ["//"],
   "tasks": {
+    "locales": {},
+    "lint": {
+      "dependsOn": ["locales"]
+    },
     "test": {
       "dependsOn": ["database#up:backend_test"]
     },

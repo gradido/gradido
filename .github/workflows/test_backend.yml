@@ -8,6 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       backend: ${{ steps.changes.outputs.backend }}
+      config: ${{ steps.changes.outputs.config }}
       database: ${{ steps.changes.outputs.database }}
       docker-compose: ${{ steps.changes.outputs.docker-compose }}
       mariadb: ${{ steps.changes.outputs.mariadb }}
@@ -23,7 +24,7 @@ jobs:
           list-files: shell
 
   build_test:
-    if: needs.files-changed.outputs.backend == 'true'
+    if: needs.files-changed.outputs.backend == 'true' || needs.files-changed.outputs.config == 'true' || needs.files-changed.outputs.database == 'true'
     name: Docker Build Test - Backend
     needs: files-changed
     runs-on: ubuntu-latest
@@ -35,49 +36,56 @@ jobs:
         run: docker build -f ./backend/Dockerfile --target test -t "gradido/backend:test" .
 
   unit_test:
-    if: needs.files-changed.outputs.backend == 'true' || needs.files-changed.outputs.database == 'true' || needs.files-changed.outputs.docker-compose == 'true' || needs.files-changed.outputs.mariadb == 'true'
+    if: needs.files-changed.outputs.backend == 'true' || needs.files-changed.outputs.database == 'true' || needs.files-changed.outputs.docker-compose == 'true' || needs.files-changed.outputs.mariadb == 'true' || needs.files-changed.outputs.config == 'true'
     name: Unit tests - Backend
     needs: files-changed
     runs-on: ubuntu-latest
+    outputs:
+      test-success: ${{ steps.test.outputs.success }}
     steps:
+      - name: Set Node.js version
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.20.7'
+
       - name: Checkout code
         uses: actions/checkout@v3
-
+            
       - name: docker-compose mariadb
         run: docker compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps mariadb
-      
-      - name: Backend | install and build
-        run: cd database && yarn && yarn build && cd ../config && yarn && cd ../backend && yarn && yarn build
+    
+      - name: Install turbo
+        run: yarn global add turbo@^2
 
-      - name: wait for database to be ready
+      - name: Prune federation with turbos help
+        run: turbo prune federation
+
+      - name: install dependencies
+        run: cd out && yarn install --frozen-lockfile --production=false
+
+      - name: Wait for MariaDB to be ready
         run: docker run --rm --network gradido_internal-net busybox sh -c 'until nc -z mariadb 3306; do echo waiting for db; sleep 1; done;'
 
-      - name: Backend | prepare database
-        run: cd database && yarn up:backend_test
-
       - name: Backend | Unit tests
-        run: cd backend && yarn test
+        id: test
+        run: |
+          cd out && turbo backend#lint backend#test
+          echo "success=$([ $? -eq 0 ] && echo true || echo false)" >> $GITHUB_OUTPUT
 
   lint:
     if: needs.files-changed.outputs.backend == 'true'
     name: Lint - Backend
-    needs: files-changed
+    needs: [files-changed, unit_test]
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Backend | Lint
-        run: cd database && yarn && cd ../backend && yarn && yarn run lint
+      - name: Check result from previous step
+        run: if [ "${{ needs.unit_test.outputs.test-success }}" != "true" ]; then exit 1; fi
 
   locales:
     if: needs.files-changed.outputs.backend == 'true'
     name: Locales - Backend
-    needs: files-changed
+    needs: [files-changed, unit_test]
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Backend | Locales
-        run: cd backend && yarn && yarn locales
+      - name: Check result from previous step
+        run: if [ "${{ needs.unit_test.outputs.test-success }}" != "true" ]; then exit 1; fi
