@@ -113,7 +113,7 @@ const validLink = computed(() => {
 })
 
 const itemType = computed(() => {
-  console.log('TransactionLink.itemType... linkData=', linkData.value)
+  console.log('TransactionLink.itemType... linkData=', linkData)
   if (linkData.value.deletedAt) {
     console.log('TransactionLink.itemType... TEXT_DELETED')
     return 'TEXT_DELETED'
@@ -131,11 +131,28 @@ const itemType = computed(() => {
       console.log('TransactionLink.itemType... REDEEM_SELECT_COMMUNITY')
       return 'REDEEM_SELECT_COMMUNITY'
     }
+    console.log(
+      'TransactionLink.itemType... linkData.value.recipientUser=',
+      linkData.value.recipientUser,
+    )
+    console.log('TransactionLink.itemType... linkData.value=', linkData.value)
+    console.log('TransactionLink.itemType... store.state.gradidoID=', store.state.gradidoID)
+    console.log('TransactionLink.itemType... isRedeemJwtLink=', isRedeemJwtLink.value)
+    console.log('TransactionLink.itemType... linkData.value.senderUser=', linkData.value.senderUser)
+    console.log(
+      'TransactionLink.itemType... linkData.value.recipientUser.gradidoID=',
+      linkData.value.recipientUser.gradidoID,
+    )
+    console.log(
+      'TransactionLink.itemType... linkData.value.senderUser.gradidoID=',
+      linkData.value.senderUser.gradidoID,
+    )
     if (
       (!isRedeemJwtLink.value &&
         linkData.value.recipientUser &&
         store.state.gradidoID === linkData.value.recipientUser.gradidoID) ||
       (isRedeemJwtLink.value &&
+        linkData.value.senderUser &&
         linkData.value.senderUser.gradidoID === linkData.value.recipientUser.gradidoID)
     ) {
       console.log('TransactionLink.itemType... SELF_CREATOR')
@@ -250,11 +267,9 @@ function setRedeemJwtLinkInformation() {
   if (queryTransactionLink) {
     // recipientUser is only set if the user is logged in
     if (store.state.gradidoID !== null) {
-      queryTransactionLink.recipientUser = {
-        gradidoID: store.state.gradidoID,
-        firstName: store.state.firstName,
-        alias: store.state.alias,
-      }
+      queryTransactionLink.recipientUser.gradidoID = store.state.gradidoID
+      queryTransactionLink.recipientUser.firstName = store.state.firstName
+      queryTransactionLink.recipientUser.alias = store.state.alias
     }
     console.log(
       'TransactionLink.setRedeemJwtLinkInformation... recipientUser=',
