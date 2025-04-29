@@ -10,7 +10,7 @@
     "typecheck": {
     },
     "dev": {
-      "dependsOn": ["config#build"],
+      "dependsOn": ["config-schema#build"],
       "persistent": true,
       "cache": false
     },
