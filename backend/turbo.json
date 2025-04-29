@@ -3,7 +3,7 @@
   "tasks": {
     "locales": {},
     "lint": {
-      "dependsOn": ["locales"]
+      "dependsOn": ["locales", "database#build"]
     },
     "test": {
       "dependsOn": ["database#up:backend_test", "config-schema#build", "database#build"]
