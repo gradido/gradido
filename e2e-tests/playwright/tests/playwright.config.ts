@@ -13,7 +13,7 @@ const config: PlaywrightTestConfig = {
   video: 'never',
   viewport: { width: 1280, height: 720 },
   use: {
-    baseURL: process.env.URL || 'http://localhost:3000',
+    baseURL: process.env.URL || 'http://127.0.0.1:3000',
     browserName: 'webkit',
 
   },
