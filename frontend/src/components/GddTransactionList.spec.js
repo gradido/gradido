@@ -95,6 +95,9 @@ describe('GddTransactionList', () => {
     })
 
     describe('timestamp property', () => {
+      beforeEach(async () => {
+        await wrapper.setProps({ timestamp: new Date().getTime() })
+      })
       it('emits update-transactions when timestamp changes', async () => {
         await wrapper.setProps({ timestamp: 0 })
         expect(wrapper.emitted('update-transactions')).toBeTruthy()

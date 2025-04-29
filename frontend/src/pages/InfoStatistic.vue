@@ -72,12 +72,4 @@ onContributionLinksError(() => {
 onAdminUsersError(() => {
   toastError('searchAdminUsers has no result, use default data')
 })
-
-const updateTransactions = (pagination) => {
-  emit('update-transactions', pagination)
-}
-
-onMounted(() => {
-  updateTransactions(0)
-})
 </script>
