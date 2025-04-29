@@ -1,7 +1,7 @@
 import 'reflect-metadata'
 
 import { ApolloServer } from 'apollo-server-express'
-import express, { Express } from 'express'
+import express, { Express, RequestHandler } from 'express'
 
 // database
 import connection from '@/typeorm/connection'
@@ -82,7 +82,7 @@ export const createServer = async (
      *
      * and so on. After 1 seconds, the delay is reset to 0.
      */
-  })
+  }) as RequestHandler
   app.use(limiter)
   // because of nginx proxy, needed for limiter
   app.set('trust proxy', 1)

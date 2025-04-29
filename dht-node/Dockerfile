@@ -78,20 +78,6 @@ RUN yarn install --frozen-lockfile --production=false \
 # Build the project
 COPY --chown=app:app --from=builder /app/out/full/ .
 RUN turbo build
-
-##################################################################################
-# DEVELOPMENT (Connected to the local environment, to reload on demand) ##########
-##################################################################################
-FROM installer as development
-
-# We don't need to copy or build anything since we gonna bind to the
-# local filesystem which will need a rebuild anyway
-
-# Run command
-# (for development we need to execute yarn install since the
-#  node_modules are on another volume and need updating)
-CMD /bin/sh -c "turbo dev --env-mode=loose"
-
  
 ##################################################################################
 # TEST ###########################################################################

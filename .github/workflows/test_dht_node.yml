@@ -73,7 +73,7 @@ jobs:
 
   lint:
     name: Lint - DHT Node
-    if: needs.files-changed.outputs.config == 'true' || needs.files-changed.outputs.database == 'true' || needs.files-changed.outputs.dht_node == 'true' || needs.files-changed.outputs.docker-compose == 'true'
+    if: needs.files-changed.outputs.dht_node == 'true'
     needs: [files-changed, unit_test]
     runs-on: ubuntu-latest
     steps:
