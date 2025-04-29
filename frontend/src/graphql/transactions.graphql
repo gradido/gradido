@@ -1,0 +1,56 @@
+fragment balanceFields on Balance {
+  balance
+  balanceGDT
+  count
+  linkCount
+}
+
+fragment transactionFields on Transaction {
+  id
+  typeId
+  amount
+  balance
+  previousBalance
+  balanceDate
+  memo
+  linkedUser {
+    firstName
+    lastName
+    communityUuid
+    communityName
+    gradidoID
+    alias
+  }
+  decay {
+    decay
+    start
+    end
+    duration
+  }
+  linkId
+}
+
+query transactionsQuery($currentPage: Int = 1, $pageSize: Int = 25, $order: Order = DESC) {
+  transactionList(currentPage: $currentPage, pageSize: $pageSize, order: $order) {
+    balance {
+      ...balanceFields
+    }
+    transactions {
+      ...transactionFields
+    }
+  }
+}
+
+query transactionsUserCountQuery($currentPage: Int = 1, $pageSize: Int = 25, $order: Order = DESC) {
+  transactionList(currentPage: $currentPage, pageSize: $pageSize, order: $order) {
+    balance {
+      ...balanceFields
+    }
+    transactions {
+      ...transactionFields
+    }
+  }
+  communityStatistics {
+    totalUsers
+  }
+}

@@ -101,7 +101,7 @@ export default {
       this.updateTransactions()
     },
     timestamp: {
-      immediate: true,
+      immediate: false,
       handler: 'updateTransactions',
     },
   },
