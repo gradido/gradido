@@ -39,8 +39,8 @@ beforeAll(async () => {
 
 afterAll(async () => {
   // await cleanDB()
-  if (!testEnv.con || !testEnv.con.isConnected) {
-    await testEnv.con.close()
+  if (testEnv.con?.isInitialized) {
+    await testEnv.con.destroy()
   }
 })
 

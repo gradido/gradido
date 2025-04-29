@@ -2,7 +2,7 @@
   "extends": ["//"],
   "tasks": {
     "test": {
-      "dependsOn": ["database#up:federation_test"]
+      "dependsOn": ["database#up:federation_test", "config-schema#build", "database#build"]
     },
     "dev": {
       "dependsOn": ["database#up"]
