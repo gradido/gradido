@@ -29,7 +29,7 @@
               :show-pagination="true"
               :page-size="pageSize"
               @close-all-open-collapse="closeAllOpenCollapse"
-              @update-list-contributions="handleUpdateListAllContributions"
+              @update-list-contributions="handleUpdateListContributions"
               @update-contribution-form="handleUpdateContributionForm"
               @delete-contribution="handleDeleteContribution"
               @update-status="updateStatus"
@@ -270,10 +270,6 @@ const handleUpdateContributionForm = (item) => {
   updateAmount.value = item.amount
   tabIndex.value = 0
   router.push({ params: { tab: 'contribute' } })
-}
-
-const updateTransactions = (pagination) => {
-  emit('update-transactions', pagination)
 }
 
 const updateStatus = (id) => {

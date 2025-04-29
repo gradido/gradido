@@ -72,20 +72,15 @@ jobs:
       
       - name: docker-compose mariadb
         run: docker compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps mariadb
-      
-      - name: Sleep for 30 seconds
-        run: sleep 30s
-        shell: bash
 
-      - name: docker-compose database
-        run: docker compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps database
+      - name: Federation | install and build
+        run: cd database && yarn && yarn build && cd ../config && yarn && cd ../federation && yarn && yarn build
 
-      - name: Sleep for 30 seconds
-        run: sleep 30s
-        shell: bash
+      - name: wait for database to be ready
+        run: docker run --rm --network gradido_internal-net busybox sh -c 'until nc -z mariadb 3306; do echo waiting for db; sleep 1; done;'
 
-      #- name: Unit tests
-      #  run: cd database && yarn && yarn build && cd ../dht-node && yarn && yarn test
-      - name: Unit tests
-        run: |
-          docker run --env NODE_ENV=test --env DB_HOST=mariadb --network gradido_internal-net --rm gradido/federation:test yarn run test
+      - name: Federation | prepare database
+        run: cd database && yarn up:federation_test
+
+      - name: Federation | Unit tests
+        run: docker run --env NODE_ENV=test --env DB_HOST=mariadb --network gradido_internal-net --rm gradido/federation:test yarn run test
