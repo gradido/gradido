@@ -4,13 +4,19 @@
 # bun
 if ! command -v bun &> /dev/null
 then
+    if ! command -v unzip &> /dev/null
+    then
+        echo "'unzip' is missing, will be installed now!"
+        sudo apt-get install -y unzip
+    fi
     echo "'bun' is missing, will be installed now!"
-    curl -fsSL https://bun.sh/install | bash
+    curl -fsSL https://bun.sh/install | BUN_INSTALL=/usr/local bash
+    export PATH="/root/.bun/bin:${PATH}"
 fi
 if ! command -v turbo &> /dev/null
 then
     echo "'turbo' is missing, will be installed now!"
-    bun global add turbo
+    bun install --global turbo
 fi
 
 # helper functions
