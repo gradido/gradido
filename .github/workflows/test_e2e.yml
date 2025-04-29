@@ -28,12 +28,12 @@ jobs:
       - name: Boot up test system | seed backend
         run: bun turbo seed
 
-      - name: Boot up test system | docker-compose backend, frontend, admin, nginx, mailserver
+      - name: Boot up test system | docker-compose backend, frontend
         run: |
           cd backend
           cp .env.test_e2e .env
           cd ..
-          bun turbo dev
+          bun turbo backend#dev frontend#dev&
       
       - name: Start local nginx webserver
         run: |
