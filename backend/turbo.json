@@ -6,7 +6,7 @@
       "dependsOn": ["locales"]
     },
     "test": {
-      "dependsOn": ["database#up:backend_test"]
+      "dependsOn": ["database#up:backend_test", "config-schema#build", "database#build"]
     },
     "dev": {
       "dependsOn": ["database#up"]
