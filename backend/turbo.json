@@ -15,7 +15,7 @@
       "dependsOn": ["database#up"]
     },
     "start": {
-      "dependsOn": ["database#up"]
+      "dependsOn": ["database#up", "build"]
     }
   }
 }
