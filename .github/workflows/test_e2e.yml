@@ -20,6 +20,7 @@ jobs:
         run: |
           sudo chown runner:docker -R *
           bun install
+          sudo cp ./nginx/e2e-test.conf /etc/nginx/sites-available/default
 
       - name: wait for database to be ready
         run: docker run --rm --network gradido_internal-net busybox sh -c 'until nc -z mariadb 3306; do echo waiting for db; sleep 1; done;'
@@ -37,7 +38,7 @@ jobs:
           cd backend
           cp .env.test_e2e .env
           cd ..
-          bun turbo backend#dev frontend#start &
+          bun turbo backend#start frontend#start &
         
       - name: End-to-end tests | prepare
         run: |
@@ -52,6 +53,14 @@ jobs:
           until nc -z 127.0.0.1 3000; do echo waiting for frontend; sleep 1; done;
           until nc -z 127.0.0.1 4000; do echo waiting for backend; sleep 1; done;
         
+      - name: Start local nginx webserver
+        run: |
+          sudo nginx -t
+          sudo systemctl start nginx 
+
+      - name: wait for nginx to be ready
+        run: until nc -z 127.0.0.1 80; do echo waiting for nginx; sleep 1; done;
+
       - name: End-to-end tests | run tests
         id: e2e-tests
         run: |
