@@ -267,9 +267,12 @@ function setRedeemJwtLinkInformation() {
   if (queryTransactionLink) {
     // recipientUser is only set if the user is logged in
     if (store.state.gradidoID !== null) {
-      queryTransactionLink.recipientUser.gradidoID = store.state.gradidoID
-      queryTransactionLink.recipientUser.firstName = store.state.firstName
-      queryTransactionLink.recipientUser.alias = store.state.alias
+      queryTransactionLink.recipientUser = {
+        __typename: 'User',
+        gradidoID: store.state.gradidoID,
+        firstName: store.state.firstName,
+        alias: store.state.alias,
+      }
     }
     console.log(
       'TransactionLink.setRedeemJwtLinkInformation... recipientUser=',
