@@ -90,14 +90,10 @@ CMD /bin/sh -c "turbo admin#test --env-mode=loose"
 ##################################################################################
 # PRODUCTION (Does contain only "binary"- and static-files to reduce image size) #
 ##################################################################################
-FROM nginx:alpine as production
+FROM lipanski/docker-static-website:latest as production
 
 # TODO: Improve size from 50 MB down to 2 MB with lipanski/docker-static-website:latest
 # https://lipanski.com/posts/smallest-docker-image-static-website
 
 # copy builded frontend files
-COPY --from=installer /app/admin/build/ /usr/share/nginx/html/
-
-# copy nginx config
-COPY nginx/serveAdmin.conf /etc/nginx/conf.d/default.conf
-
+COPY --from=installer /app/admin/build/ ./admin/
