@@ -57,8 +57,8 @@ jobs:
       - name: Install turbo
         run: yarn global add turbo@^2
 
-      - name: Prune federation with turbos help
-        run: turbo prune federation
+      - name: Prune backend with turbos help
+        run: turbo prune backend
 
       - name: install dependencies
         run: cd out && yarn install --frozen-lockfile --production=false
