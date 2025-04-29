@@ -33,13 +33,8 @@ jobs:
           cd backend
           cp .env.test_e2e .env
           cd ..
-          bun turbo backend#dev frontend#dev&
-      
-      - name: Start local nginx webserver
-        run: |
-          sudo nginx -t
-          sudo systemctl start nginx 
-
+          bun turbo backend#dev frontend#dev &
+        
       - name: End-to-end tests | prepare
         run: |
           wget --no-verbose -O /opt/cucumber-json-formatter "https://github.com/cucumber/json-formatter/releases/download/v19.0.0/cucumber-json-formatter-linux-386"
@@ -47,6 +42,19 @@ jobs:
           sudo ln -fs /opt/cucumber-json-formatter /usr/bin/cucumber-json-formatter
           cd e2e-tests/
           bun install
+
+      - name: wait for frontend and backend to be ready
+        run: |
+          docker run --rm --network gradido_internal-net busybox sh -c 'until nc -z 127.0.0.1 3000; do echo waiting for frontend; sleep 1; done;'
+          docker run --rm --network gradido_internal-net busybox sh -c 'until nc -z 127.0.0.1 4000; do echo waiting for backend; sleep 1; done;'
+        
+      - name: Start local nginx webserver
+        run: |
+          sudo nginx -t
+          sudo systemctl start nginx 
+
+      - name: wait for nginx to be ready
+        run: docker run --rm --network gradido_internal-net busybox sh -c 'until nc -z 127.0.0.1 80; do echo waiting for nginx; sleep 1; done;'
 
       - name: End-to-end tests | run tests
         id: e2e-tests
