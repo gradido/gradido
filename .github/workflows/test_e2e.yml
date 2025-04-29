@@ -31,14 +31,14 @@ jobs:
       - name: Moving logs after seeding
         run: |
           mkdir -p /home/runner/work/gradido/gradido/logs/backend/seed
-          mv /home/runner/work/gradido/gradido/logs/backend/* /home/runner/work/gradido/gradido/logs/backend/seed/
+          mv /home/runner/work/gradido/gradido/logs/backend/*.log /home/runner/work/gradido/gradido/logs/backend/seed/
 
       - name: Boot up test system | docker-compose backend, frontend
         run: |
           cd backend
           cp .env.test_e2e .env
           cd ..
-          bun turbo backend#dev frontend#dev &
+          bun turbo backend#dev frontend#start &
         
       - name: End-to-end tests | prepare
         run: |
