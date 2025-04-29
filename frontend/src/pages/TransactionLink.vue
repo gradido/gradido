@@ -278,7 +278,7 @@ function setRedeemJwtLinkInformation() {
       'TransactionLink.setRedeemJwtLinkInformation... recipientUser=',
       queryTransactionLink.recipientUser,
     )
-    linkData.value = queryTransactionLink
+    linkData.value = { ...queryTransactionLink }
     console.log('TransactionLink.setRedeemJwtLinkInformation... linkData.value=', linkData.value)
   }
 }
