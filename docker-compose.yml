@@ -15,6 +15,10 @@ services:
       context: ./
       dockerfile: ./frontend/Dockerfile
       target: production
+      args: 
+        BUILD_COMMIT: ${BUILD_COMMIT}
+        BUILD_COMMIT_SHORT: ${BUILD_COMMIT_SHORT}
+        BUILD_VERSION: ${BUILD_VERSION}
     networks:
       - external-net
       - internal-net

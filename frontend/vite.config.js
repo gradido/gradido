@@ -28,6 +28,7 @@ export default defineConfig(async ({ command }) => {
   }
   if (existsSync('../.git', constants.F_OK)) {
     CONFIG.BUILD_COMMIT = execSync('git rev-parse HEAD').toString().trim()
+    CONFIG.BUILD_COMMIT_SHORT = (CONFIG.BUILD_COMMIT ?? '0000000').slice(0, 7)
   }
   // Check config
   validate(schema, CONFIG)

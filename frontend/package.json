@@ -76,7 +76,7 @@
     "@vue/eslint-config-prettier": "^10.2.0",
     "@vue/test-utils": "^2.4.6",
     "concurrently": "^9.1.2",
-    "config": "*",
+    "config-schema": "*",
     "cross-env": "^7.0.3",
     "dotenv-webpack": "^7.0.3",
     "eslint": "8.57.1",

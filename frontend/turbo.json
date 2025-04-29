@@ -1,15 +1,12 @@
 {
   "extends": ["//"],
   "tasks": {
-    "stylelint": {
-    },
-    "locales": {
-    },
+    "stylelint": {},
+    "locales": {},
     "lint": {
       "dependsOn": ["stylelint", "locales"]
     },
-    "compile-scss": {
-    },
+    "compile-scss": {},
     "watch-scss": {
       "cache": false,
       "persistent": true

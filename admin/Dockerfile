@@ -78,7 +78,6 @@ RUN yarn install --frozen-lockfile --production=false \
 # Build the project
 COPY --chown=app:app --from=builder /app/out/full/ .
 RUN turbo build --env-mode=loose
-RUN pwd && ls -lah && du -d1 -h
  
 ##################################################################################
 # TEST ###########################################################################
