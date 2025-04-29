@@ -1,4 +1,7 @@
 /* eslint-disable prettier/prettier */
+// eslint-disable-next-line import/no-unassigned-import
+import 'reflect-metadata'
+import { PublishNameType } from '@/graphql/enum/PublishNameType'
 import { communityDbUser } from '@/util/communityUser'
 
 import { isHumhubUserIdenticalToDbUser } from './compareHumhubUserDbUser'
@@ -13,9 +16,24 @@ describe('isHumhubUserIdenticalToDbUser', () => {
         defaultUser.alias = 'alias'
         defaultUser.emailContact.email = 'email@gmail.com'
         defaultUser.language = 'en'
+        defaultUser.gradidoID = 'gradidoID'
     })
 
     it('Should return true because humhubUser was created from entity user', () => {
+        const humhubUser = new GetUser(defaultUser, 1)
+        const result = isHumhubUserIdenticalToDbUser(humhubUser, defaultUser)
+        expect(result).toBe(true)
+    })
+
+    it('Should return false, because last name differ because of publish name type', () => {
+        const humhubUser = new GetUser(defaultUser, 1)
+        defaultUser.humhubPublishName = PublishNameType.PUBLISH_NAME_FIRST
+        const result = isHumhubUserIdenticalToDbUser(humhubUser, defaultUser)
+        expect(result).toBe(false)
+    })
+
+    it('Should return true, even if alias is empty', () => {
+        defaultUser.alias = ''
         const humhubUser = new GetUser(defaultUser, 1)
         const result = isHumhubUserIdenticalToDbUser(humhubUser, defaultUser)
         expect(result).toBe(true)

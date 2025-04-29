@@ -26,7 +26,7 @@ function getUsersPage(page: number, limit: number): Promise<[User[], number]> {
 
 /**
  * @param client
- * @returns user map indices with email
+ * @returns user map indices with username
  */
 async function loadUsersFromHumHub(client: HumHubClient): Promise<Map<string, GetUser>> {
   const start = new Date().getTime()
@@ -42,7 +42,7 @@ async function loadUsersFromHumHub(client: HumHubClient): Promise<Map<string, Ge
     usersPage.results.forEach((user) => {
       // deleted users have empty emails
       if (user.account.email) {
-        humhubUsers.set(user.account.email.trim(), user)
+        humhubUsers.set(user.account.username, user)
       } else {
         skippedUsersCount++
       }
@@ -52,6 +52,7 @@ async function loadUsersFromHumHub(client: HumHubClient): Promise<Map<string, Ge
       `load users from humhub: ${humhubUsers.size}/${usersPage.total}, skipped: ${skippedUsersCount}\r`,
     )
   } while (usersPage && usersPage.results.length === HUMHUB_BULK_SIZE)
+  process.stdout.write('\n')
 
   const elapsed = new Date().getTime() - start
   logger.info('load users from humhub', {
@@ -87,23 +88,29 @@ async function main() {
   const humhubUsers = await loadUsersFromHumHub(humHubClient)
 
   let dbUserCount = 0
-  const executedHumhubActionsCount = [0, 0, 0, 0]
+  const executedHumhubActionsCount = [0, 0, 0, 0, 0]
 
   do {
-    const [users, totalUsers] = await getUsersPage(page, USER_BULK_SIZE)
-    dbUserCount += users.length
-    userCount = users.length
-    page++
-    const promises: Promise<ExecutedHumhubAction>[] = []
-    users.forEach((user: User) => promises.push(syncUser(user, humhubUsers)))
-    const executedActions = await Promise.all(promises)
-    executedActions.forEach((executedAction: ExecutedHumhubAction) => {
-      executedHumhubActionsCount[executedAction as number]++
-    })
-    // using process.stdout.write here so that carriage-return is working analog to c
-    // printf("\rchecked user: %d/%d", dbUserCount, totalUsers);
-    process.stdout.write(`checked user: ${dbUserCount}/${totalUsers}\r`)
+    try {
+      const [users, totalUsers] = await getUsersPage(page, USER_BULK_SIZE)
+      dbUserCount += users.length
+      userCount = users.length
+      page++
+      const promises: Promise<ExecutedHumhubAction>[] = []
+      users.forEach((user: User) => promises.push(syncUser(user, humhubUsers)))
+      const executedActions = await Promise.all(promises)
+      executedActions.forEach((executedAction: ExecutedHumhubAction) => {
+        executedHumhubActionsCount[executedAction as number]++
+      })
+      // using process.stdout.write here so that carriage-return is working analog to c
+      // printf("\rchecked user: %d/%d", dbUserCount, totalUsers);
+      process.stdout.write(`checked user: ${dbUserCount}/${totalUsers}\r`)
+    } catch (e) {
+      process.stdout.write('\n')
+      throw e
+    }
   } while (userCount === USER_BULK_SIZE)
+  process.stdout.write('\n')
 
   await con.destroy()
   const elapsed = new Date().getTime() - start
@@ -114,12 +121,13 @@ async function main() {
     updatedCount: executedHumhubActionsCount[ExecutedHumhubAction.UPDATE],
     skippedCount: executedHumhubActionsCount[ExecutedHumhubAction.SKIP],
     deletedCount: executedHumhubActionsCount[ExecutedHumhubAction.DELETE],
+    validationErrorCount: executedHumhubActionsCount[ExecutedHumhubAction.VALIDATION_ERROR],
   })
 }
 
 main().catch((e) => {
   // eslint-disable-next-line no-console
-  console.error(e)
+  console.error(JSON.stringify(e, null, 2))
   // eslint-disable-next-line n/no-process-exit
   process.exit(1)
 })
