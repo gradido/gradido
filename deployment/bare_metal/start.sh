@@ -1,5 +1,18 @@
 #!/bin/bash
 
+# check for some tools
+# bun
+if ! command -v bun &> /dev/null
+then
+    echo "'bun' is missing, will be installed now!"
+    curl -fsSL https://bun.sh/install | bash
+fi
+if ! command -v turbo &> /dev/null
+then
+    echo "'turbo' is missing, will be installed now!"
+    bun global add turbo
+fi
+
 # helper functions
 log_step() {
     local message="$1"
@@ -189,86 +202,34 @@ envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/admin/.env.te
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/dht-node/.env.template > $PROJECT_ROOT/dht-node/.env
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/federation/.env.template > $PROJECT_ROOT/federation/.env
 
-# Install & build database
+# Install all node_modules
+log_step 'Installing node_modules'
+bun install
+
+# build all modules
+log_step 'build all modules'
+turbo build --env-mode=loose
+
+# database
 log_step 'Updating database'
-cd $PROJECT_ROOT/database
-yarn install
-yarn build
 if [ "$DEPLOY_SEED_DATA" = "true" ]; then
-  yarn dev_up
-  yarn dev_reset
+  log_step 'Clearing database'
+  turbo clear --env-mode=loose
+  turbo up --env-mode=loose
+  log_step 'Seeding database'
+  turbo seed --env-mode=loose
 else
-  yarn up
+  turbo up --env-mode=loose
 fi
-
-# Install & build config
-log_step 'Updating config'
-cd $PROJECT_ROOT/config
-yarn install
-yarn build
-
-# Install & build backend
-log_step 'Updating backend'
-cd $PROJECT_ROOT/backend
-# TODO maybe handle this differently?
-unset NODE_ENV
-yarn install
-yarn build
-if [ "$DEPLOY_SEED_DATA" = "true" ]; then
-  yarn seed
-fi
-# TODO maybe handle this differently?
-export NODE_ENV=production
-
-
-# Install & build frontend
-log_step 'Updating frontend'
-cd $PROJECT_ROOT/frontend
-# TODO maybe handle this differently?
-unset NODE_ENV
-yarn install
-yarn build
-# TODO maybe handle this differently?
-export NODE_ENV=production
-
-# Install & build admin
-log_step 'Updating admin'
-cd $PROJECT_ROOT/admin
-# TODO maybe handle this differently?
-unset NODE_ENV
-yarn install
-yarn build
-# TODO maybe handle this differently?
-export NODE_ENV=production
-
-# Install & build dht-node
-log_step 'Updating dht-node'
-cd $PROJECT_ROOT/dht-node
-# TODO maybe handle this differently?
-unset NODE_ENV
-yarn install
-yarn build
-# TODO maybe handle this differently?
-export NODE_ENV=production
-
-# Install & build federation
-log_step 'Updating federation'
-cd $PROJECT_ROOT/federation
-# TODO maybe handle this differently?
-unset NODE_ENV
-yarn install
-yarn build
-# TODO maybe handle this differently?
-export NODE_ENV=production
 
 nvm use default
 # start after building all to use up less ressources
-pm2 start --name gradido-backend "yarn --cwd $PROJECT_ROOT/backend start" -l $GRADIDO_LOG_PATH/pm2.backend.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
+pm2 start --name gradido-backend "turbo backend#start --env-mode=loose" -l $GRADIDO_LOG_PATH/pm2.backend.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
 #pm2 start --name gradido-frontend "yarn --cwd $PROJECT_ROOT/frontend start" -l $GRADIDO_LOG_PATH/pm2.frontend.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
 #pm2 start --name gradido-admin "yarn --cwd $PROJECT_ROOT/admin start" -l $GRADIDO_LOG_PATH/pm2.admin.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
 pm2 save
 if [ ! -z $FEDERATION_DHT_TOPIC ]; then
-  pm2 start --name gradido-dht-node "yarn --cwd $PROJECT_ROOT/dht-node start" -l $GRADIDO_LOG_PATH/pm2.dht-node.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
+  pm2 start --name gradido-dht-node "turbo dht-node#start --env-mode=loose" -l $GRADIDO_LOG_PATH/pm2.dht-node.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
   pm2 save
 else
   log_step "====================================================================="
@@ -292,8 +253,7 @@ do
   log_step "===================================================="
   log_step " start $MODULENAME listening on port=$FEDERATION_PORT"
   log_step "===================================================="
-#  pm2 delete $MODULENAME
-  pm2 start --name $MODULENAME "yarn --cwd $PROJECT_ROOT/federation start" -l $GRADIDO_LOG_PATH/pm2.$MODULENAME.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
+  pm2 start --name $MODULENAME "turbo federation#start --env-mode=loose" -l $GRADIDO_LOG_PATH/pm2.$MODULENAME.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
   pm2 save
 done
 
