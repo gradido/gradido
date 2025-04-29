@@ -21,16 +21,6 @@ jobs:
           sudo chown runner:docker -R *
           bun install
           sudo cp ./nginx/gradido.conf /etc/nginx/sites-available/default
-          sudo nginx -t
-          sudo systemctl start nginx
-
-      - name: End-to-end tests | prepare
-        run: |
-          wget --no-verbose -O /opt/cucumber-json-formatter "https://github.com/cucumber/json-formatter/releases/download/v19.0.0/cucumber-json-formatter-linux-386"
-          chmod +x /opt/cucumber-json-formatter
-          sudo ln -fs /opt/cucumber-json-formatter /usr/bin/cucumber-json-formatter
-          cd e2e-tests/
-          bun install
 
       - name: wait for database to be ready
         run: docker run --rm --network gradido_internal-net busybox sh -c 'until nc -z mariadb 3306; do echo waiting for db; sleep 1; done;'
@@ -44,6 +34,19 @@ jobs:
           cp .env.test_e2e .env
           cd ..
           bun turbo dev
+      
+      - name: Start local nginx webserver
+        run: |
+          sudo nginx -t
+          sudo systemctl start nginx 
+
+      - name: End-to-end tests | prepare
+        run: |
+          wget --no-verbose -O /opt/cucumber-json-formatter "https://github.com/cucumber/json-formatter/releases/download/v19.0.0/cucumber-json-formatter-linux-386"
+          chmod +x /opt/cucumber-json-formatter
+          sudo ln -fs /opt/cucumber-json-formatter /usr/bin/cucumber-json-formatter
+          cd e2e-tests/
+          bun install
 
       - name: End-to-end tests | run tests
         id: e2e-tests
