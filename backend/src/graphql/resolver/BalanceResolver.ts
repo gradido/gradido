@@ -1,9 +1,8 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-import { IsNull } from 'typeorm'
-import { Transaction as dbTransaction } from 'database'
-import { TransactionLink as dbTransactionLink } from 'database'
+import { Transaction as dbTransaction, TransactionLink as dbTransactionLink } from 'database'
 import { Decimal } from 'decimal.js-light'
 import { Resolver, Query, Ctx, Authorized } from 'type-graphql'
+import { IsNull } from 'typeorm'
 
 import { Balance } from '@model/Balance'
 

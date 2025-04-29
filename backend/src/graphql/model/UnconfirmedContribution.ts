@@ -1,5 +1,4 @@
-import { Contribution } from 'database'
-import { User } from 'database'
+import { Contribution, User } from 'database'
 import { Decimal } from 'decimal.js-light'
 import { ObjectType, Field, Int } from 'type-graphql'
 

@@ -3,8 +3,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { Event as DbEvent } from 'database'
-import { UserContact } from 'database'
+import { Event as DbEvent, UserContact } from 'database'
 import { GraphQLError } from 'graphql'
 
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'

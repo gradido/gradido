@@ -1,6 +1,4 @@
-import { Event as DbEvent } from 'database'
-import { TransactionLink as DbTransactionLink } from 'database'
-import { User as DbUser } from 'database'
+import { Event as DbEvent, TransactionLink as DbTransactionLink, User as DbUser } from 'database'
 import { Decimal } from 'decimal.js-light'
 
 import { Event } from './Event'

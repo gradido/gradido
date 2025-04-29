@@ -1,8 +1,6 @@
-import { FindOptionsWhere } from 'typeorm'
-import { Community } from 'database'
-import { User as DbUser } from 'database'
-import { UserContact as DbUserContact } from 'database'
 import { isURL } from 'class-validator'
+import { Community, User as DbUser, UserContact as DbUserContact } from 'database'
+import { FindOptionsWhere } from 'typeorm'
 import { validate, version } from 'uuid'
 
 import { LogError } from '@/server/LogError'
@@ -24,8 +22,8 @@ export const findUserByIdentifier = async (
   const communityWhere: FindOptionsWhere<Community> = isURL(communityIdentifier)
     ? { url: communityIdentifier }
     : isUUID4(communityIdentifier)
-    ? { communityUuid: communityIdentifier }
-    : { name: communityIdentifier }
+      ? { communityUuid: communityIdentifier }
+      : { name: communityIdentifier }
 
   if (validate(identifier) && version(identifier) === 4) {
     user = await DbUser.findOne({

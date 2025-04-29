@@ -1,9 +1,12 @@
 /** eslint-disable @typescript-eslint/no-unsafe-assignment */
 /** eslint-disable @typescript-eslint/no-unsafe-call */
+import {
+  Community as DbCommunity,
+  FederatedCommunity as DbFederatedCommunity,
+  FederatedCommunityLoggingView,
+} from 'database'
 import { IsNull } from 'typeorm'
-import { Community as DbCommunity } from 'database'
-import { FederatedCommunity as DbFederatedCommunity } from 'database'
-import { FederatedCommunityLoggingView } from 'database'
+
 import { FederationClient as V1_0_FederationClient } from '@/federation/client/1_0/FederationClient'
 import { PublicCommunityInfo } from '@/federation/client/1_0/model/PublicCommunityInfo'
 import { FederationClientFactory } from '@/federation/client/FederationClientFactory'

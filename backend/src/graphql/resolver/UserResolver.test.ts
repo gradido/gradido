@@ -4,16 +4,18 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { Connection } from 'typeorm'
-import { Community as DbCommunity } from 'database'
-import { Event as DbEvent } from 'database'
-import { TransactionLink } from 'database'
-import { User } from 'database'
-import { UserContact } from 'database'
-import { UserRole } from 'database'
 import { UserInputError } from 'apollo-server-express'
 import { ApolloServerTestClient } from 'apollo-server-testing'
+import {
+  Community as DbCommunity,
+  Event as DbEvent,
+  TransactionLink,
+  User,
+  UserContact,
+  UserRole,
+} from 'database'
 import { GraphQLError } from 'graphql'
+import { Connection } from 'typeorm'
 import { v4 as uuidv4, validate as validateUUID, version as versionUUID } from 'uuid'
 
 import { GmsPublishLocationType } from '@enum/GmsPublishLocationType'

@@ -1,10 +1,10 @@
-import { ObjectLiteral, SelectQueryBuilder } from 'typeorm'
 import { GraphQLResolveInfo } from 'graphql'
 import {
   parseResolveInfo,
   ResolveTree,
   simplifyParsedResolveInfoFragmentWithType,
 } from 'graphql-parse-resolve-info'
+import { ObjectLiteral, SelectQueryBuilder } from 'typeorm'
 
 /**
  * Extracts the requested fields from GraphQL

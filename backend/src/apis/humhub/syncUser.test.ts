@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
-import { User } from 'database'
-import { UserContact } from 'database'
+import { User, UserContact } from 'database'
 
 import { GetUser } from './model/GetUser'
 import { syncUser, ExecutedHumhubAction } from './syncUser'

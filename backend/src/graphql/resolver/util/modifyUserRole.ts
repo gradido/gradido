@@ -1,5 +1,4 @@
-import { User as DbUser } from 'database'
-import { UserRole } from 'database'
+import { User as DbUser, UserRole } from 'database'
 
 import { LogError } from '@/server/LogError'
 

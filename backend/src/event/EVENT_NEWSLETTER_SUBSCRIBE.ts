@@ -1,5 +1,4 @@
-import { Event as DbEvent } from 'database'
-import { User as DbUser } from 'database'
+import { Event as DbEvent, User as DbUser } from 'database'
 
 import { Event } from './Event'
 import { EventType } from './EventType'

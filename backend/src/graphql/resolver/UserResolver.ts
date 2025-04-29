@@ -2,13 +2,14 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-import { getConnection, In, Point } from 'typeorm'
-import { ContributionLink as DbContributionLink } from 'database'
-import { ProjectBranding } from 'database'
-import { TransactionLink as DbTransactionLink } from 'database'
-import { User as DbUser } from 'database'
-import { UserContact as DbUserContact } from 'database'
-import { UserLoggingView } from 'database'
+import {
+  ContributionLink as DbContributionLink,
+  ProjectBranding,
+  TransactionLink as DbTransactionLink,
+  User as DbUser,
+  UserContact as DbUserContact,
+  UserLoggingView,
+} from 'database'
 import { GraphQLResolveInfo } from 'graphql'
 import i18n from 'i18n'
 import {
@@ -25,6 +26,7 @@ import {
   Info,
 } from 'type-graphql'
 import { IRestResponse } from 'typed-rest-client'
+import { getConnection, In, Point } from 'typeorm'
 import { v4 as uuidv4 } from 'uuid'
 
 import { UserArgs } from '@arg//UserArgs'

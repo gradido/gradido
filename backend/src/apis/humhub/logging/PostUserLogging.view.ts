@@ -1,4 +1,5 @@
 import { AbstractLoggingView } from 'database'
+
 import { PostUser } from '@/apis/humhub/model/PostUser'
 
 import { AccountLoggingView } from './AccountLogging.view'

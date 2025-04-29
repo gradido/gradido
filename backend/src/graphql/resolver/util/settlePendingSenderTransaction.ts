@@ -2,12 +2,14 @@
 /* eslint-disable new-cap */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
-import { getConnection } from 'typeorm'
-import { Community as DbCommunity } from 'database'
-import { PendingTransaction as DbPendingTransaction } from 'database'
-import { Transaction as dbTransaction } from 'database'
-import { User as DbUser } from 'database'
+import {
+  Community as DbCommunity,
+  PendingTransaction as DbPendingTransaction,
+  Transaction as dbTransaction,
+  User as DbUser,
+} from 'database'
 import { Decimal } from 'decimal.js-light'
+import { getConnection } from 'typeorm'
 
 import { PendingTransactionState } from '@/graphql/enum/PendingTransactionState'
 import { LogError } from '@/server/LogError'

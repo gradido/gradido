@@ -4,15 +4,17 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { Connection, In } from 'typeorm'
-import { Community as DbCommunity } from 'database'
-import { DltTransaction } from 'database'
-import { Event as DbEvent } from 'database'
-import { FederatedCommunity as DbFederatedCommunity } from 'database'
-import { Transaction } from 'database'
-import { User } from 'database'
 import { ApolloServerTestClient } from 'apollo-server-testing'
+import {
+  Community as DbCommunity,
+  DltTransaction,
+  Event as DbEvent,
+  FederatedCommunity as DbFederatedCommunity,
+  Transaction,
+  User,
+} from 'database'
 import { GraphQLError } from 'graphql'
+import { Connection, In } from 'typeorm'
 import { v4 as uuidv4 } from 'uuid'
 
 import { cleanDB, testEnvironment } from '@test/helpers'

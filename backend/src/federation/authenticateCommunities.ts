@@ -1,5 +1,4 @@
-import { Community as DbCommunity } from 'database'
-import { FederatedCommunity as DbFederatedCommunity } from 'database'
+import { Community as DbCommunity, FederatedCommunity as DbFederatedCommunity } from 'database'
 import { validate as validateUUID, version as versionUUID } from 'uuid'
 
 import { CONFIG } from '@/config'

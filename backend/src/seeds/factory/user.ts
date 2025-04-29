@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/unbound-method */
-import { User } from 'database'
 import { ApolloServerTestClient } from 'apollo-server-testing'
+import { User } from 'database'
 
 import { RoleNames } from '@enum/RoleNames'
 

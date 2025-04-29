@@ -3,9 +3,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
-import { Connection } from '@typeorm/connection'
 import { Transaction as DbTransaction } from 'database'
 import { Decimal } from 'decimal.js-light'
+import { Connection } from 'typeorm'
 
 import { cleanDB, testEnvironment } from '@test/helpers'
 

@@ -1,5 +1,4 @@
-import { Community as DbCommunity } from 'database'
-import { User as DbUser } from 'database'
+import { Community as DbCommunity, User as DbUser } from 'database'
 
 import { createGmsUser, updateGmsUser } from '@/apis/gms/GmsClient'
 import { GmsUser } from '@/apis/gms/model/GmsUser'

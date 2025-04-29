@@ -1,5 +1,5 @@
-import { Raw } from 'typeorm'
 import { User as DbUser } from 'database'
+import { Raw } from 'typeorm'
 
 import { LogError } from '@/server/LogError'
 

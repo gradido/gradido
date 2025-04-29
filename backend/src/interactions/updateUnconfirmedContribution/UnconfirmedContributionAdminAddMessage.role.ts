@@ -1,5 +1,4 @@
-import { Contribution } from 'database'
-import { User } from 'database'
+import { Contribution, User } from 'database'
 
 import { RIGHTS } from '@/auth/RIGHTS'
 import { Role } from '@/auth/Role'
@@ -17,7 +16,10 @@ import { AbstractUnconfirmedContributionRole } from './AbstractUnconfirmedContri
  * Admins and Moderators are currently not allowed to comment her own contributions with the admin/moderator role
  */
 export class UnconfirmedContributionAdminAddMessageRole extends AbstractUnconfirmedContributionRole {
-  public constructor(contribution: Contribution, private updateData: ContributionMessageArgs) {
+  public constructor(
+    contribution: Contribution,
+    private updateData: ContributionMessageArgs,
+  ) {
     super(contribution, contribution.amount, contribution.contributionDate)
     logger.debug('use UnconfirmedContributionAdminAddMessageRole')
   }

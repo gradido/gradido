@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
+import { User as dbUser, UserContact } from 'database'
 import { SaveOptions, RemoveOptions } from 'typeorm'
-import { User as dbUser } from 'database'
-import { UserContact } from 'database'
 
 import { User } from '@model/User'
 

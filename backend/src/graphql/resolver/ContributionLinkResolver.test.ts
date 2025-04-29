@@ -1,11 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { Connection } from 'typeorm'
-import { ContributionLink as DbContributionLink } from 'database'
-import { Event as DbEvent } from 'database'
 import { ApolloServerTestClient } from 'apollo-server-testing'
+import { ContributionLink as DbContributionLink, Event as DbEvent } from 'database'
 import { Decimal } from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
+import { Connection } from 'typeorm'
 
 import { cleanDB, testEnvironment, resetToken } from '@test/helpers'
 import { logger } from '@test/testSetup'

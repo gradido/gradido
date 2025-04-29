@@ -3,11 +3,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Connection } from 'typeorm'
-import { Contribution as DbContribution } from 'database'
-import { Event as DbEvent } from 'database'
 import { ApolloServerTestClient } from 'apollo-server-testing'
+import { Contribution as DbContribution, Event as DbEvent } from 'database'
 import { GraphQLError } from 'graphql'
+import { Connection } from 'typeorm'
 
 import { ContributionStatus } from '@enum/ContributionStatus'
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'

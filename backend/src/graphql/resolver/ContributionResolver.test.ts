@@ -1,15 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Connection, Equal } from 'typeorm'
-import { Contribution } from 'database'
-import { Event as DbEvent } from 'database'
-import { Transaction as DbTransaction } from 'database'
-import { User } from 'database'
 import { UserInputError } from 'apollo-server-express'
 import { ApolloServerTestClient } from 'apollo-server-testing'
+import { Contribution, Event as DbEvent, Transaction as DbTransaction, User } from 'database'
 import { Decimal } from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
+import { Connection, Equal } from 'typeorm'
 
 import { ContributionMessageType } from '@enum/ContributionMessageType'
 import { ContributionStatus } from '@enum/ContributionStatus'

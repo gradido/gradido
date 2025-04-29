@@ -1,5 +1,4 @@
-import { User } from 'database'
-import { UserContact } from 'database'
+import { User, UserContact } from 'database'
 
 import { HumHubClient } from '@/apis/humhub/HumHubClient'
 import { GetUser } from '@/apis/humhub/model/GetUser'

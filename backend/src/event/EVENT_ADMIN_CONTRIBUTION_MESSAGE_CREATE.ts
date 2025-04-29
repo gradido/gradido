@@ -1,7 +1,9 @@
-import { Contribution as DbContribution } from 'database'
-import { ContributionMessage as DbContributionMessage } from 'database'
-import { Event as DbEvent } from 'database'
-import { User as DbUser } from 'database'
+import {
+  Contribution as DbContribution,
+  ContributionMessage as DbContributionMessage,
+  Event as DbEvent,
+  User as DbUser,
+} from 'database'
 
 import { Event } from './Event'
 import { EventType } from './EventType'

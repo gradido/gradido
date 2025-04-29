@@ -5,11 +5,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { Connection } from 'typeorm'
-import { FederatedCommunity as DbFederatedCommunity } from 'database'
 import { ApolloServerTestClient } from 'apollo-server-testing'
+import { FederatedCommunity as DbFederatedCommunity } from 'database'
 import { GraphQLClient } from 'graphql-request'
 import { Response } from 'graphql-request/dist/types'
+import { Connection } from 'typeorm'
 
 import { testEnvironment, cleanDB } from '@test/helpers'
 import { logger } from '@test/testSetup'

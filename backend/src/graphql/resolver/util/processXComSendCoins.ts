@@ -1,7 +1,9 @@
-import { Community as DbCommunity } from 'database'
-import { FederatedCommunity as DbFederatedCommunity } from 'database'
-import { PendingTransaction as DbPendingTransaction } from 'database'
-import { User as dbUser } from 'database'
+import {
+  Community as DbCommunity,
+  FederatedCommunity as DbFederatedCommunity,
+  PendingTransaction as DbPendingTransaction,
+  User as dbUser,
+} from 'database'
 import { Decimal } from 'decimal.js-light'
 
 import { CONFIG } from '@/config'

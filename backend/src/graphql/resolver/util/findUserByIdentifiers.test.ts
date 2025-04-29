@@ -1,10 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-import { Connection } from 'typeorm'
-import { Community as DbCommunity } from 'database'
-import { User as DbUser } from 'database'
 import { ApolloServerTestClient } from 'apollo-server-testing'
+import { Community as DbCommunity, User as DbUser } from 'database'
+import { Connection } from 'typeorm'
 
 import { cleanDB, testEnvironment } from '@test/helpers'
 

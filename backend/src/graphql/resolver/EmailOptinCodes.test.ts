@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { Connection } from 'typeorm'
-import { User as DbUser } from 'database'
 import { ApolloServerTestClient } from 'apollo-server-testing'
+import { User as DbUser } from 'database'
 import { GraphQLError } from 'graphql'
+import { Connection } from 'typeorm'
 
 import { testEnvironment, cleanDB } from '@test/helpers'
 

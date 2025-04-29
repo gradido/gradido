@@ -1,5 +1,4 @@
-import { Contribution } from 'database'
-import { User } from 'database'
+import { Contribution, User } from 'database'
 
 import { ContributionMessageBuilder } from '@/data/ContributionMessage.builder'
 import { ContributionArgs } from '@/graphql/arg/ContributionArgs'
@@ -14,7 +13,10 @@ import { AbstractUnconfirmedContributionRole } from './AbstractUnconfirmedContri
  * independent from there role, because the own contribution can only be edited in user role
  */
 export class UnconfirmedContributionUserRole extends AbstractUnconfirmedContributionRole {
-  public constructor(contribution: Contribution, private updateData: ContributionArgs) {
+  public constructor(
+    contribution: Contribution,
+    private updateData: ContributionArgs,
+  ) {
     super(contribution, updateData.amount, new Date(updateData.creationDate))
     logger.debug('use UnconfirmedContributionUserRole')
   }

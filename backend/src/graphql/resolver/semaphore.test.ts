@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-import { Connection } from 'typeorm'
-import { Community as DbCommunity } from 'database'
 import { ApolloServerTestClient } from 'apollo-server-testing'
+import { Community as DbCommunity } from 'database'
 import { Decimal } from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
+import { Connection } from 'typeorm'
 import { v4 as uuidv4 } from 'uuid'
 
 import { cleanDB, testEnvironment, contributionDateFormatter } from '@test/helpers'

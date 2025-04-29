@@ -2,9 +2,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/unbound-method */
-import { Contribution } from 'database'
-import { Transaction } from 'database'
 import { ApolloServerTestClient } from 'apollo-server-testing'
+import { Contribution, Transaction } from 'database'
 
 import { findUserByEmail } from '@/graphql/resolver/UserResolver'
 import { CreationInterface } from '@/seeds/creation/CreationInterface'

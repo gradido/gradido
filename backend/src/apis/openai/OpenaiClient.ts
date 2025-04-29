@@ -1,6 +1,5 @@
 /* eslint-disable camelcase */
-import { OpenaiThreads } from 'database'
-import { User } from 'database'
+import { OpenaiThreads, User } from 'database'
 import { OpenAI } from 'openai'
 import { Message } from 'openai/resources/beta/threads/messages'
 

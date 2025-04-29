@@ -5,16 +5,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { Connection } from 'typeorm'
-import { Community } from 'database'
-import { DltTransaction } from 'database'
-import { Transaction } from 'database'
 import { ApolloServerTestClient } from 'apollo-server-testing'
+import { Community, DltTransaction, Transaction } from 'database'
 import { Decimal } from 'decimal.js-light'
 // import { GraphQLClient } from 'graphql-request'
 // import { Response } from 'graphql-request/dist/types'
 import { GraphQLClient } from 'graphql-request'
 import { Response } from 'graphql-request/dist/types'
+import { Connection } from 'typeorm'
 import { v4 as uuidv4 } from 'uuid'
 
 import { testEnvironment, cleanDB } from '@test/helpers'

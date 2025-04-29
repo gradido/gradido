@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { getConnection } from 'typeorm'
 import { Contribution } from 'database'
 import { Decimal } from 'decimal.js-light'
+import { getConnection } from 'typeorm'
 
 import { OpenCreation } from '@model/OpenCreation'
 

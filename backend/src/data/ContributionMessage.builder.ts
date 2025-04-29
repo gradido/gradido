@@ -1,6 +1,4 @@
-import { Contribution } from 'database'
-import { ContributionMessage } from 'database'
-import { User } from 'database'
+import { Contribution, ContributionMessage, User } from 'database'
 
 import { ContributionMessageType } from '@/graphql/enum/ContributionMessageType'
 

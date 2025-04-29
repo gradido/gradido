@@ -1,4 +1,5 @@
 import { Point } from 'typeorm'
+
 import { Location } from '@model/Location'
 
 export function Location2Point(location: Location): Point {

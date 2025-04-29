@@ -1,9 +1,11 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-import { EntityManager, FindOptionsRelations, getConnection } from 'typeorm'
-import { Contribution as DbContribution } from 'database'
-import { ContributionMessage as DbContributionMessage } from 'database'
-import { User as DbUser } from 'database'
+import {
+  Contribution as DbContribution,
+  ContributionMessage as DbContributionMessage,
+  User as DbUser,
+} from 'database'
 import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
+import { EntityManager, FindOptionsRelations, getConnection } from 'typeorm'
 
 import { ContributionMessageArgs } from '@arg/ContributionMessageArgs'
 import { Paginated } from '@arg/Paginated'

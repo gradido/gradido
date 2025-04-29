@@ -2,9 +2,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { Connection } from 'typeorm'
-import { Event as DbEvent } from 'database'
 import { ApolloServerTestClient } from 'apollo-server-testing'
+import { Event as DbEvent } from 'database'
+import { Connection } from 'typeorm'
 
 import { testEnvironment, cleanDB, resetToken } from '@test/helpers'
 

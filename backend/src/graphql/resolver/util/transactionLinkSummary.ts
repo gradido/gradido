@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { getConnection } from 'typeorm'
 import { TransactionLink as DbTransactionLink } from 'database'
 import { Decimal } from 'decimal.js-light'
+import { getConnection } from 'typeorm'
 
 import { LogError } from '@/server/LogError'
 

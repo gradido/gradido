@@ -1,7 +1,6 @@
-import { IsNull, Not } from 'typeorm'
-import { Community as DbCommunity } from 'database'
-import { FederatedCommunity as DbFederatedCommunity } from 'database'
+import { Community as DbCommunity, FederatedCommunity as DbFederatedCommunity } from 'database'
 import { Resolver, Query, Authorized, Mutation, Args, Arg } from 'type-graphql'
+import { IsNull, Not } from 'typeorm'
 
 import { Paginated } from '@arg/Paginated'
 import { EditCommunityInput } from '@input/EditCommunityInput'
