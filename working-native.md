@@ -203,7 +203,7 @@ graph TD;
     class ALint cached
     class DLint cached
     class FELint cached
-    class DAlint cached
+    class DALint cached
     class CLint cached
     
     %% Backend
