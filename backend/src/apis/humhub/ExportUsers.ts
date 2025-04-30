@@ -8,8 +8,8 @@ import { checkDBVersion } from '@/typeorm/DBVersion'
 import { Connection } from '@/typeorm/connection'
 
 import { HumHubClient } from './HumHubClient'
-import type { GetUser } from './model/GetUser'
-import type { UsersResponse } from './model/UsersResponse'
+import { GetUser } from './model/GetUser'
+import { UsersResponse } from './model/UsersResponse'
 import { ExecutedHumhubAction, syncUser } from './syncUser'
 
 const USER_BULK_SIZE = 20

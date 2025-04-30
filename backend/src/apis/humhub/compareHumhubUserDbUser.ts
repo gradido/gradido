@@ -1,7 +1,7 @@
-import type { User } from '@entity/User'
+import { User } from '@entity/User'
 
 import { Account } from './model/Account'
-import type { GetUser } from './model/GetUser'
+import { GetUser } from './model/GetUser'
 import { Profile } from './model/Profile'
 
 function profileIsTheSame(profile: Profile, user: User): boolean {

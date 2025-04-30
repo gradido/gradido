@@ -6,7 +6,7 @@ import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 import { ensureUrlEndsWithSlash } from '@/util/utilities'
 
-import type { GmsUser } from './model/GmsUser'
+import { GmsUser } from './model/GmsUser'
 
 /*
 export async function communityList(): Promise<GmsCommunity[] | string | undefined> {

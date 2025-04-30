@@ -73,6 +73,7 @@
         "useBlockStatements": "error",
         "useConsistentBuiltinInstantiation": "error",
         "useConst": "error",
+        "useImportType": "off",
         "useSingleVarDeclarator": "error"
       },
       "suspicious": {
