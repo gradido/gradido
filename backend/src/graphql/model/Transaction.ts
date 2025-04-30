@@ -1,4 +1,4 @@
-import { Transaction as dbTransaction } from '@entity/Transaction'
+import type { Transaction as dbTransaction } from '@entity/Transaction'
 import { Decimal } from 'decimal.js-light'
 import { Field, Int, ObjectType } from 'type-graphql'
 

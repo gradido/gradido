@@ -1,6 +1,6 @@
 import { Field, ObjectType } from 'type-graphql'
 
-import { SpacesResponse } from '@/apis/humhub/model/SpacesResponse'
+import type { SpacesResponse } from '@/apis/humhub/model/SpacesResponse'
 
 import { Pagination } from './Pagination'
 import { Space } from './Space'

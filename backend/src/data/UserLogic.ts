@@ -1,7 +1,7 @@
-import { User } from '@entity/User'
-import { UserRole } from '@entity/UserRole'
+import type { User } from '@entity/User'
+import type { UserRole } from '@entity/UserRole'
 
-import { RoleNames } from '@enum/RoleNames'
+import type { RoleNames } from '@enum/RoleNames'
 
 export class UserLogic {
   public constructor(private self: User) {}

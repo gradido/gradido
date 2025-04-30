@@ -1,6 +1,6 @@
 import { Arg, Args, Authorized, Ctx, Float, Int, Query, Resolver } from 'type-graphql'
 
-import { Paginated } from '@arg/Paginated'
+import type { Paginated } from '@arg/Paginated'
 import { Order } from '@enum/Order'
 import { GdtEntry } from '@model/GdtEntry'
 import { GdtEntryList } from '@model/GdtEntryList'
@@ -9,7 +9,7 @@ import { apiGet, apiPost } from '@/apis/HttpRequest'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { CONFIG } from '@/config'
 import { LogError } from '@/server/LogError'
-import { Context, getUser } from '@/server/context'
+import { type Context, getUser } from '@/server/context'
 
 import { backendLogger as logger } from '@/server/logger'
 

@@ -1,6 +1,6 @@
 import { Transaction as DbTransaction } from '@entity/Transaction'
 
-import { Order } from '@enum/Order'
+import type { Order } from '@enum/Order'
 
 export const getTransactionList = async (
   userId: number,

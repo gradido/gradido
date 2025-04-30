@@ -1,7 +1,7 @@
-import { Community as DbCommunity } from '@entity/Community'
+import type { Community as DbCommunity } from '@entity/Community'
 import { User as DbUser } from '@entity/User'
 
-import { SendCoinsResult } from '@/federation/client/1_0/model/SendCoinsResult'
+import type { SendCoinsResult } from '@/federation/client/1_0/model/SendCoinsResult'
 import { backendLogger as logger } from '@/server/logger'
 
 export async function storeForeignUser(

@@ -1,6 +1,6 @@
 import { Field, Int, ObjectType } from 'type-graphql'
 
-import { Space as HumhubSpace } from '@/apis/humhub/model/Space'
+import type { Space as HumhubSpace } from '@/apis/humhub/model/Space'
 
 @ObjectType()
 export class Space {

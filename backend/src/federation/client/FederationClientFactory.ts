@@ -1,4 +1,4 @@
-import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
+import type { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
 
 import { FederationClient as V1_0_FederationClient } from '@/federation/client/1_0/FederationClient'
 

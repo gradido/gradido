@@ -1,6 +1,6 @@
-import { Decimal } from 'decimal.js-light'
+import type { Decimal } from 'decimal.js-light'
 
-import { Decay } from '@model/Decay'
+import type { Decay } from '@model/Decay'
 
 import { getLastTransaction } from '@/graphql/resolver/util/getLastTransaction'
 

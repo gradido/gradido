@@ -1,5 +1,5 @@
-import { Event as DbEvent } from '@entity/Event'
-import { User as DbUser } from '@entity/User'
+import type { Event as DbEvent } from '@entity/Event'
+import type { User as DbUser } from '@entity/User'
 
 import { Event } from './Event'
 import { EventType } from './EventType'

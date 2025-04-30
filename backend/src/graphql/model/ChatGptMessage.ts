@@ -1,6 +1,6 @@
 import { Field, ObjectType } from 'type-graphql'
 
-import { Message } from '@/apis/openai/model/Message'
+import type { Message } from '@/apis/openai/model/Message'
 
 @ObjectType()
 export class ChatGptMessage {

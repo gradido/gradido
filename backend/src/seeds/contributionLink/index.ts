@@ -1,4 +1,4 @@
-import { ContributionLinkInterface } from './ContributionLinkInterface'
+import type { ContributionLinkInterface } from './ContributionLinkInterface'
 
 export const contributionLinks: ContributionLinkInterface[] = [
   {

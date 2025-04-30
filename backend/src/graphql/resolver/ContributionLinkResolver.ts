@@ -2,8 +2,8 @@ import { IsNull, MoreThan } from '@dbTools/typeorm'
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
 import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
 
-import { ContributionLinkArgs } from '@arg/ContributionLinkArgs'
-import { Paginated } from '@arg/Paginated'
+import type { ContributionLinkArgs } from '@arg/ContributionLinkArgs'
+import type { Paginated } from '@arg/Paginated'
 import { Order } from '@enum/Order'
 import { ContributionLink } from '@model/ContributionLink'
 import { ContributionLinkList } from '@model/ContributionLinkList'
@@ -15,7 +15,7 @@ import {
   EVENT_ADMIN_CONTRIBUTION_LINK_UPDATE,
 } from '@/event/Events'
 import { LogError } from '@/server/LogError'
-import { Context, getUser } from '@/server/context'
+import { type Context, getUser } from '@/server/context'
 
 import { transactionLinkCode as contributionLinkCode } from './TransactionLinkResolver'
 import { isStartEndDateValid } from './util/creations'

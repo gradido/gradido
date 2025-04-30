@@ -1,4 +1,4 @@
-import { Point } from '@dbTools/typeorm'
+import type { Point } from '@dbTools/typeorm'
 
 import { Location } from '@model/Location'
 

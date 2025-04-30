@@ -1,4 +1,4 @@
-import { User } from '@entity/User'
+import type { User } from '@entity/User'
 
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
 

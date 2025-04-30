@@ -3,7 +3,7 @@ import { Authorized, Ctx, Mutation, Resolver } from 'type-graphql'
 import { subscribe, unsubscribe } from '@/apis/KlicktippController'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { EVENT_NEWSLETTER_SUBSCRIBE, EVENT_NEWSLETTER_UNSUBSCRIBE } from '@/event/Events'
-import { Context, getUser } from '@/server/context'
+import { type Context, getUser } from '@/server/context'
 
 @Resolver()
 export class KlicktippResolver {

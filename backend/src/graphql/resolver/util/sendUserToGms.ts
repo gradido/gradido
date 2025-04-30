@@ -1,4 +1,4 @@
-import { Community as DbCommunity } from '@entity/Community'
+import type { Community as DbCommunity } from '@entity/Community'
 import { User as DbUser } from '@entity/User'
 
 import { createGmsUser, updateGmsUser } from '@/apis/gms/GmsClient'

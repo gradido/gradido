@@ -1,8 +1,8 @@
-import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
+import type { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
 import { Decimal } from 'decimal.js-light'
 import { validate, version } from 'uuid'
 
-import { Decay } from '@model/Decay'
+import type { Decay } from '@model/Decay'
 
 import { getLastTransaction } from '@/graphql/resolver/util/getLastTransaction'
 import { transactionLinkSummary } from '@/graphql/resolver/util/transactionLinkSummary'

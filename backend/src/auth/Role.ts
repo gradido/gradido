@@ -1,4 +1,4 @@
-import { RIGHTS } from './RIGHTS'
+import type { RIGHTS } from './RIGHTS'
 
 export class Role {
   id: string

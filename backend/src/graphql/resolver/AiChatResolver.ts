@@ -1,12 +1,12 @@
 import { Arg, Authorized, Ctx, Mutation, Query, Resolver } from 'type-graphql'
 
-import { OpenaiMessage } from '@input/OpenaiMessage'
+import type { OpenaiMessage } from '@input/OpenaiMessage'
 import { ChatGptMessage } from '@model/ChatGptMessage'
 
 import { OpenaiClient } from '@/apis/openai/OpenaiClient'
 import { Message } from '@/apis/openai/model/Message'
 import { RIGHTS } from '@/auth/RIGHTS'
-import { Context } from '@/server/context'
+import type { Context } from '@/server/context'
 
 @Resolver()
 export class AiChatResolver {

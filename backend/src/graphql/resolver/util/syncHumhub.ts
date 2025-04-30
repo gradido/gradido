@@ -1,11 +1,11 @@
-import { User } from '@entity/User'
+import type { User } from '@entity/User'
 
 import { HumHubClient } from '@/apis/humhub/HumHubClient'
-import { GetUser } from '@/apis/humhub/model/GetUser'
+import type { GetUser } from '@/apis/humhub/model/GetUser'
 import { ExecutedHumhubAction, syncUser } from '@/apis/humhub/syncUser'
 import { PublishNameLogic } from '@/data/PublishName.logic'
-import { UpdateUserInfosArgs } from '@/graphql/arg/UpdateUserInfosArgs'
-import { PublishNameType } from '@/graphql/enum/PublishNameType'
+import type { UpdateUserInfosArgs } from '@/graphql/arg/UpdateUserInfosArgs'
+import type { PublishNameType } from '@/graphql/enum/PublishNameType'
 import { backendLogger as logger } from '@/server/logger'
 
 /**

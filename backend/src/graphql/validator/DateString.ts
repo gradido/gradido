@@ -1,4 +1,8 @@
-import { ValidationArguments, ValidationOptions, registerDecorator } from 'class-validator'
+import {
+  type ValidationArguments,
+  type ValidationOptions,
+  registerDecorator,
+} from 'class-validator'
 
 export function isValidDateString(validationOptions?: ValidationOptions) {
   return function (object: Object, propertyName: string) {

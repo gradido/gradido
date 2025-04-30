@@ -1,4 +1,4 @@
-import { User } from '@entity/User'
+import type { User } from '@entity/User'
 
 import { Account } from './Account'
 import { Profile } from './Profile'

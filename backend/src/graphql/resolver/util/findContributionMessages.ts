@@ -2,7 +2,7 @@ import { In } from '@dbTools/typeorm'
 import { ContributionMessage as DbContributionMessage } from '@entity/ContributionMessage'
 
 import { ContributionMessageType } from '@enum/ContributionMessageType'
-import { Order } from '@enum/Order'
+import type { Order } from '@enum/Order'
 
 interface FindContributionMessagesOptions {
   contributionId: number

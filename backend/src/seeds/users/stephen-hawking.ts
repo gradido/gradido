@@ -1,4 +1,4 @@
-import { UserInterface } from './UserInterface'
+import type { UserInterface } from './UserInterface'
 
 export const stephenHawking: UserInterface = {
   email: 'stephen@hawking.uk',

@@ -1,10 +1,10 @@
-import { Connection, Equal } from '@dbTools/typeorm'
+import { type Connection, Equal } from '@dbTools/typeorm'
 import { Contribution } from '@entity/Contribution'
 import { Event as DbEvent } from '@entity/Event'
 import { Transaction as DbTransaction } from '@entity/Transaction'
-import { User } from '@entity/User'
+import type { User } from '@entity/User'
 import { UserInputError } from 'apollo-server-express'
-import { ApolloServerTestClient } from 'apollo-server-testing'
+import type { ApolloServerTestClient } from 'apollo-server-testing'
 import { Decimal } from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
 

@@ -1,6 +1,6 @@
-import { Connection } from '@dbTools/typeorm'
+import type { Connection } from '@dbTools/typeorm'
 import { Community as DbCommunity } from '@entity/Community'
-import { ApolloServerTestClient } from 'apollo-server-testing'
+import type { ApolloServerTestClient } from 'apollo-server-testing'
 import { Decimal } from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
 import { v4 as uuidv4 } from 'uuid'

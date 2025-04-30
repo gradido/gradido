@@ -1,4 +1,4 @@
-import { User } from '@entity/User'
+import type { User } from '@entity/User'
 import XRegExp from 'xregexp'
 
 import { PublishNameType } from '@/graphql/enum/PublishNameType'

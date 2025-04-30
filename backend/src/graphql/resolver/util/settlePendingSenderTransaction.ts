@@ -1,8 +1,8 @@
 import { getConnection } from '@dbTools/typeorm'
-import { Community as DbCommunity } from '@entity/Community'
+import type { Community as DbCommunity } from '@entity/Community'
 import { PendingTransaction as DbPendingTransaction } from '@entity/PendingTransaction'
 import { Transaction as dbTransaction } from '@entity/Transaction'
-import { User as DbUser } from '@entity/User'
+import type { User as DbUser } from '@entity/User'
 import { Decimal } from 'decimal.js-light'
 
 import { PendingTransactionState } from '@/graphql/enum/PendingTransactionState'

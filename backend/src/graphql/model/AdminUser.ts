@@ -1,4 +1,4 @@
-import { User } from '@entity/User'
+import type { User } from '@entity/User'
 import { Field, Int, ObjectType } from 'type-graphql'
 
 @ObjectType()

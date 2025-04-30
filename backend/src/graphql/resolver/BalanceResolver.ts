@@ -9,7 +9,7 @@ import { Balance } from '@model/Balance'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { BalanceLoggingView } from '@/logging/BalanceLogging.view'
 import { DecayLoggingView } from '@/logging/DecayLogging.view'
-import { Context, getUser } from '@/server/context'
+import { type Context, getUser } from '@/server/context'
 import { backendLogger as logger } from '@/server/logger'
 import { calculateDecay } from '@/util/decay'
 

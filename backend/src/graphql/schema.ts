@@ -1,7 +1,7 @@
 import path from 'path'
 
 import { Decimal } from 'decimal.js-light'
-import { GraphQLSchema } from 'graphql'
+import type { GraphQLSchema } from 'graphql'
 import { buildSchema } from 'type-graphql'
 
 import { Location } from '@model/Location'

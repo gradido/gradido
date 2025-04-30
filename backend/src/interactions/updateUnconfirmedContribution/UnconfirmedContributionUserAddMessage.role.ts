@@ -1,8 +1,8 @@
-import { Contribution } from '@entity/Contribution'
-import { User } from '@entity/User'
+import type { Contribution } from '@entity/Contribution'
+import type { User } from '@entity/User'
 
-import { ContributionMessageBuilder } from '@/data/ContributionMessage.builder'
-import { ContributionMessageArgs } from '@/graphql/arg/ContributionMessageArgs'
+import type { ContributionMessageBuilder } from '@/data/ContributionMessage.builder'
+import type { ContributionMessageArgs } from '@/graphql/arg/ContributionMessageArgs'
 import { ContributionMessageType } from '@/graphql/enum/ContributionMessageType'
 import { ContributionStatus } from '@/graphql/enum/ContributionStatus'
 import { LogError } from '@/server/LogError'

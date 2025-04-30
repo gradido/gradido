@@ -1,11 +1,11 @@
 import { User } from '@entity/User'
-import { AuthChecker } from 'type-graphql'
+import type { AuthChecker } from 'type-graphql'
 
 import { RoleNames } from '@enum/RoleNames'
 
 import { INALIENABLE_RIGHTS } from '@/auth/INALIENABLE_RIGHTS'
 import { decode, encode } from '@/auth/JWT'
-import { RIGHTS } from '@/auth/RIGHTS'
+import type { RIGHTS } from '@/auth/RIGHTS'
 import {
   ROLE_ADMIN,
   ROLE_DLT_CONNECTOR,
@@ -15,7 +15,7 @@ import {
   ROLE_USER,
 } from '@/auth/ROLES'
 import { LogError } from '@/server/LogError'
-import { Context } from '@/server/context'
+import type { Context } from '@/server/context'
 
 export const isAuthorized: AuthChecker<Context> = async ({ context }, rights) => {
   context.role = ROLE_UNAUTHORIZED // unauthorized user

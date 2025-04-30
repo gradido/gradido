@@ -1,6 +1,6 @@
 import { AbstractLoggingView } from '@logging/AbstractLogging.view'
 
-import { Account } from '@/apis/humhub/model/Account'
+import type { Account } from '@/apis/humhub/model/Account'
 
 export class AccountLoggingView extends AbstractLoggingView {
   public constructor(private self: Account) {

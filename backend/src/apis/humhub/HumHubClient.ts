@@ -1,17 +1,17 @@
 import { ProjectBranding } from '@entity/ProjectBranding'
 import { SignJWT } from 'jose'
-import { IRequestOptions, IRestResponse, RestClient } from 'typed-rest-client'
+import { type IRequestOptions, type IRestResponse, RestClient } from 'typed-rest-client'
 
 import { CONFIG } from '@/config'
 import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 
 import { PostUserLoggingView } from './logging/PostUserLogging.view'
-import { GetUser } from './model/GetUser'
-import { PostUser } from './model/PostUser'
-import { Space } from './model/Space'
-import { SpacesResponse } from './model/SpacesResponse'
-import { UsersResponse } from './model/UsersResponse'
+import type { GetUser } from './model/GetUser'
+import type { PostUser } from './model/PostUser'
+import type { Space } from './model/Space'
+import type { SpacesResponse } from './model/SpacesResponse'
+import type { UsersResponse } from './model/UsersResponse'
 
 /**
  * HumHubClient as singleton class

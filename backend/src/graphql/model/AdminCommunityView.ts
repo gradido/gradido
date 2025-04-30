@@ -1,6 +1,6 @@
-import { Point } from '@dbTools/typeorm'
-import { Community as DbCommunity } from '@entity/Community'
-import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
+import type { Point } from '@dbTools/typeorm'
+import type { Community as DbCommunity } from '@entity/Community'
+import type { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
 import { Field, ObjectType } from 'type-graphql'
 
 import { Point2Location } from '@/graphql/resolver/util/Location2Point'

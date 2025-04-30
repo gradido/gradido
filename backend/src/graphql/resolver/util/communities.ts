@@ -1,8 +1,8 @@
-import { FindOneOptions } from '@dbTools/typeorm'
+import type { FindOneOptions } from '@dbTools/typeorm'
 import { Community as DbCommunity } from '@entity/Community'
 import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
 
-import { Paginated } from '@arg/Paginated'
+import type { Paginated } from '@arg/Paginated'
 
 import { LogError } from '@/server/LogError'
 import { Connection } from '@/typeorm/connection'

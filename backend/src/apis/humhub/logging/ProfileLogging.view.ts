@@ -1,6 +1,6 @@
 import { AbstractLoggingView } from '@logging/AbstractLogging.view'
 
-import { Profile } from '@/apis/humhub/model/Profile'
+import type { Profile } from '@/apis/humhub/model/Profile'
 
 export class ProfileLoggingView extends AbstractLoggingView {
   public constructor(private self: Profile) {

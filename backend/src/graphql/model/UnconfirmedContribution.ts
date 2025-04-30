@@ -1,5 +1,5 @@
-import { Contribution } from '@entity/Contribution'
-import { User } from '@entity/User'
+import type { Contribution } from '@entity/Contribution'
+import type { User } from '@entity/User'
 import { Decimal } from 'decimal.js-light'
 import { Field, Int, ObjectType } from 'type-graphql'
 

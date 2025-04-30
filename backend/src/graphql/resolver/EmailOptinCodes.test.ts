@@ -1,6 +1,6 @@
-import { Connection } from '@dbTools/typeorm'
+import type { Connection } from '@dbTools/typeorm'
 import { User as DbUser } from '@entity/User'
-import { ApolloServerTestClient } from 'apollo-server-testing'
+import type { ApolloServerTestClient } from 'apollo-server-testing'
 import { GraphQLError } from 'graphql'
 
 import { cleanDB, testEnvironment } from '@test/helpers'

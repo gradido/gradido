@@ -1,6 +1,6 @@
 import { RoleNames } from '@enum/RoleNames'
 
-import { UserInterface } from './UserInterface'
+import type { UserInterface } from './UserInterface'
 
 export const peterLustig: UserInterface = {
   email: 'peter@lustig.de',

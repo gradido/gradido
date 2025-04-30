@@ -1,6 +1,6 @@
 import { promisify } from 'util'
 
-import { Decimal } from 'decimal.js-light'
+import type { Decimal } from 'decimal.js-light'
 import i18n from 'i18n'
 
 export const objectValuesToArray = (obj: Record<string, string>): string[] =>

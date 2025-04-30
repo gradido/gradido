@@ -1,7 +1,7 @@
-import { Contribution as DbContribution } from '@entity/Contribution'
-import { ContributionMessage as DbContributionMessage } from '@entity/ContributionMessage'
-import { Event as DbEvent } from '@entity/Event'
-import { User as DbUser } from '@entity/User'
+import type { Contribution as DbContribution } from '@entity/Contribution'
+import type { ContributionMessage as DbContributionMessage } from '@entity/ContributionMessage'
+import type { Event as DbEvent } from '@entity/Event'
+import type { User as DbUser } from '@entity/User'
 
 import { Event } from './Event'
 import { EventType } from './EventType'

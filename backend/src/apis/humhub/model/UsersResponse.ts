@@ -1,4 +1,4 @@
-import { GetUser } from './GetUser'
+import type { GetUser } from './GetUser'
 
 export class UsersResponse {
   total: number
