@@ -65,7 +65,7 @@ COPY --chown=app:app . .
 RUN turbo prune dht-node --docker
 
 ##################################################################################
-# INSTALLER (create production image) ##############################################
+# INSTALLER (create production image) ############################################
 ##################################################################################
 FROM turbo-base AS installer
 

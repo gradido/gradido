@@ -57,7 +57,7 @@ RUN apk update && apk add --no-cache libc6-compat \
 
 
 ##################################################################################
-# BUILDER (create partly monorepo only with data needed by dht-node) #############
+# BUILDER (create partly monorepo only with data needed by frontend) #############
 ##################################################################################
 FROM turbo-base as builder
 
@@ -65,7 +65,7 @@ COPY --chown=app:app . .
 RUN turbo prune frontend --docker
 
 ##################################################################################
-# INSTALLER (create production image) ##############################################
+# INSTALLER (create production image) ############################################
 ##################################################################################
 FROM turbo-base AS installer
 
@@ -93,7 +93,7 @@ CMD /bin/sh -c "turbo frontend#test --env-mode=loose"
 ##################################################################################
 FROM lipanski/docker-static-website:latest as production
 
-# TODO: Improve size from 50 MB down to 2 MB with lipanski/docker-static-website:latest
+# tiny static webserver
 # https://lipanski.com/posts/smallest-docker-image-static-website
 
 # copy builded frontend files

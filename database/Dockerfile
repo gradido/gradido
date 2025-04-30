@@ -48,7 +48,7 @@ RUN apk update && apk add --no-cache libc6-compat \
 
 
 ##################################################################################
-# BUILDER (create partly monorepo only with data needed by dht-node) #############
+# BUILDER (create partly monorepo only with data needed by database) #############
 ##################################################################################
 FROM turbo-base as builder
 
@@ -56,7 +56,7 @@ COPY --chown=app:app . .
 RUN turbo prune database --docker
 
 ##################################################################################
-# INSTALLER (create production image) ##############################################
+# INSTALLER (create production image) ############################################
 ##################################################################################
 FROM turbo-base AS installer
 
