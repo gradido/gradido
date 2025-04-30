@@ -5,6 +5,7 @@ import DashboardLayout from './DashboardLayout'
 import { createStore } from 'vuex'
 import { createRouter, createWebHistory } from 'vue-router'
 import routes from '@/routes/routes'
+import { useQuery } from '@vue/apollo-composable'
 
 const toastErrorSpy = vi.fn()
 
@@ -14,18 +15,35 @@ vi.mock('@/composables/useToast', () => ({
   }),
 }))
 
-const mockQueryFn = vi.fn()
 const mockRefetchFn = vi.fn()
 const mockMutateFn = vi.fn()
+let onErrorHandler
+let onResultHandler
 const mockQueryResult = ref(null)
+const loading = ref(false)
 
 vi.mock('@vue/apollo-composable', () => ({
-  useLazyQuery: vi.fn(() => ({
-    load: mockQueryFn,
+  useQuery: vi.fn(() => ({
     refetch: mockRefetchFn,
     result: mockQueryResult,
-    onResult: vi.fn(),
-    onError: vi.fn(),
+    onResult: (handler) => {
+      onResultHandler = handler
+    },
+    onError: (handler) => {
+      onErrorHandler = handler
+    },
+    loading,
+  })),
+  useLazyQuery: vi.fn(() => ({
+    refetch: mockRefetchFn,
+    result: mockQueryResult,
+    onResult: (handler) => {
+      onResultHandler = handler
+    },
+    onError: (handler) => {
+      onErrorHandler = handler
+    },
+    loading,
   })),
   useMutation: vi.fn(() => ({
     mutate: mockMutateFn,
@@ -103,17 +121,6 @@ describe('DashboardLayout', () => {
 
   beforeEach(() => {
     vi.useFakeTimers()
-    mockQueryFn.mockResolvedValue({
-      communityStatistics: {
-        totalUsers: 3113,
-        activeUsers: 1057,
-        deletedUsers: 35,
-        totalGradidoCreated: '4083774.05000000000000000000',
-        totalGradidoDecayed: '-1062639.13634129622923372197',
-        totalGradidoAvailable: '2513565.869444365732411569',
-        totalGradidoUnbookedDecayed: '-500474.6738366222166261272',
-      },
-    })
     wrapper = createWrapper()
   })
 
@@ -135,31 +142,32 @@ describe('DashboardLayout', () => {
   describe('after a timeout', () => {
     beforeEach(async () => {
       vi.advanceTimersByTime(1500)
+      loading.value = false
       await nextTick()
     })
 
     describe('update transactions', () => {
       beforeEach(async () => {
-        mockQueryResult.value = {
-          transactionList: {
-            balance: {
-              balanceGDT: '100',
-              count: 4,
-              linkCount: 8,
-              balance: '1450',
+        onResultHandler({
+          data: {
+            transactionList: {
+              balance: {
+                balanceGDT: '100',
+                count: 4,
+                linkCount: 8,
+                balance: '1450',
+              },
+              transactions: ['transaction1', 'transaction2', 'transaction3', 'transaction4'],
             },
-            transactions: ['transaction1', 'transaction2', 'transaction3', 'transaction4'],
           },
-        }
-
-        mockQueryFn.mockResolvedValue(mockQueryResult.value)
+        })
 
         await wrapper.vm.updateTransactions({ currentPage: 2, pageSize: 5 })
         await nextTick() // Ensure all promises are resolved
       })
 
       it('load call to the API', () => {
-        expect(mockQueryFn).toHaveBeenCalled()
+        expect(useQuery).toHaveBeenCalled()
       })
 
       it('updates balance', () => {
@@ -190,7 +198,7 @@ describe('DashboardLayout', () => {
 
     describe('update transactions returns error', () => {
       beforeEach(async () => {
-        mockQueryFn.mockRejectedValue(new Error('Ouch!'))
+        wrapper.vm.skeleton = false
         await wrapper
           .findComponent({ ref: 'router-view' })
           .vm.$emit('update-transactions', { currentPage: 2, pageSize: 5 })
@@ -202,6 +210,7 @@ describe('DashboardLayout', () => {
       })
 
       it('toasts the error message', () => {
+        onErrorHandler({ message: 'Ouch!' })
         expect(toastErrorSpy).toHaveBeenCalledWith('Ouch!')
       })
     })

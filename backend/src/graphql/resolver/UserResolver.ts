@@ -33,6 +33,7 @@ import { UpdateUserInfosArgs } from '@arg/UpdateUserInfosArgs'
 import { OptInType } from '@enum/OptInType'
 import { Order } from '@enum/Order'
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
+import { PublishNameType } from '@enum/PublishNameType'
 import { UserContactType } from '@enum/UserContactType'
 import { SearchAdminUsersResult } from '@model/AdminUser'
 // import { Location } from '@model/Location'
@@ -50,6 +51,7 @@ import { PostUser } from '@/apis/humhub/model/PostUser'
 import { encode } from '@/auth/JWT'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { CONFIG } from '@/config'
+import { PublishNameLogic } from '@/data/PublishName.logic'
 import {
   sendAccountActivationEmail,
   sendAccountMultiRegistrationEmail,
@@ -241,12 +243,12 @@ export class UserResolver {
       try {
         const result = await humhubUserPromise
         user.humhubAllowed = result?.result?.account.status === 1
-        if (user.humhubAllowed) {
+        if (user.humhubAllowed && result?.result?.account?.username) {
           let spaceId = null
           if (projectBranding) {
             spaceId = projectBranding.spaceId
           }
-          await syncHumhub(null, dbUser, spaceId)
+          await syncHumhub(null, dbUser, result.result.account.username, spaceId)
         }
       } catch (e) {
         logger.error("couldn't reach out to humhub, disable for now", e)
@@ -443,7 +445,11 @@ export class UserResolver {
       if (projectBranding) {
         spaceId = projectBranding.spaceId
       }
-      await syncHumhub(null, dbUser, spaceId)
+      try {
+        await syncHumhub(null, dbUser, dbUser.gradidoID, spaceId)
+      } catch (e) {
+        logger.error("createUser: couldn't reach out to humhub, disable for now", e)
+      }
     }
 
     if (redeemCode) {
@@ -654,6 +660,10 @@ export class UserResolver {
     )
     const user = getUser(context)
     const updateUserInGMS = compareGmsRelevantUserSettings(user, updateUserInfosArgs)
+    const publishNameLogic = new PublishNameLogic(user)
+    const oldHumhubUsername = publishNameLogic.getUserIdentifier(
+      user.humhubPublishName as PublishNameType,
+    )
 
     // try {
     if (firstName) {
@@ -759,7 +769,7 @@ export class UserResolver {
     }
     try {
       if (CONFIG.HUMHUB_ACTIVE) {
-        await syncHumhub(updateUserInfosArgs, user)
+        await syncHumhub(updateUserInfosArgs, user, oldHumhubUsername)
       }
     } catch (e) {
       logger.error('error sync user with humhub', e)
@@ -835,7 +845,7 @@ export class UserResolver {
     }
     const humhubUserAccount = new HumhubAccount(dbUser)
     const autoLoginUrlPromise = humhubClient.createAutoLoginUrl(humhubUserAccount.username, project)
-    const humhubUser = await syncHumhub(null, dbUser)
+    const humhubUser = await syncHumhub(null, dbUser, humhubUserAccount.username)
     if (!humhubUser) {
       throw new LogError("user don't exist (any longer) on humhub and couldn't be created")
     }

@@ -34,12 +34,16 @@ export class PublishNameLogic {
    * @returns user.firstName for PUBLISH_NAME_FIRST, PUBLISH_NAME_FIRST_INITIAL or PUBLISH_NAME_FULL
    */
   public getFirstName(publishNameType: PublishNameType): string {
+    let firstName = ''
+    if (this.user && typeof this.user.firstName === 'string') {
+      firstName = this.user.firstName
+    }
     return [
       PublishNameType.PUBLISH_NAME_FIRST,
       PublishNameType.PUBLISH_NAME_FIRST_INITIAL,
       PublishNameType.PUBLISH_NAME_FULL,
     ].includes(publishNameType)
-      ? this.user.firstName
+      ? firstName.slice(0, 20)
       : ''
   }
 
@@ -50,10 +54,14 @@ export class PublishNameLogic {
    *   first initial from user.lastName for PUBLISH_NAME_FIRST_INITIAL
    */
   public getLastName(publishNameType: PublishNameType): string {
+    let lastName = ''
+    if (this.user && typeof this.user.lastName === 'string') {
+      lastName = this.user.lastName
+    }
     return publishNameType === PublishNameType.PUBLISH_NAME_FULL
-      ? this.user.lastName
-      : publishNameType === PublishNameType.PUBLISH_NAME_FIRST_INITIAL
-        ? this.user.lastName.charAt(0)
+      ? lastName.slice(0, 20)
+      : publishNameType === PublishNameType.PUBLISH_NAME_FIRST_INITIAL && lastName.length > 0
+        ? lastName.charAt(0)
         : ''
   }
 

@@ -172,7 +172,4 @@ function onBack() {
 function updateTransactions(pagination) {
   emit('update-transactions', pagination)
 }
-
-// Equivalent to created hook
-updateTransactions({})
 </script>
