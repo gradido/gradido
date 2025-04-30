@@ -10,36 +10,107 @@ The dominant financial system threatens to fail around the globe, followed by ma
 
 Find out more about the Project on its [Website](https://gradido.net/). It is offering vast resources about the idea. The remaining document will discuss the gradido software only.
 
-## Software requirements
+## Getting Started
 
-Currently we only support `docker` install instructions to run all services, since many different programming languages and frameworks are used.
+We are still in active development, so some things might not work as expected. If you encounter any issues, please feel free to report them via the [Issue Tracker](https://github.com/gradido/gradido/issues). Your feedback is valuable as we continue to build a more sustainable financial system!
 
-- [docker](https://www.docker.com/)
-- [docker-compose]
-- [yarn](https://phoenixnap.com/kb/yarn-windows)
-
-### For Arch Linux
-
-Install the required packages:
+### Get Gradido to your local machine
+Clone the Gradido repository to your local machine.
 
 ```bash
-sudo pacman -S docker
-sudo pacman -S docker-compose
+git clone https://github.com/gradido/gradido.git
+cd gradido
 ```
 
-Add group `docker` and then your user to it in order to allow you to run docker without sudo
+For local development, you can run Gradido with **Docker** or **natively**, depending on your preferences and system setup. If you don't have a native MariaDB or MySQL installation, Docker can be used to handle the database as well.
+
+### Docker Setup
+You can also run Gradido using Docker.
+
+- **Development Mode (Hot-Reload)**:
 
 ```bash
-sudo groupadd docker # may already exist `groupadd: group 'docker' already exists`
-sudo usermod -aG docker $USER
-groups # verify you have the group (requires relog)
+docker compose up
 ```
 
-Start the docker service:
+- **Production Build**:
 
 ```bash
-sudo systemctrl start docker
+docker compose -f docker-compose.yml up
 ```
+
+This will launch the following services as containers:
+| Service | Description |
+| --- | --- |
+| gradido | Backend & Frontend (All Modules) |
+| mariadb | MariaDB Database Server |
+| nginx | Webserver acting as a reverse proxy |
+
+#### Nginx Routing Overview
+```mermaid
+graph TD;
+    A[localhost  nginx] -->|/| B[frontend port 3000]
+    A -->|/admin| C[Admin UI port 8080]
+    A -->|/graphql| D[backend port 4000]
+
+    classDef default fill:#ffdf97,stroke:#333,stroke-width:2px;
+    class A,B,C,D default;
+```
+
+### Database Setup
+Gradido requires a running **MariaDB** or **MySQL** database instance.
+By default, the application expects the following credentials:
+- Database name: gradido_community (will be automatically created on startup)
+- User: root
+- Password: (empty)
+
+You can either run the database **natively** on your system, or use **Docker** to spin up the database along with an optional phpMyAdmin interface:
+
+- Run database using Docker:
+
+```bash
+docker compose up mariadb
+```
+
+- To launch phpMyAdmin along with the database:
+
+```bash
+docker compose up mariadb phpmyadmin
+```
+Once started, phpMyAdmin will be available at:
+http://localhost:8074
+
+### Native Setup
+Install all node modules with [Bun](https://bun.sh/) and [Turborepo](https://turborepo.com/docs/getting-started/installation) (globally, for convenience):
+
+```bash
+bun install
+bun install --global turbo@^2
+```
+
+If this does not work, try to use [yarn](https://classic.yarnpkg.com/en/docs/install) instead 
+
+```bash
+yarn install
+yarn global add turbo@^2
+```
+
+- **Development Mode (Hot-Reload)**:
+Launches Gradido with hot-reloading for fast iteration.
+
+```bash
+turbo dev
+```
+
+- **Production Build**: 
+Builds and runs Gradido optimized for production.
+A deployment script for Hetzner Cloud is available [here](./deployment/hetzner_cloud/README.md).
+
+```bash
+turbo start
+```
+
+
 
 ### For Windows
 
@@ -52,61 +123,46 @@ The installation of dockers depends on your selected product package from the [d
 * In case the docker desktop will not start correctly because of previous docker installations, then please clean the used directories of previous docker installation - `C:\Users` -  before you retry starting docker desktop. For further problems executing docker desktop please take a look in this description "[logs and trouble shooting](https://docs.docker.com/desktop/windows/troubleshoot/)"
 * In case your docker desktop installation causes high memory consumption per vmmem process, then please take a look at this description "[vmmen process consuming too much memory (Docker Desktop)](https://dev.to/tallesl/vmmen-process-consuming-too-much-memory-docker-desktop-273p)"
 
-#### yarn
+### yarn
 
 For the Gradido build process the yarn package manager will be used. Please download and install [yarn for windows](https://phoenixnap.com/kb/yarn-windows) by following the instructions there.
 
-## How to run?
 
-As soon as the software requirements are fulfilled and a docker installation is up and running then open a powershell on Windows or an other commandline prompt on Linux.
+### ⚡ Workspaces and Bun Compatibility
+The project now uses **Workspaces**, and work is ongoing to make all modules **Bun-compatible**. You can currently use `bun install`, but not all modules are fully Bun-compatible yet.
 
-Create and navigate to the directory, where you want to create the Gradido runtime environment.
-
-```
-mkdir \Gradido
-cd \Gradido
-```
-
-### 1. Clone Sources
-
-Clone the repo and pull all submodules
+To install bun, run:
 
 ```bash
-git clone git@github.com:gradido/gradido.git
-git submodule update --recursive --init
+curl -fsSL https://bun.sh/install | bash
 ```
 
-### 2. Install modules
-
-You can go in each under folder (admin, frontend, database, backend, ...) and call ``yarn`` in each folder or you can call ``yarn installAll``.
-
-### 3. Run docker-compose
-
-Run docker-compose to bring up the development environment
-
+To install dependencies with Bun: 
 ```bash
-docker-compose up
+bun install 
 ```
 
-### Additional Build options
-
-If you want to build for production you can do this aswell:
-
-```bash
-docker-compose -f docker-compose.yml up
-```
+Note that some modules are still not fully compatible with Bun. Therefore, continue using **Yarn** for development if you run into any issues.
 
 ## Services defined in this package
 
 - [frontend](./frontend) Wallet frontend
+- [admin](./admin) Admin interface
 - [backend](./backend) GraphQL & Business logic backend
-- [mariadb](./mariadb) Database backend
+- [dht-node](./dht-node) DHT Node Discover other Gradido Communities
+- [dlt-connector](./dlt-connector) DLT Connector (WIP), connect to blockchain
+- [federation](./federation) Federation, process incoming requests from another gradido communities
+- [database](./database) Contains EntityORM entities and migration code for database
+- [mariadb](./mariadb) Database server
+- [config-schema](./config-schema) Contains common configuration schemas
+- [e2e-tests](./e2e-tests) End-to-end tests
 
-We are currently restructuring the service to reduce dependencies and unify business logic into one place. Furthermore the databases defined for each service will be unified into one.
+
+
 
 ### Open the wallet
 
-Once you have `docker-compose` up and running, you can open [http://localhost/](http://localhost/) and create yourself a new wallet account.
+Once you have gradido up and running you can open [http://localhost/](http://localhost/) and create a new wallet account.
 
 ## How to release
 
