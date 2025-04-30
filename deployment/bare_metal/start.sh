@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# check for some tools
-# bun
+# check for some tools and install them, when missing
+# bun https://bun.sh/install, faster packet-manager as yarn
 if ! command -v bun &> /dev/null
 then
     if ! command -v unzip &> /dev/null
@@ -13,6 +13,7 @@ then
     curl -fsSL https://bun.sh/install | BUN_INSTALL=/usr/local bash
     export PATH="/root/.bun/bin:${PATH}"
 fi
+# turbo https://turborepo.com/docs/getting-started
 if ! command -v turbo &> /dev/null
 then
     echo "'turbo' is missing, will be installed now!"
@@ -27,9 +28,40 @@ log_step() {
 }
 
 # check for parameter
+FAST_MODE=false
+POSITIONAL_ARGS=()
+
+# loop through arguments
+for arg in "$@"; do
+  case "$arg" in
+    -f|--fast)
+      FAST_MODE=true
+      ;;
+    *)
+      POSITIONAL_ARGS+=("$arg")
+      ;;
+  esac
+done
+
+# set $1, $2, ... only with position arguments
+set -- "${POSITIONAL_ARGS[@]}"
+
+# check for missing branch name
+if [ -z "$1" ]; then
+  echo "Usage: $0 [--fast] <branchName>"
+  exit 1
+fi
+
+BRANCH_NAME="$1"
+
+# Debug-Ausgabe
 if [ -z "$1" ]; then
     echo "Usage: Please provide a branch name as the first argument."
     exit 1
+fi
+log_step "Use branch: $BRANCH_NAME"
+if [ "$FAST_MODE" = true ] ; then 
+  log_step "Use fast mode, keep packet manager, turbo and build cache"
 fi
 # Find current directory & configure paths
 set -o allexport
@@ -166,47 +198,47 @@ case "$URL_PROTOCOL" in
 esac
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $NGINX_CONFIG_DIR/$TEMPLATE_FILE > $NGINX_CONFIG_DIR/update-page.conf
 
-log_step 'Clean tmp and yarn cache'
-# Clean tmp folder - remove yarn files
-find /tmp -name "yarn--*" -exec rm -r {} \;
-# Clean user cache folder
-rm -Rf ~/.cache/yarn
+# Define all relevant subdirectories
+MODULES=(
+  database
+  backend
+  frontend
+  admin
+  dht-node
+  federation
+)
 
-log_step 'Remove all node_modules and build folders'
-# Remove node_modules folders
-# we had problems with corrupted node_modules folder
-rm -Rf $PROJECT_ROOT/database/node_modules
-rm -Rf $PROJECT_ROOT/config/node_modules
-rm -Rf $PROJECT_ROOT/backend/node_modules
-rm -Rf $PROJECT_ROOT/frontend/node_modules
-rm -Rf $PROJECT_ROOT/admin/node_modules
-rm -Rf $PROJECT_ROOT/dht-node/node_modules
-rm -Rf $PROJECT_ROOT/federation/node_modules
+if [ "$FAST_MODE" = false ] ; then 
+  log_step 'Clean tmp, bun and yarn cache'
+  # Clean tmp folder - remove yarn files
+  find /tmp -name "yarn--*" -exec rm -r {} \;
+  # Clean user cache folder
+  rm -Rf ~/.cache/yarn
+  # Clean bun cache
+  rm -Rf ~/.bun/install/cache
 
-# Remove build folders
-# we had problems with corrupted incremtal builds
-rm -Rf $PROJECT_ROOT/database/build
-rm -Rf $PROJECT_ROOT/config/build
-rm -Rf $PROJECT_ROOT/backend/build
-rm -Rf $PROJECT_ROOT/frontend/build
-rm -Rf $PROJECT_ROOT/admin/build
-rm -Rf $PROJECT_ROOT/dht-node/build
-rm -Rf $PROJECT_ROOT/federation/build
+  log_step 'Remove all node_modules, turbo cache and build folders'
+  
+  EXTENDED_MODULES=("" config-schema "${MODULES[@]}")
+  # Remove node_modules, build and .turbo folders for all modules inclusive config-schema and project root
+  for dir in "${EXTENDED_MODULES[@]}"; do
+    base="$PROJECT_ROOT"
+    # if dir isn't empty add to base
+    [ -n "$dir" ] && base="$PROJECT_ROOT/$dir"
 
+    rm -rf $base/node_modules
+    rm -rf $base/build
+    rm -rf $base/.turbo
+  done
+fi
+
+# Regenerate .env files for all modules
 log_step 'Regenerate .env files'
-# Regenerate .env files
-cp -f $PROJECT_ROOT/database/.env $PROJECT_ROOT/database/.env.bak
-cp -f $PROJECT_ROOT/backend/.env $PROJECT_ROOT/backend/.env.bak
-cp -f $PROJECT_ROOT/frontend/.env $PROJECT_ROOT/frontend/.env.bak
-cp -f $PROJECT_ROOT/admin/.env $PROJECT_ROOT/admin/.env.bak
-cp -f $PROJECT_ROOT/dht-node/.env $PROJECT_ROOT/dht-node/.env.bak
-cp -f $PROJECT_ROOT/federation/.env $PROJECT_ROOT/federation/.env.bak
-envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/database/.env.template > $PROJECT_ROOT/database/.env
-envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/backend/.env.template > $PROJECT_ROOT/backend/.env
-envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/frontend/.env.template > $PROJECT_ROOT/frontend/.env
-envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/admin/.env.template > $PROJECT_ROOT/admin/.env
-envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/dht-node/.env.template > $PROJECT_ROOT/dht-node/.env
-envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/federation/.env.template > $PROJECT_ROOT/federation/.env
+for dir in "${MODULES[@]}"; do
+  base="$PROJECT_ROOT/$dir"
+  cp -f $base/.env $base/.env.bak
+  envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $base/.env.template > $base/.env
+done
 
 # Install all node_modules
 log_step 'Installing node_modules'
