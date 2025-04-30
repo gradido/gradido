@@ -9,7 +9,7 @@
     "dev": "vite",
     "build": "vite build",
     "start": "vite preview",
-    "postbuild": "find build -type f -regex '.*\\.\\(html\\|js\\|css\\|svg\\|json\\)' -exec gzip -9 -k {} +",
+    "postbuild": "uname | grep -q Linux && find build -type f -regex '.*\\.\\(html\\|js\\|css\\|svg\\|json\\)' -exec gzip -9 -k {} + || echo 'Skip precompress on non-Linux'",
     "lint": "eslint --max-warnings=0 --ext .js,.vue,.json .",
     "stylelint": "stylelint --max-warnings=0 '**/*.{scss,vue}'",
     "test": "cross-env TZ=UTC vitest run",
