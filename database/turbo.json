@@ -1,30 +1,26 @@
 {
   "extends": ["//"],
   "tasks": {
-    "commonConfig": {
-      "dependsOn": [],
+    "clear": {
       "cache": false
     },
-    "clear": {
-      "dependsOn": ["commonConfig"]
-    },
     "up:backend_test": {
-      "dependsOn": ["commonConfig"]
+      "cache": false
     },
     "up:federation_test": {
-      "dependsOn": ["commonConfig"]
+      "cache": false
     },
     "up:dht_test": {
-      "dependsOn": ["commonConfig"]
+      "cache": false
     },
     "up": {
-      "dependsOn": ["commonConfig", "build"]
+      "cache": false
     },
     "down": {
-      "dependsOn": ["commonConfig", "build"]
+      "cache": false
     },
     "reset": {
-      "dependsOn": ["commonConfig", "build"]
+      "cache": false
     }
   }
 }
