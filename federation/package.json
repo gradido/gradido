@@ -4,7 +4,7 @@
   "description": "Gradido federation module providing Gradido-Hub-Federation and versioned API for inter community communication",
   "main": "src/index.ts",
   "repository": "https://github.com/gradido/gradido/federation",
-  "author": "Claus-Peter Huebner",
+  "author": "Gradido Academy - https://www.gradido.net",
   "license": "Apache-2.0",
   "private": false,
   "scripts": {
@@ -43,7 +43,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
-    "@types/express": "4.17.12",
+    "@types/express": "4.17.21",
     "@types/jest": "27.0.2",
     "@types/lodash.clonedeep": "^4.5.6",
     "@types/node": "^17.0.21",
