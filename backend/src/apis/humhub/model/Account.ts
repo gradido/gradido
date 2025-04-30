@@ -1,8 +1,8 @@
-import type { User } from '@entity/User'
+import { User } from '@entity/User'
 
 import { convertGradidoLanguageToHumhub } from '@/apis/humhub/convertLanguage'
 import { PublishNameLogic } from '@/data/PublishName.logic'
-import type { PublishNameType } from '@/graphql/enum/PublishNameType'
+import { PublishNameType } from '@/graphql/enum/PublishNameType'
 
 export class Account {
   public constructor(user: User) {

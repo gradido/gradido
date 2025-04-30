@@ -5,12 +5,12 @@ import {
   LessThanOrEqual,
   Like,
   Not,
-  type SelectQueryBuilder,
+  SelectQueryBuilder,
 } from '@dbTools/typeorm'
 import { Contribution as DbContribution } from '@entity/Contribution'
 
-import type { Paginated } from '@arg/Paginated'
-import type { SearchContributionsFilterArgs } from '@arg/SearchContributionsFilterArgs'
+import { Paginated } from '@arg/Paginated'
+import { SearchContributionsFilterArgs } from '@arg/SearchContributionsFilterArgs'
 import { Connection } from '@typeorm/connection'
 
 import { LogError } from '@/server/LogError'

@@ -1,4 +1,4 @@
-import type { User as dbUser } from '@entity/User'
+import { User as dbUser } from '@entity/User'
 
 import { PublishNameLogic } from '@/data/PublishName.logic'
 // import { GmsPublishLocationType } from '@/graphql/enum/GmsPublishLocationType'

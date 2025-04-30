@@ -1,4 +1,4 @@
-import type { Space } from './Space'
+import { Space } from './Space'
 
 export interface SpacesResponse {
   total: number

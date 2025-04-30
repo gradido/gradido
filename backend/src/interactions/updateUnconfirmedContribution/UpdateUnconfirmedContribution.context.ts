@@ -1,16 +1,16 @@
-import type { EntityManager, FindOneOptions, FindOptionsRelations } from '@dbTools/typeorm'
+import { EntityManager, FindOneOptions, FindOptionsRelations } from '@dbTools/typeorm'
 import { Contribution } from '@entity/Contribution'
-import type { ContributionMessage } from '@entity/ContributionMessage'
-import type { Decimal } from 'decimal.js-light'
+import { ContributionMessage } from '@entity/ContributionMessage'
+import { Decimal } from 'decimal.js-light'
 
 import { AdminUpdateContributionArgs } from '@arg/AdminUpdateContributionArgs'
 import { ContributionArgs } from '@arg/ContributionArgs'
 
 import { ContributionMessageArgs } from '@/graphql/arg/ContributionMessageArgs'
 import { LogError } from '@/server/LogError'
-import type { Context } from '@/server/context'
+import { Context } from '@/server/context'
 
-import type { AbstractUnconfirmedContributionRole } from './AbstractUnconfirmedContribution.role'
+import { AbstractUnconfirmedContributionRole } from './AbstractUnconfirmedContribution.role'
 import { UnconfirmedContributionAdminRole } from './UnconfirmedContributionAdmin.role'
 import { UnconfirmedContributionAdminAddMessageRole } from './UnconfirmedContributionAdminAddMessage.role'
 import { UnconfirmedContributionUserRole } from './UnconfirmedContributionUser.role'

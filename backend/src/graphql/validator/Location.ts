@@ -1,10 +1,6 @@
-import {
-  type ValidationArguments,
-  type ValidationOptions,
-  registerDecorator,
-} from 'class-validator'
+import { ValidationArguments, ValidationOptions, registerDecorator } from 'class-validator'
 
-import type { Location } from '@model/Location'
+import { Location } from '@model/Location'
 
 import { Location2Point } from '@/graphql/resolver/util/Location2Point'
 

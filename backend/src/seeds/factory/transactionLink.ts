@@ -1,9 +1,9 @@
 import { TransactionLink } from '@entity/TransactionLink'
-import type { ApolloServerTestClient } from 'apollo-server-testing'
+import { ApolloServerTestClient } from 'apollo-server-testing'
 
 import { transactionLinkExpireDate } from '@/graphql/resolver/TransactionLinkResolver'
 import { createTransactionLink, login } from '@/seeds/graphql/mutations'
-import type { TransactionLinkInterface } from '@/seeds/transactionLink/TransactionLinkInterface'
+import { TransactionLinkInterface } from '@/seeds/transactionLink/TransactionLinkInterface'
 
 export const transactionLinkFactory = async (
   client: ApolloServerTestClient,

@@ -1,5 +1,5 @@
-import type { Connection } from '@dbTools/typeorm'
-import type { ApolloServerTestClient } from 'apollo-server-testing'
+import { Connection } from '@dbTools/typeorm'
+import { ApolloServerTestClient } from 'apollo-server-testing'
 import { Decimal } from 'decimal.js-light'
 
 import { testEnvironment } from '@test/helpers'

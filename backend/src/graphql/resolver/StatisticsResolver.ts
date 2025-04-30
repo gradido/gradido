@@ -4,7 +4,7 @@ import { User as DbUser } from '@entity/User'
 import { Decimal } from 'decimal.js-light'
 import { Authorized, FieldResolver, Query, Resolver } from 'type-graphql'
 
-import { CommunityStatistics, type DynamicStatisticsFields } from '@model/CommunityStatistics'
+import { CommunityStatistics, DynamicStatisticsFields } from '@model/CommunityStatistics'
 
 import { RIGHTS } from '@/auth/RIGHTS'
 import { calculateDecay } from '@/util/decay'

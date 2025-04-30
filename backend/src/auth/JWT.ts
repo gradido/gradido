@@ -3,7 +3,7 @@ import { SignJWT, jwtVerify } from 'jose'
 import { CONFIG } from '@/config/'
 import { LogError } from '@/server/LogError'
 
-import type { CustomJwtPayload } from './CustomJwtPayload'
+import { CustomJwtPayload } from './CustomJwtPayload'
 
 export const decode = async (token: string): Promise<CustomJwtPayload | null> => {
   if (!token) {

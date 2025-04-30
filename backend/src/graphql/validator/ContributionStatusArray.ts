@@ -1,4 +1,4 @@
-import { type ValidationOptions, registerDecorator } from 'class-validator'
+import { ValidationOptions, registerDecorator } from 'class-validator'
 
 import { ContributionStatus } from '@enum/ContributionStatus'
 

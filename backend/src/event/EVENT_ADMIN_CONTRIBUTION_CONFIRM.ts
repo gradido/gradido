@@ -1,7 +1,7 @@
-import type { Contribution as DbContribution } from '@entity/Contribution'
-import type { Event as DbEvent } from '@entity/Event'
-import type { User as DbUser } from '@entity/User'
-import type { Decimal } from 'decimal.js-light'
+import { Contribution as DbContribution } from '@entity/Contribution'
+import { Event as DbEvent } from '@entity/Event'
+import { User as DbUser } from '@entity/User'
+import { Decimal } from 'decimal.js-light'
 
 import { Event } from './Event'
 import { EventType } from './EventType'

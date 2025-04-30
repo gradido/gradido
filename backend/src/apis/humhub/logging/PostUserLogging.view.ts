@@ -1,6 +1,6 @@
 import { AbstractLoggingView } from '@logging/AbstractLogging.view'
 
-import type { PostUser } from '@/apis/humhub/model/PostUser'
+import { PostUser } from '@/apis/humhub/model/PostUser'
 
 import { AccountLoggingView } from './AccountLogging.view'
 import { ProfileLoggingView } from './ProfileLogging.view'

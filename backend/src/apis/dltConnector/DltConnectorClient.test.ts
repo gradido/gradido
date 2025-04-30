@@ -1,4 +1,4 @@
-import type { Connection } from '@dbTools/typeorm'
+import { Connection } from '@dbTools/typeorm'
 import { Transaction as DbTransaction } from '@entity/Transaction'
 import { Decimal } from 'decimal.js-light'
 

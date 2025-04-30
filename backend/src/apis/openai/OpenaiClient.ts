@@ -1,7 +1,7 @@
 import { OpenaiThreads } from '@entity/OpenaiThreads'
-import type { User } from '@entity/User'
+import { User } from '@entity/User'
 import { OpenAI } from 'openai'
-import type { Message } from 'openai/resources/beta/threads/messages'
+import { Message } from 'openai/resources/beta/threads/messages'
 
 import { httpsAgent } from '@/apis/ConnectionAgents'
 import { CONFIG } from '@/config'

@@ -1,4 +1,4 @@
-import type { TransactionType } from '@dltConnector/enum/TransactionType'
+import { TransactionType } from '@dltConnector/enum/TransactionType'
 
 export interface TransactionRecipe {
   id: number

@@ -1,5 +1,5 @@
-import type { FindOptionsWhere } from '@dbTools/typeorm'
-import type { Community } from '@entity/Community'
+import { FindOptionsWhere } from '@dbTools/typeorm'
+import { Community } from '@entity/Community'
 import { User as DbUser } from '@entity/User'
 import { UserContact as DbUserContact } from '@entity/UserContact'
 import { isURL } from 'class-validator'

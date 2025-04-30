@@ -1,6 +1,6 @@
 import { AbstractLoggingView } from '@logging/AbstractLogging.view'
 
-import type { PublicCommunityInfo } from '@/federation/client/1_0/model/PublicCommunityInfo'
+import { PublicCommunityInfo } from '@/federation/client/1_0/model/PublicCommunityInfo'
 
 export class PublicCommunityInfoLoggingView extends AbstractLoggingView {
   public constructor(private self: PublicCommunityInfo) {

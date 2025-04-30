@@ -1,5 +1,5 @@
-import type { RemoveOptions, SaveOptions } from '@dbTools/typeorm'
-import type { User as dbUser } from '@entity/User'
+import { RemoveOptions, SaveOptions } from '@dbTools/typeorm'
+import { User as dbUser } from '@entity/User'
 import { UserContact } from '@entity/UserContact'
 
 import { User } from '@model/User'

@@ -1,5 +1,5 @@
-import type { TransactionError } from './TransactionError'
-import type { TransactionRecipe } from './TransactionRecipe'
+import { TransactionError } from './TransactionError'
+import { TransactionRecipe } from './TransactionRecipe'
 
 export interface TransactionResult {
   error?: TransactionError

@@ -1,8 +1,8 @@
-import type { User } from '@entity/User'
+import { User } from '@entity/User'
 
 import { CONFIG } from '@/config'
 import { PublishNameLogic } from '@/data/PublishName.logic'
-import type { PublishNameType } from '@/graphql/enum/PublishNameType'
+import { PublishNameType } from '@/graphql/enum/PublishNameType'
 
 export class Profile {
   public constructor(user: User) {

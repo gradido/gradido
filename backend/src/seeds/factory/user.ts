@@ -1,12 +1,12 @@
 import { User } from '@entity/User'
-import type { ApolloServerTestClient } from 'apollo-server-testing'
+import { ApolloServerTestClient } from 'apollo-server-testing'
 
 import { RoleNames } from '@enum/RoleNames'
 
 import { setUserRole } from '@/graphql/resolver/util/modifyUserRole'
 import { writeHomeCommunityEntry } from '@/seeds/community'
 import { createUser, setPassword } from '@/seeds/graphql/mutations'
-import type { UserInterface } from '@/seeds/users/UserInterface'
+import { UserInterface } from '@/seeds/users/UserInterface'
 
 export const userFactory = async (
   client: ApolloServerTestClient,

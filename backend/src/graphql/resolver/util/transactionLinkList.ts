@@ -1,11 +1,11 @@
 import { IsNull, MoreThan } from '@dbTools/typeorm'
 import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
-import type { User as DbUser } from '@entity/User'
+import { User as DbUser } from '@entity/User'
 
-import type { Paginated } from '@arg/Paginated'
-import type { TransactionLinkFilters } from '@arg/TransactionLinkFilters'
+import { Paginated } from '@arg/Paginated'
+import { TransactionLinkFilters } from '@arg/TransactionLinkFilters'
 import { Order } from '@enum/Order'
-import { TransactionLink, type TransactionLinkResult } from '@model/TransactionLink'
+import { TransactionLink, TransactionLinkResult } from '@model/TransactionLink'
 
 import { User } from '@/graphql/model/User'
 

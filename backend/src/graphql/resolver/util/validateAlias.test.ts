@@ -1,6 +1,6 @@
-import type { Connection } from '@dbTools/typeorm'
+import { Connection } from '@dbTools/typeorm'
 import { User } from '@entity/User'
-import type { ApolloServerTestClient } from 'apollo-server-testing'
+import { ApolloServerTestClient } from 'apollo-server-testing'
 
 import { cleanDB, testEnvironment } from '@test/helpers'
 import { i18n as localization, logger } from '@test/testSetup'

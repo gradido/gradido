@@ -1,7 +1,7 @@
-import type { User } from '@entity/User'
+import { User } from '@entity/User'
 
 import { isHumhubUserIdenticalToDbUser } from '@/apis/humhub/compareHumhubUserDbUser'
-import type { GetUser } from '@/apis/humhub/model/GetUser'
+import { GetUser } from '@/apis/humhub/model/GetUser'
 
 export enum ExecutedHumhubAction {
   UPDATE,

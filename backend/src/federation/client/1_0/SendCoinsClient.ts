@@ -1,4 +1,4 @@
-import type { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
+import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
 import { GraphQLClient } from 'graphql-request'
 
 import { LogError } from '@/server/LogError'
@@ -7,7 +7,7 @@ import { ensureUrlEndsWithSlash } from '@/util/utilities'
 
 import { SendCoinsArgsLoggingView } from './logging/SendCoinsArgsLogging.view'
 import { SendCoinsResultLoggingView } from './logging/SendCoinsResultLogging.view'
-import type { SendCoinsArgs } from './model/SendCoinsArgs'
+import { SendCoinsArgs } from './model/SendCoinsArgs'
 import { SendCoinsResult } from './model/SendCoinsResult'
 import { revertSendCoins as revertSendCoinsQuery } from './query/revertSendCoins'
 import { revertSettledSendCoins as revertSettledSendCoinsQuery } from './query/revertSettledSendCoins'

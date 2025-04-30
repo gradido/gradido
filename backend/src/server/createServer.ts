@@ -1,9 +1,9 @@
-import type { Connection as DbConnection } from '@dbTools/typeorm'
+import { Connection as DbConnection } from '@dbTools/typeorm'
 import { ApolloServer } from 'apollo-server-express'
-import express, { type Express, json, urlencoded } from 'express'
+import express, { Express, json, urlencoded } from 'express'
 import { slowDown } from 'express-slow-down'
 import helmet from 'helmet'
-import type { Logger } from 'log4js'
+import { Logger } from 'log4js'
 
 import { CONFIG } from '@/config'
 import { schema } from '@/graphql/schema'

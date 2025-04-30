@@ -1,5 +1,5 @@
-import type { Contribution } from '@entity/Contribution'
-import type { Decimal } from 'decimal.js-light'
+import { Contribution } from '@entity/Contribution'
+import { Decimal } from 'decimal.js-light'
 
 import {
   getUserCreation,

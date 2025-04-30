@@ -1,9 +1,9 @@
 import { User } from '@entity/User'
 import { UserContact } from '@entity/UserContact'
-import type { IRestResponse } from 'typed-rest-client'
+import { IRestResponse } from 'typed-rest-client'
 
 import { GetUser } from '@/apis/humhub/model/GetUser'
-import type { PostUser } from '@/apis/humhub/model/PostUser'
+import { PostUser } from '@/apis/humhub/model/PostUser'
 import { UsersResponse } from '@/apis/humhub/model/UsersResponse'
 
 /**

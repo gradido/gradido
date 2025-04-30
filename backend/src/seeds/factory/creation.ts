@@ -1,9 +1,9 @@
 import { Contribution } from '@entity/Contribution'
 import { Transaction } from '@entity/Transaction'
-import type { ApolloServerTestClient } from 'apollo-server-testing'
+import { ApolloServerTestClient } from 'apollo-server-testing'
 
 import { findUserByEmail } from '@/graphql/resolver/UserResolver'
-import type { CreationInterface } from '@/seeds/creation/CreationInterface'
+import { CreationInterface } from '@/seeds/creation/CreationInterface'
 import { confirmContribution, createContribution, login } from '@/seeds/graphql/mutations'
 
 export const nMonthsBefore = (date: Date, months = 1): string => {

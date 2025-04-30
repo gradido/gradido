@@ -1,4 +1,4 @@
-import type { Transaction as DbTransaction } from '@entity/Transaction'
+import { Transaction as DbTransaction } from '@entity/Transaction'
 import { GraphQLClient, gql } from 'graphql-request'
 
 import { CONFIG } from '@/config'
@@ -6,8 +6,8 @@ import { TransactionTypeId } from '@/graphql/enum/TransactionTypeId'
 import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 
-import type { TransactionResult } from './model/TransactionResult'
-import type { UserIdentifier } from './model/UserIdentifier'
+import { TransactionResult } from './model/TransactionResult'
+import { UserIdentifier } from './model/UserIdentifier'
 
 const sendTransaction = gql`
   mutation ($input: TransactionInput!) {

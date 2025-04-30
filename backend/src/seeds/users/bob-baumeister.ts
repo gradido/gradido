@@ -1,4 +1,4 @@
-import type { UserInterface } from './UserInterface'
+import { UserInterface } from './UserInterface'
 
 export const bobBaumeister: UserInterface = {
   alias: 'MeisterBob',

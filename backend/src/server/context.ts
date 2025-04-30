@@ -1,9 +1,9 @@
-import type { Transaction as dbTransaction } from '@entity/Transaction'
-import type { User as dbUser } from '@entity/User'
-import type { ExpressContext } from 'apollo-server-express'
-import type { Decimal } from 'decimal.js-light'
+import { Transaction as dbTransaction } from '@entity/Transaction'
+import { User as dbUser } from '@entity/User'
+import { ExpressContext } from 'apollo-server-express'
+import { Decimal } from 'decimal.js-light'
 
-import type { Role } from '@/auth/Role'
+import { Role } from '@/auth/Role'
 
 import { LogError } from './LogError'
 

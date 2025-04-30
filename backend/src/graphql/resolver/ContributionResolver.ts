@@ -1,10 +1,10 @@
-import { type EntityManager, IsNull, getConnection } from '@dbTools/typeorm'
+import { EntityManager, IsNull, getConnection } from '@dbTools/typeorm'
 import { Contribution as DbContribution } from '@entity/Contribution'
 import { Transaction as DbTransaction } from '@entity/Transaction'
 import { User as DbUser } from '@entity/User'
 import { UserContact } from '@entity/UserContact'
 import { Decimal } from 'decimal.js-light'
-import type { GraphQLResolveInfo } from 'graphql'
+import { GraphQLResolveInfo } from 'graphql'
 import {
   Arg,
   Args,
@@ -19,9 +19,9 @@ import {
   Root,
 } from 'type-graphql'
 
-import type { AdminCreateContributionArgs } from '@arg/AdminCreateContributionArgs'
-import type { AdminUpdateContributionArgs } from '@arg/AdminUpdateContributionArgs'
-import type { ContributionArgs } from '@arg/ContributionArgs'
+import { AdminCreateContributionArgs } from '@arg/AdminCreateContributionArgs'
+import { AdminUpdateContributionArgs } from '@arg/AdminUpdateContributionArgs'
+import { ContributionArgs } from '@arg/ContributionArgs'
 import { Paginated } from '@arg/Paginated'
 import { SearchContributionsFilterArgs } from '@arg/SearchContributionsFilterArgs'
 import { ContributionMessageType } from '@enum/ContributionMessageType'
@@ -30,7 +30,7 @@ import { ContributionType } from '@enum/ContributionType'
 import { TransactionTypeId } from '@enum/TransactionTypeId'
 import { AdminUpdateContribution } from '@model/AdminUpdateContribution'
 import { Contribution, ContributionListResult } from '@model/Contribution'
-import type { Decay } from '@model/Decay'
+import { Decay } from '@model/Decay'
 import { OpenCreation } from '@model/OpenCreation'
 import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
 import { User } from '@model/User'
@@ -54,7 +54,7 @@ import {
 } from '@/event/Events'
 import { UpdateUnconfirmedContributionContext } from '@/interactions/updateUnconfirmedContribution/UpdateUnconfirmedContribution.context'
 import { LogError } from '@/server/LogError'
-import { type Context, getClientTimezoneOffset, getUser } from '@/server/context'
+import { Context, getClientTimezoneOffset, getUser } from '@/server/context'
 import { backendLogger as logger } from '@/server/logger'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 import { calculateDecay } from '@/util/decay'

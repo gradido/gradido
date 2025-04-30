@@ -1,4 +1,4 @@
-import type { Community as DbCommunity } from '@entity/Community'
+import { Community as DbCommunity } from '@entity/Community'
 import { Field, Int, ObjectType } from 'type-graphql'
 
 @ObjectType()

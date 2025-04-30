@@ -1,7 +1,7 @@
-import type { Connection } from '@dbTools/typeorm'
+import { Connection } from '@dbTools/typeorm'
 import { Contribution as DbContribution } from '@entity/Contribution'
 import { Event as DbEvent } from '@entity/Event'
-import type { ApolloServerTestClient } from 'apollo-server-testing'
+import { ApolloServerTestClient } from 'apollo-server-testing'
 import { GraphQLError } from 'graphql'
 
 import { ContributionStatus } from '@enum/ContributionStatus'

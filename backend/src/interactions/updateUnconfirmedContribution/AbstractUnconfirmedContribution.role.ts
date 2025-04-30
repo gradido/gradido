@@ -1,13 +1,13 @@
-import type { Contribution } from '@entity/Contribution'
-import type { User } from '@entity/User'
-import type { Decimal } from 'decimal.js-light'
+import { Contribution } from '@entity/Contribution'
+import { User } from '@entity/User'
+import { Decimal } from 'decimal.js-light'
 
-import type { Role } from '@/auth/Role'
+import { Role } from '@/auth/Role'
 import { ContributionLogic } from '@/data/Contribution.logic'
 import { ContributionMessageBuilder } from '@/data/ContributionMessage.builder'
 import { ContributionStatus } from '@/graphql/enum/ContributionStatus'
 import { LogError } from '@/server/LogError'
-import { type Context, getClientTimezoneOffset } from '@/server/context'
+import { Context, getClientTimezoneOffset } from '@/server/context'
 
 export abstract class AbstractUnconfirmedContributionRole {
   private availableCreationSums?: Decimal[]

@@ -1,7 +1,7 @@
 import { IsNull, Like, Not } from '@dbTools/typeorm'
 import { User as DbUser } from '@entity/User'
 
-import type { SearchUsersFilters } from '@arg/SearchUsersFilters'
+import { SearchUsersFilters } from '@arg/SearchUsersFilters'
 import { Order } from '@enum/Order'
 
 function likeQuery(searchCriteria: string) {

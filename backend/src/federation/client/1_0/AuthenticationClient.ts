@@ -1,10 +1,10 @@
-import type { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
+import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
 import { GraphQLClient } from 'graphql-request'
 
 import { backendLogger as logger } from '@/server/logger'
 import { ensureUrlEndsWithSlash } from '@/util/utilities'
 
-import type { OpenConnectionArgs } from './model/OpenConnectionArgs'
+import { OpenConnectionArgs } from './model/OpenConnectionArgs'
 import { openConnection } from './query/openConnection'
 
 export class AuthenticationClient {

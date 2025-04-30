@@ -1,4 +1,4 @@
-import type { User as DbUser } from '@entity/User'
+import { User as DbUser } from '@entity/User'
 
 import { verifyAuthToken } from '@/apis/gms/GmsClient'
 import { CONFIG } from '@/config'

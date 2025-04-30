@@ -1,8 +1,8 @@
-import type { ApolloServerTestClient } from 'apollo-server-testing'
+import { ApolloServerTestClient } from 'apollo-server-testing'
 
-import type { ContributionLink } from '@model/ContributionLink'
+import { ContributionLink } from '@model/ContributionLink'
 
-import type { ContributionLinkInterface } from '@/seeds/contributionLink/ContributionLinkInterface'
+import { ContributionLinkInterface } from '@/seeds/contributionLink/ContributionLinkInterface'
 import { createContributionLink, login } from '@/seeds/graphql/mutations'
 
 export const contributionLinkFactory = async (

@@ -1,4 +1,4 @@
-import type { User } from '@entity/User'
+import { User } from '@entity/User'
 
 import { AbstractUser } from './AbstractUser'
 

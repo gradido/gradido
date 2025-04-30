@@ -1,4 +1,4 @@
-import type { UserContact as DbUserContact } from '@entity/UserContact'
+import { UserContact as DbUserContact } from '@entity/UserContact'
 import { Field, Int, ObjectType } from 'type-graphql'
 
 @ObjectType()

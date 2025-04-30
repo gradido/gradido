@@ -1,10 +1,10 @@
-import type { User } from '@entity/User'
+import { User } from '@entity/User'
 
 import { LogError } from '@/server/LogError'
 
 import { HumHubClient } from './HumHubClient'
 import { isHumhubUserIdenticalToDbUser } from './compareHumhubUserDbUser'
-import type { GetUser } from './model/GetUser'
+import { GetUser } from './model/GetUser'
 import { PostUser } from './model/PostUser'
 
 export enum ExecutedHumhubAction {

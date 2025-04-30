@@ -1,4 +1,4 @@
-import type { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
+import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
 import { GraphQLClient } from 'graphql-request'
 
 import { getPublicCommunityInfo } from '@/federation/client/1_0/query/getPublicCommunityInfo'
@@ -7,8 +7,8 @@ import { backendLogger as logger } from '@/server/logger'
 import { ensureUrlEndsWithSlash } from '@/util/utilities'
 
 import { PublicCommunityInfoLoggingView } from './logging/PublicCommunityInfoLogging.view'
-import type { GetPublicKeyResult } from './model/GetPublicKeyResult'
-import type { PublicCommunityInfo } from './model/PublicCommunityInfo'
+import { GetPublicKeyResult } from './model/GetPublicKeyResult'
+import { PublicCommunityInfo } from './model/PublicCommunityInfo'
 
 export class FederationClient {
   dbCom: DbFederatedCommunity

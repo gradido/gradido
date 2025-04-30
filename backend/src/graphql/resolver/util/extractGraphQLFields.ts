@@ -1,7 +1,7 @@
-import type { ObjectLiteral, SelectQueryBuilder } from '@dbTools/typeorm'
-import type { GraphQLResolveInfo } from 'graphql'
+import { ObjectLiteral, SelectQueryBuilder } from '@dbTools/typeorm'
+import { GraphQLResolveInfo } from 'graphql'
 import {
-  type ResolveTree,
+  ResolveTree,
   parseResolveInfo,
   simplifyParsedResolveInfoFragmentWithType,
 } from 'graphql-parse-resolve-info'

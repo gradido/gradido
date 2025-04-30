@@ -1,4 +1,4 @@
-import type { User as DbUser } from '@entity/User'
+import { User as DbUser } from '@entity/User'
 import { UserRole } from '@entity/UserRole'
 
 import { LogError } from '@/server/LogError'

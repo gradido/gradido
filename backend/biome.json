@@ -4,7 +4,7 @@
   "files": {
     "ignoreUnknown": false,
     "ignore": ["build", "node_modules", "coverage"],
-    "include": ["./src/**/*.js", "./src/**/*.ts", "./entity/**/*.ts", "./logging/**/*.ts", "./migrations/**/*.ts"]
+    "include": ["./src/**/*.js", "./src/**/*.ts"]
   },
   "formatter": {
     "enabled": true,

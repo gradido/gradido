@@ -1,9 +1,5 @@
-import {
-  type ValidationArguments,
-  type ValidationOptions,
-  registerDecorator,
-} from 'class-validator'
-import type { Decimal } from 'decimal.js-light'
+import { ValidationArguments, ValidationOptions, registerDecorator } from 'class-validator'
+import { Decimal } from 'decimal.js-light'
 
 export function IsPositiveDecimal(validationOptions?: ValidationOptions) {
   return function (object: Object, propertyName: string) {

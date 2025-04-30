@@ -4,7 +4,7 @@ import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCom
 import { FederatedCommunityLoggingView } from '@logging/FederatedCommunityLogging.view'
 
 import { FederationClient as V1_0_FederationClient } from '@/federation/client/1_0/FederationClient'
-import type { PublicCommunityInfo } from '@/federation/client/1_0/model/PublicCommunityInfo'
+import { PublicCommunityInfo } from '@/federation/client/1_0/model/PublicCommunityInfo'
 import { FederationClientFactory } from '@/federation/client/FederationClientFactory'
 import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'

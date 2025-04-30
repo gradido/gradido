@@ -1,6 +1,6 @@
-import type { Event as DbEvent } from '@entity/Event'
-import type { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
-import type { User as DbUser } from '@entity/User'
+import { Event as DbEvent } from '@entity/Event'
+import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
+import { User as DbUser } from '@entity/User'
 
 import { Event } from './Event'
 import { EventType } from './EventType'
