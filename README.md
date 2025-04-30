@@ -110,6 +110,7 @@ A deployment script for Hetzner Cloud is available [here](./deployment/hetzner_c
 turbo start
 ```
 
+[More Infos for using turbo](./working-native.md)
 
 
 ### For Windows
