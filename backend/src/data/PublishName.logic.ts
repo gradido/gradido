@@ -93,7 +93,7 @@ export class PublishNameLogic {
       ? this.getUsernameFromAlias()
       : this.isUsernameFromInitials(publishNameType)
         ? this.getUsernameFromInitials()
-        : `(${this.getFirstName(publishNameType)} ${this.getLastName(publishNameType)}`.trim()
+        : `${this.getFirstName(publishNameType)} ${this.getLastName(publishNameType)}`.trim()
   }
 
   public getUsernameFromInitials(): string {
