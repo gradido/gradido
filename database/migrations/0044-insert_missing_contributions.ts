@@ -1,8 +1,5 @@
 /* MIGRATION TO INSERT contributions for all transactions with type creation that do not have a contribution yet */
 
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   await queryFn(
     `INSERT INTO contributions

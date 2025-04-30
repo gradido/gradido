@@ -1,5 +1,5 @@
 import { Community as DbCommunity, FederatedCommunity as DbFederatedCommunity } from 'database'
-import { Resolver, Query, Authorized, Mutation, Args, Arg } from 'type-graphql'
+import { Arg, Args, Authorized, Mutation, Query, Resolver } from 'type-graphql'
 import { IsNull, Not } from 'typeorm'
 
 import { Paginated } from '@arg/Paginated'
@@ -11,13 +11,13 @@ import { FederatedCommunity } from '@model/FederatedCommunity'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { LogError } from '@/server/LogError'
 
+import { Location2Point } from './util/Location2Point'
 import {
   getAllCommunities,
   getCommunityByIdentifier,
   getCommunityByUuid,
   getHomeCommunity,
 } from './util/communities'
-import { Location2Point } from './util/Location2Point'
 
 @Resolver()
 export class CommunityResolver {

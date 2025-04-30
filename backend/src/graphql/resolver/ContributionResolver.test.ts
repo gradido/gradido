@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { UserInputError } from 'apollo-server-express'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { Contribution, Event as DbEvent, Transaction as DbTransaction, User } from 'database'
@@ -13,12 +10,12 @@ import { ContributionStatus } from '@enum/ContributionStatus'
 import { Order } from '@enum/Order'
 import {
   cleanDB,
-  resetToken,
-  testEnvironment,
   contributionDateFormatter,
   resetEntity,
+  resetToken,
+  testEnvironment,
 } from '@test/helpers'
-import { logger, i18n as localization } from '@test/testSetup'
+import { i18n as localization, logger } from '@test/testSetup'
 
 import {
   sendContributionConfirmedEmail,
@@ -30,22 +27,22 @@ import { creations } from '@/seeds/creation/index'
 import { creationFactory } from '@/seeds/factory/creation'
 import { userFactory } from '@/seeds/factory/user'
 import {
+  adminCreateContribution,
+  adminCreateContributionMessage,
+  adminDeleteContribution,
+  adminUpdateContribution,
+  confirmContribution,
   createContribution,
-  updateContribution,
   deleteContribution,
   denyContribution,
-  confirmContribution,
-  adminCreateContribution,
-  adminUpdateContribution,
-  adminDeleteContribution,
   login,
   logout,
-  adminCreateContributionMessage,
+  updateContribution,
 } from '@/seeds/graphql/mutations'
 import {
+  adminListContributions,
   listAllContributions,
   listContributions,
-  adminListContributions,
 } from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
@@ -58,9 +55,9 @@ import { getFirstDayOfPreviousNMonth } from '@/util/utilities'
 jest.mock('@/emails/sendEmailVariants')
 jest.mock('@/password/EncryptorUtils')
 
-let mutate: ApolloServerTestClient['mutate'],
-  query: ApolloServerTestClient['query'],
-  con: Connection
+let mutate: ApolloServerTestClient['mutate']
+let query: ApolloServerTestClient['query']
+let con: Connection
 let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']
@@ -96,7 +93,7 @@ describe('ContributionResolver', () => {
     admin = await userFactory(testEnv, peterLustig)
     await userFactory(testEnv, raeuberHotzenplotz)
     const bibisCreation = creations.find((creation) => creation.email === 'bibi@bloxberg.de')
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
     bibiCreatedContribution = await creationFactory(testEnv, bibisCreation!)
     await mutate({
       mutation: login,
@@ -2278,7 +2275,6 @@ describe('ContributionResolver', () => {
             })
           })
 
-          // eslint-disable-next-line jest/no-disabled-tests
           describe.skip('creation update is successful changing month', () => {
             // skipped as changing the month is currently disable
             it('returns update creation object', async () => {

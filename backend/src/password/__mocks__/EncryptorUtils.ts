@@ -1,7 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { User } from 'database'
 
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
@@ -11,19 +7,19 @@ import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 
 import {
-  crypto_shorthash_KEYBYTES,
   crypto_box_SEEDBYTES,
-  crypto_hash_sha512_init,
-  crypto_hash_sha512_update,
-  crypto_hash_sha512_final,
   crypto_hash_sha512_BYTES,
   crypto_hash_sha512_STATEBYTES,
-  crypto_shorthash_BYTES,
-  crypto_pwhash_SALTBYTES,
+  crypto_hash_sha512_final,
+  crypto_hash_sha512_init,
+  crypto_hash_sha512_update,
   crypto_pwhash,
-  crypto_shorthash,
-  crypto_pwhash_OPSLIMIT_MIN,
   crypto_pwhash_MEMLIMIT_MIN,
+  crypto_pwhash_OPSLIMIT_MIN,
+  crypto_pwhash_SALTBYTES,
+  crypto_shorthash,
+  crypto_shorthash_BYTES,
+  crypto_shorthash_KEYBYTES,
 } from 'sodium-native'
 
 const SecretKeyCryptographyCreateKeyMock = (

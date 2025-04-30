@@ -38,7 +38,9 @@ export const context = (args: ExpressContext): Context => {
 }
 
 export const getUser = (context: Context): dbUser => {
-  if (context.user) return context.user
+  if (context.user) {
+    return context.user
+  }
   throw new LogError('No user given in context')
 }
 

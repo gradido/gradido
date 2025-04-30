@@ -3,9 +3,6 @@
  * This migration corrects the length of the saved public keys to 32 as this is the length it is generated for.
  */
 
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   // federated communities
   await queryFn('DROP INDEX `public_api_key` ON `federated_communities`;')

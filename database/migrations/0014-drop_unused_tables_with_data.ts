@@ -5,9 +5,6 @@
  * The migration reduces the amount of tables to 16
  */
 
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   await queryFn(`DROP TABLE \`address_types\`;`)
   await queryFn(`DROP TABLE \`admin_errors\`;`)

@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import {
   ContributionLink as DbContributionLink,
@@ -14,7 +11,7 @@ import { GraphQLError } from 'graphql'
 import { Connection } from 'typeorm'
 
 import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
-import { cleanDB, testEnvironment, resetToken, resetEntity } from '@test/helpers'
+import { cleanDB, resetEntity, resetToken, testEnvironment } from '@test/helpers'
 import { logger } from '@test/testSetup'
 
 import { EventType } from '@/event/Events'
@@ -23,14 +20,14 @@ import { creationFactory } from '@/seeds/factory/creation'
 import { transactionLinkFactory } from '@/seeds/factory/transactionLink'
 import { userFactory } from '@/seeds/factory/user'
 import {
-  login,
-  createContributionLink,
-  redeemTransactionLink,
+  confirmContribution,
   createContribution,
-  updateContribution,
+  createContributionLink,
   createTransactionLink,
   deleteTransactionLink,
-  confirmContribution,
+  login,
+  redeemTransactionLink,
+  updateContribution,
 } from '@/seeds/graphql/mutations'
 import { listTransactionLinksAdmin } from '@/seeds/graphql/queries'
 import { transactionLinks } from '@/seeds/transactionLink/index'
@@ -46,9 +43,9 @@ jest.mock('@/password/EncryptorUtils')
 jest.mock('@/util/TRANSACTIONS_LOCK')
 TRANSACTIONS_LOCK.acquire = jest.fn().mockResolvedValue(jest.fn())
 
-let mutate: ApolloServerTestClient['mutate'],
-  query: ApolloServerTestClient['query'],
-  con: Connection
+let mutate: ApolloServerTestClient['mutate']
+let query: ApolloServerTestClient['query']
+let con: Connection
 let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']
@@ -892,7 +889,7 @@ describe('TransactionLinkResolver', () => {
           variables.pageSize = 25
           // bibi needs GDDs
           const bibisCreation = creations.find((creation) => creation.email === 'bibi@bloxberg.de')
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
           await creationFactory(testEnv, bibisCreation!)
           // bibis transaktion links
           const bibisTransaktionLinks = transactionLinks.filter(
@@ -1068,7 +1065,7 @@ describe('TransactionLinkResolver', () => {
         })
 
         // TODO: works not as expected, because 'redeemedAt' and 'redeemedBy' have to be added to the transaktion link factory
-        // eslint-disable-next-line jest/no-disabled-tests
+
         describe.skip('filter by redeemed', () => {
           it('finds 6 open transaction links, 1 deleted, and no redeemed', async () => {
             await expect(
@@ -1121,7 +1118,6 @@ describe('TransactionLinkResolver', () => {
     })
 
     it('returns a string that ends with the hex value of date', () => {
-      // eslint-disable-next-line security/detect-non-literal-regexp
       const regexp = new RegExp(date.getTime().toString(16) + '$')
       expect(transactionLinkCode(date)).toEqual(expect.stringMatching(regexp))
     })

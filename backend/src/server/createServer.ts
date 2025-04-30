@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
-/* eslint-disable @typescript-eslint/unbound-method */
 import { ApolloServer } from 'apollo-server-express'
 import express, { Express, json, urlencoded } from 'express'
 import { slowDown } from 'express-slow-down'
@@ -10,8 +7,8 @@ import { Connection as DbConnection } from 'typeorm'
 
 import { CONFIG } from '@/config'
 import { schema } from '@/graphql/schema'
-import { Connection } from '@/typeorm/connection'
 import { checkDBVersion } from '@/typeorm/DBVersion'
+import { Connection } from '@/typeorm/connection'
 import { elopageWebhook } from '@/webhook/elopage'
 import { gmsWebhook } from '@/webhook/gms'
 
@@ -31,7 +28,6 @@ interface ServerDef {
 }
 
 export const createServer = async (
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   context: any = serverContext,
   logger: Logger = apolloLogger,
   localization: i18n.I18n = i18n,
@@ -60,7 +56,7 @@ export const createServer = async (
   app.use(cors)
 
   // Helmet helps secure Express apps by setting HTTP response headers.
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+
   app.use(helmet())
 
   // rate limiter/ slow down to many requests
@@ -92,11 +88,11 @@ export const createServer = async (
   app.use(localization.init)
 
   // Elopage Webhook
-  // eslint-disable-next-line @typescript-eslint/no-misused-promises
+
   app.post('/hook/elopage/' + CONFIG.WEBHOOK_ELOPAGE_SECRET, elopageWebhook)
 
   // GMS Webhook
-  // eslint-disable-next-line @typescript-eslint/no-misused-promises
+
   app.get('/hook/gms/' + CONFIG.GMS_WEBHOOK_SECRET, gmsWebhook)
 
   // Apollo Server

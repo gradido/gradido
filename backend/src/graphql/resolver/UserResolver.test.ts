@@ -1,9 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { UserInputError } from 'apollo-server-express'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import {
@@ -25,8 +19,8 @@ import { RoleNames } from '@enum/RoleNames'
 import { UserContactType } from '@enum/UserContactType'
 import { ContributionLink } from '@model/ContributionLink'
 import { Location } from '@model/Location'
-import { testEnvironment, headerPushMock, resetToken, cleanDB } from '@test/helpers'
-import { logger, i18n as localization } from '@test/testSetup'
+import { cleanDB, headerPushMock, resetToken, testEnvironment } from '@test/helpers'
+import { i18n as localization, logger } from '@test/testSetup'
 
 import { subscribe } from '@/apis/KlicktippController'
 import { CONFIG } from '@/config'
@@ -44,26 +38,26 @@ import { contributionLinkFactory } from '@/seeds/factory/contributionLink'
 import { transactionLinkFactory } from '@/seeds/factory/transactionLink'
 import { userFactory } from '@/seeds/factory/user'
 import {
+  confirmContribution,
+  createContribution,
+  createUser,
+  deleteUser,
+  forgotPassword,
   login,
   logout,
-  createUser,
-  setPassword,
-  forgotPassword,
-  updateUserInfos,
-  createContribution,
-  confirmContribution,
-  setUserRole,
-  deleteUser,
-  unDeleteUser,
   sendActivationEmail,
+  setPassword,
+  setUserRole,
+  unDeleteUser,
+  updateUserInfos,
 } from '@/seeds/graphql/mutations'
 import {
-  verifyLogin,
+  checkUsername,
   queryOptIn,
   searchAdminUsers,
   searchUsers,
   user as userQuery,
-  checkUsername,
+  verifyLogin,
 } from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
@@ -103,9 +97,9 @@ CONFIG.EMAIL_CODE_REQUEST_TIME = 10
 
 let admin: User
 let user: User
-let mutate: ApolloServerTestClient['mutate'],
-  query: ApolloServerTestClient['query'],
-  con: Connection
+let mutate: ApolloServerTestClient['mutate']
+let query: ApolloServerTestClient['query']
+let con: Connection
 let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']
@@ -861,7 +855,6 @@ describe('UserResolver', () => {
       })
     })
 
-    // eslint-disable-next-line jest/no-disabled-tests
     describe.skip('user is in database but password is not set', () => {
       beforeAll(async () => {
         jest.clearAllMocks()

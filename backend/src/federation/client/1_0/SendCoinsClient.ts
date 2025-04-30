@@ -132,7 +132,7 @@ export class SendCoinsClient {
         { args },
       )
       logger.debug(`X-Com: SendCoinsClient: after revertSettledSendCoins: data=`, data)
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+
       if (!data?.revertSettledSendCoins) {
         logger.warn(
           'X-Com: SendCoinsClient: revertSettledSendCoins without response data from endpoint',

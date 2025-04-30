@@ -1,16 +1,16 @@
-import { OpenConnectionArgs } from '../model/OpenConnectionArgs'
+import { federationLogger as logger } from '@/server/logger'
 import {
+  CommunityLoggingView,
   Community as DbCommunity,
   FederatedCommunity as DbFedCommunity,
-  CommunityLoggingView,
   FederatedCommunityLoggingView,
 } from 'database'
-import { federationLogger as logger } from '@/server/logger'
+import { OpenConnectionArgs } from '../model/OpenConnectionArgs'
 import { OpenConnectionCallbackArgs } from '../model/OpenConnectionCallbackArgs'
-// eslint-disable-next-line camelcase
-import { randombytes_random } from 'sodium-native'
+
 import { AuthenticationClientFactory } from '@/client/AuthenticationClientFactory'
-// eslint-disable-next-line camelcase
+import { randombytes_random } from 'sodium-native'
+
 import { AuthenticationClient as V1_0_AuthenticationClient } from '@/client/1_0/AuthenticationClient'
 import { AuthenticationArgs } from '../model/AuthenticationArgs'
 
@@ -43,7 +43,7 @@ export async function startOpenConnectionCallback(
     )
 
     const client = AuthenticationClientFactory.getInstance(fedComA)
-    // eslint-disable-next-line camelcase
+
     if (client instanceof V1_0_AuthenticationClient) {
       const callbackArgs = new OpenConnectionCallbackArgs()
       callbackArgs.oneTimeCode = oneTimeCode.toString()
@@ -76,7 +76,7 @@ export async function startAuthentication(
 
     // TODO encrypt homeCom.uuid with homeCom.privateKey and sign it with callbackFedCom.publicKey
     const client = AuthenticationClientFactory.getInstance(fedComB)
-    // eslint-disable-next-line camelcase
+
     if (client instanceof V1_0_AuthenticationClient) {
       const authenticationArgs = new AuthenticationArgs()
       authenticationArgs.oneTimeCode = oneTimeCode

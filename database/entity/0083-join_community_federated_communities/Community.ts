@@ -1,12 +1,12 @@
 import {
   BaseEntity,
-  Entity,
-  PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
-  UpdateDateColumn,
-  OneToMany,
+  Entity,
   JoinColumn,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm'
 import { FederatedCommunity } from '../FederatedCommunity'
 import { User } from '../User'
@@ -68,11 +68,17 @@ export class Community extends BaseEntity {
   })
   updatedAt: Date | null
 
-  @OneToMany(() => User, (user) => user.community)
+  @OneToMany(
+    () => User,
+    (user) => user.community,
+  )
   @JoinColumn({ name: 'community_uuid', referencedColumnName: 'communityUuid' })
   users: User[]
 
-  @OneToMany(() => FederatedCommunity, (federatedCommunity) => federatedCommunity.community)
+  @OneToMany(
+    () => FederatedCommunity,
+    (federatedCommunity) => federatedCommunity.community,
+  )
   @JoinColumn({ name: 'public_key', referencedColumnName: 'publicKey' })
   federatedCommunities?: FederatedCommunity[]
 }

@@ -1,9 +1,7 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+import { CONFIG } from '@/config'
+import { createServer } from '@/server/createServer'
 import { createTestClient } from 'apollo-server-testing'
-import createServer from '@/server/createServer'
 import { Community as DbCommunity } from 'database'
-import CONFIG from '@/config'
 import { Connection } from 'typeorm'
 
 let query: any

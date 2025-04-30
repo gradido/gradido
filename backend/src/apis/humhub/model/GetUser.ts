@@ -10,6 +10,6 @@ export class GetUser extends AbstractUser {
 
   id: number
   guid: string
-  // eslint-disable-next-line camelcase
+
   display_name: string
 }

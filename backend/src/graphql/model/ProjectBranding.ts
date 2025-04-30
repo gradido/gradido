@@ -1,5 +1,5 @@
 import { ProjectBranding as dbProjectBranding } from 'database'
-import { ObjectType, Field, Int } from 'type-graphql'
+import { Field, Int, ObjectType } from 'type-graphql'
 
 @ObjectType()
 export class ProjectBranding {

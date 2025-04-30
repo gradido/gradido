@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { Community as DbCommunity, User as DbUser } from 'database'
 import { Connection } from 'typeorm'
@@ -43,9 +40,9 @@ describe('graphql/resolver/util/findUserByIdentifier', () => {
 
   beforeAll(async () => {
     homeCom = await writeHomeCommunityEntry()
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
     communityUuid = homeCom.communityUuid!
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
     communityName = homeCom.communityUuid!
 
     userBibi = await userFactory(testEnv, bibiBloxberg)

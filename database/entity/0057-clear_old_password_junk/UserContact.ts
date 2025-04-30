@@ -1,10 +1,10 @@
 import {
   BaseEntity,
-  Entity,
-  PrimaryGeneratedColumn,
   Column,
   DeleteDateColumn,
+  Entity,
   OneToOne,
+  PrimaryGeneratedColumn,
 } from 'typeorm'
 import { User } from '../User'
 
@@ -22,7 +22,10 @@ export class UserContact extends BaseEntity {
   })
   type: string
 
-  @OneToOne(() => User, (user) => user.emailContact)
+  @OneToOne(
+    () => User,
+    (user) => user.emailContact,
+  )
   user: User
 
   @Column({ name: 'user_id', type: 'int', unsigned: true, nullable: false })

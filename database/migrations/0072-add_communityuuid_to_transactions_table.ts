@@ -1,8 +1,5 @@
 /* MIGRATION TO add users that have a transaction but do not exist */
 
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   await queryFn(
     'ALTER TABLE `transactions` ADD COLUMN `user_community_uuid` char(36) DEFAULT NULL NULL AFTER `user_id`;',

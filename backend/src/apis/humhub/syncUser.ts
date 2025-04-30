@@ -3,8 +3,8 @@ import { User } from 'database'
 import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 
-import { isHumhubUserIdenticalToDbUser } from './compareHumhubUserDbUser'
 import { HumHubClient } from './HumHubClient'
+import { isHumhubUserIdenticalToDbUser } from './compareHumhubUserDbUser'
 import { GetUser } from './model/GetUser'
 import { PostUser } from './model/PostUser'
 

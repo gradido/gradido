@@ -18,7 +18,6 @@ export class PublishNameLogic {
 
   // remove character which are invalid for humhub username
   private filterOutInvalidChar(name: string) {
-    // eslint-disable-next-line import/no-named-as-default-member
     return XRegExp.match(name, this.usernameRegex, 'all').join('')
   }
 

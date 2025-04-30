@@ -1,5 +1,4 @@
 // ATTENTION: DO NOT PUT ANY SECRETS IN HERE (or the .env)
-/* eslint-disable n/no-process-env */
 
 // eslint-disable-next-line import/no-unresolved
 import { validate } from 'config-schema'
@@ -89,8 +88,8 @@ const email = {
   EMAIL_PASSWORD: process.env.EMAIL_PASSWORD ?? '',
   EMAIL_SMTP_HOST: process.env.EMAIL_SMTP_HOST ?? 'mailserver',
   EMAIL_SMTP_PORT: Number(process.env.EMAIL_SMTP_PORT) || 1025,
-  // eslint-disable-next-line no-unneeded-ternary
-  EMAIL_TLS: process.env.EMAIL_TLS === 'false' ? false : true,
+
+  EMAIL_TLS: process.env.EMAIL_TLS !== 'false',
   EMAIL_LINK_VERIFICATION:
     COMMUNITY_URL + (process.env.EMAIL_LINK_VERIFICATION_PATH ?? '/checkEmail/'),
   EMAIL_LINK_SETPASSWORD:

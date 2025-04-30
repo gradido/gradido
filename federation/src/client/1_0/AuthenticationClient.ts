@@ -1,11 +1,11 @@
+import { federationLogger as logger } from '@/server/logger'
 import { FederatedCommunity as DbFederatedCommunity } from 'database'
 import { GraphQLClient } from 'graphql-request'
-import { federationLogger as logger } from '@/server/logger'
 
-import { OpenConnectionCallbackArgs } from '@/graphql/api/1_0/model/OpenConnectionCallbackArgs'
-import { openConnectionCallback } from './query/openConnectionCallback'
 import { AuthenticationArgs } from '@/graphql/api/1_0/model/AuthenticationArgs'
+import { OpenConnectionCallbackArgs } from '@/graphql/api/1_0/model/OpenConnectionCallbackArgs'
 import { authenticate } from './query/authenticate'
+import { openConnectionCallback } from './query/openConnectionCallback'
 
 export class AuthenticationClient {
   dbCom: DbFederatedCommunity
@@ -29,9 +29,8 @@ export class AuthenticationClient {
   async openConnectionCallback(args: OpenConnectionCallbackArgs): Promise<boolean> {
     logger.debug('Authentication: openConnectionCallback with endpoint', this.endpoint, args)
     try {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
       const { data } = await this.client.rawRequest<any>(openConnectionCallback, { args })
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+
       if (data && data.openConnectionCallback) {
         logger.warn(
           'Authentication: openConnectionCallback without response data from endpoint',
@@ -53,10 +52,9 @@ export class AuthenticationClient {
   async authenticate(args: AuthenticationArgs): Promise<string | null> {
     logger.debug('Authentication: authenticate with endpoint=', this.endpoint)
     try {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
       const { data } = await this.client.rawRequest<any>(authenticate, { args })
       logger.debug('Authentication: after authenticate: data:', data)
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+
       const authUuid: string = data?.authenticate
       if (authUuid) {
         logger.debug('Authentication: received authenticated uuid', authUuid)

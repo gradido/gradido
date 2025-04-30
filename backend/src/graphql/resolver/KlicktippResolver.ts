@@ -1,6 +1,6 @@
-import { Resolver, Authorized, Mutation, Ctx } from 'type-graphql'
+import { Authorized, Ctx, Mutation, Resolver } from 'type-graphql'
 
-import { unsubscribe, subscribe } from '@/apis/KlicktippController'
+import { subscribe, unsubscribe } from '@/apis/KlicktippController'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { EVENT_NEWSLETTER_SUBSCRIBE, EVENT_NEWSLETTER_UNSUBSCRIBE } from '@/event/Events'
 import { Context, getUser } from '@/server/context'

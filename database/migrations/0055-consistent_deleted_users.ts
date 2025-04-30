@@ -1,8 +1,5 @@
 /* MIGRATION TO soft delete user contacts of soft deleted users */
 
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   await queryFn(`
     UPDATE user_contacts LEFT JOIN users ON users.email_id = user_contacts.id
@@ -11,5 +8,6 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
     AND users.deleted_at IS NOT NULL;`)
 }
 
-/* eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-empty-function */
-export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {}
+export async function downgrade(_queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
+  // Not needed
+}

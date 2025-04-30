@@ -4,9 +4,6 @@
  * we can delete it from the database
  */
 
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   // Remove transactions with type 9 (start decay block). This should affect exactly 1 row
   await queryFn(`DELETE FROM transactions WHERE transaction_type_id = 9;`)

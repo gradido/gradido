@@ -1,10 +1,8 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Community as DbCommunity } from 'database'
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 import { Field, ObjectType } from 'type-graphql'
 
 @ObjectType()
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export class GetPublicCommunityInfoResult {
   constructor(dbCom: DbCommunity) {
     this.publicKey = dbCom.publicKey.toString('hex')

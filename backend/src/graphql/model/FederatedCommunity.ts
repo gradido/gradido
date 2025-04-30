@@ -1,5 +1,5 @@
 import { FederatedCommunity as DbFederatedCommunity } from 'database'
-import { ObjectType, Field, Int } from 'type-graphql'
+import { Field, Int, ObjectType } from 'type-graphql'
 
 import { ensureUrlEndsWithSlash } from '@/util/utilities'
 

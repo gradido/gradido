@@ -3,9 +3,6 @@
  * Combine several transaction tables into one table with all data
  */
 
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   // Create new `user_id` column (former `state_user_id`), with a temporary default of null
   await queryFn(

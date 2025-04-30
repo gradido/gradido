@@ -3,29 +3,29 @@ import 'reflect-metadata'
 import { ApolloServer } from 'apollo-server-express'
 import express, { Express, RequestHandler } from 'express'
 
-// database
-import connection from '@/typeorm/connection'
 import { checkDBVersion } from '@/typeorm/DBVersion'
+// database
+import { connection } from '@/typeorm/connection'
 
 // server
 import cors from './cors'
 // import serverContext from './context'
-import plugins from './plugins'
+import { plugins } from './plugins'
 
 // config
 import { CONFIG } from '@/config'
 
 // graphql
-import schema from '@/graphql/schema'
+import { schema } from '@/graphql/schema'
 
 // webhooks
 // import { elopageWebhook } from '@/webhook/elopage'
 import { Connection } from 'typeorm'
 
-import { apolloLogger } from './logger'
-import { Logger } from 'log4js'
-import helmet from 'helmet'
 import { slowDown } from 'express-slow-down'
+import helmet from 'helmet'
+import { Logger } from 'log4js'
+import { apolloLogger } from './logger'
 
 // i18n
 // import { i18n } from './localization'
@@ -36,7 +36,6 @@ import { slowDown } from 'express-slow-down'
 type ServerDef = { apollo: ApolloServer; app: Express; con: Connection }
 
 export const createServer = async (
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   // context: any = serverContext,
   logger: Logger = apolloLogger,
   // localization: i18n.I18n = i18n,
@@ -112,5 +111,3 @@ export const createServer = async (
 
   return { apollo, app, con }
 }
-
-export default createServer

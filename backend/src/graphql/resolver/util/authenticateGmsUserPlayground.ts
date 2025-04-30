@@ -7,7 +7,7 @@ import { backendLogger as logger } from '@/server/logger'
 import { ensureUrlEndsWithSlash } from '@/util/utilities'
 
 export async function authenticateGmsUserPlayground(
-  apiKey: string,
+  _apiKey: string,
   token: string,
   dbUser: DbUser,
 ): Promise<GmsUserAuthenticationResult> {

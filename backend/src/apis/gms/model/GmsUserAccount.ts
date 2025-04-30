@@ -11,7 +11,7 @@ export class GmsUserAccount {
   address: string
   radius: number
   description: string
-  // eslint-disable-next-line camelcase
+
   api_key: string
   profileImage: unknown
 }

@@ -1,5 +1,5 @@
 import { User as DbUser } from 'database'
-import { IsNull, Not, Like } from 'typeorm'
+import { IsNull, Like, Not } from 'typeorm'
 
 import { SearchUsersFilters } from '@arg/SearchUsersFilters'
 import { Order } from '@enum/Order'

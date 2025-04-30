@@ -28,7 +28,10 @@
     "uuid": "^8.3.2",
     "turbo": "^2.5.0"
   },
+  "devDependencies": {
+    "@biomejs/biome": "1.9.4"
+  },
   "engines": {
     "node": ">=18"
-  }
+  }  
 }

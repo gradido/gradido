@@ -1,7 +1,7 @@
-import CONFIG from '@/config'
+import { CONFIG } from '@/config'
+import { federationLogger as logger } from '@/server/logger'
 import { Community as DbCommunity } from 'database'
 import { Decimal } from 'decimal.js-light'
-import { federationLogger as logger } from '@/server/logger'
 
 export async function checkTradingLevel(homeCom: DbCommunity, amount: Decimal): Promise<boolean> {
   const tradingLevel = CONFIG.FEDERATION_TRADING_LEVEL

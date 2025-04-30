@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Transaction as dbTransaction } from 'database'
 import { Decimal } from 'decimal.js-light'
-import { SaveOptions, RemoveOptions } from 'typeorm'
+import { RemoveOptions, SaveOptions } from 'typeorm'
 
 import { TransactionTypeId } from '@enum/TransactionTypeId'
 import { Transaction } from '@model/Transaction'
@@ -13,16 +12,16 @@ const defaultModelFunctions = {
   hasId: function (): boolean {
     throw new Error('Function not implemented.')
   },
-  save: function (options?: SaveOptions): Promise<dbTransaction> {
+  save: function (_options?: SaveOptions): Promise<dbTransaction> {
     throw new Error('Function not implemented.')
   },
-  remove: function (options?: RemoveOptions): Promise<dbTransaction> {
+  remove: function (_options?: RemoveOptions): Promise<dbTransaction> {
     throw new Error('Function not implemented.')
   },
-  softRemove: function (options?: SaveOptions): Promise<dbTransaction> {
+  softRemove: function (_options?: SaveOptions): Promise<dbTransaction> {
     throw new Error('Function not implemented.')
   },
-  recover: function (options?: SaveOptions): Promise<dbTransaction> {
+  recover: function (_options?: SaveOptions): Promise<dbTransaction> {
     throw new Error('Function not implemented.')
   },
   reload: function (): Promise<void> {
@@ -33,12 +32,12 @@ const defaultModelFunctions = {
 const virtualLinkTransaction = (
   balance: Decimal,
   amount: Decimal,
-  holdAvailableAmount: Decimal,
+  _holdAvailableAmount: Decimal,
   decay: Decimal,
   createdAt: Date,
   validUntil: Date,
   user: User,
-  previousBalance: Decimal,
+  _previousBalance: Decimal,
 ): Transaction => {
   const linkDbTransaction: dbTransaction = {
     id: -2,

@@ -7,9 +7,6 @@
  * the new table to properly describe what it does
  */
 
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   // drop duplicate table, it was unused
   await queryFn('DROP TABLE `login_pending_tasks`;')

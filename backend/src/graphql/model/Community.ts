@@ -1,5 +1,5 @@
 import { Community as DbCommunity } from 'database'
-import { ObjectType, Field, Int } from 'type-graphql'
+import { Field, Int, ObjectType } from 'type-graphql'
 
 @ObjectType()
 export class Community {

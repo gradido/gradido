@@ -7,7 +7,6 @@ export class SendCoinsArgsLoggingView extends AbstractLoggingView {
     super()
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public toJSON(): any {
     return {
       recipientCommunityUuid: this.self.recipientCommunityUuid,

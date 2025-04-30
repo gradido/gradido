@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/unbound-method */
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { User } from 'database'
 
@@ -19,9 +17,8 @@ export const userFactory = async (
   const homeCom = await writeHomeCommunityEntry()
 
   const response = await mutate({ mutation: createUser, variables: user })
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
   if (!response?.data?.createUser) {
-    // eslint-disable-next-line no-console
+    // biome-ignore lint/suspicious/noConsole: will be used in tests where logging is mocked
     console.log(response)
     throw new Error('createUser mutation returned unexpected response')
   }
@@ -63,7 +60,7 @@ export const userFactory = async (
       dbUser.communityUuid = homeCom.communityUuid
       await User.save(dbUser)
     }
-  } catch (err) {
+  } catch (_err) {
     // no homeCommunity exists
   }
 

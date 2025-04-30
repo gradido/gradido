@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { Connection, createConnection } from 'mysql2/promise'
 import { CONFIG } from './config'
 
@@ -49,6 +48,7 @@ if (require.main === module) {
       process.exit(0)
     })
     .catch((error) => {
+      // biome-ignore lint/suspicious/noConsole: no logger present
       console.error('Failed to clear database:', error)
       process.exit(1)
     })

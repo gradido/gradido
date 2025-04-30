@@ -1,8 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable security/detect-object-injection */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-
 import { Transaction as DbTransaction } from 'database'
 import { Decimal } from 'decimal.js-light'
 import { Connection } from 'typeorm'
@@ -116,7 +111,7 @@ describe('transmitTransaction', () => {
       await DltConnectorClient.getInstance()?.transmitTransaction(localTransaction)
     } catch (e) {
       expect(e).toMatchObject(
-        new LogError('invalid transaction type id: ' + localTransaction.typeId.toString()),
+        new LogError(`invalid transaction type id: ${localTransaction.typeId.toString()}`),
       )
     }
   })

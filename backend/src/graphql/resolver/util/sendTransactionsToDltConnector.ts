@@ -64,7 +64,7 @@ async function createDltTransactions(): Promise<void> {
     .select('id')
     .addSelect('balance_date')
     .where('id NOT IN (' + dltqb.getSql() + ')')
-    // eslint-disable-next-line camelcase
+
     .orderBy({ balance_date: 'ASC', id: 'ASC' })
     .getRawMany()
 

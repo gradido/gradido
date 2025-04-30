@@ -1,8 +1,8 @@
 import { User as DbUser, UserLoggingView } from 'database'
 
 import { federationLogger as logger } from '@/server/logger'
-import { SendCoinsArgs } from '../model/SendCoinsArgs'
 import { SendCoinsArgsLoggingView } from '../logger/SendCoinsArgsLogging.view'
+import { SendCoinsArgs } from '../model/SendCoinsArgs'
 
 export async function storeForeignUser(args: SendCoinsArgs): Promise<boolean> {
   if (args.senderCommunityUuid !== null && args.senderUserUuid !== null) {

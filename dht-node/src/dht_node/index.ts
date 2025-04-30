@@ -203,18 +203,18 @@ export const startDHT = async (topic: string): Promise<void> => {
 }
 
 async function writeFederatedHomeCommunityEntries(pubKey: string): Promise<CommunityApi[]> {
-  const homeApiVersions: CommunityApi[] = CONFIG.FEDERATION_COMMUNITY_APIS.split(',').map(function (
-    api,
-  ) {
-    if (!Object.values(ApiVersionType).includes(api as ApiVersionType)) {
-      throw new Error(`Federation: unknown api version: ${api}`)
-    }
-    const comApi: CommunityApi = {
-      api,
-      url: CONFIG.FEDERATION_COMMUNITY_URL + '/api/',
-    }
-    return comApi
-  })
+  const homeApiVersions: CommunityApi[] = CONFIG.FEDERATION_COMMUNITY_APIS.split(',').map(
+    function (api) {
+      if (!Object.values(ApiVersionType).includes(api as ApiVersionType)) {
+        throw new Error(`Federation: unknown api version: ${api}`)
+      }
+      const comApi: CommunityApi = {
+        api,
+        url: CONFIG.FEDERATION_COMMUNITY_URL + '/api/',
+      }
+      return comApi
+    },
+  )
   try {
     // first remove previous existing homeCommunity entries
     await DbFederatedCommunity.createQueryBuilder().delete().where({ foreign: false }).execute()

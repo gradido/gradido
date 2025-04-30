@@ -4,9 +4,6 @@
  * naming conventions.
  */
 
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   await queryFn(
     'UPDATE `events` SET `type` = "USER_ACTIVATE_ACCOUNT" WHERE `type` = "ACTIVATE_ACCOUNT";',

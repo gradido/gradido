@@ -1,8 +1,8 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
-/* eslint-disable @typescript-eslint/no-empty-interface */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
+
+
+
+
+
 
 import { Decimal } from 'decimal.js-light'
 
@@ -28,7 +28,7 @@ interface CustomMatchers<R = unknown> {
 }
 
 declare global {
-  // eslint-disable-next-line @typescript-eslint/no-namespace
+
   namespace jest {
     interface Expect extends CustomMatchers {}
     interface Matchers<R> extends CustomMatchers<R> {}

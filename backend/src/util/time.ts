@@ -16,6 +16,8 @@ export const getTimeDurationObject = (
 export const printTimeDuration = (duration: number): string => {
   const time = getTimeDurationObject(duration)
   const result = time.minutes > 0 ? `${time.minutes} minutes` : ''
-  if (time.hours) return `${time.hours} hours` + (result !== '' ? ` and ${result}` : '')
+  if (time.hours) {
+    return `${time.hours} hours` + (result !== '' ? ` and ${result}` : '')
+  }
   return result
 }

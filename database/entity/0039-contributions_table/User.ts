@@ -1,11 +1,11 @@
 import {
   BaseEntity,
-  Entity,
-  PrimaryGeneratedColumn,
   Column,
   DeleteDateColumn,
-  OneToMany,
+  Entity,
   JoinColumn,
+  OneToMany,
+  PrimaryGeneratedColumn,
 } from 'typeorm'
 import { Contribution } from '../Contribution'
 
@@ -77,7 +77,10 @@ export class User extends BaseEntity {
   })
   passphrase: string
 
-  @OneToMany(() => Contribution, (contribution) => contribution.user)
+  @OneToMany(
+    () => Contribution,
+    (contribution) => contribution.user,
+  )
   @JoinColumn({ name: 'user_id' })
   contributions?: Contribution[]
 }

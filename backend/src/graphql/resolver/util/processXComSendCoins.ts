@@ -7,10 +7,10 @@ import {
 import { Decimal } from 'decimal.js-light'
 
 import { CONFIG } from '@/config'
+
+import { SendCoinsClient as V1_0_SendCoinsClient } from '@/federation/client/1_0/SendCoinsClient'
 import { SendCoinsArgs } from '@/federation/client/1_0/model/SendCoinsArgs'
 import { SendCoinsResult } from '@/federation/client/1_0/model/SendCoinsResult'
-// eslint-disable-next-line camelcase
-import { SendCoinsClient as V1_0_SendCoinsClient } from '@/federation/client/1_0/SendCoinsClient'
 import { SendCoinsClientFactory } from '@/federation/client/SendCoinsClientFactory'
 import { PendingTransactionState } from '@/graphql/enum/PendingTransactionState'
 import { TransactionTypeId } from '@/graphql/enum/TransactionTypeId'
@@ -72,7 +72,7 @@ export async function processXComPendingSendCoins(
       },
     })
     const client = SendCoinsClientFactory.getInstance(receiverFCom)
-    // eslint-disable-next-line camelcase
+
     if (client instanceof V1_0_SendCoinsClient) {
       const args = new SendCoinsArgs()
       if (receiverCom.communityUuid) {
@@ -114,7 +114,9 @@ export async function processXComPendingSendCoins(
           pendingTx.previous = senderBalance ? senderBalance.lastTransactionId : null
           pendingTx.state = PendingTransactionState.NEW
           pendingTx.typeId = TransactionTypeId.SEND
-          if (senderCom.communityUuid) pendingTx.userCommunityUuid = senderCom.communityUuid
+          if (senderCom.communityUuid) {
+            pendingTx.userCommunityUuid = senderCom.communityUuid
+          }
           pendingTx.userId = sender.id
           pendingTx.userGradidoID = sender.gradidoID
           pendingTx.userName = fullName(sender.firstName, sender.lastName)
@@ -193,12 +195,12 @@ export async function processXComCommittingSendCoins(
       const receiverFCom = await DbFederatedCommunity.findOneOrFail({
         where: {
           publicKey: receiverCom.publicKey,
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
           apiVersion: CONFIG.FEDERATION_BACKEND_SEND_ON_API,
         },
       })
       const client = SendCoinsClientFactory.getInstance(receiverFCom)
-      // eslint-disable-next-line camelcase
+
       if (client instanceof V1_0_SendCoinsClient) {
         const args = new SendCoinsArgs()
         args.recipientCommunityUuid = pendingTx.linkedUserCommunityUuid

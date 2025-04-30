@@ -1,26 +1,22 @@
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
-/* eslint-disable new-cap */
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
-
-import { getConnection } from 'typeorm'
 import {
+  CommunityLoggingView,
   Community as DbCommunity,
   PendingTransaction as DbPendingTransaction,
-  Transaction as dbTransaction,
   User as DbUser,
-  CommunityLoggingView,
-  UserLoggingView,
   PendingTransactionLoggingView,
   TransactionLoggingView,
+  UserLoggingView,
+  Transaction as dbTransaction,
 } from 'database'
+import { getConnection } from 'typeorm'
 
 import { PendingTransactionState } from '../enum/PendingTransactionState'
 
 import { LogError } from '@/server/LogError'
 import { federationLogger as logger } from '@/server/logger'
 
-import { getLastTransaction } from '@/graphql/util/getLastTransaction'
 import { TRANSACTIONS_LOCK } from '@/graphql/util/TRANSACTIONS_LOCK'
+import { getLastTransaction } from '@/graphql/util/getLastTransaction'
 
 export async function revertSettledReceiveTransaction(
   homeCom: DbCommunity,

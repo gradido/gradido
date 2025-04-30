@@ -1,6 +1,4 @@
 /* MIGRATION for updating transactions from the past to follow the blockchain rules */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   // split creation transaction with 3000 GDD created in one transaction what isn't allowed

@@ -1,9 +1,6 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { Transaction as DbTransaction, User as DbUser } from 'database'
 import { Decimal } from 'decimal.js-light'
-import { Resolver, Query, Authorized, FieldResolver } from 'type-graphql'
+import { Authorized, FieldResolver, Query, Resolver } from 'type-graphql'
 import { getConnection } from 'typeorm'
 
 import { CommunityStatistics, DynamicStatisticsFields } from '@model/CommunityStatistics'
@@ -11,8 +8,7 @@ import { CommunityStatistics, DynamicStatisticsFields } from '@model/CommunitySt
 import { RIGHTS } from '@/auth/RIGHTS'
 import { calculateDecay } from '@/util/decay'
 
-/* eslint-disable-next-line @typescript-eslint/no-unused-vars */
-@Resolver((of) => CommunityStatistics)
+@Resolver(() => CommunityStatistics)
 export class StatisticsResolver {
   @Authorized([RIGHTS.COMMUNITY_STATISTICS])
   @Query(() => CommunityStatistics)

@@ -29,7 +29,7 @@ export async function writeHomeCommunityEntry(): Promise<DbCommunity> {
       await DbCommunity.insert(homeCom)
     }
     return homeCom
-  } catch (err) {
+  } catch (_err) {
     throw new Error(`Seeding: Error writing HomeCommunity-Entry`) // : ${err}`)
   }
 }

@@ -1,13 +1,8 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { Event as DbEvent, UserContact } from 'database'
 import { GraphQLError } from 'graphql'
 
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
-import { logger, i18n as localization } from '@test/testSetup'
+import { i18n as localization, logger } from '@test/testSetup'
 
 import { EventType } from '@/event/Events'
 import { userFactory } from '@/seeds/factory/user'
@@ -16,7 +11,9 @@ import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 
 jest.mock('@/password/EncryptorUtils')
 
-let testEnv: any, mutate: any, con: any
+let testEnv: any
+let mutate: any
+let con: any
 
 beforeAll(async () => {
   testEnv = await testEnvironment(logger, localization)

@@ -1,12 +1,12 @@
 import {
   BaseEntity,
-  Entity,
-  PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
-  UpdateDateColumn,
-  ManyToOne,
+  Entity,
   JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm'
 import { Community } from '../Community'
 
@@ -52,7 +52,10 @@ export class FederatedCommunity extends BaseEntity {
   })
   updatedAt: Date | null
 
-  @ManyToOne(() => Community, (community) => community.federatedCommunities)
+  @ManyToOne(
+    () => Community,
+    (community) => community.federatedCommunities,
+  )
   @JoinColumn({ name: 'public_key', referencedColumnName: 'publicKey' })
   community?: Community
 }

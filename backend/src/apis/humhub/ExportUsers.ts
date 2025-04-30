@@ -4,8 +4,8 @@ import { IsNull, Not } from 'typeorm'
 import { CONFIG } from '@/config'
 import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
-import { Connection } from '@/typeorm/connection'
 import { checkDBVersion } from '@/typeorm/DBVersion'
+import { Connection } from '@/typeorm/connection'
 
 import { HumHubClient } from './HumHubClient'
 import { GetUser } from './model/GetUser'
@@ -39,14 +39,14 @@ async function loadUsersFromHumHub(client: HumHubClient): Promise<Map<string, Ge
     if (!usersPage) {
       throw new LogError('error requesting next users page from humhub')
     }
-    usersPage.results.forEach((user) => {
+    for (const user of usersPage.results) {
       // deleted users have empty emails
       if (user.account.email) {
         humhubUsers.set(user.account.username, user)
       } else {
         skippedUsersCount++
       }
-    })
+    }
     page++
     process.stdout.write(
       `load users from humhub: ${humhubUsers.size}/${usersPage.total}, skipped: ${skippedUsersCount}\r`,
@@ -97,11 +97,13 @@ async function main() {
       userCount = users.length
       page++
       const promises: Promise<ExecutedHumhubAction>[] = []
-      users.forEach((user: User) => promises.push(syncUser(user, humhubUsers)))
+      for (const user of users) {
+        promises.push(syncUser(user, humhubUsers))
+      }
       const executedActions = await Promise.all(promises)
-      executedActions.forEach((executedAction: ExecutedHumhubAction) => {
+      for (const executedAction of executedActions) {
         executedHumhubActionsCount[executedAction as number]++
-      })
+      }
       // using process.stdout.write here so that carriage-return is working analog to c
       // printf("\rchecked user: %d/%d", dbUserCount, totalUsers);
       process.stdout.write(`checked user: ${dbUserCount}/${totalUsers}\r`)
@@ -126,8 +128,7 @@ async function main() {
 }
 
 main().catch((e) => {
-  // eslint-disable-next-line no-console
-  console.error(JSON.stringify(e, null, 2))
-  // eslint-disable-next-line n/no-process-exit
+  // biome-ignore lint/suspicious/noConsole: logger isn't used here
+  console.error(e)
   process.exit(1)
 })

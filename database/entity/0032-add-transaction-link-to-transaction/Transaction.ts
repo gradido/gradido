@@ -1,5 +1,5 @@
 import { Decimal } from 'decimal.js-light'
-import { BaseEntity, Entity, PrimaryGeneratedColumn, Column } from 'typeorm'
+import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from 'typeorm'
 import { DecimalTransformer } from '../../src/typeorm/DecimalTransformer'
 
 @Entity('transactions')

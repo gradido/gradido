@@ -1,5 +1,5 @@
 import { TransactionLink as DbTransactionLink, User as DbUser } from 'database'
-import { MoreThan, IsNull } from 'typeorm'
+import { IsNull, MoreThan } from 'typeorm'
 
 import { Paginated } from '@arg/Paginated'
 import { TransactionLinkFilters } from '@arg/TransactionLinkFilters'

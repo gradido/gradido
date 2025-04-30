@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { Community as DbCommunity } from 'database'
 import { Decimal } from 'decimal.js-light'
@@ -8,17 +5,17 @@ import { GraphQLError } from 'graphql'
 import { Connection } from 'typeorm'
 import { v4 as uuidv4 } from 'uuid'
 
-import { cleanDB, testEnvironment, contributionDateFormatter } from '@test/helpers'
+import { cleanDB, contributionDateFormatter, testEnvironment } from '@test/helpers'
 
 import { creationFactory, nMonthsBefore } from '@/seeds/factory/creation'
 import { userFactory } from '@/seeds/factory/user'
 import {
   confirmContribution,
   createContribution,
-  createTransactionLink,
-  redeemTransactionLink,
-  login,
   createContributionLink,
+  createTransactionLink,
+  login,
+  redeemTransactionLink,
   sendCoins,
 } from '@/seeds/graphql/mutations'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
@@ -27,7 +24,8 @@ import { peterLustig } from '@/seeds/users/peter-lustig'
 
 jest.mock('@/password/EncryptorUtils')
 
-let mutate: ApolloServerTestClient['mutate'], con: Connection
+let mutate: ApolloServerTestClient['mutate']
+let con: Connection
 let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']

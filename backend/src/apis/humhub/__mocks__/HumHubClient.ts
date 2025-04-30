@@ -9,10 +9,8 @@ import { UsersResponse } from '@/apis/humhub/model/UsersResponse'
  * HumHubClient as singleton class
  */
 export class HumHubClient {
-  // eslint-disable-next-line no-use-before-define
   private static instance: HumHubClient
 
-  // eslint-disable-next-line no-useless-constructor, @typescript-eslint/no-empty-function
   private constructor() {}
 
   public static getInstance(): HumHubClient {

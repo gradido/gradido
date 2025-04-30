@@ -1,5 +1,5 @@
 import { Community as DbCommunity, FederatedCommunity as DbFederatedCommunity } from 'database'
-import { ObjectType, Field } from 'type-graphql'
+import { Field, ObjectType } from 'type-graphql'
 import { Point } from 'typeorm'
 
 import { Point2Location } from '@/graphql/resolver/util/Location2Point'

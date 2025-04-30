@@ -1,10 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/unbound-method */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { Community, DltTransaction, Transaction } from 'database'
 import { Decimal } from 'decimal.js-light'
@@ -15,8 +8,8 @@ import { Response } from 'graphql-request/dist/types'
 import { Connection } from 'typeorm'
 import { v4 as uuidv4 } from 'uuid'
 
-import { testEnvironment, cleanDB } from '@test/helpers'
-import { logger, i18n as localization } from '@test/testSetup'
+import { cleanDB, testEnvironment } from '@test/helpers'
+import { i18n as localization, logger } from '@test/testSetup'
 
 import { CONFIG } from '@/config'
 import { TransactionTypeId } from '@/graphql/enum/TransactionTypeId'
@@ -439,15 +432,15 @@ describe('create and send Transactions to DltConnector', () => {
         await creationFactory(testEnv, creation)
         count++
         // we need only 3 for testing
-        if (count >= 3) break
+        if (count >= 3) {
+          break
+        }
       }
       await createHomeCommunity()
 
       CONFIG.DLT_CONNECTOR = true
 
-      // eslint-disable-next-line @typescript-eslint/require-await
       jest.spyOn(GraphQLClient.prototype, 'rawRequest').mockImplementation(async () => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return {
           data: {
             sendTransaction: { succeed: true },
@@ -521,9 +514,7 @@ describe('create and send Transactions to DltConnector', () => {
 
       CONFIG.DLT_CONNECTOR = true
 
-      // eslint-disable-next-line @typescript-eslint/require-await
       jest.spyOn(GraphQLClient.prototype, 'rawRequest').mockImplementation(async () => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return {
           data: {
             sendTransaction: { succeed: true },
@@ -597,9 +588,9 @@ describe('create and send Transactions to DltConnector', () => {
     /*
     describe('with one Community of api 1_0 and not matching pubKey', () => {
       beforeEach(async () => {
-        // eslint-disable-next-line @typescript-eslint/require-await
+
         jest.spyOn(GraphQLClient.prototype, 'rawRequest').mockImplementation(async () => {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+
           return {
             data: {
               getPublicKey: {
@@ -619,7 +610,7 @@ describe('create and send Transactions to DltConnector', () => {
           .into(DbFederatedCommunity)
           .values(variables1)
           .orUpdate({
-            // eslint-disable-next-line camelcase
+
             conflict_target: ['id', 'publicKey', 'apiVersion'],
             overwrite: ['end_point', 'last_announced_at'],
           })
@@ -648,9 +639,9 @@ describe('create and send Transactions to DltConnector', () => {
     })
     describe('with one Community of api 1_0 and matching pubKey', () => {
       beforeEach(async () => {
-        // eslint-disable-next-line @typescript-eslint/require-await
+
         jest.spyOn(GraphQLClient.prototype, 'rawRequest').mockImplementation(async () => {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+
           return {
             data: {
               getPublicKey: {
@@ -670,7 +661,7 @@ describe('create and send Transactions to DltConnector', () => {
           .into(DbFederatedCommunity)
           .values(variables1)
           .orUpdate({
-            // eslint-disable-next-line camelcase
+
             conflict_target: ['id', 'publicKey', 'apiVersion'],
             overwrite: ['end_point', 'last_announced_at'],
           })
@@ -700,9 +691,9 @@ describe('create and send Transactions to DltConnector', () => {
     describe('with two Communities of api 1_0 and 1_1', () => {
       beforeEach(async () => {
         jest.clearAllMocks()
-        // eslint-disable-next-line @typescript-eslint/require-await
+
         jest.spyOn(GraphQLClient.prototype, 'rawRequest').mockImplementation(async () => {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+
           return {
             data: {
               getPublicKey: {
@@ -722,7 +713,7 @@ describe('create and send Transactions to DltConnector', () => {
           .into(DbFederatedCommunity)
           .values(variables2)
           .orUpdate({
-            // eslint-disable-next-line camelcase
+
             conflict_target: ['id', 'publicKey', 'apiVersion'],
             overwrite: ['end_point', 'last_announced_at'],
           })
@@ -762,7 +753,7 @@ describe('create and send Transactions to DltConnector', () => {
           .into(DbFederatedCommunity)
           .values(variables3)
           .orUpdate({
-            // eslint-disable-next-line camelcase
+
             conflict_target: ['id', 'publicKey', 'apiVersion'],
             overwrite: ['end_point', 'last_announced_at'],
           })
