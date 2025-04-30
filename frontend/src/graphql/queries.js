@@ -256,8 +256,8 @@ export const communityStatistics = gql`
 `
 
 export const searchAdminUsers = gql`
-  query {
-    searchAdminUsers {
+  query ($pageSize: Int = 25, $currentPage: Int = 1, $order: Order = ASC) {
+    searchAdminUsers(pageSize: $pageSize, currentPage: $currentPage, order: $order) {
       userCount
       userList {
         firstName

@@ -2,6 +2,7 @@ import { User } from 'database'
 
 import { isHumhubUserIdenticalToDbUser } from '@/apis/humhub/compareHumhubUserDbUser'
 import { GetUser } from '@/apis/humhub/model/GetUser'
+import { PostUser } from '@/apis/humhub/model/PostUser'
 
 export enum ExecutedHumhubAction {
   UPDATE,
@@ -26,7 +27,8 @@ export async function syncUser(
   user: User,
   humhubUsers: Map<string, GetUser>,
 ): Promise<ExecutedHumhubAction> {
-  const humhubUser = humhubUsers.get(user.emailContact.email.trim())
+  const postUser = new PostUser(user)
+  const humhubUser = humhubUsers.get(postUser.account.username)
   if (humhubUser) {
     if (!user.humhubAllowed) {
       return Promise.resolve(ExecutedHumhubAction.DELETE)

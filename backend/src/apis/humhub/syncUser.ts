@@ -1,6 +1,7 @@
 import { User } from 'database'
 
 import { LogError } from '@/server/LogError'
+import { backendLogger as logger } from '@/server/logger'
 
 import { isHumhubUserIdenticalToDbUser } from './compareHumhubUserDbUser'
 import { HumHubClient } from './HumHubClient'
@@ -12,7 +13,22 @@ export enum ExecutedHumhubAction {
   CREATE,
   SKIP,
   DELETE,
+  VALIDATION_ERROR,
 }
+
+// todo: replace with full validation (schema)
+function isValid(postUser: PostUser, userId: number): boolean {
+  if (postUser.profile.firstname.length > 20) {
+    logger.error('firstname too long for humhub, for user with id:', userId)
+    return false
+  }
+  if (postUser.profile.lastname.length > 20) {
+    logger.error('lastname too long for humhub, for user with id:', userId)
+    return false
+  }
+  return true
+}
+
 /**
  * Trigger action according to conditions
  * | User exist on humhub | export to humhub allowed | changes in user data | ACTION
@@ -21,9 +37,8 @@ export enum ExecutedHumhubAction {
  * |      true            |         true             |        false         | SKIP
  * |      false           |         false            |       ignored        | SKIP
  * |      false           |         true             |       ignored        | CREATE
- * @param user
- * @param humHubClient
- * @param humhubUsers
+ * @param user user entity
+ * @param humhubUsers user map indices with username
  * @returns
  */
 export async function syncUser(
@@ -31,7 +46,10 @@ export async function syncUser(
   humhubUsers: Map<string, GetUser>,
 ): Promise<ExecutedHumhubAction> {
   const postUser = new PostUser(user)
-  const humhubUser = humhubUsers.get(user.emailContact.email.trim())
+  if (!isValid(postUser, user.id)) {
+    return ExecutedHumhubAction.VALIDATION_ERROR
+  }
+  const humhubUser = humhubUsers.get(postUser.account.username)
   const humHubClient = HumHubClient.getInstance()
   if (!humHubClient) {
     throw new LogError('Error creating humhub client')

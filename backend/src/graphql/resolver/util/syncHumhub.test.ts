@@ -31,7 +31,7 @@ describe('syncHumhub', () => {
   })
 
   it('Should not sync if no relevant changes', async () => {
-    await syncHumhub(mockUpdateUserInfosArg, new User())
+    await syncHumhub(mockUpdateUserInfosArg, new User(), 'username')
     expect(HumHubClient.getInstance).not.toBeCalled()
     // language logging from some other place
     expect(logger.debug).toBeCalledTimes(5)
@@ -41,7 +41,7 @@ describe('syncHumhub', () => {
   it('Should retrieve user from humhub and sync if relevant changes', async () => {
     mockUpdateUserInfosArg.firstName = 'New' // Relevant changes
     mockUser.firstName = 'New'
-    await syncHumhub(mockUpdateUserInfosArg, mockUser)
+    await syncHumhub(mockUpdateUserInfosArg, mockUser, 'username')
     expect(logger.debug).toHaveBeenCalledTimes(8) // Four language logging calls, two debug calls in function, one for not syncing
     expect(logger.info).toHaveBeenLastCalledWith('finished sync user with humhub', {
       localId: mockUser.id,

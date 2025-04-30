@@ -2,10 +2,9 @@ import { User } from 'database'
 
 import { HumHubClient } from '@/apis/humhub/HumHubClient'
 import { GetUser } from '@/apis/humhub/model/GetUser'
+import { PostUser } from '@/apis/humhub/model/PostUser'
 import { ExecutedHumhubAction, syncUser } from '@/apis/humhub/syncUser'
-import { PublishNameLogic } from '@/data/PublishName.logic'
 import { UpdateUserInfosArgs } from '@/graphql/arg/UpdateUserInfosArgs'
-import { PublishNameType } from '@/graphql/enum/PublishNameType'
 import { backendLogger as logger } from '@/server/logger'
 
 /**
@@ -17,6 +16,7 @@ import { backendLogger as logger } from '@/server/logger'
 export async function syncHumhub(
   updateUserInfosArg: UpdateUserInfosArgs | null,
   user: User,
+  oldHumhubUsername: string,
   spaceId?: number | null,
 ): Promise<GetUser | null | undefined> {
   // check for humhub relevant changes
@@ -38,15 +38,13 @@ export async function syncHumhub(
     return
   }
   logger.debug('retrieve user from humhub')
-  const userNameLogic = new PublishNameLogic(user)
-  const username = userNameLogic.getUserIdentifier(user.humhubPublishName as PublishNameType)
-  let humhubUser = await humhubClient.userByUsername(username)
+  let humhubUser = await humhubClient.userByUsername(oldHumhubUsername)
   if (!humhubUser) {
     humhubUser = await humhubClient.userByEmail(user.emailContact.email)
   }
   const humhubUsers = new Map<string, GetUser>()
   if (humhubUser) {
-    humhubUsers.set(user.emailContact.email, humhubUser)
+    humhubUsers.set(humhubUser.account.username, humhubUser)
   }
   logger.debug('update user at humhub')
   const result = await syncUser(user, humhubUsers)
@@ -63,7 +61,8 @@ export async function syncHumhub(
     logger.debug(`user added to space ${spaceId}`)
   }
   if (result !== ExecutedHumhubAction.SKIP) {
-    return await humhubClient.userByUsername(username)
+    const getUser = new PostUser(user)
+    return await humhubClient.userByUsername(getUser.account.username)
   }
   return humhubUser
 }
