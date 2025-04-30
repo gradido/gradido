@@ -240,7 +240,7 @@ onError(() => {
 
 function setTransactionLinkInformation() {
   console.log('TransactionLink.setTransactionLinkInformation... result=', result.value)
-  const { queryTransactionLink } = result.value
+  const queryTransactionLink = result.value.queryTransactionLink
   console.log(
     'TransactionLink.setTransactionLinkInformation... queryTransactionLink=',
     queryTransactionLink,
@@ -263,7 +263,7 @@ function setRedeemJwtLinkInformation() {
   if (deepCopy) {
     // recipientUser is only set if the user is logged in
     if (store.state.gradidoID !== null) {
-      deepCopy.recipientUser = {
+      deepCopy.queryTransactionLink.recipientUser = {
         __typename: 'User',
         gradidoID: store.state.gradidoID,
         firstName: store.state.firstName,
@@ -271,10 +271,10 @@ function setRedeemJwtLinkInformation() {
       }
     }
     console.log(
-      'TransactionLink.setRedeemJwtLinkInformation... recipientUser=',
-      deepCopy.recipientUser,
+      'TransactionLink.setRedeemJwtLinkInformation... deepCopy.queryTransactionLink.recipientUser=',
+      deepCopy.queryTransactionLink.recipientUser,
     )
-    linkData.value = deepCopy
+    linkData.value = deepCopy.queryTransactionLink
     console.log('TransactionLink.setRedeemJwtLinkInformation... linkData.value=', linkData.value)
   }
 }
