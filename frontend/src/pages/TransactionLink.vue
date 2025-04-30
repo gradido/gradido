@@ -240,13 +240,10 @@ onError(() => {
 
 function setTransactionLinkInformation() {
   console.log('TransactionLink.setTransactionLinkInformation... result=', result.value)
-  const { queryTransactionLink } = result.value
-  console.log(
-    'TransactionLink.setTransactionLinkInformation... queryTransactionLink=',
-    queryTransactionLink,
-  )
-  if (queryTransactionLink) {
-    linkData.value = queryTransactionLink
+  const deepCopy = JSON.parse(JSON.stringify(result.value))
+  console.log('TransactionLink.setTransactionLinkInformation... deepCopy=', deepCopy)
+  if (deepCopy) {
+    linkData.value = deepCopy
     console.log('TransactionLink.setTransactionLinkInformation... linkData.value=', linkData.value)
     if (linkData.value.__typename === 'ContributionLink' && store.state.token) {
       console.log('TransactionLink.setTransactionLinkInformation... typename === ContributionLink')
@@ -258,16 +255,12 @@ function setTransactionLinkInformation() {
 
 function setRedeemJwtLinkInformation() {
   console.log('TransactionLink.setRedeemJwtLinkInformation... result=', result.value)
-  // Make a shallow copy to break reactivity/read-only
-  const queryTransactionLink = { ...result.value }
-  console.log(
-    'TransactionLink.setRedeemJwtLinkInformation... queryTransactionLink=',
-    queryTransactionLink,
-  )
-  if (queryTransactionLink) {
+  const deepCopy = JSON.parse(JSON.stringify(result.value))
+  console.log('TransactionLink.setRedeemJwtLinkInformation... deepCopy=', deepCopy)
+  if (deepCopy) {
     // recipientUser is only set if the user is logged in
     if (store.state.gradidoID !== null) {
-      queryTransactionLink.recipientUser = {
+      deepCopy.recipientUser = {
         __typename: 'User',
         gradidoID: store.state.gradidoID,
         firstName: store.state.firstName,
@@ -276,16 +269,16 @@ function setRedeemJwtLinkInformation() {
     }
     console.log(
       'TransactionLink.setRedeemJwtLinkInformation... recipientUser=',
-      queryTransactionLink.recipientUser,
+      deepCopy.recipientUser,
     )
-    linkData.value = { ...queryTransactionLink }
+    linkData.value = deepCopy
     console.log('TransactionLink.setRedeemJwtLinkInformation... linkData.value=', linkData.value)
   }
 }
 
 async function mutationLink(amount) {
   console.log('TransactionLink.mutationLink... params=', params)
-  if (isDisbursementLink.value) {
+  if (isRedeemJwtLink.value) {
     console.log('TransactionLink.mutationLink... trigger disbursement from recipient-community')
     try {
       await disburseMutate({
