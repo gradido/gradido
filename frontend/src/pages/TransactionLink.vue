@@ -240,10 +240,13 @@ onError(() => {
 
 function setTransactionLinkInformation() {
   console.log('TransactionLink.setTransactionLinkInformation... result=', result.value)
-  const deepCopy = JSON.parse(JSON.stringify(result.value))
-  console.log('TransactionLink.setTransactionLinkInformation... deepCopy=', deepCopy)
-  if (deepCopy) {
-    linkData.value = deepCopy
+  const { queryTransactionLink } = result.value
+  console.log(
+    'TransactionLink.setTransactionLinkInformation... queryTransactionLink=',
+    queryTransactionLink,
+  )
+  if (queryTransactionLink) {
+    linkData.value = queryTransactionLink
     console.log('TransactionLink.setTransactionLinkInformation... linkData.value=', linkData.value)
     if (linkData.value.__typename === 'ContributionLink' && store.state.token) {
       console.log('TransactionLink.setTransactionLinkInformation... typename === ContributionLink')
