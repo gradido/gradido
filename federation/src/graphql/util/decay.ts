@@ -1,7 +1,7 @@
 import { Decimal } from 'decimal.js-light'
 
+import { CONFIG } from '@/config'
 import { LogError } from '@/server/LogError'
-import CONFIG from '@/config'
 import { Decay } from '../api/1_0/model/Decay'
 
 // TODO: externalize all those definitions and functions into an external decay library

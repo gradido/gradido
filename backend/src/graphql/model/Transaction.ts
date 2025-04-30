@@ -1,6 +1,6 @@
 import { Transaction as dbTransaction } from '@entity/Transaction'
 import { Decimal } from 'decimal.js-light'
-import { ObjectType, Field, Int } from 'type-graphql'
+import { Field, Int, ObjectType } from 'type-graphql'
 
 import { TransactionTypeId } from '@enum/TransactionTypeId'
 
@@ -46,7 +46,7 @@ export class Transaction {
     this.linkedTransactionId = transaction.linkedTransactionId ?? null
     this.linkId = transaction.contribution
       ? transaction.contribution.contributionLinkId
-      : transaction.transactionLinkId ?? null
+      : (transaction.transactionLinkId ?? null)
     this.previousBalance =
       transaction.previousTransaction?.balance.toDecimalPlaces(2, Decimal.ROUND_DOWN) ??
       new Decimal(0)

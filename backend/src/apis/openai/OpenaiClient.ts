@@ -1,4 +1,3 @@
-/* eslint-disable camelcase */
 import { OpenaiThreads } from '@entity/OpenaiThreads'
 import { User } from '@entity/User'
 import { OpenAI } from 'openai'
@@ -18,7 +17,7 @@ export class OpenaiClient {
   /**
    * The singleton instance of the `OpenaiClient`.
    */
-  // eslint-disable-next-line no-use-before-define
+
   private static instance: OpenaiClient
 
   /**

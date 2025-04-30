@@ -1,10 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/unbound-method */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-
 import { Connection } from '@dbTools/typeorm'
 import { Community as DbCommunity } from '@entity/Community'
 import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
@@ -13,16 +6,16 @@ import { GraphQLError } from 'graphql/error/GraphQLError'
 import { v4 as uuidv4 } from 'uuid'
 
 import { cleanDB, testEnvironment } from '@test/helpers'
-import { logger, i18n as localization } from '@test/testSetup'
+import { i18n as localization, logger } from '@test/testSetup'
 
 import { userFactory } from '@/seeds/factory/user'
 import { login, updateHomeCommunityQuery } from '@/seeds/graphql/mutations'
 import {
   allCommunities,
-  getCommunities,
   communitiesQuery,
-  getHomeCommunityQuery,
+  getCommunities,
   getCommunityByIdentifierQuery,
+  getHomeCommunityQuery,
 } from '@/seeds/graphql/queries'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 
@@ -31,9 +24,9 @@ import { getCommunityByUuid } from './util/communities'
 jest.mock('@/password/EncryptorUtils')
 
 // to do: We need a setup for the tests that closes the connection
-let mutate: ApolloServerTestClient['mutate'],
-  query: ApolloServerTestClient['query'],
-  con: Connection
+let mutate: ApolloServerTestClient['mutate']
+let query: ApolloServerTestClient['query']
+let con: Connection
 
 let testEnv: {
   mutate: ApolloServerTestClient['mutate']

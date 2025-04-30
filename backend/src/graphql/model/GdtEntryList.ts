@@ -1,4 +1,4 @@
-import { ObjectType, Field, Int, Float } from 'type-graphql'
+import { Field, Float, Int, ObjectType } from 'type-graphql'
 
 import { GdtEntry } from './GdtEntry'
 

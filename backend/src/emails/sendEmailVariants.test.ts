@@ -1,29 +1,24 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Connection } from '@dbTools/typeorm'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { Decimal } from 'decimal.js-light'
 
 import { testEnvironment } from '@test/helpers'
-import { logger, i18n as localization } from '@test/testSetup'
+import { i18n as localization, logger } from '@test/testSetup'
 
 import { CONFIG } from '@/config'
 
-// eslint-disable-next-line import/no-namespace
 import * as sendEmailTranslatedApi from './sendEmailTranslated'
 import {
-  sendAddedContributionMessageEmail,
   sendAccountActivationEmail,
   sendAccountMultiRegistrationEmail,
+  sendAddedContributionMessageEmail,
+  sendContributionChangedByModeratorEmail,
   sendContributionConfirmedEmail,
-  sendContributionDeniedEmail,
   sendContributionDeletedEmail,
+  sendContributionDeniedEmail,
   sendResetPasswordEmail,
   sendTransactionLinkRedeemedEmail,
   sendTransactionReceivedEmail,
-  sendContributionChangedByModeratorEmail,
 } from './sendEmailVariants'
 
 const testMailServerHost = 'localhost'
@@ -69,7 +64,6 @@ afterAll(async () => {
 const sendEmailTranslatedSpy = jest.spyOn(sendEmailTranslatedApi, 'sendEmailTranslated')
 
 describe('sendEmailVariants', () => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let result: any
 
   describe('sendAddedContributionMessageEmail', () => {

@@ -1,4 +1,4 @@
-import { MaxLength, MinLength, IsString } from 'class-validator'
+import { IsString, MaxLength, MinLength } from 'class-validator'
 import { Decimal } from 'decimal.js-light'
 import { ArgsType, Field } from 'type-graphql'
 

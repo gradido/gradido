@@ -2,18 +2,18 @@ import { Decimal } from 'decimal.js-light'
 import {
   BaseEntity,
   Column,
-  Entity,
-  PrimaryGeneratedColumn,
   DeleteDateColumn,
+  Entity,
   JoinColumn,
   ManyToOne,
   OneToMany,
   OneToOne,
+  PrimaryGeneratedColumn,
 } from 'typeorm'
 import { DecimalTransformer } from '../../src/typeorm/DecimalTransformer'
-import { User } from '../User'
 import { ContributionMessage } from '../ContributionMessage'
 import { Transaction } from '../Transaction'
+import { User } from '../User'
 
 @Entity('contributions')
 export class Contribution extends BaseEntity {
@@ -23,7 +23,10 @@ export class Contribution extends BaseEntity {
   @Column({ unsigned: true, nullable: false, name: 'user_id' })
   userId: number
 
-  @ManyToOne(() => User, (user) => user.contributions)
+  @ManyToOne(
+    () => User,
+    (user) => user.contributions,
+  )
   @JoinColumn({ name: 'user_id' })
   user: User
 
@@ -94,11 +97,17 @@ export class Contribution extends BaseEntity {
   @DeleteDateColumn({ unsigned: true, nullable: true, name: 'deleted_by' })
   deletedBy: number
 
-  @OneToMany(() => ContributionMessage, (message) => message.contribution)
+  @OneToMany(
+    () => ContributionMessage,
+    (message) => message.contribution,
+  )
   @JoinColumn({ name: 'contribution_id' })
   messages?: ContributionMessage[]
 
-  @OneToOne(() => Transaction, (transaction) => transaction.contribution)
+  @OneToOne(
+    () => Transaction,
+    (transaction) => transaction.contribution,
+  )
   @JoinColumn({ name: 'transaction_id' })
   transaction?: Transaction | null
 }

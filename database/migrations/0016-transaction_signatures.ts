@@ -4,9 +4,6 @@
  * combines its data with transaction_signatures.
  */
 
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   // Drop column `state_group_id` since it only contains "0" as value, no variation.
   // Furthermore it was not present in our model itself (meaning that newly created )

@@ -1,16 +1,14 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { ApolloServerTestClient } from 'apollo-server-testing'
+import { CONFIG } from '@/config'
+import { fullName } from '@/graphql/util/fullName'
+import { Connection } from '@dbTools/typeorm'
 import { Community as DbCommunity } from '@entity/Community'
-import CONFIG from '@/config'
 import { User as DbUser } from '@entity/User'
 import { UserContact as DbUserContact } from '@entity/UserContact'
-import { fullName } from '@/graphql/util/fullName'
-import { GraphQLError } from 'graphql'
 import { cleanDB, testEnvironment } from '@test/helpers'
 import { logger } from '@test/testSetup'
-import { Connection } from '@dbTools/typeorm'
+import { ApolloServerTestClient } from 'apollo-server-testing'
 import Decimal from 'decimal.js-light'
+import { GraphQLError } from 'graphql'
 import { SendCoinsArgs } from '../model/SendCoinsArgs'
 
 let mutate: ApolloServerTestClient['mutate'] // , con: Connection

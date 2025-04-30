@@ -4,9 +4,6 @@
  * a date as it is standard for soft delete fields
  */
 
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   // Create new `deletedAt` column
   await queryFn(

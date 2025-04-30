@@ -1,6 +1,6 @@
+import { latestDbVersion } from '@dbTools/config/detectLastDBVersion'
 // ATTENTION: DO NOT PUT ANY SECRETS IN HERE (or the .env)
 import { Decimal } from 'decimal.js-light'
-import { latestDbVersion } from '@dbTools/config/detectLastDBVersion'
 import dotenv from 'dotenv'
 
 import { validate } from '@config/index'
@@ -63,5 +63,3 @@ export const CONFIG = {
 }
 
 validate(schema, CONFIG)
-
-export default CONFIG

@@ -1,12 +1,12 @@
 import {
   BaseEntity,
-  Entity,
-  PrimaryGeneratedColumn,
   Column,
   DeleteDateColumn,
-  OneToMany,
+  Entity,
   JoinColumn,
+  OneToMany,
   OneToOne,
+  PrimaryGeneratedColumn,
 } from 'typeorm'
 import { Contribution } from '../Contribution'
 import { ContributionMessage } from '../ContributionMessage'
@@ -35,7 +35,10 @@ export class User extends BaseEntity {
   })
   alias: string
 
-  @OneToOne(() => UserContact, (emailContact: UserContact) => emailContact.user)
+  @OneToOne(
+    () => UserContact,
+    (emailContact: UserContact) => emailContact.user,
+  )
   @JoinColumn({ name: 'email_id' })
   emailContact: UserContact
 
@@ -87,7 +90,10 @@ export class User extends BaseEntity {
   @Column({ type: 'bool', default: false })
   hideAmountGDT: boolean
 
-  @OneToMany(() => UserRole, (userRole) => userRole.user)
+  @OneToMany(
+    () => UserRole,
+    (userRole) => userRole.user,
+  )
   @JoinColumn({ name: 'user_id' })
   userRoles: UserRole[]
 
@@ -106,15 +112,24 @@ export class User extends BaseEntity {
   @Column({ name: 'publisher_id', default: 0 })
   publisherId: number
 
-  @OneToMany(() => Contribution, (contribution) => contribution.user)
+  @OneToMany(
+    () => Contribution,
+    (contribution) => contribution.user,
+  )
   @JoinColumn({ name: 'user_id' })
   contributions?: Contribution[]
 
-  @OneToMany(() => ContributionMessage, (message) => message.user)
+  @OneToMany(
+    () => ContributionMessage,
+    (message) => message.user,
+  )
   @JoinColumn({ name: 'user_id' })
   messages?: ContributionMessage[]
 
-  @OneToMany(() => UserContact, (userContact: UserContact) => userContact.user)
+  @OneToMany(
+    () => UserContact,
+    (userContact: UserContact) => userContact.user,
+  )
   @JoinColumn({ name: 'user_id' })
   userContacts?: UserContact[]
 }

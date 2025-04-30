@@ -1,6 +1,6 @@
-import { MoreThan, IsNull } from '@dbTools/typeorm'
+import { IsNull, MoreThan } from '@dbTools/typeorm'
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
-import { Resolver, Args, Arg, Authorized, Mutation, Query, Int, Ctx } from 'type-graphql'
+import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
 
 import { ContributionLinkArgs } from '@arg/ContributionLinkArgs'
 import { Paginated } from '@arg/Paginated'
@@ -14,8 +14,8 @@ import {
   EVENT_ADMIN_CONTRIBUTION_LINK_DELETE,
   EVENT_ADMIN_CONTRIBUTION_LINK_UPDATE,
 } from '@/event/Events'
-import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
+import { Context, getUser } from '@/server/context'
 
 import { transactionLinkCode as contributionLinkCode } from './TransactionLinkResolver'
 import { isStartEndDateValid } from './util/creations'
@@ -47,8 +47,12 @@ export class ContributionLinkResolver {
     dbContributionLink.createdAt = new Date()
     dbContributionLink.code = contributionLinkCode(dbContributionLink.createdAt)
     dbContributionLink.cycle = cycle
-    if (validFrom) dbContributionLink.validFrom = new Date(validFrom)
-    if (validTo) dbContributionLink.validTo = new Date(validTo)
+    if (validFrom) {
+      dbContributionLink.validFrom = new Date(validFrom)
+    }
+    if (validTo) {
+      dbContributionLink.validTo = new Date(validTo)
+    }
     dbContributionLink.maxAmountPerMonth = maxAmountPerMonth
     dbContributionLink.maxPerCycle = maxPerCycle
     await dbContributionLink.save()
@@ -116,8 +120,12 @@ export class ContributionLinkResolver {
     dbContributionLink.name = name
     dbContributionLink.memo = memo
     dbContributionLink.cycle = cycle
-    if (validFrom) dbContributionLink.validFrom = new Date(validFrom)
-    if (validTo) dbContributionLink.validTo = new Date(validTo)
+    if (validFrom) {
+      dbContributionLink.validFrom = new Date(validFrom)
+    }
+    if (validTo) {
+      dbContributionLink.validTo = new Date(validTo)
+    }
     dbContributionLink.maxAmountPerMonth = maxAmountPerMonth
     dbContributionLink.maxPerCycle = maxPerCycle
     await dbContributionLink.save()

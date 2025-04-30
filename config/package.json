@@ -11,9 +11,12 @@
   "scripts": {
     "build": "tsc --build",
     "clean": "tsc --build --clean",
+    "lint": "biome check --error-on-warnings .",
+    "lint:fix": "biome check --error-on-warnings . --write",
     "test": "node test/index"
   },
   "devDependencies": {
+    "@biomejs/biome": "1.9.4",
     "@types/joi": "^17.2.3",
     "@types/node": "^17.0.21",
     "typescript": "^4.9.5",

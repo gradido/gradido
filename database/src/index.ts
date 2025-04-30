@@ -1,11 +1,11 @@
-import { DatabaseState, getDatabaseState } from './prepare'
 import { CONFIG } from './config'
+import { DatabaseState, getDatabaseState } from './prepare'
 
+import path from 'node:path'
 import { createPool } from 'mysql'
 import { Migration } from 'ts-mysql-migrate'
 import { clearDatabase } from './clear'
 import { latestDbVersion } from './config/detectLastDBVersion'
-import path from 'node:path'
 
 const run = async (command: string) => {
   if (command === 'clear') {
@@ -33,7 +33,7 @@ const run = async (command: string) => {
   }
   if (state === DatabaseState.SAME_VERSION) {
     if (command === 'up') {
-      // eslint-disable-next-line no-console
+      // biome-ignore lint/suspicious/noConsole: no logger present
       console.log('Database is up to date')
       return
     }
@@ -72,17 +72,17 @@ const run = async (command: string) => {
       throw new Error(`Unsupported command ${command}`)
   }
   if (command === 'reset') {
-    // eslint-disable-next-line no-console
+    // biome-ignore lint/suspicious/noConsole: no logger present
     console.log('Database was reset')
   } else {
     const currentDbVersion = await migration.getLastVersion()
-    // eslint-disable-next-line no-console
+    // biome-ignore lint/suspicious/noConsole: no logger present
     console.log(`Database was ${command} migrated to version: ${currentDbVersion.fileName}`)
     if (latestDbVersion === currentDbVersion.fileName.split('.')[0]) {
-      // eslint-disable-next-line no-console
+      // biome-ignore lint/suspicious/noConsole: no logger present
       console.log('Database is now up to date')
     } else {
-      // eslint-disable-next-line no-console
+      // biome-ignore lint/suspicious/noConsole: no logger present
       console.log('The latest database version is: ', latestDbVersion)
     }
   }
@@ -93,7 +93,7 @@ const run = async (command: string) => {
 
 run(process.argv[2])
   .catch((err) => {
-    // eslint-disable-next-line no-console
+    // biome-ignore lint/suspicious/noConsole: no logger present
     console.log(err)
     process.exit(1)
   })

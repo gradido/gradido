@@ -1,9 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { Connection, In } from '@dbTools/typeorm'
 import { Community as DbCommunity } from '@entity/Community'
 import { DltTransaction } from '@entity/DltTransaction'
@@ -20,9 +14,9 @@ import { logger } from '@test/testSetup'
 
 import { CONFIG } from '@/config'
 import { EventType } from '@/event/Events'
+import { SendCoinsClient } from '@/federation/client/1_0/SendCoinsClient'
 import { SendCoinsArgs } from '@/federation/client/1_0/model/SendCoinsArgs'
 import { SendCoinsResult } from '@/federation/client/1_0/model/SendCoinsResult'
-import { SendCoinsClient } from '@/federation/client/1_0/SendCoinsClient'
 import { userFactory } from '@/seeds/factory/user'
 import {
   confirmContribution,
@@ -39,9 +33,9 @@ import { stephenHawking } from '@/seeds/users/stephen-hawking'
 
 jest.mock('@/password/EncryptorUtils')
 
-let mutate: ApolloServerTestClient['mutate'], con: Connection
+let mutate: ApolloServerTestClient['mutate']
 let query: ApolloServerTestClient['query']
-
+let con: Connection
 let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']

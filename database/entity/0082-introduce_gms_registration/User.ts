@@ -1,21 +1,21 @@
 import {
   BaseEntity,
-  Entity,
-  PrimaryGeneratedColumn,
   Column,
   DeleteDateColumn,
-  OneToMany,
-  JoinColumn,
-  OneToOne,
+  Entity,
   Geometry,
+  JoinColumn,
   ManyToOne,
+  OneToMany,
+  OneToOne,
+  PrimaryGeneratedColumn,
 } from 'typeorm'
+import { GeometryTransformer } from '../../src/typeorm/GeometryTransformer'
+import { Community } from '../Community'
 import { Contribution } from '../Contribution'
 import { ContributionMessage } from '../ContributionMessage'
 import { UserContact } from '../UserContact'
 import { UserRole } from '../UserRole'
-import { GeometryTransformer } from '../../src/typeorm/GeometryTransformer'
-import { Community } from '../Community'
 
 @Entity('users', { engine: 'InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci' })
 export class User extends BaseEntity {
@@ -42,7 +42,10 @@ export class User extends BaseEntity {
   })
   communityUuid: string
 
-  @ManyToOne(() => Community, (community) => community.users)
+  @ManyToOne(
+    () => Community,
+    (community) => community.users,
+  )
   @JoinColumn({ name: 'community_uuid', referencedColumnName: 'communityUuid' })
   community: Community | null
 
@@ -55,7 +58,10 @@ export class User extends BaseEntity {
   })
   alias: string
 
-  @OneToOne(() => UserContact, (emailContact: UserContact) => emailContact.user)
+  @OneToOne(
+    () => UserContact,
+    (emailContact: UserContact) => emailContact.user,
+  )
   @JoinColumn({ name: 'email_id' })
   emailContact: UserContact
 
@@ -110,7 +116,10 @@ export class User extends BaseEntity {
   @Column({ type: 'bool', default: false })
   hideAmountGDT: boolean
 
-  @OneToMany(() => UserRole, (userRole) => userRole.user)
+  @OneToMany(
+    () => UserRole,
+    (userRole) => userRole.user,
+  )
   @JoinColumn({ name: 'user_id' })
   userRoles: UserRole[]
 
@@ -156,15 +165,24 @@ export class User extends BaseEntity {
   @Column({ name: 'gms_registered_at', type: 'datetime', default: null, nullable: true })
   gmsRegisteredAt: Date | null
 
-  @OneToMany(() => Contribution, (contribution) => contribution.user)
+  @OneToMany(
+    () => Contribution,
+    (contribution) => contribution.user,
+  )
   @JoinColumn({ name: 'user_id' })
   contributions?: Contribution[]
 
-  @OneToMany(() => ContributionMessage, (message) => message.user)
+  @OneToMany(
+    () => ContributionMessage,
+    (message) => message.user,
+  )
   @JoinColumn({ name: 'user_id' })
   messages?: ContributionMessage[]
 
-  @OneToMany(() => UserContact, (userContact: UserContact) => userContact.user)
+  @OneToMany(
+    () => UserContact,
+    (userContact: UserContact) => userContact.user,
+  )
   @JoinColumn({ name: 'user_id' })
   userContacts?: UserContact[]
 }

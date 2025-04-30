@@ -32,7 +32,9 @@ async function calculateBalance(
   transactionLink?: dbTransactionLink | null,
 ): Promise<{ balance: Decimal; decay: Decay; lastTransactionId: number } | null> {
   const lastTransaction = await getLastTransaction(userId)
-  if (!lastTransaction) return null
+  if (!lastTransaction) {
+    return null
+  }
 
   const decay = calculateDecay(lastTransaction.balance, lastTransaction.balanceDate, time)
 

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { logger } from '@test/testSetup'
 
 import { LogError } from './LogError'

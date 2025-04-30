@@ -1,9 +1,7 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { createTestClient } from 'apollo-server-testing'
-import createServer from '@/server/createServer'
+import { CONFIG } from '@/config'
+import { createServer } from '@/server/createServer'
 import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
-import CONFIG from '@/config'
+import { createTestClient } from 'apollo-server-testing'
 
 let query: any
 

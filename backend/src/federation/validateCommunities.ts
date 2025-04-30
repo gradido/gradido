@@ -1,5 +1,3 @@
-/** eslint-disable @typescript-eslint/no-unsafe-assignment */
-/** eslint-disable @typescript-eslint/no-unsafe-call */
 import { IsNull } from '@dbTools/typeorm'
 import { Community as DbCommunity } from '@entity/Community'
 import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
@@ -27,8 +25,8 @@ export async function startValidateCommunities(timerInterval: number): Promise<v
 
   // TODO: replace the timer-loop by an event-based communication to verify announced foreign communities
   // better to use setTimeout twice than setInterval once -> see https://javascript.info/settimeout-setinterval
-  setTimeout(function run() {
-    void validateCommunities()
+  setTimeout(async function run() {
+    await validateCommunities()
     setTimeout(run, timerInterval)
   }, timerInterval)
 }
@@ -55,7 +53,7 @@ export async function validateCommunities(): Promise<void> {
     }
     try {
       const client = FederationClientFactory.getInstance(dbCom)
-      // eslint-disable-next-line camelcase
+
       if (client instanceof V1_0_FederationClient) {
         const pubKey = await client.getPublicKey()
         if (pubKey && pubKey === dbCom.publicKey.toString('hex')) {

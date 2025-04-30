@@ -1,16 +1,15 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { Arg, Mutation, Resolver } from 'type-graphql'
+import { CONFIG } from '@/config'
+import { LogError } from '@/server/LogError'
 import { federationLogger as logger } from '@/server/logger'
 import { Community as DbCommunity } from '@entity/Community'
 import { FederatedCommunity as DbFedCommunity } from '@entity/FederatedCommunity'
 import { CommunityLoggingView } from '@logging/CommunityLogging.view'
 import { FederatedCommunityLoggingView } from '@logging/FederatedCommunityLogging.view'
-import { LogError } from '@/server/LogError'
-import { OpenConnectionArgs } from '../model/OpenConnectionArgs'
-import { startAuthentication, startOpenConnectionCallback } from '../util/authenticateCommunity'
-import { OpenConnectionCallbackArgs } from '../model/OpenConnectionCallbackArgs'
-import { CONFIG } from '@/config'
+import { Arg, Mutation, Resolver } from 'type-graphql'
 import { AuthenticationArgs } from '../model/AuthenticationArgs'
+import { OpenConnectionArgs } from '../model/OpenConnectionArgs'
+import { OpenConnectionCallbackArgs } from '../model/OpenConnectionCallbackArgs'
+import { startAuthentication, startOpenConnectionCallback } from '../util/authenticateCommunity'
 
 @Resolver()
 export class AuthenticationResolver {
@@ -30,7 +29,7 @@ export class AuthenticationResolver {
       throw new LogError(`unknown requesting community with publicKey`, pubKeyBuf.toString('hex'))
     }
     logger.debug(`Authentication: found requestedCom:`, new CommunityLoggingView(comA))
-    // no await to respond immediatly and invoke callback-request asynchron
+    // biome-ignore lint/complexity/noVoid: no await to respond immediately and invoke callback-request asynchronously
     void startOpenConnectionCallback(args, comA, CONFIG.FEDERATION_API)
     return true
   }
@@ -53,7 +52,7 @@ export class AuthenticationResolver {
       `Authentication: found fedComB and start authentication:`,
       new FederatedCommunityLoggingView(fedComB),
     )
-    // no await to respond immediatly and invoke authenticate-request asynchron
+    // biome-ignore lint/complexity/noVoid: no await to respond immediately and invoke authenticate-request asynchronously
     void startAuthentication(args.oneTimeCode, fedComB)
     return true
   }

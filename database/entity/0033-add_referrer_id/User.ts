@@ -1,10 +1,10 @@
 import {
   BaseEntity,
-  Entity,
-  PrimaryGeneratedColumn,
   Column,
-  OneToMany,
   DeleteDateColumn,
+  Entity,
+  OneToMany,
+  PrimaryGeneratedColumn,
 } from 'typeorm'
 import { UserSetting } from '../0002-add_settings/UserSetting'
 
@@ -73,6 +73,9 @@ export class User extends BaseEntity {
   })
   passphrase: string
 
-  @OneToMany(() => UserSetting, (userSetting) => userSetting.user)
+  @OneToMany(
+    () => UserSetting,
+    (userSetting) => userSetting.user,
+  )
   settings: UserSetting[]
 }

@@ -1,12 +1,11 @@
-import { AbstractLoggingView } from '@logging/AbstractLogging.view'
 import { SendCoinsArgs } from '@/graphql/api/1_0/model/SendCoinsArgs'
+import { AbstractLoggingView } from '@logging/AbstractLogging.view'
 
 export class SendCoinsArgsLoggingView extends AbstractLoggingView {
   public constructor(private self: SendCoinsArgs) {
     super()
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public toJSON(): any {
     return {
       recipientCommunityUuid: this.self.recipientCommunityUuid,

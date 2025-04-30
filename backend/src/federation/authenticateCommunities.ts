@@ -3,7 +3,7 @@ import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCom
 import { validate as validateUUID, version as versionUUID } from 'uuid'
 
 import { CONFIG } from '@/config'
-// eslint-disable-next-line camelcase
+
 import { AuthenticationClient as V1_0_AuthenticationClient } from '@/federation/client/1_0/AuthenticationClient'
 import { backendLogger as logger } from '@/server/logger'
 import { ensureUrlEndsWithSlash } from '@/util/utilities'
@@ -35,7 +35,7 @@ export async function startCommunityAuthentication(
   ) {
     try {
       const client = AuthenticationClientFactory.getInstance(foreignFedCom)
-      // eslint-disable-next-line camelcase
+
       if (client instanceof V1_0_AuthenticationClient) {
         const args = new OpenConnectionArgs()
         args.publicKey = homeCom.publicKey.toString('hex')

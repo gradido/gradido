@@ -5,9 +5,6 @@
  * to also explicitly define it in the table
  */
 
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   // Explicitly change the charset and collate to the one used to then change it
   await queryFn('ALTER TABLE `login_users` CONVERT TO CHARACTER SET utf8 COLLATE utf8_bin;')

@@ -61,8 +61,7 @@ export class UnconfirmedContributionAdminRole extends AbstractUnconfirmedContrib
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected checkAuthorization(user: User, role: Role): AbstractUnconfirmedContributionRole {
+  protected checkAuthorization(_user: User, role: Role): AbstractUnconfirmedContributionRole {
     if (
       !role.hasRight(RIGHTS.MODERATOR_UPDATE_CONTRIBUTION_MEMO) &&
       this.self.moderatorId === null

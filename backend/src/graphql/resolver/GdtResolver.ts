@@ -1,8 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { Resolver, Query, Args, Ctx, Authorized, Arg, Int, Float } from 'type-graphql'
+import { Arg, Args, Authorized, Ctx, Float, Int, Query, Resolver } from 'type-graphql'
 
 import { Paginated } from '@arg/Paginated'
 import { Order } from '@enum/Order'
@@ -12,8 +8,10 @@ import { GdtEntryList } from '@model/GdtEntryList'
 import { apiGet, apiPost } from '@/apis/HttpRequest'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { CONFIG } from '@/config'
-import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
+import { Context, getUser } from '@/server/context'
+
+import { backendLogger as logger } from '@/server/logger'
 
 @Resolver()
 export class GdtResolver {
@@ -25,20 +23,12 @@ export class GdtResolver {
     @Ctx() context: Context,
   ): Promise<GdtEntryList> {
     if (!CONFIG.GDT_ACTIVE) {
-      return new GdtEntryList(
-        'disabled',
-        0,
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any
-        [],
-        0,
-        0,
-      )
+      return new GdtEntryList('disabled', 0, [], 0, 0)
     }
     const userEntity = getUser(context)
 
     try {
       const resultGDT = await apiGet(
-        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
         `${CONFIG.GDT_API_URL}/GdtEntries/listPerEmailApi/${userEntity.emailContact.email}/${currentPage}/${pageSize}/${order}`,
       )
       if (!resultGDT.success) {
@@ -48,12 +38,12 @@ export class GdtResolver {
       return new GdtEntryList(
         state,
         count,
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any
         gdtEntries ? gdtEntries.map((data: any) => new GdtEntry(data)) : [],
         gdtSum,
         timeUsed,
       )
     } catch (err) {
+      logger.error('GDT Server is not reachable', err)
       throw new LogError('GDT Server is not reachable')
     }
   }
@@ -74,15 +64,13 @@ export class GdtResolver {
       }
       return Number(resultGDTSum.data.sum) || 0
     } catch (err) {
-      // eslint-disable-next-line no-console
-      console.log('Could not query GDT Server')
+      logger.error('Could not query GDT Server', err)
       return null
     }
   }
 
   @Authorized([RIGHTS.EXIST_PID])
   @Query(() => Int)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async existPid(@Arg('pid', () => Int) pid: number): Promise<number> {
     if (!CONFIG.GDT_ACTIVE) {
       return 0

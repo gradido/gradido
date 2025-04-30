@@ -1,5 +1,5 @@
-import { IsString, IsOptional, MaxLength, IsNumber, IsBoolean, IsUrl } from 'class-validator'
-import { InputType, Field, Int } from 'type-graphql'
+import { IsBoolean, IsNumber, IsOptional, IsString, IsUrl, MaxLength } from 'class-validator'
+import { Field, InputType, Int } from 'type-graphql'
 
 @InputType()
 export class ProjectBrandingInput {

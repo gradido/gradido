@@ -1,12 +1,12 @@
 import { GraphQLSchema } from 'graphql'
 import { buildSchema } from 'type-graphql'
 
-// import isAuthorized from './directive/isAuthorized'
-import { DecimalScalar } from './scalar/Decimal'
 import { Decimal } from 'decimal.js-light'
 import { getApiResolvers } from './api/schema'
+// import isAuthorized from './directive/isAuthorized'
+import { DecimalScalar } from './scalar/Decimal'
 
-const schema = async (): Promise<GraphQLSchema> => {
+export const schema = async (): Promise<GraphQLSchema> => {
   return await buildSchema({
     resolvers: [getApiResolvers()],
     // authChecker: isAuthorized,
@@ -23,5 +23,3 @@ const schema = async (): Promise<GraphQLSchema> => {
     */
   })
 }
-
-export default schema

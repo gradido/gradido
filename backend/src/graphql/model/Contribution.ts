@@ -1,7 +1,7 @@
 import { Contribution as dbContribution } from '@entity/Contribution'
 import { User as DbUser } from '@entity/User'
 import { Decimal } from 'decimal.js-light'
-import { ObjectType, Field, Int } from 'type-graphql'
+import { Field, Int, ObjectType } from 'type-graphql'
 
 import { User } from './User'
 

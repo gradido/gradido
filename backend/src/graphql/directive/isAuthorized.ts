@@ -7,22 +7,25 @@ import { INALIENABLE_RIGHTS } from '@/auth/INALIENABLE_RIGHTS'
 import { decode, encode } from '@/auth/JWT'
 import { RIGHTS } from '@/auth/RIGHTS'
 import {
-  ROLE_UNAUTHORIZED,
-  ROLE_USER,
   ROLE_ADMIN,
+  ROLE_DLT_CONNECTOR,
   ROLE_MODERATOR,
   ROLE_MODERATOR_AI,
-  ROLE_DLT_CONNECTOR,
+  ROLE_UNAUTHORIZED,
+  ROLE_USER,
 } from '@/auth/ROLES'
-import { Context } from '@/server/context'
 import { LogError } from '@/server/LogError'
+import { Context } from '@/server/context'
 
 export const isAuthorized: AuthChecker<Context> = async ({ context }, rights) => {
   context.role = ROLE_UNAUTHORIZED // unauthorized user
 
   // is rights an inalienable right?
-  if ((rights as RIGHTS[]).reduce((acc, right) => acc && INALIENABLE_RIGHTS.includes(right), true))
+  if (
+    (rights as RIGHTS[]).reduce((acc, right) => acc && INALIENABLE_RIGHTS.includes(right), true)
+  ) {
     return true
+  }
 
   // Do we have a token?
   if (!context.token) {

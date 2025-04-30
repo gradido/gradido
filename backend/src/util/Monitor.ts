@@ -16,7 +16,6 @@ registerEnumType(MonitorNames, {
 export class Monitor {
   private static locks = new Map<MonitorNames, boolean>()
 
-  // eslint-disable-next-line no-useless-constructor, @typescript-eslint/no-empty-function
   private constructor() {}
 
   private _dummy = `to avoid unexpected class with only static properties`

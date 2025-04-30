@@ -7,7 +7,7 @@ import { Transaction as DbTransaction } from '@entity/Transaction'
 import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
 import { User as DbUser } from '@entity/User'
 import { Decimal } from 'decimal.js-light'
-import { Resolver, Args, Arg, Authorized, Ctx, Mutation, Query, Int } from 'type-graphql'
+import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
 
 import { Paginated } from '@arg/Paginated'
 import { TransactionLinkArgs } from '@arg/TransactionLinkArgs'
@@ -29,12 +29,12 @@ import {
   EVENT_TRANSACTION_LINK_DELETE,
   EVENT_TRANSACTION_LINK_REDEEM,
 } from '@/event/Events'
-import { Context, getUser, getClientTimezoneOffset } from '@/server/context'
 import { LogError } from '@/server/LogError'
+import { Context, getClientTimezoneOffset, getUser } from '@/server/context'
 import { backendLogger as logger } from '@/server/logger'
-import { calculateDecay } from '@/util/decay'
-import { TRANSACTION_LINK_LOCK } from '@/util/TRANSACTION_LINK_LOCK'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
+import { TRANSACTION_LINK_LOCK } from '@/util/TRANSACTION_LINK_LOCK'
+import { calculateDecay } from '@/util/decay'
 import { fullName } from '@/util/utilities'
 import { calculateBalance } from '@/util/validate'
 
@@ -311,7 +311,7 @@ export class TransactionLinkResolver {
         releaseLock()
       }
       // trigger to send transaction via dlt-connector
-      void sendTransactionsToDltConnector()
+      await sendTransactionsToDltConnector()
       return true
     } else {
       const now = new Date()
@@ -387,9 +387,8 @@ export class TransactionLinkResolver {
   async listTransactionLinksAdmin(
     @Args()
     paginated: Paginated,
-    // eslint-disable-next-line type-graphql/wrong-decorator-signature
     @Arg('filters', () => TransactionLinkFilters, { nullable: true })
-    filters: TransactionLinkFilters | null, // eslint-disable-line type-graphql/invalid-nullable-input-type
+    filters: TransactionLinkFilters,
     @Arg('userId', () => Int)
     userId: number,
   ): Promise<TransactionLinkResult> {

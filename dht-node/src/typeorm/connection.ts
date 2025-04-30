@@ -1,6 +1,6 @@
 // TODO This is super weird - since the entities are defined in another project they have their own globals.
 //      We cannot use our connection here, but must use the external typeorm installation
-import { Connection, createConnection, FileLogger } from '@dbTools/typeorm'
+import { Connection, FileLogger, createConnection } from '@dbTools/typeorm'
 import { entities } from '@entity/index'
 
 import { CONFIG } from '@/config'
@@ -26,7 +26,7 @@ export const connection = async (): Promise<Connection | null> => {
       },
     })
   } catch (error) {
-    // eslint-disable-next-line no-console
+    // biome-ignore lint/suspicious/noConsole: no logger present
     console.log(error)
     return null
   }

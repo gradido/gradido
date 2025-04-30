@@ -3,9 +3,6 @@
  * This migration adds the table `user_setting` in order to store all sorts of user configuration data
  */
 
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   await queryFn(`
       CREATE TABLE IF NOT EXISTS \`user_setting\` (

@@ -1,10 +1,9 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { startDHT } from '@/dht_node/index'
 
 import { CONFIG } from './config'
 import { logger } from './server/logger'
-import { connection } from './typeorm/connection'
 import { checkDBVersion } from './typeorm/DBVersion'
+import { connection } from './typeorm/connection'
 
 async function main() {
   // open mysql connection
@@ -30,7 +29,7 @@ async function main() {
 }
 
 main().catch((e) => {
-  // eslint-disable-next-line no-console
+  // biome-ignore lint/suspicious/noConsole: no logger present
   console.error(e)
   throw e
 })

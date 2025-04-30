@@ -7,7 +7,6 @@ export class PublicCommunityInfoLoggingView extends AbstractLoggingView {
     super()
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public toJSON(): any {
     return {
       name: this.self.name,

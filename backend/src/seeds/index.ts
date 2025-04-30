@@ -1,12 +1,6 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-
 import { entities } from '@entity/index'
 import { createTestClient } from 'apollo-server-testing'
-import { name, internet, datatype } from 'faker'
+import { datatype, internet, name } from 'faker'
 
 import { CONFIG } from '@/config'
 import { createServer } from '@/server/createServer'
@@ -30,8 +24,10 @@ const context = {
     push: (value: { key: string; value: string }): void => {
       context.token = value.value
     },
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    forEach: (): void => {},
+
+    forEach: (): void => {
+      // do nothing
+    },
   },
   clientTimezoneOffset: 0,
 }
@@ -100,4 +96,7 @@ const run = async () => {
   await con.close()
 }
 
-void run()
+run().catch((err) => {
+  // biome-ignore lint/suspicious/noConsole: no logger present
+  console.error('error on seeding', err)
+})

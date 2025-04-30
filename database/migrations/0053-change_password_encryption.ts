@@ -3,9 +3,6 @@
  * This migration adds and renames columns in the table `users`
  */
 
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   await queryFn('ALTER TABLE users RENAME COLUMN created TO created_at;')
   await queryFn('ALTER TABLE users RENAME COLUMN deletedAt TO deleted_at;')

@@ -1,9 +1,6 @@
 /* MIGRATION DROP server_users TABLE
 add isAdmin COLUMN to users TABLE */
 
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   await queryFn('ALTER TABLE `users` ADD COLUMN `is_admin` datetime DEFAULT NULL AFTER `language`;')
 

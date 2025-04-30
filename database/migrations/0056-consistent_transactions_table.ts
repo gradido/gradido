@@ -1,9 +1,8 @@
 /* MIGRATION TO add users that have a transaction but do not exist */
 
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { v4 as uuidv4 } from 'uuid'
 import { OkPacket } from 'mysql'
+
+import { v4 as uuidv4 } from 'uuid'
 
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   const missingUserIds = await queryFn(`
@@ -34,5 +33,6 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   }
 }
 
-/* eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-empty-function */
-export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {}
+export async function downgrade(_queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
+  // Not needed
+}

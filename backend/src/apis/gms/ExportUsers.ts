@@ -1,9 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-
 import { User as DbUser } from '@entity/User'
 // import { createTestClient } from 'apollo-server-testing'
 
@@ -12,30 +6,29 @@ import { User as DbUser } from '@entity/User'
 import { CONFIG } from '@/config'
 import { getHomeCommunity } from '@/graphql/resolver/util/communities'
 import { sendUserToGms } from '@/graphql/resolver/util/sendUserToGms'
-import { createServer } from '@/server/createServer'
 import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
+import { checkDBVersion } from '@/typeorm/DBVersion'
+import { Connection } from '@/typeorm/connection'
 
 CONFIG.EMAIL = false
 // use force to copy over all user even if gmsRegistered is set to true
 const forceMode = process.argv.includes('--force')
 
-const context = {
-  token: '',
-  setHeaders: {
-    push: (value: { key: string; value: string }): void => {
-      context.token = value.value
-    },
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    forEach: (): void => {},
-  },
-  clientTimezoneOffset: 0,
-}
+async function main() {
+  // open mysql connection
+  const con = await Connection.getInstance()
+  if (!con?.isConnected) {
+    logger.fatal(`Couldn't open connection to database!`)
+    throw new Error(`Fatal: Couldn't open connection to database`)
+  }
 
-const run = async () => {
-  const server = await createServer(context)
-  // const seedClient = createTestClient(server.apollo)
-  const { con } = server
+  // check for correct database version
+  const dbVersion = await checkDBVersion(CONFIG.DB_VERSION)
+  if (!dbVersion) {
+    logger.fatal('Fatal: Database Version incorrect')
+    throw new Error('Fatal: Database Version incorrect')
+  }
 
   const homeCom = await getHomeCommunity()
   if (homeCom.gmsApiKey === null) {
@@ -63,7 +56,7 @@ const run = async () => {
         /*
         const gmsUser = new GmsUser(user)
         try {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+
           if (await createGmsUser(homeCom.gmsApiKey, gmsUser)) {
             logger.debug('GMS user published successfully:', gmsUser)
             user.gmsRegistered = true
@@ -84,7 +77,11 @@ const run = async () => {
   }
   logger.info('##gms## publishing all local users successful...')
 
-  await con.close()
+  await con.destroy()
 }
 
-void run()
+main().catch((e) => {
+  // biome-ignore lint/suspicious/noConsole: logger isn't used here
+  console.error(e)
+  process.exit(1)
+})

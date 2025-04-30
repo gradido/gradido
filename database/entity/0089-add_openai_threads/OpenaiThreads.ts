@@ -1,4 +1,4 @@
-import { BaseEntity, Entity, PrimaryColumn, CreateDateColumn, Column } from 'typeorm'
+import { BaseEntity, Column, CreateDateColumn, Entity, PrimaryColumn } from 'typeorm'
 
 @Entity('openai_threads')
 export class OpenaiThreads extends BaseEntity {

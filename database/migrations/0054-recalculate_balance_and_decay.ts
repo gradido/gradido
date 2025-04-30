@@ -10,11 +10,7 @@
  * WARNING: This Migration must be run in TZ=UTC
  */
 
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable no-unused-vars */
-
-import fs from 'fs'
+import fs from 'node:fs'
 import { Decimal } from 'decimal.js-light'
 
 // Set precision value
@@ -94,7 +90,9 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
     logFile,
     `email;first_name;last_name;affected_transactions;new_balance;new_decay;old_balance;old_decay;delta;\n`,
     (err) => {
-      if (err) throw err
+      if (err) {
+        throw err
+      }
     },
   )
 
@@ -144,7 +142,9 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
               transaction.dec_balance,
             )};\n`,
             (err) => {
-              if (err) throw err
+              if (err) {
+                throw err
+              }
             },
           )
         }
@@ -156,5 +156,6 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   }
 }
 
-/* eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-empty-function */
-export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {}
+export async function downgrade(_queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
+  // Not needed
+}

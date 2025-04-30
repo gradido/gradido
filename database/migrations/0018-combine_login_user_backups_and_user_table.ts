@@ -4,9 +4,6 @@
  * the `state_users` table, where the later is the target.
  */
 
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   // We only keep the passphrase, the mnemonic type is a constant,
   // since every passphrase was converted to mnemonic type 2

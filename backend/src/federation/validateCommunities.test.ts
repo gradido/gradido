@@ -1,17 +1,10 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/unbound-method */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-
 import { Connection } from '@dbTools/typeorm'
 import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { GraphQLClient } from 'graphql-request'
 import { Response } from 'graphql-request/dist/types'
 
-import { testEnvironment, cleanDB } from '@test/helpers'
+import { cleanDB, testEnvironment } from '@test/helpers'
 import { logger } from '@test/testSetup'
 
 import { validateCommunities } from './validateCommunities'
@@ -62,9 +55,8 @@ describe('validate Communities', () => {
     describe('with one Community of api 1_0 but missing pubKey response', () => {
       beforeEach(async () => {
         jest.clearAllMocks()
-        // eslint-disable-next-line @typescript-eslint/require-await
+
         jest.spyOn(GraphQLClient.prototype, 'rawRequest').mockImplementation(async () => {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-return
           return { data: {} } as Response<unknown>
         })
         const variables1 = {
@@ -78,7 +70,6 @@ describe('validate Communities', () => {
           .into(DbFederatedCommunity)
           .values(variables1)
           .orUpdate({
-            // eslint-disable-next-line camelcase
             conflict_target: ['id', 'publicKey', 'apiVersion'],
             overwrite: ['end_point', 'last_announced_at'],
           })
@@ -101,9 +92,8 @@ describe('validate Communities', () => {
     describe('with one Community of api 1_0 and not matching pubKey', () => {
       beforeEach(async () => {
         jest.clearAllMocks()
-        // eslint-disable-next-line @typescript-eslint/require-await
+
         jest.spyOn(GraphQLClient.prototype, 'rawRequest').mockImplementation(async () => {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-return
           return {
             data: {
               getPublicKey: {
@@ -123,15 +113,14 @@ describe('validate Communities', () => {
           .into(DbFederatedCommunity)
           .values(variables1)
           .orUpdate({
-            // eslint-disable-next-line camelcase
             conflict_target: ['id', 'publicKey', 'apiVersion'],
             overwrite: ['end_point', 'last_announced_at'],
           })
           .execute()
         /*
-        // eslint-disable-next-line @typescript-eslint/require-await
+
         jest.spyOn(GraphQLClient.prototype, 'rawRequest').mockImplementation(async () => {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+
           return {
             data: {
               getPublicCommunityInfo: {
@@ -183,9 +172,8 @@ describe('validate Communities', () => {
     describe('with one Community of api 1_0 and matching pubKey', () => {
       beforeEach(async () => {
         jest.clearAllMocks()
-        // eslint-disable-next-line @typescript-eslint/require-await
+
         jest.spyOn(GraphQLClient.prototype, 'rawRequest').mockImplementation(async () => {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-return
           return {
             data: {
               getPublicKey: {
@@ -205,7 +193,6 @@ describe('validate Communities', () => {
           .into(DbFederatedCommunity)
           .values(variables1)
           .orUpdate({
-            // eslint-disable-next-line camelcase
             conflict_target: ['id', 'publicKey', 'apiVersion'],
             overwrite: ['end_point', 'last_announced_at'],
           })
@@ -251,9 +238,8 @@ describe('validate Communities', () => {
     describe('with two Communities of api 1_0 and 1_1', () => {
       beforeEach(async () => {
         jest.clearAllMocks()
-        // eslint-disable-next-line @typescript-eslint/require-await
+
         jest.spyOn(GraphQLClient.prototype, 'rawRequest').mockImplementation(async () => {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-return
           return {
             data: {
               getPublicKey: {
@@ -273,7 +259,6 @@ describe('validate Communities', () => {
           .into(DbFederatedCommunity)
           .values(variables2)
           .orUpdate({
-            // eslint-disable-next-line camelcase
             conflict_target: ['id', 'publicKey', 'apiVersion'],
             overwrite: ['end_point', 'last_announced_at'],
           })
@@ -303,9 +288,8 @@ describe('validate Communities', () => {
       let dbCom: DbFederatedCommunity
       beforeEach(async () => {
         jest.clearAllMocks()
-        // eslint-disable-next-line @typescript-eslint/require-await
+
         jest.spyOn(GraphQLClient.prototype, 'rawRequest').mockImplementation(async () => {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-return
           return {
             data: {
               getPublicKey: {
@@ -325,7 +309,6 @@ describe('validate Communities', () => {
           .into(DbFederatedCommunity)
           .values(variables3)
           .orUpdate({
-            // eslint-disable-next-line camelcase
             conflict_target: ['id', 'publicKey', 'apiVersion'],
             overwrite: ['end_point', 'last_announced_at'],
           })

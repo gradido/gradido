@@ -13,5 +13,8 @@
   "dependencies": {
     "auto-changelog": "^2.4.0",
     "uuid": "^8.3.2"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "1.9.4"
   }
 }

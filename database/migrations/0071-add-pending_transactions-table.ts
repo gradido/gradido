@@ -1,8 +1,5 @@
 /* MIGRATION TO add new pending_transactions table */
 
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   await queryFn(`
     CREATE TABLE pending_transactions (

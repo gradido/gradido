@@ -13,7 +13,8 @@
     "start": "cross-env TZ=UTC TS_NODE_BASEURL=./build node -r tsconfig-paths/register build/src/index.js",
     "test": "cross-env TZ=UTC NODE_ENV=development DB_DATABASE=gradido_test_federation jest --runInBand --forceExit --detectOpenHandles",
     "dev": "cross-env TZ=UTC nodemon -w src --ext ts --exec ts-node -r dotenv/config -r tsconfig-paths/register src/index.ts",
-    "lint": "eslint --max-warnings=0 --ext .js,.ts ."
+    "lint": "biome check --error-on-warnings .",
+    "lint:fix": "biome check --error-on-warnings . --write"
   },
   "dependencies": {
     "apollo-server-express": "^2.25.2",
@@ -37,6 +38,7 @@
     "uuid": "8.3.2"
   },
   "devDependencies": {
+    "@biomejs/biome": "1.9.4",
     "@types/express": "4.17.12",
     "@types/jest": "27.0.2",
     "@types/joi": "^17.2.3",
@@ -44,20 +46,7 @@
     "@types/node": "^16.10.3",
     "@types/sodium-native": "^2.3.5",
     "@types/uuid": "^8.3.4",
-    "@typescript-eslint/eslint-plugin": "^5.57.1",
-    "@typescript-eslint/parser": "^5.57.1",
     "apollo-server-testing": "2.25.2",
-    "eslint": "^8.37.0",
-    "eslint-config-prettier": "^8.8.0",
-    "eslint-config-standard": "^17.0.0",
-    "eslint-import-resolver-typescript": "^3.5.4",
-    "eslint-plugin-import": "^2.27.5",
-    "eslint-plugin-jest": "^27.2.1",
-    "eslint-plugin-n": "^15.7.0",
-    "eslint-plugin-prettier": "^4.2.1",
-    "eslint-plugin-promise": "^6.1.1",
-    "eslint-plugin-security": "^1.7.1",
-    "eslint-plugin-type-graphql": "^1.0.0",
     "gradido-config": "../config",
     "graphql-tag": "^2.12.6",
     "jest": "^27.2.4",

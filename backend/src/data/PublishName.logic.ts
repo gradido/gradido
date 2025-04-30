@@ -18,7 +18,6 @@ export class PublishNameLogic {
 
   // remove character which are invalid for humhub username
   private filterOutInvalidChar(name: string) {
-    // eslint-disable-next-line import/no-named-as-default-member
     return XRegExp.match(name, this.usernameRegex, 'all').join('')
   }
 
@@ -62,8 +61,8 @@ export class PublishNameLogic {
     return publishNameType === PublishNameType.PUBLISH_NAME_FULL
       ? lastName.slice(0, 20)
       : publishNameType === PublishNameType.PUBLISH_NAME_FIRST_INITIAL && lastName.length > 0
-      ? lastName.charAt(0)
-      : ''
+        ? lastName.charAt(0)
+        : ''
   }
 
   /**
@@ -92,8 +91,8 @@ export class PublishNameLogic {
     return this.isUsernameFromAlias(publishNameType)
       ? this.getUsernameFromAlias()
       : this.isUsernameFromInitials(publishNameType)
-      ? this.getUsernameFromInitials()
-      : (this.getFirstName(publishNameType) + ' ' + this.getLastName(publishNameType)).trim()
+        ? this.getUsernameFromInitials()
+        : (this.getFirstName(publishNameType) + ' ' + this.getLastName(publishNameType)).trim()
   }
 
   public getUsernameFromInitials(): string {

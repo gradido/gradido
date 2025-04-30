@@ -5,9 +5,6 @@
  * `0004-login_server_data` which will fill the tables with the existing data
  */
 
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   await queryFn(`
     CREATE TABLE IF NOT EXISTS \`login_app_access_tokens\` (

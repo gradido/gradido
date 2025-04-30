@@ -6,7 +6,7 @@ import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCom
 import DHT from '@hyperswarm/dht'
 import { validate as validateUUID, version as versionUUID } from 'uuid'
 
-import { testEnvironment, cleanDB } from '@test/helpers'
+import { cleanDB, testEnvironment } from '@test/helpers'
 import { logger } from '@test/testSetup'
 
 import { CONFIG } from '@/config'

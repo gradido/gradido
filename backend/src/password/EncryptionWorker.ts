@@ -4,15 +4,15 @@ import { CONFIG } from '@/config'
 
 import {
   crypto_box_SEEDBYTES,
-  crypto_hash_sha512_init,
-  crypto_hash_sha512_update,
-  crypto_hash_sha512_final,
   crypto_hash_sha512_BYTES,
   crypto_hash_sha512_STATEBYTES,
-  crypto_shorthash_BYTES,
-  crypto_pwhash_SALTBYTES,
+  crypto_hash_sha512_final,
+  crypto_hash_sha512_init,
+  crypto_hash_sha512_update,
   crypto_pwhash,
+  crypto_pwhash_SALTBYTES,
   crypto_shorthash,
+  crypto_shorthash_BYTES,
 } from 'sodium-native'
 
 export const SecretKeyCryptographyCreateKey = (

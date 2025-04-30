@@ -1,7 +1,7 @@
-/* eslint-disable camelcase */
-import { Geometry as wkx_Geometry } from 'wkx'
 import { Geometry } from 'geojson'
 import { ValueTransformer } from 'typeorm/decorator/options/ValueTransformer'
+
+import { Geometry as wkx_Geometry } from 'wkx'
 
 /**
  * TypeORM transformer to convert GeoJSON to MySQL WKT (Well Known Text) e.g. POINT(LAT, LON) and back

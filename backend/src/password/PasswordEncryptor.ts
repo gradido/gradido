@@ -1,7 +1,7 @@
 import { User } from '@entity/User'
 
 // import { logger } from '@test/testSetup' getting error "jest is not defined"
-import { getUserCryptographicSalt, SecretKeyCryptographyCreateKey } from './EncryptorUtils'
+import { SecretKeyCryptographyCreateKey, getUserCryptographicSalt } from './EncryptorUtils'
 
 export const encryptPassword = async (dbUser: User, password: string): Promise<bigint> => {
   const salt = getUserCryptographicSalt(dbUser)

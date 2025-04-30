@@ -20,14 +20,14 @@ export async function sendUserToGms(
   try {
     if (alwaysCreateUser === true || (!user.gmsRegistered && user.gmsRegisteredAt === null)) {
       logger.debug('create user in gms:', gmsUser)
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+
       if (await createGmsUser(homeCom.gmsApiKey, gmsUser)) {
         logger.debug('GMS user published successfully:', gmsUser)
         await updateUserGmsStatus(user)
       }
     } else {
       logger.debug('update user in gms:', gmsUser)
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+
       if (await updateGmsUser(homeCom.gmsApiKey, gmsUser)) {
         logger.debug('GMS user published successfully:', gmsUser)
         await updateUserGmsStatus(user)

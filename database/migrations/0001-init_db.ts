@@ -9,9 +9,6 @@
  * databases.
  */
 
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   // write upgrade logic as parameter of queryFn
   await queryFn(`
