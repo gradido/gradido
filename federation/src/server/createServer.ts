@@ -81,7 +81,7 @@ export const createServer = async (
      *
      * and so on. After 1 seconds, the delay is reset to 0.
      */
-  }) as RequestHandler
+  })
   app.use(limiter)
   // because of nginx proxy, needed for limiter
   app.set('trust proxy', 1)

@@ -2,8 +2,8 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import DHT from '@hyperswarm/dht'
 import {
-  Community as DbCommunity,
   CommunityLoggingView,
+  Community as DbCommunity,
   FederatedCommunity as DbFederatedCommunity,
 } from 'database'
 import { v4 as uuidv4 } from 'uuid'
