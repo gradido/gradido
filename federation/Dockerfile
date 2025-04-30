@@ -93,10 +93,10 @@ CMD /bin/sh -c "turbo federation#test --env-mode=loose"
 FROM base as production
 
 # Copy "binary"-files from build image
-COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/dht-node/build/index.js ./index.js
+COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/federation/build/src/index.js ./index.js
 
 # Copy log4js-config.json to provide log configuration
-COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/dht-node/log4js-config.json ./log4js-config.json
+COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/federation/log4js-config.json ./log4js-config.json
 
 # Run command
 CMD ["node", "index.js"]

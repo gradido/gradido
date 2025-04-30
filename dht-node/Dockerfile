@@ -94,7 +94,7 @@ CMD /bin/sh -c "turbo dht-node#test --env-mode=loose"
 FROM base as production
 
 # Copy "binary"-files from build image
-COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/dht-node/build/index.js ./index.js
+COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/dht-node/build/src/index.js ./index.js
 
 # We also install the native node_modules which cannot be bundled
 # TODO: find a elegant way to use the right versions from yarn.lock

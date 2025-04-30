@@ -94,7 +94,7 @@ CMD /bin/sh -c "turbo backend#test --env-mode=loose"
 FROM base as production
 
 # Copy "binary"-files from build image
-COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/backend/build/index.js ./index.js
+COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/backend/build/src/index.js ./index.js
 
 # Copy log4js-config.json to provide log configuration
 COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/backend/log4js-config.json ./log4js-config.json

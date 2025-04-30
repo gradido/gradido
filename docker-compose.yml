@@ -6,6 +6,41 @@
 services:
 
   ########################################################
+  # Gradido ##############################################
+  ########################################################
+  gradido:
+    image: gradido/gradido:local-production
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+      target: production
+      args: 
+        BUILD_COMMIT: ${BUILD_COMMIT}
+        BUILD_COMMIT_SHORT: ${BUILD_COMMIT_SHORT}
+        BUILD_VERSION: ${BUILD_VERSION}
+    depends_on:
+      - mariadb
+    networks:
+      - internal-net
+      - external-net
+    ports:
+      - ${BACKEND_PORT:-4000}:${BACKEND_PORT:-4000}
+      - ${FEDERATION_PORT:-5010}:${FEDERATION_PORT:-5010}
+      - ${FRONTEND_MODULE_PORT:-3000}:${FRONTEND_MODULE_PORT:-3000}
+      - ${ADMIN_MODULE_PORT:-8080}:${ADMIN_MODULE_PORT:-8080}
+    environment:
+      # Envs used in Dockerfile
+      # - DOCKER_WORKDIR="/app"
+      # - PORT=4000
+      - BUILD_DATE
+      - BUILD_VERSION
+      - BUILD_COMMIT
+      - NODE_ENV=production
+      - DB_HOST=mariadb
+    volumes:
+      - ./logs:/logs
+
+  ########################################################
   # FRONTEND #############################################
   ########################################################
   frontend:
@@ -19,6 +54,8 @@ services:
         BUILD_COMMIT: ${BUILD_COMMIT}
         BUILD_COMMIT_SHORT: ${BUILD_COMMIT_SHORT}
         BUILD_VERSION: ${BUILD_VERSION}
+    profiles:
+      - single
     networks:
       - external-net
       - internal-net
@@ -32,8 +69,6 @@ services:
       # - BUILD_VERSION="0.0.0.0"
       # - BUILD_COMMIT="0000000"
       - NODE_ENV=production
-    volumes:
-      - ./config:/config
     # env_file:
       # - ./.env
       # - ./frontend/.env
@@ -52,6 +87,8 @@ services:
         BUILD_COMMIT: ${BUILD_COMMIT}
         BUILD_COMMIT_SHORT: ${BUILD_COMMIT_SHORT}
         BUILD_VERSION: ${BUILD_VERSION}
+    profiles:
+      - single
     networks:
       - external-net
       - internal-net
@@ -65,8 +102,6 @@ services:
       # - BUILD_VERSION="0.0.0.0"
       # - BUILD_COMMIT="0000000"
       - NODE_ENV=production
-    volumes:
-      - ./config:/config
     # env_file:
       # - ./.env
       # - ./admin/.env
@@ -98,6 +133,8 @@ services:
       context: ./
       dockerfile: ./backend/Dockerfile
       target: production
+    profiles:
+      - single
     networks:
       - internal-net
     ports:
@@ -132,6 +169,8 @@ services:
       context: ./
       dockerfile: ./dht-node/Dockerfile
       target: production
+    profiles:
+      - single
     networks:
       - internal-net
       - external-net
@@ -164,9 +203,11 @@ services:
     build:
       # since we have to include the entities from ./database we cannot define the context as ./backend
       # this might blow build image size to the moon ?!
-      context: ./dlt-connector
-      dockerfile: ./Dockerfile
+      context: .
+      dockerfile: ./dlt-connector/Dockerfile
       target: production
+    profiles: 
+      - dlt
     networks:
       - internal-net
       - external-net
@@ -198,6 +239,8 @@ services:
       context: ./
       dockerfile: ./federation/Dockerfile
       target: production
+    profiles:
+      - single
     networks:
       - internal-net
       - external-net
@@ -231,6 +274,8 @@ services:
       context: .
       dockerfile: ./database/Dockerfile
       target: up
+    profiles: 
+      - database
     depends_on:
       - mariadb
     networks:
@@ -257,6 +302,8 @@ services:
     build:
       context: ./dlt-database
       target: production_up
+    profiles: 
+      - dlt
     depends_on:
       - mariadb
     networks:
@@ -284,9 +331,7 @@ services:
       - external-net
       - internal-net
     depends_on:
-      - frontend
-      - backend
-      - admin
+      - gradido
     ports:
       - 80:80
     volumes:
