@@ -122,6 +122,7 @@
         "xregexp": "^5.1.1",
       },
       "devDependencies": {
+        "@anatine/esbuild-decorators": "^0.2.19",
         "@biomejs/biome": "1.9.4",
         "@types/email-templates": "^10.0.4",
         "@types/express": "^4.17.21",
@@ -354,6 +355,8 @@
   },
   "packages": {
     "@ampproject/remapping": ["@ampproject/remapping@2.3.0", "", { "dependencies": { "@jridgewell/gen-mapping": "^0.3.5", "@jridgewell/trace-mapping": "^0.3.24" } }, "sha512-30iZtAPgz+LTIYoeivqYo853f02jBYSd5uGnGpkFV0M3xOt9aN73erkgYAmZU43x4VfqcnLxW9Kpg3R5LC4YYw=="],
+
+    "@anatine/esbuild-decorators": ["@anatine/esbuild-decorators@0.2.19", "", { "peerDependencies": { "esbuild": "~0.14.29" } }, "sha512-pyj6ULyMacyzpDqlnbS2OCkOqxcVgk8IqiTMRJ5CrsF8Yl1azvlX/AM6xWR8UzHKUYDlWOw5mOpos3+7KKR0Lw=="],
 
     "@antfu/install-pkg": ["@antfu/install-pkg@0.4.1", "", { "dependencies": { "package-manager-detector": "^0.2.0", "tinyexec": "^0.3.0" } }, "sha512-T7yB5QNG29afhWVkVq7XeIMBa5U/vs9mX69YqayXypPRmYzUmzwnYltplHmPtZ4HPCn+sQKeXW8I47wCbuBOjw=="],
 

@@ -1,3 +1,4 @@
+import { esbuildDecorators } from '@anatine/esbuild-decorators'
 import { build } from 'esbuild'
 
 build({
@@ -8,6 +9,7 @@ build({
   bundle: true,
   keepNames: true,
   // legalComments: 'inline',
-  external: ['sodium-native'],
+  external: ['reflect-metadata', 'sodium-native', 'email-templates'],
+  plugins: [esbuildDecorators()],
   minify: true,
 })

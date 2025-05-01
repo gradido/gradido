@@ -69,7 +69,7 @@ jobs:
       - name: Backend | Unit tests
         id: test
         run: |
-          cd out && turbo backend#lint backend#test
+          cd out && turbo backend#lint backend#test backend#build backend#typecheck
           echo "success=$([ $? -eq 0 ] && echo true || echo false)" >> $GITHUB_OUTPUT
 
   lint:
