@@ -8,10 +8,10 @@
   "license": "Apache-2.0",
   "private": false,
   "scripts": {
-    "build": "tsc --build && mkdirp build/src/emails/templates/ && ncp src/emails/templates build/src/emails/templates && mkdirp build/src/locales/ && ncp src/locales build/src/locales",
-    "clean": "tsc --build --clean",
-    "start": "cross-env TZ=UTC TS_NODE_BASEURL=./build node -r tsconfig-paths/register build/src/index.js",
-    "dev": "cross-env TZ=UTC nodemon -w src --ext ts,pug,json,css --exec ts-node -r tsconfig-paths/register src/index.ts",
+    "build": "tsx esbuild.config.ts",
+    "start": "cross-env TZ=UTC node build/index.js",
+    "dev": "cross-env TZ=UTC tsx watch src/index.ts",
+    "typecheck": "tsc --noEmit",
     "lint": "biome check --error-on-warnings .",
     "lint:fix": "biome check --error-on-warnings . --write",
     "test": "cross-env TZ=UTC NODE_ENV=development DB_DATABASE=gradido_test_backend jest --runInBand --forceExit --detectOpenHandles",
@@ -60,9 +60,10 @@
     "xregexp": "^5.1.1"
   },
   "devDependencies": {
+    "@anatine/esbuild-decorators": "^0.2.19",
+    "@biomejs/biome": "1.9.4",
     "@types/email-templates": "^10.0.4",
     "@types/express": "^4.17.21",
-    "@biomejs/biome": "1.9.4",
     "@types/faker": "^5.5.9",
     "@types/i18n": "^0.13.4",
     "@types/jest": "27.0.2",
