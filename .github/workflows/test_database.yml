@@ -82,4 +82,4 @@ jobs:
         run: cd out && yarn install --frozen-lockfile --production=false
 
       - name: Database | Lint
-        run: cd out && turbo lint
+        run: cd out && turbo lint build typecheck
