@@ -75,7 +75,7 @@ RUN yarn install --frozen-lockfile --production=false \
  
 # Build the project
 COPY --chown=app:app --from=builder /app/out/full/ .
-RUN turbo build
+RUN turbo build typecheck
 
 ##################################################################################
 # TEST ###########################################################################
@@ -94,6 +94,12 @@ FROM base as production
 
 # Copy "binary"-files from build image
 COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/federation/build/src/index.js ./index.js
+
+# We also install the native node_modules which cannot be bundled
+# TODO: find a elegant way to use the right versions from yarn.lock
+RUN yarn add sodium-native@4.0.0 \
+  && rm -rf /tmp/* ~/.cache node_modules/.cache \
+  && yarn cache clean
 
 # Copy log4js-config.json to provide log configuration
 COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/federation/log4js-config.json ./log4js-config.json
