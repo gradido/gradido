@@ -68,7 +68,7 @@ jobs:
       - name: Federation | Unit tests
         id: test
         run: |
-          cd out && turbo federation#lint federation#test
+          cd out && turbo federation#lint federation#test federation#build federation#typecheck
           echo "success=$([ $? -eq 0 ] && echo true || echo false)" >> $GITHUB_OUTPUT
 
   lint:
