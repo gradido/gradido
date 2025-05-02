@@ -172,6 +172,7 @@ const itemType = computed(() => {
         store.state.gradidoID === linkData.value.recipientUser.gradidoID) ||
       (isRedeemJwtLink.value &&
         linkData.value.senderUser &&
+        linkData.value.recipientUser &&
         linkData.value.senderUser.gradidoID === linkData.value.recipientUser.gradidoID)
     ) {
       console.log('TransactionLink.itemType... SELF_CREATOR')
@@ -181,7 +182,7 @@ const itemType = computed(() => {
       (!isRedeemJwtLink.value && !linkData.value.redeemedAt && !linkData.value.deletedAt) ||
       isRedeemJwtLink.value
     ) {
-      console.log('TransactionLink.itemType... VALID')
+      console.log('TransactionLink.itemType... REDEEM_SELECT_COMMUNITY')
       console.log('TransactionLink.itemType... validLink=', validLink.value)
       console.log('TransactionLink.itemType... linkData.value=', linkData.value)
       return 'REDEEM_SELECT_COMMUNITY' // 'VALID'
