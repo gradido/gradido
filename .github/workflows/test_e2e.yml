@@ -59,8 +59,10 @@ jobs:
           sudo nginx -t
           sudo systemctl start nginx 
 
-      - name: wait for nginx to be ready
-        run: until nc -z 127.0.0.1 80; do echo waiting for nginx; sleep 1; done;
+      - name: wait for nginx and mailserver to be ready
+        run: |
+          until nc -z 127.0.0.1 80; do echo waiting for nginx; sleep 1; done;
+          until nc -z 127.0.0.1 1025; do echo waiting for mailserver; sleep 1; done;
 
       - name: End-to-end tests | run tests
         id: e2e-tests
