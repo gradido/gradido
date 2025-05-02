@@ -117,7 +117,17 @@ const validLink = computed(() => {
   if (!isTransactionLinkLoaded.value) {
     return false
   }
-  return !(linkData.value.validUntil !== null && linkData.value.validUntil < new Date())
+  if (!linkData.value.validUntil) {
+    return false
+  }
+  const validUntilDate = new Date(linkData.value.validUntil)
+  console.log('TransactionLink.validLink... validUntilDate=', validUntilDate)
+  console.log('TransactionLink.validLink... new Date()=', new Date())
+  console.log(
+    'TransactionLink.validLink... validUntilDate.getTime() >= new Date().getTime()=',
+    validUntilDate.getTime() >= new Date().getTime(),
+  )
+  return validUntilDate.getTime() >= new Date().getTime()
 })
 
 const itemType = computed(() => {
@@ -220,7 +230,7 @@ function updateRedeemedBoxText(type) {
       break
     case 'TEXT_EXPIRED':
       redeemedBoxText.value = t('gdd_per_link.link-expired', {
-        date: d(linkData.value.validUntil, 'long'),
+        date: d(new Date(linkData.value.validUntil), 'long'),
       })
       break
     case 'TEXT_REDEEMED':
