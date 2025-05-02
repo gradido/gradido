@@ -279,7 +279,7 @@ function setTransactionLinkInformation() {
     'TransactionLink.setTransactionLinkInformation... queryTransactionLink=',
     queryTransactionLink,
   )
-  if (queryTransactionLink) {
+  if (queryTransactionLink && queryTransactionLink.__typename === 'TransactionLink') {
     // recipientUser is only set if the user is logged in
     if (store.state.gradidoID !== null) {
       queryTransactionLink.recipientUser = {
@@ -288,12 +288,12 @@ function setTransactionLinkInformation() {
         firstName: store.state.firstName,
         alias: store.state.alias,
       }
+      console.log(
+        'TransactionLink.setTransactionLinkInformation... queryTransactionLink.recipientUser=',
+        queryTransactionLink.recipientUser,
+      )
     }
-    console.log(
-      'TransactionLink.setTransactionLinkInformation... queryTransactionLink.recipientUser=',
-      queryTransactionLink.recipientUser,
-    )
-    linkData.value = queryTransactionLink
+  linkData.value = queryTransactionLink
     console.log('TransactionLink.setTransactionLinkInformation... linkData.value=', linkData.value)
     if (linkData.value.__typename === 'ContributionLink' && store.state.token) {
       console.log('TransactionLink.setTransactionLinkInformation... typename === ContributionLink')
