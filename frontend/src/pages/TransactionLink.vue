@@ -184,7 +184,7 @@ const itemType = computed(() => {
       console.log('TransactionLink.itemType... VALID')
       console.log('TransactionLink.itemType... validLink=', validLink.value)
       console.log('TransactionLink.itemType... linkData.value=', linkData.value)
-      return 'VALID'
+      return 'REDEEM_SELECT_COMMUNITY' // 'VALID'
     }
   }
   console.log('TransactionLink.itemType...last return= REDEEM_SELECT_COMMUNITY')
