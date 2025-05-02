@@ -1,12 +1,13 @@
 <!-- eslint-disable no-console -->
 <template>
   <div class="show-transaction-link-informations">
-    <div class="mt-4">
+    <div v-if="isTransactionLinkLoaded" class="mt-4">
       <transaction-link-item :type="itemTypeExt">
         <template #REDEEM_SELECT_COMMUNITY>
           <redeem-select-community
             :link-data="linkData"
             :redeem-code="redeemCode"
+            :is-transaction-link-loaded="isTransactionLinkLoaded"
             :is-contribution-link="isContributionLink"
             :is-redeem-jwt-link="isRedeemJwtLink"
           />
@@ -55,6 +56,7 @@ const { params, meta } = useRoute()
 const store = useStore()
 const { d, t } = useI18n()
 
+const isTransactionLinkLoaded = ref(false)
 const linkData = ref({
   __typename: 'TransactionLink',
   validUntil: null,
@@ -91,7 +93,10 @@ const isContributionLink = computed(() => {
 })
 
 const isRedeemJwtLink = computed(() => {
-  if (result.value?.queryTransactionLink?.__typename === 'RedeemJwtLink') {
+  if (
+    isTransactionLinkLoaded.value &&
+    result.value?.queryTransactionLink?.__typename === 'RedeemJwtLink'
+  ) {
     return true
   }
   return false
@@ -109,27 +114,41 @@ const tokenExpiresInSeconds = computed(() => {
 const validLink = computed(() => {
   console.log('TransactionLink.validLink... linkData.value.validUntil=', linkData.value.validUntil)
   console.log('TransactionLink.validLink... new Date()=', new Date())
-  return !(linkData.value.validUntil < new Date())
+  if (!isTransactionLinkLoaded.value) {
+    return false
+  }
+  return !(linkData.value.validUntil !== null && linkData.value.validUntil < new Date())
 })
 
 const itemType = computed(() => {
-  console.log('TransactionLink.itemType... linkData.value=', linkData.value)
-  if (linkData.value.deletedAt) {
-    console.log('TransactionLink.itemType... TEXT_DELETED')
-    return 'TEXT_DELETED'
-  }
-  if (linkData.value.validUntil < new Date()) {
-    console.log('TransactionLink.itemType... TEXT_EXPIRED')
-    return 'TEXT_EXPIRED'
-  }
-  if (linkData.value.redeemedAt) {
-    console.log('TransactionLink.itemType... TEXT_REDEEMED')
-    return 'TEXT_REDEEMED'
-  }
-  if (store.state.token && store.state.tokenTime) {
-    if (tokenExpiresInSeconds.value < 5) {
-      console.log('TransactionLink.itemType... REDEEM_SELECT_COMMUNITY')
-      return 'REDEEM_SELECT_COMMUNITY'
+  console.log('TransactionLink.itemType... isTransactionLinkLoaded=', isTransactionLinkLoaded.value)
+  if (isTransactionLinkLoaded.value) {
+    console.log('TransactionLink.itemType... linkData.value=', linkData.value)
+    if (linkData.value.deletedAt) {
+      console.log('TransactionLink.itemType... TEXT_DELETED')
+      return 'TEXT_DELETED'
+    }
+
+    const validUntilDate = new Date(linkData.value.validUntil)
+    console.log('TransactionLink.itemType... validUntilDate=', validUntilDate)
+    console.log('TransactionLink.itemType... new Date()=', new Date())
+    console.log(
+      'TransactionLink.itemType... validUntilDate.getTime() < new Date().getTime()=',
+      validUntilDate.getTime() < new Date().getTime(),
+    )
+    if (validUntilDate.getTime() < new Date().getTime()) {
+      console.log('TransactionLink.itemType... TEXT_EXPIRED')
+      return 'TEXT_EXPIRED'
+    }
+    if (linkData.value.redeemedAt) {
+      console.log('TransactionLink.itemType... TEXT_REDEEMED')
+      return 'TEXT_REDEEMED'
+    }
+    if (store.state.token && store.state.tokenTime) {
+      if (tokenExpiresInSeconds.value < 5) {
+        console.log('TransactionLink.itemType... REDEEM_SELECT_COMMUNITY')
+        return 'REDEEM_SELECT_COMMUNITY'
+      }
     }
     console.log(
       'TransactionLink.itemType... linkData.value.recipientUser=',
@@ -141,11 +160,11 @@ const itemType = computed(() => {
     console.log('TransactionLink.itemType... linkData.value.senderUser=', linkData.value.senderUser)
     console.log(
       'TransactionLink.itemType... linkData.value.recipientUser.gradidoID=',
-      linkData.value.recipientUser.gradidoID,
+      linkData.value.recipientUser?.gradidoID,
     )
     console.log(
       'TransactionLink.itemType... linkData.value.senderUser.gradidoID=',
-      linkData.value.senderUser.gradidoID,
+      linkData.value.senderUser?.gradidoID,
     )
     if (
       (!isRedeemJwtLink.value &&
@@ -189,7 +208,6 @@ watch(itemType, (newItemType) => {
 
 function updateRedeemedBoxText(type) {
   console.log('TransactionLink.updateRedeemedBoxText... type=', type)
-  console.log('TransactionLink.updateRedeemedBoxText... validLink=', validLink.value)
   switch (type) {
     case 'TEXT_DELETED':
       redeemedBoxText.value = t('gdd_per_link.link-deleted', {
@@ -224,9 +242,11 @@ onResult(() => {
   console.log('TransactionLink.onResult... stringify result=', JSON.stringify(result.value))
   if (result.value?.queryTransactionLink?.__typename === 'TransactionLink') {
     console.log('TransactionLink.onResult... TransactionLink')
+    isTransactionLinkLoaded.value = true
     setTransactionLinkInformation()
   } else if (result.value?.queryTransactionLink?.__typename === 'RedeemJwtLink') {
     console.log('TransactionLink.onResult... RedeemJwtLink')
+    isTransactionLinkLoaded.value = true
     setRedeemJwtLinkInformation()
   } else {
     console.log('TransactionLink.onResult... unknown type:', result.value)

@@ -4,11 +4,12 @@
       v-model:recipient-community="recipientCommunity"
       :link-data="props.linkData"
       :redeem-code="props.redeemCode"
+      :is-transaction-link-loaded="props.isTransactionLinkLoaded"
       :is-contribution-link="props.isContributionLink"
       :is-redeem-jwt-link="props.isRedeemJwtLink"
     />
 
-    <BCard>
+    <BCard v-if="props.isTransactionLinkLoaded">
       <div class="mb-2">
         <h2>{{ $t('gdd_per_link.redeem') }}</h2>
       </div>
@@ -42,6 +43,7 @@ const props = defineProps({
   redeemCode: { type: String, required: true },
   isContributionLink: { type: Boolean, default: false },
   isRedeemJwtLink: { type: Boolean, default: false },
+  isTransactionLinkLoaded: { type: Boolean, default: false },
 })
 
 const recipientCommunity = ref({
