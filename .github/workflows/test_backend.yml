@@ -33,7 +33,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Backend | Build 'test' image
-        run: docker build -f ./backend/Dockerfile --target test -t "gradido/backend:test" .
+        run: docker build -f ./backend/Dockerfile --target production -t "gradido/backend:production" .
 
   unit_test:
     if: needs.files-changed.outputs.backend == 'true' || needs.files-changed.outputs.database == 'true' || needs.files-changed.outputs.docker-compose == 'true' || needs.files-changed.outputs.mariadb == 'true' || needs.files-changed.outputs.config == 'true'

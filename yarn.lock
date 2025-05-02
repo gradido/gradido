@@ -1478,6 +1478,61 @@
   resolved "https://registry.yarnpkg.com/@one-ini/wasm/-/wasm-0.1.1.tgz#6013659736c9dbfccc96e8a9c2b3de317df39323"
   integrity sha512-XuySG1E38YScSJoMlqovLru4KTUNSjgVTIjyh7qMX6aNN5HY5Ct5LhRJdxO79JtTzKfzV/bnWpz+zquYrISsvw==
 
+"@oven/bun-darwin-aarch64@1.2.11":
+  version "1.2.11"
+  resolved "https://registry.yarnpkg.com/@oven/bun-darwin-aarch64/-/bun-darwin-aarch64-1.2.11.tgz#c9331e918d7ed235d459a76183eb2040c5655f92"
+  integrity sha512-LN7gshxqEHJ1LA0B43Z56Ts3LxRjp2LrIz45FIgeKWE81PYglR9NMNou90gFuYlUtMyarSk6MV9Jdvo2kFnn8Q==
+
+"@oven/bun-darwin-x64-baseline@1.2.11":
+  version "1.2.11"
+  resolved "https://registry.yarnpkg.com/@oven/bun-darwin-x64-baseline/-/bun-darwin-x64-baseline-1.2.11.tgz#82793c47a3e5ef162eaed704968e486d24f85ce4"
+  integrity sha512-ksZJzq0Id3YsGcs++QnL1oGYjqY5XNihR0MscZ+M4YYruvVKHKim9Aql46+TI55YmKD810HVpeLolIeeTl2JUg==
+
+"@oven/bun-darwin-x64@1.2.11":
+  version "1.2.11"
+  resolved "https://registry.yarnpkg.com/@oven/bun-darwin-x64/-/bun-darwin-x64-1.2.11.tgz#ca476d3f1081a3f4467f9ce32a83362634668508"
+  integrity sha512-AmmlGdQmzORFeUZRa2Ki9UWYTt5ZGUwTp0z+H0uR4bYHy7sQhpDbNKtZcfKKuLRQ6P23DKc3Lpo+yhR0cg7prg==
+
+"@oven/bun-linux-aarch64-musl@1.2.11":
+  version "1.2.11"
+  resolved "https://registry.yarnpkg.com/@oven/bun-linux-aarch64-musl/-/bun-linux-aarch64-musl-1.2.11.tgz#f6301215469271c9766180deabc30de59e399a84"
+  integrity sha512-A/h7WxC2GbNus8fupz5EHsD8YugG19uW9GQWDf4tk0YWYuSaUOCP14JYbXbiJ48OFELWNchEc/2azajH+votbA==
+
+"@oven/bun-linux-aarch64@1.2.11":
+  version "1.2.11"
+  resolved "https://registry.yarnpkg.com/@oven/bun-linux-aarch64/-/bun-linux-aarch64-1.2.11.tgz#302e52e9495777fd614f8653043d256c25323e2f"
+  integrity sha512-jNQ5F6o9qC/KNhBnyxnjVRfiTxZB7thvZ7T+oPZSNh1IV8UWDunEGmUdOqSqoPsigpXHRjbV3DKJKN+YaPQCCA==
+
+"@oven/bun-linux-x64-baseline@1.2.11":
+  version "1.2.11"
+  resolved "https://registry.yarnpkg.com/@oven/bun-linux-x64-baseline/-/bun-linux-x64-baseline-1.2.11.tgz#47ef9ac80b61468051dd32c41588297ee770559e"
+  integrity sha512-xswex8EPmzX8BqbNXpiwgrpDkaD/FMIaxD85EIBaaksi6I8nln2kzEmlO/uVhbFAn9PPWydi3Q+FCcNnJGRazQ==
+
+"@oven/bun-linux-x64-musl-baseline@1.2.11":
+  version "1.2.11"
+  resolved "https://registry.yarnpkg.com/@oven/bun-linux-x64-musl-baseline/-/bun-linux-x64-musl-baseline-1.2.11.tgz#55367cc107e3fe889f2a0d77972a0c571b23168e"
+  integrity sha512-YYglLgFkHwNMjECCyM/kZDUZa6UW3ssVtg5k6+8QU1Rp5cPF+0SBlGGTr5ho2lFkNn/ylKmwyuqE1tB45zgVvA==
+
+"@oven/bun-linux-x64-musl@1.2.11":
+  version "1.2.11"
+  resolved "https://registry.yarnpkg.com/@oven/bun-linux-x64-musl/-/bun-linux-x64-musl-1.2.11.tgz#b9ce1b8a3faa797da91c5ca05467323dd1cd5be0"
+  integrity sha512-yF1Urgsy8xkQu8iAd03ORxuZ/DWrNPCST2r1EVIwjHuzpZ3o2odKjnE9Hnwsq+wcWdCRsakqL/muILB/9aCxeQ==
+
+"@oven/bun-linux-x64@1.2.11":
+  version "1.2.11"
+  resolved "https://registry.yarnpkg.com/@oven/bun-linux-x64/-/bun-linux-x64-1.2.11.tgz#92fc67493587c2b5249f8145954b36bacca55e3a"
+  integrity sha512-6pH556SgOR2UOgWQfEiYI3DWgkm7T+L9fmBe2dfEYrKCEu/TbXZXOJeMi943NSMIiT3q2gVwlCEdoxZwedQs4A==
+
+"@oven/bun-windows-x64-baseline@1.2.11":
+  version "1.2.11"
+  resolved "https://registry.yarnpkg.com/@oven/bun-windows-x64-baseline/-/bun-windows-x64-baseline-1.2.11.tgz#cb33ed8c8b5240f7dacd7e794dd411853dea64f7"
+  integrity sha512-uzappBblyA3GlX0PDENU1HTPZR82tzPuNd5jumTiDQ22FZmc2ZqCYTIZ/ngwHKOHDD6Rxdsux8+9EXgVS51G2w==
+
+"@oven/bun-windows-x64@1.2.11":
+  version "1.2.11"
+  resolved "https://registry.yarnpkg.com/@oven/bun-windows-x64/-/bun-windows-x64-1.2.11.tgz#9c91880f0047b9cd555a6fe4826d86b506c7a5cf"
+  integrity sha512-5mGVsGSS8JWBq8IHXGvFJ7rlET4XCUdDTKEaLLq3O1YaqyZZiPMQFnU70MfkpjPe4stRDZ+/NWBRNDMaNTYQxw==
+
 "@parcel/watcher-android-arm64@2.5.1":
   version "2.5.1"
   resolved "https://registry.yarnpkg.com/@parcel/watcher-android-arm64/-/watcher-android-arm64-2.5.1.tgz#507f836d7e2042f798c7d07ad19c3546f9848ac1"
@@ -3699,6 +3754,23 @@ builtins@^5.0.1:
   integrity sha512-SW9lzGTLvWTP1AY8xeAMZimqDrIaSdLQUcVr9DMef51niJ022Ri87SwRRKYm4A6iHfkPaiVUu/Duw2Wc4J7kKg==
   dependencies:
     semver "^7.0.0"
+
+bun@^1.2.11:
+  version "1.2.11"
+  resolved "https://registry.yarnpkg.com/bun/-/bun-1.2.11.tgz#eb423adada0b562a04b30a3224c11657f5d99bc1"
+  integrity sha512-9brVfsp6/TYVsE3lCl1MUxoyKhvljqyL1MNPErgwsOaS9g4Gzi2nY+W5WtRAXGzLrgz5jzsoGHHwyH/rTeRCIg==
+  optionalDependencies:
+    "@oven/bun-darwin-aarch64" "1.2.11"
+    "@oven/bun-darwin-x64" "1.2.11"
+    "@oven/bun-darwin-x64-baseline" "1.2.11"
+    "@oven/bun-linux-aarch64" "1.2.11"
+    "@oven/bun-linux-aarch64-musl" "1.2.11"
+    "@oven/bun-linux-x64" "1.2.11"
+    "@oven/bun-linux-x64-baseline" "1.2.11"
+    "@oven/bun-linux-x64-musl" "1.2.11"
+    "@oven/bun-linux-x64-musl-baseline" "1.2.11"
+    "@oven/bun-windows-x64" "1.2.11"
+    "@oven/bun-windows-x64-baseline" "1.2.11"
 
 busboy@^0.3.1:
   version "0.3.1"
