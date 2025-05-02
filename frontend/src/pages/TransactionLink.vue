@@ -178,14 +178,17 @@ const itemType = computed(() => {
       console.log('TransactionLink.itemType... SELF_CREATOR')
       return 'SELF_CREATOR'
     }
-    if (
-      (!isRedeemJwtLink.value && !linkData.value.redeemedAt && !linkData.value.deletedAt) ||
-      isRedeemJwtLink.value
-    ) {
+    if (!isRedeemJwtLink.value && !linkData.value.redeemedAt && !linkData.value.deletedAt) {
       console.log('TransactionLink.itemType... REDEEM_SELECT_COMMUNITY')
       console.log('TransactionLink.itemType... validLink=', validLink.value)
       console.log('TransactionLink.itemType... linkData.value=', linkData.value)
-      return 'REDEEM_SELECT_COMMUNITY' // 'VALID'
+      return 'REDEEM_SELECT_COMMUNITY'
+    }
+    if (isRedeemJwtLink.value) {
+      console.log('TransactionLink.itemType... VALID')
+      console.log('TransactionLink.itemType... validLink=', validLink.value)
+      console.log('TransactionLink.itemType... linkData.value=', linkData.value)
+      return 'VALID'
     }
   }
   console.log('TransactionLink.itemType...last return= REDEEM_SELECT_COMMUNITY')
