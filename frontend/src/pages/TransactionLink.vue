@@ -113,7 +113,7 @@ const validLink = computed(() => {
 })
 
 const itemType = computed(() => {
-  console.log('TransactionLink.itemType... linkData=', linkData)
+  console.log('TransactionLink.itemType... linkData.value=', linkData.value)
   if (linkData.value.deletedAt) {
     console.log('TransactionLink.itemType... TEXT_DELETED')
     return 'TEXT_DELETED'
@@ -164,7 +164,7 @@ const itemType = computed(() => {
     ) {
       console.log('TransactionLink.itemType... VALID')
       console.log('TransactionLink.itemType... validLink=', validLink.value)
-      console.log('TransactionLink.itemType... linkData=', linkData.value)
+      console.log('TransactionLink.itemType... linkData.value=', linkData.value)
       return 'VALID'
     }
   }
