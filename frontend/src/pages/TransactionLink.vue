@@ -280,8 +280,13 @@ function setTransactionLinkInformation() {
     queryTransactionLink,
   )
   if (queryTransactionLink && queryTransactionLink.__typename === 'TransactionLink') {
+    console.log('TransactionLink.setTransactionLinkInformation... typename === TransactionLink')
     // recipientUser is only set if the user is logged in
     if (store.state.gradidoID !== null) {
+      console.log(
+        'TransactionLink.setTransactionLinkInformation... gradidoID=',
+        store.state.gradidoID,
+      )
       queryTransactionLink.recipientUser = {
         __typename: 'User',
         gradidoID: store.state.gradidoID,
@@ -293,7 +298,7 @@ function setTransactionLinkInformation() {
         queryTransactionLink.recipientUser,
       )
     }
-  linkData.value = queryTransactionLink
+    linkData.value = queryTransactionLink
     console.log('TransactionLink.setTransactionLinkInformation... linkData.value=', linkData.value)
     if (linkData.value.__typename === 'ContributionLink' && store.state.token) {
       console.log('TransactionLink.setTransactionLinkInformation... typename === ContributionLink')
@@ -310,6 +315,10 @@ function setRedeemJwtLinkInformation() {
   if (deepCopy) {
     // recipientUser is only set if the user is logged in
     if (store.state.gradidoID !== null) {
+      console.log(
+        'TransactionLink.setRedeemJwtLinkInformation... gradidoID=',
+        store.state.gradidoID,
+      )
       deepCopy.queryTransactionLink.recipientUser = {
         __typename: 'User',
         gradidoID: store.state.gradidoID,
