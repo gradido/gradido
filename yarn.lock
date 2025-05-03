@@ -1930,13 +1930,6 @@
     "@types/connect" "*"
     "@types/node" "*"
 
-"@types/bun@^1.2.11":
-  version "1.2.11"
-  resolved "https://registry.yarnpkg.com/@types/bun/-/bun-1.2.11.tgz#44e9e941fa246a96b5cf5bdce7e733976e5cfb7a"
-  integrity sha512-ZLbbI91EmmGwlWTRWuV6J19IUiUC5YQ3TCEuSHI3usIP75kuoA8/0PVF+LTrbEnVc8JIhpElWOxv1ocI1fJBbw==
-  dependencies:
-    bun-types "1.2.11"
-
 "@types/connect@*":
   version "3.4.38"
   resolved "https://registry.yarnpkg.com/@types/connect/-/connect-3.4.38.tgz#5ba7f3bc4fbbdeaff8dded952e5ff2cc53f8d858"
@@ -3761,13 +3754,6 @@ builtins@^5.0.1:
   integrity sha512-SW9lzGTLvWTP1AY8xeAMZimqDrIaSdLQUcVr9DMef51niJ022Ri87SwRRKYm4A6iHfkPaiVUu/Duw2Wc4J7kKg==
   dependencies:
     semver "^7.0.0"
-
-bun-types@1.2.11:
-  version "1.2.11"
-  resolved "https://registry.yarnpkg.com/bun-types/-/bun-types-1.2.11.tgz#98b480e0271b1ea6f0161db2712a359e5b3828fe"
-  integrity sha512-dbkp5Lo8HDrXkLrONm6bk+yiiYQSntvFUzQp0v3pzTAsXk6FtgVMjdQ+lzFNVAmQFUkPQZ3WMZqH5tTo+Dp/IA==
-  dependencies:
-    "@types/node" "*"
 
 bun@^1.2.11:
   version "1.2.11"
