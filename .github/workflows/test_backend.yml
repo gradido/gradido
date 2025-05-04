@@ -56,13 +56,13 @@ jobs:
         uses: oven-sh/setup-bun@v2
 
       - name: install dependencies
-        run: bun install --frozen-lockfile --production=false
+        run: bun install --frozen-lockfile
 
       - name: Wait for MariaDB to be ready
         run: docker run --rm --network gradido_internal-net busybox sh -c 'until nc -z mariadb 3306; do echo waiting for db; sleep 1; done;'
 
       - name: Backend | Unit tests
-        run: bun turbo backend#test backend#build
+        run: bun turbo backend#test
 
   typecheck:
     if: needs.files-changed.outputs.backend == 'true'
@@ -82,10 +82,12 @@ jobs:
         uses: oven-sh/setup-bun@v2
 
       - name: install dependencies
-        run: bun install --frozen-lockfile --production=true
+        run: |
+          bun install --frozen-lockfile --production
+          cd backend && bun add typescript
 
       - name: Backend | Typecheck
-        run: bun turbo backend#typecheck
+        run: bun turbo backend#typecheck backend#build
 
   locales:
     if: needs.files-changed.outputs.backend == 'true'
