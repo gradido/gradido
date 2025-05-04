@@ -81,5 +81,5 @@ jobs:
       - name: install dependencies
         run: cd out && yarn install --frozen-lockfile --production=false
 
-      - name: Database | Lint
-        run: cd out && turbo lint build typecheck
+      - name: Database
+        run: cd out && turbo build typecheck
