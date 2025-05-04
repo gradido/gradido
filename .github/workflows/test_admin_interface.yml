@@ -66,6 +66,7 @@ jobs:
         with:
           name: out
           path: out
+          compression-level: 2
 
       - name: Admin Interface | Unit tests
         id: test
@@ -104,9 +105,7 @@ jobs:
         run: if [ "${{ needs.unit_test.outputs.test-success }}" != "true" ]; then exit 1; fi
 
   locales:
-    if: needs.files-changed.outputs.admin == 'true'
     name: Locales - Admin Interface
-    needs: files-changed
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
