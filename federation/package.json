@@ -9,14 +9,18 @@
 
   "private": false,
   "scripts": {
-    "start": "cross-env TZ=UTC bun src/index.ts",
-    "dev": "cross-env TZ=UTC bun --hot src/index.ts",
+    "build": "tsx ./esbuild.config.ts",
+    "start": "cross-env TZ=UTC NODE_ENV=production node build/index.js",
+    "start:bun": "cross-env TZ=UTC NODE_ENV=production bun build/index.js",
+    "dev": "cross-env TZ=UTC tsx watch src/index.ts",
+    "dev:bun": "cross-env TZ=UTC bun --hot src/index.ts",
     "typecheck": "tsc --noEmit",
     "test": "cross-env TZ=UTC NODE_ENV=development DB_DATABASE=gradido_test_federation jest --runInBand --forceExit --detectOpenHandles",
     "lint": "biome check --error-on-warnings .",
     "lint:fix": "biome check --error-on-warnings . --write"
   },
   "dependencies": {
+    "@anatine/esbuild-decorators": "^0.2.19",
     "apollo-server-express": "^2.25.2",
     "await-semaphore": "0.1.3",
     "class-validator": "^0.13.2",
@@ -37,6 +41,7 @@
     "log4js": "^6.7.1",
     "reflect-metadata": "^0.1.13",
     "sodium-native": "^3.3.0",
+    "tsx": "^4.19.4",
     "type-graphql": "^1.1.1",
     "typeorm": "^0.3.16",
     "uuid": "8.3.2"

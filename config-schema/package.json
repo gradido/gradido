@@ -4,7 +4,6 @@
   "description": "Gradido Config for validate config",
   "main": "./build/index.js",
   "types": "./src/index.ts",
-  "type": "module",
   "exports": {
     ".": {
       "import": "./build/index.js",

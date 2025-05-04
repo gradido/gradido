@@ -96,12 +96,14 @@ FROM base as production
 # Copy "binary"-files from build image
 COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/backend/build/index.js ./index.js
 
-RUN yarn add sodium-native@4.0.0 \
+RUN yarn add sodium-native@4.0.0 email-templates@10.0.1 \
   && rm -rf /tmp/* ~/.cache node_modules/.cache \
   && yarn cache clean
 
 # Copy log4js-config.json to provide log configuration
 COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/backend/log4js-config.json ./log4js-config.json
+# Copy locales
+COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/backend/locales ./locales
 
 # Run command
-CMD ["node", "index.js"]
+CMD ["TZ=UTC", "node", "index.js"]
