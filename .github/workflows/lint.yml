@@ -21,27 +21,33 @@ jobs:
       - name: Lint - Config-Schema
         id: config-schema
         run: |
-          cd ./config-schema && biome ci . 
+          cd ./config-schema 
+          biome ci . 
+          echo $?
           echo "success=$([ $? -eq 0 ] && echo true || echo false)" >> $GITHUB_OUTPUT
       - name: Lint - Backend
         id: backend
         run: |
-          cd ./backend && biome ci .
+          cd ./backend 
+          biome ci .
           echo "success=$([ $? -eq 0 ] && echo true || echo false)" >> $GITHUB_OUTPUT
       - name: Lint - Database Up
         id: database
         run: |
-          cd ./database && biome ci . 
+          cd ./database 
+          biome ci . 
           echo "success=$([ $? -eq 0 ] && echo true || echo false)" >> $GITHUB_OUTPUT
       - name: Lint - DHT Node
         id: dht-node
         run: |
-          cd ./dht-node && biome ci .
+          cd ./dht-node 
+          biome ci .
           echo "success=$([ $? -eq 0 ] && echo true || echo false)" >> $GITHUB_OUTPUT
       - name: Lint - Federation
         id: federation
         run: |
-          cd ./federation && biome ci .
+          cd ./federation 
+          biome ci .
           echo "success=$([ $? -eq 0 ] && echo true || echo false)" >> $GITHUB_OUTPUT
 
   lint_config_schema:
