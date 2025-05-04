@@ -17,6 +17,7 @@
   "private": true,
   "scripts": {
     "build": "esbuild src/index.ts --outdir=build --platform=node --target=node18.20.7 --bundle --packages=external",
+    "build:bun": "bun build src/index.ts --outdir=build --target=bun --packages=external",
     "typecheck": "tsc --noEmit",
     "lint": "biome check --error-on-warnings .",
     "lint:fix": "biome check --error-on-warnings . --write"
