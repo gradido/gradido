@@ -5,6 +5,12 @@ on: push
 jobs:
   lint:
     runs-on: ubuntu-latest
+    outputs:
+      config-schema: ${{ steps.changes.outputs.config-schema }}
+      backend: ${{ steps.changes.outputs.backend }}
+      database: ${{ steps.changes.outputs.database }}
+      dht-node: ${{ steps.changes.outputs.dht-node }}
+      federation: ${{ steps.changes.outputs.federation }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -13,12 +19,67 @@ jobs:
         with:
           version: latest
       - name: Lint - Config-Schema
-        run: cd ./config-schema && biome ci .
+        id: config-schema
+        run: |
+          cd ./config-schema && biome ci . 
+          echo "success=$([ $? -eq 0 ] && echo true || echo false)" >> $GITHUB_OUTPUT
       - name: Lint - Backend
-        run: cd ./backend && biome ci .
+        id: backend
+        run: |
+          cd ./backend && biome ci .
+          echo "success=$([ $? -eq 0 ] && echo true || echo false)" >> $GITHUB_OUTPUT
       - name: Lint - Database Up
-        run: cd ./database && biome ci .
+        id: database
+        run: |
+          cd ./database && biome ci . 
+          echo "success=$([ $? -eq 0 ] && echo true || echo false)" >> $GITHUB_OUTPUT
       - name: Lint - DHT Node
-        run: cd ./dht-node && biome ci .
+        id: dht-node
+        run: |
+          cd ./dht-node && biome ci .
+          echo "success=$([ $? -eq 0 ] && echo true || echo false)" >> $GITHUB_OUTPUT
       - name: Lint - Federation
-        run: cd ./federation && biome ci .
+        id: federation
+        run: |
+          cd ./federation && biome ci .
+          echo "success=$([ $? -eq 0 ] && echo true || echo false)" >> $GITHUB_OUTPUT
+
+  lint_config_schema:
+    name: Lint - Config-Schema
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check result from previous step
+        run: if [ "${{ needs.lint.outputs.config-schema }}" != "true" ]; then exit 1; fi
+  
+  lint_backend:
+    name: Lint - Backend
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check result from previous step
+        run: if [ "${{ needs.lint.outputs.backend }}" != "true" ]; then exit 1; fi
+
+  lint_database:
+    name: Lint - Database Up
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check result from previous step
+        run: if [ "${{ needs.lint.outputs.database }}" != "true" ]; then exit 1; fi
+
+  lint_dht_node:
+    name: Lint - DHT Node
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check result from previous step
+        run: if [ "${{ needs.lint.outputs.dht-node }}" != "true" ]; then exit 1; fi
+
+  lint_federation:
+    name: Lint - Federation
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check result from previous step
+        run: if [ "${{ needs.lint.outputs.federation }}" != "true" ]; then exit 1; fi

@@ -39,8 +39,6 @@ jobs:
     if: needs.files-changed.outputs.database == 'true' || needs.files-changed.outputs.docker-compose == 'true' || needs.files-changed.outputs.federation == 'true' || needs.files-changed.outputs.mariadb == 'true'
     needs: files-changed
     runs-on: ubuntu-latest
-    outputs:
-      test-success: ${{ steps.test.outputs.success }}
     steps:
       - name: Set Node.js version
         uses: actions/setup-node@v4
@@ -67,15 +65,4 @@ jobs:
 
       - name: Federation | Unit tests
         id: test
-        run: |
-          cd out && turbo federation#lint federation#test federation#build federation#typecheck
-          echo "success=$([ $? -eq 0 ] && echo true || echo false)" >> $GITHUB_OUTPUT
-
-  lint:
-    name: Lint - Federation
-    if: needs.files-changed.outputs.federation == 'true'
-    needs: [files-changed, unit_test]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check result from previous step
-        run: if [ "${{ needs.unit_test.outputs.test-success }}" != "true" ]; then exit 1; fi
+        run: cd out && turbo federation#lint federation#test federation#build federation#typecheck
