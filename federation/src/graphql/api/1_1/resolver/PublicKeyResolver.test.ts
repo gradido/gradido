@@ -35,7 +35,7 @@ describe('PublicKeyResolver', () => {
     beforeEach(async () => {
       const homeCom = new DbFederatedCommunity()
       homeCom.foreign = false
-      homeCom.apiVersion = '1_0'
+      homeCom.apiVersion = '1_1'
       homeCom.endPoint = 'endpoint-url'
       homeCom.publicKey = Buffer.from(
         '9f6dcd0d985cc7105cd71c3417d9c291b126c8ca90513197de02191f928ef713',
