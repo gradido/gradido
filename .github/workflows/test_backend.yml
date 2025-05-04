@@ -61,23 +61,48 @@ jobs:
       - name: install dependencies
         run: cd out && yarn install --frozen-lockfile --production=false
 
-      - name: Locales - Backend
-        run: cd out/backend && yarn locales
-
       - name: Wait for MariaDB to be ready
         run: docker run --rm --network gradido_internal-net busybox sh -c 'until nc -z mariadb 3306; do echo waiting for db; sleep 1; done;'
 
       - name: Backend | Unit tests
-        run: cd out && turbo backend#test backend#build backend#typecheck
+        run: cd out && turbo backend#test backend#build
+
+  typecheck:
+    if: needs.files-changed.outputs.backend == 'true'
+    name: Typecheck - Backend
+    needs: files-changed
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set Node.js version
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.20.7'
+
+      - name: Install turbo
+        run: yarn global add turbo@^2
+
+      - name: Prune backend with turbos help
+        run: turbo prune backend
+
+      - name: install dependencies
+        run: |
+          cd out && yarn install --frozen-lockfile --production=true
+          cd backend && yarn add typescript
+
+      - name: Backend | Typecheck
+        run: cd out && turbo backend#typecheck
 
   locales:
-      if: needs.files-changed.outputs.backend == 'true'
-      name: Locales - Backend
-      needs: files-changed
-      runs-on: ubuntu-latest
-      steps:
-        - name: Checkout code
-          uses: actions/checkout@v3
+    if: needs.files-changed.outputs.backend == 'true'
+    name: Locales - Backend
+    needs: files-changed
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-        - name: Backend | Locales
-          run: cd backend && yarn locales
+      - name: Backend | Locales
+        run: cd backend && yarn locales
