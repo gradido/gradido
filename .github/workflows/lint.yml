@@ -6,11 +6,11 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     outputs:
-      config-schema: ${{ steps.changes.outputs.config-schema }}
-      backend: ${{ steps.changes.outputs.backend }}
-      database: ${{ steps.changes.outputs.database }}
-      dht-node: ${{ steps.changes.outputs.dht-node }}
-      federation: ${{ steps.changes.outputs.federation }}
+      config-schema: ${{ steps.config-schema.outputs.success }}
+      backend: ${{ steps.backend.outputs.success }}
+      database: ${{ steps.database.outputs.success }}
+      dht-node: ${{ steps.dht-node.outputs.success }}
+      federation: ${{ steps.federation.outputs.success }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4

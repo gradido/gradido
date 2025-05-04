@@ -69,3 +69,15 @@ jobs:
 
       - name: Backend | Unit tests
         run: cd out && turbo backend#test backend#build backend#typecheck
+
+  locales:
+      if: needs.files-changed.outputs.backend == 'true'
+      name: Locales - Backend
+      needs: files-changed
+      runs-on: ubuntu-latest
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v3
+
+        - name: Backend | Locales
+          run: cd out/backend && yarn locales
