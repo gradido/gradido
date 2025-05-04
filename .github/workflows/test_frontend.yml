@@ -88,8 +88,11 @@ jobs:
   locales:
     if: needs.files-changed.outputs.frontend == 'true'
     name: Locales - Frontend
-    needs: [files-changed, unit_test]
+    needs: files-changed
     runs-on: ubuntu-latest
     steps:
-      - name: Check result from previous step
-        run: if [ "${{ needs.unit_test.outputs.test-success }}" != "true" ]; then exit 1; fi
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Frontend | Locales
+        run: cd frontend && yarn locales
