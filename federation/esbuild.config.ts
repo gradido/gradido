@@ -9,7 +9,7 @@ build({
   bundle: true,
   keepNames: true,
   // legalComments: 'inline',
-  external: ['sodium-native', 'email-templates'],
+  external: ['sodium-native'],
   plugins: [esbuildDecorators()],
   minify: true,
 })

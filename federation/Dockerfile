@@ -105,4 +105,4 @@ RUN yarn add sodium-native@4.0.0 \
 COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/federation/log4js-config.json ./log4js-config.json
 
 # Run command
-CMD ["node", "index.js"]
+CMD ["TZ=UTC", "node", "index.js"]
