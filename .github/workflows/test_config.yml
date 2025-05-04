@@ -21,7 +21,7 @@ jobs:
           list-files: shell
 
   build:
-    name: typecheck and lint - Config-Schema
+    name: typecheck - Config-Schema
     if: needs.files-changed.outputs.config == 'true' || needs.files-changed.outputs.docker-compose == 'true'
     needs: files-changed
     runs-on: ubuntu-latest
@@ -38,6 +38,6 @@ jobs:
       - name: install dependencies
         run: cd out && yarn install --frozen-lockfile --production=false
 
-      - name: typecheck and lint
-        run: cd out && turbo typecheck lint
+      - name: typecheck
+        run: cd out && turbo typecheck
 

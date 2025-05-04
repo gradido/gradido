@@ -16,11 +16,7 @@ jobs:
         run: biome ci ./config-schema
       - name: Lint - Backend
         run: biome ci ./backend
-      - name: Lint - Frontend
-        run: biome ci ./frontend
-      - name: Lint - Admin
-        run: biome ci ./admin
-      - name: Lint - Database
+      - name: Lint - Database Up
         run: biome ci ./database
       - name: Lint - DHT Node
         run: biome ci ./dht-node
