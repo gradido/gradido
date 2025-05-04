@@ -38,7 +38,8 @@ jobs:
           cd backend
           cp .env.test_e2e .env
           cd ..
-          bun turbo backend#build frontend#build
+          bun turbo backend#build
+          bun turbo frontend#build
           bun turbo backend#start frontend#start --env-mode=loose & 
         
       - name: End-to-end tests | prepare
