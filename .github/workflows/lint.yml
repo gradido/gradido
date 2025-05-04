@@ -13,12 +13,12 @@ jobs:
         with:
           version: latest
       - name: Lint - Config-Schema
-        run: biome ci ./config-schema
+        run: cd ./config-schema && biome ci .
       - name: Lint - Backend
-        run: biome ci ./backend
+        run: cd ./backend && biome ci .
       - name: Lint - Database Up
-        run: biome ci ./database
+        run: cd ./database && biome ci .
       - name: Lint - DHT Node
-        run: biome ci ./dht-node
+        run: cd ./dht-node && biome ci .
       - name: Lint - Federation
-        run: biome ci ./federation
+        run: cd ./federation && biome ci .
