@@ -61,6 +61,12 @@ jobs:
       - name: install dependencies
         run: cd out && yarn install --frozen-lockfile --production=false
 
+      - name: upload out
+        uses: actions/upload-artifact@v4
+        with:
+          name: out
+          path: out
+
       - name: Admin Interface | Unit tests
         id: test
         run: |
@@ -73,8 +79,17 @@ jobs:
     needs: [files-changed, unit_test]
     runs-on: ubuntu-latest
     steps:
-      - name: Check result from previous step
-        run: if [ "${{ needs.unit_test.outputs.test-success }}" != "true" ]; then exit 1; fi
+      - name: download out
+        uses: actions/download-artifact@v4
+        with:
+          name: out
+          path: out
+
+      - name: run lint
+        run: cd out && yarn lint
+
+      #- name: Check result from previous step
+       # run: if [ "${{ needs.unit_test.outputs.test-success }}" != "true" ]; then exit 1; fi
 
   stylelint:
     if: needs.files-changed.outputs.admin == 'true'
@@ -91,11 +106,11 @@ jobs:
   locales:
     if: needs.files-changed.outputs.admin == 'true'
     name: Locales - Admin Interface
-    needs: [files-changed, unit_test]
+    needs: files-changed
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Check result from previous step
-        run: if [ "${{ needs.unit_test.outputs.test-success }}" != "true" ]; then exit 1; fi
+      - name: Admin Interface | Locales
+        run: cd admin && yarn locales
