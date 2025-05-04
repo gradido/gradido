@@ -1,0 +1,28 @@
+name: Linting with biomejs
+
+on: push
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Biome
+        uses: biomejs/setup-biome@v2
+        with:
+          version: latest
+      - name: Lint - Config-Schema
+        run: biome ci ./config-schema
+      - name: Lint - Backend
+        run: biome ci ./backend
+      - name: Lint - Frontend
+        run: biome ci ./frontend
+      - name: Lint - Admin
+        run: biome ci ./admin
+      - name: Lint - Database
+        run: biome ci ./database
+      - name: Lint - DHT Node
+        run: biome ci ./dht-node
+      - name: Lint - Federation
+        run: biome ci ./federation
