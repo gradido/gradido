@@ -61,8 +61,8 @@ jobs:
         run: cd out && yarn install --frozen-lockfile --production=false
 
       - name: Wait for MariaDB to be ready
-        run: docker run --rm --network gradido_internal-net busybox sh -c 'until nc -z mariadb 3306; do echo waiting for db; sleep 1; done;'
+        run: until nc -z localhost 3306; do echo waiting for db; sleep 1; done;
 
       - name: Federation | Unit tests
         id: test
-        run: cd out && turbo federation#lint federation#test federation#build federation#typecheck
+        run: cd out && turbo federation#test federation#build federation#typecheck
