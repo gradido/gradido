@@ -48,7 +48,7 @@ jobs:
           chmod +x /opt/cucumber-json-formatter
           sudo ln -fs /opt/cucumber-json-formatter /usr/bin/cucumber-json-formatter
           cd e2e-tests/
-          bun install
+          bun install  --production
 
       - name: wait for frontend and backend to be ready
         run: |
