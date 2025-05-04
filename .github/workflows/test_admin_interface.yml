@@ -61,13 +61,6 @@ jobs:
       - name: install dependencies
         run: cd out && yarn install --frozen-lockfile --production=false
 
-      - name: upload out
-        uses: actions/upload-artifact@v4
-        with:
-          name: out
-          path: out
-          compression-level: 2
-
       - name: Admin Interface | Unit tests
         id: test
         run: |
@@ -75,27 +68,16 @@ jobs:
           echo "success=$([ $? -eq 0 ] && echo true || echo false)" >> $GITHUB_OUTPUT
 
   lint:
-    if: needs.files-changed.outputs.admin == 'true'
     name: Lint - Admin Interface
-    needs: [files-changed, unit_test]
+    needs: unit_test
     runs-on: ubuntu-latest
     steps:
-      - name: download out
-        uses: actions/download-artifact@v4
-        with:
-          name: out
-          path: out
-
-      - name: run lint
-        run: cd out && yarn lint
-
-      #- name: Check result from previous step
-       # run: if [ "${{ needs.unit_test.outputs.test-success }}" != "true" ]; then exit 1; fi
+      - name: Check result from previous step
+        run: if [ "${{ needs.unit_test.outputs.test-success }}" != "true" ]; then exit 1; fi
 
   stylelint:
-    if: needs.files-changed.outputs.admin == 'true'
     name: Stylelint - Admin Interface
-    needs: [files-changed, unit_test]
+    needs: unit_test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -105,7 +87,9 @@ jobs:
         run: if [ "${{ needs.unit_test.outputs.test-success }}" != "true" ]; then exit 1; fi
 
   locales:
+    if: needs.files-changed.outputs.admin == 'true'
     name: Locales - Admin Interface
+    needs: files-changed
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
