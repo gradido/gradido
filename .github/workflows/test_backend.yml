@@ -82,9 +82,7 @@ jobs:
         uses: oven-sh/setup-bun@v2
 
       - name: install dependencies
-        run: |
-          bun install --frozen-lockfile --production
-          cd backend && bun add typescript
+        run: bun install --frozen-lockfile
 
       - name: Backend | Typecheck
         run: bun turbo backend#typecheck backend#build
