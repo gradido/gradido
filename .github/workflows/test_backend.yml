@@ -80,4 +80,4 @@ jobs:
           uses: actions/checkout@v3
 
         - name: Backend | Locales
-          run: cd out/backend && yarn locales
+          run: cd backend && yarn locales
