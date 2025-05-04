@@ -29,7 +29,7 @@ export const schema = async (): Promise<GraphQLSchema> => {
       CommunityResolver,
       ContributionLinkResolver,
       ContributionMessageResolver,
-      ContributionResolver,      
+      ContributionResolver,
       GdtResolver,
       KlicktippResolver,
       ProjectBrandingResolver,
