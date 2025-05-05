@@ -23,7 +23,7 @@ jobs:
           sudo cp ./nginx/e2e-test.conf /etc/nginx/sites-available/default
 
       - name: wait for database to be ready
-        run: docker run --rm --network gradido_internal-net busybox sh -c 'until nc -z mariadb 3306; do echo waiting for db; sleep 1; done;'
+        run: until nc -z localhost 3306; do echo waiting for db; sleep 1; done;
 
       - name: Boot up test system | seed backend
         run: bun turbo seed

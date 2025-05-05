@@ -19,20 +19,24 @@
   ],
   "scripts": {
     "release": "scripts/release.sh",
-    "installAll": "yarn && cd database && yarn && cd ../frontend && yarn && cd ../admin && yarn && cd ../backend && yarn && cd ../federation && yarn && cd ../dht-node && yarn && cd ../e2e-tests && yarn && cd ..",
-    "docker:admin": "docker build -f ./admin/Dockerfile --target production -t \"gradido/admin:latest\" --build-arg NODE_ENV=\"production\" --build-arg BUILD_COMMIT=$(git rev-parse HEAD) --build-arg BUILD_COMMIT_SHORT=$(git rev-parse --short HEAD) .",
-    "docker:frontend": "docker build -f ./frontend/Dockerfile --target production -t \"gradido/frontend:latest\" --build-arg NODE_ENV=\"production\" --build-arg BUILD_COMMIT=$(git rev-parse HEAD) --build-arg BUILD_COMMIT_SHORT=$(git rev-parse --short HEAD) .",
-    "docker": "BUILD_COMMIT=$(git rev-parse HEAD) docker compose -f docker-compose.yml up"
+    "installAll": "yarn install",
+    "docker": "cross-env BUILD_COMMIT=$(git rev-parse HEAD) docker compose -f docker-compose.yml up",
+    "docker:rebuild": "cross-env BUILD_COMMIT=$(git rev-parse HEAD) docker compose -f docker-compose.yml build",
+    "docker_dev": "cross-env BUILD_COMMIT=$(git rev-parse HEAD) docker compose up",
+    "docker_dev:rebuild": "cross-env BUILD_COMMIT=$(git rev-parse HEAD) docker compose build",
+    "prepare": "husky"
   },
   "dependencies": {
     "auto-changelog": "^2.4.0",
     "uuid": "^8.3.2",
-    "turbo": "^2.5.0"
+    "turbo": "^2.5.0",
+    "cross-env": "^7.0.3"
   },
   "devDependencies": {
-    "@biomejs/biome": "1.9.4"
+    "@biomejs/biome": "1.9.4",
+    "husky": "^9.1.7"
   },
   "engines": {
     "node": ">=18"
-  }  
+  }
 }

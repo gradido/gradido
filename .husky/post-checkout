@@ -1,0 +1,7 @@
+#!/bin/bash
+echo "Writing build metadata to .env.git"
+cat > .env.git <<EOF
+export BUILD_COMMIT=$(git rev-parse HEAD)
+export BUILD_COMMIT_SHORT=$(git rev-parse --short HEAD)
+export BUILD_VERSION=$(git describe --tags --always)
+EOF
