@@ -22,7 +22,8 @@ let encryptionWorkerPool: Pool | undefined
 if (CONFIG.USE_CRYPTO_WORKER === true) {
   encryptionWorkerPool = pool(
     path.join(__dirname, '..', 'build', 'password', 'EncryptionWorker.js'),
-    { maxQueueSize: 30 * cpus().length })
+    { maxQueueSize: 30 * cpus().length },
+  )
 }
 
 // We will reuse this for changePassword
@@ -69,7 +70,6 @@ export const SecretKeyCryptographyCreateKey = async (
     // pool is throwing this error
     // throw new Error('Max queue size of ' + this.maxQueueSize + ' reached');
     // will be shown in frontend to user
-    console.log(JSON.stringify(e, null, 2))
     throw new LogError('Server is full, please try again in 10 minutes.', e)
   }
 }

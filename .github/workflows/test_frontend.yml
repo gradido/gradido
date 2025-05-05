@@ -81,7 +81,7 @@ jobs:
       - name: install dependencies
         run: |
           bun install --filter frontend --frozen-lockfile
-          bun install --global turbo@^2
+          bun install --global --no-save turbo@^2
 
       - name: Frontend | Lint
         id: lint
