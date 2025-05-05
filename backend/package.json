@@ -10,7 +10,6 @@
   "scripts": {
     "build": "ts-node ./esbuild.config.ts && mkdirp build/templates/ && ncp src/emails/templates build/templates && mkdirp locales/ && ncp src/locales locales",
     "clean": "tsc --build --clean",
-    "start:node": "cross-env TZ=UTC NODE_ENV=production TS_NODE_BASEURL=./build node -r tsconfig-paths/register build/src/index.js",
     "start": "cross-env TZ=UTC NODE_ENV=production node build/index.js",
     "dev": "cross-env TZ=UTC nodemon -w src --ext ts,pug,json,css -r tsconfig-paths/register src/index.ts",
     "typecheck": "tsc --noEmit",

@@ -19,6 +19,8 @@ ENV BUILD_COMMIT_SHORT=${BUILD_COMMIT_SHORT}
 ENV NODE_ENV="production"
 ## App relevant Envs
 ENV PORT="3000"
+## Timezone
+ENV TZ=UTC
 
 # Labels
 LABEL org.label-schema.build-date="${BUILD_DATE}"
@@ -35,7 +37,10 @@ LABEL maintainer="support@ogradido.net"
 
 # Install Additional Software
 ## install: node-gyp dependencies
-RUN apk --no-cache add g++ make python3
+#RUN apk --no-cache add g++ make python3
+RUN yarn global add bun
+# Add bun's global bin directory to PATH
+ENV PATH="/root/.bun/bin:${PATH}"
 
 # Settings
 ## Expose Container Port
@@ -45,16 +50,27 @@ EXPOSE ${PORT}
 RUN mkdir -p ${DOCKER_WORKDIR}
 WORKDIR ${DOCKER_WORKDIR}
 
+
+##################################################################################
+# Development ####################################################################
+##################################################################################
+FROM base AS development  
+
+# used for getting git commit hash direct from .git
+RUN apk update && apk add --no-cache git
+
+# Run command
+CMD /bin/sh -c "bun install --frozen-lockfile && bun turbo frontend#dev --env-mode=loose" 
+
+
 ##################################################################################
 # Base with turbo ################################################################
 ##################################################################################
 FROM base as turbo-base
 
 RUN apk update && apk add --no-cache libc6-compat \ 
-  && yarn global add turbo@^2 \
-  && rm -rf /tmp/* ~/.cache node_modules/.cache \
-  && yarn cache clean
-
+  && bun add --global turbo@^2 \
+  && rm -rf /tmp/* ~/.cache node_modules/.cache
 
 ##################################################################################
 # BUILDER (create partly monorepo only with data needed by frontend) #############
@@ -77,6 +93,10 @@ RUN yarn install --frozen-lockfile --production=false \
  
 # Build the project
 COPY --chown=app:app --from=builder /app/out/full/ .
+# TODO: get the actually git commit hash into docker
+ENV BUILD_COMMIT='deadbeefdeadbeefdeadbeefdeadbeefdeadbeef'
+ENV BUILD_COMMIT_SHORT='deadbeef'
+ENV BUILD_VERSION='broken'
 RUN turbo build --env-mode=loose
 
 ##################################################################################
