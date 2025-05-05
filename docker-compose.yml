@@ -10,9 +10,7 @@ services:
   ########################################################
   frontend:
     # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
-    image: gradido/frontend:local-production
-    env_file:
-      - .env.git
+    image: gradido/frontend:local-production    
     build:
       context: ./
       dockerfile: ./frontend/Dockerfile
@@ -93,8 +91,6 @@ services:
   backend:
     # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
     image: gradido/backend:local-production
-    env_file:
-      - .env.git
     build:
       # since we have to include the entities from ./database we cannot define the context as ./backend
       # this might blow build image size to the moon ?!
@@ -114,7 +110,7 @@ services:
       - BUILD_DATE
       - BUILD_VERSION
       - BUILD_COMMIT
-      - NODE_ENV="production"
+      - NODE_ENV=production
       - DB_HOST=mariadb
       # Application only envs
     #env_file:
@@ -129,8 +125,6 @@ services:
   dht-node:
     # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
     image: gradido/dht-node:local-production
-    env_file:
-      - .env.git
     build:
       # since we have to include the entities from ./database we cannot define the context as ./backend
       # this might blow build image size to the moon ?!
@@ -172,6 +166,8 @@ services:
       context: .
       dockerfile: ./dlt-connector/Dockerfile
       target: production
+    profiles: 
+      - dlt
     networks:
       - internal-net
       - external-net
@@ -197,8 +193,6 @@ services:
   federation:
     # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
     image: gradido/federation:local-production
-    env_file:
-      - .env.git
     build:
       # since we have to include the entities from ./database we cannot define the context as ./federation
       # this might blow build image size to the moon ?!
@@ -233,8 +227,6 @@ services:
   database:
     # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
     image: gradido/database:local-up
-    env_file:
-      - .env.git
     build:
       context: .
       dockerfile: ./database/Dockerfile

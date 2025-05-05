@@ -16,6 +16,8 @@ ENV BUILD_COMMIT="0000000"
 ENV NODE_ENV="production"
 ## App relevant Envs
 ENV PORT="4000"
+## Timezone
+ENV TZ=UTC
 
 # Labels
 LABEL org.label-schema.build-date="${BUILD_DATE}"
@@ -33,6 +35,9 @@ LABEL maintainer="support@gradido.net"
 # Install Additional Software
 ## install: git
 #RUN apk --no-cache add git
+RUN yarn global add bun
+# Add bun's global bin directory to PATH
+ENV PATH="/root/.bun/bin:${PATH}"
 
 # Settings
 ## Expose Container Port
@@ -42,6 +47,14 @@ EXPOSE ${PORT}
 RUN mkdir -p ${DOCKER_WORKDIR}
 WORKDIR ${DOCKER_WORKDIR}
 
+##################################################################################
+# Development ####################################################################
+##################################################################################
+FROM base AS development  
+
+
+# Run command
+CMD /bin/sh -c "bun install --frozen-lockfile && bun turbo backend#dev --env-mode=loose" 
 
 ##################################################################################
 # Base with turbo ################################################################
@@ -49,9 +62,8 @@ WORKDIR ${DOCKER_WORKDIR}
 FROM base as turbo-base
 
 RUN apk update && apk add --no-cache libc6-compat \ 
-  && yarn global add turbo@^2 \
-  && rm -rf /tmp/* ~/.cache node_modules/.cache \
-  && yarn cache clean
+  && bun add --global turbo@^2 \
+  && rm -rf /tmp/* ~/.cache node_modules/.cache
 
 ##################################################################################
 # BUILDER (create partly monorepo only with data needed by backend) ##############
@@ -105,5 +117,7 @@ COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/backend/log4js-config.js
 # Copy locales
 COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/backend/locales ./locales
 
+ENV NODE_ENV=production
+
 # Run command
-CMD ["TZ=UTC", "node", "index.js"]
+CMD ["node", "index.js"]
