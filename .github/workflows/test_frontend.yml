@@ -54,10 +54,10 @@ jobs:
         uses: oven-sh/setup-bun@v2
 
       - name: install dependencies
-        run: bun install --frozen-lockfile
+        run: bun install --filter frontend --frozen-lockfile
 
       - name: Frontend | Unit tests
-        run: bun turbo frontend#test
+        run: cd frontend && yarn test
 
   lint:
     if: needs.files-changed.outputs.config == 'true' || needs.files-changed.outputs.frontend == 'true'
@@ -79,12 +79,14 @@ jobs:
         uses: oven-sh/setup-bun@v2
 
       - name: install dependencies
-        run: bun install --frozen-lockfile
+        run: |
+          bun install --filter frontend --frozen-lockfile
+          bun install --global turbo@^2
 
       - name: Frontend | Lint
         id: lint
         run: |
-          bun turbo frontend#lint
+          turbo frontend#lint
           echo "success=$([ $? -eq 0 ] && echo true || echo false)" >> $GITHUB_OUTPUT
 
   stylelint:

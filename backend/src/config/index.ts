@@ -76,12 +76,12 @@ const community = {
 const loginServer = {
   LOGIN_APP_SECRET: process.env.LOGIN_APP_SECRET ?? '21ffbbc616fe',
   LOGIN_SERVER_KEY: process.env.LOGIN_SERVER_KEY ?? 'a51ef8ac7ef1abf162fb7a65261acd7a',
-  USE_CRYPTO_WORKER: process.env.USE_CRYPTO_WORKER ?? false,
+  USE_CRYPTO_WORKER: process.env.USE_CRYPTO_WORKER === 'true',
 }
 
 const email = {
-  EMAIL: process.env.EMAIL === 'true' || false,
-  EMAIL_TEST_MODUS: process.env.EMAIL_TEST_MODUS === 'true' || false,
+  EMAIL: process.env.EMAIL === 'true',
+  EMAIL_TEST_MODUS: process.env.EMAIL_TEST_MODUS === 'true',
   EMAIL_TEST_RECEIVER: process.env.EMAIL_TEST_RECEIVER ?? 'stage1@gradido.net',
   EMAIL_USERNAME: process.env.EMAIL_USERNAME ?? '',
   EMAIL_SENDER: process.env.EMAIL_SENDER ?? 'info@gradido.net',

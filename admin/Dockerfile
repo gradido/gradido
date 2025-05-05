@@ -17,7 +17,8 @@ ENV BUILD_COMMIT=${BUILD_COMMIT}
 ARG BUILD_COMMIT_SHORT
 ENV BUILD_COMMIT_SHORT=${BUILD_COMMIT_SHORT}
 ## SET NODE_ENV
-ARG NODE_ENV="production"
+ARG NODE_ENV=production
+ENV NODE_ENV=${NODE_ENV}
 ## App relevant Envs
 ENV PORT="8080"
 ## Timezone
@@ -40,9 +41,6 @@ LABEL maintainer="support@ogradido.net"
 ## install: git
 #RUN apk --no-cache add git
 # RUN bun add --global yarn@1.22.20
-RUN yarn global add bun
-# Add bun's global bin directory to PATH
-ENV PATH="/root/.bun/bin:${PATH}"
 
 # Settings
 ## Expose Container Port
@@ -53,56 +51,48 @@ RUN mkdir -p ${DOCKER_WORKDIR}
 WORKDIR ${DOCKER_WORKDIR}
 
 ##################################################################################
+# BUN ############################################################################
+##################################################################################
+FROM base as bun-base
+
+RUN apk update && apk add --no-cache curl tar bash
+RUN curl -fsSL https://bun.sh/install | bash
+# Add bun's global bin directory to PATH
+ENV PATH="/root/.bun/bin:${PATH}"
+
+##################################################################################
 # Development ####################################################################
 ##################################################################################
-FROM base AS development  
+FROM bun-base AS development  
 
 # used for getting git commit hash direct from .git
 RUN apk update && apk add --no-cache git
 
 # Run command
-CMD /bin/sh -c "bun install --frozen-lockfile && bun turbo admin#dev --env-mode=loose" 
+CMD /bin/sh -c "bun install --filter admin --no-cache --frozen-lockfile \
+  && bun install --global --no-cache --no-save turbo@^2 \
+  && turbo admin#dev --env-mode=loose" 
+
 
 ##################################################################################
-# Base with turbo ################################################################
+# Build ##########################################################################
 ##################################################################################
-FROM base as turbo-base
-
-RUN apk update && apk add --no-cache libc6-compat \ 
-  && bun add --global turbo@^2 \
-  && rm -rf /tmp/* ~/.cache node_modules/.cache
-
-##################################################################################
-# BUILDER (create partly monorepo only with data needed by admin) ################
-##################################################################################
-FROM turbo-base as builder
+FROM bun-base as build 
 
 COPY --chown=app:app . . 
-RUN turbo prune admin --docker
+RUN bun install --filter admin --no-cache --frozen-lockfile \
+&& bun install --global turbo@^2
 
-##################################################################################
-# INSTALLER (create production image) ############################################
-##################################################################################
-FROM turbo-base AS installer
-
-# First install the dependencies (as they change less often)
-COPY --chown=app:app --from=builder /app/out/json/ .
-RUN yarn install --frozen-lockfile --production=false \
- && rm -rf /tmp/* ~/.cache node_modules/.cache \
- && yarn cache clean
- 
-# Build the project
-COPY --chown=app:app --from=builder /app/out/full/ .
 # TODO: get the actually git commit hash into docker
-ENV BUILD_COMMIT='deadbeefdeadbeefdeadbeefdeadbeefdeadbeef'
-ENV BUILD_COMMIT_SHORT='deadbeef'
-ENV BUILD_VERSION='broken'
-RUN turbo build --env-mode=loose
+ENV BUILD_COMMIT=deadbeefdeadbeefdeadbeefdeadbeefdeadbeef
+ENV BUILD_COMMIT_SHORT=deadbeef
+ENV BUILD_VERSION=broken
+RUN turbo admin#build --env-mode=loose
 
 ##################################################################################
 # TEST ###########################################################################
 ##################################################################################
-FROM installer as test
+FROM build as test
 
 # Run command
 CMD /bin/sh -c "turbo admin#test --env-mode=loose"
@@ -112,11 +102,9 @@ CMD /bin/sh -c "turbo admin#test --env-mode=loose"
 ##################################################################################
 FROM lipanski/docker-static-website:latest as production
 
-EXPOSE 8080
-
 # tiny static webserver
 # https://lipanski.com/posts/smallest-docker-image-static-website
 
 # copy builded frontend files
-COPY --from=installer /app/admin/build/ ./admin/
+COPY --from=build /app/admin/build/ ./admin/
 

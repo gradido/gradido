@@ -46,23 +46,22 @@ jobs:
           node-version: '18.20.7'
 
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: docker-compose mariadb
         run: docker compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps mariadb
 
-      - name: Install turbo
-        run: yarn global add turbo@^2
-
-      - name: Prune dht-node with turbos help
-        run: turbo prune dht-node
+      - name: install bun 
+        uses: oven-sh/setup-bun@v2
 
       - name: install dependencies
-        run: cd out && yarn install --frozen-lockfile --production=false
+        run: |
+          bun install --filter dht-node --frozen-lockfile
+          bun install --global turbo@^2
 
       - name: Wait for MariaDB to be ready
         run: until nc -z localhost 3306; do echo waiting for db; sleep 1; done;
 
       - name: run unit test & build & typecheck
-        run: cd out && turbo dht-node#test dht-node#build dht-node#typecheck
+        run: turbo dht-node#test dht-node#build dht-node#typecheck
 

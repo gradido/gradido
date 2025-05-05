@@ -56,7 +56,7 @@ jobs:
         uses: oven-sh/setup-bun@v2
 
       - name: install dependencies
-        run: bun install --frozen-lockfile
+        run: bun install --filter backend --frozen-lockfile
 
       - name: Wait for MariaDB to be ready
         run: until nc -z localhost 3306; do echo waiting for db; sleep 1; done;
@@ -82,10 +82,12 @@ jobs:
         uses: oven-sh/setup-bun@v2
 
       - name: install dependencies
-        run: bun install --frozen-lockfile
+        run: |
+          bun install --filter backend --frozen-lockfile
+          bun install --global turbo@^2
 
       - name: Backend | Typecheck
-        run: bun turbo backend#typecheck backend#build
+        run: turbo backend#typecheck backend#build
 
   locales:
     if: needs.files-changed.outputs.backend == 'true'

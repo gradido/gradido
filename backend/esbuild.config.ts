@@ -2,7 +2,7 @@ import { esbuildDecorators } from '@anatine/esbuild-decorators'
 import { build } from 'esbuild'
 
 build({
-  entryPoints: ['src/index.ts'],
+  entryPoints: ['src/index.ts', 'src/password/EncryptionWorker.ts'],
   outdir: 'build',
   platform: 'node',
   target: 'node18.20.7',
@@ -11,5 +11,6 @@ build({
   // legalComments: 'inline',
   external: ['sodium-native', 'email-templates'],
   plugins: [esbuildDecorators()],
-  minify: true,
+  minify: false,
+  sourcemap: true,
 })

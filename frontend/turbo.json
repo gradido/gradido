@@ -12,7 +12,10 @@
       "persistent": true
     },
     "build": {
-      "dependsOn": ["compile-scss"]
+      "dependsOn": ["compile-scss", "^build"],
+      "outputs": ["build/**"],
+      "cache": true
     }
   }
 }
+      

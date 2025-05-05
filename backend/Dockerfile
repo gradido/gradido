@@ -13,7 +13,7 @@ ENV BUILD_VERSION="0.0.0.0"
 ## We cannot do `$(git rev-parse --short HEAD)` here so we default to 0000000
 ENV BUILD_COMMIT="0000000"
 ## SET NODE_ENV
-ENV NODE_ENV="production"
+ENV NODE_ENV=production
 ## App relevant Envs
 ENV PORT="4000"
 ## Timezone
@@ -35,9 +35,7 @@ LABEL maintainer="support@gradido.net"
 # Install Additional Software
 ## install: git
 #RUN apk --no-cache add git
-RUN yarn global add bun
-# Add bun's global bin directory to PATH
-ENV PATH="/root/.bun/bin:${PATH}"
+
 
 # Settings
 ## Expose Container Port
@@ -48,57 +46,44 @@ RUN mkdir -p ${DOCKER_WORKDIR}
 WORKDIR ${DOCKER_WORKDIR}
 
 ##################################################################################
+# BUN ############################################################################
+##################################################################################
+FROM base as bun-base
+
+RUN apk update && apk add --no-cache curl tar bash
+RUN curl -fsSL https://bun.sh/install | bash
+# Add bun's global bin directory to PATH
+ENV PATH="/root/.bun/bin:${PATH}"
+
+##################################################################################
 # Development ####################################################################
 ##################################################################################
-FROM base AS development  
-
+FROM bun-base AS development  
 
 # Run command
-CMD /bin/sh -c "bun install --frozen-lockfile && bun turbo backend#dev --env-mode=loose" 
+CMD /bin/sh -c "bun install --filter backend --no-cache --frozen-lockfile \
+  && bun install --global --no-cache --no-save turbo@^2 \
+  && turbo backend#dev --env-mode=loose" 
 
 ##################################################################################
-# Base with turbo ################################################################
+# Build ##########################################################################
 ##################################################################################
-FROM base as turbo-base
-
-RUN apk update && apk add --no-cache libc6-compat \ 
-  && bun add --global turbo@^2 \
-  && rm -rf /tmp/* ~/.cache node_modules/.cache
-
-##################################################################################
-# BUILDER (create partly monorepo only with data needed by backend) ##############
-##################################################################################
-FROM turbo-base as builder
+FROM bun-base as build 
 
 COPY --chown=app:app . . 
-RUN turbo prune backend --docker
-
-
-##################################################################################
-# INSTALLER (create production image) ############################################
-##################################################################################
-FROM turbo-base AS installer
-
-# First install the dependencies (as they change less often)
-COPY --chown=app:app --from=builder /app/out/json/ .
-RUN yarn install --frozen-lockfile --production=false \
- && rm -rf /tmp/* ~/.cache node_modules/.cache \
- && yarn cache clean
- 
-# Build the project
-COPY --chown=app:app --from=builder /app/out/full/ .
-RUN turbo build
+RUN bun install --filter backend --no-cache --frozen-lockfile \
+  && bun install --global --no-cache --no-save turbo@^2 \
+  && turbo backend#build backend#typecheck --env-mode=loose
 
 ##################################################################################
 # TEST ###########################################################################
 ##################################################################################
-FROM installer as test
+FROM build as test
 
 ENV DB_HOST=mariadb
 
 # Run command
 CMD /bin/sh -c "turbo backend#test --env-mode=loose"
-
 
 ##################################################################################
 # PRODUCTION (Does contain only "binary"- and static-files to reduce image size) #
@@ -106,18 +91,16 @@ CMD /bin/sh -c "turbo backend#test --env-mode=loose"
 FROM base as production
 
 # Copy "binary"-files from build image
-COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/backend/build/index.js ./index.js
+COPY --chown=app:app --from=build ${DOCKER_WORKDIR}/backend/build/index.js ./index.js
 
 RUN yarn add sodium-native@4.0.0 email-templates@10.0.1 \
   && rm -rf /tmp/* ~/.cache node_modules/.cache \
   && yarn cache clean
 
 # Copy log4js-config.json to provide log configuration
-COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/backend/log4js-config.json ./log4js-config.json
+COPY --chown=app:app --from=build ${DOCKER_WORKDIR}/backend/log4js-config.json ./log4js-config.json
 # Copy locales
-COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/backend/locales ./locales
-
-ENV NODE_ENV=production
+COPY --chown=app:app --from=build ${DOCKER_WORKDIR}/backend/locales ./locales
 
 # Run command
 CMD ["node", "index.js"]

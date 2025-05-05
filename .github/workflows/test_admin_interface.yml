@@ -56,12 +56,14 @@ jobs:
         uses: oven-sh/setup-bun@v2
 
       - name: install dependencies
-        run: bun install --frozen-lockfile
+        run: |
+          bun install --filter admin --frozen-lockfile
+          bun install --global turbo@^2
 
       - name: Admin Interface | Unit tests
         id: test
         run: |
-          bun turbo admin#test admin#lint
+          turbo admin#test admin#lint
           echo "success=$([ $? -eq 0 ] && echo true || echo false)" >> $GITHUB_OUTPUT
 
   lint:

@@ -1,7 +1,5 @@
 import { worker } from 'workerpool'
 
-import { CONFIG } from '@/config'
-
 import {
   crypto_box_SEEDBYTES,
   crypto_hash_sha512_BYTES,
@@ -15,7 +13,7 @@ import {
   crypto_shorthash_BYTES,
 } from 'sodium-native'
 
-export const SecretKeyCryptographyCreateKey = (
+export const SecretKeyCryptographyCreateKeyFunc = (
   salt: string,
   password: string,
   configLoginAppSecret: Buffer,
@@ -46,8 +44,8 @@ export const SecretKeyCryptographyCreateKey = (
   return encryptionKeyHash.readBigUInt64LE()
 }
 
-if (CONFIG.USE_CRYPTO_WORKER === true && typeof process.send === 'function') {
+if (process.env.USE_CRYPTO_WORKER === 'true' && typeof process.send === 'function') {
   worker({
-    SecretKeyCryptographyCreateKey,
+    SecretKeyCryptographyCreateKeyFunc,
   })
 }
