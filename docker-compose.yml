@@ -6,46 +6,13 @@
 services:
 
   ########################################################
-  # Gradido ##############################################
-  ########################################################
-  gradido:
-    image: gradido/gradido:local-production
-    build:
-      context: ./
-      dockerfile: ./Dockerfile
-      target: production
-      args: 
-        BUILD_COMMIT: ${BUILD_COMMIT}
-        BUILD_COMMIT_SHORT: ${BUILD_COMMIT_SHORT}
-        BUILD_VERSION: ${BUILD_VERSION}
-    depends_on:
-      - mariadb
-    networks:
-      - internal-net
-      - external-net
-    ports:
-      - ${BACKEND_PORT:-4000}:${BACKEND_PORT:-4000}
-      - ${FEDERATION_PORT:-5010}:${FEDERATION_PORT:-5010}
-      - ${FRONTEND_MODULE_PORT:-3000}:${FRONTEND_MODULE_PORT:-3000}
-      - ${ADMIN_MODULE_PORT:-8080}:${ADMIN_MODULE_PORT:-8080}
-    environment:
-      # Envs used in Dockerfile
-      # - DOCKER_WORKDIR="/app"
-      # - PORT=4000
-      - BUILD_DATE
-      - BUILD_VERSION
-      - BUILD_COMMIT
-      - NODE_ENV=production
-      - DB_HOST=mariadb
-    volumes:
-      - ./logs:/logs
-
-  ########################################################
   # FRONTEND #############################################
   ########################################################
   frontend:
     # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
     image: gradido/frontend:local-production
+    env_file:
+      - .env.git
     build:
       context: ./
       dockerfile: ./frontend/Dockerfile
@@ -54,13 +21,11 @@ services:
         BUILD_COMMIT: ${BUILD_COMMIT}
         BUILD_COMMIT_SHORT: ${BUILD_COMMIT_SHORT}
         BUILD_VERSION: ${BUILD_VERSION}
-    profiles:
-      - single
     networks:
       - external-net
       - internal-net
     ports:
-      - 3000:3000
+      - 3000:${FRONTEND_MODULE_PORT:-3000}
     environment:
       # Envs used in Dockerfile
       # - DOCKER_WORKDIR="/app"
@@ -87,14 +52,15 @@ services:
         BUILD_COMMIT: ${BUILD_COMMIT}
         BUILD_COMMIT_SHORT: ${BUILD_COMMIT_SHORT}
         BUILD_VERSION: ${BUILD_VERSION}
-    profiles:
-      - single
     networks:
       - external-net
       - internal-net
     ports:
-      - 8080:80
+      - 3000:${ADMIN_MODULE_PORT:-8080}
     environment:
+      - BUILD_COMMIT=${BUILD_COMMIT}
+      - BUILD_COMMIT_SHORT=${BUILD_COMMIT_SHORT}
+      - BUILD_VERSION=${BUILD_VERSION}
       # Envs used in Dockerfile
       # - DOCKER_WORKDIR="/app"
       # - PORT=8090
@@ -127,18 +93,18 @@ services:
   backend:
     # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
     image: gradido/backend:local-production
+    env_file:
+      - .env.git
     build:
       # since we have to include the entities from ./database we cannot define the context as ./backend
       # this might blow build image size to the moon ?!
       context: ./
       dockerfile: ./backend/Dockerfile
       target: production
-    profiles:
-      - single
     networks:
       - internal-net
     ports:
-      - 4000:4000
+      - 4000:${BACKEND_PORT:-4000}
     depends_on:
       - mariadb
     environment:
@@ -163,14 +129,14 @@ services:
   dht-node:
     # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
     image: gradido/dht-node:local-production
+    env_file:
+      - .env.git
     build:
       # since we have to include the entities from ./database we cannot define the context as ./backend
       # this might blow build image size to the moon ?!
       context: ./
       dockerfile: ./dht-node/Dockerfile
       target: production
-    profiles:
-      - single
     networks:
       - internal-net
       - external-net
@@ -206,8 +172,6 @@ services:
       context: .
       dockerfile: ./dlt-connector/Dockerfile
       target: production
-    profiles: 
-      - dlt
     networks:
       - internal-net
       - external-net
@@ -233,25 +197,24 @@ services:
   federation:
     # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
     image: gradido/federation:local-production
+    env_file:
+      - .env.git
     build:
       # since we have to include the entities from ./database we cannot define the context as ./federation
       # this might blow build image size to the moon ?!
       context: ./
       dockerfile: ./federation/Dockerfile
       target: production
-    profiles:
-      - single
     networks:
       - internal-net
       - external-net
     ports:
-      - 5010:5010
+      - 5010:${FEDERATION_PORT:-5010}
     depends_on:
       - mariadb
     environment:
       # Envs used in Dockerfile
       # - DOCKER_WORKDIR="/app"
-      - PORT=5010
       - BUILD_DATE
       - BUILD_VERSION
       - BUILD_COMMIT
@@ -270,12 +233,12 @@ services:
   database:
     # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
     image: gradido/database:local-up
+    env_file:
+      - .env.git
     build:
       context: .
       dockerfile: ./database/Dockerfile
       target: up
-    profiles: 
-      - database
     depends_on:
       - mariadb
     networks:
@@ -331,7 +294,9 @@ services:
       - external-net
       - internal-net
     depends_on:
-      - gradido
+      - backend
+      - frontend
+      - admin
     ports:
       - 80:80
     volumes:

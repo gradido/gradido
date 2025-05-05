@@ -9,7 +9,6 @@ nbproject
 .metadata
 /out/*
 /.env
-.env.git
 package-lock.json
 /deployment/bare_metal/.env
 /deployment/bare_metal/nginx/sites-available/gradido.conf
