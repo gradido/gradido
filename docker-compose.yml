@@ -23,7 +23,7 @@ services:
       - external-net
       - internal-net
     ports:
-      - 3000:${FRONTEND_MODULE_PORT:-3000}
+      - ${FRONTEND_MODULE_PORT:-3000}:3000
     environment:
       # Envs used in Dockerfile
       # - DOCKER_WORKDIR="/app"
@@ -54,7 +54,7 @@ services:
       - external-net
       - internal-net
     ports:
-      - 3000:${ADMIN_MODULE_PORT:-8080}
+      - ${ADMIN_MODULE_PORT:-8080}:3000
     environment:
       - BUILD_COMMIT=${BUILD_COMMIT}
       - BUILD_COMMIT_SHORT=${BUILD_COMMIT_SHORT}
@@ -100,7 +100,7 @@ services:
     networks:
       - internal-net
     ports:
-      - 4000:${BACKEND_PORT:-4000}
+      - ${BACKEND_PORT:-4000}:4000
     depends_on:
       - mariadb
     environment:
@@ -145,7 +145,7 @@ services:
       - BUILD_DATE
       - BUILD_VERSION
       - BUILD_COMMIT
-      - NODE_ENV="production"
+      - NODE_ENV=production
       - DB_HOST=mariadb
       # Application only envs
     #env_file:
@@ -203,7 +203,7 @@ services:
       - internal-net
       - external-net
     ports:
-      - 5010:${FEDERATION_PORT:-5010}
+      - ${FEDERATION_PORT:-5010}:5010
     depends_on:
       - mariadb
     environment:
@@ -212,7 +212,7 @@ services:
       - BUILD_DATE
       - BUILD_VERSION
       - BUILD_COMMIT
-      - NODE_ENV="production"
+      - NODE_ENV=production
       - DB_HOST=mariadb
       # Application only envs
     #env_file:
@@ -231,6 +231,8 @@ services:
       context: .
       dockerfile: ./database/Dockerfile
       target: up
+    profiles:
+      - migration
     depends_on:
       - mariadb
     networks:
@@ -242,7 +244,7 @@ services:
       - BUILD_DATE
       - BUILD_VERSION
       - BUILD_COMMIT
-      - NODE_ENV="production"
+      - NODE_ENV=production
       - DB_HOST=mariadb
       # Application only envs
     #env_file:

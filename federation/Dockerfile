@@ -13,10 +13,12 @@ ENV BUILD_VERSION="0.0.0.0"
 ## We cannot do `$(git rev-parse --short HEAD)` here so we default to 0000000
 ENV BUILD_COMMIT="0000000"
 ## SET NODE_ENV
-ENV NODE_ENV="production"
+ENV NODE_ENV=production
 ## App relevant Envs
 ENV PORT="5010"
 # ENV PORT="${env.FEDERATION_PORT}"
+## Timezone
+ENV TZ=UTC
 
 # Labels
 LABEL org.label-schema.build-date="${BUILD_DATE}"
@@ -43,44 +45,42 @@ EXPOSE ${PORT}
 RUN mkdir -p ${DOCKER_WORKDIR}
 WORKDIR ${DOCKER_WORKDIR}
 
-##################################################################################
-# Base with turbo ################################################################
-##################################################################################
-FROM base as turbo-base
-
-RUN apk update && apk add --no-cache libc6-compat \ 
-  && yarn global add turbo@^2 \
-  && rm -rf /tmp/* ~/.cache node_modules/.cache \
-  && yarn cache clean
 
 ##################################################################################
-# BUILDER (create partly monorepo only with data needed by federation) ###########
+# BUN ############################################################################
 ##################################################################################
-FROM turbo-base as builder
+FROM base as bun-base
+
+RUN apk update && apk add --no-cache curl tar bash
+RUN curl -fsSL https://bun.sh/install | bash
+# Add bun's global bin directory to PATH
+ENV PATH="/root/.bun/bin:${PATH}"
+
+##################################################################################
+# Development ####################################################################
+##################################################################################
+FROM bun-base AS development  
+
+# Run command
+CMD /bin/sh -c "bun install --filter federation --no-cache --frozen-lockfile \
+  && bun install --global --no-cache --no-save turbo@^2 \
+  && turbo federation#dev --env-mode=loose" 
+
+
+##################################################################################
+# Build ##########################################################################
+##################################################################################
+FROM bun-base as build 
 
 COPY --chown=app:app . . 
-RUN turbo prune federation --docker
-
-
-##################################################################################
-# INSTALLER (create production image) ############################################
-##################################################################################
-FROM turbo-base AS installer
-
-# First install the dependencies (as they change less often)
-COPY --chown=app:app --from=builder /app/out/json/ .
-RUN yarn install --frozen-lockfile --production=false \
- && rm -rf /tmp/* ~/.cache node_modules/.cache \
- && yarn cache clean
- 
-# Build the project
-COPY --chown=app:app --from=builder /app/out/full/ .
-RUN turbo build typecheck
+RUN bun install --filter federation --no-cache --frozen-lockfile \
+  && bun install --global --no-cache --no-save turbo@^2 \
+  && turbo federation#build federation#typecheck --env-mode=loose
 
 ##################################################################################
 # TEST ###########################################################################
 ##################################################################################
-FROM installer as test
+FROM build as test
 
 ENV DB_HOST=mariadb
 
@@ -93,7 +93,7 @@ CMD /bin/sh -c "turbo federation#test --env-mode=loose"
 FROM base as production
 
 # Copy "binary"-files from build image
-COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/federation/build/index.js ./index.js
+COPY --chown=app:app --from=build ${DOCKER_WORKDIR}/federation/build/index.js ./index.js
 
 # We also install the native node_modules which cannot be bundled
 # TODO: find a elegant way to use the right versions from yarn.lock
@@ -102,7 +102,7 @@ RUN yarn add sodium-native@4.0.0 \
   && yarn cache clean
 
 # Copy log4js-config.json to provide log configuration
-COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/federation/log4js-config.json ./log4js-config.json
+COPY --chown=app:app --from=build ${DOCKER_WORKDIR}/federation/log4js-config.json ./log4js-config.json
 
 # Run command
-CMD ["TZ=UTC", "node", "index.js"]
+CMD ["node", "index.js"]

@@ -10,4 +10,5 @@ build({
   // legalComments: 'inline',
   external: ['udx-native', 'sodium-native'],
   minify: true,
+  sourcemap: false,
 })

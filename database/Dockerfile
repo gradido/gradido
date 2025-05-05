@@ -14,6 +14,8 @@ ENV BUILD_VERSION="0.0.0.0"
 ENV BUILD_COMMIT="0000000"
 ## SET NODE_ENV
 ENV NODE_ENV="production"
+## Timezone
+ENV TZ=UTC
 
 # Labels
 LABEL org.label-schema.build-date="${BUILD_DATE}"

@@ -1,5 +1,5 @@
-import { cpus } from 'os'
-import path from 'path'
+import { cpus } from 'node:os'
+import path from 'node:path'
 
 import { User } from 'database'
 import { Pool, pool } from 'workerpool'
@@ -12,7 +12,7 @@ import { backendLogger as logger } from '@/server/logger'
 
 import { crypto_shorthash_KEYBYTES } from 'sodium-native'
 
-import { SecretKeyCryptographyCreateKey as SecretKeyCryptographyCreateKeySync } from './EncryptionWorker'
+import { SecretKeyCryptographyCreateKeyFunc } from './EncryptionWorker'
 
 const configLoginAppSecret = Buffer.from(CONFIG.LOGIN_APP_SECRET, 'hex')
 const configLoginServerKey = Buffer.from(CONFIG.LOGIN_SERVER_KEY, 'hex')
@@ -21,12 +21,8 @@ let encryptionWorkerPool: Pool | undefined
 
 if (CONFIG.USE_CRYPTO_WORKER === true) {
   encryptionWorkerPool = pool(
-    path.join(__dirname, '..', '..', 'build', 'src', 'password', '/EncryptionWorker.js'),
-    {
-      // TODO: put maxQueueSize into config
-      maxQueueSize: 30 * cpus().length,
-    },
-  )
+    path.join(__dirname, '..', 'build', 'password', 'EncryptionWorker.js'),
+    { maxQueueSize: 30 * cpus().length })
 }
 
 // We will reuse this for changePassword
@@ -52,22 +48,20 @@ export const SecretKeyCryptographyCreateKey = async (
         crypto_shorthash_KEYBYTES,
       )
     }
-    let result: Promise<bigint>
+    let result: bigint
     if (encryptionWorkerPool) {
-      result = (await encryptionWorkerPool.exec('SecretKeyCryptographyCreateKey', [
+      result = await encryptionWorkerPool.exec('SecretKeyCryptographyCreateKeyFunc', [
         salt,
         password,
         configLoginAppSecret,
         configLoginServerKey,
-      ])) as Promise<bigint>
+      ])
     } else {
-      result = Promise.resolve(
-        SecretKeyCryptographyCreateKeySync(
-          salt,
-          password,
-          configLoginAppSecret,
-          configLoginServerKey,
-        ),
+      result = SecretKeyCryptographyCreateKeyFunc(
+        salt,
+        password,
+        configLoginAppSecret,
+        configLoginServerKey,
       )
     }
     return result
@@ -75,6 +69,7 @@ export const SecretKeyCryptographyCreateKey = async (
     // pool is throwing this error
     // throw new Error('Max queue size of ' + this.maxQueueSize + ' reached');
     // will be shown in frontend to user
+    console.log(JSON.stringify(e, null, 2))
     throw new LogError('Server is full, please try again in 10 minutes.', e)
   }
 }
