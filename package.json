@@ -23,8 +23,7 @@
     "docker": "cross-env BUILD_COMMIT=$(git rev-parse HEAD) docker compose -f docker-compose.yml up",
     "docker:rebuild": "cross-env BUILD_COMMIT=$(git rev-parse HEAD) docker compose -f docker-compose.yml build",
     "docker_dev": "cross-env BUILD_COMMIT=$(git rev-parse HEAD) docker compose up",
-    "docker_dev:rebuild": "cross-env BUILD_COMMIT=$(git rev-parse HEAD) docker compose build",
-    "prepare": "husky"
+    "docker_dev:rebuild": "cross-env BUILD_COMMIT=$(git rev-parse HEAD) docker compose build"
   },
   "dependencies": {
     "auto-changelog": "^2.4.0",
@@ -33,8 +32,7 @@
     "cross-env": "^7.0.3"
   },
   "devDependencies": {
-    "@biomejs/biome": "1.9.4",
-    "husky": "^9.1.7"
+    "@biomejs/biome": "1.9.4"
   },
   "engines": {
     "node": ">=18"

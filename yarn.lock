@@ -6858,11 +6858,6 @@ humanize-ms@^1.2.1:
   dependencies:
     ms "^2.0.0"
 
-husky@^9.1.7:
-  version "9.1.7"
-  resolved "https://registry.yarnpkg.com/husky/-/husky-9.1.7.tgz#d46a38035d101b46a70456a850ff4201344c0b2d"
-  integrity sha512-5gs5ytaNjBrh5Ow3zrvdUUY+0VxIuWVL4i9irt6friV+BqdCfmV11CQTWMiBYWHbXhco+J1kHfTOUkePhCDvMA==
-
 hypercore-crypto@^3.3.0, hypercore-crypto@^3.3.1:
   version "3.6.0"
   resolved "https://registry.yarnpkg.com/hypercore-crypto/-/hypercore-crypto-3.6.0.tgz#6986cc4038339c4402282bbdf33a4fe2dea98db7"

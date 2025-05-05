@@ -1,44 +1,6 @@
 services:
 
   ########################################################
-  # Gradido ##############################################
-  ########################################################
-  gradido:
-    image: gradido/gradido:local-development
-    build:
-      context: ./
-      dockerfile: ./Dockerfile
-      target: development
-      args: 
-        BUILD_COMMIT: ${BUILD_COMMIT}
-        BUILD_COMMIT_SHORT: ${BUILD_COMMIT_SHORT}
-        BUILD_VERSION: ${BUILD_VERSION}
-    depends_on:
-      - mariadb
-    networks:
-      - internal-net
-      - external-net
-    ports:
-      - ${BACKEND_PORT:-4000}:${BACKEND_PORT:-4000}
-      - ${FEDERATION_PORT:-5010}:${FEDERATION_PORT:-5010}
-      - ${FRONTEND_MODULE_PORT:-3000}:${FRONTEND_MODULE_PORT:-3000}
-      - ${ADMIN_MODULE_PORT:-8080}:${ADMIN_MODULE_PORT:-8080}
-    environment:
-      # Envs used in Dockerfile
-      # - DOCKER_WORKDIR="/app"
-      # - PORT=4000
-      - BUILD_DATE
-      - BUILD_VERSION
-      - BUILD_COMMIT
-      - NODE_ENV=production
-      - DB_HOST=mariadb
-    volumes:
-      - ./logs/backend:/logs/backend
-      - gradido_node_modules:/app/node_modules
-      - .:/app
-
-
-  ########################################################
   # FRONTEND #############################################
   ########################################################
   frontend:
@@ -52,9 +14,10 @@ services:
     volumes:
       # This makes sure the docker container has its own node modules.
       # Therefore it is possible to have a different node version on the host machine
-      - frontend_node_modules:/app/node_modules
+      - node_modules:/app/node_modules
+      - turbo_cache:/tmp/turbo
       # bind the local folder to the docker to allow live reload
-      - ./frontend:/app
+      - .:/app
 
   ########################################################
   # ADMIN INTERFACE ######################################
@@ -70,9 +33,10 @@ services:
     volumes:
       # This makes sure the docker container has its own node modules.
       # Therefore it is possible to have a different node version on the host machine
-      - admin_node_modules:/app/node_modules
+      - node_modules:/app/node_modules
+      - turbo_cache:/tmp/turbo
       # bind the local folder to the docker to allow live reload
-      - ./admin:/app
+      - .:/app
 
   ########################################################
   # BACKEND ##############################################
@@ -86,19 +50,14 @@ services:
       - external-net
       - internal-net
     environment:
-      - NODE_ENV="development"
+      - NODE_ENV=development
     volumes:
       # This makes sure the docker container has its own node modules.
       # Therefore it is possible to have a different node version on the host machine
-      - backend_node_modules:/app/node_modules
-      - backend_database_node_modules:/database/node_modules
-      - backend_database_build:/database/build
-      - backend_config_node_modules:/config/node_modules
-      - backend_config_build:/config/build
+      - node_modules:/app/node_modules
+      - turbo_cache:/tmp/turbo
       # bind the local folder to the docker to allow live reload
-      - ./backend:/app
-      - ./database:/database
-      - ./config:/config
+      - .:/app
 
   ########################################################
   # DHT-NODE #############################################
@@ -116,15 +75,10 @@ services:
     volumes:
       # This makes sure the docker container has its own node modules.
       # Therefore it is possible to have a different node version on the host machine
-      - dht_node_modules:/app/node_modules
-      - dht_database_node_modules:/database/node_modules
-      - dht_database_build:/database/build
-      - dht_config_node_modules:/config/node_modules
-      - dht_config_build:/config/build
+      - node_modules:/app/node_modules
+      - turbo_cache:/tmp/turbo
       # bind the local folder to the docker to allow live reload
-      - ./dht-node:/app
-      - ./database:/database
-      - ./config:/config
+      - .:/app
 
   ########################################################
   # DLT-CONNECTOR ########################################
@@ -163,15 +117,10 @@ services:
     volumes:
       # This makes sure the docker container has its own node modules.
       # Therefore it is possible to have a different node version on the host machine
-      - federation_node_modules:/app/node_modules
-      - federation_database_node_modules:/database/node_modules
-      - federation_database_build:/database/build
-      - federation_config_node_modules:/config/node_modules
-      - federation_config_build:/config/build
+      - node_modules:/app/node_modules
+      - turbo_cache:/tmp/turbo
       # bind the local folder to the docker to allow live reload
-      - ./federation:/app
-      - ./database:/database
-      - ./config:/config
+      - .:/app
 
   ########################################################
   # DATABASE ##############################################
@@ -190,7 +139,8 @@ services:
     volumes:
       # This makes sure the docker container has its own node modules.
       # Therefore it is possible to have a different node version on the host machine
-      - database_node_modules:/app/node_modules
+      - node_modules:/app/node_modules
+      - turbo_cache:/tmp/turbo
       # bind the local folder to the docker to allow live reload
       - ./database:/app
 
@@ -261,25 +211,8 @@ services:
       - external-net
 
 volumes:
-  admin_node_modules:
-  frontend_node_modules:
-  gradido_node_modules:  
-  backend_node_modules:
-  backend_database_node_modules:
-  backend_database_build:
-  backend_config_node_modules:
-  backend_config_build:
-  dht_node_modules:
-  dht_database_node_modules:
-  dht_database_build:
-  dht_config_node_modules:
-  dht_config_build:
+  node_modules:  
   dlt_connector_modules:
-  federation_node_modules:
-  federation_database_node_modules:
-  federation_database_build:
-  federation_config_node_modules:
-  federation_config_build:
-  database_node_modules:
   dlt-database_node_modules:
   dlt-database_build:
+  turbo_cache:

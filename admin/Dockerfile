@@ -3,6 +3,7 @@
 ##################################################################################
 FROM node:18.20.7-alpine3.21 as base
 
+ENV TURBO_CACHE_DIR=/tmp/turbo
 # ENVs (available in production aswell, can be overwritten by commandline or env file)
 ## DOCKER_WORKDIR would be a classical ARG, but that is not multi layer persistent - shame
 ENV DOCKER_WORKDIR="/app"
@@ -19,6 +20,8 @@ ENV BUILD_COMMIT_SHORT=${BUILD_COMMIT_SHORT}
 ARG NODE_ENV="production"
 ## App relevant Envs
 ENV PORT="8080"
+## Timezone
+ENV TZ=UTC
 
 # Labels
 LABEL org.label-schema.build-date="${BUILD_DATE}"
@@ -36,6 +39,10 @@ LABEL maintainer="support@ogradido.net"
 # Install Additional Software
 ## install: git
 #RUN apk --no-cache add git
+# RUN bun add --global yarn@1.22.20
+RUN yarn global add bun
+# Add bun's global bin directory to PATH
+ENV PATH="/root/.bun/bin:${PATH}"
 
 # Settings
 ## Expose Container Port
@@ -45,6 +52,16 @@ EXPOSE ${PORT}
 RUN mkdir -p ${DOCKER_WORKDIR}
 WORKDIR ${DOCKER_WORKDIR}
 
+##################################################################################
+# Development ####################################################################
+##################################################################################
+FROM base AS development  
+
+# used for getting git commit hash direct from .git
+RUN apk update && apk add --no-cache git
+
+# Run command
+CMD /bin/sh -c "bun install --frozen-lockfile && bun turbo admin#dev --env-mode=loose" 
 
 ##################################################################################
 # Base with turbo ################################################################
@@ -52,9 +69,8 @@ WORKDIR ${DOCKER_WORKDIR}
 FROM base as turbo-base
 
 RUN apk update && apk add --no-cache libc6-compat \ 
-  && yarn global add turbo@^2 \
-  && rm -rf /tmp/* ~/.cache node_modules/.cache \
-  && yarn cache clean
+  && bun add --global turbo@^2 \
+  && rm -rf /tmp/* ~/.cache node_modules/.cache
 
 ##################################################################################
 # BUILDER (create partly monorepo only with data needed by admin) ################
@@ -77,8 +93,12 @@ RUN yarn install --frozen-lockfile --production=false \
  
 # Build the project
 COPY --chown=app:app --from=builder /app/out/full/ .
+# TODO: get the actually git commit hash into docker
+ENV BUILD_COMMIT='deadbeefdeadbeefdeadbeefdeadbeefdeadbeef'
+ENV BUILD_COMMIT_SHORT='deadbeef'
+ENV BUILD_VERSION='broken'
 RUN turbo build --env-mode=loose
- 
+
 ##################################################################################
 # TEST ###########################################################################
 ##################################################################################
@@ -92,8 +112,11 @@ CMD /bin/sh -c "turbo admin#test --env-mode=loose"
 ##################################################################################
 FROM lipanski/docker-static-website:latest as production
 
+EXPOSE 8080
+
 # tiny static webserver
 # https://lipanski.com/posts/smallest-docker-image-static-website
 
 # copy builded frontend files
 COPY --from=installer /app/admin/build/ ./admin/
+
