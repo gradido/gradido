@@ -31,7 +31,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Build 'test' image (typecheck & build)
+      - name: Build 'production' image
         run: docker build --target production -t "gradido/dht-node:production" -f dht-node/Dockerfile .
 
   unit_test:

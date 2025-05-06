@@ -1,8 +1,8 @@
 ##################################################################################
 # BASE ###########################################################################
 ##################################################################################
-FROM node:18.20.7-bookworm-slim as base
-#FROM node:18.20.7-alpine3.21 as base
+#FROM node:18.20.7-bookworm-slim as base
+FROM node:18.20.7-alpine3.21 as base
 #FROM ubuntu:latest as base
 
 # ENVs (available in production aswell, can be overwritten by commandline or env file)
@@ -20,6 +20,7 @@ ENV NODE_ENV="production"
 #ENV PORT="5000"
 ## Timezone
 ENV TZ=UTC
+ENV DB_HOST=mariadb
 
 # Labels
 LABEL org.label-schema.build-date="${BUILD_DATE}"
@@ -91,7 +92,6 @@ RUN turbo dht-node#build dht-node#typecheck --env-mode=loose
 ##################################################################################
 FROM build as test
 
-ENV DB_HOST=mariadb
 # Run command
 CMD /bin/sh -c "turbo dht-node#test --env-mode=loose"
 
@@ -118,32 +118,6 @@ COPY --chown=app:app --from=production-node-modules ${DOCKER_WORKDIR}/node_modul
 
 # Copy log4js-config.json to provide log configuration
 COPY --chown=app:app --from=build ${DOCKER_WORKDIR}/dht-node/log4js-config.json ./log4js-config.json
-ENV DB_HOST=mariadb
-ENV TZ=UTC
-# Run command
-CMD ["node", "index.js"]
 
-
-##################################################################################
-# PRODUCTION (Does contain only "binary"- and static-files to reduce image size) #
-# Experimental, install only some node_modules which can't be bundled ############
-##################################################################################
-FROM base as production-small
-
-# Copy "binary"-files from build image
-COPY --chown=app:app --from=build ${DOCKER_WORKDIR}/dht-node/build/index.js ./index.js
-COPY --chown=app:app --from=build ${DOCKER_WORKDIR}/scripts/clean-prebuilds.sh ./clean-prebuilds.sh
-#COPY --chown=app:app --from=build ${DOCKER_WORKDIR}/dht-node/package.json ./package.json
-
-# We also install the native node_modules which cannot be bundled
-# TODO: find a elegant way to use the right versions from yarn.lock
-RUN yarn add @hyperswarm/dht@^6.5.1 \
-  && rm -rf /tmp/* ~/.cache node_modules/.cache \
-  && yarn cache clean \
-  && ./clean-prebuilds.sh
-
-# Copy log4js-config.json to provide log configuration
-COPY --chown=app:app --from=build ${DOCKER_WORKDIR}/dht-node/log4js-config.json ./log4js-config.json
-ENV DB_HOST=mariadb
 # Run command
 CMD ["node", "index.js"]
