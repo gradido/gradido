@@ -51,7 +51,7 @@ jobs:
       - name: install dependencies
         run: |
           bun install --filter database --frozen-lockfile
-          bun install --global turbo@^2
+          bun install --global --no-save turbo@^2
 
       - name: Wait for MariaDB to be ready
         run: docker run --rm --network gradido_internal-net busybox sh -c 'until nc -z mariadb 3306; do echo waiting for db; sleep 1; done;'

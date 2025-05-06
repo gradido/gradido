@@ -58,7 +58,7 @@ jobs:
       - name: install dependencies
         run: |
           bun install --filter admin --frozen-lockfile
-          bun install --global turbo@^2
+          bun install --global --no-save turbo@^2
 
       - name: Admin Interface | Unit tests
         id: test
