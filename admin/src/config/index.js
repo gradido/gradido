@@ -2,7 +2,7 @@
 //            The whole contents is exposed to the client
 
 // Load Package Details for some default values
-const pkg = require('../../package')
+import pkg from '../../package'
 
 const version = {
   ADMIN_MODULE_PROTOCOL: process.env.ADMIN_MODULE_PROTOCOL ?? 'http',
