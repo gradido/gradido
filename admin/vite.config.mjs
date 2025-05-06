@@ -6,17 +6,21 @@ import Components from 'unplugin-vue-components/vite'
 import IconsResolve from 'unplugin-icons/resolver'
 import { BootstrapVueNextResolver } from 'bootstrap-vue-next'
 import EnvironmentPlugin from 'vite-plugin-environment'
+
 import schema from './src/config/schema'
-import CONFIG from './src/config'
+
 import { execSync } from 'node:child_process'
 import { existsSync, constants } from 'node:fs'
 
 import { validate, browserUrls } from 'config-schema'
 
 import path from 'node:path'
+import { createRequire } from 'node:module'
 import dotenv from 'dotenv'
-
 dotenv.config() // load env vars from .env
+
+const require = createRequire(import.meta.url)
+const CONFIG = require('./src/config')
 
 export default defineConfig(async ({ command }) => {
   const { vitePluginGraphqlLoader } = await import('vite-plugin-graphql-loader')
