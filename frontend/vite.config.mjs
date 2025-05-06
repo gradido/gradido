@@ -10,13 +10,16 @@ import { createHtmlPlugin } from 'vite-plugin-html'
 import schema from './src/config/schema'
 import { execSync } from 'node:child_process'
 import { existsSync, constants } from 'node:fs'
-import CONFIG from './src/config'
+
 import { validate, browserUrls } from 'config-schema'
 
 import { BootstrapVueNextResolver } from 'bootstrap-vue-next'
 import { createRequire } from 'node:module'
+import dotenv from 'dotenv'
+dotenv.config() // load env vars from .env
 
 const require = createRequire(import.meta.url)
+const CONFIG = require('./src/config')
 
 // https://vitejs.dev/config/
 export default defineConfig(async ({ command }) => {
