@@ -20,10 +20,9 @@ const configLoginServerKey = Buffer.from(CONFIG.LOGIN_SERVER_KEY, 'hex')
 let encryptionWorkerPool: Pool | undefined
 
 if (CONFIG.USE_CRYPTO_WORKER === true) {
-  encryptionWorkerPool = pool(
-    path.join(__dirname, 'worker.js'),
-    { maxQueueSize: 30 * cpus().length },
-  )
+  encryptionWorkerPool = pool(path.join(__dirname, 'worker.js'), {
+    maxQueueSize: 30 * cpus().length,
+  })
 }
 
 // We will reuse this for changePassword

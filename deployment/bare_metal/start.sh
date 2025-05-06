@@ -20,12 +20,7 @@ then
     bun install --global turbo
 fi
 
-# helper functions
-log_step() {
-    local message="$1"
-    echo -e "\e[34m$message\e[0m" > /dev/tty # blue in console
-    echo "<p style="color:blue">$message</p>" >> "$UPDATE_HTML" # blue in html 
-}
+
 
 # check for parameter
 FAST_MODE=false
@@ -54,15 +49,6 @@ fi
 
 BRANCH_NAME="$1"
 
-# Debug-Ausgabe
-if [ -z "$1" ]; then
-    echo "Usage: Please provide a branch name as the first argument."
-    exit 1
-fi
-log_step "Use branch: $BRANCH_NAME"
-if [ "$FAST_MODE" = true ] ; then 
-  log_step "Use fast mode, keep packet manager, turbo and build cache"
-fi
 # Find current directory & configure paths
 set -o allexport
 SCRIPT_PATH=$(realpath $0)
@@ -72,6 +58,23 @@ UPDATE_HTML=$SCRIPT_DIR/nginx/update-page/updating.html
 PROJECT_ROOT=$SCRIPT_DIR/../..
 NGINX_CONFIG_DIR=$SCRIPT_DIR/nginx/sites-available
 set +o allexport
+
+# helper functions
+log_step() {
+    local message="$1"
+    echo -e "\e[34m$message\e[0m" > /dev/tty # blue in console
+    echo "<p style="color:blue">$message</p>" >> "$UPDATE_HTML" # blue in html 
+}
+
+# Debug-Ausgabe
+if [ -z "$1" ]; then
+    echo "Usage: Please provide a branch name as the first argument."
+    exit 1
+fi
+log_step "Use branch: $BRANCH_NAME"
+if [ "$FAST_MODE" = true ] ; then 
+  log_step "Use fast mode, keep packet manager, turbo and build cache"
+fi
 
 # enable nvm 
 export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
