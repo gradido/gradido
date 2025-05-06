@@ -830,7 +830,7 @@
   resolved "https://registry.yarnpkg.com/@humanwhocodes/object-schema/-/object-schema-2.0.3.tgz#4a2868d75d6d6963e423bcf90b7fd1be343409d3"
   integrity sha512-93zYdMES/c1D69yZiKDBj0V24vqNzB/koF26KPaagAfd3P/4gUlh3Dys5ogAK+Exi9QyzlD8x/08Zt7wIKcDcA==
 
-"@hyperswarm/dht@^6.5.1":
+"@hyperswarm/dht@6.5.1":
   version "6.5.1"
   resolved "https://registry.yarnpkg.com/@hyperswarm/dht/-/dht-6.5.1.tgz#07e144590f532c2f872e3617117d17f266b2f7a4"
   integrity sha512-TTTOzuwqbmXNwl+b2FXeHCoR2QS1sqxQvqXwv2i54sdEkKmF8f8t4U8PsRGk5PUO3qA6GxlMThvXixg9Fgs4Yw==
@@ -4936,7 +4936,7 @@ detect-newline@^3.0.0, detect-newline@^3.1.0:
   resolved "https://registry.yarnpkg.com/detect-newline/-/detect-newline-3.1.0.tgz#576f5dfc63ae1a192ff192d8ad3af6308991b651"
   integrity sha512-TLz+x/vEXm/Y7P7wn1EJFNLxYpUD4TgMosxY6fAVJUnJMbupHBOncxyWUG9OpTaH9EBD7uFI5LfEgmMOc54DsA==
 
-dht-rpc@^6.6.3:
+dht-rpc@6.18.1, dht-rpc@^6.6.3:
   version "6.18.1"
   resolved "https://registry.yarnpkg.com/dht-rpc/-/dht-rpc-6.18.1.tgz#6e4109989d47fea487f0be8efa2980557019fde7"
   integrity sha512-uTcHj8dERVjmoUsSxqAulQ+qo11Qy4pMK419tyF2cFpyf56Y09u1v9g8yWlay0KjUY5bvdybBQ/V8YWN/wyK5Q==
@@ -10320,7 +10320,7 @@ slick@^1.12.2:
   resolved "https://registry.yarnpkg.com/slick/-/slick-1.12.2.tgz#bd048ddb74de7d1ca6915faa4a57570b3550c2d7"
   integrity sha512-4qdtOGcBjral6YIBCWJ0ljFSKNLz9KkhbWtuGvUyRowl1kxfuE1x/Z/aJcaiilpb3do9bl5K7/1h9XC5wWpY/A==
 
-sodium-native@^3.3.0, sodium-native@^3.4.1:
+sodium-native@^3.4.1:
   version "3.4.1"
   resolved "https://registry.yarnpkg.com/sodium-native/-/sodium-native-3.4.1.tgz#44616c07ccecea15195f553af88b3e574b659741"
   integrity sha512-PaNN/roiFWzVVTL6OqjzYct38NSXewdl2wz8SRB51Br/MLIJPrbM3XexhVWkq7D3UWMysfrhKVf1v1phZq6MeQ==
@@ -10350,7 +10350,7 @@ sodium-secretstream@^1.1.0:
     b4a "^1.1.1"
     sodium-universal "^5.0.0"
 
-sodium-universal@^4.0.0:
+sodium-universal@4.0.1, sodium-universal@^4.0.0:
   version "4.0.1"
   resolved "https://registry.yarnpkg.com/sodium-universal/-/sodium-universal-4.0.1.tgz#75146f3b6fb6ab0dcc9278ad468ef5f23a0351e4"
   integrity sha512-sNp13PrxYLaUFHTGoDKkSDFvoEu51bfzE12RwGlqU1fcrkpAOK0NvizaJzOWV0Omtk9me2+Pnbjcf/l0efxuGQ==

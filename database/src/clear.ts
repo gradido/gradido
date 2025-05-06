@@ -1,5 +1,6 @@
-import { Connection, createConnection } from 'mysql2/promise'
+import { Connection } from 'mysql2/promise'
 import { CONFIG } from './config'
+import { connectToDatabaseServer } from './prepare'
 
 export async function truncateTables(connection: Connection) {
   const [tables] = await connection.query('SHOW TABLES')
@@ -26,13 +27,10 @@ export async function truncateTables(connection: Connection) {
 }
 
 export async function clearDatabase() {
-  const connection = await createConnection({
-    host: CONFIG.DB_HOST,
-    port: CONFIG.DB_PORT,
-    user: CONFIG.DB_USER,
-    password: CONFIG.DB_PASSWORD,
-    database: CONFIG.DB_DATABASE,
-  })
+  const connection = await connectToDatabaseServer()
+  if (!connection) {
+    throw new Error('Could not connect to database server')
+  }
 
   await truncateTables(connection)
 

@@ -16,6 +16,7 @@ ENV BUILD_COMMIT="0000000"
 ENV NODE_ENV="production"
 ## Timezone
 ENV TZ=UTC
+ENV DB_HOST=mariadb
 
 # Labels
 LABEL org.label-schema.build-date="${BUILD_DATE}"
@@ -39,59 +40,65 @@ RUN mkdir -p ${DOCKER_WORKDIR}
 WORKDIR ${DOCKER_WORKDIR}
 
 ##################################################################################
-# Base with turbo ################################################################
+# BUN ############################################################################
 ##################################################################################
-FROM base as turbo-base
+FROM base as bun-base
 
-RUN apk update && apk add --no-cache libc6-compat \ 
-  && yarn global add turbo@^2 \
-  && rm -rf /tmp/* ~/.cache node_modules/.cache \
-  && yarn cache clean
-
-
-##################################################################################
-# BUILDER (create partly monorepo only with data needed by database) #############
-##################################################################################
-FROM turbo-base as builder
-
-COPY --chown=app:app . . 
-RUN turbo prune database --docker
+#RUN apt update && apt install -y --no-install-recommends ca-certificates curl bash unzip
+RUN apk update && apk add --no-cache curl tar bash
+RUN curl -fsSL https://bun.sh/install | bash
+# Add bun's global bin directory to PATH
+ENV PATH="/root/.bun/bin:${PATH}"
 
 ##################################################################################
-# INSTALLER (create production image) ############################################
+# Installer ######################################################################
 ##################################################################################
-FROM turbo-base AS installer
+FROM bun-base as installer
 
-# First install the dependencies (as they change less often)
-COPY --chown=app:app --from=builder /app/out/json/ .
-RUN yarn install --frozen-lockfile --production=false \
- && rm -rf /tmp/* ~/.cache node_modules/.cache \
- && yarn cache clean
- 
-# Build the project
-COPY --chown=app:app --from=builder /app/out/full/ .
-#RUN turbo build
- 
+COPY --chown=app:app ./database .
+RUN bun install --production --no-cache --frozen-lockfile
+
+##################################################################################
+# Build ##########################################################################
+##################################################################################
+FROM installer as build
+
+RUN bun install --no-cache --frozen-lockfile \
+  yarn build && yarn typecheck
+
+##################################################################################
+# PRODUCTION IMAGE ###############################################################
+##################################################################################
+FROM base as production 
+
+COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/src ./src
+COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/migrations ./migrations
+COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/entity ./entity
+COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/node_modules ./node_modules
+COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/package.json ./package.json 
+COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/tsconfig.json ./tsconfig.json
+
 ##################################################################################
 # TEST UP ########################################################################
 ##################################################################################
-FROM installer as up
+FROM production as up
+
 
 # Run command
-CMD /bin/sh -c "turbo up"
+CMD /bin/sh -c "yarn up"
 
 ##################################################################################
 # TEST RESET #####################################################################
 ##################################################################################
-FROM installer as reset
+FROM production as reset
 
 # Run command
-CMD /bin/sh -c "turbo reset"
+CMD /bin/sh -c "yarn reset"
 
 ##################################################################################
 # TEST DOWN ######################################################################
 ##################################################################################
-FROM installer as down
+FROM production as down
 
 # Run command
-CMD /bin/sh -c "turbo down"
+CMD /bin/sh -c "yarn down"

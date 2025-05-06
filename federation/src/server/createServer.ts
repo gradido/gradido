@@ -3,17 +3,13 @@ import 'reflect-metadata'
 import { ApolloServer } from 'apollo-server-express'
 import express, { Express, RequestHandler } from 'express'
 
-import { checkDBVersion } from '@/typeorm/DBVersion'
-// database
-import { connection } from '@/typeorm/connection'
+import { checkDBVersionUntil } from '@/typeorm/DBVersion'
 
 // server
 import cors from './cors'
 // import serverContext from './context'
 import { plugins } from './plugins'
 
-// config
-import { CONFIG } from '@/config'
 
 // graphql
 import { schema } from '@/graphql/schema'
@@ -44,18 +40,7 @@ export const createServer = async (
   logger.debug('createServer...')
 
   // open mysql connection
-  const con = await connection()
-  if (!con || !con.isConnected) {
-    logger.fatal(`Couldn't open connection to database!`)
-    throw new Error(`Fatal: Couldn't open connection to database`)
-  }
-
-  // check for correct database version
-  const dbVersion = await checkDBVersion(CONFIG.DB_VERSION)
-  if (!dbVersion) {
-    logger.fatal('Fatal: Database Version incorrect')
-    throw new Error('Fatal: Database Version incorrect')
-  }
+  const con = await checkDBVersionUntil()
 
   // Express Server
   const app = express()

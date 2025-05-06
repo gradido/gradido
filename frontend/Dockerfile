@@ -9,12 +9,13 @@ ENV DOCKER_WORKDIR="/app"
 ## We Cannot do `$(date -u +'%Y-%m-%dT%H:%M:%SZ')` here so we use unix timestamp=0
 ENV BUILD_DATE="1970-01-01T00:00:00.00Z"
 ## We cannot do $(npm run version).${BUILD_NUMBER} here so we default to 0.0.0.0
+# TODO: get the actually git commit hash into docker
 ARG BUILD_VERSION
-ENV BUILD_VERSION=${BUILD_VERSION}
+ENV BUILD_VERSION=${BUILD_VERSION:-'broken'}
 ARG BUILD_COMMIT
-ENV BUILD_COMMIT=${BUILD_COMMIT}
+ENV BUILD_COMMIT=${BUILD_COMMIT:-'deadbeefdeadbeefdeadbeefdeadbeefdeadbeef'}
 ARG BUILD_COMMIT_SHORT
-ENV BUILD_COMMIT_SHORT=${BUILD_COMMIT_SHORT}
+ENV BUILD_COMMIT_SHORT=${BUILD_COMMIT_SHORT:-'deadbeef'}
 ## SET NODE_ENV
 ARG NODE_ENV=production
 ENV NODE_ENV=${NODE_ENV}
@@ -83,10 +84,6 @@ COPY --chown=app:app . .
 RUN bun install --filter frontend --no-cache --frozen-lockfile \
     && bun install --global turbo@^2
 
-# TODO: get the actually git commit hash into docker
-ENV BUILD_COMMIT='deadbeefdeadbeefdeadbeefdeadbeefdeadbeef'
-ENV BUILD_COMMIT_SHORT='deadbeef'
-ENV BUILD_VERSION='broken'
 RUN turbo frontend#build --env-mode=loose
 
 ##################################################################################
@@ -97,14 +94,14 @@ FROM build as test
 # Run command
 CMD /bin/sh -c "turbo frontend#test --env-mode=loose"
 
-
 ##################################################################################
 # PRODUCTION (Does contain only "binary"- and static-files to reduce image size) #
 ##################################################################################
-FROM lipanski/docker-static-website:latest as production
+FROM nginx:1.28.0-alpine3.21-slim as production
 
-# tiny static webserver
-# https://lipanski.com/posts/smallest-docker-image-static-website
+COPY ./nginx/frontend.conf /etc/nginx/conf.d/default.conf
+
+WORKDIR /app
 
 # copy builded frontend files
 COPY --from=build /app/frontend/build/ .

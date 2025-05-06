@@ -8,6 +8,9 @@ services:
     image: gradido/frontend:local-development
     build:
       target: development
+    networks:
+      - external-net
+      - internal-net
     environment:
       - NODE_ENV=development
       # - DEBUG=true
@@ -27,9 +30,11 @@ services:
     image: gradido/admin:local-development
     build:
       target: development
+    networks:
+      - external-net
+      - internal-net    
     environment:
       - NODE_ENV=development
-      # - DEBUG=true
     volumes:
       # This makes sure the docker container has its own node modules.
       # Therefore it is possible to have a different node version on the host machine
@@ -134,6 +139,8 @@ services:
     image: gradido/database:local-up
     build:
       target: up
+    profiles:
+      - up
     environment:
       - NODE_ENV=development
     volumes:
@@ -177,7 +184,13 @@ services:
   #########################################################
   ## NGINX ################################################
   #########################################################
-  # nginx:
+  nginx:
+    build:
+      context: ./nginx/
+    depends_on:
+      - backend
+      - frontend
+      - admin
   
   #########################################################
   ## PHPMYADMIN ###########################################
