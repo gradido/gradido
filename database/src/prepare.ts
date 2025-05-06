@@ -11,7 +11,10 @@ export enum DatabaseState {
   SAME_VERSION = 'SAME_VERSION',
 }
 
-export async function connectToDatabaseServer(maxRetries = 15, delayMs = 500): Promise<Connection | null> {
+export async function connectToDatabaseServer(
+  maxRetries = 15,
+  delayMs = 500,
+): Promise<Connection | null> {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       return await createConnection({
@@ -24,7 +27,7 @@ export async function connectToDatabaseServer(maxRetries = 15, delayMs = 500): P
       // biome-ignore lint/suspicious/noConsole: no logger present
       console.log(`could not connect to database server, retry in ${delayMs} ms`, e)
     }
-    await new Promise(resolve => setTimeout(resolve, delayMs))
+    await new Promise((resolve) => setTimeout(resolve, delayMs))
   }
   return null
 }

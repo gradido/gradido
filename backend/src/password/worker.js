@@ -4,4 +4,3 @@ const { SecretKeyCryptographyCreateKeyFunc } = require('./EncryptionWorker')
 worker({
   SecretKeyCryptographyCreateKeyFunc,
 })
-

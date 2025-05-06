@@ -18,10 +18,12 @@ async function checkDBVersionUntil(maxRetries = 15, delayMs = 500): Promise<DbCo
     } catch (err) {
       logger.warn(`Attempt ${attempt}: Waiting for DB...`, err)
     }
-    await new Promise(resolve => setTimeout(resolve, delayMs))
+    await new Promise((resolve) => setTimeout(resolve, delayMs))
   }
 
-  logger.fatal(`Fatal: Could not connect to database or version check failed after ${maxRetries} attempts.`)
+  logger.fatal(
+    `Fatal: Could not connect to database or version check failed after ${maxRetries} attempts.`,
+  )
   throw new Error('Fatal: Database not ready.')
 }
 

@@ -10,7 +10,6 @@ import cors from './cors'
 // import serverContext from './context'
 import { plugins } from './plugins'
 
-
 // graphql
 import { schema } from '@/graphql/schema'
 
