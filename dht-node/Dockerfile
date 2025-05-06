@@ -72,14 +72,19 @@ CMD /bin/sh -c "bun install --filter dht-node --no-cache --frozen-lockfile \
   && turbo dht-node#dev --env-mode=loose" 
 
 ##################################################################################
+# Basic Image with bun setup and project and source code #########################
+##################################################################################
+FROM bun-base as bun-base-src
+COPY --chown=app:app . . 
+
+##################################################################################
 # BUILDER (create partly monorepo only with data needed by dht-node) #############
 ##################################################################################
-FROM bun-base as build
+FROM bun-base-src as build
 
-COPY --chown=app:app . . 
 RUN bun install --filter dht-node --no-cache --frozen-lockfile \
-  && bun install --global --no-cache --no-save turbo@^2 \
-  && turbo dht-node#build dht-node#typecheck --env-mode=loose
+  && bun install --global --no-cache --no-save turbo@^2
+RUN turbo dht-node#build dht-node#typecheck --env-mode=loose
 
 ##################################################################################
 # TEST ###########################################################################
@@ -91,9 +96,39 @@ ENV DB_HOST=mariadb
 CMD /bin/sh -c "turbo dht-node#test --env-mode=loose"
 
 ##################################################################################
+# install only node modules needed for running bundle ############################
+##################################################################################
+FROM bun-base-src as production-node-modules
+
+# add node_modules from production_node_modules
+RUN bun install --filter dht-node --production --frozen-lockfile --no-cache \
+  && rm -rf /tmp/* ~/.cache node_modules/.cache \
+  && ./scripts/clean-prebuilds.sh
+
+##################################################################################
 # PRODUCTION (Does contain only "binary"- and static-files to reduce image size) #
 ##################################################################################
 FROM base as production
+
+# Copy "binary"-files from build image
+COPY --chown=app:app --from=build ${DOCKER_WORKDIR}/dht-node/build/index.js ./index.js
+
+# add node_modules from production_node_modules
+COPY --chown=app:app --from=production-node-modules ${DOCKER_WORKDIR}/node_modules ./node_modules
+
+# Copy log4js-config.json to provide log configuration
+COPY --chown=app:app --from=build ${DOCKER_WORKDIR}/dht-node/log4js-config.json ./log4js-config.json
+ENV DB_HOST=mariadb
+ENV TZ=UTC
+# Run command
+CMD ["node", "index.js"]
+
+
+##################################################################################
+# PRODUCTION (Does contain only "binary"- and static-files to reduce image size) #
+# Experimental, install only some node_modules which can't be bundled ############
+##################################################################################
+FROM base as production-small
 
 # Copy "binary"-files from build image
 COPY --chown=app:app --from=build ${DOCKER_WORKDIR}/dht-node/build/index.js ./index.js
