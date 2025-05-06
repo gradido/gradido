@@ -1,7 +1,9 @@
 ##################################################################################
 # BASE ###########################################################################
 ##################################################################################
-FROM node:18.20.7-alpine3.21 as base
+FROM node:18.20.7-bookworm-slim as base
+#FROM node:18.20.7-alpine3.21 as base
+# change to alpine after sodium-native ship with native alpine build
 
 # ENVs (available in production aswell, can be overwritten by commandline or env file)
 ## DOCKER_WORKDIR would be a classical ARG, but that is not multi layer persistent - shame
@@ -19,6 +21,7 @@ ENV PORT="5010"
 # ENV PORT="${env.FEDERATION_PORT}"
 ## Timezone
 ENV TZ=UTC
+ENV DB_HOST=mariadb
 
 # Labels
 LABEL org.label-schema.build-date="${BUILD_DATE}"
@@ -51,7 +54,8 @@ WORKDIR ${DOCKER_WORKDIR}
 ##################################################################################
 FROM base as bun-base
 
-RUN apk update && apk add --no-cache curl tar bash
+RUN apt update && apt install -y --no-install-recommends ca-certificates curl bash unzip
+#RUN apk update && apk add --no-cache curl tar bash
 RUN curl -fsSL https://bun.sh/install | bash
 # Add bun's global bin directory to PATH
 ENV PATH="/root/.bun/bin:${PATH}"
@@ -66,26 +70,39 @@ CMD /bin/sh -c "bun install --filter federation --no-cache --frozen-lockfile \
   && bun install --global --no-cache --no-save turbo@^2 \
   && turbo federation#dev --env-mode=loose" 
 
+##################################################################################
+# Basic Image with bun setup and project and source code #########################
+##################################################################################
+FROM bun-base as bun-base-src
+COPY --chown=app:app . . 
+
 
 ##################################################################################
 # Build ##########################################################################
 ##################################################################################
-FROM bun-base as build 
+FROM bun-base-src as build 
 
-COPY --chown=app:app . . 
 RUN bun install --filter federation --no-cache --frozen-lockfile \
-  && bun install --global --no-cache --no-save turbo@^2 \
-  && turbo federation#build federation#typecheck --env-mode=loose
+  && bun install --global --no-cache --no-save turbo@^2 
+RUN  turbo federation#build federation#typecheck --env-mode=loose
 
 ##################################################################################
 # TEST ###########################################################################
 ##################################################################################
 FROM build as test
 
-ENV DB_HOST=mariadb
-
 # Run command
 CMD /bin/sh -c "turbo federation#test --env-mode=loose"
+
+##################################################################################
+# install only node modules needed for running bundle ############################
+##################################################################################
+FROM bun-base-src as production-node-modules
+
+# add node_modules from production_node_modules
+RUN bun install --filter federation --production --frozen-lockfile --no-cache \
+  && rm -rf /tmp/* ~/.cache node_modules/.cache \
+  && ./scripts/clean-prebuilds.sh
 
 ##################################################################################
 # PRODUCTION (Does contain only "binary"- and static-files to reduce image size) #
@@ -95,11 +112,8 @@ FROM base as production
 # Copy "binary"-files from build image
 COPY --chown=app:app --from=build ${DOCKER_WORKDIR}/federation/build/index.js ./index.js
 
-# We also install the native node_modules which cannot be bundled
-# TODO: find a elegant way to use the right versions from yarn.lock
-RUN yarn add sodium-native@4.0.0 \
-  && rm -rf /tmp/* ~/.cache node_modules/.cache \
-  && yarn cache clean
+# add node_modules from production_node_modules
+COPY --chown=app:app --from=production-node-modules ${DOCKER_WORKDIR}/node_modules ./node_modules
 
 # Copy log4js-config.json to provide log configuration
 COPY --chown=app:app --from=build ${DOCKER_WORKDIR}/federation/log4js-config.json ./log4js-config.json

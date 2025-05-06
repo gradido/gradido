@@ -3,7 +3,7 @@
 ##################################################################################
 FROM node:18.20.7-bookworm-slim as base
 #FROM node:18.20.7-alpine3.21 as base
-#FROM ubuntu:latest as base
+# change to alpine after sodium-native ship with native alpine build
 
 # ENVs (available in production aswell, can be overwritten by commandline or env file)
 ## DOCKER_WORKDIR would be a classical ARG, but that is not multi layer persistent - shame

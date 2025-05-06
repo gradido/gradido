@@ -59,9 +59,6 @@ jobs:
           bun install --filter dht-node --frozen-lockfile
           bun install --global --no-save turbo@^2
 
-      - name: Wait for MariaDB to be ready
-        run: until nc -z localhost 3306; do echo waiting for db; sleep 1; done;
-
       - name: run unit test & build & typecheck
         run: turbo dht-node#test dht-node#build dht-node#typecheck
 

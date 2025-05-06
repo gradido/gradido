@@ -7,6 +7,7 @@ services:
 
   ########################################################
   # FRONTEND #############################################
+  # contain also admin in production #####################
   ########################################################
   frontend:
     # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
@@ -20,7 +21,6 @@ services:
         BUILD_COMMIT_SHORT: ${BUILD_COMMIT_SHORT}
         BUILD_VERSION: ${BUILD_VERSION}
     networks:
-      - external-net
       - internal-net
     ports:
       - ${FRONTEND_MODULE_PORT:-3000}:3000
@@ -35,6 +35,8 @@ services:
     # env_file:
       # - ./.env
       # - ./frontend/.env
+    volumes:
+      - ./logs/nginx/frontend:/var/log/nginx
 
   ########################################################
   # ADMIN INTERFACE ######################################
@@ -46,29 +48,18 @@ services:
       context: ./
       dockerfile: ./admin/Dockerfile
       target: production
-      args: 
-        BUILD_COMMIT: ${BUILD_COMMIT}
-        BUILD_COMMIT_SHORT: ${BUILD_COMMIT_SHORT}
-        BUILD_VERSION: ${BUILD_VERSION}
     networks:
-      - external-net
       - internal-net
     ports:
-      - ${ADMIN_MODULE_PORT:-8080}:3000
+      - ${ADMIN_MODULE_PORT:-8080}:8080
     environment:
+      - NODE_ENV=production
       - BUILD_COMMIT=${BUILD_COMMIT}
       - BUILD_COMMIT_SHORT=${BUILD_COMMIT_SHORT}
       - BUILD_VERSION=${BUILD_VERSION}
-      # Envs used in Dockerfile
-      # - DOCKER_WORKDIR="/app"
-      # - PORT=8090
-      # - BUILD_DATE="1970-01-01T00:00:00.00Z"
-      # - BUILD_VERSION="0.0.0.0"
-      # - BUILD_COMMIT="0000000"
-      - NODE_ENV=production
-    # env_file:
-      # - ./.env
-      # - ./admin/.env
+      # - DEBUG=true
+    volumes:
+      - ./logs/nginx/admin:/var/log/nginx
 
   #########################################################
   ## MARIADB ##############################################
@@ -231,8 +222,6 @@ services:
       context: .
       dockerfile: ./database/Dockerfile
       target: up
-    profiles:
-      - migration
     depends_on:
       - mariadb
     networks:
@@ -290,7 +279,6 @@ services:
     depends_on:
       - backend
       - frontend
-      - admin
     ports:
       - 80:80
     volumes:

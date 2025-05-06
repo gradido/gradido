@@ -11,19 +11,22 @@ export enum DatabaseState {
   SAME_VERSION = 'SAME_VERSION',
 }
 
-async function connectToDatabaseServer(): Promise<Connection | null> {
-  try {
-    return await createConnection({
-      host: CONFIG.DB_HOST,
-      port: CONFIG.DB_PORT,
-      user: CONFIG.DB_USER,
-      password: CONFIG.DB_PASSWORD,
-    })
-  } catch (e) {
-    // biome-ignore lint/suspicious/noConsole: no logger present
-    console.log('could not connect to database server', e)
-    return null
+export async function connectToDatabaseServer(maxRetries = 15, delayMs = 500): Promise<Connection | null> {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await createConnection({
+        host: CONFIG.DB_HOST,
+        port: CONFIG.DB_PORT,
+        user: CONFIG.DB_USER,
+        password: CONFIG.DB_PASSWORD,
+      })
+    } catch (e) {
+      // biome-ignore lint/suspicious/noConsole: no logger present
+      console.log(`could not connect to database server, retry in ${delayMs} ms`, e)
+    }
+    await new Promise(resolve => setTimeout(resolve, delayMs))
   }
+  return null
 }
 
 export const getDatabaseState = async (): Promise<DatabaseState> => {

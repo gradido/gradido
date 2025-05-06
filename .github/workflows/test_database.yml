@@ -30,8 +30,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Database | Build 'up' image
-        run: docker build --target up -t "gradido/database:up" -f database/Dockerfile .
+      - name: Database | Build image
+        run: docker build --target build -t "gradido/database:build" -f database/Dockerfile .
 
   database_migration_test:
     if: needs.files-changed.outputs.database == 'true' || needs.files-changed.outputs.docker-compose == 'true'  || needs.files-changed.outputs.mariadb == 'true'
@@ -53,9 +53,6 @@ jobs:
           bun install --filter database --frozen-lockfile
           bun install --global --no-save turbo@^2
 
-      - name: Wait for MariaDB to be ready
-        run: docker run --rm --network gradido_internal-net busybox sh -c 'until nc -z mariadb 3306; do echo waiting for db; sleep 1; done;'
-      
       - name: Database | up
         run: turbo up
       

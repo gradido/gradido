@@ -12,7 +12,7 @@ import { backendLogger as logger } from '@/server/logger'
 
 import { crypto_shorthash_KEYBYTES } from 'sodium-native'
 
-import { SecretKeyCryptographyCreateKeyFunc } from './EncryptionWorker'
+import { SecretKeyCryptographyCreateKeyFunc } from './EncryptionWorker.js'
 
 const configLoginAppSecret = Buffer.from(CONFIG.LOGIN_APP_SECRET, 'hex')
 const configLoginServerKey = Buffer.from(CONFIG.LOGIN_SERVER_KEY, 'hex')
@@ -21,7 +21,7 @@ let encryptionWorkerPool: Pool | undefined
 
 if (CONFIG.USE_CRYPTO_WORKER === true) {
   encryptionWorkerPool = pool(
-    path.join(__dirname, '..', 'build', 'password', 'EncryptionWorker.js'),
+    path.join(__dirname, 'worker.js'),
     { maxQueueSize: 30 * cpus().length },
   )
 }

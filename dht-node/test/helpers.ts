@@ -1,12 +1,6 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { entities } from 'database'
 
-import { CONFIG } from '@/config'
-import { connection } from '@/typeorm/connection'
-import { checkDBVersion } from '@/typeorm/DBVersion'
-
-import { logger } from './testSetup'
+import { checkDBVersionUntil } from '@/typeorm/DBVersion'
 
 export const headerPushMock = jest.fn((t) => {
   context.token = t.value
@@ -29,20 +23,7 @@ export const cleanDB = async () => {
 }
 
 export const testEnvironment = async () => {
-  // open mysql connection
-  const con = await connection()
-  if (!con || !con.isConnected) {
-    logger.fatal(`Couldn't open connection to database!`)
-    throw new Error(`Fatal: Couldn't open connection to database`)
-  }
-
-  // check for correct database version
-  const dbVersion = await checkDBVersion(CONFIG.DB_VERSION)
-  if (!dbVersion) {
-    logger.fatal('Fatal: Database Version incorrect')
-    throw new Error('Fatal: Database Version incorrect')
-  }
-  return { con }
+  return { con: await checkDBVersionUntil() }
 }
 
 export const resetEntity = async (entity: any) => {
