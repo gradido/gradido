@@ -2,7 +2,7 @@
 //            The whole contents is exposed to the client
 
 // Load Package Details for some default values
-const pkg = require('../../package')
+import pkg from '../../package'
 
 const constants = {
   DECAY_START_TIME: new Date('2021-05-13 17:46:31-0000'), // GMT+0
