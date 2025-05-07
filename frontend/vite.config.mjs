@@ -18,10 +18,6 @@ import { createRequire } from 'node:module'
 import dotenv from 'dotenv'
 dotenv.config() // load env vars from .env
 
-import dotenv from 'dotenv'
-
-dotenv.config() // load env vars from .env
-
 const require = createRequire(import.meta.url)
 const CONFIG = require('./src/config')
 
