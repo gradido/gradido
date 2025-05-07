@@ -177,13 +177,13 @@ const itemType = computed(() => {
       linkData.value.senderUser?.gradidoID,
     )
     if (
-      (!isRedeemJwtLink.value &&
-        linkData.value.recipientUser &&
-        store.state.gradidoID === linkData.value.recipientUser.gradidoID) ||
-      (isRedeemJwtLink.value &&
-        linkData.value.senderUser &&
-        linkData.value.recipientUser &&
-        linkData.value.senderUser.gradidoID === linkData.value.recipientUser.gradidoID)
+      //      (!isRedeemJwtLink.value &&
+      //        linkData.value.recipientUser &&
+      //        store.state.gradidoID === linkData.value.recipientUser.gradidoID) ||
+      // isRedeemJwtLink.value &&
+      linkData.value.senderUser &&
+      linkData.value.recipientUser &&
+      linkData.value.senderUser.gradidoID === linkData.value.recipientUser.gradidoID
     ) {
       console.log('TransactionLink.itemType... SELF_CREATOR')
       return 'SELF_CREATOR'
