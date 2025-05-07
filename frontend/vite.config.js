@@ -16,6 +16,10 @@ import { validate, browserUrls } from 'config-schema'
 import { BootstrapVueNextResolver } from 'bootstrap-vue-next'
 import { createRequire } from 'node:module'
 
+import dotenv from 'dotenv'
+
+dotenv.config() // load env vars from .env
+
 const require = createRequire(import.meta.url)
 
 // https://vitejs.dev/config/
