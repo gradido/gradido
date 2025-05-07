@@ -194,7 +194,7 @@ const itemType = computed(() => {
       console.log('TransactionLink.itemType... linkData.value=', linkData.value)
       return 'REDEEM_SELECT_COMMUNITY'
     }
-    if (isRedeemJwtLink.value) {
+    if (isRedeemJwtLink.value && linkData.value.recipientUser) {
       console.log('TransactionLink.itemType... VALID')
       console.log('TransactionLink.itemType... validLink=', validLink.value)
       console.log('TransactionLink.itemType... linkData.value=', linkData.value)
