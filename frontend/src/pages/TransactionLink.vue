@@ -154,6 +154,10 @@ const itemType = computed(() => {
       console.log('TransactionLink.itemType... TEXT_REDEEMED')
       return 'TEXT_REDEEMED'
     }
+    if (linkData.value.deletedAt) {
+      console.log('TransactionLink.itemType... TEXT_DELETED')
+      return 'TEXT_DELETED'
+    }
     if (store.state.token && store.state.tokenTime) {
       if (tokenExpiresInSeconds.value < 5) {
         console.log('TransactionLink.itemType... REDEEM_SELECT_COMMUNITY')
@@ -177,10 +181,6 @@ const itemType = computed(() => {
       linkData.value.senderUser?.gradidoID,
     )
     if (
-      //      (!isRedeemJwtLink.value &&
-      //        linkData.value.recipientUser &&
-      //        store.state.gradidoID === linkData.value.recipientUser.gradidoID) ||
-      // isRedeemJwtLink.value &&
       linkData.value.senderUser &&
       linkData.value.recipientUser &&
       linkData.value.senderUser.gradidoID === linkData.value.recipientUser.gradidoID
@@ -188,16 +188,23 @@ const itemType = computed(() => {
       console.log('TransactionLink.itemType... SELF_CREATOR')
       return 'SELF_CREATOR'
     }
-    if (!isRedeemJwtLink.value && !linkData.value.redeemedAt && !linkData.value.deletedAt) {
-      console.log('TransactionLink.itemType... REDEEM_SELECT_COMMUNITY')
-      console.log('TransactionLink.itemType... validLink=', validLink.value)
-      console.log('TransactionLink.itemType... linkData.value=', linkData.value)
-      return 'REDEEM_SELECT_COMMUNITY'
-    }
-    if (isRedeemJwtLink.value && linkData.value.recipientUser) {
+    if (
+      linkData.value.senderUser &&
+      linkData.value.recipientUser &&
+      linkData.value.senderUser.gradidoID !== linkData.value.recipientUser.gradidoID &&
+      store.state.gradidoID === linkData.value.recipientUser.gradidoID
+    ) {
       console.log('TransactionLink.itemType... VALID')
-      console.log('TransactionLink.itemType... validLink=', validLink.value)
       console.log('TransactionLink.itemType... linkData.value=', linkData.value)
+      console.log('TransactionLink.itemType... store.state.gradidoID=', store.state.gradidoID)
+      console.log(
+        'TransactionLink.itemType... linkData.value.recipientUser.gradidoID=',
+        linkData.value.recipientUser.gradidoID,
+      )
+      console.log(
+        'TransactionLink.itemType... linkData.value.senderUser.gradidoID=',
+        linkData.value.senderUser.gradidoID,
+      )
       return 'VALID'
     }
   }
