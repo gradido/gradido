@@ -1,12 +1,12 @@
 {
   "name": "backend",
   "version": "2.5.2",
+  "private": false,
   "description": "Gradido unified backend providing an API-Service for Gradido Transactions",
-  "main": "src/index.ts",
   "repository": "https://github.com/gradido/gradido/backend",
   "license": "Apache-2.0",
-  "private": false,
   "author": "Gradido Academy - https://www.gradido.net",
+  "main": "src/index.ts",
   "scripts": {
     "build": "ts-node ./esbuild.config.ts && mkdirp build/templates/ && ncp src/emails/templates build/templates && mkdirp locales/ && ncp src/locales locales",
     "clean": "tsc --build --clean",
