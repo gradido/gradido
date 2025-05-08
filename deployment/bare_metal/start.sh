@@ -154,8 +154,8 @@ log_error() {
 }
 log_warn() {
     local message="$1"
-    echo -e "\e[33m$message\e[0m" > /dev/tty # yellow in console
-    echo "<span style="color:yellow">$message</span>" >> "$UPDATE_HTML" # yellow in html 
+    echo -e "\e[33m$message\e[0m" > /dev/tty # orange in console
+    echo "<span style="color:orange">$message</span>" >> "$UPDATE_HTML" # orange in html 
 }
 log_success() {
     local message="$1"
@@ -255,7 +255,8 @@ MODULES=(
 if [ "$FAST_MODE" = false ] ; then 
   log_step 'Clean tmp, bun and yarn cache'
   # Clean tmp folder - remove yarn files
-  find /tmp -name "yarn--*" -exec rm -r {} \;
+  # ignore error/warnings, we want only to remove all yarn files
+  find /tmp -name "yarn--*" -exec rm -r {} \; || true
   # Clean user cache folder
   rm -Rf ~/.cache/yarn
   # Clean bun cache
