@@ -151,8 +151,8 @@ onError() {
   local exit_code=$?
   log_error "Command failed!"
   log_error " /\\_/\\ Line: $(caller 0)"
-  log_error "( x_x )  Exit Code: $exit_code"
-  log_error " > ^ <   Offending command: '$BASH_COMMAND'"
+  log_error "( x.x )  Exit Code: $exit_code"
+  log_error " >   <   Offending command: '$BASH_COMMAND'"
   log_error ""
   exit 1
 }
@@ -332,6 +332,6 @@ sudo /etc/init.d/nginx restart
 # keep the update log
 cat $UPDATE_HTML >> $GRADIDO_LOG_PATH/update.$TODAY.log
 
-log_success " /\\_/\\"
-log_success "( o.o )  Update finished successfully!"
-log_success " > ﹀ <"
+log_success " /\\_/\\ "
+log_success "( ^.^ )  Update finished successfully!"
+log_success " >   <"
