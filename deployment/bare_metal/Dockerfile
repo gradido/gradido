@@ -36,8 +36,7 @@ WORKDIR /app
 ARG BRANCH_NAME=master
 ENV BRANCH_NAME=$BRANCH_NAME
 # COPY . .
-RUN git clone https://github.com/gradido/gradido.git --branch $BRANCH_NAME
-WORKDIR /app/gradido
+RUN git clone https://github.com/gradido/gradido.git --branch $BRANCH_NAME 
 
 # setup nginx
 WORKDIR /app/gradido/deployment/bare_metal/nginx
@@ -49,11 +48,11 @@ ENV COMMUNITY_HOST=_
 RUN envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < ./sites-available/gradido.conf.template > ./sites-available/gradido.conf
 RUN envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < ./sites-available/update-page.conf.template > ./sites-available/update-page.conf
 RUN mkdir ./sites-enabled
-RUN ln -s /app/deployment/bare_metal/nginx/sites-available/update-page.conf /app/deployment/bare_metal/nginx/sites-enabled/default
-RUN ln -s /app/deployment/bare_metal/nginx/sites-enabled/default /etc/nginx/sites-enabled
-RUN ln -s /app/deployment/bare_metal/nginx/common /etc/nginx/
+RUN ln -s /app/gradido/deployment/bare_metal/nginx/sites-available/update-page.conf /app/gradido/deployment/bare_metal/nginx/sites-enabled/default
+RUN ln -s /app/gradido/deployment/bare_metal/nginx/sites-enabled/default /etc/nginx/sites-enabled
+RUN ln -s /app/gradido/deployment/bare_metal/nginx/common /etc/nginx/
 RUN rmdir /etc/nginx/conf.d
-RUN ln -s /app/deployment/bare_metal/nginx/conf.d /etc/nginx/
+RUN ln -s /app/gradido/deployment/bare_metal/nginx/conf.d /etc/nginx/
 RUN nginx -t
 
 SHELL ["/bin/bash", "--login", "-c"]
