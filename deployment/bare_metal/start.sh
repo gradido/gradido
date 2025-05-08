@@ -160,15 +160,11 @@ log_success() {
 
 onError() {
   local exit_code=$?
-  log_error ""
-  log_error "     />  フ"
-  log_error "    |  _ _|   Aaaaah!"
-  log_error "  /\` ミ_xノ   Command failed!"
-  log_error " /　　　　 |   Line: $LINENO"
-  log_error "/　 ヽ　　 ﾉ   Exit Code: $exit_code"
-  log_error "|　|　|　|    Offending command: '$BASH_COMMAND'"
-  log_error "ノ_ノ｡_ノ｡_ノ｡｡｡｡｡｡｡｡｡｡｡｡"
-  log_error ""
+  echo -e "\e[31m Command failed!\e[0m"
+  echo -e "\e[31m /\\_/\\ Line: $LINENO\e[0m"
+  echo -e "\e[31m( o.o )  Exit Code: $exit_code\e[0m"
+  echo -e "\e[31m > ^ <   Offending command: '$BASH_COMMAND'\e[0m"
+  echo -e "\e[31m\e[0m"
   cleanup
   exit 1
 }
