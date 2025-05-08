@@ -53,7 +53,6 @@ RUN ln -s /app/gradido/deployment/bare_metal/nginx/sites-enabled/default /etc/ng
 RUN ln -s /app/gradido/deployment/bare_metal/nginx/common /etc/nginx/
 RUN rmdir /etc/nginx/conf.d
 RUN ln -s /app/gradido/deployment/bare_metal/nginx/conf.d /etc/nginx/
-RUN nginx -t
 
 SHELL ["/bin/bash", "--login", "-c"]
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
@@ -106,6 +105,8 @@ RUN envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < federation/.env.templat
 ## This image is used to test start.sh  ###################################################
 ###########################################################################################
 FROM install as start
+
+RUN /etc/init.d/mariadb start
 
 WORKDIR /app/gradido/deployment/bare_metal
 
