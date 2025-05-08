@@ -2,8 +2,6 @@
 # stop if something fails
 set -euo pipefail
 
-LOCK_FILE=$SCRIPT_DIR/update.lock
-
 # check for some tools and install them, when missing
 # bun https://bun.sh/install, faster packet-manager as yarn
 if ! command -v bun &> /dev/null
@@ -55,6 +53,7 @@ BRANCH_NAME="$1"
 set -o allexport
 SCRIPT_PATH=$(realpath $0)
 SCRIPT_DIR=$(dirname $SCRIPT_PATH)
+LOCK_FILE=$SCRIPT_DIR/update.lock
 UPDATE_HTML=$SCRIPT_DIR/nginx/update-page/updating.html
 PROJECT_ROOT=$SCRIPT_DIR/../..
 NGINX_CONFIG_DIR=$SCRIPT_DIR/nginx/sites-available
