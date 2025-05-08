@@ -68,20 +68,10 @@ RUN npm i -g yarn
 # Install pm2
 RUN npm i -g pm2 && pm2 startup
 
-# create db user
-ENV DB_USER=gradido
-RUN DB_PASSWORD=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c 32)
-ENV DB_PASSWORD=$DB_PASSWORD
-
-RUN 
-RUN service mariadb start && mysql <<EOFMYSQL
-    CREATE USER IF NOT EXISTS '$DB_USER'@'localhost' IDENTIFIED BY '$DB_PASSWORD';
-    GRANT ALL PRIVILEGES ON *.* TO '$DB_USER'@'localhost';
-    FLUSH PRIVILEGES;
-EOFMYSQL
-
 WORKDIR /app/gradido
 # Configure database
+RUN DB_USER=gradido
+RUN DB_PASSWORD=
 RUN envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < database/.env.template > database/.env
 
 # Configure backend
@@ -105,8 +95,6 @@ RUN envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < federation/.env.templat
 ## This image is used to test start.sh  ###################################################
 ###########################################################################################
 FROM install as start
-
-RUN /etc/init.d/mariadb start
 
 WORKDIR /app/gradido/deployment/bare_metal
 
