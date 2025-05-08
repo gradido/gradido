@@ -150,7 +150,7 @@ log_step() {
 log_error() {
     local message="$1"
     echo -e "\e[31m$message\e[0m" > /dev/tty # red in console
-    echo "<p style="color:red">$message</p>" >> "$UPDATE_HTML" # red in html 
+    echo "<span style="color:red">$message</span>" >> "$UPDATE_HTML" # red in html 
 }
 log_success() {
     local message="$1"
@@ -164,7 +164,7 @@ onError() {
   log_error " /\\_/\\ Line: $LINENO"
   log_error "( o.o )  Exit Code: $exit_code"
   log_error " > ^ <   Offending command: '$BASH_COMMAND'"
-  log_error "\e[31m\e[0m"
+  log_error ""
   cleanup
   exit 1
 }
