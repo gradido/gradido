@@ -152,6 +152,11 @@ log_error() {
     echo -e "\e[31m$message\e[0m" > /dev/tty # red in console
     echo "<span style="color:red">$message</span>" >> "$UPDATE_HTML" # red in html 
 }
+log_warn() {
+    local message="$1"
+    echo -e "\e[33m$message\e[0m" > /dev/tty # yellow in console
+    echo "<span style="color:yellow">$message</span>" >> "$UPDATE_HTML" # yellow in html 
+}
 log_success() {
     local message="$1"
     echo -e "\e[32m$message\e[0m" > /dev/tty # green in console
@@ -165,16 +170,22 @@ onError() {
   log_error "( o.o )  Exit Code: $exit_code"
   log_error " > ^ <   Offending command: '$BASH_COMMAND'"
   log_error ""
-  cleanup
   exit 1
 }
 trap onError ERR
 
-
 # stop all services
 log_step "Stop and delete all Gradido services"
-pm2 delete all
-pm2 save
+# check if pm2  has processes, maybe it was already cleared from a failed update
+# pm2 delete all if pm2 has no processes will trigger error and stop script
+# so let's check first
+if [ "$(pm2 prettylist)" != "[]" ]; then
+  pm2 delete all
+  pm2 save
+else
+  log_warn "PM2 is already empty"
+fi
+
 
 # git
 BRANCH=$1
