@@ -1,5 +1,6 @@
 #!/bin/bash
-
+# stop if something fails
+set -euo pipefail
 # check for some tools and install them, when missing
 # bun https://bun.sh/install, faster packet-manager as yarn
 if ! command -v bun &> /dev/null
