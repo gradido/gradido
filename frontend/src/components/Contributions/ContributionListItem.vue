@@ -278,15 +278,6 @@ onError((err) => {
   toastError(err.message)
 })
 
-watch(
-  () => visible.value,
-  () => {
-    if (visible.value) {
-      getListContributionMessages()
-    }
-  },
-)
-
 function updateStatus(id) {
   emit('update-status', id)
 }
