@@ -49,16 +49,6 @@ fi
 
 BRANCH_NAME="$1"
 
-# Find current directory & configure paths
-set -o allexport
-SCRIPT_PATH=$(realpath $0)
-SCRIPT_DIR=$(dirname $SCRIPT_PATH)
-LOCK_FILE=$SCRIPT_DIR/update.lock
-UPDATE_HTML=$SCRIPT_DIR/nginx/update-page/updating.html
-PROJECT_ROOT=$SCRIPT_DIR/../..
-NGINX_CONFIG_DIR=$SCRIPT_DIR/nginx/sites-available
-set +o allexport
-
 # Debug-Ausgabe
 if [ -z "$1" ]; then
     echo "Usage: Please provide a branch name as the first argument."
@@ -68,6 +58,16 @@ echo "Use branch: $BRANCH_NAME"
 if [ "$FAST_MODE" = true ] ; then 
   echo "Use fast mode, keep packet manager, turbo and build cache"
 fi
+
+# Find current directory & configure paths
+set -o allexport
+SCRIPT_PATH=$(realpath $0)
+SCRIPT_DIR=$(dirname $SCRIPT_PATH)
+LOCK_FILE=$SCRIPT_DIR/update.lock
+UPDATE_HTML=$SCRIPT_DIR/nginx/update-page/updating.html
+PROJECT_ROOT=$SCRIPT_DIR/../..
+NGINX_CONFIG_DIR=$SCRIPT_DIR/nginx/sites-available
+set +o allexport
 
 # enable nvm 
 export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
