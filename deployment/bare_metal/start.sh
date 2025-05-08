@@ -2,7 +2,7 @@
 # stop if something fails
 set -euo pipefail
 
-bash ./install-missing-deps.sh
+source ./install-missing-deps.sh
 
 # check for parameter
 FAST_MODE=false
