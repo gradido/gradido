@@ -81,7 +81,7 @@ RUN service mariadb start && mysql <<EOFMYSQL
     FLUSH PRIVILEGES;
 EOFMYSQL
 
-WORKDIR /app
+WORKDIR /app/gradido
 # Configure database
 RUN envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < database/.env.template > database/.env
 
