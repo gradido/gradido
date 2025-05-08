@@ -37,6 +37,8 @@ ARG BRANCH_NAME=master
 ENV BRANCH_NAME=$BRANCH_NAME
 # COPY . .
 RUN git clone https://github.com/gradido/gradido.git --branch $BRANCH_NAME 
+RUN cp /app/gradido/deployment/bare_metal/.env.dist /app/gradido/deployment/bare_metal/.env
+RUN sed -i 's/^URL_PROTOCOL=https$/URL_PROTOCOL=http/' /app/gradido/deployment/bare_metal/.env
 
 # setup nginx
 WORKDIR /app/gradido/deployment/bare_metal/nginx
@@ -102,4 +104,6 @@ WORKDIR /app/gradido/deployment/bare_metal
 RUN echo -e '#!/bin/bash\nshift 0\nexec "$@"' > /usr/local/bin/sudo && \
     chmod +x /usr/local/bin/sudo
 SHELL ["/bin/bash", "--login", "-c"]
-RUN URL_PROTOCOL=http ./start.sh $BRANCH_NAME
+RUN ./start.sh $BRANCH_NAME
+
+
