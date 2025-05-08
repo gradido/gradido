@@ -70,8 +70,8 @@ RUN npm i -g pm2 && pm2 startup
 
 WORKDIR /app/gradido
 # Configure database
-RUN DB_USER=gradido
-RUN DB_PASSWORD=
+ENV DB_USER=root
+ENV DB_PASSWORD=
 RUN envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < database/.env.template > database/.env
 
 # Configure backend
