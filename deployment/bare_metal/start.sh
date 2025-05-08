@@ -159,7 +159,16 @@ log_success() {
 }
 
 onError() {
-  log_error "Error: $1"
+  local exit_code=$?
+  log_error ""
+  log_error "     />  フ"
+  log_error "    |  _ _|   Aaaaah!"
+  log_error "  /\` ミ_xノ   Command failed!"
+  log_error " /　　　　 |   Line: $LINENO"
+  log_error "/　 ヽ　　 ﾉ   Exit Code: $exit_code"
+  log_error "|　|　|　|    Offending command: '$BASH_COMMAND'"
+  log_error "ノ_ノ｡_ノ｡_ノ｡｡｡｡｡｡｡｡｡｡｡｡"
+  log_error ""
   cleanup
   exit 1
 }
