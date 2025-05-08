@@ -160,11 +160,11 @@ log_success() {
 
 onError() {
   local exit_code=$?
-  echo -e "\e[31m Command failed!\e[0m"
-  echo -e "\e[31m /\\_/\\ Line: $LINENO\e[0m"
-  echo -e "\e[31m( o.o )  Exit Code: $exit_code\e[0m"
-  echo -e "\e[31m > ^ <   Offending command: '$BASH_COMMAND'\e[0m"
-  echo -e "\e[31m\e[0m"
+  log_error "Command failed!"
+  log_error " /\\_/\\ Line: $LINENO"
+  log_error "( o.o )  Exit Code: $exit_code"
+  log_error " > ^ <   Offending command: '$BASH_COMMAND'"
+  log_error "\e[31m\e[0m"
   cleanup
   exit 1
 }
