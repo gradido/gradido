@@ -328,8 +328,7 @@ done
 log_step 'Configuring nginx to serve gradido again'
 ln -sf $SCRIPT_DIR/nginx/sites-available/gradido.conf $SCRIPT_DIR/nginx/sites-enabled/default
 sudo nginx -t
-sudo /etc/init.d/nginx restart || log_error "Failed to restart nginx $(sudo nginx -t)"
-log_warn sudo nginx -t
+sudo /etc/init.d/nginx restart
 
 # keep the update log
 cat $UPDATE_HTML >> $GRADIDO_LOG_PATH/update.$TODAY.log
