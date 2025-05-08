@@ -33,7 +33,7 @@ jobs:
 
       - name: run install script, which will run start.sh
         run: |
-          cd ~/gradido/deployment/hetzner_cloud
+          cd deployment/hetzner_cloud
           sudo ./install.sh ${{ github.ref_name }}
 
       #- name: Deploy Bare Metal | Build image
