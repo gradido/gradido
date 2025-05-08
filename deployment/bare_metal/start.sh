@@ -1,6 +1,9 @@
 #!/bin/bash
 # stop if something fails
 set -euo pipefail
+
+LOCK_FILE=$SCRIPT_DIR/update.lock
+
 # check for some tools and install them, when missing
 # bun https://bun.sh/install, faster packet-manager as yarn
 if ! command -v bun &> /dev/null
@@ -20,8 +23,6 @@ then
     echo "'turbo' is missing, will be installed now!"
     bun install --global turbo
 fi
-
-
 
 # check for parameter
 FAST_MODE=false
@@ -54,32 +55,24 @@ BRANCH_NAME="$1"
 set -o allexport
 SCRIPT_PATH=$(realpath $0)
 SCRIPT_DIR=$(dirname $SCRIPT_PATH)
-LOCK_FILE=$SCRIPT_DIR/update.lock
 UPDATE_HTML=$SCRIPT_DIR/nginx/update-page/updating.html
 PROJECT_ROOT=$SCRIPT_DIR/../..
 NGINX_CONFIG_DIR=$SCRIPT_DIR/nginx/sites-available
 set +o allexport
-
-# helper functions
-log_step() {
-    local message="$1"
-    echo -e "\e[34m$message\e[0m" > /dev/tty # blue in console
-    echo "<p style="color:blue">$message</p>" >> "$UPDATE_HTML" # blue in html 
-}
 
 # Debug-Ausgabe
 if [ -z "$1" ]; then
     echo "Usage: Please provide a branch name as the first argument."
     exit 1
 fi
-log_step "Use branch: $BRANCH_NAME"
+echo "Use branch: $BRANCH_NAME"
 if [ "$FAST_MODE" = true ] ; then 
-  log_step "Use fast mode, keep packet manager, turbo and build cache"
+  echo "Use fast mode, keep packet manager, turbo and build cache"
 fi
 
 # enable nvm 
 export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-nvm use default
+nvm use
 
 # NOTE: all config values will be in process.env when starting
 # the services and will therefore take precedence over the .env
@@ -127,6 +120,13 @@ if [ -f $LOCK_FILE ] ; then
 fi
 touch $LOCK_FILE
 
+# called always on exit, regardless of error or success
+cleanup() {
+  # release lock
+  rm $LOCK_FILE
+}
+trap cleanup EXIT
+
 # find today string
 TODAY=$(date +"%Y-%m-%d")
 
@@ -138,9 +138,34 @@ TODAY=$(date +"%Y-%m-%d")
 exec > >(tee -a $UPDATE_HTML) 2>&1
 
 # configure nginx for the update-page
-log_step 'Configuring nginx to serve the update-page'
+echo 'Configuring nginx to serve the update-page'
 ln -sf $SCRIPT_DIR/nginx/sites-available/update-page.conf $SCRIPT_DIR/nginx/sites-enabled/default
 sudo /etc/init.d/nginx restart
+
+# helper functions
+log_step() {
+    local message="$1"
+    echo -e "\e[34m$message\e[0m" > /dev/tty # blue in console
+    echo "<p style="color:blue">$message</p>" >> "$UPDATE_HTML" # blue in html 
+}
+log_error() {
+    local message="$1"
+    echo -e "\e[31m$message\e[0m" > /dev/tty # red in console
+    echo "<p style="color:red">$message</p>" >> "$UPDATE_HTML" # red in html 
+}
+log_success() {
+    local message="$1"
+    echo -e "\e[32m$message\e[0m" > /dev/tty # green in console
+    echo "<p style="color:green">$message</p>" >> "$UPDATE_HTML" # green in html 
+}
+
+onError() {
+  log_error "Error: $1"
+  cleanup
+  exit 1
+}
+trap onError ERR
+
 
 # stop all services
 log_step "Stop and delete all Gradido services"
@@ -307,5 +332,4 @@ sudo /etc/init.d/nginx restart
 # keep the update log
 cat $UPDATE_HTML >> $GRADIDO_LOG_PATH/update.$TODAY.log
 
-# release lock
-rm $LOCK_FILE
+log_success 'Update finished'
