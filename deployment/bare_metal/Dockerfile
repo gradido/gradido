@@ -102,4 +102,5 @@ WORKDIR /app/gradido/deployment/bare_metal
 RUN echo -e '#!/bin/bash\nshift 0\nexec "$@"' > /usr/local/bin/sudo && \
     chmod +x /usr/local/bin/sudo
 SHELL ["/bin/bash", "--login", "-c"]
+ENV URL_PROTOCOL=http
 RUN ./start.sh $BRANCH_NAME
