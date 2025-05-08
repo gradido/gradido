@@ -163,6 +163,8 @@ log_success() {
     echo "<p style="color:green">$message</p>" >> "$UPDATE_HTML" # green in html 
 }
 
+# called always on error, log error really visible with ascii art in red on console and html
+# stop script execution
 onError() {
   local exit_code=$?
   log_error "Command failed!"
