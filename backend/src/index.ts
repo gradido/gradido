@@ -1,3 +1,4 @@
+import 'reflect-metadata'
 import { CONFIG } from './config'
 import { startValidateCommunities } from './federation/validateCommunities'
 import { createServer } from './server/createServer'

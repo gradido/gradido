@@ -9,6 +9,9 @@
     "lint": {
       "dependsOn": ["locales", "database#build"]
     },
+    "typecheck": {
+      "dependsOn": ["database#build", "config-schema#build"]
+    },
     "test": {
       "dependsOn": ["database#up:backend_test", "config-schema#build", "database#build"]
     },

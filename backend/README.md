@@ -2,10 +2,6 @@
 
 ## Project setup
 
-```bash
-yarn install
-```
-
 ## Seed DB
 
 ```bash

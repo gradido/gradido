@@ -21,7 +21,7 @@ export class Event extends BaseEntity {
   @PrimaryGeneratedColumn('increment', { unsigned: true })
   id: number
 
-  @Column({ length: 100, nullable: false, collation: 'utf8mb4_unicode_ci' })
+  @Column({ type: 'varchar', length: 100, nullable: false, collation: 'utf8mb4_unicode_ci' })
   type: string
 
   @CreateDateColumn({
@@ -32,56 +32,61 @@ export class Event extends BaseEntity {
   })
   createdAt: Date
 
-  @Column({ name: 'affected_user_id', unsigned: true, nullable: false })
+  @Column({ name: 'affected_user_id', type: 'bigint', unsigned: true, nullable: false })
   affectedUserId: number
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'affected_user_id', referencedColumnName: 'id' })
   affectedUser: User
 
-  @Column({ name: 'acting_user_id', unsigned: true, nullable: false })
+  @Column({ name: 'acting_user_id', type: 'bigint', unsigned: true, nullable: false })
   actingUserId: number
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'acting_user_id', referencedColumnName: 'id' })
   actingUser: User
 
-  @Column({ name: 'involved_user_id', type: 'int', unsigned: true, nullable: true })
+  @Column({ name: 'involved_user_id', type: 'bigint', unsigned: true, nullable: true })
   involvedUserId: number | null
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'involved_user_id', referencedColumnName: 'id' })
   involvedUser: User | null
 
-  @Column({ name: 'involved_transaction_id', type: 'int', unsigned: true, nullable: true })
+  @Column({ name: 'involved_transaction_id', type: 'bigint', unsigned: true, nullable: true })
   involvedTransactionId: number | null
 
   @ManyToOne(() => Transaction)
   @JoinColumn({ name: 'involved_transaction_id', referencedColumnName: 'id' })
   involvedTransaction: Transaction | null
 
-  @Column({ name: 'involved_contribution_id', type: 'int', unsigned: true, nullable: true })
+  @Column({ name: 'involved_contribution_id', type: 'bigint', unsigned: true, nullable: true })
   involvedContributionId: number | null
 
   @ManyToOne(() => Contribution)
   @JoinColumn({ name: 'involved_contribution_id', referencedColumnName: 'id' })
   involvedContribution: Contribution | null
 
-  @Column({ name: 'involved_contribution_message_id', type: 'int', unsigned: true, nullable: true })
+  @Column({
+    name: 'involved_contribution_message_id',
+    type: 'bigint',
+    unsigned: true,
+    nullable: true,
+  })
   involvedContributionMessageId: number | null
 
   @ManyToOne(() => ContributionMessage)
   @JoinColumn({ name: 'involved_contribution_message_id', referencedColumnName: 'id' })
   involvedContributionMessage: ContributionMessage | null
 
-  @Column({ name: 'involved_transaction_link_id', type: 'int', unsigned: true, nullable: true })
+  @Column({ name: 'involved_transaction_link_id', type: 'bigint', unsigned: true, nullable: true })
   involvedTransactionLinkId: number | null
 
   @ManyToOne(() => TransactionLink)
   @JoinColumn({ name: 'involved_transaction_link_id', referencedColumnName: 'id' })
   involvedTransactionLink: TransactionLink | null
 
-  @Column({ name: 'involved_contribution_link_id', type: 'int', unsigned: true, nullable: true })
+  @Column({ name: 'involved_contribution_link_id', type: 'bigint', unsigned: true, nullable: true })
   involvedContributionLinkId: number | null
 
   @ManyToOne(() => ContributionLink)

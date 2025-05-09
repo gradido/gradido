@@ -2,23 +2,11 @@ import { startDHT } from '@/dht_node/index'
 
 import { CONFIG } from './config'
 import { logger } from './server/logger'
-import { checkDBVersion } from './typeorm/DBVersion'
-import { connection } from './typeorm/connection'
+import { checkDBVersionUntil } from './typeorm/DBVersion'
 
 async function main() {
   // open mysql connection
-  const con = await connection()
-  if (!con || !con.isConnected) {
-    logger.fatal(`Couldn't open connection to database!`)
-    throw new Error(`Fatal: Couldn't open connection to database`)
-  }
-
-  // check for correct database version
-  const dbVersion = await checkDBVersion(CONFIG.DB_VERSION)
-  if (!dbVersion) {
-    logger.fatal('Fatal: Database Version incorrect')
-    throw new Error('Fatal: Database Version incorrect')
-  }
+  await checkDBVersionUntil()
   logger.debug(`dhtseed set by CONFIG.FEDERATION_DHT_SEED=${CONFIG.FEDERATION_DHT_SEED}`)
   logger.info(
     `starting Federation on ${CONFIG.FEDERATION_DHT_TOPIC} ${

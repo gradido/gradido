@@ -21,7 +21,7 @@ export class Community extends BaseEntity {
   @Column({ name: 'foreign', type: 'bool', nullable: false, default: true })
   foreign: boolean
 
-  @Column({ name: 'url', length: 255, nullable: false })
+  @Column({ name: 'url', type: 'varchar', length: 255, nullable: false })
   url: string
 
   @Column({ name: 'public_key', type: 'binary', length: 32, nullable: false })

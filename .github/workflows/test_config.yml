@@ -21,7 +21,7 @@ jobs:
           list-files: shell
 
   build:
-    name: typecheck and lint - Config-Schema
+    name: typecheck - Config-Schema
     if: needs.files-changed.outputs.config == 'true' || needs.files-changed.outputs.docker-compose == 'true'
     needs: files-changed
     runs-on: ubuntu-latest
@@ -29,15 +29,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Install turbo
-        run: yarn global add turbo@^2
-
-      - name: Prune config with turbos help
-        run: turbo prune config-schema
+      - name: install bun 
+        uses: oven-sh/setup-bun@v2
 
       - name: install dependencies
-        run: cd out && yarn install --frozen-lockfile --production=false
+        run: bun install --filter config-schema --frozen-lockfile
 
-      - name: typecheck and lint
-        run: cd out && turbo typecheck lint
+      - name: typecheck
+        run: cd config-schema && yarn typecheck
 

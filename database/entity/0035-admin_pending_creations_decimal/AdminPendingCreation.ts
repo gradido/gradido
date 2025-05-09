@@ -7,7 +7,7 @@ export class AdminPendingCreation extends BaseEntity {
   @PrimaryGeneratedColumn('increment', { unsigned: true })
   id: number
 
-  @Column({ unsigned: true, nullable: false })
+  @Column({ type: 'bigint', unsigned: true, nullable: false })
   userId: number
 
   @Column({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
@@ -16,7 +16,7 @@ export class AdminPendingCreation extends BaseEntity {
   @Column({ type: 'datetime', nullable: false })
   date: Date
 
-  @Column({ length: 255, nullable: false, collation: 'utf8mb4_unicode_ci' })
+  @Column({ type: 'varchar', length: 255, nullable: false, collation: 'utf8mb4_unicode_ci' })
   memo: string
 
   @Column({

@@ -29,9 +29,14 @@
   "dependencies": {
     "@badeball/cypress-cucumber-preprocessor": "^18.0.1",
     "@cypress/browserify-preprocessor": "^3.0.2",
+    "cypress": "^12.16.0",
+    "jwt-decode": "^3.1.2",
+    "multiple-cucumber-html-reporter": "^3.4.0",
+    "typescript": "^4.7.4"
+  },
+  "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^5.38.0",
     "@typescript-eslint/parser": "^5.38.0",
-    "cypress": "^12.16.0",
     "eslint": "^8.23.1",
     "eslint-config-prettier": "^8.3.0",
     "eslint-config-standard": "^16.0.3",
@@ -41,9 +46,6 @@
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^4.2.1",
     "eslint-plugin-promise": "^6.1.1",
-    "jwt-decode": "^3.1.2",
-    "multiple-cucumber-html-reporter": "^3.4.0",
-    "prettier": "^2.7.1",
-    "typescript": "^4.7.4"
+    "prettier": "^2.7.1"
   }
 }

@@ -20,11 +20,12 @@ export class LoginElopageBuys extends BaseEntity {
   @Column({ type: 'int', width: 11, name: 'product_id', nullable: true, default: null })
   productId: number | null
 
-  @Column({ name: 'product_price', nullable: false })
+  @Column({ name: 'product_price', type: 'int', nullable: false })
   productPrice: number
 
   @Column({
     name: 'payer_email',
+    type: 'varchar',
     length: 255,
     nullable: false,
     charset: 'utf8',
@@ -34,6 +35,7 @@ export class LoginElopageBuys extends BaseEntity {
 
   @Column({
     name: 'publisher_email',
+    type: 'varchar',
     length: 255,
     nullable: false,
     charset: 'utf8',
@@ -41,12 +43,12 @@ export class LoginElopageBuys extends BaseEntity {
   })
   publisherEmail: string
 
-  @Column({ nullable: false })
+  @Column({ type: 'bool', nullable: false })
   payed: boolean
 
-  @Column({ name: 'success_date', nullable: false })
+  @Column({ name: 'success_date', type: 'datetime', nullable: false })
   successDate: Date
 
-  @Column({ length: 255, nullable: false })
+  @Column({ type: 'varchar', length: 255, nullable: false })
   event: string
 }

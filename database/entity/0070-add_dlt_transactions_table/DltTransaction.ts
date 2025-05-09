@@ -11,6 +11,7 @@ export class DltTransaction extends BaseEntity {
 
   @Column({
     name: 'message_id',
+    type: 'varchar',
     length: 64,
     nullable: true,
     default: null,
@@ -21,10 +22,15 @@ export class DltTransaction extends BaseEntity {
   @Column({ name: 'verified', type: 'bool', nullable: false, default: false })
   verified: boolean
 
-  @Column({ name: 'created_at', default: () => 'CURRENT_TIMESTAMP(3)', nullable: false })
+  @Column({
+    name: 'created_at',
+    type: 'datetime',
+    default: () => 'CURRENT_TIMESTAMP(3)',
+    nullable: false,
+  })
   createdAt: Date
 
-  @Column({ name: 'verified_at', nullable: true, default: null, type: 'datetime' })
+  @Column({ name: 'verified_at', type: 'datetime', nullable: true, default: null })
   verifiedAt: Date | null
 
   @OneToOne(

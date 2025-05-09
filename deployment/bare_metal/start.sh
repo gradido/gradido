@@ -1,4 +1,6 @@
 #!/bin/bash
+# stop if something fails
+set -euo pipefail
 
 # check for some tools and install them, when missing
 # bun https://bun.sh/install, faster packet-manager as yarn
@@ -19,13 +21,6 @@ then
     echo "'turbo' is missing, will be installed now!"
     bun install --global turbo
 fi
-
-# helper functions
-log_step() {
-    local message="$1"
-    echo -e "\e[34m$message\e[0m" > /dev/tty # blue in console
-    echo "<p style="color:blue">$message</p>" >> "$UPDATE_HTML" # blue in html 
-}
 
 # check for parameter
 FAST_MODE=false
@@ -59,10 +54,11 @@ if [ -z "$1" ]; then
     echo "Usage: Please provide a branch name as the first argument."
     exit 1
 fi
-log_step "Use branch: $BRANCH_NAME"
+echo "Use branch: $BRANCH_NAME"
 if [ "$FAST_MODE" = true ] ; then 
-  log_step "Use fast mode, keep packet manager, turbo and build cache"
+  echo "Use fast mode, keep packet manager, turbo and build cache"
 fi
+
 # Find current directory & configure paths
 set -o allexport
 SCRIPT_PATH=$(realpath $0)
@@ -75,7 +71,7 @@ set +o allexport
 
 # enable nvm 
 export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-nvm use default
+nvm use
 
 # NOTE: all config values will be in process.env when starting
 # the services and will therefore take precedence over the .env
@@ -123,6 +119,13 @@ if [ -f $LOCK_FILE ] ; then
 fi
 touch $LOCK_FILE
 
+# called always on exit, regardless of error or success
+cleanup() {
+  # release lock
+  rm $LOCK_FILE
+}
+trap cleanup EXIT
+
 # find today string
 TODAY=$(date +"%Y-%m-%d")
 
@@ -134,14 +137,57 @@ TODAY=$(date +"%Y-%m-%d")
 exec > >(tee -a $UPDATE_HTML) 2>&1
 
 # configure nginx for the update-page
-log_step 'Configuring nginx to serve the update-page'
+echo 'Configuring nginx to serve the update-page'
 ln -sf $SCRIPT_DIR/nginx/sites-available/update-page.conf $SCRIPT_DIR/nginx/sites-enabled/default
 sudo /etc/init.d/nginx restart
 
+# helper functions
+log_step() {
+    local message="$1"
+    echo -e "\e[34m$message\e[0m" > /dev/tty # blue in console
+    echo "<p style="color:blue">$message</p>" >> "$UPDATE_HTML" # blue in html 
+}
+log_error() {
+    local message="$1"
+    echo -e "\e[31m$message\e[0m" > /dev/tty # red in console
+    echo "<span style="color:red">$message</span>" >> "$UPDATE_HTML" # red in html 
+}
+log_warn() {
+    local message="$1"
+    echo -e "\e[33m$message\e[0m" > /dev/tty # orange in console
+    echo "<span style="color:orange">$message</span>" >> "$UPDATE_HTML" # orange in html 
+}
+log_success() {
+    local message="$1"
+    echo -e "\e[32m$message\e[0m" > /dev/tty # green in console
+    echo "<p style="color:green">$message</p>" >> "$UPDATE_HTML" # green in html 
+}
+
+# called always on error, log error really visible with ascii art in red on console and html
+# stop script execution
+onError() {
+  local exit_code=$?
+  log_error "Command failed!"
+  log_error " /\\_/\\ Line: $LINENO"
+  log_error "( o.o )  Exit Code: $exit_code"
+  log_error " > ^ <   Offending command: '$BASH_COMMAND'"
+  log_error ""
+  exit 1
+}
+trap onError ERR
+
 # stop all services
 log_step "Stop and delete all Gradido services"
-pm2 delete all
-pm2 save
+# check if pm2  has processes, maybe it was already cleared from a failed update
+# pm2 delete all if pm2 has no processes will trigger error and stop script
+# so let's check first
+if [ "$(pm2 prettylist)" != "[]" ]; then
+  pm2 delete all
+  pm2 save
+else
+  log_warn "PM2 is already empty"
+fi
+
 
 # git
 BRANCH=$1
@@ -211,7 +257,8 @@ MODULES=(
 if [ "$FAST_MODE" = false ] ; then 
   log_step 'Clean tmp, bun and yarn cache'
   # Clean tmp folder - remove yarn files
-  find /tmp -name "yarn--*" -exec rm -r {} \;
+  # ignore error/warnings, we want only to remove all yarn files
+  find /tmp -name "yarn--*" -exec rm -r {} \; || true
   # Clean user cache folder
   rm -Rf ~/.cache/yarn
   # Clean bun cache
@@ -303,5 +350,4 @@ sudo /etc/init.d/nginx restart
 # keep the update log
 cat $UPDATE_HTML >> $GRADIDO_LOG_PATH/update.$TODAY.log
 
-# release lock
-rm $LOCK_FILE
+log_success 'Update finished'

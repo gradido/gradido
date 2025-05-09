@@ -1,8 +1,9 @@
 ##################################################################################
 # BASE ###########################################################################
 ##################################################################################
-FROM node:18.20.7-alpine3.21 as base
-#FROM ubuntu:latest as base
+FROM node:18.20.7-bookworm-slim as base
+#FROM node:18.20.7-alpine3.21 as base
+# change to alpine after sodium-native ship with native alpine build
 
 # ENVs (available in production aswell, can be overwritten by commandline or env file)
 ## DOCKER_WORKDIR would be a classical ARG, but that is not multi layer persistent - shame
@@ -17,6 +18,9 @@ ENV BUILD_COMMIT="0000000"
 ENV NODE_ENV="production"
 ## App relevant Envs
 #ENV PORT="5000"
+## Timezone
+ENV TZ=UTC
+ENV DB_HOST=mariadb
 
 # Labels
 LABEL org.label-schema.build-date="${BUILD_DATE}"
@@ -46,47 +50,60 @@ LABEL maintainer="support@gradido.net"
 RUN mkdir -p ${DOCKER_WORKDIR}
 WORKDIR ${DOCKER_WORKDIR}
 
-##################################################################################
-# Base with turbo ################################################################
-##################################################################################
-FROM base as turbo-base
 
-RUN apk update && apk add --no-cache libc6-compat \ 
-  && yarn global add turbo@^2 \
-  && rm -rf /tmp/* ~/.cache node_modules/.cache \
-  && yarn cache clean
+##################################################################################
+# BUN ############################################################################
+##################################################################################
+FROM base as bun-base
+
+RUN apt update && apt install -y --no-install-recommends ca-certificates curl bash unzip
+#RUN apk update && apk add --no-cache curl tar bash
+RUN curl -fsSL https://bun.sh/install | bash
+# Add bun's global bin directory to PATH
+ENV PATH="/root/.bun/bin:${PATH}"
+
+##################################################################################
+# Development ####################################################################
+##################################################################################
+FROM bun-base AS development  
+
+# Run command
+CMD /bin/sh -c "bun install --filter dht-node --no-cache --frozen-lockfile \
+  && bun install --global --no-cache --no-save turbo@^2 \
+  && turbo dht-node#dev --env-mode=loose" 
+
+##################################################################################
+# Basic Image with bun setup and project and source code #########################
+##################################################################################
+FROM bun-base as bun-base-src
+COPY --chown=app:app . . 
 
 ##################################################################################
 # BUILDER (create partly monorepo only with data needed by dht-node) #############
 ##################################################################################
-FROM turbo-base as builder
+FROM bun-base-src as build
 
-COPY --chown=app:app . . 
-RUN turbo prune dht-node --docker
+RUN bun install --filter dht-node --no-cache --frozen-lockfile \
+  && bun install --global --no-cache --no-save turbo@^2
+RUN turbo dht-node#build dht-node#typecheck --env-mode=loose
 
-##################################################################################
-# INSTALLER (create production image) ############################################
-##################################################################################
-FROM turbo-base AS installer
-
-# First install the dependencies (as they change less often)
-COPY --chown=app:app --from=builder /app/out/json/ .
-RUN yarn install --frozen-lockfile --production=false \
- && rm -rf /tmp/* ~/.cache node_modules/.cache \
- && yarn cache clean
- 
-# Build the project
-COPY --chown=app:app --from=builder /app/out/full/ .
-RUN turbo build
- 
 ##################################################################################
 # TEST ###########################################################################
 ##################################################################################
-FROM installer as test
+FROM build as test
 
-ENV DB_HOST=mariadb
 # Run command
 CMD /bin/sh -c "turbo dht-node#test --env-mode=loose"
+
+##################################################################################
+# install only node modules needed for running bundle ############################
+##################################################################################
+FROM bun-base-src as production-node-modules
+
+# add node_modules from production_node_modules
+RUN bun install --filter dht-node --production --frozen-lockfile --no-cache \
+  && rm -rf /tmp/* ~/.cache node_modules/.cache \
+  && ./scripts/clean-prebuilds.sh
 
 ##################################################################################
 # PRODUCTION (Does contain only "binary"- and static-files to reduce image size) #
@@ -94,16 +111,13 @@ CMD /bin/sh -c "turbo dht-node#test --env-mode=loose"
 FROM base as production
 
 # Copy "binary"-files from build image
-COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/dht-node/build/src/index.js ./index.js
+COPY --chown=app:app --from=build ${DOCKER_WORKDIR}/dht-node/build/index.js ./index.js
 
-# We also install the native node_modules which cannot be bundled
-# TODO: find a elegant way to use the right versions from yarn.lock
-RUN yarn add udx-native@1.5.3 sodium-native@4.0.0 \
-  && rm -rf /tmp/* ~/.cache node_modules/.cache \
-  && yarn cache clean
+# add node_modules from production_node_modules
+COPY --chown=app:app --from=production-node-modules ${DOCKER_WORKDIR}/node_modules ./node_modules
 
 # Copy log4js-config.json to provide log configuration
-COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/dht-node/log4js-config.json ./log4js-config.json
+COPY --chown=app:app --from=build ${DOCKER_WORKDIR}/dht-node/log4js-config.json ./log4js-config.json
 
 # Run command
 CMD ["node", "index.js"]

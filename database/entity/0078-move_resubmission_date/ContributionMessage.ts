@@ -21,7 +21,7 @@ export class ContributionMessage extends BaseEntity {
   id: number
 
   @Index()
-  @Column({ name: 'contribution_id', unsigned: true, nullable: false })
+  @Column({ name: 'contribution_id', type: 'bigint', unsigned: true, nullable: false })
   contributionId: number
 
   @ManyToOne(
@@ -31,7 +31,7 @@ export class ContributionMessage extends BaseEntity {
   @JoinColumn({ name: 'contribution_id' })
   contribution: Contribution
 
-  @Column({ name: 'user_id', unsigned: true, nullable: false })
+  @Column({ name: 'user_id', type: 'bigint', unsigned: true, nullable: false })
   userId: number
 
   @ManyToOne(
@@ -41,7 +41,7 @@ export class ContributionMessage extends BaseEntity {
   @JoinColumn({ name: 'user_id' })
   user: User
 
-  @Column({ length: 2000, nullable: false, collation: 'utf8mb4_unicode_ci' })
+  @Column({ type: 'varchar', length: 2000, nullable: false, collation: 'utf8mb4_unicode_ci' })
   message: string
 
   @CreateDateColumn()
@@ -55,10 +55,10 @@ export class ContributionMessage extends BaseEntity {
   @DeleteDateColumn({ name: 'deleted_at' })
   deletedAt: Date | null
 
-  @Column({ name: 'deleted_by', default: null, unsigned: true, nullable: true })
+  @Column({ name: 'deleted_by', type: 'bigint', default: null, unsigned: true, nullable: true })
   deletedBy: number
 
-  @Column({ length: 12, nullable: false, collation: 'utf8mb4_unicode_ci' })
+  @Column({ type: 'varchar', length: 12, nullable: false, collation: 'utf8mb4_unicode_ci' })
   type: string
 
   @Column({ name: 'is_moderator', type: 'bool', nullable: false, default: false })

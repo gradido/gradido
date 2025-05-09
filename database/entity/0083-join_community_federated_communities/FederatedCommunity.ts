@@ -21,10 +21,10 @@ export class FederatedCommunity extends BaseEntity {
   @Column({ name: 'public_key', type: 'binary', length: 32, default: null, nullable: true })
   publicKey: Buffer
 
-  @Column({ name: 'api_version', length: 10, nullable: false })
+  @Column({ name: 'api_version', type: 'varchar', length: 10, nullable: false })
   apiVersion: string
 
-  @Column({ name: 'end_point', length: 255, nullable: false })
+  @Column({ name: 'end_point', type: 'varchar', length: 255, nullable: false })
   endPoint: string
 
   @Column({ name: 'last_announced_at', type: 'datetime', nullable: true })
