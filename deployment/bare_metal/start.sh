@@ -1,11 +1,6 @@
 #!/bin/bash
-
-# helper functions
-log_step() {
-    local message="$1"
-    echo -e "\e[34m$message\e[0m" > /dev/tty # blue in console
-    echo "<p style="color:blue">$message</p>" >> "$UPDATE_HTML" # blue in html 
-}
+# stop if something fails
+set -euo pipefail
 
 # check for parameter
 if [ -z "$1" ]; then
@@ -22,9 +17,17 @@ PROJECT_ROOT=$SCRIPT_DIR/../..
 NGINX_CONFIG_DIR=$SCRIPT_DIR/nginx/sites-available
 set +o allexport
 
-# enable nvm 
+# enable nvm
 export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-nvm use default
+install_nvm() {
+    nvm install 
+    nvm use 
+    nvm alias default 
+    npm i -g yarn pm2
+    pm2 startup
+}
+# make sure correct node version is installed
+nvm use || install_nvm
 
 # NOTE: all config values will be in process.env when starting
 # the services and will therefore take precedence over the .env
@@ -72,6 +75,13 @@ if [ -f $LOCK_FILE ] ; then
 fi
 touch $LOCK_FILE
 
+# called always on exit, regardless of error or success
+cleanup() {
+  # release lock
+  rm $LOCK_FILE
+}
+trap cleanup EXIT
+
 # find today string
 TODAY=$(date +"%Y-%m-%d")
 
@@ -83,14 +93,56 @@ TODAY=$(date +"%Y-%m-%d")
 exec > >(tee -a $UPDATE_HTML) 2>&1
 
 # configure nginx for the update-page
-log_step 'Configuring nginx to serve the update-page'
+echo 'Configuring nginx to serve the update-page'
 ln -sf $SCRIPT_DIR/nginx/sites-available/update-page.conf $SCRIPT_DIR/nginx/sites-enabled/default
 sudo /etc/init.d/nginx restart
 
+# helper functions
+log_step() {
+    local message="$1"
+    echo -e "\e[34m$message\e[0m" # > /dev/tty # blue in console
+    echo "<p style="color:blue">$message</p>" >> "$UPDATE_HTML" # blue in html 
+}
+log_error() {
+    local message="$1"
+    echo -e "\e[31m$message\e[0m" # > /dev/tty # red in console
+    echo "<span style="color:red">$message</span>" >> "$UPDATE_HTML" # red in html 
+}
+log_warn() {
+    local message="$1"
+    echo -e "\e[33m$message\e[0m" # > /dev/tty # orange in console
+    echo "<span style="color:orange">$message</span>" >> "$UPDATE_HTML" # orange in html 
+}
+log_success() {
+    local message="$1"
+    echo -e "\e[32m$message\e[0m" # > /dev/tty # green in console
+    echo "<p style="color:green">$message</p>" >> "$UPDATE_HTML" # green in html 
+}
+
+# called always on error, log error really visible with ascii art in red on console and html
+# stop script execution
+onError() {
+  local exit_code=$?
+  log_error "Command failed!"
+  log_error " /\\_/\\ Line: $(caller 0)"
+  log_error "( x.x )  Exit Code: $exit_code"
+  log_error " >   <   Offending command: '$BASH_COMMAND'"
+  log_error ""
+  exit 1
+}
+trap onError ERR
+
 # stop all services
 log_step "Stop and delete all Gradido services"
-pm2 delete all
-pm2 save
+# check if pm2  has processes, maybe it was already cleared from a failed update
+# pm2 delete all if pm2 has no processes will trigger error and stop script
+# so let's check first
+if [ "$(echo "$(pm2 prettylist)" | tail -n 1)" != "[]" ]; then
+  pm2 delete all
+  pm2 save
+else
+  log_warn "PM2 is already empty"
+fi
 
 # git
 BRANCH=$1
@@ -261,11 +313,8 @@ yarn build
 # TODO maybe handle this differently?
 export NODE_ENV=production
 
-nvm use default
 # start after building all to use up less ressources
 pm2 start --name gradido-backend "yarn --cwd $PROJECT_ROOT/backend start" -l $GRADIDO_LOG_PATH/pm2.backend.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
-#pm2 start --name gradido-frontend "yarn --cwd $PROJECT_ROOT/frontend start" -l $GRADIDO_LOG_PATH/pm2.frontend.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
-#pm2 start --name gradido-admin "yarn --cwd $PROJECT_ROOT/admin start" -l $GRADIDO_LOG_PATH/pm2.admin.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
 pm2 save
 if [ ! -z $FEDERATION_DHT_TOPIC ]; then
   pm2 start --name gradido-dht-node "yarn --cwd $PROJECT_ROOT/dht-node start" -l $GRADIDO_LOG_PATH/pm2.dht-node.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
@@ -305,5 +354,6 @@ sudo /etc/init.d/nginx restart
 # keep the update log
 cat $UPDATE_HTML >> $GRADIDO_LOG_PATH/update.$TODAY.log
 
-# release lock
-rm $LOCK_FILE
+log_success " /\\_/\\ "
+log_success "( ^.^ )  Update finished successfully!"
+log_success " >   <"
