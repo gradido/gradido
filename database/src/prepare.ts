@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import { Connection, ResultSetHeader, RowDataPacket, createConnection } from 'mysql2/promise'
 
 import { CONFIG } from './config'

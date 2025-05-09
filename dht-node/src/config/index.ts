@@ -1,4 +1,3 @@
-/* eslint-disable n/no-process-env */
 import { validate } from 'config-schema'
 import { latestDbVersion } from 'database'
 import dotenv from 'dotenv'

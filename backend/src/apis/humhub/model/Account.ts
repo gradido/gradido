@@ -1,4 +1,3 @@
-/* eslint-disable camelcase */
 import { User } from 'database'
 
 import { convertGradidoLanguageToHumhub } from '@/apis/humhub/convertLanguage'
