@@ -25,6 +25,16 @@ async function connectToDatabaseServer(): Promise<Connection | null> {
   }
 }
 
+async function convertJsToTsInMigrations(connection: Connection): Promise<number> {
+  const [result] = await connection.query<ResultSetHeader>(`
+    UPDATE ${CONFIG.MIGRATIONS_TABLE}
+    SET fileName = REPLACE(fileName, '.js', '.ts')
+    WHERE fileName LIKE '%.js'
+  `)
+
+  return result.affectedRows
+}
+
 export const getDatabaseState = async (): Promise<DatabaseState> => {
   const connection = await connectToDatabaseServer()
   if (!connection) {
@@ -58,6 +68,26 @@ export const getDatabaseState = async (): Promise<DatabaseState> => {
   }
 
   await connection.query(`USE ${CONFIG.DB_DATABASE}`)
+
+  // check structure of fileNames, normally they should all ends with .ts
+  // but from older version they can end all on .js, that we need to fix
+  // they can even be mixed, but this we cannot easily fix automatic, so we must throw an error
+  const [counts] = await connection.query<RowDataPacket[]>(`
+    SELECT
+      SUM(fileName LIKE '%.js') AS jsCount,
+      SUM(fileName LIKE '%.ts') AS tsCount
+    FROM ${CONFIG.MIGRATIONS_TABLE}
+  `)
+
+  if (counts[0].jsCount > 0 && counts[0].tsCount > 0) {
+    throw new Error('Mixed JS and TS migrations found, we cannot fix this automatically')
+  }
+
+  if (counts[0].jsCount > 0) {
+    const converted = await convertJsToTsInMigrations(connection)
+    // biome-ignore lint/suspicious/noConsole: no logger present
+    console.log(`Converted ${converted} JS migrations to TS`)
+  }
 
   // check if the database is up to date
   const [rows] = await connection.query<RowDataPacket[]>(
