@@ -1,13 +1,15 @@
 import { randomBytes } from 'crypto'
 
-import { getConnection } from '@dbTools/typeorm'
-import { Contribution as DbContribution } from '@entity/Contribution'
-import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
-import { Transaction as DbTransaction } from '@entity/Transaction'
-import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
-import { User as DbUser } from '@entity/User'
+import {
+  Contribution as DbContribution,
+  ContributionLink as DbContributionLink,
+  Transaction as DbTransaction,
+  TransactionLink as DbTransactionLink,
+  User as DbUser,
+} from 'database'
 import { Decimal } from 'decimal.js-light'
 import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
+import { getConnection } from 'typeorm'
 
 import { Paginated } from '@arg/Paginated'
 import { TransactionLinkArgs } from '@arg/TransactionLinkArgs'

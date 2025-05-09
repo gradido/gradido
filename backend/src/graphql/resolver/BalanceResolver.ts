@@ -1,8 +1,7 @@
-import { IsNull } from '@dbTools/typeorm'
-import { Transaction as dbTransaction } from '@entity/Transaction'
-import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
+import { Transaction as dbTransaction, TransactionLink as dbTransactionLink } from 'database'
 import { Decimal } from 'decimal.js-light'
 import { Authorized, Ctx, Query, Resolver } from 'type-graphql'
+import { IsNull } from 'typeorm'
 
 import { Balance } from '@model/Balance'
 

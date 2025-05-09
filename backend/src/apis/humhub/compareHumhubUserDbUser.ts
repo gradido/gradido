@@ -1,4 +1,4 @@
-import { User } from '@entity/User'
+import { User } from 'database'
 
 import { Account } from './model/Account'
 import { GetUser } from './model/GetUser'

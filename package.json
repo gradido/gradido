@@ -4,17 +4,35 @@
   "description": "Gradido",
   "main": "index.js",
   "repository": "git@github.com:gradido/gradido.git",
-  "author": "Ulf Gebhardt <ulf.gebhardt@webcraft-media.de>",
+  "author": "Gradido Academy - https://www.gradido.net",
   "license": "Apache-2.0",
+  "private": true,
+  "packageManager": "yarn@1.22.22",
+  "workspaces": [
+    "admin",
+    "backend",
+    "config-schema",
+    "database",
+    "dht-node",
+    "federation",
+    "frontend"
+  ],
   "scripts": {
     "release": "scripts/release.sh",
-    "installAll": "yarn && cd database && yarn && cd ../frontend && yarn && cd ../admin && yarn && cd ../backend && yarn && cd ../federation && yarn && cd ../dht-node && yarn && cd ../e2e-tests && yarn && cd .."
+    "installAll": "yarn && cd database && yarn && cd ../frontend && yarn && cd ../admin && yarn && cd ../backend && yarn && cd ../federation && yarn && cd ../dht-node && yarn && cd ../e2e-tests && yarn && cd ..",
+    "docker:admin": "docker build -f ./admin/Dockerfile --target production -t \"gradido/admin:latest\" --build-arg NODE_ENV=\"production\" --build-arg BUILD_COMMIT=$(git rev-parse HEAD) --build-arg BUILD_COMMIT_SHORT=$(git rev-parse --short HEAD) .",
+    "docker:frontend": "docker build -f ./frontend/Dockerfile --target production -t \"gradido/frontend:latest\" --build-arg NODE_ENV=\"production\" --build-arg BUILD_COMMIT=$(git rev-parse HEAD) --build-arg BUILD_COMMIT_SHORT=$(git rev-parse --short HEAD) .",
+    "docker": "BUILD_COMMIT=$(git rev-parse HEAD) docker compose -f docker-compose.yml up"
   },
   "dependencies": {
     "auto-changelog": "^2.4.0",
-    "uuid": "^8.3.2"
+    "uuid": "^8.3.2",
+    "turbo": "^2.5.0"
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4"
-  }
+  },
+  "engines": {
+    "node": ">=18"
+  }  
 }

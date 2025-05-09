@@ -1,5 +1,5 @@
 import { federationLogger as logger } from '@/server/logger'
-import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
+import { FederatedCommunity as DbFederatedCommunity } from 'database'
 import { GraphQLClient } from 'graphql-request'
 
 import { AuthenticationArgs } from '@/graphql/api/1_0/model/AuthenticationArgs'

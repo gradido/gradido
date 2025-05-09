@@ -1,6 +1,5 @@
-/* eslint-disable n/no-process-env */
-import { validate } from '@config/index'
-import { latestDbVersion } from '@dbTools/config/detectLastDBVersion'
+import { validate } from 'config-schema'
+import { latestDbVersion } from 'database'
 import dotenv from 'dotenv'
 
 import { schema } from './schema'
@@ -15,12 +14,12 @@ const constants = {
 }
 
 const server = {
-  PRODUCTION: process.env.NODE_ENV === 'production' ?? false,
+  PRODUCTION: process.env.NODE_ENV === 'production',
 }
 
 const database = {
   DB_HOST: process.env.DB_HOST ?? 'localhost',
-  DB_PORT: process.env.DB_PORT ? parseInt(process.env.DB_PORT) : 3306,
+  DB_PORT: process.env.DB_PORT ? Number.parseInt(process.env.DB_PORT) : 3306,
   DB_USER: process.env.DB_USER ?? 'root',
   DB_PASSWORD: process.env.DB_PASSWORD ?? '',
   DB_DATABASE: process.env.DB_DATABASE ?? 'gradido_community',

@@ -1,5 +1,5 @@
-import { entities } from '@entity/index'
 import { createTestClient } from 'apollo-server-testing'
+import { entities } from 'database'
 import { datatype, internet, name } from 'faker'
 
 import { CONFIG } from '@/config'

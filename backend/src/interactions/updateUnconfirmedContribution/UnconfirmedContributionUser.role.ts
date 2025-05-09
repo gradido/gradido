@@ -1,5 +1,4 @@
-import { Contribution } from '@entity/Contribution'
-import { User } from '@entity/User'
+import { Contribution, User } from 'database'
 
 import { ContributionMessageBuilder } from '@/data/ContributionMessage.builder'
 import { ContributionArgs } from '@/graphql/arg/ContributionArgs'

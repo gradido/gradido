@@ -1,8 +1,8 @@
-import { Connection } from '@dbTools/typeorm'
-import { Community as DbCommunity } from '@entity/Community'
 import { ApolloServerTestClient } from 'apollo-server-testing'
+import { Community as DbCommunity } from 'database'
 import { Decimal } from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
+import { Connection } from 'typeorm'
 import { v4 as uuidv4 } from 'uuid'
 
 import { cleanDB, contributionDateFormatter, testEnvironment } from '@test/helpers'

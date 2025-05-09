@@ -1,5 +1,5 @@
 import { SendCoinsArgs } from '@/graphql/api/1_0/model/SendCoinsArgs'
-import { AbstractLoggingView } from '@logging/AbstractLogging.view'
+import { AbstractLoggingView } from 'database'
 
 export class SendCoinsArgsLoggingView extends AbstractLoggingView {
   public constructor(private self: SendCoinsArgs) {

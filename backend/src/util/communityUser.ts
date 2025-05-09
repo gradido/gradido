@@ -1,11 +1,10 @@
-import { RemoveOptions, SaveOptions } from '@dbTools/typeorm'
-import { User as dbUser } from '@entity/User'
-import { UserContact } from '@entity/UserContact'
+import { UserContact, User as dbUser } from 'database'
+import { RemoveOptions, SaveOptions } from 'typeorm'
 
 import { User } from '@model/User'
 
 import { PasswordEncryptionType } from '@/graphql/enum/PasswordEncryptionType'
-// import { UserContact as EmailContact } from '@entity/UserContact'
+// import { UserContact as EmailContact } from 'database'
 
 const communityDbUser: dbUser = {
   id: -1,

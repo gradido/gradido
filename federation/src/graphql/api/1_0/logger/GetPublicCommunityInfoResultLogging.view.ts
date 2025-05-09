@@ -1,5 +1,5 @@
 import { GetPublicCommunityInfoResult } from '@/graphql/api/1_0/model/GetPublicCommunityInfoResult'
-import { AbstractLoggingView } from '@logging/AbstractLogging.view'
+import { AbstractLoggingView } from 'database'
 
 export class GetPublicCommunityInfoResultLoggingView extends AbstractLoggingView {
   public constructor(private self: GetPublicCommunityInfoResult) {

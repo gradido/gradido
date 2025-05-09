@@ -1,4 +1,4 @@
-import { User } from '@entity/User'
+import { User } from 'database'
 import XRegExp from 'xregexp'
 
 import { PublishNameType } from '@/graphql/enum/PublishNameType'
@@ -92,7 +92,7 @@ export class PublishNameLogic {
       ? this.getUsernameFromAlias()
       : this.isUsernameFromInitials(publishNameType)
         ? this.getUsernameFromInitials()
-        : (this.getFirstName(publishNameType) + ' ' + this.getLastName(publishNameType)).trim()
+        : `${this.getFirstName(publishNameType)} ${this.getLastName(publishNameType)}`.trim()
   }
 
   public getUsernameFromInitials(): string {

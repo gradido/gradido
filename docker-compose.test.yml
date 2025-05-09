@@ -68,10 +68,11 @@ services:
   # DATABASE #############################################
   ########################################################
   database:
-    image: gradido/database:test_up
+    image: gradido/database:up
     build:
-      context: ./database
-      target: test_up
+      context: .
+      dockerfile: ./database/Dockerfile
+      target: up
     environment:
       - NODE_ENV=test
   #  restart: always # this is very dangerous, but worth a test for the delayed mariadb startup at first run

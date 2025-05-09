@@ -1,11 +1,13 @@
-import { In, IsNull, getConnection } from '@dbTools/typeorm'
-import { Community as DbCommunity } from '@entity/Community'
-import { PendingTransaction as DbPendingTransaction } from '@entity/PendingTransaction'
-import { Transaction as dbTransaction } from '@entity/Transaction'
-import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
-import { User as dbUser } from '@entity/User'
+import {
+  Community as DbCommunity,
+  PendingTransaction as DbPendingTransaction,
+  Transaction as dbTransaction,
+  TransactionLink as dbTransactionLink,
+  User as dbUser,
+} from 'database'
 import { Decimal } from 'decimal.js-light'
 import { Args, Authorized, Ctx, Mutation, Query, Resolver } from 'type-graphql'
+import { In, IsNull, getConnection } from 'typeorm'
 
 import { Paginated } from '@arg/Paginated'
 import { TransactionSendArgs } from '@arg/TransactionSendArgs'

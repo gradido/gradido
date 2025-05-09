@@ -1,8 +1,8 @@
+import { CONFIG } from '@/config'
 // TODO This is super weird - since the entities are defined in another project they have their own globals.
 //      We cannot use our connection here, but must use the external typeorm installation
-import { CONFIG } from '@/config'
-import { Connection, FileLogger, createConnection } from '@dbTools/typeorm'
-import { entities } from '@entity/index'
+import { entities } from 'database'
+import { Connection, FileLogger, createConnection } from 'typeorm'
 
 const connection = async (): Promise<Connection | null> => {
   try {

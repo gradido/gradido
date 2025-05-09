@@ -30,8 +30,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Database | Build 'test_up' image
-        run: docker build --target test_up -t "gradido/database:test_up" database/
+      - name: Database | Build 'up' image
+        run: docker build --target up -t "gradido/database:up" -f database/Dockerfile .
 
   database_migration_test:
     if: needs.files-changed.outputs.database == 'true' || needs.files-changed.outputs.docker-compose == 'true'  || needs.files-changed.outputs.mariadb == 'true'
@@ -42,15 +42,32 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: docker-compose mariadb
+      - name: Set Node.js version
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.20.7'
+
+      - name: Database | docker-compose
         run: docker compose -f docker-compose.yml -f docker-compose.test.yml up --detach mariadb
+
+      - name: Install turbo
+        run: yarn global add turbo@^2
+
+      - name: Prune database with turbos help
+        run: turbo prune database
+
+      - name: install dependencies
+        run: cd out && yarn install --frozen-lockfile --production=false
+
+      - name: Wait for MariaDB to be ready
+        run: docker run --rm --network gradido_internal-net busybox sh -c 'until nc -z mariadb 3306; do echo waiting for db; sleep 1; done;'
       
       - name: Database | up
-        run: docker compose -f docker-compose.yml up --no-deps database
+        run: cd out && turbo up
       
       - name: Database | reset
-        run: docker compose -f docker-compose.yml -f docker-compose.reset.yml up --no-deps database
-        
+        run: cd out && turbo reset
+
   lint:
     if: needs.files-changed.outputs.database == 'true'
     name: Lint - Database Up
@@ -60,5 +77,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Install turbo
+        run: yarn global add turbo@^2
+
+      - name: Prune database with turbos help
+        run: turbo prune database
+
+      - name: install dependencies
+        run: cd out && yarn install --frozen-lockfile --production=false
+
       - name: Database | Lint
-        run: cd database && yarn && yarn run lint
+        run: cd out && turbo lint

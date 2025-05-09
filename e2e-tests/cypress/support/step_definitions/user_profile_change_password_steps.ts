@@ -5,7 +5,7 @@ import { Toasts } from '../../e2e/models/Toasts'
 const profilePage = new ProfilePage()
 
 When('the user opens the change password menu', () => {
-  cy.get(profilePage.openChangePassword).click()
+  cy.get(profilePage.openChangePassword).should('be.visible').click()
   cy.get(profilePage.newPasswordRepeatInput).should('be.visible')
 })
 

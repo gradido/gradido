@@ -33,18 +33,18 @@ export default defineConfig({
   e2e: {
     specPattern: '**/*.feature',
     excludeSpecPattern: '*.js',
-    baseUrl: 'http://localhost:3000',
+    baseUrl: 'http://127.0.0.1:3000',
     chromeWebSecurity: false,
-    defaultCommandTimeout: 200000,
-    pageLoadTimeout: 240000,
+    defaultCommandTimeout: 25000,
+    pageLoadTimeout: 24000,
     supportFile: 'cypress/support/index.ts',
     viewportHeight: 720,
     viewportWidth: 1280,
-    video: false,
+    video: true,
     retries: 0,
     env: {
-      backendURL: 'http://localhost:4000',
-      mailserverURL: 'http://localhost:1080',
+      backendURL: 'http://127.0.0.1:4000',
+      mailserverURL: 'http://127.0.0.1:1080',
       loginQuery: `mutation ($email: String!, $password: String!, $publisherId: Int) {
         login(email: $email, password: $password, publisherId: $publisherId) {
           id

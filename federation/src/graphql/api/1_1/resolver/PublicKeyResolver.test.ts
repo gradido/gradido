@@ -1,7 +1,7 @@
 import { CONFIG } from '@/config'
 import { createServer } from '@/server/createServer'
-import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
 import { createTestClient } from 'apollo-server-testing'
+import { FederatedCommunity as DbFederatedCommunity } from 'database'
 
 let query: any
 

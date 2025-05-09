@@ -1,5 +1,4 @@
-import { Contribution } from '@entity/Contribution'
-import { User } from '@entity/User'
+import { Contribution, User } from 'database'
 
 import { RIGHTS } from '@/auth/RIGHTS'
 import { Role } from '@/auth/Role'

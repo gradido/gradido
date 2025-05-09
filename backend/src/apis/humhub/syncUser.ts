@@ -1,4 +1,4 @@
-import { User } from '@entity/User'
+import { User } from 'database'
 
 import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'

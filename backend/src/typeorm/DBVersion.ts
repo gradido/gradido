@@ -1,4 +1,4 @@
-import { Migration } from '@entity/Migration'
+import { Migration } from 'database'
 
 import { backendLogger as logger } from '@/server/logger'
 

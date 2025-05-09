@@ -1,14 +1,12 @@
 import { CONFIG } from '@/config'
 import { fullName } from '@/graphql/util/fullName'
-import { Connection } from '@dbTools/typeorm'
-import { Community as DbCommunity } from '@entity/Community'
-import { User as DbUser } from '@entity/User'
-import { UserContact as DbUserContact } from '@entity/UserContact'
 import { cleanDB, testEnvironment } from '@test/helpers'
 import { logger } from '@test/testSetup'
 import { ApolloServerTestClient } from 'apollo-server-testing'
+import { Community as DbCommunity, User as DbUser, UserContact as DbUserContact } from 'database'
 import Decimal from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
+import { Connection } from 'typeorm'
 import { SendCoinsArgs } from '../model/SendCoinsArgs'
 
 let mutate: ApolloServerTestClient['mutate'] // , con: Connection
@@ -39,8 +37,8 @@ beforeAll(async () => {
 
 afterAll(async () => {
   // await cleanDB()
-  if (!testEnv.con || !testEnv.con.isConnected) {
-    await testEnv.con.close()
+  if (testEnv.con?.isInitialized) {
+    await testEnv.con.destroy()
   }
 })
 

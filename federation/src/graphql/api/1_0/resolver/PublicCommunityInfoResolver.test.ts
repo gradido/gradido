@@ -1,9 +1,8 @@
 import { CONFIG } from '@/config'
 import { createServer } from '@/server/createServer'
-import { Connection } from '@dbTools/typeorm'
-import { Community as DbCommunity } from '@entity/Community'
-
 import { createTestClient } from 'apollo-server-testing'
+import { Community as DbCommunity } from 'database'
+import { Connection } from 'typeorm'
 
 let query: any
 

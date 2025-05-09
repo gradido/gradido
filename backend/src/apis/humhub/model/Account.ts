@@ -1,4 +1,4 @@
-import { User } from '@entity/User'
+import { User } from 'database'
 
 import { convertGradidoLanguageToHumhub } from '@/apis/humhub/convertLanguage'
 import { PublishNameLogic } from '@/data/PublishName.logic'

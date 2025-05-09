@@ -1,4 +1,4 @@
-import { User } from '@entity/User'
+import { User } from 'database'
 
 import { Account } from './Account'
 import { Profile } from './Profile'

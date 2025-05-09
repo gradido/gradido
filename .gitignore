@@ -2,10 +2,12 @@
 .project
 *.log
 *.bak
+.turbo
 /node_modules/*
 messages.pot
 nbproject
 .metadata
+/out/*
 /.env
 package-lock.json
 /deployment/bare_metal/.env

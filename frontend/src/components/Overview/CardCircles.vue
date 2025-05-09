@@ -79,7 +79,7 @@ onMounted(() => {
 </script>
 <style scoped>
 .card {
-  background-attachment: absolute;
+  background-attachment: scroll;
   background-position: center;
   background-repeat: no-repeat;
   background-size: 350px 350px;

@@ -1,6 +1,5 @@
-import { IsNull } from '@dbTools/typeorm'
-import { DltTransaction } from '@entity/DltTransaction'
-import { Transaction } from '@entity/Transaction'
+import { DltTransaction, Transaction } from 'database'
+import { IsNull } from 'typeorm'
 
 import { DltConnectorClient } from '@dltConnector/DltConnectorClient'
 

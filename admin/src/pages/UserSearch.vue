@@ -73,7 +73,7 @@ const route = useRoute()
 
 const { result, refetch } = useQuery(searchUsers, {
   query: criteria.value,
-  filters: filters,
+  filters,
   currentPage: currentPage.value,
   pageSize: perPage.value,
   order: 'DESC',
@@ -138,7 +138,7 @@ watch(
     if (newValue !== oldValue) {
       await refetch({
         query: criteria.value,
-        filters: filters,
+        filters,
         currentPage: newValue,
         pageSize: perPage.value,
         order: 'DESC',

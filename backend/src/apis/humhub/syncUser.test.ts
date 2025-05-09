@@ -1,5 +1,4 @@
-import { User } from '@entity/User'
-import { UserContact } from '@entity/UserContact'
+import { User, UserContact } from 'database'
 
 import { GetUser } from './model/GetUser'
 import { ExecutedHumhubAction, syncUser } from './syncUser'

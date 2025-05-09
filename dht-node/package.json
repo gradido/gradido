@@ -1,10 +1,10 @@
 {
-  "name": "gradido-dht-node",
+  "name": "dht-node",  
   "version": "2.5.2",
   "description": "Gradido dht-node module",
   "main": "src/index.ts",
   "repository": "https://github.com/gradido/gradido/",
-  "author": "Claus-Peter Huebner",
+  "author": "Gradido Academy - https://www.gradido.net",
   "license": "Apache-2.0",
   "private": false,
   "scripts": {
@@ -18,30 +18,31 @@
   },
   "dependencies": {
     "@hyperswarm/dht": "^6.4.4",
+    "config-schema": "*",
     "cross-env": "^7.0.3",
+    "database": "*",
     "dotenv": "10.0.0",
-    "gradido-config": "file:../config",
-    "gradido-database": "file:../database",
     "joi": "^17.13.3",
     "log4js": "^6.7.1",
     "nodemon": "^2.0.20",
     "tsconfig-paths": "^4.1.2",
+    "typeorm": "^0.3.16",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
+    "@types/jest": "27.5.1",
+    "@types/node": "^17.0.21",
+    "@types/uuid": "^8.3.4",
+    "jest": "27.5.1",
     "@biomejs/biome": "1.9.4",
     "@types/dotenv": "^8.2.0",
-    "@types/jest": "^27.0.2",
     "@types/joi": "^17.2.3",
-    "@types/node": "^18.11.18",
-    "@types/uuid": "^8.3.4",
-    "jest": "^27.2.4",
     "prettier": "^2.8.7",
-    "ts-jest": "^27.0.5",
+    "ts-jest": "27.1.4",
     "ts-node": "^10.9.2",
     "typescript": "^4.9.4"
   },
   "engines": {
-    "node": ">=14"
+    "node": ">=18"
   }
 }

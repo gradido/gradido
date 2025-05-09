@@ -1,5 +1,5 @@
-import { IsNull, Not } from '@dbTools/typeorm'
-import { User } from '@entity/User'
+import { User } from 'database'
+import { IsNull, Not } from 'typeorm'
 
 import { CONFIG } from '@/config'
 import { LogError } from '@/server/LogError'

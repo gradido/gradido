@@ -1,8 +1,7 @@
-import { Connection } from '@dbTools/typeorm'
-import { Contribution as DbContribution } from '@entity/Contribution'
-import { Event as DbEvent } from '@entity/Event'
 import { ApolloServerTestClient } from 'apollo-server-testing'
+import { Contribution as DbContribution, Event as DbEvent } from 'database'
 import { GraphQLError } from 'graphql'
+import { Connection } from 'typeorm'
 
 import { ContributionStatus } from '@enum/ContributionStatus'
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'

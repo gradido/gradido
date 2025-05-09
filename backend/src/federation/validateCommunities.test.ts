@@ -1,8 +1,8 @@
-import { Connection } from '@dbTools/typeorm'
-import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
 import { ApolloServerTestClient } from 'apollo-server-testing'
+import { FederatedCommunity as DbFederatedCommunity } from 'database'
 import { GraphQLClient } from 'graphql-request'
 import { Response } from 'graphql-request/dist/types'
+import { Connection } from 'typeorm'
 
 import { cleanDB, testEnvironment } from '@test/helpers'
 import { logger } from '@test/testSetup'

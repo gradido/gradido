@@ -26,8 +26,7 @@
 */
 
 import { backendLogger as logger } from '@/server/logger'
-import { LoginElopageBuys } from '@entity/LoginElopageBuys'
-import { UserContact as dbUserContact } from '@entity/UserContact'
+import { LoginElopageBuys, UserContact as dbUserContact } from 'database'
 
 import { UserResolver } from '@/graphql/resolver/UserResolver'
 

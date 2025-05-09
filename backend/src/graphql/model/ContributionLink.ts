@@ -1,4 +1,4 @@
-import { ContributionLink as dbContributionLink } from '@entity/ContributionLink'
+import { ContributionLink as dbContributionLink } from 'database'
 import { Decimal } from 'decimal.js-light'
 import { Field, Int, ObjectType } from 'type-graphql'
 

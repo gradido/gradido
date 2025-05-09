@@ -1,6 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { entities } from '@entity/index'
+import { entities } from 'database'
 
 import { CONFIG } from '@/config'
 import { connection } from '@/typeorm/connection'

@@ -1,5 +1,4 @@
-import { User as DbUser } from '@entity/User'
-import { UserContact as DbUserContact } from '@entity/UserContact'
+import { User as DbUser, UserContact as DbUserContact } from 'database'
 import { validate, version } from 'uuid'
 
 import { LogError } from '@/server/LogError'

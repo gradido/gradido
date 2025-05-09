@@ -1,10 +1,12 @@
 import { CONFIG } from '@/config'
 import { LogError } from '@/server/LogError'
 import { federationLogger as logger } from '@/server/logger'
-import { Community as DbCommunity } from '@entity/Community'
-import { FederatedCommunity as DbFedCommunity } from '@entity/FederatedCommunity'
-import { CommunityLoggingView } from '@logging/CommunityLogging.view'
-import { FederatedCommunityLoggingView } from '@logging/FederatedCommunityLogging.view'
+import {
+  CommunityLoggingView,
+  Community as DbCommunity,
+  FederatedCommunity as DbFedCommunity,
+  FederatedCommunityLoggingView,
+} from 'database'
 import { Arg, Mutation, Resolver } from 'type-graphql'
 import { AuthenticationArgs } from '../model/AuthenticationArgs'
 import { OpenConnectionArgs } from '../model/OpenConnectionArgs'

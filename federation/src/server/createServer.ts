@@ -1,7 +1,7 @@
 import 'reflect-metadata'
 
 import { ApolloServer } from 'apollo-server-express'
-import express, { Express } from 'express'
+import express, { Express, RequestHandler } from 'express'
 
 import { checkDBVersion } from '@/typeorm/DBVersion'
 // database
@@ -20,7 +20,7 @@ import { schema } from '@/graphql/schema'
 
 // webhooks
 // import { elopageWebhook } from '@/webhook/elopage'
-import { Connection } from '@dbTools/typeorm'
+import { Connection } from 'typeorm'
 
 import { slowDown } from 'express-slow-down'
 import helmet from 'helmet'

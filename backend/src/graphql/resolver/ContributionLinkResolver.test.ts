@@ -1,9 +1,8 @@
-import { Connection } from '@dbTools/typeorm'
-import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
-import { Event as DbEvent } from '@entity/Event'
 import { ApolloServerTestClient } from 'apollo-server-testing'
+import { ContributionLink as DbContributionLink, Event as DbEvent } from 'database'
 import { Decimal } from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
+import { Connection } from 'typeorm'
 
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { logger } from '@test/testSetup'
