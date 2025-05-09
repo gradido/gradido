@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-
 import DHT from '@hyperswarm/dht'
 import { Community as DbCommunity, FederatedCommunity as DbFederatedCommunity } from 'database'
 import { validate as validateUUID, version as versionUUID } from 'uuid'

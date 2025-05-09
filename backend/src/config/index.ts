@@ -1,6 +1,5 @@
 // ATTENTION: DO NOT PUT ANY SECRETS IN HERE (or the .env)
 
-// eslint-disable-next-line import/no-unresolved
 import { validate } from 'config-schema'
 import { latestDbVersion } from 'database'
 import { Decimal } from 'decimal.js-light'

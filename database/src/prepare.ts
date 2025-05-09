@@ -41,6 +41,16 @@ async function convertJsToTsInMigrations(connection: Connection): Promise<number
   return result.affectedRows
 }
 
+async function convertJsToTsInMigrations(connection: Connection): Promise<number> {
+  const [result] = await connection.query<ResultSetHeader>(`
+    UPDATE ${CONFIG.MIGRATIONS_TABLE}
+    SET fileName = REPLACE(fileName, '.js', '.ts')
+    WHERE fileName LIKE '%.js'
+  `)
+
+  return result.affectedRows
+}
+
 export const getDatabaseState = async (): Promise<DatabaseState> => {
   const connection = await connectToDatabaseServer()
   if (!connection) {

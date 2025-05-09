@@ -1,4 +1,4 @@
-// eslint-disable-next-line import/no-unresolved
+
 export * from '@/node_modules/@types/sodium-native'
 
 declare module 'sodium-native' {

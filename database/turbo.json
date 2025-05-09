@@ -14,13 +14,16 @@
       "cache": false
     },
     "up": {
-      "cache": false
+      "cache": false,
+      "dependsOn": ["build"]
     },
     "down": {
-      "cache": false
+      "cache": false,
+      "dependsOn": ["build"]
     },
     "reset": {
-      "cache": false
+      "cache": false,
+      "dependsOn": ["build"]
     }
   }
 }
