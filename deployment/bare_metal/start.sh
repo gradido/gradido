@@ -3,10 +3,35 @@
 set -euo pipefail
 
 # check for parameter
-if [ -z "$1" ]; then
-    echo "Usage: Please provide a branch name as the first argument."
+FAST_MODE=false
+POSITIONAL_ARGS=()
+
+# loop through arguments
+for arg in "$@"; do
+  case "$arg" in
+    -f|--fast)
+      FAST_MODE=true
+      ;;
+    *)
+      POSITIONAL_ARGS+=("$arg")
+      ;;
+  esac
+done
+
+# set $1, $2, ... only with position arguments
+set -- "${POSITIONAL_ARGS[@]}"
+BRANCH_NAME="$1"
+
+# check for parameter
+if [ -z "$BRANCH_NAME" ]; then
+    echo "Usage: $0 [--fast] <branchName> [--fast]"
     exit 1
 fi
+echo "Use branch: $BRANCH_NAME"
+if [ "$FAST_MODE" = true ] ; then 
+  echo "Use fast mode, keep yarn and build cache"
+fi
+
 # Find current directory & configure paths
 set -o allexport
 SCRIPT_PATH=$(realpath $0)
@@ -145,12 +170,11 @@ else
 fi
 
 # git
-BRANCH=$1
-log_step "Starting with git pull - branch:$BRANCH"
+log_step "Starting with git pull - branch:$BRANCH_NAME"
 cd $PROJECT_ROOT
 # TODO: this overfetches alot, but ensures we can use start.sh with tags
 git fetch --all
-git checkout $BRANCH
+git checkout $BRANCH_NAME
 git pull
 export BUILD_COMMIT="$(git rev-parse HEAD)"
 
@@ -199,32 +223,35 @@ case "$URL_PROTOCOL" in
 esac
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $NGINX_CONFIG_DIR/$TEMPLATE_FILE > $NGINX_CONFIG_DIR/update-page.conf
 
-log_step 'Clean tmp and yarn cache'
-# Clean tmp folder - remove yarn files
-find /tmp -name "yarn--*" -exec rm -r {} \;
-# Clean user cache folder
-rm -Rf ~/.cache/yarn
+if [ "$FAST_MODE" = false ] ; then 
+  log_step 'Clean tmp and yarn cache'
+  # Clean tmp folder - remove yarn files
+  # ignore error/warnings, we want only to remove all yarn files
+  find /tmp -name "yarn--*" -exec rm -r {} \; || true
+  # Clean user cache folder
+  rm -Rf ~/.cache/yarn
 
-log_step 'Remove all node_modules and build folders'
-# Remove node_modules folders
-# we had problems with corrupted node_modules folder
-rm -Rf $PROJECT_ROOT/database/node_modules
-rm -Rf $PROJECT_ROOT/config/node_modules
-rm -Rf $PROJECT_ROOT/backend/node_modules
-rm -Rf $PROJECT_ROOT/frontend/node_modules
-rm -Rf $PROJECT_ROOT/admin/node_modules
-rm -Rf $PROJECT_ROOT/dht-node/node_modules
-rm -Rf $PROJECT_ROOT/federation/node_modules
+  log_step 'Remove all node_modules and build folders'
+  # Remove node_modules folders
+  # we had problems with corrupted node_modules folder
+  rm -Rf $PROJECT_ROOT/database/node_modules
+  rm -Rf $PROJECT_ROOT/config/node_modules
+  rm -Rf $PROJECT_ROOT/backend/node_modules
+  rm -Rf $PROJECT_ROOT/frontend/node_modules
+  rm -Rf $PROJECT_ROOT/admin/node_modules
+  rm -Rf $PROJECT_ROOT/dht-node/node_modules
+  rm -Rf $PROJECT_ROOT/federation/node_modules
 
-# Remove build folders
-# we had problems with corrupted incremtal builds
-rm -Rf $PROJECT_ROOT/database/build
-rm -Rf $PROJECT_ROOT/config/build
-rm -Rf $PROJECT_ROOT/backend/build
-rm -Rf $PROJECT_ROOT/frontend/build
-rm -Rf $PROJECT_ROOT/admin/build
-rm -Rf $PROJECT_ROOT/dht-node/build
-rm -Rf $PROJECT_ROOT/federation/build
+  # Remove build folders
+  # we had problems with corrupted incremtal builds
+  rm -Rf $PROJECT_ROOT/database/build
+  rm -Rf $PROJECT_ROOT/config/build
+  rm -Rf $PROJECT_ROOT/backend/build
+  rm -Rf $PROJECT_ROOT/frontend/build
+  rm -Rf $PROJECT_ROOT/admin/build
+  rm -Rf $PROJECT_ROOT/dht-node/build
+  rm -Rf $PROJECT_ROOT/federation/build
+fi
 
 log_step 'Regenerate .env files'
 # Regenerate .env files
