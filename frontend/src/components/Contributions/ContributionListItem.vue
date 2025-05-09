@@ -104,16 +104,17 @@
           </div>
         </BCol>
       </BRow>
-      <div v-else class="pb-3"></div>
-      <BCollapse :id="collapseId" :model-value="visible" class="mt-2">
+      <BCollapse :id="collapseId" :model-value="visible">
         <contribution-messages-list
           :messages="messagesGet"
           :status="status"
           :contribution-id="contributionId"
           @get-list-contribution-messages="getListContributionMessages"
           @update-status="updateStatus"
+          @close-all-open-collapse="visible = false"
         />
       </BCollapse>
+      <div class="pb-3"></div>
     </div>
   </div>
 </template>

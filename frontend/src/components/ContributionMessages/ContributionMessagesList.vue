@@ -14,8 +14,8 @@
       />
     </div>
 
-    <div v-b-toggle="'collapse' + String(contributionId)" class="text-center pointer clearboth">
-      <BButton variant="outline-primary" block class="mb-3">
+    <div class="text-center pointer clearboth">
+      <BButton variant="outline-primary" block @click="$emit('close-all-open-collapse')">
         <IBiArrowUpShort />
         {{ $t('form.close') }}
       </BButton>
