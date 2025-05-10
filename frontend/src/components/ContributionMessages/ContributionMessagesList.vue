@@ -10,7 +10,6 @@
         v-if="['PENDING', 'IN_PROGRESS'].includes(status)"
         :contribution-id="contributionId"
         v-bind="$attrs"
-        @update-status="updateStatus"
       />
     </div>
 
@@ -44,11 +43,6 @@ export default {
     messages: {
       type: Array,
       required: true,
-    },
-  },
-  methods: {
-    updateStatus(id) {
-      this.$emit('update-status', id)
     },
   },
 }

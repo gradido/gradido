@@ -1,28 +1,26 @@
 import { In } from '@dbTools/typeorm'
 import { ContributionMessage as DbContributionMessage } from '@entity/ContributionMessage'
 
+import { Paginated } from '@arg/Paginated'
 import { ContributionMessageType } from '@enum/ContributionMessageType'
-import { Order } from '@enum/Order'
 
 interface FindContributionMessagesOptions {
   contributionId: number
-  pageSize: number
-  currentPage: number
-  order: Order
+  pagination: Paginated
   showModeratorType?: boolean
 }
 
 export const findContributionMessages = async (
   options: FindContributionMessagesOptions,
 ): Promise<[DbContributionMessage[], number]> => {
-  const { contributionId, pageSize, currentPage, order, showModeratorType } = options
+  const { contributionId, pagination, showModeratorType } = options
 
   const messageTypes = [ContributionMessageType.DIALOG, ContributionMessageType.HISTORY]
 
   if (showModeratorType) {
     messageTypes.push(ContributionMessageType.MODERATOR)
   }
-
+  const { currentPage, pageSize, order } = pagination
   return DbContributionMessage.findAndCount({
     where: {
       contributionId,

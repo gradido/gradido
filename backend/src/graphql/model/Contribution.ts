@@ -1,13 +1,15 @@
 import { Contribution as dbContribution } from '@entity/Contribution'
-import { User as DbUser } from '@entity/User'
+import { ContributionMessage as dbContributionMessage } from '@entity/ContributionMessage'
 import { Decimal } from 'decimal.js-light'
 import { Field, Int, ObjectType } from 'type-graphql'
 
+import { ContributionMessage } from './ContributionMessage'
 import { User } from './User'
 
 @ObjectType()
 export class Contribution {
-  constructor(contribution: dbContribution, user?: DbUser | null) {
+  constructor(contribution: dbContribution) {
+    const user = contribution.user
     this.id = contribution.id
     this.firstName = user?.firstName ?? null
     this.lastName = user?.lastName ?? null
@@ -18,7 +20,7 @@ export class Contribution {
     this.confirmedBy = contribution.confirmedBy
     this.contributionDate = contribution.contributionDate
     this.status = contribution.contributionStatus
-    this.messagesCount = contribution.messages ? contribution.messages.length : 0
+    this.messagesCount = contribution.messages?.length ?? 0
     this.deniedAt = contribution.deniedAt
     this.deniedBy = contribution.deniedBy
     this.deletedAt = contribution.deletedAt
@@ -28,9 +30,12 @@ export class Contribution {
     this.moderatorId = contribution.moderatorId
     this.userId = contribution.userId
     this.resubmissionAt = contribution.resubmissionAt
-    if (user) {
-      this.user = new User(user)
-    }
+    this.user = user ? new User(user) : null
+    this.messages = contribution.messages
+      ? contribution.messages.map(
+          (message: dbContributionMessage) => new ContributionMessage(message),
+        )
+      : null
   }
 
   @Field(() => Int)
@@ -86,6 +91,9 @@ export class Contribution {
 
   @Field(() => Int)
   messagesCount: number
+
+  @Field(() => [ContributionMessage], { nullable: true })
+  messages: ContributionMessage[] | null
 
   @Field(() => String)
   status: string

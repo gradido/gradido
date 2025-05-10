@@ -1,18 +1,18 @@
 import { ContributionMessage as DbContributionMessage } from '@entity/ContributionMessage'
-import { User } from '@entity/User'
 import { Field, Int, ObjectType } from 'type-graphql'
 
 @ObjectType()
 export class ContributionMessage {
-  constructor(contributionMessage: DbContributionMessage, user: User) {
+  constructor(contributionMessage: DbContributionMessage) {
+    const user = contributionMessage.user
     this.id = contributionMessage.id
     this.message = contributionMessage.message
     this.createdAt = contributionMessage.createdAt
     this.updatedAt = contributionMessage.updatedAt
     this.type = contributionMessage.type
-    this.userFirstName = user.firstName
-    this.userLastName = user.lastName
-    this.userId = user.id
+    this.userFirstName = user?.firstName ?? null
+    this.userLastName = user?.lastName ?? null
+    this.userId = user?.id ?? null
     this.isModerator = contributionMessage.isModerator
   }
 

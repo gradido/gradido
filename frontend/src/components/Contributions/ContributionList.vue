@@ -1,27 +1,16 @@
 <template>
-  <div class="contribution-list">
+  <div v-if="items.length === 0 && !loading.value">
+    {{ emptyText }}
+  </div>
+  <div v-else class="contribution-list">
     <div v-for="item in items" :key="item.id + 'a'" class="mb-3">
       <contribution-list-item
-        v-if="item.status === 'IN_PROGRESS'"
         v-bind="item"
         :contribution-id="item.id"
         :all-contribution="allContribution"
         @close-all-open-collapse="$emit('close-all-open-collapse')"
         @update-contribution-form="updateContributionForm"
         @delete-contribution="deleteContribution"
-        @update-status="updateStatus"
-      />
-    </div>
-    <div v-for="item2 in items" :key="item2.id" class="mb-3">
-      <contribution-list-item
-        v-if="item2.status !== 'IN_PROGRESS'"
-        v-bind="item2"
-        :contribution-id="item2.id"
-        :all-contribution="allContribution"
-        @close-all-open-collapse="$emit('close-all-open-collapse')"
-        @update-contribution-form="updateContributionForm"
-        @delete-contribution="deleteContribution"
-        @update-status="updateStatus"
       />
     </div>
     <BPagination
@@ -39,59 +28,58 @@
   </div>
 </template>
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, watchEffect, onMounted } from 'vue'
 import ContributionListItem from '@/components/Contributions/ContributionListItem.vue'
+import { listContributions, listAllContributions } from '@/graphql/contributions.graphql'
+import { useQuery } from '@vue/apollo-composable'
+import { PAGE_SIZE } from '@/constants'
 
 const props = defineProps({
-  items: {
-    type: Array,
-    required: true,
-  },
-  contributionCount: {
-    type: Number,
-    required: true,
-  },
-  showPagination: {
-    type: Boolean,
-    required: true,
-  },
-  pageSize: {
-    type: Number,
-    default: 25,
-  },
   allContribution: {
     type: Boolean,
     required: false,
     default: false,
   },
+  emptyText: {
+    type: String,
+    required: false,
+    default: '',
+  },
 })
 
 const emit = defineEmits([
   'close-all-open-collapse',
-  'update-list-contributions',
   'update-contribution-form',
   'delete-contribution',
-  'update-status',
 ])
 
 const currentPage = ref(1)
-const messages = ref([])
+
+const contributionListResult = computed(() => {
+  return props.allContribution
+    ? result.value?.listAllContributions
+    : result.value?.listContributions
+})
+
+const contributionCount = computed(() => {
+  return contributionListResult.value?.contributionCount || 0
+})
+const items = computed(() => {
+  return contributionListResult.value?.contributionList || []
+})
 
 const isPaginationVisible = computed(() => {
-  return props.showPagination && props.pageSize < props.contributionCount
+  return PAGE_SIZE < contributionCount.value
 })
 
-watch(currentPage, () => {
-  updateListContributions()
-})
-
-const updateListContributions = () => {
-  emit('update-list-contributions', {
+const { result, loading } = useQuery(
+  props.allContribution ? listAllContributions : listContributions,
+  () => ({
     currentPage: currentPage.value,
-    pageSize: props.pageSize,
-  })
-  window.scrollTo(0, 0)
-}
+    pageSize: PAGE_SIZE,
+  }),
+  { fetchPolicy: 'cache-and-network' },
+)
 
 const updateContributionForm = (item) => {
   emit('update-contribution-form', item)
@@ -99,9 +87,5 @@ const updateContributionForm = (item) => {
 
 const deleteContribution = (item) => {
   emit('delete-contribution', item)
-}
-
-const updateStatus = (id) => {
-  emit('update-status', id)
 }
 </script>

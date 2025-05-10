@@ -2,7 +2,7 @@
   <div>
     <div
       class="contribution-list-item bg-white app-box-shadow gradido-border-radius pt-3 px-3"
-      :class="status === 'IN_PROGRESS' && !allContribution ? 'pulse border border-205' : ''"
+      :class="localStatus === 'IN_PROGRESS' && !allContribution ? 'pulse border border-205' : ''"
     >
       <BRow>
         <BCol cols="3" lg="2" md="2">
@@ -39,7 +39,7 @@
             {{ $t('moderatorChangedMemo') }}
           </div>
           <div
-            v-if="status === 'IN_PROGRESS' && !allContribution"
+            v-if="localStatus === 'IN_PROGRESS' && !allContribution"
             class="text-danger pointer hover-font-bold"
             @click="visible = !visible"
           >
@@ -50,11 +50,11 @@
           <div class="small">
             {{ $t('creation') }} {{ $t('(') }}{{ hours }} {{ $t('h') }}{{ $t(')') }}
           </div>
-          <div v-if="status === 'DENIED' && allContribution" class="fw-bold">
+          <div v-if="localStatus === 'DENIED' && allContribution" class="fw-bold">
             <variant-icon icon="x-circle" variant="danger" />
             {{ $t('contribution.alert.denied') }}
           </div>
-          <div v-if="status === 'DELETED'" class="small">
+          <div v-if="localStatus === 'DELETED'" class="small">
             {{ $t('contribution.deleted') }}
           </div>
           <div v-else class="fw-bold">{{ $filters.GDD(amount) }}</div>
@@ -66,12 +66,16 @@
         </BCol>
       </BRow>
       <BRow
-        v-if="(!['CONFIRMED', 'DELETED'].includes(status) && !allContribution) || messagesCount > 0"
+        v-if="
+          (!['CONFIRMED', 'DELETED'].includes(localStatus) && !allContribution) || messagesCount > 0
+        "
         class="p-2"
       >
         <BCol cols="3" class="me-auto text-center">
           <div
-            v-if="!['CONFIRMED', 'DELETED'].includes(status) && !allContribution && !moderatorId"
+            v-if="
+              !['CONFIRMED', 'DELETED'].includes(localStatus) && !allContribution && !moderatorId
+            "
             class="test-delete-contribution pointer me-3"
             @click="deleteContribution({ id })"
           >
@@ -82,7 +86,9 @@
         </BCol>
         <BCol cols="3" class="text-center">
           <div
-            v-if="!['CONFIRMED', 'DELETED'].includes(status) && !allContribution && !moderatorId"
+            v-if="
+              !['CONFIRMED', 'DELETED'].includes(localStatus) && !allContribution && !moderatorId
+            "
             class="test-edit-contribution pointer me-3"
             @click="
               $emit('update-contribution-form', {
@@ -104,14 +110,15 @@
           </div>
         </BCol>
       </BRow>
-      <BCollapse :id="collapseId" :model-value="visible">
+      <BCollapse :model-value="visible">
         <contribution-messages-list
           :messages="messagesGet"
-          :status="status"
+          :status="localStatus"
           :contribution-id="contributionId"
           @get-list-contribution-messages="getListContributionMessages"
           @update-status="updateStatus"
           @close-all-open-collapse="visible = false"
+          @add-contribution-message="addContributionMessage"
         />
       </BCollapse>
       <div class="pb-3"></div>
@@ -139,6 +146,10 @@ const props = defineProps({
   },
   memo: {
     type: String,
+  },
+  messages: {
+    type: Array,
+    required: false,
   },
   firstName: {
     type: String,
@@ -208,6 +219,16 @@ const { t } = useI18n()
 
 const messagesGet = ref([])
 const visible = ref(false)
+const localStatus = ref(props.status)
+
+watch(
+  () => props.messages,
+  () => {
+    messagesGet.value = props.messages
+  },
+  // parent is loading messages already
+  { immediate: false },
+)
 
 const variant = computed(() => {
   if (props.deletedAt) return 'danger'
@@ -266,6 +287,10 @@ function getListContributionMessages(closeCollapse = true) {
   }
 }
 
+function addContributionMessage(message) {
+  messagesGet.value.push(message)
+}
+
 onResult((resultValue) => {
   if (resultValue.data) {
     messagesGet.value.length = 0
@@ -279,11 +304,11 @@ onError((err) => {
   toastError(err.message)
 })
 
-function updateStatus(id) {
-  emit('update-status', id)
+const updateStatus = (id) => {
+  localStatus.value = 'PENDING'
 }
 
-const emit = defineEmits(['delete-contribution', 'close-all-open-collapse', 'update-status'])
+const emit = defineEmits(['delete-contribution', 'close-all-open-collapse'])
 </script>
 
 <style lang="scss" scoped>

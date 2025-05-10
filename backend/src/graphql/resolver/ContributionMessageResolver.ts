@@ -75,7 +75,7 @@ export class ContributionMessageResolver {
       { id: contributionId } as DbContribution,
       finalContributionMessage,
     )
-    return new ContributionMessage(finalContributionMessage, user)
+    return new ContributionMessage(finalContributionMessage)
   }
 
   @Authorized([RIGHTS.LIST_ALL_CONTRIBUTION_MESSAGES])
@@ -87,16 +87,12 @@ export class ContributionMessageResolver {
   ): Promise<ContributionMessageListResult> {
     const [contributionMessages, count] = await findContributionMessages({
       contributionId,
-      currentPage,
-      pageSize,
-      order,
+      pagination: { currentPage, pageSize, order },
     })
 
     return {
       count,
-      messages: contributionMessages.map(
-        (message) => new ContributionMessage(message, message.user),
-      ),
+      messages: contributionMessages.map((message) => new ContributionMessage(message)),
     }
   }
 
@@ -109,17 +105,13 @@ export class ContributionMessageResolver {
   ): Promise<ContributionMessageListResult> {
     const [contributionMessages, count] = await findContributionMessages({
       contributionId,
-      currentPage,
-      pageSize,
-      order,
+      pagination: { currentPage, pageSize, order },
       showModeratorType: true,
     })
 
     return {
       count,
-      messages: contributionMessages.map(
-        (message) => new ContributionMessage(message, message.user),
-      ),
+      messages: contributionMessages.map((message) => new ContributionMessage(message)),
     }
   }
 
@@ -194,6 +186,6 @@ export class ContributionMessageResolver {
       finalContribution,
       finalContributionMessage,
     )
-    return new ContributionMessage(finalContributionMessage, moderator)
+    return new ContributionMessage(finalContributionMessage)
   }
 }

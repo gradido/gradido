@@ -1,0 +1,59 @@
+
+fragment contributionFields on Contribution {
+  id
+  amount
+  memo
+  createdAt
+  contributionDate
+  confirmedAt
+  confirmedBy
+  status
+  messagesCount
+  deniedAt
+  deniedBy
+  updatedBy
+  updatedAt
+}
+
+fragment contributionMessageFields on ContributionMessage {
+  id
+  message
+  createdAt
+  updatedAt
+  type
+  userFirstName
+  userLastName
+  userId
+}
+
+query listContributions ($currentPage: Int = 1, $pageSize: Int = 25, $order: Order = DESC) {
+  listContributions(currentPage: $currentPage, pageSize: $pageSize, order: $order) {
+    contributionCount
+    contributionList {
+      ...contributionFields
+      deletedAt
+      moderatorId
+      messages(pagination: { currentPage: 1, pageSize: 10, order: DESC }) {
+        ...contributionMessageFields
+      }
+    }
+  }
+}
+
+query countContributionsInProgress {
+  countContributionsInProgress
+}
+
+
+query listAllContributions ($currentPage: Int = 1, $pageSize: Int = 25, $order: Order = DESC) {
+  listAllContributions(currentPage: $currentPage, pageSize: $pageSize, order: $order) {
+    contributionCount
+    contributionList {
+      firstName
+      lastName
+      ...contributionFields
+    }
+  }
+}
+
+

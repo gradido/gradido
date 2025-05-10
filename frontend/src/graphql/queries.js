@@ -188,18 +188,8 @@ export const listContributionLinks = gql`
 `
 
 export const listContributions = gql`
-  query (
-    $currentPage: Int = 1
-    $pageSize: Int = 25
-    $order: Order = DESC
-    $statusFilter: [ContributionStatus!]
-  ) {
-    listContributions(
-      currentPage: $currentPage
-      pageSize: $pageSize
-      order: $order
-      statusFilter: $statusFilter
-    ) {
+  query ($currentPage: Int = 1, $pageSize: Int = 25, $order: Order = DESC) {
+    listContributions(currentPage: $currentPage, pageSize: $pageSize, order: $order) {
       contributionCount
       contributionList {
         id

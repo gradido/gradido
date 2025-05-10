@@ -24,7 +24,6 @@ import { AdminUpdateContributionArgs } from '@arg/AdminUpdateContributionArgs'
 import { ContributionArgs } from '@arg/ContributionArgs'
 import { Paginated } from '@arg/Paginated'
 import { SearchContributionsFilterArgs } from '@arg/SearchContributionsFilterArgs'
-import { ContributionMessageType } from '@enum/ContributionMessageType'
 import { ContributionStatus } from '@enum/ContributionStatus'
 import { ContributionType } from '@enum/ContributionType'
 import { TransactionTypeId } from '@enum/TransactionTypeId'
@@ -60,11 +59,15 @@ import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 import { calculateDecay } from '@/util/decay'
 import { fullName } from '@/util/utilities'
 
+import { ContributionMessage } from '@model/ContributionMessage'
+import { ContributionMessageType } from '../enum/ContributionMessageType'
 import { findContribution } from './util/contributions'
 import { getOpenCreations, getUserCreation, validateContribution } from './util/creations'
 import { extractGraphQLFields, extractGraphQLFieldsForSelect } from './util/extractGraphQLFields'
+import { findContributionMessages } from './util/findContributionMessages'
 import { findContributions } from './util/findContributions'
 import { getLastTransaction } from './util/getLastTransaction'
+import { loadAllContributions, loadUserContributions } from './util/loadContributions'
 import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
 
 @Resolver(() => Contribution)
@@ -143,27 +146,46 @@ export class ContributionResolver {
     @Ctx() context: Context,
     @Args()
     paginated: Paginated,
-    @Arg('statusFilter', () => [ContributionStatus], { nullable: true })
-    statusFilter?: ContributionStatus[] | null,
   ): Promise<ContributionListResult> {
     const user = getUser(context)
-    const filter = new SearchContributionsFilterArgs()
-    filter.statusFilter = statusFilter
-    filter.userId = user.id
-    const [dbContributions, count] = await findContributions(paginated, filter, true, {
-      messages: true,
-    })
+    const [dbContributions, count] = await loadUserContributions(user.id, paginated)
+
+    // show contributions in progress first
+    const inProgressContributions = dbContributions.filter(
+      (contribution) => contribution.contributionStatus === ContributionStatus.IN_PROGRESS,
+    )
+    const notInProgressContributions = dbContributions.filter(
+      (contribution) => contribution.contributionStatus !== ContributionStatus.IN_PROGRESS,
+    )
 
     return new ContributionListResult(
       count,
-      dbContributions.map((contribution) => {
-        // filter out moderator messages for this call
+      [...inProgressContributions, ...notInProgressContributions].map((contribution) => {
+        // we currently expect not much contribution messages for needing pagination
+        // but if we get more than expected, we should get warned
+        if ((contribution.messages?.length || 0) > 10) {
+          logger.warn('more contribution messages as expected, consider pagination', {
+            contributionId: contribution.id,
+            expected: 10,
+            actual: contribution.messages?.length || 0,
+          })
+        }
         contribution.messages = contribution.messages?.filter(
-          (m) => (m.type as ContributionMessageType) !== ContributionMessageType.MODERATOR,
+          (message) => message.type !== ContributionMessageType.MODERATOR,
         )
-        return new Contribution(contribution, user)
+        return new Contribution(contribution)
       }),
     )
+  }
+
+  @Authorized([RIGHTS.LIST_CONTRIBUTIONS])
+  @Query(() => Int)
+  async countContributionsInProgress(@Ctx() context: Context): Promise<number> {
+    const user = getUser(context)
+    const count = await DbContribution.count({
+      where: { userId: user.id, contributionStatus: ContributionStatus.IN_PROGRESS },
+    })
+    return count
   }
 
   @Authorized([RIGHTS.LIST_ALL_CONTRIBUTIONS])
@@ -171,18 +193,12 @@ export class ContributionResolver {
   async listAllContributions(
     @Args()
     paginated: Paginated,
-    @Arg('statusFilter', () => [ContributionStatus], { nullable: true })
-    statusFilter?: ContributionStatus[] | null,
   ): Promise<ContributionListResult> {
-    const filter = new SearchContributionsFilterArgs()
-    filter.statusFilter = statusFilter
-    const [dbContributions, count] = await findContributions(paginated, filter, false, {
-      user: true,
-    })
+    const [dbContributions, count] = await loadAllContributions(paginated)
 
     return new ContributionListResult(
       count,
-      dbContributions.map((contribution) => new Contribution(contribution, contribution.user)),
+      dbContributions.map((contribution) => new Contribution(contribution)),
     )
   }
 
@@ -370,7 +386,7 @@ export class ContributionResolver {
 
     return new ContributionListResult(
       count,
-      dbContributions.map((contribution) => new Contribution(contribution, contribution.user)),
+      dbContributions.map((contribution) => new Contribution(contribution)),
     )
   }
 
@@ -626,5 +642,31 @@ export class ContributionResolver {
       user = await queryBuilder.getOneOrFail()
     }
     return new User(user)
+  }
+
+  @Authorized([RIGHTS.LIST_ALL_CONTRIBUTION_MESSAGES])
+  @FieldResolver(() => [ContributionMessage], { nullable: true })
+  async messages(
+    @Root() contribution: Contribution,
+    @Arg('pagination', () => Paginated) pagination: Paginated,
+  ): Promise<ContributionMessage[] | null> {
+    if (contribution.messagesCount === 0) {
+      return null
+    }
+    const [contributionMessages] = await findContributionMessages({
+      contributionId: contribution.id,
+      pagination,
+    })
+    // we currently expect not much contribution messages for needing pagination
+    // but if we get more than expected, we should get warned
+    if (contributionMessages.length > pagination.pageSize) {
+      logger.warn('more contribution messages as expected, consider pagination', {
+        contributionId: contribution.id,
+        expected: pagination.pageSize,
+        actual: contributionMessages.length,
+      })
+    }
+
+    return contributionMessages.map((message) => new ContributionMessage(message))
   }
 }
