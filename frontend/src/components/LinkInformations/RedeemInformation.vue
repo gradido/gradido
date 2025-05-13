@@ -10,6 +10,10 @@
         {{ '"' + linkData.senderCommunity.name + '.' + linkData.senderUser.firstName + '"' }}
         {{ $t('transaction-link.send_you') }} {{ $filters.GDD(linkData.amount) }}
       </h3>
+      <h3 v-if="!isRedeemJwtLink && linkData.amount !== ''">
+        {{ '"' + linkData.senderUser.firstName + '"' }}
+        {{ $t('transaction-link.send_you') }} {{ $filters.GDD(linkData.amount) }}
+      </h3>
       <b>{{ linkData.memo }}</b>
     </BCard>
   </div>
