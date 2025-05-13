@@ -4,7 +4,6 @@
     :max-gdd-last-month="maxForMonths[0]"
     :max-gdd-this-month="maxForMonths[1]"
     @upsert-contribution="handleUpdateContribution"
-    @reset-form="emit('reset-form')"
   />
 </template>
 
@@ -19,7 +18,7 @@ import { useI18n } from 'vue-i18n'
 const { toastError, toastSuccess } = useAppToast()
 const { t } = useI18n()
 
-const emit = defineEmits(['contribution-updated', 'reset-form'])
+const emit = defineEmits(['contribution-updated'])
 
 const props = defineProps({
   modelValue: { type: Object, required: true },

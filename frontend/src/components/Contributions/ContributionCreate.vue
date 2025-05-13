@@ -1,12 +1,15 @@
 <template>
-  <contribution-form
-    v-if="maxForMonths"
-    :model-value="form"
-    :max-gdd-last-month="parseFloat(maxForMonths.openCreations[1].amount)"
-    :max-gdd-this-month="parseFloat(maxForMonths.openCreations[2].amount)"
-    @upsert-contribution="handleCreateContribution"
-    @reset-form="resetForm"
-  />
+  <transition name="fade-out" @after-leave="resetForm">
+    <div v-if="showForm">
+      <contribution-form
+        v-if="maxForMonths"
+        :model-value="form"
+        :max-gdd-last-month="parseFloat(maxForMonths.openCreations[1].amount)"
+        :max-gdd-this-month="parseFloat(maxForMonths.openCreations[2].amount)"
+        @upsert-contribution="handleCreateContribution"
+      />
+    </div>
+  </transition>
 </template>
 
 <script setup>
@@ -29,6 +32,7 @@ const { result: maxForMonths, refetch } = useQuery(
 const { mutate: createContributionMutation } = useMutation(createContribution)
 
 const form = ref(emptyForm())
+const showForm = ref(true)
 
 function emptyForm() {
   return {
@@ -43,14 +47,25 @@ async function handleCreateContribution(contribution) {
   try {
     await createContributionMutation({ ...contribution })
     toastSuccess(t('contribution.submitted'))
-    resetForm()
-    refetch()
+    showForm.value = false
   } catch (err) {
     toastError(err.message)
   }
 }
 
 function resetForm() {
-  form.value = emptyForm()
+  refetch()
+  showForm.value = true
 }
 </script>
+<style scoped>
+.fade-out-enter-active,
+.fade-out-leave-active {
+  transition: opacity 0.5s ease;
+}
+
+.fade-out-enter-from,
+.fade-out-leave-to {
+  opacity: 0;
+}
+</style>

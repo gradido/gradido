@@ -63,7 +63,7 @@
               type="reset"
               variant="secondary"
               data-test="button-cancel"
-              @click="emit('reset-form')"
+              @click="resetForm"
             >
               {{ $t('form.cancel') }}
             </BButton>
@@ -84,7 +84,6 @@
     </BForm>
   </div>
 </template>
-
 <script setup>
 import { reactive, computed, watch, ref, onMounted, onUnmounted, toRaw } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -96,13 +95,6 @@ import { GDD_PER_HOUR } from '../../constants'
 
 const amountToHours = (amount) => parseFloat(amount / GDD_PER_HOUR).toFixed(2)
 const hoursToAmount = (hours) => parseFloat(hours * GDD_PER_HOUR).toFixed(2)
-const entityDataToForm = (entityData) => ({
-  ...entityData,
-  hours: entityData.hours !== undefined ? entityData.hours : amountToHours(entityData.amount),
-  contributionDate: entityData.contributionDate
-    ? new Date(entityData.contributionDate).toISOString().slice(0, 10)
-    : undefined,
-})
 
 const props = defineProps({
   modelValue: { type: Object, required: true },
@@ -114,7 +106,18 @@ const emit = defineEmits(['upsert-contribution', 'update:modelValue', 'reset-for
 
 const { t } = useI18n()
 
-const form = reactive(entityDataToForm(props.modelValue))
+const entityDataToForm = computed(() => ({
+  ...props.modelValue,
+  hours:
+    props.modelValue.hours !== undefined
+      ? props.modelValue.hours
+      : amountToHours(props.modelValue.amount),
+  contributionDate: props.modelValue.contributionDate
+    ? new Date(props.modelValue.contributionDate).toISOString().slice(0, 10)
+    : undefined,
+}))
+
+const form = reactive({ ...entityDataToForm.value })
 
 const now = ref(new Date()) // checked every minute, updated if day, month or year changed
 
@@ -208,6 +211,9 @@ const updateField = (newValue, name) => {
 
 function submit() {
   emit('upsert-contribution', toRaw(form))
+}
+function resetForm() {
+  Object.assign(form, entityDataToForm.value)
 }
 </script>
 <style>

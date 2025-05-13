@@ -41,7 +41,12 @@
         />
       </div>
     </BContainer>
-    <div v-if="contribution.contributionStatus === 'PENDING' || contribution.contributionStatus === 'IN_PROGRESS'">
+    <div
+      v-if="
+        contribution.contributionStatus === 'PENDING' ||
+        contribution.contributionStatus === 'IN_PROGRESS'
+      "
+    >
       <contribution-messages-formular
         :contribution-id="contribution.id"
         :contribution-memo="contribution.memo"
