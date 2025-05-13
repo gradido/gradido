@@ -230,6 +230,13 @@ watch(
   { immediate: true },
 )
 
+watch(
+  () => props.contributionStatus,
+  () => {
+    localStatus.value = props.contributionStatus
+  },
+)
+
 const statusMapping = {
   CONFIRMED: { variant: 'success', icon: 'check' },
   DELETED: { variant: 'danger', icon: 'trash' },

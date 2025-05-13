@@ -29,13 +29,14 @@
   </div>
 </template>
 <script setup>
-import { ref, computed, watch, watchEffect, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import ContributionListItem from '@/components/Contributions/ContributionListItem.vue'
 import { listContributions, listAllContributions } from '@/graphql/contributions.graphql'
 import { useQuery } from '@vue/apollo-composable'
 import { PAGE_SIZE } from '@/constants'
 import { useAppToast } from '@/composables/useToast'
 import { useI18n } from 'vue-i18n'
+import CONFIG from '@/config'
 
 const props = defineProps({
   allContribution: {
@@ -56,6 +57,7 @@ const { t } = useI18n()
 
 // constants
 const pageSize = PAGE_SIZE
+const pollInterval = CONFIG.AUTO_POLL_INTERVAL || undefined
 
 // refs
 const currentPage = ref(1)
@@ -78,7 +80,7 @@ const { result, loading, refetch } = useQuery(
         }
       : undefined,
   }),
-  { fetchPolicy: 'cache-and-network' },
+  { fetchPolicy: 'cache-and-network', pollInterval },
 )
 
 // events
@@ -94,7 +96,7 @@ const contributionCount = computed(() => {
   return contributionListResult.value?.contributionCount || 0
 })
 const items = computed(() => {
-  return contributionListResult.value?.contributionList || []
+  return [...(contributionListResult.value?.contributionList || [])]
 })
 const isPaginationVisible = computed(() => {
   return contributionCount.value > pageSize

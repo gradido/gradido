@@ -42,6 +42,13 @@ module.exports = Joi.object({
     .default('http://0.0.0.0/admin/authenticate?token=')
     .required(),
 
+  AUTO_POLL_INTERVAL: Joi.number()
+    .integer()
+    .min(0)
+    .max(600000)
+    .description('Auto Polling for new data in ms. 0 = disabled = default. Experimental!')
+    .default(0),
+
   COMMUNITY_REGISTER_URL: Joi.string()
     .uri({ scheme: ['http', 'https'] })
     .description('URL for Register a new Account in frontend.')
