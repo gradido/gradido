@@ -14,12 +14,12 @@ describe('OpenCreationsTable', () => {
   let store
 
   const mockItems = [
-    { id: 1, status: 'PENDING', userId: 2, moderatorId: null, messagesCount: 0 },
-    { id: 2, status: 'CONFIRMED', userId: 3, moderatorId: 1, messagesCount: 2 },
+    { id: 1, contributionStatus: 'PENDING', userId: 2, moderatorId: null, messagesCount: 0 },
+    { id: 2, contributionStatus: 'CONFIRMED', userId: 3, moderatorId: 1, messagesCount: 2 },
   ]
 
   const mockFields = [
-    { key: 'status', label: 'Status' },
+    { key: 'contributionStatus', label: 'Status' },
     { key: 'bookmark', label: 'Bookmark' },
     { key: 'memo', label: 'Memo' },
     { key: 'editCreation', label: 'Edit' },
