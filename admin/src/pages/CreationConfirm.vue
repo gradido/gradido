@@ -224,7 +224,7 @@ const fields = computed(
       ],
       // all contributions
       [
-        { key: 'status', label: t('status') },
+        { key: 'contributionStatus', label: t('status') },
         baseFields.firstName,
         baseFields.lastName,
         baseFields.amount,
@@ -425,7 +425,7 @@ const updateStatus = (id) => {
   const target = items.value.find((obj) => obj.id === id)
   if (target) {
     target.messagesCount++
-    target.status = 'IN_PROGRESS'
+    target.contributionStatus = 'IN_PROGRESS'
   }
 }
 </script>

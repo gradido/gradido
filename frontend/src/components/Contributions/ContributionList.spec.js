@@ -1,7 +1,9 @@
+import { listAllContributions, listContributions } from '@/graphql/contributions.graphql'
+import { useQuery } from '@vue/apollo-composable'
 import { mount } from '@vue/test-utils'
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import ContributionList from './ContributionList'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createI18n } from 'vue-i18n'
+import ContributionList from './ContributionList'
 
 const i18n = createI18n({
   legacy: false,
@@ -13,6 +15,10 @@ vi.mock('@/components/Contributions/ContributionListItem.vue', () => ({
     name: 'ContributionListItem',
     template: '<div></div>',
   },
+}))
+
+vi.mock('@vue/apollo-composable', () => ({
+  useQuery: vi.fn(),
 }))
 
 describe('ContributionList', () => {
@@ -30,10 +36,38 @@ describe('ContributionList', () => {
     },
   }
 
+  const contributionsList = {
+    contributionCount: 3,
+    contributionList: [
+      {
+        id: 0,
+        date: '07/06/2022',
+        memo: 'Ich habe 10 Stunden die Elbwiesen von Müll befreit.',
+        amount: '200',
+        status: 'IN_PROGRESS',
+      },
+      {
+        id: 1,
+        date: '06/22/2022',
+        memo: 'Ich habe 30 Stunden Frau Müller beim Einkaufen und im Haushalt geholfen.',
+        amount: '600',
+        status: 'CONFIRMED',
+      },
+      {
+        id: 2,
+        date: '05/04/2022',
+        memo: 'Ich habe 50 Stunden den Nachbarkindern bei ihren Hausaufgaben geholfen und Nachhilfeunterricht gegeben.',
+        amount: '1000',
+        status: 'DENIED',
+      },
+    ],
+  }
+
   const propsData = {
     contributionCount: 3,
     showPagination: true,
     pageSize: 25,
+    allContribution: false,
     items: [
       {
         id: 0,
@@ -45,7 +79,7 @@ describe('ContributionList', () => {
       {
         id: 1,
         date: '06/22/2022',
-        memo: 'Ich habe 30 Stunden Frau Müller beim EInkaufen und im Haushalt geholfen.',
+        memo: 'Ich habe 30 Stunden Frau Müller beim Einkaufen und im Haushalt geholfen.',
         amount: '600',
         status: 'CONFIRMED',
       },
@@ -67,8 +101,42 @@ describe('ContributionList', () => {
   }
 
   describe('mount', () => {
+    const mockListContributionsQuery = vi.fn()
+    const mockListAllContributionsQuery = vi.fn()
+
     beforeEach(() => {
+      vi.mocked(useQuery).mockImplementation((query) => {
+        if (query === listContributions) {
+          return { onResult: mockListContributionsQuery, refetch: vi.fn() }
+        }
+        if (query === listAllContributions) {
+          return { onResult: mockListAllContributionsQuery, refetch: vi.fn() }
+        }
+      })
+
       wrapper = mountWrapper()
+    })
+
+    afterEach(() => {
+      vi.clearAllMocks()
+    })
+
+    describe('mount as user contributions list', () => {
+      beforeEach(() => {
+        propsData.allContribution = false
+      })
+      it('fetches initial data', () => {
+        expect(mockListContributionsQuery).toHaveBeenCalled()
+      })
+    })
+
+    describe('mount as all contributions list', () => {
+      beforeEach(() => {
+        propsData.allContribution = true
+      })
+      it('fetches initial data', () => {
+        expect(mockListAllContributionsQuery).toHaveBeenCalled()
+      })
     })
 
     it('has a DIV .contribution-list', () => {

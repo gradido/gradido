@@ -1,14 +1,19 @@
+#import './user.graphql'
 
-fragment contributionFields on Contribution {
+fragment unconfirmedContributionFields on Contribution {
   id
   amount
   memo
-  createdAt
   contributionDate
+  contributionStatus
+  messagesCount
+}
+
+fragment contributionFields on Contribution {
+  ...unconfirmedContributionFields
+  createdAt
   confirmedAt
   confirmedBy
-  status
-  messagesCount
   deniedAt
   deniedBy
   updatedBy
@@ -26,16 +31,28 @@ fragment contributionMessageFields on ContributionMessage {
   userId
 }
 
-query listContributions ($currentPage: Int = 1, $pageSize: Int = 25, $order: Order = DESC) {
-  listContributions(currentPage: $currentPage, pageSize: $pageSize, order: $order) {
+query listContributions ($pagination: Paginated!, $messagePagination: Paginated!) {
+  listContributions(pagination: $pagination, messagePagination: $messagePagination) {
     contributionCount
     contributionList {
       ...contributionFields
       deletedAt
       moderatorId
-      messages(pagination: { currentPage: 1, pageSize: 10, order: DESC }) {
+      messages(pagination: $messagePagination) {
         ...contributionMessageFields
       }
+    }
+  }
+}
+
+query listAllContributions ($pagination: Paginated!) {
+  listAllContributions(pagination: $pagination) {
+    contributionCount
+    contributionList {
+      user {
+        ...userFields
+      }
+      ...contributionFields
     }
   }
 }
@@ -44,16 +61,47 @@ query countContributionsInProgress {
   countContributionsInProgress
 }
 
-
-query listAllContributions ($currentPage: Int = 1, $pageSize: Int = 25, $order: Order = DESC) {
-  listAllContributions(currentPage: $currentPage, pageSize: $pageSize, order: $order) {
-    contributionCount
-    contributionList {
-      firstName
-      lastName
-      ...contributionFields
-    }
+query openCreations {
+  openCreations {
+    year
+    month
+    amount
   }
 }
+
+query openCreationsAmounts {
+  openCreations {
+    amount
+  }
+}
+
+# return unconfirmedContributionFields
+mutation createContribution ($amount: Decimal!, $memo: String!, $contributionDate: String!) {
+  createContribution(amount: $amount, memo: $memo, contributionDate: $contributionDate)  {
+    id
+  }
+}
+
+# return unconfirmedContributionFields
+mutation updateContribution (
+  $contributionId: Int!,
+  $amount: Decimal!,
+  $memo: String!,
+  $contributionDate: String!
+) {
+  updateContribution(
+    contributionId: $contributionId,
+    amount: $amount,
+    memo: $memo,
+    contributionDate: $contributionDate
+  ) {
+    id
+  }
+}
+
+mutation deleteContribution($id: Int!) {
+  deleteContribution(id: $id)
+}
+
 
 

@@ -85,7 +85,7 @@ export class ContributionResolver {
   @Authorized([RIGHTS.CREATE_CONTRIBUTION])
   @Mutation(() => UnconfirmedContribution)
   async createContribution(
-    @Args() { amount, memo, creationDate }: ContributionArgs,
+    @Args() { amount, memo, contributionDate }: ContributionArgs,
     @Ctx() context: Context,
   ): Promise<UnconfirmedContribution> {
     const clientTimezoneOffset = getClientTimezoneOffset(context)
@@ -93,14 +93,14 @@ export class ContributionResolver {
     const user = getUser(context)
     const creations = await getUserCreation(user.id, clientTimezoneOffset)
     logger.trace('creations', creations)
-    const creationDateObj = new Date(creationDate)
-    validateContribution(creations, amount, creationDateObj, clientTimezoneOffset)
+    const contributionDateObj = new Date(contributionDate)
+    validateContribution(creations, amount, contributionDateObj, clientTimezoneOffset)
 
     const contribution = DbContribution.create()
     contribution.userId = user.id
     contribution.amount = amount
     contribution.createdAt = new Date()
-    contribution.contributionDate = creationDateObj
+    contribution.contributionDate = contributionDateObj
     contribution.memo = memo
     contribution.contributionType = ContributionType.USER
     contribution.contributionStatus = ContributionStatus.PENDING
@@ -109,7 +109,7 @@ export class ContributionResolver {
     await DbContribution.save(contribution)
     await EVENT_CONTRIBUTION_CREATE(user, contribution, amount)
 
-    return new UnconfirmedContribution(contribution, user, creations)
+    return new UnconfirmedContribution(contribution)
   }
 
   @Authorized([RIGHTS.DELETE_CONTRIBUTION])
@@ -144,12 +144,12 @@ export class ContributionResolver {
   @Query(() => ContributionListResult)
   async listContributions(
     @Ctx() context: Context,
-    @Args()
-    paginated: Paginated,
+    @Arg('pagination') pagination: Paginated,
+    @Arg('messagePagination') messagePagination: Paginated,
   ): Promise<ContributionListResult> {
     const user = getUser(context)
-    const [dbContributions, count] = await loadUserContributions(user.id, paginated)
-
+    const [dbContributions, count] = await loadUserContributions(user.id, pagination, messagePagination)
+    
     // show contributions in progress first
     const inProgressContributions = dbContributions.filter(
       (contribution) => contribution.contributionStatus === ContributionStatus.IN_PROGRESS,
@@ -163,10 +163,10 @@ export class ContributionResolver {
       [...inProgressContributions, ...notInProgressContributions].map((contribution) => {
         // we currently expect not much contribution messages for needing pagination
         // but if we get more than expected, we should get warned
-        if ((contribution.messages?.length || 0) > 10) {
+        if ((contribution.messages?.length || 0) > messagePagination.pageSize) {
           logger.warn('more contribution messages as expected, consider pagination', {
             contributionId: contribution.id,
-            expected: 10,
+            expected: messagePagination.pageSize,
             actual: contribution.messages?.length || 0,
           })
         }
@@ -191,10 +191,9 @@ export class ContributionResolver {
   @Authorized([RIGHTS.LIST_ALL_CONTRIBUTIONS])
   @Query(() => ContributionListResult)
   async listAllContributions(
-    @Args()
-    paginated: Paginated,
+    @Arg('pagination') pagination: Paginated,
   ): Promise<ContributionListResult> {
-    const [dbContributions, count] = await loadAllContributions(paginated)
+    const [dbContributions, count] = await loadAllContributions(pagination)
 
     return new ContributionListResult(
       count,
@@ -215,8 +214,7 @@ export class ContributionResolver {
       contributionArgs,
       context,
     )
-    const { contribution, contributionMessage, availableCreationSums } =
-      await updateUnconfirmedContributionContext.run()
+    const { contribution, contributionMessage } = await updateUnconfirmedContributionContext.run()
     await getConnection().transaction(async (transactionalEntityManager: EntityManager) => {
       await transactionalEntityManager.save(contribution)
       if (contributionMessage) {
@@ -226,7 +224,7 @@ export class ContributionResolver {
     const user = getUser(context)
     await EVENT_CONTRIBUTION_UPDATE(user, contribution, contributionArgs.amount)
 
-    return new UnconfirmedContribution(contribution, user, availableCreationSums)
+    return new UnconfirmedContribution(contribution)
   }
 
   @Authorized([RIGHTS.ADMIN_CREATE_CONTRIBUTION])
@@ -629,25 +627,28 @@ export class ContributionResolver {
 
   // Field resolvers
   @Authorized([RIGHTS.USER])
-  @FieldResolver(() => User)
+  @FieldResolver(() => User, { nullable: true })
   async user(
     @Root() contribution: DbContribution,
     @Info() info: GraphQLResolveInfo,
-  ): Promise<User> {
-    let user = contribution.user
+  ): Promise<User | null> {
+    let user: DbUser | null = contribution.user
     if (!user) {
       const queryBuilder = DbUser.createQueryBuilder('user')
       queryBuilder.where('user.id = :userId', { userId: contribution.userId })
       extractGraphQLFieldsForSelect(info, queryBuilder, 'user')
-      user = await queryBuilder.getOneOrFail()
+      user = await queryBuilder.getOne()
     }
-    return new User(user)
+    if (user) {
+      return new User(user)
+    }
+    return null
   }
 
   @Authorized([RIGHTS.LIST_ALL_CONTRIBUTION_MESSAGES])
   @FieldResolver(() => [ContributionMessage], { nullable: true })
   async messages(
-    @Root() contribution: Contribution,
+    @Root() contribution: UnconfirmedContribution,
     @Arg('pagination', () => Paginated) pagination: Paginated,
   ): Promise<ContributionMessage[] | null> {
     if (contribution.messagesCount === 0) {

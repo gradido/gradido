@@ -14,7 +14,7 @@
     </div>
 
     <div class="text-center pointer clearboth">
-      <BButton variant="outline-primary" block @click="$emit('close-all-open-collapse')">
+      <BButton variant="outline-primary" block @click="$emit('close-messages-list')">
         <IBiArrowUpShort />
         {{ $t('form.close') }}
       </BButton>

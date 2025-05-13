@@ -1,4 +1,10 @@
 <template>
+  <open-creations-amount
+    :minimal-date="minimalDate"
+    :max-gdd-last-month="maxGddLastMonth"
+    :max-gdd-this-month="maxGddThisMonth"
+  />
+  <div class="mb-3"></div>
   <div class="contribution-form">
     <BForm
       class="form-style p-3 bg-white app-box-shadow gradido-border-radius"
@@ -6,13 +12,13 @@
     >
       <ValidatedInput
         id="contribution-date"
-        :model-value="date"
-        name="date"
+        :model-value="form.contributionDate"
+        name="contributionDate"
         :label="$t('contribution.selectDate')"
         :no-flip="true"
         class="mb-4 bg-248"
         type="date"
-        :rules="validationSchema.fields.date"
+        :rules="validationSchema.fields.contributionDate"
         @update:model-value="updateField"
       />
       <div v-if="noOpenCreation" class="p-3" data-test="contribution-message">
@@ -21,7 +27,7 @@
       <div v-else>
         <ValidatedInput
           id="contribution-memo"
-          :model-value="memo"
+          :model-value="form.memo"
           name="memo"
           :label="$t('contribution.activity')"
           :placeholder="$t('contribution.yourActivity')"
@@ -31,7 +37,7 @@
         />
         <ValidatedInput
           name="hours"
-          :model-value="hours"
+          :model-value="form.hours"
           :label="$t('form.hours')"
           placeholder="0.01"
           step="0.01"
@@ -41,7 +47,7 @@
         />
         <LabeledInput
           id="contribution-amount"
-          :model-value="amount"
+          :model-value="form.amount"
           class="mt-3"
           name="amount"
           :label="$t('form.amount')"
@@ -57,7 +63,7 @@
               type="reset"
               variant="secondary"
               data-test="button-cancel"
-              @click="fullFormReset"
+              @click="emit('reset-form')"
             >
               {{ $t('form.cancel') }}
             </BButton>
@@ -80,7 +86,7 @@
 </template>
 
 <script setup>
-import { reactive, computed, watch } from 'vue'
+import { reactive, computed, watch, ref, onMounted, onUnmounted, toRaw } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ValidatedInput from '@/components/Inputs/ValidatedInput'
 import LabeledInput from '@/components/Inputs/LabeledInput'
@@ -88,35 +94,42 @@ import { memo as memoSchema } from '@/validationSchemas'
 import { object, date as dateSchema, number } from 'yup'
 import { GDD_PER_HOUR } from '../../constants'
 
+const amountToHours = (amount) => parseFloat(amount / GDD_PER_HOUR).toFixed(2)
+const hoursToAmount = (hours) => parseFloat(hours * GDD_PER_HOUR).toFixed(2)
+const entityDataToForm = (entityData) => ({
+  ...entityData,
+  hours: entityData.hours !== undefined ? entityData.hours : amountToHours(entityData.amount),
+  contributionDate: entityData.contributionDate
+    ? new Date(entityData.contributionDate).toISOString().slice(0, 10)
+    : undefined,
+})
+
 const props = defineProps({
   modelValue: { type: Object, required: true },
   maxGddLastMonth: { type: Number, required: true },
   maxGddThisMonth: { type: Number, required: true },
 })
 
-const emit = defineEmits(['update-contribution', 'set-contribution', 'update:modelValue'])
+const emit = defineEmits(['upsert-contribution', 'update:modelValue', 'reset-form'])
 
 const { t } = useI18n()
 
-const form = reactive({ ...props.modelValue })
+const form = reactive(entityDataToForm(props.modelValue))
 
-// update local form if in parent form changed, it is necessary because the community page will reuse this form also for editing existing
-// contributions, and it will reusing a existing instance of this component
-watch(
-  () => props.modelValue,
-  (newValue) => Object.assign(form, newValue),
-)
-
-// use computed to make sure child input update if props from parent from this component change
-const amount = computed(() => form.amount)
-const date = computed(() => form.date)
-const hours = computed(() => form.hours)
-const memo = computed(() => form.memo)
+const now = ref(new Date()) // checked every minute, updated if day, month or year changed
 
 const isThisMonth = computed(() => {
-  const formDate = new Date(form.date)
-  const now = new Date()
-  return formDate.getMonth() === now.getMonth() && formDate.getFullYear() === now.getFullYear()
+  const formContributionDate = new Date(form.contributionDate)
+  return (
+    formContributionDate.getMonth() === now.value.getMonth() &&
+    formContributionDate.getFullYear() === now.value.getFullYear()
+  )
+})
+
+const minimalDate = computed(() => {
+  const minimalDate = new Date(now.value)
+  minimalDate.setMonth(now.value.getMonth() - 1, 1)
+  return minimalDate
 })
 
 // reactive validation schema, because some boundaries depend on form input and existing data
@@ -129,11 +142,10 @@ const validationSchema = computed(() => {
   return object({
     // The date field is required and needs to be a valid date
     // contribution date
-    date: dateSchema()
+    contributionDate: dateSchema()
       .required()
-      .min(new Date(new Date().setMonth(new Date().getMonth() - 1, 1)).toISOString().slice(0, 10)) // min date is first day of last month
-      .max(new Date().toISOString().slice(0, 10))
-      .default(''), // date cannot be in the future
+      .min(minimalDate.value.toISOString().slice(0, 10)) // min date is first day of last month
+      .max(now.value.toISOString().slice(0, 10)), // date cannot be in the future
     memo: memoSchema,
     hours: number()
       .required()
@@ -150,11 +162,12 @@ const validationSchema = computed(() => {
 
 const disabled = computed(() => !validationSchema.value.isValidSync(form))
 
+// decide message if no open creation exists
 const noOpenCreation = computed(() => {
   if (props.maxGddThisMonth <= 0 && props.maxGddLastMonth <= 0) {
     return t('contribution.noOpenCreation.allMonth')
   }
-  if (form.date) {
+  if (form.contributionDate) {
     if (isThisMonth.value && props.maxGddThisMonth <= 0) {
       return t('contribution.noOpenCreation.thisMonth')
     }
@@ -165,36 +178,36 @@ const noOpenCreation = computed(() => {
   return undefined
 })
 
+// make sure, that base date for min and max date is up to date, even if user work at midnight
+onMounted(() => {
+  const interval = setInterval(() => {
+    const localNow = new Date()
+    if (
+      localNow.getDate() !== now.value.getDate() ||
+      localNow.getMonth() !== now.value.getMonth() ||
+      localNow.getFullYear() !== now.value.getFullYear()
+    ) {
+      now.value = localNow
+    }
+  }, 60 * 1000) // check every minute
+
+  onUnmounted(() => {
+    clearInterval(interval)
+  })
+})
+
 const updateField = (newValue, name) => {
   if (typeof name === 'string' && name.length) {
     form[name] = newValue
     if (name === 'hours') {
-      const amount = form.hours ? (form.hours * GDD_PER_HOUR).toFixed(2) : GDD_PER_HOUR
+      const amount = form.hours ? hoursToAmount(form.hours) : GDD_PER_HOUR
       form.amount = amount.toString()
     }
   }
-  emit('update:modelValue', form)
 }
 
 function submit() {
-  const dataToSave = { ...form }
-  let emitOption = 'set-contribution'
-  if (props.modelValue.id) {
-    dataToSave.id = props.modelValue.id
-    emitOption = 'update-contribution'
-  }
-  emit(emitOption, dataToSave)
-  fullFormReset()
-}
-
-function fullFormReset() {
-  emit('update:modelValue', {
-    id: undefined,
-    date: null,
-    memo: '',
-    hours: '',
-    amount: undefined,
-  })
+  emit('upsert-contribution', toRaw(form))
 }
 </script>
 <style>

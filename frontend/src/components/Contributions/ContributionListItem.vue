@@ -6,16 +6,8 @@
     >
       <BRow>
         <BCol cols="3" lg="2" md="2">
-          <!--          <avatar-->
-          <!--            v-if="firstName"-->
-          <!--            :name="username.username"-->
-          <!--            :initials="username.initials"-->
-          <!--            :border="false"-->
-          <!--            color="#fff"-->
-          <!--            class="vue3-avatar fw-bold"-->
-          <!--          />-->
           <app-avatar
-            v-if="firstName"
+            v-if="username.username"
             :name="username.username"
             :initials="username.initials"
             color="#fff"
@@ -26,8 +18,8 @@
           </BAvatar>
         </BCol>
         <BCol>
-          <div v-if="firstName" class="me-3 fw-bold">
-            {{ firstName }} {{ lastName }}
+          <div v-if="username.username" class="me-3 fw-bold">
+            {{ username.username }}
             <variant-icon :icon="icon" :variant="variant" />
           </div>
           <div class="small">
@@ -41,7 +33,7 @@
           <div
             v-if="localStatus === 'IN_PROGRESS' && !allContribution"
             class="text-danger pointer hover-font-bold"
-            @click="visible = !visible"
+            @click="emit('toggle-messages-visible')"
           >
             {{ $t('contribution.alert.answerQuestion') }}
           </div>
@@ -60,8 +52,8 @@
           <div v-else class="fw-bold">{{ $filters.GDD(amount) }}</div>
         </BCol>
         <BCol cols="12" md="1" lg="1" class="text-end align-items-center">
-          <div v-if="messagesCount > 0 && !moderatorId" @click="visible = !visible">
-            <collapse-icon class="text-end" :visible="visible" />
+          <div v-if="messagesCount > 0 && !moderatorId" @click="emit('toggle-messages-visible')">
+            <collapse-icon class="text-end" :visible="messagesVisible" />
           </div>
         </BCol>
       </BRow>
@@ -77,7 +69,7 @@
               !['CONFIRMED', 'DELETED'].includes(localStatus) && !allContribution && !moderatorId
             "
             class="test-delete-contribution pointer me-3"
-            @click="deleteContribution({ id })"
+            @click="processDeleteContribution({ id })"
           >
             <IBiTrash />
 
@@ -92,10 +84,10 @@
             class="test-edit-contribution pointer me-3"
             @click="
               $emit('update-contribution-form', {
-                id: id,
-                contributionDate: contributionDate,
-                memo: memo,
-                amount: amount,
+                id,
+                contributionDate,
+                memo,
+                amount,
               })
             "
           >
@@ -104,20 +96,23 @@
           </div>
         </BCol>
         <BCol cols="6" class="text-center">
-          <div v-if="messagesCount > 0 && !moderatorId" class="pointer" @click="visible = !visible">
+          <div
+            v-if="messagesCount > 0 && !moderatorId"
+            class="pointer"
+            @click="emit('toggle-messages-visible')"
+          >
             <IBiChatDots />
             <div>{{ $t('moderatorChat') }}</div>
           </div>
         </BCol>
       </BRow>
-      <BCollapse :model-value="visible">
+      <BCollapse :model-value="messagesVisible">
         <contribution-messages-list
-          :messages="messagesGet"
+          v-if="messagesCount > 0"
+          :messages="localMessages"
           :status="localStatus"
           :contribution-id="contributionId"
-          @get-list-contribution-messages="getListContributionMessages"
-          @update-status="updateStatus"
-          @close-all-open-collapse="visible = false"
+          @close-messages-list="emit('toggle-messages-visible')"
           @add-contribution-message="addContributionMessage"
         />
       </BCollapse>
@@ -130,12 +125,12 @@
 import { ref, computed, watch } from 'vue'
 import CollapseIcon from '../TransactionRows/CollapseIcon'
 import ContributionMessagesList from '@/components/ContributionMessages/ContributionMessagesList'
-import { listContributionMessages } from '@/graphql/queries'
 import { useAppToast } from '@/composables/useToast'
 import { useI18n } from 'vue-i18n'
-import { useLazyQuery } from '@vue/apollo-composable'
+import { useMutation } from '@vue/apollo-composable'
 import AppAvatar from '@/components/AppAvatar.vue'
 import { GDD_PER_HOUR } from '../../constants'
+import { deleteContribution } from '@/graphql/contributions.graphql'
 
 const props = defineProps({
   id: {
@@ -150,13 +145,10 @@ const props = defineProps({
   messages: {
     type: Array,
     required: false,
+    default: () => [],
   },
-  firstName: {
-    type: String,
-    required: false,
-  },
-  lastName: {
-    type: String,
+  user: {
+    type: Object,
     required: false,
   },
   createdAt: {
@@ -189,7 +181,7 @@ const props = defineProps({
     type: Number,
     required: false,
   },
-  status: {
+  contributionStatus: {
     type: String,
     required: false,
     default: '',
@@ -212,103 +204,89 @@ const props = defineProps({
     required: false,
     default: 0,
   },
+  messagesVisible: {
+    type: Boolean,
+    required: false,
+    default: false,
+  },
 })
 
-const { toastError } = useAppToast()
+const { toastError, toastSuccess } = useAppToast()
 const { t } = useI18n()
 
-const messagesGet = ref([])
-const visible = ref(false)
-const localStatus = ref(props.status)
+const { mutate: deleteContributionMutation } = useMutation(deleteContribution)
 
+const localMessages = ref([])
+const localStatus = ref(props.contributionStatus)
+
+// if parent reload messages, update local messages copy
 watch(
   () => props.messages,
   () => {
-    messagesGet.value = props.messages
+    if (props.messages?.length > 0) {
+      localMessages.value = [...props.messages]
+    }
   },
-  // parent is loading messages already
-  { immediate: false },
+  { immediate: true },
 )
 
+const statusMapping = {
+  CONFIRMED: { variant: 'success', icon: 'check' },
+  DELETED: { variant: 'danger', icon: 'trash' },
+  DENIED: { variant: 'warning', icon: 'x-circle' },
+  IN_PROGRESS: { variant: '205', icon: 'question' },
+  default: { variant: 'primary', icon: 'bell-fill' },
+}
+
 const variant = computed(() => {
-  if (props.deletedAt) return 'danger'
-  if (props.deniedAt) return 'warning'
-  if (props.confirmedAt) return 'success'
-  if (props.status === 'IN_PROGRESS') return '205'
-  return 'primary'
+  return (statusMapping[localStatus.value] || statusMapping.default).variant
 })
 
 const icon = computed(() => {
-  if (props.deletedAt) return 'trash'
-  if (props.deniedAt) return 'x-circle'
-  if (props.confirmedAt) return 'check'
-  if (props.status === 'IN_PROGRESS') return 'question'
-  return 'bell-fill'
+  return (statusMapping[localStatus.value] || statusMapping.default).icon
 })
 
-const collapseId = computed(() => 'collapse' + String(props.id))
-
-const username = computed(() => ({
-  username: `${props.firstName} ${props.lastName}`,
-  initials: `${props.firstName[0]}${props.lastName[0]}`,
-}))
+const username = computed(() => {
+  if (!props.user) return {}
+  return {
+    username: props.user.alias
+      ? props.user.alias
+      : `${props.user.firstName} ${props.user.lastName}`,
+    initials: `${props.user.firstName[0]}${props.user.lastName[0]}`,
+  }
+})
 
 const hours = computed(() => parseFloat((props.amount / GDD_PER_HOUR).toFixed(2)))
 
-watch(
-  () => visible.value,
-  () => {
-    if (visible.value) getListContributionMessages()
-  },
-)
-
-function deleteContribution(item) {
+async function processDeleteContribution(item) {
+  if (props.allContribution) {
+    // eslint-disable-next-line no-console
+    console.warn('tried to delete contribution from all contributions')
+    return
+  }
   if (window.confirm(t('contribution.delete'))) {
-    emit('delete-contribution', item)
-  }
-}
-
-const { onResult, onError, load, refetch } = useLazyQuery(listContributionMessages, {
-  contributionId: props.contributionId,
-})
-
-function getListContributionMessages(closeCollapse = true) {
-  if (closeCollapse) {
-    emit('close-all-open-collapse')
-  }
-  const variables = {
-    contributionId: props.contributionId,
-  }
-  // load works only once and return false on second call
-  if (!load(listContributionMessages, variables)) {
-    // update list data every time getListContributionMessages is called
-    // because it could be added new messages
-    refetch(variables)
+    try {
+      await deleteContributionMutation(item)
+      toastSuccess(t('contribution.deleted'))
+      localStatus.value = 'DELETED'
+      emit('contribution-changed')
+    } catch (err) {
+      toastError(err.message)
+    }
   }
 }
 
 function addContributionMessage(message) {
-  messagesGet.value.push(message)
-}
-
-onResult((resultValue) => {
-  if (resultValue.data) {
-    messagesGet.value.length = 0
-    resultValue.data.listContributionMessages.messages.forEach((message) => {
-      messagesGet.value.push(message)
-    })
-  }
-})
-
-onError((err) => {
-  toastError(err.message)
-})
-
-const updateStatus = (id) => {
+  localMessages.value.push(message)
   localStatus.value = 'PENDING'
+  emit('contribution-changed')
 }
 
-const emit = defineEmits(['delete-contribution', 'close-all-open-collapse'])
+const emit = defineEmits([
+  'toggle-messages-visible',
+  'update-contribution-form',
+  'contribution-changed',
+])
 </script>
 
 <style lang="scss" scoped>

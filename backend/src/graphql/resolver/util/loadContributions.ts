@@ -3,9 +3,8 @@ import { FindManyOptions } from '@dbTools/typeorm'
 import { Contribution as DbContribution } from '@entity/Contribution'
 
 function buildBaseOptions(paginated: Paginated): FindManyOptions<DbContribution> {
-  const { order, currentPage, pageSize } = paginated
+  const { currentPage, pageSize } = paginated
   return {
-    order: { createdAt: order, id: order },
     skip: (currentPage - 1) * pageSize,
     take: pageSize,
   }
@@ -19,10 +18,15 @@ function buildBaseOptions(paginated: Paginated): FindManyOptions<DbContribution>
 export const loadUserContributions = async (
   userId: number,
   paginated: Paginated,
+  messagePagination: Paginated,
 ): Promise<[DbContribution[], number]> => {
+  const { order } = paginated
+  const { order: messageOrder } = messagePagination
   return DbContribution.findAndCount({
     where: { userId },
+    withDeleted: true,
     relations: { messages: { user: true } },
+    order: { createdAt: order, id: order, messages: { createdAt: messageOrder } },
     ...buildBaseOptions(paginated),
   })
 }
@@ -34,8 +38,10 @@ export const loadUserContributions = async (
 export const loadAllContributions = async (
   paginated: Paginated,
 ): Promise<[DbContribution[], number]> => {
+  const { order } = paginated
   return DbContribution.findAndCount({
-    relations: { user: true },
+    relations: { user: { emailContact: true } },
+    order: { createdAt: order, id: order},
     ...buildBaseOptions(paginated),
   })
 }

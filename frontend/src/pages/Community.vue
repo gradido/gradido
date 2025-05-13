@@ -3,26 +3,18 @@
     <div>
       <BTabs :model-value="tabIndex" no-nav-style borderless align="center">
         <BTab no-body lazy>
-          <open-creations-amount
-            :minimal-date="minimalDate"
-            :max-gdd-last-month="maxForMonths[0]"
-            :max-gdd-this-month="maxForMonths[1]"
+          <contribution-edit
+            v-if="itemToEdit"
+            v-model="itemToEdit"
+            @contribution-updated="handleContributionUpdated"
+            @reset-form="itemToEdit = null"
           />
-          <div class="mb-3"></div>
-          <contribution-form
-            v-model="form"
-            :minimal-date="minimalDate"
-            :max-gdd-last-month="maxForMonths[0]"
-            :max-gdd-this-month="maxForMonths[1]"
-            @set-contribution="handleSaveContribution"
-            @update-contribution="handleUpdateContribution"
-          />
+          <contribution-create v-else />
         </BTab>
         <BTab no-body lazy>
           <contribution-list
             :empty-text="$t('contribution.noContributions.myContributions')"
             @update-contribution-form="handleUpdateContributionForm"
-            @delete-contribution="handleDeleteContribution"
           />
         </BTab>
         <BTab no-body lazy>
@@ -39,20 +31,17 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useQuery, useMutation } from '@vue/apollo-composable'
+import { useQuery } from '@vue/apollo-composable'
 import OpenCreationsAmount from '@/components/Contributions/OpenCreationsAmount'
-import ContributionForm from '@/components/Contributions/ContributionForm'
+import ContributionEdit from '@/components/Contributions/ContributionEdit'
+import ContributionCreate from '@/components/Contributions/ContributionCreate'
 import ContributionList from '@/components/Contributions/ContributionList'
-import { createContribution, updateContribution, deleteContribution } from '@/graphql/mutations'
-import { openCreations } from '@/graphql/queries'
 import { countContributionsInProgress } from '@/graphql/contributions.graphql'
 import { useAppToast } from '@/composables/useToast'
 import { useI18n } from 'vue-i18n'
 import { GDD_PER_HOUR } from '../constants'
 
 const COMMUNITY_TABS = ['contribute', 'contributions', 'community']
-
-const emit = defineEmits(['update-transactions'])
 
 const route = useRoute()
 const router = useRouter()
@@ -61,59 +50,8 @@ const { toastError, toastSuccess, toastInfo } = useAppToast()
 const { t } = useI18n()
 
 const tabIndex = ref(0)
-const items = ref([])
-const itemsAll = ref([])
-const currentPage = ref(1)
-const pageSize = ref(25)
-const currentPageAll = ref(1)
-const pageSizeAll = ref(25)
-const contributionCount = ref(0)
-const contributionCountAll = ref(0)
-const form = ref({
-  id: null,
-  date: undefined,
-  memo: '',
-  hours: '',
-  amount: GDD_PER_HOUR,
-})
-const originalContributionDate = ref('')
-const updateAmount = ref('')
-const maximalDate = ref(new Date())
-const openCreationsData = ref([])
 
-const minimalDate = computed(() => {
-  const date = new Date(maximalDate.value)
-  return new Date(date.setMonth(date.getMonth() - 1, 1))
-})
-
-const amountToAdd = computed(() => (form.value.id ? parseFloat(updateAmount.value) : 0.0))
-
-const maxForMonths = computed(() => {
-  const originalDate = new Date(originalContributionDate.value)
-  if (openCreationsData.value && openCreationsData.value.length) {
-    return openCreationsData.value.slice(1).map((creation) => {
-      if (
-        creation.year === originalDate.getFullYear() &&
-        creation.month === originalDate.getMonth()
-      ) {
-        return parseFloat(creation.amount) + amountToAdd.value
-      }
-      return parseFloat(creation.amount)
-    })
-  }
-  return [0, 0]
-})
-const { onResult: onOpenCreationsResult, refetch: refetchOpenCreations } = useQuery(
-  openCreations,
-  () => ({}),
-  {
-    fetchPolicy: 'network-only',
-  },
-)
-
-const { mutate: createContributionMutation } = useMutation(createContribution)
-const { mutate: updateContributionMutation } = useMutation(updateContribution)
-const { mutate: deleteContributionMutation } = useMutation(deleteContribution)
+const itemToEdit = ref(null)
 
 const { onResult: handleInProgressContributionFound } = useQuery(
   countContributionsInProgress,
@@ -122,18 +60,10 @@ const { onResult: handleInProgressContributionFound } = useQuery(
     fetchPolicy: 'network-only',
   },
 )
-
-onOpenCreationsResult(({ data }) => {
-  if (data) {
-    openCreationsData.value = data.openCreations
-  }
-})
-
 // jump to my contributions if in progress contribution found
 handleInProgressContributionFound(({ data }) => {
   if (data) {
-    const count = data.countContributionsInProgress
-    if (count > 0) {
+    if (data.countContributionsInProgress > 0) {
       tabIndex.value = 1
       if (route.params.tab !== 'contributions') {
         router.push({ params: { tab: 'contributions' } })
@@ -147,63 +77,15 @@ const updateTabIndex = () => {
   const index = COMMUNITY_TABS.indexOf(route.params.tab)
   tabIndex.value = index > -1 ? index : 0
 }
-
-const refetchData = () => {
-  refetchOpenCreations()
-  handleInProgressContributionFound()
+// after a edit contribution was saved, jump to contributions tab
+function handleContributionUpdated() {
+  itemToEdit.value = null
+  tabIndex.value = 1
+  router.push({ params: { tab: 'contributions' } })
 }
-
-const handleSaveContribution = async (data) => {
-  try {
-    await createContributionMutation({
-      creationDate: data.date,
-      memo: data.memo,
-      amount: data.amount,
-    })
-    toastSuccess(t('contribution.submitted'))
-    refetchData()
-  } catch (err) {
-    toastError(err.message)
-  }
-}
-
-const handleUpdateContribution = async (data) => {
-  try {
-    await updateContributionMutation({
-      contributionId: data.id,
-      creationDate: data.date,
-      memo: data.memo,
-      amount: data.amount,
-    })
-    toastSuccess(t('contribution.updated'))
-    refetchData()
-  } catch (err) {
-    toastError(err.message)
-  }
-}
-
-const handleDeleteContribution = async (data) => {
-  try {
-    await deleteContributionMutation({
-      id: data.id,
-    })
-    toastSuccess(t('contribution.deleted'))
-    refetchData()
-  } catch (err) {
-    toastError(err.message)
-  }
-}
-
+// if user clicks on edit contribution in contributions tab, jump to contribute tab and populate form with contribution data
 const handleUpdateContributionForm = (item) => {
-  form.value = {
-    id: item.id,
-    date: new Date(item.contributionDate).toISOString().slice(0, 10),
-    memo: item.memo,
-    amount: item.amount,
-    hours: item.amount / 20,
-  } //* /
-  originalContributionDate.value = item.contributionDate
-  updateAmount.value = item.amount
+  itemToEdit.value = item
   tabIndex.value = 0
   router.push({ params: { tab: 'contribute' } })
 }

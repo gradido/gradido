@@ -34,8 +34,8 @@
           {{ t('help.transactionlist.confirmed') }}
         </div>
         <div>
-          {{ t('transactionlist.status') }} {{ t('math.equals') }}
-          {{ t('help.transactionlist.status') }}
+          {{ t('transactionlist.contributionStatus') }} {{ t('math.equals') }}
+          {{ t('help.transactionlist.contributionStatus') }}
         </div>
       </BCollapse>
     </div>

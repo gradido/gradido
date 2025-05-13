@@ -1,13 +1,14 @@
-import { mount } from '@vue/test-utils'
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
-import Community from './Community'
-import { createContribution, updateContribution, deleteContribution } from '@/graphql/mutations'
-import { listContributions, listAllContributions, openCreations } from '@/graphql/queries'
-import { useRoute, useRouter } from 'vue-router'
 import { useAppToast } from '@/composables/useToast'
+import { countContributionsInProgress } from '@/graphql/contributions.graphql'
+import { createContribution, deleteContribution, updateContribution } from '@/graphql/mutations'
+import { listAllContributions, listContributions, openCreations } from '@/graphql/queries'
 import { useMutation, useQuery } from '@vue/apollo-composable'
+import { mount } from '@vue/test-utils'
 import { BTab, BTabs } from 'bootstrap-vue-next'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { reactive, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import Community from './Community'
 
 // Mock external dependencies
 vi.mock('vue-router', () => ({
@@ -80,9 +81,8 @@ describe('Community', () => {
   let mockRouter
   let mockToast
 
+  const mockCountContributionsInProgress = vi.fn()
   const mockOpenCreationsQuery = vi.fn()
-  const mockListContributionsQuery = vi.fn()
-  const mockListAllContributionsQuery = vi.fn()
   const mockCreateContributionMutation = vi.fn()
   const mockUpdateContributionMutation = vi.fn()
   const mockDeleteContributionMutation = vi.fn()
@@ -99,17 +99,34 @@ describe('Community', () => {
     vi.mocked(useAppToast).mockReturnValue(mockToast)
 
     vi.mocked(useQuery).mockImplementation((query) => {
-      if (query === openCreations) return { onResult: mockOpenCreationsQuery, refetch: vi.fn() }
-      if (query === listContributions)
-        return { onResult: mockListContributionsQuery, refetch: vi.fn() }
-      if (query === listAllContributions)
-        return { onResult: mockListAllContributionsQuery, refetch: vi.fn() }
+      if (query === openCreations) {
+        return {
+          onResult: mockOpenCreationsQuery,
+          refetch: vi.fn(),
+        }
+      }
+
+      if (query === countContributionsInProgress) {
+        return { onResult: mockCountContributionsInProgress }
+      }
     })
 
     vi.mocked(useMutation).mockImplementation((mutation) => {
-      if (mutation === createContribution) return { mutate: mockCreateContributionMutation }
-      if (mutation === updateContribution) return { mutate: mockUpdateContributionMutation }
-      if (mutation === deleteContribution) return { mutate: mockDeleteContributionMutation }
+      if (mutation === createContribution) {
+        return {
+          mutate: mockCreateContributionMutation,
+        }
+      }
+      if (mutation === updateContribution) {
+        return {
+          mutate: mockUpdateContributionMutation,
+        }
+      }
+      if (mutation === deleteContribution) {
+        return {
+          mutate: mockDeleteContributionMutation,
+        }
+      }
     })
 
     const { defineRule } = require('vee-validate')
@@ -138,14 +155,11 @@ describe('Community', () => {
   describe('mount', () => {
     it('initializes with correct data', () => {
       expect(wrapper.vm.tabIndex).toBe(0)
-      expect(wrapper.vm.items).toEqual([])
-      expect(wrapper.vm.itemsAll).toEqual([])
     })
 
     it('fetches initial data', () => {
       expect(mockOpenCreationsQuery).toHaveBeenCalled()
-      expect(mockListContributionsQuery).toHaveBeenCalled()
-      expect(mockListAllContributionsQuery).toHaveBeenCalled()
+      expect(mockCountContributionsInProgress).toHaveBeenCalled()
     })
   })
 
@@ -264,16 +278,6 @@ describe('Community', () => {
       })
       expect(wrapper.vm.tabIndex).toBe(0)
       expect(mockRouter.push).toHaveBeenCalledWith({ params: { tab: 'contribute' } })
-    })
-  })
-
-  describe('updateStatus', () => {
-    it('updates status of a contribution', async () => {
-      wrapper.vm.items[0] = { id: 1, status: 'IN_PROGRESS' }
-
-      wrapper.vm.updateStatus(1)
-
-      expect(wrapper.vm.items[0].status).toBe('PENDING')
     })
   })
 })

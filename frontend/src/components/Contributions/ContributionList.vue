@@ -1,5 +1,5 @@
 <template>
-  <div v-if="items.length === 0 && !loading.value">
+  <div v-if="items.length === 0 && !loading">
     {{ emptyText }}
   </div>
   <div v-else class="contribution-list">
@@ -8,9 +8,10 @@
         v-bind="item"
         :contribution-id="item.id"
         :all-contribution="allContribution"
-        @close-all-open-collapse="$emit('close-all-open-collapse')"
+        :messages-visible="openMessagesListId === item.id"
+        @toggle-messages-visible="toggleMessagesVisible(item.id)"
         @update-contribution-form="updateContributionForm"
-        @delete-contribution="deleteContribution"
+        @contribution-changed="refetch()"
       />
     </div>
     <BPagination
@@ -33,6 +34,8 @@ import ContributionListItem from '@/components/Contributions/ContributionListIte
 import { listContributions, listAllContributions } from '@/graphql/contributions.graphql'
 import { useQuery } from '@vue/apollo-composable'
 import { PAGE_SIZE } from '@/constants'
+import { useAppToast } from '@/composables/useToast'
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps({
   allContribution: {
@@ -47,45 +50,65 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits([
-  'close-all-open-collapse',
-  'update-contribution-form',
-  'delete-contribution',
-])
+// composables
+const { toastError, toastSuccess } = useAppToast()
+const { t } = useI18n()
 
+// constants
+const pageSize = PAGE_SIZE
+
+// refs
 const currentPage = ref(1)
+const openMessagesListId = ref(null)
 
+// queries
+const { result, loading, refetch } = useQuery(
+  props.allContribution ? listAllContributions : listContributions,
+  () => ({
+    pagination: {
+      currentPage: currentPage.value,
+      pageSize,
+      order: 'DESC',
+    },
+    messagePagination: !props.allContribution
+      ? {
+          currentPage: 1,
+          pageSize: 10,
+          order: 'ASC',
+        }
+      : undefined,
+  }),
+  { fetchPolicy: 'cache-and-network' },
+)
+
+// events
+const emit = defineEmits(['update-contribution-form'])
+
+// computed
 const contributionListResult = computed(() => {
   return props.allContribution
     ? result.value?.listAllContributions
     : result.value?.listContributions
 })
-
 const contributionCount = computed(() => {
   return contributionListResult.value?.contributionCount || 0
 })
 const items = computed(() => {
   return contributionListResult.value?.contributionList || []
 })
-
 const isPaginationVisible = computed(() => {
-  return PAGE_SIZE < contributionCount.value
+  return contributionCount.value > pageSize
 })
-
-const { result, loading } = useQuery(
-  props.allContribution ? listAllContributions : listContributions,
-  () => ({
-    currentPage: currentPage.value,
-    pageSize: PAGE_SIZE,
-  }),
-  { fetchPolicy: 'cache-and-network' },
-)
-
-const updateContributionForm = (item) => {
-  emit('update-contribution-form', item)
+const toggleMessagesVisible = (contributionId) => {
+  if (openMessagesListId.value === contributionId) {
+    openMessagesListId.value = 0
+  } else {
+    openMessagesListId.value = contributionId
+  }
 }
 
-const deleteContribution = (item) => {
-  emit('delete-contribution', item)
+// methods
+const updateContributionForm = (item) => {
+  emit('update-contribution-form', item)
 }
 </script>

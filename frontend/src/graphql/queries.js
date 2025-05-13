@@ -187,56 +187,6 @@ export const listContributionLinks = gql`
   }
 `
 
-export const listContributions = gql`
-  query ($currentPage: Int = 1, $pageSize: Int = 25, $order: Order = DESC) {
-    listContributions(currentPage: $currentPage, pageSize: $pageSize, order: $order) {
-      contributionCount
-      contributionList {
-        id
-        amount
-        memo
-        createdAt
-        contributionDate
-        confirmedAt
-        confirmedBy
-        deletedAt
-        status
-        messagesCount
-        deniedAt
-        deniedBy
-        updatedBy
-        updatedAt
-        moderatorId
-      }
-    }
-  }
-`
-
-export const listAllContributions = gql`
-  query ($currentPage: Int = 1, $pageSize: Int = 25, $order: Order = DESC) {
-    listAllContributions(currentPage: $currentPage, pageSize: $pageSize, order: $order) {
-      contributionCount
-      contributionList {
-        id
-        firstName
-        lastName
-        amount
-        memo
-        createdAt
-        contributionDate
-        confirmedAt
-        confirmedBy
-        status
-        messagesCount
-        deniedAt
-        deniedBy
-        updatedBy
-        updatedAt
-      }
-    }
-  }
-`
-
 export const communityStatistics = gql`
   query {
     communityStatistics {
@@ -277,16 +227,6 @@ export const listContributionMessages = gql`
         userLastName
         userId
       }
-    }
-  }
-`
-
-export const openCreations = gql`
-  query {
-    openCreations {
-      year
-      month
-      amount
     }
   }
 `

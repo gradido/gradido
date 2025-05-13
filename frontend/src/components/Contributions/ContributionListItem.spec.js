@@ -1,7 +1,7 @@
 import { mount } from '@vue/test-utils'
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import ContributionListItem from './ContributionListItem'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createI18n } from 'vue-i18n'
+import ContributionListItem from './ContributionListItem'
 
 const i18n = createI18n({
   legacy: false,
@@ -167,6 +167,15 @@ describe('ContributionListItem', () => {
       })
       it('emits close-all-open-collapse', () => {
         expect(wrapper.emitted('close-all-open-collapse')).toBeTruthy()
+      })
+    })
+    describe('updateStatus', () => {
+      it('updates status of a contribution', async () => {
+        wrapper.vm.items[0] = { id: 1, status: 'IN_PROGRESS' }
+
+        wrapper.vm.updateStatus(1)
+
+        expect(wrapper.vm.items[0].status).toBe('PENDING')
       })
     })
   })

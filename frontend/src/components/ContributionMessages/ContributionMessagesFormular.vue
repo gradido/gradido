@@ -39,11 +39,7 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits([
-  'get-list-contribution-messages',
-  'update-status',
-  'add-contribution-message',
-])
+const emit = defineEmits(['get-list-contribution-messages', 'add-contribution-message'])
 
 const { t } = useI18n()
 const { toastSuccess, toastError } = useAppToast()
@@ -68,7 +64,6 @@ async function onSubmit() {
 
     // emit('get-list-contribution-messages', false)
     formText.value = ''
-    emit('update-status', props.contributionId)
     emit('add-contribution-message', result.data.createContributionMessage)
     toastSuccess(t('message.reply'))
   } catch (error) {

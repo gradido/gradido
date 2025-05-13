@@ -73,6 +73,7 @@ export const getUserCreations = async (
     await sumAmountContributionPerUserAndLast3MonthQuery.getRawMany()
 
   logger.trace(sumAmountContributionPerUserAndLast3Month)
+  console.log(JSON.stringify(sumAmountContributionPerUserAndLast3Month, null, 2))
 
   await queryRunner.release()
 

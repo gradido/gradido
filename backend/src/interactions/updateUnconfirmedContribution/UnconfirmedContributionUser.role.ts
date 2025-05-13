@@ -18,14 +18,14 @@ export class UnconfirmedContributionUserRole extends AbstractUnconfirmedContribu
     contribution: Contribution,
     private updateData: ContributionArgs,
   ) {
-    super(contribution, updateData.amount, new Date(updateData.creationDate))
+    super(contribution, updateData.amount, new Date(updateData.contributionDate))
     logger.debug('use UnconfirmedContributionUserRole')
   }
 
   protected update(): void {
     this.self.amount = this.updateData.amount
     this.self.memo = this.updateData.memo
-    this.self.contributionDate = new Date(this.updateData.creationDate)
+    this.self.contributionDate = new Date(this.updateData.contributionDate)
     this.self.contributionStatus = ContributionStatus.PENDING
     this.self.updatedAt = new Date()
     // null because updated by user them self
