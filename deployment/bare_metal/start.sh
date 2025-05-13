@@ -145,22 +145,22 @@ sudo /etc/init.d/nginx restart
 # helper functions
 log_step() {
     local message="$1"
-    echo -e "\e[34m$message\e[0m" # > /dev/tty # blue in console
+    echo -e "\e[34m$message\e[0m" > /dev/tty # blue in console
     echo "<p style="color:blue">$message</p>" >> "$UPDATE_HTML" # blue in html 
 }
 log_error() {
     local message="$1"
-    echo -e "\e[31m$message\e[0m" # > /dev/tty # red in console
+    echo -e "\e[31m$message\e[0m" > /dev/tty # red in console
     echo "<span style="color:red">$message</span>" >> "$UPDATE_HTML" # red in html 
 }
 log_warn() {
     local message="$1"
-    echo -e "\e[33m$message\e[0m" # > /dev/tty # orange in console
+    echo -e "\e[33m$message\e[0m" > /dev/tty # orange in console
     echo "<span style="color:orange">$message</span>" >> "$UPDATE_HTML" # orange in html 
 }
 log_success() {
     local message="$1"
-    echo -e "\e[32m$message\e[0m" # > /dev/tty # green in console
+    echo -e "\e[32m$message\e[0m" > /dev/tty # green in console
     echo "<p style="color:green">$message</p>" >> "$UPDATE_HTML" # green in html 
 }
 
