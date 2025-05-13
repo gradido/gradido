@@ -1,4 +1,4 @@
-import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, OneToOne } from 'typeorm'
+import { BaseEntity, Column, Entity, OneToOne, PrimaryGeneratedColumn } from 'typeorm'
 import { TransactionCreation } from '../0001-init_db/TransactionCreation'
 import { TransactionSendCoin } from '../0001-init_db/TransactionSendCoin'
 
@@ -26,9 +26,15 @@ export class Transaction extends BaseEntity {
   @Column({ type: 'binary', length: 32, nullable: true, default: null })
   pubkey: Buffer
 
-  @OneToOne(() => TransactionSendCoin, (transactionSendCoin) => transactionSendCoin.transaction)
+  @OneToOne(
+    () => TransactionSendCoin,
+    (transactionSendCoin) => transactionSendCoin.transaction,
+  )
   transactionSendCoin: TransactionSendCoin
 
-  @OneToOne(() => TransactionCreation, (transactionCreation) => transactionCreation.transaction)
+  @OneToOne(
+    () => TransactionCreation,
+    (transactionCreation) => transactionCreation.transaction,
+  )
   transactionCreation: TransactionCreation
 }

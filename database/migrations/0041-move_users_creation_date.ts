@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 /* 
 Move forward the creation date of the users by 1 or 2 hours, 
 for which there are transactions created before their account creation. 

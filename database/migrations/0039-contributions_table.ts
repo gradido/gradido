@@ -1,9 +1,6 @@
 /* MIGRATION to rename ADMIN_PENDING_CREATION table and add columns
  */
 
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   await queryFn('RENAME TABLE `admin_pending_creations` TO `contributions`;')
 

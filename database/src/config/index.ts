@@ -1,5 +1,3 @@
-/* eslint-disable n/no-process-env */
-
 import dotenv from 'dotenv'
 
 dotenv.config()
@@ -24,6 +22,8 @@ const migrations = {
   MIGRATIONS_TABLE: process.env.MIGRATIONS_TABLE || 'migrations',
 }
 
+const nodeEnv = process.env.NODE_ENV || 'development'
+
 // Check config version
 constants.CONFIG_VERSION.CURRENT = process.env.CONFIG_VERSION || constants.CONFIG_VERSION.DEFAULT
 if (
@@ -36,4 +36,4 @@ if (
   )
 }
 
-export const CONFIG = { ...constants, ...database, ...migrations }
+export const CONFIG = { ...constants, ...database, ...migrations, NODE_ENV: nodeEnv }

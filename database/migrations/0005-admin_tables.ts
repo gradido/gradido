@@ -3,9 +3,6 @@
  * This migration adds the table `login_pending_tasks_admin` to store pending creations
  */
 
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   await queryFn(`
   CREATE TABLE IF NOT EXISTS \`login_pending_tasks_admin\` (

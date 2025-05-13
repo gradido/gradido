@@ -1,6 +1,6 @@
 import { Point } from '@dbTools/typeorm'
 import { User as DbUser } from '@entity/User'
-import { ObjectType, Field, Int } from 'type-graphql'
+import { Field, Int, ObjectType } from 'type-graphql'
 
 import { GmsPublishLocationType } from '@enum/GmsPublishLocationType'
 import { PublishNameType } from '@enum/PublishNameType'
@@ -26,9 +26,9 @@ export class User {
       this.alias = dbUser.alias
 
       const publishNameLogic = new PublishNameLogic(dbUser)
-      this.humhubUsername = publishNameLogic.getUsername(
-        dbUser.humhubPublishName as PublishNameType,
-      )
+      const publishNameType = dbUser.humhubPublishName as PublishNameType
+      this.publicName = publishNameLogic.getPublicName(publishNameType)
+      this.userIdentifier = publishNameLogic.getUserIdentifier(publishNameType)
 
       if (dbUser.emailContact) {
         this.emailChecked = dbUser.emailContact.emailChecked
@@ -73,7 +73,10 @@ export class User {
   alias: string | null
 
   @Field(() => String, { nullable: true })
-  humhubUsername: string | null
+  publicName: string | null
+
+  @Field(() => String, { nullable: true })
+  userIdentifier: string | null
 
   @Field(() => String, { nullable: true })
   firstName: string | null

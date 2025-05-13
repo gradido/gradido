@@ -2,6 +2,7 @@ import { User } from '@entity/User'
 
 import { HumHubClient } from '@/apis/humhub/HumHubClient'
 import { GetUser } from '@/apis/humhub/model/GetUser'
+import { PostUser } from '@/apis/humhub/model/PostUser'
 import { ExecutedHumhubAction, syncUser } from '@/apis/humhub/syncUser'
 import { UpdateUserInfosArgs } from '@/graphql/arg/UpdateUserInfosArgs'
 import { backendLogger as logger } from '@/server/logger'
@@ -15,8 +16,9 @@ import { backendLogger as logger } from '@/server/logger'
 export async function syncHumhub(
   updateUserInfosArg: UpdateUserInfosArgs | null,
   user: User,
+  oldHumhubUsername: string,
   spaceId?: number | null,
-): Promise<number | undefined> {
+): Promise<GetUser | null | undefined> {
   // check for humhub relevant changes
   if (
     updateUserInfosArg &&
@@ -36,13 +38,13 @@ export async function syncHumhub(
     return
   }
   logger.debug('retrieve user from humhub')
-  let humhubUser = await humhubClient.userByUsername(user.alias ?? user.gradidoID)
+  let humhubUser = await humhubClient.userByUsername(oldHumhubUsername)
   if (!humhubUser) {
     humhubUser = await humhubClient.userByEmail(user.emailContact.email)
   }
   const humhubUsers = new Map<string, GetUser>()
   if (humhubUser) {
-    humhubUsers.set(user.emailContact.email, humhubUser)
+    humhubUsers.set(humhubUser.account.username, humhubUser)
   }
   logger.debug('update user at humhub')
   const result = await syncUser(user, humhubUsers)
@@ -51,12 +53,16 @@ export async function syncHumhub(
     externId: humhubUser?.id,
     // for preventing this warning https://github.com/eslint-community/eslint-plugin-security/blob/main/docs/rules/detect-object-injection.md
     // and possible danger coming with it
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+
     result: ExecutedHumhubAction[result as ExecutedHumhubAction],
   })
   if (spaceId && humhubUser) {
     await humhubClient.addUserToSpace(humhubUser.id, spaceId)
     logger.debug(`user added to space ${spaceId}`)
   }
-  return user.id
+  if (result !== ExecutedHumhubAction.SKIP) {
+    const getUser = new PostUser(user)
+    return await humhubClient.userByUsername(getUser.account.username)
+  }
+  return humhubUser
 }

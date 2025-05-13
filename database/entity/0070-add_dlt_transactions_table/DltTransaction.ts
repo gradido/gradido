@@ -1,4 +1,4 @@
-import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn } from 'typeorm'
+import { BaseEntity, Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'typeorm'
 import { Transaction } from '../Transaction'
 
 @Entity('dlt_transactions', { engine: 'InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci' })
@@ -27,7 +27,10 @@ export class DltTransaction extends BaseEntity {
   @Column({ name: 'verified_at', nullable: true, default: null, type: 'datetime' })
   verifiedAt: Date | null
 
-  @OneToOne(() => Transaction, (transaction) => transaction.dltTransaction)
+  @OneToOne(
+    () => Transaction,
+    (transaction) => transaction.dltTransaction,
+  )
   @JoinColumn({ name: 'transactions_id' })
   transaction?: Transaction | null
 }

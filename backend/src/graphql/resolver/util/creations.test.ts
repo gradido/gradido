@@ -3,11 +3,11 @@ import { Contribution } from '@entity/Contribution'
 import { User } from '@entity/User'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 
-import { testEnvironment, cleanDB, contributionDateFormatter } from '@test/helpers'
+import { cleanDB, contributionDateFormatter, testEnvironment } from '@test/helpers'
 
 import { CONFIG } from '@/config'
 import { userFactory } from '@/seeds/factory/user'
-import { login, createContribution, adminCreateContribution } from '@/seeds/graphql/mutations'
+import { adminCreateContribution, createContribution, login } from '@/seeds/graphql/mutations'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 
@@ -17,7 +17,8 @@ jest.mock('@/password/EncryptorUtils')
 
 CONFIG.HUMHUB_ACTIVE = false
 
-let mutate: ApolloServerTestClient['mutate'], con: Connection
+let mutate: ApolloServerTestClient['mutate']
+let con: Connection
 let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']

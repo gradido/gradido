@@ -1,10 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-
-import { entities } from '@entity/index'
 import { User as DbUser } from '@entity/User'
 // import { createTestClient } from 'apollo-server-testing'
 
@@ -13,43 +6,29 @@ import { User as DbUser } from '@entity/User'
 import { CONFIG } from '@/config'
 import { getHomeCommunity } from '@/graphql/resolver/util/communities'
 import { sendUserToGms } from '@/graphql/resolver/util/sendUserToGms'
-import { createServer } from '@/server/createServer'
 import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
+import { checkDBVersion } from '@/typeorm/DBVersion'
+import { Connection } from '@/typeorm/connection'
 
 CONFIG.EMAIL = false
+// use force to copy over all user even if gmsRegistered is set to true
+const forceMode = process.argv.includes('--force')
 
-const context = {
-  token: '',
-  setHeaders: {
-    push: (value: { key: string; value: string }): void => {
-      context.token = value.value
-    },
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    forEach: (): void => {},
-  },
-  clientTimezoneOffset: 0,
-}
-
-export const cleanDB = async () => {
-  // this only works as long we do not have foreign key constraints
-  for (const entity of entities) {
-    await resetEntity(entity)
+async function main() {
+  // open mysql connection
+  const con = await Connection.getInstance()
+  if (!con?.isConnected) {
+    logger.fatal(`Couldn't open connection to database!`)
+    throw new Error(`Fatal: Couldn't open connection to database`)
   }
-}
 
-const resetEntity = async (entity: any) => {
-  const items = await entity.find({ withDeleted: true })
-  if (items.length > 0) {
-    const ids = items.map((e: any) => e.id)
-    await entity.delete(ids)
+  // check for correct database version
+  const dbVersion = await checkDBVersion(CONFIG.DB_VERSION)
+  if (!dbVersion) {
+    logger.fatal('Fatal: Database Version incorrect')
+    throw new Error('Fatal: Database Version incorrect')
   }
-}
-
-const run = async () => {
-  const server = await createServer(context)
-  // const seedClient = createTestClient(server.apollo)
-  const { con } = server
 
   const homeCom = await getHomeCommunity()
   if (homeCom.gmsApiKey === null) {
@@ -59,11 +38,11 @@ const run = async () => {
   const userIds = await DbUser.createQueryBuilder()
     .select('id')
     .where({ foreign: false })
-    // .andWhere('deleted_at is null')
-    // .andWhere({ gmsRegistered: false })
+    .andWhere('deleted_at is null')
     .getRawMany()
   logger.debug('userIds:', userIds)
 
+  let alreadyUpdatedUserCount = 0
   for (const idStr of userIds) {
     logger.debug('Id:', idStr.id)
     const user = await DbUser.findOne({
@@ -73,11 +52,11 @@ const run = async () => {
     if (user) {
       logger.debug('found local User:', user)
       if (user.gmsAllowed) {
-        await sendUserToGms(user, homeCom)
+        await sendUserToGms(user, homeCom, forceMode)
         /*
         const gmsUser = new GmsUser(user)
         try {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+
           if (await createGmsUser(homeCom.gmsApiKey, gmsUser)) {
             logger.debug('GMS user published successfully:', gmsUser)
             user.gmsRegistered = true
@@ -93,10 +72,16 @@ const run = async () => {
         logger.debug('GMS-Publishing not allowed by user settings:', user)
       }
     }
+    alreadyUpdatedUserCount++
+    process.stdout.write(`updated user: ${alreadyUpdatedUserCount}/${userIds.length}\r`)
   }
   logger.info('##gms## publishing all local users successful...')
 
-  await con.close()
+  await con.destroy()
 }
 
-void run()
+main().catch((e) => {
+  // biome-ignore lint/suspicious/noConsole: logger isn't used here
+  console.error(e)
+  process.exit(1)
+})

@@ -1,7 +1,7 @@
 import { Contribution } from '@entity/Contribution'
 import { User } from '@entity/User'
 import { Decimal } from 'decimal.js-light'
-import { ObjectType, Field, Int } from 'type-graphql'
+import { Field, Int, ObjectType } from 'type-graphql'
 
 @ObjectType()
 export class UnconfirmedContribution {

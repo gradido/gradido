@@ -3,9 +3,6 @@
  * - `memo` FIELD TYPE TO `varchar(255)`, collate `utf8mb4_unicode_ci`
  */
 
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   // rename `amount` to `amount_bigint`
   await queryFn(

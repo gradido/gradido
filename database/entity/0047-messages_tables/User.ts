@@ -1,11 +1,11 @@
 import {
   BaseEntity,
-  Entity,
-  PrimaryGeneratedColumn,
   Column,
   DeleteDateColumn,
-  OneToMany,
+  Entity,
   JoinColumn,
+  OneToMany,
+  PrimaryGeneratedColumn,
 } from 'typeorm'
 import { Contribution } from '../Contribution'
 import { ContributionMessage } from '../ContributionMessage'
@@ -106,11 +106,17 @@ export class User extends BaseEntity {
   })
   passphrase: string
 
-  @OneToMany(() => Contribution, (contribution) => contribution.user)
+  @OneToMany(
+    () => Contribution,
+    (contribution) => contribution.user,
+  )
   @JoinColumn({ name: 'user_id' })
   contributions?: Contribution[]
 
-  @OneToMany(() => ContributionMessage, (message) => message.user)
+  @OneToMany(
+    () => ContributionMessage,
+    (message) => message.user,
+  )
   @JoinColumn({ name: 'user_id' })
   messages?: ContributionMessage[]
 }

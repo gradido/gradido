@@ -1,16 +1,16 @@
 import {
   BaseEntity,
-  Entity,
-  PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
-  UpdateDateColumn,
-  OneToMany,
-  JoinColumn,
+  Entity,
   Geometry,
+  JoinColumn,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm'
-import { FederatedCommunity } from '../FederatedCommunity'
 import { GeometryTransformer } from '../../src/typeorm/GeometryTransformer'
+import { FederatedCommunity } from '../FederatedCommunity'
 import { User } from '../User'
 
 @Entity('communities')
@@ -79,11 +79,17 @@ export class Community extends BaseEntity {
   })
   updatedAt: Date | null
 
-  @OneToMany(() => User, (user) => user.community)
+  @OneToMany(
+    () => User,
+    (user) => user.community,
+  )
   @JoinColumn({ name: 'community_uuid', referencedColumnName: 'communityUuid' })
   users: User[]
 
-  @OneToMany(() => FederatedCommunity, (federatedCommunity) => federatedCommunity.community)
+  @OneToMany(
+    () => FederatedCommunity,
+    (federatedCommunity) => federatedCommunity.community,
+  )
   @JoinColumn({ name: 'public_key', referencedColumnName: 'publicKey' })
   federatedCommunities?: FederatedCommunity[]
 }

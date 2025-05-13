@@ -1,21 +1,18 @@
 import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
 
-// eslint-disable-next-line camelcase
 import { SendCoinsClient as V1_0_SendCoinsClient } from '@/federation/client/1_0/SendCoinsClient'
-// eslint-disable-next-line camelcase
+
 import { SendCoinsClient as V1_1_SendCoinsClient } from '@/federation/client/1_1/SendCoinsClient'
 import { ApiVersionType } from '@/federation/enum/apiVersionType'
 
-// eslint-disable-next-line camelcase
 type SendCoinsClient = V1_0_SendCoinsClient | V1_1_SendCoinsClient
 
 interface SendCoinsClientInstance {
   id: number
-  // eslint-disable-next-line no-use-before-define
+
   client: SendCoinsClient
 }
 
-// eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class SendCoinsClientFactory {
   private static instanceArray: SendCoinsClientInstance[] = []
 
@@ -23,7 +20,7 @@ export class SendCoinsClientFactory {
    * The Singleton's constructor should always be private to prevent direct
    * construction calls with the `new` operator.
    */
-  // eslint-disable-next-line no-useless-constructor, @typescript-eslint/no-empty-function
+
   private constructor() {}
 
   private static createSendCoinsClient = (dbCom: DbFederatedCommunity) => {

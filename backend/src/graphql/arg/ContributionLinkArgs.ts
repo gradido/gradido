@@ -3,10 +3,10 @@ import { Decimal } from 'decimal.js-light'
 import { ArgsType, Field, Int } from 'type-graphql'
 
 import {
+  CONTRIBUTIONLINK_NAME_MAX_CHARS,
+  CONTRIBUTIONLINK_NAME_MIN_CHARS,
   MEMO_MAX_CHARS,
   MEMO_MIN_CHARS,
-  CONTRIBUTIONLINK_NAME_MIN_CHARS,
-  CONTRIBUTIONLINK_NAME_MAX_CHARS,
 } from '@/graphql/resolver/const/const'
 import { isValidDateString } from '@/graphql/validator/DateString'
 import { IsPositiveDecimal } from '@/graphql/validator/Decimal'

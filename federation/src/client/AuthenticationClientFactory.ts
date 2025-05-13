@@ -1,20 +1,18 @@
 import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
-// eslint-disable-next-line camelcase
+
 import { AuthenticationClient as V1_0_AuthenticationClient } from './1_0/AuthenticationClient'
-// eslint-disable-next-line camelcase
+
 import { AuthenticationClient as V1_1_AuthenticationClient } from './1_1/AuthenticationClient'
 import { ApiVersionType } from './enum/ApiVersionType'
 
-// eslint-disable-next-line camelcase
 type AuthenticationClient = V1_0_AuthenticationClient | V1_1_AuthenticationClient
 
 interface AuthenticationClientInstance {
   id: number
-  // eslint-disable-next-line no-use-before-define
+
   client: AuthenticationClient
 }
 
-// eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class AuthenticationClientFactory {
   private static instanceArray: AuthenticationClientInstance[] = []
 
@@ -22,7 +20,7 @@ export class AuthenticationClientFactory {
    * The Singleton's constructor should always be private to prevent direct
    * construction calls with the `new` operator.
    */
-  // eslint-disable-next-line no-useless-constructor, @typescript-eslint/no-empty-function
+
   private constructor() {}
 
   private static createAuthenticationClient = (dbCom: DbFederatedCommunity) => {

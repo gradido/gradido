@@ -1,6 +1,6 @@
 {
   "name": "gradido",
-  "version": "2.5.1",
+  "version": "2.5.2",
   "description": "Gradido",
   "main": "index.js",
   "repository": "git@github.com:gradido/gradido.git",
@@ -13,5 +13,8 @@
   "dependencies": {
     "auto-changelog": "^2.4.0",
     "uuid": "^8.3.2"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "1.9.4"
   }
 }

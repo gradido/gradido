@@ -1,11 +1,10 @@
 // TODO This is super weird - since the entities are defined in another project they have their own globals.
 //      We cannot use our connection here, but must use the external typeorm installation
-import { Connection as DbConnection, createConnection, FileLogger } from '@dbTools/typeorm'
+import { Connection as DbConnection, FileLogger, createConnection } from '@dbTools/typeorm'
 import { entities } from '@entity/index'
 
 import { CONFIG } from '@/config'
 
-// eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class Connection {
   private static instance: DbConnection
 
@@ -13,7 +12,6 @@ export class Connection {
    * The Singleton's constructor should always be private to prevent direct
    * construction calls with the `new` operator.
    */
-  // eslint-disable-next-line no-useless-constructor, @typescript-eslint/no-empty-function
   private constructor() {}
 
   /**
@@ -48,7 +46,7 @@ export class Connection {
       })
       return Connection.instance
     } catch (error) {
-      // eslint-disable-next-line no-console
+      // biome-ignore lint/suspicious/noConsole: maybe logger isn't initialized yet
       console.log(error)
       return null
     }

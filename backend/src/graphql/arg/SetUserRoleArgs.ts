@@ -1,5 +1,5 @@
-import { IsPositive, IsEnum } from 'class-validator'
-import { ArgsType, Field, Int, InputType } from 'type-graphql'
+import { IsEnum, IsPositive } from 'class-validator'
+import { ArgsType, Field, InputType, Int } from 'type-graphql'
 
 import { RoleNames } from '@enum/RoleNames'
 

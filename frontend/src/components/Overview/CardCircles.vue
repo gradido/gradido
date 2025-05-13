@@ -32,10 +32,10 @@
   </div>
 </template>
 <script setup>
-import { ref, computed } from 'vue'
-import { useQuery } from '@vue/apollo-composable'
+import { ref, computed, onMounted } from 'vue'
+import { useMutation } from '@vue/apollo-composable'
 import { useStore } from 'vuex'
-import { authenticateHumhubAutoLogin } from '@/graphql/queries'
+import { authenticateHumhubAutoLogin } from '@/graphql/mutations'
 
 const store = useStore()
 
@@ -44,12 +44,21 @@ const humhubUri = ref('')
 
 const humhubAllowed = computed(() => store.state.humhubAllowed)
 
-const { onResult, onError } = useQuery(authenticateHumhubAutoLogin, null, {
-  fetchPolicy: 'network-only',
-  enabled: true,
-})
+const {
+  onDone,
+  mutate: mutateHumhubAutoLogin,
+  onError,
+  called,
+} = useMutation(
+  authenticateHumhubAutoLogin,
+  {},
+  {
+    fetchPolicy: 'network-only',
+    enabled: true,
+  },
+)
 
-onResult(({ data }) => {
+onDone(({ data }) => {
   if (data) {
     humhubUri.value = data.authenticateHumhubAutoLogin
     enableButton.value = true
@@ -60,6 +69,12 @@ onError(() => {
   enableButton.value = true
   humhubUri.value = ''
   store.commit('humhubAllowed', false)
+})
+
+onMounted(() => {
+  if (!called.value) {
+    mutateHumhubAutoLogin()
+  }
 })
 </script>
 <style scoped>

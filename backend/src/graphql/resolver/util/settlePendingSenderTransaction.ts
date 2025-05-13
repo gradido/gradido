@@ -1,7 +1,3 @@
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
-/* eslint-disable new-cap */
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
-
 import { getConnection } from '@dbTools/typeorm'
 import { Community as DbCommunity } from '@entity/Community'
 import { PendingTransaction as DbPendingTransaction } from '@entity/PendingTransaction'
@@ -12,8 +8,8 @@ import { Decimal } from 'decimal.js-light'
 import { PendingTransactionState } from '@/graphql/enum/PendingTransactionState'
 import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
-import { calculateSenderBalance } from '@/util/calculateSenderBalance'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
+import { calculateSenderBalance } from '@/util/calculateSenderBalance'
 
 import { getLastTransaction } from './getLastTransaction'
 

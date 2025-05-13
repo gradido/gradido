@@ -135,6 +135,7 @@ const noHashtag = ref(null)
 const hideResubmissionModel = ref(true)
 
 const formatDateOrDash = (value) => (value ? new Date(value).toLocaleDateString() : '—')
+
 const baseFields = {
   firstName: { key: 'user.firstName', label: t('firstname'), class: 'no-select' },
   lastName: { key: 'user.lastName', label: t('lastname'), class: 'no-select' },
@@ -181,6 +182,7 @@ const fields = computed(
       [
         baseFields.firstName,
         baseFields.lastName,
+        baseFields.amount,
         baseFields.memo,
         baseFields.contributionDate,
         baseFields.createdAt,

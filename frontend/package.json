@@ -1,13 +1,12 @@
 {
   "name": "bootstrap-vue-gradido-wallet",
-  "version": "2.5.1",
+  "version": "2.5.2",
   "private": true,
   "scripts": {
     "start": "node run/server.js",
     "dev": "concurrently \"yarn watch-scss\" \"vite\"",
     "prebuild": "yarn compile-scss",
     "build": "vite build",
-    "preserve": "yarn compile-scss",
     "serve": "vite preview",
     "postbuild": "find build -type f -regex '.*\\.\\(html\\|js\\|css\\|svg\\|json\\)' -exec gzip -9 -k {} +",
     "analyse-bundle": "yarn build && webpack-bundle-analyzer build/webpack.stats.json",

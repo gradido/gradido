@@ -22,7 +22,9 @@ export function validate(schema: ObjectSchema, data: any) {
         ? schema.describe().keys[key].flags.description
         : 'No description available'
       if (data[key] === undefined) {
-        throw new Error(`Environment Variable '${key}' is missing. ${description}, details: ${details}`)
+        throw new Error(
+          `Environment Variable '${key}' is missing. ${description}, details: ${details}`,
+        )
       } else {
         throw new Error(
           `Error on Environment Variable ${key} with value = ${value}: ${err.message}. ${description}`,

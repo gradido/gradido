@@ -1,6 +1,5 @@
-/* eslint-disable no-use-before-define */
 import { Decimal } from 'decimal.js-light'
-import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn } from 'typeorm'
+import { BaseEntity, Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'typeorm'
 import { DecimalTransformer } from '../../src/typeorm/DecimalTransformer'
 import { Contribution } from '../Contribution'
 import { DltTransaction } from './DltTransaction'
@@ -131,11 +130,17 @@ export class Transaction extends BaseEntity {
   })
   linkedTransactionId?: number | null
 
-  @OneToOne(() => Contribution, (contribution) => contribution.transaction)
+  @OneToOne(
+    () => Contribution,
+    (contribution) => contribution.transaction,
+  )
   @JoinColumn({ name: 'id', referencedColumnName: 'transactionId' })
   contribution?: Contribution | null
 
-  @OneToOne(() => DltTransaction, (dlt) => dlt.transactionId)
+  @OneToOne(
+    () => DltTransaction,
+    (dlt) => dlt.transactionId,
+  )
   @JoinColumn({ name: 'id', referencedColumnName: 'transactionId' })
   dltTransaction?: DltTransaction | null
 

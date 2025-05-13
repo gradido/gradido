@@ -1,27 +1,24 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
-import { getConnection, In, Point } from '@dbTools/typeorm'
+import { In, Point, getConnection } from '@dbTools/typeorm'
 import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
 import { ProjectBranding } from '@entity/ProjectBranding'
 import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
 import { User as DbUser } from '@entity/User'
 import { UserContact as DbUserContact } from '@entity/UserContact'
+import { UserLoggingView } from '@logging/UserLogging.view'
 import { GraphQLResolveInfo } from 'graphql'
 import i18n from 'i18n'
 import {
-  Resolver,
-  Query,
-  Args,
   Arg,
+  Args,
   Authorized,
   Ctx,
-  Mutation,
-  Int,
-  Root,
   FieldResolver,
   Info,
+  Int,
+  Mutation,
+  Query,
+  Resolver,
+  Root,
 } from 'type-graphql'
 import { IRestResponse } from 'typed-rest-client'
 import { v4 as uuidv4 } from 'uuid'
@@ -36,19 +33,21 @@ import { UpdateUserInfosArgs } from '@arg/UpdateUserInfosArgs'
 import { OptInType } from '@enum/OptInType'
 import { Order } from '@enum/Order'
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
+import { PublishNameType } from '@enum/PublishNameType'
 import { UserContactType } from '@enum/UserContactType'
 import { SearchAdminUsersResult } from '@model/AdminUser'
 // import { Location } from '@model/Location'
 import { GmsUserAuthenticationResult } from '@model/GmsUserAuthenticationResult'
 import { User } from '@model/User'
-import { UserAdmin, SearchUsersResult } from '@model/UserAdmin'
+import { SearchUsersResult, UserAdmin } from '@model/UserAdmin'
 import { UserContact } from '@model/UserContact'
 import { UserLocationResult } from '@model/UserLocationResult'
 
+import { subscribe } from '@/apis/KlicktippController'
 import { HumHubClient } from '@/apis/humhub/HumHubClient'
+import { Account as HumhubAccount } from '@/apis/humhub/model/Account'
 import { GetUser } from '@/apis/humhub/model/GetUser'
 import { PostUser } from '@/apis/humhub/model/PostUser'
-import { subscribe } from '@/apis/KlicktippController'
 import { encode } from '@/auth/JWT'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { CONFIG } from '@/config'
@@ -59,26 +58,25 @@ import {
   sendResetPasswordEmail,
 } from '@/emails/sendEmailVariants'
 import {
+  EVENT_ADMIN_USER_DELETE,
+  EVENT_ADMIN_USER_ROLE_SET,
+  EVENT_ADMIN_USER_UNDELETE,
+  EVENT_EMAIL_ACCOUNT_MULTIREGISTRATION,
+  EVENT_EMAIL_ADMIN_CONFIRMATION,
+  EVENT_EMAIL_CONFIRMATION,
+  EVENT_EMAIL_FORGOT_PASSWORD,
+  EVENT_USER_ACTIVATE_ACCOUNT,
+  EVENT_USER_INFO_UPDATE,
+  EVENT_USER_LOGIN,
+  EVENT_USER_LOGOUT,
+  EVENT_USER_REGISTER,
   Event,
   EventType,
-  EVENT_USER_LOGIN,
-  EVENT_EMAIL_ACCOUNT_MULTIREGISTRATION,
-  EVENT_EMAIL_CONFIRMATION,
-  EVENT_USER_REGISTER,
-  EVENT_USER_ACTIVATE_ACCOUNT,
-  EVENT_EMAIL_ADMIN_CONFIRMATION,
-  EVENT_USER_LOGOUT,
-  EVENT_EMAIL_FORGOT_PASSWORD,
-  EVENT_USER_INFO_UPDATE,
-  EVENT_ADMIN_USER_ROLE_SET,
-  EVENT_ADMIN_USER_DELETE,
-  EVENT_ADMIN_USER_UNDELETE,
 } from '@/event/Events'
-import { PublishNameType } from '@/graphql/enum/PublishNameType'
 import { isValidPassword } from '@/password/EncryptorUtils'
 import { encryptPassword, verifyPassword } from '@/password/PasswordEncryptor'
-import { Context, getUser, getClientTimezoneOffset } from '@/server/context'
 import { LogError } from '@/server/LogError'
+import { Context, getClientTimezoneOffset, getUser } from '@/server/context'
 import { backendLogger as logger } from '@/server/logger'
 import { communityDbUser } from '@/util/communityUser'
 import { hasElopageBuys } from '@/util/hasElopageBuys'
@@ -89,6 +87,7 @@ import random from 'random-bigint'
 import { randombytes_random } from 'sodium-native'
 
 import { FULL_CREATION_AVAILABLE } from './const/const'
+import { Location2Point, Point2Location } from './util/Location2Point'
 import { authenticateGmsUserPlayground } from './util/authenticateGmsUserPlayground'
 import { getHomeCommunity } from './util/communities'
 import { compareGmsRelevantUserSettings } from './util/compareGmsRelevantUserSettings'
@@ -97,8 +96,7 @@ import { extractGraphQLFieldsForSelect } from './util/extractGraphQLFields'
 import { findUserByIdentifier } from './util/findUserByIdentifier'
 import { findUsers } from './util/findUsers'
 import { getKlicktippState } from './util/getKlicktippState'
-import { Location2Point, Point2Location } from './util/Location2Point'
-import { setUserRole, deleteUserRole } from './util/modifyUserRole'
+import { deleteUserRole, setUserRole } from './util/modifyUserRole'
 import { sendUserToGms } from './util/sendUserToGms'
 import { syncHumhub } from './util/syncHumhub'
 import { validateAlias } from './util/validateAlias'
@@ -122,7 +120,6 @@ const newEmailContact = (email: string, userId: number): DbUserContact => {
   return emailContact
 }
 
-// eslint-disable-next-line @typescript-eslint/ban-types
 export const activationLink = (verificationCode: string): string => {
   logger.debug(`activationLink(${verificationCode})...`)
   return CONFIG.EMAIL_LINK_SETPASSWORD + verificationCode.toString()
@@ -246,12 +243,12 @@ export class UserResolver {
       try {
         const result = await humhubUserPromise
         user.humhubAllowed = result?.result?.account.status === 1
-        if (user.humhubAllowed) {
+        if (user.humhubAllowed && result?.result?.account?.username) {
           let spaceId = null
           if (projectBranding) {
             spaceId = projectBranding.spaceId
           }
-          void syncHumhub(null, dbUser, spaceId)
+          await syncHumhub(null, dbUser, result.result.account.username, spaceId)
         }
       } catch (e) {
         logger.error("couldn't reach out to humhub, disable for now", e)
@@ -326,7 +323,7 @@ export class UserResolver {
         }
         logger.debug('partly faked user', user)
 
-        void sendAccountMultiRegistrationEmail({
+        await sendAccountMultiRegistrationEmail({
           firstName: foundUser.firstName, // this is the real name of the email owner, but just "firstName" would be the name of the new registrant which shall not be passed to the outside
           lastName: foundUser.lastName, // this is the real name of the email owner, but just "lastName" would be the name of the new registrant which shall not be passed to the outside
           email,
@@ -421,7 +418,7 @@ export class UserResolver {
       }`
 
       projectBranding = projectBrandingPromise ? await projectBrandingPromise : undefined
-      void sendAccountActivationEmail({
+      await sendAccountActivationEmail({
         firstName,
         lastName,
         email,
@@ -448,7 +445,11 @@ export class UserResolver {
       if (projectBranding) {
         spaceId = projectBranding.spaceId
       }
-      void syncHumhub(null, dbUser, spaceId)
+      try {
+        await syncHumhub(null, dbUser, dbUser.gradidoID, spaceId)
+      } catch (e) {
+        logger.error("createUser: couldn't reach out to humhub, disable for now", e)
+      }
     }
 
     if (redeemCode) {
@@ -507,7 +508,7 @@ export class UserResolver {
 
     logger.info('optInCode for', email, user.emailContact)
 
-    void sendResetPasswordEmail({
+    await sendResetPasswordEmail({
       firstName: user.firstName,
       lastName: user.lastName,
       email,
@@ -659,6 +660,10 @@ export class UserResolver {
     )
     const user = getUser(context)
     const updateUserInGMS = compareGmsRelevantUserSettings(user, updateUserInfosArgs)
+    const publishNameLogic = new PublishNameLogic(user)
+    const oldHumhubUsername = publishNameLogic.getUserIdentifier(
+      user.humhubPublishName as PublishNameType,
+    )
 
     // try {
     if (firstName) {
@@ -738,7 +743,7 @@ export class UserResolver {
       })
 
       await queryRunner.commitTransaction()
-      logger.debug('writing User data successful...', user)
+      logger.debug('writing User data successful...', new UserLoggingView(user))
     } catch (e) {
       await queryRunner.rollbackTransaction()
       throw new LogError('Error on writing updated user data', e)
@@ -764,7 +769,7 @@ export class UserResolver {
     }
     try {
       if (CONFIG.HUMHUB_ACTIVE) {
-        await syncHumhub(updateUserInfosArgs, user)
+        await syncHumhub(updateUserInfosArgs, user, oldHumhubUsername)
       }
     } catch (e) {
       logger.error('error sync user with humhub', e)
@@ -794,6 +799,7 @@ export class UserResolver {
       if (!homeCom.gmsApiKey) {
         throw new LogError('authenticateGmsUserSearch missing HomeCommunity GmsApiKey')
       }
+      // TODO: NEVER pass user JWT token to another server - serious security risk! 😱⚠️
       result = await authenticateGmsUserPlayground(homeCom.gmsApiKey, context.token, dbUser)
       logger.info('authenticateGmsUserSearch=', result)
     } else {
@@ -820,7 +826,7 @@ export class UserResolver {
   }
 
   @Authorized([RIGHTS.HUMHUB_AUTO_LOGIN])
-  @Query(() => String)
+  @Mutation(() => String)
   async authenticateHumhubAutoLogin(
     @Ctx() context: Context,
     @Arg('project', () => String, { nullable: true }) project?: string | null,
@@ -831,19 +837,23 @@ export class UserResolver {
     if (!humhubClient) {
       throw new LogError('cannot create humhub client')
     }
-    const userNameLogic = new PublishNameLogic(dbUser)
-    const username = userNameLogic.getUsername(dbUser.humhubPublishName as PublishNameType)
-    let humhubUser = await humhubClient.userByUsername(username)
-    if (!humhubUser) {
-      humhubUser = await humhubClient.userByEmail(dbUser.emailContact.email)
+    // should rarely happen, so we don't optimize for parallel processing
+    if (!dbUser.humhubAllowed && project) {
+      await ProjectBranding.findOneOrFail({ where: { alias: project } })
+      dbUser.humhubAllowed = true
+      await dbUser.save()
     }
+    const humhubUserAccount = new HumhubAccount(dbUser)
+    const autoLoginUrlPromise = humhubClient.createAutoLoginUrl(humhubUserAccount.username, project)
+    const humhubUser = await syncHumhub(null, dbUser, humhubUserAccount.username)
     if (!humhubUser) {
-      throw new LogError("user don't exist (any longer) on humhub")
+      throw new LogError("user don't exist (any longer) on humhub and couldn't be created")
     }
     if (humhubUser.account.status !== 1) {
       throw new LogError('user status is not 1', humhubUser.account.status)
     }
-    return await humhubClient.createAutoLoginUrl(humhubUser.account.username, project)
+    const autoLoginUrl = await autoLoginUrlPromise
+    return autoLoginUrl
   }
 
   @Authorized([RIGHTS.SEARCH_ADMIN_USERS])
@@ -1025,8 +1035,7 @@ export class UserResolver {
     user.emailContact.emailResendCount++
     await user.emailContact.save()
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    void sendAccountActivationEmail({
+    await sendAccountActivationEmail({
       firstName: user.firstName,
       lastName: user.lastName,
       email,

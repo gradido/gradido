@@ -37,17 +37,6 @@ export const userLocationQuery = gql`
   }
 `
 
-export const authenticateHumhubAutoLogin = gql`
-  query {
-    authenticateHumhubAutoLogin
-  }
-`
-export const authenticateHumhubAutoLoginProject = gql`
-  query ($project: String!) {
-    authenticateHumhubAutoLogin(project: $project)
-  }
-`
-
 export const transactionsQuery = gql`
   query ($currentPage: Int = 1, $pageSize: Int = 25, $order: Order = DESC) {
     transactionList(currentPage: $currentPage, pageSize: $pageSize, order: $order) {
@@ -304,8 +293,8 @@ export const communityStatistics = gql`
 `
 
 export const searchAdminUsers = gql`
-  query {
-    searchAdminUsers {
+  query ($pageSize: Int = 25, $currentPage: Int = 1, $order: Order = ASC) {
+    searchAdminUsers(pageSize: $pageSize, currentPage: $currentPage, order: $order) {
       userCount
       userList {
         firstName

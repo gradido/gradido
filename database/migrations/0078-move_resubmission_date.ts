@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   await queryFn(
     `ALTER TABLE \`contributions\` ADD COLUMN \`resubmission_at\` datetime NULL DEFAULT NULL AFTER \`created_at\`;`,

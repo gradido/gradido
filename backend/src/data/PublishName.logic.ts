@@ -18,7 +18,6 @@ export class PublishNameLogic {
 
   // remove character which are invalid for humhub username
   private filterOutInvalidChar(name: string) {
-    // eslint-disable-next-line import/no-named-as-default-member
     return XRegExp.match(name, this.usernameRegex, 'all').join('')
   }
 
@@ -35,12 +34,16 @@ export class PublishNameLogic {
    * @returns user.firstName for PUBLISH_NAME_FIRST, PUBLISH_NAME_FIRST_INITIAL or PUBLISH_NAME_FULL
    */
   public getFirstName(publishNameType: PublishNameType): string {
+    let firstName = ''
+    if (this.user && typeof this.user.firstName === 'string') {
+      firstName = this.user.firstName
+    }
     return [
       PublishNameType.PUBLISH_NAME_FIRST,
       PublishNameType.PUBLISH_NAME_FIRST_INITIAL,
       PublishNameType.PUBLISH_NAME_FULL,
     ].includes(publishNameType)
-      ? this.user.firstName
+      ? firstName.slice(0, 20)
       : ''
   }
 
@@ -51,31 +54,56 @@ export class PublishNameLogic {
    *   first initial from user.lastName for PUBLISH_NAME_FIRST_INITIAL
    */
   public getLastName(publishNameType: PublishNameType): string {
+    let lastName = ''
+    if (this.user && typeof this.user.lastName === 'string') {
+      lastName = this.user.lastName
+    }
     return publishNameType === PublishNameType.PUBLISH_NAME_FULL
-      ? this.user.lastName
-      : publishNameType === PublishNameType.PUBLISH_NAME_FIRST_INITIAL
-      ? this.user.lastName.charAt(0)
-      : ''
+      ? lastName.slice(0, 20)
+      : publishNameType === PublishNameType.PUBLISH_NAME_FIRST_INITIAL && lastName.length > 0
+        ? lastName.charAt(0)
+        : ''
   }
 
   /**
-   * get username from user.alias for PUBLISH_NAME_ALIAS_OR_INITALS and if user has alias
-   * get first name first two characters and last name first two characters for PUBLISH_NAME_ALIAS_OR_INITALS
-   * if no alias or PUBLISH_NAME_INITIALS
+   * get unique username
    * @param publishNameType
-   * @returns user.alias for publishNameType = PUBLISH_NAME_ALIAS_OR_INITALS and user has alias
-   *   else return user.firstName[0,2] + user.lastName[0,2] for publishNameType = [PUBLISH_NAME_ALIAS_OR_INITALS, PUBLISH_NAME_INITIALS]
+   * @return when alias if exist and publishNameType = [PUBLISH_NAME_ALIAS_OR_INITALS, PUBLISH_NAME_INITIALS]
+   * return alias
+   * else return gradido id
    */
-  public getUsername(publishNameType: PublishNameType): string {
-    if (this.isUsernameFromInitials(publishNameType)) {
-      return (
-        this.firstUpperCaseSecondLowerCase(this.filterOutInvalidChar(this.user.firstName)) +
-        this.firstUpperCaseSecondLowerCase(this.filterOutInvalidChar(this.user.lastName))
-      )
-    } else if (this.isUsernameFromAlias(publishNameType)) {
-      return this.filterOutInvalidChar(this.user.alias)
-    }
-    return this.user.gradidoID
+  public getUserIdentifier(publishNameType: PublishNameType): string {
+    return this.isUsernameFromAlias(publishNameType)
+      ? this.getUsernameFromAlias()
+      : this.user.gradidoID
+  }
+
+  /**
+   * get public name based on publishNameType: PublishNameType value
+   * @param publishNameType: PublishNameType
+   * @return alias if exist and type = PUBLISH_NAME_ALIAS_OR_INITALS
+   *         initials if type = PUBLISH_NAME_INITIALS
+   *         full first name if type = PUBLISH_NAME_FIRST
+   *         full first name and last name initial if type = PUBLISH_NAME_FIRST_INITIAL
+   *         full first name and full last name if type = PUBLISH_NAME_FULL
+   */
+  public getPublicName(publishNameType: PublishNameType): string {
+    return this.isUsernameFromAlias(publishNameType)
+      ? this.getUsernameFromAlias()
+      : this.isUsernameFromInitials(publishNameType)
+        ? this.getUsernameFromInitials()
+        : (this.getFirstName(publishNameType) + ' ' + this.getLastName(publishNameType)).trim()
+  }
+
+  public getUsernameFromInitials(): string {
+    return (
+      this.firstUpperCaseSecondLowerCase(this.user.firstName) +
+      this.firstUpperCaseSecondLowerCase(this.user.lastName)
+    ).trim()
+  }
+
+  public getUsernameFromAlias(): string {
+    return this.filterOutInvalidChar(this.user.alias)
   }
 
   public isUsernameFromInitials(publishNameType: PublishNameType): boolean {

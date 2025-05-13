@@ -1,22 +1,20 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 import { createServer } from './server/createServer'
 
 // config
 import { CONFIG } from './config'
 
 async function main() {
-  // eslint-disable-next-line no-console
+  // biome-ignore lint/suspicious/noConsole: no logger needed fot startup infos
   console.log(`FEDERATION_PORT=${CONFIG.FEDERATION_PORT}`)
-  // eslint-disable-next-line no-console
+  // biome-ignore lint/suspicious/noConsole: no logger needed fot startup infos
   console.log(`FEDERATION_API=${CONFIG.FEDERATION_API}`)
   const { app } = await createServer()
 
   app.listen(CONFIG.FEDERATION_PORT, () => {
-    // eslint-disable-next-line no-console
+    // biome-ignore lint/suspicious/noConsole: no logger needed fot startup infos
     console.log(`Server is running at http://localhost:${CONFIG.FEDERATION_PORT}`)
     if (CONFIG.GRAPHIQL) {
-      // eslint-disable-next-line no-console
+      // biome-ignore lint/suspicious/noConsole: no logger needed fot startup infos
       console.log(
         `GraphIQL available at ${CONFIG.FEDERATION_COMMUNITY_URL}/api/${CONFIG.FEDERATION_API}`,
       )
@@ -25,7 +23,7 @@ async function main() {
 }
 
 main().catch((e) => {
-  // eslint-disable-next-line no-console
+  // biome-ignore lint/suspicious/noConsole: no logger present
   console.error(e)
   process.exit(1)
 })

@@ -1,9 +1,6 @@
 /* MIGRATION TO ADD denied_by, denied_at, contribution_type and contrinution_status 
 FIELDS TO contributions */
 
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   await queryFn(
     'ALTER TABLE `contributions` ADD COLUMN `denied_at` datetime DEFAULT NULL AFTER `confirmed_at`;',

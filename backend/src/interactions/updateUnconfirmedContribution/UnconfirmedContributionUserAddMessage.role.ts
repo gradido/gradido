@@ -15,7 +15,10 @@ import { AbstractUnconfirmedContributionRole } from './AbstractUnconfirmedContri
  * independent from there role, because the own contribution can only be commented in user role
  */
 export class UnconfirmedContributionUserAddMessageRole extends AbstractUnconfirmedContributionRole {
-  public constructor(contribution: Contribution, private updateData: ContributionMessageArgs) {
+  public constructor(
+    contribution: Contribution,
+    private updateData: ContributionMessageArgs,
+  ) {
     super(contribution, contribution.amount, contribution.contributionDate)
     logger.debug('use UnconfirmedContributionUserAddMessageRole')
   }

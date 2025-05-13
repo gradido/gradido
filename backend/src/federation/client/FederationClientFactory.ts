@@ -1,22 +1,19 @@
 import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
 
-// eslint-disable-next-line camelcase
 import { FederationClient as V1_0_FederationClient } from '@/federation/client/1_0/FederationClient'
-// eslint-disable-next-line camelcase
+
 import { FederationClient as V1_1_FederationClient } from '@/federation/client/1_1/FederationClient'
 import { ApiVersionType } from '@/federation/enum/apiVersionType'
 import { ensureUrlEndsWithSlash } from '@/util/utilities'
 
-// eslint-disable-next-line camelcase
 type FederationClient = V1_0_FederationClient | V1_1_FederationClient
 
 interface FederationClientInstance {
   id: number
-  // eslint-disable-next-line no-use-before-define
+
   client: FederationClient
 }
 
-// eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class FederationClientFactory {
   private static instanceArray: FederationClientInstance[] = []
 
@@ -24,7 +21,7 @@ export class FederationClientFactory {
    * The Singleton's constructor should always be private to prevent direct
    * construction calls with the `new` operator.
    */
-  // eslint-disable-next-line no-useless-constructor, @typescript-eslint/no-empty-function
+
   private constructor() {}
 
   private static createFederationClient = (dbCom: DbFederatedCommunity) => {

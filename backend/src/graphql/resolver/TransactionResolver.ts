@@ -1,15 +1,11 @@
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
-/* eslint-disable new-cap */
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
-
-import { getConnection, In, IsNull } from '@dbTools/typeorm'
+import { In, IsNull, getConnection } from '@dbTools/typeorm'
 import { Community as DbCommunity } from '@entity/Community'
 import { PendingTransaction as DbPendingTransaction } from '@entity/PendingTransaction'
 import { Transaction as dbTransaction } from '@entity/Transaction'
 import { TransactionLink as dbTransactionLink } from '@entity/TransactionLink'
 import { User as dbUser } from '@entity/User'
 import { Decimal } from 'decimal.js-light'
-import { Resolver, Query, Args, Authorized, Ctx, Mutation } from 'type-graphql'
+import { Args, Authorized, Ctx, Mutation, Query, Resolver } from 'type-graphql'
 
 import { Paginated } from '@arg/Paginated'
 import { TransactionSendArgs } from '@arg/TransactionSendArgs'
@@ -28,14 +24,14 @@ import {
 } from '@/emails/sendEmailVariants'
 import { EVENT_TRANSACTION_RECEIVE, EVENT_TRANSACTION_SEND } from '@/event/Events'
 import { SendCoinsResult } from '@/federation/client/1_0/model/SendCoinsResult'
-import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
+import { Context, getUser } from '@/server/context'
 import { backendLogger as logger } from '@/server/logger'
-import { communityUser } from '@/util/communityUser'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
+import { communityUser } from '@/util/communityUser'
 import { fullName } from '@/util/utilities'
 import { calculateBalance } from '@/util/validate'
-import { virtualLinkTransaction, virtualDecayTransaction } from '@/util/virtualTransactions'
+import { virtualDecayTransaction, virtualLinkTransaction } from '@/util/virtualTransactions'
 
 import { BalanceResolver } from './BalanceResolver'
 import { GdtResolver } from './GdtResolver'
@@ -178,14 +174,14 @@ export const executeTransaction = async (
       )
 
       // trigger to send transaction via dlt-connector
-      void sendTransactionsToDltConnector()
+      await sendTransactionsToDltConnector()
     } catch (e) {
       await queryRunner.rollbackTransaction()
       throw new LogError('Transaction was not successful', e)
     } finally {
       await queryRunner.release()
     }
-    void sendTransactionReceivedEmail({
+    await sendTransactionReceivedEmail({
       firstName: recipient.firstName,
       lastName: recipient.lastName,
       email: recipient.emailContact.email,
@@ -197,7 +193,7 @@ export const executeTransaction = async (
       transactionAmount: amount,
     })
     if (transactionLink) {
-      void sendTransactionLinkRedeemedEmail({
+      await sendTransactionLinkRedeemedEmail({
         firstName: sender.firstName,
         lastName: sender.lastName,
         email: sender.emailContact.email,

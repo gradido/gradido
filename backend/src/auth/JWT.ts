@@ -6,7 +6,9 @@ import { LogError } from '@/server/LogError'
 import { CustomJwtPayload } from './CustomJwtPayload'
 
 export const decode = async (token: string): Promise<CustomJwtPayload | null> => {
-  if (!token) throw new LogError('401 Unauthorized')
+  if (!token) {
+    throw new LogError('401 Unauthorized')
+  }
 
   try {
     const secret = new TextEncoder().encode(CONFIG.JWT_SECRET)
@@ -15,7 +17,7 @@ export const decode = async (token: string): Promise<CustomJwtPayload | null> =>
       audience: 'urn:gradido:audience',
     })
     return payload as CustomJwtPayload
-  } catch (err) {
+  } catch (_err) {
     return null
   }
 }

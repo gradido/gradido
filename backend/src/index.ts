@@ -6,18 +6,18 @@ async function main() {
   const { app } = await createServer()
 
   app.listen(CONFIG.PORT, () => {
-    // eslint-disable-next-line no-console
+    // biome-ignore lint/suspicious/noConsole: no need for logging the start message
     console.log(`Server is running at http://localhost:${CONFIG.PORT}`)
     if (CONFIG.GRAPHIQL) {
-      // eslint-disable-next-line no-console
+      // biome-ignore lint/suspicious/noConsole: no need for logging the start message
       console.log(`GraphIQL available at http://localhost:${CONFIG.PORT}`)
     }
   })
-  void startValidateCommunities(Number(CONFIG.FEDERATION_VALIDATE_COMMUNITY_TIMER))
+  await startValidateCommunities(Number(CONFIG.FEDERATION_VALIDATE_COMMUNITY_TIMER))
 }
 
 main().catch((e) => {
-  // eslint-disable-next-line no-console
+  // biome-ignore lint/suspicious/noConsole: maybe logger isn't initialized here
   console.error(e)
   throw e
 })

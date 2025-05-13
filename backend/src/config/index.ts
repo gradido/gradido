@@ -1,7 +1,5 @@
 // ATTENTION: DO NOT PUT ANY SECRETS IN HERE (or the .env)
-/* eslint-disable n/no-process-env */
 
-// eslint-disable-next-line import/no-unresolved
 import { validate } from '@config/index'
 import { latestDbVersion } from '@dbTools/config/detectLastDBVersion'
 import { Decimal } from 'decimal.js-light'
@@ -90,8 +88,8 @@ const email = {
   EMAIL_PASSWORD: process.env.EMAIL_PASSWORD ?? '',
   EMAIL_SMTP_HOST: process.env.EMAIL_SMTP_HOST ?? 'mailserver',
   EMAIL_SMTP_PORT: Number(process.env.EMAIL_SMTP_PORT) || 1025,
-  // eslint-disable-next-line no-unneeded-ternary
-  EMAIL_TLS: process.env.EMAIL_TLS === 'false' ? false : true,
+
+  EMAIL_TLS: process.env.EMAIL_TLS !== 'false',
   EMAIL_LINK_VERIFICATION:
     COMMUNITY_URL + (process.env.EMAIL_LINK_VERIFICATION_PATH ?? '/checkEmail/'),
   EMAIL_LINK_SETPASSWORD:
@@ -101,11 +99,11 @@ const email = {
   EMAIL_LINK_OVERVIEW: COMMUNITY_URL + (process.env.EMAIL_LINK_OVERVIEW_PATH ?? '/overview'),
   // time in minutes a optin code is valid
   EMAIL_CODE_VALID_TIME: process.env.EMAIL_CODE_VALID_TIME
-    ? parseInt(process.env.EMAIL_CODE_VALID_TIME) ?? 1440
+    ? (parseInt(process.env.EMAIL_CODE_VALID_TIME) ?? 1440)
     : 1440,
   // time in minutes that must pass to request a new optin code
   EMAIL_CODE_REQUEST_TIME: process.env.EMAIL_CODE_REQUEST_TIME
-    ? parseInt(process.env.EMAIL_CODE_REQUEST_TIME) ?? 10
+    ? (parseInt(process.env.EMAIL_CODE_REQUEST_TIME) ?? 10)
     : 10,
 }
 
@@ -139,6 +137,7 @@ const gms = {
   // koordinates of Illuminz-instance of GMS
   GMS_API_URL: process.env.GMS_API_URL ?? 'http://localhost:4044/',
   GMS_DASHBOARD_URL: process.env.GMS_DASHBOARD_URL ?? 'http://localhost:8080/',
+  GMS_USER_SEARCH_FRONTEND_ROUTE: process.env.GMS_USER_SEARCH_FRONTEND_ROUTE ?? 'user-search',
   // used as secret postfix attached at the gms community-auth-url endpoint ('/hook/gms/' + 'secret')
   GMS_WEBHOOK_SECRET: process.env.GMS_WEBHOOK_SECRET ?? 'secret',
 }

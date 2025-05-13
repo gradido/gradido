@@ -49,7 +49,11 @@ const moderators = computed(() => itemsAdminUser.value.filter((item) => item.rol
 
 const { onResult: onContributionLinksResult, onError: onContributionLinksError } =
   useQuery(listContributionLinks)
-const { onResult: onAdminUsersResult, onError: onAdminUsersError } = useQuery(searchAdminUsers)
+const { onResult: onAdminUsersResult, onError: onAdminUsersError } = useQuery(searchAdminUsers, {
+  pageSize: 25,
+  currentPage: 1,
+  order: 'ASC',
+})
 
 onContributionLinksResult(({ data }) => {
   if (data) {
@@ -71,13 +75,5 @@ onContributionLinksError(() => {
 
 onAdminUsersError(() => {
   toastError('searchAdminUsers has no result, use default data')
-})
-
-const updateTransactions = (pagination) => {
-  emit('update-transactions', pagination)
-}
-
-onMounted(() => {
-  updateTransactions(0)
 })
 </script>

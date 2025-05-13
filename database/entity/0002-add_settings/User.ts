@@ -1,4 +1,4 @@
-import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm'
+import { BaseEntity, Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm'
 import { UserSetting } from './UserSetting'
 
 // Moriz: I do not like the idea of having two user tables
@@ -43,6 +43,9 @@ export class User extends BaseEntity {
   @Column({ type: 'bool', default: false })
   disabled: boolean
 
-  @OneToMany(() => UserSetting, (userSetting) => userSetting.user)
+  @OneToMany(
+    () => UserSetting,
+    (userSetting) => userSetting.user,
+  )
   settings: UserSetting[]
 }

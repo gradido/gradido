@@ -6,9 +6,6 @@
  * login_users.
  */
 
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   // Fill in missing emails from login_users
   await queryFn(
@@ -21,6 +18,8 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   await queryFn(`DELETE FROM state_users WHERE email = ''`)
 }
 
-export async function downgrade(/* queryFn: (query: string, values?: any[]) => Promise<Array<any>> */) {
+export async function downgrade(
+  /* queryFn: (query: string, values?: any[]) => Promise<Array<any>> */
+) {
   // cannot undelete things
 }

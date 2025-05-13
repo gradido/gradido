@@ -5,9 +5,6 @@
  * The table affected is `login_email_opt_in`
  */
 
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   // Delete email opt in codes which can not be linked to an user
   await queryFn(`

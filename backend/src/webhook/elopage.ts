@@ -1,10 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /*
     Elopage Webhook
 
@@ -32,14 +25,14 @@
     I assume that the webhook arrives via POST and transmits a string as shown above
 */
 
+import { backendLogger as logger } from '@/server/logger'
 import { LoginElopageBuys } from '@entity/LoginElopageBuys'
 import { UserContact as dbUserContact } from '@entity/UserContact'
 
 import { UserResolver } from '@/graphql/resolver/UserResolver'
 
 export const elopageWebhook = async (req: any, res: any): Promise<void> => {
-  // eslint-disable-next-line no-console
-  console.log('Elopage Hook received', req.body)
+  logger.info('Elopage Hook received')
   res.status(200).end() // Responding is important
   const loginElopageBuy = new LoginElopageBuys()
 
@@ -47,13 +40,9 @@ export const elopageWebhook = async (req: any, res: any): Promise<void> => {
     payer,
     product,
     publisher,
-    // eslint-disable-next-line camelcase
     order_id,
-    // eslint-disable-next-line camelcase
     product_id,
-    // eslint-disable-next-line camelcase
     payment_state,
-    // eslint-disable-next-line camelcase
     success_date,
     event,
     membership,
@@ -61,14 +50,12 @@ export const elopageWebhook = async (req: any, res: any): Promise<void> => {
 
   // Do not process certain events
   if (['lesson.viewed', 'lesson.completed', 'lesson.commented'].includes(event)) {
-    // eslint-disable-next-line no-console
-    console.log('User viewed, completed or commented - not saving hook')
+    logger.debug('User viewed, completed or commented - not saving hook')
     return
   }
 
   if (!product || !publisher || !membership || !payer) {
-    // eslint-disable-next-line no-console
-    console.log('Elopage Hook: Not an event we can process')
+    logger.debug('Elopage Hook: Not an event we can process')
     return
   }
 
@@ -81,7 +68,7 @@ export const elopageWebhook = async (req: any, res: any): Promise<void> => {
   loginElopageBuy.productPrice = productPrice ? Math.trunc(productPrice * 100) : 0
   loginElopageBuy.payerEmail = payer.email
   loginElopageBuy.publisherEmail = publisher.email
-  // eslint-disable-next-line camelcase
+
   loginElopageBuy.payed = payment_state === 'paid'
   loginElopageBuy.successDate = new Date(success_date)
   loginElopageBuy.event = event
@@ -95,8 +82,7 @@ export const elopageWebhook = async (req: any, res: any): Promise<void> => {
   try {
     await LoginElopageBuys.save(loginElopageBuy)
   } catch (error) {
-    // eslint-disable-next-line no-console
-    console.log('Error saving LoginElopageBuy', error)
+    logger.error('Error saving LoginElopageBuy', error)
     return
   }
 
@@ -115,7 +101,6 @@ export const elopageWebhook = async (req: any, res: any): Promise<void> => {
   ) {
     const email = loginElopageBuy.payerEmail
 
-    // eslint-disable-next-line security/detect-unsafe-regex
     const VALIDATE_EMAIL = /^[a-zA-Z0-9.!#$%&?*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/
     const VALIDATE_NAME = /^<>&;]{2,}$/
 
@@ -128,16 +113,14 @@ export const elopageWebhook = async (req: any, res: any): Promise<void> => {
       lastName === '' ||
       lastName.match(VALIDATE_NAME)
     ) {
-      // eslint-disable-next-line no-console
-      console.log(`Could not create User ${firstName} ${lastName} with email: ${email}`)
+      logger.info(`Could not create User ${firstName} ${lastName} with email: ${email}`)
       return
     }
 
     // Do we already have such a user?
     // if ((await dbUser.count({ email })) !== 0) {
     if ((await dbUserContact.count({ where: { email } })) !== 0) {
-      // eslint-disable-next-line no-console
-      console.log(`Did not create User - already exists with email: ${email}`)
+      logger.info(`Did not create User - already exists with email: ${email}`)
       return
     }
 
@@ -150,8 +133,7 @@ export const elopageWebhook = async (req: any, res: any): Promise<void> => {
         publisherId: loginElopageBuy.publisherId ?? 0, // This seemed to be the default value if not set
       })
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.log(`Could not create User for ${email}. Following Error occured:`, error)
+      logger.error(`Could not create User for ${email}. Following Error occured:`, error)
     }
   }
 }

@@ -1,4 +1,3 @@
-/* eslint-disable security/detect-object-injection */
 import {
   Brackets,
   In,
@@ -46,8 +45,12 @@ export const findContributions = async (
     throw new LogError('Cannot connect to db')
   }
   const queryBuilder = connection.getRepository(DbContribution).createQueryBuilder('Contribution')
-  if (relations) joinRelationsRecursive(relations, queryBuilder, 'Contribution')
-  if (withDeleted) queryBuilder.withDeleted()
+  if (relations) {
+    joinRelationsRecursive(relations, queryBuilder, 'Contribution')
+  }
+  if (withDeleted) {
+    queryBuilder.withDeleted()
+  }
   queryBuilder.where({
     ...(filter.statusFilter?.length && { contributionStatus: In(filter.statusFilter) }),
     ...(filter.userId && { userId: filter.userId }),

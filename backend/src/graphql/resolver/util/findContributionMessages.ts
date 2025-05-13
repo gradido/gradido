@@ -19,7 +19,9 @@ export const findContributionMessages = async (
 
   const messageTypes = [ContributionMessageType.DIALOG, ContributionMessageType.HISTORY]
 
-  if (showModeratorType) messageTypes.push(ContributionMessageType.MODERATOR)
+  if (showModeratorType) {
+    messageTypes.push(ContributionMessageType.MODERATOR)
+  }
 
   return DbContributionMessage.findAndCount({
     where: {

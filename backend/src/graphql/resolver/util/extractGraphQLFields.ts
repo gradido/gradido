@@ -1,8 +1,8 @@
 import { ObjectLiteral, SelectQueryBuilder } from '@dbTools/typeorm'
 import { GraphQLResolveInfo } from 'graphql'
 import {
-  parseResolveInfo,
   ResolveTree,
+  parseResolveInfo,
   simplifyParsedResolveInfoFragmentWithType,
 } from 'graphql-parse-resolve-info'
 

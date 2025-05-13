@@ -6,6 +6,8 @@ import { backendLogger as logger } from '@/server/logger'
 
 CONFIG.EMAIL = true
 CONFIG.EMAIL_TEST_MODUS = false
+CONFIG.HUMHUB_ACTIVE = false
+CONFIG.GMS_ACTIVE = false
 
 jest.setTimeout(1000000)
 

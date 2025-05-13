@@ -1,8 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Connection } from '@dbTools/typeorm'
 import { Contribution as DbContribution } from '@entity/Contribution'
 import { Event as DbEvent } from '@entity/Event'
@@ -11,7 +6,7 @@ import { GraphQLError } from 'graphql'
 
 import { ContributionStatus } from '@enum/ContributionStatus'
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
-import { logger, i18n as localization } from '@test/testSetup'
+import { i18n as localization, logger } from '@test/testSetup'
 
 import { sendAddedContributionMessageEmail } from '@/emails/sendEmailVariants'
 import { EventType } from '@/event/Events'
@@ -22,7 +17,7 @@ import {
   createContributionMessage,
   login,
 } from '@/seeds/graphql/mutations'
-import { listContributionMessages, adminListContributionMessages } from '@/seeds/graphql/queries'
+import { adminListContributionMessages, listContributionMessages } from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { peterLustig } from '@/seeds/users/peter-lustig'
@@ -39,7 +34,8 @@ jest.mock('@/emails/sendEmailVariants', () => {
   }
 })
 
-let mutate: ApolloServerTestClient['mutate'], con: Connection
+let mutate: ApolloServerTestClient['mutate']
+let con: Connection
 let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']

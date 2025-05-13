@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import { User } from '../entity/User'
 import { AbstractLoggingView } from './AbstractLogging.view'
 import { ContributionLoggingView } from './ContributionLogging.view'
@@ -17,7 +16,6 @@ export class UserLoggingView extends AbstractLoggingView {
     super()
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public toJSON(): any {
     return {
       id: this.self.id,
@@ -32,7 +30,7 @@ export class UserLoggingView extends AbstractLoggingView {
       lastName: this.self.lastName?.substring(0, 3) + '...',
       createdAt: this.dateToString(this.self.createdAt),
       deletedAt: this.dateToString(this.self.deletedAt),
-      passwordEncryptionType: this.self.passwordEncryptionType as PasswordEncryptionType,
+      passwordEncryptionType: PasswordEncryptionType[this.self.passwordEncryptionType],
       language: this.self.language,
       hideAmountGDD: this.self.hideAmountGDD,
       hideAmountGDT: this.self.hideAmountGDT,

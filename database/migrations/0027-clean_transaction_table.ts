@@ -6,9 +6,6 @@
  * This migration has data loss
  */
 
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   // drop column `transaction_id`, it is not needed
   await queryFn('ALTER TABLE `transactions` DROP COLUMN IF EXISTS `transaction_id`;')

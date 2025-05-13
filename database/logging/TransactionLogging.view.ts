@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import { Transaction } from '../entity/Transaction'
 import { AbstractLoggingView } from './AbstractLogging.view'
 import { ContributionLoggingView } from './ContributionLogging.view'
@@ -19,7 +18,6 @@ export class TransactionLoggingView extends AbstractLoggingView {
     super()
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public toJSON(): any {
     return {
       id: this.self.id,
