@@ -1,6 +1,6 @@
 import { createPrivateKey, sign } from 'node:crypto'
 
-import { SignJWT, jwtVerify, decodeJwt, JWTPayload } from 'jose'
+import { JWTPayload, SignJWT, decodeJwt, jwtVerify } from 'jose'
 
 import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
@@ -8,7 +8,9 @@ import { backendLogger as logger } from '@/server/logger'
 import { JwtPayloadType } from './payloadtypes/JwtPayloadType'
 
 export const verify = async (token: string, signkey: string): Promise<JwtPayloadType | null> => {
-  if (!token) throw new LogError('401 Unauthorized')
+  if (!token) {
+    throw new LogError('401 Unauthorized')
+  }
   logger.info('JWT.verify... token, signkey=', token, signkey)
 
   try {

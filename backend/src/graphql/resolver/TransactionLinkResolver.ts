@@ -25,9 +25,9 @@ import { TransactionLink, TransactionLinkResult } from '@model/TransactionLink'
 import { User } from '@model/User'
 import { QueryLinkResult } from '@union/QueryLinkResult'
 
-import { verify, encode, decode } from '@/auth/jwt/JWT'
-import { RedeemJwtPayloadType } from '@/auth/jwt/payloadtypes/RedeemJwtPayloadType'
 import { RIGHTS } from '@/auth/RIGHTS'
+import { decode, encode, verify } from '@/auth/jwt/JWT'
+import { RedeemJwtPayloadType } from '@/auth/jwt/payloadtypes/RedeemJwtPayloadType'
 import {
   EVENT_CONTRIBUTION_LINK_REDEEM,
   EVENT_TRANSACTION_LINK_CREATE,
@@ -43,7 +43,7 @@ import { calculateDecay } from '@/util/decay'
 import { fullName } from '@/util/utilities'
 import { calculateBalance } from '@/util/validate'
 
-
+import { DisburseJwtPayloadType } from '@/auth/jwt/payloadtypes/DisburseJwtPayloadType'
 import { executeTransaction } from './TransactionResolver'
 import {
   getAuthenticatedCommunities,
@@ -54,7 +54,6 @@ import { getUserCreation, validateContribution } from './util/creations'
 import { getLastTransaction } from './util/getLastTransaction'
 import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
 import { transactionLinkList } from './util/transactionLinkList'
-import { DisburseJwtPayloadType } from '@/auth/jwt/payloadtypes/DisburseJwtPayloadType'
 
 // TODO: do not export, test it inside the resolver
 export const transactionLinkCode = (date: Date): string => {
@@ -164,7 +163,7 @@ export class TransactionLinkResolver {
           withDeleted: true,
         })
         txLinkFound = true
-      } catch (err) {
+      } catch (_err) {
         txLinkFound = false
       }
       // normal redeem code
@@ -443,7 +442,7 @@ export class TransactionLinkResolver {
   @Authorized([RIGHTS.DISBURSE_TRANSACTION_LINK])
   @Mutation(() => Boolean)
   async disburseTransactionLink(
-    @Ctx() context: Context,
+    @Ctx() _context: Context,
     @Arg('senderCommunityUuid') senderCommunityUuid: string,
     @Arg('senderGradidoId') senderGradidoId: string,
     @Arg('recipientCommunityUuid') recipientCommunityUuid: string,
@@ -482,9 +481,9 @@ export class TransactionLinkResolver {
       validUntil ?? '',
       recipientAlias ?? '',
     )
-    logger.debug('TransactionLinkResolver.disburseTransactionLink... disburseJwt=', disburseJwt)
-    // now send the disburseJwt to the sender community to invoke a x-community-tx to disbures the redeemLink
     try {
+      logger.debug('TransactionLinkResolver.disburseTransactionLink... disburseJwt=', disburseJwt)
+      // now send the disburseJwt to the sender community to invoke a x-community-tx to disbures the redeemLink
       // await sendDisburseJwtToSenderCommunity(context, disburseJwt)
     } catch (e) {
       throw new LogError('Disburse JWT was not sent successfully', e)
