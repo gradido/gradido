@@ -77,15 +77,15 @@ const currentRecipientCommunity = computed(
 const emit = defineEmits(['update:recipientCommunity'])
 
 const isForeignCommunitySelected = computed(() => {
-  console.log(
-    'RedeemCommunitySelection.isForeignCommunitySelected...recipientCommunity=',
-    currentRecipientCommunity.value,
-  )
+  // console.log(
+  //   'RedeemCommunitySelection.isForeignCommunitySelected...recipientCommunity=',
+  //   currentRecipientCommunity.value,
+  // )
   return currentRecipientCommunity.value.foreign
 })
 
 function setRecipientCommunity(community) {
-  console.log('RedeemCommunitySelection.setRecipientCommunity...community=', community)
+  // console.log('RedeemCommunitySelection.setRecipientCommunity...community=', community)
   emit('update:recipientCommunity', {
     uuid: community.uuid,
     name: community.name,
@@ -95,10 +95,19 @@ function setRecipientCommunity(community) {
 }
 
 function extractHomeCommunityFromLinkData(linkData) {
-  console.log('RedeemCommunitySelection.extractHomeCommunityFromLinkData... props.linkData=', props.linkData)
-  console.log('RedeemCommunitySelection.extractHomeCommunityFromLinkData...linkData=', linkData)
-  console.log('RedeemCommunitySelection.extractHomeCommunityFromLinkData...communities=', linkData.communities)
-  console.log('RedeemCommunitySelection.extractHomeCommunityFromLinkData...linkData.value=', linkData.value)
+  // console.log(
+  //   'RedeemCommunitySelection.extractHomeCommunityFromLinkData... props.linkData=',
+  //   props.linkData,
+  // )
+  // console.log('RedeemCommunitySelection.extractHomeCommunityFromLinkData...linkData=', linkData)
+  // console.log(
+  //   'RedeemCommunitySelection.extractHomeCommunityFromLinkData...communities=',
+  //   linkData.communities,
+  // )
+  // console.log(
+  //   'RedeemCommunitySelection.extractHomeCommunityFromLinkData...linkData.value=',
+  //   linkData.value,
+  // )
 
   if (linkData.communities?.length === 0) {
     return {
@@ -109,15 +118,15 @@ function extractHomeCommunityFromLinkData(linkData) {
     }
   }
   const communities = linkData.communities
-  console.log(
-    'RedeemCommunitySelection.extractHomeCommunityFromLinkData...communities=',
-    communities,
-  )
+  // console.log(
+  //   'RedeemCommunitySelection.extractHomeCommunityFromLinkData...communities=',
+  //   communities,
+  // )
   const homeCommunity = communities?.find((c) => c.foreign === false)
-  console.log(
-    'RedeemCommunitySelection.extractHomeCommunityFromLinkData...homeCommunity=',
-    homeCommunity,
-  )
+  // console.log(
+  //   'RedeemCommunitySelection.extractHomeCommunityFromLinkData...homeCommunity=',
+  //   homeCommunity,
+  // )
   return {
     uuid: homeCommunity.uuid,
     name: homeCommunity.name,
@@ -130,20 +139,21 @@ const { mutate: createRedeemJwt } = useMutation(createRedeemJwtMutation)
 
 async function onSwitch(event) {
   event.preventDefault() // Prevent the default navigation
-  console.log('RedeemCommunitySelection.onSwitch... props=', props)
+  // console.log('RedeemCommunitySelection.onSwitch... props=', props)
   if (isForeignCommunitySelected.value) {
-    console.log('RedeemCommunitySelection.onSwitch vor createRedeemJwt params:', {
-      gradidoId: props.linkData.senderUser?.gradidoID,
-      senderCommunityUuid: senderCommunity.value.uuid,
-      senderCommunityName: senderCommunity.value.name,
-      recipientCommunityUuid: currentRecipientCommunity.value.uuid,
-      code: props.redeemCode,
-      amount: props.linkData.amount,
-      memo: props.linkData.memo,
-      firstName: props.linkData.senderUser?.firstName,
-      alias: props.linkData.senderUser?.alias,
-      validUntil: props.linkData.validUntil,
-    })
+    // console.log('RedeemCommunitySelection.onSwitch vor createRedeemJwt params:', {
+    //   gradidoId: props.linkData.senderUser?.gradidoID,
+    //   senderCommunityUuid: senderCommunity.value.uuid,
+    //   senderCommunityName: senderCommunity.value.name,
+    //   recipientCommunityUuid: currentRecipientCommunity.value.uuid,
+    //   code: props.redeemCode,
+    //   amount: props.linkData.amount,
+    //   memo: props.linkData.memo,
+    //   firstName: props.linkData.senderUser?.firstName,
+    //   alias: props.linkData.senderUser?.alias,
+    //   validUntil: props.linkData.validUntil,
+    // })
+    // eslint-disable-next-line no-useless-catch
     try {
       const { data } = await createRedeemJwt({
         gradidoId: props.linkData.senderUser?.gradidoID,
@@ -157,14 +167,14 @@ async function onSwitch(event) {
         alias: props.linkData.senderUser?.alias,
         validUntil: props.linkData.validUntil,
       })
-      console.log('RedeemCommunitySelection.onSwitch... response=', data)
+      // console.log('RedeemCommunitySelection.onSwitch... response=', data)
       if (!data?.createRedeemJwt) {
         throw new Error('Failed to get redeem token')
       }
       const targetUrl = currentRecipientCommunity.value.url.replace(/\/api\/?$/, '')
       window.location.href = targetUrl + '/redeem/' + data.createRedeemJwt
     } catch (error) {
-      console.error('RedeemCommunitySelection.onSwitch error:', error)
+      // console.error('RedeemCommunitySelection.onSwitch error:', error)
       throw error
     }
   }

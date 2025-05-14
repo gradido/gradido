@@ -46,7 +46,7 @@ const validCommunityIdentifier = ref(false)
 const { onResult } = useQuery(selectCommunities)
 
 onResult(({ data }) => {
-  console.log('CommunitySwitch.onResult...data=', data)
+  // console.log('CommunitySwitch.onResult...data=', data)
   if (data) {
     communities.value = data.communities
     setDefaultCommunity()
@@ -56,29 +56,42 @@ onResult(({ data }) => {
 const communityIdentifier = computed(() => route.params.communityIdentifier)
 
 function updateCommunity(community) {
-  console.log('CommunitySwitch.updateCommunity...community=', community)
+  // console.log('CommunitySwitch.updateCommunity...community=', community)
   emit('update:model-value', community)
 }
 
 function setDefaultCommunity() {
-  console.log('CommunitySwitch.setDefaultCommunity... communityIdentifier= communities=', communityIdentifier, communities)
+  // console.log(
+  //   'CommunitySwitch.setDefaultCommunity... communityIdentifier= communities=',
+  //   communityIdentifier,
+  //   communities,
+  // )
   if (communityIdentifier.value && communities.value.length >= 1) {
-    console.log('CommunitySwitch.setDefaultCommunity... communities.value.length=', communities.value.length)
+    // console.log(
+    //   'CommunitySwitch.setDefaultCommunity... communities.value.length=',
+    //   communities.value.length,
+    // )
     const foundCommunity = communities.value.find((community) => {
-      console.log('CommunitySwitch.setDefaultCommunity... community=', community)
+      // console.log('CommunitySwitch.setDefaultCommunity... community=', community)
       if (
         community.uuid === communityIdentifier.value ||
         community.name === communityIdentifier.value
       ) {
         validCommunityIdentifier.value = true
-        console.log('CommunitySwitch.setDefaultCommunity...true validCommunityIdentifier=', validCommunityIdentifier)
+        // console.log(
+        //   'CommunitySwitch.setDefaultCommunity...true validCommunityIdentifier=',
+        //   validCommunityIdentifier,
+        // )
         return true
       }
-      console.log('CommunitySwitch.setDefaultCommunity...false validCommunityIdentifier=', validCommunityIdentifier)
+      // console.log(
+      //   'CommunitySwitch.setDefaultCommunity...false validCommunityIdentifier=',
+      //   validCommunityIdentifier,
+      // )
       return false
     })
     if (foundCommunity) {
-      console.log('CommunitySwitch.setDefaultCommunity...foundCommunity=', foundCommunity)
+      // console.log('CommunitySwitch.setDefaultCommunity...foundCommunity=', foundCommunity)
       updateCommunity(foundCommunity)
       return
     }
@@ -87,13 +100,20 @@ function setDefaultCommunity() {
 
   if (validCommunityIdentifier.value && !communityIdentifier.value) {
     validCommunityIdentifier.value = false
-    console.log('CommunitySwitch.setDefaultCommunity...validCommunityIdentifier=', validCommunityIdentifier)
+    // console.log(
+    //   'CommunitySwitch.setDefaultCommunity...validCommunityIdentifier=',
+    //   validCommunityIdentifier,
+    // )
   }
 
   if (props.modelValue?.uuid === '' && communities.value.length) {
-    console.log('CommunitySwitch.setDefaultCommunity...props.modelValue= communities=', props.modelValue, communities.value.length)
+    // console.log(
+    //   'CommunitySwitch.setDefaultCommunity...props.modelValue= communities=',
+    //   props.modelValue,
+    //   communities.value.length,
+    // )
     const foundCommunity = communities.value.find((community) => !community.foreign)
-    console.log('CommunitySwitch.setDefaultCommunity...foundCommunity=', foundCommunity)
+    // console.log('CommunitySwitch.setDefaultCommunity...foundCommunity=', foundCommunity)
     if (foundCommunity) {
       updateCommunity(foundCommunity)
     }
