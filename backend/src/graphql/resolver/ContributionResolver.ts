@@ -145,11 +145,15 @@ export class ContributionResolver {
   async listContributions(
     @Ctx() context: Context,
     @Arg('pagination') pagination: Paginated,
-    @Arg('messagePagination') messagePagination: Paginated,
+    @Arg('messagePagination', { nullable: true }) messagePagination?: Paginated,
   ): Promise<ContributionListResult> {
     const user = getUser(context)
-    const [dbContributions, count] = await loadUserContributions(user.id, pagination, messagePagination)
-    
+    const [dbContributions, count] = await loadUserContributions(
+      user.id,
+      pagination,
+      messagePagination,
+    )
+
     // show contributions in progress first
     const inProgressContributions = dbContributions.filter(
       (contribution) => contribution.contributionStatus === ContributionStatus.IN_PROGRESS,
@@ -163,10 +167,10 @@ export class ContributionResolver {
       [...inProgressContributions, ...notInProgressContributions].map((contribution) => {
         // we currently expect not much contribution messages for needing pagination
         // but if we get more than expected, we should get warned
-        if ((contribution.messages?.length || 0) > messagePagination.pageSize) {
+        if ((contribution.messages?.length || 0) > (messagePagination?.pageSize || 10)) {
           logger.warn('more contribution messages as expected, consider pagination', {
             contributionId: contribution.id,
-            expected: messagePagination.pageSize,
+            expected: messagePagination?.pageSize || 10,
             actual: contribution.messages?.length || 0,
           })
         }

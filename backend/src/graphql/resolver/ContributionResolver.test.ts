@@ -107,7 +107,7 @@ describe('ContributionResolver', () => {
       variables: {
         amount: 100.0,
         memo: 'Test PENDING contribution',
-        creationDate: new Date().toString(),
+        contributionDate: new Date().toString(),
       },
     })
     inProgressContribution = await mutate({
@@ -115,7 +115,7 @@ describe('ContributionResolver', () => {
       variables: {
         amount: 100.0,
         memo: 'Test IN_PROGRESS contribution',
-        creationDate: new Date().toString(),
+        contributionDate: new Date().toString(),
       },
     })
     contributionToConfirm = await mutate({
@@ -123,7 +123,7 @@ describe('ContributionResolver', () => {
       variables: {
         amount: 100.0,
         memo: 'Test contribution to confirm',
-        creationDate: new Date().toString(),
+        contributionDate: new Date().toString(),
       },
     })
     contributionToDeny = await mutate({
@@ -131,7 +131,7 @@ describe('ContributionResolver', () => {
       variables: {
         amount: 100.0,
         memo: 'Test contribution to deny',
-        creationDate: new Date().toString(),
+        contributionDate: new Date().toString(),
       },
     })
     contributionToDelete = await mutate({
@@ -139,7 +139,7 @@ describe('ContributionResolver', () => {
       variables: {
         amount: 100.0,
         memo: 'Test contribution to delete',
-        creationDate: new Date().toString(),
+        contributionDate: new Date().toString(),
       },
     })
     await mutate({
@@ -177,7 +177,7 @@ describe('ContributionResolver', () => {
       it('returns an error', async () => {
         const { errors: errorObjects } = await mutate({
           mutation: createContribution,
-          variables: { amount: 100.0, memo: 'Test Contribution', creationDate: 'not-valid' },
+          variables: { amount: 100.0, memo: 'Test Contribution', contributionDate: 'not-valid' },
         })
 
         expect(errorObjects).toEqual([new GraphQLError('401 Unauthorized')])
@@ -206,7 +206,7 @@ describe('ContributionResolver', () => {
             variables: {
               amount: 100.0,
               memo: 'Test',
-              creationDate: date.toString(),
+              contributionDate: date.toString(),
             },
           })
           expect(errorObjects).toMatchObject([
@@ -236,7 +236,7 @@ describe('ContributionResolver', () => {
             variables: {
               amount: 100.0,
               memo: 'Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test',
-              creationDate: date.toString(),
+              contributionDate: date.toString(),
             },
           })
           expect(errorObjects).toMatchObject([
@@ -265,7 +265,7 @@ describe('ContributionResolver', () => {
             variables: {
               amount: 100.0,
               memo: 'Test env contribution',
-              creationDate: 'not-valid',
+              contributionDate: 'not-valid',
             },
           })
           expect(errorObjects).toMatchObject([
@@ -275,9 +275,10 @@ describe('ContributionResolver', () => {
                 exception: {
                   validationErrors: [
                     {
-                      property: 'creationDate',
+                      property: 'contributionDate',
                       constraints: {
-                        isValidDateString: 'creationDate must be a valid date string, creationDate',
+                        isValidDateString:
+                          'contributionDate must be a valid date string, contributionDate',
                       },
                     },
                   ],
@@ -295,7 +296,7 @@ describe('ContributionResolver', () => {
             variables: {
               amount: 100.0,
               memo: 'Test env contribution',
-              creationDate: date.toString(),
+              contributionDate: date.toString(),
             },
           })
           expect(errorObjects).toEqual([
@@ -344,7 +345,7 @@ describe('ContributionResolver', () => {
             contributionId: 1,
             amount: 100.0,
             memo: 'Test Contribution',
-            creationDate: 'not-valid',
+            contributionDate: 'not-valid',
           },
         })
         expect(errorObjects).toEqual([new GraphQLError('401 Unauthorized')])
@@ -373,7 +374,7 @@ describe('ContributionResolver', () => {
               contributionId: pendingContribution.data.createContribution.id,
               amount: 100.0,
               memo: 'Test',
-              creationDate: date.toString(),
+              contributionDate: date.toString(),
             },
           })
           expect(errorObjects).toMatchObject([
@@ -406,7 +407,7 @@ describe('ContributionResolver', () => {
               contributionId: pendingContribution.data.createContribution.id,
               amount: 100.0,
               memo: 'Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test',
-              creationDate: date.toString(),
+              contributionDate: date.toString(),
             },
           })
           expect(errorObjects).toMatchObject([
@@ -439,7 +440,7 @@ describe('ContributionResolver', () => {
                 contributionId: -1,
                 amount: 100.0,
                 memo: 'Test env contribution',
-                creationDate: new Date().toString(),
+                contributionDate: new Date().toString(),
               },
             }),
           ).resolves.toEqual(
@@ -470,7 +471,7 @@ describe('ContributionResolver', () => {
               contributionId: pendingContribution.data.createContribution.id,
               amount: 10.0,
               memo: 'Test env contribution',
-              creationDate: new Date().toString(),
+              contributionDate: new Date().toString(),
             },
           })
           expect(errorObjects).toEqual([
@@ -525,7 +526,7 @@ describe('ContributionResolver', () => {
                   contributionId: pendingContribution.data.createContribution.id,
                   amount: 10.0,
                   memo: 'Test env contribution',
-                  creationDate: new Date().toString(),
+                  contributionDate: new Date().toString(),
                 },
               }),
             ).resolves.toEqual(
@@ -560,7 +561,7 @@ describe('ContributionResolver', () => {
               contributionId: pendingContribution.data.createContribution.id,
               amount: 1019.0,
               memo: 'Test env contribution',
-              creationDate: new Date().toString(),
+              contributionDate: new Date().toString(),
             },
           })
           expect(errorObjects).toEqual([
@@ -589,7 +590,7 @@ describe('ContributionResolver', () => {
               contributionId: pendingContribution.data.createContribution.id,
               amount: 10.0,
               memo: 'Test env contribution',
-              creationDate: date.toString(),
+              contributionDate: date.toString(),
             },
           })
           expect(errorObjects).toEqual([
@@ -612,7 +613,7 @@ describe('ContributionResolver', () => {
               contributionId: pendingContribution.data.createContribution.id,
               amount: 10.0,
               memo: 'Test PENDING contribution update',
-              creationDate: new Date().toString(),
+              contributionDate: new Date().toString(),
             },
           })
           expect(contribution).toMatchObject({
@@ -721,7 +722,7 @@ describe('ContributionResolver', () => {
             variables: {
               amount: 166.0,
               memo: 'Whatever contribution',
-              creationDate: new Date().toString(),
+              contributionDate: new Date().toString(),
             },
           })
 
@@ -766,7 +767,7 @@ describe('ContributionResolver', () => {
             variables: {
               amount: 166.0,
               memo: 'Whatever contribution',
-              creationDate: new Date().toString(),
+              contributionDate: new Date().toString(),
             },
           })
 
@@ -811,7 +812,7 @@ describe('ContributionResolver', () => {
             variables: {
               amount: 166.0,
               memo: 'Whatever contribution',
-              creationDate: new Date().toString(),
+              contributionDate: new Date().toString(),
             },
           })
 
@@ -1043,9 +1044,11 @@ describe('ContributionResolver', () => {
         const { errors: errorObjects } = await query({
           query: listContributions,
           variables: {
-            currentPage: 1,
-            pageSize: 25,
-            order: 'DESC',
+            pagination: {
+              currentPage: 1,
+              pageSize: 25,
+              order: 'DESC',
+            },
           },
         })
         expect(errorObjects).toEqual([new GraphQLError('401 Unauthorized')])
@@ -1071,10 +1074,11 @@ describe('ContributionResolver', () => {
           } = await query({
             query: listContributions,
             variables: {
-              currentPage: 1,
-              pageSize: 25,
-              order: 'DESC',
-              filterConfirmed: false,
+              pagination: {
+                currentPage: 1,
+                pageSize: 25,
+                order: 'DESC',
+              },
             },
           })
           expect(contributionListResult).toMatchObject({
@@ -1121,59 +1125,6 @@ describe('ContributionResolver', () => {
           expect(contributionListResult.contributionList).toHaveLength(6)
         })
       })
-
-      describe('with status filter [PENDING, IN_PROGRESS, DENIED, DELETED]', () => {
-        it('returns only unconfirmed creations', async () => {
-          const {
-            data: { listContributions: contributionListResult },
-          } = await query({
-            query: listContributions,
-            variables: {
-              currentPage: 1,
-              pageSize: 25,
-              order: 'DESC',
-              statusFilter: ['PENDING', 'IN_PROGRESS', 'DENIED', 'DELETED'],
-            },
-          })
-          expect(contributionListResult).toMatchObject({
-            contributionCount: 4,
-            contributionList: expect.arrayContaining([
-              expect.not.objectContaining({
-                status: 'CONFIRMED',
-              }),
-              expect.objectContaining({
-                id: pendingContribution.data.createContribution.id,
-                status: 'PENDING',
-                memo: 'Test PENDING contribution update',
-                amount: '10',
-                messagesCount: 1,
-              }),
-              expect.objectContaining({
-                id: contributionToDeny.data.createContribution.id,
-                status: 'DENIED',
-                memo: 'Test contribution to deny',
-                amount: '100',
-                messagesCount: 0,
-              }),
-              expect.objectContaining({
-                id: contributionToDelete.data.createContribution.id,
-                status: 'DELETED',
-                memo: 'Test contribution to delete',
-                amount: '100',
-                messagesCount: 0,
-              }),
-              expect.objectContaining({
-                id: inProgressContribution.data.createContribution.id,
-                status: 'IN_PROGRESS',
-                memo: 'Test IN_PROGRESS contribution',
-                amount: '100',
-                messagesCount: 1,
-              }),
-            ]),
-          })
-          expect(contributionListResult.contributionList).toHaveLength(4)
-        })
-      })
     })
   })
 
@@ -1183,10 +1134,11 @@ describe('ContributionResolver', () => {
         const { errors: errorObjects } = await query({
           query: listAllContributions,
           variables: {
-            currentPage: 1,
-            pageSize: 25,
-            order: 'DESC',
-            statusFilter: null,
+            pagination: {
+              currentPage: 1,
+              pageSize: 25,
+              order: 'DESC',
+            },
           },
         })
         expect(errorObjects).toEqual([new GraphQLError('401 Unauthorized')])
@@ -1205,122 +1157,70 @@ describe('ContributionResolver', () => {
         resetToken()
       })
 
-      it('throws an error with "NOT_VALID" in statusFilter', async () => {
-        const { errors: errorObjects } = await query({
-          query: listAllContributions,
-          variables: {
-            currentPage: 1,
-            pageSize: 25,
-            order: 'DESC',
-            statusFilter: ['NOT_VALID'],
-          },
-        })
-        expect(errorObjects).toEqual([
-          new UserInputError(
-            'Variable "$statusFilter" got invalid value "NOT_VALID" at "statusFilter[0]"; Value "NOT_VALID" does not exist in "ContributionStatus" enum.',
-          ),
-        ])
-      })
-
-      it('throws an error with a null in statusFilter', async () => {
-        const { errors: errorObjects } = await query({
-          query: listAllContributions,
-          variables: {
-            currentPage: 1,
-            pageSize: 25,
-            order: 'DESC',
-            statusFilter: [null],
-          },
-        })
-        expect(errorObjects).toEqual([
-          new UserInputError(
-            'Variable "$statusFilter" got invalid value null at "statusFilter[0]"; Expected non-nullable type "ContributionStatus!" not to be null.',
-          ),
-        ])
-      })
-
-      it('throws an error with null and "NOT_VALID" in statusFilter', async () => {
-        const { errors: errorObjects } = await query({
-          query: listAllContributions,
-          variables: {
-            currentPage: 1,
-            pageSize: 25,
-            order: 'DESC',
-            statusFilter: [null, 'NOT_VALID'],
-          },
-        })
-        expect(errorObjects).toEqual([
-          new UserInputError(
-            'Variable "$statusFilter" got invalid value null at "statusFilter[0]"; Expected non-nullable type "ContributionStatus!" not to be null.',
-          ),
-          new UserInputError(
-            'Variable "$statusFilter" got invalid value "NOT_VALID" at "statusFilter[1]"; Value "NOT_VALID" does not exist in "ContributionStatus" enum.',
-          ),
-        ])
-      })
-
       it('returns all contributions without statusFilter', async () => {
         const {
           data: { listAllContributions: contributionListObject },
         } = await query({
           query: listAllContributions,
           variables: {
-            currentPage: 1,
-            pageSize: 25,
-            order: 'DESC',
+            pagination: {
+              currentPage: 1,
+              pageSize: 25,
+              order: 'DESC',
+            },
           },
         })
         expect(contributionListObject).toMatchObject({
           contributionCount: 7,
           contributionList: expect.arrayContaining([
             expect.not.objectContaining({
-              status: 'DELETED',
+              contributionStatus: 'DELETED',
             }),
             expect.objectContaining({
               amount: '100',
-              status: 'CONFIRMED',
+              contributionStatus: 'CONFIRMED',
               id: contributionToConfirm.data.createContribution.id,
               memo: 'Test contribution to confirm',
               messagesCount: 0,
             }),
             expect.objectContaining({
               id: pendingContribution.data.createContribution.id,
-              status: 'PENDING',
+              contributionStatus: 'PENDING',
               memo: 'Test PENDING contribution update',
               amount: '10',
               messagesCount: 0,
             }),
             expect.objectContaining({
               id: contributionToDeny.data.createContribution.id,
-              status: 'DENIED',
+              contributionStatus: 'DENIED',
               memo: 'Test contribution to deny',
               amount: '100',
               messagesCount: 0,
             }),
             expect.objectContaining({
               id: inProgressContribution.data.createContribution.id,
-              status: 'IN_PROGRESS',
+              contributionStatus: 'IN_PROGRESS',
               memo: 'Test IN_PROGRESS contribution',
               amount: '100',
               messagesCount: 0,
             }),
             expect.objectContaining({
               id: bibiCreatedContribution.id,
-              status: 'CONFIRMED',
+              contributionStatus: 'CONFIRMED',
               memo: 'Herzlich Willkommen bei Gradido!',
               amount: '1000',
               messagesCount: 0,
             }),
             expect.objectContaining({
               id: expect.any(Number),
-              status: 'CONFIRMED',
+              contributionStatus: 'CONFIRMED',
               memo: 'Whatever contribution',
               amount: '166',
               messagesCount: 0,
             }),
             expect.objectContaining({
               id: expect.any(Number),
-              status: 'DENIED',
+              contributionStatus: 'DENIED',
               memo: 'Whatever contribution',
               amount: '166',
               messagesCount: 0,
@@ -1328,402 +1228,6 @@ describe('ContributionResolver', () => {
           ]),
         })
         expect(contributionListObject.contributionList).toHaveLength(7)
-      })
-
-      it('returns all contributions for statusFilter = null', async () => {
-        const {
-          data: { listAllContributions: contributionListObject },
-        } = await query({
-          query: listAllContributions,
-          variables: {
-            currentPage: 1,
-            pageSize: 25,
-            order: 'DESC',
-            statusFilter: null,
-          },
-        })
-        expect(contributionListObject).toMatchObject({
-          contributionCount: 7,
-          contributionList: expect.arrayContaining([
-            expect.not.objectContaining({
-              status: 'DELETED',
-            }),
-            expect.objectContaining({
-              amount: '100',
-              status: 'CONFIRMED',
-              id: contributionToConfirm.data.createContribution.id,
-              memo: 'Test contribution to confirm',
-              messagesCount: 0,
-            }),
-            expect.objectContaining({
-              id: pendingContribution.data.createContribution.id,
-              status: 'PENDING',
-              memo: 'Test PENDING contribution update',
-              amount: '10',
-              messagesCount: 0,
-            }),
-            expect.objectContaining({
-              id: contributionToDeny.data.createContribution.id,
-              status: 'DENIED',
-              memo: 'Test contribution to deny',
-              amount: '100',
-              messagesCount: 0,
-            }),
-            expect.objectContaining({
-              id: inProgressContribution.data.createContribution.id,
-              status: 'IN_PROGRESS',
-              memo: 'Test IN_PROGRESS contribution',
-              amount: '100',
-              messagesCount: 0,
-            }),
-            expect.objectContaining({
-              id: bibiCreatedContribution.id,
-              status: 'CONFIRMED',
-              memo: 'Herzlich Willkommen bei Gradido!',
-              amount: '1000',
-              messagesCount: 0,
-            }),
-            expect.objectContaining({
-              id: expect.any(Number),
-              status: 'CONFIRMED',
-              memo: 'Whatever contribution',
-              amount: '166',
-              messagesCount: 0,
-            }),
-            expect.objectContaining({
-              id: expect.any(Number),
-              status: 'DENIED',
-              memo: 'Whatever contribution',
-              amount: '166',
-              messagesCount: 0,
-            }),
-          ]),
-        })
-        expect(contributionListObject.contributionList).toHaveLength(7)
-      })
-
-      it('returns all contributions for statusFilter = []', async () => {
-        const {
-          data: { listAllContributions: contributionListObject },
-        } = await query({
-          query: listAllContributions,
-          variables: {
-            currentPage: 1,
-            pageSize: 25,
-            order: 'DESC',
-            statusFilter: [],
-          },
-        })
-        expect(contributionListObject).toMatchObject({
-          contributionCount: 7,
-          contributionList: expect.arrayContaining([
-            expect.not.objectContaining({
-              status: 'DELETED',
-            }),
-            expect.objectContaining({
-              amount: '100',
-              status: 'CONFIRMED',
-              id: contributionToConfirm.data.createContribution.id,
-              memo: 'Test contribution to confirm',
-              messagesCount: 0,
-            }),
-            expect.objectContaining({
-              id: pendingContribution.data.createContribution.id,
-              status: 'PENDING',
-              memo: 'Test PENDING contribution update',
-              amount: '10',
-              messagesCount: 0,
-            }),
-            expect.objectContaining({
-              id: contributionToDeny.data.createContribution.id,
-              status: 'DENIED',
-              memo: 'Test contribution to deny',
-              amount: '100',
-              messagesCount: 0,
-            }),
-            expect.objectContaining({
-              id: inProgressContribution.data.createContribution.id,
-              status: 'IN_PROGRESS',
-              memo: 'Test IN_PROGRESS contribution',
-              amount: '100',
-              messagesCount: 0,
-            }),
-            expect.objectContaining({
-              id: bibiCreatedContribution.id,
-              status: 'CONFIRMED',
-              memo: 'Herzlich Willkommen bei Gradido!',
-              amount: '1000',
-              messagesCount: 0,
-            }),
-            expect.objectContaining({
-              id: expect.any(Number),
-              status: 'CONFIRMED',
-              memo: 'Whatever contribution',
-              amount: '166',
-              messagesCount: 0,
-            }),
-            expect.objectContaining({
-              id: expect.any(Number),
-              status: 'DENIED',
-              memo: 'Whatever contribution',
-              amount: '166',
-              messagesCount: 0,
-            }),
-          ]),
-        })
-        expect(contributionListObject.contributionList).toHaveLength(7)
-      })
-
-      it('returns all CONFIRMED contributions', async () => {
-        const {
-          data: { listAllContributions: contributionListObject },
-        } = await query({
-          query: listAllContributions,
-          variables: {
-            currentPage: 1,
-            pageSize: 25,
-            order: 'DESC',
-            statusFilter: ['CONFIRMED'],
-          },
-        })
-        expect(contributionListObject).toMatchObject({
-          contributionCount: 3,
-          contributionList: expect.arrayContaining([
-            expect.objectContaining({
-              amount: '100',
-              status: 'CONFIRMED',
-              id: contributionToConfirm.data.createContribution.id,
-              memo: 'Test contribution to confirm',
-              messagesCount: 0,
-            }),
-            expect.objectContaining({
-              id: bibiCreatedContribution.id,
-              status: 'CONFIRMED',
-              memo: 'Herzlich Willkommen bei Gradido!',
-              amount: '1000',
-              messagesCount: 0,
-            }),
-            expect.objectContaining({
-              id: expect.any(Number),
-              status: 'CONFIRMED',
-              memo: 'Whatever contribution',
-              amount: '166',
-              messagesCount: 0,
-            }),
-            expect.not.objectContaining({
-              status: 'PENDING',
-            }),
-            expect.not.objectContaining({
-              status: 'DENIED',
-            }),
-            expect.not.objectContaining({
-              status: 'DELETED',
-            }),
-            expect.not.objectContaining({
-              status: 'IN_PROGRESS',
-            }),
-          ]),
-        })
-        expect(contributionListObject.contributionList).toHaveLength(3)
-      })
-
-      it('returns all PENDING contributions', async () => {
-        const {
-          data: { listAllContributions: contributionListObject },
-        } = await query({
-          query: listAllContributions,
-          variables: {
-            currentPage: 1,
-            pageSize: 25,
-            order: 'DESC',
-            statusFilter: ['PENDING'],
-          },
-        })
-        expect(contributionListObject).toMatchObject({
-          contributionCount: 1,
-          contributionList: expect.arrayContaining([
-            expect.not.objectContaining({
-              status: 'CONFIRMED',
-            }),
-            expect.not.objectContaining({
-              status: 'DENIED',
-            }),
-            expect.not.objectContaining({
-              status: 'DELETED',
-            }),
-            expect.not.objectContaining({
-              status: 'IN_PROGRESS',
-            }),
-            expect.objectContaining({
-              id: pendingContribution.data.createContribution.id,
-              status: 'PENDING',
-              memo: 'Test PENDING contribution update',
-              amount: '10',
-              messagesCount: 0,
-            }),
-          ]),
-        })
-        expect(contributionListObject.contributionList).toHaveLength(1)
-      })
-
-      it('returns all IN_PROGRESS Creation', async () => {
-        const {
-          data: { listAllContributions: contributionListObject },
-        } = await query({
-          query: listAllContributions,
-          variables: {
-            currentPage: 1,
-            pageSize: 25,
-            order: 'DESC',
-            statusFilter: ['IN_PROGRESS'],
-          },
-        })
-        expect(contributionListObject).toMatchObject({
-          contributionCount: 1,
-          contributionList: expect.arrayContaining([
-            expect.not.objectContaining({
-              status: 'CONFIRMED',
-            }),
-            expect.not.objectContaining({
-              status: 'PENDING',
-            }),
-            expect.not.objectContaining({
-              status: 'DENIED',
-            }),
-            expect.not.objectContaining({
-              status: 'DELETED',
-            }),
-            expect.objectContaining({
-              id: inProgressContribution.data.createContribution.id,
-              status: 'IN_PROGRESS',
-              memo: 'Test IN_PROGRESS contribution',
-              amount: '100',
-              messagesCount: 0,
-            }),
-          ]),
-        })
-        expect(contributionListObject.contributionList).toHaveLength(1)
-      })
-
-      it('returns all DENIED Creation', async () => {
-        const {
-          data: { listAllContributions: contributionListObject },
-        } = await query({
-          query: listAllContributions,
-          variables: {
-            currentPage: 1,
-            pageSize: 25,
-            order: 'DESC',
-            statusFilter: ['DENIED'],
-          },
-        })
-        expect(contributionListObject).toMatchObject({
-          contributionCount: 2,
-          contributionList: expect.arrayContaining([
-            expect.objectContaining({
-              id: contributionToDeny.data.createContribution.id,
-              status: 'DENIED',
-              memo: 'Test contribution to deny',
-              amount: '100',
-            }),
-            expect.objectContaining({
-              id: expect.any(Number),
-              status: 'DENIED',
-              memo: 'Whatever contribution',
-              amount: '166',
-              messagesCount: 0,
-            }),
-            expect.not.objectContaining({
-              status: 'CONFIRMED',
-            }),
-            expect.not.objectContaining({
-              status: 'DELETED',
-            }),
-            expect.not.objectContaining({
-              status: 'IN_PROGRESS',
-            }),
-            expect.not.objectContaining({
-              status: 'PENDING',
-            }),
-          ]),
-        })
-        expect(contributionListObject.contributionList).toHaveLength(2)
-      })
-
-      it('does not return any DELETED Creation', async () => {
-        const {
-          data: { listAllContributions: contributionListObject },
-        } = await query({
-          query: listAllContributions,
-          variables: {
-            currentPage: 1,
-            pageSize: 25,
-            order: 'DESC',
-            statusFilter: ['DELETED'],
-          },
-        })
-        expect(contributionListObject).toEqual({
-          contributionCount: 0,
-          contributionList: [],
-        })
-        expect(contributionListObject.contributionList).toHaveLength(0)
-      })
-
-      it('returns all CONFIRMED and PENDING Creation', async () => {
-        const {
-          data: { listAllContributions: contributionListObject },
-        } = await query({
-          query: listAllContributions,
-          variables: {
-            currentPage: 1,
-            pageSize: 25,
-            order: 'DESC',
-            statusFilter: ['CONFIRMED', 'PENDING'],
-          },
-        })
-        expect(contributionListObject).toMatchObject({
-          contributionCount: 4,
-          contributionList: expect.arrayContaining([
-            expect.objectContaining({
-              amount: '100',
-              status: 'CONFIRMED',
-              id: contributionToConfirm.data.createContribution.id,
-              memo: 'Test contribution to confirm',
-              messagesCount: 0,
-            }),
-            expect.objectContaining({
-              id: pendingContribution.data.createContribution.id,
-              status: 'PENDING',
-              memo: 'Test PENDING contribution update',
-              amount: '10',
-              messagesCount: 0,
-            }),
-            expect.objectContaining({
-              id: bibiCreatedContribution.id,
-              status: 'CONFIRMED',
-              memo: 'Herzlich Willkommen bei Gradido!',
-              amount: '1000',
-              messagesCount: 0,
-            }),
-            expect.objectContaining({
-              id: expect.any(Number),
-              status: 'CONFIRMED',
-              memo: 'Whatever contribution',
-              amount: '166',
-              messagesCount: 0,
-            }),
-            expect.not.objectContaining({
-              status: 'DENIED',
-            }),
-            expect.not.objectContaining({
-              status: 'DELETED',
-            }),
-            expect.not.objectContaining({
-              status: 'IN_PROGRESS',
-            }),
-          ]),
-        })
-        expect(contributionListObject.contributionList).toHaveLength(4)
       })
     })
   })
@@ -2167,7 +1671,7 @@ describe('ContributionResolver', () => {
                         contributionId: adminContribution?.id ?? -1,
                         amount: 100.0,
                         memo: 'Test Test Test',
-                        creationDate: new Date().toString(),
+                        contributionDate: new Date().toString(),
                       },
                     }),
                   ).resolves.toMatchObject({
@@ -2394,7 +1898,7 @@ describe('ContributionResolver', () => {
                 variables: {
                   amount: 100.0,
                   memo: 'Test env contribution',
-                  creationDate: contributionDateFormatter(new Date()),
+                  contributionDate: contributionDateFormatter(new Date()),
                 },
               })
             })
@@ -2471,7 +1975,7 @@ describe('ContributionResolver', () => {
                 variables: {
                   amount: 100.0,
                   memo: 'Confirmed Contribution',
-                  creationDate: contributionDateFormatter(new Date()),
+                  contributionDate: contributionDateFormatter(new Date()),
                 },
               })
               await query({
@@ -2531,7 +2035,7 @@ describe('ContributionResolver', () => {
                 email: 'peter@lustig.de',
                 amount: 400,
                 memo: 'Herzlich Willkommen bei Gradido!',
-                creationDate: contributionDateFormatter(
+                contributionDate: contributionDateFormatter(
                   new Date(now.getFullYear(), now.getMonth() - 1, 1),
                 ),
               })
@@ -2565,7 +2069,7 @@ describe('ContributionResolver', () => {
                 email: 'bibi@bloxberg.de',
                 amount: 450,
                 memo: 'Herzlich Willkommen bei Gradido liebe Bibi!',
-                creationDate: contributionDateFormatter(
+                contributionDate: contributionDateFormatter(
                   new Date(now.getFullYear(), now.getMonth() - 2, 1),
                 ),
               })
@@ -2666,7 +2170,7 @@ describe('ContributionResolver', () => {
                 email: 'bibi@bloxberg.de',
                 amount: 50,
                 memo: 'Herzlich Willkommen bei Gradido liebe Bibi!',
-                creationDate: contributionDateFormatter(
+                contributionDate: contributionDateFormatter(
                   new Date(now.getFullYear(), now.getMonth() - 2, 1),
                 ),
               })
@@ -2674,7 +2178,7 @@ describe('ContributionResolver', () => {
                 email: 'bibi@bloxberg.de',
                 amount: 50,
                 memo: 'Herzlich Willkommen bei Gradido liebe Bibi!',
-                creationDate: contributionDateFormatter(
+                contributionDate: contributionDateFormatter(
                   new Date(now.getFullYear(), now.getMonth() - 2, 1),
                 ),
               })
@@ -2765,7 +2269,7 @@ describe('ContributionResolver', () => {
           variables: {
             amount: 100.0,
             memo: '#firefighters',
-            creationDate: new Date().toString(),
+            contributionDate: new Date().toString(),
           },
         })
       })
@@ -2811,7 +2315,7 @@ describe('ContributionResolver', () => {
               id: expect.any(Number),
               memo: '#firefighters',
               messagesCount: 0,
-              status: 'PENDING',
+              contributionStatus: 'PENDING',
               user: expect.objectContaining({
                 firstName: 'Peter',
                 lastName: 'Lustig',
@@ -2825,7 +2329,7 @@ describe('ContributionResolver', () => {
               id: expect.any(Number),
               memo: 'Herzlich Willkommen bei Gradido liebe Bibi!',
               messagesCount: 0,
-              status: 'CONFIRMED',
+              contributionStatus: 'CONFIRMED',
               user: expect.objectContaining({
                 firstName: 'Bibi',
                 lastName: 'Bloxberg',
@@ -2839,7 +2343,7 @@ describe('ContributionResolver', () => {
               id: expect.any(Number),
               memo: 'Herzlich Willkommen bei Gradido liebe Bibi!',
               messagesCount: 0,
-              status: 'CONFIRMED',
+              contributionStatus: 'CONFIRMED',
               user: expect.objectContaining({
                 firstName: 'Bibi',
                 lastName: 'Bloxberg',
@@ -2853,7 +2357,7 @@ describe('ContributionResolver', () => {
               id: expect.any(Number),
               memo: 'Herzlich Willkommen bei Gradido liebe Bibi!',
               messagesCount: 0,
-              status: 'CONFIRMED',
+              contributionStatus: 'CONFIRMED',
               user: expect.objectContaining({
                 firstName: 'Bibi',
                 lastName: 'Bloxberg',
@@ -2867,7 +2371,7 @@ describe('ContributionResolver', () => {
               id: expect.any(Number),
               memo: 'Herzlich Willkommen bei Gradido!',
               messagesCount: 0,
-              status: 'PENDING',
+              contributionStatus: 'PENDING',
               user: expect.objectContaining({
                 firstName: 'Peter',
                 lastName: 'Lustig',
@@ -2881,7 +2385,7 @@ describe('ContributionResolver', () => {
               id: expect.any(Number),
               memo: 'Confirmed Contribution',
               messagesCount: 0,
-              status: 'CONFIRMED',
+              contributionStatus: 'CONFIRMED',
               user: expect.objectContaining({
                 firstName: 'Bob',
                 lastName: 'der Baumeister',
@@ -2895,7 +2399,7 @@ describe('ContributionResolver', () => {
               id: expect.any(Number),
               memo: 'Test env contribution',
               messagesCount: 0,
-              status: 'PENDING',
+              contributionStatus: 'PENDING',
               user: expect.objectContaining({
                 firstName: 'Peter',
                 lastName: 'Lustig',
@@ -2909,7 +2413,7 @@ describe('ContributionResolver', () => {
               id: expect.any(Number),
               memo: 'Aktives Grundeinkommen',
               messagesCount: 0,
-              status: 'PENDING',
+              contributionStatus: 'PENDING',
               user: expect.objectContaining({
                 firstName: 'Bibi',
                 lastName: 'Bloxberg',
@@ -2923,7 +2427,7 @@ describe('ContributionResolver', () => {
               id: expect.any(Number),
               memo: 'Das war leider zu Viel!',
               messagesCount: 1,
-              status: 'DELETED',
+              contributionStatus: 'DELETED',
               user: expect.objectContaining({
                 firstName: 'Peter',
                 lastName: 'Lustig',
@@ -2937,7 +2441,7 @@ describe('ContributionResolver', () => {
               id: expect.any(Number),
               memo: 'Whatever contribution',
               messagesCount: 0,
-              status: 'DENIED',
+              contributionStatus: 'DENIED',
               user: expect.objectContaining({
                 firstName: 'Räuber',
                 lastName: 'Hotzenplotz',
@@ -2951,7 +2455,7 @@ describe('ContributionResolver', () => {
               id: expect.any(Number),
               memo: 'Whatever contribution',
               messagesCount: 0,
-              status: 'DELETED',
+              contributionStatus: 'DELETED',
               user: expect.objectContaining({
                 firstName: 'Räuber',
                 lastName: 'Hotzenplotz',
@@ -2965,7 +2469,7 @@ describe('ContributionResolver', () => {
               id: expect.any(Number),
               memo: 'Whatever contribution',
               messagesCount: 0,
-              status: 'CONFIRMED',
+              contributionStatus: 'CONFIRMED',
               user: expect.objectContaining({
                 firstName: 'Räuber',
                 lastName: 'Hotzenplotz',
@@ -2979,7 +2483,7 @@ describe('ContributionResolver', () => {
               id: expect.any(Number),
               memo: 'Test contribution to delete',
               messagesCount: 0,
-              status: 'DELETED',
+              contributionStatus: 'DELETED',
               user: expect.objectContaining({
                 firstName: 'Bibi',
                 lastName: 'Bloxberg',
@@ -2993,7 +2497,7 @@ describe('ContributionResolver', () => {
               id: expect.any(Number),
               memo: 'Test contribution to deny',
               messagesCount: 0,
-              status: 'DENIED',
+              contributionStatus: 'DENIED',
               user: expect.objectContaining({
                 firstName: 'Bibi',
                 lastName: 'Bloxberg',
@@ -3007,7 +2511,7 @@ describe('ContributionResolver', () => {
               id: expect.any(Number),
               memo: 'Test contribution to confirm',
               messagesCount: 0,
-              status: 'CONFIRMED',
+              contributionStatus: 'CONFIRMED',
               user: expect.objectContaining({
                 firstName: 'Bibi',
                 lastName: 'Bloxberg',
@@ -3021,7 +2525,7 @@ describe('ContributionResolver', () => {
               id: expect.any(Number),
               memo: 'Test IN_PROGRESS contribution',
               messagesCount: 1,
-              status: 'IN_PROGRESS',
+              contributionStatus: 'IN_PROGRESS',
               user: expect.objectContaining({
                 firstName: 'Bibi',
                 lastName: 'Bloxberg',
@@ -3035,7 +2539,7 @@ describe('ContributionResolver', () => {
               id: expect.any(Number),
               memo: 'Test PENDING contribution update',
               messagesCount: 2,
-              status: 'PENDING',
+              contributionStatus: 'PENDING',
               user: expect.objectContaining({
                 firstName: 'Bibi',
                 lastName: 'Bloxberg',
@@ -3049,7 +2553,7 @@ describe('ContributionResolver', () => {
               id: expect.any(Number),
               memo: 'Herzlich Willkommen bei Gradido!',
               messagesCount: 0,
-              status: 'CONFIRMED',
+              contributionStatus: 'CONFIRMED',
               user: expect.objectContaining({
                 firstName: 'Bibi',
                 lastName: 'Bloxberg',
@@ -3087,7 +2591,7 @@ describe('ContributionResolver', () => {
               id: expect.any(Number),
               memo: '#firefighters',
               messagesCount: 0,
-              status: 'PENDING',
+              contributionStatus: 'PENDING',
               user: expect.objectContaining({
                 firstName: 'Peter',
                 lastName: 'Lustig',
@@ -3101,7 +2605,7 @@ describe('ContributionResolver', () => {
               id: expect.any(Number),
               memo: 'Herzlich Willkommen bei Gradido!',
               messagesCount: 0,
-              status: 'PENDING',
+              contributionStatus: 'PENDING',
               user: expect.objectContaining({
                 firstName: 'Peter',
                 lastName: 'Lustig',
@@ -3111,16 +2615,16 @@ describe('ContributionResolver', () => {
               }),
             }),
             expect.not.objectContaining({
-              status: 'DENIED',
+              contributionStatus: 'DENIED',
             }),
             expect.not.objectContaining({
-              status: 'DELETED',
+              contributionStatus: 'DELETED',
             }),
             expect.not.objectContaining({
-              status: 'CONFIRMED',
+              contributionStatus: 'CONFIRMED',
             }),
             expect.not.objectContaining({
-              status: 'IN_PROGRESS',
+              contributionStatus: 'IN_PROGRESS',
             }),
           ]),
         })
@@ -3148,7 +2652,7 @@ describe('ContributionResolver', () => {
                 id: expect.any(Number),
                 memo: '#firefighters',
                 messagesCount: 0,
-                status: 'PENDING',
+                contributionStatus: 'PENDING',
                 user: expect.objectContaining({
                   firstName: 'Peter',
                   lastName: 'Lustig',
@@ -3162,7 +2666,7 @@ describe('ContributionResolver', () => {
                 id: expect.any(Number),
                 memo: 'Herzlich Willkommen bei Gradido!',
                 messagesCount: 0,
-                status: 'PENDING',
+                contributionStatus: 'PENDING',
                 user: expect.objectContaining({
                   firstName: 'Peter',
                   lastName: 'Lustig',
@@ -3176,7 +2680,7 @@ describe('ContributionResolver', () => {
                 id: expect.any(Number),
                 memo: 'Test env contribution',
                 messagesCount: 0,
-                status: 'PENDING',
+                contributionStatus: 'PENDING',
                 user: expect.objectContaining({
                   firstName: 'Peter',
                   lastName: 'Lustig',
@@ -3190,7 +2694,7 @@ describe('ContributionResolver', () => {
                 id: expect.any(Number),
                 memo: 'Das war leider zu Viel!',
                 messagesCount: 1,
-                status: 'DELETED',
+                contributionStatus: 'DELETED',
                 user: expect.objectContaining({
                   firstName: 'Peter',
                   lastName: 'Lustig',
@@ -3225,7 +2729,7 @@ describe('ContributionResolver', () => {
                 id: expect.any(Number),
                 memo: 'Herzlich Willkommen bei Gradido!',
                 messagesCount: 0,
-                status: 'PENDING',
+                contributionStatus: 'PENDING',
                 user: expect.objectContaining({
                   firstName: 'Peter',
                   lastName: 'Lustig',
@@ -3239,7 +2743,7 @@ describe('ContributionResolver', () => {
                 id: expect.any(Number),
                 memo: 'Test env contribution',
                 messagesCount: 0,
-                status: 'PENDING',
+                contributionStatus: 'PENDING',
                 user: expect.objectContaining({
                   firstName: 'Peter',
                   lastName: 'Lustig',
@@ -3253,7 +2757,7 @@ describe('ContributionResolver', () => {
                 id: expect.any(Number),
                 memo: 'Das war leider zu Viel!',
                 messagesCount: 1,
-                status: 'DELETED',
+                contributionStatus: 'DELETED',
                 user: expect.objectContaining({
                   firstName: 'Peter',
                   lastName: 'Lustig',
@@ -3286,7 +2790,7 @@ describe('ContributionResolver', () => {
                 id: expect.any(Number),
                 memo: '#firefighters',
                 messagesCount: 0,
-                status: 'PENDING',
+                contributionStatus: 'PENDING',
                 user: expect.objectContaining({
                   firstName: 'Peter',
                   lastName: 'Lustig',
@@ -3339,7 +2843,7 @@ describe('ContributionResolver', () => {
                 id: expect.any(Number),
                 memo: 'Whatever contribution',
                 messagesCount: 0,
-                status: 'DENIED',
+                contributionStatus: 'DENIED',
                 user: expect.objectContaining({
                   firstName: 'Räuber',
                   lastName: 'Hotzenplotz',
@@ -3353,7 +2857,7 @@ describe('ContributionResolver', () => {
                 id: expect.any(Number),
                 memo: 'Whatever contribution',
                 messagesCount: 0,
-                status: 'DELETED',
+                contributionStatus: 'DELETED',
                 user: expect.objectContaining({
                   firstName: 'Räuber',
                   lastName: 'Hotzenplotz',
@@ -3367,7 +2871,7 @@ describe('ContributionResolver', () => {
                 id: expect.any(Number),
                 memo: 'Whatever contribution',
                 messagesCount: 0,
-                status: 'CONFIRMED',
+                contributionStatus: 'CONFIRMED',
                 user: expect.objectContaining({
                   firstName: 'Räuber',
                   lastName: 'Hotzenplotz',

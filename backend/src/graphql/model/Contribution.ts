@@ -12,7 +12,7 @@ export class Contribution extends UnconfirmedContribution {
     this.confirmedAt = contribution.confirmedAt
     this.confirmedBy = contribution.confirmedBy
     this.contributionDate = contribution.contributionDate
-    
+
     this.deniedAt = contribution.deniedAt
     this.deniedBy = contribution.deniedBy
     this.deletedAt = contribution.deletedAt
@@ -50,7 +50,7 @@ export class Contribution extends UnconfirmedContribution {
   updatedBy: number | null
 
   @Field(() => Date)
-  contributionDate: Date 
+  contributionDate: Date
 
   @Field(() => Date, { nullable: true })
   resubmissionAt: Date | null

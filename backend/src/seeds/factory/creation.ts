@@ -34,7 +34,7 @@ export const creationFactory = async (
 
     if (creation.moveCreationDate) {
       const transaction = await Transaction.findOneOrFail({
-        where: { userId: user.id, creationDate: new Date(creation.creationDate) },
+        where: { userId: user.id, creationDate: new Date(creation.contributionDate) },
         order: { balanceDate: 'DESC' },
       })
 

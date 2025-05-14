@@ -467,7 +467,7 @@ describe('TransactionLinkResolver', () => {
                 variables: {
                   amount: new Decimal(1000),
                   memo: 'I was brewing potions for the community the whole month',
-                  creationDate: now.toISOString(),
+                  contributionDate: now.toISOString(),
                 },
               })
               contribution = result.data.createContribution
@@ -510,7 +510,7 @@ describe('TransactionLinkResolver', () => {
                   contributionId: contribution ? contribution.id : -1,
                   amount: new Decimal(800),
                   memo: 'I was brewing potions for the community the whole month',
-                  creationDate: now.toISOString(),
+                  contributionDate: now.toISOString(),
                 },
               })
             })

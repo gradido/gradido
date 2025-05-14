@@ -18,10 +18,10 @@ function buildBaseOptions(paginated: Paginated): FindManyOptions<DbContribution>
 export const loadUserContributions = async (
   userId: number,
   paginated: Paginated,
-  messagePagination: Paginated,
+  messagePagination?: Paginated,
 ): Promise<[DbContribution[], number]> => {
   const { order } = paginated
-  const { order: messageOrder } = messagePagination
+  const { order: messageOrder } = messagePagination || { order: 'ASC' }
   return DbContribution.findAndCount({
     where: { userId },
     withDeleted: true,
@@ -41,7 +41,7 @@ export const loadAllContributions = async (
   const { order } = paginated
   return DbContribution.findAndCount({
     relations: { user: { emailContact: true } },
-    order: { createdAt: order, id: order},
+    order: { createdAt: order, id: order },
     ...buildBaseOptions(paginated),
   })
 }

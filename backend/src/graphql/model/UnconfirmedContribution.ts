@@ -5,7 +5,7 @@ import { Decimal } from 'decimal.js-light'
 import { Field, Int, ObjectType } from 'type-graphql'
 
 import { ContributionMessage } from './ContributionMessage'
-import { User } from './User' 
+import { User } from './User'
 
 @ObjectType()
 export class UnconfirmedContribution {
