@@ -92,7 +92,7 @@ describe('CreationTransactionList', () => {
     expect(fields[0].key).toBe('createdAt')
     expect(fields[1].key).toBe('contributionDate')
     expect(fields[2].key).toBe('confirmedAt')
-    expect(fields[3].key).toBe('status')
+    expect(fields[3].key).toBe('contributionStatus')
     expect(fields[4].key).toBe('amount')
     expect(fields[5].key).toBe('memo')
   })

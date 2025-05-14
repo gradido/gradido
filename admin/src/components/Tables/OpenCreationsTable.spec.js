@@ -72,7 +72,7 @@ describe('OpenCreationsTable', () => {
   })
 
   it('applies correct row class based on status', () => {
-    const rowClass = wrapper.vm.rowClass({ status: 'CONFIRMED' }, 'row')
+    const rowClass = wrapper.vm.rowClass({ contributionStatus: 'CONFIRMED' }, 'row')
     expect(rowClass).toBe('table-success')
   })
 
