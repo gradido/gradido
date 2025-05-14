@@ -11,8 +11,8 @@ export enum DatabaseState {
 }
 
 export async function connectToDatabaseServer(
-  maxRetries = 15,
-  delayMs = 500,
+  maxRetries: number,
+  delayMs: number,
 ): Promise<Connection | null> {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
