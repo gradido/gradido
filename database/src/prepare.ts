@@ -42,7 +42,7 @@ async function convertJsToTsInMigrations(connection: Connection): Promise<number
 }
 
 export const getDatabaseState = async (): Promise<DatabaseState> => {
-  const connection = await connectToDatabaseServer()
+  const connection = await connectToDatabaseServer(CONFIG.DB_CONNECT_RETRY_COUNT, CONFIG.DB_CONNECT_RETRY_DELAY_MS)
   if (!connection) {
     return DatabaseState.NOT_CONNECTED
   }
