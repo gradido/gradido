@@ -413,7 +413,7 @@
       "first": "Firstname",
       "first-tooltip": "the first name only",
       "first-initial": "First name and initial",
-      "first-initial-tooltip": "first name plus the first two initial letters of the last name",
+      "first-initial-tooltip": "first name plus the first letter of the last name",
       "initials": "Initials",
       "initials-tooltip": "Initials of first name and last name, i.e. the first two letters of each regardless of the existence of the user name",
       "name-full": "first name and last name",
