@@ -17,6 +17,7 @@ import { schema } from '@/graphql/schema'
 // import { elopageWebhook } from '@/webhook/elopage'
 import { Connection } from 'typeorm'
 
+import { CONFIG } from '@/config'
 import { slowDown } from 'express-slow-down'
 import helmet from 'helmet'
 import { Logger } from 'log4js'
@@ -39,7 +40,10 @@ export const createServer = async (
   logger.debug('createServer...')
 
   // open mysql connection
-  const con = await checkDBVersionUntil()
+  const con = await checkDBVersionUntil(
+    CONFIG.DB_CONNECT_RETRY_COUNT,
+    CONFIG.DB_CONNECT_RETRY_DELAY_MS,
+  )
 
   // Express Server
   const app = express()
