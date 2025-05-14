@@ -413,7 +413,7 @@
       "first": "Vorname",
       "first-tooltip": "Nur der Vornamen",
       "first-initial": "Vorname und Initial",
-      "first-initial-tooltip": "Vornamen plus die ersten beiden Anfangsbuchstabe des Nachnamens",
+      "first-initial-tooltip": "Vornamen plus den ersten Anfangsbuchstaben des Nachnamens",
       "initials": "Initialen",
       "initials-tooltip": "Initialen von Vor- und Nachname also jeweils die ersten zwei Buchstaben unabhängig von der Existenz des Benutzernamens",
       "name-full": "Vorname und Nachname",
