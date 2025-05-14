@@ -238,7 +238,6 @@ export const createRedeemJwtMutation = gql`
   }
 `
 
-
 export const disburseTransactionLink = gql`
   mutation (
     $senderCommunityUuid: String!
