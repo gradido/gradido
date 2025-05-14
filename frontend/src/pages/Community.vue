@@ -4,10 +4,9 @@
       <BTabs :model-value="tabIndex" no-nav-style borderless align="center">
         <BTab no-body lazy>
           <contribution-edit
-            v-if="itemToEdit"
-            v-model="itemToEdit"
+            v-if="itemData"
+            v-model="itemData"
             @contribution-updated="handleContributionUpdated"
-            @reset-form="itemToEdit = null"
           />
           <contribution-create v-else />
         </BTab>
@@ -51,7 +50,8 @@ const { t } = useI18n()
 
 const tabIndex = ref(0)
 
-const itemToEdit = ref(null)
+const itemData = ref(null)
+const editContributionPage = ref(1)
 
 const { onResult: handleInProgressContributionFound } = useQuery(
   countContributionsInProgress,
@@ -79,15 +79,20 @@ const updateTabIndex = () => {
 }
 // after a edit contribution was saved, jump to contributions tab
 function handleContributionUpdated() {
-  itemToEdit.value = null
+  const contributionItemId = itemData.value.id
+  itemData.value = null
   tabIndex.value = 1
-  router.push({ params: { tab: 'contributions' } })
+  router.push({
+    params: { tab: 'contributions', page: editContributionPage.value },
+    hash: `#contributionListItem-${contributionItemId}`,
+  })
 }
 // if user clicks on edit contribution in contributions tab, jump to contribute tab and populate form with contribution data
-const handleUpdateContributionForm = (item) => {
-  itemToEdit.value = item
+const handleUpdateContributionForm = (data) => {
+  itemData.value = data.item
+  editContributionPage.value = data.page
   tabIndex.value = 0
-  router.push({ params: { tab: 'contribute' } })
+  router.push({ params: { tab: 'contribute', page: undefined } })
 }
 
 watch(() => route.params.tab, updateTabIndex)

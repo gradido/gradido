@@ -91,7 +91,8 @@
     "lastContribution": "Letzte Beiträge",
     "noContributions": {
       "allContributions": "Es wurden noch keine Beiträge eingereicht.",
-      "myContributions": "Du hast noch keine Beiträge eingereicht."
+      "myContributions": "Du hast noch keine Beiträge eingereicht.",
+      "emptyPage": "Diese Seite ist leer."
     },
     "noOpenCreation": {
       "allMonth": "Für alle beiden Monate ist dein Schöpfungslimit erreicht. Den Nächsten Monat kannst du wieder 1000 GDD Schöpfen.",

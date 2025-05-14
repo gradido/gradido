@@ -4,6 +4,7 @@
     :max-gdd-last-month="maxForMonths[0]"
     :max-gdd-this-month="maxForMonths[1]"
     @upsert-contribution="handleUpdateContribution"
+    @abort="emit('contribution-updated')"
   />
 </template>
 

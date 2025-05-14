@@ -63,7 +63,7 @@
               type="reset"
               variant="secondary"
               data-test="button-cancel"
-              @click="resetForm"
+              @click="emit('abort')"
             >
               {{ $t('form.cancel') }}
             </BButton>
@@ -102,7 +102,7 @@ const props = defineProps({
   maxGddThisMonth: { type: Number, required: true },
 })
 
-const emit = defineEmits(['upsert-contribution', 'update:modelValue', 'reset-form'])
+const emit = defineEmits(['upsert-contribution', 'update:modelValue', 'abort'])
 
 const { t } = useI18n()
 
@@ -211,9 +211,6 @@ const updateField = (newValue, name) => {
 
 function submit() {
   emit('upsert-contribution', toRaw(form))
-}
-function resetForm() {
-  Object.assign(form, entityDataToForm.value)
 }
 </script>
 <style>
