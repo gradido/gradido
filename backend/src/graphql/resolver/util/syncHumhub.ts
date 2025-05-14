@@ -4,10 +4,10 @@ import { HumHubClient } from '@/apis/humhub/HumHubClient'
 import { GetUser } from '@/apis/humhub/model/GetUser'
 import { PostUser } from '@/apis/humhub/model/PostUser'
 import { ExecutedHumhubAction, syncUser } from '@/apis/humhub/syncUser'
-import { UpdateUserInfosArgs } from '@/graphql/arg/UpdateUserInfosArgs'
-import { backendLogger as logger } from '@/server/logger'
 import { PublishNameLogic } from '@/data/PublishName.logic'
+import { UpdateUserInfosArgs } from '@/graphql/arg/UpdateUserInfosArgs'
 import { PublishNameType } from '@/graphql/enum/PublishNameType'
+import { backendLogger as logger } from '@/server/logger'
 
 /**
  * Syncs the user with humhub
