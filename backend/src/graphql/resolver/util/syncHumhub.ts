@@ -6,6 +6,8 @@ import { PostUser } from '@/apis/humhub/model/PostUser'
 import { ExecutedHumhubAction, syncUser } from '@/apis/humhub/syncUser'
 import { UpdateUserInfosArgs } from '@/graphql/arg/UpdateUserInfosArgs'
 import { backendLogger as logger } from '@/server/logger'
+import { PublishNameLogic } from '@/data/PublishName.logic'
+import { PublishNameType } from '@/graphql/enum/PublishNameType'
 
 /**
  * Syncs the user with humhub
@@ -44,7 +46,9 @@ export async function syncHumhub(
   }
   const humhubUsers = new Map<string, GetUser>()
   if (humhubUser) {
-    humhubUsers.set(humhubUser.account.username, humhubUser)
+    const publishNameLogic = new PublishNameLogic(user)
+    const username = publishNameLogic.getUserIdentifier(user.humhubPublishName as PublishNameType)
+    humhubUsers.set(username, humhubUser)
   }
   logger.debug('update user at humhub')
   const result = await syncUser(user, humhubUsers)
