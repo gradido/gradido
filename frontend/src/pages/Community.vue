@@ -11,16 +11,10 @@
           <contribution-create v-else />
         </BTab>
         <BTab no-body lazy>
-          <contribution-list
-            :empty-text="$t('contribution.noContributions.myContributions')"
-            @update-contribution-form="handleUpdateContributionForm"
-          />
+          <contribution-list @update-contribution-form="handleUpdateContributionForm" />
         </BTab>
         <BTab no-body lazy>
-          <contribution-list
-            :empty-text="$t('contribution.noContributions.allContributions')"
-            :all-contribution="true"
-          />
+          <contribution-list-all />
         </BTab>
       </BTabs>
     </div>
@@ -28,24 +22,23 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useQuery } from '@vue/apollo-composable'
-import OpenCreationsAmount from '@/components/Contributions/OpenCreationsAmount'
 import ContributionEdit from '@/components/Contributions/ContributionEdit'
 import ContributionCreate from '@/components/Contributions/ContributionCreate'
 import ContributionList from '@/components/Contributions/ContributionList'
+import ContributionListAll from '@/components/Contributions/ContributionListAll'
 import { countContributionsInProgress } from '@/graphql/contributions.graphql'
 import { useAppToast } from '@/composables/useToast'
 import { useI18n } from 'vue-i18n'
-import { GDD_PER_HOUR } from '../constants'
 
 const COMMUNITY_TABS = ['contribute', 'contributions', 'community']
 
 const route = useRoute()
 const router = useRouter()
 
-const { toastError, toastSuccess, toastInfo } = useAppToast()
+const { toastInfo } = useAppToast()
 const { t } = useI18n()
 
 const tabIndex = ref(0)

@@ -35,12 +35,17 @@ query listContributions ($pagination: Paginated!, $messagePagination: Paginated!
   listContributions(pagination: $pagination, messagePagination: $messagePagination) {
     contributionCount
     contributionList {
-      ...contributionFields
-      deletedAt
-      moderatorId
+      id
+      amount
+      memo
+      contributionDate
+      contributionStatus
+      messagesCount
       messages(pagination: $messagePagination) {
         ...contributionMessageFields
       }
+      updatedBy
+      moderatorId
     }
   }
 }
@@ -49,10 +54,14 @@ query listAllContributions ($pagination: Paginated!) {
   listAllContributions(pagination: $pagination) {
     contributionCount
     contributionList {
+      amount
+      memo
       user {
         ...userFields
-      }
-      ...contributionFields
+      }      
+      contributionDate
+      updatedBy
+      contributionStatus
     }
   }
 }

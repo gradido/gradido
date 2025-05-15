@@ -4,10 +4,27 @@ import { mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createI18n } from 'vue-i18n'
 import ContributionList from './ContributionList'
+import { createRouter, createWebHistory } from 'vue-router'
 
 const i18n = createI18n({
   legacy: false,
   locale: 'en',
+})
+
+const router = createRouter({
+  history: createWebHistory(),
+  routes: [
+    {
+      path: '/',
+      name: 'home',
+      component: { template: '<div>Home</div>' },
+    },
+    {
+      path: '/test',
+      name: 'test',
+      component: ContributionList,
+    },
+  ],
 })
 
 vi.mock('@/components/Contributions/ContributionListItem.vue', () => ({
@@ -25,7 +42,7 @@ describe('ContributionList', () => {
   let wrapper
 
   const global = {
-    plugins: [i18n],
+    plugins: [i18n, router],
     mocks: {
       $filters: {
         GDD: vi.fn((val) => val),
@@ -36,9 +53,9 @@ describe('ContributionList', () => {
     },
   }
 
-  const contributionsList = {
+  const contributions = {
     contributionCount: 3,
-    contributionList: [
+    listContributions: [
       {
         id: 0,
         date: '07/06/2022',
@@ -64,11 +81,13 @@ describe('ContributionList', () => {
   }
 
   const propsData = {
-    contributionCount: 3,
-    showPagination: true,
-    pageSize: 25,
     allContribution: false,
-    items: [
+    emptyText: '',
+  }
+
+  const allContributions = {
+    contributionCount: 3,
+    listAllContributions: [
       {
         id: 0,
         date: '07/06/2022',
@@ -95,7 +114,7 @@ describe('ContributionList', () => {
 
   const mountWrapper = () => {
     return mount(ContributionList, {
-      props: propsData,
+      propsData,
       global,
     })
   }
@@ -107,10 +126,20 @@ describe('ContributionList', () => {
     beforeEach(() => {
       vi.mocked(useQuery).mockImplementation((query) => {
         if (query === listContributions) {
-          return { onResult: mockListContributionsQuery, refetch: vi.fn() }
+          return {
+            result: contributions,
+            loading: vi.fn(),
+            onResult: mockListContributionsQuery,
+            refetch: vi.fn(),
+          }
         }
         if (query === listAllContributions) {
-          return { onResult: mockListAllContributionsQuery, refetch: vi.fn() }
+          return {
+            result: allContributions,
+            loading: vi.fn(),
+            onResult: mockListAllContributionsQuery,
+            refetch: vi.fn(),
+          }
         }
       })
 
@@ -152,7 +181,8 @@ describe('ContributionList', () => {
 
       describe('list count greater than page size', () => {
         beforeEach(async () => {
-          await wrapper.setProps({ contributionCount: 33 })
+          contributions.contributionCount = 33
+          // await wrapper.setProps({ contributionCount: 33 })
         })
 
         it('has pagination buttons', () => {
@@ -165,7 +195,8 @@ describe('ContributionList', () => {
         window.scrollTo = scrollToMock
 
         beforeEach(async () => {
-          await wrapper.setProps({ contributionCount: 33 })
+          contributions.contributionCount = 33
+          // await wrapper.setProps({ contributionCount: 33 })
           await wrapper.findComponent({ name: 'BPagination' }).vm.$emit('update:modelValue', 2)
         })
 
