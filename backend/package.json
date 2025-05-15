@@ -15,7 +15,7 @@
     "seed": "cross-env TZ=UTC NODE_ENV=development ts-node -r tsconfig-paths/register src/seeds/index.ts",
     "klicktipp": "cross-env TZ=UTC NODE_ENV=development ts-node -r tsconfig-paths/register src/util/executeKlicktipp.ts",
     "gmsusers": "cross-env TZ=UTC NODE_ENV=development ts-node -r tsconfig-paths/register src/apis/gms/ExportUsers.ts",
-    "humhubUserExport": "cross-env TZ=UTC NODE_ENV=development ts-node -r tsconfig-paths/register src/apis/humhub/ExportUsers.ts",    
+    "humhubUserExport": "cross-env TZ=UTC NODE_ENV=development ts-node -r tsconfig-paths/register src/apis/humhub/ExportUsers.ts",
     "lint": "biome check --error-on-warnings .",
     "lint:fix": "biome check --error-on-warnings . --write",
     "lint:fix:unsafe": "biome check --fix --unsafe",
