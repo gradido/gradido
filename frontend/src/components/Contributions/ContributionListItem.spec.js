@@ -2,10 +2,40 @@ import { mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createI18n } from 'vue-i18n'
 import ContributionListItem from './ContributionListItem'
+import { BRow, BCol, BCollapse, BButton, BForm, BTextArea, BFormTextarea } from 'bootstrap-vue-next'
+import VariantIcon from '@/components/VariantIcon.vue'
 
 const i18n = createI18n({
   legacy: false,
   locale: 'en',
+  messages: {
+    en: {
+      short: 'Short format date',
+      contribution: {
+        deleted: 'Deleted contribution',
+        delete: 'Delete contribution',
+        confirmed: 'Confirmed contribution',
+      },
+      form: {
+        reply: 'Reply',
+        memo: 'Memo',
+      },
+      edit: 'Edit',
+      delete: 'Delete',
+      moderatorChat: 'Chat',
+    },
+  },
+  datetimeFormats: {
+    en: {
+      short: {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      },
+    },
+  },
 })
 
 vi.mock('@vue/apollo-composable', () => ({
@@ -26,6 +56,8 @@ vi.mock('@vue/apollo-composable', () => ({
 vi.mock('@/composables/useToast', () => ({
   useAppToast: vi.fn(() => ({
     addToast: vi.fn(),
+    toastError: vi.fn(),
+    toastSuccess: vi.fn(),
   })),
 }))
 
@@ -36,11 +68,13 @@ describe('ContributionListItem', () => {
     $filters: {
       GDD: vi.fn((val) => val),
     },
+    $t: vi.fn((key) => key),
+    $d: (date, format) => date.toISOString(),
   }
 
   const propsData = {
     contributionId: 42,
-    status: 'PENDING',
+    contributionStatus: 'PENDING',
     messagesCount: 2,
     id: 1,
     createdAt: '26/07/2022',
@@ -54,6 +88,27 @@ describe('ContributionListItem', () => {
       global: {
         plugins: [i18n],
         mocks,
+        stubs: [
+          'IBiPencil',
+          'IBiTrash',
+          'IBiChatDots',
+          'BAvatar',
+          'VariantIcon',
+          'BButton',
+          'IBiArrowDownCircle',
+          'IBiArrowUpCircle',
+          'IBiArrowUpShort',
+          'ContributionMessagesListItem',
+        ],
+        components: {
+          BRow,
+          BCol,
+          BCollapse,
+          BButton,
+          BForm,
+          BTextArea,
+          BFormTextarea,
+        },
       },
       props: propsData,
     })
@@ -74,13 +129,13 @@ describe('ContributionListItem', () => {
         expect(wrapper.vm.icon).toBe('bell-fill')
       })
 
-      it('is x-circle when deletedAt is present', async () => {
-        await wrapper.setProps({ deletedAt: new Date().toISOString() })
+      it('is x-circle when contributionStatus is DELETED', async () => {
+        await wrapper.setProps({ contributionStatus: 'DELETED' })
         expect(wrapper.vm.icon).toBe('trash')
       })
 
-      it('is check when confirmedAt is present', async () => {
-        await wrapper.setProps({ confirmedAt: new Date().toISOString() })
+      it('is check when contributionStatus is CONFIRMED', async () => {
+        await wrapper.setProps({ contributionStatus: 'CONFIRMED' })
         expect(wrapper.vm.icon).toBe('check')
       })
     })
@@ -90,18 +145,18 @@ describe('ContributionListItem', () => {
         expect(wrapper.vm.variant).toBe('primary')
       })
 
-      it('is danger when deletedAt is present', async () => {
-        await wrapper.setProps({ deletedAt: new Date().toISOString() })
+      it('is danger when contributionStatus is DELETED', async () => {
+        await wrapper.setProps({ contributionStatus: 'DELETED' })
         expect(wrapper.vm.variant).toBe('danger')
       })
 
-      it('is success at when confirmedAt is present', async () => {
-        await wrapper.setProps({ confirmedAt: new Date().toISOString() })
+      it('is success at when contributionStatus is CONFIRMED', async () => {
+        await wrapper.setProps({ contributionStatus: 'CONFIRMED' })
         expect(wrapper.vm.variant).toBe('success')
       })
 
-      it('is warning at when status is IN_PROGRESS', async () => {
-        await wrapper.setProps({ status: 'IN_PROGRESS' })
+      it('is warning at when contributionStatus is IN_PROGRESS', async () => {
+        await wrapper.setProps({ contributionStatus: 'IN_PROGRESS' })
         expect(wrapper.vm.variant).toBe('205')
       })
     })
@@ -133,7 +188,7 @@ describe('ContributionListItem', () => {
         })
 
         it('emits delete contribution', () => {
-          expect(wrapper.emitted('delete-contribution')).toEqual([[{ id: 1 }]])
+          expect(wrapper.emitted('contribution-changed')).toBeTruthy()
         })
       })
 
@@ -147,35 +202,15 @@ describe('ContributionListItem', () => {
           expect(wrapper.emitted('delete-contribution')).toBeFalsy()
         })
       })
-
-      describe('updateStatus', () => {
-        beforeEach(async () => {
-          await wrapper.vm.updateStatus()
-        })
-
-        it('emit update-status', () => {
-          expect(wrapper.emitted('update-status')).toBeTruthy()
-        })
-      })
     })
 
-    describe('getListContributionMessages', () => {
-      beforeEach(() => {
-        wrapper
-          .findComponent({ name: 'ContributionMessagesList' })
-          .vm.$emit('get-list-contribution-messages')
-      })
-      it('emits close-all-open-collapse', () => {
-        expect(wrapper.emitted('close-all-open-collapse')).toBeTruthy()
-      })
-    })
     describe('updateStatus', () => {
       it('updates status of a contribution', async () => {
-        wrapper.vm.items[0] = { id: 1, status: 'IN_PROGRESS' }
+        wrapper.vm.contributionStatus = 'IN_PROGRESS'
 
-        wrapper.vm.updateStatus(1)
+        wrapper.vm.addContributionMessage({})
 
-        expect(wrapper.vm.items[0].status).toBe('PENDING')
+        expect(wrapper.vm.localStatus).toBe('PENDING')
       })
     })
   })
