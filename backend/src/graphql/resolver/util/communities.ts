@@ -89,7 +89,6 @@ export async function getCommunityByUuid(communityUuid: string): Promise<DbCommu
 
 export async function getAuthenticatedCommunities(): Promise<DbCommunity[]> {
   const dbCommunities: DbCommunity[] = await DbCommunity.find({
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
     where: { communityUuid: Not(IsNull()) }, //, authenticatedAt: Not(IsNull()) },
     order: {
       name: 'ASC',
