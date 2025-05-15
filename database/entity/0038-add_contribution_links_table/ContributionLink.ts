@@ -7,10 +7,10 @@ export class ContributionLink extends BaseEntity {
   @PrimaryGeneratedColumn('increment', { unsigned: true })
   id: number
 
-  @Column({ length: 100, nullable: false, collation: 'utf8mb4_unicode_ci' })
+  @Column({ type: 'varchar', length: 100, nullable: false, collation: 'utf8mb4_unicode_ci' })
   name: string
 
-  @Column({ length: 255, nullable: false, collation: 'utf8mb4_unicode_ci' })
+  @Column({ type: 'varchar', length: 255, nullable: false, collation: 'utf8mb4_unicode_ci' })
   memo: string
 
   @Column({ name: 'valid_from', type: 'datetime', nullable: false })
@@ -28,10 +28,10 @@ export class ContributionLink extends BaseEntity {
   })
   amount: Decimal
 
-  @Column({ length: 12, nullable: false, collation: 'utf8mb4_unicode_ci' })
+  @Column({ type: 'varchar', length: 12, nullable: false, collation: 'utf8mb4_unicode_ci' })
   cycle: string
 
-  @Column({ name: 'max_per_cycle', unsigned: true, nullable: false, default: 1 })
+  @Column({ name: 'max_per_cycle', type: 'int', unsigned: true, nullable: false, default: 1 })
   maxPerCycle: number
 
   @Column({
@@ -77,10 +77,10 @@ export class ContributionLink extends BaseEntity {
   @Column({ name: 'created_at', type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date
 
-  @DeleteDateColumn({ name: 'deleted_at' })
+  @DeleteDateColumn({ name: 'deleted_at', type: 'datetime' })
   deletedAt: Date | null
 
-  @Column({ length: 24, nullable: false, collation: 'utf8mb4_unicode_ci' })
+  @Column({ type: 'varchar', length: 24, nullable: false, collation: 'utf8mb4_unicode_ci' })
   code: string
 
   @Column({ name: 'link_enabled', type: 'boolean', default: true })

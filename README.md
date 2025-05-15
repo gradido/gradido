@@ -145,6 +145,36 @@ bun install
 
 Note that some modules are still not fully compatible with Bun. Therefore, continue using **Yarn** for development if you run into any issues.
 
+### EMFILE: too many open files
+With
+```bash
+yarn docker_dev
+```
+or also
+```bash
+turbo dev
+```
+Many files will be watched by the various services.
+This can lead to this error: **EMFILE: too many open files**
+If increasing ulimit don't help, consider starting only the services on 
+which you are working on in dev mode and the rest in production mode.
+
+For example if you are only working on the frontend, you can start the frontend in dev mode and the rest in production mode:
+```bash
+yarn docker_dev frontend
+```
+and in another bash
+```bash
+yarn docker backend admin database nginx --no-deps
+```
+or local with turbo
+```bash
+turbo frontend#dev backend#start admin#start --env-mode=loose
+```
+
+Tip: for local setup use a local nginx server with similar config like docker nginx [nginx.conf](./nginx/gradido.conf) but replace docker image name with localhost
+
+
 ## Services defined in this package
 
 - [frontend](./frontend) Wallet frontend

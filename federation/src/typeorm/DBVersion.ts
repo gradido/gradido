@@ -1,5 +1,31 @@
+import { CONFIG } from '@/config'
 import { federationLogger as logger } from '@/server/logger'
 import { Migration } from 'database'
+import { Connection as DbConnection } from 'typeorm'
+import { connection as connectionFunc } from './connection'
+
+async function checkDBVersionUntil(maxRetries: number, delayMs: number): Promise<DbConnection> {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const connection = await connectionFunc()
+      if (connection?.isInitialized) {
+        const dbVersion = await checkDBVersion(CONFIG.DB_VERSION)
+        if (dbVersion) {
+          logger.info('Database connection and version check succeeded.')
+          return connection
+        }
+      }
+    } catch (err) {
+      logger.warn(`Attempt ${attempt}: Waiting for DB...`, err)
+    }
+    await new Promise((resolve) => setTimeout(resolve, delayMs))
+  }
+
+  logger.fatal(
+    `Fatal: Could not connect to database or version check failed after ${maxRetries} attempts.`,
+  )
+  throw new Error('Fatal: Database not ready.')
+}
 
 const getDBVersion = async (): Promise<string | null> => {
   try {
@@ -24,4 +50,4 @@ const checkDBVersion = async (DB_VERSION: string): Promise<boolean> => {
   return true
 }
 
-export { checkDBVersion, getDBVersion }
+export { checkDBVersion, getDBVersion, checkDBVersionUntil }

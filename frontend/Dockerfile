@@ -9,16 +9,20 @@ ENV DOCKER_WORKDIR="/app"
 ## We Cannot do `$(date -u +'%Y-%m-%dT%H:%M:%SZ')` here so we use unix timestamp=0
 ENV BUILD_DATE="1970-01-01T00:00:00.00Z"
 ## We cannot do $(npm run version).${BUILD_NUMBER} here so we default to 0.0.0.0
+# TODO: get the actually git commit hash into docker
 ARG BUILD_VERSION
-ENV BUILD_VERSION=${BUILD_VERSION}
+ENV BUILD_VERSION=${BUILD_VERSION:-'broken'}
 ARG BUILD_COMMIT
-ENV BUILD_COMMIT=${BUILD_COMMIT}
+ENV BUILD_COMMIT=${BUILD_COMMIT:-'deadbeefdeadbeefdeadbeefdeadbeefdeadbeef'}
 ARG BUILD_COMMIT_SHORT
-ENV BUILD_COMMIT_SHORT=${BUILD_COMMIT_SHORT}
+ENV BUILD_COMMIT_SHORT=${BUILD_COMMIT_SHORT:-'deadbeef'}
 ## SET NODE_ENV
-ENV NODE_ENV="production"
+ARG NODE_ENV=production
+ENV NODE_ENV=${NODE_ENV}
 ## App relevant Envs
 ENV PORT="3000"
+## Timezone
+ENV TZ=UTC
 
 # Labels
 LABEL org.label-schema.build-date="${BUILD_DATE}"
@@ -35,7 +39,9 @@ LABEL maintainer="support@ogradido.net"
 
 # Install Additional Software
 ## install: node-gyp dependencies
-RUN apk --no-cache add g++ make python3
+#RUN apk --no-cache add g++ make python3
+# Add bun's global bin directory to PATH
+ENV PATH="/root/.bun/bin:${PATH}"
 
 # Settings
 ## Expose Container Port
@@ -46,56 +52,57 @@ RUN mkdir -p ${DOCKER_WORKDIR}
 WORKDIR ${DOCKER_WORKDIR}
 
 ##################################################################################
-# Base with turbo ################################################################
+# BUN ############################################################################
 ##################################################################################
-FROM base as turbo-base
+FROM base as bun-base
 
-RUN apk update && apk add --no-cache libc6-compat \ 
-  && yarn global add turbo@^2 \
-  && rm -rf /tmp/* ~/.cache node_modules/.cache \
-  && yarn cache clean
+RUN apk update && apk add --no-cache curl tar bash
+RUN curl -fsSL https://bun.sh/install | bash
+# Add bun's global bin directory to PATH
+ENV PATH="/root/.bun/bin:${PATH}"
 
 
 ##################################################################################
-# BUILDER (create partly monorepo only with data needed by frontend) #############
+# Development ####################################################################
 ##################################################################################
-FROM turbo-base as builder
+FROM bun-base AS development  
 
-COPY --chown=app:app . . 
-RUN turbo prune frontend --docker
+# used for getting git commit hash direct from .git
+RUN apk update && apk add --no-cache git
+
+# Run command
+CMD /bin/sh -c "bun install --filter frontend --no-cache --frozen-lockfile \
+  && bun install --global --no-cache --no-save turbo@^2 \
+  && turbo frontend#dev --env-mode=loose" 
 
 ##################################################################################
 # INSTALLER (create production image) ############################################
 ##################################################################################
-FROM turbo-base AS installer
+FROM bun-base AS build
 
-# First install the dependencies (as they change less often)
-COPY --chown=app:app --from=builder /app/out/json/ .
-RUN yarn install --frozen-lockfile --production=false \
- && rm -rf /tmp/* ~/.cache node_modules/.cache \
- && yarn cache clean
- 
-# Build the project
-COPY --chown=app:app --from=builder /app/out/full/ .
-RUN turbo build --env-mode=loose
+COPY --chown=app:app . . 
+RUN bun install --filter frontend --no-cache --frozen-lockfile \
+    && bun install --global turbo@^2
+
+RUN turbo frontend#build --env-mode=loose
 
 ##################################################################################
 # TEST ###########################################################################
 ##################################################################################
-FROM installer as test
+FROM build as test
 
 # Run command
 CMD /bin/sh -c "turbo frontend#test --env-mode=loose"
 
-
 ##################################################################################
 # PRODUCTION (Does contain only "binary"- and static-files to reduce image size) #
 ##################################################################################
-FROM lipanski/docker-static-website:latest as production
+FROM nginx:1.28.0-alpine3.21-slim as production
 
-# tiny static webserver
-# https://lipanski.com/posts/smallest-docker-image-static-website
+COPY ./nginx/frontend.conf /etc/nginx/conf.d/default.conf
+
+WORKDIR /app
 
 # copy builded frontend files
-COPY --from=installer /app/frontend/build/ .
+COPY --from=build /app/frontend/build/ .
 

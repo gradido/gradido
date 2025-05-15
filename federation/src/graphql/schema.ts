@@ -8,7 +8,7 @@ import { DecimalScalar } from './scalar/Decimal'
 
 export const schema = async (): Promise<GraphQLSchema> => {
   return await buildSchema({
-    resolvers: [getApiResolvers()],
+    resolvers: getApiResolvers(),
     // authChecker: isAuthorized,
     scalarsMap: [{ type: Decimal, scalar: DecimalScalar }],
     /*

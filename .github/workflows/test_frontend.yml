@@ -41,8 +41,6 @@ jobs:
     name: Unit Tests - Frontend
     needs: files-changed
     runs-on: ubuntu-latest
-    outputs:
-      test-success: ${{ steps.test.outputs.success }}
     steps:
       - name: Set Node.js version
         uses: actions/setup-node@v4
@@ -50,46 +48,64 @@ jobs:
           node-version: '18.20.7'
 
       - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Install turbo
-        run: yarn global add turbo@^2
-
-      - name: Prune frontend with turbos help
-        run: turbo prune frontend
+        uses: actions/checkout@v4
+      
+      - name: install bun 
+        uses: oven-sh/setup-bun@v2
 
       - name: install dependencies
-        run: cd out && yarn install --frozen-lockfile --production=false
+        run: bun install --filter frontend --frozen-lockfile
 
       - name: Frontend | Unit tests
-        id: test
-        run: |
-          cd out && turbo frontend#test frontend#lint
-          echo "success=$([ $? -eq 0 ] && echo true || echo false)" >> $GITHUB_OUTPUT
+        run: cd frontend && yarn test
 
   lint:
-    if: needs.files-changed.outputs.frontend == 'true'
+    if: needs.files-changed.outputs.config == 'true' || needs.files-changed.outputs.frontend == 'true'
     name: Lint - Frontend
-    needs: [files-changed, unit_test]
+    needs: files-changed
     runs-on: ubuntu-latest
+    outputs:
+      success: ${{ steps.lint.outputs.success }}
     steps:
-      - name: Check result from previous step
-        run: if [ "${{ needs.unit_test.outputs.test-success }}" != "true" ]; then exit 1; fi
+      - name: Set Node.js version
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.20.7'
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: install bun 
+        uses: oven-sh/setup-bun@v2
+
+      - name: install dependencies
+        run: |
+          bun install --filter frontend --frozen-lockfile
+          bun install --global --no-save turbo@^2
+
+      - name: Frontend | Lint
+        id: lint
+        run: |
+          turbo frontend#lint
+          echo "success=$([ $? -eq 0 ] && echo true || echo false)" >> $GITHUB_OUTPUT
 
   stylelint:
     if: needs.files-changed.outputs.frontend == 'true'
     name: Stylelint - Frontend
-    needs: [files-changed, unit_test]
+    needs: [files-changed, lint]
     runs-on: ubuntu-latest
     steps:
       - name: Check result from previous step
-        run: if [ "${{ needs.unit_test.outputs.test-success }}" != "true" ]; then exit 1; fi
+        run: if [ "${{ needs.lint.outputs.success }}" != "true" ]; then exit 1; fi
 
   locales:
     if: needs.files-changed.outputs.frontend == 'true'
     name: Locales - Frontend
-    needs: [files-changed, unit_test]
+    needs: files-changed
     runs-on: ubuntu-latest
     steps:
-      - name: Check result from previous step
-        run: if [ "${{ needs.unit_test.outputs.test-success }}" != "true" ]; then exit 1; fi
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Frontend | Locales
+        run: cd frontend && yarn locales

@@ -7,8 +7,7 @@ import { Connection as DbConnection } from 'typeorm'
 
 import { CONFIG } from '@/config'
 import { schema } from '@/graphql/schema'
-import { checkDBVersion } from '@/typeorm/DBVersion'
-import { Connection } from '@/typeorm/connection'
+import { checkDBVersionUntil } from '@/typeorm/DBVersion'
 import { elopageWebhook } from '@/webhook/elopage'
 import { gmsWebhook } from '@/webhook/gms'
 
@@ -35,19 +34,13 @@ export const createServer = async (
   logger.addContext('user', 'unknown')
   logger.debug('createServer...')
 
-  // open mysql connection
-  const con = await Connection.getInstance()
-  if (!con?.isConnected) {
-    logger.fatal(`Couldn't open connection to database!`)
-    throw new Error(`Fatal: Couldn't open connection to database`)
-  }
-
+  // open mariadb connection, retry connecting with mariadb
   // check for correct database version
-  const dbVersion = await checkDBVersion(CONFIG.DB_VERSION)
-  if (!dbVersion) {
-    logger.fatal('Fatal: Database Version incorrect')
-    throw new Error('Fatal: Database Version incorrect')
-  }
+  // retry max CONFIG.DB_CONNECT_RETRY_COUNT times, wait CONFIG.DB_CONNECT_RETRY_DELAY ms between tries
+  const con = await checkDBVersionUntil(
+    CONFIG.DB_CONNECT_RETRY_COUNT,
+    CONFIG.DB_CONNECT_RETRY_DELAY_MS,
+  )
 
   // Express Server
   const app = express()

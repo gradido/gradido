@@ -33,15 +33,13 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Backend | Build 'test' image
-        run: docker build -f ./backend/Dockerfile --target test -t "gradido/backend:test" .
+        run: docker build -f ./backend/Dockerfile --target production -t "gradido/backend:production" .
 
   unit_test:
     if: needs.files-changed.outputs.backend == 'true' || needs.files-changed.outputs.database == 'true' || needs.files-changed.outputs.docker-compose == 'true' || needs.files-changed.outputs.mariadb == 'true' || needs.files-changed.outputs.config == 'true'
     name: Unit tests - Backend
     needs: files-changed
     runs-on: ubuntu-latest
-    outputs:
-      test-success: ${{ steps.test.outputs.success }}
     steps:
       - name: Set Node.js version
         uses: actions/setup-node@v4
@@ -49,43 +47,55 @@ jobs:
           node-version: '18.20.7'
 
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
             
       - name: docker-compose mariadb
         run: docker compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps mariadb
-    
-      - name: Install turbo
-        run: yarn global add turbo@^2
 
-      - name: Prune backend with turbos help
-        run: turbo prune backend
+      - name: install bun 
+        uses: oven-sh/setup-bun@v2
 
       - name: install dependencies
-        run: cd out && yarn install --frozen-lockfile --production=false
-
-      - name: Wait for MariaDB to be ready
-        run: docker run --rm --network gradido_internal-net busybox sh -c 'until nc -z mariadb 3306; do echo waiting for db; sleep 1; done;'
+        run: |
+          bun install --filter backend --frozen-lockfile
+          bun install --global --no-save turbo@^2
 
       - name: Backend | Unit tests
-        id: test
-        run: |
-          cd out && turbo backend#lint backend#test
-          echo "success=$([ $? -eq 0 ] && echo true || echo false)" >> $GITHUB_OUTPUT
+        run: turbo backend#test
 
-  lint:
+  typecheck:
     if: needs.files-changed.outputs.backend == 'true'
-    name: Lint - Backend
-    needs: [files-changed, unit_test]
+    name: Typecheck - Backend
+    needs: files-changed
     runs-on: ubuntu-latest
     steps:
-      - name: Check result from previous step
-        run: if [ "${{ needs.unit_test.outputs.test-success }}" != "true" ]; then exit 1; fi
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set Node.js version
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.20.7'
+
+      - name: install bun 
+        uses: oven-sh/setup-bun@v2
+
+      - name: install dependencies
+        run: |
+          bun install --filter backend --frozen-lockfile
+          bun install --global --no-save turbo@^2
+
+      - name: Backend | Typecheck
+        run: turbo backend#typecheck backend#build
 
   locales:
     if: needs.files-changed.outputs.backend == 'true'
     name: Locales - Backend
-    needs: [files-changed, unit_test]
+    needs: files-changed
     runs-on: ubuntu-latest
     steps:
-      - name: Check result from previous step
-        run: if [ "${{ needs.unit_test.outputs.test-success }}" != "true" ]; then exit 1; fi
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Backend | Locales
+        run: cd backend && yarn locales

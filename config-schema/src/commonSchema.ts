@@ -37,6 +37,20 @@ export const DB_VERSION = Joi.string()
   )
   .required()
 
+export const DB_CONNECT_RETRY_COUNT = Joi.number()
+  .default(15)
+  .min(1)
+  .max(1000)
+  .description('Number of retries to connect to the database')
+  .optional()
+
+export const DB_CONNECT_RETRY_DELAY_MS = Joi.number()
+  .default(500)
+  .min(100)
+  .max(10000)
+  .description('Delay in milliseconds between retries to connect to the database')
+  .optional()
+
 export const COMMUNITY_URL = Joi.string()
   .uri({ scheme: ['http', 'https'] })
   .custom((value: string, helpers: Joi.CustomHelpers<string>) => {

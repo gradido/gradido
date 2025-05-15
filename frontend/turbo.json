@@ -11,11 +11,10 @@
       "cache": false,
       "persistent": true
     },
-    "dev": {
-      "dependsOn": ["compile-scss"]
-    },
     "build": {
-      "dependsOn": ["compile-scss"]
+      "dependsOn": ["compile-scss", "^build"],
+      "outputs": ["build/**"],
+      "cache": true
     }
   }
 }

@@ -10,19 +10,25 @@ export enum DatabaseState {
   SAME_VERSION = 'SAME_VERSION',
 }
 
-async function connectToDatabaseServer(): Promise<Connection | null> {
-  try {
-    return await createConnection({
-      host: CONFIG.DB_HOST,
-      port: CONFIG.DB_PORT,
-      user: CONFIG.DB_USER,
-      password: CONFIG.DB_PASSWORD,
-    })
-  } catch (e) {
-    // biome-ignore lint/suspicious/noConsole: no logger present
-    console.log('could not connect to database server', e)
-    return null
+export async function connectToDatabaseServer(
+  maxRetries: number,
+  delayMs: number,
+): Promise<Connection | null> {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await createConnection({
+        host: CONFIG.DB_HOST,
+        port: CONFIG.DB_PORT,
+        user: CONFIG.DB_USER,
+        password: CONFIG.DB_PASSWORD,
+      })
+    } catch (e) {
+      // biome-ignore lint/suspicious/noConsole: no logger present
+      console.log(`could not connect to database server, retry in ${delayMs} ms`, e)
+    }
+    await new Promise((resolve) => setTimeout(resolve, delayMs))
   }
+  return null
 }
 
 async function convertJsToTsInMigrations(connection: Connection): Promise<number> {
@@ -36,7 +42,10 @@ async function convertJsToTsInMigrations(connection: Connection): Promise<number
 }
 
 export const getDatabaseState = async (): Promise<DatabaseState> => {
-  const connection = await connectToDatabaseServer()
+  const connection = await connectToDatabaseServer(
+    CONFIG.DB_CONNECT_RETRY_COUNT,
+    CONFIG.DB_CONNECT_RETRY_DELAY_MS,
+  )
   if (!connection) {
     return DatabaseState.NOT_CONNECTED
   }
@@ -91,7 +100,7 @@ export const getDatabaseState = async (): Promise<DatabaseState> => {
 
   // check if the database is up to date
   const [rows] = await connection.query<RowDataPacket[]>(
-    `SELECT * FROM ${CONFIG.MIGRATIONS_TABLE} ORDER BY version DESC LIMIT 1`,
+    `SELECT fileName FROM ${CONFIG.MIGRATIONS_TABLE} ORDER BY version DESC LIMIT 1`,
   )
   if (rows.length === 0) {
     return DatabaseState.LOWER_VERSION

@@ -147,7 +147,7 @@ COPY --chown=app:app --from=build /app/backend ./backend
 COPY --chown=app:app --from=build /app/frontend ./frontend
 COPY --chown=app:app --from=build /app/admin ./admin
 COPY --chown=app:app --from=build /app/database ./database
-COPY --chown=app:app --from=build /app/config ./config
+COPY --chown=app:app --from=build /app/config-schema ./config-schema
 COPY --chown=app:app --from=build /app/federation ./federation
 COPY --chown=app:app --from=build /app/dht-node ./dht-node
 
@@ -158,4 +158,39 @@ EXPOSE ${FRONTEND_MODULE_PORT}
 EXPOSE ${ADMIN_MODULE_PORT}
 
 # Command to start
+CMD ["turbo", "start", "--env-mode=loose"]
+
+##################################################################################
+# FINAL PRODUCTION IMAGE #########################################################
+##################################################################################
+FROM node:18.20.7-alpine3.21 as production-slim
+
+ENV TURBO_CACHE_DIR=/tmp/turbo
+ENV DOCKER_WORKDIR="/app"
+ENV NODE_ENV="production"
+ENV DB_HOST=mariadb
+WORKDIR ${DOCKER_WORKDIR}
+
+# Ports exposen
+EXPOSE ${BACKEND_PORT}
+EXPOSE ${FEDERATION_PORT}
+EXPOSE ${FRONTEND_MODULE_PORT}
+EXPOSE ${ADMIN_MODULE_PORT}
+
+# Copy only the build artifacts from the previous build stage
+COPY --chown=app:app --from=build /app/backend/build ./backend/build
+COPY --chown=app:app --from=build /app/backend/locales ./backend/locales
+COPY --chown=app:app --from=build /app/backend/log4js-config.json ./backend/log4js-config.json
+
+COPY --chown=app:app --from=build /app/dht-node/build ./dht-node/build
+COPY --chown=app:app --from=build /app/dht-node/log4js-config.json ./dht-node/log4js-config.json
+
+COPY --chown=app:app --from=build /app/federation/build ./federation/build
+COPY --chown=app:app --from=build /app/federation/log4js-config.json ./federation/log4js-config.json
+
+COPY --chown=app:app --from=build /app/frontend/build ./frontend
+COPY --chown=app:app --from=build /app/admin/build ./admin
+
+RUN yarn global add udx-native@1.5.3 sodium-native@4.0.0
+
 CMD ["turbo", "start", "--env-mode=loose"]

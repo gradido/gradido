@@ -6,46 +6,12 @@
 services:
 
   ########################################################
-  # Gradido ##############################################
-  ########################################################
-  gradido:
-    image: gradido/gradido:local-production
-    build:
-      context: ./
-      dockerfile: ./Dockerfile
-      target: production
-      args: 
-        BUILD_COMMIT: ${BUILD_COMMIT}
-        BUILD_COMMIT_SHORT: ${BUILD_COMMIT_SHORT}
-        BUILD_VERSION: ${BUILD_VERSION}
-    depends_on:
-      - mariadb
-    networks:
-      - internal-net
-      - external-net
-    ports:
-      - ${BACKEND_PORT:-4000}:${BACKEND_PORT:-4000}
-      - ${FEDERATION_PORT:-5010}:${FEDERATION_PORT:-5010}
-      - ${FRONTEND_MODULE_PORT:-3000}:${FRONTEND_MODULE_PORT:-3000}
-      - ${ADMIN_MODULE_PORT:-8080}:${ADMIN_MODULE_PORT:-8080}
-    environment:
-      # Envs used in Dockerfile
-      # - DOCKER_WORKDIR="/app"
-      # - PORT=4000
-      - BUILD_DATE
-      - BUILD_VERSION
-      - BUILD_COMMIT
-      - NODE_ENV=production
-      - DB_HOST=mariadb
-    volumes:
-      - ./logs:/logs
-
-  ########################################################
   # FRONTEND #############################################
+  # contain also admin in production #####################
   ########################################################
   frontend:
     # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
-    image: gradido/frontend:local-production
+    image: gradido/frontend:local-production    
     build:
       context: ./
       dockerfile: ./frontend/Dockerfile
@@ -54,13 +20,10 @@ services:
         BUILD_COMMIT: ${BUILD_COMMIT}
         BUILD_COMMIT_SHORT: ${BUILD_COMMIT_SHORT}
         BUILD_VERSION: ${BUILD_VERSION}
-    profiles:
-      - single
     networks:
-      - external-net
       - internal-net
     ports:
-      - 3000:3000
+      - ${FRONTEND_MODULE_PORT:-3000}:3000
     environment:
       # Envs used in Dockerfile
       # - DOCKER_WORKDIR="/app"
@@ -72,6 +35,8 @@ services:
     # env_file:
       # - ./.env
       # - ./frontend/.env
+    volumes:
+      - ./logs/nginx/frontend:/var/log/nginx
 
   ########################################################
   # ADMIN INTERFACE ######################################
@@ -83,28 +48,18 @@ services:
       context: ./
       dockerfile: ./admin/Dockerfile
       target: production
-      args: 
-        BUILD_COMMIT: ${BUILD_COMMIT}
-        BUILD_COMMIT_SHORT: ${BUILD_COMMIT_SHORT}
-        BUILD_VERSION: ${BUILD_VERSION}
-    profiles:
-      - single
     networks:
-      - external-net
       - internal-net
     ports:
-      - 8080:80
+      - ${ADMIN_MODULE_PORT:-8080}:8080
     environment:
-      # Envs used in Dockerfile
-      # - DOCKER_WORKDIR="/app"
-      # - PORT=8090
-      # - BUILD_DATE="1970-01-01T00:00:00.00Z"
-      # - BUILD_VERSION="0.0.0.0"
-      # - BUILD_COMMIT="0000000"
       - NODE_ENV=production
-    # env_file:
-      # - ./.env
-      # - ./admin/.env
+      - BUILD_COMMIT=${BUILD_COMMIT}
+      - BUILD_COMMIT_SHORT=${BUILD_COMMIT_SHORT}
+      - BUILD_VERSION=${BUILD_VERSION}
+      # - DEBUG=true
+    volumes:
+      - ./logs/nginx/admin:/var/log/nginx
 
   #########################################################
   ## MARIADB ##############################################
@@ -133,12 +88,10 @@ services:
       context: ./
       dockerfile: ./backend/Dockerfile
       target: production
-    profiles:
-      - single
     networks:
       - internal-net
     ports:
-      - 4000:4000
+      - ${BACKEND_PORT:-4000}:4000
     depends_on:
       - mariadb
     environment:
@@ -148,7 +101,7 @@ services:
       - BUILD_DATE
       - BUILD_VERSION
       - BUILD_COMMIT
-      - NODE_ENV="production"
+      - NODE_ENV=production
       - DB_HOST=mariadb
       # Application only envs
     #env_file:
@@ -169,8 +122,6 @@ services:
       context: ./
       dockerfile: ./dht-node/Dockerfile
       target: production
-    profiles:
-      - single
     networks:
       - internal-net
       - external-net
@@ -185,7 +136,7 @@ services:
       - BUILD_DATE
       - BUILD_VERSION
       - BUILD_COMMIT
-      - NODE_ENV="production"
+      - NODE_ENV=production
       - DB_HOST=mariadb
       # Application only envs
     #env_file:
@@ -239,23 +190,20 @@ services:
       context: ./
       dockerfile: ./federation/Dockerfile
       target: production
-    profiles:
-      - single
     networks:
       - internal-net
       - external-net
     ports:
-      - 5010:5010
+      - ${FEDERATION_PORT:-5010}:5010
     depends_on:
       - mariadb
     environment:
       # Envs used in Dockerfile
       # - DOCKER_WORKDIR="/app"
-      - PORT=5010
       - BUILD_DATE
       - BUILD_VERSION
       - BUILD_COMMIT
-      - NODE_ENV="production"
+      - NODE_ENV=production
       - DB_HOST=mariadb
       # Application only envs
     #env_file:
@@ -274,8 +222,6 @@ services:
       context: .
       dockerfile: ./database/Dockerfile
       target: up
-    profiles: 
-      - database
     depends_on:
       - mariadb
     networks:
@@ -287,7 +233,7 @@ services:
       - BUILD_DATE
       - BUILD_VERSION
       - BUILD_COMMIT
-      - NODE_ENV="production"
+      - NODE_ENV=production
       - DB_HOST=mariadb
       # Application only envs
     #env_file:
@@ -331,7 +277,8 @@ services:
       - external-net
       - internal-net
     depends_on:
-      - gradido
+      - backend
+      - frontend
     ports:
       - 80:80
     volumes:
