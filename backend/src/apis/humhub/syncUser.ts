@@ -49,7 +49,11 @@ export async function syncUser(
   if (!isValid(postUser, user.id)) {
     return ExecutedHumhubAction.VALIDATION_ERROR
   }
-  const humhubUser = humhubUsers.get(postUser.account.username)
+  let humhubUser = humhubUsers.get(postUser.account.username)
+  if (!humhubUser) {
+    // fallback for legacy users
+    humhubUser = humhubUsers.get(user.gradidoID)
+  }
   const humHubClient = HumHubClient.getInstance()
   if (!humHubClient) {
     throw new LogError('Error creating humhub client')

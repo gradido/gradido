@@ -1,5 +1,5 @@
 import { Community as DbCommunity, FederatedCommunity as DbFederatedCommunity } from 'database'
-import { FindOneOptions } from 'typeorm'
+import { FindOneOptions, IsNull, Not } from 'typeorm'
 
 import { Paginated } from '@arg/Paginated'
 
@@ -84,6 +84,16 @@ export async function getCommunityByUuid(communityUuid: string): Promise<DbCommu
   return await DbCommunity.findOne({
     where: [{ communityUuid }],
   })
+}
+
+export async function getAuthenticatedCommunities(): Promise<DbCommunity[]> {
+  const dbCommunities: DbCommunity[] = await DbCommunity.find({
+    where: { communityUuid: Not(IsNull()) }, //, authenticatedAt: Not(IsNull()) },
+    order: {
+      name: 'ASC',
+    },
+  })
+  return dbCommunities
 }
 
 export async function getCommunityByIdentifier(
