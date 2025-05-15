@@ -1,6 +1,11 @@
 <template>
   <div class="redeem-valid">
-    <redeem-information v-bind="linkData" :is-contribution-link="isContributionLink" />
+    <redeem-information
+      :link-data="linkData"
+      :is-contribution-link="isContributionLink"
+      :is-redeem-jwt-link="isRedeemJwtLink"
+      :valid-link="validLink"
+    />
     <BCard>
       <div class="mb-3 text-center">
         <BButton
@@ -26,6 +31,7 @@ export default {
   props: {
     linkData: { type: Object, required: true },
     isContributionLink: { type: Boolean, default: false },
+    isRedeemJwtLink: { type: Boolean, default: false },
     validLink: { type: Boolean, default: false },
   },
 }

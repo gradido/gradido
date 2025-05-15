@@ -1,5 +1,5 @@
 import { Point } from '@dbTools/typeorm'
-import { User as dbUser } from '@entity/User'
+import { User as DbUser } from '@entity/User'
 import { Field, Int, ObjectType } from 'type-graphql'
 
 import { GmsPublishLocationType } from '@enum/GmsPublishLocationType'
@@ -14,43 +14,43 @@ import { UserContact } from './UserContact'
 
 @ObjectType()
 export class User {
-  constructor(user: dbUser | null) {
-    if (user) {
-      this.id = user.id
-      this.foreign = user.foreign
-      this.communityUuid = user.communityUuid
-      if (user.community) {
-        this.communityName = user.community.name
+  constructor(dbUser: DbUser | null) {
+    if (dbUser) {
+      this.id = dbUser.id
+      this.foreign = dbUser.foreign
+      this.communityUuid = dbUser.communityUuid
+      if (dbUser.community) {
+        this.communityName = dbUser.community.name
       }
-      this.gradidoID = user.gradidoID
-      this.alias = user.alias
+      this.gradidoID = dbUser.gradidoID
+      this.alias = dbUser.alias
 
-      const publishNameLogic = new PublishNameLogic(user)
-      const publishNameType = user.humhubPublishName as PublishNameType
+      const publishNameLogic = new PublishNameLogic(dbUser)
+      const publishNameType = dbUser.humhubPublishName as PublishNameType
       this.publicName = publishNameLogic.getPublicName(publishNameType)
       this.userIdentifier = publishNameLogic.getUserIdentifier(publishNameType)
 
-      if (user.emailContact) {
-        this.emailChecked = user.emailContact.emailChecked
-        this.emailContact = new UserContact(user.emailContact)
+      if (dbUser.emailContact) {
+        this.emailChecked = dbUser.emailContact.emailChecked
+        this.emailContact = new UserContact(dbUser.emailContact)
       }
-      this.firstName = user.firstName
-      this.lastName = user.lastName
-      this.deletedAt = user.deletedAt
-      this.createdAt = user.createdAt
-      this.language = user.language
-      this.publisherId = user.publisherId
-      this.roles = user.userRoles?.map((userRole) => userRole.role) ?? []
+      this.firstName = dbUser.firstName
+      this.lastName = dbUser.lastName
+      this.deletedAt = dbUser.deletedAt
+      this.createdAt = dbUser.createdAt
+      this.language = dbUser.language
+      this.publisherId = dbUser.publisherId
+      this.roles = dbUser.userRoles?.map((userRole) => userRole.role) ?? []
       this.klickTipp = null
       this.hasElopage = null
-      this.hideAmountGDD = user.hideAmountGDD
-      this.hideAmountGDT = user.hideAmountGDT
-      this.humhubAllowed = user.humhubAllowed
-      this.gmsAllowed = user.gmsAllowed
-      this.gmsPublishName = user.gmsPublishName
-      this.humhubPublishName = user.humhubPublishName
-      this.gmsPublishLocation = user.gmsPublishLocation
-      this.userLocation = user.location ? Point2Location(user.location as Point) : null
+      this.hideAmountGDD = dbUser.hideAmountGDD
+      this.hideAmountGDT = dbUser.hideAmountGDT
+      this.humhubAllowed = dbUser.humhubAllowed
+      this.gmsAllowed = dbUser.gmsAllowed
+      this.gmsPublishName = dbUser.gmsPublishName
+      this.humhubPublishName = dbUser.humhubPublishName
+      this.gmsPublishLocation = dbUser.gmsPublishLocation
+      this.userLocation = dbUser.location ? Point2Location(dbUser.location as Point) : null
     }
   }
 
