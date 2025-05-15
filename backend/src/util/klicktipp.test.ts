@@ -1,6 +1,6 @@
-import { Connection } from '@dbTools/typeorm'
-import { Event as DbEvent } from '@entity/Event'
 import { ApolloServerTestClient } from 'apollo-server-testing'
+import { Event as DbEvent } from 'database'
+import { Connection } from 'typeorm'
 
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
 

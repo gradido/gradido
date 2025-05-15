@@ -2,6 +2,26 @@
 # stop if something fails
 set -euo pipefail
 
+# check for some tools and install them, when missing
+# bun https://bun.sh/install, faster packet-manager as yarn
+if ! command -v bun &> /dev/null
+then
+    if ! command -v unzip &> /dev/null
+    then
+        echo "'unzip' is missing, will be installed now!"
+        sudo apt-get install -y unzip
+    fi
+    echo "'bun' is missing, will be installed now!"
+    curl -fsSL https://bun.sh/install | BUN_INSTALL=/usr/local bash
+    export PATH="/root/.bun/bin:${PATH}"
+fi
+# turbo https://turborepo.com/docs/getting-started
+if ! command -v turbo &> /dev/null
+then
+    echo "'turbo' is missing, will be installed now!"
+    bun install --global turbo
+fi
+
 # check for parameter
 FAST_MODE=false
 POSITIONAL_ARGS=()
@@ -29,7 +49,7 @@ if [ -z "$BRANCH_NAME" ]; then
 fi
 echo "Use branch: $BRANCH_NAME"
 if [ "$FAST_MODE" = true ] ; then 
-  echo "Use fast mode, keep yarn and build cache"
+  echo "Use fast mode, keep packet manager, turbo and build cache"
 fi
 
 # Find current directory & configure paths
@@ -223,128 +243,75 @@ case "$URL_PROTOCOL" in
 esac
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $NGINX_CONFIG_DIR/$TEMPLATE_FILE > $NGINX_CONFIG_DIR/update-page.conf
 
+# Define all relevant subdirectories
+MODULES=(
+  database
+  backend
+  frontend
+  admin
+  dht-node
+  federation
+)
+
 if [ "$FAST_MODE" = false ] ; then 
-  log_step 'Clean tmp and yarn cache'
+  log_step 'Clean tmp, bun and yarn cache'
   # Clean tmp folder - remove yarn files
-  # ignore error/warnings, we want only to remove all yarn files
   find /tmp -name "yarn--*" -exec rm -r {} \; || true
   # Clean user cache folder
   rm -Rf ~/.cache/yarn
+  # Clean bun cache
+  rm -Rf ~/.bun/install/cache
 
-  log_step 'Remove all node_modules and build folders'
-  # Remove node_modules folders
-  # we had problems with corrupted node_modules folder
-  rm -Rf $PROJECT_ROOT/database/node_modules
-  rm -Rf $PROJECT_ROOT/config/node_modules
-  rm -Rf $PROJECT_ROOT/backend/node_modules
-  rm -Rf $PROJECT_ROOT/frontend/node_modules
-  rm -Rf $PROJECT_ROOT/admin/node_modules
-  rm -Rf $PROJECT_ROOT/dht-node/node_modules
-  rm -Rf $PROJECT_ROOT/federation/node_modules
+  log_step 'Remove all node_modules, turbo cache and build folders'
+  
+  EXTENDED_MODULES=("" config-schema "${MODULES[@]}")
+  # Remove node_modules, build and .turbo folders for all modules inclusive config-schema and project root
+  for dir in "${EXTENDED_MODULES[@]}"; do
+    base="$PROJECT_ROOT"
+    # if dir isn't empty add to base
+    [ -n "$dir" ] && base="$PROJECT_ROOT/$dir"
 
-  # Remove build folders
-  # we had problems with corrupted incremtal builds
-  rm -Rf $PROJECT_ROOT/database/build
-  rm -Rf $PROJECT_ROOT/config/build
-  rm -Rf $PROJECT_ROOT/backend/build
-  rm -Rf $PROJECT_ROOT/frontend/build
-  rm -Rf $PROJECT_ROOT/admin/build
-  rm -Rf $PROJECT_ROOT/dht-node/build
-  rm -Rf $PROJECT_ROOT/federation/build
+    rm -rf $base/node_modules
+    rm -rf $base/build
+    rm -rf $base/.turbo
+  done
 fi
 
+# Regenerate .env files for all modules
 log_step 'Regenerate .env files'
-# Regenerate .env files
-cp -f $PROJECT_ROOT/database/.env $PROJECT_ROOT/database/.env.bak
-cp -f $PROJECT_ROOT/backend/.env $PROJECT_ROOT/backend/.env.bak
-cp -f $PROJECT_ROOT/frontend/.env $PROJECT_ROOT/frontend/.env.bak
-cp -f $PROJECT_ROOT/admin/.env $PROJECT_ROOT/admin/.env.bak
-cp -f $PROJECT_ROOT/dht-node/.env $PROJECT_ROOT/dht-node/.env.bak
-cp -f $PROJECT_ROOT/federation/.env $PROJECT_ROOT/federation/.env.bak
-envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/database/.env.template > $PROJECT_ROOT/database/.env
-envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/backend/.env.template > $PROJECT_ROOT/backend/.env
-envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/frontend/.env.template > $PROJECT_ROOT/frontend/.env
-envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/admin/.env.template > $PROJECT_ROOT/admin/.env
-envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/dht-node/.env.template > $PROJECT_ROOT/dht-node/.env
-envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/federation/.env.template > $PROJECT_ROOT/federation/.env
+for dir in "${MODULES[@]}"; do
+  base="$PROJECT_ROOT/$dir"
+  cp -f $base/.env $base/.env.bak
+  envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $base/.env.template > $base/.env
+done
 
-# Install & build database
+# Install all node_modules
+log_step 'Installing node_modules'
+bun install
+
+# build all modules
+log_step 'build all modules'
+turbo build --env-mode=loose
+
+# database
 log_step 'Updating database'
-cd $PROJECT_ROOT/database
-yarn install
-yarn build
 if [ "$DEPLOY_SEED_DATA" = "true" ]; then
-  yarn dev_up
-  yarn dev_reset
+  log_step 'Clearing database'
+  turbo clear --env-mode=loose
+  turbo up --env-mode=loose
+  log_step 'Seeding database'
+  turbo seed --env-mode=loose
 else
-  yarn up
+  turbo up --env-mode=loose
 fi
-
-# Install & build config
-log_step 'Updating config'
-cd $PROJECT_ROOT/config
-yarn install
-yarn build
-
-# Install & build backend
-log_step 'Updating backend'
-cd $PROJECT_ROOT/backend
-# TODO maybe handle this differently?
-unset NODE_ENV
-yarn install
-yarn build
-if [ "$DEPLOY_SEED_DATA" = "true" ]; then
-  yarn seed
-fi
-# TODO maybe handle this differently?
-export NODE_ENV=production
-
-
-# Install & build frontend
-log_step 'Updating frontend'
-cd $PROJECT_ROOT/frontend
-# TODO maybe handle this differently?
-unset NODE_ENV
-yarn install
-yarn build
-# TODO maybe handle this differently?
-export NODE_ENV=production
-
-# Install & build admin
-log_step 'Updating admin'
-cd $PROJECT_ROOT/admin
-# TODO maybe handle this differently?
-unset NODE_ENV
-yarn install
-yarn build
-# TODO maybe handle this differently?
-export NODE_ENV=production
-
-# Install & build dht-node
-log_step 'Updating dht-node'
-cd $PROJECT_ROOT/dht-node
-# TODO maybe handle this differently?
-unset NODE_ENV
-yarn install
-yarn build
-# TODO maybe handle this differently?
-export NODE_ENV=production
-
-# Install & build federation
-log_step 'Updating federation'
-cd $PROJECT_ROOT/federation
-# TODO maybe handle this differently?
-unset NODE_ENV
-yarn install
-yarn build
-# TODO maybe handle this differently?
-export NODE_ENV=production
 
 # start after building all to use up less ressources
-pm2 start --name gradido-backend "yarn --cwd $PROJECT_ROOT/backend start" -l $GRADIDO_LOG_PATH/pm2.backend.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
+pm2 start --name gradido-backend "turbo backend#start --env-mode=loose" -l $GRADIDO_LOG_PATH/pm2.backend.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
+#pm2 start --name gradido-frontend "yarn --cwd $PROJECT_ROOT/frontend start" -l $GRADIDO_LOG_PATH/pm2.frontend.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
+#pm2 start --name gradido-admin "yarn --cwd $PROJECT_ROOT/admin start" -l $GRADIDO_LOG_PATH/pm2.admin.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
 pm2 save
 if [ ! -z $FEDERATION_DHT_TOPIC ]; then
-  pm2 start --name gradido-dht-node "yarn --cwd $PROJECT_ROOT/dht-node start" -l $GRADIDO_LOG_PATH/pm2.dht-node.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
+  pm2 start --name gradido-dht-node "turbo dht-node#start --env-mode=loose" -l $GRADIDO_LOG_PATH/pm2.dht-node.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
   pm2 save
 else
   log_step "====================================================================="
@@ -368,8 +335,7 @@ do
   log_step "===================================================="
   log_step " start $MODULENAME listening on port=$FEDERATION_PORT"
   log_step "===================================================="
-#  pm2 delete $MODULENAME
-  pm2 start --name $MODULENAME "yarn --cwd $PROJECT_ROOT/federation start" -l $GRADIDO_LOG_PATH/pm2.$MODULENAME.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
+  pm2 start --name $MODULENAME "turbo federation#start --env-mode=loose" -l $GRADIDO_LOG_PATH/pm2.$MODULENAME.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
   pm2 save
 done
 

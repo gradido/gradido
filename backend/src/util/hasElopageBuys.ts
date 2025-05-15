@@ -1,4 +1,4 @@
-import { LoginElopageBuys } from '@entity/LoginElopageBuys'
+import { LoginElopageBuys } from 'database'
 
 export async function hasElopageBuys(email: string): Promise<boolean> {
   const elopageBuyCount = await LoginElopageBuys.count({ where: { payerEmail: email } })

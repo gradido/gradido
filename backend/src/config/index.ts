@@ -1,7 +1,7 @@
 // ATTENTION: DO NOT PUT ANY SECRETS IN HERE (or the .env)
 
-import { validate } from '@config/index'
-import { latestDbVersion } from '@dbTools/config/detectLastDBVersion'
+import { validate } from 'config-schema'
+import { latestDbVersion } from 'database'
 import { Decimal } from 'decimal.js-light'
 import dotenv from 'dotenv'
 

@@ -1,7 +1,6 @@
-import { User as DbUser } from '@entity/User'
+import { User as DbUser, UserLoggingView } from 'database'
 
 import { federationLogger as logger } from '@/server/logger'
-import { UserLoggingView } from '@logging/UserLogging.view'
 import { SendCoinsArgsLoggingView } from '../logger/SendCoinsArgsLogging.view'
 import { SendCoinsArgs } from '../model/SendCoinsArgs'
 

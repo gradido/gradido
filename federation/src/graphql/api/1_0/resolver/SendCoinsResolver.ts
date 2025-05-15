@@ -2,9 +2,11 @@ import { findUserByIdentifier } from '@/graphql/util/findUserByIdentifier'
 import { fullName } from '@/graphql/util/fullName'
 import { LogError } from '@/server/LogError'
 import { federationLogger as logger } from '@/server/logger'
-import { Community as DbCommunity } from '@entity/Community'
-import { PendingTransaction as DbPendingTransaction } from '@entity/PendingTransaction'
-import { PendingTransactionLoggingView } from '@logging/PendingTransactionLogging.view'
+import {
+  Community as DbCommunity,
+  PendingTransaction as DbPendingTransaction,
+  PendingTransactionLoggingView,
+} from 'database'
 import Decimal from 'decimal.js-light'
 import { Arg, Mutation, Resolver } from 'type-graphql'
 import { PendingTransactionState } from '../enum/PendingTransactionState'

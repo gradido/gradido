@@ -5,7 +5,7 @@
 
 
 
-import { entities } from '@entity/index'
+import { entities } from 'database'
 import { createTestClient } from 'apollo-server-testing'
 
 import { createServer } from '@/server/createServer'

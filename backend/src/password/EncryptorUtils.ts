@@ -1,7 +1,7 @@
 import { cpus } from 'os'
 import path from 'path'
 
-import { User } from '@entity/User'
+import { User } from 'database'
 import { Pool, pool } from 'workerpool'
 
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'

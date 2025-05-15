@@ -300,7 +300,7 @@ const admin = () => {
 }
 
 .b-right {
-  text-align: -webkit-right;
+  text-align: right;
 }
 
 .content-gradido {

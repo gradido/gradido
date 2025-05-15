@@ -1,0 +1,10 @@
+{
+  "extends": ["//"],
+  "tasks": {
+    "stylelint": {},
+    "locales": {},
+    "lint": {
+      "dependsOn": ["stylelint", "locales"]
+    }
+  }
+}

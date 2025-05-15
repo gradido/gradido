@@ -1,15 +1,5 @@
 import { randomBytes } from 'crypto'
 
-import { getConnection } from '@dbTools/typeorm'
-import { Community as DbCommunity } from '@entity/Community'
-import { Contribution as DbContribution } from '@entity/Contribution'
-import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
-import { Transaction as DbTransaction } from '@entity/Transaction'
-import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
-import { User as DbUser } from '@entity/User'
-import { Decimal } from 'decimal.js-light'
-import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
-
 import { Paginated } from '@arg/Paginated'
 import { TransactionLinkArgs } from '@arg/TransactionLinkArgs'
 import { TransactionLinkFilters } from '@arg/TransactionLinkFilters'
@@ -24,6 +14,16 @@ import { RedeemJwtLink } from '@model/RedeemJwtLink'
 import { TransactionLink, TransactionLinkResult } from '@model/TransactionLink'
 import { User } from '@model/User'
 import { QueryLinkResult } from '@union/QueryLinkResult'
+import {
+  Contribution as DbContribution,
+  ContributionLink as DbContributionLink,
+  Transaction as DbTransaction,
+  TransactionLink as DbTransactionLink,
+  User as DbUser,
+} from 'database'
+import { Decimal } from 'decimal.js-light'
+import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
+import { getConnection } from 'typeorm'
 
 import { RIGHTS } from '@/auth/RIGHTS'
 import { decode, encode, verify } from '@/auth/jwt/JWT'

@@ -1,6 +1,6 @@
-import { getConnection } from '@dbTools/typeorm'
-import { Contribution } from '@entity/Contribution'
+import { Contribution } from 'database'
 import { Decimal } from 'decimal.js-light'
+import { getConnection } from 'typeorm'
 
 import { OpenCreation } from '@model/OpenCreation'
 

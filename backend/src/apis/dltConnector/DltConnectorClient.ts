@@ -1,4 +1,4 @@
-import { Transaction as DbTransaction } from '@entity/Transaction'
+import { Transaction as DbTransaction } from 'database'
 import { GraphQLClient, gql } from 'graphql-request'
 
 import { CONFIG } from '@/config'

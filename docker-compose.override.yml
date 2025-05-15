@@ -1,6 +1,44 @@
 services:
 
   ########################################################
+  # Gradido ##############################################
+  ########################################################
+  gradido:
+    image: gradido/gradido:local-development
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+      target: development
+      args: 
+        BUILD_COMMIT: ${BUILD_COMMIT}
+        BUILD_COMMIT_SHORT: ${BUILD_COMMIT_SHORT}
+        BUILD_VERSION: ${BUILD_VERSION}
+    depends_on:
+      - mariadb
+    networks:
+      - internal-net
+      - external-net
+    ports:
+      - ${BACKEND_PORT:-4000}:${BACKEND_PORT:-4000}
+      - ${FEDERATION_PORT:-5010}:${FEDERATION_PORT:-5010}
+      - ${FRONTEND_MODULE_PORT:-3000}:${FRONTEND_MODULE_PORT:-3000}
+      - ${ADMIN_MODULE_PORT:-8080}:${ADMIN_MODULE_PORT:-8080}
+    environment:
+      # Envs used in Dockerfile
+      # - DOCKER_WORKDIR="/app"
+      # - PORT=4000
+      - BUILD_DATE
+      - BUILD_VERSION
+      - BUILD_COMMIT
+      - NODE_ENV=production
+      - DB_HOST=mariadb
+    volumes:
+      - ./logs/backend:/logs/backend
+      - gradido_node_modules:/app/node_modules
+      - .:/app
+
+
+  ########################################################
   # FRONTEND #############################################
   ########################################################
   frontend:
@@ -144,16 +182,15 @@ services:
     #  Due to problems with the volume caching the built files
     #  we changed this to test build. This keeps the service running.
     # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
-    image: gradido/database:local-test_up
+    image: gradido/database:local-up
     build:
-      target: test_up
+      target: up
     environment:
       - NODE_ENV="development"
     volumes:
       # This makes sure the docker container has its own node modules.
       # Therefore it is possible to have a different node version on the host machine
       - database_node_modules:/app/node_modules
-      - database_build:/app/build
       # bind the local folder to the docker to allow live reload
       - ./database:/app
 
@@ -197,6 +234,8 @@ services:
   #########################################################
   phpmyadmin:
     image: phpmyadmin
+    profiles: 
+      - debug
     environment:
      - PMA_ARBITRARY=1
     #restart: always
@@ -213,6 +252,8 @@ services:
   ########################################################
   mailserver:
     image: maildev/maildev
+    profiles: 
+      - debug
     ports:
       - 1080:1080
       - 1025:1025
@@ -220,8 +261,9 @@ services:
       - external-net
 
 volumes:
-  frontend_node_modules:
   admin_node_modules:
+  frontend_node_modules:
+  gradido_node_modules:  
   backend_node_modules:
   backend_database_node_modules:
   backend_database_build:
@@ -239,6 +281,5 @@ volumes:
   federation_config_node_modules:
   federation_config_build:
   database_node_modules:
-  database_build:
   dlt-database_node_modules:
   dlt-database_build:

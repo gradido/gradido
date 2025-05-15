@@ -1,8 +1,7 @@
-import { Connection } from '@dbTools/typeorm'
-import { Community as DbCommunity } from '@entity/Community'
-import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
 import { ApolloServerTestClient } from 'apollo-server-testing'
+import { Community as DbCommunity, FederatedCommunity as DbFederatedCommunity } from 'database'
 import { GraphQLError } from 'graphql/error/GraphQLError'
+import { Connection } from 'typeorm'
 import { v4 as uuidv4 } from 'uuid'
 
 import { cleanDB, testEnvironment } from '@test/helpers'

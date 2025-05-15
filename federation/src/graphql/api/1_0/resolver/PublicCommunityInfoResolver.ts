@@ -1,5 +1,5 @@
 import { federationLogger as logger } from '@/server/logger'
-import { Community as DbCommunity } from '@entity/Community'
+import { Community as DbCommunity } from 'database'
 import { Query, Resolver } from 'type-graphql'
 import { GetPublicCommunityInfoResultLoggingView } from '../logger/GetPublicCommunityInfoResultLogging.view'
 import { GetPublicCommunityInfoResult } from '../model/GetPublicCommunityInfoResult'

@@ -1,6 +1,4 @@
-import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
-import { Event as DbEvent } from '@entity/Event'
-import { User as DbUser } from '@entity/User'
+import { ContributionLink as DbContributionLink, Event as DbEvent, User as DbUser } from 'database'
 
 import { Event } from './Event'
 import { EventType } from './EventType'

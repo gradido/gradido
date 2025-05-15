@@ -1,0 +1,29 @@
+{
+  "extends": ["//"],
+  "tasks": {
+    "clear": {
+      "cache": false
+    },
+    "up:backend_test": {
+      "cache": false
+    },
+    "up:federation_test": {
+      "cache": false
+    },
+    "up:dht_test": {
+      "cache": false
+    },
+    "up": {
+      "cache": false,
+      "dependsOn": ["build"]
+    },
+    "down": {
+      "cache": false,
+      "dependsOn": ["build"]
+    },
+    "reset": {
+      "cache": false,
+      "dependsOn": ["build"]
+    }
+  }
+}

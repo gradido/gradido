@@ -1,5 +1,5 @@
-import { TransactionLink } from '@entity/TransactionLink'
 import { ApolloServerTestClient } from 'apollo-server-testing'
+import { TransactionLink } from 'database'
 
 import { transactionLinkExpireDate } from '@/graphql/resolver/TransactionLinkResolver'
 import { createTransactionLink, login } from '@/seeds/graphql/mutations'

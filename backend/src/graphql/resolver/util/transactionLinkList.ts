@@ -1,6 +1,5 @@
-import { IsNull, MoreThan } from '@dbTools/typeorm'
-import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
-import { User as DbUser } from '@entity/User'
+import { TransactionLink as DbTransactionLink, User as DbUser } from 'database'
+import { IsNull, MoreThan } from 'typeorm'
 
 import { Paginated } from '@arg/Paginated'
 import { TransactionLinkFilters } from '@arg/TransactionLinkFilters'

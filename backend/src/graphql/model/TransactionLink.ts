@@ -1,5 +1,4 @@
-import { Community as DbCommunity } from '@entity/Community'
-import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
+import { Community as DbCommunity, TransactionLink as DbTransactionLink } from 'database'
 import { Decimal } from 'decimal.js-light'
 import { Field, Int, ObjectType } from 'type-graphql'
 

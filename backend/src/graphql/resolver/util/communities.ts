@@ -1,6 +1,5 @@
-import { FindOneOptions, IsNull, Not } from '@dbTools/typeorm'
-import { Community as DbCommunity } from '@entity/Community'
-import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
+import { Community as DbCommunity, FederatedCommunity as DbFederatedCommunity } from 'database'
+import { FindOneOptions, IsNull, Not } from 'typeorm'
 
 import { Paginated } from '@arg/Paginated'
 

@@ -1,4 +1,4 @@
-import { AbstractLoggingView } from '@logging/AbstractLogging.view'
+import { AbstractLoggingView } from 'database'
 
 import { PostUser } from '@/apis/humhub/model/PostUser'
 

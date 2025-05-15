@@ -1,24 +1,28 @@
 {
-  "name": "gradido-database",
+  "name": "database",
   "version": "2.5.2",
   "description": "Gradido Database Tool to execute database migrations",
-  "main": "src/index.ts",
+  "main": "./build/entity/index.js",
+  "types": "./build/entity/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./build/entity/index.js",
+      "require": "./build/entity/index.js"
+    }
+  },
   "repository": "https://github.com/gradido/gradido/database",
-  "author": "Ulf Gebhardt",
+  "author": "Gradido Academy - https://www.gradido.net",
   "license": "Apache-2.0",
   "private": false,
   "scripts": {
     "build": "mkdirp build/src/config/ && ncp src/config build/src/config && tsc --build",
     "clean": "tsc --build --clean",
-    "up": "cross-env TZ=UTC node build/src/index.js up",
-    "down": "cross-env TZ=UTC node build/src/index.js down",
-    "reset": "cross-env TZ=UTC node build/src/index.js reset",
     "lint": "biome check --error-on-warnings .",
     "lint:fix": "biome check --error-on-warnings . --write",
     "clear": "cross-env TZ=UTC tsx src/index.ts clear",
-    "dev_up": "cross-env TZ=UTC tsx src/index.ts up",
-    "dev_down": "cross-env TZ=UTC tsx src/index.ts down",
-    "dev_reset": "cross-env TZ=UTC tsx src/index.ts reset",
+    "up": "cross-env TZ=UTC tsx src/index.ts up",
+    "down": "cross-env TZ=UTC tsx src/index.ts down",
+    "reset": "cross-env TZ=UTC tsx src/index.ts reset",
     "up:backend_test": "cross-env TZ=UTC DB_DATABASE=gradido_test_backend tsx src/index.ts up",
     "up:federation_test": "cross-env TZ=UTC DB_DATABASE=gradido_test_federation tsx src/index.ts up",
     "up:dht_test": "cross-env TZ=UTC DB_DATABASE=gradido_test_dht tsx src/index.ts up"
@@ -38,7 +42,6 @@
   "dependencies": {
     "@types/uuid": "^8.3.4",
     "cross-env": "^7.0.3",
-    "crypto": "^1.0.1",
     "decimal.js-light": "^2.5.1",
     "dotenv": "^10.0.0",
     "geojson": "^0.5.0",
@@ -50,6 +53,6 @@
     "wkx": "^0.5.0"
   },
   "engines": {
-    "node": ">=14"
+    "node": ">=18"
   }
 }

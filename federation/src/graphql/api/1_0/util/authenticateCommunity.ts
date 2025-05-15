@@ -1,6 +1,10 @@
 import { federationLogger as logger } from '@/server/logger'
-import { Community as DbCommunity } from '@entity/Community'
-import { FederatedCommunity as DbFedCommunity } from '@entity/FederatedCommunity'
+import {
+  CommunityLoggingView,
+  Community as DbCommunity,
+  FederatedCommunity as DbFedCommunity,
+  FederatedCommunityLoggingView,
+} from 'database'
 import { OpenConnectionArgs } from '../model/OpenConnectionArgs'
 import { OpenConnectionCallbackArgs } from '../model/OpenConnectionCallbackArgs'
 
@@ -8,8 +12,6 @@ import { AuthenticationClientFactory } from '@/client/AuthenticationClientFactor
 import { randombytes_random } from 'sodium-native'
 
 import { AuthenticationClient as V1_0_AuthenticationClient } from '@/client/1_0/AuthenticationClient'
-import { CommunityLoggingView } from '@logging/CommunityLogging.view'
-import { FederatedCommunityLoggingView } from '@logging/FederatedCommunityLogging.view'
 import { AuthenticationArgs } from '../model/AuthenticationArgs'
 
 export async function startOpenConnectionCallback(

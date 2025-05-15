@@ -1,5 +1,4 @@
-import { Event as DbEvent } from '@entity/Event'
-import { UserContact } from '@entity/UserContact'
+import { Event as DbEvent, UserContact } from 'database'
 import { GraphQLError } from 'graphql'
 
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'

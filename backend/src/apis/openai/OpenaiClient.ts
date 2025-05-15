@@ -1,5 +1,4 @@
-import { OpenaiThreads } from '@entity/OpenaiThreads'
-import { User } from '@entity/User'
+import { OpenaiThreads, User } from 'database'
 import { OpenAI } from 'openai'
 import { Message } from 'openai/resources/beta/threads/messages'
 

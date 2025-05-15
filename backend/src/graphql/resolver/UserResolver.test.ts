@@ -1,13 +1,15 @@
-import { Connection } from '@dbTools/typeorm'
-import { Community as DbCommunity } from '@entity/Community'
-import { Event as DbEvent } from '@entity/Event'
-import { TransactionLink } from '@entity/TransactionLink'
-import { User } from '@entity/User'
-import { UserContact } from '@entity/UserContact'
-import { UserRole } from '@entity/UserRole'
 import { UserInputError } from 'apollo-server-express'
 import { ApolloServerTestClient } from 'apollo-server-testing'
+import {
+  Community as DbCommunity,
+  Event as DbEvent,
+  TransactionLink,
+  User,
+  UserContact,
+  UserRole,
+} from 'database'
 import { GraphQLError } from 'graphql'
+import { Connection } from 'typeorm'
 import { v4 as uuidv4, validate as validateUUID, version as versionUUID } from 'uuid'
 
 import { GmsPublishLocationType } from '@enum/GmsPublishLocationType'

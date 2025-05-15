@@ -1,4 +1,4 @@
-import { Transaction as DbTransaction } from '@entity/Transaction'
+import { Transaction as DbTransaction } from 'database'
 
 import { Order } from '@enum/Order'
 

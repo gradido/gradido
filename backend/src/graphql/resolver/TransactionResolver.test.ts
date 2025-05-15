@@ -1,12 +1,14 @@
-import { Connection, In } from '@dbTools/typeorm'
-import { Community as DbCommunity } from '@entity/Community'
-import { DltTransaction } from '@entity/DltTransaction'
-import { Event as DbEvent } from '@entity/Event'
-import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
-import { Transaction } from '@entity/Transaction'
-import { User } from '@entity/User'
 import { ApolloServerTestClient } from 'apollo-server-testing'
+import {
+  Community as DbCommunity,
+  Event as DbEvent,
+  FederatedCommunity as DbFederatedCommunity,
+  DltTransaction,
+  Transaction,
+  User,
+} from 'database'
 import { GraphQLError } from 'graphql'
+import { Connection, In } from 'typeorm'
 import { v4 as uuidv4 } from 'uuid'
 
 import { cleanDB, testEnvironment } from '@test/helpers'

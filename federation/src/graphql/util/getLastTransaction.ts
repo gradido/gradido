@@ -1,4 +1,4 @@
-import { Transaction as DbTransaction } from '@entity/Transaction'
+import { Transaction as DbTransaction } from 'database'
 
 export const getLastTransaction = async (
   userId: number,
