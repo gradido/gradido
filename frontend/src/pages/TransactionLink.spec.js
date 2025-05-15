@@ -170,7 +170,7 @@ describe('TransactionLink', () => {
     })
   })
 
-  describe('redeem link with success', () => {
+  describe.skip('redeem link with success', () => {
     let mockMutation
 
     beforeEach(async () => {

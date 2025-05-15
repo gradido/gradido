@@ -1,33 +1,48 @@
-import { TransactionLink as dbTransactionLink } from 'database'
+import { Community as DbCommunity, TransactionLink as DbTransactionLink } from 'database'
 import { Decimal } from 'decimal.js-light'
 import { Field, Int, ObjectType } from 'type-graphql'
 
 import { CONFIG } from '@/config'
 
+import { Community } from './Community'
 import { User } from './User'
 
 @ObjectType()
 export class TransactionLink {
-  constructor(transactionLink: dbTransactionLink, user: User, redeemedBy: User | null = null) {
-    this.id = transactionLink.id
-    this.user = user
-    this.amount = transactionLink.amount
-    this.holdAvailableAmount = transactionLink.holdAvailableAmount
-    this.memo = transactionLink.memo
-    this.code = transactionLink.code
-    this.createdAt = transactionLink.createdAt
-    this.validUntil = transactionLink.validUntil
-    this.deletedAt = transactionLink.deletedAt
-    this.redeemedAt = transactionLink.redeemedAt
-    this.redeemedBy = redeemedBy
-    this.link = CONFIG.COMMUNITY_REDEEM_URL + this.code
+  constructor(
+    dbTransactionLink?: DbTransactionLink,
+    user?: User,
+    redeemedBy?: User,
+    dbCommunities?: DbCommunity[],
+  ) {
+    if (dbTransactionLink !== undefined) {
+      this.id = dbTransactionLink.id
+      this.amount = dbTransactionLink.amount
+      this.holdAvailableAmount = dbTransactionLink.holdAvailableAmount
+      this.memo = dbTransactionLink.memo
+      this.code = dbTransactionLink.code
+      this.link = CONFIG.COMMUNITY_REDEEM_URL + this.code
+      this.createdAt = dbTransactionLink.createdAt
+      this.validUntil = dbTransactionLink.validUntil
+      this.deletedAt = dbTransactionLink.deletedAt
+      this.redeemedAt = dbTransactionLink.redeemedAt
+    }
+    if (user !== undefined) {
+      this.senderUser = user
+    }
+    if (redeemedBy !== undefined) {
+      this.redeemedBy = redeemedBy
+    }
+    if (dbCommunities !== undefined) {
+      this.communities = dbCommunities.map((dbCom: DbCommunity) => new Community(dbCom))
+    }
   }
 
   @Field(() => Int)
   id: number
 
   @Field(() => User)
-  user: User
+  senderUser: User
 
   @Field(() => Decimal)
   amount: Decimal
@@ -58,6 +73,12 @@ export class TransactionLink {
 
   @Field(() => String)
   link: string
+
+  @Field(() => String)
+  communityName: string
+
+  @Field(() => [Community])
+  communities: Community[]
 }
 
 @ObjectType()
