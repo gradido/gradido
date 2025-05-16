@@ -63,13 +63,12 @@ import { fullName } from '@/util/utilities'
 
 import { ContributionMessage } from '@model/ContributionMessage'
 import { ContributionMessageType } from '../enum/ContributionMessageType'
-import { findContribution } from './util/contributions'
 import { getOpenCreations, getUserCreation, validateContribution } from './util/creations'
 import { extractGraphQLFields, extractGraphQLFieldsForSelect } from './util/extractGraphQLFields'
 import { findContributionMessages } from './util/findContributionMessages'
 import { findContributions } from './util/findContributions'
 import { getLastTransaction } from './util/getLastTransaction'
-import { loadAllContributions, loadUserContributions } from './util/loadContributions'
+import { loadAllContributions, loadUserContributions } from './util/contributions'
 import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
 
 @Resolver(() => Contribution)
@@ -77,11 +76,11 @@ export class ContributionResolver {
   @Authorized([RIGHTS.ADMIN_LIST_CONTRIBUTIONS])
   @Query(() => Contribution)
   async contribution(@Arg('id', () => Int) id: number): Promise<Contribution> {
-    const contribution = await findContribution(id)
-    if (!contribution) {
+    const dbContribution = await DbContribution.findOne({ where: { id } })
+    if (!dbContribution) {
       throw new LogError('Contribution not found', id)
     }
-    return new Contribution(contribution)
+    return new Contribution(dbContribution)
   }
 
   @Authorized([RIGHTS.CREATE_CONTRIBUTION])
