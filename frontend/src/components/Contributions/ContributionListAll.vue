@@ -7,7 +7,7 @@
       {{ $t('contribution.noContributions.emptyPage') }}
     </div>
   </div>
-  <div v-else class="all-contribution-list">
+  <div v-else class="contribution-list-all">
     <div v-for="item in items" :key="item.id + 'a'" class="mb-3">
       <div :id="`contributionListItem-${item.id}`">
         <contribution-list-all-item v-bind="item" />

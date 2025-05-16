@@ -85,11 +85,12 @@
   </div>
 </template>
 <script setup>
-import { reactive, computed, watch, ref, onMounted, onUnmounted, toRaw } from 'vue'
+import { reactive, computed, ref, onMounted, onUnmounted, toRaw } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ValidatedInput from '@/components/Inputs/ValidatedInput'
 import LabeledInput from '@/components/Inputs/LabeledInput'
 import { memo as memoSchema } from '@/validationSchemas'
+import OpenCreationsAmount from './OpenCreationsAmount.vue'
 import { object, date as dateSchema, number } from 'yup'
 import { GDD_PER_HOUR } from '../../constants'
 

@@ -62,9 +62,16 @@ vi.mock('@/components/Contributions/OpenCreationsAmount', () => ({
   },
 }))
 
-vi.mock('@/components/Contributions/ContributionForm', () => ({
+vi.mock('@/components/Contributions/ContributionEdit', () => ({
   default: {
-    name: 'ContributionForm',
+    name: 'ContributionEdit',
+    template: '<div></div>',
+  },
+}))
+
+vi.mock('@/components/Contributions/ContributionCreate', () => ({
+  default: {
+    name: 'ContributionCreate',
     template: '<div></div>',
   },
 }))
@@ -72,6 +79,13 @@ vi.mock('@/components/Contributions/ContributionForm', () => ({
 vi.mock('@/components/Contributions/ContributionList', () => ({
   default: {
     name: 'ContributionList',
+    template: '<div></div>',
+  },
+}))
+
+vi.mock('@/components/Contributions/ContributionListAll', () => ({
+  default: {
+    name: 'ContributionListAll',
     template: '<div></div>',
   },
 }))
@@ -140,9 +154,7 @@ describe('Community', () => {
         },
         components: {
           BTabs,
-        },
-        stub: {
-          BTab: true,
+          BTab,
         },
       },
     })
@@ -156,17 +168,12 @@ describe('Community', () => {
     it('initializes with correct data', () => {
       expect(wrapper.vm.tabIndex).toBe(0)
     })
-
-    it('fetches initial data', () => {
-      expect(mockOpenCreationsQuery).toHaveBeenCalled()
-      expect(mockCountContributionsInProgress).toHaveBeenCalled()
-    })
   })
 
   describe('tabs', () => {
     it('has three tabs', () => {
       expect(wrapper.findAll('.tabs')).toHaveLength(1)
-      expect(wrapper.findAll('btab')).toHaveLength(3)
+      expect(wrapper.findAllComponents(BTab)).toHaveLength(3)
     })
 
     it.skip('updates tab index when route changes', async () => {
@@ -176,105 +183,20 @@ describe('Community', () => {
     })
   })
 
-  describe('handleSaveContribution', () => {
-    it('calls createContributionMutation and shows success toast on success', async () => {
-      const contributionData = { date: '2023-09-12', memo: 'Test contribution', amount: '100' }
-      mockCreateContributionMutation.mockResolvedValue({ data: { createContribution: true } })
-
-      await wrapper.vm.handleSaveContribution(contributionData)
-
-      expect(mockCreateContributionMutation).toHaveBeenCalledWith({
-        creationDate: contributionData.date,
-        memo: contributionData.memo,
-        amount: contributionData.amount,
-      })
-      expect(mockToast.toastSuccess).toHaveBeenCalledWith('contribution.submitted')
-    })
-
-    it('shows error toast on failure', async () => {
-      const contributionData = { date: '2023-09-12', memo: 'Test contribution', amount: '100' }
-      mockCreateContributionMutation.mockRejectedValue(new Error('Create Contribution failed!'))
-
-      await wrapper.vm.handleSaveContribution(contributionData)
-
-      expect(mockToast.toastError).toHaveBeenCalledWith('Create Contribution failed!')
-    })
-  })
-
-  describe('handleUpdateContribution', () => {
-    it('calls updateContributionMutation and shows success toast on success', async () => {
-      const contributionData = {
-        id: 1,
-        date: '2023-09-12',
-        memo: 'Updated contribution',
-        amount: '200',
-      }
-      mockUpdateContributionMutation.mockResolvedValue({ data: { updateContribution: true } })
-
-      await wrapper.vm.handleUpdateContribution(contributionData)
-
-      expect(mockUpdateContributionMutation).toHaveBeenCalledWith({
-        contributionId: contributionData.id,
-        creationDate: contributionData.date,
-        memo: contributionData.memo,
-        amount: contributionData.amount,
-      })
-      expect(mockToast.toastSuccess).toHaveBeenCalledWith('contribution.updated')
-    })
-
-    it('shows error toast on failure', async () => {
-      const contributionData = {
-        id: 1,
-        date: '2023-09-12',
-        memo: 'Updated contribution',
-        amount: '200',
-      }
-      mockUpdateContributionMutation.mockRejectedValue(new Error('Update Contribution failed!'))
-
-      await wrapper.vm.handleUpdateContribution(contributionData)
-
-      expect(mockToast.toastError).toHaveBeenCalledWith('Update Contribution failed!')
-    })
-  })
-
-  describe('handleDeleteContribution', () => {
-    it('calls deleteContributionMutation and shows success toast on success', async () => {
-      const contributionData = { id: 1 }
-      mockDeleteContributionMutation.mockResolvedValue({ data: { deleteContribution: true } })
-
-      await wrapper.vm.handleDeleteContribution(contributionData)
-
-      expect(mockDeleteContributionMutation).toHaveBeenCalledWith({ id: contributionData.id })
-      expect(mockToast.toastSuccess).toHaveBeenCalledWith('contribution.deleted')
-    })
-
-    it('shows error toast on failure', async () => {
-      const contributionData = { id: 1 }
-      mockDeleteContributionMutation.mockRejectedValue(new Error('Delete Contribution failed!'))
-
-      await wrapper.vm.handleDeleteContribution(contributionData)
-
-      expect(mockToast.toastError).toHaveBeenCalledWith('Delete Contribution failed!')
-    })
-  })
-
   describe('handleUpdateContributionForm', () => {
     it('updates form data and changes tab', () => {
       const contributionData = {
-        id: 2,
-        contributionDate: '2023-09-12',
-        memo: 'Test contribution',
-        amount: '300',
+        item: { id: 2, contributionDate: '2023-09-12', memo: 'Test contribution', amount: '300' },
+        page: 2,
       }
 
       wrapper.vm.handleUpdateContributionForm(contributionData)
 
-      expect(wrapper.vm.form).toEqual({
+      expect(wrapper.vm.itemData).toEqual({
         id: 2,
-        date: '2023-09-12',
+        contributionDate: '2023-09-12',
         memo: 'Test contribution',
         amount: '300',
-        hours: 15, // 300 / 20
       })
       expect(wrapper.vm.tabIndex).toBe(0)
       expect(mockRouter.push).toHaveBeenCalledWith({ params: { tab: 'contribute' } })
