@@ -139,8 +139,16 @@ exec > >(tee -a $UPDATE_HTML) 2>&1
 
 # configure nginx for the update-page
 echo 'Configuring nginx to serve the update-page'
+nginx_restart() {
+  sudo /etc/init.d/nginx restart || {
+    echo "\e[33mwarn: nginx restart failed, will try to fix with 'sudo systemctl reset-failed nginx' and 'sudo systemctl start nginx'\e[0m" > /dev/tty
+    sudo systemctl reset-failed nginx
+    sudo systemctl start nginx
+  }
+}
+nginx_restart
 ln -sf $SCRIPT_DIR/nginx/sites-available/update-page.conf $SCRIPT_DIR/nginx/sites-enabled/default
-sudo /etc/init.d/nginx restart
+
 
 # helper functions
 log_step() {
@@ -173,14 +181,7 @@ onError() {
   log_error "( x.x )  Exit Code: $exit_code"
   log_error " >   <   Offending command: '$BASH_COMMAND'"
   log_error ""
-  if [ '$BASH_COMMAND' == 'sudo /etc/init.d/nginx restart' ]; then
-    log_warn "nginx restart failed, this can occur if updating to often in short time span"
-    log_warn "will try to fix with 'sudo systemctl reset-failed nginx' and 'sudo systemctl start nginx'"
-    sudo systemctl reset-failed nginx
-    sudo systemctl start nginx
-  else 
-    exit 1
-  fi
+  exit 1  
 }
 trap onError ERR
 
@@ -350,7 +351,7 @@ done
 # let nginx showing gradido
 log_step 'Configuring nginx to serve gradido again'
 ln -sf $SCRIPT_DIR/nginx/sites-available/gradido.conf $SCRIPT_DIR/nginx/sites-enabled/default
-sudo /etc/init.d/nginx restart
+nginx_restart
 
 # keep the update log
 cat $UPDATE_HTML >> $GRADIDO_LOG_PATH/update.$TODAY.log
