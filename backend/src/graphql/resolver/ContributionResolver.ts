@@ -188,6 +188,7 @@ export class ContributionResolver {
   async countContributionsInProgress(@Ctx() context: Context): Promise<number> {
     const user = getUser(context)
     const count = await DbContribution.count({
+      select: { id: true },
       where: { userId: user.id, contributionStatus: ContributionStatus.IN_PROGRESS },
     })
     return count
