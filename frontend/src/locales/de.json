@@ -324,7 +324,7 @@
     "settings": "Einstellungen",
     "circles": "Gradido Kreise",
     "transactions": "Deine Transaktionen",
-    "usersearch": "Geografische Mitgliedssuche (experimentell)"
+    "usersearch": "Geografische Mitgliedssuche (beta)"
   },
   "qrCode": "QR Code",
   "send_gdd": "GDD versenden",
