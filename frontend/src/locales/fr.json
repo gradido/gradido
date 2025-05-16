@@ -292,7 +292,7 @@
     "settings": "Configuration",
     "transactions": "Vos transactions",
     "circles": "Cercles Gradido",
-    "usersearch": "Recherche géographique de membres (expérimentale)"
+    "usersearch": "Recherche géographique de membres (bèta)"
   },
   "qrCode": "QR Code",
   "send_gdd": "Envoyer GDD",

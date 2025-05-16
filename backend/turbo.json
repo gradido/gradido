@@ -6,8 +6,12 @@
       "cache": false
     },    
     "locales": {},
+    "locales:fix": {},
     "lint": {
       "dependsOn": ["locales", "database#build"]
+    },
+    "lint:fix": {
+      "dependsOn": ["locales:fix", "database#build"]
     },
     "typecheck": {
       "dependsOn": ["database#build", "config-schema#build"]

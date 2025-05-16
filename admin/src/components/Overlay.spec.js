@@ -19,9 +19,13 @@ describe('Overlay', () => {
     amount: '100',
     contributionDate: '2023-01-15T00:00:00.000Z',
     memo: 'Test memo',
-    firstName: 'John',
-    lastName: 'Doe',
-    email: 'john.doe@example.com',
+    user: {
+      firstName: 'John',
+      lastName: 'Doe',
+      emailContact: {
+        email: 'john.doe@example.com',
+      },
+    },
   }
 
   beforeEach(() => {

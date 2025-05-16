@@ -1,24 +1,15 @@
+import { listAllContributions } from '@/graphql/contributions.graphql'
 import { useQuery } from '@vue/apollo-composable'
 import { mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createI18n } from 'vue-i18n'
-import ContributionList from './ContributionList'
+import ContributionListAll from './ContributionListAll.vue'
 import { createRouter, createWebHistory } from 'vue-router'
 import { ref } from 'vue'
 
 const i18n = createI18n({
   legacy: false,
   locale: 'en',
-  messages: {
-    en: {
-      contribution: {
-        noContributions: {
-          myContributions: 'No contributions',
-          emptyPage: 'No contributions',
-        },
-      },
-    },
-  },
 })
 
 const router = createRouter({
@@ -32,14 +23,14 @@ const router = createRouter({
     {
       path: '/test',
       name: 'test',
-      component: ContributionList,
+      component: ContributionListAll,
     },
   ],
 })
 
-vi.mock('@/components/Contributions/ContributionListItem.vue', () => ({
+vi.mock('@/components/Contributions/ContributionListAllItem.vue', () => ({
   default: {
-    name: 'ContributionListItem',
+    name: 'ContributionListAllItem',
     template: '<div></div>',
   },
 }))
@@ -48,7 +39,7 @@ vi.mock('@vue/apollo-composable', () => ({
   useQuery: vi.fn(),
 }))
 
-describe('ContributionList', () => {
+describe('ContributionListAll', () => {
   let wrapper
 
   const global = {
@@ -63,8 +54,8 @@ describe('ContributionList', () => {
     },
   }
 
-  const contributions = ref({
-    listContributions: {
+  const allContributions = ref({
+    listAllContributions: {
       contributionCount: 3,
       contributionList: [
         {
@@ -93,7 +84,7 @@ describe('ContributionList', () => {
   })
 
   const mountWrapper = () => {
-    return mount(ContributionList, {
+    return mount(ContributionListAll, {
       global,
     })
   }
@@ -101,15 +92,11 @@ describe('ContributionList', () => {
   const loading = ref(false)
 
   describe('mount', () => {
-    const mockListContributionsQuery = vi.fn()
-
     beforeEach(() => {
       vi.mocked(useQuery).mockImplementation((query) => {
         return {
-          result: contributions,
+          result: allContributions,
           loading,
-          onResult: mockListContributionsQuery,
-          refetch: vi.fn(),
         }
       })
 
@@ -120,14 +107,14 @@ describe('ContributionList', () => {
       vi.clearAllMocks()
     })
 
-    describe('mount as user contributions list', () => {
+    describe('mount as all contributions list', () => {
       it('fetches initial data', () => {
-        expect(mockListContributionsQuery).toHaveBeenCalled()
+        expect(useQuery).toHaveBeenCalled()
       })
     })
 
-    it('has a DIV .contribution-list', () => {
-      expect(wrapper.find('div.contribution-list').exists()).toBe(true)
+    it('has a DIV .contribution-list-all', () => {
+      expect(wrapper.find('div.contribution-list-all').exists()).toBe(true)
     })
 
     describe('pagination', () => {
@@ -139,7 +126,7 @@ describe('ContributionList', () => {
 
       describe('list count greater than page size', () => {
         beforeEach(async () => {
-          contributions.value.listContributions.contributionCount = 33
+          allContributions.value.listAllContributions.contributionCount = 33
         })
 
         it('has pagination buttons', () => {
@@ -152,7 +139,7 @@ describe('ContributionList', () => {
         window.scrollTo = scrollToMock
 
         beforeEach(async () => {
-          contributions.value.listContributions.contributionCount = 33
+          allContributions.value.listAllContributions.contributionCount = 33
           await wrapper
             .findComponent({ name: 'PaginatorRouteParamsPage' })
             .vm.$emit('update:modelValue', 2)
@@ -165,18 +152,6 @@ describe('ContributionList', () => {
         it.skip('scrolls to top', () => {
           expect(scrollToMock).toHaveBeenCalledWith(0, 0)
         })
-      })
-    })
-
-    describe('update contribution', () => {
-      beforeEach(async () => {
-        await wrapper
-          .findComponent({ name: 'ContributionListItem' })
-          .vm.$emit('update-contribution-form', 'item')
-      })
-
-      it('emits update contribution form', () => {
-        expect(wrapper.emitted('update-contribution-form')).toEqual([[{ item: 'item', page: 1 }]])
       })
     })
   })

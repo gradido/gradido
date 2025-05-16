@@ -122,7 +122,7 @@ bobsSendings.forEach((sending) => {
     email: 'bob@baumeister.de',
     amount: sending.amount,
     memo: sending.memo,
-    creationDate: nMonthsBefore(new Date()),
+    contributionDate: nMonthsBefore(new Date()),
     confirmed: true,
   })
 })
@@ -132,7 +132,7 @@ export const creations: CreationInterface[] = [
     email: 'bibi@bloxberg.de',
     amount: 1000,
     memo: 'Herzlich Willkommen bei Gradido!',
-    creationDate: nMonthsBefore(new Date()),
+    contributionDate: nMonthsBefore(new Date()),
     confirmed: true,
     moveCreationDate: 12,
   },
@@ -140,7 +140,7 @@ export const creations: CreationInterface[] = [
     email: 'bibi@bloxberg.de',
     amount: 1000,
     memo: '#Hexen',
-    creationDate: nMonthsBefore(new Date()),
+    contributionDate: nMonthsBefore(new Date()),
     confirmed: true,
     moveCreationDate: 12,
   },
@@ -149,7 +149,7 @@ export const creations: CreationInterface[] = [
     email: 'raeuber@hotzenplotz.de',
     amount: 1000,
     memo: 'Herzlich Willkommen bei Gradido!',
-    creationDate: nMonthsBefore(new Date()),
+    contributionDate: nMonthsBefore(new Date()),
     confirmed: true,
   },
 ]

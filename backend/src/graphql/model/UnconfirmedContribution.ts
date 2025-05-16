@@ -1,41 +1,45 @@
-import { Contribution, User } from 'database'
+import {
+  Contribution as DbContribution,
+  ContributionMessage as DbContributionMessage,
+} from 'database'
 import { Decimal } from 'decimal.js-light'
 import { Field, Int, ObjectType } from 'type-graphql'
 
+import { ContributionMessage } from './ContributionMessage'
+import { User } from './User'
+
 @ObjectType()
 export class UnconfirmedContribution {
-  constructor(contribution: Contribution, user: User | undefined, creations: Decimal[]) {
-    this.id = contribution.id
-    this.userId = contribution.userId
-    this.amount = contribution.amount
-    this.memo = contribution.memo
-    this.date = contribution.contributionDate
-    this.firstName = user ? user.firstName : ''
-    this.lastName = user ? user.lastName : ''
-    this.email = user ? user.emailContact.email : ''
-    this.moderator = contribution.moderatorId
-    this.creation = creations
-    this.status = contribution.contributionStatus
-    this.messageCount = contribution.messages ? contribution.messages.length : 0
-  }
+  constructor(dbContribution: DbContribution) {
+    const user = dbContribution.user
+    this.id = dbContribution.id
+    this.userId = dbContribution.userId
+    this.amount = dbContribution.amount
+    this.memo = dbContribution.memo
+    this.contributionDate = dbContribution.contributionDate
+    this.user = user ? new User(user) : null
+    this.moderatorId = dbContribution.moderatorId
+    this.contributionStatus = dbContribution.contributionStatus
+    this.messagesCount = dbContribution.messages ? dbContribution.messages.length : 0
 
-  @Field(() => String)
-  firstName: string
+    this.messages = dbContribution.messages
+      ? dbContribution.messages.map(
+          (dbMessage: DbContributionMessage) => new ContributionMessage(dbMessage),
+        )
+      : null
+  }
 
   @Field(() => Int)
   id: number
 
-  @Field(() => String)
-  lastName: string
+  @Field(() => Int, { nullable: true })
+  userId: number | null
 
-  @Field(() => Int)
-  userId: number
-
-  @Field(() => String)
-  email: string
+  @Field(() => User, { nullable: true })
+  user: User | null
 
   @Field(() => Date)
-  date: Date
+  contributionDate: Date
 
   @Field(() => String)
   memo: string
@@ -44,14 +48,14 @@ export class UnconfirmedContribution {
   amount: Decimal
 
   @Field(() => Int, { nullable: true })
-  moderator: number | null
-
-  @Field(() => [Decimal])
-  creation: Decimal[]
+  moderatorId: number | null
 
   @Field(() => String)
-  status: string
+  contributionStatus: string
 
   @Field(() => Int)
-  messageCount: number
+  messagesCount: number
+
+  @Field(() => [ContributionMessage], { nullable: true })
+  messages: ContributionMessage[] | null
 }

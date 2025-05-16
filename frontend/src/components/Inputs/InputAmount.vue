@@ -60,9 +60,7 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue'])
 
 const route = useRoute()
-
 const { n } = useI18n()
-
 const { value, meta, errorMessage } = useField(props.name, props.rules)
 
 const amountFocused = ref(false)

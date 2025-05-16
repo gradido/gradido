@@ -52,7 +52,7 @@ describe('ContributionMessagesFormular', () => {
   }
 
   beforeEach(() => {
-    mockMutate.mockResolvedValue({})
+    mockMutate.mockResolvedValue({ data: { createContributionMessage: {} } })
     wrapper = createWrapper()
   })
 
@@ -66,7 +66,7 @@ describe('ContributionMessagesFormular', () => {
 
   it('resets the form on reset event', async () => {
     await wrapper.find('form').trigger('reset')
-    expect(wrapper.vm.form.text).toBe('')
+    expect(wrapper.vm.formText).toBe('')
   })
 
   describe('form submission', () => {
@@ -82,19 +82,14 @@ describe('ContributionMessagesFormular', () => {
       })
     })
 
-    it('emits get-list-contribution-messages event', async () => {
+    it('emits add-contribution-message event', async () => {
       await nextTick()
-      expect(wrapper.emitted('get-list-contribution-messages')).toEqual([[false]])
-    })
-
-    it('emits update-status event', async () => {
-      await nextTick()
-      expect(wrapper.emitted('update-status')).toEqual([[42]])
+      expect(wrapper.emitted('add-contribution-message')).toEqual([[{}]])
     })
 
     it('resets the form text', async () => {
       await nextTick()
-      expect(wrapper.vm.form.text).toBe('')
+      expect(wrapper.vm.formText).toBe('')
     })
 
     it('shows success toast', async () => {

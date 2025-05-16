@@ -38,12 +38,6 @@
           <parse-message v-bind="message" data-test="message"></parse-message>
         </BCol>
         <BCol cols="2">
-          <!--          <avatar-->
-          <!--            class="vue3-avatar"-->
-          <!--            :name="storeName.username"-->
-          <!--            :initials="storeName.initials"-->
-          <!--            :border="false"-->
-          <!--          />-->
           <app-avatar
             class="vue3-avatar"
             :name="storeName.username"
@@ -55,12 +49,6 @@
     <div v-else>
       <BRow class="mb-3 p-2 is-moderator">
         <BCol cols="2">
-          <!--          <avatar-->
-          <!--            class="vue3-avatar"-->
-          <!--            :name="moderationName.username"-->
-          <!--            :initials="moderationName.initials"-->
-          <!--            :border="false"-->
-          <!--          />-->
           <app-avatar :name="moderationName.username" :initials="moderationName.initials" />
         </BCol>
         <BCol cols="10">
@@ -70,7 +58,6 @@
               {{ $t('community.moderator') }}
             </span>
           </div>
-
           <div class="small" data-test="date">{{ $d(new Date(message.createdAt), 'short') }}</div>
           <parse-message v-bind="message" data-test="message"></parse-message>
         </BCol>

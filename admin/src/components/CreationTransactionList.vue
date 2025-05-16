@@ -80,7 +80,7 @@ const fields = [
     },
   },
   {
-    key: 'status',
+    key: 'contributionStatus',
     label: t('transactionlist.status'),
   },
   {

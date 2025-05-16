@@ -458,7 +458,11 @@ describe('UserResolver', () => {
           // create contribution as user bob
           contribution = await mutate({
             mutation: createContribution,
-            variables: { amount: 1000, memo: 'testing', creationDate: new Date().toISOString() },
+            variables: {
+              amount: 1000,
+              memo: 'testing',
+              contributionDate: new Date().toISOString(),
+            },
           })
 
           // login as admin

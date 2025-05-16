@@ -2,7 +2,7 @@
   <div :class="wrapperClassName">
     <BFormGroup :label="label" :label-for="labelFor">
       <BFormTextarea
-        v-if="textarea"
+        v-if="textarea === 'true'"
         v-bind="{ ...$attrs, id: labelFor, name }"
         v-model="model"
         trim
@@ -17,7 +17,7 @@
 </template>
 
 <script setup>
-import { computed, defineOptions, defineModel } from 'vue'
+import { computed, defineOptions, defineModel, watch } from 'vue'
 defineOptions({
   inheritAttrs: false,
 })
@@ -32,9 +32,9 @@ const props = defineProps({
     required: true,
   },
   textarea: {
-    type: Boolean,
+    type: String,
     required: false,
-    default: false,
+    default: 'false',
   },
 })
 

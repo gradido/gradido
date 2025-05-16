@@ -97,7 +97,7 @@ describe('util/creation', () => {
         variables: {
           amount: 400.0,
           memo: 'Contribution for this month',
-          creationDate: contributionDateFormatter(now),
+          contributionDate: contributionDateFormatter(now),
         },
       })
       await mutate({
@@ -105,7 +105,7 @@ describe('util/creation', () => {
         variables: {
           amount: 500.0,
           memo: 'Contribution for the last month',
-          creationDate: contributionDateFormatter(
+          contributionDate: contributionDateFormatter(
             new Date(now.getFullYear(), now.getMonth() - 1, 1),
           ),
         },

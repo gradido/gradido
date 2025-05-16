@@ -18,7 +18,8 @@ const connection = async (): Promise<Connection | null> => {
       synchronize: false,
       logging: true,
       logger: new FileLogger('all', {
-        logPath: CONFIG.TYPEORM_LOGGING_RELATIVE_PATH,
+        // workaround to let previous path working, because with esbuild the script root path has changed
+        logPath: '../' + CONFIG.TYPEORM_LOGGING_RELATIVE_PATH,
       }),
       extra: {
         charset: 'utf8mb4_unicode_ci',

@@ -20,5 +20,5 @@ export class ContributionArgs {
 
   @Field(() => String)
   @isValidDateString()
-  creationDate: string
+  contributionDate: string
 }

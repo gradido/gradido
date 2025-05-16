@@ -116,7 +116,7 @@ describe('TransactionLinkList', () => {
   })
 
   it('formats status correctly for different scenarios', () => {
-    const statusField = wrapper.vm.fields.find((f) => f.key === 'status')
+    const statusField = wrapper.vm.fields.find((f) => f.key === 'contributionStatus')
 
     // Open transaction
     expect(statusField.formatter(null, null, mockLinks[0])).toBe('open')
