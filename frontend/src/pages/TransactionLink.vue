@@ -2,6 +2,9 @@
   <div class="show-transaction-link-informations">
     <div v-if="isTransactionLinkLoaded" class="mt-4">
       <transaction-link-item :type="itemTypeExt">
+        <template #LOGGED_OUT>
+          <redeem-logged-out :link-data="linkData" :is-contribution-link="isContributionLink" />
+        </template>
         <template #REDEEM_SELECT_COMMUNITY>
           <redeem-select-community
             :link-data="linkData"
@@ -40,6 +43,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import { useQuery, useMutation } from '@vue/apollo-composable'
 import TransactionLinkItem from '@/components/TransactionLinkItem'
+import RedeemLoggedOut from '@/components/LinkInformations/RedeemLoggedOut'
 import RedeemSelectCommunity from '@/components/LinkInformations/RedeemSelectCommunity'
 import RedeemSelfCreator from '@/components/LinkInformations/RedeemSelfCreator'
 import RedeemValid from '@/components/LinkInformations/RedeemValid'
@@ -48,6 +52,7 @@ import { useAppToast } from '@/composables/useToast'
 import { queryTransactionLink } from '@/graphql/queries'
 import { disburseTransactionLink, redeemTransactionLink } from '@/graphql/mutations'
 import { useI18n } from 'vue-i18n'
+import CONFIG from '@/config'
 
 const { toastError, toastSuccess } = useAppToast()
 const router = useRouter()
@@ -207,8 +212,12 @@ const itemType = computed(() => {
       return 'VALID'
     }
   }
-  // console.log('TransactionLink.itemType...last return= REDEEM_SELECT_COMMUNITY')
-  return 'REDEEM_SELECT_COMMUNITY'
+  if (CONFIG.CROSS_TX_REDEEM_LINK_ACTIVE) {
+    // console.log('TransactionLink.itemType...last return= REDEEM_SELECT_COMMUNITY')
+    return 'REDEEM_SELECT_COMMUNITY'
+  } else {
+    return 'LOGGED_OUT'
+  }
 })
 
 const itemTypeExt = computed(() => {
