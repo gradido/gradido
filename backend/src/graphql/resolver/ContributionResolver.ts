@@ -175,6 +175,7 @@ export class ContributionResolver {
             actual: contribution.messages?.length || 0,
           })
         }
+        // remove moderator messages
         contribution.messages = contribution.messages?.filter(
           (message) => message.type !== ContributionMessageType.MODERATOR,
         )
