@@ -1,8 +1,10 @@
 import { Paginated } from '@arg/Paginated'
 import { Contribution as DbContribution } from 'database'
 import { FindManyOptions } from 'typeorm'
+import { GraphQLResolveInfo } from 'graphql'
 
-function buildBaseOptions(paginated: Paginated): FindManyOptions<DbContribution> {
+// TODO: combine with Pagination class for all queries to use
+function buildPaginationOptions(paginated: Paginated): FindManyOptions<DbContribution> {
   const { currentPage, pageSize } = paginated
   return {
     skip: (currentPage - 1) * pageSize,
@@ -27,7 +29,7 @@ export const loadUserContributions = async (
     withDeleted: true,
     relations: { messages: { user: true } },
     order: { createdAt: order, id: order, messages: { createdAt: messageOrder } },
-    ...buildBaseOptions(paginated),
+    ...buildPaginationOptions(paginated),
   })
 }
 
@@ -42,6 +44,6 @@ export const loadAllContributions = async (
   return DbContribution.findAndCount({
     relations: { user: { emailContact: true } },
     order: { createdAt: order, id: order },
-    ...buildBaseOptions(paginated),
+    ...buildPaginationOptions(paginated),
   })
 }
