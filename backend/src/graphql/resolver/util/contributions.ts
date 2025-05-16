@@ -1,7 +1,6 @@
 import { Paginated } from '@arg/Paginated'
 import { Contribution as DbContribution } from 'database'
 import { FindManyOptions } from 'typeorm'
-import { GraphQLResolveInfo } from 'graphql'
 
 // TODO: combine with Pagination class for all queries to use
 function buildPaginationOptions(paginated: Paginated): FindManyOptions<DbContribution> {
