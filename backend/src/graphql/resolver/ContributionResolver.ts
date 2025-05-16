@@ -200,7 +200,6 @@ export class ContributionResolver {
     @Arg('pagination') pagination: Paginated,
   ): Promise<ContributionListResult> {
     const [dbContributions, count] = await loadAllContributions(pagination)
-
     return new ContributionListResult(count, dbContributions)
   }
 
