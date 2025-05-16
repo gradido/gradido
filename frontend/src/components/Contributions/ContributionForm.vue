@@ -103,7 +103,7 @@ const props = defineProps({
   maxGddThisMonth: { type: Number, required: true },
 })
 
-const emit = defineEmits(['upsert-contribution', 'update:modelValue', 'abort'])
+const emit = defineEmits(['upsert-contribution', 'abort'])
 
 const { t } = useI18n()
 

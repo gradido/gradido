@@ -53,10 +53,9 @@ const emit = defineEmits(['update-contribution-form'])
 
 // refs
 const currentPage = ref(1)
-
-// computed
 const openMessagesListId = ref(null)
 
+// queries
 const { result, loading, refetch, onResult } = useQuery(
   listContributions,
   {
@@ -77,6 +76,7 @@ const { result, loading, refetch, onResult } = useQuery(
   },
 )
 
+// computed
 const contributionCount = computed(() => {
   return result.value?.listContributions.contributionCount || 0
 })
@@ -85,6 +85,7 @@ const items = computed(() => {
 })
 
 // callbacks
+// scroll to anchor, if hash ist present in url and after data where loaded
 onResult(({ _data }) => {
   nextTick(() => {
     if (!route.hash) {

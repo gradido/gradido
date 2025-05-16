@@ -1,12 +1,8 @@
 import { useAppToast } from '@/composables/useToast'
-import { countContributionsInProgress } from '@/graphql/contributions.graphql'
-import { createContribution, deleteContribution, updateContribution } from '@/graphql/mutations'
-import { listAllContributions, listContributions, openCreations } from '@/graphql/queries'
-import { useMutation, useQuery } from '@vue/apollo-composable'
+import { useQuery } from '@vue/apollo-composable'
 import { mount } from '@vue/test-utils'
 import { BTab, BTabs } from 'bootstrap-vue-next'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Community from './Community'
 
@@ -18,13 +14,10 @@ vi.mock('vue-router', () => ({
 
 vi.mock('@vue/apollo-composable', () => ({
   useQuery: vi.fn(),
-  useMutation: vi.fn(),
 }))
 
 vi.mock('@/composables/useToast', () => ({
   useAppToast: vi.fn(() => ({
-    toastError: vi.fn(),
-    toastSuccess: vi.fn(),
     toastInfo: vi.fn(),
   })),
 }))
@@ -33,33 +26,6 @@ vi.mock('vue-i18n', () => ({
   useI18n: vi.fn(() => ({
     t: (key) => key,
   })),
-}))
-
-vi.mock('vee-validate', () => ({
-  useField: vi.fn(() => ({
-    value: ref(''),
-    errorMessage: ref(''),
-    handleChange: vi.fn(),
-    meta: reactive({
-      valid: true,
-      touched: false,
-      dirty: false,
-    }),
-  })),
-  useForm: vi.fn(() => ({
-    handleSubmit: vi.fn(),
-    errors: reactive({}),
-    resetForm: vi.fn(),
-  })),
-  defineRule: vi.fn(),
-}))
-
-// Mock child components
-vi.mock('@/components/Contributions/OpenCreationsAmount', () => ({
-  default: {
-    name: 'OpenCreationsAmount',
-    template: '<div></div>',
-  },
 }))
 
 vi.mock('@/components/Contributions/ContributionEdit', () => ({
@@ -96,61 +62,24 @@ describe('Community', () => {
   let mockToast
 
   const mockCountContributionsInProgress = vi.fn()
-  const mockOpenCreationsQuery = vi.fn()
-  const mockCreateContributionMutation = vi.fn()
-  const mockUpdateContributionMutation = vi.fn()
-  const mockDeleteContributionMutation = vi.fn()
 
   beforeEach(() => {
     mockRouter = { push: vi.fn() }
     vi.mocked(useRouter).mockReturnValue(mockRouter)
 
     mockToast = {
-      toastError: vi.fn(),
-      toastSuccess: vi.fn(),
       toastInfo: vi.fn(),
     }
     vi.mocked(useAppToast).mockReturnValue(mockToast)
 
-    vi.mocked(useQuery).mockImplementation((query) => {
-      if (query === openCreations) {
-        return {
-          onResult: mockOpenCreationsQuery,
-          refetch: vi.fn(),
-        }
-      }
-
-      if (query === countContributionsInProgress) {
-        return { onResult: mockCountContributionsInProgress }
-      }
-    })
-
-    vi.mocked(useMutation).mockImplementation((mutation) => {
-      if (mutation === createContribution) {
-        return {
-          mutate: mockCreateContributionMutation,
-        }
-      }
-      if (mutation === updateContribution) {
-        return {
-          mutate: mockUpdateContributionMutation,
-        }
-      }
-      if (mutation === deleteContribution) {
-        return {
-          mutate: mockDeleteContributionMutation,
-        }
-      }
-    })
-
-    const { defineRule } = require('vee-validate')
-    defineRule('required', (value) => !!value)
+    vi.mocked(useQuery).mockImplementation((query) => ({
+      onResult: mockCountContributionsInProgress,
+    }))
 
     wrapper = mount(Community, {
       global: {
         mocks: {
           $t: (key) => key, // Mock $t function
-          $d: (date) => date.toISOString(), // Mock $d function if needed
         },
         components: {
           BTabs,
