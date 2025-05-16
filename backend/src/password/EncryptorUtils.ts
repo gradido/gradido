@@ -1,7 +1,7 @@
-import { cpus } from 'os'
-import path from 'path'
+import { cpus } from 'node:os'
+import path from 'node:path'
 
-import { User } from '@entity/User'
+import { User } from 'database'
 import { Pool, pool } from 'workerpool'
 
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
@@ -12,7 +12,7 @@ import { backendLogger as logger } from '@/server/logger'
 
 import { crypto_shorthash_KEYBYTES } from 'sodium-native'
 
-import { SecretKeyCryptographyCreateKey as SecretKeyCryptographyCreateKeySync } from './EncryptionWorker'
+import { SecretKeyCryptographyCreateKeyFunc } from './EncryptionWorker.js'
 
 const configLoginAppSecret = Buffer.from(CONFIG.LOGIN_APP_SECRET, 'hex')
 const configLoginServerKey = Buffer.from(CONFIG.LOGIN_SERVER_KEY, 'hex')
@@ -20,13 +20,9 @@ const configLoginServerKey = Buffer.from(CONFIG.LOGIN_SERVER_KEY, 'hex')
 let encryptionWorkerPool: Pool | undefined
 
 if (CONFIG.USE_CRYPTO_WORKER === true) {
-  encryptionWorkerPool = pool(
-    path.join(__dirname, '..', '..', 'build', 'src', 'password', '/EncryptionWorker.js'),
-    {
-      // TODO: put maxQueueSize into config
-      maxQueueSize: 30 * cpus().length,
-    },
-  )
+  encryptionWorkerPool = pool(path.join(__dirname, 'worker.js'), {
+    maxQueueSize: 30 * cpus().length,
+  })
 }
 
 // We will reuse this for changePassword
@@ -52,22 +48,20 @@ export const SecretKeyCryptographyCreateKey = async (
         crypto_shorthash_KEYBYTES,
       )
     }
-    let result: Promise<bigint>
+    let result: bigint
     if (encryptionWorkerPool) {
-      result = (await encryptionWorkerPool.exec('SecretKeyCryptographyCreateKey', [
+      result = await encryptionWorkerPool.exec('SecretKeyCryptographyCreateKeyFunc', [
         salt,
         password,
         configLoginAppSecret,
         configLoginServerKey,
-      ])) as Promise<bigint>
+      ])
     } else {
-      result = Promise.resolve(
-        SecretKeyCryptographyCreateKeySync(
-          salt,
-          password,
-          configLoginAppSecret,
-          configLoginServerKey,
-        ),
+      result = SecretKeyCryptographyCreateKeyFunc(
+        salt,
+        password,
+        configLoginAppSecret,
+        configLoginServerKey,
       )
     }
     return result

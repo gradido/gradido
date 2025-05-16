@@ -1,4 +1,4 @@
-import { User } from '@entity/User'
+import { User } from 'database'
 
 import { isHumhubUserIdenticalToDbUser } from '@/apis/humhub/compareHumhubUserDbUser'
 import { GetUser } from '@/apis/humhub/model/GetUser'

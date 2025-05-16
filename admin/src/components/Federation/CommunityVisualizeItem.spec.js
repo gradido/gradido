@@ -469,7 +469,7 @@ describe('CommunityVisualizeItem', () => {
         mocks: {
           $t: (key) => key,
           $i18n: {
-            locale: locale,
+            locale,
           },
         },
         stubs: {

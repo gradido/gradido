@@ -1,9 +1,14 @@
-import { getConnection } from '@dbTools/typeorm'
-import { Community as DbCommunity } from '@entity/Community'
-import { PendingTransaction as DbPendingTransaction } from '@entity/PendingTransaction'
-import { Transaction as dbTransaction } from '@entity/Transaction'
-import { User as DbUser } from '@entity/User'
-
+import {
+  CommunityLoggingView,
+  Community as DbCommunity,
+  PendingTransaction as DbPendingTransaction,
+  User as DbUser,
+  PendingTransactionLoggingView,
+  TransactionLoggingView,
+  UserLoggingView,
+  Transaction as dbTransaction,
+} from 'database'
+import { getConnection } from 'typeorm'
 import { PendingTransactionState } from '../enum/PendingTransactionState'
 
 import { LogError } from '@/server/LogError'
@@ -11,10 +16,6 @@ import { federationLogger as logger } from '@/server/logger'
 
 import { TRANSACTIONS_LOCK } from '@/graphql/util/TRANSACTIONS_LOCK'
 import { getLastTransaction } from '@/graphql/util/getLastTransaction'
-import { CommunityLoggingView } from '@logging/CommunityLogging.view'
-import { PendingTransactionLoggingView } from '@logging/PendingTransactionLogging.view'
-import { TransactionLoggingView } from '@logging/TransactionLogging.view'
-import { UserLoggingView } from '@logging/UserLogging.view'
 import Decimal from 'decimal.js-light'
 import { calculateRecipientBalance } from './calculateRecipientBalance'
 

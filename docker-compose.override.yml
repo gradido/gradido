@@ -8,15 +8,19 @@ services:
     image: gradido/frontend:local-development
     build:
       target: development
+    networks:
+      - external-net
+      - internal-net
     environment:
       - NODE_ENV=development
       # - DEBUG=true
     volumes:
       # This makes sure the docker container has its own node modules.
       # Therefore it is possible to have a different node version on the host machine
-      - frontend_node_modules:/app/node_modules
+      - node_modules_frontend:/app/node_modules
+      - turbo_cache:/tmp/turbo
       # bind the local folder to the docker to allow live reload
-      - ./frontend:/app
+      - .:/app
 
   ########################################################
   # ADMIN INTERFACE ######################################
@@ -26,15 +30,18 @@ services:
     image: gradido/admin:local-development
     build:
       target: development
+    networks:
+      - external-net
+      - internal-net    
     environment:
       - NODE_ENV=development
-      # - DEBUG=true
     volumes:
       # This makes sure the docker container has its own node modules.
       # Therefore it is possible to have a different node version on the host machine
-      - admin_node_modules:/app/node_modules
+      - node_modules_admin:/app/node_modules
+      - turbo_cache:/tmp/turbo
       # bind the local folder to the docker to allow live reload
-      - ./admin:/app
+      - .:/app
 
   ########################################################
   # BACKEND ##############################################
@@ -48,19 +55,14 @@ services:
       - external-net
       - internal-net
     environment:
-      - NODE_ENV="development"
+      - NODE_ENV=development
     volumes:
       # This makes sure the docker container has its own node modules.
       # Therefore it is possible to have a different node version on the host machine
-      - backend_node_modules:/app/node_modules
-      - backend_database_node_modules:/database/node_modules
-      - backend_database_build:/database/build
-      - backend_config_node_modules:/config/node_modules
-      - backend_config_build:/config/build
+      - node_modules_backend:/app/node_modules
+      - turbo_cache:/tmp/turbo
       # bind the local folder to the docker to allow live reload
-      - ./backend:/app
-      - ./database:/database
-      - ./config:/config
+      - .:/app
 
   ########################################################
   # DHT-NODE #############################################
@@ -74,19 +76,14 @@ services:
       - external-net
       - internal-net
     environment:
-      - NODE_ENV="development"
+      - NODE_ENV=development
     volumes:
       # This makes sure the docker container has its own node modules.
       # Therefore it is possible to have a different node version on the host machine
-      - dht_node_modules:/app/node_modules
-      - dht_database_node_modules:/database/node_modules
-      - dht_database_build:/database/build
-      - dht_config_node_modules:/config/node_modules
-      - dht_config_build:/config/build
+      - node_modules_dht:/app/node_modules
+      - turbo_cache:/tmp/turbo
       # bind the local folder to the docker to allow live reload
-      - ./dht-node:/app
-      - ./database:/database
-      - ./config:/config
+      - .:/app
 
   ########################################################
   # DLT-CONNECTOR ########################################
@@ -121,19 +118,14 @@ services:
       - external-net
       - internal-net
     environment:
-      - NODE_ENV="development"
+      - NODE_ENV=development
     volumes:
       # This makes sure the docker container has its own node modules.
       # Therefore it is possible to have a different node version on the host machine
-      - federation_node_modules:/app/node_modules
-      - federation_database_node_modules:/database/node_modules
-      - federation_database_build:/database/build
-      - federation_config_node_modules:/config/node_modules
-      - federation_config_build:/config/build
+      - node_modules_federation:/app/node_modules
+      - turbo_cache:/tmp/turbo
       # bind the local folder to the docker to allow live reload
-      - ./federation:/app
-      - ./database:/database
-      - ./config:/config
+      - .:/app
 
   ########################################################
   # DATABASE ##############################################
@@ -144,16 +136,18 @@ services:
     #  Due to problems with the volume caching the built files
     #  we changed this to test build. This keeps the service running.
     # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
-    image: gradido/database:local-test_up
+    image: gradido/database:local-up
     build:
-      target: test_up
+      target: up
+    profiles:
+      - up
     environment:
-      - NODE_ENV="development"
+      - NODE_ENV=development
     volumes:
       # This makes sure the docker container has its own node modules.
       # Therefore it is possible to have a different node version on the host machine
-      - database_node_modules:/app/node_modules
-      - database_build:/app/build
+      - node_modules_database:/app/node_modules
+      - turbo_cache:/tmp/turbo
       # bind the local folder to the docker to allow live reload
       - ./database:/app
 
@@ -190,13 +184,21 @@ services:
   #########################################################
   ## NGINX ################################################
   #########################################################
-  # nginx:
+  nginx:
+    build:
+      context: ./nginx/
+    depends_on:
+      - backend
+      - frontend
+      - admin
   
   #########################################################
   ## PHPMYADMIN ###########################################
   #########################################################
   phpmyadmin:
     image: phpmyadmin
+    profiles: 
+      - debug
     environment:
      - PMA_ARBITRARY=1
     #restart: always
@@ -213,6 +215,8 @@ services:
   ########################################################
   mailserver:
     image: maildev/maildev
+    profiles: 
+      - debug
     ports:
       - 1080:1080
       - 1025:1025
@@ -220,25 +224,15 @@ services:
       - external-net
 
 volumes:
-  frontend_node_modules:
-  admin_node_modules:
-  backend_node_modules:
-  backend_database_node_modules:
-  backend_database_build:
-  backend_config_node_modules:
-  backend_config_build:
-  dht_node_modules:
-  dht_database_node_modules:
-  dht_database_build:
-  dht_config_node_modules:
-  dht_config_build:
+  node_modules:  
+  node_modules_dht:
+  node_modules_admin:
+  node_modules_frontend:
+  node_modules_backend:
+  node_modules_federation:
+  node_modules_database:
   dlt_connector_modules:
-  federation_node_modules:
-  federation_database_node_modules:
-  federation_database_build:
-  federation_config_node_modules:
-  federation_config_build:
-  database_node_modules:
-  database_build:
   dlt-database_node_modules:
   dlt-database_build:
+  turbo_cache:
+  turbo_cache_dht:

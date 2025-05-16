@@ -1,5 +1,5 @@
-import { User } from '@entity/User'
 import { ApolloServerTestClient } from 'apollo-server-testing'
+import { User } from 'database'
 
 import { RoleNames } from '@enum/RoleNames'
 

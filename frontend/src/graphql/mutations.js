@@ -179,3 +179,61 @@ export const logout = gql`
     logout
   }
 `
+
+export const createRedeemJwtMutation = gql`
+  mutation (
+    $gradidoId: String!
+    $senderCommunityUuid: String!
+    $senderCommunityName: String!
+    $recipientCommunityUuid: String!
+    $code: String!
+    $amount: String!
+    $memo: String!
+    $firstName: String
+    $alias: String
+    $validUntil: String
+  ) {
+    createRedeemJwt(
+      gradidoId: $gradidoId
+      senderCommunityUuid: $senderCommunityUuid
+      senderCommunityName: $senderCommunityName
+      recipientCommunityUuid: $recipientCommunityUuid
+      code: $code
+      amount: $amount
+      memo: $memo
+      firstName: $firstName
+      alias: $alias
+      validUntil: $validUntil
+    )
+  }
+`
+
+export const disburseTransactionLink = gql`
+  mutation (
+    $senderCommunityUuid: String!
+    $senderGradidoId: String!
+    $recipientCommunityUuid: String!
+    $recipientCommunityName: String!
+    $recipientGradidoId: String!
+    $recipientFirstName: String!
+    $code: String!
+    $amount: String!
+    $memo: String!
+    $validUntil: String
+    $recipientAlias: String
+  ) {
+    disburseTransactionLink(
+      senderCommunityUuid: $senderCommunityUuid
+      senderGradidoId: $senderGradidoId
+      recipientCommunityUuid: $recipientCommunityUuid
+      recipientCommunityName: $recipientCommunityName
+      recipientGradidoId: $recipientGradidoId
+      recipientFirstName: $recipientFirstName
+      code: $code
+      amount: $amount
+      memo: $memo
+      validUntil: $validUntil
+      recipientAlias: $recipientAlias
+    )
+  }
+`

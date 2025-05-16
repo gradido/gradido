@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import { Connection, ResultSetHeader, RowDataPacket, createConnection } from 'mysql2/promise'
 
 import { CONFIG } from './config'
@@ -11,23 +10,42 @@ export enum DatabaseState {
   SAME_VERSION = 'SAME_VERSION',
 }
 
-async function connectToDatabaseServer(): Promise<Connection | null> {
-  try {
-    return await createConnection({
-      host: CONFIG.DB_HOST,
-      port: CONFIG.DB_PORT,
-      user: CONFIG.DB_USER,
-      password: CONFIG.DB_PASSWORD,
-    })
-  } catch (e) {
-    // biome-ignore lint/suspicious/noConsole: no logger present
-    console.log('could not connect to database server', e)
-    return null
+export async function connectToDatabaseServer(
+  maxRetries: number,
+  delayMs: number,
+): Promise<Connection | null> {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await createConnection({
+        host: CONFIG.DB_HOST,
+        port: CONFIG.DB_PORT,
+        user: CONFIG.DB_USER,
+        password: CONFIG.DB_PASSWORD,
+      })
+    } catch (e) {
+      // biome-ignore lint/suspicious/noConsole: no logger present
+      console.log(`could not connect to database server, retry in ${delayMs} ms`, e)
+    }
+    await new Promise((resolve) => setTimeout(resolve, delayMs))
   }
+  return null
+}
+
+async function convertJsToTsInMigrations(connection: Connection): Promise<number> {
+  const [result] = await connection.query<ResultSetHeader>(`
+    UPDATE ${CONFIG.MIGRATIONS_TABLE}
+    SET fileName = REPLACE(fileName, '.js', '.ts')
+    WHERE fileName LIKE '%.js'
+  `)
+
+  return result.affectedRows
 }
 
 export const getDatabaseState = async (): Promise<DatabaseState> => {
-  const connection = await connectToDatabaseServer()
+  const connection = await connectToDatabaseServer(
+    CONFIG.DB_CONNECT_RETRY_COUNT,
+    CONFIG.DB_CONNECT_RETRY_DELAY_MS,
+  )
   if (!connection) {
     return DatabaseState.NOT_CONNECTED
   }
@@ -60,9 +78,29 @@ export const getDatabaseState = async (): Promise<DatabaseState> => {
 
   await connection.query(`USE ${CONFIG.DB_DATABASE}`)
 
+  // check structure of fileNames, normally they should all ends with .ts
+  // but from older version they can end all on .js, that we need to fix
+  // they can even be mixed, but this we cannot easily fix automatic, so we must throw an error
+  const [counts] = await connection.query<RowDataPacket[]>(`
+    SELECT
+      SUM(fileName LIKE '%.js') AS jsCount,
+      SUM(fileName LIKE '%.ts') AS tsCount
+    FROM ${CONFIG.MIGRATIONS_TABLE}
+  `)
+
+  if (counts[0].jsCount > 0 && counts[0].tsCount > 0) {
+    throw new Error('Mixed JS and TS migrations found, we cannot fix this automatically')
+  }
+
+  if (counts[0].jsCount > 0) {
+    const converted = await convertJsToTsInMigrations(connection)
+    // biome-ignore lint/suspicious/noConsole: no logger present
+    console.log(`Converted ${converted} JS migrations to TS`)
+  }
+
   // check if the database is up to date
   const [rows] = await connection.query<RowDataPacket[]>(
-    `SELECT * FROM ${CONFIG.MIGRATIONS_TABLE} ORDER BY version DESC LIMIT 1`,
+    `SELECT fileName FROM ${CONFIG.MIGRATIONS_TABLE} ORDER BY version DESC LIMIT 1`,
   )
   if (rows.length === 0) {
     return DatabaseState.LOWER_VERSION

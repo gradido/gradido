@@ -1,0 +1,20 @@
+{
+  "extends": ["//"],
+  "tasks": {
+    "stylelint": {},
+    "locales": {},
+    "lint": {
+      "dependsOn": ["stylelint", "locales"]
+    },
+    "compile-scss": {},
+    "watch-scss": {
+      "cache": false,
+      "persistent": true
+    },
+    "build": {
+      "dependsOn": ["compile-scss", "^build"],
+      "outputs": ["build/**"],
+      "cache": true
+    }
+  }
+}

@@ -1,7 +1,9 @@
-import { IsNull } from '@dbTools/typeorm'
-import { Community as DbCommunity } from '@entity/Community'
-import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
-import { FederatedCommunityLoggingView } from '@logging/FederatedCommunityLogging.view'
+import {
+  Community as DbCommunity,
+  FederatedCommunity as DbFederatedCommunity,
+  FederatedCommunityLoggingView,
+} from 'database'
+import { IsNull } from 'typeorm'
 
 import { FederationClient as V1_0_FederationClient } from '@/federation/client/1_0/FederationClient'
 import { PublicCommunityInfo } from '@/federation/client/1_0/model/PublicCommunityInfo'

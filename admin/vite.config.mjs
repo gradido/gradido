@@ -6,16 +6,21 @@ import Components from 'unplugin-vue-components/vite'
 import IconsResolve from 'unplugin-icons/resolver'
 import { BootstrapVueNextResolver } from 'bootstrap-vue-next'
 import EnvironmentPlugin from 'vite-plugin-environment'
+
 import schema from './src/config/schema'
-import { validate, browserUrls } from 'gradido-config/build/src/index.js'
 
+import { execSync } from 'node:child_process'
+import { existsSync, constants } from 'node:fs'
+
+import { validate, browserUrls } from 'config-schema'
+
+import path from 'node:path'
+import { createRequire } from 'node:module'
 import dotenv from 'dotenv'
-
 dotenv.config() // load env vars from .env
 
+const require = createRequire(import.meta.url)
 const CONFIG = require('./src/config')
-
-const path = require('path')
 
 export default defineConfig(async ({ command }) => {
   const { vitePluginGraphqlLoader } = await import('vite-plugin-graphql-loader')
@@ -23,6 +28,10 @@ export default defineConfig(async ({ command }) => {
     CONFIG.ADMIN_HOSTING = 'nodejs'
   } else {
     CONFIG.ADMIN_HOSTING = 'nginx'
+  }
+  if (existsSync('../.git', constants.F_OK)) {
+    CONFIG.BUILD_COMMIT = execSync('git rev-parse HEAD').toString().trim()
+    CONFIG.BUILD_COMMIT_SHORT = (CONFIG.BUILD_COMMIT ?? '0000000').slice(0, 7)
   }
   validate(schema, CONFIG)
   // make sure that all urls used in browser have the same protocol to prevent mixed content errors
@@ -70,7 +79,7 @@ export default defineConfig(async ({ command }) => {
         compiler: 'vue3',
       }),
       EnvironmentPlugin({
-        BUILD_COMMIT: null,
+        BUILD_COMMIT: CONFIG.BUILD_COMMIT ?? undefined,
         PORT: CONFIG.ADMIN_MODULE_PORT ?? null, // null,
         COMMUNITY_HOST: CONFIG.ADMIN_MODULE_HOST ?? null, // null,
         COMMUNITY_URL: CONFIG.COMMUNITY_URL ?? null,

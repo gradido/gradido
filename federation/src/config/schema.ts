@@ -1,4 +1,6 @@
 import {
+  DB_CONNECT_RETRY_COUNT,
+  DB_CONNECT_RETRY_DELAY_MS,
   DB_DATABASE,
   DB_HOST,
   DB_PASSWORD,
@@ -12,11 +14,13 @@ import {
   NODE_ENV,
   PRODUCTION,
   TYPEORM_LOGGING_RELATIVE_PATH,
-} from '@config/commonSchema'
+} from 'config-schema'
 import Joi from 'joi'
 
 export const schema = Joi.object({
   DB_DATABASE,
+  DB_CONNECT_RETRY_COUNT,
+  DB_CONNECT_RETRY_DELAY_MS,
   DB_HOST,
   DB_PASSWORD,
   DB_PORT,

@@ -1,4 +1,4 @@
-import { ProjectBranding as DbProjectBranding } from '@entity/ProjectBranding'
+import { ProjectBranding as DbProjectBranding } from 'database'
 import { Arg, Authorized, ID, Int, Mutation, Query, Resolver } from 'type-graphql'
 
 import { ProjectBrandingInput } from '@input/ProjectBrandingInput'

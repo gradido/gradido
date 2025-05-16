@@ -48,7 +48,7 @@ describe('SessionLogoutTimeout', () => {
   const createWrapper = (tokenTime = setTokenTime(120)) => {
     vi.mocked(useStore).mockReturnValue({
       state: {
-        tokenTime: tokenTime,
+        tokenTime,
       },
     })
     return mount(SessionLogoutTimeout, {

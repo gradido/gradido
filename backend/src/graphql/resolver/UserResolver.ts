@@ -1,10 +1,11 @@
-import { In, Point, getConnection } from '@dbTools/typeorm'
-import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
-import { ProjectBranding } from '@entity/ProjectBranding'
-import { TransactionLink as DbTransactionLink } from '@entity/TransactionLink'
-import { User as DbUser } from '@entity/User'
-import { UserContact as DbUserContact } from '@entity/UserContact'
-import { UserLoggingView } from '@logging/UserLogging.view'
+import {
+  ContributionLink as DbContributionLink,
+  TransactionLink as DbTransactionLink,
+  User as DbUser,
+  UserContact as DbUserContact,
+  ProjectBranding,
+  UserLoggingView,
+} from 'database'
 import { GraphQLResolveInfo } from 'graphql'
 import i18n from 'i18n'
 import {
@@ -21,6 +22,7 @@ import {
   Root,
 } from 'type-graphql'
 import { IRestResponse } from 'typed-rest-client'
+import { In, Point, getConnection } from 'typeorm'
 import { v4 as uuidv4 } from 'uuid'
 
 import { UserArgs } from '@arg//UserArgs'

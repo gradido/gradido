@@ -14,6 +14,9 @@ ENV BUILD_VERSION="0.0.0.0"
 ENV BUILD_COMMIT="0000000"
 ## SET NODE_ENV
 ENV NODE_ENV="production"
+## Timezone
+ENV TZ=UTC
+ENV DB_HOST=mariadb
 
 # Labels
 LABEL org.label-schema.build-date="${BUILD_DATE}"
@@ -37,94 +40,65 @@ RUN mkdir -p ${DOCKER_WORKDIR}
 WORKDIR ${DOCKER_WORKDIR}
 
 ##################################################################################
-# DEVELOPMENT (Connected to the local environment, to reload on demand) ##########
+# BUN ############################################################################
 ##################################################################################
-FROM base as development
+FROM base as bun-base
 
-# We don't need to copy or build anything since we gonna bind to the
-# local filesystem which will need a rebuild anyway
-
-# Run command
-# (for development we need to execute npm install since the
-#  node_modules are on another volume and need updating)
-CMD /bin/sh -c "yarn install"
+#RUN apt update && apt install -y --no-install-recommends ca-certificates curl bash unzip
+RUN apk update && apk add --no-cache curl tar bash
+RUN curl -fsSL https://bun.sh/install | bash
+# Add bun's global bin directory to PATH
+ENV PATH="/root/.bun/bin:${PATH}"
 
 ##################################################################################
-# BUILD (Does contain all files and is therefore bloated) ########################
+# Installer ######################################################################
 ##################################################################################
-FROM base as build
+FROM bun-base as installer
 
-# Copy everything
-COPY . .
-# npm install
-RUN yarn install --production=false --frozen-lockfile --non-interactive
-# npm build
-RUN yarn run build
+COPY --chown=app:app ./database .
+RUN bun install --production --no-cache --frozen-lockfile
+
+##################################################################################
+# Build ##########################################################################
+##################################################################################
+FROM installer as build
+
+RUN bun install --no-cache --frozen-lockfile \
+  yarn build && yarn typecheck
+
+##################################################################################
+# PRODUCTION IMAGE ###############################################################
+##################################################################################
+FROM base as production 
+
+COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/src ./src
+COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/migrations ./migrations
+COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/entity ./entity
+COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/node_modules ./node_modules
+COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/package.json ./package.json 
+COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/tsconfig.json ./tsconfig.json
 
 ##################################################################################
 # TEST UP ########################################################################
 ##################################################################################
-FROM build as test_up
+FROM production as up
+
 
 # Run command
-CMD /bin/sh -c "yarn install && yarn run dev_up"
+CMD /bin/sh -c "yarn up"
 
 ##################################################################################
 # TEST RESET #####################################################################
 ##################################################################################
-FROM build as test_reset
+FROM production as reset
 
 # Run command
-CMD /bin/sh -c "yarn install && yarn run dev_reset"
+CMD /bin/sh -c "yarn reset"
 
 ##################################################################################
 # TEST DOWN ######################################################################
 ##################################################################################
-FROM build as test_down
+FROM production as down
 
 # Run command
-CMD /bin/sh -c "yarn install && yarn run dev_down"
-
-##################################################################################
-# PRODUCTION (Does contain only "binary"- and static-files to reduce image size) #
-##################################################################################
-FROM base as production
-
-# Copy "binary"-files from build image
-COPY --from=build ${DOCKER_WORKDIR}/build ./build
-# We also copy the node_modules express and serve-static for the run script
-COPY --from=build ${DOCKER_WORKDIR}/node_modules ./node_modules
-# Copy static files
-# COPY --from=build ${DOCKER_WORKDIR}/public ./public
-# Copy package.json for script definitions (lock file should not be needed)
-COPY --from=build ${DOCKER_WORKDIR}/package.json ./package.json
-# Copy Mnemonic files
-COPY --from=build ${DOCKER_WORKDIR}/src/config/*.txt ./src/config/
-# Copy log folder
-COPY --from=build ${DOCKER_WORKDIR}/log ./log
-# Copy run scripts run/
-# COPY --from=build ${DOCKER_WORKDIR}/run ./run
-
-##################################################################################
-# PRODUCTION UP ##################################################################
-##################################################################################
-FROM production as production_up
-
-# Run command
-CMD /bin/sh -c "yarn run up"
-
-##################################################################################
-# PRODUCTION RESET ###############################################################
-##################################################################################
-FROM production as production_reset
-
-# Run command
-CMD /bin/sh -c "yarn run reset"
-
-##################################################################################
-# PRODUCTION DOWN ################################################################
-##################################################################################
-FROM production as production_down
-
-# Run command
-CMD /bin/sh -c "yarn run down"
+CMD /bin/sh -c "yarn down"

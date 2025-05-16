@@ -1,13 +1,5 @@
-import {
-  Brackets,
-  In,
-  IsNull,
-  LessThanOrEqual,
-  Like,
-  Not,
-  SelectQueryBuilder,
-} from '@dbTools/typeorm'
-import { Contribution as DbContribution } from '@entity/Contribution'
+import { Contribution as DbContribution } from 'database'
+import { Brackets, In, IsNull, LessThanOrEqual, Like, Not, SelectQueryBuilder } from 'typeorm'
 
 import { Paginated } from '@arg/Paginated'
 import { SearchContributionsFilterArgs } from '@arg/SearchContributionsFilterArgs'

@@ -1,4 +1,4 @@
-import { User as DbUser } from '@entity/User'
+import { User as DbUser } from 'database'
 
 import { decode } from '@/auth/JWT'
 import { gmsLogger as logger } from '@/server/logger'

@@ -7,13 +7,14 @@ jobs:
     name: Detect File Changes - DHT Node
     runs-on: ubuntu-latest
     outputs:
+      config: ${{ steps.changes.outputs.config }}
       database: ${{ steps.changes.outputs.database }}
       dht_node: ${{ steps.changes.outputs.dht_node }}
       docker-compose: ${{ steps.changes.outputs.docker-compose }}
     steps:
       - uses: actions/checkout@v3.3.0
 
-      - name: Check for frontend file changes
+      - name: Check for dht-node, config-schema, database, docker-compose file changes
         uses: dorny/paths-filter@v2.11.1
         id: changes
         with:
@@ -23,49 +24,41 @@ jobs:
 
   build:
     name: Docker Build Test - DHT Node
-    if: needs.files-changed.outputs.dht_node == 'true'
+    if: needs.files-changed.outputs.config == 'true' || needs.files-changed.outputs.database == 'true' || needs.files-changed.outputs.dht_node == 'true' || needs.files-changed.outputs.docker-compose == 'true'
     needs: files-changed
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Build 'test' image
-        run: docker build --target test -t "gradido/dht-node:test" -f dht-node/Dockerfile .
-
-  lint:
-    name: Lint - DHT Node
-    if: needs.files-changed.outputs.dht_node == 'true'
-    needs: files-changed
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: DHT-Node | Lint
-        run: cd database && yarn && cd ../dht-node && yarn && yarn run lint
+      - name: Build 'production' image
+        run: docker build --target production -t "gradido/dht-node:production" -f dht-node/Dockerfile .
 
   unit_test:
     name: Unit Tests - DHT Node
-    if: needs.files-changed.outputs.database == 'true' || needs.files-changed.outputs.dht_node == 'true' || needs.files-changed.outputs.docker-compose == 'true' || needs.files-changed.outputs.mariadb == 'true'
-    needs: [files-changed, build]
+    if: needs.files-changed.outputs.config == 'true' || needs.files-changed.outputs.database == 'true' || needs.files-changed.outputs.dht_node == 'true' || needs.files-changed.outputs.docker-compose == 'true'
+    needs: files-changed
     runs-on: ubuntu-latest
     steps:
+      - name: Set Node.js version
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.20.7'
+
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: docker-compose mariadb
         run: docker compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps mariadb
 
-      - name: DHT-Node | install and build
-        run: cd database && yarn && yarn build && cd ../config && yarn && cd ../dht-node && yarn && yarn build
+      - name: install bun 
+        uses: oven-sh/setup-bun@v2
 
-      - name: wait for database to be ready
-        run: docker run --rm --network gradido_internal-net busybox sh -c 'until nc -z mariadb 3306; do echo waiting for db; sleep 1; done;'
+      - name: install dependencies
+        run: |
+          bun install --filter dht-node --frozen-lockfile
+          bun install --global --no-save turbo@^2
 
-      - name: DHT-Node | prepare database
-        run: cd database && yarn up:dht_test
-
-      - name: DHT-Node | Unit tests
-        run: cd dht-node && yarn test
+      - name: run unit test & build & typecheck
+        run: turbo dht-node#test dht-node#build dht-node#typecheck
 

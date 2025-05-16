@@ -1,4 +1,4 @@
-const {
+import {
   APP_VERSION,
   BUILD_COMMIT,
   BUILD_COMMIT_SHORT,
@@ -10,8 +10,8 @@ const {
   NODE_ENV,
   OPENAI_ACTIVE,
   PRODUCTION,
-} = require('gradido-config/build/src/commonSchema.js')
-const Joi = require('joi')
+} from 'config-schema'
+import Joi from 'joi'
 
 module.exports = Joi.object({
   APP_VERSION,

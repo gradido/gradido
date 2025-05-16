@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       admin: ${{ steps.changes.outputs.admin }}
+      config: ${{ steps.changes.outputs.config }}
     steps:
       - uses: actions/checkout@v3.3.0
 
@@ -23,7 +24,7 @@ jobs:
 
   
   build_test:
-    if: needs.files-changed.outputs.admin == 'true'
+    if: needs.files-changed.outputs.config == 'true' || needs.files-changed.outputs.admin == 'true'
     name: Docker Build Test - Admin Interface
     needs: files-changed
     runs-on: ubuntu-latest
@@ -33,43 +34,56 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Admin Interface | Build 'test' image
-        run: docker build -f ./admin/Dockerfile --target test -t "gradido/admin:test" --build-arg NODE_ENV="test" .
+        run: docker build -f ./admin/Dockerfile --target production -t "gradido/admin:production" --build-arg NODE_ENV="production" --build-arg BUILD_COMMIT=$(git rev-parse HEAD) --build-arg BUILD_COMMIT_SHORT=$(git rev-parse --short HEAD) .
 
   unit_test:
-    if: needs.files-changed.outputs.admin == 'true'
+    if: needs.files-changed.outputs.config == 'true' || needs.files-changed.outputs.admin == 'true'
     name: Unit Tests - Admin Interface
     needs: files-changed
     runs-on: ubuntu-latest
+    outputs:
+      test-success: ${{ steps.test.outputs.success }}
     steps:
+      - name: Set Node.js version
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.20.7'
+
       - name: Checkout code
         uses: actions/checkout@v3
+
+      - name: install bun 
+        uses: oven-sh/setup-bun@v2
+
+      - name: install dependencies
+        run: |
+          bun install --filter admin --frozen-lockfile
+          bun install --global --no-save turbo@^2
 
       - name: Admin Interface | Unit tests
-        run: cd admin && yarn global add node-gyp && yarn && yarn run test
+        id: test
+        run: |
+          turbo admin#test admin#lint
+          echo "success=$([ $? -eq 0 ] && echo true || echo false)" >> $GITHUB_OUTPUT
 
   lint:
-    if: needs.files-changed.outputs.admin == 'true'
     name: Lint - Admin Interface
-    needs: files-changed
+    needs: unit_test
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Admin Interface | Lint
-        run: cd admin && yarn global add node-gyp && yarn && yarn run lint
+      - name: Check result from previous step
+        run: if [ "${{ needs.unit_test.outputs.test-success }}" != "true" ]; then exit 1; fi
 
   stylelint:
-    if: needs.files-changed.outputs.admin == 'true'
     name: Stylelint - Admin Interface
-    needs: files-changed
+    needs: unit_test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Admin Interface | Stylelint
-        run: cd admin && yarn global add node-gyp && yarn && yarn run stylelint
+      - name: Check result from previous step
+        run: if [ "${{ needs.unit_test.outputs.test-success }}" != "true" ]; then exit 1; fi
 
   locales:
     if: needs.files-changed.outputs.admin == 'true'
@@ -81,4 +95,4 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Admin Interface | Locales
-        run: cd admin && yarn global add node-gyp && yarn && yarn run locales
+        run: cd admin && yarn locales

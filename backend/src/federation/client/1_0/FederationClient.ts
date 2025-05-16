@@ -1,4 +1,4 @@
-import { FederatedCommunity as DbFederatedCommunity } from '@entity/FederatedCommunity'
+import { FederatedCommunity as DbFederatedCommunity } from 'database'
 import { GraphQLClient } from 'graphql-request'
 
 import { getPublicCommunityInfo } from '@/federation/client/1_0/query/getPublicCommunityInfo'
@@ -78,6 +78,7 @@ export class FederationClient {
       )
       return data.getPublicCommunityInfo
     } catch (err) {
+      logger.warn(' err', err)
       const errorString = JSON.stringify(err)
       logger.warn('Federation: getPublicCommunityInfo failed for endpoint', {
         endpoint: this.endpoint,

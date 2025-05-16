@@ -1,4 +1,4 @@
-import { User as DbUser } from '@entity/User'
+import { User as DbUser } from 'database'
 // import { createTestClient } from 'apollo-server-testing'
 
 // import { createGmsUser } from '@/apis/gms/GmsClient'

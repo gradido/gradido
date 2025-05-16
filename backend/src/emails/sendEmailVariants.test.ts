@@ -1,6 +1,6 @@
-import { Connection } from '@dbTools/typeorm'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { Decimal } from 'decimal.js-light'
+import { Connection } from 'typeorm'
 
 import { testEnvironment } from '@test/helpers'
 import { i18n as localization, logger } from '@test/testSetup'

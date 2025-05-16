@@ -1,11 +1,11 @@
-const {
+import {
   APP_VERSION,
   BUILD_COMMIT,
   BUILD_COMMIT_SHORT,
   COMMUNITY_DESCRIPTION,
+  COMMUNITY_LOCATION,
   COMMUNITY_NAME,
   COMMUNITY_SUPPORT_MAIL,
-  COMMUNITY_LOCATION,
   COMMUNITY_URL,
   DEBUG,
   DECAY_START_TIME,
@@ -14,8 +14,8 @@ const {
   HUMHUB_ACTIVE,
   NODE_ENV,
   PRODUCTION,
-} = require('gradido-config/build/src/commonSchema.js')
-const Joi = require('joi')
+} from 'config-schema'
+import Joi from 'joi'
 
 // console.log(commonSchema)
 

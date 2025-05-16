@@ -1,6 +1,6 @@
-import { Connection } from '@dbTools/typeorm'
-import { Transaction as DbTransaction } from '@entity/Transaction'
+import { Transaction as DbTransaction } from 'database'
 import { Decimal } from 'decimal.js-light'
+import { Connection } from 'typeorm'
 
 import { cleanDB, testEnvironment } from '@test/helpers'
 
@@ -111,7 +111,7 @@ describe('transmitTransaction', () => {
       await DltConnectorClient.getInstance()?.transmitTransaction(localTransaction)
     } catch (e) {
       expect(e).toMatchObject(
-        new LogError('invalid transaction type id: ' + localTransaction.typeId.toString()),
+        new LogError(`invalid transaction type id: ${localTransaction.typeId.toString()}`),
       )
     }
   })

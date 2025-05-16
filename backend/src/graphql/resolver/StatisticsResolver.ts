@@ -1,8 +1,7 @@
-import { getConnection } from '@dbTools/typeorm'
-import { Transaction as DbTransaction } from '@entity/Transaction'
-import { User as DbUser } from '@entity/User'
+import { Transaction as DbTransaction, User as DbUser } from 'database'
 import { Decimal } from 'decimal.js-light'
 import { Authorized, FieldResolver, Query, Resolver } from 'type-graphql'
+import { getConnection } from 'typeorm'
 
 import { CommunityStatistics, DynamicStatisticsFields } from '@model/CommunityStatistics'
 

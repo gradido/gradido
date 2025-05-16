@@ -1,5 +1,5 @@
-import { IsNull, Like, Not } from '@dbTools/typeorm'
-import { User as DbUser } from '@entity/User'
+import { User as DbUser } from 'database'
+import { IsNull, Like, Not } from 'typeorm'
 
 import { SearchUsersFilters } from '@arg/SearchUsersFilters'
 import { Order } from '@enum/Order'

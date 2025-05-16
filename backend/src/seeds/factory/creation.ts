@@ -1,6 +1,5 @@
-import { Contribution } from '@entity/Contribution'
-import { Transaction } from '@entity/Transaction'
 import { ApolloServerTestClient } from 'apollo-server-testing'
+import { Contribution, Transaction } from 'database'
 
 import { findUserByEmail } from '@/graphql/resolver/UserResolver'
 import { CreationInterface } from '@/seeds/creation/CreationInterface'

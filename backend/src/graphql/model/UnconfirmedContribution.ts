@@ -1,6 +1,4 @@
-import { Contribution } from '@entity/Contribution'
-import { ContributionMessage as dbContributionMessage } from '@entity/ContributionMessage'
-
+import { Contribution as DbContribution, ContributionMessage as DbContributionMessage } from 'database'
 import { Decimal } from 'decimal.js-light'
 import { Field, Int, ObjectType } from 'type-graphql'
 
@@ -9,21 +7,21 @@ import { User } from './User'
 
 @ObjectType()
 export class UnconfirmedContribution {
-  constructor(contribution: Contribution) {
-    const user = contribution.user
-    this.id = contribution.id
-    this.userId = contribution.userId
-    this.amount = contribution.amount
-    this.memo = contribution.memo
-    this.contributionDate = contribution.contributionDate
+  constructor(dbContribution: DbContribution) {
+    const user = dbContribution.user
+    this.id = dbContribution.id
+    this.userId = dbContribution.userId
+    this.amount = dbContribution.amount
+    this.memo = dbContribution.memo
+    this.contributionDate = dbContribution.contributionDate
     this.user = user ? new User(user) : null
-    this.moderatorId = contribution.moderatorId
-    this.contributionStatus = contribution.contributionStatus
-    this.messagesCount = contribution.messages ? contribution.messages.length : 0
+    this.moderatorId = dbContribution.moderatorId
+    this.contributionStatus = dbContribution.contributionStatus
+    this.messagesCount = dbContribution.messages ? dbContribution.messages.length : 0
 
-    this.messages = contribution.messages
-      ? contribution.messages.map(
-          (message: dbContributionMessage) => new ContributionMessage(message),
+    this.messages = dbContribution.messages
+      ? dbContribution.messages.map(
+          (dbMessage: DbContributionMessage) => new ContributionMessage(dbMessage),
         )
       : null
   }

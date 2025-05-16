@@ -1,5 +1,5 @@
-import { In } from '@dbTools/typeorm'
-import { ContributionMessage as DbContributionMessage } from '@entity/ContributionMessage'
+import { ContributionMessage as DbContributionMessage } from 'database'
+import { In } from 'typeorm'
 
 import { Paginated } from '@arg/Paginated'
 import { ContributionMessageType } from '@enum/ContributionMessageType'

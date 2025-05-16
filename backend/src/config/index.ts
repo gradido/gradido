@@ -1,7 +1,7 @@
 // ATTENTION: DO NOT PUT ANY SECRETS IN HERE (or the .env)
 
-import { validate } from '@config/index'
-import { latestDbVersion } from '@dbTools/config/detectLastDBVersion'
+import { validate } from 'config-schema'
+import { latestDbVersion } from 'database'
 import { Decimal } from 'decimal.js-light'
 import dotenv from 'dotenv'
 
@@ -25,6 +25,7 @@ const server = {
   PORT: process.env.PORT ?? 4000,
   JWT_SECRET: process.env.JWT_SECRET ?? 'secret123',
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN ?? '10m',
+  REDEEM_JWT_TOKEN_EXPIRATION: process.env.REDEEM_JWT_TOKEN_EXPIRATION ?? '10m',
   GRAPHIQL: process.env.GRAPHIQL === 'true' || false,
   GDT_ACTIVE: process.env.GDT_ACTIVE === 'true' || false,
   GDT_API_URL: process.env.GDT_API_URL ?? 'https://gdt.gradido.net',
@@ -34,8 +35,14 @@ const server = {
 }
 
 const database = {
+  DB_CONNECT_RETRY_COUNT: process.env.DB_CONNECT_RETRY_COUNT
+    ? Number.parseInt(process.env.DB_CONNECT_RETRY_COUNT)
+    : 15,
+  DB_CONNECT_RETRY_DELAY_MS: process.env.DB_CONNECT_RETRY_DELAY_MS
+    ? Number.parseInt(process.env.DB_CONNECT_RETRY_DELAY_MS)
+    : 500,
   DB_HOST: process.env.DB_HOST ?? 'localhost',
-  DB_PORT: process.env.DB_PORT ? parseInt(process.env.DB_PORT) : 3306,
+  DB_PORT: process.env.DB_PORT ? Number.parseInt(process.env.DB_PORT) : 3306,
   DB_USER: process.env.DB_USER ?? 'root',
   DB_PASSWORD: process.env.DB_PASSWORD ?? '',
   DB_DATABASE: process.env.DB_DATABASE ?? 'gradido_community',
@@ -75,12 +82,12 @@ const community = {
 const loginServer = {
   LOGIN_APP_SECRET: process.env.LOGIN_APP_SECRET ?? '21ffbbc616fe',
   LOGIN_SERVER_KEY: process.env.LOGIN_SERVER_KEY ?? 'a51ef8ac7ef1abf162fb7a65261acd7a',
-  USE_CRYPTO_WORKER: process.env.USE_CRYPTO_WORKER ?? false,
+  USE_CRYPTO_WORKER: process.env.USE_CRYPTO_WORKER === 'true',
 }
 
 const email = {
-  EMAIL: process.env.EMAIL === 'true' || false,
-  EMAIL_TEST_MODUS: process.env.EMAIL_TEST_MODUS === 'true' || false,
+  EMAIL: process.env.EMAIL === 'true',
+  EMAIL_TEST_MODUS: process.env.EMAIL_TEST_MODUS === 'true',
   EMAIL_TEST_RECEIVER: process.env.EMAIL_TEST_RECEIVER ?? 'stage1@gradido.net',
   EMAIL_USERNAME: process.env.EMAIL_USERNAME ?? '',
   EMAIL_SENDER: process.env.EMAIL_SENDER ?? 'info@gradido.net',

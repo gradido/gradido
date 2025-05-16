@@ -1,8 +1,9 @@
-import { EntityManager, IsNull, getConnection } from '@dbTools/typeorm'
-import { Contribution as DbContribution } from '@entity/Contribution'
-import { Transaction as DbTransaction } from '@entity/Transaction'
-import { User as DbUser } from '@entity/User'
-import { UserContact } from '@entity/UserContact'
+import {
+  Contribution as DbContribution,
+  Transaction as DbTransaction,
+  User as DbUser,
+  UserContact,
+} from 'database'
 import { Decimal } from 'decimal.js-light'
 import { GraphQLResolveInfo } from 'graphql'
 import {
@@ -18,6 +19,7 @@ import {
   Resolver,
   Root,
 } from 'type-graphql'
+import { EntityManager, IsNull, getConnection } from 'typeorm'
 
 import { AdminCreateContributionArgs } from '@arg/AdminCreateContributionArgs'
 import { AdminUpdateContributionArgs } from '@arg/AdminUpdateContributionArgs'

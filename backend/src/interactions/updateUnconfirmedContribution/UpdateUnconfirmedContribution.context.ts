@@ -1,7 +1,6 @@
-import { EntityManager, FindOneOptions, FindOptionsRelations } from '@dbTools/typeorm'
-import { Contribution } from '@entity/Contribution'
-import { ContributionMessage } from '@entity/ContributionMessage'
+import { Contribution, ContributionMessage } from 'database'
 import { Decimal } from 'decimal.js-light'
+import { EntityManager, FindOneOptions, FindOptionsRelations } from 'typeorm'
 
 import { AdminUpdateContributionArgs } from '@arg/AdminUpdateContributionArgs'
 import { ContributionArgs } from '@arg/ContributionArgs'

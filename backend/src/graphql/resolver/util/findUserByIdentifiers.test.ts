@@ -1,7 +1,6 @@
-import { Connection } from '@dbTools/typeorm'
-import { Community as DbCommunity } from '@entity/Community'
-import { User as DbUser } from '@entity/User'
 import { ApolloServerTestClient } from 'apollo-server-testing'
+import { Community as DbCommunity, User as DbUser } from 'database'
+import { Connection } from 'typeorm'
 
 import { cleanDB, testEnvironment } from '@test/helpers'
 

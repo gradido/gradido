@@ -1,8 +1,10 @@
-import { EntityManager, FindOptionsRelations, getConnection } from '@dbTools/typeorm'
-import { Contribution as DbContribution } from '@entity/Contribution'
-import { ContributionMessage as DbContributionMessage } from '@entity/ContributionMessage'
-import { User as DbUser } from '@entity/User'
+import {
+  Contribution as DbContribution,
+  ContributionMessage as DbContributionMessage,
+  User as DbUser,
+} from 'database'
 import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
+import { EntityManager, FindOptionsRelations, getConnection } from 'typeorm'
 
 import { ContributionMessageArgs } from '@arg/ContributionMessageArgs'
 import { Paginated } from '@arg/Paginated'

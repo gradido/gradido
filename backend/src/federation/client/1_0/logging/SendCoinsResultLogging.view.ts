@@ -1,4 +1,4 @@
-import { AbstractLoggingView } from '@logging/AbstractLogging.view'
+import { AbstractLoggingView } from 'database'
 
 import { SendCoinsResult } from '@/federation/client/1_0/model/SendCoinsResult'
 

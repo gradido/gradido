@@ -1,6 +1,6 @@
-import { IsNull, MoreThan } from '@dbTools/typeorm'
-import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
+import { ContributionLink as DbContributionLink } from 'database'
 import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
+import { IsNull, MoreThan } from 'typeorm'
 
 import { ContributionLinkArgs } from '@arg/ContributionLinkArgs'
 import { Paginated } from '@arg/Paginated'

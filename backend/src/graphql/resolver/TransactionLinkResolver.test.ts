@@ -1,12 +1,14 @@
-import { Connection } from '@dbTools/typeorm'
-import { ContributionLink as DbContributionLink } from '@entity/ContributionLink'
-import { Event as DbEvent } from '@entity/Event'
-import { Transaction } from '@entity/Transaction'
-import { User } from '@entity/User'
-import { UserContact } from '@entity/UserContact'
 import { ApolloServerTestClient } from 'apollo-server-testing'
+import {
+  ContributionLink as DbContributionLink,
+  Event as DbEvent,
+  Transaction,
+  User,
+  UserContact,
+} from 'database'
 import { Decimal } from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
+import { Connection } from 'typeorm'
 
 import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
 import { cleanDB, resetEntity, resetToken, testEnvironment } from '@test/helpers'

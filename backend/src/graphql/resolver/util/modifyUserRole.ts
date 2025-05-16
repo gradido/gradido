@@ -1,5 +1,4 @@
-import { User as DbUser } from '@entity/User'
-import { UserRole } from '@entity/UserRole'
+import { User as DbUser, UserRole } from 'database'
 
 import { LogError } from '@/server/LogError'
 

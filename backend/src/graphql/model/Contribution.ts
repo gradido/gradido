@@ -1,25 +1,24 @@
-import { Contribution as dbContribution } from '@entity/Contribution'
-
+import { Contribution as DbContribution } from 'database'
 import { Field, Int, ObjectType } from 'type-graphql'
 
 import { UnconfirmedContribution } from './UnconfirmedContribution'
 
 @ObjectType()
 export class Contribution extends UnconfirmedContribution {
-  constructor(contribution: dbContribution) {
-    super(contribution)
-    this.createdAt = contribution.createdAt
-    this.confirmedAt = contribution.confirmedAt
-    this.confirmedBy = contribution.confirmedBy
-    this.contributionDate = contribution.contributionDate
+  constructor(dbContribution: DbContribution) {
+    super(dbContribution)
+    this.createdAt = dbContribution.createdAt
+    this.confirmedAt = dbContribution.confirmedAt
+    this.confirmedBy = dbContribution.confirmedBy
+    this.contributionDate = dbContribution.contributionDate
 
-    this.deniedAt = contribution.deniedAt
-    this.deniedBy = contribution.deniedBy
-    this.deletedAt = contribution.deletedAt
-    this.deletedBy = contribution.deletedBy
-    this.updatedAt = contribution.updatedAt
-    this.updatedBy = contribution.updatedBy
-    this.resubmissionAt = contribution.resubmissionAt
+    this.deniedAt = dbContribution.deniedAt
+    this.deniedBy = dbContribution.deniedBy
+    this.deletedAt = dbContribution.deletedAt
+    this.deletedBy = dbContribution.deletedBy
+    this.updatedAt = dbContribution.updatedAt
+    this.updatedBy = dbContribution.updatedBy
+    this.resubmissionAt = dbContribution.resubmissionAt
   }
 
   @Field(() => Date)
@@ -58,9 +57,9 @@ export class Contribution extends UnconfirmedContribution {
 
 @ObjectType()
 export class ContributionListResult {
-  constructor(count: number, list: Contribution[]) {
+  constructor(count: number, list: DbContribution[]) {
     this.contributionCount = count
-    this.contributionList = list
+    this.contributionList = list.map((dbContribution: DbContribution) => new Contribution(dbContribution))
   }
 
   @Field(() => Int)
