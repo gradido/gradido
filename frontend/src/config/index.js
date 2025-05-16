@@ -40,7 +40,7 @@ if (process.env.FRONTEND_HOSTING === 'nodejs') {
 const features = {
   GMS_ACTIVE: process.env.GMS_ACTIVE === 'true',
   HUMHUB_ACTIVE: process.env.HUMHUB_ACTIVE === 'true',
-  AUTO_POLL_INTERVAL: Number.parseInt(process.env.AUTO_POLL_INTERVAL) ?? 0,
+  AUTO_POLL_INTERVAL: Number.parseInt(process.env.AUTO_POLL_INTERVAL ?? 0),
 }
 
 const environment = {
