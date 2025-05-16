@@ -3,6 +3,7 @@
 import { entities } from 'database'
 import { Connection as DbConnection, FileLogger, createConnection } from 'typeorm'
 
+import path from 'node:path'
 import { CONFIG } from '@/config'
 
 export class Connection {
@@ -38,7 +39,7 @@ export class Connection {
         synchronize: false,
         logging: true,
         logger: new FileLogger('all', {
-          logPath: CONFIG.TYPEORM_LOGGING_RELATIVE_PATH,
+          logPath: path.resolve(__dirname, CONFIG.TYPEORM_LOGGING_RELATIVE_PATH),
         }),
         extra: {
           charset: 'utf8mb4_unicode_ci',

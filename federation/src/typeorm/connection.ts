@@ -1,3 +1,4 @@
+import path from 'node:path'
 import { CONFIG } from '@/config'
 // TODO This is super weird - since the entities are defined in another project they have their own globals.
 //      We cannot use our connection here, but must use the external typeorm installation
@@ -18,7 +19,7 @@ const connection = async (): Promise<Connection | null> => {
       synchronize: false,
       logging: true,
       logger: new FileLogger('all', {
-        logPath: CONFIG.TYPEORM_LOGGING_RELATIVE_PATH,
+        logPath: path.resolve(__dirname, CONFIG.TYPEORM_LOGGING_RELATIVE_PATH),
       }),
       extra: {
         charset: 'utf8mb4_unicode_ci',
