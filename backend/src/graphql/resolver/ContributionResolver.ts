@@ -179,7 +179,7 @@ export class ContributionResolver {
         contribution.messages = contribution.messages?.filter(
           (message) => message.type !== ContributionMessageType.MODERATOR,
         )
-        return new Contribution(contribution)
+        return contribution
       }),
     )
   }
@@ -201,10 +201,7 @@ export class ContributionResolver {
   ): Promise<ContributionListResult> {
     const [dbContributions, count] = await loadAllContributions(pagination)
 
-    return new ContributionListResult(
-      count,
-      dbContributions.map((contribution) => new Contribution(contribution)),
-    )
+    return new ContributionListResult(count, dbContributions)
   }
 
   @Authorized([RIGHTS.UPDATE_CONTRIBUTION])
@@ -388,10 +385,7 @@ export class ContributionResolver {
       countOnly,
     )
 
-    return new ContributionListResult(
-      count,
-      dbContributions.map((contribution) => new Contribution(contribution)),
-    )
+    return new ContributionListResult(count, dbContributions)
   }
 
   @Authorized([RIGHTS.ADMIN_DELETE_CONTRIBUTION])

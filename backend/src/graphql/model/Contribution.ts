@@ -59,7 +59,9 @@ export class Contribution extends UnconfirmedContribution {
 export class ContributionListResult {
   constructor(count: number, list: DbContribution[]) {
     this.contributionCount = count
-    this.contributionList = list.map((dbContribution: DbContribution) => new Contribution(dbContribution))
+    this.contributionList = list.map(
+      (dbContribution: DbContribution) => new Contribution(dbContribution),
+    )
   }
 
   @Field(() => Int)

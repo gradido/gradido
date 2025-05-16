@@ -1,6 +1,6 @@
 import { Paginated } from '@arg/Paginated'
-import { FindManyOptions } from '@dbTools/typeorm'
-import { Contribution as DbContribution } from '@entity/Contribution'
+import { Contribution as DbContribution } from 'database'
+import { FindManyOptions } from 'typeorm'
 
 function buildBaseOptions(paginated: Paginated): FindManyOptions<DbContribution> {
   const { currentPage, pageSize } = paginated

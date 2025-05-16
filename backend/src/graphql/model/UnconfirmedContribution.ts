@@ -1,4 +1,7 @@
-import { Contribution as DbContribution, ContributionMessage as DbContributionMessage } from 'database'
+import {
+  Contribution as DbContribution,
+  ContributionMessage as DbContributionMessage,
+} from 'database'
 import { Decimal } from 'decimal.js-light'
 import { Field, Int, ObjectType } from 'type-graphql'
 
