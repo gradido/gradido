@@ -2,7 +2,6 @@ import { Paginated } from '@arg/Paginated'
 import { Contribution as DbContribution } from 'database'
 import { FindManyOptions } from 'typeorm'
 
-
 function buildBaseOptions(paginated: Paginated): FindManyOptions<DbContribution> {
   const { currentPage, pageSize } = paginated
   return {

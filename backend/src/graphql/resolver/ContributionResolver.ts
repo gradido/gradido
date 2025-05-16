@@ -63,12 +63,12 @@ import { fullName } from '@/util/utilities'
 
 import { ContributionMessage } from '@model/ContributionMessage'
 import { ContributionMessageType } from '../enum/ContributionMessageType'
+import { loadAllContributions, loadUserContributions } from './util/contributions'
 import { getOpenCreations, getUserCreation, validateContribution } from './util/creations'
 import { extractGraphQLFields, extractGraphQLFieldsForSelect } from './util/extractGraphQLFields'
 import { findContributionMessages } from './util/findContributionMessages'
 import { findContributions } from './util/findContributions'
 import { getLastTransaction } from './util/getLastTransaction'
-import { loadAllContributions, loadUserContributions } from './util/contributions'
 import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
 
 @Resolver(() => Contribution)
