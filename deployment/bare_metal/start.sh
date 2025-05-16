@@ -173,7 +173,14 @@ onError() {
   log_error "( x.x )  Exit Code: $exit_code"
   log_error " >   <   Offending command: '$BASH_COMMAND'"
   log_error ""
-  exit 1
+  if [ '$BASH_COMMAND' == 'sudo /etc/init.d/nginx restart' ]; then
+    log_warn "nginx restart failed, this can occur if updating to often in short time span"
+    log_warn "will try to fix with 'sudo systemctl reset-failed nginx' and 'sudo systemctl start nginx'"
+    sudo systemctl reset-failed nginx
+    sudo systemctl start nginx
+  else 
+    exit 1
+  fi
 }
 trap onError ERR
 
