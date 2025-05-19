@@ -23,11 +23,11 @@
       </BRow>
       <BRow class="mt-3">
         <BCol class="col-3">{{ $t('name') }}</BCol>
-        <BCol>{{ item.firstName }} {{ item.lastName }}</BCol>
+        <BCol>{{ item.user.firstName }} {{ item.user.lastName }}</BCol>
       </BRow>
       <BRow>
         <BCol class="col-3">{{ $t('e_mail') }}</BCol>
-        <BCol>{{ item.email }}</BCol>
+        <BCol>{{ item.user.emailContact.email }}</BCol>
       </BRow>
 
       <hr class="my-4" />
