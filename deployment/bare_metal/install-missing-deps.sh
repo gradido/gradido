@@ -29,8 +29,9 @@ then
         sudo apt-get install -y unzip
     fi
     echo "'bun' is missing, will be installed now!"
-    curl -fsSL https://bun.sh/install | BUN_INSTALL=/usr/local bash
-    export PATH="/root/.bun/bin:${PATH}"
+    curl -fsSL https://bun.sh/install | bash
+    export BUN_INSTALL="$HOME/.bun"
+    export PATH="$BUN_INSTALL/bin:$PATH"
 fi
 # turbo https://turborepo.com/docs/getting-started
 if ! command -v turbo &> /dev/null
