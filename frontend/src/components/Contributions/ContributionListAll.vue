@@ -29,23 +29,26 @@ import { useQuery } from '@vue/apollo-composable'
 import CONFIG from '@/config'
 import PaginatorRouteParamsPage from '@/components/PaginatorRouteParamsPage.vue'
 import { PAGE_SIZE } from '@/constants'
+import { useRoute } from 'vue-router'
+
+const route = useRoute()
 
 // constants
 const pollInterval = CONFIG.AUTO_POLL_INTERVAL || undefined
 const pageSize = PAGE_SIZE
 
 // computed
-const currentPage = ref(1)
+const currentPage = ref(Number(route.params.page) || 1)
 
 const { result, loading } = useQuery(
   listAllContributions,
-  {
+  () => ({
     pagination: {
       currentPage: currentPage.value,
       pageSize,
       order: 'DESC',
     },
-  },
+  }),
   {
     fetchPolicy: 'cache-and-network',
     pollInterval,

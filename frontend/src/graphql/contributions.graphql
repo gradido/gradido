@@ -31,8 +31,8 @@ fragment contributionMessageFields on ContributionMessage {
   userId
 }
 
-query listContributions ($pagination: Paginated!, $messagePagination: Paginated!) {
-  listContributions(pagination: $pagination, messagePagination: $messagePagination) {
+query listContributions ($pagination: Paginated!) {
+  listContributions(pagination: $pagination) {
     contributionCount
     contributionList {
       id
@@ -41,7 +41,7 @@ query listContributions ($pagination: Paginated!, $messagePagination: Paginated!
       contributionDate
       contributionStatus
       messagesCount
-      messages(pagination: $messagePagination) {
+      messages {
         ...contributionMessageFields
       }
       updatedBy
