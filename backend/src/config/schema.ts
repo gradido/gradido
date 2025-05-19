@@ -3,6 +3,8 @@ import {
   COMMUNITY_NAME,
   COMMUNITY_SUPPORT_MAIL,
   COMMUNITY_URL,
+  DB_CONNECT_RETRY_COUNT,
+  DB_CONNECT_RETRY_DELAY_MS,
   DB_DATABASE,
   DB_HOST,
   DB_PASSWORD,
@@ -38,6 +40,8 @@ export const schema = Joi.object({
   DB_USER,
   DB_VERSION,
   DB_DATABASE,
+  DB_CONNECT_RETRY_COUNT,
+  DB_CONNECT_RETRY_DELAY_MS,
   DECAY_START_TIME,
   GDT_API_URL,
   GDT_ACTIVE,
@@ -362,6 +366,21 @@ export const schema = Joi.object({
     )
     .required()
     .description('Time for JWT token to expire, auto logout'),
+
+  REDEEM_JWT_TOKEN_EXPIRATION: Joi.alternatives()
+    .try(
+      Joi.string()
+        .pattern(/^\d+[smhdw]$/)
+        .description(
+          'Expiration time for x-community redeem JWT token, in format like "10m", "1h", "1d"',
+        )
+        .default('10m'),
+      Joi.number()
+        .positive()
+        .description('Expiration time for x-community redeem JWT token in minutes'),
+    )
+    .required()
+    .description('Time for x-community redeem JWT token to expire'),
 
   WEBHOOK_ELOPAGE_SECRET: Joi.string().description("isn't really used any more").optional(),
 })

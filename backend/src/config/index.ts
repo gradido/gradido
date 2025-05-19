@@ -1,6 +1,5 @@
 // ATTENTION: DO NOT PUT ANY SECRETS IN HERE (or the .env)
 
-// eslint-disable-next-line import/no-unresolved
 import { validate } from 'config-schema'
 import { latestDbVersion } from 'database'
 import { Decimal } from 'decimal.js-light'
@@ -26,6 +25,7 @@ const server = {
   PORT: process.env.PORT ?? 4000,
   JWT_SECRET: process.env.JWT_SECRET ?? 'secret123',
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN ?? '10m',
+  REDEEM_JWT_TOKEN_EXPIRATION: process.env.REDEEM_JWT_TOKEN_EXPIRATION ?? '10m',
   GRAPHIQL: process.env.GRAPHIQL === 'true' || false,
   GDT_ACTIVE: process.env.GDT_ACTIVE === 'true' || false,
   GDT_API_URL: process.env.GDT_API_URL ?? 'https://gdt.gradido.net',
@@ -35,8 +35,14 @@ const server = {
 }
 
 const database = {
+  DB_CONNECT_RETRY_COUNT: process.env.DB_CONNECT_RETRY_COUNT
+    ? Number.parseInt(process.env.DB_CONNECT_RETRY_COUNT)
+    : 15,
+  DB_CONNECT_RETRY_DELAY_MS: process.env.DB_CONNECT_RETRY_DELAY_MS
+    ? Number.parseInt(process.env.DB_CONNECT_RETRY_DELAY_MS)
+    : 500,
   DB_HOST: process.env.DB_HOST ?? 'localhost',
-  DB_PORT: process.env.DB_PORT ? parseInt(process.env.DB_PORT) : 3306,
+  DB_PORT: process.env.DB_PORT ? Number.parseInt(process.env.DB_PORT) : 3306,
   DB_USER: process.env.DB_USER ?? 'root',
   DB_PASSWORD: process.env.DB_PASSWORD ?? '',
   DB_DATABASE: process.env.DB_DATABASE ?? 'gradido_community',

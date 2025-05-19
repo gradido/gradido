@@ -27,7 +27,10 @@ export async function truncateTables(connection: Connection) {
 }
 
 export async function clearDatabase() {
-  const connection = await connectToDatabaseServer()
+  const connection = await connectToDatabaseServer(
+    CONFIG.DB_CONNECT_RETRY_COUNT,
+    CONFIG.DB_CONNECT_RETRY_DELAY_MS,
+  )
   if (!connection) {
     throw new Error('Could not connect to database server')
   }

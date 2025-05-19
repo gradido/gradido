@@ -22,18 +22,11 @@ done
 
 # set $1, $2, ... only with position arguments
 set -- "${POSITIONAL_ARGS[@]}"
-
-# check for missing branch name
-if [ -z "$1" ]; then
-  echo "Usage: $0 [--fast] <branchName>"
-  exit 1
-fi
-
 BRANCH_NAME="$1"
 
-# Debug-Ausgabe
-if [ -z "$1" ]; then
-    echo "Usage: Please provide a branch name as the first argument."
+# check for parameter
+if [ -z "$BRANCH_NAME" ]; then
+    echo "Usage: $0 [--fast] <branchName> [--fast]"
     exit 1
 fi
 echo "Use branch: $BRANCH_NAME"
@@ -51,9 +44,17 @@ PROJECT_ROOT=$SCRIPT_DIR/../..
 NGINX_CONFIG_DIR=$SCRIPT_DIR/nginx/sites-available
 set +o allexport
 
-# enable nvm 
+# enable nvm
 export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-nvm use
+install_nvm() {
+    nvm install 
+    nvm use 
+    nvm alias default 
+    npm i -g yarn pm2
+    pm2 startup
+}
+# make sure correct node version is installed
+nvm use || install_nvm
 
 # NOTE: all config values will be in process.env when starting
 # the services and will therefore take precedence over the .env
@@ -170,14 +171,12 @@ else
   log_warn "PM2 is already empty"
 fi
 
-
 # git
-BRANCH=$1
-log_step "Starting with git pull - branch:$BRANCH"
+log_step "Starting with git pull - branch:$BRANCH_NAME"
 cd $PROJECT_ROOT
 # TODO: this overfetches alot, but ensures we can use start.sh with tags
 git fetch --all
-git checkout $BRANCH
+git checkout $BRANCH_NAME
 git pull
 export BUILD_COMMIT="$(git rev-parse HEAD)"
 
@@ -289,7 +288,6 @@ else
   turbo up --env-mode=loose
 fi
 
-nvm use default
 # start after building all to use up less ressources
 pm2 start --name gradido-backend "turbo backend#start --env-mode=loose" -l $GRADIDO_LOG_PATH/pm2.backend.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
 #pm2 start --name gradido-frontend "yarn --cwd $PROJECT_ROOT/frontend start" -l $GRADIDO_LOG_PATH/pm2.frontend.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'

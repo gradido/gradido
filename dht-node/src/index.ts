@@ -6,7 +6,7 @@ import { checkDBVersionUntil } from './typeorm/DBVersion'
 
 async function main() {
   // open mysql connection
-  await checkDBVersionUntil()
+  await checkDBVersionUntil(CONFIG.DB_CONNECT_RETRY_COUNT, CONFIG.DB_CONNECT_RETRY_DELAY_MS)
   logger.debug(`dhtseed set by CONFIG.FEDERATION_DHT_SEED=${CONFIG.FEDERATION_DHT_SEED}`)
   logger.info(
     `starting Federation on ${CONFIG.FEDERATION_DHT_TOPIC} ${

@@ -36,9 +36,11 @@ export const createServer = async (
 
   // open mariadb connection, retry connecting with mariadb
   // check for correct database version
-  // retry max 15 times, wait 500 ms between tries
-  // TODO: move variables into config
-  const con = await checkDBVersionUntil(15, 500)
+  // retry max CONFIG.DB_CONNECT_RETRY_COUNT times, wait CONFIG.DB_CONNECT_RETRY_DELAY ms between tries
+  const con = await checkDBVersionUntil(
+    CONFIG.DB_CONNECT_RETRY_COUNT,
+    CONFIG.DB_CONNECT_RETRY_DELAY_MS,
+  )
 
   // Express Server
   const app = express()

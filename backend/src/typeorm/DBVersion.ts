@@ -6,7 +6,7 @@ import { CONFIG } from '@/config'
 import { Connection } from '@/typeorm/connection'
 import { Connection as DbConnection } from 'typeorm'
 
-async function checkDBVersionUntil(maxRetries = 15, delayMs = 500): Promise<DbConnection> {
+async function checkDBVersionUntil(maxRetries: number, delayMs: number): Promise<DbConnection> {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       const connection = await Connection.getInstance()

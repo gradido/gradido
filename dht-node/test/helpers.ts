@@ -1,6 +1,7 @@
 import { entities } from 'database'
 
 import { checkDBVersionUntil } from '@/typeorm/DBVersion'
+import { CONFIG } from '@/config'
 
 export const headerPushMock = jest.fn((t) => {
   context.token = t.value
@@ -23,7 +24,7 @@ export const cleanDB = async () => {
 }
 
 export const testEnvironment = async () => {
-  return { con: await checkDBVersionUntil() }
+  return { con: await checkDBVersionUntil(CONFIG.DB_CONNECT_RETRY_COUNT, CONFIG.DB_CONNECT_RETRY_DELAY_MS) }
 }
 
 export const resetEntity = async (entity: any) => {
