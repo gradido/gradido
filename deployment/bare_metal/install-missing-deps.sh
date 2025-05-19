@@ -39,3 +39,17 @@ then
     echo "'turbo' is missing, will be installed now!"
     bun install --global turbo
 fi
+
+# rust and grass 
+if ! command -v cargo &> /dev/null
+then
+    echo "'cargo' is missing, will be installed now!"
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+    export CARGO_HOME="$HOME/.cargo"
+    export PATH="$CARGO_HOME/bin:$PATH"
+fi
+if ! command -v grass &> /dev/null
+then
+    echo "'grass' is missing, will be installed now!"
+    cargo install grass
+fi
