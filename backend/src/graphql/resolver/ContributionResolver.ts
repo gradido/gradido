@@ -6,19 +6,7 @@ import {
 } from 'database'
 import { Decimal } from 'decimal.js-light'
 import { GraphQLResolveInfo } from 'graphql'
-import {
-  Arg,
-  Args,
-  Authorized,
-  Ctx,
-  FieldResolver,
-  Info,
-  Int,
-  Mutation,
-  Query,
-  Resolver,
-  Root,
-} from 'type-graphql'
+import { Arg, Args, Authorized, Ctx, Info, Int, Mutation, Query, Resolver } from 'type-graphql'
 import { EntityManager, IsNull, getConnection } from 'typeorm'
 
 import { AdminCreateContributionArgs } from '@arg/AdminCreateContributionArgs'
@@ -26,7 +14,6 @@ import { AdminUpdateContributionArgs } from '@arg/AdminUpdateContributionArgs'
 import { ContributionArgs } from '@arg/ContributionArgs'
 import { Paginated } from '@arg/Paginated'
 import { SearchContributionsFilterArgs } from '@arg/SearchContributionsFilterArgs'
-import { ContributionMessageType } from '@enum/ContributionMessageType'
 import { ContributionStatus } from '@enum/ContributionStatus'
 import { ContributionType } from '@enum/ContributionType'
 import { TransactionTypeId } from '@enum/TransactionTypeId'
@@ -35,7 +22,6 @@ import { Contribution, ContributionListResult } from '@model/Contribution'
 import { Decay } from '@model/Decay'
 import { OpenCreation } from '@model/OpenCreation'
 import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
-import { User } from '@model/User'
 
 import { RIGHTS } from '@/auth/RIGHTS'
 import {
@@ -62,9 +48,11 @@ import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 import { calculateDecay } from '@/util/decay'
 import { fullName } from '@/util/utilities'
 
-import { findContribution } from './util/contributions'
+import { start } from 'repl'
+import { ContributionMessageType } from '../enum/ContributionMessageType'
+import { loadAllContributions, loadUserContributions } from './util/contributions'
 import { getOpenCreations, getUserCreation, validateContribution } from './util/creations'
-import { extractGraphQLFields, extractGraphQLFieldsForSelect } from './util/extractGraphQLFields'
+import { extractGraphQLFields } from './util/extractGraphQLFields'
 import { findContributions } from './util/findContributions'
 import { getLastTransaction } from './util/getLastTransaction'
 import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
@@ -74,17 +62,17 @@ export class ContributionResolver {
   @Authorized([RIGHTS.ADMIN_LIST_CONTRIBUTIONS])
   @Query(() => Contribution)
   async contribution(@Arg('id', () => Int) id: number): Promise<Contribution> {
-    const contribution = await findContribution(id)
-    if (!contribution) {
+    const dbContribution = await DbContribution.findOne({ where: { id } })
+    if (!dbContribution) {
       throw new LogError('Contribution not found', id)
     }
-    return new Contribution(contribution)
+    return new Contribution(dbContribution)
   }
 
   @Authorized([RIGHTS.CREATE_CONTRIBUTION])
   @Mutation(() => UnconfirmedContribution)
   async createContribution(
-    @Args() { amount, memo, creationDate }: ContributionArgs,
+    @Args() { amount, memo, contributionDate }: ContributionArgs,
     @Ctx() context: Context,
   ): Promise<UnconfirmedContribution> {
     const clientTimezoneOffset = getClientTimezoneOffset(context)
@@ -92,14 +80,14 @@ export class ContributionResolver {
     const user = getUser(context)
     const creations = await getUserCreation(user.id, clientTimezoneOffset)
     logger.trace('creations', creations)
-    const creationDateObj = new Date(creationDate)
-    validateContribution(creations, amount, creationDateObj, clientTimezoneOffset)
+    const contributionDateObj = new Date(contributionDate)
+    validateContribution(creations, amount, contributionDateObj, clientTimezoneOffset)
 
     const contribution = DbContribution.create()
     contribution.userId = user.id
     contribution.amount = amount
     contribution.createdAt = new Date()
-    contribution.contributionDate = creationDateObj
+    contribution.contributionDate = contributionDateObj
     contribution.memo = memo
     contribution.contributionType = ContributionType.USER
     contribution.contributionStatus = ContributionStatus.PENDING
@@ -108,7 +96,7 @@ export class ContributionResolver {
     await DbContribution.save(contribution)
     await EVENT_CONTRIBUTION_CREATE(user, contribution, amount)
 
-    return new UnconfirmedContribution(contribution, user, creations)
+    return new UnconfirmedContribution(contribution)
   }
 
   @Authorized([RIGHTS.DELETE_CONTRIBUTION])
@@ -138,54 +126,55 @@ export class ContributionResolver {
     const res = await contribution.softRemove()
     return !!res
   }
-
   @Authorized([RIGHTS.LIST_CONTRIBUTIONS])
   @Query(() => ContributionListResult)
   async listContributions(
     @Ctx() context: Context,
-    @Args()
-    paginated: Paginated,
-    @Arg('statusFilter', () => [ContributionStatus], { nullable: true })
-    statusFilter?: ContributionStatus[] | null,
+    @Arg('pagination') pagination: Paginated,
   ): Promise<ContributionListResult> {
     const user = getUser(context)
-    const filter = new SearchContributionsFilterArgs()
-    filter.statusFilter = statusFilter
-    filter.userId = user.id
-    const [dbContributions, count] = await findContributions(paginated, filter, true, {
-      messages: true,
-    })
+    const [dbContributions, count] = await loadUserContributions(user.id, pagination)
 
-    return new ContributionListResult(
+    // show contributions in progress first
+    const inProgressContributions = dbContributions.filter(
+      (contribution) => contribution.contributionStatus === ContributionStatus.IN_PROGRESS,
+    )
+    const notInProgressContributions = dbContributions.filter(
+      (contribution) => contribution.contributionStatus !== ContributionStatus.IN_PROGRESS,
+    )
+
+    const result = new ContributionListResult(
       count,
-      dbContributions.map((contribution) => {
+      [...inProgressContributions, ...notInProgressContributions].map((contribution) => {
         // filter out moderator messages for this call
         contribution.messages = contribution.messages?.filter(
-          (m) => (m.type as ContributionMessageType) !== ContributionMessageType.MODERATOR,
+          (message) =>
+            (message.type as ContributionMessageType) !== ContributionMessageType.MODERATOR,
         )
-        return new Contribution(contribution, user)
+        return contribution
       }),
     )
+    return result
+  }
+
+  @Authorized([RIGHTS.LIST_CONTRIBUTIONS])
+  @Query(() => Int)
+  async countContributionsInProgress(@Ctx() context: Context): Promise<number> {
+    const user = getUser(context)
+    const count = await DbContribution.count({
+      select: { id: true },
+      where: { userId: user.id, contributionStatus: ContributionStatus.IN_PROGRESS },
+    })
+    return count
   }
 
   @Authorized([RIGHTS.LIST_ALL_CONTRIBUTIONS])
   @Query(() => ContributionListResult)
   async listAllContributions(
-    @Args()
-    paginated: Paginated,
-    @Arg('statusFilter', () => [ContributionStatus], { nullable: true })
-    statusFilter?: ContributionStatus[] | null,
+    @Arg('pagination') pagination: Paginated,
   ): Promise<ContributionListResult> {
-    const filter = new SearchContributionsFilterArgs()
-    filter.statusFilter = statusFilter
-    const [dbContributions, count] = await findContributions(paginated, filter, false, {
-      user: true,
-    })
-
-    return new ContributionListResult(
-      count,
-      dbContributions.map((contribution) => new Contribution(contribution, contribution.user)),
-    )
+    const [dbContributions, count] = await loadAllContributions(pagination)
+    return new ContributionListResult(count, dbContributions)
   }
 
   @Authorized([RIGHTS.UPDATE_CONTRIBUTION])
@@ -201,8 +190,7 @@ export class ContributionResolver {
       contributionArgs,
       context,
     )
-    const { contribution, contributionMessage, availableCreationSums } =
-      await updateUnconfirmedContributionContext.run()
+    const { contribution, contributionMessage } = await updateUnconfirmedContributionContext.run()
     await getConnection().transaction(async (transactionalEntityManager: EntityManager) => {
       await transactionalEntityManager.save(contribution)
       if (contributionMessage) {
@@ -212,7 +200,7 @@ export class ContributionResolver {
     const user = getUser(context)
     await EVENT_CONTRIBUTION_UPDATE(user, contribution, contributionArgs.amount)
 
-    return new UnconfirmedContribution(contribution, user, availableCreationSums)
+    return new UnconfirmedContribution(contribution)
   }
 
   @Authorized([RIGHTS.ADMIN_CREATE_CONTRIBUTION])
@@ -370,10 +358,7 @@ export class ContributionResolver {
       countOnly,
     )
 
-    return new ContributionListResult(
-      count,
-      dbContributions.map((contribution) => new Contribution(contribution, contribution.user)),
-    )
+    return new ContributionListResult(count, dbContributions)
   }
 
   @Authorized([RIGHTS.ADMIN_DELETE_CONTRIBUTION])
@@ -611,22 +596,5 @@ export class ContributionResolver {
     })
 
     return !!res
-  }
-
-  // Field resolvers
-  @Authorized([RIGHTS.USER])
-  @FieldResolver(() => User)
-  async user(
-    @Root() contribution: DbContribution,
-    @Info() info: GraphQLResolveInfo,
-  ): Promise<User> {
-    let user = contribution.user
-    if (!user) {
-      const queryBuilder = DbUser.createQueryBuilder('user')
-      queryBuilder.where('user.id = :userId', { userId: contribution.userId })
-      extractGraphQLFieldsForSelect(info, queryBuilder, 'user')
-      user = await queryBuilder.getOneOrFail()
-    }
-    return new User(user)
   }
 }

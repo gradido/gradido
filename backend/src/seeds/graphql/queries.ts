@@ -244,52 +244,47 @@ export const queryTransactionLink = gql`
 `
 
 export const listContributions = gql`
-  query (
-    $currentPage: Int = 1
-    $pageSize: Int = 5
-    $order: Order
-    $statusFilter: [ContributionStatus!]
-  ) {
-    listContributions(
-      currentPage: $currentPage
-      pageSize: $pageSize
-      order: $order
-      statusFilter: $statusFilter
-    ) {
+  query ($pagination: Paginated!) {
+    listContributions(pagination: $pagination) {
       contributionCount
       contributionList {
         id
         amount
         memo
-        createdAt
         contributionDate
+        contributionStatus
+        messagesCount
+        createdAt
         confirmedAt
         confirmedBy
-        deletedAt
-        status
-        messagesCount
         deniedAt
         deniedBy
+        updatedBy
+        updatedAt
+        deletedAt
+        moderatorId
       }
     }
   }
 `
 
 export const listAllContributions = `
-query ($currentPage: Int = 1, $pageSize: Int = 5, $order: Order = DESC, $statusFilter: [ContributionStatus!]) {
-  listAllContributions(currentPage: $currentPage, pageSize: $pageSize, order: $order, statusFilter: $statusFilter) {
+query ($pagination: Paginated!) {
+  listAllContributions(pagination: $pagination) {
   	contributionCount
     contributionList {
       id
-      firstName
-      lastName
+      user {
+        firstName
+        lastName
+      }
       amount
       memo
       createdAt
       confirmedAt
       confirmedBy
       contributionDate
-      status
+      contributionStatus
       messagesCount
       deniedAt
       deniedBy
@@ -318,7 +313,7 @@ export const adminListContributions = gql`
         confirmedAt
         confirmedBy
         contributionDate
-        status
+        contributionStatus
         messagesCount
         deniedAt
         deniedBy

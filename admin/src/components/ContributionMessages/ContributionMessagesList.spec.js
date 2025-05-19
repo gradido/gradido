@@ -108,7 +108,7 @@ describe('ContributionMessagesList', () => {
           id: 42,
           memo: 'test memo',
           userId: 108,
-          status: 'PENDING',
+          contributionStatus: 'PENDING',
           user: defaultUser,
         },
         hideResubmission: true,
@@ -153,7 +153,7 @@ describe('ContributionMessagesList', () => {
   it('does not render the ContributionMessagesFormular when status is not PENDING or IN_PROGRESS', async () => {
     await wrapper.setProps({
       contribution: {
-        status: 'COMPLETED',
+        contributionStatus: 'COMPLETED',
         user: defaultUser,
       },
     })

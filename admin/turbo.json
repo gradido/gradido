@@ -5,6 +5,11 @@
     "locales": {},
     "lint": {
       "dependsOn": ["stylelint", "locales"]
+    },
+    "stylelint:fix": {},
+    "locales:fix": {},
+    "lint:fix": {
+      "dependsOn": ["stylelint:fix", "locales:fix"]
     }
   }
 }

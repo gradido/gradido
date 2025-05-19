@@ -1,57 +1,25 @@
-import { User as DbUser, Contribution as dbContribution } from 'database'
-import { Decimal } from 'decimal.js-light'
+import { Contribution as DbContribution } from 'database'
 import { Field, Int, ObjectType } from 'type-graphql'
 
-import { User } from './User'
+import { UnconfirmedContribution } from './UnconfirmedContribution'
 
 @ObjectType()
-export class Contribution {
-  constructor(contribution: dbContribution, user?: DbUser | null) {
-    this.id = contribution.id
-    this.firstName = user?.firstName ?? null
-    this.lastName = user?.lastName ?? null
-    this.amount = contribution.amount
-    this.memo = contribution.memo
-    this.createdAt = contribution.createdAt
-    this.confirmedAt = contribution.confirmedAt
-    this.confirmedBy = contribution.confirmedBy
-    this.contributionDate = contribution.contributionDate
-    this.status = contribution.contributionStatus
-    this.messagesCount = contribution.messages ? contribution.messages.length : 0
-    this.deniedAt = contribution.deniedAt
-    this.deniedBy = contribution.deniedBy
-    this.deletedAt = contribution.deletedAt
-    this.deletedBy = contribution.deletedBy
-    this.updatedAt = contribution.updatedAt
-    this.updatedBy = contribution.updatedBy
-    this.moderatorId = contribution.moderatorId
-    this.userId = contribution.userId
-    this.resubmissionAt = contribution.resubmissionAt
-    if (user) {
-      this.user = new User(user)
-    }
+export class Contribution extends UnconfirmedContribution {
+  constructor(dbContribution: DbContribution) {
+    super(dbContribution)
+    this.createdAt = dbContribution.createdAt
+    this.confirmedAt = dbContribution.confirmedAt
+    this.confirmedBy = dbContribution.confirmedBy
+    this.contributionDate = dbContribution.contributionDate
+
+    this.deniedAt = dbContribution.deniedAt
+    this.deniedBy = dbContribution.deniedBy
+    this.deletedAt = dbContribution.deletedAt
+    this.deletedBy = dbContribution.deletedBy
+    this.updatedAt = dbContribution.updatedAt
+    this.updatedBy = dbContribution.updatedBy
+    this.resubmissionAt = dbContribution.resubmissionAt
   }
-
-  @Field(() => Int)
-  id: number
-
-  @Field(() => Int, { nullable: true })
-  userId: number | null
-
-  @Field(() => User, { nullable: true })
-  user: User | null
-
-  @Field(() => String, { nullable: true })
-  firstName: string | null
-
-  @Field(() => String, { nullable: true })
-  lastName: string | null
-
-  @Field(() => Decimal)
-  amount: Decimal
-
-  @Field(() => String)
-  memo: string
 
   @Field(() => Date)
   createdAt: Date
@@ -83,24 +51,17 @@ export class Contribution {
   @Field(() => Date)
   contributionDate: Date
 
-  @Field(() => Int)
-  messagesCount: number
-
-  @Field(() => String)
-  status: string
-
-  @Field(() => Int, { nullable: true })
-  moderatorId: number | null
-
   @Field(() => Date, { nullable: true })
   resubmissionAt: Date | null
 }
 
 @ObjectType()
 export class ContributionListResult {
-  constructor(count: number, list: Contribution[]) {
+  constructor(count: number, list: DbContribution[]) {
     this.contributionCount = count
-    this.contributionList = list
+    this.contributionList = list.map(
+      (dbContribution: DbContribution) => new Contribution(dbContribution),
+    )
   }
 
   @Field(() => Int)
