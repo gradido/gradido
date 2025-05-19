@@ -20,6 +20,7 @@
     "lint:fix": "biome check --error-on-warnings . --write",
     "lint:fix:unsafe": "biome check --fix --unsafe",
     "locales": "scripts/sort.sh",
+    "locales:fix": "scripts/sort.sh --fix",
     "start": "cross-env TZ=UTC NODE_ENV=production node build/index.js",
     "typecheck": "tsc --noEmit"
   },

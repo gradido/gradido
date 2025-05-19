@@ -54,7 +54,7 @@ const fields = computed(() => [
     formatter: (value) => d(new Date(value)),
   },
   {
-    key: 'status',
+    key: 'contributionStatus',
     label: 'status',
     formatter: (value, key, item) => {
       if (item.deletedAt) return `${t('deleted')}: ${d(new Date(item.deletedAt))}`

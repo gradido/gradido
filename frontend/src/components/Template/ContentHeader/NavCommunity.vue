@@ -4,8 +4,8 @@
       class="nav-community-btn-wrapper bg-209 rounded-26 d-flex bd-highlight mx-xl-6 mx-lg-5 shadow justify-content-between"
     >
       <BButton
-        to="contribute"
-        active-class="btn-active svg-icon-active"
+        :to="{ path: '/community/contribute' }"
+        :class="stateClasses('/community/contribute')"
         block
         variant="link"
         class="nav-community__btn"
@@ -14,8 +14,8 @@
         {{ $t('community.submitContribution') }}
       </BButton>
       <BButton
-        to="contributions"
-        active-class="btn-active svg-icon-active"
+        :to="{ path: '/community/contributions' }"
+        :class="stateClasses('/community/contributions')"
         block
         variant="link"
         class="nav-community__btn"
@@ -24,8 +24,8 @@
         {{ $t('community.myContributions') }}
       </BButton>
       <BButton
-        to="community"
-        active-class="btn-active svg-icon-active"
+        :to="{ path: '/community/community' }"
+        :class="stateClasses('/community/community')"
         block
         variant="link"
         class="nav-community__btn"
@@ -39,6 +39,15 @@
 <script>
 export default {
   name: 'NavCommunity',
+
+  methods: {
+    stateClasses(path) {
+      if (this.$route.path.includes(path)) {
+        return 'router-link-active router-link-exact-active'
+      }
+      return ''
+    },
+  },
 }
 </script>
 <style scoped lang="scss">

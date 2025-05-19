@@ -77,16 +77,4 @@ describe('ContributionMessagesList', () => {
       expect(wrapper.find('button').text()).toContain('form.close')
     })
   })
-
-  describe('events', () => {
-    beforeEach(() => {
-      wrapper = createWrapper()
-    })
-
-    it('emits update-status event when updateStatus method is called', async () => {
-      await wrapper.vm.updateStatus(42)
-      expect(wrapper.emitted('update-status')).toBeTruthy()
-      expect(wrapper.emitted('update-status')[0]).toEqual([42])
-    })
-  })
 })

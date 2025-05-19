@@ -10,12 +10,11 @@
         v-if="['PENDING', 'IN_PROGRESS'].includes(status)"
         :contribution-id="contributionId"
         v-bind="$attrs"
-        @update-status="updateStatus"
       />
     </div>
 
-    <div v-b-toggle="'collapse' + String(contributionId)" class="text-center pointer clearboth">
-      <BButton variant="outline-primary" block class="mb-3">
+    <div class="text-center pointer clearboth">
+      <BButton variant="outline-primary" block @click="$emit('close-messages-list')">
         <IBiArrowUpShort />
         {{ $t('form.close') }}
       </BButton>
@@ -44,11 +43,6 @@ export default {
     messages: {
       type: Array,
       required: true,
-    },
-  },
-  methods: {
-    updateStatus(id) {
-      this.$emit('update-status', id)
     },
   },
 }

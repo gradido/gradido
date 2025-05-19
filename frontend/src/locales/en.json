@@ -91,7 +91,8 @@
     "lastContribution": "Last Contributions",
     "noContributions": {
       "allContributions": "No contributions have been submitted yet.",
-      "myContributions": "You have not submitted any entries yet."
+      "myContributions": "You have not submitted any entries yet.",
+      "emptyPage": "This page is empty."
     },
     "noOpenCreation": {
       "allMonth": "For all two months your creation limit is reached. The next month you can create 1000 GDD again.",
@@ -323,7 +324,7 @@
     "settings": "Settings",
     "transactions": "Your transactions",
     "circles": "Gradido Circles",
-    "usersearch": "Geographic member search (experimental)"
+    "usersearch": "Geographic member search (beta)"
   },
   "qrCode": "QR Code",
   "send_gdd": "Send GDD",

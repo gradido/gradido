@@ -1,0 +1,116 @@
+#import './user.graphql'
+
+fragment unconfirmedContributionFields on Contribution {
+  id
+  amount
+  memo
+  contributionDate
+  contributionStatus
+  messagesCount
+}
+
+fragment contributionFields on Contribution {
+  ...unconfirmedContributionFields
+  createdAt
+  confirmedAt
+  confirmedBy
+  deniedAt
+  deniedBy
+  updatedBy
+  updatedAt
+}
+
+fragment contributionMessageFields on ContributionMessage {
+  id
+  message
+  createdAt
+  updatedAt
+  type
+  userFirstName
+  userLastName
+  userId
+}
+
+query listContributions ($pagination: Paginated!) {
+  listContributions(pagination: $pagination) {
+    contributionCount
+    contributionList {
+      id
+      amount
+      memo
+      contributionDate
+      contributionStatus
+      messagesCount
+      messages {
+        ...contributionMessageFields
+      }
+      updatedBy
+      moderatorId
+    }
+  }
+}
+
+query listAllContributions ($pagination: Paginated!) {
+  listAllContributions(pagination: $pagination) {
+    contributionCount
+    contributionList {
+      amount
+      memo
+      user {
+        ...userFields
+      }      
+      contributionDate
+      updatedBy
+      contributionStatus
+    }
+  }
+}
+
+query countContributionsInProgress {
+  countContributionsInProgress
+}
+
+query openCreations {
+  openCreations {
+    year
+    month
+    amount
+  }
+}
+
+query openCreationsAmounts {
+  openCreations {
+    amount
+  }
+}
+
+# return unconfirmedContributionFields
+mutation createContribution ($amount: Decimal!, $memo: String!, $contributionDate: String!) {
+  createContribution(amount: $amount, memo: $memo, contributionDate: $contributionDate)  {
+    id
+  }
+}
+
+# return unconfirmedContributionFields
+mutation updateContribution (
+  $contributionId: Int!,
+  $amount: Decimal!,
+  $memo: String!,
+  $contributionDate: String!
+) {
+  updateContribution(
+    contributionId: $contributionId,
+    amount: $amount,
+    memo: $memo,
+    contributionDate: $contributionDate
+  ) {
+    id
+  }
+}
+
+mutation deleteContribution($id: Int!) {
+  deleteContribution(id: $id)
+}
+
+
+
