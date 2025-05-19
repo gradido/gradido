@@ -52,24 +52,19 @@ const pollInterval = CONFIG.AUTO_POLL_INTERVAL || undefined
 const emit = defineEmits(['update-contribution-form'])
 
 // refs
-const currentPage = ref(1)
+const currentPage = ref(Number(route.params.page) || 1)
 const openMessagesListId = ref(null)
 
 // queries
 const { result, loading, refetch, onResult } = useQuery(
   listContributions,
-  {
+  () => ({
     pagination: {
       currentPage: currentPage.value,
       pageSize,
       order: 'DESC',
     },
-    messagePagination: {
-      currentPage: 1,
-      pageSize: 10,
-      order: 'ASC',
-    },
-  },
+  }),
   {
     fetchPolicy: 'cache-and-network',
     pollInterval,

@@ -39,7 +39,7 @@ export class Connection {
         logging: true,
         logger: new FileLogger('all', {
           // workaround to let previous path working, because with esbuild the script root path has changed
-          logPath: '../' + CONFIG.TYPEORM_LOGGING_RELATIVE_PATH,
+          logPath: (CONFIG.PRODUCTION ? '../' : '') + CONFIG.TYPEORM_LOGGING_RELATIVE_PATH,
         }),
         extra: {
           charset: 'utf8mb4_unicode_ci',

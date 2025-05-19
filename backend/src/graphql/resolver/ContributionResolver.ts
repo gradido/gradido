@@ -6,19 +6,7 @@ import {
 } from 'database'
 import { Decimal } from 'decimal.js-light'
 import { GraphQLResolveInfo } from 'graphql'
-import {
-  Arg,
-  Args,
-  Authorized,
-  Ctx,
-  FieldResolver,
-  Info,
-  Int,
-  Mutation,
-  Query,
-  Resolver,
-  Root,
-} from 'type-graphql'
+import { Arg, Args, Authorized, Ctx, Info, Int, Mutation, Query, Resolver } from 'type-graphql'
 import { EntityManager, IsNull, getConnection } from 'typeorm'
 
 import { AdminCreateContributionArgs } from '@arg/AdminCreateContributionArgs'
@@ -34,7 +22,6 @@ import { Contribution, ContributionListResult } from '@model/Contribution'
 import { Decay } from '@model/Decay'
 import { OpenCreation } from '@model/OpenCreation'
 import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
-import { User } from '@model/User'
 
 import { RIGHTS } from '@/auth/RIGHTS'
 import {
@@ -61,12 +48,11 @@ import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 import { calculateDecay } from '@/util/decay'
 import { fullName } from '@/util/utilities'
 
-import { ContributionMessage } from '@model/ContributionMessage'
+import { start } from 'repl'
 import { ContributionMessageType } from '../enum/ContributionMessageType'
 import { loadAllContributions, loadUserContributions } from './util/contributions'
 import { getOpenCreations, getUserCreation, validateContribution } from './util/creations'
-import { extractGraphQLFields, extractGraphQLFieldsForSelect } from './util/extractGraphQLFields'
-import { findContributionMessages } from './util/findContributionMessages'
+import { extractGraphQLFields } from './util/extractGraphQLFields'
 import { findContributions } from './util/findContributions'
 import { getLastTransaction } from './util/getLastTransaction'
 import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
@@ -140,20 +126,14 @@ export class ContributionResolver {
     const res = await contribution.softRemove()
     return !!res
   }
-
   @Authorized([RIGHTS.LIST_CONTRIBUTIONS])
   @Query(() => ContributionListResult)
   async listContributions(
     @Ctx() context: Context,
     @Arg('pagination') pagination: Paginated,
-    @Arg('messagePagination', { nullable: true }) messagePagination?: Paginated,
   ): Promise<ContributionListResult> {
     const user = getUser(context)
-    const [dbContributions, count] = await loadUserContributions(
-      user.id,
-      pagination,
-      messagePagination,
-    )
+    const [dbContributions, count] = await loadUserContributions(user.id, pagination)
 
     // show contributions in progress first
     const inProgressContributions = dbContributions.filter(
@@ -163,18 +143,9 @@ export class ContributionResolver {
       (contribution) => contribution.contributionStatus !== ContributionStatus.IN_PROGRESS,
     )
 
-    return new ContributionListResult(
+    const result = new ContributionListResult(
       count,
       [...inProgressContributions, ...notInProgressContributions].map((contribution) => {
-        // we currently expect not much contribution messages for needing pagination
-        // but if we get more than expected, we should get warned
-        if ((contribution.messages?.length || 0) > (messagePagination?.pageSize || 10)) {
-          logger.warn('more contribution messages as expected, consider pagination', {
-            contributionId: contribution.id,
-            expected: messagePagination?.pageSize || 10,
-            actual: contribution.messages?.length || 0,
-          })
-        }
         // filter out moderator messages for this call
         contribution.messages = contribution.messages?.filter(
           (message) =>
@@ -183,6 +154,7 @@ export class ContributionResolver {
         return contribution
       }),
     )
+    return result
   }
 
   @Authorized([RIGHTS.LIST_CONTRIBUTIONS])
@@ -624,51 +596,5 @@ export class ContributionResolver {
     })
 
     return !!res
-  }
-
-  // Field resolvers
-  @Authorized([RIGHTS.USER])
-  @FieldResolver(() => User, { nullable: true })
-  async user(
-    @Root() contribution: DbContribution,
-    @Info() info: GraphQLResolveInfo,
-  ): Promise<User | null> {
-    let user: DbUser | null = contribution.user
-    if (!user) {
-      const queryBuilder = DbUser.createQueryBuilder('user')
-      queryBuilder.where('user.id = :userId', { userId: contribution.userId })
-      extractGraphQLFieldsForSelect(info, queryBuilder, 'user')
-      user = await queryBuilder.getOne()
-    }
-    if (user) {
-      return new User(user)
-    }
-    return null
-  }
-
-  @Authorized([RIGHTS.LIST_ALL_CONTRIBUTION_MESSAGES])
-  @FieldResolver(() => [ContributionMessage], { nullable: true })
-  async messages(
-    @Root() contribution: UnconfirmedContribution,
-    @Arg('pagination', () => Paginated) pagination: Paginated,
-  ): Promise<ContributionMessage[] | null> {
-    if (contribution.messagesCount === 0) {
-      return null
-    }
-    const [contributionMessages] = await findContributionMessages({
-      contributionId: contribution.id,
-      pagination,
-    })
-    // we currently expect not much contribution messages for needing pagination
-    // but if we get more than expected, we should get warned
-    if (contributionMessages.length > pagination.pageSize) {
-      logger.warn('more contribution messages as expected, consider pagination', {
-        contributionId: contribution.id,
-        expected: pagination.pageSize,
-        actual: contributionMessages.length,
-      })
-    }
-
-    return contributionMessages.map((message) => new ContributionMessage(message))
   }
 }
