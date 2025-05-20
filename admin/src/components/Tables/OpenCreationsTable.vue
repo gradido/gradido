@@ -9,12 +9,12 @@
       stacked="md"
       :tbody-tr-class="rowClass"
     >
-      <template #cell(status)="row">
-        <IBiQuestionSquare v-if="row.item.status === 'IN_PROGRESS'" />
-        <IBiBellFill v-else-if="row.item.status === 'PENDING'" />
-        <IBiCheck v-else-if="row.item.status === 'CONFIRMED'" />
-        <IBiXCircle v-else-if="row.item.status === 'DENIED'" />
-        <IBiTrash v-else-if="row.item.status === 'DELETED'" />
+      <template #cell(contributionStatus)="row">
+        <IBiQuestionSquare v-if="row.item.contributionStatus === 'IN_PROGRESS'" />
+        <IBiBellFill v-else-if="row.item.contributionStatus === 'PENDING'" />
+        <IBiCheck v-else-if="row.item.contributionStatus === 'CONFIRMED'" />
+        <IBiXCircle v-else-if="row.item.contributionStatus === 'DENIED'" />
+        <IBiTrash v-else-if="row.item.contributionStatus === 'DELETED'" />
       </template>
       <template #cell(bookmark)="row">
         <div v-if="!myself(row.item)">
@@ -51,11 +51,11 @@
           <BButton v-else @click="rowToggleDetails(row, 0)">
             <IBiChatDots />
             <IBiExclamationCircleFill
-              v-if="row.item.status === 'PENDING' && row.item.messagesCount > 0"
+              v-if="row.item.contributionStatus === 'PENDING' && row.item.messagesCount > 0"
               style="color: #ffc107"
             />
             <IBiQuestionDiamond
-              v-if="row.item.status === 'IN_PROGRESS' && row.item.messagesCount > 0"
+              v-if="row.item.contributionStatus === 'IN_PROGRESS' && row.item.messagesCount > 0"
               variant="warning"
               style="color: #ffc107"
               class="ps-1"
@@ -197,11 +197,11 @@ export default {
     },
     rowClass(item, type) {
       if (!item || type !== 'row') return
-      if (item.status === 'CONFIRMED') return 'table-success'
-      if (item.status === 'DENIED') return 'table-warning'
-      if (item.status === 'DELETED') return 'table-danger'
-      if (item.status === 'IN_PROGRESS') return 'table-primary'
-      if (item.status === 'PENDING') return 'table-primary'
+      if (item.contributionStatus === 'CONFIRMED') return 'table-success'
+      if (item.contributionStatus === 'DENIED') return 'table-warning'
+      if (item.contributionStatus === 'DELETED') return 'table-danger'
+      if (item.contributionStatus === 'IN_PROGRESS') return 'table-primary'
+      if (item.contributionStatus === 'PENDING') return 'table-primary'
     },
     updateStatus(id) {
       this.$emit('update-status', id)

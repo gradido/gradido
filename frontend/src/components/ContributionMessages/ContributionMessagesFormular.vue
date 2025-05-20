@@ -3,13 +3,7 @@
     <small class="ps-2 pt-3">{{ $t('form.reply') }}</small>
     <div>
       <BForm @submit.prevent="onSubmit" @reset="onReset">
-        <BFormTextarea
-          id="textarea"
-          :model-value="form.text"
-          :placeholder="$t('form.memo')"
-          :rows="3"
-          @update:model-value="form.text = $event"
-        />
+        <BFormTextarea id="textarea" v-model="formText" :placeholder="$t('form.memo')" :rows="3" />
         <BRow class="mt-4 mb-4">
           <BCol>
             <BButton type="reset" variant="secondary">{{ $t('form.cancel') }}</BButton>
@@ -39,35 +33,31 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['get-list-contribution-messages', 'update-status'])
+const emit = defineEmits(['add-contribution-message'])
 
 const { t } = useI18n()
 const { toastSuccess, toastError } = useAppToast()
 
 const { mutate: createContributionMessageMutation } = useMutation(createContributionMessage)
 
-const form = ref({
-  text: '',
-})
+const formText = ref('')
 
 const isSubmitting = ref(false)
 
 const disabled = computed(() => {
-  return form.value.text === '' || isSubmitting.value
+  return formText.value === '' || isSubmitting.value
 })
 
 async function onSubmit() {
   isSubmitting.value = true
-
   try {
-    await createContributionMessageMutation({
+    const result = await createContributionMessageMutation({
       contributionId: props.contributionId,
-      message: form.value.text,
+      message: formText.value,
     })
 
-    emit('get-list-contribution-messages', false)
-    emit('update-status', props.contributionId)
-    form.value.text = ''
+    formText.value = ''
+    emit('add-contribution-message', result.data.createContributionMessage)
     toastSuccess(t('message.reply'))
   } catch (error) {
     toastError(error.message)
@@ -77,6 +67,6 @@ async function onSubmit() {
 }
 
 function onReset() {
-  form.value.text = ''
+  formText.value = ''
 }
 </script>
