@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
-import { configure, getLogger } from 'log4js'
 import { createLog4jsConfig } from 'config-schema'
+import { configure, getLogger } from 'log4js'
 import { CONFIG } from './config'
 
 // TODO: check for file, else use generator
@@ -14,9 +14,12 @@ options.appenders.dht.filename = filename.replace(
 )
 filename = options.appenders.errorFile.filename
 
-configure(createLog4jsConfig([
-  { name: 'dht', level: CONFIG.LOG_LEVEL, stdout: true, errors: true },
-], CONFIG.LOG_BASE_PATH + '/dht-node'))
+configure(
+  createLog4jsConfig(
+    [{ name: 'dht', level: CONFIG.LOG_LEVEL, stdout: true, errors: true }],
+    CONFIG.LOG_BASE_PATH + '/dht-node',
+  ),
+)
 
 const logger = getLogger('dht')
 

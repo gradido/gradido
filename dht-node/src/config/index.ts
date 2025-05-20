@@ -1,4 +1,4 @@
-import { validate, LogLevel } from 'config-schema'
+import { LogLevel, validate } from 'config-schema'
 import { latestDbVersion } from 'database'
 import dotenv from 'dotenv'
 
