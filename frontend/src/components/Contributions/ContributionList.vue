@@ -1,107 +1,107 @@
 <template>
-  <div class="contribution-list">
-    <div v-for="item in items" :key="item.id + 'a'" class="mb-3">
-      <contribution-list-item
-        v-if="item.status === 'IN_PROGRESS'"
-        v-bind="item"
-        :contribution-id="item.id"
-        :all-contribution="allContribution"
-        @close-all-open-collapse="$emit('close-all-open-collapse')"
-        @update-contribution-form="updateContributionForm"
-        @delete-contribution="deleteContribution"
-        @update-status="updateStatus"
-      />
+  <div v-if="items.length === 0 && !loading">
+    <div v-if="currentPage === 1">
+      {{ t('contribution.noContributions.myContributions') }}
     </div>
-    <div v-for="item2 in items" :key="item2.id" class="mb-3">
-      <contribution-list-item
-        v-if="item2.status !== 'IN_PROGRESS'"
-        v-bind="item2"
-        :contribution-id="item2.id"
-        :all-contribution="allContribution"
-        @close-all-open-collapse="$emit('close-all-open-collapse')"
-        @update-contribution-form="updateContributionForm"
-        @delete-contribution="deleteContribution"
-        @update-status="updateStatus"
-      />
+    <div v-else>
+      {{ t('contribution.noContributions.emptyPage') }}
     </div>
-    <BPagination
-      v-if="isPaginationVisible"
-      :model-value="currentPage"
-      class="mt-3"
-      pills
-      size="lg"
-      :per-page="pageSize"
-      :total-rows="contributionCount"
-      align="center"
-      :hide-ellipsis="true"
-      @update:model-value="currentPage = $event"
-    />
   </div>
+  <div v-else class="contribution-list">
+    <div v-for="item in items" :key="item.id + 'a'" class="mb-3">
+      <div :id="`contributionListItem-${item.id}`">
+        <contribution-list-item
+          v-bind="item"
+          :contribution-id="item.id"
+          :messages-visible="openMessagesListId === item.id"
+          @toggle-messages-visible="toggleMessagesVisible(item.id)"
+          @update-contribution-form="updateContributionForm"
+          @contribution-changed="refetch()"
+        />
+      </div>
+    </div>
+  </div>
+  <paginator-route-params-page
+    v-model="currentPage"
+    :page-size="pageSize"
+    :total-count="contributionCount"
+    :loading="loading"
+  />
 </template>
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, nextTick } from 'vue'
 import ContributionListItem from '@/components/Contributions/ContributionListItem.vue'
+import { listContributions } from '@/graphql/contributions.graphql'
+import { useQuery } from '@vue/apollo-composable'
+import { PAGE_SIZE } from '@/constants'
+import { useI18n } from 'vue-i18n'
+import CONFIG from '@/config'
+import { useRoute } from 'vue-router'
+import PaginatorRouteParamsPage from '@/components/PaginatorRouteParamsPage.vue'
 
-const props = defineProps({
-  items: {
-    type: Array,
-    required: true,
+const route = useRoute()
+
+// composables
+const { t } = useI18n()
+
+// constants
+const pageSize = PAGE_SIZE
+const pollInterval = CONFIG.AUTO_POLL_INTERVAL || undefined
+
+// events
+const emit = defineEmits(['update-contribution-form'])
+
+// refs
+const currentPage = ref(Number(route.params.page) || 1)
+const openMessagesListId = ref(null)
+
+// queries
+const { result, loading, refetch, onResult } = useQuery(
+  listContributions,
+  () => ({
+    pagination: {
+      currentPage: currentPage.value,
+      pageSize,
+      order: 'DESC',
+    },
+  }),
+  {
+    fetchPolicy: 'cache-and-network',
+    pollInterval,
   },
-  contributionCount: {
-    type: Number,
-    required: true,
-  },
-  showPagination: {
-    type: Boolean,
-    required: true,
-  },
-  pageSize: {
-    type: Number,
-    default: 25,
-  },
-  allContribution: {
-    type: Boolean,
-    required: false,
-    default: false,
-  },
+)
+
+// computed
+const contributionCount = computed(() => {
+  return result.value?.listContributions.contributionCount || 0
+})
+const items = computed(() => {
+  return [...(result.value?.listContributions.contributionList || [])]
 })
 
-const emit = defineEmits([
-  'close-all-open-collapse',
-  'update-list-contributions',
-  'update-contribution-form',
-  'delete-contribution',
-  'update-status',
-])
-
-const currentPage = ref(1)
-const messages = ref([])
-
-const isPaginationVisible = computed(() => {
-  return props.showPagination && props.pageSize < props.contributionCount
-})
-
-watch(currentPage, () => {
-  updateListContributions()
-})
-
-const updateListContributions = () => {
-  emit('update-list-contributions', {
-    currentPage: currentPage.value,
-    pageSize: props.pageSize,
+// callbacks
+// scroll to anchor, if hash ist present in url and after data where loaded
+onResult(({ _data }) => {
+  nextTick(() => {
+    if (!route.hash) {
+      return
+    }
+    const el = document.querySelector(route.hash)
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
   })
-  window.scrollTo(0, 0)
-}
+})
 
+// methods
+const toggleMessagesVisible = (contributionId) => {
+  if (openMessagesListId.value === contributionId) {
+    openMessagesListId.value = 0
+  } else {
+    openMessagesListId.value = contributionId
+  }
+}
 const updateContributionForm = (item) => {
-  emit('update-contribution-form', item)
-}
-
-const deleteContribution = (item) => {
-  emit('delete-contribution', item)
-}
-
-const updateStatus = (id) => {
-  emit('update-status', id)
+  emit('update-contribution-form', { item, page: currentPage.value })
 }
 </script>

@@ -25,7 +25,7 @@ query adminListContributions(
       confirmedBy
       updatedAt
       updatedBy
-      status
+      contributionStatus
       messagesCount
       deniedAt
       deniedBy
@@ -54,7 +54,7 @@ query adminListContributionsShort(
       createdAt
       contributionDate
       confirmedAt
-      status
+      contributionStatus
     }
   }
 }

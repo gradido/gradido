@@ -72,14 +72,14 @@ describe('semaphore', () => {
       email: 'bibi@bloxberg.de',
       amount: 1000,
       memo: 'Herzlich Willkommen bei Gradido!',
-      creationDate: nMonthsBefore(new Date()),
+      contributionDate: nMonthsBefore(new Date()),
       confirmed: true,
     })
     await creationFactory(testEnv, {
       email: 'bob@baumeister.de',
       amount: 1000,
       memo: 'Herzlich Willkommen bei Gradido!',
-      creationDate: nMonthsBefore(new Date()),
+      contributionDate: nMonthsBefore(new Date()),
       confirmed: true,
     })
     await mutate({
@@ -121,7 +121,7 @@ describe('semaphore', () => {
     } = await mutate({
       mutation: createContribution,
       variables: {
-        creationDate: contributionDateFormatter(new Date()),
+        contributionDate: contributionDateFormatter(new Date()),
         amount: 200,
         memo: 'Bobs Contribution',
       },
@@ -144,7 +144,7 @@ describe('semaphore', () => {
     } = await mutate({
       mutation: createContribution,
       variables: {
-        creationDate: contributionDateFormatter(new Date()),
+        contributionDate: contributionDateFormatter(new Date()),
         amount: 200,
         memo: 'Bibis Contribution',
       },

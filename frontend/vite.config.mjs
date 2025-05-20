@@ -111,6 +111,7 @@ export default defineConfig(async ({ command }) => {
         autoInstall: true,
       }),
       EnvironmentPlugin({
+        AUTO_POLL_INTERVAL: CONFIG.AUTO_POLL_INTERVAL,
         BUILD_COMMIT: CONFIG.BUILD_COMMIT,
         GMS_ACTIVE: CONFIG.GMS_ACTIVE,
         HUMHUB_ACTIVE: CONFIG.HUMHUB_ACTIVE,

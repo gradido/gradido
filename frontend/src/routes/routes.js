@@ -68,7 +68,7 @@ const routes = [
     },
   },
   {
-    path: '/community/:tab',
+    path: '/community/:tab/:page?',
     component: () => import('@/pages/Community.vue'),
     meta: {
       requiresAuth: true,
