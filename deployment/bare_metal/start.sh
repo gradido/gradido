@@ -167,7 +167,7 @@ git pull
 export BUILD_COMMIT="$(git rev-parse HEAD)"
 
 # install missing dependencies
-source ./install-missing-deps.sh
+source ./deployment/bare_metal/install-missing-deps.sh
 
 # Generate gradido.conf from template
 # *** 1st prepare for each apiversion the federation conf for nginx from federation-template
