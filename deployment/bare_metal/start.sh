@@ -175,6 +175,7 @@ git pull
 export BUILD_COMMIT="$(git rev-parse HEAD)"
 
 # install missing dependencies
+log_step "Install missing dependencies (nvm, correct nodejs version, bun, rust, grass)"
 source ./deployment/bare_metal/install-missing-deps.sh
 
 # Generate gradido.conf from template
