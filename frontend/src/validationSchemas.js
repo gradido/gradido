@@ -6,7 +6,7 @@ export const isLanguageKey = (str) =>
 
 export const translateYupErrorString = (error, t) => {
   const type = typeof error
-  if (type === 'object') {
+  if (type === 'object' && error.key && typeof error.key === 'string') {
     return t(error.key, error.values)
   } else if (type === 'string' && error.length > 0 && isLanguageKey(error)) {
     return t(error)

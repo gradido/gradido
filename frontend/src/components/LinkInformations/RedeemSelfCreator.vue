@@ -1,6 +1,6 @@
 <template>
   <div class="redeem-self-creator">
-    <redeem-information v-bind="linkData" :is-contribution-link="isContributionLink" />
+    <redeem-information :link-data="linkData" :is-contribution-link="isContributionLink" />
 
     <BCard>
       <div class="mb-3 text-center">
