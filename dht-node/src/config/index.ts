@@ -11,6 +11,7 @@ const constants = {
   LOG4JS_CONFIG: 'log4js-config.json',
   // default log level on production should be info
   LOG_LEVEL: process.env.LOG_LEVEL ?? 'info',
+  LOG_BASE_PATH: process.env.LOG_BASE_PATH ?? '../logs',
 }
 
 const server = {
