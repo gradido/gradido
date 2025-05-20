@@ -81,6 +81,8 @@ watch(
 
 const normalizeAmount = (inputValue) => {
   amountFocused.value = false
-  value.value = inputValue.replace(',', '.')
+  if (typeof inputValue === 'string' && inputValue.length > 1) {
+    value.value = inputValue.replace(',', '.')
+  }
 }
 </script>
