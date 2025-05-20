@@ -36,6 +36,7 @@
   },
   "dependencies": {
     "@types/uuid": "^8.3.4",
+    "config-schema": "*",
     "cross-env": "^7.0.3",
     "decimal.js-light": "^2.5.1",
     "esbuild": "^0.25.2",

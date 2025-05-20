@@ -1,14 +1,9 @@
+import { LogLevel, validate } from 'config-schema'
 import dotenv from 'dotenv'
 
-dotenv.config()
+import { schema } from './schema'
 
-const constants = {
-  CONFIG_VERSION: {
-    DEFAULT: 'DEFAULT',
-    EXPECTED: 'v1.2022-03-18',
-    CURRENT: '',
-  },
-}
+dotenv.config()
 
 const database = {
   DB_CONNECT_RETRY_COUNT: process.env.DB_CONNECT_RETRY_COUNT
@@ -28,18 +23,13 @@ const migrations = {
   MIGRATIONS_TABLE: process.env.MIGRATIONS_TABLE || 'migrations',
 }
 
-const nodeEnv = process.env.NODE_ENV || 'development'
-
-// Check config version
-constants.CONFIG_VERSION.CURRENT = process.env.CONFIG_VERSION || constants.CONFIG_VERSION.DEFAULT
-if (
-  ![constants.CONFIG_VERSION.EXPECTED, constants.CONFIG_VERSION.DEFAULT].includes(
-    constants.CONFIG_VERSION.CURRENT,
-  )
-) {
-  throw new Error(
-    `Fatal: Config Version incorrect - expected "${constants.CONFIG_VERSION.EXPECTED}" or "${constants.CONFIG_VERSION.DEFAULT}", but found "${constants.CONFIG_VERSION.CURRENT}"`,
-  )
+const logging = {
+  LOG_BASE_PATH: process.env.LOG_BASE_PATH || '../logs',
+  LOG_LEVEL: (process.env.LOG_LEVEL || 'info') as LogLevel,
 }
 
-export const CONFIG = { ...constants, ...database, ...migrations, NODE_ENV: nodeEnv }
+const nodeEnv = process.env.NODE_ENV || 'development'
+
+export const CONFIG = { ...database, ...migrations, ...logging, NODE_ENV: nodeEnv }
+
+validate(schema, CONFIG)

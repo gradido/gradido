@@ -1,11 +1,13 @@
-import { ObjectSchema } from 'joi'
+import { ObjectSchema, ValidationErrorItem } from 'joi'
+
 export * from './commonSchema'
+export * from './log4js-config'
 
 export function validate(schema: ObjectSchema, data: any) {
   const { error } = schema.validate(data)
   const schemaJson = schema.describe()
   if (error) {
-    error.details.forEach((err) => {
+    error.details.forEach((err: ValidationErrorItem) => {
       const details = JSON.stringify(err, null, 2)
       if (!err.context) {
         throw new Error('missing context in config validation with joi: ' + details)
