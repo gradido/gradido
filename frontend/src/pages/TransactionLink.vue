@@ -165,7 +165,11 @@ const itemType = computed(() => {
     if (store.state.token && store.state.tokenTime) {
       if (tokenExpiresInSeconds.value < 5) {
         // console.log('TransactionLink.itemType... REDEEM_SELECT_COMMUNITY')
-        return 'REDEEM_SELECT_COMMUNITY'
+        if (CONFIG.CROSS_TX_REDEEM_LINK_ACTIVE) {
+          return 'REDEEM_SELECT_COMMUNITY'
+        } else {
+          return 'LOGGED_OUT'
+        }
       }
     }
     // console.log(
