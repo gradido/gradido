@@ -2,26 +2,7 @@
 # stop if something fails
 set -euo pipefail
 
-# check for some tools and install them, when missing
-# bun https://bun.sh/install, faster packet-manager as yarn
-if ! command -v bun &> /dev/null
-then
-    if ! command -v unzip &> /dev/null
-    then
-        echo "'unzip' is missing, will be installed now!"
-        sudo apt-get install -y unzip
-    fi
-    echo "'bun' is missing, will be installed now!"
-    curl -fsSL https://bun.sh/install | bash
-    export BUN_INSTALL="$HOME/.bun"
-    export PATH="$BUN_INSTALL/bin:$PATH"
-fi
-# turbo https://turborepo.com/docs/getting-started
-if ! command -v turbo &> /dev/null
-then
-    echo "'turbo' is missing, will be installed now!"
-    bun install --global turbo
-fi
+source ./install-missing-deps.sh
 
 # check for parameter
 FAST_MODE=false
@@ -154,22 +135,22 @@ ln -sf $SCRIPT_DIR/nginx/sites-available/update-page.conf $SCRIPT_DIR/nginx/site
 # helper functions
 log_step() {
     local message="$1"
-    echo -e "\e[34m$message\e[0m" > /dev/tty # blue in console
+    echo -e "\e[34m$message\e[0m" # > /dev/tty # blue in console
     echo "<p style="color:blue">$message</p>" >> "$UPDATE_HTML" # blue in html 
 }
 log_error() {
     local message="$1"
-    echo -e "\e[31m$message\e[0m" > /dev/tty # red in console
+    echo -e "\e[31m$message\e[0m" # > /dev/tty # red in console
     echo "<span style="color:red">$message</span>" >> "$UPDATE_HTML" # red in html 
 }
 log_warn() {
     local message="$1"
-    echo -e "\e[33m$message\e[0m" > /dev/tty # orange in console
+    echo -e "\e[33m$message\e[0m" # > /dev/tty # orange in console
     echo "<span style="color:orange">$message</span>" >> "$UPDATE_HTML" # orange in html 
 }
 log_success() {
     local message="$1"
-    echo -e "\e[32m$message\e[0m" > /dev/tty # green in console
+    echo -e "\e[32m$message\e[0m" # > /dev/tty # green in console
     echo "<p style="color:green">$message</p>" >> "$UPDATE_HTML" # green in html 
 }
 

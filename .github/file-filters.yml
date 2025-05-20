@@ -59,3 +59,6 @@ mariadb: &mariadb
 
 nginx: &nginx
   - 'nginx/**/*'
+
+deploy-bare-metal: &deploy-bare-metal
+  - 'deployment/bare_metal/**/*'
