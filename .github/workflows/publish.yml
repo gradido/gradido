@@ -209,7 +209,7 @@ jobs:
       ##########################################################################
       - name: Database | Build `up` image
         run: |
-          docker build --target up -t "gradido/database:up" database/
+          docker build -f ./database/Dockerfile --target up -t "gradido/database:up" .
           docker save "gradido/database:up" > /tmp/database_up.tar
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
