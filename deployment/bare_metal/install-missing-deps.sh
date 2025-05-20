@@ -44,7 +44,7 @@ fi
 if ! command -v cargo &> /dev/null
 then
     echo "'cargo' is missing, will be installed now!"
-    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
     export CARGO_HOME="$HOME/.cargo"
     export PATH="$CARGO_HOME/bin:$PATH"
 fi
