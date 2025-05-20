@@ -1,4 +1,4 @@
-import { validate } from 'config-schema'
+import { validate, LogLevel } from 'config-schema'
 import { latestDbVersion } from 'database'
 import dotenv from 'dotenv'
 
@@ -10,7 +10,7 @@ const constants = {
   DB_VERSION: latestDbVersion,
   LOG4JS_CONFIG: 'log4js-config.json',
   // default log level on production should be info
-  LOG_LEVEL: process.env.LOG_LEVEL ?? 'info',
+  LOG_LEVEL: (process.env.LOG_LEVEL ?? 'info') as LogLevel,
   LOG_BASE_PATH: process.env.LOG_BASE_PATH ?? '../logs',
 }
 
