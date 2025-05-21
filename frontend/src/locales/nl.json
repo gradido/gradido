@@ -31,7 +31,7 @@
     }
   },
   "card-user-search": {
-    "headline": "Geografisch leden zoeken (beta)",
+    "headline": "Geografisch leden zoeken (bèta)",
     "allowed": {
       "button": "Zoeken naar leden starten...",
       "disabled-button": "GMS offline...",
