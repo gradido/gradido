@@ -104,7 +104,7 @@ describe('router', () => {
     testRoute('/overview', 'Overview')
     testRoute('/send/:communityIdentifier?/:userIdentifier?', 'Send')
     testRoute('/transactions', 'Transactions')
-    testRoute('/community', 'Community')
+    testRoute('/contributions', 'Contributions')
     testRoute('/information', 'InfoStatistic')
     testRoute('/usersearch', 'UserSearch')
     testRoute('/gdt', 'Transactions')
@@ -116,10 +116,10 @@ describe('router', () => {
     testRoute('/checkEmail/:optin/:code?', 'ResetPassword', false)
     testRoute('/redeem/:code', 'TransactionLink', false)
 
-    describe('community without tab parameter', () => {
+    describe('contributions without tab parameter', () => {
       it('redirects to contribute tab', () => {
-        const route = routes.find((r) => r.path === '/community')
-        expect(route.redirect()).toEqual({ path: '/community/contribute' })
+        const route = routes.find((r) => r.path === '/contributions')
+        expect(route.redirect()).toEqual({ path: '/contributions/contribute' })
       })
     })
 

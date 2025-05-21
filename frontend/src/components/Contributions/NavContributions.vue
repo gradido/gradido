@@ -1,34 +1,34 @@
 <template>
-  <div class="nav-community">
+  <div class="nav-contributions">
     <div
-      class="nav-community-btn-wrapper bg-209 rounded-26 d-flex bd-highlight mx-xl-6 mx-lg-5 shadow justify-content-between"
+      class="nav-contributions-btn-wrapper bg-209 rounded-26 d-flex bd-highlight mx-xl-6 mx-lg-5 shadow justify-content-between"
     >
       <BButton
-        :to="{ path: '/community/contribute' }"
-        :class="stateClasses('/community/contribute')"
+        :to="{ path: routeToTab(contribute) }"
+        :class="stateClasses(contribute)"
         block
         variant="link"
-        class="nav-community__btn"
+        class="nav-contributions__btn"
       >
         <b-img src="/img/svg/write.svg" height="20" class="svg-icon" />
         {{ $t('community.submitContribution') }}
       </BButton>
       <BButton
-        :to="{ path: '/community/contributions' }"
-        :class="stateClasses('/community/contributions')"
+        :to="{ path: routeToTab(ownContributions) }"
+        :class="stateClasses(ownContributions)"
         block
         variant="link"
-        class="nav-community__btn"
+        class="nav-contributions__btn"
       >
         <i-ion-person-sharp class="svg-icon" />
         {{ $t('community.myContributions') }}
       </BButton>
       <BButton
-        :to="{ path: '/community/community' }"
-        :class="stateClasses('/community/community')"
+        :to="{ path: routeToTab(allContributions) }"
+        :class="stateClasses(allContributions)"
         block
         variant="link"
-        class="nav-community__btn"
+        class="nav-contributions__btn"
       >
         <i-mdi-people-group class="svg-icon" />
         {{ $t('community.community') }}
@@ -38,20 +38,42 @@
 </template>
 <script>
 export default {
-  name: 'NavCommunity',
+  name: 'NavContributions',
+
+  props: {
+    allContributions: {
+      type: String,
+      default: '',
+    },
+    contribute: {
+      type: String,
+      default: '',
+    },
+    ownContributions: {
+      type: String,
+      default: '',
+    },
+    routeBase: {
+      type: String,
+      default: '',
+    },
+  },
 
   methods: {
-    stateClasses(path) {
-      if (this.$route.path.includes(path)) {
+    stateClasses(route) {
+      if (this.$route.path.includes(route)) {
         return 'router-link-active router-link-exact-active'
       }
       return ''
+    },
+    routeToTab(route) {
+      return this.routeBase + route
     },
   },
 }
 </script>
 <style scoped lang="scss">
-.nav-community-btn-wrapper {
+.nav-contributions-btn-wrapper {
   background-color: #d1d1d1;
 
   > :deep(*) {

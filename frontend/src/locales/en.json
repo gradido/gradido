@@ -41,7 +41,7 @@
     }
   },
   "card-user-search": {
-    "headline": "Geographic member search (experimental)",
+    "headline": "Geographic member search (beta)",
     "allowed": {
       "button": "Start Membersearch...",
       "disabled-button": "GMS offline...",
@@ -316,7 +316,7 @@
   },
   "openHours": "Open Hours",
   "pageTitle": {
-    "community": "Create Gradido",
+    "contributions": "Create Gradido",
     "gdt": "Your GDT transactions",
     "information": "{community}",
     "overview": "Welcome {name}",
