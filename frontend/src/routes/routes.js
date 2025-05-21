@@ -57,22 +57,22 @@ const routes = [
     },
   },
   {
-    path: '/community',
-    component: () => import('@/pages/Community'),
+    path: '/contributions',
+    component: () => import('@/pages/Contributions'),
     meta: {
       requiresAuth: true,
-      pageTitle: 'community',
+      pageTitle: 'contributions',
     },
     redirect: (to) => {
-      return { path: '/community/contribute' }
+      return { path: '/contributions/contribute' }
     },
   },
   {
-    path: '/community/:tab/:page?',
-    component: () => import('@/pages/Community.vue'),
+    path: '/contributions/:tab/:page?',
+    component: () => import('@/pages/Contributions.vue'),
     meta: {
       requiresAuth: true,
-      pageTitle: 'community',
+      pageTitle: 'contributions',
     },
   },
   {
