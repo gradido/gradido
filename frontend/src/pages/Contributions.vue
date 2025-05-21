@@ -1,5 +1,5 @@
 <template>
-  <div class="community-page">
+  <div class="contributions-page">
     <div>
       <BTabs :model-value="tabIndex" no-nav-style borderless align="center">
         <BTab no-body lazy>
@@ -33,7 +33,7 @@ import { countContributionsInProgress } from '@/graphql/contributions.graphql'
 import { useAppToast } from '@/composables/useToast'
 import { useI18n } from 'vue-i18n'
 
-const COMMUNITY_TABS = ['contribute', 'contributions', 'community']
+const CONTRIBUTION_TABS = ['contribute', 'own_contributions', 'all_contributions']
 
 const route = useRoute()
 const router = useRouter()
@@ -58,8 +58,8 @@ handleInProgressContributionFound(({ data }) => {
   if (data) {
     if (data.countContributionsInProgress > 0) {
       tabIndex.value = 1
-      if (route.params.tab !== 'contributions') {
-        router.push({ params: { tab: 'contributions' } })
+      if (route.params.tab !== 'own_contributions') {
+        router.push({ params: { tab: 'own_contributions' } })
       }
       toastInfo(t('contribution.alert.answerQuestionToast'))
     }
@@ -67,7 +67,7 @@ handleInProgressContributionFound(({ data }) => {
 })
 
 const updateTabIndex = () => {
-  const index = COMMUNITY_TABS.indexOf(route.params.tab)
+  const index = CONTRIBUTION_TABS.indexOf(route.params.tab)
   tabIndex.value = index > -1 ? index : 0
 }
 // after a edit contribution was saved, jump to contributions tab
@@ -76,7 +76,7 @@ function handleContributionUpdated() {
   itemData.value = null
   tabIndex.value = 1
   router.push({
-    params: { tab: 'contributions', page: editContributionPage.value },
+    params: { tab: 'own_contributions', page: editContributionPage.value },
     hash: `#contributionListItem-${contributionItemId}`,
   })
 }

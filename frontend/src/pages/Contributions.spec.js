@@ -4,7 +4,7 @@ import { mount } from '@vue/test-utils'
 import { BTab, BTabs } from 'bootstrap-vue-next'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useRoute, useRouter } from 'vue-router'
-import Community from './Community'
+import Contributions from './Contributions'
 
 // Mock external dependencies
 vi.mock('vue-router', () => ({
@@ -56,7 +56,7 @@ vi.mock('@/components/Contributions/ContributionListAll', () => ({
   },
 }))
 
-describe('Community', () => {
+describe('Contributions', () => {
   let wrapper
   let mockRouter
   let mockToast
@@ -76,7 +76,7 @@ describe('Community', () => {
       onResult: mockCountContributionsInProgress,
     }))
 
-    wrapper = mount(Community, {
+    wrapper = mount(Contributions, {
       global: {
         mocks: {
           $t: (key) => key, // Mock $t function
