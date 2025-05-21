@@ -4,8 +4,8 @@
       class="nav-contributions-btn-wrapper bg-209 rounded-26 d-flex bd-highlight mx-xl-6 mx-lg-5 shadow justify-content-between"
     >
       <BButton
-        :to="{ path: routeByIndex(0) }"
-        :class="stateClasses(0)"
+        :to="{ path: routeToTab(contribute) }"
+        :class="stateClasses(contribute)"
         block
         variant="link"
         class="nav-contributions__btn"
@@ -14,8 +14,8 @@
         {{ $t('community.submitContribution') }}
       </BButton>
       <BButton
-        :to="{ path: routeByIndex(1) }"
-        :class="stateClasses(1)"
+        :to="{ path: routeToTab(ownContributions) }"
+        :class="stateClasses(ownContributions)"
         block
         variant="link"
         class="nav-contributions__btn"
@@ -24,8 +24,8 @@
         {{ $t('community.myContributions') }}
       </BButton>
       <BButton
-        :to="{ path: routeByIndex(2) }"
-        :class="stateClasses(2)"
+        :to="{ path: routeToTab(allContributions) }"
+        :class="stateClasses(allContributions)"
         block
         variant="link"
         class="nav-contributions__btn"
@@ -41,9 +41,17 @@ export default {
   name: 'NavContributions',
 
   props: {
-    tabRoutes: {
-      type: Array,
-      default: () => [],
+    allContributions: {
+      type: String,
+      default: '',
+    },
+    contribute: {
+      type: String,
+      default: '',
+    },
+    ownContributions: {
+      type: String,
+      default: '',
     },
     routeBase: {
       type: String,
@@ -52,14 +60,14 @@ export default {
   },
 
   methods: {
-    stateClasses(index) {
-      if (this.$route.path.includes(this.tabRoutes[index])) {
+    stateClasses(route) {
+      if (this.$route.path.includes(route)) {
         return 'router-link-active router-link-exact-active'
       }
       return ''
     },
-    routeByIndex(index) {
-      return this.routeBase + this.tabRoutes[index]
+    routeToTab(route) {
+      return this.routeBase + route
     },
   },
 }
