@@ -128,7 +128,7 @@ nginx_restart() {
     sudo systemctl start nginx
   }
 }
-ln -sf $SCRIPT_DIR/nginx/sites-available/update-page.conf $SCRIPT_DIR/nginx/sites-enabled/default
+ln -s $SCRIPT_DIR/nginx/sites-available/update-page.conf $SCRIPT_DIR/nginx/sites-enabled/default
 nginx_restart
 
 # helper functions
