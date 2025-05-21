@@ -46,7 +46,8 @@ export class Transaction extends BaseEntity {
   @Column({
     name: 'balance_date',
     type: 'datetime',
-    default: () => 'CURRENT_TIMESTAMP',
+    precision: 3,
+    default: () => 'CURRENT_TIMESTAMP(3)',
     nullable: false,
   })
   balanceDate: Date
@@ -63,6 +64,7 @@ export class Transaction extends BaseEntity {
   @Column({
     name: 'decay_start',
     type: 'datetime',
+    precision: 3,
     nullable: true,
     default: null,
   })
@@ -71,7 +73,7 @@ export class Transaction extends BaseEntity {
   @Column({ type: 'varchar', length: 255, nullable: false, collation: 'utf8mb4_unicode_ci' })
   memo: string
 
-  @Column({ name: 'creation_date', type: 'datetime', nullable: true, default: null })
+  @Column({ name: 'creation_date', type: 'datetime', precision: 3, nullable: true, default: null })
   creationDate: Date | null
 
   @Column({ name: 'user_id', type: 'bigint', unsigned: true, nullable: false })

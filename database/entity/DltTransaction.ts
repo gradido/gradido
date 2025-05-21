@@ -25,12 +25,13 @@ export class DltTransaction extends BaseEntity {
   @Column({
     name: 'created_at',
     type: 'datetime',
+    precision: 3,
     default: () => 'CURRENT_TIMESTAMP(3)',
     nullable: false,
   })
   createdAt: Date
 
-  @Column({ name: 'verified_at', type: 'datetime', nullable: true, default: null })
+  @Column({ name: 'verified_at', type: 'datetime', precision: 3, nullable: true, default: null })
   verifiedAt: Date | null
 
   @OneToOne(

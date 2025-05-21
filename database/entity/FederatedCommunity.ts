@@ -27,18 +27,19 @@ export class FederatedCommunity extends BaseEntity {
   @Column({ name: 'end_point', type: 'varchar', length: 255, nullable: false })
   endPoint: string
 
-  @Column({ name: 'last_announced_at', type: 'datetime', nullable: true })
+  @Column({ name: 'last_announced_at', type: 'datetime', precision: 3, nullable: true })
   lastAnnouncedAt: Date | null
 
-  @Column({ name: 'verified_at', type: 'datetime', nullable: true })
+  @Column({ name: 'verified_at', type: 'datetime', precision: 3, nullable: true })
   verifiedAt: Date | null
 
-  @Column({ name: 'last_error_at', type: 'datetime', nullable: true })
+  @Column({ name: 'last_error_at', type: 'datetime', precision: 3, nullable: true })
   lastErrorAt: Date | null
 
   @CreateDateColumn({
     name: 'created_at',
     type: 'datetime',
+    precision: 3,
     default: () => 'CURRENT_TIMESTAMP(3)',
     nullable: false,
   })
@@ -47,6 +48,7 @@ export class FederatedCommunity extends BaseEntity {
   @UpdateDateColumn({
     name: 'updated_at',
     type: 'datetime',
+    precision: 3,
     onUpdate: 'CURRENT_TIMESTAMP(3)',
     nullable: true,
   })

@@ -99,12 +99,13 @@ export class User extends BaseEntity {
   @Column({
     name: 'created_at',
     type: 'datetime',
+    precision: 3,
     default: () => 'CURRENT_TIMESTAMP(3)',
     nullable: false,
   })
   createdAt: Date
 
-  @DeleteDateColumn({ name: 'deleted_at', type: 'datetime', nullable: true })
+  @DeleteDateColumn({ name: 'deleted_at', type: 'datetime', precision: 3, nullable: true })
   deletedAt: Date | null
 
   @Column({ type: 'bigint', default: 0, unsigned: true })
@@ -180,7 +181,13 @@ export class User extends BaseEntity {
   @Column({ name: 'gms_registered', type: 'bool', default: false })
   gmsRegistered: boolean
 
-  @Column({ name: 'gms_registered_at', type: 'datetime', default: null, nullable: true })
+  @Column({
+    name: 'gms_registered_at',
+    type: 'datetime',
+    precision: 3,
+    default: null,
+    nullable: true,
+  })
   gmsRegisteredAt: Date | null
 
   @Column({ name: 'humhub_allowed', type: 'bool', default: false })

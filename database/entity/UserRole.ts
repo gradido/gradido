@@ -15,12 +15,13 @@ export class UserRole extends BaseEntity {
   @Column({
     name: 'created_at',
     type: 'datetime',
+    precision: 3,
     default: () => 'CURRENT_TIMESTAMP(3)',
     nullable: false,
   })
   createdAt: Date
 
-  @Column({ name: 'updated_at', type: 'datetime', nullable: true, default: null })
+  @Column({ name: 'updated_at', type: 'datetime', precision: 3, nullable: true, default: null })
   updatedAt: Date | null
 
   @ManyToOne(

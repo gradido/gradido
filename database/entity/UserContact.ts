@@ -94,6 +94,7 @@ export class UserContact extends BaseEntity {
 
   @CreateDateColumn({
     name: 'created_at',
+    precision: 3,
     default: () => 'CURRENT_TIMESTAMP(3)',
     nullable: false,
   })
@@ -101,11 +102,12 @@ export class UserContact extends BaseEntity {
 
   @UpdateDateColumn({
     name: 'updated_at',
+    precision: 3,
     nullable: true,
     onUpdate: 'CURRENT_TIMESTAMP(3)',
   })
   updatedAt: Date | null
 
-  @DeleteDateColumn({ name: 'deleted_at', nullable: true })
+  @DeleteDateColumn({ name: 'deleted_at', precision: 3, nullable: true })
   deletedAt: Date | null
 }

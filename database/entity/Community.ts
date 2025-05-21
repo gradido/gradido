@@ -39,7 +39,7 @@ export class Community extends BaseEntity {
   })
   communityUuid: string | null
 
-  @Column({ name: 'authenticated_at', type: 'datetime', nullable: true })
+  @Column({ name: 'authenticated_at', type: 'datetime', precision: 3, nullable: true })
   authenticatedAt: Date | null
 
   @Column({ name: 'name', type: 'varchar', length: 40, nullable: true })
@@ -48,7 +48,7 @@ export class Community extends BaseEntity {
   @Column({ name: 'description', type: 'varchar', length: 255, nullable: true })
   description: string | null
 
-  @CreateDateColumn({ name: 'creation_date', type: 'datetime', nullable: true })
+  @CreateDateColumn({ name: 'creation_date', type: 'datetime', precision: 3, nullable: true })
   creationDate: Date | null
 
   @Column({ name: 'gms_api_key', type: 'varchar', length: 512, nullable: true, default: null })
@@ -66,6 +66,7 @@ export class Community extends BaseEntity {
   @CreateDateColumn({
     name: 'created_at',
     type: 'datetime',
+    precision: 3,
     default: () => 'CURRENT_TIMESTAMP(3)',
     nullable: false,
   })
@@ -74,6 +75,7 @@ export class Community extends BaseEntity {
   @UpdateDateColumn({
     name: 'updated_at',
     type: 'datetime',
+    precision: 3,
     onUpdate: 'CURRENT_TIMESTAMP(3)',
     nullable: true,
   })
