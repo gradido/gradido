@@ -31,7 +31,7 @@
     }
   },
   "card-user-search": {
-    "headline": "Búsqueda geográfica de miembros",
+    "headline": "Búsqueda geográfica de miembros (beta)",
     "allowed": {
       "button": "Iniciar Búsqueda de Miembros...",
       "disabled-button": "GMS offline...",
