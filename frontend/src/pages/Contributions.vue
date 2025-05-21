@@ -23,7 +23,7 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue'
+import { ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useQuery } from '@vue/apollo-composable'
 import ContributionEdit from '@/components/Contributions/ContributionEdit'
