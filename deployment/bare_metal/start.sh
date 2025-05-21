@@ -2,8 +2,6 @@
 # stop if something fails
 set -euo pipefail
 
-source ./install-missing-deps.sh
-
 # check for parameter
 FAST_MODE=false
 POSITIONAL_ARGS=()
@@ -43,18 +41,6 @@ UPDATE_HTML=$SCRIPT_DIR/nginx/update-page/updating.html
 PROJECT_ROOT=$SCRIPT_DIR/../..
 NGINX_CONFIG_DIR=$SCRIPT_DIR/nginx/sites-available
 set +o allexport
-
-# enable nvm
-export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-install_nvm() {
-    nvm install 
-    nvm use 
-    nvm alias default 
-    npm i -g yarn pm2
-    pm2 startup
-}
-# make sure correct node version is installed
-nvm use || install_nvm
 
 # NOTE: all config values will be in process.env when starting
 # the services and will therefore take precedence over the .env
@@ -187,6 +173,10 @@ git fetch --all
 git checkout $BRANCH_NAME
 git pull
 export BUILD_COMMIT="$(git rev-parse HEAD)"
+
+# install missing dependencies
+log_step "Install missing dependencies (nvm, correct nodejs version, bun, rust, grass)"
+source ./deployment/bare_metal/install-missing-deps.sh
 
 # Generate gradido.conf from template
 # *** 1st prepare for each apiversion the federation conf for nginx from federation-template

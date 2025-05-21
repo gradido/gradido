@@ -98,9 +98,14 @@ export default defineConfig(async ({ command }) => {
       vitePluginGraphqlLoader(),
       commonjs(),
     ],
+    css: {
+      extract: CONFIG.PRODUCTION === true,
+      transformer: 'lightningcss',
+    },
     build: {
       outDir: path.resolve(__dirname, './build'),
       chunkSizeWarningLimit: 1600,
+      cssMinify: 'lightningcss',
     },
     publicDir: '/admin',
   }

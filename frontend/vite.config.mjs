@@ -144,6 +144,7 @@ export default defineConfig(async ({ command }) => {
     ],
     css: {
       extract: CONFIG.PRODUCTION === true,
+      transformer: 'lightningcss',
       preprocessorOptions: {
         scss: {
           additionalData: `@use "@/assets/scss/custom/gradido-custom/color" as *;`,
@@ -154,6 +155,7 @@ export default defineConfig(async ({ command }) => {
       outDir: path.resolve(__dirname, './build'),
       chunkSizeWarningLimit: 1600,
       minify: 'esbuild',
+      cssMinify: 'lightningcss',
       sourcemap: false,
     },
   }
