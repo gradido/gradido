@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
-import CommunityTemplate from './CommunityTemplate'
+import ContributionsTemplate from './ContributionsTemplate'
 import ContributionInfo from '@/components/Template/RightSide/ContributionInfo.vue'
 
 vi.mock('vue-i18n', () => ({
@@ -9,11 +9,11 @@ vi.mock('vue-i18n', () => ({
   }),
 }))
 
-describe('CommunityTemplate', () => {
+describe('ContributionsTemplate', () => {
   let wrapper
 
   const createWrapper = (tab) => {
-    return mount(CommunityTemplate, {
+    return mount(ContributionsTemplate, {
       global: {
         components: {
           ContributionInfo,

@@ -1,7 +1,8 @@
 <template>
   <div class="contributions-page">
-    <div>
-      <BTabs :model-value="tabIndex" no-nav-style borderless align="center">
+    <div class="mt--3">
+      <nav-contributions :tab-routes="CONTRIBUTION_TABS" route-base="/contributions/" />
+      <BTabs :model-value="tabIndex" no-nav-style borderless align="center" class="mt-3">
         <BTab no-body lazy>
           <contribution-edit
             v-if="itemData"
@@ -29,11 +30,12 @@ import ContributionEdit from '@/components/Contributions/ContributionEdit'
 import ContributionCreate from '@/components/Contributions/ContributionCreate'
 import ContributionList from '@/components/Contributions/ContributionList'
 import ContributionListAll from '@/components/Contributions/ContributionListAll'
+import NavContributions from '@/components/Contributions/NavContributions'
 import { countContributionsInProgress } from '@/graphql/contributions.graphql'
 import { useAppToast } from '@/composables/useToast'
 import { useI18n } from 'vue-i18n'
 
-const CONTRIBUTION_TABS = ['contribute', 'own_contributions', 'all_contributions']
+const CONTRIBUTION_TABS = ['contribute', 'own-contributions', 'all-contributions']
 
 const route = useRoute()
 const router = useRouter()
@@ -58,8 +60,8 @@ handleInProgressContributionFound(({ data }) => {
   if (data) {
     if (data.countContributionsInProgress > 0) {
       tabIndex.value = 1
-      if (route.params.tab !== 'own_contributions') {
-        router.push({ params: { tab: 'own_contributions' } })
+      if (route.params.tab !== 'own-contributions') {
+        router.push({ params: { tab: 'own-contributions' } })
       }
       toastInfo(t('contribution.alert.answerQuestionToast'))
     }
@@ -76,7 +78,7 @@ function handleContributionUpdated() {
   itemData.value = null
   tabIndex.value = 1
   router.push({
-    params: { tab: 'own_contributions', page: editContributionPage.value },
+    params: { tab: 'own-contributions', page: editContributionPage.value },
     hash: `#contributionListItem-${contributionItemId}`,
   })
 }

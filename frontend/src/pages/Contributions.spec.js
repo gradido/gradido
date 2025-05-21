@@ -56,6 +56,13 @@ vi.mock('@/components/Contributions/ContributionListAll', () => ({
   },
 }))
 
+vi.mock('@/components/Contributions/NavContributions', () => ({
+  default: {
+    name: 'NavContributions',
+    template: '<div></div>',
+  },
+}))
+
 describe('Contributions', () => {
   let wrapper
   let mockRouter
