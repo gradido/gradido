@@ -52,24 +52,27 @@ server {
         rewrite ^/vue/?(.*)$ /$1 permanent;
     }
 
-    # caching rules for assets
-    # static assets
-    location ~* \.(?:woff2?|ttf|otf|eot|jpg|jpeg|png|gif|svg|webp|ico)$ {
-        # keep assets for a week
-        add_header Cache-Control "public, max-age=604800";
-    }
-    # hashed assets
-    location ~* \.(?:js|css|json)$ {
-        add_header Cache-Control "public, max-age=31536000, immutable";
-    }
-
     # Frontend (default)
     location / {
         limit_req zone=frontend burst=150 nodelay;
         limit_conn addr 60;
         root $PROJECT_ROOT/frontend/build/;
         index index.html;
-        try_files $uri $uri/ /index.html = 404;       
+
+        # caching rules for assets
+        # static assets
+        location ~* \.(?:woff2?|ttf|otf|eot|jpg|jpeg|png|gif|svg|webp|ico)$ {
+            # keep assets for a week
+            add_header Cache-Control "public, max-age=604800";
+            try_files $uri =404;
+        }
+        # hashed assets
+        location ~* \.(?:js|css|json)$ {
+            add_header Cache-Control "public, max-age=31536000, immutable";
+            try_files $uri =404;
+        }
+
+        try_files $uri $uri/ /index.html = 404;   
 
         # don't cache index.html
         add_header Cache-Control "no-cache, no-store, must-revalidate";
