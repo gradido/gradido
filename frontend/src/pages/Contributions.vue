@@ -1,7 +1,8 @@
 <template>
-  <div class="community-page">
-    <div>
-      <BTabs :model-value="tabIndex" no-nav-style borderless align="center">
+  <div class="contributions-page">
+    <div class="mt--3">
+      <nav-contributions v-bind="tabRoutes" route-base="/contributions/" />
+      <BTabs :model-value="tabIndex" no-nav-style borderless align="center" class="mt-3">
         <BTab no-body lazy>
           <contribution-edit
             v-if="itemData"
@@ -22,21 +23,35 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue'
+import { ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useQuery } from '@vue/apollo-composable'
 import ContributionEdit from '@/components/Contributions/ContributionEdit'
 import ContributionCreate from '@/components/Contributions/ContributionCreate'
 import ContributionList from '@/components/Contributions/ContributionList'
 import ContributionListAll from '@/components/Contributions/ContributionListAll'
+import NavContributions from '@/components/Contributions/NavContributions'
 import { countContributionsInProgress } from '@/graphql/contributions.graphql'
 import { useAppToast } from '@/composables/useToast'
 import { useI18n } from 'vue-i18n'
 
-const COMMUNITY_TABS = ['contribute', 'contributions', 'community']
+const tabRoutes = {
+  contribute: 'contribute',
+  ownContributions: 'own-contributions',
+  allContributions: 'all-contributions',
+}
 
 const route = useRoute()
 const router = useRouter()
+
+const tabRouteToIndex = (route) => {
+  const index = Object.values(tabRoutes).indexOf(route)
+  if (index > -1) {
+    return index
+  }
+  router.push({ path: '/contributions/' + tabRoutes.contribute })
+  return 0
+}
 
 const { toastInfo } = useAppToast()
 const { t } = useI18n()
@@ -57,26 +72,22 @@ const { onResult: handleInProgressContributionFound } = useQuery(
 handleInProgressContributionFound(({ data }) => {
   if (data) {
     if (data.countContributionsInProgress > 0) {
-      tabIndex.value = 1
-      if (route.params.tab !== 'contributions') {
-        router.push({ params: { tab: 'contributions' } })
+      tabIndex.value = tabRouteToIndex(tabRoutes.ownContributions)
+      if (route.params.tab !== tabRoutes.ownContributions) {
+        router.push({ params: { tab: tabRoutes.ownContributions } })
       }
       toastInfo(t('contribution.alert.answerQuestionToast'))
     }
   }
 })
 
-const updateTabIndex = () => {
-  const index = COMMUNITY_TABS.indexOf(route.params.tab)
-  tabIndex.value = index > -1 ? index : 0
-}
 // after a edit contribution was saved, jump to contributions tab
 function handleContributionUpdated() {
   const contributionItemId = itemData.value.id
   itemData.value = null
-  tabIndex.value = 1
+  tabIndex.value = tabRouteToIndex(tabRoutes.ownContributions)
   router.push({
-    params: { tab: 'contributions', page: editContributionPage.value },
+    params: { tab: tabRoutes.ownContributions, page: editContributionPage.value },
     hash: `#contributionListItem-${contributionItemId}`,
   })
 }
@@ -84,13 +95,17 @@ function handleContributionUpdated() {
 const handleUpdateContributionForm = (data) => {
   itemData.value = data.item
   editContributionPage.value = data.page
-  tabIndex.value = 0
-  router.push({ params: { tab: 'contribute', page: undefined } })
+  tabIndex.value = tabRouteToIndex(tabRoutes.contribute)
+  router.push({ params: { tab: tabRoutes.contribute, page: undefined } })
 }
 
-watch(() => route.params.tab, updateTabIndex)
-
-onMounted(updateTabIndex)
+watch(
+  () => route.params.tab,
+  () => {
+    tabIndex.value = tabRouteToIndex(route.params.tab)
+  },
+  { immediate: true },
+)
 </script>
 <style scoped>
 .tab-content {

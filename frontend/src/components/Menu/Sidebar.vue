@@ -26,7 +26,12 @@
               <span class="ms-2">{{ $t('navigation.transactions') }}</span>
             </div>
           </BNavItem>
-          <BNavItem ref="communityLink" to="/community" class="mb-3" active-class="active-route">
+          <BNavItem
+            ref="contributionsLink"
+            to="/contributions"
+            class="mb-3"
+            active-class="active-route"
+          >
             <div class="sidebar-menu-item-wrapper">
               <i-mdi-people-group class="svg-icon" />
               <span class="ms-2">{{ $t('creation') }}</span>
@@ -97,7 +102,7 @@ const props = defineProps({
 const emit = defineEmits(['closeSidebar'])
 
 const route = useRoute()
-const communityLink = ref(null)
+const contributionsLink = ref(null)
 
 const transactionClass = computed(() => {
   if (route.path === '/gdt') {
@@ -109,8 +114,8 @@ const transactionClass = computed(() => {
 watch(
   () => route.path,
   () => {
-    const link = [...communityLink.value.$el.children][0]
-    if (route.path.includes('community')) {
+    const link = [...contributionsLink.value.$el.children][0]
+    if (route.path.includes('contributions')) {
       link.classList.add('active-route')
       link.classList.add('router-link-exact-active')
     } else {

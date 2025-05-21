@@ -27,13 +27,13 @@ describe('RightSide', () => {
     })
   }
 
-  describe('at /community/contribute', () => {
+  describe('at /contributions/contribute', () => {
     beforeEach(() => {
-      wrapper = createWrapper('/community/contribute')
+      wrapper = createWrapper('/contributions/contribute')
     })
 
-    it('has name set to "community"', () => {
-      expect(wrapper.vm.name).toBe('community')
+    it('has name set to "contributions"', () => {
+      expect(wrapper.vm.name).toBe('contributions')
     })
   })
 
