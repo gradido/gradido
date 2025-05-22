@@ -12,7 +12,7 @@ server {
     # protect from slow loris
     client_body_timeout 10s;
     client_header_timeout 10s;
-    send_timeout 10s
+    send_timeout 10s;
     
     # protect from range attack (in http header)
     if ($http_range ~ "d{9,}") {
