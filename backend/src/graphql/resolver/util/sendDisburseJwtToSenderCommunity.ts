@@ -1,10 +1,13 @@
-import { DisbursementClientFactory } from '@/federation/client/DisbursementClientFactory'
-import { Community as DbCommunity, FederatedCommunity as DbFederatedCommunity } from 'database'
 import { CONFIG } from '@/config'
-import { LogError } from '@/server/LogError'
 import { DisbursementJwtResult } from '@/federation/client/1_0/model/DisbursementJwtResult'
+import { DisbursementClientFactory } from '@/federation/client/DisbursementClientFactory'
+import { LogError } from '@/server/LogError'
+import { Community as DbCommunity, FederatedCommunity as DbFederatedCommunity } from 'database'
 
-export async function sendDisburseJwtToSenderCommunity(senderCommunity: DbCommunity, disburseJwt: string): Promise<DisbursementJwtResult> {
+export async function sendDisburseJwtToSenderCommunity(
+  senderCommunity: DbCommunity,
+  disburseJwt: string,
+): Promise<DisbursementJwtResult> {
   const senderFCom = await DbFederatedCommunity.findOneOrFail({
     where: {
       publicKey: senderCommunity.publicKey,

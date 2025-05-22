@@ -41,6 +41,7 @@ import { getCommunityByIdentifier, getCommunityName, isHomeCommunity } from './u
 import { findUserByIdentifier } from './util/findUserByIdentifier'
 import { getLastTransaction } from './util/getLastTransaction'
 import { getTransactionList } from './util/getTransactionList'
+import { invokeXComSendCoins } from './util/invokeXComSendCoins'
 import {
   processXComCommittingSendCoins,
   processXComPendingSendCoins,
@@ -48,7 +49,6 @@ import {
 import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
 import { storeForeignUser } from './util/storeForeignUser'
 import { transactionLinkSummary } from './util/transactionLinkSummary'
-import { invokeXComSendCoins } from './util/invokeXComSendCoins'
 
 export const executeTransaction = async (
   amount: Decimal,
@@ -459,7 +459,14 @@ export class TransactionResolver {
       await executeTransaction(amount, memo, senderUser, recipientUser)
       logger.info('successful executeTransaction', amount, memo, senderUser, recipientUser)
     } else {
-      await invokeXComSendCoins(homeCom, recipientCommunityIdentifier, amount, memo, senderUser, recipientIdentifier)
+      await invokeXComSendCoins(
+        homeCom,
+        recipientCommunityIdentifier,
+        amount,
+        memo,
+        senderUser,
+        recipientIdentifier,
+      )
     }
     return true
   }

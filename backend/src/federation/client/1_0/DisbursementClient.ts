@@ -29,20 +29,14 @@ export class DisbursementClient {
   async disburseJwt(jwt: string): Promise<DisbursementJwtResult> {
     logger.debug('X-Com: disburse against endpoint=', this.endpoint)
     try {
-      logger.debug(
-        `X-Com: DisbursementClient: disburse with jwt=`,
-        jwt,
-      )
+      logger.debug(`X-Com: DisbursementClient: disburse with jwt=`, jwt)
       const { data } = await this.client.rawRequest<{ disburseJwtResult: DisbursementJwtResult }>(
         disburseJwt,
         { jwt },
       )
       const result = data.disburseJwtResult
       if (!data?.disburseJwtResult?.accepted) {
-        logger.debug(
-          'X-Com: disburse failed with: ',
-          new DisbursementJwtResultLoggingView(result),
-        )
+        logger.debug('X-Com: disburse failed with: ', new DisbursementJwtResultLoggingView(result))
         return new DisbursementJwtResult()
       }
       logger.debug(

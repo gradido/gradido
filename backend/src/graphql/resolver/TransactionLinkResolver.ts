@@ -52,9 +52,9 @@ import {
 } from './util/communities'
 import { getUserCreation, validateContribution } from './util/creations'
 import { getLastTransaction } from './util/getLastTransaction'
+import { sendDisburseJwtToSenderCommunity } from './util/sendDisburseJwtToSenderCommunity'
 import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
 import { transactionLinkList } from './util/transactionLinkList'
-import { sendDisburseJwtToSenderCommunity } from './util/sendDisburseJwtToSenderCommunity'
 
 // TODO: do not export, test it inside the resolver
 export const transactionLinkCode = (date: Date): string => {
