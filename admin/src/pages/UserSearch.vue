@@ -129,7 +129,7 @@ const fields = computed(() => [
   // { key: 'confirm_mail', label: t('confirmed') },
   // { key: 'has_elopage', label: 'elopage' },
   // { key: 'transactions_list', label: t('transaction') },
-  { key: 'contributionStatus', label: t('status') },
+  { key: 'status', label: t('status') },
 ])
 
 watch(

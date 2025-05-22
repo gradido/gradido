@@ -1,6 +1,6 @@
 <template>
   <div class="redeem-logged-out">
-    <redeem-information v-bind="props.linkData" :is-contribution-link="props.isContributionLink" />
+    <redeem-information :link-data="linkData" :is-contribution-link="isContributionLink" />
 
     <BCard>
       <div class="mb-2">
@@ -27,7 +27,7 @@
 import { useAuthLinks } from '@/composables/useAuthLinks'
 
 const { login, register } = useAuthLinks()
-const props = defineProps({
+defineProps({
   linkData: { type: Object, required: true },
   isContributionLink: { type: Boolean, default: false },
 })

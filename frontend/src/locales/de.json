@@ -41,7 +41,7 @@
     }
   },
   "card-user-search": {
-    "headline": "Geografische Mitgliedssuche (experimentell)",
+    "headline": "Geografische Mitgliedssuche (beta)",
     "allowed": {
       "button": "Öffne Mitgliedssuche...",
       "disabled-button": "GMS offline...",
@@ -316,7 +316,7 @@
   },
   "openHours": "Offene Stunden",
   "pageTitle": {
-    "community": "Gradido schöpfen",
+    "contributions": "Gradido schöpfen",
     "gdt": "Deine GDT Transaktionen",
     "information": "{community}",
     "overview": "Willkommen {name}",

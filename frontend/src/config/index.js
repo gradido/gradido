@@ -41,6 +41,7 @@ const features = {
   GMS_ACTIVE: process.env.GMS_ACTIVE === 'true',
   HUMHUB_ACTIVE: process.env.HUMHUB_ACTIVE === 'true',
   AUTO_POLL_INTERVAL: Number.parseInt(process.env.AUTO_POLL_INTERVAL ?? 0),
+  CROSS_TX_REDEEM_LINK_ACTIVE: process.env.CROSS_TX_REDEEM_LINK_ACTIVE === 'true',
 }
 
 const environment = {

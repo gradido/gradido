@@ -18,8 +18,10 @@
     "test:watch": "cross-env TZ=UTC vitest",
     "locales": "scripts/sort.sh",
     "locales:fix": "scripts/sort.sh --fix",
-    "compile-scss": "sass --load-path=../node_modules --load-path=src/assets/scss src/assets/scss/gradido.scss src/assets/css/gradido.css",
-    "watch-scss": "sass --watch --load-path=../node_modules --load-path=src/assets/scss src/assets/scss/gradido.scss src/assets/css/gradido.css"
+    "compile-scss": "node ./scripts/scss.mjs compile",
+    "watch-scss": "node ./scripts/scss.mjs watch",
+    "compile-scss-sass": "node ./scripts/scss.mjs compile sass",
+    "watch-scss-sass": "node ./scripts/scss.mjs watch sass"
   },
   "dependencies": {
     "@morev/vue-transitions": "^3.0.2",
@@ -77,6 +79,7 @@
     "@vitest/coverage-v8": "^2.0.5",
     "@vue/eslint-config-prettier": "^10.2.0",
     "@vue/test-utils": "^2.4.6",
+    "chokidar-cli": "^3.0.0",
     "concurrently": "^9.1.2",
     "config-schema": "*",
     "cross-env": "^7.0.3",
@@ -94,6 +97,7 @@
     "eslint-webpack-plugin": "^5.0.0",
     "joi": "^17.13.3",
     "jsdom": "^25.0.0",
+    "lightningcss": "^1.30.1",
     "mock-apollo-client": "^1.2.1",
     "postcss-html": "^1.8.0",
     "prettier": "^3.5.3",

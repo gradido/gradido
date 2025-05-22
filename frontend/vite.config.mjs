@@ -113,6 +113,7 @@ export default defineConfig(async ({ command }) => {
       EnvironmentPlugin({
         AUTO_POLL_INTERVAL: CONFIG.AUTO_POLL_INTERVAL,
         BUILD_COMMIT: CONFIG.BUILD_COMMIT,
+        CROSS_TX_REDEEM_LINK_ACTIVE: CONFIG.CROSS_TX_REDEEM_LINK_ACTIVE,
         GMS_ACTIVE: CONFIG.GMS_ACTIVE,
         HUMHUB_ACTIVE: CONFIG.HUMHUB_ACTIVE,
         DEFAULT_PUBLISHER_ID: null,
@@ -143,6 +144,7 @@ export default defineConfig(async ({ command }) => {
     ],
     css: {
       extract: CONFIG.PRODUCTION === true,
+      transformer: 'lightningcss',
       preprocessorOptions: {
         scss: {
           additionalData: `@use "@/assets/scss/custom/gradido-custom/color" as *;`,
@@ -153,6 +155,7 @@ export default defineConfig(async ({ command }) => {
       outDir: path.resolve(__dirname, './build'),
       chunkSizeWarningLimit: 1600,
       minify: 'esbuild',
+      cssMinify: 'lightningcss',
       sourcemap: false,
     },
   }

@@ -54,6 +54,11 @@ module.exports = Joi.object({
     .description('URL for Register a new Account in frontend.')
     .required(),
 
+  CROSS_TX_REDEEM_LINK_ACTIVE: Joi.boolean()
+    .description('Enable cross-community redeem links')
+    .default(false)
+    .optional(),
+
   FRONTEND_HOSTING: Joi.string()
     .valid('nodejs', 'nginx')
     .description('set to `nodejs` if frontend is hosted by vite with a own nodejs instance')
