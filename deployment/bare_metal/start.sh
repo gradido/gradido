@@ -117,9 +117,12 @@ exec > >(tee -a $UPDATE_HTML) 2>&1
 echo 'Configuring nginx to serve the update-page'
 nginx_restart() {
   sudo /etc/init.d/nginx restart || {
-    echo -e "\e[33mwarn: nginx restart failed, will try to fix with 'sudo systemctl reset-failed nginx' and 'sudo systemctl start nginx'\e[0m" >&3
+    echo -e "\e[33mwarn: nginx restart failed\e[0m" >&3
+    # run nginx -t to show problem but ignore exit code to prevent trap
+    { sudo nginx -t || true; } >&3
+    echo -e "\e[33mwarn: will try to fix with 'sudo systemctl reset-failed nginx' and 'sudo systemctl start nginx'\e[0m" >&3
     sudo systemctl reset-failed nginx
-    sudo systemctl start nginx || sudo nginx -t
+    sudo systemctl start nginx
   }
 }
 ln -sf $SCRIPT_DIR/nginx/sites-available/update-page.conf $SCRIPT_DIR/nginx/sites-enabled/default
