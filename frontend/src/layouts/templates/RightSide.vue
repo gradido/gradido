@@ -13,8 +13,8 @@ export default {
       switch (this.$route.path.replace(/^\/(.+?)(\/.+)?$/, '$1')) {
         case 'settings':
           return 'empty'
-        case 'community':
-          return 'community'
+        case 'contributions':
+          return 'contributions'
         default:
           return 'transactions'
       }

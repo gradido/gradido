@@ -31,7 +31,7 @@
     }
   },
   "card-user-search": {
-    "headline": "Búsqueda geográfica de miembros",
+    "headline": "Búsqueda geográfica de miembros (beta)",
     "allowed": {
       "button": "Iniciar Búsqueda de Miembros...",
       "disabled-button": "GMS offline...",
@@ -276,7 +276,7 @@
   },
   "openHours": "Open Hours",
   "pageTitle": {
-    "community": "Create Gradido",
+    "contributions": "Cuchara Gradido",
     "gdt": "Tu GDT Transacciones",
     "information": "{community}",
     "overview": "Welcome {name}",

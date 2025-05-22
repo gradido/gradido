@@ -24,7 +24,8 @@ RUN apt update && apt install -y \
   mariadb-server \
   nginx \
   gettext \
-  curl 
+  curl \ 
+  gcc
 
 ##### Install Image #######################################################################
 ## Simulate parts from install script to get a minimal configuration to test start script #

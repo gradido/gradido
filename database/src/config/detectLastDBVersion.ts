@@ -1,12 +1,11 @@
-import fs from 'fs'
-import path from 'path'
+import fs from 'node:fs'
+import path from 'node:path'
 
 // Define the regular expression pattern once
 const DB_VERSION_PATTERN = /^(\d{4}-[a-z0-9-_]+)/
 
 // Define the paths to check
 const migrationsDir = path.join(__dirname, '..', '..', 'migrations')
-const entitiesDir = path.join(__dirname, '..', '..', 'entity')
 
 // Helper function to get the highest version number from the directory
 function getLatestDbVersion(dir: string): string {
@@ -34,10 +33,6 @@ function getLatestDbVersion(dir: string): string {
 
 // Get the latest version from migrations and entities
 const latestMigrationVersion = getLatestDbVersion(migrationsDir)
-const latestEntityVersion = getLatestDbVersion(entitiesDir)
 
 // Determine which directory has the latest version and return it
-export const latestDbVersion =
-  latestMigrationVersion && (!latestEntityVersion || latestMigrationVersion > latestEntityVersion)
-    ? latestMigrationVersion
-    : latestEntityVersion
+export const latestDbVersion = latestMigrationVersion

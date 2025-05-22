@@ -115,9 +115,6 @@
                         </BCol>
                       </BRow>
                     </template>
-                    <template #community>
-                      <nav-community />
-                    </template>
                     <template #settings></template>
                   </content-header>
                 </BCol>
@@ -133,8 +130,8 @@
                     :transaction-link-count="transactionLinkCount"
                   />
                 </template>
-                <template #community>
-                  <community-template />
+                <template #contributions>
+                  <contributions-template />
                 </template>
                 <template #empty />
               </right-side>
@@ -169,8 +166,8 @@
               />
             </template>
             <template #empty />
-            <template #community>
-              <community-template />
+            <template #contributions>
+              <contributions-template />
             </template>
           </right-side>
         </BCol>
@@ -192,7 +189,7 @@ import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
 import { useQuery, useMutation } from '@vue/apollo-composable'
 import ContentHeader from '@/layouts/templates/ContentHeader'
-import CommunityTemplate from '@/layouts/templates/CommunityTemplate'
+import ContributionsTemplate from '@/layouts/templates/ContributionsTemplate'
 import Breadcrumb from '@/components/Breadcrumb/breadcrumb'
 import RightSide from '@/layouts/templates/RightSide'
 import SkeletonOverview from '@/components/skeleton/Overview'
@@ -204,7 +201,6 @@ import ContentFooter from '@/components/ContentFooter'
 import GddAmount from '@/components/Template/ContentHeader/GddAmount'
 import GdtAmount from '@/components/Template/ContentHeader/GdtAmount'
 import CommunityMember from '@/components/Template/ContentHeader/CommunityMember'
-import NavCommunity from '@/components/Template/ContentHeader/NavCommunity'
 import LastTransactions from '@/components/Template/RightSide/LastTransactions'
 import { transactionsUserCountQuery } from '@/graphql/transactions.graphql'
 import { logout } from '@/graphql/mutations'
