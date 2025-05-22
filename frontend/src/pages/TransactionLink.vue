@@ -341,30 +341,24 @@ function setRedeemJwtLinkInformation() {
 
 async function mutationLink(amount) {
   // console.log('TransactionLink.mutationLink... params=', params)
-  if (isRedeemJwtLink.value) {
-    // console.log('TransactionLink.mutationLink... trigger disbursement from recipient-community')
-    try {
+  try {
+    if (isRedeemJwtLink.value) {
+      // console.log('TransactionLink.mutationLink... trigger disbursement from recipient-community')
       await disburseMutate({
         code: params.code,
       })
       toastSuccess(t('gdd_per_link.disbured', { n: amount }))
-      await router.push('/overview')
-    } catch (err) {
-      toastError(err.message)
-      await router.push('/overview')
-    }
-  } else {
-    // console.log('TransactionLink.mutationLink... local transaction or contribution')
-    try {
+    } else {
+      // console.log('TransactionLink.mutationLink... trigger redeem from sender-community')
       await redeemMutate({
         code: redeemCode.value,
       })
       toastSuccess(t('gdd_per_link.redeemed', { n: amount }))
-      await router.push('/overview')
-    } catch (err) {
-      toastError(err.message)
-      await router.push('/overview')
     }
+    await router.push('/overview')
+  } catch (err) {
+    toastError(err.message)
+    await router.push('/overview')
   }
 }
 </script>

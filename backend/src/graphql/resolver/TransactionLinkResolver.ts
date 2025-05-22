@@ -54,6 +54,7 @@ import { getUserCreation, validateContribution } from './util/creations'
 import { getLastTransaction } from './util/getLastTransaction'
 import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
 import { transactionLinkList } from './util/transactionLinkList'
+import { sendDisburseJwtToSenderCommunity } from './util/sendDisburseJwtToSenderCommunity'
 
 // TODO: do not export, test it inside the resolver
 export const transactionLinkCode = (date: Date): string => {
@@ -483,8 +484,12 @@ export class TransactionLinkResolver {
     )
     try {
       logger.debug('TransactionLinkResolver.disburseTransactionLink... disburseJwt=', disburseJwt)
+      const senderCommunity = await getCommunityByUuid(senderCommunityUuid)
+      if (!senderCommunity) {
+        throw new LogError('Sender community not found', senderCommunityUuid)
+      }
       // now send the disburseJwt to the sender community to invoke a x-community-tx to disbures the redeemLink
-      // await sendDisburseJwtToSenderCommunity(context, disburseJwt)
+      await sendDisburseJwtToSenderCommunity(senderCommunity, disburseJwt)
     } catch (e) {
       throw new LogError('Disburse JWT was not sent successfully', e)
     }
