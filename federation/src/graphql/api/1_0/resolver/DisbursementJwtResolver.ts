@@ -1,20 +1,22 @@
+import { findUserByIdentifier } from '@/graphql/util/findUserByIdentifier'
 import { federationLogger as logger } from '@/server/logger'
 import { Community as DbCommunity } from 'database'
 import { Arg, Mutation, Resolver } from 'type-graphql'
-import { findUserByIdentifier } from '@/graphql/util/findUserByIdentifier'
 
-import { DisbursementJwtResult } from 'backend/src/federation/client/1_0/model/DisbursementJwtResult'
 import { decode, verify } from 'backend/src/auth/jwt/JWT'
 import { DisburseJwtPayloadType } from 'backend/src/auth/jwt/payloadtypes/DisburseJwtPayloadType'
-import { getCommunityByIdentifier, getHomeCommunity } from 'backend/src/graphql/resolver/util/communities'
+import { JwtPayloadType } from 'backend/src/auth/jwt/payloadtypes/JwtPayloadType'
+import { DisbursementJwtResult } from 'backend/src/federation/client/1_0/model/DisbursementJwtResult'
+import {
+  getCommunityByIdentifier,
+  getHomeCommunity,
+} from 'backend/src/graphql/resolver/util/communities'
 import { getCommunityByUuid } from 'backend/src/graphql/resolver/util/communities'
 import { invokeXComSendCoins } from 'backend/src/graphql/resolver/util/invokeXComSendCoins'
-import { JwtPayloadType } from 'backend/src/auth/jwt/payloadtypes/JwtPayloadType'
 import Decimal from 'decimal.js-light'
 
 @Resolver()
 export class DisbursementJwtResolver {
-
   @Mutation(() => DisbursementJwtResult)
   async disburseJwt(
     @Arg('jwt')
@@ -50,7 +52,10 @@ export class DisbursementJwtResolver {
           disburseJwtPayload,
         )
         homeCommunity = await getHomeCommunity()
-        if (!homeCommunity || disburseJwtPayload.sendercommunityuuid !== homeCommunity.communityUuid) {
+        if (
+          !homeCommunity ||
+          disburseJwtPayload.sendercommunityuuid !== homeCommunity.communityUuid
+        ) {
           result.message = 'Sender community does not match home community'
           result.accepted = false
           logger.error(result.message)
@@ -61,7 +66,8 @@ export class DisbursementJwtResolver {
         if (!recipientCom) {
           recipientCom = await getCommunityByIdentifier(disburseJwtPayload.recipientcommunityname)
           if (!recipientCom) {
-            result.message = 'Recipient community not found: ' + disburseJwtPayload.recipientcommunityname
+            result.message =
+              'Recipient community not found: ' + disburseJwtPayload.recipientcommunityname
             result.accepted = false
             logger.error(result.message)
             return result
@@ -69,7 +75,8 @@ export class DisbursementJwtResolver {
         }
         logger.debug('DisbursementJwtResolver.disburseJwt... recipientCom=', recipientCom)
         if (!recipientCom.communityUuid) {
-          result.message = 'Recipient community currently not authenticated on sender-side! Its UUID is still unknown.'
+          result.message =
+            'Recipient community currently not authenticated on sender-side! Its UUID is still unknown.'
           result.accepted = false
           logger.error(result.message)
           return result
@@ -94,7 +101,7 @@ export class DisbursementJwtResolver {
             verifiedJwtPayload.exp,
           )
           if (expDate < new Date()) {
-            result.message = 'Disbursement JWT-Token expired! jwtPayload.exp=', expDate
+            result.message = 'Disbursement JWT-Token expired! jwtPayload.exp=' + expDate
             result.accepted = false
             logger.error(result.message)
             return result
@@ -117,13 +124,23 @@ export class DisbursementJwtResolver {
             verifiedJwtPayload.memo as string,
             verifiedJwtPayload.validuntil as string,
             verifiedJwtPayload.recipientalias as string,
-            )
+          )
           logger.debug(
             'DisbursementJwtResolver.disburseJwt... nach verify verifiedDisburseJwtPayload=',
             verifiedDisburseJwtPayload,
           )
-          const senderUser = await findUserByIdentifier(verifiedDisburseJwtPayload.sendergradidoid, homeCommunity?.communityUuid)
-          await invokeXComSendCoins(homeCommunity, verifiedDisburseJwtPayload.recipientcommunityuuid, new Decimal(verifiedDisburseJwtPayload.amount), verifiedDisburseJwtPayload.memo, senderUser, verifiedDisburseJwtPayload.recipientgradidoid)
+          const senderUser = await findUserByIdentifier(
+            verifiedDisburseJwtPayload.sendergradidoid,
+            homeCommunity?.communityUuid,
+          )
+          await invokeXComSendCoins(
+            homeCommunity,
+            verifiedDisburseJwtPayload.recipientcommunityuuid,
+            new Decimal(verifiedDisburseJwtPayload.amount),
+            verifiedDisburseJwtPayload.memo,
+            senderUser,
+            verifiedDisburseJwtPayload.recipientgradidoid,
+          )
           result.message = 'disburseJwt successful'
           result.accepted = true
           logger.info(result.message)
