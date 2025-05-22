@@ -102,11 +102,11 @@ TODAY=$(date +"%Y-%m-%d")
 \cp $SCRIPT_DIR/nginx/update-page/updating.html.template $UPDATE_HTML
 
 # store real console stream in fd 3
-if [ -e /dev/tty ]; then
-  # on normal systems
+if test -t 1; then
+  # stdout is a TTY - normal console
   exec 3> /dev/tty
 else
-  # on docker
+  # stdout is not a TTY - probably Docker or CI
   exec 3> /proc/$$/fd/1
 fi
 # redirect all output of the script to the UPDATE_HTML
