@@ -101,7 +101,15 @@ TODAY=$(date +"%Y-%m-%d")
 # Create a new updating.html from the template
 \cp $SCRIPT_DIR/nginx/update-page/updating.html.template $UPDATE_HTML
 
-# redirect all output of the script to the UPDATE_HTML and also have things on console
+# store real console stream in fd 3
+if [ -e /dev/tty ]; then
+  # on normal systems
+  exec 3> /dev/tty
+else
+  # on docker
+  exec 3> /proc/$$/fd/1
+fi
+# redirect all output of the script to the UPDATE_HTML
 # TODO: this might pose a security risk
 exec > >(tee -a $UPDATE_HTML) 2>&1
 
@@ -109,9 +117,9 @@ exec > >(tee -a $UPDATE_HTML) 2>&1
 echo 'Configuring nginx to serve the update-page'
 nginx_restart() {
   sudo /etc/init.d/nginx restart || {
-    echo -e "\e[33mwarn: nginx restart failed, will try to fix with 'sudo systemctl reset-failed nginx' and 'sudo systemctl start nginx'\e[0m" > /dev/tty
+    echo -e "\e[33mwarn: nginx restart failed, will try to fix with 'sudo systemctl reset-failed nginx' and 'sudo systemctl start nginx'\e[0m" >&3
     sudo systemctl reset-failed nginx
-    sudo systemctl start nginx
+    sudo systemctl start nginx || sudo nginx -t
   }
 }
 ln -sf $SCRIPT_DIR/nginx/sites-available/update-page.conf $SCRIPT_DIR/nginx/sites-enabled/default
@@ -120,22 +128,22 @@ nginx_restart
 # helper functions
 log_step() {
     local message="$1"
-    echo -e "\e[34m$message\e[0m" # > /dev/tty # blue in console
+    echo -e "\e[34m$message\e[0m" >&3 # blue in console
     echo "<p style="color:blue">$message</p>" >> "$UPDATE_HTML" # blue in html 
 }
 log_error() {
     local message="$1"
-    echo -e "\e[31m$message\e[0m" # > /dev/tty # red in console
+    echo -e "\e[31m$message\e[0m" >&3 # red in console
     echo "<span style="color:red">$message</span>" >> "$UPDATE_HTML" # red in html 
 }
 log_warn() {
     local message="$1"
-    echo -e "\e[33m$message\e[0m" # > /dev/tty # orange in console
+    echo -e "\e[33m$message\e[0m" >&3 # orange in console
     echo "<span style="color:orange">$message</span>" >> "$UPDATE_HTML" # orange in html 
 }
 log_success() {
     local message="$1"
-    echo -e "\e[32m$message\e[0m" # > /dev/tty # green in console
+    echo -e "\e[32m$message\e[0m" >&3 # green in console
     echo "<p style="color:green">$message</p>" >> "$UPDATE_HTML" # green in html 
 }
 
