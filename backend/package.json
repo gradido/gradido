@@ -1,6 +1,6 @@
 {
   "name": "backend",
-  "version": "2.5.2",
+  "version": "2.6.0",
   "private": false,
   "description": "Gradido unified backend providing an API-Service for Gradido Transactions",
   "repository": "https://github.com/gradido/gradido/backend",
@@ -25,7 +25,9 @@
     "typecheck": "tsc --noEmit"
   },
   "nodemonConfig": {
-    "ignore": ["**/*.test.ts"]
+    "ignore": [
+      "**/*.test.ts"
+    ]
   },
   "dependencies": {
     "cross-env": "^7.0.3",

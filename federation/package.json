@@ -1,12 +1,11 @@
 {
   "name": "federation",
-  "version": "2.5.2",
+  "version": "2.6.0",
   "description": "Gradido federation module providing Gradido-Hub-Federation and versioned API for inter community communication",
   "main": "src/index.ts",
   "repository": "https://github.com/gradido/gradido/federation",
   "author": "Gradido Academy - https://www.gradido.net",
   "license": "Apache-2.0",
-
   "private": false,
   "scripts": {
     "build": "ts-node ./esbuild.config.ts",
@@ -66,7 +65,9 @@
     "uuid": "8.3.2"
   },
   "nodemonConfig": {
-    "ignore": ["**/*.test.ts"]
+    "ignore": [
+      "**/*.test.ts"
+    ]
   },
   "engines": {
     "node": ">=18"
