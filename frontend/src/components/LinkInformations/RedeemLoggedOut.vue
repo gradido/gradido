@@ -25,6 +25,7 @@
 
 <script setup>
 import { useAuthLinks } from '@/composables/useAuthLinks'
+
 const { login, register } = useAuthLinks()
 defineProps({
   linkData: { type: Object, required: true },
