@@ -101,7 +101,15 @@ TODAY=$(date +"%Y-%m-%d")
 # Create a new updating.html from the template
 \cp $SCRIPT_DIR/nginx/update-page/updating.html.template $UPDATE_HTML
 
-# redirect all output of the script to the UPDATE_HTML and also have things on console
+# store real console stream in fd 3
+if test -t 1; then
+  # stdout is a TTY - normal console
+  exec 3> /dev/tty
+else
+  # stdout is not a TTY - probably Docker or CI
+  exec 3> /proc/$$/fd/1
+fi
+# redirect all output of the script to the UPDATE_HTML
 # TODO: this might pose a security risk
 exec > >(tee -a $UPDATE_HTML) 2>&1
 
@@ -109,34 +117,36 @@ exec > >(tee -a $UPDATE_HTML) 2>&1
 echo 'Configuring nginx to serve the update-page'
 nginx_restart() {
   sudo /etc/init.d/nginx restart || {
-    echo -e "\e[33mwarn: nginx restart failed, will try to fix with 'sudo systemctl reset-failed nginx' and 'sudo systemctl start nginx'\e[0m" > /dev/tty
+    echo -e "\e[33mwarn: nginx restart failed\e[0m" >&3
+    # run nginx -t to show problem but ignore exit code to prevent trap
+    { sudo nginx -t || true; } >&3
+    echo -e "\e[33mwarn: will try to fix with 'sudo systemctl reset-failed nginx' and 'sudo systemctl start nginx'\e[0m" >&3
     sudo systemctl reset-failed nginx
     sudo systemctl start nginx
   }
 }
-nginx_restart
 ln -sf $SCRIPT_DIR/nginx/sites-available/update-page.conf $SCRIPT_DIR/nginx/sites-enabled/default
-
+nginx_restart
 
 # helper functions
 log_step() {
     local message="$1"
-    echo -e "\e[34m$message\e[0m" # > /dev/tty # blue in console
+    echo -e "\e[34m$message\e[0m" >&3 # blue in console
     echo "<p style="color:blue">$message</p>" >> "$UPDATE_HTML" # blue in html 
 }
 log_error() {
     local message="$1"
-    echo -e "\e[31m$message\e[0m" # > /dev/tty # red in console
+    echo -e "\e[31m$message\e[0m" >&3 # red in console
     echo "<span style="color:red">$message</span>" >> "$UPDATE_HTML" # red in html 
 }
 log_warn() {
     local message="$1"
-    echo -e "\e[33m$message\e[0m" # > /dev/tty # orange in console
+    echo -e "\e[33m$message\e[0m" >&3 # orange in console
     echo "<span style="color:orange">$message</span>" >> "$UPDATE_HTML" # orange in html 
 }
 log_success() {
     local message="$1"
-    echo -e "\e[32m$message\e[0m" # > /dev/tty # green in console
+    echo -e "\e[32m$message\e[0m" >&3 # green in console
     echo "<p style="color:green">$message</p>" >> "$UPDATE_HTML" # green in html 
 }
 
@@ -287,12 +297,19 @@ else
 fi
 
 # start after building all to use up less ressources
-pm2 start --name gradido-backend "turbo backend#start --env-mode=loose" -l $GRADIDO_LOG_PATH/pm2.backend.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
-#pm2 start --name gradido-frontend "yarn --cwd $PROJECT_ROOT/frontend start" -l $GRADIDO_LOG_PATH/pm2.frontend.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
-#pm2 start --name gradido-admin "yarn --cwd $PROJECT_ROOT/admin start" -l $GRADIDO_LOG_PATH/pm2.admin.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
+pm2 start --name gradido-backend \
+ "env TZ=UTC NODE_ENV=production node ./build/index.js" \
+ --cwd $PROJECT_ROOT/backend \
+ -l $GRADIDO_LOG_PATH/pm2.backend.$TODAY.log \
+ --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
+
 pm2 save
 if [ ! -z $FEDERATION_DHT_TOPIC ]; then
-  pm2 start --name gradido-dht-node "turbo dht-node#start --env-mode=loose" -l $GRADIDO_LOG_PATH/pm2.dht-node.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
+  pm2 start --name gradido-dht-node \
+    "env TZ=UTC NODE_ENV=production node ./build/index.js" \
+    --cwd $PROJECT_ROOT/dht-node \
+    -l $GRADIDO_LOG_PATH/pm2.dht-node.$TODAY.log \
+    --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
   pm2 save
 else
   log_step "====================================================================="
@@ -316,7 +333,11 @@ do
   log_step "===================================================="
   log_step " start $MODULENAME listening on port=$FEDERATION_PORT"
   log_step "===================================================="
-  pm2 start --name $MODULENAME "turbo federation#start --env-mode=loose" -l $GRADIDO_LOG_PATH/pm2.$MODULENAME.$TODAY.log --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
+  pm2 start --name $MODULENAME \
+    "env TZ=UTC NODE_ENV=production node ./build/index.js" \
+    --cwd $PROJECT_ROOT/federation \
+    -l $GRADIDO_LOG_PATH/pm2.$MODULENAME.$TODAY.log \
+    --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
   pm2 save
 done
 
