@@ -156,7 +156,7 @@ export default defineConfig(async ({ command }) => {
       chunkSizeWarningLimit: 1600,
       minify: 'esbuild',
       cssMinify: 'lightningcss',
-      sourcemap: false,
+      sourcemap: CONFIG.DEBUG,
     },
   }
 })
