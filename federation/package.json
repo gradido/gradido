@@ -65,9 +65,7 @@
     "uuid": "8.3.2"
   },
   "nodemonConfig": {
-    "ignore": [
-      "**/*.test.ts"
-    ]
+    "ignore": ["**/*.test.ts"]
   },
   "engines": {
     "node": ">=18"

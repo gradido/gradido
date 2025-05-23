@@ -56,7 +56,7 @@
             block
             variant="gradido"
             :disabled="disabled"
-            @click="($emit('send-transaction'), (disabled = true))"
+            @click="$emit('send-transaction'), (disabled = true)"
           >
             {{ $t('form.send_now') }}
           </BButton>
