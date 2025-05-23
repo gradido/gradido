@@ -25,9 +25,7 @@
     "typecheck": "tsc --noEmit"
   },
   "nodemonConfig": {
-    "ignore": [
-      "**/*.test.ts"
-    ]
+    "ignore": ["**/*.test.ts"]
   },
   "dependencies": {
     "cross-env": "^7.0.3",
