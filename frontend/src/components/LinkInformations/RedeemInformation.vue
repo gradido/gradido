@@ -10,7 +10,7 @@
         {{ '"' + linkData.senderCommunity.name + '.' + linkData.senderUser.firstName + '"' }}
         {{ $t('transaction-link.send_you') }} {{ $filters.GDD(linkData.amount) }}
       </h3>
-      <h3 v-if="!isRedeemJwtLink && linkData.amount !== ''">
+      <h3 v-if="!isRedeemJwtLink && !isContributionLink && linkData.amount !== ''">
         {{ '"' + linkData.senderUser.firstName + '"' }}
         {{ $t('transaction-link.send_you') }} {{ $filters.GDD(linkData.amount) }}
       </h3>

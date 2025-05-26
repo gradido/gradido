@@ -25,8 +25,9 @@ server {
     include /etc/nginx/common/protect_add_header.conf;
 
     # protect from slow loris
-    #client_body_timeout 10s;
-    #client_header_timeout 10s;
+    client_body_timeout 10s;
+    client_header_timeout 10s;
+    send_timeout 10s;
     
     # protect from range attack (in http header)
     if ($http_range ~ "d{9,}") {
@@ -53,12 +54,30 @@ server {
 
     # Frontend (default)
     location / {
-        
-        #limit_req zone=frontend burst=40 nodelay;
-        #limit_conn addr 40;
+        limit_req zone=frontend burst=150 nodelay;
+        limit_conn addr 60;
         root $PROJECT_ROOT/frontend/build/;
         index index.html;
-        try_files $uri $uri/ /index.html = 404;
+
+        # caching rules for assets
+        # static assets
+        location ~* \.(?:woff2?|ttf|otf|eot|jpg|jpeg|png|gif|svg|webp|ico)$ {
+            # keep assets for a week
+            add_header Cache-Control "public, max-age=604800";
+            try_files $uri =404;
+        }
+        # hashed assets
+        location ~* \.(?:js|css|json)$ {
+            add_header Cache-Control "public, max-age=31536000, immutable";
+            try_files $uri =404;
+        }
+
+        try_files $uri $uri/ /index.html = 404;   
+
+        # don't cache index.html
+        add_header Cache-Control "no-cache, no-store, must-revalidate";
+        add_header Pragma "no-cache";
+        add_header Expires 0;
         
         access_log $GRADIDO_LOG_PATH/nginx-access.frontend.log gradido_log;
         error_log $GRADIDO_LOG_PATH/nginx-error.frontend.log warn;
@@ -66,8 +85,8 @@ server {
 
     # Backend
     location /graphql {
-        #limit_req zone=backend burst=10 nodelay;
-        #limit_conn addr 10;
+        limit_req zone=backend burst=40 nodelay;
+        limit_conn addr 20;
         proxy_http_version 1.1;
         proxy_set_header   Upgrade $http_upgrade;
         proxy_set_header   Connection 'upgrade';
@@ -84,8 +103,8 @@ server {
 
     # Backend webhooks
     location /hook {
-        #limit_req zone=backend burst=10;
-        #limit_conn addr 10;
+        limit_req zone=backend burst=20 nodelay;
+        limit_conn addr 20;
         proxy_http_version 1.1;
         proxy_set_header   Upgrade $http_upgrade;
         proxy_set_header   Connection 'upgrade';
@@ -102,8 +121,8 @@ server {
 
     # Webhook reverse proxy
     location /hooks/ {
-        #limit_req zone=backend burst=10;
-        #limit_conn addr 10;
+        limit_req zone=backend burst=20 nodelay;
+        limit_conn addr 20;
         proxy_pass http://127.0.0.1:9000/hooks/;
 
         access_log $GRADIDO_LOG_PATH/nginx-access.hooks.log gradido_log;
@@ -112,12 +131,31 @@ server {
 
     # Admin Frontend
     location /admin {
-        #limit_req zone=frontend burst=30 nodelay;
-        #limit_conn addr 40;
-        rewrite ^/admin/(.*)$ /$1 break;
-        root $PROJECT_ROOT/admin/build/;
+        limit_req zone=frontend burst=30 nodelay;
+        limit_conn addr 20;
+        #rewrite ^/admin/(.*)$ /$1 break;
+        alias $PROJECT_ROOT/admin/build/;
         index index.html;
+
+        # caching rules for assets
+        # static assets
+        location ~* \.(?:woff2?|ttf|otf|eot|jpg|jpeg|png|gif|svg|webp|ico)$ {
+            # keep assets for a week
+            add_header Cache-Control "public, max-age=604800";
+            try_files $uri =404;
+        }
+        # hashed assets
+        location ~* \.(?:js|css|json)$ {
+            add_header Cache-Control "public, max-age=31536000, immutable";
+            try_files $uri =404;
+        }
+
         try_files $uri $uri/ /index.html = 404;
+
+        # don't cache index.html
+        add_header Cache-Control "no-cache, no-store, must-revalidate";
+        add_header Pragma "no-cache";
+        add_header Expires 0;
 
         access_log $GRADIDO_LOG_PATH/nginx-access.admin.log gradido_log;
         error_log $GRADIDO_LOG_PATH/nginx-error.admin.log warn;
