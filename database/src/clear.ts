@@ -10,6 +10,7 @@ export async function truncateTables(connection: Connection) {
     // No tables found in database.
     return
   }
+  await connection.query(`USE ${CONFIG.DB_DATABASE}`)
 
   // Disabling foreign key checks...
   await connection.query('SET FOREIGN_KEY_CHECKS = 0')
