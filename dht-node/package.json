@@ -1,6 +1,6 @@
 {
   "name": "dht-node",
-  "version": "2.5.2",
+  "version": "2.6.0",
   "description": "Gradido dht-node module",
   "main": "src/index.ts",
   "repository": "https://github.com/gradido/gradido/",
@@ -17,9 +17,9 @@
     "test": "cross-env TZ=UTC NODE_ENV=development DB_DATABASE=gradido_test_dht jest --runInBand --forceExit --detectOpenHandles"
   },
   "dependencies": {
+    "cross-env": "^7.0.3",
     "dht-rpc": "6.18.1",
-    "sodium-universal": "4.0.1",
-    "cross-env": "^7.0.3"
+    "sodium-universal": "4.0.1"
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
