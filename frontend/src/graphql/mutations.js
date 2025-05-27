@@ -209,7 +209,11 @@ export const createRedeemJwtMutation = gql`
 `
 
 export const disburseTransactionLink = gql`
-  mutation ($code: String!) {
-    disburseTransactionLink(code: $code)
+  mutation ($code: String!, $recipientUserUuid: String!, $recipientCommunityUuid: String!) {
+    disburseTransactionLink(
+      code: $code
+      recipientUserUuid: $recipientUserUuid
+      recipientCommunityUuid: $recipientCommunityUuid
+    )
   }
 `

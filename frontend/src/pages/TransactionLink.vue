@@ -367,6 +367,8 @@ async function mutationLink(amount) {
       // console.log('TransactionLink.mutationLink... trigger disbursement from recipient-community')
       await disburseMutate({
         code: params.code,
+        recipientUserUuid: linkData.value.recipientUser.gradidoID,
+        recipientCommunityUuid: linkData.value.recipientCommunity.uuid,
       })
       toastSuccess(t('gdd_per_link.disbured', { n: amount }))
     } else {
