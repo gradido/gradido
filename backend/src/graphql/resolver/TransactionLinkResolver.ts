@@ -530,9 +530,14 @@ export class TransactionLinkResolver {
 
   async queryRedeemJwtLink(code: string): Promise<RedeemJwtLink> {
     logger.debug('TransactionLinkResolver.queryRedeemJwtLink... redeem jwt-token found')
-    const verifiedRedeemJwtPayload = await this.decodeAndVerifyRedeemJwt(code)    
-    const homeCommunity = await getHomeCommunity()
-    const recipientCommunity = new Community(homeCommunity)
+    const verifiedRedeemJwtPayload = await this.decodeAndVerifyRedeemJwt(code)
+    logger.debug('TransactionLinkResolver.queryRedeemJwtLink... verifiedRedeemJwtPayload=', verifiedRedeemJwtPayload)
+    const homeCom = await getHomeCommunity()
+    const recipientCommunity = new Community(homeCom)
+    const senderCom = await getCommunityByUuid(verifiedRedeemJwtPayload.sendercommunityuuid)
+    if (!senderCom) {
+      throw new LogError('TransactionLinkResolver.queryRedeemJwtLink... Sender community not found', verifiedRedeemJwtPayload.sendercommunityuuid)
+    }
     const senderCommunity = new Community(senderCom)
     const senderUser = new User(null)
     senderUser.gradidoID = verifiedRedeemJwtPayload.sendergradidoid
@@ -637,7 +642,6 @@ export class TransactionLinkResolver {
           decodedPayload.validuntil as string,
         )
       } 
-
     } else {
     throw new LogError(
       'Redeem with wrong type of JWT-Token or expired! decodedPayload=',
