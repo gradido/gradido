@@ -578,7 +578,7 @@ export class TransactionLinkResolver {
       if (!senderCom.communityUuid) {
         throw new LogError('Sender community UUID is not set')
       }
-      // now with the sender community UUID the jwt token can be verified
+      // now with the sender community UUID the JWT format (to be a JWS Compact format), the JWS signature and the JWT Claims Set are verified.
       const verifiedJwtPayload = await verify(jwt, senderCom.communityUuid)
       logger.debug(
         'TransactionLinkResolver.decodeAndVerifyRedeemJwt... nach verify verifiedJwtPayload=',
@@ -615,6 +615,13 @@ export class TransactionLinkResolver {
             verifiedRedeemJwtPayload,
           )
         }
+      } else {
+        // TODO: as long as the verification fails, fallback to simply decoded payload
+        verifiedRedeemJwtPayload = redeemJwtPayload
+        logger.debug(
+          'TransactionLinkResolver.decodeAndVerifyRedeemJwt... fallback to decoded redeemJwtPayload=',
+          verifiedRedeemJwtPayload,
+        )
       }
       if (verifiedRedeemJwtPayload === null) {
         logger.debug(
@@ -629,14 +636,7 @@ export class TransactionLinkResolver {
           decodedPayload.memo as string,
           decodedPayload.validuntil as string,
         )
-      } else {
-        // TODO: as long as the verification fails, fallback to simply decoded payload
-        verifiedRedeemJwtPayload = redeemJwtPayload
-        logger.debug(
-          'TransactionLinkResolver.decodeAndVerifyRedeemJwt... fallback to decode verifiedRedeemJwtPayload=',
-          verifiedRedeemJwtPayload,
-        )
-      }
+      } 
 
     } else {
     throw new LogError(
