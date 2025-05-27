@@ -7,7 +7,7 @@ import { ensureUrlEndsWithSlash } from '@/util/utilities'
 
 import { DisbursementJwtResultLoggingView } from './logging/DisbursementJwtResultLogging.view'
 import { DisbursementJwtResult } from './model/DisbursementJwtResult'
-import { disburseJwt } from './query/disburseJwt'
+import { disburseJwt as disburseJwtQuery } from './query/disburseJwt'
 
 export class DisbursementClient {
   dbCom: DbFederatedCommunity
@@ -31,8 +31,8 @@ export class DisbursementClient {
     try {
       logger.debug(`X-Com: DisbursementClient: disburse with jwt=`, jwt)
       const { data } = await this.client.rawRequest<{ disburseJwtResult: DisbursementJwtResult }>(
-        disburseJwt,
-        { jwt },
+        disburseJwtQuery,
+        { arg: jwt },
       )
       const result = data.disburseJwtResult
       if (!data?.disburseJwtResult?.accepted) {

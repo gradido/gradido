@@ -1,8 +1,8 @@
 import { gql } from 'graphql-request'
 
 export const disburseJwt = gql`
-  mutation ($jwt: String!) {
-    disburseJwt(jwt: $jwt) {
+  mutation ($arg: String!) {
+    disburseJwt(jwt: $arg) {
       accepted
       acceptedAt
       transactionId
