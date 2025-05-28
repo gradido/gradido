@@ -50,7 +50,11 @@ import { fullName } from '@/util/utilities'
 
 import { start } from 'repl'
 import { ContributionMessageType } from '../enum/ContributionMessageType'
-import { loadAllContributions, loadUserContributions } from './util/contributions'
+import {
+  contributionFrontendLink,
+  loadAllContributions,
+  loadUserContributions,
+} from './util/contributions'
 import { getOpenCreations, getUserCreation, validateContribution } from './util/creations'
 import { extractGraphQLFields } from './util/extractGraphQLFields'
 import { findContributions } from './util/findContributions'
@@ -317,6 +321,10 @@ export class ContributionResolver {
         senderLastName: moderator.lastName,
         contributionMemo: updateUnconfirmedContributionContext.getOldMemo(),
         contributionMemoUpdated: contribution.memo,
+        contributionFrontendLink: await contributionFrontendLink(
+          contribution.id,
+          contribution.createdAt,
+        ),
       })
     }
 
@@ -403,6 +411,10 @@ export class ContributionResolver {
       senderFirstName: moderator.firstName,
       senderLastName: moderator.lastName,
       contributionMemo: contribution.memo,
+      contributionFrontendLink: await contributionFrontendLink(
+        contribution.id,
+        contribution.createdAt,
+      ),
     })
 
     return !!res
@@ -510,6 +522,10 @@ export class ContributionResolver {
           senderLastName: moderatorUser.lastName,
           contributionMemo: contribution.memo,
           contributionAmount: contribution.amount,
+          contributionFrontendLink: await contributionFrontendLink(
+            contribution.id,
+            contribution.createdAt,
+          ),
         })
       } catch (e) {
         await queryRunner.rollbackTransaction()
@@ -593,6 +609,10 @@ export class ContributionResolver {
       senderFirstName: moderator.firstName,
       senderLastName: moderator.lastName,
       contributionMemo: contributionToUpdate.memo,
+      contributionFrontendLink: await contributionFrontendLink(
+        contributionToUpdate.id,
+        contributionToUpdate.createdAt,
+      ),
     })
 
     return !!res
