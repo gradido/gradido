@@ -21,7 +21,7 @@
       "readMessage": "Read and reply to message",
       "subject": "Message about your common good contribution",
       "title": "Message about your common good contribution",
-      "toSeeAndAnswerMessage": "„{message}“ To reply to the message, go to the “Creation” menu in your Gradido account and click on the “My contributions” tab."
+      "toSeeAndAnswerMessage": "„{message}“\n\nTo reply to the message, go to the “Creation” menu in your Gradido account and click on the “My contributions” tab."
     },
     "contribution": {
       "toSeeContributionsAndMessages": "To see your common good contributions and related messages, go to the “Creation” menu in your Gradido account and click on the “My contributions” tab."
