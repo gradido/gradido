@@ -21,7 +21,8 @@
       "readMessage": "Nachricht lesen und beantworten",
       "subject": "Nachricht zu deinem Gemeinwohl-Beitrag",
       "title": "Nachricht zu deinem Gemeinwohl-Beitrag",
-      "toSeeAndAnswerMessage": "„{message}“\n\nUm auf die Nachricht zu antworten, gehe in deinem Gradido-Konto ins Menü „Schöpfen“ auf den Tab „Meine Beiträge“."
+      "message": "„{message}“",
+      "toSeeAndAnswerMessage": "Um auf die Nachricht zu antworten, gehe in deinem Gradido-Konto ins Menü „Schöpfen“ auf den Tab „Meine Beiträge“."
     },
     "contribution": {
       "toSeeContributionsAndMessages": "Um deine Gemeinwohl-Beiträge und dazugehörige Nachrichten zu sehen, gehe in deinem Gradido-Konto ins Menü „Schöpfen“ auf den Tab „Meine Beiträge“."
