@@ -40,9 +40,9 @@ describe('ContributionsTemplate', () => {
       expect(wrapper.findComponent({ name: 'ContributionInfo' }).exists()).toBe(true)
     })
 
-    describe('mounted with parameter contributions', () => {
+    describe('mounted with parameter own-contributions', () => {
       beforeEach(() => {
-        wrapper = createWrapper('contributions')
+        wrapper = createWrapper('own-contributions')
       })
 
       it('has a header related to "my contributions"', () => {
@@ -73,9 +73,9 @@ describe('ContributionsTemplate', () => {
       })
     })
 
-    describe('mounted with parameter community', () => {
+    describe('mounted with parameter all-contributions', () => {
       beforeEach(() => {
-        wrapper = createWrapper('community')
+        wrapper = createWrapper('all-contributions')
       })
 
       it('has a header related to "the community"', () => {

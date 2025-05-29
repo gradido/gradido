@@ -23,6 +23,7 @@ import { LogError } from '@/server/LogError'
 import { Context, getUser } from '@/server/context'
 import { backendLogger as logger } from '@/server/logger'
 
+import { contributionFrontendLink } from './util/contributions'
 import { findContributionMessages } from './util/findContributionMessages'
 
 @Resolver()
@@ -179,6 +180,11 @@ export class ContributionMessageResolver {
         senderFirstName: moderator.firstName,
         senderLastName: moderator.lastName,
         contributionMemo: finalContribution.memo,
+        contributionFrontendLink: await contributionFrontendLink(
+          finalContribution.id,
+          finalContribution.createdAt,
+        ),
+        message: finalContributionMessage.message,
       })
     }
 

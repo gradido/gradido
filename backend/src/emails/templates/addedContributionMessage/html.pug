@@ -7,8 +7,10 @@ block content
     p= t('emails.addedContributionMessage.commonGoodContributionMessage', { senderFirstName, senderLastName, contributionMemo })
   .content
     h2= t('emails.addedContributionMessage.readMessage')
-    div(class="p_content")= t('emails.addedContributionMessage.toSeeAndAnswerMessage')
+    div(class="p_content")
+      p= t('emails.addedContributionMessage.message', { message })
+      p= t('emails.addedContributionMessage.toSeeAndAnswerMessage')
 
-    a.button-3(href=`${communityURL}/community/contributions`) #{t('emails.general.toAccount')}
+    a.button-3(href=`${contributionFrontendLink}`) #{t('emails.general.toAccount')}
 
     include ../includes/doNotReply.pug
