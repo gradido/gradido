@@ -1,6 +1,7 @@
 import { findUserByIdentifier } from '@/graphql/util/findUserByIdentifier'
 import { federationLogger as logger } from '@/server/logger'
 import { Community as DbCommunity } from 'database'
+import { TransactionLink as DbTransactionLink } from 'database'
 import { Arg, Mutation, Resolver } from 'type-graphql'
 
 import { decode, verify } from 'backend/src/auth/jwt/JWT'
@@ -14,6 +15,7 @@ import {
 import { getCommunityByUuid } from 'backend/src/graphql/resolver/util/communities'
 import { invokeXComSendCoins } from 'backend/src/graphql/resolver/util/invokeXComSendCoins'
 import Decimal from 'decimal.js-light'
+import { getConnection, IsNull } from 'typeorm'
 
 @Resolver()
 export class DisbursementJwtResolver {
@@ -24,6 +26,7 @@ export class DisbursementJwtResolver {
   ): Promise<DisbursementJwtResult> {
     logger.debug(`disburseJwt() via apiVersion=1_0 ...`, jwt)
     const result = new DisbursementJwtResult()
+    const receivedCallDate = new Date()
     try {
       // decode token first to get the recipientCommunityUuid as input for verify token
       const decodedPayload = decode(jwt)
@@ -100,7 +103,7 @@ export class DisbursementJwtResolver {
             expDate,
             verifiedJwtPayload.exp,
           )
-          if (expDate < new Date()) {
+          if (expDate < receivedCallDate) {
             result.message = 'Disbursement JWT-Token expired! jwtPayload.exp=' + expDate
             result.accepted = false
             logger.error(result.message)
@@ -133,6 +136,16 @@ export class DisbursementJwtResolver {
             verifiedDisburseJwtPayload.sendergradidoid,
             homeCommunity?.communityUuid,
           )
+          const transactionLink = await DbTransactionLink.findOne({
+            where: { code: verifiedDisburseJwtPayload.code, redeemedAt: IsNull(), redeemedBy: IsNull() },
+          })
+          if (!transactionLink) {
+            result.message = 'Link not exists or already redeemed!'
+            result.accepted = false
+            logger.error(result.message)
+            return result
+          }
+
           await invokeXComSendCoins(
             homeCommunity,
             verifiedDisburseJwtPayload.recipientcommunityuuid,
@@ -141,6 +154,34 @@ export class DisbursementJwtResolver {
             senderUser,
             verifiedDisburseJwtPayload.recipientgradidoid,
           )
+          await EVENT_TRANSACTION_LINK_REDEEM(senderUser, transactionLink, amount)
+
+          if (transactionLink) {
+            const queryRunner = getConnection().createQueryRunner()
+            await queryRunner.connect()
+            await queryRunner.startTransaction('REPEATABLE READ')
+            try {
+            const recipientUser = await findUserByIdentifier(
+              verifiedDisburseJwtPayload.recipientgradidoid,
+              recipientCom?.communityUuid,
+            )
+            logger.info('transactionLink', transactionLink)
+            transactionLink.redeemedAt = receivedCallDate
+            transactionLink.redeemedBy = recipientUser.id
+            await queryRunner.manager.update(
+              DbTransactionLink,
+              { id: transactionLink.id },
+              transactionLink,
+            )
+            await queryRunner.commitTransaction()
+            await queryRunner.release()
+          } catch (error) {
+            await queryRunner.rollbackTransaction()
+            await queryRunner.release()
+            throw error
+          }
+    
+
           result.message = 'disburseJwt successful'
           result.accepted = true
           logger.info(result.message)
