@@ -93,7 +93,7 @@ export class DisbursementJwtResolver {
           'DisbursementJwtResolver.disburseJwt... nach verify verifiedJwtPayload=',
           verifiedJwtPayload,
         )
-        if (verifiedJwtPayload?.exp !== undefined) {
+        if (verifiedJwtPayload.exp !== undefined) {
           const expDate = new Date(verifiedJwtPayload.exp * 1000)
           logger.debug(
             'DisbursementJwtResolver.disburseJwt... expDate, exp =',
@@ -107,23 +107,23 @@ export class DisbursementJwtResolver {
             return result
           }
         }
-        if (verifiedJwtPayload?.tokentype === DisburseJwtPayloadType.DISBURSE_ACTIVATION_TYPE) {
+        if (verifiedJwtPayload.payload.tokentype === DisburseJwtPayloadType.DISBURSE_ACTIVATION_TYPE) {
           logger.debug(
             'DisbursementJwtResolver.disburseJwt... verifiedJwtPayload.tokentype=',
-            verifiedJwtPayload.tokentype,
+            verifiedJwtPayload.payload.tokentype,
           )
           const verifiedDisburseJwtPayload = new DisburseJwtPayloadType(
-            verifiedJwtPayload.sendercommunityuuid as string,
-            verifiedJwtPayload.sendergradidoid as string,
-            verifiedJwtPayload.recipientcommunityuuid as string,
-            verifiedJwtPayload.recipientcommunityname as string,
-            verifiedJwtPayload.recipientgradidoid as string,
-            verifiedJwtPayload.recipientfirstname as string,
-            verifiedJwtPayload.code as string,
-            verifiedJwtPayload.amount as string,
-            verifiedJwtPayload.memo as string,
-            verifiedJwtPayload.validuntil as string,
-            verifiedJwtPayload.recipientalias as string,
+            verifiedJwtPayload.payload.sendercommunityuuid as string,
+            verifiedJwtPayload.payload.sendergradidoid as string,
+            verifiedJwtPayload.payload.recipientcommunityuuid as string,
+            verifiedJwtPayload.payload.recipientcommunityname as string,
+            verifiedJwtPayload.payload.recipientgradidoid as string,
+            verifiedJwtPayload.payload.recipientfirstname as string,
+            verifiedJwtPayload.payload.code as string,
+            verifiedJwtPayload.payload.amount as string,
+            verifiedJwtPayload.payload.memo as string,
+            verifiedJwtPayload.payload.validuntil as string,
+            verifiedJwtPayload.payload.recipientalias as string,
           )
           logger.debug(
             'DisbursementJwtResolver.disburseJwt... nach verify verifiedDisburseJwtPayload=',
