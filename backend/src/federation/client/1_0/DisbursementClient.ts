@@ -35,7 +35,7 @@ export class DisbursementClient {
         { arg: jwt },
       )
       logger.debug('X-Com: DisbursementClient: disburse data=', data)
-      const result = data.disburseJwtResult
+      const result = data.disburseJwt as DisbursementJwtResult
       logger.debug('X-Com: DisbursementClient: disburse result=', result)
       if (!result.accepted) {
         logger.debug('X-Com: disburse failed with: ', new DisbursementJwtResultLoggingView(result))
