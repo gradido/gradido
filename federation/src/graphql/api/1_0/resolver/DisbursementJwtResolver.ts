@@ -16,7 +16,7 @@ import {
 import { getCommunityByUuid } from 'backend/src/graphql/resolver/util/communities'
 import { invokeXComSendCoins } from 'backend/src/graphql/resolver/util/invokeXComSendCoins'
 import Decimal from 'decimal.js-light'
-import { getConnection, IsNull } from 'typeorm'
+import { IsNull, getConnection } from 'typeorm'
 
 @Resolver()
 export class DisbursementJwtResolver {
@@ -111,7 +111,9 @@ export class DisbursementJwtResolver {
             return result
           }
         }
-        if (verifiedJwtPayload.payload.tokentype === DisburseJwtPayloadType.DISBURSE_ACTIVATION_TYPE) {
+        if (
+          verifiedJwtPayload.payload.tokentype === DisburseJwtPayloadType.DISBURSE_ACTIVATION_TYPE
+        ) {
           logger.debug(
             'DisbursementJwtResolver.disburseJwt... verifiedJwtPayload.tokentype=',
             verifiedJwtPayload.payload.tokentype,
@@ -138,7 +140,11 @@ export class DisbursementJwtResolver {
             homeCommunity?.communityUuid,
           )
           const transactionLink = await DbTransactionLink.findOne({
-            where: { code: verifiedDisburseJwtPayload.code, redeemedAt: IsNull(), redeemedBy: IsNull() },
+            where: {
+              code: verifiedDisburseJwtPayload.code,
+              redeemedAt: IsNull(),
+              redeemedBy: IsNull(),
+            },
           })
           if (!transactionLink) {
             result.message = 'Link not exists or already redeemed!'
@@ -147,7 +153,10 @@ export class DisbursementJwtResolver {
             return result
           }
 
-          logger.info('DisbursementJwtResolver.disburseJwt... vor invokeXComSendCoins mit verifiedDisburseJwtPayload=', verifiedDisburseJwtPayload)
+          logger.info(
+            'DisbursementJwtResolver.disburseJwt... vor invokeXComSendCoins mit verifiedDisburseJwtPayload=',
+            verifiedDisburseJwtPayload,
+          )
           await invokeXComSendCoins(
             homeCommunity,
             verifiedDisburseJwtPayload.recipientcommunityuuid,
@@ -160,11 +169,20 @@ export class DisbursementJwtResolver {
           // after XComSendCoins the recipientUser exists as foreign user locally
           const recipientUser = await findUserByIdentifier(
             verifiedDisburseJwtPayload.recipientgradidoid,
-            verifiedDisburseJwtPayload.recipientcommunityuuid
+            verifiedDisburseJwtPayload.recipientcommunityuuid,
           )
-          logger.debug('DisbursementJwtResolver.disburseJwt... vor EVENT_TRANSACTION_LINK_REDEEM...')
-          await EVENT_TRANSACTION_LINK_REDEEM(recipientUser, senderUser, transactionLink, new Decimal(verifiedDisburseJwtPayload.amount))
-          logger.debug('DisbursementJwtResolver.disburseJwt... nach EVENT_TRANSACTION_LINK_REDEEM...')
+          logger.debug(
+            'DisbursementJwtResolver.disburseJwt... vor EVENT_TRANSACTION_LINK_REDEEM...',
+          )
+          await EVENT_TRANSACTION_LINK_REDEEM(
+            recipientUser,
+            senderUser,
+            transactionLink,
+            new Decimal(verifiedDisburseJwtPayload.amount),
+          )
+          logger.debug(
+            'DisbursementJwtResolver.disburseJwt... nach EVENT_TRANSACTION_LINK_REDEEM...',
+          )
 
           if (transactionLink) {
             logger.debug('DisbursementJwtResolver.disburseJwt... update transactionLink...')
@@ -190,7 +208,8 @@ export class DisbursementJwtResolver {
             } catch (error) {
               await queryRunner.rollbackTransaction()
               await queryRunner.release()
-              result.message = 'DisbursementJwtResolver.disburseJwt... update transactionLink... error=' + error
+              result.message =
+                'DisbursementJwtResolver.disburseJwt... update transactionLink... error=' + error
               result.accepted = false
               logger.error(result.message)
               return result

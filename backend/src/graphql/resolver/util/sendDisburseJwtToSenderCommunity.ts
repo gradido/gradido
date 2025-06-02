@@ -2,8 +2,8 @@ import { CONFIG } from '@/config'
 import { DisbursementJwtResult } from '@/federation/client/1_0/model/DisbursementJwtResult'
 import { DisbursementClientFactory } from '@/federation/client/DisbursementClientFactory'
 import { LogError } from '@/server/LogError'
-import { Community as DbCommunity, FederatedCommunity as DbFederatedCommunity } from 'database'
 import { backendLogger as logger } from '@/server/logger'
+import { Community as DbCommunity, FederatedCommunity as DbFederatedCommunity } from 'database'
 
 export async function sendDisburseJwtToSenderCommunity(
   senderCommunity: DbCommunity,

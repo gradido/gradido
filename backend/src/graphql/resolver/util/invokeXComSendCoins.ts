@@ -19,7 +19,15 @@ export async function invokeXComSendCoins(
   recipientIdentifier: string,
 ) {
   // processing a x-community sendCoins
-  logger.info('X-Com: processing a x-community transaction...', homeCom, recipientCommunityIdentifier, amount, memo, senderUser, recipientIdentifier)
+  logger.info(
+    'X-Com: processing a x-community transaction...',
+    homeCom,
+    recipientCommunityIdentifier,
+    amount,
+    memo,
+    senderUser,
+    recipientIdentifier,
+  )
   if (!CONFIG.FEDERATION_XCOM_SENDCOINS_ENABLED) {
     throw new LogError('X-Community sendCoins disabled per configuration!')
   }

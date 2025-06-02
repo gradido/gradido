@@ -454,17 +454,25 @@ export class TransactionLinkResolver {
       recipientCommunityUuid,
     })
     const verifiedRedeemJwtPayload = await this.decodeAndVerifyRedeemJwt(code)
-    if(!verifiedRedeemJwtPayload) {
-      throw new LogError('TransactionLinkResolver.disburseTransactionLink... Redeem JWT-Token verification failed')
+    if (!verifiedRedeemJwtPayload) {
+      throw new LogError(
+        'TransactionLinkResolver.disburseTransactionLink... Redeem JWT-Token verification failed',
+      )
     }
     const recipientCommunity = await getCommunityByUuid(recipientCommunityUuid)
     if (!recipientCommunity) {
-      throw new LogError('TransactionLinkResolver.disburseTransactionLink... Recipient community not found', recipientCommunityUuid)
+      throw new LogError(
+        'TransactionLinkResolver.disburseTransactionLink... Recipient community not found',
+        recipientCommunityUuid,
+      )
     }
     const recipientUser = getUser(context)
     if (!recipientUser || recipientUser.gradidoID !== recipientUserUuid) {
-      throw new LogError('TransactionLinkResolver.disburseTransactionLink... Recipient user not found or not matching the recipientUserUuid', recipientUserUuid)
-    }    
+      throw new LogError(
+        'TransactionLinkResolver.disburseTransactionLink... Recipient user not found or not matching the recipientUserUuid',
+        recipientUserUuid,
+      )
+    }
 
     const disburseJwt = await this.createDisburseJwt(
       verifiedRedeemJwtPayload.sendercommunityuuid,
@@ -483,7 +491,10 @@ export class TransactionLinkResolver {
       logger.debug('TransactionLinkResolver.disburseTransactionLink... disburseJwt=', disburseJwt)
       const senderCommunity = await getCommunityByUuid(verifiedRedeemJwtPayload.sendercommunityuuid)
       if (!senderCommunity) {
-        throw new LogError('TransactionLinkResolver.disburseTransactionLink... Sender community not found', verifiedRedeemJwtPayload.sendercommunityuuid)
+        throw new LogError(
+          'TransactionLinkResolver.disburseTransactionLink... Sender community not found',
+          verifiedRedeemJwtPayload.sendercommunityuuid,
+        )
       }
       // now send the disburseJwt to the sender community to invoke a x-community-tx to disburse the redeemLink
       await sendDisburseJwtToSenderCommunity(senderCommunity, disburseJwt)
@@ -531,12 +542,18 @@ export class TransactionLinkResolver {
   async queryRedeemJwtLink(code: string): Promise<RedeemJwtLink> {
     logger.debug('TransactionLinkResolver.queryRedeemJwtLink... redeem jwt-token found')
     const verifiedRedeemJwtPayload = await this.decodeAndVerifyRedeemJwt(code)
-    logger.info('TransactionLinkResolver.queryRedeemJwtLink... verifiedRedeemJwtPayload=', verifiedRedeemJwtPayload)
+    logger.info(
+      'TransactionLinkResolver.queryRedeemJwtLink... verifiedRedeemJwtPayload=',
+      verifiedRedeemJwtPayload,
+    )
     const homeCom = await getHomeCommunity()
     const recipientCommunity = new Community(homeCom)
     const senderCom = await getCommunityByUuid(verifiedRedeemJwtPayload.sendercommunityuuid)
     if (!senderCom) {
-      throw new LogError('TransactionLinkResolver.queryRedeemJwtLink... Sender community not found', verifiedRedeemJwtPayload.sendercommunityuuid)
+      throw new LogError(
+        'TransactionLinkResolver.queryRedeemJwtLink... Sender community not found',
+        verifiedRedeemJwtPayload.sendercommunityuuid,
+      )
     }
     const senderCommunity = new Community(senderCom)
     const senderUser = new User(null)
@@ -557,7 +574,10 @@ export class TransactionLinkResolver {
     let verifiedRedeemJwtPayload: RedeemJwtPayloadType | null = null
     // decode token first to get the senderCommunityUuid as input for verify token
     const decodedPayload = decode(jwt)
-    logger.debug('TransactionLinkResolver.decodeAndVerifyRedeemJwt... decodedPayload=', decodedPayload)
+    logger.debug(
+      'TransactionLinkResolver.decodeAndVerifyRedeemJwt... decodedPayload=',
+      decodedPayload,
+    )
     if (
       decodedPayload != null &&
       decodedPayload.tokentype === RedeemJwtPayloadType.REDEEM_ACTIVATION_TYPE
@@ -641,14 +661,14 @@ export class TransactionLinkResolver {
           decodedPayload.memo as string,
           decodedPayload.validuntil as string,
         )
-      } 
+      }
     } else {
-    throw new LogError(
-      'Redeem with wrong type of JWT-Token or expired! decodedPayload=',
-      decodedPayload,
-    )
-  }
-  return verifiedRedeemJwtPayload
+      throw new LogError(
+        'Redeem with wrong type of JWT-Token or expired! decodedPayload=',
+        decodedPayload,
+      )
+    }
+    return verifiedRedeemJwtPayload
   }
 
   async createDisburseJwt(
