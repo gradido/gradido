@@ -7,6 +7,7 @@ import { Arg, Mutation, Resolver } from 'type-graphql'
 import { decode, verify } from 'backend/src/auth/jwt/JWT'
 import { DisburseJwtPayloadType } from 'backend/src/auth/jwt/payloadtypes/DisburseJwtPayloadType'
 import { JwtPayloadType } from 'backend/src/auth/jwt/payloadtypes/JwtPayloadType'
+import { EVENT_TRANSACTION_LINK_REDEEM } from 'backend/src/event/Events'
 import { DisbursementJwtResult } from 'backend/src/federation/client/1_0/model/DisbursementJwtResult'
 import {
   getCommunityByIdentifier,
@@ -146,6 +147,7 @@ export class DisbursementJwtResolver {
             return result
           }
 
+          logger.debug('DisbursementJwtResolver.disburseJwt... vor invokeXComSendCoins...')
           await invokeXComSendCoins(
             homeCommunity,
             verifiedDisburseJwtPayload.recipientcommunityuuid,
@@ -154,42 +156,54 @@ export class DisbursementJwtResolver {
             senderUser,
             verifiedDisburseJwtPayload.recipientgradidoid,
           )
-          await EVENT_TRANSACTION_LINK_REDEEM(senderUser, transactionLink, amount)
+          logger.debug('DisbursementJwtResolver.disburseJwt... nach invokeXComSendCoins...')
+          // after XComSendCoins the recipientUser exists as foreign user locally
+          const recipientUser = await findUserByIdentifier(
+            verifiedDisburseJwtPayload.recipientgradidoid,
+            verifiedDisburseJwtPayload.recipientcommunityuuid
+          )
+          logger.debug('DisbursementJwtResolver.disburseJwt... vor EVENT_TRANSACTION_LINK_REDEEM...')
+          await EVENT_TRANSACTION_LINK_REDEEM(recipientUser, senderUser, transactionLink, new Decimal(verifiedDisburseJwtPayload.amount))
+          logger.debug('DisbursementJwtResolver.disburseJwt... nach EVENT_TRANSACTION_LINK_REDEEM...')
 
           if (transactionLink) {
+            logger.debug('DisbursementJwtResolver.disburseJwt... update transactionLink...')
             const queryRunner = getConnection().createQueryRunner()
             await queryRunner.connect()
             await queryRunner.startTransaction('REPEATABLE READ')
             try {
-            const recipientUser = await findUserByIdentifier(
-              verifiedDisburseJwtPayload.recipientgradidoid,
-              recipientCom?.communityUuid,
-            )
-            logger.info('transactionLink', transactionLink)
-            transactionLink.redeemedAt = receivedCallDate
-            transactionLink.redeemedBy = recipientUser.id
-            await queryRunner.manager.update(
-              DbTransactionLink,
-              { id: transactionLink.id },
-              transactionLink,
-            )
-            await queryRunner.commitTransaction()
-            await queryRunner.release()
-          } catch (error) {
-            await queryRunner.rollbackTransaction()
-            await queryRunner.release()
-            throw error
+              const recipientUser = await findUserByIdentifier(
+                verifiedDisburseJwtPayload.recipientgradidoid,
+                recipientCom?.communityUuid,
+              )
+              logger.info('transactionLink', transactionLink)
+              transactionLink.redeemedAt = receivedCallDate
+              transactionLink.redeemedBy = recipientUser.id
+              await queryRunner.manager.update(
+                DbTransactionLink,
+                { id: transactionLink.id },
+                transactionLink,
+              )
+              await queryRunner.commitTransaction()
+              await queryRunner.release()
+              logger.debug('DisbursementJwtResolver.disburseJwt... update transactionLink... done')
+            } catch (error) {
+              await queryRunner.rollbackTransaction()
+              await queryRunner.release()
+              result.message = 'DisbursementJwtResolver.disburseJwt... update transactionLink... error=' + error
+              result.accepted = false
+              logger.error(result.message)
+              return result
+            }
+            result.message = 'disburseJwt successful'
+            result.accepted = true
+            logger.info(result.message)
+            return result
           }
-    
-
-          result.message = 'disburseJwt successful'
-          result.accepted = true
-          logger.info(result.message)
-          return result
         }
       }
     } catch (error) {
-      result.message = 'Error in disburseJwt: ' + error
+      result.message = 'Error in DisbursementJwtResolver.disburseJwt... error=' + error
       result.accepted = false
       logger.error(result.message)
       return result
