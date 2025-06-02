@@ -408,7 +408,7 @@ export class TransactionLinkResolver {
     @Arg('alias', { nullable: true }) alias?: string,
     @Arg('validUntil', { nullable: true }) validUntil?: string,
   ): Promise<string> {
-    logger.debug('TransactionLinkResolver.queryRedeemJwt... args=', {
+    logger.info('TransactionLinkResolver.queryRedeemJwt... args=', {
       gradidoId,
       senderCommunityUuid,
       senderCommunityName,
@@ -448,7 +448,7 @@ export class TransactionLinkResolver {
     @Arg('recipientCommunityUuid', () => String) recipientCommunityUuid: string,
     @Ctx() context: Context,
   ): Promise<boolean> {
-    logger.debug('TransactionLinkResolver.disburseTransactionLink... args=', {
+    logger.info('TransactionLinkResolver.disburseTransactionLink... args=', {
       code,
       recipientUserUuid,
       recipientCommunityUuid,
@@ -483,9 +483,9 @@ export class TransactionLinkResolver {
       logger.debug('TransactionLinkResolver.disburseTransactionLink... disburseJwt=', disburseJwt)
       const senderCommunity = await getCommunityByUuid(verifiedRedeemJwtPayload.sendercommunityuuid)
       if (!senderCommunity) {
-        throw new LogError('TransactionLinkResolver.disburseTransactionLink... Sender community not found', senderCommunityUuid)
+        throw new LogError('TransactionLinkResolver.disburseTransactionLink... Sender community not found', verifiedRedeemJwtPayload.sendercommunityuuid)
       }
-      // now send the disburseJwt to the sender community to invoke a x-community-tx to disbures the redeemLink
+      // now send the disburseJwt to the sender community to invoke a x-community-tx to disburse the redeemLink
       await sendDisburseJwtToSenderCommunity(senderCommunity, disburseJwt)
     } catch (e) {
       throw new LogError('Disburse JWT was not sent successfully', e)
@@ -531,7 +531,7 @@ export class TransactionLinkResolver {
   async queryRedeemJwtLink(code: string): Promise<RedeemJwtLink> {
     logger.debug('TransactionLinkResolver.queryRedeemJwtLink... redeem jwt-token found')
     const verifiedRedeemJwtPayload = await this.decodeAndVerifyRedeemJwt(code)
-    logger.debug('TransactionLinkResolver.queryRedeemJwtLink... verifiedRedeemJwtPayload=', verifiedRedeemJwtPayload)
+    logger.info('TransactionLinkResolver.queryRedeemJwtLink... verifiedRedeemJwtPayload=', verifiedRedeemJwtPayload)
     const homeCom = await getHomeCommunity()
     const recipientCommunity = new Community(homeCom)
     const senderCom = await getCommunityByUuid(verifiedRedeemJwtPayload.sendercommunityuuid)

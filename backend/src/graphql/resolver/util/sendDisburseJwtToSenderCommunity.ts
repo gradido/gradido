@@ -9,7 +9,7 @@ export async function sendDisburseJwtToSenderCommunity(
   senderCommunity: DbCommunity,
   disburseJwt: string,
 ): Promise<DisbursementJwtResult> {
-  logger.debug('sendDisburseJwtToSenderCommunity... args=', {
+  logger.info('sendDisburseJwtToSenderCommunity... args=', {
     senderCommunity,
     disburseJwt,
   })

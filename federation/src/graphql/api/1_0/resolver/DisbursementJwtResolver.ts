@@ -25,7 +25,7 @@ export class DisbursementJwtResolver {
     @Arg('jwt')
     jwt: string,
   ): Promise<DisbursementJwtResult> {
-    logger.debug(`disburseJwt() via apiVersion=1_0 ...`, jwt)
+    logger.info(`disburseJwt() via apiVersion=1_0 ...`, jwt)
     const result = new DisbursementJwtResult()
     const receivedCallDate = new Date()
     try {
@@ -147,7 +147,7 @@ export class DisbursementJwtResolver {
             return result
           }
 
-          logger.debug('DisbursementJwtResolver.disburseJwt... vor invokeXComSendCoins...')
+          logger.info('DisbursementJwtResolver.disburseJwt... vor invokeXComSendCoins mit verifiedDisburseJwtPayload=', verifiedDisburseJwtPayload)
           await invokeXComSendCoins(
             homeCommunity,
             verifiedDisburseJwtPayload.recipientcommunityuuid,
@@ -197,6 +197,7 @@ export class DisbursementJwtResolver {
             }
             result.message = 'disburseJwt successful'
             result.accepted = true
+            result.acceptedAt = receivedCallDate
             logger.info(result.message)
             return result
           }

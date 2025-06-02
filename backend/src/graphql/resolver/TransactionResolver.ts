@@ -437,7 +437,7 @@ export class TransactionResolver {
     { recipientCommunityIdentifier, recipientIdentifier, amount, memo }: TransactionSendArgs,
     @Ctx() context: Context,
   ): Promise<boolean> {
-    logger.debug(
+    logger.info(
       `sendCoins(recipientCommunityIdentifier=${recipientCommunityIdentifier}, recipientIdentifier=${recipientIdentifier}, amount=${amount}, memo=${memo})`,
     )
     const homeCom = await DbCommunity.findOneOrFail({ where: { foreign: false } })

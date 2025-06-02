@@ -29,7 +29,7 @@ export class DisbursementClient {
   async disburseJwt(jwt: string): Promise<DisbursementJwtResult> {
     logger.debug('X-Com: disburse against endpoint=', this.endpoint)
     try {
-      logger.debug(`X-Com: DisbursementClient: disburse with jwt=`, jwt)
+      logger.info(`X-Com: DisbursementClient: disburse with jwt=`, jwt)
       const { data } = await this.client.rawRequest<{ disburseJwtResult: DisbursementJwtResult }>(
         disburseJwtQuery,
         { arg: jwt },

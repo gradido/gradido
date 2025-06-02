@@ -19,17 +19,17 @@ export async function invokeXComSendCoins(
   recipientIdentifier: string,
 ) {
   // processing a x-community sendCoins
-  logger.debug('X-Com: processing a x-community transaction...')
+  logger.info('X-Com: processing a x-community transaction...', homeCom, recipientCommunityIdentifier, amount, memo, senderUser, recipientIdentifier)
   if (!CONFIG.FEDERATION_XCOM_SENDCOINS_ENABLED) {
     throw new LogError('X-Community sendCoins disabled per configuration!')
   }
   const recipCom = await getCommunityByIdentifier(recipientCommunityIdentifier)
-  logger.debug('recipient commuity: ', recipCom)
+  logger.debug('recipient community: ', recipCom)
   if (recipCom === null) {
-    throw new LogError('no recipient commuity found for identifier:', recipientCommunityIdentifier)
+    throw new LogError('no recipient community found for identifier:', recipientCommunityIdentifier)
   }
   if (recipCom !== null && recipCom.authenticatedAt === null) {
-    throw new LogError('recipient commuity is connected, but still not authenticated yet!')
+    throw new LogError('recipient community is connected, but still not authenticated yet!')
   }
   let pendingResult: SendCoinsResult
   let committingResult: SendCoinsResult
@@ -88,4 +88,5 @@ export async function invokeXComSendCoins(
       err,
     )
   }
+  logger.info('X-Com: processing a x-community transaction... successful')
 }
