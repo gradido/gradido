@@ -86,7 +86,7 @@ export class DisbursementJwtResolver {
           return result
         }
         // now with the recipient community UUID the jwt token can be verified
-        verifiedJwtPayload = await verify(jwt, recipientCom.communityUuid)
+        verifiedJwtPayload = await verify(jwt, recipientCom.communityUuid) as JwtPayloadType
         if (!verifiedJwtPayload) {
           result.message = 'Invalid disbursement JWT'
           result.accepted = false
@@ -112,24 +112,24 @@ export class DisbursementJwtResolver {
           }
         }
         if (
-          verifiedJwtPayload.payload.tokentype === DisburseJwtPayloadType.DISBURSE_ACTIVATION_TYPE
+          (verifiedJwtPayload.payload as { tokentype: string }).tokentype === DisburseJwtPayloadType.DISBURSE_ACTIVATION_TYPE
         ) {
           logger.debug(
             'DisbursementJwtResolver.disburseJwt... verifiedJwtPayload.tokentype=',
-            verifiedJwtPayload.payload.tokentype,
+            (verifiedJwtPayload.payload as { tokentype: string }).tokentype,
           )
           const verifiedDisburseJwtPayload = new DisburseJwtPayloadType(
-            verifiedJwtPayload.payload.sendercommunityuuid as string,
-            verifiedJwtPayload.payload.sendergradidoid as string,
-            verifiedJwtPayload.payload.recipientcommunityuuid as string,
-            verifiedJwtPayload.payload.recipientcommunityname as string,
-            verifiedJwtPayload.payload.recipientgradidoid as string,
-            verifiedJwtPayload.payload.recipientfirstname as string,
-            verifiedJwtPayload.payload.code as string,
-            verifiedJwtPayload.payload.amount as string,
-            verifiedJwtPayload.payload.memo as string,
-            verifiedJwtPayload.payload.validuntil as string,
-            verifiedJwtPayload.payload.recipientalias as string,
+            (verifiedJwtPayload.payload as { sendercommunityuuid: string }).sendercommunityuuid,
+            (verifiedJwtPayload.payload as { sendergradidoid: string }).sendergradidoid,
+            (verifiedJwtPayload.payload as { recipientcommunityuuid: string }).recipientcommunityuuid,
+            (verifiedJwtPayload.payload as { recipientcommunityname: string }).recipientcommunityname,
+            (verifiedJwtPayload.payload as { recipientgradidoid: string }).recipientgradidoid,
+            (verifiedJwtPayload.payload as { recipientfirstname: string }).recipientfirstname,
+            (verifiedJwtPayload.payload as { code: string }).code,
+            (verifiedJwtPayload.payload as { amount: string }).amount,
+            (verifiedJwtPayload.payload as { memo: string }).memo,
+            (verifiedJwtPayload.payload as { validuntil: string }).validuntil,
+            (verifiedJwtPayload.payload as { recipientalias: string }).recipientalias,
           )
           logger.debug(
             'DisbursementJwtResolver.disburseJwt... nach verify verifiedDisburseJwtPayload=',
