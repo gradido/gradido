@@ -621,7 +621,10 @@ export class TransactionLinkResolver {
             throw new LogError('Redeem JWT-Token expired! jwtPayload.exp=', expDate)
           }
         }
-        if ((verifiedJwtPayload.payload as { tokentype: string }).tokentype === RedeemJwtPayloadType.REDEEM_ACTIVATION_TYPE) {
+        if (
+          (verifiedJwtPayload.payload as { tokentype: string }).tokentype ===
+          RedeemJwtPayloadType.REDEEM_ACTIVATION_TYPE
+        ) {
           logger.debug(
             'TransactionLinkResolver.decodeAndVerifyRedeemJwt... verifiedJwtPayload.payload.tokentype=',
             (verifiedJwtPayload.payload as { tokentype: string }).tokentype,
