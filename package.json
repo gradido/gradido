@@ -15,7 +15,8 @@
     "database",
     "dht-node",
     "federation",
-    "frontend"
+    "frontend",
+    "shared"
   ],
   "scripts": {
     "release": "scripts/release.sh",
