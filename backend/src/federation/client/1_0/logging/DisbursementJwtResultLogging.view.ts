@@ -11,7 +11,6 @@ export class DisbursementJwtResultLoggingView extends AbstractLoggingView {
     return {
       accepted: this.self.accepted,
       acceptedAt: this.self.acceptedAt,
-      transactionId: this.self.transactionId,
       message: this.self.message,
     }
   }

@@ -5,7 +5,6 @@ export class DisbursementJwtResult {
   constructor() {
     this.accepted = false
     this.acceptedAt = null
-    this.transactionId = null
     this.message = null
   }
 
@@ -17,7 +16,4 @@ export class DisbursementJwtResult {
 
   @Field(() => Date, { nullable: true })
   acceptedAt: Date | null
-
-  @Field(() => Number, { nullable: true })
-  transactionId: number | null
 }

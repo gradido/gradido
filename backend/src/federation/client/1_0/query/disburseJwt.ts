@@ -5,7 +5,6 @@ export const disburseJwt = gql`
     disburseJwt(jwt: $arg) {
       accepted
       acceptedAt
-      transactionId
       message
     }
   }
