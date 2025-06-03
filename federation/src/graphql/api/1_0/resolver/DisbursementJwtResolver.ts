@@ -86,7 +86,7 @@ export class DisbursementJwtResolver {
           return result
         }
         // now with the recipient community UUID the jwt token can be verified
-        verifiedJwtPayload = await verify(jwt, recipientCom.communityUuid) as JwtPayloadType
+        verifiedJwtPayload = (await verify(jwt, recipientCom.communityUuid)) as JwtPayloadType
         if (!verifiedJwtPayload) {
           result.message = 'Invalid disbursement JWT'
           result.accepted = false
@@ -112,7 +112,8 @@ export class DisbursementJwtResolver {
           }
         }
         if (
-          (verifiedJwtPayload.payload as { tokentype: string }).tokentype === DisburseJwtPayloadType.DISBURSE_ACTIVATION_TYPE
+          (verifiedJwtPayload.payload as { tokentype: string }).tokentype ===
+          DisburseJwtPayloadType.DISBURSE_ACTIVATION_TYPE
         ) {
           logger.debug(
             'DisbursementJwtResolver.disburseJwt... verifiedJwtPayload.tokentype=',
@@ -121,8 +122,10 @@ export class DisbursementJwtResolver {
           const verifiedDisburseJwtPayload = new DisburseJwtPayloadType(
             (verifiedJwtPayload.payload as { sendercommunityuuid: string }).sendercommunityuuid,
             (verifiedJwtPayload.payload as { sendergradidoid: string }).sendergradidoid,
-            (verifiedJwtPayload.payload as { recipientcommunityuuid: string }).recipientcommunityuuid,
-            (verifiedJwtPayload.payload as { recipientcommunityname: string }).recipientcommunityname,
+            (verifiedJwtPayload.payload as { recipientcommunityuuid: string })
+              .recipientcommunityuuid,
+            (verifiedJwtPayload.payload as { recipientcommunityname: string })
+              .recipientcommunityname,
             (verifiedJwtPayload.payload as { recipientgradidoid: string }).recipientgradidoid,
             (verifiedJwtPayload.payload as { recipientfirstname: string }).recipientfirstname,
             (verifiedJwtPayload.payload as { code: string }).code,
