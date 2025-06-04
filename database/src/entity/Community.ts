@@ -9,9 +9,9 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm'
-import { GeometryTransformer } from './transformer/GeometryTransformer'
 import { FederatedCommunity } from './FederatedCommunity'
 import { User } from './User'
+import { GeometryTransformer } from './transformer/GeometryTransformer'
 
 @Entity('communities')
 export class Community extends BaseEntity {

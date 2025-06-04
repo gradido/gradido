@@ -1,5 +1,5 @@
+import { Migration, entities } from '@/entity'
 import { DataSource as DBDataSource, FileLogger } from 'typeorm'
-import { entities, Migration } from '@/entity'
 
 import { CONFIG } from '@/config'
 import { logger } from '@/logging'
@@ -37,8 +37,10 @@ export class AppDatabase {
 
   // create database connection, initialize with automatic retry and check for correct database version
   public async init(): Promise<void> {
-    if (this.connection?.isInitialized) return
-    
+    if (this.connection?.isInitialized) {
+      return
+    }
+
     // log sql query only of enable by .env, this produce so much data it should be only used when really needed
     const logging: boolean = CONFIG.TYPEORM_LOGGING_ACTIVE
     this.connection = new DBDataSource({
@@ -52,9 +54,11 @@ export class AppDatabase {
       entities,
       synchronize: false,
       logging,
-      logger: logging ? new FileLogger('all', {
-        logPath: CONFIG.TYPEORM_LOGGING_RELATIVE_PATH,
-      }) : undefined,
+      logger: logging
+        ? new FileLogger('all', {
+            logPath: CONFIG.TYPEORM_LOGGING_RELATIVE_PATH,
+          })
+        : undefined,
       extra: {
         charset: 'utf8mb4_unicode_ci',
       },
@@ -63,7 +67,7 @@ export class AppDatabase {
     for (let attempt = 1; attempt <= CONFIG.DB_CONNECT_RETRY_COUNT; attempt++) {
       try {
         await this.connection.initialize()
-        if(this.connection.isInitialized) {
+        if (this.connection.isInitialized) {
           logger.info(`Database connection established on attempt ${attempt}`)
           break
         }
@@ -87,7 +91,7 @@ export class AppDatabase {
   // ######################################
   private async checkDBVersion(): Promise<void> {
     const [dbVersion] = await Migration.find({ order: { version: 'DESC' }, take: 1 })
-    if(!dbVersion) {
+    if (!dbVersion) {
       throw new Error('Could not find database version')
     }
     if (!dbVersion.fileName.startsWith(latestDbVersion)) {
@@ -96,7 +100,7 @@ export class AppDatabase {
           dbVersion.fileName
         }`,
       )
-    }    
+    }
   }
 }
 

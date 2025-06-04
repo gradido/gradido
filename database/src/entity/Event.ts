@@ -8,13 +8,13 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm'
-import { DecimalTransformer } from './transformer/DecimalTransformer'
 import { Contribution } from './Contribution'
 import { ContributionLink } from './ContributionLink'
 import { ContributionMessage } from './ContributionMessage'
 import { Transaction } from './Transaction'
 import { TransactionLink } from './TransactionLink'
 import { User } from './User'
+import { DecimalTransformer } from './transformer/DecimalTransformer'
 
 @Entity('events')
 export class Event extends BaseEntity {

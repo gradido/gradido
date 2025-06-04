@@ -10,12 +10,12 @@ import {
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm'
-import { GeometryTransformer } from './transformer/GeometryTransformer'
 import { Community } from './Community'
 import { Contribution } from './Contribution'
 import { ContributionMessage } from './ContributionMessage'
 import { UserContact } from './UserContact'
 import { UserRole } from './UserRole'
+import { GeometryTransformer } from './transformer/GeometryTransformer'
 
 @Entity('users', { engine: 'InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci' })
 export class User extends BaseEntity {

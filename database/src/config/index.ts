@@ -8,7 +8,7 @@ const constants = {
     EXPECTED: 'v1.2022-03-18',
     CURRENT: '',
   },
-  LOG4JS_CATEGORY_NAME: 'database'
+  LOG4JS_CATEGORY_NAME: 'database',
 }
 
 const database = {
@@ -23,7 +23,8 @@ const database = {
   DB_USER: process.env.DB_USER ?? 'root',
   DB_PASSWORD: process.env.DB_PASSWORD ?? '',
   DB_DATABASE: process.env.DB_DATABASE ?? 'gradido_community',
-  TYPEORM_LOGGING_RELATIVE_PATH: process.env.TYPEORM_LOGGING_RELATIVE_PATH ?? 'typeorm.database.log',
+  TYPEORM_LOGGING_RELATIVE_PATH:
+    process.env.TYPEORM_LOGGING_RELATIVE_PATH ?? 'typeorm.database.log',
   TYPEORM_LOGGING_ACTIVE: process.env.TYPEORM_LOGGING_ACTIVE === 'true' || false,
 }
 

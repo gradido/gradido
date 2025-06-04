@@ -10,10 +10,10 @@ import {
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm'
-import { DecimalTransformer } from './transformer/DecimalTransformer'
 import { ContributionMessage } from './ContributionMessage'
 import { Transaction } from './Transaction'
 import { User } from './User'
+import { DecimalTransformer } from './transformer/DecimalTransformer'
 
 @Entity('contributions')
 export class Contribution extends BaseEntity {

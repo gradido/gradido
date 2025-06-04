@@ -1,3 +1,5 @@
+import { CONFIG } from '@/config'
+import { getLogger } from 'log4js'
 import { AbstractLoggingView } from './AbstractLogging.view'
 import { CommunityLoggingView } from './CommunityLogging.view'
 import { ContributionLoggingView } from './ContributionLogging.view'
@@ -9,8 +11,6 @@ import { TransactionLoggingView } from './TransactionLogging.view'
 import { UserContactLoggingView } from './UserContactLogging.view'
 import { UserLoggingView } from './UserLogging.view'
 import { UserRoleLoggingView } from './UserRoleLogging.view'
-import { CONFIG } from '@/config'
-import { getLogger } from 'log4js'
 
 export {
   AbstractLoggingView,
