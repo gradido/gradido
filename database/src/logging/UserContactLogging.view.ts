@@ -1,4 +1,4 @@
-import { UserContact } from '../entity/UserContact'
+import { UserContact } from '@/entity'
 import { AbstractLoggingView } from './AbstractLogging.view'
 import { UserLoggingView } from './UserLogging.view'
 

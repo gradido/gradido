@@ -1,7 +1,7 @@
 /* eslint-disable no-use-before-define */
 import { Decimal } from 'decimal.js-light'
 import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from 'typeorm'
-import { DecimalTransformer } from '../src/typeorm/DecimalTransformer'
+import { DecimalTransformer } from './transformer/DecimalTransformer'
 
 @Entity('pending_transactions')
 export class PendingTransaction extends BaseEntity {

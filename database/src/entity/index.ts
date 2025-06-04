@@ -1,4 +1,3 @@
-import { latestDbVersion } from '../src/config/detectLastDBVersion'
 import { Community } from './Community'
 import { Contribution } from './Contribution'
 import { ContributionLink } from './ContributionLink'
@@ -35,9 +34,7 @@ export {
   User,
   UserContact,
   UserRole,
-  latestDbVersion,
 }
-export * from '../logging'
 
 export const entities = [
   Community,

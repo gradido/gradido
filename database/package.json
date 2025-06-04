@@ -3,7 +3,7 @@
   "version": "2.6.0",
   "description": "Gradido Database Tool to execute database migrations",
   "main": "./build/index.js",
-  "types": "./entity/index.ts",
+  "types": "./src/index.ts",
   "exports": {
     ".": {
       "import": "./build/index.js",
@@ -19,13 +19,13 @@
     "typecheck": "tsc --noEmit",
     "lint": "biome check --error-on-warnings .",
     "lint:fix": "biome check --error-on-warnings . --write",
-    "clear": "cross-env TZ=UTC tsx src/index.ts clear",
-    "up": "cross-env TZ=UTC tsx src/index.ts up",
-    "down": "cross-env TZ=UTC tsx src/index.ts down",
-    "reset": "cross-env TZ=UTC tsx src/index.ts reset",
-    "up:backend_test": "cross-env TZ=UTC DB_DATABASE=gradido_test_backend tsx src/index.ts up",
-    "up:federation_test": "cross-env TZ=UTC DB_DATABASE=gradido_test_federation tsx src/index.ts up",
-    "up:dht_test": "cross-env TZ=UTC DB_DATABASE=gradido_test_dht tsx src/index.ts up"
+    "clear": "cross-env TZ=UTC tsx migration/index.ts clear",
+    "up": "cross-env TZ=UTC tsx migration/index.ts up",
+    "down": "cross-env TZ=UTC tsx migration/index.ts down",
+    "reset": "cross-env TZ=UTC tsx migration/index.ts reset",
+    "up:backend_test": "cross-env TZ=UTC DB_DATABASE=gradido_test_backend tsx migration/index.ts up",
+    "up:federation_test": "cross-env TZ=UTC DB_DATABASE=gradido_test_federation tsx migration/index.ts up",
+    "up:dht_test": "cross-env TZ=UTC DB_DATABASE=gradido_test_dht tsx migration/index.ts up"
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
@@ -41,6 +41,7 @@
     "dotenv": "^10.0.0",
     "esbuild": "^0.25.2",
     "geojson": "^0.5.0",
+    "log4js": "^6.9.1",
     "mysql2": "^2.3.0",
     "reflect-metadata": "^0.1.13",
     "ts-mysql-migrate": "^1.0.2",

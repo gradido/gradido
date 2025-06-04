@@ -1,7 +1,7 @@
 import { Connection, ResultSetHeader, RowDataPacket, createConnection } from 'mysql2/promise'
 
-import { CONFIG } from './config'
-import { latestDbVersion } from './config/detectLastDBVersion'
+import { CONFIG } from '@/config'
+import { latestDbVersion } from '@/detectLastDBVersion'
 
 export enum DatabaseState {
   NOT_CONNECTED = 'NOT_CONNECTED',

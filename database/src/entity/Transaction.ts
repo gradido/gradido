@@ -1,7 +1,7 @@
 /* eslint-disable no-use-before-define */
 import { Decimal } from 'decimal.js-light'
 import { BaseEntity, Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'typeorm'
-import { DecimalTransformer } from '../src/typeorm/DecimalTransformer'
+import { DecimalTransformer } from './transformer/DecimalTransformer'
 import { Contribution } from './Contribution'
 import { DltTransaction } from './DltTransaction'
 

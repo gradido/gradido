@@ -9,7 +9,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm'
-import { GeometryTransformer } from '../src/typeorm/GeometryTransformer'
+import { GeometryTransformer } from './transformer/GeometryTransformer'
 import { FederatedCommunity } from './FederatedCommunity'
 import { User } from './User'
 

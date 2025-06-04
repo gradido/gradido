@@ -1,4 +1,4 @@
-import { FederatedCommunity } from '../entity/FederatedCommunity'
+import { FederatedCommunity } from '@/entity'
 import { AbstractLoggingView } from './AbstractLogging.view'
 
 export class FederatedCommunityLoggingView extends AbstractLoggingView {

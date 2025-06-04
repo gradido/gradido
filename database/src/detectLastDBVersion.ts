@@ -5,7 +5,7 @@ import path from 'node:path'
 const DB_VERSION_PATTERN = /^(\d{4}-[a-z0-9-_]+)/
 
 // Define the paths to check
-const migrationsDir = path.join(__dirname, '..', '..', 'migrations')
+const migrationsDir = path.join(__dirname, '..', 'migration', 'migrations')
 
 // Helper function to get the highest version number from the directory
 function getLatestDbVersion(dir: string): string {

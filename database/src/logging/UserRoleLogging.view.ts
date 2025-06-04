@@ -1,4 +1,4 @@
-import { UserRole } from '../entity/UserRole'
+import { UserRole } from '@/entity'
 import { AbstractLoggingView } from './AbstractLogging.view'
 import { UserLoggingView } from './UserLogging.view'
 

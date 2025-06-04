@@ -1,5 +1,4 @@
-import { PendingTransaction } from '../entity/PendingTransaction'
-import { Transaction } from '../entity/Transaction'
+import { PendingTransaction, Transaction } from '@/entity'
 import { AbstractLoggingView } from './AbstractLogging.view'
 import { TransactionLoggingView } from './TransactionLogging.view'
 

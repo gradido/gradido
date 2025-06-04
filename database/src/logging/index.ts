@@ -9,6 +9,8 @@ import { TransactionLoggingView } from './TransactionLogging.view'
 import { UserContactLoggingView } from './UserContactLogging.view'
 import { UserLoggingView } from './UserLogging.view'
 import { UserRoleLoggingView } from './UserRoleLogging.view'
+import { CONFIG } from '@/config'
+import { getLogger } from 'log4js'
 
 export {
   AbstractLoggingView,
@@ -23,3 +25,5 @@ export {
   UserLoggingView,
   UserRoleLoggingView,
 }
+
+export const logger = getLogger(CONFIG.LOG4JS_CATEGORY_NAME)

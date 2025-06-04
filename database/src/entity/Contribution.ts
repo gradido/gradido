@@ -10,7 +10,7 @@ import {
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm'
-import { DecimalTransformer } from '../src/typeorm/DecimalTransformer'
+import { DecimalTransformer } from './transformer/DecimalTransformer'
 import { ContributionMessage } from './ContributionMessage'
 import { Transaction } from './Transaction'
 import { User } from './User'

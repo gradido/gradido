@@ -1,4 +1,4 @@
-import { ContributionMessage } from '../entity/ContributionMessage'
+import { ContributionMessage } from '@/entity'
 import { AbstractLoggingView } from './AbstractLogging.view'
 import { ContributionLoggingView } from './ContributionLogging.view'
 import { UserLoggingView } from './UserLogging.view'

@@ -10,7 +10,7 @@ import {
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm'
-import { GeometryTransformer } from '../src/typeorm/GeometryTransformer'
+import { GeometryTransformer } from './transformer/GeometryTransformer'
 import { Community } from './Community'
 import { Contribution } from './Contribution'
 import { ContributionMessage } from './ContributionMessage'

@@ -8,7 +8,7 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm'
-import { DecimalTransformer } from '../src/typeorm/DecimalTransformer'
+import { DecimalTransformer } from './transformer/DecimalTransformer'
 import { Contribution } from './Contribution'
 import { ContributionLink } from './ContributionLink'
 import { ContributionMessage } from './ContributionMessage'
