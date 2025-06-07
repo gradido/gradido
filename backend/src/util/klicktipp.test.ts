@@ -1,6 +1,6 @@
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { Event as DbEvent } from 'database'
-import { Connection } from 'typeorm'
+import { DataSource } from 'typeorm'
 
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
 
@@ -18,11 +18,11 @@ jest.mock('@/apis/KlicktippController')
 jest.mock('@/password/EncryptorUtils')
 
 let mutate: ApolloServerTestClient['mutate']
-let con: Connection
+let con: DataSource
 let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']
-  con: Connection
+  con: DataSource
 }
 
 beforeAll(async () => {
@@ -34,7 +34,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await cleanDB()
-  await con.close()
+  await con.destroy()
 })
 
 describe('klicktipp', () => {

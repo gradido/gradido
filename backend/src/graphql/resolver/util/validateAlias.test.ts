@@ -1,6 +1,6 @@
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { User } from 'database'
-import { Connection } from 'typeorm'
+import { DataSource } from 'typeorm'
 
 import { cleanDB, testEnvironment } from '@test/helpers'
 import { i18n as localization, logger } from '@test/testSetup'
@@ -10,11 +10,11 @@ import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 
 import { validateAlias } from './validateAlias'
 
-let con: Connection
+let con: DataSource
 let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']
-  con: Connection
+  con: DataSource
 }
 
 beforeAll(async () => {
@@ -25,7 +25,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await cleanDB()
-  await con.close()
+  await con.destroy()
 })
 
 describe('validate alias', () => {

@@ -1,4 +1,5 @@
 import {
+  AppDatabase,
   ContributionLink as DbContributionLink,
   TransactionLink as DbTransactionLink,
   User as DbUser,
@@ -22,7 +23,7 @@ import {
   Root,
 } from 'type-graphql'
 import { IRestResponse } from 'typed-rest-client'
-import { In, Point, getConnection } from 'typeorm'
+import { In, Point } from 'typeorm'
 import { v4 as uuidv4 } from 'uuid'
 
 import { UserArgs } from '@arg//UserArgs'
@@ -105,6 +106,7 @@ import { validateAlias } from './util/validateAlias'
 
 const LANGUAGES = ['de', 'en', 'es', 'fr', 'nl']
 const DEFAULT_LANGUAGE = 'de'
+const db = AppDatabase.getInstance()
 const isLanguage = (language: string): boolean => {
   return LANGUAGES.includes(language)
 }
@@ -394,7 +396,7 @@ export class UserResolver {
       }
     }
 
-    const queryRunner = getConnection().createQueryRunner()
+    const queryRunner = db.getDataSource().createQueryRunner()
     await queryRunner.connect()
     await queryRunner.startTransaction('REPEATABLE READ')
     let projectBranding: ProjectBranding | null | undefined
@@ -566,7 +568,7 @@ export class UserResolver {
     user.password = await encryptPassword(user, password)
     logger.debug('User credentials updated ...')
 
-    const queryRunner = getConnection().createQueryRunner()
+    const queryRunner = db.getDataSource().createQueryRunner()
     await queryRunner.connect()
     await queryRunner.startTransaction('REPEATABLE READ')
 
@@ -735,7 +737,7 @@ export class UserResolver {
     // } catch (err) {
     //   console.log('error:', err)
     // }
-    const queryRunner = getConnection().createQueryRunner()
+    const queryRunner = db.getDataSource().createQueryRunner()
     await queryRunner.connect()
     await queryRunner.startTransaction('REPEATABLE READ')
 

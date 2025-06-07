@@ -2,7 +2,7 @@ import { ApolloServerTestClient } from 'apollo-server-testing'
 import { ContributionLink as DbContributionLink, Event as DbEvent } from 'database'
 import { Decimal } from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
-import { Connection } from 'typeorm'
+import { DataSource } from 'typeorm'
 
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { logger } from '@test/testSetup'
@@ -23,11 +23,11 @@ jest.mock('@/password/EncryptorUtils')
 
 let mutate: ApolloServerTestClient['mutate']
 let query: ApolloServerTestClient['query']
-let con: Connection
+let con: DataSource
 let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']
-  con: Connection
+  con: DataSource
 }
 
 beforeAll(async () => {
@@ -42,7 +42,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await cleanDB()
-  await con.close()
+  await con.destroy()
 })
 
 describe('Contribution Links', () => {

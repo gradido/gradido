@@ -1,7 +1,7 @@
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { Contribution as DbContribution, Event as DbEvent } from 'database'
 import { GraphQLError } from 'graphql'
-import { Connection } from 'typeorm'
+import { DataSource } from 'typeorm'
 
 import { ContributionStatus } from '@enum/ContributionStatus'
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
@@ -34,11 +34,11 @@ jest.mock('@/emails/sendEmailVariants', () => {
 })
 
 let mutate: ApolloServerTestClient['mutate']
-let con: Connection
+let con: DataSource
 let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']
-  con: Connection
+  con: DataSource
 }
 let result: any
 
@@ -51,7 +51,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await cleanDB()
-  await con.close()
+  await con.destroy()
 })
 
 describe('ContributionMessageResolver', () => {

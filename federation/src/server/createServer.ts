@@ -1,9 +1,7 @@
 import 'reflect-metadata'
 
 import { ApolloServer } from 'apollo-server-express'
-import express, { Express, RequestHandler } from 'express'
-
-import { checkDBVersionUntil } from '@/typeorm/DBVersion'
+import express, { Express } from 'express'
 
 // server
 import cors from './cors'
@@ -15,21 +13,20 @@ import { schema } from '@/graphql/schema'
 
 // webhooks
 // import { elopageWebhook } from '@/webhook/elopage'
-import { Connection } from 'typeorm'
 
-import { CONFIG } from '@/config'
+import { AppDatabase } from 'database'
 import { slowDown } from 'express-slow-down'
 import helmet from 'helmet'
 import { Logger } from 'log4js'
+import { DataSource } from 'typeorm'
 import { apolloLogger } from './logger'
-
 // i18n
 // import { i18n } from './localization'
 
 // TODO implement
 // import queryComplexity, { simpleEstimator, fieldConfigEstimator } from "graphql-query-complexity";
 
-type ServerDef = { apollo: ApolloServer; app: Express; con: Connection }
+type ServerDef = { apollo: ApolloServer; app: Express; con: DataSource }
 
 export const createServer = async (
   // context: any = serverContext,
@@ -40,10 +37,8 @@ export const createServer = async (
   logger.debug('createServer...')
 
   // open mysql connection
-  const con = await checkDBVersionUntil(
-    CONFIG.DB_CONNECT_RETRY_COUNT,
-    CONFIG.DB_CONNECT_RETRY_DELAY_MS,
-  )
+  const db = AppDatabase.getInstance()
+  await db.init()
 
   // Express Server
   const app = express()
@@ -97,5 +92,5 @@ export const createServer = async (
   apollo.applyMiddleware({ app, path: '/' })
   logger.debug('createServer...successful')
 
-  return { apollo, app, con }
+  return { apollo, app, con: db.getDataSource() }
 }

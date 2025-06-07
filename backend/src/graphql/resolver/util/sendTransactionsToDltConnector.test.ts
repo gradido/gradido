@@ -5,7 +5,7 @@ import { Decimal } from 'decimal.js-light'
 // import { Response } from 'graphql-request/dist/types'
 import { GraphQLClient } from 'graphql-request'
 import { Response } from 'graphql-request/dist/types'
-import { Connection } from 'typeorm'
+import { DataSource } from 'typeorm'
 import { v4 as uuidv4 } from 'uuid'
 
 import { cleanDB, testEnvironment } from '@test/helpers'
@@ -328,11 +328,11 @@ async function createTxReceive1FromSend3(verified: boolean): Promise<Transaction
 }
 */
 
-let con: Connection
+let con: DataSource
 let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']
-  con: Connection
+  con: DataSource
 }
 
 beforeAll(async () => {
@@ -343,7 +343,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await cleanDB()
-  await con.close()
+  await con.destroy()
 })
 
 describe('create and send Transactions to DltConnector', () => {

@@ -1,7 +1,6 @@
 // ATTENTION: DO NOT PUT ANY SECRETS IN HERE (or the .env)
 
 import { validate } from 'config-schema'
-import { latestDbVersion } from 'database'
 import { Decimal } from 'decimal.js-light'
 import dotenv from 'dotenv'
 
@@ -15,8 +14,6 @@ Decimal.set({
 })
 
 const constants = {
-  // DB_VERSION: '0087-add_index_on_user_roles',
-  DB_VERSION: latestDbVersion,
   DECAY_START_TIME: new Date('2021-05-13 17:46:31-0000'), // GMT+0
   LOG4JS_CONFIG: 'log4js-config.json',
 }
@@ -32,21 +29,6 @@ const server = {
   PRODUCTION: process.env.NODE_ENV === 'production' || false,
   // default log level on production should be info
   LOG_LEVEL: process.env.LOG_LEVEL ?? 'info',
-}
-
-const database = {
-  DB_CONNECT_RETRY_COUNT: process.env.DB_CONNECT_RETRY_COUNT
-    ? Number.parseInt(process.env.DB_CONNECT_RETRY_COUNT)
-    : 15,
-  DB_CONNECT_RETRY_DELAY_MS: process.env.DB_CONNECT_RETRY_DELAY_MS
-    ? Number.parseInt(process.env.DB_CONNECT_RETRY_DELAY_MS)
-    : 500,
-  DB_HOST: process.env.DB_HOST ?? 'localhost',
-  DB_PORT: process.env.DB_PORT ? Number.parseInt(process.env.DB_PORT) : 3306,
-  DB_USER: process.env.DB_USER ?? 'root',
-  DB_PASSWORD: process.env.DB_PASSWORD ?? '',
-  DB_DATABASE: process.env.DB_DATABASE ?? 'gradido_community',
-  TYPEORM_LOGGING_RELATIVE_PATH: process.env.TYPEORM_LOGGING_RELATIVE_PATH ?? 'typeorm.backend.log',
 }
 
 const klicktipp = {
@@ -163,7 +145,6 @@ const openai = {
 export const CONFIG = {
   ...constants,
   ...server,
-  ...database,
   ...klicktipp,
   ...dltConnector,
   ...community,

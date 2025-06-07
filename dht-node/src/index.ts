@@ -1,12 +1,12 @@
 import { startDHT } from '@/dht_node/index'
 
-import { CONFIG } from './config'
-import { logger } from './server/logger'
-import { checkDBVersionUntil } from './typeorm/DBVersion'
+import { CONFIG } from '@/config'
+import { logger } from '@/server/logger'
+import { AppDatabase } from 'database'
 
 async function main() {
   // open mysql connection
-  await checkDBVersionUntil(CONFIG.DB_CONNECT_RETRY_COUNT, CONFIG.DB_CONNECT_RETRY_DELAY_MS)
+  await AppDatabase.getInstance().init()
   logger.debug(`dhtseed set by CONFIG.FEDERATION_DHT_SEED=${CONFIG.FEDERATION_DHT_SEED}`)
   logger.info(
     `starting Federation on ${CONFIG.FEDERATION_DHT_TOPIC} ${

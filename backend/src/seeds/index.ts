@@ -93,7 +93,7 @@ const run = async () => {
   }
   logger.info('##seed## seeding all contributionLinks successful...')
 
-  await con.close()
+  await con.destroy()
 }
 
 run().catch((err) => {

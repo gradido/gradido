@@ -15,6 +15,7 @@ import { TransactionLink, TransactionLinkResult } from '@model/TransactionLink'
 import { User } from '@model/User'
 import { QueryLinkResult } from '@union/QueryLinkResult'
 import {
+  AppDatabase,
   Contribution as DbContribution,
   ContributionLink as DbContributionLink,
   Transaction as DbTransaction,
@@ -66,6 +67,7 @@ export const transactionLinkCode = (date: Date): string => {
 }
 
 const CODE_VALID_DAYS_DURATION = 14
+const db = AppDatabase.getInstance()
 
 export const transactionLinkExpireDate = (date: Date): Date => {
   const validUntil = new Date(date)
@@ -203,7 +205,7 @@ export class TransactionLinkResolver {
       try {
         logger.info('redeem contribution link...')
         const now = new Date()
-        const queryRunner = getConnection().createQueryRunner()
+        const queryRunner = db.getDataSource().createQueryRunner()
         await queryRunner.connect()
         await queryRunner.startTransaction('REPEATABLE READ')
         try {

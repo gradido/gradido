@@ -1,6 +1,6 @@
 import { Transaction as DbTransaction } from 'database'
 import { Decimal } from 'decimal.js-light'
-import { Connection } from 'typeorm'
+import { DataSource } from 'typeorm'
 
 import { cleanDB, testEnvironment } from '@test/helpers'
 
@@ -10,10 +10,10 @@ import { backendLogger as logger } from '@/server/logger'
 
 import { DltConnectorClient } from './DltConnectorClient'
 
-let con: Connection
+let con: DataSource
 
 let testEnv: {
-  con: Connection
+  con: DataSource
 }
 
 // Mock the GraphQLClient
@@ -83,7 +83,7 @@ describe('transmitTransaction', () => {
 
   afterAll(async () => {
     await cleanDB()
-    await con.close()
+    await con.destroy()
   })
 
   const transaction = new DbTransaction()

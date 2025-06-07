@@ -2,7 +2,7 @@ import { ApolloServerTestClient } from 'apollo-server-testing'
 import { Community as DbCommunity } from 'database'
 import { Decimal } from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
-import { Connection } from 'typeorm'
+import { DataSource } from 'typeorm'
 import { v4 as uuidv4 } from 'uuid'
 
 import { cleanDB, contributionDateFormatter, testEnvironment } from '@test/helpers'
@@ -25,11 +25,11 @@ import { peterLustig } from '@/seeds/users/peter-lustig'
 jest.mock('@/password/EncryptorUtils')
 
 let mutate: ApolloServerTestClient['mutate']
-let con: Connection
+let con: DataSource
 let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']
-  con: Connection
+  con: DataSource
 }
 
 beforeAll(async () => {
@@ -41,7 +41,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await cleanDB()
-  await con.close()
+  await con.destroy()
 })
 
 describe('semaphore', () => {

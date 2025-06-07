@@ -9,7 +9,7 @@ import {
   UserRole,
 } from 'database'
 import { GraphQLError } from 'graphql'
-import { Connection } from 'typeorm'
+import { DataSource } from 'typeorm'
 import { v4 as uuidv4, validate as validateUUID, version as versionUUID } from 'uuid'
 
 import { GmsPublishLocationType } from '@enum/GmsPublishLocationType'
@@ -99,11 +99,11 @@ let admin: User
 let user: User
 let mutate: ApolloServerTestClient['mutate']
 let query: ApolloServerTestClient['query']
-let con: Connection
+let con: DataSource
 let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']
-  con: Connection
+  con: DataSource
 }
 
 beforeAll(async () => {
@@ -117,7 +117,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await cleanDB()
-  await con.close()
+  await con.destroy()
 })
 
 describe('UserResolver', () => {

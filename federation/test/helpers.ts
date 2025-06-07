@@ -1,10 +1,3 @@
-
-
-
-
-
-
-
 import { entities } from 'database'
 import { createTestClient } from 'apollo-server-testing'
 

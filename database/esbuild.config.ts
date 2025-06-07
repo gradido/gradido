@@ -1,9 +1,9 @@
 import { build } from 'esbuild'
 import fs from 'node:fs'
-import { latestDbVersion } from './src/config/detectLastDBVersion'
+import { latestDbVersion } from './src/detectLastDBVersion'
 
 build({
-  entryPoints: ['entity/index.ts'],
+  entryPoints: ['src/index.ts'],
   bundle: true,
   target: 'node18.20.7',
   platform: 'node',

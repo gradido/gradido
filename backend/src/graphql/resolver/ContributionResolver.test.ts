@@ -1,9 +1,8 @@
-import { UserInputError } from 'apollo-server-express'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { Contribution, Event as DbEvent, Transaction as DbTransaction, User } from 'database'
 import { Decimal } from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
-import { Connection, Equal } from 'typeorm'
+import { DataSource, Equal } from 'typeorm'
 
 import { ContributionMessageType } from '@enum/ContributionMessageType'
 import { ContributionStatus } from '@enum/ContributionStatus'
@@ -57,11 +56,11 @@ jest.mock('@/password/EncryptorUtils')
 
 let mutate: ApolloServerTestClient['mutate']
 let query: ApolloServerTestClient['query']
-let con: Connection
+let con: DataSource
 let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']
-  con: Connection
+  con: DataSource
 }
 let creation: Contribution | null
 let admin: User
@@ -82,7 +81,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await cleanDB()
-  await con.close()
+  await con.destroy()
 })
 
 describe('ContributionResolver', () => {

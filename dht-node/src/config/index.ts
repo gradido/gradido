@@ -1,5 +1,4 @@
 import { validate } from 'config-schema'
-import { latestDbVersion } from 'database'
 import dotenv from 'dotenv'
 
 import { schema } from './schema'
@@ -7,7 +6,6 @@ import { schema } from './schema'
 dotenv.config()
 
 const constants = {
-  DB_VERSION: latestDbVersion,
   LOG4JS_CONFIG: 'log4js-config.json',
   // default log level on production should be info
   LOG_LEVEL: process.env.LOG_LEVEL ?? 'info',
@@ -15,22 +13,6 @@ const constants = {
 
 const server = {
   PRODUCTION: process.env.NODE_ENV === 'production',
-}
-
-const database = {
-  DB_CONNECT_RETRY_COUNT: process.env.DB_CONNECT_RETRY_COUNT
-    ? Number.parseInt(process.env.DB_CONNECT_RETRY_COUNT)
-    : 15,
-  DB_CONNECT_RETRY_DELAY_MS: process.env.DB_CONNECT_RETRY_DELAY_MS
-    ? Number.parseInt(process.env.DB_CONNECT_RETRY_DELAY_MS)
-    : 500,
-  DB_HOST: process.env.DB_HOST ?? 'localhost',
-  DB_PORT: process.env.DB_PORT ? Number.parseInt(process.env.DB_PORT) : 3306,
-  DB_USER: process.env.DB_USER ?? 'root',
-  DB_PASSWORD: process.env.DB_PASSWORD ?? '',
-  DB_DATABASE: process.env.DB_DATABASE ?? 'gradido_community',
-  TYPEORM_LOGGING_RELATIVE_PATH:
-    process.env.TYPEORM_LOGGING_RELATIVE_PATH ?? 'typeorm.dht-node.log',
 }
 
 const community = {
@@ -53,7 +35,6 @@ const federation = {
 export const CONFIG = {
   ...constants,
   ...server,
-  ...database,
   ...community,
   ...federation,
 }

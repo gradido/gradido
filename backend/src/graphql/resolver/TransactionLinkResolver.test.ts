@@ -8,7 +8,7 @@ import {
 } from 'database'
 import { Decimal } from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
-import { Connection } from 'typeorm'
+import { DataSource } from 'typeorm'
 
 import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
 import { cleanDB, resetEntity, resetToken, testEnvironment } from '@test/helpers'
@@ -45,11 +45,11 @@ TRANSACTIONS_LOCK.acquire = jest.fn().mockResolvedValue(jest.fn())
 
 let mutate: ApolloServerTestClient['mutate']
 let query: ApolloServerTestClient['query']
-let con: Connection
+let con: DataSource
 let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']
-  con: Connection
+  con: DataSource
 }
 
 let user: User
@@ -66,7 +66,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await cleanDB()
-  await con.close()
+  await con.destroy()
 })
 
 describe('TransactionLinkResolver', () => {

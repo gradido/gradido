@@ -1,12 +1,13 @@
-import { Transaction as DbTransaction, User as DbUser } from 'database'
+import { AppDatabase, Transaction as DbTransaction, User as DbUser } from 'database'
 import { Decimal } from 'decimal.js-light'
 import { Authorized, FieldResolver, Query, Resolver } from 'type-graphql'
-import { getConnection } from 'typeorm'
 
 import { CommunityStatistics, DynamicStatisticsFields } from '@model/CommunityStatistics'
 
 import { RIGHTS } from '@/auth/RIGHTS'
 import { calculateDecay } from '@/util/decay'
+
+const db = AppDatabase.getInstance()
 
 @Resolver(() => CommunityStatistics)
 export class StatisticsResolver {
@@ -33,7 +34,7 @@ export class StatisticsResolver {
 
   @FieldResolver()
   async totalGradidoCreated(): Promise<Decimal> {
-    const queryRunner = getConnection().createQueryRunner()
+    const queryRunner = db.getDataSource().createQueryRunner()
     try {
       await queryRunner.connect()
       const { totalGradidoCreated } = await queryRunner.manager
@@ -50,7 +51,7 @@ export class StatisticsResolver {
 
   @FieldResolver()
   async totalGradidoDecayed(): Promise<Decimal> {
-    const queryRunner = getConnection().createQueryRunner()
+    const queryRunner = db.getDataSource().createQueryRunner()
     try {
       await queryRunner.connect()
       const { totalGradidoDecayed } = await queryRunner.manager
@@ -72,7 +73,7 @@ export class StatisticsResolver {
 
     const receivedCallDate = new Date()
 
-    const queryRunner = getConnection().createQueryRunner()
+    const queryRunner = db.getDataSource().createQueryRunner()
     try {
       await queryRunner.connect()
 

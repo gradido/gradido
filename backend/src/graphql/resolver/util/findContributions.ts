@@ -1,9 +1,8 @@
-import { Contribution as DbContribution } from 'database'
+import { AppDatabase, Contribution as DbContribution } from 'database'
 import { Brackets, In, IsNull, LessThanOrEqual, Like, Not, SelectQueryBuilder } from 'typeorm'
 
 import { Paginated } from '@arg/Paginated'
 import { SearchContributionsFilterArgs } from '@arg/SearchContributionsFilterArgs'
-import { Connection } from '@typeorm/connection'
 
 import { LogError } from '@/server/LogError'
 
@@ -32,11 +31,14 @@ export const findContributions = async (
   relations: Relations | undefined = undefined,
   countOnly = false,
 ): Promise<[DbContribution[], number]> => {
-  const connection = await Connection.getInstance()
-  if (!connection) {
+  const connection = AppDatabase.getInstance()
+  if (!connection.isConnected()) {
     throw new LogError('Cannot connect to db')
   }
-  const queryBuilder = connection.getRepository(DbContribution).createQueryBuilder('Contribution')
+  const queryBuilder = connection
+    .getDataSource()
+    .getRepository(DbContribution)
+    .createQueryBuilder('Contribution')
   if (relations) {
     joinRelationsRecursive(relations, queryBuilder, 'Contribution')
   }
