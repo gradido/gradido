@@ -62,7 +62,17 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  label: {
+    type: String,
+    default: null,
+  },
+  placeholder: {
+    type: String,
+    default: null,
+  },
 })
+
+const { t } = useI18n()
 
 const name = toRef(props, 'name')
 const { value, errorMessage, meta, errors, validate } = useField(name, props.rules, {
@@ -70,11 +80,9 @@ const { value, errorMessage, meta, errors, validate } = useField(name, props.rul
   validateOnMount: props.immediate,
 })
 
-const { t } = useI18n()
-
 const defaultTranslations = computed(() => ({
-  label: t('form.password'),
-  placeholder: t('form.password'),
+  label: props.label || t('form.password'),
+  placeholder: props.placeholder || t('form.password'),
 }))
 
 const showPassword = ref(false)
