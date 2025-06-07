@@ -12,7 +12,7 @@
         </div>
       </div>
     </template>
-    <template #contributions>
+    <template #own-contributions>
       <div class="text-dark">
         <h4 class="alert-heading">{{ $t('community.myContributions') }}</h4>
         <p>
@@ -26,7 +26,7 @@
         </ul>
       </div>
     </template>
-    <template #community>
+    <template #all-contributions>
       <div class="text-dark">
         <h4 class="alert-heading">{{ $t('navigation.community') }}</h4>
         <p>

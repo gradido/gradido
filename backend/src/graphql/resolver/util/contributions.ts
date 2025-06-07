@@ -1,7 +1,12 @@
+import { CONFIG } from '@/config'
 import { Order } from '@/graphql/enum/Order'
+import {
+  DEFAULT_PAGINATION_PAGE_SIZE,
+  FRONTEND_CONTRIBUTIONS_ITEM_ANCHOR_PREFIX,
+} from '@/graphql/resolver/const/const'
 import { Paginated } from '@arg/Paginated'
 import { Contribution as DbContribution } from 'database'
-import { FindManyOptions, In } from 'typeorm'
+import { FindManyOptions, In, MoreThan } from 'typeorm'
 
 // TODO: combine with Pagination class for all queries to use
 function buildPaginationOptions(paginated: Paginated): FindManyOptions<DbContribution> {
@@ -90,4 +95,19 @@ export const loadAllContributions = async (
     ...buildPaginationOptions(paginated),
   })
   */
+}
+
+export const contributionFrontendLink = async (
+  contributionId: number,
+  _createdAt: Date,
+): Promise<string> => {
+  // TODO: page is sometimes wrong, use page 1 for now, and fix later with more time at hand
+  // simplified, don't account for order by id, so when the nearly impossible case occur that createdAt is the same for two contributions,
+  // maybe it is the wrong page
+  //const countBefore = await DbContribution.count({
+  //  where: { createdAt: MoreThan(createdAt) },
+  //})
+  // const page = Math.floor(countBefore / DEFAULT_PAGINATION_PAGE_SIZE) + 1
+  const anchor = `${FRONTEND_CONTRIBUTIONS_ITEM_ANCHOR_PREFIX}${contributionId}`
+  return `${CONFIG.COMMUNITY_URL}/contributions/own-contributions/1#${anchor}`
 }
