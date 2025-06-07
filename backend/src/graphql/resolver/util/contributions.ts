@@ -99,15 +99,15 @@ export const loadAllContributions = async (
 
 export const contributionFrontendLink = async (
   contributionId: number,
-  createdAt: Date,
+  _createdAt: Date,
 ): Promise<string> => {
   // TODO: page is sometimes wrong, use page 1 for now, and fix later with more time at hand
   // simplified, don't account for order by id, so when the nearly impossible case occur that createdAt is the same for two contributions,
   // maybe it is the wrong page
   //const countBefore = await DbContribution.count({
-    //where: { createdAt: MoreThan(createdAt) },
+  //  where: { createdAt: MoreThan(createdAt) },
   //})
   // const page = Math.floor(countBefore / DEFAULT_PAGINATION_PAGE_SIZE) + 1
   const anchor = `${FRONTEND_CONTRIBUTIONS_ITEM_ANCHOR_PREFIX}${contributionId}`
-  return `${CONFIG.COMMUNITY_URL}/contributions/own-contributions/#${anchor}`
+  return `${CONFIG.COMMUNITY_URL}/contributions/own-contributions/1#${anchor}`
 }
