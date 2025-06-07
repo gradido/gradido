@@ -1,10 +1,13 @@
-import { Community as DbCommunity, FederatedCommunity as DbFederatedCommunity } from 'database'
+import {
+  AppDatabase,
+  Community as DbCommunity,
+  FederatedCommunity as DbFederatedCommunity,
+} from 'database'
 import { FindOneOptions, IsNull, Not } from 'typeorm'
 
 import { Paginated } from '@arg/Paginated'
 
 import { LogError } from '@/server/LogError'
-import { Connection } from '@/typeorm/connection'
 
 function findWithCommunityIdentifier(communityIdentifier: string): FindOneOptions<DbCommunity> {
   return {
@@ -115,14 +118,15 @@ export async function getAllCommunities({
   pageSize = 25,
   currentPage = 1,
 }: Paginated): Promise<DbCommunity[]> {
-  const connection = await Connection.getInstance()
-  if (!connection) {
+  const connection = AppDatabase.getInstance()
+  if (!connection.isConnected()) {
     throw new LogError('Cannot connect to db')
   }
   // foreign: 'ASC',
   // createdAt: 'DESC',
   // lastAnnouncedAt: 'DESC',
   const result = await connection
+    .getDataSource()
     .getRepository(DbFederatedCommunity)
     .createQueryBuilder('federatedCommunity')
     .leftJoinAndSelect('federatedCommunity.community', 'community')

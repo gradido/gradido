@@ -1,4 +1,4 @@
-import { Community } from '@/entity'
+import { Community } from '../entity'
 
 import { AbstractLoggingView } from './AbstractLogging.view'
 

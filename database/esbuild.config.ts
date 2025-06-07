@@ -1,6 +1,6 @@
 import { build } from 'esbuild'
 import fs from 'node:fs'
-import { latestDbVersion } from '@/detectLastDBVersion'
+import { latestDbVersion } from './src/detectLastDBVersion'
 
 build({
   entryPoints: ['src/index.ts'],

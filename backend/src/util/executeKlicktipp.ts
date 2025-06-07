@@ -1,10 +1,10 @@
-import { Connection } from '@/typeorm/connection'
+import { AppDatabase } from 'database'
 
 import { exportEventDataToKlickTipp } from './klicktipp'
 
 async function executeKlicktipp(): Promise<boolean> {
-  const connection = await Connection.getInstance()
-  if (connection) {
+  const connection = await AppDatabase.getInstance()
+  if (connection.isConnected()) {
     await exportEventDataToKlickTipp()
     await connection.close()
     return true

@@ -35,18 +35,19 @@
     "typescript": "^4.9.5"
   },
   "dependencies": {
-    "@types/uuid": "^8.3.4",
+    "@types/uuid": "^8.3.4",    
     "cross-env": "^7.0.3",
     "decimal.js-light": "^2.5.1",
     "dotenv": "^10.0.0",
     "esbuild": "^0.25.2",
     "geojson": "^0.5.0",
+    "joi-extract-type": "^15.0.8",
     "log4js": "^6.9.1",
     "mysql2": "^2.3.0",
     "reflect-metadata": "^0.1.13",
     "ts-mysql-migrate": "^1.0.2",
     "tsx": "^4.19.4",
-    "typeorm": "^0.3.16",
+    "typeorm": "^0.3.22",
     "uuid": "^8.3.2",
     "wkx": "^0.5.0"
   },

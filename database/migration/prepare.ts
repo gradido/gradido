@@ -1,7 +1,8 @@
 import { Connection, ResultSetHeader, RowDataPacket, createConnection } from 'mysql2/promise'
 
-import { CONFIG } from '@/config'
-import { latestDbVersion } from '@/detectLastDBVersion'
+import { CONFIG } from '../src/config'
+import { latestDbVersion } from '../src/detectLastDBVersion'
+import { MIGRATIONS_TABLE } from '../src/config/const'
 
 export enum DatabaseState {
   NOT_CONNECTED = 'NOT_CONNECTED',
@@ -33,7 +34,7 @@ export async function connectToDatabaseServer(
 
 async function convertJsToTsInMigrations(connection: Connection): Promise<number> {
   const [result] = await connection.query<ResultSetHeader>(`
-    UPDATE ${CONFIG.MIGRATIONS_TABLE}
+    UPDATE ${MIGRATIONS_TABLE}
     SET fileName = REPLACE(fileName, '.js', '.ts')
     WHERE fileName LIKE '%.js'
   `)
@@ -85,7 +86,7 @@ export const getDatabaseState = async (): Promise<DatabaseState> => {
     SELECT
       SUM(fileName LIKE '%.js') AS jsCount,
       SUM(fileName LIKE '%.ts') AS tsCount
-    FROM ${CONFIG.MIGRATIONS_TABLE}
+    FROM ${MIGRATIONS_TABLE}
   `)
 
   if (counts[0].jsCount > 0 && counts[0].tsCount > 0) {
@@ -100,7 +101,7 @@ export const getDatabaseState = async (): Promise<DatabaseState> => {
 
   // check if the database is up to date
   const [rows] = await connection.query<RowDataPacket[]>(
-    `SELECT fileName FROM ${CONFIG.MIGRATIONS_TABLE} ORDER BY version DESC LIMIT 1`,
+    `SELECT fileName FROM ${MIGRATIONS_TABLE} ORDER BY version DESC LIMIT 1`,
   )
   if (rows.length === 0) {
     return DatabaseState.LOWER_VERSION

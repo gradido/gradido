@@ -1,11 +1,8 @@
-import { User } from 'database'
+import { AppDatabase, User } from 'database'
 import { IsNull, Not } from 'typeorm'
 
-import { CONFIG } from '@/config'
 import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
-import { checkDBVersion } from '@/typeorm/DBVersion'
-import { Connection } from '@/typeorm/connection'
 
 import { HumHubClient } from './HumHubClient'
 import { GetUser } from './model/GetUser'
@@ -66,18 +63,8 @@ async function main() {
   const start = new Date().getTime()
 
   // open mysql connection
-  const con = await Connection.getInstance()
-  if (!con?.isConnected) {
-    logger.fatal(`Couldn't open connection to database!`)
-    throw new Error(`Fatal: Couldn't open connection to database`)
-  }
-
-  // check for correct database version
-  const dbVersion = await checkDBVersion(CONFIG.DB_VERSION)
-  if (!dbVersion) {
-    logger.fatal('Fatal: Database Version incorrect')
-    throw new Error('Fatal: Database Version incorrect')
-  }
+  const con = AppDatabase.getInstance()
+  await con.init()
 
   let userCount = 0
   let page = 0
@@ -114,7 +101,7 @@ async function main() {
   } while (userCount === USER_BULK_SIZE)
   process.stdout.write('\n')
 
-  await con.destroy()
+  await con.close()
   const elapsed = new Date().getTime() - start
   logger.info('export user to humhub, statistics:', {
     timeSeconds: elapsed / 1000.0,

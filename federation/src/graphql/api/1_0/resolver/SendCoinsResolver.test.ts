@@ -6,7 +6,7 @@ import { ApolloServerTestClient } from 'apollo-server-testing'
 import { Community as DbCommunity, User as DbUser, UserContact as DbUserContact } from 'database'
 import Decimal from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
-import { Connection } from 'typeorm'
+import { DataSource } from 'typeorm'
 import { SendCoinsArgs } from '../model/SendCoinsArgs'
 
 let mutate: ApolloServerTestClient['mutate'] // , con: Connection
@@ -15,7 +15,7 @@ let mutate: ApolloServerTestClient['mutate'] // , con: Connection
 let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']
-  con: Connection
+  con: DataSource
 }
 
 CONFIG.FEDERATION_API = '1_0'

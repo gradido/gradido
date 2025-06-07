@@ -1,11 +1,12 @@
-import { CONFIG } from '@/config'
+import { CONFIG } from '../src/config'
 import { DatabaseState, getDatabaseState } from './prepare'
 
 import path from 'node:path'
 import { createPool } from 'mysql'
 import { Migration } from 'ts-mysql-migrate'
 import { clearDatabase } from './clear'
-import { latestDbVersion } from '@/detectLastDBVersion'
+import { latestDbVersion } from '../src/detectLastDBVersion'
+import { MIGRATIONS_TABLE } from '../src/config/const'
 
 const run = async (command: string) => {
   if (command === 'clear') {
@@ -48,7 +49,7 @@ const run = async (command: string) => {
   })
   const migration = new Migration({
     conn: pool,
-    tableName: CONFIG.MIGRATIONS_TABLE,
+    tableName: MIGRATIONS_TABLE,
     silent: true,
     dir: path.join(__dirname, 'migrations'),
   })

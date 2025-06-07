@@ -1,9 +1,9 @@
-import { Migration, entities } from '@/entity'
 import { DataSource as DBDataSource, FileLogger } from 'typeorm'
+import { Migration, entities } from './entity'
 
-import { CONFIG } from '@/config'
-import { logger } from '@/logging'
 import { latestDbVersion } from '.'
+import { CONFIG } from './config'
+import { logger } from './logging'
 
 export class AppDatabase {
   private static instance: AppDatabase
@@ -28,6 +28,10 @@ export class AppDatabase {
     return AppDatabase.instance
   }
 
+  public isConnected(): boolean {
+    return this.connection?.isInitialized ?? false
+  }
+
   public getDataSource(): DBDataSource {
     if (!this.connection) {
       throw new Error('Connection not initialized')
@@ -41,8 +45,6 @@ export class AppDatabase {
       return
     }
 
-    // log sql query only of enable by .env, this produce so much data it should be only used when really needed
-    const logging: boolean = CONFIG.TYPEORM_LOGGING_ACTIVE
     this.connection = new DBDataSource({
       type: 'mysql',
       legacySpatialSupport: false,
@@ -53,10 +55,11 @@ export class AppDatabase {
       database: CONFIG.DB_DATABASE,
       entities,
       synchronize: false,
-      logging,
-      logger: logging
+      logging: CONFIG.TYPEORM_LOGGING_ACTIVE,
+      logger: CONFIG.TYPEORM_LOGGING_ACTIVE
         ? new FileLogger('all', {
-            logPath: CONFIG.TYPEORM_LOGGING_RELATIVE_PATH,
+            // workaround to let previous path working, because with esbuild the script root path has changed
+            logPath: (CONFIG.PRODUCTION ? '../' : '') + CONFIG.TYPEORM_LOGGING_RELATIVE_PATH,
           })
         : undefined,
       extra: {

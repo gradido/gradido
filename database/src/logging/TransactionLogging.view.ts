@@ -1,4 +1,4 @@
-import { Transaction } from '@/entity'
+import { Transaction } from '../entity'
 import { AbstractLoggingView } from './AbstractLogging.view'
 import { ContributionLoggingView } from './ContributionLogging.view'
 import { DltTransactionLoggingView } from './DltTransactionLogging.view'
