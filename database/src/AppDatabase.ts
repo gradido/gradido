@@ -3,11 +3,14 @@ import { Migration, entities } from './entity'
 
 import { latestDbVersion } from '.'
 import { CONFIG } from './config'
-import { logger } from './logging'
+import { getLogger } from 'log4js'
+import { LOG4JS_BASE_CATEGORY_NAME } from './config/const'
+
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.AppDatabase`)
 
 export class AppDatabase {
   private static instance: AppDatabase
-  private connection: DBDataSource | undefined
+  private dataSource: DBDataSource | undefined
 
   /**
    * The Singleton's constructor should always be private to prevent direct
@@ -29,48 +32,49 @@ export class AppDatabase {
   }
 
   public isConnected(): boolean {
-    return this.connection?.isInitialized ?? false
+    return this.dataSource?.isInitialized ?? false
   }
 
   public getDataSource(): DBDataSource {
-    if (!this.connection) {
+    if (!this.dataSource) {
       throw new Error('Connection not initialized')
     }
-    return this.connection
+    return this.dataSource
   }
 
   // create database connection, initialize with automatic retry and check for correct database version
   public async init(): Promise<void> {
-    if (this.connection?.isInitialized) {
+    if (this.dataSource?.isInitialized) {
       return
     }
-
-    this.connection = new DBDataSource({
-      type: 'mysql',
-      legacySpatialSupport: false,
-      host: CONFIG.DB_HOST,
-      port: CONFIG.DB_PORT,
-      username: CONFIG.DB_USER,
-      password: CONFIG.DB_PASSWORD,
-      database: CONFIG.DB_DATABASE,
-      entities,
-      synchronize: false,
-      logging: CONFIG.TYPEORM_LOGGING_ACTIVE,
-      logger: CONFIG.TYPEORM_LOGGING_ACTIVE
-        ? new FileLogger('all', {
-            // workaround to let previous path working, because with esbuild the script root path has changed
-            logPath: (CONFIG.PRODUCTION ? '../' : '') + CONFIG.TYPEORM_LOGGING_RELATIVE_PATH,
-          })
-        : undefined,
-      extra: {
-        charset: 'utf8mb4_unicode_ci',
-      },
-    })
+    if (!this.dataSource) {
+      this.dataSource = new DBDataSource({
+        type: 'mysql',
+        legacySpatialSupport: false,
+        host: CONFIG.DB_HOST,
+        port: CONFIG.DB_PORT,
+        username: CONFIG.DB_USER,
+        password: CONFIG.DB_PASSWORD,
+        database: CONFIG.DB_DATABASE,
+        entities,
+        synchronize: false,
+        logging: CONFIG.TYPEORM_LOGGING_ACTIVE,
+        logger: CONFIG.TYPEORM_LOGGING_ACTIVE
+          ? new FileLogger('all', {
+              // workaround to let previous path working, because with esbuild the script root path has changed
+              logPath: (CONFIG.PRODUCTION ? '../' : '') + CONFIG.TYPEORM_LOGGING_RELATIVE_PATH,
+            })
+          : undefined,
+        extra: {
+          charset: 'utf8mb4_unicode_ci',
+        },
+      })
+    }
     // retry connection on failure some times to allow database to catch up
     for (let attempt = 1; attempt <= CONFIG.DB_CONNECT_RETRY_COUNT; attempt++) {
       try {
-        await this.connection.initialize()
-        if (this.connection.isInitialized) {
+        await this.dataSource.initialize()
+        if (this.dataSource.isInitialized) {
           logger.info(`Database connection established on attempt ${attempt}`)
           break
         }
@@ -79,15 +83,15 @@ export class AppDatabase {
         await new Promise((resolve) => setTimeout(resolve, CONFIG.DB_CONNECT_RETRY_DELAY_MS))
       }
     }
-    if (!this.connection?.isInitialized) {
+    if (!this.dataSource?.isInitialized) {
       throw new Error('Could not connect to database')
     }
     // check for correct database version
     await this.checkDBVersion()
   }
 
-  public async close(): Promise<void> {
-    await this.connection?.destroy()
+  public async destroy(): Promise<void> {
+    await this.dataSource?.destroy()
   }
   // ######################################
   // private methods

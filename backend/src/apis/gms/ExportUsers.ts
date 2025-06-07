@@ -66,7 +66,7 @@ async function main() {
   }
   logger.info('##gms## publishing all local users successful...')
 
-  await con.close()
+  await con.destroy()
 }
 
 main().catch((e) => {

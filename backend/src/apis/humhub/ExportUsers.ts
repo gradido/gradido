@@ -101,7 +101,7 @@ async function main() {
   } while (userCount === USER_BULK_SIZE)
   process.stdout.write('\n')
 
-  await con.close()
+  await con.destroy()
   const elapsed = new Date().getTime() - start
   logger.info('export user to humhub, statistics:', {
     timeSeconds: elapsed / 1000.0,
