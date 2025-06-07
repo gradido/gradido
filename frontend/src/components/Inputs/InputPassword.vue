@@ -72,13 +72,13 @@ const props = defineProps({
   },
 })
 
-const { t } = useI18n()
-
 const name = toRef(props, 'name')
 const { value, errorMessage, meta, errors, validate } = useField(name, props.rules, {
   bails: !props.allowFullValidation,
   validateOnMount: props.immediate,
 })
+
+const { t } = useI18n()
 
 const defaultTranslations = computed(() => ({
   label: props.label || t('form.password'),
