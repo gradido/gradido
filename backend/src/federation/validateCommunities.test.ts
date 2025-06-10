@@ -2,18 +2,18 @@ import { ApolloServerTestClient } from 'apollo-server-testing'
 import { FederatedCommunity as DbFederatedCommunity } from 'database'
 import { GraphQLClient } from 'graphql-request'
 import { Response } from 'graphql-request/dist/types'
-import { Connection } from 'typeorm'
+import { DataSource } from 'typeorm'
 
 import { cleanDB, testEnvironment } from '@test/helpers'
 import { logger } from '@test/testSetup'
 
 import { validateCommunities } from './validateCommunities'
 
-let con: Connection
+let con: DataSource
 let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']
-  con: Connection
+  con: DataSource
 }
 
 beforeAll(async () => {
@@ -24,7 +24,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   // await cleanDB()
-  await con.close()
+  await con.destroy()
 })
 
 describe('validate Communities', () => {

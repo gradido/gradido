@@ -2,12 +2,12 @@ import { CONFIG } from '@/config'
 import { createServer } from '@/server/createServer'
 import { createTestClient } from 'apollo-server-testing'
 import { Community as DbCommunity } from 'database'
-import { Connection } from 'typeorm'
+import { DataSource } from 'typeorm'
 
 let query: any
 
 // to do: We need a setup for the tests that closes the connection
-let con: Connection
+let con: DataSource
 
 CONFIG.FEDERATION_API = '1_0'
 

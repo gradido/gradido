@@ -5,7 +5,7 @@ import { decimalSeparatorByLanguage } from '@/util/utilities'
 
 import { sendEmailTranslated } from './sendEmailTranslated'
 
-export const sendAddedContributionMessageEmail = (data: {
+export interface ContributionEmailCommonData {
   firstName: string
   lastName: string
   email: string
@@ -13,22 +13,35 @@ export const sendAddedContributionMessageEmail = (data: {
   senderFirstName: string
   senderLastName: string
   contributionMemo: string
-}): Promise<Record<string, unknown> | boolean | null> => {
+  contributionFrontendLink: string
+}
+
+function toContributionEmailLocales(data: ContributionEmailCommonData): Record<string, unknown> {
+  return {
+    firstName: data.firstName,
+    lastName: data.lastName,
+    locale: data.language,
+    senderFirstName: data.senderFirstName,
+    senderLastName: data.senderLastName,
+    contributionMemo: data.contributionMemo,
+    contributionFrontendLink: data.contributionFrontendLink,
+    supportEmail: CONFIG.COMMUNITY_SUPPORT_MAIL,
+  }
+}
+
+export const sendAddedContributionMessageEmail = (
+  data: ContributionEmailCommonData & {
+    message: string
+  },
+): Promise<Record<string, unknown> | boolean | null> => {
   return sendEmailTranslated({
     receiver: {
       to: `${data.firstName} ${data.lastName} <${data.email}>`,
     },
     template: 'addedContributionMessage',
     locals: {
-      firstName: data.firstName,
-      lastName: data.lastName,
-      locale: data.language,
-      senderFirstName: data.senderFirstName,
-      senderLastName: data.senderLastName,
-      contributionMemo: data.contributionMemo,
-      overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
-      supportEmail: CONFIG.COMMUNITY_SUPPORT_MAIL,
-      communityURL: CONFIG.COMMUNITY_URL,
+      ...toContributionEmailLocales(data),
+      message: data.message,
     },
   })
 }
@@ -79,111 +92,53 @@ export const sendAccountMultiRegistrationEmail = (data: {
   })
 }
 
-export const sendContributionConfirmedEmail = (data: {
-  firstName: string
-  lastName: string
-  email: string
-  language: string
-  senderFirstName: string
-  senderLastName: string
-  contributionMemo: string
-  contributionAmount: Decimal
-}): Promise<Record<string, unknown> | boolean | null> => {
+export const sendContributionConfirmedEmail = (
+  data: ContributionEmailCommonData & {
+    contributionAmount: Decimal
+  },
+): Promise<Record<string, unknown> | boolean | null> => {
   return sendEmailTranslated({
     receiver: { to: `${data.firstName} ${data.lastName} <${data.email}>` },
     template: 'contributionConfirmed',
     locals: {
-      firstName: data.firstName,
-      lastName: data.lastName,
-      locale: data.language,
-      senderFirstName: data.senderFirstName,
-      senderLastName: data.senderLastName,
-      contributionMemo: data.contributionMemo,
+      ...toContributionEmailLocales(data),
       contributionAmount: decimalSeparatorByLanguage(data.contributionAmount, data.language),
-      overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
-      supportEmail: CONFIG.COMMUNITY_SUPPORT_MAIL,
-      communityURL: CONFIG.COMMUNITY_URL,
     },
   })
 }
 
-export const sendContributionChangedByModeratorEmail = (data: {
-  firstName: string
-  lastName: string
-  email: string
-  language: string
-  senderFirstName: string
-  senderLastName: string
-  contributionMemo: string
-  contributionMemoUpdated: string
-}): Promise<Record<string, unknown> | boolean | null> => {
+export const sendContributionChangedByModeratorEmail = (
+  data: ContributionEmailCommonData & {
+    contributionMemoUpdated: string
+  },
+): Promise<Record<string, unknown> | boolean | null> => {
   return sendEmailTranslated({
     receiver: { to: `${data.firstName} ${data.lastName} <${data.email}>` },
     template: 'contributionChangedByModerator',
     locals: {
-      firstName: data.firstName,
-      lastName: data.lastName,
-      locale: data.language,
-      senderFirstName: data.senderFirstName,
-      senderLastName: data.senderLastName,
-      contributionMemo: data.contributionMemo,
+      ...toContributionEmailLocales(data),
       contributionMemoUpdated: data.contributionMemoUpdated,
-      overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
-      supportEmail: CONFIG.COMMUNITY_SUPPORT_MAIL,
-      communityURL: CONFIG.COMMUNITY_URL,
     },
   })
 }
 
-export const sendContributionDeletedEmail = (data: {
-  firstName: string
-  lastName: string
-  email: string
-  language: string
-  senderFirstName: string
-  senderLastName: string
-  contributionMemo: string
-}): Promise<Record<string, unknown> | boolean | null> => {
+export const sendContributionDeletedEmail = (
+  data: ContributionEmailCommonData,
+): Promise<Record<string, unknown> | boolean | null> => {
   return sendEmailTranslated({
     receiver: { to: `${data.firstName} ${data.lastName} <${data.email}>` },
     template: 'contributionDeleted',
-    locals: {
-      firstName: data.firstName,
-      lastName: data.lastName,
-      locale: data.language,
-      senderFirstName: data.senderFirstName,
-      senderLastName: data.senderLastName,
-      contributionMemo: data.contributionMemo,
-      overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
-      supportEmail: CONFIG.COMMUNITY_SUPPORT_MAIL,
-      communityURL: CONFIG.COMMUNITY_URL,
-    },
+    locals: toContributionEmailLocales(data),
   })
 }
 
-export const sendContributionDeniedEmail = (data: {
-  firstName: string
-  lastName: string
-  email: string
-  language: string
-  senderFirstName: string
-  senderLastName: string
-  contributionMemo: string
-}): Promise<Record<string, unknown> | boolean | null> => {
+export const sendContributionDeniedEmail = (
+  data: ContributionEmailCommonData,
+): Promise<Record<string, unknown> | boolean | null> => {
   return sendEmailTranslated({
     receiver: { to: `${data.firstName} ${data.lastName} <${data.email}>` },
     template: 'contributionDenied',
-    locals: {
-      firstName: data.firstName,
-      lastName: data.lastName,
-      locale: data.language,
-      senderFirstName: data.senderFirstName,
-      senderLastName: data.senderLastName,
-      contributionMemo: data.contributionMemo,
-      overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
-      supportEmail: CONFIG.COMMUNITY_SUPPORT_MAIL,
-      communityURL: CONFIG.COMMUNITY_URL,
-    },
+    locals: toContributionEmailLocales(data),
   })
 }
 
@@ -234,7 +189,6 @@ export const sendTransactionLinkRedeemedEmail = (data: {
       senderEmail: data.senderEmail,
       transactionMemo: data.transactionMemo,
       transactionAmount: decimalSeparatorByLanguage(data.transactionAmount, data.language),
-      overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
       supportEmail: CONFIG.COMMUNITY_SUPPORT_MAIL,
       communityURL: CONFIG.COMMUNITY_URL,
     },
@@ -264,7 +218,6 @@ export const sendTransactionReceivedEmail = (data: {
       senderLastName: data.senderLastName,
       senderEmail: data.senderEmail,
       transactionAmount: decimalSeparatorByLanguage(data.transactionAmount, data.language),
-      overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
       supportEmail: CONFIG.COMMUNITY_SUPPORT_MAIL,
       communityURL: CONFIG.COMMUNITY_URL,
     },
