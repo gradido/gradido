@@ -876,6 +876,7 @@ describe('ContributionResolver', () => {
             senderFirstName: 'Peter',
             senderLastName: 'Lustig',
             contributionMemo: 'Test contribution to deny',
+            contributionFrontendLink: `http://localhost/contributions/own-contributions/1#contributionListItem-${contributionToDeny.data.createContribution.id}`,
           })
         })
       })
@@ -1953,6 +1954,7 @@ describe('ContributionResolver', () => {
                 senderFirstName: 'Peter',
                 senderLastName: 'Lustig',
                 contributionMemo: 'Das war leider zu Viel!',
+                contributionFrontendLink: `http://localhost/contributions/own-contributions/1#contributionListItem-${creation?.id}`,
               })
             })
           })
@@ -2119,6 +2121,7 @@ describe('ContributionResolver', () => {
                 senderLastName: 'Lustig',
                 contributionMemo: 'Herzlich Willkommen bei Gradido liebe Bibi!',
                 contributionAmount: expect.decimalEqual(450),
+                contributionFrontendLink: `http://localhost/contributions/own-contributions/1#contributionListItem-${creation?.id}`,
               })
             })
 
