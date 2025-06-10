@@ -1,6 +1,6 @@
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { Decimal } from 'decimal.js-light'
-import { Connection } from 'typeorm'
+import { DataSource } from 'typeorm'
 
 import { testEnvironment } from '@test/helpers'
 import { i18n as localization, logger } from '@test/testSetup'
@@ -45,11 +45,11 @@ jest.mock('nodemailer', () => {
   }
 })
 
-let con: Connection
+let con: DataSource
 let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']
-  con: Connection
+  con: DataSource
 }
 
 beforeAll(async () => {
@@ -58,7 +58,7 @@ beforeAll(async () => {
 })
 
 afterAll(async () => {
-  await con.close()
+  await con.destroy()
 })
 
 const sendEmailTranslatedSpy = jest.spyOn(sendEmailTranslatedApi, 'sendEmailTranslated')

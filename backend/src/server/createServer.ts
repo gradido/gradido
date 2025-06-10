@@ -1,29 +1,27 @@
+import { CONFIG } from '@/config'
+import { schema } from '@/graphql/schema'
+import { elopageWebhook } from '@/webhook/elopage'
+import { gmsWebhook } from '@/webhook/gms'
 import { ApolloServer } from 'apollo-server-express'
 import express, { Express, json, urlencoded } from 'express'
 import { slowDown } from 'express-slow-down'
 import helmet from 'helmet'
 import { Logger } from 'log4js'
-import { Connection as DbConnection } from 'typeorm'
+import { DataSource } from 'typeorm'
 
-import { CONFIG } from '@/config'
-import { schema } from '@/graphql/schema'
-import { checkDBVersionUntil } from '@/typeorm/DBVersion'
-import { elopageWebhook } from '@/webhook/elopage'
-import { gmsWebhook } from '@/webhook/gms'
-
+import { AppDatabase } from 'database'
 import { context as serverContext } from './context'
 import { cors } from './cors'
 import { i18n } from './localization'
 import { apolloLogger } from './logger'
 import { plugins } from './plugins'
-
 // TODO implement
 // import queryComplexity, { simpleEstimator, fieldConfigEstimator } from "graphql-query-complexity";
 
 interface ServerDef {
   apollo: ApolloServer
   app: Express
-  con: DbConnection
+  con: DataSource
 }
 
 export const createServer = async (
@@ -37,10 +35,8 @@ export const createServer = async (
   // open mariadb connection, retry connecting with mariadb
   // check for correct database version
   // retry max CONFIG.DB_CONNECT_RETRY_COUNT times, wait CONFIG.DB_CONNECT_RETRY_DELAY ms between tries
-  const con = await checkDBVersionUntil(
-    CONFIG.DB_CONNECT_RETRY_COUNT,
-    CONFIG.DB_CONNECT_RETRY_DELAY_MS,
-  )
+  const db = AppDatabase.getInstance()
+  await db.init()
 
   // Express Server
   const app = express()
@@ -103,5 +99,5 @@ export const createServer = async (
   )
   logger.debug('createServer...successful')
 
-  return { apollo, app, con }
+  return { apollo, app, con: db.getDataSource() }
 }

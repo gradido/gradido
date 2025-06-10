@@ -232,7 +232,7 @@ export class SendCoinsResolver {
         )
       }
 
-      logger.debug(`XCom: settlePendingReceiveTransaction()-1_0... successfull`)
+      logger.debug(`XCom: settlePendingReceiveTransaction()-1_0... successful`)
       return true
     } else {
       logger.debug('XCom: settlePendingReceiveTransaction NOT matching pendingTX for settlement...')

@@ -1,4 +1,5 @@
 import {
+  AppDatabase,
   Community as DbCommunity,
   PendingTransaction as DbPendingTransaction,
   Transaction as dbTransaction,
@@ -7,7 +8,7 @@ import {
 } from 'database'
 import { Decimal } from 'decimal.js-light'
 import { Args, Authorized, Ctx, Mutation, Query, Resolver } from 'type-graphql'
-import { In, IsNull, getConnection } from 'typeorm'
+import { In, IsNull } from 'typeorm'
 
 import { Paginated } from '@arg/Paginated'
 import { TransactionSendArgs } from '@arg/TransactionSendArgs'
@@ -48,6 +49,8 @@ import {
 import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
 import { storeForeignUser } from './util/storeForeignUser'
 import { transactionLinkSummary } from './util/transactionLinkSummary'
+
+const db = AppDatabase.getInstance()
 
 export const executeTransaction = async (
   amount: Decimal,
@@ -96,7 +99,7 @@ export const executeTransaction = async (
       throw new LogError('User has not enough GDD or amount is < 0', sendBalance)
     }
 
-    const queryRunner = getConnection().createQueryRunner()
+    const queryRunner = db.getDataSource().createQueryRunner()
     await queryRunner.connect()
     await queryRunner.startTransaction('REPEATABLE READ')
     logger.debug(`open Transaction to write...`)

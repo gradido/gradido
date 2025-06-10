@@ -1,7 +1,7 @@
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { Community as DbCommunity, FederatedCommunity as DbFederatedCommunity } from 'database'
 import { GraphQLError } from 'graphql/error/GraphQLError'
-import { Connection } from 'typeorm'
+import { DataSource } from 'typeorm'
 import { v4 as uuidv4 } from 'uuid'
 
 import { cleanDB, testEnvironment } from '@test/helpers'
@@ -25,12 +25,12 @@ jest.mock('@/password/EncryptorUtils')
 // to do: We need a setup for the tests that closes the connection
 let mutate: ApolloServerTestClient['mutate']
 let query: ApolloServerTestClient['query']
-let con: Connection
+let con: DataSource
 
 let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']
-  con: Connection
+  con: DataSource
 }
 
 const peterLoginData = {
@@ -49,7 +49,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await cleanDB()
-  await con.close()
+  await con.destroy()
 })
 
 // real valid ed25519 key pairs
