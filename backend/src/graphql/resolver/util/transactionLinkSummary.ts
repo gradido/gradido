@@ -1,8 +1,9 @@
-import { TransactionLink as DbTransactionLink } from 'database'
+import { AppDatabase, TransactionLink as DbTransactionLink } from 'database'
 import { Decimal } from 'decimal.js-light'
-import { getConnection } from 'typeorm'
 
 import { LogError } from '@/server/LogError'
+
+const db = AppDatabase.getInstance()
 
 export const transactionLinkSummary = async (
   userId: number,
@@ -14,7 +15,7 @@ export const transactionLinkSummary = async (
   firstDate: Date | null
   transactionLinkcount: number
 }> => {
-  const queryRunner = getConnection().createQueryRunner()
+  const queryRunner = db.getDataSource().createQueryRunner()
   try {
     await queryRunner.connect()
     const { sumHoldAvailableAmount, sumAmount, lastDate, firstDate, count } =
