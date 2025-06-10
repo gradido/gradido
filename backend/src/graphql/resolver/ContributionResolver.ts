@@ -48,7 +48,7 @@ import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 import { calculateDecay } from '@/util/decay'
 import { fullName } from '@/util/utilities'
 
-import { start } from 'repl'
+import { AppDatabase } from 'database'
 import { ContributionMessageType } from '../enum/ContributionMessageType'
 import {
   contributionFrontendLink,
@@ -60,6 +60,8 @@ import { extractGraphQLFields } from './util/extractGraphQLFields'
 import { findContributions } from './util/findContributions'
 import { getLastTransaction } from './util/getLastTransaction'
 import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
+
+const db = AppDatabase.getInstance()
 
 @Resolver(() => Contribution)
 export class ContributionResolver {
@@ -195,7 +197,7 @@ export class ContributionResolver {
       context,
     )
     const { contribution, contributionMessage } = await updateUnconfirmedContributionContext.run()
-    await getConnection().transaction(async (transactionalEntityManager: EntityManager) => {
+    await db.getDataSource().transaction(async (transactionalEntityManager: EntityManager) => {
       await transactionalEntityManager.save(contribution)
       if (contributionMessage) {
         await transactionalEntityManager.save(contributionMessage)
@@ -271,7 +273,7 @@ export class ContributionResolver {
     )
     const { contribution, contributionMessage, createdByUserChangedByModerator } =
       await updateUnconfirmedContributionContext.run()
-    await getConnection().transaction(async (transactionalEntityManager: EntityManager) => {
+    await db.getDataSource().transaction(async (transactionalEntityManager: EntityManager) => {
       await transactionalEntityManager.save(contribution)
       // TODO: move into specialized view or formatting for logging class
       logger.debug('saved changed contribution', {
@@ -461,7 +463,7 @@ export class ContributionResolver {
       )
 
       const receivedCallDate = new Date()
-      const queryRunner = getConnection().createQueryRunner()
+      const queryRunner = db.getDataSource().createQueryRunner()
       await queryRunner.connect()
       await queryRunner.startTransaction('REPEATABLE READ') // 'READ COMMITTED')
 
