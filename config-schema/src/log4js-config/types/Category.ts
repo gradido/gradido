@@ -25,4 +25,3 @@ export function defaultCategory(name: string, level: LogLevel): Category {
     additionalErrorsFile: true,
   }
 }
-  

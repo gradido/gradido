@@ -15,7 +15,7 @@ import { LogLevel } from './LogLevel'
  *   { name: 'warn', filename: 'warn.log', withStack: true },
  * ])
  * ```
- * 
+ *
  * @example if log file should contain the stacktrace only from log level debug and higher
  * ```
  * const appenderConfig = createAppenderConfig([

@@ -1,8 +1,8 @@
 import { readFileSync, writeFileSync } from 'node:fs'
-import { addLayout, Configuration, LoggingEvent, configure } from 'log4js'
+import { Configuration, LoggingEvent, addLayout, configure } from 'log4js'
 import { createAppenderConfig } from './appenders'
-import { Category, CustomFileAppender, LogLevel, defaultCategory } from './types'
 import { createColoredContextLayout } from './coloredContext'
+import { Category, CustomFileAppender, LogLevel, defaultCategory } from './types'
 
 export { Category, LogLevel, defaultCategory }
 
@@ -14,13 +14,13 @@ export { Category, LogLevel, defaultCategory }
  * @returns {Configuration} the log4js configuration
  */
 
-addLayout("json", function() {
+addLayout('json', function () {
   return function (logEvent: LoggingEvent) {
     return JSON.stringify(logEvent)
   }
 })
 
-addLayout("coloredContext", createColoredContextLayout)
+addLayout('coloredContext', createColoredContextLayout)
 
 export function createLog4jsConfig(categories: Category[], basePath?: string): Configuration {
   const customFileAppenders: CustomFileAppender[] = []
@@ -37,12 +37,9 @@ export function createLog4jsConfig(categories: Category[], basePath?: string): C
       withStack: 'error',
     })
     // needed by log4js, show all error message accidentally without (proper) Category
-    result.categories['default'] = {
+    result.categories.default = {
       level: 'debug',
-      appenders: [
-        'out',
-        'errors',
-      ],
+      appenders: ['out', 'errors'],
       enableCallStack: true,
     }
     const appenders = [category.name, 'out']
@@ -67,13 +64,17 @@ export function createLog4jsConfig(categories: Category[], basePath?: string): C
  * @param {string} logFilesPath - the base path for log files
  * @param {string} [log4jsConfigFileName] - the name of the log4js config file
  */
-export function initLogger(categories: Category[], logFilesPath: string, log4jsConfigFileName: string = 'log4js-config.json'): void {
-   // if not log4js config file exists, create a default one
-   try {
+export function initLogger(
+  categories: Category[],
+  logFilesPath: string,
+  log4jsConfigFileName: string = 'log4js-config.json',
+): void {
+  // if not log4js config file exists, create a default one
+  try {
     configure(JSON.parse(readFileSync(log4jsConfigFileName, 'utf-8')))
-  } catch(_e) {
+  } catch (_e) {
     const options = createLog4jsConfig(categories, logFilesPath)
-    writeFileSync(log4jsConfigFileName, JSON.stringify(options, null, 2), {encoding: 'utf-8'})
+    writeFileSync(log4jsConfigFileName, JSON.stringify(options, null, 2), { encoding: 'utf-8' })
     configure(options)
   }
 }

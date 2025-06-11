@@ -66,8 +66,8 @@ export function createAppenderConfig(
       ...fileAppenderTemplate,
       filename: basePath ? `${basePath}/${filename}` : filename,
     }
-    dateFile.layout = { 
-      type: 'coloredContext', 
+    dateFile.layout = {
+      type: 'coloredContext',
       withStack: appender.withStack,
       withFile: appender.withFile,
     }

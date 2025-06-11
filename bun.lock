@@ -163,6 +163,7 @@
         "joi": "^17.13.3",
         "source-map-support": "^0.5.21",
         "yoctocolors-cjs": "^2.1.2",
+        "zod": "^3.25.61",
       },
       "devDependencies": {
         "@biomejs/biome": "1.9.4",
@@ -3302,7 +3303,7 @@
 
     "zen-observable-ts": ["zen-observable-ts@1.2.5", "", { "dependencies": { "zen-observable": "0.8.15" } }, "sha512-QZWQekv6iB72Naeake9hS1KxHlotfRpe+WGNbNx5/ta+R3DNjVO2bswf63gXlWDcs+EMd7XY8HfVQyP1X6T4Zg=="],
 
-    "zod": ["zod@3.25.55", "", {}, "sha512-219huNnkSLQnLsQ3uaRjXsxMrVm5C9W3OOpEVt2k5tvMKuA8nBSu38e0B//a+he9Iq2dvmk2VyYVlHqiHa4YBA=="],
+    "zod": ["zod@3.25.61", "", {}, "sha512-fzfJgUw78LTNnHujj9re1Ov/JJQkRZZGDMcYqSx7Hp4rPOkKywaFHq0S6GoHeXs0wGNE/sIOutkXgnwzrVOGCQ=="],
 
     "@apollo/protobufjs/@types/node": ["@types/node@10.17.60", "", {}, "sha512-F0KIgDJfy2nA3zMLmWGKxcH2ZVEtCZXHHdOQs2gSaQ27+lNeEfGxzkIw90aXswATX7AZ33tahPbzy6KAfUreVw=="],
 
