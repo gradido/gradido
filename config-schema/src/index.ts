@@ -1,3 +1,5 @@
+import 'source-map-support/register'
 export * from './commonSchema'
 export { DatabaseConfigSchema } from './DatabaseConfigSchema'
 export { validate } from './validate'
+export { createLog4jsConfig, type Category, initLogger, defaultCategory } from './log4js-config'

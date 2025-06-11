@@ -131,6 +131,13 @@ export const LOG4JS_CONFIG = Joi.string()
   .default('log4js-config.json')
   .required()
 
+export const LOG_FILES_BASE_PATH = Joi.string()
+  .pattern(/^[a-zA-Z0-9-_\/\.]+$/)
+  .message('LOG_FILES_BASE_PATH must be a valid folder name, relative or absolute')
+  .description('log folder name for module log files')
+  .default('../logs/backend')
+  .optional()
+
 export const LOGIN_APP_SECRET = Joi.string()
   .pattern(/^[a-fA-F0-9]+$/)
   .message('need to be valid hex')

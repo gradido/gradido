@@ -161,6 +161,8 @@
       "dependencies": {
         "esbuild": "^0.25.2",
         "joi": "^17.13.3",
+        "source-map-support": "^0.5.21",
+        "yoctocolors-cjs": "^2.1.2",
       },
       "devDependencies": {
         "@biomejs/biome": "1.9.4",
@@ -182,6 +184,7 @@
         "log4js": "^6.9.1",
         "mysql2": "^2.3.0",
         "reflect-metadata": "^0.1.13",
+        "source-map-support": "^0.5.21",
         "ts-mysql-migrate": "^1.0.2",
         "tsx": "^4.19.4",
         "typeorm": "^0.3.22",
@@ -207,6 +210,9 @@
       "devDependencies": {
         "@biomejs/biome": "1.9.4",
         "@hyperswarm/dht": "6.5.1",
+        "@swc/cli": "^0.7.3",
+        "@swc/core": "^1.11.24",
+        "@swc/helpers": "^0.5.17",
         "@types/dotenv": "^8.2.3",
         "@types/jest": "27.5.1",
         "@types/joi": "^17.2.3",
@@ -219,7 +225,9 @@
         "jest": "27.5.1",
         "joi": "^17.13.3",
         "log4js": "^6.9.1",
+        "nodemon": "^2.0.7",
         "prettier": "^2.8.8",
+        "source-map-support": "^0.5.21",
         "ts-jest": "27.1.4",
         "tsx": "^4.19.4",
         "typeorm": "^0.3.22",
@@ -3285,6 +3293,8 @@
     "yn": ["yn@3.1.1", "", {}, "sha512-Ux4ygGWsu2c7isFWe8Yu1YluJmqVhxqK2cLXNQA5AcC3QfbGNpM7fu0Y8b/z16pXLnFxZYvWhd3fhBY9DLmC6Q=="],
 
     "yocto-queue": ["yocto-queue@0.1.0", "", {}, "sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q=="],
+
+    "yoctocolors-cjs": ["yoctocolors-cjs@2.1.2", "", {}, "sha512-cYVsTjKl8b+FrnidjibDWskAv7UKOfcwaVZdp/it9n1s9fU3IkgDbhdIRKCW4JDsAlECJY0ytoVPT3sK6kideA=="],
 
     "yup": ["yup@1.6.1", "", { "dependencies": { "property-expr": "^2.0.5", "tiny-case": "^1.0.3", "toposort": "^2.0.2", "type-fest": "^2.19.0" } }, "sha512-JED8pB50qbA4FOkDol0bYF/p60qSEDQqBD0/qeIrUCG1KbPBIQ776fCUNb9ldbPcSTxA69g/47XTo4TqWiuXOA=="],
 
