@@ -9,6 +9,7 @@ build({
   platform: 'node',
   packages: 'external',
   outdir: './build',
+  sourcemap: true,
   plugins: [
     {
       // hardcode last db version string into index.ts, before parsing
