@@ -14,6 +14,9 @@ import { backendLogger as logger } from '@/server/logger'
 import { startCommunityAuthentication } from './authenticateCommunities'
 import { PublicCommunityInfoLoggingView } from './client/1_0/logging/PublicCommunityInfoLogging.view'
 import { ApiVersionType } from './enum/apiVersionType'
+import { generateKeyPair, exportSPKI, exportPKCS8 } from 'jose'
+
+// import { CONFIG } from '@/config/'
 
 export async function startValidateCommunities(timerInterval: number): Promise<void> {
   if (Number.isNaN(timerInterval) || timerInterval <= 0) {
@@ -80,6 +83,40 @@ export async function validateCommunities(): Promise<void> {
     } catch (err) {
       logger.error(`Error:`, err)
     }
+  }
+}
+
+export async function writeJwtKeyPairInHomeCommunity(): Promise<DbCommunity> {
+  logger.debug(`Federation: writeJwtKeyPairInHomeCommunity`)
+  try {
+    // check for existing homeCommunity entry
+    let homeCom = await DbCommunity.findOne({ where: { foreign: false } })
+    if (homeCom) {
+      if (!homeCom.publicJwtKey && !homeCom.privateJwtKey) {
+        // Generate key pair using jose library
+        const keyPair = await generateKeyPair('RS256');
+        logger.debug(`Federation: writeJwtKeyPairInHomeCommunity generated keypair=`, keyPair);
+        
+        // Convert keys to PEM format
+        const publicKeyPem = await exportSPKI(keyPair.publicKey);
+        const privateKeyPem = await exportPKCS8(keyPair.privateKey);
+        
+        logger.debug(`Federation: writeJwtKeyPairInHomeCommunity publicKey=`, publicKeyPem);
+        logger.debug(`Federation: writeJwtKeyPairInHomeCommunity privateKey=`, privateKeyPem);
+        
+        homeCom.publicJwtKey = Buffer.from(publicKeyPem);
+        logger.debug(`Federation: writeJwtKeyPairInHomeCommunity publicJwtKey.length=`, homeCom.publicJwtKey.length);
+        homeCom.privateJwtKey = Buffer.from(privateKeyPem);
+        logger.debug(`Federation: writeJwtKeyPairInHomeCommunity privateJwtKey.length=`, homeCom.privateJwtKey.length);
+        await DbCommunity.save(homeCom)
+        logger.debug(`Federation: writeJwtKeyPairInHomeCommunity done`)
+      }
+    } else {
+      throw new Error(`Error! A HomeCommunity-Entry still not exist! Please start the DHT-Modul first.`)
+    }
+    return homeCom
+  } catch (err) {
+    throw new Error(`Error writing JwtKeyPair in HomeCommunity-Entry: ${err}`)
   }
 }
 

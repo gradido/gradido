@@ -2,6 +2,7 @@ import 'reflect-metadata'
 import { CONFIG } from './config'
 import { startValidateCommunities } from './federation/validateCommunities'
 import { createServer } from './server/createServer'
+import { writeJwtKeyPairInHomeCommunity } from './federation/validateCommunities'
 
 async function main() {
   const { app } = await createServer()
@@ -14,6 +15,7 @@ async function main() {
       console.log(`GraphIQL available at http://localhost:${CONFIG.PORT}`)
     }
   })
+  await writeJwtKeyPairInHomeCommunity()
   await startValidateCommunities(Number(CONFIG.FEDERATION_VALIDATE_COMMUNITY_TIMER))
 }
 
