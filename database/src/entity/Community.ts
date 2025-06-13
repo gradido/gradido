@@ -54,6 +54,12 @@ export class Community extends BaseEntity {
   @Column({ name: 'gms_api_key', type: 'varchar', length: 512, nullable: true, default: null })
   gmsApiKey: string | null
 
+  @Column({ name: 'public_jwt_key', type: 'varchar', length: 512, nullable: true })
+  publicJwtKey: string | null
+
+  @Column({ name: 'private_jwt_key', type: 'varchar', length: 2048, nullable: true })
+  privateJwtKey: string | null
+
   @Column({
     name: 'location',
     type: 'geometry',
