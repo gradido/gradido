@@ -7,8 +7,9 @@ import {
 import { v4 as uuidv4 } from 'uuid'
 
 import { CONFIG } from '@/config'
-import { logger } from '@/server/logger'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 
+import { getLogger } from 'log4js'
 import { ApiVersionType } from './ApiVersionType'
 
 const KEY_SECRET_SEEDBYTES = 32
@@ -17,6 +18,8 @@ const POLLTIME = 20000
 const SUCCESSTIME = 120000
 const ERRORTIME = 240000
 const ANNOUNCETIME = 30000
+export const LOG_CATEGORY_DHT_NODE = `${LOG4JS_BASE_CATEGORY_NAME}.dht_node`
+const logger = getLogger(LOG_CATEGORY_DHT_NODE)
 
 type CommunityApi = {
   api: string
@@ -56,6 +59,7 @@ export const startDHT = async (topic: string): Promise<void> => {
     const server = node.createServer()
 
     server.on('connection', function (socket: any) {
+      logger.addContext('pubkey', socket.remotePublicKey.toString('hex'))
       logger.info(`server on... with Remote public key: ${socket.remotePublicKey.toString('hex')}`)
 
       socket.on('data', async (data: Buffer) => {
@@ -82,7 +86,6 @@ export const startDHT = async (topic: string): Promise<void> => {
             )
             return
           }
-
           for (const recApiVersion of recApiVersions) {
             if (
               !recApiVersion.api ||

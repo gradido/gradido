@@ -3,7 +3,7 @@
   "vcs": { "enabled": false, "clientKind": "git", "useIgnoreFile": false },
   "files": {
     "ignoreUnknown": false,
-    "ignore": ["build", "node_modules"],
+    "ignore": ["build", "node_modules", "testSetup.ts"],
     "include": ["./src/**/*.js", "./src/**/*.ts"]
   },
   "formatter": {

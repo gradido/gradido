@@ -9,7 +9,23 @@
       "request": "launch",
       "name": "Launch Chrome",
       "url": "http://localhost:3000",
-      "webRoot": "${workspaceFolder}/frontend",
+      "webRoot": "${workspaceFolder}/frontend"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "DHT-Node Debug Tests",
+      "runtimeExecutable": "yarn",
+      "runtimeArgs": [
+        "run",
+        "test:debug"
+      ],
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "cwd": "${workspaceFolder}/dht-node"
     }
   ]
 }
