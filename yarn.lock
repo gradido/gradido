@@ -1185,6 +1185,13 @@
     slash "^3.0.0"
     strip-ansi "^6.0.0"
 
+"@jest/create-cache-key-function@^29.7.0":
+  version "29.7.0"
+  resolved "https://registry.yarnpkg.com/@jest/create-cache-key-function/-/create-cache-key-function-29.7.0.tgz#793be38148fab78e65f40ae30c36785f4ad859f0"
+  integrity sha512-4QqS3LY5PBmTRHj9sAg1HLoPzqAI0uOX6wI/TRqHIcOxlFidy6YEmCQJk6FSZjNLGCeubDMfmkWL+qaLKhSGQA==
+  dependencies:
+    "@jest/types" "^29.6.3"
+
 "@jest/environment@^27.5.1":
   version "27.5.1"
   resolved "https://registry.yarnpkg.com/@jest/environment/-/environment-27.5.1.tgz#d7425820511fe7158abbecc010140c3fd3be9c74"
@@ -2068,6 +2075,15 @@
   integrity sha512-5IKx/Y13RsYd+sauPb2x+U/xZikHjolzfuDgTAl/Tdf3Q8rslRvC19NKDLgAJQ6wsqADk10ntlv08nPFw/gO/A==
   dependencies:
     tslib "^2.8.0"
+
+"@swc/jest@^0.2.38":
+  version "0.2.38"
+  resolved "https://registry.yarnpkg.com/@swc/jest/-/jest-0.2.38.tgz#8b137e344c6c021d4e49ee2bc62b0e5e564d2c7c"
+  integrity sha512-HMoZgXWMqChJwffdDjvplH53g9G2ALQes3HKXDEdliB/b85OQ0CTSbxG8VSeCwiAn7cOaDVEt4mwmZvbHcS52w==
+  dependencies:
+    "@jest/create-cache-key-function" "^29.7.0"
+    "@swc/counter" "^0.1.3"
+    jsonc-parser "^3.2.0"
 
 "@swc/types@^0.1.21":
   version "0.1.21"
@@ -8110,6 +8126,11 @@ jsonc-eslint-parser@^2.0.0, jsonc-eslint-parser@^2.3.0:
     espree "^9.0.0"
     semver "^7.3.5"
 
+jsonc-parser@^3.2.0:
+  version "3.3.1"
+  resolved "https://registry.yarnpkg.com/jsonc-parser/-/jsonc-parser-3.3.1.tgz#f2a524b4f7fd11e3d791e559977ad60b98b798b4"
+  integrity sha512-HUgH65KyejrUFPvHFPbqOY0rsFip3Bo5wb4ngvdi1EpCYWUQDC5V+Y7mZws+DLkr4M//zQJoanu1SP+87Dv1oQ==
+
 jsonfile@^4.0.0:
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/jsonfile/-/jsonfile-4.0.0.tgz#8771aae0799b64076b76640fca058f9c10e33ecb"
@@ -10594,7 +10615,7 @@ sort-keys@^1.0.0:
   resolved "https://registry.yarnpkg.com/source-map-js/-/source-map-js-1.2.1.tgz#1ce5650fddd87abc099eda37dcff024c2667ae46"
   integrity sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA==
 
-source-map-support@^0.5.6, source-map-support@~0.5.20:
+source-map-support@^0.5.21, source-map-support@^0.5.6, source-map-support@~0.5.20:
   version "0.5.21"
   resolved "https://registry.yarnpkg.com/source-map-support/-/source-map-support-0.5.21.tgz#04fe7c7f9e1ed2d662233c28cb2b35b9f63f6e4f"
   integrity sha512-uBHU3L3czsIyYXKX88fdrGovxdSCoTGDRZ6SYXtSRxLZUzHg5P/66Ht6uoUlHu9EZod+inXhKo3qQgwXUT/y1w==
@@ -12660,6 +12681,11 @@ yocto-queue@^0.1.0:
   resolved "https://registry.yarnpkg.com/yocto-queue/-/yocto-queue-0.1.0.tgz#0294eb3dee05028d31ee1a5fa2c556a6aaf10a1b"
   integrity sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==
 
+yoctocolors-cjs@^2.1.2:
+  version "2.1.2"
+  resolved "https://registry.yarnpkg.com/yoctocolors-cjs/-/yoctocolors-cjs-2.1.2.tgz#f4b905a840a37506813a7acaa28febe97767a242"
+  integrity sha512-cYVsTjKl8b+FrnidjibDWskAv7UKOfcwaVZdp/it9n1s9fU3IkgDbhdIRKCW4JDsAlECJY0ytoVPT3sK6kideA==
+
 yup@^1.6.1:
   version "1.6.1"
   resolved "https://registry.yarnpkg.com/yup/-/yup-1.6.1.tgz#8defcff9daaf9feac178029c0e13b616563ada4b"
@@ -12689,3 +12715,8 @@ zen-observable@0.8.15, zen-observable@^0.8.0:
   version "0.8.15"
   resolved "https://registry.yarnpkg.com/zen-observable/-/zen-observable-0.8.15.tgz#96415c512d8e3ffd920afd3889604e30b9eaac15"
   integrity sha512-PQ2PC7R9rslx84ndNBZB/Dkv8V8fZEpk83RLgXtYd0fwUgEjseMn1Dgajh2x6S8QbZAFa9p2qVCEuYZNgve0dQ==
+
+zod@^3.25.61:
+  version "3.25.61"
+  resolved "https://registry.yarnpkg.com/zod/-/zod-3.25.61.tgz#2e09ece796c182d44b7defc8efb27aa792eb4c8b"
+  integrity sha512-fzfJgUw78LTNnHujj9re1Ov/JJQkRZZGDMcYqSx7Hp4rPOkKywaFHq0S6GoHeXs0wGNE/sIOutkXgnwzrVOGCQ==

@@ -12,4 +12,5 @@ build({
   external: ['sodium-native'],
   plugins: [esbuildDecorators()],
   minify: true,
+  sourcemap: true,
 })

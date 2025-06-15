@@ -2,10 +2,10 @@
   "extends": ["//"],
   "tasks": {
     "test": {
-      "dependsOn": ["database#build", "config-schema#build", "database#up:dht_test"]
+      "dependsOn": ["config-schema#build", "database#build", "database#up:dht_test"]
     },
     "dev": {
-      "dependsOn": ["database#up"]
+      "dependsOn": ["config-schema#build", "database#build", "database#up"]
     },
     "start": {
       "dependsOn": ["database#up", "build"]

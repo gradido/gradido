@@ -13,12 +13,14 @@ import {
 import { PendingTransactionState } from '../enum/PendingTransactionState'
 
 import { LogError } from '@/server/LogError'
-import { federationLogger as logger } from '@/server/logger'
+import { getLogger } from 'log4js'
+import { LOG4JS_1_0_UTIL_CATEGORY_NAME } from '.'
 
 import { TRANSACTIONS_LOCK } from '@/graphql/util/TRANSACTIONS_LOCK'
 import { getLastTransaction } from '@/graphql/util/getLastTransaction'
 
 const db = AppDatabase.getInstance()
+const logger = getLogger(`${LOG4JS_1_0_UTIL_CATEGORY_NAME}.revertSettledReceiveTransaction`)
 
 export async function revertSettledReceiveTransaction(
   homeCom: DbCommunity,

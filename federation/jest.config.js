@@ -2,14 +2,14 @@
 module.exports = {
   verbose: true,
   preset: 'ts-jest',
-  collectCoverage: true,
+  collectCoverage: false,
   collectCoverageFrom: ['src/**/*.ts', '!**/node_modules/**', '!src/seeds/**', '!build/**'],
   coverageThreshold: {
     global: {
       lines: 68,
     },
   },
-  setupFiles: ['<rootDir>/test/testSetup.ts'],
+  setupFiles: ['config-schema/test/testSetup.ts'],
   setupFilesAfterEnv: [],
   modulePathIgnorePatterns: ['<rootDir>/build/'],
   moduleNameMapper: {

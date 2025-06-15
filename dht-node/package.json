@@ -10,11 +10,14 @@
   "scripts": {
     "build": "tsx esbuild.config.ts",
     "start": "cross-env TZ=UTC NODE_ENV=production node build/index.js",
-    "dev": "cross-env TZ=UTC tsx watch src/index.ts",
+    "dev": "cross-env TZ=UTC nodemon -w src --ext ts,json -r tsconfig-paths/register src/index.ts",
+    "devFast": "cross-env TZ=UTC tsx src/index.ts",
     "typecheck": "tsc --noEmit",
     "lint": "biome check --error-on-warnings .",
     "lint:fix": "biome check --error-on-warnings . --write",
-    "test": "cross-env TZ=UTC NODE_ENV=development DB_DATABASE=gradido_test_dht jest --runInBand --forceExit --detectOpenHandles"
+    "test": "cross-env TZ=UTC NODE_ENV=development DB_DATABASE=gradido_test_dht jest --verbose --runInBand --forceExit --detectOpenHandles",
+    "test:debug": "cross-env TZ=UTC NODE_ENV=development DB_DATABASE=gradido_test_dht node --inspect-brk node_modules/.bin/jest --bail --runInBand --forceExit --detectOpenHandles",
+    "test:coverage": "cross-env TZ=UTC NODE_ENV=development DB_DATABASE=gradido_test_dht jest --coverage --runInBand --forceExit --detectOpenHandles"
   },
   "dependencies": {
     "cross-env": "^7.0.3",
@@ -24,6 +27,10 @@
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
     "@hyperswarm/dht": "6.5.1",
+    "@swc/cli": "^0.7.3",
+    "@swc/core": "^1.11.24",
+    "@swc/helpers": "^0.5.17",
+    "@swc/jest": "^0.2.38",
     "@types/dotenv": "^8.2.3",
     "@types/jest": "27.5.1",
     "@types/joi": "^17.2.3",
@@ -36,7 +43,9 @@
     "jest": "27.5.1",
     "joi": "^17.13.3",
     "log4js": "^6.9.1",
+    "nodemon": "^2.0.7",
     "prettier": "^2.8.8",
+    "source-map-support": "^0.5.21",
     "ts-jest": "27.1.4",
     "tsx": "^4.19.4",
     "typeorm": "^0.3.22",

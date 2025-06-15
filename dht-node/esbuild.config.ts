@@ -10,5 +10,5 @@ build({
   // legalComments: 'inline',
   external: ['dht-rpc', 'sodium-universal'],
   minify: true,
-  sourcemap: false,
+  sourcemap: true,
 })
