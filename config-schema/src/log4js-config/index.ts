@@ -33,7 +33,7 @@ export function createLog4jsConfig(categories: Category[], basePath?: string): C
     customFileAppenders.push({
       name: category.name,
       filename: category.filename,
-      withFile: true,
+      withLine: true,
       withStack: 'error',
     })
     // needed by log4js, show all error message accidentally without (proper) Category

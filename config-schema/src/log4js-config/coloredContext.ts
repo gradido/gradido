@@ -5,6 +5,7 @@ import { LogLevel } from './types'
 export type coloredContextLayoutConfig = {
   withStack?: LogLevel | boolean
   withFile?: LogLevel | boolean
+  withLine?: LogLevel | boolean
 }
 
 function colorize(str: string, level: Level): string {
@@ -66,12 +67,35 @@ function isEnabledByLogLevel(eventLogLevel: Level, targetLogLevel?: LogLevel | b
   return eventLogLevel.isGreaterThanOrEqualTo(targetLogLevel)
 }
 
+enum DetailKind {
+  Callstack = 'callstack',
+  File = 'file',
+  Line = 'line',
+}
+function resolveDetailKind(logEvent: LoggingEvent, config: coloredContextLayoutConfig): DetailKind | undefined {
+  if (logEvent.callStack && isEnabledByLogLevel(logEvent.level, config.withStack)) {
+    return DetailKind.Callstack
+  }
+  if (isEnabledByLogLevel(logEvent.level, config.withFile)) {
+    return DetailKind.File
+  }
+  if (isEnabledByLogLevel(logEvent.level, config.withLine)) {
+    return DetailKind.Line
+  }
+  return undefined
+}
+
 export function createColoredContextLayout(config: coloredContextLayoutConfig) {
   return (logEvent: LoggingEvent) => {
     const result: string[] = []
+    const detailKind = resolveDetailKind(logEvent, config)
+    let categoryName = logEvent.categoryName
+    if (detailKind === DetailKind.Line) {
+      categoryName += `:${logEvent.lineNumber}`
+    }
     result.push(
       colorize(
-        `[${logEvent.startTime.toISOString()}] [${logEvent.level}] ${logEvent.categoryName} -`,
+        `[${logEvent.startTime.toISOString()}] [${logEvent.level}] ${categoryName} -`,
         logEvent.level,
       ),
     )
@@ -79,12 +103,11 @@ export function createColoredContextLayout(config: coloredContextLayoutConfig) {
       result.push(composeContextString(logEvent.context))
     }
     result.push(composeDataString(logEvent.data))
-    const showCallstack =
-      logEvent.callStack && isEnabledByLogLevel(logEvent.level, config.withStack)
-    if (!showCallstack && isEnabledByLogLevel(logEvent.level, config.withFile)) {
+    
+    if (detailKind === DetailKind.File) {
       result.push(`\n    at ${logEvent.fileName}:${logEvent.lineNumber}`)
     }
-    if (showCallstack) {
+    if (detailKind === DetailKind.Callstack) {
       result.push(`\n${logEvent.callStack}`)
     }
     return result.join(' ')

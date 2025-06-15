@@ -22,10 +22,14 @@ import { LogLevel } from './LogLevel'
  *   { name: 'warn', filename: 'warn.log', withStack: 'debug' },
  * ])
  * ```
+ * if stack is shown, no file and no line is shown, because it is already in the stack trace
+ * if file:line is shown, no extra line is shown
+ * line will be shown after category name:line
  */
 export type CustomFileAppender = {
   name: string
   filename?: string
   withStack?: LogLevel | boolean // with stack if boolean or from log level on or above
   withFile?: LogLevel | boolean // with filename and line if boolean or from log level on or above
+  withLine?: LogLevel | boolean // with line if boolean or from log level on or above
 }
