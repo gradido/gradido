@@ -56,7 +56,7 @@ export function createAppenderConfig(
   basePath?: string,
 ): { [name: string]: Appender } {
   if (basePath) {
-    defaultAppenders.errorFile.filename = `${basePath}/errors`
+    defaultAppenders.errorFile.filename = `${basePath}/errors.log`
   }
   const customAppender: { [name: string]: Appender } = { ...defaultAppenders }
 
