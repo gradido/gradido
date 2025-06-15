@@ -1,7 +1,6 @@
 import { validate } from 'config-schema'
+import type { LogLevel } from 'config-schema'
 import dotenv from 'dotenv'
-
-import { LogLevel } from 'config-schema/src/log4js-config'
 import { schema } from './schema'
 
 dotenv.config()

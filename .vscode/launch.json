@@ -26,6 +26,22 @@
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
       "cwd": "${workspaceFolder}/dht-node"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Federation Debug Tests",
+      "runtimeExecutable": "yarn",
+      "runtimeArgs": [
+        "run",
+        "test:debug"
+      ],
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "cwd": "${workspaceFolder}/federation"
     }
   ]
 }

@@ -11,15 +11,12 @@ import { plugins } from './plugins'
 // graphql
 import { schema } from '@/graphql/schema'
 
-// webhooks
-// import { elopageWebhook } from '@/webhook/elopage'
-
 import { AppDatabase } from 'database'
 import { slowDown } from 'express-slow-down'
 import helmet from 'helmet'
 import { Logger } from 'log4js'
 import { DataSource } from 'typeorm'
-import { apolloLogger } from './logger'
+
 // i18n
 // import { i18n } from './localization'
 
@@ -30,12 +27,9 @@ type ServerDef = { apollo: ApolloServer; app: Express; con: DataSource }
 
 export const createServer = async (
   // context: any = serverContext,
-  logger: Logger = apolloLogger,
+  apolloLogger: Logger,
   // localization: i18n.I18n = i18n,
 ): Promise<ServerDef> => {
-  logger.addContext('user', 'unknown')
-  logger.debug('createServer...')
-
   // open mysql connection
   const db = AppDatabase.getInstance()
   await db.init()
@@ -77,9 +71,6 @@ export const createServer = async (
   // i18n
   // app.use(localization.init)
 
-  // Elopage Webhook
-  // app.post('/hook/elopage/' + CONFIG.WEBHOOK_ELOPAGE_SECRET, elopageWebhook)
-
   // Apollo Server
   const apollo = new ApolloServer({
     schema: await schema(),
@@ -87,10 +78,8 @@ export const createServer = async (
     // introspection: CONFIG.GRAPHIQL,
     // context,
     plugins,
-    logger,
+    logger: apolloLogger,
   })
   apollo.applyMiddleware({ app, path: '/' })
-  logger.debug('createServer...successful')
-
   return { apollo, app, con: db.getDataSource() }
 }

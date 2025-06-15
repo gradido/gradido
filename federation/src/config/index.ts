@@ -3,6 +3,7 @@ import { Decimal } from 'decimal.js-light'
 import dotenv from 'dotenv'
 
 import { validate } from 'config-schema'
+import type { LogLevel } from 'config-schema'
 
 import { schema } from './schema'
 
@@ -13,11 +14,12 @@ Decimal.set({
   rounding: Decimal.ROUND_HALF_UP,
 })
 
-const constants = {
-  DECAY_START_TIME: new Date('2021-05-13 17:46:31-0000'), // GMT+0
-  LOG4JS_CONFIG: 'log4js-config.json',
+const logging = {
+  LOG4JS_CONFIG_PLACEHOLDER: process.env.LOG4JS_CONFIG_PLACEHOLDER ?? 'log4js-config-%v.json',
   // default log level on production should be info
-  LOG_LEVEL: process.env.LOG_LEVEL ?? 'info',
+  // log level for default log4js-config.json, don't change existing log4js-config.json
+  LOG_LEVEL: (process.env.LOG_LEVEL ?? 'info') as LogLevel,
+  LOG_FILES_BASE_PATH: process.env.LOG_FILES_BASE_PATH ?? '../logs/federation',
 }
 
 const server = {
@@ -44,10 +46,8 @@ const federation = {
 }
 
 export const CONFIG = {
-  ...constants,
+  ...logging,
   ...server,
-  // ...community,
-  // ...eventProtocol,
   ...federation,
 }
 

@@ -1,6 +1,8 @@
 import { CONFIG } from '@/config'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { createServer } from '@/server/createServer'
 import { createTestClient } from 'apollo-server-testing'
+import { getLogger } from 'log4js'
 import { FederatedCommunity as DbFederatedCommunity } from 'database'
 
 let query: any
@@ -11,7 +13,7 @@ let con: any
 CONFIG.FEDERATION_API = '1_0'
 
 beforeAll(async () => {
-  const server = await createServer()
+  const server = await createServer(getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.apollo`))
   con = server.con
   query = createTestClient(server.apollo).query
   DbFederatedCommunity.clear()

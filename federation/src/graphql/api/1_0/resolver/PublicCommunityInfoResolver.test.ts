@@ -1,6 +1,8 @@
 import { CONFIG } from '@/config'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { createServer } from '@/server/createServer'
 import { createTestClient } from 'apollo-server-testing'
+import { getLogger } from 'log4js'
 import { Community as DbCommunity } from 'database'
 import { DataSource } from 'typeorm'
 
@@ -12,7 +14,7 @@ let con: DataSource
 CONFIG.FEDERATION_API = '1_0'
 
 beforeAll(async () => {
-  const server = await createServer()
+  const server = await createServer(getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.apollo`))
   con = server.con
   query = createTestClient(server.apollo).query
   DbCommunity.clear()
