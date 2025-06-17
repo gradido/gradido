@@ -7,7 +7,10 @@ import { ExecutedHumhubAction, syncUser } from '@/apis/humhub/syncUser'
 import { PublishNameLogic } from '@/data/PublishName.logic'
 import { UpdateUserInfosArgs } from '@/graphql/arg/UpdateUserInfosArgs'
 import { PublishNameType } from '@/graphql/enum/PublishNameType'
-import { backendLogger as logger } from '@/server/logger'
+import { LOG4JS_GRAPHQL_RESOLVER_UTIL_CATEGORY_NAME } from '@/graphql/resolver/util'
+import { getLogger } from 'log4js'
+
+const createLogger = () => getLogger(`${LOG4JS_GRAPHQL_RESOLVER_UTIL_CATEGORY_NAME}.syncHumhub`)
 
 /**
  * Syncs the user with humhub
@@ -21,6 +24,8 @@ export async function syncHumhub(
   oldHumhubUsername: string,
   spaceId?: number | null,
 ): Promise<GetUser | null | undefined> {
+  const logger = createLogger()
+  logger.addContext('user', user.id)
   // check for humhub relevant changes
   if (
     updateUserInfosArg &&

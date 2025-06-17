@@ -2,8 +2,13 @@ import { Decimal } from 'decimal.js-light'
 
 import { Decay } from '@model/Decay'
 
-import { CONFIG } from '@/config'
 import { LogError } from '@/server/LogError'
+import { DECAY_START_TIME } from 'config-schema'
+
+Decimal.set({
+  precision: 25,
+  rounding: Decimal.ROUND_HALF_UP,
+})
 
 // TODO: externalize all those definitions and functions into an external decay library
 
@@ -18,7 +23,7 @@ function calculateDecay(
   amount: Decimal,
   from: Date,
   to: Date,
-  startBlock: Date = CONFIG.DECAY_START_TIME,
+  startBlock: Date = DECAY_START_TIME,
 ): Decay {
   const fromMs = from.getTime()
   const toMs = to.getTime()

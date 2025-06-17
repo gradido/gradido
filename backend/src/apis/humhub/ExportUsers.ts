@@ -1,9 +1,9 @@
 import { AppDatabase, User } from 'database'
 import { IsNull, Not } from 'typeorm'
 
-import { LogError } from '@/server/LogError'
-import { backendLogger as logger } from '@/server/logger'
-
+import { LOG4JS_HUMHUB_CATEGORY_NAME } from '@/apis/humhub/index'
+import { initLogging } from '@/server/logger'
+import { getLogger } from 'log4js'
 import { HumHubClient } from './HumHubClient'
 import { GetUser } from './model/GetUser'
 import { UsersResponse } from './model/UsersResponse'
@@ -11,6 +11,7 @@ import { ExecutedHumhubAction, syncUser } from './syncUser'
 
 const USER_BULK_SIZE = 20
 const HUMHUB_BULK_SIZE = 50
+const logger = getLogger(`${LOG4JS_HUMHUB_CATEGORY_NAME}.ExportUsers`)
 
 function getUsersPage(page: number, limit: number): Promise<[User[], number]> {
   return User.findAndCount({
@@ -34,7 +35,7 @@ async function loadUsersFromHumHub(client: HumHubClient): Promise<Map<string, Ge
   do {
     usersPage = await client.users(page, HUMHUB_BULK_SIZE)
     if (!usersPage) {
-      throw new LogError('error requesting next users page from humhub')
+      throw new Error('error requesting next users page from humhub')
     }
     for (const user of usersPage.results) {
       // deleted users have empty emails
@@ -70,7 +71,7 @@ async function main() {
   let page = 0
   const humHubClient = HumHubClient.getInstance()
   if (!humHubClient) {
-    throw new LogError('error creating humhub client')
+    throw new Error('error creating humhub client')
   }
   const humhubUsers = await loadUsersFromHumHub(humHubClient)
 
@@ -115,7 +116,7 @@ async function main() {
 }
 
 main().catch((e) => {
-  // biome-ignore lint/suspicious/noConsole: logger isn't used here
-  console.error(e)
+  initLogging()
+  logger.error(e)
   process.exit(1)
 })

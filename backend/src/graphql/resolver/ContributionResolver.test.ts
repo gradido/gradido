@@ -14,7 +14,7 @@ import {
   resetToken,
   testEnvironment,
 } from '@test/helpers'
-import { i18n as localization, logger } from '@test/testSetup'
+import { i18n as localization } from '@test/testSetup'
 
 import {
   sendContributionConfirmedEmail,
@@ -50,9 +50,14 @@ import { peterLustig } from '@/seeds/users/peter-lustig'
 import { raeuberHotzenplotz } from '@/seeds/users/raeuber-hotzenplotz'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
 import { getFirstDayOfPreviousNMonth } from '@/util/utilities'
+import { getLogger, clearLogs, printLogs } from 'config-schema/test/testSetup'
+import { getLogger as originalGetLogger } from 'log4js'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 
 jest.mock('@/emails/sendEmailVariants')
 jest.mock('@/password/EncryptorUtils')
+
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError` )
 
 let mutate: ApolloServerTestClient['mutate']
 let query: ApolloServerTestClient['query']
@@ -72,7 +77,7 @@ let contributionToDelete: any
 let bibiCreatedContribution: Contribution
 
 beforeAll(async () => {
-  testEnv = await testEnvironment(logger, localization)
+  testEnv = await testEnvironment(originalGetLogger('apollo'), localization)
   mutate = testEnv.mutate
   query = testEnv.query
   con = testEnv.con

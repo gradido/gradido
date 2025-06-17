@@ -5,7 +5,6 @@ import { GraphQLError } from 'graphql'
 import { DataSource } from 'typeorm'
 
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
-import { logger } from '@test/testSetup'
 
 import { EventType } from '@/event/Events'
 import { userFactory } from '@/seeds/factory/user'
@@ -18,8 +17,14 @@ import {
 import { listContributionLinks } from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { peterLustig } from '@/seeds/users/peter-lustig'
+import { clearLogs, getLogger, printLogs } from 'config-schema/test/testSetup'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { LOG4JS_RESOLVER_CATEGORY_NAME } from '.'
 
 jest.mock('@/password/EncryptorUtils')
+
+const logger = getLogger(`${LOG4JS_RESOLVER_CATEGORY_NAME}.ContributionLinkResolver`)
+const logErrorLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)
 
 let mutate: ApolloServerTestClient['mutate']
 let query: ApolloServerTestClient['query']
@@ -286,7 +291,7 @@ describe('Contribution Links', () => {
         })
 
         it('logs the error "A Start-Date must be set"', () => {
-          expect(logger.error).toBeCalledWith('A Start-Date must be set')
+          expect(logErrorLogger.error).toBeCalledWith('A Start-Date must be set')
         })
 
         it('returns an error if missing endDate', async () => {
@@ -307,7 +312,7 @@ describe('Contribution Links', () => {
         })
 
         it('logs the error "An End-Date must be set"', () => {
-          expect(logger.error).toBeCalledWith('An End-Date must be set')
+          expect(logErrorLogger.error).toBeCalledWith('An End-Date must be set')
         })
 
         it('returns an error if endDate is before startDate', async () => {
@@ -331,7 +336,7 @@ describe('Contribution Links', () => {
         })
 
         it('logs the error "The value of validFrom must before or equals the validTo"', () => {
-          expect(logger.error).toBeCalledWith(
+          expect(logErrorLogger.error).toBeCalledWith(
             `The value of validFrom must before or equals the validTo`,
           )
         })
@@ -531,7 +536,7 @@ describe('Contribution Links', () => {
         })
 
         it('logs the error "Contribution Link not found"', () => {
-          expect(logger.error).toBeCalledWith('Contribution Link not found', -1)
+          expect(logErrorLogger.error).toBeCalledWith('Contribution Link not found', -1)
         })
 
         describe('valid id', () => {
@@ -613,7 +618,7 @@ describe('Contribution Links', () => {
           })
 
           it('logs the error "Contribution Link not found"', () => {
-            expect(logger.error).toBeCalledWith('Contribution Link not found', -1)
+            expect(logErrorLogger.error).toBeCalledWith('Contribution Link not found', -1)
           })
         })
 

@@ -5,7 +5,7 @@ import { DataSource } from 'typeorm'
 
 import { ContributionStatus } from '@enum/ContributionStatus'
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
-import { i18n as localization, logger } from '@test/testSetup'
+import { i18n as localization } from '@test/testSetup'
 
 import { sendAddedContributionMessageEmail } from '@/emails/sendEmailVariants'
 import { EventType } from '@/event/Events'
@@ -20,6 +20,14 @@ import { adminListContributionMessages, listContributionMessages } from '@/seeds
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { peterLustig } from '@/seeds/users/peter-lustig'
+import { clearLogs, getLogger, printLogs } from 'config-schema/test/testSetup'
+import { LOG4JS_RESOLVER_CATEGORY_NAME } from '.'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { LOG4JS_INTERACTION_CATEGORY_NAME } from '@/interactions'
+
+const logger = getLogger(`${LOG4JS_RESOLVER_CATEGORY_NAME}.ContributionMessageResolver`)
+const logErrorLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)
+const interactionLogger = getLogger(`${LOG4JS_INTERACTION_CATEGORY_NAME}.updateUnconfirmedContribution`)
 
 jest.mock('@/password/EncryptorUtils')
 jest.mock('@/emails/sendEmailVariants', () => {
@@ -121,7 +129,7 @@ describe('ContributionMessageResolver', () => {
         })
 
         it('logs the error "ContributionMessage was not sent successfully: Error: Contribution not found"', () => {
-          expect(logger.error).toBeCalledWith(
+          expect(logErrorLogger.error).toBeCalledWith(
             'ContributionMessage was not sent successfully: Error: Contribution not found',
             new Error('Contribution not found'),
           )
@@ -148,11 +156,7 @@ describe('ContributionMessageResolver', () => {
               message: 'Test',
             },
           })
-          expect(logger.debug).toBeCalledTimes(5)
-          expect(logger.debug).toHaveBeenNthCalledWith(
-            5,
-            'use UnconfirmedContributionUserAddMessageRole',
-          )
+          expect(interactionLogger.debug).toBeCalledWith('use UnconfirmedContributionUserAddMessageRole')
           expect(mutationResult).toEqual(
             expect.objectContaining({
               data: {
@@ -325,7 +329,7 @@ describe('ContributionMessageResolver', () => {
         })
 
         it('logs the error "ContributionMessage was not sent successfully: Error: Contribution not found"', () => {
-          expect(logger.error).toBeCalledWith(
+          expect(logErrorLogger.error).toBeCalledWith(
             'ContributionMessage was not sent successfully: Error: Contribution not found',
             new Error('Contribution not found'),
           )
@@ -346,11 +350,7 @@ describe('ContributionMessageResolver', () => {
             },
           })
 
-          expect(logger.debug).toBeCalledTimes(5)
-          expect(logger.debug).toHaveBeenNthCalledWith(
-            5,
-            'use UnconfirmedContributionAdminAddMessageRole',
-          )
+          expect(interactionLogger.debug).toBeCalledWith('use UnconfirmedContributionAdminAddMessageRole')
 
           expect(mutationResult).toEqual(
             expect.objectContaining({
@@ -380,12 +380,7 @@ describe('ContributionMessageResolver', () => {
               message: 'Test',
             },
           })
-
-          expect(logger.debug).toBeCalledTimes(5)
-          expect(logger.debug).toHaveBeenNthCalledWith(
-            5,
-            'use UnconfirmedContributionAdminAddMessageRole',
-          )
+          expect(interactionLogger.debug).toBeCalledWith('use UnconfirmedContributionAdminAddMessageRole')
 
           expect(mutationResult).toEqual(
             expect.objectContaining({
@@ -399,13 +394,12 @@ describe('ContributionMessageResolver', () => {
         })
 
         it('logs the error "ContributionMessage was not sent successfully: Error: missing right ADMIN_CREATE_CONTRIBUTION_MESSAGE for user"', () => {
-          expect(logger.debug).toBeCalledTimes(5)
-          expect(logger.error).toHaveBeenNthCalledWith(
+          expect(logErrorLogger.error).toHaveBeenNthCalledWith(
             1,
             'missing right ADMIN_CREATE_CONTRIBUTION_MESSAGE for user',
             expect.any(Number),
           )
-          expect(logger.error).toHaveBeenNthCalledWith(
+          expect(logErrorLogger.error).toHaveBeenNthCalledWith(
             2,
             'ContributionMessage was not sent successfully: Error: missing right ADMIN_CREATE_CONTRIBUTION_MESSAGE for user',
             new Error('missing right ADMIN_CREATE_CONTRIBUTION_MESSAGE for user'),

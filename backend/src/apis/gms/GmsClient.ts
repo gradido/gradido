@@ -1,12 +1,15 @@
 import axios from 'axios'
 
 import { httpAgent, httpsAgent } from '@/apis/ConnectionAgents'
+import { LOG4JS_GMS_CATEGORY_NAME } from '@/apis/gms/index'
 import { CONFIG } from '@/config'
 import { LogError } from '@/server/LogError'
-import { backendLogger as logger } from '@/server/logger'
 import { ensureUrlEndsWithSlash } from '@/util/utilities'
+import { getLogger } from 'log4js'
 
 import { GmsUser } from './model/GmsUser'
+
+const logger = getLogger(`${LOG4JS_GMS_CATEGORY_NAME}.GmsClient`)
 
 /*
 export async function communityList(): Promise<GmsCommunity[] | string | undefined> {

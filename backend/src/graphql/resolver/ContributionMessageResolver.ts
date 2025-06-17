@@ -22,11 +22,12 @@ import {
 import { UpdateUnconfirmedContributionContext } from '@/interactions/updateUnconfirmedContribution/UpdateUnconfirmedContribution.context'
 import { LogError } from '@/server/LogError'
 import { Context, getUser } from '@/server/context'
-import { backendLogger as logger } from '@/server/logger'
-
+import { getLogger } from 'log4js'
+import { LOG4JS_RESOLVER_CATEGORY_NAME } from '.'
 import { findContributionMessages } from './util/findContributionMessages'
 
 const db = AppDatabase.getInstance()
+const createLogger = () => getLogger(`${LOG4JS_RESOLVER_CATEGORY_NAME}.ContributionMessageResolver`)
 
 @Resolver()
 export class ContributionMessageResolver {
@@ -125,7 +126,9 @@ export class ContributionMessageResolver {
     @Args() contributionMessageArgs: ContributionMessageArgs,
     @Ctx() context: Context,
   ): Promise<ContributionMessage> {
+    const logger = createLogger()
     const { contributionId, messageType } = contributionMessageArgs
+    logger.addContext('contribution', contributionMessageArgs.contributionId)
     const updateUnconfirmedContributionContext = new UpdateUnconfirmedContributionContext(
       contributionId,
       contributionMessageArgs,

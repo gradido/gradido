@@ -8,11 +8,10 @@ import {
   User,
 } from 'database'
 import { GraphQLError } from 'graphql'
-import { Connection, In } from 'typeorm'
+import { DataSource, In } from 'typeorm'
 import { v4 as uuidv4 } from 'uuid'
 
 import { cleanDB, testEnvironment } from '@test/helpers'
-import { logger } from '@test/testSetup'
 
 import { CONFIG } from '@/config'
 import { EventType } from '@/event/Events'
@@ -32,16 +31,20 @@ import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
+import { getLogger } from 'config-schema/test/testSetup'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 
 jest.mock('@/password/EncryptorUtils')
 
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)
+
 let mutate: ApolloServerTestClient['mutate']
 let query: ApolloServerTestClient['query']
-let con: Connection
+let con: DataSource
 let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']
-  con: Connection
+  con: DataSource
 }
 
 beforeAll(async () => {
@@ -477,8 +480,6 @@ describe('send coins', () => {
         })
 
         it('has wait till sendTransactionsToDltConnector created all dlt-transactions', () => {
-          expect(logger.info).toBeCalledWith('sendTransactionsToDltConnector...')
-
           expect(dltTransactions).toEqual(
             expect.arrayContaining([
               expect.objectContaining({

@@ -4,8 +4,9 @@ import { datatype, internet, name } from 'faker'
 
 import { CONFIG } from '@/config'
 import { createServer } from '@/server/createServer'
-import { backendLogger as logger } from '@/server/logger'
 
+import { initLogging } from '@/server/logger'
+import { getLogger } from 'log4js'
 import { writeHomeCommunityEntry } from './community'
 import { contributionLinks } from './contributionLink/index'
 import { creations } from './creation/index'
@@ -17,6 +18,7 @@ import { transactionLinks } from './transactionLink/index'
 import { users } from './users/index'
 
 CONFIG.EMAIL = false
+const logger = getLogger('seed')
 
 const context = {
   token: '',
@@ -48,7 +50,7 @@ const resetEntity = async (entity: any) => {
 }
 
 const run = async () => {
-  const server = await createServer(context)
+  const server = await createServer(getLogger('apollo'), context)
   const seedClient = createTestClient(server.apollo)
   const { con } = server
   await cleanDB()
@@ -97,6 +99,7 @@ const run = async () => {
 }
 
 run().catch((err) => {
+  initLogging()
   // biome-ignore lint/suspicious/noConsole: no logger present
   console.error('error on seeding', err)
 })
