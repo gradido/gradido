@@ -1,5 +1,5 @@
-import { LogLevel } from './LogLevel'
 import { ColoredContextLayoutConfig } from './ColoredContextLayoutConfig'
+import { LogLevel } from './LogLevel'
 
 /**
  * Configuration for a log4js category.

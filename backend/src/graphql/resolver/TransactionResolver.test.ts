@@ -14,6 +14,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { cleanDB, testEnvironment } from '@test/helpers'
 
 import { CONFIG } from '@/config'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { EventType } from '@/event/Events'
 import { SendCoinsClient } from '@/federation/client/1_0/SendCoinsClient'
 import { SendCoinsArgs } from '@/federation/client/1_0/model/SendCoinsArgs'
@@ -32,7 +33,6 @@ import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
 import { getLogger } from 'config-schema/test/testSetup'
-import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 
 jest.mock('@/password/EncryptorUtils')
 

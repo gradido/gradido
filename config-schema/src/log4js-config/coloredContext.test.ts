@@ -1,6 +1,6 @@
-import { createColoredContextLayout } from './coloredContext'
-import { levels, LoggingEvent } from 'log4js'
+import { LoggingEvent, levels } from 'log4js'
 import colors from 'yoctocolors-cjs'
+import { createColoredContextLayout } from './coloredContext'
 
 let defaultLogEvent: LoggingEvent
 let colorFn: (input: string) => string
@@ -76,13 +76,13 @@ describe('createColoredContextLayout', () => {
     })
     it('format withStack: error, withLine: true, withFile: warn', () => {
       const coloredString = colorFn(`[${startTimeString}] [${levels.INFO}] config:1 -`)
-      expect(createColoredContextLayout({ 
-        withStack: 'error', 
-        withFile: 'warn', 
-        withLine: true 
-      })(defaultLogEvent)).toBe(
-        `${coloredString} user=1 message`,
-      )
+      expect(
+        createColoredContextLayout({
+          withStack: 'error',
+          withFile: 'warn',
+          withLine: true,
+        })(defaultLogEvent),
+      ).toBe(`${coloredString} user=1 message`)
     })
   })
 
@@ -123,13 +123,13 @@ describe('createColoredContextLayout', () => {
     })
     it('format withStack: error, withLine: true, withFile: warn', () => {
       const coloredString = colorFn(`[${startTimeString}] [${levels.ERROR}] config -`)
-      expect(createColoredContextLayout({ 
-        withStack: 'error', 
-        withFile: 'warn', 
-        withLine: true 
-      })(defaultLogEvent)).toBe(
-        `${coloredString} user=1 message \nstack`,
-      )
+      expect(
+        createColoredContextLayout({
+          withStack: 'error',
+          withFile: 'warn',
+          withLine: true,
+        })(defaultLogEvent),
+      ).toBe(`${coloredString} user=1 message \nstack`)
     })
   })
 })

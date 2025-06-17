@@ -67,10 +67,10 @@ import { stephenHawking } from '@/seeds/users/stephen-hawking'
 import { printTimeDuration } from '@/util/time'
 import { objectValuesToArray } from '@/util/utilities'
 
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { clearLogs, getLogger, printLogs } from 'config-schema/test/testSetup'
 import { LOG4JS_RESOLVER_CATEGORY_NAME } from '.'
 import { Location2Point } from './util/Location2Point'
-import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 
 jest.mock('@/apis/humhub/HumHubClient')
 jest.mock('@/password/EncryptorUtils')
@@ -709,7 +709,9 @@ describe('UserResolver', () => {
       })
 
       it('logs the error found', () => {
-        expect(logger.warn).toBeCalledWith(`findUserByEmail failed, user with email=${variables.email} not found`)
+        expect(logger.warn).toBeCalledWith(
+          `findUserByEmail failed, user with email=${variables.email} not found`,
+        )
       })
     })
 
@@ -1114,7 +1116,9 @@ describe('UserResolver', () => {
         })
 
         it('logs warning before throwing error', () => {
-          expect(logger.warn).toBeCalledWith('email already sent 0 minutes ago, min wait time: 10 minutes')
+          expect(logger.warn).toBeCalledWith(
+            'email already sent 0 minutes ago, min wait time: 10 minutes',
+          )
         })
       })
     })
@@ -1762,7 +1766,10 @@ describe('UserResolver', () => {
           })
 
           it('logs the error thrown', () => {
-            expect(logErrorLogger.error).toBeCalledWith('Could not find user with given ID', admin.id + 1)
+            expect(logErrorLogger.error).toBeCalledWith(
+              'Could not find user with given ID',
+              admin.id + 1,
+            )
           })
         })
 
@@ -1878,7 +1885,9 @@ describe('UserResolver', () => {
               )
             })
             it('logs the error thrown', () => {
-              expect(logErrorLogger.error).toBeCalledWith('Administrator can not change his own role')
+              expect(logErrorLogger.error).toBeCalledWith(
+                'Administrator can not change his own role',
+              )
             })
           })
 
@@ -1923,7 +1932,10 @@ describe('UserResolver', () => {
               })
 
               it('logs the error thrown', () => {
-                expect(logErrorLogger.error).toBeCalledWith('User already has role=', RoleNames.ADMIN)
+                expect(logErrorLogger.error).toBeCalledWith(
+                  'User already has role=',
+                  RoleNames.ADMIN,
+                )
               })
             })
 
@@ -1947,7 +1959,10 @@ describe('UserResolver', () => {
               })
 
               it('logs the error thrown', () => {
-                expect(logErrorLogger.error).toBeCalledWith('User already has role=', RoleNames.MODERATOR)
+                expect(logErrorLogger.error).toBeCalledWith(
+                  'User already has role=',
+                  RoleNames.MODERATOR,
+                )
               })
             })
 
@@ -2041,7 +2056,10 @@ describe('UserResolver', () => {
           })
 
           it('logs the error thrown', () => {
-            expect(logErrorLogger.error).toBeCalledWith('Could not find user with given ID', admin.id + 1)
+            expect(logErrorLogger.error).toBeCalledWith(
+              'Could not find user with given ID',
+              admin.id + 1,
+            )
           })
         })
 
@@ -2111,7 +2129,10 @@ describe('UserResolver', () => {
             })
 
             it('logs the error thrown', () => {
-              expect(logErrorLogger.error).toBeCalledWith('Could not find user with given ID', user.id)
+              expect(logErrorLogger.error).toBeCalledWith(
+                'Could not find user with given ID',
+                user.id,
+              )
             })
           })
         })
@@ -2187,7 +2208,9 @@ describe('UserResolver', () => {
           })
 
           it('logs the error thrown', () => {
-            expect(logger.warn).toBeCalledWith('findUserByEmail failed, user with email=invalid not found')
+            expect(logger.warn).toBeCalledWith(
+              'findUserByEmail failed, user with email=invalid not found',
+            )
           })
         })
 
@@ -2331,7 +2354,10 @@ describe('UserResolver', () => {
           })
 
           it('logs the error thrown', () => {
-            expect(logErrorLogger.error).toBeCalledWith('Could not find user with given ID', admin.id + 1)
+            expect(logErrorLogger.error).toBeCalledWith(
+              'Could not find user with given ID',
+              admin.id + 1,
+            )
           })
         })
 

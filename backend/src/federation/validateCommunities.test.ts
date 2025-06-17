@@ -12,7 +12,9 @@ import { clearLogs, getLogger, printLogs } from 'config-schema/test/testSetup'
 import { validateCommunities } from './validateCommunities'
 
 const logger = getLogger(`${LOG4JS_FEDERATION_CATEGORY_NAME}.validateCommunities`)
-const federationClientLogger = getLogger(`${LOG4JS_FEDERATION_CLIENT1_0_CATEGORY_NAME}.FederationClient`)
+const federationClientLogger = getLogger(
+  `${LOG4JS_FEDERATION_CLIENT1_0_CATEGORY_NAME}.FederationClient`,
+)
 
 let con: DataSource
 let testEnv: {
@@ -88,8 +90,9 @@ describe('validate Communities', () => {
       })
       it('logs requestGetPublicKey missing response data ', () => {
         expect(federationClientLogger.warn).toBeCalledWith(
-          'getPublicKey without response data from endpoint', 'http//localhost:5001/api/1_0/'
-        )        
+          'getPublicKey without response data from endpoint',
+          'http//localhost:5001/api/1_0/',
+        )
       })
     })
 
@@ -160,7 +163,10 @@ describe('validate Communities', () => {
         expect(logger.debug).toBeCalledWith(`found 1 dbCommunities`)
       })
       it('logs requestGetPublicKey for community api 1_0 ', () => {
-        expect(federationClientLogger.debug).toBeCalledWith('getPublicKey from endpoint', 'http//localhost:5001/api/1_0/')
+        expect(federationClientLogger.debug).toBeCalledWith(
+          'getPublicKey from endpoint',
+          'http//localhost:5001/api/1_0/',
+        )
       })
       it('logs not matching publicKeys', () => {
         expect(logger.debug).toBeCalledWith(
@@ -279,7 +285,10 @@ describe('validate Communities', () => {
         )
       })
       it('logs requestGetPublicKey for community api 1_1 ', () => {
-        expect(federationClientLogger.debug).toBeCalledWith('getPublicKey from endpoint', 'http//localhost:5001/api/1_1/')
+        expect(federationClientLogger.debug).toBeCalledWith(
+          'getPublicKey from endpoint',
+          'http//localhost:5001/api/1_1/',
+        )
       })
     })
     describe('with three Communities of api 1_0, 1_1 and 2_0', () => {
@@ -328,10 +337,17 @@ describe('validate Communities', () => {
         )
       })
       it('logs requestGetPublicKey for community api 1_1 ', () => {
-        expect(federationClientLogger.debug).toBeCalledWith('getPublicKey from endpoint', 'http//localhost:5001/api/1_1/')
+        expect(federationClientLogger.debug).toBeCalledWith(
+          'getPublicKey from endpoint',
+          'http//localhost:5001/api/1_1/',
+        )
       })
       it('logs unsupported api for community with api 2_0 ', () => {
-        expect(logger.debug).toBeCalledWith('dbCom with unsupported apiVersion', dbCom.endPoint, '2_0')
+        expect(logger.debug).toBeCalledWith(
+          'dbCom with unsupported apiVersion',
+          dbCom.endPoint,
+          '2_0',
+        )
       })
     })
   })

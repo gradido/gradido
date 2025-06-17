@@ -2,9 +2,7 @@ import { createLog4jsConfig, defaultCategory } from '.'
 
 describe('createLog4jsConfig', () => {
   it('should create a log4js config', () => {
-    const config = createLog4jsConfig([
-      defaultCategory('test', 'debug')
-    ])
+    const config = createLog4jsConfig([defaultCategory('test', 'debug')])
     expect(config).toBeDefined()
     expect(config.appenders).toBeDefined()
     expect(config.categories).toBeDefined()
@@ -21,8 +19,8 @@ describe('createLog4jsConfig', () => {
       layout: {
         type: 'coloredContext',
         withStack: 'error',
-        withLine: true
-      }
+        withLine: true,
+      },
     })
   })
 })

@@ -525,8 +525,13 @@ export class UserResolver {
       return true
     }
     if (!canEmailResend(user.emailContact.updatedAt || user.emailContact.createdAt)) {
-      const diff = durationInMinutesFromDates(user.emailContact.updatedAt || user.emailContact.createdAt, new Date())
-      logger.warn(`email already sent ${printTimeDuration(diff)} ago, min wait time: ${printTimeDuration(CONFIG.EMAIL_CODE_REQUEST_TIME)}`)
+      const diff = durationInMinutesFromDates(
+        user.emailContact.updatedAt || user.emailContact.createdAt,
+        new Date(),
+      )
+      logger.warn(
+        `email already sent ${printTimeDuration(diff)} ago, min wait time: ${printTimeDuration(CONFIG.EMAIL_CODE_REQUEST_TIME)}`,
+      )
       throw new LogError(
         `Email already sent less than ${printTimeDuration(CONFIG.EMAIL_CODE_REQUEST_TIME)} ago`,
       )
@@ -751,7 +756,7 @@ export class UserResolver {
           'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
         )
       }
-      
+
       if (!(await verifyPassword(user, password))) {
         logger.debug('old password is invalid')
         throw new LogError(`Old password is invalid`)
@@ -1095,13 +1100,13 @@ export class UserResolver {
   ): Promise<boolean> {
     const logger = createLogger()
     email = email.trim().toLowerCase()
-    const user = await findUserByEmail(email)    
+    const user = await findUserByEmail(email)
     logger.addContext('user', user.id)
     logger.info('sendActivationEmail...')
     if (user.deletedAt || user.emailContact.deletedAt) {
       logger.warn('call for activation of deleted user')
       throw new Error('User with given email contact is deleted')
-    }    
+    }
     user.emailContact.emailResendCount++
     await user.emailContact.save()
 
@@ -1165,7 +1170,7 @@ export async function findUserByEmail(email: string): Promise<DbUser> {
       relations: { userRoles: true, emailContact: true },
     })
     return dbUser
-  } catch(e) {
+  } catch (e) {
     const logger = createLogger()
     if (e instanceof EntityNotFoundError) {
       // TODO: discuss if it is ok to print email in log for this case

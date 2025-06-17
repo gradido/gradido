@@ -1,6 +1,6 @@
 import { Level, LoggingEvent } from 'log4js'
 import colors from 'yoctocolors-cjs'
-import { LogLevel, ColoredContextLayoutConfig } from './types'
+import { ColoredContextLayoutConfig, LogLevel } from './types'
 
 function colorize(str: string, level: Level): string {
   switch (level.colour) {
@@ -68,7 +68,10 @@ enum DetailKind {
   File = 'file',
   Line = 'line',
 }
-function resolveDetailKind(logEvent: LoggingEvent, config: ColoredContextLayoutConfig): DetailKind | undefined {
+function resolveDetailKind(
+  logEvent: LoggingEvent,
+  config: ColoredContextLayoutConfig,
+): DetailKind | undefined {
   if (logEvent.callStack && isEnabledByLogLevel(logEvent.level, config.withStack)) {
     return DetailKind.Callstack
   }
@@ -99,7 +102,7 @@ export function createColoredContextLayout(config: ColoredContextLayoutConfig) {
       result.push(composeContextString(logEvent.context))
     }
     result.push(composeDataString(logEvent.data))
-    
+
     if (detailKind === DetailKind.File) {
       result.push(`\n    at ${logEvent.fileName}:${logEvent.lineNumber}`)
     }

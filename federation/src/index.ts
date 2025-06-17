@@ -8,7 +8,7 @@ import { CONFIG } from './config'
 import { LOG4JS_BASE_CATEGORY_NAME } from './config/const'
 
 async function main() {
-    // init logger
+  // init logger
   const log4jsConfigFileName = CONFIG.LOG4JS_CONFIG_PLACEHOLDER.replace('%v', CONFIG.FEDERATION_API)
   initLogger(
     [defaultCategory('federation', CONFIG.LOG_LEVEL), defaultCategory('apollo', CONFIG.LOG_LEVEL)],

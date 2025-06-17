@@ -6,6 +6,7 @@ import { DataSource } from 'typeorm'
 
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
 
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { EventType } from '@/event/Events'
 import { userFactory } from '@/seeds/factory/user'
 import {
@@ -17,13 +18,10 @@ import {
 import { listContributionLinks } from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { peterLustig } from '@/seeds/users/peter-lustig'
-import { clearLogs, getLogger, printLogs } from 'config-schema/test/testSetup'
-import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { LOG4JS_RESOLVER_CATEGORY_NAME } from '.'
+import { getLogger } from 'config-schema/test/testSetup'
 
 jest.mock('@/password/EncryptorUtils')
 
-const logger = getLogger(`${LOG4JS_RESOLVER_CATEGORY_NAME}.ContributionLinkResolver`)
 const logErrorLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)
 
 let mutate: ApolloServerTestClient['mutate']

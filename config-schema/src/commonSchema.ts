@@ -127,7 +127,9 @@ export const LOG4JS_CONFIG = Joi.string()
 
 export const LOG4JS_CONFIG_PLACEHOLDER = Joi.string()
   .pattern(/^[a-zA-Z0-9-_]+(%v)?\.json$/)
-  .message('LOG4JS_CONFIG_PLACEHOLDER must be a valid filename ending with .json can contain %v as API Version placeholder before ending')
+  .message(
+    'LOG4JS_CONFIG_PLACEHOLDER must be a valid filename ending with .json can contain %v as API Version placeholder before ending',
+  )
   .description('config file name for log4js config file')
   .default('log4js-config.json')
   .required()

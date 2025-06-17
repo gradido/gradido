@@ -7,8 +7,10 @@ import { ContributionStatus } from '@enum/ContributionStatus'
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { i18n as localization } from '@test/testSetup'
 
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { sendAddedContributionMessageEmail } from '@/emails/sendEmailVariants'
 import { EventType } from '@/event/Events'
+import { LOG4JS_INTERACTION_CATEGORY_NAME } from '@/interactions'
 import { userFactory } from '@/seeds/factory/user'
 import {
   adminCreateContributionMessage,
@@ -22,12 +24,12 @@ import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { clearLogs, getLogger, printLogs } from 'config-schema/test/testSetup'
 import { LOG4JS_RESOLVER_CATEGORY_NAME } from '.'
-import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { LOG4JS_INTERACTION_CATEGORY_NAME } from '@/interactions'
 
 const logger = getLogger(`${LOG4JS_RESOLVER_CATEGORY_NAME}.ContributionMessageResolver`)
 const logErrorLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)
-const interactionLogger = getLogger(`${LOG4JS_INTERACTION_CATEGORY_NAME}.updateUnconfirmedContribution`)
+const interactionLogger = getLogger(
+  `${LOG4JS_INTERACTION_CATEGORY_NAME}.updateUnconfirmedContribution`,
+)
 
 jest.mock('@/password/EncryptorUtils')
 jest.mock('@/emails/sendEmailVariants', () => {
@@ -156,7 +158,9 @@ describe('ContributionMessageResolver', () => {
               message: 'Test',
             },
           })
-          expect(interactionLogger.debug).toBeCalledWith('use UnconfirmedContributionUserAddMessageRole')
+          expect(interactionLogger.debug).toBeCalledWith(
+            'use UnconfirmedContributionUserAddMessageRole',
+          )
           expect(mutationResult).toEqual(
             expect.objectContaining({
               data: {
@@ -350,7 +354,9 @@ describe('ContributionMessageResolver', () => {
             },
           })
 
-          expect(interactionLogger.debug).toBeCalledWith('use UnconfirmedContributionAdminAddMessageRole')
+          expect(interactionLogger.debug).toBeCalledWith(
+            'use UnconfirmedContributionAdminAddMessageRole',
+          )
 
           expect(mutationResult).toEqual(
             expect.objectContaining({
@@ -380,7 +386,9 @@ describe('ContributionMessageResolver', () => {
               message: 'Test',
             },
           })
-          expect(interactionLogger.debug).toBeCalledWith('use UnconfirmedContributionAdminAddMessageRole')
+          expect(interactionLogger.debug).toBeCalledWith(
+            'use UnconfirmedContributionAdminAddMessageRole',
+          )
 
           expect(mutationResult).toEqual(
             expect.objectContaining({

@@ -34,12 +34,10 @@ import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 
-import { getLogger } from 'config-schema/test/testSetup'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { LOG4JS_RESOLVER_CATEGORY_NAME } from '.'
+import { getLogger } from 'config-schema/test/testSetup'
 import { transactionLinkCode } from './TransactionLinkResolver'
 
-const logger = getLogger(`${LOG4JS_RESOLVER_CATEGORY_NAME}.TransactionLinkResolver`)
 const logErrorLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)
 
 jest.mock('@/password/EncryptorUtils')
@@ -322,7 +320,10 @@ describe('TransactionLinkResolver', () => {
           })
 
           it('logs the error "Contribution link is not valid yet"', () => {
-            expect(logErrorLogger.error).toBeCalledWith('Contribution link is not valid yet', validFrom)
+            expect(logErrorLogger.error).toBeCalledWith(
+              'Contribution link is not valid yet',
+              validFrom,
+            )
             expect(logErrorLogger.error).toBeCalledWith(
               'Creation from contribution link was not successful',
               new Error('Contribution link is not valid yet'),
@@ -361,7 +362,10 @@ describe('TransactionLinkResolver', () => {
           })
 
           it('logs the error "Contribution link has unknown cycle"', () => {
-            expect(logErrorLogger.error).toBeCalledWith('Contribution link has unknown cycle', 'INVALID')
+            expect(logErrorLogger.error).toBeCalledWith(
+              'Contribution link has unknown cycle',
+              'INVALID',
+            )
             expect(logErrorLogger.error).toBeCalledWith(
               'Creation from contribution link was not successful',
               new Error('Contribution link has unknown cycle'),
@@ -400,7 +404,10 @@ describe('TransactionLinkResolver', () => {
           })
 
           it('logs the error "Contribution link is no longer valid"', () => {
-            expect(logErrorLogger.error).toBeCalledWith('Contribution link is no longer valid', validTo)
+            expect(logErrorLogger.error).toBeCalledWith(
+              'Contribution link is no longer valid',
+              validTo,
+            )
             expect(logErrorLogger.error).toBeCalledWith(
               'Creation from contribution link was not successful',
               new Error('Contribution link is no longer valid'),

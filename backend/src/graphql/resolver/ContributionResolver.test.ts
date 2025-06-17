@@ -16,6 +16,7 @@ import {
 } from '@test/helpers'
 import { i18n as localization } from '@test/testSetup'
 
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import {
   sendContributionConfirmedEmail,
   sendContributionDeletedEmail,
@@ -50,14 +51,13 @@ import { peterLustig } from '@/seeds/users/peter-lustig'
 import { raeuberHotzenplotz } from '@/seeds/users/raeuber-hotzenplotz'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
 import { getFirstDayOfPreviousNMonth } from '@/util/utilities'
-import { getLogger, clearLogs, printLogs } from 'config-schema/test/testSetup'
+import { clearLogs, getLogger, printLogs } from 'config-schema/test/testSetup'
 import { getLogger as originalGetLogger } from 'log4js'
-import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 
 jest.mock('@/emails/sendEmailVariants')
 jest.mock('@/password/EncryptorUtils')
 
-const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError` )
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)
 
 let mutate: ApolloServerTestClient['mutate']
 let query: ApolloServerTestClient['query']
