@@ -1,3 +1,10 @@
+/*
+ * This file is used to mock the log4js logger in the tests.
+ * It is used to collect all log entries in the logs array.
+ * If you want to debug your test, you can use `printLogs()` to print all log entries collected through the tests.
+ * To have only the relevant logs, call `clearLogs()` before your calling the methods you like to test and `printLogs()` after.
+ */
+
 jest.setTimeout(1000000)
 
 type LogEntry = {
