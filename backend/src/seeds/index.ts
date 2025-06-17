@@ -50,6 +50,7 @@ const resetEntity = async (entity: any) => {
 }
 
 const run = async () => {
+  initLogging()
   const server = await createServer(getLogger('apollo'), context)
   const seedClient = createTestClient(server.apollo)
   const { con } = server
@@ -99,7 +100,6 @@ const run = async () => {
 }
 
 run().catch((err) => {
-  initLogging()
   // biome-ignore lint/suspicious/noConsole: no logger present
   console.error('error on seeding', err)
 })

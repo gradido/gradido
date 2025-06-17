@@ -12,7 +12,7 @@
     "dev": "cross-env TZ=UTC nodemon -w src --ext ts,pug,json,css -r tsconfig-paths/register src/index.ts",
     "test": "cross-env TZ=UTC NODE_ENV=development DB_DATABASE=gradido_test_backend jest --runInBand --forceExit --detectOpenHandles",
     "test:coverage": "cross-env TZ=UTC NODE_ENV=development DB_DATABASE=gradido_test_backend jest --coverage --runInBand --forceExit --detectOpenHandles",
-    "seed": "cross-env TZ=UTC NODE_ENV=development ts-node -r tsconfig-paths/register src/seeds/index.ts",
+    "seed": "cross-env TZ=UTC NODE_ENV=development DB_DATABASE=gradido_test_backend ts-node -r tsconfig-paths/register src/seeds/index.ts",
     "klicktipp": "cross-env TZ=UTC NODE_ENV=development ts-node -r tsconfig-paths/register src/util/executeKlicktipp.ts",
     "gmsusers": "cross-env TZ=UTC NODE_ENV=development ts-node -r tsconfig-paths/register src/apis/gms/ExportUsers.ts",
     "humhubUserExport": "cross-env TZ=UTC NODE_ENV=development ts-node -r tsconfig-paths/register src/apis/humhub/ExportUsers.ts",

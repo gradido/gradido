@@ -19,6 +19,7 @@ CONFIG.EMAIL = false
 const forceMode = process.argv.includes('--force')
 
 async function main() {
+  initLogging()
   // open mysql connection
   const con = AppDatabase.getInstance()
   await con.init()
@@ -74,7 +75,6 @@ async function main() {
 }
 
 main().catch((e) => {
-  initLogging()
   logger.error(e)
   process.exit(1)
 })
