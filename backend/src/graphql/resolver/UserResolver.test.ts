@@ -698,6 +698,9 @@ describe('UserResolver', () => {
     })
 
     describe('no users in database', () => {
+      beforeAll(() => {
+        clearLogs()
+      })
       it('throws an error', async () => {
         jest.clearAllMocks()
         const result = await mutate({ mutation: login, variables })
@@ -709,6 +712,7 @@ describe('UserResolver', () => {
       })
 
       it('logs the error found', () => {
+        printLogs()
         expect(logger.warn).toBeCalledWith(
           `findUserByEmail failed, user with email=${variables.email} not found`,
         )

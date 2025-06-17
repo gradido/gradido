@@ -60,7 +60,6 @@ export const startDHT = async (topic: string): Promise<void> => {
 
     server.on('connection', function (socket: any) {
       logger.info(`server on... with Remote public key: ${socket.remotePublicKey.toString('hex')}`)
-
       socket.on('data', async (data: Buffer) => {
         try {
           if (data.length > 1141) {
@@ -110,10 +109,9 @@ export const startDHT = async (topic: string): Promise<void> => {
             const variables = {
               apiVersion: recApiVersion.api,
               endPoint: recApiVersion.url,
-              publicKey: socket.remotePublicKey.toString('hex'),
+              publicKey: socket.remotePublicKey,
               lastAnnouncedAt: new Date(),
             }
-            logger.debug(`upsert with variables=${JSON.stringify(variables, null, 2)}`)
             // this will NOT update the updatedAt column, to distingue between a normal update and the last announcement
             await DbFederatedCommunity.createQueryBuilder()
               .insert()

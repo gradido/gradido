@@ -3,7 +3,7 @@ import { Community as DbCommunity, FederatedCommunity as DbFederatedCommunity } 
 import { validate as validateUUID, version as versionUUID } from 'uuid'
 
 import { cleanDB, testEnvironment } from '@test/helpers'
-import { cleanLogs, getLogger, printLogs } from 'config-schema/test/testSetup'
+import { clearLogs, getLogger, printLogs } from 'config-schema/test/testSetup'
 
 import { CONFIG } from '@/config'
 
@@ -358,6 +358,7 @@ describe('federation', () => {
               let jsonArray: any[]
               let result: DbFederatedCommunity[] = []
               beforeAll(async () => {
+                clearLogs()
                 jest.clearAllMocks()
                 jsonArray = [
                   {
@@ -373,6 +374,7 @@ describe('federation', () => {
                 ]
                 await socketEventMocks.data(Buffer.from(JSON.stringify(jsonArray)))
                 result = await DbFederatedCommunity.find({ where: { foreign: true } })
+                printLogs()
               })
 
               afterAll(async () => {
