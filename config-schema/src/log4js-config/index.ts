@@ -2,9 +2,11 @@ import { readFileSync, writeFileSync } from 'node:fs'
 import { Configuration, LoggingEvent, addLayout, configure } from 'log4js'
 import { createAppenderConfig } from './appenders'
 import { createColoredContextLayout } from './coloredContext'
-import { Category, CustomFileAppender, LogLevel, defaultCategory } from './types'
+import type { Category, CustomFileAppender, LogLevel } from './types'
+import { defaultCategory } from './types'
 
-export { Category, LogLevel, defaultCategory }
+export type { Category, LogLevel }
+export { defaultCategory }
 
 /**
  * Creates the log4js configuration.
@@ -33,8 +35,7 @@ export function createLog4jsConfig(categories: Category[], basePath?: string): C
     customFileAppenders.push({
       name: category.name,
       filename: category.filename,
-      withLine: true,
-      withStack: 'error',
+      layout: category.layout,
     })
     // needed by log4js, show all error message accidentally without (proper) Category
     result.categories.default = {

@@ -1,4 +1,5 @@
 import { LogLevel } from './LogLevel'
+import { ColoredContextLayoutConfig } from './ColoredContextLayoutConfig'
 /**
  * use default dateFile Template for custom file appenders
  *
@@ -29,7 +30,5 @@ import { LogLevel } from './LogLevel'
 export type CustomFileAppender = {
   name: string
   filename?: string
-  withStack?: LogLevel | boolean // with stack if boolean or from log level on or above
-  withFile?: LogLevel | boolean // with filename and line if boolean or from log level on or above
-  withLine?: LogLevel | boolean // with line if boolean or from log level on or above
+  layout?: ColoredContextLayoutConfig
 }

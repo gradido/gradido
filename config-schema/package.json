@@ -18,6 +18,7 @@
     "build": "esbuild src/index.ts --outdir=build --sourcemap --platform=node --target=node18.20.7 --bundle --packages=external",
     "build:bun": "bun build src/index.ts --outdir=build --target=bun --packages=external",
     "typecheck": "tsc --noEmit",
+    "test": "bun test",
     "lint": "biome check --error-on-warnings .",
     "lint:fix": "biome check --error-on-warnings . --write"
   },

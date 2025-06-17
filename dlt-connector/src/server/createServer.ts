@@ -26,7 +26,6 @@ const createServer = async (
   logger: Logger = dltLogger,
   // localization: i18n.I18n = i18n,
 ): Promise<ServerDef> => {
-  logger.addContext('user', 'unknown')
   logger.debug('createServer...')
 
   // connect to db and test db version

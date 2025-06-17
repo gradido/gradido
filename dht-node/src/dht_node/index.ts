@@ -59,7 +59,6 @@ export const startDHT = async (topic: string): Promise<void> => {
     const server = node.createServer()
 
     server.on('connection', function (socket: any) {
-      logger.addContext('pubkey', socket.remotePublicKey.toString('hex'))
       logger.info(`server on... with Remote public key: ${socket.remotePublicKey.toString('hex')}`)
 
       socket.on('data', async (data: Buffer) => {
@@ -111,10 +110,10 @@ export const startDHT = async (topic: string): Promise<void> => {
             const variables = {
               apiVersion: recApiVersion.api,
               endPoint: recApiVersion.url,
-              publicKey: socket.remotePublicKey,
+              publicKey: socket.remotePublicKey.toString('hex'),
               lastAnnouncedAt: new Date(),
             }
-            logger.debug(`upsert with variables=${JSON.stringify(variables)}`)
+            logger.debug(`upsert with variables=${JSON.stringify(variables, null, 2)}`)
             // this will NOT update the updatedAt column, to distingue between a normal update and the last announcement
             await DbFederatedCommunity.createQueryBuilder()
               .insert()

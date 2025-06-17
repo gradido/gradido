@@ -1,12 +1,6 @@
 import { Level, LoggingEvent } from 'log4js'
 import colors from 'yoctocolors-cjs'
-import { LogLevel } from './types'
-
-export type coloredContextLayoutConfig = {
-  withStack?: LogLevel | boolean
-  withFile?: LogLevel | boolean
-  withLine?: LogLevel | boolean
-}
+import { LogLevel, ColoredContextLayoutConfig } from './types'
 
 function colorize(str: string, level: Level): string {
   switch (level.colour) {
@@ -36,12 +30,14 @@ function colorize(str: string, level: Level): string {
 // distinguish between objects with valid toString function (for examples classes derived from AbstractLoggingView) and other objects
 function composeDataString(data: (string | Object)[]): string {
   return data
-    .map((data) => {
+    .map((d) => {
       // if it is a object and his toString function return only garbage
-      if (typeof data === 'object' && data.toString() === '[object Object]') {
-        return JSON.stringify(data)
+      if (typeof d === 'object' && d.toString() === '[object Object]') {
+        return JSON.stringify(d)
       }
-      return data.toString()
+      if (d) {
+        return d.toString()
+      }
     })
     .join(' ')
 }
@@ -72,7 +68,7 @@ enum DetailKind {
   File = 'file',
   Line = 'line',
 }
-function resolveDetailKind(logEvent: LoggingEvent, config: coloredContextLayoutConfig): DetailKind | undefined {
+function resolveDetailKind(logEvent: LoggingEvent, config: ColoredContextLayoutConfig): DetailKind | undefined {
   if (logEvent.callStack && isEnabledByLogLevel(logEvent.level, config.withStack)) {
     return DetailKind.Callstack
   }
@@ -85,7 +81,7 @@ function resolveDetailKind(logEvent: LoggingEvent, config: coloredContextLayoutC
   return undefined
 }
 
-export function createColoredContextLayout(config: coloredContextLayoutConfig) {
+export function createColoredContextLayout(config: ColoredContextLayoutConfig) {
   return (logEvent: LoggingEvent) => {
     const result: string[] = []
     const detailKind = resolveDetailKind(logEvent, config)

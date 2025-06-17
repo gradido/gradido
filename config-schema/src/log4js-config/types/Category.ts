@@ -1,4 +1,5 @@
 import { LogLevel } from './LogLevel'
+import { ColoredContextLayoutConfig } from './ColoredContextLayoutConfig'
 
 /**
  * Configuration for a log4js category.
@@ -8,6 +9,7 @@ import { LogLevel } from './LogLevel'
  * @property {boolean} [stdout] - Whether to log to stdout.
  * @property {boolean} [additionalErrorsFile] - Whether to log errors additional to the default error file.
  * @property {LogLevel} level - The logging level.
+ * @property {ColoredContextLayoutConfig} [layout] - The layout for the category.
  */
 export type Category = {
   name: string
@@ -15,6 +17,7 @@ export type Category = {
   stdout?: boolean
   additionalErrorsFile?: boolean
   level: LogLevel
+  layout?: ColoredContextLayoutConfig
 }
 
 export function defaultCategory(name: string, level: LogLevel): Category {
@@ -23,5 +26,10 @@ export function defaultCategory(name: string, level: LogLevel): Category {
     level,
     stdout: true,
     additionalErrorsFile: true,
+    layout: {
+      withStack: 'error',
+      withFile: 'warn',
+      withLine: true,
+    },
   }
 }

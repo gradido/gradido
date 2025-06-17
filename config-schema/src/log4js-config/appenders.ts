@@ -68,8 +68,7 @@ export function createAppenderConfig(
     }
     dateFile.layout = {
       type: 'coloredContext',
-      withStack: appender.withStack,
-      withFile: appender.withFile,
+      ...appender.layout,
     }
     customAppender[appender.name] = dateFile
   })
