@@ -1,6 +1,5 @@
-import { createPrivateKey, sign } from 'node:crypto'
 
-import { JWTPayload, SignJWT, decodeJwt, jwtVerify } from 'jose'
+import { GeneralEncrypt, KeyLike, SignJWT, decodeJwt, jwtVerify } from 'jose'
 
 import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
@@ -67,4 +66,40 @@ export const verifyJwtType = async (token: string, signkey: string): Promise<str
 export const decode = (token: string): JwtPayloadType => {
   const { payload } = decodeJwt(token)
   return payload as JwtPayloadType
+}
+
+export const encrypt = async(payload: JwtPayloadType, encryptkey: KeyLike): Promise<string> => {
+  logger.info('JWT.encrypt... payload=', payload)
+  logger.info('JWT.encrypt... encryptkey=', encryptkey)
+  try {
+    // Convert the key to JWK format if needed
+    const recipientKey = typeof encryptkey === 'string' 
+      ? JSON.parse(encryptkey)
+      : encryptkey;
+    
+    const jwe = await new GeneralEncrypt(
+      new TextEncoder().encode(JSON.stringify(payload)),
+    )
+      .setProtectedHeader({ enc: 'A256GCM' })
+      .addRecipient(recipientKey)
+      .setUnprotectedHeader({ alg: 'ECDH-ES+A256KW' })
+      .encrypt()
+    /*
+    const token = await new EncryptJWT({ payload, 'urn:gradido:claim': true })
+      .setProtectedHeader({
+        alg: 'HS256',
+        enc: 'A256GCM',
+        })
+        .setIssuedAt()
+        .setIssuer('urn:gradido:issuer')
+        .setAudience('urn:gradido:audience')
+        .setExpirationTime(payload.expiration)
+        .encrypt(encryptkey)
+    */    
+   logger.info('JWT.encrypt... jwe=', jwe)
+    return jwe.toString()
+  } catch (e) {
+    logger.error('Failed to encrypt JWT:', e)
+    throw e
+  }
 }

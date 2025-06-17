@@ -37,6 +37,7 @@ export async function startValidateCommunities(timerInterval: number): Promise<v
 }
 
 export async function validateCommunities(): Promise<void> {
+  // search all foreign federated communities which are still not verified or have not been verified since last dht-announcement
   const dbFederatedCommunities: DbFederatedCommunity[] =
     await DbFederatedCommunity.createQueryBuilder()
       .where({ foreign: true, verifiedAt: IsNull() })
@@ -104,12 +105,14 @@ export async function writeJwtKeyPairInHomeCommunity(): Promise<DbCommunity> {
         logger.debug(`Federation: writeJwtKeyPairInHomeCommunity publicKey=`, publicKeyPem);
         logger.debug(`Federation: writeJwtKeyPairInHomeCommunity privateKey=`, privateKeyPem);
         
-        homeCom.publicJwtKey = Buffer.from(publicKeyPem);
+        homeCom.publicJwtKey = publicKeyPem;
         logger.debug(`Federation: writeJwtKeyPairInHomeCommunity publicJwtKey.length=`, homeCom.publicJwtKey.length);
-        homeCom.privateJwtKey = Buffer.from(privateKeyPem);
+        homeCom.privateJwtKey = privateKeyPem;
         logger.debug(`Federation: writeJwtKeyPairInHomeCommunity privateJwtKey.length=`, homeCom.privateJwtKey.length);
         await DbCommunity.save(homeCom)
         logger.debug(`Federation: writeJwtKeyPairInHomeCommunity done`)
+      } else {
+        logger.debug(`Federation: writeJwtKeyPairInHomeCommunity: keypair already exists`)
       }
     } else {
       throw new Error(`Error! A HomeCommunity-Entry still not exist! Please start the DHT-Modul first.`)
@@ -141,6 +144,7 @@ async function writeForeignCommunity(
     com.foreign = true
     com.name = pubInfo.name
     com.publicKey = dbCom.publicKey
+    com.publicJwtKey = pubInfo.publicJwtKey
     com.url = dbCom.endPoint
     await DbCommunity.save(com)
   }

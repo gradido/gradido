@@ -9,6 +9,9 @@ import { ensureUrlEndsWithSlash } from '@/util/utilities'
 
 import { OpenConnectionArgs } from './client/1_0/model/OpenConnectionArgs'
 import { AuthenticationClientFactory } from './client/AuthenticationClientFactory'
+import { OpenConnectionJwtPayloadType } from '@/auth/jwt/payloadtypes/OpenConnectionJwtPayloadType'
+import { importSPKI } from 'jose'
+import { encrypt } from '@/auth/jwt/JWT'
 
 export async function startCommunityAuthentication(
   foreignFedCom: DbFederatedCommunity,
@@ -36,14 +39,22 @@ export async function startCommunityAuthentication(
       const client = AuthenticationClientFactory.getInstance(foreignFedCom)
 
       if (client instanceof V1_0_AuthenticationClient) {
+        if (!foreignCom.publicJwtKey) {
+          throw new Error('Public JWT key not found for foreign community')
+        }
         const args = new OpenConnectionArgs()
         args.publicKey = homeCom.publicKey.toString('hex')
-        // TODO encrypt url with foreignCom.publicKey and sign it with homeCom.privateKey
-        args.url = ensureUrlEndsWithSlash(homeFedCom.endPoint).concat(homeFedCom.apiVersion)
+        //create JWT with url in payload encrypted by foreignCom.publicKey and signed with homeCom.privateKey
+        const payload = new OpenConnectionJwtPayloadType(
+          ensureUrlEndsWithSlash(homeFedCom.endPoint).concat(homeFedCom.apiVersion),
+        )
+        const encryptKey = await importSPKI(foreignCom.publicJwtKey!, 'RS256')
+        const jwt = await encrypt(payload, encryptKey)
+        args.jwt = jwt
         logger.debug(
           'Authentication: before client.openConnection() args:',
           homeCom.publicKey.toString('hex'),
-          args.url,
+          args.jwt,
         )
         if (await client.openConnection(args)) {
           logger.debug(`Authentication: successful initiated at community:`, foreignFedCom.endPoint)

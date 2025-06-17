@@ -3,4 +3,5 @@ export interface PublicCommunityInfo {
   description: string
   creationDate: Date
   publicKey: string
+  publicJwtKey: string
 }
