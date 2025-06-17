@@ -252,9 +252,11 @@ describe('ContributionMessageResolver', () => {
             lastName: 'Bloxberg',
             email: 'bibi@bloxberg.de',
             language: 'de',
+            message: 'Admin Test',
             senderFirstName: 'Peter',
             senderLastName: 'Lustig',
             contributionMemo: 'Test env contribution',
+            contributionFrontendLink: `http://localhost/contributions/own-contributions/1#contributionListItem-${result.data.createContribution.id}`,
           })
         })
 

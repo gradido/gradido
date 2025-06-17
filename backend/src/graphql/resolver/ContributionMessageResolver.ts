@@ -24,6 +24,8 @@ import { LogError } from '@/server/LogError'
 import { Context, getUser } from '@/server/context'
 import { getLogger } from 'log4js'
 import { LOG4JS_RESOLVER_CATEGORY_NAME } from '.'
+
+import { contributionFrontendLink } from './util/contributions'
 import { findContributionMessages } from './util/findContributionMessages'
 
 const db = AppDatabase.getInstance()
@@ -183,6 +185,11 @@ export class ContributionMessageResolver {
         senderFirstName: moderator.firstName,
         senderLastName: moderator.lastName,
         contributionMemo: finalContribution.memo,
+        contributionFrontendLink: await contributionFrontendLink(
+          finalContribution.id,
+          finalContribution.createdAt,
+        ),
+        message: finalContributionMessage.message,
       })
     }
 
