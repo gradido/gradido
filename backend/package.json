@@ -25,7 +25,9 @@
     "typecheck": "tsc --noEmit"
   },
   "nodemonConfig": {
-    "ignore": ["**/*.test.ts"]
+    "ignore": [
+      "**/*.test.ts"
+    ]
   },
   "dependencies": {
     "cross-env": "^7.0.3",
@@ -34,7 +36,7 @@
   },
   "devDependencies": {
     "@anatine/esbuild-decorators": "^0.2.19",
-    "@biomejs/biome": "1.9.4",
+    "@biomejs/biome": "2.0.0",
     "@swc/cli": "^0.7.3",
     "@swc/core": "^1.11.24",
     "@swc/helpers": "^0.5.17",
