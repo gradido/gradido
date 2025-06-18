@@ -1,8 +1,10 @@
 import { AppDatabase } from 'database'
 
 import { exportEventDataToKlickTipp } from './klicktipp'
+import { initLogging } from '@/server/logger'
 
 async function executeKlicktipp(): Promise<boolean> {
+  initLogging()
   const connection = AppDatabase.getInstance()
   await connection.init()
   if (connection.isConnected()) {

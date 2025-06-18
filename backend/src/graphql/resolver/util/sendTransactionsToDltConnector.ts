@@ -3,8 +3,13 @@ import { IsNull } from 'typeorm'
 
 import { DltConnectorClient } from '@dltConnector/DltConnectorClient'
 
-import { backendLogger as logger } from '@/server/logger'
+import { LOG4JS_GRAPHQL_RESOLVER_UTIL_CATEGORY_NAME } from '@/graphql/resolver/util'
 import { Monitor, MonitorNames } from '@/util/Monitor'
+import { getLogger } from 'log4js'
+
+const logger = getLogger(
+  `${LOG4JS_GRAPHQL_RESOLVER_UTIL_CATEGORY_NAME}.sendTransactionsToDltConnector`,
+)
 
 export async function sendTransactionsToDltConnector(): Promise<void> {
   logger.info('sendTransactionsToDltConnector...')
@@ -35,7 +40,7 @@ export async function sendTransactionsToDltConnector(): Promise<void> {
             if (result) {
               dltTx.messageId = 'sended'
               await DltTransaction.save(dltTx)
-              logger.info('store messageId=%s in dltTx=%d', dltTx.messageId, dltTx.id)
+              logger.info(`store messageId=${dltTx.messageId} in dltTx=${dltTx.id}`)
             }
           } catch (e) {
             logger.error(

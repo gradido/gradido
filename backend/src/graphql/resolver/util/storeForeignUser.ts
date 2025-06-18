@@ -1,7 +1,10 @@
 import { Community as DbCommunity, User as DbUser } from 'database'
 
 import { SendCoinsResult } from '@/federation/client/1_0/model/SendCoinsResult'
-import { backendLogger as logger } from '@/server/logger'
+import { LOG4JS_GRAPHQL_RESOLVER_UTIL_CATEGORY_NAME } from '@/graphql/resolver/util'
+import { getLogger } from 'log4js'
+
+const logger = getLogger(`${LOG4JS_GRAPHQL_RESOLVER_UTIL_CATEGORY_NAME}.storeForeignUser`)
 
 export async function storeForeignUser(
   recipCom: DbCommunity,
@@ -18,7 +21,7 @@ export async function storeForeignUser(
       })
       if (!user) {
         logger.debug(
-          'X-Com: no foreignUser found for:',
+          'no foreignUser found for:',
           recipCom.communityUuid,
           committingResult.recipGradidoID,
         )
@@ -36,7 +39,7 @@ export async function storeForeignUser(
         }
         foreignUser.gradidoID = committingResult.recipGradidoID
         foreignUser = await DbUser.save(foreignUser)
-        logger.debug('X-Com: new foreignUser inserted:', foreignUser)
+        logger.debug('new foreignUser inserted:', foreignUser)
 
         return true
       } else if (
@@ -45,7 +48,7 @@ export async function storeForeignUser(
         user.alias !== committingResult.recipAlias
       ) {
         logger.warn(
-          'X-Com: foreignUser still exists, but with different name or alias:',
+          'foreignUser still exists, but with different name or alias:',
           user,
           committingResult,
         )
@@ -62,11 +65,11 @@ export async function storeForeignUser(
         logger.debug('update recipient successful.', user)
         return true
       } else {
-        logger.debug('X-Com: foreignUser still exists...:', user)
+        logger.debug('foreignUser still exists...:', user)
         return true
       }
     } catch (err) {
-      logger.error('X-Com: error in storeForeignUser;', err)
+      logger.error('error in storeForeignUser;', err)
       return false
     }
   }

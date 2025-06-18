@@ -2,7 +2,7 @@
 module.exports = {
   verbose: true,
   preset: 'ts-jest',
-  collectCoverage: true,
+  collectCoverage: false,
   collectCoverageFrom: ['src/**/*.ts', '!**/node_modules/**', '!src/seeds/**', '!build/**'],
   coverageThreshold: {
     global: {

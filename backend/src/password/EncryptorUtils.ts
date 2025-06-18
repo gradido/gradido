@@ -8,7 +8,6 @@ import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
 
 import { CONFIG } from '@/config'
 import { LogError } from '@/server/LogError'
-import { backendLogger as logger } from '@/server/logger'
 
 import { crypto_shorthash_KEYBYTES } from 'sodium-native'
 
@@ -40,7 +39,6 @@ export const SecretKeyCryptographyCreateKey = async (
   password: string,
 ): Promise<bigint> => {
   try {
-    logger.trace('call worker for: SecretKeyCryptographyCreateKey')
     if (configLoginServerKey.length !== crypto_shorthash_KEYBYTES) {
       throw new LogError(
         'ServerKey has an invalid size',

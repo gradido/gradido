@@ -1,13 +1,16 @@
 import { Transaction as DbTransaction } from 'database'
 import { GraphQLClient, gql } from 'graphql-request'
 
+import { LOG4JS_APIS_CATEGORY_NAME } from '@/apis/index'
 import { CONFIG } from '@/config'
 import { TransactionTypeId } from '@/graphql/enum/TransactionTypeId'
 import { LogError } from '@/server/LogError'
-import { backendLogger as logger } from '@/server/logger'
+import { getLogger } from 'log4js'
 
 import { TransactionResult } from './model/TransactionResult'
 import { UserIdentifier } from './model/UserIdentifier'
+
+const logger = getLogger(`${LOG4JS_APIS_CATEGORY_NAME}.dltConnector`)
 
 const sendTransaction = gql`
   mutation ($input: TransactionInput!) {

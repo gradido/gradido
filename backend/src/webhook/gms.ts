@@ -1,7 +1,9 @@
 import { User as DbUser } from 'database'
 
 import { decode } from '@/auth/JWT'
-import { gmsLogger as logger } from '@/server/logger'
+import { getLogger } from 'log4js'
+
+const logger = getLogger('gms.GmsWebhook')
 
 export const gmsWebhook = async (req: any, res: any): Promise<void> => {
   logger.info('GMS Hook received')

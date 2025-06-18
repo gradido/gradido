@@ -21,12 +21,6 @@ export const browserUrls = Joi.array()
   .required()
   .description('All URLs need to have same protocol to prevent mixed block errors')
 
-export const DECAY_START_TIME = Joi.date()
-  .iso() // ISO 8601 format for date validation
-  .description('The start time for decay, expected in ISO 8601 format (e.g. 2021-05-13T17:46:31Z)')
-  .default(new Date('2021-05-13T17:46:31Z')) // default to the specified date if not provided
-  .required()
-
 export const COMMUNITY_URL = Joi.string()
   .uri({ scheme: ['http', 'https'] })
   .custom((value: string, helpers: Joi.CustomHelpers<string>) => {
@@ -130,6 +124,22 @@ export const LOG4JS_CONFIG = Joi.string()
   .description('config file name for log4js config file')
   .default('log4js-config.json')
   .required()
+
+export const LOG4JS_CONFIG_PLACEHOLDER = Joi.string()
+  .pattern(/^[a-zA-Z0-9-_]+(%v)?\.json$/)
+  .message(
+    'LOG4JS_CONFIG_PLACEHOLDER must be a valid filename ending with .json can contain %v as API Version placeholder before ending',
+  )
+  .description('config file name for log4js config file')
+  .default('log4js-config.json')
+  .required()
+
+export const LOG_FILES_BASE_PATH = Joi.string()
+  .pattern(/^[a-zA-Z0-9-_\/\.]+$/)
+  .message('LOG_FILES_BASE_PATH must be a valid folder name, relative or absolute')
+  .description('log folder name for module log files')
+  .default('../logs/backend')
+  .optional()
 
 export const LOGIN_APP_SECRET = Joi.string()
   .pattern(/^[a-fA-F0-9]+$/)

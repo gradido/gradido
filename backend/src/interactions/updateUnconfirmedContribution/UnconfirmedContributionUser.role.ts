@@ -4,7 +4,6 @@ import { ContributionMessageBuilder } from '@/data/ContributionMessage.builder'
 import { ContributionArgs } from '@/graphql/arg/ContributionArgs'
 import { ContributionStatus } from '@/graphql/enum/ContributionStatus'
 import { LogError } from '@/server/LogError'
-import { backendLogger as logger } from '@/server/logger'
 
 import { AbstractUnconfirmedContributionRole } from './AbstractUnconfirmedContribution.role'
 
@@ -18,7 +17,7 @@ export class UnconfirmedContributionUserRole extends AbstractUnconfirmedContribu
     private updateData: ContributionArgs,
   ) {
     super(contribution, updateData.amount, new Date(updateData.contributionDate))
-    logger.debug('use UnconfirmedContributionUserRole')
+    this.logger.debug('use UnconfirmedContributionUserRole')
   }
 
   protected update(): void {

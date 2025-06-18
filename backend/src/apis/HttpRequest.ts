@@ -1,7 +1,10 @@
 import axios from 'axios'
 
+import { LOG4JS_APIS_CATEGORY_NAME } from '@/apis'
 import { LogError } from '@/server/LogError'
-import { backendLogger as logger } from '@/server/logger'
+import { getLogger } from 'log4js'
+
+const logger = getLogger(`${LOG4JS_APIS_CATEGORY_NAME}.HttpRequest`)
 
 import { httpAgent, httpsAgent } from './ConnectionAgents'
 

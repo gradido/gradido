@@ -4,6 +4,7 @@
 *.bak
 .turbo
 vite.config.mjs.timestamp-*
+log4js-config*.json
 /node_modules/*
 messages.pot
 nbproject

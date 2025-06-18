@@ -3,8 +3,13 @@ import { User as DbUser } from 'database'
 import { verifyAuthToken } from '@/apis/gms/GmsClient'
 import { CONFIG } from '@/config'
 import { GmsUserAuthenticationResult } from '@/graphql/model/GmsUserAuthenticationResult'
-import { backendLogger as logger } from '@/server/logger'
+import { LOG4JS_GRAPHQL_RESOLVER_UTIL_CATEGORY_NAME } from '@/graphql/resolver/util'
 import { ensureUrlEndsWithSlash } from '@/util/utilities'
+import { getLogger } from 'log4js'
+
+const logger = getLogger(
+  `${LOG4JS_GRAPHQL_RESOLVER_UTIL_CATEGORY_NAME}.authenticateGmsUserPlayground`,
+)
 
 export async function authenticateGmsUserPlayground(
   _apiKey: string,

@@ -8,14 +8,17 @@ import {
 import { Decimal } from 'decimal.js-light'
 
 import { PendingTransactionState } from '@/graphql/enum/PendingTransactionState'
+import { LOG4JS_GRAPHQL_RESOLVER_UTIL_CATEGORY_NAME } from '@/graphql/resolver/util'
 import { LogError } from '@/server/LogError'
-import { backendLogger as logger } from '@/server/logger'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 import { calculateSenderBalance } from '@/util/calculateSenderBalance'
-
+import { getLogger } from 'log4js'
 import { getLastTransaction } from './getLastTransaction'
 
 const db = AppDatabase.getInstance()
+const logger = getLogger(
+  `${LOG4JS_GRAPHQL_RESOLVER_UTIL_CATEGORY_NAME}.settlePendingSenderTransaction`,
+)
 
 export async function settlePendingSenderTransaction(
   homeCom: DbCommunity,
@@ -31,7 +34,7 @@ export async function settlePendingSenderTransaction(
   logger.debug(`start Transaction for write-access...`)
 
   try {
-    logger.info('X-Com: settlePendingSenderTransaction:', homeCom, senderUser, pendingTx)
+    logger.info('settlePendingSenderTransaction:', homeCom, senderUser, pendingTx)
 
     // ensure that no other pendingTx with the same sender or recipient exists
     const openSenderPendingTx = await DbPendingTransaction.count({

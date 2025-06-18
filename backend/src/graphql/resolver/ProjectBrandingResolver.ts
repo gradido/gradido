@@ -9,7 +9,10 @@ import { SpaceList } from '@model/SpaceList'
 import { HumHubClient } from '@/apis/humhub/HumHubClient'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { LogError } from '@/server/LogError'
-import { backendLogger as logger } from '@/server/logger'
+import { getLogger } from 'log4js'
+import { LOG4JS_RESOLVER_CATEGORY_NAME } from '.'
+
+const logger = getLogger(`${LOG4JS_RESOLVER_CATEGORY_NAME}.ProjectBrandingResolver`)
 
 @Resolver(() => ProjectBranding)
 export class ProjectBrandingResolver {

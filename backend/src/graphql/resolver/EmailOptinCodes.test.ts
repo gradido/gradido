@@ -101,6 +101,7 @@ describe('EmailOptinCodes', () => {
 
   describe('forgotPassword', () => {
     it('throws an error', async () => {
+      await mutate({ mutation: forgotPassword, variables: { email: 'peter@lustig.de' } })
       await expect(
         mutate({ mutation: forgotPassword, variables: { email: 'peter@lustig.de' } }),
       ).resolves.toMatchObject({

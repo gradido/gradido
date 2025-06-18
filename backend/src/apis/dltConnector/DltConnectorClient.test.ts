@@ -6,7 +6,6 @@ import { cleanDB, testEnvironment } from '@test/helpers'
 
 import { CONFIG } from '@/config'
 import { LogError } from '@/server/LogError'
-import { backendLogger as logger } from '@/server/logger'
 
 import { DltConnectorClient } from './DltConnectorClient'
 
@@ -76,7 +75,7 @@ describe.skip('transmitTransaction, without db connection', () => {
 
 describe('transmitTransaction', () => {
   beforeAll(async () => {
-    testEnv = await testEnvironment(logger)
+    testEnv = await testEnvironment()
     con = testEnv.con
     await cleanDB()
   })

@@ -1,10 +1,18 @@
 {
-  "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+  "root": false,
+  "$schema": "https://biomejs.dev/schemas/2.0.0/schema.json",
   "vcs": { "enabled": false, "clientKind": "git", "useIgnoreFile": false },
   "files": {
     "ignoreUnknown": false,
-    "ignore": ["build", "node_modules", "coverage"],
-    "include": ["./src/**/*.ts", "./entity/**/*.ts", "./logging/**/*.ts", "./migrations/**/*.ts"]
+    "includes": [
+      "src/**/*.ts",
+      "entity/**/*.ts",
+      "logging/**/*.ts",
+      "migrations/**/*.ts",
+      "!**/build",
+      "!**/node_modules",
+      "!**/coverage"
+    ]
   },
   "formatter": {
     "enabled": true,
@@ -17,14 +25,13 @@
     "attributePosition": "auto",
     "bracketSpacing": true
   },
-  "organizeImports": { "enabled": true },
+  "assist": { "actions": { "source": { "organizeImports": "on" } } },
   "linter": {
     "enabled": true,
     "rules": {
       "recommended": false,
       "complexity": {
         "noExtraBooleanCast": "error",
-        "noMultipleSpacesInRegularExpressionLiterals": "error",
         "noUselessCatch": "error",
         "noUselessConstructor": "error",
         "noUselessLoneBlockStatements": "error",
@@ -32,10 +39,11 @@
         "noUselessTernary": "error",
         "noUselessUndefinedInitialization": "error",
         "noVoid": "error",
-        "noWith": "error",
         "useArrowFunction": "off",
         "useLiteralKeys": "error",
-        "useRegexLiterals": "error"
+        "useRegexLiterals": "error",
+        "noAdjacentSpacesInRegex": "error",
+        "noCommaOperator": "error"
       },
       "correctness": {
         "noConstAssign": "error",
@@ -46,7 +54,6 @@
         "noInnerDeclarations": "error",
         "noInvalidConstructorSuper": "error",
         "noInvalidUseBeforeDeclaration": "error",
-        "noNewSymbol": "error",
         "noNodejsModules": "off",
         "noNonoctalDecimalEscape": "error",
         "noPrecisionLoss": "error",
@@ -60,22 +67,22 @@
         "noUnsafeOptionalChaining": "error",
         "noUnusedLabels": "error",
         "noUnusedVariables": "error",
-        "useArrayLiterals": "error",
         "useIsNan": "error",
         "useValidForDirection": "error",
-        "useYield": "error"
+        "useYield": "error",
+        "noInvalidBuiltinInstantiation": "error",
+        "useValidTypeof": "error"
       },
       "security": { "noGlobalEval": "error" },
       "style": {
-        "noCommaOperator": "error",
         "noDefaultExport": "error",
-        "noVar": "warn",
         "noYodaExpression": "error",
         "useBlockStatements": "error",
         "useConsistentBuiltinInstantiation": "error",
         "useConst": "error",
         "useSingleVarDeclarator": "error",
-        "useThrowOnlyError": "error"
+        "useThrowOnlyError": "error",
+        "useArrayLiterals": "error"
       },
       "suspicious": {
         "noAssignInExpressions": "error",
@@ -106,10 +113,11 @@
         "noUnsafeNegation": "error",
         "useDefaultSwitchClauseLast": "error",
         "useGetterReturn": "error",
-        "useValidTypeof": "error"
+        "noWith": "error",
+        "noVar": "warn"
       }
     },
-    "ignore": ["**/node_modules", "**/*.min.js", "**/build"]
+    "includes": ["**", "!**/node_modules", "!**/*.min.js", "!**/build"]
   },
   "javascript": {
     "formatter": {
@@ -127,7 +135,7 @@
   },
   "overrides": [
     {
-      "include": ["*.ts", "*.tsx"],
+      "includes": ["**/*.ts", "**/*.tsx"],
       "linter": { "rules": { "complexity": { "noVoid": "error" } } }
     }
   ]

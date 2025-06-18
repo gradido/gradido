@@ -3,8 +3,11 @@ import { Community as DbCommunity, User as DbUser } from 'database'
 import { createGmsUser, updateGmsUser } from '@/apis/gms/GmsClient'
 import { GmsUser } from '@/apis/gms/model/GmsUser'
 import { CONFIG } from '@/config'
+import { LOG4JS_GRAPHQL_RESOLVER_UTIL_CATEGORY_NAME } from '@/graphql/resolver/util'
 import { LogError } from '@/server/LogError'
-import { backendLogger as logger } from '@/server/logger'
+import { getLogger } from 'log4js'
+
+const logger = getLogger(`${LOG4JS_GRAPHQL_RESOLVER_UTIL_CATEGORY_NAME}.sendUserToGms`)
 
 export async function sendUserToGms(
   user: DbUser,

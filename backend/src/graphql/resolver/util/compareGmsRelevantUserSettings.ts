@@ -5,9 +5,14 @@ import { UpdateUserInfosArgs } from '@/graphql/arg/UpdateUserInfosArgs'
 import { GmsPublishLocationType } from '@/graphql/enum/GmsPublishLocationType'
 import { PublishNameType } from '@/graphql/enum/PublishNameType'
 import { LogError } from '@/server/LogError'
-import { backendLogger as logger } from '@/server/logger'
 
+import { getLogger } from 'log4js'
+import { LOG4JS_GRAPHQL_RESOLVER_UTIL_CATEGORY_NAME } from '.'
 import { Point2Location } from './Location2Point'
+
+const logger = getLogger(
+  `${LOG4JS_GRAPHQL_RESOLVER_UTIL_CATEGORY_NAME}.compareGmsRelevantUserSettings`,
+)
 
 export function compareGmsRelevantUserSettings(
   orgUser: DbUser,

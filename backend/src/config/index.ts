@@ -1,21 +1,18 @@
 // ATTENTION: DO NOT PUT ANY SECRETS IN HERE (or the .env)
 
-import { validate } from 'config-schema'
-import { Decimal } from 'decimal.js-light'
+import { LogLevel, validate } from 'config-schema'
 import dotenv from 'dotenv'
 
 import { schema } from './schema'
 
 dotenv.config()
 
-Decimal.set({
-  precision: 25,
-  rounding: Decimal.ROUND_HALF_UP,
-})
-
-const constants = {
-  DECAY_START_TIME: new Date('2021-05-13 17:46:31-0000'), // GMT+0
-  LOG4JS_CONFIG: 'log4js-config.json',
+const logging = {
+  LOG4JS_CONFIG: process.env.LOG4JS_CONFIG ?? 'log4js-config.json',
+  // default log level on production should be info
+  // log level for default log4js-config.json, don't change existing log4js-config.json
+  LOG_LEVEL: (process.env.LOG_LEVEL ?? 'info') as LogLevel,
+  LOG_FILES_BASE_PATH: process.env.LOG_FILES_BASE_PATH ?? '../logs/backend',
 }
 
 const server = {
@@ -27,8 +24,6 @@ const server = {
   GDT_ACTIVE: process.env.GDT_ACTIVE === 'true' || false,
   GDT_API_URL: process.env.GDT_API_URL ?? 'https://gdt.gradido.net',
   PRODUCTION: process.env.NODE_ENV === 'production' || false,
-  // default log level on production should be info
-  LOG_LEVEL: process.env.LOG_LEVEL ?? 'info',
 }
 
 const klicktipp = {
@@ -143,7 +138,7 @@ const openai = {
 }
 
 export const CONFIG = {
-  ...constants,
+  ...logging,
   ...server,
   ...klicktipp,
   ...dltConnector,

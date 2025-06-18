@@ -1,21 +1,17 @@
-import { readFileSync } from 'fs'
-
-import { configure, getLogger } from 'log4js'
-
 import { CONFIG } from '@/config'
+import { defaultCategory, initLogger } from 'config-schema'
 
-const options = JSON.parse(readFileSync(CONFIG.LOG4JS_CONFIG, 'utf-8'))
-
-options.categories.backend.level = CONFIG.LOG_LEVEL
-options.categories.apollo.level = CONFIG.LOG_LEVEL
-
-configure(options)
-
-const apolloLogger = getLogger('apollo')
-const backendLogger = getLogger('backend')
-const klickTippLogger = getLogger('klicktipp')
-const gmsLogger = getLogger('gms')
-
-backendLogger.addContext('user', 'unknown')
-
-export { apolloLogger, backendLogger, klickTippLogger, gmsLogger }
+export function initLogging() {
+  // init logger
+  initLogger(
+    [
+      defaultCategory('backend', CONFIG.LOG_LEVEL),
+      defaultCategory('apollo', CONFIG.LOG_LEVEL),
+      defaultCategory('klicktipp', CONFIG.LOG_LEVEL),
+      defaultCategory('gms', CONFIG.LOG_LEVEL),
+      defaultCategory('seed', CONFIG.LOG_LEVEL),
+    ],
+    CONFIG.LOG_FILES_BASE_PATH,
+    CONFIG.LOG4JS_CONFIG,
+  )
+}

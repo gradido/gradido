@@ -3,11 +3,11 @@ import { Community as DbCommunity, FederatedCommunity as DbFederatedCommunity } 
 import { validate as validateUUID, version as versionUUID } from 'uuid'
 
 import { cleanDB, testEnvironment } from '@test/helpers'
-import { logger } from '@test/testSetup'
+import { clearLogs, getLogger, printLogs } from 'config-schema/test/testSetup'
 
 import { CONFIG } from '@/config'
 
-import { startDHT } from './index'
+import { LOG_CATEGORY_DHT_NODE, startDHT } from './index'
 
 CONFIG.FEDERATION_DHT_SEED = '64ebcb0e3ad547848fef4197c6e2332f'
 CONFIG.FEDERATION_COMMUNITY_APIS = '1_0,1_1,2_0'
@@ -20,6 +20,8 @@ const keyPairMock = {
   publicKey: Buffer.from('publicKey'),
   secretKey: Buffer.from('secretKey'),
 }
+
+const logger = getLogger(LOG_CATEGORY_DHT_NODE)
 
 const serverListenSpy = jest.fn()
 
@@ -110,6 +112,13 @@ afterAll(async () => {
 describe('federation', () => {
   beforeAll(() => {
     jest.useFakeTimers()
+  })
+
+  afterEach(() => {
+    // print logs which where captured during test
+    // printLogs()
+    // clean logs after, else they will be printed in next test again
+    // cleanLogs()
   })
 
   describe('call startDHT', () => {
@@ -349,6 +358,7 @@ describe('federation', () => {
               let jsonArray: any[]
               let result: DbFederatedCommunity[] = []
               beforeAll(async () => {
+                clearLogs()
                 jest.clearAllMocks()
                 jsonArray = [
                   {
@@ -364,6 +374,7 @@ describe('federation', () => {
                 ]
                 await socketEventMocks.data(Buffer.from(JSON.stringify(jsonArray)))
                 result = await DbFederatedCommunity.find({ where: { foreign: true } })
+                printLogs()
               })
 
               afterAll(async () => {

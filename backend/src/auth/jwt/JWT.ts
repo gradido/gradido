@@ -1,11 +1,13 @@
-import { createPrivateKey, sign } from 'node:crypto'
-
-import { JWTPayload, SignJWT, decodeJwt, jwtVerify } from 'jose'
+import { SignJWT, decodeJwt, jwtVerify } from 'jose'
 
 import { LogError } from '@/server/LogError'
-import { backendLogger as logger } from '@/server/logger'
 
 import { JwtPayloadType } from './payloadtypes/JwtPayloadType'
+
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { getLogger } from 'log4js'
+
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.auth.jwt.JWT`)
 
 export const verify = async (token: string, signkey: string): Promise<JwtPayloadType | null> => {
   if (!token) {

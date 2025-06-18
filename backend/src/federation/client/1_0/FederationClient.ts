@@ -1,14 +1,17 @@
 import { FederatedCommunity as DbFederatedCommunity } from 'database'
 import { GraphQLClient } from 'graphql-request'
 
+import { LOG4JS_FEDERATION_CLIENT1_0_CATEGORY_NAME } from '@/federation/client/1_0'
 import { getPublicCommunityInfo } from '@/federation/client/1_0/query/getPublicCommunityInfo'
 import { getPublicKey } from '@/federation/client/1_0/query/getPublicKey'
-import { backendLogger as logger } from '@/server/logger'
 import { ensureUrlEndsWithSlash } from '@/util/utilities'
+import { getLogger } from 'log4js'
 
 import { PublicCommunityInfoLoggingView } from './logging/PublicCommunityInfoLogging.view'
 import { GetPublicKeyResult } from './model/GetPublicKeyResult'
 import { PublicCommunityInfo } from './model/PublicCommunityInfo'
+
+const logger = getLogger(`${LOG4JS_FEDERATION_CLIENT1_0_CATEGORY_NAME}.FederationClient`)
 
 export class FederationClient {
   dbCom: DbFederatedCommunity
@@ -32,25 +35,25 @@ export class FederationClient {
   }
 
   getPublicKey = async (): Promise<string | undefined> => {
-    logger.debug('Federation: getPublicKey from endpoint', this.endpoint)
+    logger.debug('getPublicKey from endpoint', this.endpoint)
     try {
       const { data } = await this.client.rawRequest<{ getPublicKey: GetPublicKeyResult }>(
         getPublicKey,
         {},
       )
       if (!data?.getPublicKey?.publicKey) {
-        logger.warn('Federation: getPublicKey without response data from endpoint', this.endpoint)
+        logger.warn('getPublicKey without response data from endpoint', this.endpoint)
         return
       }
       logger.debug(
-        'Federation: getPublicKey successful from endpoint',
+        'getPublicKey successful from endpoint',
         this.endpoint,
         data.getPublicKey.publicKey,
       )
       return data.getPublicKey.publicKey
     } catch (err) {
       const errorString = JSON.stringify(err)
-      logger.warn('Federation: getPublicKey failed for endpoint', {
+      logger.warn('getPublicKey failed for endpoint', {
         endpoint: this.endpoint,
         err: errorString.length <= 200 ? errorString : errorString.substring(0, 200) + '...',
       })
@@ -58,20 +61,17 @@ export class FederationClient {
   }
 
   getPublicCommunityInfo = async (): Promise<PublicCommunityInfo | undefined> => {
-    logger.debug(`Federation: getPublicCommunityInfo with endpoint='${this.endpoint}'...`)
+    logger.debug(`getPublicCommunityInfo with endpoint='${this.endpoint}'...`)
     try {
       const { data } = await this.client.rawRequest<{
         getPublicCommunityInfo: PublicCommunityInfo
       }>(getPublicCommunityInfo, {})
 
       if (!data?.getPublicCommunityInfo?.name) {
-        logger.warn(
-          'Federation: getPublicCommunityInfo without response data from endpoint',
-          this.endpoint,
-        )
+        logger.warn('getPublicCommunityInfo without response data from endpoint', this.endpoint)
         return
       }
-      logger.debug(`Federation: getPublicCommunityInfo successful from endpoint=${this.endpoint}`)
+      logger.debug(`getPublicCommunityInfo successful from endpoint=${this.endpoint}`)
       logger.debug(
         `publicCommunityInfo:`,
         new PublicCommunityInfoLoggingView(data.getPublicCommunityInfo),
@@ -80,7 +80,7 @@ export class FederationClient {
     } catch (err) {
       logger.warn(' err', err)
       const errorString = JSON.stringify(err)
-      logger.warn('Federation: getPublicCommunityInfo failed for endpoint', {
+      logger.warn('getPublicCommunityInfo failed for endpoint', {
         endpoint: this.endpoint,
         err: errorString.length <= 200 ? errorString : errorString.substring(0, 200) + '...',
       })

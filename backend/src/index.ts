@@ -1,10 +1,14 @@
 import 'reflect-metadata'
+import 'source-map-support/register'
+import { getLogger } from 'log4js'
 import { CONFIG } from './config'
 import { startValidateCommunities } from './federation/validateCommunities'
 import { createServer } from './server/createServer'
+import { initLogging } from './server/logger'
 
 async function main() {
-  const { app } = await createServer()
+  initLogging()
+  const { app } = await createServer(getLogger('apollo'))
 
   app.listen(CONFIG.PORT, () => {
     // biome-ignore lint/suspicious/noConsole: no need for logging the start message
