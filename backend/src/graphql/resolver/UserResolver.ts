@@ -1172,7 +1172,7 @@ export async function findUserByEmail(email: string): Promise<DbUser> {
     return dbUser
   } catch (e) {
     const logger = createLogger()
-    if (e instanceof EntityNotFoundError) {
+    if (e instanceof EntityNotFoundError || (e as Error).name === 'EntityNotFoundError') {
       // TODO: discuss if it is ok to print email in log for this case
       logger.warn(`findUserByEmail failed, user with email=${email} not found`)
     } else {

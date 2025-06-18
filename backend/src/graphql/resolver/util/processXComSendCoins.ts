@@ -70,7 +70,7 @@ export async function processXComPendingSendCoins(
 
     const receiverFCom = await DbFederatedCommunity.findOneOrFail({
       where: {
-        publicKey: receiverCom.publicKey,
+        publicKey: Buffer.from(receiverCom.publicKey),
         apiVersion: CONFIG.FEDERATION_BACKEND_SEND_ON_API,
       },
     })
@@ -194,7 +194,7 @@ export async function processXComCommittingSendCoins(
       logger.debug('find pending Tx for settlement:', pendingTx)
       const receiverFCom = await DbFederatedCommunity.findOneOrFail({
         where: {
-          publicKey: receiverCom.publicKey,
+          publicKey: Buffer.from(receiverCom.publicKey),
 
           apiVersion: CONFIG.FEDERATION_BACKEND_SEND_ON_API,
         },
