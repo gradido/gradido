@@ -1,9 +1,7 @@
 import 'reflect-metadata'
 
 import { ApolloServer } from 'apollo-server-express'
-import express, { Express, RequestHandler } from 'express'
-
-import { checkDBVersionUntil } from '@/typeorm/DBVersion'
+import express, { Express } from 'express'
 
 // server
 import cors from './cors'
@@ -13,15 +11,11 @@ import { plugins } from './plugins'
 // graphql
 import { schema } from '@/graphql/schema'
 
-// webhooks
-// import { elopageWebhook } from '@/webhook/elopage'
-import { Connection } from 'typeorm'
-
-import { CONFIG } from '@/config'
+import { AppDatabase } from 'database'
 import { slowDown } from 'express-slow-down'
 import helmet from 'helmet'
 import { Logger } from 'log4js'
-import { apolloLogger } from './logger'
+import { DataSource } from 'typeorm'
 
 // i18n
 // import { i18n } from './localization'
@@ -29,21 +23,16 @@ import { apolloLogger } from './logger'
 // TODO implement
 // import queryComplexity, { simpleEstimator, fieldConfigEstimator } from "graphql-query-complexity";
 
-type ServerDef = { apollo: ApolloServer; app: Express; con: Connection }
+type ServerDef = { apollo: ApolloServer; app: Express; con: DataSource }
 
 export const createServer = async (
   // context: any = serverContext,
-  logger: Logger = apolloLogger,
+  apolloLogger: Logger,
   // localization: i18n.I18n = i18n,
 ): Promise<ServerDef> => {
-  logger.addContext('user', 'unknown')
-  logger.debug('createServer...')
-
   // open mysql connection
-  const con = await checkDBVersionUntil(
-    CONFIG.DB_CONNECT_RETRY_COUNT,
-    CONFIG.DB_CONNECT_RETRY_DELAY_MS,
-  )
+  const db = AppDatabase.getInstance()
+  await db.init()
 
   // Express Server
   const app = express()
@@ -82,9 +71,6 @@ export const createServer = async (
   // i18n
   // app.use(localization.init)
 
-  // Elopage Webhook
-  // app.post('/hook/elopage/' + CONFIG.WEBHOOK_ELOPAGE_SECRET, elopageWebhook)
-
   // Apollo Server
   const apollo = new ApolloServer({
     schema: await schema(),
@@ -92,10 +78,8 @@ export const createServer = async (
     // introspection: CONFIG.GRAPHIQL,
     // context,
     plugins,
-    logger,
+    logger: apolloLogger,
   })
   apollo.applyMiddleware({ app, path: '/' })
-  logger.debug('createServer...successful')
-
-  return { apollo, app, con }
+  return { apollo, app, con: db.getDataSource() }
 }

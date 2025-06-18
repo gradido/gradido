@@ -1,6 +1,6 @@
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { Contribution, User } from 'database'
-import { Connection } from 'typeorm'
+import { DataSource } from 'typeorm'
 
 import { cleanDB, contributionDateFormatter, testEnvironment } from '@test/helpers'
 
@@ -17,11 +17,11 @@ jest.mock('@/password/EncryptorUtils')
 CONFIG.HUMHUB_ACTIVE = false
 
 let mutate: ApolloServerTestClient['mutate']
-let con: Connection
+let con: DataSource
 let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']
-  con: Connection
+  con: DataSource
 }
 
 beforeAll(async () => {
@@ -33,7 +33,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await cleanDB()
-  await con.close()
+  await con.destroy()
 })
 
 const setZeroHours = (date: Date): Date => {

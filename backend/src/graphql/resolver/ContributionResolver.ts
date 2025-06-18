@@ -7,7 +7,7 @@ import {
 import { Decimal } from 'decimal.js-light'
 import { GraphQLResolveInfo } from 'graphql'
 import { Arg, Args, Authorized, Ctx, Info, Int, Mutation, Query, Resolver } from 'type-graphql'
-import { EntityManager, IsNull, getConnection } from 'typeorm'
+import { EntityManager, IsNull } from 'typeorm'
 
 import { AdminCreateContributionArgs } from '@arg/AdminCreateContributionArgs'
 import { AdminUpdateContributionArgs } from '@arg/AdminUpdateContributionArgs'
@@ -43,19 +43,27 @@ import {
 import { UpdateUnconfirmedContributionContext } from '@/interactions/updateUnconfirmedContribution/UpdateUnconfirmedContribution.context'
 import { LogError } from '@/server/LogError'
 import { Context, getClientTimezoneOffset, getUser } from '@/server/context'
-import { backendLogger as logger } from '@/server/logger'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 import { calculateDecay } from '@/util/decay'
 import { fullName } from '@/util/utilities'
 
-import { start } from 'repl'
-import { ContributionMessageType } from '../enum/ContributionMessageType'
-import { loadAllContributions, loadUserContributions } from './util/contributions'
+import { LOG4JS_RESOLVER_CATEGORY_NAME } from '@/graphql/resolver'
+import { ContributionMessageType } from '@enum/ContributionMessageType'
+import { AppDatabase } from 'database'
+import { getLogger } from 'log4js'
+import {
+  contributionFrontendLink,
+  loadAllContributions,
+  loadUserContributions,
+} from './util/contributions'
 import { getOpenCreations, getUserCreation, validateContribution } from './util/creations'
 import { extractGraphQLFields } from './util/extractGraphQLFields'
 import { findContributions } from './util/findContributions'
 import { getLastTransaction } from './util/getLastTransaction'
 import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
+
+const db = AppDatabase.getInstance()
+const createLogger = () => getLogger(`${LOG4JS_RESOLVER_CATEGORY_NAME}.ContributionResolver`)
 
 @Resolver(() => Contribution)
 export class ContributionResolver {
@@ -79,6 +87,8 @@ export class ContributionResolver {
 
     const user = getUser(context)
     const creations = await getUserCreation(user.id, clientTimezoneOffset)
+    const logger = createLogger()
+    logger.addContext('user', user.id)
     logger.trace('creations', creations)
     const contributionDateObj = new Date(contributionDate)
     validateContribution(creations, amount, contributionDateObj, clientTimezoneOffset)
@@ -191,7 +201,7 @@ export class ContributionResolver {
       context,
     )
     const { contribution, contributionMessage } = await updateUnconfirmedContributionContext.run()
-    await getConnection().transaction(async (transactionalEntityManager: EntityManager) => {
+    await db.getDataSource().transaction(async (transactionalEntityManager: EntityManager) => {
       await transactionalEntityManager.save(contribution)
       if (contributionMessage) {
         await transactionalEntityManager.save(contributionMessage)
@@ -209,6 +219,8 @@ export class ContributionResolver {
     @Args() { email, amount, memo, creationDate }: AdminCreateContributionArgs,
     @Ctx() context: Context,
   ): Promise<Decimal[]> {
+    const logger = createLogger()
+    logger.addContext('admin', context.user?.id)
     logger.info(
       `adminCreateContribution(email=${email}, amount=${amount.toString()}, memo=${memo}, creationDate=${creationDate})`,
     )
@@ -260,6 +272,8 @@ export class ContributionResolver {
     @Args() adminUpdateContributionArgs: AdminUpdateContributionArgs,
     @Ctx() context: Context,
   ): Promise<AdminUpdateContribution> {
+    const logger = createLogger()
+    logger.addContext('contribution', adminUpdateContributionArgs.id)
     const updateUnconfirmedContributionContext = new UpdateUnconfirmedContributionContext(
       adminUpdateContributionArgs.id,
       adminUpdateContributionArgs,
@@ -267,11 +281,10 @@ export class ContributionResolver {
     )
     const { contribution, contributionMessage, createdByUserChangedByModerator } =
       await updateUnconfirmedContributionContext.run()
-    await getConnection().transaction(async (transactionalEntityManager: EntityManager) => {
+    await db.getDataSource().transaction(async (transactionalEntityManager: EntityManager) => {
       await transactionalEntityManager.save(contribution)
       // TODO: move into specialized view or formatting for logging class
       logger.debug('saved changed contribution', {
-        id: contribution.id,
         amount: contribution.amount.toString(),
         memo: contribution.memo,
         contributionDate: contribution.contributionDate.toString(),
@@ -282,7 +295,6 @@ export class ContributionResolver {
         await transactionalEntityManager.save(contributionMessage)
         // TODO: move into specialized view or formatting for logging class
         logger.debug('save new contributionMessage', {
-          contributionId: contributionMessage.contributionId,
           type: contributionMessage.type,
           message: contributionMessage.message,
           isModerator: contributionMessage.isModerator,
@@ -317,6 +329,10 @@ export class ContributionResolver {
         senderLastName: moderator.lastName,
         contributionMemo: updateUnconfirmedContributionContext.getOldMemo(),
         contributionMemoUpdated: contribution.memo,
+        contributionFrontendLink: await contributionFrontendLink(
+          contribution.id,
+          contribution.createdAt,
+        ),
       })
     }
 
@@ -403,6 +419,10 @@ export class ContributionResolver {
       senderFirstName: moderator.firstName,
       senderLastName: moderator.lastName,
       contributionMemo: contribution.memo,
+      contributionFrontendLink: await contributionFrontendLink(
+        contribution.id,
+        contribution.createdAt,
+      ),
     })
 
     return !!res
@@ -414,6 +434,9 @@ export class ContributionResolver {
     @Arg('id', () => Int) id: number,
     @Ctx() context: Context,
   ): Promise<boolean> {
+    const logger = createLogger()
+    logger.addContext('contribution', id)
+
     // acquire lock
     const releaseLock = await TRANSACTIONS_LOCK.acquire()
     try {
@@ -449,7 +472,7 @@ export class ContributionResolver {
       )
 
       const receivedCallDate = new Date()
-      const queryRunner = getConnection().createQueryRunner()
+      const queryRunner = db.getDataSource().createQueryRunner()
       await queryRunner.connect()
       await queryRunner.startTransaction('REPEATABLE READ') // 'READ COMMITTED')
 
@@ -510,6 +533,10 @@ export class ContributionResolver {
           senderLastName: moderatorUser.lastName,
           contributionMemo: contribution.memo,
           contributionAmount: contribution.amount,
+          contributionFrontendLink: await contributionFrontendLink(
+            contribution.id,
+            contribution.createdAt,
+          ),
         })
       } catch (e) {
         await queryRunner.rollbackTransaction()
@@ -593,6 +620,10 @@ export class ContributionResolver {
       senderFirstName: moderator.firstName,
       senderLastName: moderator.lastName,
       contributionMemo: contributionToUpdate.memo,
+      contributionFrontendLink: await contributionFrontendLink(
+        contributionToUpdate.id,
+        contributionToUpdate.createdAt,
+      ),
     })
 
     return !!res

@@ -1,19 +1,18 @@
 import { Transaction as DbTransaction } from 'database'
 import { Decimal } from 'decimal.js-light'
-import { Connection } from 'typeorm'
+import { DataSource } from 'typeorm'
 
 import { cleanDB, testEnvironment } from '@test/helpers'
 
 import { CONFIG } from '@/config'
 import { LogError } from '@/server/LogError'
-import { backendLogger as logger } from '@/server/logger'
 
 import { DltConnectorClient } from './DltConnectorClient'
 
-let con: Connection
+let con: DataSource
 
 let testEnv: {
-  con: Connection
+  con: DataSource
 }
 
 // Mock the GraphQLClient
@@ -76,14 +75,14 @@ describe.skip('transmitTransaction, without db connection', () => {
 
 describe('transmitTransaction', () => {
   beforeAll(async () => {
-    testEnv = await testEnvironment(logger)
+    testEnv = await testEnvironment()
     con = testEnv.con
     await cleanDB()
   })
 
   afterAll(async () => {
     await cleanDB()
-    await con.close()
+    await con.destroy()
   })
 
   const transaction = new DbTransaction()

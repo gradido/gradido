@@ -1,9 +1,8 @@
-import { UserInputError } from 'apollo-server-express'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { Contribution, Event as DbEvent, Transaction as DbTransaction, User } from 'database'
 import { Decimal } from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
-import { Connection, Equal } from 'typeorm'
+import { DataSource, Equal } from 'typeorm'
 
 import { ContributionMessageType } from '@enum/ContributionMessageType'
 import { ContributionStatus } from '@enum/ContributionStatus'
@@ -15,8 +14,9 @@ import {
   resetToken,
   testEnvironment,
 } from '@test/helpers'
-import { i18n as localization, logger } from '@test/testSetup'
+import { i18n as localization } from '@test/testSetup'
 
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import {
   sendContributionConfirmedEmail,
   sendContributionDeletedEmail,
@@ -51,17 +51,21 @@ import { peterLustig } from '@/seeds/users/peter-lustig'
 import { raeuberHotzenplotz } from '@/seeds/users/raeuber-hotzenplotz'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
 import { getFirstDayOfPreviousNMonth } from '@/util/utilities'
+import { clearLogs, getLogger, printLogs } from 'config-schema/test/testSetup'
+import { getLogger as originalGetLogger } from 'log4js'
 
 jest.mock('@/emails/sendEmailVariants')
 jest.mock('@/password/EncryptorUtils')
 
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)
+
 let mutate: ApolloServerTestClient['mutate']
 let query: ApolloServerTestClient['query']
-let con: Connection
+let con: DataSource
 let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']
-  con: Connection
+  con: DataSource
 }
 let creation: Contribution | null
 let admin: User
@@ -73,7 +77,7 @@ let contributionToDelete: any
 let bibiCreatedContribution: Contribution
 
 beforeAll(async () => {
-  testEnv = await testEnvironment(logger, localization)
+  testEnv = await testEnvironment(originalGetLogger('apollo'), localization)
   mutate = testEnv.mutate
   query = testEnv.query
   con = testEnv.con
@@ -82,7 +86,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await cleanDB()
-  await con.close()
+  await con.destroy()
 })
 
 describe('ContributionResolver', () => {
@@ -877,6 +881,7 @@ describe('ContributionResolver', () => {
             senderFirstName: 'Peter',
             senderLastName: 'Lustig',
             contributionMemo: 'Test contribution to deny',
+            contributionFrontendLink: `http://localhost/contributions/own-contributions/1#contributionListItem-${contributionToDeny.data.createContribution.id}`,
           })
         })
       })
@@ -1954,6 +1959,7 @@ describe('ContributionResolver', () => {
                 senderFirstName: 'Peter',
                 senderLastName: 'Lustig',
                 contributionMemo: 'Das war leider zu Viel!',
+                contributionFrontendLink: `http://localhost/contributions/own-contributions/1#contributionListItem-${creation?.id}`,
               })
             })
           })
@@ -2120,6 +2126,7 @@ describe('ContributionResolver', () => {
                 senderLastName: 'Lustig',
                 contributionMemo: 'Herzlich Willkommen bei Gradido liebe Bibi!',
                 contributionAmount: expect.decimalEqual(450),
+                contributionFrontendLink: `http://localhost/contributions/own-contributions/1#contributionListItem-${creation?.id}`,
               })
             })
 

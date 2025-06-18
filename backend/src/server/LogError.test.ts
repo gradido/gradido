@@ -1,6 +1,9 @@
-import { logger } from '@test/testSetup'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { getLogger } from 'config-schema/test/testSetup'
 
 import { LogError } from './LogError'
+
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)
 
 describe('LogError', () => {
   it('logs an Error when created', () => {

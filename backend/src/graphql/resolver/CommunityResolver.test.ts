@@ -1,11 +1,11 @@
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { Community as DbCommunity, FederatedCommunity as DbFederatedCommunity } from 'database'
 import { GraphQLError } from 'graphql/error/GraphQLError'
-import { Connection } from 'typeorm'
+import { DataSource } from 'typeorm'
 import { v4 as uuidv4 } from 'uuid'
 
 import { cleanDB, testEnvironment } from '@test/helpers'
-import { i18n as localization, logger } from '@test/testSetup'
+import { i18n as localization } from '@test/testSetup'
 
 import { userFactory } from '@/seeds/factory/user'
 import { login, updateHomeCommunityQuery } from '@/seeds/graphql/mutations'
@@ -18,19 +18,23 @@ import {
 } from '@/seeds/graphql/queries'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 
+import { getLogger } from 'config-schema/test/testSetup'
+import { LOG4JS_RESOLVER_CATEGORY_NAME } from '.'
 import { getCommunityByUuid } from './util/communities'
 
 jest.mock('@/password/EncryptorUtils')
 
+const logger = getLogger(`${LOG4JS_RESOLVER_CATEGORY_NAME}.CommunityResolver`)
+
 // to do: We need a setup for the tests that closes the connection
 let mutate: ApolloServerTestClient['mutate']
 let query: ApolloServerTestClient['query']
-let con: Connection
+let con: DataSource
 
 let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']
-  con: Connection
+  con: DataSource
 }
 
 const peterLoginData = {
@@ -49,7 +53,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await cleanDB()
-  await con.close()
+  await con.destroy()
 })
 
 // real valid ed25519 key pairs

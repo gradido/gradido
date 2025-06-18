@@ -113,8 +113,6 @@ COPY --chown=app:app --from=build ${DOCKER_WORKDIR}/backend/build/worker.js ./wo
 # add node_modules from production_node_modules
 COPY --chown=app:app --from=production-node-modules ${DOCKER_WORKDIR}/node_modules ./node_modules
 
-# Copy log4js-config.json to provide log configuration
-COPY --chown=app:app --from=build ${DOCKER_WORKDIR}/backend/log4js-config.json ./log4js-config.json
 # Copy locales
 COPY --chown=app:app --from=build ${DOCKER_WORKDIR}/backend/locales ./locales
 

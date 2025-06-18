@@ -1,0 +1,3 @@
+import { LOG4JS_APIS_CATEGORY_NAME } from '@/apis'
+
+export const LOG4JS_GMS_CATEGORY_NAME = `${LOG4JS_APIS_CATEGORY_NAME}.gms`

@@ -1,19 +1,24 @@
 import {
+  AppDatabase,
   Community as DbCommunity,
   PendingTransaction as DbPendingTransaction,
   User as DbUser,
   Transaction as dbTransaction,
 } from 'database'
 import { Decimal } from 'decimal.js-light'
-import { getConnection } from 'typeorm'
 
 import { PendingTransactionState } from '@/graphql/enum/PendingTransactionState'
+import { LOG4JS_GRAPHQL_RESOLVER_UTIL_CATEGORY_NAME } from '@/graphql/resolver/util'
 import { LogError } from '@/server/LogError'
-import { backendLogger as logger } from '@/server/logger'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 import { calculateSenderBalance } from '@/util/calculateSenderBalance'
-
+import { getLogger } from 'log4js'
 import { getLastTransaction } from './getLastTransaction'
+
+const db = AppDatabase.getInstance()
+const logger = getLogger(
+  `${LOG4JS_GRAPHQL_RESOLVER_UTIL_CATEGORY_NAME}.settlePendingSenderTransaction`,
+)
 
 export async function settlePendingSenderTransaction(
   homeCom: DbCommunity,
@@ -23,13 +28,13 @@ export async function settlePendingSenderTransaction(
   // TODO: synchronisation with TRANSACTION_LOCK of federation-modul necessary!!!
   // acquire lock
   const releaseLock = await TRANSACTIONS_LOCK.acquire()
-  const queryRunner = getConnection().createQueryRunner()
+  const queryRunner = db.getDataSource().createQueryRunner()
   await queryRunner.connect()
   await queryRunner.startTransaction('REPEATABLE READ')
   logger.debug(`start Transaction for write-access...`)
 
   try {
-    logger.info('X-Com: settlePendingSenderTransaction:', homeCom, senderUser, pendingTx)
+    logger.info('settlePendingSenderTransaction:', homeCom, senderUser, pendingTx)
 
     // ensure that no other pendingTx with the same sender or recipient exists
     const openSenderPendingTx = await DbPendingTransaction.count({

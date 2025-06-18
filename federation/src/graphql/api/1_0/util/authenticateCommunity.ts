@@ -1,10 +1,10 @@
-import { federationLogger as logger } from '@/server/logger'
 import {
   CommunityLoggingView,
   Community as DbCommunity,
   FederatedCommunity as DbFedCommunity,
   FederatedCommunityLoggingView,
 } from 'database'
+import { getLogger } from 'log4js'
 import { OpenConnectionArgs } from '../model/OpenConnectionArgs'
 import { OpenConnectionCallbackArgs } from '../model/OpenConnectionCallbackArgs'
 
@@ -12,14 +12,17 @@ import { AuthenticationClientFactory } from '@/client/AuthenticationClientFactor
 import { randombytes_random } from 'sodium-native'
 
 import { AuthenticationClient as V1_0_AuthenticationClient } from '@/client/1_0/AuthenticationClient'
+import { LOG4JS_1_0_UTIL_CATEGORY_NAME } from '.'
 import { AuthenticationArgs } from '../model/AuthenticationArgs'
+
+const logger = getLogger(`${LOG4JS_1_0_UTIL_CATEGORY_NAME}.authenticateCommunity`)
 
 export async function startOpenConnectionCallback(
   args: OpenConnectionArgs,
   comA: DbCommunity,
   api: string,
 ): Promise<void> {
-  logger.debug(`Authentication: startOpenConnectionCallback() with:`, {
+  logger.debug(`startOpenConnectionCallback() with:`, {
     args,
     comA: new CommunityLoggingView(comA),
   })
@@ -53,13 +56,13 @@ export async function startOpenConnectionCallback(
         : homeFedCom.endPoint + '/' + homeFedCom.apiVersion
       logger.debug(`Authentication: start openConnectionCallback with args:`, callbackArgs)
       if (await client.openConnectionCallback(callbackArgs)) {
-        logger.debug('Authentication: startOpenConnectionCallback() successful:', callbackArgs)
+        logger.debug('startOpenConnectionCallback() successful:', callbackArgs)
       } else {
-        logger.error('Authentication: startOpenConnectionCallback() failed:', callbackArgs)
+        logger.error('startOpenConnectionCallback() failed:', callbackArgs)
       }
     }
   } catch (err) {
-    logger.error('Authentication: error in startOpenConnectionCallback:', err)
+    logger.error('error in startOpenConnectionCallback:', err)
   }
 }
 
@@ -67,7 +70,7 @@ export async function startAuthentication(
   oneTimeCode: string,
   fedComB: DbFedCommunity,
 ): Promise<void> {
-  logger.debug(`Authentication: startAuthentication()...`, {
+  logger.debug(`startAuthentication()...`, {
     oneTimeCode,
     fedComB: new FederatedCommunityLoggingView(fedComB),
   })
@@ -84,12 +87,12 @@ export async function startAuthentication(
       if (homeCom.communityUuid) {
         authenticationArgs.uuid = homeCom.communityUuid
       }
-      logger.debug(`Authentication: invoke authenticate() with:`, authenticationArgs)
+      logger.debug(`invoke authenticate() with:`, authenticationArgs)
       const fedComUuid = await client.authenticate(authenticationArgs)
-      logger.debug(`Authentication: response of authenticate():`, fedComUuid)
+      logger.debug(`response of authenticate():`, fedComUuid)
       if (fedComUuid !== null) {
         logger.debug(
-          `Authentication: received communityUUid for callbackFedCom:`,
+          `received communityUUid for callbackFedCom:`,
           fedComUuid,
           new FederatedCommunityLoggingView(fedComB),
         )
@@ -101,15 +104,12 @@ export async function startAuthentication(
         callbackCom.communityUuid = fedComUuid
         callbackCom.authenticatedAt = new Date()
         await DbCommunity.save(callbackCom)
-        logger.debug(
-          'Authentication: Community Authentication successful:',
-          new CommunityLoggingView(callbackCom),
-        )
+        logger.debug('Community Authentication successful:', new CommunityLoggingView(callbackCom))
       } else {
-        logger.error('Authentication: Community Authentication failed:', authenticationArgs)
+        logger.error('Community Authentication failed:', authenticationArgs)
       }
     }
   } catch (err) {
-    logger.error('Authentication: error in startOpenConnectionCallback:', err)
+    logger.error('error in startAuthentication:', err)
   }
 }

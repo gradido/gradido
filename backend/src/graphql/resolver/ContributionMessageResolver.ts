@@ -1,10 +1,11 @@
 import {
+  AppDatabase,
   Contribution as DbContribution,
   ContributionMessage as DbContributionMessage,
   User as DbUser,
 } from 'database'
 import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
-import { EntityManager, FindOptionsRelations, getConnection } from 'typeorm'
+import { EntityManager, FindOptionsRelations } from 'typeorm'
 
 import { ContributionMessageArgs } from '@arg/ContributionMessageArgs'
 import { Paginated } from '@arg/Paginated'
@@ -21,9 +22,14 @@ import {
 import { UpdateUnconfirmedContributionContext } from '@/interactions/updateUnconfirmedContribution/UpdateUnconfirmedContribution.context'
 import { LogError } from '@/server/LogError'
 import { Context, getUser } from '@/server/context'
-import { backendLogger as logger } from '@/server/logger'
+import { getLogger } from 'log4js'
+import { LOG4JS_RESOLVER_CATEGORY_NAME } from '.'
 
+import { contributionFrontendLink } from './util/contributions'
 import { findContributionMessages } from './util/findContributionMessages'
+
+const db = AppDatabase.getInstance()
+const createLogger = () => getLogger(`${LOG4JS_RESOLVER_CATEGORY_NAME}.ContributionMessageResolver`)
 
 @Resolver()
 export class ContributionMessageResolver {
@@ -43,9 +49,9 @@ export class ContributionMessageResolver {
     let finalContributionMessage: DbContributionMessage | undefined
 
     try {
-      await getConnection().transaction(
-        'REPEATABLE READ',
-        async (transactionalEntityManager: EntityManager) => {
+      await db
+        .getDataSource()
+        .transaction('REPEATABLE READ', async (transactionalEntityManager: EntityManager) => {
           const { contribution, contributionMessage, contributionChanged } =
             await updateUnconfirmedContributionContext.run(transactionalEntityManager)
 
@@ -62,8 +68,7 @@ export class ContributionMessageResolver {
 
           finalContribution = contribution
           finalContributionMessage = contributionMessage
-        },
-      )
+        })
     } catch (e) {
       throw new LogError(`ContributionMessage was not sent successfully: ${e}`, e)
     }
@@ -123,7 +128,9 @@ export class ContributionMessageResolver {
     @Args() contributionMessageArgs: ContributionMessageArgs,
     @Ctx() context: Context,
   ): Promise<ContributionMessage> {
+    const logger = createLogger()
     const { contributionId, messageType } = contributionMessageArgs
+    logger.addContext('contribution', contributionMessageArgs.contributionId)
     const updateUnconfirmedContributionContext = new UpdateUnconfirmedContributionContext(
       contributionId,
       contributionMessageArgs,
@@ -137,9 +144,9 @@ export class ContributionMessageResolver {
     let finalContributionMessage: DbContributionMessage | undefined
 
     try {
-      await getConnection().transaction(
-        'REPEATABLE READ',
-        async (transactionalEntityManager: EntityManager) => {
+      await db
+        .getDataSource()
+        .transaction('REPEATABLE READ', async (transactionalEntityManager: EntityManager) => {
           const { contribution, contributionMessage, contributionChanged } =
             await updateUnconfirmedContributionContext.run(transactionalEntityManager, relations)
           if (contributionChanged) {
@@ -159,8 +166,7 @@ export class ContributionMessageResolver {
           }
           finalContribution = contribution
           finalContributionMessage = contributionMessage
-        },
-      )
+        })
     } catch (e) {
       throw new LogError(`ContributionMessage was not sent successfully: ${e}`, e)
     }
@@ -179,6 +185,11 @@ export class ContributionMessageResolver {
         senderFirstName: moderator.firstName,
         senderLastName: moderator.lastName,
         contributionMemo: finalContribution.memo,
+        contributionFrontendLink: await contributionFrontendLink(
+          finalContribution.id,
+          finalContribution.createdAt,
+        ),
+        message: finalContributionMessage.message,
       })
     }
 

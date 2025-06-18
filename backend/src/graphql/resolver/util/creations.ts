@@ -1,13 +1,17 @@
 import { Contribution } from 'database'
 import { Decimal } from 'decimal.js-light'
-import { getConnection } from 'typeorm'
 
 import { OpenCreation } from '@model/OpenCreation'
 
 import { FULL_CREATION_AVAILABLE, MAX_CREATION_AMOUNT } from '@/graphql/resolver/const/const'
+import { LOG4JS_GRAPHQL_RESOLVER_UTIL_CATEGORY_NAME } from '@/graphql/resolver/util'
 import { LogError } from '@/server/LogError'
-import { backendLogger as logger } from '@/server/logger'
 import { getFirstDayOfPreviousNMonth } from '@/util/utilities'
+import { AppDatabase } from 'database'
+import { getLogger } from 'log4js'
+
+const db = AppDatabase.getInstance()
+const logger = getLogger(`${LOG4JS_GRAPHQL_RESOLVER_UTIL_CATEGORY_NAME}.creations`)
 
 interface CreationMap {
   id: number
@@ -46,7 +50,7 @@ export const getUserCreations = async (
   const months = getCreationMonths(timezoneOffset)
   logger.trace('getUserCreations months', months)
 
-  const queryRunner = getConnection().createQueryRunner()
+  const queryRunner = db.getDataSource().createQueryRunner()
   await queryRunner.connect()
 
   const dateFilter = 'last_day(curdate() - interval 3 month) + interval 1 day'

@@ -1,9 +1,13 @@
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { Decimal } from 'decimal.js-light'
-import { Connection } from 'typeorm'
+import { DataSource } from 'typeorm'
 
 import { testEnvironment } from '@test/helpers'
-import { i18n as localization, logger } from '@test/testSetup'
+import { i18n as localization } from '@test/testSetup'
+import { getLogger } from 'config-schema/test/testSetup'
+import { LOG4JS_EMAILS_CATEGORY_NAME } from '.'
+
+const logger = getLogger(`${LOG4JS_EMAILS_CATEGORY_NAME}.sendEmailTranslated`)
 
 import { CONFIG } from '@/config'
 
@@ -45,11 +49,11 @@ jest.mock('nodemailer', () => {
   }
 })
 
-let con: Connection
+let con: DataSource
 let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']
-  con: Connection
+  con: DataSource
 }
 
 beforeAll(async () => {
@@ -58,13 +62,15 @@ beforeAll(async () => {
 })
 
 afterAll(async () => {
-  await con.close()
+  await con.destroy()
 })
 
 const sendEmailTranslatedSpy = jest.spyOn(sendEmailTranslatedApi, 'sendEmailTranslated')
 
 describe('sendEmailVariants', () => {
   let result: any
+  const contributionFrontendLink =
+    'https://gradido.net/contributions/own-contributions/1#contributionListItem-1'
 
   describe('sendAddedContributionMessageEmail', () => {
     beforeAll(async () => {
@@ -76,6 +82,8 @@ describe('sendEmailVariants', () => {
         senderFirstName: 'Bibi',
         senderLastName: 'Bloxberg',
         contributionMemo: 'My contribution.',
+        contributionFrontendLink,
+        message: 'My message.',
       })
     })
 
@@ -93,9 +101,9 @@ describe('sendEmailVariants', () => {
             senderFirstName: 'Bibi',
             senderLastName: 'Bloxberg',
             contributionMemo: 'My contribution.',
-            overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
+            contributionFrontendLink,
+            message: 'My message.',
             supportEmail: CONFIG.COMMUNITY_SUPPORT_MAIL,
-            communityURL: CONFIG.COMMUNITY_URL,
           },
         })
       })
@@ -234,6 +242,7 @@ describe('sendEmailVariants', () => {
         senderLastName: 'Bloxberg',
         contributionMemo: 'My contribution.',
         contributionAmount: new Decimal(23.54),
+        contributionFrontendLink,
       })
     })
 
@@ -252,9 +261,8 @@ describe('sendEmailVariants', () => {
             senderLastName: 'Bloxberg',
             contributionMemo: 'My contribution.',
             contributionAmount: '23.54',
-            overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
             supportEmail: CONFIG.COMMUNITY_SUPPORT_MAIL,
-            communityURL: CONFIG.COMMUNITY_URL,
+            contributionFrontendLink,
           },
         })
       })
@@ -291,6 +299,7 @@ describe('sendEmailVariants', () => {
         senderLastName: 'Bloxberg',
         contributionMemo: 'My contribution.',
         contributionMemoUpdated: 'This is a better contribution memo.',
+        contributionFrontendLink,
       })
     })
 
@@ -309,9 +318,8 @@ describe('sendEmailVariants', () => {
             senderLastName: 'Bloxberg',
             contributionMemo: 'My contribution.',
             contributionMemoUpdated: 'This is a better contribution memo.',
-            overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
+            contributionFrontendLink,
             supportEmail: CONFIG.COMMUNITY_SUPPORT_MAIL,
-            communityURL: CONFIG.COMMUNITY_URL,
           },
         })
       })
@@ -347,6 +355,7 @@ describe('sendEmailVariants', () => {
         senderFirstName: 'Bibi',
         senderLastName: 'Bloxberg',
         contributionMemo: 'My contribution.',
+        contributionFrontendLink,
       })
     })
 
@@ -364,9 +373,8 @@ describe('sendEmailVariants', () => {
             senderFirstName: 'Bibi',
             senderLastName: 'Bloxberg',
             contributionMemo: 'My contribution.',
-            overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
+            contributionFrontendLink,
             supportEmail: CONFIG.COMMUNITY_SUPPORT_MAIL,
-            communityURL: CONFIG.COMMUNITY_URL,
           },
         })
       })
@@ -402,6 +410,7 @@ describe('sendEmailVariants', () => {
         senderFirstName: 'Bibi',
         senderLastName: 'Bloxberg',
         contributionMemo: 'My contribution.',
+        contributionFrontendLink,
       })
     })
 
@@ -419,9 +428,8 @@ describe('sendEmailVariants', () => {
             senderFirstName: 'Bibi',
             senderLastName: 'Bloxberg',
             contributionMemo: 'My contribution.',
-            overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
+            contributionFrontendLink,
             supportEmail: CONFIG.COMMUNITY_SUPPORT_MAIL,
-            communityURL: CONFIG.COMMUNITY_URL,
           },
         })
       })
@@ -531,7 +539,6 @@ describe('sendEmailVariants', () => {
             senderEmail: 'bibi@bloxberg.de',
             transactionMemo: 'You deserve it! 🙏🏼',
             transactionAmount: '17.65',
-            overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
             supportEmail: CONFIG.COMMUNITY_SUPPORT_MAIL,
             communityURL: CONFIG.COMMUNITY_URL,
           },
@@ -590,7 +597,6 @@ describe('sendEmailVariants', () => {
             senderLastName: 'Bloxberg',
             senderEmail: 'bibi@bloxberg.de',
             transactionAmount: '37.40',
-            overviewURL: CONFIG.EMAIL_LINK_OVERVIEW,
             supportEmail: CONFIG.COMMUNITY_SUPPORT_MAIL,
             communityURL: CONFIG.COMMUNITY_URL,
           },

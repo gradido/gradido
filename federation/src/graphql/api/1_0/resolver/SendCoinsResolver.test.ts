@@ -1,12 +1,13 @@
 import { CONFIG } from '@/config'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { fullName } from '@/graphql/util/fullName'
 import { cleanDB, testEnvironment } from '@test/helpers'
-import { logger } from '@test/testSetup'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { Community as DbCommunity, User as DbUser, UserContact as DbUserContact } from 'database'
 import Decimal from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
-import { Connection } from 'typeorm'
+import { getLogger } from 'log4js'
+import { DataSource } from 'typeorm'
 import { SendCoinsArgs } from '../model/SendCoinsArgs'
 
 let mutate: ApolloServerTestClient['mutate'] // , con: Connection
@@ -15,7 +16,7 @@ let mutate: ApolloServerTestClient['mutate'] // , con: Connection
 let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']
-  con: Connection
+  con: DataSource
 }
 
 CONFIG.FEDERATION_API = '1_0'
@@ -28,7 +29,7 @@ let recipUser: DbUser
 let recipContact: DbUserContact
 
 beforeAll(async () => {
-  testEnv = await testEnvironment(logger)
+  testEnv = await testEnvironment(getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.apollo`))
   mutate = testEnv.mutate
   //  query = testEnv.query
   // con = testEnv.con

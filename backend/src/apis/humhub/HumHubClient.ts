@@ -4,14 +4,17 @@ import { IRequestOptions, IRestResponse, RestClient } from 'typed-rest-client'
 
 import { CONFIG } from '@/config'
 import { LogError } from '@/server/LogError'
-import { backendLogger as logger } from '@/server/logger'
 
+import { LOG4JS_HUMHUB_CATEGORY_NAME } from '@/apis/humhub/index'
+import { getLogger } from 'log4js'
 import { PostUserLoggingView } from './logging/PostUserLogging.view'
 import { GetUser } from './model/GetUser'
 import { PostUser } from './model/PostUser'
 import { Space } from './model/Space'
 import { SpacesResponse } from './model/SpacesResponse'
 import { UsersResponse } from './model/UsersResponse'
+
+const logger = getLogger(`${LOG4JS_HUMHUB_CATEGORY_NAME}.HumHubClient`)
 
 /**
  * HumHubClient as singleton class

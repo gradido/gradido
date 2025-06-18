@@ -5,23 +5,23 @@ import {
 } from 'database'
 import { IsNull } from 'typeorm'
 
+import { LOG4JS_FEDERATION_CATEGORY_NAME } from '@/federation'
 import { FederationClient as V1_0_FederationClient } from '@/federation/client/1_0/FederationClient'
 import { PublicCommunityInfo } from '@/federation/client/1_0/model/PublicCommunityInfo'
 import { FederationClientFactory } from '@/federation/client/FederationClientFactory'
 import { LogError } from '@/server/LogError'
-import { backendLogger as logger } from '@/server/logger'
-
+import { getLogger } from 'log4js'
 import { startCommunityAuthentication } from './authenticateCommunities'
 import { PublicCommunityInfoLoggingView } from './client/1_0/logging/PublicCommunityInfoLogging.view'
 import { ApiVersionType } from './enum/apiVersionType'
+
+const logger = getLogger(`${LOG4JS_FEDERATION_CATEGORY_NAME}.validateCommunities`)
 
 export async function startValidateCommunities(timerInterval: number): Promise<void> {
   if (Number.isNaN(timerInterval) || timerInterval <= 0) {
     throw new LogError('FEDERATION_VALIDATE_COMMUNITY_TIMER is not a positive number')
   }
-  logger.info(
-    `Federation: startValidateCommunities loop with an interval of ${timerInterval} ms...`,
-  )
+  logger.info(`startValidateCommunities loop with an interval of ${timerInterval} ms...`)
   // delete all foreign federated community entries to avoid increasing validation efforts and log-files
   await DbFederatedCommunity.delete({ foreign: true })
 
@@ -40,17 +40,13 @@ export async function validateCommunities(): Promise<void> {
       .orWhere('verified_at < last_announced_at')
       .getMany()
 
-  logger.debug(`Federation: found ${dbFederatedCommunities.length} dbCommunities`)
+  logger.debug(`found ${dbFederatedCommunities.length} dbCommunities`)
   for (const dbCom of dbFederatedCommunities) {
-    logger.debug('Federation: dbCom', new FederatedCommunityLoggingView(dbCom))
+    logger.debug('dbCom', new FederatedCommunityLoggingView(dbCom))
     const apiValueStrings: string[] = Object.values(ApiVersionType)
     logger.debug(`suppported ApiVersions=`, apiValueStrings)
     if (!apiValueStrings.includes(dbCom.apiVersion)) {
-      logger.debug(
-        'Federation: dbCom with unsupported apiVersion',
-        dbCom.endPoint,
-        dbCom.apiVersion,
-      )
+      logger.debug('dbCom with unsupported apiVersion', dbCom.endPoint, dbCom.apiVersion)
       continue
     }
     try {
@@ -60,21 +56,17 @@ export async function validateCommunities(): Promise<void> {
         const pubKey = await client.getPublicKey()
         if (pubKey && pubKey === dbCom.publicKey.toString('hex')) {
           await DbFederatedCommunity.update({ id: dbCom.id }, { verifiedAt: new Date() })
-          logger.debug(`Federation: verified community with:`, dbCom.endPoint)
+          logger.debug(`verified community with:`, dbCom.endPoint)
           const pubComInfo = await client.getPublicCommunityInfo()
           if (pubComInfo) {
             await writeForeignCommunity(dbCom, pubComInfo)
             await startCommunityAuthentication(dbCom)
-            logger.debug(`Federation: write publicInfo of community: name=${pubComInfo.name}`)
+            logger.debug(`write publicInfo of community: name=${pubComInfo.name}`)
           } else {
-            logger.debug('Federation: missing result of getPublicCommunityInfo')
+            logger.debug('missing result of getPublicCommunityInfo')
           }
         } else {
-          logger.debug(
-            'Federation: received not matching publicKey:',
-            pubKey,
-            dbCom.publicKey.toString('hex'),
-          )
+          logger.debug('received not matching publicKey:', pubKey, dbCom.publicKey.toString('hex'))
         }
       }
     } catch (err) {

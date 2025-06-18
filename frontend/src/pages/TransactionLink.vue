@@ -277,6 +277,10 @@ onResult(() => {
     // console.log('TransactionLink.onResult... TransactionLink')
     isTransactionLinkLoaded.value = true
     setTransactionLinkInformation()
+  } else if (result.value?.queryTransactionLink?.__typename === 'ContributionLink') {
+    // console.log('TransactionLink.onResult... ContributionLink')
+    isTransactionLinkLoaded.value = true
+    setContributionLinkInformation()
   } else if (result.value?.queryTransactionLink?.__typename === 'RedeemJwtLink') {
     // console.log('TransactionLink.onResult... RedeemJwtLink')
     isTransactionLinkLoaded.value = true
@@ -317,11 +321,15 @@ function setTransactionLinkInformation() {
     }
     linkData.value = deepCopy.queryTransactionLink
     // console.log('TransactionLink.setTransactionLinkInformation... linkData.value=', linkData.value)
-    if (linkData.value.__typename === 'ContributionLink' && store.state.token) {
-      // console.log('TransactionLink.setTransactionLinkInformation... typename === ContributionLink')
-      // explicit no await
-      mutationLink(linkData.value.amount)
-    }
+  }
+}
+
+function setContributionLinkInformation() {
+  linkData.value = result.value.queryTransactionLink
+  if (linkData.value.__typename === 'ContributionLink' && store.state.token) {
+    // console.log('TransactionLink.setTransactionLinkInformation... typename === ContributionLink')
+    // explicit no await
+    mutationLink(linkData.value.amount)
   }
 }
 

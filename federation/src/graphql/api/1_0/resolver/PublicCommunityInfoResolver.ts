@@ -1,8 +1,11 @@
-import { federationLogger as logger } from '@/server/logger'
 import { Community as DbCommunity } from 'database'
+import { getLogger } from 'log4js'
 import { Query, Resolver } from 'type-graphql'
+import { LOG4JS_RESOLVER_1_0_CATEGORY_NAME } from '.'
 import { GetPublicCommunityInfoResultLoggingView } from '../logger/GetPublicCommunityInfoResultLogging.view'
 import { GetPublicCommunityInfoResult } from '../model/GetPublicCommunityInfoResult'
+
+const logger = getLogger(`${LOG4JS_RESOLVER_1_0_CATEGORY_NAME}.PublicCommunityInfoResolver`)
 
 @Resolver()
 export class PublicCommunityInfoResolver {

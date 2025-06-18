@@ -1,4 +1,5 @@
 import {
+  AppDatabase,
   ContributionLink as DbContributionLink,
   TransactionLink as DbTransactionLink,
   User as DbUser,
@@ -22,7 +23,7 @@ import {
   Root,
 } from 'type-graphql'
 import { IRestResponse } from 'typed-rest-client'
-import { In, Point, getConnection } from 'typeorm'
+import { EntityNotFoundError, In, Point } from 'typeorm'
 import { v4 as uuidv4 } from 'uuid'
 
 import { UserArgs } from '@arg//UserArgs'
@@ -79,15 +80,16 @@ import { isValidPassword } from '@/password/EncryptorUtils'
 import { encryptPassword, verifyPassword } from '@/password/PasswordEncryptor'
 import { LogError } from '@/server/LogError'
 import { Context, getClientTimezoneOffset, getUser } from '@/server/context'
-import { backendLogger as logger } from '@/server/logger'
 import { communityDbUser } from '@/util/communityUser'
 import { hasElopageBuys } from '@/util/hasElopageBuys'
-import { getTimeDurationObject, printTimeDuration } from '@/util/time'
+import { durationInMinutesFromDates, getTimeDurationObject, printTimeDuration } from '@/util/time'
 import { delay } from '@/util/utilities'
 
 import random from 'random-bigint'
 import { randombytes_random } from 'sodium-native'
 
+import { LOG4JS_RESOLVER_CATEGORY_NAME } from '@/graphql/resolver'
+import { Logger, getLogger } from 'log4js'
 import { FULL_CREATION_AVAILABLE } from './const/const'
 import { Location2Point, Point2Location } from './util/Location2Point'
 import { authenticateGmsUserPlayground } from './util/authenticateGmsUserPlayground'
@@ -105,11 +107,13 @@ import { validateAlias } from './util/validateAlias'
 
 const LANGUAGES = ['de', 'en', 'es', 'fr', 'nl']
 const DEFAULT_LANGUAGE = 'de'
+const db = AppDatabase.getInstance()
+const createLogger = () => getLogger(`${LOG4JS_RESOLVER_CATEGORY_NAME}.UserResolver`)
 const isLanguage = (language: string): boolean => {
   return LANGUAGES.includes(language)
 }
 
-const newEmailContact = (email: string, userId: number): DbUserContact => {
+const newEmailContact = (email: string, userId: number, logger: Logger): DbUserContact => {
   logger.trace(`newEmailContact...`)
   const emailContact = new DbUserContact()
   emailContact.email = email
@@ -122,12 +126,12 @@ const newEmailContact = (email: string, userId: number): DbUserContact => {
   return emailContact
 }
 
-export const activationLink = (verificationCode: string): string => {
+export const activationLink = (verificationCode: string, logger: Logger): string => {
   logger.debug(`activationLink(${verificationCode})...`)
   return CONFIG.EMAIL_LINK_SETPASSWORD + verificationCode.toString()
 }
 
-const newGradidoID = async (): Promise<string> => {
+const newGradidoID = async (logger: Logger): Promise<string> => {
   let gradidoId: string
   let countIds: number
   do {
@@ -145,14 +149,16 @@ export class UserResolver {
   @Authorized([RIGHTS.VERIFY_LOGIN])
   @Query(() => User)
   async verifyLogin(@Ctx() context: Context): Promise<User> {
+    const logger = createLogger()
     logger.info('verifyLogin...')
     // TODO refactor and do not have duplicate code with login(see below)
     const userEntity = getUser(context)
+    logger.addContext('user', userEntity.id)
     const user = new User(userEntity)
     // Elopage Status & Stored PublisherId
     user.hasElopage = await this.hasElopage(context)
 
-    logger.debug(`verifyLogin... successful: ${user.firstName}.${user.lastName}`)
+    logger.debug(`verifyLogin... successful`)
     user.klickTipp = await getKlicktippState(userEntity.emailContact.email)
     return user
   }
@@ -163,31 +169,39 @@ export class UserResolver {
     @Args() { email, password, publisherId, project }: UnsecureLoginArgs,
     @Ctx() context: Context,
   ): Promise<User> {
-    logger.info(`login with ${email}, ***, ${publisherId}, project=${project} ...`)
+    const logger = createLogger()
+    logger.info(`login with ${email.substring(0, 3)}..., project=${project} ...`)
     email = email.trim().toLowerCase()
     let dbUser: DbUser
 
     try {
       dbUser = await findUserByEmail(email)
+      // add pubKey in logger-context for layout-pattern X{user} to print it in each logging message
+      logger.addContext('user', dbUser.id)
+      logger.trace('user before login', new UserLoggingView(dbUser))
     } catch (e) {
       // simulate delay which occur on password encryption 650 ms +- 50 rnd
       await delay(650 + Math.floor(Math.random() * 101) - 50)
       throw e
     }
-
+    // TODO: discuss need we logging all this cases?
     if (dbUser.deletedAt) {
-      throw new LogError('This user was permanently deleted. Contact support for questions', dbUser)
+      logger.warn('login failed, user was deleted')
+      throw new Error('This user was permanently deleted. Contact support for questions')
     }
     if (!dbUser.emailContact.emailChecked) {
-      throw new LogError('The Users email is not validate yet', dbUser)
+      logger.warn('login failed, user email not checked')
+      throw new Error('The Users email is not validate yet')
     }
     // TODO: at least in test this does not work since `dbUser.password = 0` and `BigInto(0) = 0n`
     if (dbUser.password === BigInt(0)) {
       // TODO we want to catch this on the frontend and ask the user to check his emails or resend code
-      throw new LogError('The User has not set a password yet', dbUser)
+      logger.warn('login failed, user has not set a password yet')
+      throw new Error('The User has not set a password yet')
     }
     if (!(await verifyPassword(dbUser, password))) {
-      throw new LogError('No user with this credentials', dbUser)
+      logger.warn('login failed, wrong password')
+      throw new Error('No user with this credentials')
     }
 
     // request to humhub and klicktipp run in parallel
@@ -215,17 +229,14 @@ export class UserResolver {
       dbUser.password = await encryptPassword(dbUser, password)
       await dbUser.save()
     }
-    // add pubKey in logger-context for layout-pattern X{user} to print it in each logging message
-    logger.addContext('user', dbUser.id)
     logger.debug('validation of login credentials successful...')
 
     const user = new User(dbUser)
-    logger.debug(`user= ${JSON.stringify(user, null, 2)}`)
     i18n.setLocale(user.language)
 
     // Elopage Status & Stored PublisherId
     user.hasElopage = await this.hasElopage({ ...context, user: dbUser })
-    logger.info('user.hasElopage', user.hasElopage)
+    logger.debug('user.hasElopage', user.hasElopage)
     if (!user.hasElopage && publisherId) {
       user.publisherId = publisherId
       dbUser.publisherId = publisherId
@@ -239,7 +250,7 @@ export class UserResolver {
 
     await EVENT_USER_LOGIN(dbUser)
     const projectBranding = await projectBrandingPromise
-    logger.debug('project branding: ', projectBranding)
+    logger.debug('project branding: ', projectBranding?.id)
     // load humhub state
     if (humhubUserPromise) {
       try {
@@ -258,7 +269,8 @@ export class UserResolver {
       }
     }
     user.klickTipp = await klicktippStatePromise
-    logger.info(`successful Login: ${JSON.stringify(user, null, 2)}`)
+    logger.info('successful Login')
+    logger.trace('user after login', new UserLoggingView(dbUser))
     return user
   }
 
@@ -266,8 +278,6 @@ export class UserResolver {
   @Mutation(() => Boolean)
   async logout(@Ctx() context: Context): Promise<boolean> {
     await EVENT_USER_LOGOUT(getUser(context))
-    // remove user from logger context
-    logger.addContext('user', 'unknown')
     return true
   }
 
@@ -286,10 +296,24 @@ export class UserResolver {
       project = null,
     }: CreateUserArgs,
   ): Promise<User> {
-    logger.addContext('user', 'unknown')
-    logger.info(
-      `createUser(email=${email}, firstName=${firstName}, lastName=${lastName}, language=${language}, publisherId=${publisherId}, redeemCode=${redeemCode}, project=${project})`,
-    )
+    const logger = createLogger()
+    const shortEmail = email.substring(0, 3)
+    logger.addContext('email', shortEmail)
+
+    const shortRedeemCode = redeemCode?.substring(0, 6)
+    const infos = []
+    infos.push(`language=${language}`)
+    if (publisherId) {
+      infos.push(`publisherId=${publisherId}`)
+    }
+    if (redeemCode) {
+      infos.push(`redeemCode=${shortRedeemCode}`)
+    }
+    if (project) {
+      infos.push(`project=${project}`)
+    }
+    logger.info(`createUser(${infos.join(', ')})`)
+
     // TODO: wrong default value (should be null), how does graphql work here? Is it an required field?
     // default int publisher_id = 0;
 
@@ -303,15 +327,16 @@ export class UserResolver {
     email = email.trim().toLowerCase()
     if (await checkEmailExists(email)) {
       const foundUser = await findUserByEmail(email)
-      logger.info('DbUser.findOne', email, foundUser)
+      logger.info('DbUser.findOne', foundUser.id)
 
       if (foundUser) {
+        logger.addContext('user', foundUser.id)
+        logger.removeContext('email')
         // ATTENTION: this logger-message will be exactly expected during tests, next line
-        logger.info(`User already exists with this email=${email}`)
+        logger.info(`User already exists`)
         logger.info(
-          `Specified username when trying to register multiple times with this email: firstName=${firstName}, lastName=${lastName}`,
+          `Specified username when trying to register multiple times with this email: firstName=${firstName.substring(0, 4)}, lastName=${lastName.substring(0, 4)}`,
         )
-        // TODO: this is unsecure, but the current implementation of the login server. This way it can be queried if the user with given EMail is existent.
 
         const user = new User(communityDbUser)
         user.id = randombytes_random() % (2048 * 16) // TODO: for a better faking derive id from email so that it will be always the same id when the same email comes in?
@@ -323,7 +348,7 @@ export class UserResolver {
         if (alias && (await validateAlias(alias))) {
           user.alias = alias
         }
-        logger.debug('partly faked user', user)
+        logger.debug('partly faked user', { id: user.id, gradidoID: user.gradidoID })
 
         await sendAccountMultiRegistrationEmail({
           firstName: foundUser.firstName, // this is the real name of the email owner, but just "firstName" would be the name of the new registrant which shall not be passed to the outside
@@ -333,9 +358,6 @@ export class UserResolver {
         })
         await EVENT_EMAIL_ACCOUNT_MULTIREGISTRATION(foundUser)
 
-        logger.info(
-          `sendAccountMultiRegistrationEmail by ${firstName} ${lastName} to ${foundUser.firstName} ${foundUser.lastName} <${email}>`,
-        )
         /* uncomment this, when you need the activation link on the console */
         // In case EMails are disabled log the activation link for the user
         logger.info('createUser() faked and send multi registration mail...')
@@ -350,7 +372,7 @@ export class UserResolver {
         select: { logoUrl: true, spaceId: true },
       })
     }
-    const gradidoID = await newGradidoID()
+    const gradidoID = await newGradidoID(logger)
 
     const eventRegisterRedeem = Event(
       EventType.USER_REGISTER_REDEEM,
@@ -373,28 +395,28 @@ export class UserResolver {
     }
     dbUser.publisherId = publisherId ?? 0
     dbUser.passwordEncryptionType = PasswordEncryptionType.NO_PASSWORD
-    logger.debug('new dbUser', dbUser)
+    logger.debug('new dbUser', new UserLoggingView(dbUser))
     if (redeemCode) {
       if (redeemCode.match(/^CL-/)) {
         const contributionLink = await DbContributionLink.findOne({
           where: { code: redeemCode.replace('CL-', '') },
         })
-        logger.info('redeemCode found contributionLink', contributionLink)
         if (contributionLink) {
+          logger.info('redeemCode found contributionLink', contributionLink.id)
           dbUser.contributionLinkId = contributionLink.id
           eventRegisterRedeem.involvedContributionLink = contributionLink
         }
       } else {
         const transactionLink = await DbTransactionLink.findOne({ where: { code: redeemCode } })
-        logger.info('redeemCode found transactionLink', transactionLink)
         if (transactionLink) {
+          logger.info('redeemCode found transactionLink', transactionLink.id)
           dbUser.referrerId = transactionLink.userId
           eventRegisterRedeem.involvedTransactionLink = transactionLink
         }
       }
     }
 
-    const queryRunner = getConnection().createQueryRunner()
+    const queryRunner = db.getDataSource().createQueryRunner()
     await queryRunner.connect()
     await queryRunner.startTransaction('REPEATABLE READ')
     let projectBranding: ProjectBranding | null | undefined
@@ -402,7 +424,7 @@ export class UserResolver {
       dbUser = await queryRunner.manager.save(dbUser).catch((error) => {
         throw new LogError('Error while saving dbUser', error)
       })
-      let emailContact = newEmailContact(email, dbUser.id)
+      let emailContact = newEmailContact(email, dbUser.id, logger)
       emailContact = await queryRunner.manager.save(emailContact).catch((error) => {
         throw new LogError('Error while saving user email contact', error)
       })
@@ -429,7 +451,7 @@ export class UserResolver {
         timeDurationObject: getTimeDurationObject(CONFIG.EMAIL_CODE_VALID_TIME),
         logoUrl: projectBranding?.logoUrl,
       })
-      logger.info(`sendAccountActivationEmail of ${firstName}.${lastName} to ${email}`)
+      logger.info('sendAccountActivationEmail')
 
       await EVENT_EMAIL_CONFIRMATION(dbUser)
 
@@ -483,18 +505,33 @@ export class UserResolver {
   @Authorized([RIGHTS.SEND_RESET_PASSWORD_EMAIL])
   @Mutation(() => Boolean)
   async forgotPassword(@Arg('email') email: string): Promise<boolean> {
-    logger.addContext('user', 'unknown')
-    logger.info(`forgotPassword(${email})...`)
+    const logger = createLogger()
+    const shortEmail = email.substring(0, 3)
+    logger.addContext('email', shortEmail)
+    logger.info('forgotPassword...')
     email = email.trim().toLowerCase()
-    const user = await findUserByEmail(email).catch((error) => {
-      logger.warn(`fail on find UserContact per ${email} because: ${error}`)
-    })
+    let user: DbUser
+    try {
+      user = await findUserByEmail(email)
+      logger.removeContext('email')
+      logger.addContext('user', user.id)
+    } catch (_e) {
+      logger.warn(`fail on find UserContact`)
+      return true
+    }
 
-    if (!user || user.deletedAt) {
-      logger.warn(`no user found with ${email}`)
+    if (user.deletedAt) {
+      logger.warn(`user was deleted`)
       return true
     }
     if (!canEmailResend(user.emailContact.updatedAt || user.emailContact.createdAt)) {
+      const diff = durationInMinutesFromDates(
+        user.emailContact.updatedAt || user.emailContact.createdAt,
+        new Date(),
+      )
+      logger.warn(
+        `email already sent ${printTimeDuration(diff)} ago, min wait time: ${printTimeDuration(CONFIG.EMAIL_CODE_REQUEST_TIME)}`,
+      )
       throw new LogError(
         `Email already sent less than ${printTimeDuration(CONFIG.EMAIL_CODE_REQUEST_TIME)} ago`,
       )
@@ -505,21 +542,19 @@ export class UserResolver {
     user.emailContact.emailVerificationCode = random(64).toString()
     user.emailContact.emailOptInTypeId = OptInType.EMAIL_OPT_IN_RESET_PASSWORD
     await user.emailContact.save().catch(() => {
-      throw new LogError('Unable to save email verification code', user.emailContact)
+      throw new LogError('Unable to save email verification code', user.emailContact.id)
     })
-
-    logger.info('optInCode for', email, user.emailContact)
 
     await sendResetPasswordEmail({
       firstName: user.firstName,
       lastName: user.lastName,
       email,
       language: user.language,
-      resetLink: activationLink(user.emailContact.emailVerificationCode),
+      resetLink: activationLink(user.emailContact.emailVerificationCode, logger),
       timeDurationObject: getTimeDurationObject(CONFIG.EMAIL_CODE_VALID_TIME),
     })
 
-    logger.info(`forgotPassword(${email}) successful...`)
+    logger.info(`forgotPassword successful...`)
     await EVENT_EMAIL_FORGOT_PASSWORD(user)
 
     return true
@@ -531,7 +566,8 @@ export class UserResolver {
     @Arg('code') code: string,
     @Arg('password') password: string,
   ): Promise<boolean> {
-    logger.info(`setPassword(${code}, ***)...`)
+    const logger = createLogger()
+    logger.info(`setPassword...`)
     // Validate Password
     if (!isValidPassword(password)) {
       throw new LogError(
@@ -543,8 +579,11 @@ export class UserResolver {
       where: { emailVerificationCode: code },
       relations: ['user'],
     }).catch(() => {
-      throw new LogError('Could not login with emailVerificationCode')
+      // code wasn't in db, so we can write it into log without hesitation
+      logger.warn(`invalid emailVerificationCode=${code}`)
+      throw new Error('Could not login with emailVerificationCode')
     })
+    logger.addContext('user', userContact.user.id)
     logger.debug('userContact loaded...')
     // Code is only valid for `CONFIG.EMAIL_CODE_VALID_TIME` minutes
     if (!isEmailVerificationCodeValid(userContact.updatedAt || userContact.createdAt)) {
@@ -566,7 +605,7 @@ export class UserResolver {
     user.password = await encryptPassword(user, password)
     logger.debug('User credentials updated ...')
 
-    const queryRunner = getConnection().createQueryRunner()
+    const queryRunner = db.getDataSource().createQueryRunner()
     await queryRunner.connect()
     await queryRunner.startTransaction('REPEATABLE READ')
 
@@ -594,9 +633,7 @@ export class UserResolver {
     if ((userContact.emailOptInTypeId as OptInType) === OptInType.EMAIL_OPT_IN_REGISTER) {
       try {
         await subscribe(userContact.email, user.language, user.firstName, user.lastName)
-        logger.debug(
-          `subscribe(${userContact.email}, ${user.language}, ${user.firstName}, ${user.lastName})`,
-        )
+        logger.debug('Success subscribe to klicktipp')
       } catch (e) {
         logger.error('Error subscribing to klicktipp', e)
       }
@@ -609,18 +646,21 @@ export class UserResolver {
   @Authorized([RIGHTS.QUERY_OPT_IN])
   @Query(() => Boolean)
   async queryOptIn(@Arg('optIn') optIn: string): Promise<boolean> {
-    logger.info(`queryOptIn(${optIn})...`)
+    const logger = createLogger()
+    logger.addContext('optIn', optIn.substring(0, 4))
+    logger.info(`queryOptIn...`)
     const userContact = await DbUserContact.findOneOrFail({
       where: { emailVerificationCode: optIn },
     })
-    logger.debug('found optInCode', userContact)
+    logger.addContext('user', userContact.userId)
+    logger.debug('found optInCode', userContact.id)
     // Code is only valid for `CONFIG.EMAIL_CODE_VALID_TIME` minutes
     if (!isEmailVerificationCodeValid(userContact.updatedAt || userContact.createdAt)) {
       throw new LogError(
         `Email was sent more than ${printTimeDuration(CONFIG.EMAIL_CODE_VALID_TIME)} ago`,
       )
     }
-    logger.info(`queryOptIn(${optIn}) successful...`)
+    logger.info(`queryOptIn successful...`)
     return true
   }
 
@@ -657,10 +697,27 @@ export class UserResolver {
       gmsLocation,
       gmsPublishLocation,
     } = updateUserInfosArgs
-    logger.info(
-      `updateUserInfos(${firstName}, ${lastName}, ${alias}, ${language}, ***, ***, ${hideAmountGDD}, ${hideAmountGDT}, ${gmsAllowed}, ${gmsPublishName}, ${gmsLocation}, ${gmsPublishLocation})...`,
-    )
     const user = getUser(context)
+    const logger = createLogger()
+    logger.addContext('user', user.id)
+    // log only if a value is set
+    logger.info(`updateUserInfos...`, {
+      firstName: firstName !== undefined,
+      lastName: lastName !== undefined,
+      alias: alias !== undefined,
+      language: language !== undefined,
+      password: password !== undefined,
+      passwordNew: passwordNew !== undefined,
+      hideAmountGDD: hideAmountGDD !== undefined,
+      hideAmountGDT: hideAmountGDT !== undefined,
+      humhubAllowed: humhubAllowed !== undefined,
+      gmsAllowed: gmsAllowed !== undefined,
+      gmsPublishName: gmsPublishName !== undefined,
+      humhubPublishName: humhubPublishName !== undefined,
+      gmsLocation: gmsLocation !== undefined,
+      gmsPublishLocation: gmsPublishLocation !== undefined,
+    })
+
     const updateUserInGMS = compareGmsRelevantUserSettings(user, updateUserInfosArgs)
     const publishNameLogic = new PublishNameLogic(user)
     const oldHumhubUsername = publishNameLogic.getUserIdentifier(
@@ -683,7 +740,8 @@ export class UserResolver {
 
     if (language) {
       if (!isLanguage(language)) {
-        throw new LogError('Given language is not a valid language', language)
+        logger.warn('try to set unsupported language', language)
+        throw new LogError('Given language is not a valid language or not supported')
       }
       user.language = language
       i18n.setLocale(language)
@@ -692,12 +750,15 @@ export class UserResolver {
     if (password && passwordNew) {
       // Validate Password
       if (!isValidPassword(passwordNew)) {
-        throw new LogError(
+        // TODO: log which rule(s) wasn't met
+        logger.warn('try to set invalid password')
+        throw new Error(
           'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
         )
       }
 
       if (!(await verifyPassword(user, password))) {
+        logger.debug('old password is invalid')
         throw new LogError(`Old password is invalid`)
       }
 
@@ -735,7 +796,7 @@ export class UserResolver {
     // } catch (err) {
     //   console.log('error:', err)
     // }
-    const queryRunner = getConnection().createQueryRunner()
+    const queryRunner = db.getDataSource().createQueryRunner()
     await queryRunner.connect()
     await queryRunner.startTransaction('REPEATABLE READ')
 
@@ -761,7 +822,7 @@ export class UserResolver {
         logger.debug(`changed user-settings relevant for gms-user update...`)
         const homeCom = await getHomeCommunity()
         if (homeCom.gmsApiKey !== null) {
-          logger.debug(`send User to Gms...`, user)
+          logger.debug(`send User to Gms...`)
           await sendUserToGms(user, homeCom)
           logger.debug(`sendUserToGms successfully.`)
         }
@@ -783,18 +844,22 @@ export class UserResolver {
   @Authorized([RIGHTS.HAS_ELOPAGE])
   @Query(() => Boolean)
   async hasElopage(@Ctx() context: Context): Promise<boolean> {
-    logger.info(`hasElopage()...`)
-    const userEntity = getUser(context)
-    const elopageBuys = hasElopageBuys(userEntity.emailContact.email)
-    logger.debug('has ElopageBuys', elopageBuys)
+    const dbUser = getUser(context)
+    const logger = createLogger()
+    logger.addContext('user', dbUser.id)
+    const elopageBuys = await hasElopageBuys(dbUser.emailContact.email)
+    logger.info(`has Elopage (ablify): ${elopageBuys}`)
     return elopageBuys
   }
 
   @Authorized([RIGHTS.GMS_USER_PLAYGROUND])
   @Query(() => GmsUserAuthenticationResult)
   async authenticateGmsUserSearch(@Ctx() context: Context): Promise<GmsUserAuthenticationResult> {
-    logger.info(`authenticateGmsUserSearch()...`)
     const dbUser = getUser(context)
+    const logger = createLogger()
+    logger.addContext('user', dbUser.id)
+    logger.info(`authenticateGmsUserSearch()...`)
+
     let result = new GmsUserAuthenticationResult()
     if (context.token) {
       const homeCom = await getHomeCommunity()
@@ -813,8 +878,11 @@ export class UserResolver {
   @Authorized([RIGHTS.GMS_USER_PLAYGROUND])
   @Query(() => UserLocationResult)
   async userLocation(@Ctx() context: Context): Promise<UserLocationResult> {
-    logger.info(`userLocation()...`)
     const dbUser = getUser(context)
+    const logger = createLogger()
+    logger.addContext('user', dbUser.id)
+    logger.info(`userLocation()...`)
+
     const result = new UserLocationResult()
     if (context.token) {
       const homeCom = await getHomeCommunity()
@@ -833,8 +901,11 @@ export class UserResolver {
     @Ctx() context: Context,
     @Arg('project', () => String, { nullable: true }) project?: string | null,
   ): Promise<string> {
-    logger.info(`authenticateHumhubAutoLogin()...`)
     const dbUser = getUser(context)
+    const logger = createLogger()
+    logger.addContext('user', dbUser.id)
+    logger.info(`authenticateHumhubAutoLogin()...`)
+
     const humhubClient = HumHubClient.getInstance()
     if (!humhubClient) {
       throw new LogError('cannot create humhub client')
@@ -1027,13 +1098,15 @@ export class UserResolver {
     @Arg('email') email: string,
     @Ctx() context: Context,
   ): Promise<boolean> {
+    const logger = createLogger()
     email = email.trim().toLowerCase()
-    // const user = await dbUser.findOne({ id: emailContact.userId })
     const user = await findUserByEmail(email)
+    logger.addContext('user', user.id)
+    logger.info('sendActivationEmail...')
     if (user.deletedAt || user.emailContact.deletedAt) {
-      throw new LogError('User with given email contact is deleted', email)
+      logger.warn('call for activation of deleted user')
+      throw new Error('User with given email contact is deleted')
     }
-
     user.emailContact.emailResendCount++
     await user.emailContact.save()
 
@@ -1042,7 +1115,7 @@ export class UserResolver {
       lastName: user.lastName,
       email,
       language: user.language,
-      activationLink: activationLink(user.emailContact.emailVerificationCode),
+      activationLink: activationLink(user.emailContact.emailVerificationCode, logger),
       timeDurationObject: getTimeDurationObject(CONFIG.EMAIL_CODE_VALID_TIME),
     })
 
@@ -1088,16 +1161,25 @@ export class UserResolver {
 }
 
 export async function findUserByEmail(email: string): Promise<DbUser> {
-  const dbUser = await DbUser.findOneOrFail({
-    where: {
-      emailContact: { email },
-    },
-    withDeleted: true,
-    relations: { userRoles: true, emailContact: true },
-  }).catch(() => {
-    throw new LogError('No user with this credentials', email)
-  })
-  return dbUser
+  try {
+    const dbUser = await DbUser.findOneOrFail({
+      where: {
+        emailContact: { email },
+      },
+      withDeleted: true,
+      relations: { userRoles: true, emailContact: true },
+    })
+    return dbUser
+  } catch (e) {
+    const logger = createLogger()
+    if (e instanceof EntityNotFoundError || (e as Error).name === 'EntityNotFoundError') {
+      // TODO: discuss if it is ok to print email in log for this case
+      logger.warn(`findUserByEmail failed, user with email=${email} not found`)
+    } else {
+      logger.error(`findUserByEmail failed, unknown error: ${e}`)
+    }
+    throw new Error('No user with this credentials')
+  }
 }
 
 async function checkEmailExists(email: string): Promise<boolean> {

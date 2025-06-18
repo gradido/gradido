@@ -24,6 +24,9 @@
     },
     "start": {
       "dependsOn": ["database#up", "build"]
+    },
+    "start:bundle": {
+      "dependsOn": ["build:bundle"]
     }
   }
 }

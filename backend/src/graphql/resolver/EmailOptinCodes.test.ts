@@ -1,7 +1,7 @@
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { User as DbUser } from 'database'
 import { GraphQLError } from 'graphql'
-import { Connection } from 'typeorm'
+import { DataSource } from 'typeorm'
 
 import { cleanDB, testEnvironment } from '@test/helpers'
 
@@ -12,11 +12,11 @@ import { queryOptIn } from '@/seeds/graphql/queries'
 
 let mutate: ApolloServerTestClient['mutate']
 let query: ApolloServerTestClient['query']
-let con: Connection
+let con: DataSource
 let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']
-  con: Connection
+  con: DataSource
 }
 
 CONFIG.EMAIL_CODE_VALID_TIME = 1440
@@ -33,7 +33,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await cleanDB()
-  await con.close()
+  await con.destroy()
 })
 
 describe('EmailOptinCodes', () => {
@@ -101,6 +101,7 @@ describe('EmailOptinCodes', () => {
 
   describe('forgotPassword', () => {
     it('throws an error', async () => {
+      await mutate({ mutation: forgotPassword, variables: { email: 'peter@lustig.de' } })
       await expect(
         mutate({ mutation: forgotPassword, variables: { email: 'peter@lustig.de' } }),
       ).resolves.toMatchObject({

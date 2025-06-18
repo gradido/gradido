@@ -1,14 +1,15 @@
 import { findUserByIdentifier } from '@/graphql/util/findUserByIdentifier'
 import { fullName } from '@/graphql/util/fullName'
 import { LogError } from '@/server/LogError'
-import { federationLogger as logger } from '@/server/logger'
 import {
   Community as DbCommunity,
   PendingTransaction as DbPendingTransaction,
   PendingTransactionLoggingView,
 } from 'database'
 import Decimal from 'decimal.js-light'
+import { getLogger } from 'log4js'
 import { Arg, Mutation, Resolver } from 'type-graphql'
+import { LOG4JS_RESOLVER_1_0_CATEGORY_NAME } from '.'
 import { PendingTransactionState } from '../enum/PendingTransactionState'
 import { TransactionTypeId } from '../enum/TransactionTypeId'
 import { SendCoinsArgsLoggingView } from '../logger/SendCoinsArgsLogging.view'
@@ -19,6 +20,8 @@ import { calculateRecipientBalance } from '../util/calculateRecipientBalance'
 import { revertSettledReceiveTransaction } from '../util/revertSettledReceiveTransaction'
 import { settlePendingReceiveTransaction } from '../util/settlePendingReceiveTransaction'
 import { storeForeignUser } from '../util/storeForeignUser'
+
+const logger = getLogger(`${LOG4JS_RESOLVER_1_0_CATEGORY_NAME}.SendCoinsResolver`)
 
 @Resolver()
 export class SendCoinsResolver {
@@ -232,7 +235,7 @@ export class SendCoinsResolver {
         )
       }
 
-      logger.debug(`XCom: settlePendingReceiveTransaction()-1_0... successfull`)
+      logger.debug(`XCom: settlePendingReceiveTransaction()-1_0... successful`)
       return true
     } else {
       logger.debug('XCom: settlePendingReceiveTransaction NOT matching pendingTX for settlement...')

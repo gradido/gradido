@@ -25,10 +25,13 @@
     I assume that the webhook arrives via POST and transmits a string as shown above
 */
 
-import { backendLogger as logger } from '@/server/logger'
 import { LoginElopageBuys, UserContact as dbUserContact } from 'database'
 
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { UserResolver } from '@/graphql/resolver/UserResolver'
+import { getLogger } from 'log4js'
+
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.webhook.elopage`)
 
 export const elopageWebhook = async (req: any, res: any): Promise<void> => {
   logger.info('Elopage Hook received')

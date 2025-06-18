@@ -1,4 +1,5 @@
 import {
+  AppDatabase,
   CommunityLoggingView,
   Community as DbCommunity,
   PendingTransaction as DbPendingTransaction,
@@ -8,15 +9,18 @@ import {
   UserLoggingView,
   Transaction as dbTransaction,
 } from 'database'
-import { getConnection } from 'typeorm'
 
 import { PendingTransactionState } from '../enum/PendingTransactionState'
 
 import { LogError } from '@/server/LogError'
-import { federationLogger as logger } from '@/server/logger'
+import { getLogger } from 'log4js'
+import { LOG4JS_1_0_UTIL_CATEGORY_NAME } from '.'
 
 import { TRANSACTIONS_LOCK } from '@/graphql/util/TRANSACTIONS_LOCK'
 import { getLastTransaction } from '@/graphql/util/getLastTransaction'
+
+const db = AppDatabase.getInstance()
+const logger = getLogger(`${LOG4JS_1_0_UTIL_CATEGORY_NAME}.revertSettledReceiveTransaction`)
 
 export async function revertSettledReceiveTransaction(
   homeCom: DbCommunity,
@@ -26,7 +30,7 @@ export async function revertSettledReceiveTransaction(
   // TODO: synchronisation with TRANSACTION_LOCK of backend-modul necessary!!!
   // acquire lock
   const releaseLock = await TRANSACTIONS_LOCK.acquire()
-  const queryRunner = getConnection().createQueryRunner()
+  const queryRunner = db.getDataSource().createQueryRunner()
   await queryRunner.connect()
   await queryRunner.startTransaction('REPEATABLE READ')
   logger.debug(`start Transaction for write-access...`)

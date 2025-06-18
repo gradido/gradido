@@ -1,12 +1,11 @@
 {
   "name": "federation",
-  "version": "2.5.2",
+  "version": "2.6.0",
   "description": "Gradido federation module providing Gradido-Hub-Federation and versioned API for inter community communication",
   "main": "src/index.ts",
   "repository": "https://github.com/gradido/gradido/federation",
   "author": "Gradido Academy - https://www.gradido.net",
   "license": "Apache-2.0",
-
   "private": false,
   "scripts": {
     "build": "ts-node ./esbuild.config.ts",
@@ -16,6 +15,8 @@
     "dev:bun": "cross-env TZ=UTC bun --hot src/index.ts",
     "typecheck": "tsc --noEmit",
     "test": "cross-env TZ=UTC NODE_ENV=development DB_DATABASE=gradido_test_federation jest --runInBand --forceExit --detectOpenHandles",
+    "test:debug": "cross-env TZ=UTC NODE_ENV=development DB_DATABASE=gradido_test_federation node --inspect-brk node_modules/.bin/jest --bail --runInBand --forceExit --detectOpenHandles",
+    "test:coverage": "cross-env TZ=UTC NODE_ENV=development DB_DATABASE=gradido_test_federation jest --coverage --runInBand --forceExit --detectOpenHandles",
     "lint": "biome check --error-on-warnings .",
     "lint:fix": "biome check --error-on-warnings . --write"
   },
@@ -25,7 +26,7 @@
   },
   "devDependencies": {
     "@anatine/esbuild-decorators": "^0.2.19",
-    "@biomejs/biome": "1.9.4",
+    "@biomejs/biome": "2.0.0",
     "@swc/cli": "^0.7.3",
     "@swc/core": "^1.11.24",
     "@swc/helpers": "^0.5.17",
@@ -58,15 +59,18 @@
     "nodemon": "^2.0.7",
     "prettier": "^3.5.3",
     "reflect-metadata": "^0.1.13",
+    "source-map-support": "^0.5.21",
     "ts-jest": "27.0.5",
     "tsconfig-paths": "^4.1.1",
     "type-graphql": "^1.1.1",
-    "typeorm": "^0.3.16",
+    "typeorm": "^0.3.22",
     "typescript": "^4.9.5",
     "uuid": "8.3.2"
   },
   "nodemonConfig": {
-    "ignore": ["**/*.test.ts"]
+    "ignore": [
+      "**/*.test.ts"
+    ]
   },
   "engines": {
     "node": ">=18"

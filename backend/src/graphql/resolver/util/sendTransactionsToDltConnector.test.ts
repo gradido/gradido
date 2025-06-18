@@ -5,11 +5,11 @@ import { Decimal } from 'decimal.js-light'
 // import { Response } from 'graphql-request/dist/types'
 import { GraphQLClient } from 'graphql-request'
 import { Response } from 'graphql-request/dist/types'
-import { Connection } from 'typeorm'
+import { DataSource } from 'typeorm'
 import { v4 as uuidv4 } from 'uuid'
 
 import { cleanDB, testEnvironment } from '@test/helpers'
-import { i18n as localization, logger } from '@test/testSetup'
+import { i18n as localization } from '@test/testSetup'
 
 import { CONFIG } from '@/config'
 import { TransactionTypeId } from '@/graphql/enum/TransactionTypeId'
@@ -20,10 +20,16 @@ import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { raeuberHotzenplotz } from '@/seeds/users/raeuber-hotzenplotz'
+import { getLogger } from 'config-schema/test/testSetup'
+import { LOG4JS_GRAPHQL_RESOLVER_UTIL_CATEGORY_NAME } from '.'
 
 import { sendTransactionsToDltConnector } from './sendTransactionsToDltConnector'
 
 jest.mock('@/password/EncryptorUtils')
+
+const logger = getLogger(
+  `${LOG4JS_GRAPHQL_RESOLVER_UTIL_CATEGORY_NAME}.sendTransactionsToDltConnector`,
+)
 
 /*
 // Mock the GraphQLClient
@@ -328,11 +334,11 @@ async function createTxReceive1FromSend3(verified: boolean): Promise<Transaction
 }
 */
 
-let con: Connection
+let con: DataSource
 let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']
-  con: Connection
+  con: DataSource
 }
 
 beforeAll(async () => {
@@ -343,7 +349,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await cleanDB()
-  await con.close()
+  await con.destroy()
 })
 
 describe('create and send Transactions to DltConnector', () => {
@@ -417,7 +423,7 @@ describe('create and send Transactions to DltConnector', () => {
         ]),
       )
 
-      expect(logger.info).nthCalledWith(3, 'sending to DltConnector currently not configured...')
+      expect(logger.info).nthCalledWith(2, 'sending to DltConnector currently not configured...')
     })
   })
 
