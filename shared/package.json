@@ -24,7 +24,7 @@
     "lint:fix": "biome check --error-on-warnings . --write"
   },
   "devDependencies": {
-    "@biomejs/biome": "1.9.4",
+    "@biomejs/biome": "2.0.0",
     "@types/node": "^17.0.21",
     "typescript": "^5.8.3"
   },
