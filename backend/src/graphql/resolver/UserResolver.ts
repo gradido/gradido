@@ -93,7 +93,7 @@ import { Logger, getLogger } from 'log4js'
 import { FULL_CREATION_AVAILABLE } from './const/const'
 import { Location2Point, Point2Location } from './util/Location2Point'
 import { authenticateGmsUserPlayground } from './util/authenticateGmsUserPlayground'
-import { getHomeCommunity } from './util/communities'
+import { getHomeCommunity } from 'database'
 import { compareGmsRelevantUserSettings } from './util/compareGmsRelevantUserSettings'
 import { getUserCreations } from './util/creations'
 import { extractGraphQLFieldsForSelect } from './util/extractGraphQLFields'
@@ -381,6 +381,10 @@ export class UserResolver {
     )
     let dbUser = new DbUser()
     const homeCom = await getHomeCommunity()
+    if (!homeCom) {
+      logger.error('no home community found, please start the dht-node first')
+      throw new Error(`Error creating user, please write the support team: ${CONFIG.COMMUNITY_SUPPORT_MAIL}`)
+    }
     if (homeCom.communityUuid) {
       dbUser.communityUuid = homeCom.communityUuid
     }
@@ -821,6 +825,12 @@ export class UserResolver {
       if (CONFIG.GMS_ACTIVE && updateUserInGMS) {
         logger.debug(`changed user-settings relevant for gms-user update...`)
         const homeCom = await getHomeCommunity()
+        if (!homeCom) {
+          logger.error('no home community found, please start the dht-node first')
+          throw new Error(
+            `Error updating user, please write the support team: ${CONFIG.COMMUNITY_SUPPORT_MAIL}`
+          )
+        }
         if (homeCom.gmsApiKey !== null) {
           logger.debug(`send User to Gms...`)
           await sendUserToGms(user, homeCom)
@@ -863,6 +873,12 @@ export class UserResolver {
     let result = new GmsUserAuthenticationResult()
     if (context.token) {
       const homeCom = await getHomeCommunity()
+      if (!homeCom) {
+        logger.error("couldn't authenticate for gms, no home community found, please start the dht-node first")
+        throw new Error(
+          `Error authenticating for gms, please write the support team: ${CONFIG.COMMUNITY_SUPPORT_MAIL}`
+        )
+      }
       if (!homeCom.gmsApiKey) {
         throw new LogError('authenticateGmsUserSearch missing HomeCommunity GmsApiKey')
       }
@@ -886,6 +902,12 @@ export class UserResolver {
     const result = new UserLocationResult()
     if (context.token) {
       const homeCom = await getHomeCommunity()
+      if (!homeCom) {
+        logger.error("couldn't load home community location, no home community found, please start the dht-node first")
+        throw new Error(
+          `Error loading user location, please write the support team: ${CONFIG.COMMUNITY_SUPPORT_MAIL}`
+        )
+      }
       result.communityLocation = Point2Location(homeCom.location as Point)
       result.userLocation = Point2Location(dbUser.location as Point)
       logger.info('userLocation=', result)

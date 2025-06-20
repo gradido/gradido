@@ -36,6 +36,9 @@ backend: &backend
 config: &config
   - 'config-schema/**/*'
 
+shared: &shared
+  - 'shared/**/*'
+
 database: &database
   - 'database/**/*'
 

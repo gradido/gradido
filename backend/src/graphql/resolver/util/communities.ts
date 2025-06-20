@@ -37,16 +37,6 @@ export async function isHomeCommunity(communityIdentifier: string): Promise<bool
 }
 
 /**
- * Retrieves the home community, i.e., a community that is not foreign.
- * @returns A promise that resolves to the home community, or throw if no home community was found
- */
-export async function getHomeCommunity(): Promise<DbCommunity> {
-  return await DbCommunity.findOneOrFail({
-    where: [{ foreign: false }],
-  })
-}
-
-/**
  * TODO: Check if it is needed, because currently it isn't used at all
  * Retrieves the URL of the community with the given identifier.
  * @param communityIdentifier The identifier (URL, UUID, or name) of the community.

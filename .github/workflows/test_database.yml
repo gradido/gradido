@@ -35,7 +35,7 @@ jobs:
 
   database_migration_test:
     if: needs.files-changed.outputs.database == 'true' || needs.files-changed.outputs.docker-compose == 'true'  || needs.files-changed.outputs.mariadb == 'true'
-    name: Database Migration Test - Up + Reset
+    name: Database Migration Test - Up, Test + Reset
     needs: files-changed
     runs-on: ubuntu-latest
     steps:
@@ -58,8 +58,8 @@ jobs:
           bun install --filter database --frozen-lockfile
           bun install --global --no-save turbo@^2
 
-      - name: Database | up
-        run: turbo up
+      - name: Database | up + test
+        run: turbo test
       
       - name: Database | reset
         run: turbo reset

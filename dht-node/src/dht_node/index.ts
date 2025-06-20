@@ -3,6 +3,7 @@ import {
   CommunityLoggingView,
   Community as DbCommunity,
   FederatedCommunity as DbFederatedCommunity,
+  getHomeCommunity,
 } from 'database'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -234,7 +235,7 @@ async function writeFederatedHomeCommunityEntries(pubKey: string): Promise<Commu
 async function writeHomeCommunityEntry(keyPair: KeyPair): Promise<void> {
   try {
     // check for existing homeCommunity entry
-    let homeCom = await DbCommunity.findOne({ where: { foreign: false } })
+    let homeCom = await getHomeCommunity()
     if (homeCom) {
       // simply update the existing entry, but it MUST keep the ID and UUID because of possible relations
       homeCom.publicKey = keyPair.publicKey

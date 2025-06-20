@@ -1,16 +1,17 @@
 {
-  "$schema": "https://turbo.build/schema.json",
+  "extends": ["//"],
   "tasks": {
     "lint": {
     },
     "lint:fix": {
     },
     "test": {
+      "dependsOn": ["config-schema#build"]
     },
     "typecheck": {
     },
     "dev": {
-      "dependsOn": ["database#build"],
+      "dependsOn": ["database#build", "config-schema#build"],
       "persistent": true,
       "cache": false
     },
