@@ -1,4 +1,4 @@
-import { Community as DbCommunity, FederatedCommunity as DbFederatedCommunity } from 'database'
+import { Community as DbCommunity, FederatedCommunity as DbFederatedCommunity, getHomeCommunity } from 'database'
 import { Arg, Args, Authorized, Mutation, Query, Resolver } from 'type-graphql'
 import { IsNull, Not } from 'typeorm'
 
@@ -16,7 +16,6 @@ import {
   getAllCommunities,
   getCommunityByIdentifier,
   getCommunityByUuid,
-  getHomeCommunity,
 } from './util/communities'
 
 @Resolver()

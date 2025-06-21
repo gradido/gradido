@@ -13,9 +13,15 @@
     "up:dht_test": {
       "cache": false
     },
+    "up:test": {
+      "cache": false
+    },
     "up": {
       "cache": false,
       "dependsOn": ["build"]
+    },
+    "test": {
+      "dependsOn": ["up:test", "^build"]
     },
     "down": {
       "cache": false,

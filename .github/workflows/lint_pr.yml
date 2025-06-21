@@ -35,6 +35,7 @@ jobs:
             workflow
             docker
             other
+            shared
           # Configure that a scope must always be provided.
           requireScope: true
           # Configure which scopes (newline delimited) are disallowed in PR

@@ -7,6 +7,23 @@
     {
       "type": "node",
       "request": "launch",
+      "name": "Database Debug Tests",
+      "stopOnEntry": true,
+      "runtimeExecutable": "yarn",
+      "runtimeArgs": [
+        "run",
+        "test"
+      ],
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "cwd": "${workspaceFolder}/database"
+    },
+    {
+      "type": "node",
+      "request": "launch",
       "name": "DHT-Node Debug Tests",
       "runtimeExecutable": "yarn",
       "runtimeArgs": [
@@ -86,6 +103,22 @@
       "console": "integratedTerminal",
       "internalConsoleOptions": "openOnSessionStart",
       "cwd": "${workspaceFolder}/backend"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Shared Debug Test",
+      "runtimeExecutable": "bun",
+      "runtimeArgs": [
+        "run",
+        "test:debug"
+      ],
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "openOnSessionStart",
+      "cwd": "${workspaceFolder}/shared"
     }
   ]
 }

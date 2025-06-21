@@ -49,3 +49,5 @@ yarn clear
 ```
 
 
+## Tests
+Currently written for vitest, but can be transformed into bun test after switching out TypeORM with DrizzleORM

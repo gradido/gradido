@@ -6,6 +6,8 @@
 vite.config.mjs.timestamp-*
 log4js-config*.json
 /node_modules/*
+node_modules
+build
 messages.pot
 nbproject
 .metadata

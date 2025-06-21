@@ -57,7 +57,7 @@ jobs:
 
       - name: install dependencies
         run: |
-          bun install --filter backend --frozen-lockfile
+          bun install --filter backend --filter core --frozen-lockfile
           bun install --global --no-save turbo@^2
 
       - name: Backend | Unit tests

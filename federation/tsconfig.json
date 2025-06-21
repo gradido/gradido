@@ -51,7 +51,7 @@
     //  "@arg/*": ["src/graphql/arg/*"],
     //  "@enum/*": ["src/graphql/enum/*"],
     //  "@model/*": ["src/graphql/model/*"],
-      "@repository/*": ["src/typeorm/repository/*"],
+      // "@repository/*": ["src/typeorm/repository/*"],
       "@test/*": ["test/*"],
       /* common */
       // "@common/*": ["../common/src/*"],

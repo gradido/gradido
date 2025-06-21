@@ -21,7 +21,9 @@ const context = {
 export const cleanDB = async () => {
   // this only works as long we do not have foreign key constraints
   for (const entity of entities) {
-    await resetEntity(entity)
+    if (entity.name !== 'Migration') {
+      await resetEntity(entity)
+    }
   }
 }
 
