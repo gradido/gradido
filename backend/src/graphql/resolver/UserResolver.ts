@@ -103,7 +103,7 @@ import { getKlicktippState } from './util/getKlicktippState'
 import { deleteUserRole, setUserRole } from './util/modifyUserRole'
 import { sendUserToGms } from './util/sendUserToGms'
 import { syncHumhub } from './util/syncHumhub'
-import { validateAlias } from './util/validateAlias'
+import { validateAlias } from 'core'
 
 const LANGUAGES = ['de', 'en', 'es', 'fr', 'nl']
 const DEFAULT_LANGUAGE = 'de'

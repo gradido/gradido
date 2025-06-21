@@ -13,7 +13,7 @@
   "repository": "https://github.com/gradido/gradido/database",
   "author": "Gradido Academy - https://www.gradido.net",
   "license": "Apache-2.0",
-  "private": false,
+  "private": true,
   "scripts": {
     "build": "tsx ./esbuild.config.ts",
     "typecheck": "tsc --noEmit",
@@ -58,10 +58,11 @@
     "log4js": "^6.9.1",
     "mysql2": "^2.3.0",
     "reflect-metadata": "^0.1.13",
+    "shared": "*",
     "source-map-support": "^0.5.21",
     "ts-mysql-migrate": "^1.0.2",
     "tsx": "^4.20.3",
-    "typeorm": "^0.3.22",
+    "typeorm": "^0.3.25",
     "uuid": "^8.3.2",
     "wkx": "^0.5.0"
   },

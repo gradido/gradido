@@ -12,6 +12,7 @@
     "admin",
     "backend",
     "config-schema",
+    "core",
     "database",
     "dht-node",
     "federation",

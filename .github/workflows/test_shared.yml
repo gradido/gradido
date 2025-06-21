@@ -34,7 +34,7 @@ jobs:
         uses: oven-sh/setup-bun@v2
 
       - name: install dependencies
-        run: bun install --filter shared database --frozen-lockfile
+        run: bun install --filter shared --frozen-lockfile
 
       - name: typecheck
         run: cd shared && yarn typecheck

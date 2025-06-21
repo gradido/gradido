@@ -1,7 +1,7 @@
 {
-  "name": "shared",
+  "name": "core",
   "version": "2.6.0",
-  "description": "Gradido Shared Code, Low-Level Shared Code, without dependencies onto other modules",
+  "description": "Gradido Core Code, High-Level Shared Code, with dependencies onto other modules",
   "main": "./build/index.js",
   "types": "./src/index.ts",
   "exports": {
@@ -10,7 +10,7 @@
       "require": "./build/index.js"
     }
   },
-  "repository": "https://github.com/gradido/gradido/shared",
+  "repository": "https://github.com/gradido/gradido/core",
   "author": "Gradido Academy - https://www.gradido.net",
   "license": "Apache-2.0",
   "private": true,
@@ -29,6 +29,7 @@
     "typescript": "^4.9.5"
   },
   "dependencies": {
+    "database": "*",
     "esbuild": "^0.25.2",
     "log4js": "^6.9.1",
     "zod": "^3.25.61"

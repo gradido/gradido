@@ -6,6 +6,9 @@ PROJECT_DIR="${SCRIPT_DIR}/../"
 FRONTEND_DIR="${PROJECT_DIR}/frontend/"
 BACKEND_DIR="${PROJECT_DIR}/backend/"
 DATABASE_DIR="${PROJECT_DIR}/database/"
+SHARED_DIR="${PROJECT_DIR}/shared/"
+CONFIG_SCHEMA_DIR="${PROJECT_DIR}/config-schema/"
+CORE_DIR="${PROJECT_DIR}/core/"
 ADMIN_DIR="${PROJECT_DIR}/admin/"
 DHTNODE_DIR="${PROJECT_DIR}/dht-node/"
 FEDERATION_DIR="${PROJECT_DIR}/federation/"
@@ -26,6 +29,12 @@ yarn version --no-git-tag-version --no-commit-hooks --no-commit --new-version ${
 cd ${BACKEND_DIR}
 yarn version --no-git-tag-version --no-commit-hooks --no-commit --new-version ${VERSION}
 cd ${DATABASE_DIR}
+yarn version --no-git-tag-version --no-commit-hooks --no-commit --new-version ${VERSION}
+cd ${SHARED_DIR}
+yarn version --no-git-tag-version --no-commit-hooks --no-commit --new-version ${VERSION}
+cd ${CONFIG_SCHEMA_DIR}
+yarn version --no-git-tag-version --no-commit-hooks --no-commit --new-version ${VERSION}
+cd ${CORE_DIR}
 yarn version --no-git-tag-version --no-commit-hooks --no-commit --new-version ${VERSION}
 cd ${ADMIN_DIR}
 yarn version --no-git-tag-version --no-commit-hooks --no-commit --new-version ${VERSION}

@@ -59,10 +59,10 @@ jobs:
           bun install --global --no-save turbo@^2
 
       - name: Database | up + test
-        run: turbo test
+        run: turbo database#test
       
       - name: Database | reset
-        run: turbo reset
+        run: turbo database#reset
 
   lint:
     if: needs.files-changed.outputs.database == 'true'

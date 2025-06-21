@@ -2,12 +2,13 @@ import { UserInterface } from '../users/UserInterface'
 import { User, UserContact } from '../../entity'
 import { generateRandomNumber, generateRandomNumericString } from '../utils'
 import { v4 } from 'uuid'
+import { UserContactType, OptInType, PasswordEncryptionType } from 'shared'
 
 export const userFactory = async (user: UserInterface): Promise<User> => {
   let dbUserContact = new UserContact()
 
   dbUserContact.email = user.email ?? ''
-  dbUserContact.type = 'email' //UserContactType.USER_CONTACT_EMAIL
+  dbUserContact.type = UserContactType.USER_CONTACT_EMAIL
   
   let dbUser = new User()
   dbUser.firstName = user.firstName ?? ''
@@ -21,11 +22,10 @@ export const userFactory = async (user: UserInterface): Promise<User> => {
 
   if (user.emailChecked) {
     dbUserContact.emailVerificationCode = generateRandomNumericString(64)
-    dbUserContact.emailOptInTypeId = 1 //OptInType.EMAIL_OPT_IN_REGISTER
+    dbUserContact.emailOptInTypeId = OptInType.EMAIL_OPT_IN_REGISTER
     dbUserContact.emailChecked = true
     dbUser.password = generateRandomNumber()
-    // TODO: think where to put enums
-    dbUser.passwordEncryptionType = 2 //PasswordEncryptionType.GRADIDO_ID
+    dbUser.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
   }
   // TODO: improve with cascade 
   dbUser = await dbUser.save()

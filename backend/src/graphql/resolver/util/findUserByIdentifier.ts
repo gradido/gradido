@@ -6,7 +6,7 @@ import { validate, version } from 'uuid'
 import { LogError } from '@/server/LogError'
 import { isEMail, isUUID4 } from '@/util/validate'
 
-import { VALID_ALIAS_REGEX } from './validateAlias'
+import { aliasSchema } from 'shared'
 
 /**
  *
@@ -49,7 +49,7 @@ export const findUserByIdentifier = async (
     }
     user = userContact.user
     user.emailContact = userContact
-  } else if (VALID_ALIAS_REGEX.exec(identifier)) {
+  } else if (aliasSchema.safeParse(identifier).success) {
     user = await DbUser.findOne({
       where: { alias: identifier, community: communityWhere },
       relations: ['emailContact', 'community'],

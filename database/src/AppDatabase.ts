@@ -4,7 +4,7 @@ import { Migration, entities } from './entity'
 import { getLogger } from 'log4js'
 import { latestDbVersion } from '.'
 import { CONFIG } from './config'
-import { LOG4JS_BASE_CATEGORY_NAME, MIGRATIONS_TABLE } from './config/const'
+import { LOG4JS_BASE_CATEGORY_NAME } from './config/const'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.AppDatabase`)
 
