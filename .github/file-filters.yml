@@ -39,6 +39,9 @@ config: &config
 shared: &shared
   - 'shared/**/*'
 
+core: &core
+  - 'core/**/*'
+
 database: &database
   - 'database/**/*'
 

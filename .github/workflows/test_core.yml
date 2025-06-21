@@ -1,17 +1,19 @@
-name: Gradido Shared Test CI
+name: Gradido Core Test CI
 
 on: push
 
 jobs:
   files-changed:
-    name: Detect File Changes - Shared
+    name: Detect File Changes - Core
     runs-on: ubuntu-latest
     outputs:
+      core: ${{ steps.changes.outputs.core }}
+      database: ${{ steps.changes.outputs.database }}
       shared: ${{ steps.changes.outputs.shared }}
     steps:
       - uses: actions/checkout@v3.3.0
 
-      - name: Check for shared file changes
+      - name: Check for core file changes
         uses: dorny/paths-filter@v2.11.1
         id: changes
         with:
@@ -20,8 +22,8 @@ jobs:
           list-files: shell
 
   build:
-    name: Unit Tests, typecheck - Shared
-    if: needs.files-changed.outputs.shared == 'true'
+    name: Unit Tests, typecheck - Core
+    if: needs.files-changed.outputs.core == 'true' || needs.files-changed.outputs.database == 'true' || needs.files-changed.outputs.shared == 'true'
     needs: files-changed
     runs-on: ubuntu-latest
     steps:
@@ -32,11 +34,11 @@ jobs:
         uses: oven-sh/setup-bun@v2
 
       - name: install dependencies
-        run: bun install --filter shared --frozen-lockfile
+        run: bun install --filter core --frozen-lockfile
 
       - name: typecheck
-        run: cd shared && yarn typecheck
+        run: cd core && yarn typecheck
 
       - name: unit tests
-        run: cd shared && yarn test
+        run: cd core && yarn test
 

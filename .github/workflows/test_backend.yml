@@ -9,6 +9,8 @@ jobs:
     outputs:
       backend: ${{ steps.changes.outputs.backend }}
       config: ${{ steps.changes.outputs.config }}
+      core: ${{ steps.changes.outputs.core }}
+      shared: ${{ steps.changes.outputs.shared }}
       database: ${{ steps.changes.outputs.database }}
       docker-compose: ${{ steps.changes.outputs.docker-compose }}
       mariadb: ${{ steps.changes.outputs.mariadb }}
@@ -24,7 +26,7 @@ jobs:
           list-files: shell
 
   build_test:
-    if: needs.files-changed.outputs.backend == 'true' || needs.files-changed.outputs.config == 'true' || needs.files-changed.outputs.database == 'true'
+    if: needs.files-changed.outputs.backend == 'true' || needs.files-changed.outputs.config == 'true' || needs.files-changed.outputs.core == 'true' || needs.files-changed.outputs.database == 'true' || needs.files-changed.outputs.shared == 'true' || needs.files-changed.outputs.docker-compose == 'true'
     name: Docker Build Test - Backend
     needs: files-changed
     runs-on: ubuntu-latest
@@ -36,7 +38,7 @@ jobs:
         run: docker build -f ./backend/Dockerfile --target production -t "gradido/backend:production" .
 
   unit_test:
-    if: needs.files-changed.outputs.backend == 'true' || needs.files-changed.outputs.database == 'true' || needs.files-changed.outputs.docker-compose == 'true' || needs.files-changed.outputs.mariadb == 'true' || needs.files-changed.outputs.config == 'true'
+    if: needs.files-changed.outputs.backend == 'true' || needs.files-changed.outputs.database == 'true' || needs.files-changed.outputs.docker-compose == 'true' || needs.files-changed.outputs.mariadb == 'true' || needs.files-changed.outputs.config == 'true' || needs.files-changed.outputs.core == 'true' || needs.files-changed.outputs.shared == 'true'
     name: Unit tests - Backend
     needs: files-changed
     runs-on: ubuntu-latest
@@ -64,7 +66,7 @@ jobs:
         run: turbo backend#test
 
   typecheck:
-    if: needs.files-changed.outputs.backend == 'true'
+    if: needs.files-changed.outputs.backend == 'true' || needs.files-changed.outputs.core == 'true' || needs.files-changed.outputs.shared == 'true' || needs.files-changed.outputs.database == 'true' || needs.files-changed.outputs.config == 'true'
     name: Typecheck - Backend
     needs: files-changed
     runs-on: ubuntu-latest
