@@ -55,8 +55,8 @@ ENV PATH="/root/.bun/bin:${PATH}"
 ##################################################################################
 FROM bun-base as installer
 
-COPY --chown=app:app ./database .
-RUN bun install --production --no-cache --frozen-lockfile
+COPY --chown=app:app . .
+RUN bun install --filter database --production --no-cache --frozen-lockfile
 
 ##################################################################################
 # Build ##########################################################################
@@ -64,7 +64,8 @@ RUN bun install --production --no-cache --frozen-lockfile
 FROM installer as build
 
 RUN bun install --no-cache --frozen-lockfile \
-  && yarn build && yarn typecheck
+  && cd shared && yarn build \
+  && cd ../database && yarn build && yarn typecheck
 
 ##################################################################################
 # PRODUCTION IMAGE ###############################################################
@@ -81,7 +82,6 @@ COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/tsconfig.json ./tsconfig
 # TEST UP ########################################################################
 ##################################################################################
 FROM production as up
-
 
 # Run command
 CMD /bin/sh -c "yarn up"
