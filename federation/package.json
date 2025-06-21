@@ -14,7 +14,7 @@
     "dev": "cross-env TZ=UTC nodemon -w src --ext ts,json,css -r tsconfig-paths/register src/index.ts",
     "dev:bun": "cross-env TZ=UTC bun --hot src/index.ts",
     "typecheck": "tsc --noEmit",
-    "test": "cross-env TZ=UTC NODE_ENV=development DB_DATABASE=gradido_test_federation jest --runInBand --forceExit --detectOpenHandles",
+    "test": "cross-env TZ=UTC NODE_ENV=development DB_DATABASE=gradido_test_federation vitest run",
     "test:debug": "cross-env TZ=UTC NODE_ENV=development DB_DATABASE=gradido_test_federation node --inspect-brk node_modules/.bin/jest --bail --runInBand --forceExit --detectOpenHandles",
     "test:coverage": "cross-env TZ=UTC NODE_ENV=development DB_DATABASE=gradido_test_federation jest --coverage --runInBand --forceExit --detectOpenHandles",
     "lint": "biome check --error-on-warnings .",
@@ -65,7 +65,8 @@
     "type-graphql": "^1.1.1",
     "typeorm": "^0.3.25",
     "typescript": "^4.9.5",
-    "uuid": "8.3.2"
+    "uuid": "8.3.2",
+    "vitest": "^3.2.4"
   },
   "nodemonConfig": {
     "ignore": [

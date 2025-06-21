@@ -1,7 +1,7 @@
 {
   "name": "shared",
   "version": "2.6.0",
-  "description": "Gradido Shared Code, Low-Level Shared Code, without dependencies onto other modules",
+  "description": "Gradido Shared Code, Low-Level Shared Code, without dependencies on other modules",
   "main": "./build/index.js",
   "types": "./src/index.ts",
   "exports": {

@@ -2,25 +2,22 @@
   "extends": ["//"],
   "tasks": {
     "seed": {
-      "dependsOn": ["database#up", "config-schema#build", "database#build"],
+      "dependsOn": ["database#up", "^build"],
       "cache": false
     },    
     "locales": {},
     "locales:fix": {},
     "lint": {
-      "dependsOn": ["locales", "database#build"]
+      "dependsOn": ["locales"]
     },
     "lint:fix": {
-      "dependsOn": ["locales:fix", "database#build"]
-    },
-    "typecheck": {
-      "dependsOn": ["database#build", "config-schema#build"]
+      "dependsOn": ["locales:fix"]
     },
     "test": {
-      "dependsOn": ["database#up:backend_test", "config-schema#build", "database#build"]
+      "dependsOn": ["database#up:backend_test", "^build"]
     },
     "dev": {
-      "dependsOn": ["database#up"]
+      "dependsOn": ["database#up", "^build"]
     },
     "start": {
       "dependsOn": ["database#up", "build"]

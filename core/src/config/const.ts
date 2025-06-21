@@ -1,1 +1,1 @@
-export const LOG4JS_BASE_CATEGORY_NAME = 'shared'
+export const LOG4JS_BASE_CATEGORY_NAME = 'core'

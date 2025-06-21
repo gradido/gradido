@@ -21,7 +21,7 @@
       "dependsOn": ["build"]
     },
     "test": {
-      "dependsOn": ["up:test"]
+      "dependsOn": ["up:test", "^build"]
     },
     "down": {
       "cache": false,

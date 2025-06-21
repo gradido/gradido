@@ -64,7 +64,7 @@ RUN bun install --production --no-cache --frozen-lockfile
 FROM installer as build
 
 RUN bun install --no-cache --frozen-lockfile \
-  yarn build && yarn typecheck
+  && yarn build && yarn typecheck
 
 ##################################################################################
 # PRODUCTION IMAGE ###############################################################
@@ -72,8 +72,7 @@ RUN bun install --no-cache --frozen-lockfile \
 FROM base as production 
 
 COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/src ./src
-COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/migrations ./migrations
-COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/entity ./entity
+COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/migration ./migration
 COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/node_modules ./node_modules
 COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/package.json ./package.json 
 COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/tsconfig.json ./tsconfig.json
