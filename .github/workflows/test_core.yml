@@ -34,11 +34,10 @@ jobs:
         uses: oven-sh/setup-bun@v2
 
       - name: install dependencies
-        run: bun install --filter core --frozen-lockfile
+        run: |
+          bun install --filter core --frozen-lockfile
+          bun install --global turbo@^2
 
-      - name: typecheck
-        run: cd core && yarn typecheck
-
-      - name: unit tests
-        run: cd core && yarn test
+      - name: typecheck && unit test
+        run: turbo core#test core#typecheck
 
