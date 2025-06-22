@@ -1,8 +1,9 @@
 import { UserInterface } from '../users/UserInterface'
 import { User, UserContact } from '../../entity'
-import { generateRandomNumber, generateRandomNumericString } from '../utils'
 import { v4 } from 'uuid'
 import { UserContactType, OptInType, PasswordEncryptionType } from 'shared'
+import { getHomeCommunity } from '../../queries/communities'
+import random from 'crypto-random-bigint'
 
 export const userFactory = async (user: UserInterface): Promise<User> => {
   let dbUserContact = new UserContact()
@@ -21,11 +22,16 @@ export const userFactory = async (user: UserInterface): Promise<User> => {
   dbUser.gradidoID = v4()
 
   if (user.emailChecked) {
-    dbUserContact.emailVerificationCode = generateRandomNumericString(64)
+    dbUserContact.emailVerificationCode = random(64).toString()
     dbUserContact.emailOptInTypeId = OptInType.EMAIL_OPT_IN_REGISTER
     dbUserContact.emailChecked = true
-    dbUser.password = generateRandomNumber()
+    dbUser.password = random(64)
     dbUser.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
+  }
+  const homeCommunity = await getHomeCommunity()
+  if (homeCommunity) {
+    dbUser.community = homeCommunity
+    dbUser.communityUuid = homeCommunity.communityUuid!
   }
   // TODO: improve with cascade 
   dbUser = await dbUser.save()

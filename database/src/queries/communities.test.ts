@@ -1,4 +1,4 @@
-import { Community } from '..'
+import { Community as DbCommunity } from '..'
 import { AppDatabase } from '../AppDatabase'
 import { getHomeCommunity } from './communities'
 import { describe, expect, it, beforeAll, afterAll } from 'vitest'
@@ -15,7 +15,7 @@ afterAll(async () => {
 
 describe('community.queries', () => {
   beforeAll(async () => {
-    await Community.clear()
+    await DbCommunity.clear()
   })
   describe('getHomeCommunity', () => {
     it('should return null if no home community exists', async () => {

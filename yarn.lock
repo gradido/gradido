@@ -5180,6 +5180,13 @@ cross-spawn@^7.0.1, cross-spawn@^7.0.2, cross-spawn@^7.0.3, cross-spawn@^7.0.6:
     shebang-command "^2.0.0"
     which "^2.0.1"
 
+crypto-random-bigint@^2.1.1:
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/crypto-random-bigint/-/crypto-random-bigint-2.1.1.tgz#f80239ca9d69b53a4920fc5908949689d1b9db95"
+  integrity sha512-96+FDrenXybkpnLML/60S8NcG32KgJ5Y8yvNNCYPW02r+ssoXFR5XKenuIQcHLWumnGj8UPqUUHBzXNrDGkDmQ==
+  dependencies:
+    uint-rng "^1.2.1"
+
 css-functions-list@^3.2.3:
   version "3.2.3"
   resolved "https://registry.yarnpkg.com/css-functions-list/-/css-functions-list-3.2.3.tgz#95652b0c24f0f59b291a9fc386041a19d4f40dbe"
@@ -11735,6 +11742,11 @@ tiny-case@^1.0.3:
   resolved "https://registry.yarnpkg.com/tiny-case/-/tiny-case-1.0.3.tgz#d980d66bc72b5d5a9ca86fb7c9ffdb9c898ddd03"
   integrity sha512-Eet/eeMhkO6TX8mnUteS9zgPbUMQa4I6Kkp5ORiBD5476/m+PIRiumP5tmh5ioJpH7k51Kehawy2UDfsnxxY8Q==
 
+tiny-webcrypto@^1.0.2:
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/tiny-webcrypto/-/tiny-webcrypto-1.0.3.tgz#a78e1c5707c546a7d086569368b13a0de56dc9f6"
+  integrity sha512-LQQdNMAgz9BXNT2SKbYh3eCb+fLV0p7JB7MwUjzY6IOlQLGIadfnFqRpshERsS5Dl2OM/hs0+4I/XmSrF+RBbw==
+
 tinybench@^2.9.0:
   version "2.9.0"
   resolved "https://registry.yarnpkg.com/tinybench/-/tinybench-2.9.0.tgz#103c9f8ba6d7237a47ab6dd1dcff77251863426b"
@@ -12268,6 +12280,13 @@ uglify-js@^3.1.4:
   version "3.19.3"
   resolved "https://registry.yarnpkg.com/uglify-js/-/uglify-js-3.19.3.tgz#82315e9bbc6f2b25888858acd1fff8441035b77f"
   integrity sha512-v3Xu+yuwBXisp6QYTcH4UbH+xYJXqnq2m/LtQVWKWzYc1iehYnLixoQDN9FH6/j9/oybfd6W9Ghwkl8+UMKTKQ==
+
+uint-rng@^1.2.1:
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/uint-rng/-/uint-rng-1.2.1.tgz#4d1d22f75f52bc4baab739a0363fd054474be9c8"
+  integrity sha512-swhDg5H+3DX2sIvnYA7VMBMXV/t8mPxvh49CjCDkwFmj/3OZIDOQwJANBgM1MPSUBrUHNIlXmU7/GcL7m4907g==
+  dependencies:
+    tiny-webcrypto "^1.0.2"
 
 uint8array-extras@^1.3.0:
   version "1.4.0"

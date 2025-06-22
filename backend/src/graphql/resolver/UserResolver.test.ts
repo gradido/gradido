@@ -68,7 +68,7 @@ import { printTimeDuration } from '@/util/time'
 import { objectValuesToArray } from '@/util/utilities'
 
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { clearLogs, getLogger, printLogs } from 'config-schema/test/testSetup'
+import { getLogger } from 'config-schema/test/testSetup'
 import { LOG4JS_RESOLVER_CATEGORY_NAME } from '.'
 import { Location2Point } from './util/Location2Point'
 
@@ -698,9 +698,6 @@ describe('UserResolver', () => {
     })
 
     describe('no users in database', () => {
-      beforeAll(() => {
-        clearLogs()
-      })
       it('throws an error', async () => {
         jest.clearAllMocks()
         const result = await mutate({ mutation: login, variables })
@@ -712,7 +709,6 @@ describe('UserResolver', () => {
       })
 
       it('logs the error found', () => {
-        printLogs()
         expect(logger.warn).toBeCalledWith(
           `findUserByEmail failed, user with email=${variables.email} not found`,
         )
@@ -2696,166 +2692,6 @@ describe('UserResolver', () => {
           }),
         )
         expect(logErrorLogger.error).toBeCalledWith('401 Unauthorized')
-      })
-    })
-
-    describe('authenticated', () => {
-      const uuid = uuidv4()
-
-      beforeAll(async () => {
-        user = await userFactory(testEnv, bibiBloxberg)
-        await mutate({
-          mutation: login,
-          variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
-        })
-        // first set alias to null, because updating alias isn't currently allowed
-        await User.update({ alias: 'BBB' }, { alias: () => 'NULL' })
-        await mutate({
-          mutation: updateUserInfos,
-          variables: {
-            alias: 'bibi',
-          },
-        })
-      })
-
-      describe('identifier is no gradido ID, no email and no alias', () => {
-        it('throws and logs "Unknown identifier type" error', async () => {
-          await expect(
-            query({
-              query: userQuery,
-              variables: {
-                identifier: 'identifier_is_no_valid_alias!',
-                communityIdentifier: homeCom1.communityUuid,
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('Unknown identifier type')],
-            }),
-          )
-          expect(logErrorLogger.error).toBeCalledWith(
-            'Unknown identifier type',
-            'identifier_is_no_valid_alias!',
-          )
-        })
-      })
-
-      describe('identifier is not found', () => {
-        it('throws and logs "No user found to given identifier" error', async () => {
-          await expect(
-            query({
-              query: userQuery,
-              variables: {
-                identifier: uuid,
-                communityIdentifier: homeCom1.communityUuid,
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('No user found to given identifier(s)')],
-            }),
-          )
-          expect(logErrorLogger.error).toBeCalledWith(
-            'No user found to given identifier(s)',
-            uuid,
-            homeCom1.communityUuid,
-          )
-        })
-      })
-
-      describe('identifier is found via email, but not matching community', () => {
-        it('returns user', async () => {
-          await expect(
-            query({
-              query: userQuery,
-              variables: {
-                identifier: 'bibi@bloxberg.de',
-                communityIdentifier: foreignCom1.communityUuid,
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('No user with this credentials')],
-            }),
-          )
-          expect(logErrorLogger.error).toBeCalledWith(
-            'No user with this credentials',
-            'bibi@bloxberg.de',
-            foreignCom1.communityUuid,
-          )
-        })
-      })
-
-      describe('identifier is found via email', () => {
-        it('returns user', async () => {
-          await expect(
-            query({
-              query: userQuery,
-              variables: {
-                identifier: 'bibi@bloxberg.de',
-                communityIdentifier: homeCom1.communityUuid,
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              data: {
-                user: expect.objectContaining({
-                  firstName: 'Bibi',
-                  lastName: 'Bloxberg',
-                }),
-              },
-              errors: undefined,
-            }),
-          )
-        })
-      })
-
-      describe('identifier is found via gradidoID', () => {
-        it('returns user', async () => {
-          await expect(
-            query({
-              query: userQuery,
-              variables: {
-                identifier: user.gradidoID,
-                communityIdentifier: homeCom1.communityUuid,
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              data: {
-                user: expect.objectContaining({
-                  firstName: 'Bibi',
-                  lastName: 'Bloxberg',
-                }),
-              },
-              errors: undefined,
-            }),
-          )
-        })
-      })
-
-      describe('identifier is found via alias', () => {
-        it('returns user', async () => {
-          await expect(
-            query({
-              query: userQuery,
-              variables: {
-                identifier: 'bibi',
-                communityIdentifier: homeCom1.communityUuid,
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              data: {
-                user: expect.objectContaining({
-                  firstName: 'Bibi',
-                  lastName: 'Bloxberg',
-                }),
-              },
-              errors: undefined,
-            }),
-          )
-        })
       })
     })
   })

@@ -5,6 +5,7 @@ import {
   Transaction as dbTransaction,
   TransactionLink as dbTransactionLink,
   User as dbUser,
+  findUserByIdentifier
 } from 'database'
 import { Decimal } from 'decimal.js-light'
 import { Args, Authorized, Ctx, Mutation, Query, Resolver } from 'type-graphql'
@@ -40,7 +41,6 @@ import { LOG4JS_RESOLVER_CATEGORY_NAME } from '.'
 import { BalanceResolver } from './BalanceResolver'
 import { GdtResolver } from './GdtResolver'
 import { getCommunityByIdentifier, getCommunityName, isHomeCommunity } from './util/communities'
-import { findUserByIdentifier } from './util/findUserByIdentifier'
 import { getLastTransaction } from './util/getLastTransaction'
 import { getTransactionList } from './util/getTransactionList'
 import {

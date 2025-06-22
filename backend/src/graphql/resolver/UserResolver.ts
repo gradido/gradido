@@ -6,6 +6,8 @@ import {
   UserContact as DbUserContact,
   ProjectBranding,
   UserLoggingView,
+  getHomeCommunity, 
+  findUserByIdentifier 
 } from 'database'
 import { GraphQLResolveInfo } from 'graphql'
 import i18n from 'i18n'
@@ -93,11 +95,9 @@ import { Logger, getLogger } from 'log4js'
 import { FULL_CREATION_AVAILABLE } from './const/const'
 import { Location2Point, Point2Location } from './util/Location2Point'
 import { authenticateGmsUserPlayground } from './util/authenticateGmsUserPlayground'
-import { getHomeCommunity } from 'database'
 import { compareGmsRelevantUserSettings } from './util/compareGmsRelevantUserSettings'
 import { getUserCreations } from './util/creations'
 import { extractGraphQLFieldsForSelect } from './util/extractGraphQLFields'
-import { findUserByIdentifier } from './util/findUserByIdentifier'
 import { findUsers } from './util/findUsers'
 import { getKlicktippState } from './util/getKlicktippState'
 import { deleteUserRole, setUserRole } from './util/modifyUserRole'
@@ -1153,8 +1153,11 @@ export class UserResolver {
     { identifier, communityIdentifier }: UserArgs,
   ): Promise<User> {
     const foundDbUser = await findUserByIdentifier(identifier, communityIdentifier)
-    const modelUser = new User(foundDbUser)
-    return modelUser
+    if (!foundDbUser) {
+      createLogger().debug('User not found', identifier, communityIdentifier)
+      throw new Error('User not found')
+    }
+    return new User(foundDbUser)
   }
 
   // FIELD RESOLVERS

@@ -1,10 +1,10 @@
-import { validateAlias } from './user.schema'
-import { getLogger } from '../../../config-schema/test/testSetup.bun'
-import { LOG_CATEGORY_SCHEMA_ALIAS } from '.'
+import { LOG4JS_CATEGORY_SCHEMA_ALIAS } from '.'
+import { validateAlias } from './user'
+import { getLogger, printLogs } from '../../../config-schema/test/testSetup.bun'
 import { describe, it, expect, beforeEach, mock, jest } from 'bun:test'
 import { aliasExists } from 'database'
 
-const logger = getLogger(`${LOG_CATEGORY_SCHEMA_ALIAS}.alias`)
+const logger = getLogger(`${LOG4JS_CATEGORY_SCHEMA_ALIAS}.alias`)
 
 mock.module('database', () => ({
   aliasExists: jest.fn(),
@@ -33,7 +33,7 @@ describe('validate alias', () => {
             minimum: 3,
             origin: 'string',
             message: 'Given alias is too short',
-          }),*/ 
+          }), */
           expect.objectContaining({
             code: 'too_small',
             exact: false,
