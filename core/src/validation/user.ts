@@ -15,7 +15,6 @@ export async function validateAlias(alias: string): Promise<true> {
       logger.warn('invalid alias', alias, (err as ZodError).errors)
       throw new Error((err as ZodError).errors[0].message)
     }
-    console.log(err)
     throw err
   }
 

@@ -1,3 +1,3 @@
 export * from './schema'
 export * from './enum'
-export * from './logic'
+export * from './logic/decay'
