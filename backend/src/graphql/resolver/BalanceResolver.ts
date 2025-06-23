@@ -9,7 +9,7 @@ import { RIGHTS } from '@/auth/RIGHTS'
 import { BalanceLoggingView } from '@/logging/BalanceLogging.view'
 import { DecayLoggingView } from '@/logging/DecayLogging.view'
 import { Context, getUser } from '@/server/context'
-import { calculateDecay } from '@/util/decay'
+import { calculateDecay } from 'shared'
 
 import { getLogger } from 'log4js'
 import { LOG4JS_RESOLVER_CATEGORY_NAME } from '.'

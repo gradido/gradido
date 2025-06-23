@@ -39,7 +39,7 @@ import { LogError } from '@/server/LogError'
 import { Context, getClientTimezoneOffset, getUser } from '@/server/context'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 import { TRANSACTION_LINK_LOCK } from '@/util/TRANSACTION_LINK_LOCK'
-import { calculateDecay } from '@/util/decay'
+import { calculateDecay } from 'shared'
 import { fullName } from '@/util/utilities'
 import { calculateBalance } from '@/util/validate'
 

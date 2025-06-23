@@ -1,9 +1,10 @@
 import { AbstractLoggingView } from 'database'
 
 import { Decay } from '@/graphql/model/Decay'
+import type { Decay as DecayType } from 'shared'
 
 export class DecayLoggingView extends AbstractLoggingView {
-  public constructor(private self: Decay) {
+  public constructor(private self: Decay | DecayType) {
     super()
   }
 

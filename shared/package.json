@@ -31,6 +31,7 @@
     "uuid": "^8.3.2"
   },
   "dependencies": {
+    "decimal.js-light": "^2.5.1",
     "esbuild": "^0.25.2",
     "log4js": "^6.9.1",
     "zod": "^3.25.61"

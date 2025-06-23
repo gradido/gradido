@@ -1,36 +1,47 @@
 import { Decimal } from 'decimal.js-light'
 
-import { Decay } from '@model/Decay'
+import { getLogger } from 'log4js'
+import { LOG4JS_LOGIC_CATEGORY } from '.'
+import { DECAY_START_TIME } from '../const'
 
-import { LogError } from '@/server/LogError'
-import { DECAY_START_TIME } from 'config-schema'
+const logger = getLogger(`${LOG4JS_LOGIC_CATEGORY}.DecayLogic`)
 
 Decimal.set({
   precision: 25,
   rounding: Decimal.ROUND_HALF_UP,
 })
 
-// TODO: externalize all those definitions and functions into an external decay library
-
-function decayFormula(value: Decimal, seconds: number): Decimal {
-  // TODO why do we need to convert this here to a stting to work properly?
+export interface Decay {
+  balance: Decimal
+  decay: Decimal
+  roundedDecay: Decimal
+  start: Date | null
+  end: Date | null
+  duration: number | null
+}
+  
+export function decayFormula(value: Decimal, seconds: number): Decimal {
+  // TODO why do we need to convert this here to a string to work properly?
+  // chatgpt: We convert to string here to avoid precision loss: 
+  //          .pow(seconds) can internally round the result, especially for large values of `seconds`. 
+  //          Using .toString() ensures full precision is preserved in the multiplication.
   return value.mul(
     new Decimal('0.99999997803504048973201202316767079413460520837376').pow(seconds).toString(),
   )
 }
 
-function calculateDecay(
+export function calculateDecay(
   amount: Decimal,
   from: Date,
-  to: Date,
-  startBlock: Date = DECAY_START_TIME,
+  to: Date
 ): Decay {
   const fromMs = from.getTime()
   const toMs = to.getTime()
-  const startBlockMs = startBlock.getTime()
+  const startBlockMs = DECAY_START_TIME.getTime()
 
   if (toMs < fromMs) {
-    throw new LogError('calculateDecay: to < from, reverse decay calculation is invalid')
+    logger.error('calculateDecay: to < from, reverse decay calculation is invalid', from, to)
+    throw new Error('calculateDecay: to < from, reverse decay calculation is invalid')
   }
 
   // Initialize with no decay
@@ -54,7 +65,7 @@ function calculateDecay(
   }
   // decay started between start and end date; decay from decay start till end date
   else {
-    decay.start = startBlock
+    decay.start = DECAY_START_TIME
     decay.duration = (toMs - startBlockMs) / 1000
   }
 
@@ -67,5 +78,3 @@ function calculateDecay(
     .mul(-1)
   return decay
 }
-
-export { decayFormula, calculateDecay }

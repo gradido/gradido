@@ -5,7 +5,7 @@ import { Authorized, FieldResolver, Query, Resolver } from 'type-graphql'
 import { CommunityStatistics, DynamicStatisticsFields } from '@model/CommunityStatistics'
 
 import { RIGHTS } from '@/auth/RIGHTS'
-import { calculateDecay } from '@/util/decay'
+import { calculateDecay } from 'shared'
 
 const db = AppDatabase.getInstance()
 

@@ -19,7 +19,6 @@ import { ContributionType } from '@enum/ContributionType'
 import { TransactionTypeId } from '@enum/TransactionTypeId'
 import { AdminUpdateContribution } from '@model/AdminUpdateContribution'
 import { Contribution, ContributionListResult } from '@model/Contribution'
-import { Decay } from '@model/Decay'
 import { OpenCreation } from '@model/OpenCreation'
 import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
 
@@ -44,7 +43,7 @@ import { UpdateUnconfirmedContributionContext } from '@/interactions/updateUncon
 import { LogError } from '@/server/LogError'
 import { Context, getClientTimezoneOffset, getUser } from '@/server/context'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
-import { calculateDecay } from '@/util/decay'
+import { calculateDecay, Decay } from 'shared'
 import { fullName } from '@/util/utilities'
 
 import { LOG4JS_RESOLVER_CATEGORY_NAME } from '@/graphql/resolver'
