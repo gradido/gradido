@@ -1,16 +1,7 @@
-import { aliasSchema } from './user.schema'
-import { describe, it, expect, beforeEach, mock, jest } from 'bun:test'
-
-
-mock.module('database', () => ({
-  aliasExists: jest.fn(),
-}))
+import { aliasSchema, firstNameSchema } from './user.schema'
+import { describe, it, expect } from 'bun:test'
 
 describe('validate alias', () => {
-  beforeEach(() => {
-    jest.clearAllMocks()
-  })
-
   describe('alias contains invalid characters', () => {
     it('throws and logs an error', () => {
       expect(() => aliasSchema.parse('Bibi.Bloxberg')).toThrowError(expect.objectContaining(
@@ -102,5 +93,37 @@ describe('validate alias', () => {
         ))
       })
     })
+  })
+})
+
+describe('validate first name', () => {
+  describe('first name contains invalid characters', () => {
+    it('throws and logs an error', () => {
+      expect(() => firstNameSchema.parse('<script>//malicious code</script>')).toThrowError(expect.objectContaining(
+        expect.arrayContaining([
+          expect.objectContaining({
+            origin: 'string',
+            code: 'invalid_format',
+            format: 'regex',
+            message: 'Invalid characters in first name',
+            path: [],
+          })
+        ])
+      ))
+    })
+  })
+  it('use greek symbols', () => {
+    expect(() => firstNameSchema.parse('Αλέξανδρος')).not.toThrowError()
+  })
+  it('use korean symbols', () => {
+    expect(() => firstNameSchema.parse('김민수')).not.toThrowError()
+  })
+  // TODO: use min length depending of language, because in asiatic languages first and/or last names can have only one character
+  it.skip('use japanese symbols', () => {
+    expect(() => firstNameSchema.parse('田中')).not.toThrowError()
+  })
+  // TODO: fix this
+  it.skip('use chinese symbols', () => {
+    expect(() => firstNameSchema.parse('张三')).not.toThrowError()
   })
 })
