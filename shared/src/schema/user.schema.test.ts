@@ -41,6 +41,21 @@ describe('validate alias', () => {
     })
   })
 
+  describe('alias length', () => {
+    it('2 characters is not ok', () => {
+      expect(() => aliasSchema.parse('Bi')).toThrowError()
+    })
+    it('3 characters is ok', () => {
+      expect(() => aliasSchema.parse('Bib')).not.toThrowError()
+    })
+    it('20 characters is ok', () => {
+      expect(() => aliasSchema.parse('BibiBloxbergMondLich')).not.toThrowError()
+    })
+    it('21 characters is not ok', () => {
+      expect(() => aliasSchema.parse('BibiBloxbergZauberwald')).toThrowError()
+    })
+  })
+
   describe('alias is a reserved word with uppercase characters', () => {
     it('throws and logs an error', () => {
       expect(() => aliasSchema.parse('Admin')).toThrowError(expect.objectContaining(

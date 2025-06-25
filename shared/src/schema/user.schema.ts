@@ -14,7 +14,6 @@ const RESERVED_ALIAS = [
   'support',
   'temp',
   'tmp',
-  'tmp',
   'user',
   'usr',
   'var',
