@@ -88,7 +88,7 @@ import { delay } from '@/util/utilities'
 import random from 'random-bigint'
 import { randombytes_random } from 'sodium-native'
 
-import { LOG4JS_RESOLVER_CATEGORY_NAME } from '@/graphql/resolver'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { Logger, getLogger } from 'log4js'
 import { FULL_CREATION_AVAILABLE } from './const/const'
 import { Location2Point, Point2Location } from './util/Location2Point'
@@ -108,7 +108,7 @@ import { validateAlias } from './util/validateAlias'
 const LANGUAGES = ['de', 'en', 'es', 'fr', 'nl']
 const DEFAULT_LANGUAGE = 'de'
 const db = AppDatabase.getInstance()
-const createLogger = () => getLogger(`${LOG4JS_RESOLVER_CATEGORY_NAME}.UserResolver`)
+const createLogger = () => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.UserResolver`)
 const isLanguage = (language: string): boolean => {
   return LANGUAGES.includes(language)
 }

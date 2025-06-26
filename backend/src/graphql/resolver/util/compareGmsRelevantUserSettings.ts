@@ -7,11 +7,11 @@ import { PublishNameType } from '@/graphql/enum/PublishNameType'
 import { LogError } from '@/server/LogError'
 
 import { getLogger } from 'log4js'
-import { LOG4JS_GRAPHQL_RESOLVER_UTIL_CATEGORY_NAME } from '.'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { Point2Location } from './Location2Point'
 
 const logger = getLogger(
-  `${LOG4JS_GRAPHQL_RESOLVER_UTIL_CATEGORY_NAME}.compareGmsRelevantUserSettings`,
+  `${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.util.compareGmsRelevantUserSettings`,
 )
 
 export function compareGmsRelevantUserSettings(

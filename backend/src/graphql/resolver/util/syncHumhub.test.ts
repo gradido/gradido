@@ -5,7 +5,7 @@ import { GetUser } from '@/apis/humhub/model/GetUser'
 import { UpdateUserInfosArgs } from '@/graphql/arg/UpdateUserInfosArgs'
 import { PublishNameType } from '@/graphql/enum/PublishNameType'
 
-import { LOG4JS_GRAPHQL_RESOLVER_UTIL_CATEGORY_NAME } from '@/graphql/resolver/util'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { getLogger } from 'config-schema/test/testSetup'
 import { syncHumhub } from './syncHumhub'
 
@@ -20,7 +20,7 @@ mockUser.humhubPublishName = PublishNameType.PUBLISH_NAME_FULL
 const mockUpdateUserInfosArg = new UpdateUserInfosArgs()
 const mockHumHubUser = new GetUser(mockUser, 1)
 
-const logger = getLogger(`${LOG4JS_GRAPHQL_RESOLVER_UTIL_CATEGORY_NAME}.syncHumhub`)
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.util.syncHumhub`)
 
 describe('syncHumhub', () => {
   beforeEach(() => {

@@ -1,10 +1,10 @@
 import { KlickTipp } from '@model/KlickTipp'
 
 import { getKlickTippUser } from '@/apis/KlicktippController'
-import { LOG4JS_GRAPHQL_RESOLVER_UTIL_CATEGORY_NAME } from '@/graphql/resolver/util'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { getLogger } from 'log4js'
 
-const logger = getLogger(`${LOG4JS_GRAPHQL_RESOLVER_UTIL_CATEGORY_NAME}.getKlicktippState`)
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.util.getKlicktippState`)
 
 export const getKlicktippState = async (email: string): Promise<KlickTipp> => {
   try {

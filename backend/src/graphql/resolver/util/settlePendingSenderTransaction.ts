@@ -8,7 +8,7 @@ import {
 import { Decimal } from 'decimal.js-light'
 
 import { PendingTransactionState } from '@/graphql/enum/PendingTransactionState'
-import { LOG4JS_GRAPHQL_RESOLVER_UTIL_CATEGORY_NAME } from '@/graphql/resolver/util'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { LogError } from '@/server/LogError'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 import { calculateSenderBalance } from '@/util/calculateSenderBalance'
@@ -17,7 +17,7 @@ import { getLastTransaction } from './getLastTransaction'
 
 const db = AppDatabase.getInstance()
 const logger = getLogger(
-  `${LOG4JS_GRAPHQL_RESOLVER_UTIL_CATEGORY_NAME}.settlePendingSenderTransaction`,
+  `${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.util.settlePendingSenderTransaction`,
 )
 
 export async function settlePendingSenderTransaction(

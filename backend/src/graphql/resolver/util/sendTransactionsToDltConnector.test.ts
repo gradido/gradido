@@ -21,14 +21,14 @@ import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { raeuberHotzenplotz } from '@/seeds/users/raeuber-hotzenplotz'
 import { getLogger } from 'config-schema/test/testSetup'
-import { LOG4JS_GRAPHQL_RESOLVER_UTIL_CATEGORY_NAME } from '.'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 
 import { sendTransactionsToDltConnector } from './sendTransactionsToDltConnector'
 
 jest.mock('@/password/EncryptorUtils')
 
 const logger = getLogger(
-  `${LOG4JS_GRAPHQL_RESOLVER_UTIL_CATEGORY_NAME}.sendTransactionsToDltConnector`,
+  `${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.util.sendTransactionsToDltConnector`,
 )
 
 /*

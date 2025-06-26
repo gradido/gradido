@@ -13,7 +13,7 @@ let con: any
 CONFIG.FEDERATION_API = '1_0'
 
 beforeAll(async () => {
-  const server = await createServer(getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.apollo`))
+  const server = await createServer(getLogger('apollo'))
   con = server.con
   query = createTestClient(server.apollo).query
   DbFederatedCommunity.clear()

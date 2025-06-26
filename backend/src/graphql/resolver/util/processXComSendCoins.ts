@@ -14,7 +14,7 @@ import { SendCoinsResult } from '@/federation/client/1_0/model/SendCoinsResult'
 import { SendCoinsClientFactory } from '@/federation/client/SendCoinsClientFactory'
 import { PendingTransactionState } from '@/graphql/enum/PendingTransactionState'
 import { TransactionTypeId } from '@/graphql/enum/TransactionTypeId'
-import { LOG4JS_GRAPHQL_RESOLVER_UTIL_CATEGORY_NAME } from '@/graphql/resolver/util'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { LogError } from '@/server/LogError'
 import { calculateSenderBalance } from '@/util/calculateSenderBalance'
 import { fullName } from '@/util/utilities'
@@ -22,7 +22,7 @@ import { getLogger } from 'log4js'
 
 import { settlePendingSenderTransaction } from './settlePendingSenderTransaction'
 
-const logger = getLogger(`${LOG4JS_GRAPHQL_RESOLVER_UTIL_CATEGORY_NAME}.processXComSendCoins`)
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.util.processXComSendCoins`)
 
 export async function processXComPendingSendCoins(
   receiverCom: DbCommunity,

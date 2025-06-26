@@ -3,12 +3,12 @@ import { GraphQLClient } from 'graphql-request'
 
 import { ensureUrlEndsWithSlash } from '@/util/utilities'
 
-import { LOG4JS_FEDERATION_CLIENT1_0_CATEGORY_NAME } from '@/federation/client/1_0'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { getLogger } from 'log4js'
 import { OpenConnectionArgs } from './model/OpenConnectionArgs'
 import { openConnection } from './query/openConnection'
 
-const logger = getLogger(`${LOG4JS_FEDERATION_CLIENT1_0_CATEGORY_NAME}.AuthenticationClient`)
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.federation.client.1_0.AuthenticationClient`)
 
 export class AuthenticationClient {
   dbCom: DbFederatedCommunity

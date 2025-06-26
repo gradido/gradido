@@ -44,7 +44,7 @@ import { calculateBalance } from '@/util/validate'
 
 import { DisburseJwtPayloadType } from '@/auth/jwt/payloadtypes/DisburseJwtPayloadType'
 import { Logger, getLogger } from 'log4js'
-import { LOG4JS_RESOLVER_CATEGORY_NAME } from '.'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { executeTransaction } from './TransactionResolver'
 import {
   getAuthenticatedCommunities,
@@ -56,7 +56,7 @@ import { getLastTransaction } from './util/getLastTransaction'
 import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
 import { transactionLinkList } from './util/transactionLinkList'
 
-const createLogger = () => getLogger(`${LOG4JS_RESOLVER_CATEGORY_NAME}.TransactionLinkResolver`)
+const createLogger = () => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.TransactionLinkResolver`)
 
 // TODO: do not export, test it inside the resolver
 export const transactionLinkCode = (date: Date): string => {

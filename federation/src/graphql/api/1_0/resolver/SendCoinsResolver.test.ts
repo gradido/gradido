@@ -29,7 +29,7 @@ let recipUser: DbUser
 let recipContact: DbUserContact
 
 beforeAll(async () => {
-  testEnv = await testEnvironment(getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.apollo`))
+  testEnv = await testEnvironment(getLogger('apollo'))
   mutate = testEnv.mutate
   //  query = testEnv.query
   // con = testEnv.con

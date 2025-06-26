@@ -47,7 +47,7 @@ import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 import { calculateDecay } from '@/util/decay'
 import { fullName } from '@/util/utilities'
 
-import { LOG4JS_RESOLVER_CATEGORY_NAME } from '@/graphql/resolver'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { ContributionMessageType } from '@enum/ContributionMessageType'
 import { AppDatabase } from 'database'
 import { getLogger } from 'log4js'
@@ -63,7 +63,7 @@ import { getLastTransaction } from './util/getLastTransaction'
 import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
 
 const db = AppDatabase.getInstance()
-const createLogger = () => getLogger(`${LOG4JS_RESOLVER_CATEGORY_NAME}.ContributionResolver`)
+const createLogger = () => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.ContributionResolver`)
 
 @Resolver(() => Contribution)
 export class ContributionResolver {

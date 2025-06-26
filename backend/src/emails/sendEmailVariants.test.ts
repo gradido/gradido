@@ -5,9 +5,6 @@ import { DataSource } from 'typeorm'
 import { testEnvironment } from '@test/helpers'
 import { i18n as localization } from '@test/testSetup'
 import { getLogger } from 'config-schema/test/testSetup'
-import { LOG4JS_EMAILS_CATEGORY_NAME } from '.'
-
-const logger = getLogger(`${LOG4JS_EMAILS_CATEGORY_NAME}.sendEmailTranslated`)
 
 import { CONFIG } from '@/config'
 
@@ -57,7 +54,7 @@ let testEnv: {
 }
 
 beforeAll(async () => {
-  testEnv = await testEnvironment(logger, localization)
+  testEnv = await testEnvironment(getLogger('apollo'), localization)
   con = testEnv.con
 })
 

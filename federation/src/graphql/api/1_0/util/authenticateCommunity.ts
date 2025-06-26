@@ -12,10 +12,10 @@ import { AuthenticationClientFactory } from '@/client/AuthenticationClientFactor
 import { randombytes_random } from 'sodium-native'
 
 import { AuthenticationClient as V1_0_AuthenticationClient } from '@/client/1_0/AuthenticationClient'
-import { LOG4JS_1_0_UTIL_CATEGORY_NAME } from '.'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { AuthenticationArgs } from '../model/AuthenticationArgs'
 
-const logger = getLogger(`${LOG4JS_1_0_UTIL_CATEGORY_NAME}.authenticateCommunity`)
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.api.1_0.util.authenticateCommunity`)
 
 export async function startOpenConnectionCallback(
   args: OpenConnectionArgs,

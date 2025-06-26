@@ -1,11 +1,11 @@
 import { User as DbUser, UserLoggingView } from 'database'
 
 import { getLogger } from 'log4js'
-import { LOG4JS_1_0_UTIL_CATEGORY_NAME } from '.'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { SendCoinsArgsLoggingView } from '../logger/SendCoinsArgsLogging.view'
 import { SendCoinsArgs } from '../model/SendCoinsArgs'
 
-const logger = getLogger(`${LOG4JS_1_0_UTIL_CATEGORY_NAME}.storeForeignUser`)
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.api.1_0.util.storeForeignUser`)
 
 export async function storeForeignUser(args: SendCoinsArgs): Promise<boolean> {
   if (args.senderCommunityUuid !== null && args.senderUserUuid !== null) {

@@ -6,12 +6,12 @@ import { CONFIG } from '@/config'
 import { AuthenticationClient as V1_0_AuthenticationClient } from '@/federation/client/1_0/AuthenticationClient'
 import { ensureUrlEndsWithSlash } from '@/util/utilities'
 
-import { LOG4JS_FEDERATION_CATEGORY_NAME } from '@/federation'
 import { getLogger } from 'log4js'
 import { OpenConnectionArgs } from './client/1_0/model/OpenConnectionArgs'
 import { AuthenticationClientFactory } from './client/AuthenticationClientFactory'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 
-const logger = getLogger(`${LOG4JS_FEDERATION_CATEGORY_NAME}.authenticateCommunities`)
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.federation.authenticateCommunities`)
 
 export async function startCommunityAuthentication(
   foreignFedCom: DbFederatedCommunity,

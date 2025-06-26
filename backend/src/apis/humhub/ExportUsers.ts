@@ -1,7 +1,7 @@
 import { AppDatabase, User } from 'database'
 import { IsNull, Not } from 'typeorm'
 
-import { LOG4JS_HUMHUB_CATEGORY_NAME } from '@/apis/humhub/index'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { initLogging } from '@/server/logger'
 import { getLogger } from 'log4js'
 import { HumHubClient } from './HumHubClient'
@@ -11,7 +11,7 @@ import { ExecutedHumhubAction, syncUser } from './syncUser'
 
 const USER_BULK_SIZE = 20
 const HUMHUB_BULK_SIZE = 50
-const logger = getLogger(`${LOG4JS_HUMHUB_CATEGORY_NAME}.ExportUsers`)
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.apis.humhub.ExportUsers`)
 
 function getUsersPage(page: number, limit: number): Promise<[User[], number]> {
   return User.findAndCount({

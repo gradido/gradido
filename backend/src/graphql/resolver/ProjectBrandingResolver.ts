@@ -10,9 +10,9 @@ import { HumHubClient } from '@/apis/humhub/HumHubClient'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { LogError } from '@/server/LogError'
 import { getLogger } from 'log4js'
-import { LOG4JS_RESOLVER_CATEGORY_NAME } from '.'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 
-const logger = getLogger(`${LOG4JS_RESOLVER_CATEGORY_NAME}.ProjectBrandingResolver`)
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.ProjectBrandingResolver`)
 
 @Resolver(() => ProjectBranding)
 export class ProjectBrandingResolver {

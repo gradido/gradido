@@ -9,11 +9,11 @@ import { EventType } from '@/event/Events'
 import { userFactory } from '@/seeds/factory/user'
 import { login, subscribeNewsletter, unsubscribeNewsletter } from '@/seeds/graphql/mutations'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
-import { LOG4JS_RESOLVER_CATEGORY_NAME } from '.'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 
 jest.mock('@/password/EncryptorUtils')
 
-const logger = getLogger(`${LOG4JS_RESOLVER_CATEGORY_NAME}.KlicktippResolver`)
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.KlicktippResolver`)
 
 let testEnv: any
 let mutate: any

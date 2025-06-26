@@ -8,13 +8,13 @@ import {
 } from 'database'
 import { getLogger } from 'log4js'
 import { Arg, Mutation, Resolver } from 'type-graphql'
-import { LOG4JS_RESOLVER_1_0_CATEGORY_NAME } from '.'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { AuthenticationArgs } from '../model/AuthenticationArgs'
 import { OpenConnectionArgs } from '../model/OpenConnectionArgs'
 import { OpenConnectionCallbackArgs } from '../model/OpenConnectionCallbackArgs'
 import { startAuthentication, startOpenConnectionCallback } from '../util/authenticateCommunity'
 
-const logger = getLogger(`${LOG4JS_RESOLVER_1_0_CATEGORY_NAME}.AuthenticationResolver`)
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.api.1_0.resolver.AuthenticationResolver`)
 
 @Resolver()
 export class AuthenticationResolver {

@@ -10,7 +10,6 @@ import { i18n as localization } from '@test/testSetup'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { sendAddedContributionMessageEmail } from '@/emails/sendEmailVariants'
 import { EventType } from '@/event/Events'
-import { LOG4JS_INTERACTION_CATEGORY_NAME } from '@/interactions'
 import { userFactory } from '@/seeds/factory/user'
 import {
   adminCreateContributionMessage,
@@ -22,13 +21,12 @@ import { adminListContributionMessages, listContributionMessages } from '@/seeds
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { peterLustig } from '@/seeds/users/peter-lustig'
-import { clearLogs, getLogger, printLogs } from 'config-schema/test/testSetup'
-import { LOG4JS_RESOLVER_CATEGORY_NAME } from '.'
+import { getLogger} from 'config-schema/test/testSetup'
 
-const logger = getLogger(`${LOG4JS_RESOLVER_CATEGORY_NAME}.ContributionMessageResolver`)
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.ContributionMessageResolver`)
 const logErrorLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)
 const interactionLogger = getLogger(
-  `${LOG4JS_INTERACTION_CATEGORY_NAME}.updateUnconfirmedContribution`,
+  `${LOG4JS_BASE_CATEGORY_NAME}.interactions.updateUnconfirmedContribution`,
 )
 
 jest.mock('@/password/EncryptorUtils')

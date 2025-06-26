@@ -51,7 +51,7 @@ import { peterLustig } from '@/seeds/users/peter-lustig'
 import { raeuberHotzenplotz } from '@/seeds/users/raeuber-hotzenplotz'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
 import { getFirstDayOfPreviousNMonth } from '@/util/utilities'
-import { clearLogs, getLogger, printLogs } from 'config-schema/test/testSetup'
+import { getLogger } from 'config-schema/test/testSetup'
 import { getLogger as originalGetLogger } from 'log4js'
 
 jest.mock('@/emails/sendEmailVariants')

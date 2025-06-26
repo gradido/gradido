@@ -17,11 +17,11 @@ import { TRANSACTIONS_LOCK } from '@/graphql/util/TRANSACTIONS_LOCK'
 import { getLastTransaction } from '@/graphql/util/getLastTransaction'
 import Decimal from 'decimal.js-light'
 import { getLogger } from 'log4js'
-import { LOG4JS_1_0_UTIL_CATEGORY_NAME } from '.'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { calculateRecipientBalance } from './calculateRecipientBalance'
 
 const db = AppDatabase.getInstance()
-const logger = getLogger(`${LOG4JS_1_0_UTIL_CATEGORY_NAME}.settlePendingReceiveTransaction`)
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.api.1_0.util.settlePendingReceiveTransaction`)
 
 export async function settlePendingReceiveTransaction(
   homeCom: DbCommunity,
