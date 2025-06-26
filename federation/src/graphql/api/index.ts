@@ -1,3 +1,0 @@
-import { LOG4JS_GRAPHQL_CATEGORY_NAME } from '@/graphql'
-
-export const LOG4JS_API_CATEGORY_NAME = `${LOG4JS_GRAPHQL_CATEGORY_NAME}.api`

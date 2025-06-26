@@ -37,7 +37,7 @@ import { calculateBalance } from '@/util/validate'
 import { virtualDecayTransaction, virtualLinkTransaction } from '@/util/virtualTransactions'
 
 import { Logger, getLogger } from 'log4js'
-import { LOG4JS_RESOLVER_CATEGORY_NAME } from '.'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { BalanceResolver } from './BalanceResolver'
 import { GdtResolver } from './GdtResolver'
 import { getCommunityByIdentifier, getCommunityName, isHomeCommunity } from './util/communities'
@@ -52,7 +52,7 @@ import { storeForeignUser } from './util/storeForeignUser'
 import { transactionLinkSummary } from './util/transactionLinkSummary'
 
 const db = AppDatabase.getInstance()
-const createLogger = () => getLogger(`${LOG4JS_RESOLVER_CATEGORY_NAME}.TransactionResolver`)
+const createLogger = () => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.TransactionResolver`)
 
 export const executeTransaction = async (
   amount: Decimal,

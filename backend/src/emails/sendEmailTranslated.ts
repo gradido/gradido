@@ -5,10 +5,10 @@ import i18n from 'i18n'
 import { createTransport } from 'nodemailer'
 
 import { CONFIG } from '@/config'
-import { LOG4JS_EMAILS_CATEGORY_NAME } from '@/emails'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { getLogger } from 'log4js'
 
-const logger = getLogger(`${LOG4JS_EMAILS_CATEGORY_NAME}.sendEmailTranslated`)
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.emails.sendEmailTranslated`)
 
 export const sendEmailTranslated = async ({
   receiver,

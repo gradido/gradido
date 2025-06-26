@@ -7,10 +7,10 @@ import { CONFIG } from '@/config'
 
 import { Message as MessageModel } from './model/Message'
 
-import { LOG4JS_APIS_CATEGORY_NAME } from '@/apis'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { getLogger } from 'log4js'
 
-const logger = getLogger(`${LOG4JS_APIS_CATEGORY_NAME}.openai.OpenaiClient`)
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.apis.openai.OpenaiClient`)
 
 /**
  * The `OpenaiClient` class is a singleton that provides an interface to interact with the OpenAI API.

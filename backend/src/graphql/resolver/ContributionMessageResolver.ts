@@ -23,13 +23,13 @@ import { UpdateUnconfirmedContributionContext } from '@/interactions/updateUncon
 import { LogError } from '@/server/LogError'
 import { Context, getUser } from '@/server/context'
 import { getLogger } from 'log4js'
-import { LOG4JS_RESOLVER_CATEGORY_NAME } from '.'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 
 import { contributionFrontendLink } from './util/contributions'
 import { findContributionMessages } from './util/findContributionMessages'
 
 const db = AppDatabase.getInstance()
-const createLogger = () => getLogger(`${LOG4JS_RESOLVER_CATEGORY_NAME}.ContributionMessageResolver`)
+const createLogger = () => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.ContributionMessageResolver`)
 
 @Resolver()
 export class ContributionMessageResolver {

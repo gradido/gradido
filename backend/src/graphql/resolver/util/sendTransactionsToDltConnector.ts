@@ -3,12 +3,12 @@ import { IsNull } from 'typeorm'
 
 import { DltConnectorClient } from '@dltConnector/DltConnectorClient'
 
-import { LOG4JS_GRAPHQL_RESOLVER_UTIL_CATEGORY_NAME } from '@/graphql/resolver/util'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { Monitor, MonitorNames } from '@/util/Monitor'
 import { getLogger } from 'log4js'
 
 const logger = getLogger(
-  `${LOG4JS_GRAPHQL_RESOLVER_UTIL_CATEGORY_NAME}.sendTransactionsToDltConnector`,
+  `${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.util.sendTransactionsToDltConnector`,
 )
 
 export async function sendTransactionsToDltConnector(): Promise<void> {

@@ -12,7 +12,7 @@ import { Context, getUser } from '@/server/context'
 import { calculateDecay } from 'shared'
 
 import { getLogger } from 'log4js'
-import { LOG4JS_RESOLVER_CATEGORY_NAME } from '.'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { GdtResolver } from './GdtResolver'
 import { getLastTransaction } from './util/getLastTransaction'
 import { transactionLinkSummary } from './util/transactionLinkSummary'
@@ -24,7 +24,7 @@ export class BalanceResolver {
   async balance(@Ctx() context: Context): Promise<Balance> {
     const user = getUser(context)
     const now = new Date()
-    const logger = getLogger(`${LOG4JS_RESOLVER_CATEGORY_NAME}.BalanceResolver`)
+    const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.BalanceResolver`)
 
     logger.addContext('user', user.id)
     logger.info(`balance...`)

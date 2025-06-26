@@ -19,8 +19,7 @@ const POLLTIME = 20000
 const SUCCESSTIME = 120000
 const ERRORTIME = 240000
 const ANNOUNCETIME = 30000
-export const LOG_CATEGORY_DHT_NODE = `${LOG4JS_BASE_CATEGORY_NAME}.dht_node`
-const logger = getLogger(LOG_CATEGORY_DHT_NODE)
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.dht_node`)
 
 type CommunityApi = {
   api: string

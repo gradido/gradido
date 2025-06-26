@@ -1,7 +1,7 @@
 import { FederatedCommunity as DbFederatedCommunity } from 'database'
 import { GraphQLClient } from 'graphql-request'
 
-import { LOG4JS_FEDERATION_CLIENT1_0_CATEGORY_NAME } from '@/federation/client/1_0'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { getPublicCommunityInfo } from '@/federation/client/1_0/query/getPublicCommunityInfo'
 import { getPublicKey } from '@/federation/client/1_0/query/getPublicKey'
 import { ensureUrlEndsWithSlash } from '@/util/utilities'
@@ -11,7 +11,7 @@ import { PublicCommunityInfoLoggingView } from './logging/PublicCommunityInfoLog
 import { GetPublicKeyResult } from './model/GetPublicKeyResult'
 import { PublicCommunityInfo } from './model/PublicCommunityInfo'
 
-const logger = getLogger(`${LOG4JS_FEDERATION_CLIENT1_0_CATEGORY_NAME}.FederationClient`)
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.federation.client.1_0.FederationClient`)
 
 export class FederationClient {
   dbCom: DbFederatedCommunity

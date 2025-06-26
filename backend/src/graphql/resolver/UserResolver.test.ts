@@ -69,7 +69,6 @@ import { objectValuesToArray } from '@/util/utilities'
 
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { getLogger } from 'config-schema/test/testSetup'
-import { LOG4JS_RESOLVER_CATEGORY_NAME } from '.'
 import { Location2Point } from './util/Location2Point'
 
 jest.mock('@/apis/humhub/HumHubClient')
@@ -96,7 +95,7 @@ jest.mock('@/apis/KlicktippController', () => {
   }
 })
 
-const logger = getLogger(`${LOG4JS_RESOLVER_CATEGORY_NAME}.UserResolver`)
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.UserResolver`)
 const logErrorLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)
 
 CONFIG.EMAIL_CODE_REQUEST_TIME = 10
@@ -113,7 +112,7 @@ let testEnv: {
 }
 
 beforeAll(async () => {
-  testEnv = await testEnvironment(logger, localization)
+  testEnv = await testEnvironment(getLogger('apollo'), localization)
   mutate = testEnv.mutate
   query = testEnv.query
   con = testEnv.con

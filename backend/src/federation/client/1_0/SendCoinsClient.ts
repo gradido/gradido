@@ -5,7 +5,7 @@ import { LogError } from '@/server/LogError'
 import { ensureUrlEndsWithSlash } from '@/util/utilities'
 import { getLogger } from 'log4js'
 
-import { LOG4JS_FEDERATION_CLIENT1_0_CATEGORY_NAME } from '.'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { SendCoinsArgsLoggingView } from './logging/SendCoinsArgsLogging.view'
 import { SendCoinsResultLoggingView } from './logging/SendCoinsResultLogging.view'
 import { SendCoinsArgs } from './model/SendCoinsArgs'
@@ -15,7 +15,7 @@ import { revertSettledSendCoins as revertSettledSendCoinsQuery } from './query/r
 import { settleSendCoins as settleSendCoinsQuery } from './query/settleSendCoins'
 import { voteForSendCoins as voteForSendCoinsQuery } from './query/voteForSendCoins'
 
-const logger = getLogger(`${LOG4JS_FEDERATION_CLIENT1_0_CATEGORY_NAME}.SendCoinsClient`)
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.federation.client.1_0.SendCoinsClient`)
 
 export class SendCoinsClient {
   dbCom: DbFederatedCommunity

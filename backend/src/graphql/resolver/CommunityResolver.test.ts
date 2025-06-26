@@ -19,12 +19,10 @@ import {
 import { peterLustig } from '@/seeds/users/peter-lustig'
 
 import { getLogger } from 'config-schema/test/testSetup'
-import { LOG4JS_RESOLVER_CATEGORY_NAME } from '.'
 import { getCommunityByUuid } from './util/communities'
 
 jest.mock('@/password/EncryptorUtils')
 
-const logger = getLogger(`${LOG4JS_RESOLVER_CATEGORY_NAME}.CommunityResolver`)
 
 // to do: We need a setup for the tests that closes the connection
 let mutate: ApolloServerTestClient['mutate']
@@ -44,7 +42,7 @@ const peterLoginData = {
 }
 
 beforeAll(async () => {
-  testEnv = await testEnvironment(logger, localization)
+  testEnv = await testEnvironment(getLogger('apollo'), localization)
   mutate = testEnv.mutate
   query = testEnv.query
   con = testEnv.con

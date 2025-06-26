@@ -1,14 +1,14 @@
 import { FederatedCommunity as DbFederatedCommunity } from 'database'
 import { GraphQLClient } from 'graphql-request'
 import { getLogger } from 'log4js'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 
 import { AuthenticationArgs } from '@/graphql/api/1_0/model/AuthenticationArgs'
 import { OpenConnectionCallbackArgs } from '@/graphql/api/1_0/model/OpenConnectionCallbackArgs'
-import { LOG4JS_CLIENT_1_0_CATEGORY_NAME } from '.'
 import { authenticate } from './query/authenticate'
 import { openConnectionCallback } from './query/openConnectionCallback'
 
-const logger = getLogger(`${LOG4JS_CLIENT_1_0_CATEGORY_NAME}.AuthenticationClient`)
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.client.1_0.AuthenticationClient`)
 
 export class AuthenticationClient {
   dbCom: DbFederatedCommunity

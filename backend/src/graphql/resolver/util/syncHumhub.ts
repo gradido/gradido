@@ -7,10 +7,10 @@ import { ExecutedHumhubAction, syncUser } from '@/apis/humhub/syncUser'
 import { PublishNameLogic } from '@/data/PublishName.logic'
 import { UpdateUserInfosArgs } from '@/graphql/arg/UpdateUserInfosArgs'
 import { PublishNameType } from '@/graphql/enum/PublishNameType'
-import { LOG4JS_GRAPHQL_RESOLVER_UTIL_CATEGORY_NAME } from '@/graphql/resolver/util'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { getLogger } from 'log4js'
 
-const createLogger = () => getLogger(`${LOG4JS_GRAPHQL_RESOLVER_UTIL_CATEGORY_NAME}.syncHumhub`)
+const createLogger = () => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.util.syncHumhub`)
 
 /**
  * Syncs the user with humhub

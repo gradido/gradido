@@ -90,7 +90,7 @@ import { delay } from '@/util/utilities'
 import random from 'random-bigint'
 import { randombytes_random } from 'sodium-native'
 
-import { LOG4JS_RESOLVER_CATEGORY_NAME } from '@/graphql/resolver'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { Logger, getLogger } from 'log4js'
 import { FULL_CREATION_AVAILABLE } from './const/const'
 import { Location2Point, Point2Location } from './util/Location2Point'
@@ -108,7 +108,7 @@ import { validateAlias } from 'core'
 const LANGUAGES = ['de', 'en', 'es', 'fr', 'nl']
 const DEFAULT_LANGUAGE = 'de'
 const db = AppDatabase.getInstance()
-const createLogger = () => getLogger(`${LOG4JS_RESOLVER_CATEGORY_NAME}.UserResolver`)
+const createLogger = () => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.UserResolver`)
 const isLanguage = (language: string): boolean => {
   return LANGUAGES.includes(language)
 }
@@ -184,7 +184,6 @@ export class UserResolver {
       await delay(650 + Math.floor(Math.random() * 101) - 50)
       throw e
     }
-    // TODO: discuss need we logging all this cases?
     if (dbUser.deletedAt) {
       logger.warn('login failed, user was deleted')
       throw new Error('This user was permanently deleted. Contact support for questions')
@@ -1198,7 +1197,6 @@ export async function findUserByEmail(email: string): Promise<DbUser> {
   } catch (e) {
     const logger = createLogger()
     if (e instanceof EntityNotFoundError || (e as Error).name === 'EntityNotFoundError') {
-      // TODO: discuss if it is ok to print email in log for this case
       logger.warn(`findUserByEmail failed, user with email=${email} not found`)
     } else {
       logger.error(`findUserByEmail failed, unknown error: ${e}`)

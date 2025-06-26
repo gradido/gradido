@@ -4,16 +4,15 @@ import { GraphQLClient } from 'graphql-request'
 import { Response } from 'graphql-request/dist/types'
 import { DataSource, Not } from 'typeorm'
 
-import { LOG4JS_FEDERATION_CATEGORY_NAME } from '@/federation'
-import { LOG4JS_FEDERATION_CLIENT1_0_CATEGORY_NAME } from '@/federation/client/1_0'
 import { cleanDB, testEnvironment } from '@test/helpers'
 import { getLogger } from 'config-schema/test/testSetup'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 
 import { validateCommunities } from './validateCommunities'
 
-const logger = getLogger(`${LOG4JS_FEDERATION_CATEGORY_NAME}.validateCommunities`)
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.federation.validateCommunities`)
 const federationClientLogger = getLogger(
-  `${LOG4JS_FEDERATION_CLIENT1_0_CATEGORY_NAME}.FederationClient`,
+  `${LOG4JS_BASE_CATEGORY_NAME}.federation.client.1_0.FederationClient`,
 )
 
 let con: DataSource

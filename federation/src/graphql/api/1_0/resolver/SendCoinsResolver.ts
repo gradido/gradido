@@ -9,7 +9,7 @@ import {
 import Decimal from 'decimal.js-light'
 import { getLogger } from 'log4js'
 import { Arg, Mutation, Resolver } from 'type-graphql'
-import { LOG4JS_RESOLVER_1_0_CATEGORY_NAME } from '.'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { PendingTransactionState } from '../enum/PendingTransactionState'
 import { TransactionTypeId } from '../enum/TransactionTypeId'
 import { SendCoinsArgsLoggingView } from '../logger/SendCoinsArgsLogging.view'
@@ -21,7 +21,7 @@ import { revertSettledReceiveTransaction } from '../util/revertSettledReceiveTra
 import { settlePendingReceiveTransaction } from '../util/settlePendingReceiveTransaction'
 import { storeForeignUser } from '../util/storeForeignUser'
 
-const logger = getLogger(`${LOG4JS_RESOLVER_1_0_CATEGORY_NAME}.SendCoinsResolver`)
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.api.1_0.resolver.SendCoinsResolver`)
 
 @Resolver()
 export class SendCoinsResolver {

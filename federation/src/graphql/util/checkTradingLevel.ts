@@ -1,11 +1,11 @@
 import { CONFIG } from '@/config'
-import { LOG4JS_GRAPHQL_UTIL_CATEGORY_NAME } from '@/graphql/util'
 import { Community as DbCommunity } from 'database'
 import { Decimal } from 'decimal.js-light'
 import { getLogger } from 'log4js'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 
 export async function checkTradingLevel(homeCom: DbCommunity, amount: Decimal): Promise<boolean> {
-  const logger = getLogger(`${LOG4JS_GRAPHQL_UTIL_CATEGORY_NAME}.checkTradingLevel`)
+  const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.util.checkTradingLevel`)
 
   const tradingLevel = CONFIG.FEDERATION_TRADING_LEVEL
   if (homeCom.url !== tradingLevel.RECEIVER_COMMUNITY_URL) {
