@@ -1,10 +1,6 @@
 import { Decimal } from 'decimal.js-light'
 
-import { getLogger } from 'log4js'
-import { LOG4JS_LOGIC_CATEGORY } from '.'
 import { DECAY_START_TIME } from '../const'
-
-const logger = getLogger(`${LOG4JS_LOGIC_CATEGORY}.DecayLogic`)
 
 Decimal.set({
   precision: 25,
@@ -40,7 +36,7 @@ export function calculateDecay(
   const startBlockMs = DECAY_START_TIME.getTime()
 
   if (toMs < fromMs) {
-    logger.error('calculateDecay: to < from, reverse decay calculation is invalid', from, to)
+    // TODO: refactor, use custom Error Classes which contain context variables
     throw new Error('calculateDecay: to < from, reverse decay calculation is invalid')
   }
 

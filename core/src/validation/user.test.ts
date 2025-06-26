@@ -1,10 +1,10 @@
-import { LOG4JS_CATEGORY_SCHEMA_ALIAS } from '.'
 import { validateAlias } from './user'
-import { getLogger, printLogs } from '../../../config-schema/test/testSetup.bun'
+import { getLogger } from '../../../config-schema/test/testSetup.bun'
 import { describe, it, expect, beforeEach, mock, jest } from 'bun:test'
 import { aliasExists } from 'database'
+import { LOG4JS_BASE_CATEGORY_NAME } from '../config/const'
 
-const logger = getLogger(`${LOG4JS_CATEGORY_SCHEMA_ALIAS}.alias`)
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.validation.user`)
 
 mock.module('database', () => ({
   aliasExists: jest.fn(),

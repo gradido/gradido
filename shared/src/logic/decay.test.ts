@@ -41,4 +41,13 @@ describe('utils/decay', () => {
     const now = new Date()
     expect(calculateDecay(new Decimal(100.0), now, now).balance.toString()).toBe('100')
   })
+
+  describe('calculateDecay called with invalid dates', () => {
+    it('throws an error when to is before from', () => {
+      const now = new Date()
+      const oneSecondAgo = new Date(now.getTime())
+      oneSecondAgo.setSeconds(0)
+      expect(() => calculateDecay(new Decimal(1.0), now, oneSecondAgo)).toThrowError()
+    })
+  })
 })

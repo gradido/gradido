@@ -1,10 +1,10 @@
 import { ZodError } from 'zod'
 import { getLogger } from 'log4js'
-import { LOG4JS_CATEGORY_SCHEMA_ALIAS } from '.'
+import { LOG4JS_BASE_CATEGORY_NAME } from '../config/const'
 import { aliasExists } from 'database'
 import { aliasSchema } from 'shared'
 
-const logger = getLogger(`${LOG4JS_CATEGORY_SCHEMA_ALIAS}.alias`)
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.validation.user`)
 
 export async function validateAlias(alias: string): Promise<true> {
   try {
