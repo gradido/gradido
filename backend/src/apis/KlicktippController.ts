@@ -1,9 +1,10 @@
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { CONFIG } from '@/config'
-import { backendLogger as logger } from '@/server/logger'
-
 import KlicktippConnector from 'klicktipp-api'
+import { getLogger } from 'log4js'
 
 const klicktippConnector = new KlicktippConnector()
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.apis.KlicktippController`)
 
 export const subscribe = async (
   email: string,

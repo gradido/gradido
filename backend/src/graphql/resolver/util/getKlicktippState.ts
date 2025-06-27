@@ -1,7 +1,10 @@
 import { KlickTipp } from '@model/KlickTipp'
 
 import { getKlickTippUser } from '@/apis/KlicktippController'
-import { klickTippLogger as logger } from '@/server/logger'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { getLogger } from 'log4js'
+
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.util.getKlicktippState`)
 
 export const getKlicktippState = async (email: string): Promise<KlickTipp> => {
   try {
@@ -10,7 +13,7 @@ export const getKlicktippState = async (email: string): Promise<KlickTipp> => {
       return new KlickTipp(klickTippUser.status === 'Subscribed')
     }
   } catch (err) {
-    logger.error('There is no klicktipp user for email', email, err)
+    logger.error('There is no klicktipp user for email', email.substring(0, 3), '...', err)
   }
   return new KlickTipp(false)
 }

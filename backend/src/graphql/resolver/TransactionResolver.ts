@@ -29,13 +29,14 @@ import { EVENT_TRANSACTION_RECEIVE, EVENT_TRANSACTION_SEND } from '@/event/Event
 import { SendCoinsResult } from '@/federation/client/1_0/model/SendCoinsResult'
 import { LogError } from '@/server/LogError'
 import { Context, getUser } from '@/server/context'
-import { backendLogger as logger } from '@/server/logger'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 import { communityUser } from '@/util/communityUser'
 import { fullName } from '@/util/utilities'
 import { calculateBalance } from '@/util/validate'
 import { virtualDecayTransaction, virtualLinkTransaction } from '@/util/virtualTransactions'
 
+import { Logger, getLogger } from 'log4js'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { BalanceResolver } from './BalanceResolver'
 import { GdtResolver } from './GdtResolver'
 import { getCommunityByIdentifier, getCommunityName, isHomeCommunity } from './util/communities'
@@ -51,16 +52,19 @@ import { storeForeignUser } from './util/storeForeignUser'
 import { transactionLinkSummary } from './util/transactionLinkSummary'
 
 const db = AppDatabase.getInstance()
+const createLogger = () => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.TransactionResolver`)
 
 export const executeTransaction = async (
   amount: Decimal,
   memo: string,
   sender: dbUser,
   recipient: dbUser,
+  logger: Logger,
   transactionLink?: dbTransactionLink | null,
 ): Promise<boolean> => {
   // acquire lock
   const releaseLock = await TRANSACTIONS_LOCK.acquire()
+
   try {
     logger.info('executeTransaction', amount, memo, sender, recipient)
 
@@ -228,9 +232,9 @@ export class TransactionResolver {
   ): Promise<TransactionList> {
     const now = new Date()
     const user = getUser(context)
-
+    const logger = createLogger()
     logger.addContext('user', user.id)
-    logger.info(`transactionList(user=${user.firstName}.${user.lastName}, ${user.emailId})`)
+    logger.info(`transactionList`)
 
     let balanceGDTPromise: Promise<number | null> = Promise.resolve(null)
     if (CONFIG.GDT_ACTIVE) {
@@ -240,7 +244,7 @@ export class TransactionResolver {
 
     // find current balance
     const lastTransaction = await getLastTransaction(user.id)
-    logger.debug(`lastTransaction=${lastTransaction}`)
+    logger.debug(`lastTransaction=${lastTransaction?.id}`)
 
     const balanceResolver = new BalanceResolver()
     context.lastTransaction = lastTransaction
@@ -288,10 +292,10 @@ export class TransactionResolver {
             },
           ],
         })
-        logger.debug('found dbRemoteUser:', dbRemoteUser)
+        logger.debug(`found dbRemoteUser: ${dbRemoteUser?.id}`)
         const remoteUser = new User(dbRemoteUser)
         if (dbRemoteUser === null) {
-          logger.debug('no dbRemoteUser found, init from tx:', transaction)
+          logger.debug(`no dbRemoteUser found, init from tx: ${transaction.id}`)
           if (transaction.linkedUserCommunityUuid !== null) {
             remoteUser.communityUuid = transaction.linkedUserCommunityUuid
           }
@@ -312,7 +316,10 @@ export class TransactionResolver {
       }
     }
     logger.debug(`involvedUserIds=`, involvedUserIds)
-    logger.debug(`involvedRemoteUsers=`, involvedRemoteUsers)
+    logger.debug(
+      `involvedRemoteUsers=`,
+      involvedRemoteUsers.map((u) => u.id),
+    )
 
     // We need to show the name for deleted users for old transactions
     const involvedDbUsers = await dbUser.find({
@@ -321,7 +328,10 @@ export class TransactionResolver {
       relations: ['emailContact'],
     })
     const involvedUsers = involvedDbUsers.map((u) => new User(u))
-    logger.debug(`involvedUsers=`, involvedUsers)
+    logger.debug(
+      `involvedUsers=`,
+      involvedUsers.map((u) => u.id),
+    )
 
     const self = new User(user)
     const transactions: Transaction[] = []
@@ -332,11 +342,11 @@ export class TransactionResolver {
     context.linkCount = transactionLinkcount
     logger.debug(`transactionLinkcount=${transactionLinkcount}`)
     context.sumHoldAvailableAmount = sumHoldAvailableAmount
-    logger.debug(`sumHoldAvailableAmount=${sumHoldAvailableAmount}`)
+    logger.debug(`sumHoldAvailableAmount=${sumHoldAvailableAmount.toString()}`)
 
     // decay & link transactions
     if (currentPage === 1 && order === Order.DESC) {
-      logger.debug(`currentPage == 1: transactions=${transactions}`)
+      logger.debug(`currentPage == 1: transactions=${transactions.map((t) => t.id)}`)
       // The virtual decay is always on the booked amount, not including the generated, not yet booked links,
       // since the decay is substantially different when the amount is less
       transactions.push(
@@ -348,7 +358,7 @@ export class TransactionResolver {
           sumHoldAvailableAmount,
         ),
       )
-      logger.debug(`transactions=${transactions}`)
+      logger.debug(`transactions=${transactions.map((t) => t.id)}`)
 
       // virtual transaction for pending transaction-links sum
       if (sumHoldAvailableAmount.isZero()) {
@@ -373,7 +383,7 @@ export class TransactionResolver {
           )
         }
       } else if (sumHoldAvailableAmount.greaterThan(0)) {
-        logger.debug(`sumHoldAvailableAmount > 0: transactions=${transactions}`)
+        logger.debug(`sumHoldAvailableAmount > 0: transactions=${transactions.map((t) => t.id)}`)
         transactions.push(
           virtualLinkTransaction(
             lastTransaction.balance.minus(sumHoldAvailableAmount.toString()),
@@ -386,7 +396,7 @@ export class TransactionResolver {
             (userTransactions.length && userTransactions[0].balance) || new Decimal(0),
           ),
         )
-        logger.debug(`transactions=`, transactions)
+        logger.debug(`transactions=${transactions.map((t) => t.id)}`)
       }
     }
 
@@ -401,19 +411,22 @@ export class TransactionResolver {
       let linkedUser: User | undefined
       if ((userTransaction.typeId as TransactionTypeId) === TransactionTypeId.CREATION) {
         linkedUser = communityUser
-        logger.debug('CREATION-linkedUser=', linkedUser)
+        logger.debug(`CREATION-linkedUser=${linkedUser.id}`)
       } else if (userTransaction.linkedUserId) {
         linkedUser = involvedUsers.find((u) => u.id === userTransaction.linkedUserId)
-        logger.debug('local linkedUser=', linkedUser)
+        logger.debug(`local linkedUser=${linkedUser?.id}`)
       } else if (userTransaction.linkedUserCommunityUuid) {
         linkedUser = involvedRemoteUsers.find(
           (u) => u.gradidoID === userTransaction.linkedUserGradidoID,
         )
-        logger.debug('remote linkedUser=', linkedUser)
+        logger.debug(`remote linkedUser=${linkedUser?.id}`)
       }
       transactions.push(new Transaction(userTransaction, self, linkedUser))
     })
-    logger.debug(`TransactionTypeId.CREATION: transactions=`, transactions)
+    logger.debug(
+      `TransactionTypeId.CREATION: transactions=`,
+      transactions.map((t) => t.id),
+    )
 
     transactions.forEach((transaction: Transaction) => {
       if (transaction.typeId !== TransactionTypeId.DECAY) {
@@ -439,6 +452,9 @@ export class TransactionResolver {
     { recipientCommunityIdentifier, recipientIdentifier, amount, memo }: TransactionSendArgs,
     @Ctx() context: Context,
   ): Promise<boolean> {
+    const logger = createLogger()
+    logger.addContext('from', context.user?.id)
+    logger.addContext('amount', amount.toString())
     logger.debug(
       `sendCoins(recipientCommunityIdentifier=${recipientCommunityIdentifier}, recipientIdentifier=${recipientIdentifier}, amount=${amount}, memo=${memo})`,
     )
@@ -454,28 +470,28 @@ export class TransactionResolver {
       if (!recipientUser) {
         throw new LogError('The recipient user was not found', recipientUser)
       }
+      logger.addContext('to', recipientUser?.id)
       if (recipientUser.foreign) {
         throw new LogError('Found foreign recipient user for a local transaction:', recipientUser)
       }
 
-      await executeTransaction(amount, memo, senderUser, recipientUser)
-      logger.info('successful executeTransaction', amount, memo, senderUser, recipientUser)
+      await executeTransaction(amount, memo, senderUser, recipientUser, logger)
+      logger.info('successful executeTransaction')
     } else {
       // processing a x-community sendCoins
-      logger.debug('X-Com: processing a x-community transaction...')
+      logger.info('X-Com: processing a x-community transaction...')
       if (!CONFIG.FEDERATION_XCOM_SENDCOINS_ENABLED) {
         throw new LogError('X-Community sendCoins disabled per configuration!')
       }
       const recipCom = await getCommunityByIdentifier(recipientCommunityIdentifier)
-      logger.debug('recipient commuity: ', recipCom)
+      logger.debug('recipient community: ', recipCom?.id)
       if (recipCom === null) {
         throw new LogError(
-          'no recipient commuity found for identifier:',
-          recipientCommunityIdentifier,
+          `no recipient community found for identifier: ${recipientCommunityIdentifier}`,
         )
       }
       if (recipCom !== null && recipCom.authenticatedAt === null) {
-        throw new LogError('recipient commuity is connected, but still not authenticated yet!')
+        throw new LogError('recipient community is connected, but still not authenticated yet!')
       }
       let pendingResult: SendCoinsResult
       let committingResult: SendCoinsResult

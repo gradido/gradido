@@ -1,14 +1,16 @@
 import { validate } from 'config-schema'
+import type { LogLevel } from 'config-schema'
 import dotenv from 'dotenv'
-
 import { schema } from './schema'
 
 dotenv.config()
 
-const constants = {
-  LOG4JS_CONFIG: 'log4js-config.json',
+const logging = {
+  LOG4JS_CONFIG: process.env.LOG4JS_CONFIG ?? 'log4js-config.json',
   // default log level on production should be info
-  LOG_LEVEL: process.env.LOG_LEVEL ?? 'info',
+  // log level for default log4js-config.json, don't change existing log4js-config.json
+  LOG_LEVEL: (process.env.LOG_LEVEL ?? 'info') as LogLevel,
+  LOG_FILES_BASE_PATH: process.env.LOG_FILES_BASE_PATH ?? '../logs/dht-node',
 }
 
 const server = {
@@ -33,7 +35,7 @@ const federation = {
 }
 
 export const CONFIG = {
-  ...constants,
+  ...logging,
   ...server,
   ...community,
   ...federation,

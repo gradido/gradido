@@ -23,7 +23,11 @@ export abstract class AbstractLoggingView {
 
   public dateToString(date: Date | undefined | null): string | undefined {
     if (date) {
-      return date.toISOString()
+      if (date instanceof Date) {
+        return date.toISOString()
+      } else {
+        return new Date(date).toISOString()
+      }
     }
     return undefined
   }

@@ -2,13 +2,17 @@ import { ApolloServerTestClient } from 'apollo-server-testing'
 import { User } from 'database'
 import { DataSource } from 'typeorm'
 
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { cleanDB, testEnvironment } from '@test/helpers'
-import { i18n as localization, logger } from '@test/testSetup'
+import { i18n as localization } from '@test/testSetup'
+import { getLogger } from 'config-schema/test/testSetup'
 
 import { userFactory } from '@/seeds/factory/user'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 
 import { validateAlias } from './validateAlias'
+
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)
 
 let con: DataSource
 let testEnv: {
@@ -18,7 +22,7 @@ let testEnv: {
 }
 
 beforeAll(async () => {
-  testEnv = await testEnvironment(logger, localization)
+  testEnv = await testEnvironment(getLogger('apollo'), localization)
   con = testEnv.con
   await cleanDB()
 })

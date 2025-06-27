@@ -4,8 +4,9 @@ import { HumHubClient } from '@/apis/humhub/HumHubClient'
 import { GetUser } from '@/apis/humhub/model/GetUser'
 import { UpdateUserInfosArgs } from '@/graphql/arg/UpdateUserInfosArgs'
 import { PublishNameType } from '@/graphql/enum/PublishNameType'
-import { backendLogger as logger } from '@/server/logger'
 
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { getLogger } from 'config-schema/test/testSetup'
 import { syncHumhub } from './syncHumhub'
 
 jest.mock('@/apis/humhub/HumHubClient')
@@ -18,6 +19,8 @@ mockUser.emailContact.email = 'email@gmail.com'
 mockUser.humhubPublishName = PublishNameType.PUBLISH_NAME_FULL
 const mockUpdateUserInfosArg = new UpdateUserInfosArgs()
 const mockHumHubUser = new GetUser(mockUser, 1)
+
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.util.syncHumhub`)
 
 describe('syncHumhub', () => {
   beforeEach(() => {
@@ -33,8 +36,7 @@ describe('syncHumhub', () => {
   it('Should not sync if no relevant changes', async () => {
     await syncHumhub(mockUpdateUserInfosArg, new User(), 'username')
     expect(HumHubClient.getInstance).not.toBeCalled()
-    // language logging from some other place
-    expect(logger.debug).toBeCalledTimes(5)
+    expect(logger.debug).toBeCalledTimes(1)
     expect(logger.info).toBeCalledTimes(0)
   })
 
@@ -42,7 +44,7 @@ describe('syncHumhub', () => {
     mockUpdateUserInfosArg.firstName = 'New' // Relevant changes
     mockUser.firstName = 'New'
     await syncHumhub(mockUpdateUserInfosArg, mockUser, 'username')
-    expect(logger.debug).toHaveBeenCalledTimes(8) // Four language logging calls, two debug calls in function, one for not syncing
+    expect(logger.debug).toHaveBeenCalledTimes(4) // Four language logging calls, two debug calls in function, one for not syncing
     expect(logger.info).toHaveBeenLastCalledWith('finished sync user with humhub', {
       localId: mockUser.id,
       externId: mockHumHubUser.id,

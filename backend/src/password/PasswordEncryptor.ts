@@ -1,6 +1,5 @@
 import { User } from 'database'
 
-// import { logger } from '@test/testSetup' getting error "jest is not defined"
 import { SecretKeyCryptographyCreateKey, getUserCryptographicSalt } from './EncryptorUtils'
 
 export const encryptPassword = async (dbUser: User, password: string): Promise<bigint> => {

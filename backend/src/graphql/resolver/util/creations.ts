@@ -4,12 +4,14 @@ import { Decimal } from 'decimal.js-light'
 import { OpenCreation } from '@model/OpenCreation'
 
 import { FULL_CREATION_AVAILABLE, MAX_CREATION_AMOUNT } from '@/graphql/resolver/const/const'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { LogError } from '@/server/LogError'
-import { backendLogger as logger } from '@/server/logger'
 import { getFirstDayOfPreviousNMonth } from '@/util/utilities'
 import { AppDatabase } from 'database'
+import { getLogger } from 'log4js'
 
 const db = AppDatabase.getInstance()
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.util.creations`)
 
 interface CreationMap {
   id: number

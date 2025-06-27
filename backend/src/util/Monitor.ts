@@ -1,7 +1,8 @@
 import { registerEnumType } from 'type-graphql'
 
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { LogError } from '@/server/LogError'
-import { backendLogger as logger } from '@/server/logger'
+import { getLogger } from 'log4js'
 
 export enum MonitorNames {
   SEND_DLT_TRANSACTIONS = 1,
@@ -15,6 +16,7 @@ registerEnumType(MonitorNames, {
 /* @typescript-eslint/no-extraneous-class */
 export class Monitor {
   private static locks = new Map<MonitorNames, boolean>()
+  private static logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.util.Monitor`)
 
   private constructor() {}
 
@@ -25,15 +27,15 @@ export class Monitor {
 
   public static isLocked(key: MonitorNames): boolean | undefined {
     if (this.locks.has(key)) {
-      logger.debug(`Monitor isLocked key=${key} = `, this.locks.get(key))
+      this.logger.debug(`Monitor isLocked key=${key} = `, this.locks.get(key))
       return this.locks.get(key)
     }
-    logger.debug(`Monitor isLocked key=${key} not exists`)
+    this.logger.debug(`Monitor isLocked key=${key} not exists`)
     return false
   }
 
   public static lockIt(key: MonitorNames): void {
-    logger.debug(`Monitor lockIt key=`, key)
+    this.logger.debug(`Monitor lockIt key=`, key)
     if (this.locks.has(key)) {
       throw new LogError('still existing Monitor with key=', key)
     }
@@ -41,7 +43,7 @@ export class Monitor {
   }
 
   public static releaseIt(key: MonitorNames): void {
-    logger.debug(`Monitor releaseIt key=`, key)
+    this.logger.debug(`Monitor releaseIt key=`, key)
     if (this.locks.has(key)) {
       this.locks.delete(key)
     }

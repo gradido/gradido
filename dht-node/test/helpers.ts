@@ -1,5 +1,4 @@
 import { AppDatabase, entities } from 'database'
-import { CONFIG } from '@/config'
 
 export const headerPushMock = jest.fn((t) => {
   context.token = t.value

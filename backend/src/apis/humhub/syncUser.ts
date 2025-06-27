@@ -1,12 +1,15 @@
 import { User } from 'database'
 
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { LogError } from '@/server/LogError'
-import { backendLogger as logger } from '@/server/logger'
+import { getLogger } from 'log4js'
 
 import { HumHubClient } from './HumHubClient'
 import { isHumhubUserIdenticalToDbUser } from './compareHumhubUserDbUser'
 import { GetUser } from './model/GetUser'
 import { PostUser } from './model/PostUser'
+
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.apis.humhub.syncUser`)
 
 export enum ExecutedHumhubAction {
   UPDATE,

@@ -6,14 +6,14 @@ import { ApolloServer } from 'apollo-server-express'
 import express, { Express, json, urlencoded } from 'express'
 import { slowDown } from 'express-slow-down'
 import helmet from 'helmet'
-import { Logger } from 'log4js'
+import { Logger, getLogger } from 'log4js'
 import { DataSource } from 'typeorm'
 
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { AppDatabase } from 'database'
 import { context as serverContext } from './context'
 import { cors } from './cors'
 import { i18n } from './localization'
-import { apolloLogger } from './logger'
 import { plugins } from './plugins'
 // TODO implement
 // import queryComplexity, { simpleEstimator, fieldConfigEstimator } from "graphql-query-complexity";
@@ -25,11 +25,11 @@ interface ServerDef {
 }
 
 export const createServer = async (
+  apolloLogger: Logger,
   context: any = serverContext,
-  logger: Logger = apolloLogger,
   localization: i18n.I18n = i18n,
 ): Promise<ServerDef> => {
-  logger.addContext('user', 'unknown')
+  const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.createServer`)
   logger.debug('createServer...')
 
   // open mariadb connection, retry connecting with mariadb
@@ -91,7 +91,7 @@ export const createServer = async (
     introspection: CONFIG.GRAPHIQL,
     context,
     plugins,
-    logger,
+    logger: apolloLogger,
   })
   apollo.applyMiddleware({ app, path: '/' })
   logger.info(

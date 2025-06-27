@@ -1,13 +1,16 @@
-import { federationLogger as logger } from '@/server/logger'
 import { FederatedCommunity as DbFederatedCommunity } from 'database'
+import { getLogger } from 'log4js'
 import { Query, Resolver } from 'type-graphql'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { GetPublicKeyResult } from '../../1_0/model/GetPublicKeyResult'
+
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.api.1_1.resolver.PublicKeyResolver`)
 
 @Resolver()
 export class PublicKeyResolver {
   @Query(() => GetPublicKeyResult)
   async getPublicKey(): Promise<GetPublicKeyResult> {
-    logger.debug(`getPublicKey() via apiVersion=1_0 ...`)
+    logger.debug(`getPublicKey()...`)
     const homeCom = await DbFederatedCommunity.findOneOrFail({
       where: {
         foreign: false,
@@ -15,7 +18,7 @@ export class PublicKeyResolver {
       },
     })
     const publicKeyHex = homeCom.publicKey.toString('hex')
-    logger.debug(`getPublicKey()-1_1... return publicKey=${publicKeyHex}`)
+    logger.debug(`getPublicKey()... return publicKey=${publicKeyHex}`)
     return new GetPublicKeyResult(publicKeyHex)
   }
 }
