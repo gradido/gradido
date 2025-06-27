@@ -7,11 +7,10 @@ import { AuthenticationClient as V1_0_AuthenticationClient } from '@/federation/
 import { backendLogger as logger } from '@/server/logger'
 import { ensureUrlEndsWithSlash } from '@/util/utilities'
 
+import { encryptAndSign } from '@/auth/jwt/JWT'
+import { OpenConnectionJwtPayloadType } from '@/auth/jwt/payloadtypes/OpenConnectionJwtPayloadType'
 import { OpenConnectionArgs } from './client/1_0/model/OpenConnectionArgs'
 import { AuthenticationClientFactory } from './client/AuthenticationClientFactory'
-import { OpenConnectionJwtPayloadType } from '@/auth/jwt/payloadtypes/OpenConnectionJwtPayloadType'
-import { importSPKI } from 'jose'
-import { encrypt } from '@/auth/jwt/JWT'
 
 export async function startCommunityAuthentication(
   foreignFedCom: DbFederatedCommunity,
@@ -26,6 +25,7 @@ export async function startCommunityAuthentication(
     'Authentication: started with foreignFedCom:',
     foreignFedCom.endPoint,
     foreignFedCom.publicKey.toString('hex'),
+    foreignCom.publicJwtKey,
   )
   // check if communityUuid is a valid v4Uuid and not still a temporary onetimecode
   if (
@@ -40,17 +40,17 @@ export async function startCommunityAuthentication(
 
       if (client instanceof V1_0_AuthenticationClient) {
         if (!foreignCom.publicJwtKey) {
-          throw new Error('Public JWT key not found for foreign community')
+          throw new Error('Public JWT key still not exist for foreign community')
         }
-        const args = new OpenConnectionArgs()
-        args.publicKey = homeCom.publicKey.toString('hex')
-        //create JWT with url in payload encrypted by foreignCom.publicKey and signed with homeCom.privateKey
+        //create JWT with url in payload encrypted by foreignCom.publicJwtKey and signed with homeCom.privateJwtKey
         const payload = new OpenConnectionJwtPayloadType(
           ensureUrlEndsWithSlash(homeFedCom.endPoint).concat(homeFedCom.apiVersion),
         )
-        const encryptKey = await importSPKI(foreignCom.publicJwtKey!, 'RS256')
-        const jwt = await encrypt(payload, encryptKey)
-        args.jwt = jwt
+        const jws = await encryptAndSign(payload, homeCom.privateJwtKey!, foreignCom.publicJwtKey)
+        // prepare the args for the client invocation
+        const args = new OpenConnectionArgs()
+        args.publicKey = homeCom.publicKey.toString('hex')
+        args.jwt = jws
         logger.debug(
           'Authentication: before client.openConnection() args:',
           homeCom.publicKey.toString('hex'),

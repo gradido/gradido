@@ -1,11 +1,11 @@
 
-import { generateKeyPair, exportSPKI, exportPKCS8, KeyLike, SignJWT, decodeJwt, generalDecrypt, importPKCS8, importSPKI, jwtVerify, CompactEncrypt, compactDecrypt } from 'jose'
+import { generateKeyPair, exportSPKI, exportPKCS8, SignJWT, decodeJwt, importPKCS8, importSPKI, jwtVerify, CompactEncrypt, compactDecrypt } from 'jose'
 
-import { GeneralJWE } from 'jose/dist/types/types'
 import { LogError } from '@/server/LogError'
 import { backendLogger as logger } from '@/server/logger'
 
 import { JwtPayloadType } from './payloadtypes/JwtPayloadType'
+import { EncryptedJWEJwtPayloadType } from './payloadtypes/EncryptedJWEJwtPayloadType'
 
 export const createKeyPair = async (): Promise<{ publicKey: string; privateKey: string }> => {
   // Generate key pair using jose library
@@ -25,17 +25,6 @@ export const verify = async (token: string, publicKey: string): Promise<JwtPaylo
   logger.info('JWT.verify... token, publicKey=', token, publicKey)
 
   try {
-    /*
-    const { KeyObject } = await import('node:crypto')
-    const cryptoKey = await crypto.subtle.importKey('raw', signkey, { name: 'RS256' }, false, [ 
-      'sign',
-    ])
-    const keyObject = KeyObject.from(cryptoKey)
-    logger.info('JWT.verify... keyObject=', keyObject)
-    logger.info('JWT.verify... keyObject.asymmetricKeyDetails=', keyObject.asymmetricKeyDetails)
-    logger.info('JWT.verify... keyObject.asymmetricKeyType=', keyObject.asymmetricKeyType)
-    logger.info('JWT.verify... keyObject.asymmetricKeySize=', keyObject.asymmetricKeySize)
-    */
     const importedKey = await importSPKI(publicKey, 'RS256')
     // Convert the key to JWK format if needed
     const secret = typeof importedKey === 'string' 
@@ -43,8 +32,8 @@ export const verify = async (token: string, publicKey: string): Promise<JwtPaylo
       : importedKey;
     // const secret = new TextEncoder().encode(publicKey)
     const { payload } = await jwtVerify(token, secret, {
-      issuer: 'urn:gradido:issuer',
-      audience: 'urn:gradido:audience',
+      issuer: JwtPayloadType.ISSUER,
+      audience: JwtPayloadType.AUDIENCE,
     })
     logger.info('JWT.verify after jwtVerify... payload=', payload)
     return payload as JwtPayloadType
@@ -69,8 +58,8 @@ export const encode = async (payload: JwtPayloadType, privatekey: string): Promi
         alg: 'RS256',
       })
       .setIssuedAt()
-      .setIssuer('urn:gradido:issuer')
-      .setAudience('urn:gradido:audience')
+      .setIssuer(JwtPayloadType.ISSUER)
+      .setAudience(JwtPayloadType.AUDIENCE)
       .setExpirationTime(payload.expiration)
       .sign(secret)
     return token
@@ -105,26 +94,6 @@ export const encrypt = async (payload: JwtPayloadType, publicKey: string): Promi
     )
       .setProtectedHeader({ alg: 'RSA-OAEP-256', enc: 'A256GCM' })
       .encrypt(recipientKey)
-    /*
-    const jwe = await new EncryptJWT({ payload, 'urn:gradido:claim': true })
-      .setProtectedHeader({ alg: 'RSA-OAEP-256', enc: 'A256GCM' })
-      .setIssuedAt()
-      .setIssuer('urn:gradido:issuer')
-      .setAudience('urn:gradido:audience')
-      .setExpirationTime('5m')
-      .encrypt(recipientKey);
-
-    const token = await new EncryptJWT({ payload, 'urn:gradido:claim': true })
-      .setProtectedHeader({
-        alg: 'RS256',
-        enc: 'A256GCM',
-        })
-        .setIssuedAt()
-        .setIssuer('urn:gradido:issuer')
-        .setAudience('urn:gradido:audience')
-        .setExpirationTime(payload.expiration)
-        .encrypt(encryptkey)
-    */    
    logger.info('JWT.encrypt... jwe=', jwe)
     return jwe.toString()
   } catch (e) {
@@ -143,20 +112,23 @@ export const decrypt = async(jwe: string, privateKey: string): Promise<string> =
     logger.info('JWT.decrypt... plaintext=', plaintext)
     logger.info('JWT.decrypt... protectedHeader=', protectedHeader)
     return plaintext.toString()
-    /*
-    const generalJwe = await GeneralJWE.parse(jwe)
-    const jws = await generalDecrypt(generalJwe, privateKey, { alg: 'ECDH-ES+A256KW', enc: 'A256GCM' })
-    
-    const { payload, protectedHeader } = await jwtDecrypt(jwe, privateKey);
-
-    console.log(payload);
-    console.log(protectedHeader);
-    
-    logger.info('JWT.decrypt... jws=', jws)
-    return jws.toString()
-    */
   } catch (e) {
     logger.error('Failed to decrypt JWT:', e)
     throw e
   }
+}
+
+export const encryptAndSign = async (payload: JwtPayloadType, privateKey: string, publicKey: string): Promise<string> => {
+  const jwe = await encrypt(payload, publicKey)
+  const jws = await encode(new EncryptedJWEJwtPayloadType(jwe), privateKey)
+  return jws
+}
+
+export const verifyAndDecrypt = async (token: string, privateKey: string, publicKey: string): Promise<JwtPayloadType | null> => {
+  const jwePayload = await verify(token, privateKey) as EncryptedJWEJwtPayloadType
+  if (!jwePayload) {
+    return null
+  }
+  const payload = await decrypt(jwePayload.jwe as string, publicKey)
+  return JSON.parse(payload) as JwtPayloadType
 }

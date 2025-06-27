@@ -3,6 +3,9 @@ import { JWTPayload } from 'jose'
 import { CONFIG } from '@/config'
 
 export class JwtPayloadType implements JWTPayload {
+  static ISSUER = 'urn:gradido:issuer'
+  static AUDIENCE = 'urn:gradido:audience'
+
   iat?: number | undefined
   exp?: number | undefined
   nbf?: number | undefined

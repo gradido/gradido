@@ -13,17 +13,18 @@ import { randombytes_random } from 'sodium-native'
 
 import { AuthenticationClient as V1_0_AuthenticationClient } from '@/client/1_0/AuthenticationClient'
 import { AuthenticationArgs } from '../model/AuthenticationArgs'
+import { encryptAndSign } from 'backend/src/auth/jwt/JWT'
+import { OpenConnectionCallbackJwtPayloadType } from 'backend/src/auth/jwt/payloadtypes/OpenConnectionCallbackJwtPayloadType'
 
 export async function startOpenConnectionCallback(
-  args: OpenConnectionArgs,
   comA: DbCommunity,
   api: string,
 ): Promise<void> {
   logger.debug(`Authentication: startOpenConnectionCallback() with:`, {
-    args,
     comA: new CommunityLoggingView(comA),
   })
   try {
+    const homeCom = await DbCommunity.findOneByOrFail({ foreign: false })
     const homeFedCom = await DbFedCommunity.findOneByOrFail({
       foreign: false,
       apiVersion: api,
@@ -33,9 +34,9 @@ export async function startOpenConnectionCallback(
       apiVersion: api,
       publicKey: comA.publicKey,
     })
-    const oneTimeCode = randombytes_random()
+    const oneTimeCode = randombytes_random().toString()
     // store oneTimeCode in requestedCom.community_uuid as authenticate-request-identifier
-    comA.communityUuid = oneTimeCode.toString()
+    comA.communityUuid = oneTimeCode
     await DbCommunity.save(comA)
     logger.debug(
       `Authentication: stored oneTimeCode in requestedCom:`,
@@ -45,14 +46,15 @@ export async function startOpenConnectionCallback(
     const client = AuthenticationClientFactory.getInstance(fedComA)
 
     if (client instanceof V1_0_AuthenticationClient) {
-      const callbackArgs = new OpenConnectionCallbackArgs()
-      callbackArgs.oneTimeCode = oneTimeCode.toString()
-      // TODO encrypt callbackArgs.url with requestedCom.publicKey and sign it with homeCom.privateKey
-      callbackArgs.url = homeFedCom.endPoint.endsWith('/')
+      const url = homeFedCom.endPoint.endsWith('/')
         ? homeFedCom.endPoint + homeFedCom.apiVersion
         : homeFedCom.endPoint + '/' + homeFedCom.apiVersion
+
+      const callbackArgs = new OpenConnectionCallbackJwtPayloadType(oneTimeCode, url)
       logger.debug(`Authentication: start openConnectionCallback with args:`, callbackArgs)
-      if (await client.openConnectionCallback(callbackArgs)) {
+      // encrypt callbackArgs with requestedCom.publicKey and sign it with homeCom.privateKey
+      const encryptedCallbackArgs = await encryptAndSign(callbackArgs, homeCom.privateJwtKey!, comA.publicJwtKey!)
+      if (await client.openConnectionCallback(encryptedCallbackArgs)) {
         logger.debug('Authentication: startOpenConnectionCallback() successful:', callbackArgs)
       } else {
         logger.error('Authentication: startOpenConnectionCallback() failed:', callbackArgs)

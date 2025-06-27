@@ -12,6 +12,9 @@ import { AuthenticationArgs } from '../model/AuthenticationArgs'
 import { OpenConnectionArgs } from '../model/OpenConnectionArgs'
 import { OpenConnectionCallbackArgs } from '../model/OpenConnectionCallbackArgs'
 import { startAuthentication, startOpenConnectionCallback } from '../util/authenticateCommunity'
+import { verifyAndDecrypt } from 'backend/src/auth/jwt/JWT'
+import { OpenConnectionJwtPayloadType } from 'backend/src/auth/jwt/payloadtypes/OpenConnectionJwtPayloadType'
+import { JwtPayloadType } from 'backend/src/auth/jwt/payloadtypes/JwtPayloadType'
 
 @Resolver()
 export class AuthenticationResolver {
@@ -30,9 +33,38 @@ export class AuthenticationResolver {
     if (!comA) {
       throw new LogError(`unknown requesting community with publicKey`, pubKeyBuf.toString('hex'))
     }
+    if (!comA.publicJwtKey) {
+      throw new LogError(`missing publicJwtKey of community with publicKey`, pubKeyBuf.toString('hex'))
+    }
     logger.debug(`Authentication: found requestedCom:`, new CommunityLoggingView(comA))
+    // verify the signing of args.jwt with homeCom.privateJwtKey and decrypt args.jwt with comA.publicJwtKey
+    const homeCom = await DbCommunity.findOneByOrFail({ foreign: false })
+    const openConnectionJwtPayload = await verifyAndDecrypt(args.jwt, homeCom.privateJwtKey!, comA.publicJwtKey) as OpenConnectionJwtPayloadType
+    if (!openConnectionJwtPayload) {
+      throw new LogError(`invalid payload of community with publicKey`, pubKeyBuf.toString('hex'))
+    }
+    if (!openConnectionJwtPayload.url) {
+      throw new LogError(`invalid url of community with publicKey`, pubKeyBuf.toString('hex'))
+    }
+    if (openConnectionJwtPayload.tokentype !== OpenConnectionJwtPayloadType.OPEN_CONNECTION_TYPE) {
+      throw new LogError(`invalid tokentype of community with publicKey`, pubKeyBuf.toString('hex'))
+    }
+    if (openConnectionJwtPayload.expiration < new Date().toISOString()) {
+      throw new LogError(`invalid expiration of community with publicKey`, pubKeyBuf.toString('hex'))
+    }
+    if (openConnectionJwtPayload.issuer !== JwtPayloadType.ISSUER) {
+      throw new LogError(`invalid issuer of community with publicKey`, pubKeyBuf.toString('hex'))
+    }
+    if (openConnectionJwtPayload.audience !== JwtPayloadType.AUDIENCE) {
+      throw new LogError(`invalid audience of community with publicKey`, pubKeyBuf.toString('hex'))
+    }
+    const fedComA = await DbFedCommunity.findOneByOrFail({ publicKey: comA.publicKey })
+    if (!openConnectionJwtPayload.url.startsWith(fedComA.endPoint)) {
+      throw new LogError(`invalid url of community with publicKey`, pubKeyBuf.toString('hex'))
+    }
+
     // biome-ignore lint/complexity/noVoid: no await to respond immediately and invoke callback-request asynchronously
-    void startOpenConnectionCallback(args, comA, CONFIG.FEDERATION_API)
+    void startOpenConnectionCallback(comA, CONFIG.FEDERATION_API)
     return true
   }
 
@@ -42,7 +74,7 @@ export class AuthenticationResolver {
     args: OpenConnectionCallbackArgs,
   ): Promise<boolean> {
     logger.debug(`Authentication: openConnectionCallback() via apiVersion=1_0 ...`, args)
-    // TODO decrypt args.url with homeCom.privateKey and verify signing with callbackFedCom.publicKey
+    // TODO decrypt args.url with homeCom.privateJwtKey and verify signing with callbackFedCom.publicKey
     const endPoint = args.url.slice(0, args.url.lastIndexOf('/') + 1)
     const apiVersion = args.url.slice(args.url.lastIndexOf('/') + 1, args.url.length)
     logger.debug(`Authentication: search fedComB per:`, endPoint, apiVersion)

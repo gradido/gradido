@@ -14,9 +14,7 @@ import { backendLogger as logger } from '@/server/logger'
 import { startCommunityAuthentication } from './authenticateCommunities'
 import { PublicCommunityInfoLoggingView } from './client/1_0/logging/PublicCommunityInfoLogging.view'
 import { ApiVersionType } from './enum/apiVersionType'
-import { generateKeyPair, exportSPKI, exportPKCS8 } from 'jose'
-
-// import { CONFIG } from '@/config/'
+import { createKeyPair } from '@/auth/jwt/JWT'
 
 export async function startValidateCommunities(timerInterval: number): Promise<void> {
   if (Number.isNaN(timerInterval) || timerInterval <= 0) {
@@ -68,7 +66,11 @@ export async function validateCommunities(): Promise<void> {
           const pubComInfo = await client.getPublicCommunityInfo()
           if (pubComInfo) {
             await writeForeignCommunity(dbCom, pubComInfo)
-            await startCommunityAuthentication(dbCom)
+            try {
+              await startCommunityAuthentication(dbCom)
+            } catch (err) {
+              logger.warn(`Warning: Community Authentication still not ready:`, err)
+            }
             logger.debug(`Federation: write publicInfo of community: name=${pubComInfo.name}`)
           } else {
             logger.debug('Federation: missing result of getPublicCommunityInfo')
@@ -95,19 +97,13 @@ export async function writeJwtKeyPairInHomeCommunity(): Promise<DbCommunity> {
     if (homeCom) {
       if (!homeCom.publicJwtKey && !homeCom.privateJwtKey) {
         // Generate key pair using jose library
-        const keyPair = await generateKeyPair('RS256');
-        logger.debug(`Federation: writeJwtKeyPairInHomeCommunity generated keypair=`, keyPair);
+        const { publicKey, privateKey } = await createKeyPair();
+        logger.debug(`Federation: writeJwtKeyPairInHomeCommunity publicKey=`, publicKey);
+        logger.debug(`Federation: writeJwtKeyPairInHomeCommunity privateKey=`, privateKey);
         
-        // Convert keys to PEM format
-        const publicKeyPem = await exportSPKI(keyPair.publicKey);
-        const privateKeyPem = await exportPKCS8(keyPair.privateKey);
-        
-        logger.debug(`Federation: writeJwtKeyPairInHomeCommunity publicKey=`, publicKeyPem);
-        logger.debug(`Federation: writeJwtKeyPairInHomeCommunity privateKey=`, privateKeyPem);
-        
-        homeCom.publicJwtKey = publicKeyPem;
+        homeCom.publicJwtKey = publicKey;
         logger.debug(`Federation: writeJwtKeyPairInHomeCommunity publicJwtKey.length=`, homeCom.publicJwtKey.length);
-        homeCom.privateJwtKey = privateKeyPem;
+        homeCom.privateJwtKey = privateKey;
         logger.debug(`Federation: writeJwtKeyPairInHomeCommunity privateJwtKey.length=`, homeCom.privateJwtKey.length);
         await DbCommunity.save(homeCom)
         logger.debug(`Federation: writeJwtKeyPairInHomeCommunity done`)
