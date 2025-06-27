@@ -6,6 +6,7 @@ import {
   PendingTransactionLoggingView,
   CommunityLoggingView,
   UserLoggingView,
+  countOpenPendingTransactions,
 } from 'database'
 import { Decimal } from 'decimal.js-light'
 
@@ -15,7 +16,7 @@ import { SendCoinsClient as V1_0_SendCoinsClient } from '@/federation/client/1_0
 import { SendCoinsArgs } from '@/federation/client/1_0/model/SendCoinsArgs'
 import { SendCoinsResult } from '@/federation/client/1_0/model/SendCoinsResult'
 import { SendCoinsClientFactory } from '@/federation/client/SendCoinsClientFactory'
-import { PendingTransactionState } from '@/graphql/enum/PendingTransactionState'
+import { PendingTransactionState } from 'shared'
 import { TransactionTypeId } from '@/graphql/enum/TransactionTypeId'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { LogError } from '@/server/LogError'
@@ -53,19 +54,7 @@ export async function processXComPendingSendCoins(
         }
       )
     }
-    const openSenderPendingTx = await DbPendingTransaction.count({
-      where: [
-        { userGradidoID: sender.gradidoID, state: PendingTransactionState.NEW },
-        { linkedUserGradidoID: sender.gradidoID, state: PendingTransactionState.NEW },
-      ],
-    })
-    const openReceiverPendingTx = await DbPendingTransaction.count({
-      where: [
-        { userGradidoID: recipientIdentifier, state: PendingTransactionState.NEW },
-        { linkedUserGradidoID: recipientIdentifier, state: PendingTransactionState.NEW },
-      ],
-    })
-    if (openSenderPendingTx > 0 || openReceiverPendingTx > 0) {
+    if (await countOpenPendingTransactions([sender.gradidoID, recipientIdentifier]) > 0) {
       throw new LogError(
         `There exist still ongoing 'Pending-Transactions' for the involved users on sender-side!`,
       )
