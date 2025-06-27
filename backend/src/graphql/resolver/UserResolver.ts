@@ -176,7 +176,7 @@ export class UserResolver {
 
     try {
       dbUser = await findUserByEmail(email)
-      // add pubKey in logger-context for layout-pattern X{user} to print it in each logging message
+      // add technical user identifier in logger-context for layout-pattern X{user} to print it in each logging message
       logger.addContext('user', dbUser.id)
       logger.trace('user before login', new UserLoggingView(dbUser))
     } catch (e) {
