@@ -83,6 +83,9 @@ const getLoggerMocked = vi.fn().mockImplementation((param: any) => {
     }),
     clearContext: vi.fn(() => {
       fakeLogger.context.clear()
+    }),
+    isDebugEnabled: vi.fn(() => {
+      return true
     })
   }
   loggers[param] = fakeLogger

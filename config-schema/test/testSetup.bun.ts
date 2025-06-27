@@ -81,6 +81,9 @@ const getLoggerMocked = mock().mockImplementation((param: any) => {
     }),
     clearContext: jest.fn(() => {
       fakeLogger.context.clear()
+    }),
+    isDebugEnabled: jest.fn(() => {
+      return true
     })
   }
   loggers[param] = fakeLogger
