@@ -5,11 +5,10 @@ import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 // import { createGmsUser } from '@/apis/gms/GmsClient'
 // import { GmsUser } from '@/apis/gms/model/GmsUser'
 import { CONFIG } from '@/config'
-import { getHomeCommunity } from '@/graphql/resolver/util/communities'
 import { sendUserToGms } from '@/graphql/resolver/util/sendUserToGms'
 import { LogError } from '@/server/LogError'
 import { initLogging } from '@/server/logger'
-import { AppDatabase } from 'database'
+import { AppDatabase, getHomeCommunity } from 'database'
 import { getLogger } from 'log4js'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.apis.gms.ExportUsers`)
@@ -25,6 +24,9 @@ async function main() {
   await con.init()
 
   const homeCom = await getHomeCommunity()
+  if (!homeCom) {
+    throw new LogError('HomeCommunity not found')
+  }
   if (homeCom.gmsApiKey === null) {
     throw new LogError('HomeCommunity needs GMS-ApiKey to publish user data to GMS.')
   }

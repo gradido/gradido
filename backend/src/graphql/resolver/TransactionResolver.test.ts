@@ -137,16 +137,8 @@ describe('send coins', () => {
         }),
       ).toEqual(
         expect.objectContaining({
-          errors: [new GraphQLError('No user with this credentials')],
+          errors: [new GraphQLError('The recipient user was not found')],
         }),
-      )
-    })
-
-    it('logs the error thrown', () => {
-      expect(logger.error).toBeCalledWith(
-        'No user with this credentials',
-        'wrong@email.com',
-        homeCom.communityUuid,
       )
     })
 
@@ -170,16 +162,8 @@ describe('send coins', () => {
           }),
         ).toEqual(
           expect.objectContaining({
-            errors: [new GraphQLError('No user with this credentials')],
+            errors: [new GraphQLError('The recipient user was not found')],
           }),
-        )
-      })
-
-      it('logs the error thrown', () => {
-        expect(logger.error).toBeCalledWith(
-          'No user with this credentials',
-          'stephen@hawking.uk',
-          homeCom.communityUuid,
         )
       })
     })
@@ -204,16 +188,8 @@ describe('send coins', () => {
           }),
         ).toEqual(
           expect.objectContaining({
-            errors: [new GraphQLError('No user with this credentials')],
+            errors: [new GraphQLError('The recipient user was not found')],
           }),
-        )
-      })
-
-      it('logs the error thrown', () => {
-        expect(logger.error).toBeCalledWith(
-          'No user with this credentials',
-          'garrick@ollivander.com',
-          homeCom.communityUuid,
         )
       })
     })

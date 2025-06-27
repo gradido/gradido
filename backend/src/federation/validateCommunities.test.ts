@@ -2,7 +2,7 @@ import { ApolloServerTestClient } from 'apollo-server-testing'
 import { FederatedCommunity as DbFederatedCommunity } from 'database'
 import { GraphQLClient } from 'graphql-request'
 import { Response } from 'graphql-request/dist/types'
-import { DataSource } from 'typeorm'
+import { DataSource, Not } from 'typeorm'
 
 import { cleanDB, testEnvironment } from '@test/helpers'
 import { getLogger } from 'config-schema/test/testSetup'
@@ -203,7 +203,7 @@ describe('validate Communities', () => {
             overwrite: ['end_point', 'last_announced_at'],
           })
           .execute()
-        await DbFederatedCommunity.update({}, { verifiedAt: null })
+        await DbFederatedCommunity.update({ id: Not(0) }, { verifiedAt: null })
         // jest.clearAllMocks()
         await validateCommunities()
       })
@@ -270,7 +270,7 @@ describe('validate Communities', () => {
           })
           .execute()
 
-        await DbFederatedCommunity.update({}, { verifiedAt: null })
+        await DbFederatedCommunity.update({ id: Not(0) }, { verifiedAt: null })
         // jest.clearAllMocks()
         await validateCommunities()
       })
@@ -322,7 +322,7 @@ describe('validate Communities', () => {
         dbCom = await DbFederatedCommunity.findOneOrFail({
           where: { publicKey: variables3.publicKey, apiVersion: variables3.apiVersion },
         })
-        await DbFederatedCommunity.update({}, { verifiedAt: null })
+        await DbFederatedCommunity.update({ id: Not(0) }, { verifiedAt: null })
         // jest.clearAllMocks()
         await validateCommunities()
       })

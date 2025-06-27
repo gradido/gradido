@@ -2,6 +2,10 @@ import dotenv from 'dotenv'
 
 dotenv.config()
 
+const defaults = {
+  DEFAULT_LANGUAGE: process.env.DEFAULT_LANGUAGE ?? 'en',
+}
+
 const database = {
   DB_CONNECT_RETRY_COUNT: process.env.DB_CONNECT_RETRY_COUNT
     ? Number.parseInt(process.env.DB_CONNECT_RETRY_COUNT)
@@ -21,4 +25,4 @@ const database = {
 const PRODUCTION = process.env.NODE_ENV === 'production' || false
 const nodeEnv = process.env.NODE_ENV || 'development'
 
-export const CONFIG = { ...database, NODE_ENV: nodeEnv, PRODUCTION }
+export const CONFIG = { ...database, NODE_ENV: nodeEnv, PRODUCTION, ...defaults }

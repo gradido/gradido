@@ -93,6 +93,7 @@ export class AppDatabase {
   public async destroy(): Promise<void> {
     await this.dataSource?.destroy()
   }
+  
   // ######################################
   // private methods
   // ######################################

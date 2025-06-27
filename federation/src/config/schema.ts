@@ -1,5 +1,4 @@
 import {
-  DECAY_START_TIME,
   GRAPHIQL,
   LOG4JS_CONFIG_PLACEHOLDER,
   LOG_FILES_BASE_PATH,
@@ -10,7 +9,6 @@ import {
 import Joi from 'joi'
 
 export const schema = Joi.object({
-  DECAY_START_TIME,
   GRAPHIQL,
   LOG4JS_CONFIG_PLACEHOLDER,
   LOG_FILES_BASE_PATH,

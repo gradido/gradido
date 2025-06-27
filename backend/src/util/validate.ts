@@ -7,7 +7,7 @@ import { Decay } from '@model/Decay'
 import { getLastTransaction } from '@/graphql/resolver/util/getLastTransaction'
 import { transactionLinkSummary } from '@/graphql/resolver/util/transactionLinkSummary'
 
-import { calculateDecay } from './decay'
+import { calculateDecay } from 'shared'
 
 function isStringBoolean(value: string): boolean {
   const lowerValue = value.toLowerCase()
@@ -36,7 +36,7 @@ async function calculateBalance(
     return null
   }
 
-  const decay = calculateDecay(lastTransaction.balance, lastTransaction.balanceDate, time)
+  const decay = new Decay(calculateDecay(lastTransaction.balance, lastTransaction.balanceDate, time))
 
   const balance = decay.balance.add(amount.toString())
   const { sumHoldAvailableAmount } = await transactionLinkSummary(userId, time)

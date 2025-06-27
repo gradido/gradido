@@ -1,4 +1,4 @@
-import { contributionDateFormatter } from '@test/helpers'
+import { contributionDateFormatter } from './helpers'
 
 describe('contributionDateFormatter', () => {
   it('formats the date correctly', () => {

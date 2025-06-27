@@ -6,7 +6,7 @@ import { TransactionTypeId } from '@enum/TransactionTypeId'
 import { Transaction } from '@model/Transaction'
 import { User } from '@model/User'
 
-import { calculateDecay } from './decay'
+import { calculateDecay } from 'shared'
 
 const defaultModelFunctions = {
   hasId: function (): boolean {

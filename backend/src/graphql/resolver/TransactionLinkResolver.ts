@@ -21,6 +21,7 @@ import {
   Transaction as DbTransaction,
   TransactionLink as DbTransactionLink,
   User as DbUser,
+  getHomeCommunity,
 } from 'database'
 import { Decimal } from 'decimal.js-light'
 import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
@@ -38,7 +39,7 @@ import { LogError } from '@/server/LogError'
 import { Context, getClientTimezoneOffset, getUser } from '@/server/context'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 import { TRANSACTION_LINK_LOCK } from '@/util/TRANSACTION_LINK_LOCK'
-import { calculateDecay } from '@/util/decay'
+import { calculateDecay } from 'shared'
 import { fullName } from '@/util/utilities'
 import { calculateBalance } from '@/util/validate'
 
@@ -49,7 +50,6 @@ import { executeTransaction } from './TransactionResolver'
 import {
   getAuthenticatedCommunities,
   getCommunityByUuid,
-  getHomeCommunity,
 } from './util/communities'
 import { getUserCreation, validateContribution } from './util/creations'
 import { getLastTransaction } from './util/getLastTransaction'
@@ -442,6 +442,9 @@ export class TransactionLinkResolver {
     )
     // TODO:encode/sign the jwt normally with the private key of the sender/home community, but interims with uuid
     const homeCom = await getHomeCommunity()
+    if (!homeCom) {
+      throw new LogError('Home community not found')
+    }
     if (!homeCom.communityUuid) {
       throw new LogError('Home community UUID is not set')
     }
@@ -630,6 +633,9 @@ export class TransactionLinkResolver {
         )
       }
       const homeCommunity = await getHomeCommunity()
+      if (!homeCommunity) {
+        throw new LogError('Home community not found')
+      }
       const recipientCommunity = new Community(homeCommunity)
       const senderCommunity = new Community(senderCom)
       const senderUser = new User(null)

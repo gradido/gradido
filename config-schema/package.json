@@ -1,6 +1,6 @@
 {
   "name": "config-schema",
-  "version": "1.0.0",
+  "version": "2.6.0",
   "description": "Gradido Config for validate config",
   "main": "./build/index.js",
   "types": "./src/index.ts",
@@ -19,6 +19,7 @@
     "build:bun": "bun build src/index.ts --outdir=build --target=bun --packages=external",
     "typecheck": "tsc --noEmit",
     "test": "bun test",
+    "test:debug": "bun test --inspect-brk",
     "lint": "biome check --error-on-warnings .",
     "lint:fix": "biome check --error-on-warnings . --write"
   },

@@ -8,6 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       database: ${{ steps.changes.outputs.database }}
+      shared: ${{ steps.changes.outputs.shared }}
       docker-compose: ${{ steps.changes.outputs.docker-compose }}
       mariadb: ${{ steps.changes.outputs.mariadb }}
     steps:
@@ -22,7 +23,7 @@ jobs:
           list-files: shell
 
   build:
-    if: needs.files-changed.outputs.database == 'true'
+    if: needs.files-changed.outputs.database == 'true' || needs.files-changed.outputs.docker-compose == 'true' || needs.files-changed.outputs.shared == 'true'
     name: Docker Build Test - Database up
     needs: files-changed
     runs-on: ubuntu-latest
@@ -34,7 +35,7 @@ jobs:
         run: docker build --target build -t "gradido/database:build" -f database/Dockerfile .
 
   database_migration_test:
-    if: needs.files-changed.outputs.database == 'true' || needs.files-changed.outputs.docker-compose == 'true'  || needs.files-changed.outputs.mariadb == 'true'
+    if: needs.files-changed.outputs.database == 'true' || needs.files-changed.outputs.docker-compose == 'true' || needs.files-changed.outputs.mariadb == 'true' || needs.files-changed.outputs.shared == 'true'
     name: Database Migration Test - Up + Reset
     needs: files-changed
     runs-on: ubuntu-latest
@@ -58,11 +59,11 @@ jobs:
           bun install --filter database --frozen-lockfile
           bun install --global --no-save turbo@^2
 
-      - name: Database | up
-        run: turbo up
+      - name: Database | up + test
+        run: turbo database#test
       
       - name: Database | reset
-        run: turbo reset
+        run: turbo database#reset
 
   lint:
     if: needs.files-changed.outputs.database == 'true'

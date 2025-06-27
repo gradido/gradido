@@ -10,6 +10,7 @@ describe('utils/decay', () => {
       // TODO: toString() was required, we could not compare two decimals
       expect(decayFormula(amount, seconds).toString()).toBe('0.999999978035040489732012')
     })
+    
     it('has correct backward calculation', () => {
       const amount = new Decimal(1.0)
       const seconds = -1
@@ -25,6 +26,7 @@ describe('utils/decay', () => {
       expect(decayFormula(amount, seconds).toString()).toBe('1.0')
     })
   })
+  
   it('has base 0.99999997802044727', () => {
     const now = new Date()
     now.setSeconds(1)
@@ -38,5 +40,14 @@ describe('utils/decay', () => {
   it('returns input amount when from and to is the same', () => {
     const now = new Date()
     expect(calculateDecay(new Decimal(100.0), now, now).balance.toString()).toBe('100')
+  })
+
+  describe('calculateDecay called with invalid dates', () => {
+    it('throws an error when to is before from', () => {
+      const now = new Date()
+      const oneSecondAgo = new Date(now.getTime())
+      oneSecondAgo.setSeconds(0)
+      expect(() => calculateDecay(new Decimal(1.0), now, oneSecondAgo)).toThrowError()
+    })
   })
 })

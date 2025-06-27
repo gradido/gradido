@@ -6,6 +6,8 @@ import {
   UserContact as DbUserContact,
   ProjectBranding,
   UserLoggingView,
+  getHomeCommunity, 
+  findUserByIdentifier 
 } from 'database'
 import { GraphQLResolveInfo } from 'graphql'
 import i18n from 'i18n'
@@ -93,17 +95,15 @@ import { Logger, getLogger } from 'log4js'
 import { FULL_CREATION_AVAILABLE } from './const/const'
 import { Location2Point, Point2Location } from './util/Location2Point'
 import { authenticateGmsUserPlayground } from './util/authenticateGmsUserPlayground'
-import { getHomeCommunity } from './util/communities'
 import { compareGmsRelevantUserSettings } from './util/compareGmsRelevantUserSettings'
 import { getUserCreations } from './util/creations'
 import { extractGraphQLFieldsForSelect } from './util/extractGraphQLFields'
-import { findUserByIdentifier } from './util/findUserByIdentifier'
 import { findUsers } from './util/findUsers'
 import { getKlicktippState } from './util/getKlicktippState'
 import { deleteUserRole, setUserRole } from './util/modifyUserRole'
 import { sendUserToGms } from './util/sendUserToGms'
 import { syncHumhub } from './util/syncHumhub'
-import { validateAlias } from './util/validateAlias'
+import { validateAlias } from 'core'
 
 const LANGUAGES = ['de', 'en', 'es', 'fr', 'nl']
 const DEFAULT_LANGUAGE = 'de'
@@ -380,6 +380,10 @@ export class UserResolver {
     )
     let dbUser = new DbUser()
     const homeCom = await getHomeCommunity()
+    if (!homeCom) {
+      logger.error('no home community found, please start the dht-node first')
+      throw new Error(`Error creating user, please write the support team: ${CONFIG.COMMUNITY_SUPPORT_MAIL}`)
+    }
     if (homeCom.communityUuid) {
       dbUser.communityUuid = homeCom.communityUuid
     }
@@ -820,6 +824,12 @@ export class UserResolver {
       if (CONFIG.GMS_ACTIVE && updateUserInGMS) {
         logger.debug(`changed user-settings relevant for gms-user update...`)
         const homeCom = await getHomeCommunity()
+        if (!homeCom) {
+          logger.error('no home community found, please start the dht-node first')
+          throw new Error(
+            `Error updating user, please write the support team: ${CONFIG.COMMUNITY_SUPPORT_MAIL}`
+          )
+        }
         if (homeCom.gmsApiKey !== null) {
           logger.debug(`send User to Gms...`)
           await sendUserToGms(user, homeCom)
@@ -862,6 +872,12 @@ export class UserResolver {
     let result = new GmsUserAuthenticationResult()
     if (context.token) {
       const homeCom = await getHomeCommunity()
+      if (!homeCom) {
+        logger.error("couldn't authenticate for gms, no home community found, please start the dht-node first")
+        throw new Error(
+          `Error authenticating for gms, please write the support team: ${CONFIG.COMMUNITY_SUPPORT_MAIL}`
+        )
+      }
       if (!homeCom.gmsApiKey) {
         throw new LogError('authenticateGmsUserSearch missing HomeCommunity GmsApiKey')
       }
@@ -885,6 +901,12 @@ export class UserResolver {
     const result = new UserLocationResult()
     if (context.token) {
       const homeCom = await getHomeCommunity()
+      if (!homeCom) {
+        logger.error("couldn't load home community location, no home community found, please start the dht-node first")
+        throw new Error(
+          `Error loading user location, please write the support team: ${CONFIG.COMMUNITY_SUPPORT_MAIL}`
+        )
+      }
       result.communityLocation = Point2Location(homeCom.location as Point)
       result.userLocation = Point2Location(dbUser.location as Point)
       logger.info('userLocation=', result)
@@ -1130,8 +1152,11 @@ export class UserResolver {
     { identifier, communityIdentifier }: UserArgs,
   ): Promise<User> {
     const foundDbUser = await findUserByIdentifier(identifier, communityIdentifier)
-    const modelUser = new User(foundDbUser)
-    return modelUser
+    if (!foundDbUser) {
+      createLogger().debug('User not found', identifier, communityIdentifier)
+      throw new Error('User not found')
+    }
+    return new User(foundDbUser)
   }
 
   // FIELD RESOLVERS
