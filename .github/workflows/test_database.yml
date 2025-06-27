@@ -36,7 +36,7 @@ jobs:
 
   database_migration_test:
     if: needs.files-changed.outputs.database == 'true' || needs.files-changed.outputs.docker-compose == 'true' || needs.files-changed.outputs.mariadb == 'true' || needs.files-changed.outputs.shared == 'true'
-    name: Database Migration Test - Up, Test + Reset
+    name: Database Migration Test - Up + Reset
     needs: files-changed
     runs-on: ubuntu-latest
     steps:
