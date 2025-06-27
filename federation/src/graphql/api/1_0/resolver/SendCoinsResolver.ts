@@ -10,7 +10,7 @@ import Decimal from 'decimal.js-light'
 import { getLogger } from 'log4js'
 import { Arg, Mutation, Resolver } from 'type-graphql'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { PendingTransactionState } from '../enum/PendingTransactionState'
+import { PendingTransactionState } from 'shared'
 import { TransactionTypeId } from '../enum/TransactionTypeId'
 import { SendCoinsArgsLoggingView } from '../logger/SendCoinsArgsLogging.view'
 import { SendCoinsArgs } from '../model/SendCoinsArgs'
@@ -20,7 +20,7 @@ import { calculateRecipientBalance } from '../util/calculateRecipientBalance'
 import { revertSettledReceiveTransaction } from '../util/revertSettledReceiveTransaction'
 import { settlePendingReceiveTransaction } from '../util/settlePendingReceiveTransaction'
 import { storeForeignUser } from '../util/storeForeignUser'
-
+import { countOpenPendingTransactions } from 'database'
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.api.1_0.resolver.SendCoinsResolver`)
 
 @Resolver()
@@ -56,19 +56,8 @@ export class SendCoinsResolver {
         homeCom.name,
       )
     }
-    const openSenderPendingTx = await DbPendingTransaction.count({
-      where: [
-        { userGradidoID: args.senderUserUuid, state: PendingTransactionState.NEW },
-        { linkedUserGradidoID: args.senderUserUuid, state: PendingTransactionState.NEW },
-      ],
-    })
-    const openReceiverPendingTx = await DbPendingTransaction.count({
-      where: [
-        { userGradidoID: receiverUser.gradidoID, state: PendingTransactionState.NEW },
-        { linkedUserGradidoID: receiverUser.gradidoID, state: PendingTransactionState.NEW },
-      ],
-    })
-    if (openSenderPendingTx > 0 || openReceiverPendingTx > 0) {
+ 
+    if (await countOpenPendingTransactions([args.senderUserUuid, receiverUser.gradidoID]) > 0) {
       throw new LogError(
         `There exist still ongoing 'Pending-Transactions' for the involved users on receiver-side!`,
       )

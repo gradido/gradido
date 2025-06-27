@@ -10,7 +10,7 @@ import {
   Transaction as dbTransaction,
 } from 'database'
 
-import { PendingTransactionState } from '../enum/PendingTransactionState'
+import { PendingTransactionState } from 'shared'
 
 import { LogError } from '@/server/LogError'
 import { getLogger } from 'log4js'

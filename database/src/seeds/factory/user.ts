@@ -14,7 +14,9 @@ export const userFactory = async (user: UserInterface): Promise<User> => {
   let dbUser = new User()
   dbUser.firstName = user.firstName ?? ''
   dbUser.lastName = user.lastName ?? ''
-  dbUser.alias = user.alias ?? ''
+  if (user.alias) {
+    dbUser.alias = user.alias
+  }
   dbUser.language = user.language ?? 'en'
   dbUser.createdAt = user.createdAt ?? new Date()
   dbUser.deletedAt = user.deletedAt ?? null

@@ -7,7 +7,7 @@ import {
 } from 'database'
 import { Decimal } from 'decimal.js-light'
 
-import { PendingTransactionState } from '@/graphql/enum/PendingTransactionState'
+import { PendingTransactionState } from 'shared'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { LogError } from '@/server/LogError'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'

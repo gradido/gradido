@@ -9,7 +9,7 @@ import {
   UserLoggingView,
   Transaction as dbTransaction,
 } from 'database'
-import { PendingTransactionState } from '../enum/PendingTransactionState'
+import { PendingTransactionState } from 'shared'
 
 import { LogError } from '@/server/LogError'
 

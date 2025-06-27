@@ -1,5 +1,6 @@
 import {
   AppDatabase,
+  countOpenPendingTransactions,
   Community as DbCommunity,
   PendingTransaction as DbPendingTransaction,
   Transaction as dbTransaction,
@@ -14,7 +15,7 @@ import { In, IsNull } from 'typeorm'
 import { Paginated } from '@arg/Paginated'
 import { TransactionSendArgs } from '@arg/TransactionSendArgs'
 import { Order } from '@enum/Order'
-import { PendingTransactionState } from '@enum/PendingTransactionState'
+import { PendingTransactionState } from 'shared'
 import { TransactionTypeId } from '@enum/TransactionTypeId'
 import { Transaction } from '@model/Transaction'
 import { TransactionList } from '@model/TransactionList'
@@ -68,19 +69,7 @@ export const executeTransaction = async (
   try {
     logger.info('executeTransaction', amount, memo, sender, recipient)
 
-    const openSenderPendingTx = await DbPendingTransaction.count({
-      where: [
-        { userGradidoID: sender.gradidoID, state: PendingTransactionState.NEW },
-        { linkedUserGradidoID: sender.gradidoID, state: PendingTransactionState.NEW },
-      ],
-    })
-    const openReceiverPendingTx = await DbPendingTransaction.count({
-      where: [
-        { userGradidoID: recipient.gradidoID, state: PendingTransactionState.NEW },
-        { linkedUserGradidoID: recipient.gradidoID, state: PendingTransactionState.NEW },
-      ],
-    })
-    if (openSenderPendingTx > 0 || openReceiverPendingTx > 0) {
+    if (await countOpenPendingTransactions([sender.gradidoID, recipient.gradidoID]) > 0) {
       throw new LogError(
         `There exist still ongoing 'Pending-Transactions' for the involved users on sender-side!`,
       )
