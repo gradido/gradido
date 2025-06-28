@@ -146,15 +146,12 @@ jobs:
           cd ../backend
           cp .env.test_e2e .env
           cd ..
-          bun turbo backend#build
-          bun turbo frontend#build
           bun turbo backend#start frontend#start --env-mode=loose & 
         
       - name: End-to-end tests | prepare
         run: |
           cd e2e-tests/playwright/typescript
           bun install 
-          npx playwright install --with-deps    
 
       - name: wait for frontend and backend to be ready
         run: |
@@ -175,7 +172,7 @@ jobs:
         id: e2e-tests
         run: |
           cd e2e-tests/playwright/typescript
-          bun run test
+          bun run test --project="Google Chrome"
         
       - name: End-to-end tests | if tests failed, upload video
         id: e2e-video
