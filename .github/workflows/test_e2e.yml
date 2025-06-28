@@ -152,7 +152,7 @@ jobs:
         run: |
           cd e2e-tests/playwright/typescript
           bun install 
-          npx playwright install    
+          npx playwright install --with-deps    
 
       - name: wait for frontend and backend to be ready
         run: |
