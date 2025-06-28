@@ -18,7 +18,7 @@ public class InvalidLoginTest extends BaseTest {
 
   @Test
   void invalidUserSeesError() {
-      page.navigate("http://localhost:3000/login");
+      loginPage.navigate();
       loginPage.login("peter@lustig.de", "wrongpass");
       Toasts toast = new Toasts(page);
       toast.assertErrorToastVisible();

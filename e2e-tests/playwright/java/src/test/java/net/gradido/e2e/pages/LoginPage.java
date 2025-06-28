@@ -25,4 +25,8 @@ public class LoginPage {
         submitButton.click();
       });   
   }
+
+  public void navigate() {
+      page.navigate("http://localhost:3000/login");
+  }
 }

@@ -12,6 +12,7 @@ import java.nio.file.Paths;
 // Subclasses will inherit PER_CLASS behavior.
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class BaseTest {
+
     protected Playwright playwright;
     protected Browser browser;
 

@@ -19,7 +19,7 @@ public class ValidLoginTest extends BaseTest {
 
   @Test
   void validUserCanLogin() {
-      page.navigate("http://localhost:3000/login");
+      loginPage.navigate();
       loginPage.login("peter@lustig.de", "Aa12345_");
       page.waitForURL("http://localhost:3000/overview");
       assertTrue(page.url().contains("/overview"));

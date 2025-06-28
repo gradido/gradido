@@ -6,15 +6,12 @@ import com.microsoft.playwright.Page;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class Toasts {
-    private final Page page;
-
     public final Locator toastSlot;
     public final Locator toastTypeError;
     public final Locator toastTitle;
     public final Locator toastMessage;
 
     public Toasts(Page page) {
-        this.page = page;
         toastSlot = page.locator("#__BVID__toaster-container");
         toastTypeError = toastSlot.locator(".toast.text-bg-danger");
         toastTitle = toastTypeError.locator(".gdd-toaster-title");
@@ -22,7 +19,7 @@ public class Toasts {
     }
 
     public void assertErrorToastVisible() {
-        toastTypeError.waitFor(); // auf Fehler-Toast warten
+        toastTypeError.waitFor(); 
         assertTrue(toastTitle.isVisible());
         assertTrue(toastMessage.isVisible());
     }
