@@ -128,11 +128,11 @@ jobs:
       - name: Start mysql 
         run: |
           sudo systemctl start mysql.service
-          sudo mysql <<EOF
+          sudo mysql -u root -proot <<EOF
           ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'root';
           FLUSH PRIVILEGES;
           EOF
-          sudo mysql -e "SELECT user, host, plugin FROM mysql.user;"
+          sudo mysql -u root -proot -e "SELECT user, host, plugin FROM mysql.user;"
 
       - name: Prepare test system
         run: |
