@@ -93,7 +93,7 @@ export async function downgrade(queryFn: (query: string, values?: any[]) => Prom
       \`first_name\` varchar(150) COLLATE utf8mb4_unicode_ci NOT NULL,
       \`last_name\` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT '',
       \`username\` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT '',
-      \`description\` mediumtext COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+      \`description\` mediumtext COLLATE utf8mb4_unicode_ci DEFAULT '',
       \`password\` bigint(20) unsigned DEFAULT 0,
       \`pubkey\` binary(32) DEFAULT NULL,
       \`privkey\` binary(80) DEFAULT NULL,
