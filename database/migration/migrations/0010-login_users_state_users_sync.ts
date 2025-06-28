@@ -35,7 +35,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
       (SELECT pubkey FROM login_users
        WHERE pubkey IS NOT NULL)
        AND email IN (SELECT email FROM state_users GROUP BY email HAVING COUNT(*) > 1
-      )
+      ) AS subquery
      )`,
   )
 }
