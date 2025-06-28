@@ -29,7 +29,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
 
   // Create missing data columns for the data stored in `login_users`
   await queryFn(
-    "ALTER TABLE `state_users` ADD COLUMN `description` mediumtext COLLATE utf8mb4_unicode_ci DEFAULT NULL AFTER `disabled`;",
+    "ALTER TABLE `state_users` ADD COLUMN `description` mediumtext COLLATE utf8mb4_unicode_ci DEFAULT '' AFTER `disabled`;",
   )
   await queryFn(
     'ALTER TABLE `state_users` ADD COLUMN `password` bigint(20) unsigned DEFAULT 0 AFTER `description`;',
