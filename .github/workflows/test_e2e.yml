@@ -140,6 +140,8 @@ jobs:
           cp .env.test_e2e .env
           cd ../backend
           cp .env.test_e2e .env
+          cd ../database
+          cp .env.test_e2e .env
           cd ..
           bun turbo seed --env-mode=loose
 
