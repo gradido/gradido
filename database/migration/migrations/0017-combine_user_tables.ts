@@ -29,7 +29,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
 
   // Create missing data columns for the data stored in `login_users`
   await queryFn(
-    "ALTER TABLE `state_users` ADD COLUMN `description` mediumtext COLLATE utf8mb4_unicode_ci DEFAULT '' AFTER `disabled`;",
+    "ALTER TABLE `state_users` ADD COLUMN `description` mediumtext COLLATE utf8mb4_unicode_ci DEFAULT NULL AFTER `disabled`;",
   )
   await queryFn(
     'ALTER TABLE `state_users` ADD COLUMN `password` bigint(20) unsigned DEFAULT 0 AFTER `description`;',
@@ -93,7 +93,7 @@ export async function downgrade(queryFn: (query: string, values?: any[]) => Prom
       \`first_name\` varchar(150) COLLATE utf8mb4_unicode_ci NOT NULL,
       \`last_name\` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT '',
       \`username\` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT '',
-      \`description\` mediumtext COLLATE utf8mb4_unicode_ci DEFAULT '',
+      \`description\` mediumtext COLLATE utf8mb4_unicode_ci DEFAULT NULL,
       \`password\` bigint(20) unsigned DEFAULT 0,
       \`pubkey\` binary(32) DEFAULT NULL,
       \`privkey\` binary(80) DEFAULT NULL,
