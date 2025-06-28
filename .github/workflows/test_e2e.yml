@@ -152,9 +152,7 @@ jobs:
         run: |
           cd e2e-tests/playwright/typescript
           bun install 
-      
-      - name: Install Playwright Browsers
-        run: npx playwright install --with-deps
+          npx playwright install    
 
       - name: wait for frontend and backend to be ready
         run: |
@@ -176,6 +174,14 @@ jobs:
         run: |
           cd e2e-tests/playwright/typescript
           bun run test
+        
+      - name: End-to-end tests | if tests failed, upload video
+        id: e2e-video
+        if: ${{ failure() && steps.e2e-tests.conclusion == 'failure' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-videos-pr-#${{ steps.pr.outputs.number }}
+          path: /home/runner/work/gradido/gradido/e2e-tests/playwright/typescript/test-results
 
   end-to-end-tests-playwright-java:
     name: End-to-End Tests Playwright java
@@ -228,9 +234,6 @@ jobs:
           cd e2e-tests/playwright/typescript
           bun install 
       
-      - name: Install Playwright Browsers
-        run: npx playwright install --with-deps
-
       - name: wait for frontend and backend to be ready
         run: |
           until nc -z 127.0.0.1 3000; do echo waiting for frontend; sleep 1; done;
