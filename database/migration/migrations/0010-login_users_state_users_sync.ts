@@ -29,14 +29,20 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   // 18 entries
   await queryFn(
     `DELETE FROM state_users
-     WHERE id IN
-     (SELECT state_users.id FROM state_users
-      WHERE public_key NOT IN
-      (SELECT pubkey FROM login_users
-       WHERE pubkey IS NOT NULL)
-       AND email IN (SELECT email FROM state_users GROUP BY email HAVING COUNT(*) > 1
+    WHERE id IN (
+      SELECT id FROM (
+        SELECT id FROM state_users
+        WHERE public_key NOT IN (
+          SELECT pubkey FROM login_users
+          WHERE pubkey IS NOT NULL
+        )
+        AND email IN (
+          SELECT email FROM state_users
+          GROUP BY email
+          HAVING COUNT(*) > 1
+        )
       ) AS subquery
-     )`,
+    )`,
   )
 }
 
