@@ -28,7 +28,9 @@ jobs:
           sudo cp ./nginx/e2e-test.conf /etc/nginx/sites-available/default
 
       - name: Boot up test system | seed backend
-        run: bun turbo seed
+        run: | 
+          bun turbo backend#build
+          bun turbo seed
 
       - name: Moving logs after seeding
         run: |
@@ -136,9 +138,12 @@ jobs:
           cp .env.test_e2e .env
           cd ../backend
           cp .env.test_e2e .env
+          cd ..
       
       - name: Boot up test system | seed backend
-        run: bun turbo seed
+        run: |
+          bun turbo backend#build
+          bun turbo seed
 
       - name: Moving logs after seeding
         run: |
@@ -214,7 +219,9 @@ jobs:
           sudo cp ./nginx/e2e-test.conf /etc/nginx/sites-available/default
 
       - name: Boot up test system | seed backend
-        run: bun turbo seed
+        run: |
+          bun turbo backend#build
+          bun turbo seed
 
       - name: Moving logs after seeding
         run: |
