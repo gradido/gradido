@@ -29,8 +29,9 @@ jobs:
 
       - name: Boot up test system | seed backend
         run: | 
-          bun turbo backend#build
-          bun turbo seed
+          bun turbo backend#build up
+          cd backend
+          bun seed
 
       - name: Moving logs after seeding
         run: |
