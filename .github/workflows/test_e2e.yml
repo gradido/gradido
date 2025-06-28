@@ -130,14 +130,15 @@ jobs:
           bun install
           sudo cp ./nginx/e2e-test.conf /etc/nginx/sites-available/default
 
-      - name: Boot up test system | seed backend
+      - name: copy test config 
         run: |
           cd frontend
           cp .env.test_e2e .env
           cd ../backend
           cp .env.test_e2e .env
-          cd ..
-          bun turbo seed --env-mode=loose
+      
+      - name: Boot up test system | seed backend
+        run: bun turbo seed
 
       - name: Moving logs after seeding
         run: |
