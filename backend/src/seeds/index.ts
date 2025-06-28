@@ -98,7 +98,8 @@ const run = async () => {
   }
   logger.info('##seed## seeding all contributionLinks successful...')
 
-  await con.destroy()
+  // TODO: check why this sometimes hangs
+  // await con.destroy()
 }
 
 run().catch((err) => {
