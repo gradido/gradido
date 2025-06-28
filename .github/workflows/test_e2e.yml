@@ -123,7 +123,10 @@ jobs:
         uses: oven-sh/setup-bun@v2
 
       - name: Boot up test system | docker-compose mariadb mailserver
-        run: docker compose -f docker-compose.yml -f docker-compose.test.yml up --detach mariadb mailserver
+        run: docker compose -f docker-compose.yml -f docker-compose.test.yml up --detach mailserver
+      
+      - name: Start mysql 
+        run: sudo systemctl start mysql.service
 
       - name: Prepare test system
         run: |
