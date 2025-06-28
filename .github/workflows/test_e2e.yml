@@ -42,7 +42,7 @@ jobs:
           cd ..
           bun turbo backend#build
           bun turbo frontend#build
-          bun turbo backend#start frontend#start --env-mode=loose & 
+          bun turbo backend#start frontend#start --env-mode=loose 
         
       - name: End-to-end tests | prepare
         run: |
@@ -126,7 +126,14 @@ jobs:
         run: docker compose -f docker-compose.yml -f docker-compose.test.yml up --detach mailserver
       
       - name: Start mysql 
-        run: sudo systemctl start mysql.service
+        run: |
+          sudo systemctl start mysql.service
+          sudo mysql -u root <<EOF
+          CREATE USER IF NOT EXISTS 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'root';
+          GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost' WITH GRANT OPTION;
+          FLUSH PRIVILEGES;
+          EOF
+          sudo mysql -e "SELECT user, host, plugin FROM mysql.user;"
 
       - name: Prepare test system
         run: |
@@ -233,7 +240,7 @@ jobs:
           cd ..
           bun turbo backend#build
           bun turbo frontend#build
-          bun turbo backend#start frontend#start --env-mode=loose & 
+          bun turbo backend#start frontend#start --env-mode=loose 
         
       - name: End-to-end tests | prepare
         run: |
