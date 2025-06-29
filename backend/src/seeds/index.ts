@@ -58,6 +58,7 @@ const run = async () => {
   const { con } = server
   await cleanDB()
   logger.info('##seed## clean database successful...')
+  logger.info(`crypto worker enabled: ${CONFIG.USE_CRYPTO_WORKER}`)
 
   // seed home community
   await writeHomeCommunityEntry()
@@ -98,8 +99,7 @@ const run = async () => {
   }
   logger.info('##seed## seeding all contributionLinks successful...')
 
-  // TODO: check why this sometimes hangs
-  // await con.destroy()
+  await con.destroy()
 }
 
 run().catch((err) => {
