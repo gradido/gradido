@@ -24,7 +24,7 @@ jobs:
       - name: Prepare test system
         run: |
           sudo chown runner:docker -R *
-          bun install
+          bun install --frozen-lockfile
           sudo cp ./nginx/e2e-test.conf /etc/nginx/sites-available/default
 
       - name: Boot up test system | seed backend
@@ -40,9 +40,8 @@ jobs:
           cd backend
           cp .env.test_e2e .env
           cd ..
-          bun turbo backend#build
-          bun turbo frontend#build
-          bun turbo backend#start frontend#start --env-mode=loose & 
+          bun turbo backend#build frontend#build --env-mode=loose
+          bun turbo backend#start frontend#start --env-mode=loose &
         
       - name: End-to-end tests | prepare
         run: |
@@ -106,3 +105,154 @@ jobs:
         with:
           name: backend-logs-pr-#${{ steps.pr.outputs.number }}
           path: /home/runner/work/gradido/gradido/logs/backend
+
+  end-to-end-tests-playwright:
+    name: End-to-End Tests Playwright
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set Node.js version
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.20.7'
+
+      - name: install bun 
+        uses: oven-sh/setup-bun@v2
+
+      - name: Boot up test system | docker-compose mariadb mailserver
+        run: docker compose -f docker-compose.yml -f docker-compose.test.yml up --detach mariadb mailserver
+      
+      - name: Prepare test system
+        run: |
+          sudo chown runner:docker -R *
+          bun install --frozen-lockfile
+          sudo cp ./nginx/e2e-test.conf /etc/nginx/sites-available/default
+      
+      - name: Boot up test system | seed backend
+        run: bun turbo seed
+        
+      - name: copy test config 
+        run: |
+          cd frontend
+          cp .env.test_e2e .env
+          cd ../backend
+          cp .env.test_e2e .env
+
+      - name: Moving logs after seeding
+        run: |
+          mkdir -p /home/runner/work/gradido/gradido/logs/backend/seed
+          mv /home/runner/work/gradido/gradido/logs/backend/*.log /home/runner/work/gradido/gradido/logs/backend/seed/
+
+      - name: Boot up test system | docker-compose backend, frontend
+        run: |
+          bun turbo backend#build frontend#build --env-mode=loose
+          bun turbo backend#start frontend#start --env-mode=loose & 
+        
+      - name: End-to-end tests | prepare
+        run: |
+          cd e2e-tests/playwright/typescript
+          bun install 
+
+      - name: wait for frontend and backend to be ready
+        run: |
+          until nc -z 127.0.0.1 3000; do echo waiting for frontend; sleep 1; done;
+          until nc -z 127.0.0.1 4000; do echo waiting for backend; sleep 1; done;
+        
+      - name: Start local nginx webserver
+        run: |
+          sudo nginx -t
+          sudo systemctl start nginx 
+
+      - name: wait for nginx and mailserver to be ready
+        run: |
+          until nc -z 127.0.0.1 80; do echo waiting for nginx; sleep 1; done;
+          until nc -z 127.0.0.1 1025; do echo waiting for mailserver; sleep 1; done;
+
+      - name: End-to-end tests | run tests
+        id: e2e-tests
+        run: |
+          cd e2e-tests/playwright/typescript
+          bun run test --project="Google Chrome"
+        
+      - name: End-to-end tests | if tests failed, upload video
+        id: e2e-video
+        if: ${{ failure() && steps.e2e-tests.conclusion == 'failure' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-videos-pr-#${{ steps.pr.outputs.number }}
+          path: /home/runner/work/gradido/gradido/e2e-tests/playwright/typescript/test-results
+
+  end-to-end-tests-playwright-java:
+    name: End-to-End Tests Playwright java
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set Node.js version
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.20.7'
+
+      - uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: install bun 
+        uses: oven-sh/setup-bun@v2
+
+      - name: Boot up test system | docker-compose mariadb mailserver
+        run: docker compose -f docker-compose.yml -f docker-compose.test.yml up --detach mariadb mailserver
+
+      - name: Prepare test system
+        run: |
+          sudo chown runner:docker -R *
+          bun install
+          sudo cp ./nginx/e2e-test.conf /etc/nginx/sites-available/default
+
+      - name: Boot up test system | seed backend
+        run: bun turbo seed
+
+      - name: Moving logs after seeding
+        run: |
+          mkdir -p /home/runner/work/gradido/gradido/logs/backend/seed
+          mv /home/runner/work/gradido/gradido/logs/backend/*.log /home/runner/work/gradido/gradido/logs/backend/seed/
+
+      - name: Boot up test system | docker-compose backend, frontend
+        run: |
+          cd backend
+          cp .env.test_e2e .env
+          cd ..
+          bun turbo backend#build frontend#build --env-mode=loose
+          bun turbo backend#start frontend#start --env-mode=loose &
+        
+      - name: End-to-end tests | prepare
+        run: |
+          cd e2e-tests/playwright/typescript
+          bun install 
+      
+      - name: wait for frontend and backend to be ready
+        run: |
+          until nc -z 127.0.0.1 3000; do echo waiting for frontend; sleep 1; done;
+          until nc -z 127.0.0.1 4000; do echo waiting for backend; sleep 1; done;
+        
+      - name: Start local nginx webserver
+        run: |
+          sudo nginx -t
+          sudo systemctl start nginx 
+
+      - name: wait for nginx and mailserver to be ready
+        run: |
+          until nc -z 127.0.0.1 80; do echo waiting for nginx; sleep 1; done;
+          until nc -z 127.0.0.1 1025; do echo waiting for mailserver; sleep 1; done;
+
+      - name: End-to-end tests | run tests
+        id: e2e-tests
+        run: |
+          cd e2e-tests/playwright/java
+          mvn -B install -D skipTests --no-transfer-progress
+          mvn exec:java -e -D exec.mainClass=com.microsoft.playwright.CLI -D exec.args="install --with-deps"
+          mvn test
