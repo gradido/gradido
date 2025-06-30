@@ -1,9 +1,8 @@
 // https://www.npmjs.com/package/@apollo/protobufjs
 
+import { isValidDateString } from '@validator/DateString'
 import { IsBoolean, IsUUID } from 'class-validator'
 import { Field, InputType } from 'type-graphql'
-
-import { isValidDateString } from '@validator/DateString'
 
 @InputType()
 export class CommunityDraft {

@@ -59,7 +59,7 @@ import { getOpenCreations, getUserCreation, validateContribution } from './util/
 import { extractGraphQLFields } from './util/extractGraphQLFields'
 import { findContributions } from './util/findContributions'
 import { getLastTransaction } from './util/getLastTransaction'
-import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
+import { InterruptiveSleepManager, TRANSMIT_TO_IOTA_INTERRUPTIVE_SLEEP_KEY } from '@/util/InterruptiveSleepManager'
 
 const db = AppDatabase.getInstance()
 const createLogger = () => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.ContributionResolver`)
@@ -519,8 +519,8 @@ export class ContributionResolver {
 
         await queryRunner.commitTransaction()
 
-        // trigger to send transaction via dlt-connector
-        await sendTransactionsToDltConnector()
+        // notify dlt-connector loop for new work
+        InterruptiveSleepManager.getInstance().interrupt(TRANSMIT_TO_IOTA_INTERRUPTIVE_SLEEP_KEY)
 
         logger.info('creation commited successfuly.')
         await sendContributionConfirmedEmail({

@@ -1,15 +1,12 @@
-import { Decimal } from 'decimal.js-light'
 import { GraphQLSchema } from 'graphql'
 import { buildSchema } from 'type-graphql'
 
-import { CommunityResolver } from './resolver/CommunityResolver'
+import { AccountResolver } from './resolver/AccountsResolver'
 import { TransactionResolver } from './resolver/TransactionsResolver'
-import { DecimalScalar } from './scalar/Decimal'
 
 export const schema = async (): Promise<GraphQLSchema> => {
   return buildSchema({
-    resolvers: [TransactionResolver, CommunityResolver],
-    scalarsMap: [{ type: Decimal, scalar: DecimalScalar }],
+    resolvers: [TransactionResolver, AccountResolver],
     validate: {
       validationError: { target: false },
       skipMissingProperties: true,

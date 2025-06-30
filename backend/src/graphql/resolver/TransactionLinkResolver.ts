@@ -37,6 +37,10 @@ import {
 } from '@/event/Events'
 import { LogError } from '@/server/LogError'
 import { Context, getClientTimezoneOffset, getUser } from '@/server/context'
+import {
+  InterruptiveSleepManager,
+  TRANSMIT_TO_IOTA_INTERRUPTIVE_SLEEP_KEY,
+} from '@/util/InterruptiveSleepManager'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 import { TRANSACTION_LINK_LOCK } from '@/util/TRANSACTION_LINK_LOCK'
 import { calculateDecay } from 'shared'
@@ -53,7 +57,6 @@ import {
 } from './util/communities'
 import { getUserCreation, validateContribution } from './util/creations'
 import { getLastTransaction } from './util/getLastTransaction'
-import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
 import { transactionLinkList } from './util/transactionLinkList'
 
 const createLogger = () => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.TransactionLinkResolver`)
@@ -347,8 +350,9 @@ export class TransactionLinkResolver {
       } finally {
         releaseLock()
       }
-      // trigger to send transaction via dlt-connector
-      await sendTransactionsToDltConnector()
+      // notify dlt-connector loop for new work
+      InterruptiveSleepManager.getInstance().interrupt(TRANSMIT_TO_IOTA_INTERRUPTIVE_SLEEP_KEY)
+      
       return true
     } else {
       const now = new Date()
@@ -398,6 +402,8 @@ export class TransactionLinkResolver {
       } finally {
         releaseLinkLock()
       }
+      // notify dlt-connector loop for new work
+      InterruptiveSleepManager.getInstance().interrupt(TRANSMIT_TO_IOTA_INTERRUPTIVE_SLEEP_KEY)
       return true
     }
   }

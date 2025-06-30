@@ -33,33 +33,6 @@ services:
       # Application only envs
     #env_file:
     #  - ./frontend/.env
-
-  ########################################################
-  # DLT-DATABASE #############################################
-  ########################################################
-  dlt-database:
-    # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
-    image: gradido/dlt-database:local-production_reset
-    build:
-      context: ./dlt-database
-      target: production_reset
-    depends_on:
-      - mariadb
-    networks:
-      - internal-net
-      - external-net # this is required to fetch the packages
-    environment:
-      # Envs used in Dockerfile
-      # - DOCKER_WORKDIR="/app"
-      - BUILD_DATE
-      - BUILD_VERSION
-      - BUILD_COMMIT
-      - NODE_ENV="production"
-      - DB_HOST=mariadb
-      # Application only envs
-    #env_file:
-    #  - ./frontend/.env
-    
   
 networks:
   external-net:

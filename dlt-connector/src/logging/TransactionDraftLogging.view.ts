@@ -1,5 +1,6 @@
 import { InputTransactionType } from '@/graphql/enum/InputTransactionType'
 import { TransactionDraft } from '@/graphql/input/TransactionDraft'
+import { UserIdentifier } from '@/graphql/input/UserIdentifier'
 import { getEnumValue } from '@/utils/typeConverter'
 
 import { AbstractLoggingView } from './AbstractLogging.view'
@@ -14,9 +15,11 @@ export class TransactionDraftLoggingView extends AbstractLoggingView {
   public toJSON(): any {
     return {
       user: new UserIdentifierLoggingView(this.self.user).toJSON(),
-      linkedUser: new UserIdentifierLoggingView(this.self.linkedUser).toJSON(),
-      backendTransactionId: this.self.backendTransactionId,
-      amount: this.decimalToString(this.self.amount),
+      linkedUser:
+        this.self.linkedUser instanceof UserIdentifier
+          ? new UserIdentifierLoggingView(this.self.linkedUser).toJSON()
+          : 'seed',
+      amount: Number(this.self.amount),
       type: getEnumValue(InputTransactionType, this.self.type),
       createdAt: this.self.createdAt,
       targetDate: this.self.targetDate,
