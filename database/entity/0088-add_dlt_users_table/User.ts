@@ -16,7 +16,8 @@ import { UserContact } from '../UserContact'
 import { UserRole } from '../UserRole'
 import { GeometryTransformer } from '../../src/typeorm/GeometryTransformer'
 import { Community } from '../Community'
-import { DltUser } from '../DltUser'
+// removed in current version
+import { DltUser } from './DltUser'
 
 @Entity('users', { engine: 'InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci' })
 export class User extends BaseEntity {
