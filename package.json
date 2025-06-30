@@ -12,10 +12,12 @@
     "admin",
     "backend",
     "config-schema",
+    "core",
     "database",
     "dht-node",
     "federation",
-    "frontend"
+    "frontend",
+    "shared"
   ],
   "scripts": {
     "release": "scripts/release.sh",
@@ -33,7 +35,7 @@
     "uuid": "^8.3.2"
   },
   "devDependencies": {
-    "@biomejs/biome": "1.9.4"
+    "@biomejs/biome": "2.0.0"
   },
   "engines": {
     "node": ">=18"

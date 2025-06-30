@@ -4,7 +4,7 @@ import { Decay } from '@model/Decay'
 
 import { getLastTransaction } from '@/graphql/resolver/util/getLastTransaction'
 
-import { calculateDecay } from './decay'
+import { calculateDecay } from 'shared'
 
 export async function calculateSenderBalance(
   userId: number,
@@ -16,7 +16,7 @@ export async function calculateSenderBalance(
     return null
   }
 
-  const decay = calculateDecay(lastTransaction.balance, lastTransaction.balanceDate, time)
+  const decay = new Decay(calculateDecay(lastTransaction.balance, lastTransaction.balanceDate, time))
 
   const balance = decay.balance.add(amount.toString())
   return { balance, lastTransactionId: lastTransaction.id, decay }

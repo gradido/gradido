@@ -1,5 +1,4 @@
 import { AppDatabase, entities } from 'database'
-import { CONFIG } from '@/config'
 
 export const headerPushMock = jest.fn((t) => {
   context.token = t.value
@@ -17,7 +16,9 @@ const context = {
 export const cleanDB = async () => {
   // this only works as long we do not have foreign key constraints
   for (const entity of entities) {
-    await resetEntity(entity)
+    if (entity.name !== 'Migration') {
+      await resetEntity(entity)
+    }
   }
 }
 

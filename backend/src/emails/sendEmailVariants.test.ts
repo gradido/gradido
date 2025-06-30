@@ -3,7 +3,8 @@ import { Decimal } from 'decimal.js-light'
 import { DataSource } from 'typeorm'
 
 import { testEnvironment } from '@test/helpers'
-import { i18n as localization, logger } from '@test/testSetup'
+import { i18n as localization } from '@test/testSetup'
+import { getLogger } from 'config-schema/test/testSetup'
 
 import { CONFIG } from '@/config'
 
@@ -53,7 +54,7 @@ let testEnv: {
 }
 
 beforeAll(async () => {
-  testEnv = await testEnvironment(logger, localization)
+  testEnv = await testEnvironment(getLogger('apollo'), localization)
   con = testEnv.con
 })
 

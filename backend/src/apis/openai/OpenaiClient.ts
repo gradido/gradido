@@ -4,9 +4,13 @@ import { Message } from 'openai/resources/beta/threads/messages'
 
 import { httpsAgent } from '@/apis/ConnectionAgents'
 import { CONFIG } from '@/config'
-import { backendLogger as logger } from '@/server/logger'
 
 import { Message as MessageModel } from './model/Message'
+
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { getLogger } from 'log4js'
+
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.apis.openai.OpenaiClient`)
 
 /**
  * The `OpenaiClient` class is a singleton that provides an interface to interact with the OpenAI API.

@@ -1,0 +1,43 @@
+name: Gradido Core Test CI
+
+on: push
+
+jobs:
+  files-changed:
+    name: Detect File Changes - Core
+    runs-on: ubuntu-latest
+    outputs:
+      core: ${{ steps.changes.outputs.core }}
+      database: ${{ steps.changes.outputs.database }}
+      shared: ${{ steps.changes.outputs.shared }}
+    steps:
+      - uses: actions/checkout@v3.3.0
+
+      - name: Check for core file changes
+        uses: dorny/paths-filter@v2.11.1
+        id: changes
+        with:
+          token: ${{ github.token }}
+          filters: .github/file-filters.yml
+          list-files: shell
+
+  build:
+    name: Unit Tests, typecheck - Core
+    if: needs.files-changed.outputs.core == 'true' || needs.files-changed.outputs.database == 'true' || needs.files-changed.outputs.shared == 'true'
+    needs: files-changed
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: install bun 
+        uses: oven-sh/setup-bun@v2
+
+      - name: install dependencies
+        run: |
+          bun install --filter core --frozen-lockfile
+          bun install --global turbo@^2
+
+      - name: typecheck && unit test
+        run: turbo core#test core#typecheck
+

@@ -10,8 +10,10 @@ import { RIGHTS } from '@/auth/RIGHTS'
 import { CONFIG } from '@/config'
 import { LogError } from '@/server/LogError'
 import { Context, getUser } from '@/server/context'
+import { getLogger } from 'log4js'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 
-import { backendLogger as logger } from '@/server/logger'
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.GdtResolver`)
 
 @Resolver()
 export class GdtResolver {

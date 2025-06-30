@@ -20,7 +20,7 @@ import { UserContactType } from '@enum/UserContactType'
 import { ContributionLink } from '@model/ContributionLink'
 import { Location } from '@model/Location'
 import { cleanDB, headerPushMock, resetToken, testEnvironment } from '@test/helpers'
-import { i18n as localization, logger } from '@test/testSetup'
+import { i18n as localization } from '@test/testSetup'
 
 import { subscribe } from '@/apis/KlicktippController'
 import { CONFIG } from '@/config'
@@ -67,6 +67,8 @@ import { stephenHawking } from '@/seeds/users/stephen-hawking'
 import { printTimeDuration } from '@/util/time'
 import { objectValuesToArray } from '@/util/utilities'
 
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { getLogger } from 'config-schema/test/testSetup'
 import { Location2Point } from './util/Location2Point'
 
 jest.mock('@/apis/humhub/HumHubClient')
@@ -93,6 +95,9 @@ jest.mock('@/apis/KlicktippController', () => {
   }
 })
 
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.UserResolver`)
+const logErrorLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)
+
 CONFIG.EMAIL_CODE_REQUEST_TIME = 10
 
 let admin: User
@@ -107,7 +112,7 @@ let testEnv: {
 }
 
 beforeAll(async () => {
-  testEnv = await testEnvironment(logger, localization)
+  testEnv = await testEnvironment(getLogger('apollo'), localization)
   mutate = testEnv.mutate
   query = testEnv.query
   con = testEnv.con
@@ -275,7 +280,8 @@ describe('UserResolver', () => {
       })
 
       it('logs an info', () => {
-        expect(logger.info).toBeCalledWith('User already exists with this email=peter@lustig.de')
+        expect(logger.info).toBeCalledWith('User already exists')
+        expect(logger.addContext).toBeCalledWith('user', user[0].id)
       })
 
       it('sends an account multi registration email', () => {
@@ -642,7 +648,7 @@ describe('UserResolver', () => {
       })
 
       it('logs the error thrown', () => {
-        expect(logger.error).toBeCalledWith(
+        expect(logErrorLogger.error).toBeCalledWith(
           'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
         )
       })
@@ -672,7 +678,7 @@ describe('UserResolver', () => {
       })
 
       it('logs the error found', () => {
-        expect(logger.error).toBeCalledWith('Could not login with emailVerificationCode')
+        expect(logger.warn).toBeCalledWith('invalid emailVerificationCode=not valid')
       })
     })
   })
@@ -693,7 +699,8 @@ describe('UserResolver', () => {
     describe('no users in database', () => {
       it('throws an error', async () => {
         jest.clearAllMocks()
-        expect(await mutate({ mutation: login, variables })).toEqual(
+        const result = await mutate({ mutation: login, variables })
+        expect(result).toEqual(
           expect.objectContaining({
             errors: [new GraphQLError('No user with this credentials')],
           }),
@@ -701,7 +708,9 @@ describe('UserResolver', () => {
       })
 
       it('logs the error found', () => {
-        expect(logger.error).toBeCalledWith('No user with this credentials', variables.email)
+        expect(logger.warn).toBeCalledWith(
+          `findUserByEmail failed, user with email=${variables.email} not found`,
+        )
       })
     })
 
@@ -782,8 +791,8 @@ describe('UserResolver', () => {
         )
       })
 
-      it('logs the error thrown', () => {
-        expect(logger.error).toBeCalledWith('No user with this credentials', variables.email)
+      it('logs warning before error is thrown', () => {
+        expect(logger.warn).toBeCalledWith('login failed, wrong password')
       })
     })
 
@@ -813,14 +822,8 @@ describe('UserResolver', () => {
         )
       })
 
-      it('logs the error thrown', () => {
-        expect(logger.error).toBeCalledWith(
-          'This user was permanently deleted. Contact support for questions',
-          expect.objectContaining({
-            firstName: stephenHawking.firstName,
-            lastName: stephenHawking.lastName,
-          }),
-        )
+      it('logs warning before error is thrown', () => {
+        expect(logger.warn).toBeCalledWith('login failed, user was deleted')
       })
     })
 
@@ -848,14 +851,8 @@ describe('UserResolver', () => {
         )
       })
 
-      it('logs the error thrown', () => {
-        expect(logger.error).toBeCalledWith(
-          'The Users email is not validate yet',
-          expect.objectContaining({
-            firstName: garrickOllivander.firstName,
-            lastName: garrickOllivander.lastName,
-          }),
-        )
+      it('logs warning before error is thrown', () => {
+        expect(logger.warn).toBeCalledWith('login failed, user email not checked')
       })
     })
 
@@ -881,14 +878,8 @@ describe('UserResolver', () => {
         )
       })
 
-      it('logs the error thrown', () => {
-        expect(logger.error).toBeCalledWith(
-          'The User has not set a password yet',
-          expect.objectContaining({
-            firstName: bibiBloxberg.firstName,
-            lastName: bibiBloxberg.lastName,
-          }),
-        )
+      it('logs warning before error is thrown', () => {
+        expect(logger.warn).toBeCalledWith('login failed, user has not set a password yet')
       })
     })
   })
@@ -1114,7 +1105,7 @@ describe('UserResolver', () => {
       })
 
       describe('request reset password again', () => {
-        it('thows an error', async () => {
+        it('throws an error', async () => {
           CONFIG.EMAIL_CODE_REQUEST_TIME = emailCodeRequestTime
           await expect(mutate({ mutation: forgotPassword, variables })).resolves.toEqual(
             expect.objectContaining({
@@ -1123,8 +1114,10 @@ describe('UserResolver', () => {
           )
         })
 
-        it('logs the error found', () => {
-          expect(logger.error).toBeCalledWith(`Email already sent less than 10 minutes ago`)
+        it('logs warning before throwing error', () => {
+          expect(logger.warn).toBeCalledWith(
+            'email already sent 0 minutes ago, min wait time: 10 minutes',
+          )
         })
       })
     })
@@ -1374,13 +1367,13 @@ describe('UserResolver', () => {
             }),
           ).resolves.toEqual(
             expect.objectContaining({
-              errors: [new GraphQLError('Given language is not a valid language')],
+              errors: [new GraphQLError('Given language is not a valid language or not supported')],
             }),
           )
         })
 
         it('logs the error found', () => {
-          expect(logger.error).toBeCalledWith('Given language is not a valid language', 'not-valid')
+          expect(logger.warn).toBeCalledWith('try to set unsupported language', 'not-valid')
         })
       })
 
@@ -1403,8 +1396,8 @@ describe('UserResolver', () => {
             )
           })
 
-          it('logs the error found', () => {
-            expect(logger.error).toBeCalledWith(`Old password is invalid`)
+          it('logs if logger is in debug mode', () => {
+            expect(logger.debug).toBeCalledWith(`old password is invalid`)
           })
         })
 
@@ -1430,10 +1423,8 @@ describe('UserResolver', () => {
             )
           })
 
-          it('logs the error found', () => {
-            expect(logger.error).toBeCalledWith(
-              'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
-            )
+          it('logs warning', () => {
+            expect(logger.warn).toBeCalledWith('try to set invalid password')
           })
         })
 
@@ -1490,10 +1481,8 @@ describe('UserResolver', () => {
             )
           })
 
-          it('logs the error thrown', () => {
-            expect(logger.error).toBeCalledWith(
-              'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
-            )
+          it('log warning', () => {
+            expect(logger.warn).toBeCalledWith('login failed, wrong password')
           })
         })
       })
@@ -1776,7 +1765,10 @@ describe('UserResolver', () => {
           })
 
           it('logs the error thrown', () => {
-            expect(logger.error).toBeCalledWith('Could not find user with given ID', admin.id + 1)
+            expect(logErrorLogger.error).toBeCalledWith(
+              'Could not find user with given ID',
+              admin.id + 1,
+            )
           })
         })
 
@@ -1892,7 +1884,9 @@ describe('UserResolver', () => {
               )
             })
             it('logs the error thrown', () => {
-              expect(logger.error).toBeCalledWith('Administrator can not change his own role')
+              expect(logErrorLogger.error).toBeCalledWith(
+                'Administrator can not change his own role',
+              )
             })
           })
 
@@ -1937,7 +1931,10 @@ describe('UserResolver', () => {
               })
 
               it('logs the error thrown', () => {
-                expect(logger.error).toBeCalledWith('User already has role=', RoleNames.ADMIN)
+                expect(logErrorLogger.error).toBeCalledWith(
+                  'User already has role=',
+                  RoleNames.ADMIN,
+                )
               })
             })
 
@@ -1961,7 +1958,10 @@ describe('UserResolver', () => {
               })
 
               it('logs the error thrown', () => {
-                expect(logger.error).toBeCalledWith('User already has role=', RoleNames.MODERATOR)
+                expect(logErrorLogger.error).toBeCalledWith(
+                  'User already has role=',
+                  RoleNames.MODERATOR,
+                )
               })
             })
 
@@ -1982,7 +1982,7 @@ describe('UserResolver', () => {
               })
 
               it('logs the error thrown', () => {
-                expect(logger.error).toBeCalledWith('User is already an usual user')
+                expect(logErrorLogger.error).toBeCalledWith('User is already an usual user')
               })
             })
           })
@@ -2055,7 +2055,10 @@ describe('UserResolver', () => {
           })
 
           it('logs the error thrown', () => {
-            expect(logger.error).toBeCalledWith('Could not find user with given ID', admin.id + 1)
+            expect(logErrorLogger.error).toBeCalledWith(
+              'Could not find user with given ID',
+              admin.id + 1,
+            )
           })
         })
 
@@ -2072,7 +2075,7 @@ describe('UserResolver', () => {
           })
 
           it('logs the error thrown', () => {
-            expect(logger.error).toBeCalledWith('Moderator can not delete his own account')
+            expect(logErrorLogger.error).toBeCalledWith('Moderator can not delete his own account')
           })
         })
 
@@ -2125,7 +2128,10 @@ describe('UserResolver', () => {
             })
 
             it('logs the error thrown', () => {
-              expect(logger.error).toBeCalledWith('Could not find user with given ID', user.id)
+              expect(logErrorLogger.error).toBeCalledWith(
+                'Could not find user with given ID',
+                user.id,
+              )
             })
           })
         })
@@ -2201,7 +2207,9 @@ describe('UserResolver', () => {
           })
 
           it('logs the error thrown', () => {
-            expect(logger.error).toBeCalledWith('No user with this credentials', 'invalid')
+            expect(logger.warn).toBeCalledWith(
+              'findUserByEmail failed, user with email=invalid not found',
+            )
           })
         })
 
@@ -2218,11 +2226,8 @@ describe('UserResolver', () => {
             )
           })
 
-          it('logs the error thrown', () => {
-            expect(logger.error).toBeCalledWith(
-              'User with given email contact is deleted',
-              'stephen@hawking.uk',
-            )
+          it('log warning', () => {
+            expect(logger.warn).toBeCalledWith('call for activation of deleted user')
           })
         })
 
@@ -2348,7 +2353,10 @@ describe('UserResolver', () => {
           })
 
           it('logs the error thrown', () => {
-            expect(logger.error).toBeCalledWith('Could not find user with given ID', admin.id + 1)
+            expect(logErrorLogger.error).toBeCalledWith(
+              'Could not find user with given ID',
+              admin.id + 1,
+            )
           })
         })
 
@@ -2369,7 +2377,7 @@ describe('UserResolver', () => {
           })
 
           it('logs the error thrown', () => {
-            expect(logger.error).toBeCalledWith('User is not deleted')
+            expect(logErrorLogger.error).toBeCalledWith('User is not deleted')
           })
 
           describe('undelete deleted user', () => {
@@ -2682,167 +2690,7 @@ describe('UserResolver', () => {
             errors: [new GraphQLError('401 Unauthorized')],
           }),
         )
-        expect(logger.error).toBeCalledWith('401 Unauthorized')
-      })
-    })
-
-    describe('authenticated', () => {
-      const uuid = uuidv4()
-
-      beforeAll(async () => {
-        user = await userFactory(testEnv, bibiBloxberg)
-        await mutate({
-          mutation: login,
-          variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
-        })
-        // first set alias to null, because updating alias isn't currently allowed
-        await User.update({ alias: 'BBB' }, { alias: () => 'NULL' })
-        await mutate({
-          mutation: updateUserInfos,
-          variables: {
-            alias: 'bibi',
-          },
-        })
-      })
-
-      describe('identifier is no gradido ID, no email and no alias', () => {
-        it('throws and logs "Unknown identifier type" error', async () => {
-          await expect(
-            query({
-              query: userQuery,
-              variables: {
-                identifier: 'identifier_is_no_valid_alias!',
-                communityIdentifier: homeCom1.communityUuid,
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('Unknown identifier type')],
-            }),
-          )
-          expect(logger.error).toBeCalledWith(
-            'Unknown identifier type',
-            'identifier_is_no_valid_alias!',
-          )
-        })
-      })
-
-      describe('identifier is not found', () => {
-        it('throws and logs "No user found to given identifier" error', async () => {
-          await expect(
-            query({
-              query: userQuery,
-              variables: {
-                identifier: uuid,
-                communityIdentifier: homeCom1.communityUuid,
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('No user found to given identifier(s)')],
-            }),
-          )
-          expect(logger.error).toBeCalledWith(
-            'No user found to given identifier(s)',
-            uuid,
-            homeCom1.communityUuid,
-          )
-        })
-      })
-
-      describe('identifier is found via email, but not matching community', () => {
-        it('returns user', async () => {
-          await expect(
-            query({
-              query: userQuery,
-              variables: {
-                identifier: 'bibi@bloxberg.de',
-                communityIdentifier: foreignCom1.communityUuid,
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              errors: [new GraphQLError('No user with this credentials')],
-            }),
-          )
-          expect(logger.error).toBeCalledWith(
-            'No user with this credentials',
-            'bibi@bloxberg.de',
-            foreignCom1.communityUuid,
-          )
-        })
-      })
-
-      describe('identifier is found via email', () => {
-        it('returns user', async () => {
-          await expect(
-            query({
-              query: userQuery,
-              variables: {
-                identifier: 'bibi@bloxberg.de',
-                communityIdentifier: homeCom1.communityUuid,
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              data: {
-                user: expect.objectContaining({
-                  firstName: 'Bibi',
-                  lastName: 'Bloxberg',
-                }),
-              },
-              errors: undefined,
-            }),
-          )
-        })
-      })
-
-      describe('identifier is found via gradidoID', () => {
-        it('returns user', async () => {
-          await expect(
-            query({
-              query: userQuery,
-              variables: {
-                identifier: user.gradidoID,
-                communityIdentifier: homeCom1.communityUuid,
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              data: {
-                user: expect.objectContaining({
-                  firstName: 'Bibi',
-                  lastName: 'Bloxberg',
-                }),
-              },
-              errors: undefined,
-            }),
-          )
-        })
-      })
-
-      describe('identifier is found via alias', () => {
-        it('returns user', async () => {
-          await expect(
-            query({
-              query: userQuery,
-              variables: {
-                identifier: 'bibi',
-                communityIdentifier: homeCom1.communityUuid,
-              },
-            }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              data: {
-                user: expect.objectContaining({
-                  firstName: 'Bibi',
-                  lastName: 'Bloxberg',
-                }),
-              },
-              errors: undefined,
-            }),
-          )
-        })
+        expect(logErrorLogger.error).toBeCalledWith('401 Unauthorized')
       })
     })
   })

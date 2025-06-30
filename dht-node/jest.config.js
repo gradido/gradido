@@ -1,19 +1,22 @@
 /** @type {import('ts-jest/dist/types').InitialOptionsTsJest} */
 module.exports = {
-  verbose: true,
+  verbose: false,
   preset: 'ts-jest',
-  collectCoverage: true,
-  collectCoverageFrom: ['src/**/*.ts', '!**/node_modules/**', '!src/seeds/**', '!build/**'],
+  collectCoverage: false,
+  collectCoverageFrom: ['src/**/*.ts', '!**/node_modules/**', '!build/**'],
   coverageThreshold: {
     global: {
       lines: 82,
     },
   },
-  setupFiles: ['<rootDir>/test/testSetup.ts'],
+  setupFiles: ['config-schema/test/testSetup.ts'],
   setupFilesAfterEnv: [],
   modulePathIgnorePatterns: ['<rootDir>/build/'],
   moduleNameMapper: {
     '@/(.*)': '<rootDir>/src/$1',
     '@test/(.*)': '<rootDir>/test/$1',
+  },
+  transform: {
+    '^.+\\.(t|j)sx?$': '@swc/jest',
   },
 }

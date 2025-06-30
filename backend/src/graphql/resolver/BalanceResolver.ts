@@ -9,9 +9,10 @@ import { RIGHTS } from '@/auth/RIGHTS'
 import { BalanceLoggingView } from '@/logging/BalanceLogging.view'
 import { DecayLoggingView } from '@/logging/DecayLogging.view'
 import { Context, getUser } from '@/server/context'
-import { backendLogger as logger } from '@/server/logger'
-import { calculateDecay } from '@/util/decay'
+import { calculateDecay } from 'shared'
 
+import { getLogger } from 'log4js'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { GdtResolver } from './GdtResolver'
 import { getLastTransaction } from './util/getLastTransaction'
 import { transactionLinkSummary } from './util/transactionLinkSummary'
@@ -23,9 +24,10 @@ export class BalanceResolver {
   async balance(@Ctx() context: Context): Promise<Balance> {
     const user = getUser(context)
     const now = new Date()
+    const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.BalanceResolver`)
 
     logger.addContext('user', user.id)
-    logger.info(`balance(userId=${user.id})...`)
+    logger.info(`balance...`)
 
     let balanceGDT
     if (!context.balanceGDT) {

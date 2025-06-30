@@ -21,10 +21,10 @@ import {
   Transaction as DbTransaction,
   TransactionLink as DbTransactionLink,
   User as DbUser,
+  getHomeCommunity,
 } from 'database'
 import { Decimal } from 'decimal.js-light'
 import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
-import { getConnection } from 'typeorm'
 
 import { RIGHTS } from '@/auth/RIGHTS'
 import { decode, encode, verify } from '@/auth/jwt/JWT'
@@ -37,24 +37,26 @@ import {
 } from '@/event/Events'
 import { LogError } from '@/server/LogError'
 import { Context, getClientTimezoneOffset, getUser } from '@/server/context'
-import { backendLogger as logger } from '@/server/logger'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 import { TRANSACTION_LINK_LOCK } from '@/util/TRANSACTION_LINK_LOCK'
-import { calculateDecay } from '@/util/decay'
+import { calculateDecay } from 'shared'
 import { fullName } from '@/util/utilities'
 import { calculateBalance } from '@/util/validate'
 
 import { DisburseJwtPayloadType } from '@/auth/jwt/payloadtypes/DisburseJwtPayloadType'
+import { Logger, getLogger } from 'log4js'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { executeTransaction } from './TransactionResolver'
 import {
   getAuthenticatedCommunities,
   getCommunityByUuid,
-  getHomeCommunity,
 } from './util/communities'
 import { getUserCreation, validateContribution } from './util/creations'
 import { getLastTransaction } from './util/getLastTransaction'
 import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
 import { transactionLinkList } from './util/transactionLinkList'
+
+const createLogger = () => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.TransactionLinkResolver`)
 
 // TODO: do not export, test it inside the resolver
 export const transactionLinkCode = (date: Date): string => {
@@ -149,7 +151,9 @@ export class TransactionLinkResolver {
   @Authorized([RIGHTS.QUERY_TRANSACTION_LINK])
   @Query(() => QueryLinkResult)
   async queryTransactionLink(@Arg('code') code: string): Promise<typeof QueryLinkResult> {
-    logger.debug('TransactionLinkResolver.queryTransactionLink... code=', code)
+    const logger = createLogger()
+    logger.addContext('code', code.substring(0, 6))
+    logger.debug('TransactionLinkResolver.queryTransactionLink...')
     if (code.match(/^CL-/)) {
       const contributionLink = await DbContributionLink.findOneOrFail({
         where: { code: code.replace('CL-', '') },
@@ -185,7 +189,7 @@ export class TransactionLinkResolver {
         return new TransactionLink(dbTransactionLink, new User(user), redeemedBy, communities)
       } else {
         // redeem jwt-token
-        return await this.queryRedeemJwtLink(code)
+        return await this.queryRedeemJwtLink(code, logger)
       }
     }
   }
@@ -196,6 +200,8 @@ export class TransactionLinkResolver {
     @Arg('code', () => String) code: string,
     @Ctx() context: Context,
   ): Promise<boolean> {
+    const logger = createLogger()
+    logger.addContext('code', code.substring(0, 6))
     const clientTimezoneOffset = getClientTimezoneOffset(context)
     // const homeCom = await DbCommunity.findOneOrFail({ where: { foreign: false } })
     const user = getUser(context)
@@ -380,6 +386,7 @@ export class TransactionLinkResolver {
           transactionLink.memo,
           linkedUser,
           user,
+          logger,
           transactionLink,
         )
         await EVENT_TRANSACTION_LINK_REDEEM(
@@ -409,6 +416,8 @@ export class TransactionLinkResolver {
     @Arg('alias', { nullable: true }) alias?: string,
     @Arg('validUntil', { nullable: true }) validUntil?: string,
   ): Promise<string> {
+    const logger = createLogger()
+    logger.addContext('code', code.substring(0, 6))
     logger.debug('TransactionLinkResolver.queryRedeemJwt... args=', {
       gradidoId,
       senderCommunityUuid,
@@ -433,6 +442,9 @@ export class TransactionLinkResolver {
     )
     // TODO:encode/sign the jwt normally with the private key of the sender/home community, but interims with uuid
     const homeCom = await getHomeCommunity()
+    if (!homeCom) {
+      throw new LogError('Home community not found')
+    }
     if (!homeCom.communityUuid) {
       throw new LogError('Home community UUID is not set')
     }
@@ -457,6 +469,8 @@ export class TransactionLinkResolver {
     @Arg('validUntil', { nullable: true }) validUntil?: string,
     @Arg('recipientAlias', { nullable: true }) recipientAlias?: string,
   ): Promise<boolean> {
+    const logger = createLogger()
+    logger.addContext('code', code.substring(0, 6))
     logger.debug('TransactionLinkResolver.disburseTransactionLink... args=', {
       senderGradidoId,
       senderCommunityUuid,
@@ -528,7 +542,7 @@ export class TransactionLinkResolver {
     return transactionLinkList(paginated, filters, user)
   }
 
-  async queryRedeemJwtLink(code: string): Promise<RedeemJwtLink> {
+  async queryRedeemJwtLink(code: string, logger: Logger): Promise<RedeemJwtLink> {
     logger.debug('TransactionLinkResolver.queryRedeemJwtLink... redeem jwt-token found')
     // decode token first to get the senderCommunityUuid as input for verify token
     const decodedPayload = decode(code)
@@ -619,6 +633,9 @@ export class TransactionLinkResolver {
         )
       }
       const homeCommunity = await getHomeCommunity()
+      if (!homeCommunity) {
+        throw new LogError('Home community not found')
+      }
       const recipientCommunity = new Community(homeCommunity)
       const senderCommunity = new Community(senderCom)
       const senderUser = new User(null)
@@ -653,6 +670,8 @@ export class TransactionLinkResolver {
     validUntil: string,
     recipientAlias: string,
   ): Promise<string> {
+    const logger = createLogger()
+    logger.addContext('code', code.substring(0, 6))
     logger.debug('TransactionLinkResolver.createDisburseJwt... args=', {
       senderCommunityUuid,
       senderGradidoId,

@@ -4,8 +4,9 @@ import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
 
 import { CONFIG } from '@/config'
 import { LogError } from '@/server/LogError'
-import { backendLogger as logger } from '@/server/logger'
+import { getLogger } from 'log4js'
 
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import {
   crypto_box_SEEDBYTES,
   crypto_hash_sha512_BYTES,
@@ -21,6 +22,8 @@ import {
   crypto_shorthash_BYTES,
   crypto_shorthash_KEYBYTES,
 } from 'sodium-native'
+
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.password.EncryptorUtils`)
 
 const SecretKeyCryptographyCreateKeyMock = (
   salt: string,

@@ -13,4 +13,5 @@ build({
   external: ['sodium-native', 'email-templates'],
   plugins: [esbuildDecorators()],
   minify: true,
+  sourcemap: true,
 })

@@ -55,8 +55,8 @@ ENV PATH="/root/.bun/bin:${PATH}"
 ##################################################################################
 FROM bun-base as installer
 
-COPY --chown=app:app ./database .
-RUN bun install --production --no-cache --frozen-lockfile
+COPY --chown=app:app . .
+RUN bun install --filter database --production --no-cache --frozen-lockfile
 
 ##################################################################################
 # Build ##########################################################################
@@ -64,7 +64,8 @@ RUN bun install --production --no-cache --frozen-lockfile
 FROM installer as build
 
 RUN bun install --no-cache --frozen-lockfile \
-  yarn build && yarn typecheck
+  && cd shared && yarn build \
+  && cd ../database && yarn build && yarn typecheck
 
 ##################################################################################
 # PRODUCTION IMAGE ###############################################################
@@ -72,8 +73,7 @@ RUN bun install --no-cache --frozen-lockfile \
 FROM base as production 
 
 COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/src ./src
-COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/migrations ./migrations
-COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/entity ./entity
+COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/migration ./migration
 COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/node_modules ./node_modules
 COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/package.json ./package.json 
 COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/tsconfig.json ./tsconfig.json
@@ -82,7 +82,6 @@ COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/tsconfig.json ./tsconfig
 # TEST UP ########################################################################
 ##################################################################################
 FROM production as up
-
 
 # Run command
 CMD /bin/sh -c "yarn up"

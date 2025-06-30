@@ -7,7 +7,6 @@ import { ContributionMessageArgs } from '@/graphql/arg/ContributionMessageArgs'
 import { ContributionMessageType } from '@/graphql/enum/ContributionMessageType'
 import { ContributionStatus } from '@/graphql/enum/ContributionStatus'
 import { LogError } from '@/server/LogError'
-import { backendLogger as logger } from '@/server/logger'
 
 import { AbstractUnconfirmedContributionRole } from './AbstractUnconfirmedContribution.role'
 
@@ -21,7 +20,7 @@ export class UnconfirmedContributionAdminAddMessageRole extends AbstractUnconfir
     private updateData: ContributionMessageArgs,
   ) {
     super(contribution, contribution.amount, contribution.contributionDate)
-    logger.debug('use UnconfirmedContributionAdminAddMessageRole')
+    this.logger.debug('use UnconfirmedContributionAdminAddMessageRole')
   }
 
   protected update(): void {

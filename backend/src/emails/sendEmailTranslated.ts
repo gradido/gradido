@@ -5,7 +5,10 @@ import i18n from 'i18n'
 import { createTransport } from 'nodemailer'
 
 import { CONFIG } from '@/config'
-import { backendLogger as logger } from '@/server/logger'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { getLogger } from 'log4js'
+
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.emails.sendEmailTranslated`)
 
 export const sendEmailTranslated = async ({
   receiver,
@@ -31,8 +34,8 @@ export const sendEmailTranslated = async ({
 
   i18n.setLocale('en') // for logging
   logger.info(
-    `send Email: language=${locals.locale as string} to=${receiver.to}` +
-      (receiver.cc ? `, cc=${receiver.cc}` : '') +
+    `send Email: language=${locals.locale as string} to=${receiver.to.substring(0, 3)}...` +
+      (receiver.cc ? `, cc=${receiver.cc.substring(0, 3)}...` : '') +
       `, subject=${i18n.__('emails.' + template + '.subject')}`,
   )
 

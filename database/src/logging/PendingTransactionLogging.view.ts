@@ -1,14 +1,7 @@
 import { PendingTransaction, Transaction } from '../entity'
 import { AbstractLoggingView } from './AbstractLogging.view'
 import { TransactionLoggingView } from './TransactionLogging.view'
-
-// TODO: move enum into database, maybe rename database
-enum PendingTransactionState {
-  NEW = 1,
-  PENDING = 2,
-  SETTLED = 3,
-  REVERTED = 4,
-}
+import { PendingTransactionState } from 'shared'
 
 export class PendingTransactionLoggingView extends AbstractLoggingView {
   public constructor(private self: PendingTransaction) {

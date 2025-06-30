@@ -6,11 +6,12 @@
     "lint:fix": {
     },
     "test": {
+      "dependsOn": ["^build"]
     },
     "typecheck": {
     },
     "dev": {
-      "dependsOn": ["config-schema#build"],
+      "dependsOn": ["^build"],
       "persistent": true,
       "cache": false
     },

@@ -7,7 +7,7 @@ import {
 import { Decimal } from 'decimal.js-light'
 import { GraphQLResolveInfo } from 'graphql'
 import { Arg, Args, Authorized, Ctx, Info, Int, Mutation, Query, Resolver } from 'type-graphql'
-import { EntityManager, IsNull, getConnection } from 'typeorm'
+import { EntityManager, IsNull } from 'typeorm'
 
 import { AdminCreateContributionArgs } from '@arg/AdminCreateContributionArgs'
 import { AdminUpdateContributionArgs } from '@arg/AdminUpdateContributionArgs'
@@ -19,7 +19,6 @@ import { ContributionType } from '@enum/ContributionType'
 import { TransactionTypeId } from '@enum/TransactionTypeId'
 import { AdminUpdateContribution } from '@model/AdminUpdateContribution'
 import { Contribution, ContributionListResult } from '@model/Contribution'
-import { Decay } from '@model/Decay'
 import { OpenCreation } from '@model/OpenCreation'
 import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
 
@@ -43,13 +42,14 @@ import {
 import { UpdateUnconfirmedContributionContext } from '@/interactions/updateUnconfirmedContribution/UpdateUnconfirmedContribution.context'
 import { LogError } from '@/server/LogError'
 import { Context, getClientTimezoneOffset, getUser } from '@/server/context'
-import { backendLogger as logger } from '@/server/logger'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
-import { calculateDecay } from '@/util/decay'
+import { calculateDecay, Decay } from 'shared'
 import { fullName } from '@/util/utilities'
 
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { ContributionMessageType } from '@enum/ContributionMessageType'
 import { AppDatabase } from 'database'
-import { ContributionMessageType } from '../enum/ContributionMessageType'
+import { getLogger } from 'log4js'
 import {
   contributionFrontendLink,
   loadAllContributions,
@@ -62,6 +62,7 @@ import { getLastTransaction } from './util/getLastTransaction'
 import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
 
 const db = AppDatabase.getInstance()
+const createLogger = () => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.ContributionResolver`)
 
 @Resolver(() => Contribution)
 export class ContributionResolver {
@@ -85,6 +86,8 @@ export class ContributionResolver {
 
     const user = getUser(context)
     const creations = await getUserCreation(user.id, clientTimezoneOffset)
+    const logger = createLogger()
+    logger.addContext('user', user.id)
     logger.trace('creations', creations)
     const contributionDateObj = new Date(contributionDate)
     validateContribution(creations, amount, contributionDateObj, clientTimezoneOffset)
@@ -215,6 +218,8 @@ export class ContributionResolver {
     @Args() { email, amount, memo, creationDate }: AdminCreateContributionArgs,
     @Ctx() context: Context,
   ): Promise<Decimal[]> {
+    const logger = createLogger()
+    logger.addContext('admin', context.user?.id)
     logger.info(
       `adminCreateContribution(email=${email}, amount=${amount.toString()}, memo=${memo}, creationDate=${creationDate})`,
     )
@@ -266,6 +271,8 @@ export class ContributionResolver {
     @Args() adminUpdateContributionArgs: AdminUpdateContributionArgs,
     @Ctx() context: Context,
   ): Promise<AdminUpdateContribution> {
+    const logger = createLogger()
+    logger.addContext('contribution', adminUpdateContributionArgs.id)
     const updateUnconfirmedContributionContext = new UpdateUnconfirmedContributionContext(
       adminUpdateContributionArgs.id,
       adminUpdateContributionArgs,
@@ -277,7 +284,6 @@ export class ContributionResolver {
       await transactionalEntityManager.save(contribution)
       // TODO: move into specialized view or formatting for logging class
       logger.debug('saved changed contribution', {
-        id: contribution.id,
         amount: contribution.amount.toString(),
         memo: contribution.memo,
         contributionDate: contribution.contributionDate.toString(),
@@ -288,7 +294,6 @@ export class ContributionResolver {
         await transactionalEntityManager.save(contributionMessage)
         // TODO: move into specialized view or formatting for logging class
         logger.debug('save new contributionMessage', {
-          contributionId: contributionMessage.contributionId,
           type: contributionMessage.type,
           message: contributionMessage.message,
           isModerator: contributionMessage.isModerator,
@@ -428,6 +433,9 @@ export class ContributionResolver {
     @Arg('id', () => Int) id: number,
     @Ctx() context: Context,
   ): Promise<boolean> {
+    const logger = createLogger()
+    logger.addContext('contribution', id)
+
     // acquire lock
     const releaseLock = await TRANSACTIONS_LOCK.acquire()
     try {

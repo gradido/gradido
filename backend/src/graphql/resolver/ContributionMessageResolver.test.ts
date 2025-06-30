@@ -5,8 +5,9 @@ import { DataSource } from 'typeorm'
 
 import { ContributionStatus } from '@enum/ContributionStatus'
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
-import { i18n as localization, logger } from '@test/testSetup'
+import { i18n as localization } from '@test/testSetup'
 
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { sendAddedContributionMessageEmail } from '@/emails/sendEmailVariants'
 import { EventType } from '@/event/Events'
 import { userFactory } from '@/seeds/factory/user'
@@ -20,6 +21,13 @@ import { adminListContributionMessages, listContributionMessages } from '@/seeds
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { peterLustig } from '@/seeds/users/peter-lustig'
+import { getLogger} from 'config-schema/test/testSetup'
+
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.ContributionMessageResolver`)
+const logErrorLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)
+const interactionLogger = getLogger(
+  `${LOG4JS_BASE_CATEGORY_NAME}.interactions.updateUnconfirmedContribution`,
+)
 
 jest.mock('@/password/EncryptorUtils')
 jest.mock('@/emails/sendEmailVariants', () => {
@@ -121,7 +129,7 @@ describe('ContributionMessageResolver', () => {
         })
 
         it('logs the error "ContributionMessage was not sent successfully: Error: Contribution not found"', () => {
-          expect(logger.error).toBeCalledWith(
+          expect(logErrorLogger.error).toBeCalledWith(
             'ContributionMessage was not sent successfully: Error: Contribution not found',
             new Error('Contribution not found'),
           )
@@ -148,9 +156,7 @@ describe('ContributionMessageResolver', () => {
               message: 'Test',
             },
           })
-          expect(logger.debug).toBeCalledTimes(5)
-          expect(logger.debug).toHaveBeenNthCalledWith(
-            5,
+          expect(interactionLogger.debug).toBeCalledWith(
             'use UnconfirmedContributionUserAddMessageRole',
           )
           expect(mutationResult).toEqual(
@@ -327,7 +333,7 @@ describe('ContributionMessageResolver', () => {
         })
 
         it('logs the error "ContributionMessage was not sent successfully: Error: Contribution not found"', () => {
-          expect(logger.error).toBeCalledWith(
+          expect(logErrorLogger.error).toBeCalledWith(
             'ContributionMessage was not sent successfully: Error: Contribution not found',
             new Error('Contribution not found'),
           )
@@ -348,9 +354,7 @@ describe('ContributionMessageResolver', () => {
             },
           })
 
-          expect(logger.debug).toBeCalledTimes(5)
-          expect(logger.debug).toHaveBeenNthCalledWith(
-            5,
+          expect(interactionLogger.debug).toBeCalledWith(
             'use UnconfirmedContributionAdminAddMessageRole',
           )
 
@@ -382,10 +386,7 @@ describe('ContributionMessageResolver', () => {
               message: 'Test',
             },
           })
-
-          expect(logger.debug).toBeCalledTimes(5)
-          expect(logger.debug).toHaveBeenNthCalledWith(
-            5,
+          expect(interactionLogger.debug).toBeCalledWith(
             'use UnconfirmedContributionAdminAddMessageRole',
           )
 
@@ -401,13 +402,12 @@ describe('ContributionMessageResolver', () => {
         })
 
         it('logs the error "ContributionMessage was not sent successfully: Error: missing right ADMIN_CREATE_CONTRIBUTION_MESSAGE for user"', () => {
-          expect(logger.debug).toBeCalledTimes(5)
-          expect(logger.error).toHaveBeenNthCalledWith(
+          expect(logErrorLogger.error).toHaveBeenNthCalledWith(
             1,
             'missing right ADMIN_CREATE_CONTRIBUTION_MESSAGE for user',
             expect.any(Number),
           )
-          expect(logger.error).toHaveBeenNthCalledWith(
+          expect(logErrorLogger.error).toHaveBeenNthCalledWith(
             2,
             'ContributionMessage was not sent successfully: Error: missing right ADMIN_CREATE_CONTRIBUTION_MESSAGE for user',
             new Error('missing right ADMIN_CREATE_CONTRIBUTION_MESSAGE for user'),

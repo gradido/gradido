@@ -1,10 +1,14 @@
 import { createTransport } from 'nodemailer'
 
-import { i18n, logger } from '@test/testSetup'
+import { i18n } from '@test/testSetup'
 
 import { CONFIG } from '@/config'
 
+import { getLogger } from 'config-schema/test/testSetup'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { sendEmailTranslated } from './sendEmailTranslated'
+
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.emails.sendEmailTranslated`)
 
 const testMailServerHost = 'localhost'
 const testMailServerPort = 1025

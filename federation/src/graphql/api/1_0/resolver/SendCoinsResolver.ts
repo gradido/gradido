@@ -1,15 +1,16 @@
-import { findUserByIdentifier } from '@/graphql/util/findUserByIdentifier'
 import { fullName } from '@/graphql/util/fullName'
 import { LogError } from '@/server/LogError'
-import { federationLogger as logger } from '@/server/logger'
 import {
   Community as DbCommunity,
   PendingTransaction as DbPendingTransaction,
   PendingTransactionLoggingView,
+  findUserByIdentifier
 } from 'database'
 import Decimal from 'decimal.js-light'
+import { getLogger } from 'log4js'
 import { Arg, Mutation, Resolver } from 'type-graphql'
-import { PendingTransactionState } from '../enum/PendingTransactionState'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { PendingTransactionState } from 'shared'
 import { TransactionTypeId } from '../enum/TransactionTypeId'
 import { SendCoinsArgsLoggingView } from '../logger/SendCoinsArgsLogging.view'
 import { SendCoinsArgs } from '../model/SendCoinsArgs'
@@ -19,6 +20,8 @@ import { calculateRecipientBalance } from '../util/calculateRecipientBalance'
 import { revertSettledReceiveTransaction } from '../util/revertSettledReceiveTransaction'
 import { settlePendingReceiveTransaction } from '../util/settlePendingReceiveTransaction'
 import { storeForeignUser } from '../util/storeForeignUser'
+import { countOpenPendingTransactions } from 'database'
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.api.1_0.resolver.SendCoinsResolver`)
 
 @Resolver()
 export class SendCoinsResolver {
@@ -40,32 +43,21 @@ export class SendCoinsResolver {
       )
     }
     let receiverUser
-    try {
-      // second check if receiver user exists in this community
-      receiverUser = await findUserByIdentifier(
-        args.recipientUserIdentifier,
-        args.recipientCommunityUuid,
-      )
-    } catch (err) {
-      logger.error('Error in findUserByIdentifier:', err)
+    
+    // second check if receiver user exists in this community
+    receiverUser = await findUserByIdentifier(
+      args.recipientUserIdentifier,
+      args.recipientCommunityUuid,
+    )
+    if (!receiverUser) {
+      logger.error('Error in findUserByIdentifier:')
       throw new LogError(
         `voteForSendCoins with unknown recipientUserIdentifier in the community=`,
         homeCom.name,
       )
     }
-    const openSenderPendingTx = await DbPendingTransaction.count({
-      where: [
-        { userGradidoID: args.senderUserUuid, state: PendingTransactionState.NEW },
-        { linkedUserGradidoID: args.senderUserUuid, state: PendingTransactionState.NEW },
-      ],
-    })
-    const openReceiverPendingTx = await DbPendingTransaction.count({
-      where: [
-        { userGradidoID: receiverUser.gradidoID, state: PendingTransactionState.NEW },
-        { linkedUserGradidoID: receiverUser.gradidoID, state: PendingTransactionState.NEW },
-      ],
-    })
-    if (openSenderPendingTx > 0 || openReceiverPendingTx > 0) {
+ 
+    if (await countOpenPendingTransactions([args.senderUserUuid, receiverUser.gradidoID]) > 0) {
       throw new LogError(
         `There exist still ongoing 'Pending-Transactions' for the involved users on receiver-side!`,
       )
@@ -123,11 +115,11 @@ export class SendCoinsResolver {
       )
     }
     let receiverUser
-    try {
-      // second check if receiver user exists in this community
-      receiverUser = await findUserByIdentifier(args.recipientUserIdentifier)
-    } catch (err) {
-      logger.error('Error in findUserByIdentifier:', err)
+    
+    // second check if receiver user exists in this community
+    receiverUser = await findUserByIdentifier(args.recipientUserIdentifier)
+    if (!receiverUser) {
+      logger.error('Error in findUserByIdentifier')
       throw new LogError(
         `revertSendCoins with unknown recipientUserIdentifier in the community=`,
         homeCom.name,
@@ -190,12 +182,11 @@ export class SendCoinsResolver {
         args.recipientCommunityUuid,
       )
     }
-    let receiverUser
-    try {
-      // second check if receiver user exists in this community
-      receiverUser = await findUserByIdentifier(args.recipientUserIdentifier)
-    } catch (err) {
-      logger.error('Error in findUserByIdentifier:', err)
+   
+    // second check if receiver user exists in this community
+    const receiverUser = await findUserByIdentifier(args.recipientUserIdentifier)
+    if (!receiverUser) {
+      logger.error('Error in findUserByIdentifier')
       throw new LogError(
         `settleSendCoins with unknown recipientUserIdentifier in the community=`,
         homeCom.name,
@@ -262,13 +253,12 @@ export class SendCoinsResolver {
         `revertSettledSendCoins with wrong recipientCommunityUuid`,
         args.recipientCommunityUuid,
       )
-    }
-    let receiverUser
-    try {
-      // second check if receiver user exists in this community
-      receiverUser = await findUserByIdentifier(args.recipientUserIdentifier)
-    } catch (err) {
-      logger.error('Error in findUserByIdentifier:', err)
+    }    
+    
+    // second check if receiver user exists in this community
+    const receiverUser = await findUserByIdentifier(args.recipientUserIdentifier)
+    if (!receiverUser) {
+      logger.error('Error in findUserByIdentifier')
       throw new LogError(
         `revertSettledSendCoins with unknown recipientUserIdentifier in the community=`,
         homeCom.name,

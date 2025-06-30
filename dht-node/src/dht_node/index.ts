@@ -3,12 +3,14 @@ import {
   CommunityLoggingView,
   Community as DbCommunity,
   FederatedCommunity as DbFederatedCommunity,
+  getHomeCommunity,
 } from 'database'
 import { v4 as uuidv4 } from 'uuid'
 
 import { CONFIG } from '@/config'
-import { logger } from '@/server/logger'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 
+import { getLogger } from 'log4js'
 import { ApiVersionType } from './ApiVersionType'
 
 const KEY_SECRET_SEEDBYTES = 32
@@ -17,6 +19,7 @@ const POLLTIME = 20000
 const SUCCESSTIME = 120000
 const ERRORTIME = 240000
 const ANNOUNCETIME = 30000
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.dht_node`)
 
 type CommunityApi = {
   api: string
@@ -57,7 +60,6 @@ export const startDHT = async (topic: string): Promise<void> => {
 
     server.on('connection', function (socket: any) {
       logger.info(`server on... with Remote public key: ${socket.remotePublicKey.toString('hex')}`)
-
       socket.on('data', async (data: Buffer) => {
         try {
           if (data.length > 1141) {
@@ -82,7 +84,6 @@ export const startDHT = async (topic: string): Promise<void> => {
             )
             return
           }
-
           for (const recApiVersion of recApiVersions) {
             if (
               !recApiVersion.api ||
@@ -111,7 +112,6 @@ export const startDHT = async (topic: string): Promise<void> => {
               publicKey: socket.remotePublicKey,
               lastAnnouncedAt: new Date(),
             }
-            logger.debug(`upsert with variables=${JSON.stringify(variables)}`)
             // this will NOT update the updatedAt column, to distingue between a normal update and the last announcement
             await DbFederatedCommunity.createQueryBuilder()
               .insert()
@@ -234,7 +234,7 @@ async function writeFederatedHomeCommunityEntries(pubKey: string): Promise<Commu
 async function writeHomeCommunityEntry(keyPair: KeyPair): Promise<void> {
   try {
     // check for existing homeCommunity entry
-    let homeCom = await DbCommunity.findOne({ where: { foreign: false } })
+    let homeCom = await getHomeCommunity()
     if (homeCom) {
       // simply update the existing entry, but it MUST keep the ID and UUID because of possible relations
       homeCom.publicKey = keyPair.publicKey

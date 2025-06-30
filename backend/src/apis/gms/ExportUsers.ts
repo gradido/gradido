@@ -1,25 +1,32 @@
 import { User as DbUser } from 'database'
 // import { createTestClient } from 'apollo-server-testing'
 
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 // import { createGmsUser } from '@/apis/gms/GmsClient'
 // import { GmsUser } from '@/apis/gms/model/GmsUser'
 import { CONFIG } from '@/config'
-import { getHomeCommunity } from '@/graphql/resolver/util/communities'
 import { sendUserToGms } from '@/graphql/resolver/util/sendUserToGms'
 import { LogError } from '@/server/LogError'
-import { backendLogger as logger } from '@/server/logger'
-import { AppDatabase } from 'database'
+import { initLogging } from '@/server/logger'
+import { AppDatabase, getHomeCommunity } from 'database'
+import { getLogger } from 'log4js'
+
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.apis.gms.ExportUsers`)
 
 CONFIG.EMAIL = false
 // use force to copy over all user even if gmsRegistered is set to true
 const forceMode = process.argv.includes('--force')
 
 async function main() {
+  initLogging()
   // open mysql connection
   const con = AppDatabase.getInstance()
   await con.init()
 
   const homeCom = await getHomeCommunity()
+  if (!homeCom) {
+    throw new LogError('HomeCommunity not found')
+  }
   if (homeCom.gmsApiKey === null) {
     throw new LogError('HomeCommunity needs GMS-ApiKey to publish user data to GMS.')
   }
@@ -70,7 +77,6 @@ async function main() {
 }
 
 main().catch((e) => {
-  // biome-ignore lint/suspicious/noConsole: logger isn't used here
-  console.error(e)
+  logger.error(e)
   process.exit(1)
 })

@@ -1,8 +1,10 @@
-
 import { generateKeyPair, exportSPKI, exportPKCS8, SignJWT, decodeJwt, importPKCS8, importSPKI, jwtVerify, CompactEncrypt, compactDecrypt } from 'jose'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { getLogger } from 'log4js'
+
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.auth.jwt.JWT`)
 
 import { LogError } from '@/server/LogError'
-import { backendLogger as logger } from '@/server/logger'
 
 import { JwtPayloadType } from './payloadtypes/JwtPayloadType'
 import { EncryptedJWEJwtPayloadType } from './payloadtypes/EncryptedJWEJwtPayloadType'

@@ -3,8 +3,8 @@ import { Community as DbCommunity, FederatedCommunity as DbFederatedCommunity } 
 import { validate as validateUUID, version as versionUUID } from 'uuid'
 
 import { cleanDB, testEnvironment } from '@test/helpers'
-import { logger } from '@test/testSetup'
-
+import { getLogger } from 'config-schema/test/testSetup'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { CONFIG } from '@/config'
 
 import { startDHT } from './index'
@@ -20,6 +20,8 @@ const keyPairMock = {
   publicKey: Buffer.from('publicKey'),
   secretKey: Buffer.from('secretKey'),
 }
+
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.dht_node`)
 
 const serverListenSpy = jest.fn()
 
@@ -110,6 +112,13 @@ afterAll(async () => {
 describe('federation', () => {
   beforeAll(() => {
     jest.useFakeTimers()
+  })
+
+  afterEach(() => {
+    // print logs which where captured during test
+    // printLogs()
+    // clean logs after, else they will be printed in next test again
+    // cleanLogs()
   })
 
   describe('call startDHT', () => {
