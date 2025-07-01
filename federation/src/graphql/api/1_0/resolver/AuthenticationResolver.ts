@@ -52,6 +52,7 @@ export class AuthenticationResolver {
     if (openConnectionJwtPayload.tokentype !== OpenConnectionJwtPayloadType.OPEN_CONNECTION_TYPE) {
       throw new LogError(`invalid tokentype of community with publicKey`, pubKeyBuf.toString('hex'))
     }
+    /*
     if (openConnectionJwtPayload.expiration < new Date().toISOString()) {
       throw new LogError(`invalid expiration of community with publicKey`, pubKeyBuf.toString('hex'))
     }
@@ -61,6 +62,7 @@ export class AuthenticationResolver {
     if (openConnectionJwtPayload.audience !== JwtPayloadType.AUDIENCE) {
       throw new LogError(`invalid audience of community with publicKey`, pubKeyBuf.toString('hex'))
     }
+    */
     const fedComA = await DbFedCommunity.findOneByOrFail({ publicKey: comA.publicKey })
     if (!openConnectionJwtPayload.url.startsWith(fedComA.endPoint)) {
       throw new LogError(`invalid url of community with publicKey`, pubKeyBuf.toString('hex'))

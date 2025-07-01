@@ -12,7 +12,7 @@ import { EncryptedJWEJwtPayloadType } from './payloadtypes/EncryptedJWEJwtPayloa
 export const createKeyPair = async (): Promise<{ publicKey: string; privateKey: string }> => {
   // Generate key pair using jose library
   const keyPair = await generateKeyPair('RS256');
-  logger.debug(`Federation: writeJwtKeyPairInHomeCommunity generated keypair=`, keyPair);
+  logger.debug(`Federation: writeJwtKeyPairInHomeCommunity generated keypair...`);
   
   // Convert keys to PEM format for storage in database
   const publicKeyPem = await exportSPKI(keyPair.publicKey);
@@ -47,7 +47,7 @@ export const verify = async (token: string, publicKey: string): Promise<JwtPaylo
 
 export const encode = async (payload: JwtPayloadType, privatekey: string): Promise<string> => {
   logger.debug('JWT.encode... payload=', payload)
-  logger.debug('JWT.encode... privatekey=', privatekey)
+  logger.debug('JWT.encode... privatekey=', privatekey.substring(0, 10))
   try {
     const importedKey = await importPKCS8(privatekey, 'RS256')
     const secret = typeof importedKey === 'string' 
