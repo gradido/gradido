@@ -25,7 +25,7 @@ export async function startCommunityAuthentication(
   })
   const foreignCom = await DbCommunity.findOneByOrFail({ publicKey: foreignFedCom.publicKey })
   logger.debug(
-    'Authentication: started with foreignFedCom:',
+    'started with foreignFedCom:',
     foreignFedCom.endPoint,
     foreignFedCom.publicKey.toString('hex'),
     foreignCom.publicJwtKey,
@@ -55,18 +55,20 @@ export async function startCommunityAuthentication(
         args.publicKey = homeCom.publicKey.toString('hex')
         args.jwt = jws
         logger.debug(
-          'Authentication: before client.openConnection() args:',
+          'before client.openConnection() args:',
           homeCom.publicKey.toString('hex'),
           args.jwt,
         )
         if (await client.openConnection(args)) {
-          logger.debug(`Authentication: successful initiated at community:`, foreignFedCom.endPoint)
+          logger.debug(`successful initiated at community:`, foreignFedCom.endPoint)
         } else {
-          logger.error(`Authentication: can't initiate at community:`, foreignFedCom.endPoint)
+          logger.error(`can't initiate at community:`, foreignFedCom.endPoint)
         }
       }
     } catch (err) {
       logger.error(`Error:`, err)
     }
+  } else {
+    logger.debug(`foreignCom.communityUuid is not a valid v4Uuid or still a temporary onetimecode`)
   }
 }
