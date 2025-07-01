@@ -24,7 +24,7 @@ export const verify = async (token: string, publicKey: string): Promise<JwtPaylo
   if (!token) {
     throw new LogError('401 Unauthorized')
   }
-  logger.info('JWT.verify... token, publicKey=', token, publicKey)
+  logger.debug('JWT.verify... token, publicKey=', token, publicKey)
 
   try {
     const importedKey = await importSPKI(publicKey, 'RS256')
@@ -37,7 +37,7 @@ export const verify = async (token: string, publicKey: string): Promise<JwtPaylo
       issuer: JwtPayloadType.ISSUER,
       audience: JwtPayloadType.AUDIENCE,
     })
-    logger.info('JWT.verify after jwtVerify... payload=', payload)
+    logger.debug('JWT.verify after jwtVerify... payload=', payload)
     return payload as JwtPayloadType
   } catch (err) {
     logger.error('JWT.verify after jwtVerify... error=', err)
@@ -46,8 +46,8 @@ export const verify = async (token: string, publicKey: string): Promise<JwtPaylo
 }
 
 export const encode = async (payload: JwtPayloadType, privatekey: string): Promise<string> => {
-  logger.info('JWT.encode... payload=', payload)
-  logger.info('JWT.encode... privatekey=', privatekey)
+  logger.debug('JWT.encode... payload=', payload)
+  logger.debug('JWT.encode... privatekey=', privatekey)
   try {
     const importedKey = await importPKCS8(privatekey, 'RS256')
     const secret = typeof importedKey === 'string' 
@@ -82,8 +82,8 @@ export const decode = (token: string): JwtPayloadType => {
 }
 
 export const encrypt = async (payload: JwtPayloadType, publicKey: string): Promise<string> => {
-  logger.info('JWT.encrypt... payload=', payload)
-  logger.info('JWT.encrypt... publicKey=', publicKey)
+  logger.debug('JWT.encrypt... payload=', payload)
+  logger.debug('JWT.encrypt... publicKey=', publicKey)
   try {
     const encryptKey = await importSPKI(publicKey, 'RS256')
     // Convert the key to JWK format if needed
@@ -96,7 +96,7 @@ export const encrypt = async (payload: JwtPayloadType, publicKey: string): Promi
     )
       .setProtectedHeader({ alg: 'RSA-OAEP-256', enc: 'A256GCM' })
       .encrypt(recipientKey)
-   logger.info('JWT.encrypt... jwe=', jwe)
+   logger.debug('JWT.encrypt... jwe=', jwe)
     return jwe.toString()
   } catch (e) {
     logger.error('Failed to encrypt JWT:', e)
@@ -105,14 +105,14 @@ export const encrypt = async (payload: JwtPayloadType, publicKey: string): Promi
 }
 
 export const decrypt = async(jwe: string, privateKey: string): Promise<string> => {
-  logger.info('JWT.decrypt... jwe=', jwe)
-  logger.info('JWT.decrypt... privateKey=', privateKey)
+  logger.debug('JWT.decrypt... jwe=', jwe)
+  logger.debug('JWT.decrypt... privateKey=', privateKey.substring(0, 10))
   try {
     const decryptKey = await importPKCS8(privateKey, 'RS256')
     const { plaintext, protectedHeader } =
       await compactDecrypt(jwe, decryptKey)
-    logger.info('JWT.decrypt... plaintext=', plaintext)
-    logger.info('JWT.decrypt... protectedHeader=', protectedHeader)
+    logger.debug('JWT.decrypt... plaintext=', plaintext)
+    logger.debug('JWT.decrypt... protectedHeader=', protectedHeader)
     return plaintext.toString()
   } catch (e) {
     logger.error('Failed to decrypt JWT:', e)
@@ -122,15 +122,29 @@ export const decrypt = async(jwe: string, privateKey: string): Promise<string> =
 
 export const encryptAndSign = async (payload: JwtPayloadType, privateKey: string, publicKey: string): Promise<string> => {
   const jwe = await encrypt(payload, publicKey)
+  logger.debug('JWT.encryptAndSign... jwe=', jwe)
   const jws = await encode(new EncryptedJWEJwtPayloadType(jwe), privateKey)
+  logger.debug('JWT.encryptAndSign... jws=', jws)
   return jws
 }
 
 export const verifyAndDecrypt = async (token: string, privateKey: string, publicKey: string): Promise<JwtPayloadType | null> => {
-  const jwePayload = await verify(token, privateKey) as EncryptedJWEJwtPayloadType
+  const jweVerifyResult = await verify(token, publicKey)
+  if (!jweVerifyResult) {
+    return null
+  }
+  const jwePayload = jweVerifyResult.payload as EncryptedJWEJwtPayloadType
+  logger.debug('JWT.verifyAndDecrypt... jwePayload=', jwePayload)
   if (!jwePayload) {
     return null
   }
-  const payload = await decrypt(jwePayload.jwe as string, publicKey)
+  const jwePayloadType = jwePayload.tokentype
+  if (jwePayloadType !== EncryptedJWEJwtPayloadType.ENCRYPTED_JWE_TYPE) {
+    return null
+  }
+  const jwe = jwePayload.jwe
+  logger.debug('JWT.verifyAndDecrypt... jwe=', jwe)
+  const payload = await decrypt(jwe as string, privateKey)
+  logger.debug('JWT.verifyAndDecrypt... payload=', payload)
   return JSON.parse(payload) as JwtPayloadType
 }

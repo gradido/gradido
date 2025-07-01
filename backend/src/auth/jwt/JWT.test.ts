@@ -2,7 +2,7 @@
 // import { testEnvironment } from '@test/helpers'
 // import { logger } from '@test/testSetup'
 
-import { createKeyPair, decode, decrypt, encode, encrypt, verify } from './JWT'
+import { createKeyPair, decode, decrypt, encode, encrypt, encryptAndSign, verify, verifyAndDecrypt } from './JWT'
 import { EncryptedJWEJwtPayloadType } from './payloadtypes/EncryptedJWEJwtPayloadType'
 import { OpenConnectionJwtPayloadType } from './payloadtypes/OpenConnectionJwtPayloadType'
 
@@ -35,13 +35,10 @@ describe('test JWS creation and verification', () => {
     beforeEach(async () => {
       jest.clearAllMocks()
       jwsComA = await encode(new OpenConnectionJwtPayloadType('http://localhost:5001/api/'), keypairComA.privateKey)
-      console.log('jwsComA', jwsComA)
       jwsComB = await encode(new OpenConnectionJwtPayloadType('http://localhost:5002/api/'), keypairComB.privateKey)
-      console.log('jwsComB', jwsComB)
     })
     it('decode jwsComA', async () => {
       const decodedJwsComA = await decode(jwsComA)
-      console.log('decodedJwsComA', decodedJwsComA)
       expect(decodedJwsComA).toEqual({
         expiration: '10m',
         tokentype: OpenConnectionJwtPayloadType.OPEN_CONNECTION_TYPE,
@@ -50,7 +47,6 @@ describe('test JWS creation and verification', () => {
     })
     it('decode jwsComB', async () => {
       const decodedJwsComB = await decode(jwsComB)
-      console.log('decodedJwsComB', decodedJwsComB)
       expect(decodedJwsComB).toEqual({
         expiration: '10m',
         tokentype: OpenConnectionJwtPayloadType.OPEN_CONNECTION_TYPE,
@@ -59,7 +55,6 @@ describe('test JWS creation and verification', () => {
     })
     it('verify jwsComA', async () => {
       const verifiedJwsComA = await verify(jwsComA, keypairComA.publicKey)
-      console.log('verifiedJwsComA', verifiedJwsComA)
       expect(verifiedJwsComA).toEqual(expect.objectContaining({ 
         payload: expect.objectContaining({
           tokentype: OpenConnectionJwtPayloadType.OPEN_CONNECTION_TYPE,
@@ -69,7 +64,6 @@ describe('test JWS creation and verification', () => {
     })
     it('verify jwsComB', async () => {
       const verifiedJwsComB = await verify(jwsComB, keypairComB.publicKey)
-      console.log('verifiedJwsComB', verifiedJwsComB)
       expect(verifiedJwsComB).toEqual(expect.objectContaining({ 
         payload: expect.objectContaining({
           tokentype: OpenConnectionJwtPayloadType.OPEN_CONNECTION_TYPE,
@@ -85,13 +79,10 @@ describe('test JWE encryption and decryption', () => {
     beforeEach(async () => {
       jest.clearAllMocks()
       jweComA = await encrypt(new OpenConnectionJwtPayloadType('http://localhost:5001/api/'), keypairComB.publicKey)
-      console.log('jweComA', jweComA)
       jweComB = await encrypt(new OpenConnectionJwtPayloadType('http://localhost:5002/api/'), keypairComA.publicKey)
-      console.log('jweComB', jweComB)
     })
     it('decrypt jweComA', async () => {
       const decryptedAJwT = await decrypt(jweComA, keypairComB.privateKey)
-      console.log('decryptedAJwT', decryptedAJwT)
       expect(JSON.parse(decryptedAJwT)).toEqual(expect.objectContaining({
         tokentype: OpenConnectionJwtPayloadType.OPEN_CONNECTION_TYPE,
         url: 'http://localhost:5001/api/',
@@ -99,7 +90,6 @@ describe('test JWE encryption and decryption', () => {
     })
     it('decrypt jweComB', async () => {
       const decryptedBJwT = await decrypt(jweComB, keypairComA.privateKey)
-      console.log('decryptedBJwT', decryptedBJwT)
       expect(JSON.parse(decryptedBJwT)).toEqual(expect.objectContaining({
         tokentype: OpenConnectionJwtPayloadType.OPEN_CONNECTION_TYPE,
         url: 'http://localhost:5002/api/',
@@ -110,24 +100,17 @@ describe('test JWE encryption and decryption', () => {
 describe('test encrypted and signed JWT', () => {
     let jweComA: string
     let jwsComA: string
-    let jwtComA: string
     let jweComB: string
     let jwsComB: string
-    let jwtComB: string
     beforeEach(async () => {
       jest.clearAllMocks()
       jweComA = await encrypt(new OpenConnectionJwtPayloadType('http://localhost:5001/api/'), keypairComB.publicKey)
-      console.log('jweComA', jweComA)
       jwsComA = await encode(new EncryptedJWEJwtPayloadType(jweComA), keypairComA.privateKey)
-      console.log('jwsComA', jwsComA)
       jweComB = await encrypt(new OpenConnectionJwtPayloadType('http://localhost:5002/api/'), keypairComA.publicKey)
-      console.log('jweComB', jweComB)
       jwsComB = await encode(new EncryptedJWEJwtPayloadType(jweComB), keypairComB.privateKey)
-      console.log('jwsComB', jwsComB)
     })
     it('verify jwsComA', async () => {
       const verifiedJwsComA = await verify(jwsComA, keypairComA.publicKey)
-      console.log('verifiedJwsComA', verifiedJwsComA)
       expect(verifiedJwsComA).toEqual(expect.objectContaining({ 
         payload: expect.objectContaining({
           jwe: jweComA,
@@ -137,7 +120,6 @@ describe('test encrypted and signed JWT', () => {
     })
     it('verify jwsComB', async () => {
       const verifiedJwsComB = await verify(jwsComB, keypairComB.publicKey)
-      console.log('verifiedJwsComB', verifiedJwsComB)
       expect(verifiedJwsComB).toEqual(expect.objectContaining({ 
         payload: expect.objectContaining({
           jwe: jweComB,
@@ -157,4 +139,20 @@ describe('test encrypted and signed JWT', () => {
         url: 'http://localhost:5002/api/',
       }))
     })
+})
+
+
+describe('test encryptAndSign and verifyAndDecrypt', () => {
+  let jwtComA: string
+  beforeEach(async () => {
+    jest.clearAllMocks()
+    jwtComA = await encryptAndSign(new OpenConnectionJwtPayloadType('http://localhost:5001/api/'), keypairComA.privateKey, keypairComB.publicKey)
+  })
+  it('verifyAndDecrypt jwtComA', async () => {
+    const verifiedAndDecryptedPayload = await verifyAndDecrypt(jwtComA, keypairComB.privateKey, keypairComA.publicKey)
+    expect(verifiedAndDecryptedPayload).toEqual(expect.objectContaining({ 
+      tokentype: OpenConnectionJwtPayloadType.OPEN_CONNECTION_TYPE,
+      url: 'http://localhost:5001/api/',
+    }))
+  })
 })
