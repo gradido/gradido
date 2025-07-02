@@ -31,6 +31,7 @@
   "dependencies": {
     "database": "*",
     "esbuild": "^0.25.2",
+    "jose": "^4.14.4",
     "log4js": "^6.9.1",
     "zod": "^3.25.61"
   },
