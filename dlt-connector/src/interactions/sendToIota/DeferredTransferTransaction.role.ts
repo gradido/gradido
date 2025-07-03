@@ -1,72 +1,57 @@
 import {
   AuthenticatedEncryption,
-  DurationSeconds,
   EncryptedMemo,
   GradidoTransactionBuilder,
   GradidoTransfer,
-  GradidoUnit,
   TransferAmount,
 } from 'gradido-blockchain-js'
 
-import { KeyPairIdentifier } from '@/data/KeyPairIdentifier'
-import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
-import { TransactionDraft } from '@/graphql/input/TransactionDraft'
-import { TransactionError } from '@/graphql/model/TransactionError'
-
+import { KeyPairIdentifierLogic } from '../../data/KeyPairIdentifier.logic'
 import { KeyPairCalculation } from '../keyPairCalculation/KeyPairCalculation.context'
 
 import { AbstractTransactionRole } from './AbstractTransaction.role'
+import { DeferredTransferTransactionInput, deferredTransferTransactionSchema, DeferredTransferTransaction } from '../../schemas/transaction.schema'
+import * as v from 'valibot'
+import { TRPCError } from '@trpc/server'
+import { identifierSeedSchema, IdentifierSeed } from '../../schemas/account.schema'
 
 export class DeferredTransferTransactionRole extends AbstractTransactionRole {
-  constructor(protected self: TransactionDraft) {
+  private tx: DeferredTransferTransaction
+  private seed: IdentifierSeed
+  constructor(protected input: DeferredTransferTransactionInput) {
     super()
+    this.tx = v.parse(deferredTransferTransactionSchema, input)
+    this.seed = v.parse(identifierSeedSchema, input.linkedUser.seed)
   }
 
   getSenderCommunityUuid(): string {
-    return this.self.user.communityUuid
+    return this.tx.user.communityUuid
   }
 
   getRecipientCommunityUuid(): string {
-    throw new TransactionError(
-      TransactionErrorType.LOGIC_ERROR,
-      'deferred transfer: cannot be used as cross group transaction',
-    )
+    throw new TRPCError({
+      code: 'NOT_IMPLEMENTED',
+      message: 'deferred transfer: cannot be used as cross group transaction yet',
+    })
   }
 
   public async getGradidoTransactionBuilder(): Promise<GradidoTransactionBuilder> {
-    if (!this.self.linkedUser || !this.self.linkedUser.seed) {
-      throw new TransactionError(
-        TransactionErrorType.MISSING_PARAMETER,
-        'deferred transfer: missing linked user or not a seed',
-      )
-    }
-    if (!this.self.amount) {
-      throw new TransactionError(
-        TransactionErrorType.MISSING_PARAMETER,
-        'deferred transfer: amount missing',
-      )
-    }
-    if (!this.self.memo) {
-      throw new TransactionError(
-        TransactionErrorType.MISSING_PARAMETER,
-        'deferred transfer: memo missing',
-      )
-    }
-    if (!this.self.timeoutDuration) {
-      throw new TransactionError(
-        TransactionErrorType.MISSING_PARAMETER,
-        'deferred transfer: timeout duration missing',
-      )
-    }
     const builder = new GradidoTransactionBuilder()
-    const senderKeyPair = await KeyPairCalculation(new KeyPairIdentifier(this.self.user))
-    const recipientKeyPair = await KeyPairCalculation(new KeyPairIdentifier(this.self.linkedUser))
+    const senderKeyPair = await KeyPairCalculation(
+      new KeyPairIdentifierLogic(this.tx.user)
+    )
+    const recipientKeyPair = await KeyPairCalculation(
+      new KeyPairIdentifierLogic({ 
+        communityUuid: this.tx.linkedUser.communityUuid,
+        seed: this.seed,
+      })
+    )
 
     builder
-      .setCreatedAt(new Date(this.self.createdAt))
+      .setCreatedAt(this.tx.createdAt)
       .addMemo(
         new EncryptedMemo(
-          this.self.memo,
+          this.tx.memo,
           new AuthenticatedEncryption(senderKeyPair),
           new AuthenticatedEncryption(recipientKeyPair),
         ),
@@ -75,13 +60,13 @@ export class DeferredTransferTransactionRole extends AbstractTransactionRole {
         new GradidoTransfer(
           new TransferAmount(
             senderKeyPair.getPublicKey(),
-            GradidoUnit.fromString(this.self.amount).calculateCompoundInterest(
-              this.self.timeoutDuration,
+            this.tx.amount.calculateCompoundInterest(
+              this.tx.timeoutDuration.getSeconds(),
             ),
           ),
           recipientKeyPair.getPublicKey(),
         ),
-        new DurationSeconds(this.self.timeoutDuration),
+        this.tx.timeoutDuration,
       )
       .sign(senderKeyPair)
     return builder

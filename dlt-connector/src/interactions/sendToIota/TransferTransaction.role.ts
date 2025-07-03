@@ -2,76 +2,62 @@ import {
   AuthenticatedEncryption,
   EncryptedMemo,
   GradidoTransactionBuilder,
-  GradidoUnit,
   TransferAmount,
 } from 'gradido-blockchain-js'
 
-import { KeyPairIdentifier } from '@/data/KeyPairIdentifier'
-import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
-import { TransactionDraft } from '@/graphql/input/TransactionDraft'
-import { UserIdentifier } from '@/graphql/input/UserIdentifier'
-import { TransactionError } from '@/graphql/model/TransactionError'
-import { uuid4ToHash } from '@/utils/typeConverter'
-
+import { KeyPairIdentifierLogic } from '../../data/KeyPairIdentifier.logic'
 import { KeyPairCalculation } from '../keyPairCalculation/KeyPairCalculation.context'
-
 import { AbstractTransactionRole } from './AbstractTransaction.role'
+import { TransferTransactionInput, transferTransactionSchema, TransferTransaction } from '../../schemas/transaction.schema'
+import * as v from 'valibot'
+import { uuid4ToTopicSchema } from '../../schemas/typeConverter.schema'
 
 export class TransferTransactionRole extends AbstractTransactionRole {
-  private linkedUser: UserIdentifier
-  constructor(private self: TransactionDraft) {
+  private tx: TransferTransaction
+  constructor(input: TransferTransactionInput) {
     super()
-    if (!this.self.linkedUser) {
-      throw new TransactionError(
-        TransactionErrorType.MISSING_PARAMETER,
-        'transfer: linked user missing',
-      )
-    }
-    this.linkedUser = this.self.linkedUser
+    this.tx = v.parse(transferTransactionSchema, input)
   }
 
   getSenderCommunityUuid(): string {
-    return this.self.user.communityUuid
+    return this.tx.user.communityUuid
   }
 
   getRecipientCommunityUuid(): string {
-    return this.linkedUser.communityUuid
+    return this.tx.linkedUser.communityUuid
   }
 
   public async getGradidoTransactionBuilder(): Promise<GradidoTransactionBuilder> {
-    if (!this.self.amount) {
-      throw new TransactionError(TransactionErrorType.MISSING_PARAMETER, 'transfer: amount missing')
-    }
-    if (!this.self.memo) {
-      throw new TransactionError(
-        TransactionErrorType.MISSING_PARAMETER,
-        'deferred transfer: memo missing',
-      )
-    }
     const builder = new GradidoTransactionBuilder()
-    const senderKeyPair = await KeyPairCalculation(new KeyPairIdentifier(this.self.user))
-    const recipientKeyPair = await KeyPairCalculation(new KeyPairIdentifier(this.linkedUser))
+    // sender + signer
+    const senderKeyPair = await KeyPairCalculation(
+      new KeyPairIdentifierLogic(this.tx.user)
+    )
+    // recipient
+    const recipientKeyPair = await KeyPairCalculation(
+      new KeyPairIdentifierLogic(this.tx.linkedUser)
+    )
 
     builder
-      .setCreatedAt(new Date(this.self.createdAt))
+      .setCreatedAt(new Date(this.tx.createdAt))
       .addMemo(
         new EncryptedMemo(
-          this.self.memo,
+          this.tx.memo,
           new AuthenticatedEncryption(senderKeyPair),
           new AuthenticatedEncryption(recipientKeyPair),
         ),
       )
       .setTransactionTransfer(
-        new TransferAmount(senderKeyPair.getPublicKey(), GradidoUnit.fromString(this.self.amount)),
+        new TransferAmount(senderKeyPair.getPublicKey(), this.tx.amount),
         recipientKeyPair.getPublicKey(),
       )
-    const senderCommunity = this.self.user.communityUuid
-    const recipientCommunity = this.linkedUser.communityUuid
+    const senderCommunity = this.tx.user.communityUuid
+    const recipientCommunity = this.tx.linkedUser.communityUuid
     if (senderCommunity !== recipientCommunity) {
       // we have a cross group transaction
       builder
-        .setSenderCommunity(uuid4ToHash(senderCommunity).convertToHex())
-        .setRecipientCommunity(uuid4ToHash(recipientCommunity).convertToHex())
+        .setSenderCommunity(v.parse(uuid4ToTopicSchema, senderCommunity))
+        .setRecipientCommunity(v.parse(uuid4ToTopicSchema, recipientCommunity))
     }
     builder.sign(senderKeyPair)
     return builder

@@ -1,8 +1,6 @@
 import { KeyPairEd25519 } from 'gradido-blockchain-js'
 
-import { hardenDerivationIndex } from '@/utils/derivationHelper'
-import { uuid4ToBuffer } from '@/utils/typeConverter'
-
+import { hardenDerivationIndex } from '../../utils/derivationHelper'
 import { AbstractKeyPairRole } from './AbstractKeyPair.role'
 
 export class UserKeyPairRole extends AbstractKeyPairRole {
@@ -14,7 +12,7 @@ export class UserKeyPairRole extends AbstractKeyPairRole {
     // example gradido id: 03857ac1-9cc2-483e-8a91-e5b10f5b8d16 =>
     // wholeHex: '03857ac19cc2483e8a91e5b10f5b8d16']
 
-    const wholeHex = uuid4ToBuffer(this.userUuid)
+    const wholeHex = Buffer.from(this.userUuid.replace(/-/g, ''), 'hex')
     const parts = []
     for (let i = 0; i < 4; i++) {
       parts[i] = hardenDerivationIndex(wholeHex.subarray(i * 4, (i + 1) * 4).readUInt32BE())

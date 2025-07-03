@@ -1,30 +1,43 @@
 import { KeyPairEd25519 } from 'gradido-blockchain-js'
 
-import { getTransaction } from '@/client/GradidoNode'
-import { LogError } from '@/server/LogError'
-import { uuid4ToHash } from '@/utils/typeConverter'
+import { getTransaction } from '../../client/GradidoNode/jsonrpc.api'
 
 import { AbstractRemoteKeyPairRole } from './AbstractRemoteKeyPair.role'
+import { GradidoNodeInvalidTransactionError, GradidoNodeMissingTransactionError } from '../../errors'
 
 export class ForeignCommunityKeyPairRole extends AbstractRemoteKeyPairRole {
-  public constructor(private communityUuid: string) {
-    super()
+  public constructor(communityUuid: string) {
+    super(communityUuid)
   }
 
   public async retrieveKeyPair(): Promise<KeyPairEd25519> {
-    const firstTransaction = await getTransaction(1, uuid4ToHash(this.communityUuid).convertToHex())
+    const transactionIdentifier = {
+      transactionNr: 1,
+      iotaTopic: this.topic,
+    }
+    const firstTransaction = await getTransaction(transactionIdentifier)
     if (!firstTransaction) {
-      throw new LogError(
-        "GradidoNode Server don't know this community with uuid " + this.communityUuid,
-      )
+      throw new GradidoNodeMissingTransactionError('Cannot find transaction', transactionIdentifier)
     }
     const transactionBody = firstTransaction.getGradidoTransaction()?.getTransactionBody()
-    if (!transactionBody || !transactionBody.isCommunityRoot()) {
-      throw new LogError('get invalid confirmed transaction from gradido node')
+    if (!transactionBody) {
+      throw new GradidoNodeInvalidTransactionError(
+        'Invalid transaction, body is missing', 
+        transactionIdentifier
+      )
+    }
+    if (!transactionBody.isCommunityRoot()) {
+      throw new GradidoNodeInvalidTransactionError(
+        'Invalid transaction, community root type expected',
+        transactionIdentifier
+      )
     }
     const communityRoot = transactionBody.getCommunityRoot()
     if (!communityRoot) {
-      throw new LogError('invalid confirmed transaction')
+      throw new GradidoNodeInvalidTransactionError(
+        'Invalid transaction, community root is missing',
+        transactionIdentifier
+      )
     }
     return new KeyPairEd25519(communityRoot.getPublicKey())
   }

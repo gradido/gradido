@@ -1,60 +1,69 @@
 /* eslint-disable camelcase */
 import { GradidoTransactionBuilder } from 'gradido-blockchain-js'
 
-import { KeyPairIdentifier } from '@/data/KeyPairIdentifier'
-import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
-import { TransactionDraft } from '@/graphql/input/TransactionDraft'
-import { TransactionError } from '@/graphql/model/TransactionError'
-import { LogError } from '@/server/LogError'
-import { accountTypeToAddressType, uuid4ToHash } from '@/utils/typeConverter'
+import { KeyPairIdentifierLogic } from '../../data/KeyPairIdentifier.logic'
 
 import { KeyPairCalculation } from '../keyPairCalculation/KeyPairCalculation.context'
 
 import { AbstractTransactionRole } from './AbstractTransaction.role'
+import { RegisterAddressTransactionInput, registerAddressTransactionSchema, RegisterAddressTransaction } from '../../schemas/transaction.schema'
+import { IdentifierAccount, IdentifierCommunityAccount, identifierCommunityAccountSchema } from '../../schemas/account.schema'
+import * as v from 'valibot'
+import { TRPCError } from '@trpc/server'
+import { uuid4ToHashSchema } from '../../schemas/typeConverter.schema'
 
 export class RegisterAddressTransactionRole extends AbstractTransactionRole {
-  constructor(private self: TransactionDraft) {
+  private tx: RegisterAddressTransaction
+  private account: IdentifierCommunityAccount
+  constructor(input: RegisterAddressTransactionInput) {
     super()
+    this.tx = v.parse(registerAddressTransactionSchema, input)
+    this.account = v.parse(identifierCommunityAccountSchema, input.user.account)
   }
 
   getSenderCommunityUuid(): string {
-    return this.self.user.communityUuid
+    return this.tx.user.communityUuid
   }
 
   getRecipientCommunityUuid(): string {
-    throw new LogError('cannot yet be used as cross group transaction')
+    throw new TRPCError({
+      code: 'NOT_IMPLEMENTED',
+      message: 'register address: cannot be used as cross group transaction yet',
+    })
   }
 
   public async getGradidoTransactionBuilder(): Promise<GradidoTransactionBuilder> {
-    if (!this.self.accountType) {
-      throw new TransactionError(
-        TransactionErrorType.MISSING_PARAMETER,
-        'register address: account type missing',
-      )
-    }
-
-    if (!this.self.user.communityUser) {
-      throw new TransactionError(
-        TransactionErrorType.MISSING_PARAMETER,
-        "register address: user isn't a community user",
-      )
-    }
-
     const builder = new GradidoTransactionBuilder()
     const communityKeyPair = await KeyPairCalculation(
-      new KeyPairIdentifier(this.self.user.communityUuid),
+      new KeyPairIdentifierLogic({ communityUuid: this.tx.user.communityUuid }),
     )
-    const keyPairIdentifer = new KeyPairIdentifier(this.self.user)
-    const accountKeyPair = await KeyPairCalculation(keyPairIdentifer)
-    // unsetting accountNr change identifier from account key pair to user key pair
-    keyPairIdentifer.accountNr = undefined
-    const userKeyPair = await KeyPairCalculation(keyPairIdentifer)
+    const userKeyPairIdentifier: IdentifierAccount = {
+      communityUuid: this.tx.user.communityUuid,
+      account: {
+        userUuid: this.account.userUuid,
+        accountNr: 0,
+      },
+    }
+    const accountKeyPairIdentifier: IdentifierAccount = {
+      communityUuid: this.tx.user.communityUuid,
+      account: {
+        userUuid: this.account.userUuid,
+        accountNr: this.account.accountNr,
+      },
+    }
+    const userKeyPair = await KeyPairCalculation(
+      new KeyPairIdentifierLogic(userKeyPairIdentifier)
+    )
+    const accountKeyPair = await KeyPairCalculation(
+      new KeyPairIdentifierLogic(accountKeyPairIdentifier)
+    )
+
     builder
-      .setCreatedAt(new Date(this.self.createdAt))
+      .setCreatedAt(this.tx.createdAt)
       .setRegisterAddress(
         userKeyPair.getPublicKey(),
-        accountTypeToAddressType(this.self.accountType),
-        uuid4ToHash(this.self.user.communityUser.uuid),
+        this.tx.accountType,
+        v.parse(uuid4ToHashSchema, this.account.userUuid),
         accountKeyPair.getPublicKey(),
       )
       .sign(communityKeyPair)

@@ -1,8 +1,7 @@
 import { KeyPairEd25519, MemoryBlock } from 'gradido-blockchain-js'
 
-import { LogError } from '@/server/LogError'
-
 import { AbstractKeyPairRole } from './AbstractKeyPair.role'
+import { ParameterError } from '../../errors'
 
 export class LinkedTransactionKeyPairRole extends AbstractKeyPairRole {
   public constructor(private seed: string) {
@@ -15,7 +14,7 @@ export class LinkedTransactionKeyPairRole extends AbstractKeyPairRole {
     const hash = new MemoryBlock(this.seed).calculateHash()
     const keyPair = KeyPairEd25519.create(hash)
     if (!keyPair) {
-      throw new LogError('error creating Ed25519 KeyPair from seed', this.seed)
+      throw new ParameterError(`error creating Ed25519 KeyPair from seed: ${this.seed.substring(0, 5)}...`)
     }
     return keyPair
   }

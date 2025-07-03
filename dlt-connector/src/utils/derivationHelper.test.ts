@@ -1,6 +1,6 @@
-import 'reflect-metadata'
-
 import { hardenDerivationIndex, HARDENED_KEY_BITMASK } from './derivationHelper'
+// only for IDE, bun don't need this to work
+import { describe, expect, it } from 'bun:test'
 
 describe('utils', () => {
   it('test bitmask for hardened keys', () => {
