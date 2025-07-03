@@ -87,7 +87,7 @@ export const encrypt = async (payload: JwtPayloadType, publicKey: string): Promi
   logger.debug('encrypt... payload=', payload)
   logger.debug('encrypt... publicKey=', publicKey)
   try {
-    const encryptKey = await importSPKI(publicKey, 'RS256')
+    const encryptKey = await importSPKI(publicKey, 'RSA-OAEP-256')
     // Convert the key to JWK format if needed
     const recipientKey = typeof encryptKey === 'string' 
       ? JSON.parse(encryptKey)
@@ -110,12 +110,12 @@ export const decrypt = async(jwe: string, privateKey: string): Promise<string> =
   logger.debug('decrypt... jwe=', jwe)
   logger.debug('decrypt... privateKey=', privateKey.substring(0, 10))
   try {
-    const decryptKey = await importPKCS8(privateKey, 'RS256')
+    const decryptKey = await importPKCS8(privateKey, 'RSA-OAEP-256')
     const { plaintext, protectedHeader } =
       await compactDecrypt(jwe, decryptKey)
     logger.debug('decrypt... plaintext=', plaintext)
     logger.debug('decrypt... protectedHeader=', protectedHeader)
-    return plaintext.toString()
+    return new TextDecoder().decode(plaintext)
   } catch (e) {
     logger.error('Failed to decrypt JWT:', e)
     throw e
