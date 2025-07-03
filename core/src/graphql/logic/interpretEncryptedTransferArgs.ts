@@ -6,9 +6,9 @@ import { CommunityLoggingView, getHomeCommunity } from 'database'
 import { verifyAndDecrypt } from '../../auth/jwt/JWT'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../../config/const'
 
-const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.logic.interpretEncryptedTransferArgs`)
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.util.interpretEncryptedTransferArgs`)
 
-export const interpretEncryptedTransferArgs = async (args: EncryptedTransferArgs): Promise<{ jwtPayload: JwtPayloadType, comA: DbCommunity } | null> => {
+export const interpretEncryptedTransferArgs = async (args: EncryptedTransferArgs): Promise<JwtPayloadType | null> => {
   const pubKeyBuf = Buffer.from(args.publicKey, 'hex')
 
   // first find with args.publicKey the community 'comA', which starts openConnection request
@@ -32,5 +32,5 @@ export const interpretEncryptedTransferArgs = async (args: EncryptedTransferArgs
     logger.error(errmsg)
     throw new Error(errmsg)
   }
-  return { jwtPayload, comA }
+  return jwtPayload
 }
