@@ -3,8 +3,7 @@ import { GraphQLClient } from 'graphql-request'
 import { getLogger } from 'log4js'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 
-import { AuthenticationArgs } from '@/graphql/api/1_0/model/AuthenticationArgs'
-import { OpenConnectionCallbackArgs } from '@/graphql/api/1_0/model/OpenConnectionCallbackArgs'
+import { EncryptedTransferArgs } from 'core/src/graphql/model/EncryptedTransferArgs'
 import { authenticate } from './query/authenticate'
 import { openConnectionCallback } from './query/openConnectionCallback'
 
@@ -29,7 +28,7 @@ export class AuthenticationClient {
     })
   }
 
-  async openConnectionCallback(args: OpenConnectionCallbackArgs): Promise<boolean> {
+  async openConnectionCallback(args: EncryptedTransferArgs): Promise<boolean> {
     logger.debug('openConnectionCallback with endpoint', this.endpoint, args)
     try {
       const { data } = await this.client.rawRequest<any>(openConnectionCallback, { args })
@@ -46,7 +45,7 @@ export class AuthenticationClient {
     return false
   }
 
-  async authenticate(args: AuthenticationArgs): Promise<string | null> {
+  async authenticate(args: EncryptedTransferArgs): Promise<string | null> {
     logger.debug('authenticate with endpoint=', this.endpoint)
     try {
       const { data } = await this.client.rawRequest<any>(authenticate, { args })

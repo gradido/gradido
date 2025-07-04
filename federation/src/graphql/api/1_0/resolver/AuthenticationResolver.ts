@@ -5,17 +5,17 @@ import {
   Community as DbCommunity,
   FederatedCommunity as DbFedCommunity,
   FederatedCommunityLoggingView,
+  getHomeCommunity,
 } from 'database'
 import { getLogger } from 'log4js'
 import { Arg, Mutation, Resolver } from 'type-graphql'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { AuthenticationArgs } from '../model/AuthenticationArgs'
-import { OpenConnectionArgs } from '../model/OpenConnectionArgs'
-import { OpenConnectionCallbackArgs } from '../model/OpenConnectionCallbackArgs'
+import { EncryptedTransferArgs } from 'core/src/graphql/model/EncryptedTransferArgs'
 import { startAuthentication, startOpenConnectionCallback } from '../util/authenticateCommunity'
-import { verifyAndDecrypt } from 'backend/src/auth/jwt/JWT'
-import { OpenConnectionJwtPayloadType } from 'backend/src/auth/jwt/payloadtypes/OpenConnectionJwtPayloadType'
-import { JwtPayloadType } from 'backend/src/auth/jwt/payloadtypes/JwtPayloadType'
+import { OpenConnectionJwtPayloadType } from 'core/src/auth/jwt/payloadtypes/OpenConnectionJwtPayloadType'
+import { interpretEncryptedTransferArgs } from 'core/src/graphql/logic/interpretEncryptedTransferArgs'
+import { OpenConnectionCallbackJwtPayloadType } from 'core/src/auth/jwt/payloadtypes/OpenConnectionCallbackJwtPayloadType'
+import { AuthenticationJwtPayloadType } from 'core/src/auth/jwt/payloadtypes/AuthenticationJwtPayloadType'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.api.1_0.resolver.AuthenticationResolver`)
 
@@ -24,95 +24,76 @@ export class AuthenticationResolver {
   @Mutation(() => Boolean)
   async openConnection(
     @Arg('data')
-    args: OpenConnectionArgs,
+    args: EncryptedTransferArgs,
   ): Promise<boolean> {
-    const pubKeyBuf = Buffer.from(args.publicKey, 'hex')
     logger.debug(`openConnection() via apiVersion=1_0:`, args)
-
-    // first find with args.publicKey the community 'comA', which starts openConnection request
-    const comA = await DbCommunity.findOneBy({
-      publicKey: pubKeyBuf, // Buffer.from(args.publicKey),
-    })
-    if (!comA) {
-      throw new LogError(`unknown requesting community with publicKey`, pubKeyBuf.toString('hex'))
-    }
-    if (!comA.publicJwtKey) {
-      throw new LogError(`missing publicJwtKey of community with publicKey`, pubKeyBuf.toString('hex'))
-    }
-    logger.debug(`found requestedCom:`, new CommunityLoggingView(comA))
-    // verify the signing of args.jwt with homeCom.privateJwtKey and decrypt args.jwt with comA.publicJwtKey
-    const homeCom = await DbCommunity.findOneByOrFail({ foreign: false })
-    const openConnectionJwtPayload = await verifyAndDecrypt(args.jwt, homeCom.privateJwtKey!, comA.publicJwtKey) as OpenConnectionJwtPayloadType
+    const openConnectionJwtPayload = await interpretEncryptedTransferArgs(args) as OpenConnectionJwtPayloadType
     if (!openConnectionJwtPayload) {
-      throw new LogError(`invalid payload of community with publicKey`, pubKeyBuf.toString('hex'))
-    }
-    if (!openConnectionJwtPayload.url) {
-      throw new LogError(`invalid url of community with publicKey`, pubKeyBuf.toString('hex'))
+      throw new LogError(`invalid OpenConnection payload of requesting community with publicKey`, args.publicKey)
     }
     if (openConnectionJwtPayload.tokentype !== OpenConnectionJwtPayloadType.OPEN_CONNECTION_TYPE) {
-      throw new LogError(`invalid tokentype of community with publicKey`, pubKeyBuf.toString('hex'))
+      throw new LogError(`invalid tokentype of community with publicKey`, args.publicKey)
     }
-    /*
-    if (openConnectionJwtPayload.expiration < new Date().toISOString()) {
-      throw new LogError(`invalid expiration of community with publicKey`, pubKeyBuf.toString('hex'))
+    if (!openConnectionJwtPayload.url) {
+      throw new LogError(`invalid url of community with publicKey`, args.publicKey)
     }
-    if (openConnectionJwtPayload.issuer !== JwtPayloadType.ISSUER) {
-      throw new LogError(`invalid issuer of community with publicKey`, pubKeyBuf.toString('hex'))
-    }
-    if (openConnectionJwtPayload.audience !== JwtPayloadType.AUDIENCE) {
-      throw new LogError(`invalid audience of community with publicKey`, pubKeyBuf.toString('hex'))
-    }
-    */
-    const fedComA = await DbFedCommunity.findOneByOrFail({ publicKey: comA.publicKey })
+    const fedComA = await DbFedCommunity.findOneByOrFail({ publicKey: Buffer.from(args.publicKey, 'hex') })
     if (!openConnectionJwtPayload.url.startsWith(fedComA.endPoint)) {
-      throw new LogError(`invalid url of community with publicKey`, pubKeyBuf.toString('hex'))
+      throw new LogError(`invalid url of community with publicKey`, args.publicKey)
     }
 
     // biome-ignore lint/complexity/noVoid: no await to respond immediately and invoke callback-request asynchronously
-    void startOpenConnectionCallback(comA, CONFIG.FEDERATION_API)
+    void startOpenConnectionCallback(args.publicKey, CONFIG.FEDERATION_API)
     return true
   }
 
   @Mutation(() => Boolean)
   async openConnectionCallback(
     @Arg('data')
-    args: OpenConnectionCallbackArgs,
+    args: EncryptedTransferArgs,
   ): Promise<boolean> {
     logger.debug(`openConnectionCallback() via apiVersion=1_0 ...`, args)
+    const openConnectionCallbackJwtPayload = await interpretEncryptedTransferArgs(args) as OpenConnectionCallbackJwtPayloadType
+    if (!openConnectionCallbackJwtPayload) {
+      throw new LogError(`invalid OpenConnectionCallback payload of requesting community with publicKey`, args.publicKey)
+    }
+
     // TODO decrypt args.url with homeCom.privateJwtKey and verify signing with callbackFedCom.publicKey
-    const endPoint = args.url.slice(0, args.url.lastIndexOf('/') + 1)
-    const apiVersion = args.url.slice(args.url.lastIndexOf('/') + 1, args.url.length)
+    const endPoint = openConnectionCallbackJwtPayload.url.slice(0, openConnectionCallbackJwtPayload.url.lastIndexOf('/') + 1)
+    const apiVersion = openConnectionCallbackJwtPayload.url.slice(openConnectionCallbackJwtPayload.url.lastIndexOf('/') + 1, openConnectionCallbackJwtPayload.url.length)
     logger.debug(`search fedComB per:`, endPoint, apiVersion)
     const fedComB = await DbFedCommunity.findOneBy({ endPoint, apiVersion })
     if (!fedComB) {
-      throw new LogError(`unknown callback community with url`, args.url)
+      throw new LogError(`unknown callback community with url`, openConnectionCallbackJwtPayload.url)
     }
     logger.debug(
       `found fedComB and start authentication:`,
       new FederatedCommunityLoggingView(fedComB),
     )
     // biome-ignore lint/complexity/noVoid: no await to respond immediately and invoke authenticate-request asynchronously
-    void startAuthentication(args.oneTimeCode, fedComB)
+    void startAuthentication(openConnectionCallbackJwtPayload.oneTimeCode, fedComB)
     return true
   }
 
   @Mutation(() => String)
   async authenticate(
     @Arg('data')
-    args: AuthenticationArgs,
+    args: EncryptedTransferArgs,
   ): Promise<string | null> {
     logger.debug(`authenticate() via apiVersion=1_0 ...`, args)
-    const authCom = await DbCommunity.findOneByOrFail({ communityUuid: args.oneTimeCode })
+    const authArgs = await interpretEncryptedTransferArgs(args) as AuthenticationJwtPayloadType
+    if (!authArgs) {
+      throw new LogError(`invalid authentication payload of requesting community with publicKey`, args.publicKey)
+    }
+    const authCom = await DbCommunity.findOneByOrFail({ communityUuid: authArgs.oneTimeCode })
     logger.debug('found authCom:', new CommunityLoggingView(authCom))
     if (authCom) {
-      // TODO decrypt args.uuid with authCom.publicKey
-      authCom.communityUuid = args.uuid
+      authCom.communityUuid = authArgs.uuid
       authCom.authenticatedAt = new Date()
       await DbCommunity.save(authCom)
       logger.debug('store authCom.uuid successfully:', new CommunityLoggingView(authCom))
-      const homeCom = await DbCommunity.findOneByOrFail({ foreign: false })
-      // TODO encrypt homeCom.uuid with homeCom.privateKey
-      if (homeCom.communityUuid) {
+      const homeCom = await getHomeCommunity()
+      if (homeCom?.communityUuid) {
         return homeCom.communityUuid
       }
     }

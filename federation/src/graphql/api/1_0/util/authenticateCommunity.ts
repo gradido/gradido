@@ -3,35 +3,36 @@ import {
   Community as DbCommunity,
   FederatedCommunity as DbFedCommunity,
   FederatedCommunityLoggingView,
+  getHomeCommunity,
 } from 'database'
 import { getLogger } from 'log4js'
-import { OpenConnectionArgs } from '../model/OpenConnectionArgs'
-import { OpenConnectionCallbackArgs } from '../model/OpenConnectionCallbackArgs'
+import { EncryptedTransferArgs } from 'core/src/graphql/model/EncryptedTransferArgs'
 
 import { AuthenticationClientFactory } from '@/client/AuthenticationClientFactory'
 import { randombytes_random } from 'sodium-native'
 
 import { AuthenticationClient as V1_0_AuthenticationClient } from '@/client/1_0/AuthenticationClient'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { AuthenticationArgs } from '../model/AuthenticationArgs'
-import { encryptAndSign } from 'backend/src/auth/jwt/JWT'
-import { OpenConnectionCallbackJwtPayloadType } from 'backend/src/auth/jwt/payloadtypes/OpenConnectionCallbackJwtPayloadType'
+import { encryptAndSign } from 'core/src/auth/jwt/JWT'
+import { OpenConnectionCallbackJwtPayloadType } from 'core/src/auth/jwt/payloadtypes/OpenConnectionCallbackJwtPayloadType'
+import { AuthenticationJwtPayloadType } from 'core/src/auth/jwt/payloadtypes/AuthenticationJwtPayloadType'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.api.1_0.util.authenticateCommunity`)
 
 export async function startOpenConnectionCallback(
-  comA: DbCommunity,
+  publicKey: string,
   api: string,
 ): Promise<void> {
   logger.debug(`Authentication: startOpenConnectionCallback() with:`, {
-    comA: new CommunityLoggingView(comA),
+    publicKey,
   })
   try {
-    const homeCom = await DbCommunity.findOneByOrFail({ foreign: false })
+    const homeCom = await getHomeCommunity()
     const homeFedCom = await DbFedCommunity.findOneByOrFail({
       foreign: false,
       apiVersion: api,
     })
+    const comA = await DbCommunity.findOneByOrFail({ publicKey: Buffer.from(publicKey, 'hex') })
     const fedComA = await DbFedCommunity.findOneByOrFail({
       foreign: true,
       apiVersion: api,
@@ -55,12 +56,15 @@ export async function startOpenConnectionCallback(
 
       const callbackArgs = new OpenConnectionCallbackJwtPayloadType(oneTimeCode, url)
       logger.debug(`Authentication: start openConnectionCallback with args:`, callbackArgs)
-      // encrypt callbackArgs with requestedCom.publicKey and sign it with homeCom.privateKey
-      const encryptedCallbackArgs = await encryptAndSign(callbackArgs, homeCom.privateJwtKey!, comA.publicJwtKey!)
-      if (await client.openConnectionCallback(encryptedCallbackArgs)) {
-        logger.debug('startOpenConnectionCallback() successful:', encryptedCallbackArgs)
+      // encrypt callbackArgs with requestedCom.publicJwtKey and sign it with homeCom.privateJwtKey
+      const jwt = await encryptAndSign(callbackArgs, homeCom!.privateJwtKey!, comA.publicJwtKey!)
+      const args = new EncryptedTransferArgs()
+      args.publicKey = comA.publicKey.toString('hex')
+      args.jwt = jwt
+      if (await client.openConnectionCallback(args)) {
+        logger.debug('startOpenConnectionCallback() successful:', jwt)
       } else {
-        logger.error('startOpenConnectionCallback() failed:', encryptedCallbackArgs)
+        logger.error('startOpenConnectionCallback() failed:', jwt)
       }
     }
   } catch (err) {
@@ -77,20 +81,26 @@ export async function startAuthentication(
     fedComB: new FederatedCommunityLoggingView(fedComB),
   })
   try {
-    const homeCom = await DbCommunity.findOneByOrFail({ foreign: false })
+    const homeCom = await getHomeCommunity()
+    const comB = await DbCommunity.findOneByOrFail({
+      foreign: true,
+      publicKey: fedComB.publicKey,
+    })
+    if (!comB.publicJwtKey) {
+      throw new Error('Public JWT key still not exist for foreign community')
+    }
 
-    // TODO encrypt homeCom.uuid with homeCom.privateKey and sign it with callbackFedCom.publicKey
     const client = AuthenticationClientFactory.getInstance(fedComB)
 
     if (client instanceof V1_0_AuthenticationClient) {
-      const authenticationArgs = new AuthenticationArgs()
-      authenticationArgs.oneTimeCode = oneTimeCode
-      // TODO encrypt callbackArgs.url with requestedCom.publicKey and sign it with homeCom.privateKey
-      if (homeCom.communityUuid) {
-        authenticationArgs.uuid = homeCom.communityUuid
-      }
-      logger.debug(`invoke authenticate() with:`, authenticationArgs)
-      const fedComUuid = await client.authenticate(authenticationArgs)
+      const authenticationArgs = new AuthenticationJwtPayloadType(oneTimeCode, homeCom!.communityUuid!)
+      // encrypt authenticationArgs.uuid with fedComB.publicJwtKey and sign it with homeCom.privateJwtKey
+      const jwt = await encryptAndSign(authenticationArgs, homeCom!.privateJwtKey!, comB.publicJwtKey!)
+      const args = new EncryptedTransferArgs()
+      args.publicKey = comB.publicKey.toString('hex')
+      args.jwt = jwt
+      logger.debug(`invoke authenticate() with:`, args)
+      const fedComUuid = await client.authenticate(args)
       logger.debug(`response of authenticate():`, fedComUuid)
       if (fedComUuid !== null) {
         logger.debug(

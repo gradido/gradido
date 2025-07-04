@@ -1,6 +1,6 @@
 import { JWTPayload } from 'jose'
 
-import { CONFIG } from '@/config'
+import { REDEEM_JWT_TOKEN_EXPIRATION } from '../../../config/const'
 
 export class JwtPayloadType implements JWTPayload {
   static ISSUER = 'urn:gradido:issuer'
@@ -19,6 +19,6 @@ export class JwtPayloadType implements JWTPayload {
   expiration: string // in minutes (format: 10m for ten minutes)
   constructor() {
     this.tokentype = 'unknown jwt type'
-    this.expiration = CONFIG.REDEEM_JWT_TOKEN_EXPIRATION || '10m'
+    this.expiration = REDEEM_JWT_TOKEN_EXPIRATION || '10m'
   }
 }

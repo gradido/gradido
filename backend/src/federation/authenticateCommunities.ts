@@ -6,10 +6,10 @@ import { CONFIG } from '@/config'
 import { AuthenticationClient as V1_0_AuthenticationClient } from '@/federation/client/1_0/AuthenticationClient'
 import { ensureUrlEndsWithSlash } from '@/util/utilities'
 
-import { encryptAndSign } from '@/auth/jwt/JWT'
-import { OpenConnectionJwtPayloadType } from '@/auth/jwt/payloadtypes/OpenConnectionJwtPayloadType'
+import { encryptAndSign } from 'core/src/auth/jwt/JWT'
+import { OpenConnectionJwtPayloadType } from 'core/src/auth/jwt/payloadtypes/OpenConnectionJwtPayloadType'
 import { getLogger } from 'log4js'
-import { OpenConnectionArgs } from './client/1_0/model/OpenConnectionArgs'
+import { EncryptedTransferArgs } from 'core/src/graphql/model/EncryptedTransferArgs'
 import { AuthenticationClientFactory } from './client/AuthenticationClientFactory'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 
@@ -51,7 +51,7 @@ export async function startCommunityAuthentication(
         )
         const jws = await encryptAndSign(payload, homeCom.privateJwtKey!, foreignCom.publicJwtKey)
         // prepare the args for the client invocation
-        const args = new OpenConnectionArgs()
+        const args = new EncryptedTransferArgs()
         args.publicKey = homeCom.publicKey.toString('hex')
         args.jwt = jws
         logger.debug(
