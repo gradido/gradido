@@ -1,4 +1,4 @@
-import { Community as DbCommunity, FederatedCommunity as DbFederatedCommunity } from 'database'
+import { Community as DbCommunity, FederatedCommunity as DbFederatedCommunity, getHomeCommunity } from 'database'
 import { validate as validateUUID, version as versionUUID } from 'uuid'
 
 import { CONFIG } from '@/config'
@@ -18,45 +18,45 @@ const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.federation.authenticateCo
 export async function startCommunityAuthentication(
   foreignFedCom: DbFederatedCommunity,
 ): Promise<void> {
-  const homeCom = await DbCommunity.findOneByOrFail({ foreign: false })
-  const homeFedCom = await DbFederatedCommunity.findOneByOrFail({
+  const homeComA = await getHomeCommunity()
+  const homeFedComA = await DbFederatedCommunity.findOneByOrFail({
     foreign: false,
     apiVersion: CONFIG.FEDERATION_BACKEND_SEND_ON_API,
   })
-  const foreignCom = await DbCommunity.findOneByOrFail({ publicKey: foreignFedCom.publicKey })
+  const foreignComB = await DbCommunity.findOneByOrFail({ publicKey: foreignFedCom.publicKey })
   logger.debug(
     'started with foreignFedCom:',
     foreignFedCom.endPoint,
     foreignFedCom.publicKey.toString('hex'),
-    foreignCom.publicJwtKey,
+    foreignComB.publicJwtKey,
   )
   // check if communityUuid is a valid v4Uuid and not still a temporary onetimecode
   if (
-    foreignCom &&
-    ((foreignCom.communityUuid === null && foreignCom.authenticatedAt === null) ||
-      (foreignCom.communityUuid !== null &&
-        !validateUUID(foreignCom.communityUuid) &&
-        versionUUID(foreignCom.communityUuid) !== 4))
+    foreignComB &&
+    ((foreignComB.communityUuid === null && foreignComB.authenticatedAt === null) ||
+      (foreignComB.communityUuid !== null &&
+        !validateUUID(foreignComB.communityUuid) &&
+        versionUUID(foreignComB.communityUuid) !== 4))
   ) {
     try {
       const client = AuthenticationClientFactory.getInstance(foreignFedCom)
 
       if (client instanceof V1_0_AuthenticationClient) {
-        if (!foreignCom.publicJwtKey) {
+        if (!foreignComB.publicJwtKey) {
           throw new Error('Public JWT key still not exist for foreign community')
         }
         //create JWT with url in payload encrypted by foreignCom.publicJwtKey and signed with homeCom.privateJwtKey
         const payload = new OpenConnectionJwtPayloadType(
-          ensureUrlEndsWithSlash(homeFedCom.endPoint).concat(homeFedCom.apiVersion),
+          ensureUrlEndsWithSlash(homeFedComA.endPoint).concat(homeFedComA.apiVersion),
         )
-        const jws = await encryptAndSign(payload, homeCom.privateJwtKey!, foreignCom.publicJwtKey)
+        const jws = await encryptAndSign(payload, homeComA!.privateJwtKey!, foreignComB.publicJwtKey)
         // prepare the args for the client invocation
         const args = new EncryptedTransferArgs()
-        args.publicKey = homeCom.publicKey.toString('hex')
+        args.publicKey = homeComA!.publicKey.toString('hex')
         args.jwt = jws
         logger.debug(
           'before client.openConnection() args:',
-          homeCom.publicKey.toString('hex'),
+          homeComA!.publicKey.toString('hex'),
           args.jwt,
         )
         if (await client.openConnection(args)) {
@@ -69,6 +69,6 @@ export async function startCommunityAuthentication(
       logger.error(`Error:`, err)
     }
   } else {
-    logger.debug(`foreignCom.communityUuid is not a valid v4Uuid or still a temporary onetimecode`)
+    logger.debug(`foreignComB.communityUuid is not a valid v4Uuid or still a temporary onetimecode`)
   }
 }

@@ -1,5 +1,4 @@
 import { CONFIG } from '@/config'
-import { LogError } from '@/server/LogError'
 import {
   CommunityLoggingView,
   Community as DbCommunity,
@@ -16,6 +15,8 @@ import { OpenConnectionJwtPayloadType } from 'core/src/auth/jwt/payloadtypes/Ope
 import { interpretEncryptedTransferArgs } from 'core/src/graphql/logic/interpretEncryptedTransferArgs'
 import { OpenConnectionCallbackJwtPayloadType } from 'core/src/auth/jwt/payloadtypes/OpenConnectionCallbackJwtPayloadType'
 import { AuthenticationJwtPayloadType } from 'core/src/auth/jwt/payloadtypes/AuthenticationJwtPayloadType'
+import { AuthenticationResponseJwtPayloadType } from 'core/src/auth/jwt/payloadtypes/AuthenticationResponseJwtPayloadType'
+import { encryptAndSign } from 'core/src/auth/jwt/JWT'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.api.1_0.resolver.AuthenticationResolver`)
 
@@ -29,17 +30,25 @@ export class AuthenticationResolver {
     logger.debug(`openConnection() via apiVersion=1_0:`, args)
     const openConnectionJwtPayload = await interpretEncryptedTransferArgs(args) as OpenConnectionJwtPayloadType
     if (!openConnectionJwtPayload) {
-      throw new LogError(`invalid OpenConnection payload of requesting community with publicKey`, args.publicKey)
+      const errmsg = `invalid OpenConnection payload of requesting community with publicKey` + args.publicKey
+      logger.error(errmsg)
+      throw new Error(errmsg)
     }
     if (openConnectionJwtPayload.tokentype !== OpenConnectionJwtPayloadType.OPEN_CONNECTION_TYPE) {
-      throw new LogError(`invalid tokentype of community with publicKey`, args.publicKey)
+      const errmsg = `invalid tokentype of community with publicKey` + args.publicKey
+      logger.error(errmsg)
+      throw new Error(errmsg)
     }
     if (!openConnectionJwtPayload.url) {
-      throw new LogError(`invalid url of community with publicKey`, args.publicKey)
+      const errmsg = `invalid url of community with publicKey` + args.publicKey
+      logger.error(errmsg)
+      throw new Error(errmsg)
     }
     const fedComA = await DbFedCommunity.findOneByOrFail({ publicKey: Buffer.from(args.publicKey, 'hex') })
     if (!openConnectionJwtPayload.url.startsWith(fedComA.endPoint)) {
-      throw new LogError(`invalid url of community with publicKey`, args.publicKey)
+      const errmsg = `invalid url of community with publicKey` + args.publicKey
+      logger.error(errmsg)
+      throw new Error(errmsg)
     }
 
     // biome-ignore lint/complexity/noVoid: no await to respond immediately and invoke callback-request asynchronously
@@ -53,18 +62,22 @@ export class AuthenticationResolver {
     args: EncryptedTransferArgs,
   ): Promise<boolean> {
     logger.debug(`openConnectionCallback() via apiVersion=1_0 ...`, args)
+    // decrypt args.url with homeCom.privateJwtKey and verify signing with callbackFedCom.publicKey
     const openConnectionCallbackJwtPayload = await interpretEncryptedTransferArgs(args) as OpenConnectionCallbackJwtPayloadType
     if (!openConnectionCallbackJwtPayload) {
-      throw new LogError(`invalid OpenConnectionCallback payload of requesting community with publicKey`, args.publicKey)
+      const errmsg = `invalid OpenConnectionCallback payload of requesting community with publicKey` + args.publicKey
+      logger.error(errmsg)
+      throw new Error(errmsg)
     }
 
-    // TODO decrypt args.url with homeCom.privateJwtKey and verify signing with callbackFedCom.publicKey
     const endPoint = openConnectionCallbackJwtPayload.url.slice(0, openConnectionCallbackJwtPayload.url.lastIndexOf('/') + 1)
     const apiVersion = openConnectionCallbackJwtPayload.url.slice(openConnectionCallbackJwtPayload.url.lastIndexOf('/') + 1, openConnectionCallbackJwtPayload.url.length)
     logger.debug(`search fedComB per:`, endPoint, apiVersion)
     const fedComB = await DbFedCommunity.findOneBy({ endPoint, apiVersion })
     if (!fedComB) {
-      throw new LogError(`unknown callback community with url`, openConnectionCallbackJwtPayload.url)
+      const errmsg = `unknown callback community with url` + openConnectionCallbackJwtPayload.url
+      logger.error(errmsg)
+      throw new Error(errmsg)
     }
     logger.debug(
       `found fedComB and start authentication:`,
@@ -83,7 +96,9 @@ export class AuthenticationResolver {
     logger.debug(`authenticate() via apiVersion=1_0 ...`, args)
     const authArgs = await interpretEncryptedTransferArgs(args) as AuthenticationJwtPayloadType
     if (!authArgs) {
-      throw new LogError(`invalid authentication payload of requesting community with publicKey`, args.publicKey)
+      const errmsg = `invalid authentication payload of requesting community with publicKey` + args.publicKey
+      logger.error(errmsg)
+      throw new Error(errmsg)
     }
     const authCom = await DbCommunity.findOneByOrFail({ communityUuid: authArgs.oneTimeCode })
     logger.debug('found authCom:', new CommunityLoggingView(authCom))
@@ -92,9 +107,11 @@ export class AuthenticationResolver {
       authCom.authenticatedAt = new Date()
       await DbCommunity.save(authCom)
       logger.debug('store authCom.uuid successfully:', new CommunityLoggingView(authCom))
-      const homeCom = await getHomeCommunity()
-      if (homeCom?.communityUuid) {
-        return homeCom.communityUuid
+      const homeComB = await getHomeCommunity()
+      if (homeComB?.communityUuid) {
+        const responseArgs = new AuthenticationResponseJwtPayloadType(homeComB.communityUuid)
+        const responseJwt = await encryptAndSign(responseArgs, homeComB.privateJwtKey!, authCom.publicJwtKey!)
+        return responseJwt
       }
     }
     return null
