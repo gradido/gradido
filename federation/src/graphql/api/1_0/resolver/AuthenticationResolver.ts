@@ -1,4 +1,6 @@
 import { CONFIG } from '@/config'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { AuthenticationJwtPayloadType, AuthenticationResponseJwtPayloadType, encryptAndSign, EncryptedTransferArgs, interpretEncryptedTransferArgs, OpenConnectionCallbackJwtPayloadType, OpenConnectionJwtPayloadType } from 'core'
 import {
   CommunityLoggingView,
   Community as DbCommunity,
@@ -8,15 +10,7 @@ import {
 } from 'database'
 import { getLogger } from 'log4js'
 import { Arg, Mutation, Resolver } from 'type-graphql'
-import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { EncryptedTransferArgs } from 'core/src/graphql/model/EncryptedTransferArgs'
 import { startAuthentication, startOpenConnectionCallback } from '../util/authenticateCommunity'
-import { OpenConnectionJwtPayloadType } from 'core/src/auth/jwt/payloadtypes/OpenConnectionJwtPayloadType'
-import { interpretEncryptedTransferArgs } from 'core/src/graphql/logic/interpretEncryptedTransferArgs'
-import { OpenConnectionCallbackJwtPayloadType } from 'core/src/auth/jwt/payloadtypes/OpenConnectionCallbackJwtPayloadType'
-import { AuthenticationJwtPayloadType } from 'core/src/auth/jwt/payloadtypes/AuthenticationJwtPayloadType'
-import { AuthenticationResponseJwtPayloadType } from 'core/src/auth/jwt/payloadtypes/AuthenticationResponseJwtPayloadType'
-import { encryptAndSign } from 'core/src/auth/jwt/JWT'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.api.1_0.resolver.AuthenticationResolver`)
 

@@ -6,12 +6,10 @@ import { CONFIG } from '@/config'
 import { AuthenticationClient as V1_0_AuthenticationClient } from '@/federation/client/1_0/AuthenticationClient'
 import { ensureUrlEndsWithSlash } from '@/util/utilities'
 
-import { encryptAndSign } from 'core/src/auth/jwt/JWT'
-import { OpenConnectionJwtPayloadType } from 'core/src/auth/jwt/payloadtypes/OpenConnectionJwtPayloadType'
-import { getLogger } from 'log4js'
-import { EncryptedTransferArgs } from 'core/src/graphql/model/EncryptedTransferArgs'
-import { AuthenticationClientFactory } from './client/AuthenticationClientFactory'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { encryptAndSign, EncryptedTransferArgs, OpenConnectionJwtPayloadType } from 'core'
+import { getLogger } from 'log4js'
+import { AuthenticationClientFactory } from './client/AuthenticationClientFactory'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.federation.authenticateCommunities`)
 

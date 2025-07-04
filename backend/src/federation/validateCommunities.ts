@@ -5,16 +5,16 @@ import {
 } from 'database'
 import { IsNull } from 'typeorm'
 
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { FederationClient as V1_0_FederationClient } from '@/federation/client/1_0/FederationClient'
 import { PublicCommunityInfo } from '@/federation/client/1_0/model/PublicCommunityInfo'
 import { FederationClientFactory } from '@/federation/client/FederationClientFactory'
 import { LogError } from '@/server/LogError'
+import { createKeyPair } from 'core'
 import { getLogger } from 'log4js'
 import { startCommunityAuthentication } from './authenticateCommunities'
 import { PublicCommunityInfoLoggingView } from './client/1_0/logging/PublicCommunityInfoLogging.view'
 import { ApiVersionType } from './enum/apiVersionType'
-import { createKeyPair } from '@/auth/jwt/JWT'
-import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.federation.validateCommunities`)
 

@@ -1,3 +1,4 @@
+import { EncryptedTransferArgs, verifyAndDecrypt } from 'core'
 import {
   CommunityLoggingView,
   Community as DbCommunity,
@@ -7,17 +8,13 @@ import {
 } from 'database'
 import { getLogger } from 'log4js'
 import { validate as validateUUID, version as versionUUID } from 'uuid'
-import { EncryptedTransferArgs } from 'core/src/graphql/model/EncryptedTransferArgs'
 
 import { AuthenticationClientFactory } from '@/client/AuthenticationClientFactory'
 import { randombytes_random } from 'sodium-native'
 
 import { AuthenticationClient as V1_0_AuthenticationClient } from '@/client/1_0/AuthenticationClient'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { encryptAndSign, verifyAndDecrypt } from 'core/src/auth/jwt/JWT'
-import { OpenConnectionCallbackJwtPayloadType } from 'core/src/auth/jwt/payloadtypes/OpenConnectionCallbackJwtPayloadType'
-import { AuthenticationJwtPayloadType } from 'core/src/auth/jwt/payloadtypes/AuthenticationJwtPayloadType'
-import { AuthenticationResponseJwtPayloadType } from 'core/src/auth/jwt/payloadtypes/AuthenticationResponseJwtPayloadType'
+import { AuthenticationJwtPayloadType, AuthenticationResponseJwtPayloadType, encryptAndSign, OpenConnectionCallbackJwtPayloadType } from 'core'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.api.1_0.util.authenticateCommunity`)
 
