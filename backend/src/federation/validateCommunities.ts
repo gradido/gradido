@@ -5,15 +5,16 @@ import {
 } from 'database'
 import { IsNull } from 'typeorm'
 
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { FederationClient as V1_0_FederationClient } from '@/federation/client/1_0/FederationClient'
 import { PublicCommunityInfo } from '@/federation/client/1_0/model/PublicCommunityInfo'
 import { FederationClientFactory } from '@/federation/client/FederationClientFactory'
 import { LogError } from '@/server/LogError'
+import { createKeyPair } from 'core'
 import { getLogger } from 'log4js'
 import { startCommunityAuthentication } from './authenticateCommunities'
 import { PublicCommunityInfoLoggingView } from './client/1_0/logging/PublicCommunityInfoLogging.view'
 import { ApiVersionType } from './enum/apiVersionType'
-import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.federation.validateCommunities`)
 
@@ -34,6 +35,7 @@ export async function startValidateCommunities(timerInterval: number): Promise<v
 }
 
 export async function validateCommunities(): Promise<void> {
+  // search all foreign federated communities which are still not verified or have not been verified since last dht-announcement
   const dbFederatedCommunities: DbFederatedCommunity[] =
     await DbFederatedCommunity.createQueryBuilder()
       .where({ foreign: true, verifiedAt: IsNull() })
@@ -60,7 +62,11 @@ export async function validateCommunities(): Promise<void> {
           const pubComInfo = await client.getPublicCommunityInfo()
           if (pubComInfo) {
             await writeForeignCommunity(dbCom, pubComInfo)
-            await startCommunityAuthentication(dbCom)
+            try {
+              await startCommunityAuthentication(dbCom)
+            } catch (err) {
+              logger.warn(`Warning: Community Authentication still not ready:`, err)
+            }
             logger.debug(`write publicInfo of community: name=${pubComInfo.name}`)
           } else {
             logger.debug('missing result of getPublicCommunityInfo')
@@ -72,6 +78,36 @@ export async function validateCommunities(): Promise<void> {
     } catch (err) {
       logger.error(`Error:`, err)
     }
+  }
+}
+
+export async function writeJwtKeyPairInHomeCommunity(): Promise<DbCommunity> {
+  logger.debug(`Federation: writeJwtKeyPairInHomeCommunity`)
+  try {
+    // check for existing homeCommunity entry
+    let homeCom = await DbCommunity.findOne({ where: { foreign: false } })
+    if (homeCom) {
+      if (!homeCom.publicJwtKey && !homeCom.privateJwtKey) {
+        // Generate key pair using jose library
+        const { publicKey, privateKey } = await createKeyPair();
+        logger.debug(`Federation: writeJwtKeyPairInHomeCommunity publicKey=`, publicKey);
+        logger.debug(`Federation: writeJwtKeyPairInHomeCommunity privateKey=`, privateKey);
+        
+        homeCom.publicJwtKey = publicKey;
+        logger.debug(`Federation: writeJwtKeyPairInHomeCommunity publicJwtKey.length=`, homeCom.publicJwtKey.length);
+        homeCom.privateJwtKey = privateKey;
+        logger.debug(`Federation: writeJwtKeyPairInHomeCommunity privateJwtKey.length=`, homeCom.privateJwtKey.length);
+        await DbCommunity.save(homeCom)
+        logger.debug(`Federation: writeJwtKeyPairInHomeCommunity done`)
+      } else {
+        logger.debug(`Federation: writeJwtKeyPairInHomeCommunity: keypair already exists`)
+      }
+    } else {
+      throw new Error(`Error! A HomeCommunity-Entry still not exist! Please start the DHT-Modul first.`)
+    }
+    return homeCom
+  } catch (err) {
+    throw new Error(`Error writing JwtKeyPair in HomeCommunity-Entry: ${err}`)
   }
 }
 
@@ -96,6 +132,7 @@ async function writeForeignCommunity(
     com.foreign = true
     com.name = pubInfo.name
     com.publicKey = dbCom.publicKey
+    com.publicJwtKey = pubInfo.publicJwtKey
     com.url = dbCom.endPoint
     await DbCommunity.save(com)
   }

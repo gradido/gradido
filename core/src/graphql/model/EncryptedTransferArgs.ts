@@ -1,10 +1,10 @@
 import { Field, InputType } from 'type-graphql'
 
 @InputType()
-export class OpenConnectionCallbackArgs {
+export class EncryptedTransferArgs {
   @Field(() => String)
-  oneTimeCode: string
+  publicKey: string
 
   @Field(() => String)
-  url: string
+  jwt: string
 }
