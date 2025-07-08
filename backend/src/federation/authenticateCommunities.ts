@@ -23,6 +23,7 @@ export async function startCommunityAuthentication(
     apiVersion: CONFIG.FEDERATION_BACKEND_SEND_ON_API,
   })
   logger.debug('homeFedComA', homeFedComA)
+  logger.debug('foreignFedCom', foreignFedCom)
   const foreignComB = await DbCommunity.findOneByOrFail({ publicKey: foreignFedCom.publicKey })
   logger.debug(
     'started with foreignFedCom:',
