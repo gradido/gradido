@@ -26,9 +26,9 @@ export async function startCommunityAuthentication(
   logger.debug('foreignFedCom', foreignFedCom)
   const foreignComB = await DbCommunity.findOneByOrFail({ publicKey: foreignFedCom.publicKey })
   logger.debug(
-    'started with foreignFedCom:',
-    foreignFedCom.endPoint,
-    foreignFedCom.publicKey.toString('hex'),
+    'started with foreignComB:',
+    foreignComB.url,
+    foreignComB.publicKey.toString('hex'),
     foreignComB.publicJwtKey,
     foreignComB.communityUuid,
     foreignComB.authenticatedAt,
