@@ -17,10 +17,12 @@ export async function startCommunityAuthentication(
   foreignFedCom: DbFederatedCommunity,
 ): Promise<void> {
   const homeComA = await getHomeCommunity()
+  logger.debug('homeComA', homeComA)
   const homeFedComA = await DbFederatedCommunity.findOneByOrFail({
     foreign: false,
     apiVersion: CONFIG.FEDERATION_BACKEND_SEND_ON_API,
   })
+  logger.debug('homeFedComA', homeFedComA)
   const foreignComB = await DbCommunity.findOneByOrFail({ publicKey: foreignFedCom.publicKey })
   logger.debug(
     'started with foreignFedCom:',
