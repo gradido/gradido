@@ -29,14 +29,14 @@ export async function startCommunityAuthentication(
     foreignComB.publicJwtKey,
   )
   // check if communityUuid is a valid v4Uuid and not still a temporary onetimecode
-  if (
-    foreignComB &&
-    ((foreignComB.communityUuid === null && foreignComB.authenticatedAt === null) ||
-      (foreignComB.communityUuid !== null &&
-        !validateUUID(foreignComB.communityUuid) &&
-        versionUUID(foreignComB.communityUuid) !== 4))
-  ) {
-    try {
+  try {
+    if (
+      foreignComB &&
+      ((foreignComB.communityUuid === null && foreignComB.authenticatedAt === null) ||
+        (foreignComB.communityUuid !== null &&
+          !validateUUID(foreignComB.communityUuid) &&
+          versionUUID(foreignComB.communityUuid) !== 4))
+    ) {
       const client = AuthenticationClientFactory.getInstance(foreignFedCom)
 
       if (client instanceof V1_0_AuthenticationClient) {
@@ -63,10 +63,10 @@ export async function startCommunityAuthentication(
           logger.error(`can't initiate at community:`, foreignFedCom.endPoint)
         }
       }
-    } catch (err) {
-      logger.error(`Error:`, err)
+    } else {
+      logger.debug(`foreignComB.communityUuid is not a valid v4Uuid or still a temporary onetimecode`)
     }
-  } else {
-    logger.debug(`foreignComB.communityUuid is not a valid v4Uuid or still a temporary onetimecode`)
+  } catch (err) {
+    logger.error(`Error:`, err)
   }
 }
