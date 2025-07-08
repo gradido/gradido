@@ -25,14 +25,7 @@ export async function startCommunityAuthentication(
   logger.debug('homeFedComA', homeFedComA)
   logger.debug('foreignFedCom', foreignFedCom)
   const foreignComB = await DbCommunity.findOneByOrFail({ publicKey: foreignFedCom.publicKey })
-  logger.debug(
-    'started with foreignComB:',
-    foreignComB.url,
-    foreignComB.publicKey.toString('hex'),
-    foreignComB.publicJwtKey,
-    foreignComB.communityUuid,
-    foreignComB.authenticatedAt,
-  )
+  logger.debug('started with foreignComB:', foreignComB)
   // check if communityUuid is a valid v4Uuid and not still a temporary onetimecode
   try {
     const validUUid = foreignComB.communityUuid !== null ? validateUUID(foreignComB.communityUuid) : false
