@@ -282,7 +282,7 @@ bun install
 
 # build all modules
 log_step 'build all modules'
-turbo build --env-mode=loose
+turbo build --env-mode=loose --concurrency=$(nproc)
 
 # database
 log_step 'Updating database'
