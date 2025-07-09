@@ -43,36 +43,36 @@ export async function validateCommunities(): Promise<void> {
       .getMany()
 
   logger.debug(`found ${dbFederatedCommunities.length} dbCommunities`)
-  for (const dbCom of dbFederatedCommunities) {
-    logger.debug('dbCom', new FederatedCommunityLoggingView(dbCom))
+  for (const dbFedComB of dbFederatedCommunities) {
+    logger.debug('dbFedComB', new FederatedCommunityLoggingView(dbFedComB))
     const apiValueStrings: string[] = Object.values(ApiVersionType)
     logger.debug(`suppported ApiVersions=`, apiValueStrings)
-    if (!apiValueStrings.includes(dbCom.apiVersion)) {
-      logger.debug('dbCom with unsupported apiVersion', dbCom.endPoint, dbCom.apiVersion)
+    if (!apiValueStrings.includes(dbFedComB.apiVersion)) {
+      logger.debug('dbFedComB with unsupported apiVersion', dbFedComB.endPoint, dbFedComB.apiVersion)
       continue
     }
     try {
-      const client = FederationClientFactory.getInstance(dbCom)
+      const client = FederationClientFactory.getInstance(dbFedComB)
 
       if (client instanceof V1_0_FederationClient) {
         const pubKey = await client.getPublicKey()
-        if (pubKey && pubKey === dbCom.publicKey.toString('hex')) {
-          await DbFederatedCommunity.update({ id: dbCom.id }, { verifiedAt: new Date() })
-          logger.debug(`verified community with:`, dbCom.endPoint)
+        if (pubKey && pubKey === dbFedComB.publicKey.toString('hex')) {
+          await DbFederatedCommunity.update({ id: dbFedComB.id }, { verifiedAt: new Date() })
+          logger.debug(`verified dbFedComB with:`, dbFedComB.endPoint)
           const pubComInfo = await client.getPublicCommunityInfo()
           if (pubComInfo) {
-            await writeForeignCommunity(dbCom, pubComInfo)
+            await writeForeignCommunity(dbFedComB, pubComInfo)
+            logger.debug(`wrote response of getPublicCommunityInfo in dbFedComB ${dbFedComB.endPoint}`)
             try {
-              await startCommunityAuthentication(dbCom)
+              await startCommunityAuthentication(dbFedComB)
             } catch (err) {
-              logger.warn(`Warning: Community Authentication still not ready:`, err)
+              logger.warn(`Warning: Authentication of community ${dbFedComB.endPoint} still ongoing:`, err)
             }
-            logger.debug(`write publicInfo of community: name=${pubComInfo.name}`)
           } else {
             logger.debug('missing result of getPublicCommunityInfo')
           }
         } else {
-          logger.debug('received not matching publicKey:', pubKey, dbCom.publicKey.toString('hex'))
+          logger.debug('received not matching publicKey:', pubKey, dbFedComB.publicKey.toString('hex'))
         }
       }
     } catch (err) {

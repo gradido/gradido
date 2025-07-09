@@ -1,4 +1,4 @@
-import { Community as DbCommunity, FederatedCommunity as DbFederatedCommunity, getHomeCommunity } from 'database'
+import { CommunityLoggingView, Community as DbCommunity, FederatedCommunity as DbFederatedCommunity, FederatedCommunityLoggingView, getHomeCommunity } from 'database'
 import { validate as validateUUID, version as versionUUID } from 'uuid'
 
 import { CONFIG } from '@/config'
@@ -14,57 +14,56 @@ import { AuthenticationClientFactory } from './client/AuthenticationClientFactor
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.federation.authenticateCommunities`)
 
 export async function startCommunityAuthentication(
-  foreignFedCom: DbFederatedCommunity,
+  fedComB: DbFederatedCommunity,
 ): Promise<void> {
+  logger.debug(`startCommunityAuthentication()...`, {
+    fedComB: new FederatedCommunityLoggingView(fedComB),
+  })
   const homeComA = await getHomeCommunity()
-  logger.debug('homeComA', homeComA)
+  logger.debug('homeComA', new CommunityLoggingView(homeComA!))
   const homeFedComA = await DbFederatedCommunity.findOneByOrFail({
     foreign: false,
     apiVersion: CONFIG.FEDERATION_BACKEND_SEND_ON_API,
   })
-  logger.debug('homeFedComA', homeFedComA)
-  logger.debug('foreignFedCom', foreignFedCom)
-  const foreignComB = await DbCommunity.findOneByOrFail({ publicKey: foreignFedCom.publicKey })
-  logger.debug('started with foreignComB:', foreignComB)
+  logger.debug('homeFedComA', new FederatedCommunityLoggingView(homeFedComA))
+  const comB = await DbCommunity.findOneByOrFail({ publicKey: fedComB.publicKey })
+  logger.debug('started with comB:', comB)
   // check if communityUuid is a valid v4Uuid and not still a temporary onetimecode
   try {
-    const validUUid = foreignComB.communityUuid !== null ? validateUUID(foreignComB.communityUuid) : false
-    logger.debug('validUUid', validUUid)
-    const versionUuid = foreignComB.communityUuid !== null ? versionUUID(foreignComB.communityUuid) : 0
-    logger.debug('versionUuid', versionUuid)
     if (
-      foreignComB &&
-      ((foreignComB.communityUuid === null && foreignComB.authenticatedAt === null) ||
-        (foreignComB.communityUuid !== null && validUUid && versionUuid === 4))
+      comB &&
+      ((comB.communityUuid === null && comB.authenticatedAt === null) ||
+        (comB.communityUuid !== null &&
+          validateUUID(comB.communityUuid) &&
+          versionUUID(comB.communityUuid) === 4))
     ) {
-      const client = AuthenticationClientFactory.getInstance(foreignFedCom)
+      logger.debug('comB has a valid v4Uuid and not still a temporary onetimecode')
+      const client = AuthenticationClientFactory.getInstance(fedComB)
 
       if (client instanceof V1_0_AuthenticationClient) {
-        if (!foreignComB.publicJwtKey) {
-          throw new Error('Public JWT key still not exist for foreign community')
+        if (!comB.publicJwtKey) {
+          throw new Error('Public JWT key still not exist for comB ' + comB.name)
         }
         //create JWT with url in payload encrypted by foreignCom.publicJwtKey and signed with homeCom.privateJwtKey
         const payload = new OpenConnectionJwtPayloadType(
           ensureUrlEndsWithSlash(homeFedComA.endPoint).concat(homeFedComA.apiVersion),
         )
-        const jws = await encryptAndSign(payload, homeComA!.privateJwtKey!, foreignComB.publicJwtKey)
+        logger.debug('payload', payload)
+        const jws = await encryptAndSign(payload, homeComA!.privateJwtKey!, comB.publicJwtKey!)
+        logger.debug('jws', jws)
         // prepare the args for the client invocation
         const args = new EncryptedTransferArgs()
         args.publicKey = homeComA!.publicKey.toString('hex')
         args.jwt = jws
-        logger.debug(
-          'before client.openConnection() args:',
-          homeComA!.publicKey.toString('hex'),
-          args.jwt,
-        )
+        logger.debug('before client.openConnection() args:', args)
         if (await client.openConnection(args)) {
-          logger.debug(`successful initiated at community:`, foreignFedCom.endPoint)
+          logger.debug(`successful initiated at community:`, fedComB.endPoint)
         } else {
-          logger.error(`can't initiate at community:`, foreignFedCom.endPoint)
+          logger.error(`can't initiate at community:`, fedComB.endPoint)
         }
       }
     } else {
-      logger.debug(`foreignComB.communityUuid is not a valid v4Uuid or still a temporary onetimecode`, foreignComB.communityUuid, foreignComB.authenticatedAt)
+      logger.debug(`comB.communityUuid is not a valid v4Uuid or still a temporary onetimecode`, comB.communityUuid, comB.authenticatedAt)
     }
   } catch (err) {
     logger.error(`Error:`, err)

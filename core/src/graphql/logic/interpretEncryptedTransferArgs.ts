@@ -9,26 +9,25 @@ import { LOG4JS_BASE_CATEGORY_NAME } from '../../config/const'
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.util.interpretEncryptedTransferArgs`)
 
 export const interpretEncryptedTransferArgs = async (args: EncryptedTransferArgs): Promise<JwtPayloadType | null> => {
-  const pubKeyBuf = Buffer.from(args.publicKey, 'hex')
-
-  // first find with args.publicKey the community 'comA', which starts openConnection request
-  const comA = await DbCommunity.findOneBy({ publicKey: pubKeyBuf })
-  if (!comA) {
-    const errmsg = `unknown requesting community with publicKey ${pubKeyBuf.toString('hex')}`
+  logger.debug('interpretEncryptedTransferArgs()... args:', args)
+  // first find with args.publicKey the community 'requestingCom', which starts the request
+  const requestingCom = await DbCommunity.findOneBy({ publicKey: Buffer.from(args.publicKey, 'hex') })
+  if (!requestingCom) {
+    const errmsg = `unknown requesting community with publicKey ${args.publicKey}`
     logger.error(errmsg)
     throw new Error(errmsg)
   }
-  if (!comA.publicJwtKey) {
-    const errmsg = `missing publicJwtKey of requesting community with publicKey ${pubKeyBuf.toString('hex')}`
+  if (!requestingCom.publicJwtKey) {
+    const errmsg = `missing publicJwtKey of requesting community with publicKey ${args.publicKey}`
     logger.error(errmsg)
     throw new Error(errmsg)
   }
-  logger.debug(`found requestedCom:`, new CommunityLoggingView(comA))
-  // verify the signing of args.jwt with homeCom.privateJwtKey and decrypt args.jwt with comA.publicJwtKey
+  logger.debug(`found requestingCom:`, new CommunityLoggingView(requestingCom))
+  // verify the signing of args.jwt with homeCom.privateJwtKey and decrypt args.jwt with requestingCom.publicJwtKey
   const homeCom = await getHomeCommunity()
-  const jwtPayload = await verifyAndDecrypt(args.jwt, homeCom!.privateJwtKey!, comA.publicJwtKey) as JwtPayloadType
+  const jwtPayload = await verifyAndDecrypt(args.jwt, homeCom!.privateJwtKey!, requestingCom.publicJwtKey) as JwtPayloadType
   if (!jwtPayload) {
-    const errmsg = `invalid payload of community with publicKey ${pubKeyBuf.toString('hex')}`
+    const errmsg = `invalid payload of community with publicKey ${args.publicKey}`
     logger.error(errmsg)
     throw new Error(errmsg)
   }
