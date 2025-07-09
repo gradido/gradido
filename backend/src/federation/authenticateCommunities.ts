@@ -39,7 +39,7 @@ export async function startCommunityAuthentication(
           validateUUID(comB.communityUuid) &&
           versionUUID(comB.communityUuid) === 4))
     ) {
-      logger.debug('comB.uuid is null or is a valid v4Uuid...', comB.communityUuid, comB.authenticatedAt)
+      logger.debug('comB.uuid is null or is a valid v4Uuid...', comB.communityUuid || 'null', comB.authenticatedAt || 'null')
       const client = AuthenticationClientFactory.getInstance(fedComB)
 
       if (client instanceof V1_0_AuthenticationClient) {
@@ -65,7 +65,7 @@ export async function startCommunityAuthentication(
         }
       }
     } else {
-      logger.debug(`comB.communityUuid is not a valid v4Uuid or still a temporary onetimecode`, comB.communityUuid, comB.authenticatedAt)
+      logger.debug(`comB.communityUuid is not a valid v4Uuid or still a temporary onetimecode`, comB.communityUuid || 'null', comB.authenticatedAt || 'null')
     }
   } catch (err) {
     logger.error(`Error:`, err)
