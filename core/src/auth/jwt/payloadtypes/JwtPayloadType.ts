@@ -15,10 +15,12 @@ export class JwtPayloadType implements JWTPayload {
   iss?: string | undefined;
   [propName: string]: unknown
 
+  handshakeID: string // used as logger context during authentication handshake between comA and comB
   tokentype: string
   expiration: string // in minutes (format: 10m for ten minutes)
-  constructor() {
+  constructor(handshakeID: string) {
     this.tokentype = 'unknown jwt type'
     this.expiration = REDEEM_JWT_TOKEN_EXPIRATION || '10m'
+    this.handshakeID = handshakeID
   }
 }

@@ -8,11 +8,12 @@ export class OpenConnectionCallbackJwtPayloadType extends JwtPayloadType {
   url: string
 
   constructor(
+    handshakeID: string,
     oneTimeCode: string,
     url: string,
   ) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    super()
+    super(handshakeID)
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     this.tokentype = OpenConnectionCallbackJwtPayloadType.OPEN_CONNECTION_CALLBACK_TYPE
     this.oneTimeCode = oneTimeCode

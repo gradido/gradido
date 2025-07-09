@@ -19,9 +19,11 @@ import { AuthenticationJwtPayloadType, AuthenticationResponseJwtPayloadType, enc
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.api.1_0.util.authenticateCommunity`)
 
 export async function startOpenConnectionCallback(
+  handshakeID: string,
   publicKey: string,
   api: string,
 ): Promise<void> {
+  logger.addContext('handshakeID', handshakeID)
   logger.debug(`Authentication: startOpenConnectionCallback() with:`, {
     publicKey,
   })
@@ -53,13 +55,14 @@ export async function startOpenConnectionCallback(
         ? homeFedComB.endPoint + homeFedComB.apiVersion
         : homeFedComB.endPoint + '/' + homeFedComB.apiVersion
 
-      const callbackArgs = new OpenConnectionCallbackJwtPayloadType(oneTimeCode, url)
+      const callbackArgs = new OpenConnectionCallbackJwtPayloadType(handshakeID, oneTimeCode, url)
       logger.debug(`Authentication: start openConnectionCallback with args:`, callbackArgs)
       // encrypt callbackArgs with requestedCom.publicJwtKey and sign it with homeCom.privateJwtKey
       const jwt = await encryptAndSign(callbackArgs, homeComB!.privateJwtKey!, comA.publicJwtKey!)
       const args = new EncryptedTransferArgs()
       args.publicKey = comA.publicKey.toString('hex')
       args.jwt = jwt
+      args.handshakeID = handshakeID
       if (await client.openConnectionCallback(args)) {
         logger.debug('startOpenConnectionCallback() successful:', jwt)
       } else {
@@ -69,12 +72,15 @@ export async function startOpenConnectionCallback(
   } catch (err) {
     logger.error('error in startOpenConnectionCallback:', err)
   }
+  logger.removeContext('handshakeID')
 }
 
 export async function startAuthentication(
+  handshakeID: string,
   oneTimeCode: string,
   fedComB: DbFedCommunity,
 ): Promise<void> {
+  logger.addContext('handshakeID', handshakeID)
   logger.debug(`startAuthentication()...`, {
     oneTimeCode,
     fedComB: new FederatedCommunityLoggingView(fedComB),
@@ -92,17 +98,18 @@ export async function startAuthentication(
     const client = AuthenticationClientFactory.getInstance(fedComB)
 
     if (client instanceof V1_0_AuthenticationClient) {
-      const authenticationArgs = new AuthenticationJwtPayloadType(oneTimeCode, homeComA!.communityUuid!)
+      const authenticationArgs = new AuthenticationJwtPayloadType(handshakeID, oneTimeCode, homeComA!.communityUuid!)
       // encrypt authenticationArgs.uuid with fedComB.publicJwtKey and sign it with homeCom.privateJwtKey
       const jwt = await encryptAndSign(authenticationArgs, homeComA!.privateJwtKey!, comB.publicJwtKey!)
       const args = new EncryptedTransferArgs()
       args.publicKey = comB.publicKey.toString('hex')
       args.jwt = jwt
+      args.handshakeID = handshakeID
       logger.debug(`invoke authenticate() with:`, args)
       const responseJwt = await client.authenticate(args)
       logger.debug(`response of authenticate():`, responseJwt)
       if (responseJwt !== null) {
-        const payload = await verifyAndDecrypt(responseJwt, homeComA!.privateJwtKey!, comB.publicJwtKey!) as AuthenticationResponseJwtPayloadType
+        const payload = await verifyAndDecrypt(handshakeID, responseJwt, homeComA!.privateJwtKey!, comB.publicJwtKey!) as AuthenticationResponseJwtPayloadType
         logger.debug(
           `received payload from authenticate ComB:`,
           payload,
@@ -129,4 +136,5 @@ export async function startAuthentication(
   } catch (err) {
     logger.error('error in startAuthentication:', err)
   }
+  logger.removeContext('handshakeID')
 }

@@ -21,7 +21,7 @@ export const createKeyPair = async (): Promise<{ publicKey: string; privateKey: 
   return { publicKey: publicKeyPem, privateKey: privateKeyPem };
 }
 
-export const verify = async (token: string, publicKey: string): Promise<JwtPayloadType | null> => {
+export const verify = async (handshakeID: string, token: string, publicKey: string): Promise<JwtPayloadType | null> => {
   if (!token) {
     logger.error('verify... token is empty')
     throw new Error('401 Unauthorized')
@@ -39,6 +39,7 @@ export const verify = async (token: string, publicKey: string): Promise<JwtPaylo
       issuer: JwtPayloadType.ISSUER,
       audience: JwtPayloadType.AUDIENCE,
     })
+    payload.handshakeID = handshakeID
     logger.debug('verify after jwtVerify... payload=', payload)
     return payload as JwtPayloadType
   } catch (err) {
@@ -73,8 +74,8 @@ export const encode = async (payload: JwtPayloadType, privatekey: string): Promi
   }
 }
 
-export const verifyJwtType = async (token: string, publicKey: string): Promise<string> => {
-  const payload = await verify(token, publicKey)
+export const verifyJwtType = async (handshakeID: string, token: string, publicKey: string): Promise<string> => {
+  const payload = await verify(handshakeID, token, publicKey)
   return payload ? payload.tokentype : 'unknown token type'
 }
 
@@ -84,6 +85,7 @@ export const decode = (token: string): JwtPayloadType => {
 }
 
 export const encrypt = async (payload: JwtPayloadType, publicKey: string): Promise<string> => {
+  logger.addContext('handshakeID', payload.handshakeID)
   logger.debug('encrypt... payload=', payload)
   logger.debug('encrypt... publicKey=', publicKey)
   try {
@@ -123,15 +125,18 @@ export const decrypt = async(jwe: string, privateKey: string): Promise<string> =
 }
 
 export const encryptAndSign = async (payload: JwtPayloadType, privateKey: string, publicKey: string): Promise<string> => {
+  logger.addContext('handshakeID', payload.handshakeID)
   const jwe = await encrypt(payload, publicKey)
   logger.debug('encryptAndSign... jwe=', jwe)
-  const jws = await encode(new EncryptedJWEJwtPayloadType(jwe), privateKey)
+  const jws = await encode(new EncryptedJWEJwtPayloadType(payload.handshakeID, jwe), privateKey)
   logger.debug('encryptAndSign... jws=', jws)
+  logger.removeContext('handshakeID')
   return jws
 }
 
-export const verifyAndDecrypt = async (token: string, privateKey: string, publicKey: string): Promise<JwtPayloadType | null> => {
-  const jweVerifyResult = await verify(token, publicKey)
+export const verifyAndDecrypt = async (handshakeID: string, token: string, privateKey: string, publicKey: string): Promise<JwtPayloadType | null> => {
+  logger.addContext('handshakeID', handshakeID)
+  const jweVerifyResult = await verify(handshakeID, token, publicKey)
   if (!jweVerifyResult) {
     return null
   }
@@ -148,5 +153,6 @@ export const verifyAndDecrypt = async (token: string, privateKey: string, public
   logger.debug('verifyAndDecrypt... jwe=', jwe)
   const payload = await decrypt(jwe as string, privateKey)
   logger.debug('verifyAndDecrypt... payload=', payload)
+  logger.removeContext('handshakeID')
   return JSON.parse(payload) as JwtPayloadType
 }

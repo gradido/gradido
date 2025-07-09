@@ -21,32 +21,38 @@ export class AuthenticationResolver {
     @Arg('data')
     args: EncryptedTransferArgs,
   ): Promise<boolean> {
+    logger.addContext('handshakeID', args.handshakeID)
     logger.debug(`openConnection() via apiVersion=1_0:`, args)
     const openConnectionJwtPayload = await interpretEncryptedTransferArgs(args) as OpenConnectionJwtPayloadType
     if (!openConnectionJwtPayload) {
       const errmsg = `invalid OpenConnection payload of requesting community with publicKey` + args.publicKey
       logger.error(errmsg)
+      logger.removeContext('handshakeID')
       throw new Error(errmsg)
     }
     if (openConnectionJwtPayload.tokentype !== OpenConnectionJwtPayloadType.OPEN_CONNECTION_TYPE) {
       const errmsg = `invalid tokentype of community with publicKey` + args.publicKey
       logger.error(errmsg)
+      logger.removeContext('handshakeID')
       throw new Error(errmsg)
     }
     if (!openConnectionJwtPayload.url) {
       const errmsg = `invalid url of community with publicKey` + args.publicKey
       logger.error(errmsg)
+      logger.removeContext('handshakeID')
       throw new Error(errmsg)
     }
     const fedComA = await DbFedCommunity.findOneByOrFail({ publicKey: Buffer.from(args.publicKey, 'hex') })
     if (!openConnectionJwtPayload.url.startsWith(fedComA.endPoint)) {
       const errmsg = `invalid url of community with publicKey` + args.publicKey
       logger.error(errmsg)
+      logger.removeContext('handshakeID')
       throw new Error(errmsg)
     }
 
     // biome-ignore lint/complexity/noVoid: no await to respond immediately and invoke callback-request asynchronously
     void startOpenConnectionCallback(args.publicKey, CONFIG.FEDERATION_API)
+    logger.removeContext('handshakeID')
     return true
   }
 
@@ -55,12 +61,14 @@ export class AuthenticationResolver {
     @Arg('data')
     args: EncryptedTransferArgs,
   ): Promise<boolean> {
+    logger.addContext('handshakeID', args.handshakeID)
     logger.debug(`openConnectionCallback() via apiVersion=1_0 ...`, args)
     // decrypt args.url with homeCom.privateJwtKey and verify signing with callbackFedCom.publicKey
     const openConnectionCallbackJwtPayload = await interpretEncryptedTransferArgs(args) as OpenConnectionCallbackJwtPayloadType
     if (!openConnectionCallbackJwtPayload) {
       const errmsg = `invalid OpenConnectionCallback payload of requesting community with publicKey` + args.publicKey
       logger.error(errmsg)
+      logger.removeContext('handshakeID')
       throw new Error(errmsg)
     }
 
@@ -71,6 +79,7 @@ export class AuthenticationResolver {
     if (!fedComB) {
       const errmsg = `unknown callback community with url` + openConnectionCallbackJwtPayload.url
       logger.error(errmsg)
+      logger.removeContext('handshakeID')
       throw new Error(errmsg)
     }
     logger.debug(
@@ -79,6 +88,7 @@ export class AuthenticationResolver {
     )
     // biome-ignore lint/complexity/noVoid: no await to respond immediately and invoke authenticate-request asynchronously
     void startAuthentication(openConnectionCallbackJwtPayload.oneTimeCode, fedComB)
+    logger.removeContext('handshakeID')
     return true
   }
 
@@ -87,11 +97,13 @@ export class AuthenticationResolver {
     @Arg('data')
     args: EncryptedTransferArgs,
   ): Promise<string | null> {
+    logger.addContext('handshakeID', args.handshakeID)
     logger.debug(`authenticate() via apiVersion=1_0 ...`, args)
     const authArgs = await interpretEncryptedTransferArgs(args) as AuthenticationJwtPayloadType
     if (!authArgs) {
       const errmsg = `invalid authentication payload of requesting community with publicKey` + args.publicKey
       logger.error(errmsg)
+      logger.removeContext('handshakeID')
       throw new Error(errmsg)
     }
     const authCom = await DbCommunity.findOneByOrFail({ communityUuid: authArgs.oneTimeCode })
@@ -105,9 +117,11 @@ export class AuthenticationResolver {
       if (homeComB?.communityUuid) {
         const responseArgs = new AuthenticationResponseJwtPayloadType(homeComB.communityUuid)
         const responseJwt = await encryptAndSign(responseArgs, homeComB.privateJwtKey!, authCom.publicJwtKey!)
+        logger.removeContext('handshakeID')
         return responseJwt
       }
     }
+    logger.removeContext('handshakeID')
     return null
   }
 }

@@ -6,11 +6,10 @@ export class AuthenticationResponseJwtPayloadType extends JwtPayloadType {
   uuid: string
 
   constructor(
+    handshakeID: string,
     uuid: string,
   ) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    super()
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    super(handshakeID)
     this.tokentype = AuthenticationResponseJwtPayloadType.AUTHENTICATION_RESPONSE_TYPE
     this.uuid = uuid
   }

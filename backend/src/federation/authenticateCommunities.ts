@@ -1,6 +1,6 @@
 import { CommunityLoggingView, Community as DbCommunity, FederatedCommunity as DbFederatedCommunity, FederatedCommunityLoggingView, getHomeCommunity } from 'database'
 import { validate as validateUUID, version as versionUUID } from 'uuid'
-
+import { randombytes_random } from 'sodium-native'
 import { CONFIG } from '@/config'
 
 import { AuthenticationClient as V1_0_AuthenticationClient } from '@/federation/client/1_0/AuthenticationClient'
@@ -16,6 +16,8 @@ const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.federation.authenticateCo
 export async function startCommunityAuthentication(
   fedComB: DbFederatedCommunity,
 ): Promise<void> {
+  const handshakeID = randombytes_random().toString()
+  logger.addContext('handshakeID', handshakeID)
   logger.debug(`startCommunityAuthentication()...`, {
     fedComB: new FederatedCommunityLoggingView(fedComB),
   })
@@ -37,7 +39,7 @@ export async function startCommunityAuthentication(
           validateUUID(comB.communityUuid) &&
           versionUUID(comB.communityUuid) === 4))
     ) {
-      logger.debug('comB has a valid v4Uuid and not still a temporary onetimecode')
+      logger.debug('comB.uuid is null or is a valid v4Uuid...', comB.communityUuid, comB.authenticatedAt)
       const client = AuthenticationClientFactory.getInstance(fedComB)
 
       if (client instanceof V1_0_AuthenticationClient) {
@@ -45,7 +47,7 @@ export async function startCommunityAuthentication(
           throw new Error('Public JWT key still not exist for comB ' + comB.name)
         }
         //create JWT with url in payload encrypted by foreignCom.publicJwtKey and signed with homeCom.privateJwtKey
-        const payload = new OpenConnectionJwtPayloadType(
+        const payload = new OpenConnectionJwtPayloadType(handshakeID,
           ensureUrlEndsWithSlash(homeFedComA.endPoint).concat(homeFedComA.apiVersion),
         )
         logger.debug('payload', payload)
@@ -68,4 +70,5 @@ export async function startCommunityAuthentication(
   } catch (err) {
     logger.error(`Error:`, err)
   }
+  logger.removeContext('handshakeID')
 }

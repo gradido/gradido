@@ -29,6 +29,7 @@ export class AuthenticationClient {
   }
 
   async openConnectionCallback(args: EncryptedTransferArgs): Promise<boolean> {
+    logger.addContext('handshakeID', args.handshakeID)
     logger.debug('openConnectionCallback with endpoint', this.endpoint, args)
     try {
       const { data } = await this.client.rawRequest<any>(openConnectionCallback, { args })
@@ -46,6 +47,7 @@ export class AuthenticationClient {
   }
 
   async authenticate(args: EncryptedTransferArgs): Promise<string | null> {
+    logger.addContext('handshakeID', args.handshakeID)
     logger.debug('authenticate with endpoint=', this.endpoint)
     try {
       const { data } = await this.client.rawRequest<any>(authenticate, { args })
