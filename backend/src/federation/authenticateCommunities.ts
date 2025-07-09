@@ -57,6 +57,7 @@ export async function startCommunityAuthentication(
         const args = new EncryptedTransferArgs()
         args.publicKey = homeComA!.publicKey.toString('hex')
         args.jwt = jws
+        args.handshakeID = handshakeID
         logger.debug('before client.openConnection() args:', args)
         if (await client.openConnection(args)) {
           logger.debug(`successful initiated at community:`, fedComB.endPoint)
