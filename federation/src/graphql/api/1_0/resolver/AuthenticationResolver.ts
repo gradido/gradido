@@ -24,6 +24,7 @@ export class AuthenticationResolver {
     logger.addContext('handshakeID', args.handshakeID)
     logger.debug(`openConnection() via apiVersion=1_0:`, args)
     const openConnectionJwtPayload = await interpretEncryptedTransferArgs(args) as OpenConnectionJwtPayloadType
+    logger.debug('openConnectionJwtPayload', openConnectionJwtPayload)
     if (!openConnectionJwtPayload) {
       const errmsg = `invalid OpenConnection payload of requesting community with publicKey` + args.publicKey
       logger.error(errmsg)
@@ -42,7 +43,7 @@ export class AuthenticationResolver {
       logger.removeContext('handshakeID')
       throw new Error(errmsg)
     }
-    const fedComA = await DbFedCommunity.findOneByOrFail({ publicKey: Buffer.from(args.publicKey, 'hex') })
+    const fedComA = await DbFedCommunity.findOneByOrFail({ publicKey: Buffer.from(args.publicKey) })
     if (!openConnectionJwtPayload.url.startsWith(fedComA.endPoint)) {
       const errmsg = `invalid url of community with publicKey` + args.publicKey
       logger.error(errmsg)
@@ -51,7 +52,7 @@ export class AuthenticationResolver {
     }
 
     // biome-ignore lint/complexity/noVoid: no await to respond immediately and invoke callback-request asynchronously
-    void startOpenConnectionCallback(args.publicKey, CONFIG.FEDERATION_API)
+    void startOpenConnectionCallback(args.handshakeID, args.publicKey, CONFIG.FEDERATION_API)
     logger.removeContext('handshakeID')
     return true
   }
@@ -87,7 +88,7 @@ export class AuthenticationResolver {
       new FederatedCommunityLoggingView(fedComB),
     )
     // biome-ignore lint/complexity/noVoid: no await to respond immediately and invoke authenticate-request asynchronously
-    void startAuthentication(openConnectionCallbackJwtPayload.oneTimeCode, fedComB)
+    void startAuthentication(args.handshakeID, openConnectionCallbackJwtPayload.oneTimeCode, fedComB)
     logger.removeContext('handshakeID')
     return true
   }

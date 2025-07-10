@@ -35,6 +35,7 @@ export const interpretEncryptedTransferArgs = async (args: EncryptedTransferArgs
     logger.removeContext('handshakeID')
     throw new Error(errmsg)
   }
+  logger.debug('jwtPayload', jwtPayload)
   logger.removeContext('handshakeID')
   return jwtPayload
 }
