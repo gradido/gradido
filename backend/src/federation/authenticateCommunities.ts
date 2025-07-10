@@ -29,7 +29,7 @@ export async function startCommunityAuthentication(
   })
   logger.debug('homeFedComA', new FederatedCommunityLoggingView(homeFedComA))
   const comB = await DbCommunity.findOneByOrFail({ publicKey: fedComB.publicKey })
-  logger.debug('started with comB:', comB)
+  logger.debug('started with comB:', new CommunityLoggingView(comB))
   // check if communityUuid is a valid v4Uuid and not still a temporary onetimecode
   try {
     if (
