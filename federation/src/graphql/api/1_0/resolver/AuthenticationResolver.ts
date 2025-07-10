@@ -43,8 +43,8 @@ export class AuthenticationResolver {
       logger.removeContext('handshakeID')
       throw new Error(errmsg)
     }
-    const pubKeyComA = Buffer.from(args.publicKey, 'hex')
-    logger.debug('pubKeyComA', pubKeyComA)
+    const pubKeyComA = Buffer.from(args.publicKey)
+    logger.debug('pubKeyComA', pubKeyComA.toString('hex'))
     logger.debug('args.publicKey', args.publicKey)
     const fedComA = await DbFedCommunity.findOneByOrFail({ publicKey: pubKeyComA })
     logger.debug('fedComA', new FederatedCommunityLoggingView(fedComA))
