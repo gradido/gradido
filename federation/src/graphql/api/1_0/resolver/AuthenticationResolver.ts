@@ -119,7 +119,7 @@ export class AuthenticationResolver {
       logger.debug('store authCom.uuid successfully:', new CommunityLoggingView(authCom))
       const homeComB = await getHomeCommunity()
       if (homeComB?.communityUuid) {
-        const responseArgs = new AuthenticationResponseJwtPayloadType(homeComB.communityUuid)
+        const responseArgs = new AuthenticationResponseJwtPayloadType(args.handshakeID,homeComB.communityUuid)
         const responseJwt = await encryptAndSign(responseArgs, homeComB.privateJwtKey!, authCom.publicJwtKey!)
         logger.removeContext('handshakeID')
         return responseJwt
