@@ -102,7 +102,7 @@ export async function startAuthentication(
       // encrypt authenticationArgs.uuid with fedComB.publicJwtKey and sign it with homeCom.privateJwtKey
       const jwt = await encryptAndSign(authenticationArgs, homeComA!.privateJwtKey!, comB.publicJwtKey!)
       const args = new EncryptedTransferArgs()
-      args.publicKey = comB.publicKey.toString('hex')
+      args.publicKey = homeComA!.publicKey.toString('hex')
       args.jwt = jwt
       args.handshakeID = handshakeID
       logger.debug(`invoke authenticate() with:`, args)
