@@ -1,61 +1,75 @@
-import { Community as DbCommunity, FederatedCommunity as DbFederatedCommunity } from 'database'
+import { CommunityLoggingView, Community as DbCommunity, FederatedCommunity as DbFederatedCommunity, FederatedCommunityLoggingView, getHomeCommunity } from 'database'
 import { validate as validateUUID, version as versionUUID } from 'uuid'
-
+import { randombytes_random } from 'sodium-native'
 import { CONFIG } from '@/config'
 
 import { AuthenticationClient as V1_0_AuthenticationClient } from '@/federation/client/1_0/AuthenticationClient'
 import { ensureUrlEndsWithSlash } from '@/util/utilities'
 
-import { getLogger } from 'log4js'
-import { OpenConnectionArgs } from './client/1_0/model/OpenConnectionArgs'
-import { AuthenticationClientFactory } from './client/AuthenticationClientFactory'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { encryptAndSign, EncryptedTransferArgs, OpenConnectionJwtPayloadType } from 'core'
+import { getLogger } from 'log4js'
+import { AuthenticationClientFactory } from './client/AuthenticationClientFactory'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.federation.authenticateCommunities`)
 
 export async function startCommunityAuthentication(
-  foreignFedCom: DbFederatedCommunity,
+  fedComB: DbFederatedCommunity,
 ): Promise<void> {
-  const homeCom = await DbCommunity.findOneByOrFail({ foreign: false })
-  const homeFedCom = await DbFederatedCommunity.findOneByOrFail({
+  const handshakeID = randombytes_random().toString()
+  logger.addContext('handshakeID', handshakeID)
+  logger.debug(`startCommunityAuthentication()...`, {
+    fedComB: new FederatedCommunityLoggingView(fedComB),
+  })
+  const homeComA = await getHomeCommunity()
+  logger.debug('homeComA', new CommunityLoggingView(homeComA!))
+  const homeFedComA = await DbFederatedCommunity.findOneByOrFail({
     foreign: false,
     apiVersion: CONFIG.FEDERATION_BACKEND_SEND_ON_API,
   })
-  const foreignCom = await DbCommunity.findOneByOrFail({ publicKey: foreignFedCom.publicKey })
-  logger.debug(
-    'Authentication: started with foreignFedCom:',
-    foreignFedCom.endPoint,
-    foreignFedCom.publicKey.toString('hex'),
-  )
+  logger.debug('homeFedComA', new FederatedCommunityLoggingView(homeFedComA))
+  const comB = await DbCommunity.findOneByOrFail({ publicKey: fedComB.publicKey })
+  logger.debug('started with comB:', new CommunityLoggingView(comB))
   // check if communityUuid is a valid v4Uuid and not still a temporary onetimecode
-  if (
-    foreignCom &&
-    ((foreignCom.communityUuid === null && foreignCom.authenticatedAt === null) ||
-      (foreignCom.communityUuid !== null &&
-        !validateUUID(foreignCom.communityUuid) &&
-        versionUUID(foreignCom.communityUuid) !== 4))
-  ) {
-    try {
-      const client = AuthenticationClientFactory.getInstance(foreignFedCom)
+  try {
+    if (
+      comB &&
+      ((comB.communityUuid === null && comB.authenticatedAt === null) ||
+        (comB.communityUuid !== null &&
+          validateUUID(comB.communityUuid) &&
+          versionUUID(comB.communityUuid) === 4))
+    ) {
+      logger.debug('comB.uuid is null or is a valid v4Uuid...', comB.communityUuid || 'null', comB.authenticatedAt || 'null')
+      const client = AuthenticationClientFactory.getInstance(fedComB)
 
       if (client instanceof V1_0_AuthenticationClient) {
-        const args = new OpenConnectionArgs()
-        args.publicKey = homeCom.publicKey.toString('hex')
-        // TODO encrypt url with foreignCom.publicKey and sign it with homeCom.privateKey
-        args.url = ensureUrlEndsWithSlash(homeFedCom.endPoint).concat(homeFedCom.apiVersion)
-        logger.debug(
-          'Authentication: before client.openConnection() args:',
-          homeCom.publicKey.toString('hex'),
-          args.url,
+        if (!comB.publicJwtKey) {
+          throw new Error('Public JWT key still not exist for comB ' + comB.name)
+        }
+        //create JWT with url in payload encrypted by foreignCom.publicJwtKey and signed with homeCom.privateJwtKey
+        const payload = new OpenConnectionJwtPayloadType(handshakeID,
+          ensureUrlEndsWithSlash(homeFedComA.endPoint).concat(homeFedComA.apiVersion),
         )
+        logger.debug('payload', payload)
+        const jws = await encryptAndSign(payload, homeComA!.privateJwtKey!, comB.publicJwtKey!)
+        logger.debug('jws', jws)
+        // prepare the args for the client invocation
+        const args = new EncryptedTransferArgs()
+        args.publicKey = homeComA!.publicKey.toString('hex')
+        args.jwt = jws
+        args.handshakeID = handshakeID
+        logger.debug('before client.openConnection() args:', args)
         if (await client.openConnection(args)) {
-          logger.debug(`Authentication: successful initiated at community:`, foreignFedCom.endPoint)
+          logger.debug(`successful initiated at community:`, fedComB.endPoint)
         } else {
-          logger.error(`Authentication: can't initiate at community:`, foreignFedCom.endPoint)
+          logger.error(`can't initiate at community:`, fedComB.endPoint)
         }
       }
-    } catch (err) {
-      logger.error(`Error:`, err)
+    } else {
+      logger.debug(`comB.communityUuid is not a valid v4Uuid or still a temporary onetimecode`, comB.communityUuid || 'null', comB.authenticatedAt || 'null')
     }
+  } catch (err) {
+    logger.error(`Error:`, err)
   }
+  logger.removeContext('handshakeID')
 }

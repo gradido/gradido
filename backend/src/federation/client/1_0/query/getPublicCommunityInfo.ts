@@ -7,6 +7,7 @@ export const getPublicCommunityInfo = gql`
       description
       creationDate
       publicKey
+      publicJwtKey
     }
   }
 `

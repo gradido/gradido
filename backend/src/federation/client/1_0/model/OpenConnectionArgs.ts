@@ -6,5 +6,5 @@ export class OpenConnectionArgs {
   publicKey: string
 
   @Field(() => String)
-  url: string
+  jwt: string
 }

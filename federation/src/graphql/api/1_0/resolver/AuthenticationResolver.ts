@@ -1,17 +1,15 @@
 import { CONFIG } from '@/config'
-import { LogError } from '@/server/LogError'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { AuthenticationJwtPayloadType, AuthenticationResponseJwtPayloadType, encryptAndSign, EncryptedTransferArgs, interpretEncryptedTransferArgs, OpenConnectionCallbackJwtPayloadType, OpenConnectionJwtPayloadType } from 'core'
 import {
   CommunityLoggingView,
   Community as DbCommunity,
   FederatedCommunity as DbFedCommunity,
   FederatedCommunityLoggingView,
+  getHomeCommunity,
 } from 'database'
 import { getLogger } from 'log4js'
 import { Arg, Mutation, Resolver } from 'type-graphql'
-import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { AuthenticationArgs } from '../model/AuthenticationArgs'
-import { OpenConnectionArgs } from '../model/OpenConnectionArgs'
-import { OpenConnectionCallbackArgs } from '../model/OpenConnectionCallbackArgs'
 import { startAuthentication, startOpenConnectionCallback } from '../util/authenticateCommunity'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.api.1_0.resolver.AuthenticationResolver`)
@@ -21,67 +19,113 @@ export class AuthenticationResolver {
   @Mutation(() => Boolean)
   async openConnection(
     @Arg('data')
-    args: OpenConnectionArgs,
+    args: EncryptedTransferArgs,
   ): Promise<boolean> {
-    const pubKeyBuf = Buffer.from(args.publicKey, 'hex')
+    logger.addContext('handshakeID', args.handshakeID)
     logger.debug(`openConnection() via apiVersion=1_0:`, args)
-
-    // first find with args.publicKey the community 'comA', which starts openConnection request
-    const comA = await DbCommunity.findOneBy({
-      publicKey: pubKeyBuf, // Buffer.from(args.publicKey),
-    })
-    if (!comA) {
-      throw new LogError(`unknown requesting community with publicKey`, pubKeyBuf.toString('hex'))
+    const openConnectionJwtPayload = await interpretEncryptedTransferArgs(args) as OpenConnectionJwtPayloadType
+    logger.debug('openConnectionJwtPayload', openConnectionJwtPayload)
+    if (!openConnectionJwtPayload) {
+      const errmsg = `invalid OpenConnection payload of requesting community with publicKey` + args.publicKey
+      logger.error(errmsg)
+      logger.removeContext('handshakeID')
+      throw new Error(errmsg)
     }
-    logger.debug(`found requestedCom:`, new CommunityLoggingView(comA))
+    if (openConnectionJwtPayload.tokentype !== OpenConnectionJwtPayloadType.OPEN_CONNECTION_TYPE) {
+      const errmsg = `invalid tokentype of community with publicKey` + args.publicKey
+      logger.error(errmsg)
+      logger.removeContext('handshakeID')
+      throw new Error(errmsg)
+    }
+    if (!openConnectionJwtPayload.url) {
+      const errmsg = `invalid url of community with publicKey` + args.publicKey
+      logger.error(errmsg)
+      logger.removeContext('handshakeID')
+      throw new Error(errmsg)
+    }
+    logger.debug(`vor DbFedCommunity.findOneByOrFail()...`, { publicKey: args.publicKey })
+    const fedComA = await DbFedCommunity.findOneByOrFail({ publicKey: Buffer.from(args.publicKey, 'hex') })
+    logger.debug(`nach DbFedCommunity.findOneByOrFail()...`, fedComA)
+    logger.debug('fedComA', new FederatedCommunityLoggingView(fedComA))
+    if (!openConnectionJwtPayload.url.startsWith(fedComA.endPoint)) {
+      const errmsg = `invalid url of community with publicKey` + args.publicKey
+      logger.error(errmsg)
+      logger.removeContext('handshakeID')
+      throw new Error(errmsg)
+    }
+
     // biome-ignore lint/complexity/noVoid: no await to respond immediately and invoke callback-request asynchronously
-    void startOpenConnectionCallback(args, comA, CONFIG.FEDERATION_API)
+    void startOpenConnectionCallback(args.handshakeID, args.publicKey, CONFIG.FEDERATION_API)
+    logger.removeContext('handshakeID')
     return true
   }
 
   @Mutation(() => Boolean)
   async openConnectionCallback(
     @Arg('data')
-    args: OpenConnectionCallbackArgs,
+    args: EncryptedTransferArgs,
   ): Promise<boolean> {
+    logger.addContext('handshakeID', args.handshakeID)
     logger.debug(`openConnectionCallback() via apiVersion=1_0 ...`, args)
-    // TODO decrypt args.url with homeCom.privateKey and verify signing with callbackFedCom.publicKey
-    const endPoint = args.url.slice(0, args.url.lastIndexOf('/') + 1)
-    const apiVersion = args.url.slice(args.url.lastIndexOf('/') + 1, args.url.length)
+    // decrypt args.url with homeCom.privateJwtKey and verify signing with callbackFedCom.publicKey
+    const openConnectionCallbackJwtPayload = await interpretEncryptedTransferArgs(args) as OpenConnectionCallbackJwtPayloadType
+    if (!openConnectionCallbackJwtPayload) {
+      const errmsg = `invalid OpenConnectionCallback payload of requesting community with publicKey` + args.publicKey
+      logger.error(errmsg)
+      logger.removeContext('handshakeID')
+      throw new Error(errmsg)
+    }
+
+    const endPoint = openConnectionCallbackJwtPayload.url.slice(0, openConnectionCallbackJwtPayload.url.lastIndexOf('/') + 1)
+    const apiVersion = openConnectionCallbackJwtPayload.url.slice(openConnectionCallbackJwtPayload.url.lastIndexOf('/') + 1, openConnectionCallbackJwtPayload.url.length)
     logger.debug(`search fedComB per:`, endPoint, apiVersion)
     const fedComB = await DbFedCommunity.findOneBy({ endPoint, apiVersion })
     if (!fedComB) {
-      throw new LogError(`unknown callback community with url`, args.url)
+      const errmsg = `unknown callback community with url` + openConnectionCallbackJwtPayload.url
+      logger.error(errmsg)
+      logger.removeContext('handshakeID')
+      throw new Error(errmsg)
     }
     logger.debug(
       `found fedComB and start authentication:`,
       new FederatedCommunityLoggingView(fedComB),
     )
     // biome-ignore lint/complexity/noVoid: no await to respond immediately and invoke authenticate-request asynchronously
-    void startAuthentication(args.oneTimeCode, fedComB)
+    void startAuthentication(args.handshakeID, openConnectionCallbackJwtPayload.oneTimeCode, fedComB)
+    logger.removeContext('handshakeID')
     return true
   }
 
   @Mutation(() => String)
   async authenticate(
     @Arg('data')
-    args: AuthenticationArgs,
+    args: EncryptedTransferArgs,
   ): Promise<string | null> {
+    logger.addContext('handshakeID', args.handshakeID)
     logger.debug(`authenticate() via apiVersion=1_0 ...`, args)
-    const authCom = await DbCommunity.findOneByOrFail({ communityUuid: args.oneTimeCode })
+    const authArgs = await interpretEncryptedTransferArgs(args) as AuthenticationJwtPayloadType
+    if (!authArgs) {
+      const errmsg = `invalid authentication payload of requesting community with publicKey` + args.publicKey
+      logger.error(errmsg)
+      logger.removeContext('handshakeID')
+      throw new Error(errmsg)
+    }
+    const authCom = await DbCommunity.findOneByOrFail({ communityUuid: authArgs.oneTimeCode })
     logger.debug('found authCom:', new CommunityLoggingView(authCom))
     if (authCom) {
-      // TODO decrypt args.uuid with authCom.publicKey
-      authCom.communityUuid = args.uuid
+      authCom.communityUuid = authArgs.uuid
       authCom.authenticatedAt = new Date()
       await DbCommunity.save(authCom)
       logger.debug('store authCom.uuid successfully:', new CommunityLoggingView(authCom))
-      const homeCom = await DbCommunity.findOneByOrFail({ foreign: false })
-      // TODO encrypt homeCom.uuid with homeCom.privateKey
-      if (homeCom.communityUuid) {
-        return homeCom.communityUuid
+      const homeComB = await getHomeCommunity()
+      if (homeComB?.communityUuid) {
+        const responseArgs = new AuthenticationResponseJwtPayloadType(args.handshakeID,homeComB.communityUuid)
+        const responseJwt = await encryptAndSign(responseArgs, homeComB.privateJwtKey!, authCom.publicJwtKey!)
+        logger.removeContext('handshakeID')
+        return responseJwt
       }
     }
+    logger.removeContext('handshakeID')
     return null
   }
 }
