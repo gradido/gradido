@@ -43,10 +43,6 @@ export class AuthenticationResolver {
       logger.removeContext('handshakeID')
       throw new Error(errmsg)
     }
-    const pubKeyComA = Buffer.from(args.publicKey, 'hex')
-    logger.debug('pubKeyComA', pubKeyComA)
-    logger.debug('args.publicKey', args.publicKey)
-    // const requestingCom = await DbCommunity.findOneBy({ publicKey: Buffer.from(args.publicKey, 'hex') })
     const fedComA = await DbFedCommunity.findOneBy({ publicKey: Buffer.from(args.publicKey, 'hex') })
     logger.debug('fedComA', new FederatedCommunityLoggingView(fedComA!))
     if (fedComA && !openConnectionJwtPayload.url.startsWith(fedComA.endPoint)) {

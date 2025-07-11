@@ -60,7 +60,7 @@ export async function startOpenConnectionCallback(
       // encrypt callbackArgs with requestedCom.publicJwtKey and sign it with homeCom.privateJwtKey
       const jwt = await encryptAndSign(callbackArgs, homeComB!.privateJwtKey!, comA.publicJwtKey!)
       const args = new EncryptedTransferArgs()
-      args.publicKey = comA.publicKey.toString('hex')
+      args.publicKey = homeComB!.publicKey.toString('hex')
       args.jwt = jwt
       args.handshakeID = handshakeID
       if (await client.openConnectionCallback(args)) {
