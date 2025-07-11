@@ -43,9 +43,9 @@ export class AuthenticationResolver {
       logger.removeContext('handshakeID')
       throw new Error(errmsg)
     }
-    const fedComA = await DbFedCommunity.findOneBy({ publicKey: Buffer.from(args.publicKey, 'hex') })
-    logger.debug('fedComA', new FederatedCommunityLoggingView(fedComA!))
-    if (fedComA && !openConnectionJwtPayload.url.startsWith(fedComA.endPoint)) {
+    const fedComA = await DbFedCommunity.findOneByOrFail({ publicKey: Buffer.from(args.publicKey, 'hex') })
+    logger.debug('fedComA', new FederatedCommunityLoggingView(fedComA))
+    if (!openConnectionJwtPayload.url.startsWith(fedComA.endPoint)) {
       const errmsg = `invalid url of community with publicKey` + args.publicKey
       logger.error(errmsg)
       logger.removeContext('handshakeID')
