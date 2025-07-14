@@ -33,8 +33,9 @@ export class AuthenticationClient {
     logger.debug('openConnectionCallback with endpoint', this.endpoint, args)
     try {
       const { data } = await this.client.rawRequest<any>(openConnectionCallback, { args })
+      logger.debug('after openConnectionCallback: data:', data)
 
-      if (data && data.openConnectionCallback) {
+      if (!data || !data.openConnectionCallback) {
         logger.warn('openConnectionCallback without response data from endpoint', this.endpoint)
         return false
       }
