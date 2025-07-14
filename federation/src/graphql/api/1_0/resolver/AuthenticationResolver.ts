@@ -54,8 +54,9 @@ export class AuthenticationResolver {
       throw new Error(errmsg)
     }
 
-    // biome-ignore lint/complexity/noVoid: no await to respond immediately and invoke callback-request asynchronously
+    // no await to respond immediately and invoke callback-request asynchronously
     void startOpenConnectionCallback(args.handshakeID, args.publicKey, CONFIG.FEDERATION_API)
+    logger.debug('openConnection() successfully initiated callback and returns true immediately...')
     logger.removeContext('handshakeID')
     return true
   }
@@ -90,8 +91,9 @@ export class AuthenticationResolver {
       `found fedComB and start authentication:`,
       new FederatedCommunityLoggingView(fedComB),
     )
-    // biome-ignore lint/complexity/noVoid: no await to respond immediately and invoke authenticate-request asynchronously
+    // no await to respond immediately and invoke authenticate-request asynchronously
     void startAuthentication(args.handshakeID, openConnectionCallbackJwtPayload.oneTimeCode, fedComB)
+    logger.debug('openConnectionCallback() successfully initiated authentication and returns true immediately...')
     logger.removeContext('handshakeID')
     return true
   }
