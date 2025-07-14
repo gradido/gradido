@@ -63,7 +63,8 @@ export async function startOpenConnectionCallback(
       args.publicKey = homeComB!.publicKey.toString('hex')
       args.jwt = jwt
       args.handshakeID = handshakeID
-      if (await client.openConnectionCallback(args)) {
+      const result = await client.openConnectionCallback(args)
+      if (result) {
         logger.debug('startOpenConnectionCallback() successful:', jwt)
       } else {
         logger.error('startOpenConnectionCallback() failed:', jwt)

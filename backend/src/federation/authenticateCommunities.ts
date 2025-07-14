@@ -59,7 +59,8 @@ export async function startCommunityAuthentication(
         args.jwt = jws
         args.handshakeID = handshakeID
         logger.debug('before client.openConnection() args:', args)
-        if (await client.openConnection(args)) {
+        const result = await client.openConnection(args)
+        if (result) {
           logger.debug(`successful initiated at community:`, fedComB.endPoint)
         } else {
           logger.error(`can't initiate at community:`, fedComB.endPoint)
