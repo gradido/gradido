@@ -30,16 +30,16 @@ export async function startCommunityAuthentication(
   logger.debug('homeFedComA', new FederatedCommunityLoggingView(homeFedComA))
   const comB = await DbCommunity.findOneByOrFail({ publicKey: fedComB.publicKey })
   logger.debug('started with comB:', new CommunityLoggingView(comB))
-  // check if communityUuid is a valid v4Uuid and not still a temporary onetimecode
+  // check if communityUuid is not a valid v4Uuid
   try {
     if (
       comB &&
       ((comB.communityUuid === null && comB.authenticatedAt === null) ||
         (comB.communityUuid !== null &&
-          validateUUID(comB.communityUuid) &&
-          versionUUID(comB.communityUuid) === 4))
+          (!validateUUID(comB.communityUuid) ||
+          versionUUID(comB.communityUuid!) !== 4)))
     ) {
-      logger.debug('comB.uuid is null or is a valid v4Uuid...', comB.communityUuid || 'null', comB.authenticatedAt || 'null')
+      logger.debug('comB.uuid is null or is a not valid v4Uuid...', comB.communityUuid || 'null', comB.authenticatedAt || 'null')
       const client = AuthenticationClientFactory.getInstance(fedComB)
 
       if (client instanceof V1_0_AuthenticationClient) {
@@ -66,7 +66,7 @@ export async function startCommunityAuthentication(
         }
       }
     } else {
-      logger.debug(`comB.communityUuid is not a valid v4Uuid or still a temporary onetimecode`, comB.communityUuid || 'null', comB.authenticatedAt || 'null')
+      logger.debug(`comB.communityUuid is already a valid v4Uuid ${ comB.communityUuid || 'null' } and was authenticated at ${ comB.authenticatedAt || 'null'}`)
     }
   } catch (err) {
     logger.error(`Error:`, err)
