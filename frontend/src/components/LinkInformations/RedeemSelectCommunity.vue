@@ -17,13 +17,21 @@
       <BRow>
         <BCol sm="12" md="6">
           <p>{{ $t('gdd_per_link.no-account') }}</p>
-          <BButton variant="primary" :disabled="isForeignCommunitySelected" :to="routeWithParamsAndQuery('Register')">
+          <BButton
+            variant="primary"
+            :disabled="isForeignCommunitySelected"
+            :to="routeWithParamsAndQuery('Register')"
+          >
             {{ $t('gdd_per_link.to-register') }}
           </BButton>
         </BCol>
         <BCol sm="12" md="6" class="mt-4 mt-lg-0">
           <p>{{ $t('gdd_per_link.has-account') }}</p>
-          <BButton variant="gradido" :disabled="isForeignCommunitySelected" :to="routeWithParamsAndQuery('Login')">
+          <BButton
+            variant="gradido"
+            :disabled="isForeignCommunitySelected"
+            :to="routeWithParamsAndQuery('Login')"
+          >
             {{ $t('gdd_per_link.to-login') }}
           </BButton>
         </BCol>

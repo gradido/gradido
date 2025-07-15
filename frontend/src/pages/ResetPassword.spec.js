@@ -362,7 +362,6 @@ describe('ResetPassword', () => {
       })
 
       it('redirects to /forgot-password/resetPassword', () => {
-        console.log(router.currentRoute.value)
         expect(router.currentRoute.value.path).toBe('/forgot-password/resetPassword')
       })
     })
@@ -418,7 +417,10 @@ describe('ResetPassword', () => {
         '...email was sent more than 23 hours and 10 minutes ago',
       )
       expect(message.props('buttonText')).toBe('settings.password.reset')
-      expect(message.props('linkTo')).toMatchObject({ name: 'ForgotPassword', params: { comingFrom: 'reset-password' } })
+      expect(message.props('linkTo')).toMatchObject({
+        name: 'ForgotPassword',
+        params: { comingFrom: 'reset-password' },
+      })
       expect(mockToastError).toHaveBeenCalledWith(
         '...email was sent more than 23 hours and 10 minutes ago',
       )

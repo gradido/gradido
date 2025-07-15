@@ -85,7 +85,6 @@ const { load: queryOptInQuery } = useLazyQuery(queryOptIn)
 
 const { toastError } = useAppToast()
 
-
 const { meta: formMeta, values: formValues, setFieldValue } = useForm()
 
 const onSubmit = async () => {
@@ -116,7 +115,9 @@ const onSubmit = async () => {
     messageHeadline.value = t('message.errorTitle')
     messageSubtitle.value = errorMessage
     messageButtonText.value = t('settings.password.reset')
-    messageButtonLinkTo.value = routeWithParamsAndQuery('ForgotPassword', { params: { comingFrom: 'reset-password' } })
+    messageButtonLinkTo.value = routeWithParamsAndQuery('ForgotPassword', {
+      params: { comingFrom: 'reset-password' },
+    })
     toastError(errorMessage)
   }
 }
@@ -128,7 +129,9 @@ const checkOptInCode = async () => {
     })
   } catch (error) {
     toastError(error.message)
-    await router.push(routeWithParamsAndQuery('ForgotPassword', { params: { comingFrom: 'reset-password' } }))
+    await router.push(
+      routeWithParamsAndQuery('ForgotPassword', { params: { comingFrom: 'reset-password' } }),
+    )
   }
 }
 

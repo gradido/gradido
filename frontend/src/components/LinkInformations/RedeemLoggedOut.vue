@@ -16,7 +16,9 @@
         </BCol>
         <BCol sm="12" md="6" class="mt-4 mt-lg-0">
           <p>{{ $t('gdd_per_link.has-account') }}</p>
-          <BButton variant="gradido" :to="routeWithParamsAndQuery('Login')">{{ $t('gdd_per_link.to-login') }}</BButton>
+          <BButton variant="gradido" :to="routeWithParamsAndQuery('Login')">
+            {{ $t('gdd_per_link.to-login') }}
+          </BButton>
         </BCol>
       </BRow>
     </BCard>
