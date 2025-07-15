@@ -572,7 +572,7 @@ export class TransactionLinkResolver {
         throw new LogError('Sender community UUID is not set')
       }
       // now with the sender community UUID the jwt token can be verified
-      const verifiedJwtPayload = await verify(code, senderCom.communityUuid)
+      const verifiedJwtPayload = await verify('handshakeID', code, senderCom.communityUuid)
       logger.debug(
         'TransactionLinkResolver.queryRedeemJwtLink... nach verify verifiedJwtPayload=',
         verifiedJwtPayload,
