@@ -24,6 +24,9 @@
       "dependsOn": ["build"],
       "persistent": true,
       "cache": false
+    },
+    "clear": {
+      "cache": false
     }
   }
 }

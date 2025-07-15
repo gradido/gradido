@@ -21,7 +21,8 @@
     "test": "bun test",
     "test:debug": "bun test --inspect-brk",
     "lint": "biome check --error-on-warnings .",
-    "lint:fix": "biome check --error-on-warnings . --write"
+    "lint:fix": "biome check --error-on-warnings . --write",
+    "clear": "rm -rf node_modules && rm -rf build && rm -rf .turbo"
   },
   "devDependencies": {
     "@biomejs/biome": "2.0.0",

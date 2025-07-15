@@ -21,7 +21,8 @@
     "compile-scss": "node ./scripts/scss.mjs compile",
     "watch-scss": "node ./scripts/scss.mjs watch",
     "compile-scss-sass": "node ./scripts/scss.mjs compile sass",
-    "watch-scss-sass": "node ./scripts/scss.mjs watch sass"
+    "watch-scss-sass": "node ./scripts/scss.mjs watch sass",
+    "clear": "rm -rf node_modules && rm -rf build && rm -rf .turbo"
   },
   "dependencies": {
     "@morev/vue-transitions": "^3.0.2",

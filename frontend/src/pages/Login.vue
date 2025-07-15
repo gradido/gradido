@@ -13,7 +13,10 @@
         </BRow>
         <BRow>
           <BCol class="d-flex justify-content-end mb-4 mb-lg-0">
-            <router-link to="/forgot-password" data-test="forgot-password-link">
+            <router-link
+              :to="routeWithParamsAndQuery('ForgotPassword')"
+              data-test="forgot-password-link"
+            >
               {{ $t('settings.password.forgot_pwd') }}
             </router-link>
           </BCol>
@@ -39,7 +42,7 @@
         </BRow>
         <BRow>
           <BCol class="mt-1 auth-navbar">
-            <BLink :to="register()">
+            <BLink :to="routeWithParamsAndQuery('Register')">
               {{ $t('signup') }}
             </BLink>
           </BCol>
@@ -82,7 +85,7 @@ const { mutate } = useMutation(login)
 const { mutate: mutateHumhubAutoLogin } = useMutation(authenticateHumhubAutoLoginProject)
 // const $loading = useLoading() // TODO needs to be updated but there is some sort of an issue that breaks the app.
 const { toastError } = useAppToast()
-const { register } = useAuthLinks()
+const { routeWithParamsAndQuery } = useAuthLinks()
 
 const form = ref({
   email: '',
@@ -123,7 +126,7 @@ const onSubmit = handleSubmit(async (values) => {
     }
 
     if (route.params.code) {
-      await router.push(`/redeem/${route.params.code}`)
+      await router.push(routeWithParamsAndQuery('Redeem'))
     } else {
       await router.push(store.state.redirectPath)
     }
@@ -131,12 +134,12 @@ const onSubmit = handleSubmit(async (values) => {
     if (error.message.includes('User email not validated')) {
       showPageMessage.value = true
       errorSubtitle.value = t('message.activateEmail')
-      errorLinkTo.value = '/forgot-password'
+      errorLinkTo.value = routeWithParamsAndQuery('ForgotPassword')
       toastError(t('error.no-account'))
     } else if (error.message.includes('User has no password set yet')) {
       showPageMessage.value = true
       errorSubtitle.value = t('message.unsetPassword')
-      errorLinkTo.value = '/reset-password/login'
+      errorLinkTo.value = routeWithParamsAndQuery('ResetPassword')
       toastError(t('error.no-account'))
     } else if (error.message.includes('No user with this credentials')) {
       toastError(t('error.no-user'))

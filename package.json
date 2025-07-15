@@ -25,7 +25,8 @@
     "docker": "cross-env BUILD_COMMIT=$(git rev-parse HEAD) docker compose -f docker-compose.yml up",
     "docker:rebuild": "cross-env BUILD_COMMIT=$(git rev-parse HEAD) docker compose -f docker-compose.yml build",
     "docker_dev": "cross-env BUILD_COMMIT=$(git rev-parse HEAD) docker compose up",
-    "docker_dev:rebuild": "cross-env BUILD_COMMIT=$(git rev-parse HEAD) docker compose build"
+    "docker_dev:rebuild": "cross-env BUILD_COMMIT=$(git rev-parse HEAD) docker compose build",
+    "clear": "rm -rf .turbo && turbo clear"
   },
   "dependencies": {
     "auto-changelog": "^2.4.0",
