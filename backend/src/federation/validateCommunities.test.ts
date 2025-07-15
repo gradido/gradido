@@ -343,7 +343,7 @@ describe('validate Communities', () => {
       })
       it('logs unsupported api for community with api 2_0 ', () => {
         expect(logger.debug).toBeCalledWith(
-          'dbCom with unsupported apiVersion',
+          'dbFedComB with unsupported apiVersion',
           dbCom.endPoint,
           '2_0',
         )
