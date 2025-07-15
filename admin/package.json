@@ -19,7 +19,8 @@
     "test:debug": "cross-env TZ=UTC node --inspect-brk ./node_modules/vitest/vitest.mjs",
     "test:watch": "cross-env TZ=UTC vitest",
     "locales": "scripts/sort.sh",
-    "locales:fix": "scripts/sort.sh --fix"
+    "locales:fix": "scripts/sort.sh --fix",
+    "clear": "rm -rf node_modules && rm -rf build && rm -rf .turbo"
   },
   "dependencies": {
     "@iconify/json": "^2.2.228",

@@ -22,7 +22,8 @@
     "locales": "scripts/sort.sh",
     "locales:fix": "scripts/sort.sh --fix",
     "start": "cross-env TZ=UTC node build/index.js",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "clear": "rm -rf node_modules && rm -rf build && rm -rf .turbo"
   },
   "nodemonConfig": {
     "ignore": [
