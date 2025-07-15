@@ -174,6 +174,13 @@ turbo frontend#dev backend#start admin#start --env-mode=loose
 
 Tip: for local setup use a local nginx server with similar config like docker nginx [nginx.conf](./nginx/gradido.conf) but replace docker image name with localhost
 
+### Clear
+In root folder calling `yarn clear` will clear all turbo caches, node_modules and build folders of all workspaces for a clean rebuild.
+
+```bash
+yarn clear
+```
+
 
 ## Services defined in this package
 
