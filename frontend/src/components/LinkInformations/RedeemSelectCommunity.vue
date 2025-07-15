@@ -17,13 +17,13 @@
       <BRow>
         <BCol sm="12" md="6">
           <p>{{ $t('gdd_per_link.no-account') }}</p>
-          <BButton variant="primary" :disabled="isForeignCommunitySelected" :to="register()">
+          <BButton variant="primary" :disabled="isForeignCommunitySelected" :to="routeWithParamsAndQuery('Register')">
             {{ $t('gdd_per_link.to-register') }}
           </BButton>
         </BCol>
         <BCol sm="12" md="6" class="mt-4 mt-lg-0">
           <p>{{ $t('gdd_per_link.has-account') }}</p>
-          <BButton variant="gradido" :disabled="isForeignCommunitySelected" :to="login()">
+          <BButton variant="gradido" :disabled="isForeignCommunitySelected" :to="routeWithParamsAndQuery('Login')">
             {{ $t('gdd_per_link.to-login') }}
           </BButton>
         </BCol>
@@ -37,7 +37,7 @@ import { ref, computed } from 'vue'
 import CONFIG from '@/config'
 import { useAuthLinks } from '@/composables/useAuthLinks'
 
-const { login, register } = useAuthLinks()
+const { routeWithParamsAndQuery } = useAuthLinks()
 const props = defineProps({
   linkData: { type: Object, required: true },
   redeemCode: { type: String, required: true },

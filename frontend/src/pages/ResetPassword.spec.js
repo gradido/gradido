@@ -362,6 +362,7 @@ describe('ResetPassword', () => {
       })
 
       it('redirects to /forgot-password/resetPassword', () => {
+        console.log(router.currentRoute.value)
         expect(router.currentRoute.value.path).toBe('/forgot-password/resetPassword')
       })
     })
@@ -417,7 +418,7 @@ describe('ResetPassword', () => {
         '...email was sent more than 23 hours and 10 minutes ago',
       )
       expect(message.props('buttonText')).toBe('settings.password.reset')
-      expect(message.props('linkTo')).toBe('/forgot-password/resetPassword')
+      expect(message.props('linkTo')).toMatchObject({ name: 'ForgotPassword', params: { comingFrom: 'reset-password' } })
       expect(mockToastError).toHaveBeenCalledWith(
         '...email was sent more than 23 hours and 10 minutes ago',
       )
@@ -435,7 +436,7 @@ describe('ResetPassword', () => {
       expect(message.props('headline')).toBe('message.title')
       expect(message.props('subtitle')).toBe('message.checkEmail')
       expect(message.props('buttonText')).toBe('login')
-      expect(message.props('linkTo')).toBe('/login')
+      expect(message.props('linkTo')).toMatchObject({ name: 'Login' })
     })
 
     it('handles success response on /reset-password', async () => {
@@ -454,7 +455,7 @@ describe('ResetPassword', () => {
       expect(message.props('headline')).toBe('message.title')
       expect(message.props('subtitle')).toBe('message.checkEmail')
       expect(message.props('buttonText')).toBe('login')
-      expect(message.props('linkTo')).toBe('/login')
+      expect(message.props('linkTo')).toMatchObject({ name: 'Login' })
     })
   })
 

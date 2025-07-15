@@ -77,7 +77,7 @@
         </BRow>
         <BRow>
           <BCol class="mt-1 auth-navbar">
-            <BLink :to="login()">
+            <BLink :to="routeWithParamsAndQuery('Login')">
               {{ $t('signin') }}
             </BLink>
           </BCol>
@@ -105,7 +105,7 @@ import { useAuthLinks } from '@/composables/useAuthLinks'
 import CONFIG from '@/config'
 
 const { toastError } = useAppToast()
-const { login } = useAuthLinks()
+const { routeWithParamsAndQuery } = useAuthLinks()
 
 const { mutate } = useMutation(createUser)
 

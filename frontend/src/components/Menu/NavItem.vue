@@ -3,7 +3,7 @@
     <span v-if="isActive" class="nav-link active" aria-current="page">
       <slot></slot>
     </span>
-    <BNavItem v-else :to="href" class="auth-navbar"><slot></slot></BNavItem>
+    <BNavItem v-else v-bind="props" class="auth-navbar"><slot></slot></BNavItem>
   </li>
 </template>
 
