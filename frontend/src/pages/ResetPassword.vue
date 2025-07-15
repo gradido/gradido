@@ -41,19 +41,22 @@ import InputPasswordConfirmation from '@/components/Inputs/InputPasswordConfirma
 import Message from '@/components/Message/Message.vue'
 import { useAppToast } from '@/composables/useToast'
 import { useForm } from 'vee-validate'
+import { useAuthLinks } from '@/composables/useAuthLinks'
+
+const { routeWithParamsAndQuery } = useAuthLinks()
 
 const textFields = {
   reset: {
     title: 'settings.password.change-password',
     text: 'settings.password.reset-password.text',
     button: 'settings.password.change-password',
-    linkTo: '/login',
+    linkTo: routeWithParamsAndQuery('Login'),
   },
   checkEmail: {
     title: 'settings.password.set',
     text: 'settings.password.set-password.text',
     button: 'settings.password.set',
-    linkTo: '/login',
+    linkTo: routeWithParamsAndQuery('Login'),
   },
 }
 
@@ -100,7 +103,7 @@ const onSubmit = async () => {
       ? t('message.checkEmail')
       : t('message.reset')
     messageButtonText.value = t('login')
-    messageButtonLinkTo.value = route.params.code ? `/login/${route.params.code}` : '/login'
+    messageButtonLinkTo.value = routeWithParamsAndQuery('Login')
   } catch (error) {
     const errorMessage = error.message.match(
       /email was sent more than ([0-9]+ hours)?( and )?([0-9]+ minutes)? ago/,
@@ -112,7 +115,9 @@ const onSubmit = async () => {
     messageHeadline.value = t('message.errorTitle')
     messageSubtitle.value = errorMessage
     messageButtonText.value = t('settings.password.reset')
-    messageButtonLinkTo.value = '/forgot-password/resetPassword'
+    messageButtonLinkTo.value = routeWithParamsAndQuery('ForgotPassword', {
+      params: { comingFrom: 'reset-password' },
+    })
     toastError(errorMessage)
   }
 }
@@ -124,7 +129,9 @@ const checkOptInCode = async () => {
     })
   } catch (error) {
     toastError(error.message)
-    await router.push('/forgot-password/resetPassword')
+    await router.push(
+      routeWithParamsAndQuery('ForgotPassword', { params: { comingFrom: 'reset-password' } }),
+    )
   }
 }
 
