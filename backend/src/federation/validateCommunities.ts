@@ -2,6 +2,7 @@ import {
   Community as DbCommunity,
   FederatedCommunity as DbFederatedCommunity,
   FederatedCommunityLoggingView,
+  getHomeCommunity,
 } from 'database'
 import { IsNull } from 'typeorm'
 
@@ -10,7 +11,7 @@ import { FederationClient as V1_0_FederationClient } from '@/federation/client/1
 import { PublicCommunityInfo } from '@/federation/client/1_0/model/PublicCommunityInfo'
 import { FederationClientFactory } from '@/federation/client/FederationClientFactory'
 import { LogError } from '@/server/LogError'
-import { createKeyPair } from 'core'
+import { createKeyPair } from 'shared'
 import { getLogger } from 'log4js'
 import { startCommunityAuthentication } from './authenticateCommunities'
 import { PublicCommunityInfoLoggingView } from './client/1_0/logging/PublicCommunityInfoLogging.view'
@@ -85,13 +86,13 @@ export async function writeJwtKeyPairInHomeCommunity(): Promise<DbCommunity> {
   logger.debug(`Federation: writeJwtKeyPairInHomeCommunity`)
   try {
     // check for existing homeCommunity entry
-    let homeCom = await DbCommunity.findOne({ where: { foreign: false } })
+    let homeCom = await getHomeCommunity()
     if (homeCom) {
       if (!homeCom.publicJwtKey && !homeCom.privateJwtKey) {
         // Generate key pair using jose library
         const { publicKey, privateKey } = await createKeyPair();
         logger.debug(`Federation: writeJwtKeyPairInHomeCommunity publicKey=`, publicKey);
-        logger.debug(`Federation: writeJwtKeyPairInHomeCommunity privateKey=`, privateKey);
+        logger.debug(`Federation: writeJwtKeyPairInHomeCommunity privateKey=`, privateKey.slice(0, 20));
         
         homeCom.publicJwtKey = publicKey;
         logger.debug(`Federation: writeJwtKeyPairInHomeCommunity publicJwtKey.length=`, homeCom.publicJwtKey.length);

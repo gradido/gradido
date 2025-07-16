@@ -1,4 +1,3 @@
-// import { JWTPayload } from 'jose'
 import { JwtPayloadType } from './JwtPayloadType'
 
 export class RedeemJwtPayloadType extends JwtPayloadType {

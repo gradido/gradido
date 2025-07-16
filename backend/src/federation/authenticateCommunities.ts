@@ -7,9 +7,10 @@ import { AuthenticationClient as V1_0_AuthenticationClient } from '@/federation/
 import { ensureUrlEndsWithSlash } from '@/util/utilities'
 
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { encryptAndSign, EncryptedTransferArgs, OpenConnectionJwtPayloadType } from 'core'
+import { encryptAndSign, OpenConnectionJwtPayloadType } from 'shared'
 import { getLogger } from 'log4js'
 import { AuthenticationClientFactory } from './client/AuthenticationClientFactory'
+import { EncryptedTransferArgs } from 'core'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.federation.authenticateCommunities`)
 

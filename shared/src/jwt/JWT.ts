@@ -1,5 +1,5 @@
 import { generateKeyPair, exportSPKI, exportPKCS8, SignJWT, decodeJwt, importPKCS8, importSPKI, jwtVerify, CompactEncrypt, compactDecrypt } from 'jose'
-import { LOG4JS_BASE_CATEGORY_NAME } from '../../config/const'
+import { LOG4JS_BASE_CATEGORY_NAME } from '../const'
 import { getLogger } from 'log4js'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.auth.jwt.JWT`)

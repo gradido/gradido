@@ -1,6 +1,6 @@
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { AuthenticationJwtPayloadType, AuthenticationResponseJwtPayloadType, encryptAndSign, EncryptedTransferArgs, interpretEncryptedTransferArgs, OpenConnectionCallbackJwtPayloadType, OpenConnectionJwtPayloadType } from 'core'
+import { EncryptedTransferArgs, interpretEncryptedTransferArgs } from 'core'
 import {
   CommunityLoggingView,
   Community as DbCommunity,
@@ -9,6 +9,7 @@ import {
   getHomeCommunity,
 } from 'database'
 import { getLogger } from 'log4js'
+import { AuthenticationJwtPayloadType, AuthenticationResponseJwtPayloadType, encryptAndSign, OpenConnectionCallbackJwtPayloadType, OpenConnectionJwtPayloadType } from 'shared'
 import { Arg, Mutation, Resolver } from 'type-graphql'
 import { startAuthentication, startOpenConnectionCallback } from '../util/authenticateCommunity'
 

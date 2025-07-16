@@ -1,6 +1,6 @@
 import { JWTPayload } from 'jose'
 
-import { REDEEM_JWT_TOKEN_EXPIRATION } from '../../../config/const'
+import { REDEEM_JWT_TOKEN_EXPIRATION } from '../../const'
 
 export class JwtPayloadType implements JWTPayload {
   static ISSUER = 'urn:gradido:issuer'

@@ -39,12 +39,10 @@ import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 import { TRANSACTION_LINK_LOCK } from '@/util/TRANSACTION_LINK_LOCK'
 import { fullName } from '@/util/utilities'
 import { calculateBalance } from '@/util/validate'
-import { RedeemJwtPayloadType, decode, encode, verify } from 'core'
-import { calculateDecay } from 'shared'
+import { calculateDecay, decode, DisburseJwtPayloadType, encode, RedeemJwtPayloadType, verify } from 'shared'
 
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { DisburseJwtPayloadType } from 'core'
-import { Logger, getLogger } from 'log4js'
+import { getLogger, Logger } from 'log4js'
 import { executeTransaction } from './TransactionResolver'
 import {
   getAuthenticatedCommunities,
