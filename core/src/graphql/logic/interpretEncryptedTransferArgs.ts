@@ -1,9 +1,9 @@
 import { EncryptedTransferArgs } from '../model/EncryptedTransferArgs'
-import { JwtPayloadType } from '../../auth/jwt/payloadtypes/JwtPayloadType'
+import { JwtPayloadType } from 'shared'
 import { Community as DbCommunity } from 'database'
 import { getLogger } from 'log4js'
 import { CommunityLoggingView, getHomeCommunity } from 'database'
-import { verifyAndDecrypt } from '../../auth/jwt/JWT'
+import { verifyAndDecrypt } from 'shared'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../../config/const'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.util.interpretEncryptedTransferArgs`)
