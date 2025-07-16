@@ -11,6 +11,7 @@ async function main() {
   initLogging()
   const { app } = await createServer(getLogger('apollo'))
 
+  await writeJwtKeyPairInHomeCommunity()
   app.listen(CONFIG.PORT, () => {
     // biome-ignore lint/suspicious/noConsole: no need for logging the start message
     console.log(`Server is running at http://localhost:${CONFIG.PORT}`)
@@ -19,7 +20,6 @@ async function main() {
       console.log(`GraphIQL available at http://localhost:${CONFIG.PORT}`)
     }
   })
-  await writeJwtKeyPairInHomeCommunity()
   await startValidateCommunities(Number(CONFIG.FEDERATION_VALIDATE_COMMUNITY_TIMER))
 }
 
