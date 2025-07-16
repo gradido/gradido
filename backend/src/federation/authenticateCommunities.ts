@@ -17,20 +17,21 @@ const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.federation.authenticateCo
 export async function startCommunityAuthentication(
   fedComB: DbFederatedCommunity,
 ): Promise<void> {
+  const methodLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.federation.authenticateCommunities.startCommunityAuthentication`)
   const handshakeID = randombytes_random().toString()
-  logger.addContext('handshakeID', handshakeID)
-  logger.debug(`startCommunityAuthentication()...`, {
+  methodLogger.addContext('handshakeID', handshakeID)
+  methodLogger.debug(`startCommunityAuthentication()...`, {
     fedComB: new FederatedCommunityLoggingView(fedComB),
   })
   const homeComA = await getHomeCommunity()
-  logger.debug('homeComA', new CommunityLoggingView(homeComA!))
+  methodLogger.debug('homeComA', new CommunityLoggingView(homeComA!))
   const homeFedComA = await DbFederatedCommunity.findOneByOrFail({
     foreign: false,
     apiVersion: CONFIG.FEDERATION_BACKEND_SEND_ON_API,
   })
-  logger.debug('homeFedComA', new FederatedCommunityLoggingView(homeFedComA))
+  methodLogger.debug('homeFedComA', new FederatedCommunityLoggingView(homeFedComA))
   const comB = await DbCommunity.findOneByOrFail({ publicKey: fedComB.publicKey })
-  logger.debug('started with comB:', new CommunityLoggingView(comB))
+  methodLogger.debug('started with comB:', new CommunityLoggingView(comB))
   // check if communityUuid is not a valid v4Uuid
   try {
     if (
@@ -40,7 +41,7 @@ export async function startCommunityAuthentication(
           (!validateUUID(comB.communityUuid) ||
           versionUUID(comB.communityUuid!) !== 4)))
     ) {
-      logger.debug('comB.uuid is null or is a not valid v4Uuid...', comB.communityUuid || 'null', comB.authenticatedAt || 'null')
+      methodLogger.debug('comB.uuid is null or is a not valid v4Uuid...', comB.communityUuid || 'null', comB.authenticatedAt || 'null')
       const client = AuthenticationClientFactory.getInstance(fedComB)
 
       if (client instanceof V1_0_AuthenticationClient) {
@@ -51,27 +52,27 @@ export async function startCommunityAuthentication(
         const payload = new OpenConnectionJwtPayloadType(handshakeID,
           ensureUrlEndsWithSlash(homeFedComA.endPoint).concat(homeFedComA.apiVersion),
         )
-        logger.debug('payload', payload)
+        methodLogger.debug('payload', payload)
         const jws = await encryptAndSign(payload, homeComA!.privateJwtKey!, comB.publicJwtKey!)
-        logger.debug('jws', jws)
+        methodLogger.debug('jws', jws)
         // prepare the args for the client invocation
         const args = new EncryptedTransferArgs()
         args.publicKey = homeComA!.publicKey.toString('hex')
         args.jwt = jws
         args.handshakeID = handshakeID
-        logger.debug('before client.openConnection() args:', args)
+        methodLogger.debug('before client.openConnection() args:', args)
         const result = await client.openConnection(args)
         if (result) {
-          logger.debug(`successful initiated at community:`, fedComB.endPoint)
+          methodLogger.debug(`successful initiated at community:`, fedComB.endPoint)
         } else {
-          logger.error(`can't initiate at community:`, fedComB.endPoint)
+          methodLogger.error(`can't initiate at community:`, fedComB.endPoint)
         }
       }
     } else {
-      logger.debug(`comB.communityUuid is already a valid v4Uuid ${ comB.communityUuid || 'null' } and was authenticated at ${ comB.authenticatedAt || 'null'}`)
+      methodLogger.debug(`comB.communityUuid is already a valid v4Uuid ${ comB.communityUuid || 'null' } and was authenticated at ${ comB.authenticatedAt || 'null'}`)
     }
   } catch (err) {
-    logger.error(`Error:`, err)
+    methodLogger.error(`Error:`, err)
   }
-  logger.removeContext('handshakeID')
+  methodLogger.removeContext('handshakeID')
 }

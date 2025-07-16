@@ -22,43 +22,44 @@ export class AuthenticationResolver {
     @Arg('data')
     args: EncryptedTransferArgs,
   ): Promise<boolean> {
-    logger.addContext('handshakeID', args.handshakeID)
-    logger.debug(`openConnection() via apiVersion=1_0:`, args)
+    const methodLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.api.1_0.resolver.AuthenticationResolver.openConnection`)
+    methodLogger.addContext('handshakeID', args.handshakeID)
+    methodLogger.debug(`openConnection() via apiVersion=1_0:`, args)
     const openConnectionJwtPayload = await interpretEncryptedTransferArgs(args) as OpenConnectionJwtPayloadType
-    logger.debug('openConnectionJwtPayload', openConnectionJwtPayload)
+    methodLogger.debug('openConnectionJwtPayload', openConnectionJwtPayload)
     if (!openConnectionJwtPayload) {
       const errmsg = `invalid OpenConnection payload of requesting community with publicKey` + args.publicKey
-      logger.error(errmsg)
-      logger.removeContext('handshakeID')
+      methodLogger.error(errmsg)
+      methodLogger.removeContext('handshakeID')
       throw new Error(errmsg)
     }
     if (openConnectionJwtPayload.tokentype !== OpenConnectionJwtPayloadType.OPEN_CONNECTION_TYPE) {
       const errmsg = `invalid tokentype of community with publicKey` + args.publicKey
-      logger.error(errmsg)
-      logger.removeContext('handshakeID')
+      methodLogger.error(errmsg)
+      methodLogger.removeContext('handshakeID')
       throw new Error(errmsg)
     }
     if (!openConnectionJwtPayload.url) {
       const errmsg = `invalid url of community with publicKey` + args.publicKey
-      logger.error(errmsg)
-      logger.removeContext('handshakeID')
+      methodLogger.error(errmsg)
+      methodLogger.removeContext('handshakeID')
       throw new Error(errmsg)
     }
-    logger.debug(`vor DbFedCommunity.findOneByOrFail()...`, { publicKey: args.publicKey })
+    methodLogger.debug(`vor DbFedCommunity.findOneByOrFail()...`, { publicKey: args.publicKey })
     const fedComA = await DbFedCommunity.findOneByOrFail({ publicKey: Buffer.from(args.publicKey, 'hex') })
-    logger.debug(`nach DbFedCommunity.findOneByOrFail()...`, fedComA)
-    logger.debug('fedComA', new FederatedCommunityLoggingView(fedComA))
+    methodLogger.debug(`nach DbFedCommunity.findOneByOrFail()...`, fedComA)
+    methodLogger.debug('fedComA', new FederatedCommunityLoggingView(fedComA))
     if (!openConnectionJwtPayload.url.startsWith(fedComA.endPoint)) {
       const errmsg = `invalid url of community with publicKey` + args.publicKey
-      logger.error(errmsg)
-      logger.removeContext('handshakeID')
+      methodLogger.error(errmsg)
+      methodLogger.removeContext('handshakeID')
       throw new Error(errmsg)
     }
 
     // no await to respond immediately and invoke callback-request asynchronously
     void startOpenConnectionCallback(args.handshakeID, args.publicKey, CONFIG.FEDERATION_API)
-    logger.debug('openConnection() successfully initiated callback and returns true immediately...')
-    logger.removeContext('handshakeID')
+    methodLogger.debug('openConnection() successfully initiated callback and returns true immediately...')
+    methodLogger.removeContext('handshakeID')
     return true
   }
 
@@ -67,35 +68,36 @@ export class AuthenticationResolver {
     @Arg('data')
     args: EncryptedTransferArgs,
   ): Promise<boolean> {
-    logger.addContext('handshakeID', args.handshakeID)
-    logger.debug(`openConnectionCallback() via apiVersion=1_0 ...`, args)
+    const methodLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.api.1_0.resolver.AuthenticationResolver.openConnectionCallback`)
+    methodLogger.addContext('handshakeID', args.handshakeID)
+    methodLogger.debug(`openConnectionCallback() via apiVersion=1_0 ...`, args)
     // decrypt args.url with homeCom.privateJwtKey and verify signing with callbackFedCom.publicKey
     const openConnectionCallbackJwtPayload = await interpretEncryptedTransferArgs(args) as OpenConnectionCallbackJwtPayloadType
     if (!openConnectionCallbackJwtPayload) {
       const errmsg = `invalid OpenConnectionCallback payload of requesting community with publicKey` + args.publicKey
-      logger.error(errmsg)
-      logger.removeContext('handshakeID')
+      methodLogger.error(errmsg)
+      methodLogger.removeContext('handshakeID')
       throw new Error(errmsg)
     }
 
     const endPoint = openConnectionCallbackJwtPayload.url.slice(0, openConnectionCallbackJwtPayload.url.lastIndexOf('/') + 1)
     const apiVersion = openConnectionCallbackJwtPayload.url.slice(openConnectionCallbackJwtPayload.url.lastIndexOf('/') + 1, openConnectionCallbackJwtPayload.url.length)
-    logger.debug(`search fedComB per:`, endPoint, apiVersion)
+    methodLogger.debug(`search fedComB per:`, endPoint, apiVersion)
     const fedComB = await DbFedCommunity.findOneBy({ endPoint, apiVersion })
     if (!fedComB) {
       const errmsg = `unknown callback community with url` + openConnectionCallbackJwtPayload.url
-      logger.error(errmsg)
-      logger.removeContext('handshakeID')
+      methodLogger.error(errmsg)
+      methodLogger.removeContext('handshakeID')
       throw new Error(errmsg)
     }
-    logger.debug(
+    methodLogger.debug(
       `found fedComB and start authentication:`,
       new FederatedCommunityLoggingView(fedComB),
     )
     // no await to respond immediately and invoke authenticate-request asynchronously
     void startAuthentication(args.handshakeID, openConnectionCallbackJwtPayload.oneTimeCode, fedComB)
-    logger.debug('openConnectionCallback() successfully initiated authentication and returns true immediately...')
-    logger.removeContext('handshakeID')
+    methodLogger.debug('openConnectionCallback() successfully initiated authentication and returns true immediately...')
+    methodLogger.removeContext('handshakeID')
     return true
   }
 
@@ -104,31 +106,32 @@ export class AuthenticationResolver {
     @Arg('data')
     args: EncryptedTransferArgs,
   ): Promise<string | null> {
-    logger.addContext('handshakeID', args.handshakeID)
-    logger.debug(`authenticate() via apiVersion=1_0 ...`, args)
+    const methodLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.api.1_0.resolver.AuthenticationResolver.authenticate`)
+    methodLogger.addContext('handshakeID', args.handshakeID)
+    methodLogger.debug(`authenticate() via apiVersion=1_0 ...`, args)
     const authArgs = await interpretEncryptedTransferArgs(args) as AuthenticationJwtPayloadType
     if (!authArgs) {
       const errmsg = `invalid authentication payload of requesting community with publicKey` + args.publicKey
-      logger.error(errmsg)
-      logger.removeContext('handshakeID')
+      methodLogger.error(errmsg)
+      methodLogger.removeContext('handshakeID')
       throw new Error(errmsg)
     }
     const authCom = await DbCommunity.findOneByOrFail({ communityUuid: authArgs.oneTimeCode })
-    logger.debug('found authCom:', new CommunityLoggingView(authCom))
+    methodLogger.debug('found authCom:', new CommunityLoggingView(authCom))
     if (authCom) {
       authCom.communityUuid = authArgs.uuid
       authCom.authenticatedAt = new Date()
       await DbCommunity.save(authCom)
-      logger.debug('store authCom.uuid successfully:', new CommunityLoggingView(authCom))
+      methodLogger.debug('store authCom.uuid successfully:', new CommunityLoggingView(authCom))
       const homeComB = await getHomeCommunity()
       if (homeComB?.communityUuid) {
         const responseArgs = new AuthenticationResponseJwtPayloadType(args.handshakeID,homeComB.communityUuid)
         const responseJwt = await encryptAndSign(responseArgs, homeComB.privateJwtKey!, authCom.publicJwtKey!)
-        logger.removeContext('handshakeID')
+        methodLogger.removeContext('handshakeID')
         return responseJwt
       }
     }
-    logger.removeContext('handshakeID')
+    methodLogger.removeContext('handshakeID')
     return null
   }
 }

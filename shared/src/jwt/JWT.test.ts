@@ -84,7 +84,7 @@ describe('test JWE encryption and decryption', () => {
       jweComB = await encrypt(new OpenConnectionJwtPayloadType('handshakeID', 'http://localhost:5002/api/'), keypairComA.publicKey)
     })
     it('decrypt jweComA', async () => {
-      const decryptedAJwT = await decrypt(jweComA, keypairComB.privateKey)
+      const decryptedAJwT = await decrypt('handshakeID', jweComA, keypairComB.privateKey)
       expect(JSON.parse(decryptedAJwT)).toEqual(expect.objectContaining({
         tokentype: OpenConnectionJwtPayloadType.OPEN_CONNECTION_TYPE,
         url: 'http://localhost:5001/api/',
@@ -92,7 +92,7 @@ describe('test JWE encryption and decryption', () => {
       }))
     })
     it('decrypt jweComB', async () => {
-      const decryptedBJwT = await decrypt(jweComB, keypairComA.privateKey)
+      const decryptedBJwT = await decrypt('handshakeID', jweComB, keypairComA.privateKey)
       expect(JSON.parse(decryptedBJwT)).toEqual(expect.objectContaining({
         tokentype: OpenConnectionJwtPayloadType.OPEN_CONNECTION_TYPE,
         url: 'http://localhost:5002/api/',
@@ -134,14 +134,14 @@ describe('test encrypted and signed JWT', () => {
       }))
     })
     it('decrypt jweComA', async () => {
-      expect(JSON.parse(await decrypt(jweComA, keypairComB.privateKey))).toEqual(expect.objectContaining({
+      expect(JSON.parse(await decrypt('handshakeID', jweComA, keypairComB.privateKey))).toEqual(expect.objectContaining({
         tokentype: OpenConnectionJwtPayloadType.OPEN_CONNECTION_TYPE,
         url: 'http://localhost:5001/api/',
         handshakeID: 'handshakeID',
       }))
     })
     it('decrypt jweComB', async () => {
-      expect(JSON.parse(await decrypt(jweComB, keypairComA.privateKey))).toEqual(expect.objectContaining({
+      expect(JSON.parse(await decrypt('handshakeID', jweComB, keypairComA.privateKey))).toEqual(expect.objectContaining({
         tokentype: OpenConnectionJwtPayloadType.OPEN_CONNECTION_TYPE,
         url: 'http://localhost:5002/api/',
         handshakeID: 'handshakeID',

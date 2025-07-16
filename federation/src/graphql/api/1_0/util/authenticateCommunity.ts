@@ -23,8 +23,9 @@ export async function startOpenConnectionCallback(
   publicKey: string,
   api: string,
 ): Promise<void> {
-  logger.addContext('handshakeID', handshakeID)
-  logger.debug(`Authentication: startOpenConnectionCallback() with:`, {
+  const methodLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.api.1_0.util.authenticateCommunity.startOpenConnectionCallback`)
+  methodLogger.addContext('handshakeID', handshakeID)
+  methodLogger.debug(`Authentication: startOpenConnectionCallback() with:`, {
     publicKey,
   })
   try {
@@ -43,7 +44,7 @@ export async function startOpenConnectionCallback(
     // store oneTimeCode in requestedCom.community_uuid as authenticate-request-identifier
     comA.communityUuid = oneTimeCode
     await DbCommunity.save(comA)
-    logger.debug(
+    methodLogger.debug(
       `Authentication: stored oneTimeCode in requestedCom:`,
       new CommunityLoggingView(comA),
     )
@@ -56,7 +57,7 @@ export async function startOpenConnectionCallback(
         : homeFedComB.endPoint + '/' + homeFedComB.apiVersion
 
       const callbackArgs = new OpenConnectionCallbackJwtPayloadType(handshakeID, oneTimeCode, url)
-      logger.debug(`Authentication: start openConnectionCallback with args:`, callbackArgs)
+      methodLogger.debug(`Authentication: start openConnectionCallback with args:`, callbackArgs)
       // encrypt callbackArgs with requestedCom.publicJwtKey and sign it with homeCom.privateJwtKey
       const jwt = await encryptAndSign(callbackArgs, homeComB!.privateJwtKey!, comA.publicJwtKey!)
       const args = new EncryptedTransferArgs()
@@ -65,15 +66,15 @@ export async function startOpenConnectionCallback(
       args.handshakeID = handshakeID
       const result = await client.openConnectionCallback(args)
       if (result) {
-        logger.debug('startOpenConnectionCallback() successful:', jwt)
+        methodLogger.debug('startOpenConnectionCallback() successful:', jwt)
       } else {
-        logger.error('startOpenConnectionCallback() failed:', jwt)
+        methodLogger.error('startOpenConnectionCallback() failed:', jwt)
       }
     }
   } catch (err) {
-    logger.error('error in startOpenConnectionCallback:', err)
+    methodLogger.error('error in startOpenConnectionCallback:', err)
   }
-  logger.removeContext('handshakeID')
+  methodLogger.removeContext('handshakeID')
 }
 
 export async function startAuthentication(
@@ -81,8 +82,9 @@ export async function startAuthentication(
   oneTimeCode: string,
   fedComB: DbFedCommunity,
 ): Promise<void> {
-  logger.addContext('handshakeID', handshakeID)
-  logger.debug(`startAuthentication()...`, {
+  const methodLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.api.1_0.util.authenticateCommunity.startAuthentication`)
+  methodLogger.addContext('handshakeID', handshakeID)
+  methodLogger.debug(`startAuthentication()...`, {
     oneTimeCode,
     fedComB: new FederatedCommunityLoggingView(fedComB),
   })
@@ -106,36 +108,38 @@ export async function startAuthentication(
       args.publicKey = homeComA!.publicKey.toString('hex')
       args.jwt = jwt
       args.handshakeID = handshakeID
-      logger.debug(`invoke authenticate() with:`, args)
+      methodLogger.debug(`invoke authenticate() with:`, args)
       const responseJwt = await client.authenticate(args)
-      logger.debug(`response of authenticate():`, responseJwt)
+      methodLogger.debug(`response of authenticate():`, responseJwt)
       if (responseJwt !== null) {
         const payload = await verifyAndDecrypt(handshakeID, responseJwt, homeComA!.privateJwtKey!, comB.publicJwtKey!) as AuthenticationResponseJwtPayloadType
-        logger.debug(
+        methodLogger.debug(
           `received payload from authenticate ComB:`,
           payload,
           new FederatedCommunityLoggingView(fedComB),
         )
         if (payload.tokentype !== AuthenticationResponseJwtPayloadType.AUTHENTICATION_RESPONSE_TYPE) {
           const errmsg = `Invalid tokentype in authenticate-response of community with publicKey` + comB.publicKey
-          logger.error(errmsg)
+          methodLogger.error(errmsg)
+          methodLogger.removeContext('handshakeID')
           throw new Error(errmsg)
         }
         if (!payload.uuid || !validateUUID(payload.uuid) || versionUUID(payload.uuid) !== 4) {
           const errmsg = `Invalid uuid in authenticate-response of community with publicKey` + comB.publicKey
-          logger.error(errmsg)
+          methodLogger.error(errmsg)
+          methodLogger.removeContext('handshakeID')
           throw new Error(errmsg)
         }
         comB.communityUuid = payload.uuid
         comB.authenticatedAt = new Date()
         await DbCommunity.save(comB)
-        logger.debug('Community Authentication successful:', new CommunityLoggingView(comB))
+        methodLogger.debug('Community Authentication successful:', new CommunityLoggingView(comB))
       } else {
-        logger.error('Community Authentication failed:', authenticationArgs)
+        methodLogger.error('Community Authentication failed:', authenticationArgs)
       }
     }
   } catch (err) {
-    logger.error('error in startAuthentication:', err)
+    methodLogger.error('error in startAuthentication:', err)
   }
-  logger.removeContext('handshakeID')
+  methodLogger.removeContext('handshakeID')
 }

@@ -22,11 +22,13 @@ export const createKeyPair = async (): Promise<{ publicKey: string; privateKey: 
 }
 
 export const verify = async (handshakeID: string, token: string, publicKey: string): Promise<JwtPayloadType | null> => {
+  const methodLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.auth.jwt.JWT.verify`)
+  methodLogger.addContext('handshakeID', handshakeID)
   if (!token) {
-    logger.error('verify... token is empty')
+    methodLogger.error('verify... token is empty')
     throw new Error('401 Unauthorized')
   }
-  logger.debug('verify... token, publicKey=', token, publicKey)
+  methodLogger.debug('verify... token, publicKey=', token, publicKey)
 
   try {
     const importedKey = await importSPKI(publicKey, 'RS256')
@@ -40,17 +42,21 @@ export const verify = async (handshakeID: string, token: string, publicKey: stri
       audience: JwtPayloadType.AUDIENCE,
     })
     payload.handshakeID = handshakeID
-    logger.debug('verify after jwtVerify... payload=', payload)
+    methodLogger.debug('verify after jwtVerify... payload=', payload)
+    methodLogger.removeContext('handshakeID')
     return payload as JwtPayloadType
   } catch (err) {
-    logger.error('verify after jwtVerify... error=', err)
+    methodLogger.error('verify after jwtVerify... error=', err)
+    methodLogger.removeContext('handshakeID')
     return null
   }
 }
 
 export const encode = async (payload: JwtPayloadType, privatekey: string): Promise<string> => {
-  logger.debug('encode... payload=', payload)
-  logger.debug('encode... privatekey=', privatekey.substring(0, 10))
+  const methodLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.auth.jwt.JWT.encode`)
+  methodLogger.addContext('handshakeID', payload.handshakeID)
+  methodLogger.debug('encode... payload=', payload)
+  methodLogger.debug('encode... privatekey=', privatekey.substring(0, 20))
   try {
     const importedKey = await importPKCS8(privatekey, 'RS256')
     const secret = typeof importedKey === 'string' 
@@ -67,9 +73,12 @@ export const encode = async (payload: JwtPayloadType, privatekey: string): Promi
       .setAudience(JwtPayloadType.AUDIENCE)
       .setExpirationTime(payload.expiration)
       .sign(secret)
+    methodLogger.debug('encode... token=', token)
+    methodLogger.removeContext('handshakeID')
     return token
   } catch (e) {
-    logger.error('Failed to sign JWT:', e)
+    methodLogger.error('Failed to sign JWT:', e)
+    methodLogger.removeContext('handshakeID')
     throw e
   }
 }
@@ -85,9 +94,10 @@ export const decode = (token: string): JwtPayloadType => {
 }
 
 export const encrypt = async (payload: JwtPayloadType, publicKey: string): Promise<string> => {
-  logger.addContext('handshakeID', payload.handshakeID)
-  logger.debug('encrypt... payload=', payload)
-  logger.debug('encrypt... publicKey=', publicKey)
+  const methodLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.auth.jwt.JWT.encrypt`)
+  methodLogger.addContext('handshakeID', payload.handshakeID)
+  methodLogger.debug('encrypt... payload=', payload)
+  methodLogger.debug('encrypt... publicKey=', publicKey)
   try {
     const encryptKey = await importSPKI(publicKey, 'RSA-OAEP-256')
     // Convert the key to JWK format if needed
@@ -100,48 +110,56 @@ export const encrypt = async (payload: JwtPayloadType, publicKey: string): Promi
     )
       .setProtectedHeader({ alg: 'RSA-OAEP-256', enc: 'A256GCM' })
       .encrypt(recipientKey)
-   logger.debug('encrypt... jwe=', jwe)
+    methodLogger.debug('encrypt... jwe=', jwe)
+    methodLogger.removeContext('handshakeID')
     return jwe.toString()
   } catch (e) {
-    logger.error('Failed to encrypt JWT:', e)
+    methodLogger.error('Failed to encrypt JWT:', e)
+    methodLogger.removeContext('handshakeID')
     throw e
   }
 }
 
-export const decrypt = async(jwe: string, privateKey: string): Promise<string> => {
-  logger.debug('decrypt... jwe=', jwe)
-  logger.debug('decrypt... privateKey=', privateKey.substring(0, 10))
+export const decrypt = async(handshakeID: string, jwe: string, privateKey: string): Promise<string> => {
+  const methodLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.auth.jwt.JWT.decrypt`)
+  methodLogger.addContext('handshakeID', handshakeID)
+  methodLogger.debug('decrypt... jwe=', jwe)
+  methodLogger.debug('decrypt... privateKey=', privateKey.substring(0, 10))
   try {
     const decryptKey = await importPKCS8(privateKey, 'RSA-OAEP-256')
     const { plaintext, protectedHeader } =
       await compactDecrypt(jwe, decryptKey)
-    logger.debug('decrypt... plaintext=', plaintext)
-    logger.debug('decrypt... protectedHeader=', protectedHeader)
+    methodLogger.debug('decrypt... plaintext=', plaintext)
+    methodLogger.debug('decrypt... protectedHeader=', protectedHeader)
+    methodLogger.removeContext('handshakeID')
     return new TextDecoder().decode(plaintext)
   } catch (e) {
-    logger.error('Failed to decrypt JWT:', e)
+    methodLogger.error('Failed to decrypt JWT:', e)
+    methodLogger.removeContext('handshakeID')
     throw e
   }
 }
 
 export const encryptAndSign = async (payload: JwtPayloadType, privateKey: string, publicKey: string): Promise<string> => {
-  logger.addContext('handshakeID', payload.handshakeID)
+  const methodLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.auth.jwt.JWT.encryptAndSign`)
+  methodLogger.addContext('handshakeID', payload.handshakeID)
   const jwe = await encrypt(payload, publicKey)
-  logger.debug('encryptAndSign... jwe=', jwe)
+  methodLogger.debug('encryptAndSign... jwe=', jwe)
   const jws = await encode(new EncryptedJWEJwtPayloadType(payload.handshakeID, jwe), privateKey)
-  logger.debug('encryptAndSign... jws=', jws)
-  logger.removeContext('handshakeID')
+  methodLogger.debug('encryptAndSign... jws=', jws)
+  methodLogger.removeContext('handshakeID')
   return jws
 }
 
 export const verifyAndDecrypt = async (handshakeID: string, token: string, privateKey: string, publicKey: string): Promise<JwtPayloadType | null> => {
-  logger.addContext('handshakeID', handshakeID)
+  const methodLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.auth.jwt.JWT.verifyAndDecrypt`)
+  methodLogger.addContext('handshakeID', handshakeID)
   const jweVerifyResult = await verify(handshakeID, token, publicKey)
   if (!jweVerifyResult) {
     return null
   }
   const jwePayload = jweVerifyResult.payload as EncryptedJWEJwtPayloadType
-  logger.debug('verifyAndDecrypt... jwePayload=', jwePayload)
+  methodLogger.debug('verifyAndDecrypt... jwePayload=', jwePayload)
   if (!jwePayload) {
     return null
   }
@@ -150,9 +168,9 @@ export const verifyAndDecrypt = async (handshakeID: string, token: string, priva
     return null
   }
   const jwe = jwePayload.jwe
-  logger.debug('verifyAndDecrypt... jwe=', jwe)
-  const payload = await decrypt(jwe as string, privateKey)
-  logger.debug('verifyAndDecrypt... payload=', payload)
-  logger.removeContext('handshakeID')
+  methodLogger.debug('verifyAndDecrypt... jwe=', jwe)
+  const payload = await decrypt(handshakeID, jwe as string, privateKey)
+  methodLogger.debug('verifyAndDecrypt... payload=', payload)
+  methodLogger.removeContext('handshakeID')
   return JSON.parse(payload) as JwtPayloadType
 }
