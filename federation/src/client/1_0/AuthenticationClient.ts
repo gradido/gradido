@@ -11,10 +11,8 @@ export class AuthenticationClient {
   dbCom: DbFederatedCommunity
   endpoint: string
   client: GraphQLClient
-  logger: Logger
 
   constructor(dbCom: DbFederatedCommunity) {
-    this.logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.client.1_0.AuthenticationClient`)
     this.dbCom = dbCom
     this.endpoint = `${dbCom.endPoint.endsWith('/') ? dbCom.endPoint : dbCom.endPoint + '/'}${
       dbCom.apiVersion
@@ -29,38 +27,40 @@ export class AuthenticationClient {
   }
 
   async openConnectionCallback(args: EncryptedTransferArgs): Promise<boolean> {
-    this.logger.addContext('handshakeID', args.handshakeID)
-    this.logger.debug('openConnectionCallback with endpoint', this.endpoint, args)
+    const methodLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.client.1_0.AuthenticationClient.openConnectionCallback`)
+    methodLogger.addContext('handshakeID', args.handshakeID)
+    methodLogger.debug('openConnectionCallback with endpoint', this.endpoint, args)
     try {
       const { data } = await this.client.rawRequest<any>(openConnectionCallback, { args })
-      this.logger.debug('after openConnectionCallback: data:', data)
+      methodLogger.debug('after openConnectionCallback: data:', data)
 
       if (!data || !data.openConnectionCallback) {
-        this.logger.warn('openConnectionCallback without response data from endpoint', this.endpoint)
+        methodLogger.warn('openConnectionCallback without response data from endpoint', this.endpoint)
         return false
       }
-      this.logger.debug('openConnectionCallback successfully started with endpoint', this.endpoint)
+      methodLogger.debug('openConnectionCallback successfully started with endpoint', this.endpoint)
       return true
     } catch (err) {
-      this.logger.error('error on openConnectionCallback', err)
+      methodLogger.error('error on openConnectionCallback', err)
     }
     return false
   }
 
   async authenticate(args: EncryptedTransferArgs): Promise<string | null> {
-    this.logger.addContext('handshakeID', args.handshakeID)
-    this.logger.debug('authenticate with endpoint=', this.endpoint)
+    const methodLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.client.1_0.AuthenticationClient.authenticate`)
+    methodLogger.addContext('handshakeID', args.handshakeID)
+    methodLogger.debug('authenticate with endpoint=', this.endpoint)
     try {
       const { data } = await this.client.rawRequest<any>(authenticate, { args })
-      this.logger.debug('after authenticate: data:', data)
+      methodLogger.debug('after authenticate: data:', data)
 
       const authUuid: string = data?.authenticate
       if (authUuid) {
-        this.logger.debug('received authenticated uuid', authUuid)
+        methodLogger.debug('received authenticated uuid', authUuid)
         return authUuid
       }
     } catch (err) {
-      this.logger.error('authenticate failed', {
+      methodLogger.error('authenticate failed', {
         endpoint: this.endpoint,
         err,
       })
