@@ -5,7 +5,7 @@ import { ensureUrlEndsWithSlash } from '@/util/utilities'
 
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { getLogger } from 'log4js'
-import { OpenConnectionArgs } from './model/OpenConnectionArgs'
+import { EncryptedTransferArgs } from 'core/src/graphql/model/EncryptedTransferArgs'
 import { openConnection } from './query/openConnection'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.federation.client.1_0.AuthenticationClient`)
@@ -27,7 +27,7 @@ export class AuthenticationClient {
     })
   }
 
-  async openConnection(args: OpenConnectionArgs): Promise<boolean | undefined> {
+  async openConnection(args: EncryptedTransferArgs): Promise<boolean | undefined> {
     logger.debug(`openConnection at ${this.endpoint} for args:`, args)
     try {
       const { data } = await this.client.rawRequest<{ openConnection: boolean }>(openConnection, {

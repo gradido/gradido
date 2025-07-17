@@ -42,7 +42,7 @@ export const schema = Joi.object({
   OPENAI_ACTIVE,
   PRODUCTION,
 
-  COMMUNITY_REDEEM_URL: Joi.string()
+ COMMUNITY_REDEEM_URL: Joi.string()
     .uri({ scheme: ['http', 'https'] })
     .description('The url for redeeming link transactions, must start with frontend base url')
     .default('http://0.0.0.0/redeem/')
