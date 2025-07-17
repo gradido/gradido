@@ -18,7 +18,8 @@
     "test:debug": "cross-env TZ=UTC NODE_ENV=development DB_DATABASE=gradido_test_federation node --inspect-brk node_modules/.bin/jest --bail --runInBand --forceExit --detectOpenHandles",
     "test:coverage": "cross-env TZ=UTC NODE_ENV=development DB_DATABASE=gradido_test_federation jest --coverage --runInBand --forceExit --detectOpenHandles",
     "lint": "biome check --error-on-warnings .",
-    "lint:fix": "biome check --error-on-warnings . --write"
+    "lint:fix": "biome check --error-on-warnings . --write",
+    "clear": "rm -rf node_modules && rm -rf build && rm -rf .turbo"
   },
   "dependencies": {
     "cross-env": "^7.0.3",
