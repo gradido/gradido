@@ -165,6 +165,9 @@ trap onError ERR
 
 # stop all services
 log_step "Stop and delete all Gradido services"
+# make sure nvm is loaded
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 # check if pm2  has processes, maybe it was already cleared from a failed update
 # pm2 delete all if pm2 has no processes will trigger error and stop script
 # so let's check first
