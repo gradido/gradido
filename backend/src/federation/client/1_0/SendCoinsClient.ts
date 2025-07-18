@@ -7,13 +7,12 @@ import { getLogger } from 'log4js'
 
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { SendCoinsArgsLoggingView } from './logging/SendCoinsArgsLogging.view'
-import { SendCoinsResultLoggingView } from './logging/SendCoinsResultLogging.view'
 import { SendCoinsArgs } from './model/SendCoinsArgs'
-import { SendCoinsResult } from './model/SendCoinsResult'
 import { revertSendCoins as revertSendCoinsQuery } from './query/revertSendCoins'
 import { revertSettledSendCoins as revertSettledSendCoinsQuery } from './query/revertSettledSendCoins'
 import { settleSendCoins as settleSendCoinsQuery } from './query/settleSendCoins'
 import { voteForSendCoins as voteForSendCoinsQuery } from './query/voteForSendCoins'
+import { EncryptedTransferArgs } from 'core'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.federation.client.1_0.SendCoinsClient`)
 
@@ -34,27 +33,21 @@ export class SendCoinsClient {
     })
   }
 
-  async voteForSendCoins(args: SendCoinsArgs): Promise<SendCoinsResult> {
+  async voteForSendCoins(args: EncryptedTransferArgs): Promise<string | null> {
     logger.debug('voteForSendCoins against endpoint=', this.endpoint)
     try {
-      logger.debug(`voteForSendCoins with args=`, new SendCoinsArgsLoggingView(args))
-      const { data } = await this.client.rawRequest<{ voteForSendCoins: SendCoinsResult }>(
-        voteForSendCoinsQuery,
-        { args },
-      )
-      const result = data.voteForSendCoins
-      if (!data?.voteForSendCoins?.vote) {
-        logger.debug('voteForSendCoins failed with: ', new SendCoinsResultLoggingView(result))
-        return new SendCoinsResult()
+      const { data } = await this.client.rawRequest<any>(voteForSendCoinsQuery, { args })
+      const responseJwt: string = data?.voteForSendCoins
+      if (responseJwt) {
+        logger.debug('received response jwt', responseJwt)
+        return responseJwt
       }
-      logger.debug(
-        'voteForSendCoins successful with result=',
-        new SendCoinsResultLoggingView(result),
-      )
-      return result
     } catch (err) {
-      throw new LogError(`voteForSendCoins failed for endpoint=${this.endpoint}:`, err)
+      const errmsg = `voteForSendCoins failed for endpoint=${this.endpoint}, err=${err}`
+      logger.error(errmsg)
+      throw new Error(errmsg)
     }
+    return null
   }
 
   async revertSendCoins(args: SendCoinsArgs): Promise<boolean> {

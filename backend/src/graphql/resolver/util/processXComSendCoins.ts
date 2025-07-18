@@ -16,7 +16,7 @@ import { SendCoinsClient as V1_0_SendCoinsClient } from '@/federation/client/1_0
 import { SendCoinsArgs } from '@/federation/client/1_0/model/SendCoinsArgs'
 import { SendCoinsResult } from '@/federation/client/1_0/model/SendCoinsResult'
 import { SendCoinsClientFactory } from '@/federation/client/SendCoinsClientFactory'
-import { PendingTransactionState } from 'shared'
+import { encryptAndSign, PendingTransactionState } from 'shared'
 import { TransactionTypeId } from '@/graphql/enum/TransactionTypeId'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { LogError } from '@/server/LogError'
@@ -27,6 +27,8 @@ import { getLogger } from 'log4js'
 import { settlePendingSenderTransaction } from './settlePendingSenderTransaction'
 import { SendCoinsArgsLoggingView } from '@/federation/client/1_0/logging/SendCoinsArgsLogging.view'
 import { SendCoinsResultLoggingView } from '@/federation/client/1_0/logging/SendCoinsResultLogging.view'
+import { EncryptedTransferArgs, SendCoinsJwtPayloadType } from 'core'
+import { randombytes_random } from 'sodium-native'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.util.processXComSendCoins`)
 
@@ -41,9 +43,10 @@ export async function processXComPendingSendCoins(
 ): Promise<SendCoinsResult> {
   let voteResult: SendCoinsResult
   try {
+    const methodLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.util.processXComSendCoins.processXComPendingSendCoins`)
     // even if debug is not enabled, attributes are processed so we skip the entire call for performance reasons
-    if(logger.isDebugEnabled()) {
-      logger.debug(
+    if(methodLogger.isDebugEnabled()) {
+      methodLogger.debug(
         'XCom: processXComPendingSendCoins...', {
           receiverCom: new CommunityLoggingView(receiverCom),
           senderCom: new CommunityLoggingView(senderCom),
@@ -59,13 +62,15 @@ export async function processXComPendingSendCoins(
         `There exist still ongoing 'Pending-Transactions' for the involved users on sender-side!`,
       )
     }
+    const handshakeID = randombytes_random().toString()
+    methodLogger.addContext('handshakeID', handshakeID)
     // first calculate the sender balance and check if the transaction is allowed
     const senderBalance = await calculateSenderBalance(sender.id, amount.mul(-1), creationDate)
     if (!senderBalance) {
       throw new LogError('User has not enough GDD or amount is < 0', senderBalance)
     }
-    if(logger.isDebugEnabled()) {
-      logger.debug(`calculated senderBalance = ${JSON.stringify(senderBalance, null, 2)}`)
+    if(methodLogger.isDebugEnabled()) {
+      methodLogger.debug(`calculated senderBalance = ${JSON.stringify(senderBalance, null, 2)}`)
     }
 
     const receiverFCom = await DbFederatedCommunity.findOneOrFail({
@@ -77,29 +82,45 @@ export async function processXComPendingSendCoins(
     const client = SendCoinsClientFactory.getInstance(receiverFCom)
 
     if (client instanceof V1_0_SendCoinsClient) {
-      const args = new SendCoinsArgs()
-      if (receiverCom.communityUuid) {
-        args.recipientCommunityUuid = receiverCom.communityUuid
+      const payload = new SendCoinsJwtPayloadType(handshakeID,
+        receiverCom.communityUuid,
+        recipientIdentifier,
+        creationDate.toISOString(),
+        amount,
+        memo,
+        senderCom.communityUuid,
+        sender.gradidoID,
+        fullName(sender.firstName, sender.lastName),
+        sender.alias
+      )
+      if(methodLogger.isDebugEnabled()) {
+        methodLogger.debug(`ready for voteForSendCoins with payload=${payload}`)
       }
-      args.recipientUserIdentifier = recipientIdentifier
-      args.creationDate = creationDate.toISOString()
-      args.amount = amount
-      args.memo = memo
-      if (senderCom.communityUuid) {
-        args.senderCommunityUuid = senderCom.communityUuid
-      }
-      args.senderUserUuid = sender.gradidoID
-      args.senderUserName = fullName(sender.firstName, sender.lastName)
-      args.senderAlias = sender.alias
-      if(logger.isDebugEnabled()) {
-        logger.debug(`ready for voteForSendCoins with args=${new SendCoinsArgsLoggingView(args)}`)
-      }
+      const jws = await encryptAndSign(payload, senderCom.privateJwtKey!, receiverCom.publicJwtKey!)
+      methodLogger.debug('jws', jws)
+      // prepare the args for the client invocation
+      const args = new EncryptedTransferArgs()
+      args.publicKey = senderCom.publicKey.toString('hex')
+      args.jwt = jws
+      args.handshakeID = handshakeID
+      methodLogger.debug('before client.voteForSendCoins() args:', args)
+
       voteResult = await client.voteForSendCoins(args)
-      if(logger.isDebugEnabled()) {
-        logger.debug(`returned from voteForSendCoins: ${new SendCoinsResultLoggingView(voteResult)}`)
+      if(methodLogger.isDebugEnabled()) {
+        methodLogger.debug(`returned from voteForSendCoins: ${new SendCoinsResultLoggingView(voteResult)}`)
       }
       if (voteResult.vote) {
-        logger.debug('prepare pendingTransaction for sender...')
+        methodLogger.debug('prepare pendingTransaction for sender...')
+      args.senderAlias = sender.alias
+      if(methodLogger.isDebugEnabled()) {
+        methodLogger.debug(`ready for voteForSendCoins with args=${new SendCoinsArgsLoggingView(args)}`)
+      }
+      voteResult = await client.voteForSendCoins(args)
+      if(methodLogger.isDebugEnabled()) {
+        methodLogger.debug(`returned from voteForSendCoins: ${new SendCoinsResultLoggingView(voteResult)}`)
+      }
+      if (voteResult.vote) {
+        methodLogger.debug('prepare pendingTransaction for sender...')
         // writing the pending transaction on receiver-side was successfull, so now write the sender side
         try {
           const pendingTx = DbPendingTransaction.create()
@@ -127,20 +148,20 @@ export async function processXComPendingSendCoins(
           pendingTx.userId = sender.id
           pendingTx.userGradidoID = sender.gradidoID
           pendingTx.userName = fullName(sender.firstName, sender.lastName)
-          if(logger.isDebugEnabled()) {
-            logger.debug(`initialized sender pendingTX=${new PendingTransactionLoggingView(pendingTx)}`)
+          if(methodLogger.isDebugEnabled()) {
+            methodLogger.debug(`initialized sender pendingTX=${new PendingTransactionLoggingView(pendingTx)}`)
           }
 
           await DbPendingTransaction.insert(pendingTx)
-          logger.debug('sender pendingTx successfully inserted...')
+          methodLogger.debug('sender pendingTx successfully inserted...')
         } catch (err) {
-          logger.error(`Error in writing sender pending transaction: ${JSON.stringify(err, null, 2)}`)
+          methodLogger.error(`Error in writing sender pending transaction: ${JSON.stringify(err, null, 2)}`)
           // revert the existing pending transaction on receiver side
           let revertCount = 0
-          logger.debug('first try to revertSendCoins of receiver')
+          methodLogger.debug('first try to revertSendCoins of receiver')
           do {
             if (await client.revertSendCoins(args)) {
-              logger.debug(`revertSendCoins()-1_0... successfull after revertCount=${revertCount}`)
+              methodLogger.debug(`revertSendCoins()-1_0... successfull after revertCount=${revertCount}`)
               // treat revertingSendCoins as an error of the whole sendCoins-process
               throw new LogError('Error in writing sender pending transaction: ', err)
             }
@@ -150,9 +171,9 @@ export async function processXComPendingSendCoins(
             err,
           )
         }
-        logger.debug('voteForSendCoins()-1_0... successfull')
+        methodLogger.debug('voteForSendCoins()-1_0... successfull')
       } else {
-        logger.error(`break with error on writing pendingTransaction for recipient... ${new SendCoinsResultLoggingView(voteResult)}`)
+        methodLogger.error(`break with error on writing pendingTransaction for recipient... ${new SendCoinsResultLoggingView(voteResult)}`)
       }
       return voteResult
     }
