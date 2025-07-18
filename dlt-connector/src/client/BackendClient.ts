@@ -1,12 +1,11 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { gql, GraphQLClient } from 'graphql-request'
 import { SignJWT } from 'jose'
 
-import { CONFIG } from '@/config'
-import { CommunityDraft } from '@/graphql/input/CommunityDraft'
-import { logger } from '@/logging/logger'
-import { LogError } from '@/server/LogError'
+import { CONFIG } from '../config'
+import { communitySchema, type Community } from '../schemas/rpcParameter.schema'
+import { getLogger, Logger } from 'log4js'
+import { LOG4JS_BASE_CATEGORY } from '../config/const'
+import * as v from 'valibot'
 
 const homeCommunity = gql`
   query {
@@ -17,30 +16,36 @@ const homeCommunity = gql`
     }
   }
 `
-interface Community {
-  homeCommunity: {
-    uuid: string
-    foreign: boolean
-    creationDate: string
-  }
-}
+
 // Source: https://refactoring.guru/design-patterns/singleton/typescript/example
 // and ../federation/client/FederationClientFactory.ts
 /**
  * A Singleton class defines the `getInstance` method that lets clients access
  * the unique singleton instance.
  */
-// eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class BackendClient {
-  // eslint-disable-next-line no-use-before-define
   private static instance: BackendClient
   client: GraphQLClient
+  logger: Logger   
+
   /**
    * The Singleton's constructor should always be private to prevent direct
    * construction calls with the `new` operator.
    */
-  // eslint-disable-next-line no-useless-constructor, @typescript-eslint/no-empty-function
-  private constructor() {}
+  private constructor() {
+    this.logger = getLogger(`${LOG4JS_BASE_CATEGORY}.client.BackendClient`)
+    this.logger.addContext('url', CONFIG.BACKEND_SERVER_URL)
+    this.client = new GraphQLClient(CONFIG.BACKEND_SERVER_URL, {
+      headers: {
+        'content-type': 'application/json',
+      },
+      method: 'GET',
+      jsonSerializer: {
+        parse: JSON.parse,
+        stringify: JSON.stringify,
+      },
+    })
+  }
 
   /**
    * The static method that controls the access to the singleton instance.
@@ -51,44 +56,29 @@ export class BackendClient {
   public static getInstance(): BackendClient | undefined {
     if (!BackendClient.instance) {
       BackendClient.instance = new BackendClient()
-    }
-    if (!BackendClient.instance.client) {
-      try {
-        BackendClient.instance.client = new GraphQLClient(CONFIG.BACKEND_SERVER_URL, {
-          headers: {
-            'content-type': 'application/json',
-          },
-          method: 'GET',
-          jsonSerializer: {
-            parse: JSON.parse,
-            stringify: JSON.stringify,
-          },
-        })
-      } catch (e) {
-        logger.error("couldn't connect to backend: ", e)
-        return
-      }
-    }
+    }    
     return BackendClient.instance
   }
 
-  public async getHomeCommunityDraft(): Promise<CommunityDraft> {
-    logger.info('check home community on backend')
-    const { data, errors } = await this.client.rawRequest<Community>(
+  public async getHomeCommunityDraft(): Promise<Community> {
+    this.logger.info('check home community on backend')
+    const { data, errors } = await this.client.rawRequest<{ homeCommunity: Community }>(
       homeCommunity,
-      {},
-      {
-        authorization: 'Bearer ' + (await this.createJWTToken()),
-      },
+      {}, // empty variables
+      await this.getRequestHeader(),
     )
     if (errors) {
-      throw new LogError('error getting home community from backend', errors)
+      throw errors[0]
     }
-    const communityDraft = new CommunityDraft()
-    communityDraft.uuid = data.homeCommunity.uuid
-    communityDraft.foreign = data.homeCommunity.foreign
-    communityDraft.createdAt = data.homeCommunity.creationDate
-    return communityDraft
+    return v.parse(communitySchema, data.homeCommunity)
+  }
+
+  private async getRequestHeader(): Promise<{
+    authorization: string
+  }> {
+    return {
+      authorization: 'Bearer ' + (await this.createJWTToken()),
+    }
   }
 
   private async createJWTToken(): Promise<string> {

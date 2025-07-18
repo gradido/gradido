@@ -1,35 +1,30 @@
-import { Transaction as DbTransaction } from 'database'
 import { GraphQLClient, gql } from 'graphql-request'
 
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { TransactionTypeId } from '@/graphql/enum/TransactionTypeId'
-import { LogError } from '@/server/LogError'
 import { getLogger } from 'log4js'
 
+import { TransactionDraft } from './model/TransactionDraft'
 import { TransactionResult } from './model/TransactionResult'
-import { UserIdentifier } from './model/UserIdentifier'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.apis.dltConnector`)
 
 const sendTransaction = gql`
-  mutation ($input: TransactionInput!) {
+  mutation ($input: TransactionDraft!) {
     sendTransaction(data: $input) {
-      dltTransactionIdHex
+      error {
+        message
+        name
+      }
+      succeed
+      recipe {
+        createdAt
+        type
+        messageIdHex
+      }
     }
   }
 `
-
-// from ChatGPT
-function getTransactionTypeString(id: TransactionTypeId): string {
-  const key = Object.keys(TransactionTypeId).find(
-    (key) => TransactionTypeId[key as keyof typeof TransactionTypeId] === id,
-  )
-  if (key === undefined) {
-    throw new LogError('invalid transaction type id: ' + id.toString())
-  }
-  return key
-}
 
 // Source: https://refactoring.guru/design-patterns/singleton/typescript/example
 // and ../federation/client/FederationClientFactory.ts
@@ -65,7 +60,10 @@ export class DltConnectorClient {
     if (!DltConnectorClient.instance.client) {
       try {
         DltConnectorClient.instance.client = new GraphQLClient(CONFIG.DLT_CONNECTOR_URL, {
-          method: 'GET',
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
           jsonSerializer: {
             parse: JSON.parse,
             stringify: JSON.stringify,
@@ -83,44 +81,13 @@ export class DltConnectorClient {
    * transmit transaction via dlt-connector to iota
    * and update dltTransactionId of transaction in db with iota message id
    */
-  public async transmitTransaction(transaction: DbTransaction): Promise<boolean> {
-    const typeString = getTransactionTypeString(transaction.typeId)
-    // no negative values in dlt connector, gradido concept don't use negative values so the code don't use it too
-    const amountString = transaction.amount.abs().toString()
-    const params = {
-      input: {
-        user: {
-          uuid: transaction.userGradidoID,
-          communityUuid: transaction.userCommunityUuid,
-        } as UserIdentifier,
-        linkedUser: {
-          uuid: transaction.linkedUserGradidoID,
-          communityUuid: transaction.linkedUserCommunityUuid,
-        } as UserIdentifier,
-        amount: amountString,
-        type: typeString,
-        createdAt: transaction.balanceDate.toISOString(),
-        backendTransactionId: transaction.id,
-        targetDate: transaction.creationDate?.toISOString(),
-      },
-    }
-    try {
-      // TODO: add account nr for user after they have also more than one account in backend
-      logger.debug('transmit transaction to dlt connector', params)
-      const {
-        data: {
-          sendTransaction: { error, succeed },
-        },
-      } = await this.client.rawRequest<{ sendTransaction: TransactionResult }>(
-        sendTransaction,
-        params,
-      )
-      if (error) {
-        throw new Error(error.message)
-      }
-      return succeed
-    } catch (e) {
-      throw new LogError('Error send sending transaction to dlt-connector: ', e)
-    }
+  public async sendTransaction(input: TransactionDraft): Promise<TransactionResult | undefined> {
+    logger.debug('transmit transaction or user to dlt connector', input)
+    const {
+      data: { sendTransaction: result },
+    } = await this.client.rawRequest<{ sendTransaction: TransactionResult }>(sendTransaction, {
+      input,
+    })
+    return result
   }
 }

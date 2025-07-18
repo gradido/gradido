@@ -31,6 +31,10 @@ import { EVENT_TRANSACTION_RECEIVE, EVENT_TRANSACTION_SEND } from '@/event/Event
 import { SendCoinsResult } from '@/federation/client/1_0/model/SendCoinsResult'
 import { LogError } from '@/server/LogError'
 import { Context, getUser } from '@/server/context'
+import {
+  InterruptiveSleepManager,
+  TRANSMIT_TO_IOTA_INTERRUPTIVE_SLEEP_KEY,
+} from '@/util/InterruptiveSleepManager'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 import { communityUser } from '@/util/communityUser'
 import { fullName } from '@/util/utilities'
@@ -48,7 +52,6 @@ import {
   processXComCommittingSendCoins,
   processXComPendingSendCoins,
 } from './util/processXComSendCoins'
-import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
 import { storeForeignUser } from './util/storeForeignUser'
 import { transactionLinkSummary } from './util/transactionLinkSummary'
 
@@ -170,15 +173,14 @@ export const executeTransaction = async (
         transactionReceive,
         transactionReceive.amount,
       )
-
-      // trigger to send transaction via dlt-connector
-      await sendTransactionsToDltConnector()
     } catch (e) {
       await queryRunner.rollbackTransaction()
       throw new LogError('Transaction was not successful', e)
     } finally {
       await queryRunner.release()
     }
+    // notify dlt-connector loop for new work
+    InterruptiveSleepManager.getInstance().interrupt(TRANSMIT_TO_IOTA_INTERRUPTIVE_SLEEP_KEY)
     await sendTransactionReceivedEmail({
       firstName: recipient.firstName,
       lastName: recipient.lastName,
