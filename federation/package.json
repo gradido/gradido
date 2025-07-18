@@ -42,6 +42,7 @@
     "await-semaphore": "0.1.3",
     "class-validator": "^0.13.2",
     "config-schema": "*",
+    "core": "*",
     "cors": "2.8.5",
     "database": "*",
     "decimal.js-light": "^2.5.1",

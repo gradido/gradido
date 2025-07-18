@@ -13,6 +13,7 @@ export class PublicCommunityInfoLoggingView extends AbstractLoggingView {
       description: this.self.description,
       creationDate: this.dateToString(this.self.creationDate),
       publicKey: this.self.publicKey,
+      publicJwtKey: this.self.publicJwtKey,
     }
   }
 }

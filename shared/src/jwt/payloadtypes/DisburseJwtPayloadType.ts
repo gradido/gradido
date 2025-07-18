@@ -30,7 +30,7 @@ export class DisburseJwtPayloadType extends JwtPayloadType {
     recipientAlias: string,
   ) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    super()
+    super('handshakeID')
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     this.tokentype = DisburseJwtPayloadType.DISBURSE_ACTIVATION_TYPE
     this.sendercommunityuuid = senderCommunityUuid
