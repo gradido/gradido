@@ -1,7 +1,7 @@
 import { gql } from 'graphql-request'
 
 export const openConnection = gql`
-  mutation ($args: OpenConnectionArgs!) {
+  mutation ($args: EncryptedTransferArgs!) {
     openConnection(data: $args)
   }
 `

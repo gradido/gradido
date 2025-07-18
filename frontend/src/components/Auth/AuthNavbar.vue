@@ -8,11 +8,11 @@
       <BImg class="sheet-img position-absolute d-block d-lg-none zindex1000" :src="sheet"></BImg>
       <BCollapse id="nav-collapse" is-nav>
         <BNavbarNav class="ms-auto me-4 d-none d-lg-flex" right>
-          <NavItem :to="register()" class="auth-navbar ms-lg-5">
+          <NavItem :to="routeWithParamsAndQuery('Register')" class="auth-navbar ms-lg-5">
             {{ $t('signup') }}
           </NavItem>
           <span class="d-none d-lg-block py-1">{{ $t('|') }}</span>
-          <NavItem :to="login()" class="auth-navbar">
+          <NavItem :to="routeWithParamsAndQuery('Login')" class="auth-navbar">
             {{ $t('signin') }}
           </NavItem>
         </BNavbarNav>
@@ -25,7 +25,7 @@
 import { useAuthLinks } from '@/composables/useAuthLinks'
 import NavItem from '../Menu/NavItem.vue'
 
-const { login, register } = useAuthLinks()
+const { routeWithParamsAndQuery } = useAuthLinks()
 
 const backgroundHeader = '/img/template/gradido_background_header.png'
 const logo = '/img/brand/gradido-logo_200x59.png'

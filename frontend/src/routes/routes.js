@@ -114,18 +114,22 @@ const routes = [
     },
   },
   {
+    name: 'Login',
     path: '/login/:code?',
     component: () => import('@/pages/Login'),
   },
   {
+    name: 'Register',
     path: '/register/:code?',
     component: () => import('@/pages/Register'),
   },
   {
+    name: 'ForgotPassword',
     path: '/forgot-password',
     component: () => import('@/pages/ForgotPassword'),
   },
   {
+    name: 'ForgotPasswordComingFrom',
     path: '/forgot-password/:comingFrom',
     component: () => import('@/pages/ForgotPassword'),
   },
@@ -138,14 +142,17 @@ const routes = [
   //   component: () => import('@/pages/SelectCommunity'),
   // },
   {
+    name: 'ResetPassword',
     path: '/reset-password/:optin',
     component: () => import('@/pages/ResetPassword'),
   },
   {
+    name: 'CheckEmail',
     path: '/checkEmail/:optin/:code?',
     component: () => import('@/pages/ResetPassword'),
   },
   {
+    name: 'Redeem',
     path: '/redeem/:code',
     component: () => import('@/pages/TransactionLink'),
   },

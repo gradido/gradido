@@ -27,8 +27,6 @@ import { Decimal } from 'decimal.js-light'
 import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
 
 import { RIGHTS } from '@/auth/RIGHTS'
-import { decode, encode, verify } from '@/auth/jwt/JWT'
-import { RedeemJwtPayloadType } from '@/auth/jwt/payloadtypes/RedeemJwtPayloadType'
 import {
   EVENT_CONTRIBUTION_LINK_REDEEM,
   EVENT_TRANSACTION_LINK_CREATE,
@@ -43,13 +41,12 @@ import {
 } from '@/util/InterruptiveSleepManager'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 import { TRANSACTION_LINK_LOCK } from '@/util/TRANSACTION_LINK_LOCK'
-import { calculateDecay } from 'shared'
 import { fullName } from '@/util/utilities'
 import { calculateBalance } from '@/util/validate'
+import { calculateDecay, decode, DisburseJwtPayloadType, encode, RedeemJwtPayloadType, verify } from 'shared'
 
-import { DisburseJwtPayloadType } from '@/auth/jwt/payloadtypes/DisburseJwtPayloadType'
-import { Logger, getLogger } from 'log4js'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { getLogger, Logger } from 'log4js'
 import { executeTransaction } from './TransactionResolver'
 import {
   getAuthenticatedCommunities,
@@ -579,7 +576,7 @@ export class TransactionLinkResolver {
         throw new LogError('Sender community UUID is not set')
       }
       // now with the sender community UUID the jwt token can be verified
-      const verifiedJwtPayload = await verify(code, senderCom.communityUuid)
+      const verifiedJwtPayload = await verify('handshakeID', code, senderCom.communityUuid)
       logger.debug(
         'TransactionLinkResolver.queryRedeemJwtLink... nach verify verifiedJwtPayload=',
         verifiedJwtPayload,

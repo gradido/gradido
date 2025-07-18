@@ -1,8 +1,11 @@
 import { JWTPayload } from 'jose'
 
-import { CONFIG } from '@/config'
+import { REDEEM_JWT_TOKEN_EXPIRATION } from '../../const'
 
 export class JwtPayloadType implements JWTPayload {
+  static ISSUER = 'urn:gradido:issuer'
+  static AUDIENCE = 'urn:gradido:audience'
+
   iat?: number | undefined
   exp?: number | undefined
   nbf?: number | undefined
@@ -12,10 +15,12 @@ export class JwtPayloadType implements JWTPayload {
   iss?: string | undefined;
   [propName: string]: unknown
 
+  handshakeID: string // used as logger context during authentication handshake between comA and comB
   tokentype: string
   expiration: string // in minutes (format: 10m for ten minutes)
-  constructor() {
+  constructor(handshakeID: string) {
     this.tokentype = 'unknown jwt type'
-    this.expiration = CONFIG.REDEEM_JWT_TOKEN_EXPIRATION || '10m'
+    this.expiration = REDEEM_JWT_TOKEN_EXPIRATION || '10m'
+    this.handshakeID = handshakeID
   }
 }

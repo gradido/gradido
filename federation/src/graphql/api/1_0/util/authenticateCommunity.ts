@@ -1,46 +1,50 @@
+import { EncryptedTransferArgs } from 'core'
 import {
   CommunityLoggingView,
   Community as DbCommunity,
   FederatedCommunity as DbFedCommunity,
   FederatedCommunityLoggingView,
+  getHomeCommunity,
 } from 'database'
 import { getLogger } from 'log4js'
-import { OpenConnectionArgs } from '../model/OpenConnectionArgs'
-import { OpenConnectionCallbackArgs } from '../model/OpenConnectionCallbackArgs'
+import { validate as validateUUID, version as versionUUID } from 'uuid'
 
 import { AuthenticationClientFactory } from '@/client/AuthenticationClientFactory'
 import { randombytes_random } from 'sodium-native'
 
 import { AuthenticationClient as V1_0_AuthenticationClient } from '@/client/1_0/AuthenticationClient'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { AuthenticationArgs } from '../model/AuthenticationArgs'
+import { AuthenticationJwtPayloadType, AuthenticationResponseJwtPayloadType, encryptAndSign, OpenConnectionCallbackJwtPayloadType, verifyAndDecrypt } from 'shared'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.api.1_0.util.authenticateCommunity`)
 
 export async function startOpenConnectionCallback(
-  args: OpenConnectionArgs,
-  comA: DbCommunity,
+  handshakeID: string,
+  publicKey: string,
   api: string,
 ): Promise<void> {
-  logger.debug(`startOpenConnectionCallback() with:`, {
-    args,
-    comA: new CommunityLoggingView(comA),
+  const methodLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.api.1_0.util.authenticateCommunity.startOpenConnectionCallback`)
+  methodLogger.addContext('handshakeID', handshakeID)
+  methodLogger.debug(`Authentication: startOpenConnectionCallback() with:`, {
+    publicKey,
   })
   try {
-    const homeFedCom = await DbFedCommunity.findOneByOrFail({
+    const homeComB = await getHomeCommunity()
+    const homeFedComB = await DbFedCommunity.findOneByOrFail({
       foreign: false,
       apiVersion: api,
     })
+    const comA = await DbCommunity.findOneByOrFail({ publicKey: Buffer.from(publicKey, 'hex') })
     const fedComA = await DbFedCommunity.findOneByOrFail({
       foreign: true,
       apiVersion: api,
       publicKey: comA.publicKey,
     })
-    const oneTimeCode = randombytes_random()
+    const oneTimeCode = randombytes_random().toString()
     // store oneTimeCode in requestedCom.community_uuid as authenticate-request-identifier
-    comA.communityUuid = oneTimeCode.toString()
+    comA.communityUuid = oneTimeCode
     await DbCommunity.save(comA)
-    logger.debug(
+    methodLogger.debug(
       `Authentication: stored oneTimeCode in requestedCom:`,
       new CommunityLoggingView(comA),
     )
@@ -48,68 +52,94 @@ export async function startOpenConnectionCallback(
     const client = AuthenticationClientFactory.getInstance(fedComA)
 
     if (client instanceof V1_0_AuthenticationClient) {
-      const callbackArgs = new OpenConnectionCallbackArgs()
-      callbackArgs.oneTimeCode = oneTimeCode.toString()
-      // TODO encrypt callbackArgs.url with requestedCom.publicKey and sign it with homeCom.privateKey
-      callbackArgs.url = homeFedCom.endPoint.endsWith('/')
-        ? homeFedCom.endPoint + homeFedCom.apiVersion
-        : homeFedCom.endPoint + '/' + homeFedCom.apiVersion
-      logger.debug(`Authentication: start openConnectionCallback with args:`, callbackArgs)
-      if (await client.openConnectionCallback(callbackArgs)) {
-        logger.debug('startOpenConnectionCallback() successful:', callbackArgs)
+      const url = homeFedComB.endPoint.endsWith('/')
+        ? homeFedComB.endPoint + homeFedComB.apiVersion
+        : homeFedComB.endPoint + '/' + homeFedComB.apiVersion
+
+      const callbackArgs = new OpenConnectionCallbackJwtPayloadType(handshakeID, oneTimeCode, url)
+      methodLogger.debug(`Authentication: start openConnectionCallback with args:`, callbackArgs)
+      // encrypt callbackArgs with requestedCom.publicJwtKey and sign it with homeCom.privateJwtKey
+      const jwt = await encryptAndSign(callbackArgs, homeComB!.privateJwtKey!, comA.publicJwtKey!)
+      const args = new EncryptedTransferArgs()
+      args.publicKey = homeComB!.publicKey.toString('hex')
+      args.jwt = jwt
+      args.handshakeID = handshakeID
+      const result = await client.openConnectionCallback(args)
+      if (result) {
+        methodLogger.debug('startOpenConnectionCallback() successful:', jwt)
       } else {
-        logger.error('startOpenConnectionCallback() failed:', callbackArgs)
+        methodLogger.error('startOpenConnectionCallback() failed:', jwt)
       }
     }
   } catch (err) {
-    logger.error('error in startOpenConnectionCallback:', err)
+    methodLogger.error('error in startOpenConnectionCallback:', err)
   }
+  methodLogger.removeContext('handshakeID')
 }
 
 export async function startAuthentication(
+  handshakeID: string,
   oneTimeCode: string,
   fedComB: DbFedCommunity,
 ): Promise<void> {
-  logger.debug(`startAuthentication()...`, {
+  const methodLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.api.1_0.util.authenticateCommunity.startAuthentication`)
+  methodLogger.addContext('handshakeID', handshakeID)
+  methodLogger.debug(`startAuthentication()...`, {
     oneTimeCode,
     fedComB: new FederatedCommunityLoggingView(fedComB),
   })
   try {
-    const homeCom = await DbCommunity.findOneByOrFail({ foreign: false })
+    const homeComA = await getHomeCommunity()
+    const comB = await DbCommunity.findOneByOrFail({
+      foreign: true,
+      publicKey: fedComB.publicKey,
+    })
+    if (!comB.publicJwtKey) {
+      throw new Error('Public JWT key still not exist for foreign community')
+    }
 
-    // TODO encrypt homeCom.uuid with homeCom.privateKey and sign it with callbackFedCom.publicKey
     const client = AuthenticationClientFactory.getInstance(fedComB)
 
     if (client instanceof V1_0_AuthenticationClient) {
-      const authenticationArgs = new AuthenticationArgs()
-      authenticationArgs.oneTimeCode = oneTimeCode
-      // TODO encrypt callbackArgs.url with requestedCom.publicKey and sign it with homeCom.privateKey
-      if (homeCom.communityUuid) {
-        authenticationArgs.uuid = homeCom.communityUuid
-      }
-      logger.debug(`invoke authenticate() with:`, authenticationArgs)
-      const fedComUuid = await client.authenticate(authenticationArgs)
-      logger.debug(`response of authenticate():`, fedComUuid)
-      if (fedComUuid !== null) {
-        logger.debug(
-          `received communityUUid for callbackFedCom:`,
-          fedComUuid,
+      const authenticationArgs = new AuthenticationJwtPayloadType(handshakeID, oneTimeCode, homeComA!.communityUuid!)
+      // encrypt authenticationArgs.uuid with fedComB.publicJwtKey and sign it with homeCom.privateJwtKey
+      const jwt = await encryptAndSign(authenticationArgs, homeComA!.privateJwtKey!, comB.publicJwtKey!)
+      const args = new EncryptedTransferArgs()
+      args.publicKey = homeComA!.publicKey.toString('hex')
+      args.jwt = jwt
+      args.handshakeID = handshakeID
+      methodLogger.debug(`invoke authenticate() with:`, args)
+      const responseJwt = await client.authenticate(args)
+      methodLogger.debug(`response of authenticate():`, responseJwt)
+      if (responseJwt !== null) {
+        const payload = await verifyAndDecrypt(handshakeID, responseJwt, homeComA!.privateJwtKey!, comB.publicJwtKey!) as AuthenticationResponseJwtPayloadType
+        methodLogger.debug(
+          `received payload from authenticate ComB:`,
+          payload,
           new FederatedCommunityLoggingView(fedComB),
         )
-        const callbackCom = await DbCommunity.findOneByOrFail({
-          foreign: true,
-          publicKey: fedComB.publicKey,
-        })
-        // TODO decrypt fedComUuid with callbackFedCom.publicKey
-        callbackCom.communityUuid = fedComUuid
-        callbackCom.authenticatedAt = new Date()
-        await DbCommunity.save(callbackCom)
-        logger.debug('Community Authentication successful:', new CommunityLoggingView(callbackCom))
+        if (payload.tokentype !== AuthenticationResponseJwtPayloadType.AUTHENTICATION_RESPONSE_TYPE) {
+          const errmsg = `Invalid tokentype in authenticate-response of community with publicKey` + comB.publicKey
+          methodLogger.error(errmsg)
+          methodLogger.removeContext('handshakeID')
+          throw new Error(errmsg)
+        }
+        if (!payload.uuid || !validateUUID(payload.uuid) || versionUUID(payload.uuid) !== 4) {
+          const errmsg = `Invalid uuid in authenticate-response of community with publicKey` + comB.publicKey
+          methodLogger.error(errmsg)
+          methodLogger.removeContext('handshakeID')
+          throw new Error(errmsg)
+        }
+        comB.communityUuid = payload.uuid
+        comB.authenticatedAt = new Date()
+        await DbCommunity.save(comB)
+        methodLogger.debug('Community Authentication successful:', new CommunityLoggingView(comB))
       } else {
-        logger.error('Community Authentication failed:', authenticationArgs)
+        methodLogger.error('Community Authentication failed:', authenticationArgs)
       }
     }
   } catch (err) {
-    logger.error('error in startAuthentication:', err)
+    methodLogger.error('error in startAuthentication:', err)
   }
+  methodLogger.removeContext('handshakeID')
 }

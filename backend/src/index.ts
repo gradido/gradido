@@ -5,12 +5,14 @@ import { sendTransactionsToDltConnector } from './apis/dltConnector/sendTransact
 import { CONFIG } from './config'
 import { startValidateCommunities } from './federation/validateCommunities'
 import { createServer } from './server/createServer'
+import { writeJwtKeyPairInHomeCommunity } from './federation/validateCommunities'
 import { initLogging } from './server/logger'
 
 async function main() {
   initLogging()
   const { app } = await createServer(getLogger('apollo'))
 
+  await writeJwtKeyPairInHomeCommunity()
   app.listen(CONFIG.PORT, () => {
     // biome-ignore lint/suspicious/noConsole: no need for logging the start message
     console.log(`Server is running at http://localhost:${CONFIG.PORT}`)

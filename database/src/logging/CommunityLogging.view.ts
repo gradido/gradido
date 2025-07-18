@@ -13,6 +13,7 @@ export class CommunityLoggingView extends AbstractLoggingView {
       foreign: this.self.foreign,
       url: this.self.url,
       publicKey: this.self.publicKey.toString(this.bufferStringFormat),
+      publicJwtKey: this.self.publicJwtKey,
       communityUuid: this.self.communityUuid,
       authenticatedAt: this.dateToString(this.self.authenticatedAt),
       name: this.self.name,

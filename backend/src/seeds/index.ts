@@ -58,6 +58,7 @@ const run = async () => {
   const { con } = server
   await cleanDB()
   logger.info('##seed## clean database successful...')
+  logger.info(`crypto worker enabled: ${CONFIG.USE_CRYPTO_WORKER}`)
 
   // seed home community
   await writeHomeCommunityEntry()

@@ -19,7 +19,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "biome check --error-on-warnings .",
     "lint:fix": "biome check --error-on-warnings . --write",
-    "clear": "cross-env TZ=UTC tsx migration/index.ts clear",
+    "clearDB": "cross-env TZ=UTC tsx migration/index.ts clear",
     "test": "cross-env TZ=UTC NODE_ENV=development DB_DATABASE=gradido_test vitest --reporter verbose --no-file-parallelism run",
     "test:debug": "cross-env TZ=UTC NODE_ENV=development DB_DATABASE=gradido_test node --inspect-brk node_modules/.bin/jest --bail --runInBand --forceExit --detectOpenHandles",
     "up": "cross-env TZ=UTC tsx migration/index.ts up",
@@ -28,7 +28,8 @@
     "up:test": "cross-env TZ=UTC DB_DATABASE=gradido_test tsx migration/index.ts up",
     "up:backend_test": "cross-env TZ=UTC DB_DATABASE=gradido_test_backend tsx migration/index.ts up",
     "up:federation_test": "cross-env TZ=UTC DB_DATABASE=gradido_test_federation tsx migration/index.ts up",
-    "up:dht_test": "cross-env TZ=UTC DB_DATABASE=gradido_test_dht tsx migration/index.ts up"
+    "up:dht_test": "cross-env TZ=UTC DB_DATABASE=gradido_test_dht tsx migration/index.ts up",
+    "clear": "rm -rf node_modules && rm -rf build && rm -rf .turbo"
   },
   "devDependencies": {
     "@biomejs/biome": "2.0.0",

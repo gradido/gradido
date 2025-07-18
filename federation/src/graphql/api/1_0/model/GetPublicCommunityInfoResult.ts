@@ -6,6 +6,9 @@ import { Field, ObjectType } from 'type-graphql'
 export class GetPublicCommunityInfoResult {
   constructor(dbCom: DbCommunity) {
     this.publicKey = dbCom.publicKey.toString('hex')
+    if (dbCom.publicJwtKey) {
+      this.publicJwtKey = dbCom.publicJwtKey
+    }
     this.name = dbCom.name
     this.description = dbCom.description
     this.creationDate = dbCom.creationDate
@@ -22,4 +25,7 @@ export class GetPublicCommunityInfoResult {
 
   @Field(() => String)
   publicKey: string
+
+  @Field(() => String)
+  publicJwtKey: string
 }
