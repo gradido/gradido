@@ -27,8 +27,10 @@ export const jwks = async (req: any, res: any): Promise<void> => {
     throw new Error(defaultErrorForCaller)
   }
   try {
-    const publicKey = await importSPKI(homeCommunity.publicJwtKey, 'RS256')
-    const jwk = await exportJWK(publicKey)
+    const rs256Key = await importSPKI(homeCommunity.publicJwtKey, 'RS256')
+    const rsaKey = await importSPKI(homeCommunity.publicJwtKey, 'RSA-OAEP-256')
+    const jwkRs256 = await exportJWK(rs256Key)
+    const jwkRsa = await exportJWK(rsaKey)
 
     // Optional: calculate Key ID (z.B. SHA-256 Fingerprint)
     const kid = createHash('sha256')
@@ -38,8 +40,14 @@ export const jwks = async (req: any, res: any): Promise<void> => {
     const jwks = {
       keys: [
         {
-          ...jwk,
+          ...jwkRs256,
           alg: 'RS256',
+          use: 'sig',
+          kid,
+        },
+        {
+          ...jwkRsa,
+          alg: 'RSA-OAEP-256',
           use: 'sig',
           kid,
         },
