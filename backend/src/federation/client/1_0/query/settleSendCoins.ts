@@ -1,7 +1,7 @@
 import { gql } from 'graphql-request'
 
 export const settleSendCoins = gql`
-  mutation ($args: SendCoinsArgs!) {
+  mutation ($args: EncryptedTransferArgs!) {
     settleSendCoins(data: $args)
   }
 `

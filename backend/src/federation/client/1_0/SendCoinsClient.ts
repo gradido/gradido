@@ -6,8 +6,6 @@ import { ensureUrlEndsWithSlash } from '@/util/utilities'
 import { getLogger } from 'log4js'
 
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { SendCoinsArgsLoggingView } from './logging/SendCoinsArgsLogging.view'
-import { SendCoinsArgs } from './model/SendCoinsArgs'
 import { revertSendCoins as revertSendCoinsQuery } from './query/revertSendCoins'
 import { revertSettledSendCoins as revertSettledSendCoinsQuery } from './query/revertSettledSendCoins'
 import { settleSendCoins as settleSendCoinsQuery } from './query/settleSendCoins'
@@ -50,10 +48,9 @@ export class SendCoinsClient {
     return null
   }
 
-  async revertSendCoins(args: SendCoinsArgs): Promise<boolean> {
+  async revertSendCoins(args: EncryptedTransferArgs): Promise<boolean> {
     logger.debug('revertSendCoins against endpoint=', this.endpoint)
     try {
-      logger.debug(`revertSendCoins with args=`, new SendCoinsArgsLoggingView(args))
       const { data } = await this.client.rawRequest<{ revertSendCoins: boolean }>(
         revertSendCoinsQuery,
         { args },
@@ -71,10 +68,9 @@ export class SendCoinsClient {
     }
   }
 
-  async settleSendCoins(args: SendCoinsArgs): Promise<boolean> {
+  async settleSendCoins(args: EncryptedTransferArgs): Promise<boolean> {
     logger.debug(`settleSendCoins against endpoint='${this.endpoint}'...`)
     try {
-      logger.debug(`settleSendCoins with args=`, new SendCoinsArgsLoggingView(args))
       const { data } = await this.client.rawRequest<{ settleSendCoins: boolean }>(
         settleSendCoinsQuery,
         { args },
@@ -91,10 +87,9 @@ export class SendCoinsClient {
     }
   }
 
-  async revertSettledSendCoins(args: SendCoinsArgs): Promise<boolean> {
+  async revertSettledSendCoins(args: EncryptedTransferArgs): Promise<boolean> {
     logger.debug(`revertSettledSendCoins against endpoint='${this.endpoint}'...`)
     try {
-      logger.debug(`revertSettledSendCoins with args=`, new SendCoinsArgsLoggingView(args))
       const { data } = await this.client.rawRequest<{ revertSettledSendCoins: boolean }>(
         revertSettledSendCoinsQuery,
         { args },
