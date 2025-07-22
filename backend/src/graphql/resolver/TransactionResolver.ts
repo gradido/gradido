@@ -497,7 +497,7 @@ export class TransactionResolver {
           recipientIdentifier,
         )
         logger.debug('processXComPendingSendCoins result: ', pendingResult)
-        if (pendingResult.vote && pendingResult.recipGradidoID) {
+        if (pendingResult && pendingResult.vote && pendingResult.recipGradidoID) {
           logger.debug('vor processXComCommittingSendCoins... ')
           committingResult = await processXComCommittingSendCoins(
             recipCom,
