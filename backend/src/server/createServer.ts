@@ -15,6 +15,7 @@ import { context as serverContext } from './context'
 import { cors } from './cors'
 import { i18n } from './localization'
 import { plugins } from './plugins'
+import { jwks, openidConfiguration } from '@/openIDConnect'
 // TODO implement
 // import queryComplexity, { simpleEstimator, fieldConfigEstimator } from "graphql-query-complexity";
 
@@ -83,6 +84,10 @@ export const createServer = async (
   // GMS Webhook
 
   app.get('/hook/gms/' + CONFIG.GMS_WEBHOOK_SECRET, gmsWebhook)
+
+  // OpenID Connect
+  app.get('/.well-known/openid-configuration', openidConfiguration)
+  app.get('/.well-known/jwks.json', jwks)
 
   // Apollo Server
   const apollo = new ApolloServer({
