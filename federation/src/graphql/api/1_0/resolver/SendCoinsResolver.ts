@@ -109,10 +109,10 @@ export class SendCoinsResolver {
       const responseArgs = new SendCoinsResponseJwtPayloadType(
         authArgs.handshakeID,
         true,
+        receiverUser.gradidoID,
         receiverUser.firstName,
         receiverUser.lastName,
         receiverUser.alias,
-        receiverUser.gradidoID,
       )
       const responseJwt = await encryptAndSign(responseArgs, recipientCom.privateJwtKey!, senderCom.publicJwtKey!)
       methodLogger.debug(`voteForSendCoins()-1_0... successfull`)
