@@ -10,7 +10,7 @@ import Decimal from 'decimal.js-light'
 import { getLogger } from 'log4js'
 import { Arg, Mutation, Resolver } from 'type-graphql'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { encryptAndSign, PendingTransactionState } from 'shared'
+import { encryptAndSign, PendingTransactionState, verifyAndDecrypt } from 'shared'
 import { TransactionTypeId } from '../enum/TransactionTypeId'
 import { SendCoinsArgsLoggingView } from '../logger/SendCoinsArgsLogging.view'
 import { SendCoinsArgs } from '../model/SendCoinsArgs'
@@ -213,135 +213,160 @@ export class SendCoinsResolver {
   @Mutation(() => Boolean)
   async settleSendCoins(
     @Arg('data')
-    args: SendCoinsArgs,
+    args: EncryptedTransferArgs,
   ): Promise<boolean> {
-    logger.debug(`settleSendCoins() via apiVersion=1_0 ...`, new SendCoinsArgsLoggingView(args))
+    const methodLogger = createLogger(`settleSendCoins`)
+    methodLogger.addContext('handshakeID', args.handshakeID)
+    if(methodLogger.isDebugEnabled()) {
+      methodLogger.debug(`settleSendCoins() via apiVersion=1_0 ...`, args)
+    }
+    const authArgs = await interpretEncryptedTransferArgs(args) as SendCoinsJwtPayloadType
+    if (!authArgs) {
+      const errmsg = `invalid settleSendCoins payload of requesting community with publicKey` + args.publicKey
+      methodLogger.error(errmsg)
+      throw new Error(errmsg)
+    }
+    if(methodLogger.isDebugEnabled()) {
+      methodLogger.debug(`settleSendCoins() via apiVersion=1_0 ...`, authArgs)
+    }
     // first check if receiver community is correct
     const homeCom = await DbCommunity.findOneBy({
-      communityUuid: args.recipientCommunityUuid,
+      communityUuid: authArgs.recipientCommunityUuid,
     })
     if (!homeCom) {
-      throw new LogError(
-        `settleSendCoins with wrong recipientCommunityUuid`,
-        args.recipientCommunityUuid,
-      )
+      const errmsg = `settleSendCoins with wrong recipientCommunityUuid` + authArgs.recipientCommunityUuid
+      methodLogger.error(errmsg)
+      throw new Error(errmsg)
     }
    
     // second check if receiver user exists in this community
-    const receiverUser = await findUserByIdentifier(args.recipientUserIdentifier)
+    const receiverUser = await findUserByIdentifier(authArgs.recipientUserIdentifier)
     if (!receiverUser) {
-      logger.error('Error in findUserByIdentifier')
-      throw new LogError(
-        `settleSendCoins with unknown recipientUserIdentifier in the community=`,
-        homeCom.name,
-      )
+      const errmsg = `settleSendCoins with unknown recipientUserIdentifier in the community=` + homeCom.name
+      methodLogger.error(errmsg)
+      throw new Error(errmsg)
     }
     const pendingTx = await DbPendingTransaction.findOneBy({
-      userCommunityUuid: args.recipientCommunityUuid,
+      userCommunityUuid: authArgs.recipientCommunityUuid,
       userGradidoID: receiverUser.gradidoID,
       state: PendingTransactionState.NEW,
       typeId: TransactionTypeId.RECEIVE,
-      balanceDate: new Date(args.creationDate),
-      linkedUserCommunityUuid: args.senderCommunityUuid,
-      linkedUserGradidoID: args.senderUserUuid,
+      balanceDate: new Date(authArgs.creationDate),
+      linkedUserCommunityUuid: authArgs.senderCommunityUuid,
+      linkedUserGradidoID: authArgs.senderUserUuid,
     })
-    logger.debug(
-      'XCom: settleSendCoins found pendingTX=',
-      pendingTx ? new PendingTransactionLoggingView(pendingTx) : 'null',
-    )
+    if(methodLogger.isDebugEnabled()) {
+      methodLogger.debug(
+        'XCom: settleSendCoins found pendingTX=',
+        pendingTx ? new PendingTransactionLoggingView(pendingTx) : 'null',
+      )
+    }
     if (
       pendingTx &&
-      pendingTx.amount.toString() === args.amount.toString() &&
-      pendingTx.memo === args.memo
+      pendingTx.amount.toString() === authArgs.amount.toString() &&
+      pendingTx.memo === authArgs.memo
     ) {
-      logger.debug('XCom: settleSendCoins matching pendingTX for settlement...')
+      methodLogger.debug('XCom: settleSendCoins matching pendingTX for settlement...')
 
       await settlePendingReceiveTransaction(homeCom, receiverUser, pendingTx)
       // after successful x-com-tx store the recipient as foreign user
-      logger.debug('store recipient as foreign user...')
-      if (await storeForeignUser(args)) {
-        logger.info(
+      methodLogger.debug('store recipient as foreign user...')
+      if (await storeForeignUser(authArgs)) {
+        methodLogger.info(
           'X-Com: new foreign user inserted successfully...',
-          args.senderCommunityUuid,
-          args.senderUserUuid,
+          authArgs.senderCommunityUuid,
+          authArgs.senderUserUuid,
         )
       }
 
-      logger.debug(`XCom: settlePendingReceiveTransaction()-1_0... successful`)
+      methodLogger.debug(`XCom: settlePendingReceiveTransaction()-1_0... successful`)
       return true
     } else {
-      logger.debug('XCom: settlePendingReceiveTransaction NOT matching pendingTX for settlement...')
-      throw new LogError(
-        `Can't find in settlePendingReceiveTransaction the pending receiver TX for `,
-        {
-          args: new SendCoinsArgsLoggingView(args),
-          pendingTransactionState: PendingTransactionState.NEW,
+      methodLogger.debug('XCom: settlePendingReceiveTransaction NOT matching pendingTX for settlement...')
+      const errmsg = `Can't find in settlePendingReceiveTransaction the pending receiver TX for ` + {
+        args: new SendCoinsArgsLoggingView(authArgs),
+        pendingTransactionState: PendingTransactionState.NEW,
           transactionTypeId: TransactionTypeId.RECEIVE,
-        },
-      )
+        }
+      methodLogger.error(errmsg)
+      throw new Error(errmsg)
     }
   }
 
   @Mutation(() => Boolean)
   async revertSettledSendCoins(
     @Arg('data')
-    args: SendCoinsArgs,
+    args: EncryptedTransferArgs,
   ): Promise<boolean> {
-    logger.debug(`revertSettledSendCoins() via apiVersion=1_0 ...`)
+    const methodLogger = createLogger(`revertSettledSendCoins`)
+    methodLogger.addContext('handshakeID', args.handshakeID)
+    if(methodLogger.isDebugEnabled()) {
+      methodLogger.debug(`revertSettledSendCoins() via apiVersion=1_0 ...`)
+    }
+    const authArgs = await interpretEncryptedTransferArgs(args) as SendCoinsJwtPayloadType
+    if (!authArgs) {
+      const errmsg = `invalid revertSettledSendCoins payload of requesting community with publicKey` + args.publicKey
+      methodLogger.error(errmsg)
+      throw new Error(errmsg)
+    }
+    if(methodLogger.isDebugEnabled()) {
+      methodLogger.debug(`revertSettledSendCoins() via apiVersion=1_0 ...`, authArgs)
+    }
     // first check if receiver community is correct
     const homeCom = await DbCommunity.findOneBy({
-      communityUuid: args.recipientCommunityUuid,
+      communityUuid: authArgs.recipientCommunityUuid,
     })
     if (!homeCom) {
-      throw new LogError(
-        `revertSettledSendCoins with wrong recipientCommunityUuid`,
-        args.recipientCommunityUuid,
-      )
+      const errmsg = `revertSettledSendCoins with wrong recipientCommunityUuid` + authArgs.recipientCommunityUuid
+      methodLogger.error(errmsg)
+      throw new Error(errmsg)
     }    
     
     // second check if receiver user exists in this community
-    const receiverUser = await findUserByIdentifier(args.recipientUserIdentifier)
+    const receiverUser = await findUserByIdentifier(authArgs.recipientUserIdentifier)
     if (!receiverUser) {
-      logger.error('Error in findUserByIdentifier')
-      throw new LogError(
-        `revertSettledSendCoins with unknown recipientUserIdentifier in the community=`,
-        homeCom.name,
-      )
+      const errmsg = `revertSettledSendCoins with unknown recipientUserIdentifier in the community=` + homeCom.name
+      methodLogger.error(errmsg)
+      throw new Error(errmsg)
     }
     const pendingTx = await DbPendingTransaction.findOneBy({
-      userCommunityUuid: args.recipientCommunityUuid,
-      userGradidoID: args.recipientUserIdentifier,
+      userCommunityUuid: authArgs.recipientCommunityUuid,
+      userGradidoID: authArgs.recipientUserIdentifier,
       state: PendingTransactionState.SETTLED,
       typeId: TransactionTypeId.RECEIVE,
-      balanceDate: new Date(args.creationDate),
-      linkedUserCommunityUuid: args.senderCommunityUuid,
-      linkedUserGradidoID: args.senderUserUuid,
+      balanceDate: new Date(authArgs.creationDate),
+      linkedUserCommunityUuid: authArgs.senderCommunityUuid,
+      linkedUserGradidoID: authArgs.senderUserUuid,
     })
-    logger.debug(
+    methodLogger.debug(
       'XCom: revertSettledSendCoins found pendingTX=',
       pendingTx ? new PendingTransactionLoggingView(pendingTx) : 'null',
     )
     if (
       pendingTx &&
-      pendingTx.amount.toString() === args.amount.toString() &&
-      pendingTx.memo === args.memo
+      pendingTx.amount.toString() === authArgs.amount.toString() &&
+      pendingTx.memo === authArgs.memo
     ) {
-      logger.debug('XCom: revertSettledSendCoins matching pendingTX for remove...')
+      methodLogger.debug('XCom: revertSettledSendCoins matching pendingTX for remove...')
       try {
         await revertSettledReceiveTransaction(homeCom, receiverUser, pendingTx)
-        logger.debug('XCom: revertSettledSendCoins pendingTX successfully')
+        methodLogger.debug('XCom: revertSettledSendCoins pendingTX successfully')
       } catch (err) {
-        throw new LogError('Error in revertSettledSendCoins of receiver: ', err)
+        const errmsg = `Error in revertSettledSendCoins of receiver: ` + err
+        methodLogger.error(errmsg)
+        throw new Error(errmsg)
       }
     } else {
-      logger.debug('XCom: revertSettledSendCoins NOT matching pendingTX...')
-      throw new LogError(`Can't find in revertSettledSendCoins the pending receiver TX for `, {
-        args: new SendCoinsArgsLoggingView(args),
+      methodLogger.debug('XCom: revertSettledSendCoins NOT matching pendingTX...')
+      const errmsg = `Can't find in revertSettledSendCoins the pending receiver TX for ` + {
+        args: new SendCoinsArgsLoggingView(authArgs),
         pendingTransactionState: PendingTransactionState.SETTLED,
         transactionTypeId: TransactionTypeId.RECEIVE,
-      })
+      }
+      methodLogger.error(errmsg)
+      throw new Error(errmsg)
     }
-    logger.debug(`revertSendCoins()-1_0... successfull`)
+    methodLogger.debug(`revertSettledSendCoins()-1_0... successfull`)
     return true
   }
 }

@@ -204,10 +204,13 @@ export async function processXComCommittingSendCoins(
   sender: dbUser,
   recipient: SendCoinsResult,
 ): Promise<SendCoinsResult> {
+  const methodLogger = createLogger(`processXComCommittingSendCoins`)
+  const handshakeID = randombytes_random().toString()
+  methodLogger.addContext('handshakeID', handshakeID)
   const sendCoinsResult = new SendCoinsResult()
   try {
-    if(logger.isDebugEnabled()) {
-      logger.debug(
+    if(methodLogger.isDebugEnabled()) {
+      methodLogger.debug(
         'XCom: processXComCommittingSendCoins...', {
           receiverCom: new CommunityLoggingView(receiverCom),
           senderCom: new CommunityLoggingView(senderCom),
@@ -233,40 +236,49 @@ export async function processXComCommittingSendCoins(
       memo,
     })
     if (pendingTx) {
-      if(logger.isDebugEnabled()) {
-        logger.debug(`find pending Tx for settlement: ${new PendingTransactionLoggingView(pendingTx)}`)
+      if(methodLogger.isDebugEnabled()) {
+        methodLogger.debug(`find pending Tx for settlement: ${new PendingTransactionLoggingView(pendingTx)}`)
       }
       const receiverFCom = await DbFederatedCommunity.findOneOrFail({
         where: {
           publicKey: Buffer.from(receiverCom.publicKey),
-
           apiVersion: CONFIG.FEDERATION_BACKEND_SEND_ON_API,
         },
       })
       const client = SendCoinsClientFactory.getInstance(receiverFCom)
 
       if (client instanceof V1_0_SendCoinsClient) {
-        const args = new SendCoinsArgs()
-        args.recipientCommunityUuid = pendingTx.linkedUserCommunityUuid
+        const payload = new SendCoinsJwtPayloadType(
+          handshakeID,
+          pendingTx.linkedUserCommunityUuid
+            ? pendingTx.linkedUserCommunityUuid
+            : CONFIG.FEDERATION_XCOM_RECEIVER_COMMUNITY_UUID,
+          pendingTx.linkedUserGradidoID!,
+          pendingTx.balanceDate.toISOString(),
+          pendingTx.amount.mul(-1),
+          pendingTx.memo,
+          pendingTx.userCommunityUuid,
+          pendingTx.userGradidoID!,
+          pendingTx.userName!,
+          sender.alias,
+        )
+        payload.recipientCommunityUuid = pendingTx.linkedUserCommunityUuid
           ? pendingTx.linkedUserCommunityUuid
           : CONFIG.FEDERATION_XCOM_RECEIVER_COMMUNITY_UUID
         if (pendingTx.linkedUserGradidoID) {
-          args.recipientUserIdentifier = pendingTx.linkedUserGradidoID
+          payload.recipientUserIdentifier = pendingTx.linkedUserGradidoID
         }
-        args.creationDate = pendingTx.balanceDate.toISOString()
-        args.amount = pendingTx.amount.mul(-1)
-        args.memo = pendingTx.memo
-        args.senderCommunityUuid = pendingTx.userCommunityUuid
-        args.senderUserUuid = pendingTx.userGradidoID
-        if (pendingTx.userName) {
-          args.senderUserName = pendingTx.userName
+        if(methodLogger.isDebugEnabled()) {
+          methodLogger.debug(`ready for settleSendCoins with payload=${ JSON.stringify(payload)}`)
         }
-        args.senderAlias = sender.alias
-        if(logger.isDebugEnabled()) {
-          logger.debug(`ready for settleSendCoins with args=${new SendCoinsArgsLoggingView(args)}`)
-        }
+        const jws = await encryptAndSign(payload, senderCom.privateJwtKey!, receiverCom.publicJwtKey!)
+        // prepare the args for the client invocation
+        const args = new EncryptedTransferArgs()
+        args.publicKey = senderCom.publicKey.toString('hex')
+        args.jwt = jws
+        args.handshakeID = handshakeID
         const acknowledge = await client.settleSendCoins(args)
-        logger.debug(`returnd from settleSendCoins: ${acknowledge}`)
+        methodLogger.debug(`return from settleSendCoins: ${acknowledge}`)
         if (acknowledge) {
           // settle the pending transaction on receiver-side was successfull, so now settle the sender side
           try {
@@ -290,13 +302,13 @@ export async function processXComCommittingSendCoins(
               sendCoinsResult.recipAlias = recipient.recipAlias
             }
           } catch (err) {
-            logger.error(`Error in writing sender pending transaction: ${JSON.stringify(err, null, 2)}`)
+            methodLogger.error(`Error in writing sender pending transaction: ${JSON.stringify(err, null, 2)}`)
             // revert the existing pending transaction on receiver side
             let revertCount = 0
-            logger.debug('first try to revertSetteledSendCoins of receiver')
+            methodLogger.debug('first try to revertSetteledSendCoins of receiver')
             do {
               if (await client.revertSettledSendCoins(args)) {
-                logger.debug(
+                methodLogger.debug(
                   `revertSettledSendCoins()-1_0... successfull after revertCount=${revertCount}`,
                 )
                 // treat revertingSettledSendCoins as an error of the whole sendCoins-process
@@ -312,7 +324,7 @@ export async function processXComCommittingSendCoins(
       }
     }
   } catch (err) {
-    logger.error(`Error: ${JSON.stringify(err, null, 2)}`)
+    methodLogger.error(`Error: ${JSON.stringify(err, null, 2)}`)
     sendCoinsResult.vote = false
   }
   return sendCoinsResult
