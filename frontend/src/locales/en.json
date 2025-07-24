@@ -203,6 +203,11 @@
     "username": "Username",
     "username-placeholder": "Choose your username",
     "validation": {
+      "amount": {
+        "min": "The amount should be at least {min} in size",
+        "max": "The amount should not be larger than {max}",
+        "decimal-places": "The amount should contain a maximum of two decimal places"
+      },
       "gddCreationTime": {
         "min": "The hours should be at least {min} in size",
         "max": "The hours should not be larger than {max}",

@@ -203,6 +203,11 @@
     "username": "Benutzername",
     "username-placeholder": "Wähle deinen Benutzernamen",
     "validation": {
+      "amount": {
+        "min": "Der Betrag sollte mindestens {min} groß sein",
+        "max": "Der Betrag sollte höchstens {max} groß sein",
+        "decimal-places": "Der Betrag sollte maximal zwei Nachkommastellen enthalten"
+      },
       "gddCreationTime": {
         "min": "Die Stunden sollten mindestens {min} groß sein",
         "max": "Die Stunden sollten höchstens {max} groß sein",
