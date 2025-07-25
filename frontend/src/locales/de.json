@@ -226,6 +226,10 @@
         "typeError": "Die Stunden sollten eine Zahl zwischen {min} und {max} mit höchstens zwei Nachkommastellen sein."
       },
       "gddSendAmount": "Das Feld {_field_} muss eine Zahl zwischen {min} und {max} mit höchstens zwei Nachkommastellen sein.",
+      "identifier": {
+        "required": "Der Empfänger ist ein Pflichtfeld.",
+        "typeError": "Der Empfänger muss eine Email, ein Nutzernamen oder eine Gradido ID sein."
+      },
       "is-not": "Du kannst dir selbst keine Gradidos überweisen!",
       "memo": {
         "min": "Die Nachricht sollte mindestens {min} Zeichen lang sein.",
@@ -235,8 +239,7 @@
       "requiredField": "{fieldName} ist ein Pflichtfeld",
       "username-allowed-chars": "Der Nutzername darf nur aus Buchstaben (ohne Umlaute), Zahlen, Binde- oder Unterstrichen bestehen.",
       "username-hyphens": "Binde- oder Unterstriche müssen zwischen Buchstaben oder Zahlen stehen.",
-      "username-unique": "Der Nutzername ist bereits vergeben.",
-      "valid-identifier": "Muss eine Email, ein Nutzernamen oder eine Gradido ID sein."
+      "username-unique": "Der Nutzername ist bereits vergeben."
     },
     "your_amount": "Dein Betrag"
   },

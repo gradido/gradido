@@ -226,6 +226,10 @@
         "typeError": "The hours should be a number between {min} and {max} with at most two digits after the decimal point."
       },
       "gddSendAmount": "The {_field_} field must be a number between {min} and {max} with at most two digits after the decimal point.",
+      "identifier": {
+        "required": "The recipient is a required field.",
+        "typeError": "The recipient must be an email, a username or a Gradido ID."
+      },
       "is-not": "You cannot send Gradidos to yourself!",
       "memo": {
         "min": "The message should be at least {min} characters long.",
@@ -235,8 +239,7 @@
       "requiredField": "The {fieldName} field is required",
       "username-allowed-chars": "The username may only contain letters, numbers, hyphens or underscores.",
       "username-hyphens": "Hyphens or underscores must be in between letters or numbers.",
-      "username-unique": "This username is already taken.",
-      "valid-identifier": "Must be a valid email, username or gradido ID."
+      "username-unique": "This username is already taken."
     },
     "your_amount": "Your amount"
   },

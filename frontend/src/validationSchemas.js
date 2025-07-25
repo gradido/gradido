@@ -26,14 +26,12 @@ export const memo = string()
   .min(5, ({ min }) => ({ key: 'form.validation.memo.min', values: { min } }))
   .max(255, ({ max }) => ({ key: 'form.validation.memo.max', values: { max } }))
 
-export const identifier = string().test(
-  'valid-identifier',
-  'form.validation.valid-identifier',
-  (value) => {
+export const identifier = string()
+  .required('form.validation.identifier.required')
+  .test('valid-identifier', 'form.validation.identifier.typeError', (value) => {
     const isEmail = !!EMAIL_REGEX.test(value)
     const isUsername = !!value.match(USERNAME_REGEX)
     // TODO: use valibot and rules from shared
     const isGradidoId = validateUuid(value) && versionUuid(value) === 4
     return isEmail || isUsername || isGradidoId
-  },
-)
+  })

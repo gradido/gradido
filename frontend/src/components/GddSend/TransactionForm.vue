@@ -130,6 +130,7 @@
                 lg="6"
                 class="text-lg-end"
                 @mouseover="disableSmartValidState = true"
+                @mouseleave="debug"
               >
                 <BButton block type="submit" variant="gradido" :disabled="formIsInvalid">
                   {{ $t('form.check_now') }}
@@ -181,41 +182,6 @@ const { toastError } = useAppToast()
 const radioSelected = ref(props.selected)
 const userName = ref('')
 
-const validationSchema = computed(() => {
-  return object({
-    memo: memoSchema,
-    identifier: !userIdentifier.value
-      ? identifierSchema.required('form.validation.identifier.required')
-      : identifierSchema,
-    amount: number()
-      .required()
-      .typeError({
-        key: 'form.validation.amount.typeError',
-        values: { min: 0.01, max: props.balance },
-      })
-      .transform((value, originalValue) => {
-        if (typeof originalValue === 'string') {
-          return Number(originalValue.replace(',', '.'))
-        }
-        return value
-      })
-      .min(0.01, ({ min }) => ({ key: 'form.validation.amount.min', values: { min } }))
-      .max(props.balance, ({ max }) => ({ key: 'form.validation.amount.max', values: { max } }))
-      .test('decimal-places', 'form.validation.amount.decimal-places', (value) => {
-        if (value === undefined || value === null) return true
-        return /^\d+(\.\d{0,2})?$/.test(value.toString())
-      }),
-  })
-})
-
-const formIsInvalid = computed(() => !validationSchema.value.isValidSync(form))
-
-const updateField = (newValue, name) => {
-  if (typeof name === 'string' && name.length) {
-    form[name] = newValue
-  }
-}
-
 const userIdentifier = computed(() => {
   if (route.params.userIdentifier && route.params.communityIdentifier) {
     return {
@@ -225,6 +191,48 @@ const userIdentifier = computed(() => {
   }
   return null
 })
+
+const validationSchema = computed(() => {
+  const amountSchema = number()
+    .required()
+    .typeError({
+      key: 'form.validation.amount.typeError',
+      values: { min: 0.01, max: props.balance },
+    })
+    .transform((value, originalValue) => {
+      if (typeof originalValue === 'string') {
+        return Number(originalValue.replace(',', '.'))
+      }
+      return value
+    })
+    .min(0.01, ({ min }) => ({ key: 'form.validation.amount.min', values: { min } }))
+    .max(props.balance, ({ max }) => ({ key: 'form.validation.amount.max', values: { max } }))
+    .test('decimal-places', 'form.validation.amount.decimal-places', (value) => {
+      if (value === undefined || value === null) return true
+      return /^\d+(\.\d{0,2})?$/.test(value.toString())
+    })
+  if (!userIdentifier.value && radioSelected.value === SEND_TYPES.send) {
+    return object({
+      memo: memoSchema,
+      amount: amountSchema,
+      identifier: identifierSchema,
+    })
+  } else {
+    // don't need identifier schema if it is a transaction link or identifier was set via url
+    return object({
+      memo: memoSchema,
+      amount: amountSchema,
+    })
+  }
+})
+
+const formIsInvalid = computed(() => !validationSchema.value.isValidSync(form))
+
+const updateField = (newValue, name) => {
+  if (typeof name === 'string' && name.length) {
+    form[name] = newValue
+  }
+}
 
 const isBalanceEmpty = computed(() => props.balance <= 0)
 
@@ -254,8 +262,8 @@ watch(userError, (error) => {
 function onSubmit() {
   const transformedForm = validationSchema.value.cast(form)
   emit('set-transaction', {
-    selected: radioSelected.value,
     ...transformedForm,
+    selected: radioSelected.value,
     userName: userName.value,
   })
 }
