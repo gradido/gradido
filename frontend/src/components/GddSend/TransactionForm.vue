@@ -130,7 +130,6 @@
                 lg="6"
                 class="text-lg-end"
                 @mouseover="disableSmartValidState = true"
-                @mouseleave="debug"
               >
                 <BButton block type="submit" variant="gradido" :disabled="formIsInvalid">
                   {{ $t('form.check_now') }}
