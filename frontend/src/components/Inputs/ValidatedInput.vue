@@ -39,6 +39,10 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+  disableSmartValidState: {
+    type: Boolean,
+    default: false,
+  },
 })
 
 const { t } = useI18n()
@@ -61,7 +65,7 @@ const valid = computed(() => props.rules.isValidSync(model.value))
 // After first blur:
 //   - show true or false according to the validation result
 const smartValidState = computed(() => {
-  if (afterFirstInput.value) {
+  if (afterFirstInput.value || props.disableSmartValidState) {
     return valid.value
   }
   return valid.value ? true : null

@@ -19,6 +19,7 @@
         class="mb-4 bg-248"
         type="date"
         :rules="validationSchema.fields.contributionDate"
+        :disable-smart-valid-state="disableSmartValidState"
         @update:model-value="updateField"
       />
       <div v-if="noOpenCreation" class="p-3" data-test="contribution-message">
@@ -33,6 +34,7 @@
           :placeholder="$t('contribution.yourActivity')"
           :rules="validationSchema.fields.memo"
           textarea="true"
+          :disable-smart-valid-state="disableSmartValidState"
           @update:model-value="updateField"
         />
         <ValidatedInput
@@ -43,6 +45,7 @@
           step="0.01"
           type="number"
           :rules="validationSchema.fields.hours"
+          :disable-smart-valid-state="disableSmartValidState"
           @update:model-value="updateField"
         />
         <LabeledInput
@@ -68,7 +71,7 @@
               {{ $t('form.cancel') }}
             </BButton>
           </BCol>
-          <BCol class="text-end mt-lg-0">
+          <BCol class="text-end mt-lg-0" @mouseover="disableSmartValidState = true">
             <BButton
               block
               type="submit"
@@ -121,6 +124,7 @@ const entityDataToForm = computed(() => ({
 const form = reactive({ ...entityDataToForm.value })
 
 const now = ref(new Date()) // checked every minute, updated if day, month or year changed
+const disableSmartValidState = ref(false)
 
 const isThisMonth = computed(() => {
   const formContributionDate = new Date(form.contributionDate)

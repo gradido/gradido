@@ -63,6 +63,7 @@
                         :placeholder="$t('form.identifier')"
                         :rules="validationSchema.fields.identifier"
                         :disabled="isBalanceEmpty"
+                        :disable-smart-valid-state="disableSmartValidState"
                         @update:model-value="updateField"
                       />
                     </div>
@@ -84,6 +85,7 @@
                       :placeholder="'0.01'"
                       :rules="validationSchema.fields.amount"
                       :disabled="isBalanceEmpty"
+                      :disable-smart-valid-state="disableSmartValidState"
                       @update:model-value="updateField"
                     />
                   </BCol>
@@ -102,6 +104,7 @@
                   :rules="validationSchema.fields.memo"
                   textarea="true"
                   :disabled="isBalanceEmpty"
+                  :disable-smart-valid-state="disableSmartValidState"
                   @update:model-value="updateField"
                 />
               </BCol>
@@ -121,7 +124,13 @@
                   {{ $t('form.reset') }}
                 </BButton>
               </BCol>
-              <BCol cols="12" md="6" lg="6" class="text-lg-end">
+              <BCol
+                cols="12"
+                md="6"
+                lg="6"
+                class="text-lg-end"
+                @mouseover="disableSmartValidState = true"
+              >
                 <BButton block type="submit" variant="gradido" :disabled="formIsInvalid">
                   {{ $t('form.check_now') }}
                 </BButton>
@@ -161,6 +170,7 @@ const props = defineProps({
 
 const entityDataToForm = computed(() => ({ ...props }))
 const form = reactive({ ...entityDataToForm.value })
+const disableSmartValidState = ref(false)
 
 const emit = defineEmits(['set-transaction'])
 
