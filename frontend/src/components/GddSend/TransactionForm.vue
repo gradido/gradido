@@ -47,7 +47,7 @@
                       <BCol class="fw-bold">
                         <community-switch
                           :disabled="isBalanceEmpty"
-                          :model-value="targetCommunity"
+                          :model-value="form.targetCommunity"
                           @update:model-value="updateField($event, 'targetCommunity')"
                         />
                       </BCol>
