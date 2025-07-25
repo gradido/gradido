@@ -3,8 +3,16 @@ import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import TransactionForm from './TransactionForm'
 import { nextTick, ref } from 'vue'
 import { SEND_TYPES } from '@/utils/sendTypes'
-import { BCard, BForm, BFormRadioGroup, BRow, BCol, BFormRadio, BButton } from 'bootstrap-vue-next'
-import { useForm } from 'vee-validate'
+import {
+  BCard,
+  BForm,
+  BFormRadioGroup,
+  BRow,
+  BCol,
+  BFormRadio,
+  BButton,
+  BFormInvalidFeedback,
+} from 'bootstrap-vue-next'
 import { useRoute } from 'vue-router'
 
 vi.mock('vue-router', () => ({
@@ -35,23 +43,6 @@ vi.mock('@/composables/useToast', () => ({
   })),
 }))
 
-vi.mock('vee-validate', () => {
-  const actualUseForm = vi.fn().mockReturnValue({
-    handleSubmit: vi.fn((callback) => {
-      return () =>
-        callback({
-          identifier: 'test@example.com',
-          amount: '100,00',
-          memo: 'Test memo',
-        })
-    }),
-    resetForm: vi.fn(),
-    defineField: vi.fn(() => [vi.fn(), {}]),
-  })
-
-  return { useForm: actualUseForm }
-})
-
 describe('TransactionForm', () => {
   let wrapper
 
@@ -64,6 +55,9 @@ describe('TransactionForm', () => {
         mocks: {
           $t: mockT,
           $n: mockN,
+          $i18n: {
+            locale: 'en',
+          },
         },
         components: {
           BCard,
@@ -73,12 +67,11 @@ describe('TransactionForm', () => {
           BCol,
           BFormRadio,
           BButton,
+          BFormInvalidFeedback,
         },
         stubs: {
           'community-switch': true,
-          'input-identifier': true,
-          'input-amount': true,
-          'input-textarea': true,
+          'validated-input': true,
         },
       },
       props: {
@@ -102,15 +95,15 @@ describe('TransactionForm', () => {
 
   describe('with balance <= 0.00 GDD the form is disabled', () => {
     it('has a disabled input field of type text', () => {
-      expect(wrapper.find('input-identifier-stub').attributes('disabled')).toBe('true')
+      expect(wrapper.find('#identifier').attributes('disabled')).toBe('true')
     })
 
     it('has a disabled input field for amount', () => {
-      expect(wrapper.find('input-amount-stub').attributes('disabled')).toBe('true')
+      expect(wrapper.find('#amount').attributes('disabled')).toBe('true')
     })
 
     it('has a disabled textarea field', () => {
-      expect(wrapper.find('input-textarea-stub').attributes('disabled')).toBe('true')
+      expect(wrapper.find('#memo').attributes('disabled')).toBe('true')
     })
 
     it('has a message indicating that there are no GDDs to send', () => {
@@ -143,41 +136,39 @@ describe('TransactionForm', () => {
 
       describe('identifier field', () => {
         it('has an input field of type text', () => {
-          expect(wrapper.find('input-identifier-stub').exists()).toBe(true)
+          expect(wrapper.find('#identifier').exists()).toBe(true)
         })
 
         it('has a label form.recipient', () => {
-          expect(wrapper.find('input-identifier-stub').attributes('label')).toBe('form.recipient')
+          expect(wrapper.find('#identifier').attributes('label')).toBe('form.recipient')
         })
 
         it('has a placeholder for identifier', () => {
-          expect(wrapper.find('input-identifier-stub').attributes('placeholder')).toBe(
-            'form.identifier',
-          )
+          expect(wrapper.find('#identifier').attributes('placeholder')).toBe('form.identifier')
         })
       })
 
       describe('amount field', () => {
         it('has an input field of type text', () => {
-          expect(wrapper.find('input-amount-stub').exists()).toBe(true)
+          expect(wrapper.find('#amount').exists()).toBe(true)
         })
 
         it('has a label form.amount', () => {
-          expect(wrapper.find('input-amount-stub').attributes('label')).toBe('form.amount')
+          expect(wrapper.find('#amount').attributes('label')).toBe('form.amount')
         })
 
         it('has a placeholder "0.01"', () => {
-          expect(wrapper.find('input-amount-stub').attributes('placeholder')).toBe('0.01')
+          expect(wrapper.find('#amount').attributes('placeholder')).toBe('0.01')
         })
       })
 
       describe('message text box', () => {
         it('has a textarea field', () => {
-          expect(wrapper.find('input-textarea-stub').exists()).toBe(true)
+          expect(wrapper.find('#memo').exists()).toBe(true)
         })
 
         it('has a label form.message', () => {
-          expect(wrapper.find('input-textarea-stub').attributes('label')).toBe('form.message')
+          expect(wrapper.find('#memo').attributes('label')).toBe('form.message')
         })
       })
 
@@ -233,8 +224,10 @@ describe('TransactionForm', () => {
       })
 
       it('emits set-transaction event with correct data when form is submitted', async () => {
+        wrapper.vm.form.identifier = 'test@example.com'
+        wrapper.vm.form.amount = '100,00'
+        wrapper.vm.form.memo = 'Test memo'
         await wrapper.findComponent(BForm).trigger('submit.prevent')
-
         expect(wrapper.emitted('set-transaction')).toBeTruthy()
         expect(wrapper.emitted('set-transaction')[0][0]).toEqual(
           expect.objectContaining({
@@ -247,20 +240,10 @@ describe('TransactionForm', () => {
       })
 
       it('handles form submission with empty amount', async () => {
-        vi.mocked(useForm).mockReturnValueOnce({
-          ...vi.mocked(useForm)(),
-          handleSubmit: vi.fn((callback) => {
-            return () =>
-              callback({
-                identifier: 'test@example.com',
-                amount: '',
-                memo: 'Test memo',
-              })
-          }),
-        })
-
         wrapper = createWrapper({ balance: 100.0 })
         await nextTick()
+        wrapper.vm.form.identifier = 'test@example.com'
+        wrapper.vm.form.memo = 'Test memo'
         await wrapper.findComponent(BForm).trigger('submit.prevent')
 
         expect(wrapper.emitted('set-transaction')).toBeTruthy()

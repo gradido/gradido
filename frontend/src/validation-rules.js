@@ -11,9 +11,7 @@ import nl from '@vee-validate/i18n/dist/locale/nl.json'
 import tr from '@vee-validate/i18n/dist/locale/tr.json'
 import { useI18n } from 'vue-i18n'
 
-// Email and username regex patterns remain the same
-const EMAIL_REGEX =
-  /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+// username regex pattern remain the same
 const USERNAME_REGEX = /^(?=.{3,20}$)[a-zA-Z0-9]+(?:[_-][a-zA-Z0-9]+?)*$/
 
 export const loadAllRules = (i18nCallback, apollo) => {
@@ -48,22 +46,6 @@ export const loadAllRules = (i18nCallback, apollo) => {
   defineRule('max', max)
 
   // ------ Custom rules ------
-  defineRule('gddSendAmount', (value, { min, max }) => {
-    value = value.replace(',', '.')
-    return value.match(/^[0-9]+(\.[0-9]{0,2})?$/) && Number(value) >= min && Number(value) <= max
-      ? true
-      : i18nCallback.t('form.validation.gddSendAmount', {
-          min: i18nCallback.n(min, 'ungroupedDecimal'),
-          max: i18nCallback.n(max, 'ungroupedDecimal'),
-        })
-  })
-
-  defineRule('gddCreationTime', (value, { min, max }) => {
-    return value >= min && value <= max
-      ? true
-      : i18nCallback.t('form.validation.gddCreationTime', { min, max })
-  })
-
   defineRule('is_not', (value, [otherValue]) => {
     return value !== otherValue
       ? true
@@ -121,14 +103,5 @@ export const loadAllRules = (i18nCallback, apollo) => {
       variables: { username: value },
     })
     return data.checkUsername || i18nCallback.t('form.validation.username-unique')
-  })
-
-  defineRule('validIdentifier', (value) => {
-    const isEmail = !!EMAIL_REGEX.test(value)
-    const isUsername = !!value.match(USERNAME_REGEX)
-    const isGradidoId = validateUuid(value) && versionUuid(value) === 4
-    return (
-      isEmail || isUsername || isGradidoId || i18nCallback.t('form.validation.valid-identifier')
-    )
   })
 }

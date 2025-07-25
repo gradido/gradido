@@ -22,7 +22,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, onUpdated } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useQuery } from '@vue/apollo-composable'
 import { useRoute } from 'vue-router'
 import { selectCommunities } from '@/graphql/queries'
@@ -50,6 +50,9 @@ onResult(({ data }) => {
   if (data) {
     communities.value = data.communities
     setDefaultCommunity()
+    if (data.communities.length === 1) {
+      validCommunityIdentifier.value = true
+    }
   }
 })
 

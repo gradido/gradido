@@ -46,20 +46,25 @@
                     <BRow>
                       <BCol class="fw-bold">
                         <community-switch
-                          :disabled="isBalanceDisabled"
-                          :model-value="targetCommunity"
-                          @update:model-value="targetCommunity = $event"
+                          :disabled="isBalanceEmpty"
+                          :model-value="form.targetCommunity"
+                          @update:model-value="updateField($event, 'targetCommunity')"
                         />
                       </BCol>
                     </BRow>
                   </BCol>
                   <BCol v-if="radioSelected === SEND_TYPES.send" cols="12">
                     <div v-if="!userIdentifier">
-                      <input-identifier
+                      <ValidatedInput
+                        id="identifier"
+                        :model-value="form.identifier"
                         name="identifier"
                         :label="$t('form.recipient')"
                         :placeholder="$t('form.identifier')"
-                        :disabled="isBalanceDisabled"
+                        :rules="validationSchema.fields.identifier"
+                        :disabled="isBalanceEmpty"
+                        :disable-smart-valid-state="disableSmartValidState"
+                        @update:model-value="updateField"
                       />
                     </div>
                     <div v-else class="mb-4">
@@ -72,13 +77,17 @@
                     </div>
                   </BCol>
                   <BCol cols="12" lg="6">
-                    <input-amount
+                    <ValidatedInput
+                      id="amount"
+                      :model-value="form.amount"
                       name="amount"
                       :label="$t('form.amount')"
                       :placeholder="'0.01'"
-                      :rules="{ required: true, gddSendAmount: { min: 0.01, max: balance } }"
-                      :disabled="isBalanceDisabled"
-                    ></input-amount>
+                      :rules="validationSchema.fields.amount"
+                      :disabled="isBalanceEmpty"
+                      :disable-smart-valid-state="disableSmartValidState"
+                      @update:model-value="updateField"
+                    />
                   </BCol>
                 </BRow>
               </BCol>
@@ -86,16 +95,21 @@
 
             <BRow>
               <BCol>
-                <input-textarea
+                <ValidatedInput
+                  id="memo"
+                  :model-value="form.memo"
                   name="memo"
                   :label="$t('form.message')"
                   :placeholder="$t('form.message')"
-                  :rules="{ required: true, min: 5, max: 255 }"
-                  :disabled="isBalanceDisabled"
+                  :rules="validationSchema.fields.memo"
+                  textarea="true"
+                  :disabled="isBalanceEmpty"
+                  :disable-smart-valid-state="disableSmartValidState"
+                  @update:model-value="updateField"
                 />
               </BCol>
             </BRow>
-            <div v-if="!!isBalanceDisabled" class="text-danger mt-5">
+            <div v-if="!!isBalanceEmpty" class="text-danger mt-5">
               {{ $t('form.no_gdd_available') }}
             </div>
             <BRow v-else class="test-buttons mt-3">
@@ -110,8 +124,14 @@
                   {{ $t('form.reset') }}
                 </BButton>
               </BCol>
-              <BCol cols="12" md="6" lg="6" class="text-lg-end">
-                <BButton block type="submit" variant="gradido">
+              <BCol
+                cols="12"
+                md="6"
+                lg="6"
+                class="text-lg-end"
+                @mouseover="disableSmartValidState = true"
+              >
+                <BButton block type="submit" variant="gradido" :disabled="formIsInvalid">
                   {{ $t('form.check_now') }}
                 </BButton>
               </BCol>
@@ -124,15 +144,14 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useQuery } from '@vue/apollo-composable'
-import { useForm } from 'vee-validate'
 import { SEND_TYPES } from '@/utils/sendTypes'
-import InputIdentifier from '@/components/Inputs/InputIdentifier'
-import InputAmount from '@/components/Inputs/InputAmount'
-import InputTextarea from '@/components/Inputs/InputTextarea'
 import CommunitySwitch from '@/components/CommunitySwitch.vue'
+import ValidatedInput from '@/components/Inputs/ValidatedInput.vue'
+import { memo as memoSchema, identifier as identifierSchema } from '@/validationSchemas'
+import { object, number } from 'yup'
 import { user } from '@/graphql/queries'
 import CONFIG from '@/config'
 import { useAppToast } from '@/composables/useToast'
@@ -149,6 +168,10 @@ const props = defineProps({
   },
 })
 
+const entityDataToForm = computed(() => ({ ...props }))
+const form = reactive({ ...entityDataToForm.value })
+const disableSmartValidState = ref(false)
+
 const emit = defineEmits(['set-transaction'])
 
 const route = useRoute()
@@ -157,18 +180,6 @@ const { toastError } = useAppToast()
 
 const radioSelected = ref(props.selected)
 const userName = ref('')
-const recipientCommunity = ref({ uuid: '', name: '' })
-
-const { handleSubmit, resetForm, defineField, values } = useForm({
-  initialValues: {
-    identifier: props.identifier,
-    amount: props.amount ? String(props.amount) : '',
-    memo: props.memo,
-    targetCommunity: props.targetCommunity,
-  },
-})
-
-const [targetCommunity, targetCommunityProps] = defineField('targetCommunity')
 
 const userIdentifier = computed(() => {
   if (route.params.userIdentifier && route.params.communityIdentifier) {
@@ -180,7 +191,49 @@ const userIdentifier = computed(() => {
   return null
 })
 
-const isBalanceDisabled = computed(() => props.balance <= 0)
+const validationSchema = computed(() => {
+  const amountSchema = number()
+    .required()
+    .typeError({
+      key: 'form.validation.amount.typeError',
+      values: { min: 0.01, max: props.balance },
+    })
+    .transform((value, originalValue) => {
+      if (typeof originalValue === 'string') {
+        return Number(originalValue.replace(',', '.'))
+      }
+      return value
+    })
+    .min(0.01, ({ min }) => ({ key: 'form.validation.amount.min', values: { min } }))
+    .max(props.balance, ({ max }) => ({ key: 'form.validation.amount.max', values: { max } }))
+    .test('decimal-places', 'form.validation.amount.decimal-places', (value) => {
+      if (value === undefined || value === null) return true
+      return /^\d+(\.\d{0,2})?$/.test(value.toString())
+    })
+  if (!userIdentifier.value && radioSelected.value === SEND_TYPES.send) {
+    return object({
+      memo: memoSchema,
+      amount: amountSchema,
+      identifier: identifierSchema,
+    })
+  } else {
+    // don't need identifier schema if it is a transaction link or identifier was set via url
+    return object({
+      memo: memoSchema,
+      amount: amountSchema,
+    })
+  }
+})
+
+const formIsInvalid = computed(() => !validationSchema.value.isValidSync(form))
+
+const updateField = (newValue, name) => {
+  if (typeof name === 'string' && name.length) {
+    form[name] = newValue
+  }
+}
+
+const isBalanceEmpty = computed(() => props.balance <= 0)
 
 const { result: userResult, error: userError } = useQuery(
   user,
@@ -193,6 +246,7 @@ watch(
   (user) => {
     if (user) {
       userName.value = `${user.firstName} ${user.lastName}`
+      form.identifier = userIdentifier.value.identifier
     }
   },
   { immediate: true },
@@ -204,19 +258,21 @@ watch(userError, (error) => {
   }
 })
 
-const onSubmit = handleSubmit((formValues) => {
-  if (userIdentifier.value) formValues.identifier = userIdentifier.value.identifier
+function onSubmit() {
+  const transformedForm = validationSchema.value.cast(form)
   emit('set-transaction', {
+    ...transformedForm,
     selected: radioSelected.value,
-    ...formValues,
-    amount: Number(formValues.amount.replace(',', '.')),
     userName: userName.value,
   })
-})
+}
 
 function onReset(event) {
   event.preventDefault()
-  resetForm()
+  form.amount = props.amount
+  form.memo = props.memo
+  form.identifier = props.identifier
+  form.targetCommunity = props.targetCommunity
   radioSelected.value = SEND_TYPES.send
   router.replace('/send')
 }
