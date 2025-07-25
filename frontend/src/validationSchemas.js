@@ -22,7 +22,7 @@ export const translateYupErrorString = (error, t) => {
 }
 
 export const memo = string()
-  .required('contribution.yourActivity')
+  .required('form.validation.memo.required')
   .min(5, ({ min }) => ({ key: 'form.validation.memo.min', values: { min } }))
   .max(255, ({ max }) => ({ key: 'form.validation.memo.max', values: { max } }))
 

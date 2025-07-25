@@ -43,7 +43,7 @@
           :label="$t('form.hours')"
           placeholder="0.01"
           step="0.01"
-          type="number"
+          type="text"
           :rules="validationSchema.fields.hours"
           :disable-smart-valid-state="disableSmartValidState"
           @update:model-value="updateField"
@@ -92,9 +92,8 @@ import { reactive, computed, ref, onMounted, onUnmounted, toRaw } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ValidatedInput from '@/components/Inputs/ValidatedInput'
 import LabeledInput from '@/components/Inputs/LabeledInput'
-import { memo as memoSchema } from '@/validationSchemas'
 import OpenCreationsAmount from './OpenCreationsAmount.vue'
-import { object, date as dateSchema, number } from 'yup'
+import { object, date as dateSchema, number, string } from 'yup'
 import { GDD_PER_HOUR } from '../../constants'
 
 const amountToHours = (amount) => parseFloat(amount / GDD_PER_HOUR).toFixed(2)
@@ -108,7 +107,7 @@ const props = defineProps({
 
 const emit = defineEmits(['upsert-contribution', 'abort'])
 
-const { t } = useI18n()
+const { t, d } = useI18n()
 
 const entityDataToForm = computed(() => ({
   ...props.modelValue,
@@ -151,16 +150,26 @@ const validationSchema = computed(() => {
     // The date field is required and needs to be a valid date
     // contribution date
     contributionDate: dateSchema()
-      .required()
-      .min(minimalDate.value.toISOString().slice(0, 10)) // min date is first day of last month
-      .max(now.value.toISOString().slice(0, 10)), // date cannot be in the future
-    memo: memoSchema,
+      .required('form.validation.contributionDate.required')
+      .min(minimalDate.value.toISOString().slice(0, 10), ({ min }) => ({
+        key: 'form.validation.contributionDate.min',
+        values: { min: d(min) },
+      })) // min date is first day of last month
+      .max(now.value.toISOString().slice(0, 10), ({ max }) => ({
+        key: 'form.validation.contributionDate.max',
+        values: { max: d(max) },
+      })), // date cannot be in the future
+    memo: string()
+      .min(5, ({ min }) => ({ key: 'form.validation.contributionMemo.min', values: { min } }))
+      .max(255, ({ max }) => ({ key: 'form.validation.contributionMemo.max', values: { max } }))
+      .required('form.validation.contributionMemo.required'),
     hours: number()
+      .typeError({ key: 'form.validation.hours.typeError', values: { min: 0.01, max: maxHours } })
       .required()
-      .transform((value, originalValue) => (originalValue === '' ? undefined : value))
-      .min(0.01, ({ min }) => ({ key: 'form.validation.gddCreationTime.min', values: { min } }))
-      .max(maxHours, ({ max }) => ({ key: 'form.validation.gddCreationTime.max', values: { max } }))
-      .test('decimal-places', 'form.validation.gddCreationTime.decimal-places', (value) => {
+      // .transform((value, originalValue) => (originalValue === '' ? undefined : value))
+      .min(0.01, ({ min }) => ({ key: 'form.validation.hours.min', values: { min } }))
+      .max(maxHours, ({ max }) => ({ key: 'form.validation.hours.max', values: { max } }))
+      .test('decimal-places', 'form.validation.hours.decimal-places', (value) => {
         if (value === undefined || value === null) return true
         return /^\d+(\.\d{0,2})?$/.test(value.toString())
       }),

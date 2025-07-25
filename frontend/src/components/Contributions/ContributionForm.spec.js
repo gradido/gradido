@@ -5,6 +5,7 @@ import ContributionForm from './ContributionForm.vue'
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
     t: (key) => key,
+    d: (date) => date,
   }),
 }))
 

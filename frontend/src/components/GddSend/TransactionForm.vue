@@ -184,9 +184,15 @@ const userName = ref('')
 const validationSchema = computed(() => {
   return object({
     memo: memoSchema,
-    identifier: !userIdentifier.value ? identifierSchema.required() : identifierSchema,
+    identifier: !userIdentifier.value
+      ? identifierSchema.required('form.validation.identifier.required')
+      : identifierSchema,
     amount: number()
       .required()
+      .typeError({
+        key: 'form.validation.amount.typeError',
+        values: { min: 0.01, max: props.balance },
+      })
       .transform((value, originalValue) => {
         if (typeof originalValue === 'string') {
           return Number(originalValue.replace(',', '.'))

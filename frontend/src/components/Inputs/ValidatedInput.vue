@@ -71,9 +71,6 @@ const smartValidState = computed(() => {
   return valid.value ? true : null
 })
 const errorMessage = computed(() => {
-  if (model.value === undefined || model.value === '' || model.value === null) {
-    return undefined
-  }
   try {
     props.rules.validateSync(model.value)
     return undefined
