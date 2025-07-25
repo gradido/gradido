@@ -48,7 +48,7 @@ const model = ref(props.modelValue !== 0 ? props.modelValue : '')
 // prevent showing errors on form init
 const afterFirstInput = ref(false)
 
-const valid = computed(() => props.rules.isValidSync(props.modelValue))
+const valid = computed(() => props.rules.isValidSync(model.value))
 // smartValidState controls the visual validation feedback for the input field.
 // The goal is to avoid showing red (invalid) borders too early, creating a smoother UX:
 //
@@ -67,11 +67,11 @@ const smartValidState = computed(() => {
   return valid.value ? true : null
 })
 const errorMessage = computed(() => {
-  if (props.modelValue === undefined || props.modelValue === '' || props.modelValue === null) {
+  if (model.value === undefined || model.value === '' || model.value === null) {
     return undefined
   }
   try {
-    props.rules.validateSync(props.modelValue)
+    props.rules.validateSync(model.value)
     return undefined
   } catch (e) {
     return translateYupErrorString(e.message, t)
