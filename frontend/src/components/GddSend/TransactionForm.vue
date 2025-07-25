@@ -178,7 +178,7 @@ const validationSchema = computed(() => {
     amount: number()
       .required()
       .transform((value, originalValue) => {
-        if (typeof originalValue === 'string' && originalValue !== '') {
+        if (typeof originalValue === 'string') {
           return Number(originalValue.replace(',', '.'))
         }
         return value
