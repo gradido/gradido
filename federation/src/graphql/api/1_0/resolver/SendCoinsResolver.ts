@@ -40,7 +40,7 @@ export class SendCoinsResolver {
     }
     const authArgs = await interpretEncryptedTransferArgs(args) as SendCoinsJwtPayloadType
     if (!authArgs) {
-      const errmsg = `invalid authentication payload of requesting community with publicKey` + authArgs.publicKey
+      const errmsg = `invalid authentication payload of requesting community with publicKey` + args.publicKey
       methodLogger.error(errmsg)
       throw new Error(errmsg)
     }
