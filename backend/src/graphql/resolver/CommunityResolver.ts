@@ -38,6 +38,7 @@ export class CommunityResolver {
   @Authorized([RIGHTS.COMMUNITIES])
   @Query(() => [AdminCommunityView])
   async allCommunities(@Args() paginated: Paginated): Promise<AdminCommunityView[]> {
+    // communityUUID could be oneTimePassCode (uint32 number)
     return (await getAllCommunities(paginated)).map((dbCom) => new AdminCommunityView(dbCom))
   }
 
@@ -58,6 +59,7 @@ export class CommunityResolver {
   async communityByIdentifier(
     @Arg('communityIdentifier') communityIdentifier: string,
   ): Promise<Community> {
+    // communityUUID could be oneTimePassCode (uint32 number)
     const community = await getCommunityByIdentifier(communityIdentifier)
     if (!community) {
       throw new LogError('community not found', communityIdentifier)
