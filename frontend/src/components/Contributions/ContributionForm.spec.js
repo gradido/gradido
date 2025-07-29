@@ -2,24 +2,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import ContributionForm from './ContributionForm.vue'
 
-// Mock external components and dependencies
-vi.mock('@/components/Inputs/InputAmount', () => ({
-  default: {
-    name: 'InputAmount',
-    template: '<input data-testid="input-amount" />',
-  },
-}))
-
-vi.mock('@/components/Inputs/InputTextarea', () => ({
-  default: {
-    name: 'InputTextarea',
-    template: '<textarea data-testid="input-textarea"></textarea>',
-  },
-}))
-
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
     t: (key) => key,
+    d: (date) => date,
   }),
 }))
 
