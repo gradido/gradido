@@ -116,8 +116,8 @@ server {
 
     # Well-Known for openid connect
     location /.well-known/ {
-        limit_req zone=backend burst=20 nodelay;
-        limit_conn addr 10;
+        limit_req zone=backend burst=10 nodelay;
+        limit_conn addr 5;
         proxy_http_version 1.1;
         proxy_set_header   Upgrade $http_upgrade;
         proxy_set_header   Connection 'upgrade';
@@ -125,7 +125,25 @@ server {
         proxy_set_header   X-Real-IP  $remote_addr;
         proxy_set_header   Host $host;
 
-        proxy_pass http://127.0.0.1:4000/.well-known/;
+        proxy_pass http://127.0.0.1:4000/realms/gradido/.well-known;
+        proxy_redirect     off;
+
+        access_log $GRADIDO_LOG_PATH/nginx-access.well-known.log gradido_log;
+        error_log $GRADIDO_LOG_PATH/nginx-error.well-known.log warn;
+    }
+
+    # Well-Known for openid connect
+    location /realms/gradido {
+        limit_req zone=backend burst=10 nodelay;
+        limit_conn addr 5;
+        proxy_http_version 1.1;
+        proxy_set_header   Upgrade $http_upgrade;
+        proxy_set_header   Connection 'upgrade';
+        proxy_set_header   X-Forwarded-For $remote_addr;
+        proxy_set_header   X-Real-IP  $remote_addr;
+        proxy_set_header   Host $host;
+
+        proxy_pass http://127.0.0.1:4000/realms/gradido;
         proxy_redirect     off;
 
         access_log $GRADIDO_LOG_PATH/nginx-access.well-known.log gradido_log;

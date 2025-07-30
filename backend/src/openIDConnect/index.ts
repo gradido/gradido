@@ -1,5 +1,5 @@
 import { CONFIG } from '@/config'
-import { FRONTEND_LOGIN_ROUTE, LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { FRONTEND_LOGIN_ROUTE, GRADIDO_REALM, LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { getHomeCommunity } from 'database'
 import { importSPKI, exportJWK } from 'jose'
 import { createHash } from 'crypto'
@@ -12,7 +12,7 @@ export const openidConfiguration = async (req: any, res: any): Promise<void> => 
   res.setHeader('Content-Type', 'application/json')
   res.status(200).json({
     issuer: new URL(FRONTEND_LOGIN_ROUTE, CONFIG.COMMUNITY_URL).toString(),
-    jwks_uri: new URL('/.well-known/jwks.json', CONFIG.COMMUNITY_URL).toString(),
+    jwks_uri: new URL(`/realms/${GRADIDO_REALM}/protocol/openid-connect/certs`, CONFIG.COMMUNITY_URL).toString(),
   })
 }
 
