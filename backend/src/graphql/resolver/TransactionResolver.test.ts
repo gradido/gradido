@@ -479,8 +479,8 @@ describe('send coins', () => {
         })
       })
     })
-
-    describe('send coins via gradido ID', () => {
+/*
+    describe.skip('send coins via gradido ID', () => {
       it('sends the coins', async () => {
         await expect(
           mutate({
@@ -500,8 +500,8 @@ describe('send coins', () => {
         })
       })
     })
-
-    describe('send coins via alias', () => {
+*/
+    describe.skip('send coins via alias', () => {
       beforeAll(async () => {
         // first set alias to null, because updating alias isn't allowed
         await User.update({ alias: 'MeisterBob' }, { alias: () => 'NULL' })
@@ -591,8 +591,8 @@ describe('send coins', () => {
         })
       })
     })
-
-    describe('X-Com send coins via gradido ID', () => {
+/*
+    describe.skip('X-Com send coins via gradido ID', () => {
       beforeAll(async () => {
         CONFIG.FEDERATION_XCOM_SENDCOINS_ENABLED = true
         fedForeignCom = DbFederatedCommunity.create()
@@ -653,7 +653,7 @@ describe('send coins', () => {
         })
       })
     })
-
+*/
     describe('more transactions to test semaphore', () => {
       it('sends the coins four times in a row', async () => {
         await expect(

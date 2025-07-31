@@ -10,3 +10,6 @@ export * from './jwt/payloadtypes/JwtPayloadType'
 export * from './jwt/payloadtypes/OpenConnectionJwtPayloadType'
 export * from './jwt/payloadtypes/OpenConnectionCallbackJwtPayloadType'
 export * from './jwt/payloadtypes/RedeemJwtPayloadType'
+export * from './jwt/payloadtypes/SendCoinsJwtPayloadType'
+export * from './jwt/payloadtypes/SendCoinsResponseJwtPayloadType'
+

@@ -1,7 +1,7 @@
 import { gql } from 'graphql-request'
 
 export const revertSendCoins = gql`
-  mutation ($args: SendCoinsArgs!) {
+  mutation ($args: EncryptedTransferArgs!) {
     revertSendCoins(data: $args)
   }
 `
