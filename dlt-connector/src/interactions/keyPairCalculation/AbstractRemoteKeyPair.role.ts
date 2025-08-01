@@ -1,5 +1,5 @@
 import { KeyPairEd25519 } from 'gradido-blockchain-js'
-import { communityUuidToTopicSchema } from '../../schemas/rpcParameter.schema'
+import { communityUuidToTopicSchema } from '../../client/backend/community.schema'
 import * as v from 'valibot'
 
 export abstract class AbstractRemoteKeyPairRole {

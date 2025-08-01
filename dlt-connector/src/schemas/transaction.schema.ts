@@ -4,29 +4,9 @@ import { identifierAccountSchema } from './account.schema'
 import { InputTransactionType } from '../enum/InputTransactionType'
 import { accountTypeToAddressTypeSchema } from './typeConverter.schema'
 
-// allow TransactionIdentifier to only contain either transactionNr or iotaMessageId
-export const transactionIdentifierSchema = v.pipe(
-  v.object({
-    transactionNr: v.nullish(
-      v.pipe(v.number('expect number type'), v.minValue(0, 'expect number >= 0')), 
-      0
-    ),
-    iotaMessageId: v.nullish(iotaMessageIdSchema, undefined),
-    communityId: uuid4ToTopicSchema,
-  }),
-  v.custom((value: any) => {
-    const setFieldsCount = Number(value.transactionNr !== 0) + Number(value.iotaMessageId !== undefined)
-    if (setFieldsCount !== 1) {
-      return false
-    }
-    return true
-  }, 'expect transactionNr or iotaMessageId not both')
-)
-export type TransactionIdentifierInput = v.InferInput<typeof transactionIdentifierSchema>
-export type TransactionIdentifier = v.InferOutput<typeof transactionIdentifierSchema>
 
 export const transactionSchema = v.object({
-  user: identifierAccountSchema,
+  user: identifierAccountScmhema,
   linkedUser: v.nullish(identifierAccountSchema, undefined),
   amount: v.nullish(amountToGradidoUnitSchema, undefined),
   memo: v.nullish(memoSchema, undefined),

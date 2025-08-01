@@ -10,7 +10,7 @@ import {
 import { KeyPairCalculation } from '../keyPairCalculation/KeyPairCalculation.context'
 
 import { AbstractTransactionRole } from './AbstractTransaction.role'
-import { Community, CommunityInput, communitySchema } from '../../schemas/rpcParameter.schema'
+import { Community, CommunityInput, communitySchema } from '../../client/backend/community.schema'
 import * as v from 'valibot'
 
 export class CommunityRootTransactionRole extends AbstractTransactionRole {

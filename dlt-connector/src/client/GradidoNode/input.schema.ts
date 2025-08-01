@@ -1,33 +1,36 @@
 import * as v from 'valibot'
-import { uuid4ToTopicSchema } from '../../schemas/typeConverter.schema'
+import { hex32Schema, iotaMessageIdSchema } from '../../schemas/typeGuard.schema'
 
-export enum TransactionFormatType {
-  BASE64 = 'base64',
-  JSON = 'json',
-}
-
-export const transactionFormatTypeSchema = v.nullish(
-  v.enum(TransactionFormatType), 
-  TransactionFormatType.BASE64
-)
-
-export type TransactionFormatTypeInput = v.InferInput<typeof transactionFormatTypeSchema>
-
-export const getTransactionsInputSchema = v.object({
-  format: transactionFormatTypeSchema,
+export const transactionsRangeSchema = v.object({
   // default value is 1, from first transactions
   fromTransactionId: v.undefinedable(v.pipe(v.number(), v.minValue(1, 'expect number >= 1')), 1),
   // default value is 100, max 100 transactions
   maxResultCount: v.undefinedable(v.pipe(v.number(), v.minValue(1, 'expect number >= 1')), 100),
-  communityId: uuid4ToTopicSchema,
+  topic: hex32Schema,
 })
 
-export type GetTransactionsInputType = v.InferInput<typeof getTransactionsInputSchema>
+export type TransactionsRangeInput = v.InferInput<typeof transactionsRangeSchema>
 
-export const getTransactionInputSchema = v.object({
-  transactionIdentifier: v.object({
-    iotaTopic: uuid4ToTopicSchema,
-    transactionNr: v.number(),
-    iotaMessageId: v.string(),
+
+// allow TransactionIdentifier to only contain either transactionNr or iotaMessageId
+export const transactionIdentifierSchema = v.pipe(
+  v.object({
+    transactionNr: v.nullish(
+      v.pipe(v.number('expect number type'), v.minValue(1, 'expect number >= 1')),
+      undefined
+    ),
+    iotaMessageId: v.nullish(iotaMessageIdSchema, undefined),
+    topic: hex32Schema,
   }),
-})  
+  v.custom((value: any) => {
+    const setFieldsCount = Number(value.transactionNr !== undefined) + Number(value.iotaMessageId !== undefined)
+    if (setFieldsCount !== 1) {
+      return false
+    }
+    return true
+  }, 'expect transactionNr or iotaMessageId not both')
+)
+
+export type TransactionIdentifierInput = v.InferInput<typeof transactionIdentifierSchema>
+export type TransactionIdentifier = v.InferOutput<typeof transactionIdentifierSchema>
+

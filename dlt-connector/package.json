@@ -12,7 +12,7 @@
     "lint:fix": "biome check --error-on-warnings . --write"
   },
   "dependencies": {
-    "gradido-blockchain-js": "git+https://github.com/gradido/gradido-blockchain-js#217d03b",
+    "gradido-blockchain-js": "git+https://github.com/gradido/gradido-blockchain-js#9a5f392",
     "@iota/client": "^2.2.4"
   },
   "devDependencies": {

@@ -13,6 +13,7 @@
  * `const amount: Amount = v.parse(amountSchema, 1.21)` 
  * must be called and ensure the value is valid
  * If it isn't valid, v.parse will throw an error
+ * Alternatively v.safeParse can be used, this don't throw but it return null on error
  */
 
 import { validate, version } from 'uuid'
@@ -27,48 +28,89 @@ import { MemoryBlock, DurationSeconds, GradidoUnit } from 'gradido-blockchain-js
 declare const validUuidv4: unique symbol
 export type Uuidv4 = string & { [validUuidv4]: true };
 
-export const uuidv4Schema = v.custom<Uuidv4>((value) => 
-  (typeof value === 'string' && validate(value) && version(value) === 4),
-  'uuid v4 expected'
+export const uuidv4Schema = v.pipe(
+  v.string('expect string type'),
+  v.custom<string>((value) => 
+    (typeof value === 'string' && validate(value) && version(value) === 4),
+    'uuid v4 expected'
+  ),
+  v.transform<string, Uuidv4>(
+    (input: string) => input as Uuidv4,
+  ),
+)
+
+export type Uuidv4Input = v.InferInput<typeof uuidv4Schema>
+
+/**
+ * type guard for memory block size 32
+ * create with `v.parse(memoryBlock32Schema, MemoryBlock.fromHex('39568d7e148a0afee7f27a67dbf7d4e87d1fdec958e2680df98a469690ffc1a2'))`
+ * memoryBlock32 is a non-empty MemoryBlock with size 32
+ */
+
+declare const validMemoryBlock32: unique symbol
+export type MemoryBlock32 = MemoryBlock & { [validMemoryBlock32]: true };
+
+export const memoryBlock32Schema = v.pipe(
+  v.instance(MemoryBlock, 'expect MemoryBlock type'),
+  v.custom<MemoryBlock>(
+    (val): boolean => val instanceof MemoryBlock && val.size() === 32 && !val.isEmpty(),
+    'expect MemoryBlock size = 32 and not empty'
+  ),
+  v.transform<MemoryBlock, MemoryBlock32>(
+    (input: MemoryBlock) => input as MemoryBlock32,
+  ),
 )
 
 /**
- * type guard for uuid v4 hash
- * const uuidv4Value: Uuidv4 = v.parse(uuidv4Schema, 'uuid')
- * create with `v.parse(uuidv4HashSchema, uuidv4Value)`
- * uuidv4Hash is uuidv4 value hashed with BLAKE2b as Binary Type MemoryBlock from gradido-blockchain similar to Node.js Buffer Type,
- * used for iota topic
+ * type guard for hex string of length 64 (binary size = 32)
+ * create with `v.parse(hex32Schema, '39568d7e148a0afee7f27a67dbf7d4e87d1fdec958e2680df98a469690ffc1a2')`
+ * or `v.parse(hex32Schema, MemoryBlock.fromHex('39568d7e148a0afee7f27a67dbf7d4e87d1fdec958e2680df98a469690ffc1a2'))`
+ * hex32 is a hex string of length 64 (binary size = 32)
  */
-declare const validUuidv4Hash: unique symbol
-export type Uuidv4Hash = MemoryBlock & { [validUuidv4Hash]: true };
+declare const validHex32: unique symbol
+export type Hex32 = string & { [validHex32]: true };
 
-export const uuid4HashSchema = v.pipe(
-  uuidv4Schema,
-  v.transform<Uuidv4, Uuidv4Hash>(
-    (input: Uuidv4) => MemoryBlock.fromHex(input.replace(/-/g, '')).calculateHash() as Uuidv4Hash,
-  )
+export const hex32Schema = v.pipe(
+  v.union([
+    v.pipe(
+      v.string('expect string type'),
+      v.hexadecimal('expect hexadecimal string'),
+      v.length(64, 'expect string length = 64'),
+    ),
+    memoryBlock32Schema,
+  ]),
+  v.transform<string | MemoryBlock32 | Hex32, Hex32>(
+    (input: string | MemoryBlock32 | Hex32) => {
+      if (typeof input === 'string') {
+        return input as Hex32
+      }
+      return input.convertToHex() as Hex32
+    },
+  ),
 )
 
-/**
- * type guard for topic index
- * const uuidv4Value: Uuidv4 = v.parse(uuidv4Schema, 'uuid')
- * const uuidv4Hash: Uuidv4Hash = v.parse(uuid4HashSchema, uuidv4Value)
- * create with `v.parse(topicIndexSchema, uuidv4Hash)`
- * topicIndex is uuidv4Hash value converted to hex string used for iota topic
- * The beauty of valibot allow also parse a uuidv4 string directly to topicIndex
- * const topic: TopicIndex = v.parse(topicIndexSchema, 'uuid')
- */
-declare const validTopicIndex: unique symbol
-export type TopicIndex = string & { [validTopicIndex]: true };
+export type Hex32Input = v.InferInput<typeof hex32Schema>
 
-export const topicIndexSchema = v.pipe(
-  v.union([uuidv4Schema, v.custom((val): val is Uuidv4Hash => val instanceof MemoryBlock)]),
-  v.transform<any, TopicIndex>((input) => {
-    const hash = typeof input === 'string'
-      ? MemoryBlock.fromHex(input.replace(/-/g, '')).calculateHash()
-      : input;
-    return hash.convertToHex() as TopicIndex;
-  })
+/**
+ * type guard for iota message id
+ * create with `v.parse(iotaMessageIdSchema, '822387692a7cfd3f07f25742e91e248af281d771ee03a432c2e178e5533f786c')`
+ * iota message id is a hex string of length 64
+ */
+declare const validIotaMessageId: unique symbol
+export type IotaMessageId = Hex32 & { [validIotaMessageId]: true };
+
+export const iotaMessageIdSchema = v.pipe(
+  v.union([
+    v.pipe(
+      v.string('expect string type'),
+      v.hexadecimal('expect hexadecimal string'),
+      v.length(64, 'expect string length = 64'),
+    ),
+    memoryBlock32Schema,
+  ]),
+  v.transform<string | MemoryBlock32, IotaMessageId>(
+    (input: string | MemoryBlock32) => v.parse(hex32Schema, input) as IotaMessageId,
+  ),
 )
 
 /**
@@ -133,7 +175,8 @@ export const amountSchema = v.pipe(
 /**
  * type guard for gradido amount
  * create with `v.parse(gradidoAmountSchema, '123')`
- * gradido amount is a string representing a positive decimal number, compatible with decimal.js
+ * gradido amount is a GradidoUnit representing a positive gradido amount stored intern as integer with 4 decimal places
+ * GradidoUnit is native implemented in gradido-blockchain-js in c++ and has functions for decay calculation
  */
 declare const validGradidoAmount: unique symbol
 export type GradidoAmount = GradidoUnit & { [validGradidoAmount]: true };

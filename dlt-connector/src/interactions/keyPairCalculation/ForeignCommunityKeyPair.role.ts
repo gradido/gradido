@@ -1,6 +1,6 @@
 import { KeyPairEd25519 } from 'gradido-blockchain-js'
 
-import { getTransaction } from '../../client/GradidoNode/jsonrpc.api'
+import { getTransaction } from '../../client/GradidoNode/api'
 
 import { AbstractRemoteKeyPairRole } from './AbstractRemoteKeyPair.role'
 import { GradidoNodeInvalidTransactionError, GradidoNodeMissingTransactionError } from '../../errors'

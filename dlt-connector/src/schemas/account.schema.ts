@@ -1,6 +1,5 @@
-
 import * as v from 'valibot'
-import { uuidv4Schema } from './typeConverter.schema'
+import { uuidv4Schema } from './typeGuard.schema'
 
 // use code from transaction links
 export const identifierSeedSchema = v.object({

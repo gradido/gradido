@@ -1,6 +1,6 @@
 import { KeyPairEd25519 } from 'gradido-blockchain-js'
 
-import { findUserByNameHash } from '../../client/GradidoNode/jsonrpc.api'
+import { findUserByNameHash } from '../../client/GradidoNode/api'
 import { IdentifierAccount } from '../../schemas/account.schema'
 import { GradidoNodeMissingUserError, ParameterError } from '../../errors'
 import { AbstractRemoteKeyPairRole } from './AbstractRemoteKeyPair.role'

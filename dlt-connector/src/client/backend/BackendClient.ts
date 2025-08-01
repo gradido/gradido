@@ -1,10 +1,10 @@
 import { gql, GraphQLClient } from 'graphql-request'
 import { SignJWT } from 'jose'
 
-import { CONFIG } from '../config'
-import { communitySchema, type Community } from '../schemas/rpcParameter.schema'
+import { CONFIG } from '../../config'
+import { communitySchema, type Community } from './community.schema'
 import { getLogger, Logger } from 'log4js'
-import { LOG4JS_BASE_CATEGORY } from '../config/const'
+import { LOG4JS_BASE_CATEGORY } from '../../config/const'
 import * as v from 'valibot'
 
 const homeCommunity = gql`

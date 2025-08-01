@@ -1,6 +1,6 @@
 import * as v from 'valibot'
-import { uuidv4Schema } from './typeGuard.schema'
-import { dateSchema } from './typeConverter.schema'
+import { uuidv4Schema } from '../../schemas/typeGuard.schema'
+import { dateSchema } from '../../schemas/typeConverter.schema'
 
 /**
  * Schema Definitions for rpc call parameter, when dlt-connector is called from backend

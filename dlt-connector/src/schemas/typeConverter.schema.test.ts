@@ -1,10 +1,10 @@
 
-import { accountTypeSchema, addressTypeSchema, confirmedTransactionFromBase64Schema } from './typeConverter.schema'
+import { accountTypeSchema, addressTypeSchema, confirmedTransactionSchema } from './typeConverter.schema'
 import * as v from 'valibot'
 // only for IDE, bun don't need this to work
 import { describe, expect, it } from 'bun:test'
 import { dateSchema } from './typeConverter.schema'
-import { AddressType_COMMUNITY_AUF } from 'gradido-blockchain-js'
+import { AddressType_COMMUNITY_AUF, AddressType_COMMUNITY_PROJECT } from 'gradido-blockchain-js'
 import { AccountType } from '../enum/AccountType'
 
 describe('basic.schema', () => {
@@ -24,6 +24,10 @@ describe('basic.schema', () => {
   })
 
   describe('AddressType and AccountType', () => {
+    it('AddressType from string', () => {
+      const addressType = v.parse(addressTypeSchema, 'COMMUNITY_AUF')
+      expect(addressType).toBe(AddressType_COMMUNITY_AUF)
+    })
     it('AddressType from AddressType', () => {
       const addressType = v.parse(addressTypeSchema, AddressType_COMMUNITY_AUF)
       expect(addressType).toBe(AddressType_COMMUNITY_AUF)
@@ -42,8 +46,8 @@ describe('basic.schema', () => {
     })
   })
   
-  it('confirmedTransactionFromBase64Schema', () => {
-    const confirmedTransaction = v.parse(confirmedTransactionFromBase64Schema, 'CAcSAgoAGgYIwvK5/wUiAzMuNCogAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAyIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA')
+  it('confirmedTransactionSchema', () => {
+    const confirmedTransaction = v.parse(confirmedTransactionSchema, 'CAcSAgoAGgYIwvK5/wUiAzMuNCogAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAyIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA')
     expect(confirmedTransaction.getId()).toBe(7)
     expect(confirmedTransaction.getConfirmedAt().getSeconds()).toBe(1609464130)
     expect(confirmedTransaction.getVersionNumber()).toBe('3.4')

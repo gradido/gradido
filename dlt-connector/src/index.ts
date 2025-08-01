@@ -4,11 +4,13 @@ import { loadCryptoKeys, MemoryBlock } from 'gradido-blockchain-js'
 import { getLogger, configure } from 'log4js'
 import { readFileSync } from 'node:fs'
 import { isPortOpenRetry } from './utils/network'
-import { BackendClient } from './client/BackendClient'
+import { BackendClient } from './client/backend/BackendClient'
 import { KeyPairCacheManager } from './KeyPairCacheManager'
-import { communityUuidToTopicSchema } from './schemas/rpcParameter.schema'
-import { parse } from 'valibot'
-import { getTransaction } from './client/GradidoNode/jsonrpc.api'
+import { getTransaction } from './client/GradidoNode/api'
+import { Uuidv4Hash } from './data/Uuidv4Hash'
+import { SendToIotaContext } from './interactions/sendToIota/SendToIota.context'
+import { keyGenerationSeedSchema } from './schemas/base.schema'
+import * as v from 'valibot'
 
 async function main() {
   // configure log4js
@@ -16,21 +18,12 @@ async function main() {
   const options = JSON.parse(readFileSync(CONFIG.LOG4JS_CONFIG, 'utf-8'))
   configure(options)
   const logger = getLogger('dlt')
-  // TODO: replace with schema validation
-  if (CONFIG.IOTA_HOME_COMMUNITY_SEED) {
-    try {
-      const seed = MemoryBlock.fromHex(CONFIG.IOTA_HOME_COMMUNITY_SEED)
-      if (seed.size() < 32) {
-        throw new Error('seed need to be greater than 32 Bytes')
-      }
-    } catch (error) {
-      logger.error(
-        'IOTA_HOME_COMMUNITY_SEED must be a valid hex string, at least 64 characters long',
-      )
-      process.exit(1)
-    }
+  // check if valid seed for root key pair generation is present
+  if (!v.safeParse(keyGenerationSeedSchema, CONFIG.IOTA_HOME_COMMUNITY_SEED).success) {
+    logger.error('IOTA_HOME_COMMUNITY_SEED must be a valid hex string, at least 64 characters long')
+    process.exit(1)
   }
-
+  
   // load crypto keys for gradido blockchain lib
   loadCryptoKeys(
     MemoryBlock.fromHex(CONFIG.GRADIDO_BLOCKCHAIN_CRYPTO_APP_SECRET),
@@ -46,19 +39,19 @@ async function main() {
   await isPortOpenRetry(CONFIG.BACKEND_SERVER_URL)
   const homeCommunity = await backend.getHomeCommunityDraft()
   KeyPairCacheManager.getInstance().setHomeCommunityUUID(homeCommunity.uuid)
-  logger.info('home community topic: %s', parse(communityUuidToTopicSchema, homeCommunity.uuid))
+  const topic = new Uuidv4Hash(homeCommunity.uuid).getAsHexString()
+  logger.info('home community topic: %s', topic)
   logger.info('gradido node server: %s', CONFIG.NODE_SERVER_URL)
   // ask gradido node if community blockchain was created
   try {
-    const topic = parse(communityUuidToTopicSchema, homeCommunity.uuid)
-    if (!await getTransaction(1, topic)) {
+    if (!await getTransaction({ transactionNr: 1, topic })) {
       // if not exist, create community root transaction
       await SendToIotaContext(homeCommunity)
     }
   } catch (e) {
     logger.error('error requesting gradido node: ', e)
   }
-  
+  // listen for rpc request from backend (replace graphql with json rpc)
   const app = new Elysia()
     .get('/', () => "Hello Elysia")
     .listen(CONFIG.DLT_CONNECTOR_PORT, () => {

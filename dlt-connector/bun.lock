@@ -5,7 +5,7 @@
       "name": "dlt-connector",
       "dependencies": {
         "@iota/client": "^2.2.4",
-        "gradido-blockchain-js": "git+https://github.com/gradido/gradido-blockchain-js#217d03b",
+        "gradido-blockchain-js": "git+https://github.com/gradido/gradido-blockchain-js#9a5f392",
       },
       "devDependencies": {
         "@biomejs/biome": "2.0.0",
@@ -232,7 +232,7 @@
 
     "graceful-fs": ["graceful-fs@4.2.11", "", {}, "sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ=="],
 
-    "gradido-blockchain-js": ["gradido-blockchain-js@github:gradido/gradido-blockchain-js#217d03b", { "dependencies": { "bindings": "^1.5.0", "nan": "^2.20.0", "node-addon-api": "^7.1.1", "node-gyp-build": "^4.8.1", "prebuildify": "git+https://github.com/einhornimmond/prebuildify#cmake_js" } }, "gradido-gradido-blockchain-js-217d03b"],
+    "gradido-blockchain-js": ["gradido-blockchain-js@github:gradido/gradido-blockchain-js#9a5f392", { "dependencies": { "bindings": "^1.5.0", "nan": "^2.20.0", "node-addon-api": "^7.1.1", "node-gyp-build": "^4.8.1", "prebuildify": "git+https://github.com/einhornimmond/prebuildify#65d94455fab86b902c0d59bb9c06ac70470e56b2" } }, "gradido-gradido-blockchain-js-9a5f392"],
 
     "graphql": ["graphql@16.11.0", "", {}, "sha512-mS1lbMsxgQj6hge1XZ6p7GPhbrtFwUFYi3wRzXAC/FmYnyXMTvvI3td3rjmQ2u8ewXueaSvRPWaEcgVVOT9Jnw=="],
 
@@ -356,7 +356,7 @@
 
     "prebuild-install": ["prebuild-install@6.1.4", "", { "dependencies": { "detect-libc": "^1.0.3", "expand-template": "^2.0.3", "github-from-package": "0.0.0", "minimist": "^1.2.3", "mkdirp-classic": "^0.5.3", "napi-build-utils": "^1.0.1", "node-abi": "^2.21.0", "npmlog": "^4.0.1", "pump": "^3.0.0", "rc": "^1.2.7", "simple-get": "^3.0.3", "tar-fs": "^2.0.0", "tunnel-agent": "^0.6.0" }, "bin": { "prebuild-install": "bin.js" } }, "sha512-Z4vpywnK1lBg+zdPCVCsKq0xO66eEV9rWo2zrROGGiRS4JtueBOdlB1FnY8lcy7JsUud/Q3ijUxyWN26Ika0vQ=="],
 
-    "prebuildify": ["prebuildify@github:einhornimmond/prebuildify#91f4e76", { "dependencies": { "cmake-js": "^7.2.1", "execspawn": "^1.0.1", "minimist": "^1.2.5", "mkdirp-classic": "^0.5.3", "node-abi": "^3.3.0", "npm-run-path": "^3.1.0", "npm-which": "^3.0.1", "pump": "^3.0.0", "tar-fs": "^2.1.0" }, "bin": { "prebuildify": "./bin.js" } }, "einhornimmond-prebuildify-91f4e76"],
+    "prebuildify": ["prebuildify@github:einhornimmond/prebuildify#65d9445", { "dependencies": { "cmake-js": "^7.2.1", "execspawn": "^1.0.1", "minimist": "^1.2.5", "mkdirp-classic": "^0.5.3", "node-abi": "^3.3.0", "npm-run-path": "^3.1.0", "npm-which": "^3.0.1", "pump": "^3.0.0", "tar-fs": "^2.1.0" }, "bin": { "prebuildify": "./bin.js" } }, "einhornimmond-prebuildify-65d9445"],
 
     "process-nextick-args": ["process-nextick-args@2.0.1", "", {}, "sha512-3ouUOpQhtgrbOa17J7+uxOTpITYWaGP7/AhoR3+A+/1e9skrzelGi/dXzEYyvbxubEF6Wn2ypscTKiKJFFn1ag=="],
 

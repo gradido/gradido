@@ -6,6 +6,7 @@ import {
   AddressType_CRYPTO_ACCOUNT,
   AddressType_NONE,
   AddressType_SUBACCOUNT,
+  AddressType_DEFERRED_TRANSFER,
 } from 'gradido-blockchain-js'
 
 export enum AddressType {
@@ -16,4 +17,5 @@ export enum AddressType {
   CRYPTO_ACCOUNT = AddressType_CRYPTO_ACCOUNT,
   NONE = AddressType_NONE,
   SUBACCOUNT = AddressType_SUBACCOUNT,
+  DEFERRED_TRANSFER = AddressType_DEFERRED_TRANSFER,
 }
