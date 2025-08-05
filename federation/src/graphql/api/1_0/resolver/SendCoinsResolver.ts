@@ -52,7 +52,7 @@ export class SendCoinsResolver {
       communityUuid: authArgs.recipientCommunityUuid,
     })
     if (!recipientCom) {
-      const errmsg = `voteForSendCoins with wrong recipientCommunityUuid` + authArgs.recipientCommunityUuid
+      const errmsg = `voteForSendCoins with wrong recipientCommunityUuid: ${authArgs.recipientCommunityUuid}`
       methodLogger.error(errmsg)
       throw new Error(errmsg)
     }
@@ -60,7 +60,7 @@ export class SendCoinsResolver {
       communityUuid: authArgs.senderCommunityUuid,
     })
     if (!senderCom) {
-      const errmsg = `voteForSendCoins with wrong senderCommunityUuid` + authArgs.senderCommunityUuid
+      const errmsg = `voteForSendCoins with wrong senderCommunityUuid: ${authArgs.senderCommunityUuid}`
       methodLogger.error(errmsg)
       throw new Error(errmsg)
     }
@@ -136,7 +136,7 @@ export class SendCoinsResolver {
     }
     const authArgs = await interpretEncryptedTransferArgs(args) as SendCoinsJwtPayloadType
     if (!authArgs) {
-      const errmsg = `invalid revertSendCoins payload of requesting community with publicKey` + args.publicKey
+      const errmsg = `invalid revertSendCoins payload of requesting community with publicKey=${args.publicKey}`
       methodLogger.error(errmsg)
       throw new Error(errmsg)
     }
@@ -148,7 +148,7 @@ export class SendCoinsResolver {
       communityUuid: authArgs.recipientCommunityUuid,
     })
     if (!homeCom) {
-      const errmsg = `revertSendCoins with wrong recipientCommunityUuid` + authArgs.recipientCommunityUuid
+      const errmsg = `revertSendCoins with wrong recipientCommunityUuid=${authArgs.recipientCommunityUuid}`
       methodLogger.error(errmsg)
       throw new Error(errmsg)
     }
@@ -157,7 +157,7 @@ export class SendCoinsResolver {
     // second check if receiver user exists in this community
     receiverUser = await findUserByIdentifier(authArgs.recipientUserIdentifier)
     if (!receiverUser) {
-      const errmsg = `revertSendCoins with unknown recipientUserIdentifier in the community=` + homeCom.name
+      const errmsg = `revertSendCoins with unknown recipientUserIdentifier in the community=${homeCom.name}`
       methodLogger.error(errmsg)
       throw new Error(errmsg)
     }
@@ -222,7 +222,7 @@ export class SendCoinsResolver {
     }
     const authArgs = await interpretEncryptedTransferArgs(args) as SendCoinsJwtPayloadType
     if (!authArgs) {
-      const errmsg = `invalid settleSendCoins payload of requesting community with publicKey` + args.publicKey
+      const errmsg = `invalid settleSendCoins payload of requesting community with publicKey=${args.publicKey}`
       methodLogger.error(errmsg)
       throw new Error(errmsg)
     }
@@ -234,7 +234,7 @@ export class SendCoinsResolver {
       communityUuid: authArgs.recipientCommunityUuid,
     })
     if (!homeCom) {
-      const errmsg = `settleSendCoins with wrong recipientCommunityUuid` + authArgs.recipientCommunityUuid
+      const errmsg = `settleSendCoins with wrong recipientCommunityUuid=${authArgs.recipientCommunityUuid}`
       methodLogger.error(errmsg)
       throw new Error(errmsg)
     }
@@ -242,7 +242,7 @@ export class SendCoinsResolver {
     // second check if receiver user exists in this community
     const receiverUser = await findUserByIdentifier(authArgs.recipientUserIdentifier)
     if (!receiverUser) {
-      const errmsg = `settleSendCoins with unknown recipientUserIdentifier in the community=` + homeCom.name
+      const errmsg = `settleSendCoins with unknown recipientUserIdentifier in the community=${homeCom.name}`
       methodLogger.error(errmsg)
       throw new Error(errmsg)
     }
@@ -305,7 +305,7 @@ export class SendCoinsResolver {
     }
     const authArgs = await interpretEncryptedTransferArgs(args) as SendCoinsJwtPayloadType
     if (!authArgs) {
-      const errmsg = `invalid revertSettledSendCoins payload of requesting community with publicKey` + args.publicKey
+      const errmsg = `invalid revertSettledSendCoins payload of requesting community with publicKey=${args.publicKey}`
       methodLogger.error(errmsg)
       throw new Error(errmsg)
     }
@@ -317,7 +317,7 @@ export class SendCoinsResolver {
       communityUuid: authArgs.recipientCommunityUuid,
     })
     if (!homeCom) {
-      const errmsg = `revertSettledSendCoins with wrong recipientCommunityUuid` + authArgs.recipientCommunityUuid
+      const errmsg = `revertSettledSendCoins with wrong recipientCommunityUuid=${authArgs.recipientCommunityUuid}`
       methodLogger.error(errmsg)
       throw new Error(errmsg)
     }    
@@ -325,7 +325,7 @@ export class SendCoinsResolver {
     // second check if receiver user exists in this community
     const receiverUser = await findUserByIdentifier(authArgs.recipientUserIdentifier)
     if (!receiverUser) {
-      const errmsg = `revertSettledSendCoins with unknown recipientUserIdentifier in the community=` + homeCom.name
+      const errmsg = `revertSettledSendCoins with unknown recipientUserIdentifier in the community=${homeCom.name}`
       methodLogger.error(errmsg)
       throw new Error(errmsg)
     }
