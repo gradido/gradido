@@ -48,7 +48,7 @@ export const startDHT = async (topic: string): Promise<void> => {
     ) as KeyPair
     const pubKeyString = keyPair.publicKey.toString('hex')
     logger.info(`keyPairDHT: publicKey=${pubKeyString}`)
-    logger.debug(`keyPairDHT: secretKey=${keyPair.secretKey.toString('hex')}`)
+    logger.debug(`keyPairDHT: secretKey=${keyPair.secretKey.toString('hex').slice(0, 6)}`)
     await writeHomeCommunityEntry(keyPair)
 
     const ownApiVersions = await writeFederatedHomeCommunityEntries(pubKeyString)

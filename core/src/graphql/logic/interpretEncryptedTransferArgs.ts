@@ -15,13 +15,13 @@ export const interpretEncryptedTransferArgs = async (args: EncryptedTransferArgs
   // first find with args.publicKey the community 'requestingCom', which starts the request
   const requestingCom = await DbCommunity.findOneBy({ publicKey: Buffer.from(args.publicKey, 'hex') })
   if (!requestingCom) {
-    const errmsg = `unknown requesting community with publicKey ${args.publicKey}`
+    const errmsg = `unknown requesting community with publicKey ${Buffer.from(args.publicKey, 'hex')}`
     methodLogger.error(errmsg)
     methodLogger.removeContext('handshakeID')
     throw new Error(errmsg)
   }
   if (!requestingCom.publicJwtKey) {
-    const errmsg = `missing publicJwtKey of requesting community with publicKey ${args.publicKey}`
+    const errmsg = `missing publicJwtKey of requesting community with publicKey ${Buffer.from(args.publicKey, 'hex')}`
     methodLogger.error(errmsg)
     methodLogger.removeContext('handshakeID')
     throw new Error(errmsg)
@@ -31,7 +31,7 @@ export const interpretEncryptedTransferArgs = async (args: EncryptedTransferArgs
   const homeCom = await getHomeCommunity()
   const jwtPayload = await verifyAndDecrypt(args.handshakeID, args.jwt, homeCom!.privateJwtKey!, requestingCom.publicJwtKey) as JwtPayloadType
   if (!jwtPayload) {
-    const errmsg = `invalid payload of community with publicKey ${args.publicKey}`
+    const errmsg = `invalid payload of community with publicKey ${Buffer.from(args.publicKey, 'hex')}`
     methodLogger.error(errmsg)
     methodLogger.removeContext('handshakeID')
     throw new Error(errmsg)
