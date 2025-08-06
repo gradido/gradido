@@ -39,7 +39,7 @@ import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 import { TRANSACTION_LINK_LOCK } from '@/util/TRANSACTION_LINK_LOCK'
 import { fullName } from '@/util/utilities'
 import { calculateBalance } from '@/util/validate'
-import { calculateDecay, decode, DisburseJwtPayloadType, encode, RedeemJwtPayloadType, verify } from 'shared'
+import { calculateDecay, decode, DisburseJwtPayloadType, encode, encryptAndSign, RedeemJwtPayloadType, verify } from 'shared'
 
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { getLogger, Logger } from 'log4js'
@@ -655,6 +655,7 @@ export class TransactionLinkResolver {
   }
 
   async createDisburseJwt(
+    handshakeId: string,
     senderCommunityUuid: string,
     senderGradidoId: string,
     recipientCommunityUuid: string,
@@ -670,6 +671,7 @@ export class TransactionLinkResolver {
     const logger = createLogger()
     logger.addContext('code', code.substring(0, 6))
     logger.debug('TransactionLinkResolver.createDisburseJwt... args=', {
+      handshakeId,
       senderCommunityUuid,
       senderGradidoId,
       recipientCommunityUuid,
@@ -683,7 +685,8 @@ export class TransactionLinkResolver {
       recipientAlias,
     })
 
-    const disburseJwtPayloadType = new DisburseJwtPayloadType(
+    const disburseJwtPayload = new DisburseJwtPayloadType(
+      handshakeId,
       senderCommunityUuid,
       senderGradidoId,
       recipientCommunityUuid,
@@ -696,8 +699,8 @@ export class TransactionLinkResolver {
       validUntil,
       recipientAlias,
     )
+    const disburseJwt = await encryptAndSign(disburseJwtPayload, homeComB.privateJwtKey!, authCom.publicJwtKey!)
     // TODO:encode/sign the jwt normally with the private key of the recipient community, but interims with uuid
-    const disburseJwt = await encode(disburseJwtPayloadType, recipientCommunityUuid)
     logger.debug('TransactionLinkResolver.createDisburseJwt... disburseJwt=', disburseJwt)
     // TODO: encrypt the payload with the public key of the target/sender community
     return disburseJwt
