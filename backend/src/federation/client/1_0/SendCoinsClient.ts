@@ -34,8 +34,8 @@ export class SendCoinsClient {
   async voteForSendCoins(args: EncryptedTransferArgs): Promise<string | null> {
     logger.debug('voteForSendCoins against endpoint=', this.endpoint)
     try {
-      const { data } = await this.client.rawRequest<any>(voteForSendCoinsQuery, { args })
-      const responseJwt: string = data?.voteForSendCoins
+      const { data } = await this.client.rawRequest<{ voteForSendCoins: string }>(voteForSendCoinsQuery, { args })
+      const responseJwt = data?.voteForSendCoins
       if (responseJwt) {
         logger.debug('received response jwt', responseJwt)
         return responseJwt
