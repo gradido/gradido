@@ -479,8 +479,7 @@ describe('send coins', () => {
         })
       })
     })
-/*
-    describe.skip('send coins via gradido ID', () => {
+    describe('send coins via gradido ID', () => {
       it('sends the coins', async () => {
         await expect(
           mutate({
@@ -500,8 +499,8 @@ describe('send coins', () => {
         })
       })
     })
-*/
-    describe.skip('send coins via alias', () => {
+
+    describe('send coins via alias', () => {
       beforeAll(async () => {
         // first set alias to null, because updating alias isn't allowed
         await User.update({ alias: 'MeisterBob' }, { alias: () => 'NULL' })
