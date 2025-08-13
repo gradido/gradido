@@ -80,7 +80,7 @@ export class CommunityResolver {
   @Authorized([RIGHTS.COMMUNITY_UPDATE])
   @Mutation(() => Community)
   async updateHomeCommunity(
-    @Args() { uuid, gmsApiKey, location }: EditCommunityInput,
+    @Args() { uuid, gmsApiKey, location, hieroTopicId }: EditCommunityInput,
   ): Promise<Community> {
     const homeCom = await getCommunityByUuid(uuid)
     if (!homeCom) {
@@ -89,11 +89,16 @@ export class CommunityResolver {
     if (homeCom.foreign) {
       throw new LogError('Error: Only the HomeCommunity could be modified!')
     }
-    if (homeCom.gmsApiKey !== gmsApiKey || homeCom.location !== location) {
+    if (
+      homeCom.gmsApiKey !== gmsApiKey ||
+      homeCom.location !== location ||
+      homeCom.hieroTopicId !== hieroTopicId
+    ) {
       homeCom.gmsApiKey = gmsApiKey ?? null
       if (location) {
         homeCom.location = Location2Point(location)
       }
+      homeCom.hieroTopicId = hieroTopicId ?? null
       await DbCommunity.save(homeCom)
     }
     return new Community(homeCom)

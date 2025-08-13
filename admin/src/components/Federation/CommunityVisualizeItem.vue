@@ -28,6 +28,9 @@
           <BListGroupItem>
             {{ $t('federation.publicKey') }}&nbsp;{{ item.publicKey }}
           </BListGroupItem>
+          <BListGroupItem v-if="item.hieroTopicId && item.foreign">
+            {{ $t('federation.hieroTopicId') }}&nbsp;{{ item.hieroTopicId }}
+          </BListGroupItem>
           <BListGroupItem v-if="!item.foreign">
             <editable-group
               :allow-edit="$store.state.moderator.roles.includes('ADMIN')"
@@ -38,6 +41,10 @@
                 <div class="d-flex">
                   <p style="text-wrap: nowrap">{{ $t('federation.gmsApiKey') }}&nbsp;</p>
                   <span class="d-block" style="overflow-x: auto">{{ gmsApiKey }}</span>
+                </div>
+                <div class="d-flex">
+                  <p style="text-wrap: nowrap">{{ $t('federation.hieroTopicId') }}&nbsp;</p>
+                  <span class="d-block" style="overflow-x: auto">{{ hieroTopicId }}</span>
                 </div>
                 <BFormGroup>
                   {{ $t('federation.coordinates') }}
@@ -56,6 +63,11 @@
                   v-model="gmsApiKey"
                   :label="$t('federation.gmsApiKey')"
                   id-name="home-community-api-key"
+                />
+                <editable-groupable-label
+                  v-model="hieroTopicId"
+                  :label="$t('federation.hieroTopicId')"
+                  id-name="home-community-hiero-topic-id"
                 />
                 <coordinates v-model="location" />
               </template>
@@ -111,9 +123,11 @@ const { toastSuccess, toastError } = useAppToast()
 
 const details = ref(false)
 const gmsApiKey = ref(item.value.gmsApiKey)
+const hieroTopicId = ref(item.value.hieroTopicId)
 const location = ref(item.value.location)
 const originalGmsApiKey = ref(item.value.gmsApiKey)
 const originalLocation = ref(item.value.location)
+const originalHieroTopicId = ref(item.value.hieroTopicId)
 
 const { mutate: updateHomeCommunityMutation } = useMutation(updateHomeCommunity)
 
@@ -164,6 +178,7 @@ const createdAt = computed(() => {
 
 const isLocationChanged = computed(() => originalLocation.value !== location.value)
 const isGMSApiKeyChanged = computed(() => originalGmsApiKey.value !== gmsApiKey.value)
+const isHieroTopicIdChanged = computed(() => originalHieroTopicId.value !== hieroTopicId.value)
 const isValidLocation = computed(
   () => location.value && location.value.latitude && location.value.longitude,
 )
@@ -178,6 +193,7 @@ const handleUpdateHomeCommunity = async () => {
       uuid: item.value.uuid,
       gmsApiKey: gmsApiKey.value,
       location: location.value,
+      hieroTopicId: hieroTopicId.value,
     })
 
     if (isLocationChanged.value && isGMSApiKeyChanged.value) {
@@ -187,8 +203,12 @@ const handleUpdateHomeCommunity = async () => {
     } else if (isLocationChanged.value) {
       toastSuccess(t('federation.toast_gmsLocationUpdated'))
     }
+    if (isHieroTopicIdChanged.value) {
+      toastSuccess(t('federation.toast_hieroTopicIdUpdated'))
+    }
     originalLocation.value = location.value
     originalGmsApiKey.value = gmsApiKey.value
+    originalHieroTopicId.value = hieroTopicId.value
   } catch (error) {
     toastError(error.message)
   }
@@ -197,5 +217,6 @@ const handleUpdateHomeCommunity = async () => {
 const resetHomeCommunityEditable = () => {
   location.value = originalLocation.value
   gmsApiKey.value = originalGmsApiKey.value
+  hieroTopicId.value = originalHieroTopicId.value
 }
 </script>
