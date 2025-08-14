@@ -49,11 +49,7 @@ export const findUserByIdentifier = async (
       const user = userContact.user
       user.emailContact = userContact
       return user
-    } else {
-      // should don't happen often, so we create only in the rare case a logger for it
-      getLogger(`${LOG4JS_QUERIES_CATEGORY_NAME}.user.findUserByIdentifier`).warn("Couldn't find user by email in user_contacts", identifier)
-      return null
-    }
+    } 
   } else if (aliasSchema.safeParse(identifier).success) {
     return await DbUser.findOne({
       where: { alias: identifier, community: communityWhere },
