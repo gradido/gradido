@@ -24,7 +24,7 @@ export const translateYupErrorString = (error, t) => {
 export const memo = string()
   .required('form.validation.memo.required')
   .min(5, ({ min }) => ({ key: 'form.validation.memo.min', values: { min } }))
-  .max(255, ({ max }) => ({ key: 'form.validation.memo.max', values: { max } }))
+  .max(512, ({ max }) => ({ key: 'form.validation.memo.max', values: { max } }))
 
 export const identifier = string()
   .required('form.validation.identifier.required')

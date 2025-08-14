@@ -229,14 +229,14 @@ describe('ContributionResolver', () => {
           ])
         })
 
-        it('throws error when memo length greater than 255 chars', async () => {
+        it('throws error when memo length greater than 512 chars', async () => {
           jest.clearAllMocks()
           const date = new Date()
           const { errors: errorObjects } = await mutate({
             mutation: createContribution,
             variables: {
               amount: 100.0,
-              memo: 'Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test',
+              memo: 'Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test',
               contributionDate: date.toString(),
             },
           })
@@ -249,7 +249,7 @@ describe('ContributionResolver', () => {
                     {
                       property: 'memo',
                       constraints: {
-                        maxLength: 'memo must be shorter than or equal to 255 characters',
+                        maxLength: 'memo must be shorter than or equal to 512 characters',
                       },
                     },
                   ],
@@ -398,7 +398,7 @@ describe('ContributionResolver', () => {
         })
       })
 
-      describe('Memo length greater than 255 chars', () => {
+      describe('Memo length greater than 512 chars', () => {
         it('throws error', async () => {
           jest.clearAllMocks()
           const date = new Date()
@@ -407,7 +407,7 @@ describe('ContributionResolver', () => {
             variables: {
               contributionId: pendingContribution.data.createContribution.id,
               amount: 100.0,
-              memo: 'Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test',
+              memo: 'Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test',
               contributionDate: date.toString(),
             },
           })
@@ -420,7 +420,7 @@ describe('ContributionResolver', () => {
                     {
                       property: 'memo',
                       constraints: {
-                        maxLength: 'memo must be shorter than or equal to 255 characters',
+                        maxLength: 'memo must be shorter than or equal to 512 characters',
                       },
                     },
                   ],
