@@ -6,7 +6,6 @@ export function initLogging() {
   initLogger(
     [
       defaultCategory('backend', CONFIG.LOG_LEVEL),
-      defaultCategory('hiero', CONFIG.LOG_LEVEL),
       defaultCategory('apollo', CONFIG.LOG_LEVEL),
       defaultCategory('klicktipp', CONFIG.LOG_LEVEL),
       defaultCategory('gms', CONFIG.LOG_LEVEL),
