@@ -13,6 +13,7 @@ export class Community {
     this.uuid = dbCom.communityUuid
     this.authenticatedAt = dbCom.authenticatedAt
     this.gmsApiKey = dbCom.gmsApiKey
+    this.hieroTopicId = dbCom.hieroTopicId
   }
 
   @Field(() => Int)
@@ -41,4 +42,7 @@ export class Community {
 
   @Field(() => String, { nullable: true })
   gmsApiKey: string | null
+
+  @Field(() => String, { nullable: true })
+  hieroTopicId: string | null
 }

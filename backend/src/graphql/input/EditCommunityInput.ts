@@ -18,4 +18,8 @@ export class EditCommunityInput {
   @Field(() => Location, { nullable: true })
   @isValidLocation()
   location?: Location | null
+
+  @Field(() => String, { nullable: true })
+  @IsString()
+  hieroTopicId?: string | null
 }

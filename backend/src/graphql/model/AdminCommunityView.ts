@@ -39,6 +39,7 @@ export class AdminCommunityView {
     this.uuid = dbCom.communityUuid
     this.authenticatedAt = dbCom.authenticatedAt
     this.gmsApiKey = dbCom.gmsApiKey
+    this.hieroTopicId = dbCom.hieroTopicId
     if (dbCom.location) {
       this.location = Point2Location(dbCom.location as Point)
     }
@@ -70,6 +71,9 @@ export class AdminCommunityView {
 
   @Field(() => Location, { nullable: true })
   location: Location | null
+
+  @Field(() => String, { nullable: true })
+  hieroTopicId: string | null
 
   @Field(() => Date, { nullable: true })
   creationDate: Date | null
