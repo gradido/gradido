@@ -315,8 +315,6 @@ jobs:
           path: /tmp
       - name: Load Docker Image
         run: docker load < /tmp/database_up.tar
-      - name: Load Docker Image
-        run: docker load < /tmp/mariadb.tar
       - name: Download Docker Image (Nginx)
         uses: actions/download-artifact@v4
         with:
