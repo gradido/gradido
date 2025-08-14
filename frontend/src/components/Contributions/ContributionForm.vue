@@ -161,7 +161,7 @@ const validationSchema = computed(() => {
       })), // date cannot be in the future
     memo: string()
       .min(5, ({ min }) => ({ key: 'form.validation.contributionMemo.min', values: { min } }))
-      .max(255, ({ max }) => ({ key: 'form.validation.contributionMemo.max', values: { max } }))
+      .max(512, ({ max }) => ({ key: 'form.validation.contributionMemo.max', values: { max } }))
       .required('form.validation.contributionMemo.required'),
     hours: number()
       .typeError({ key: 'form.validation.hours.typeError', values: { min: 0.01, max: maxHours } })

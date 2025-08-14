@@ -10,7 +10,7 @@ export class ContributionLink extends BaseEntity {
   @Column({ type: 'varchar', length: 100, nullable: false, collation: 'utf8mb4_unicode_ci' })
   name: string
 
-  @Column({ type: 'varchar', length: 255, nullable: false, collation: 'utf8mb4_unicode_ci' })
+  @Column({ type: 'varchar', length: 512, nullable: false, collation: 'utf8mb4_unicode_ci' })
   memo: string
 
   @Column({ name: 'valid_from', type: 'datetime', nullable: false })

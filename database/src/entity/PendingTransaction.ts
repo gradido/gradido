@@ -71,7 +71,7 @@ export class PendingTransaction extends BaseEntity {
   })
   decayStart: Date | null
 
-  @Column({ type: 'varchar', length: 255, nullable: false, collation: 'utf8mb4_unicode_ci' })
+  @Column({ type: 'varchar', length: 512, nullable: false, collation: 'utf8mb4_unicode_ci' })
   memo: string
 
   @Column({ name: 'creation_date', type: 'datetime', precision: 3, nullable: true, default: null })
