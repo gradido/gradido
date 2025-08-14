@@ -273,29 +273,6 @@ export const schema = Joi.object({
     .when('GMS_ACTIVE', { is: true, then: Joi.required(), otherwise: Joi.optional() })
     .description('The secret postfix for the GMS webhook endpoint'),
 
-  HIERO_ACTIVE: Joi.boolean()
-    .default(false)
-    .description('Flag to indicate if the Hiero (Hedera Hashgraph Ledger) service is used.')
-    .required(),  
-
-  HIERO_HEDERA_NETWORK: Joi.string()
-    .valid('mainnet', 'testnet', 'previewnet')
-    .default('testnet')
-    .description('The Hedera network for Hiero integration (mainnet, testnet, previewnet)')
-    .when('HIERO_ACTIVE', { is: true, then: Joi.required() }),
-
-  HIERO_OPERATOR_ID: Joi.string()
-    .pattern(/^[0-9]+\.[0-9]+\.[0-9]+$/)
-    .default('0.0.2')  
-    .description('The operator ID for Hiero integration')
-    .when('HIERO_ACTIVE', { is: true, then: Joi.required() }),
-
-  HIERO_OPERATOR_KEY: Joi.string()
-    .pattern(/^[0-9a-fA-F]{64,96}$/)
-    .default('302e020100300506032b65700422042091132178e72057a1d7528025956fe39b0b847f200ab59b2fdd367017f3087137')
-    .description('The operator key for Hiero integration, default is for local default node')
-    .when('HIERO_ACTIVE', { is: true, then: Joi.required() }),
-
   HUMHUB_JWT_KEY: Joi.string()
     .min(1)
     .when('HUMHUB_ACTIVE', {

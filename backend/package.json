@@ -31,7 +31,6 @@
     ]
   },
   "dependencies": {
-    "@hashgraph/sdk": "^2.70.0",
     "cross-env": "^7.0.3",
     "email-templates": "^10.0.1",
     "sodium-native": "^3.4.1"

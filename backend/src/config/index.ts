@@ -137,13 +137,6 @@ const openai = {
   OPENAI_ASSISTANT_ID: process.env.OPENAI_ASSISTANT_ID ?? '',
 }
 
-const hiero = {
-  HIERO_ACTIVE: process.env.HIERO_ACTIVE === 'true' || false,
-  HIERO_HEDERA_NETWORK: process.env.HIERO_HEDERA_NETWORK ?? 'testnet',
-  HIERO_OPERATOR_ID: process.env.HIERO_OPERATOR_ID ?? '0.0.2', 
-  HIERO_OPERATOR_KEY: process.env.HIERO_OPERATOR_KEY ?? '302e020100300506032b65700422042091132178e72057a1d7528025956fe39b0b847f200ab59b2fdd367017f3087137', 
-} 
-
 export const CONFIG = {
   ...logging,
   ...server,
@@ -157,6 +150,5 @@ export const CONFIG = {
   ...gms,
   ...humhub,
   ...openai,
-  ...hiero,
 }
 validate(schema, CONFIG)
