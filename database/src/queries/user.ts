@@ -55,8 +55,9 @@ export const findUserByIdentifier = async (
       where: { alias: identifier, community: communityWhere },
       relations: ['emailContact', 'community'],
     })
+  } else {
+    // should don't happen often, so we create only in the rare case a logger for it
+    getLogger(`${LOG4JS_QUERIES_CATEGORY_NAME}.user.findUserByIdentifier`).warn('Unknown identifier type', identifier)
   }
-  // should don't happen often, so we create only in the rare case a logger for it
-  getLogger(`${LOG4JS_QUERIES_CATEGORY_NAME}.user.findUserByIdentifier`).warn('Unknown identifier type', identifier)
   return null
 }
