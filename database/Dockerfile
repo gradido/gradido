@@ -56,27 +56,32 @@ ENV PATH="/root/.bun/bin:${PATH}"
 FROM bun-base as installer
 
 COPY --chown=app:app . .
-RUN bun install --filter database --production --no-cache --frozen-lockfile
+
+##################################################################################
+# Build Shared ###################################################################
+##################################################################################
+FROM installer as build-shared
+
+RUN bun install --filter shared --no-cache --frozen-lockfile \
+  && cd shared && yarn typecheck && yarn build 
 
 ##################################################################################
 # Build ##########################################################################
 ##################################################################################
 FROM installer as build
 
-RUN bun install --no-cache --frozen-lockfile \
-  && cd shared && yarn build \
-  && cd ../database && yarn build && yarn typecheck
+RUN bun install --filter database --production --no-cache --frozen-lockfile
 
 ##################################################################################
 # PRODUCTION IMAGE ###############################################################
 ##################################################################################
 FROM base as production 
 
-COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/src ./src
-COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/migration ./migration
-COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/node_modules ./node_modules
-COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/package.json ./package.json 
-COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/tsconfig.json ./tsconfig.json
+COPY --chown=app:app --from=build-shared ${DOCKER_WORKDIR}/shared/build ./shared/build
+COPY --chown=app:app --from=build-shared ${DOCKER_WORKDIR}/shared/package.json ./shared/package.json
+COPY --chown=app:app --from=build ${DOCKER_WORKDIR}/database ./database
+COPY --chown=app:app --from=build ${DOCKER_WORKDIR}/node_modules ./node_modules
+COPY --chown=app:app --from=build ${DOCKER_WORKDIR}/package.json ./package.json 
 
 ##################################################################################
 # TEST UP ########################################################################
@@ -84,7 +89,7 @@ COPY --chown=app:app --from=installer ${DOCKER_WORKDIR}/tsconfig.json ./tsconfig
 FROM production as up
 
 # Run command
-CMD /bin/sh -c "yarn up"
+CMD /bin/sh -c "cd database && yarn up"
 
 ##################################################################################
 # TEST RESET #####################################################################
@@ -92,7 +97,7 @@ CMD /bin/sh -c "yarn up"
 FROM production as reset
 
 # Run command
-CMD /bin/sh -c "yarn reset"
+CMD /bin/sh -c "cd database && yarn reset"
 
 ##################################################################################
 # TEST DOWN ######################################################################
@@ -100,4 +105,4 @@ CMD /bin/sh -c "yarn reset"
 FROM production as down
 
 # Run command
-CMD /bin/sh -c "yarn down"
+CMD /bin/sh -c "cd database && yarn down"
