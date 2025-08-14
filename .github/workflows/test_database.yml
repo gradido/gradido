@@ -32,7 +32,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Database | Build image
-        run: docker build --target build -t "gradido/database:build" -f database/Dockerfile .
+        run: docker build --target up -t "gradido/database:up" -f database/Dockerfile .
 
   database_migration_test:
     if: needs.files-changed.outputs.database == 'true' || needs.files-changed.outputs.docker-compose == 'true' || needs.files-changed.outputs.mariadb == 'true' || needs.files-changed.outputs.shared == 'true'
