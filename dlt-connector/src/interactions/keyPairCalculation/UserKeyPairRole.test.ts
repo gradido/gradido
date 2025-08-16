@@ -1,6 +1,5 @@
 import { beforeAll, describe, expect, it } from 'bun:test'
 import { KeyPairEd25519, MemoryBlock } from 'gradido-blockchain-js'
-import { v4 as uuidv4 } from 'uuid'
 import { UserKeyPairRole } from './UserKeyPair.role'
 
 let communityKeyPair: KeyPairEd25519

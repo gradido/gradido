@@ -1,18 +1,21 @@
 import { Elysia, status } from 'elysia'
 import { AddressType_NONE } from 'gradido-blockchain-js'
 import { getLogger } from 'log4js'
-import * as v from 'valibot'
+import { parse } from 'valibot'
 import { getAddressType } from '../client/GradidoNode/api'
 import { LOG4JS_BASE_CATEGORY } from '../config/const'
 import { KeyPairIdentifierLogic } from '../data/KeyPairIdentifier.logic'
 import { KeyPairCalculation } from '../interactions/keyPairCalculation/KeyPairCalculation.context'
 import { SendToIotaContext } from '../interactions/sendToIota/SendToIota.context'
 import { IdentifierAccount, identifierAccountSchema } from '../schemas/account.schema'
+import { hieroTransactionIdSchema } from '../schemas/typeGuard.schema'
 import {
   accountIdentifierSeedSchema,
   accountIdentifierUserSchema,
   existSchema,
 } from './input.schema'
+import { TypeBoxFromValibot } from '@sinclair/typemap'
+import { transactionSchema } from '../schemas/transaction.schema'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY}.server`)
 
@@ -43,7 +46,7 @@ export const appRoutes = new Elysia()
   .get(
     '/isAccountExist/:communityTopicId/:userUuid/:accountNr',
     async ({ params: { communityTopicId, userUuid, accountNr } }) => {
-      const accountIdentifier = v.parse(identifierAccountSchema, {
+      const accountIdentifier = parse(identifierAccountSchema, {
         communityTopicId,
         account: { userUuid, accountNr },
       })
@@ -55,7 +58,7 @@ export const appRoutes = new Elysia()
   .get(
     '/isAccountExist/:communityTopicId/:seed',
     async ({ params: { communityTopicId, seed } }) => {
-      const accountIdentifier = v.parse(identifierAccountSchema, {
+      const accountIdentifier = parse(identifierAccountSchema, {
         communityTopicId,
         seed: { seed },
       })
@@ -66,10 +69,7 @@ export const appRoutes = new Elysia()
   )
   .post(
     '/sendTransaction',
-    async ({ body }) => {
-      const transactionDraft = v.parse(transactionDraftSchema, body)
-      return await SendToIotaContext(transactionDraft)
-    },
+    async ({ body }) => await SendToIotaContext(parse(transactionSchema, body)),
     // validation schemas
-    { body: transactionDraftSchema, response: v.instanceof(TransactionResult) },
+    { body: TypeBoxFromValibot(transactionSchema), response: TypeBoxFromValibot(hieroTransactionIdSchema) },
   )

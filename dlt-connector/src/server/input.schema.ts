@@ -5,7 +5,7 @@ import { hieroIdSchema, uuidv4Schema } from '../schemas/typeGuard.schema'
 export const accountIdentifierUserSchema = t.Object({
   communityTopicId: TypeBoxFromValibot(hieroIdSchema),
   userUuid: TypeBoxFromValibot(uuidv4Schema),
-  accountNr: t.Number().positive(),
+  accountNr: t.Number({ min: 0 }),
 })
 
 // identifier for a gradido account created by transaction link / deferred transfer

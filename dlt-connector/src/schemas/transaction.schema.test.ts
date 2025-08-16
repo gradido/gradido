@@ -1,6 +1,5 @@
 import { describe, expect, it, beforeAll } from 'bun:test'
 import { randomBytes } from 'crypto'
-import { DurationSeconds, GradidoUnit } from 'gradido-blockchain-js'
 import { v4 as uuidv4 } from 'uuid'
 import { parse } from 'valibot'
 import { InputTransactionType } from '../enum/InputTransactionType'

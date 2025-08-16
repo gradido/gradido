@@ -1,10 +1,11 @@
-import { GraphQLClient, gql } from 'graphql-request'
+import { GraphQLClient } from 'graphql-request'
 import { SignJWT } from 'jose'
-import { getLogger, Logger } from 'log4js'
-import * as v from 'valibot'
+
 import { CONFIG } from '../../config'
+import { communitySchema, type Community, homeCommunityGraphqlQuery } from './community.schema'
+import { getLogger, Logger } from 'log4js'
 import { LOG4JS_BASE_CATEGORY } from '../../config/const'
-import { type Community, communitySchema, homeCommunityGraphqlQuery } from './community.schema'
+import * as v from 'valibot'
 
 // Source: https://refactoring.guru/design-patterns/singleton/typescript/example
 // and ../federation/client/FederationClientFactory.ts
@@ -15,7 +16,7 @@ import { type Community, communitySchema, homeCommunityGraphqlQuery } from './co
 export class BackendClient {
   private static instance: BackendClient
   client: GraphQLClient
-  logger: Logger
+  logger: Logger   
 
   /**
    * The Singleton's constructor should always be private to prevent direct
@@ -45,7 +46,7 @@ export class BackendClient {
   public static getInstance(): BackendClient | undefined {
     if (!BackendClient.instance) {
       BackendClient.instance = new BackendClient()
-    }
+    }    
     return BackendClient.instance
   }
 

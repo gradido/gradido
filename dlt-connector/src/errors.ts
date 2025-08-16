@@ -1,5 +1,5 @@
+import { TransactionIdentifier } from './client/GradidoNode/input.schema'
 import { IdentifierAccount } from './schemas/account.schema'
-import { TransactionIdentifier } from './schemas/transaction.schema'
 
 export class GradidoNodeError extends Error {
   constructor(message: string) {
