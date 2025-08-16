@@ -4,9 +4,9 @@ import {
   AddressType_COMMUNITY_HUMAN,
   AddressType_COMMUNITY_PROJECT,
   AddressType_CRYPTO_ACCOUNT,
+  AddressType_DEFERRED_TRANSFER,
   AddressType_NONE,
   AddressType_SUBACCOUNT,
-  AddressType_DEFERRED_TRANSFER,
 } from 'gradido-blockchain-js'
 
 export enum AddressType {

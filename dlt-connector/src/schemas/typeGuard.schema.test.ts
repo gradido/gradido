@@ -1,7 +1,7 @@
-import { describe, it, expect } from 'bun:test'
-import { uuidv4Schema, memoSchema } from './typeGuard.schema'
-import * as v from 'valibot'
+import { describe, expect, it } from 'bun:test'
 import { v4 as uuidv4 } from 'uuid'
+import * as v from 'valibot'
+import { memoSchema, uuidv4Schema } from './typeGuard.schema'
 
 describe('typeGuard.schema', () => {
   describe('Uuidv4', () => {
@@ -14,7 +14,7 @@ describe('typeGuard.schema', () => {
   })
   describe('Basic Type Schemas for transactions', () => {
     describe('Memo', () => {
-      it('min length',  () => {
+      it('min length', () => {
         const memoValue = 'memo1'
         const memoValueParsed = v.parse(memoSchema, memoValue)
         expect(memoValueParsed.toString()).toBe(memoValue)
@@ -30,7 +30,9 @@ describe('typeGuard.schema', () => {
       })
       it('to long', () => {
         const memoValue = 's'.repeat(256)
-        expect(() => v.parse(memoSchema, memoValue)).toThrow(new Error('expect string length <= 255'))
+        expect(() => v.parse(memoSchema, memoValue)).toThrow(
+          new Error('expect string length <= 255'),
+        )
       })
     })
   })

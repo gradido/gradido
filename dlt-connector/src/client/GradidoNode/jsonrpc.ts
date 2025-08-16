@@ -1,9 +1,9 @@
-import { getLogger } from 'log4js'
-import { LOG4JS_BASE_CATEGORY } from '../../config/const'
-import { JsonRpcEitherResponse } from 'jsonrpc-ts-client/dist/types/utils/jsonrpc'
-import { isPortOpenRetry } from '../../utils/network'
-import { CONFIG } from '../../config'
 import JsonRpcClient from 'jsonrpc-ts-client'
+import { JsonRpcEitherResponse } from 'jsonrpc-ts-client/dist/types/utils/jsonrpc'
+import { getLogger } from 'log4js'
+import { CONFIG } from '../../config'
+import { LOG4JS_BASE_CATEGORY } from '../../config/const'
+import { isPortOpenRetry } from '../../utils/network'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY}.client.GradidoNode`)
 
@@ -24,7 +24,10 @@ export class GradidoNodeRequestError<T> extends Error {
 }
 
 // return result on success or throw error
-export function resolveResponse<T, R>(response: JsonRpcEitherResponse<T>, onSuccess: (result: T) => R): R {
+export function resolveResponse<T, R>(
+  response: JsonRpcEitherResponse<T>,
+  onSuccess: (result: T) => R,
+): R {
   if (response.isSuccess()) {
     return onSuccess(response.result)
   } else if (response.isError()) {
@@ -36,7 +39,10 @@ export function resolveResponse<T, R>(response: JsonRpcEitherResponse<T>, onSucc
 type WithTimeUsed<T> = T & { timeUsed?: string }
 
 // template rpcCall, check first if port is open before executing json rpc 2.0 request
-export async function rpcCall<T>(method: string, parameter: any): Promise<JsonRpcEitherResponse<T>> {
+export async function rpcCall<T>(
+  method: string,
+  parameter: any,
+): Promise<JsonRpcEitherResponse<T>> {
   logger.debug('call %s with %s', method, parameter)
   await isPortOpenRetry(CONFIG.NODE_SERVER_URL)
   return client.exec<T>(method, parameter)

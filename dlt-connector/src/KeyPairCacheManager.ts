@@ -1,8 +1,8 @@
 import { KeyPairEd25519 } from 'gradido-blockchain-js'
 
-import { KeyPairIdentifier } from './data/KeyPairIdentifier.logic'
 import { getLogger, Logger } from 'log4js'
 import { LOG4JS_BASE_CATEGORY } from './config/const'
+import { HieroId } from './schemas/typeGuard.schema'
 
 // Source: https://refactoring.guru/design-patterns/singleton/typescript/example
 // and ../federation/client/FederationClientFactory.ts
@@ -13,7 +13,7 @@ import { LOG4JS_BASE_CATEGORY } from './config/const'
 export class KeyPairCacheManager {
   private static instance: KeyPairCacheManager
   private cache: Map<string, KeyPairEd25519> = new Map<string, KeyPairEd25519>()
-  private homeCommunityUUID: string | undefined
+  private homeCommunityTopicId: HieroId | undefined
   private logger: Logger
 
   /**
@@ -37,15 +37,15 @@ export class KeyPairCacheManager {
     return KeyPairCacheManager.instance
   }
 
-  public setHomeCommunityUUID(uuid: string): void {
-    this.homeCommunityUUID = uuid
+  public setHomeCommunityTopicId(topicId: HieroId): void {
+    this.homeCommunityTopicId = topicId
   }
 
-  public getHomeCommunityUUID(): string {
-    if (!this.homeCommunityUUID) {
-      throw new Error('home community uuid is not set')
+  public getHomeCommunityTopicId(): HieroId {
+    if (!this.homeCommunityTopicId) {
+      throw new Error('home community topic id is not set')
     }
-    return this.homeCommunityUUID
+    return this.homeCommunityTopicId
   }
 
   public findKeyPair(input: string): KeyPairEd25519 | undefined {
@@ -63,7 +63,10 @@ export class KeyPairCacheManager {
     this.cache.set(input, keyPair)
   }
 
-  public async getKeyPair(input: string, createKeyPair: () => Promise<KeyPairEd25519>): Promise<KeyPairEd25519> {
+  public async getKeyPair(
+    input: string,
+    createKeyPair: () => Promise<KeyPairEd25519>,
+  ): Promise<KeyPairEd25519> {
     const keyPair = this.cache.get(input)
     if (!keyPair) {
       const keyPair = await createKeyPair()

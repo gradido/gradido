@@ -1,15 +1,14 @@
-import { KeyPairEd25519 } from 'gradido-blockchain-js'
+import { KeyPairEd25519, MemoryBlock } from 'gradido-blockchain-js'
 
 import { findUserByNameHash } from '../../client/GradidoNode/api'
-import { IdentifierAccount } from '../../schemas/account.schema'
+import { Uuidv4Hash } from '../../data/Uuidv4Hash'
 import { GradidoNodeMissingUserError, ParameterError } from '../../errors'
+import { IdentifierAccount } from '../../schemas/account.schema'
 import { AbstractRemoteKeyPairRole } from './AbstractRemoteKeyPair.role'
-import { uuid4ToHashSchema } from '../../schemas/typeConverter.schema'
-import * as v from 'valibot'
 
 export class RemoteAccountKeyPairRole extends AbstractRemoteKeyPairRole {
   public constructor(private identifier: IdentifierAccount) {
-    super(identifier.communityUuid)
+    super(identifier.communityTopicId)
   }
 
   public async retrieveKeyPair(): Promise<KeyPairEd25519> {
@@ -18,11 +17,11 @@ export class RemoteAccountKeyPairRole extends AbstractRemoteKeyPairRole {
     }
 
     const accountPublicKey = await findUserByNameHash(
-      v.parse(uuid4ToHashSchema, this.identifier.account.userUuid),
+      new Uuidv4Hash(this.identifier.account.userUuid),
       this.topic,
     )
     if (accountPublicKey) {
-      return new KeyPairEd25519(accountPublicKey)
+      return new KeyPairEd25519(MemoryBlock.createPtr(MemoryBlock.fromHex(accountPublicKey)))
     }
     throw new GradidoNodeMissingUserError('cannot find remote user', this.identifier)
   }

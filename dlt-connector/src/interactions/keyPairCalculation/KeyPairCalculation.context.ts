@@ -20,11 +20,10 @@ export async function KeyPairCalculation(input: KeyPairIdentifierLogic): Promise
       return new LinkedTransactionKeyPairRole(input.getSeed()).generateKeyPair()
     }
     // If input does not belong to the home community, handle as remote key pair
-    if (cache.getHomeCommunityUUID() !== input.getCommunityUuid()) {
-      const role =
-        input.isAccountKeyPair()
-          ? new RemoteAccountKeyPairRole(input.identifier)
-          : new ForeignCommunityKeyPairRole(input.getCommunityUuid())
+    if (cache.getHomeCommunityTopicId() !== input.getCommunityTopicId()) {
+      const role = input.isAccountKeyPair()
+        ? new RemoteAccountKeyPairRole(input.identifier)
+        : new ForeignCommunityKeyPairRole(input.getCommunityTopicId())
       return await role.retrieveKeyPair()
     }
     const communityKeyPair = await cache.getKeyPair(input.getCommunityKey(), async () => {
@@ -37,10 +36,7 @@ export async function KeyPairCalculation(input: KeyPairIdentifierLogic): Promise
       return communityKeyPair
     }
     const userKeyPair = await cache.getKeyPair(input.getCommunityUserKey(), async () => {
-      return new UserKeyPairRole(
-        input.getUserUuid(),
-        communityKeyPair,
-      ).generateKeyPair()
+      return new UserKeyPairRole(input.getUserUuid(), communityKeyPair).generateKeyPair()
     })
     if (!userKeyPair) {
       throw new Error("couldn't generate user key pair")

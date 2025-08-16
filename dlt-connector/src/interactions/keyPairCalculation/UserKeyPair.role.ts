@@ -4,7 +4,10 @@ import { hardenDerivationIndex } from '../../utils/derivationHelper'
 import { AbstractKeyPairRole } from './AbstractKeyPair.role'
 
 export class UserKeyPairRole extends AbstractKeyPairRole {
-  public constructor(private userUuid: string, private communityKeys: KeyPairEd25519) {
+  public constructor(
+    private userUuid: string,
+    private communityKeys: KeyPairEd25519,
+  ) {
     super()
   }
 

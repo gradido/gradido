@@ -1,18 +1,18 @@
 import { AddressType, ConfirmedTransaction } from 'gradido-blockchain-js'
 import { getLogger } from 'log4js'
-import { LOG4JS_BASE_CATEGORY } from '../../config/const'
 import * as v from 'valibot'
-import { addressTypeSchema, confirmedTransactionSchema } from '../../schemas/typeConverter.schema'
-import { GradidoNodeErrorCodes } from '../../enum/GradidoNodeErrorCodes'
-import { rpcCall, rpcCallResolved, GradidoNodeRequestError } from './jsonrpc'
-import { 
-  TransactionsRangeInput, 
-  TransactionIdentifierInput, 
-  transactionsRangeSchema, 
-  transactionIdentifierSchema 
-} from './input.schema'
+import { LOG4JS_BASE_CATEGORY } from '../../config/const'
 import { Uuidv4Hash } from '../../data/Uuidv4Hash'
-import { Hex32, Hex32Input, hex32Schema } from '../../schemas/typeGuard.schema'
+import { GradidoNodeErrorCodes } from '../../enum/GradidoNodeErrorCodes'
+import { addressTypeSchema, confirmedTransactionSchema } from '../../schemas/typeConverter.schema'
+import { Hex32, Hex32Input, HieroId, hex32Schema } from '../../schemas/typeGuard.schema'
+import {
+  TransactionIdentifierInput,
+  TransactionsRangeInput,
+  transactionIdentifierSchema,
+  transactionsRangeSchema,
+} from './input.schema'
+import { GradidoNodeRequestError, rpcCall, rpcCallResolved } from './jsonrpc'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY}.client.GradidoNode`)
 
@@ -21,7 +21,7 @@ const logger = getLogger(`${LOG4JS_BASE_CATEGORY}.client.GradidoNode`)
  * get list of confirmed transactions from a specific community
  * @param input fromTransactionId is the id of the first transaction to return
  * @param input maxResultCount is the max number of transactions to return
- * @param input topic is the community topic
+ * @param input topic is the community hiero topic id
  * @returns list of confirmed transactions
  * @throws GradidoNodeRequestError
  * @example
@@ -35,7 +35,7 @@ const logger = getLogger(`${LOG4JS_BASE_CATEGORY}.client.GradidoNode`)
  */
 async function getTransactions(input: TransactionsRangeInput): Promise<ConfirmedTransaction[]> {
   const parameter = { ...v.parse(transactionsRangeSchema, input), format: 'base64' }
-  const result = await rpcCallResolved<{transactions: string[]}>('getTransactions', parameter)
+  const result = await rpcCallResolved<{ transactions: string[] }>('getTransactions', parameter)
   return result.transactions.map((transactionBase64) =>
     v.parse(confirmedTransactionSchema, transactionBase64),
   )
@@ -44,12 +44,13 @@ async function getTransactions(input: TransactionsRangeInput): Promise<Confirmed
 /**
  * getTransaction
  * get a specific confirmed transaction from a specific community
- * @param transactionIdentifier 
+ * @param transactionIdentifier
  * @returns the confirmed transaction or undefined if transaction is not found
  * @throws GradidoNodeRequestError
  */
-async function getTransaction(transactionIdentifier: TransactionIdentifierInput)
-: Promise<ConfirmedTransaction | undefined> {
+async function getTransaction(
+  transactionIdentifier: TransactionIdentifierInput,
+): Promise<ConfirmedTransaction | undefined> {
   const parameter = {
     ...v.parse(transactionIdentifierSchema, transactionIdentifier),
     format: 'base64',
@@ -74,7 +75,9 @@ async function getTransaction(transactionIdentifier: TransactionIdentifierInput)
  * @throws GradidoNodeRequestError
  */
 
-async function getLastTransaction(iotaTopic: Uuidv4Hash): Promise<ConfirmedTransaction | undefined> {
+async function getLastTransaction(
+  iotaTopic: Uuidv4Hash,
+): Promise<ConfirmedTransaction | undefined> {
   const response = await rpcCall<{ transaction: string }>('getlasttransaction', {
     format: 'base64',
     topic: iotaTopic.getAsHexString(),
@@ -92,19 +95,19 @@ async function getLastTransaction(iotaTopic: Uuidv4Hash): Promise<ConfirmedTrans
 
 /**
  * getAddressType
- * get the address type of a specific user 
+ * get the address type of a specific user
  * can be used to check if user/account exists on blockchain
  * look also for gmw, auf and deferred transfer accounts
  * @param pubkey the public key of the user or account
  * @param iotaTopic the community topic
- * @returns the address type of the user/account or undefined 
+ * @returns the address type of the user/account or undefined
  * @throws GradidoNodeRequestError
  */
 
-async function getAddressType(pubkey: Hex32Input, iotaTopic: Uuidv4Hash): Promise<AddressType> {
+async function getAddressType(pubkey: Hex32Input, hieroTopic: HieroId): Promise<AddressType> {
   const parameter = {
     pubkey: v.parse(hex32Schema, pubkey),
-    communityId: iotaTopic.getAsHexString(),
+    communityId: hieroTopic,
   }
   const response = await rpcCallResolved<{ addressType: string }>('getaddresstype', parameter)
   return v.parse(addressTypeSchema, response.addressType)
@@ -118,17 +121,26 @@ async function getAddressType(pubkey: Hex32Input, iotaTopic: Uuidv4Hash): Promis
  * @returns the public key of the user as hex32 string or undefined if user is not found
  * @throws GradidoNodeRequestError
  */
-async function findUserByNameHash(nameHash: Uuidv4Hash, iotaTopic: Uuidv4Hash): Promise<Hex32 | undefined> {
+async function findUserByNameHash(
+  nameHash: Uuidv4Hash,
+  hieroTopic: HieroId,
+): Promise<Hex32 | undefined> {
   const parameter = {
     nameHash: nameHash.getAsHexString(),
-    communityId: iotaTopic.getAsHexString(),
+    communityId: hieroTopic,
   }
-  const response = await rpcCall<{ pubkey: string; timeUsed: string }>('findUserByNameHash', parameter)
-  if(response.isSuccess()) {
+  const response = await rpcCall<{ pubkey: string; timeUsed: string }>(
+    'findUserByNameHash',
+    parameter,
+  )
+  if (response.isSuccess()) {
     logger.info(`call findUserByNameHash, used ${response.result.timeUsed}`)
     return v.parse(hex32Schema, response.result.pubkey)
   }
-  if (response.isError() && response.error.code === GradidoNodeErrorCodes.JSON_RPC_ERROR_ADDRESS_NOT_FOUND) {
+  if (
+    response.isError() &&
+    response.error.code === GradidoNodeErrorCodes.JSON_RPC_ERROR_ADDRESS_NOT_FOUND
+  ) {
     logger.debug(`call findUserByNameHash, return with error: ${response.error.message}`)
   }
   return undefined
@@ -136,10 +148,10 @@ async function findUserByNameHash(nameHash: Uuidv4Hash, iotaTopic: Uuidv4Hash): 
 
 /**
  * getTransactionsForAccount
- * get list of confirmed transactions for a specific account 
+ * get list of confirmed transactions for a specific account
  * @param transactionRange the range of transactions to return
  * @param pubkey the public key of the account
- * @returns list of confirmed transactions 
+ * @returns list of confirmed transactions
  * @throws GradidoNodeRequestError
  */
 async function getTransactionsForAccount(
@@ -151,7 +163,10 @@ async function getTransactionsForAccount(
     pubkey: v.parse(hex32Schema, pubkey),
     format: 'base64',
   }
-  const response = await rpcCallResolved<{transactions: string[]}>('listtransactionsforaddress', parameter)
+  const response = await rpcCallResolved<{ transactions: string[] }>(
+    'listtransactionsforaddress',
+    parameter,
+  )
   return response.transactions.map((transactionBase64) =>
     v.parse(confirmedTransactionSchema, transactionBase64),
   )

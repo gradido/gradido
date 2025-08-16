@@ -1,19 +1,22 @@
 import { KeyPairEd25519 } from 'gradido-blockchain-js'
 
 import { getTransaction } from '../../client/GradidoNode/api'
-
+import {
+  GradidoNodeInvalidTransactionError,
+  GradidoNodeMissingTransactionError,
+} from '../../errors'
+import { HieroId } from '../../schemas/typeGuard.schema'
 import { AbstractRemoteKeyPairRole } from './AbstractRemoteKeyPair.role'
-import { GradidoNodeInvalidTransactionError, GradidoNodeMissingTransactionError } from '../../errors'
 
 export class ForeignCommunityKeyPairRole extends AbstractRemoteKeyPairRole {
-  public constructor(communityUuid: string) {
-    super(communityUuid)
+  public constructor(communityTopicId: HieroId) {
+    super(communityTopicId)
   }
 
   public async retrieveKeyPair(): Promise<KeyPairEd25519> {
     const transactionIdentifier = {
       transactionNr: 1,
-      iotaTopic: this.topic,
+      topic: this.topic,
     }
     const firstTransaction = await getTransaction(transactionIdentifier)
     if (!firstTransaction) {
@@ -22,21 +25,21 @@ export class ForeignCommunityKeyPairRole extends AbstractRemoteKeyPairRole {
     const transactionBody = firstTransaction.getGradidoTransaction()?.getTransactionBody()
     if (!transactionBody) {
       throw new GradidoNodeInvalidTransactionError(
-        'Invalid transaction, body is missing', 
-        transactionIdentifier
+        'Invalid transaction, body is missing',
+        transactionIdentifier,
       )
     }
     if (!transactionBody.isCommunityRoot()) {
       throw new GradidoNodeInvalidTransactionError(
         'Invalid transaction, community root type expected',
-        transactionIdentifier
+        transactionIdentifier,
       )
     }
     const communityRoot = transactionBody.getCommunityRoot()
     if (!communityRoot) {
       throw new GradidoNodeInvalidTransactionError(
         'Invalid transaction, community root is missing',
-        transactionIdentifier
+        transactionIdentifier,
       )
     }
     return new KeyPairEd25519(communityRoot.getPublicKey())

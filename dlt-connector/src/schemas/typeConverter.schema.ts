@@ -1,21 +1,20 @@
-import {
-  AddressType as AddressType,
-  ConfirmedTransaction,
-} from 'gradido-blockchain-js'
-import { AccountType } from '../enum/AccountType'
+import { AddressType, ConfirmedTransaction } from 'gradido-blockchain-js'
 import * as v from 'valibot'
-import { confirmedTransactionFromBase64, isAddressType, toAddressType, toAccountType } from '../utils/typeConverter'
+import { AccountType } from '../enum/AccountType'
+import {
+  confirmedTransactionFromBase64,
+  isAddressType,
+  toAccountType,
+  toAddressType,
+} from '../utils/typeConverter'
 
 /**
  * dateSchema for creating a date from string or Date object
  */
 export const dateSchema = v.pipe(
-  v.union([
-    v.string('expect valid date string'),
-    v.instance(Date, 'expect Date object')
-  ]),
+  v.union([v.string('expect valid date string'), v.instance(Date, 'expect Date object')]),
   v.transform<string | Date, Date>((input) => {
-    let date: Date 
+    let date: Date
     if (input instanceof Date) {
       date = input
     } else {
@@ -25,7 +24,7 @@ export const dateSchema = v.pipe(
       throw new Error('invalid date')
     }
     return date
-  })
+  }),
 )
 
 /**
@@ -39,7 +38,7 @@ export const addressTypeSchema = v.pipe(
     v.enum(AccountType, 'expect account type'),
     v.custom<AddressType>(isAddressType, 'expect AddressType'),
   ]),
-  v.transform<AccountType | AddressType, AddressType>((value) => toAddressType(value)), 
+  v.transform<AccountType | AddressType, AddressType>((value) => toAddressType(value)),
 )
 
 /**
@@ -58,7 +57,7 @@ export const confirmedTransactionSchema = v.pipe(
     v.instance(ConfirmedTransaction, 'expect ConfirmedTransaction'),
     v.pipe(
       v.string('expect confirmed Transaction base64 as string type'),
-      v.base64('expect to be valid base64')
+      v.base64('expect to be valid base64'),
     ),
   ]),
   v.transform<string | ConfirmedTransaction, ConfirmedTransaction>(
@@ -70,5 +69,3 @@ export const confirmedTransactionSchema = v.pipe(
     },
   ),
 )
-
-

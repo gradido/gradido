@@ -1,14 +1,16 @@
-
-import { accountTypeSchema, addressTypeSchema, confirmedTransactionSchema } from './typeConverter.schema'
-import * as v from 'valibot'
 // only for IDE, bun don't need this to work
 import { describe, expect, it } from 'bun:test'
-import { dateSchema } from './typeConverter.schema'
 import { AddressType_COMMUNITY_AUF, AddressType_COMMUNITY_PROJECT } from 'gradido-blockchain-js'
+import * as v from 'valibot'
 import { AccountType } from '../enum/AccountType'
+import {
+  accountTypeSchema,
+  addressTypeSchema,
+  confirmedTransactionSchema,
+  dateSchema,
+} from './typeConverter.schema'
 
 describe('basic.schema', () => {
-  
   describe('date', () => {
     it('from string', () => {
       const date = v.parse(dateSchema, '2021-01-01:10:10')
@@ -45,9 +47,12 @@ describe('basic.schema', () => {
       expect(accountType).toBe(AccountType.COMMUNITY_AUF)
     })
   })
-  
+
   it('confirmedTransactionSchema', () => {
-    const confirmedTransaction = v.parse(confirmedTransactionSchema, 'CAcSAgoAGgYIwvK5/wUiAzMuNCogAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAyIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA')
+    const confirmedTransaction = v.parse(
+      confirmedTransactionSchema,
+      'CAcSAgoAGgYIwvK5/wUiAzMuNCogAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAyIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+    )
     expect(confirmedTransaction.getId()).toBe(7)
     expect(confirmedTransaction.getConfirmedAt().getSeconds()).toBe(1609464130)
     expect(confirmedTransaction.getVersionNumber()).toBe('3.4')

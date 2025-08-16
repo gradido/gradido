@@ -1,14 +1,10 @@
 import { MemoryBlock } from 'gradido-blockchain-js'
-import { IdentifierAccount, IdentifierAccountInput, identifierAccountSchema } from '../schemas/account.schema'
 import { ParameterError } from '../errors'
-import * as v from 'valibot'
+import { IdentifierAccount } from '../schemas/account.schema'
+import { HieroId } from '../schemas/typeGuard.schema'
 
 export class KeyPairIdentifierLogic {
-  public identifier: IdentifierAccount
-  public constructor(identifier: IdentifierAccountInput) {
-    // check if data structure is like expected and fill in defaults
-    this.identifier = v.parse(identifierAccountSchema, identifier)
-  }
+  public constructor(public identifier: IdentifierAccount) {}
 
   isCommunityKeyPair(): boolean {
     return !this.identifier.seed && !this.identifier.account
@@ -36,19 +32,21 @@ export class KeyPairIdentifierLogic {
 
   getSeed(): string {
     if (!this.identifier.seed) {
-      throw new Error('get seed called on non seed key pair identifier, please check first with isSeedKeyPair()')
+      throw new Error(
+        'get seed called on non seed key pair identifier, please check first with isSeedKeyPair()',
+      )
     }
     return this.identifier.seed.seed
   }
 
-  getCommunityUuid(): string {
-    return this.identifier.communityUuid
+  getCommunityTopicId(): HieroId {
+    return this.identifier.communityTopicId
   }
 
   getUserUuid(): string {
     if (!this.identifier.account) {
       throw new Error(
-        'get user uuid called on non user key pair identifier, please check first with isUserKeyPair() or isAccountKeyPair()'
+        'get user uuid called on non user key pair identifier, please check first with isUserKeyPair() or isAccountKeyPair()',
       )
     }
     return this.identifier.account.userUuid
@@ -57,19 +55,23 @@ export class KeyPairIdentifierLogic {
   getAccountNr(): number {
     if (!this.identifier.account?.accountNr) {
       throw new Error(
-        'get account nr called on non account key pair identifier, please check first with isAccountKeyPair()'
+        'get account nr called on non account key pair identifier, please check first with isAccountKeyPair()',
       )
     }
     return this.identifier.account.accountNr
   }
 
-  getSeedKey(): string { return this.getSeed() }
-  getCommunityKey(): string { return this.getCommunityUuid() }
-  getCommunityUserKey(): string { 
+  getSeedKey(): string {
+    return this.getSeed()
+  }
+  getCommunityKey(): HieroId {
+    return this.getCommunityTopicId()
+  }
+  getCommunityUserKey(): string {
     return this.createCommunityUserHash()
   }
-  getCommunityUserAccountKey(): string { 
-    return this.createCommunityUserHash() + this.getAccountNr().toString() 
+  getCommunityUserAccountKey(): string {
+    return this.createCommunityUserHash() + this.getAccountNr().toString()
   }
 
   getKey(): string {
@@ -86,12 +88,11 @@ export class KeyPairIdentifierLogic {
   }
 
   private createCommunityUserHash(): string {
-    if (!this.identifier.account?.userUuid || !this.identifier.communityUuid) {
-      throw new ParameterError('userUuid and/or communityUuid is undefined')
+    if (!this.identifier.account?.userUuid || !this.identifier.communityTopicId) {
+      throw new ParameterError('userUuid and/or communityTopicId is undefined')
     }
-    const resultHexString = 
-      this.identifier.communityUuid.replace(/-/g, '')  
-      + this.identifier.account.userUuid.replace(/-/g, '')
+    const resultHexString =
+      this.identifier.communityTopicId + this.identifier.account.userUuid.replace(/-/g, '')
     return MemoryBlock.fromHex(resultHexString).calculateHash().convertToHex()
   }
 }

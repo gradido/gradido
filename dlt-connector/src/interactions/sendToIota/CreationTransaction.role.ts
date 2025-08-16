@@ -4,78 +4,69 @@ import {
   GradidoTransactionBuilder,
   TransferAmount,
 } from 'gradido-blockchain-js'
-
+import { parse } from 'valibot'
 import { KeyPairIdentifierLogic } from '../../data/KeyPairIdentifier.logic'
-import { CreationTransactionInput, creationTransactionSchema, CreationTransaction } from '../../schemas/transaction.schema'
 import { KeyPairCacheManager } from '../../KeyPairCacheManager'
-import { TRPCError } from '@trpc/server'
-
+import {
+  CreationTransaction,
+  creationTransactionSchema,
+  Transaction,
+} from '../../schemas/transaction.schema'
+import { HieroId } from '../../schemas/typeGuard.schema'
 import { KeyPairCalculation } from '../keyPairCalculation/KeyPairCalculation.context'
-import * as v from 'valibot'
 import { AbstractTransactionRole } from './AbstractTransaction.role'
-import { Uuidv4, uuidv4Schema } from '../../schemas/typeConverter.schema'
 
 export class CreationTransactionRole extends AbstractTransactionRole {
-  private tx: CreationTransaction
-  private homeCommunityUuid: Uuidv4
-  constructor(input: CreationTransactionInput) {
+  private readonly homeCommunityTopicId: HieroId
+  private readonly creationTransaction: CreationTransaction
+  constructor(transaction: Transaction) {
     super()
-    this.tx = v.parse(creationTransactionSchema, input)
-    this.homeCommunityUuid = v.parse(
-      uuidv4Schema, 
-      KeyPairCacheManager.getInstance().getHomeCommunityUUID()
-    )
+    this.creationTransaction = parse(creationTransactionSchema, transaction)
+    this.homeCommunityTopicId = KeyPairCacheManager.getInstance().getHomeCommunityTopicId()
     if (
-      this.homeCommunityUuid !== this.tx.user.communityUuid ||
-      this.homeCommunityUuid !== this.tx.linkedUser.communityUuid
+      this.homeCommunityTopicId !== this.creationTransaction.user.communityTopicId ||
+      this.homeCommunityTopicId !== this.creationTransaction.linkedUser.communityTopicId
     ) {
-      throw new TRPCError({
-        code: 'BAD_REQUEST',
-        message: 'creation: both recipient and signer must belong to home community',
-      })
+      throw new Error('creation: both recipient and signer must belong to home community')
     }
   }
 
-  getSenderCommunityUuid(): string {
-    return this.tx.user.communityUuid
+  getSenderCommunityTopicId(): HieroId {
+    return this.creationTransaction.user.communityTopicId
   }
 
-  getRecipientCommunityUuid(): string {
-    throw new TRPCError({
-      code: 'BAD_REQUEST',
-      message: 'creation: cannot be used as cross group transaction',
-    })
+  getRecipientCommunityTopicId(): HieroId {
+    throw new Error('creation: cannot be used as cross group transaction')
   }
 
   public async getGradidoTransactionBuilder(): Promise<GradidoTransactionBuilder> {
     const builder = new GradidoTransactionBuilder()
     // Recipient: user (account owner)
     const recipientKeyPair = await KeyPairCalculation(
-      new KeyPairIdentifierLogic(this.tx.user)
+      new KeyPairIdentifierLogic(this.creationTransaction.user),
     )
     // Signer: linkedUser (admin/moderator)
     const signerKeyPair = await KeyPairCalculation(
-      new KeyPairIdentifierLogic(this.tx.linkedUser)
+      new KeyPairIdentifierLogic(this.creationTransaction.linkedUser),
     )
     const homeCommunityKeyPair = await KeyPairCalculation(
-      new KeyPairIdentifierLogic({ 
-        communityUuid: this.homeCommunityUuid 
+      new KeyPairIdentifierLogic({
+        communityTopicId: this.homeCommunityTopicId,
       }),
     )
     // Memo: encrypted, home community and recipient can decrypt it
     builder
-      .setCreatedAt(this.tx.createdAt)
-      .addMemo(new EncryptedMemo(
-        this.tx.memo,
-        new AuthenticatedEncryption(homeCommunityKeyPair),
-        new AuthenticatedEncryption(recipientKeyPair),
-      ))
-      .setTransactionCreation(
-        new TransferAmount(
-          recipientKeyPair.getPublicKey(),
-          this.tx.amount,
+      .setCreatedAt(this.creationTransaction.createdAt)
+      .addMemo(
+        new EncryptedMemo(
+          this.creationTransaction.memo,
+          new AuthenticatedEncryption(homeCommunityKeyPair),
+          new AuthenticatedEncryption(recipientKeyPair),
         ),
-        this.tx.targetDate,
+      )
+      .setTransactionCreation(
+        new TransferAmount(recipientKeyPair.getPublicKey(), this.creationTransaction.amount),
+        this.creationTransaction.targetDate,
       )
       .sign(signerKeyPair)
     return builder

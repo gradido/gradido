@@ -1,17 +1,17 @@
-import { 
-  ConfirmedTransaction, 
-  MemoryBlock, 
-  InteractionDeserialize, 
-  DeserializeType_CONFIRMED_TRANSACTION, 
+import {
+  AddressType,
   AddressType_COMMUNITY_AUF,
   AddressType_COMMUNITY_GMW,
   AddressType_COMMUNITY_HUMAN,
   AddressType_COMMUNITY_PROJECT,
   AddressType_CRYPTO_ACCOUNT,
-  AddressType_SUBACCOUNT,
   AddressType_DEFERRED_TRANSFER,
   AddressType_NONE,
-  AddressType,
+  AddressType_SUBACCOUNT,
+  ConfirmedTransaction,
+  DeserializeType_CONFIRMED_TRANSACTION,
+  InteractionDeserialize,
+  MemoryBlock,
 } from 'gradido-blockchain-js'
 import { AccountType } from '../enum/AccountType'
 
@@ -44,17 +44,22 @@ const accountToAddressMap: Record<AccountType, AddressType> = {
   [AccountType.NONE]: AddressType_NONE,
 }
 
-const addressToAccountMap: Record<AddressType, AccountType> = Object.entries(accountToAddressMap).reduce((acc, [accKey, addrVal]) => {
-  acc[addrVal] = String(accKey) as AccountType
-  return acc;
-}, {} as Record<AddressType, AccountType>)
+const addressToAccountMap: Record<AddressType, AccountType> = Object.entries(
+  accountToAddressMap,
+).reduce(
+  (acc, [accKey, addrVal]) => {
+    acc[addrVal] = String(accKey) as AccountType
+    return acc
+  },
+  {} as Record<AddressType, AccountType>,
+)
 
 export function isAddressType(val: unknown): val is AddressType {
   return typeof val === 'number' && Object.keys(addressToAccountMap).includes(val.toString())
 }
 
 export function isAccountType(val: unknown): val is AccountType {
-  return Object.values(AccountType).includes(val as AccountType);
+  return Object.values(AccountType).includes(val as AccountType)
 }
 
 export function toAddressType(input: AccountType | AddressType): AddressType {

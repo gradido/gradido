@@ -1,24 +1,17 @@
 /* eslint-disable camelcase */
 import {
   GradidoTransaction,
-  InteractionSerialize,
-  InteractionValidate,
-  MemoryBlock,
+  InteractionValidate,  
+  MemoryBlock,  
   ValidateType_SINGLE,
 } from 'gradido-blockchain-js'
-
-import { sendMessage as iotaSendMessage } from '@/client/IotaClient'
-import { InputTransactionType } from '@/graphql/enum/InputTransactionType'
-import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
-import { CommunityDraft } from '@/graphql/input/CommunityDraft'
-import { TransactionDraft } from '@/graphql/input/TransactionDraft'
-import { TransactionError } from '@/graphql/model/TransactionError'
-import { TransactionRecipe } from '@/graphql/model/TransactionRecipe'
-import { TransactionResult } from '@/graphql/model/TransactionResult'
-import { logger } from '@/logging/logger'
-import { LogError } from '@/server/LogError'
-import { communityUuidToTopic } from '@/utils/typeConverter'
-
+import { getLogger } from 'log4js'
+import { safeParse, parse } from 'valibot'
+import { Community, communitySchema } from '../../client/backend/community.schema'
+import { HieroClient } from '../../client/HieroClient'
+import { LOG4JS_BASE_CATEGORY } from '../../config/const'
+import { Transaction, transactionSchema } from '../../schemas/transaction.schema'
+import { HieroId, HieroTransactionId, hieroTransactionIdSchema } from '../../schemas/typeGuard.schema'
 import { AbstractTransactionRole } from './AbstractTransaction.role'
 import { CommunityRootTransactionRole } from './CommunityRootTransaction.role'
 import { CreationTransactionRole } from './CreationTransaction.role'
@@ -26,6 +19,9 @@ import { DeferredTransferTransactionRole } from './DeferredTransferTransaction.r
 import { RedeemDeferredTransferTransactionRole } from './RedeemDeferredTransferTransaction.role'
 import { RegisterAddressTransactionRole } from './RegisterAddressTransaction.role'
 import { TransferTransactionRole } from './TransferTransaction.role'
+import { InputTransactionType } from '../../enum/InputTransactionType'
+
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY}.interactions.sendToIota.SendToIotaContext`)
 
 /**
  * @DCI-Context
@@ -33,95 +29,74 @@ import { TransferTransactionRole } from './TransferTransaction.role'
  * send every transaction only once to iota!
  */
 export async function SendToIotaContext(
-  input: TransactionDraft | CommunityDraft,
-): Promise<TransactionResult> {
+  input: Transaction | Community,
+): Promise<HieroTransactionId> {
+  // let gradido blockchain validator run, it will throw an exception when something is wrong
   const validate = (transaction: GradidoTransaction): void => {
-    try {
-      // throw an exception when something is wrong
-      const validator = new InteractionValidate(transaction)
-      validator.run(ValidateType_SINGLE)
-    } catch (e) {
-      if (e instanceof Error) {
-        throw new TransactionError(TransactionErrorType.VALIDATION_ERROR, e.message)
-      } else if (typeof e === 'string') {
-        throw new TransactionError(TransactionErrorType.VALIDATION_ERROR, e)
-      } else {
-        throw e
-      }
-    }
+    const validator = new InteractionValidate(transaction)
+    validator.run(ValidateType_SINGLE)
   }
 
-  const sendViaIota = async (
+  // send transaction as hiero topic message
+  const sendViaHiero = async (
     gradidoTransaction: GradidoTransaction,
-    topic: string,
-  ): Promise<MemoryBlock> => {
-    // protobuf serializing function
-    const serialized = new InteractionSerialize(gradidoTransaction).run()
-    if (!serialized) {
-      throw new TransactionError(
-        TransactionErrorType.PROTO_ENCODE_ERROR,
-        'cannot serialize transaction',
-      )
-    }
-    const resultMessage = await iotaSendMessage(
-      Uint8Array.from(serialized.data()),
-      Uint8Array.from(Buffer.from(topic, 'hex')),
-    )
-    logger.info('transmitted Gradido Transaction to Iota', {
-      messageId: resultMessage.messageId,
-    })
-    return MemoryBlock.fromHex(resultMessage.messageId)
+    topic: HieroId,
+  ): Promise<string> => {
+    const client = HieroClient.getInstance()
+    const resultMessage = await client.sendMessage(topic, gradidoTransaction)
+    const transactionId = resultMessage.response.transactionId.toString()
+    logger.info('transmitted Gradido Transaction to Iota', { transactionId })
+    return transactionId
   }
 
-  let role: AbstractTransactionRole
-  if (input instanceof TransactionDraft) {
-    switch (input.type) {
-      case InputTransactionType.GRADIDO_CREATION:
-        role = new CreationTransactionRole(input)
-        break
-      case InputTransactionType.GRADIDO_TRANSFER:
-        role = new TransferTransactionRole(input)
-        break
-      case InputTransactionType.REGISTER_ADDRESS:
-        role = new RegisterAddressTransactionRole(input)
-        break
-      case InputTransactionType.GRADIDO_DEFERRED_TRANSFER:
-        role = new DeferredTransferTransactionRole(input)
-        break
-      case InputTransactionType.GRADIDO_REDEEM_DEFERRED_TRANSFER:
-        role = new RedeemDeferredTransferTransactionRole(input)
-        break
-      default:
-        throw new TransactionError(
-          TransactionErrorType.NOT_IMPLEMENTED_YET,
-          'not supported transaction type: ' + input.type,
-        )
+  // choose correct role based on transaction type and input type
+  const chooseCorrectRole = (input: Transaction | Community): AbstractTransactionRole => {
+    const transactionParsingResult = safeParse(transactionSchema, input)
+    const communityParsingResult = safeParse(communitySchema, input)
+    if (transactionParsingResult.success) {
+      const transaction = transactionParsingResult.output
+      switch (transaction.type) {
+        case InputTransactionType.GRADIDO_CREATION:
+          return new CreationTransactionRole(transaction)
+        case InputTransactionType.GRADIDO_TRANSFER:
+          return new TransferTransactionRole(transaction)
+        case InputTransactionType.REGISTER_ADDRESS:
+          return new RegisterAddressTransactionRole(transaction)
+        case InputTransactionType.GRADIDO_DEFERRED_TRANSFER:
+          return new DeferredTransferTransactionRole(transaction)
+        case InputTransactionType.GRADIDO_REDEEM_DEFERRED_TRANSFER:
+          return new RedeemDeferredTransferTransactionRole(transaction)
+        default:
+          throw new Error('not supported transaction type: ' + transaction.type)
+      }
+    } else if (communityParsingResult.success) {
+      return new CommunityRootTransactionRole(communityParsingResult.output)
+    } else {
+      throw new Error('not expected input')
     }
-  } else if (input instanceof CommunityDraft) {
-    role = new CommunityRootTransactionRole(input)
-  } else {
-    throw new LogError('not expected input')
   }
+
+  const role = chooseCorrectRole(input)  
   const builder = await role.getGradidoTransactionBuilder()
   if (builder.isCrossCommunityTransaction()) {
     const outboundTransaction = builder.buildOutbound()
     validate(outboundTransaction)
-    const outboundIotaMessageId = await sendViaIota(
+    const outboundIotaMessageId = await sendViaHiero(
       outboundTransaction,
-      communityUuidToTopic(role.getSenderCommunityUuid()),
+      role.getSenderCommunityTopicId(),
     )
-    builder.setParentMessageId(outboundIotaMessageId)
+    builder.setParentMessageId(MemoryBlock.createPtr(new MemoryBlock(outboundIotaMessageId)))
     const inboundTransaction = builder.buildInbound()
     validate(inboundTransaction)
-    await sendViaIota(inboundTransaction, communityUuidToTopic(role.getRecipientCommunityUuid()))
-    return new TransactionResult(new TransactionRecipe(outboundTransaction, outboundIotaMessageId))
+    await sendViaHiero(inboundTransaction, role.getRecipientCommunityTopicId())
+    return parse(hieroTransactionIdSchema, outboundIotaMessageId)
   } else {
     const transaction = builder.build()
     validate(transaction)
-    const iotaMessageId = await sendViaIota(
+    const iotaMessageId = await sendViaHiero(
       transaction,
-      communityUuidToTopic(role.getSenderCommunityUuid()),
+      role.getSenderCommunityTopicId(),
     )
-    return new TransactionResult(new TransactionRecipe(transaction, iotaMessageId))
+    return parse(hieroTransactionIdSchema, iotaMessageId)
   }
 }

@@ -1,77 +1,75 @@
-import { initTRPC, TRPCError } from '@trpc/server'
-import * as v from 'valibot'
-import { identifierAccountSchema } from '../schemas/account.schema'
-import { KeyPairIdentifierLogic } from '../data/KeyPairIdentifier.logic'
-import { getLogger } from 'log4js'
-import { LOG4JS_BASE_CATEGORY } from '../config/const'
-import { KeyPairCalculation } from '../interactions/keyPairCalculation/KeyPairCalculation.context'
-import { getAddressType } from '../client/GradidoNode/api'
-import { Uuidv4Hash } from '../data/Uuidv4Hash'
-import { hex32Schema } from '../schemas/typeGuard.schema'
+import { Elysia, status } from 'elysia'
 import { AddressType_NONE } from 'gradido-blockchain-js'
+import { getLogger } from 'log4js'
+import * as v from 'valibot'
+import { getAddressType } from '../client/GradidoNode/api'
+import { LOG4JS_BASE_CATEGORY } from '../config/const'
+import { KeyPairIdentifierLogic } from '../data/KeyPairIdentifier.logic'
+import { KeyPairCalculation } from '../interactions/keyPairCalculation/KeyPairCalculation.context'
+import { SendToIotaContext } from '../interactions/sendToIota/SendToIota.context'
+import { IdentifierAccount, identifierAccountSchema } from '../schemas/account.schema'
+import {
+  accountIdentifierSeedSchema,
+  accountIdentifierUserSchema,
+  existSchema,
+} from './input.schema'
 
-export const t = initTRPC.create()
-const publicProcedure = t.procedure
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY}.server`)
 
-export const appRouter = t.router({
-  isAccountExist: publicProcedure
-    .input(identifierAccountSchema)
-    .output(v.boolean())
-    .query(async ({ input: userIdentifier }) => {
-      const accountKeyPair = await KeyPairCalculation(new KeyPairIdentifierLogic(userIdentifier))
-      const publicKey = accountKeyPair.getPublicKey()
-      if (!publicKey) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: "couldn't calculate account key pair",
-        })
-      }
-
-      // ask gradido node server for account type, if type !== NONE account exist
-      const addressType = await getAddressType(
-        v.parse(hex32Schema, publicKey.get()),
-        new Uuidv4Hash(userIdentifier.communityUuid),
-      )
-      logger.info('isAccountExist')
-      if(logger.isDebugEnabled()) {
-        logger.debug('params', userIdentifier)
-      }
-      return addressType !== AddressType_NONE
-    }),
-  
-  sendTransaction: publicProcedure
-    .input(transactionDraftSchema)
-    .output(v.instanceof(TransactionResult))
-    .mutation(async ({ input: transactionDraft }) => {
-      try {
-        return await SendToIotaContext(transactionDraft)
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (error: any) {
-        if (error instanceof TransactionError) {
-          return new TransactionResult(error)
-        } else {
-          throw error
-        }
-      }
-    })
-})
-
-/*
-
-async sendTransaction(
-    @Arg('data')
-    transactionDraft: TransactionDraft,
-  ): Promise<TransactionResult> {
-    try {
-      return await SendToIotaContext(transactionDraft)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      if (error instanceof TransactionError) {
-        return new TransactionResult(error)
-      } else {
-        throw error
-      }
-    }
+async function isAccountExist(identifierAccount: IdentifierAccount): Promise<boolean> {
+  const startTime = Date.now()
+  const accountKeyPair = await KeyPairCalculation(new KeyPairIdentifierLogic(identifierAccount))
+  const publicKey = accountKeyPair.getPublicKey()
+  if (!publicKey) {
+    throw status(404, "couldn't calculate account key pair")
   }
-    */
+
+  // ask gradido node server for account type, if type !== NONE account exist
+  const addressType = await getAddressType(
+    publicKey.convertToHex(),
+    identifierAccount.communityTopicId,
+  )
+  const endTime = Date.now()
+  logger.info(
+    `isAccountExist: ${addressType !== AddressType_NONE}, time used: ${endTime - startTime}ms`,
+  )
+  if (logger.isDebugEnabled()) {
+    logger.debug('params', identifierAccount)
+  }
+  return addressType !== AddressType_NONE
+}
+
+export const appRoutes = new Elysia()
+  .get(
+    '/isAccountExist/:communityTopicId/:userUuid/:accountNr',
+    async ({ params: { communityTopicId, userUuid, accountNr } }) => {
+      const accountIdentifier = v.parse(identifierAccountSchema, {
+        communityTopicId,
+        account: { userUuid, accountNr },
+      })
+      return { exists: await isAccountExist(accountIdentifier) }
+    },
+    // validation schemas
+    { params: accountIdentifierUserSchema, response: existSchema },
+  )
+  .get(
+    '/isAccountExist/:communityTopicId/:seed',
+    async ({ params: { communityTopicId, seed } }) => {
+      const accountIdentifier = v.parse(identifierAccountSchema, {
+        communityTopicId,
+        seed: { seed },
+      })
+      return { exists: await isAccountExist(accountIdentifier) }
+    },
+    // validation schemas
+    { params: accountIdentifierSeedSchema, response: existSchema },
+  )
+  .post(
+    '/sendTransaction',
+    async ({ body }) => {
+      const transactionDraft = v.parse(transactionDraftSchema, body)
+      return await SendToIotaContext(transactionDraft)
+    },
+    // validation schemas
+    { body: transactionDraftSchema, response: v.instanceof(TransactionResult) },
+  )

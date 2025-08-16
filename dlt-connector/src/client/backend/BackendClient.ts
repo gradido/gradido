@@ -1,21 +1,10 @@
-import { gql, GraphQLClient } from 'graphql-request'
+import { GraphQLClient, gql } from 'graphql-request'
 import { SignJWT } from 'jose'
-
-import { CONFIG } from '../../config'
-import { communitySchema, type Community } from './community.schema'
 import { getLogger, Logger } from 'log4js'
-import { LOG4JS_BASE_CATEGORY } from '../../config/const'
 import * as v from 'valibot'
-
-const homeCommunity = gql`
-  query {
-    homeCommunity {
-      uuid
-      foreign
-      creationDate
-    }
-  }
-`
+import { CONFIG } from '../../config'
+import { LOG4JS_BASE_CATEGORY } from '../../config/const'
+import { type Community, communitySchema, homeCommunityGraphqlQuery } from './community.schema'
 
 // Source: https://refactoring.guru/design-patterns/singleton/typescript/example
 // and ../federation/client/FederationClientFactory.ts
@@ -26,7 +15,7 @@ const homeCommunity = gql`
 export class BackendClient {
   private static instance: BackendClient
   client: GraphQLClient
-  logger: Logger   
+  logger: Logger
 
   /**
    * The Singleton's constructor should always be private to prevent direct
@@ -56,14 +45,14 @@ export class BackendClient {
   public static getInstance(): BackendClient | undefined {
     if (!BackendClient.instance) {
       BackendClient.instance = new BackendClient()
-    }    
+    }
     return BackendClient.instance
   }
 
   public async getHomeCommunityDraft(): Promise<Community> {
     this.logger.info('check home community on backend')
     const { data, errors } = await this.client.rawRequest<{ homeCommunity: Community }>(
-      homeCommunity,
+      homeCommunityGraphqlQuery,
       {}, // empty variables
       await this.getRequestHeader(),
     )

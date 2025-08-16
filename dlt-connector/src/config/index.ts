@@ -1,5 +1,6 @@
 /* eslint-disable n/no-process-env */
 import dotenv from 'dotenv'
+
 dotenv.config()
 
 const logging = {
@@ -25,7 +26,16 @@ const iota = {
   IOTA_HOME_COMMUNITY_SEED: process.env.IOTA_HOME_COMMUNITY_SEED ?? null,
 }
 
-const apis = {  
+const hiero = {
+  HIERO_ACTIVE: process.env.HIERO_ACTIVE === 'true' || false,
+  HIERO_HEDERA_NETWORK: process.env.HIERO_HEDERA_NETWORK ?? 'testnet',
+  HIERO_OPERATOR_ID: process.env.HIERO_OPERATOR_ID ?? '0.0.2',
+  HIERO_OPERATOR_KEY:
+    process.env.HIERO_OPERATOR_KEY ??
+    '302e020100300506032b65700422042091132178e72057a1d7528025956fe39b0b847f200ab59b2fdd367017f3087137',
+}
+
+const apis = {
   CONNECT_TIMEOUT_MS: process.env.CONNECT_TIMEOUT_MS
     ? Number.parseInt(process.env.CONNECT_TIMEOUT_MS)
     : 1000,
@@ -45,5 +55,6 @@ export const CONFIG = {
   ...server,
   ...secrets,
   ...iota,
+  ...hiero,
   ...apis,
 }

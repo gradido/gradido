@@ -4,60 +4,61 @@ import {
   GradidoTransactionBuilder,
   TransferAmount,
 } from 'gradido-blockchain-js'
-
+import { parse } from 'valibot'
 import { KeyPairIdentifierLogic } from '../../data/KeyPairIdentifier.logic'
+import {
+  TransferTransaction,
+  transferTransactionSchema,
+  Transaction,
+} from '../../schemas/transaction.schema'
 import { KeyPairCalculation } from '../keyPairCalculation/KeyPairCalculation.context'
 import { AbstractTransactionRole } from './AbstractTransaction.role'
-import { TransferTransactionInput, transferTransactionSchema, TransferTransaction } from '../../schemas/transaction.schema'
-import * as v from 'valibot'
-import { uuid4ToTopicSchema } from '../../schemas/typeConverter.schema'
+import { HieroId } from '../../schemas/typeGuard.schema'
 
 export class TransferTransactionRole extends AbstractTransactionRole {
-  private tx: TransferTransaction
-  constructor(input: TransferTransactionInput) {
+  private transferTransaction: TransferTransaction
+  constructor(input: Transaction) {
     super()
-    this.tx = v.parse(transferTransactionSchema, input)
+    this.transferTransaction = parse(transferTransactionSchema, input)
   }
 
-  getSenderCommunityUuid(): string {
-    return this.tx.user.communityUuid
+  getSenderCommunityTopicId(): HieroId {
+    return this.transferTransaction.user.communityTopicId
   }
 
-  getRecipientCommunityUuid(): string {
-    return this.tx.linkedUser.communityUuid
+  getRecipientCommunityTopicId(): HieroId {
+    return this.transferTransaction.linkedUser.communityTopicId
   }
 
   public async getGradidoTransactionBuilder(): Promise<GradidoTransactionBuilder> {
     const builder = new GradidoTransactionBuilder()
     // sender + signer
-    const senderKeyPair = await KeyPairCalculation(
-      new KeyPairIdentifierLogic(this.tx.user)
-    )
+    const senderKeyPair = await KeyPairCalculation(new KeyPairIdentifierLogic(this.transferTransaction.user))
     // recipient
     const recipientKeyPair = await KeyPairCalculation(
-      new KeyPairIdentifierLogic(this.tx.linkedUser)
+      new KeyPairIdentifierLogic(this.transferTransaction.linkedUser),
     )
 
     builder
-      .setCreatedAt(new Date(this.tx.createdAt))
+      .setCreatedAt(this.transferTransaction.createdAt)
       .addMemo(
         new EncryptedMemo(
-          this.tx.memo,
+          this.transferTransaction.memo,
           new AuthenticatedEncryption(senderKeyPair),
           new AuthenticatedEncryption(recipientKeyPair),
         ),
       )
       .setTransactionTransfer(
-        new TransferAmount(senderKeyPair.getPublicKey(), this.tx.amount),
+        new TransferAmount(senderKeyPair.getPublicKey(), this.transferTransaction.amount),
         recipientKeyPair.getPublicKey(),
       )
-    const senderCommunity = this.tx.user.communityUuid
-    const recipientCommunity = this.tx.linkedUser.communityUuid
+    const senderCommunity = this.transferTransaction.user.communityTopicId
+    const recipientCommunity = this.transferTransaction.linkedUser.communityTopicId
     if (senderCommunity !== recipientCommunity) {
       // we have a cross group transaction
       builder
-        .setSenderCommunity(v.parse(uuid4ToTopicSchema, senderCommunity))
-        .setRecipientCommunity(v.parse(uuid4ToTopicSchema, recipientCommunity))
+        .setSenderCommunity(senderCommunity)
+        .setRecipientCommunity(recipientCommunity)
     }
     builder.sign(senderKeyPair)
     return builder

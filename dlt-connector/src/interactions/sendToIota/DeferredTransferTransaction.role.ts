@@ -5,53 +5,52 @@ import {
   GradidoTransfer,
   TransferAmount,
 } from 'gradido-blockchain-js'
-
+import { parse } from 'valibot'
 import { KeyPairIdentifierLogic } from '../../data/KeyPairIdentifier.logic'
+import { IdentifierSeed, identifierSeedSchema } from '../../schemas/account.schema'
+import {
+  DeferredTransferTransaction,
+  deferredTransferTransactionSchema,
+  Transaction,
+} from '../../schemas/transaction.schema'
+import { HieroId } from '../../schemas/typeGuard.schema'
 import { KeyPairCalculation } from '../keyPairCalculation/KeyPairCalculation.context'
-
 import { AbstractTransactionRole } from './AbstractTransaction.role'
-import { DeferredTransferTransactionInput, deferredTransferTransactionSchema, DeferredTransferTransaction } from '../../schemas/transaction.schema'
-import * as v from 'valibot'
-import { TRPCError } from '@trpc/server'
-import { identifierSeedSchema, IdentifierSeed } from '../../schemas/account.schema'
 
 export class DeferredTransferTransactionRole extends AbstractTransactionRole {
-  private tx: DeferredTransferTransaction
-  private seed: IdentifierSeed
-  constructor(protected input: DeferredTransferTransactionInput) {
+  private readonly seed: IdentifierSeed
+  private readonly deferredTransferTransaction: DeferredTransferTransaction
+  constructor(transaction: Transaction) {
     super()
-    this.tx = v.parse(deferredTransferTransactionSchema, input)
-    this.seed = v.parse(identifierSeedSchema, input.linkedUser.seed)
+    this.deferredTransferTransaction = parse(deferredTransferTransactionSchema, transaction)
+    this.seed = parse(identifierSeedSchema, this.deferredTransferTransaction.linkedUser.seed)
   }
 
-  getSenderCommunityUuid(): string {
-    return this.tx.user.communityUuid
+  getSenderCommunityTopicId(): HieroId {
+    return this.deferredTransferTransaction.user.communityTopicId
   }
 
-  getRecipientCommunityUuid(): string {
-    throw new TRPCError({
-      code: 'NOT_IMPLEMENTED',
-      message: 'deferred transfer: cannot be used as cross group transaction yet',
-    })
+  getRecipientCommunityTopicId(): HieroId {
+    throw new Error('deferred transfer: cannot be used as cross group transaction yet')
   }
 
   public async getGradidoTransactionBuilder(): Promise<GradidoTransactionBuilder> {
     const builder = new GradidoTransactionBuilder()
     const senderKeyPair = await KeyPairCalculation(
-      new KeyPairIdentifierLogic(this.tx.user)
+      new KeyPairIdentifierLogic(this.deferredTransferTransaction.user),
     )
     const recipientKeyPair = await KeyPairCalculation(
-      new KeyPairIdentifierLogic({ 
-        communityUuid: this.tx.linkedUser.communityUuid,
+      new KeyPairIdentifierLogic({
+        communityTopicId: this.deferredTransferTransaction.linkedUser.communityTopicId,
         seed: this.seed,
-      })
+      }),
     )
 
     builder
-      .setCreatedAt(this.tx.createdAt)
+      .setCreatedAt(this.deferredTransferTransaction.createdAt)
       .addMemo(
         new EncryptedMemo(
-          this.tx.memo,
+          this.deferredTransferTransaction.memo,
           new AuthenticatedEncryption(senderKeyPair),
           new AuthenticatedEncryption(recipientKeyPair),
         ),
@@ -60,13 +59,13 @@ export class DeferredTransferTransactionRole extends AbstractTransactionRole {
         new GradidoTransfer(
           new TransferAmount(
             senderKeyPair.getPublicKey(),
-            this.tx.amount.calculateCompoundInterest(
-              this.tx.timeoutDuration.getSeconds(),
+            this.deferredTransferTransaction.amount.calculateCompoundInterest(
+              this.deferredTransferTransaction.timeoutDuration.getSeconds(),
             ),
           ),
           recipientKeyPair.getPublicKey(),
         ),
-        this.tx.timeoutDuration,
+        this.deferredTransferTransaction.timeoutDuration,
       )
       .sign(senderKeyPair)
     return builder

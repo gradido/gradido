@@ -1,12 +1,9 @@
 import * as v from 'valibot'
-import { uuidv4Schema } from './typeGuard.schema'
+import { hieroIdSchema, uuidv4Schema } from './typeGuard.schema'
 
 // use code from transaction links
 export const identifierSeedSchema = v.object({
-  seed: v.pipe(
-    v.string('expect string type'),
-    v.length(24, 'expect seed length 24')
-  )
+  seed: v.pipe(v.string('expect string type'), v.length(24, 'expect seed length 24')),
 })
 
 export type IdentifierSeed = v.InferOutput<typeof identifierSeedSchema>
@@ -22,7 +19,7 @@ export type IdentifierCommunityAccount = v.InferOutput<typeof identifierCommunit
 // identifier for gradido account, including the community uuid
 export const identifierAccountSchema = v.pipe(
   v.object({
-    communityUuid: uuidv4Schema,
+    communityTopicId: hieroIdSchema,
     account: v.nullish(identifierCommunityAccountSchema, undefined),
     seed: v.nullish(identifierSeedSchema, undefined),
   }),
@@ -32,7 +29,7 @@ export const identifierAccountSchema = v.pipe(
       return false
     }
     return true
-  }, 'expect seed or account')
+  }, 'expect seed or account'),
 )
 
 export type IdentifierAccountInput = v.InferInput<typeof identifierAccountSchema>
