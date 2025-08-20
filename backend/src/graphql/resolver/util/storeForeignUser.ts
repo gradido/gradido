@@ -1,6 +1,6 @@
 import { Community as DbCommunity, User as DbUser } from 'database'
 
-import { SendCoinsResult } from '@/federation/client/1_0/model/SendCoinsResult'
+import { SendCoinsResult } from 'core/src/federation/client/1_0/model/SendCoinsResult'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { getLogger } from 'log4js'
 

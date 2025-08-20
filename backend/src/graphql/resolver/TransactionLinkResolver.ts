@@ -6,22 +6,19 @@ import { TransactionLinkFilters } from '@arg/TransactionLinkFilters'
 import { ContributionCycleType } from '@enum/ContributionCycleType'
 import { ContributionStatus } from '@enum/ContributionStatus'
 import { ContributionType } from '@enum/ContributionType'
-import { TransactionTypeId } from '@enum/TransactionTypeId'
-import { Community } from '@model/Community'
 import { ContributionLink } from '@model/ContributionLink'
 import { Decay } from '@model/Decay'
 import { RedeemJwtLink } from '@model/RedeemJwtLink'
 import { TransactionLink, TransactionLinkResult } from '@model/TransactionLink'
 import { User } from '@model/User'
 import { QueryLinkResult } from '@union/QueryLinkResult'
+import { TransactionTypeId } from 'core'
 import {
-  AppDatabase,
-  Contribution as DbContribution,
-  ContributionLink as DbContributionLink,
-  Transaction as DbTransaction,
+  AppDatabase, Community as DbCommunity, Contribution as DbContribution,
+  ContributionLink as DbContributionLink, FederatedCommunity as DbFederatedCommunity, Transaction as DbTransaction,
   TransactionLink as DbTransactionLink,
   User as DbUser,
-  getHomeCommunity,
+  getHomeCommunity
 } from 'database'
 import { Decimal } from 'decimal.js-light'
 import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
@@ -37,12 +34,16 @@ import { LogError } from '@/server/LogError'
 import { Context, getClientTimezoneOffset, getUser } from '@/server/context'
 import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 import { TRANSACTION_LINK_LOCK } from '@/util/TRANSACTION_LINK_LOCK'
-import { fullName } from '@/util/utilities'
 import { calculateBalance } from '@/util/validate'
+import { fullName } from 'core'
 import { calculateDecay, decode, DisburseJwtPayloadType, encode, encryptAndSign, RedeemJwtPayloadType, verify } from 'shared'
 
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { DisbursementClient as V1_0_DisbursementClient } from '@/federation/client/1_0/DisbursementClient'
+import { DisbursementClientFactory } from '@/federation/client/DisbursementClientFactory'
+import { EncryptedTransferArgs } from 'core'
 import { getLogger, Logger } from 'log4js'
+import { randombytes_random } from 'sodium-native'
 import { executeTransaction } from './TransactionResolver'
 import {
   getAuthenticatedCommunities,
@@ -53,7 +54,7 @@ import { getLastTransaction } from './util/getLastTransaction'
 import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
 import { transactionLinkList } from './util/transactionLinkList'
 
-const createLogger = () => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.TransactionLinkResolver`)
+const createLogger = (method: string) => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.TransactionLinkResolver.${method}`)
 
 // TODO: do not export, test it inside the resolver
 export const transactionLinkCode = (date: Date): string => {
@@ -148,9 +149,9 @@ export class TransactionLinkResolver {
   @Authorized([RIGHTS.QUERY_TRANSACTION_LINK])
   @Query(() => QueryLinkResult)
   async queryTransactionLink(@Arg('code') code: string): Promise<typeof QueryLinkResult> {
-    const logger = createLogger()
-    logger.addContext('code', code.substring(0, 6))
-    logger.debug('TransactionLinkResolver.queryTransactionLink...')
+    const methodLogger = createLogger('queryTransactionLink')
+    methodLogger.addContext('code', code.substring(0, 6))
+    methodLogger.debug('queryTransactionLink...')
     if (code.match(/^CL-/)) {
       const contributionLink = await DbContributionLink.findOneOrFail({
         where: { code: code.replace('CL-', '') },
@@ -171,7 +172,7 @@ export class TransactionLinkResolver {
       }
       // normal redeem code
       if (txLinkFound) {
-        logger.debug(
+        methodLogger.debug(
           'TransactionLinkResolver.queryTransactionLink... normal redeem code found=',
           txLinkFound,
         )
@@ -186,7 +187,7 @@ export class TransactionLinkResolver {
         return new TransactionLink(dbTransactionLink, new User(user), redeemedBy, communities)
       } else {
         // redeem jwt-token
-        return await this.queryRedeemJwtLink(code, logger)
+        return await this.queryRedeemJwtLink(code, methodLogger)
       }
     }
   }
@@ -197,8 +198,8 @@ export class TransactionLinkResolver {
     @Arg('code', () => String) code: string,
     @Ctx() context: Context,
   ): Promise<boolean> {
-    const logger = createLogger()
-    logger.addContext('code', code.substring(0, 6))
+    const methodLogger = createLogger('redeemTransactionLink')
+    methodLogger.addContext('code', code.substring(0, 6))
     const clientTimezoneOffset = getClientTimezoneOffset(context)
     // const homeCom = await DbCommunity.findOneOrFail({ where: { foreign: false } })
     const user = getUser(context)
@@ -206,7 +207,7 @@ export class TransactionLinkResolver {
       // acquire lock
       const releaseLock = await TRANSACTIONS_LOCK.acquire()
       try {
-        logger.info('redeem contribution link...')
+        methodLogger.info('redeem contribution link...')
         const now = new Date()
         const queryRunner = db.getDataSource().createQueryRunner()
         await queryRunner.connect()
@@ -221,7 +222,7 @@ export class TransactionLinkResolver {
           if (!contributionLink) {
             throw new LogError('No contribution link found to given code', code)
           }
-          logger.info('...contribution link found with id', contributionLink.id)
+          methodLogger.info('...contribution link found with id', contributionLink.id)
           if (new Date(contributionLink.validFrom).getTime() > now.getTime()) {
             throw new LogError('Contribution link is not valid yet', contributionLink.validFrom)
           }
@@ -278,7 +279,7 @@ export class TransactionLinkResolver {
           }
 
           const creations = await getUserCreation(user.id, clientTimezoneOffset)
-          logger.info('open creations', creations)
+          methodLogger.info('open creations', creations)
           validateContribution(creations, contributionLink.amount, now, clientTimezoneOffset)
           const contribution = new DbContribution()
           contribution.userId = user.id
@@ -383,7 +384,7 @@ export class TransactionLinkResolver {
           transactionLink.memo,
           linkedUser,
           user,
-          logger,
+          methodLogger,
           transactionLink,
         )
         await EVENT_TRANSACTION_LINK_REDEEM(
@@ -413,9 +414,9 @@ export class TransactionLinkResolver {
     @Arg('alias', { nullable: true }) alias?: string,
     @Arg('validUntil', { nullable: true }) validUntil?: string,
   ): Promise<string> {
-    const logger = createLogger()
-    logger.addContext('code', code.substring(0, 6))
-    logger.debug('TransactionLinkResolver.queryRedeemJwt... args=', {
+    const methodLogger = createLogger('createRedeemJwt')
+    methodLogger.addContext('code', code.substring(0, 6))
+    methodLogger.debug('args=', {
       gradidoId,
       senderCommunityUuid,
       senderCommunityName,
@@ -466,40 +467,80 @@ export class TransactionLinkResolver {
     @Arg('validUntil', { nullable: true }) validUntil?: string,
     @Arg('recipientAlias', { nullable: true }) recipientAlias?: string,
   ): Promise<boolean> {
-    const logger = createLogger()
-    logger.addContext('code', code.substring(0, 6))
-    logger.debug('TransactionLinkResolver.disburseTransactionLink... args=', {
-      senderGradidoId,
-      senderCommunityUuid,
-      recipientCommunityUuid,
-      recipientCommunityName,
-      recipientGradidoId,
-      recipientFirstName,
-      code,
-      amount,
-      memo,
-      validUntil,
+    const handshakeID = randombytes_random().toString()
+    const methodLogger = createLogger(`disburseTransactionLink`)
+    methodLogger.addContext('handshakeID', handshakeID)
+    if(methodLogger.isDebugEnabled()) {
+      methodLogger.debug('args=', {
+        senderGradidoId,
+        senderCommunityUuid,
+        recipientCommunityUuid,
+        recipientCommunityName,
+        recipientGradidoId,
+        recipientFirstName,
+        code,
+        amount,
+        memo,
+        validUntil,
       recipientAlias,
-    })
-    const disburseJwt = await this.createDisburseJwt(
-      senderCommunityUuid,
-      senderGradidoId,
-      recipientCommunityUuid,
-      recipientCommunityName,
-      recipientGradidoId,
-      recipientFirstName,
-      code,
-      amount,
-      memo,
-      validUntil ?? '',
-      recipientAlias ?? '',
-    )
-    try {
-      logger.debug('TransactionLinkResolver.disburseTransactionLink... disburseJwt=', disburseJwt)
-      // now send the disburseJwt to the sender community to invoke a x-community-tx to disbures the redeemLink
-      // await sendDisburseJwtToSenderCommunity(context, disburseJwt)
-    } catch (e) {
-      throw new LogError('Disburse JWT was not sent successfully', e)
+      })
+    }
+   const senderCom = await DbCommunity.findOneBy({ communityUuid: senderCommunityUuid })
+    if (!senderCom) {
+      const errmsg = `Sender community not found with uuid=${senderCommunityUuid}`
+      methodLogger.error(errmsg)
+      throw new LogError(errmsg)
+    }
+    const senderFedCom = await DbFederatedCommunity.findOneBy({ publicKey: senderCom.publicKey })
+    if (!senderFedCom) {
+      const errmsg = `Sender federated community not found with publicKey=${senderCom.publicKey}`
+      methodLogger.error(errmsg)
+      throw new LogError(errmsg)
+    }
+    const recipientCom = await DbCommunity.findOneBy({ communityUuid: recipientCommunityUuid })
+    if (!recipientCom) {
+      const errmsg = `Recipient community not found with uuid=${recipientCommunityUuid}`
+      methodLogger.error(errmsg)
+      throw new LogError(errmsg)
+    }
+    const client = DisbursementClientFactory.getInstance(senderFedCom)
+    if (client instanceof V1_0_DisbursementClient) {
+      const disburseJwtPayload = new DisburseJwtPayloadType(
+        handshakeID,
+        senderCommunityUuid,
+        senderGradidoId,
+        recipientCommunityUuid,
+        recipientCommunityName,
+        recipientGradidoId,
+        recipientFirstName,
+        code,
+        amount,
+        memo,
+        validUntil!,
+        recipientAlias!,
+      )
+      if(methodLogger.isDebugEnabled()) {
+        methodLogger.debug('disburseJwtPayload=', disburseJwtPayload)
+      }
+      const jws = await encryptAndSign(disburseJwtPayload, recipientCom.privateJwtKey!, senderCom.publicJwtKey!)
+      if(methodLogger.isDebugEnabled()) {
+        methodLogger.debug('jws=', jws)
+      }
+      const args = new EncryptedTransferArgs()
+      args.publicKey = senderCom.publicKey.toString('hex')
+      args.jwt = jws
+      args.handshakeID = handshakeID
+      try {
+        // now send the disburseJwt to the sender community to invoke a x-community-tx to disbures the redeemLink
+        const result = await client.sendDisburseJwtToSenderCommunity(args)
+        if(methodLogger.isDebugEnabled()) {
+          methodLogger.debug('Disburse JWT was sent successfully with result=', result)
+        }
+      } catch (e) {
+        const errmsg = `Disburse JWT was not sent successfully with error=${e}`
+        methodLogger.error(errmsg)
+        throw new Error(errmsg)
+      }
     }
     return true
   }
@@ -652,57 +693,5 @@ export class TransactionLinkResolver {
         decodedPayload,
       )
     }
-  }
-
-  async createDisburseJwt(
-    handshakeId: string,
-    senderCommunityUuid: string,
-    senderGradidoId: string,
-    recipientCommunityUuid: string,
-    recipientCommunityName: string,
-    recipientGradidoId: string,
-    recipientFirstName: string,
-    code: string,
-    amount: string,
-    memo: string,
-    validUntil: string,
-    recipientAlias: string,
-  ): Promise<string> {
-    const logger = createLogger()
-    logger.addContext('code', code.substring(0, 6))
-    logger.debug('TransactionLinkResolver.createDisburseJwt... args=', {
-      handshakeId,
-      senderCommunityUuid,
-      senderGradidoId,
-      recipientCommunityUuid,
-      recipientCommunityName,
-      recipientGradidoId,
-      recipientFirstName,
-      code,
-      amount,
-      memo,
-      validUntil,
-      recipientAlias,
-    })
-
-    const disburseJwtPayload = new DisburseJwtPayloadType(
-      handshakeId,
-      senderCommunityUuid,
-      senderGradidoId,
-      recipientCommunityUuid,
-      recipientCommunityName,
-      recipientGradidoId,
-      recipientFirstName,
-      code,
-      amount,
-      memo,
-      validUntil,
-      recipientAlias,
-    )
-    const disburseJwt = await encryptAndSign(disburseJwtPayload, homeComB.privateJwtKey!, authCom.publicJwtKey!)
-    // TODO:encode/sign the jwt normally with the private key of the recipient community, but interims with uuid
-    logger.debug('TransactionLinkResolver.createDisburseJwt... disburseJwt=', disburseJwt)
-    // TODO: encrypt the payload with the public key of the target/sender community
-    return disburseJwt
   }
 }

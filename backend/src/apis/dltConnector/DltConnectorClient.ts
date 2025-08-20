@@ -3,7 +3,7 @@ import { GraphQLClient, gql } from 'graphql-request'
 
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { TransactionTypeId } from '@/graphql/enum/TransactionTypeId'
+import { TransactionTypeId } from 'core/src/graphql/enum/TransactionTypeId'
 import { LogError } from '@/server/LogError'
 import { getLogger } from 'log4js'
 

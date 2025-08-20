@@ -16,9 +16,9 @@ import { cleanDB, testEnvironment } from '@test/helpers'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { EventType } from '@/event/Events'
-import { SendCoinsClient } from '@/federation/client/1_0/SendCoinsClient'
-import { SendCoinsArgs } from '@/federation/client/1_0/model/SendCoinsArgs'
-import { SendCoinsResult } from '@/federation/client/1_0/model/SendCoinsResult'
+import { SendCoinsClient } from 'core/src/federation/client/1_0/SendCoinsClient'
+import { SendCoinsArgs } from 'core/src/federation/client/1_0/model/SendCoinsArgs'
+import { SendCoinsResult } from 'core/src/federation/client/1_0/model/SendCoinsResult'
 import { userFactory } from '@/seeds/factory/user'
 import {
   confirmContribution,

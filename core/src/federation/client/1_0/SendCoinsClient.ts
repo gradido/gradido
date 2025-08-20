@@ -1,7 +1,6 @@
 import { FederatedCommunity as DbFederatedCommunity } from 'database'
 import { GraphQLClient } from 'graphql-request'
 
-import { LogError } from '@/server/LogError'
 import { ensureUrlEndsWithSlash } from '@/util/utilities'
 import { getLogger } from 'log4js'
 
@@ -83,7 +82,9 @@ export class SendCoinsClient {
       logger.debug(`settleSendCoins successful from endpoint=${this.endpoint}`)
       return true
     } catch (err) {
-      throw new LogError(`settleSendCoins failed for endpoint=${this.endpoint}`, err)
+      const errmsg = `settleSendCoins failed for endpoint=${this.endpoint}, err=${err}`
+      logger.error(errmsg)
+      throw new Error(errmsg)
     }
   }
 
@@ -103,7 +104,9 @@ export class SendCoinsClient {
       logger.debug(`revertSettledSendCoins successful from endpoint=${this.endpoint}`)
       return true
     } catch (err) {
-      throw new LogError(`revertSettledSendCoins failed for endpoint=${this.endpoint}`, err)
+      const errmsg = `revertSettledSendCoins failed for endpoint=${this.endpoint}, err=${err}`
+      logger.error(errmsg)
+      throw new Error(errmsg)
     }
   }
 }

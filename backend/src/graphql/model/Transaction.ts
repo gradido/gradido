@@ -2,7 +2,7 @@ import { Transaction as dbTransaction } from 'database'
 import { Decimal } from 'decimal.js-light'
 import { Field, Int, ObjectType } from 'type-graphql'
 
-import { TransactionTypeId } from '@enum/TransactionTypeId'
+import { TransactionTypeId } from 'core/src/graphql/enum/TransactionTypeId'
 
 import { Decay } from './Decay'
 import { User } from './User'
