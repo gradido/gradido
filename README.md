@@ -174,6 +174,49 @@ turbo frontend#dev backend#start admin#start --env-mode=loose
 
 Tip: for local setup use a local nginx server with similar config like docker nginx [nginx.conf](./nginx/gradido.conf) but replace docker image name with localhost
 
+### Testing
+This project uses a mocked `log4js` logger for tests.
+
+- **clearLogs()**: Clears all collected logs. Call in `beforeEach` to start with a clean slate.
+- **printLogs()**: Prints all collected logs since the last call to clearLogs for debugging purposes.
+- Supports log levels: `trace`, `debug`, `info`, `warn`, `error`, `fatal`.
+- Logs include context and additional arguments.
+- Example:
+
+```ts
+import { clearLogs, printLogs } from 'config-schema/test/testSetup'
+
+beforeEach(() => {
+    clearLogs()
+})
+describe('test', () => {
+  it('test', () => {
+    expect(functionCall()).toBe(true)
+    printLogs()
+  })
+})
+```
+
+#### Include Paths by test framework: 
+- jest (backend, dht-node, federation): 
+```ts
+import { clearLogs, printLogs } from 'config-schema/test/testSetup'
+```
+- vitest (frontend, admin, database): 
+```ts
+import { clearLogs, printLogs } from 'config-schema/test/testSetup.vitest'
+```
+- bun (shared, core): 
+```ts
+import { clearLogs, printLogs } from 'config-schema/test/testSetup.bun'
+```
+
+
+#### Attention! 
+It isn't tested for parallel running tests yet.
+Currently Modules `frontend`, `admin`, `share` and `core` running the tests in parallel,
+`database`, `backend`, `dht-node` and `federation` are running the tests still serially.
+
 ### Clear
 In root folder calling `yarn clear` will clear all turbo caches, node_modules and build folders of all workspaces for a clean rebuild.
 
