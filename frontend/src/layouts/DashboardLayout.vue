@@ -40,11 +40,13 @@
                       <BRow>
                         <BCol cols="12" lg="5">
                           <div>
-                            <gdd-amount
-                              :balance="balance"
-                              :show-status="false"
-                              :badge-show="false"
-                            />
+                            <router-link to="transactions">
+                              <gdd-amount
+                                :balance="balance"
+                                :show-status="false"
+                                :badge-show="false"
+                              />
+                            </router-link>
                           </div>
                         </BCol>
                         <BCol cols="12" lg="7">
@@ -79,9 +81,7 @@
                       <BRow>
                         <BCol cols="12" lg="6">
                           <div>
-                            <router-link to="transactions">
-                              <gdd-amount :balance="balance" :show-status="true" />
-                            </router-link>
+                            <gdd-amount :balance="balance" :show-status="true" />
                           </div>
                         </BCol>
                         <BCol cols="12" lg="6">
@@ -104,13 +104,11 @@
                         </BCol>
                         <BCol cols="12" lg="6">
                           <div>
-                            <router-link to="gdt">
-                              <gdt-amount
-                                :badge="true"
-                                :show-status="true"
-                                :gdt-balance="GdtBalance"
-                              />
-                            </router-link>
+                            <gdt-amount
+                              :badge="true"
+                              :show-status="true"
+                              :gdt-balance="GdtBalance"
+                            />
                           </div>
                         </BCol>
                       </BRow>
