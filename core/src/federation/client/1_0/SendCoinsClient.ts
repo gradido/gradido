@@ -9,7 +9,7 @@ import { revertSendCoins as revertSendCoinsQuery } from './query/revertSendCoins
 import { revertSettledSendCoins as revertSettledSendCoinsQuery } from './query/revertSettledSendCoins'
 import { settleSendCoins as settleSendCoinsQuery } from './query/settleSendCoins'
 import { voteForSendCoins as voteForSendCoinsQuery } from './query/voteForSendCoins'
-import { EncryptedTransferArgs } from 'core'
+import { EncryptedTransferArgs } from '@graphql/model/EncryptedTransferArgs'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.federation.client.1_0.SendCoinsClient`)
 

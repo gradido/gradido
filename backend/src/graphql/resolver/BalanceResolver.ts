@@ -7,14 +7,14 @@ import { Balance } from '@model/Balance'
 
 import { RIGHTS } from '@/auth/RIGHTS'
 import { BalanceLoggingView } from '@/logging/BalanceLogging.view'
-import { DecayLoggingView } from '@/logging/DecayLogging.view'
+import { DecayLoggingView } from 'core/src/graphql/logging/DecayLogging.view'
 import { Context, getUser } from '@/server/context'
 import { calculateDecay } from 'shared'
 
 import { getLogger } from 'log4js'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { GdtResolver } from './GdtResolver'
-import { getLastTransaction } from './util/getLastTransaction'
+import { getLastTransaction } from 'database'
 import { transactionLinkSummary } from './util/transactionLinkSummary'
 
 @Resolver()

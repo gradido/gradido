@@ -42,7 +42,7 @@ import {
 import { UpdateUnconfirmedContributionContext } from '@/interactions/updateUnconfirmedContribution/UpdateUnconfirmedContribution.context'
 import { LogError } from '@/server/LogError'
 import { Context, getClientTimezoneOffset, getUser } from '@/server/context'
-import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
+import { TRANSACTIONS_LOCK } from 'database'
 import { fullName } from 'core'
 import { calculateDecay, Decay } from 'shared'
 
@@ -58,7 +58,7 @@ import {
 import { getOpenCreations, getUserCreation, validateContribution } from './util/creations'
 import { extractGraphQLFields } from './util/extractGraphQLFields'
 import { findContributions } from './util/findContributions'
-import { getLastTransaction } from './util/getLastTransaction'
+import { getLastTransaction } from 'database'
 import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
 
 const db = AppDatabase.getInstance()

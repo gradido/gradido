@@ -1,8 +1,7 @@
 import { FederatedCommunity as DbFederatedCommunity } from 'database'
 import { GraphQLClient } from 'graphql-request'
 
-import { LogError } from '@/server/LogError'
-import { ensureUrlEndsWithSlash } from 'core/src/util/utilities'
+import { ensureUrlEndsWithSlash } from 'core'
 import { getLogger } from 'log4js'
 
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'

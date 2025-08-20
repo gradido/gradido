@@ -7,12 +7,11 @@ import { ContributionCycleType } from '@enum/ContributionCycleType'
 import { ContributionStatus } from '@enum/ContributionStatus'
 import { ContributionType } from '@enum/ContributionType'
 import { ContributionLink } from '@model/ContributionLink'
-import { Decay } from '@model/Decay'
 import { RedeemJwtLink } from '@model/RedeemJwtLink'
 import { TransactionLink, TransactionLinkResult } from '@model/TransactionLink'
 import { User } from '@model/User'
 import { QueryLinkResult } from '@union/QueryLinkResult'
-import { TransactionTypeId } from 'core'
+import { Decay, TransactionTypeId } from 'core'
 import {
   AppDatabase, Community as DbCommunity, Contribution as DbContribution,
   ContributionLink as DbContributionLink, FederatedCommunity as DbFederatedCommunity, Transaction as DbTransaction,
@@ -32,16 +31,16 @@ import {
 } from '@/event/Events'
 import { LogError } from '@/server/LogError'
 import { Context, getClientTimezoneOffset, getUser } from '@/server/context'
-import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
-import { TRANSACTION_LINK_LOCK } from '@/util/TRANSACTION_LINK_LOCK'
 import { calculateBalance } from '@/util/validate'
 import { fullName } from 'core'
+import { TRANSACTION_LINK_LOCK, TRANSACTIONS_LOCK } from 'database'
 import { calculateDecay, decode, DisburseJwtPayloadType, encode, encryptAndSign, RedeemJwtPayloadType, verify } from 'shared'
 
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { DisbursementClient as V1_0_DisbursementClient } from '@/federation/client/1_0/DisbursementClient'
 import { DisbursementClientFactory } from '@/federation/client/DisbursementClientFactory'
 import { EncryptedTransferArgs } from 'core'
+import { getLastTransaction } from 'database'
 import { getLogger, Logger } from 'log4js'
 import { randombytes_random } from 'sodium-native'
 import { executeTransaction } from './TransactionResolver'
@@ -50,7 +49,6 @@ import {
   getCommunityByUuid,
 } from './util/communities'
 import { getUserCreation, validateContribution } from './util/creations'
-import { getLastTransaction } from './util/getLastTransaction'
 import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
 import { transactionLinkList } from './util/transactionLinkList'
 

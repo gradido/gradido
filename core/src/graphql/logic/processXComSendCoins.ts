@@ -18,19 +18,105 @@ import { SendCoinsResult } from '@federation/client/1_0/model/SendCoinsResult'
 import { SendCoinsClientFactory } from '@federation/client/SendCoinsClientFactory'
 import { encryptAndSign, PendingTransactionState, SendCoinsJwtPayloadType, SendCoinsResponseJwtPayloadType, verifyAndDecrypt } from 'shared'
 import { TransactionTypeId } from '@graphql/enum/TransactionTypeId'
-import { LogError } from '@server/LogError'
+// import { LogError } from '@server/LogError'
 import { calculateSenderBalance } from '@util/calculateSenderBalance'
 import { fullName } from '@util/utilities'
 import { getLogger } from 'log4js'
 
-import { settlePendingSenderTransaction } from '@graphql/resolver/util/settlePendingSenderTransaction'
+import { settlePendingSenderTransaction } from './settlePendingSenderTransaction'
 import { SendCoinsArgsLoggingView } from '@federation/client/1_0/logging/SendCoinsArgsLogging.view'
 import { SendCoinsResultLoggingView } from '@federation/client/1_0/logging/SendCoinsResultLogging.view'
-import { EncryptedTransferArgs } from 'core'
+import { EncryptedTransferArgs } from '@graphql/model/EncryptedTransferArgs'
 import { randombytes_random } from 'sodium-native'
 
 const createLogger = (method: string) => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.util.processXComSendCoins.${method}`)
+/*
+export async function processXComTransaction(
+  receiverCom: DbCommunity,
+  senderCom: DbCommunity,
+  creationDate: Date,
+  amount: Decimal,
+  memo: string,
+  sender: dbUser,
+  recipientIdentifier: string,
+): Promise<boolean> {
+  const methodLogger = createLogger(`processXComTransaction`)
+  // processing a x-community sendCoins
+  methodLogger.info('X-Com: processing a x-community transaction...')
+  if (!CONFIG.FEDERATION_XCOM_SENDCOINS_ENABLED) {
+    throw new LogError('X-Community sendCoins disabled per configuration!')
+  }
+  const recipCom = await getCommunityByIdentifier(recipientCommunityIdentifier)
+  methodLogger.debug('recipient community: ', recipCom?.id)
+  if (recipCom === null) {
+    throw new LogError(
+      `no recipient community found for identifier: ${recipientCommunityIdentifier}`,
+    )
+  }
+  if (recipCom !== null && recipCom.authenticatedAt === null) {
+    throw new LogError('recipient community is connected, but still not authenticated yet!')
+  }
+  let pendingResult: SendCoinsResponseJwtPayloadType | null = null
+  let committingResult: SendCoinsResult
+  const creationDate = new Date()
 
+  try {
+    pendingResult = await processXComPendingSendCoins(
+      recipCom,
+      homeCom,
+      creationDate,
+      amount,
+      memo,
+      senderUser,
+      recipientIdentifier,
+    )
+    methodLogger.debug('processXComPendingSendCoins result: ', pendingResult)
+    if (pendingResult && pendingResult.vote && pendingResult.recipGradidoID) {
+      methodLogger.debug('vor processXComCommittingSendCoins... ')
+      committingResult = await processXComCommittingSendCoins(
+        recipCom,
+        homeCom,
+        creationDate,
+        amount,
+        memo,
+        senderUser,
+        pendingResult,
+      )
+      methodLogger.debug('processXComCommittingSendCoins result: ', committingResult)
+      if (!committingResult.vote) {
+        methodLogger.fatal('FATAL ERROR: on processXComCommittingSendCoins for', committingResult)
+        throw new LogError(
+          'FATAL ERROR: on processXComCommittingSendCoins with ',
+          recipientCommunityIdentifier,
+          recipientIdentifier,
+          amount.toString(),
+          memo,
+        )
+      }
+      // after successful x-com-tx store the recipient as foreign user
+      methodLogger.debug('store recipient as foreign user...')
+      if (await storeForeignUser(recipCom, committingResult)) {
+        methodLogger.info(
+          'X-Com: new foreign user inserted successfully...',
+          recipCom.communityUuid,
+          committingResult.recipGradidoID,
+        )
+      }
+    }
+  } catch (err) {
+    const errmsg = `ERROR: on processXComCommittingSendCoins with ` +
+      recipientCommunityIdentifier +
+      recipientIdentifier +
+      amount.toString() +
+      memo +
+      err
+    methodLogger.error(errmsg)
+    throw new Error(errmsg)
+  }
+  return true
+}
+*/
+/*
 export async function processXComPendingSendCoins(
   receiverCom: DbCommunity,
   senderCom: DbCommunity,
@@ -69,6 +155,149 @@ export async function processXComPendingSendCoins(
       const errmsg = `User has not enough GDD or amount is < 0`
       methodLogger.error(errmsg)
       throw new LogError(errmsg)
+    }
+    if(methodLogger.isDebugEnabled()) {
+      methodLogger.debug(`calculated senderBalance = ${JSON.stringify(senderBalance, null, 2)}`)
+    }
+
+    const receiverFCom = await DbFederatedCommunity.findOneOrFail({
+      where: {
+        publicKey: Buffer.from(receiverCom.publicKey),
+        apiVersion: CONFIG.FEDERATION_BACKEND_SEND_ON_API,
+      },
+    })
+    const client = SendCoinsClientFactory.getInstance(receiverFCom)
+
+    if (client instanceof V1_0_SendCoinsClient) {
+      const payload = new SendCoinsJwtPayloadType(handshakeID,
+        receiverCom.communityUuid!,
+        recipientIdentifier,
+        creationDate.toISOString(),
+        amount,
+        memo,
+        senderCom.communityUuid!,
+        sender.gradidoID,
+        fullName(sender.firstName, sender.lastName),
+        sender.alias
+      )
+      if(methodLogger.isDebugEnabled()) {
+        methodLogger.debug(`ready for voteForSendCoins with payload=${payload}`)
+      }
+      const jws = await encryptAndSign(payload, senderCom.privateJwtKey!, receiverCom.publicJwtKey!)
+      if(methodLogger.isDebugEnabled()) {
+        methodLogger.debug('jws', jws)
+      }
+      // prepare the args for the client invocation
+      const args = new EncryptedTransferArgs()
+      args.publicKey = senderCom.publicKey.toString('hex')
+      args.jwt = jws
+      args.handshakeID = handshakeID
+      if(methodLogger.isDebugEnabled()) {
+        methodLogger.debug('before client.voteForSendCoins() args:', args)
+      }
+
+      const responseJwt = await client.voteForSendCoins(args)
+      if(methodLogger.isDebugEnabled()) {
+        methodLogger.debug(`response of voteForSendCoins():`, responseJwt)
+      }
+      if (responseJwt !== null) {
+        voteResult = await verifyAndDecrypt(handshakeID, responseJwt, senderCom.privateJwtKey!, receiverCom.publicJwtKey!) as SendCoinsResponseJwtPayloadType
+        if(methodLogger.isDebugEnabled()) {
+          methodLogger.debug(`calculated voteResult = ${JSON.stringify(voteResult, null, 2)}`)
+        }
+        if (voteResult && voteResult.vote && voteResult.recipGradidoID) {
+          methodLogger.debug('vor processXComCommittingSendCoins... ')
+          const committingResult = await processXComCommittingSendCoins(
+            receiverCom,
+            senderCom,
+            creationDate,
+            amount,
+            memo,
+            sender,
+            voteResult,
+          )
+          methodLogger.debug('processXComCommittingSendCoins result: ', committingResult)
+          if (!committingResult.vote) {
+            methodLogger.fatal('FATAL ERROR: on processXComCommittingSendCoins for', committingResult)
+            throw new LogError(
+              'FATAL ERROR: on processXComCommittingSendCoins with ',
+              recipientCommunityIdentifier,
+              recipientIdentifier,
+              amount.toString(),
+              memo,
+            )
+          }
+          // after successful x-com-tx store the recipient as foreign user
+          methodLogger.debug('store recipient as foreign user...')
+          if (await storeForeignUser(receiverCom, committingResult)) {
+            methodLogger.info(
+              'X-Com: new foreign user inserted successfully...',
+              receiverCom.communityUuid,
+              committingResult.recipGradidoID,
+            )
+          }
+        }
+      }
+    } else {
+      const errmsg = `Client is not instance of V1_0_SendCoinsClient`
+      methodLogger.error(errmsg)
+      throw new LogError(errmsg)
+    }
+  } catch (err) {
+    const errmsg = `ERROR: on processXComCommittingSendCoins with ` +
+      recipientCommunityIdentifier +
+      recipientIdentifier +
+      amount.toString() +
+      memo +
+      err
+    throw new LogError(errmsg)
+  }
+}
+        memo,
+        err,
+      )
+    }
+  }
+}
+*/
+export async function processXComPendingSendCoins(
+  receiverCom: DbCommunity,
+  senderCom: DbCommunity,
+  creationDate: Date,
+  amount: Decimal,
+  memo: string,
+  sender: dbUser,
+  recipientIdentifier: string,
+): Promise<SendCoinsResponseJwtPayloadType | null> {
+  let voteResult: SendCoinsResponseJwtPayloadType
+  const methodLogger = createLogger(`processXComPendingSendCoins`)
+  try {
+    // even if debug is not enabled, attributes are processed so we skip the entire call for performance reasons
+    if(methodLogger.isDebugEnabled()) {
+      methodLogger.debug(
+        'XCom: processXComPendingSendCoins...', {
+          receiverCom: new CommunityLoggingView(receiverCom),
+          senderCom: new CommunityLoggingView(senderCom),
+          amount: amount.toString(),
+          memo: memo.substring(0, 5),
+          sender: new UserLoggingView(sender),
+          recipientIdentifier
+        }
+      )
+    }
+    if (await countOpenPendingTransactions([sender.gradidoID, recipientIdentifier]) > 0) {
+      const errmsg = `There exist still ongoing 'Pending-Transactions' for the involved users on sender-side!`
+      methodLogger.error(errmsg)
+      throw new Error(errmsg)
+    }
+    const handshakeID = randombytes_random().toString()
+    methodLogger.addContext('handshakeID', handshakeID)
+    // first calculate the sender balance and check if the transaction is allowed
+    const senderBalance = await calculateSenderBalance(sender.id, amount.mul(-1), creationDate)
+    if (!senderBalance) {
+      const errmsg = `User has not enough GDD or amount is < 0`
+      methodLogger.error(errmsg)
+      throw new Error(errmsg)
     }
     if(methodLogger.isDebugEnabled()) {
       methodLogger.debug(`calculated senderBalance = ${JSON.stringify(senderBalance, null, 2)}`)
