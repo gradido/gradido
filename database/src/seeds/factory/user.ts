@@ -2,7 +2,7 @@ import { UserInterface } from '../users/UserInterface'
 import { User, UserContact } from '../../entity'
 import { v4 } from 'uuid'
 import { UserContactType, OptInType, PasswordEncryptionType } from 'shared'
-import { getHomeCommunity } from '../../queries/communities'
+import { getHomeCommunity } from '../../queries/community'
 import random from 'crypto-random-bigint'
 
 export const userFactory = async (user: UserInterface): Promise<User> => {

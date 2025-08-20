@@ -1,4 +1,4 @@
-import { Transaction as DbTransaction } from 'database'
+import { Transaction as DbTransaction } from '..'
 
 export const getLastTransaction = async (
   userId: number,

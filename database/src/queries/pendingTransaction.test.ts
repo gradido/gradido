@@ -4,7 +4,7 @@ import {
   UserContact as DbUserContact, 
   Community as DbCommunity 
 } from '..'
-import { countOpenPendingTransactions } from './pendingTransactions'
+import { countOpenPendingTransactions } from './pendingTransaction'
 import { PendingTransactionState } from 'shared'
 import { AppDatabase } from '../AppDatabase'
 import { userFactory } from '../seeds/factory/user'

@@ -1,6 +1,6 @@
 import { Community as DbCommunity } from '..'
 import { AppDatabase } from '../AppDatabase'
-import { getHomeCommunity } from './communities'
+import { getHomeCommunity } from './community'
 import { describe, expect, it, beforeAll, afterAll } from 'vitest'
 import { createCommunity } from '../seeds/homeCommunity'
 
