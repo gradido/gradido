@@ -41,6 +41,7 @@
     "jose": "^4.14.4",
     "log4js": "^6.9.1",
     "shared": "*",
+    "sodium-native": "^3.4.1",
     "zod": "^3.25.61"
   },
   "engines": {
