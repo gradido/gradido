@@ -1,38 +1,35 @@
 import {
+  CommunityLoggingView,
+  countOpenPendingTransactions,
   Community as DbCommunity,
   FederatedCommunity as DbFederatedCommunity,
   PendingTransaction as DbPendingTransaction,
   User as dbUser,
-  TransactionLink as DbTransactionLink,
-  PendingTransactionLoggingView,
-  CommunityLoggingView,
-  UserLoggingView,
-  countOpenPendingTransactions,
-  getCommunityByUuid,
-  findUserByIdentifier,
   findTransactionLinkByCode,
+  findUserByIdentifier,
+  getCommunityByUuid,
+  PendingTransactionLoggingView,
+  UserLoggingView
 } from 'database'
 import { Decimal } from 'decimal.js-light'
 
-import { LOG4JS_BASE_CATEGORY_NAME } from '@config/const'
 import { CONFIG as CONFIG_CORE } from '@/config'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@config/const'
 
 import { SendCoinsClient as V1_0_SendCoinsClient } from '@federation/client/1_0/SendCoinsClient'
-import { SendCoinsArgs } from '@federation/client/1_0/model/SendCoinsArgs'
 import { SendCoinsResult } from '@federation/client/1_0/model/SendCoinsResult'
 import { SendCoinsClientFactory } from '@federation/client/SendCoinsClientFactory'
-import { encryptAndSign, PendingTransactionState, SendCoinsJwtPayloadType, SendCoinsResponseJwtPayloadType, verifyAndDecrypt } from 'shared'
 import { TransactionTypeId } from '@graphql/enum/TransactionTypeId'
+import { encryptAndSign, PendingTransactionState, SendCoinsJwtPayloadType, SendCoinsResponseJwtPayloadType, verifyAndDecrypt } from 'shared'
 // import { LogError } from '@server/LogError'
 import { calculateSenderBalance } from '@util/calculateSenderBalance'
 import { fullName } from '@util/utilities'
 import { getLogger } from 'log4js'
 
-import { settlePendingSenderTransaction } from './settlePendingSenderTransaction'
-import { SendCoinsArgsLoggingView } from '@federation/client/1_0/logging/SendCoinsArgsLogging.view'
 import { SendCoinsResultLoggingView } from '@federation/client/1_0/logging/SendCoinsResultLogging.view'
 import { EncryptedTransferArgs } from '@graphql/model/EncryptedTransferArgs'
 import { randombytes_random } from 'sodium-native'
+import { settlePendingSenderTransaction } from './settlePendingSenderTransaction'
 import { storeForeignUser } from './storeForeignUser'
 
 const createLogger = (method: string) => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.util.processXComSendCoins.${method}`)
