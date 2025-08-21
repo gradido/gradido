@@ -60,3 +60,12 @@ export const findUserByIdentifier = async (
   getLogger(`${LOG4JS_QUERIES_CATEGORY_NAME}.user.findUserByIdentifier`).warn('Unknown identifier type', identifier)
   return null
 }
+
+export async function findForeignUserByUuids(
+  communityUuid: string,
+  gradidoID: string,
+): Promise<DbUser | null> {
+  return DbUser.findOne({
+    where: { foreign: true, communityUuid, gradidoID },
+  })
+}

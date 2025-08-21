@@ -17,8 +17,7 @@ import { Order } from '@enum/Order'
 import { Transaction } from '@model/Transaction'
 import { TransactionList } from '@model/TransactionList'
 import { User } from '@model/User'
-import { TransactionTypeId } from 'core'
-import { SendCoinsResponseJwtPayloadType } from 'shared'
+import { processXComCompleteTransaction, TransactionTypeId } from 'core'
 
 import { RIGHTS } from '@/auth/RIGHTS'
 import { CONFIG } from '@/config'
@@ -29,25 +28,20 @@ import {
 import { EVENT_TRANSACTION_RECEIVE, EVENT_TRANSACTION_SEND } from '@/event/Events'
 import { LogError } from '@/server/LogError'
 import { Context, getUser } from '@/server/context'
-import { TRANSACTIONS_LOCK } from 'database'
 import { communityUser } from '@/util/communityUser'
 import { calculateBalance } from '@/util/validate'
 import { virtualDecayTransaction, virtualLinkTransaction } from '@/util/virtualTransactions'
-import { fullName, SendCoinsResult } from 'core'
+import { fullName } from 'core'
+import { TRANSACTIONS_LOCK } from 'database'
 
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import {
-  processXComCommittingSendCoins,
-  processXComPendingSendCoins,
-} from 'core'
+import { getLastTransaction } from 'database'
 import { getLogger, Logger } from 'log4js'
 import { BalanceResolver } from './BalanceResolver'
 import { GdtResolver } from './GdtResolver'
-import { getCommunityByIdentifier, getCommunityName, isHomeCommunity } from './util/communities'
-import { getLastTransaction } from 'database'
+import { getCommunityName, isHomeCommunity } from './util/communities'
 import { getTransactionList } from './util/getTransactionList'
 import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
-import { storeForeignUser } from './util/storeForeignUser'
 import { transactionLinkSummary } from './util/transactionLinkSummary'
 
 const db = AppDatabase.getInstance()
@@ -465,6 +459,15 @@ export class TransactionResolver {
       await executeTransaction(amount, memo, senderUser, recipientUser, logger)
       logger.info('successful executeTransaction')
     } else {
+      await processXComCompleteTransaction(
+        senderUser.communityUuid,
+        senderUser.gradidoID,
+        recipientCommunityIdentifier,
+        recipientIdentifier,
+        amount.valueOf(),
+        memo,
+      )
+      /*
       // processing a x-community sendCoins
       logger.info('X-Com: processing a x-community transaction...')
       if (!CONFIG.FEDERATION_XCOM_SENDCOINS_ENABLED) {
@@ -537,6 +540,7 @@ export class TransactionResolver {
           err,
         )
       }
+      */
     }
     return true
   }

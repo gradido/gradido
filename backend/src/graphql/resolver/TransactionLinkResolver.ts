@@ -17,6 +17,7 @@ import {
   ContributionLink as DbContributionLink, FederatedCommunity as DbFederatedCommunity, Transaction as DbTransaction,
   TransactionLink as DbTransactionLink,
   User as DbUser,
+  findTransactionLinkByCode,
   getHomeCommunity
 } from 'database'
 import { Decimal } from 'decimal.js-light'
@@ -160,10 +161,7 @@ export class TransactionLinkResolver {
       let txLinkFound = false
       let dbTransactionLink!: DbTransactionLink
       try {
-        dbTransactionLink = await DbTransactionLink.findOneOrFail({
-          where: { code },
-          withDeleted: true,
-        })
+        dbTransactionLink = await findTransactionLinkByCode(code)
         txLinkFound = true
       } catch (_err) {
         txLinkFound = false
