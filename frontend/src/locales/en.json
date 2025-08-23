@@ -5,6 +5,7 @@
   "1000thanks": "1000 thanks for being with us!",
   "125": "125%",
   "85": "85%",
+  "Chat": "Chat",
   "GDD": "GDD",
   "GDT": "GDT",
   "GMS": {
@@ -17,6 +18,7 @@
   },
   "PersonalDetails": "Personal details",
   "advanced-calculation": "Advanced calculation",
+  "answerNow": "→ Reply now!",
   "asterisks": "****",
   "auth": {
     "left": {
@@ -34,7 +36,7 @@
     "headline": "Cooperation platform “Gradido Circles”",
     "text": "Local circles, study circles, projects, events and congresses",
     "allowed": {
-      "button": "Start Circles..."
+      "button": "Open Circles..."
     },
     "not-allowed": {
       "button": "Configurate..."
@@ -43,13 +45,13 @@
   "card-user-search": {
     "headline": "Geographic member search (beta)",
     "allowed": {
-      "button": "Start Membersearch...",
+      "button": "Open member search...",
       "disabled-button": "GMS offline...",
       "text": "Find Members of all Communities on a Map."
     },
     "not-allowed": {
-      "button": "Start Location-Capturing...",
-      "text": "Find Members of all Communities on a Map? Then you have to capture your Location first."
+      "button": "Enter location...",
+      "text": "To find other members in your area, enter your location on the map now!"
     }
   },
   "community": {
@@ -298,7 +300,7 @@
     "recruited-member": "Invited member"
   },
   "h": "h",
-  "info": "Info",
+  "info": "How it works",
   "language": "Language",
   "link-load": "Load the last link | Load the last {n} links",
   "link-load-more": "Load more {n} links",
@@ -323,7 +325,6 @@
   },
   "missingGradidoAccount": "Don't have a {communityName} account yet?",
   "moderatorChangedMemo": "Text edited by moderator",
-  "moderatorChat": "Moderator Chat",
   "navigation": {
     "admin_area": "Admin Area",
     "community": "Community",
