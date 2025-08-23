@@ -25,6 +25,8 @@
             @click="emit('toggle-messages-visible')"
           >
             {{ $t('contribution.alert.answerQuestion') }}
+            <br />
+            {{ $t('answerNow') }}
           </div>
         </BCol>
         <BCol cols="9" lg="3" offset="3" offset-md="0" offset-lg="0">
@@ -78,7 +80,7 @@
             @click="emit('toggle-messages-visible')"
           >
             <IBiChatDots />
-            <div>{{ $t('moderatorChat') }}</div>
+            <div>{{ $t('Chat') }}</div>
           </div>
         </BCol>
       </BRow>

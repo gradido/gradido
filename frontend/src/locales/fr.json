@@ -9,6 +9,7 @@
   "GDT": "GDT",
   "PersonalDetails": "Informations personnelles",
   "advanced-calculation": "Calcul avancé",
+  "answerNow": "→ Répondre maintenant!",
   "asterisks": "****",
   "auth": {
     "left": {
@@ -26,7 +27,7 @@
     "headline": "Plate-forme de coopération «Cercles Gradido»",
     "text": "Cercles locaux, cercles d'études, projets, événements et congrès",
     "allowed": {
-      "button": "Démarrer les cercles..."
+      "button": "Ouvrir les cercles..."
     },
     "not-allowed": {
       "button": "Configurer..."
@@ -35,19 +36,19 @@
   "card-user-search": {
     "headline": "Recherche géographique de membres (bêta)",
     "allowed": {
-      "button": "Commencer la recherche de membres...",
+      "button": "Ouvrir la recherche de membres...",
       "disabled-button": "GMS offline...",
       "text": "Trouve des membres de toutes les communautés sur une carte."
     },
     "not-allowed": {
-      "button": "Configuration de l'emplacement...",
-      "text": "Trouve des membres de toutes les communautés sur une carte? Alors tu dois d'abord définir ton emplacement."
+      "button": "Indiquer ta position...",
+      "text": "Pour trouver d'autres membres près de chez toi, indique dès maintenant ta position sur la carte!"
     }
   },
   "circles": {
     "headline": "Ensemble, nous nous soutenons mutuellement - attentifs à la culture du cercle.",
     "text": "En cliquant sur le bouton, tu ouvres la plateforme de coopération dans une nouvelle fenêtre de navigation.",
-    "button": "Démarrer les Cercles..."
+    "button": "Ouvrir les Cercles..."
   },
   "community": {
     "admins": "Administrateurs",
@@ -274,7 +275,7 @@
   "navigation": {
     "admin_area": "Partie administrative",
     "community": "Communauté",
-    "info": "Information",
+    "info": "Comment ça marche",
     "logout": "Déconnexion",
     "overview": "Aperçu",
     "send": "Envoyer",

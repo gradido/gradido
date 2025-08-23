@@ -5,6 +5,7 @@
   "1000thanks": "1000 Dank, weil du bei uns bist!",
   "125": "125%",
   "85": "85%",
+  "Chat": "Chat",
   "GDD": "GDD",
   "GDT": "GDT",
   "GMS": {
@@ -17,6 +18,7 @@
   },
   "PersonalDetails": "Persönliche Angaben",
   "advanced-calculation": "Vorausberechnung",
+  "answerNow": "→ Jetzt antworten!",
   "asterisks": "****",
   "auth": {
     "left": {
@@ -34,7 +36,7 @@
     "headline": "Kooperationsplattform »Gradido-Kreise«",
     "text": "Lokale Kreise, Studienkreise, Projekte, Events und Kongresse",
     "allowed": {
-      "button": "Kreise starten..."
+      "button": "Kreise öffnen..."
     },
     "not-allowed": {
       "button": "Konfigurieren..."
@@ -43,13 +45,13 @@
   "card-user-search": {
     "headline": "Geografische Mitgliedssuche (beta)",
     "allowed": {
-      "button": "Öffne Mitgliedssuche...",
+      "button": "Mitgliedssuche öffnen...",
       "disabled-button": "GMS offline...",
       "text": "Finde Mitglieder aller Communities auf einer Landkarte."
     },
     "not-allowed": {
-      "button": "Standort festlegen...",
-      "text": "Finde Mitglieder aller Communities auf einer Landkarte? Dann musst du selbst erst deinen Standort festlegen."
+      "button": "Standort eintragen...",
+      "text": "Um andere Mitglieder in deinem Umkreis zu finden, trage jetzt deinen Standort auf der Karte ein!"
     }
   },
   "community": {
@@ -298,7 +300,7 @@
     "recruited-member": "Eingeladenes Mitglied"
   },
   "h": "h",
-  "info": "Info",
+  "info": "So gehts",
   "language": "Sprache",
   "link-load": "den letzten Link nachladen | die letzten {n} Links nachladen",
   "link-load-more": "weitere {n} Links nachladen",
@@ -323,7 +325,6 @@
   },
   "missingGradidoAccount": "Noch kein {communityName} Konto?",
   "moderatorChangedMemo": "Text vom Moderator bearbeitet",
-  "moderatorChat": "Moderator Chat",
   "navigation": {
     "admin_area": "Adminbereich",
     "community": "Gemeinschaft",
