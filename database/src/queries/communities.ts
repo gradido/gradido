@@ -1,4 +1,4 @@
-import { Community as DbCommunity } from '../entity/Community'
+import { Community as DbCommunity } from '../entity'
 
 /**
  * Retrieves the home community, i.e., a community that is not foreign.
