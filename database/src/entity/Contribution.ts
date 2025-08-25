@@ -39,7 +39,7 @@ export class Contribution extends BaseEntity {
   @Column({ type: 'datetime', nullable: false, name: 'contribution_date' })
   contributionDate: Date
 
-  @Column({ type: 'varchar', length: 255, nullable: false, collation: 'utf8mb4_unicode_ci' })
+  @Column({ type: 'varchar', length: 512, nullable: false, collation: 'utf8mb4_unicode_ci' })
   memo: string
 
   @Column({

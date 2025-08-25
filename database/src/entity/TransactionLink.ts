@@ -29,7 +29,7 @@ export class TransactionLink extends BaseEntity {
   })
   holdAvailableAmount: Decimal
 
-  @Column({ type: 'varchar', length: 255, nullable: false, collation: 'utf8mb4_unicode_ci' })
+  @Column({ type: 'varchar', length: 512, nullable: false, collation: 'utf8mb4_unicode_ci' })
   memo: string
 
   @Column({ type: 'varchar', length: 24, nullable: false, collation: 'utf8mb4_unicode_ci' })
