@@ -43,7 +43,7 @@ const logErrorLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)
 jest.mock('@/password/EncryptorUtils')
 
 // mock semaphore to allow use fake timers
-jest.mock('database/util/TRANSACTIONS_LOCK')
+jest.mock('@/util/TRANSACTIONS_LOCK')
 TRANSACTIONS_LOCK.acquire = jest.fn().mockResolvedValue(jest.fn())
 
 let mutate: ApolloServerTestClient['mutate']
