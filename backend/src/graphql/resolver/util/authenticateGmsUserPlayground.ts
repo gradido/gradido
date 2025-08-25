@@ -4,7 +4,7 @@ import { verifyAuthToken } from '@/apis/gms/GmsClient'
 import { CONFIG } from '@/config'
 import { GmsUserAuthenticationResult } from '@/graphql/model/GmsUserAuthenticationResult'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { ensureUrlEndsWithSlash } from '@/util/utilities'
+import { ensureUrlEndsWithSlash } from 'core'
 import { getLogger } from 'log4js'
 
 const logger = getLogger(

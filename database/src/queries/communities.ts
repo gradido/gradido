@@ -9,3 +9,9 @@ export async function getHomeCommunity(): Promise<DbCommunity | null> {
     where: { foreign: false },
   })
 }
+
+export async function getCommunityByUuid(communityUuid: string): Promise<DbCommunity | null> {
+  return await DbCommunity.findOne({
+    where: [{ communityUuid }],
+  })
+}

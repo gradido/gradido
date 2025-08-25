@@ -50,7 +50,7 @@ import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { raeuberHotzenplotz } from '@/seeds/users/raeuber-hotzenplotz'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
-import { getFirstDayOfPreviousNMonth } from '@/util/utilities'
+import { getFirstDayOfPreviousNMonth } from 'core'
 import { getLogger } from 'config-schema/test/testSetup'
 import { getLogger as originalGetLogger } from 'log4js'
 

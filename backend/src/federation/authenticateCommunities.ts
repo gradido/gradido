@@ -4,7 +4,7 @@ import { randombytes_random } from 'sodium-native'
 import { CONFIG } from '@/config'
 
 import { AuthenticationClient as V1_0_AuthenticationClient } from '@/federation/client/1_0/AuthenticationClient'
-import { ensureUrlEndsWithSlash } from '@/util/utilities'
+import { ensureUrlEndsWithSlash } from 'core'
 
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { encryptAndSign, OpenConnectionJwtPayloadType } from 'shared'

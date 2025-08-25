@@ -1,9 +1,8 @@
 import { FederatedCommunity as DbFederatedCommunity } from 'database'
 
-import { SendCoinsClient as V1_0_SendCoinsClient } from '@/federation/client/1_0/SendCoinsClient'
-
-import { SendCoinsClient as V1_1_SendCoinsClient } from '@/federation/client/1_1/SendCoinsClient'
-import { ApiVersionType } from '@/federation/enum/apiVersionType'
+import { SendCoinsClient as V1_0_SendCoinsClient } from './1_0/SendCoinsClient'
+import { SendCoinsClient as V1_1_SendCoinsClient } from './1_1/SendCoinsClient'
+import { ApiVersionType } from '../enum/apiVersionType'
 
 type SendCoinsClient = V1_0_SendCoinsClient | V1_1_SendCoinsClient
 

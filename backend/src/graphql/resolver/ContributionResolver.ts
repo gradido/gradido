@@ -16,11 +16,11 @@ import { Paginated } from '@arg/Paginated'
 import { SearchContributionsFilterArgs } from '@arg/SearchContributionsFilterArgs'
 import { ContributionStatus } from '@enum/ContributionStatus'
 import { ContributionType } from '@enum/ContributionType'
-import { TransactionTypeId } from '@enum/TransactionTypeId'
 import { AdminUpdateContribution } from '@model/AdminUpdateContribution'
 import { Contribution, ContributionListResult } from '@model/Contribution'
 import { OpenCreation } from '@model/OpenCreation'
 import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
+import { TransactionTypeId } from 'core'
 
 import { RIGHTS } from '@/auth/RIGHTS'
 import {
@@ -42,9 +42,9 @@ import {
 import { UpdateUnconfirmedContributionContext } from '@/interactions/updateUnconfirmedContribution/UpdateUnconfirmedContribution.context'
 import { LogError } from '@/server/LogError'
 import { Context, getClientTimezoneOffset, getUser } from '@/server/context'
-import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
+import { TRANSACTIONS_LOCK } from 'database'
+import { fullName } from 'core'
 import { calculateDecay, Decay } from 'shared'
-import { fullName } from '@/util/utilities'
 
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { ContributionMessageType } from '@enum/ContributionMessageType'
@@ -58,7 +58,7 @@ import {
 import { getOpenCreations, getUserCreation, validateContribution } from './util/creations'
 import { extractGraphQLFields } from './util/extractGraphQLFields'
 import { findContributions } from './util/findContributions'
-import { getLastTransaction } from './util/getLastTransaction'
+import { getLastTransaction } from 'database'
 import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
 
 const db = AppDatabase.getInstance()

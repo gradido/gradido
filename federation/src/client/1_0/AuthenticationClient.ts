@@ -3,7 +3,7 @@ import { GraphQLClient } from 'graphql-request'
 import { getLogger, Logger } from 'log4js'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 
-import { EncryptedTransferArgs } from 'core/src/graphql/model/EncryptedTransferArgs'
+import { EncryptedTransferArgs } from 'core'
 import { authenticate } from './query/authenticate'
 import { openConnectionCallback } from './query/openConnectionCallback'
 

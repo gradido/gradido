@@ -2,9 +2,9 @@ import { TransactionLink as dbTransactionLink } from 'database'
 import { Decimal } from 'decimal.js-light'
 import { validate, version } from 'uuid'
 
-import { Decay } from '@model/Decay'
+import { Decay } from 'core'
 
-import { getLastTransaction } from '@/graphql/resolver/util/getLastTransaction'
+import { getLastTransaction } from 'database'
 import { transactionLinkSummary } from '@/graphql/resolver/util/transactionLinkSummary'
 
 import { calculateDecay } from 'shared'

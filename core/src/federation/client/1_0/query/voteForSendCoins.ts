@@ -5,13 +5,4 @@ export const voteForSendCoins = gql`
     voteForSendCoins(data: $args)
   }
 `
-/*
-    {
-      vote
-      recipGradidoID
-      recipFirstName
-      recipLastName
-      recipAlias
-    }
-  }
-*/
+
