@@ -51,7 +51,7 @@
       "@federation/*": ["src/federation/*"],
       "@graphql/*": ["src/graphql/*"],
       "@util/*": ["src/util/*"],
-      "@validation/*": ["src/validation/*"],
+      "@validation/*": ["src/validation/*"]
     },
     // "rootDirs": [".", "../database"],            /* List of root folders whose combined content represents the structure of the project at runtime. */
     // "typeRoots": [],                             /* List of folders to include type definitions from. */

@@ -1,6 +1,6 @@
 import { Decimal } from 'decimal.js-light'
 
-import { Decay } from '@graphql/model/Decay'
+import { Decay } from '../graphql/model/Decay'
 
 import { getLastTransaction } from 'database'
 

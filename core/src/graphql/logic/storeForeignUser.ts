@@ -1,7 +1,7 @@
 import { Community as DbCommunity, User as DbUser, findForeignUserByUuids } from 'database'
 
-import { SendCoinsResult } from '@federation/client/1_0/model/SendCoinsResult'
-import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { SendCoinsResult } from '../../federation/client/1_0/model/SendCoinsResult'
+import { LOG4JS_BASE_CATEGORY_NAME } from '../../config/const'
 import { getLogger } from 'log4js'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.logic.storeForeignUser`)
