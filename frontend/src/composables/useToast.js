@@ -20,7 +20,7 @@ export function useAppToast() {
 
   const toastInfo = (message) => {
     toast(message, {
-      title: t('navigation.info'),
+      title: t('info'),
       variant: 'warning',
       bodyClass: 'gdd-toaster-body-darken',
     })

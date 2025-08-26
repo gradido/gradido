@@ -41,7 +41,8 @@
     "not-allowed": {
       "button": "Introducir ubicación...",
       "text": "Para encontrar otros miembros cerca de ti, ¡introduce ahora tu ubicación en el mapa!"
-    }
+    },
+    "info": "Así se hace"
   },
   "circles": {
     "headline": "Juntos nos apoyamos - atentos a la cultura de los círculos.",
@@ -70,7 +71,8 @@
   "contribution": {
     "activity": "Actividad",
     "alert": {
-      "answerQuestion": "Por favor,  contesta las preguntas",
+      "answerQuestion": "Hay una nueva noticia sobre esta contribución.",
+      "answerQuestionToast": "Tienes mensajes nuevos.",
       "communityNoteList": "Aquí encontrarás todas las contribuciones enviadas y confirmadas de todos los miembros de esta comunidad.",
       "confirm": "confirmado",
       "denied": "rechazado",
@@ -240,6 +242,7 @@
     "raise": "Aumento",
     "recruited-member": "Miembro invitado"
   },
+  "info": "Información",
   "language": "Idioma",
   "link-load": "recargar el último enlace | recargar los últimos {n} enlaces",
   "link-load-more": "descargar más {n} enlaces",
@@ -266,7 +269,6 @@
   "navigation": {
     "admin_area": "Área de administración",
     "community": "Comunidad",
-    "info": "Así se hace",
     "logout": "Salir",
     "members_area": "Área de afiliados",
     "overview": "Resumen",

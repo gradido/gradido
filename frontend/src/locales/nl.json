@@ -41,7 +41,8 @@
     "not-allowed": {
       "button": "Locatie invoeren",
       "text": "Om andere leden in jouw omgeving te vinden, voer nu je locatie in op de kaart!"
-    }
+    },
+    "info": "Zo gaat dat"
   },
   "circles": {
     "headline": "Samen ondersteunen we elkaar - mindful in de cirkelcultuur.",
@@ -70,7 +71,8 @@
   "contribution": {
     "activity": "Activiteit",
     "alert": {
-      "answerQuestion": "Please answer the question",
+      "answerQuestion": "Er is een nieuw bericht over deze bijdrage.",
+      "answerQuestionToast": "U hebt nieuwe berichten.",
       "communityNoteList": "Hier vind je alle ingediende en bevestigde bijdragen van alle leden uit deze gemeenschap.",
       "confirm": "bevestigt",
       "denied": "afgewezen",
@@ -240,6 +242,7 @@
     "raise": "Verhoging",
     "recruited-member": "Uitgenodigd lid"
   },
+  "info": "Informatie",
   "language": "Taal",
   "link-load": "de laatste link herladen | de laatste links herladen",
   "link-load-more": "verdere {n} links herladen",
@@ -266,7 +269,6 @@
   "navigation": {
     "admin_area": "Beheerder",
     "community": "Gemeenschap",
-    "info": "Zo gaat dat",
     "logout": "Afmelden",
     "members_area": "Ledenbestand",
     "overview": "Overzicht",

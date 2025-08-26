@@ -52,7 +52,8 @@
     "not-allowed": {
       "button": "Standort eintragen...",
       "text": "Um andere Mitglieder in deinem Umkreis zu finden, trage jetzt deinen Standort auf der Karte ein!"
-    }
+    },
+    "info": "So gehts"
   },
   "community": {
     "admins": "Administratoren",
@@ -300,7 +301,7 @@
     "recruited-member": "Eingeladenes Mitglied"
   },
   "h": "h",
-  "info": "So gehts",
+  "info": "Information",
   "language": "Sprache",
   "link-load": "den letzten Link nachladen | die letzten {n} Links nachladen",
   "link-load-more": "weitere {n} Links nachladen",
@@ -328,7 +329,6 @@
   "navigation": {
     "admin_area": "Adminbereich",
     "community": "Gemeinschaft",
-    "info": "Information",
     "logout": "Abmelden",
     "overview": "Übersicht",
     "send": "Senden",

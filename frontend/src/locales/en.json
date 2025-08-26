@@ -52,7 +52,8 @@
     "not-allowed": {
       "button": "Enter location...",
       "text": "To find other members in your area, enter your location on the map now!"
-    }
+    },
+    "info": "How it works"
   },
   "community": {
     "admins": "Administrators",
@@ -70,7 +71,7 @@
   "contribution": {
     "activity": "Activity",
     "alert": {
-      "answerQuestion": "There is a new message for this article.",
+      "answerQuestion": "There is a new message for this contribution.",
       "answerQuestionToast": "You have new messages.",
       "communityNoteList": "Here you will find all submitted and confirmed contributions from all members of this community.",
       "confirm": "confirmed",
@@ -300,7 +301,7 @@
     "recruited-member": "Invited member"
   },
   "h": "h",
-  "info": "How it works",
+  "info": "Information",
   "language": "Language",
   "link-load": "Load the last link | Load the last {n} links",
   "link-load-more": "Load more {n} links",
@@ -328,7 +329,6 @@
   "navigation": {
     "admin_area": "Admin Area",
     "community": "Community",
-    "info": "Information",
     "logout": "Logout",
     "overview": "Overview",
     "send": "Send",
