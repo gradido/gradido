@@ -22,7 +22,7 @@ const i18n = createI18n({
       },
       edit: 'Edit',
       delete: 'Delete',
-      moderatorChat: 'Chat',
+      Chat: 'Chat',
     },
   },
   datetimeFormats: {

@@ -40,7 +40,7 @@
           <BNavItem to="/information" class="mb-3" active-class="active-route">
             <div class="sidebar-menu-item-wrapper">
               <i-mdi-information class="svg-icon" />
-              <span class="ms-2">{{ $t('navigation.info') }}</span>
+              <span class="ms-2">{{ $t('info') }}</span>
             </div>
           </BNavItem>
         </BNav>

@@ -7,6 +7,7 @@
   "GDT": "GDT",
   "PersonalDetails": "Datos personales",
   "advanced-calculation": "Proyección",
+  "answerNow": "→ ¡Responde ahora!",
   "asterisks": "****",
   "auth": {
     "left": {
@@ -24,7 +25,7 @@
     "headline": "Plataforma de cooperación «Círculos Gradido»",
     "text": "Círculos locales, círculos de estudio, proyectos, ev entos y congresos",
     "allowed": {
-      "button": "Iniciar círculos..."
+      "button": "Abrir círculos..."
     },
     "not-allowed": {
       "button": "Configurar..."
@@ -33,19 +34,20 @@
   "card-user-search": {
     "headline": "Búsqueda geográfica de miembros (beta)",
     "allowed": {
-      "button": "Iniciar Búsqueda de Miembros...",
+      "button": "Abrir búsqueda de miembros...",
       "disabled-button": "GMS offline...",
       "text": "Encuentra Miembros de todas las Comunidades en un Mapa."
     },
     "not-allowed": {
-      "button": "Configuración de ubicación...",
-      "text": "Encuentra Miembros de todas las Comunidades en un Mapa? Entonces tienes que establecer tu ubicación primero."
-    }
+      "button": "Introducir ubicación...",
+      "text": "Para encontrar otros miembros cerca de ti, ¡introduce ahora tu ubicación en el mapa!"
+    },
+    "info": "Así se hace"
   },
   "circles": {
     "headline": "Juntos nos apoyamos - atentos a la cultura de los círculos.",
     "text": "Haga clic en el botón para abrir la plataforma de cooperación en una nueva ventana del navegador.",
-    "button": "Iniciar Círculos..."
+    "button": "Abrir Círculos..."
   },
   "community": {
     "admins": "Administradores",
@@ -69,7 +71,8 @@
   "contribution": {
     "activity": "Actividad",
     "alert": {
-      "answerQuestion": "Por favor,  contesta las preguntas",
+      "answerQuestion": "Hay una nueva noticia sobre esta contribución.",
+      "answerQuestionToast": "Tienes mensajes nuevos.",
       "communityNoteList": "Aquí encontrarás todas las contribuciones enviadas y confirmadas de todos los miembros de esta comunidad.",
       "confirm": "confirmado",
       "denied": "rechazado",
@@ -239,6 +242,7 @@
     "raise": "Aumento",
     "recruited-member": "Miembro invitado"
   },
+  "info": "Información",
   "language": "Idioma",
   "link-load": "recargar el último enlace | recargar los últimos {n} enlaces",
   "link-load-more": "descargar más {n} enlaces",
@@ -265,7 +269,6 @@
   "navigation": {
     "admin_area": "Área de administración",
     "community": "Comunidad",
-    "info": "Información",
     "logout": "Salir",
     "members_area": "Área de afiliados",
     "overview": "Resumen",
