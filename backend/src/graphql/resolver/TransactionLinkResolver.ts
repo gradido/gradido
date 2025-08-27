@@ -425,27 +425,41 @@ export class TransactionLinkResolver {
       alias,
       validUntil,
     })
-
-    const redeemJwtPayloadType = new RedeemJwtPayloadType(
-      senderCommunityUuid,
-      gradidoId,
-      alias ?? firstName ?? '',
-      code,
-      amount,
-      memo,
-      validUntil ?? '',
-    )
-    // TODO:encode/sign the jwt normally with the private key of the sender/home community, but interims with uuid
-    const homeCom = await getHomeCommunity()
-    if (!homeCom) {
-      throw new LogError('Home community not found')
+    try {
+      const redeemJwtPayloadType = new RedeemJwtPayloadType(
+        senderCommunityUuid,
+        gradidoId,
+        alias ?? firstName ?? '',
+        code,
+        amount,
+        memo,
+        validUntil ?? '',
+      )
+      // encode/sign the jwt with the private key of the sender/home community
+      const senderCom = await getCommunityByUuid(senderCommunityUuid)
+      if (!senderCom) {
+        throw new LogError('Sender community not found')
+      }
+      if (!senderCom.privateJwtKey) {
+        throw new LogError('Sender community privateJwtKey is not set')
+      }
+      const recipientCom = await getCommunityByUuid(recipientCommunityUuid)
+      if (!recipientCom) {
+        throw new LogError('Recipient community not found')
+      }
+      if (!recipientCom.publicJwtKey) {
+        throw new LogError('Recipient community publicJwtKey is not set')
+      }
+      const redeemJwt = await encryptAndSign(redeemJwtPayloadType, senderCom.privateJwtKey!, recipientCom.publicJwtKey!)
+      if (!redeemJwt) {
+        throw new LogError('Redeem JWT was not created successfully')
+      }
+      return redeemJwt
+    } catch (e) {
+      const errmsg = `Error on creating Redeem JWT: error=${e}`
+      methodLogger.error(errmsg)
+      throw new LogError(errmsg)
     }
-    if (!homeCom.communityUuid) {
-      throw new LogError('Home community UUID is not set')
-    }
-    const redeemJwt = await encode(redeemJwtPayloadType, homeCom.communityUuid)
-    // TODO: encrypt the payload with the public key of the target community
-    return redeemJwt
   }
 
   @Authorized([RIGHTS.DISBURSE_TRANSACTION_LINK])
