@@ -29,13 +29,13 @@ const i18n = createI18n({
         overview: 'Overview',
         send: 'Send',
         transactions: 'Transactions',
-        info: 'Info',
         circles: 'Circles',
         usersearch: 'User Search',
         settings: 'Settings',
         admin_area: 'Admin Area',
         logout: 'Logout',
       },
+      info: 'Info',
       creation: 'Creation',
     },
   },
@@ -108,7 +108,7 @@ describe('Sidebar', () => {
         expect(wrapper.findAll('.nav-item').at(3).text()).toContain('Creation')
       })
 
-      it('has nav-item "navigation.info" in navbar', () => {
+      it('has nav-item "info" in navbar', () => {
         expect(wrapper.findAll('.nav-item').at(4).text()).toContain('Info')
       })
     })
