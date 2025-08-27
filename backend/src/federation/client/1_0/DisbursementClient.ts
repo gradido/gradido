@@ -31,10 +31,10 @@ export class DisbursementClient {
     logger.debug('sendDisburseJwtToSenderCommunity against endpoint=', this.endpoint)
     try {
       const { data } = await this.client.rawRequest<{ processDisburseJwtOnSenderCommunity: string }>(processDisburseJwtOnSenderCommunityQuery, { args })
-      const responseJwt = data?.processDisburseJwtOnSenderCommunity
-      if (responseJwt) {
-        logger.debug('received response jwt', responseJwt)
-        return responseJwt
+      const response = data?.processDisburseJwtOnSenderCommunity
+      if (response) {
+        logger.debug('received response:', response)
+        return response
       }
     } catch (err) {
       const errmsg = `sendDisburseJwtToSenderCommunity failed for endpoint=${this.endpoint}, err=${err}`

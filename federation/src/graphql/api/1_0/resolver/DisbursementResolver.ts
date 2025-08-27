@@ -5,6 +5,7 @@ import { LOG4JS_BASE_CATEGORY_NAME } from "@/config/const"
 import { interpretEncryptedTransferArgs } from "core"
 import { EncryptedTransferArgs } from "core"
 import { DisburseJwtPayloadType } from "shared"
+import { processXComCompleteTransaction } from "core"
 
 const createLogger = (method: string) => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.api.1_0.resolver.DisbursementResolver.${method}`)
 
@@ -29,5 +30,25 @@ export class DisbursementResolver {
     if(methodLogger.isDebugEnabled()) {
       methodLogger.debug(`processDisburseJwtOnSenderCommunity() via apiVersion=1_0 ...`, authArgs)
     }
+    let result = 'Disbursement of Redeem-Link failed!'
+    try {
+      if(await processXComCompleteTransaction(
+        authArgs.sendercommunityuuid,
+        authArgs.sendergradidoid,
+        authArgs.recipientcommunityuuid,
+        authArgs.recipientgradidoid,
+        authArgs.amount,
+        authArgs.memo,
+        authArgs.code,
+        authArgs.recipientfirstname,
+        authArgs.recipientalias,
+      )) {
+        result = 'Disbursement of Redeem-Link successfull!'
+      }
+    } catch (err) {
+      result = `Error in Disbursement of Redeem-Link: ` + err
+      methodLogger.error(result)
+    }
+    return result
   }
 }

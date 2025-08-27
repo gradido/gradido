@@ -42,9 +42,9 @@ export async function processXComCompleteTransaction(
   amount: string,
   memo: string,
   code?: string,
-  creationDate?: Date,
   recipientfirstname?: string,
   recipientalias?: string,
+  creationDate?: Date,
 ): Promise<boolean> {
   const methodLogger = createLogger(`processXComCompleteTransaction`)
   // processing a x-community sendCoins
