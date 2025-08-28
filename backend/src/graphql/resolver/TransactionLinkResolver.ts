@@ -637,7 +637,7 @@ export class TransactionLinkResolver {
         throw new Error(errmsg)
       }
       logger.debug('queryRedeemJwtLink... senderCom=', senderCom)
-      const verifiedJwtPayload = await verify(signedTransferPayload.handshakeID, signedTransferPayload.jwt, signedTransferPayload.publicKey) as SignedTransferPayloadType
+      const verifiedJwtPayload = await verify(signedTransferPayload.handshakeID, signedTransferPayload.jwt, senderCom.publicJwtKey!) as SignedTransferPayloadType
       logger.debug('queryRedeemJwtLink... verifiedJwtPayload=', verifiedJwtPayload)
       let verifiedRedeemJwtPayload: RedeemJwtPayloadType | null = null
       if (verifiedJwtPayload === null) {
