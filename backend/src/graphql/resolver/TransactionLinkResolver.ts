@@ -630,7 +630,7 @@ export class TransactionLinkResolver {
         decodedPayload.jwt,
         decodedPayload.handshakeID)
       logger.debug('queryRedeemJwtLink... signedTransferPayload=', signedTransferPayload)
-      const senderCom = await getCommunityByPublicKey(Buffer.from(signedTransferPayload.publicKey))
+      const senderCom = await getCommunityByPublicKey(Buffer.from(signedTransferPayload.publicKey, 'hex'))
       if (!senderCom) {
         const errmsg = `Sender community not found with publicKey=${signedTransferPayload.publicKey}`
         logger.error(errmsg)
