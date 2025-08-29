@@ -637,14 +637,15 @@ export class TransactionLinkResolver {
         throw new Error(errmsg)
       }
       logger.debug('queryRedeemJwtLink... senderCom=', senderCom)
-      const verifiedJwtPayload = await verify(signedTransferPayload.handshakeID, signedTransferPayload.jwt, senderCom.publicJwtKey!) as SignedTransferPayloadType
-      logger.debug('queryRedeemJwtLink... verifiedJwtPayload=', verifiedJwtPayload)
+      const verifiedJwtResult = await verify(signedTransferPayload.handshakeID, signedTransferPayload.jwt, senderCom.publicJwtKey!)
+      logger.debug('queryRedeemJwtLink... verifiedJwtResult=', verifiedJwtResult)
       let verifiedRedeemJwtPayload: RedeemJwtPayloadType | null = null
-      if (verifiedJwtPayload === null) {
+      if (verifiedJwtResult === null) {
         const errmsg = `Error on verify transferred redeem token with publicKey=${signedTransferPayload.publicKey}`
         logger.error(errmsg)
         throw new Error(errmsg)
       } else {
+        const verifiedJwtPayload = verifiedJwtResult.payload as SignedTransferPayloadType
         const encryptedTransferArgs = new EncryptedTransferArgs()
         encryptedTransferArgs.publicKey = verifiedJwtPayload.publicKey
         encryptedTransferArgs.jwt = verifiedJwtPayload.jwt
