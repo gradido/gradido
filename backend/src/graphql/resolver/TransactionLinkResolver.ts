@@ -153,7 +153,7 @@ export class TransactionLinkResolver {
   @Query(() => QueryLinkResult)
   async queryTransactionLink(@Arg('code') code: string): Promise<typeof QueryLinkResult> {
     const methodLogger = createLogger('queryTransactionLink')
-    methodLogger.addContext('code', code.substring(0, 6))
+    methodLogger.addContext('handshakeID', randombytes_random().toString())
     methodLogger.debug('queryTransactionLink...')
     if (code.match(/^CL-/)) {
       const contributionLink = await DbContributionLink.findOneOrFail({
