@@ -661,7 +661,7 @@ export class TransactionLinkResolver {
           logger.error(errmsg)
           throw new Error(errmsg)
         }
-        if (verifiedRedeemJwtPayload.tokentype === RedeemJwtPayloadType.REDEEM_ACTIVATION_TYPE) {
+        if (verifiedRedeemJwtPayload.tokentype !== RedeemJwtPayloadType.REDEEM_ACTIVATION_TYPE) {
           const errmsg = `Wrong tokentype in redeem JWT: type=` + verifiedRedeemJwtPayload.tokentype + ' vs expected ' + RedeemJwtPayloadType.REDEEM_ACTIVATION_TYPE
           logger.error(errmsg)
           throw new Error(errmsg)
