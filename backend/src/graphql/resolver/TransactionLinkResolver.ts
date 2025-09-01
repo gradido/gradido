@@ -647,21 +647,17 @@ export class TransactionLinkResolver {
         logger.error(errmsg)
         throw new Error(errmsg)
       } else {
-        const jwePayload = jweVerifyResult.payload as EncryptedJWEJwtPayloadType
-        logger.debug('queryRedeemJwtLink... jwePayload=', jwePayload)
-        const verifiedJwtPayload = jweVerifyResult.payload as SignedTransferPayloadType
-        logger.debug('queryRedeemJwtLink... verifiedJwtPayload=', verifiedJwtPayload)
         const encryptedTransferArgs = new EncryptedTransferArgs()
-        encryptedTransferArgs.publicKey = verifiedJwtPayload.publicKey
-        encryptedTransferArgs.jwt = verifiedJwtPayload.jwt
-        encryptedTransferArgs.handshakeID = verifiedJwtPayload.handshakeID
+        encryptedTransferArgs.publicKey = signedTransferPayload.publicKey
+        encryptedTransferArgs.jwt = signedTransferPayload.jwt
+        encryptedTransferArgs.handshakeID = signedTransferPayload.handshakeID
 
         verifiedRedeemJwtPayload = await interpretEncryptedTransferArgs(encryptedTransferArgs) as RedeemJwtPayloadType
         if(logger.isDebugEnabled()) {
           logger.debug(`queryRedeemJwtLink() ...`, verifiedRedeemJwtPayload)
         }
         if (!verifiedRedeemJwtPayload) {
-          const errmsg = `invalid authentication payload of requesting community with publicKey` + verifiedJwtPayload.publicKey
+          const errmsg = `invalid authentication payload of requesting community with publicKey` + signedTransferPayload.publicKey
           logger.error(errmsg)
           throw new Error(errmsg)
         }
