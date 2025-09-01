@@ -36,7 +36,7 @@ import { Context, getClientTimezoneOffset, getUser } from '@/server/context'
 import { calculateBalance } from '@/util/validate'
 import { fullName } from 'core'
 import { TRANSACTION_LINK_LOCK, TRANSACTIONS_LOCK } from 'database'
-import { calculateDecay, decode, DisburseJwtPayloadType, encode, encryptAndSign, RedeemJwtPayloadType, verify } from 'shared'
+import { calculateDecay, decode, DisburseJwtPayloadType, encode, encryptAndSign, EncryptedJWEJwtPayloadType, RedeemJwtPayloadType, verify } from 'shared'
 
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { DisbursementClient as V1_0_DisbursementClient } from '@/federation/client/1_0/DisbursementClient'
@@ -624,6 +624,8 @@ export class TransactionLinkResolver {
     // decode token first to get the EncryptedTransferArgs with the senderCommunity.publicKey as input to verify token
     const decodedPayload = decode(code) as SignedTransferPayloadType
     logger.debug('queryRedeemJwtLink... decodedPayload=', decodedPayload)
+    logger.debug('switch logger-context to received token-handshakeID:' + decodedPayload.handshakeID)
+    logger.addContext('handshakeID', decodedPayload.handshakeID)
     if(decodedPayload !== null && decodedPayload.tokentype === SignedTransferPayloadType.SIGNED_TRANSFER_TYPE) {
       const signedTransferPayload = new SignedTransferPayloadType(
         decodedPayload.publicKey,
@@ -637,15 +639,18 @@ export class TransactionLinkResolver {
         throw new Error(errmsg)
       }
       logger.debug('queryRedeemJwtLink... senderCom=', senderCom)
-      const verifiedJwtResult = await verify(signedTransferPayload.handshakeID, signedTransferPayload.jwt, senderCom.publicJwtKey!)
-      logger.debug('queryRedeemJwtLink... verifiedJwtResult=', verifiedJwtResult)
+      const jweVerifyResult = await verify(signedTransferPayload.handshakeID, signedTransferPayload.jwt, senderCom.publicJwtKey!)
+      logger.debug('queryRedeemJwtLink... jweVerifyResult=', jweVerifyResult)
       let verifiedRedeemJwtPayload: RedeemJwtPayloadType | null = null
-      if (verifiedJwtResult === null) {
+      if (jweVerifyResult === null) {
         const errmsg = `Error on verify transferred redeem token with publicKey=${signedTransferPayload.publicKey}`
         logger.error(errmsg)
         throw new Error(errmsg)
       } else {
-        const verifiedJwtPayload = verifiedJwtResult.payload as SignedTransferPayloadType
+        const jwePayload = jweVerifyResult.payload as EncryptedJWEJwtPayloadType
+        logger.debug('queryRedeemJwtLink... jwePayload=', jwePayload)
+        const verifiedJwtPayload = jweVerifyResult.payload as SignedTransferPayloadType
+        logger.debug('queryRedeemJwtLink... verifiedJwtPayload=', verifiedJwtPayload)
         const encryptedTransferArgs = new EncryptedTransferArgs()
         encryptedTransferArgs.publicKey = verifiedJwtPayload.publicKey
         encryptedTransferArgs.jwt = verifiedJwtPayload.jwt
