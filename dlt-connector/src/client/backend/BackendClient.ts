@@ -63,6 +63,10 @@ export class BackendClient {
     return v.parse(communitySchema, data.homeCommunity)
   }
 
+  public async setHomeCommunityTopicId(topicId: HieroId) {
+    
+  }
+
   private async getRequestHeader(): Promise<{
     authorization: string
   }> {

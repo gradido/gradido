@@ -4,6 +4,7 @@ import { loadCryptoKeys, MemoryBlock } from 'gradido-blockchain-js'
 import { configure, getLogger } from 'log4js'
 import * as v from 'valibot'
 import { BackendClient } from './client/backend/BackendClient'
+import { HieroClient } from './client/hiero/HieroClient'
 import { getTransaction } from './client/GradidoNode/api'
 import { CONFIG } from './config'
 import { SendToIotaContext } from './interactions/sendToIota/SendToIota.context'
@@ -38,6 +39,11 @@ async function main() {
   // wait for backend server
   await isPortOpenRetry(CONFIG.BACKEND_SERVER_URL)
   const homeCommunity = await backend.getHomeCommunityDraft()
+  // on missing topicId, create one
+  if (!homeCommunity.topicId) {
+    const topicId = await HieroClient.getInstance().createTopic()
+    
+  }
   KeyPairCacheManager.getInstance().setHomeCommunityTopicId(homeCommunity.topicId)
   logger.info('home community topic: %s', homeCommunity.topicId)
   logger.info('gradido node server: %s', CONFIG.NODE_SERVER_URL)

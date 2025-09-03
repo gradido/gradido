@@ -12,7 +12,7 @@ import { hieroIdSchema, uuidv4Schema } from '../../schemas/typeGuard.schema'
  */
 export const communitySchema = v.object({
   uuid: uuidv4Schema,
-  topicId: hieroIdSchema,
+  topicId: v.optional(hieroIdSchema, ''),
   foreign: v.boolean('expect boolean type'),
   createdAt: dateSchema,
 })

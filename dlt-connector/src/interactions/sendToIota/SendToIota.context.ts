@@ -7,7 +7,7 @@ import {
 import { getLogger } from 'log4js'
 import { safeParse, parse } from 'valibot'
 import { Community, communitySchema } from '../../client/backend/community.schema'
-import { HieroClient } from '../../client/HieroClient'
+import { HieroClient } from '../../client/hiero/HieroClient'
 import { LOG4JS_BASE_CATEGORY } from '../../config/const'
 import { Transaction, transactionSchema } from '../../schemas/transaction.schema'
 import { HieroId, HieroTransactionId, hieroTransactionIdSchema } from '../../schemas/typeGuard.schema'
