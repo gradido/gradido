@@ -359,6 +359,8 @@ function setRedeemJwtLinkInformation() {
 
 async function mutationLink(amount) {
   console.log('TransactionLink.mutationLink... params=', params)
+  console.log('TransactionLink.mutationLink... linkData.value=', linkData.value)
+  console.log('TransactionLink.mutationLink... linkData=', linkData)
   if (isRedeemJwtLink.value) {
     console.log('TransactionLink.mutationLink... trigger disbursement from recipient-community')
     try {
