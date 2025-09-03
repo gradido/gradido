@@ -85,6 +85,10 @@ import { Context, getClientTimezoneOffset, getUser } from '@/server/context'
 import { communityDbUser } from '@/util/communityUser'
 import { hasElopageBuys } from '@/util/hasElopageBuys'
 import { durationInMinutesFromDates, getTimeDurationObject, printTimeDuration } from '@/util/time'
+import {
+  InterruptiveSleepManager,
+  TRANSMIT_TO_IOTA_INTERRUPTIVE_SLEEP_KEY,
+} from '@/util/InterruptiveSleepManager'
 import { delay } from '@/util/utilities'
 
 import random from 'random-bigint'
@@ -478,6 +482,9 @@ export class UserResolver {
         logger.error("createUser: couldn't reach out to humhub, disable for now", e)
       }
     }
+
+    // notify dlt-connector loop for new work
+    InterruptiveSleepManager.getInstance().interrupt(TRANSMIT_TO_IOTA_INTERRUPTIVE_SLEEP_KEY)
 
     if (redeemCode) {
       eventRegisterRedeem.affectedUser = dbUser

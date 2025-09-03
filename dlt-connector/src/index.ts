@@ -1,82 +1,87 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import 'reflect-metadata'
-
-import { CONFIG } from '@/config'
-
-import { BackendClient } from './client/BackendClient'
-import { CommunityRepository } from './data/Community.repository'
-import { Mnemonic } from './data/Mnemonic'
-import { CommunityDraft } from './graphql/input/CommunityDraft'
-import { AddCommunityContext } from './interactions/backendToDb/community/AddCommunity.context'
-import { logger } from './logging/logger'
-import createServer from './server/createServer'
-import { LogError } from './server/LogError'
-import { stopTransmitToIota, transmitToIota } from './tasks/transmitToIota'
-
-async function waitForServer(
-  backend: BackendClient,
-  retryIntervalMs: number,
-  maxRetries: number,
-): Promise<CommunityDraft> {
-  let retries = 0
-  while (retries < maxRetries) {
-    logger.info(`Attempt ${retries + 1} for connecting to backend`)
-
-    try {
-      // Make a HEAD request to the server
-      return await backend.getHomeCommunityDraft()
-    } catch (error) {
-      logger.info('Server is not reachable: ', error)
-    }
-
-    // Server is not reachable, wait and retry
-    await new Promise((resolve) => setTimeout(resolve, retryIntervalMs))
-    retries++
-  }
-
-  throw new LogError('Max retries exceeded. Server did not become reachable.')
-}
+import { readFileSync } from 'node:fs'
+import { Elysia } from 'elysia'
+import { loadCryptoKeys, MemoryBlock } from 'gradido-blockchain-js'
+import { configure, getLogger } from 'log4js'
+import * as v from 'valibot'
+import { BackendClient } from './client/backend/BackendClient'
+import { HieroClient } from './client/hiero/HieroClient'
+import { getTransaction } from './client/GradidoNode/api'
+import { CONFIG } from './config'
+import { SendToIotaContext } from './interactions/sendToIota/SendToIota.context'
+import { KeyPairCacheManager } from './KeyPairCacheManager'
+import { keyGenerationSeedSchema } from './schemas/base.schema'
+import { isPortOpenRetry } from './utils/network'
+import { appRoutes } from './server'
+import { MIN_TOPIC_EXPIRE_MILLISECONDS_FOR_UPDATE } from './config/const'
 
 async function main() {
-  if (CONFIG.IOTA_HOME_COMMUNITY_SEED) {
-    Mnemonic.validateSeed(CONFIG.IOTA_HOME_COMMUNITY_SEED)
+  // configure log4js
+  // TODO: replace late by loader from config-schema
+  const options = JSON.parse(readFileSync(CONFIG.LOG4JS_CONFIG, 'utf-8'))
+  configure(options)
+  const logger = getLogger('dlt')
+  // check if valid seed for root key pair generation is present
+  if (!v.safeParse(keyGenerationSeedSchema, CONFIG.IOTA_HOME_COMMUNITY_SEED).success) {
+    logger.error('IOTA_HOME_COMMUNITY_SEED must be a valid hex string, at least 64 characters long')
+    process.exit(1)
   }
-  // eslint-disable-next-line no-console
-  console.log(`DLT_CONNECTOR_PORT=${CONFIG.DLT_CONNECTOR_PORT}`)
-  const { app } = await createServer()
+
+  // load crypto keys for gradido blockchain lib
+  loadCryptoKeys(
+    MemoryBlock.fromHex(CONFIG.GRADIDO_BLOCKCHAIN_CRYPTO_APP_SECRET),
+    MemoryBlock.fromHex(CONFIG.GRADIDO_BLOCKCHAIN_SERVER_CRYPTO_KEY),
+  )
 
   // ask backend for home community if we haven't one
-  try {
-    await CommunityRepository.loadHomeCommunityKeyPair()
-  } catch (e) {
-    const backend = BackendClient.getInstance()
-    if (!backend) {
-      throw new LogError('cannot create backend client')
-    }
-    // wait for backend server to be ready
-    await waitForServer(backend, 2500, 10)
-
-    const communityDraft = await backend.getHomeCommunityDraft()
-    const addCommunityContext = new AddCommunityContext(communityDraft)
-    await addCommunityContext.run()
+  const backend = BackendClient.getInstance()
+  if (!backend) {
+    throw new Error('cannot create backend client')
   }
-
-  // loop run all the time, check for new transaction for sending to iota
-  void transmitToIota()
-  app.listen(CONFIG.DLT_CONNECTOR_PORT, () => {
-    // eslint-disable-next-line no-console
-    console.log(`Server is running at http://localhost:${CONFIG.DLT_CONNECTOR_PORT}`)
-  })
-
-  process.on('exit', () => {
-    // Add shutdown logic here.
-    stopTransmitToIota()
-  })
+  const hieroClient = HieroClient.getInstance()
+  if (!hieroClient) {
+    throw new Error('cannot create hiero client')
+  }
+  // wait for backend server
+  await isPortOpenRetry(CONFIG.BACKEND_SERVER_URL)
+  let homeCommunity = await backend.getHomeCommunityDraft()
+  // on missing topicId, create one
+  if (!homeCommunity.topicId) {
+    const topicId = await hieroClient.createTopic()
+    homeCommunity = await backend.setHomeCommunityTopicId(homeCommunity.uuid, topicId)
+  } else {
+    // if topic exist, check if we need to update it
+    let topicInfo = await hieroClient.getTopicInfo(homeCommunity.topicId)
+    if (topicInfo.expirationTime.getTime() - new Date().getTime() < MIN_TOPIC_EXPIRE_MILLISECONDS_FOR_UPDATE) {
+      await hieroClient.updateTopic(homeCommunity.topicId)
+      topicInfo = await hieroClient.getTopicInfo(homeCommunity.topicId)
+      logger.info('updated topic info, new expiration time: %s', topicInfo.expirationTime.toLocaleDateString())
+    }
+  }
+  if (!homeCommunity.topicId) {
+    throw new Error('still no topic id, after creating topic and update community in backend.')
+  }
+  KeyPairCacheManager.getInstance().setHomeCommunityTopicId(homeCommunity.topicId)
+  logger.info('home community topic: %s', homeCommunity.topicId)
+  logger.info('gradido node server: %s', CONFIG.NODE_SERVER_URL)
+  // ask gradido node if community blockchain was created
+  try {
+    if (!(await getTransaction({ transactionNr: 1, topic: homeCommunity.topicId }))) {
+      // if not exist, create community root transaction
+      await SendToIotaContext(homeCommunity)
+    }
+  } catch (e) {
+    logger.error('error requesting gradido node: ', e)
+  }
+  // listen for rpc request from backend (graphql replaced with trpc and elysia)
+  new Elysia()
+    .use(appRoutes)
+    .listen(CONFIG.DLT_CONNECTOR_PORT, () => {
+      logger.info(`Server is running at http://localhost:${CONFIG.DLT_CONNECTOR_PORT}`)
+    })
 }
 
 main().catch((e) => {
-  // eslint-disable-next-line no-console
+  // biome-ignore lint/suspicious/noConsole: maybe logger isn't initialized here
   console.error(e)
-  // eslint-disable-next-line n/no-process-exit
   process.exit(1)
 })
