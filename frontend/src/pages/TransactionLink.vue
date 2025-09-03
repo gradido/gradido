@@ -151,7 +151,7 @@ const itemType = computed(() => {
     //   validUntilDate.getTime() < new Date().getTime(),
     // )
     if (validUntilDate.getTime() < new Date().getTime()) {
-      console.log('TransactionLink.itemType... TEXT_EXPIRED')
+      // console.log('TransactionLink.itemType... TEXT_EXPIRED')
       return 'TEXT_EXPIRED'
     }
     if (linkData.value.redeemedAt) {
