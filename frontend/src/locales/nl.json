@@ -7,6 +7,7 @@
   "GDT": "GDT",
   "PersonalDetails": "Persoonlijke gegevens",
   "advanced-calculation": "Voorcalculatie",
+  "answerNow": "→ Nu antwoorden!",
   "asterisks": "****",
   "auth": {
     "left": {
@@ -24,7 +25,7 @@
     "headline": "Samenwerkingsplatform “Gradido Kringen”",
     "text": "Lokale kringen, studiekringen, projecten, evenementen en congressen",
     "allowed": {
-      "button": "Kringen starten..."
+      "button": "Kringen openen..."
     },
     "not-allowed": {
       "button": "Configureren..."
@@ -33,19 +34,20 @@
   "card-user-search": {
     "headline": "Geografisch leden zoeken (bèta)",
     "allowed": {
-      "button": "Zoeken naar leden starten...",
+      "button": "Leden zoeken openen...",
       "disabled-button": "GMS offline...",
       "text": "Vind leden van alle gemeenschappen op een kaart."
     },
     "not-allowed": {
-      "button": "Locatie instellen...",
-      "text": "Vind leden van alle gemeenschappen op een kaart? Dan moet je eerst je locatie instellen."
-    }
+      "button": "Locatie invoeren",
+      "text": "Om andere leden in jouw omgeving te vinden, voer nu je locatie in op de kaart!"
+    },
+    "info": "Zo gaat dat"
   },
   "circles": {
     "headline": "Samen ondersteunen we elkaar - mindful in de cirkelcultuur.",
     "text": "Klik op de knop om het samenwerkingsplatform te openen in een nieuw browservenster.",
-    "button": "Cirkels starten..."
+    "button": "Cirkels openen..."
   },
   "community": {
     "admins": "Beheerders",
@@ -69,7 +71,8 @@
   "contribution": {
     "activity": "Activiteit",
     "alert": {
-      "answerQuestion": "Please answer the question",
+      "answerQuestion": "Er is een nieuw bericht over deze bijdrage.",
+      "answerQuestionToast": "U hebt nieuwe berichten.",
       "communityNoteList": "Hier vind je alle ingediende en bevestigde bijdragen van alle leden uit deze gemeenschap.",
       "confirm": "bevestigt",
       "denied": "afgewezen",
@@ -239,6 +242,7 @@
     "raise": "Verhoging",
     "recruited-member": "Uitgenodigd lid"
   },
+  "info": "Informatie",
   "language": "Taal",
   "link-load": "de laatste link herladen | de laatste links herladen",
   "link-load-more": "verdere {n} links herladen",
@@ -265,7 +269,6 @@
   "navigation": {
     "admin_area": "Beheerder",
     "community": "Gemeenschap",
-    "info": "Informatie",
     "logout": "Afmelden",
     "members_area": "Ledenbestand",
     "overview": "Overzicht",

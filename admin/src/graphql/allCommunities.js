@@ -15,6 +15,7 @@ export const allCommunities = gql`
       creationDate
       createdAt
       updatedAt
+      hieroTopicId
       federatedCommunities {
         id
         apiVersion

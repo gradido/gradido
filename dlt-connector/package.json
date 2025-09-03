@@ -1,10 +1,10 @@
 {
   "name": "dlt-connector",
   "repository": "git@github.com:gradido/gradido.git",
+  "version": "2.6.1",
   "description": "Gradido DLT-Connector",
   "author": "Gradido Academy - https://www.gradido.net",
   "license": "Apache-2.0",
-  "version": "1.0.50",
   "private": true,
   "scripts": {
     "start": "bun run src/index.ts",

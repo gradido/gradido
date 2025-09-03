@@ -21,7 +21,7 @@
         </span>
       </div>
       <a href="https://gradido.net/gms1/" target="_blank">
-        {{ $t('info') }}
+        {{ $t('card-user-search.info') }}
       </a>
       <BRow class="my-1">
         <BCol cols="12">

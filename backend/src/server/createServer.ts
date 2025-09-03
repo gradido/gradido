@@ -9,12 +9,13 @@ import helmet from 'helmet'
 import { Logger, getLogger } from 'log4js'
 import { DataSource } from 'typeorm'
 
-import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { GRADIDO_REALM, LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { AppDatabase } from 'database'
 import { context as serverContext } from './context'
 import { cors } from './cors'
 import { i18n } from './localization'
 import { plugins } from './plugins'
+import { jwks, openidConfiguration } from '@/openIDConnect'
 // TODO implement
 // import queryComplexity, { simpleEstimator, fieldConfigEstimator } from "graphql-query-complexity";
 
@@ -83,6 +84,10 @@ export const createServer = async (
   // GMS Webhook
 
   app.get('/hook/gms/' + CONFIG.GMS_WEBHOOK_SECRET, gmsWebhook)
+
+  // OpenID Connect
+  app.get(`/realms/${GRADIDO_REALM}/.well-known/openid-configuration`, openidConfiguration)
+  app.get(`/realms/${GRADIDO_REALM}/protocol/openid-connect/certs`, jwks)
 
   // Apollo Server
   const apollo = new ApolloServer({

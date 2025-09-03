@@ -21,7 +21,7 @@ export class EditCommunityInput {
   location?: Location | null
 
   @Field(() => String, { nullable: true })
+  @IsString()
   @isValidHieroId()
-  topicId?: string | null 
-
+  hieroTopicId?: string | null
 }

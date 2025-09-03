@@ -31,7 +31,7 @@ export class AuthenticationClient {
     methodLogger.addContext('handshakeID', args.handshakeID)
     methodLogger.debug('openConnectionCallback with endpoint', this.endpoint, args)
     try {
-      const { data } = await this.client.rawRequest<any>(openConnectionCallback, { args })
+      const { data } = await this.client.rawRequest<{ openConnectionCallback: boolean }>(openConnectionCallback, { args })
       methodLogger.debug('after openConnectionCallback: data:', data)
 
       if (!data || !data.openConnectionCallback) {
@@ -51,13 +51,13 @@ export class AuthenticationClient {
     methodLogger.addContext('handshakeID', args.handshakeID)
     methodLogger.debug('authenticate with endpoint=', this.endpoint)
     try {
-      const { data } = await this.client.rawRequest<any>(authenticate, { args })
+      const { data } = await this.client.rawRequest<{ authenticate: string }>(authenticate, { args })
       methodLogger.debug('after authenticate: data:', data)
 
-      const authUuid: string = data?.authenticate
-      if (authUuid) {
-        methodLogger.debug('received authenticated uuid', authUuid)
-        return authUuid
+      const responseJwt = data?.authenticate
+      if (responseJwt) {
+        methodLogger.debug('received authenticated uuid as jwt', responseJwt)
+        return responseJwt
       }
     } catch (err) {
       methodLogger.error('authenticate failed', {

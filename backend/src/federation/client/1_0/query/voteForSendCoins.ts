@@ -1,8 +1,12 @@
 import { gql } from 'graphql-request'
 
 export const voteForSendCoins = gql`
-  mutation ($args: SendCoinsArgs!) {
-    voteForSendCoins(data: $args) {
+  mutation ($args: EncryptedTransferArgs!) {
+    voteForSendCoins(data: $args)
+  }
+`
+/*
+    {
       vote
       recipGradidoID
       recipFirstName
@@ -10,4 +14,4 @@ export const voteForSendCoins = gql`
       recipAlias
     }
   }
-`
+*/

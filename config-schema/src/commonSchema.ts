@@ -92,7 +92,7 @@ export const GMS_ACTIVE = Joi.boolean()
   .required()
 
 export const GDT_ACTIVE = Joi.boolean()
-  .description('Flag to indicate if the GMS (Geographic Member Search) service is used.')
+  .description('Flag to indicate if the GDT (Gradido Transform) service is used.')
   .default(false)
   .required()
 

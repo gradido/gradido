@@ -5,6 +5,7 @@
   "1000thanks": "1000 Dank, weil du bei uns bist!",
   "125": "125%",
   "85": "85%",
+  "Chat": "Chat",
   "GDD": "GDD",
   "GDT": "GDT",
   "GMS": {
@@ -17,6 +18,7 @@
   },
   "PersonalDetails": "Persönliche Angaben",
   "advanced-calculation": "Vorausberechnung",
+  "answerNow": "→ Jetzt antworten!",
   "asterisks": "****",
   "auth": {
     "left": {
@@ -34,7 +36,7 @@
     "headline": "Kooperationsplattform »Gradido-Kreise«",
     "text": "Lokale Kreise, Studienkreise, Projekte, Events und Kongresse",
     "allowed": {
-      "button": "Kreise starten..."
+      "button": "Kreise öffnen..."
     },
     "not-allowed": {
       "button": "Konfigurieren..."
@@ -43,14 +45,15 @@
   "card-user-search": {
     "headline": "Geografische Mitgliedssuche (beta)",
     "allowed": {
-      "button": "Öffne Mitgliedssuche...",
+      "button": "Mitgliedssuche öffnen...",
       "disabled-button": "GMS offline...",
       "text": "Finde Mitglieder aller Communities auf einer Landkarte."
     },
     "not-allowed": {
-      "button": "Standort festlegen...",
-      "text": "Finde Mitglieder aller Communities auf einer Landkarte? Dann musst du selbst erst deinen Standort festlegen."
-    }
+      "button": "Standort eintragen...",
+      "text": "Um andere Mitglieder in deinem Umkreis zu finden, trage jetzt deinen Standort auf der Karte ein!"
+    },
+    "info": "So gehts"
   },
   "community": {
     "admins": "Administratoren",
@@ -203,22 +206,43 @@
     "username": "Benutzername",
     "username-placeholder": "Wähle deinen Benutzernamen",
     "validation": {
-      "gddCreationTime": {
-        "min": "Die Stunden sollten mindestens {min} groß sein",
-        "max": "Die Stunden sollten höchstens {max} groß sein",
-        "decimal-places": "Die Stunden sollten maximal zwei Nachkommastellen enthalten"
+      "amount": {
+        "min": "Der Betrag sollte mindestens {min} groß sein.",
+        "max": "Der Betrag sollte höchstens {max} groß sein.",
+        "decimal-places": "Der Betrag sollte maximal zwei Nachkommastellen enthalten.",
+        "typeError": "Der Betrag sollte eine Zahl zwischen {min} und {max} mit höchstens zwei Nachkommastellen sein."
       },
-      "gddSendAmount": "Das Feld {_field_} muss eine Zahl zwischen {min} und {max} mit höchstens zwei Nachkommastellen sein",
-      "is-not": "Du kannst dir selbst keine Gradidos überweisen",
+      "contributionDate": {
+        "required": "Das Beitragsdatum ist ein Pflichtfeld.",
+        "min": "Das Frühste Beitragsdatum ist {min}.",
+        "max": "Das Späteste Beitragsdatum ist heute, der {max}."
+      },
+      "contributionMemo": {
+        "min": "Die Tätigkeitsbeschreibung sollte mindestens {min} Zeichen lang sein.",
+        "max": "Die Tätigkeitsbeschreibung sollte höchstens {max} Zeichen lang sein.",
+        "required": "Die Tätigkeitsbeschreibung ist ein Pflichtfeld."
+      },
+      "hours": {
+        "min": "Die Stunden sollten mindestens {min} groß sein.",
+        "max": "Die Stunden sollten höchstens {max} groß sein.",
+        "decimal-places": "Die Stunden sollten maximal zwei Nachkommastellen enthalten.",
+        "typeError": "Die Stunden sollten eine Zahl zwischen {min} und {max} mit höchstens zwei Nachkommastellen sein."
+      },
+      "gddSendAmount": "Das Feld {_field_} muss eine Zahl zwischen {min} und {max} mit höchstens zwei Nachkommastellen sein.",
+      "identifier": {
+        "required": "Der Empfänger ist ein Pflichtfeld.",
+        "typeError": "Der Empfänger muss eine Email, ein Nutzernamen oder eine Gradido ID sein."
+      },
+      "is-not": "Du kannst dir selbst keine Gradidos überweisen!",
       "memo": {
-        "min": "Die Tätigkeitsbeschreibung sollte mindestens {min} Zeichen lang sein",
-        "max": "Die Tätigkeitsbeschreibung sollte höchstens {max} Zeichen lang sein"
+        "min": "Die Nachricht sollte mindestens {min} Zeichen lang sein.",
+        "max": "Die Nachricht sollte höchstens {max} Zeichen lang sein.",
+        "required": "Die Nachricht ist ein Pflichtfeld."
       },
       "requiredField": "{fieldName} ist ein Pflichtfeld",
       "username-allowed-chars": "Der Nutzername darf nur aus Buchstaben (ohne Umlaute), Zahlen, Binde- oder Unterstrichen bestehen.",
       "username-hyphens": "Binde- oder Unterstriche müssen zwischen Buchstaben oder Zahlen stehen.",
-      "username-unique": "Der Nutzername ist bereits vergeben.",
-      "valid-identifier": "Muss eine Email, ein Nutzernamen oder eine gradido ID sein."
+      "username-unique": "Der Nutzername ist bereits vergeben."
     },
     "your_amount": "Dein Betrag"
   },
@@ -277,7 +301,7 @@
     "recruited-member": "Eingeladenes Mitglied"
   },
   "h": "h",
-  "info": "Info",
+  "info": "Information",
   "language": "Sprache",
   "link-load": "den letzten Link nachladen | die letzten {n} Links nachladen",
   "link-load-more": "weitere {n} Links nachladen",
@@ -302,11 +326,9 @@
   },
   "missingGradidoAccount": "Noch kein {communityName} Konto?",
   "moderatorChangedMemo": "Text vom Moderator bearbeitet",
-  "moderatorChat": "Moderator Chat",
   "navigation": {
     "admin_area": "Adminbereich",
     "community": "Gemeinschaft",
-    "info": "Information",
     "logout": "Abmelden",
     "overview": "Übersicht",
     "send": "Senden",

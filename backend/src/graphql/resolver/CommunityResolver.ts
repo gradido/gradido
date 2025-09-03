@@ -38,6 +38,7 @@ export class CommunityResolver {
   @Authorized([RIGHTS.COMMUNITIES])
   @Query(() => [AdminCommunityView])
   async allCommunities(@Args() paginated: Paginated): Promise<AdminCommunityView[]> {
+    // communityUUID could be oneTimePassCode (uint32 number)
     return (await getAllCommunities(paginated)).map((dbCom) => new AdminCommunityView(dbCom))
   }
 
@@ -58,6 +59,7 @@ export class CommunityResolver {
   async communityByIdentifier(
     @Arg('communityIdentifier') communityIdentifier: string,
   ): Promise<Community> {
+    // communityUUID could be oneTimePassCode (uint32 number)
     const community = await getCommunityByIdentifier(communityIdentifier)
     if (!community) {
       throw new LogError('community not found', communityIdentifier)
@@ -78,7 +80,7 @@ export class CommunityResolver {
   @Authorized([RIGHTS.COMMUNITY_UPDATE])
   @Mutation(() => Community)
   async updateHomeCommunity(
-    @Args() { uuid, gmsApiKey, location }: EditCommunityInput,
+    @Args() { uuid, gmsApiKey, location, hieroTopicId }: EditCommunityInput,
   ): Promise<Community> {
     const homeCom = await getCommunityByUuid(uuid)
     if (!homeCom) {
@@ -87,11 +89,16 @@ export class CommunityResolver {
     if (homeCom.foreign) {
       throw new LogError('Error: Only the HomeCommunity could be modified!')
     }
-    if (homeCom.gmsApiKey !== gmsApiKey || homeCom.location !== location) {
+    if (
+      homeCom.gmsApiKey !== gmsApiKey ||
+      homeCom.location !== location ||
+      homeCom.hieroTopicId !== hieroTopicId
+    ) {
       homeCom.gmsApiKey = gmsApiKey ?? null
       if (location) {
         homeCom.location = Location2Point(location)
       }
+      homeCom.hieroTopicId = hieroTopicId ?? null
       await DbCommunity.save(homeCom)
     }
     return new Community(homeCom)

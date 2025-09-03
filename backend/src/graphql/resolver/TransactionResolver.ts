@@ -15,7 +15,7 @@ import { In, IsNull } from 'typeorm'
 import { Paginated } from '@arg/Paginated'
 import { TransactionSendArgs } from '@arg/TransactionSendArgs'
 import { Order } from '@enum/Order'
-import { PendingTransactionState } from 'shared'
+import { PendingTransactionState, SendCoinsResponseJwtPayloadType } from 'shared'
 import { TransactionTypeId } from '@enum/TransactionTypeId'
 import { Transaction } from '@model/Transaction'
 import { TransactionList } from '@model/TransactionList'
@@ -484,7 +484,7 @@ export class TransactionResolver {
       if (recipCom !== null && recipCom.authenticatedAt === null) {
         throw new LogError('recipient community is connected, but still not authenticated yet!')
       }
-      let pendingResult: SendCoinsResult
+      let pendingResult: SendCoinsResponseJwtPayloadType | null = null
       let committingResult: SendCoinsResult
       const creationDate = new Date()
 
@@ -499,7 +499,7 @@ export class TransactionResolver {
           recipientIdentifier,
         )
         logger.debug('processXComPendingSendCoins result: ', pendingResult)
-        if (pendingResult.vote && pendingResult.recipGradidoID) {
+        if (pendingResult && pendingResult.vote && pendingResult.recipGradidoID) {
           logger.debug('vor processXComCommittingSendCoins... ')
           committingResult = await processXComCommittingSendCoins(
             recipCom,

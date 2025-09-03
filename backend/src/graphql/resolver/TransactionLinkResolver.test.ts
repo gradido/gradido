@@ -187,7 +187,7 @@ describe('TransactionLinkResolver', () => {
           variables: {
             identifier: 'peter@lustig.de',
             amount: 100,
-            memo: 'test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test t',
+            memo: 'test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test',
           },
         })
         expect(errorObjects).toMatchObject([
@@ -199,7 +199,7 @@ describe('TransactionLinkResolver', () => {
                   {
                     property: 'memo',
                     constraints: {
-                      maxLength: 'memo must be shorter than or equal to 255 characters',
+                      maxLength: 'memo must be shorter than or equal to 512 characters',
                     },
                   },
                 ],

@@ -30,6 +30,10 @@ export class Community extends BaseEntity {
   @Column({ name: 'private_key', type: 'binary', length: 64, nullable: true })
   privateKey: Buffer | null
 
+  /**
+   * Most of time a uuidv4 value, but could be also a uint32 number for a short amount of time, so please check before use
+   * in community authentication this field is used to store a oneTimePassCode (uint32 number)
+   */
   @Column({
     name: 'community_uuid',
     type: 'char',
@@ -68,6 +72,9 @@ export class Community extends BaseEntity {
     transformer: GeometryTransformer,
   })
   location: Geometry | null
+
+  @Column({ name: 'hiero_topic_id', type: 'varchar', length: 255, nullable: true })
+  hieroTopicId: string | null
 
   @CreateDateColumn({
     name: 'created_at',
