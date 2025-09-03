@@ -565,7 +565,7 @@ export class TransactionLinkResolver {
         methodLogger.debug('jws=', jws)
       }
       const args = new EncryptedTransferArgs()
-      args.publicKey = senderCom.publicKey.toString('hex')
+      args.publicKey = recipientCom.publicKey.toString('hex')
       args.jwt = jws
       args.handshakeID = handshakeID
       try {
