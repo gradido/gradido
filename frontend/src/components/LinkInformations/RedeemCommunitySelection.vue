@@ -167,19 +167,14 @@ async function onSwitch(event) {
         alias: props.linkData.senderUser?.alias,
         validUntil: props.linkData.validUntil,
       })
-      console.log('RedeemCommunitySelection.onSwitch... response=', data)
+      // console.log('RedeemCommunitySelection.onSwitch... response=', data)
       if (!data?.createRedeemJwt) {
         throw new Error('Failed to get redeem token')
       }
       const targetUrl = currentRecipientCommunity.value.url.replace(/\/api\/?$/, '')
-      console.log('RedeemCommunitySelection.onSwitch... targetUrl=', targetUrl)
-      console.log(
-        'RedeemCommunitySelection.onSwitch... data.createRedeemJwt=',
-        data.createRedeemJwt,
-      )
       window.location.href = targetUrl + '/redeem/' + data.createRedeemJwt
     } catch (error) {
-      console.error('RedeemCommunitySelection.onSwitch error:', error)
+      // console.error('RedeemCommunitySelection.onSwitch error:', error)
       throw error
     }
   }
