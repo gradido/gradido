@@ -2,10 +2,16 @@ import { GraphQLClient } from 'graphql-request'
 import { SignJWT } from 'jose'
 
 import { CONFIG } from '../../config'
-import { communitySchema, type Community, homeCommunityGraphqlQuery } from './community.schema'
+import { 
+  communitySchema, 
+  type Community, 
+  homeCommunityGraphqlQuery, 
+  setHomeCommunityTopicId 
+} from './community.schema'
 import { getLogger, Logger } from 'log4js'
 import { LOG4JS_BASE_CATEGORY } from '../../config/const'
 import * as v from 'valibot'
+import { HieroId, Uuidv4 } from '../../schemas/typeGuard.schema'
 
 // Source: https://refactoring.guru/design-patterns/singleton/typescript/example
 // and ../federation/client/FederationClientFactory.ts
@@ -53,9 +59,7 @@ export class BackendClient {
   public async getHomeCommunityDraft(): Promise<Community> {
     this.logger.info('check home community on backend')
     const { data, errors } = await this.client.rawRequest<{ homeCommunity: Community }>(
-      homeCommunityGraphqlQuery,
-      {}, // empty variables
-      await this.getRequestHeader(),
+      homeCommunityGraphqlQuery, {}, await this.getRequestHeader(),
     )
     if (errors) {
       throw errors[0]
@@ -63,8 +67,15 @@ export class BackendClient {
     return v.parse(communitySchema, data.homeCommunity)
   }
 
-  public async setHomeCommunityTopicId(topicId: HieroId) {
-    
+  public async setHomeCommunityTopicId(uuid: Uuidv4, hieroTopicId: HieroId): Promise<Community> {
+    this.logger.info('update home community on backend')
+    const { data, errors } = await this.client.rawRequest<{ updateHomeCommunity: Community }>(
+      setHomeCommunityTopicId, { uuid, hieroTopicId }, await this.getRequestHeader(),
+    )
+    if (errors) {
+      throw errors[0]
+    } 
+    return v.parse(communitySchema, data.updateHomeCommunity)
   }
 
   private async getRequestHeader(): Promise<{

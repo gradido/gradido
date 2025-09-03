@@ -12,6 +12,7 @@ import { KeyPairCacheManager } from './KeyPairCacheManager'
 import { keyGenerationSeedSchema } from './schemas/base.schema'
 import { isPortOpenRetry } from './utils/network'
 import { appRoutes } from './server'
+import { MIN_TOPIC_EXPIRE_MILLISECONDS_FOR_UPDATE } from './config/const'
 
 async function main() {
   // configure log4js
@@ -36,13 +37,28 @@ async function main() {
   if (!backend) {
     throw new Error('cannot create backend client')
   }
+  const hieroClient = HieroClient.getInstance()
+  if (!hieroClient) {
+    throw new Error('cannot create hiero client')
+  }
   // wait for backend server
   await isPortOpenRetry(CONFIG.BACKEND_SERVER_URL)
-  const homeCommunity = await backend.getHomeCommunityDraft()
+  let homeCommunity = await backend.getHomeCommunityDraft()
   // on missing topicId, create one
   if (!homeCommunity.topicId) {
-    const topicId = await HieroClient.getInstance().createTopic()
-    
+    const topicId = await hieroClient.createTopic()
+    homeCommunity = await backend.setHomeCommunityTopicId(homeCommunity.uuid, topicId)
+  } else {
+    // if topic exist, check if we need to update it
+    let topicInfo = await hieroClient.getTopicInfo(homeCommunity.topicId)
+    if (topicInfo.expirationTime.getTime() - new Date().getTime() < MIN_TOPIC_EXPIRE_MILLISECONDS_FOR_UPDATE) {
+      await hieroClient.updateTopic(homeCommunity.topicId)
+      topicInfo = await hieroClient.getTopicInfo(homeCommunity.topicId)
+      logger.info('updated topic info, new expiration time: %s', topicInfo.expirationTime.toLocaleDateString())
+    }
+  }
+  if (!homeCommunity.topicId) {
+    throw new Error('still no topic id, after creating topic and update community in backend.')
   }
   KeyPairCacheManager.getInstance().setHomeCommunityTopicId(homeCommunity.topicId)
   logger.info('home community topic: %s', homeCommunity.topicId)

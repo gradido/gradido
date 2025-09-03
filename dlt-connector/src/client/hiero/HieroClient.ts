@@ -85,9 +85,9 @@ export class HieroClient {
     return balance
   }
 
-  public async getTopicInfo(topicId: HieroTopicId): Promise<TopicInfoOutput> {
+  public async getTopicInfo(topicId: HieroId): Promise<TopicInfoOutput> {
     const info = await new TopicInfoQuery()
-        .setTopicId(new TopicId(topicId.getShardNum(), topicId.getRealmNum(), topicId.getTopicNum()))
+        .setTopicId(TopicId.fromString(topicId))
         .execute(this.client)
     this.logger.debug(JSON.stringify(info, null, 2))
     return parse(topicInfoSchema, {
@@ -108,9 +108,10 @@ export class HieroClient {
     return parse(hieroIdSchema, createReceipt.topicId?.toString())
   }
 
-  public async updateTopic(): Promise<void> {
+  public async updateTopic(topicId: HieroId): Promise<void> {
     let transaction = new TopicUpdateTransaction()
     transaction.setExpirationTime(new Date(new Date().getTime() + MIN_AUTORENEW_PERIOD * 1000))
+    transaction.setTopicId(TopicId.fromString(topicId))
     transaction = await transaction.freezeWithSigner(this.wallet)
     transaction = await transaction.signWithSigner(this.wallet)
     const updateResponse = await transaction.executeWithSigner(this.wallet)
