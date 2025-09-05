@@ -523,7 +523,7 @@ export class TransactionLinkResolver {
       recipientAlias,
       })
     }
-   const senderCom = await DbCommunity.findOneBy({ communityUuid: senderCommunityUuid })
+   const senderCom = await getCommunityByUuid(senderCommunityUuid)
     if (!senderCom) {
       const errmsg = `Sender community not found with uuid=${senderCommunityUuid}`
       methodLogger.error(errmsg)
@@ -535,7 +535,7 @@ export class TransactionLinkResolver {
       methodLogger.error(errmsg)
       throw new LogError(errmsg)
     }
-    const recipientCom = await DbCommunity.findOneBy({ communityUuid: recipientCommunityUuid })
+    const recipientCom = await getCommunityByUuid(recipientCommunityUuid)
     if (!recipientCom) {
       const errmsg = `Recipient community not found with uuid=${recipientCommunityUuid}`
       methodLogger.error(errmsg)
