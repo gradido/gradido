@@ -11,9 +11,7 @@ export class SignedTransferPayloadType extends JwtPayloadType {
     jwt: string,
     handshakeID: string,
   ) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     super(handshakeID)
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     this.tokentype = SignedTransferPayloadType.SIGNED_TRANSFER_TYPE
     this.publicKey = publicKey
     this.jwt = jwt

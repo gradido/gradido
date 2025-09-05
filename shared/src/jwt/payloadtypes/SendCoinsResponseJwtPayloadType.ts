@@ -17,9 +17,7 @@ export class SendCoinsResponseJwtPayloadType extends JwtPayloadType {
     recipLastName: string | null,
     recipAlias: string | null,
   ) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     super(handshakeID)
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     this.tokentype = SendCoinsResponseJwtPayloadType.SEND_COINS_RESPONSE_TYPE
     this.vote = vote
     this.recipGradidoID = recipGradidoID
