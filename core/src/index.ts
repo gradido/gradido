@@ -21,3 +21,5 @@ export * from './graphql/model/EncryptedTransferArgs'
 export * from './util/calculateSenderBalance'
 export * from './util/utilities'
 export * from './validation/user'
+export * from './config/index'
+
