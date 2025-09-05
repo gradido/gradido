@@ -340,10 +340,7 @@ function setRedeemJwtLinkInformation() {
   if (deepCopy) {
     // recipientUser is only set if the user is logged in
     if (store.state.gradidoID !== null) {
-      // console.log(
-      //   'TransactionLink.setRedeemJwtLinkInformation... gradidoID=',
-      //   store.state.gradidoID,
-      // )
+      // console.log('TransactionLink.setRedeemJwtLinkInformation... gradidoID=', store.state.gradidoID)
       deepCopy.queryTransactionLink.recipientUser = {
         __typename: 'User',
         gradidoID: store.state.gradidoID,
@@ -362,11 +359,23 @@ function setRedeemJwtLinkInformation() {
 
 async function mutationLink(amount) {
   // console.log('TransactionLink.mutationLink... params=', params)
+  // console.log('TransactionLink.mutationLink... linkData.value=', linkData.value)
+  // console.log('TransactionLink.mutationLink... linkData=', linkData)
   if (isRedeemJwtLink.value) {
     // console.log('TransactionLink.mutationLink... trigger disbursement from recipient-community')
     try {
       await disburseMutate({
-        code: params.code,
+        senderCommunityUuid: linkData.value.senderCommunity.uuid,
+        senderGradidoId: linkData.value.senderUser.gradidoID,
+        recipientCommunityUuid: linkData.value.recipientCommunity.uuid,
+        recipientCommunityName: linkData.value.recipientCommunity.name,
+        recipientGradidoId: linkData.value.recipientUser.gradidoID,
+        recipientFirstName: linkData.value.recipientUser.firstName,
+        code: linkData.value.code,
+        amount: linkData.value.amount,
+        memo: linkData.value.memo,
+        validUntil: linkData.value.validUntil,
+        recipientAlias: linkData.value.recipientUser.alias,
       })
       toastSuccess(t('gdd_per_link.disbured', { n: amount }))
       await router.push('/overview')

@@ -26,9 +26,7 @@ export class SendCoinsJwtPayloadType extends JwtPayloadType {
     senderUserName: string,
     senderAlias?: string | null,
   ) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     super(handshakeID)
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     this.tokentype = SendCoinsJwtPayloadType.SEND_COINS_TYPE
     this.recipientCommunityUuid = recipientCommunityUuid
     this.recipientUserIdentifier = recipientUserIdentifier

@@ -1,6 +1,6 @@
 import { AbstractLoggingView } from 'database'
 
-import { Decay } from '@/graphql/model/Decay'
+import { Decay } from '../model/Decay'
 import type { Decay as DecayInterface } from 'shared'
 
 export class DecayLoggingView extends AbstractLoggingView {

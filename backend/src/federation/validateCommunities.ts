@@ -15,7 +15,7 @@ import { createKeyPair } from 'shared'
 import { getLogger } from 'log4js'
 import { startCommunityAuthentication } from './authenticateCommunities'
 import { PublicCommunityInfoLoggingView } from './client/1_0/logging/PublicCommunityInfoLogging.view'
-import { ApiVersionType } from './enum/apiVersionType'
+import { ApiVersionType } from 'core'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.federation.validateCommunities`)
 
