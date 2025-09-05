@@ -35,15 +35,15 @@ import { storeForeignUser } from './storeForeignUser'
 const createLogger = (method: string) => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.util.processXComSendCoins.${method}`)
 
 export async function processXComCompleteTransaction(
-  sendercommunityuuid: string,
-  sendergradidoid: string,
-  recipientcommunityuuid: string,
-  recipientgradidoid: string,
+  senderCommunityUuid: string,
+  senderGradidoId: string,
+  recipientCommunityUuid: string,
+  recipientGradidoId: string,
   amount: string,
   memo: string,
   code?: string,
-  recipientfirstname?: string,
-  recipientalias?: string,
+  recipientFirstName?: string,
+  recipientAlias?: string,
   creationDate?: Date,
 ): Promise<boolean> {
   const methodLogger = createLogger(`processXComCompleteTransaction`)
@@ -54,23 +54,23 @@ export async function processXComCompleteTransaction(
     methodLogger.error(errmsg)
     throw new Error(errmsg)
   }
-  const senderCom = await getCommunityByUuid(sendercommunityuuid)
+  const senderCom = await getCommunityByUuid(senderCommunityUuid)
   methodLogger.debug('sender community: ', senderCom?.id)
   if (senderCom === null) {
-    const errmsg = `no sender community found for identifier: ${sendercommunityuuid}`
+    const errmsg = `no sender community found for identifier: ${senderCommunityUuid}`
     methodLogger.error(errmsg)
     throw new Error(errmsg)
   }
-  const senderUser = await findUserByIdentifier(sendergradidoid, sendercommunityuuid)
+  const senderUser = await findUserByIdentifier(senderGradidoId, senderCommunityUuid)
   if (senderUser === null) {
-    const errmsg = `no sender user found for identifier: ${sendercommunityuuid}:${sendergradidoid}`
+    const errmsg = `no sender user found for identifier: ${senderCommunityUuid}:${senderGradidoId}`
     methodLogger.error(errmsg)
     throw new Error(errmsg)
   }
-  const recipientCom = await getCommunityByUuid(recipientcommunityuuid)
+  const recipientCom = await getCommunityByUuid(recipientCommunityUuid)
   methodLogger.debug('recipient community: ', recipientCom?.id)
   if (recipientCom === null) {
-    const errmsg = `no recipient community found for identifier: ${recipientcommunityuuid}`
+    const errmsg = `no recipient community found for identifier: ${recipientCommunityUuid}`
     methodLogger.error(errmsg)
     throw new Error(errmsg)
   }
@@ -107,7 +107,7 @@ export async function processXComCompleteTransaction(
       new Decimal(amount),
       memo,
       senderUser,
-      recipientgradidoid,
+      recipientGradidoId,
     )
     methodLogger.debug('processXComPendingSendCoins result: ', pendingResult)
     if (pendingResult && pendingResult.vote && pendingResult.recipGradidoID) {
@@ -127,7 +127,7 @@ export async function processXComCompleteTransaction(
         throw new Error(
           'FATAL ERROR: on processXComCommittingSendCoins with ' +
           recipientCom.communityUuid +
-          recipientgradidoid +
+          recipientGradidoId +
           amount.toString() +
           memo,
         )
@@ -144,8 +144,8 @@ export async function processXComCompleteTransaction(
     }
   } catch (err) {
     const errmsg = `ERROR: on processXComCommittingSendCoins with ` +
-      recipientcommunityuuid +
-      recipientgradidoid +
+      recipientCommunityUuid +
+      recipientGradidoId +
       amount.toString() +
       memo +
       err
