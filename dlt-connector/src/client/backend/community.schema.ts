@@ -4,17 +4,13 @@ import { dateSchema } from '../../schemas/typeConverter.schema'
 import { hieroIdSchema, uuidv4Schema } from '../../schemas/typeGuard.schema'
 
 /**
- * Schema Definitions for rpc call parameter, when dlt-connector is called from backend
- */
-
-/**
- * Schema for community, for creating new CommunityRoot Transaction on gradido blockchain
+ * Schema Definitions for graphql response
  */
 export const communitySchema = v.object({
   uuid: uuidv4Schema,
-  topicId: v.nullish(hieroIdSchema),
+  hieroTopicId: v.nullish(hieroIdSchema),
   foreign: v.boolean('expect boolean type'),
-  createdAt: dateSchema,
+  creationDate: dateSchema,
 })
 
 export type CommunityInput = v.InferInput<typeof communitySchema>
@@ -25,7 +21,7 @@ export const homeCommunityGraphqlQuery = gql`
   query {
     homeCommunity {
       uuid
-      topicId
+      hieroTopicId
       foreign
       creationDate
     }
@@ -33,10 +29,10 @@ export const homeCommunityGraphqlQuery = gql`
 `
 
 export const setHomeCommunityTopicId = gql`
-  mutation ($uuid: string, $hieroTopicId: string){
+  mutation ($uuid: String!, $hieroTopicId: String){
     updateHomeCommunity(uuid: $uuid, hieroTopicId: $hieroTopicId) {
       uuid
-      topicId
+      hieroTopicId
       foreign
       creationDate
     }

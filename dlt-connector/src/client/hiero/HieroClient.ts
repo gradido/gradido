@@ -6,7 +6,7 @@ import {
   PrivateKey,
   Timestamp,
   TopicCreateTransaction,
-  TopicId,  
+  TopicId,
   TopicInfoQuery,
   TopicMessageSubmitTransaction,
   TopicUpdateTransaction,
@@ -14,13 +14,13 @@ import {
   TransactionResponse,
   Wallet,
 } from '@hashgraph/sdk'
-import { parse } from 'valibot'
 import { GradidoTransaction, HieroTopicId } from 'gradido-blockchain-js'
 import { getLogger, Logger } from 'log4js'
+import { parse } from 'valibot'
 import { CONFIG } from '../../config'
 import { LOG4JS_BASE_CATEGORY } from '../../config/const'
 import { HieroId, hieroIdSchema } from '../../schemas/typeGuard.schema'
-import { topicInfoSchema, type TopicInfoOutput } from './output.schema'
+import { type TopicInfoOutput, topicInfoSchema } from './output.schema'
 
 // https://docs.hedera.com/hedera/sdks-and-apis/hedera-api/consensus/consensusupdatetopic
 export const MIN_AUTORENEW_PERIOD = 6999999 //seconds
@@ -29,7 +29,7 @@ export const MAX_AUTORENEW_PERIOD = 8000001 // seconds
 export class HieroClient {
   private static instance: HieroClient
   wallet: Wallet
-  client: Client  
+  client: Client
   logger: Logger
 
   private constructor() {
@@ -43,12 +43,10 @@ export class HieroClient {
       operatorKey = PrivateKey.fromStringECDSA(CONFIG.HIERO_OPERATOR_KEY)
     }
     this.wallet = new Wallet(CONFIG.HIERO_OPERATOR_ID, operatorKey, provider)
+    this.client.setOperator(CONFIG.HIERO_OPERATOR_ID, operatorKey)
   }
 
   public static getInstance(): HieroClient {
-    if (!CONFIG.HIERO_ACTIVE) {
-      throw new Error('hiero is disabled via config...')
-    }
     if (!HieroClient.instance) {
       HieroClient.instance = new HieroClient()
     }
@@ -87,14 +85,14 @@ export class HieroClient {
 
   public async getTopicInfo(topicId: HieroId): Promise<TopicInfoOutput> {
     const info = await new TopicInfoQuery()
-        .setTopicId(TopicId.fromString(topicId))
-        .execute(this.client)
+      .setTopicId(TopicId.fromString(topicId))
+      .execute(this.client)
     this.logger.debug(JSON.stringify(info, null, 2))
     return parse(topicInfoSchema, {
       topicId: topicId.toString(),
       sequenceNumber: info.sequenceNumber.toNumber(),
-      expirationTime: info.expirationTime?.toString(),
-      autoRenewPeriod: info.autoRenewPeriod?.seconds,
+      expirationTime: info.expirationTime?.toDate(),
+      autoRenewPeriod: info.autoRenewPeriod?.seconds.toNumber(),
       autoRenewAccountId: info.autoRenewAccountId?.toString(),
     })
   }

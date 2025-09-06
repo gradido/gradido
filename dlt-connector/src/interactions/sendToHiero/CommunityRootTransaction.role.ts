@@ -1,6 +1,7 @@
 import { GradidoTransactionBuilder } from 'gradido-blockchain-js'
-import { Community } from '../../client/backend/community.schema'
 import { KeyPairIdentifierLogic } from '../../data/KeyPairIdentifier.logic'
+import { GradidoBlockchainCryptoError } from '../../errors'
+import { Community } from '../../schemas/transaction.schema'
 import { HieroId } from '../../schemas/typeGuard.schema'
 import {
   AUF_ACCOUNT_DERIVATION_INDEX,
@@ -16,7 +17,7 @@ export class CommunityRootTransactionRole extends AbstractTransactionRole {
   }
 
   getSenderCommunityTopicId(): HieroId {
-    return this.community.topicId
+    return this.community.hieroTopicId
   }
 
   getRecipientCommunityTopicId(): HieroId {
@@ -26,16 +27,26 @@ export class CommunityRootTransactionRole extends AbstractTransactionRole {
   public async getGradidoTransactionBuilder(): Promise<GradidoTransactionBuilder> {
     const builder = new GradidoTransactionBuilder()
     const communityKeyPair = await KeyPairCalculation(
-      new KeyPairIdentifierLogic({ communityTopicId: this.community.topicId }),
+      new KeyPairIdentifierLogic({ communityTopicId: this.community.hieroTopicId }),
     )
     const gmwKeyPair = communityKeyPair.deriveChild(
       hardenDerivationIndex(GMW_ACCOUNT_DERIVATION_INDEX),
-    ) // as unknown as KeyPairEd25519
+    )
+    if (!gmwKeyPair) {
+      throw new GradidoBlockchainCryptoError(
+        `KeyPairEd25519 child derivation failed, has private key: ${communityKeyPair.hasPrivateKey()} for community: ${this.community.uuid}`,
+      )
+    }
     const aufKeyPair = communityKeyPair.deriveChild(
       hardenDerivationIndex(AUF_ACCOUNT_DERIVATION_INDEX),
-    ) // as unknown as KeyPairEd25519
+    )
+    if (!aufKeyPair) {
+      throw new GradidoBlockchainCryptoError(
+        `KeyPairEd25519 child derivation failed, has private key: ${communityKeyPair.hasPrivateKey()} for community: ${this.community.uuid}`,
+      )
+    }
     builder
-      .setCreatedAt(this.community.createdAt)
+      .setCreatedAt(this.community.creationDate)
       .setCommunityRoot(
         communityKeyPair.getPublicKey(),
         gmwKeyPair.getPublicKey(),

@@ -1,19 +1,11 @@
 import {
-  AddressType,
-  AddressType_COMMUNITY_AUF,
-  AddressType_COMMUNITY_GMW,
-  AddressType_COMMUNITY_HUMAN,
-  AddressType_COMMUNITY_PROJECT,
-  AddressType_CRYPTO_ACCOUNT,
-  AddressType_DEFERRED_TRANSFER,
-  AddressType_NONE,
-  AddressType_SUBACCOUNT,
   ConfirmedTransaction,
   DeserializeType_CONFIRMED_TRANSACTION,
   InteractionDeserialize,
   MemoryBlock,
 } from 'gradido-blockchain-js'
 import { AccountType } from '../enum/AccountType'
+import { AddressType } from '../enum/AddressType'
 
 export const confirmedTransactionFromBase64 = (base64: string): ConfirmedTransaction => {
   const confirmedTransactionBinaryPtr = MemoryBlock.createPtr(MemoryBlock.fromBase64(base64))
@@ -34,14 +26,14 @@ export const confirmedTransactionFromBase64 = (base64: string): ConfirmedTransac
  * AccountType is the enum defined in TypeScript but with the same options
  */
 const accountToAddressMap: Record<AccountType, AddressType> = {
-  [AccountType.COMMUNITY_AUF]: AddressType_COMMUNITY_AUF,
-  [AccountType.COMMUNITY_GMW]: AddressType_COMMUNITY_GMW,
-  [AccountType.COMMUNITY_HUMAN]: AddressType_COMMUNITY_HUMAN,
-  [AccountType.COMMUNITY_PROJECT]: AddressType_COMMUNITY_PROJECT,
-  [AccountType.CRYPTO_ACCOUNT]: AddressType_CRYPTO_ACCOUNT,
-  [AccountType.SUBACCOUNT]: AddressType_SUBACCOUNT,
-  [AccountType.DEFERRED_TRANSFER]: AddressType_DEFERRED_TRANSFER,
-  [AccountType.NONE]: AddressType_NONE,
+  [AccountType.COMMUNITY_AUF]: AddressType.COMMUNITY_AUF,
+  [AccountType.COMMUNITY_GMW]: AddressType.COMMUNITY_GMW,
+  [AccountType.COMMUNITY_HUMAN]: AddressType.COMMUNITY_HUMAN,
+  [AccountType.COMMUNITY_PROJECT]: AddressType.COMMUNITY_PROJECT,
+  [AccountType.CRYPTO_ACCOUNT]: AddressType.CRYPTO_ACCOUNT,
+  [AccountType.SUBACCOUNT]: AddressType.SUBACCOUNT,
+  [AccountType.DEFERRED_TRANSFER]: AddressType.DEFERRED_TRANSFER,
+  [AccountType.NONE]: AddressType.NONE,
 }
 
 const addressToAccountMap: Record<AddressType, AccountType> = Object.entries(
@@ -66,7 +58,7 @@ export function toAddressType(input: AccountType | AddressType): AddressType {
   if (isAddressType(input)) {
     return input
   }
-  return accountToAddressMap[input as AccountType] ?? AddressType_NONE
+  return accountToAddressMap[input as AccountType] ?? AddressType.NONE
 }
 
 export function toAccountType(input: AccountType | AddressType): AccountType {

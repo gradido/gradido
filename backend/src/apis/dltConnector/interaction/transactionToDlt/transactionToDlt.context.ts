@@ -1,16 +1,15 @@
-import { Transaction } from '@entity/Transaction'
-import { TransactionLink } from '@entity/TransactionLink'
-import { User } from '@entity/User'
+import { Transaction, TransactionLink, User } from 'database'
 
 import { DltConnectorClient } from '@/apis/dltConnector/DltConnectorClient'
 import { TransactionResult } from '@/apis/dltConnector/model/TransactionResult'
-import { backendLogger as logger } from '@/server/logger'
 
 import { AbstractTransactionToDltRole } from './AbstractTransactionToDlt.role'
 import { TransactionLinkDeleteToDltRole } from './TransactionLinkDeleteToDlt.role'
 import { TransactionLinkToDltRole } from './TransactionLinkToDlt.role'
 import { TransactionToDltRole } from './TransactionToDlt.role'
 import { UserToDltRole } from './UserToDlt.role'
+import { getLogger } from 'log4js'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 
 /**
  * @DCI-Context
@@ -20,12 +19,13 @@ export async function transactionToDlt(dltConnector: DltConnectorClient): Promis
   async function findNextPendingTransaction(): Promise<
     AbstractTransactionToDltRole<Transaction | User | TransactionLink>
   > {
+    const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}/apis/dltConnector/interaction/transactionToDlt`)
     // collect each oldest not sended entity from db and choose oldest
     const results = await Promise.all([
-      new TransactionToDltRole().initWithLast(),
-      new UserToDltRole().initWithLast(),
-      new TransactionLinkToDltRole().initWithLast(),
-      new TransactionLinkDeleteToDltRole().initWithLast(),
+      new TransactionToDltRole(logger).initWithLast(),
+      new UserToDltRole(logger).initWithLast(),
+      new TransactionLinkToDltRole(logger).initWithLast(),
+      new TransactionLinkDeleteToDltRole(logger).initWithLast(),
     ])
 
     // sort array to get oldest at first place

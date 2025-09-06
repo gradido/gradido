@@ -1,5 +1,5 @@
 import { KeyPairEd25519 } from 'gradido-blockchain-js'
-
+import { GradidoBlockchainCryptoError } from '../../errors'
 import { AbstractKeyPairRole } from './AbstractKeyPair.role'
 
 export class AccountKeyPairRole extends AbstractKeyPairRole {
@@ -11,6 +11,12 @@ export class AccountKeyPairRole extends AbstractKeyPairRole {
   }
 
   public generateKeyPair(): KeyPairEd25519 {
-    return this.userKeyPair.deriveChild(this.accountNr)
+    const keyPair = this.userKeyPair.deriveChild(this.accountNr)
+    if (!keyPair) {
+      throw new GradidoBlockchainCryptoError(
+        `KeyPairEd25519 child derivation failed, has private key: ${this.userKeyPair.hasPrivateKey()}, accountNr: ${this.accountNr}`,
+      )
+    }
+    return keyPair
   }
 }

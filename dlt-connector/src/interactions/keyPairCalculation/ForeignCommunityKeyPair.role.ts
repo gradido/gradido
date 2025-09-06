@@ -1,24 +1,19 @@
 import { KeyPairEd25519 } from 'gradido-blockchain-js'
-
-import { getTransaction } from '../../client/GradidoNode/api'
+import { GradidoNodeClient } from '../../client/GradidoNode/GradidoNodeClient'
 import {
   GradidoNodeInvalidTransactionError,
   GradidoNodeMissingTransactionError,
 } from '../../errors'
-import { HieroId } from '../../schemas/typeGuard.schema'
 import { AbstractRemoteKeyPairRole } from './AbstractRemoteKeyPair.role'
 
 export class ForeignCommunityKeyPairRole extends AbstractRemoteKeyPairRole {
-  public constructor(communityTopicId: HieroId) {
-    super(communityTopicId)
-  }
-
   public async retrieveKeyPair(): Promise<KeyPairEd25519> {
     const transactionIdentifier = {
-      transactionNr: 1,
+      transactionId: 1,
       topic: this.topic,
     }
-    const firstTransaction = await getTransaction(transactionIdentifier)
+    const firstTransaction =
+      await GradidoNodeClient.getInstance().getTransaction(transactionIdentifier)
     if (!firstTransaction) {
       throw new GradidoNodeMissingTransactionError('Cannot find transaction', transactionIdentifier)
     }

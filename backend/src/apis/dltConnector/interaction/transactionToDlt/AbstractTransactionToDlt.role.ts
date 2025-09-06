@@ -1,10 +1,10 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { ObjectLiteral, OrderByCondition, SelectQueryBuilder } from '@dbTools/typeorm'
-import { DltTransaction } from '@entity/DltTransaction'
+import { ObjectLiteral, OrderByCondition, SelectQueryBuilder } from 'typeorm'
+import { DltTransaction } from 'database'
 
 import { TransactionDraft } from '@dltConnector/model/TransactionDraft'
-
-import { backendLogger as logger } from '@/server/logger'
+import { getLogger, Logger } from 'log4js'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 
 export abstract class AbstractTransactionToDltRole<T extends ObjectLiteral> {
   protected self: T | null
@@ -13,6 +13,9 @@ export abstract class AbstractTransactionToDltRole<T extends ObjectLiteral> {
   public abstract initWithLast(): Promise<this>
   public abstract getTimestamp(): number
   public abstract convertToGraphqlInput(): TransactionDraft
+
+
+  public constructor(protected logger: Logger) {}
 
   public getEntity(): T | null {
     return this.self
@@ -25,11 +28,11 @@ export abstract class AbstractTransactionToDltRole<T extends ObjectLiteral> {
     this.setJoinIdAndType(dltTransaction)
     await DltTransaction.save(dltTransaction)
     if (dltTransaction.error) {
-      logger.error(
+      this.logger.error(
         `Store dltTransaction with error: id=${dltTransaction.id}, error=${dltTransaction.error}`,
       )
     } else {
-      logger.info(
+      this.logger.info(
         `Store dltTransaction: messageId=${dltTransaction.messageId}, id=${dltTransaction.id}`,
       )
     }

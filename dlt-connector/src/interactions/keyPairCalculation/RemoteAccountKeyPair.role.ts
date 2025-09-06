@@ -1,6 +1,5 @@
 import { KeyPairEd25519, MemoryBlock } from 'gradido-blockchain-js'
-
-import { findUserByNameHash } from '../../client/GradidoNode/api'
+import { GradidoNodeClient } from '../../client/GradidoNode/GradidoNodeClient'
 import { Uuidv4Hash } from '../../data/Uuidv4Hash'
 import { GradidoNodeMissingUserError, ParameterError } from '../../errors'
 import { IdentifierAccount } from '../../schemas/account.schema'
@@ -16,7 +15,7 @@ export class RemoteAccountKeyPairRole extends AbstractRemoteKeyPairRole {
       throw new ParameterError('missing account')
     }
 
-    const accountPublicKey = await findUserByNameHash(
+    const accountPublicKey = await GradidoNodeClient.getInstance().findUserByNameHash(
       new Uuidv4Hash(this.identifier.account.userUuid),
       this.topic,
     )

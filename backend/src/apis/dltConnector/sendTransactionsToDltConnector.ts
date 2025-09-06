@@ -1,7 +1,6 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { CONFIG } from '@/config'
-import { backendLogger as logger } from '@/server/logger'
-import { TypeORMError } from '@dbTools/typeorm'
+import { TypeORMError } from 'typeorm'
 // eslint-disable-next-line import/named, n/no-extraneous-import
 import { FetchError } from 'node-fetch'
 
@@ -14,6 +13,10 @@ import {
 } from '@/util/InterruptiveSleepManager'
 
 import { transactionToDlt } from './interaction/transactionToDlt/transactionToDlt.context'
+import { getLogger } from 'log4js'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}/apis/dltConnector/sendTransactionsToDltConnector`)
 
 let isLoopRunning = true
 
@@ -25,11 +28,11 @@ export async function sendTransactionsToDltConnector(): Promise<void> {
   const dltConnector = DltConnectorClient.getInstance()
 
   if (!dltConnector) {
-    logger.info('Sending to DltConnector currently not configured...')
+    logger.info('currently not configured...')
     isLoopRunning = false
     return
   }
-  logger.info('Starting sendTransactionsToDltConnector task')
+  logger.info('task started')
 
   // define outside of loop for reuse and reducing gb collection
   // const queries = getFindNextPendingTransactionQueries()

@@ -1,11 +1,11 @@
-import { GraphQLClient, gql } from 'graphql-request'
-
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { getLogger } from 'log4js'
 
 import { TransactionDraft } from './model/TransactionDraft'
 import { TransactionResult } from './model/TransactionResult'
+import { GraphQLClient } from 'graphql-request'
+import { gql } from 'graphql-request'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.apis.dltConnector`)
 

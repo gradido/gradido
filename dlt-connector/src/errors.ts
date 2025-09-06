@@ -35,6 +35,20 @@ export class GradidoNodeInvalidTransactionError extends GradidoNodeError {
   }
 }
 
+export class GradidoBlockchainError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'GradidoBlockchainError'
+  }
+}
+
+export class GradidoBlockchainCryptoError extends GradidoBlockchainError {
+  constructor(message: string) {
+    super(message)
+    this.name = 'GradidoBlockchainCryptoError'
+  }
+}
+
 export class ParameterError extends Error {
   constructor(message: string) {
     super(message)

@@ -1,60 +1,23 @@
-/* eslint-disable n/no-process-env */
 import dotenv from 'dotenv'
+import { parse, InferOutput, ValiError } from 'valibot'
+import { configSchema } from './schema'
 
 dotenv.config()
 
-const logging = {
-  LOG4JS_CONFIG: 'log4js-config.json',
-  // default log level on production should be info
-  LOG_LEVEL: process.env.LOG_LEVEL ?? 'info',
+type ConfigOutput = InferOutput<typeof configSchema>
+
+let config: ConfigOutput
+console.info('Config loading...')
+try {
+  config = parse(configSchema, process.env)
+} catch (error: Error | unknown) {
+  if (error instanceof ValiError) {
+    console.error(`${error.issues[0].path[0].key}: ${error.message} received: ${error.issues[0].received}`)
+  } else {
+    console.error(error)
+  }
+  // console.error('Config error:', JSON.stringify(error, null, 2))
+  process.exit(1)
 }
 
-const server = {
-  PRODUCTION: process.env.NODE_ENV === 'production',
-  DLT_CONNECTOR_PORT: process.env.DLT_CONNECTOR_PORT ?? 6010,
-}
-
-const secrets = {
-  JWT_SECRET: process.env.JWT_SECRET ?? 'secret123',
-  GRADIDO_BLOCKCHAIN_CRYPTO_APP_SECRET:
-    process.env.GRADIDO_BLOCKCHAIN_CRYPTO_APP_SECRET ?? 'invalid',
-  GRADIDO_BLOCKCHAIN_SERVER_CRYPTO_KEY:
-    process.env.GRADIDO_BLOCKCHAIN_SERVER_CRYPTO_KEY ?? 'invalid',
-}
-
-const iota = {
-  IOTA_HOME_COMMUNITY_SEED: process.env.IOTA_HOME_COMMUNITY_SEED ?? null,
-}
-
-const hiero = {
-  HIERO_ACTIVE: process.env.HIERO_ACTIVE === 'true' || false,
-  HIERO_HEDERA_NETWORK: process.env.HIERO_HEDERA_NETWORK ?? 'testnet',
-  HIERO_OPERATOR_ID: process.env.HIERO_OPERATOR_ID ?? '0.0.2',
-  HIERO_OPERATOR_KEY:
-    process.env.HIERO_OPERATOR_KEY ??
-    '302e020100300506032b65700422042091132178e72057a1d7528025956fe39b0b847f200ab59b2fdd367017f3087137',
-}
-
-const apis = {
-  CONNECT_TIMEOUT_MS: process.env.CONNECT_TIMEOUT_MS
-    ? Number.parseInt(process.env.CONNECT_TIMEOUT_MS)
-    : 1000,
-  CONNECT_RETRY_COUNT: process.env.CONNECT_RETRY_COUNT
-    ? Number.parseInt(process.env.CONNECT_RETRY_COUNT)
-    : 15,
-  CONNECT_RETRY_DELAY_MS: process.env.CONNECT_RETRY_DELAY_MS
-    ? Number.parseInt(process.env.CONNECT_RETRY_DELAY_MS)
-    : 500,
-  IOTA_API_URL: process.env.IOTA_API_URL ?? 'https://chrysalis-nodes.iota.org',
-  NODE_SERVER_URL: process.env.NODE_SERVER_URL ?? 'http://127.0.0.1:8340',
-  BACKEND_SERVER_URL: process.env.BACKEND_SERVER_URL ?? 'http://127.0.0.1:4000',
-}
-
-export const CONFIG = {
-  ...logging,
-  ...server,
-  ...secrets,
-  ...iota,
-  ...hiero,
-  ...apis,
-}
+export const CONFIG = config

@@ -51,10 +51,10 @@ describe('basic.schema', () => {
   it('confirmedTransactionSchema', () => {
     const confirmedTransaction = v.parse(
       confirmedTransactionSchema,
-      'CAcSAgoAGgYIwvK5/wUiAzMuNCogAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAyIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+      'CAcS5AEKZgpkCiCBZwMplGmI7fRR9MQkaR2Dz1qQQ5BCiC1btyJD71Ue9BJABODQ9sS70th9yHn8X3K+SNv2gsiIdX/V09baCvQCb+yEj2Dd/fzShIYqf3pooIMwJ01BkDJdNGBZs5MDzEAkChJ6ChkIAhIVRGFua2UgZnVlciBkZWluIFNlaW4hEggIgMy5/wUQABoDMy41IAAyTAooCiDbDtYSWhTwMKvtG/yDHgohjPn6v87n7NWBwMDniPAXxxCUmD0aABIgJE0o18xb6P6PsNjh0bkN52AzhggteTzoh09jV+blMq0aCAjC8rn/BRAAIgMzLjUqICiljeEjGHifWe4VNzoe+DN9oOLNZvJmv3VlkP+1RH7MMiAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADomCiDbDtYSWhTwMKvtG/yDHgohjPn6v87n7NWBwMDniPAXxxDAhD06JwogJE0o18xb6P6PsNjh0bkN52AzhggteTzoh09jV+blMq0Q65SlBA==',
     )
     expect(confirmedTransaction.getId()).toBe(7)
     expect(confirmedTransaction.getConfirmedAt().getSeconds()).toBe(1609464130)
-    expect(confirmedTransaction.getVersionNumber()).toBe('3.4')
+    expect(confirmedTransaction.getVersionNumber()).toBe('3.5')
   })
 })

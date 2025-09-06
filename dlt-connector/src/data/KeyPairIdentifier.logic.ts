@@ -17,7 +17,7 @@ export class KeyPairIdentifierLogic {
   isUserKeyPair(): boolean {
     return (
       this.identifier.seed === undefined &&
-      this.identifier.account != undefined &&
+      this.identifier.account != null &&
       this.identifier.account.accountNr === 0
     )
   }
@@ -25,7 +25,7 @@ export class KeyPairIdentifierLogic {
   isAccountKeyPair(): boolean {
     return (
       this.identifier.seed === undefined &&
-      this.identifier.account != undefined &&
+      this.identifier.account != null &&
       this.identifier.account.accountNr > 0
     )
   }

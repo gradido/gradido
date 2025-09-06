@@ -1,16 +1,25 @@
 import {
   GradidoTransaction,
-  InteractionValidate,  
-  MemoryBlock,  
+  InteractionValidate,
+  MemoryBlock,
   ValidateType_SINGLE,
 } from 'gradido-blockchain-js'
 import { getLogger } from 'log4js'
-import { safeParse, parse } from 'valibot'
-import { Community, communitySchema } from '../../client/backend/community.schema'
+import { parse, safeParse } from 'valibot'
 import { HieroClient } from '../../client/hiero/HieroClient'
 import { LOG4JS_BASE_CATEGORY } from '../../config/const'
-import { Transaction, transactionSchema } from '../../schemas/transaction.schema'
-import { HieroId, HieroTransactionId, hieroTransactionIdSchema } from '../../schemas/typeGuard.schema'
+import { InputTransactionType } from '../../enum/InputTransactionType'
+import {
+  Community,
+  communitySchema,
+  Transaction,
+  transactionSchema,
+} from '../../schemas/transaction.schema'
+import {
+  HieroId,
+  HieroTransactionId,
+  hieroTransactionIdSchema,
+} from '../../schemas/typeGuard.schema'
 import { AbstractTransactionRole } from './AbstractTransaction.role'
 import { CommunityRootTransactionRole } from './CommunityRootTransaction.role'
 import { CreationTransactionRole } from './CreationTransaction.role'
@@ -18,16 +27,15 @@ import { DeferredTransferTransactionRole } from './DeferredTransferTransaction.r
 import { RedeemDeferredTransferTransactionRole } from './RedeemDeferredTransferTransaction.role'
 import { RegisterAddressTransactionRole } from './RegisterAddressTransaction.role'
 import { TransferTransactionRole } from './TransferTransaction.role'
-import { InputTransactionType } from '../../enum/InputTransactionType'
 
-const logger = getLogger(`${LOG4JS_BASE_CATEGORY}.interactions.sendToIota.SendToIotaContext`)
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY}.interactions.sendToHiero.SendToHieroContext`)
 
 /**
  * @DCI-Context
- * Context for sending transaction to iota
- * send every transaction only once to iota!
+ * Context for sending transaction to hiero
+ * send every transaction only once to hiero!
  */
-export async function SendToIotaContext(
+export async function SendToHieroContext(
   input: Transaction | Community,
 ): Promise<HieroTransactionId> {
   // let gradido blockchain validator run, it will throw an exception when something is wrong
@@ -44,7 +52,7 @@ export async function SendToIotaContext(
     const client = HieroClient.getInstance()
     const resultMessage = await client.sendMessage(topic, gradidoTransaction)
     const transactionId = resultMessage.response.transactionId.toString()
-    logger.info('transmitted Gradido Transaction to Iota', { transactionId })
+    logger.info('transmitted Gradido Transaction to Hiero', { transactionId })
     return transactionId
   }
 
@@ -75,7 +83,7 @@ export async function SendToIotaContext(
     }
   }
 
-  const role = chooseCorrectRole(input)  
+  const role = chooseCorrectRole(input)
   const builder = await role.getGradidoTransactionBuilder()
   if (builder.isCrossCommunityTransaction()) {
     const outboundTransaction = builder.buildOutbound()
@@ -92,10 +100,7 @@ export async function SendToIotaContext(
   } else {
     const transaction = builder.build()
     validate(transaction)
-    const iotaMessageId = await sendViaHiero(
-      transaction,
-      role.getSenderCommunityTopicId(),
-    )
+    const iotaMessageId = await sendViaHiero(transaction, role.getSenderCommunityTopicId())
     return parse(hieroTransactionIdSchema, iotaMessageId)
   }
 }

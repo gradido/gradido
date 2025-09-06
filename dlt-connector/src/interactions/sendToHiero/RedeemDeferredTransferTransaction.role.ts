@@ -1,6 +1,6 @@
 import { GradidoTransactionBuilder, GradidoTransfer, TransferAmount } from 'gradido-blockchain-js'
 import { parse } from 'valibot'
-import { getTransactionsForAccount } from '../../client/GradidoNode/api'
+import { GradidoNodeClient } from '../../client/GradidoNode/GradidoNodeClient'
 import { KeyPairIdentifierLogic } from '../../data/KeyPairIdentifier.logic'
 import {
   RedeemDeferredTransferTransaction,
@@ -42,7 +42,7 @@ export class RedeemDeferredTransferTransactionRole extends AbstractTransactionRo
       throw new Error("redeem deferred transfer: couldn't calculate sender public key")
     }
     // load deferred transfer transaction from gradido node
-    const transactions = await getTransactionsForAccount(
+    const transactions = await GradidoNodeClient.getInstance().getTransactionsForAccount(
       { maxResultCount: 2, topic: this.getSenderCommunityTopicId() },
       senderPublicKey.convertToHex(),
     )

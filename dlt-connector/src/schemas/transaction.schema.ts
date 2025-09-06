@@ -11,7 +11,21 @@ import {
   hieroIdSchema,
   memoSchema,
   timeoutDurationSchema,
+  uuidv4Schema,
 } from './typeGuard.schema'
+
+/**
+ * Schema for community, for creating new CommunityRoot Transaction on gradido blockchain
+ */
+export const communitySchema = v.object({
+  uuid: uuidv4Schema,
+  hieroTopicId: hieroIdSchema,
+  foreign: v.boolean('expect boolean type'),
+  creationDate: dateSchema,
+})
+
+export type CommunityInput = v.InferInput<typeof communitySchema>
+export type Community = v.InferOutput<typeof communitySchema>
 
 export const transactionSchema = v.object({
   user: identifierAccountSchema,

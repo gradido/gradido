@@ -14,7 +14,7 @@ export type TransactionsRangeInput = v.InferInput<typeof transactionsRangeSchema
 // allow TransactionIdentifier to only contain either transactionNr or iotaMessageId
 export const transactionIdentifierSchema = v.pipe(
   v.object({
-    transactionNr: v.nullish(
+    transactionId: v.nullish(
       v.pipe(v.number('expect number type'), v.minValue(1, 'expect number >= 1')),
       undefined,
     ),
@@ -23,7 +23,7 @@ export const transactionIdentifierSchema = v.pipe(
   }),
   v.custom((value: any) => {
     const setFieldsCount =
-      Number(value.transactionNr !== undefined) + Number(value.hieroTransactionId !== undefined)
+      Number(value.transactionId !== undefined) + Number(value.hieroTransactionId !== undefined)
     if (setFieldsCount !== 1) {
       return false
     }

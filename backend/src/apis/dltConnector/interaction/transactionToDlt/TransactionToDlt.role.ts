@@ -1,5 +1,4 @@
-import { DltTransaction } from '@entity/DltTransaction'
-import { Transaction } from '@entity/Transaction'
+import { DltTransaction, Transaction } from 'database'
 
 import { DltTransactionType } from '@dltConnector/enum/DltTransactionType'
 import { TransactionType } from '@dltConnector/enum/TransactionType'

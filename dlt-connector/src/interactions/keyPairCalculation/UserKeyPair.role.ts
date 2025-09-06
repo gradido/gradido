@@ -1,5 +1,5 @@
 import { KeyPairEd25519 } from 'gradido-blockchain-js'
-
+import { GradidoBlockchainCryptoError } from '../../errors'
 import { hardenDerivationIndex } from '../../utils/derivationHelper'
 import { AbstractKeyPairRole } from './AbstractKeyPair.role'
 
@@ -21,9 +21,14 @@ export class UserKeyPairRole extends AbstractKeyPairRole {
       parts[i] = hardenDerivationIndex(wholeHex.subarray(i * 4, (i + 1) * 4).readUInt32BE())
     }
     // parts: [2206563009, 2629978174, 2324817329, 2405141782]
-    return parts.reduce(
-      (keyPair: KeyPairEd25519, node: number) => keyPair.deriveChild(node),
-      this.communityKeys,
-    )
+    return parts.reduce((keyPair: KeyPairEd25519, node: number) => {
+      const localKeyPair = keyPair.deriveChild(node)
+      if (!localKeyPair) {
+        throw new GradidoBlockchainCryptoError(
+          `KeyPairEd25519 child derivation failed, has private key: ${keyPair.hasPrivateKey()} for user: ${this.userUuid}`,
+        )
+      }
+      return localKeyPair
+    }, this.communityKeys)
   }
 }

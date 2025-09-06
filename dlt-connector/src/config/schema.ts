@@ -1,24 +1,77 @@
+import { MemoryBlock } from 'gradido-blockchain-js'
 import * as v from 'valibot'
 
-export const HIERO_ACTIVE = v.nullish(
-  v.boolean('Flag to indicate if the Hiero (Hedera Hashgraph Ledger) service is used.'),
-  false,
-)
+const hexSchema = v.pipe(v.string('expect string type'), v.hexadecimal('expect hexadecimal string'))
 
-export const HIERO_HEDERA_NETWORK = v.nullish(
-  v.union([v.literal('mainnet'), v.literal('testnet'), v.literal('previewnet')]),
-  'testnet',
-)
+const hex16Schema = v.pipe(hexSchema, v.length(32, 'expect string length = 32'))
 
-export const HIERO_OPERATOR_ID = v.nullish(
-  v.pipe(v.string('The operator ID for Hiero integration'), v.regex(/^[0-9]+\.[0-9]+\.[0-9]+$/)),
-  '0.0.2',
-)
-
-export const HIERO_OPERATOR_KEY = v.nullish(
-  v.pipe(
-    v.string('The operator key for Hiero integration, default is for local default node'),
-    v.regex(/^[0-9a-fA-F]{64,96}$/),
+export const configSchema = v.object({
+  LOG4JS_CONFIG: v.optional(
+    v.string('The path to the log4js configuration file'),
+    './log4js-config.json',
   ),
-  '302e020100300506032b65700422042091132178e72057a1d7528025956fe39b0b847f200ab59b2fdd367017f3087137',
-)
+  LOG_LEVEL: v.optional(v.string('The log level'), 'info'),
+  DLT_CONNECTOR_PORT: v.optional(
+    v.pipe(
+      v.string('A valid port on which the DLT connector is running'),
+      v.transform<string, number>((input: string) => Number(input)),
+      v.minValue(1),
+      v.maxValue(65535),
+    ),
+    '6010',
+  ),
+  JWT_SECRET: v.pipe(
+    v.string('The JWT secret for connecting to the backend'),
+    v.custom((input: unknown): boolean => {
+      if (process.env.NODE_ENV === 'production' && input === 'secret123') {
+        return false
+      }
+      return true
+    }, "Shouldn't use default value in production"),
+  ),
+  GRADIDO_BLOCKCHAIN_CRYPTO_APP_SECRET: hexSchema,
+  GRADIDO_BLOCKCHAIN_SERVER_CRYPTO_KEY: hex16Schema,
+  HOME_COMMUNITY_SEED: v.pipe(
+    hexSchema,
+    v.length(64, 'expect seed length minimum 64 characters (32 Bytes)'),
+    v.transform<string, MemoryBlock>((input: string) => MemoryBlock.fromHex(input)),
+  ),
+  HIERO_HEDERA_NETWORK: v.optional(
+    v.union([v.literal('mainnet'), v.literal('testnet'), v.literal('previewnet')]),
+    'testnet',
+  ),
+  HIERO_OPERATOR_ID: v.pipe(
+    v.string('The operator ID (Account id) for Hiero integration'),
+    v.regex(/^[0-9]+\.[0-9]+\.[0-9]+$/),
+  ),
+  HIERO_OPERATOR_KEY: v.pipe(
+    v.string('The operator key (Private key) for Hiero integration'),
+    v.hexadecimal(),
+    v.minLength(64),
+    v.maxLength(96),
+  ),
+  CONNECT_TIMEOUT_MS: v.optional(
+    v.pipe(v.number('The connection timeout in milliseconds'), v.minValue(200), v.maxValue(120000)),
+    1000,
+  ),
+  CONNECT_RETRY_COUNT: v.optional(
+    v.pipe(v.number('The connection retry count'), v.minValue(1), v.maxValue(50)),
+    15,
+  ),
+  CONNECT_RETRY_DELAY_MS: v.optional(
+    v.pipe(
+      v.number('The connection retry delay in milliseconds'),
+      v.minValue(100),
+      v.maxValue(10000),
+    ),
+    500,
+  ),
+  NODE_SERVER_URL: v.optional(
+    v.string('The URL of the gradido node server'),
+    'http://localhost:6010',
+  ),
+  BACKEND_SERVER_URL: v.optional(
+    v.string('The URL of the gradido backend server'),
+    'http://localhost:6010',
+  ),
+})
