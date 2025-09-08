@@ -66,7 +66,7 @@ export class GradidoNodeClient {
     }
     const response = await this.rpcCall<{ transaction: string }>('gettransaction', parameter)
     if (response.isSuccess()) {
-      this.logger.debug('result: ', response.result.transaction)
+      // this.logger.debug('result: ', response.result.transaction)
       return parse(confirmedTransactionSchema, response.result.transaction)
     }
     if (response.isError()) {

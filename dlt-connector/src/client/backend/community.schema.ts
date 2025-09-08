@@ -8,6 +8,7 @@ import { hieroIdSchema, uuidv4Schema } from '../../schemas/typeGuard.schema'
  */
 export const communitySchema = v.object({
   uuid: uuidv4Schema,
+  name: v.string('expect string type'),
   hieroTopicId: v.nullish(hieroIdSchema),
   foreign: v.boolean('expect boolean type'),
   creationDate: dateSchema,
@@ -21,6 +22,7 @@ export const homeCommunityGraphqlQuery = gql`
   query {
     homeCommunity {
       uuid
+      name
       hieroTopicId
       foreign
       creationDate
@@ -32,6 +34,7 @@ export const setHomeCommunityTopicId = gql`
   mutation ($uuid: String!, $hieroTopicId: String){
     updateHomeCommunity(uuid: $uuid, hieroTopicId: $hieroTopicId) {
       uuid
+      name
       hieroTopicId
       foreign
       creationDate

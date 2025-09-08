@@ -81,7 +81,7 @@ async function homeCommunitySetup({ backend, hiero }: Clients, logger: Logger): 
   let homeCommunity = await backend.getHomeCommunityDraft()
   // on missing topicId, create one
   if (!homeCommunity.hieroTopicId) {
-    const topicId = await hiero.createTopic()
+    const topicId = await hiero.createTopic(homeCommunity.name)
     // update topic on backend server
     homeCommunity = await backend.setHomeCommunityTopicId(homeCommunity.uuid, topicId)
   } else {

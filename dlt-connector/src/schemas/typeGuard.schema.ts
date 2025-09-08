@@ -128,8 +128,8 @@ declare const validHieroTransactionId: unique symbol
 export type HieroTransactionId = string & { [validHieroTransactionId]: true }
 
 export const hieroTransactionIdSchema = v.pipe(
-  v.string('expect hiero transaction id type, for example 0.0.141760-1755138896-607329203'),
-  v.regex(/^[0-9]+\.[0-9]+\.[0-9]+-[0-9]+-[0-9]+$/),
+  v.string('expect hiero transaction id type, for example 0.0.141760-1755138896-607329203 or 0.0.141760@1755138896.607329203'),
+  v.regex(/^[0-9]+\.[0-9]+\.[0-9]+(-[0-9]+-[0-9]+|@[0-9]+\.[0-9]+)$/),
   v.transform<string, HieroTransactionId>((input: string) => input as HieroTransactionId),
 )
 

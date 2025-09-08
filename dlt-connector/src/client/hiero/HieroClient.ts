@@ -2,6 +2,7 @@ import {
   AccountBalance,
   AccountBalanceQuery,
   Client,
+  Key,
   LocalProvider,
   PrivateKey,
   Timestamp,
@@ -58,6 +59,7 @@ export class HieroClient {
     topicId: HieroId,
     transaction: GradidoTransaction,
   ): Promise<{ receipt: TransactionReceipt; response: TransactionResponse }> {
+    this.logger.addContext('topicId', topicId.toString())
     const serializedTransaction = transaction.getSerializedTransaction()
     if (!serializedTransaction) {
       throw new Error('cannot serialize transaction')
@@ -84,10 +86,16 @@ export class HieroClient {
   }
 
   public async getTopicInfo(topicId: HieroId): Promise<TopicInfoOutput> {
+    this.logger.addContext('topicId', topicId.toString())
     const info = await new TopicInfoQuery()
       .setTopicId(TopicId.fromString(topicId))
       .execute(this.client)
-    this.logger.debug(JSON.stringify(info, null, 2))
+    this.logger.info(`topic is valid until ${info.expirationTime?.toDate()?.toLocaleString()}`)
+    if (info.topicMemo) {
+      this.logger.info(`topic memo: ${info.topicMemo}`)
+    }
+    this.logger.debug(`topic sequence number: ${info.sequenceNumber.toNumber()}`)
+    // this.logger.debug(JSON.stringify(info, null, 2))
     return parse(topicInfoSchema, {
       topicId: topicId.toString(),
       sequenceNumber: info.sequenceNumber.toNumber(),
@@ -97,16 +105,26 @@ export class HieroClient {
     })
   }
 
-  public async createTopic(): Promise<HieroId> {
-    let transaction = await new TopicCreateTransaction().freezeWithSigner(this.wallet)
+  public async createTopic(topicMemo?: string): Promise<HieroId> {
+    let transaction = new TopicCreateTransaction({
+      topicMemo,
+      adminKey: undefined,
+      submitKey: undefined,
+      autoRenewPeriod: undefined,
+      autoRenewAccountId: undefined,
+    })
+    
+    transaction = await transaction.freezeWithSigner(this.wallet)
     transaction = await transaction.signWithSigner(this.wallet)
     const createResponse = await transaction.executeWithSigner(this.wallet)
     const createReceipt = await createResponse.getReceiptWithSigner(this.wallet)
     this.logger.debug(createReceipt.toString())
+    this.logger.addContext('topicId', createReceipt.topicId?.toString())
     return parse(hieroIdSchema, createReceipt.topicId?.toString())
   }
 
   public async updateTopic(topicId: HieroId): Promise<void> {
+    this.logger.addContext('topicId', topicId.toString())
     let transaction = new TopicUpdateTransaction()
     transaction.setExpirationTime(new Date(new Date().getTime() + MIN_AUTORENEW_PERIOD * 1000))
     transaction.setTopicId(TopicId.fromString(topicId))

@@ -7,8 +7,8 @@ dotenv.config()
 type ConfigOutput = InferOutput<typeof configSchema>
 
 let config: ConfigOutput
-console.info('Config loading...')
 try {
+  console.info('Config loading...')
   config = parse(configSchema, process.env)
 } catch (error: Error | unknown) {
   if (error instanceof ValiError) {
