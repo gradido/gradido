@@ -116,8 +116,8 @@ const tokenExpiresInSeconds = computed(() => {
 })
 
 const validLink = computed(() => {
-  // console.log('TransactionLink.validLink... linkData.value.validUntil=', linkData.value.validUntil)
-  // console.log('TransactionLink.validLink... new Date()=', new Date())
+  console.log('TransactionLink.validLink... linkData.value.validUntil=', linkData.value.validUntil)
+  console.log('TransactionLink.validLink... new Date()=', new Date())
   if (!isTransactionLinkLoaded.value) {
     return false
   }
@@ -125,75 +125,80 @@ const validLink = computed(() => {
     return false
   }
   const validUntilDate = new Date(linkData.value.validUntil)
-  // console.log('TransactionLink.validLink... validUntilDate=', validUntilDate)
-  // console.log('TransactionLink.validLink... new Date()=', new Date())
-  // console.log(
-  //   'TransactionLink.validLink... validUntilDate.getTime() >= new Date().getTime()=',
-  //   validUntilDate.getTime() >= new Date().getTime(),
-  // )
+  console.log('TransactionLink.validLink... validUntilDate=', validUntilDate)
+  console.log('TransactionLink.validLink... new Date()=', new Date())
+  console.log(
+    'TransactionLink.validLink... validUntilDate.getTime() >= new Date().getTime()=',
+    validUntilDate.getTime() >= new Date().getTime(),
+  )
   return validUntilDate.getTime() >= new Date().getTime()
 })
 
 const itemType = computed(() => {
-  // console.log('TransactionLink.itemType... isTransactionLinkLoaded=', isTransactionLinkLoaded.value)
+  console.log('TransactionLink.itemType... isTransactionLinkLoaded=', isTransactionLinkLoaded.value)
   if (isTransactionLinkLoaded.value) {
-    // console.log('TransactionLink.itemType... linkData.value=', linkData.value)
+    console.log('TransactionLink.itemType... linkData.value=', linkData.value)
     if (linkData.value.deletedAt) {
-      // console.log('TransactionLink.itemType... TEXT_DELETED')
+      console.log('TransactionLink.itemType... TEXT_DELETED')
       return 'TEXT_DELETED'
     }
 
     const validUntilDate = new Date(linkData.value.validUntil)
-    // console.log('TransactionLink.itemType... validUntilDate=', validUntilDate)
-    // console.log('TransactionLink.itemType... new Date()=', new Date())
-    // console.log(
-    //   'TransactionLink.itemType... validUntilDate.getTime() < new Date().getTime()=',
-    //   validUntilDate.getTime() < new Date().getTime(),
-    // )
+    console.log('TransactionLink.itemType... validUntilDate=', validUntilDate)
+    console.log('TransactionLink.itemType... new Date()=', new Date())
+    console.log(
+      'TransactionLink.itemType... validUntilDate.getTime() < new Date().getTime()=',
+      validUntilDate.getTime() < new Date().getTime(),
+    )
     if (validUntilDate.getTime() < new Date().getTime()) {
-      // console.log('TransactionLink.itemType... TEXT_EXPIRED')
+      console.log('TransactionLink.itemType... TEXT_EXPIRED')
       return 'TEXT_EXPIRED'
     }
     if (linkData.value.redeemedAt) {
-      // console.log('TransactionLink.itemType... TEXT_REDEEMED')
+      console.log('TransactionLink.itemType... TEXT_REDEEMED')
       return 'TEXT_REDEEMED'
     }
     if (linkData.value.deletedAt) {
-      // console.log('TransactionLink.itemType... TEXT_DELETED')
+      console.log('TransactionLink.itemType... TEXT_DELETED')
       return 'TEXT_DELETED'
     }
     if (store.state.token && store.state.tokenTime) {
       if (tokenExpiresInSeconds.value < 5) {
-        // console.log('TransactionLink.itemType... REDEEM_SELECT_COMMUNITY')
+        console.log(
+          'TransactionLink.itemType... CONFIG.CROSS_TX_REDEEM_LINK_ACTIVE=',
+          CONFIG.CROSS_TX_REDEEM_LINK_ACTIVE,
+        )
         if (CONFIG.CROSS_TX_REDEEM_LINK_ACTIVE) {
+          console.log('TransactionLink.itemType... REDEEM_SELECT_COMMUNITY')
           return 'REDEEM_SELECT_COMMUNITY'
         } else {
+          console.log('TransactionLink.itemType... LOGGED_OUT')
           return 'LOGGED_OUT'
         }
       }
     }
-    // console.log(
-    //   'TransactionLink.itemType... linkData.value.recipientUser=',
-    //   linkData.value.recipientUser,
-    // )
-    // console.log('TransactionLink.itemType... linkData.value=', linkData.value)
-    // console.log('TransactionLink.itemType... store.state.gradidoID=', store.state.gradidoID)
-    // console.log('TransactionLink.itemType... isRedeemJwtLink=', isRedeemJwtLink.value)
-    // console.log('TransactionLink.itemType... linkData.value.senderUser=', linkData.value.senderUser)
-    // console.log(
-    //   'TransactionLink.itemType... linkData.value.recipientUser.gradidoID=',
-    //   linkData.value.recipientUser?.gradidoID,
-    // )
-    // console.log(
-    //   'TransactionLink.itemType... linkData.value.senderUser.gradidoID=',
-    //   linkData.value.senderUser?.gradidoID,
-    // )
+    console.log(
+      'TransactionLink.itemType... linkData.value.recipientUser=',
+      linkData.value.recipientUser,
+    )
+    console.log('TransactionLink.itemType... linkData.value=', linkData.value)
+    console.log('TransactionLink.itemType... store.state.gradidoID=', store.state.gradidoID)
+    console.log('TransactionLink.itemType... isRedeemJwtLink=', isRedeemJwtLink.value)
+    console.log('TransactionLink.itemType... linkData.value.senderUser=', linkData.value.senderUser)
+    console.log(
+      'TransactionLink.itemType... linkData.value.recipientUser.gradidoID=',
+      linkData.value.recipientUser?.gradidoID,
+    )
+    console.log(
+      'TransactionLink.itemType... linkData.value.senderUser.gradidoID=',
+      linkData.value.senderUser?.gradidoID,
+    )
     if (
       linkData.value.senderUser &&
       linkData.value.recipientUser &&
       linkData.value.senderUser.gradidoID === linkData.value.recipientUser.gradidoID
     ) {
-      // console.log('TransactionLink.itemType... SELF_CREATOR')
+      console.log('TransactionLink.itemType... SELF_CREATOR')
       return 'SELF_CREATOR'
     }
     if (
@@ -202,31 +207,36 @@ const itemType = computed(() => {
       linkData.value.senderUser.gradidoID !== linkData.value.recipientUser.gradidoID &&
       store.state.gradidoID === linkData.value.recipientUser.gradidoID
     ) {
-      // console.log('TransactionLink.itemType... VALID')
-      // console.log('TransactionLink.itemType... linkData.value=', linkData.value)
-      // console.log('TransactionLink.itemType... store.state.gradidoID=', store.state.gradidoID)
-      // console.log(
-      //   'TransactionLink.itemType... linkData.value.recipientUser.gradidoID=',
-      //   linkData.value.recipientUser.gradidoID,
-      // )
-      // console.log(
-      //   'TransactionLink.itemType... linkData.value.senderUser.gradidoID=',
-      //   linkData.value.senderUser.gradidoID,
-      // )
+      console.log('TransactionLink.itemType... VALID')
+      console.log('TransactionLink.itemType... linkData.value=', linkData.value)
+      console.log('TransactionLink.itemType... store.state.gradidoID=', store.state.gradidoID)
+      console.log(
+        'TransactionLink.itemType... linkData.value.recipientUser.gradidoID=',
+        linkData.value.recipientUser.gradidoID,
+      )
+      console.log(
+        'TransactionLink.itemType... linkData.value.senderUser.gradidoID=',
+        linkData.value.senderUser.gradidoID,
+      )
       return 'VALID'
     }
   }
+  console.log(
+    'TransactionLink.itemType... vor last return CONFIG.CROSS_TX_REDEEM_LINK_ACTIVE=',
+    CONFIG.CROSS_TX_REDEEM_LINK_ACTIVE,
+  )
   if (CONFIG.CROSS_TX_REDEEM_LINK_ACTIVE) {
-    // console.log('TransactionLink.itemType...last return= REDEEM_SELECT_COMMUNITY')
+    console.log('TransactionLink.itemType...last return= REDEEM_SELECT_COMMUNITY')
     return 'REDEEM_SELECT_COMMUNITY'
   } else {
+    console.log('TransactionLink.itemType... last return= LOGGED_OUT')
     return 'LOGGED_OUT'
   }
 })
 
 const itemTypeExt = computed(() => {
-  // console.log('TransactionLink.itemTypeExt... itemType=', itemType.value)
-  // console.log('TransactionLink.itemTypeExt... validLink=', validLink.value)
+  console.log('TransactionLink.itemTypeExt... itemType=', itemType.value)
+  console.log('TransactionLink.itemTypeExt... validLink=', validLink.value)
   if (itemType.value.startsWith('TEXT')) {
     return 'TEXT'
   }
@@ -234,13 +244,13 @@ const itemTypeExt = computed(() => {
 })
 
 watch(itemType, (newItemType) => {
-  // console.log('TransactionLink.watch... itemType=', itemType.value)
-  // console.log('TransactionLink.watch... validLink=', validLink.value)
+  console.log('TransactionLink.watch... itemType=', itemType.value)
+  console.log('TransactionLink.watch... validLink=', validLink.value)
   updateRedeemedBoxText(newItemType)
 })
 
 function updateRedeemedBoxText(type) {
-  // console.log('TransactionLink.updateRedeemedBoxText... type=', type)
+  console.log('TransactionLink.updateRedeemedBoxText... type=', type)
   switch (type) {
     case 'TEXT_DELETED':
       redeemedBoxText.value = t('gdd_per_link.link-deleted', {
@@ -260,18 +270,18 @@ function updateRedeemedBoxText(type) {
     default:
       redeemedBoxText.value = ''
   }
-  // console.log('TransactionLink.updateRedeemedBoxText... redeemedBoxText=', redeemedBoxText)
+  console.log('TransactionLink.updateRedeemedBoxText... redeemedBoxText=', redeemedBoxText)
 }
 
 const emit = defineEmits(['set-mobile-start'])
 
 onMounted(() => {
-  // console.log('TransactionLink.onMounted... params=', params)
+  console.log('TransactionLink.onMounted... params=', params)
   emit('set-mobile-start', false)
 })
 
 onResult(() => {
-  // console.log('TransactionLink.onResult... result=', result.value)
+  console.log('TransactionLink.onResult... result=', result.value)
   // console.log('TransactionLink.onResult... stringify result=', JSON.stringify(result.value))
   if (result.value?.queryTransactionLink?.__typename === 'TransactionLink') {
     // console.log('TransactionLink.onResult... TransactionLink')
@@ -291,17 +301,17 @@ onResult(() => {
 })
 
 onError(() => {
-  // console.log('TransactionLink.onError... error=', error)
+  console.log('TransactionLink.onError... error=', error)
   toastError(t('gdd_per_link.redeemlink-error'))
 })
 
 function setTransactionLinkInformation() {
-  // console.log('TransactionLink.setTransactionLinkInformation... result=', result.value)
+  console.log('TransactionLink.setTransactionLinkInformation... result=', result.value)
   // const queryTransactionLink = result.value.queryTransactionLink
   const deepCopy = JSON.parse(JSON.stringify(result.value))
-  // console.log('TransactionLink.setTransactionLinkInformation... deepCopy=', deepCopy)
+  console.log('TransactionLink.setTransactionLinkInformation... deepCopy=', deepCopy)
   if (deepCopy && deepCopy.queryTransactionLink.__typename === 'TransactionLink') {
-    // console.log('TransactionLink.setTransactionLinkInformation... typename === TransactionLink')
+    console.log('TransactionLink.setTransactionLinkInformation... typename === TransactionLink')
     // recipientUser is only set if the user is logged in
     if (store.state.gradidoID !== null) {
       // console.log(
@@ -320,7 +330,7 @@ function setTransactionLinkInformation() {
       // )
     }
     linkData.value = deepCopy.queryTransactionLink
-    // console.log('TransactionLink.setTransactionLinkInformation... linkData.value=', linkData.value)
+    console.log('TransactionLink.setTransactionLinkInformation... linkData.value=', linkData.value)
   }
 }
 
@@ -334,13 +344,13 @@ function setContributionLinkInformation() {
 }
 
 function setRedeemJwtLinkInformation() {
-  // console.log('TransactionLink.setRedeemJwtLinkInformation... result=', result.value)
+  console.log('TransactionLink.setRedeemJwtLinkInformation... result=', result.value)
   const deepCopy = JSON.parse(JSON.stringify(result.value))
-  // console.log('TransactionLink.setRedeemJwtLinkInformation... deepCopy=', deepCopy)
+  console.log('TransactionLink.setRedeemJwtLinkInformation... deepCopy=', deepCopy)
   if (deepCopy) {
-    // recipientUser is only set if the user is logged in
+    console.log('TransactionLink.setRedeemJwtLinkInformation... recipientUser is only set if the user is logged in')
     if (store.state.gradidoID !== null) {
-      // console.log('TransactionLink.setRedeemJwtLinkInformation... gradidoID=', store.state.gradidoID)
+      console.log('TransactionLink.setRedeemJwtLinkInformation... gradidoID=', store.state.gradidoID)
       deepCopy.queryTransactionLink.recipientUser = {
         __typename: 'User',
         gradidoID: store.state.gradidoID,
@@ -348,21 +358,21 @@ function setRedeemJwtLinkInformation() {
         alias: store.state.alias,
       }
     }
-    // console.log(
-    //   'TransactionLink.setRedeemJwtLinkInformation... deepCopy.queryTransactionLink.recipientUser=',
-    //   deepCopy.queryTransactionLink.recipientUser,
-    // )
+    console.log(
+      'TransactionLink.setRedeemJwtLinkInformation... deepCopy.queryTransactionLink.recipientUser=',
+      deepCopy.queryTransactionLink.recipientUser,
+    )
     linkData.value = deepCopy.queryTransactionLink
-    // console.log('TransactionLink.setRedeemJwtLinkInformation... linkData.value=', linkData.value)
+    console.log('TransactionLink.setRedeemJwtLinkInformation... linkData.value=', linkData.value)
   }
 }
 
 async function mutationLink(amount) {
-  // console.log('TransactionLink.mutationLink... params=', params)
-  // console.log('TransactionLink.mutationLink... linkData.value=', linkData.value)
-  // console.log('TransactionLink.mutationLink... linkData=', linkData)
+  console.log('TransactionLink.mutationLink... params=', params)
+  console.log('TransactionLink.mutationLink... linkData.value=', linkData.value)
+  console.log('TransactionLink.mutationLink... linkData=', linkData)
   if (isRedeemJwtLink.value) {
-    // console.log('TransactionLink.mutationLink... trigger disbursement from recipient-community')
+    console.log('TransactionLink.mutationLink... trigger disbursement from recipient-community')
     try {
       await disburseMutate({
         senderCommunityUuid: linkData.value.senderCommunity.uuid,
@@ -384,7 +394,7 @@ async function mutationLink(amount) {
       await router.push('/overview')
     }
   } else {
-    // console.log('TransactionLink.mutationLink... local transaction or contribution')
+   console.log('TransactionLink.mutationLink... local transaction or contribution')
     try {
       await redeemMutate({
         code: redeemCode.value,

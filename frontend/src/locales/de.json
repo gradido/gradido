@@ -1,4 +1,5 @@
 {
+  "|": "|",
   "(": "(",
   ")": ")",
   "100": "100%",
@@ -7,6 +8,7 @@
   "85": "85%",
   "Chat": "Chat",
   "GDD": "GDD",
+  "GDD-long": "Gradido",
   "GDT": "GDT",
   "GMS": {
     "title": "Geo Matching System GMS (in Entwicklung)",
@@ -272,15 +274,17 @@
     "no-redeem": "Du darfst deinen eigenen Link nicht einlösen!",
     "not-copied": "Dein Gerät lässt das Kopieren leider nicht zu! Bitte kopiere den Link von Hand!",
     "recipientCommunityFix": "Empfänger-Gemeinschaft des Link-Guthabens...",
-    "recipientCommunitySelection": "Wähle deine Gemeinschaft zum Einlösen des Link-Guthabens...",
+    "recipientCommunitySelection": "Gradido-Gemeinschaft wählen:",
+    "recipientCommunityRedirection": "Zum Gutschreiben weiterleiten zu:",
     "redeem": "Einlösen",
+    "redeem-community": "Gutschreiben auf ",
     "redeemed": "Erfolgreich eingelöst! Deinem Konto wurden {n} GDD gutgeschrieben.",
     "redeemed-at": "Der Link wurde bereits am {date} eingelöst.",
     "redeemlink-error": "Dieser Einlöse-Link ist nicht vollständig.",
     "switchCommunity": "Du hast eine andere Gemeinschaft ausgewählt...",
     "to-login": "Log dich ein",
     "to-register": "Registriere ein neues Konto.",
-    "to-switch": "Wechsle zur Gemeinschaft",
+    "to-switch": "Jetzt weiterleiten",
     "validUntil": "Gültig bis",
     "validUntilDate": "Der Link ist bis zum {date} gültig."
   },
