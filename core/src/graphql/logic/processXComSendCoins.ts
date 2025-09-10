@@ -302,7 +302,7 @@ export async function processXComPendingSendCoins(
             pendingTx.userId = sender.id
             pendingTx.userGradidoID = sender.gradidoID
             pendingTx.userName = fullName(sender.firstName, sender.lastName)
-            pendingTx.linkedTransactionId = transactionLinkId
+            pendingTx.transactionLinkId = transactionLinkId
             if(methodLogger.isDebugEnabled()) {
               methodLogger.debug(`initialized sender pendingTX=${new PendingTransactionLoggingView(pendingTx)}`)
             }
