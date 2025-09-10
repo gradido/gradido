@@ -4,6 +4,7 @@ import {
   Community as DbCommunity,
   FederatedCommunity as DbFederatedCommunity,
   PendingTransaction as DbPendingTransaction,
+  TransactionLink as DbTransactionLink,
   User as dbUser,
   findTransactionLinkByCode,
   findUserByIdentifier,
@@ -16,21 +17,22 @@ import { Decimal } from 'decimal.js-light'
 import { CONFIG as CONFIG_CORE } from '../../config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../../config/const'
 
+import { encryptAndSign, PendingTransactionState, SendCoinsJwtPayloadType, SendCoinsResponseJwtPayloadType, verifyAndDecrypt } from 'shared'
 import { SendCoinsClient as V1_0_SendCoinsClient } from '../../federation/client/1_0/SendCoinsClient'
 import { SendCoinsResult } from '../../federation/client/1_0/model/SendCoinsResult'
 import { SendCoinsClientFactory } from '../../federation/client/SendCoinsClientFactory'
 import { TransactionTypeId } from '../../graphql/enum/TransactionTypeId'
-import { encryptAndSign, PendingTransactionState, SendCoinsJwtPayloadType, SendCoinsResponseJwtPayloadType, verifyAndDecrypt } from 'shared'
 // import { LogError } from '@server/LogError'
+import { getLogger } from 'log4js'
 import { calculateSenderBalance } from '../../util/calculateSenderBalance'
 import { fullName } from '../../util/utilities'
-import { getLogger } from 'log4js'
 
+import { randombytes_random } from 'sodium-native'
 import { SendCoinsResultLoggingView } from '../../federation/client/1_0/logging/SendCoinsResultLogging.view'
 import { EncryptedTransferArgs } from '../../graphql/model/EncryptedTransferArgs'
-import { randombytes_random } from 'sodium-native'
 import { settlePendingSenderTransaction } from './settlePendingSenderTransaction'
 import { storeForeignUser } from './storeForeignUser'
+import { storeLinkAsRedeemed } from './storeLinkAsRedeemed'
 
 const createLogger = (method: string) => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.util.processXComSendCoins.${method}`)
 
@@ -79,9 +81,10 @@ export async function processXComCompleteTransaction(
     methodLogger.error(errmsg)
     throw new Error(errmsg)
   }
+  let dbTransactionLink: DbTransactionLink | null = null
   if(code !== undefined) {
     try {
-      const dbTransactionLink = await findTransactionLinkByCode(code)
+      dbTransactionLink = await findTransactionLinkByCode(code)
       if (dbTransactionLink && dbTransactionLink.validUntil < new Date()) {
         const errmsg = `TransactionLink ${code} is expired!`
         methodLogger.error(errmsg)
@@ -134,14 +137,31 @@ export async function processXComCompleteTransaction(
       }
       // after successful x-com-tx store the recipient as foreign user
       methodLogger.debug('store recipient as foreign user...')
-      if (await storeForeignUser(recipientCom, committingResult)) {
+      const foreignUser = await storeForeignUser(recipientCom, committingResult)
+      if (foreignUser) {
         methodLogger.info(
           'X-Com: new foreign user inserted successfully...',
           recipientCom.communityUuid,
           committingResult.recipGradidoID,
         )
+      } else {
+        const errmsg = `X-Com: Error storing foreign user for ${recipientCom.communityUuid} ${committingResult.recipGradidoID}`
+        methodLogger.error(errmsg)
+        throw new Error(errmsg)
       }
-    }
+      if(dbTransactionLink !== null) {
+        // after successful x-com-tx per link store the link as redeemed
+        methodLogger.debug('store link as redeemed...')
+        if (await storeLinkAsRedeemed(dbTransactionLink, foreignUser!, creationDate)) {
+          methodLogger.info(
+            'X-Com: store link as redeemed successfully...',
+            dbTransactionLink.code,
+            foreignUser!.id,
+            creationDate,
+          )
+        }
+      }
+    } 
   } catch (err) {
     const errmsg = `ERROR: on processXComCommittingSendCoins with ` +
       recipientCommunityUuid +
