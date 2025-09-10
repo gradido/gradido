@@ -225,6 +225,7 @@
     "recipientCommunityRedirection": "Pour créditer, rediriger vers:",
     "recipientCommunitySelection": "Choisir la communauté Gradido :",
     "redeem": "Encaisser",
+    "redeem-community": "Créditer dans ",
     "redeemed": "Encaissé avec succès! Votre compte est crédité de {n} GDD.",
     "redeemed-at": "Le lien a déjà été perçu le {date}.",
     "redeemed-title": "encaisser",

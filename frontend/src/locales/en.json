@@ -277,7 +277,7 @@
     "recipientCommunitySelection": "Select Gradido community:",
     "recipientCommunityRedirection": "Redirect for crediting to:",
     "redeem": "Redeem",
-    "redeem-community": "Redeem to ",
+    "redeem-community": "Credit in ",
     "redeemed": "Successfully redeemed! Your account has been credited with {n} GDD.",
     "redeemed-at": "The link was already redeemed on {date}.",
     "redeemlink-error": "This redemption link is not complete.",

@@ -219,6 +219,7 @@
     "recipientCommunityRedirection": "Redirigir para abonar a:",
     "recipientCommunitySelection": "Seleccionar comunidad Gradido:",
     "redeem": "Canjear",
+    "redeem-community": "Acreditar en ",
     "redeemed": "¡Canjeado con éxito! Tu cuenta ha sido acreditada con {n} GDD.",
     "redeemed-at": "El enlace ya se canjeó el {date}.",
     "redeemed-title": "canjeado",
