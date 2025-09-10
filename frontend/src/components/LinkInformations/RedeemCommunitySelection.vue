@@ -30,9 +30,6 @@
                 {{ $t('gdd_per_link.recipientCommunitySelection') }}
               </div>
             </BCol>
-            <BCol v-else class="fw-bold">
-              {{ $t('gdd_per_link.recipientCommunityFix') }}
-            </BCol>
           </BRow>
           <h3>
             <BRow>
@@ -42,9 +39,6 @@
                   :model-value="currentRecipientCommunity"
                   @update:model-value="setRecipientCommunity"
                 />
-              </BCol>
-              <BCol v-else>
-                {{ currentRecipientCommunity.name }}
               </BCol>
               <BCol v-if="isForeignCommunitySelected" sm="12" md="6" class="mt-4 mt-lg-0">
                 <BButton variant="gradido" @click="onSwitch">
