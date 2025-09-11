@@ -1,7 +1,6 @@
 {
   "(": "(",
   ")": ")",
-  "|": "|",
   "100": "100%",
   "1000thanks": "1000 thanks for being with us!",
   "125": "125%",
@@ -507,5 +506,6 @@
     "button": "Start user search... "
   },
   "via_link": "via Link",
-  "welcome": "Welcome to the community"
+  "welcome": "Welcome to the community",
+  "|": "|"
 }
