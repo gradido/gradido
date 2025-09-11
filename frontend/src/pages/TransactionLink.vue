@@ -125,8 +125,8 @@ const validLink = computed(() => {
     return false
   }
   const validUntilDate = new Date(linkData.value.validUntil)
-  console.log('TransactionLink.validLink... validUntilDate=', validUntilDate)
-  console.log('TransactionLink.validLink... new Date()=', new Date())
+  // console.log('TransactionLink.validLink... validUntilDate=', validUntilDate)
+  // console.log('TransactionLink.validLink... new Date()=', new Date())
   // console.log(
   //   'TransactionLink.validLink... validUntilDate.getTime() >= new Date().getTime()=',
   //   validUntilDate.getTime() >= new Date().getTime(),
@@ -144,8 +144,8 @@ const itemType = computed(() => {
     }
 
     const validUntilDate = new Date(linkData.value.validUntil)
-    console.log('TransactionLink.itemType... validUntilDate=', validUntilDate)
-    console.log('TransactionLink.itemType... new Date()=', new Date())
+    // console.log('TransactionLink.itemType... validUntilDate=', validUntilDate)
+    // console.log('TransactionLink.itemType... new Date()=', new Date())
     // console.log(
     //   'TransactionLink.itemType... validUntilDate.getTime() < new Date().getTime()=',
     //   validUntilDate.getTime() < new Date().getTime(),
@@ -301,7 +301,7 @@ onResult(() => {
 })
 
 onError(() => {
-  console.log('TransactionLink.onError... error=', error)
+  // console.log('TransactionLink.onError... error=', error)
   toastError(t('gdd_per_link.redeemlink-error'))
 })
 
