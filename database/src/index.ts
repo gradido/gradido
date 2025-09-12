@@ -11,6 +11,7 @@ import { Migration } from './entity/Migration'
 import { OpenaiThreads } from './entity/OpenaiThreads'
 import { PendingTransaction } from './entity/PendingTransaction'
 import { ProjectBranding } from './entity/ProjectBranding'
+import { Semaphore } from './entity/Semaphore'
 import { Transaction } from './entity/Transaction'
 import { TransactionLink } from './entity/TransactionLink'
 import { User } from './entity/User'
@@ -27,14 +28,15 @@ export {
   FederatedCommunity,
   LoginElopageBuys,
   Migration,
-  ProjectBranding,
   OpenaiThreads,
   PendingTransaction,
+  ProjectBranding,
+  Semaphore,
   Transaction,
   TransactionLink,
   User,
   UserContact,
-  UserRole,
+  UserRole
 }
 
 export const entities = [
@@ -50,6 +52,7 @@ export const entities = [
   ProjectBranding,
   OpenaiThreads,
   PendingTransaction,
+  Semaphore,
   Transaction,
   TransactionLink,
   User,
@@ -57,8 +60,9 @@ export const entities = [
   UserRole,
 ]
 
-export { latestDbVersion }
+export { AppDatabase } from './AppDatabase'
 export * from './logging'
 export * from './queries'
 export * from './util'
-export { AppDatabase } from './AppDatabase'
+export { latestDbVersion }
+
