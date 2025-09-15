@@ -1,11 +1,16 @@
 import { Semaphore as DbSemaphore } from "../entity/Semaphore";
 
 export async function createSemaphore(key: string, count: number, owner: string): Promise<DbSemaphore> {
+    console.log('createSemaphore', key, count, owner);
     try {
         let entity = await DbSemaphore.findOneBy({ key });
-        if (!entity) {
+        console.log('find entity', entity);
+        if (entity === null) {
+            console.log('createSemaphore entity is null');
             entity = DbSemaphore.create({ key, count, owner });
+            console.log('createSemaphore entity created', entity);
             await entity.save();
+            console.log('createSemaphore entity saved', entity);
         }
         return entity;
     } catch (err) {
@@ -15,12 +20,15 @@ export async function createSemaphore(key: string, count: number, owner: string)
 }
 
 export async function increaseSemaphore(entity: DbSemaphore): Promise<DbSemaphore> {
+    console.log('increaseSemaphore', entity.key, entity.count, entity.owner);
     try {
-        if (!entity) {
+        if (entity === null) {
             throw new Error('Semaphore not found');
         }
         entity.count++;
+        console.log('increaseSemaphore entity', entity);
         await DbSemaphore.save(entity);
+        console.log('increaseSemaphore entity saved', entity);
         return entity;
     } catch (err) {
         console.error('Failed to increase semaphore:', err);
@@ -30,12 +38,15 @@ export async function increaseSemaphore(entity: DbSemaphore): Promise<DbSemaphor
 
 
 export async function decreaseSemaphore(entity: DbSemaphore): Promise<DbSemaphore> {
+    console.log('decreaseSemaphore', entity.key, entity.count, entity.owner);
     try {
-        if (!entity) {
+        if (entity === null) {
             throw new Error('Semaphore not found');
         }
         entity.count--;
+        console.log('decreaseSemaphore entity', entity);
         await DbSemaphore.save(entity);
+        console.log('decreaseSemaphore entity saved', entity);
         return entity;
     } catch (err) {
         console.error('Failed to decrease semaphore:', err);

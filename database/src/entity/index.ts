@@ -10,6 +10,7 @@ import { Migration } from './Migration'
 import { OpenaiThreads } from './OpenaiThreads'
 import { PendingTransaction } from './PendingTransaction'
 import { ProjectBranding } from './ProjectBranding'
+import { Semaphore } from './Semaphore'
 import { Transaction } from './Transaction'
 import { TransactionLink } from './TransactionLink'
 import { User } from './User'
@@ -29,6 +30,7 @@ export {
   ProjectBranding,
   OpenaiThreads,
   PendingTransaction,
+  Semaphore,
   Transaction,
   TransactionLink,
   User,
@@ -49,6 +51,7 @@ export const entities = [
   ProjectBranding,
   OpenaiThreads,
   PendingTransaction,
+  Semaphore,
   Transaction,
   TransactionLink,
   User,

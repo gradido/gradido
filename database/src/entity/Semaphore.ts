@@ -8,7 +8,7 @@ export class Semaphore extends BaseEntity {
   @Column({ type: 'int', unsigned: true })
   count: number
 
-  @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @CreateDateColumn({ name: 'created_at', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP(6)' })
   createdAt: Date
 
   @Column({ name: 'owner', type: 'varchar', length: 255, nullable: false })

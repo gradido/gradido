@@ -15,21 +15,24 @@ export class Semaphore {
         this.initDbSemaphore();
     }
 
-    private async initDbSemaphore() {
-        this.entity = await createSemaphore(this.key, this.count, this.owner);
-        if(this.entity.owner !== this.owner) {
+    private initDbSemaphore() {
+        console.log('initDbSemaphore', this.key, this.count, this.owner);
+        this.entity = createSemaphore(this.key, this.count, this.owner);
+        if(this.entity.owner === this.owner) {
             this.count = this.entity.count;
             this.owner = this.entity.owner;
         }
     }
-    private async increaseDbSemaphore() {
+    private async increaseDbSemaphore() : Promise<void> {
+        console.log('increaseDbSemaphore', this.key, this.count, this.owner);
         this.entity = await increaseSemaphore(this.entity!);
     }
-    private async decreaseDbSemaphore() {
+    private async decreaseDbSemaphore() : Promise<void> {
+        console.log('decreaseDbSemaphore', this.key, this.count, this.owner);
         this.entity = await decreaseSemaphore(this.entity!);
     }
 
-    private sched() {
+    private async sched() : Promise<void> {
         if (this.count > 0 && this.tasks.length > 0) {
             this.count--;
             this.decreaseDbSemaphore();
