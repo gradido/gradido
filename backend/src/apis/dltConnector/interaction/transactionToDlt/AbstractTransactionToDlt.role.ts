@@ -3,8 +3,7 @@ import { ObjectLiteral, OrderByCondition, SelectQueryBuilder } from 'typeorm'
 import { DltTransaction } from 'database'
 
 import { TransactionDraft } from '@dltConnector/model/TransactionDraft'
-import { getLogger, Logger } from 'log4js'
-import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { Logger } from 'log4js'
 
 export abstract class AbstractTransactionToDltRole<T extends ObjectLiteral> {
   protected self: T | null

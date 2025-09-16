@@ -88,19 +88,19 @@ export async function SendToHieroContext(
   if (builder.isCrossCommunityTransaction()) {
     const outboundTransaction = builder.buildOutbound()
     validate(outboundTransaction)
-    const outboundIotaMessageId = await sendViaHiero(
+    const outboundHieroTransactionId = await sendViaHiero(
       outboundTransaction,
       role.getSenderCommunityTopicId(),
     )
-    builder.setParentMessageId(MemoryBlock.createPtr(new MemoryBlock(outboundIotaMessageId)))
+    builder.setParentMessageId(MemoryBlock.createPtr(new MemoryBlock(outboundHieroTransactionId)))
     const inboundTransaction = builder.buildInbound()
     validate(inboundTransaction)
     await sendViaHiero(inboundTransaction, role.getRecipientCommunityTopicId())
-    return parse(hieroTransactionIdSchema, outboundIotaMessageId)
+    return parse(hieroTransactionIdSchema, outboundHieroTransactionId)
   } else {
     const transaction = builder.build()
     validate(transaction)
-    const iotaMessageId = await sendViaHiero(transaction, role.getSenderCommunityTopicId())
-    return parse(hieroTransactionIdSchema, iotaMessageId)
+    const hieroTransactionId = await sendViaHiero(transaction, role.getSenderCommunityTopicId())
+    return parse(hieroTransactionIdSchema, hieroTransactionId)
   }
 }

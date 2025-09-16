@@ -2,12 +2,12 @@
 import { AccountType } from '@dltConnector/enum/AccountType'
 import { TransactionType } from '@dltConnector/enum/TransactionType'
 
-import { UserIdentifier } from './UserIdentifier'
+import { AccountIdentifier } from './AccountIdentifier'
 
 export class TransactionDraft {
-  user: UserIdentifier
+  user: AccountIdentifier
   // not used for simply register address
-  linkedUser?: UserIdentifier
+  linkedUser?: AccountIdentifier
   // not used for register address
   amount?: string
   memo?: string

@@ -5,7 +5,7 @@ import { TransactionType } from '@dltConnector/enum/TransactionType'
 import { CommunityUser } from '@dltConnector/model/CommunityUser'
 import { IdentifierSeed } from '@dltConnector/model/IdentifierSeed'
 import { TransactionDraft } from '@dltConnector/model/TransactionDraft'
-import { UserIdentifier } from '@dltConnector/model/UserIdentifier'
+import { UserIdentifier } from '@/apis/dltConnector/model/AccountIdentifier'
 
 import { TransactionTypeId } from '@/graphql/enum/TransactionTypeId'
 import { LogError } from '@/server/LogError'

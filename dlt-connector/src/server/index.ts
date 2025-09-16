@@ -1,4 +1,5 @@
 import { TypeBoxFromValibot } from '@sinclair/typemap'
+import { Type } from '@sinclair/typebox'
 import { Elysia, status } from 'elysia'
 import { AddressType_NONE } from 'gradido-blockchain-js'
 import { getLogger } from 'log4js'
@@ -46,11 +47,30 @@ export const appRoutes = new Elysia()
   )
   .post(
     '/sendTransaction',
-    async ({ body }) => await SendToHieroContext(parse(transactionSchema, body)),
+    async ({ body }) => {
+      console.log("sendTransaction was called")
+      return "0.0.123"
+      console.log(body)
+      console.log(parse(transactionSchema, body))
+      const transaction = parse(transactionSchema, body)
+      return await SendToHieroContext(transaction)
+    },
     // validation schemas
     {
-      body: TypeBoxFromValibot(transactionSchema),
-      response: TypeBoxFromValibot(hieroTransactionIdSchema),
+      // body: TypeBoxFromValibot(transactionSchema),
+      body: Type.Object({
+        user: Type.Object({
+          communityUser: Type.Object({
+            uuid: Type.String({ format: 'uuid' }),
+            accountNr: Type.Optional(Type.String()), // optional/undefined
+          }),
+          communityUuid: Type.String({ format: 'uuid' }),
+        }),
+        createdAt: Type.String({ format: 'date-time' }),
+        accountType: Type.Literal('COMMUNITY_HUMAN'),
+        type: Type.Literal('REGISTER_ADDRESS'),
+      })
+      // response: TypeBoxFromValibot(hieroTransactionIdSchema),
     },
   )
 
@@ -76,3 +96,4 @@ async function isAccountExist(identifierAccount: IdentifierAccount): Promise<boo
   }
   return addressType !== AddressType_NONE
 }
+export type DltRoutes = typeof appRoutes

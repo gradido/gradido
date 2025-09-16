@@ -87,7 +87,8 @@ async function homeCommunitySetup({ backend, hiero }: Clients, logger: Logger): 
   } else {
     // if topic exist, check if we need to update it
     let topicInfo = await hiero.getTopicInfo(homeCommunity.hieroTopicId)
-    if (
+    console.log(`topicInfo: ${JSON.stringify(topicInfo, null, 2)}`)
+    /*if (
       topicInfo.expirationTime.getTime() - new Date().getTime() <
       MIN_TOPIC_EXPIRE_MILLISECONDS_FOR_UPDATE
     ) {
@@ -96,7 +97,7 @@ async function homeCommunitySetup({ backend, hiero }: Clients, logger: Logger): 
       logger.info(
         `updated topic info, new expiration time: ${topicInfo.expirationTime.toLocaleDateString()}`,
       )
-    }
+    }*/
   }
   if (!homeCommunity.hieroTopicId) {
     throw new Error('still no topic id, after creating topic and update community in backend.')

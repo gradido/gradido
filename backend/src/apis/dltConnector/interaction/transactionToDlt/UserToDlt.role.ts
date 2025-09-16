@@ -3,13 +3,13 @@ import { DltTransaction, User } from 'database'
 import { AccountType } from '@dltConnector/enum/AccountType'
 import { DltTransactionType } from '@dltConnector/enum/DltTransactionType'
 import { TransactionType } from '@dltConnector/enum/TransactionType'
-import { CommunityUser } from '@dltConnector/model/CommunityUser'
 import { TransactionDraft } from '@dltConnector/model/TransactionDraft'
-import { UserIdentifier } from '@dltConnector/model/UserIdentifier'
+import { AccountIdentifier } from '@/apis/dltConnector/model/AccountIdentifier'
 
 import { LogError } from '@/server/LogError'
 
 import { AbstractTransactionToDltRole } from './AbstractTransactionToDlt.role'
+import { CommunityAccountIdentifier } from '../../model/CommunityAccountIdentifier'
 
 /**
  * send new user to dlt connector, will be made to RegisterAddress Transaction
@@ -17,7 +17,7 @@ import { AbstractTransactionToDltRole } from './AbstractTransactionToDlt.role'
 export class UserToDltRole extends AbstractTransactionToDltRole<User> {
   async initWithLast(): Promise<this> {
     this.self = await this.createQueryForPendingItems(
-      User.createQueryBuilder(),
+      User.createQueryBuilder().leftJoinAndSelect('User.community', 'community'),
       'User.id = dltTransaction.userId',
       // eslint-disable-next-line camelcase
       { User_created_at: 'ASC', User_id: 'ASC' },
@@ -36,8 +36,15 @@ export class UserToDltRole extends AbstractTransactionToDltRole<User> {
     if (!this.self) {
       throw new LogError('try to create dlt entry for empty transaction')
     }
+    if (!this.self.community) {
+      throw new LogError(`missing community for user ${this.self.id}`)
+    }
+    const topicId = this.self.community.hieroTopicId
+    if (!topicId) {
+      throw new LogError(`missing topicId for community ${this.self.community.id}`)
+    }
     const draft = new TransactionDraft()
-    draft.user = new UserIdentifier(this.self.communityUuid, new CommunityUser(this.self.gradidoID))
+    draft.user = new AccountIdentifier(topicId, new CommunityAccountIdentifier(this.self.gradidoID))
     draft.createdAt = this.self.createdAt.toISOString()
     draft.accountType = AccountType.COMMUNITY_HUMAN
     draft.type = TransactionType.REGISTER_ADDRESS

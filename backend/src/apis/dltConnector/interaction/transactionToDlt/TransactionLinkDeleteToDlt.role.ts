@@ -2,14 +2,14 @@ import { DltTransaction, TransactionLink } from 'database'
 
 import { DltTransactionType } from '@dltConnector/enum/DltTransactionType'
 import { TransactionType } from '@dltConnector/enum/TransactionType'
-import { CommunityUser } from '@dltConnector/model/CommunityUser'
 import { IdentifierSeed } from '@dltConnector/model/IdentifierSeed'
 import { TransactionDraft } from '@dltConnector/model/TransactionDraft'
-import { UserIdentifier } from '@dltConnector/model/UserIdentifier'
+import { AccountIdentifier } from '@dltConnector/model/AccountIdentifier'
 
 import { LogError } from '@/server/LogError'
 
 import { AbstractTransactionToDltRole } from './AbstractTransactionToDlt.role'
+import { CommunityAccountIdentifier } from '@dltConnector/model/CommunityAccountIdentifier'
 
 /**
  * redeem deferred transfer transaction by creator, so "deleting" it
@@ -17,7 +17,10 @@ import { AbstractTransactionToDltRole } from './AbstractTransactionToDlt.role'
 export class TransactionLinkDeleteToDltRole extends AbstractTransactionToDltRole<TransactionLink> {
   async initWithLast(): Promise<this> {
     const queryBuilder = this.createQueryForPendingItems(
-      TransactionLink.createQueryBuilder().leftJoinAndSelect('TransactionLink.user', 'user'),
+      TransactionLink
+      .createQueryBuilder()
+      .leftJoinAndSelect('TransactionLink.user', 'user')
+      .leftJoinAndSelect('user.community', 'community'),
       'TransactionLink.id = dltTransaction.transactionLinkId and dltTransaction.type_id <> 4',
       // eslint-disable-next-line camelcase
       { TransactionLink_deletedAt: 'ASC', User_id: 'ASC' },
@@ -67,8 +70,15 @@ export class TransactionLinkDeleteToDltRole extends AbstractTransactionToDltRole
     const draft = new TransactionDraft()
     draft.amount = this.self.amount.abs().toString()
     const user = this.self.user
-    draft.user = new UserIdentifier(user.communityUuid, new IdentifierSeed(this.self.code))
-    draft.linkedUser = new UserIdentifier(user.communityUuid, new CommunityUser(user.gradidoID, 1))
+    if (!user.community) {
+      throw new LogError(`missing community for user ${user.id}`)
+    }
+    const topicId = user.community.hieroTopicId
+    if (!topicId) {
+      throw new LogError(`missing topicId for community ${user.community.id}`)
+    }
+    draft.user = new AccountIdentifier(topicId, new IdentifierSeed(this.self.code))
+    draft.linkedUser = new AccountIdentifier(topicId, new CommunityAccountIdentifier(user.gradidoID))
     draft.createdAt = this.self.deletedAt.toISOString()
     draft.type = TransactionType.GRADIDO_REDEEM_DEFERRED_TRANSFER
     return draft

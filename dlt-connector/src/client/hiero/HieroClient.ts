@@ -75,6 +75,8 @@ export class HieroClient {
     this.logger.info(
       `message sent to topic ${topicId}, status: ${sendReceipt.status.toString()}, transaction id: ${sendResponse.transactionId.toString()}`,
     )
+    const record = await sendResponse.getRecordWithSigner(this.wallet)
+    this.logger.info(`message sent, cost: ${record.transactionFee.toString()}`)
     return { receipt: sendReceipt, response: sendResponse }
   }
 
@@ -120,6 +122,8 @@ export class HieroClient {
     const createReceipt = await createResponse.getReceiptWithSigner(this.wallet)
     this.logger.debug(createReceipt.toString())
     this.logger.addContext('topicId', createReceipt.topicId?.toString())
+    const record = await createResponse.getRecordWithSigner(this.wallet)
+    this.logger.info(`topic created, cost: ${record.transactionFee.toString()}`)
     return parse(hieroIdSchema, createReceipt.topicId?.toString())
   }
 
@@ -133,5 +137,7 @@ export class HieroClient {
     const updateResponse = await transaction.executeWithSigner(this.wallet)
     const updateReceipt = await updateResponse.getReceiptWithSigner(this.wallet)
     this.logger.debug(updateReceipt.toString())
+    const record = await updateResponse.getRecordWithSigner(this.wallet)
+    this.logger.info(`topic updated, cost: ${record.transactionFee.toString()}`)
   }
 }

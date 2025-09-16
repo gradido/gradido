@@ -2,8 +2,8 @@ import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { getLogger } from 'log4js'
 
-import { TransactionDraft } from './model/TransactionDraft'
-import { IRestResponse, RestClient } from 'typed-rest-client'
+import { TransactionDraft } from '@/apis/dltConnector/model/TransactionDraft'
+import { IRestResponse } from 'typed-rest-client'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.apis.dltConnector`)
 
@@ -16,7 +16,6 @@ const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.apis.dltConnector`)
 
 export class DltConnectorClient {
   private static instance: DltConnectorClient
-  client: RestClient
   /**
    * The Singleton's constructor should always be private to prevent direct
    * construction calls with the `new` operator.
@@ -38,19 +37,6 @@ export class DltConnectorClient {
     if (!DltConnectorClient.instance) {
       DltConnectorClient.instance = new DltConnectorClient()
     }
-    if (!DltConnectorClient.instance.client) {
-      try {
-        DltConnectorClient.instance.client = new RestClient(
-          'gradido-backend', 
-          CONFIG.DLT_CONNECTOR_URL, 
-          undefined, 
-          { keepAlive: true }
-        )
-      } catch (e) {
-        logger.error("couldn't connect to dlt-connector: ", e)
-        return
-      }
-    }
     return DltConnectorClient.instance
   }
 
@@ -60,6 +46,10 @@ export class DltConnectorClient {
    */
   public async sendTransaction(input: TransactionDraft): Promise<IRestResponse<string>> {
     logger.debug('transmit transaction or user to dlt connector', input)
-    return await this.client.create<string>('/sendTransaction', input)
+    return Promise.resolve({
+      statusCode: 200,
+      result: 'test',
+      headers: {},
+    })
   }
 }

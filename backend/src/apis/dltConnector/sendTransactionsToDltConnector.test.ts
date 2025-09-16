@@ -1,9 +1,5 @@
-import { ApolloServerTestClient } from 'apollo-server-testing'
 import { Community, DltTransaction, Transaction } from 'database'
 import { Decimal } from 'decimal.js-light'
-// import { GraphQLClient } from 'graphql-request'
-// import { Response } from 'graphql-request/dist/types'
-import { GraphQLClient } from 'graphql-request'
 import { Response } from 'graphql-request/dist/types'
 import { DataSource } from 'typeorm'
 import { v4 as uuidv4 } from 'uuid'
@@ -15,11 +11,11 @@ import { CONFIG } from '@/config'
 import { TransactionTypeId } from '@/graphql/enum/TransactionTypeId'
 import { creations } from '@/seeds/creation'
 import { creationFactory } from '@/seeds/factory/creation'
-import { userFactory } from '@/seeds/factory/user'
-import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
-import { bobBaumeister } from '@/seeds/users/bob-baumeister'
-import { peterLustig } from '@/seeds/users/peter-lustig'
-import { raeuberHotzenplotz } from '@/seeds/users/raeuber-hotzenplotz'
+import { userFactory } from 'database/src/seeds/factory/user'
+import { bibiBloxberg } from 'database/src/seeds/users/bibi-bloxberg'
+import { bobBaumeister } from 'database/src/seeds/users/bob-baumeister'
+import { peterLustig } from 'database/src/seeds/users/peter-lustig'
+import { raeuberHotzenplotz } from 'database/src/seeds/users/raeuber-hotzenplotz'
 import { getLogger } from 'config-schema/test/testSetup'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 
@@ -30,63 +26,6 @@ jest.mock('@/password/EncryptorUtils')
 const logger = getLogger(
   `${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.util.sendTransactionsToDltConnector`,
 )
-
-/*
-// Mock the GraphQLClient
-jest.mock('graphql-request', () => {
-  const originalModule = jest.requireActual('graphql-request')
-
-  let testCursor = 0
-
-  return {
-    __esModule: true,
-    ...originalModule,
-    GraphQLClient: jest.fn().mockImplementation((url: string) => {
-      if (url === 'invalid') {
-        throw new Error('invalid url')
-      }
-      return {
-        // why not using mockResolvedValueOnce or mockReturnValueOnce?
-        // I have tried, but it didn't work and return every time the first value
-        request: jest.fn().mockImplementation(() => {
-          testCursor++
-          if (testCursor === 4) {
-            return Promise.resolve(
-              // invalid, is 33 Bytes long as binary
-              {
-                transmitTransaction: {
-                  dltTransactionIdHex:
-                    '723e3fab62c5d3e2f62fd72ba4e622bcd53eff35262e3f3526327fe41bc516212A',
-                },
-              },
-            )
-          } else if (testCursor === 5) {
-            throw Error('Connection error')
-          } else {
-            return Promise.resolve(
-              // valid, is 32 Bytes long as binary
-              {
-                transmitTransaction: {
-                  dltTransactionIdHex:
-                    '723e3fab62c5d3e2f62fd72ba4e622bcd53eff35262e3f3526327fe41bc51621',
-                },
-              },
-            )
-          }
-        }),
-      }
-    }),
-  }
-})
-let mutate: ApolloServerTestClient['mutate'],
-  query: ApolloServerTestClient['query'],
-  con: Connection
-let testEnv: {
-  mutate: ApolloServerTestClient['mutate']
-  query: ApolloServerTestClient['query']
-  con: Connection
-}
-*/
 
 async function createHomeCommunity(): Promise<Community> {
   const homeCommunity = Community.create()
@@ -336,8 +275,6 @@ async function createTxReceive1FromSend3(verified: boolean): Promise<Transaction
 
 let con: DataSource
 let testEnv: {
-  mutate: ApolloServerTestClient['mutate']
-  query: ApolloServerTestClient['query']
   con: DataSource
 }
 
@@ -445,14 +382,6 @@ describe('create and send Transactions to DltConnector', () => {
       await createHomeCommunity()
 
       CONFIG.DLT_CONNECTOR = true
-
-      jest.spyOn(GraphQLClient.prototype, 'rawRequest').mockImplementation(async () => {
-        return {
-          data: {
-            sendTransaction: { succeed: true },
-          },
-        } as Response<unknown>
-      })
 
       await sendTransactionsToDltConnector()
 
