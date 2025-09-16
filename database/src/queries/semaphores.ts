@@ -9,7 +9,7 @@ export async function createSemaphore(key: string, count: number, owner: string)
             console.log('createSemaphore entity is null');
             entity = DbSemaphore.create({ key, count, owner });
             console.log('createSemaphore entity created', entity);
-            await entity.save();
+            await DbSemaphore.save(entity);
             console.log('createSemaphore entity saved', entity);
         }
         return entity;

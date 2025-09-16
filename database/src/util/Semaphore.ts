@@ -13,15 +13,20 @@ export class Semaphore {
         this.count = count;
         this.owner = owner;
         this.initDbSemaphore();
+        console.log('constructor nach initDbSemaphore this=', this);
     }
 
-    private initDbSemaphore() {
+    private async initDbSemaphore() {
         console.log('initDbSemaphore', this.key, this.count, this.owner);
-        this.entity = createSemaphore(this.key, this.count, this.owner);
+        this.entity = await createSemaphore(this.key, this.count, this.owner);
+        console.log('initDbSemaphore entity', this.entity);
         if(this.entity.owner === this.owner) {
+            console.log('initDbSemaphore same owner=', this.owner);
+            console.log('initDbSemaphore this', this);
             this.count = this.entity.count;
             this.owner = this.entity.owner;
         }
+        console.log('initDbSemaphore finished this=', this);
     }
     private async increaseDbSemaphore() : Promise<void> {
         console.log('increaseDbSemaphore', this.key, this.count, this.owner);
