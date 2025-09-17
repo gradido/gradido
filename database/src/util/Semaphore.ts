@@ -8,20 +8,30 @@ export class Semaphore {
     private owner: string;
     entity?: DbSemaphore | null;
 
-    constructor(key: string, count: number, owner: string) {
+    private constructor(key: string, count: number, owner: string) {
+        console.log('im constructor key, count, owner:', key, count, owner);
         this.key = key;
         this.count = count;
         this.owner = owner;
-        this.initDbSemaphore();
-        console.log('constructor nach initDbSemaphore this=', this);
+        console.log('constructor finished this=', this);
+    }
+
+    // Static factory method to create a new Semaphore
+    public static async create(key: string, count: number, owner: string): Promise<Semaphore> {
+        console.log('Semaphore.create key, count, owner:', key, count, owner);
+        const semaphore = new Semaphore(key, count, owner);
+        console.log('Semaphore.create: nach constructor semaphore=', semaphore);
+        await semaphore.initDbSemaphore();
+        console.log('Semaphore.create: nach initDbSemaphore semaphore=', semaphore);
+        return semaphore;
     }
 
     private async initDbSemaphore() {
         console.log('initDbSemaphore', this.key, this.count, this.owner);
         this.entity = await createSemaphore(this.key, this.count, this.owner);
-        console.log('initDbSemaphore entity', this.entity);
-        if(this.entity.owner === this.owner) {
-            console.log('initDbSemaphore same owner=', this.owner);
+        console.log('initDbSemaphore: nach createSemaphore entity=', this.entity);
+        if(this.entity.owner !== this.owner) {
+            console.log('initDbSemaphore different owner=', this.owner);
             console.log('initDbSemaphore this', this);
             this.count = this.entity.count;
             this.owner = this.entity.owner;

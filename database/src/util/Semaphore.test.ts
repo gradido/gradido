@@ -9,16 +9,16 @@ beforeAll(async () => {
   await db.init()
   if(db.getDataSource().isInitialized) {
     console.log('Database is initialized')
-    // await DbSemaphore.clear()
+    await DbSemaphore.clear()
   }
 })
 afterAll(async () => {
   // await db.destroy()
 })
 
-describe('create several semaphores with same key', () => {
+describe('create several semaphores with same key', async () => {
     it('first one succeeds', async () => {
-      const TEST_LOCK = await new Semaphore('TEST_LOCK', 1, 'test-1')
+      const TEST_LOCK = await Semaphore.create('TEST_LOCK', 1, 'test-1')
       console.log('TEST_LOCK', TEST_LOCK);
       expect(TEST_LOCK).toMatchObject({
         key: 'TEST_LOCK',
@@ -36,7 +36,7 @@ describe('create several semaphores with same key', () => {
       })
     })
     it('second one returns semaphore with first owner', async () => {
-      const TEST_LOCK = await new Semaphore('TEST_LOCK', 1, 'test-2')
+      const TEST_LOCK = await Semaphore.create('TEST_LOCK', 1, 'test-2')
       expect(TEST_LOCK).toMatchObject({
         key: 'TEST_LOCK',
         count: 1,

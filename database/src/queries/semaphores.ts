@@ -1,16 +1,16 @@
 import { Semaphore as DbSemaphore } from "../entity/Semaphore";
 
 export async function createSemaphore(key: string, count: number, owner: string): Promise<DbSemaphore> {
-    console.log('createSemaphore', key, count, owner);
+    console.log('createSemaphore: key, count, owner:', key, count, owner);
     try {
         let entity = await DbSemaphore.findOneBy({ key });
-        console.log('find entity', entity);
+        console.log('createSemaphore: nach findOneBy entity', entity);
         if (entity === null) {
-            console.log('createSemaphore entity is null');
+            console.log('createSemaphore: entity is null');
             entity = DbSemaphore.create({ key, count, owner });
-            console.log('createSemaphore entity created', entity);
+            console.log('createSemaphore: entity created', entity);
             await DbSemaphore.save(entity);
-            console.log('createSemaphore entity saved', entity);
+            console.log('createSemaphore: entity saved', entity);
         }
         return entity;
     } catch (err) {
