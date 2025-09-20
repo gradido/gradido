@@ -47,8 +47,8 @@ export const addressTypeSchema = v.pipe(
  */
 export const accountTypeSchema = v.pipe(
   v.union([
-    v.custom<AddressType>(isAddressType, 'expect AddressType'),
     v.enum(AccountType, 'expect AccountType'),
+    v.custom<AddressType>(isAddressType, 'expect AddressType'),
   ]),
   v.transform<AddressType | AccountType, AccountType>((value) => toAccountType(value)),
 )

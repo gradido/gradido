@@ -11,18 +11,22 @@ export type IdentifierSeed = v.InferOutput<typeof identifierSeedSchema>
 // identifier for gradido community accounts, inside a community
 export const identifierCommunityAccountSchema = v.object({
   userUuid: uuidv4Schema,
-  accountNr: v.nullish(v.number('expect number type'), 0),
+  accountNr: v.optional(v.number('expect number type'), 0),
 })
 
 export type IdentifierCommunityAccount = v.InferOutput<typeof identifierCommunityAccountSchema>
 
+export const identifierKeyPairSchema = v.object({
+  communityTopicId: hieroIdSchema,
+  account: v.optional(identifierCommunityAccountSchema),
+  seed: v.optional(identifierSeedSchema),
+})
+export type IdentifierKeyPairInput = v.InferInput<typeof identifierKeyPairSchema>
+export type IdentifierKeyPair = v.InferOutput<typeof identifierKeyPairSchema>
+
 // identifier for gradido account, including the community uuid
 export const identifierAccountSchema = v.pipe(
-  v.object({
-    communityTopicId: hieroIdSchema,
-    account: v.nullish(identifierCommunityAccountSchema, undefined),
-    seed: v.nullish(identifierSeedSchema, undefined),
-  }),
+  identifierKeyPairSchema,
   v.custom((value: any) => {
     const setFieldsCount = Number(value.seed !== undefined) + Number(value.account !== undefined)
     if (setFieldsCount !== 1) {

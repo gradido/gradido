@@ -21,7 +21,12 @@ export class CreationTransactionRole extends AbstractTransactionRole {
   private readonly creationTransaction: CreationTransaction
   constructor(transaction: Transaction) {
     super()
-    this.creationTransaction = parse(creationTransactionSchema, transaction)
+    try {
+      this.creationTransaction = parse(creationTransactionSchema, transaction)
+    } catch (error) {
+      console.error('creation: invalid transaction', JSON.stringify(error, null, 2))
+      throw new Error('creation: invalid transaction')
+    }
     this.homeCommunityTopicId = KeyPairCacheManager.getInstance().getHomeCommunityTopicId()
     if (
       this.homeCommunityTopicId !== this.creationTransaction.user.communityTopicId ||

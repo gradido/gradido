@@ -2,6 +2,7 @@ import {
   AppDatabase,
   countOpenPendingTransactions,
   Community as DbCommunity,
+  DltTransaction as DbDltTransaction,
   PendingTransaction as DbPendingTransaction,
   Transaction as dbTransaction,
   TransactionLink as dbTransactionLink,
@@ -54,6 +55,7 @@ import {
 } from './util/processXComSendCoins'
 import { storeForeignUser } from './util/storeForeignUser'
 import { transactionLinkSummary } from './util/transactionLinkSummary'
+import { transferTransaction } from '@/apis/dltConnector'
 
 const db = AppDatabase.getInstance()
 const createLogger = () => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.TransactionResolver`)
@@ -66,6 +68,12 @@ export const executeTransaction = async (
   logger: Logger,
   transactionLink?: dbTransactionLink | null,
 ): Promise<boolean> => {
+  const receivedCallDate = new Date()
+  let dltTransactionPromise: Promise<DbDltTransaction | null> = Promise.resolve(null)
+  if (!transactionLink) {
+    dltTransactionPromise = transferTransaction(sender, recipient, amount.toString(), memo, receivedCallDate)
+  }
+
   // acquire lock
   const releaseLock = await TRANSACTIONS_LOCK.acquire()
 
@@ -82,8 +90,7 @@ export const executeTransaction = async (
       throw new LogError('Sender and Recipient are the same', sender.id)
     }
 
-    // validate amount
-    const receivedCallDate = new Date()
+    // validate amount    
     const sendBalance = await calculateBalance(
       sender.id,
       amount.mul(-1),
@@ -163,7 +170,12 @@ export const executeTransaction = async (
       }
 
       await queryRunner.commitTransaction()
-      logger.info(`commit Transaction successful...`)
+      // update dltTransaction with transactionId
+      const dltTransaction = await dltTransactionPromise
+      if (dltTransaction) {
+        dltTransaction.transactionId = transactionSend.id
+        await dltTransaction.save()
+      }
 
       await EVENT_TRANSACTION_SEND(sender, recipient, transactionSend, transactionSend.amount)
 
@@ -179,8 +191,9 @@ export const executeTransaction = async (
     } finally {
       await queryRunner.release()
     }
+    
     // notify dlt-connector loop for new work
-    InterruptiveSleepManager.getInstance().interrupt(TRANSMIT_TO_IOTA_INTERRUPTIVE_SLEEP_KEY)
+    // InterruptiveSleepManager.getInstance().interrupt(TRANSMIT_TO_IOTA_INTERRUPTIVE_SLEEP_KEY)
     await sendTransactionReceivedEmail({
       firstName: recipient.firstName,
       lastName: recipient.lastName,

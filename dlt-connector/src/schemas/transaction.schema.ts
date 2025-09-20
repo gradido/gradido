@@ -5,7 +5,7 @@ import {
   identifierCommunityAccountSchema,
   identifierSeedSchema,
 } from './account.schema'
-import { accountTypeSchema, addressTypeSchema, dateSchema } from './typeConverter.schema'
+import { addressTypeSchema, dateSchema } from './typeConverter.schema'
 import {
   gradidoAmountSchema,
   hieroIdSchema,
@@ -13,6 +13,7 @@ import {
   timeoutDurationSchema,
   uuidv4Schema,
 } from './typeGuard.schema'
+import { AccountType } from '../enum/AccountType'
 
 /**
  * Schema for community, for creating new CommunityRoot Transaction on gradido blockchain
@@ -29,14 +30,14 @@ export type Community = v.InferOutput<typeof communitySchema>
 
 export const transactionSchema = v.object({
   user: identifierAccountSchema,
-  linkedUser: v.nullish(identifierAccountSchema, undefined),
-  amount: v.nullish(gradidoAmountSchema, undefined),
-  memo: v.nullish(memoSchema, undefined),
+  linkedUser: v.optional(identifierAccountSchema),
+  amount: v.optional(gradidoAmountSchema),
+  memo: v.optional(memoSchema),
   type: v.enum(InputTransactionType),
   createdAt: dateSchema,
-  targetDate: v.nullish(dateSchema, undefined),
-  timeoutDuration: v.nullish(timeoutDurationSchema, undefined),
-  accountType: v.nullish(accountTypeSchema, undefined),
+  targetDate: v.optional(dateSchema),
+  timeoutDuration: v.optional(timeoutDurationSchema),
+  accountType: v.optional(v.enum(AccountType)),
 })
 
 export type TransactionInput = v.InferInput<typeof transactionSchema>

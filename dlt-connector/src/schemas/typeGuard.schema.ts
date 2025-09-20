@@ -168,11 +168,21 @@ declare const validTimeoutDuration: unique symbol
 export type TimeoutDuration = DurationSeconds & { [validTimeoutDuration]: true }
 
 export const timeoutDurationSchema = v.pipe(
-  v.number('expect number type'),
-  v.minValue(LINKED_TRANSACTION_TIMEOUT_DURATION_MIN, 'expect number >= 1 hour'),
-  v.maxValue(LINKED_TRANSACTION_TIMEOUT_DURATION_MAX, 'expect number <= 3 months'),
-  v.transform<number, TimeoutDuration>(
-    (input: number) => new DurationSeconds(input) as TimeoutDuration,
+  v.union([
+    v.pipe(
+      v.number('expect number type'),
+      v.minValue(LINKED_TRANSACTION_TIMEOUT_DURATION_MIN, 'expect number >= 1 hour'),
+      v.maxValue(LINKED_TRANSACTION_TIMEOUT_DURATION_MAX, 'expect number <= 3 months'),
+    ),
+    v.instance(DurationSeconds, 'expect DurationSeconds type'),
+  ]),
+  v.transform<number | DurationSeconds, TimeoutDuration>(
+    (input: number | DurationSeconds) => {
+      if (input instanceof DurationSeconds) {
+        return input as TimeoutDuration
+      }
+      return new DurationSeconds(input) as TimeoutDuration
+    },
   ),
 )
 
@@ -200,8 +210,16 @@ declare const validGradidoAmount: unique symbol
 export type GradidoAmount = GradidoUnit & { [validGradidoAmount]: true }
 
 export const gradidoAmountSchema = v.pipe(
-  amountSchema,
-  v.transform<Amount, GradidoAmount>(
-    (input: Amount) => GradidoUnit.fromString(input) as GradidoAmount,
+  v.union([
+    amountSchema,
+    v.instance(GradidoUnit, 'expect GradidoUnit type'),
+  ]),
+  v.transform<Amount | GradidoUnit, GradidoAmount>(
+    (input: Amount | GradidoUnit) => {
+      if (input instanceof GradidoUnit) {
+        return input as GradidoAmount
+      }
+      return GradidoUnit.fromString(input) as GradidoAmount
+    },
   ),
 )

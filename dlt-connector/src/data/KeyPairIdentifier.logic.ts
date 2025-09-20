@@ -1,10 +1,10 @@
 import { MemoryBlock } from 'gradido-blockchain-js'
 import { ParameterError } from '../errors'
-import { IdentifierAccount } from '../schemas/account.schema'
+import { IdentifierKeyPair } from '../schemas/account.schema'
 import { HieroId } from '../schemas/typeGuard.schema'
 
 export class KeyPairIdentifierLogic {
-  public constructor(public identifier: IdentifierAccount) {}
+  public constructor(public identifier: IdentifierKeyPair) {}
 
   isCommunityKeyPair(): boolean {
     return !this.identifier.seed && !this.identifier.account
@@ -91,8 +91,8 @@ export class KeyPairIdentifierLogic {
     if (!this.identifier.account?.userUuid || !this.identifier.communityTopicId) {
       throw new ParameterError('userUuid and/or communityTopicId is undefined')
     }
-    const resultHexString =
+    const resultString =
       this.identifier.communityTopicId + this.identifier.account.userUuid.replace(/-/g, '')
-    return MemoryBlock.fromHex(resultHexString).calculateHash().convertToHex()
+    return new MemoryBlock(resultString).calculateHash().convertToHex()
   }
 }

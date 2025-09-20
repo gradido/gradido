@@ -34,19 +34,15 @@ export class RegisterAddressTransactionRole extends AbstractTransactionRole {
 
   public async getGradidoTransactionBuilder(): Promise<GradidoTransactionBuilder> {
     const builder = new GradidoTransactionBuilder()
-    const communityKeyPair = await KeyPairCalculation(
-      new KeyPairIdentifierLogic({
-        communityTopicId: this.registerAddressTransaction.user.communityTopicId,
-      }),
-    )
-    const accountKeyPairIdentifier = this.registerAddressTransaction.user
+    const communityTopicId = this.registerAddressTransaction.user.communityTopicId
+    const communityKeyPair = await KeyPairCalculation(new KeyPairIdentifierLogic({ communityTopicId }))
+    const keyPairIdentifier = this.registerAddressTransaction.user
     // when accountNr is 0 it is the user account
-    const userKeyPairIdentifier = accountKeyPairIdentifier
-    userKeyPairIdentifier.account.accountNr = 0
-
-    const userKeyPair = await KeyPairCalculation(new KeyPairIdentifierLogic(userKeyPairIdentifier))
+    keyPairIdentifier.account.accountNr = 0
+    const userKeyPair = await KeyPairCalculation(new KeyPairIdentifierLogic(keyPairIdentifier))
+    keyPairIdentifier.account.accountNr = 1
     const accountKeyPair = await KeyPairCalculation(
-      new KeyPairIdentifierLogic(accountKeyPairIdentifier),
+      new KeyPairIdentifierLogic(keyPairIdentifier),
     )
 
     builder

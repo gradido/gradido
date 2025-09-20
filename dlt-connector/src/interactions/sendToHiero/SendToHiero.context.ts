@@ -58,28 +58,25 @@ export async function SendToHieroContext(
 
   // choose correct role based on transaction type and input type
   const chooseCorrectRole = (input: Transaction | Community): AbstractTransactionRole => {
-    const transactionParsingResult = safeParse(transactionSchema, input)
     const communityParsingResult = safeParse(communitySchema, input)
-    if (transactionParsingResult.success) {
-      const transaction = transactionParsingResult.output
-      switch (transaction.type) {
-        case InputTransactionType.GRADIDO_CREATION:
-          return new CreationTransactionRole(transaction)
-        case InputTransactionType.GRADIDO_TRANSFER:
-          return new TransferTransactionRole(transaction)
-        case InputTransactionType.REGISTER_ADDRESS:
-          return new RegisterAddressTransactionRole(transaction)
-        case InputTransactionType.GRADIDO_DEFERRED_TRANSFER:
-          return new DeferredTransferTransactionRole(transaction)
-        case InputTransactionType.GRADIDO_REDEEM_DEFERRED_TRANSFER:
-          return new RedeemDeferredTransferTransactionRole(transaction)
-        default:
-          throw new Error('not supported transaction type: ' + transaction.type)
-      }
-    } else if (communityParsingResult.success) {
+    if (communityParsingResult.success) {
       return new CommunityRootTransactionRole(communityParsingResult.output)
-    } else {
-      throw new Error('not expected input')
+    }
+    
+    const transaction = input as Transaction
+    switch (transaction.type) {
+      case InputTransactionType.GRADIDO_CREATION:
+        return new CreationTransactionRole(transaction)
+      case InputTransactionType.GRADIDO_TRANSFER:
+        return new TransferTransactionRole(transaction)
+      case InputTransactionType.REGISTER_ADDRESS:
+        return new RegisterAddressTransactionRole(transaction)
+      case InputTransactionType.GRADIDO_DEFERRED_TRANSFER:
+        return new DeferredTransferTransactionRole(transaction)
+      case InputTransactionType.GRADIDO_REDEEM_DEFERRED_TRANSFER:
+        return new RedeemDeferredTransferTransactionRole(transaction)
+      default:
+        throw new Error('not supported transaction type: ' + transaction.type)    
     }
   }
 

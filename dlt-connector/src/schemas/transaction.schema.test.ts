@@ -1,4 +1,6 @@
 import { beforeAll, describe, expect, it } from 'bun:test'
+import { TypeBoxFromValibot } from '@sinclair/typemap'
+import { TypeCompiler } from '@sinclair/typebox/compiler'
 import { randomBytes } from 'crypto'
 import { v4 as uuidv4 } from 'uuid'
 import { parse } from 'valibot'
@@ -13,7 +15,9 @@ import {
   Uuidv4,
   uuidv4Schema,
 } from '../schemas/typeGuard.schema'
-import { TransactionInput, transactionSchema } from './transaction.schema'
+import { registerAddressTransactionSchema, TransactionInput, transactionSchema } from './transaction.schema'
+import { AccountType } from '../enum/AccountType'
+import { AddressType_COMMUNITY_HUMAN } from 'gradido-blockchain-js'
 
 const transactionLinkCode = (date: Date): string => {
   const time = date.getTime().toString(16)
@@ -40,27 +44,54 @@ describe('transaction schemas', () => {
     memoString = 'TestMemo'
     memo = parse(memoSchema, memoString)
   })
-  it('valid, register new user address', () => {
-    const registerAddress: TransactionInput = {
-      user: {
-        communityTopicId: topicString,
-        account: { userUuid: userUuidString },
-      },
-      type: InputTransactionType.REGISTER_ADDRESS,
-      createdAt: '2022-01-01T00:00:00.000Z',
-    }
-    expect(parse(transactionSchema, registerAddress)).toEqual({
-      user: {
-        communityTopicId: topic,
-        account: {
-          userUuid,
-          accountNr: 0,
+  describe('register address', () => {
+    let registerAddress: TransactionInput
+    beforeAll(() => {
+      registerAddress = {
+        user: {
+          communityTopicId: topicString,
+          account: { userUuid: userUuidString },
         },
-      },
-      type: registerAddress.type,
-      createdAt: new Date(registerAddress.createdAt),
+        type: InputTransactionType.REGISTER_ADDRESS,
+        accountType: AccountType.COMMUNITY_HUMAN,
+        createdAt: new Date().toISOString(),
+      }
+    })
+    it('valid transaction schema', () => {
+      expect(parse(transactionSchema, registerAddress)).toEqual({
+        user: {
+          communityTopicId: topic,
+          account: {
+            userUuid,
+            accountNr: 0,
+          },
+        },
+        type: registerAddress.type,
+        accountType: AccountType.COMMUNITY_HUMAN,
+        createdAt: new Date(registerAddress.createdAt),
+      })
+    })
+    it('valid register address schema', () => {
+      expect(parse(registerAddressTransactionSchema, registerAddress)).toEqual({
+        user: {
+          communityTopicId: topic,
+          account: {
+            userUuid,
+            accountNr: 0,
+          },
+        },
+        accountType: AddressType_COMMUNITY_HUMAN,
+        createdAt: new Date(registerAddress.createdAt),
+      })
+    })
+    it('valid, transaction schema with typebox', () => {
+      // console.log(JSON.stringify(TypeBoxFromValibot(transactionSchema), null, 2))
+      const TTransactionSchema = TypeBoxFromValibot(transactionSchema)
+      const check = TypeCompiler.Compile(TTransactionSchema)
+      expect(check.Check(registerAddress)).toBe(true)
     })
   })
+  
   it('valid, gradido transfer', () => {
     const gradidoTransfer: TransactionInput = {
       user: {

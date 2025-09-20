@@ -1,6 +1,6 @@
 import { TypeBoxFromValibot } from '@sinclair/typemap'
 import { Type } from '@sinclair/typebox'
-import { Elysia, status } from 'elysia'
+import { Elysia, status, t } from 'elysia'
 import { AddressType_NONE } from 'gradido-blockchain-js'
 import { getLogger } from 'log4js'
 import { parse } from 'valibot'
@@ -11,7 +11,7 @@ import { KeyPairCalculation } from '../interactions/keyPairCalculation/KeyPairCa
 import { SendToHieroContext } from '../interactions/sendToHiero/SendToHiero.context'
 import { IdentifierAccount, identifierAccountSchema } from '../schemas/account.schema'
 import { transactionSchema } from '../schemas/transaction.schema'
-import { hieroTransactionIdSchema } from '../schemas/typeGuard.schema'
+import { hieroIdSchema, hieroTransactionIdSchema } from '../schemas/typeGuard.schema'
 import {
   accountIdentifierSeedSchema,
   accountIdentifierUserSchema,
@@ -48,29 +48,22 @@ export const appRoutes = new Elysia()
   .post(
     '/sendTransaction',
     async ({ body }) => {
-      console.log("sendTransaction was called")
-      return "0.0.123"
-      console.log(body)
-      console.log(parse(transactionSchema, body))
-      const transaction = parse(transactionSchema, body)
-      return await SendToHieroContext(transaction)
+      try {      
+        const hieroTransactionId = await SendToHieroContext(parse(transactionSchema, body))
+        console.log('server will return:', hieroTransactionId)
+        return { transactionId: hieroTransactionId }
+      } catch (e) {
+        if (e instanceof TypeError) {
+          console.log(`message: ${e.message}, stack: ${e.stack}`)
+        }
+        console.log(e)
+        throw status(500, e)
+      }
     },
     // validation schemas
     {
-      // body: TypeBoxFromValibot(transactionSchema),
-      body: Type.Object({
-        user: Type.Object({
-          communityUser: Type.Object({
-            uuid: Type.String({ format: 'uuid' }),
-            accountNr: Type.Optional(Type.String()), // optional/undefined
-          }),
-          communityUuid: Type.String({ format: 'uuid' }),
-        }),
-        createdAt: Type.String({ format: 'date-time' }),
-        accountType: Type.Literal('COMMUNITY_HUMAN'),
-        type: Type.Literal('REGISTER_ADDRESS'),
-      })
-      // response: TypeBoxFromValibot(hieroTransactionIdSchema),
+      body: TypeBoxFromValibot(transactionSchema),
+      response: t.Object({ transactionId: TypeBoxFromValibot(hieroTransactionIdSchema) }),
     },
   )
 

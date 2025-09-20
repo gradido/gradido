@@ -58,8 +58,11 @@ export class DltConnectorClient {
    * transmit transaction via dlt-connector to hiero
    * and update dltTransactionId of transaction in db with hiero transaction id
    */
-  public async sendTransaction(input: TransactionDraft): Promise<IRestResponse<string>> {
+  public async sendTransaction(input: TransactionDraft): Promise<IRestResponse<{ transactionId: string }>> {
     logger.debug('transmit transaction or user to dlt connector', input)
-    return await this.client.create<string>('/sendTransaction', input)
+    return await this.client.create<{ transactionId: string }>(
+      '/sendTransaction', 
+      input
+    )
   }
 }
