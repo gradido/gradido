@@ -2,9 +2,8 @@ import { Transaction as dbTransaction } from 'database'
 import { Decimal } from 'decimal.js-light'
 import { Field, Int, ObjectType } from 'type-graphql'
 
-import { TransactionTypeId } from '@enum/TransactionTypeId'
+import { Decay, TransactionTypeId } from 'core'
 
-import { Decay } from './Decay'
 import { User } from './User'
 
 @ObjectType()

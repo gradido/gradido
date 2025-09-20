@@ -3,7 +3,7 @@ import { FederatedCommunity as DbFederatedCommunity } from 'database'
 import { AuthenticationClient as V1_0_AuthenticationClient } from '@/federation/client/1_0/AuthenticationClient'
 
 import { AuthenticationClient as V1_1_AuthenticationClient } from '@/federation/client/1_1/AuthenticationClient'
-import { ApiVersionType } from '@/federation/enum/apiVersionType'
+import { ApiVersionType } from 'core'
 
 type AuthenticationClient = V1_0_AuthenticationClient | V1_1_AuthenticationClient
 

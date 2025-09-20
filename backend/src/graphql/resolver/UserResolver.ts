@@ -1,7 +1,6 @@
 import {
   AppDatabase,
   ContributionLink as DbContributionLink,
-  DltTransaction as DbDltTransaction,
   TransactionLink as DbTransactionLink,
   User as DbUser,
   UserContact as DbUserContact,
@@ -86,7 +85,7 @@ import { Context, getClientTimezoneOffset, getUser } from '@/server/context'
 import { communityDbUser } from '@/util/communityUser'
 import { hasElopageBuys } from '@/util/hasElopageBuys'
 import { durationInMinutesFromDates, getTimeDurationObject, printTimeDuration } from '@/util/time'
-import { delay } from '@/util/utilities'
+import { delay } from 'core'
 
 import random from 'random-bigint'
 import { randombytes_random } from 'sodium-native'

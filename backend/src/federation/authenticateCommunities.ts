@@ -1,10 +1,10 @@
 import { CommunityLoggingView, Community as DbCommunity, FederatedCommunity as DbFederatedCommunity, FederatedCommunityLoggingView, getHomeCommunity } from 'database'
 import { validate as validateUUID, version as versionUUID } from 'uuid'
 import { randombytes_random } from 'sodium-native'
-import { CONFIG } from '@/config'
+import { CONFIG as CONFIG_CORE } from 'core'
 
 import { AuthenticationClient as V1_0_AuthenticationClient } from '@/federation/client/1_0/AuthenticationClient'
-import { ensureUrlEndsWithSlash } from '@/util/utilities'
+import { ensureUrlEndsWithSlash } from 'core'
 
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { encryptAndSign, OpenConnectionJwtPayloadType } from 'shared'
@@ -27,7 +27,7 @@ export async function startCommunityAuthentication(
   methodLogger.debug('homeComA', new CommunityLoggingView(homeComA!))
   const homeFedComA = await DbFederatedCommunity.findOneByOrFail({
     foreign: false,
-    apiVersion: CONFIG.FEDERATION_BACKEND_SEND_ON_API,
+    apiVersion: CONFIG_CORE.FEDERATION_BACKEND_SEND_ON_API,
   })
   methodLogger.debug('homeFedComA', new FederatedCommunityLoggingView(homeFedComA))
   const comB = await DbCommunity.findOneByOrFail({ publicKey: fedComB.publicKey })

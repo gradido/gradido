@@ -59,21 +59,20 @@ export class TransactionDraft {
 
   static createTransfer(sendingUser: DbUser, receivingUser: DbUser, amount: string, memo: string, createdAt: Date): TransactionDraft | null {
     if (!sendingUser.community  || !receivingUser.community) {
-      logger.warn(`missing community for user ${sendingUser.id} and/or ${receivingUser.id}`)
-      return null
+      throw new Error(`missing community for user ${sendingUser.id} and/or ${receivingUser.id}`)
     }
-    if (sendingUser.community.hieroTopicId && receivingUser.community.hieroTopicId) {
-      const draft = new TransactionDraft()
-      draft.user = new AccountIdentifier(sendingUser.community.hieroTopicId, new CommunityAccountIdentifier(sendingUser.gradidoID))
-      draft.linkedUser = new AccountIdentifier(receivingUser.community.hieroTopicId, new CommunityAccountIdentifier(receivingUser.gradidoID))
-      draft.type = TransactionType.GRADIDO_TRANSFER
-      draft.createdAt = createdAt.toISOString()
-      draft.amount = amount
-      draft.memo = memo
-      return draft
-    } else {
-      logger.warn(`missing topicId for community ${community.id}`)    
+    const senderUserTopic = sendingUser.community.hieroTopicId
+    const receiverUserTopic = receivingUser.community.hieroTopicId
+    if (!senderUserTopic || !receiverUserTopic) {
+      throw new Error(`missing topicId for community ${sendingUser.community.id} and/or ${receivingUser.community.id}`)
     }
-    return null
+    const draft = new TransactionDraft()
+    draft.user = new AccountIdentifier(senderUserTopic, new CommunityAccountIdentifier(sendingUser.gradidoID))
+    draft.linkedUser = new AccountIdentifier(receiverUserTopic, new CommunityAccountIdentifier(receivingUser.gradidoID))
+    draft.type = TransactionType.GRADIDO_TRANSFER
+    draft.createdAt = createdAt.toISOString()
+    draft.amount = amount
+    draft.memo = memo
+    return draft
   }
 }

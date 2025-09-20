@@ -12,4 +12,5 @@ export * from './jwt/payloadtypes/OpenConnectionCallbackJwtPayloadType'
 export * from './jwt/payloadtypes/RedeemJwtPayloadType'
 export * from './jwt/payloadtypes/SendCoinsJwtPayloadType'
 export * from './jwt/payloadtypes/SendCoinsResponseJwtPayloadType'
+export * from './jwt/payloadtypes/SignedTransferPayloadType'
 

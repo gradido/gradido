@@ -13,12 +13,12 @@ import { v4 as uuidv4 } from 'uuid'
 
 import { cleanDB, testEnvironment } from '@test/helpers'
 
-import { CONFIG } from '@/config'
+// import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { EventType } from '@/event/Events'
-import { SendCoinsClient } from '@/federation/client/1_0/SendCoinsClient'
-import { SendCoinsArgs } from '@/federation/client/1_0/model/SendCoinsArgs'
-import { SendCoinsResult } from '@/federation/client/1_0/model/SendCoinsResult'
+// import { V1_0_SendCoinsClient } from 'core'
+// import { SendCoinsArgs } from 'core'
+// import { SendCoinsResult } from 'core'
 import { userFactory } from '@/seeds/factory/user'
 import {
   confirmContribution,
