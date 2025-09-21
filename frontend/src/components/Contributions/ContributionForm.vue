@@ -163,10 +163,14 @@ const validationSchema = computed(() => {
       .min(5, ({ min }) => ({ key: 'form.validation.contributionMemo.min', values: { min } }))
       .max(512, ({ max }) => ({ key: 'form.validation.contributionMemo.max', values: { max } }))
       .required('form.validation.contributionMemo.required'),
-    hours: number()
+    hours: string()
       .typeError({ key: 'form.validation.hours.typeError', values: { min: 0.01, max: maxHours } })
       .required()
-      // .transform((value, originalValue) => (originalValue === '' ? undefined : value))
+      .transform((currentValue) =>
+        !currentValue || typeof currentValue !== 'string'
+          ? currentValue
+          : currentValue.replace(',', '.'),
+      )
       .min(0.01, ({ min }) => ({ key: 'form.validation.hours.min', values: { min } }))
       .max(maxHours, ({ max }) => ({ key: 'form.validation.hours.max', values: { max } }))
       .test('decimal-places', 'form.validation.hours.decimal-places', (value) => {
@@ -217,7 +221,8 @@ const updateField = (newValue, name) => {
   if (typeof name === 'string' && name.length) {
     form[name] = newValue
     if (name === 'hours') {
-      const amount = form.hours ? hoursToAmount(form.hours) : GDD_PER_HOUR
+      const hoursTransformed = validationSchema.value.fields.hours.cast(newValue)
+      const amount = hoursTransformed ? hoursToAmount(hoursTransformed) : GDD_PER_HOUR
       form.amount = amount.toString()
     }
   }
