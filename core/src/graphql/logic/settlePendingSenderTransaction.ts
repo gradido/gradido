@@ -92,7 +92,7 @@ export async function settlePendingSenderTransaction(
     transactionSend.decay = sendBalance.decay.decay // pendingTx.decay
     transactionSend.decayStart = sendBalance.decay.start // pendingTx.decayStart
     transactionSend.previous = pendingTx.previous
-    transactionSend.linkedTransactionId = pendingTx.linkedTransactionId
+    transactionSend.transactionLinkId = pendingTx.transactionLinkId
     await queryRunner.manager.insert(dbTransaction, transactionSend)
     logger.debug(`send Transaction inserted: ${transactionSend}`)
 
