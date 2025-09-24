@@ -1,4 +1,4 @@
-import { delay } from './utilities'
+import { delay } from 'core'
 
 /**
  * Sleep, that can be interrupted

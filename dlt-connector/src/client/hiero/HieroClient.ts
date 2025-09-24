@@ -9,6 +9,7 @@ import {
   TopicInfoQuery,
   TopicMessageSubmitTransaction,
   TopicUpdateTransaction,
+  TransactionId,
   TransactionReceipt,
   TransactionResponse,
   Wallet,
@@ -30,6 +31,9 @@ export class HieroClient {
   wallet: Wallet
   client: Client
   logger: Logger
+  // transaction counter for logging
+  transactionInternNr: number = 0
+  pendingPromises: Promise<void>[] = []
 
   private constructor() {
     this.logger = getLogger(`${LOG4JS_BASE_CATEGORY}.client.HieroClient`)
@@ -53,12 +57,23 @@ export class HieroClient {
     return HieroClient.instance
   }
 
+  public async waitForPendingPromises() {
+    const startTime = new Date()
+    this.logger.info(`waiting for ${this.pendingPromises.length} pending promises`)
+    await Promise.all(this.pendingPromises)
+    const endTime = new Date()
+    this.logger.info(`all pending promises resolved, used time: ${endTime.getTime() - startTime.getTime()}ms`)
+  }
+
   public async sendMessage(
     topicId: HieroId,
     transaction: GradidoTransaction,
-  ): Promise<{ receipt: TransactionReceipt; response: TransactionResponse }> {
-    let startTime = new Date()
-    this.logger.addContext('topicId', topicId.toString())
+  ): Promise<TransactionId | null> {
+    const startTime = new Date()
+    this.transactionInternNr++
+    const logger = getLogger(`${LOG4JS_BASE_CATEGORY}.client.HieroClient`)
+    logger.addContext('trNr', this.transactionInternNr)
+    logger.addContext('topicId', topicId.toString())
     const serializedTransaction = transaction.getSerializedTransaction()
     if (!serializedTransaction) {
       throw new Error('cannot serialize transaction')
@@ -68,29 +83,34 @@ export class HieroClient {
       topicId,
       message: serializedTransaction.data(),
     }).freezeWithSigner(this.wallet)
-    let endTime = new Date()
-    this.logger.info(`prepare message, until freeze, cost: ${endTime.getTime() - startTime.getTime()}ms`)
-    startTime = new Date()
-    const signedHieroTransaction = await hieroTransaction.signWithSigner(this.wallet)
-    endTime = new Date()
-    this.logger.info(`sign message, cost: ${endTime.getTime() - startTime.getTime()}ms`)
-    startTime = new Date()
-    const sendResponse = await signedHieroTransaction.executeWithSigner(this.wallet)
-    endTime = new Date()
-    this.logger.info(`send message, cost: ${endTime.getTime() - startTime.getTime()}ms`)
-    startTime = new Date()
-    const sendReceipt = await sendResponse.getReceiptWithSigner(this.wallet)
-    endTime = new Date()
-    this.logger.info(`get receipt, cost: ${endTime.getTime() - startTime.getTime()}ms`)
-    this.logger.info(
-      `message sent to topic ${topicId}, status: ${sendReceipt.status.toString()}, transaction id: ${sendResponse.transactionId.toString()}`,
+    // sign and execute transaction needs some time, so let it run in background
+    const pendingPromiseIndex = this.pendingPromises.push(
+      hieroTransaction.signWithSigner(this.wallet).then(async (signedHieroTransaction) => {
+        const sendResponse = await signedHieroTransaction.executeWithSigner(this.wallet)
+        logger.info(`message sent to topic ${topicId}, transaction id: ${sendResponse.transactionId.toString()}`)
+        if (logger.isInfoEnabled()) {
+          // only for logging
+          sendResponse.getReceiptWithSigner(this.wallet).then((receipt) => {
+            logger.info(
+            `message send status: ${receipt.status.toString()}`,
+            )
+          })
+          // only for logging
+          sendResponse.getRecordWithSigner(this.wallet).then((record) => {
+            logger.info(`message sent, cost: ${record.transactionFee.toString()}`)
+            const localEndTime = new Date()
+            logger.info(`HieroClient.sendMessage used time (full process): ${localEndTime.getTime() - startTime.getTime()}ms`)
+          })
+        }
+      }).catch((e) => {
+        logger.error(e)
+      }).finally(() => {
+        this.pendingPromises.splice(pendingPromiseIndex, 1)
+      })
     )
-    startTime = new Date()
-    const record = await sendResponse.getRecordWithSigner(this.wallet)
-    endTime = new Date()
-    this.logger.info(`get record, cost: ${endTime.getTime() - startTime.getTime()}ms`)
-    this.logger.info(`message sent, cost: ${record.transactionFee.toString()}`)
-    return { receipt: sendReceipt, response: sendResponse }
+    const endTime = new Date()
+    logger.info(`HieroClient.sendMessage used time: ${endTime.getTime() - startTime.getTime()}ms`)
+    return hieroTransaction.transactionId
   }
 
   public async getBalance(): Promise<AccountBalance> {

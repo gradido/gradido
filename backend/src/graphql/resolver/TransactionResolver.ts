@@ -6,7 +6,9 @@ import {
   Transaction as dbTransaction,
   TransactionLink as dbTransactionLink,
   User as dbUser,
-  findUserByIdentifier
+  findUserByIdentifier,
+  TransactionLoggingView,
+  UserLoggingView
 } from 'database'
 import { Decimal } from 'decimal.js-light'
 import { Args, Authorized, Ctx, Mutation, Query, Resolver } from 'type-graphql'
@@ -43,7 +45,7 @@ import { GdtResolver } from './GdtResolver'
 import { getCommunityName, isHomeCommunity } from './util/communities'
 import { getTransactionList } from './util/getTransactionList'
 import { transactionLinkSummary } from './util/transactionLinkSummary'
-import { transferTransaction } from '@/apis/dltConnector'
+import { transferTransaction, redeemDeferredTransferTransaction } from '@/apis/dltConnector'
 
 const db = AppDatabase.getInstance()
 const createLogger = () => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.TransactionResolver`)
@@ -60,13 +62,15 @@ export const executeTransaction = async (
   let dltTransactionPromise: Promise<DbDltTransaction | null> = Promise.resolve(null)
   if (!transactionLink) {
     dltTransactionPromise = transferTransaction(sender, recipient, amount.toString(), memo, receivedCallDate)
+  } else {
+    dltTransactionPromise = redeemDeferredTransferTransaction(transactionLink, amount.toString(), receivedCallDate, recipient)
   }
 
   // acquire lock
   const releaseLock = await TRANSACTIONS_LOCK.acquire()
 
   try {
-    logger.info('executeTransaction', amount, memo, sender, recipient)
+    logger.info('executeTransaction', memo)
 
     if (await countOpenPendingTransactions([sender.gradidoID, recipient.gradidoID]) > 0) {
       throw new LogError(
@@ -85,7 +89,7 @@ export const executeTransaction = async (
       receivedCallDate,
       transactionLink,
     )
-    logger.debug(`calculated Balance=${sendBalance}`)
+    logger.debug(`calculated balance=${sendBalance?.balance.toString()} decay=${sendBalance?.decay.decay.toString()} lastTransactionId=${sendBalance?.lastTransactionId}`)
     if (!sendBalance) {
       throw new LogError('User has not enough GDD or amount is < 0', sendBalance)
     }
@@ -144,7 +148,7 @@ export const executeTransaction = async (
       // Save linked transaction id for send
       transactionSend.linkedTransactionId = transactionReceive.id
       await queryRunner.manager.update(dbTransaction, { id: transactionSend.id }, transactionSend)
-      logger.debug('send Transaction updated', transactionSend)
+      logger.debug('send Transaction updated', new TransactionLoggingView(transactionSend).toJSON())
 
       if (transactionLink) {
         logger.info('transactionLink', transactionLink)
@@ -158,21 +162,23 @@ export const executeTransaction = async (
       }
 
       await queryRunner.commitTransaction()
-      // update dltTransaction with transactionId
-      const dltTransaction = await dltTransactionPromise
-      if (dltTransaction) {
-        dltTransaction.transactionId = transactionSend.id
-        await dltTransaction.save()
-      }
 
       await EVENT_TRANSACTION_SEND(sender, recipient, transactionSend, transactionSend.amount)
-
       await EVENT_TRANSACTION_RECEIVE(
         recipient,
         sender,
         transactionReceive,
         transactionReceive.amount,
       )
+      // update dltTransaction with transactionId
+      const startTime = new Date()
+      const dltTransaction = await dltTransactionPromise
+      const endTime = new Date()
+      logger.debug(`dlt-connector transaction finished in ${endTime.getTime() - startTime.getTime()} ms`)
+      if (dltTransaction) {
+        dltTransaction.transactionId = transactionSend.id
+        await dltTransaction.save()
+      }      
     } catch (e) {
       await queryRunner.rollbackTransaction()
       throw new LogError('Transaction was not successful', e)

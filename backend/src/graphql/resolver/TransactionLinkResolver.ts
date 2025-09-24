@@ -14,10 +14,13 @@ import { User } from '@model/User'
 import { QueryLinkResult } from '@union/QueryLinkResult'
 import { Decay, interpretEncryptedTransferArgs, TransactionTypeId } from 'core'
 import {
-  AppDatabase, Community as DbCommunity, Contribution as DbContribution,
-  ContributionLink as DbContributionLink, FederatedCommunity as DbFederatedCommunity, Transaction as DbTransaction,
+  AppDatabase, Contribution as DbContribution,
+  ContributionLink as DbContributionLink, FederatedCommunity as DbFederatedCommunity, 
+  DltTransaction as DbDltTransaction,
+  Transaction as DbTransaction,
   TransactionLink as DbTransactionLink,
   User as DbUser,
+  findModeratorCreatingContributionLink,
   findTransactionLinkByCode,
   getHomeCommunity
 } from 'database'
@@ -33,14 +36,10 @@ import {
 } from '@/event/Events'
 import { LogError } from '@/server/LogError'
 import { Context, getClientTimezoneOffset, getUser } from '@/server/context'
-import {
-  InterruptiveSleepManager,
-  TRANSMIT_TO_IOTA_INTERRUPTIVE_SLEEP_KEY,
-} from '@/util/InterruptiveSleepManager'
 import { calculateBalance } from '@/util/validate'
 import { fullName } from 'core'
 import { TRANSACTION_LINK_LOCK, TRANSACTIONS_LOCK } from 'database'
-import { calculateDecay, decode, DisburseJwtPayloadType, encode, encryptAndSign, EncryptedJWEJwtPayloadType, RedeemJwtPayloadType, verify } from 'shared'
+import { calculateDecay, decode, DisburseJwtPayloadType, encode, encryptAndSign, RedeemJwtPayloadType, verify } from 'shared'
 
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { DisbursementClient as V1_0_DisbursementClient } from '@/federation/client/1_0/DisbursementClient'
@@ -58,6 +57,8 @@ import {
 import { getUserCreation, validateContribution } from './util/creations'
 import { transactionLinkList } from './util/transactionLinkList'
 import { SignedTransferPayloadType } from 'shared'
+import { contributionTransaction, deferredTransferTransaction, redeemDeferredTransferTransaction } from '@/apis/dltConnector'
+import { CODE_VALID_DAYS_DURATION } from './const/const'
 
 const createLogger = (method: string) => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.TransactionLinkResolver.${method}`)
 
@@ -71,7 +72,7 @@ export const transactionLinkCode = (date: Date): string => {
   )
 }
 
-const CODE_VALID_DAYS_DURATION = 14
+
 const db = AppDatabase.getInstance()
 
 export const transactionLinkExpireDate = (date: Date): Date => {
@@ -109,11 +110,20 @@ export class TransactionLinkResolver {
     transactionLink.code = transactionLinkCode(createdDate)
     transactionLink.createdAt = createdDate
     transactionLink.validUntil = validUntil
+    const dltTransactionPromise = deferredTransferTransaction(user, transactionLink)
     await DbTransactionLink.save(transactionLink).catch((e) => {
       throw new LogError('Unable to save transaction link', e)
     })
     await EVENT_TRANSACTION_LINK_CREATE(user, transactionLink, amount)
-
+    // wait for dlt transaction to be created
+    const startTime = Date.now()
+    const dltTransaction = await dltTransactionPromise
+    const endTime = Date.now()
+    createLogger('createTransactionLink').debug(`dlt transaction created in ${endTime - startTime} ms`)
+    if (dltTransaction) {
+      dltTransaction.transactionLinkId = transactionLink.id
+      await DbDltTransaction.save(dltTransaction)
+    }
     return new TransactionLink(transactionLink, new User(user))
   }
 
@@ -137,7 +147,6 @@ export class TransactionLinkResolver {
         user.id,
       )
     }
-
     if (transactionLink.redeemedBy) {
       throw new LogError('Transaction link already redeemed', transactionLink.redeemedBy)
     }
@@ -146,7 +155,19 @@ export class TransactionLinkResolver {
       throw new LogError('Transaction link could not be deleted', e)
     })
 
+    transactionLink.user = user
+    const dltTransactionPromise = redeemDeferredTransferTransaction(transactionLink, transactionLink.amount.toString(), transactionLink.deletedAt!, user)    
+
     await EVENT_TRANSACTION_LINK_DELETE(user, transactionLink)
+    // wait for dlt transaction to be created
+    const startTime = Date.now()
+    const dltTransaction = await dltTransactionPromise
+    const endTime = Date.now()
+    createLogger('deleteTransactionLink').debug(`dlt transaction created in ${endTime - startTime} ms`)
+    if (dltTransaction) {
+      dltTransaction.transactionLinkId = transactionLink.id
+      await DbDltTransaction.save(dltTransaction)
+    }
 
     return true
   }
@@ -279,7 +300,7 @@ export class TransactionLinkResolver {
               throw new LogError('Contribution link has unknown cycle', contributionLink.cycle)
             }
           }
-
+          const moderatorPromise = findModeratorCreatingContributionLink(contributionLink)
           const creations = await getUserCreation(user.id, clientTimezoneOffset)
           methodLogger.info('open creations', creations)
           validateContribution(creations, contributionLink.amount, now, clientTimezoneOffset)
@@ -292,6 +313,12 @@ export class TransactionLinkResolver {
           contribution.contributionLinkId = contributionLink.id
           contribution.contributionType = ContributionType.LINK
           contribution.contributionStatus = ContributionStatus.CONFIRMED
+
+          let dltTransactionPromise: Promise<DbDltTransaction | null> = Promise.resolve(null)
+          const moderator = await moderatorPromise
+          if (moderator) {
+            dltTransactionPromise = contributionTransaction(contribution, moderator, now)
+          }
 
           await queryRunner.manager.insert(DbContribution, contribution)
 
@@ -338,6 +365,17 @@ export class TransactionLinkResolver {
             contributionLink,
             contributionLink.amount,
           )
+          if (dltTransactionPromise) {
+            const startTime = new Date()
+            const dltTransaction = await dltTransactionPromise
+            const endTime = new Date()
+            methodLogger.info(`dlt-connector transaction finished in ${endTime.getTime() - startTime.getTime()} ms`)
+            if (dltTransaction) {
+              dltTransaction.transactionId = transaction.id
+              await dltTransaction.save()
+            }
+            
+          }
         } catch (e) {
           await queryRunner.rollbackTransaction()
           throw new LogError('Creation from contribution link was not successful', e)
@@ -346,10 +384,7 @@ export class TransactionLinkResolver {
         }
       } finally {
         releaseLock()
-      }
-      // notify dlt-connector loop for new work
-      InterruptiveSleepManager.getInstance().interrupt(TRANSMIT_TO_IOTA_INTERRUPTIVE_SLEEP_KEY)
-      
+      }      
       return true
     } else {
       const now = new Date()
@@ -399,8 +434,6 @@ export class TransactionLinkResolver {
       } finally {
         releaseLinkLock()
       }
-      // notify dlt-connector loop for new work
-      InterruptiveSleepManager.getInstance().interrupt(TRANSMIT_TO_IOTA_INTERRUPTIVE_SLEEP_KEY)
       return true
     }
   }

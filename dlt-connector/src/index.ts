@@ -46,7 +46,34 @@ async function main() {
   // listen for rpc request from backend (graphql replaced with elysiaJS)
   new Elysia().use(appRoutes).listen(CONFIG.DLT_CONNECTOR_PORT, () => {
     logger.info(`Server is running at http://localhost:${CONFIG.DLT_CONNECTOR_PORT}`)
+    setupGracefulShutdown(logger)
   })
+}
+
+function setupGracefulShutdown(logger: Logger) {
+  const signals: NodeJS.Signals[] = ['SIGINT', 'SIGTERM']
+  signals.forEach(sig => {
+    process.on(sig, async () => {
+      logger.info(`[shutdown] Got ${sig}, cleaning up…`)
+      await gracefulShutdown(logger)
+      process.exit(0)
+    })
+  })
+
+  if (process.platform === "win32") {
+    const rl = require("readline").createInterface({
+      input: process.stdin,
+      output: process.stdout,
+    })
+    rl.on("SIGINT", () => {
+      process.emit("SIGINT" as any)
+    })
+  }
+}
+
+async function gracefulShutdown(logger: Logger) {
+  logger.info('graceful shutdown')
+  await HieroClient.getInstance().waitForPendingPromises()
 }
 
 function loadConfig(): Logger {
@@ -113,3 +140,7 @@ main().catch((e) => {
   console.error(e)
   process.exit(1)
 })
+function exitHook(arg0: () => void) {
+  throw new Error('Function not implemented.')
+}
+

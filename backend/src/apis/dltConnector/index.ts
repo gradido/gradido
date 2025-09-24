@@ -7,8 +7,12 @@ import {
   Community as DbCommunity, 
   Contribution as DbContribution,
   DltTransaction as DbDltTransaction, 
+  TransactionLink as DbTransactionLink,
   User as DbUser,
-  getHomeCommunity,   
+  getCommunityByUuid,
+  getHomeCommunity,
+  getUserById,
+  UserLoggingView,   
 } from 'database'
 import { TransactionDraft } from './model/TransactionDraft'
 
@@ -92,7 +96,15 @@ export async function transferTransaction(
   memo: string, 
   createdAt: Date
 ): Promise<DbDltTransaction | null> {
-
+  // load community if not already loaded, maybe they are remote communities
+  if (!senderUser.community) {
+    senderUser.community = await getCommunityByUuid(senderUser.communityUuid)
+  }
+  if (!recipientUser.community) {
+    recipientUser.community = await getCommunityByUuid(recipientUser.communityUuid)
+  }
+  logger.info(`sender user: ${new UserLoggingView(senderUser)}`)
+  logger.info(`recipient user: ${new UserLoggingView(recipientUser)}`)
   const draft = TransactionDraft.createTransfer(senderUser, recipientUser, amount, memo, createdAt)
   if (draft && dltConnectorClient) {
     const clientResponse = dltConnectorClient.sendTransaction(draft)
@@ -103,5 +115,51 @@ export async function transferTransaction(
   } 
   return null   
 }
+
+export async function deferredTransferTransaction(senderUser: DbUser, transactionLink: DbTransactionLink)
+: Promise<DbDltTransaction | null> {
+  // load community if not already loaded
+  if (!senderUser.community) {
+    senderUser.community = await getCommunityByUuid(senderUser.communityUuid)
+  }
+  const draft = TransactionDraft.createDeferredTransfer(senderUser, transactionLink)
+  if (draft && dltConnectorClient) {
+    const clientResponse = dltConnectorClient.sendTransaction(draft)
+    let dltTransaction = new DbDltTransaction()
+    dltTransaction.typeId = DltTransactionType.DEFERRED_TRANSFER
+    dltTransaction = await checkDltConnectorResult(dltTransaction, clientResponse)
+    return await dltTransaction.save()
+  } 
+  return null   
+}
+
+export async function redeemDeferredTransferTransaction(transactionLink: DbTransactionLink, amount: string, createdAt: Date, recipientUser: DbUser)
+: Promise<DbDltTransaction | null> {
+  // load user and communities if not already loaded
+  if (!transactionLink.user) {
+    logger.debug('load sender user')
+    transactionLink.user = await getUserById(transactionLink.userId, true, false)
+  }
+  if (!transactionLink.user.community) {
+    logger.debug('load sender community')
+    transactionLink.user.community = await getCommunityByUuid(transactionLink.user.communityUuid)
+  }
+  if (!recipientUser.community) {
+    logger.debug('load recipient community')
+    recipientUser.community = await getCommunityByUuid(recipientUser.communityUuid)
+  }
+  logger.debug(`sender: ${new UserLoggingView(transactionLink.user)}`)
+  logger.debug(`recipient: ${new UserLoggingView(recipientUser)}`)
+  const draft = TransactionDraft.redeemDeferredTransfer(transactionLink, amount, createdAt, recipientUser)
+  if (draft && dltConnectorClient) {
+    const clientResponse = dltConnectorClient.sendTransaction(draft)
+    let dltTransaction = new DbDltTransaction()
+    dltTransaction.typeId = DltTransactionType.REDEEM_DEFERRED_TRANSFER
+    dltTransaction = await checkDltConnectorResult(dltTransaction, clientResponse)
+    return await dltTransaction.save()
+  } 
+  return null   
+}
+
 
 

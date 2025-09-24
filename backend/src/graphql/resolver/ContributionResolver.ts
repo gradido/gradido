@@ -436,9 +436,6 @@ export class ContributionResolver {
   ): Promise<boolean> {
     const logger = createLogger()
     logger.addContext('contribution', id)
-
-    let transaction: DbTransaction
-    let dltTransactionPromise: Promise<DbDltTransaction | null>
     // acquire lock
     const releaseLock = await TRANSACTIONS_LOCK.acquire()
     try {
@@ -463,8 +460,7 @@ export class ContributionResolver {
         throw new LogError('Can not confirm contribution since the user was deleted')
       }
       const receivedCallDate = new Date()
-      dltTransactionPromise = contributionTransaction(contribution, moderatorUser, receivedCallDate)
-
+      const dltTransactionPromise = contributionTransaction(contribution, moderatorUser, receivedCallDate)
       const creations = await getUserCreation(contribution.userId, clientTimezoneOffset, false)
       validateContribution(
         creations,
@@ -476,7 +472,6 @@ export class ContributionResolver {
       const queryRunner = db.getDataSource().createQueryRunner()
       await queryRunner.connect()
       await queryRunner.startTransaction('REPEATABLE READ') // 'READ COMMITTED')
-
       const lastTransaction = await getLastTransaction(contribution.userId)
       logger.info('lastTransaction ID', lastTransaction ? lastTransaction.id : 'undefined')
 
@@ -493,7 +488,7 @@ export class ContributionResolver {
         }
         newBalance = newBalance.add(contribution.amount.toString())
 
-        transaction = new DbTransaction()
+        let transaction = new DbTransaction()
         transaction.typeId = TransactionTypeId.CREATION
         transaction.memo = contribution.memo
         transaction.userId = contribution.userId
@@ -520,7 +515,7 @@ export class ContributionResolver {
         await queryRunner.manager.update(DbContribution, { id: contribution.id }, contribution)
 
         await queryRunner.commitTransaction()
-
+        
         logger.info('creation commited successfuly.')
         await sendContributionConfirmedEmail({
           firstName: user.firstName,
@@ -536,6 +531,17 @@ export class ContributionResolver {
             contribution.createdAt,
           ),
         })
+
+        // update transaction id in dlt transaction tables
+        // wait for finishing transaction by dlt-connector/hiero
+        const dltStartTime = new Date()
+        const dltTransaction = await dltTransactionPromise
+        if(dltTransaction) {
+          dltTransaction.transactionId = transaction.id
+          await dltTransaction.save()
+        }
+        const dltEndTime = new Date()
+        logger.debug(`dlt-connector contribution finished in ${dltEndTime.getTime() - dltStartTime.getTime()} ms`)
       } catch (e) {
         await queryRunner.rollbackTransaction()
         throw new LogError('Creation was not successful', e)
@@ -546,16 +552,6 @@ export class ContributionResolver {
     } finally {
       releaseLock()
     }
-    // update transaction id in dlt transaction tables
-    // wait for finishing transaction by dlt-connector/hiero
-    const startTime = new Date()
-    const dltTransaction = await dltTransactionPromise
-    if(dltTransaction) {
-      dltTransaction.transactionId = transaction.id
-      await dltTransaction.save()
-    }
-    const endTime = new Date()
-    logger.debug(`dlt-connector contribution finished in ${endTime.getTime() - startTime.getTime()} ms`)
     return true
   }
 

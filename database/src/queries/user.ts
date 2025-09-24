@@ -12,6 +12,13 @@ export async function aliasExists(alias: string): Promise<boolean> {
   return user !== null
 }
 
+export async function getUserById(id: number, withCommunity: boolean = false, withEmailContact: boolean = false): Promise<DbUser> {
+  return DbUser.findOneOrFail({
+    where: { id },
+    relations: { community: withCommunity, emailContact: withEmailContact },
+  })
+}
+
 /**
  *
  * @param identifier could be gradidoID, alias or email of user

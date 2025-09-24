@@ -50,10 +50,12 @@ export async function SendToHieroContext(
     topic: HieroId,
   ): Promise<string> => {
     const client = HieroClient.getInstance()
-    const resultMessage = await client.sendMessage(topic, gradidoTransaction)
-    const transactionId = resultMessage.response.transactionId.toString()
-    logger.info('transmitted Gradido Transaction to Hiero', { transactionId })
-    return transactionId
+    const transactionId = await client.sendMessage(topic, gradidoTransaction)
+    if (!transactionId) {
+      throw new Error('missing transaction id from hiero')
+    }
+    logger.info('transmitted Gradido Transaction to Hiero', { transactionId: transactionId.toString() })
+    return transactionId.toString()
   }
 
   // choose correct role based on transaction type and input type

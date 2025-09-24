@@ -3,10 +3,17 @@ import { AccountType } from '@dltConnector/enum/AccountType'
 import { TransactionType } from '@dltConnector/enum/TransactionType'
 
 import { AccountIdentifier } from './AccountIdentifier'
-import { Community as DbCommunity, Contribution as DbContribution, User as DbUser } from 'database'
+import { 
+  Community as DbCommunity, 
+  Contribution as DbContribution, 
+  TransactionLink as DbTransactionLink, 
+  User as DbUser 
+} from 'database'
 import { CommunityAccountIdentifier } from './CommunityAccountIdentifier'
 import { getLogger } from 'log4js'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { IdentifierSeed } from './IdentifierSeed'
+import { CODE_VALID_DAYS_DURATION } from '@/graphql/resolver/const/const'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.dltConnector.model.TransactionDraft`)
 
@@ -21,7 +28,7 @@ export class TransactionDraft {
   createdAt: string
   // only for creation transaction
   targetDate?: string
-  // only for deferred transaction
+  // only for deferred transaction, duration in seconds
   timeoutDuration?: number
   // only for register address
   accountType?: AccountType
@@ -73,6 +80,50 @@ export class TransactionDraft {
     draft.createdAt = createdAt.toISOString()
     draft.amount = amount
     draft.memo = memo
+    return draft
+  }
+
+  static createDeferredTransfer(sendingUser: DbUser, transactionLink: DbTransactionLink)
+  : TransactionDraft | null { 
+    if (!sendingUser.community) {
+      throw new Error(`missing community for user ${sendingUser.id}`)
+    }
+    const senderUserTopic = sendingUser.community.hieroTopicId
+    if (!senderUserTopic) {
+      throw new Error(`missing topicId for community ${sendingUser.community.id}`)
+    }
+    const draft = new TransactionDraft()
+    draft.user = new AccountIdentifier(senderUserTopic, new CommunityAccountIdentifier(sendingUser.gradidoID))
+    draft.linkedUser = new AccountIdentifier(senderUserTopic, new IdentifierSeed(transactionLink.code))
+    draft.type = TransactionType.GRADIDO_DEFERRED_TRANSFER
+    draft.createdAt = transactionLink.createdAt.toISOString()
+    draft.amount = transactionLink.amount.toString()
+    draft.memo = transactionLink.memo
+    draft.timeoutDuration = CODE_VALID_DAYS_DURATION * 24 * 60 * 60
+    return draft
+  }
+
+  static redeemDeferredTransfer(transactionLink: DbTransactionLink, amount: string, createdAt: Date, recipientUser: DbUser): TransactionDraft | null {
+    if (!transactionLink.user.community) {
+      throw new Error(`missing community for user ${transactionLink.user.id}`)
+    }
+    if (!recipientUser.community) {
+      throw new Error(`missing community for user ${recipientUser.id}`)
+    }    
+    const senderUserTopic = transactionLink.user.community.hieroTopicId
+    if (!senderUserTopic) {
+      throw new Error(`missing topicId for community ${transactionLink.user.community.id}`)
+    }
+    const recipientUserTopic = recipientUser.community.hieroTopicId
+    if (!recipientUserTopic) {
+      throw new Error(`missing topicId for community ${recipientUser.community.id}`)
+    }
+    const draft = new TransactionDraft()
+    draft.user = new AccountIdentifier(senderUserTopic, new IdentifierSeed(transactionLink.code))
+    draft.linkedUser = new AccountIdentifier(recipientUserTopic, new CommunityAccountIdentifier(recipientUser.gradidoID))
+    draft.type = TransactionType.GRADIDO_REDEEM_DEFERRED_TRANSFER
+    draft.createdAt = createdAt.toISOString()
+    draft.amount = amount
     return draft
   }
 }
