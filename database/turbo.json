@@ -23,6 +23,9 @@
     "test": {
       "dependsOn": ["up:test", "^build"]
     },
+    "test:semaphore": {
+      "dependsOn": ["up:test", "^build"]
+    },
     "down": {
       "cache": false,
       "dependsOn": ["build"]
