@@ -27,7 +27,7 @@ export class Semaphore {
 
     // Static factory method to create a new Semaphore
     public static async create(key: string, count: number, owner: string): Promise<Semaphore> {
-        console.log('Semaphore.create key, count, owner:', key, count, owner);
+        // console.log('Semaphore.create key, count, owner:', key, count, owner);
         const semaphore = new Semaphore(key, count, owner);
         // console.log('Semaphore.create: nach constructor semaphore=', semaphore);
         await semaphore.initDbSemaphore();
@@ -54,11 +54,11 @@ export class Semaphore {
         }
     }
     private async increaseDbSemaphore() : Promise<void> {
-        console.log('increaseDbSemaphore', this.key, this.count, this.owner);
+        console.log('increaseDbSemaphore', this.key, this.count, this.owner, this.entity);
         this.entity = await increaseSemaphore(this.entity!);
     }
     private async decreaseDbSemaphore() : Promise<void> {
-        console.log('decreaseDbSemaphore', this.key, this.count, this.owner);
+        console.log('decreaseDbSemaphore', this.key, this.count, this.owner, this.entity);
         this.entity = await decreaseSemaphore(this.entity!);
     }
 
@@ -66,17 +66,19 @@ export class Semaphore {
         if (this.count > 0 && this.tasks.length > 0) {
             shedRelease = await SHED_LOCK.acquire();
             try {
+                console.log('shed: owner', this.owner);
                 this.count--;
                 await this.decreaseDbSemaphore();
+                console.log('after decrease this=', this);
             } finally {
                 shedRelease?.();
                 shedRelease = null;
             }
             let next = this.tasks.shift();
+            console.log('after shift this=', this);
             if (next === undefined) {
                 throw "Unexpected undefined value in tasks list";
             }
-
             next();
         }
     }
@@ -90,11 +92,11 @@ export class Semaphore {
                     if (!released) {
                         acquireRelease = await ACQUIRE_LOCK.acquire();
                         try {
-                            console.log('release this=', this)
+                            console.log('release: owner', this.owner)
                             released = true;
                             this.count++;
                             await this.increaseDbSemaphore();
-                            console.log('release this=', this)
+                            console.log('after increase this=', this)
                         } finally {
                             acquireRelease?.();
                             acquireRelease = null;
@@ -107,8 +109,10 @@ export class Semaphore {
             this.tasks.push(task);
             console.log('after push this=', this)
             if (process && process.nextTick) {
+                console.log('using process.nextTick: owner=', this.owner);
                 process.nextTick(this.sched.bind(this));
             } else {
+                console.log('using setImmediate: owner=', this.owner);
                 setImmediate(this.sched.bind(this));
             }
         });

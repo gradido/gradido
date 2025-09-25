@@ -17,8 +17,8 @@ afterAll(async () => {
 })
 
 describe('create several federation-semaphores with same key', async () => {
-    it('first one perhaps with different owner', async () => {
-      const TEST_LOCK = await Semaphore.create('TEST_LOCK', 1, 'federation-test-1')
+    it('first one', async () => {
+      const TEST_LOCK = await Semaphore.create('TEST_LOCK', 1, 'federation')
       console.log('TEST_LOCK', TEST_LOCK);
       expect(TEST_LOCK).toMatchObject({
         key: 'TEST_LOCK',
@@ -33,8 +33,8 @@ describe('create several federation-semaphores with same key', async () => {
         count: 1,
       })
     })
-    it('second one perhaps with different owner', async () => {
-      const TEST_LOCK = await Semaphore.create('TEST_LOCK', 1, 'federation-test-2')
+    it('second one', async () => {
+      const TEST_LOCK = await Semaphore.create('TEST_LOCK', 1, 'federation')
       expect(TEST_LOCK).toMatchObject({
         key: 'TEST_LOCK',
         count: 1,
@@ -47,15 +47,19 @@ describe('create several federation-semaphores with same key', async () => {
           count: 1,
         })
       })
-  })
+      it('delete the dbsemaphore from db', async () => {
+        await DbSemaphore.clear()
+        console.log('dbsemaphore deleted');
+      })
+    })
   describe('acquire several federation-semaphores with same key', async () => {
     it('first one acquired', async () => {
-      const TEST_LOCK = await Semaphore.create('TEST_LOCK', 1, 'federation-test-1')
+      const TEST_LOCK = await Semaphore.create('TEST_LOCK', 1, 'federation')
       console.log('TEST_LOCK', TEST_LOCK);
       const releaseLock = await TEST_LOCK.acquire()
       try {
         console.log('first one acquired and waiting...time=', new Date().toISOString());
-        await new Promise(resolve => setTimeout(resolve, 1000))
+        await new Promise(resolve => setTimeout(resolve, 2000))
         console.log('end waiting...time=', new Date().toISOString());
         expect(releaseLock).toBeInstanceOf(Function)
       } catch (error) {
@@ -72,11 +76,11 @@ describe('create several federation-semaphores with same key', async () => {
       })
     })
     it('second one acquired', async () => {
-      const TEST_LOCK = await Semaphore.create('TEST_LOCK', 1, 'federation-test-2')
+      const TEST_LOCK = await Semaphore.create('TEST_LOCK', 1, 'federation')
       const releaseLock = await TEST_LOCK.acquire()
       try {
         console.log('second one acquired and waiting...time=', new Date().toISOString());
-        await new Promise(resolve => setTimeout(resolve, 1000))
+        await new Promise(resolve => setTimeout(resolve, 2000))
         console.log('end waiting...time=', new Date().toISOString());
         expect(releaseLock).toBeInstanceOf(Function)
       } catch (error) {
