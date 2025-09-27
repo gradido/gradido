@@ -64,7 +64,7 @@ export class GradidoNodeClient {
       ...parse(transactionIdentifierSchema, transactionIdentifier),
       format: 'base64',
     }
-    const response = await this.rpcCall<{ transaction: string }>('gettransaction', parameter)
+    const response = await this.rpcCall<{ transaction: string }>('getTransaction', parameter)
     if (response.isSuccess()) {
       // this.logger.debug('result: ', response.result.transaction)
       return parse(confirmedTransactionSchema, response.result.transaction)
@@ -90,7 +90,7 @@ export class GradidoNodeClient {
       format: 'base64',
       topic: hieroTopic,
     }
-    const response = await this.rpcCall<{ transaction: string }>('getlasttransaction', parameter)
+    const response = await this.rpcCall<{ transaction: string }>('getLastTransaction', parameter)
     if (response.isSuccess()) {
       return parse(confirmedTransactionSchema, response.result.transaction)
     }
@@ -151,7 +151,7 @@ export class GradidoNodeClient {
       format: 'base64',
     }
     const response = await this.rpcCallResolved<{ transactions: string[] }>(
-      'listtransactionsforaddress',
+      'getTransactionsForAddress',
       parameter,
     )
     return response.transactions.map((transactionBase64) =>
@@ -176,7 +176,7 @@ export class GradidoNodeClient {
       topic: hieroTopic,
     }
     const response = await this.rpcCallResolved<{ addressType: string }>(
-      'getaddresstype',
+      'getAddressType',
       parameter,
     )
     return parse(addressTypeSchema, response.addressType)
