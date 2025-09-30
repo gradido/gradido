@@ -251,6 +251,7 @@
     "raise": "Aumento",
     "recruited-member": "Miembro invitado"
   },
+  "gradidoid-copied-to-clipboard": "Gradido ID copiado al portapapeles.",
   "info": "Información",
   "language": "Idioma",
   "link-load": "recargar el último enlace | recargar los últimos {n} enlaces",
