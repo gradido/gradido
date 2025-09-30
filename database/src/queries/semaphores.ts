@@ -61,9 +61,11 @@ export async function decreaseSemaphore(entity: DbSemaphore): Promise<DbSemaphor
         entity.count--;
         console.log('decreaseSemaphore entity', entity);
         if(entity.count <= 0) {
+            console.log('...and removing entity', entity)
             await DbSemaphore.remove(entity);
             return null;
         } else {
+            console.log('...and saving entity', entity)
             await DbSemaphore.save(entity);
             return entity;
         }

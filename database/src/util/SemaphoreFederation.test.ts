@@ -47,9 +47,9 @@ describe('create several federation-semaphores with same key', async () => {
           count: 1,
         })
       })
-      it('delete the dbsemaphore from db', async () => {
-        await DbSemaphore.clear()
-        console.log('dbsemaphore deleted');
+      it('delete own semaphore from db', async () => {
+        const result = await DbSemaphore.delete({ key: 'TEST_LOCK', owner: 'federation' })
+        console.log('own semaphore deleted: result=', result);
       })
     })
   describe('acquire several federation-semaphores with same key', async () => {
@@ -58,9 +58,9 @@ describe('create several federation-semaphores with same key', async () => {
       console.log('TEST_LOCK', TEST_LOCK);
       const releaseLock = await TEST_LOCK.acquire()
       try {
-        console.log('first one acquired and waiting...time=', new Date().toISOString());
-        await new Promise(resolve => setTimeout(resolve, 2000))
-        console.log('end waiting...time=', new Date().toISOString());
+        console.log('first one acquired and processing...time=', new Date().toISOString());
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        console.log('end processing...time=', new Date().toISOString());
         expect(releaseLock).toBeInstanceOf(Function)
       } catch (error) {
         console.error('acquire failed', error);
@@ -79,9 +79,9 @@ describe('create several federation-semaphores with same key', async () => {
       const TEST_LOCK = await Semaphore.create('TEST_LOCK', 1, 'federation')
       const releaseLock = await TEST_LOCK.acquire()
       try {
-        console.log('second one acquired and waiting...time=', new Date().toISOString());
-        await new Promise(resolve => setTimeout(resolve, 2000))
-        console.log('end waiting...time=', new Date().toISOString());
+        console.log('second one acquired and processing...time=', new Date().toISOString());
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        console.log('end processing...time=', new Date().toISOString());
         expect(releaseLock).toBeInstanceOf(Function)
       } catch (error) {
         console.error('acquire failed', error);
