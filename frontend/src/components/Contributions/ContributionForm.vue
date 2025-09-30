@@ -171,11 +171,25 @@ const validationSchema = computed(() => {
           ? currentValue
           : currentValue.replace(',', '.'),
       )
+      // min and max are needed for html min max which validatedInput will take from this scheme
       .min(0.01, ({ min }) => ({ key: 'form.validation.hours.min', values: { min } }))
       .max(maxHours, ({ max }) => ({ key: 'form.validation.hours.max', values: { max } }))
       .test('decimal-places', 'form.validation.hours.decimal-places', (value) => {
         if (value === undefined || value === null) return true
         return /^\d+(\.\d{0,2})?$/.test(value.toString())
+      })
+      // min and max are not working with string, so we need to do it manually
+      .test('min-hours', 'form.validation.hours.min', (value) => {
+        if (value === undefined || value === null || Number(value).isNaN()) {
+          return false
+        }
+        return parseFloat(value) >= 0.01
+      })
+      .test('max-hours', 'form.validation.hours.max', (value) => {
+        if (value === undefined || value === null || Number(value).isNaN()) {
+          return false
+        }
+        return parseFloat(value) <= maxHours
       }),
     amount: number().min(0.01).max(maxAmounts),
   })
