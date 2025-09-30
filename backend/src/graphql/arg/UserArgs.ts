@@ -7,7 +7,7 @@ export class UserArgs {
   @IsString()
   identifier: string
 
-  @Field()
+  @Field({ nullable: true })
   @IsString()
-  communityIdentifier: string
+  communityIdentifier?: string 
 }
