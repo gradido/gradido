@@ -1,7 +1,6 @@
 import { 
   Community as DbCommunity, 
   getReachableCommunities, 
-  getCommunityWithFederatedCommunityByIdentifier, 
   getHomeCommunity 
 } from 'database'
 import { Arg, Args, Authorized, Mutation, Query, Resolver } from 'type-graphql'
@@ -21,12 +20,7 @@ import {
   getCommunityByUuid,
 } from './util/communities'
 
-import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { getLogger } from 'log4js'
-import { communityIsReachable, CommunityIsReachableResult } from '../logic/communityIsReachable'
 import { CONFIG } from '@/config'
-
-const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.CommunityResolver`)
 
 @Resolver()
 export class CommunityResolver {
