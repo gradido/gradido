@@ -67,8 +67,9 @@ const communityIdentifier = computed(
 
 watch(
   () => communityIdentifier.value,
-  (value) => {
-    console.log('CommunitySwitch.communityIdentifier.value', value)
+  () => {
+    // console.log('CommunitySwitch.communityIdentifier.value', value)
+    setDefaultCommunity()
   },
 )
 
