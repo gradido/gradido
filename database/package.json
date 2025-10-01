@@ -22,6 +22,7 @@
     "clearDB": "cross-env TZ=UTC tsx migration/index.ts clear",
     "test": "cross-env TZ=UTC NODE_ENV=development DB_DATABASE=gradido_test vitest --reporter verbose --no-file-parallelism run",
     "test:debug": "cross-env TZ=UTC NODE_ENV=development DB_DATABASE=gradido_test node --inspect-brk node_modules/.bin/jest --bail --runInBand --forceExit --detectOpenHandles",
+    "test:semaphore": "cross-env TZ=UTC NODE_ENV=development DB_DATABASE=gradido_test vitest src/util/SemaphoreBackend.test.ts src/util/SemaphoreFederation.test.ts --reporter verbose run",
     "up": "cross-env TZ=UTC tsx migration/index.ts up",
     "down": "cross-env TZ=UTC tsx migration/index.ts down",
     "reset": "cross-env TZ=UTC tsx migration/index.ts reset",
