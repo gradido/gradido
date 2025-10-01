@@ -43,14 +43,19 @@ export async function getCommunityWithFederatedCommunityByIdentifier(
 }
 
 // returns all reachable communities 
-// home community and all foreign communities which have been authenticated within the last authenticationTimeoutMs
+// home community and all federated communities which have been verified within the last authenticationTimeoutMs
 export async function getReachableCommunities(
   authenticationTimeoutMs: number,
   order?: FindOptionsOrder<DbCommunity>
 ): Promise<DbCommunity[]> {
   return await DbCommunity.find({
     where: [ 
-      { communityUuid: Not(IsNull()), authenticatedAt: MoreThanOrEqual(new Date(Date.now() - authenticationTimeoutMs)) },
+      { 
+        authenticatedAt: Not(IsNull()), 
+        federatedCommunities: { 
+          verifiedAt: MoreThanOrEqual(new Date(Date.now() - authenticationTimeoutMs)) 
+        } 
+      },
       { foreign: false },
     ],
     order,
