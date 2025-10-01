@@ -119,6 +119,7 @@ export class AuthenticationResolver {
     methodLogger.debug(`authenticate() via apiVersion=1_0 ...`, args)
     try {
       const authArgs = await interpretEncryptedTransferArgs(args) as AuthenticationJwtPayloadType
+      methodLogger.debug(`interpreted authentication payload...authArgs:`, authArgs)
       if (!authArgs) {
         const errmsg = `invalid authentication payload of requesting community with publicKey` + args.publicKey
         methodLogger.error(errmsg)
