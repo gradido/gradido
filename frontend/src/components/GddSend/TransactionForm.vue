@@ -304,6 +304,13 @@ watch(
   },
 )
 
+watch(
+  () => autoCommunityIdentifier.value,
+  (value) => {
+    console.log('autoCommunityIdentifier.value', value)
+  },
+)
+
 function onSubmit() {
   const transformedForm = validationSchema.value.cast(form)
   const parts = transformedForm.identifier.split('/')
