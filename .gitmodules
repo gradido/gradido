@@ -1,1 +1,4 @@
 
+[submodule "inspector"]
+	path = inspector
+	url = https://github.com/gradido/inspector.git

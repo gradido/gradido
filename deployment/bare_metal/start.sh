@@ -287,6 +287,17 @@ bun install
 log_step 'build all modules'
 turbo build --env-mode=loose --concurrency=$(nproc)
 
+# build inspector and dlt-connector
+log_step 'build inspector'
+cd $PROJECT_ROOT/inspector
+bun install
+bun run build
+
+log_step 'build dlt-connector'
+cd $PROJECT_ROOT/dlt-connector
+bun install
+bun run build
+
 # database
 log_step 'Updating database'
 if [ "$DEPLOY_SEED_DATA" = "true" ]; then
@@ -305,6 +316,14 @@ pm2 start --name gradido-backend \
  --cwd $PROJECT_ROOT/backend \
  -l $GRADIDO_LOG_PATH/pm2.backend.$TODAY.log \
  --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
+
+if [ "$DLT_CONNECTOR" = true ] ; then
+ pm2 start --name dlt-connector \
+ "env TZ=UTC NODE_ENV=production bun ./build/index.js" \
+ --cwd $PROJECT_ROOT/dlt-connector \
+ -l $GRADIDO_LOG_PATH/pm2.dlt-connector.$TODAY.log \
+ --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
+fi
 
 pm2 save
 if [ ! -z $FEDERATION_DHT_TOPIC ]; then
