@@ -33,6 +33,10 @@ const props = defineProps({
     type: Object,
     default: () => ({}),
   },
+  communityIdentifier: {
+    type: String,
+    default: '',
+  },
 })
 
 const emit = defineEmits(['update:modelValue', 'communitiesLoaded'])
@@ -57,7 +61,9 @@ onResult(({ data }) => {
   }
 })
 
-const communityIdentifier = computed(() => route.params.communityIdentifier)
+const communityIdentifier = computed(
+  () => route.params.communityIdentifier || props.communityIdentifier,
+)
 
 function updateCommunity(community) {
   // console.log('CommunitySwitch.updateCommunity...community=', community)
