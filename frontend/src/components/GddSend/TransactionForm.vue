@@ -48,8 +48,9 @@
                         <community-switch
                           :disabled="isBalanceEmpty"
                           :model-value="form.targetCommunity"
+                          :community-identifier="autoCommunityIdentifier"
                           @update:model-value="updateField($event, 'targetCommunity')"
-                          @communitiesLoaded="setCommunities"
+                          @communities-loaded="setCommunities"
                         />
                       </BCol>
                     </BRow>
@@ -173,6 +174,7 @@ const entityDataToForm = computed(() => ({ ...props }))
 const form = reactive({ ...entityDataToForm.value })
 const disableSmartValidState = ref(false)
 const communities = ref([])
+const autoCommunityIdentifier = ref('')
 
 const emit = defineEmits(['set-transaction'])
 
@@ -220,6 +222,7 @@ const validationSchema = computed(() => {
     return object({
       memo: memoSchema,
       amount: amountSchema,
+      // todo: found a better way, because this validation test has side effects
       identifier: identifierSchema.test(
         'community-is-reachable',
         'form.validation.identifier.communityIsReachable',
@@ -229,18 +232,13 @@ const validationSchema = computed(() => {
           if (parts.length !== 2) {
             return true
           }
-          const com = communities.value.find((community) => {
+          return communities.value.some((community) => {
             return (
               community.uuid === parts[0] ||
               community.name === parts[0] ||
               community.url === parts[0]
             )
           })
-          if (com) {
-            form.targetCommunity = com
-            return true
-          }
-          return false
         },
       ),
     })
@@ -285,6 +283,26 @@ watch(userError, (error) => {
     toastError(error.message)
   }
 })
+
+// if identifier contain valid community identifier of a reachable community:
+// set it as target community and change community-switch to show only current value, instead of select
+watch(
+  () => form.identifier,
+  (value) => {
+    autoCommunityIdentifier.value = ''
+    const parts = value.split('/')
+    if (parts.length === 2) {
+      const com = communities.value.find(
+        (community) =>
+          community.uuid === parts[0] || community.name === parts[0] || community.url === parts[0],
+      )
+      if (com) {
+        form.targetCommunity = com
+        autoCommunityIdentifier.value = com.uuid
+      }
+    }
+  },
+)
 
 function onSubmit() {
   const transformedForm = validationSchema.value.cast(form)

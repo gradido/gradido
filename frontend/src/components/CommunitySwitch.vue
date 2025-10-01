@@ -22,7 +22,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useQuery } from '@vue/apollo-composable'
 import { useRoute } from 'vue-router'
 import { reachableCommunities } from '@/graphql/communities.graphql'
@@ -32,6 +32,10 @@ const props = defineProps({
   modelValue: {
     type: Object,
     default: () => ({}),
+  },
+  communityIdentifier: {
+    type: String,
+    default: '',
   },
 })
 
@@ -57,7 +61,17 @@ onResult(({ data }) => {
   }
 })
 
-const communityIdentifier = computed(() => route.params.communityIdentifier)
+const communityIdentifier = computed(
+  () => route.params.communityIdentifier || props.communityIdentifier,
+)
+
+watch(
+  () => communityIdentifier.value,
+  () => {
+    // console.log('CommunitySwitch.communityIdentifier.value', value)
+    setDefaultCommunity()
+  },
+)
 
 function updateCommunity(community) {
   // console.log('CommunitySwitch.updateCommunity...community=', community)
