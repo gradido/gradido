@@ -33,7 +33,7 @@ function composeDataString(data: (string | Object)[]): string {
   return data
     .map((d) => {
       // if it is a object and his toString function return only garbage
-      if (typeof d === 'object' && d.toString() === '[object Object]') {
+      if (d && typeof d === 'object' && d.toString() === '[object Object]') {
         return inspect(d, )
       }
       if (d) {

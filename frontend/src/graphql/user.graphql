@@ -4,3 +4,9 @@ fragment userFields on User {
   lastName
   alias
 }
+
+query user($identifier: String!, $communityIdentifier: String) {
+  user(identifier: $identifier, communityIdentifier: $communityIdentifier) {
+    ...userFields
+  }
+}

@@ -7,6 +7,7 @@
   "85": "85%",
   "Chat": "Chat",
   "GDD": "GDD",
+  "GDD-long": "Gradido",
   "GDT": "GDT",
   "GMS": {
     "title": "Geo Matching System GMS (in develop)",
@@ -230,6 +231,7 @@
       },
       "gddSendAmount": "The {_field_} field must be a number between {min} and {max} with at most two digits after the decimal point.",
       "identifier": {
+        "communityIsReachable": "Community not found our not reachable!",
         "required": "The recipient is a required field.",
         "typeError": "The recipient must be an email, a username or a Gradido ID."
       },
@@ -271,16 +273,16 @@
     "no-account": "You don't have a Gradido account yet?",
     "no-redeem": "You not allowed to redeem your own link!",
     "not-copied": "Unfortunately, your device does not allow copying! Please copy the link by hand!",
-    "recipientCommunityFix": "Recipient Community of the Link-Balance...",
-    "recipientCommunitySelection": "Select your Community to redeem the link-deposit...",
+    "recipientCommunityRedirection": "Redirect for crediting to:",
+    "recipientCommunitySelection": "Select Gradido community:",
     "redeem": "Redeem",
+    "redeem-community": "Credit in ",
     "redeemed": "Successfully redeemed! Your account has been credited with {n} GDD.",
     "redeemed-at": "The link was already redeemed on {date}.",
     "redeemlink-error": "This redemption link is not complete.",
-    "switchCommunity": "You have selected a foreign Community...",
     "to-login": "Log in",
     "to-register": "Register a new account.",
-    "to-switch": "Switch to Community",
+    "to-switch": "Redirect now",
     "validUntil": "Valid until",
     "validUntilDate": "The link is valid until {date}."
   },
@@ -300,6 +302,7 @@
     "raise": "Increase",
     "recruited-member": "Invited member"
   },
+  "gradidoid-copied-to-clipboard": "Gradido ID copied to clipboard.",
   "h": "h",
   "info": "Information",
   "language": "Language",

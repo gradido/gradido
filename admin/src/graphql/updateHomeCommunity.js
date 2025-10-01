@@ -8,7 +8,7 @@ export const updateHomeCommunity = gql`
       location: $location
       hieroTopicId: $hieroTopicId
     ) {
-      id
+      uuid
     }
   }
 `

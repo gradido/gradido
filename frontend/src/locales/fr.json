@@ -191,6 +191,11 @@
     "validation": {
       "gddCreationTime": "Le champ {_field_} doit comprendre un nombre entre {min} et {max} avec un maximum de une décimale.",
       "gddSendAmount": "Le champ {_field_} doit comprendre un nombre entre {min} et {max} avec un maximum de deux chiffres après la virgule",
+      "identifier": {
+        "communityIsReachable": "Communauté non trouvée ou non joignable!",
+        "required": "Le destinataire est un champ obligatoire.",
+        "typeError": "Le destinataire doit être un email, un nom d'utilisateur ou un Gradido ID."
+      },
       "is-not": "Vous ne pouvez pas vous envoyer de Gradido à vous-même",
       "requiredField": "Le champ {fieldName} est obligatoire",
       "usernmae-regex": "Le nom d'utilisateur doit commencer par une lettre, suivi d'au moins deux caractères alphanumériques.",
@@ -222,12 +227,16 @@
     "no-account": "Vous n'avez pas encore de compte Gradido?",
     "no-redeem": "Vous n'êtes pas autorisé à percevoir votre propre lien!",
     "not-copied": "Malheureusement votre appareil ne permet pas de copier! Veuillez copier le lien manuellement svp!",
+    "recipientCommunityRedirection": "Pour créditer, rediriger vers:",
+    "recipientCommunitySelection": "Choisir la communauté Gradido :",
     "redeem": "Encaisser",
+    "redeem-community": "Créditer dans ",
     "redeemed": "Encaissé avec succès! Votre compte est crédité de {n} GDD.",
     "redeemed-at": "Le lien a déjà été perçu le {date}.",
     "redeemed-title": "encaisser",
     "to-login": "Connexion",
     "to-register": "Enregistrer un nouveau compte.",
+    "to-switch": "Rediriger maintenant",
     "validUntil": "Valide jusqu'au",
     "validUntilDate": "Le lien est valide jusqu'au {date}."
   },
@@ -249,6 +258,7 @@
     "raise": "Augmentation",
     "recruited-member": "Membre invité"
   },
+  "gradidoid-copied-to-clipboard": "Gradido ID copié dans le presse-papier.",
   "h": "h",
   "info": "Information",
   "language": "Langage",

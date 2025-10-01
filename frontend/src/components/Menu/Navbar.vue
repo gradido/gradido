@@ -17,9 +17,9 @@
         <BImg class="sheet-img position-absolute zindex-1" :src="sheet"></BImg>
 
         <BNavbarNav class="ms-auto" right>
-          <router-link to="/settings">
-            <div class="d-flex align-items-center">
-              <div class="me-3">
+          <div class="align-items-center">
+            <router-link to="/settings">
+              <div class="d-flex me-3">
                 <app-avatar
                   class="vue3-avatar"
                   :name="username.username"
@@ -31,10 +31,19 @@
               </div>
               <div>
                 <div data-test="navbar-item-username">{{ username.username }}</div>
-                <div data-test="navbar-item-email">{{ $store.state.email }}</div>
               </div>
+            </router-link>
+            <div class="small navbar-like-link" data-test="navbar-item-gradido-id">
+              {{ gradidoId }}
+              <a
+                class="copy-clipboard-button"
+                :title="$t('copy-to-clipboard')"
+                @click="copyToClipboard(gradidoId)"
+              >
+                <IBiClipboard></IBiClipboard>
+              </a>
             </div>
-          </router-link>
+          </div>
         </BNavbarNav>
       </BNavbar>
       <!-- <div class="alert-box">
@@ -47,10 +56,19 @@
 </template>
 
 <script>
+import CONFIG from '@/config'
+import { useAppToast } from '@/composables/useToast'
+
 export default {
   name: 'Navbar',
   props: {
     balance: { type: Number, required: true },
+  },
+  setup() {
+    const toast = useAppToast()
+    return {
+      toast,
+    }
   },
   data() {
     return {
@@ -64,6 +82,18 @@ export default {
         username: `${this.$store.state.firstName} ${this.$store.state.lastName}`,
         initials: `${this.$store.state.firstName[0]}${this.$store.state.lastName[0]}`,
       }
+    },
+    gradidoId() {
+      const name = this.$store.state.username
+        ? this.$store.state.username
+        : this.$store.state.gradidoId
+      return `${CONFIG.COMMUNITY_NAME}/${name}`
+    },
+  },
+  methods: {
+    copyToClipboard(content) {
+      navigator.clipboard.writeText(content)
+      this.toast.toastSuccess(this.$t('gradidoid-copied-to-clipboard'))
     },
   },
 }
@@ -81,6 +111,10 @@ export default {
 
 .navbar-toggler {
   font-size: 2.25rem;
+}
+
+.navbar-like-link {
+  color: rgba(var(--bs-link-color-rgb));
 }
 
 button.navbar-toggler > span.navbar-toggler-icon {

@@ -125,7 +125,7 @@ export default defineConfig(async ({ command }) => {
         GRAPHQL_URI: CONFIG.GRAPHQL_URI, // null,
         ADMIN_AUTH_PATH: CONFIG.ADMIN_AUTH_PATH ?? null, // it is the only env without exported default
         ADMIN_AUTH_URL: CONFIG.ADMIN_AUTH_URL, // null,
-        COMMUNITY_NAME: null,
+        COMMUNITY_NAME: CONFIG.COMMUNITY_NAME,
         COMMUNITY_REGISTER_PATH: null,
         COMMUNITY_REGISTER_URL: null,
         COMMUNITY_DESCRIPTION: null,

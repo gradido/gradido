@@ -164,10 +164,15 @@ const itemType = computed(() => {
     }
     if (store.state.token && store.state.tokenTime) {
       if (tokenExpiresInSeconds.value < 5) {
-        // console.log('TransactionLink.itemType... REDEEM_SELECT_COMMUNITY')
+        // console.log(
+        //   'TransactionLink.itemType... CONFIG.CROSS_TX_REDEEM_LINK_ACTIVE=',
+        //   CONFIG.CROSS_TX_REDEEM_LINK_ACTIVE,
+        // )
         if (CONFIG.CROSS_TX_REDEEM_LINK_ACTIVE) {
+          // console.log('TransactionLink.itemType... REDEEM_SELECT_COMMUNITY')
           return 'REDEEM_SELECT_COMMUNITY'
         } else {
+          // console.log('TransactionLink.itemType... LOGGED_OUT')
           return 'LOGGED_OUT'
         }
       }
@@ -216,10 +221,15 @@ const itemType = computed(() => {
       return 'VALID'
     }
   }
+  // console.log(
+  //   'TransactionLink.itemType... vor last return CONFIG.CROSS_TX_REDEEM_LINK_ACTIVE=',
+  //   CONFIG.CROSS_TX_REDEEM_LINK_ACTIVE,
+  // )
   if (CONFIG.CROSS_TX_REDEEM_LINK_ACTIVE) {
     // console.log('TransactionLink.itemType...last return= REDEEM_SELECT_COMMUNITY')
     return 'REDEEM_SELECT_COMMUNITY'
   } else {
+    // console.log('TransactionLink.itemType... last return= LOGGED_OUT')
     return 'LOGGED_OUT'
   }
 })
@@ -338,7 +348,7 @@ function setRedeemJwtLinkInformation() {
   const deepCopy = JSON.parse(JSON.stringify(result.value))
   // console.log('TransactionLink.setRedeemJwtLinkInformation... deepCopy=', deepCopy)
   if (deepCopy) {
-    // recipientUser is only set if the user is logged in
+    // console.log('TransactionLink.setRedeemJwtLinkInformation... recipientUser is only set if the user is logged in')
     if (store.state.gradidoID !== null) {
       // console.log('TransactionLink.setRedeemJwtLinkInformation... gradidoID=', store.state.gradidoID)
       deepCopy.queryTransactionLink.recipientUser = {
