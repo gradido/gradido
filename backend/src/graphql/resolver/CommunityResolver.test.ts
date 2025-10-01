@@ -16,10 +16,9 @@ import {
   reachableCommunities,
 } from '@/seeds/graphql/queries'
 import { peterLustig } from '@/seeds/users/peter-lustig'
-import { createCommunity, createAuthenticatedForeignCommunity } from 'database/src/seeds/community'
+import { createCommunity, createVerifiedFederatedCommunity } from 'database/src/seeds/community'
 
 import { getLogger } from 'config-schema/test/testSetup'
-import { getCommunityByUuid } from './util/communities'
 import { CONFIG } from '@/config'
 
 jest.mock('@/password/EncryptorUtils')
@@ -445,6 +444,7 @@ describe('CommunityResolver', () => {
 
     afterAll(async () => {
       await DbCommunity.clear()
+      await DbFederatedCommunity.clear()
     })
 
     describe('with empty list', () => {
@@ -483,33 +483,37 @@ describe('CommunityResolver', () => {
     describe('returns 2 filtered communities even with 3 existing entries', () => {
       beforeEach(async () => {
         foreignCom1 = await createCommunity(true, false)
-        foreignCom2 = await createAuthenticatedForeignCommunity(100, false)
+        foreignCom2 = await createCommunity(true, false)
+        const com1FedCom = await createVerifiedFederatedCommunity('1_0', 100, foreignCom1, false)
+        const com1FedCom2 = await createVerifiedFederatedCommunity('1_1', 100, foreignCom1, false)
+        const com2FedCom = await createVerifiedFederatedCommunity('1_0', 10000, foreignCom2, false)
         await Promise.all([
           DbCommunity.insert(foreignCom1),
-          DbCommunity.insert(foreignCom2)
+          DbCommunity.insert(foreignCom2),
+          DbFederatedCommunity.insert(com1FedCom),
+          DbFederatedCommunity.insert(com1FedCom2),
+          DbFederatedCommunity.insert(com2FedCom)
         ])
       })
 
       it('returns 2 community entries', async () => {
-        await expect(query({ query: reachableCommunities })).resolves.toMatchObject({
-          data: {
-            reachableCommunities: [
-              {
-                foreign: homeCom1.foreign,
-                name: homeCom1.name,
-                description: homeCom1.description,
-                url: homeCom1.url,
-                uuid: homeCom1.communityUuid,
-              }, {
-                foreign: foreignCom2.foreign,
-                name: foreignCom2.name,
-                description: foreignCom2.description,
-                url: foreignCom2.url,
-                uuid: foreignCom2.communityUuid,
-              },
-            ],
-          },
-        })
+        const result = await query({ query: reachableCommunities })
+        expect(result.data.reachableCommunities.length).toBe(2)
+        expect(result.data.reachableCommunities).toMatchObject([
+          {
+            foreign: homeCom1.foreign,
+            name: homeCom1.name,
+            description: homeCom1.description,
+            url: homeCom1.url,
+            uuid: homeCom1.communityUuid,
+          }, {
+            foreign: foreignCom1.foreign,
+            name: foreignCom1.name,
+            description: foreignCom1.description,
+            url: foreignCom1.url,
+            uuid: foreignCom1.communityUuid,
+          }
+        ])
       })
     })
 
