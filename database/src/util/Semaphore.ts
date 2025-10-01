@@ -133,13 +133,13 @@ export class Semaphore {
         });
     }
 }
-
+/*
 export class Mutex extends Semaphore {
     constructor(owner: string) {
         super('mutex', 1, owner);
     }
 }
-
+*/
 
 /* ************************************
  *                                  *
