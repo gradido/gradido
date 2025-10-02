@@ -138,15 +138,15 @@ export class AuthenticationResolver {
       const authCom = await DbCommunity.findOneByOrFail({ communityUuid: authArgs.oneTimeCode })
       if (authCom) {
         methodLogger.debug('found authCom:', new CommunityLoggingView(authCom))
-        if (authCom.publicKey !== authArgs.publicKey) {
-          const errmsg = `corrupt authentication call detected, oneTimeCode: ${authArgs.oneTimeCode} doesn't belong to caller: ${authArgs.publicKey}`
+        if (authCom.publicKey.toString('hex') !== args.publicKey) {
+          const errmsg = `corrupt authentication call detected, oneTimeCode: ${authArgs.oneTimeCode} doesn't belong to caller: ${args.publicKey}`
           methodLogger.error(errmsg)
           // no infos to the caller
           return null
         }
         const communityUuid = uuidv4Schema.safeParse(authArgs.uuid)
         if (!communityUuid.success) {
-          const errmsg = `invalid uuid: ${authArgs.uuid} for community with publicKey ${authArgs.publicKey}`
+          const errmsg = `invalid uuid: ${authArgs.uuid} for community with publicKey ${authCom.publicKey}`
           methodLogger.error(errmsg)
           // no infos to the caller
           return null
