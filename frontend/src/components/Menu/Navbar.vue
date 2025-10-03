@@ -17,9 +17,9 @@
         <BImg class="sheet-img position-absolute zindex-1" :src="sheet"></BImg>
 
         <BNavbarNav class="ms-auto" right>
-          <div class="align-items-center">
+          <div class="d-flex flex-column align-items-end text-end">
             <router-link to="/settings">
-              <div class="d-flex me-3">
+              <div class="">
                 <app-avatar
                   class="vue3-avatar"
                   :name="username.username"
@@ -29,18 +29,18 @@
                   :size="61"
                 />
               </div>
-              <div>
-                <div data-test="navbar-item-username">{{ username.username }}</div>
-              </div>
             </router-link>
-            <div class="small navbar-like-link" data-test="navbar-item-gradido-id">
-              {{ gradidoId }}
+            <div class="navbar-like-link" data-test="navbar-item-username">
+              {{ username.username }}
+            </div>
+            <div class="small navbar-like-link pointer" data-test="navbar-item-gradido-id">
               <a
                 class="copy-clipboard-button"
                 :title="$t('copy-to-clipboard')"
                 @click="copyToClipboard(gradidoId)"
               >
-                <IBiClipboard></IBiClipboard>
+                <IBiCopy></IBiCopy>
+                {{ gradidoId }}
               </a>
             </div>
           </div>

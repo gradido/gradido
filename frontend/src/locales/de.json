@@ -114,6 +114,7 @@
     "thanksYouWith": "dankt dir mit"
   },
   "contributionText": "Beitragstext",
+  "copy-to-clipboard": "In Zwischenablage kopieren",
   "creation": "Schöpfen",
   "decay": {
     "before_startblock_transaction": "Diese Transaktion beinhaltet keine Vergänglichkeit.",
