@@ -103,8 +103,8 @@
     "unique": "(unique)"
   },
   "contributionText": "Texte de la contribution",
-  "creation": "Création",
   "copy-to-clipboard": "Copier dans le presse-papier",
+  "creation": "Création",
   "decay": {
     "before_startblock_transaction": "Cette transaction n'est pas péremptoire.",
     "calculation_decay": "Calcul de la décroissance",
