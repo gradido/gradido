@@ -109,7 +109,7 @@ export class AuthenticationResolver {
     }
   }
 
-  @Mutation(() => String, { nullable: true })
+  @Mutation(() => String)
   async authenticate(
     @Arg('data')
     args: EncryptedTransferArgs,
