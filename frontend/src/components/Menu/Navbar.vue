@@ -3,12 +3,14 @@
     <div class="navbar-element">
       <BNavbar toggleable="lg" class="pe-4">
         <BNavbarBrand>
-          <BImg
-            class="mt-lg--2 mt-3 mb-3 d-none d-lg-block zindex10"
-            :src="logo"
-            width="200"
-            alt="Logo"
-          />
+          <router-link to="/overview">
+            <BImg
+              class="mt-lg--2 mt-3 mb-3 d-none d-lg-block zindex10"
+              :src="logo"
+              width="200"
+              alt="Logo"
+            />
+          </router-link>
           <div v-b-toggle.sidebar-mobile variant="link" class="d-block d-lg-none">
             <span class="navbar-toggler-icon h2"></span>
           </div>
