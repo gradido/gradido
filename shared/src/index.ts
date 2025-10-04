@@ -1,5 +1,6 @@
 export * from './schema'
 export * from './enum'
+export * from './helper'
 export * from './logic/decay'
 export * from './jwt/JWT'
 export * from './jwt/payloadtypes/AuthenticationJwtPayloadType'
@@ -13,4 +14,5 @@ export * from './jwt/payloadtypes/RedeemJwtPayloadType'
 export * from './jwt/payloadtypes/SendCoinsJwtPayloadType'
 export * from './jwt/payloadtypes/SendCoinsResponseJwtPayloadType'
 export * from './jwt/payloadtypes/SignedTransferPayloadType'
+
 
