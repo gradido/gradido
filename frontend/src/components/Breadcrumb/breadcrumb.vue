@@ -23,7 +23,8 @@ export default {
   margin-bottom: 1rem;
   padding: 0.75rem 1rem;
 }
-@media screen and (max-width: 450px) {
+
+@media screen and (width <= 450px) {
   .page-breadcrumb {
     margin-top: 3rem;
   }
