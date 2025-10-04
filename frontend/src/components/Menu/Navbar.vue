@@ -32,10 +32,10 @@
                 />
               </div>
             </router-link>
-            <div class="navbar-like-link" data-test="navbar-item-username">
+            <div class="navbar-like-link mt-3" data-test="navbar-item-username">
               {{ username.username }}
             </div>
-            <div class="small navbar-like-link pointer" data-test="navbar-item-gradido-id">
+            <div class="small navbar-like-link pointer mt-1" data-test="navbar-item-gradido-id">
               <a
                 class="copy-clipboard-button"
                 :title="$t('copy-to-clipboard')"
