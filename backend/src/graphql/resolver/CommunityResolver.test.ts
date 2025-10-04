@@ -227,14 +227,6 @@ describe('CommunityResolver', () => {
       let foreignCom4: DbFederatedCommunity
 
       beforeEach(async () => {
-<<<<<<< HEAD
-=======
-        jest.clearAllMocks()
-        await userFactory(testEnv, peterLustig)
-        // login as admin
-        await mutate({ mutation: login, variables: peterLoginData })
-
->>>>>>> refactor_community_auth
         comHomeCom1 = DbCommunity.create()
         comHomeCom1.foreign = false
         comHomeCom1.url = 'http://localhost'
