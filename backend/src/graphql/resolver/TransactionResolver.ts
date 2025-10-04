@@ -447,7 +447,7 @@ export class TransactionResolver {
         recipientCommunityIdentifier,
       )
       if (!recipientUser) {
-        throw new LogError('The recipient user was not found', { recipientIdentifier, recipientCommunityIdentifier })
+        throw new LogError('The recipient user was not found', recipientUser)
       }
       logger.addContext('to', recipientUser?.id)
       if (recipientUser.foreign) {

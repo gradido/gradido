@@ -12,7 +12,6 @@ export class Community {
     this.creationDate = dbCom.creationDate
     this.uuid = dbCom.communityUuid
     this.authenticatedAt = dbCom.authenticatedAt
-    // this.gmsApiKey = dbCom.gmsApiKey // 
     this.hieroTopicId = dbCom.hieroTopicId
   }
 
@@ -39,10 +38,6 @@ export class Community {
 
   @Field(() => Date, { nullable: true })
   authenticatedAt: Date | null
-
-  // gms api key should only seen by admins, they can use AdminCommunityView
-  // @Field(() => String, { nullable: true })
-  // gmsApiKey: string | null
 
   @Field(() => String, { nullable: true })
   hieroTopicId: string | null

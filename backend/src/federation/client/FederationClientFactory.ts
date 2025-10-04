@@ -4,7 +4,7 @@ import { FederationClient as V1_0_FederationClient } from '@/federation/client/1
 import { FederationClient as V1_1_FederationClient } from '@/federation/client/1_1/FederationClient'
 import { ApiVersionType, ensureUrlEndsWithSlash } from 'core'
 
-export type FederationClient = V1_0_FederationClient | V1_1_FederationClient
+type FederationClient = V1_0_FederationClient | V1_1_FederationClient
 
 interface FederationClientInstance {
   id: number
