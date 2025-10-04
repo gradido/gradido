@@ -35,7 +35,7 @@ export class CommunityResolver {
     )
   }
 
-  @Authorized([RIGHTS.COMMUNITIES])
+  @Authorized([RIGHTS.COMMUNITY_WITH_API_KEYS])
   @Query(() => [AdminCommunityView])
   async allCommunities(@Args() paginated: Paginated): Promise<AdminCommunityView[]> {
     // communityUUID could be oneTimePassCode (uint32 number)
@@ -54,7 +54,7 @@ export class CommunityResolver {
     return dbCommunities.map((dbCom: DbCommunity) => new Community(dbCom))
   }
 
-  @Authorized([RIGHTS.COMMUNITY_BY_IDENTIFIER])
+  @Authorized([RIGHTS.COMMUNITIES])
   @Query(() => Community)
   async communityByIdentifier(
     @Arg('communityIdentifier') communityIdentifier: string,
@@ -67,7 +67,7 @@ export class CommunityResolver {
     return new Community(community)
   }
 
-  @Authorized([RIGHTS.HOME_COMMUNITY])
+  @Authorized([RIGHTS.COMMUNITIES])
   @Query(() => Community)
   async homeCommunity(): Promise<Community> {
     const community = await getHomeCommunity()
@@ -78,10 +78,10 @@ export class CommunityResolver {
   }
 
   @Authorized([RIGHTS.COMMUNITY_UPDATE])
-  @Mutation(() => Community)
+  @Mutation(() => AdminCommunityView)
   async updateHomeCommunity(
     @Args() { uuid, gmsApiKey, location, hieroTopicId }: EditCommunityInput,
-  ): Promise<Community> {
+  ): Promise<AdminCommunityView> {
     const homeCom = await getCommunityByUuid(uuid)
     if (!homeCom) {
       throw new LogError('HomeCommunity with uuid not found: ', uuid)
@@ -101,6 +101,6 @@ export class CommunityResolver {
       homeCom.hieroTopicId = hieroTopicId ?? null
       await DbCommunity.save(homeCom)
     }
-    return new Community(homeCom)
+    return new AdminCommunityView(homeCom)
   }
 }

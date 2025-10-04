@@ -38,7 +38,6 @@ export class AdminCommunityView {
     this.updatedAt = dbCom.updatedAt
     this.uuid = dbCom.communityUuid
     this.authenticatedAt = dbCom.authenticatedAt
-    this.gmsApiKey = dbCom.gmsApiKey
     this.hieroTopicId = dbCom.hieroTopicId
     if (dbCom.location) {
       this.location = Point2Location(dbCom.location as Point)

@@ -324,6 +324,10 @@ describe('CommunityResolver', () => {
 
       beforeEach(async () => {
         jest.clearAllMocks()
+        await userFactory(testEnv, peterLustig)
+        // login as admin
+        await mutate({ mutation: login, variables: peterLoginData })
+
         comHomeCom1 = DbCommunity.create()
         comHomeCom1.foreign = false
         comHomeCom1.url = 'http://localhost'
@@ -547,13 +551,10 @@ describe('CommunityResolver', () => {
 
     describe('with empty list', () => {
       beforeEach(async () => {
-        await cleanDB()
-        jest.clearAllMocks()
+        await DbCommunity.clear()
       })
 
       it('returns no community entry', async () => {
-        // const result: Community[] = await query({ query: getCommunities })
-        // expect(result.length).toEqual(0)
         await expect(query({ query: communitiesQuery })).resolves.toMatchObject({
           data: {
             communities: [],
@@ -785,7 +786,6 @@ describe('CommunityResolver', () => {
         ).resolves.toMatchObject({
           data: {
             updateHomeCommunity: {
-              id: expect.any(Number),
               foreign: homeCom?.foreign,
               name: homeCom?.name,
               description: homeCom?.description,
