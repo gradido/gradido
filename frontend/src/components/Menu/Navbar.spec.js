@@ -5,6 +5,8 @@ import { createStore } from 'vuex'
 import Navbar from './Navbar.vue'
 import { BImg, BNavbar, BNavbarBrand, BNavbarNav } from 'bootstrap-vue-next'
 import AppAvatar from '@/components/AppAvatar.vue'
+import { createI18n } from 'vue-i18n'
+import CONFIG from '@/config'
 
 // Mock vue-avatar
 vi.mock('vue-avatar', () => ({
@@ -17,6 +19,16 @@ vi.mock('vue-avatar', () => ({
   },
 }))
 
+const i18n = createI18n({
+  legacy: false,
+  locale: 'en',
+  messages: {
+    en: {
+      'copied-to-clipboard': 'copied-to-clipboard',
+    },
+  },
+})
+
 const createVuexStore = (state = {}) =>
   createStore({
     state: () => ({
@@ -24,6 +36,7 @@ const createVuexStore = (state = {}) =>
       lastName: 'User',
       gradidoID: 'current-user-id',
       email: 'test@example.com',
+      username: 'username',
       ...state,
     }),
   })
@@ -41,7 +54,10 @@ describe('Navbar', () => {
     store = createVuexStore(storeState)
     return mount(Navbar, {
       global: {
-        plugins: [store, router],
+        plugins: [store, router, i18n],
+        stubs: {
+          IBiClipboard: true,
+        },
         mocks: {
           $t: (msg) => msg,
         },
@@ -89,7 +105,9 @@ describe('Navbar', () => {
     })
 
     it('has the email address', () => {
-      expect(wrapper.find('div[data-test="navbar-item-email"]').text()).toBe('test@example.com')
+      expect(wrapper.find('div[data-test="navbar-item-gradido-id"]').text()).toBe(
+        `${CONFIG.COMMUNITY_NAME}/username`,
+      )
     })
   })
 })

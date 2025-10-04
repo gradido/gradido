@@ -94,7 +94,8 @@ onResult(({ data }) => {
 onError(() => {
   isUserSearchDisabled.value = true
   if (gmsAllowed.value && gmsUserLocationExists.value) {
-    toastError('authenticateGmsUserSearch failed!')
+    // setting isUserSearchDisabled.value to true will show that GMS is offline, no need to further post to the user
+    // toastError('authenticateGmsUserSearch failed!')
   } else if (gmsAllowed.value && !gmsUserLocationExists.value) {
     // toastError('capture your location first!')
     // eslint-disable-next-line no-console
