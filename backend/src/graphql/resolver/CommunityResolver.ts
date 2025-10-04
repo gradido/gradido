@@ -24,6 +24,24 @@ import { CONFIG } from '@/config'
 
 @Resolver()
 export class CommunityResolver {
+<<<<<<< HEAD
+=======
+  @Authorized([RIGHTS.COMMUNITIES])
+  @Query(() => [FederatedCommunity])
+  async getCommunities(): Promise<FederatedCommunity[]> {
+    const dbFederatedCommunities: DbFederatedCommunity[] = await DbFederatedCommunity.find({
+      order: {
+        foreign: 'ASC',
+        createdAt: 'DESC',
+        lastAnnouncedAt: 'DESC',
+      },
+    })
+    return dbFederatedCommunities.map(
+      (dbCom: DbFederatedCommunity) => new FederatedCommunity(dbCom),
+    )
+  }
+
+>>>>>>> refactor_community_auth
   @Authorized([RIGHTS.COMMUNITY_WITH_API_KEYS])
   @Query(() => [AdminCommunityView])
   async allCommunities(@Args() paginated: Paginated): Promise<AdminCommunityView[]> {
@@ -95,7 +113,10 @@ export class CommunityResolver {
       }
       await DbCommunity.save(homeCom)
     }
+<<<<<<< HEAD
     
+=======
+>>>>>>> refactor_community_auth
     return new AdminCommunityView(homeCom)
   }
 }
