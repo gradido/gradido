@@ -1,9 +1,8 @@
 import { Raw } from 'typeorm'
-import { Community, User as DbUser, UserContact as DbUserContact } from '../entity'
-import { FindOptionsWhere } from 'typeorm'
-import { aliasSchema, emailSchema, uuidv4Schema, urlSchema } from 'shared'
+import { User as DbUser, UserContact as DbUserContact } from '../entity'
+import { aliasSchema, emailSchema, uuidv4Schema } from 'shared'
 import { getLogger } from 'log4js'
-import { LOG4JS_QUERIES_CATEGORY_NAME } from './index'
+import { findWithCommunityIdentifier, LOG4JS_QUERIES_CATEGORY_NAME } from './index'
 
 export async function aliasExists(alias: string): Promise<boolean> {
   const user = await DbUser.findOne({
@@ -22,11 +21,9 @@ export const findUserByIdentifier = async (
   identifier: string,
   communityIdentifier?: string,
 ): Promise<DbUser | null> => {
-  const communityWhere: FindOptionsWhere<Community> = urlSchema.safeParse(communityIdentifier).success
-    ? { url: communityIdentifier }
-    : uuidv4Schema.safeParse(communityIdentifier).success
-      ? { communityUuid: communityIdentifier }
-      : { name: communityIdentifier }
+  const communityWhere = communityIdentifier 
+    ? findWithCommunityIdentifier(communityIdentifier) 
+    : undefined
 
   if (uuidv4Schema.safeParse(identifier).success) {
     return DbUser.findOne({

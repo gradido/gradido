@@ -1,12 +1,14 @@
-import { Community as DbCommunity, FederatedCommunity as DbFederatedCommunity, getHomeCommunity } from 'database'
+import { 
+  Community as DbCommunity, 
+  getReachableCommunities, 
+  getHomeCommunity 
+} from 'database'
 import { Arg, Args, Authorized, Mutation, Query, Resolver } from 'type-graphql'
-import { IsNull, Not } from 'typeorm'
 
 import { Paginated } from '@arg/Paginated'
 import { EditCommunityInput } from '@input/EditCommunityInput'
 import { AdminCommunityView } from '@model/AdminCommunityView'
 import { Community } from '@model/Community'
-import { FederatedCommunity } from '@model/FederatedCommunity'
 
 import { RIGHTS } from '@/auth/RIGHTS'
 import { LogError } from '@/server/LogError'
@@ -18,23 +20,10 @@ import {
   getCommunityByUuid,
 } from './util/communities'
 
+import { CONFIG } from '@/config'
+
 @Resolver()
 export class CommunityResolver {
-  @Authorized([RIGHTS.COMMUNITIES])
-  @Query(() => [FederatedCommunity])
-  async getCommunities(): Promise<FederatedCommunity[]> {
-    const dbFederatedCommunities: DbFederatedCommunity[] = await DbFederatedCommunity.find({
-      order: {
-        foreign: 'ASC',
-        createdAt: 'DESC',
-        lastAnnouncedAt: 'DESC',
-      },
-    })
-    return dbFederatedCommunities.map(
-      (dbCom: DbFederatedCommunity) => new FederatedCommunity(dbCom),
-    )
-  }
-
   @Authorized([RIGHTS.COMMUNITY_WITH_API_KEYS])
   @Query(() => [AdminCommunityView])
   async allCommunities(@Args() paginated: Paginated): Promise<AdminCommunityView[]> {
@@ -44,12 +33,12 @@ export class CommunityResolver {
 
   @Authorized([RIGHTS.COMMUNITIES])
   @Query(() => [Community])
-  async communities(): Promise<Community[]> {
-    const dbCommunities: DbCommunity[] = await DbCommunity.find({
-      where: { communityUuid: Not(IsNull()) }, //, authenticatedAt: Not(IsNull()) },
-      order: {
-        name: 'ASC',
-      },
+  async reachableCommunities(): Promise<Community[]> {
+    const dbCommunities: DbCommunity[] = await getReachableCommunities(
+      CONFIG.FEDERATION_VALIDATE_COMMUNITY_TIMER * 2, {
+        // order by 
+        foreign: 'ASC', // home community first
+        name: 'ASC', // sort foreign communities by name
     })
     return dbCommunities.map((dbCom: DbCommunity) => new Community(dbCom))
   }

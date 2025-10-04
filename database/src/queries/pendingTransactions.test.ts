@@ -14,7 +14,7 @@ import { peterLustig } from '../seeds/users/peter-lustig'
 import { bobBaumeister } from '../seeds/users/bob-baumeister'
 import { garrickOllivander } from '../seeds/users/garrick-ollivander'
 import { describe, expect, it, beforeAll, afterAll } from 'vitest'
-import { createCommunity } from '../seeds/homeCommunity'
+import { createCommunity } from '../seeds/community'
 import { v4 as uuidv4 } from 'uuid'
 import Decimal from 'decimal.js-light'
 

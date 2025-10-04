@@ -439,9 +439,7 @@ export class TransactionResolver {
     logger.debug(
       `sendCoins(recipientCommunityIdentifier=${recipientCommunityIdentifier}, recipientIdentifier=${recipientIdentifier}, amount=${amount}, memo=${memo})`,
     )
-    const homeCom = await DbCommunity.findOneOrFail({ where: { foreign: false } })
     const senderUser = getUser(context)
-
     if (!recipientCommunityIdentifier || (await isHomeCommunity(recipientCommunityIdentifier))) {
       // processing sendCoins within sender and recipient are both in home community
       const recipientUser = await findUserByIdentifier(

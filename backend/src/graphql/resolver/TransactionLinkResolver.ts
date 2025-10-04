@@ -47,8 +47,7 @@ import { getLogger, Logger } from 'log4js'
 import { randombytes_random } from 'sodium-native'
 import { executeTransaction } from './TransactionResolver'
 import {
-  getAuthenticatedCommunities,
-  getCommunityByIdentifier,
+  getAuthenticatedCommunities,  
   getCommunityByPublicKey,
   getCommunityByUuid,
 } from './util/communities'

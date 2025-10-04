@@ -135,17 +135,14 @@ export const listGDTEntriesQuery = gql`
   }
 `
 
-export const communitiesQuery = gql`
-  query {
-    communities {
-      id
+export const reachableCommunities = gql`
+  query { 
+    reachableCommunities {
       foreign
+      uuid
       name
       description
       url
-      creationDate
-      uuid
-      authenticatedAt
     }
   }
 `
@@ -176,23 +173,6 @@ export const getHomeCommunityQuery = gql`
       creationDate
       uuid
       authenticatedAt
-    }
-  }
-`
-
-export const getCommunities = gql`
-  query {
-    getCommunities {
-      id
-      foreign
-      publicKey
-      endPoint
-      apiVersion
-      lastAnnouncedAt
-      verifiedAt
-      lastErrorAt
-      createdAt
-      updatedAt
     }
   }
 `
@@ -265,7 +245,7 @@ export const listContributions = gql`
   }
 `
 
-export const listAllContributions = `
+export const listAllContributions = gql`
 query ($pagination: Paginated!) {
   listAllContributions(pagination: $pagination) {
   	contributionCount

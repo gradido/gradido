@@ -91,19 +91,6 @@ export const listGDTEntriesQuery = gql`
     }
   }
 `
-
-export const selectCommunities = gql`
-  query {
-    communities {
-      uuid
-      name
-      description
-      foreign
-      url
-    }
-  }
-`
-
 export const queryOptIn = gql`
   query ($optIn: String!) {
     queryOptIn(optIn: $optIn)
