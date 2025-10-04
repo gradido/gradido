@@ -39,13 +39,11 @@ export const testEnvironment = async (testLogger = getLogger('apollo'), testI18n
 }
 
 export const resetEntity = async (entity: any) => {
-  // delete data and reset autoincrement!
-  await entity.clear()
-  /*const items = await entity.find({ withDeleted: true })
+  const items = await entity.find({ withDeleted: true })
   if (items.length > 0) {
     const ids = items.map((e: any) => e.id)
     await entity.delete(ids)
-  }*/
+  }
 }
 
 export const resetToken = () => {
