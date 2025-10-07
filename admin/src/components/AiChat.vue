@@ -300,7 +300,7 @@ onMounted(async () => {
 
 .message.error .message-content {
   background-color: #f1e5e5;
-  color: rgb(194, 12, 12);
+  color: rgb(194 12 12);
   margin-left: auto;
   margin-right: auto;
 }
