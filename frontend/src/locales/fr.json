@@ -193,8 +193,6 @@
       "gddSendAmount": "Le champ {_field_} doit comprendre un nombre entre {min} et {max} avec un maximum de deux chiffres après la virgule",
       "identifier": {
         "communityIsReachable": "Communauté non joignable!",
-        "communityIsReachable.communityNotFound": "Communauté non trouvée!",
-        "communityIsReachable.communityNotReachable": "Communauté non joignable!",
         "required": "Le destinataire est un champ obligatoire.",
         "typeError": "Le destinataire doit être un email, un nom d'utilisateur ou un Gradido ID."
       },
