@@ -78,24 +78,18 @@ export class CommunityResolver {
     if (homeCom.foreign) {
       throw new LogError('Error: Only the HomeCommunity could be modified!')
     }
-        
     if (
       homeCom.gmsApiKey !== gmsApiKey ||
       homeCom.location !== location ||
       homeCom.hieroTopicId !== hieroTopicId
     ) {
-      // TODO: think about this, it is really expected to delete gmsApiKey if no new one is given?
       homeCom.gmsApiKey = gmsApiKey ?? null
       if (location) {
         homeCom.location = Location2Point(location)
       }
-      // update only with new value, don't overwrite existing value with null or undefined!
-      if (hieroTopicId) {
-        homeCom.hieroTopicId = hieroTopicId
-      }
+      homeCom.hieroTopicId = hieroTopicId ?? null
       await DbCommunity.save(homeCom)
     }
-    
     return new AdminCommunityView(homeCom)
   }
 }
