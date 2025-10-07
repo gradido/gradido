@@ -28,6 +28,10 @@ import {
 import { EVENT_TRANSACTION_RECEIVE, EVENT_TRANSACTION_SEND } from '@/event/Events'
 import { LogError } from '@/server/LogError'
 import { Context, getUser } from '@/server/context'
+import {
+  InterruptiveSleepManager,
+  TRANSMIT_TO_IOTA_INTERRUPTIVE_SLEEP_KEY,
+} from '@/util/InterruptiveSleepManager'
 import { communityUser } from '@/util/communityUser'
 import { calculateBalance } from '@/util/validate'
 import { virtualDecayTransaction, virtualLinkTransaction } from '@/util/virtualTransactions'
@@ -41,7 +45,6 @@ import { BalanceResolver } from './BalanceResolver'
 import { GdtResolver } from './GdtResolver'
 import { getCommunityName, isHomeCommunity } from './util/communities'
 import { getTransactionList } from './util/getTransactionList'
-import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
 import { transactionLinkSummary } from './util/transactionLinkSummary'
 
 const db = AppDatabase.getInstance()
@@ -162,15 +165,14 @@ export const executeTransaction = async (
         transactionReceive,
         transactionReceive.amount,
       )
-
-      // trigger to send transaction via dlt-connector
-      await sendTransactionsToDltConnector()
     } catch (e) {
       await queryRunner.rollbackTransaction()
       throw new LogError('Transaction was not successful', e)
     } finally {
       await queryRunner.release()
     }
+    // notify dlt-connector loop for new work
+    InterruptiveSleepManager.getInstance().interrupt(TRANSMIT_TO_IOTA_INTERRUPTIVE_SLEEP_KEY)
     await sendTransactionReceivedEmail({
       firstName: recipient.firstName,
       lastName: recipient.lastName,

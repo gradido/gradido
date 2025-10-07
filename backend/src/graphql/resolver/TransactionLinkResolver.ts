@@ -33,6 +33,10 @@ import {
 } from '@/event/Events'
 import { LogError } from '@/server/LogError'
 import { Context, getClientTimezoneOffset, getUser } from '@/server/context'
+import {
+  InterruptiveSleepManager,
+  TRANSMIT_TO_IOTA_INTERRUPTIVE_SLEEP_KEY,
+} from '@/util/InterruptiveSleepManager'
 import { calculateBalance } from '@/util/validate'
 import { fullName } from 'core'
 import { TRANSACTION_LINK_LOCK, TRANSACTIONS_LOCK } from 'database'
@@ -53,7 +57,6 @@ import {
   getCommunityByUuid,
 } from './util/communities'
 import { getUserCreation, validateContribution } from './util/creations'
-import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
 import { transactionLinkList } from './util/transactionLinkList'
 import { SignedTransferPayloadType } from 'shared'
 
@@ -345,8 +348,9 @@ export class TransactionLinkResolver {
       } finally {
         releaseLock()
       }
-      // trigger to send transaction via dlt-connector
-      await sendTransactionsToDltConnector()
+      // notify dlt-connector loop for new work
+      InterruptiveSleepManager.getInstance().interrupt(TRANSMIT_TO_IOTA_INTERRUPTIVE_SLEEP_KEY)
+      
       return true
     } else {
       const now = new Date()
@@ -396,6 +400,8 @@ export class TransactionLinkResolver {
       } finally {
         releaseLinkLock()
       }
+      // notify dlt-connector loop for new work
+      InterruptiveSleepManager.getInstance().interrupt(TRANSMIT_TO_IOTA_INTERRUPTIVE_SLEEP_KEY)
       return true
     }
   }
