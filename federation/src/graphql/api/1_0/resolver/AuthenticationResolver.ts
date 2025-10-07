@@ -125,7 +125,7 @@ export class AuthenticationResolver {
         // no infos to the caller
         return null
       }
-      if (!uint32Schema.safeParse(authArgs.oneTimeCode).success) {
+      if (!uint32Schema.safeParse(Number(authArgs.oneTimeCode)).success) {
         const errmsg = `invalid oneTimeCode: ${authArgs.oneTimeCode} for community with publicKey ${authArgs.publicKey}, expect uint32`
         methodLogger.error(errmsg)
         // no infos to the caller
