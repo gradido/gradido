@@ -15,6 +15,7 @@ import {
   UserLoggingView,   
 } from 'database'
 import { TransactionDraft } from './model/TransactionDraft'
+import { CONFIG } from '@/config'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.dltConnector`)
 // will be undefined if dlt connect is disabled
@@ -63,6 +64,9 @@ async function executeDltTransaction(draft: TransactionDraft | null, typeId: Dlt
  * and update dltTransactionId of transaction in db with hiero transaction id 
  */
 export async function registerAddressTransaction(user: DbUser, community: DbCommunity): Promise<DbDltTransaction | null> {
+  if (!CONFIG.DLT_CONNECTOR) {
+    return Promise.resolve(null)
+  }
   if (!user.id) {
     logger.error(`missing id for user: ${user.gradidoID}, please call registerAddressTransaction after user.save()`)
     return null
@@ -84,6 +88,9 @@ export async function contributionTransaction(
   signingUser: DbUser,
   createdAt: Date,
 ): Promise<DbDltTransaction | null> {
+  if (!CONFIG.DLT_CONNECTOR) {
+    return Promise.resolve(null)
+  }
   const homeCommunity = await getHomeCommunity()
   if (!homeCommunity) {
     logger.error('home community not found')
@@ -100,6 +107,9 @@ export async function transferTransaction(
   memo: string, 
   createdAt: Date
 ): Promise<DbDltTransaction | null> {
+  if (!CONFIG.DLT_CONNECTOR) {
+    return Promise.resolve(null)
+  }
   // load community if not already loaded, maybe they are remote communities
   if (!senderUser.community) {
     senderUser.community = await getCommunityByUuid(senderUser.communityUuid)
@@ -115,6 +125,9 @@ export async function transferTransaction(
 
 export async function deferredTransferTransaction(senderUser: DbUser, transactionLink: DbTransactionLink)
 : Promise<DbDltTransaction | null> {
+  if (!CONFIG.DLT_CONNECTOR) {
+    return Promise.resolve(null)
+  }
   // load community if not already loaded
   if (!senderUser.community) {
     senderUser.community = await getCommunityByUuid(senderUser.communityUuid)
@@ -125,6 +138,9 @@ export async function deferredTransferTransaction(senderUser: DbUser, transactio
 
 export async function redeemDeferredTransferTransaction(transactionLink: DbTransactionLink, amount: string, createdAt: Date, recipientUser: DbUser)
 : Promise<DbDltTransaction | null> {
+  if (!CONFIG.DLT_CONNECTOR) {
+    return Promise.resolve(null)
+  }
   // load user and communities if not already loaded
   if (!transactionLink.user) {
     logger.debug('load sender user')
