@@ -1,7 +1,6 @@
 import 'reflect-metadata'
 import 'source-map-support/register'
 import { getLogger } from 'log4js'
-import { sendTransactionsToDltConnector } from './apis/dltConnector/sendTransactionsToDltConnector'
 import { CONFIG } from './config'
 import { startValidateCommunities } from './federation/validateCommunities'
 import { createServer } from './server/createServer'
