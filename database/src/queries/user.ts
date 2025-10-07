@@ -61,3 +61,12 @@ export const findUserByIdentifier = async (
   }
   return null
 }
+
+export async function findForeignUserByUuids(
+  communityUuid: string,
+  gradidoID: string,
+): Promise<DbUser | null> {
+  return DbUser.findOne({
+    where: { foreign: true, communityUuid, gradidoID },
+  })
+}

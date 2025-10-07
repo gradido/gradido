@@ -13,6 +13,7 @@ export class SendCoinsJwtPayloadType extends JwtPayloadType {
   senderUserUuid: string
   senderUserName: string
   senderAlias?: string | null
+  transactionLinkId?: number | null
 
   constructor(
     handshakeID: string,
@@ -25,10 +26,9 @@ export class SendCoinsJwtPayloadType extends JwtPayloadType {
     senderUserUuid: string,
     senderUserName: string,
     senderAlias?: string | null,
+    transactionLinkId?: number | null,
   ) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     super(handshakeID)
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     this.tokentype = SendCoinsJwtPayloadType.SEND_COINS_TYPE
     this.recipientCommunityUuid = recipientCommunityUuid
     this.recipientUserIdentifier = recipientUserIdentifier
@@ -39,5 +39,6 @@ export class SendCoinsJwtPayloadType extends JwtPayloadType {
     this.senderUserUuid = senderUserUuid
     this.senderUserName = senderUserName
     this.senderAlias = senderAlias
+    this.transactionLinkId = transactionLinkId
   }
 }

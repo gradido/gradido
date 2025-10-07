@@ -2,7 +2,6 @@ import {
   AppDatabase,
   countOpenPendingTransactions,
   Community as DbCommunity,
-  PendingTransaction as DbPendingTransaction,
   Transaction as dbTransaction,
   TransactionLink as dbTransactionLink,
   User as dbUser,
@@ -15,11 +14,10 @@ import { In, IsNull } from 'typeorm'
 import { Paginated } from '@arg/Paginated'
 import { TransactionSendArgs } from '@arg/TransactionSendArgs'
 import { Order } from '@enum/Order'
-import { PendingTransactionState, SendCoinsResponseJwtPayloadType } from 'shared'
-import { TransactionTypeId } from '@enum/TransactionTypeId'
 import { Transaction } from '@model/Transaction'
 import { TransactionList } from '@model/TransactionList'
 import { User } from '@model/User'
+import { processXComCompleteTransaction, TransactionTypeId } from 'core'
 
 import { RIGHTS } from '@/auth/RIGHTS'
 import { CONFIG } from '@/config'
@@ -28,31 +26,25 @@ import {
   sendTransactionReceivedEmail,
 } from '@/emails/sendEmailVariants'
 import { EVENT_TRANSACTION_RECEIVE, EVENT_TRANSACTION_SEND } from '@/event/Events'
-import { SendCoinsResult } from '@/federation/client/1_0/model/SendCoinsResult'
 import { LogError } from '@/server/LogError'
 import { Context, getUser } from '@/server/context'
 import {
   InterruptiveSleepManager,
   TRANSMIT_TO_IOTA_INTERRUPTIVE_SLEEP_KEY,
 } from '@/util/InterruptiveSleepManager'
-import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
 import { communityUser } from '@/util/communityUser'
-import { fullName } from '@/util/utilities'
 import { calculateBalance } from '@/util/validate'
 import { virtualDecayTransaction, virtualLinkTransaction } from '@/util/virtualTransactions'
+import { fullName } from 'core'
+import { TRANSACTIONS_LOCK } from 'database'
 
-import { Logger, getLogger } from 'log4js'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { getLastTransaction } from 'database'
+import { getLogger, Logger } from 'log4js'
 import { BalanceResolver } from './BalanceResolver'
 import { GdtResolver } from './GdtResolver'
-import { getCommunityByIdentifier, getCommunityName, isHomeCommunity } from './util/communities'
-import { getLastTransaction } from './util/getLastTransaction'
+import { getCommunityName, isHomeCommunity } from './util/communities'
 import { getTransactionList } from './util/getTransactionList'
-import {
-  processXComCommittingSendCoins,
-  processXComPendingSendCoins,
-} from './util/processXComSendCoins'
-import { storeForeignUser } from './util/storeForeignUser'
 import { transactionLinkSummary } from './util/transactionLinkSummary'
 
 const db = AppDatabase.getInstance()
@@ -469,78 +461,14 @@ export class TransactionResolver {
       await executeTransaction(amount, memo, senderUser, recipientUser, logger)
       logger.info('successful executeTransaction')
     } else {
-      // processing a x-community sendCoins
-      logger.info('X-Com: processing a x-community transaction...')
-      if (!CONFIG.FEDERATION_XCOM_SENDCOINS_ENABLED) {
-        throw new LogError('X-Community sendCoins disabled per configuration!')
-      }
-      const recipCom = await getCommunityByIdentifier(recipientCommunityIdentifier)
-      logger.debug('recipient community: ', recipCom?.id)
-      if (recipCom === null) {
-        throw new LogError(
-          `no recipient community found for identifier: ${recipientCommunityIdentifier}`,
-        )
-      }
-      if (recipCom !== null && recipCom.authenticatedAt === null) {
-        throw new LogError('recipient community is connected, but still not authenticated yet!')
-      }
-      let pendingResult: SendCoinsResponseJwtPayloadType | null = null
-      let committingResult: SendCoinsResult
-      const creationDate = new Date()
-
-      try {
-        pendingResult = await processXComPendingSendCoins(
-          recipCom,
-          homeCom,
-          creationDate,
-          amount,
-          memo,
-          senderUser,
-          recipientIdentifier,
-        )
-        logger.debug('processXComPendingSendCoins result: ', pendingResult)
-        if (pendingResult && pendingResult.vote && pendingResult.recipGradidoID) {
-          logger.debug('vor processXComCommittingSendCoins... ')
-          committingResult = await processXComCommittingSendCoins(
-            recipCom,
-            homeCom,
-            creationDate,
-            amount,
-            memo,
-            senderUser,
-            pendingResult,
-          )
-          logger.debug('processXComCommittingSendCoins result: ', committingResult)
-          if (!committingResult.vote) {
-            logger.fatal('FATAL ERROR: on processXComCommittingSendCoins for', committingResult)
-            throw new LogError(
-              'FATAL ERROR: on processXComCommittingSendCoins with ',
-              recipientCommunityIdentifier,
-              recipientIdentifier,
-              amount.toString(),
-              memo,
-            )
-          }
-          // after successful x-com-tx store the recipient as foreign user
-          logger.debug('store recipient as foreign user...')
-          if (await storeForeignUser(recipCom, committingResult)) {
-            logger.info(
-              'X-Com: new foreign user inserted successfully...',
-              recipCom.communityUuid,
-              committingResult.recipGradidoID,
-            )
-          }
-        }
-      } catch (err) {
-        throw new LogError(
-          'ERROR: on processXComCommittingSendCoins with ',
-          recipientCommunityIdentifier,
-          recipientIdentifier,
-          amount.toString(),
-          memo,
-          err,
-        )
-      }
+      await processXComCompleteTransaction(
+        senderUser.communityUuid,
+        senderUser.gradidoID,
+        recipientCommunityIdentifier,
+        recipientIdentifier,
+        amount.valueOf(),
+        memo,
+      )
     }
     return true
   }

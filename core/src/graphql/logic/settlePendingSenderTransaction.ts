@@ -10,17 +10,16 @@ import {
 } from 'database'
 import { Decimal } from 'decimal.js-light'
 
+import { LOG4JS_BASE_CATEGORY_NAME } from '../../config/const'
 import { PendingTransactionState } from 'shared'
-import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { LogError } from '@/server/LogError'
-import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
-import { calculateSenderBalance } from '@/util/calculateSenderBalance'
+// import { LogError } from '@/server/LogError'
+import { calculateSenderBalance } from 'core'
+import { TRANSACTIONS_LOCK, getLastTransaction } from 'database'
 import { getLogger } from 'log4js'
-import { getLastTransaction } from './getLastTransaction'
 
 const db = AppDatabase.getInstance()
 const logger = getLogger(
-  `${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.util.settlePendingSenderTransaction`,
+  `${LOG4JS_BASE_CATEGORY_NAME}.graphql.logic.settlePendingSenderTransaction`,
 )
 
 export async function settlePendingSenderTransaction(
@@ -53,15 +52,17 @@ export async function settlePendingSenderTransaction(
       ],
     })
     if (openSenderPendingTx > 1 || openReceiverPendingTx > 1) {
-      throw new LogError('There are more than 1 pending Transactions for Sender and/or Recipient')
+      const errmsg = `There are more than 1 pending Transactions for Sender and/or Recipient`
+      logger.error(errmsg)
+      throw new Error(errmsg)
     }
 
     const lastTransaction = await getLastTransaction(senderUser.id)
 
     if (lastTransaction?.id !== pendingTx.previous) {
-      throw new LogError(
-        `X-Com: missmatching transaction order! lastTransationId=${lastTransaction?.id} != pendingTx.previous=${pendingTx.previous}`,
-      )
+      const errmsg = `X-Com: missmatching transaction order! lastTransationId=${lastTransaction?.id} != pendingTx.previous=${pendingTx.previous}`
+      logger.error(errmsg)
+      throw new Error(errmsg)
     }
 
     // transfer the pendingTx to the transactions table
@@ -82,14 +83,16 @@ export async function settlePendingSenderTransaction(
       pendingTx.balanceDate,
     )
     if (!sendBalance) {
-      throw new LogError(`Sender has not enough GDD or amount is < 0', sendBalance`)
+      const errmsg = 'Sender has not enough GDD or amount is < 0'
+      logger.error(errmsg)
+      throw new Error(errmsg)
     }
     transactionSend.balance = sendBalance?.balance ?? new Decimal(0)
     transactionSend.balanceDate = pendingTx.balanceDate
     transactionSend.decay = sendBalance.decay.decay // pendingTx.decay
     transactionSend.decayStart = sendBalance.decay.start // pendingTx.decayStart
     transactionSend.previous = pendingTx.previous
-    transactionSend.linkedTransactionId = pendingTx.linkedTransactionId
+    transactionSend.transactionLinkId = pendingTx.transactionLinkId
     await queryRunner.manager.insert(dbTransaction, transactionSend)
     logger.debug(`send Transaction inserted: ${transactionSend}`)
 
@@ -114,7 +117,8 @@ export async function settlePendingSenderTransaction(
     // void sendTransactionsToDltConnector()
   } catch (e) {
     await queryRunner.rollbackTransaction()
-    throw new LogError('X-Com: send Transaction was not successful', e)
+    logger.error('X-Com: send Transaction was not successful', e)
+    throw new Error('X-Com: send Transaction was not successful')
   } finally {
     await queryRunner.release()
     releaseLock()

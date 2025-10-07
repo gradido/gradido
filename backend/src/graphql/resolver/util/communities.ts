@@ -78,6 +78,11 @@ export async function getCommunityByUuid(communityUuid: string): Promise<DbCommu
     where: [{ communityUuid }],
   })
 }
+export async function getCommunityByPublicKey(publicKey: Buffer): Promise<DbCommunity | null> {
+  return await DbCommunity.findOne({
+    where: [{ publicKey: publicKey }],
+  })
+}
 
 export async function getAuthenticatedCommunities(): Promise<DbCommunity[]> {
   const dbCommunities: DbCommunity[] = await DbCommunity.find({

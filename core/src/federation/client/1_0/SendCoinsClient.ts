@@ -1,16 +1,15 @@
 import { FederatedCommunity as DbFederatedCommunity } from 'database'
 import { GraphQLClient } from 'graphql-request'
 
-import { LogError } from '@/server/LogError'
-import { ensureUrlEndsWithSlash } from '@/util/utilities'
+import { ensureUrlEndsWithSlash } from '../../../util/utilities'
 import { getLogger } from 'log4js'
 
-import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { LOG4JS_BASE_CATEGORY_NAME } from '../../../config/const'
 import { revertSendCoins as revertSendCoinsQuery } from './query/revertSendCoins'
 import { revertSettledSendCoins as revertSettledSendCoinsQuery } from './query/revertSettledSendCoins'
 import { settleSendCoins as settleSendCoinsQuery } from './query/settleSendCoins'
 import { voteForSendCoins as voteForSendCoinsQuery } from './query/voteForSendCoins'
-import { EncryptedTransferArgs } from 'core'
+import { EncryptedTransferArgs } from '../../../graphql/model/EncryptedTransferArgs'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.federation.client.1_0.SendCoinsClient`)
 
@@ -83,7 +82,9 @@ export class SendCoinsClient {
       logger.debug(`settleSendCoins successful from endpoint=${this.endpoint}`)
       return true
     } catch (err) {
-      throw new LogError(`settleSendCoins failed for endpoint=${this.endpoint}`, err)
+      const errmsg = `settleSendCoins failed for endpoint=${this.endpoint}, err=${err}`
+      logger.error(errmsg)
+      throw new Error(errmsg)
     }
   }
 
@@ -103,7 +104,9 @@ export class SendCoinsClient {
       logger.debug(`revertSettledSendCoins successful from endpoint=${this.endpoint}`)
       return true
     } catch (err) {
-      throw new LogError(`revertSettledSendCoins failed for endpoint=${this.endpoint}`, err)
+      const errmsg = `revertSettledSendCoins failed for endpoint=${this.endpoint}, err=${err}`
+      logger.error(errmsg)
+      throw new Error(errmsg)
     }
   }
 }

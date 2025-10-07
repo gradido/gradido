@@ -6,7 +6,7 @@ import { OpenCreation } from '@model/OpenCreation'
 import { FULL_CREATION_AVAILABLE, MAX_CREATION_AMOUNT } from '@/graphql/resolver/const/const'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { LogError } from '@/server/LogError'
-import { getFirstDayOfPreviousNMonth } from '@/util/utilities'
+import { getFirstDayOfPreviousNMonth } from 'core'
 import { AppDatabase } from 'database'
 import { getLogger } from 'log4js'
 

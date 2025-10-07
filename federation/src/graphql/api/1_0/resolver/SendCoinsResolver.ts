@@ -104,6 +104,7 @@ export class SendCoinsResolver {
       pendingTx.userCommunityUuid = authArgs.recipientCommunityUuid
       pendingTx.userGradidoID = receiverUser.gradidoID
       pendingTx.userName = fullName(receiverUser.firstName, receiverUser.lastName)
+      pendingTx.transactionLinkId = authArgs.transactionLinkId
 
       await DbPendingTransaction.insert(pendingTx)
       const responseArgs = new SendCoinsResponseJwtPayloadType(

@@ -1,6 +1,6 @@
 import { AbstractLoggingView } from 'database'
 
-import { SendCoinsResult } from '@/federation/client/1_0/model/SendCoinsResult'
+import { SendCoinsResult } from '../model/SendCoinsResult'
 
 export class SendCoinsResultLoggingView extends AbstractLoggingView {
   public constructor(private self: SendCoinsResult) {

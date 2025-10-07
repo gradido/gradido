@@ -2,7 +2,7 @@ import { Transaction as dbTransaction } from 'database'
 import { Decimal } from 'decimal.js-light'
 import { RemoveOptions, SaveOptions } from 'typeorm'
 
-import { TransactionTypeId } from '@enum/TransactionTypeId'
+import { TransactionTypeId } from 'core'
 import { Transaction } from '@model/Transaction'
 import { User } from '@model/User'
 

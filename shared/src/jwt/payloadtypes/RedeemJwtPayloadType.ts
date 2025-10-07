@@ -20,9 +20,7 @@ export class RedeemJwtPayloadType extends JwtPayloadType {
     memo: string,
     validUntil: string,
   ) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     super('handshakeID')
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     this.tokentype = RedeemJwtPayloadType.REDEEM_ACTIVATION_TYPE
     this.sendercommunityuuid = senderCom
     this.sendergradidoid = senderUser

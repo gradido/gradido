@@ -1,24 +1,18 @@
-import { Community as DbCommunity, User as DbUser } from 'database'
+import { Community as DbCommunity, User as DbUser, findForeignUserByUuids } from 'database'
 
-import { SendCoinsResult } from '@/federation/client/1_0/model/SendCoinsResult'
-import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { SendCoinsResult } from '../../federation/client/1_0/model/SendCoinsResult'
+import { LOG4JS_BASE_CATEGORY_NAME } from '../../config/const'
 import { getLogger } from 'log4js'
 
-const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.util.storeForeignUser`)
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.logic.storeForeignUser`)
 
 export async function storeForeignUser(
   recipCom: DbCommunity,
   committingResult: SendCoinsResult,
-): Promise<boolean> {
+): Promise<DbUser | null> {
   if (recipCom.communityUuid !== null && committingResult.recipGradidoID !== null) {
     try {
-      const user = await DbUser.findOne({
-        where: {
-          foreign: true,
-          communityUuid: recipCom.communityUuid,
-          gradidoID: committingResult.recipGradidoID,
-        },
-      })
+      const user = await findForeignUserByUuids(recipCom.communityUuid, committingResult.recipGradidoID)
       if (!user) {
         logger.debug(
           'no foreignUser found for:',
@@ -41,7 +35,7 @@ export async function storeForeignUser(
         foreignUser = await DbUser.save(foreignUser)
         logger.debug('new foreignUser inserted:', foreignUser)
 
-        return true
+        return foreignUser
       } else if (
         user.firstName !== committingResult.recipFirstName ||
         user.lastName !== committingResult.recipLastName ||
@@ -63,15 +57,15 @@ export async function storeForeignUser(
         }
         await DbUser.save(user)
         logger.debug('update recipient successful.', user)
-        return true
+        return user
       } else {
         logger.debug('foreignUser still exists...:', user)
-        return true
+        return user
       }
     } catch (err) {
       logger.error('error in storeForeignUser;', err)
-      return false
+      return null
     }
   }
-  return false
+  return null
 }

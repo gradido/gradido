@@ -6,10 +6,10 @@ import { CommunityLoggingView, getHomeCommunity } from 'database'
 import { verifyAndDecrypt } from 'shared'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../../config/const'
 
-const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.util.interpretEncryptedTransferArgs`)
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.logic.interpretEncryptedTransferArgs`)
 
 export const interpretEncryptedTransferArgs = async (args: EncryptedTransferArgs): Promise<JwtPayloadType | null> => {
-  const methodLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.util.interpretEncryptedTransferArgs-method`)
+  const methodLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.logic.interpretEncryptedTransferArgs-method`)
   methodLogger.addContext('handshakeID', args.handshakeID)
   methodLogger.debug('interpretEncryptedTransferArgs()... args:', args)
   // first find with args.publicKey the community 'requestingCom', which starts the request

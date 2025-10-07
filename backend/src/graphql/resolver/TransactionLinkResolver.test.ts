@@ -32,7 +32,7 @@ import { listTransactionLinksAdmin } from '@/seeds/graphql/queries'
 import { transactionLinks } from '@/seeds/transactionLink/index'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { peterLustig } from '@/seeds/users/peter-lustig'
-import { TRANSACTIONS_LOCK } from '@/util/TRANSACTIONS_LOCK'
+import { TRANSACTIONS_LOCK } from 'database'
 
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { getLogger } from 'config-schema/test/testSetup'
@@ -43,7 +43,7 @@ const logErrorLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)
 jest.mock('@/password/EncryptorUtils')
 
 // mock semaphore to allow use fake timers
-jest.mock('@/util/TRANSACTIONS_LOCK')
+jest.mock('database/src/util/TRANSACTIONS_LOCK')
 TRANSACTIONS_LOCK.acquire = jest.fn().mockResolvedValue(jest.fn())
 
 let mutate: ApolloServerTestClient['mutate']

@@ -4,7 +4,7 @@ import { httpAgent, httpsAgent } from '@/apis/ConnectionAgents'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { CONFIG } from '@/config'
 import { LogError } from '@/server/LogError'
-import { ensureUrlEndsWithSlash } from '@/util/utilities'
+import { ensureUrlEndsWithSlash } from 'core'
 import { getLogger } from 'log4js'
 
 import { GmsUser } from './model/GmsUser'

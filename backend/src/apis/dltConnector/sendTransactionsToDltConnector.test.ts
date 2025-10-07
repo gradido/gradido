@@ -8,7 +8,7 @@ import { cleanDB, testEnvironment } from '@test/helpers'
 import { i18n as localization } from '@test/testSetup'
 
 import { CONFIG } from '@/config'
-import { TransactionTypeId } from '@/graphql/enum/TransactionTypeId'
+import { TransactionTypeId } from 'core'
 import { creations } from '@/seeds/creation'
 import { creationFactory } from '@/seeds/factory/creation'
 import { userFactory } from 'database/src/seeds/factory/user'
