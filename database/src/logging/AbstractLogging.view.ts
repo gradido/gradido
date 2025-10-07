@@ -1,6 +1,5 @@
-import util from 'util'
-
 import { Decimal } from 'decimal.js-light'
+import util from 'util'
 
 export abstract class AbstractLoggingView {
   protected bufferStringFormat: BufferEncoding = 'hex'

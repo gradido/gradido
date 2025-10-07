@@ -13,11 +13,11 @@ import {
 import { Community } from './Community'
 import { Contribution } from './Contribution'
 import { ContributionMessage } from './ContributionMessage'
-import { UserContact } from './UserContact'
-import { UserRole } from './UserRole'
-import { GeometryTransformer } from './transformer/GeometryTransformer'
 import { DltTransaction } from './DltTransaction'
 import { TransactionLink } from './TransactionLink'
+import { GeometryTransformer } from './transformer/GeometryTransformer'
+import { UserContact } from './UserContact'
+import { UserRole } from './UserRole'
 
 @Entity('users', { engine: 'InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci' })
 export class User extends BaseEntity {
@@ -216,11 +216,17 @@ export class User extends BaseEntity {
   @JoinColumn({ name: 'user_id' })
   userContacts?: UserContact[]
 
-  @OneToOne(() => DltTransaction, (dlt) => dlt.userId)
+  @OneToOne(
+    () => DltTransaction,
+    (dlt) => dlt.userId,
+  )
   @JoinColumn({ name: 'id', referencedColumnName: 'userId' })
   dltTransaction?: DltTransaction | null
 
-  @OneToOne(() => TransactionLink, (transactionLink) => transactionLink.userId)
+  @OneToOne(
+    () => TransactionLink,
+    (transactionLink) => transactionLink.userId,
+  )
   @JoinColumn({ name: 'id', referencedColumnName: 'userId' })
   transactionLink?: TransactionLink | null
 }

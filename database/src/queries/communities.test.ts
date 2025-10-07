@@ -1,8 +1,8 @@
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { Community as DbCommunity, FederatedCommunity as DbFederatedCommunity } from '..'
 import { AppDatabase } from '../AppDatabase'
-import { getHomeCommunity, getReachableCommunities } from './communities'
-import { describe, expect, it, beforeEach, beforeAll, afterAll } from 'vitest'
 import { createCommunity, createVerifiedFederatedCommunity } from '../seeds/community'
+import { getHomeCommunity, getReachableCommunities } from './communities'
 
 const db = AppDatabase.getInstance()
 
@@ -39,7 +39,7 @@ describe('community.queries', () => {
       expect(community?.privateKey).toStrictEqual(homeCom.privateKey)
     })
   })
-  describe('getReachableCommunities', () => {  
+  describe('getReachableCommunities', () => {
     it('home community counts also to reachable communities', async () => {
       await createCommunity(false)
       expect(await getReachableCommunities(1000)).toHaveLength(1)

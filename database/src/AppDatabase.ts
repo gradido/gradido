@@ -1,10 +1,9 @@
-import { DataSource as DBDataSource, FileLogger } from 'typeorm'
-import { Migration, entities } from './entity'
-
 import { getLogger } from 'log4js'
+import { DataSource as DBDataSource, FileLogger } from 'typeorm'
 import { latestDbVersion } from '.'
 import { CONFIG } from './config'
 import { LOG4JS_BASE_CATEGORY_NAME } from './config/const'
+import { entities, Migration } from './entity'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.AppDatabase`)
 
@@ -93,7 +92,7 @@ export class AppDatabase {
   public async destroy(): Promise<void> {
     await this.dataSource?.destroy()
   }
-  
+
   // ######################################
   // private methods
   // ######################################

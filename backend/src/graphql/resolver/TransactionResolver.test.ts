@@ -33,10 +33,13 @@ import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
 import { getLogger } from 'config-schema/test/testSetup'
+import { CONFIG } from '@/config'
 
 jest.mock('@/password/EncryptorUtils')
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)
+CONFIG.DLT_CONNECTOR = false
+CONFIG.EMAIL = false
 
 let mutate: ApolloServerTestClient['mutate']
 let query: ApolloServerTestClient['query']

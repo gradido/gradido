@@ -1,7 +1,7 @@
 import { BaseEntity, Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'typeorm'
 import { Transaction } from './Transaction'
-import { User } from './User'
 import { TransactionLink } from './TransactionLink'
+import { User } from './User'
 
 @Entity('dlt_transactions', { engine: 'InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci' })
 export class DltTransaction extends BaseEntity {
@@ -48,15 +48,24 @@ export class DltTransaction extends BaseEntity {
   @Column({ name: 'error', type: 'text', nullable: true })
   error: string | null
 
-  @OneToOne(() => Transaction, (transaction) => transaction.dltTransaction)
+  @OneToOne(
+    () => Transaction,
+    (transaction) => transaction.dltTransaction,
+  )
   @JoinColumn({ name: 'transaction_id' })
   transaction?: Transaction | null
 
-  @OneToOne(() => User, (user) => user.dltTransaction)
+  @OneToOne(
+    () => User,
+    (user) => user.dltTransaction,
+  )
   @JoinColumn({ name: 'user_id' })
   user?: User | null
 
-  @OneToOne(() => TransactionLink, (transactionLink) => transactionLink.dltTransaction)
+  @OneToOne(
+    () => TransactionLink,
+    (transactionLink) => transactionLink.dltTransaction,
+  )
   @JoinColumn({ name: 'transaction_link_id' })
   transactionLink?: TransactionLink | null
 }

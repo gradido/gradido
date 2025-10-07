@@ -58,7 +58,7 @@ export const entities = [
 ]
 
 export { latestDbVersion }
+export { AppDatabase } from './AppDatabase'
 export * from './logging'
 export * from './queries'
 export * from './util'
-export { AppDatabase } from './AppDatabase'
