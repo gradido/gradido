@@ -37,6 +37,7 @@
   "devDependencies": {
     "@biomejs/biome": "2.0.0",
     "@types/i18n": "^0.13.4",
+    "@types/minimatch": "^6.0.0",
     "@types/node": "^17.0.21",
     "@types/sodium-native": "^2.3.5",
     "config-schema": "*",
