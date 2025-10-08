@@ -7,7 +7,7 @@
   "author": "Gradido Academy - https://www.gradido.net",
   "license": "Apache-2.0",
   "private": true,
-  "packageManager": "yarn@1.22.22",
+  "packageManager": "bun@1.2.0",
   "workspaces": [
     "admin",
     "backend",
@@ -21,7 +21,7 @@
   ],
   "scripts": {
     "release": "scripts/release.sh",
-    "installAll": "yarn install",
+    "installAll": "bun run install",
     "docker": "cross-env BUILD_COMMIT=$(git rev-parse HEAD) docker compose -f docker-compose.yml up",
     "docker:rebuild": "cross-env BUILD_COMMIT=$(git rev-parse HEAD) docker compose -f docker-compose.yml build",
     "docker_dev": "cross-env BUILD_COMMIT=$(git rev-parse HEAD) docker compose up",
@@ -36,7 +36,8 @@
     "uuid": "^8.3.2"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.0.0"
+    "@biomejs/biome": "2.0.0",
+    "@types/minimatch": "^6.0.0"
   },
   "engines": {
     "node": ">=18"

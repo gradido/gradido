@@ -36,8 +36,8 @@ jobs:
         run: bun install --filter config-schema --frozen-lockfile
 
       - name: typecheck
-        run: cd config-schema && yarn typecheck
+        run: cd config-schema && bun run typecheck
 
       - name: unit tests
-        run: cd config-schema && yarn test
+        run: cd config-schema && bun run test
 
