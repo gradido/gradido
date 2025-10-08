@@ -20,7 +20,8 @@
     "shared"
   ],
   "scripts": {
-    "release": "scripts/release.sh",
+    "release": "bumpp --no-commit --no-push -r",
+    "version": "auto-changelog -p && git add CHANGELOG.md",
     "installAll": "bun run install",
     "docker": "cross-env BUILD_COMMIT=$(git rev-parse HEAD) docker compose -f docker-compose.yml up",
     "docker:rebuild": "cross-env BUILD_COMMIT=$(git rev-parse HEAD) docker compose -f docker-compose.yml build",
