@@ -146,7 +146,6 @@ export const communitiesQuery = gql`
       creationDate
       uuid
       authenticatedAt
-      gmsApiKey
     }
   }
 `
@@ -162,7 +161,6 @@ export const getCommunityByIdentifierQuery = gql`
       creationDate
       uuid
       authenticatedAt
-      gmsApiKey
     }
   }
 `
@@ -178,7 +176,6 @@ export const getHomeCommunityQuery = gql`
       creationDate
       uuid
       authenticatedAt
-      gmsApiKey
     }
   }
 `
