@@ -14,7 +14,7 @@ import { randombytes_random } from 'sodium-native'
 
 import { AuthenticationClient as V1_0_AuthenticationClient } from '@/client/1_0/AuthenticationClient'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { AuthenticationJwtPayloadType, AuthenticationResponseJwtPayloadType, encryptAndSign, OpenConnectionCallbackJwtPayloadType, uuidv4Schema, verifyAndDecrypt } from 'shared'
+import { AuthenticationJwtPayloadType, AuthenticationResponseJwtPayloadType, encryptAndSign, OpenConnectionCallbackJwtPayloadType, uint32Schema, uuidv4Schema, verifyAndDecrypt } from 'shared'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.api.1_0.util.authenticateCommunity`)
 
@@ -44,6 +44,10 @@ export async function startOpenConnectionCallback(
     // prevent overwriting valid UUID with oneTimeCode, because this request could be initiated at any time from federated community
     if (uuidv4Schema.safeParse(comA.communityUuid).success) {
       throw new Error('Community UUID is already a valid UUID')
+    }
+    else if (uint32Schema.safeParse(comA.communityUuid).success) {
+      methodLogger.debug('Community UUID is still in authentication...oneTimeCode=', comA.communityUuid)
+      return
     }
     // TODO: make sure it is unique
     const oneTimeCode = randombytes_random().toString()
