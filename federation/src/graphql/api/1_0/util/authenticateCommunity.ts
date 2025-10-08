@@ -43,7 +43,8 @@ export async function startOpenConnectionCallback(
     // store oneTimeCode in requestedCom.community_uuid as authenticate-request-identifier
     // prevent overwriting valid UUID with oneTimeCode, because this request could be initiated at any time from federated community
     if (uuidv4Schema.safeParse(comA.communityUuid).success) {
-      throw new Error('Community UUID is already a valid UUID')
+      methodLogger.debug('Community UUID is already a valid UUID')
+      return
     }
     else if (uint32Schema.safeParse(comA.communityUuid).success) {
       methodLogger.debug('Community UUID is still in authentication...oneTimeCode=', comA.communityUuid)
