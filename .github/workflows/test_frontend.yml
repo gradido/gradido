@@ -57,7 +57,7 @@ jobs:
         run: bun install --filter frontend --frozen-lockfile
 
       - name: Frontend | Unit tests
-        run: cd frontend && yarn test
+        run: cd frontend && bun run test
 
   lint:
     if: needs.files-changed.outputs.config == 'true' || needs.files-changed.outputs.frontend == 'true'
@@ -106,6 +106,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        
+      - name: install bun 
+        uses: oven-sh/setup-bun@v2
 
       - name: Frontend | Locales
-        run: cd frontend && yarn locales
+        run: cd frontend && bun run locales
