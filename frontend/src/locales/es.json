@@ -101,6 +101,7 @@
     "thanksYouWith": "te agradece con",
     "unique": "(único)"
   },
+  "copy-to-clipboard": "Copiar al portapapeles",
   "decay": {
     "before_startblock_transaction": "Esta transacción no implica disminución en su valor.",
     "calculation_decay": "Cálculo de la disminución gradual del valor",
@@ -255,6 +256,7 @@
     "raise": "Aumento",
     "recruited-member": "Miembro invitado"
   },
+  "gradidoid-copied-to-clipboard": "Gradido ID copiado al portapapeles.",
   "info": "Información",
   "language": "Idioma",
   "link-load": "recargar el último enlace | recargar los últimos {n} enlaces",

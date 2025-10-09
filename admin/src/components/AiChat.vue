@@ -29,7 +29,7 @@
                 :title="$t('copy-to-clipboard')"
                 @click="copyToClipboard(message.content)"
               >
-                <IBiClipboard></IBiClipboard>
+                <IBiCopy></IBiCopy>
               </b-button>
             </div>
           </div>
