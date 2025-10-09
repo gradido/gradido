@@ -25,7 +25,7 @@ import {
   Root,
 } from 'type-graphql'
 import { IRestResponse } from 'typed-rest-client'
-import { EntityManager, EntityNotFoundError, In, Point } from 'typeorm'
+import { EntityNotFoundError, In, Point } from 'typeorm'
 import { v4 as uuidv4 } from 'uuid'
 
 import { UserArgs } from '@arg//UserArgs'
@@ -104,11 +104,8 @@ import { deleteUserRole, setUserRole } from './util/modifyUserRole'
 import { sendUserToGms } from './util/sendUserToGms'
 import { syncHumhub } from './util/syncHumhub'
 import { validateAlias } from 'core'
-<<<<<<< HEAD
 import { registerAddressTransaction } from '@/apis/dltConnector'
-=======
 import { updateAllDefinedAndChanged } from 'shared'
->>>>>>> master
 
 const LANGUAGES = ['de', 'en', 'es', 'fr', 'nl']
 const DEFAULT_LANGUAGE = 'de'
