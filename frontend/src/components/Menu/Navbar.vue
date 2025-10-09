@@ -19,9 +19,9 @@
         <BImg class="sheet-img position-absolute zindex-1" :src="sheet"></BImg>
 
         <BNavbarNav class="ms-auto" right>
-          <div class="d-flex flex-column align-items-end text-end">
-            <router-link to="/settings">
-              <div class="">
+          <div class="">
+            <router-link to="/settings" class="d-flex flex-column align-items-end text-end">
+              <div class="ms-auto">
                 <app-avatar
                   class="vue3-avatar"
                   :name="username.username"
@@ -31,19 +31,33 @@
                   :size="61"
                 />
               </div>
+              <div v-if="!hasUsername">
+                <div class="mt-3">{{ username.username }}</div>
+                <div class="small mt-1">{{ gradidoId }}</div>
+              </div>
             </router-link>
-            <div class="navbar-like-link mt-3" data-test="navbar-item-username">
-              {{ username.username }}
-            </div>
-            <div class="small navbar-like-link pointer mt-1" data-test="navbar-item-gradido-id">
-              <a
-                class="copy-clipboard-button"
-                :title="$t('copy-to-clipboard')"
-                @click="copyToClipboard(gradidoId)"
+            <div class="d-flex flex-column align-items-end text-end">
+              <div
+                v-if="hasUsername"
+                class="navbar-like-link mt-3"
+                data-test="navbar-item-username"
               >
-                <IBiCopy></IBiCopy>
-                {{ gradidoId }}
-              </a>
+                {{ username.username }}
+              </div>
+              <div
+                v-if="hasUsername"
+                class="small navbar-like-link pointer mt-1"
+                data-test="navbar-item-gradido-id"
+              >
+                <a
+                  class="copy-clipboard-button"
+                  :title="$t('copy-to-clipboard')"
+                  @click="copyToClipboard(gradidoId)"
+                >
+                  <IBiCopy></IBiCopy>
+                  {{ gradidoId }}
+                </a>
+              </div>
             </div>
           </div>
         </BNavbarNav>
@@ -84,6 +98,9 @@ export default {
         username: `${this.$store.state.firstName} ${this.$store.state.lastName}`,
         initials: `${this.$store.state.firstName[0]}${this.$store.state.lastName[0]}`,
       }
+    },
+    hasUsername() {
+      return this.$store.state.username && this.$store.state.username.length > 0
     },
     gradidoId() {
       const name = this.$store.state.username
