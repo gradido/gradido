@@ -13,7 +13,7 @@ import { PendingTransactionState } from 'shared'
 
 import { LogError } from '@/server/LogError'
 
-import { TRANSACTIONS_LOCK } from '@/graphql/util/TRANSACTIONS_LOCK'
+import { TRANSACTIONS_LOCK } from 'database'
 import { getLastTransaction } from '@/graphql/util/getLastTransaction'
 import Decimal from 'decimal.js-light'
 import { getLogger } from 'log4js'

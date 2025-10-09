@@ -21,6 +21,12 @@ const database = {
   TYPEORM_LOGGING_RELATIVE_PATH:
     process.env.TYPEORM_LOGGING_RELATIVE_PATH ?? 'typeorm.database.log',
   TYPEORM_LOGGING_ACTIVE: process.env.TYPEORM_LOGGING_ACTIVE === 'true' || false,
+  SEMAPHORE_RETRY_DELAY_MS: process.env.SEMAPHORE_RETRY_DELAY_MS
+    ? Number.parseInt(process.env.SEMAPHORE_RETRY_DELAY_MS)
+    : 500,
+  SEMAPHORE_RETRY_TIMEOUT_MS: process.env.SEMAPHORE_RETRY_TIMEOUT_MS
+    ? Number.parseInt(process.env.SEMAPHORE_RETRY_TIMEOUT_MS)
+    : 3000,
 }
 const PRODUCTION = process.env.NODE_ENV === 'production' || false
 const nodeEnv = process.env.NODE_ENV || 'development'
