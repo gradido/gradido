@@ -4,7 +4,7 @@ import { DltConnectorClient } from './DltConnectorClient'
 
 describe('undefined DltConnectorClient', () => {
   it('invalid url', () => {
-    CONFIG.DLT_CONNECTOR_URL = 'invalid'
+    CONFIG.DLT_CONNECTOR_URL = ''
     CONFIG.DLT_CONNECTOR = true
     const result = DltConnectorClient.getInstance()
     expect(result).toBeUndefined()

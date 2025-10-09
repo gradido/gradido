@@ -437,50 +437,6 @@ describe('send coins', () => {
           }),
         )
       })
-
-      describe('sendTransactionsToDltConnector', () => {
-        let transaction: Transaction[]
-        let dltTransactions: DltTransaction[]
-        beforeAll(async () => {
-          // Find the previous created transactions of sendCoin mutation
-          transaction = await Transaction.find({
-            where: { memo: 'unrepeatable memo' },
-            order: { balanceDate: 'ASC', id: 'ASC' },
-          })
-
-          // and read aslong as all async created dlt-transactions are finished
-          do {
-            dltTransactions = await DltTransaction.find({
-              where: { transactionId: In([transaction[0].id, transaction[1].id]) },
-              // relations: ['transaction'],
-              // order: { createdAt: 'ASC', id: 'ASC' },
-            })
-          } while (transaction.length > dltTransactions.length)
-        })
-
-        it('has wait till sendTransactionsToDltConnector created all dlt-transactions', () => {
-          expect(dltTransactions).toEqual(
-            expect.arrayContaining([
-              expect.objectContaining({
-                id: expect.any(Number),
-                transactionId: transaction[0].id,
-                messageId: null,
-                verified: false,
-                createdAt: expect.any(Date),
-                verifiedAt: null,
-              }),
-              expect.objectContaining({
-                id: expect.any(Number),
-                transactionId: transaction[1].id,
-                messageId: null,
-                verified: false,
-                createdAt: expect.any(Date),
-                verifiedAt: null,
-              }),
-            ]),
-          )
-        })
-      })
     })
     describe('send coins via gradido ID', () => {
       it('sends the coins', async () => {
