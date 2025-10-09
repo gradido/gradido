@@ -1,6 +1,6 @@
 import { Decimal } from 'decimal.js-light'
 
-import { DECAY_START_TIME } from '../const'
+import { DECAY_START_TIME, SECONDS_PER_YEAR_GREGORIAN_CALENDER } from '../const'
 
 Decimal.set({
   precision: 25,
@@ -24,6 +24,13 @@ export function decayFormula(value: Decimal, seconds: number): Decimal {
   return value.mul(
     new Decimal('0.99999997803504048973201202316767079413460520837376').pow(seconds).toString(),
   )
+}
+
+export function decayFormulaFast(value: Decimal, seconds: number): Decimal {
+  return value.mul(new Decimal(2).pow(new Decimal(-seconds).div(new Decimal(SECONDS_PER_YEAR_GREGORIAN_CALENDER))))
+}
+export function compoundInterest(value: Decimal, seconds: number): Decimal {
+  return value.mul(new Decimal(2).pow(new Decimal(seconds).div(new Decimal(SECONDS_PER_YEAR_GREGORIAN_CALENDER))))
 }
 
 export function calculateDecay(

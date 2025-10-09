@@ -1,0 +1,9 @@
+query reachableCommunities {
+  reachableCommunities {
+    foreign
+    uuid
+    name
+    description
+    url
+  }
+}

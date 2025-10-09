@@ -11,6 +11,8 @@ import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { getLogger } from 'log4js'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.apis.openai.OpenaiClient`)
+// this is the time after when openai is deleting an inactive thread
+const OPENAI_AI_THREAD_DEFAULT_TIMEOUT_DAYS = 60
 
 /**
  * The `OpenaiClient` class is a singleton that provides an interface to interact with the OpenAI API.
@@ -87,21 +89,35 @@ export class OpenaiClient {
       logger.warn(`No openai thread found for user: ${user.id}`)
       return []
     }
-    const threadMessages = (
-      await this.openai.beta.threads.messages.list(openaiThreadEntity.id, { order: 'desc' })
-    ).getPaginatedItems()
+    if (openaiThreadEntity.updatedAt < new Date(Date.now() - OPENAI_AI_THREAD_DEFAULT_TIMEOUT_DAYS * 24 * 60 * 60 * 1000)) {
+      logger.info(`Openai thread for user: ${user.id} is older than ${OPENAI_AI_THREAD_DEFAULT_TIMEOUT_DAYS} days, deleting...`)
+      // let run async, because it could need some time, but we don't need to wait, because we create a new one nevertheless
+      void this.deleteThread(openaiThreadEntity.id)
+      return []
+    }
+    try {
+      const threadMessages = (
+        await this.openai.beta.threads.messages.list(openaiThreadEntity.id, { order: 'desc' })
+      ).getPaginatedItems()
 
-    logger.info(`Resumed thread: ${openaiThreadEntity.id}`)
-    return threadMessages
-      .map(
-        (message) =>
-          new MessageModel(
-            this.messageContentToString(message),
-            message.role,
-            openaiThreadEntity.id,
-          ),
-      )
-      .reverse()
+      logger.info(`Resumed thread: ${openaiThreadEntity.id}`)
+      return threadMessages
+        .map(
+          (message) =>
+            new MessageModel(
+              this.messageContentToString(message),
+              message.role,
+              openaiThreadEntity.id,
+            ),
+        )
+        .reverse()
+    } catch (e) {
+      if(e instanceof Error && e.toString().includes('No thread found with id')) {
+        logger.info(`Thread not found: ${openaiThreadEntity.id}`)
+        return []
+      } 
+      throw e
+    }
   }
 
   public async deleteThread(threadId: string): Promise<boolean> {
@@ -124,6 +140,7 @@ export class OpenaiClient {
   }
 
   public async runAndGetLastNewMessage(threadId: string): Promise<MessageModel> {
+    const updateOpenAiThreadResolver = OpenaiThreads.update({ id: threadId }, { updatedAt: new Date() })
     const run = await this.openai.beta.threads.runs.createAndPoll(threadId, {
       assistant_id: CONFIG.OPENAI_ASSISTANT_ID,
     })
@@ -138,6 +155,7 @@ export class OpenaiClient {
       logger.warn(`No message in thread: ${threadId}, run: ${run.id}`, messagesPage.data)
       return new MessageModel('No Answer', 'assistant')
     }
+    await updateOpenAiThreadResolver
     return new MessageModel(this.messageContentToString(message), 'assistant')
   }
 

@@ -48,7 +48,9 @@
                         <community-switch
                           :disabled="isBalanceEmpty"
                           :model-value="form.targetCommunity"
+                          :community-identifier="autoCommunityIdentifier"
                           @update:model-value="updateField($event, 'targetCommunity')"
+                          @communities-loaded="setCommunities"
                         />
                       </BCol>
                     </BRow>
@@ -62,7 +64,7 @@
                         :label="$t('form.recipient')"
                         :placeholder="$t('form.identifier')"
                         :rules="validationSchema.fields.identifier"
-                        :disabled="isBalanceEmpty"
+                        :disabled="isBalanceEmpty || isCommunitiesEmpty"
                         :disable-smart-valid-state="disableSmartValidState"
                         @update:model-value="updateField"
                       />
@@ -171,6 +173,8 @@ const props = defineProps({
 const entityDataToForm = computed(() => ({ ...props }))
 const form = reactive({ ...entityDataToForm.value })
 const disableSmartValidState = ref(false)
+const communities = ref([])
+const autoCommunityIdentifier = ref('')
 
 const emit = defineEmits(['set-transaction'])
 
@@ -190,6 +194,10 @@ const userIdentifier = computed(() => {
   }
   return null
 })
+
+function setCommunities(returnedCommunities) {
+  communities.value = returnedCommunities
+}
 
 const validationSchema = computed(() => {
   const amountSchema = number()
@@ -214,7 +222,24 @@ const validationSchema = computed(() => {
     return object({
       memo: memoSchema,
       amount: amountSchema,
-      identifier: identifierSchema,
+      identifier: identifierSchema.test(
+        'community-is-reachable',
+        'form.validation.identifier.communityIsReachable',
+        (value) => {
+          const parts = value.split('/')
+          // early exit if no community id is in identifier string
+          if (parts.length !== 2) {
+            return true
+          }
+          return communities.value.some((community) => {
+            return (
+              community.uuid === parts[0] ||
+              community.name === parts[0] ||
+              community.url === parts[0]
+            )
+          })
+        },
+      ),
     })
   } else {
     // don't need identifier schema if it is a transaction link or identifier was set via url
@@ -224,7 +249,6 @@ const validationSchema = computed(() => {
     })
   }
 })
-
 const formIsInvalid = computed(() => !validationSchema.value.isValidSync(form))
 
 const updateField = (newValue, name) => {
@@ -234,6 +258,7 @@ const updateField = (newValue, name) => {
 }
 
 const isBalanceEmpty = computed(() => props.balance <= 0)
+const isCommunitiesEmpty = computed(() => communities.value.length === 0)
 
 const { result: userResult, error: userError } = useQuery(
   user,
@@ -258,8 +283,35 @@ watch(userError, (error) => {
   }
 })
 
+// if identifier contain valid community identifier of a reachable community:
+// set it as target community and change community-switch to show only current value, instead of select
+watch(
+  () => form.identifier,
+  (value) => {
+    autoCommunityIdentifier.value = ''
+    const parts = value.split('/')
+    if (parts.length === 2) {
+      const com = communities.value.find(
+        (community) =>
+          community.uuid === parts[0] || community.name === parts[0] || community.url === parts[0],
+      )
+      if (com) {
+        form.targetCommunity = com
+        autoCommunityIdentifier.value = com.uuid
+      }
+    }
+  },
+)
+
 function onSubmit() {
   const transformedForm = validationSchema.value.cast(form)
+  const parts = transformedForm.identifier.split('/')
+  if (parts.length === 2) {
+    transformedForm.identifier = parts[1]
+    transformedForm.targetCommunity = communities.value.find((com) => {
+      return com.uuid === parts[0] || com.name === parts[0] || com.url === parts[0]
+    })
+  }
   emit('set-transaction', {
     ...transformedForm,
     selected: radioSelected.value,
