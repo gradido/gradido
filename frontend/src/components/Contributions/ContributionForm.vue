@@ -165,18 +165,35 @@ const validationSchema = computed(() => {
       .required('form.validation.contributionMemo.required'),
     hours: string()
       .typeError({ key: 'form.validation.hours.typeError', values: { min: 0.01, max: maxHours } })
-      .required()
       .transform((currentValue) =>
         !currentValue || typeof currentValue !== 'string'
           ? currentValue
           : currentValue.replace(',', '.'),
       )
+      // min and max are needed for html min max which validatedInput will take from this scheme
       .min(0.01, ({ min }) => ({ key: 'form.validation.hours.min', values: { min } }))
       .max(maxHours, ({ max }) => ({ key: 'form.validation.hours.max', values: { max } }))
       .test('decimal-places', 'form.validation.hours.decimal-places', (value) => {
         if (value === undefined || value === null) return true
         return /^\d+(\.\d{0,2})?$/.test(value.toString())
-      }),
+      })
+      // min and max are not working with string, so we need to do it manually
+      .test('min-hours', { key: 'form.validation.hours.min', values: { min: 0.01 } }, (value) => {
+        if (value === undefined || value === null || Number.isNaN(parseFloat(value))) {
+          return false
+        }
+        return parseFloat(value) >= 0.01
+      })
+      .test(
+        'max-hours',
+        { key: 'form.validation.hours.max', values: { max: maxHours } },
+        (value) => {
+          if (value === undefined || value === null || Number.isNaN(parseFloat(value))) {
+            return false
+          }
+          return parseFloat(value) <= maxHours
+        },
+      ),
     amount: number().min(0.01).max(maxAmounts),
   })
 })

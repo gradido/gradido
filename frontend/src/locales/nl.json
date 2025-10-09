@@ -146,10 +146,12 @@
   "form": {
     "amount": "Bedrag",
     "at": "op",
+    "available_after": "Beschikbaar na bevestiging",
     "cancel": "Annuleren",
     "change": "Wijzigen",
     "check_now": "Nu controleren",
     "close": "Sluiten",
+    "current_available": "Momenteel beschikbaar",
     "current_balance": "Actueel banksaldo",
     "date": "Datum",
     "description": "Beschrijving",
@@ -158,6 +160,8 @@
     "from": "Van",
     "generate_now": "Nu genereren",
     "lastname": "Achternaam",
+    "link_amount": "Linkbedrag",
+    "link_decay_description": "Het linkbedrag wordt geblokkeerd samen met de maximale vergankelijkheid. Nadat de link is ingewisseld, verlopen of verwijderd, wordt het resterende bedrag weer vrijgegeven.",
     "memo": "Memo",
     "message": "Bericht",
     "new_balance": "Nieuw banksaldo na bevestiging",
@@ -185,6 +189,11 @@
     "to1": "aan",
     "validation": {
       "gddSendAmount": "Het veld {_field_} moet een getal tussen {min} en {max} met maximaal twee cijfers achter de komma zijn",
+      "identifier": {
+        "communityIsReachable": "Community niet gevonden of niet bereikbaar!",
+        "required": "Ontvanger is een verplicht veld.",
+        "typeError": "Ontvanger moet een email, een gebruikersnaam of een Gradido ID zijn."
+      },
       "is-not": "Je kunt geen Gradidos aan jezelf overmaken",
       "requiredField": "{fieldName} is verplicht",
       "usernmae-regex": "De gebruikersnaam moet met een letter beginnen, waarop minimaal twee alfanumerieke tekens dienen te volgen.",

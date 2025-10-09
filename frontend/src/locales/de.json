@@ -164,10 +164,12 @@
   "form": {
     "amount": "Betrag",
     "at": "am",
+    "available_after": "Verfügbar nach Bestätigung",
     "cancel": "Abbrechen",
     "change": "Ändern",
     "check_now": "Jetzt prüfen",
     "close": "Schließen",
+    "current_available": "Aktuell verfügbar",
     "current_balance": "Aktueller Kontostand",
     "date": "Datum",
     "description": "Beschreibung",
@@ -178,6 +180,8 @@
     "hours": "Stunden",
     "identifier": "Email, Nutzername oder Gradido ID",
     "lastname": "Nachname",
+    "link_amount": "Link-Betrag",
+    "link_decay_description": "Der Link-Betrag wird zusammen mit der maximalen Vergänglichkeit blockiert. Nach Einlösen, Verfallen oder Löschen des Links wird der Rest wieder freigegeben.",
     "memo": "Nachricht",
     "message": "Nachricht",
     "new_balance": "Neuer Kontostand nach Bestätigung",
@@ -231,6 +235,7 @@
       },
       "gddSendAmount": "Das Feld {_field_} muss eine Zahl zwischen {min} und {max} mit höchstens zwei Nachkommastellen sein.",
       "identifier": {
+        "communityIsReachable": "Community nicht gefunden oder nicht erreichbar!",
         "required": "Der Empfänger ist ein Pflichtfeld.",
         "typeError": "Der Empfänger muss eine Email, ein Nutzernamen oder eine Gradido ID sein."
       },
