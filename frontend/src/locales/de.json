@@ -235,6 +235,7 @@
       },
       "gddSendAmount": "Das Feld {_field_} muss eine Zahl zwischen {min} und {max} mit höchstens zwei Nachkommastellen sein.",
       "identifier": {
+        "communityIsReachable": "Community nicht gefunden oder nicht erreichbar!",
         "required": "Der Empfänger ist ein Pflichtfeld.",
         "typeError": "Der Empfänger muss eine Email, ein Nutzernamen oder eine Gradido ID sein."
       },

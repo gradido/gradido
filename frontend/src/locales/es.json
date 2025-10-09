@@ -189,6 +189,11 @@
     "to1": "para",
     "validation": {
       "gddSendAmount": "El campo {_field_} debe ser un número entre {min} y {max} con un máximo de dos decimales",
+      "identifier": {
+        "communityIsReachable": "Comunidad no encontrada o no alcanzable!",
+        "required": "El destinatario es un campo obligatorio.",
+        "typeError": "El destinatario debe ser un email, un nombre de usuario o un Gradido ID."
+      },
       "is-not": "No es posible  transferirte Gradidos a ti mismo",
       "requiredField": "El campo {fieldName} es obligatorio",
       "usernmae-regex": "El nombre de usuario debe comenzar con una letra seguida de al menos dos caracteres alfanuméricos.",

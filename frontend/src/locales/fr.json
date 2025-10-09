@@ -195,6 +195,11 @@
     "validation": {
       "gddCreationTime": "Le champ {_field_} doit comprendre un nombre entre {min} et {max} avec un maximum de une décimale.",
       "gddSendAmount": "Le champ {_field_} doit comprendre un nombre entre {min} et {max} avec un maximum de deux chiffres après la virgule",
+      "identifier": {
+        "communityIsReachable": "Communauté non joignable!",
+        "required": "Le destinataire est un champ obligatoire.",
+        "typeError": "Le destinataire doit être un email, un nom d'utilisateur ou un Gradido ID."
+      },
       "is-not": "Vous ne pouvez pas vous envoyer de Gradido à vous-même",
       "requiredField": "Le champ {fieldName} est obligatoire",
       "usernmae-regex": "Le nom d'utilisateur doit commencer par une lettre, suivi d'au moins deux caractères alphanumériques.",

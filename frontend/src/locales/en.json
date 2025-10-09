@@ -235,6 +235,7 @@
       },
       "gddSendAmount": "The {_field_} field must be a number between {min} and {max} with at most two digits after the decimal point.",
       "identifier": {
+        "communityIsReachable": "Community not found our not reachable!",
         "required": "The recipient is a required field.",
         "typeError": "The recipient must be an email, a username or a Gradido ID."
       },

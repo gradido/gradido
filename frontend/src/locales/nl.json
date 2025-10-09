@@ -189,6 +189,11 @@
     "to1": "aan",
     "validation": {
       "gddSendAmount": "Het veld {_field_} moet een getal tussen {min} en {max} met maximaal twee cijfers achter de komma zijn",
+      "identifier": {
+        "communityIsReachable": "Community niet gevonden of niet bereikbaar!",
+        "required": "Ontvanger is een verplicht veld.",
+        "typeError": "Ontvanger moet een email, een gebruikersnaam of een Gradido ID zijn."
+      },
       "is-not": "Je kunt geen Gradidos aan jezelf overmaken",
       "requiredField": "{fieldName} is verplicht",
       "usernmae-regex": "De gebruikersnaam moet met een letter beginnen, waarop minimaal twee alfanumerieke tekens dienen te volgen.",
