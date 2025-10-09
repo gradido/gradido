@@ -4,7 +4,6 @@ import {
   getHomeCommunity 
 } from 'database'
 import { Arg, Args, Authorized, Mutation, Query, Resolver } from 'type-graphql'
-
 import { Paginated } from '@arg/Paginated'
 import { EditCommunityInput } from '@input/EditCommunityInput'
 import { AdminCommunityView } from '@model/AdminCommunityView'
@@ -19,6 +18,7 @@ import {
   getCommunityByIdentifier,
   getCommunityByUuid,
 } from './util/communities'
+import { updateAllDefinedAndChanged } from 'shared'
 
 import { CONFIG } from '@/config'
 
@@ -78,16 +78,20 @@ export class CommunityResolver {
     if (homeCom.foreign) {
       throw new LogError('Error: Only the HomeCommunity could be modified!')
     }
-    if (
-      homeCom.gmsApiKey !== gmsApiKey ||
-      homeCom.location !== location ||
-      homeCom.hieroTopicId !== hieroTopicId
-    ) {
-      homeCom.gmsApiKey = gmsApiKey ?? null
-      if (location) {
-        homeCom.location = Location2Point(location)
+    let updated = false
+    // if location is undefined, it should not be changed
+    // if location is null, it should be set to null
+    if (typeof location !== 'undefined') {
+      const newLocation = location ? Location2Point(location) : null
+      if (newLocation !== homeCom.location) {
+        homeCom.location = newLocation
+        updated = true
       }
-      homeCom.hieroTopicId = hieroTopicId ?? null
+    }
+    if (updateAllDefinedAndChanged(homeCom, { gmsApiKey, hieroTopicId })) {
+      updated = true
+    }
+    if (updated) {
       await DbCommunity.save(homeCom)
     }
     return new AdminCommunityView(homeCom)

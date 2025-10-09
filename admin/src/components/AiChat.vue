@@ -15,7 +15,11 @@
       </div>
       <div ref="chatContainer" class="messages-scroll-container">
         <TransitionGroup class="messages" tag="div" name="chat">
-          <div v-for="(message, index) in messages" :key="index" :class="['message', message.role]">
+          <div
+            v-for="(message, index) in messages"
+            :key="index"
+            :class="['message', message.role, { 'message-error': message.isError }]"
+          >
             <div class="message-content position-relative inner-container">
               <span v-html="formatMessage(message)"></span>
               <b-button
@@ -170,7 +174,18 @@ const sendMessage = () => {
 onMounted(async () => {
   if (messages.value.length === 0) {
     loading.value = true
-    await resumeChatRefetch()
+    try {
+      await resumeChatRefetch()
+    } catch (error) {
+      if (error.graphQLErrors && error.graphQLErrors.length > 0) {
+        toastError(`Error loading chat: ${error.graphQLErrors[0].message}`)
+        return
+      } else {
+        // eslint-disable-next-line no-console
+        console.log(JSON.stringify(error, null, 2))
+        toastError(`Error loading chat: ${error}`)
+      }
+    }
     const messagesFromServer = resumeChatResult.value.resumeChat
     if (messagesFromServer && messagesFromServer.length > 0) {
       threadId.value = messagesFromServer[0].threadId
@@ -276,6 +291,17 @@ onMounted(async () => {
 .message.assistant .message-content {
   background-color: #e9ecef;
   color: black;
+  margin-right: auto;
+}
+
+.message.error {
+  text-align: center;
+}
+
+.message.error .message-content {
+  background-color: #f1e5e5;
+  color: rgb(194 12 12);
+  margin-left: auto;
   margin-right: auto;
 }
 
