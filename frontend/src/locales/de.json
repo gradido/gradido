@@ -114,6 +114,7 @@
     "thanksYouWith": "dankt dir mit"
   },
   "contributionText": "Beitragstext",
+  "copy-to-clipboard": "In Zwischenablage kopieren",
   "creation": "Schöpfen",
   "decay": {
     "before_startblock_transaction": "Diese Transaktion beinhaltet keine Vergänglichkeit.",
@@ -164,10 +165,12 @@
   "form": {
     "amount": "Betrag",
     "at": "am",
+    "available_after": "Verfügbar nach Bestätigung",
     "cancel": "Abbrechen",
     "change": "Ändern",
     "check_now": "Jetzt prüfen",
     "close": "Schließen",
+    "current_available": "Aktuell verfügbar",
     "current_balance": "Aktueller Kontostand",
     "date": "Datum",
     "description": "Beschreibung",
@@ -178,6 +181,8 @@
     "hours": "Stunden",
     "identifier": "Email, Nutzername oder Gradido ID",
     "lastname": "Nachname",
+    "link_amount": "Link-Betrag",
+    "link_decay_description": "Der Link-Betrag wird zusammen mit der maximalen Vergänglichkeit blockiert. Nach Einlösen, Verfallen oder Löschen des Links wird der Rest wieder freigegeben.",
     "memo": "Nachricht",
     "message": "Nachricht",
     "new_balance": "Neuer Kontostand nach Bestätigung",

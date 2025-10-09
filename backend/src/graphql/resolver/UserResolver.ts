@@ -25,7 +25,7 @@ import {
   Root,
 } from 'type-graphql'
 import { IRestResponse } from 'typed-rest-client'
-import { EntityNotFoundError, In, Point } from 'typeorm'
+import { EntityManager, EntityNotFoundError, In, Point } from 'typeorm'
 import { v4 as uuidv4 } from 'uuid'
 
 import { UserArgs } from '@arg//UserArgs'
@@ -104,7 +104,11 @@ import { deleteUserRole, setUserRole } from './util/modifyUserRole'
 import { sendUserToGms } from './util/sendUserToGms'
 import { syncHumhub } from './util/syncHumhub'
 import { validateAlias } from 'core'
+<<<<<<< HEAD
 import { registerAddressTransaction } from '@/apis/dltConnector'
+=======
+import { updateAllDefinedAndChanged } from 'shared'
+>>>>>>> master
 
 const LANGUAGES = ['de', 'en', 'es', 'fr', 'nl']
 const DEFAULT_LANGUAGE = 'de'
@@ -739,18 +743,22 @@ export class UserResolver {
       user.humhubPublishName as PublishNameType,
     )
 
-    // try {
-    if (firstName) {
-      user.firstName = firstName
-    }
-
-    if (lastName) {
-      user.lastName = lastName
-    }
+    let updated = updateAllDefinedAndChanged(user, { 
+      firstName, 
+      lastName, 
+      hideAmountGDD, 
+      hideAmountGDT, 
+      humhubAllowed, 
+      gmsAllowed, 
+      gmsPublishName: gmsPublishName?.valueOf(),
+      humhubPublishName: humhubPublishName?.valueOf(),
+      gmsPublishLocation: gmsPublishLocation?.valueOf(),
+    })
 
     // currently alias can only be set, not updated
     if (alias && !user.alias && (await validateAlias(alias))) {
       user.alias = alias
+      updated = true
     }
 
     if (language) {
@@ -760,6 +768,7 @@ export class UserResolver {
       }
       user.language = language
       i18n.setLocale(language)
+      updated = true
     }
 
     if (password && passwordNew) {
@@ -780,55 +789,28 @@ export class UserResolver {
       // Save new password hash and newly encrypted private key
       user.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
       user.password = await encryptPassword(user, passwordNew)
+      updated = true
     }
 
-    // Save hideAmountGDD value
-    if (hideAmountGDD !== undefined) {
-      user.hideAmountGDD = hideAmountGDD
-    }
-    // Save hideAmountGDT value
-    if (hideAmountGDT !== undefined) {
-      user.hideAmountGDT = hideAmountGDT
-    }
-    if (humhubAllowed !== undefined) {
-      user.humhubAllowed = humhubAllowed
-    }
-    if (gmsAllowed !== undefined) {
-      user.gmsAllowed = gmsAllowed
-    }
-    if (gmsPublishName !== null && gmsPublishName !== undefined) {
-      user.gmsPublishName = gmsPublishName
-    }
-    if (humhubPublishName !== null && humhubPublishName !== undefined) {
-      user.humhubPublishName = humhubPublishName
-    }
     if (gmsLocation) {
       user.location = Location2Point(gmsLocation)
+      updated = true
     }
-    if (gmsPublishLocation !== null && gmsPublishLocation !== undefined) {
-      user.gmsPublishLocation = gmsPublishLocation
+
+    // early exit if no update was made
+    if (!updated) {
+      return true
     }
-    // } catch (err) {
-    //   console.log('error:', err)
-    // }
-    const queryRunner = db.getDataSource().createQueryRunner()
-    await queryRunner.connect()
-    await queryRunner.startTransaction('REPEATABLE READ')
 
     try {
-      await queryRunner.manager.save(user).catch((error) => {
-        throw new LogError('Error saving user', error)
-      })
-
-      await queryRunner.commitTransaction()
-      logger.debug('writing User data successful...', new UserLoggingView(user))
-    } catch (e) {
-      await queryRunner.rollbackTransaction()
-      throw new LogError('Error on writing updated user data', e)
-    } finally {
-      await queryRunner.release()
+      await DbUser.save(user)
+    } catch (error) {
+      const errorMessage = 'Error saving user'
+      logger.error(errorMessage, error)
+      throw new Error(errorMessage)
     }
     logger.info('updateUserInfos() successfully finished...')
+    logger.debug('writing User data successful...', new UserLoggingView(user))
     await EVENT_USER_INFO_UPDATE(user)
 
     // validate if user settings are changed with relevance to update gms-user

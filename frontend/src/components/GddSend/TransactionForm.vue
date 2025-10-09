@@ -222,7 +222,6 @@ const validationSchema = computed(() => {
     return object({
       memo: memoSchema,
       amount: amountSchema,
-      // todo: found a better way, because this validation test has side effects
       identifier: identifierSchema.test(
         'community-is-reachable',
         'form.validation.identifier.communityIsReachable',

@@ -15,10 +15,10 @@ export class AiChatResolver {
   async resumeChat(@Ctx() context: Context): Promise<ChatGptMessage[]> {
     const openaiClient = OpenaiClient.getInstance()
     if (!openaiClient) {
-      return Promise.resolve([new ChatGptMessage({ content: 'OpenAI API is not enabled' })])
+      return Promise.resolve([new ChatGptMessage({ content: 'OpenAI API is not enabled', role: 'assistant' }, true)])
     }
     if (!context.user) {
-      return Promise.resolve([new ChatGptMessage({ content: 'User not found' })])
+      return Promise.resolve([new ChatGptMessage({ content: 'User not found', role: 'assistant' }, true)])
     }
     const messages = await openaiClient.resumeThread(context.user)
     return messages.map((message) => new ChatGptMessage(message))
@@ -42,10 +42,10 @@ export class AiChatResolver {
   ): Promise<ChatGptMessage> {
     const openaiClient = OpenaiClient.getInstance()
     if (!openaiClient) {
-      return Promise.resolve(new ChatGptMessage({ content: 'OpenAI API is not enabled' }))
+      return Promise.resolve(new ChatGptMessage({ content: 'OpenAI API is not enabled', role: 'assistant' }, true))
     }
     if (!context.user) {
-      return Promise.resolve(new ChatGptMessage({ content: 'User not found' }))
+      return Promise.resolve(new ChatGptMessage({ content: 'User not found', role: 'assistant' }, true))
     }
     const messageObj = new Message(message)
     if (!threadId || threadId.length === 0) {

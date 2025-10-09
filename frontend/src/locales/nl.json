@@ -101,6 +101,7 @@
     "thanksYouWith": "bedankt jou met",
     "unique": "(uniek)"
   },
+  "copy-to-clipboard": "Kopieer naar klembord",
   "decay": {
     "before_startblock_transaction": "Deze transactie heeft geen vergankelijkheid.",
     "calculation_decay": "Berekening van de vergankelijkheid",
@@ -146,10 +147,12 @@
   "form": {
     "amount": "Bedrag",
     "at": "op",
+    "available_after": "Beschikbaar na bevestiging",
     "cancel": "Annuleren",
     "change": "Wijzigen",
     "check_now": "Nu controleren",
     "close": "Sluiten",
+    "current_available": "Momenteel beschikbaar",
     "current_balance": "Actueel banksaldo",
     "date": "Datum",
     "description": "Beschrijving",
@@ -158,6 +161,8 @@
     "from": "Van",
     "generate_now": "Nu genereren",
     "lastname": "Achternaam",
+    "link_amount": "Linkbedrag",
+    "link_decay_description": "Het linkbedrag wordt geblokkeerd samen met de maximale vergankelijkheid. Nadat de link is ingewisseld, verlopen of verwijderd, wordt het resterende bedrag weer vrijgegeven.",
     "memo": "Memo",
     "message": "Bericht",
     "new_balance": "Nieuw banksaldo na bevestiging",
