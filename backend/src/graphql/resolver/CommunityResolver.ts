@@ -1,12 +1,13 @@
-import { Community as DbCommunity, FederatedCommunity as DbFederatedCommunity, getHomeCommunity } from 'database'
+import { 
+  Community as DbCommunity, 
+  getReachableCommunities, 
+  getHomeCommunity 
+} from 'database'
 import { Arg, Args, Authorized, Mutation, Query, Resolver } from 'type-graphql'
-import { IsNull, Not, Point } from 'typeorm'
-
 import { Paginated } from '@arg/Paginated'
 import { EditCommunityInput } from '@input/EditCommunityInput'
 import { AdminCommunityView } from '@model/AdminCommunityView'
 import { Community } from '@model/Community'
-import { FederatedCommunity } from '@model/FederatedCommunity'
 
 import { RIGHTS } from '@/auth/RIGHTS'
 import { LogError } from '@/server/LogError'
@@ -19,24 +20,11 @@ import {
 } from './util/communities'
 import { updateAllDefinedAndChanged } from 'shared'
 
+import { CONFIG } from '@/config'
+
 @Resolver()
 export class CommunityResolver {
-  @Authorized([RIGHTS.COMMUNITIES])
-  @Query(() => [FederatedCommunity])
-  async getCommunities(): Promise<FederatedCommunity[]> {
-    const dbFederatedCommunities: DbFederatedCommunity[] = await DbFederatedCommunity.find({
-      order: {
-        foreign: 'ASC',
-        createdAt: 'DESC',
-        lastAnnouncedAt: 'DESC',
-      },
-    })
-    return dbFederatedCommunities.map(
-      (dbCom: DbFederatedCommunity) => new FederatedCommunity(dbCom),
-    )
-  }
-
-  @Authorized([RIGHTS.COMMUNITIES])
+  @Authorized([RIGHTS.COMMUNITY_WITH_API_KEYS])
   @Query(() => [AdminCommunityView])
   async allCommunities(@Args() paginated: Paginated): Promise<AdminCommunityView[]> {
     // communityUUID could be oneTimePassCode (uint32 number)
@@ -45,17 +33,17 @@ export class CommunityResolver {
 
   @Authorized([RIGHTS.COMMUNITIES])
   @Query(() => [Community])
-  async communities(): Promise<Community[]> {
-    const dbCommunities: DbCommunity[] = await DbCommunity.find({
-      where: { communityUuid: Not(IsNull()) }, //, authenticatedAt: Not(IsNull()) },
-      order: {
-        name: 'ASC',
-      },
+  async reachableCommunities(): Promise<Community[]> {
+    const dbCommunities: DbCommunity[] = await getReachableCommunities(
+      CONFIG.FEDERATION_VALIDATE_COMMUNITY_TIMER * 2, {
+        // order by 
+        foreign: 'ASC', // home community first
+        name: 'ASC', // sort foreign communities by name
     })
     return dbCommunities.map((dbCom: DbCommunity) => new Community(dbCom))
   }
 
-  @Authorized([RIGHTS.COMMUNITY_BY_IDENTIFIER])
+  @Authorized([RIGHTS.COMMUNITIES])
   @Query(() => Community)
   async communityByIdentifier(
     @Arg('communityIdentifier') communityIdentifier: string,
@@ -68,7 +56,7 @@ export class CommunityResolver {
     return new Community(community)
   }
 
-  @Authorized([RIGHTS.HOME_COMMUNITY])
+  @Authorized([RIGHTS.COMMUNITIES])
   @Query(() => Community)
   async homeCommunity(): Promise<Community> {
     const community = await getHomeCommunity()
@@ -79,10 +67,10 @@ export class CommunityResolver {
   }
 
   @Authorized([RIGHTS.COMMUNITY_UPDATE])
-  @Mutation(() => Community)
+  @Mutation(() => AdminCommunityView)
   async updateHomeCommunity(
     @Args() { uuid, gmsApiKey, location, hieroTopicId }: EditCommunityInput,
-  ): Promise<Community> {
+  ): Promise<AdminCommunityView> {
     const homeCom = await getCommunityByUuid(uuid)
     if (!homeCom) {
       throw new LogError('HomeCommunity with uuid not found: ', uuid)
@@ -106,6 +94,6 @@ export class CommunityResolver {
     if (updated) {
       await DbCommunity.save(homeCom)
     }
-    return new Community(homeCom)
+    return new AdminCommunityView(homeCom)
   }
 }

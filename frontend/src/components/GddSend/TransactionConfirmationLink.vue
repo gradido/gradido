@@ -20,20 +20,29 @@
         <BCol>{{ $t('advanced-calculation') }}</BCol>
       </BRow>
       <BRow class="pe-3" offset="2">
-        <BCol offset="2">{{ $t('form.current_balance') }}</BCol>
+        <BCol offset="2">{{ $t('form.current_available') }}</BCol>
         <BCol>{{ $filters.GDD(balance) }}</BCol>
       </BRow>
       <BRow class="pe-3">
         <BCol offset="2">
-          <strong>{{ $t('form.your_amount') }}</strong>
+          <strong>{{ $t('form.link_amount') }}</strong>
         </BCol>
-        <BCol class="borderbottom">
+        <BCol>
           <strong>{{ $filters.GDD(amount * -1) }}</strong>
         </BCol>
       </BRow>
       <BRow class="pe-3">
-        <BCol offset="2">{{ $t('form.new_balance') }}</BCol>
-        <BCol>{{ $filters.GDD(balance - amount) }}</BCol>
+        <BCol offset="2">{{ $t('decay.decay') }}</BCol>
+        <BCol class="borderbottom">{{ $filters.GDD(amount - blockedAmount) }}</BCol>
+      </BRow>
+      <BRow class="pe-3">
+        <BCol offset="2">{{ $t('form.available_after') }}</BCol>
+        <BCol>{{ $filters.GDD(balance - blockedAmount) }}</BCol>
+      </BRow>
+      <BRow class="pe-6 mt-2">
+        <BCol offset="1">
+          <small>{{ $t('form.link_decay_description') }}</small>
+        </BCol>
       </BRow>
       <BRow class="mt-5">
         <BCol cols="12" md="6" lg="6">
@@ -57,6 +66,7 @@
   </div>
 </template>
 <script>
+import { LINK_COMPOUND_INTEREST_FACTOR } from '@/constants'
 export default {
   name: 'TransactionConfirmationLink',
   props: {
@@ -68,7 +78,13 @@ export default {
   },
   computed: {
     totalBalance() {
-      return this.balance - this.amount * 1.028
+      return this.balance - this.blockedAmount
+    },
+    blockedAmount() {
+      // correct formula
+      return this.amount * LINK_COMPOUND_INTEREST_FACTOR
+      // same formula as in backend
+      // return 2 * this.amount - this.amount * Math.pow(0.99999997803504048, 1209600)
     },
     disabled() {
       if (this.totalBalance < 0) {

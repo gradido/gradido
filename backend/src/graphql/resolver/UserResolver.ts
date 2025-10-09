@@ -1130,6 +1130,12 @@ export class UserResolver {
     @Args()
     { identifier, communityIdentifier }: UserArgs,
   ): Promise<User> {
+    // check if identifier contain community and user identifier
+    if (identifier.includes('/')) {
+      const parts = identifier.split('/')
+      communityIdentifier = parts[0]
+      identifier = parts[1]      
+    }
     const foundDbUser = await findUserByIdentifier(identifier, communityIdentifier)
     if (!foundDbUser) {
       createLogger().debug('User not found', identifier, communityIdentifier)

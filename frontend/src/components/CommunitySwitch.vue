@@ -22,10 +22,10 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useQuery } from '@vue/apollo-composable'
 import { useRoute } from 'vue-router'
-import { selectCommunities } from '@/graphql/queries'
+import { reachableCommunities } from '@/graphql/communities.graphql'
 import { useAppToast } from '@/composables/useToast'
 
 const props = defineProps({
@@ -33,9 +33,13 @@ const props = defineProps({
     type: Object,
     default: () => ({}),
   },
+  communityIdentifier: {
+    type: String,
+    default: '',
+  },
 })
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'communitiesLoaded'])
 
 const route = useRoute()
 const { toastError } = useAppToast()
@@ -43,20 +47,31 @@ const { toastError } = useAppToast()
 const communities = ref([])
 const validCommunityIdentifier = ref(false)
 
-const { onResult } = useQuery(selectCommunities)
+const { onResult } = useQuery(reachableCommunities)
 
 onResult(({ data }) => {
   // console.log('CommunitySwitch.onResult...data=', data)
   if (data) {
-    communities.value = data.communities
+    communities.value = data.reachableCommunities
     setDefaultCommunity()
-    if (data.communities.length === 1) {
+    if (data.reachableCommunities.length === 1) {
       validCommunityIdentifier.value = true
     }
+    emit('communitiesLoaded', data.reachableCommunities)
   }
 })
 
-const communityIdentifier = computed(() => route.params.communityIdentifier)
+const communityIdentifier = computed(
+  () => route.params.communityIdentifier || props.communityIdentifier,
+)
+
+watch(
+  () => communityIdentifier.value,
+  () => {
+    // console.log('CommunitySwitch.communityIdentifier.value', value)
+    setDefaultCommunity()
+  },
+)
 
 function updateCommunity(community) {
   // console.log('CommunitySwitch.updateCommunity...community=', community)

@@ -26,6 +26,7 @@ vi.mock('vue-router', () => ({
 }))
 
 const mockUseQuery = vi.fn()
+const mockUseLazyQuery = vi.fn()
 vi.mock('@vue/apollo-composable', () => ({
   useQuery: (...args) => {
     mockUseQuery(...args)
@@ -33,6 +34,12 @@ vi.mock('@vue/apollo-composable', () => ({
       result: ref(null),
       loading: ref(false),
       error: ref(null),
+    }
+  },
+  useLazyQuery: (...args) => {
+    mockUseLazyQuery(...args)
+    return {
+      refetch: vi.fn(() => true),
     }
   },
 }))
