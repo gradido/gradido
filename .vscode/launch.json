@@ -9,7 +9,7 @@
       "request": "launch",
       "name": "Database Debug Tests",
       "stopOnEntry": true,
-      "runtimeExecutable": "yarn",
+      "runtimeExecutable": "bun",
       "runtimeArgs": [
         "run",
         "test"
@@ -25,7 +25,7 @@
       "type": "node",
       "request": "launch",
       "name": "DHT-Node Debug Tests",
-      "runtimeExecutable": "yarn",
+      "runtimeExecutable": "bun",
       "runtimeArgs": [
         "run",
         "test:debug"
@@ -42,7 +42,7 @@
       "request": "launch",
       "name": "DHT-Node Debug",
       "stopOnEntry": true,
-      "runtimeExecutable": "yarn",
+      "runtimeExecutable": "bun",
       "runtimeArgs": [
         "run",
         "dev"
@@ -58,7 +58,7 @@
       "type": "node",
       "request": "launch",
       "name": "Federation Debug Tests",
-      "runtimeExecutable": "yarn",
+      "runtimeExecutable": "bun",
       "runtimeArgs": [
         "run",
         "test:debug"
@@ -75,7 +75,7 @@
       "request": "launch",
       "name": "Federation Debug",
       "stopOnEntry": true,
-      "runtimeExecutable": "yarn",
+      "runtimeExecutable": "bun",
       "runtimeArgs": [
         "run",
         "dev"
@@ -92,7 +92,7 @@
       "request": "launch",
       "name": "Backend Debug",
       "stopOnEntry": true,
-      "runtimeExecutable": "yarn",
+      "runtimeExecutable": "bun",
       "runtimeArgs": [
         "run",
         "dev"

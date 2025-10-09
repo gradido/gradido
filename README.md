@@ -88,13 +88,6 @@ bun install
 bun install --global turbo@^2
 ```
 
-If this does not work, try to use [yarn](https://classic.yarnpkg.com/en/docs/install) instead 
-
-```bash
-yarn install
-yarn global add turbo@^2
-```
-
 - **Development Mode (Hot-Reload)**:
 Launches Gradido with hot-reloading for fast iteration.
 
@@ -124,10 +117,6 @@ The installation of dockers depends on your selected product package from the [d
 * In case the docker desktop will not start correctly because of previous docker installations, then please clean the used directories of previous docker installation - `C:\Users` -  before you retry starting docker desktop. For further problems executing docker desktop please take a look in this description "[logs and trouble shooting](https://docs.docker.com/desktop/windows/troubleshoot/)"
 * In case your docker desktop installation causes high memory consumption per vmmem process, then please take a look at this description "[vmmen process consuming too much memory (Docker Desktop)](https://dev.to/tallesl/vmmen-process-consuming-too-much-memory-docker-desktop-273p)"
 
-### yarn
-
-For the Gradido build process the yarn package manager will be used. Please download and install [yarn for windows](https://phoenixnap.com/kb/yarn-windows) by following the instructions there.
-
 
 ### ⚡ Workspaces and Bun Compatibility
 The project now uses **Workspaces**, and work is ongoing to make all modules **Bun-compatible**. You can currently use `bun install`, but not all modules are fully Bun-compatible yet.
@@ -143,12 +132,10 @@ To install dependencies with Bun:
 bun install 
 ```
 
-Note that some modules are still not fully compatible with Bun. Therefore, continue using **Yarn** for development if you run into any issues.
-
 ### EMFILE: too many open files
 With
 ```bash
-yarn docker_dev
+bun docker_dev
 ```
 or also
 ```bash
@@ -161,11 +148,11 @@ which you are working on in dev mode and the rest in production mode.
 
 For example if you are only working on the frontend, you can start the frontend in dev mode and the rest in production mode:
 ```bash
-yarn docker_dev frontend
+bun docker_dev frontend
 ```
 and in another bash
 ```bash
-yarn docker backend admin database nginx --no-deps
+bun docker backend admin database nginx --no-deps
 ```
 or local with turbo
 ```bash
@@ -218,10 +205,10 @@ Currently Modules `frontend`, `admin`, `share` and `core` running the tests in p
 `database`, `backend`, `dht-node` and `federation` are running the tests still serially.
 
 ### Clear
-In root folder calling `yarn clear` will clear all turbo caches, node_modules and build folders of all workspaces for a clean rebuild.
+In root folder calling `bun clear` will clear all turbo caches, node_modules and build folders of all workspaces for a clean rebuild.
 
 ```bash
-yarn clear
+bun clear
 ```
 
 
@@ -254,13 +241,13 @@ To generate the Changelog and set a new Version you should use the following com
 
 ```bash
 git fetch --all
-yarn release
+bun release
 ```
 
-The first command `git fetch --all` will make sure you have all tags previously defined which is required to generate a correct changelog. The second command `yarn release` will execute the changelog tool and set version numbers in the main package and sub-packages. It is required to do `yarn install` before you can use this command.
+The first command `git fetch --all` will make sure you have all tags previously defined which is required to generate a correct changelog. The second command `bun release` will execute the changelog tool and set version numbers in the main package and sub-packages. It is required to do `bun install` before you can use this command.
 After generating a new version you should commit the changes. This will be the CHANGELOG.md and several package.json files. This commit will be omitted in the changelog.
 
-Note: The Changelog will be regenerated with all tags on release on the external builder tool, but will not be checked in there. The Changelog on the github release will therefore always be correct, on the repo it might be incorrect due to missing tags when executing the `yarn release` command.
+Note: The Changelog will be regenerated with all tags on release on the external builder tool, but will not be checked in there. The Changelog on the github release will therefore always be correct, on the repo it might be incorrect due to missing tags when executing the `bun release` command.
 
 ## How the different .env work on deploy
 

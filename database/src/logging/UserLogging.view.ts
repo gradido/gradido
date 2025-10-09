@@ -1,5 +1,6 @@
 import { User } from '../entity'
 import { AbstractLoggingView } from './AbstractLogging.view'
+import { CommunityLoggingView } from './CommunityLogging.view'
 import { ContributionLoggingView } from './ContributionLogging.view'
 import { ContributionMessageLoggingView } from './ContributionMessageLogging.view'
 import { UserContactLoggingView } from './UserContactLogging.view'
@@ -21,10 +22,12 @@ export class UserLoggingView extends AbstractLoggingView {
       id: this.self.id,
       foreign: this.self.foreign,
       gradidoID: this.self.gradidoID,
-      communityUuid: this.self.communityUuid,
+      community: this.self.community
+        ? new CommunityLoggingView(this.self.community).toJSON()
+        : { id: this.self.communityUuid },
       alias: this.self.alias?.substring(0, 3) + '...',
       emailContact: this.self.emailContact
-        ? new UserContactLoggingView(this.self.emailContact).toJSON()
+        ? new UserContactLoggingView(this.self.emailContact, false).toJSON()
         : { id: this.self.emailId },
       firstName: this.self.firstName?.substring(0, 3) + '...',
       lastName: this.self.lastName?.substring(0, 3) + '...',
@@ -35,7 +38,7 @@ export class UserLoggingView extends AbstractLoggingView {
       hideAmountGDD: this.self.hideAmountGDD,
       hideAmountGDT: this.self.hideAmountGDT,
       userRoles: this.self.userRoles
-        ? this.self.userRoles.map((userRole) => new UserRoleLoggingView(userRole).toJSON())
+        ? this.self.userRoles.map((userRole) => new UserRoleLoggingView(userRole, false).toJSON())
         : undefined,
       referrerId: this.self.referrerId,
       contributionLinkId: this.self.contributionLinkId,
@@ -50,7 +53,7 @@ export class UserLoggingView extends AbstractLoggingView {
         : undefined,
       userContacts: this.self.userContacts
         ? this.self.userContacts.map((userContact) =>
-            new UserContactLoggingView(userContact).toJSON(),
+            new UserContactLoggingView(userContact, false).toJSON(),
           )
         : undefined,
     }

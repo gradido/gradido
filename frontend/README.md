@@ -7,26 +7,54 @@ Then install grass, it need some time, because it will be compiled.
 ```bash
 cargo install grass
 ```	
-Now with using yarn compile-sass or turbo compile-sass grass will be used.
+Now with using bun compile-sass or turbo compile-sass grass will be used.
 
-## install mit yarn 
-```bash
-cd frontend
-yarn install
-yarn run serve
 
-# build
-yarn run build
+### Compiles and hot-reloads for development
+```
+turbo dev
+```
+or from root folder: 
+
+```
+turbo frontend#dev
 ```
 
-## install mit docker
 
-```bash
-# build
-docker build -t gradido-frontend .
+### Compiles and minifies for production
+```
+turbo build
+```
+or from root folder: 
 
-# run
-docker run -it -p 80:80 --rm gradido-frontend
+```
+turbo frontend#build
+```
+
+### Lints and fixes files
+```
+turbo lint
+```
+or from root folder: 
+
+```
+turbo frontend#lint
+```
+
+### Unit tests
+```
+turbo test
+```
+For filtering out single tests: 
+```
+turbo test -- <test_name>
+```
+Everything after -- will be passed to vitest.
+
+or from root folder: 
+
+```
+turbo frontend#test
 ```
 
 **Fully Coded Components**

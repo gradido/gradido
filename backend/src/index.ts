@@ -20,7 +20,11 @@ async function main() {
       console.log(`GraphIQL available at http://localhost:${CONFIG.PORT}`)
     }
   })
-  await startValidateCommunities(Number(CONFIG.FEDERATION_VALIDATE_COMMUNITY_TIMER))
+  // task is running the whole time for transmitting transaction via dlt-connector to iota
+  // can be notified with InterruptiveSleepManager.getInstance().interrupt(TRANSMIT_TO_IOTA_INTERRUPTIVE_SLEEP_KEY)
+  // that a new transaction or user was stored in db
+  // void sendTransactionsToDltConnector()
+  void startValidateCommunities(Number(CONFIG.FEDERATION_VALIDATE_COMMUNITY_TIMER))
 }
 
 main().catch((e) => {

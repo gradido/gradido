@@ -21,8 +21,11 @@ import {
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { peterLustig } from '@/seeds/users/peter-lustig'
+import { CONFIG } from '@/config'
 
 jest.mock('@/password/EncryptorUtils')
+
+CONFIG.DLT_CONNECTOR = false
 
 let mutate: ApolloServerTestClient['mutate']
 let con: DataSource

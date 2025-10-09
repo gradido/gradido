@@ -79,11 +79,9 @@ jest.mock('@/emails/sendEmailVariants', () => {
   return {
     __esModule: true,
     ...originalModule,
-    sendAccountActivationEmail: jest.fn((a) => originalModule.sendAccountActivationEmail(a)),
-    sendAccountMultiRegistrationEmail: jest.fn((a) =>
-      originalModule.sendAccountMultiRegistrationEmail(a),
-    ),
-    sendResetPasswordEmail: jest.fn((a) => originalModule.sendResetPasswordEmail(a)),
+    sendAccountActivationEmail: jest.fn(),
+    sendAccountMultiRegistrationEmail: jest.fn(),
+    sendResetPasswordEmail: jest.fn(),
   }
 })
 
@@ -117,6 +115,7 @@ beforeAll(async () => {
   query = testEnv.query
   con = testEnv.con
   CONFIG.HUMHUB_ACTIVE = false
+  CONFIG.DLT_CONNECTOR = false
   await cleanDB()
 })
 

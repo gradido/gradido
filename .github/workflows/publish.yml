@@ -403,10 +403,8 @@ jobs:
       ##########################################################################
       # Push release tag to GitHub #############################################
       ##########################################################################
-      - name: yarn install
-        run: yarn install
       - name: generate changelog
-        run: yarn auto-changelog --commit-limit 0 --latest-version ${{ env.VERSION }} --unreleased-only
+        run: npx auto-changelog --commit-limit 0 --latest-version ${{ env.VERSION }} --unreleased-only
       - name: package-version-to-git-release
         continue-on-error: true # Will fail if tag exists
         id: create_release

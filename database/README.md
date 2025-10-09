@@ -23,20 +23,20 @@ TypeError: undefined is not an object (evaluating 'module.parent.parent.require'
 ## Upgrade migrations
 
 ```bash
-yarn up
+turbo up
 ```
 
 ## Downgrade migrations 
 
 ```bash
-yarn down
+turbo down
 ```
 
 
 ## Reset database
 
 ```bash
-yarn reset
+turbo reset
 ```
 
 Runs all down migrations and after this all up migrations.
@@ -45,7 +45,7 @@ Runs all down migrations and after this all up migrations.
 call truncate for all tables
 
 ```bash
-yarn clear
+turbo clearDB
 ```
 
 

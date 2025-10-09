@@ -13,8 +13,8 @@ import { ContributionLink } from './ContributionLink'
 import { ContributionMessage } from './ContributionMessage'
 import { Transaction } from './Transaction'
 import { TransactionLink } from './TransactionLink'
-import { User } from './User'
 import { DecimalTransformer } from './transformer/DecimalTransformer'
+import { User } from './User'
 
 @Entity('events')
 export class Event extends BaseEntity {
