@@ -48,8 +48,6 @@ RUN bun install --global turbo
 # Add bun's global bin directory to PATH
 ENV PATH="/root/.bun/bin:${PATH}"
 
-#RUN yarn global add turbo
-
 # Settings
 ## Expose Container Port
 EXPOSE ${BACKEND_PORT}
@@ -84,10 +82,6 @@ COPY --chown=app:app ./ ./
 
 # yarn install
 RUN bun install --frozen-lockfile --non-interactive
-
-# try with bun, use yarn if problems occur
-# go into admin folder and use yarn to install local dependencies which need to use nohoist for @vee-validate/i18n which isn't supported by bun
-#RUN bun install --frozen-lockfile
 
 
 ##################################################################################
@@ -136,7 +130,7 @@ WORKDIR ${DOCKER_WORKDIR}
 # Copy only the build artifacts from the previous build stage
 COPY --chown=app:app --from=build /app/node_modules ./node_modules
 COPY --chown=app:app --from=build /app/package.json ./package.json
-COPY --chown=app:app --from=build /app/yarn.lock ./yarn.lock
+COPY --chown=app:app --from=build /app/bun.lock ./bun.lock
 COPY --chown=app:app --from=build /app/turbo.json ./turbo.json
 # and Turbo cache to prevent rebuilding 
 COPY --chown=app:app --from=build /tmp/turbo ./tmp/turbo

@@ -4,6 +4,9 @@
     "clear": {
       "cache": false
     },
+    "clearDB": {
+      "cache": false
+    },
     "up:backend_test": {
       "cache": false
     },

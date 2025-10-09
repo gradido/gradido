@@ -41,7 +41,7 @@ mysql -u ${DB_USER} -p${DB_PASSWORD} <<EOFMYSQL
 EOFMYSQL
 
 # Update database if needed (use dev_up for seeding setups)
-yarn --cwd $PROJECT_ROOT/database up
+turbo up
 
 # Start gradido-backend service
 pm2 start gradido-backend

@@ -5,7 +5,7 @@
 ## Seed DB
 
 ```bash
-yarn seed
+turbo seed
 ```
 
 Deletes all data in database. Then seeds data in database.

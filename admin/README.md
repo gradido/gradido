@@ -1,26 +1,48 @@
 # admin
 
-## Project setup
-```
-yarn install
-```
-
 ### Compiles and hot-reloads for development
 ```
-yarn serve
+turbo dev
 ```
+or from root folder: 
+
+```
+turbo admin#dev
+```
+
 
 ### Compiles and minifies for production
 ```
-yarn build
+turbo build
+```
+or from root folder: 
+
+```
+turbo admin#build
 ```
 
 ### Lints and fixes files
 ```
-yarn lint
+turbo lint
+```
+or from root folder: 
+
+```
+turbo admin#lint
 ```
 
 ### Unit tests
 ```
-yarn test
+turbo test
+```
+For filtering out single tests: 
+```
+turbo test -- <test_name>
+```
+Everything after -- will be passed to vitest.
+
+or from root folder: 
+
+```
+turbo admin#test
 ```
