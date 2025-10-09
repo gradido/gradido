@@ -32,8 +32,8 @@
                 />
               </div>
               <div v-if="!hasUsername">
-                <div class="mt-3">{{ username.username }}</div>
-                <div class="small mt-1">{{ gradidoId }}</div>
+                <div class="mt-3" data-test="navbar-item-username">{{ username.username }}</div>
+                <div class="small mt-1" data-test="navbar-item-gradido-id">{{ gradidoId }}</div>
               </div>
             </router-link>
             <div class="d-flex flex-column align-items-end text-end">
