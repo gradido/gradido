@@ -3,6 +3,7 @@ import {
   FederatedCommunity as DbFederatedCommunity,
   FederatedCommunityLoggingView,
   getHomeCommunity,
+  getNotReachableCommunities,
 } from 'database'
 import { IsNull } from 'typeorm'
 
@@ -11,7 +12,7 @@ import { FederationClient as V1_0_FederationClient } from '@/federation/client/1
 import { PublicCommunityInfo } from '@/federation/client/1_0/model/PublicCommunityInfo'
 import { FederationClientFactory } from '@/federation/client/FederationClientFactory'
 import { LogError } from '@/server/LogError'
-import { createKeyPair } from 'shared'
+import { createKeyPair, uint32Schema } from 'shared'
 import { getLogger } from 'log4js'
 import { startCommunityAuthentication } from './authenticateCommunities'
 import { PublicCommunityInfoLoggingView } from './client/1_0/logging/PublicCommunityInfoLogging.view'
@@ -26,6 +27,16 @@ export async function startValidateCommunities(timerInterval: number): Promise<v
   logger.info(`startValidateCommunities loop with an interval of ${timerInterval} ms...`)
   // delete all foreign federated community entries to avoid increasing validation efforts and log-files
   await DbFederatedCommunity.delete({ foreign: true })
+
+  // clean community_uuid and authenticated_at fields for community with one-time-code in community_uuid field
+  const notReachableCommunities = await getNotReachableCommunities()
+  for (const community of notReachableCommunities) {
+    if (uint32Schema.safeParse(Number(community.communityUuid)).success) {
+      community.communityUuid = null
+      community.authenticatedAt = null
+      await DbCommunity.save(community)
+    }
+  }
 
   // TODO: replace the timer-loop by an event-based communication to verify announced foreign communities
   // better to use setTimeout twice than setInterval once -> see https://javascript.info/settimeout-setinterval

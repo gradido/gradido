@@ -127,21 +127,27 @@ export class AuthenticationResolver {
     methodLogger.debug(`authenticate() via apiVersion=1_0 ...`, args)
     try {
       const authArgs = await interpretEncryptedTransferArgs(args) as AuthenticationJwtPayloadType
+      methodLogger.debug(`interpreted authentication payload...authArgs:`, authArgs)
       if (!authArgs) {
         const errmsg = `invalid authentication payload of requesting community with publicKey` + args.publicKey
         methodLogger.error(errmsg)
         // no infos to the caller
         return null
       }
+
       if (!uint32Schema.safeParse(Number(authArgs.oneTimeCode)).success) {
         const errmsg = `invalid oneTimeCode: ${authArgs.oneTimeCode} for community with publicKey ${authArgs.publicKey}, expect uint32`
         methodLogger.error(errmsg)
         // no infos to the caller
         return null
       }
+
+      methodLogger.debug(`search community per oneTimeCode:`, authArgs.oneTimeCode)
       const authCom = await DbCommunity.findOneByOrFail({ communityUuid: authArgs.oneTimeCode })
       if (authCom) {
         methodLogger.debug('found authCom:', new CommunityLoggingView(authCom))
+        methodLogger.debug('authCom.publicKey', authCom.publicKey.toString('hex'))
+        methodLogger.debug('args.publicKey', args.publicKey)
         if (authCom.publicKey.compare(Buffer.from(args.publicKey, 'hex')) !== 0) {
           const errmsg = `corrupt authentication call detected, oneTimeCode: ${authArgs.oneTimeCode} doesn't belong to caller: ${args.publicKey}`
           methodLogger.error(errmsg)

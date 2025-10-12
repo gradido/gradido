@@ -61,3 +61,12 @@ export async function getReachableCommunities(
     order,
   })
 }
+
+export async function getNotReachableCommunities(
+  order?: FindOptionsOrder<DbCommunity>
+): Promise<DbCommunity[]> {
+  return await DbCommunity.find({
+    where: { authenticatedAt: IsNull(), foreign: true },
+    order,
+  })
+}

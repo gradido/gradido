@@ -7,7 +7,7 @@ import { AuthenticationClient as V1_0_AuthenticationClient } from '@/federation/
 import { ensureUrlEndsWithSlash } from 'core'
 
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { encryptAndSign, OpenConnectionJwtPayloadType } from 'shared'
+import { communityAuthenticatedSchema, encryptAndSign, OpenConnectionJwtPayloadType } from 'shared'
 import { getLogger } from 'log4js'
 import { AuthenticationClientFactory } from './client/AuthenticationClientFactory'
 import { EncryptedTransferArgs } from 'core'
@@ -34,13 +34,10 @@ export async function startCommunityAuthentication(
   methodLogger.debug('started with comB:', new CommunityLoggingView(comB))
   // check if communityUuid is not a valid v4Uuid
   try {
-    if (
-      comB &&
-      ((comB.communityUuid === null && comB.authenticatedAt === null) ||
-        (comB.communityUuid !== null &&
-          (!validateUUID(comB.communityUuid) ||
-          versionUUID(comB.communityUuid!) !== 4)))
-    ) {
+    // communityAuthenticatedSchema.safeParse return true 
+    // - if communityUuid is a valid v4Uuid and 
+    // - if authenticatedAt is a valid date
+    if (comB && !communityAuthenticatedSchema.safeParse(comB).success) {
       methodLogger.debug('comB.uuid is null or is a not valid v4Uuid...', comB.communityUuid || 'null', comB.authenticatedAt || 'null')
       const client = AuthenticationClientFactory.getInstance(fedComB)
 

@@ -15,6 +15,7 @@ import { randombytes_random } from 'sodium-native'
 import { AuthenticationClient as V1_0_AuthenticationClient } from '@/client/1_0/AuthenticationClient'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { AuthenticationJwtPayloadType, AuthenticationResponseJwtPayloadType, encryptAndSign, OpenConnectionCallbackJwtPayloadType, uint32Schema, uuidv4Schema, verifyAndDecrypt } from 'shared'
+import { FEDERATION_AUTHENTICATION_TIMEOUT_MS } from 'shared'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.api.1_0.util.authenticateCommunity`)
 
@@ -45,9 +46,12 @@ export async function startOpenConnectionCallback(
     if (uuidv4Schema.safeParse(comA.communityUuid).success) {
       methodLogger.debug('Community UUID is already a valid UUID')
       return
+      // check for still ongoing authentication, but with timeout
     } else if (uint32Schema.safeParse(Number(comA.communityUuid)).success) {
-      methodLogger.debug('Community UUID is still in authentication...oneTimeCode=', comA.communityUuid)
-      return
+      if (comA.updatedAt && (Date.now() - comA.updatedAt.getTime()) < FEDERATION_AUTHENTICATION_TIMEOUT_MS) {
+        methodLogger.debug('Community UUID is still in authentication...oneTimeCode=', comA.communityUuid)
+        return
+      }
     }
     // TODO: make sure it is unique
     const oneTimeCode = randombytes_random().toString()
