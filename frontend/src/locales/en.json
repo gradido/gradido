@@ -114,6 +114,7 @@
     "thanksYouWith": "thanks you with"
   },
   "contributionText": "Contribution Text",
+  "copy-to-clipboard": "Copy to clipboard",
   "creation": "Creation",
   "decay": {
     "before_startblock_transaction": "This transaction does not include decay.",
@@ -164,10 +165,12 @@
   "form": {
     "amount": "Amount",
     "at": "at",
+    "available_after": "Available after confirmation",
     "cancel": "Cancel",
     "change": "Change",
     "check_now": "Check now",
     "close": "Close",
+    "current_available": "Currently available",
     "current_balance": "Current Balance",
     "date": "Date",
     "description": "Description",
@@ -178,6 +181,8 @@
     "hours": "Hours",
     "identifier": "Email, username or gradido ID",
     "lastname": "Lastname",
+    "link_amount": "Link amount",
+    "link_decay_description": "The link amount is blocked along with the maximum decay. After the link has been redeemed, expired, or deleted, the rest is released again.",
     "memo": "Message",
     "message": "Message",
     "new_balance": "Account balance after confirmation",
@@ -231,6 +236,7 @@
       },
       "gddSendAmount": "The {_field_} field must be a number between {min} and {max} with at most two digits after the decimal point.",
       "identifier": {
+        "communityIsReachable": "Community not found our not reachable!",
         "required": "The recipient is a required field.",
         "typeError": "The recipient must be an email, a username or a Gradido ID."
       },
@@ -301,6 +307,7 @@
     "raise": "Increase",
     "recruited-member": "Invited member"
   },
+  "gradidoid-copied-to-clipboard": "Gradido ID copied to clipboard.",
   "h": "h",
   "info": "Information",
   "language": "Language",
