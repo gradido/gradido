@@ -53,6 +53,8 @@ jobs:
 
       - name: install bun 
         uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: '.bun-version'
 
       - name: install dependencies
         run: |
@@ -76,7 +78,9 @@ jobs:
 
       - name: install bun 
         uses: oven-sh/setup-bun@v2
-        
+        with:
+          bun-version-file: '.bun-version'
+
       - name: install dependencies
         run: |
           bun install --filter database --frozen-lockfile
