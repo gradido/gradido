@@ -37,8 +37,8 @@ jobs:
         run: bun install --filter shared --frozen-lockfile
 
       - name: typecheck
-        run: cd shared && yarn typecheck
+        run: cd shared && bun run typecheck
 
       - name: unit tests
-        run: cd shared && yarn test
+        run: cd shared && bun run test
 
