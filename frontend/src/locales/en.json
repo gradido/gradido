@@ -114,6 +114,7 @@
     "thanksYouWith": "thanks you with"
   },
   "contributionText": "Contribution Text",
+  "copy-to-clipboard": "Copy to clipboard",
   "creation": "Creation",
   "decay": {
     "before_startblock_transaction": "This transaction does not include decay.",
@@ -306,6 +307,7 @@
     "raise": "Increase",
     "recruited-member": "Invited member"
   },
+  "gradidoid-copied-to-clipboard": "Gradido ID copied to clipboard.",
   "h": "h",
   "info": "Information",
   "language": "Language",

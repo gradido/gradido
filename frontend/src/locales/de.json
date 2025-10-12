@@ -114,6 +114,7 @@
     "thanksYouWith": "dankt dir mit"
   },
   "contributionText": "Beitragstext",
+  "copy-to-clipboard": "In Zwischenablage kopieren",
   "creation": "Schöpfen",
   "decay": {
     "before_startblock_transaction": "Diese Transaktion beinhaltet keine Vergänglichkeit.",
@@ -306,6 +307,7 @@
     "raise": "Erhöhung",
     "recruited-member": "Eingeladenes Mitglied"
   },
+  "gradidoid-copied-to-clipboard": "Gradido ID wurde in die Zwischenablage kopiert.",
   "h": "h",
   "info": "Information",
   "language": "Sprache",

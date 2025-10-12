@@ -103,6 +103,7 @@
     "unique": "(unique)"
   },
   "contributionText": "Texte de la contribution",
+  "copy-to-clipboard": "Copier dans le presse-papier",
   "creation": "Création",
   "decay": {
     "before_startblock_transaction": "Cette transaction n'est pas péremptoire.",
@@ -262,6 +263,7 @@
     "raise": "Augmentation",
     "recruited-member": "Membre invité"
   },
+  "gradidoid-copied-to-clipboard": "Gradido ID copié dans le presse-papier.",
   "h": "h",
   "info": "Information",
   "language": "Langage",
