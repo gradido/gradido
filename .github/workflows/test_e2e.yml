@@ -17,6 +17,8 @@ jobs:
 
       - name: install bun 
         uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: '.bun-version'
 
       - name: Boot up test system | docker-compose mariadb mailserver
         run: docker compose -f docker-compose.yml -f docker-compose.test.yml up --detach mariadb mailserver
@@ -120,6 +122,8 @@ jobs:
 
       - name: install bun 
         uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: '.bun-version'
 
       - name: Boot up test system | docker-compose mariadb mailserver
         run: docker compose -f docker-compose.yml -f docker-compose.test.yml up --detach mariadb mailserver
@@ -203,6 +207,8 @@ jobs:
 
       - name: install bun 
         uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: '.bun-version'
 
       - name: Boot up test system | docker-compose mariadb mailserver
         run: docker compose -f docker-compose.yml -f docker-compose.test.yml up --detach mariadb mailserver
