@@ -42,7 +42,7 @@
     "@types/sodium-native": "^2.3.5",
     "config-schema": "*",
     "decimal.js-light": "^2.5.1",
-    "dotenv": "^17.2.3",
+    "dotenv": "^10.0.0",
     "graphql-request": "5.0.0",
     "jest": "27.2.4",
     "type-graphql": "^1.1.1",

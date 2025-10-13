@@ -54,7 +54,7 @@
     "@types/uuid": "^8.3.4",
     "cross-env": "^7.0.3",
     "decimal.js-light": "^2.5.1",
-    "dotenv": "^17.2.3",
+    "dotenv": "^10.0.0",
     "esbuild": "^0.25.2",
     "geojson": "^0.5.0",
     "joi-extract-type": "^15.0.8",
