@@ -10,8 +10,8 @@ export class CommunityHandshakeState extends BaseEntity {
   @Column({ name: 'handshake_id', type: 'int', unsigned: true })
   handshakeId: number
 
-  @Column({ name: 'one_time_code', type: 'int', unsigned: true })
-  oneTimeCode: number
+  @Column({ name: 'one_time_code', type: 'int', unsigned: true, default: null, nullable: true })
+  oneTimeCode?: number
 
   @Column({ name: 'public_key', type: 'binary', length: 32 })
   publicKey: Buffer

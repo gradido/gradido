@@ -3,7 +3,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
     CREATE TABLE community_handshake_states (
       id int unsigned NOT NULL AUTO_INCREMENT,
       handshake_id int unsigned NOT NULL,
-      one_time_code int unsigned NOT NULL,
+      one_time_code int unsigned NULL DEFAULT NULL,
       public_key binary(32) NOT NULL,
       api_version varchar(255) NOT NULL,
       status varchar(255) NOT NULL DEFAULT 'OPEN_CONNECTION',
