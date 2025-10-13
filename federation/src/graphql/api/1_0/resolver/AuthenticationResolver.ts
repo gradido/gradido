@@ -6,11 +6,9 @@ import {
   Community as DbCommunity,
   FederatedCommunity as DbFedCommunity,
   FederatedCommunityLoggingView,
-  CommunityHandshakeStateType,
-  CommunityHandshakeState as DbCommunityHandshakeState,
   getHomeCommunity,
 } from 'database'
-import { getLogger, Logger } from 'log4js'
+import { getLogger } from 'log4js'
 import { 
   AuthenticationJwtPayloadType, 
   AuthenticationResponseJwtPayloadType, 
@@ -27,12 +25,6 @@ const createLogger = (method: string  ) => getLogger(`${LOG4JS_BASE_CATEGORY_NAM
 
 @Resolver()
 export class AuthenticationResolver {
-
-  private async errorState(errmsg: string, methodLogger: Logger, state: DbCommunityHandshakeState) {
-    methodLogger.error(errmsg)
-    state.lastError = errmsg
-    await state.save()
-  }
 
   @Mutation(() => Boolean)
   async openConnection(

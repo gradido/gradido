@@ -49,6 +49,16 @@ export async function getCommunityWithFederatedCommunityByIdentifier(
   })
 }
 
+export async function getCommunityWithFederatedCommunityWithApiOrFail(
+  publicKey: Buffer,
+  apiVersion: string
+): Promise<DbCommunity> {
+  return await DbCommunity.findOneOrFail({
+    where: { foreign: true, publicKey, federatedCommunities: { apiVersion } },
+    relations: { federatedCommunities: true },
+  })
+}
+
 // returns all reachable communities 
 // home community and all federated communities which have been verified within the last authenticationTimeoutMs
 export async function getReachableCommunities(

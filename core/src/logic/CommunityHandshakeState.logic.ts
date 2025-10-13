@@ -2,7 +2,7 @@ import { CommunityHandshakeState, CommunityHandshakeStateType } from 'database'
 import { FEDERATION_AUTHENTICATION_TIMEOUT_MS } from 'shared'
 
 export class CommunityHandshakeStateLogic {
-  public constructor(private communityHandshakeStateEntity: CommunityHandshakeState) {}
+  public constructor(private self: CommunityHandshakeState) {}
 
   /**
    * Check for expired state and if not, check timeout and update (write into db) to expired state
@@ -10,24 +10,24 @@ export class CommunityHandshakeStateLogic {
    */
   public async isTimeoutUpdate(): Promise<boolean> {
     const timeout = this.isTimeout()
-    if (timeout && this.communityHandshakeStateEntity.status !== CommunityHandshakeStateType.EXPIRED) {
-      this.communityHandshakeStateEntity.status = CommunityHandshakeStateType.EXPIRED
-      await this.communityHandshakeStateEntity.save()
+    if (timeout && this.self.status !== CommunityHandshakeStateType.EXPIRED) {
+      this.self.status = CommunityHandshakeStateType.EXPIRED
+      await this.self.save()
     }
     return timeout
   }
 
   public isTimeout(): boolean {
-    if (this.communityHandshakeStateEntity.status === CommunityHandshakeStateType.EXPIRED) {
+    if (this.self.status === CommunityHandshakeStateType.EXPIRED) {
       return true
     }
-    if (Date.now() - this.communityHandshakeStateEntity.updatedAt.getTime() > FEDERATION_AUTHENTICATION_TIMEOUT_MS) {
+    if (Date.now() - this.self.updatedAt.getTime() > FEDERATION_AUTHENTICATION_TIMEOUT_MS) {
       return true
     }
     return false
   }
 
   public isFailed(): boolean {
-    return this.communityHandshakeStateEntity.status === CommunityHandshakeStateType.FAILED
+    return this.self.status === CommunityHandshakeStateType.FAILED
   }
 }

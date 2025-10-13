@@ -1,12 +1,16 @@
-import { EncryptedTransferArgs } from 'core'
+import { CommunityHandshakeStateLogic, CommunityLogic, EncryptedTransferArgs, ensureUrlEndsWithSlash } from 'core'
 import {
+  CommunityHandshakeStateLoggingView,
   CommunityLoggingView,
   Community as DbCommunity,
   FederatedCommunity as DbFedCommunity,
   FederatedCommunityLoggingView,
+  findPendingCommunityHandshake,
+  getCommunityWithFederatedCommunityWithApiOrFail,
   getHomeCommunity,
+  getHomeCommunityWithFederatedCommunityOrFail,
 } from 'database'
-import { getLogger } from 'log4js'
+import { getLogger, Logger } from 'log4js'
 import { validate as validateUUID, version as versionUUID } from 'uuid'
 
 import { AuthenticationClientFactory } from '@/client/AuthenticationClientFactory'
@@ -14,80 +18,113 @@ import { randombytes_random } from 'sodium-native'
 
 import { AuthenticationClient as V1_0_AuthenticationClient } from '@/client/1_0/AuthenticationClient'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { AuthenticationJwtPayloadType, AuthenticationResponseJwtPayloadType, encryptAndSign, OpenConnectionCallbackJwtPayloadType, uint32Schema, uuidv4Schema, verifyAndDecrypt } from 'shared'
-import { FEDERATION_AUTHENTICATION_TIMEOUT_MS } from 'shared'
+import { 
+  AuthenticationJwtPayloadType, 
+  AuthenticationResponseJwtPayloadType, 
+  encryptAndSign, 
+  OpenConnectionCallbackJwtPayloadType, 
+  verifyAndDecrypt 
+} from 'shared'
+import { CommunityHandshakeState as DbCommunityHandshakeState, CommunityHandshakeStateType } from 'database'
 
-const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.api.1_0.util.authenticateCommunity`)
+const createLogger = (method: string  ) => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.api.1_0.util.authenticateCommunity.${method}`)
+
+async function errorState(
+  error: string,
+  methodLogger: Logger,
+  state: DbCommunityHandshakeState, 
+): Promise<DbCommunityHandshakeState> {
+  methodLogger.error(error)
+  state.status = CommunityHandshakeStateType.FAILED
+  state.lastError = error
+  return state.save()
+}
 
 export async function startOpenConnectionCallback(
   handshakeID: string,
   publicKey: string,
   api: string,
 ): Promise<void> {
-  const methodLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.api.1_0.util.authenticateCommunity.startOpenConnectionCallback`)
+  const methodLogger = createLogger('startOpenConnectionCallback')
   methodLogger.addContext('handshakeID', handshakeID)
   methodLogger.debug(`Authentication: startOpenConnectionCallback() with:`, {
     publicKey,
   })
-  try {
-    const homeComB = await getHomeCommunity()
-    const homeFedComB = await DbFedCommunity.findOneByOrFail({
-      foreign: false,
-      apiVersion: api,
-    })
-    const comA = await DbCommunity.findOneByOrFail({ publicKey: Buffer.from(publicKey, 'hex') })
-    const fedComA = await DbFedCommunity.findOneByOrFail({
-      foreign: true,
-      apiVersion: api,
-      publicKey: comA.publicKey,
-    })
-    // store oneTimeCode in requestedCom.community_uuid as authenticate-request-identifier
-    // prevent overwriting valid UUID with oneTimeCode, because this request could be initiated at any time from federated community
-    if (uuidv4Schema.safeParse(comA.communityUuid).success) {
-      methodLogger.debug('Community UUID is already a valid UUID')
+  const publicKeyBuffer = Buffer.from(publicKey, 'hex')
+  const pendingState = await findPendingCommunityHandshake(publicKeyBuffer, api, false)
+  if (pendingState) {
+    const stateLogic = new CommunityHandshakeStateLogic(pendingState)
+    // retry on timeout or failure
+    if (!await stateLogic.isTimeoutUpdate()) {
+      // authentication with community and api version is still in progress and it is not timeout yet
+      methodLogger.debug('existingState', new CommunityHandshakeStateLoggingView(pendingState))
       return
-      // check for still ongoing authentication, but with timeout
-    } else if (uint32Schema.safeParse(Number(comA.communityUuid)).success) {
-      if (comA.updatedAt && (Date.now() - comA.updatedAt.getTime()) < FEDERATION_AUTHENTICATION_TIMEOUT_MS) {
-        methodLogger.debug('Community UUID is still in authentication...oneTimeCode=', comA.communityUuid)
-        return
-      }
     }
+  }
+  let stateSaveResolver: Promise<DbCommunityHandshakeState> | undefined = undefined
+  const state = new DbCommunityHandshakeState()
+  try {
+    const [homeComB, comA] = await Promise.all([
+      getHomeCommunityWithFederatedCommunityOrFail(api),
+      getCommunityWithFederatedCommunityWithApiOrFail(publicKeyBuffer, api),
+    ])
+    // load helpers
+    const homeComBLogic = new CommunityLogic(homeComB)
+    const comALogic = new CommunityLogic(comA)
+    // get federated communities with correct api version
+    const homeFedComB = homeComBLogic.getFederatedCommunityWithApiOrFail(api)    
+    const fedComA = comALogic.getFederatedCommunityWithApiOrFail(api)
+    
     // TODO: make sure it is unique
-    const oneTimeCode = randombytes_random().toString()
-    comA.communityUuid = oneTimeCode
-    await DbCommunity.save(comA)
+    const oneTimeCode = randombytes_random()
+    const oneTimeCodeString = oneTimeCode.toString()
+    
+    state.publicKey = publicKeyBuffer
+    state.apiVersion = api
+    state.status = CommunityHandshakeStateType.START_OPEN_CONNECTION_CALLBACK
+    state.handshakeId = parseInt(handshakeID)
+    state.oneTimeCode = oneTimeCode
+    stateSaveResolver = state.save()
     methodLogger.debug(
-      `Authentication: stored oneTimeCode in requestedCom:`,
-      new CommunityLoggingView(comA),
+      `Authentication: store oneTimeCode in CommunityHandshakeState:`,
+      new CommunityHandshakeStateLoggingView(state),
     )
 
     const client = AuthenticationClientFactory.getInstance(fedComA)
 
     if (client instanceof V1_0_AuthenticationClient) {
-      const url = homeFedComB.endPoint.endsWith('/')
-        ? homeFedComB.endPoint + homeFedComB.apiVersion
-        : homeFedComB.endPoint + '/' + homeFedComB.apiVersion
+      const url = ensureUrlEndsWithSlash(homeFedComB.endPoint) + homeFedComB.apiVersion
 
-      const callbackArgs = new OpenConnectionCallbackJwtPayloadType(handshakeID, oneTimeCode, url)
+      const callbackArgs = new OpenConnectionCallbackJwtPayloadType(handshakeID, oneTimeCodeString, url)
       methodLogger.debug(`Authentication: start openConnectionCallback with args:`, callbackArgs)
       // encrypt callbackArgs with requestedCom.publicJwtKey and sign it with homeCom.privateJwtKey
-      const jwt = await encryptAndSign(callbackArgs, homeComB!.privateJwtKey!, comA.publicJwtKey!)
+      const jwt = await encryptAndSign(callbackArgs, homeComB.privateJwtKey!, comA.publicJwtKey!)
       const args = new EncryptedTransferArgs()
-      args.publicKey = homeComB!.publicKey.toString('hex')
+      args.publicKey = homeComB.publicKey.toString('hex')
       args.jwt = jwt
       args.handshakeID = handshakeID
+      await stateSaveResolver
       const result = await client.openConnectionCallback(args)
       if (result) {
-        methodLogger.debug('startOpenConnectionCallback() successful:', jwt)
+        methodLogger.debug(`startOpenConnectionCallback() successful: ${jwt}`)
       } else {
-        methodLogger.error('startOpenConnectionCallback() failed:', jwt)
+        methodLogger.debug(`jwt: ${jwt}`)
+        stateSaveResolver = errorState('startOpenConnectionCallback() failed', methodLogger, state)
       }
     }
   } catch (err) {
-    methodLogger.error('error in startOpenConnectionCallback:', err)
+    let errorString: string = ''
+    if (err instanceof Error) {
+      errorString = err.message
+    } else {
+      errorString = String(err)
+    }
+    stateSaveResolver = errorState(`error in startOpenConnectionCallback: ${errorString}`, methodLogger, state)
+  } finally {
+    if (stateSaveResolver) {
+      await stateSaveResolver
+    }
   }
-  methodLogger.removeContext('handshakeID')
 }
 
 export async function startAuthentication(

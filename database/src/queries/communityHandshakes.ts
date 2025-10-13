@@ -1,5 +1,5 @@
 import { Not, In } from 'typeorm'
-import { CommunityHandshakeState, CommunityHandshakeStateType, FederatedCommunity} from '..'
+import { CommunityHandshakeState, CommunityHandshakeStateType} from '..'
 
 /**
  * Find a pending community handshake by public key.
@@ -7,11 +7,13 @@ import { CommunityHandshakeState, CommunityHandshakeStateType, FederatedCommunit
  * @param withRelations Whether to include the federated community and community in the result, default true.
  * @returns The CommunityHandshakeState with associated federated community and community.
  */
-export function findPendingCommunityHandshake(federatedCommunity: FederatedCommunity, withRelations = true): Promise<CommunityHandshakeState | null> {
+export function findPendingCommunityHandshake(
+  publicKey: Buffer, apiVersion: string, withRelations = true
+): Promise<CommunityHandshakeState | null> {
   return CommunityHandshakeState.findOne({
     where: { 
-      publicKey: federatedCommunity.publicKey, 
-      apiVersion: federatedCommunity.apiVersion,
+      publicKey, 
+      apiVersion,
       status: Not(In([
         CommunityHandshakeStateType.EXPIRED,
         CommunityHandshakeStateType.FAILED,

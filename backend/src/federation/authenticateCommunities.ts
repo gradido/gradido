@@ -21,6 +21,7 @@ import { getLogger } from 'log4js'
 import { AuthenticationClientFactory } from './client/AuthenticationClientFactory'
 import { EncryptedTransferArgs } from 'core'
 import { CommunityHandshakeStateLogic } from 'core'
+import { CommunityLogic } from 'core'
 
 const createLogger = (functionName: string) => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.federation.authenticateCommunities.${functionName}`)
 
@@ -35,16 +36,8 @@ export async function startCommunityAuthentication(
   })
   const homeComA = await getHomeCommunityWithFederatedCommunityOrFail(fedComB.apiVersion)
   methodLogger.debug('homeComA', new CommunityLoggingView(homeComA))
-  // check if result is like expected
-  // TODO: use zod/valibot
-  if (
-    !homeComA.federatedCommunities || 
-    homeComA.federatedCommunities.length === 0 || 
-    homeComA.federatedCommunities[0].apiVersion !== fedComB.apiVersion
-  ) {
-    throw new Error(`Missing home community or federated community with api version ${fedComB.apiVersion}`)
-  }
-  const homeFedComA = homeComA.federatedCommunities[0]
+  const homeComALogic = new CommunityLogic(homeComA)
+  const homeFedComA = homeComALogic.getFederatedCommunityWithApiOrFail(fedComB.apiVersion)
   const comB = await DbCommunity.findOneByOrFail({ publicKey: fedComB.publicKey })
   methodLogger.debug('started with comB:', new CommunityLoggingView(comB))
   // check if communityUuid is not a valid v4Uuid
@@ -61,7 +54,7 @@ export async function startCommunityAuthentication(
   )
 
   // check if a authentication is already in progress
-  const existingState = await findPendingCommunityHandshake(fedComB, false)
+  const existingState = await findPendingCommunityHandshake(fedComB.publicKey, fedComB.apiVersion, false)
   if (existingState) {
     const stateLogic = new CommunityHandshakeStateLogic(existingState)
     // retry on timeout or failure
