@@ -12,7 +12,7 @@ import { FederationClient as V1_0_FederationClient } from '@/federation/client/1
 import { PublicCommunityInfo } from '@/federation/client/1_0/model/PublicCommunityInfo'
 import { FederationClientFactory } from '@/federation/client/FederationClientFactory'
 import { LogError } from '@/server/LogError'
-import { createKeyPair, uint32Schema } from 'shared'
+import { buffer32Schema, createKeyPair, Ed25519PublicKey, hex64Schema, uint32Schema } from 'shared'
 import { getLogger } from 'log4js'
 import { startCommunityAuthentication } from './authenticateCommunities'
 import { PublicCommunityInfoLoggingView } from './client/1_0/logging/PublicCommunityInfoLogging.view'
@@ -67,8 +67,11 @@ export async function validateCommunities(): Promise<void> {
       const client = FederationClientFactory.getInstance(dbFedComB)
 
       if (client instanceof V1_0_FederationClient) {
-        const pubKey = await client.getPublicKey()
-        if (pubKey && pubKey === dbFedComB.publicKey.toString('hex')) {
+        // throw if key isn't valid hex with length 64
+        const clientPublicKey = new Ed25519PublicKey(await client.getPublicKey())
+        // throw if key isn't valid hex with length 64
+        const fedComBPublicKey = new Ed25519PublicKey(dbFedComB.publicKey)
+        if (clientPublicKey.isSame(fedComBPublicKey)) {
           await DbFederatedCommunity.update({ id: dbFedComB.id }, { verifiedAt: new Date() })
           logger.debug(`verified dbFedComB with:`, dbFedComB.endPoint)
           const pubComInfo = await client.getPublicCommunityInfo()
@@ -84,7 +87,7 @@ export async function validateCommunities(): Promise<void> {
             logger.debug('missing result of getPublicCommunityInfo')
           }
         } else {
-          logger.debug('received not matching publicKey:', pubKey, dbFedComB.publicKey.toString('hex'))
+          logger.debug('received not matching publicKey:', clientPublicKey.asHex(), fedComBPublicKey.asHex())
         }
       }
     } catch (err) {

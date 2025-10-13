@@ -1,6 +1,6 @@
 import { FindOptionsOrder, FindOptionsWhere, IsNull, MoreThanOrEqual, Not } from 'typeorm'
 import { Community as DbCommunity } from '../entity'
-import { urlSchema, uuidv4Schema } from 'shared'
+import { Ed25519PublicKey, urlSchema, uuidv4Schema } from 'shared'
 
 /**
  * Retrieves the home community, i.e., a community that is not foreign.
@@ -50,12 +50,18 @@ export async function getCommunityWithFederatedCommunityByIdentifier(
 }
 
 export async function getCommunityWithFederatedCommunityWithApiOrFail(
-  publicKey: Buffer,
+  publicKey: Ed25519PublicKey,
   apiVersion: string
 ): Promise<DbCommunity> {
   return await DbCommunity.findOneOrFail({
-    where: { foreign: true, publicKey, federatedCommunities: { apiVersion } },
+    where: { foreign: true, publicKey: publicKey.asBuffer(), federatedCommunities: { apiVersion } },
     relations: { federatedCommunities: true },
+  })
+}
+
+export async function getCommunityByPublicKeyOrFail(publicKey: Ed25519PublicKey): Promise<DbCommunity> {
+  return await DbCommunity.findOneOrFail({
+    where: { publicKey: publicKey.asBuffer() },
   })
 }
 

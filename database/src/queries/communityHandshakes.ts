@@ -1,5 +1,6 @@
 import { Not, In } from 'typeorm'
 import { CommunityHandshakeState, CommunityHandshakeStateType} from '..'
+import { Ed25519PublicKey } from 'shared'
 
 /**
  * Find a pending community handshake by public key.
@@ -8,11 +9,11 @@ import { CommunityHandshakeState, CommunityHandshakeStateType} from '..'
  * @returns The CommunityHandshakeState with associated federated community and community.
  */
 export function findPendingCommunityHandshake(
-  publicKey: Buffer, apiVersion: string, withRelations = true
+  publicKey: Ed25519PublicKey, apiVersion: string, withRelations = true
 ): Promise<CommunityHandshakeState | null> {
   return CommunityHandshakeState.findOne({
     where: { 
-      publicKey, 
+      publicKey: publicKey.asBuffer(), 
       apiVersion,
       status: Not(In([
         CommunityHandshakeStateType.EXPIRED,

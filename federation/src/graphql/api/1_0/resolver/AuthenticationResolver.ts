@@ -6,17 +6,16 @@ import {
   CommunityHandshakeStateLoggingView,
   CommunityHandshakeState as DbCommunityHandshakeState,
   CommunityHandshakeStateType,
-  Community as DbCommunity,
   FederatedCommunity as DbFedCommunity,
   FederatedCommunityLoggingView,
   getHomeCommunity,
-  findPendingCommunityHandshake,
   findPendingCommunityHandshakeOrFailByOneTimeCode,
 } from 'database'
 import { getLogger } from 'log4js'
 import { 
   AuthenticationJwtPayloadType, 
   AuthenticationResponseJwtPayloadType, 
+  Ed25519PublicKey, 
   encryptAndSign, 
   OpenConnectionCallbackJwtPayloadType, 
   OpenConnectionJwtPayloadType, 
@@ -39,44 +38,40 @@ export class AuthenticationResolver {
     const methodLogger = createLogger('openConnection')
     methodLogger.addContext('handshakeID', args.handshakeID)
     methodLogger.debug(`openConnection() via apiVersion=1_0:`, args)
+    const argsPublicKey = new Ed25519PublicKey(args.publicKey)
     try {
       const openConnectionJwtPayload = await interpretEncryptedTransferArgs(args) as OpenConnectionJwtPayloadType
       methodLogger.debug('openConnectionJwtPayload', openConnectionJwtPayload)
       if (!openConnectionJwtPayload) {
-        const errmsg = `invalid OpenConnection payload of requesting community with publicKey` + args.publicKey
-        methodLogger.error(errmsg)
-        // no infos to the caller
-        return true
+        throw new Error(`invalid OpenConnection payload of requesting community with publicKey ${argsPublicKey.asHex()}`)
       }
       if (openConnectionJwtPayload.tokentype !== OpenConnectionJwtPayloadType.OPEN_CONNECTION_TYPE) {
-        const errmsg = `invalid tokentype of community with publicKey` + args.publicKey
-        methodLogger.error(errmsg)
-        // no infos to the caller
-        return true
+        throw new Error(`invalid tokentype of community with publicKey ${argsPublicKey.asHex()}`)
       }
       if (!openConnectionJwtPayload.url) {
-        const errmsg = `invalid url of community with publicKey` + args.publicKey
-        methodLogger.error(errmsg)
-        // no infos to the caller
-        return true
+        throw new Error(`invalid url of community with publicKey ${argsPublicKey.asHex()}`)
       }
-      methodLogger.debug(`vor DbFedCommunity.findOneByOrFail()...`, { publicKey: args.publicKey })
-      const fedComA = await DbFedCommunity.findOneByOrFail({ publicKey: Buffer.from(args.publicKey, 'hex') })
+      methodLogger.debug(`vor DbFedCommunity.findOneByOrFail()...`, { publicKey: argsPublicKey.asHex() })
+      const fedComA = await DbFedCommunity.findOneByOrFail({ publicKey: argsPublicKey.asBuffer() })
       methodLogger.debug(`nach DbFedCommunity.findOneByOrFail()...`, fedComA)
       methodLogger.debug('fedComA', new FederatedCommunityLoggingView(fedComA))
       if (!openConnectionJwtPayload.url.startsWith(fedComA.endPoint)) {
-        const errmsg = `invalid url of community with publicKey` + args.publicKey
-        methodLogger.error(errmsg)
-        // no infos to the caller
-        return true
+        throw new Error(`invalid url of community with publicKey ${argsPublicKey.asHex()}`)
       }
 
       // no await to respond immediately and invoke callback-request asynchronously
-      void startOpenConnectionCallback(args.handshakeID, args.publicKey, CONFIG.FEDERATION_API)
+      void startOpenConnectionCallback(args.handshakeID, argsPublicKey, CONFIG.FEDERATION_API)
       methodLogger.debug('openConnection() successfully initiated callback and returns true immediately...')
       return true
     } catch (err) {
-      methodLogger.error('invalid jwt token:', err)
+      let errorText = ''
+      if (err instanceof Error) {
+        errorText = err.message
+      } else {
+        errorText = String(err)
+      }
+      methodLogger.error('invalid jwt token:', errorText)
+      // no infos to the caller
       return true
     }
   }
@@ -93,19 +88,13 @@ export class AuthenticationResolver {
     // decrypt args.url with homeCom.privateJwtKey and verify signing with callbackFedCom.publicKey
       const openConnectionCallbackJwtPayload = await interpretEncryptedTransferArgs(args) as OpenConnectionCallbackJwtPayloadType
       if (!openConnectionCallbackJwtPayload) {
-        const errmsg = `invalid OpenConnectionCallback payload of requesting community with publicKey` + args.publicKey
-        methodLogger.error(errmsg)
-        // no infos to the caller
-        return true
+        throw new Error(`invalid OpenConnectionCallback payload of requesting community with publicKey ${args.publicKey}`)
       }
       const { endPoint, apiVersion } = splitUrlInEndPointAndApiVersion(openConnectionCallbackJwtPayload.url)
       methodLogger.debug(`search fedComB per:`, endPoint, apiVersion)
       const fedComB = await DbFedCommunity.findOneBy({ endPoint, apiVersion })
       if (!fedComB) {
-        const errmsg = `unknown callback community with url` + openConnectionCallbackJwtPayload.url
-        methodLogger.error(errmsg)
-        // no infos to the caller
-        return true
+        throw new Error(`unknown callback community with url ${openConnectionCallbackJwtPayload.url}`)
       }
       methodLogger.debug(
         `found fedComB and start authentication:`,
@@ -116,7 +105,14 @@ export class AuthenticationResolver {
       methodLogger.debug('openConnectionCallback() successfully initiated authentication and returns true immediately...')
       return true
     } catch (err) {
-      methodLogger.error('invalid jwt token:', err)
+      let errorText = ''
+      if (err instanceof Error) {
+        errorText = err.message
+      } else {
+        errorText = String(err)
+      }
+      methodLogger.error('invalid jwt token:', errorText)
+      // no infos to the caller
       return true
     }
   }
@@ -131,22 +127,26 @@ export class AuthenticationResolver {
     methodLogger.debug(`authenticate() via apiVersion=1_0 ...`, args)
     let state: DbCommunityHandshakeState | null = null
     let stateSaveResolver: Promise<DbCommunityHandshakeState> | undefined = undefined
+    const argsPublicKey = new Ed25519PublicKey(args.publicKey)
     try {
       const authArgs = await interpretEncryptedTransferArgs(args) as AuthenticationJwtPayloadType
       methodLogger.debug(`interpreted authentication payload...authArgs:`, authArgs)
       if (!authArgs) {
-        throw new Error(`invalid authentication payload of requesting community with publicKey ${args.publicKey}`)
+        throw new Error(`invalid authentication payload of requesting community with publicKey ${argsPublicKey.asHex()}`)
       }
-
-      if (!uint32Schema.safeParse(Number(authArgs.oneTimeCode)).success) {
+      const validOneTimeCode = uint32Schema.safeParse(Number(authArgs.oneTimeCode))
+      if (!validOneTimeCode.success) {
         throw new Error(
-          `invalid oneTimeCode: ${authArgs.oneTimeCode} for community with publicKey ${authArgs.publicKey}, expect uint32`
+          `invalid oneTimeCode: ${authArgs.oneTimeCode} for community with publicKey ${argsPublicKey.asHex()}, expect uint32`
         )
       }
 
-      state = await findPendingCommunityHandshakeOrFailByOneTimeCode(Number(authArgs.oneTimeCode))
+      state = await findPendingCommunityHandshakeOrFailByOneTimeCode(validOneTimeCode.data)
       const stateLogic = new CommunityHandshakeStateLogic(state)
-      if (await stateLogic.isTimeoutUpdate() || state.status !== CommunityHandshakeStateType.START_OPEN_CONNECTION_CALLBACK) {
+      if (
+        await stateLogic.isTimeoutUpdate() || 
+        state.status !== CommunityHandshakeStateType.START_OPEN_CONNECTION_CALLBACK
+      ) {
         throw new Error('No valid pending community handshake found')
       }
       state.status = CommunityHandshakeStateType.SUCCESS
@@ -156,16 +156,19 @@ export class AuthenticationResolver {
       const authCom = state.federatedCommunity.community
       if (authCom) {
         methodLogger.debug('found authCom:', new CommunityLoggingView(authCom))
-        methodLogger.debug('authCom.publicKey', authCom.publicKey.toString('hex'))
-        methodLogger.debug('args.publicKey', args.publicKey)
-        if (authCom.publicKey.compare(Buffer.from(args.publicKey, 'hex')) !== 0) {
+        const authComPublicKey = new Ed25519PublicKey(authCom.publicKey)
+        methodLogger.debug('authCom.publicKey', authComPublicKey.asHex())
+        methodLogger.debug('args.publicKey', argsPublicKey.asHex())
+        if (!authComPublicKey.isSame(argsPublicKey)) {
           throw new Error(
-            `corrupt authentication call detected, oneTimeCode: ${authArgs.oneTimeCode} doesn't belong to caller: ${args.publicKey}`
+            `corrupt authentication call detected, oneTimeCode: ${authArgs.oneTimeCode} doesn't belong to caller: ${argsPublicKey.asHex()}`
           )
         }
         const communityUuid = uuidv4Schema.safeParse(authArgs.uuid)
         if (!communityUuid.success) {
-          throw new Error(`invalid uuid: ${authArgs.uuid} for community with publicKey ${authCom.publicKey}`)
+          throw new Error(
+            `invalid uuid: ${authArgs.uuid} for community with publicKey ${authComPublicKey.asHex()}`
+          )
         }
         authCom.communityUuid = communityUuid.data
         authCom.authenticatedAt = new Date()

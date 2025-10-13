@@ -2,15 +2,14 @@ import {
   CommunityHandshakeState as DbCommunityHandshakeState,
   CommunityHandshakeStateLoggingView, 
   CommunityLoggingView, 
-  Community as DbCommunity, 
   FederatedCommunity as DbFederatedCommunity, 
   FederatedCommunityLoggingView, 
   findPendingCommunityHandshake, 
   getHomeCommunityWithFederatedCommunityOrFail,
-  CommunityHandshakeStateType
+  CommunityHandshakeStateType,
+  getCommunityByPublicKeyOrFail
 } from 'database'
 import { randombytes_random } from 'sodium-native'
-import { CONFIG as CONFIG_CORE } from 'core'
 
 import { AuthenticationClient as V1_0_AuthenticationClient } from '@/federation/client/1_0/AuthenticationClient'
 import { ensureUrlEndsWithSlash } from 'core'
@@ -22,6 +21,7 @@ import { AuthenticationClientFactory } from './client/AuthenticationClientFactor
 import { EncryptedTransferArgs } from 'core'
 import { CommunityHandshakeStateLogic } from 'core'
 import { CommunityLogic } from 'core'
+import { Ed25519PublicKey } from 'shared'
 
 const createLogger = (functionName: string) => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.federation.authenticateCommunities.${functionName}`)
 
@@ -38,7 +38,8 @@ export async function startCommunityAuthentication(
   methodLogger.debug('homeComA', new CommunityLoggingView(homeComA))
   const homeComALogic = new CommunityLogic(homeComA)
   const homeFedComA = homeComALogic.getFederatedCommunityWithApiOrFail(fedComB.apiVersion)
-  const comB = await DbCommunity.findOneByOrFail({ publicKey: fedComB.publicKey })
+  const fedComBPublicKey = new Ed25519PublicKey(fedComB.publicKey)
+  const comB = await getCommunityByPublicKeyOrFail(fedComBPublicKey)
   methodLogger.debug('started with comB:', new CommunityLoggingView(comB))
   // check if communityUuid is not a valid v4Uuid
   
@@ -54,7 +55,7 @@ export async function startCommunityAuthentication(
   )
 
   // check if a authentication is already in progress
-  const existingState = await findPendingCommunityHandshake(fedComB.publicKey, fedComB.apiVersion, false)
+  const existingState = await findPendingCommunityHandshake(fedComBPublicKey, fedComB.apiVersion, false)
   if (existingState) {
     const stateLogic = new CommunityHandshakeStateLogic(existingState)
     // retry on timeout or failure
@@ -72,7 +73,7 @@ export async function startCommunityAuthentication(
       throw new Error(`Public JWT key still not exist for comB ${comB.name}`)
     }
     const state = new DbCommunityHandshakeState()
-    state.publicKey = fedComB.publicKey
+    state.publicKey = fedComBPublicKey.asBuffer()
     state.apiVersion = fedComB.apiVersion
     state.status = CommunityHandshakeStateType.START_COMMUNITY_AUTHENTICATION
     state.handshakeId = parseInt(handshakeID)
@@ -87,7 +88,8 @@ export async function startCommunityAuthentication(
     methodLogger.debug('jws', jws)
     // prepare the args for the client invocation
     const args = new EncryptedTransferArgs()
-    args.publicKey = homeComA!.publicKey.toString('hex')
+    const homeComAPublicKey = new Ed25519PublicKey(homeComA!.publicKey)
+    args.publicKey = homeComAPublicKey.asHex()
     args.jwt = jws
     args.handshakeID = handshakeID
     await stateSaveResolver

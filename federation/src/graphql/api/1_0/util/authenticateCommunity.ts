@@ -11,7 +11,6 @@ import {
   getHomeCommunityWithFederatedCommunityOrFail,
 } from 'database'
 import { getLogger, Logger } from 'log4js'
-import { validate as validateUUID, version as versionUUID } from 'uuid'
 
 import { AuthenticationClientFactory } from '@/client/AuthenticationClientFactory'
 import { randombytes_random } from 'sodium-native'
@@ -21,8 +20,10 @@ import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { 
   AuthenticationJwtPayloadType, 
   AuthenticationResponseJwtPayloadType, 
+  Ed25519PublicKey, 
   encryptAndSign, 
   OpenConnectionCallbackJwtPayloadType, 
+  uuidv4Schema, 
   verifyAndDecrypt 
 } from 'shared'
 import { CommunityHandshakeState as DbCommunityHandshakeState, CommunityHandshakeStateType } from 'database'
@@ -42,7 +43,7 @@ async function errorState(
 
 export async function startOpenConnectionCallback(
   handshakeID: string,
-  publicKey: string,
+  publicKey: Ed25519PublicKey,
   api: string,
 ): Promise<void> {
   const methodLogger = createLogger('startOpenConnectionCallback')
@@ -50,8 +51,7 @@ export async function startOpenConnectionCallback(
   methodLogger.debug(`Authentication: startOpenConnectionCallback() with:`, {
     publicKey,
   })
-  const publicKeyBuffer = Buffer.from(publicKey, 'hex')
-  const pendingState = await findPendingCommunityHandshake(publicKeyBuffer, api, false)
+  const pendingState = await findPendingCommunityHandshake(publicKey, api, false)
   if (pendingState) {
     const stateLogic = new CommunityHandshakeStateLogic(pendingState)
     // retry on timeout or failure
@@ -66,7 +66,7 @@ export async function startOpenConnectionCallback(
   try {
     const [homeComB, comA] = await Promise.all([
       getHomeCommunityWithFederatedCommunityOrFail(api),
-      getCommunityWithFederatedCommunityWithApiOrFail(publicKeyBuffer, api),
+      getCommunityWithFederatedCommunityWithApiOrFail(publicKey, api),
     ])
     // load helpers
     const homeComBLogic = new CommunityLogic(homeComB)
@@ -79,7 +79,7 @@ export async function startOpenConnectionCallback(
     const oneTimeCode = randombytes_random()
     const oneTimeCodeString = oneTimeCode.toString()
     
-    state.publicKey = publicKeyBuffer
+    state.publicKey = publicKey.asBuffer()
     state.apiVersion = api
     state.status = CommunityHandshakeStateType.START_OPEN_CONNECTION_CALLBACK
     state.handshakeId = parseInt(handshakeID)
@@ -100,7 +100,7 @@ export async function startOpenConnectionCallback(
       // encrypt callbackArgs with requestedCom.publicJwtKey and sign it with homeCom.privateJwtKey
       const jwt = await encryptAndSign(callbackArgs, homeComB.privateJwtKey!, comA.publicJwtKey!)
       const args = new EncryptedTransferArgs()
-      args.publicKey = homeComB.publicKey.toString('hex')
+      args.publicKey = new Ed25519PublicKey(homeComB.publicKey).asHex()
       args.jwt = jwt
       args.handshakeID = handshakeID
       await stateSaveResolver
@@ -140,21 +140,25 @@ export async function startAuthentication(
   })
   let state: DbCommunityHandshakeState | null = null
   let stateSaveResolver: Promise<DbCommunityHandshakeState> | undefined = undefined
+  const fedComBPublicKey = new Ed25519PublicKey(fedComB.publicKey)
   try {
     const homeComA = await getHomeCommunity()
     const comB = await DbCommunity.findOneByOrFail({
       foreign: true,
-      publicKey: fedComB.publicKey,
+      publicKey: fedComBPublicKey.asBuffer(),
     })
     if (!comB.publicJwtKey) {
       throw new Error('Public JWT key still not exist for foreign community')
     }
-    state = await findPendingCommunityHandshake(fedComB.publicKey, fedComB.apiVersion, false)
+    state = await findPendingCommunityHandshake(fedComBPublicKey, fedComB.apiVersion, false)
     if (!state) {
       throw new Error('No pending community handshake found')
     }
     const stateLogic = new CommunityHandshakeStateLogic(state)
-    if (await stateLogic.isTimeoutUpdate() || state.status !== CommunityHandshakeStateType.START_COMMUNITY_AUTHENTICATION) {
+    if (
+      await stateLogic.isTimeoutUpdate() || 
+      state.status !== CommunityHandshakeStateType.START_COMMUNITY_AUTHENTICATION
+    ) {
       methodLogger.debug('invalid state', new CommunityHandshakeStateLoggingView(state))
       throw new Error('No valid pending community handshake found')
     }
@@ -168,7 +172,7 @@ export async function startAuthentication(
       // encrypt authenticationArgs.uuid with fedComB.publicJwtKey and sign it with homeCom.privateJwtKey
       const jwt = await encryptAndSign(authenticationArgs, homeComA!.privateJwtKey!, comB.publicJwtKey!)
       const args = new EncryptedTransferArgs()
-      args.publicKey = homeComA!.publicKey.toString('hex')
+      args.publicKey = new Ed25519PublicKey(homeComA!.publicKey).asHex()
       args.jwt = jwt
       args.handshakeID = handshakeID
       methodLogger.debug(`invoke authenticate() with:`, args)
@@ -183,10 +187,10 @@ export async function startAuthentication(
           new FederatedCommunityLoggingView(fedComB),
         )
         if (payload.tokentype !== AuthenticationResponseJwtPayloadType.AUTHENTICATION_RESPONSE_TYPE) {
-          throw new Error(`Invalid tokentype in authenticate-response of community with publicKey ${comB.publicKey}`)
+          throw new Error(`Invalid tokentype in authenticate-response of community with publicKey ${fedComBPublicKey.asHex()}`)
         }
-        if (!payload.uuid || !validateUUID(payload.uuid) || versionUUID(payload.uuid) !== 4) {
-          throw new Error(`Invalid uuid in authenticate-response of community with publicKey ${comB.publicKey}`)
+        if (!uuidv4Schema.safeParse(payload.uuid).success) {
+          throw new Error(`Invalid uuid in authenticate-response of community with publicKey ${fedComBPublicKey.asHex()}`)
         }
         comB.communityUuid = payload.uuid
         comB.authenticatedAt = new Date()
