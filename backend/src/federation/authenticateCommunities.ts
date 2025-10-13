@@ -59,7 +59,7 @@ export async function startCommunityAuthentication(
   if (existingState) {
     const stateLogic = new CommunityHandshakeStateLogic(existingState)
     // retry on timeout or failure
-    if (!await stateLogic.isTimeoutUpdate()) {
+    if (!(await stateLogic.isTimeoutUpdate())) {
       // authentication with community and api version is still in progress and it is not timeout yet
       methodLogger.debug('existingState, so we exit here', new CommunityHandshakeStateLoggingView(existingState))
       return
