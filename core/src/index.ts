@@ -22,4 +22,5 @@ export * from './util/calculateSenderBalance'
 export * from './util/utilities'
 export * from './validation/user'
 export * from './config/index'
+export * from './logic'
 

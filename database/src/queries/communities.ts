@@ -10,7 +10,14 @@ export async function getHomeCommunity(): Promise<DbCommunity | null> {
   // TODO: Put in Cache, it is needed nearly always
   // TODO: return only DbCommunity or throw to reduce unnecessary checks, because there should be always a home community
   return await DbCommunity.findOne({
-    where: { foreign: false },
+    where: { foreign: false }
+  })
+}
+
+export async function getHomeCommunityWithFederatedCommunityOrFail(apiVersion: string): Promise<DbCommunity> {
+  return await DbCommunity.findOneOrFail({
+    where: { foreign: false, federatedCommunities: { apiVersion } },
+    relations: { federatedCommunities: true },
   })
 }
 

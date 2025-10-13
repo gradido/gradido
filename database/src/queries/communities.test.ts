@@ -1,6 +1,6 @@
 import { Community as DbCommunity, FederatedCommunity as DbFederatedCommunity } from '..'
 import { AppDatabase } from '../AppDatabase'
-import { getHomeCommunity, getReachableCommunities } from './communities'
+import { getHomeCommunity, getHomeCommunityWithFederatedCommunityOrFail, getReachableCommunities } from './communities'
 import { describe, expect, it, beforeEach, beforeAll, afterAll } from 'vitest'
 import { createCommunity, createVerifiedFederatedCommunity } from '../seeds/community'
 
@@ -37,6 +37,24 @@ describe('community.queries', () => {
       expect(community?.foreign).toBe(homeCom.foreign)
       expect(community?.publicKey).toStrictEqual(homeCom.publicKey)
       expect(community?.privateKey).toStrictEqual(homeCom.privateKey)
+    })
+  })
+  describe('getHomeCommunityWithFederatedCommunityOrFail', () => {
+    it('should return the home community with federated communities', async () => {
+      const homeCom = await createCommunity(false)
+      await createVerifiedFederatedCommunity('1_0', 100, homeCom)
+      const community = await getHomeCommunityWithFederatedCommunityOrFail('1_0')      
+      expect(community).toBeDefined()
+      expect(community?.federatedCommunities).toHaveLength(1)
+    })
+
+    it('should throw if no home community exists', async () => {
+      expect(() => getHomeCommunityWithFederatedCommunityOrFail('1_0')).rejects.toThrow()
+    })
+
+    it('should throw if no federated community exists', async () => {
+      await createCommunity(false)
+      expect(() => getHomeCommunityWithFederatedCommunityOrFail('1_0')).rejects.toThrow()
     })
   })
   describe('getReachableCommunities', () => {  

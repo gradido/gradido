@@ -16,10 +16,13 @@ export class CommunityHandshakeState extends BaseEntity {
   @Column({ name: 'public_key', type: 'binary', length: 32 })
   publicKey: Buffer
 
+  @Column({ name: 'api_version', type: 'varchar', length: 255 })
+  apiVersion: string
+
   @Column({
     type: 'varchar',
     length: 255,
-    default: CommunityHandshakeStateType.OPEN_CONNECTION,
+    default: CommunityHandshakeStateType.START_COMMUNITY_AUTHENTICATION,
     nullable: false,
   })
   status: CommunityHandshakeStateType

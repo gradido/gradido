@@ -19,6 +19,7 @@ import { UserRole } from './UserRole'
 
 export {
   Community,
+  CommunityHandshakeState,
   Contribution,
   ContributionLink,
   ContributionMessage,
@@ -26,8 +27,7 @@ export {
   Event,
   FederatedCommunity,
   LoginElopageBuys,
-  Migration,
-  CommunityHandshakeState,
+  Migration,  
   ProjectBranding,
   OpenaiThreads,
   PendingTransaction,
@@ -40,6 +40,7 @@ export {
 
 export const entities = [
   Community,
+  CommunityHandshakeState,
   Contribution,
   ContributionLink,
   ContributionMessage,
@@ -48,7 +49,6 @@ export const entities = [
   FederatedCommunity,
   LoginElopageBuys,
   Migration,
-  CommunityHandshakeState,
   ProjectBranding,
   OpenaiThreads,
   PendingTransaction,
