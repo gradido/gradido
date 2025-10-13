@@ -60,5 +60,6 @@ export const entities = [
 export { latestDbVersion }
 export * from './logging'
 export * from './queries'
-export * from './util'
+export * from './util'  
+export * from './enum'
 export { AppDatabase } from './AppDatabase'
