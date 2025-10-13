@@ -38,7 +38,7 @@
     "@types/uuid": "^8.3.4",
     "config-schema": "*",
     "database": "*",
-    "dotenv": "^17.2.3",
+    "dotenv": "^10.0.0",
     "esbuild": "^0.25.3",
     "jest": "27.5.1",
     "joi": "17.13.3",

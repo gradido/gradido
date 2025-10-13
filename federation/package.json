@@ -47,7 +47,7 @@
     "cors": "2.8.5",
     "database": "*",
     "decimal.js-light": "^2.5.1",
-    "dotenv": "^17.2.3",
+    "dotenv": "^10.0.0",
     "esbuild": "^0.25.3",
     "express": "^4.17.21",
     "express-slow-down": "^2.0.1",
