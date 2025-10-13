@@ -55,7 +55,7 @@ export async function startOpenConnectionCallback(
   if (pendingState) {
     const stateLogic = new CommunityHandshakeStateLogic(pendingState)
     // retry on timeout or failure
-    if (!await stateLogic.isTimeoutUpdate()) {
+    if (!(await stateLogic.isTimeoutUpdate())) {
       // authentication with community and api version is still in progress and it is not timeout yet
       methodLogger.debug('existingState, so we exit here', new CommunityHandshakeStateLoggingView(pendingState))
       return
@@ -156,7 +156,7 @@ export async function startAuthentication(
     }
     const stateLogic = new CommunityHandshakeStateLogic(state)
     if (
-      await stateLogic.isTimeoutUpdate() || 
+      (await stateLogic.isTimeoutUpdate()) || 
       state.status !== CommunityHandshakeStateType.START_COMMUNITY_AUTHENTICATION
     ) {
       methodLogger.debug('invalid state', new CommunityHandshakeStateLoggingView(state))

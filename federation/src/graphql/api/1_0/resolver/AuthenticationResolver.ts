@@ -144,7 +144,7 @@ export class AuthenticationResolver {
       state = await findPendingCommunityHandshakeOrFailByOneTimeCode(validOneTimeCode.data)
       const stateLogic = new CommunityHandshakeStateLogic(state)
       if (
-        await stateLogic.isTimeoutUpdate() || 
+        (await stateLogic.isTimeoutUpdate()) || 
         state.status !== CommunityHandshakeStateType.START_OPEN_CONNECTION_CALLBACK
       ) {
         throw new Error('No valid pending community handshake found')
