@@ -57,7 +57,7 @@ export async function startOpenConnectionCallback(
     // retry on timeout or failure
     if (!await stateLogic.isTimeoutUpdate()) {
       // authentication with community and api version is still in progress and it is not timeout yet
-      methodLogger.debug('existingState', new CommunityHandshakeStateLoggingView(pendingState))
+      methodLogger.debug('existingState, so we exit here', new CommunityHandshakeStateLoggingView(pendingState))
       return
     }
   }
