@@ -56,7 +56,7 @@
         "@vue/test-utils": "^2.4.6",
         "config-schema": "*",
         "cross-env": "^7.0.3",
-        "dotenv": "^17.2.3",
+        "dotenv": "^10.0.0",
         "dotenv-webpack": "^7.0.3",
         "eslint": "8.57.1",
         "eslint-config-prettier": "^10.1.1",
@@ -120,7 +120,7 @@
         "cors": "^2.8.5",
         "database": "*",
         "decimal.js-light": "^2.5.1",
-        "dotenv": "^17.2.3",
+        "dotenv": "^10.0.0",
         "esbuild": "^0.25.2",
         "express": "^4.17.21",
         "express-slow-down": "^2.0.1",
@@ -201,7 +201,7 @@
         "@types/sodium-native": "^2.3.5",
         "config-schema": "*",
         "decimal.js-light": "^2.5.1",
-        "dotenv": "^17.2.3",
+        "dotenv": "^10.0.0",
         "graphql-request": "5.0.0",
         "jest": "27.2.4",
         "type-graphql": "^1.1.1",
@@ -215,7 +215,7 @@
         "@types/uuid": "^8.3.4",
         "cross-env": "^7.0.3",
         "decimal.js-light": "^2.5.1",
-        "dotenv": "^17.2.3",
+        "dotenv": "^10.0.0",
         "esbuild": "^0.25.2",
         "geojson": "^0.5.0",
         "joi-extract-type": "^15.0.8",
@@ -273,7 +273,7 @@
         "@types/uuid": "^8.3.4",
         "config-schema": "*",
         "database": "*",
-        "dotenv": "^17.2.3",
+        "dotenv": "^10.0.0",
         "esbuild": "^0.25.3",
         "jest": "27.5.1",
         "joi": "^17.13.3",
@@ -318,7 +318,7 @@
         "cors": "2.8.5",
         "database": "*",
         "decimal.js-light": "^2.5.1",
-        "dotenv": "^17.2.3",
+        "dotenv": "^10.0.0",
         "esbuild": "^0.25.3",
         "express": "^4.17.21",
         "express-slow-down": "^2.0.1",
@@ -408,7 +408,7 @@
         "concurrently": "^9.1.2",
         "config-schema": "*",
         "cross-env": "^7.0.3",
-        "dotenv": "^17.2.3",
+        "dotenv": "^10.0.0",
         "dotenv-webpack": "^7.0.3",
         "eslint": "8.57.1",
         "eslint-config-prettier": "^10.1.1",
@@ -1747,7 +1747,7 @@
 
     "dot-case": ["dot-case@3.0.4", "", { "dependencies": { "no-case": "^3.0.4", "tslib": "^2.0.3" } }, "sha512-Kv5nKlh6yRrdrGvxeJ2e5y2eRUpkUosIW4A2AS38zwSz27zu7ufDwQPi5Jhs3XAlGNetl3bmnGhQsMtkKJnj3w=="],
 
-    "dotenv": ["dotenv@17.2.3", "", {}, "sha512-JVUnt+DUIzu87TABbhPmNfVdBDt18BLOWjMUFJMSi/Qqg7NTYtabbvSNJGOJ7afbRuv9D/lngizHtP7QyLQ+9w=="],
+    "dotenv": ["dotenv@10.0.0", "", {}, "sha512-rlBi9d8jpv9Sf1klPjNfFAuWDjKLwTIJJ/VxtoTwIR6hnZxcEOQCZg2oIL3MWBYw5GpUDKOEnND7LXTbIpQ03Q=="],
 
     "dotenv-defaults": ["dotenv-defaults@2.0.2", "", { "dependencies": { "dotenv": "^8.2.0" } }, "sha512-iOIzovWfsUHU91L5i8bJce3NYK5JXeAwH50Jh6+ARUdLiiGlYWfGw6UkzsYqaXZH/hjE/eCd/PlfM/qqyK0AMg=="],
 
@@ -3554,8 +3554,6 @@
     "@types/cookies/@types/node": ["@types/node@18.19.96", "", { "dependencies": { "undici-types": "~5.26.4" } }, "sha512-PzBvgsZ7YdFs/Kng1BSW8IGv68/SPcOxYYhT7luxD7QyzIhFS1xPTpfK3K9eHBa7hVwlW+z8nN0mOd515yaduQ=="],
 
     "@types/cors/@types/node": ["@types/node@18.19.96", "", { "dependencies": { "undici-types": "~5.26.4" } }, "sha512-PzBvgsZ7YdFs/Kng1BSW8IGv68/SPcOxYYhT7luxD7QyzIhFS1xPTpfK3K9eHBa7hVwlW+z8nN0mOd515yaduQ=="],
-
-    "@types/dotenv/dotenv": ["dotenv@10.0.0", "", {}, "sha512-rlBi9d8jpv9Sf1klPjNfFAuWDjKLwTIJJ/VxtoTwIR6hnZxcEOQCZg2oIL3MWBYw5GpUDKOEnND7LXTbIpQ03Q=="],
 
     "@types/express-serve-static-core/@types/node": ["@types/node@18.19.96", "", { "dependencies": { "undici-types": "~5.26.4" } }, "sha512-PzBvgsZ7YdFs/Kng1BSW8IGv68/SPcOxYYhT7luxD7QyzIhFS1xPTpfK3K9eHBa7hVwlW+z8nN0mOd515yaduQ=="],
 
