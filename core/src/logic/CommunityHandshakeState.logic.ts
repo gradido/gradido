@@ -21,7 +21,7 @@ export class CommunityHandshakeStateLogic {
     if (this.self.status === CommunityHandshakeStateType.EXPIRED) {
       return true
     }
-    if (Date.now() - this.self.updatedAt.getTime() > FEDERATION_AUTHENTICATION_TIMEOUT_MS) {
+    if ((Date.now() - this.self.updatedAt.getTime()) > FEDERATION_AUTHENTICATION_TIMEOUT_MS) {
       return true
     }
     return false
