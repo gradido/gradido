@@ -5,10 +5,12 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm'
 import { Community } from './Community'
+import { CommunityHandshakeState } from './CommunityHandshakeState'
 
 @Entity('federated_communities')
 export class FederatedCommunity extends BaseEntity {
@@ -60,4 +62,8 @@ export class FederatedCommunity extends BaseEntity {
   )
   @JoinColumn({ name: 'public_key', referencedColumnName: 'publicKey' })
   community?: Community
+
+  @OneToMany(() => CommunityHandshakeState, (communityHandshakeState) => communityHandshakeState.federatedCommunity)
+  @JoinColumn({ name: 'public_key', referencedColumnName: 'publicKey' })
+  communityHandshakeStates: CommunityHandshakeState[]
 }
