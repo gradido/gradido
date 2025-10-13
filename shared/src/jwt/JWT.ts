@@ -43,11 +43,9 @@ export const verify = async (handshakeID: string, token: string, publicKey: stri
     })
     payload.handshakeID = handshakeID
     methodLogger.debug('verify after jwtVerify... payload=', payload)
-    methodLogger.removeContext('handshakeID')
     return payload as JwtPayloadType
   } catch (err) {
     methodLogger.error('verify after jwtVerify... error=', err)
-    methodLogger.removeContext('handshakeID')
     return null
   }
 }
@@ -74,11 +72,9 @@ export const encode = async (payload: JwtPayloadType, privatekey: string): Promi
       .setExpirationTime(payload.expiration)
       .sign(secret)
     methodLogger.debug('encode... token=', token)
-    methodLogger.removeContext('handshakeID')
     return token
   } catch (e) {
     methodLogger.error('Failed to sign JWT:', e)
-    methodLogger.removeContext('handshakeID')
     throw e
   }
 }
@@ -111,11 +107,9 @@ export const encrypt = async (payload: JwtPayloadType, publicKey: string): Promi
       .setProtectedHeader({ alg: 'RSA-OAEP-256', enc: 'A256GCM' })
       .encrypt(recipientKey)
     methodLogger.debug('encrypt... jwe=', jwe)
-    methodLogger.removeContext('handshakeID')
     return jwe.toString()
   } catch (e) {
     methodLogger.error('Failed to encrypt JWT:', e)
-    methodLogger.removeContext('handshakeID')
     throw e
   }
 }
@@ -131,11 +125,9 @@ export const decrypt = async(handshakeID: string, jwe: string, privateKey: strin
       await compactDecrypt(jwe, decryptKey)
     methodLogger.debug('decrypt... plaintext=', plaintext)
     methodLogger.debug('decrypt... protectedHeader=', protectedHeader)
-    methodLogger.removeContext('handshakeID')
     return new TextDecoder().decode(plaintext)
   } catch (e) {
     methodLogger.error('Failed to decrypt JWT:', e)
-    methodLogger.removeContext('handshakeID')
     throw e
   }
 }
@@ -147,7 +139,6 @@ export const encryptAndSign = async (payload: JwtPayloadType, privateKey: string
   methodLogger.debug('encryptAndSign... jwe=', jwe)
   const jws = await encode(new EncryptedJWEJwtPayloadType(payload.handshakeID, jwe), privateKey)
   methodLogger.debug('encryptAndSign... jws=', jws)
-  methodLogger.removeContext('handshakeID')
   return jws
 }
 
@@ -171,6 +162,5 @@ export const verifyAndDecrypt = async (handshakeID: string, token: string, priva
   methodLogger.debug('verifyAndDecrypt... jwe=', jwe)
   const payload = await decrypt(handshakeID, jwe as string, privateKey)
   methodLogger.debug('verifyAndDecrypt... payload=', payload)
-  methodLogger.removeContext('handshakeID')
   return JSON.parse(payload) as JwtPayloadType
 }

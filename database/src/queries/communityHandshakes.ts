@@ -23,3 +23,13 @@ export function findPendingCommunityHandshake(
     relations: withRelations ? { federatedCommunity: { community: true } } : undefined,
   })
 }
+
+export function findPendingCommunityHandshakeOrFailByOneTimeCode(
+  oneTimeCode: number
+): Promise<CommunityHandshakeState> {
+  return CommunityHandshakeState.findOneOrFail({
+    where: { oneTimeCode },
+    relations: { federatedCommunity: { community: true } },
+  })
+}
+  

@@ -100,7 +100,7 @@ export async function startCommunityAuthentication(
       methodLogger.error(errorMsg)
       state.status = CommunityHandshakeStateType.FAILED
       state.lastError = errorMsg
-      await state.save()
     }
+    await state.save()
   }
 }

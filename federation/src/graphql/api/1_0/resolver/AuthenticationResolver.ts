@@ -1,12 +1,17 @@
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { EncryptedTransferArgs, interpretEncryptedTransferArgs } from 'core'
+import { CommunityHandshakeStateLogic, EncryptedTransferArgs, interpretEncryptedTransferArgs, splitUrlInEndPointAndApiVersion } from 'core'
 import {
   CommunityLoggingView,
+  CommunityHandshakeStateLoggingView,
+  CommunityHandshakeState as DbCommunityHandshakeState,
+  CommunityHandshakeStateType,
   Community as DbCommunity,
   FederatedCommunity as DbFedCommunity,
   FederatedCommunityLoggingView,
   getHomeCommunity,
+  findPendingCommunityHandshake,
+  findPendingCommunityHandshakeOrFailByOneTimeCode,
 } from 'database'
 import { getLogger } from 'log4js'
 import { 
@@ -93,9 +98,7 @@ export class AuthenticationResolver {
         // no infos to the caller
         return true
       }
-
-      const endPoint = openConnectionCallbackJwtPayload.url.slice(0, openConnectionCallbackJwtPayload.url.lastIndexOf('/') + 1)
-      const apiVersion = openConnectionCallbackJwtPayload.url.slice(openConnectionCallbackJwtPayload.url.lastIndexOf('/') + 1, openConnectionCallbackJwtPayload.url.length)
+      const { endPoint, apiVersion } = splitUrlInEndPointAndApiVersion(openConnectionCallbackJwtPayload.url)
       methodLogger.debug(`search fedComB per:`, endPoint, apiVersion)
       const fedComB = await DbFedCommunity.findOneBy({ endPoint, apiVersion })
       if (!fedComB) {
@@ -126,45 +129,47 @@ export class AuthenticationResolver {
     const methodLogger = createLogger('authenticate')
     methodLogger.addContext('handshakeID', args.handshakeID)
     methodLogger.debug(`authenticate() via apiVersion=1_0 ...`, args)
+    let state: DbCommunityHandshakeState | null = null
+    let stateSaveResolver: Promise<DbCommunityHandshakeState> | undefined = undefined
     try {
       const authArgs = await interpretEncryptedTransferArgs(args) as AuthenticationJwtPayloadType
       methodLogger.debug(`interpreted authentication payload...authArgs:`, authArgs)
       if (!authArgs) {
-        const errmsg = `invalid authentication payload of requesting community with publicKey` + args.publicKey
-        methodLogger.error(errmsg)
-        // no infos to the caller
-        return null
+        throw new Error(`invalid authentication payload of requesting community with publicKey ${args.publicKey}`)
       }
 
       if (!uint32Schema.safeParse(Number(authArgs.oneTimeCode)).success) {
-        const errmsg = `invalid oneTimeCode: ${authArgs.oneTimeCode} for community with publicKey ${authArgs.publicKey}, expect uint32`
-        methodLogger.error(errmsg)
-        // no infos to the caller
-        return null
+        throw new Error(
+          `invalid oneTimeCode: ${authArgs.oneTimeCode} for community with publicKey ${authArgs.publicKey}, expect uint32`
+        )
       }
 
+      state = await findPendingCommunityHandshakeOrFailByOneTimeCode(Number(authArgs.oneTimeCode))
+      const stateLogic = new CommunityHandshakeStateLogic(state)
+      if (await stateLogic.isTimeoutUpdate() || state.status !== CommunityHandshakeStateType.START_OPEN_CONNECTION_CALLBACK) {
+        throw new Error('No valid pending community handshake found')
+      }
+      state.status = CommunityHandshakeStateType.SUCCESS
+      stateSaveResolver = state.save()
+
       methodLogger.debug(`search community per oneTimeCode:`, authArgs.oneTimeCode)
-      const authCom = await DbCommunity.findOneByOrFail({ communityUuid: authArgs.oneTimeCode })
+      const authCom = state.federatedCommunity.community
       if (authCom) {
         methodLogger.debug('found authCom:', new CommunityLoggingView(authCom))
         methodLogger.debug('authCom.publicKey', authCom.publicKey.toString('hex'))
         methodLogger.debug('args.publicKey', args.publicKey)
         if (authCom.publicKey.compare(Buffer.from(args.publicKey, 'hex')) !== 0) {
-          const errmsg = `corrupt authentication call detected, oneTimeCode: ${authArgs.oneTimeCode} doesn't belong to caller: ${args.publicKey}`
-          methodLogger.error(errmsg)
-          // no infos to the caller
-          return null
+          throw new Error(
+            `corrupt authentication call detected, oneTimeCode: ${authArgs.oneTimeCode} doesn't belong to caller: ${args.publicKey}`
+          )
         }
         const communityUuid = uuidv4Schema.safeParse(authArgs.uuid)
         if (!communityUuid.success) {
-          const errmsg = `invalid uuid: ${authArgs.uuid} for community with publicKey ${authCom.publicKey}`
-          methodLogger.error(errmsg)
-          // no infos to the caller
-          return null
+          throw new Error(`invalid uuid: ${authArgs.uuid} for community with publicKey ${authCom.publicKey}`)
         }
         authCom.communityUuid = communityUuid.data
         authCom.authenticatedAt = new Date()
-        await DbCommunity.save(authCom)
+        await authCom.save()
         methodLogger.debug('store authCom.uuid successfully:', new CommunityLoggingView(authCom))
         const homeComB = await getHomeCommunity()
         if (homeComB?.communityUuid) {
@@ -175,8 +180,26 @@ export class AuthenticationResolver {
       }
       return null
     } catch (err) {
-      methodLogger.error('invalid jwt token:', err)
+      let errorString = ''
+      if (err instanceof Error) {
+        errorString = err.message
+      } else {
+        errorString = String(err)
+      }
+      if (state) {
+        methodLogger.info(`state: ${new CommunityHandshakeStateLoggingView(state)}`)
+        state.status = CommunityHandshakeStateType.FAILED
+        state.lastError = errorString
+        stateSaveResolver = state.save()
+      }
+      methodLogger.error(`failed: ${errorString}`)
+      // no infos to the caller
       return null
+    } finally {
+      if (stateSaveResolver) {
+        await stateSaveResolver
+      }
     }
+
   }
 }

@@ -132,12 +132,14 @@ export async function startAuthentication(
   oneTimeCode: string,
   fedComB: DbFedCommunity,
 ): Promise<void> {
-  const methodLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.api.1_0.util.authenticateCommunity.startAuthentication`)
+  const methodLogger = createLogger('startAuthentication')
   methodLogger.addContext('handshakeID', handshakeID)
   methodLogger.debug(`startAuthentication()...`, {
     oneTimeCode,
     fedComB: new FederatedCommunityLoggingView(fedComB),
   })
+  let state: DbCommunityHandshakeState | null = null
+  let stateSaveResolver: Promise<DbCommunityHandshakeState> | undefined = undefined
   try {
     const homeComA = await getHomeCommunity()
     const comB = await DbCommunity.findOneByOrFail({
@@ -147,6 +149,17 @@ export async function startAuthentication(
     if (!comB.publicJwtKey) {
       throw new Error('Public JWT key still not exist for foreign community')
     }
+    state = await findPendingCommunityHandshake(fedComB.publicKey, fedComB.apiVersion, false)
+    if (!state) {
+      throw new Error('No pending community handshake found')
+    }
+    const stateLogic = new CommunityHandshakeStateLogic(state)
+    if (await stateLogic.isTimeoutUpdate() || state.status !== CommunityHandshakeStateType.START_COMMUNITY_AUTHENTICATION) {
+      methodLogger.debug('invalid state', new CommunityHandshakeStateLoggingView(state))
+      throw new Error('No valid pending community handshake found')
+    }
+    state.status = CommunityHandshakeStateType.START_AUTHENTICATION
+    stateSaveResolver = state.save()
 
     const client = AuthenticationClientFactory.getInstance(fedComB)
 
@@ -161,6 +174,7 @@ export async function startAuthentication(
       methodLogger.debug(`invoke authenticate() with:`, args)
       const responseJwt = await client.authenticate(args)
       methodLogger.debug(`response of authenticate():`, responseJwt)
+
       if (responseJwt !== null) {
         const payload = await verifyAndDecrypt(handshakeID, responseJwt, homeComA!.privateJwtKey!, comB.publicJwtKey!) as AuthenticationResponseJwtPayloadType
         methodLogger.debug(
@@ -169,27 +183,40 @@ export async function startAuthentication(
           new FederatedCommunityLoggingView(fedComB),
         )
         if (payload.tokentype !== AuthenticationResponseJwtPayloadType.AUTHENTICATION_RESPONSE_TYPE) {
-          const errmsg = `Invalid tokentype in authenticate-response of community with publicKey` + comB.publicKey
-          methodLogger.error(errmsg)
-          methodLogger.removeContext('handshakeID')
-          throw new Error(errmsg)
+          throw new Error(`Invalid tokentype in authenticate-response of community with publicKey ${comB.publicKey}`)
         }
         if (!payload.uuid || !validateUUID(payload.uuid) || versionUUID(payload.uuid) !== 4) {
-          const errmsg = `Invalid uuid in authenticate-response of community with publicKey` + comB.publicKey
-          methodLogger.error(errmsg)
-          methodLogger.removeContext('handshakeID')
-          throw new Error(errmsg)
+          throw new Error(`Invalid uuid in authenticate-response of community with publicKey ${comB.publicKey}`)
         }
         comB.communityUuid = payload.uuid
         comB.authenticatedAt = new Date()
-        await DbCommunity.save(comB)
+        await DbCommunity.save(comB)        
+        state.status = CommunityHandshakeStateType.SUCCESS
+        stateSaveResolver = state.save()
         methodLogger.debug('Community Authentication successful:', new CommunityLoggingView(comB))
       } else {
+        state.status = CommunityHandshakeStateType.FAILED
+        state.lastError = 'Community Authentication failed, empty response'
+        stateSaveResolver = state.save()
         methodLogger.error('Community Authentication failed:', authenticationArgs)
       }
     }
   } catch (err) {
-    methodLogger.error('error in startAuthentication:', err)
+    let errorString: string = ''
+    if (err instanceof Error) {
+      errorString = err.message
+    } else {
+      errorString = String(err)
+    }
+    if (state) {
+      state.status = CommunityHandshakeStateType.FAILED
+      state.lastError = errorString
+      stateSaveResolver = state.save()
+    }
+    methodLogger.error('error in startAuthentication:', errorString)
+  } finally {
+    if (stateSaveResolver) {
+      await stateSaveResolver
+    }
   }
-  methodLogger.removeContext('handshakeID')
 }
