@@ -63,29 +63,28 @@ export async function startCommunityAuthentication(
   // check if a authentication is already in progress
   const existingState = await findPendingCommunityHandshake(fedComB, false)
   if (existingState) {
-    const logic = new CommunityHandshakeStateLogic(existingState)
-    if (!await logic.isTimeoutUpdate()) {
+    const stateLogic = new CommunityHandshakeStateLogic(existingState)
+    // retry on timeout or failure
+    if (!await stateLogic.isTimeoutUpdate()) {
       // authentication with community and api version is still in progress and it is not timeout yet
       methodLogger.debug('existingState', new CommunityHandshakeStateLoggingView(existingState))
       return
     }
   }
-
-  const state = new DbCommunityHandshakeState()
-  state.publicKey = fedComB.publicKey
-  state.apiVersion = fedComB.apiVersion
-  state.status = CommunityHandshakeStateType.START_COMMUNITY_AUTHENTICATION
-  state.handshakeId = parseInt(handshakeID)
-
+  
   const client = AuthenticationClientFactory.getInstance(fedComB)
 
   if (client instanceof V1_0_AuthenticationClient) {
     if (!comB.publicJwtKey) {
-      state.lastError = 'Public JWT key still not exist for comB ' + comB.name
-      await state.save()
-      throw new Error(state.lastError)
+      throw new Error(`Public JWT key still not exist for comB ${comB.name}`)
     }
+    const state = new DbCommunityHandshakeState()
+    state.publicKey = fedComB.publicKey
+    state.apiVersion = fedComB.apiVersion
+    state.status = CommunityHandshakeStateType.START_COMMUNITY_AUTHENTICATION
+    state.handshakeId = parseInt(handshakeID)
     const stateSaveResolver = state.save()
+
     //create JWT with url in payload encrypted by foreignCom.publicJwtKey and signed with homeCom.privateJwtKey
     const payload = new OpenConnectionJwtPayloadType(handshakeID,
       ensureUrlEndsWithSlash(homeFedComA.endPoint).concat(homeFedComA.apiVersion),
@@ -104,7 +103,11 @@ export async function startCommunityAuthentication(
     if (result) {
       methodLogger.info(`successful initiated at community:`, fedComB.endPoint)
     } else {
-      methodLogger.error(`can't initiate at community:`, fedComB.endPoint)
+      const errorMsg = `can't initiate at community: ${fedComB.endPoint}`
+      methodLogger.error(errorMsg)
+      state.status = CommunityHandshakeStateType.FAILED
+      state.lastError = errorMsg
+      await state.save()
     }
   }
 }

@@ -9,14 +9,25 @@ export class CommunityHandshakeStateLogic {
    * @returns true if the community handshake state is expired
    */
   public async isTimeoutUpdate(): Promise<boolean> {
+    const timeout = this.isTimeout()
+    if (timeout && this.communityHandshakeStateEntity.status !== CommunityHandshakeStateType.EXPIRED) {
+      this.communityHandshakeStateEntity.status = CommunityHandshakeStateType.EXPIRED
+      await this.communityHandshakeStateEntity.save()
+    }
+    return timeout
+  }
+
+  public isTimeout(): boolean {
     if (this.communityHandshakeStateEntity.status === CommunityHandshakeStateType.EXPIRED) {
       return true
     }
     if (Date.now() - this.communityHandshakeStateEntity.updatedAt.getTime() > FEDERATION_AUTHENTICATION_TIMEOUT_MS) {
-      this.communityHandshakeStateEntity.status = CommunityHandshakeStateType.EXPIRED
-      await this.communityHandshakeStateEntity.save()
       return true
     }
     return false
+  }
+
+  public isFailed(): boolean {
+    return this.communityHandshakeStateEntity.status === CommunityHandshakeStateType.FAILED
   }
 }
