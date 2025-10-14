@@ -33,12 +33,13 @@ export async function startCommunityAuthentication(
 ): Promise<StartCommunityAuthenticationResult> {
   const methodLogger = createLogger('startCommunityAuthentication')
   const handshakeID = randombytes_random().toString()
+  const fedComBPublicKey = new Ed25519PublicKey(fedComB.publicKey)
   methodLogger.addContext('handshakeID', handshakeID)
-  methodLogger.debug(`start with public key ${fedComB.publicKey}`)
+  methodLogger.debug(`start with public key ${fedComBPublicKey.asHex()}`)
   const homeComA = await getHomeCommunityWithFederatedCommunityOrFail(fedComB.apiVersion)
   // methodLogger.debug('homeComA', new CommunityLoggingView(homeComA))
   const homeFedComA = getFederatedCommunityWithApiOrFail(homeComA, fedComB.apiVersion)
-  const fedComBPublicKey = new Ed25519PublicKey(fedComB.publicKey)
+  
   const comB = await getCommunityByPublicKeyOrFail(fedComBPublicKey)
   // methodLogger.debug('started with comB:', new CommunityLoggingView(comB))
   // check if communityUuid is not a valid v4Uuid
