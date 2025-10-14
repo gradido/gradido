@@ -51,10 +51,9 @@ export class AuthenticationResolver {
       if (!openConnectionJwtPayload.url) {
         throw new Error(`invalid url of community with publicKey ${argsPublicKey.asHex()}`)
       }
-      methodLogger.debug(`vor DbFedCommunity.findOneByOrFail()...`, { publicKey: argsPublicKey.asHex() })
+      methodLogger.debug(`before DbFedCommunity.findOneByOrFail()...`, { publicKey: argsPublicKey.asHex() })
       const fedComA = await DbFedCommunity.findOneByOrFail({ publicKey: argsPublicKey.asBuffer() })
-      methodLogger.debug(`nach DbFedCommunity.findOneByOrFail()...`, fedComA)
-      methodLogger.debug('fedComA', new FederatedCommunityLoggingView(fedComA))
+      methodLogger.debug(`after DbFedCommunity.findOneByOrFail()...`, new FederatedCommunityLoggingView(fedComA))
       if (!openConnectionJwtPayload.url.startsWith(fedComA.endPoint)) {
         throw new Error(`invalid url of community with publicKey ${argsPublicKey.asHex()}`)
       }

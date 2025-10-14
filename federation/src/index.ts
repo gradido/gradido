@@ -6,6 +6,7 @@ import { getLogger } from 'log4js'
 // config
 import { CONFIG } from './config'
 import { LOG4JS_BASE_CATEGORY_NAME } from './config/const'
+import { onShutdown, ShutdownReason } from 'shared'
 
 async function main() {
   // init logger
@@ -27,6 +28,13 @@ async function main() {
         `GraphIQL available at ${CONFIG.FEDERATION_COMMUNITY_URL}/api/${CONFIG.FEDERATION_API}`,
       )
     }
+    onShutdown(async (reason, details) => {
+      if (ShutdownReason.SIGINT === reason || ShutdownReason.SIGTERM === reason) {
+        logger.info(`graceful shutdown: ${reason}`)
+      } else {
+        logger.error(`crash: ${reason} ${details}`)
+      }
+    })
   })
 }
 

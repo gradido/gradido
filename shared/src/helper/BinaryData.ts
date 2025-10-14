@@ -17,7 +17,13 @@ export class BinaryData {
     }
     logging.debug(`constructor() input type: ${typeof input}`)
     logging.debug(`constructor() input isBuffer: ${Buffer.isBuffer(input)}`)
-    logging.debug(`constructor() input: ${input}`)
+    if (typeof input === 'string') {
+      logging.debug(`constructor() input: ${input}`)
+    } else if (Buffer.isBuffer(input)) {
+      logging.debug(`constructor() input: ${input.toString('hex')}`)
+    } else {
+      logging.debug(`constructor() unexpected input type: ${typeof input}`)
+    }
     if (typeof input === 'string') {
       this.buf = Buffer.from(input, 'hex')
       this.hex = input
@@ -38,6 +44,8 @@ export class BinaryData {
   }
 
   isSame(other: BinaryData): boolean {
+    logging.debug(`isSame() this: ${this.buf}`)
+    logging.debug(`isSame() other: ${other.buf}`)
     return this.buf.compare(other.buf) === 0
   }
 }
