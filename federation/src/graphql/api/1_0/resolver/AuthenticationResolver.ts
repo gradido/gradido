@@ -170,10 +170,12 @@ export class AuthenticationResolver {
             `invalid uuid: ${authArgs.uuid} for community with publicKey ${authComPublicKey.asHex()}`
           )
         }
+        methodLogger.debug('before loading auth community again from db')
         const authComFresh = await getCommunityByPublicKeyOrFail(authComPublicKey)
         authComFresh.communityUuid = communityUuid.data
         authComFresh.authenticatedAt = new Date()
-        methodLogger.debug('try to save: ', authCom)
+        methodLogger.debug('after loading auth community again from db')
+        methodLogger.debug('try to save: ', authComFresh)
         await authComFresh.save().catch((err) => {
           methodLogger.fatal('failed to save authCom:', err)
         })
