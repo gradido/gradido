@@ -35,7 +35,7 @@ async function main() {
       } else {
         const endTime = new Date()
         const duration = endTime.getTime() - startTime.getTime()
-        printServerCrashAsciiArt('Server Crash', `reason: ${reason}`, `duration: ${duration}ms`)
+        printServerCrashAsciiArt('Server Crash', `reason: ${reason}`, `server was ${duration}ms online`)
         logger.error(error)
       }
     })
