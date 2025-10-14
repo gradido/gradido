@@ -10,7 +10,7 @@ import {
   FederatedCommunityLoggingView,
   getHomeCommunity,
   findPendingCommunityHandshakeOrFailByOneTimeCode,
-  getCommunityByPublicKeyOrFail,
+  Community as DbCommunity,
 } from 'database'
 import { getLogger } from 'log4js'
 import { 
@@ -170,16 +170,20 @@ export class AuthenticationResolver {
             `invalid uuid: ${authArgs.uuid} for community with publicKey ${authComPublicKey.asHex()}`
           )
         }
-        methodLogger.debug('before loading auth community again from db')
-        const authComFresh = await getCommunityByPublicKeyOrFail(argsPublicKey)
-        authComFresh.communityUuid = communityUuid.data
-        authComFresh.authenticatedAt = new Date()
-        methodLogger.debug('after loading auth community again from db')
-        methodLogger.debug('try to save: ', authComFresh)
-        await authComFresh.save().catch((err) => {
-          methodLogger.fatal('failed to save authCom:', err)
-        })
-        methodLogger.debug('store authCom.uuid successfully:', new CommunityLoggingView(authCom))
+        methodLogger.debug('before updating auth community again from db')
+        // need to use query builder, loading from db, changing and save lead to server crash with this error:
+        // TypeError [ERR_INVALID_ARG_TYPE]: The "otherBuffer" argument must be of type Buffer or Uint8Array. Received an instance of Object
+        // seems to be a typeorm problem with Buffer, even if I give a freshly created Buffer for public_key
+        await DbCommunity.createQueryBuilder()
+          .update(DbCommunity)
+          .set({
+            communityUuid: communityUuid.data,
+            authenticatedAt: new Date(),
+          })
+          .where({ id: authCom.id })
+          .execute()
+        methodLogger.debug('update authCom.uuid successfully')    
+
         const homeComB = await getHomeCommunity()
         if (homeComB?.communityUuid) {
           const responseArgs = new AuthenticationResponseJwtPayloadType(args.handshakeID,homeComB.communityUuid)

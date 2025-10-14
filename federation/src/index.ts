@@ -6,9 +6,10 @@ import { getLogger } from 'log4js'
 // config
 import { CONFIG } from './config'
 import { LOG4JS_BASE_CATEGORY_NAME } from './config/const'
-import { onShutdown, ShutdownReason } from 'shared'
+import { onShutdown, printServerCrashAsciiArt, ShutdownReason } from 'shared'
 
 async function main() {
+  const startTime = new Date()
   // init logger
   const log4jsConfigFileName = CONFIG.LOG4JS_CONFIG_PLACEHOLDER.replace('%v', CONFIG.FEDERATION_API)
   initLogger(
@@ -32,7 +33,10 @@ async function main() {
       if (ShutdownReason.SIGINT === reason || ShutdownReason.SIGTERM === reason) {
         logger.info(`graceful shutdown: ${reason}`)
       } else {
-        logger.error(`crash: ${reason}`, error)
+        const endTime = new Date()
+        const duration = endTime.getTime() - startTime.getTime()
+        printServerCrashAsciiArt(logger, `reason: ${reason}`, `duration: ${duration}ms`, '')
+        logger.error(error)
       }
     })
   })

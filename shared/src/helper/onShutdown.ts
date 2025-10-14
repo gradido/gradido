@@ -1,3 +1,5 @@
+import { Logger } from "log4js"
+
 export enum ShutdownReason {
   SIGINT = 'SIGINT',
   SIGTERM = 'SIGTERM',
@@ -38,6 +40,11 @@ export function onShutdown(shutdownHandler: (reason: ShutdownReason, error?: Err
       process.emit("SIGINT" as any)
     })
   }
+}
 
-  
+export function printServerCrashAsciiArt(logger: Logger, msg1: string, msg2: string, msg3: string) {
+  logger.error(` /\\_/\\ ${msg1}`)
+  logger.error(`( x.x )  ${msg2}`)
+  logger.error(`>   <   ${msg3}`)
+  logger.error('')
 }
