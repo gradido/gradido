@@ -10,6 +10,7 @@ import {
   FederatedCommunityLoggingView,
   getHomeCommunity,
   findPendingCommunityHandshakeOrFailByOneTimeCode,
+  getCommunityByPublicKeyOrFail,
 } from 'database'
 import { getLogger } from 'log4js'
 import { 
@@ -169,11 +170,13 @@ export class AuthenticationResolver {
             `invalid uuid: ${authArgs.uuid} for community with publicKey ${authComPublicKey.asHex()}`
           )
         }
-        authCom.publicKey = authComPublicKey.asBuffer()
-        authCom.communityUuid = communityUuid.data
-        authCom.authenticatedAt = new Date()
+        const authComFresh = await getCommunityByPublicKeyOrFail(authComPublicKey)
+        authComFresh.communityUuid = communityUuid.data
+        authComFresh.authenticatedAt = new Date()
         methodLogger.debug('try to save: ', authCom)
-        await authCom.save()
+        await authComFresh.save().catch((err) => {
+          methodLogger.fatal('failed to save authCom:', err)
+        })
         methodLogger.debug('store authCom.uuid successfully:', new CommunityLoggingView(authCom))
         const homeComB = await getHomeCommunity()
         if (homeComB?.communityUuid) {
