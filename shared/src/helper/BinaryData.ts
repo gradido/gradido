@@ -30,8 +30,11 @@ export class BinaryData {
     } else if (Buffer.isBuffer(input)) {
       this.buf = input
       this.hex = input.toString('hex')
+    } else if (input === undefined) {
+      this.buf = Buffer.from('')
+      this.hex = ''
     } else {
-      throw new Error('Either valid hex string or Buffer expected')
+      throw new Error(`Either valid hex string or Buffer expected: ${input}`)
     }
   }
 
