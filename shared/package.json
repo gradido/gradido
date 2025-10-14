@@ -34,7 +34,7 @@
   },
   "dependencies": {
     "decimal.js-light": "^2.5.1",
-    "esbuild": "^0.25.2",    
+    "esbuild": "^0.25.2",
     "jose": "^4.14.4",
     "log4js": "^6.9.1",
     "yoctocolors-cjs": "^2.1.2",

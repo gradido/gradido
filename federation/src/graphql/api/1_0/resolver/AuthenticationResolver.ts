@@ -150,7 +150,8 @@ export class AuthenticationResolver {
         throw new Error('No valid pending community handshake found')
       }
       state.status = CommunityHandshakeStateType.SUCCESS
-      stateSaveResolver = state.save()
+      // stateSaveResolver = state.save()
+      await state.save()
 
       methodLogger.debug(`search community per oneTimeCode:`, authArgs.oneTimeCode)
       const authCom = state.federatedCommunity.community
