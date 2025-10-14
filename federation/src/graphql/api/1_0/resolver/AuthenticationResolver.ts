@@ -11,6 +11,7 @@ import {
   getHomeCommunity,
   findPendingCommunityHandshakeOrFailByOneTimeCode,
   Community as DbCommunity,
+  getCommunityByPublicKeyOrFail,
 } from 'database'
 import { getLogger } from 'log4js'
 import { 
@@ -126,7 +127,6 @@ export class AuthenticationResolver {
     methodLogger.addContext('handshakeID', args.handshakeID)
     methodLogger.debug(`authenticate() via apiVersion=1_0 ...`, args)
     let state: DbCommunityHandshakeState | null = null
-    let stateSaveResolver: Promise<DbCommunityHandshakeState> | undefined = undefined
     const argsPublicKey = new Ed25519PublicKey(args.publicKey)
     try {
       const authArgs = await interpretEncryptedTransferArgs(args) as AuthenticationJwtPayloadType
@@ -150,11 +150,10 @@ export class AuthenticationResolver {
         throw new Error('No valid pending community handshake found')
       }
       state.status = CommunityHandshakeStateType.SUCCESS
-      // stateSaveResolver = state.save()
       await state.save()
-
+      
       methodLogger.debug(`search community per oneTimeCode:`, authArgs.oneTimeCode)
-      const authCom = state.federatedCommunity.community
+      const authCom = await getCommunityByPublicKeyOrFail(argsPublicKey)
       if (authCom) {
         methodLogger.debug('found authCom:', new CommunityLoggingView(authCom))
         const authComPublicKey = new Ed25519PublicKey(authCom.publicKey)
@@ -171,21 +170,11 @@ export class AuthenticationResolver {
             `invalid uuid: ${authArgs.uuid} for community with publicKey ${authComPublicKey.asHex()}`
           )
         }
-        methodLogger.debug('before updating auth community again from db')
-        // need to use query builder, loading from db, changing and save lead to server crash with this error:
-        // TypeError [ERR_INVALID_ARG_TYPE]: The "otherBuffer" argument must be of type Buffer or Uint8Array. Received an instance of Object
-        // seems to be a typeorm problem with Buffer, even if I give a freshly created Buffer for public_key
-        /*await DbCommunity.createQueryBuilder()
-          .update(DbCommunity)
-          .set({
-            communityUuid: communityUuid.data,
-            authenticatedAt: new Date(),
-          })
-          .where({ id: authCom.id })
-          .execute()
+        authCom.communityUuid = communityUuid.data
+        authCom.authenticatedAt = new Date()
+        await authCom.save()
         methodLogger.debug('update authCom.uuid successfully')    
-        */
-        methodLogger.debug('skipped community update')
+        
         const homeComB = await getHomeCommunity()
         if (homeComB?.communityUuid) {
           const responseArgs = new AuthenticationResponseJwtPayloadType(args.handshakeID,homeComB.communityUuid)
@@ -205,16 +194,11 @@ export class AuthenticationResolver {
         methodLogger.info(`state: ${new CommunityHandshakeStateLoggingView(state)}`)
         state.status = CommunityHandshakeStateType.FAILED
         state.lastError = errorString
-        stateSaveResolver = state.save()
+        await state.save()
       }
       methodLogger.error(`failed: ${errorString}`)
       // no infos to the caller
       return null
-    } finally {
-      if (stateSaveResolver) {
-        await stateSaveResolver
-      }
     }
-
   }
 }

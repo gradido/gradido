@@ -1,6 +1,5 @@
 import { CommunityHandshakeStateType } from '../enum'
-import { BaseEntity, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm'
-import { FederatedCommunity } from './FederatedCommunity'
+import { BaseEntity, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm'
 
 @Entity('community_handshake_states')
 export class CommunityHandshakeState extends BaseEntity {
@@ -35,8 +34,4 @@ export class CommunityHandshakeState extends BaseEntity {
 
   @UpdateDateColumn({ name: 'updated_at', type: 'datetime', precision: 3 })
   updatedAt: Date
-
-  @ManyToOne(() => FederatedCommunity, (federatedCommunity) => federatedCommunity.communityHandshakeStates)
-  @JoinColumn({ name: 'public_key', referencedColumnName: 'publicKey' })
-  federatedCommunity: FederatedCommunity
 }

@@ -55,7 +55,7 @@ export async function startCommunityAuthentication(
   )
 
   // check if a authentication is already in progress
-  const existingState = await findPendingCommunityHandshake(fedComBPublicKey, fedComB.apiVersion, false)
+  const existingState = await findPendingCommunityHandshake(fedComBPublicKey, fedComB.apiVersion)
   if (existingState) {
     const stateLogic = new CommunityHandshakeStateLogic(existingState)
     // retry on timeout or failure
@@ -77,7 +77,7 @@ export async function startCommunityAuthentication(
     state.apiVersion = fedComB.apiVersion
     state.status = CommunityHandshakeStateType.START_COMMUNITY_AUTHENTICATION
     state.handshakeId = parseInt(handshakeID)
-    const stateSaveResolver = state.save()
+    await state.save()
 
     //create JWT with url in payload encrypted by foreignCom.publicJwtKey and signed with homeCom.privateJwtKey
     const payload = new OpenConnectionJwtPayloadType(handshakeID,
@@ -92,7 +92,6 @@ export async function startCommunityAuthentication(
     args.publicKey = homeComAPublicKey.asHex()
     args.jwt = jws
     args.handshakeID = handshakeID
-    await stateSaveResolver
     methodLogger.debug('before client.openConnection() args:', args)
     const result = await client.openConnection(args)
     if (result) {

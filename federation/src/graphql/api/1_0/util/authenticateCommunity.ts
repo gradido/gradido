@@ -51,7 +51,7 @@ export async function startOpenConnectionCallback(
   methodLogger.debug(`Authentication: startOpenConnectionCallback() with:`, {
     publicKey: publicKey.asHex(),
   })
-  const pendingState = await findPendingCommunityHandshake(publicKey, api, false)
+  const pendingState = await findPendingCommunityHandshake(publicKey, api)
   if (pendingState) {
     const stateLogic = new CommunityHandshakeStateLogic(pendingState)
     // retry on timeout or failure
@@ -61,7 +61,6 @@ export async function startOpenConnectionCallback(
       return
     }
   }
-  let stateSaveResolver: Promise<DbCommunityHandshakeState> | undefined = undefined
   const state = new DbCommunityHandshakeState()
   try {
     const [homeComB, comA] = await Promise.all([
@@ -84,7 +83,7 @@ export async function startOpenConnectionCallback(
     state.status = CommunityHandshakeStateType.START_OPEN_CONNECTION_CALLBACK
     state.handshakeId = parseInt(handshakeID)
     state.oneTimeCode = oneTimeCode
-    stateSaveResolver = state.save()
+    await state.save()
     methodLogger.debug(
       `Authentication: store oneTimeCode in CommunityHandshakeState:`,
       new CommunityHandshakeStateLoggingView(state),
@@ -103,13 +102,12 @@ export async function startOpenConnectionCallback(
       args.publicKey = new Ed25519PublicKey(homeComB.publicKey).asHex()
       args.jwt = jwt
       args.handshakeID = handshakeID
-      await stateSaveResolver
       const result = await client.openConnectionCallback(args)
       if (result) {
         methodLogger.debug(`startOpenConnectionCallback() successful: ${jwt}`)
       } else {
         methodLogger.debug(`jwt: ${jwt}`)
-        stateSaveResolver = errorState('startOpenConnectionCallback() failed', methodLogger, state)
+        await errorState('startOpenConnectionCallback() failed', methodLogger, state)
       }
     }
   } catch (err) {
@@ -119,11 +117,7 @@ export async function startOpenConnectionCallback(
     } else {
       errorString = String(err)
     }
-    stateSaveResolver = errorState(`error in startOpenConnectionCallback: ${errorString}`, methodLogger, state)
-  } finally {
-    if (stateSaveResolver) {
-      await stateSaveResolver
-    }
+    await errorState(`error in startOpenConnectionCallback: ${errorString}`, methodLogger, state)
   }
 }
 
@@ -139,7 +133,6 @@ export async function startAuthentication(
     fedComB: new FederatedCommunityLoggingView(fedComB),
   })
   let state: DbCommunityHandshakeState | null = null
-  let stateSaveResolver: Promise<DbCommunityHandshakeState> | undefined = undefined
   const fedComBPublicKey = new Ed25519PublicKey(fedComB.publicKey)
   try {
     const homeComA = await getHomeCommunity()
@@ -150,7 +143,7 @@ export async function startAuthentication(
     if (!comB.publicJwtKey) {
       throw new Error('Public JWT key still not exist for foreign community')
     }
-    state = await findPendingCommunityHandshake(fedComBPublicKey, fedComB.apiVersion, false)
+    state = await findPendingCommunityHandshake(fedComBPublicKey, fedComB.apiVersion)
     if (!state) {
       throw new Error('No pending community handshake found')
     }
@@ -163,7 +156,7 @@ export async function startAuthentication(
       throw new Error('No valid pending community handshake found')
     }
     state.status = CommunityHandshakeStateType.START_AUTHENTICATION
-    stateSaveResolver = state.save()
+    await state.save()
 
     const client = AuthenticationClientFactory.getInstance(fedComB)
 
@@ -196,12 +189,12 @@ export async function startAuthentication(
         comB.authenticatedAt = new Date()
         await DbCommunity.save(comB)        
         state.status = CommunityHandshakeStateType.SUCCESS
-        stateSaveResolver = state.save()
+        await state.save()
         methodLogger.debug('Community Authentication successful:', new CommunityLoggingView(comB))
       } else {
         state.status = CommunityHandshakeStateType.FAILED
         state.lastError = 'Community Authentication failed, empty response'
-        stateSaveResolver = state.save()
+        await state.save()
         methodLogger.error('Community Authentication failed:', authenticationArgs)
       }
     }
@@ -215,12 +208,8 @@ export async function startAuthentication(
     if (state) {
       state.status = CommunityHandshakeStateType.FAILED
       state.lastError = errorString
-      stateSaveResolver = state.save()
+      await state.save()
     }
     methodLogger.error('error in startAuthentication:', errorString)
-  } finally {
-    if (stateSaveResolver) {
-      await stateSaveResolver
-    }
   }
 }

@@ -5,12 +5,10 @@ import { Ed25519PublicKey } from 'shared'
 /**
  * Find a pending community handshake by public key.
  * @param publicKey The public key of the community.
- * @param withRelations Whether to include the federated community and community in the result, default true.
+ * @param apiVersion The API version of the community.
  * @returns The CommunityHandshakeState with associated federated community and community.
  */
-export function findPendingCommunityHandshake(
-  publicKey: Ed25519PublicKey, apiVersion: string, withRelations = true
-): Promise<CommunityHandshakeState | null> {
+export function findPendingCommunityHandshake(publicKey: Ed25519PublicKey, apiVersion: string): Promise<CommunityHandshakeState | null> {
   return CommunityHandshakeState.findOne({
     where: { 
       publicKey: publicKey.asBuffer(), 
@@ -21,7 +19,6 @@ export function findPendingCommunityHandshake(
         CommunityHandshakeStateType.SUCCESS
       ]))
     },
-    relations: withRelations ? { federatedCommunity: { community: true } } : undefined,
   })
 }
 
@@ -30,7 +27,6 @@ export function findPendingCommunityHandshakeOrFailByOneTimeCode(
 ): Promise<CommunityHandshakeState> {
   return CommunityHandshakeState.findOneOrFail({
     where: { oneTimeCode },
-    relations: { federatedCommunity: { community: true } },
   })
 }
   

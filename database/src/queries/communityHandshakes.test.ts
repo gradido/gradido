@@ -3,14 +3,13 @@ import {
   CommunityHandshakeState as DbCommunityHandshakeState, 
   Community as DbCommunity, 
   FederatedCommunity as DbFederatedCommunity, 
-  getHomeCommunityWithFederatedCommunityOrFail,
-  getCommunityByPublicKeyOrFail,
   findPendingCommunityHandshake,
   CommunityHandshakeStateType
 } from '..'
 import { describe, expect, it, beforeEach, beforeAll, afterAll } from 'vitest'
 import { createCommunity, createVerifiedFederatedCommunity } from '../seeds/community'
 import { Ed25519PublicKey } from 'shared'
+import { randomBytes } from 'node:crypto'
 
 const db = AppDatabase.getInstance()
 
@@ -20,6 +19,15 @@ beforeAll(async () => {
 afterAll(async () => {
   await db.destroy()
 })
+
+async function createCommunityHandshakeState(publicKey: Buffer) {
+  const state = new DbCommunityHandshakeState()
+  state.publicKey = publicKey
+  state.apiVersion = '1_0'
+  state.status = CommunityHandshakeStateType.START_COMMUNITY_AUTHENTICATION
+  state.handshakeId = 1
+  await state.save()
+}
 
 describe('communityHandshakes', () => {
   // clean db for every test case
@@ -32,48 +40,32 @@ describe('communityHandshakes', () => {
   it('should find pending community handshake by public key', async () => {
     const com1 = await createCommunity(false)
     await createVerifiedFederatedCommunity('1_0', 100, com1)
-    const state = new DbCommunityHandshakeState()
-    state.publicKey = com1.publicKey
-    state.apiVersion = '1_0'
-    state.status = CommunityHandshakeStateType.OPEN_CONNECTION_CALLBACK
-    state.handshakeId = 1
-    await state.save()
+    await createCommunityHandshakeState(com1.publicKey)
     const communityHandshakeState = await findPendingCommunityHandshake(new Ed25519PublicKey(com1.publicKey), '1_0')
     expect(communityHandshakeState).toBeDefined()
     expect(communityHandshakeState).toMatchObject({
       publicKey: com1.publicKey,
       apiVersion: '1_0',
-      status: CommunityHandshakeStateType.OPEN_CONNECTION_CALLBACK,
+      status: CommunityHandshakeStateType.START_COMMUNITY_AUTHENTICATION,
       handshakeId: 1
     })    
   })
 
-  it('try to use returned public key for loading community', async () => {
-    // test this explicit case, because in federation.authentication it lead to server crash
-    const com1 = await createCommunity(false)
-    await createVerifiedFederatedCommunity('1_0', 100, com1)
-    const state = new DbCommunityHandshakeState()
-    state.publicKey = com1.publicKey
-    state.apiVersion = '1_0'
-    state.status = CommunityHandshakeStateType.OPEN_CONNECTION_CALLBACK
-    state.handshakeId = 1
-    await state.save()
-    const communityHandshakeState = await findPendingCommunityHandshake(new Ed25519PublicKey(com1.publicKey), '1_0')
+  it('update state', async () => {
+    const publicKey = new Ed25519PublicKey(randomBytes(32))
+    await createCommunityHandshakeState(publicKey.asBuffer())
+    const communityHandshakeState = await findPendingCommunityHandshake(publicKey, '1_0')
     expect(communityHandshakeState).toBeDefined()
-    expect(communityHandshakeState?.federatedCommunity?.community).toBeDefined()
-    const ed25519PublicKey = new Ed25519PublicKey(communityHandshakeState?.federatedCommunity?.community?.publicKey)
-    const community = await DbCommunity.findOneBy({ publicKey: ed25519PublicKey.asBuffer() })
-    expect(community).toBeDefined()
-    expect(community).toMatchObject({
-      communityUuid: com1.communityUuid,
-      name: com1.name,
-      description: com1.description,
-      url: com1.url,
-      creationDate: com1.creationDate,
-      authenticatedAt: com1.authenticatedAt,
-      foreign: com1.foreign,
-      publicKey: com1.publicKey,
-      privateKey: com1.privateKey
+    communityHandshakeState!.status = CommunityHandshakeStateType.OPEN_CONNECTION_CALLBACK    
+    await communityHandshakeState!.save()
+    const communityHandshakeState2 = await findPendingCommunityHandshake(publicKey, '1_0')
+    const states = await DbCommunityHandshakeState.find()
+    expect(communityHandshakeState2).toBeDefined()
+    expect(communityHandshakeState2).toMatchObject({
+      publicKey: publicKey.asBuffer(),
+      apiVersion: '1_0',
+      status: CommunityHandshakeStateType.OPEN_CONNECTION_CALLBACK,
+      handshakeId: 1
     })
   })
 })
