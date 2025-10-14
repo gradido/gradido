@@ -186,6 +186,7 @@ export async function startAuthentication(
         await DbCommunity.save(comB)        
         state.status = CommunityHandshakeStateType.SUCCESS
         await state.save()
+        methodLogger.debug('[SUCCESS] community handshake state updated')
         const endTime = new Date()
         const duration = endTime.getTime() - state.createdAt.getTime()
         methodLogger.debug(`Community Authentication successful in ${duration} ms`)

@@ -143,6 +143,7 @@ export class AuthenticationResolver {
       }
       state.status = CommunityHandshakeStateType.SUCCESS
       await state.save()
+      methodLogger.debug('[SUCCESS] community handshake state updated')
       
       // methodLogger.debug(`search community per oneTimeCode:`, authArgs.oneTimeCode)
       const authCom = await getCommunityByPublicKeyOrFail(argsPublicKey)
