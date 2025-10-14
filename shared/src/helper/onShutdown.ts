@@ -46,6 +46,6 @@ export function onShutdown(shutdownHandler: (reason: ShutdownReason, error?: Err
 export function printServerCrashAsciiArt(msg1: string, msg2: string, msg3: string) {
   console.error(colors.redBright(` /\\_/\\ ${msg1}`))
   console.error(colors.redBright(`( x.x )  ${msg2}`))
-  console.error(colors.redBright(`>   <   ${msg3}`))
+  console.error(colors.redBright(` >   <   ${msg3}`))
   console.error(colors.redBright(''))
 }

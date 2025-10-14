@@ -159,11 +159,11 @@ export class AuthenticationResolver {
         const authComPublicKey = new Ed25519PublicKey(authCom.publicKey)
         methodLogger.debug('authCom.publicKey', authComPublicKey.asHex())
         methodLogger.debug('args.publicKey', argsPublicKey.asHex())
-        /*if (!authComPublicKey.isSame(argsPublicKey)) {
+        if (!authComPublicKey.isSame(argsPublicKey)) {
           throw new Error(
             `corrupt authentication call detected, oneTimeCode: ${authArgs.oneTimeCode} doesn't belong to caller: ${argsPublicKey.asHex()}`
           )
-        }*/
+        }
         const communityUuid = uuidv4Schema.safeParse(authArgs.uuid)
         if (!communityUuid.success) {
           throw new Error(
@@ -174,7 +174,7 @@ export class AuthenticationResolver {
         // need to use query builder, loading from db, changing and save lead to server crash with this error:
         // TypeError [ERR_INVALID_ARG_TYPE]: The "otherBuffer" argument must be of type Buffer or Uint8Array. Received an instance of Object
         // seems to be a typeorm problem with Buffer, even if I give a freshly created Buffer for public_key
-        await DbCommunity.createQueryBuilder()
+        /*await DbCommunity.createQueryBuilder()
           .update(DbCommunity)
           .set({
             communityUuid: communityUuid.data,
@@ -183,7 +183,8 @@ export class AuthenticationResolver {
           .where({ id: authCom.id })
           .execute()
         methodLogger.debug('update authCom.uuid successfully')    
-
+        */
+        methodLogger.debug('skipped community update')
         const homeComB = await getHomeCommunity()
         if (homeComB?.communityUuid) {
           const responseArgs = new AuthenticationResponseJwtPayloadType(args.handshakeID,homeComB.communityUuid)
