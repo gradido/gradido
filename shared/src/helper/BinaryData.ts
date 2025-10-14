@@ -1,3 +1,8 @@
+import { getLogger } from 'log4js'
+import { LOG4JS_BASE_CATEGORY_NAME } from '../const'
+
+const logging = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.helper.BinaryData`)
+
 /**
  * Class mainly for handling ed25519 public keys, 
  * to make sure we have always the correct Format (Buffer or Hex String)
@@ -7,6 +12,12 @@ export class BinaryData {
   private hex: string
 
   constructor(input: Buffer | string | undefined) {
+    if (!input) {
+      logging.debug('constructor() with undefined input')
+    }
+    logging.debug(`constructor() input type: ${typeof input}`)
+    logging.debug(`constructor() input isBuffer: ${Buffer.isBuffer(input)}`)
+    logging.debug(`constructor() input: ${input}`)
     if (typeof input === 'string') {
       this.buf = Buffer.from(input, 'hex')
       this.hex = input

@@ -49,7 +49,7 @@ export async function startOpenConnectionCallback(
   const methodLogger = createLogger('startOpenConnectionCallback')
   methodLogger.addContext('handshakeID', handshakeID)
   methodLogger.debug(`Authentication: startOpenConnectionCallback() with:`, {
-    publicKey,
+    publicKey: publicKey.asHex(),
   })
   const pendingState = await findPendingCommunityHandshake(publicKey, api, false)
   if (pendingState) {
