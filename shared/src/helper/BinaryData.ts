@@ -18,19 +18,13 @@ export class BinaryData {
     } else if (Buffer.isBuffer(input)) {
       this.buf = input
       this.hex = input.toString('hex')
-    } else if (input === undefined) {
+    } else {
       this.buf = Buffer.from('')
       this.hex = ''
-    } else {
-      throw new Error(`Either valid hex string or Buffer expected: ${input}`)
     }
   }
 
   asBuffer(): Buffer {
-    if (!this.buf || !Buffer.isBuffer(this.buf)) {
-      logging.warn('BinaryData.buf is invalid, try to create fresh buffer from hex')
-      this.buf = Buffer.from(this.hex, 'hex')
-    }
     return this.buf
   }
 

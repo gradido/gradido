@@ -1,5 +1,5 @@
 import { EncryptedTransferArgs } from '../model/EncryptedTransferArgs'
-import { JwtPayloadType } from 'shared'
+import { Ed25519PublicKey, JwtPayloadType } from 'shared'
 import { Community as DbCommunity } from 'database'
 import { getLogger } from 'log4js'
 import { CommunityLoggingView, getHomeCommunity } from 'database'
@@ -12,16 +12,17 @@ export const interpretEncryptedTransferArgs = async (args: EncryptedTransferArgs
   const methodLogger = createLogger('interpretEncryptedTransferArgs')
   methodLogger.addContext('handshakeID', args.handshakeID)
   methodLogger.debug('interpretEncryptedTransferArgs()... args:', args)
+  const argsPublicKey = new Ed25519PublicKey(args.publicKey)
   // first find with args.publicKey the community 'requestingCom', which starts the request
   // TODO: maybe use community from caller instead of loading it separately
-  const requestingCom = await DbCommunity.findOneBy({ publicKey: Buffer.from(args.publicKey, 'hex') })
+  const requestingCom = await DbCommunity.findOneBy({ publicKey: argsPublicKey.asBuffer() })
   if (!requestingCom) {
-    const errmsg = `unknown requesting community with publicKey ${args.publicKey}`
+    const errmsg = `unknown requesting community with publicKey ${argsPublicKey.asHex()}`
     methodLogger.error(errmsg)
     throw new Error(errmsg)
   }
   if (!requestingCom.publicJwtKey) {
-    const errmsg = `missing publicJwtKey of requesting community with publicKey ${args.publicKey}`
+    const errmsg = `missing publicJwtKey of requesting community with publicKey ${argsPublicKey.asHex()}`
     methodLogger.error(errmsg)
     throw new Error(errmsg)
   }
@@ -31,7 +32,7 @@ export const interpretEncryptedTransferArgs = async (args: EncryptedTransferArgs
   const homeCom = await getHomeCommunity()
   const jwtPayload = await verifyAndDecrypt(args.handshakeID, args.jwt, homeCom!.privateJwtKey!, requestingCom.publicJwtKey) as JwtPayloadType
   if (!jwtPayload) {
-    const errmsg = `invalid payload of community with publicKey ${args.publicKey}`
+    const errmsg = `invalid payload of community with publicKey ${argsPublicKey.asHex()}`
     methodLogger.error(errmsg)
     throw new Error(errmsg)
   }
