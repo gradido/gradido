@@ -1,17 +1,14 @@
 import { CommunityHandshakeStateLogic, EncryptedTransferArgs, ensureUrlEndsWithSlash } from 'core'
 import {
   CommunityHandshakeStateLoggingView,
-  CommunityLoggingView,
   Community as DbCommunity,
   FederatedCommunity as DbFedCommunity,
-  FederatedCommunityLoggingView,
   findPendingCommunityHandshake,
   getCommunityByPublicKeyOrFail,
-  getCommunityWithFederatedCommunityWithApiOrFail,
   getHomeCommunity,
   getHomeCommunityWithFederatedCommunityOrFail,
 } from 'database'
-import { getLogger, Logger } from 'log4js'
+import { getLogger } from 'log4js'
 
 import { AuthenticationClientFactory } from '@/client/AuthenticationClientFactory'
 import { randombytes_random } from 'sodium-native'

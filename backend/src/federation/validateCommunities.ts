@@ -1,9 +1,7 @@
 import {
   Community as DbCommunity,
   FederatedCommunity as DbFederatedCommunity,
-  FederatedCommunityLoggingView,
   getHomeCommunity,
-  getNotReachableCommunities,
 } from 'database'
 import { IsNull } from 'typeorm'
 
@@ -12,7 +10,7 @@ import { FederationClient as V1_0_FederationClient } from '@/federation/client/1
 import { PublicCommunityInfo } from '@/federation/client/1_0/model/PublicCommunityInfo'
 import { FederationClientFactory } from '@/federation/client/FederationClientFactory'
 import { LogError } from '@/server/LogError'
-import { createKeyPair, Ed25519PublicKey, uint32Schema } from 'shared'
+import { createKeyPair, Ed25519PublicKey } from 'shared'
 import { getLogger } from 'log4js'
 import { startCommunityAuthentication } from './authenticateCommunities'
 import { PublicCommunityInfoLoggingView } from './client/1_0/logging/PublicCommunityInfoLogging.view'

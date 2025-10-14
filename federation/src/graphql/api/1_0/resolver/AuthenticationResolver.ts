@@ -1,13 +1,10 @@
-import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { CommunityHandshakeStateLogic, EncryptedTransferArgs, interpretEncryptedTransferArgs, splitUrlInEndPointAndApiVersion } from 'core'
 import {
-  CommunityLoggingView,
   CommunityHandshakeStateLoggingView,
   CommunityHandshakeState as DbCommunityHandshakeState,
   CommunityHandshakeStateType,
   FederatedCommunity as DbFedCommunity,
-  FederatedCommunityLoggingView,
   getHomeCommunity,
   findPendingCommunityHandshakeOrFailByOneTimeCode,
   getCommunityByPublicKeyOrFail,

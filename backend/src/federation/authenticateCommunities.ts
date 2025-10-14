@@ -1,9 +1,7 @@
 import { 
   CommunityHandshakeState as DbCommunityHandshakeState,
   CommunityHandshakeStateLoggingView, 
-  CommunityLoggingView, 
   FederatedCommunity as DbFederatedCommunity, 
-  FederatedCommunityLoggingView, 
   findPendingCommunityHandshake, 
   getHomeCommunityWithFederatedCommunityOrFail,
   CommunityHandshakeStateType,
