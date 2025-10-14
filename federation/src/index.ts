@@ -28,11 +28,11 @@ async function main() {
         `GraphIQL available at ${CONFIG.FEDERATION_COMMUNITY_URL}/api/${CONFIG.FEDERATION_API}`,
       )
     }
-    onShutdown(async (reason, details) => {
+    onShutdown(async (reason, error) => {
       if (ShutdownReason.SIGINT === reason || ShutdownReason.SIGTERM === reason) {
         logger.info(`graceful shutdown: ${reason}`)
       } else {
-        logger.error(`crash: ${reason} ${details}`)
+        logger.error(`crash: ${reason}`, error)
       }
     })
   })

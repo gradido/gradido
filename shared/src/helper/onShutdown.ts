@@ -10,7 +10,7 @@ export enum ShutdownReason {
  * Setup graceful shutdown for the process
  * @param gracefulShutdown will be called if process is terminated
  */
-export function onShutdown(shutdownHandler: (reason: ShutdownReason, details?: string) => Promise<void>) {
+export function onShutdown(shutdownHandler: (reason: ShutdownReason, error?: Error | any) => Promise<void>) {
   const signals: NodeJS.Signals[] = ['SIGINT', 'SIGTERM']
   signals.forEach(sig => {  
     process.on(sig, async () => {
@@ -19,13 +19,13 @@ export function onShutdown(shutdownHandler: (reason: ShutdownReason, details?: s
     })
   })
 
-  process.on('uncaughtException', async (err, origin) => {
-    await shutdownHandler(ShutdownReason.UNCAUGHT_EXCEPTION, `${origin}: ${err}`)
+  process.on('uncaughtException', async (err) => {
+    await shutdownHandler(ShutdownReason.UNCAUGHT_EXCEPTION, err)
     process.exit(1)
   })
 
-  process.on('unhandledRejection', async (reason, promise) => {
-    await shutdownHandler(ShutdownReason.UNCAUGHT_REJECTION, `${promise}: ${reason}`)
+  process.on('unhandledRejection', async (err) => {
+    await shutdownHandler(ShutdownReason.UNCAUGHT_REJECTION, err)
     process.exit(1)
   })
 

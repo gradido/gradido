@@ -12,18 +12,6 @@ export class BinaryData {
   private hex: string
 
   constructor(input: Buffer | string | undefined) {
-    if (!input) {
-      logging.debug('constructor() with undefined input')
-    }
-    logging.debug(`constructor() input type: ${typeof input}`)
-    logging.debug(`constructor() input isBuffer: ${Buffer.isBuffer(input)}`)
-    if (typeof input === 'string') {
-      logging.debug(`constructor() input: ${input}`)
-    } else if (Buffer.isBuffer(input)) {
-      logging.debug(`constructor() input: ${input.toString('hex')}`)
-    } else {
-      logging.debug(`constructor() unexpected input type: ${typeof input}`)
-    }
     if (typeof input === 'string') {
       this.buf = Buffer.from(input, 'hex')
       this.hex = input
@@ -47,8 +35,10 @@ export class BinaryData {
   }
 
   isSame(other: BinaryData): boolean {
-    logging.debug(`isSame() this: ${this.buf}`)
-    logging.debug(`isSame() other: ${other.buf}`)
+    if (other === undefined || !(other instanceof BinaryData) || other.buf === undefined || !Buffer.isBuffer(other.buf)) {
+      logging.error('other is invalid', other)
+      return false
+    }
     return this.buf.compare(other.buf) === 0
   }
 }
