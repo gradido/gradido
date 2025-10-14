@@ -39,10 +39,7 @@ export class BinaryData {
       logging.error('other is invalid', other)
       return false
     }
-    return this.asHex() === other.asHex()
-    // don't work reliable, in specific cases fail with: 
-    // The "otherBuffer" argument must be an instance of Buffer or Uint8Array. Received an instance of Object
-    // return this.buf.compare(other.asBuffer()) === 0
+    return this.buf.compare(other.asBuffer()) === 0
   }
 }
 

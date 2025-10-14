@@ -171,6 +171,7 @@ export class AuthenticationResolver {
         }
         authCom.communityUuid = communityUuid.data
         authCom.authenticatedAt = new Date()
+        methodLogger.debug('try to save: ', authCom)
         await authCom.save()
         methodLogger.debug('store authCom.uuid successfully:', new CommunityLoggingView(authCom))
         const homeComB = await getHomeCommunity()
