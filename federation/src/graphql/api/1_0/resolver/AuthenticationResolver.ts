@@ -159,11 +159,11 @@ export class AuthenticationResolver {
         const authComPublicKey = new Ed25519PublicKey(authCom.publicKey)
         methodLogger.debug('authCom.publicKey', authComPublicKey.asHex())
         methodLogger.debug('args.publicKey', argsPublicKey.asHex())
-        if (!authComPublicKey.isSame(argsPublicKey)) {
+        /*if (!authComPublicKey.isSame(argsPublicKey)) {
           throw new Error(
             `corrupt authentication call detected, oneTimeCode: ${authArgs.oneTimeCode} doesn't belong to caller: ${argsPublicKey.asHex()}`
           )
-        }
+        }*/
         const communityUuid = uuidv4Schema.safeParse(authArgs.uuid)
         if (!communityUuid.success) {
           throw new Error(

@@ -35,7 +35,7 @@ async function main() {
       } else {
         const endTime = new Date()
         const duration = endTime.getTime() - startTime.getTime()
-        printServerCrashAsciiArt(logger, `reason: ${reason}`, `duration: ${duration}ms`, '')
+        printServerCrashAsciiArt(`reason: ${reason}`, `duration: ${duration}ms`, '')
         logger.error(error)
       }
     })

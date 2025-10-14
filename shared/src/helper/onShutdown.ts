@@ -1,4 +1,5 @@
-import { Logger } from "log4js"
+import { Logger } from 'log4js'
+import colors from 'yoctocolors-cjs'
 
 export enum ShutdownReason {
   SIGINT = 'SIGINT',
@@ -42,9 +43,9 @@ export function onShutdown(shutdownHandler: (reason: ShutdownReason, error?: Err
   }
 }
 
-export function printServerCrashAsciiArt(logger: Logger, msg1: string, msg2: string, msg3: string) {
-  logger.error(` /\\_/\\ ${msg1}`)
-  logger.error(`( x.x )  ${msg2}`)
-  logger.error(`>   <   ${msg3}`)
-  logger.error('')
+export function printServerCrashAsciiArt(msg1: string, msg2: string, msg3: string) {
+  console.error(colors.redBright(` /\\_/\\ ${msg1}`))
+  console.error(colors.redBright(`( x.x )  ${msg2}`))
+  console.error(colors.redBright(`>   <   ${msg3}`))
+  console.error(colors.redBright(''))
 }
