@@ -27,6 +27,12 @@ export class BinaryData {
   }
 
   asBuffer(): Buffer {
+    if (this.buf === undefined || !Buffer.isBuffer(this.buf)) {
+      if (this.buf) {
+        logging.error('invalid buf: ', this.buf)
+      }
+      throw new Error('buf is invalid')
+    }
     return this.buf
   }
 
@@ -35,11 +41,14 @@ export class BinaryData {
   }
 
   isSame(other: BinaryData): boolean {
-    if (other === undefined || !(other instanceof BinaryData) || other.buf === undefined || !Buffer.isBuffer(other.buf)) {
+    if (other === undefined || !(other instanceof BinaryData)) {
       logging.error('other is invalid', other)
       return false
     }
-    return this.buf.compare(other.buf) === 0
+    if (logging.isDebugEnabled()) {
+      logging.debug('compare hex: ', this.hex, other.asHex(), this.hex === other.asHex())
+    }
+    return this.buf.compare(other.asBuffer()) === 0
   }
 }
 
