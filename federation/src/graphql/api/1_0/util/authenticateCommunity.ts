@@ -41,7 +41,7 @@ export async function startOpenConnectionCallback(
 
   let state: DbCommunityHandshakeState | null = null
   try {
-    const pendingState = await findPendingCommunityHandshake(publicKey, api)
+    const pendingState = await findPendingCommunityHandshake(publicKey, api, CommunityHandshakeStateType.START_OPEN_CONNECTION_CALLBACK)
     if (pendingState) {
       const stateLogic = new CommunityHandshakeStateLogic(pendingState)
       // retry on timeout or failure
@@ -134,15 +134,12 @@ export async function startAuthentication(
     if (!comB.publicJwtKey) {
       throw new Error('Public JWT key still not exist for foreign community')
     }
-    state = await findPendingCommunityHandshake(fedComBPublicKey, fedComB.apiVersion)
+    state = await findPendingCommunityHandshake(fedComBPublicKey, fedComB.apiVersion, CommunityHandshakeStateType.START_COMMUNITY_AUTHENTICATION)
     if (!state) {
       throw new Error('No pending community handshake found')
     }
     const stateLogic = new CommunityHandshakeStateLogic(state)
-    if (
-      (await stateLogic.isTimeoutUpdate()) || 
-      state.status !== CommunityHandshakeStateType.START_COMMUNITY_AUTHENTICATION
-    ) {
+    if ((await stateLogic.isTimeoutUpdate())) {
       methodLogger.debug('invalid state', new CommunityHandshakeStateLoggingView(state))
       throw new Error('No valid pending community handshake found')
     }
