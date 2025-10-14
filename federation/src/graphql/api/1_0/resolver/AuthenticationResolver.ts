@@ -171,7 +171,7 @@ export class AuthenticationResolver {
           )
         }
         methodLogger.debug('before loading auth community again from db')
-        const authComFresh = await getCommunityByPublicKeyOrFail(authComPublicKey)
+        const authComFresh = await getCommunityByPublicKeyOrFail(argsPublicKey)
         authComFresh.communityUuid = communityUuid.data
         authComFresh.authenticatedAt = new Date()
         methodLogger.debug('after loading auth community again from db')

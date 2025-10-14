@@ -27,6 +27,10 @@ export class BinaryData {
   }
 
   asBuffer(): Buffer {
+    if (!this.buf || !Buffer.isBuffer(this.buf)) {
+      logging.warn('BinaryData.buf is invalid, try to create fresh buffer from hex')
+      this.buf = Buffer.from(this.hex, 'hex')
+    }
     return this.buf
   }
 
