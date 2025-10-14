@@ -27,12 +27,6 @@ export class BinaryData {
   }
 
   asBuffer(): Buffer {
-    if (this.buf === undefined || !Buffer.isBuffer(this.buf)) {
-      if (this.buf) {
-        logging.error('invalid buf: ', this.buf)
-      }
-      throw new Error('buf is invalid')
-    }
     return this.buf
   }
 
@@ -45,10 +39,10 @@ export class BinaryData {
       logging.error('other is invalid', other)
       return false
     }
-    if (logging.isDebugEnabled()) {
-      logging.debug('compare hex: ', this.hex, other.asHex(), this.hex === other.asHex())
-    }
-    return this.buf.compare(other.asBuffer()) === 0
+    return this.asHex() === other.asHex()
+    // don't work reliable, in specific cases fail with: 
+    // The "otherBuffer" argument must be an instance of Buffer or Uint8Array. Received an instance of Object
+    // return this.buf.compare(other.asBuffer()) === 0
   }
 }
 
