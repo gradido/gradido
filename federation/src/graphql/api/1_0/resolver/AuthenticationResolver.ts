@@ -169,6 +169,7 @@ export class AuthenticationResolver {
             `invalid uuid: ${authArgs.uuid} for community with publicKey ${authComPublicKey.asHex()}`
           )
         }
+        authCom.publicKey = authComPublicKey.asBuffer()
         authCom.communityUuid = communityUuid.data
         authCom.authenticatedAt = new Date()
         methodLogger.debug('try to save: ', authCom)
