@@ -1,6 +1,6 @@
 {
   "name": "gradido",
-  "version": "2.6.1",
+  "version": "2.7.0",
   "description": "Gradido",
   "main": "index.js",
   "repository": "git@github.com:gradido/gradido.git",
@@ -38,7 +38,8 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.0.0",
-    "@types/minimatch": "6.0.0"
+    "@types/minimatch": "6.0.0",
+    "bumpp": "^10.3.1"
   },
   "engines": {
     "node": ">=18"
