@@ -3,7 +3,7 @@
   "description": "Administration Interface for Gradido",
   "main": "index.js",
   "author": "Gradido Academy - https://www.gradido.net",
-  "version": "2.6.1",
+  "version": "2.7.0",
   "license": "Apache-2.0",
   "scripts": {
     "dev": "vite",
@@ -61,6 +61,7 @@
     "@vue/test-utils": "^2.4.6",
     "config-schema": "*",
     "cross-env": "^7.0.3",
+    "dotenv": "^10.0.0",
     "dotenv-webpack": "^7.0.3",
     "eslint": "8.57.1",
     "eslint-config-prettier": "^10.1.1",

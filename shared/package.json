@@ -1,6 +1,6 @@
 {
   "name": "shared",
-  "version": "2.6.1",
+  "version": "2.7.0",
   "description": "Gradido Shared Code, Low-Level Shared Code, without dependencies on other modules",
   "main": "./build/index.js",
   "types": "./src/index.ts",
@@ -37,6 +37,7 @@
     "esbuild": "^0.25.2",
     "jose": "^4.14.4",
     "log4js": "^6.9.1",
+    "yoctocolors-cjs": "^2.1.2",
     "zod": "^3.25.61"
   },
   "engines": {

@@ -1,6 +1,6 @@
 {
   "name": "dht-node",
-  "version": "2.6.1",
+  "version": "2.7.0",
   "description": "Gradido dht-node module",
   "main": "src/index.ts",
   "repository": "https://github.com/gradido/gradido/",
@@ -38,7 +38,7 @@
     "@types/uuid": "^8.3.4",
     "config-schema": "*",
     "database": "*",
-    "dotenv": "10.0.0",
+    "dotenv": "^10.0.0",
     "esbuild": "^0.25.3",
     "jest": "27.5.1",
     "joi": "17.13.3",

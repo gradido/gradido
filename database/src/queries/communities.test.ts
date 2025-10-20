@@ -1,8 +1,9 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { Community as DbCommunity, FederatedCommunity as DbFederatedCommunity } from '..'
 import { AppDatabase } from '../AppDatabase'
+import { getCommunityByPublicKeyOrFail, getHomeCommunity, getHomeCommunityWithFederatedCommunityOrFail, getReachableCommunities } from './communities'
 import { createCommunity, createVerifiedFederatedCommunity } from '../seeds/community'
-import { getHomeCommunity, getReachableCommunities } from './communities'
+import { Ed25519PublicKey } from 'shared'
 
 const db = AppDatabase.getInstance()
 
@@ -39,7 +40,37 @@ describe('community.queries', () => {
       expect(community?.privateKey).toStrictEqual(homeCom.privateKey)
     })
   })
-  describe('getReachableCommunities', () => {
+  describe('getHomeCommunityWithFederatedCommunityOrFail', () => {
+    it('should return the home community with federated communities', async () => {
+      const homeCom = await createCommunity(false)
+      await createVerifiedFederatedCommunity('1_0', 100, homeCom)
+      const community = await getHomeCommunityWithFederatedCommunityOrFail('1_0')      
+      expect(community).toBeDefined()
+      expect(community?.federatedCommunities).toHaveLength(1)
+    })
+
+    it('should throw if no home community exists', async () => {
+      expect(() => getHomeCommunityWithFederatedCommunityOrFail('1_0')).rejects.toThrow()
+    })
+
+    it('should throw if no federated community exists', async () => {
+      await createCommunity(false)
+      expect(() => getHomeCommunityWithFederatedCommunityOrFail('1_0')).rejects.toThrow()
+    })
+
+    it('load community by public key returned from getHomeCommunityWithFederatedCommunityOrFail', async () => {
+      const homeCom = await createCommunity(false)
+      await createVerifiedFederatedCommunity('1_0', 100, homeCom)
+      const community = await getHomeCommunityWithFederatedCommunityOrFail('1_0')
+      expect(community).toBeDefined()
+      expect(community?.federatedCommunities).toHaveLength(1)
+      const ed25519PublicKey = new Ed25519PublicKey(community.federatedCommunities![0].publicKey)
+      const communityByPublicKey = await getCommunityByPublicKeyOrFail(ed25519PublicKey)
+      expect(communityByPublicKey).toBeDefined()
+      expect(communityByPublicKey?.communityUuid).toBe(homeCom.communityUuid)
+    })
+  })
+  describe('getReachableCommunities', () => {  
     it('home community counts also to reachable communities', async () => {
       await createCommunity(false)
       expect(await getReachableCommunities(1000)).toHaveLength(1)

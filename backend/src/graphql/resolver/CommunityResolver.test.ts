@@ -48,6 +48,9 @@ beforeAll(async () => {
   query = testEnv.query
   con = testEnv.con
   await cleanDB()
+  // reset id auto increment
+  await DbCommunity.clear()
+  await DbFederatedCommunity.clear()
 })
 
 afterAll(async () => {

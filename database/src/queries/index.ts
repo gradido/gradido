@@ -6,5 +6,6 @@ export * from './pendingTransactions'
 export * from './transactionLinks'
 export * from './transactions'
 export * from './user'
+export * from './communityHandshakes'
 
 export const LOG4JS_QUERIES_CATEGORY_NAME = `${LOG4JS_BASE_CATEGORY_NAME}.queries`
