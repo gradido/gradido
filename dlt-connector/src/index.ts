@@ -140,7 +140,4 @@ main().catch((e) => {
   console.error(e)
   process.exit(1)
 })
-function exitHook(arg0: () => void) {
-  throw new Error('Function not implemented.')
-}
 
