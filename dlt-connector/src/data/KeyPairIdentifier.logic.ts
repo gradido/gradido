@@ -1,8 +1,25 @@
 import { MemoryBlock } from 'gradido-blockchain-js'
-import { ParameterError } from '../errors'
+import { InvalidCallError, ParameterError } from '../errors'
 import { IdentifierKeyPair } from '../schemas/account.schema'
-import { HieroId } from '../schemas/typeGuard.schema'
+import { HieroId, IdentifierSeed, Uuidv4 } from '../schemas/typeGuard.schema'
 
+/**
+ * @DCI-Logic
+ * Domain logic for identifying and classifying key pairs used in the Gradido blockchain.
+ *
+ * This logic determines the type of key pair (community, user, account, or seed)
+ * and provides deterministic methods for deriving consistent cache keys and hashes.
+ * It is pure, stateless, and guaranteed to operate on validated input
+ * (checked beforehand by Valibot using {@link identifierKeyPairSchema}).
+ *
+ * Responsibilities:
+ *  - Identify key pair type via `isCommunityKeyPair()`, `isUserKeyPair()`, `isAccountKeyPair()`, or `isSeedKeyPair()`
+ *  - Provide derived deterministic keys for caching or retrieval
+ *    (e.g. `getCommunityUserKey()`, `getCommunityUserAccountKey()`)
+ *  - or simple: `getKey()` if you don't need to know the details
+ *  - Ensure that invalid method calls throw precise domain-specific errors
+ *    (`InvalidCallError` for misuse, `ParameterError` for unexpected input)
+ */
 export class KeyPairIdentifierLogic {
   public constructor(public identifier: IdentifierKeyPair) {}
 
@@ -30,33 +47,27 @@ export class KeyPairIdentifierLogic {
     )
   }
 
-  getSeed(): string {
+  getSeed(): IdentifierSeed {
     if (!this.identifier.seed) {
-      throw new Error(
-        'get seed called on non seed key pair identifier, please check first with isSeedKeyPair()',
-      )
+      throw new InvalidCallError('Invalid call: getSeed() on non-seed identifier')
     }
-    return this.identifier.seed.seed
+    return this.identifier.seed
   }
 
   getCommunityTopicId(): HieroId {
     return this.identifier.communityTopicId
   }
 
-  getUserUuid(): string {
+  getUserUuid(): Uuidv4 {
     if (!this.identifier.account) {
-      throw new Error(
-        'get user uuid called on non user key pair identifier, please check first with isUserKeyPair() or isAccountKeyPair()',
-      )
+      throw new InvalidCallError('Invalid call: getUserUuid() on non-user identifier')
     }
     return this.identifier.account.userUuid
   }
 
   getAccountNr(): number {
-    if (!this.identifier.account?.accountNr) {
-      throw new Error(
-        'get account nr called on non account key pair identifier, please check first with isAccountKeyPair()',
-      )
+    if (!this.identifier.account) {
+      throw new InvalidCallError('Invalid call: getAccountNr() on non-account identifier')
     }
     return this.identifier.account.accountNr
   }
@@ -64,32 +75,36 @@ export class KeyPairIdentifierLogic {
   getSeedKey(): string {
     return this.getSeed()
   }
-  getCommunityKey(): HieroId {
+  getCommunityKey(): string {
     return this.getCommunityTopicId()
   }
   getCommunityUserKey(): string {
-    return this.createCommunityUserHash()
+    return this.deriveCommunityUserHash()
   }
   getCommunityUserAccountKey(): string {
-    return this.createCommunityUserHash() + this.getAccountNr().toString()
+    return this.deriveCommunityUserHash() + this.getAccountNr().toString()
   }
 
   getKey(): string {
-    if (this.isSeedKeyPair()) {
-      return this.getSeedKey()
-    } else if (this.isCommunityKeyPair()) {
-      return this.getCommunityKey()
-    } else if (this.isUserKeyPair()) {
-      return this.getCommunityUserKey()
-    } else if (this.isAccountKeyPair()) {
-      return this.getCommunityUserAccountKey()
+    switch (true) {
+      case this.isSeedKeyPair():
+        return this.getSeedKey()
+      case this.isCommunityKeyPair():
+        return this.getCommunityKey()
+      case this.isUserKeyPair():
+        return this.getCommunityUserKey()
+      case this.isAccountKeyPair():
+        return this.getCommunityUserAccountKey()
+      default:
+        throw new ParameterError('KeyPairIdentifier: unhandled input constellation')
     }
-    throw new ParameterError('KeyPairIdentifier: unhandled input type')
   }
 
-  private createCommunityUserHash(): string {
-    if (!this.identifier.account?.userUuid || !this.identifier.communityTopicId) {
-      throw new ParameterError('userUuid and/or communityTopicId is undefined')
+  private deriveCommunityUserHash(): string {
+    if (!this.identifier.account) {
+      throw new InvalidCallError(
+        'Invalid call: getCommunityUserKey or getCommunityUserAccountKey() on non-user/non-account identifier',
+      )
     }
     const resultString =
       this.identifier.communityTopicId + this.identifier.account.userUuid.replace(/-/g, '')

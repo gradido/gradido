@@ -1,23 +1,28 @@
 import { beforeAll, describe, expect, it } from 'bun:test'
-import { TypeBoxFromValibot } from '@sinclair/typemap'
 import { TypeCompiler } from '@sinclair/typebox/compiler'
+import { TypeBoxFromValibot } from '@sinclair/typemap'
 import { randomBytes } from 'crypto'
+import { AddressType_COMMUNITY_HUMAN } from 'gradido-blockchain-js'
 import { v4 as uuidv4 } from 'uuid'
 import { parse } from 'valibot'
+import { AccountType } from '../enum/AccountType'
 import { InputTransactionType } from '../enum/InputTransactionType'
 import {
   gradidoAmountSchema,
   HieroId,
   hieroIdSchema,
+  identifierSeedSchema,
   Memo,
   memoSchema,
   timeoutDurationSchema,
   Uuidv4,
   uuidv4Schema,
 } from '../schemas/typeGuard.schema'
-import { registerAddressTransactionSchema, TransactionInput, transactionSchema } from './transaction.schema'
-import { AccountType } from '../enum/AccountType'
-import { AddressType_COMMUNITY_HUMAN } from 'gradido-blockchain-js'
+import {
+  registerAddressTransactionSchema,
+  TransactionInput,
+  transactionSchema,
+} from './transaction.schema'
 
 const transactionLinkCode = (date: Date): string => {
   const time = date.getTime().toString(16)
@@ -91,7 +96,7 @@ describe('transaction schemas', () => {
       expect(check.Check(registerAddress)).toBe(true)
     })
   })
-  
+
   it('valid, gradido transfer', () => {
     const gradidoTransfer: TransactionInput = {
       user: {
@@ -162,6 +167,8 @@ describe('transaction schemas', () => {
     })
   })
   it('valid, gradido transaction link / deferred transfer', () => {
+    const seed = transactionLinkCode(new Date())
+    const seedParsed = parse(identifierSeedSchema, seed)
     const gradidoTransactionLink: TransactionInput = {
       user: {
         communityTopicId: topicString,
@@ -171,9 +178,7 @@ describe('transaction schemas', () => {
       },
       linkedUser: {
         communityTopicId: topicString,
-        seed: {
-          seed: transactionLinkCode(new Date()),
-        },
+        seed,
       },
       amount: '100',
       memo: memoString,
@@ -191,9 +196,7 @@ describe('transaction schemas', () => {
       },
       linkedUser: {
         communityTopicId: topic,
-        seed: {
-          seed: gradidoTransactionLink.linkedUser!.seed!.seed,
-        },
+        seed: seedParsed,
       },
       amount: parse(gradidoAmountSchema, gradidoTransactionLink.amount!),
       memo,

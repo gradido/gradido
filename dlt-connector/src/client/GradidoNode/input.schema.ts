@@ -1,5 +1,5 @@
 import * as v from 'valibot'
-import { hieroIdSchema, hieroTransactionIdSchema } from '../../schemas/typeGuard.schema'
+import { hieroIdSchema, hieroTransactionIdStringSchema } from '../../schemas/typeGuard.schema'
 
 export const transactionsRangeSchema = v.object({
   // default value is 1, from first transactions
@@ -18,7 +18,7 @@ export const transactionIdentifierSchema = v.pipe(
       v.pipe(v.number('expect number type'), v.minValue(1, 'expect number >= 1')),
       undefined,
     ),
-    hieroTransactionId: v.nullish(hieroTransactionIdSchema, undefined),
+    hieroTransactionId: v.nullish(hieroTransactionIdStringSchema, undefined),
     topic: hieroIdSchema,
   }),
   v.custom((value: any) => {

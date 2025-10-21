@@ -62,7 +62,9 @@ export class HieroClient {
     this.logger.info(`waiting for ${this.pendingPromises.length} pending promises`)
     await Promise.all(this.pendingPromises)
     const endTime = new Date()
-    this.logger.info(`all pending promises resolved, used time: ${endTime.getTime() - startTime.getTime()}ms`)
+    this.logger.info(
+      `all pending promises resolved, used time: ${endTime.getTime() - startTime.getTime()}ms`,
+    )
   }
 
   public async sendMessage(
@@ -85,28 +87,34 @@ export class HieroClient {
     }).freezeWithSigner(this.wallet)
     // sign and execute transaction needs some time, so let it run in background
     const pendingPromiseIndex = this.pendingPromises.push(
-      hieroTransaction.signWithSigner(this.wallet).then(async (signedHieroTransaction) => {
-        const sendResponse = await signedHieroTransaction.executeWithSigner(this.wallet)
-        logger.info(`message sent to topic ${topicId}, transaction id: ${sendResponse.transactionId.toString()}`)
-        if (logger.isInfoEnabled()) {
-          // only for logging
-          sendResponse.getReceiptWithSigner(this.wallet).then((receipt) => {
-            logger.info(
-            `message send status: ${receipt.status.toString()}`,
-            )
-          })
-          // only for logging
-          sendResponse.getRecordWithSigner(this.wallet).then((record) => {
-            logger.info(`message sent, cost: ${record.transactionFee.toString()}`)
-            const localEndTime = new Date()
-            logger.info(`HieroClient.sendMessage used time (full process): ${localEndTime.getTime() - startTime.getTime()}ms`)
-          })
-        }
-      }).catch((e) => {
-        logger.error(e)
-      }).finally(() => {
-        this.pendingPromises.splice(pendingPromiseIndex, 1)
-      })
+      hieroTransaction
+        .signWithSigner(this.wallet)
+        .then(async (signedHieroTransaction) => {
+          const sendResponse = await signedHieroTransaction.executeWithSigner(this.wallet)
+          logger.info(
+            `message sent to topic ${topicId}, transaction id: ${sendResponse.transactionId.toString()}`,
+          )
+          if (logger.isInfoEnabled()) {
+            // only for logging
+            sendResponse.getReceiptWithSigner(this.wallet).then((receipt) => {
+              logger.info(`message send status: ${receipt.status.toString()}`)
+            })
+            // only for logging
+            sendResponse.getRecordWithSigner(this.wallet).then((record) => {
+              logger.info(`message sent, cost: ${record.transactionFee.toString()}`)
+              const localEndTime = new Date()
+              logger.info(
+                `HieroClient.sendMessage used time (full process): ${localEndTime.getTime() - startTime.getTime()}ms`,
+              )
+            })
+          }
+        })
+        .catch((e) => {
+          logger.error(e)
+        })
+        .finally(() => {
+          this.pendingPromises.splice(pendingPromiseIndex, 1)
+        }),
     )
     const endTime = new Date()
     logger.info(`HieroClient.sendMessage used time: ${endTime.getTime() - startTime.getTime()}ms`)
@@ -148,7 +156,7 @@ export class HieroClient {
       autoRenewPeriod: undefined,
       autoRenewAccountId: undefined,
     })
-    
+
     transaction = await transaction.freezeWithSigner(this.wallet)
     transaction = await transaction.signWithSigner(this.wallet)
     const createResponse = await transaction.executeWithSigner(this.wallet)

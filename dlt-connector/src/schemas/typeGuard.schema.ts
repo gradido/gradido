@@ -40,6 +40,24 @@ export const uuidv4Schema = v.pipe(
 export type Uuidv4Input = v.InferInput<typeof uuidv4Schema>
 
 /**
+ * type guard for seed string
+ * create with `v.parse(seedSchema, '0c4676adfd96519a0551596c')`
+ * seed is a string of length 24
+ */
+declare const validIdentifierSeed: unique symbol
+export type IdentifierSeed = string & { [validIdentifierSeed]: true }
+
+// use code from transaction links
+export const identifierSeedSchema = v.pipe(
+  v.string('expect string type'),
+  v.hexadecimal('expect hexadecimal string'),
+  v.length(24, 'expect seed length 24'),
+  v.transform<string, IdentifierSeed>((input: string) => input as IdentifierSeed),
+)
+
+export type IdentifierSeedInput = v.InferInput<typeof identifierSeedSchema>
+
+/**
  * type guard for memory block size 32
  * create with `v.parse(memoryBlock32Schema, MemoryBlock.fromHex('39568d7e148a0afee7f27a67dbf7d4e87d1fdec958e2680df98a469690ffc1a2'))`
  * memoryBlock32 is a non-empty MemoryBlock with size 32
@@ -124,16 +142,20 @@ export type HieroIdInput = v.InferInput<typeof hieroIdSchema>
  * basically it is a Hiero id with a timestamp seconds-nanoseconds since 1970-01-01T00:00:00Z
  * seconds is int64, nanoseconds int32
  */
-declare const validHieroTransactionId: unique symbol
-export type HieroTransactionId = string & { [validHieroTransactionId]: true }
+declare const validHieroTransactionIdString: unique symbol
+export type HieroTransactionIdString = string & { [validHieroTransactionIdString]: true }
 
-export const hieroTransactionIdSchema = v.pipe(
-  v.string('expect hiero transaction id type, for example 0.0.141760-1755138896-607329203 or 0.0.141760@1755138896.607329203'),
+export const hieroTransactionIdStringSchema = v.pipe(
+  v.string(
+    'expect hiero transaction id type, for example 0.0.141760-1755138896-607329203 or 0.0.141760@1755138896.607329203',
+  ),
   v.regex(/^[0-9]+\.[0-9]+\.[0-9]+(-[0-9]+-[0-9]+|@[0-9]+\.[0-9]+)$/),
-  v.transform<string, HieroTransactionId>((input: string) => input as HieroTransactionId),
+  v.transform<string, HieroTransactionIdString>(
+    (input: string) => input as HieroTransactionIdString,
+  ),
 )
 
-export type HieroTransactionIdInput = v.InferInput<typeof hieroTransactionIdSchema>
+export type HieroTransactionIdInput = v.InferInput<typeof hieroTransactionIdStringSchema>
 
 /**
  * type guard for memo
@@ -176,14 +198,12 @@ export const timeoutDurationSchema = v.pipe(
     ),
     v.instance(DurationSeconds, 'expect DurationSeconds type'),
   ]),
-  v.transform<number | DurationSeconds, TimeoutDuration>(
-    (input: number | DurationSeconds) => {
-      if (input instanceof DurationSeconds) {
-        return input as TimeoutDuration
-      }
-      return new DurationSeconds(input) as TimeoutDuration
-    },
-  ),
+  v.transform<number | DurationSeconds, TimeoutDuration>((input: number | DurationSeconds) => {
+    if (input instanceof DurationSeconds) {
+      return input as TimeoutDuration
+    }
+    return new DurationSeconds(input) as TimeoutDuration
+  }),
 )
 
 /**
@@ -210,16 +230,11 @@ declare const validGradidoAmount: unique symbol
 export type GradidoAmount = GradidoUnit & { [validGradidoAmount]: true }
 
 export const gradidoAmountSchema = v.pipe(
-  v.union([
-    amountSchema,
-    v.instance(GradidoUnit, 'expect GradidoUnit type'),
-  ]),
-  v.transform<Amount | GradidoUnit, GradidoAmount>(
-    (input: Amount | GradidoUnit) => {
-      if (input instanceof GradidoUnit) {
-        return input as GradidoAmount
-      }
-      return GradidoUnit.fromString(input) as GradidoAmount
-    },
-  ),
+  v.union([amountSchema, v.instance(GradidoUnit, 'expect GradidoUnit type')]),
+  v.transform<Amount | GradidoUnit, GradidoAmount>((input: Amount | GradidoUnit) => {
+    if (input instanceof GradidoUnit) {
+      return input as GradidoAmount
+    }
+    return GradidoUnit.fromString(input) as GradidoAmount
+  }),
 )

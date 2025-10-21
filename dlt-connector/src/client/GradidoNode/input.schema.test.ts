@@ -2,18 +2,18 @@ import { beforeAll, describe, expect, it } from 'bun:test'
 import { parse } from 'valibot'
 import {
   HieroId,
-  HieroTransactionId,
+  HieroTransactionIdString,
   hieroIdSchema,
-  hieroTransactionIdSchema,
+  hieroTransactionIdStringSchema,
 } from '../../schemas/typeGuard.schema'
 import { transactionIdentifierSchema } from './input.schema'
 
 let topic: HieroId
 const topicString = '0.0.261'
-let hieroTransactionId: HieroTransactionId
+let hieroTransactionId: HieroTransactionIdString
 beforeAll(() => {
   topic = parse(hieroIdSchema, topicString)
-  hieroTransactionId = parse(hieroTransactionIdSchema, '0.0.261-1755348116-1281621')
+  hieroTransactionId = parse(hieroTransactionIdStringSchema, '0.0.261-1755348116-1281621')
 })
 
 describe('transactionIdentifierSchema ', () => {

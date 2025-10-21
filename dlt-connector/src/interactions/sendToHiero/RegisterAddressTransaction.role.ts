@@ -12,7 +12,7 @@ import {
   Transaction,
 } from '../../schemas/transaction.schema'
 import { HieroId } from '../../schemas/typeGuard.schema'
-import { KeyPairCalculation } from '../keyPairCalculation/KeyPairCalculation.context'
+import { ResolveKeyPair } from '../resolveKeyPair/ResolveKeyPair.context'
 import { AbstractTransactionRole } from './AbstractTransaction.role'
 
 export class RegisterAddressTransactionRole extends AbstractTransactionRole {
@@ -35,15 +35,13 @@ export class RegisterAddressTransactionRole extends AbstractTransactionRole {
   public async getGradidoTransactionBuilder(): Promise<GradidoTransactionBuilder> {
     const builder = new GradidoTransactionBuilder()
     const communityTopicId = this.registerAddressTransaction.user.communityTopicId
-    const communityKeyPair = await KeyPairCalculation(new KeyPairIdentifierLogic({ communityTopicId }))
+    const communityKeyPair = await ResolveKeyPair(new KeyPairIdentifierLogic({ communityTopicId }))
     const keyPairIdentifier = this.registerAddressTransaction.user
     // when accountNr is 0 it is the user account
     keyPairIdentifier.account.accountNr = 0
-    const userKeyPair = await KeyPairCalculation(new KeyPairIdentifierLogic(keyPairIdentifier))
+    const userKeyPair = await ResolveKeyPair(new KeyPairIdentifierLogic(keyPairIdentifier))
     keyPairIdentifier.account.accountNr = 1
-    const accountKeyPair = await KeyPairCalculation(
-      new KeyPairIdentifierLogic(keyPairIdentifier),
-    )
+    const accountKeyPair = await ResolveKeyPair(new KeyPairIdentifierLogic(keyPairIdentifier))
 
     builder
       .setCreatedAt(this.registerAddressTransaction.createdAt)

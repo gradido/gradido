@@ -8,7 +8,7 @@ import {
   GMW_ACCOUNT_DERIVATION_INDEX,
   hardenDerivationIndex,
 } from '../../utils/derivationHelper'
-import { KeyPairCalculation } from '../keyPairCalculation/KeyPairCalculation.context'
+import { ResolveKeyPair } from '../resolveKeyPair/ResolveKeyPair.context'
 import { AbstractTransactionRole } from './AbstractTransaction.role'
 
 export class CommunityRootTransactionRole extends AbstractTransactionRole {
@@ -26,7 +26,7 @@ export class CommunityRootTransactionRole extends AbstractTransactionRole {
 
   public async getGradidoTransactionBuilder(): Promise<GradidoTransactionBuilder> {
     const builder = new GradidoTransactionBuilder()
-    const communityKeyPair = await KeyPairCalculation(
+    const communityKeyPair = await ResolveKeyPair(
       new KeyPairIdentifierLogic({ communityTopicId: this.community.hieroTopicId }),
     )
     const gmwKeyPair = communityKeyPair.deriveChild(

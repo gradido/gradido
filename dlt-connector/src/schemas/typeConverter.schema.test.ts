@@ -1,7 +1,7 @@
-import { Static, TypeBoxFromValibot } from '@sinclair/typemap'
-import { TypeCompiler } from '@sinclair/typebox/compiler'
 // only for IDE, bun don't need this to work
 import { describe, expect, it } from 'bun:test'
+import { TypeCompiler } from '@sinclair/typebox/compiler'
+import { Static, TypeBoxFromValibot } from '@sinclair/typemap'
 import { AddressType_COMMUNITY_AUF } from 'gradido-blockchain-js'
 import * as v from 'valibot'
 import { AccountType } from '../enum/AccountType'
@@ -26,25 +26,25 @@ describe('basic.schema', () => {
       expect(() => v.parse(dateSchema, 'invalid date')).toThrow(new Error('invalid date'))
     })
     it('with type box', () => {
-       // Derive TypeBox Schema from the Valibot Schema
-       const DateSchema = TypeBoxFromValibot(dateSchema)
+      // Derive TypeBox Schema from the Valibot Schema
+      const DateSchema = TypeBoxFromValibot(dateSchema)
 
-       // Build the compiler
-       const check = TypeCompiler.Compile(DateSchema)
- 
-       // Valid value (String)
-       expect(check.Check('2021-01-01T10:10:00.000Z')).toBe(true)
- 
-       // typebox cannot use valibot custom validation and transformations, it will check only the input types
-       expect(check.Check('invalid date')).toBe(true)
- 
-       // Type inference (TypeScript)
-       type DateType = Static<typeof DateSchema>
-       const validDate: DateType = '2021-01-01T10:10:00.000Z'
-       const validDate2: DateType = new Date('2021-01-01')
+      // Build the compiler
+      const check = TypeCompiler.Compile(DateSchema)
 
-       // @ts-expect-error
-       const invalidDate: DateType = 123 // should fail in TS
+      // Valid value (String)
+      expect(check.Check('2021-01-01T10:10:00.000Z')).toBe(true)
+
+      // typebox cannot use valibot custom validation and transformations, it will check only the input types
+      expect(check.Check('invalid date')).toBe(true)
+
+      // Type inference (TypeScript)
+      type DateType = Static<typeof DateSchema>
+      const _validDate: DateType = '2021-01-01T10:10:00.000Z'
+      const _validDate2: DateType = new Date('2021-01-01')
+
+      // @ts-expect-error
+      const _invalidDate: DateType = 123 // should fail in TS
     })
   })
 
@@ -74,16 +74,24 @@ describe('basic.schema', () => {
       const check = TypeCompiler.Compile(AddressTypeSchema)
       expect(check.Check(AccountType.COMMUNITY_AUF)).toBe(true)
       // type box will throw an error, because it cannot handle valibots custom validation
-      expect(() => check.Check(AddressType_COMMUNITY_AUF)).toThrow(new TypeError(`undefined is not an object (evaluating 'schema["~run"]')`))
-      expect(() => check.Check('invalid')).toThrow(new TypeError(`undefined is not an object (evaluating 'schema["~run"]')`))
+      expect(() => check.Check(AddressType_COMMUNITY_AUF)).toThrow(
+        new TypeError(`undefined is not an object (evaluating 'schema["~run"]')`),
+      )
+      expect(() => check.Check('invalid')).toThrow(
+        new TypeError(`undefined is not an object (evaluating 'schema["~run"]')`),
+      )
     })
     it('accountType with type box', () => {
       const AccountTypeSchema = TypeBoxFromValibot(accountTypeSchema)
       const check = TypeCompiler.Compile(AccountTypeSchema)
       expect(check.Check(AccountType.COMMUNITY_AUF)).toBe(true)
       // type box will throw an error, because it cannot handle valibots custom validation
-      expect(() => check.Check(AddressType_COMMUNITY_AUF)).toThrow(new TypeError(`undefined is not an object (evaluating 'schema["~run"]')`))
-      expect(() => check.Check('invalid')).toThrow(new TypeError(`undefined is not an object (evaluating 'schema["~run"]')`))
+      expect(() => check.Check(AddressType_COMMUNITY_AUF)).toThrow(
+        new TypeError(`undefined is not an object (evaluating 'schema["~run"]')`),
+      )
+      expect(() => check.Check('invalid')).toThrow(
+        new TypeError(`undefined is not an object (evaluating 'schema["~run"]')`),
+      )
     })
   })
 

@@ -7,6 +7,7 @@ import { BackendClient } from './client/backend/BackendClient'
 import { GradidoNodeClient } from './client/GradidoNode/GradidoNodeClient'
 import { HieroClient } from './client/hiero/HieroClient'
 import { CONFIG } from './config'
+import { MIN_TOPIC_EXPIRE_MILLISECONDS_FOR_UPDATE } from './config/const'
 import { SendToHieroContext } from './interactions/sendToHiero/SendToHiero.context'
 import { KeyPairCacheManager } from './KeyPairCacheManager'
 import { Community, communitySchema } from './schemas/transaction.schema'
@@ -52,7 +53,7 @@ async function main() {
 
 function setupGracefulShutdown(logger: Logger) {
   const signals: NodeJS.Signals[] = ['SIGINT', 'SIGTERM']
-  signals.forEach(sig => {
+  signals.forEach((sig) => {
     process.on(sig, async () => {
       logger.info(`[shutdown] Got ${sig}, cleaning up…`)
       await gracefulShutdown(logger)
@@ -60,13 +61,13 @@ function setupGracefulShutdown(logger: Logger) {
     })
   })
 
-  if (process.platform === "win32") {
-    const rl = require("readline").createInterface({
+  if (process.platform === 'win32') {
+    const rl = require('readline').createInterface({
       input: process.stdin,
       output: process.stdout,
     })
-    rl.on("SIGINT", () => {
-      process.emit("SIGINT" as any)
+    rl.on('SIGINT', () => {
+      process.emit('SIGINT' as any)
     })
   }
 }
@@ -113,8 +114,8 @@ async function homeCommunitySetup({ backend, hiero }: Clients, logger: Logger): 
   } else {
     // if topic exist, check if we need to update it
     let topicInfo = await hiero.getTopicInfo(homeCommunity.hieroTopicId)
-    console.log(`topicInfo: ${JSON.stringify(topicInfo, null, 2)}`)
-    /*if (
+    // console.log(`topicInfo: ${JSON.stringify(topicInfo, null, 2)}`)
+    if (
       topicInfo.expirationTime.getTime() - new Date().getTime() <
       MIN_TOPIC_EXPIRE_MILLISECONDS_FOR_UPDATE
     ) {
@@ -123,7 +124,7 @@ async function homeCommunitySetup({ backend, hiero }: Clients, logger: Logger): 
       logger.info(
         `updated topic info, new expiration time: ${topicInfo.expirationTime.toLocaleDateString()}`,
       )
-    }*/
+    }
   }
   if (!homeCommunity.hieroTopicId) {
     throw new Error('still no topic id, after creating topic and update community in backend.')
@@ -140,4 +141,3 @@ main().catch((e) => {
   console.error(e)
   process.exit(1)
 })
-
