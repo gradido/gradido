@@ -58,6 +58,8 @@ export const executeTransaction = async (
   logger: Logger,
   transactionLink?: dbTransactionLink | null,
 ): Promise<boolean> => {
+  // acquire lock
+  const releaseLock = await TRANSACTIONS_LOCK.acquire()
   const receivedCallDate = new Date()
   let dltTransactionPromise: Promise<DbDltTransaction | null> = Promise.resolve(null)
   if (!transactionLink) {
@@ -65,9 +67,6 @@ export const executeTransaction = async (
   } else {
     dltTransactionPromise = redeemDeferredTransferTransaction(transactionLink, amount.toString(), receivedCallDate, recipient)
   }
-
-  // acquire lock
-  const releaseLock = await TRANSACTIONS_LOCK.acquire()
 
   try {
     logger.info('executeTransaction', memo)

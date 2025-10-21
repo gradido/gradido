@@ -396,8 +396,8 @@ export class TransactionLinkResolver {
       }      
       return true
     } else {
+      const releaseLinkLock = await TRANSACTION_LINK_LOCK.acquire() 
       const now = new Date()
-      const releaseLinkLock = await TRANSACTION_LINK_LOCK.acquire()
       try {
         const transactionLink = await DbTransactionLink.findOne({ where: { code } })
         if (!transactionLink) {
