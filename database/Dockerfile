@@ -65,7 +65,7 @@ COPY --chown=app:app . .
 FROM installer as build-shared
 
 RUN bun install --filter shared --no-cache --frozen-lockfile \
-  && cd shared && yarn typecheck && yarn build 
+  && cd shared && bun run typecheck && bun run build 
 
 ##################################################################################
 # Build ##########################################################################
@@ -77,7 +77,7 @@ RUN bun install --filter database --production --no-cache --frozen-lockfile
 ##################################################################################
 # PRODUCTION IMAGE ###############################################################
 ##################################################################################
-FROM base as production 
+FROM bun-base as production 
 
 COPY --chown=app:app --from=build-shared ${DOCKER_WORKDIR}/shared/build ./shared/build
 COPY --chown=app:app --from=build-shared ${DOCKER_WORKDIR}/shared/package.json ./shared/package.json
@@ -91,7 +91,7 @@ COPY --chown=app:app --from=build ${DOCKER_WORKDIR}/package.json ./package.json
 FROM production as up
 
 # Run command
-CMD /bin/sh -c "cd database && yarn up"
+CMD /bin/sh -c "cd database && bun run up"
 
 ##################################################################################
 # TEST RESET #####################################################################
@@ -99,7 +99,7 @@ CMD /bin/sh -c "cd database && yarn up"
 FROM production as reset
 
 # Run command
-CMD /bin/sh -c "cd database && yarn reset"
+CMD /bin/sh -c "cd database && bun run reset"
 
 ##################################################################################
 # TEST DOWN ######################################################################
@@ -107,4 +107,4 @@ CMD /bin/sh -c "cd database && yarn reset"
 FROM production as down
 
 # Run command
-CMD /bin/sh -c "cd database && yarn down"
+CMD /bin/sh -c "cd database && bun run down"

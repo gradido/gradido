@@ -57,7 +57,6 @@
     "dotenv": "^10.0.0",
     "esbuild": "^0.25.2",
     "geojson": "^0.5.0",
-    "joi-extract-type": "^15.0.8",
     "log4js": "^6.9.1",
     "mysql": "^2.18.1",
     "mysql2": "^2.3.0",
