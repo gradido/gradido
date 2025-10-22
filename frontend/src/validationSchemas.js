@@ -28,10 +28,21 @@ export const memo = string()
 
 export const identifier = string()
   .required('form.validation.identifier.required')
+  .test(
+    'valid-parts',
+    'form.validation.identifier.partsError',
+    (value) => (value.match(/\//g) || []).length <= 1, // allow only one or zero slash
+  )
   .test('valid-identifier', 'form.validation.identifier.typeError', (value) => {
-    const isEmail = !!EMAIL_REGEX.test(value)
-    const isUsername = !!value.match(USERNAME_REGEX)
+    let userPart = value
+    const parts = value.split('/')
+    if (parts.length === 2) {
+      userPart = parts[1]
+    }
+
+    const isEmail = !!EMAIL_REGEX.test(userPart)
+    const isUsername = !!userPart.match(USERNAME_REGEX)
     // TODO: use valibot and rules from shared
-    const isGradidoId = validateUuid(value) && versionUuid(value) === 4
+    const isGradidoId = validateUuid(userPart) && versionUuid(userPart) === 4
     return isEmail || isUsername || isGradidoId
   })

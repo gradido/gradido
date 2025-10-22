@@ -26,6 +26,7 @@ fragment AiChatMessageFields on ChatGptMessage {
   content
   role
   threadId
+  isError
 }
 
 fragment UserCommonFields on User {

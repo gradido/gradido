@@ -57,7 +57,9 @@ WORKDIR ${DOCKER_WORKDIR}
 FROM base as bun-base
 
 RUN apk update && apk add --no-cache curl tar bash
-RUN curl -fsSL https://bun.sh/install | bash
+COPY .bun-version .bun-version
+RUN BUN_VERSION=$(cat .bun-version) && \
+  curl -fsSL https://bun.com/install | bash -s "bun-v${BUN_VERSION}"
 # Add bun's global bin directory to PATH
 ENV PATH="/root/.bun/bin:${PATH}"
 

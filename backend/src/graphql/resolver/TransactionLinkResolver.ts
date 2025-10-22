@@ -14,7 +14,7 @@ import { User } from '@model/User'
 import { QueryLinkResult } from '@union/QueryLinkResult'
 import { Decay, interpretEncryptedTransferArgs, TransactionTypeId } from 'core'
 import {
-  AppDatabase, Community as DbCommunity, Contribution as DbContribution,
+  AppDatabase, Contribution as DbContribution,
   ContributionLink as DbContributionLink, FederatedCommunity as DbFederatedCommunity, Transaction as DbTransaction,
   TransactionLink as DbTransactionLink,
   User as DbUser,
@@ -36,7 +36,7 @@ import { Context, getClientTimezoneOffset, getUser } from '@/server/context'
 import { calculateBalance } from '@/util/validate'
 import { fullName } from 'core'
 import { TRANSACTION_LINK_LOCK, TRANSACTIONS_LOCK } from 'database'
-import { calculateDecay, decode, DisburseJwtPayloadType, encode, encryptAndSign, EncryptedJWEJwtPayloadType, RedeemJwtPayloadType, verify } from 'shared'
+import { calculateDecay, compoundInterest, decayFormula, decode, DisburseJwtPayloadType, encode, encryptAndSign, EncryptedJWEJwtPayloadType, RedeemJwtPayloadType, verify } from 'shared'
 
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { DisbursementClient as V1_0_DisbursementClient } from '@/federation/client/1_0/DisbursementClient'
@@ -48,7 +48,6 @@ import { randombytes_random } from 'sodium-native'
 import { executeTransaction } from './TransactionResolver'
 import {
   getAuthenticatedCommunities,
-  getCommunityByIdentifier,
   getCommunityByPublicKey,
   getCommunityByUuid,
 } from './util/communities'
@@ -90,7 +89,7 @@ export class TransactionLinkResolver {
     const createdDate = new Date()
     const validUntil = transactionLinkExpireDate(createdDate)
 
-    const holdAvailableAmount = amount.minus(calculateDecay(amount, createdDate, validUntil).decay)
+    const holdAvailableAmount = compoundInterest(amount, CODE_VALID_DAYS_DURATION * 24 * 60 * 60)
 
     // validate amount
     const sendBalance = await calculateBalance(user.id, holdAvailableAmount.mul(-1), createdDate)

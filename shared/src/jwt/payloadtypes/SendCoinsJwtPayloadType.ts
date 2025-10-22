@@ -13,6 +13,7 @@ export class SendCoinsJwtPayloadType extends JwtPayloadType {
   senderUserUuid: string
   senderUserName: string
   senderAlias?: string | null
+  transactionLinkId?: number | null
 
   constructor(
     handshakeID: string,
@@ -25,6 +26,7 @@ export class SendCoinsJwtPayloadType extends JwtPayloadType {
     senderUserUuid: string,
     senderUserName: string,
     senderAlias?: string | null,
+    transactionLinkId?: number | null,
   ) {
     super(handshakeID)
     this.tokentype = SendCoinsJwtPayloadType.SEND_COINS_TYPE
@@ -37,5 +39,6 @@ export class SendCoinsJwtPayloadType extends JwtPayloadType {
     this.senderUserUuid = senderUserUuid
     this.senderUserName = senderUserName
     this.senderAlias = senderAlias
+    this.transactionLinkId = transactionLinkId
   }
 }

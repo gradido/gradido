@@ -1,5 +1,5 @@
 import { ApolloServerTestClient } from 'apollo-server-testing'
-import { Community as DbCommunity, FederatedCommunity as DbFederatedCommunity } from 'database'
+import { Community as DbCommunity, FederatedCommunity as DbFederatedCommunity, getHomeCommunity } from 'database'
 import { GraphQLError } from 'graphql/error/GraphQLError'
 import { DataSource } from 'typeorm'
 import { v4 as uuidv4 } from 'uuid'
@@ -10,19 +10,20 @@ import { i18n as localization } from '@test/testSetup'
 import { userFactory } from '@/seeds/factory/user'
 import { login, updateHomeCommunityQuery } from '@/seeds/graphql/mutations'
 import {
-  allCommunities,
-  communitiesQuery,
-  getCommunities,
+  allCommunities,  
   getCommunityByIdentifierQuery,
   getHomeCommunityQuery,
+  reachableCommunities,
 } from '@/seeds/graphql/queries'
 import { peterLustig } from '@/seeds/users/peter-lustig'
+import { createCommunity, createVerifiedFederatedCommunity } from 'database/src/seeds/community'
 
 import { getLogger } from 'config-schema/test/testSetup'
-import { getCommunityByUuid } from './util/communities'
+import { CONFIG } from '@/config'
 
 jest.mock('@/password/EncryptorUtils')
 
+CONFIG.FEDERATION_VALIDATE_COMMUNITY_TIMER = 1000
 
 // to do: We need a setup for the tests that closes the connection
 let mutate: ApolloServerTestClient['mutate']
@@ -46,11 +47,13 @@ beforeAll(async () => {
   mutate = testEnv.mutate
   query = testEnv.query
   con = testEnv.con
+  await cleanDB()
+  // reset id auto increment
+  await DbCommunity.clear()
   await DbFederatedCommunity.clear()
 })
 
 afterAll(async () => {
-  await cleanDB()
   await con.destroy()
 })
 
@@ -109,31 +112,38 @@ const ed25519KeyPairStaticHex = [
 ]
 
 describe('CommunityResolver', () => {
-  describe('getCommunities', () => {
+  describe('allCommunities for admin', () => {
     let homeCom1: DbFederatedCommunity
     let homeCom2: DbFederatedCommunity
     let homeCom3: DbFederatedCommunity
     let foreignCom1: DbFederatedCommunity
     let foreignCom2: DbFederatedCommunity
-    let foreignCom3: DbFederatedCommunity
+    let foreignCom3: DbFederatedCommunity    
+
+    beforeAll(async () => {
+      // create admin and login as admin
+      await userFactory(testEnv, peterLustig)      
+      await mutate({ mutation: login, variables: peterLoginData })
+    })
+
+    afterAll(async () => {
+      await cleanDB()
+    })
 
     describe('with empty list', () => {
       it('returns no community entry', async () => {
         // const result: Community[] = await query({ query: getCommunities })
         // expect(result.length).toEqual(0)
-        await expect(query({ query: getCommunities })).resolves.toMatchObject({
+        await expect(query({ query: allCommunities })).resolves.toMatchObject({
           data: {
-            getCommunities: [],
+            allCommunities: [],
           },
         })
       })
     })
 
-    describe('only home-communities entries', () => {
+    describe('only home-community entries (different apis)', () => {
       beforeEach(async () => {
-        await cleanDB()
-        jest.clearAllMocks()
-
         homeCom1 = DbFederatedCommunity.create()
         homeCom1.foreign = false
         homeCom1.publicKey = Buffer.from(ed25519KeyPairStaticHex[0].public, 'hex')
@@ -144,7 +154,7 @@ describe('CommunityResolver', () => {
 
         homeCom2 = DbFederatedCommunity.create()
         homeCom2.foreign = false
-        homeCom2.publicKey = Buffer.from(ed25519KeyPairStaticHex[1].public, 'hex')
+        homeCom2.publicKey = Buffer.from(ed25519KeyPairStaticHex[0].public, 'hex')
         homeCom2.apiVersion = '1_1'
         homeCom2.endPoint = 'http://localhost/api'
         homeCom2.createdAt = new Date()
@@ -152,170 +162,67 @@ describe('CommunityResolver', () => {
 
         homeCom3 = DbFederatedCommunity.create()
         homeCom3.foreign = false
-        homeCom3.publicKey = Buffer.from(ed25519KeyPairStaticHex[2].public, 'hex')
+        homeCom3.publicKey = Buffer.from(ed25519KeyPairStaticHex[0].public, 'hex')
         homeCom3.apiVersion = '2_0'
         homeCom3.endPoint = 'http://localhost/api'
         homeCom3.createdAt = new Date()
         await DbFederatedCommunity.insert(homeCom3)
       })
 
-      it('returns 3 home-community entries', async () => {
-        await expect(query({ query: getCommunities })).resolves.toMatchObject({
+      it('returns only home-community entries', async () => {
+        await expect(query({ query: allCommunities })).resolves.toMatchObject({
           data: {
-            getCommunities: [
+            allCommunities: [
               {
-                id: 3,
-                foreign: homeCom3.foreign,
-                publicKey: expect.stringMatching(ed25519KeyPairStaticHex[2].public),
-                endPoint: expect.stringMatching('http://localhost/api/'),
-                apiVersion: '2_0',
-                lastAnnouncedAt: null,
-                verifiedAt: null,
-                lastErrorAt: null,
-                createdAt: homeCom3.createdAt.toISOString(),
-                updatedAt: null,
-              },
-              {
-                id: 2,
-                foreign: homeCom2.foreign,
-                publicKey: expect.stringMatching(ed25519KeyPairStaticHex[1].public),
-                endPoint: expect.stringMatching('http://localhost/api/'),
-                apiVersion: '1_1',
-                lastAnnouncedAt: null,
-                verifiedAt: null,
-                lastErrorAt: null,
-                createdAt: homeCom2.createdAt.toISOString(),
-                updatedAt: null,
-              },
-              {
-                id: 1,
-                foreign: homeCom1.foreign,
+                foreign: false,
+                url: 'http://localhost',
                 publicKey: expect.stringMatching(ed25519KeyPairStaticHex[0].public),
-                endPoint: expect.stringMatching('http://localhost/api/'),
-                apiVersion: '1_0',
-                lastAnnouncedAt: null,
-                verifiedAt: null,
-                lastErrorAt: null,
-                createdAt: homeCom1.createdAt.toISOString(),
+                authenticatedAt: null,
+                createdAt: null,
+                creationDate: null,
+                description: null,
+                gmsApiKey: null,
+                name: null,
                 updatedAt: null,
+                uuid: null,
+                federatedCommunities: [
+                  {
+                    id: 3,
+                    apiVersion: '2_0',
+                    endPoint: 'http://localhost/api/',
+                    createdAt: homeCom3.createdAt.toISOString(),
+                    lastAnnouncedAt: null,
+                    lastErrorAt: null,
+                    updatedAt: null,
+                    verifiedAt: null,
+                  },
+                  {
+                    id: 2,
+                    apiVersion: '1_1',
+                    endPoint: 'http://localhost/api/',
+                    createdAt: homeCom2.createdAt.toISOString(),
+                    lastAnnouncedAt: null,
+                    lastErrorAt: null,
+                    updatedAt: null,
+                    verifiedAt: null,
+                  },
+                  {
+                    id: 1,
+                    apiVersion: '1_0',
+                    endPoint: 'http://localhost/api/',
+                    createdAt: homeCom1.createdAt.toISOString(),
+                    lastAnnouncedAt: null,
+                    lastErrorAt: null,
+                    updatedAt: null,
+                    verifiedAt: null,
+                  },
+                ],
               },
             ],
           },
         })
       })
     })
-
-    describe('plus foreign-communities entries', () => {
-      beforeEach(async () => {
-        jest.clearAllMocks()
-
-        foreignCom1 = DbFederatedCommunity.create()
-        foreignCom1.foreign = true
-        foreignCom1.publicKey = Buffer.from(ed25519KeyPairStaticHex[3].public, 'hex')
-        foreignCom1.apiVersion = '1_0'
-        foreignCom1.endPoint = 'http://remotehost/api'
-        foreignCom1.createdAt = new Date()
-        await DbFederatedCommunity.insert(foreignCom1)
-
-        foreignCom2 = DbFederatedCommunity.create()
-        foreignCom2.foreign = true
-        foreignCom2.publicKey = Buffer.from(ed25519KeyPairStaticHex[4].public, 'hex')
-        foreignCom2.apiVersion = '1_1'
-        foreignCom2.endPoint = 'http://remotehost/api'
-        foreignCom2.createdAt = new Date()
-        await DbFederatedCommunity.insert(foreignCom2)
-
-        foreignCom3 = DbFederatedCommunity.create()
-        foreignCom3.foreign = true
-        foreignCom3.publicKey = Buffer.from(ed25519KeyPairStaticHex[5].public, 'hex')
-        foreignCom3.apiVersion = '2_0'
-        foreignCom3.endPoint = 'http://remotehost/api'
-        foreignCom3.createdAt = new Date()
-        await DbFederatedCommunity.insert(foreignCom3)
-      })
-
-      it('returns 3 home community and 3 foreign community entries', async () => {
-        await expect(query({ query: getCommunities })).resolves.toMatchObject({
-          data: {
-            getCommunities: [
-              {
-                id: 3,
-                foreign: homeCom3.foreign,
-                publicKey: expect.stringMatching(ed25519KeyPairStaticHex[2].public),
-                endPoint: expect.stringMatching('http://localhost/api/'),
-                apiVersion: '2_0',
-                lastAnnouncedAt: null,
-                verifiedAt: null,
-                lastErrorAt: null,
-                createdAt: homeCom3.createdAt.toISOString(),
-                updatedAt: null,
-              },
-              {
-                id: 2,
-                foreign: homeCom2.foreign,
-                publicKey: expect.stringMatching(ed25519KeyPairStaticHex[1].public),
-                endPoint: expect.stringMatching('http://localhost/api/'),
-                apiVersion: '1_1',
-                lastAnnouncedAt: null,
-                verifiedAt: null,
-                lastErrorAt: null,
-                createdAt: homeCom2.createdAt.toISOString(),
-                updatedAt: null,
-              },
-              {
-                id: 1,
-                foreign: homeCom1.foreign,
-                publicKey: expect.stringMatching(ed25519KeyPairStaticHex[0].public),
-                endPoint: expect.stringMatching('http://localhost/api/'),
-                apiVersion: '1_0',
-                lastAnnouncedAt: null,
-                verifiedAt: null,
-                lastErrorAt: null,
-                createdAt: homeCom1.createdAt.toISOString(),
-                updatedAt: null,
-              },
-              {
-                id: 6,
-                foreign: foreignCom3.foreign,
-                publicKey: expect.stringMatching(ed25519KeyPairStaticHex[5].public),
-                endPoint: expect.stringMatching('http://remotehost/api/'),
-                apiVersion: '2_0',
-                lastAnnouncedAt: null,
-                verifiedAt: null,
-                lastErrorAt: null,
-                createdAt: foreignCom3.createdAt.toISOString(),
-                updatedAt: null,
-              },
-              {
-                id: 5,
-                foreign: foreignCom2.foreign,
-                publicKey: expect.stringMatching(ed25519KeyPairStaticHex[4].public),
-                endPoint: expect.stringMatching('http://remotehost/api/'),
-                apiVersion: '1_1',
-                lastAnnouncedAt: null,
-                verifiedAt: null,
-                lastErrorAt: null,
-                createdAt: foreignCom2.createdAt.toISOString(),
-                updatedAt: null,
-              },
-              {
-                id: 4,
-                foreign: foreignCom1.foreign,
-                publicKey: expect.stringMatching(ed25519KeyPairStaticHex[3].public),
-                endPoint: expect.stringMatching('http://remotehost/api/'),
-                apiVersion: '1_0',
-                lastAnnouncedAt: null,
-                verifiedAt: null,
-                lastErrorAt: null,
-                createdAt: foreignCom1.createdAt.toISOString(),
-                updatedAt: null,
-              },
-            ],
-          },
-        })
-      })
-    })
-
     describe('with 6 federated community entries', () => {
       let comHomeCom1: DbCommunity
       let comForeignCom1: DbCommunity
@@ -323,7 +230,6 @@ describe('CommunityResolver', () => {
       let foreignCom4: DbFederatedCommunity
 
       beforeEach(async () => {
-        jest.clearAllMocks()
         comHomeCom1 = DbCommunity.create()
         comHomeCom1.foreign = false
         comHomeCom1.url = 'http://localhost'
@@ -360,6 +266,30 @@ describe('CommunityResolver', () => {
         comForeignCom2.creationDate = new Date()
         await DbCommunity.insert(comForeignCom2)
 
+        foreignCom1 = DbFederatedCommunity.create()
+        foreignCom1.foreign = true
+        foreignCom1.publicKey = Buffer.from(ed25519KeyPairStaticHex[3].public, 'hex')
+        foreignCom1.apiVersion = '1_0'
+        foreignCom1.endPoint = 'http://remotehost/api'
+        foreignCom1.createdAt = new Date()
+        await DbFederatedCommunity.insert(foreignCom1)
+
+        foreignCom2 = DbFederatedCommunity.create()
+        foreignCom2.foreign = true
+        foreignCom2.publicKey = Buffer.from(ed25519KeyPairStaticHex[4].public, 'hex')
+        foreignCom2.apiVersion = '1_1'
+        foreignCom2.endPoint = 'http://remotehost/api'
+        foreignCom2.createdAt = new Date()
+        await DbFederatedCommunity.insert(foreignCom2)
+
+        foreignCom3 = DbFederatedCommunity.create()
+        foreignCom3.foreign = true
+        foreignCom3.publicKey = Buffer.from(ed25519KeyPairStaticHex[5].public, 'hex')
+        foreignCom3.apiVersion = '2_0'
+        foreignCom3.endPoint = 'http://remotehost/api'
+        foreignCom3.createdAt = new Date()
+        await DbFederatedCommunity.insert(foreignCom3)
+
         foreignCom4 = DbFederatedCommunity.create()
         foreignCom4.foreign = true
         foreignCom4.publicKey = Buffer.from(ed25519KeyPairStaticHex[5].public, 'hex')
@@ -376,15 +306,15 @@ describe('CommunityResolver', () => {
               {
                 foreign: false,
                 url: 'http://localhost',
-                publicKey: expect.stringMatching(ed25519KeyPairStaticHex[2].public),
-                authenticatedAt: null,
-                createdAt: null,
-                creationDate: null,
-                description: null,
+                publicKey: expect.stringMatching(ed25519KeyPairStaticHex[0].public),
+                authenticatedAt: comHomeCom1.authenticatedAt?.toISOString(),
+                createdAt: comHomeCom1.createdAt.toISOString(),
+                creationDate: comHomeCom1.creationDate?.toISOString(),
+                description: comHomeCom1.description,
                 gmsApiKey: null,
-                name: null,
+                name: comHomeCom1.name,
                 updatedAt: null,
-                uuid: null,
+                uuid: comHomeCom1.communityUuid,
                 federatedCommunities: [
                   {
                     id: 3,
@@ -396,21 +326,6 @@ describe('CommunityResolver', () => {
                     updatedAt: null,
                     verifiedAt: null,
                   },
-                ],
-              },
-              {
-                foreign: false,
-                url: 'http://localhost',
-                publicKey: expect.stringMatching(ed25519KeyPairStaticHex[1].public),
-                authenticatedAt: null,
-                createdAt: null,
-                creationDate: null,
-                description: null,
-                gmsApiKey: null,
-                name: null,
-                updatedAt: null,
-                uuid: null,
-                federatedCommunities: [
                   {
                     id: 2,
                     apiVersion: '1_1',
@@ -421,21 +336,6 @@ describe('CommunityResolver', () => {
                     updatedAt: null,
                     verifiedAt: null,
                   },
-                ],
-              },
-              {
-                foreign: false,
-                url: 'http://localhost',
-                publicKey: expect.stringMatching(ed25519KeyPairStaticHex[0].public),
-                authenticatedAt: comHomeCom1.authenticatedAt?.toISOString(),
-                createdAt: comHomeCom1.createdAt.toISOString(),
-                creationDate: comHomeCom1.creationDate?.toISOString(),
-                description: comHomeCom1.description,
-                gmsApiKey: null,
-                name: comHomeCom1.name,
-                updatedAt: null,
-                uuid: comHomeCom1.communityUuid,
-                federatedCommunities: [
                   {
                     id: 1,
                     apiVersion: '1_0',
@@ -540,23 +440,21 @@ describe('CommunityResolver', () => {
     })
   })
 
-  describe('communities', () => {
+  describe('reachableCommunities', () => {
     let homeCom1: DbCommunity
     let foreignCom1: DbCommunity
     let foreignCom2: DbCommunity
 
-    describe('with empty list', () => {
-      beforeEach(async () => {
-        await cleanDB()
-        jest.clearAllMocks()
-      })
+    afterAll(async () => {
+      await DbCommunity.clear()
+      await DbFederatedCommunity.clear()
+    })
 
+    describe('with empty list', () => {
       it('returns no community entry', async () => {
-        // const result: Community[] = await query({ query: getCommunities })
-        // expect(result.length).toEqual(0)
-        await expect(query({ query: communitiesQuery })).resolves.toMatchObject({
+        await expect(query({ query: reachableCommunities })).resolves.toMatchObject({
           data: {
-            communities: [],
+            reachableCommunities: [],
           },
         })
       })
@@ -564,35 +462,20 @@ describe('CommunityResolver', () => {
 
     describe('with one home-community entry', () => {
       beforeEach(async () => {
-        await cleanDB()
-        jest.clearAllMocks()
-
-        homeCom1 = DbCommunity.create()
-        homeCom1.foreign = false
-        homeCom1.url = 'http://localhost/api'
-        homeCom1.publicKey = Buffer.from(ed25519KeyPairStaticHex[0].public, 'hex')
-        homeCom1.privateKey = Buffer.from(ed25519KeyPairStaticHex[0].private, 'hex')
-        homeCom1.communityUuid = 'HomeCom-UUID'
-        homeCom1.authenticatedAt = new Date()
-        homeCom1.name = 'HomeCommunity-name'
-        homeCom1.description = 'HomeCommunity-description'
-        homeCom1.creationDate = new Date()
+        homeCom1 = await createCommunity(false, false)
         await DbCommunity.insert(homeCom1)
       })
 
       it('returns 1 home-community entry', async () => {
-        await expect(query({ query: communitiesQuery })).resolves.toMatchObject({
+        await expect(query({ query: reachableCommunities })).resolves.toMatchObject({
           data: {
-            communities: [
+            reachableCommunities: [
               {
-                id: expect.any(Number),
                 foreign: homeCom1.foreign,
                 name: homeCom1.name,
                 description: homeCom1.description,
                 url: homeCom1.url,
-                creationDate: homeCom1.creationDate?.toISOString(),
                 uuid: homeCom1.communityUuid,
-                authenticatedAt: homeCom1.authenticatedAt?.toISOString(),
               },
             ],
           },
@@ -602,135 +485,55 @@ describe('CommunityResolver', () => {
 
     describe('returns 2 filtered communities even with 3 existing entries', () => {
       beforeEach(async () => {
-        await cleanDB()
-        jest.clearAllMocks()
-
-        homeCom1 = DbCommunity.create()
-        homeCom1.foreign = false
-        homeCom1.url = 'http://localhost/api'
-        homeCom1.publicKey = Buffer.from(ed25519KeyPairStaticHex[0].public, 'hex')
-        homeCom1.privateKey = Buffer.from(ed25519KeyPairStaticHex[0].private, 'hex')
-        homeCom1.communityUuid = 'HomeCom-UUID'
-        homeCom1.authenticatedAt = new Date()
-        homeCom1.name = 'HomeCommunity-name'
-        homeCom1.description = 'HomeCommunity-description'
-        homeCom1.creationDate = new Date()
-        await DbCommunity.insert(homeCom1)
-
-        foreignCom1 = DbCommunity.create()
-        foreignCom1.foreign = true
-        foreignCom1.url = 'http://stage-2.gradido.net/api'
-        foreignCom1.publicKey = Buffer.from(ed25519KeyPairStaticHex[3].public, 'hex')
-        foreignCom1.privateKey = Buffer.from(ed25519KeyPairStaticHex[3].private, 'hex')
-        // foreignCom1.communityUuid = 'Stage2-Com-UUID'
-        // foreignCom1.authenticatedAt = new Date()
-        foreignCom1.name = 'Stage-2_Community-name'
-        foreignCom1.description = 'Stage-2_Community-description'
-        foreignCom1.creationDate = new Date()
-        await DbCommunity.insert(foreignCom1)
-
-        foreignCom2 = DbCommunity.create()
-        foreignCom2.foreign = true
-        foreignCom2.url = 'http://stage-3.gradido.net/api'
-        foreignCom2.publicKey = Buffer.from(ed25519KeyPairStaticHex[4].public, 'hex')
-        foreignCom2.privateKey = Buffer.from(ed25519KeyPairStaticHex[4].private, 'hex')
-        foreignCom2.communityUuid = 'Stage3-Com-UUID'
-        foreignCom2.authenticatedAt = new Date()
-        foreignCom2.name = 'Stage-3_Community-name'
-        foreignCom2.description = 'Stage-3_Community-description'
-        foreignCom2.creationDate = new Date()
-        await DbCommunity.insert(foreignCom2)
+        foreignCom1 = await createCommunity(true, false)
+        foreignCom2 = await createCommunity(true, false)
+        const com1FedCom = await createVerifiedFederatedCommunity('1_0', 100, foreignCom1, false)
+        const com1FedCom2 = await createVerifiedFederatedCommunity('1_1', 100, foreignCom1, false)
+        const com2FedCom = await createVerifiedFederatedCommunity('1_0', 10000, foreignCom2, false)
+        await Promise.all([
+          DbCommunity.insert(foreignCom1),
+          DbCommunity.insert(foreignCom2),
+          DbFederatedCommunity.insert(com1FedCom),
+          DbFederatedCommunity.insert(com1FedCom2),
+          DbFederatedCommunity.insert(com2FedCom)
+        ])
       })
 
       it('returns 2 community entries', async () => {
-        await expect(query({ query: communitiesQuery })).resolves.toMatchObject({
-          data: {
-            communities: [
-              {
-                id: expect.any(Number),
-                foreign: homeCom1.foreign,
-                name: homeCom1.name,
-                description: homeCom1.description,
-                url: homeCom1.url,
-                creationDate: homeCom1.creationDate?.toISOString(),
-                uuid: homeCom1.communityUuid,
-                authenticatedAt: homeCom1.authenticatedAt?.toISOString(),
-              },
-              /*
-              {
-                id: expect.any(Number),
-                foreign: foreignCom1.foreign,
-                name: foreignCom1.name,
-                description: foreignCom1.description,
-                url: foreignCom1.url,
-                creationDate: foreignCom1.creationDate?.toISOString(),
-                uuid: foreignCom1.communityUuid,
-                authenticatedAt: foreignCom1.authenticatedAt?.toISOString(),
-              },
-              */
-              {
-                id: expect.any(Number),
-                foreign: foreignCom2.foreign,
-                name: foreignCom2.name,
-                description: foreignCom2.description,
-                url: foreignCom2.url,
-                creationDate: foreignCom2.creationDate?.toISOString(),
-                uuid: foreignCom2.communityUuid,
-                authenticatedAt: foreignCom2.authenticatedAt?.toISOString(),
-              },
-            ],
-          },
-        })
+        const result = await query({ query: reachableCommunities })
+        expect(result.data.reachableCommunities.length).toBe(2)
+        expect(result.data.reachableCommunities).toMatchObject([
+          {
+            foreign: homeCom1.foreign,
+            name: homeCom1.name,
+            description: homeCom1.description,
+            url: homeCom1.url,
+            uuid: homeCom1.communityUuid,
+          }, {
+            foreign: foreignCom1.foreign,
+            name: foreignCom1.name,
+            description: foreignCom1.description,
+            url: foreignCom1.url,
+            uuid: foreignCom1.communityUuid,
+          }
+        ])
       })
     })
 
     describe('search community by uuid', () => {
       let homeCom: DbCommunity | null
-      beforeEach(async () => {
-        await cleanDB()
-        jest.clearAllMocks()
-        const admin = await userFactory(testEnv, peterLustig)
-        // login as admin
-        await mutate({ mutation: login, variables: peterLoginData })
+      beforeAll(async () => {
+        await DbCommunity.clear()
 
-        // HomeCommunity is still created in userFactory
-        homeCom = await getCommunityByUuid(admin.communityUuid)
+        homeCom = await createCommunity(false, false)
+        foreignCom1 = await createCommunity(true, false)
+        foreignCom2 = await createCommunity(true, false)
 
-        foreignCom1 = DbCommunity.create()
-        foreignCom1.foreign = true
-        foreignCom1.url = 'http://stage-2.gradido.net/api'
-        foreignCom1.publicKey = Buffer.from(
-          '8a1f9374b99c30d827b85dcd23f7e50328430d64ef65ef35bf375ea8eb9a2e1d',
-          'hex',
-        )
-        foreignCom1.privateKey = Buffer.from(
-          'f6c2a9d78e20a3c910f35b8ffcf824aa7b37f0d3d81bfc4c0e65e17a194b3a4a',
-          'hex',
-        )
-        // foreignCom1.communityUuid = 'Stage2-Com-UUID'
-        // foreignCom1.authenticatedAt = new Date()
-        foreignCom1.name = 'Stage-2_Community-name'
-        foreignCom1.description = 'Stage-2_Community-description'
-        foreignCom1.creationDate = new Date()
-        await DbCommunity.insert(foreignCom1)
-
-        foreignCom2 = DbCommunity.create()
-        foreignCom2.foreign = true
-        foreignCom2.url = 'http://stage-3.gradido.net/api'
-        foreignCom2.publicKey = Buffer.from(
-          'e047365a54082e8a7e9273da61b55c8134a2a0c836799ba12b78b9b0c52bc85f',
-          'hex',
-        )
-        foreignCom2.privateKey = Buffer.from(
-          'e047365a54082e8a7e9273da61b55c8134a2a0c836799ba12b78b9b0c52bc85f',
-          'hex',
-        )
-        foreignCom2.communityUuid = uuidv4()
-        foreignCom2.authenticatedAt = new Date()
-        foreignCom2.name = 'Stage-3_Community-name'
-        foreignCom2.description = 'Stage-3_Community-description'
-        foreignCom2.creationDate = new Date()
-        await DbCommunity.insert(foreignCom2)
+        await Promise.all([
+          DbCommunity.insert(homeCom),
+          DbCommunity.insert(foreignCom1),
+          DbCommunity.insert(foreignCom2),
+        ])
       })
 
       it('finds the home-community by uuid', async () => {
@@ -749,7 +552,6 @@ describe('CommunityResolver', () => {
               url: homeCom?.url,
               creationDate: homeCom?.creationDate?.toISOString(),
               uuid: homeCom?.communityUuid,
-              authenticatedAt: homeCom?.authenticatedAt,
             },
           },
         })
@@ -769,76 +571,100 @@ describe('CommunityResolver', () => {
               description: homeCom?.description,
               url: homeCom?.url,
               creationDate: homeCom?.creationDate?.toISOString(),
-              uuid: homeCom?.communityUuid,
-              authenticatedAt: homeCom?.authenticatedAt,
+              uuid: homeCom?.communityUuid
             },
           },
         })
       })
+    })
+  })
 
-      it('updates the home-community gmsApiKey', async () => {
-        await expect(
-          mutate({
-            mutation: updateHomeCommunityQuery,
-            variables: { uuid: homeCom?.communityUuid, gmsApiKey: 'gmsApiKey' },
-          }),
-        ).resolves.toMatchObject({
-          data: {
-            updateHomeCommunity: {
-              id: expect.any(Number),
-              foreign: homeCom?.foreign,
-              name: homeCom?.name,
-              description: homeCom?.description,
-              url: homeCom?.url,
-              creationDate: homeCom?.creationDate?.toISOString(),
-              uuid: homeCom?.communityUuid,
-              authenticatedAt: homeCom?.authenticatedAt,
-              gmsApiKey: 'gmsApiKey',
-            },
+  describe('update community', () => {
+    let homeCom: DbCommunity
+    let foreignCom1: DbCommunity
+    let foreignCom2: DbCommunity
+
+    beforeAll(async () => {
+      await DbCommunity.clear()
+
+      // create admin and login as admin
+      await userFactory(testEnv, peterLustig)      
+      homeCom = (await getHomeCommunity())!
+      foreignCom1 = await createCommunity(true, false)
+      foreignCom2 = await createCommunity(true, false)
+
+      await Promise.all([
+        DbCommunity.insert(foreignCom1),
+        DbCommunity.insert(foreignCom2),
+        mutate({ mutation: login, variables: peterLoginData })
+      ])
+    })
+
+    afterAll(async () => {
+      await cleanDB()
+    })
+
+    it('updates the home-community gmsApiKey', async () => {
+      await expect(
+        mutate({
+          mutation: updateHomeCommunityQuery,
+          variables: { uuid: homeCom?.communityUuid, gmsApiKey: 'gmsApiKey' },
+        }),
+      ).resolves.toMatchObject({
+        data: {
+          updateHomeCommunity: {
+            foreign: homeCom?.foreign,
+            name: homeCom?.name,
+            description: homeCom?.description,
+            url: homeCom?.url,
+            creationDate: homeCom?.creationDate?.toISOString(),
+            uuid: homeCom?.communityUuid,
+            authenticatedAt: homeCom?.authenticatedAt,
+            gmsApiKey: 'gmsApiKey',
           },
-        })
+        },
       })
+    })
 
-      it('throws error on updating a foreign-community', async () => {
-        expect(
-          await mutate({
-            mutation: updateHomeCommunityQuery,
-            variables: { uuid: foreignCom2.communityUuid, gmsApiKey: 'gmsApiKey' },
-          }),
-        ).toEqual(
-          expect.objectContaining({
-            errors: [new GraphQLError('Error: Only the HomeCommunity could be modified!')],
-          }),
-        )
-      })
+    it('throws error on updating a foreign-community', async () => {
+      expect(
+        await mutate({
+          mutation: updateHomeCommunityQuery,
+          variables: { uuid: foreignCom2.communityUuid, gmsApiKey: 'gmsApiKey' },
+        }),
+      ).toEqual(
+        expect.objectContaining({
+          errors: [new GraphQLError('Error: Only the HomeCommunity could be modified!')],
+        }),
+      )
+    })
 
-      it('throws error on updating a community without uuid', async () => {
-        expect(
-          await mutate({
-            mutation: updateHomeCommunityQuery,
-            variables: { uuid: null, gmsApiKey: 'gmsApiKey' },
-          }),
-        ).toEqual(
-          expect.objectContaining({
-            errors: [
-              new GraphQLError(`Variable "$uuid" of non-null type "String!" must not be null.`),
-            ],
-          }),
-        )
-      })
+    it('throws error on updating a community without uuid', async () => {
+      expect(
+        await mutate({
+          mutation: updateHomeCommunityQuery,
+          variables: { uuid: null, gmsApiKey: 'gmsApiKey' },
+        }),
+      ).toEqual(
+        expect.objectContaining({
+          errors: [
+            new GraphQLError(`Variable "$uuid" of non-null type "String!" must not be null.`),
+          ],
+        }),
+      )
+    })
 
-      it('throws error on updating a community with not existing uuid', async () => {
-        expect(
-          await mutate({
-            mutation: updateHomeCommunityQuery,
-            variables: { uuid: uuidv4(), gmsApiKey: 'gmsApiKey' },
-          }),
-        ).toEqual(
-          expect.objectContaining({
-            errors: [new GraphQLError('HomeCommunity with uuid not found: ')],
-          }),
-        )
-      })
+    it('throws error on updating a community with not existing uuid', async () => {
+      expect(
+        await mutate({
+          mutation: updateHomeCommunityQuery,
+          variables: { uuid: uuidv4(), gmsApiKey: 'gmsApiKey' },
+        }),
+      ).toEqual(
+        expect.objectContaining({
+          errors: [new GraphQLError('HomeCommunity with uuid not found: ')],
+        }),
+      )
     })
   })
 })

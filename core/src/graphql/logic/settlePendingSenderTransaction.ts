@@ -13,7 +13,7 @@ import { Decimal } from 'decimal.js-light'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../../config/const'
 import { PendingTransactionState } from 'shared'
 // import { LogError } from '@/server/LogError'
-import { calculateSenderBalance } from 'core'
+import { calculateSenderBalance } from '../../util/calculateSenderBalance'
 import { TRANSACTIONS_LOCK, getLastTransaction } from 'database'
 import { getLogger } from 'log4js'
 
@@ -92,7 +92,7 @@ export async function settlePendingSenderTransaction(
     transactionSend.decay = sendBalance.decay.decay // pendingTx.decay
     transactionSend.decayStart = sendBalance.decay.start // pendingTx.decayStart
     transactionSend.previous = pendingTx.previous
-    transactionSend.linkedTransactionId = pendingTx.linkedTransactionId
+    transactionSend.transactionLinkId = pendingTx.transactionLinkId
     await queryRunner.manager.insert(dbTransaction, transactionSend)
     logger.debug(`send Transaction inserted: ${transactionSend}`)
 

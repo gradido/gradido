@@ -19,19 +19,34 @@ install_nvm() {
 }
 nvm use || install_nvm
 
-# check for some tools and install them, when missing
-# bun https://bun.sh/install, faster packet-manager as yarn
-if ! command -v bun &> /dev/null
+# unzip needed for bun install script
+if ! command -v unzip &> /dev/null
 then
-    if ! command -v unzip &> /dev/null
-    then
-        echo "'unzip' is missing, will be installed now!"
-        sudo apt-get install -y unzip
-    fi
-    echo "'bun' is missing, will be installed now!"
-    curl -fsSL https://bun.sh/install | bash
+    echo "'unzip' is missing, will be installed now!"
+    sudo apt-get install -y unzip
+fi
+
+# check for some tools and install them, when missing
+# bun https://bun.com/install, faster packet-manager as yarn
+BUN_VERSION_FILE="$PROJECT_ROOT/.bun-version"
+if [ ! -f "$BUN_VERSION_FILE" ]; then
+    echo ".bun-version file not found at: $BUN_VERSION_FILE"
+    exit 1
+fi
+BUN_VERSION="$(cat "$BUN_VERSION_FILE" | tr -d '[:space:]')"
+if ! command -v bun &> /dev/null
+then    
+    echo "'bun' is missing, v$BUN_VERSION will be installed now!"
+    curl -fsSL https://bun.com/install | bash -s "bun-v${BUN_VERSION}"
     export BUN_INSTALL="$HOME/.bun"
     export PATH="$BUN_INSTALL/bin:$PATH"
+else 
+    CURRENT_VERSION="$(bun --version | tr -d '[:space:]')"
+    if [ "$CURRENT_VERSION" != "$BUN_VERSION" ]
+    then
+        echo "'bun' is outdated, v$BUN_VERSION will be installed now!"
+        curl -fsSL https://bun.com/install | bash -s "bun-v${BUN_VERSION}"
+    fi
 fi
 # turbo https://turborepo.com/docs/getting-started
 if ! command -v turbo &> /dev/null

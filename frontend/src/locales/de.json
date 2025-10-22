@@ -7,6 +7,7 @@
   "85": "85%",
   "Chat": "Chat",
   "GDD": "GDD",
+  "GDD-long": "Gradido",
   "GDT": "GDT",
   "GMS": {
     "title": "Geo Matching System GMS (in Entwicklung)",
@@ -113,6 +114,7 @@
     "thanksYouWith": "dankt dir mit"
   },
   "contributionText": "Beitragstext",
+  "copy-to-clipboard": "In Zwischenablage kopieren",
   "creation": "Schöpfen",
   "decay": {
     "before_startblock_transaction": "Diese Transaktion beinhaltet keine Vergänglichkeit.",
@@ -163,10 +165,12 @@
   "form": {
     "amount": "Betrag",
     "at": "am",
+    "available_after": "Verfügbar nach Bestätigung",
     "cancel": "Abbrechen",
     "change": "Ändern",
     "check_now": "Jetzt prüfen",
     "close": "Schließen",
+    "current_available": "Aktuell verfügbar",
     "current_balance": "Aktueller Kontostand",
     "date": "Datum",
     "description": "Beschreibung",
@@ -177,6 +181,8 @@
     "hours": "Stunden",
     "identifier": "Email, Nutzername oder Gradido ID",
     "lastname": "Nachname",
+    "link_amount": "Link-Betrag",
+    "link_decay_description": "Der Link-Betrag wird zusammen mit der maximalen Vergänglichkeit blockiert. Nach Einlösen, Verfallen oder Löschen des Links wird der Rest wieder freigegeben.",
     "memo": "Nachricht",
     "message": "Nachricht",
     "new_balance": "Neuer Kontostand nach Bestätigung",
@@ -230,6 +236,7 @@
       },
       "gddSendAmount": "Das Feld {_field_} muss eine Zahl zwischen {min} und {max} mit höchstens zwei Nachkommastellen sein.",
       "identifier": {
+        "communityIsReachable": "Community nicht gefunden oder nicht erreichbar!",
         "required": "Der Empfänger ist ein Pflichtfeld.",
         "typeError": "Der Empfänger muss eine Email, ein Nutzernamen oder eine Gradido ID sein."
       },
@@ -271,16 +278,16 @@
     "no-account": "Du besitzt noch kein Gradido Konto?",
     "no-redeem": "Du darfst deinen eigenen Link nicht einlösen!",
     "not-copied": "Dein Gerät lässt das Kopieren leider nicht zu! Bitte kopiere den Link von Hand!",
-    "recipientCommunityFix": "Empfänger-Gemeinschaft des Link-Guthabens...",
-    "recipientCommunitySelection": "Wähle deine Gemeinschaft zum Einlösen des Link-Guthabens...",
+    "recipientCommunityRedirection": "Zum Gutschreiben weiterleiten zu:",
+    "recipientCommunitySelection": "Gradido-Gemeinschaft wählen:",
     "redeem": "Einlösen",
+    "redeem-community": "Gutschreiben in ",
     "redeemed": "Erfolgreich eingelöst! Deinem Konto wurden {n} GDD gutgeschrieben.",
     "redeemed-at": "Der Link wurde bereits am {date} eingelöst.",
     "redeemlink-error": "Dieser Einlöse-Link ist nicht vollständig.",
-    "switchCommunity": "Du hast eine andere Gemeinschaft ausgewählt...",
     "to-login": "Log dich ein",
     "to-register": "Registriere ein neues Konto.",
-    "to-switch": "Wechsle zur Gemeinschaft",
+    "to-switch": "Jetzt weiterleiten",
     "validUntil": "Gültig bis",
     "validUntilDate": "Der Link ist bis zum {date} gültig."
   },
@@ -300,6 +307,7 @@
     "raise": "Erhöhung",
     "recruited-member": "Eingeladenes Mitglied"
   },
+  "gradidoid-copied-to-clipboard": "Gradido ID wurde in die Zwischenablage kopiert.",
   "h": "h",
   "info": "Information",
   "language": "Sprache",

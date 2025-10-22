@@ -101,6 +101,7 @@
     "thanksYouWith": "te agradece con",
     "unique": "(único)"
   },
+  "copy-to-clipboard": "Copiar al portapapeles",
   "decay": {
     "before_startblock_transaction": "Esta transacción no implica disminución en su valor.",
     "calculation_decay": "Cálculo de la disminución gradual del valor",
@@ -146,10 +147,12 @@
   "form": {
     "amount": "Importe",
     "at": "am",
+    "available_after": "Disponible tras la confirmación",
     "cancel": "Cancelar",
     "change": "Cambiar",
     "check_now": "Revisar",
     "close": "Cerrar",
+    "current_available": "Actualmente disponible",
     "current_balance": "Saldo de cuenta actual",
     "date": "Fecha",
     "description": "Descripción",
@@ -158,6 +161,8 @@
     "from": "De",
     "generate_now": "crear ahora",
     "lastname": "Apellido",
+    "link_amount": "Importe del enlace",
+    "link_decay_description": "El importe del enlace se bloquea junto con la ransience máxima. Una vez que el enlace se ha canjeado, caducado o eliminado, el resto se libera de nuevo.",
     "memo": "Mensaje",
     "message": "Noticia",
     "new_balance": "Saldo de cuenta nuevo depués de confirmación",
@@ -185,6 +190,11 @@
     "to1": "para",
     "validation": {
       "gddSendAmount": "El campo {_field_} debe ser un número entre {min} y {max} con un máximo de dos decimales",
+      "identifier": {
+        "communityIsReachable": "Comunidad no encontrada o no alcanzable!",
+        "required": "El destinatario es un campo obligatorio.",
+        "typeError": "El destinatario debe ser un email, un nombre de usuario o un Gradido ID."
+      },
       "is-not": "No es posible  transferirte Gradidos a ti mismo",
       "requiredField": "El campo {fieldName} es obligatorio",
       "usernmae-regex": "El nombre de usuario debe comenzar con una letra seguida de al menos dos caracteres alfanuméricos.",
@@ -216,12 +226,16 @@
     "no-account": "Aún no tienes una cuenta de Gradido?",
     "no-redeem": "No puedes canjear tu propio enlace!",
     "not-copied": "¡Desafortunadamente, su dispositivo no permite copiar! Copie el enlace manualmente!",
+    "recipientCommunityRedirection": "Redirigir para abonar a:",
+    "recipientCommunitySelection": "Seleccionar comunidad Gradido:",
     "redeem": "Canjear",
+    "redeem-community": "Acreditar en ",
     "redeemed": "¡Canjeado con éxito! Tu cuenta ha sido acreditada con {n} GDD.",
     "redeemed-at": "El enlace ya se canjeó el {date}.",
     "redeemed-title": "canjeado",
     "to-login": "iniciar sesión",
     "to-register": "Registre una nueva cuenta.",
+    "to-switch": "Redirigir ahora",
     "validUntil": "Válido hasta",
     "validUntilDate": "El enlace es válido hasta el {date} ."
   },
@@ -242,6 +256,7 @@
     "raise": "Aumento",
     "recruited-member": "Miembro invitado"
   },
+  "gradidoid-copied-to-clipboard": "Gradido ID copiado al portapapeles.",
   "info": "Información",
   "language": "Idioma",
   "link-load": "recargar el último enlace | recargar los últimos {n} enlaces",
