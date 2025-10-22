@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test'
 import { InteractionToJson, InteractionValidate, ValidateType_SINGLE } from 'gradido-blockchain-js'
-import { parse } from 'valibot'
+import * as v from 'valibot'
 import { transactionSchema } from '../../schemas/transaction.schema'
 import { hieroIdSchema } from '../../schemas/typeGuard.schema'
 import { RegisterAddressTransactionRole } from './RegisterAddressTransaction.role'
@@ -22,10 +22,10 @@ const transaction = {
 describe('RegisterAddressTransaction.role', () => {
   it('get correct prepared builder', async () => {
     const registerAddressTransactionRole = new RegisterAddressTransactionRole(
-      parse(transactionSchema, transaction),
+      v.parse(transactionSchema, transaction),
     )
     expect(registerAddressTransactionRole.getSenderCommunityTopicId()).toBe(
-      parse(hieroIdSchema, '0.0.21732'),
+      v.parse(hieroIdSchema, '0.0.21732'),
     )
     expect(() => registerAddressTransactionRole.getRecipientCommunityTopicId()).toThrow()
     const builder = await registerAddressTransactionRole.getGradidoTransactionBuilder()

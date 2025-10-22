@@ -10,13 +10,11 @@ import {
   TopicMessageSubmitTransaction,
   TopicUpdateTransaction,
   TransactionId,
-  TransactionReceipt,
-  TransactionResponse,
   Wallet,
 } from '@hashgraph/sdk'
-import { GradidoTransaction, HieroTopicId } from 'gradido-blockchain-js'
+import { GradidoTransaction } from 'gradido-blockchain-js'
 import { getLogger, Logger } from 'log4js'
-import { parse } from 'valibot'
+import * as v from 'valibot'
 import { CONFIG } from '../../config'
 import { LOG4JS_BASE_CATEGORY } from '../../config/const'
 import { HieroId, hieroIdSchema } from '../../schemas/typeGuard.schema'
@@ -139,7 +137,7 @@ export class HieroClient {
     }
     this.logger.debug(`topic sequence number: ${info.sequenceNumber.toNumber()}`)
     // this.logger.debug(JSON.stringify(info, null, 2))
-    return parse(topicInfoSchema, {
+    return v.parse(topicInfoSchema, {
       topicId: topicId.toString(),
       sequenceNumber: info.sequenceNumber.toNumber(),
       expirationTime: info.expirationTime?.toDate(),
@@ -165,7 +163,7 @@ export class HieroClient {
     this.logger.addContext('topicId', createReceipt.topicId?.toString())
     const record = await createResponse.getRecordWithSigner(this.wallet)
     this.logger.info(`topic created, cost: ${record.transactionFee.toString()}`)
-    return parse(hieroIdSchema, createReceipt.topicId?.toString())
+    return v.parse(hieroIdSchema, createReceipt.topicId?.toString())
   }
 
   public async updateTopic(topicId: HieroId): Promise<void> {

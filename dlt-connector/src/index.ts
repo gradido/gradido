@@ -2,14 +2,14 @@ import { readFileSync } from 'node:fs'
 import { Elysia } from 'elysia'
 import { loadCryptoKeys, MemoryBlock } from 'gradido-blockchain-js'
 import { configure, getLogger, Logger } from 'log4js'
-import { parse } from 'valibot'
+import * as v from 'valibot'
+import { KeyPairCacheManager } from './cache/KeyPairCacheManager'
 import { BackendClient } from './client/backend/BackendClient'
 import { GradidoNodeClient } from './client/GradidoNode/GradidoNodeClient'
 import { HieroClient } from './client/hiero/HieroClient'
 import { CONFIG } from './config'
 import { MIN_TOPIC_EXPIRE_MILLISECONDS_FOR_UPDATE } from './config/const'
 import { SendToHieroContext } from './interactions/sendToHiero/SendToHiero.context'
-import { KeyPairCacheManager } from './KeyPairCacheManager'
 import { Community, communitySchema } from './schemas/transaction.schema'
 import { appRoutes } from './server'
 import { isPortOpenRetry } from './utils/network'
@@ -133,7 +133,7 @@ async function homeCommunitySetup({ backend, hiero }: Clients, logger: Logger): 
   logger.info(`home community topic: ${homeCommunity.hieroTopicId}`)
   logger.info(`gradido node server: ${CONFIG.NODE_SERVER_URL}`)
   logger.info(`gradido backend server: ${CONFIG.BACKEND_SERVER_URL}`)
-  return parse(communitySchema, homeCommunity)
+  return v.parse(communitySchema, homeCommunity)
 }
 
 main().catch((e) => {

@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'bun:test'
 import * as v from 'valibot'
 import { hieroIdSchema, uuidv4Schema } from '../../schemas/typeGuard.schema'
-import { communitySchema } from './community.schema'
+import { communitySchema } from './output.schema'
 
 describe('community.schema', () => {
   it('community', () => {

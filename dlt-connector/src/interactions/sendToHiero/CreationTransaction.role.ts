@@ -5,8 +5,8 @@ import {
   TransferAmount,
 } from 'gradido-blockchain-js'
 import { parse } from 'valibot'
+import { KeyPairCacheManager } from '../../cache/KeyPairCacheManager'
 import { KeyPairIdentifierLogic } from '../../data/KeyPairIdentifier.logic'
-import { KeyPairCacheManager } from '../../KeyPairCacheManager'
 import {
   CreationTransaction,
   creationTransactionSchema,

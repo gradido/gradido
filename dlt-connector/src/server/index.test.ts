@@ -1,8 +1,8 @@
 import { beforeAll, describe, expect, it, mock } from 'bun:test'
 import { AccountId, Timestamp, TransactionId } from '@hashgraph/sdk'
 import { GradidoTransaction, KeyPairEd25519, MemoryBlock } from 'gradido-blockchain-js'
-import { parse } from 'valibot'
-import { KeyPairCacheManager } from '../KeyPairCacheManager'
+import * as v from 'valibot'
+import { KeyPairCacheManager } from '../cache/KeyPairCacheManager'
 import { HieroId, hieroIdSchema } from '../schemas/typeGuard.schema'
 import { appRoutes } from '.'
 
@@ -44,7 +44,7 @@ mock.module('../config', () => ({
 }))
 
 beforeAll(() => {
-  KeyPairCacheManager.getInstance().setHomeCommunityTopicId(parse(hieroIdSchema, '0.0.21732'))
+  KeyPairCacheManager.getInstance().setHomeCommunityTopicId(v.parse(hieroIdSchema, '0.0.21732'))
 })
 
 describe('Server', () => {

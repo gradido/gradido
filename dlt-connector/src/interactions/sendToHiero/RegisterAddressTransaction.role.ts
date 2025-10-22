@@ -1,5 +1,5 @@
 import { AddressType, GradidoTransactionBuilder } from 'gradido-blockchain-js'
-import { parse } from 'valibot'
+import * as v from 'valibot'
 import { KeyPairIdentifierLogic } from '../../data/KeyPairIdentifier.logic'
 import { Uuidv4Hash } from '../../data/Uuidv4Hash'
 import {
@@ -20,8 +20,8 @@ export class RegisterAddressTransactionRole extends AbstractTransactionRole {
   private readonly account: IdentifierCommunityAccount
   constructor(input: Transaction) {
     super()
-    this.registerAddressTransaction = parse(registerAddressTransactionSchema, input)
-    this.account = parse(identifierCommunityAccountSchema, input.user.account)
+    this.registerAddressTransaction = v.parse(registerAddressTransactionSchema, input)
+    this.account = v.parse(identifierCommunityAccountSchema, input.user.account)
   }
 
   getSenderCommunityTopicId(): HieroId {

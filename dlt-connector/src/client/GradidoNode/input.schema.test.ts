@@ -1,5 +1,5 @@
 import { beforeAll, describe, expect, it } from 'bun:test'
-import { parse } from 'valibot'
+import * as v from 'valibot'
 import {
   HieroId,
   HieroTransactionIdString,
@@ -12,14 +12,14 @@ let topic: HieroId
 const topicString = '0.0.261'
 let hieroTransactionId: HieroTransactionIdString
 beforeAll(() => {
-  topic = parse(hieroIdSchema, topicString)
-  hieroTransactionId = parse(hieroTransactionIdStringSchema, '0.0.261-1755348116-1281621')
+  topic = v.parse(hieroIdSchema, topicString)
+  hieroTransactionId = v.parse(hieroTransactionIdStringSchema, '0.0.261-1755348116-1281621')
 })
 
 describe('transactionIdentifierSchema ', () => {
   it('valid, transaction identified by transactionNr and topic', () => {
     expect(
-      parse(transactionIdentifierSchema, {
+      v.parse(transactionIdentifierSchema, {
         transactionId: 1,
         topic: topicString,
       }),
@@ -31,7 +31,7 @@ describe('transactionIdentifierSchema ', () => {
   })
   it('valid, transaction identified by hieroTransactionId and topic', () => {
     expect(
-      parse(transactionIdentifierSchema, {
+      v.parse(transactionIdentifierSchema, {
         hieroTransactionId: '0.0.261-1755348116-1281621',
         topic: topicString,
       }),
@@ -42,7 +42,7 @@ describe('transactionIdentifierSchema ', () => {
   })
   it('invalid, missing topic', () => {
     expect(() =>
-      parse(transactionIdentifierSchema, {
+      v.parse(transactionIdentifierSchema, {
         transactionId: 1,
         hieroTransactionId: '0.0.261-1755348116-1281621',
       }),
@@ -50,7 +50,7 @@ describe('transactionIdentifierSchema ', () => {
   })
   it('invalid, transactionNr and iotaMessageId set', () => {
     expect(() =>
-      parse(transactionIdentifierSchema, {
+      v.parse(transactionIdentifierSchema, {
         transactionId: 1,
         hieroTransactionId: '0.0.261-1755348116-1281621',
         topic,

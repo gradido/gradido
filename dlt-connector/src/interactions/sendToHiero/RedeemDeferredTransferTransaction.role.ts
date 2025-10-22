@@ -1,5 +1,5 @@
 import { GradidoTransactionBuilder, GradidoTransfer, TransferAmount } from 'gradido-blockchain-js'
-import { parse } from 'valibot'
+import * as v from 'valibot'
 import { GradidoNodeClient } from '../../client/GradidoNode/GradidoNodeClient'
 import { KeyPairIdentifierLogic } from '../../data/KeyPairIdentifier.logic'
 import {
@@ -17,7 +17,7 @@ export class RedeemDeferredTransferTransactionRole extends AbstractTransactionRo
   private readonly redeemDeferredTransferTransaction: RedeemDeferredTransferTransaction
   constructor(transaction: Transaction) {
     super()
-    this.redeemDeferredTransferTransaction = parse(
+    this.redeemDeferredTransferTransaction = v.parse(
       redeemDeferredTransferTransactionSchema,
       transaction,
     )

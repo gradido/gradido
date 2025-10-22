@@ -1,8 +1,8 @@
 import { afterAll, beforeAll, describe, expect, it, mock } from 'bun:test'
 import { KeyPairEd25519, MemoryBlock } from 'gradido-blockchain-js'
-import { parse } from 'valibot'
+import * as v from 'valibot'
+import { KeyPairCacheManager } from '../../cache/KeyPairCacheManager'
 import { KeyPairIdentifierLogic } from '../../data/KeyPairIdentifier.logic'
-import { KeyPairCacheManager } from '../../KeyPairCacheManager'
 import { identifierKeyPairSchema } from '../../schemas/account.schema'
 import { HieroId, hieroIdSchema } from '../../schemas/typeGuard.schema'
 import { ResolveKeyPair } from './ResolveKeyPair.context'
@@ -41,11 +41,11 @@ afterAll(() => {
 
 describe('KeyPairCalculation', () => {
   beforeAll(() => {
-    KeyPairCacheManager.getInstance().setHomeCommunityTopicId(parse(hieroIdSchema, '0.0.21732'))
+    KeyPairCacheManager.getInstance().setHomeCommunityTopicId(v.parse(hieroIdSchema, '0.0.21732'))
   })
   it('community key pair', async () => {
     const identifier = new KeyPairIdentifierLogic(
-      parse(identifierKeyPairSchema, { communityTopicId: topicId }),
+      v.parse(identifierKeyPairSchema, { communityTopicId: topicId }),
     )
     const keyPair = await ResolveKeyPair(identifier)
     expect(keyPair.getPublicKey()?.convertToHex()).toBe(
@@ -54,7 +54,7 @@ describe('KeyPairCalculation', () => {
   })
   it('user key pair', async () => {
     const identifier = new KeyPairIdentifierLogic(
-      parse(identifierKeyPairSchema, {
+      v.parse(identifierKeyPairSchema, {
         communityTopicId: topicId,
         account: { userUuid },
       }),
@@ -69,7 +69,7 @@ describe('KeyPairCalculation', () => {
 
   it('account key pair', async () => {
     const identifier = new KeyPairIdentifierLogic(
-      parse(identifierKeyPairSchema, {
+      v.parse(identifierKeyPairSchema, {
         communityTopicId: topicId,
         account: { userUuid, accountNr: 1 },
       }),

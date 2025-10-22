@@ -1,7 +1,6 @@
 import { KeyPairEd25519 } from 'gradido-blockchain-js'
-
+import { KeyPairCacheManager } from '../../cache/KeyPairCacheManager'
 import { KeyPairIdentifierLogic } from '../../data/KeyPairIdentifier.logic'
-import { KeyPairCacheManager } from '../../KeyPairCacheManager'
 import { AccountKeyPairRole } from './AccountKeyPair.role'
 import { ForeignCommunityKeyPairRole } from './ForeignCommunityKeyPair.role'
 import { HomeCommunityKeyPairRole } from './HomeCommunityKeyPair.role'

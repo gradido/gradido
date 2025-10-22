@@ -5,7 +5,7 @@ import {
   GradidoTransfer,
   TransferAmount,
 } from 'gradido-blockchain-js'
-import { parse } from 'valibot'
+import * as v from 'valibot'
 import { KeyPairIdentifierLogic } from '../../data/KeyPairIdentifier.logic'
 import {
   DeferredTransferTransaction,
@@ -21,8 +21,8 @@ export class DeferredTransferTransactionRole extends AbstractTransactionRole {
   private readonly deferredTransferTransaction: DeferredTransferTransaction
   constructor(transaction: Transaction) {
     super()
-    this.deferredTransferTransaction = parse(deferredTransferTransactionSchema, transaction)
-    this.seed = parse(identifierSeedSchema, this.deferredTransferTransaction.linkedUser.seed)
+    this.deferredTransferTransaction = v.parse(deferredTransferTransactionSchema, transaction)
+    this.seed = v.parse(identifierSeedSchema, this.deferredTransferTransaction.linkedUser.seed)
   }
 
   getSenderCommunityTopicId(): HieroId {
