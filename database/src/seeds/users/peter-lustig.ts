@@ -7,5 +7,5 @@ export const peterLustig: UserInterface = {
   // description: 'Latzhose und Nickelbrille',
   createdAt: new Date('2020-11-25T10:48:43'),
   emailChecked: true,
-  language: 'de',
+  language: 'de'  
 }

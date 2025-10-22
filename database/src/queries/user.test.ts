@@ -1,14 +1,14 @@
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
-import { clearLogs, getLogger, printLogs } from '../../../config-schema/test/testSetup.vitest'
-import { Community as DbCommunity, User as DbUser, UserContact as DbUserContact } from '..'
+import { User as DbUser, UserContact as DbUserContact, Community as DbCommunity } from '../entity'
 import { AppDatabase } from '../AppDatabase'
-import { createCommunity } from '../seeds/community'
+import { aliasExists, findUserByIdentifier } from './user'
 import { userFactory } from '../seeds/factory/user'
 import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
-import { bobBaumeister } from '../seeds/users/bob-baumeister'
+import { describe, expect, it, beforeAll, afterAll, beforeEach, } from 'vitest'
+import { createCommunity } from '../seeds/community'
 import { peterLustig } from '../seeds/users/peter-lustig'
+import { bobBaumeister } from '../seeds/users/bob-baumeister'
+import { getLogger, printLogs, clearLogs } from '../../../config-schema/test/testSetup.vitest'
 import { LOG4JS_QUERIES_CATEGORY_NAME } from '.'
-import { aliasExists, findUserByIdentifier } from './user'
 
 const db = AppDatabase.getInstance()
 const userIdentifierLoggerName = `${LOG4JS_QUERIES_CATEGORY_NAME}.user.findUserByIdentifier`
@@ -26,9 +26,9 @@ describe('user.queries', () => {
       await DbUser.clear()
       await DbUserContact.clear()
 
-      const bibi = bibiBloxberg
+      const bibi =  bibiBloxberg
       bibi.alias = 'b-b'
-      await userFactory(bibi)
+      await userFactory(bibi)        
     })
 
     it('should return true if alias exists', async () => {
@@ -70,12 +70,12 @@ describe('user.queries', () => {
         const user = await findUserByIdentifier(userBibi.gradidoID, communityUuid)
         expect(user).toMatchObject(userBibi)
       })
-
+ 
       it('userIdentifier is alias', async () => {
         const user = await findUserByIdentifier(userBibi.alias, communityUuid)
         expect(user).toMatchObject(userBibi)
       })
-
+ 
       it('userIdentifier is email', async () => {
         const user = await findUserByIdentifier(userBibi.emailContact.email, communityUuid)
         expect(user).toMatchObject(userBibi)
@@ -85,18 +85,18 @@ describe('user.queries', () => {
         expect(user).toBeNull()
       })
     })
-
+ 
     describe('communityIdentifier is community name', () => {
       it('userIdentifier is gradido id', async () => {
         const user = await findUserByIdentifier(userBibi.gradidoID, communityName)
         expect(user).toMatchObject(userBibi)
       })
-
+ 
       it('userIdentifier is alias', async () => {
         const user = await findUserByIdentifier(userBibi.alias, communityName)
         expect(user).toMatchObject(userBibi)
       })
-
+ 
       it('userIdentifier is email', async () => {
         const user = await findUserByIdentifier(userBibi.emailContact.email, communityName)
         expect(user).toMatchObject(userBibi)
@@ -117,12 +117,12 @@ describe('user.queries', () => {
         const user = await findUserByIdentifier(userBibi.gradidoID)
         expect(user).toMatchObject(userBibi)
       })
-
+ 
       it('userIdentifier is alias', async () => {
         const user = await findUserByIdentifier(userBibi.alias)
         expect(user).toMatchObject(userBibi)
       })
-
+ 
       it('userIdentifier is email', async () => {
         const user = await findUserByIdentifier(userBibi.emailContact.email)
         expect(user).toMatchObject(userBibi)
@@ -130,12 +130,10 @@ describe('user.queries', () => {
       it('userIdentifier is unknown type', async () => {
         const user = await findUserByIdentifier('sa')
         printLogs()
-        expect(getLogger(userIdentifierLoggerName).warn).toHaveBeenCalledWith(
-          'Unknown identifier type',
-          'sa',
-        )
+        expect(getLogger(userIdentifierLoggerName).warn).toHaveBeenCalledWith('Unknown identifier type', 'sa')
         expect(user).toBeNull()
       })
-    })
+    })    
   })
 })
+

@@ -27,9 +27,7 @@ export async function getCommunityByUuid(communityUuid: string): Promise<DbCommu
   })
 }
 
-export function findWithCommunityIdentifier(
-  communityIdentifier: string,
-): FindOptionsWhere<DbCommunity> {
+export function findWithCommunityIdentifier(communityIdentifier: string): FindOptionsWhere<DbCommunity> {
   const where: FindOptionsWhere<DbCommunity> = {}
   // pre filter identifier type to reduce db query complexity
   if (urlSchema.safeParse(communityIdentifier).success) {
@@ -71,15 +69,15 @@ export async function getCommunityByPublicKeyOrFail(publicKey: Ed25519PublicKey)
 // home community and all federated communities which have been verified within the last authenticationTimeoutMs
 export async function getReachableCommunities(
   authenticationTimeoutMs: number,
-  order?: FindOptionsOrder<DbCommunity>,
+  order?: FindOptionsOrder<DbCommunity>
 ): Promise<DbCommunity[]> {
   return await DbCommunity.find({
-    where: [
-      {
-        authenticatedAt: Not(IsNull()),
-        federatedCommunities: {
+    where: [ 
+      { 
+        authenticatedAt: Not(IsNull()), 
+        federatedCommunities: { 
           verifiedAt: MoreThanOrEqual(new Date(Date.now() - authenticationTimeoutMs)),
-        },
+        } 
       },
       { foreign: false },
     ],

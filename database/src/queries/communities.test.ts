@@ -1,7 +1,7 @@
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { Community as DbCommunity, FederatedCommunity as DbFederatedCommunity } from '..'
 import { AppDatabase } from '../AppDatabase'
 import { getCommunityByPublicKeyOrFail, getHomeCommunity, getHomeCommunityWithFederatedCommunityOrFail, getReachableCommunities } from './communities'
+import { describe, expect, it, beforeEach, beforeAll, afterAll } from 'vitest'
 import { createCommunity, createVerifiedFederatedCommunity } from '../seeds/community'
 import { Ed25519PublicKey } from 'shared'
 

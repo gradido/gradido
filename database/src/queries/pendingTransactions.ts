@@ -1,6 +1,6 @@
-import { PendingTransactionState } from 'shared'
-import { In } from 'typeorm'
 import { PendingTransaction as DbPendingTransaction } from '../entity'
+import { In } from 'typeorm'
+import { PendingTransactionState } from 'shared'
 
 /**
  * Counts the number of open pending transactions for the given users.

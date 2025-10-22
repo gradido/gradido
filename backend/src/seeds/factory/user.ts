@@ -13,6 +13,7 @@ export const userFactory = async (
   user: UserInterface,
 ): Promise<User> => {
   const { mutate } = client
+  
   const homeCom = await writeHomeCommunityEntry()
   // console.log('call createUser with', JSON.stringify(user, null, 2))
   const response = await mutate({ mutation: createUser, variables: user })
