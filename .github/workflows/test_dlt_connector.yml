@@ -30,7 +30,7 @@ jobs:
         uses: actions/checkout@v3
       
       - name: Build 'test' image
-        run: docker build --target test -t "gradido/dlt-connector:test" -f dlt-connector/Dockerfile .
+        run: docker build --target production -t "gradido/dlt-connector:productionTest" -f dlt-connector/Dockerfile .
 
   unit_test:
     name: Unit Tests - DLT Connector
@@ -50,4 +50,10 @@ jobs:
         run: cd dlt-connector && bun install --frozen-lockfile
 
       - name: typecheck && unit test
-        run: cd dlt-connector && bun typecheck && bun test      
+        run: |
+          GRADIDO_BLOCKCHAIN_CRYPTO_APP_SECRET=$(openssl rand -hex 16)
+          GRADIDO_BLOCKCHAIN_SERVER_CRYPTO_KEY=$(openssl rand -hex 16)
+          HOME_COMMUNITY_SEED=$(openssl rand -hex 32)
+          HIERO_OPERATOR_KEY=$(openssl rand -hex 32)
+          HIERO_OPERATOR_ID="0.0.2"
+          cd dlt-connector && bun typecheck && bun test      
