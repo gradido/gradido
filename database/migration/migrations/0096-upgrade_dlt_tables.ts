@@ -8,7 +8,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
     ADD \`user_id\` INT UNSIGNED NULL DEFAULT NULL AFTER \`transaction_id\`,
     ADD \`transaction_link_id\` INT UNSIGNED NULL DEFAULT NULL AFTER \`user_id\`,
     ADD \`type_id\` INT UNSIGNED NOT NULL AFTER \`transaction_link_id\`,
-    ADD \`error\` text NULL DEFAULT NULL AFTER \`verified_at\`,
+    ADD \`error\` text NULL DEFAULT NULL AFTER \`verified_at\`
     ;
   `)
 }
