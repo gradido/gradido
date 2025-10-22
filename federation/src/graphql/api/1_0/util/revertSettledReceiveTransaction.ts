@@ -16,7 +16,7 @@ import { LogError } from '@/server/LogError'
 import { getLogger } from 'log4js'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 
-import { TRANSACTIONS_LOCK } from '@/graphql/util/TRANSACTIONS_LOCK'
+import { TRANSACTIONS_LOCK } from 'database'
 import { getLastTransaction } from '@/graphql/util/getLastTransaction'
 
 const db = AppDatabase.getInstance()
