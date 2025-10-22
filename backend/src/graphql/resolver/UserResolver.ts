@@ -25,7 +25,7 @@ import {
   Root,
 } from 'type-graphql'
 import { IRestResponse } from 'typed-rest-client'
-import { EntityNotFoundError, In, Point } from 'typeorm'
+import { EntityManager, EntityNotFoundError, In, Point } from 'typeorm'
 import { v4 as uuidv4 } from 'uuid'
 
 import { UserArgs } from '@arg//UserArgs'

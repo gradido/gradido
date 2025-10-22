@@ -69,7 +69,7 @@ export const executeTransaction = async (
   }
 
   try {
-    logger.info('executeTransaction', memo)
+    logger.info('executeTransaction', amount, memo, sender, recipient)
 
     if (await countOpenPendingTransactions([sender.gradidoID, recipient.gradidoID]) > 0) {
       throw new LogError(
@@ -88,7 +88,7 @@ export const executeTransaction = async (
       receivedCallDate,
       transactionLink,
     )
-    logger.debug(`calculated balance=${sendBalance?.balance.toString()} decay=${sendBalance?.decay.decay.toString()} lastTransactionId=${sendBalance?.lastTransactionId}`)
+    logger.debug(`calculated Balance=${sendBalance}`)
     if (!sendBalance) {
       throw new LogError('User has not enough GDD or amount is < 0', sendBalance)
     }
@@ -147,7 +147,7 @@ export const executeTransaction = async (
       // Save linked transaction id for send
       transactionSend.linkedTransactionId = transactionReceive.id
       await queryRunner.manager.update(dbTransaction, { id: transactionSend.id }, transactionSend)
-      logger.debug('send Transaction updated', new TransactionLoggingView(transactionSend).toJSON())
+      logger.debug('send Transaction updated', transactionSend)
 
       if (transactionLink) {
         logger.info('transactionLink', transactionLink)
@@ -161,8 +161,10 @@ export const executeTransaction = async (
       }
 
       await queryRunner.commitTransaction()
+      logger.info(`commit Transaction successful...`)
 
       await EVENT_TRANSACTION_SEND(sender, recipient, transactionSend, transactionSend.amount)
+
       await EVENT_TRANSACTION_RECEIVE(
         recipient,
         sender,
@@ -184,7 +186,6 @@ export const executeTransaction = async (
     } finally {
       await queryRunner.release()
     }
-    
     await sendTransactionReceivedEmail({
       firstName: recipient.firstName,
       lastName: recipient.lastName,
