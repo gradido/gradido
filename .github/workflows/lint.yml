@@ -25,7 +25,6 @@ jobs:
         run: |
           cd ./config-schema 
           biome ci . 
-          echo $?
           echo "success=$([ $? -eq 0 ] && echo true || echo false)" >> $GITHUB_OUTPUT
       - name: Lint - Shared
         id: shared
@@ -55,6 +54,12 @@ jobs:
         id: dht-node
         run: |
           cd ./dht-node 
+          biome ci .
+          echo "success=$([ $? -eq 0 ] && echo true || echo false)" >> $GITHUB_OUTPUT
+      - name: Lint - DLT Connector
+        id: dlt-connector
+        run: |
+          cd ./dlt-connector 
           biome ci .
           echo "success=$([ $? -eq 0 ] && echo true || echo false)" >> $GITHUB_OUTPUT
       - name: Lint - Federation
@@ -111,6 +116,14 @@ jobs:
     steps:
       - name: Check result from previous step
         run: if [ "${{ needs.lint.outputs.dht-node }}" != "true" ]; then exit 1; fi
+
+  lint_dlt_connector:
+    name: Lint - DLT Connector
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check result from previous step
+        run: if [ "${{ needs.lint.outputs.dlt-connector }}" != "true" ]; then exit 1; fi
 
   lint_federation:
     name: Lint - Federation

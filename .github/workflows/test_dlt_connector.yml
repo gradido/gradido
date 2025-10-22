@@ -30,27 +30,7 @@ jobs:
         uses: actions/checkout@v3
       
       - name: Build 'test' image
-        run: |
-          docker build --target test -t "gradido/dlt-connector:test" -f dlt-connector/Dockerfile .
-          docker save "gradido/dlt-connector:test" > /tmp/dlt-connector.tar
-
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: docker-dlt-connector-test
-          path: /tmp/dlt-connector.tar
-
-  lint:
-    name: Lint - DLT Connector
-    if: needs.files-changed.outputs.dlt_connector == 'true'
-    needs: files-changed
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-      
-      - name: Lint
-        run: cd dlt-connector && yarn && yarn run lint
+        run: docker build --target test -t "gradido/dlt-connector:test" -f dlt-connector/Dockerfile .
 
   unit_test:
     name: Unit Tests - DLT Connector
@@ -60,6 +40,14 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+      
+      - name: install bun 
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: '.bun-version'
 
-      - name:  DLT-Connector | Unit tests
-        run: cd dlt-connector && yarn && yarn test      
+      - name: install dependencies
+        run: cd dlt-connector && bun install --frozen-lockfile
+
+      - name: typecheck && unit test
+        run: cd dlt-connector && bun typecheck && bun test      

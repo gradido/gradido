@@ -172,7 +172,6 @@ services:
       - BUILD_VERSION
       - BUILD_COMMIT
       - NODE_ENV="production"
-      - DB_HOST=mariadb
       # Application only envs
     volumes:
       # <host_machine_directory>:<container_directory> – mirror bidirectional path in local context with path in Docker container
