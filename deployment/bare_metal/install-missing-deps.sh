@@ -28,7 +28,7 @@ fi
 
 # check for some tools and install them, when missing
 # bun https://bun.com/install, faster packet-manager as yarn
-BUN_VERSION_FILE="$SCRIPT_DIR/.bun-version"
+BUN_VERSION_FILE="$PROJECT_ROOT/.bun-version"
 if [ ! -f "$BUN_VERSION_FILE" ]; then
     echo ".bun-version file not found at: $BUN_VERSION_FILE"
     exit 1
