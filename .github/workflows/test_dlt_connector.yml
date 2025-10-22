@@ -62,9 +62,10 @@ jobs:
 
       - name: typecheck && unit test
         run: |
-          GRADIDO_BLOCKCHAIN_CRYPTO_APP_SECRET=$(openssl rand -hex 16)
-          GRADIDO_BLOCKCHAIN_SERVER_CRYPTO_KEY=$(openssl rand -hex 16)
-          HOME_COMMUNITY_SEED=$(openssl rand -hex 32)
-          HIERO_OPERATOR_KEY=$(openssl rand -hex 32)
-          HIERO_OPERATOR_ID="0.0.2"
-          cd dlt-connector && bun typecheck && bun test      
+          export GRADIDO_BLOCKCHAIN_CRYPTO_APP_SECRET=$(openssl rand -hex 16)
+          export GRADIDO_BLOCKCHAIN_SERVER_CRYPTO_KEY=$(openssl rand -hex 16)
+          export HOME_COMMUNITY_SEED=$(openssl rand -hex 32)
+          export HIERO_OPERATOR_KEY=$(openssl rand -hex 32)
+          export HIERO_OPERATOR_ID="0.0.2"
+          cd dlt-connector && bun typecheck && bun test
+
