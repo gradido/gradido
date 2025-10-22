@@ -13,7 +13,3 @@ export const accountIdentifierSeedTypeBoxSchema = t.Object({
   communityTopicId: TypeBoxFromValibot(hieroIdSchema),
   seed: TypeBoxFromValibot(uuidv4Schema),
 })
-
-export const existTypeBoxSchema = t.Object({
-  exists: t.Boolean(),
-})

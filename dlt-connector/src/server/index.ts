@@ -14,8 +14,8 @@ import { hieroTransactionIdStringSchema } from '../schemas/typeGuard.schema'
 import {
   accountIdentifierSeedTypeBoxSchema,
   accountIdentifierUserTypeBoxSchema,
-  existTypeBoxSchema,
 } from './input.schema'
+import { existTypeBoxSchema } from './output.schema'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY}.server`)
 
