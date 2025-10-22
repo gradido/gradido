@@ -1,9 +1,14 @@
 import { Elysia } from 'elysia'
+import { createAppContext } from './bootstrap/appContext'
+import {
+  checkGradidoNode,
+  checkHieroAccount,
+  checkHomeCommunity,
+  loadConfig,
+} from './bootstrap/init'
+import { setupGracefulShutdown } from './bootstrap/shutdown'
 import { CONFIG } from './config'
 import { appRoutes } from './server'
-import { setupGracefulShutdown } from './bootstrap/shutdown'
-import { createAppContext } from './bootstrap/appContext'
-import { checkHieroAccount, checkHomeCommunity, checkGradidoNode, loadConfig } from './bootstrap/init'
 
 async function main() {
   // load log4js-config, logger and gradido-blockchain-js crypto keys
@@ -20,7 +25,7 @@ async function main() {
   // ask gradido node if community blockchain was created
   // if not exist, create community root transaction
   await checkGradidoNode(appContext.clients, logger, homeCommunity)
-  
+
   // listen for rpc request from backend (graphql replaced with elysiaJS)
   new Elysia().use(appRoutes).listen(CONFIG.DLT_CONNECTOR_PORT, () => {
     logger.info(`Server is running at http://localhost:${CONFIG.DLT_CONNECTOR_PORT}`)

@@ -1,13 +1,13 @@
 import { readFileSync } from 'node:fs'
-import { CONFIG } from '../config'
-import { configure, getLogger, Logger } from 'log4js'
 import { loadCryptoKeys, MemoryBlock } from 'gradido-blockchain-js'
-import { type AppContext, type AppContextClients } from './appContext'
-import { MIN_TOPIC_EXPIRE_MILLISECONDS_FOR_UPDATE } from '../config/const'
+import { configure, getLogger, Logger } from 'log4js'
 import * as v from 'valibot'
+import { CONFIG } from '../config'
+import { MIN_TOPIC_EXPIRE_MILLISECONDS_FOR_UPDATE } from '../config/const'
+import { SendToHieroContext } from '../interactions/sendToHiero/SendToHiero.context'
 import { Community, communitySchema } from '../schemas/transaction.schema'
 import { isPortOpenRetry } from '../utils/network'
-import { SendToHieroContext } from '../interactions/sendToHiero/SendToHiero.context'
+import { type AppContext, type AppContextClients } from './appContext'
 
 export function loadConfig(): Logger {
   // configure log4js
@@ -29,7 +29,10 @@ export async function checkHieroAccount(logger: Logger, clients: AppContextClien
   logger.info(`Hiero Account Balance: ${balance.hbars.toString()}`)
 }
 
-export async function checkHomeCommunity(appContext: AppContext, logger: Logger): Promise<Community> {
+export async function checkHomeCommunity(
+  appContext: AppContext,
+  logger: Logger,
+): Promise<Community> {
   const { backend, hiero } = appContext.clients
 
   // wait for backend server
@@ -66,16 +69,23 @@ export async function checkHomeCommunity(appContext: AppContext, logger: Logger)
   return v.parse(communitySchema, homeCommunity)
 }
 
-export async function checkGradidoNode(clients: AppContextClients, logger: Logger, homeCommunity: Community): Promise<void> {
+export async function checkGradidoNode(
+  clients: AppContextClients,
+  logger: Logger,
+  homeCommunity: Community,
+): Promise<void> {
   // ask gradido node if community blockchain was created
-    try {
-      if (
-        !(await clients.gradidoNode.getTransaction({ transactionId: 1, topic: homeCommunity.hieroTopicId }))
-      ) {
-        // if not exist, create community root transaction
-        await SendToHieroContext(homeCommunity)
-      }
-    } catch (e) {
-      logger.error(`error requesting gradido node: ${e}`)
+  try {
+    if (
+      !(await clients.gradidoNode.getTransaction({
+        transactionId: 1,
+        topic: homeCommunity.hieroTopicId,
+      }))
+    ) {
+      // if not exist, create community root transaction
+      await SendToHieroContext(homeCommunity)
     }
+  } catch (e) {
+    logger.error(`error requesting gradido node: ${e}`)
+  }
 }
