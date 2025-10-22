@@ -1,4 +1,4 @@
-import { User as DbUser, UserContact as DbUserContact, Community as DbCommunity } from '../entity'
+import { User as DbUser, UserContact as DbUserContact, Community as DbCommunity } from '..'
 import { AppDatabase } from '../AppDatabase'
 import { aliasExists, findUserByIdentifier } from './user'
 import { userFactory } from '../seeds/factory/user'
@@ -70,12 +70,12 @@ describe('user.queries', () => {
         const user = await findUserByIdentifier(userBibi.gradidoID, communityUuid)
         expect(user).toMatchObject(userBibi)
       })
- 
+  
       it('userIdentifier is alias', async () => {
         const user = await findUserByIdentifier(userBibi.alias, communityUuid)
         expect(user).toMatchObject(userBibi)
       })
- 
+  
       it('userIdentifier is email', async () => {
         const user = await findUserByIdentifier(userBibi.emailContact.email, communityUuid)
         expect(user).toMatchObject(userBibi)
@@ -85,18 +85,18 @@ describe('user.queries', () => {
         expect(user).toBeNull()
       })
     })
- 
+  
     describe('communityIdentifier is community name', () => {
       it('userIdentifier is gradido id', async () => {
         const user = await findUserByIdentifier(userBibi.gradidoID, communityName)
         expect(user).toMatchObject(userBibi)
       })
- 
+  
       it('userIdentifier is alias', async () => {
         const user = await findUserByIdentifier(userBibi.alias, communityName)
         expect(user).toMatchObject(userBibi)
       })
- 
+  
       it('userIdentifier is email', async () => {
         const user = await findUserByIdentifier(userBibi.emailContact.email, communityName)
         expect(user).toMatchObject(userBibi)
@@ -117,12 +117,12 @@ describe('user.queries', () => {
         const user = await findUserByIdentifier(userBibi.gradidoID)
         expect(user).toMatchObject(userBibi)
       })
- 
+  
       it('userIdentifier is alias', async () => {
         const user = await findUserByIdentifier(userBibi.alias)
         expect(user).toMatchObject(userBibi)
       })
- 
+  
       it('userIdentifier is email', async () => {
         const user = await findUserByIdentifier(userBibi.emailContact.email)
         expect(user).toMatchObject(userBibi)
@@ -136,4 +136,5 @@ describe('user.queries', () => {
     })    
   })
 })
+
 

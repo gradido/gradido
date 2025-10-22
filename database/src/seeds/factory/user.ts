@@ -10,7 +10,7 @@ export const userFactory = async (user: UserInterface): Promise<User> => {
 
   dbUserContact.email = user.email ?? ''
   dbUserContact.type = UserContactType.USER_CONTACT_EMAIL
- 
+  
   let dbUser = new User()
   dbUser.firstName = user.firstName ?? ''
   dbUser.lastName = user.lastName ?? ''

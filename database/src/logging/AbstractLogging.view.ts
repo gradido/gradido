@@ -1,4 +1,5 @@
 import util from 'util'
+
 import { Decimal } from 'decimal.js-light'
 
 export abstract class AbstractLoggingView {

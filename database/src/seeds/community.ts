@@ -1,6 +1,6 @@
+import { Community, FederatedCommunity } from '../entity'
 import { randomBytes } from 'node:crypto'
 import { v4 as uuidv4 } from 'uuid'
-import { Community, FederatedCommunity } from '../entity'
 
 /**
  * Creates a community.

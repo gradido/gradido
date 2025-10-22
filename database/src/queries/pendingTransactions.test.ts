@@ -1,8 +1,8 @@
-import {
-  PendingTransaction as DbPendingTransaction,
-  User as DbUser,
-  UserContact as DbUserContact,
-  Community as DbCommunity,
+import { 
+  PendingTransaction as DbPendingTransaction, 
+  User as DbUser, 
+  UserContact as DbUserContact, 
+  Community as DbCommunity 
 } from '..'
 import { countOpenPendingTransactions } from './pendingTransactions'
 import { PendingTransactionState } from 'shared'
@@ -79,7 +79,7 @@ describe('countOpenPendingTransactions', () => {
       'Bob -> Peter new', 
       PendingTransactionState.NEW
     )
-
+    
   })
   it('should return 0 if called with empty array', async () => {
     const count = await countOpenPendingTransactions([])
@@ -109,13 +109,13 @@ describe('countOpenPendingTransactions', () => {
   it('peter has three transactions, should return 3', async () => {
     const count = await countOpenPendingTransactions([peter.gradidoID])
     expect(count).toBe(3)
-  })
+  })  
 
 
   it('bibi has two transactions, should return 2', async () => {
     const count = await countOpenPendingTransactions([bibi.gradidoID])
     expect(count).toBe(2)
-  }) 
+  })  
 
   it('bob has one transaction, should return 1', async () => {
     const count = await countOpenPendingTransactions([bob.gradidoID])
