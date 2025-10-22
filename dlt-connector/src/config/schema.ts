@@ -20,15 +20,18 @@ export const configSchema = v.object({
     ),
     '6010',
   ),
-  JWT_SECRET: v.optional(v.pipe(
-    v.string('The JWT secret for connecting to the backend'),
-    v.custom((input: unknown): boolean => {
-      if (process.env.NODE_ENV === 'production' && input === 'secret123') {
-        return false
-      }
-      return true
-    }, "Shouldn't use default value in production"),
-  ), 'secret123'),
+  JWT_SECRET: v.optional(
+    v.pipe(
+      v.string('The JWT secret for connecting to the backend'),
+      v.custom((input: unknown): boolean => {
+        if (process.env.NODE_ENV === 'production' && input === 'secret123') {
+          return false
+        }
+        return true
+      }, "Shouldn't use default value in production"),
+    ),
+    'secret123',
+  ),
   GRADIDO_BLOCKCHAIN_CRYPTO_APP_SECRET: hexSchema,
   GRADIDO_BLOCKCHAIN_SERVER_CRYPTO_KEY: hex16Schema,
   HOME_COMMUNITY_SEED: v.pipe(
