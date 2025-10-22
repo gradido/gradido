@@ -1,5 +1,13 @@
 #!/bin/bash
 
+SCRIPT_PATH=$(realpath $0)
+SCRIPT_DIR=$(dirname $SCRIPT_PATH)
+PROJECT_ROOT=$SCRIPT_DIR/../..
+
+echo "Project root: $PROJECT_ROOT"
+echo "Script dir: $SCRIPT_DIR"
+echo "Script path: $SCRIPT_PATH"
+
 # Ensure required tools are installed
 
 # make sure correct node version is installed
@@ -28,7 +36,7 @@ fi
 
 # check for some tools and install them, when missing
 # bun https://bun.com/install, faster packet-manager as yarn
-BUN_VERSION_FILE="$(dirname "$0")/../../.bun-version"
+BUN_VERSION_FILE="$PROJECT_ROOT/.bun-version"
 if [ ! -f "$BUN_VERSION_FILE" ]; then
     echo ".bun-version file not found at: $BUN_VERSION_FILE"
     exit 1
