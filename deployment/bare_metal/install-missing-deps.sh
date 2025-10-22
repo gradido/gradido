@@ -1,9 +1,5 @@
 #!/bin/bash
 
-SCRIPT_PATH=$(realpath $0)
-SCRIPT_DIR=$(dirname $SCRIPT_PATH)
-PROJECT_ROOT=$SCRIPT_DIR/../..
-
 # Ensure required tools are installed
 
 # make sure correct node version is installed
