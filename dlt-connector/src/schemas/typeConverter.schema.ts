@@ -1,7 +1,7 @@
 import { ConfirmedTransaction } from 'gradido-blockchain-js'
 import * as v from 'valibot'
-import { AccountType } from '../enum/AccountType'
-import { AddressType } from '../enum/AddressType'
+import { AccountType } from '../data/AccountType.enum'
+import { AddressType } from '../data/AddressType.enum'
 import {
   confirmedTransactionFromBase64,
   isAddressType,

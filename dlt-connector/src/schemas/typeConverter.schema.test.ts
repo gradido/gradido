@@ -4,7 +4,7 @@ import { TypeCompiler } from '@sinclair/typebox/compiler'
 import { Static, TypeBoxFromValibot } from '@sinclair/typemap'
 import { AddressType_COMMUNITY_AUF } from 'gradido-blockchain-js'
 import * as v from 'valibot'
-import { AccountType } from '../enum/AccountType'
+import { AccountType } from '../data/AccountType.enum'
 import {
   accountTypeSchema,
   addressTypeSchema,

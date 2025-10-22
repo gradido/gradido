@@ -9,7 +9,7 @@ import { getLogger } from 'log4js'
 import * as v from 'valibot'
 import { HieroClient } from '../../client/hiero/HieroClient'
 import { LOG4JS_BASE_CATEGORY } from '../../config/const'
-import { InputTransactionType } from '../../enum/InputTransactionType'
+import { InputTransactionType } from '../../data/InputTransactionType.enum'
 import {
   CommunityInput,
   communitySchema,

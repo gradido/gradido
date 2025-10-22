@@ -5,12 +5,12 @@ import { getLogger, Logger } from 'log4js'
 import * as v from 'valibot'
 import { CONFIG } from '../../config'
 import { LOG4JS_BASE_CATEGORY } from '../../config/const'
+import { AddressType } from '../../data/AddressType.enum'
 import { Uuidv4Hash } from '../../data/Uuidv4Hash'
-import { AddressType } from '../../enum/AddressType'
-import { GradidoNodeErrorCodes } from '../../enum/GradidoNodeErrorCodes'
 import { addressTypeSchema, confirmedTransactionSchema } from '../../schemas/typeConverter.schema'
 import { Hex32, Hex32Input, HieroId, hex32Schema } from '../../schemas/typeGuard.schema'
 import { isPortOpenRetry } from '../../utils/network'
+import { GradidoNodeErrorCodes } from './GradidoNodeErrorCodes'
 import {
   TransactionIdentifierInput,
   TransactionsRangeInput,

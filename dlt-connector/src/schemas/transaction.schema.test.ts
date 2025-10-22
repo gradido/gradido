@@ -5,8 +5,8 @@ import { randomBytes } from 'crypto'
 import { AddressType_COMMUNITY_HUMAN } from 'gradido-blockchain-js'
 import { v4 as uuidv4 } from 'uuid'
 import * as v from 'valibot'
-import { AccountType } from '../enum/AccountType'
-import { InputTransactionType } from '../enum/InputTransactionType'
+import { AccountType } from '../data/AccountType.enum'
+import { InputTransactionType } from '../data/InputTransactionType.enum'
 import {
   gradidoAmountSchema,
   HieroId,

@@ -1,6 +1,6 @@
 import * as v from 'valibot'
-import { AccountType } from '../enum/AccountType'
-import { InputTransactionType } from '../enum/InputTransactionType'
+import { AccountType } from '../data/AccountType.enum'
+import { InputTransactionType } from '../data/InputTransactionType.enum'
 import { identifierAccountSchema, identifierCommunityAccountSchema } from './account.schema'
 import { addressTypeSchema, dateSchema } from './typeConverter.schema'
 import {
