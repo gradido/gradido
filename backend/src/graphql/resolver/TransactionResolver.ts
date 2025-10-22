@@ -185,8 +185,6 @@ export const executeTransaction = async (
       await queryRunner.release()
     }
     
-    // notify dlt-connector loop for new work
-    // InterruptiveSleepManager.getInstance().interrupt(TRANSMIT_TO_IOTA_INTERRUPTIVE_SLEEP_KEY)
     await sendTransactionReceivedEmail({
       firstName: recipient.firstName,
       lastName: recipient.lastName,

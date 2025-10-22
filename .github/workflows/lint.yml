@@ -12,6 +12,7 @@ jobs:
       backend: ${{ steps.backend.outputs.success }}
       database: ${{ steps.database.outputs.success }}
       dht-node: ${{ steps.dht-node.outputs.success }}
+      dlt-connector: ${{ steps.dlt-connector.outputs.success }}
       federation: ${{ steps.federation.outputs.success }}
     steps:
       - name: Checkout
