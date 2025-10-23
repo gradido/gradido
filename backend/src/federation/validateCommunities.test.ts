@@ -103,7 +103,7 @@ describe('validate Communities', () => {
           return {
             data: {
               getPublicKey: {
-                publicKey: 'somePubKey',
+                publicKey: '2222222222222222222222222222222222222222222222222222222222222222',
               },
             },
           } as Response<unknown>
@@ -170,8 +170,8 @@ describe('validate Communities', () => {
       it('logs not matching publicKeys', () => {
         expect(logger.debug).toBeCalledWith(
           'received not matching publicKey:',
-          'somePubKey',
-          expect.stringMatching('11111111111111111111111111111111'),
+          '2222222222222222222222222222222222222222222222222222222222222222',
+          expect.stringMatching('1111111111111111111111111111111100000000000000000000000000000000'),
         )
       })
     })

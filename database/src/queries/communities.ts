@@ -1,6 +1,6 @@
 import { FindOptionsOrder, FindOptionsWhere, IsNull, MoreThanOrEqual, Not } from 'typeorm'
 import { Community as DbCommunity } from '../entity'
-import { urlSchema, uuidv4Schema } from 'shared'
+import { Ed25519PublicKey, urlSchema, uuidv4Schema } from 'shared'
 
 /**
  * Retrieves the home community, i.e., a community that is not foreign.
@@ -10,7 +10,14 @@ export async function getHomeCommunity(): Promise<DbCommunity | null> {
   // TODO: Put in Cache, it is needed nearly always
   // TODO: return only DbCommunity or throw to reduce unnecessary checks, because there should be always a home community
   return await DbCommunity.findOne({
-    where: { foreign: false },
+    where: { foreign: false }
+  })
+}
+
+export async function getHomeCommunityWithFederatedCommunityOrFail(apiVersion: string): Promise<DbCommunity> {
+  return await DbCommunity.findOneOrFail({
+    where: { foreign: false, federatedCommunities: { apiVersion } },
+    relations: { federatedCommunities: true },
   })
 }
 
@@ -42,6 +49,22 @@ export async function getCommunityWithFederatedCommunityByIdentifier(
   })
 }
 
+export async function getCommunityWithFederatedCommunityWithApiOrFail(
+  publicKey: Ed25519PublicKey,
+  apiVersion: string
+): Promise<DbCommunity> {
+  return await DbCommunity.findOneOrFail({
+    where: { foreign: true, publicKey: publicKey.asBuffer(), federatedCommunities: { apiVersion } },
+    relations: { federatedCommunities: true },
+  })
+}
+
+export async function getCommunityByPublicKeyOrFail(publicKey: Ed25519PublicKey): Promise<DbCommunity> {
+  return await DbCommunity.findOneOrFail({
+    where: { publicKey: publicKey.asBuffer() },
+  })
+}
+
 // returns all reachable communities 
 // home community and all federated communities which have been verified within the last authenticationTimeoutMs
 export async function getReachableCommunities(
@@ -58,6 +81,15 @@ export async function getReachableCommunities(
       },
       { foreign: false },
     ],
+    order,
+  })
+}
+
+export async function getNotReachableCommunities(
+  order?: FindOptionsOrder<DbCommunity>
+): Promise<DbCommunity[]> {
+  return await DbCommunity.find({
+    where: { authenticatedAt: IsNull(), foreign: true },
     order,
   })
 }

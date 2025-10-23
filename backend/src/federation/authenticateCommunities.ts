@@ -1,78 +1,110 @@
-import { CommunityLoggingView, Community as DbCommunity, FederatedCommunity as DbFederatedCommunity, FederatedCommunityLoggingView, getHomeCommunity } from 'database'
-import { validate as validateUUID, version as versionUUID } from 'uuid'
+import { 
+  CommunityHandshakeState as DbCommunityHandshakeState,
+  CommunityHandshakeStateLoggingView, 
+  FederatedCommunity as DbFederatedCommunity, 
+  findPendingCommunityHandshake, 
+  getHomeCommunityWithFederatedCommunityOrFail,
+  CommunityHandshakeStateType,
+  getCommunityByPublicKeyOrFail,
+} from 'database'
 import { randombytes_random } from 'sodium-native'
-import { CONFIG as CONFIG_CORE } from 'core'
 
 import { AuthenticationClient as V1_0_AuthenticationClient } from '@/federation/client/1_0/AuthenticationClient'
-import { ensureUrlEndsWithSlash } from 'core'
+import { ensureUrlEndsWithSlash, getFederatedCommunityWithApiOrFail } from 'core'
 
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { encryptAndSign, OpenConnectionJwtPayloadType } from 'shared'
+import { communityAuthenticatedSchema, encryptAndSign, OpenConnectionJwtPayloadType } from 'shared'
 import { getLogger } from 'log4js'
 import { AuthenticationClientFactory } from './client/AuthenticationClientFactory'
 import { EncryptedTransferArgs } from 'core'
+import { CommunityHandshakeStateLogic } from 'core'
+import { Ed25519PublicKey } from 'shared'
 
-const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.federation.authenticateCommunities`)
+const createLogger = (functionName: string) => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.federation.authenticateCommunities.${functionName}`)
+
+export enum StartCommunityAuthenticationResult {
+  ALREADY_AUTHENTICATED = 'already authenticated',
+  ALREADY_IN_PROGRESS = 'already in progress',
+  SUCCESSFULLY_STARTED = 'successfully started',
+}
 
 export async function startCommunityAuthentication(
   fedComB: DbFederatedCommunity,
-): Promise<void> {
-  const methodLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.federation.authenticateCommunities.startCommunityAuthentication`)
+): Promise<StartCommunityAuthenticationResult> {
+  const methodLogger = createLogger('startCommunityAuthentication')
   const handshakeID = randombytes_random().toString()
+  const fedComBPublicKey = new Ed25519PublicKey(fedComB.publicKey)
   methodLogger.addContext('handshakeID', handshakeID)
-  methodLogger.debug(`startCommunityAuthentication()...`, {
-    fedComB: new FederatedCommunityLoggingView(fedComB),
-  })
-  const homeComA = await getHomeCommunity()
-  methodLogger.debug('homeComA', new CommunityLoggingView(homeComA!))
-  const homeFedComA = await DbFederatedCommunity.findOneByOrFail({
-    foreign: false,
-    apiVersion: CONFIG_CORE.FEDERATION_BACKEND_SEND_ON_API,
-  })
-  methodLogger.debug('homeFedComA', new FederatedCommunityLoggingView(homeFedComA))
-  const comB = await DbCommunity.findOneByOrFail({ publicKey: fedComB.publicKey })
-  methodLogger.debug('started with comB:', new CommunityLoggingView(comB))
+  methodLogger.debug(`start with public key ${fedComBPublicKey.asHex()}`)
+  const homeComA = await getHomeCommunityWithFederatedCommunityOrFail(fedComB.apiVersion)
+  // methodLogger.debug('homeComA', new CommunityLoggingView(homeComA))
+  const homeFedComA = getFederatedCommunityWithApiOrFail(homeComA, fedComB.apiVersion)
+  
+  const comB = await getCommunityByPublicKeyOrFail(fedComBPublicKey)
+  // methodLogger.debug('started with comB:', new CommunityLoggingView(comB))
   // check if communityUuid is not a valid v4Uuid
-  try {
-    if (
-      comB &&
-      ((comB.communityUuid === null && comB.authenticatedAt === null) ||
-        (comB.communityUuid !== null &&
-          (!validateUUID(comB.communityUuid) ||
-          versionUUID(comB.communityUuid!) !== 4)))
-    ) {
-      methodLogger.debug('comB.uuid is null or is a not valid v4Uuid...', comB.communityUuid || 'null', comB.authenticatedAt || 'null')
-      const client = AuthenticationClientFactory.getInstance(fedComB)
-
-      if (client instanceof V1_0_AuthenticationClient) {
-        if (!comB.publicJwtKey) {
-          throw new Error('Public JWT key still not exist for comB ' + comB.name)
-        }
-        //create JWT with url in payload encrypted by foreignCom.publicJwtKey and signed with homeCom.privateJwtKey
-        const payload = new OpenConnectionJwtPayloadType(handshakeID,
-          ensureUrlEndsWithSlash(homeFedComA.endPoint).concat(homeFedComA.apiVersion),
-        )
-        methodLogger.debug('payload', payload)
-        const jws = await encryptAndSign(payload, homeComA!.privateJwtKey!, comB.publicJwtKey!)
-        methodLogger.debug('jws', jws)
-        // prepare the args for the client invocation
-        const args = new EncryptedTransferArgs()
-        args.publicKey = homeComA!.publicKey.toString('hex')
-        args.jwt = jws
-        args.handshakeID = handshakeID
-        methodLogger.debug('before client.openConnection() args:', args)
-        const result = await client.openConnection(args)
-        if (result) {
-          methodLogger.debug(`successful initiated at community:`, fedComB.endPoint)
-        } else {
-          methodLogger.error(`can't initiate at community:`, fedComB.endPoint)
-        }
-      }
-    } else {
-      methodLogger.debug(`comB.communityUuid is already a valid v4Uuid ${ comB.communityUuid || 'null' } and was authenticated at ${ comB.authenticatedAt || 'null'}`)
-    }
-  } catch (err) {
-    methodLogger.error(`Error:`, err)
+  
+  // communityAuthenticatedSchema.safeParse return true 
+  // - if communityUuid is a valid v4Uuid and 
+  // - if authenticatedAt is a valid date
+  if (communityAuthenticatedSchema.safeParse(comB).success) {
+    methodLogger.debug(`comB.communityUuid is already a valid v4Uuid ${ comB.communityUuid || 'null' } and was authenticated at ${ comB.authenticatedAt || 'null'}`)
+    return StartCommunityAuthenticationResult.ALREADY_AUTHENTICATED
   }
-  methodLogger.removeContext('handshakeID')
+  /*methodLogger.debug('comB.uuid is null or is a not valid v4Uuid...', 
+    comB.communityUuid || 'null', comB.authenticatedAt || 'null'
+  )*/
+
+  // check if a authentication is already in progress
+  const existingState = await findPendingCommunityHandshake(fedComBPublicKey, fedComB.apiVersion)
+  if (existingState) {
+    const stateLogic = new CommunityHandshakeStateLogic(existingState)
+    // retry on timeout or failure
+    if (!(await stateLogic.isTimeoutUpdate())) {
+      // authentication with community and api version is still in progress and it is not timeout yet
+      methodLogger.debug('existingState, so we exit here', new CommunityHandshakeStateLoggingView(existingState))
+      return StartCommunityAuthenticationResult.ALREADY_IN_PROGRESS
+    }
+  }
+  
+  const client = AuthenticationClientFactory.getInstance(fedComB)
+
+  if (client instanceof V1_0_AuthenticationClient) {
+    if (!comB.publicJwtKey) {
+      throw new Error(`Public JWT key still not exist for comB ${comB.name}`)
+    }
+    const state = new DbCommunityHandshakeState()
+    state.publicKey = fedComBPublicKey.asBuffer()
+    state.apiVersion = fedComB.apiVersion
+    state.status = CommunityHandshakeStateType.START_COMMUNITY_AUTHENTICATION
+    state.handshakeId = parseInt(handshakeID)
+    await state.save()
+    methodLogger.debug('[START_COMMUNITY_AUTHENTICATION] community handshake state created')
+
+    //create JWT with url in payload encrypted by foreignCom.publicJwtKey and signed with homeCom.privateJwtKey
+    const payload = new OpenConnectionJwtPayloadType(handshakeID,
+      ensureUrlEndsWithSlash(homeFedComA.endPoint).concat(homeFedComA.apiVersion),
+    )
+    // methodLogger.debug('payload', payload)
+    const jws = await encryptAndSign(payload, homeComA!.privateJwtKey!, comB.publicJwtKey!)
+    // methodLogger.debug('jws', jws)
+    // prepare the args for the client invocation
+    const args = new EncryptedTransferArgs()
+    const homeComAPublicKey = new Ed25519PublicKey(homeComA!.publicKey)
+    args.publicKey = homeComAPublicKey.asHex()
+    args.jwt = jws
+    args.handshakeID = handshakeID
+    // methodLogger.debug('before client.openConnection() args:', args)
+    const result = await client.openConnection(args)
+    if (result) {
+      methodLogger.debug(`successful initiated at community:`, fedComB.endPoint)
+    } else {
+      const errorMsg = `can't initiate at community: ${fedComB.endPoint}`
+      methodLogger.error(errorMsg)
+      state.status = CommunityHandshakeStateType.FAILED
+      state.lastError = errorMsg
+    }
+    await state.save()
+  }
+  return StartCommunityAuthenticationResult.SUCCESSFULLY_STARTED
 }
