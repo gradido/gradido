@@ -1,6 +1,6 @@
 {
   "name": "gradido",
-  "version": "2.6.1",
+  "version": "2.7.0",
   "description": "Gradido",
   "main": "index.js",
   "repository": "git@github.com:gradido/gradido.git",
@@ -21,7 +21,7 @@
   ],
   "scripts": {
     "release": "bumpp --no-commit --no-push -r",
-    "version": "auto-changelog -p && git add CHANGELOG.md",
+    "version": "auto-changelog -p --commit-limit 0 && git add CHANGELOG.md",
     "installAll": "bun run install",
     "docker": "cross-env BUILD_COMMIT=$(git rev-parse HEAD) docker compose -f docker-compose.yml up",
     "docker:rebuild": "cross-env BUILD_COMMIT=$(git rev-parse HEAD) docker compose -f docker-compose.yml build",
@@ -38,7 +38,8 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.0.0",
-    "@types/minimatch": "6.0.0"
+    "@types/minimatch": "6.0.0",
+    "bbump": "^1.0.2"
   },
   "engines": {
     "node": ">=18"
