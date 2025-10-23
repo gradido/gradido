@@ -36,7 +36,7 @@ export async function checkHomeCommunity(
   const { backend, hiero } = appContext.clients
 
   // wait for backend server
-  await isPortOpenRetry(CONFIG.BACKEND_SERVER_URL)
+  await isPortOpenRetry(backend.url)
   // ask backend for home community
   let homeCommunity = await backend.getHomeCommunityDraft()
   // on missing topicId, create one
@@ -64,8 +64,8 @@ export async function checkHomeCommunity(
   }
   appContext.cache.setHomeCommunityTopicId(homeCommunity.hieroTopicId)
   logger.info(`home community topic: ${homeCommunity.hieroTopicId}`)
-  logger.info(`gradido node server: ${CONFIG.NODE_SERVER_URL}`)
-  logger.info(`gradido backend server: ${CONFIG.BACKEND_SERVER_URL}`)
+  logger.info(`gradido node server: ${appContext.clients.gradidoNode.url}`)
+  logger.info(`gradido backend server: ${appContext.clients.backend.url}`)
   return v.parse(communitySchema, homeCommunity)
 }
 
