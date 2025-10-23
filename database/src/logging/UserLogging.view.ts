@@ -1,10 +1,10 @@
 import { User } from '../entity'
 import { AbstractLoggingView } from './AbstractLogging.view'
+import { CommunityLoggingView } from './CommunityLogging.view'
 import { ContributionLoggingView } from './ContributionLogging.view'
 import { ContributionMessageLoggingView } from './ContributionMessageLogging.view'
 import { UserContactLoggingView } from './UserContactLogging.view'
 import { UserRoleLoggingView } from './UserRoleLogging.view'
-import { CommunityLoggingView } from './CommunityLogging.view'
 
 enum PasswordEncryptionType {
   NO_PASSWORD = 0,

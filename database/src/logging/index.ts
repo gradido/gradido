@@ -11,6 +11,7 @@ import { TransactionLoggingView } from './TransactionLogging.view'
 import { UserContactLoggingView } from './UserContactLogging.view'
 import { UserLoggingView } from './UserLogging.view'
 import { UserRoleLoggingView } from './UserRoleLogging.view'
+import { CommunityHandshakeStateLoggingView } from './CommunityHandshakeStateLogging.view'
 
 export {
   AbstractLoggingView,
@@ -24,6 +25,7 @@ export {
   UserContactLoggingView,
   UserLoggingView,
   UserRoleLoggingView,
+  CommunityHandshakeStateLoggingView,
 }
 
 export const logger = getLogger(LOG4JS_BASE_CATEGORY_NAME)

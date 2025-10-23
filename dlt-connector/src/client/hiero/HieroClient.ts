@@ -10,13 +10,11 @@ import {
   TopicMessageSubmitTransaction,
   TopicUpdateTransaction,
   TransactionId,
-  TransactionReceipt,
-  TransactionResponse,
   Wallet,
 } from '@hashgraph/sdk'
-import { GradidoTransaction, HieroTopicId } from 'gradido-blockchain-js'
+import { GradidoTransaction } from 'gradido-blockchain-js'
 import { getLogger, Logger } from 'log4js'
-import { parse } from 'valibot'
+import * as v from 'valibot'
 import { CONFIG } from '../../config'
 import { LOG4JS_BASE_CATEGORY } from '../../config/const'
 import { HieroId, hieroIdSchema } from '../../schemas/typeGuard.schema'
@@ -62,7 +60,9 @@ export class HieroClient {
     this.logger.info(`waiting for ${this.pendingPromises.length} pending promises`)
     await Promise.all(this.pendingPromises)
     const endTime = new Date()
-    this.logger.info(`all pending promises resolved, used time: ${endTime.getTime() - startTime.getTime()}ms`)
+    this.logger.info(
+      `all pending promises resolved, used time: ${endTime.getTime() - startTime.getTime()}ms`,
+    )
   }
 
   public async sendMessage(
@@ -85,28 +85,34 @@ export class HieroClient {
     }).freezeWithSigner(this.wallet)
     // sign and execute transaction needs some time, so let it run in background
     const pendingPromiseIndex = this.pendingPromises.push(
-      hieroTransaction.signWithSigner(this.wallet).then(async (signedHieroTransaction) => {
-        const sendResponse = await signedHieroTransaction.executeWithSigner(this.wallet)
-        logger.info(`message sent to topic ${topicId}, transaction id: ${sendResponse.transactionId.toString()}`)
-        if (logger.isInfoEnabled()) {
-          // only for logging
-          sendResponse.getReceiptWithSigner(this.wallet).then((receipt) => {
-            logger.info(
-            `message send status: ${receipt.status.toString()}`,
-            )
-          })
-          // only for logging
-          sendResponse.getRecordWithSigner(this.wallet).then((record) => {
-            logger.info(`message sent, cost: ${record.transactionFee.toString()}`)
-            const localEndTime = new Date()
-            logger.info(`HieroClient.sendMessage used time (full process): ${localEndTime.getTime() - startTime.getTime()}ms`)
-          })
-        }
-      }).catch((e) => {
-        logger.error(e)
-      }).finally(() => {
-        this.pendingPromises.splice(pendingPromiseIndex, 1)
-      })
+      hieroTransaction
+        .signWithSigner(this.wallet)
+        .then(async (signedHieroTransaction) => {
+          const sendResponse = await signedHieroTransaction.executeWithSigner(this.wallet)
+          logger.info(
+            `message sent to topic ${topicId}, transaction id: ${sendResponse.transactionId.toString()}`,
+          )
+          if (logger.isInfoEnabled()) {
+            // only for logging
+            sendResponse.getReceiptWithSigner(this.wallet).then((receipt) => {
+              logger.info(`message send status: ${receipt.status.toString()}`)
+            })
+            // only for logging
+            sendResponse.getRecordWithSigner(this.wallet).then((record) => {
+              logger.info(`message sent, cost: ${record.transactionFee.toString()}`)
+              const localEndTime = new Date()
+              logger.info(
+                `HieroClient.sendMessage used time (full process): ${localEndTime.getTime() - startTime.getTime()}ms`,
+              )
+            })
+          }
+        })
+        .catch((e) => {
+          logger.error(e)
+        })
+        .finally(() => {
+          this.pendingPromises.splice(pendingPromiseIndex, 1)
+        }),
     )
     const endTime = new Date()
     logger.info(`HieroClient.sendMessage used time: ${endTime.getTime() - startTime.getTime()}ms`)
@@ -131,7 +137,7 @@ export class HieroClient {
     }
     this.logger.debug(`topic sequence number: ${info.sequenceNumber.toNumber()}`)
     // this.logger.debug(JSON.stringify(info, null, 2))
-    return parse(topicInfoSchema, {
+    return v.parse(topicInfoSchema, {
       topicId: topicId.toString(),
       sequenceNumber: info.sequenceNumber.toNumber(),
       expirationTime: info.expirationTime?.toDate(),
@@ -148,7 +154,7 @@ export class HieroClient {
       autoRenewPeriod: undefined,
       autoRenewAccountId: undefined,
     })
-    
+
     transaction = await transaction.freezeWithSigner(this.wallet)
     transaction = await transaction.signWithSigner(this.wallet)
     const createResponse = await transaction.executeWithSigner(this.wallet)
@@ -157,7 +163,7 @@ export class HieroClient {
     this.logger.addContext('topicId', createReceipt.topicId?.toString())
     const record = await createResponse.getRecordWithSigner(this.wallet)
     this.logger.info(`topic created, cost: ${record.transactionFee.toString()}`)
-    return parse(hieroIdSchema, createReceipt.topicId?.toString())
+    return v.parse(hieroIdSchema, createReceipt.topicId?.toString())
   }
 
   public async updateTopic(topicId: HieroId): Promise<void> {

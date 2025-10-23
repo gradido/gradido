@@ -1,12 +1,5 @@
 import * as v from 'valibot'
-import { hieroIdSchema, uuidv4Schema } from './typeGuard.schema'
-
-// use code from transaction links
-export const identifierSeedSchema = v.object({
-  seed: v.pipe(v.string('expect string type'), v.length(24, 'expect seed length 24')),
-})
-
-export type IdentifierSeed = v.InferOutput<typeof identifierSeedSchema>
+import { hieroIdSchema, identifierSeedSchema, uuidv4Schema } from './typeGuard.schema'
 
 // identifier for gradido community accounts, inside a community
 export const identifierCommunityAccountSchema = v.object({

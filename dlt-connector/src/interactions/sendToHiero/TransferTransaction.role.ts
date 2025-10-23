@@ -4,7 +4,7 @@ import {
   GradidoTransactionBuilder,
   TransferAmount,
 } from 'gradido-blockchain-js'
-import { parse } from 'valibot'
+import * as v from 'valibot'
 import { KeyPairIdentifierLogic } from '../../data/KeyPairIdentifier.logic'
 import {
   Transaction,
@@ -12,14 +12,14 @@ import {
   transferTransactionSchema,
 } from '../../schemas/transaction.schema'
 import { HieroId } from '../../schemas/typeGuard.schema'
-import { KeyPairCalculation } from '../keyPairCalculation/KeyPairCalculation.context'
+import { ResolveKeyPair } from '../resolveKeyPair/ResolveKeyPair.context'
 import { AbstractTransactionRole } from './AbstractTransaction.role'
 
 export class TransferTransactionRole extends AbstractTransactionRole {
   private transferTransaction: TransferTransaction
   constructor(input: Transaction) {
     super()
-    this.transferTransaction = parse(transferTransactionSchema, input)
+    this.transferTransaction = v.parse(transferTransactionSchema, input)
   }
 
   getSenderCommunityTopicId(): HieroId {
@@ -33,11 +33,11 @@ export class TransferTransactionRole extends AbstractTransactionRole {
   public async getGradidoTransactionBuilder(): Promise<GradidoTransactionBuilder> {
     const builder = new GradidoTransactionBuilder()
     // sender + signer
-    const senderKeyPair = await KeyPairCalculation(
+    const senderKeyPair = await ResolveKeyPair(
       new KeyPairIdentifierLogic(this.transferTransaction.user),
     )
     // recipient
-    const recipientKeyPair = await KeyPairCalculation(
+    const recipientKeyPair = await ResolveKeyPair(
       new KeyPairIdentifierLogic(this.transferTransaction.linkedUser),
     )
 

@@ -1,23 +1,28 @@
 import { beforeAll, describe, expect, it } from 'bun:test'
-import { TypeBoxFromValibot } from '@sinclair/typemap'
 import { TypeCompiler } from '@sinclair/typebox/compiler'
+import { TypeBoxFromValibot } from '@sinclair/typemap'
 import { randomBytes } from 'crypto'
+import { AddressType_COMMUNITY_HUMAN } from 'gradido-blockchain-js'
 import { v4 as uuidv4 } from 'uuid'
-import { parse } from 'valibot'
-import { InputTransactionType } from '../enum/InputTransactionType'
+import * as v from 'valibot'
+import { AccountType } from '../data/AccountType.enum'
+import { InputTransactionType } from '../data/InputTransactionType.enum'
 import {
   gradidoAmountSchema,
   HieroId,
   hieroIdSchema,
+  identifierSeedSchema,
   Memo,
   memoSchema,
   timeoutDurationSchema,
   Uuidv4,
   uuidv4Schema,
 } from '../schemas/typeGuard.schema'
-import { registerAddressTransactionSchema, TransactionInput, transactionSchema } from './transaction.schema'
-import { AccountType } from '../enum/AccountType'
-import { AddressType_COMMUNITY_HUMAN } from 'gradido-blockchain-js'
+import {
+  registerAddressTransactionSchema,
+  TransactionInput,
+  transactionSchema,
+} from './transaction.schema'
 
 const transactionLinkCode = (date: Date): string => {
   const time = date.getTime().toString(16)
@@ -30,7 +35,7 @@ const transactionLinkCode = (date: Date): string => {
 let topic: HieroId
 const topicString = '0.0.261'
 beforeAll(() => {
-  topic = parse(hieroIdSchema, topicString)
+  topic = v.parse(hieroIdSchema, topicString)
 })
 
 describe('transaction schemas', () => {
@@ -40,9 +45,9 @@ describe('transaction schemas', () => {
   let memo: Memo
   beforeAll(() => {
     userUuidString = uuidv4()
-    userUuid = parse(uuidv4Schema, userUuidString)
+    userUuid = v.parse(uuidv4Schema, userUuidString)
     memoString = 'TestMemo'
-    memo = parse(memoSchema, memoString)
+    memo = v.parse(memoSchema, memoString)
   })
   describe('register address', () => {
     let registerAddress: TransactionInput
@@ -58,7 +63,7 @@ describe('transaction schemas', () => {
       }
     })
     it('valid transaction schema', () => {
-      expect(parse(transactionSchema, registerAddress)).toEqual({
+      expect(v.parse(transactionSchema, registerAddress)).toEqual({
         user: {
           communityTopicId: topic,
           account: {
@@ -72,7 +77,7 @@ describe('transaction schemas', () => {
       })
     })
     it('valid register address schema', () => {
-      expect(parse(registerAddressTransactionSchema, registerAddress)).toEqual({
+      expect(v.parse(registerAddressTransactionSchema, registerAddress)).toEqual({
         user: {
           communityTopicId: topic,
           account: {
@@ -91,7 +96,7 @@ describe('transaction schemas', () => {
       expect(check.Check(registerAddress)).toBe(true)
     })
   })
-  
+
   it('valid, gradido transfer', () => {
     const gradidoTransfer: TransactionInput = {
       user: {
@@ -107,7 +112,7 @@ describe('transaction schemas', () => {
       type: InputTransactionType.GRADIDO_TRANSFER,
       createdAt: '2022-01-01T00:00:00.000Z',
     }
-    expect(parse(transactionSchema, gradidoTransfer)).toEqual({
+    expect(v.parse(transactionSchema, gradidoTransfer)).toEqual({
       user: {
         communityTopicId: topic,
         account: {
@@ -122,7 +127,7 @@ describe('transaction schemas', () => {
           accountNr: 0,
         },
       },
-      amount: parse(gradidoAmountSchema, gradidoTransfer.amount!),
+      amount: v.parse(gradidoAmountSchema, gradidoTransfer.amount!),
       memo,
       type: gradidoTransfer.type,
       createdAt: new Date(gradidoTransfer.createdAt),
@@ -145,7 +150,7 @@ describe('transaction schemas', () => {
       createdAt: '2022-01-01T00:00:00.000Z',
       targetDate: '2021-11-01T10:00',
     }
-    expect(parse(transactionSchema, gradidoCreation)).toEqual({
+    expect(v.parse(transactionSchema, gradidoCreation)).toEqual({
       user: {
         communityTopicId: topic,
         account: { userUuid, accountNr: 0 },
@@ -154,7 +159,7 @@ describe('transaction schemas', () => {
         communityTopicId: topic,
         account: { userUuid, accountNr: 0 },
       },
-      amount: parse(gradidoAmountSchema, gradidoCreation.amount!),
+      amount: v.parse(gradidoAmountSchema, gradidoCreation.amount!),
       memo,
       type: gradidoCreation.type,
       createdAt: new Date(gradidoCreation.createdAt),
@@ -162,6 +167,8 @@ describe('transaction schemas', () => {
     })
   })
   it('valid, gradido transaction link / deferred transfer', () => {
+    const seed = transactionLinkCode(new Date())
+    const seedParsed = v.parse(identifierSeedSchema, seed)
     const gradidoTransactionLink: TransactionInput = {
       user: {
         communityTopicId: topicString,
@@ -171,9 +178,7 @@ describe('transaction schemas', () => {
       },
       linkedUser: {
         communityTopicId: topicString,
-        seed: {
-          seed: transactionLinkCode(new Date()),
-        },
+        seed,
       },
       amount: '100',
       memo: memoString,
@@ -181,7 +186,7 @@ describe('transaction schemas', () => {
       createdAt: '2022-01-01T00:00:00.000Z',
       timeoutDuration: 60 * 60 * 24 * 30,
     }
-    expect(parse(transactionSchema, gradidoTransactionLink)).toEqual({
+    expect(v.parse(transactionSchema, gradidoTransactionLink)).toEqual({
       user: {
         communityTopicId: topic,
         account: {
@@ -191,15 +196,13 @@ describe('transaction schemas', () => {
       },
       linkedUser: {
         communityTopicId: topic,
-        seed: {
-          seed: gradidoTransactionLink.linkedUser!.seed!.seed,
-        },
+        seed: seedParsed,
       },
-      amount: parse(gradidoAmountSchema, gradidoTransactionLink.amount!),
+      amount: v.parse(gradidoAmountSchema, gradidoTransactionLink.amount!),
       memo,
       type: gradidoTransactionLink.type,
       createdAt: new Date(gradidoTransactionLink.createdAt),
-      timeoutDuration: parse(timeoutDurationSchema, gradidoTransactionLink.timeoutDuration!),
+      timeoutDuration: v.parse(timeoutDurationSchema, gradidoTransactionLink.timeoutDuration!),
     })
   })
 })

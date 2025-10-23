@@ -1,5 +1,5 @@
 import { GradidoTransactionBuilder, GradidoTransfer, TransferAmount } from 'gradido-blockchain-js'
-import { parse } from 'valibot'
+import * as v from 'valibot'
 import { GradidoNodeClient } from '../../client/GradidoNode/GradidoNodeClient'
 import { KeyPairIdentifierLogic } from '../../data/KeyPairIdentifier.logic'
 import {
@@ -9,7 +9,7 @@ import {
   UserAccount,
 } from '../../schemas/transaction.schema'
 import { HieroId } from '../../schemas/typeGuard.schema'
-import { KeyPairCalculation } from '../keyPairCalculation/KeyPairCalculation.context'
+import { ResolveKeyPair } from '../resolveKeyPair/ResolveKeyPair.context'
 import { AbstractTransactionRole } from './AbstractTransaction.role'
 
 export class RedeemDeferredTransferTransactionRole extends AbstractTransactionRole {
@@ -17,7 +17,7 @@ export class RedeemDeferredTransferTransactionRole extends AbstractTransactionRo
   private readonly redeemDeferredTransferTransaction: RedeemDeferredTransferTransaction
   constructor(transaction: Transaction) {
     super()
-    this.redeemDeferredTransferTransaction = parse(
+    this.redeemDeferredTransferTransaction = v.parse(
       redeemDeferredTransferTransactionSchema,
       transaction,
     )
@@ -34,7 +34,7 @@ export class RedeemDeferredTransferTransactionRole extends AbstractTransactionRo
 
   public async getGradidoTransactionBuilder(): Promise<GradidoTransactionBuilder> {
     const builder = new GradidoTransactionBuilder()
-    const senderKeyPair = await KeyPairCalculation(
+    const senderKeyPair = await ResolveKeyPair(
       new KeyPairIdentifierLogic(this.redeemDeferredTransferTransaction.user),
     )
     const senderPublicKey = senderKeyPair.getPublicKey()
@@ -56,7 +56,7 @@ export class RedeemDeferredTransferTransactionRole extends AbstractTransactionRo
         "redeem deferred transfer: couldn't deserialize deferred transfer from Gradido Node",
       )
     }
-    const recipientKeyPair = await KeyPairCalculation(new KeyPairIdentifierLogic(this.linkedUser))
+    const recipientKeyPair = await ResolveKeyPair(new KeyPairIdentifierLogic(this.linkedUser))
 
     builder
       .setCreatedAt(this.redeemDeferredTransferTransaction.createdAt)

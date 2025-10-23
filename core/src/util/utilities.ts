@@ -36,6 +36,11 @@ export const delay = promisify(setTimeout)
 export const ensureUrlEndsWithSlash = (url: string): string => {
   return url.endsWith('/') ? url : url.concat('/')
 }
+export function splitUrlInEndPointAndApiVersion(url: string): { endPoint: string, apiVersion: string } {
+  const endPoint = url.slice(0, url.lastIndexOf('/') + 1)
+  const apiVersion = url.slice(url.lastIndexOf('/') + 1, url.length)
+  return { endPoint, apiVersion }
+}
 /**
  * Calculates the date representing the first day of the month, a specified number of months prior to a given date.
  *

@@ -5,12 +5,8 @@ import * as v from 'valibot'
 import { CONFIG } from '../../config'
 import { LOG4JS_BASE_CATEGORY } from '../../config/const'
 import { HieroId, Uuidv4 } from '../../schemas/typeGuard.schema'
-import {
-  type Community,
-  communitySchema,
-  homeCommunityGraphqlQuery,
-  setHomeCommunityTopicId,
-} from './community.schema'
+import { homeCommunityGraphqlQuery, setHomeCommunityTopicId } from './graphql'
+import { type Community, communitySchema } from './output.schema'
 
 // Source: https://refactoring.guru/design-patterns/singleton/typescript/example
 // and ../federation/client/FederationClientFactory.ts

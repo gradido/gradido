@@ -1,19 +1,16 @@
 import * as v from 'valibot'
-import { InputTransactionType } from '../enum/InputTransactionType'
-import {
-  identifierAccountSchema,
-  identifierCommunityAccountSchema,
-  identifierSeedSchema,
-} from './account.schema'
+import { AccountType } from '../data/AccountType.enum'
+import { InputTransactionType } from '../data/InputTransactionType.enum'
+import { identifierAccountSchema, identifierCommunityAccountSchema } from './account.schema'
 import { addressTypeSchema, dateSchema } from './typeConverter.schema'
 import {
   gradidoAmountSchema,
   hieroIdSchema,
+  identifierSeedSchema,
   memoSchema,
   timeoutDurationSchema,
   uuidv4Schema,
 } from './typeGuard.schema'
-import { AccountType } from '../enum/AccountType'
 
 /**
  * Schema for community, for creating new CommunityRoot Transaction on gradido blockchain

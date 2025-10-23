@@ -13,7 +13,7 @@ import { Decimal } from 'decimal.js-light'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../../config/const'
 import { PendingTransactionState } from 'shared'
 // import { LogError } from '@/server/LogError'
-import { calculateSenderBalance } from 'core'
+import { calculateSenderBalance } from '../../util/calculateSenderBalance'
 import { TRANSACTIONS_LOCK, getLastTransaction } from 'database'
 import { getLogger } from 'log4js'
 

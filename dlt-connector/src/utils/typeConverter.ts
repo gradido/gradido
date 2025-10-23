@@ -4,8 +4,8 @@ import {
   InteractionDeserialize,
   MemoryBlock,
 } from 'gradido-blockchain-js'
-import { AccountType } from '../enum/AccountType'
-import { AddressType } from '../enum/AddressType'
+import { AccountType } from '../data/AccountType.enum'
+import { AddressType } from '../data/AddressType.enum'
 
 export const confirmedTransactionFromBase64 = (base64: string): ConfirmedTransaction => {
   const confirmedTransactionBinaryPtr = MemoryBlock.createPtr(MemoryBlock.fromBase64(base64))

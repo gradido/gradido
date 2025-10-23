@@ -1,11 +1,12 @@
 import { KeyPairEd25519 } from 'gradido-blockchain-js'
 
 import { getLogger, Logger } from 'log4js'
-import { LOG4JS_BASE_CATEGORY } from './config/const'
-import { HieroId } from './schemas/typeGuard.schema'
+import { LOG4JS_BASE_CATEGORY } from '../config/const'
+import { HieroId } from '../schemas/typeGuard.schema'
 
 // Source: https://refactoring.guru/design-patterns/singleton/typescript/example
 // and ../federation/client/FederationClientFactory.ts
+// TODO: TTL (time to live) based, maybe even optional use of redis
 /**
  * A Singleton class defines the `getInstance` method that lets clients access
  * the unique singleton instance.

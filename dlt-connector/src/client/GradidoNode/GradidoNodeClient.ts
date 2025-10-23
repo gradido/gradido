@@ -2,15 +2,15 @@ import { ConfirmedTransaction } from 'gradido-blockchain-js'
 import JsonRpcClient from 'jsonrpc-ts-client'
 import { JsonRpcEitherResponse } from 'jsonrpc-ts-client/dist/types/utils/jsonrpc'
 import { getLogger, Logger } from 'log4js'
-import { parse } from 'valibot'
+import * as v from 'valibot'
 import { CONFIG } from '../../config'
 import { LOG4JS_BASE_CATEGORY } from '../../config/const'
+import { AddressType } from '../../data/AddressType.enum'
 import { Uuidv4Hash } from '../../data/Uuidv4Hash'
-import { AddressType } from '../../enum/AddressType'
-import { GradidoNodeErrorCodes } from '../../enum/GradidoNodeErrorCodes'
 import { addressTypeSchema, confirmedTransactionSchema } from '../../schemas/typeConverter.schema'
 import { Hex32, Hex32Input, HieroId, hex32Schema } from '../../schemas/typeGuard.schema'
 import { isPortOpenRetry } from '../../utils/network'
+import { GradidoNodeErrorCodes } from './GradidoNodeErrorCodes'
 import {
   TransactionIdentifierInput,
   TransactionsRangeInput,
@@ -61,13 +61,13 @@ export class GradidoNodeClient {
     transactionIdentifier: TransactionIdentifierInput,
   ): Promise<ConfirmedTransaction | undefined> {
     const parameter = {
-      ...parse(transactionIdentifierSchema, transactionIdentifier),
+      ...v.parse(transactionIdentifierSchema, transactionIdentifier),
       format: 'base64',
     }
     const response = await this.rpcCall<{ transaction: string }>('getTransaction', parameter)
     if (response.isSuccess()) {
       // this.logger.debug('result: ', response.result.transaction)
-      return parse(confirmedTransactionSchema, response.result.transaction)
+      return v.parse(confirmedTransactionSchema, response.result.transaction)
     }
     if (response.isError()) {
       if (response.error.code === GradidoNodeErrorCodes.TRANSACTION_NOT_FOUND) {
@@ -92,7 +92,7 @@ export class GradidoNodeClient {
     }
     const response = await this.rpcCall<{ transaction: string }>('getLastTransaction', parameter)
     if (response.isSuccess()) {
-      return parse(confirmedTransactionSchema, response.result.transaction)
+      return v.parse(confirmedTransactionSchema, response.result.transaction)
     }
     if (response.isError()) {
       if (response.error.code === GradidoNodeErrorCodes.GRADIDO_NODE_ERROR) {
@@ -121,7 +121,7 @@ export class GradidoNodeClient {
    */
   public async getTransactions(input: TransactionsRangeInput): Promise<ConfirmedTransaction[]> {
     const parameter = {
-      ...parse(transactionsRangeSchema, input),
+      ...v.parse(transactionsRangeSchema, input),
       format: 'base64',
     }
     const result = await this.rpcCallResolved<{ transactions: string[] }>(
@@ -129,7 +129,7 @@ export class GradidoNodeClient {
       parameter,
     )
     return result.transactions.map((transactionBase64) =>
-      parse(confirmedTransactionSchema, transactionBase64),
+      v.parse(confirmedTransactionSchema, transactionBase64),
     )
   }
 
@@ -146,8 +146,8 @@ export class GradidoNodeClient {
     pubkey: Hex32Input,
   ): Promise<ConfirmedTransaction[]> {
     const parameter = {
-      ...parse(transactionsRangeSchema, transactionRange),
-      pubkey: parse(hex32Schema, pubkey),
+      ...v.parse(transactionsRangeSchema, transactionRange),
+      pubkey: v.parse(hex32Schema, pubkey),
       format: 'base64',
     }
     const response = await this.rpcCallResolved<{ transactions: string[] }>(
@@ -155,7 +155,7 @@ export class GradidoNodeClient {
       parameter,
     )
     return response.transactions.map((transactionBase64) =>
-      parse(confirmedTransactionSchema, transactionBase64),
+      v.parse(confirmedTransactionSchema, transactionBase64),
     )
   }
 
@@ -172,14 +172,14 @@ export class GradidoNodeClient {
 
   public async getAddressType(pubkey: Hex32Input, hieroTopic: HieroId): Promise<AddressType> {
     const parameter = {
-      pubkey: parse(hex32Schema, pubkey),
+      pubkey: v.parse(hex32Schema, pubkey),
       topic: hieroTopic,
     }
     const response = await this.rpcCallResolved<{ addressType: string }>(
       'getAddressType',
       parameter,
     )
-    return parse(addressTypeSchema, response.addressType)
+    return v.parse(addressTypeSchema, response.addressType)
   }
 
   /**
@@ -204,7 +204,7 @@ export class GradidoNodeClient {
     )
     if (response.isSuccess()) {
       this.logger.info(`call findUserByNameHash, used ${response.result.timeUsed}`)
-      return parse(hex32Schema, response.result.pubkey)
+      return v.parse(hex32Schema, response.result.pubkey)
     }
     if (
       response.isError() &&

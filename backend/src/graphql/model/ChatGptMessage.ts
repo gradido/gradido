@@ -10,10 +10,14 @@ export class ChatGptMessage {
   @Field()
   role: string
 
-  @Field()
-  threadId: string
+  @Field({ nullable: true })
+  threadId?: string
 
-  public constructor(data: Partial<Message>) {
+  @Field()
+  isError: boolean
+
+  public constructor(data: Partial<Message>, isError: boolean = false) {
     Object.assign(this, data)
+    this.isError = isError
   }
 }

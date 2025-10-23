@@ -2,7 +2,13 @@ import { Community, FederatedCommunity } from '../entity'
 import { randomBytes } from 'node:crypto'
 import { v4 as uuidv4 } from 'uuid'
 
-export async function createCommunity(foreign: boolean, save: boolean = true): Promise<Community> {
+/**
+ * Creates a community.
+ * @param foreign 
+ * @param store if true, write to db, default: true
+ * @returns 
+ */
+export async function createCommunity(foreign: boolean, store: boolean = true): Promise<Community> {
     const community = new Community()    
     community.publicKey = randomBytes(32)
     community.communityUuid = uuidv4()
@@ -23,14 +29,22 @@ export async function createCommunity(foreign: boolean, save: boolean = true): P
         community.description = 'HomeCommunity-description'
         community.url = 'http://localhost/api'
     }
-    return save ? await community.save() : community
+    return store ? await community.save() : community
 }
 
+/**
+ * Creates a verified federated community.
+ * @param apiVersion 
+ * @param verifiedBeforeMs time in ms before the current time
+ * @param community 
+ * @param store if true, write to db, default: true
+ * @returns 
+ */
 export async function createVerifiedFederatedCommunity(
     apiVersion: string,
     verifiedBeforeMs: number,
     community: Community,
-    save: boolean = true
+    store: boolean = true
 ): Promise<FederatedCommunity> {
     const federatedCommunity = new FederatedCommunity()
     federatedCommunity.apiVersion = apiVersion
@@ -38,5 +52,5 @@ export async function createVerifiedFederatedCommunity(
     federatedCommunity.publicKey = community.publicKey
     federatedCommunity.community = community
     federatedCommunity.verifiedAt = new Date(Date.now() - verifiedBeforeMs)
-    return save ? await federatedCommunity.save() : federatedCommunity
+    return store ? await federatedCommunity.save() : federatedCommunity
 }

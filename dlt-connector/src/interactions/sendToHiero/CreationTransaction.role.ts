@@ -5,15 +5,15 @@ import {
   TransferAmount,
 } from 'gradido-blockchain-js'
 import { parse } from 'valibot'
+import { KeyPairCacheManager } from '../../cache/KeyPairCacheManager'
 import { KeyPairIdentifierLogic } from '../../data/KeyPairIdentifier.logic'
-import { KeyPairCacheManager } from '../../KeyPairCacheManager'
 import {
   CreationTransaction,
   creationTransactionSchema,
   Transaction,
 } from '../../schemas/transaction.schema'
 import { HieroId } from '../../schemas/typeGuard.schema'
-import { KeyPairCalculation } from '../keyPairCalculation/KeyPairCalculation.context'
+import { ResolveKeyPair } from '../resolveKeyPair/ResolveKeyPair.context'
 import { AbstractTransactionRole } from './AbstractTransaction.role'
 
 export class CreationTransactionRole extends AbstractTransactionRole {
@@ -21,12 +21,7 @@ export class CreationTransactionRole extends AbstractTransactionRole {
   private readonly creationTransaction: CreationTransaction
   constructor(transaction: Transaction) {
     super()
-    try {
-      this.creationTransaction = parse(creationTransactionSchema, transaction)
-    } catch (error) {
-      console.error('creation: invalid transaction', JSON.stringify(error, null, 2))
-      throw new Error('creation: invalid transaction')
-    }
+    this.creationTransaction = parse(creationTransactionSchema, transaction)
     this.homeCommunityTopicId = KeyPairCacheManager.getInstance().getHomeCommunityTopicId()
     if (
       this.homeCommunityTopicId !== this.creationTransaction.user.communityTopicId ||
@@ -47,14 +42,14 @@ export class CreationTransactionRole extends AbstractTransactionRole {
   public async getGradidoTransactionBuilder(): Promise<GradidoTransactionBuilder> {
     const builder = new GradidoTransactionBuilder()
     // Recipient: user (account owner)
-    const recipientKeyPair = await KeyPairCalculation(
+    const recipientKeyPair = await ResolveKeyPair(
       new KeyPairIdentifierLogic(this.creationTransaction.user),
     )
     // Signer: linkedUser (admin/moderator)
-    const signerKeyPair = await KeyPairCalculation(
+    const signerKeyPair = await ResolveKeyPair(
       new KeyPairIdentifierLogic(this.creationTransaction.linkedUser),
     )
-    const homeCommunityKeyPair = await KeyPairCalculation(
+    const homeCommunityKeyPair = await ResolveKeyPair(
       new KeyPairIdentifierLogic({
         communityTopicId: this.homeCommunityTopicId,
       }),

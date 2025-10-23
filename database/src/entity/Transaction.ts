@@ -1,10 +1,18 @@
 /* eslint-disable no-use-before-define */
 import { Decimal } from 'decimal.js-light'
-import { BaseEntity, Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from 'typeorm'
+import {
+  BaseEntity,
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm'
 import { Contribution } from './Contribution'
 import { DltTransaction } from './DltTransaction'
-import { DecimalTransformer } from './transformer/DecimalTransformer'
 import { TransactionLink } from './TransactionLink'
+import { DecimalTransformer } from './transformer/DecimalTransformer'
 
 @Entity('transactions')
 export class Transaction extends BaseEntity {
@@ -159,7 +167,10 @@ export class Transaction extends BaseEntity {
   @JoinColumn({ name: 'id', referencedColumnName: 'transactionId' })
   contribution?: Contribution | null
 
-  @OneToOne(() => DltTransaction, (dlt) => dlt.transactionId)
+  @OneToOne(
+    () => DltTransaction,
+    (dlt) => dlt.transactionId,
+  )
   @JoinColumn({ name: 'id', referencedColumnName: 'transactionId' })
   dltTransaction?: DltTransaction | null
 
@@ -167,7 +178,10 @@ export class Transaction extends BaseEntity {
   @JoinColumn({ name: 'previous' })
   previousTransaction?: Transaction | null
 
-  @ManyToOne(() => TransactionLink, (transactionLink) => transactionLink.transactions)
+  @ManyToOne(
+    () => TransactionLink,
+    (transactionLink) => transactionLink.transactions,
+  )
   @JoinColumn({ name: 'transaction_link_id' })
   transactionLink?: TransactionLink | null
 }

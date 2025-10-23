@@ -8,7 +8,10 @@ enum OptInType {
 }
 
 export class UserContactLoggingView extends AbstractLoggingView {
-  public constructor(private self: UserContact, private showUser = true) {
+  public constructor(
+    private self: UserContact,
+    private showUser = true,
+  ) {
     super()
   }
 
@@ -16,9 +19,10 @@ export class UserContactLoggingView extends AbstractLoggingView {
     return {
       id: this.self.id,
       type: this.self.type,
-      user: this.showUser && this.self.user
-        ? new UserLoggingView(this.self.user).toJSON()
-        : { id: this.self.userId },
+      user:
+        this.showUser && this.self.user
+          ? new UserLoggingView(this.self.user).toJSON()
+          : { id: this.self.userId },
       email: this.self.email?.substring(0, 3) + '...',
       emailVerificationCode: this.self.emailVerificationCode?.substring(0, 4) + '...',
       emailOptInTypeId: OptInType[this.self.emailOptInTypeId],

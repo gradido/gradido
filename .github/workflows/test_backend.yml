@@ -56,6 +56,8 @@ jobs:
 
       - name: install bun 
         uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: '.bun-version'
 
       - name: install dependencies
         run: |
@@ -81,6 +83,8 @@ jobs:
 
       - name: install bun 
         uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: '.bun-version'
 
       - name: install dependencies
         run: |
@@ -98,6 +102,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        
+      - name: install bun 
+        uses: oven-sh/setup-bun@v2
 
       - name: Backend | Locales
-        run: cd backend && yarn locales
+        run: cd backend && bun locales

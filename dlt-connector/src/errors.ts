@@ -55,3 +55,10 @@ export class ParameterError extends Error {
     this.name = 'ParameterError'
   }
 }
+
+export class InvalidCallError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'InvalidCallError'
+  }
+}

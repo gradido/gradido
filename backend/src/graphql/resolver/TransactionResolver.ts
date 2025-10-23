@@ -58,6 +58,8 @@ export const executeTransaction = async (
   logger: Logger,
   transactionLink?: dbTransactionLink | null,
 ): Promise<boolean> => {
+  // acquire lock
+  const releaseLock = await TRANSACTIONS_LOCK.acquire()
   const receivedCallDate = new Date()
   let dltTransactionPromise: Promise<DbDltTransaction | null> = Promise.resolve(null)
   if (!transactionLink) {
@@ -66,11 +68,8 @@ export const executeTransaction = async (
     dltTransactionPromise = redeemDeferredTransferTransaction(transactionLink, amount.toString(), receivedCallDate, recipient)
   }
 
-  // acquire lock
-  const releaseLock = await TRANSACTIONS_LOCK.acquire()
-
   try {
-    logger.info('executeTransaction', memo)
+    logger.info('executeTransaction', amount, memo, sender, recipient)
 
     if (await countOpenPendingTransactions([sender.gradidoID, recipient.gradidoID]) > 0) {
       throw new LogError(
@@ -89,7 +88,7 @@ export const executeTransaction = async (
       receivedCallDate,
       transactionLink,
     )
-    logger.debug(`calculated balance=${sendBalance?.balance.toString()} decay=${sendBalance?.decay.decay.toString()} lastTransactionId=${sendBalance?.lastTransactionId}`)
+    logger.debug(`calculated Balance=${sendBalance}`)
     if (!sendBalance) {
       throw new LogError('User has not enough GDD or amount is < 0', sendBalance)
     }
@@ -148,7 +147,7 @@ export const executeTransaction = async (
       // Save linked transaction id for send
       transactionSend.linkedTransactionId = transactionReceive.id
       await queryRunner.manager.update(dbTransaction, { id: transactionSend.id }, transactionSend)
-      logger.debug('send Transaction updated', new TransactionLoggingView(transactionSend).toJSON())
+      logger.debug('send Transaction updated', transactionSend)
 
       if (transactionLink) {
         logger.info('transactionLink', transactionLink)
@@ -162,8 +161,10 @@ export const executeTransaction = async (
       }
 
       await queryRunner.commitTransaction()
+      logger.info(`commit Transaction successful...`)
 
       await EVENT_TRANSACTION_SEND(sender, recipient, transactionSend, transactionSend.amount)
+
       await EVENT_TRANSACTION_RECEIVE(
         recipient,
         sender,
@@ -185,9 +186,6 @@ export const executeTransaction = async (
     } finally {
       await queryRunner.release()
     }
-    
-    // notify dlt-connector loop for new work
-    // InterruptiveSleepManager.getInstance().interrupt(TRANSMIT_TO_IOTA_INTERRUPTIVE_SLEEP_KEY)
     await sendTransactionReceivedEmail({
       firstName: recipient.firstName,
       lastName: recipient.lastName,
@@ -464,7 +462,7 @@ export class TransactionResolver {
         recipientCommunityIdentifier,
       )
       if (!recipientUser) {
-        throw new LogError('The recipient user was not found', { recipientIdentifier, recipientCommunityIdentifier })
+        throw new LogError('The recipient user was not found', recipientUser)
       }
       logger.addContext('to', recipientUser?.id)
       if (recipientUser.foreign) {

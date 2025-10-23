@@ -5,16 +5,15 @@ import {
   GradidoTransfer,
   TransferAmount,
 } from 'gradido-blockchain-js'
-import { parse } from 'valibot'
+import * as v from 'valibot'
 import { KeyPairIdentifierLogic } from '../../data/KeyPairIdentifier.logic'
-import { IdentifierSeed, identifierSeedSchema } from '../../schemas/account.schema'
 import {
   DeferredTransferTransaction,
   deferredTransferTransactionSchema,
   Transaction,
 } from '../../schemas/transaction.schema'
-import { HieroId } from '../../schemas/typeGuard.schema'
-import { KeyPairCalculation } from '../keyPairCalculation/KeyPairCalculation.context'
+import { HieroId, IdentifierSeed, identifierSeedSchema } from '../../schemas/typeGuard.schema'
+import { ResolveKeyPair } from '../resolveKeyPair/ResolveKeyPair.context'
 import { AbstractTransactionRole } from './AbstractTransaction.role'
 
 export class DeferredTransferTransactionRole extends AbstractTransactionRole {
@@ -22,8 +21,8 @@ export class DeferredTransferTransactionRole extends AbstractTransactionRole {
   private readonly deferredTransferTransaction: DeferredTransferTransaction
   constructor(transaction: Transaction) {
     super()
-    this.deferredTransferTransaction = parse(deferredTransferTransactionSchema, transaction)
-    this.seed = parse(identifierSeedSchema, this.deferredTransferTransaction.linkedUser.seed)
+    this.deferredTransferTransaction = v.parse(deferredTransferTransactionSchema, transaction)
+    this.seed = v.parse(identifierSeedSchema, this.deferredTransferTransaction.linkedUser.seed)
   }
 
   getSenderCommunityTopicId(): HieroId {
@@ -36,10 +35,10 @@ export class DeferredTransferTransactionRole extends AbstractTransactionRole {
 
   public async getGradidoTransactionBuilder(): Promise<GradidoTransactionBuilder> {
     const builder = new GradidoTransactionBuilder()
-    const senderKeyPair = await KeyPairCalculation(
+    const senderKeyPair = await ResolveKeyPair(
       new KeyPairIdentifierLogic(this.deferredTransferTransaction.user),
     )
-    const recipientKeyPair = await KeyPairCalculation(
+    const recipientKeyPair = await ResolveKeyPair(
       new KeyPairIdentifierLogic({
         communityTopicId: this.deferredTransferTransaction.linkedUser.communityTopicId,
         seed: this.seed,

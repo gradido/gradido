@@ -104,7 +104,7 @@ services:
       - node_modules_dlt_connector:/app/node_modules
       - turbo_cache:/tmp/turbo
       # bind the local folder to the docker to allow live reload
-      - ./dlt-connector:/app
+      - .:/app
 
   ########################################################
   # FEDERATION ###########################################
