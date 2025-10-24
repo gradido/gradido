@@ -28,7 +28,7 @@ import { DeferredTransferTransactionRole } from './DeferredTransferTransaction.r
 import { RedeemDeferredTransferTransactionRole } from './RedeemDeferredTransferTransaction.role'
 import { RegisterAddressTransactionRole } from './RegisterAddressTransaction.role'
 import { TransferTransactionRole } from './TransferTransaction.role'
-
+import { isTopicStillOpen } from '../../utils/hiero'
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY}.interactions.sendToHiero.SendToHieroContext`)
 
 /**
@@ -45,6 +45,10 @@ export async function SendToHieroContext(
     // build cross group transaction
     const outboundTransaction = builder.buildOutbound()
     validate(outboundTransaction)
+
+    if (!isTopicStillOpen(role.getRecipientCommunityTopicId())) {
+      throw new Error('recipient topic is not open long enough for sending messages')
+    }
 
     // send outbound transaction to hiero at first, because we need the transaction id for inbound transaction
     const outboundHieroTransactionIdString = await sendViaHiero(
