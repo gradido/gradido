@@ -43,6 +43,7 @@ const DLT_CONNECTOR_PORT = process.env.DLT_CONNECTOR_PORT ?? 6010
 const dltConnector = {
   DLT_CONNECTOR: process.env.DLT_CONNECTOR === 'true' || false,
   DLT_CONNECTOR_URL: process.env.DLT_CONNECTOR_URL ?? `${COMMUNITY_URL}:${DLT_CONNECTOR_PORT}`,
+  DLT_GRADIDO_NODE_SERVER_HOME_FOLDER: process.env.DLT_GRADIDO_NODE_SERVER_HOME_FOLDER ?? '~/.gradido',
 }
 
 const community = {

@@ -79,6 +79,10 @@ export const schema = Joi.object({
     .when('DLT_CONNECTOR', { is: true, then: Joi.required() })
     .description('The URL for GDT API endpoint'),
 
+  DLT_GRADIDO_NODE_SERVER_HOME_FOLDER: Joi.string()
+    .default('~/.gradido')
+    .description('The home folder for the gradido dlt node server'),
+
   EMAIL: Joi.boolean()
     .default(false)
     .description('Enable or disable email functionality')

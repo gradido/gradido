@@ -12,6 +12,7 @@ export class GetPublicCommunityInfoResult {
     this.name = dbCom.name
     this.description = dbCom.description
     this.creationDate = dbCom.creationDate
+    this.hieroTopicId = dbCom.hieroTopicId
   }
 
   @Field(() => String)
@@ -28,4 +29,7 @@ export class GetPublicCommunityInfoResult {
 
   @Field(() => String)
   publicJwtKey: string
+
+  @Field(() => String)
+  hieroTopicId: string | null
 }
