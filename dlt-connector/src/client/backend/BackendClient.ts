@@ -18,6 +18,7 @@ export class BackendClient {
   private static instance: BackendClient
   client: GraphQLClient
   logger: Logger
+  urlValue: string
 
   /**
    * The Singleton's constructor should always be private to prevent direct
@@ -25,8 +26,10 @@ export class BackendClient {
    */
   private constructor() {
     this.logger = getLogger(`${LOG4JS_BASE_CATEGORY}.client.BackendClient`)
-    this.logger.addContext('url', CONFIG.BACKEND_SERVER_URL)
-    this.client = new GraphQLClient(CONFIG.BACKEND_SERVER_URL, {
+    this.urlValue = `http://localhost:${CONFIG.PORT}`
+    this.logger.addContext('url', this.urlValue)
+
+    this.client = new GraphQLClient(this.urlValue, {
       headers: {
         'content-type': 'application/json',
       },
@@ -36,6 +39,10 @@ export class BackendClient {
         stringify: JSON.stringify,
       },
     })
+  }
+
+  public get url(): string {
+    return this.url
   }
 
   /**
