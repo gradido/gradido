@@ -101,10 +101,10 @@ services:
     volumes:
       # This makes sure the docker container has its own node modules.
       # Therefore it is possible to have a different node version on the host machine
-      - dlt_connector_modules:/app/node_modules
+      - node_modules_dlt_connector:/app/node_modules
+      - turbo_cache:/tmp/turbo
       # bind the local folder to the docker to allow live reload
-      - ./dlt-connector:/app
-      - ./dlt-database:/dlt-database
+      - .:/app
 
   ########################################################
   # FEDERATION ###########################################
@@ -150,28 +150,6 @@ services:
       - turbo_cache:/tmp/turbo
       # bind the local folder to the docker to allow live reload
       - ./database:/app
-
-  ########################################################
-  # DLT-DATABASE ##############################################
-  ########################################################
-  dlt-database:
-    # we always run on production here since else the service lingers
-    #  feel free to change this behaviour if it seems useful
-    #  Due to problems with the volume caching the built files
-    #  we changed this to test build. This keeps the service running.
-    # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
-    image: gradido/dlt-database:local-test_up
-    build:
-      target: test_up
-    environment:
-      - NODE_ENV="development"
-    volumes:
-      # This makes sure the docker container has its own node modules.
-      # Therefore it is possible to have a different node version on the host machine
-      - dlt-database_node_modules:/app/node_modules
-      - dlt-database_build:/app/build
-      # bind the local folder to the docker to allow live reload
-      - ./dlt-database:/app
 
   #########################################################
   ## MARIADB ##############################################
@@ -231,8 +209,6 @@ volumes:
   node_modules_backend:
   node_modules_federation:
   node_modules_database:
-  dlt_connector_modules:
-  dlt-database_node_modules:
-  dlt-database_build:
+  node_modules_dlt_connector:
   turbo_cache:
   turbo_cache_dht:

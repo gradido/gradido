@@ -28,29 +28,20 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+
+      - name: create .env
+        run: |
+          cd dlt-connector
+          cat <<EOF > .env  
+          GRADIDO_BLOCKCHAIN_CRYPTO_APP_SECRET=$(openssl rand -hex 16)
+          GRADIDO_BLOCKCHAIN_SERVER_CRYPTO_KEY=$(openssl rand -hex 16)
+          HOME_COMMUNITY_SEED=$(openssl rand -hex 32)
+          HIERO_OPERATOR_KEY=$(openssl rand -hex 32)
+          HIERO_OPERATOR_ID="0.0.2"
+          EOF
       
       - name: Build 'test' image
-        run: |
-          docker build --target test -t "gradido/dlt-connector:test" -f dlt-connector/Dockerfile .
-          docker save "gradido/dlt-connector:test" > /tmp/dlt-connector.tar
-
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: docker-dlt-connector-test
-          path: /tmp/dlt-connector.tar
-
-  lint:
-    name: Lint - DLT Connector
-    if: needs.files-changed.outputs.dlt_connector == 'true'
-    needs: files-changed
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-      
-      - name: Lint
-        run: cd dlt-connector && yarn && yarn run lint
+        run: docker build --target production -t "gradido/dlt-connector:productionTest" -f dlt-connector/Dockerfile .
 
   unit_test:
     name: Unit Tests - DLT Connector
@@ -60,13 +51,21 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-            
-      - name: DLT-Connector | docker-compose mariadb
-        run: docker compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps mariadb
+      
+      - name: install bun 
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: '.bun-version'
 
-      - name: Sleep for 30 seconds
-        run: sleep 30s
-        shell: bash
+      - name: install dependencies
+        run: cd dlt-connector && bun install --frozen-lockfile
 
-      - name:  DLT-Connector | Unit tests
-        run: cd dlt-database && yarn && yarn build && cd ../dlt-connector && yarn && yarn test      
+      - name: typecheck && unit test
+        run: |
+          export GRADIDO_BLOCKCHAIN_CRYPTO_APP_SECRET=$(openssl rand -hex 16)
+          export GRADIDO_BLOCKCHAIN_SERVER_CRYPTO_KEY=$(openssl rand -hex 16)
+          export HOME_COMMUNITY_SEED=$(openssl rand -hex 32)
+          export HIERO_OPERATOR_KEY=$(openssl rand -hex 32)
+          export HIERO_OPERATOR_ID="0.0.2"
+          cd dlt-connector && bun typecheck && bun test
+

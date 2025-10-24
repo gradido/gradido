@@ -33,10 +33,13 @@ import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
 import { getLogger } from 'config-schema/test/testSetup'
+import { CONFIG } from '@/config'
 
 jest.mock('@/password/EncryptorUtils')
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)
+CONFIG.DLT_CONNECTOR = false
+CONFIG.EMAIL = false
 
 let mutate: ApolloServerTestClient['mutate']
 let query: ApolloServerTestClient['query']
@@ -433,50 +436,6 @@ describe('send coins', () => {
             involvedTransactionId: transaction[0].id,
           }),
         )
-      })
-
-      describe('sendTransactionsToDltConnector', () => {
-        let transaction: Transaction[]
-        let dltTransactions: DltTransaction[]
-        beforeAll(async () => {
-          // Find the previous created transactions of sendCoin mutation
-          transaction = await Transaction.find({
-            where: { memo: 'unrepeatable memo' },
-            order: { balanceDate: 'ASC', id: 'ASC' },
-          })
-
-          // and read aslong as all async created dlt-transactions are finished
-          do {
-            dltTransactions = await DltTransaction.find({
-              where: { transactionId: In([transaction[0].id, transaction[1].id]) },
-              // relations: ['transaction'],
-              // order: { createdAt: 'ASC', id: 'ASC' },
-            })
-          } while (transaction.length > dltTransactions.length)
-        })
-
-        it('has wait till sendTransactionsToDltConnector created all dlt-transactions', () => {
-          expect(dltTransactions).toEqual(
-            expect.arrayContaining([
-              expect.objectContaining({
-                id: expect.any(Number),
-                transactionId: transaction[0].id,
-                messageId: null,
-                verified: false,
-                createdAt: expect.any(Date),
-                verifiedAt: null,
-              }),
-              expect.objectContaining({
-                id: expect.any(Number),
-                transactionId: transaction[1].id,
-                messageId: null,
-                verified: false,
-                createdAt: expect.any(Date),
-                verifiedAt: null,
-              }),
-            ]),
-          )
-        })
       })
     })
     describe('send coins via gradido ID', () => {

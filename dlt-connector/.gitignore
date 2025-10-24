@@ -2,6 +2,7 @@
 /.env
 /.env.bak
 /build/
+/locales/
 package-json.lock
 coverage
 # emacs

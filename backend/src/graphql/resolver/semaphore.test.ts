@@ -21,8 +21,13 @@ import {
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { peterLustig } from '@/seeds/users/peter-lustig'
+import { CONFIG } from '@/config'
+import { TRANSACTIONS_LOCK } from 'database'
 
 jest.mock('@/password/EncryptorUtils')
+
+CONFIG.DLT_CONNECTOR = false
+CONFIG.EMAIL = false
 
 let mutate: ApolloServerTestClient['mutate']
 let con: DataSource
@@ -44,7 +49,43 @@ afterAll(async () => {
   await con.destroy()
 })
 
+type RunOrder = { [key: number]: { start: number, end: number } }
+async function fakeWork(runOrder: RunOrder, index: number) {
+  const releaseLock = await TRANSACTIONS_LOCK.acquire()
+  const startDate = new Date()
+  await new Promise((resolve) => setTimeout(resolve, Math.random() * 50))
+  const endDate = new Date()
+  runOrder[index] = { start: startDate.getTime(), end: endDate.getTime() }
+  releaseLock()
+}
+
 describe('semaphore', () => {
+  it("didn't should run in parallel", async () => {
+    const runOrder: RunOrder = {}
+    await Promise.all([
+      fakeWork(runOrder, 1),
+      fakeWork(runOrder, 2),
+      fakeWork(runOrder, 3),
+      fakeWork(runOrder, 4),
+      fakeWork(runOrder, 5),
+    ])
+    expect(runOrder[1].start).toBeLessThan(runOrder[1].end)
+    expect(runOrder[1].start).toBeLessThan(runOrder[2].start)
+    expect(runOrder[2].start).toBeLessThan(runOrder[2].end)
+    expect(runOrder[2].start).toBeLessThan(runOrder[3].start)
+    expect(runOrder[3].start).toBeLessThan(runOrder[3].end)
+    expect(runOrder[3].start).toBeLessThan(runOrder[4].start)
+    expect(runOrder[4].start).toBeLessThan(runOrder[4].end)
+    expect(runOrder[4].start).toBeLessThan(runOrder[5].start)
+    expect(runOrder[5].start).toBeLessThan(runOrder[5].end)
+    expect(runOrder[1].end).toBeLessThan(runOrder[2].end)
+    expect(runOrder[2].end).toBeLessThan(runOrder[3].end)
+    expect(runOrder[3].end).toBeLessThan(runOrder[4].end)
+    expect(runOrder[4].end).toBeLessThan(runOrder[5].end)
+  })
+})
+
+describe('semaphore fullstack', () => {
   let contributionLinkCode = ''
   let bobsTransactionLinkCode = ''
   let bibisTransactionLinkCode = ''

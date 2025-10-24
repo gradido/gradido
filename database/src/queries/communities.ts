@@ -76,7 +76,7 @@ export async function getReachableCommunities(
       { 
         authenticatedAt: Not(IsNull()), 
         federatedCommunities: { 
-          verifiedAt: MoreThanOrEqual(new Date(Date.now() - authenticationTimeoutMs)) 
+          verifiedAt: MoreThanOrEqual(new Date(Date.now() - authenticationTimeoutMs)),
         } 
       },
       { foreign: false },

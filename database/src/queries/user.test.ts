@@ -135,6 +135,6 @@ describe('user.queries', () => {
       })
     })    
   })
-})  
+})
 
 
