@@ -21,6 +21,7 @@ import {
   HieroTransactionIdString,
   hieroTransactionIdStringSchema,
 } from '../../schemas/typeGuard.schema'
+import { isTopicStillOpen } from '../../utils/hiero'
 import { AbstractTransactionRole } from './AbstractTransaction.role'
 import { CommunityRootTransactionRole } from './CommunityRootTransaction.role'
 import { CreationTransactionRole } from './CreationTransaction.role'
@@ -28,7 +29,7 @@ import { DeferredTransferTransactionRole } from './DeferredTransferTransaction.r
 import { RedeemDeferredTransferTransactionRole } from './RedeemDeferredTransferTransaction.role'
 import { RegisterAddressTransactionRole } from './RegisterAddressTransaction.role'
 import { TransferTransactionRole } from './TransferTransaction.role'
-import { isTopicStillOpen } from '../../utils/hiero'
+
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY}.interactions.sendToHiero.SendToHieroContext`)
 
 /**
