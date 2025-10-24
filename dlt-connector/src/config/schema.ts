@@ -78,6 +78,7 @@ export const configSchema = v.object({
     ),
     '8340',
   ),
+  DLT_NODE_SERVER_VERSION: v.optional(v.string('The version of the DLT node server'), '0.9.0'),
   PORT: v.optional(
     v.pipe(
       v.string('A valid port on which the backend server is running'),
