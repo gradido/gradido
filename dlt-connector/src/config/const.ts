@@ -16,6 +16,6 @@ export const GRADIDO_NODE_RUNTIME_PATH = path.join(
 )
 // if last start was less than this time, do not restart
 export const GRADIDO_NODE_MIN_RUNTIME_BEFORE_RESTART_MILLISECONDS = 1000 * 30
-export const GRADIDO_NODE_KILL_TIMEOUT_MILLISECONDS = 1000
+export const GRADIDO_NODE_KILL_TIMEOUT_MILLISECONDS = 10000
 // currently hard coded in gradido node, update in future
 export const GRADIDO_NODE_HOME_FOLDER_NAME = '.gradido'
