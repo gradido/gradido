@@ -52,12 +52,13 @@ export class GradidoNodeProcess {
       env: {
         CLIENTS_HIERO_NETWORKTYPE: CONFIG.HIERO_HEDERA_NETWORK,
         SERVER_JSON_RPC_PORT: CONFIG.DLT_NODE_SERVER_PORT.toString(),
+        HOME: CONFIG.DLT_GRADIDO_NODE_SERVER_HOME_FOLDER,
       },
       onExit(proc, exitCode, signalCode, error) {
         logger.warn(`GradidoNodeProcess exited with code ${exitCode} and signalCode ${signalCode}`)
         if (error) {
           logger.error(`GradidoNodeProcess exit error: ${error}`)
-          if (logger.isDebugEnabled() && proc.stderr) {
+          /*if (logger.isDebugEnabled() && proc.stderr) {
             // print error messages from GradidoNode in our own log if debug is enabled
             proc.stderr
               .getReader()
@@ -65,9 +66,9 @@ export class GradidoNodeProcess {
               .then((chunk) => {
                 logger.debug(chunk.value?.toString())
               })
-          }
+          }*/
         }
-        logger.debug(`ressource usage: ${proc?.resourceUsage()}`)
+        logger.debug(`ressource usage: ${JSON.stringify(proc?.resourceUsage(), null, 2)}`)
         const gradidoNodeProcess = GradidoNodeProcess.getInstance()
         gradidoNodeProcess.proc = null
         if (
@@ -80,8 +81,10 @@ export class GradidoNodeProcess {
           gradidoNodeProcess.start()
         }
       },
-      stdout: 'ignore',
-      stderr: logger.isDebugEnabled() ? 'pipe' : 'ignore',
+      /*stdout: 'ignore',
+      stderr: logger.isDebugEnabled() ? 'pipe' : 'ignore',*/
+      stdout: 'inherit',
+      stderr: 'inherit',
     })
   }
 

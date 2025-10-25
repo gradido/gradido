@@ -40,7 +40,7 @@ export class GradidoNodeClient {
 
   private constructor() {
     this.logger = getLogger(`${LOG4JS_BASE_CATEGORY}.client.GradidoNodeClient`)
-    this.urlValue = `http://localhost:${CONFIG.DLT_NODE_SERVER_PORT}`
+    this.urlValue = `http://localhost:${CONFIG.DLT_NODE_SERVER_PORT}/api`
     this.logger.addContext('url', this.urlValue)
     this.client = new JsonRpcClient({
       url: this.urlValue,
