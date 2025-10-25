@@ -259,6 +259,7 @@ MODULES=(
 )
 if [ "$DLT_CONNECTOR" = true ] ; then
   MODULES+=("inspector")
+  MODULES+=("dlt-connector")
 fi
 
 if [ "$FAST_MODE" = false ] ; then 
