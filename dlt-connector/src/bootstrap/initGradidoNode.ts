@@ -1,6 +1,7 @@
 import { execSync } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
+import AdmZip from 'adm-zip'
 import { getLogger } from 'log4js'
 import { exportCommunities } from '../client/GradidoNode/communities'
 import { GradidoNodeProcess } from '../client/GradidoNode/GradidoNodeProcess'
@@ -14,7 +15,6 @@ import {
 import { checkFileExist, checkPathExist } from '../utils/filesystem'
 import { isPortOpen } from '../utils/network'
 import { AppContextClients } from './appContext'
-import AdmZip from 'adm-zip'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY}.bootstrap.initGradidoNode`)
 
