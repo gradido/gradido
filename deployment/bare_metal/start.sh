@@ -256,8 +256,10 @@ MODULES=(
   admin
   dht-node
   federation
-  inspector
 )
+if [ "$DLT_CONNECTOR" = true ] ; then
+  MODULES+=("inspector")
+fi
 
 if [ "$FAST_MODE" = false ] ; then 
   log_step 'Clean tmp, bun and yarn cache'
