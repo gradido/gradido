@@ -290,7 +290,10 @@ fi
 log_step 'Regenerate .env files'
 for dir in "${MODULES[@]}"; do
   base="$PROJECT_ROOT/$dir"
-  cp -f $base/.env $base/.env.bak
+  # Backup .env file if exists
+  if [ -f "$base/.env" ]; then
+    cp -f $base/.env $base/.env.bak
+  fi
   envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $base/.env.template > $base/.env
 done
 
