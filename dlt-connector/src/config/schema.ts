@@ -1,3 +1,4 @@
+import path from 'node:path'
 import { MemoryBlock } from 'gradido-blockchain-js'
 import * as v from 'valibot'
 
@@ -73,12 +74,30 @@ export const configSchema = v.object({
     ),
     500,
   ),
-  NODE_SERVER_URL: v.optional(
-    v.string('The URL of the gradido node server'),
-    'http://localhost:6010',
+  DLT_NODE_SERVER_PORT: v.optional(
+    v.pipe(
+      v.string('A valid port on which the DLT node server is running'),
+      v.transform<string, number>((input: string) => Number(input)),
+      v.minValue(1),
+      v.maxValue(65535),
+    ),
+    '8340',
   ),
-  BACKEND_SERVER_URL: v.optional(
-    v.string('The URL of the gradido backend server'),
-    'http://localhost:6010',
+  DLT_GRADIDO_NODE_SERVER_VERSION: v.optional(
+    v.string('The version of the DLT node server'),
+    '0.9.0',
+  ),
+  DLT_GRADIDO_NODE_SERVER_HOME_FOLDER: v.optional(
+    v.string('The home folder for the gradido dlt node server'),
+    path.join(__dirname, '..', '..', 'gradido_node'),
+  ),
+  PORT: v.optional(
+    v.pipe(
+      v.string('A valid port on which the backend server is running'),
+      v.transform<string, number>((input: string) => Number(input)),
+      v.minValue(1),
+      v.maxValue(65535),
+    ),
+    '4000',
   ),
 })

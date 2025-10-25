@@ -7,6 +7,7 @@ import {
 } from 'gradido-blockchain-js'
 import { getLogger } from 'log4js'
 import * as v from 'valibot'
+import { ensureCommunitiesAvailable } from '../../client/GradidoNode/communities'
 import { HieroClient } from '../../client/hiero/HieroClient'
 import { LOG4JS_BASE_CATEGORY } from '../../config/const'
 import { InputTransactionType } from '../../data/InputTransactionType.enum'
@@ -21,6 +22,7 @@ import {
   HieroTransactionIdString,
   hieroTransactionIdStringSchema,
 } from '../../schemas/typeGuard.schema'
+import { isTopicStillOpen } from '../../utils/hiero'
 import { AbstractTransactionRole } from './AbstractTransaction.role'
 import { CommunityRootTransactionRole } from './CommunityRootTransaction.role'
 import { CreationTransactionRole } from './CreationTransaction.role'
@@ -39,12 +41,16 @@ const logger = getLogger(`${LOG4JS_BASE_CATEGORY}.interactions.sendToHiero.SendT
 export async function SendToHieroContext(
   input: TransactionInput | CommunityInput,
 ): Promise<HieroTransactionIdString> {
-  const role = chooseCorrectRole(input)
+  const role = await chooseCorrectRole(input)
   const builder = await role.getGradidoTransactionBuilder()
   if (builder.isCrossCommunityTransaction()) {
     // build cross group transaction
     const outboundTransaction = builder.buildOutbound()
     validate(outboundTransaction)
+
+    if (!isTopicStillOpen(role.getRecipientCommunityTopicId())) {
+      throw new Error('recipient topic is not open long enough for sending messages')
+    }
 
     // send outbound transaction to hiero at first, because we need the transaction id for inbound transaction
     const outboundHieroTransactionIdString = await sendViaHiero(
@@ -102,9 +108,13 @@ async function sendViaHiero(
 }
 
 // choose correct role based on transaction type and input type
-function chooseCorrectRole(input: TransactionInput | CommunityInput): AbstractTransactionRole {
+async function chooseCorrectRole(
+  input: TransactionInput | CommunityInput,
+): Promise<AbstractTransactionRole> {
   const communityParsingResult = v.safeParse(communitySchema, input)
   if (communityParsingResult.success) {
+    // make sure gradido node knows community
+    await ensureCommunitiesAvailable([communityParsingResult.output.hieroTopicId])
     return new CommunityRootTransactionRole(communityParsingResult.output)
   }
 
@@ -116,6 +126,12 @@ function chooseCorrectRole(input: TransactionInput | CommunityInput): AbstractTr
     })
     throw new Error('invalid input')
   }
+  // make sure gradido node knows communities
+  const communityTopicIds = [
+    transactionParsingResult.output.user.communityTopicId,
+    transactionParsingResult.output.linkedUser?.communityTopicId,
+  ].filter((id): id is HieroId => id !== undefined)
+  await ensureCommunitiesAvailable(communityTopicIds)
 
   const transaction = transactionParsingResult.output
   switch (transaction.type) {

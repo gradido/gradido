@@ -36,13 +36,21 @@ export class GradidoNodeClient {
   private static instance: GradidoNodeClient
   client: JsonRpcClient
   logger: Logger
+  urlValue: string
 
   private constructor() {
     this.logger = getLogger(`${LOG4JS_BASE_CATEGORY}.client.GradidoNodeClient`)
+    this.urlValue = `http://localhost:${CONFIG.DLT_NODE_SERVER_PORT}/api`
+    this.logger.addContext('url', this.urlValue)
     this.client = new JsonRpcClient({
-      url: CONFIG.NODE_SERVER_URL,
+      url: this.urlValue,
     })
   }
+
+  public get url(): string {
+    return this.urlValue
+  }
+
   public static getInstance(): GradidoNodeClient {
     if (!GradidoNodeClient.instance) {
       GradidoNodeClient.instance = new GradidoNodeClient()
@@ -233,7 +241,7 @@ export class GradidoNodeClient {
   // template rpcCall, check first if port is open before executing json rpc 2.0 request
   protected async rpcCall<T>(method: string, parameter: any): Promise<JsonRpcEitherResponse<T>> {
     this.logger.debug('call %s with %s', method, parameter)
-    await isPortOpenRetry(CONFIG.NODE_SERVER_URL)
+    await isPortOpenRetry(this.url)
     return this.client.exec<T>(method, parameter)
   }
 

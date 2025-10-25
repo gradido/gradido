@@ -3,6 +3,7 @@ import { Elysia, status, t } from 'elysia'
 import { AddressType_NONE } from 'gradido-blockchain-js'
 import { getLogger } from 'log4js'
 import * as v from 'valibot'
+import { ensureCommunitiesAvailable } from '../client/GradidoNode/communities'
 import { GradidoNodeClient } from '../client/GradidoNode/GradidoNodeClient'
 import { LOG4JS_BASE_CATEGORY } from '../config/const'
 import { KeyPairIdentifierLogic } from '../data/KeyPairIdentifier.logic'
@@ -125,6 +126,8 @@ async function isAccountExist(identifierAccount: IdentifierAccountInput): Promis
   // check and prepare input
   const startTime = Date.now()
   const identifierAccountParsed = v.parse(identifierAccountSchema, identifierAccount)
+  // make sure gradido node knows community
+  await ensureCommunitiesAvailable([identifierAccountParsed.communityTopicId])
   const accountKeyPair = await ResolveKeyPair(new KeyPairIdentifierLogic(identifierAccountParsed))
   const publicKey = accountKeyPair.getPublicKey()
   if (!publicKey) {

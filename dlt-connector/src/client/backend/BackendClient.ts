@@ -5,7 +5,11 @@ import * as v from 'valibot'
 import { CONFIG } from '../../config'
 import { LOG4JS_BASE_CATEGORY } from '../../config/const'
 import { HieroId, Uuidv4 } from '../../schemas/typeGuard.schema'
-import { homeCommunityGraphqlQuery, setHomeCommunityTopicId } from './graphql'
+import {
+  getReachableCommunities,
+  homeCommunityGraphqlQuery,
+  setHomeCommunityTopicId,
+} from './graphql'
 import { type Community, communitySchema } from './output.schema'
 
 // Source: https://refactoring.guru/design-patterns/singleton/typescript/example
@@ -18,6 +22,7 @@ export class BackendClient {
   private static instance: BackendClient
   client: GraphQLClient
   logger: Logger
+  urlValue: string
 
   /**
    * The Singleton's constructor should always be private to prevent direct
@@ -25,8 +30,10 @@ export class BackendClient {
    */
   private constructor() {
     this.logger = getLogger(`${LOG4JS_BASE_CATEGORY}.client.BackendClient`)
-    this.logger.addContext('url', CONFIG.BACKEND_SERVER_URL)
-    this.client = new GraphQLClient(CONFIG.BACKEND_SERVER_URL, {
+    this.urlValue = `http://localhost:${CONFIG.PORT}`
+    this.logger.addContext('url', this.urlValue)
+
+    this.client = new GraphQLClient(this.urlValue, {
       headers: {
         'content-type': 'application/json',
       },
@@ -36,6 +43,10 @@ export class BackendClient {
         stringify: JSON.stringify,
       },
     })
+  }
+
+  public get url(): string {
+    return this.urlValue
   }
 
   /**
@@ -75,6 +86,19 @@ export class BackendClient {
       throw errors[0]
     }
     return v.parse(communitySchema, data.updateHomeCommunity)
+  }
+
+  public async getReachableCommunities(): Promise<Community[]> {
+    this.logger.info('get reachable communities on backend')
+    const { data, errors } = await this.client.rawRequest<{ reachableCommunities: Community[] }>(
+      getReachableCommunities,
+      {},
+      await this.getRequestHeader(),
+    )
+    if (errors) {
+      throw errors[0]
+    }
+    return v.parse(v.array(communitySchema), data.reachableCommunities)
   }
 
   private async getRequestHeader(): Promise<{
