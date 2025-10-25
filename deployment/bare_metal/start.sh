@@ -317,6 +317,8 @@ if [ "$DLT_CONNECTOR" = true ]; then
   cd $PROJECT_ROOT/dlt-connector
   bun install
   bun run build
+  
+  cd $PROJECT_ROOT
 fi
 
 # database
