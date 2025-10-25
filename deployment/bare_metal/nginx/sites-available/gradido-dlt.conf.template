@@ -1,0 +1,46 @@
+    # Blockchain Explorer
+    location /inspector {
+        limit_req zone=frontend burst=30 nodelay;
+        limit_conn addr 20;
+        alias $PROJECT_ROOT/inspector/build/;
+        index index.html;
+
+        # caching rules for assets
+        # static assets
+        location ~* \.(?:woff2?|ttf|otf|eot|jpg|jpeg|png|gif|svg|webp|ico)$ {
+            # keep assets for a week
+            add_header Cache-Control "public, max-age=604800";
+            try_files $uri =404;
+        }
+        # hashed assets
+        location ~* \.(?:js|css|json)$ {
+            add_header Cache-Control "public, max-age=31536000, immutable";
+            try_files $uri =404;
+        }
+
+        try_files $uri $uri/ /index.html = 404;
+
+        # don't cache index.html
+        add_header Cache-Control "no-cache, no-store, must-revalidate";
+        add_header Pragma "no-cache";
+        add_header Expires 0;
+
+        access_log $GRADIDO_LOG_PATH/nginx-access.inspector.log gradido_log;
+        error_log $GRADIDO_LOG_PATH/nginx-error.inspector.log warn;
+    }
+
+    # Gradido-Node
+    location /dlt {
+        proxy_http_version 1.1;
+        proxy_set_header   Upgrade $http_upgrade;
+        proxy_set_header   Connection 'upgrade';
+        proxy_set_header   X-Forwarded-For $remote_addr;
+        proxy_set_header   X-Real-IP  $remote_addr;
+        proxy_set_header   Host $host;
+        
+        proxy_pass         http://127.0.0.1:$DLT_NODE_SERVER_PORT/api;
+        proxy_redirect     off;
+
+        access_log $GRADIDO_LOG_PATH/nginx-access.dlt.log gradido_log;
+        error_log $GRADIDO_LOG_PATH/nginx-error.dlt.log warn;
+    }

@@ -185,6 +185,7 @@ cd $PROJECT_ROOT
 git fetch --all
 git checkout $BRANCH_NAME
 git pull
+git submodule update --init --recursive
 export BUILD_COMMIT="$(git rev-parse HEAD)"
 
 # install missing dependencies
@@ -213,6 +214,16 @@ unset FEDERATION_APIVERSION
 unset FEDERATION_PORT
 log_step "===================================================================================================="
 
+# prepare inspector and gradido dlt node nginx config blocks if enabled
+if [ "$DLT_CONNECTOR" = true ] ; then
+  log_step "prepare inspector and dlt gradido node nginx config block"
+  envsubst '$DLT_NODE_SERVER_PORT' < $NGINX_CONFIG_DIR/gradido-dlt.conf.template >> $NGINX_CONFIG_DIR/gradido-dlt.conf
+  export DLT_NGINX_CONF=$(< $NGINX_CONFIG_DIR/gradido-dlt.conf)
+  rm $NGINX_CONFIG_DIR/gradido-dlt.conf
+else
+  export DLT_NGINX_CONF="# dlt is disabled"
+fi
+
 # *** 2nd read gradido-federation.conf file in env variable to be replaced in 3rd step
 export FEDERATION_NGINX_CONF=$(< $NGINX_CONFIG_DIR/gradido-federation.conf.locations)
 
@@ -222,8 +233,9 @@ case "$URL_PROTOCOL" in
  'https') TEMPLATE_FILE="gradido.conf.ssl.template" ;;
        *) TEMPLATE_FILE="gradido.conf.template" ;;
 esac
-envsubst '$FEDERATION_NGINX_CONF' < $NGINX_CONFIG_DIR/$TEMPLATE_FILE > $NGINX_CONFIG_DIR/gradido.conf.tmp
+envsubst '$FEDERATION_NGINX_CONF,$DLT_NGINX_CONF' < $NGINX_CONFIG_DIR/$TEMPLATE_FILE > $NGINX_CONFIG_DIR/gradido.conf.tmp
 unset FEDERATION_NGINX_CONF
+unset DLT_NGINX_CONF
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $NGINX_CONFIG_DIR/gradido.conf.tmp > $NGINX_CONFIG_DIR/gradido.conf
 rm $NGINX_CONFIG_DIR/gradido.conf.tmp
 rm $NGINX_CONFIG_DIR/gradido-federation.conf.locations

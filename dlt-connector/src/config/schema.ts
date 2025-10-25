@@ -20,6 +20,10 @@ export const configSchema = v.object({
     ),
     '6010',
   ),
+  DLT_GRADIDO_NODE_SERVER_HOME_FOLDER: v.optional(
+    v.string('The home folder for the gradido dlt node server'),
+    '~/.gradido',  // currently hardcoded in dlt gradido node server
+  ),
   JWT_SECRET: v.optional(
     v.pipe(
       v.string('The JWT secret for connecting to the backend'),
