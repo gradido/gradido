@@ -256,6 +256,7 @@ MODULES=(
   admin
   dht-node
   federation
+  inspector
 )
 
 if [ "$FAST_MODE" = false ] ; then 
@@ -300,15 +301,17 @@ log_step 'build all modules'
 turbo build --env-mode=loose --concurrency=$(nproc)
 
 # build inspector and dlt-connector
-log_step 'build inspector'
-cd $PROJECT_ROOT/inspector
-bun install
-bun run build
+if [ "$DLT_CONNECTOR" = true ]; then
+  log_step 'build inspector'
+  cd $PROJECT_ROOT/inspector
+  bun install
+  bun run build
 
-log_step 'build dlt-connector'
-cd $PROJECT_ROOT/dlt-connector
-bun install
-bun run build
+  log_step 'build dlt-connector'
+  cd $PROJECT_ROOT/dlt-connector
+  bun install
+  bun run build
+fi
 
 # database
 log_step 'Updating database'
