@@ -1,4 +1,5 @@
 import { Logger } from 'log4js'
+import { GradidoNodeProcess } from '../client/GradidoNode/GradidoNodeProcess'
 import { type AppContextClients } from './appContext'
 
 export function setupGracefulShutdown(logger: Logger, clients: AppContextClients) {
@@ -25,4 +26,5 @@ export function setupGracefulShutdown(logger: Logger, clients: AppContextClients
 async function gracefulShutdown(logger: Logger, clients: AppContextClients) {
   logger.info('graceful shutdown')
   await clients.hiero.waitForPendingPromises()
+  await GradidoNodeProcess.getInstance().exit()
 }

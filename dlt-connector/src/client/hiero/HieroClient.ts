@@ -1,8 +1,11 @@
 import {
   AccountBalance,
   AccountBalanceQuery,
+  AddressBookQuery,
   Client,
+  FileId,
   LocalProvider,
+  NodeAddressBook,
   PrivateKey,
   TopicCreateTransaction,
   TopicId,
@@ -164,6 +167,16 @@ export class HieroClient {
     const record = await createResponse.getRecordWithSigner(this.wallet)
     this.logger.info(`topic created, cost: ${record.transactionFee.toString()}`)
     return v.parse(hieroIdSchema, createReceipt.topicId?.toString())
+  }
+
+  public async downloadAddressBook(): Promise<NodeAddressBook> {
+    const query = new AddressBookQuery().setFileId(FileId.ADDRESS_BOOK)
+    try {
+      return await query.execute(this.client)
+    } catch (e) {
+      this.logger.error(e)
+      throw e
+    }
   }
 
   public async updateTopic(topicId: HieroId): Promise<void> {

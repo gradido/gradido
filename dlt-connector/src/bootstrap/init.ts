@@ -8,6 +8,7 @@ import { SendToHieroContext } from '../interactions/sendToHiero/SendToHiero.cont
 import { Community, communitySchema } from '../schemas/transaction.schema'
 import { isPortOpenRetry } from '../utils/network'
 import { type AppContext, type AppContextClients } from './appContext'
+import { initGradidoNode } from './initGradidoNode'
 
 export function loadConfig(): Logger {
   // configure log4js
@@ -74,6 +75,9 @@ export async function checkGradidoNode(
   logger: Logger,
   homeCommunity: Community,
 ): Promise<void> {
+  // check if gradido node is running, if not setup and start it
+  await initGradidoNode(clients)
+
   // ask gradido node if community blockchain was created
   try {
     if (

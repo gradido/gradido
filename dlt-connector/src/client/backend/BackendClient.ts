@@ -5,7 +5,11 @@ import * as v from 'valibot'
 import { CONFIG } from '../../config'
 import { LOG4JS_BASE_CATEGORY } from '../../config/const'
 import { HieroId, Uuidv4 } from '../../schemas/typeGuard.schema'
-import { homeCommunityGraphqlQuery, setHomeCommunityTopicId } from './graphql'
+import {
+  getReachableCommunities,
+  homeCommunityGraphqlQuery,
+  setHomeCommunityTopicId,
+} from './graphql'
 import { type Community, communitySchema } from './output.schema'
 
 // Source: https://refactoring.guru/design-patterns/singleton/typescript/example
@@ -42,7 +46,7 @@ export class BackendClient {
   }
 
   public get url(): string {
-    return this.url
+    return this.urlValue
   }
 
   /**
@@ -82,6 +86,19 @@ export class BackendClient {
       throw errors[0]
     }
     return v.parse(communitySchema, data.updateHomeCommunity)
+  }
+
+  public async getReachableCommunities(): Promise<Community[]> {
+    this.logger.info('get reachable communities on backend')
+    const { data, errors } = await this.client.rawRequest<{ reachableCommunities: Community[] }>(
+      getReachableCommunities,
+      {},
+      await this.getRequestHeader(),
+    )
+    if (errors) {
+      throw errors[0]
+    }
+    return v.parse(v.array(communitySchema), data.reachableCommunities)
   }
 
   private async getRequestHeader(): Promise<{
