@@ -1,7 +1,6 @@
 import { execSync } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
-import { gunzipSync } from 'node:zlib'
 import { getLogger } from 'log4js'
 import { exportCommunities } from '../client/GradidoNode/communities'
 import { GradidoNodeProcess } from '../client/GradidoNode/GradidoNodeProcess'
@@ -15,6 +14,7 @@ import {
 import { checkFileExist, checkPathExist } from '../utils/filesystem'
 import { isPortOpen } from '../utils/network'
 import { AppContextClients } from './appContext'
+import AdmZip from 'adm-zip'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY}.bootstrap.initGradidoNode`)
 
@@ -58,7 +58,6 @@ async function exportHederaAddressbooks(
 async function ensureGradidoNodeRuntimeAvailable(runtimeFileName: string): Promise<void> {
   const runtimeFolder = path.dirname(runtimeFileName)
   checkPathExist(runtimeFolder, true)
-  logger.debug(`GradidoNode Runtime: ${runtimeFileName}`)
   if (!checkFileExist(runtimeFileName)) {
     const runtimeArchiveFilename = createGradidoNodeRuntimeArchiveFilename()
     const downloadUrl = new URL(
@@ -71,7 +70,8 @@ async function ensureGradidoNodeRuntimeAvailable(runtimeFileName: string): Promi
     }
     const compressedBuffer = await archive.arrayBuffer()
     if (process.platform === 'win32') {
-      fs.writeFileSync(runtimeFileName, gunzipSync(Buffer.from(compressedBuffer)))
+      const zip = new AdmZip(Buffer.from(compressedBuffer))
+      zip.extractAllTo(runtimeFolder, true)
     } else {
       const archivePath = path.join(runtimeFolder, runtimeArchiveFilename)
       logger.debug(`GradidoNode Runtime Archive: ${archivePath}`)

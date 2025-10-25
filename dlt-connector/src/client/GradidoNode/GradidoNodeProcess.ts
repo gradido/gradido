@@ -52,6 +52,7 @@ export class GradidoNodeProcess {
       env: {
         CLIENTS_HIERO_NETWORKTYPE: CONFIG.HIERO_HEDERA_NETWORK,
         SERVER_JSON_RPC_PORT: CONFIG.DLT_NODE_SERVER_PORT.toString(),
+        USERPROFILE: CONFIG.DLT_GRADIDO_NODE_SERVER_HOME_FOLDER,
         HOME: CONFIG.DLT_GRADIDO_NODE_SERVER_HOME_FOLDER,
       },
       onExit(proc, exitCode, signalCode, error) {

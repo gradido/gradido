@@ -27,10 +27,13 @@ export const homeCommunityGraphqlQuery = gql`
 export const setHomeCommunityTopicId = gql`
   mutation ($uuid: String!, $hieroTopicId: String){
     updateHomeCommunity(uuid: $uuid, hieroTopicId: $hieroTopicId) {
-      ...Community_common
+      uuid
+      name
+      hieroTopicId
+      foreign
+      creationDate
     }
   }
-  ${communityFragment}
 `
 
 export const getReachableCommunities = gql`

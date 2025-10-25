@@ -9,7 +9,7 @@ export function checkFileExist(filePath: string): boolean {
     fs.accessSync(filePath, fs.constants.R_OK | fs.constants.W_OK)
     return true
   } catch (err) {
-    logger.debug(`file ${filePath} does not exist: ${err}`)
+    // logger.debug(`file ${filePath} does not exist: ${err}`)
     return false
   }
 }
