@@ -90,7 +90,7 @@ export const configSchema = v.object({
     v.string('The home folder for the gradido dlt node server'),
     path.join(__dirname, '..', '..', 'gradido_node'),
   ),
-  PORT: v.optional(
+  BACKEND_PORT: v.optional(
     v.pipe(
       v.string('A valid port on which the backend server is running'),
       v.transform<string, number>((input: string) => Number(input)),

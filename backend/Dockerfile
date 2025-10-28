@@ -17,7 +17,7 @@ ENV BUILD_COMMIT="0000000"
 ## SET NODE_ENV
 ENV NODE_ENV=production
 ## App relevant Envs
-ENV PORT="4000"
+ENV BACKEND_PORT="4000"
 ## Timezone
 ENV TZ=UTC
 ENV DB_HOST=mariadb
@@ -42,7 +42,7 @@ LABEL maintainer="support@gradido.net"
 
 # Settings
 ## Expose Container Port
-EXPOSE ${PORT}
+EXPOSE ${BACKEND_PORT}
 
 ## Workdir
 RUN mkdir -p ${DOCKER_WORKDIR}
