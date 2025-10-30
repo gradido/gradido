@@ -18,7 +18,7 @@ afterAll(async () => {
 
 describe('create several federation-semaphores with same key', async () => {
     it('first one', async () => {
-      const TEST_LOCK = await Semaphore.create('TEST_LOCK', 1, 'federation')
+      const TEST_LOCK = Semaphore.create('TEST_LOCK', 1, 'federation')
       console.log('TEST_LOCK', TEST_LOCK);
       expect(TEST_LOCK).toMatchObject({
         key: 'TEST_LOCK',
@@ -34,7 +34,7 @@ describe('create several federation-semaphores with same key', async () => {
       })
     })
     it('second one', async () => {
-      const TEST_LOCK = await Semaphore.create('TEST_LOCK', 1, 'federation')
+      const TEST_LOCK = Semaphore.create('TEST_LOCK', 1, 'federation')
       expect(TEST_LOCK).toMatchObject({
         key: 'TEST_LOCK',
         count: 1,
@@ -54,7 +54,7 @@ describe('create several federation-semaphores with same key', async () => {
     })
   describe('acquire several federation-semaphores with same key', async () => {
     it('first one acquired', async () => {
-      const TEST_LOCK = await Semaphore.create('TEST_LOCK', 1, 'federation')
+      const TEST_LOCK = Semaphore.create('TEST_LOCK', 1, 'federation')
       console.log('TEST_LOCK', TEST_LOCK);
       const releaseLock = await TEST_LOCK.acquire()
       try {
@@ -76,7 +76,7 @@ describe('create several federation-semaphores with same key', async () => {
       })
     })
     it('second one acquired', async () => {
-      const TEST_LOCK = await Semaphore.create('TEST_LOCK', 1, 'federation')
+      const TEST_LOCK = Semaphore.create('TEST_LOCK', 1, 'federation')
       const releaseLock = await TEST_LOCK.acquire()
       try {
         console.log('second one acquired and processing...time=', new Date().toISOString());
