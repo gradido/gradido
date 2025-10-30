@@ -7,6 +7,7 @@ import { Event } from './Event'
 import { FederatedCommunity } from './FederatedCommunity'
 import { LoginElopageBuys } from './LoginElopageBuys'
 import { Migration } from './Migration'
+import { CommunityHandshakeState } from './CommunityHandshakeState'
 import { OpenaiThreads } from './OpenaiThreads'
 import { PendingTransaction } from './PendingTransaction'
 import { ProjectBranding } from './ProjectBranding'
@@ -19,6 +20,7 @@ import { UserRole } from './UserRole'
 
 export {
   Community,
+  CommunityHandshakeState,
   Contribution,
   ContributionLink,
   ContributionMessage,
@@ -26,7 +28,7 @@ export {
   Event,
   FederatedCommunity,
   LoginElopageBuys,
-  Migration,
+  Migration,  
   ProjectBranding,
   OpenaiThreads,
   PendingTransaction,
@@ -40,6 +42,7 @@ export {
 
 export const entities = [
   Community,
+  CommunityHandshakeState,
   Contribution,
   ContributionLink,
   ContributionMessage,

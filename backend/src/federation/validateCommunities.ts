@@ -1,7 +1,6 @@
 import {
   Community as DbCommunity,
   FederatedCommunity as DbFederatedCommunity,
-  FederatedCommunityLoggingView,
   getHomeCommunity,
 } from 'database'
 import { IsNull } from 'typeorm'
@@ -11,7 +10,7 @@ import { FederationClient as V1_0_FederationClient } from '@/federation/client/1
 import { PublicCommunityInfo } from '@/federation/client/1_0/model/PublicCommunityInfo'
 import { FederationClientFactory } from '@/federation/client/FederationClientFactory'
 import { LogError } from '@/server/LogError'
-import { createKeyPair } from 'shared'
+import { createKeyPair, Ed25519PublicKey } from 'shared'
 import { getLogger } from 'log4js'
 import { startCommunityAuthentication } from './authenticateCommunities'
 import { PublicCommunityInfoLoggingView } from './client/1_0/logging/PublicCommunityInfoLogging.view'
@@ -45,27 +44,31 @@ export async function validateCommunities(): Promise<void> {
 
   logger.debug(`found ${dbFederatedCommunities.length} dbCommunities`)
   for (const dbFedComB of dbFederatedCommunities) {
-    logger.debug('dbFedComB', new FederatedCommunityLoggingView(dbFedComB))
+    logger.debug(`verify federation community: ${dbFedComB.endPoint}${dbFedComB.apiVersion}`)
     const apiValueStrings: string[] = Object.values(ApiVersionType)
-    logger.debug(`suppported ApiVersions=`, apiValueStrings)
     if (!apiValueStrings.includes(dbFedComB.apiVersion)) {
       logger.debug('dbFedComB with unsupported apiVersion', dbFedComB.endPoint, dbFedComB.apiVersion)
+      logger.debug(`supported ApiVersions=`, apiValueStrings)
       continue
     }
     try {
       const client = FederationClientFactory.getInstance(dbFedComB)
 
       if (client instanceof V1_0_FederationClient) {
-        const pubKey = await client.getPublicKey()
-        if (pubKey && pubKey === dbFedComB.publicKey.toString('hex')) {
+        // throw if key isn't valid hex with length 64
+        const clientPublicKey = new Ed25519PublicKey(await client.getPublicKey())
+        // throw if key isn't valid hex with length 64
+        const fedComBPublicKey = new Ed25519PublicKey(dbFedComB.publicKey)
+        if (clientPublicKey.isSame(fedComBPublicKey)) {
           await DbFederatedCommunity.update({ id: dbFedComB.id }, { verifiedAt: new Date() })
-          logger.debug(`verified dbFedComB with:`, dbFedComB.endPoint)
+          // logger.debug(`verified dbFedComB with:`, dbFedComB.endPoint)
           const pubComInfo = await client.getPublicCommunityInfo()
           if (pubComInfo) {
             await writeForeignCommunity(dbFedComB, pubComInfo)
             logger.debug(`wrote response of getPublicCommunityInfo in dbFedComB ${dbFedComB.endPoint}`)
             try {
-              await startCommunityAuthentication(dbFedComB)
+              const result = await startCommunityAuthentication(dbFedComB)
+              logger.info(`${dbFedComB.endPoint}${dbFedComB.apiVersion} verified, authentication state: ${result}`)
             } catch (err) {
               logger.warn(`Warning: Authentication of community ${dbFedComB.endPoint} still ongoing:`, err)
             }
@@ -73,7 +76,7 @@ export async function validateCommunities(): Promise<void> {
             logger.debug('missing result of getPublicCommunityInfo')
           }
         } else {
-          logger.debug('received not matching publicKey:', pubKey, dbFedComB.publicKey.toString('hex'))
+          logger.debug('received not matching publicKey:', clientPublicKey.asHex(), fedComBPublicKey.asHex())
         }
       }
     } catch (err) {
