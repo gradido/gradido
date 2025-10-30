@@ -79,10 +79,10 @@ export class KeyPairIdentifierLogic {
     return this.getCommunityTopicId()
   }
   getCommunityUserKey(): string {
-    return this.deriveCommunityUserHash()
+    return this.deriveCommunityUserHash(0)
   }
   getCommunityUserAccountKey(): string {
-    return this.deriveCommunityUserHash() + this.getAccountNr().toString()
+    return this.deriveCommunityUserHash(this.getAccountNr())
   }
 
   getKey(): string {
@@ -100,14 +100,14 @@ export class KeyPairIdentifierLogic {
     }
   }
 
-  private deriveCommunityUserHash(): string {
+  private deriveCommunityUserHash(accountNr: number): string {
     if (!this.identifier.account) {
       throw new InvalidCallError(
         'Invalid call: getCommunityUserKey or getCommunityUserAccountKey() on non-user/non-account identifier',
       )
     }
     const resultString =
-      this.identifier.communityTopicId + this.identifier.account.userUuid.replace(/-/g, '')
+      this.identifier.communityTopicId + this.identifier.account.userUuid.replace(/-/g, '') + accountNr.toString()
     return new MemoryBlock(resultString).calculateHash().convertToHex()
   }
 }
