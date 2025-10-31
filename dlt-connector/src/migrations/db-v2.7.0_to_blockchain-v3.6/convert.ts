@@ -39,7 +39,11 @@ export function userDbToTransaction(userDb: CreatedUserDb, communityTopicId: Hie
   })
 }
 
-export function transactionDbToTransaction(transactionDb: TransactionDb, communityTopicId: HieroId, recipientCommunityTopicId: HieroId): Transaction {
+export function transactionDbToTransaction(
+  transactionDb: TransactionDb, 
+  communityTopicId: HieroId, 
+  recipientCommunityTopicId: HieroId
+): Transaction {
   if (
     transactionDb.typeId !== TransactionTypeId.CREATION 
     && transactionDb.typeId !== TransactionTypeId.SEND 
@@ -48,11 +52,11 @@ export function transactionDbToTransaction(transactionDb: TransactionDb, communi
   }
   const user = {
     communityTopicId: communityTopicId,
-    account: { userUuid: transactionDb.user.gradidoId },
+    account: { userUuid: transactionDb.user.gradidoId, accountNr: 0 },
   }
   const linkedUser = {
     communityTopicId: recipientCommunityTopicId,
-    account: { userUuid: transactionDb.linkedUser.gradidoId },
+    account: { userUuid: transactionDb.linkedUser.gradidoId, accountNr: 0 },
   }
   const transaction: TransactionInput = {
     user,

@@ -71,6 +71,8 @@ services:
       context: ./inspector
       dockerfile: Dockerfile
       target: production
+    profiles:
+      - dlt
     networks:
       - internal-net
     ports:

@@ -32,6 +32,7 @@ import { CommunityDb, loadCommunities, TransactionDb, TransactionTypeId, UserDb 
 import { LOG4JS_BASE_CATEGORY } from '../../config/const'
 import { Community, Transaction } from '../../schemas/transaction.schema'
 import { communityDbToCommunity, userDbToTransaction } from './convert'
+import { TransferTransactionRole } from '../../interactions/sendToHiero/TransferTransaction.role'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY}.migrations.db-v2.7.0_to_blockchain-v3.6.blockchain`)
 export const defaultHieroAccount = new HieroAccountId(0, 0, 2)
@@ -60,39 +61,27 @@ export async function addRegisterAddressTransaction(blockchain: InMemoryBlockcha
     throw new Error(`Register Address Transaction not added for user ${transaction.user.account!.userUuid}`)
   }
 }
-/*
 
-
-export async function addTransaction(blockchain: InMemoryBlockchain, transactionDb: TransactionDb): Promise<void> {
-
-  let transactionRole: AbstractTransactionRole
-  switch (transactionDb.typeId) {
-    case TransactionTypeId.CREATION:
-      transactionRole = new CreationTransactionRole({
-        user: {
-          communityTopicId: transactionDb.user.communityTopicId,
-          account: {
-            userUuid: transactionDb.user.gradidoId,
-            accountNr: 0,
-      },
-    },
-    linkedUser: {
-      communityTopicId: transactionDb.linkedUser.communityTopicId,
-      account: {
-        userUuid: transactionDb.linkedUser.gradidoId,
-        accountNr: 0,
-      },
-    },
-    amount: v.parse(gradidoAmountSchema, transactionDb.amount),
-    memo: v.parse(memoSchema, transactionDb.memo),
-    createdAt: transactionDb.creationDate,
-    targetDate: transactionDb.balanceDate,
-    type: getInputTransactionTypeFromTypeId(transactionDb.typeId),
-  })
-  if(addToBlockchain(await transactionRole.getGradidoTransactionBuilder(), blockchain, new Timestamp(transactionDb.creationDate))) {
-    logger.info(`Transaction added for user ${transactionDb.user.gradidoId}`)
-  } else {
-    throw new Error(`Transaction not added for user ${transactionDb.user.gradidoId}`)
+export async function addTransaction(
+  senderBlockchain: InMemoryBlockchain,
+  _recipientBlockchain: InMemoryBlockchain,
+  transaction: Transaction
+): Promise<void> {
+  const createdAtTimestamp = new Timestamp(transaction.createdAt)
+  if (transaction.type === InputTransactionType.GRADIDO_CREATION) {
+    const creationTransactionRole = new CreationTransactionRole(transaction)
+    if(addToBlockchain(await creationTransactionRole.getGradidoTransactionBuilder(), senderBlockchain, createdAtTimestamp)) {
+      logger.info(`Creation Transaction added for user ${transaction.user.account!.userUuid}`)
+    } else {
+      throw new Error(`Creation Transaction not added for user ${transaction.user.account!.userUuid}`)
+    }
+  } else if (transaction.type === InputTransactionType.GRADIDO_TRANSFER) {
+    const transferTransactionRole = new TransferTransactionRole(transaction)
+    // will crash with cross group transaction
+    if(addToBlockchain(await transferTransactionRole.getGradidoTransactionBuilder(), senderBlockchain, createdAtTimestamp)) {
+      logger.info(`Transfer Transaction added for user ${transaction.user.account!.userUuid}`)
+    } else {
+      throw new Error(`Transfer Transaction not added for user ${transaction.user.account!.userUuid}`)
+    }
   }
 }
-*/

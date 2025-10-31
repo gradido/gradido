@@ -1,7 +1,7 @@
 import { CommunityDb, UserDb } from './database'
 import { KeyPairCacheManager } from '../../cache/KeyPairCacheManager'
 import { KeyPairIdentifierLogic } from '../../data/KeyPairIdentifier.logic'
-import { KeyPairEd25519, MemoryBlock } from 'gradido-blockchain-js'
+import { KeyPairEd25519, MemoryBlock, MemoryBlockPtr } from 'gradido-blockchain-js'
 import { getLogger } from 'log4js'
 import { LOG4JS_BASE_CATEGORY } from '../../config/const'
 import { CONFIG } from '../../config'
@@ -31,19 +31,23 @@ export function generateKeyPairCommunity(community: CommunityDb, cache: KeyPairC
   logger.info(`Community Key Pair added with key: ${communityKeyPairKey}`)
 }
 
-export function generateKeyPairUserAccount(user: UserDb, cache: KeyPairCacheManager, communityTopicId: HieroId): void {
+export async function generateKeyPairUserAccount(
+  user: UserDb, 
+  cache: KeyPairCacheManager, 
+  communityTopicId: HieroId
+): Promise<{userKeyPair: MemoryBlockPtr, accountKeyPair: MemoryBlockPtr}> {
   const communityKeyPair = cache.findKeyPair(communityTopicId)!
-  const userKeyPair = new UserKeyPairRole(user.gradidoId, communityKeyPair).generateKeyPair()  
+  const userKeyPairRole = new UserKeyPairRole(user.gradidoId, communityKeyPair)
   const userKeyPairKey = new KeyPairIdentifierLogic({ 
     communityTopicId: communityTopicId, 
     account: {
       userUuid: user.gradidoId,
       accountNr: 0
     }
-  }).getKey()
-  cache.addKeyPair(userKeyPairKey, userKeyPair)
+  }).getKey()  
+  const userKeyPair = await cache.getKeyPair(userKeyPairKey, () => Promise.resolve(userKeyPairRole.generateKeyPair()))
 
-  const accountKeyPair = new AccountKeyPairRole(1, userKeyPair).generateKeyPair()  
+  const accountKeyPairRole = new AccountKeyPairRole(1, userKeyPair)  
   const accountKeyPairKey = new KeyPairIdentifierLogic({ 
     communityTopicId: communityTopicId, 
     account: {
@@ -51,6 +55,10 @@ export function generateKeyPairUserAccount(user: UserDb, cache: KeyPairCacheMana
       accountNr: 1
     }
   }).getKey()
-  cache.addKeyPair(accountKeyPairKey, accountKeyPair)
+  const accountKeyPair = await cache.getKeyPair(accountKeyPairKey, () => Promise.resolve(accountKeyPairRole.generateKeyPair()))
   logger.info(`Key Pairs for user and account added, user: ${userKeyPairKey}, account: ${accountKeyPairKey}`)
+  return {
+    userKeyPair: userKeyPair.getPublicKey()!,
+    accountKeyPair: accountKeyPair.getPublicKey()!
+  }
 }

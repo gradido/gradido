@@ -1,5 +1,5 @@
 import { SQL } from 'bun'
-import { amountSchema, memoSchema, uuidv4Schema, identifierSeedSchema } from '../../schemas/typeGuard.schema'
+import { amountSchema, memoSchema, uuidv4Schema, identifierSeedSchema, gradidoAmountSchema } from '../../schemas/typeGuard.schema'
 import { dateSchema, booleanSchema } from '../../schemas/typeConverter.schema'
 import * as v from 'valibot'
 import { GradidoUnit } from 'gradido-blockchain-js'
@@ -26,7 +26,7 @@ export enum TransactionTypeId {
 
 export const transactionDbSchema = v.object({
   typeId: v.enum(TransactionTypeId),
-  amount: amountSchema,
+  amount: gradidoAmountSchema,
   balanceDate: dateSchema,
   memo: memoSchema,
   creationDate: v.nullish(dateSchema),
@@ -38,7 +38,7 @@ export const transactionDbSchema = v.object({
 export const transactionLinkDbSchema = v.object({
   userUuid: uuidv4Schema,
   code: identifierSeedSchema,
-  amount: amountSchema,
+  amount: gradidoAmountSchema,
   memo: memoSchema,
   createdAt: dateSchema,
   validUntil: dateSchema,
@@ -85,7 +85,7 @@ export async function loadCommunities(db: SQL): Promise<CommunityDb[]> {
 
 export async function loadUsers(db: SQL, offset: number, count: number): Promise<CreatedUserDb[]> {
   const result = await db`
-    SELECT id, gradido_id as gradidoId, community_uuid as communityUuid, created_at as createdAt FROM users
+    SELECT gradido_id as gradidoId, community_uuid as communityUuid, created_at as createdAt FROM users
     ORDER by created_at ASC
     LIMIT ${offset}, ${count}
   `
@@ -100,38 +100,47 @@ export async function loadUsers(db: SQL, offset: number, count: number): Promise
 
 export async function loadTransactions(db: SQL, offset: number, count: number): Promise<TransactionDb[]> {
   const result = await db`
-    SELECT type_id, amount, balance_date, memo, creation_date, 
+    SELECT t.type_id, t.amount, t.balance_date, t.memo, t.creation_date, 
     u.gradido_id AS user_gradido_id, u.community_uuid AS user_community_uuid,
     lu.gradido_id AS linked_user_gradido_id, lu.community_uuid AS linked_user_community_uuid,
     tl.code as transaction_link_code
-    FROM transactions
-    LEFT JOIN users u ON transactions.user_id = u.id
-    LEFT JOIN users lu ON transactions.linked_user_id = lu.id
-    LEFT JOIN transaction_links tl ON transactions.transaction_link_id = tl.id
+    FROM transactions as t
+    LEFT JOIN users u ON t.user_id = u.id
+    LEFT JOIN users lu ON t.linked_user_id = lu.id
+    LEFT JOIN transaction_links tl ON t.transaction_link_id = tl.id
     ORDER by balance_date ASC
     LIMIT ${offset}, ${count}
   `
   return result.map((row: any) => {
+    // console.log(row)
     let amount = GradidoUnit.fromString(row.amount)
     if (row.type_id === TransactionTypeId.SEND) {
       amount = amount.mul(new GradidoUnit(-1))
     }
-    return v.parse(transactionDbSchema, {
-      typeId: row.type_id,
-      amount,
-      balanceDate: new Date(row.balance_date),
-      memo: row.memo,
-      creationDate: new Date(row.creation_date),
-      transactionLinkCode: row.transaction_link_code,
-      user: {
-        gradidoId: row.user_gradido_id,
-        communityUuid: row.user_community_uuid
-      },
-      linkedUser: {
-        gradidoId: row.linked_user_gradido_id,
-        communityUuid: row.linked_user_community_uuid
+    try {
+      return v.parse(transactionDbSchema, {
+        typeId: row.type_id,
+        amount,
+        balanceDate: new Date(row.balance_date),
+        memo: row.memo,
+        creationDate: new Date(row.creation_date),
+        transactionLinkCode: row.transaction_link_code,
+        user: {
+          gradidoId: row.user_gradido_id,
+          communityUuid: row.user_community_uuid
+        },
+        linkedUser: {
+          gradidoId: row.linked_user_gradido_id,
+          communityUuid: row.linked_user_community_uuid
+        }
+      })
+    } catch (e) {
+      if (e instanceof v.ValiError) {
+        console.error(v.flatten(e.issues))
+      } else {
+        throw e
       }
-    })
+    }
   })
 }
 

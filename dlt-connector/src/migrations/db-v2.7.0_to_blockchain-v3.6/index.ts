@@ -9,7 +9,7 @@ import {
 import { Logger } from 'log4js'
 
 import { CreatedUserDb, loadDeletedTransactionLinks, loadTransactionLinks, loadTransactions, loadUsers, TransactionDb, TransactionLinkDb } from './database'
-import { addRegisterAddressTransaction, defaultHieroAccount } from './blockchain'
+import { addRegisterAddressTransaction, addTransaction, defaultHieroAccount } from './blockchain'
 import { generateKeyPairUserAccount } from './keyPair'
 import { transactionDbToTransaction, userDbToTransaction } from './convert'
 import { Orderable, OrderedContainer } from './OrderedContainer'
@@ -17,20 +17,35 @@ import { Context } from './Context'
 import { bootstrap } from './bootstrap'
 import { RegisterAddressTransactionRole } from '../../interactions/sendToHiero/RegisterAddressTransaction.role'
 
+const publicKeyUserIdMap = new Map<string, string>()
+
 async function main() {
   // prepare in memory blockchains
   const context = await bootstrap()
+
+  const startTime = Date.now()
+  await getNextUsers(context, 0, 110)
+  const endTime = Date.now()
+  console.log(`getNextUsers took ${endTime - startTime} ms`)
 
   // synchronize to blockchain
   const BATCH_SIZE = 10
 
   const users = new OrderedContainer(
-    getNextUsers, 
+    (context: Context, offset: number, count: number) => loadUsers(context.db, offset, count), 
     (user: CreatedUserDb) => user.createdAt,
     (context: Context, user: CreatedUserDb) => pushRegisterAddressTransaction(context, user)
   )
+  const transactions = new OrderedContainer(
+    getNextTransactions, 
+    (transaction: TransactionDb) => transaction.balanceDate,
+    (context: Context, transaction: TransactionDb) => pushTransaction(context, transaction)
+  )
 
-  await synchronizeToBlockchain(context, [users], BATCH_SIZE)
+  // const transactionLinks = new OrderedContainer(getNextTransactionLinks, (transactionLink) => transactionLink.createdAt)
+  // const deletedTransactionLinks = new OrderedContainer(getNextDeletedTransactionLinks, (transactionLink) => transactionLink.balanceDate)
+
+  await synchronizeToBlockchain(context, [users, transactions], BATCH_SIZE)
 
   // log blockchains
   for(const community of context.communities.values()) {
@@ -60,7 +75,16 @@ async function synchronizeToBlockchain(
     // console.log(`smallest date: ${available[0].getDate()}`)
     
     if(rounds >= 0) {
-      await available[0].pushToBlockchain(context)
+      try {
+        await available[0].pushToBlockchain(context)
+      } catch (e) {
+        console.error(e)
+        logBlogchain(context.logger, context.communities.values().next().value!.blockchain)
+        // for(const [key, value] of publicKeyUserIdMap.entries()) {
+          // console.log(`${key}: ${value}`)
+        // }
+        throw e
+      }
     } else {
       const user = (available[0] as any as OrderedContainer<any, Context>).shift()
       console.log(JSON.stringify(user, null, 2))
@@ -91,28 +115,16 @@ async function synchronizeToBlockchain(
   }
 }
 
-async function fillBlockchains(context: Context): Promise<void> {
-  const BATCH_SIZE = 10
-
-  const users = new OrderedContainer(
-    getNextUsers, 
-    (user: CreatedUserDb) => user.createdAt,
-    (context: Context, user: CreatedUserDb) => pushRegisterAddressTransaction(context, user)
-  )
-  /*const transactions = new OrderedContainer(getNextTransactions, (transaction) => transaction.balanceDate)
-  const transactionLinks = new OrderedContainer(getNextTransactionLinks, (transactionLink) => transactionLink.createdAt)
-  const deletedTransactionLinks = new OrderedContainer(getNextDeletedTransactionLinks, (transactionLink) => transactionLink.balanceDate)
-*/
-  await synchronizeToBlockchain(context, [users], BATCH_SIZE)
-}
-
 // ---------------- load from db graiddo backend transactions format -----------------------------------------------
+
 /// load next max ${count} users and calculate key pair for calculating signatures later
 async function getNextUsers(context: Context, offset: number, count: number): Promise<CreatedUserDb[]> {
   const users = await loadUsers(context.db, offset, count)
   for (const user of users) {
     const communityContext = context.getCommunityContextByUuid(user.communityUuid)
-    generateKeyPairUserAccount(user, context.cache, communityContext.topicId)
+    const { userKeyPair, accountKeyPair } = await generateKeyPairUserAccount(user, context.cache, communityContext.topicId)
+    publicKeyUserIdMap.set(userKeyPair.convertToHex(), user.gradidoId)
+    publicKeyUserIdMap.set(accountKeyPair.convertToHex(), user.gradidoId)
   }
   return users
 }
@@ -140,16 +152,18 @@ async function pushRegisterAddressTransaction(context: Context, user: CreatedUse
   return await addRegisterAddressTransaction(communityContext.blockchain, transaction)
 }
 
-/*
+
 async function pushTransaction(context: Context, transactionDb: TransactionDb): Promise<void> {
   const senderCommunityContext = context.getCommunityContextByUuid(transactionDb.user.communityUuid)
   const recipientCommunityContext = context.getCommunityContextByUuid(transactionDb.linkedUser.communityUuid)
   // CreationTransactionRole will check that community topic id belongs to home community
   context.cache.setHomeCommunityTopicId(senderCommunityContext.topicId)
   const transaction = transactionDbToTransaction(transactionDb, senderCommunityContext.topicId, recipientCommunityContext.topicId)
-  await addTransaction(senderCommunityContext.blockchain, transaction)
+  await addTransaction(senderCommunityContext.blockchain, recipientCommunityContext.blockchain, transaction)
 }
-*/
+
+// ---------------- utils ----------------------------------------------------------------------
+
 function logBlogchain(logger: Logger, blockchain: InMemoryBlockchain) {
   const f = new Filter()  
   f.pagination.size = 0
