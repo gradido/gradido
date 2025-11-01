@@ -10,6 +10,7 @@
     "start": "bun run src/index.ts",
     "build": "bun build src/index.ts --outdir=build --target=bun --external=gradido-blockchain-js --minify",
     "dev": "bun run --watch src/index.ts",
+    "migrate": "cross-env MIMALLOC_SHOW_STATS=1 bun src/migrations/db-v2.7.0_to_blockchain-v3.5",
     "test": "bun test",
     "test:debug": "bun test --inspect-brk",
     "typecheck": "tsc --noEmit",

@@ -50,6 +50,7 @@ export function transactionDbToTransaction(
     && transactionDb.typeId !== TransactionTypeId.RECEIVE) {
     throw new Error('not implemented')
   }
+  
   const user = {
     communityTopicId: communityTopicId,
     account: { userUuid: transactionDb.user.gradidoId, accountNr: 0 },

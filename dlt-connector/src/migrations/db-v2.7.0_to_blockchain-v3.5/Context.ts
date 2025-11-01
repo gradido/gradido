@@ -1,13 +1,13 @@
 import { SQL } from 'bun'
 import { InMemoryBlockchain } from 'gradido-blockchain-js'
-import { Logger } from 'log4js'
+import { getLogger, Logger } from 'log4js'
 
 import { HieroId, Uuidv4 } from '../../schemas/typeGuard.schema'
 
 import { KeyPairCacheManager } from '../../cache/KeyPairCacheManager'
 import { loadConfig } from '../../bootstrap/init'
 import { CONFIG } from '../../config'
-
+import { LOG4JS_BASE_CATEGORY } from '../../config/const'
 
 export type CommunityContext = {
   communityId: string
@@ -29,8 +29,9 @@ export class Context {
   }
 
   static create(): Context {
+    loadConfig()
     return new Context(
-      loadConfig(), 
+      getLogger(`${LOG4JS_BASE_CATEGORY}.migrations.db-v2.7.0_to_blockchain-v3.5`),
       new SQL({
         adapter: 'mysql',
         hostname: CONFIG.MYSQL_HOST,

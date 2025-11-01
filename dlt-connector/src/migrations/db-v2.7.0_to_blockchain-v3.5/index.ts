@@ -4,7 +4,8 @@ import {
   SearchDirection_ASC,
   HieroTransactionId,
   Timestamp,
-  InteractionSerialize
+  InteractionSerialize,
+  Profiler
 } from 'gradido-blockchain-js'
 import { Logger } from 'log4js'
 
@@ -16,23 +17,20 @@ import { Orderable, OrderedContainer } from './OrderedContainer'
 import { Context } from './Context'
 import { bootstrap } from './bootstrap'
 import { RegisterAddressTransactionRole } from '../../interactions/sendToHiero/RegisterAddressTransaction.role'
+import { heapStats } from 'bun:jsc'
 
 const publicKeyUserIdMap = new Map<string, string>()
 
 async function main() {
+  const timeUsed = new Profiler()
   // prepare in memory blockchains
   const context = await bootstrap()
 
-  const startTime = Date.now()
-  await getNextUsers(context, 0, 110)
-  const endTime = Date.now()
-  console.log(`getNextUsers took ${endTime - startTime} ms`)
-
   // synchronize to blockchain
-  const BATCH_SIZE = 10
+  const BATCH_SIZE = 100
 
   const users = new OrderedContainer(
-    (context: Context, offset: number, count: number) => loadUsers(context.db, offset, count), 
+    (context: Context, offset: number, count: number) => getNextUsers(context, offset, count), 
     (user: CreatedUserDb) => user.createdAt,
     (context: Context, user: CreatedUserDb) => pushRegisterAddressTransaction(context, user)
   )
@@ -46,14 +44,32 @@ async function main() {
   // const deletedTransactionLinks = new OrderedContainer(getNextDeletedTransactionLinks, (transactionLink) => transactionLink.balanceDate)
 
   await synchronizeToBlockchain(context, [users, transactions], BATCH_SIZE)
-
-  // log blockchains
-  for(const community of context.communities.values()) {
-    context.logger.info(`Community '${community.communityId}', blockchain`)
-    logBlogchain(context.logger, community.blockchain)
-  }
+  context.logger.info(`${timeUsed.string()} for synchronizing to blockchain`)
+  timeUsed.reset()
+  context.communities.forEach((communityContext) => {
+    const f = new Filter()
+    // hotfix for bug in gradido_blockchain for Filter::ALL_TRANSACTIONS
+    f.pagination.size = 0 
+    const transactions = communityContext.blockchain.findAll(f)
+    context.logger.info(`Community '${communityContext.communityId}', transactions: ${transactions.size()}`)
+    // logBlogchain(context.logger, communityContext.blockchain)
+  })
+  context.logger.info(`${timeUsed.string()} for logging blockchains`)
   context.db.close()
+  const runtimeStats = heapStats()
+  /*
+   heapSize: 24254530,
+  heapCapacity: 32191922,
+  extraMemorySize: 7003858
+  */
+  context.logger.info(
+    `Memory Statistics: heap size: ${bytesToMbyte(runtimeStats.heapSize)} MByte, heap capacity: ${bytesToMbyte(runtimeStats.heapCapacity)} MByte, extra memory: ${bytesToMbyte(runtimeStats.extraMemorySize)} MByte`
+  )
   return Promise.resolve()
+}
+
+function bytesToMbyte(bytes: number): string {
+  return (bytes / 1024 / 1024).toFixed(4)
 }
 
 async function synchronizeToBlockchain(
@@ -61,7 +77,7 @@ async function synchronizeToBlockchain(
   containers: Orderable<Context>[],
   batchSize: number
 ): Promise<void> {
-  let rounds = 20
+  let rounds = 200
   while (rounds-- > 0) {
     await Promise.all(containers.map(c => c.ensureFilled(context, batchSize)))
     // console.log(`filled containers, rounds left: ${rounds}`)
@@ -119,6 +135,7 @@ async function synchronizeToBlockchain(
 
 /// load next max ${count} users and calculate key pair for calculating signatures later
 async function getNextUsers(context: Context, offset: number, count: number): Promise<CreatedUserDb[]> {
+  const timeUsed = new Profiler()
   const users = await loadUsers(context.db, offset, count)
   for (const user of users) {
     const communityContext = context.getCommunityContextByUuid(user.communityUuid)
@@ -126,22 +143,36 @@ async function getNextUsers(context: Context, offset: number, count: number): Pr
     publicKeyUserIdMap.set(userKeyPair.convertToHex(), user.gradidoId)
     publicKeyUserIdMap.set(accountKeyPair.convertToHex(), user.gradidoId)
   }
+  if(users.length !== 0) {
+    context.logger.info(`${timeUsed.string()} for loading ${users.length} users from db and calculate ed25519 KeyPairs for them`)
+  }
   return users
 }
 
 // load next max ${count} transactions (contain also redeem transaction link transactions)
 async function getNextTransactions(context: Context, offset: number, count: number): Promise<TransactionDb[]> {
-  return loadTransactions(context.db, offset, count)
+  const timeUsed = new Profiler()
+  const transactions = await loadTransactions(context.db, offset, count)
+  if(transactions.length !== 0) {
+    context.logger.info(`${timeUsed.string()} for loading ${transactions.length} transactions from db`)
+  }
+  return transactions
 }
 
 // load next max ${count} transaction links (freshly created links, in blockchain format this is a separate transaction)
 async function getNextTransactionLinks(context: Context, offset: number, count: number): Promise<TransactionLinkDb[]> {
-  return loadTransactionLinks(context.db, offset, count)
+  const timeUsed = new Profiler()
+  const transactionLinks = await loadTransactionLinks(context.db, offset, count)
+  context.logger.info(`${timeUsed.string()} for loading ${transactionLinks.length} transaction links from db`)
+  return transactionLinks
 }
 
 // load next max ${count} deleted transaction links (in blockchain format this is a separate transaction)
 async function getNextDeletedTransactionLinks(context: Context, offset: number, count: number): Promise<TransactionDb[]> {
-  return loadDeletedTransactionLinks(context.db, offset, count)
+  const timeUsed = new Profiler()
+  const deletedTransactionLinks = await loadDeletedTransactionLinks(context.db, offset, count)
+  context.logger.info(`${timeUsed.string()} for loading ${deletedTransactionLinks.length} deleted transaction links from db`)
+  return deletedTransactionLinks
 }
 
 // ---------------- put into in memory blockchain -----------------------------------------------

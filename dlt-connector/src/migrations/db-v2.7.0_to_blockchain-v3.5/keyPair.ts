@@ -56,7 +56,7 @@ export async function generateKeyPairUserAccount(
     }
   }).getKey()
   const accountKeyPair = await cache.getKeyPair(accountKeyPairKey, () => Promise.resolve(accountKeyPairRole.generateKeyPair()))
-  logger.info(`Key Pairs for user and account added, user: ${userKeyPairKey}, account: ${accountKeyPairKey}`)
+  //logger.info(`Key Pairs for user and account added, user: ${userKeyPairKey}, account: ${accountKeyPairKey}`)
   return {
     userKeyPair: userKeyPair.getPublicKey()!,
     accountKeyPair: accountKeyPair.getPublicKey()!

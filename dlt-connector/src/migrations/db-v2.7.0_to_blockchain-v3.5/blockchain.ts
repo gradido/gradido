@@ -56,7 +56,7 @@ export async function addCommunityRootTransaction(blockchain: InMemoryBlockchain
 export async function addRegisterAddressTransaction(blockchain: InMemoryBlockchain, transaction: Transaction): Promise<void> {
   const registerAddressRole = new RegisterAddressTransactionRole(transaction)
   if(addToBlockchain(await registerAddressRole.getGradidoTransactionBuilder(), blockchain, new Timestamp(transaction.createdAt))) {
-    logger.info(`Register Address Transaction added for user ${transaction.user.account!.userUuid}`)
+    logger.debug(`Register Address Transaction added for user ${transaction.user.account!.userUuid}`)
   } else {
     throw new Error(`Register Address Transaction not added for user ${transaction.user.account!.userUuid}`)
   }
@@ -71,7 +71,7 @@ export async function addTransaction(
   if (transaction.type === InputTransactionType.GRADIDO_CREATION) {
     const creationTransactionRole = new CreationTransactionRole(transaction)
     if(addToBlockchain(await creationTransactionRole.getGradidoTransactionBuilder(), senderBlockchain, createdAtTimestamp)) {
-      logger.info(`Creation Transaction added for user ${transaction.user.account!.userUuid}`)
+      logger.debug(`Creation Transaction added for user ${transaction.user.account!.userUuid}`)
     } else {
       throw new Error(`Creation Transaction not added for user ${transaction.user.account!.userUuid}`)
     }
@@ -79,7 +79,7 @@ export async function addTransaction(
     const transferTransactionRole = new TransferTransactionRole(transaction)
     // will crash with cross group transaction
     if(addToBlockchain(await transferTransactionRole.getGradidoTransactionBuilder(), senderBlockchain, createdAtTimestamp)) {
-      logger.info(`Transfer Transaction added for user ${transaction.user.account!.userUuid}`)
+      logger.debug(`Transfer Transaction added for user ${transaction.user.account!.userUuid}`)
     } else {
       throw new Error(`Transfer Transaction not added for user ${transaction.user.account!.userUuid}`)
     }
