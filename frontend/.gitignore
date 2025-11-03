@@ -1,32 +1,3 @@
-.DS_Store
-node_modules/
-build/
 src/assets/css/gradido.css
 src/assets/css/gradido.css.map
-.cache/
-.yarn/install-state.gz
-
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-package-lock.json
-/.env
-/.env.bak
-.env.development.local
-.env.production.local
-
-# Editor directories and files
-.idea
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-
-# coverage folder
-
-coverage/
-
-*~
-
 components.d.ts

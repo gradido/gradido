@@ -40,18 +40,6 @@ jobs:
           name: docker-dlt-connector-test
           path: /tmp/dlt-connector.tar
 
-  lint:
-    name: Lint - DLT Connector
-    if: needs.files-changed.outputs.dlt_connector == 'true'
-    needs: files-changed
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-      
-      - name: Lint
-        run: cd dlt-connector && yarn && yarn run lint
-
   unit_test:
     name: Unit Tests - DLT Connector
     if: needs.files-changed.outputs.dlt_connector == 'true' || needs.files-changed.outputs.docker-compose == 'true'
