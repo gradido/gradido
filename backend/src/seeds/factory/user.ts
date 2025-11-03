@@ -40,7 +40,7 @@ export const userFactory = async (
   }
 
   // get last changes of user from database
-  dbUser = await User.findOneOrFail({ where: { id }, relations: ['userRoles'] })
+  dbUser = await User.findOneOrFail({ where: { id }, relations: { userRoles: true, emailContact: true } })
 
   if (user.createdAt || user.deletedAt || user.role) {
     if (user.createdAt) {
