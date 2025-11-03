@@ -279,6 +279,7 @@ services:
     depends_on:
       - backend
       - frontend
+      - admin
     ports:
       - 80:80
     volumes:
