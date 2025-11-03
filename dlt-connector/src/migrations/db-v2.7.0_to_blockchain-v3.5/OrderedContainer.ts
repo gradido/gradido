@@ -7,6 +7,7 @@ export interface Orderable<ContextType> {
   ensureFilled(context: ContextType, batchSize: number): Promise<number>
   pushToBlockchain(context: ContextType): Promise<void>
   isEmpty(): boolean
+  get length(): number
 }
 
 export class OrderedContainer<T, ContextType> implements Orderable<ContextType> {
@@ -46,6 +47,10 @@ export class OrderedContainer<T, ContextType> implements Orderable<ContextType> 
       throw new Error(`[shift] No items, shift return undefined`)
     }
     return item
+  }
+
+  get length(): number {
+    return this.items.length
   }
 
   getDate(): Date {

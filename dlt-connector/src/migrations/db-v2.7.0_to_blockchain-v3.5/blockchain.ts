@@ -1,38 +1,21 @@
-import { sql, SQL } from 'bun'
 import { 
   InMemoryBlockchain, 
-  InMemoryBlockchainProvider, 
   GradidoTransactionBuilder, 
-  KeyPairEd25519, 
-  MemoryBlock, 
   Timestamp, 
   HieroTransactionId, 
   HieroAccountId, 
   InteractionSerialize, 
-  loadCryptoKeys, 
-  Filter,
-  SearchDirection_ASC
 } from 'gradido-blockchain-js'
-import { Logger, getLogger } from 'log4js'
-import { CONFIG } from '../../config'
-import { amountSchema, HieroId, hieroIdSchema, memoSchema, uuidv4Schema, Uuidv4, gradidoAmountSchema } from '../../schemas/typeGuard.schema'
-import { dateSchema } from '../../schemas/typeConverter.schema'
-import * as v from 'valibot'
+import { getLogger } from 'log4js'
 import { RegisterAddressTransactionRole } from '../../interactions/sendToHiero/RegisterAddressTransaction.role'
-import { KeyPairCacheManager } from '../../cache/KeyPairCacheManager'
-import { InputTransactionType } from '../../data/InputTransactionType.enum'
-import { AccountType } from '../../data/AccountType.enum'
 import { CommunityRootTransactionRole } from '../../interactions/sendToHiero/CommunityRootTransaction.role'
-import { UserKeyPairRole } from '../../interactions/resolveKeyPair/UserKeyPair.role'
-import { KeyPairIdentifierLogic } from '../../data/KeyPairIdentifier.logic'
-import { AccountKeyPairRole } from '../../interactions/resolveKeyPair/AccountKeyPair.role'
-import { loadConfig } from '../../bootstrap/init'
 import { CreationTransactionRole } from '../../interactions/sendToHiero/CreationTransaction.role'
-import { CommunityDb, loadCommunities, TransactionDb, TransactionTypeId, UserDb } from './database'
 import { LOG4JS_BASE_CATEGORY } from '../../config/const'
 import { Community, Transaction } from '../../schemas/transaction.schema'
-import { communityDbToCommunity, userDbToTransaction } from './convert'
 import { TransferTransactionRole } from '../../interactions/sendToHiero/TransferTransaction.role'
+import { DeferredTransferTransactionRole } from '../../interactions/sendToHiero/DeferredTransferTransaction.role'
+import { RedeemDeferredTransferTransactionRole } from '../../interactions/sendToHiero/RedeemDeferredTransferTransaction.role'
+import { InputTransactionType } from '../../data/InputTransactionType.enum'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY}.migrations.db-v2.7.0_to_blockchain-v3.6.blockchain`)
 export const defaultHieroAccount = new HieroAccountId(0, 0, 2)
@@ -82,6 +65,20 @@ export async function addTransaction(
       logger.debug(`Transfer Transaction added for user ${transaction.user.account!.userUuid}`)
     } else {
       throw new Error(`Transfer Transaction not added for user ${transaction.user.account!.userUuid}`)
+    }
+  } else if (transaction.type === InputTransactionType.GRADIDO_DEFERRED_TRANSFER) {
+    const transferTransactionRole = new DeferredTransferTransactionRole(transaction)
+    if(addToBlockchain(await transferTransactionRole.getGradidoTransactionBuilder(), senderBlockchain, createdAtTimestamp)) {
+      logger.debug(`Deferred Transfer Transaction added for user ${transaction.user.account!.userUuid}`)
+    } else {
+      throw new Error(`Deferred Transfer Transaction not added for user ${transaction.user.account!.userUuid}`)
+    }
+  } else if (transaction.type === InputTransactionType.GRADIDO_REDEEM_DEFERRED_TRANSFER) {
+    const redeemTransactionRole = new RedeemDeferredTransferTransactionRole(transaction)
+    if(addToBlockchain(await redeemTransactionRole.getGradidoTransactionBuilder(), senderBlockchain, createdAtTimestamp)) {
+      logger.debug(`Redeem Deferred Transfer Transaction added for user ${transaction.user.account!.userUuid}`)
+    } else {
+      throw new Error(`Redeem Deferred Transfer Transaction not added for user ${transaction.user.account!.userUuid}`)
     }
   }
 }

@@ -2,22 +2,19 @@ import {
   InMemoryBlockchain, 
   Filter,
   SearchDirection_ASC,
-  HieroTransactionId,
-  Timestamp,
-  InteractionSerialize,
   Profiler
 } from 'gradido-blockchain-js'
 import { Logger } from 'log4js'
 
 import { CreatedUserDb, loadDeletedTransactionLinks, loadTransactionLinks, loadTransactions, loadUsers, TransactionDb, TransactionLinkDb } from './database'
-import { addRegisterAddressTransaction, addTransaction, defaultHieroAccount } from './blockchain'
+import { addRegisterAddressTransaction, addTransaction } from './blockchain'
 import { generateKeyPairUserAccount } from './keyPair'
-import { transactionDbToTransaction, userDbToTransaction } from './convert'
+import { transactionDbToTransaction, transactionLinkDbToTransaction, userDbToTransaction } from './convert'
 import { Orderable, OrderedContainer } from './OrderedContainer'
 import { Context } from './Context'
 import { bootstrap } from './bootstrap'
-import { RegisterAddressTransactionRole } from '../../interactions/sendToHiero/RegisterAddressTransaction.role'
 import { heapStats } from 'bun:jsc'
+import { onShutdown } from '../../../../shared/src/helper/onShutdown'
 
 const publicKeyUserIdMap = new Map<string, string>()
 
@@ -25,7 +22,13 @@ async function main() {
   const timeUsed = new Profiler()
   // prepare in memory blockchains
   const context = await bootstrap()
-
+  onShutdown(async (reason, error) => {
+    context.logger.info(`shutdown reason: ${reason}`)
+    if(error) {
+      context.logger.error(error)
+    }
+    context.db.close()
+  })
   // synchronize to blockchain
   const BATCH_SIZE = 100
 
@@ -40,10 +43,19 @@ async function main() {
     (context: Context, transaction: TransactionDb) => pushTransaction(context, transaction)
   )
 
-  // const transactionLinks = new OrderedContainer(getNextTransactionLinks, (transactionLink) => transactionLink.createdAt)
-  // const deletedTransactionLinks = new OrderedContainer(getNextDeletedTransactionLinks, (transactionLink) => transactionLink.balanceDate)
+  const transactionLinks = new OrderedContainer(
+    getNextTransactionLinks, 
+    (transactionLink: TransactionLinkDb) => transactionLink.createdAt,
+    (context: Context, transactionLink: TransactionLinkDb) => pushTransactionLink(context, transactionLink)
+  )
 
-  await synchronizeToBlockchain(context, [users, transactions], BATCH_SIZE)
+  const deletedTransactionLinks = new OrderedContainer(
+    getNextDeletedTransactionLinks,
+    (transaction: TransactionDb) => transaction.balanceDate,
+    (context: Context, transaction: TransactionDb) => pushTransaction(context, transaction)
+  )
+
+  await synchronizeToBlockchain(context, [users, transactions, transactionLinks, deletedTransactionLinks], BATCH_SIZE)
   context.logger.info(`${timeUsed.string()} for synchronizing to blockchain`)
   timeUsed.reset()
   context.communities.forEach((communityContext) => {
@@ -55,17 +67,12 @@ async function main() {
     // logBlogchain(context.logger, communityContext.blockchain)
   })
   context.logger.info(`${timeUsed.string()} for logging blockchains`)
-  context.db.close()
   const runtimeStats = heapStats()
-  /*
-   heapSize: 24254530,
-  heapCapacity: 32191922,
-  extraMemorySize: 7003858
-  */
   context.logger.info(
     `Memory Statistics: heap size: ${bytesToMbyte(runtimeStats.heapSize)} MByte, heap capacity: ${bytesToMbyte(runtimeStats.heapCapacity)} MByte, extra memory: ${bytesToMbyte(runtimeStats.extraMemorySize)} MByte`
   )
-  return Promise.resolve()
+  // needed because of shutdown handler (TODO: fix shutdown handler)
+  process.exit(0)
 }
 
 function bytesToMbyte(bytes: number): string {
@@ -77,57 +84,26 @@ async function synchronizeToBlockchain(
   containers: Orderable<Context>[],
   batchSize: number
 ): Promise<void> {
-  let rounds = 200
-  while (rounds-- > 0) {
+  while (true) {
+    const timeUsed = new Profiler()
     await Promise.all(containers.map(c => c.ensureFilled(context, batchSize)))
-    // console.log(`filled containers, rounds left: ${rounds}`)
+    const itemCount = containers.reduce((acc, c) => acc + c.length, 0)
+    context.logger.info(`${timeUsed.string()} for ensuring filled containers, ${itemCount} items`)
+    
     // remove empty containers
     const available = containers.filter(c => !c.isEmpty())
     if (available.length === 0) break
-    // console.log(`available containers: ${available.length}`)
 
     // find container with smallest date
     available.sort((a, b) => a.getDate().getTime() - b.getDate().getTime())
-    // console.log(`smallest date: ${available[0].getDate()}`)
     
-    if(rounds >= 0) {
-      try {
-        await available[0].pushToBlockchain(context)
-      } catch (e) {
-        console.error(e)
-        logBlogchain(context.logger, context.communities.values().next().value!.blockchain)
-        // for(const [key, value] of publicKeyUserIdMap.entries()) {
-          // console.log(`${key}: ${value}`)
-        // }
-        throw e
-      }
-    } else {
-      const user = (available[0] as any as OrderedContainer<any, Context>).shift()
-      console.log(JSON.stringify(user, null, 2))
-      console.log(`context: ${JSON.stringify(context, null, 2)}`)
-      const communityContext = context.getCommunityContextByUuid(user.communityUuid)
-      const transactionBase = userDbToTransaction(user, communityContext.topicId)
-      console.log(JSON.stringify(transactionBase, null, 2))
-      const registerAddressRole = new RegisterAddressTransactionRole(transactionBase)
-      const builder = await registerAddressRole.getGradidoTransactionBuilder()
-      const transaction = builder.build()
-      console.log(transaction.toJson(true))
-      const createdAtTimestamp = new Timestamp(user.createdAt)
-      console.log(`createdAtTimestamp: ${createdAtTimestamp.toJson()}`)
-      const transactionId = new HieroTransactionId(createdAtTimestamp, defaultHieroAccount)
-      const interactionSerialize = new InteractionSerialize(transactionId)
-      const serializedTransactionId = interactionSerialize.run()
-      if (serializedTransactionId) {
-        console.log(`serialized transaction id: ${serializedTransactionId.convertToHex()}`)
-      }
-      console.log(communityContext.blockchain)
-      try {
-        communityContext.blockchain.createAndAddConfirmedTransaction(transaction, serializedTransactionId, createdAtTimestamp)
-      } catch(e) {
-        console.log(e)
-      }
+    try {
+      await available[0].pushToBlockchain(context)
+    } catch (e) {
+      console.error(e)
+      logBlogchain(context.logger, context.communities.values().next().value!.blockchain)
+      throw e
     }
-    // console.log(`pushed to blockchain, rounds left: ${rounds}`)
   }
 }
 
@@ -163,7 +139,9 @@ async function getNextTransactions(context: Context, offset: number, count: numb
 async function getNextTransactionLinks(context: Context, offset: number, count: number): Promise<TransactionLinkDb[]> {
   const timeUsed = new Profiler()
   const transactionLinks = await loadTransactionLinks(context.db, offset, count)
-  context.logger.info(`${timeUsed.string()} for loading ${transactionLinks.length} transaction links from db`)
+  if(transactionLinks.length !== 0) {
+    context.logger.info(`${timeUsed.string()} for loading ${transactionLinks.length} transaction links from db`)
+  }
   return transactionLinks
 }
 
@@ -171,7 +149,9 @@ async function getNextTransactionLinks(context: Context, offset: number, count: 
 async function getNextDeletedTransactionLinks(context: Context, offset: number, count: number): Promise<TransactionDb[]> {
   const timeUsed = new Profiler()
   const deletedTransactionLinks = await loadDeletedTransactionLinks(context.db, offset, count)
-  context.logger.info(`${timeUsed.string()} for loading ${deletedTransactionLinks.length} deleted transaction links from db`)
+  if(deletedTransactionLinks.length !== 0) {
+    context.logger.info(`${timeUsed.string()} for loading ${deletedTransactionLinks.length} deleted transaction links from db`)
+  }
   return deletedTransactionLinks
 }
 
@@ -183,7 +163,6 @@ async function pushRegisterAddressTransaction(context: Context, user: CreatedUse
   return await addRegisterAddressTransaction(communityContext.blockchain, transaction)
 }
 
-
 async function pushTransaction(context: Context, transactionDb: TransactionDb): Promise<void> {
   const senderCommunityContext = context.getCommunityContextByUuid(transactionDb.user.communityUuid)
   const recipientCommunityContext = context.getCommunityContextByUuid(transactionDb.linkedUser.communityUuid)
@@ -191,6 +170,12 @@ async function pushTransaction(context: Context, transactionDb: TransactionDb): 
   context.cache.setHomeCommunityTopicId(senderCommunityContext.topicId)
   const transaction = transactionDbToTransaction(transactionDb, senderCommunityContext.topicId, recipientCommunityContext.topicId)
   await addTransaction(senderCommunityContext.blockchain, recipientCommunityContext.blockchain, transaction)
+}
+
+async function pushTransactionLink(context: Context, transactionLinkDb: TransactionLinkDb): Promise<void> {
+  const communityContext = context.getCommunityContextByUuid(transactionLinkDb.user.communityUuid)
+  const transaction = transactionLinkDbToTransaction(transactionLinkDb, communityContext.topicId)
+  await addTransaction(communityContext.blockchain, communityContext.blockchain, transaction)
 }
 
 // ---------------- utils ----------------------------------------------------------------------

@@ -1,8 +1,8 @@
 import { InputTransactionType } from '../../data/InputTransactionType.enum'
-import { CommunityDb, TransactionDb, TransactionTypeId, CreatedUserDb } from './database'
+import { CommunityDb, TransactionDb, TransactionTypeId, CreatedUserDb, TransactionLinkDb } from './database'
 import { Community, communitySchema, transactionSchema, Transaction, TransactionInput } from '../../schemas/transaction.schema'
 import { AccountType } from '../../data/AccountType.enum'
-import { gradidoAmountSchema, HieroId, memoSchema } from '../../schemas/typeGuard.schema'
+import { gradidoAmountSchema, HieroId, memoSchema, timeoutDurationSchema } from '../../schemas/typeGuard.schema'
 import * as v from 'valibot'
 
 export function getInputTransactionTypeFromTypeId(typeId: TransactionTypeId): InputTransactionType {
@@ -53,11 +53,11 @@ export function transactionDbToTransaction(
   
   const user = {
     communityTopicId: communityTopicId,
-    account: { userUuid: transactionDb.user.gradidoId, accountNr: 0 },
+    account: { userUuid: transactionDb.user.gradidoId },
   }
   const linkedUser = {
     communityTopicId: recipientCommunityTopicId,
-    account: { userUuid: transactionDb.linkedUser.gradidoId, accountNr: 0 },
+    account: { userUuid: transactionDb.linkedUser.gradidoId },
   }
   const transaction: TransactionInput = {
     user,
@@ -89,3 +89,22 @@ export function transactionDbToTransaction(
   }
   return v.parse(transactionSchema, transaction)
 }
+
+export function transactionLinkDbToTransaction(transactionLinkDb: TransactionLinkDb, communityTopicId: HieroId): Transaction {
+  return v.parse(transactionSchema, {
+    user: {
+      communityTopicId: communityTopicId,
+      account: { userUuid: transactionLinkDb.user.gradidoId },
+    },
+    linkedUser: {
+      communityTopicId: communityTopicId,
+      seed: transactionLinkDb.code,
+    },
+    type: InputTransactionType.GRADIDO_DEFERRED_TRANSFER,
+    amount: v.parse(gradidoAmountSchema, transactionLinkDb.amount),
+    memo: v.parse(memoSchema, transactionLinkDb.memo),
+    createdAt: transactionLinkDb.createdAt,
+    timeoutDuration: v.parse(timeoutDurationSchema, Math.round((transactionLinkDb.validUntil.getTime() - transactionLinkDb.createdAt.getTime()) / 1000)),
+  })
+}
+

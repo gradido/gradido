@@ -1,5 +1,5 @@
 import { SQL } from 'bun'
-import { amountSchema, memoSchema, uuidv4Schema, identifierSeedSchema, gradidoAmountSchema } from '../../schemas/typeGuard.schema'
+import { memoSchema, uuidv4Schema, identifierSeedSchema, gradidoAmountSchema } from '../../schemas/typeGuard.schema'
 import { dateSchema, booleanSchema } from '../../schemas/typeConverter.schema'
 import * as v from 'valibot'
 import { GradidoUnit } from 'gradido-blockchain-js'
@@ -38,7 +38,7 @@ export const transactionDbSchema = v.object({
 })
 
 export const transactionLinkDbSchema = v.object({
-  userUuid: uuidv4Schema,
+  user: userDbSchema,
   code: identifierSeedSchema,
   amount: gradidoAmountSchema,
   memo: memoSchema,
@@ -157,14 +157,20 @@ export async function loadTransactions(db: SQL, offset: number, count: number): 
 
 export async function loadTransactionLinks(db: SQL, offset: number, count: number): Promise<TransactionLinkDb[]> {
   const result = await db`
-    SELECT u.gradido_id as userUuid, tl.code, tl.amount, tl.memo, tl.createdAt, tl.validUntil
+    SELECT u.gradido_id as userGradidoId, u.community_uuid as userCommunityUuid, tl.code, tl.amount, tl.memo, tl.createdAt, tl.validUntil
     FROM transaction_links tl
     LEFT JOIN users u ON tl.userId = u.id
     ORDER by createdAt ASC
     LIMIT ${offset}, ${count}
   `
   return result.map((row: any) => {
-    return v.parse(transactionLinkDbSchema, row)
+    return v.parse(transactionLinkDbSchema, {
+      ...row,
+      user: {
+        gradidoId: row.userGradidoId,
+        communityUuid: row.userCommunityUuid
+      }
+    })
   })
 }
 
