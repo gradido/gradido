@@ -30,13 +30,15 @@ jobs:
 
       - name: install bun 
         uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: '.bun-version'
 
       - name: install dependencies
         run: bun install --filter shared --frozen-lockfile
 
       - name: typecheck
-        run: cd shared && yarn typecheck
+        run: cd shared && bun run typecheck
 
       - name: unit tests
-        run: cd shared && yarn test
+        run: cd shared && bun run test
 
