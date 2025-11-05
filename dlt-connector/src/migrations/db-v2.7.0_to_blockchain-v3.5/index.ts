@@ -5,8 +5,15 @@ import {
   Profiler
 } from 'gradido-blockchain-js'
 import { Logger } from 'log4js'
-
-import { CreatedUserDb, loadDeletedTransactionLinks, loadTransactionLinks, loadTransactions, loadUsers, TransactionDb, TransactionLinkDb } from './database'
+import { 
+  CreatedUserDb, 
+  loadDeletedTransactionLinks, 
+  loadTransactionLinks, 
+  loadTransactions, 
+  loadUsers, 
+  TransactionDb, 
+  TransactionLinkDb 
+} from './database'
 import { addRegisterAddressTransaction, addTransaction } from './blockchain'
 import { generateKeyPairUserAccount } from './keyPair'
 import { transactionDbToTransaction, transactionLinkDbToTransaction, userDbToTransaction } from './convert'
@@ -28,7 +35,6 @@ async function main() {
     if(error) {
       context.logger.error(error)
     }
-    context.db.close()
   })
   
   // synchronize to blockchain
@@ -39,6 +45,7 @@ async function main() {
     (user: CreatedUserDb) => user.createdAt,
     (context: Context, user: CreatedUserDb) => pushRegisterAddressTransaction(context, user)
   )
+  
   const transactions = new OrderedContainer(
     getNextTransactions, 
     (transaction: TransactionDb) => transaction.balanceDate,
@@ -56,6 +63,7 @@ async function main() {
     (transaction: TransactionDb) => transaction.balanceDate,
     (context: Context, transaction: TransactionDb) => pushTransaction(context, transaction)
   )
+    
   try {
     await synchronizeToBlockchain(context, [users, transactions, transactionLinks, deletedTransactionLinks], BATCH_SIZE)
   } catch (e) {

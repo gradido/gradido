@@ -9,7 +9,7 @@ import { communityDbToCommunity } from './convert'
 import { addCommunityRootTransaction } from './blockchain'
 
 export async function bootstrap(): Promise<Context> {
-  const context = Context.create()
+  const context = await Context.create()
   context.communities = await bootstrapCommunities(context)
   return context
 }

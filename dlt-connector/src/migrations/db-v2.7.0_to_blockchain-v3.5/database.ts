@@ -1,10 +1,13 @@
-import { SQL } from 'bun'
 import { memoSchema, uuidv4Schema, identifierSeedSchema, gradidoAmountSchema } from '../../schemas/typeGuard.schema'
 import { dateSchema, booleanSchema } from '../../schemas/typeConverter.schema'
 import * as v from 'valibot'
-import { GradidoUnit } from 'gradido-blockchain-js'
 import { LOG4JS_BASE_CATEGORY } from '../../config/const'
 import { getLogger } from 'log4js'
+import { MySql2Database } from 'drizzle-orm/mysql2'
+import { communitiesTable, transactionLinksTable, transactionsTable, usersTable } from './drizzle.schema'
+import { asc, sql, eq, isNotNull } from 'drizzle-orm'
+import { alias } from 'drizzle-orm/mysql-core'
+import { GradidoUnit } from 'gradido-blockchain-js'
 
 export const createdUserDbSchema = v.object({
   gradidoId: uuidv4Schema,
@@ -64,14 +67,19 @@ export type CommunityDb = v.InferOutput<typeof communityDbSchema>
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY}.migrations.db-v2.7.0_to_blockchain-v3.6.blockchain`)
 
 // queries
-export async function loadCommunities(db: SQL): Promise<CommunityDb[]> {
-  const result = await db`
-    SELECT c.foreign, c.community_uuid as communityUuid, c.name as name, c.creation_date as creationDate, MIN(u.created_at) as userMinCreatedAt
-    FROM communities c
-    LEFT JOIN users u ON c.community_uuid = u.community_uuid
-    WHERE c.community_uuid IS NOT NULL
-    GROUP BY c.community_uuid
-  `
+export async function loadCommunities(db: MySql2Database): Promise<CommunityDb[]> {
+  const result = await db.select({
+    foreign: communitiesTable.foreign,
+    communityUuid: communitiesTable.communityUuid,
+    name: communitiesTable.name,
+    creationDate: communitiesTable.creationDate,
+    userMinCreatedAt: sql`MIN(${usersTable.createdAt})`,
+  })
+  .from(communitiesTable)
+  .leftJoin(usersTable, eq(communitiesTable.communityUuid, usersTable.communityUuid))
+  .where(isNotNull(communitiesTable.communityUuid))
+  .groupBy(communitiesTable.communityUuid)
+
   const communityNames = new Set<string>()
   return result.map((row: any) => {
     let alias = row.name
@@ -87,36 +95,39 @@ export async function loadCommunities(db: SQL): Promise<CommunityDb[]> {
   })
 }
 
-export async function loadUsers(db: SQL, offset: number, count: number): Promise<CreatedUserDb[]> {
-  const result = await db`
-    SELECT gradido_id as gradidoId, community_uuid as communityUuid, created_at as createdAt FROM users
-    ORDER by created_at ASC
-    LIMIT ${offset}, ${count}
-  `
+export async function loadUsers(db: MySql2Database, offset: number, count: number): Promise<CreatedUserDb[]> {
+  const result = await db.select()
+  .from(usersTable)
+  .orderBy(asc(usersTable.createdAt))
+  .limit(count).offset(offset)
+
   return result.map((row: any) => {
     return v.parse(createdUserDbSchema, row)
   })
 }
 
-export async function loadTransactions(db: SQL, offset: number, count: number): Promise<TransactionDb[]> {
-  const result = await db`
-    SELECT t.id, t.type_id, t.amount, t.balance_date, t.memo, t.creation_date, 
-    u.gradido_id AS user_gradido_id, u.community_uuid AS user_community_uuid, u.created_at as user_created_at,
-    lu.gradido_id AS linked_user_gradido_id, lu.community_uuid AS linked_user_community_uuid, lu.created_at as linked_user_created_at,
-    tl.code as transaction_link_code
-    FROM transactions as t
-    LEFT JOIN users u ON t.user_id = u.id
-    LEFT JOIN users lu ON t.linked_user_id = lu.id
-    LEFT JOIN transaction_links tl ON t.transaction_link_id = tl.id
-    ORDER by balance_date ASC
-    LIMIT ${offset}, ${count}
-  `
+export async function loadTransactions(db: MySql2Database, offset: number, count: number): Promise<TransactionDb[]> {
+  const linkedUsers = alias(usersTable, 'linkedUser')
+  
+  const result = await db.select({
+    transaction: transactionsTable,
+    user: usersTable,
+    linkedUser: linkedUsers,
+    transactionLink: transactionLinksTable,
+  })
+  .from(transactionsTable)
+  .leftJoin(usersTable, eq(transactionsTable.userId, usersTable.id))
+  .leftJoin(linkedUsers, eq(transactionsTable.linkedUserId, linkedUsers.id))
+  .leftJoin(transactionLinksTable, eq(transactionsTable.transactionLinkId, transactionLinksTable.id))
+  .orderBy(asc(transactionsTable.balanceDate))
+  .limit(count).offset(offset)
+
   return result.map((row: any) => {
     // console.log(row)
     // check for consistent data beforehand
-    const userCreatedAt = new Date(row.user_created_at)
-    const linkedUserCreatedAd = new Date(row.linked_user_created_at)
-    const balanceDate = new Date(row.balance_date)
+    const userCreatedAt = new Date(row.user.createdAt)
+    const linkedUserCreatedAd = new Date(row.linkedUser.createdAt)
+    const balanceDate = new Date(row.transaction.balanceDate)
     if (userCreatedAt.getTime() > balanceDate.getTime() ||
         linkedUserCreatedAd.getTime() > balanceDate.getTime()
     ){
@@ -124,79 +135,58 @@ export async function loadTransactions(db: SQL, offset: number, count: number): 
       throw new Error('at least one user was created after transaction balance date, logic error!')
     }
     
-    let amount = GradidoUnit.fromString(row.amount)
-    if (row.type_id === TransactionTypeId.SEND) {
+    let amount = GradidoUnit.fromString(row.transaction.amount)
+    if (row.transaction.typeId === TransactionTypeId.SEND) {
       amount = amount.mul(new GradidoUnit(-1))
     }
     try {
       return v.parse(transactionDbSchema, {
-        typeId: row.type_id,
-        amount,
-        balanceDate: new Date(row.balance_date),
-        memo: row.memo,
-        creationDate: new Date(row.creation_date),
-        transactionLinkCode: row.transaction_link_code,
-        user: {
-          gradidoId: row.user_gradido_id,
-          communityUuid: row.user_community_uuid
-        },
-        linkedUser: {
-          gradidoId: row.linked_user_gradido_id,
-          communityUuid: row.linked_user_community_uuid
-        }
+        ...row.transaction,
+        transactionLinkCode: row.transactionLink ? row.transactionLink.code : null,
+        user: row.user,
+        linkedUser: row.linkedUser,
       })
     } catch (e) {
       if (e instanceof v.ValiError) {
-        console.error(v.flatten(e.issues))
-      } else {
-        throw e
+        logger.error(v.flatten(e.issues))
       }
+      throw e
     }
   })
 }
 
-export async function loadTransactionLinks(db: SQL, offset: number, count: number): Promise<TransactionLinkDb[]> {
-  const result = await db`
-    SELECT u.gradido_id as userGradidoId, u.community_uuid as userCommunityUuid, tl.code, tl.amount, tl.memo, tl.createdAt, tl.validUntil
-    FROM transaction_links tl
-    LEFT JOIN users u ON tl.userId = u.id
-    ORDER by createdAt ASC
-    LIMIT ${offset}, ${count}
-  `
+export async function loadTransactionLinks(db: MySql2Database, offset: number, count: number): Promise<TransactionLinkDb[]> {
+  const result = await db.select()
+  .from(transactionLinksTable)
+  .leftJoin(usersTable, eq(transactionLinksTable.userId, usersTable.id))
+  .orderBy(asc(transactionLinksTable.createdAt))
+  .limit(count).offset(offset)
+
   return result.map((row: any) => {
     return v.parse(transactionLinkDbSchema, {
-      ...row,
-      user: {
-        gradidoId: row.userGradidoId,
-        communityUuid: row.userCommunityUuid
-      }
+      ...row.transaction_links,
+      user: row.users,
     })
   })
 }
 
-export async function loadDeletedTransactionLinks(db: SQL, offset: number, count: number): Promise<TransactionDb[]> {
-  const result = await db`
-    SELECT u.gradido_id as user_gradido_id, u.community_uuid as user_community_uuid, 
-    tl.code, tl.amount, tl.memo, tl.deletedAt
-    FROM transaction_links tl
-    LEFT JOIN users u ON tl.userId = u.id
-    WHERE deletedAt IS NOT NULL
-    ORDER by deletedAt ASC
-    LIMIT ${offset}, ${count}
-  `
+export async function loadDeletedTransactionLinks(db: MySql2Database, offset: number, count: number): Promise<TransactionDb[]> {
+  const result = await db.select()
+  .from(transactionLinksTable)
+  .leftJoin(usersTable, eq(transactionLinksTable.userId, usersTable.id))
+  .where(isNotNull(transactionLinksTable.deletedAt))
+  .orderBy(asc(transactionLinksTable.deletedAt))
+  .limit(count).offset(offset)
+
   return result.map((row: any) => {
-    const user = {
-      gradidoId: row.user_gradido_id,
-      communityUuid: row.user_community_uuid
-    }
     return v.parse(transactionDbSchema, {
       typeId: TransactionTypeId.RECEIVE,
-      amount: row.amount,      
-      balanceDate: new Date(row.deletedAt),
-      memo: row.memo,
-      transactionLinkCode: row.code,
-      user,
-      linkedUser: user
+      amount: row.transaction_links.amount,      
+      balanceDate: new Date(row.transaction_links.deletedAt),
+      memo: row.transaction_links.memo,
+      transactionLinkCode: row.transaction_links.code,
+      user: row.users,
+      linkedUser: row.users
     })
   })
 }
