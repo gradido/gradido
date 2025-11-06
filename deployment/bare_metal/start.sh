@@ -214,14 +214,13 @@ unset FEDERATION_APIVERSION
 unset FEDERATION_PORT
 log_step "===================================================================================================="
 
+export DLT_NGINX_CONF="${DLT_NGINX_CONF:-# dlt disabled}"
 # prepare inspector and gradido dlt node nginx config blocks if enabled
 if [ "$DLT_CONNECTOR" = true ] ; then
   log_step "prepare inspector and dlt gradido node nginx config block"
   envsubst '$DLT_NODE_SERVER_PORT' < $NGINX_CONFIG_DIR/gradido-dlt.conf.template >> $NGINX_CONFIG_DIR/gradido-dlt.conf
   export DLT_NGINX_CONF=$(< $NGINX_CONFIG_DIR/gradido-dlt.conf)
   rm $NGINX_CONFIG_DIR/gradido-dlt.conf
-else
-  export DLT_NGINX_CONF="# dlt is disabled"
 fi
 
 # *** 2nd read gradido-federation.conf file in env variable to be replaced in 3rd step
