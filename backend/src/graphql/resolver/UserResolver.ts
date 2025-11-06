@@ -104,6 +104,7 @@ import { deleteUserRole, setUserRole } from './util/modifyUserRole'
 import { sendUserToGms } from './util/sendUserToGms'
 import { syncHumhub } from './util/syncHumhub'
 import { validateAlias } from 'core'
+import { registerAddressTransaction } from '@/apis/dltConnector'
 import { updateAllDefinedAndChanged } from 'shared'
 
 const LANGUAGES = ['de', 'en', 'es', 'fr', 'nl']
@@ -388,6 +389,7 @@ export class UserResolver {
     if (homeCom.communityUuid) {
       dbUser.communityUuid = homeCom.communityUuid
     }
+    
     dbUser.gradidoID = gradidoID
     dbUser.firstName = firstName
     dbUser.lastName = lastName
@@ -398,8 +400,11 @@ export class UserResolver {
       dbUser.alias = alias
     }
     dbUser.publisherId = publisherId ?? 0
-    dbUser.passwordEncryptionType = PasswordEncryptionType.NO_PASSWORD
-    logger.debug('new dbUser', new UserLoggingView(dbUser))
+    dbUser.passwordEncryptionType = PasswordEncryptionType.NO_PASSWORD    
+
+    if(logger.isDebugEnabled()) {
+      logger.debug('new dbUser', new UserLoggingView(dbUser))
+    }
     if (redeemCode) {
       if (redeemCode.match(/^CL-/)) {
         const contributionLink = await DbContributionLink.findOne({
@@ -435,7 +440,7 @@ export class UserResolver {
 
       dbUser.emailContact = emailContact
       dbUser.emailId = emailContact.id
-      await queryRunner.manager.save(dbUser).catch((error) => {
+      dbUser = await queryRunner.manager.save(dbUser).catch((error) => {
         throw new LogError('Error while updating dbUser', error)
       })
 
@@ -467,6 +472,8 @@ export class UserResolver {
     } finally {
       await queryRunner.release()
     }
+    // register user into blockchain
+    const dltTransactionPromise = registerAddressTransaction(dbUser, homeCom)
     logger.info('createUser() successful...')
     if (CONFIG.HUMHUB_ACTIVE) {
       let spaceId: number | null = null
@@ -503,6 +510,11 @@ export class UserResolver {
         }
       }
     }
+    // wait for finishing dlt transaction
+    const startTime = new Date()
+    await dltTransactionPromise
+    const endTime = new Date()
+    logger.info(`dlt-connector register address finished in ${endTime.getTime() - startTime.getTime()} ms`)
     return new User(dbUser)
   }
 

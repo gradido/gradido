@@ -1,107 +1,69 @@
-import { crypto_generichash as cryptoHash } from 'sodium-native'
+import {
+  ConfirmedTransaction,
+  DeserializeType_CONFIRMED_TRANSACTION,
+  InteractionDeserialize,
+  MemoryBlock,
+} from 'gradido-blockchain-js'
+import { AccountType } from '../data/AccountType.enum'
+import { AddressType } from '../data/AddressType.enum'
 
-import { AddressType } from '@/data/proto/3_3/enum/AddressType'
-import { Timestamp } from '@/data/proto/3_3/Timestamp'
-import { TimestampSeconds } from '@/data/proto/3_3/TimestampSeconds'
-import { TransactionBody } from '@/data/proto/3_3/TransactionBody'
-import { AccountType } from '@/graphql/enum/AccountType'
-import { TransactionErrorType } from '@/graphql/enum/TransactionErrorType'
-import { TransactionError } from '@/graphql/model/TransactionError'
-import { logger } from '@/logging/logger'
-import { LogError } from '@/server/LogError'
-
-export const uuid4ToBuffer = (uuid: string): Buffer => {
-  // Remove dashes from the UUIDv4 string
-  const cleanedUUID = uuid.replace(/-/g, '')
-
-  // Create a Buffer object from the hexadecimal values
-  const buffer = Buffer.from(cleanedUUID, 'hex')
-
-  return buffer
-}
-
-export const iotaTopicFromCommunityUUID = (communityUUID: string): string => {
-  const hash = Buffer.alloc(32)
-  cryptoHash(hash, uuid4ToBuffer(communityUUID))
-  return hash.toString('hex')
-}
-
-export const timestampToDate = (timestamp: Timestamp): Date => {
-  let milliseconds = timestamp.nanoSeconds / 1000000
-  milliseconds += timestamp.seconds * 1000
-  return new Date(milliseconds)
-}
-
-export const timestampSecondsToDate = (timestamp: TimestampSeconds): Date => {
-  return new Date(timestamp.seconds * 1000)
-}
-
-export const base64ToBuffer = (base64: string): Buffer => {
-  return Buffer.from(base64, 'base64')
-}
-
-export const bodyBytesToTransactionBody = (bodyBytes: Buffer): TransactionBody => {
-  try {
-    return TransactionBody.decode(new Uint8Array(bodyBytes))
-  } catch (error) {
-    logger.error('error decoding body from gradido transaction: %s', error)
-    throw new TransactionError(
-      TransactionErrorType.PROTO_DECODE_ERROR,
-      'cannot decode body from gradido transaction',
-    )
+export const confirmedTransactionFromBase64 = (base64: string): ConfirmedTransaction => {
+  const confirmedTransactionBinaryPtr = MemoryBlock.createPtr(MemoryBlock.fromBase64(base64))
+  const deserializer = new InteractionDeserialize(
+    confirmedTransactionBinaryPtr,
+    DeserializeType_CONFIRMED_TRANSACTION,
+  )
+  deserializer.run()
+  const confirmedTransaction = deserializer.getConfirmedTransaction()
+  if (!confirmedTransaction) {
+    throw new Error("invalid data, couldn't deserialize")
   }
+  return confirmedTransaction
 }
 
-export const transactionBodyToBodyBytes = (transactionBody: TransactionBody): Buffer => {
-  try {
-    return Buffer.from(TransactionBody.encode(transactionBody).finish())
-  } catch (error) {
-    logger.error('error encoding transaction body to body bytes', error)
-    throw new TransactionError(
-      TransactionErrorType.PROTO_ENCODE_ERROR,
-      'cannot encode transaction body',
-    )
-  }
+/**
+ * AddressType is defined in gradido-blockchain C++ Code
+ * AccountType is the enum defined in TypeScript but with the same options
+ */
+const accountToAddressMap: Record<AccountType, AddressType> = {
+  [AccountType.COMMUNITY_AUF]: AddressType.COMMUNITY_AUF,
+  [AccountType.COMMUNITY_GMW]: AddressType.COMMUNITY_GMW,
+  [AccountType.COMMUNITY_HUMAN]: AddressType.COMMUNITY_HUMAN,
+  [AccountType.COMMUNITY_PROJECT]: AddressType.COMMUNITY_PROJECT,
+  [AccountType.CRYPTO_ACCOUNT]: AddressType.CRYPTO_ACCOUNT,
+  [AccountType.SUBACCOUNT]: AddressType.SUBACCOUNT,
+  [AccountType.DEFERRED_TRANSFER]: AddressType.DEFERRED_TRANSFER,
+  [AccountType.NONE]: AddressType.NONE,
 }
 
-export function getEnumValue<T extends Record<string, unknown>>(
-  enumType: T,
-  value: number | string,
-): T[keyof T] | undefined {
-  if (typeof value === 'number' && typeof enumType === 'object') {
-    return enumType[value as keyof T] as T[keyof T]
-  } else if (typeof value === 'string') {
-    for (const key in enumType) {
-      if (enumType[key as keyof T] === value) {
-        return enumType[key as keyof T] as T[keyof T]
-      }
-    }
-  }
-  return undefined
+const addressToAccountMap: Record<AddressType, AccountType> = Object.entries(
+  accountToAddressMap,
+).reduce(
+  (acc, [accKey, addrVal]) => {
+    acc[addrVal] = String(accKey) as AccountType
+    return acc
+  },
+  {} as Record<AddressType, AccountType>,
+)
+
+export function isAddressType(val: unknown): val is AddressType {
+  return typeof val === 'number' && Object.keys(addressToAccountMap).includes(val.toString())
 }
 
-export const accountTypeToAddressType = (type: AccountType): AddressType => {
-  const typeString: string = AccountType[type]
-  const addressType: AddressType = AddressType[typeString as keyof typeof AddressType]
-
-  if (!addressType) {
-    throw new LogError("couldn't find corresponding AddressType for AccountType", {
-      accountType: type,
-      addressTypes: Object.keys(AddressType),
-    })
-  }
-  return addressType
+export function isAccountType(val: unknown): val is AccountType {
+  return Object.values(AccountType).includes(val as AccountType)
 }
 
-export const addressTypeToAccountType = (type: AddressType): AccountType => {
-  const typeString: string = AddressType[type]
-  const accountType: AccountType = AccountType[typeString as keyof typeof AccountType]
-
-  if (!accountType) {
-    throw new LogError("couldn't find corresponding AccountType for AddressType", {
-      addressTypes: type,
-      accountType: Object.keys(AccountType),
-    })
+export function toAddressType(input: AccountType | AddressType): AddressType {
+  if (isAddressType(input)) {
+    return input
   }
-  return accountType
+  return accountToAddressMap[input as AccountType] ?? AddressType.NONE
+}
+
+export function toAccountType(input: AccountType | AddressType): AccountType {
+  if (isAccountType(input)) {
+    return input
+  }
+  return addressToAccountMap[input as AddressType] ?? AccountType.NONE
 }

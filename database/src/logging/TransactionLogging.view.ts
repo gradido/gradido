@@ -2,6 +2,7 @@ import { Transaction } from '../entity'
 import { AbstractLoggingView } from './AbstractLogging.view'
 import { ContributionLoggingView } from './ContributionLogging.view'
 import { DltTransactionLoggingView } from './DltTransactionLogging.view'
+import { TransactionLinkLoggingView } from './TransactionLinkLogging.view'
 
 // TODO: move enum into database, maybe rename database
 enum TransactionTypeId {
@@ -41,13 +42,16 @@ export class TransactionLoggingView extends AbstractLoggingView {
       linkedUserName: this.self.linkedUserName?.substring(0, 3) + '...',
       linkedTransactionId: this.self.linkedTransactionId,
       contribution: this.self.contribution
-        ? new ContributionLoggingView(this.self.contribution)
+        ? new ContributionLoggingView(this.self.contribution).toJSON()
         : undefined,
       dltTransaction: this.self.dltTransaction
         ? new DltTransactionLoggingView(this.self.dltTransaction).toJSON()
         : undefined,
       previousTransaction: this.self.previousTransaction
         ? new TransactionLoggingView(this.self.previousTransaction).toJSON()
+        : undefined,
+      transactionLink: this.self.transactionLink
+        ? new TransactionLinkLoggingView(this.self.transactionLink).toJSON()
         : undefined,
     }
   }

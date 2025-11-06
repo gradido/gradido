@@ -13,6 +13,8 @@ import {
 import { Community } from './Community'
 import { Contribution } from './Contribution'
 import { ContributionMessage } from './ContributionMessage'
+import { DltTransaction } from './DltTransaction'
+import { TransactionLink } from './TransactionLink'
 import { UserContact } from './UserContact'
 import { UserRole } from './UserRole'
 import { GeometryTransformer } from './transformer/GeometryTransformer'
@@ -213,4 +215,18 @@ export class User extends BaseEntity {
   )
   @JoinColumn({ name: 'user_id' })
   userContacts?: UserContact[]
+
+  @OneToOne(
+    () => DltTransaction,
+    (dlt) => dlt.userId,
+  )
+  @JoinColumn({ name: 'id', referencedColumnName: 'userId' })
+  dltTransaction?: DltTransaction | null
+
+  @OneToOne(
+    () => TransactionLink,
+    (transactionLink) => transactionLink.userId,
+  )
+  @JoinColumn({ name: 'id', referencedColumnName: 'userId' })
+  transactionLink?: TransactionLink | null
 }
