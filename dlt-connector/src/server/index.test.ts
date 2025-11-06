@@ -25,6 +25,12 @@ mock.module('../KeyPairCacheManager', () => {
   }
 })
 
+mock.module('../client/GradidoNode/communities', () => ({
+  ensureCommunitiesAvailable: () => {
+    return Promise.resolve()
+  },
+}))
+
 mock.module('../client/hiero/HieroClient', () => ({
   HieroClient: {
     getInstance: () => ({

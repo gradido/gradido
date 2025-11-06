@@ -4,17 +4,24 @@ import { gql } from 'graphql-request'
  * Schema Definitions for graphql requests
  */
 
+const communityFragment = gql`
+  fragment Community_common on Community {
+    uuid
+    name
+    hieroTopicId
+    foreign
+    creationDate
+  }
+`
+
 // graphql query for getting home community in tune with community schema
 export const homeCommunityGraphqlQuery = gql`
   query {
     homeCommunity {
-      uuid
-      name
-      hieroTopicId
-      foreign
-      creationDate
+      ...Community_common
     }
   }
+  ${communityFragment}
 `
 
 export const setHomeCommunityTopicId = gql`
@@ -27,4 +34,13 @@ export const setHomeCommunityTopicId = gql`
       creationDate
     }
   }
+`
+
+export const getReachableCommunities = gql`
+  query {
+    reachableCommunities {
+    ...Community_common
+    }
+  }
+  ${communityFragment}
 `
