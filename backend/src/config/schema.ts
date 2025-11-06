@@ -260,7 +260,7 @@ export const schema = Joi.object({
     })
     .description('JWT key for HumHub integration, must be the same as configured in humhub'),
 
-  PORT: Joi.number()
+  BACKEND_PORT: Joi.number()
     .integer()
     .min(1024)
     .max(49151)
