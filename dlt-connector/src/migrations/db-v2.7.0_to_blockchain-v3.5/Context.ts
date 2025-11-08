@@ -1,32 +1,31 @@
 import { drizzle, MySql2Database } from 'drizzle-orm/mysql2'
 import mysql from 'mysql2/promise'
-import { InMemoryBlockchain } from 'gradido-blockchain-js'
+import { Filter, Profiler, SearchDirection_ASC } from 'gradido-blockchain-js'
 import { getLogger, Logger } from 'log4js'
 
-import { HieroId, Uuidv4 } from '../../schemas/typeGuard.schema'
+import { Uuidv4 } from '../../schemas/typeGuard.schema'
 
 import { KeyPairCacheManager } from '../../cache/KeyPairCacheManager'
 import { loadConfig } from '../../bootstrap/init'
 import { CONFIG } from '../../config'
 import { LOG4JS_BASE_CATEGORY } from '../../config/const'
-
-export type CommunityContext = {
-  communityId: string
-  blockchain: InMemoryBlockchain
-  topicId: HieroId
-}
+import { heapStats } from 'bun:jsc'
+import { CommunityContext } from './valibot.schema'
+import { bytesToMbyte } from './utils'
 
 export class Context {
   public logger: Logger
   public db: MySql2Database
   public communities: Map<string, CommunityContext>
   public cache: KeyPairCacheManager
+  private timeUsed: Profiler
 
   constructor(logger: Logger, db: MySql2Database, cache: KeyPairCacheManager) {
     this.logger = logger
     this.db = db
     this.cache = cache
     this.communities = new Map<string, CommunityContext>()
+    this.timeUsed = new Profiler()
   }
 
   static async create(): Promise<Context> {
@@ -53,4 +52,29 @@ export class Context {
     }
     return community
   }
+
+  logRuntimeStatistics() {
+    this.logger.info(`${this.timeUsed.string()} for synchronizing to blockchain`)
+    const runtimeStats = heapStats()
+    this.logger.info(
+      `Memory Statistics: heap size: ${bytesToMbyte(runtimeStats.heapSize)} MByte, heap capacity: ${bytesToMbyte(runtimeStats.heapCapacity)} MByte, extra memory: ${bytesToMbyte(runtimeStats.extraMemorySize)} MByte`
+    )
+  }
+
+  logBlogchain(communityUuid: Uuidv4) {
+    const communityContext = this.getCommunityContextByUuid(communityUuid)
+    const f = new Filter()  
+    f.pagination.size = 0
+    f.searchDirection = SearchDirection_ASC
+      
+    const transactions = communityContext.blockchain.findAll(f)
+    for(let i = 0; i < transactions.size(); i++) {
+      const transaction = transactions.get(i)
+      const confirmedTransaction = transaction?.getConfirmedTransaction()
+      this.logger.info(confirmedTransaction?.toJson(true))
+    }
+  }
+
+  // TODO: move into utils
+  
 }

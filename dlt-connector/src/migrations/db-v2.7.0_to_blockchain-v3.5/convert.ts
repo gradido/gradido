@@ -1,9 +1,10 @@
 import { InputTransactionType } from '../../data/InputTransactionType.enum'
-import { CommunityDb, TransactionDb, TransactionTypeId, CreatedUserDb, TransactionLinkDb } from './database'
+import { CommunityDb, TransactionDb, CreatedUserDb, TransactionLinkDb } from './valibot.schema'
 import { Community, communitySchema, transactionSchema, Transaction, TransactionInput } from '../../schemas/transaction.schema'
 import { AccountType } from '../../data/AccountType.enum'
 import { gradidoAmountSchema, HieroId, memoSchema, timeoutDurationSchema } from '../../schemas/typeGuard.schema'
 import * as v from 'valibot'
+import { TransactionTypeId } from './TransactionTypeId'
 
 export function getInputTransactionTypeFromTypeId(typeId: TransactionTypeId): InputTransactionType {
   switch (typeId) {

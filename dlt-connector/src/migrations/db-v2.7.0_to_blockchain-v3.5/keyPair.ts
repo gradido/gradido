@@ -1,4 +1,4 @@
-import { CommunityDb, UserDb } from './database'
+import { CommunityDb, UserDb } from './valibot.schema'
 import { KeyPairCacheManager } from '../../cache/KeyPairCacheManager'
 import { KeyPairIdentifierLogic } from '../../data/KeyPairIdentifier.logic'
 import { KeyPairEd25519, MemoryBlock, MemoryBlockPtr } from 'gradido-blockchain-js'

@@ -1,5 +1,3 @@
-import { memoSchema, uuidv4Schema, identifierSeedSchema, gradidoAmountSchema } from '../../schemas/typeGuard.schema'
-import { dateSchema, booleanSchema } from '../../schemas/typeConverter.schema'
 import * as v from 'valibot'
 import { LOG4JS_BASE_CATEGORY } from '../../config/const'
 import { getLogger } from 'log4js'
@@ -8,61 +6,17 @@ import { communitiesTable, transactionLinksTable, transactionsTable, usersTable 
 import { asc, sql, eq, isNotNull } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/mysql-core'
 import { GradidoUnit } from 'gradido-blockchain-js'
-
-export const createdUserDbSchema = v.object({
-  gradidoId: uuidv4Schema,
-  communityUuid: uuidv4Schema,  
-  createdAt: dateSchema,
-})
-
-export const userDbSchema = v.object({
-  gradidoId: uuidv4Schema,
-  communityUuid: uuidv4Schema,  
-})
-
-export enum TransactionTypeId {
-  CREATION = 1,
-  SEND = 2,
-  RECEIVE = 3,
-  // This is a virtual property, never occurring on the database
-  DECAY = 4,
-  LINK_SUMMARY = 5,
-}
-
-export const transactionDbSchema = v.object({
-  typeId: v.enum(TransactionTypeId),
-  amount: gradidoAmountSchema,
-  balanceDate: dateSchema,
-  memo: memoSchema,
-  creationDate: v.nullish(dateSchema),
-  user: userDbSchema,
-  linkedUser: userDbSchema,
-  transactionLinkCode: v.nullish(identifierSeedSchema),
-})
-
-export const transactionLinkDbSchema = v.object({
-  user: userDbSchema,
-  code: identifierSeedSchema,
-  amount: gradidoAmountSchema,
-  memo: memoSchema,
-  createdAt: dateSchema,
-  validUntil: dateSchema,
-})
-
-export const communityDbSchema = v.object({
-  foreign: booleanSchema,
-  communityUuid: uuidv4Schema,
-  name: v.string(),
-  creationDate: dateSchema,
-  userMinCreatedAt: dateSchema,
-  uniqueAlias: v.string(),
-})
-
-export type TransactionDb = v.InferOutput<typeof transactionDbSchema>
-export type UserDb = v.InferOutput<typeof userDbSchema>
-export type CreatedUserDb = v.InferOutput<typeof createdUserDbSchema>
-export type TransactionLinkDb = v.InferOutput<typeof transactionLinkDbSchema>
-export type CommunityDb = v.InferOutput<typeof communityDbSchema>
+import { 
+  CommunityDb, 
+  communityDbSchema, 
+  CreatedUserDb, 
+  createdUserDbSchema, 
+  TransactionDb, 
+  transactionDbSchema, 
+  TransactionLinkDb, 
+  transactionLinkDbSchema 
+} from './valibot.schema'
+import { TransactionTypeId } from './TransactionTypeId'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY}.migrations.db-v2.7.0_to_blockchain-v3.6.blockchain`)
 

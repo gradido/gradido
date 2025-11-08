@@ -2,7 +2,6 @@
 import { mysqlTable, unique, int, varchar, char, datetime, tinyint, decimal, index } from 'drizzle-orm/mysql-core'
 import { sql } from 'drizzle-orm'
 
-
 // use only fields needed in the migration, after update the rest of the project, import database instead
 export const communitiesTable = mysqlTable('communities', {
 	foreign: tinyint().default(1).notNull(),
@@ -13,7 +12,6 @@ export const communitiesTable = mysqlTable('communities', {
 (table) => [
 	unique('uuid_key').on(table.communityUuid),
 ])
-
 
 export const usersTable = mysqlTable('users', {
   id: int().autoincrement().notNull(),
@@ -27,19 +25,18 @@ export const usersTable = mysqlTable('users', {
 
 export const transactionsTable = mysqlTable('transactions', {
 	id: int().autoincrement().notNull(),
-	typeId: int("type_id").default(sql`NULL`),
-	transactionLinkId: int("transaction_link_id").default(sql`NULL`),
+	typeId: int('type_id').default(sql`NULL`),
+	transactionLinkId: int('transaction_link_id').default(sql`NULL`),
 	amount: decimal({ precision: 40, scale: 20 }).default(sql`NULL`),
-	balanceDate: datetime("balance_date", { mode: 'string', fsp: 3 }).default(sql`current_timestamp(3)`).notNull(),
+	balanceDate: datetime('balance_date', { mode: 'string', fsp: 3 }).default(sql`current_timestamp(3)`).notNull(),
 	memo: varchar({ length: 255 }).notNull(),
-	creationDate: datetime("creation_date", { mode: 'string', fsp: 3 }).default(sql`NULL`),
-	userId: int("user_id").notNull(),
-	linkedUserId: int("linked_user_id").default(sql`NULL`),
+	creationDate: datetime('creation_date', { mode: 'string', fsp: 3 }).default(sql`NULL`),
+	userId: int('user_id').notNull(),
+	linkedUserId: int('linked_user_id').default(sql`NULL`),
 },
 (table) => [
-	index("user_id").on(table.userId),
+	index('user_id').on(table.userId),
 ])
-
 
 export const transactionLinksTable = mysqlTable('transaction_links', {
 	id: int().autoincrement().notNull(),

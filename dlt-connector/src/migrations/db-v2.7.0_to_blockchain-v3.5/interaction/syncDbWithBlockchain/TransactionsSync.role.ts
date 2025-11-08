@@ -1,4 +1,5 @@
-import { TransactionDb, loadTransactions } from '../../database'
+import { TransactionDb } from '../../valibot.schema'
+import { loadTransactions } from '../../database'
 import { transactionDbToTransaction } from '../../convert'
 import { addTransaction } from '../../blockchain'
 import { AbstractSyncRole } from './AbstractSync.role'

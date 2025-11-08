@@ -1,5 +1,4 @@
 import { Context } from './Context'
-import { CommunityContext } from './Context'
 import { loadCommunities } from './database'
 import { HieroId, hieroIdSchema } from '../../schemas/typeGuard.schema'
 import * as v from 'valibot'
@@ -7,6 +6,7 @@ import { InMemoryBlockchainProvider } from 'gradido-blockchain-js'
 import { generateKeyPairCommunity } from './keyPair'
 import { communityDbToCommunity } from './convert'
 import { addCommunityRootTransaction } from './blockchain'
+import { CommunityContext } from './valibot.schema'
 
 export async function bootstrap(): Promise<Context> {
   const context = await Context.create()
@@ -35,7 +35,8 @@ async function bootstrapCommunities(context: Context): Promise<Map<string, Commu
     communities.set(communityDb.communityUuid, {
       communityId: communityDb.uniqueAlias,
       blockchain,
-      topicId
+      topicId,
+      folder: communityDb.uniqueAlias.replace(/[^a-zA-Z0-9]/g, '_'),
     })
     
     generateKeyPairCommunity(communityDb, context.cache, topicId)

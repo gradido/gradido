@@ -1,4 +1,4 @@
-import { CreatedUserDb } from '../../database'
+import { CreatedUserDb } from '../../valibot.schema'
 import { AbstractSyncRole } from './AbstractSync.role'
 import { loadUsers } from '../../database'
 import { generateKeyPairUserAccount } from '../../keyPair'

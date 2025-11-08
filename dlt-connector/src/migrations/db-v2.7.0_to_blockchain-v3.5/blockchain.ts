@@ -28,6 +28,7 @@ function addToBlockchain(builder: GradidoTransactionBuilder, blockchain: InMemor
   const transaction = builder.build()
   const transactionId = new HieroTransactionId(createdAtTimestamp, defaultHieroAccount)
   const interactionSerialize = new InteractionSerialize(transactionId)
+
   try {
     const result = blockchain.createAndAddConfirmedTransaction(transaction, interactionSerialize.run(), createdAtTimestamp)
     return result

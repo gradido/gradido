@@ -1,4 +1,5 @@
-import { TransactionLinkDb, loadTransactionLinks } from '../../database'
+import { TransactionLinkDb } from '../../valibot.schema'
+import { loadTransactionLinks } from '../../database'
 import { transactionLinkDbToTransaction } from '../../convert'
 import { addTransaction } from '../../blockchain'
 import { AbstractSyncRole } from './AbstractSync.role'
