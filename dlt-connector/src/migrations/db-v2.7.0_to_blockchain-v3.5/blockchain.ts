@@ -91,7 +91,7 @@ export async function addTransaction(
     f.involvedPublicKey = seedKeyPairRole.generateKeyPair().getPublicKey()
     const deferredTransaction = senderBlockchain.findOne(f)
     if (!deferredTransaction) {
-      throw new Error("redeem deferred transfer: couldn't find parent deferred transfer on Gradido Node")
+      throw new Error(`redeem deferred transfer: couldn't find parent deferred transfer on Gradido Node for ${JSON.stringify(transaction, null, 2)} and public key from seed: ${f.involvedPublicKey?.convertToHex()}`)
     }
     const confirmedDeferredTransaction = deferredTransaction.getConfirmedTransaction()
     if (!confirmedDeferredTransaction) {
