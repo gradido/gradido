@@ -104,7 +104,7 @@ async function sendViaHiero(
   if (!transactionId) {
     throw new Error('missing transaction id from hiero')
   }
-  logger.info('transmitted Gradido Transaction to Hiero', {
+  logger.debug('give Gradido Transaction to Hiero Client', {
     transactionId: transactionId.toString(),
   })
   return v.parse(hieroTransactionIdStringSchema, transactionId.toString())

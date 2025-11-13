@@ -1,3 +1,5 @@
+import { promisify } from 'node:util'
+
 /**
  * @param {number} time - in minutes
  */
@@ -40,3 +42,5 @@ export const printTimeDuration = (duration: number): string => {
   }
   return result
 }
+
+export const delay = promisify(setTimeout)

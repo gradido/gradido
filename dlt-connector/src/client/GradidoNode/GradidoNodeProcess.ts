@@ -3,11 +3,13 @@ import { getLogger, Logger } from 'log4js'
 import { CONFIG } from '../../config'
 import {
   GRADIDO_NODE_KILL_TIMEOUT_MILLISECONDS,
+  GRADIDO_NODE_MIN_RUNTIME_BEFORE_EXIT_MILLISECONDS,
   GRADIDO_NODE_MIN_RUNTIME_BEFORE_RESTART_MILLISECONDS,
   GRADIDO_NODE_RUNTIME_PATH,
   LOG4JS_BASE_CATEGORY,
 } from '../../config/const'
-
+import { Mutex } from 'async-mutex'
+import { delay } from '../../utils/time'
 /**
  * A Singleton class defines the `getInstance` method that lets clients access
  * the unique singleton instance.
@@ -22,6 +24,7 @@ export class GradidoNodeProcess {
   private logger: Logger
   private lastStarted: Date | null = null
   private exitCalled: boolean = false
+  private restartMutex: Mutex = new Mutex()
 
   private constructor() {
     // constructor is private to prevent instantiation from outside
@@ -55,7 +58,7 @@ export class GradidoNodeProcess {
         USERPROFILE: CONFIG.DLT_GRADIDO_NODE_SERVER_HOME_FOLDER,
         HOME: CONFIG.DLT_GRADIDO_NODE_SERVER_HOME_FOLDER,
       },
-      onExit(proc, exitCode, signalCode, error) {
+      onExit(_proc, exitCode, signalCode, error) {
         logger.warn(`GradidoNodeProcess exited with code ${exitCode} and signalCode ${signalCode}`)
         if (error) {
           logger.error(`GradidoNodeProcess exit error: ${error}`)
@@ -69,7 +72,6 @@ export class GradidoNodeProcess {
               })
           }*/
         }
-        logger.debug(`ressource usage: ${JSON.stringify(proc?.resourceUsage(), null, 2)}`)
         const gradidoNodeProcess = GradidoNodeProcess.getInstance()
         gradidoNodeProcess.proc = null
         if (
@@ -90,10 +92,15 @@ export class GradidoNodeProcess {
   }
 
   public async restart() {
+    const release = await this.restartMutex.acquire()
+    try {
     if (this.proc) {
       await this.exit()
       this.exitCalled = false
       this.start()
+    }
+    } finally {
+      release()
     }
   }
 
@@ -104,6 +111,9 @@ export class GradidoNodeProcess {
   public async exit(): Promise<void> {
     this.exitCalled = true
     if (this.proc) {
+      if (this.lastStarted && Date.now() - this.lastStarted.getTime() < GRADIDO_NODE_MIN_RUNTIME_BEFORE_EXIT_MILLISECONDS) {
+        await delay(GRADIDO_NODE_MIN_RUNTIME_BEFORE_EXIT_MILLISECONDS - Date.now() - this.lastStarted.getTime())
+      }
       this.proc.kill('SIGTERM')
       const timeout = setTimeout(() => {
         this.logger.warn(
