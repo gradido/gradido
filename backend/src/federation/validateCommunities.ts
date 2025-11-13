@@ -87,8 +87,6 @@ export async function validateCommunities(): Promise<void> {
       logger.error(`Error:`, err)
     }
   }
-  // export communities for gradido dlt node server
-  await exportCommunitiesToDltNodeServer()
 }
 
 export async function writeJwtKeyPairInHomeCommunity(): Promise<DbCommunity> {
@@ -155,41 +153,4 @@ type CommunityForDltNodeServer = {
   hieroTopicId: string
   alias: string
   folder: string
-}
-async function exportCommunitiesToDltNodeServer(): Promise<void> {
-  if (!CONFIG.DLT_CONNECTOR) {
-    return Promise.resolve()
-  }
-  const folder = CONFIG.DLT_GRADIDO_NODE_SERVER_HOME_FOLDER
-  try {
-    fs.accessSync(folder, fs.constants.R_OK | fs.constants.W_OK)
-  } catch (err) {
-    logger.error(`Error: home folder for DLT Gradido Node Server ${folder} does not exist`)
-    return
-  }
-
-  const dbComs = await getReachableCommunities(CONFIG.FEDERATION_VALIDATE_COMMUNITY_TIMER * 4)
-  const communitiesForDltNodeServer: CommunityForDltNodeServer[] = []
-  // make sure communityName is unique
-  const communityName = new Set<string>()  
-  dbComs.forEach((com) => {
-    if (!com.communityUuid || !com.hieroTopicId) {
-      return
-    }
-    let alias = com.name
-    if (!alias || communityName.has(alias)) {
-      alias = com.communityUuid
-    }
-    communityName.add(alias)
-    communitiesForDltNodeServer.push({
-      communityId: com.communityUuid,
-      hieroTopicId: com.hieroTopicId,
-      alias,
-      // use only alpha-numeric chars for folder name
-      folder: alias.replace(/[^a-zA-Z0-9]/g, '_')
-    })
-  })
-  const dltNodeServerCommunitiesFile = path.join(folder, 'communities.json')
-  fs.writeFileSync(dltNodeServerCommunitiesFile, JSON.stringify(communitiesForDltNodeServer, null, 2))
-  logger.debug(`Written communitiesForDltNodeServer to ${dltNodeServerCommunitiesFile}`)
 }
