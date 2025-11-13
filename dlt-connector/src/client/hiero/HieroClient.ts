@@ -22,6 +22,9 @@ import { CONFIG } from '../../config'
 import { LOG4JS_BASE_CATEGORY } from '../../config/const'
 import { HieroId, hieroIdSchema } from '../../schemas/typeGuard.schema'
 import { type TopicInfoOutput, topicInfoSchema } from './output.schema'
+import { GradidoNodeClient } from '../GradidoNode/GradidoNodeClient'
+import { GradidoNodeProcess } from '../GradidoNode/GradidoNodeProcess'
+import { printTimeDuration } from '../../utils/time'
 
 // https://docs.hedera.com/hedera/sdks-and-apis/hedera-api/consensus/consensusupdatetopic
 export const MIN_AUTORENEW_PERIOD = 6999999 //seconds
@@ -95,6 +98,27 @@ export class HieroClient {
           logger.info(
             `message sent to topic ${topicId}, transaction id: ${sendResponse.transactionId.toString()}`,
           )
+          // TODO: fix issue in GradidoNode
+          // hot fix, when gradido node is running some time, the hiero listener stop working, so we check if our new transaction is received
+          // after 1 second, else restart GradidoNode
+          setTimeout(async () => {
+            const transaction = await GradidoNodeClient.getInstance().getTransaction({
+              topic: topicId,
+              hieroTransactionId: sendResponse.transactionId.toString(),
+            })
+            if (!transaction) {
+              const process = GradidoNodeProcess.getInstance()
+              const lastStarted = process.getLastStarted()
+              if (lastStarted) {
+                const serverRunTime = printTimeDuration(new Date().getTime() - lastStarted.getTime())
+                this.logger.error(`transaction not found, restart GradidoNode after ${serverRunTime}`)
+                await GradidoNodeProcess.getInstance().restart()              
+              } else {
+                this.logger.error('transaction not found, GradidoNode not running, start it')
+                GradidoNodeProcess.getInstance().start()
+              }
+            }
+          }, 1000)
           if (logger.isInfoEnabled()) {
             // only for logging
             sendResponse.getReceiptWithSigner(this.wallet).then((receipt) => {

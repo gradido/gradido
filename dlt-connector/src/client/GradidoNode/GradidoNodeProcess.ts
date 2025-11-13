@@ -97,6 +97,10 @@ export class GradidoNodeProcess {
     }
   }
 
+  public getLastStarted(): Date | null {
+    return this.lastStarted
+  }
+
   public async exit(): Promise<void> {
     this.exitCalled = true
     if (this.proc) {
