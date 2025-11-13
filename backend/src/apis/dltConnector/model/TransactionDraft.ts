@@ -12,7 +12,6 @@ import {
 import { CommunityAccountIdentifier } from './CommunityAccountIdentifier'
 import { getLogger } from 'log4js'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { IdentifierSeed } from './IdentifierSeed'
 import { CODE_VALID_DAYS_DURATION } from '@/graphql/resolver/const/const'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.dltConnector.model.TransactionDraft`)
@@ -94,7 +93,7 @@ export class TransactionDraft {
     }
     const draft = new TransactionDraft()
     draft.user = new AccountIdentifier(senderUserTopic, new CommunityAccountIdentifier(sendingUser.gradidoID))
-    draft.linkedUser = new AccountIdentifier(senderUserTopic, new IdentifierSeed(transactionLink.code))
+    draft.linkedUser = new AccountIdentifier(senderUserTopic, transactionLink.code)
     draft.type = TransactionType.GRADIDO_DEFERRED_TRANSFER
     draft.createdAt = transactionLink.createdAt.toISOString()
     draft.amount = transactionLink.amount.toString()
@@ -119,7 +118,7 @@ export class TransactionDraft {
       throw new Error(`missing topicId for community ${recipientUser.community.id}`)
     }
     const draft = new TransactionDraft()
-    draft.user = new AccountIdentifier(senderUserTopic, new IdentifierSeed(transactionLink.code))
+    draft.user = new AccountIdentifier(senderUserTopic, transactionLink.code)
     draft.linkedUser = new AccountIdentifier(recipientUserTopic, new CommunityAccountIdentifier(recipientUser.gradidoID))
     draft.type = TransactionType.GRADIDO_REDEEM_DEFERRED_TRANSFER
     draft.createdAt = createdAt.toISOString()
