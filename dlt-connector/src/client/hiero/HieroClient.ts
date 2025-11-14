@@ -15,14 +15,16 @@ import {
   TransactionId,
   Wallet,
 } from '@hashgraph/sdk'
-import { GradidoTransaction } from 'gradido-blockchain-js'
+import { GradidoTransaction, Profiler } from 'gradido-blockchain-js'
 import { getLogger, Logger } from 'log4js'
 import * as v from 'valibot'
 import { CONFIG } from '../../config'
 import { LOG4JS_BASE_CATEGORY } from '../../config/const'
 import { HieroId, hieroIdSchema } from '../../schemas/typeGuard.schema'
+import { durationInMinutesFromDates, printTimeDuration } from '../../utils/time'
+import { GradidoNodeClient } from '../GradidoNode/GradidoNodeClient'
+import { GradidoNodeProcess } from '../GradidoNode/GradidoNodeProcess'
 import { type TopicInfoOutput, topicInfoSchema } from './output.schema'
-
 // https://docs.hedera.com/hedera/sdks-and-apis/hedera-api/consensus/consensusupdatetopic
 export const MIN_AUTORENEW_PERIOD = 6999999 //seconds
 export const MAX_AUTORENEW_PERIOD = 8000001 // seconds
@@ -72,7 +74,7 @@ export class HieroClient {
     topicId: HieroId,
     transaction: GradidoTransaction,
   ): Promise<TransactionId | null> {
-    const startTime = new Date()
+    const timeUsed = new Profiler()
     this.transactionInternNr++
     const logger = getLogger(`${LOG4JS_BASE_CATEGORY}.client.HieroClient`)
     logger.addContext('trNr', this.transactionInternNr)
@@ -93,8 +95,33 @@ export class HieroClient {
         .then(async (signedHieroTransaction) => {
           const sendResponse = await signedHieroTransaction.executeWithSigner(this.wallet)
           logger.info(
-            `message sent to topic ${topicId}, transaction id: ${sendResponse.transactionId.toString()}`,
+            `message sent to topic ${topicId}, transaction id: ${sendResponse.transactionId.toString()}, timeUsed: ${timeUsed.string()}`,
           )
+          // TODO: fix issue in GradidoNode
+          // hot fix, when gradido node is running some time, the hiero listener stop working, so we check if our new transaction is received
+          // after 10 seconds, else restart GradidoNode
+          setTimeout(async () => {
+            const transaction = await GradidoNodeClient.getInstance().getTransaction({
+              topic: topicId,
+              hieroTransactionId: sendResponse.transactionId.toString(),
+            })
+            if (!transaction) {
+              const process = GradidoNodeProcess.getInstance()
+              const lastStarted = process.getLastStarted()
+              if (lastStarted) {
+                const serverRunTime = printTimeDuration(
+                  durationInMinutesFromDates(lastStarted, new Date()),
+                )
+                this.logger.error(
+                  `transaction not found, restart GradidoNode after ${serverRunTime}`,
+                )
+                await GradidoNodeProcess.getInstance().restart()
+              } else {
+                this.logger.error('transaction not found, GradidoNode not running, start it')
+                GradidoNodeProcess.getInstance().start()
+              }
+            }
+          }, 10000)
           if (logger.isInfoEnabled()) {
             // only for logging
             sendResponse.getReceiptWithSigner(this.wallet).then((receipt) => {
@@ -103,10 +130,7 @@ export class HieroClient {
             // only for logging
             sendResponse.getRecordWithSigner(this.wallet).then((record) => {
               logger.info(`message sent, cost: ${record.transactionFee.toString()}`)
-              const localEndTime = new Date()
-              logger.info(
-                `HieroClient.sendMessage used time (full process): ${localEndTime.getTime() - startTime.getTime()}ms`,
-              )
+              logger.info(`HieroClient.sendMessage used time (full process): ${timeUsed.string()}`)
             })
           }
         })
@@ -117,8 +141,9 @@ export class HieroClient {
           this.pendingPromises.splice(pendingPromiseIndex, 1)
         }),
     )
-    const endTime = new Date()
-    logger.info(`HieroClient.sendMessage used time: ${endTime.getTime() - startTime.getTime()}ms`)
+    logger.debug(
+      `create transactionId: ${hieroTransaction.transactionId?.toString()}, used time: ${timeUsed.string()}`,
+    )
     return hieroTransaction.transactionId
   }
 

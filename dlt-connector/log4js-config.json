@@ -8,20 +8,7 @@
       "pattern": "yyyy-MM-dd",
       "layout": 
       {
-        "type": "pattern", "pattern": "%d{ISO8601} %p %c [%f : %l] -  %m"
-      },
-      "compress": true,
-      "keepFileExt" : true,
-      "fileNameSep" : "_",
-      "numBackups" : 30
-    },
-    "dlt.client.HieroClient": {
-      "type": "dateFile",
-      "filename": "../logs/dlt-connector/apiversion-%v.log",
-      "pattern": "yyyy-MM-dd",
-      "layout": 
-      {
-        "type": "pattern", "pattern": "%d{ISO8601} %p %c [topicId=%X{topicId}] [%f : %l] -  %m"
+        "type": "pattern", "pattern": "%d{ISO8601} %p %c -  %m"
       },
       "compress": true,
       "keepFileExt" : true,
@@ -53,7 +40,7 @@
       "type": "stdout",
       "layout": 
       {
-        "type": "pattern", "pattern": "%d{ISO8601} %p %c [%f : %l] -  %m"
+        "type": "pattern", "pattern": "%d{ISO8601} %p %c -  %m"
       }
     }
   },

@@ -1,6 +1,10 @@
-import { GradidoTransactionBuilder, GradidoTransfer, TransferAmount } from 'gradido-blockchain-js'
+import {
+  ConfirmedTransaction,
+  GradidoTransactionBuilder,
+  GradidoTransfer,
+  TransferAmount,
+} from 'gradido-blockchain-js'
 import * as v from 'valibot'
-import { GradidoNodeClient } from '../../client/GradidoNode/GradidoNodeClient'
 import { KeyPairIdentifierLogic } from '../../data/KeyPairIdentifier.logic'
 import {
   RedeemDeferredTransferTransaction,
@@ -15,12 +19,14 @@ import { AbstractTransactionRole } from './AbstractTransaction.role'
 export class RedeemDeferredTransferTransactionRole extends AbstractTransactionRole {
   private linkedUser: UserAccount
   private readonly redeemDeferredTransferTransaction: RedeemDeferredTransferTransaction
-  constructor(transaction: Transaction) {
+  private readonly parentDeferredTransaction: ConfirmedTransaction
+  constructor(transaction: Transaction, parentDeferredTransaction: ConfirmedTransaction) {
     super()
     this.redeemDeferredTransferTransaction = v.parse(
       redeemDeferredTransferTransactionSchema,
       transaction,
     )
+    this.parentDeferredTransaction = parentDeferredTransaction
     this.linkedUser = this.redeemDeferredTransferTransaction.linkedUser
   }
 
@@ -41,16 +47,9 @@ export class RedeemDeferredTransferTransactionRole extends AbstractTransactionRo
     if (!senderPublicKey) {
       throw new Error("redeem deferred transfer: couldn't calculate sender public key")
     }
-    // load deferred transfer transaction from gradido node
-    const transactions = await GradidoNodeClient.getInstance().getTransactionsForAccount(
-      { maxResultCount: 2, topic: this.getSenderCommunityTopicId() },
-      senderPublicKey.convertToHex(),
-    )
-    if (!transactions || transactions.length !== 1) {
-      throw new Error("redeem deferred transfer: couldn't find deferred transfer on Gradido Node")
-    }
-    const deferredTransfer = transactions[0]
-    const deferredTransferBody = deferredTransfer.getGradidoTransaction()?.getTransactionBody()
+    const deferredTransferBody = this.parentDeferredTransaction
+      .getGradidoTransaction()
+      ?.getTransactionBody()
     if (!deferredTransferBody) {
       throw new Error(
         "redeem deferred transfer: couldn't deserialize deferred transfer from Gradido Node",
@@ -61,7 +60,7 @@ export class RedeemDeferredTransferTransactionRole extends AbstractTransactionRo
     builder
       .setCreatedAt(this.redeemDeferredTransferTransaction.createdAt)
       .setRedeemDeferredTransfer(
-        deferredTransfer.getId(),
+        this.parentDeferredTransaction.getId(),
         new GradidoTransfer(
           new TransferAmount(
             senderKeyPair.getPublicKey(),

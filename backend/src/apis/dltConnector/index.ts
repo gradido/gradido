@@ -36,8 +36,10 @@ async function checkDltConnectorResult(dltTransaction: DbDltTransaction, clientR
     logger.debug(e)
     if (e instanceof Error) {
       dltTransaction.error = e.message
+      logger.error('Error from dlt-connector', e)
     } else if (typeof e === 'string') {
       dltTransaction.error = e
+      logger.error('error from dlt-connector', e)
     } else {
       throw e
     }

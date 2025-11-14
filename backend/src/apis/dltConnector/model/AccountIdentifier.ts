@@ -1,15 +1,13 @@
 import { CommunityAccountIdentifier } from './CommunityAccountIdentifier'
-import { IdentifierSeed } from './IdentifierSeed'
-
 export class AccountIdentifier {
   communityTopicId: string
   account?: CommunityAccountIdentifier
-  seed?: IdentifierSeed // used for deferred transfers
+  seed?: string // used for deferred transfers
 
-  constructor(communityTopicId: string, input: CommunityAccountIdentifier | IdentifierSeed) {
+  constructor(communityTopicId: string, input: CommunityAccountIdentifier | string) {
     if (input instanceof CommunityAccountIdentifier) {
       this.account = input
-    } else if (input instanceof IdentifierSeed) {
+    } else {
       this.seed = input
     }
     this.communityTopicId = communityTopicId

@@ -16,7 +16,7 @@ const logging = {
 }
 
 const server = {
-  PORT: process.env.PORT ?? 4000,
+  BACKEND_PORT: process.env.BACKEND_PORT ?? 4000,
   JWT_SECRET: process.env.JWT_SECRET ?? 'secret123',
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN ?? '10m',
   REDEEM_JWT_TOKEN_EXPIRATION: process.env.REDEEM_JWT_TOKEN_EXPIRATION ?? '10m',
