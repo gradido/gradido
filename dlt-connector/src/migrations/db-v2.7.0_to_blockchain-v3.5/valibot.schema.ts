@@ -46,7 +46,7 @@ export const communityDbSchema = v.object({
   communityUuid: uuidv4Schema,
   name: v.string(),
   creationDate: dateSchema,
-  userMinCreatedAt: dateSchema,
+  userMinCreatedAt: v.nullish(dateSchema),
   uniqueAlias: v.string(),
 })
 
