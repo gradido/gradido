@@ -947,7 +947,7 @@ describe('TransactionLinkResolver', () => {
         })
 
         describe('without any filters', () => {
-          it('finds 6 open transaction links and no deleted or redeemed', async () => {
+          it('finds 7 open transaction links and no deleted or redeemed', async () => {
             await expect(
               query({
                 query: listTransactionLinksAdmin,
@@ -957,14 +957,14 @@ describe('TransactionLinkResolver', () => {
               expect.objectContaining({
                 data: {
                   listTransactionLinksAdmin: {
-                    count: 6,
+                    count: 7,
                     links: expect.not.arrayContaining([
                       expect.objectContaining({
-                        memo: 'Leider wollte niemand meine Gradidos zum Neujahr haben :(',
+                        memo: 'Leider wollte niemand meine Gradidos haben :(',
                         createdAt: expect.any(String),
                       }),
                       expect.objectContaining({
-                        memo: 'Da habe ich mich wohl etwas übernommen.',
+                        memo: "Kein Trick, keine Zauberrei,\n bei Gradidio sei dabei!",
                         deletedAt: expect.any(String),
                       }),
                     ]),
@@ -976,7 +976,7 @@ describe('TransactionLinkResolver', () => {
         })
 
         describe('all filters are null', () => {
-          it('finds 6 open transaction links and no deleted or redeemed', async () => {
+          it('finds 7 open transaction links and no deleted or redeemed', async () => {
             await expect(
               query({
                 query: listTransactionLinksAdmin,
@@ -993,10 +993,10 @@ describe('TransactionLinkResolver', () => {
               expect.objectContaining({
                 data: {
                   listTransactionLinksAdmin: {
-                    count: 6,
+                    count: 7,
                     links: expect.not.arrayContaining([
                       expect.objectContaining({
-                        memo: 'Leider wollte niemand meine Gradidos zum Neujahr haben :(',
+                        memo: 'Leider wollte niemand meine Gradidos haben :(',
                         createdAt: expect.any(String),
                       }),
                       expect.objectContaining({
@@ -1012,7 +1012,7 @@ describe('TransactionLinkResolver', () => {
         })
 
         describe('filter with deleted', () => {
-          it('finds 6 open transaction links, 1 deleted, and no redeemed', async () => {
+          it('finds 7 open transaction links, 1 deleted, and no redeemed', async () => {
             await expect(
               query({
                 query: listTransactionLinksAdmin,
@@ -1027,10 +1027,10 @@ describe('TransactionLinkResolver', () => {
               expect.objectContaining({
                 data: {
                   listTransactionLinksAdmin: {
-                    count: 7,
+                    count: 8,
                     links: expect.arrayContaining([
                       expect.not.objectContaining({
-                        memo: 'Leider wollte niemand meine Gradidos zum Neujahr haben :(',
+                        memo: 'Leider wollte niemand meine Gradidos haben :(',
                         createdAt: expect.any(String),
                       }),
                       expect.objectContaining({
@@ -1046,7 +1046,7 @@ describe('TransactionLinkResolver', () => {
         })
 
         describe('filter by expired', () => {
-          it('finds 5 open transaction links, 1 expired, and no redeemed', async () => {
+          it('finds 6 open transaction links, 1 expired, and no redeemed', async () => {
             await expect(
               query({
                 query: listTransactionLinksAdmin,
@@ -1064,7 +1064,7 @@ describe('TransactionLinkResolver', () => {
                     count: 7,
                     links: expect.arrayContaining([
                       expect.objectContaining({
-                        memo: 'Leider wollte niemand meine Gradidos zum Neujahr haben :(',
+                        memo: 'Leider wollte niemand meine Gradidos haben :(',
                         createdAt: expect.any(String),
                       }),
                       expect.not.objectContaining({
@@ -1082,7 +1082,7 @@ describe('TransactionLinkResolver', () => {
         // TODO: works not as expected, because 'redeemedAt' and 'redeemedBy' have to be added to the transaktion link factory
 
         describe.skip('filter by redeemed', () => {
-          it('finds 6 open transaction links, 1 deleted, and no redeemed', async () => {
+          it('finds 7 open transaction links, 1 deleted, and no redeemed', async () => {
             await expect(
               query({
                 query: listTransactionLinksAdmin,
@@ -1099,10 +1099,10 @@ describe('TransactionLinkResolver', () => {
               expect.objectContaining({
                 data: {
                   listTransactionLinksAdmin: {
-                    count: 6,
+                    count: 7,
                     links: expect.arrayContaining([
                       expect.not.objectContaining({
-                        memo: 'Leider wollte niemand meine Gradidos zum Neujahr haben :(',
+                        memo: 'Leider wollte niemand meine Gradidos haben :(',
                         createdAt: expect.any(String),
                       }),
                       expect.objectContaining({

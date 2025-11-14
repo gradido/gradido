@@ -1040,7 +1040,7 @@ describe('UserResolver', () => {
 
     describe('user exists in DB', () => {
       beforeAll(async () => {
-        await userFactory(testEnv, bibiBloxberg)
+        await userFactory(testEnv, bobBaumeister)
       })
 
       afterAll(async () => {
@@ -1050,7 +1050,7 @@ describe('UserResolver', () => {
 
       describe('duration not expired', () => {
         it('throws an error', async () => {
-          await expect(mutate({ mutation: forgotPassword, variables })).resolves.toEqual(
+          await expect(mutate({ mutation: forgotPassword, variables: { email: 'bob@baumeister.de' } })).resolves.toEqual(
             expect.objectContaining({
               errors: [
                 new GraphQLError(
@@ -1067,7 +1067,7 @@ describe('UserResolver', () => {
       describe('duration reset to 0', () => {
         it('returns true', async () => {
           CONFIG.EMAIL_CODE_REQUEST_TIME = 0
-          await expect(mutate({ mutation: forgotPassword, variables })).resolves.toEqual(
+          await expect(mutate({ mutation: forgotPassword, variables: { email: 'bob@baumeister.de' } })).resolves.toEqual(
             expect.objectContaining({
               data: {
                 forgotPassword: true,
@@ -1078,9 +1078,9 @@ describe('UserResolver', () => {
 
         it('sends reset password email', () => {
           expect(sendResetPasswordEmail).toBeCalledWith({
-            firstName: 'Bibi',
-            lastName: 'Bloxberg',
-            email: 'bibi@bloxberg.de',
+            firstName: 'Bob',
+            lastName: 'der Baumeister',
+            email: 'bob@baumeister.de',
             language: 'de',
             resetLink: expect.any(String),
             timeDurationObject: expect.objectContaining({
@@ -1092,7 +1092,7 @@ describe('UserResolver', () => {
 
         it('stores the EMAIL_FORGOT_PASSWORD event in the database', async () => {
           const userConatct = await UserContact.findOneOrFail({
-            where: { email: 'bibi@bloxberg.de' },
+            where: { email: 'bob@baumeister.de' },
             relations: ['user'],
           })
           await expect(DbEvent.find()).resolves.toContainEqual(
@@ -1108,7 +1108,7 @@ describe('UserResolver', () => {
       describe('request reset password again', () => {
         it('throws an error', async () => {
           CONFIG.EMAIL_CODE_REQUEST_TIME = emailCodeRequestTime
-          await expect(mutate({ mutation: forgotPassword, variables })).resolves.toEqual(
+          await expect(mutate({ mutation: forgotPassword, variables: { email: 'bob@baumeister.de' } })).resolves.toEqual(
             expect.objectContaining({
               errors: [new GraphQLError('Email already sent less than 10 minutes ago')],
             }),
@@ -1128,8 +1128,8 @@ describe('UserResolver', () => {
     let emailContact: UserContact
 
     beforeAll(async () => {
-      await userFactory(testEnv, bibiBloxberg)
-      emailContact = await UserContact.findOneOrFail({ where: { email: bibiBloxberg.email } })
+      await userFactory(testEnv, bobBaumeister)
+      emailContact = await UserContact.findOneOrFail({ where: { email: bobBaumeister.email } })
     })
 
     afterAll(async () => {
@@ -1140,7 +1140,7 @@ describe('UserResolver', () => {
       it('throws an error', async () => {
         jest.clearAllMocks()
         await expect(
-          query({ query: queryOptIn, variables: { optIn: 'not-valid' } }),
+          query({ query: queryOptIn, variables: { email: 'bob@baumeister.de', optIn: 'not-valid' } }),
         ).resolves.toEqual(
           expect.objectContaining({
             errors: [
@@ -1161,7 +1161,7 @@ describe('UserResolver', () => {
         await expect(
           query({
             query: queryOptIn,
-            variables: { optIn: emailContact.emailVerificationCode.toString() },
+            variables: { email: 'bob@baumeister.de', optIn: emailContact.emailVerificationCode.toString() },
           }),
         ).resolves.toEqual(
           expect.objectContaining({
