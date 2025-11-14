@@ -32,7 +32,7 @@ describe('RegisterAddressTransaction.role', () => {
     const gradidoTransaction = builder.build()
     expect(() => new InteractionValidate(gradidoTransaction).run(ValidateType_SINGLE)).not.toThrow()
     const json = JSON.parse(gradidoTransaction.toJson(true))
-    expect(json.bodyBytes.json.registerAddress.nameHash).toBe(
+    expect(json.bodyBytes.registerAddress.nameHash).toBe(
       'bac2c06682808947f140d6766d02943761d4129ec055bb1f84dc3a4201a94c08',
     )
   })
