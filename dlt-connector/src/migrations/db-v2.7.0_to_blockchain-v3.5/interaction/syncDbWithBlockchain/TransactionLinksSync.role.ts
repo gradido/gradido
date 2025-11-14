@@ -1,7 +1,7 @@
-import { TransactionLinkDb } from '../../valibot.schema'
-import { loadTransactionLinks } from '../../database'
-import { transactionLinkDbToTransaction } from '../../convert'
 import { addTransaction } from '../../blockchain'
+import { transactionLinkDbToTransaction } from '../../convert'
+import { loadTransactionLinks } from '../../database'
+import { TransactionLinkDb } from '../../valibot.schema'
 import { AbstractSyncRole } from './AbstractSync.role'
 
 export class TransactionLinksSyncRole extends AbstractSyncRole<TransactionLinkDb> {
@@ -23,4 +23,3 @@ export class TransactionLinksSyncRole extends AbstractSyncRole<TransactionLinkDb
     await addTransaction(communityContext.blockchain, communityContext.blockchain, transaction)
   }
 }
-    

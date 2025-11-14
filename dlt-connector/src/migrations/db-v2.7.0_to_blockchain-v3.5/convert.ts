@@ -1,10 +1,21 @@
-import { InputTransactionType } from '../../data/InputTransactionType.enum'
-import { CommunityDb, TransactionDb, CreatedUserDb, TransactionLinkDb } from './valibot.schema'
-import { Community, communitySchema, transactionSchema, Transaction, TransactionInput } from '../../schemas/transaction.schema'
-import { AccountType } from '../../data/AccountType.enum'
-import { gradidoAmountSchema, HieroId, memoSchema, timeoutDurationSchema } from '../../schemas/typeGuard.schema'
 import * as v from 'valibot'
+import { AccountType } from '../../data/AccountType.enum'
+import { InputTransactionType } from '../../data/InputTransactionType.enum'
+import {
+  Community,
+  communitySchema,
+  Transaction,
+  TransactionInput,
+  transactionSchema,
+} from '../../schemas/transaction.schema'
+import {
+  gradidoAmountSchema,
+  HieroId,
+  memoSchema,
+  timeoutDurationSchema,
+} from '../../schemas/typeGuard.schema'
 import { TransactionTypeId } from './TransactionTypeId'
+import { CommunityDb, CreatedUserDb, TransactionDb, TransactionLinkDb } from './valibot.schema'
 
 export function getInputTransactionTypeFromTypeId(typeId: TransactionTypeId): InputTransactionType {
   switch (typeId) {
@@ -19,13 +30,17 @@ export function getInputTransactionTypeFromTypeId(typeId: TransactionTypeId): In
   }
 }
 
-export function communityDbToCommunity(topicId: HieroId, communityDb: CommunityDb, creationDate: Date): Community {
- return v.parse(communitySchema, {
+export function communityDbToCommunity(
+  topicId: HieroId,
+  communityDb: CommunityDb,
+  creationDate: Date,
+): Community {
+  return v.parse(communitySchema, {
     hieroTopicId: topicId,
     uuid: communityDb.communityUuid,
     foreign: communityDb.foreign,
-    creationDate,  
- }) 
+    creationDate,
+  })
 }
 
 export function userDbToTransaction(userDb: CreatedUserDb, communityTopicId: HieroId): Transaction {
@@ -41,17 +56,18 @@ export function userDbToTransaction(userDb: CreatedUserDb, communityTopicId: Hie
 }
 
 export function transactionDbToTransaction(
-  transactionDb: TransactionDb, 
-  communityTopicId: HieroId, 
-  recipientCommunityTopicId: HieroId
+  transactionDb: TransactionDb,
+  communityTopicId: HieroId,
+  recipientCommunityTopicId: HieroId,
 ): Transaction {
   if (
-    transactionDb.typeId !== TransactionTypeId.CREATION 
-    && transactionDb.typeId !== TransactionTypeId.SEND 
-    && transactionDb.typeId !== TransactionTypeId.RECEIVE) {
+    transactionDb.typeId !== TransactionTypeId.CREATION &&
+    transactionDb.typeId !== TransactionTypeId.SEND &&
+    transactionDb.typeId !== TransactionTypeId.RECEIVE
+  ) {
     throw new Error('not implemented')
   }
-  
+
   const user = {
     communityTopicId: communityTopicId,
     account: { userUuid: transactionDb.user.gradidoId },
@@ -80,7 +96,9 @@ export function transactionDbToTransaction(
   }
   if (transactionDb.transactionLinkCode) {
     if (transactionDb.typeId !== TransactionTypeId.RECEIVE) {
-      throw new Error('linked transaction which isn\'t receive, send will taken care of on link creation')
+      throw new Error(
+        "linked transaction which isn't receive, send will taken care of on link creation",
+      )
     }
     transaction.user = {
       communityTopicId: recipientCommunityTopicId,
@@ -91,7 +109,10 @@ export function transactionDbToTransaction(
   return v.parse(transactionSchema, transaction)
 }
 
-export function transactionLinkDbToTransaction(transactionLinkDb: TransactionLinkDb, communityTopicId: HieroId): Transaction {
+export function transactionLinkDbToTransaction(
+  transactionLinkDb: TransactionLinkDb,
+  communityTopicId: HieroId,
+): Transaction {
   return v.parse(transactionSchema, {
     user: {
       communityTopicId: communityTopicId,
@@ -105,7 +126,11 @@ export function transactionLinkDbToTransaction(transactionLinkDb: TransactionLin
     amount: v.parse(gradidoAmountSchema, transactionLinkDb.amount),
     memo: v.parse(memoSchema, transactionLinkDb.memo),
     createdAt: transactionLinkDb.createdAt,
-    timeoutDuration: v.parse(timeoutDurationSchema, Math.round((transactionLinkDb.validUntil.getTime() - transactionLinkDb.createdAt.getTime()) / 1000)),
+    timeoutDuration: v.parse(
+      timeoutDurationSchema,
+      Math.round(
+        (transactionLinkDb.validUntil.getTime() - transactionLinkDb.createdAt.getTime()) / 1000,
+      ),
+    ),
   })
 }
-

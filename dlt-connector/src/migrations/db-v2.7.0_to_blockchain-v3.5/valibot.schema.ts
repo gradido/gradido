@@ -1,20 +1,25 @@
-import { memoSchema, uuidv4Schema, identifierSeedSchema, gradidoAmountSchema, hieroIdSchema } from '../../schemas/typeGuard.schema'
-import { dateSchema, booleanSchema } from '../../schemas/typeConverter.schema'
-import { TransactionTypeId } from './TransactionTypeId'
 import { InMemoryBlockchain } from 'gradido-blockchain-js'
 import * as v from 'valibot'
+import { booleanSchema, dateSchema } from '../../schemas/typeConverter.schema'
+import {
+  gradidoAmountSchema,
+  hieroIdSchema,
+  identifierSeedSchema,
+  memoSchema,
+  uuidv4Schema,
+} from '../../schemas/typeGuard.schema'
+import { TransactionTypeId } from './TransactionTypeId'
 
 export const createdUserDbSchema = v.object({
   gradidoId: uuidv4Schema,
-  communityUuid: uuidv4Schema,  
+  communityUuid: uuidv4Schema,
   createdAt: dateSchema,
 })
 
 export const userDbSchema = v.object({
   gradidoId: uuidv4Schema,
-  communityUuid: uuidv4Schema,  
+  communityUuid: uuidv4Schema,
 })
-
 
 export const transactionDbSchema = v.object({
   typeId: v.enum(TransactionTypeId),
@@ -53,8 +58,7 @@ export const communityContextSchema = v.object({
     v.string(),
     v.minLength(1, 'expect string length >= 1'),
     v.maxLength(255, 'expect string length <= 255'),
-    v.regex(/^[a-zA-Z0-9-_]+$/,
-    'expect string to be a valid (alphanumeric, _, -) folder name'),
+    v.regex(/^[a-zA-Z0-9-_]+$/, 'expect string to be a valid (alphanumeric, _, -) folder name'),
   ),
 })
 

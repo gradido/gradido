@@ -1,4 +1,9 @@
-import { ConfirmedTransaction, GradidoTransactionBuilder, GradidoTransfer, TransferAmount } from 'gradido-blockchain-js'
+import {
+  ConfirmedTransaction,
+  GradidoTransactionBuilder,
+  GradidoTransfer,
+  TransferAmount,
+} from 'gradido-blockchain-js'
 import * as v from 'valibot'
 import { KeyPairIdentifierLogic } from '../../data/KeyPairIdentifier.logic'
 import {
@@ -42,7 +47,9 @@ export class RedeemDeferredTransferTransactionRole extends AbstractTransactionRo
     if (!senderPublicKey) {
       throw new Error("redeem deferred transfer: couldn't calculate sender public key")
     }
-    const deferredTransferBody = this.parentDeferredTransaction.getGradidoTransaction()?.getTransactionBody()
+    const deferredTransferBody = this.parentDeferredTransaction
+      .getGradidoTransaction()
+      ?.getTransactionBody()
     if (!deferredTransferBody) {
       throw new Error(
         "redeem deferred transfer: couldn't deserialize deferred transfer from Gradido Node",

@@ -1,8 +1,8 @@
-import { Context } from '../../Context'
 import { Profiler } from 'gradido-blockchain-js'
-import { TransactionsSyncRole } from './TransactionsSync.role'
+import { Context } from '../../Context'
 import { DeletedTransactionLinksSyncRole } from './DeletedTransactionLinksSync.role'
 import { TransactionLinksSyncRole } from './TransactionLinksSync.role'
+import { TransactionsSyncRole } from './TransactionsSync.role'
 import { UsersSyncRole } from './UsersSync.role'
 
 export async function syncDbWithBlockchainContext(context: Context, batchSize: number) {
@@ -11,20 +11,20 @@ export async function syncDbWithBlockchainContext(context: Context, batchSize: n
     new UsersSyncRole(context),
     new TransactionsSyncRole(context),
     new DeletedTransactionLinksSyncRole(context),
-    new TransactionLinksSyncRole(context)
-  ] 
+    new TransactionLinksSyncRole(context),
+  ]
 
-  while (true) {    
-    timeUsed.reset()    
-    const results = await Promise.all(containers.map(c => c.ensureFilled(batchSize)))    
+  while (true) {
+    timeUsed.reset()
+    const results = await Promise.all(containers.map((c) => c.ensureFilled(batchSize)))
     const loadedItemsCount = results.reduce((acc, c) => acc + c, 0)
     // log only, if at least one new item was loaded
     if (loadedItemsCount && context.logger.isInfoEnabled()) {
       context.logger.info(`${loadedItemsCount} new items loaded from db in ${timeUsed.string()}`)
     }
-    
+
     // remove empty containers
-    const available = containers.filter(c => !c.isEmpty())
+    const available = containers.filter((c) => !c.isEmpty())
     if (available.length === 0) {
       break
     }
@@ -36,4 +36,3 @@ export async function syncDbWithBlockchainContext(context: Context, batchSize: n
     await available[0].toBlockchain()
   }
 }
-  

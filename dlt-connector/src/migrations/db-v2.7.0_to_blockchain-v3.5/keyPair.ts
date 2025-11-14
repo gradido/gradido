@@ -1,17 +1,21 @@
-import { CommunityDb, UserDb } from './valibot.schema'
-import { KeyPairCacheManager } from '../../cache/KeyPairCacheManager'
-import { KeyPairIdentifierLogic } from '../../data/KeyPairIdentifier.logic'
 import { KeyPairEd25519, MemoryBlock, MemoryBlockPtr } from 'gradido-blockchain-js'
 import { getLogger } from 'log4js'
-import { LOG4JS_BASE_CATEGORY } from '../../config/const'
+import { KeyPairCacheManager } from '../../cache/KeyPairCacheManager'
 import { CONFIG } from '../../config'
-import { HieroId } from '../../schemas/typeGuard.schema'
-import { UserKeyPairRole } from '../../interactions/resolveKeyPair/UserKeyPair.role'
+import { LOG4JS_BASE_CATEGORY } from '../../config/const'
+import { KeyPairIdentifierLogic } from '../../data/KeyPairIdentifier.logic'
 import { AccountKeyPairRole } from '../../interactions/resolveKeyPair/AccountKeyPair.role'
+import { UserKeyPairRole } from '../../interactions/resolveKeyPair/UserKeyPair.role'
+import { HieroId } from '../../schemas/typeGuard.schema'
+import { CommunityDb, UserDb } from './valibot.schema'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY}.migrations.db-v2.7.0_to_blockchain-v3.6.keyPair`)
 
-export function generateKeyPairCommunity(community: CommunityDb, cache: KeyPairCacheManager, topicId: HieroId): void {
+export function generateKeyPairCommunity(
+  community: CommunityDb,
+  cache: KeyPairCacheManager,
+  topicId: HieroId,
+): void {
   let seed: MemoryBlock | null = null
   if (community.foreign) {
     const randomBuffer = Buffer.alloc(32)
@@ -32,33 +36,37 @@ export function generateKeyPairCommunity(community: CommunityDb, cache: KeyPairC
 }
 
 export async function generateKeyPairUserAccount(
-  user: UserDb, 
-  cache: KeyPairCacheManager, 
-  communityTopicId: HieroId
-): Promise<{userKeyPair: MemoryBlockPtr, accountKeyPair: MemoryBlockPtr}> {
+  user: UserDb,
+  cache: KeyPairCacheManager,
+  communityTopicId: HieroId,
+): Promise<{ userKeyPair: MemoryBlockPtr; accountKeyPair: MemoryBlockPtr }> {
   const communityKeyPair = cache.findKeyPair(communityTopicId)!
   const userKeyPairRole = new UserKeyPairRole(user.gradidoId, communityKeyPair)
-  const userKeyPairKey = new KeyPairIdentifierLogic({ 
-    communityTopicId: communityTopicId, 
+  const userKeyPairKey = new KeyPairIdentifierLogic({
+    communityTopicId: communityTopicId,
     account: {
       userUuid: user.gradidoId,
-      accountNr: 0
-    }
-  }).getKey()  
-  const userKeyPair = await cache.getKeyPair(userKeyPairKey, () => Promise.resolve(userKeyPairRole.generateKeyPair()))
-
-  const accountKeyPairRole = new AccountKeyPairRole(1, userKeyPair)  
-  const accountKeyPairKey = new KeyPairIdentifierLogic({ 
-    communityTopicId: communityTopicId, 
-    account: {
-      userUuid: user.gradidoId,
-      accountNr: 1
-    }
+      accountNr: 0,
+    },
   }).getKey()
-  const accountKeyPair = await cache.getKeyPair(accountKeyPairKey, () => Promise.resolve(accountKeyPairRole.generateKeyPair()))
+  const userKeyPair = await cache.getKeyPair(userKeyPairKey, () =>
+    Promise.resolve(userKeyPairRole.generateKeyPair()),
+  )
+
+  const accountKeyPairRole = new AccountKeyPairRole(1, userKeyPair)
+  const accountKeyPairKey = new KeyPairIdentifierLogic({
+    communityTopicId: communityTopicId,
+    account: {
+      userUuid: user.gradidoId,
+      accountNr: 1,
+    },
+  }).getKey()
+  const accountKeyPair = await cache.getKeyPair(accountKeyPairKey, () =>
+    Promise.resolve(accountKeyPairRole.generateKeyPair()),
+  )
   //logger.info(`Key Pairs for user and account added, user: ${userKeyPairKey}, account: ${accountKeyPairKey}`)
   return {
     userKeyPair: userKeyPair.getPublicKey()!,
-    accountKeyPair: accountKeyPair.getPublicKey()!
+    accountKeyPair: accountKeyPair.getPublicKey()!,
   }
 }

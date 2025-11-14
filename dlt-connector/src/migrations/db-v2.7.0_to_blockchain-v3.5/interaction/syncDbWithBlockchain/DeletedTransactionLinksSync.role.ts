@@ -1,6 +1,6 @@
 import { loadDeletedTransactionLinks } from '../../database'
-import { TransactionsSyncRole } from './TransactionsSync.role'
 import { TransactionDb } from '../../valibot.schema'
+import { TransactionsSyncRole } from './TransactionsSync.role'
 
 export class DeletedTransactionLinksSyncRole extends TransactionsSyncRole {
   itemTypeName(): string {

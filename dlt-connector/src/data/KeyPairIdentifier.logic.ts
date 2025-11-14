@@ -107,7 +107,9 @@ export class KeyPairIdentifierLogic {
       )
     }
     const resultString =
-      this.identifier.communityTopicId + this.identifier.account.userUuid.replace(/-/g, '') + accountNr.toString()
+      this.identifier.communityTopicId +
+      this.identifier.account.userUuid.replace(/-/g, '') +
+      accountNr.toString()
     return new MemoryBlock(resultString).calculateHash().convertToHex()
   }
 }

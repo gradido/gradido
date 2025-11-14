@@ -1,10 +1,9 @@
-import { CreatedUserDb } from '../../valibot.schema'
-import { AbstractSyncRole } from './AbstractSync.role'
+import { addRegisterAddressTransaction } from '../../blockchain'
+import { userDbToTransaction } from '../../convert'
 import { loadUsers } from '../../database'
 import { generateKeyPairUserAccount } from '../../keyPair'
-import { userDbToTransaction } from '../../convert'
-import { addRegisterAddressTransaction } from '../../blockchain'
-
+import { CreatedUserDb } from '../../valibot.schema'
+import { AbstractSyncRole } from './AbstractSync.role'
 
 export class UsersSyncRole extends AbstractSyncRole<CreatedUserDb> {
   getDate(): Date {

@@ -1,3 +1,4 @@
+import { Mutex } from 'async-mutex'
 import { Subprocess, spawn } from 'bun'
 import { getLogger, Logger } from 'log4js'
 import { CONFIG } from '../../config'
@@ -8,7 +9,6 @@ import {
   GRADIDO_NODE_RUNTIME_PATH,
   LOG4JS_BASE_CATEGORY,
 } from '../../config/const'
-import { Mutex } from 'async-mutex'
 import { delay } from '../../utils/time'
 /**
  * A Singleton class defines the `getInstance` method that lets clients access
@@ -94,11 +94,11 @@ export class GradidoNodeProcess {
   public async restart() {
     const release = await this.restartMutex.acquire()
     try {
-    if (this.proc) {
-      await this.exit()
-      this.exitCalled = false
-      this.start()
-    }
+      if (this.proc) {
+        await this.exit()
+        this.exitCalled = false
+        this.start()
+      }
     } finally {
       release()
     }
@@ -111,8 +111,15 @@ export class GradidoNodeProcess {
   public async exit(): Promise<void> {
     this.exitCalled = true
     if (this.proc) {
-      if (this.lastStarted && Date.now() - this.lastStarted.getTime() < GRADIDO_NODE_MIN_RUNTIME_BEFORE_EXIT_MILLISECONDS) {
-        await delay(GRADIDO_NODE_MIN_RUNTIME_BEFORE_EXIT_MILLISECONDS - Date.now() - this.lastStarted.getTime())
+      if (
+        this.lastStarted &&
+        Date.now() - this.lastStarted.getTime() < GRADIDO_NODE_MIN_RUNTIME_BEFORE_EXIT_MILLISECONDS
+      ) {
+        await delay(
+          GRADIDO_NODE_MIN_RUNTIME_BEFORE_EXIT_MILLISECONDS -
+            Date.now() -
+            this.lastStarted.getTime(),
+        )
       }
       this.proc.kill('SIGTERM')
       const timeout = setTimeout(() => {

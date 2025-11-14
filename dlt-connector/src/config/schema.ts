@@ -99,10 +99,7 @@ export const configSchema = v.object({
     ),
     '4000',
   ),
-  MYSQL_HOST: v.optional(
-    v.string('The host of the database'),
-    'localhost',
-  ),
+  MYSQL_HOST: v.optional(v.string('The host of the database'), 'localhost'),
   MYSQL_PORT: v.optional(
     v.pipe(
       v.string('The port of the database'),
@@ -136,8 +133,5 @@ export const configSchema = v.object({
     ),
     '',
   ),
-  MYSQL_DATABASE: v.optional(
-    v.string('The name of the database'),
-    'gradido_community',
-  ),
+  MYSQL_DATABASE: v.optional(v.string('The name of the database'), 'gradido_community'),
 })

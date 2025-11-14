@@ -1,8 +1,8 @@
-import { bootstrap } from './bootstrap'
-import { onShutdown } from '../../../../shared/src/helper/onShutdown'
-import { syncDbWithBlockchainContext } from './interaction/syncDbWithBlockchain/syncDbWithBlockchain.context'
-import { exportAllCommunities } from './binaryExport'
 import { Filter } from 'gradido-blockchain-js'
+import { onShutdown } from '../../../../shared/src/helper/onShutdown'
+import { exportAllCommunities } from './binaryExport'
+import { bootstrap } from './bootstrap'
+import { syncDbWithBlockchainContext } from './interaction/syncDbWithBlockchain/syncDbWithBlockchain.context'
 
 const BATCH_SIZE = 100
 
@@ -11,11 +11,11 @@ async function main() {
   const context = await bootstrap()
   onShutdown(async (reason, error) => {
     context.logger.info(`shutdown reason: ${reason}`)
-    if(error) {
+    if (error) {
       context.logger.error(error)
     }
   })
-  
+
   // synchronize to in memory blockchain
   await syncDbWithBlockchainContext(context, BATCH_SIZE)
 

@@ -29,10 +29,14 @@ export const dateSchema = v.pipe(
 )
 
 export const booleanSchema = v.pipe(
-  v.union([v.boolean('expect boolean type'), v.number('expect boolean number type'), v.string('expect boolean string type')]),
+  v.union([
+    v.boolean('expect boolean type'),
+    v.number('expect boolean number type'),
+    v.string('expect boolean string type'),
+  ]),
   v.transform<boolean | number | string, boolean>((input) => {
     if (typeof input === 'number') {
-      return input != 0
+      return input !== 0
     } else if (typeof input === 'string') {
       return input === 'true'
     }

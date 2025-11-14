@@ -1,17 +1,15 @@
+import { heapStats } from 'bun:jsc'
 import { drizzle, MySql2Database } from 'drizzle-orm/mysql2'
-import mysql from 'mysql2/promise'
 import { Filter, Profiler, SearchDirection_ASC } from 'gradido-blockchain-js'
 import { getLogger, Logger } from 'log4js'
-
-import { Uuidv4 } from '../../schemas/typeGuard.schema'
-
-import { KeyPairCacheManager } from '../../cache/KeyPairCacheManager'
+import mysql from 'mysql2/promise'
 import { loadConfig } from '../../bootstrap/init'
+import { KeyPairCacheManager } from '../../cache/KeyPairCacheManager'
 import { CONFIG } from '../../config'
 import { LOG4JS_BASE_CATEGORY } from '../../config/const'
-import { heapStats } from 'bun:jsc'
-import { CommunityContext } from './valibot.schema'
+import { Uuidv4 } from '../../schemas/typeGuard.schema'
 import { bytesToMbyte } from './utils'
+import { CommunityContext } from './valibot.schema'
 
 export class Context {
   public logger: Logger
@@ -36,12 +34,12 @@ export class Context {
       user: CONFIG.MYSQL_USER,
       password: CONFIG.MYSQL_PASSWORD,
       database: CONFIG.MYSQL_DATABASE,
-      port: CONFIG.MYSQL_PORT
+      port: CONFIG.MYSQL_PORT,
     })
     return new Context(
       getLogger(`${LOG4JS_BASE_CATEGORY}.migrations.db-v2.7.0_to_blockchain-v3.5`),
-      drizzle({ client: connection }), 
-      KeyPairCacheManager.getInstance()
+      drizzle({ client: connection }),
+      KeyPairCacheManager.getInstance(),
     )
   }
 
@@ -57,18 +55,18 @@ export class Context {
     this.logger.info(`${this.timeUsed.string()} for synchronizing to blockchain`)
     const runtimeStats = heapStats()
     this.logger.info(
-      `Memory Statistics: heap size: ${bytesToMbyte(runtimeStats.heapSize)} MByte, heap capacity: ${bytesToMbyte(runtimeStats.heapCapacity)} MByte, extra memory: ${bytesToMbyte(runtimeStats.extraMemorySize)} MByte`
+      `Memory Statistics: heap size: ${bytesToMbyte(runtimeStats.heapSize)} MByte, heap capacity: ${bytesToMbyte(runtimeStats.heapCapacity)} MByte, extra memory: ${bytesToMbyte(runtimeStats.extraMemorySize)} MByte`,
     )
   }
 
   logBlogchain(communityUuid: Uuidv4) {
     const communityContext = this.getCommunityContextByUuid(communityUuid)
-    const f = new Filter()  
+    const f = new Filter()
     f.pagination.size = 0
     f.searchDirection = SearchDirection_ASC
-      
+
     const transactions = communityContext.blockchain.findAll(f)
-    for(let i = 0; i < transactions.size(); i++) {
+    for (let i = 0; i < transactions.size(); i++) {
       const transaction = transactions.get(i)
       const confirmedTransaction = transaction?.getConfirmedTransaction()
       this.logger.info(confirmedTransaction?.toJson(true))
@@ -76,5 +74,4 @@ export class Context {
   }
 
   // TODO: move into utils
-  
 }

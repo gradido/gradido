@@ -32,7 +32,7 @@ import { UserKeyPairRole } from './UserKeyPair.role'
  */
 export async function ResolveKeyPair(input: KeyPairIdentifierLogic): Promise<KeyPairEd25519> {
   const cache = KeyPairCacheManager.getInstance()
-  
+
   return await cache.getKeyPair(
     input.getKey(),
     // function is called from cache manager, if key isn't currently cached

@@ -66,7 +66,10 @@ export async function exportCommunities(homeFolder: string, client: BackendClien
   logger.info(`exported ${communitiesForDltNodeServer.length} communities to ${communitiesPath}`)
 }
 
-export function checkCommunityAvailable(communityTopicIds: Set<HieroId>, homeFolder: string): boolean {
+export function checkCommunityAvailable(
+  communityTopicIds: Set<HieroId>,
+  homeFolder: string,
+): boolean {
   const communitiesPath = path.join(homeFolder, 'communities.json')
   if (!checkFileExist(communitiesPath)) {
     return false
@@ -81,6 +84,8 @@ export function checkCommunityAvailable(communityTopicIds: Set<HieroId>, homeFol
       }
     }
   }
-  logger.debug(`community not found for topic ids: ${communityTopicIds}, communities: ${JSON.stringify(communities, null, 2)}`)
+  logger.debug(
+    `community not found for topic ids: ${communityTopicIds}, communities: ${JSON.stringify(communities, null, 2)}`,
+  )
   return false
 }

@@ -39,7 +39,7 @@ export async function checkHomeCommunity(
   // wait for backend server
   await isPortOpenRetry(backend.url)
   // ask backend for home community
-  let homeCommunity = await backend.getHomeCommunityDraft()  
+  let homeCommunity = await backend.getHomeCommunityDraft()
   // on missing topicId, create one
   if (!homeCommunity.hieroTopicId) {
     const topicId = await hiero.createTopic(homeCommunity.name)
