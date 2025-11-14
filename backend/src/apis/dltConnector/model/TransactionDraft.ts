@@ -91,11 +91,13 @@ export class TransactionDraft {
     if (!senderUserTopic) {
       throw new Error(`missing topicId for community ${sendingUser.community.id}`)
     }
+    const createdAtOnlySeconds = transactionLink.createdAt
+    createdAtOnlySeconds.setMilliseconds(0)
     const draft = new TransactionDraft()
     draft.user = new AccountIdentifier(senderUserTopic, new CommunityAccountIdentifier(sendingUser.gradidoID))
     draft.linkedUser = new AccountIdentifier(senderUserTopic, transactionLink.code)
     draft.type = TransactionType.GRADIDO_DEFERRED_TRANSFER
-    draft.createdAt = transactionLink.createdAt.toISOString()
+    draft.createdAt = createdAtOnlySeconds.toISOString()
     draft.amount = transactionLink.amount.toString()
     draft.memo = transactionLink.memo
     draft.timeoutDuration = CODE_VALID_DAYS_DURATION * 24 * 60 * 60
@@ -117,11 +119,13 @@ export class TransactionDraft {
     if (!recipientUserTopic) {
       throw new Error(`missing topicId for community ${recipientUser.community.id}`)
     }
+    const createdAtOnlySeconds = createdAt
+    createdAtOnlySeconds.setMilliseconds(0)
     const draft = new TransactionDraft()
     draft.user = new AccountIdentifier(senderUserTopic, transactionLink.code)
     draft.linkedUser = new AccountIdentifier(recipientUserTopic, new CommunityAccountIdentifier(recipientUser.gradidoID))
     draft.type = TransactionType.GRADIDO_REDEEM_DEFERRED_TRANSFER
-    draft.createdAt = createdAt.toISOString()
+    draft.createdAt = createdAtOnlySeconds.toISOString()
     draft.amount = amount
     return draft
   }

@@ -3,7 +3,7 @@ import { LOG4JS_BASE_CATEGORY } from '../../config/const'
 import { getLogger } from 'log4js'
 import { MySql2Database } from 'drizzle-orm/mysql2'
 import { communitiesTable, transactionLinksTable, transactionsTable, usersTable } from './drizzle.schema'
-import { asc, sql, eq, isNotNull } from 'drizzle-orm'
+import { asc, sql, eq, isNotNull, inArray } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/mysql-core'
 import { GradidoUnit } from 'gradido-blockchain-js'
 import { 
@@ -70,6 +70,7 @@ export async function loadTransactions(db: MySql2Database, offset: number, count
     transactionLink: transactionLinksTable,
   })
   .from(transactionsTable)
+  .where(inArray(transactionsTable.typeId, [TransactionTypeId.CREATION, TransactionTypeId.RECEIVE]))
   .leftJoin(usersTable, eq(transactionsTable.userId, usersTable.id))
   .leftJoin(linkedUsers, eq(transactionsTable.linkedUserId, linkedUsers.id))
   .leftJoin(transactionLinksTable, eq(transactionsTable.transactionLinkId, transactionLinksTable.id))
@@ -102,6 +103,7 @@ export async function loadTransactions(db: MySql2Database, offset: number, count
       })
     } catch (e) {
       if (e instanceof v.ValiError) {
+        logger.error(`table row: ${JSON.stringify(row, null, 2)}`)
         logger.error(v.flatten(e.issues))
       }
       throw e

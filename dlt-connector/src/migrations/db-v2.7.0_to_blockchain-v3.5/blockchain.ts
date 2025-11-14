@@ -26,6 +26,7 @@ export const defaultHieroAccount = new HieroAccountId(0, 0, 2)
 
 function addToBlockchain(builder: GradidoTransactionBuilder, blockchain: InMemoryBlockchain, createdAtTimestamp: Timestamp): boolean {
   const transaction = builder.build()
+  // TOD: use actual transaction id if exist in dlt_transactions table
   const transactionId = new HieroTransactionId(createdAtTimestamp, defaultHieroAccount)
   const interactionSerialize = new InteractionSerialize(transactionId)
 
