@@ -18,7 +18,7 @@
     "lint:fix": "biome check --error-on-warnings . --write"
   },
   "dependencies": {
-    "gradido-blockchain-js": "git+https://github.com/gradido/gradido-blockchain-js"
+    "gradido-blockchain-js": "git+https://github.com/gradido/gradido-blockchain-js#f265dbb1780a912cf8b0418dfe3eaf5cdc5b51cf"
   },
   "devDependencies": {
     "@biomejs/biome": "2.0.0",
