@@ -87,7 +87,7 @@ function prepareFolder(communityContext: CommunityContext): string {
   )
   const binFilePath = path.join(binFileFolder, 'blk00000001.dat')
   // make sure we work with a clean folder, rm beforehand with all content
-  fs.rmSync(binFileFolder, { recursive: true })
+  fs.rmSync(binFileFolder, { force: true, recursive: true })
   fs.mkdirSync(binFileFolder, { recursive: true })
   return binFilePath
 }
