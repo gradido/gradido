@@ -46,7 +46,7 @@ async function bootstrapCommunities(context: Context): Promise<Map<string, Commu
     if (communityDb.userMinCreatedAt && communityDb.userMinCreatedAt < communityDb.creationDate) {
       // create community root transaction 1 minute before first user
       creationDate = new Date(new Date(communityDb.userMinCreatedAt).getTime() - 1000 * 60)
-    }    
+    }
     // community from db to community format the dlt connector normally uses
     const community = communityDbToCommunity(topicId, communityDb, creationDate)
     await addCommunityRootTransaction(blockchain, community)
