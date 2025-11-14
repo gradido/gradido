@@ -2,6 +2,7 @@ import {
   Contribution as DbContribution,
   Transaction as DbTransaction,
   User as DbUser,
+  DltTransaction as DbDltTransaction,
   UserContact,
 } from 'database'
 import { Decimal } from 'decimal.js-light'
@@ -59,7 +60,7 @@ import { getOpenCreations, getUserCreation, validateContribution } from './util/
 import { extractGraphQLFields } from './util/extractGraphQLFields'
 import { findContributions } from './util/findContributions'
 import { getLastTransaction } from 'database'
-import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
+import { contributionTransaction } from '@/apis/dltConnector'
 
 const db = AppDatabase.getInstance()
 const createLogger = () => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.ContributionResolver`)
@@ -435,12 +436,11 @@ export class ContributionResolver {
   ): Promise<boolean> {
     const logger = createLogger()
     logger.addContext('contribution', id)
-
     // acquire lock
     const releaseLock = await TRANSACTIONS_LOCK.acquire()
     try {
       const clientTimezoneOffset = getClientTimezoneOffset(context)
-      const contribution = await DbContribution.findOne({ where: { id } })
+      const contribution = await DbContribution.findOne({ where: { id }, relations: {user: {emailContact: true}} })
       if (!contribution) {
         throw new LogError('Contribution not found', id)
       }
@@ -450,18 +450,17 @@ export class ContributionResolver {
       if (contribution.contributionStatus === 'DENIED') {
         throw new LogError('Contribution already denied', id)
       }
+      
       const moderatorUser = getUser(context)
       if (moderatorUser.id === contribution.userId) {
         throw new LogError('Moderator can not confirm own contribution')
       }
-      const user = await DbUser.findOneOrFail({
-        where: { id: contribution.userId },
-        withDeleted: true,
-        relations: ['emailContact'],
-      })
+      const user = contribution.user
       if (user.deletedAt) {
         throw new LogError('Can not confirm contribution since the user was deleted')
       }
+      const receivedCallDate = new Date()
+      const dltTransactionPromise = contributionTransaction(contribution, moderatorUser, receivedCallDate)
       const creations = await getUserCreation(contribution.userId, clientTimezoneOffset, false)
       validateContribution(
         creations,
@@ -469,12 +468,10 @@ export class ContributionResolver {
         contribution.contributionDate,
         clientTimezoneOffset,
       )
-
-      const receivedCallDate = new Date()
+      
       const queryRunner = db.getDataSource().createQueryRunner()
       await queryRunner.connect()
       await queryRunner.startTransaction('REPEATABLE READ') // 'READ COMMITTED')
-
       const lastTransaction = await getLastTransaction(contribution.userId)
       logger.info('lastTransaction ID', lastTransaction ? lastTransaction.id : 'undefined')
 
@@ -491,7 +488,7 @@ export class ContributionResolver {
         }
         newBalance = newBalance.add(contribution.amount.toString())
 
-        const transaction = new DbTransaction()
+        let transaction = new DbTransaction()
         transaction.typeId = TransactionTypeId.CREATION
         transaction.memo = contribution.memo
         transaction.userId = contribution.userId
@@ -509,7 +506,7 @@ export class ContributionResolver {
         transaction.balanceDate = receivedCallDate
         transaction.decay = decay ? decay.decay : new Decimal(0)
         transaction.decayStart = decay ? decay.start : null
-        await queryRunner.manager.insert(DbTransaction, transaction)
+        transaction = await queryRunner.manager.save(DbTransaction, transaction)
 
         contribution.confirmedAt = receivedCallDate
         contribution.confirmedBy = moderatorUser.id
@@ -518,10 +515,7 @@ export class ContributionResolver {
         await queryRunner.manager.update(DbContribution, { id: contribution.id }, contribution)
 
         await queryRunner.commitTransaction()
-
-        // trigger to send transaction via dlt-connector
-        await sendTransactionsToDltConnector()
-
+        
         logger.info('creation commited successfuly.')
         await sendContributionConfirmedEmail({
           firstName: user.firstName,
@@ -537,6 +531,17 @@ export class ContributionResolver {
             contribution.createdAt,
           ),
         })
+
+        // update transaction id in dlt transaction tables
+        // wait for finishing transaction by dlt-connector/hiero
+        const dltStartTime = new Date()
+        const dltTransaction = await dltTransactionPromise
+        if(dltTransaction) {
+          dltTransaction.transactionId = transaction.id
+          await dltTransaction.save()
+        }
+        const dltEndTime = new Date()
+        logger.debug(`dlt-connector contribution finished in ${dltEndTime.getTime() - dltStartTime.getTime()} ms`)
       } catch (e) {
         await queryRunner.rollbackTransaction()
         throw new LogError('Creation was not successful', e)

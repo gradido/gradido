@@ -2,7 +2,9 @@
 /.env
 /.env.bak
 /build/
+/locales/
 package-json.lock
 coverage
 # emacs
 *~
+gradido_node

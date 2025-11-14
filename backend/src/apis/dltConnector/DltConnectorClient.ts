@@ -1,35 +1,11 @@
-import { Transaction as DbTransaction } from 'database'
-import { GraphQLClient, gql } from 'graphql-request'
-
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { TransactionTypeId } from 'core'
-import { LogError } from '@/server/LogError'
 import { getLogger } from 'log4js'
 
-import { TransactionResult } from './model/TransactionResult'
-import { UserIdentifier } from './model/UserIdentifier'
+import { TransactionDraft } from './model/TransactionDraft'
+import { IRestResponse, RestClient } from 'typed-rest-client'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.apis.dltConnector`)
-
-const sendTransaction = gql`
-  mutation ($input: TransactionInput!) {
-    sendTransaction(data: $input) {
-      dltTransactionIdHex
-    }
-  }
-`
-
-// from ChatGPT
-function getTransactionTypeString(id: TransactionTypeId): string {
-  const key = Object.keys(TransactionTypeId).find(
-    (key) => TransactionTypeId[key as keyof typeof TransactionTypeId] === id,
-  )
-  if (key === undefined) {
-    throw new LogError('invalid transaction type id: ' + id.toString())
-  }
-  return key
-}
 
 // Source: https://refactoring.guru/design-patterns/singleton/typescript/example
 // and ../federation/client/FederationClientFactory.ts
@@ -40,7 +16,7 @@ function getTransactionTypeString(id: TransactionTypeId): string {
 
 export class DltConnectorClient {
   private static instance: DltConnectorClient
-  client: GraphQLClient
+  client: RestClient
   /**
    * The Singleton's constructor should always be private to prevent direct
    * construction calls with the `new` operator.
@@ -64,13 +40,12 @@ export class DltConnectorClient {
     }
     if (!DltConnectorClient.instance.client) {
       try {
-        DltConnectorClient.instance.client = new GraphQLClient(CONFIG.DLT_CONNECTOR_URL, {
-          method: 'GET',
-          jsonSerializer: {
-            parse: JSON.parse,
-            stringify: JSON.stringify,
-          },
-        })
+        DltConnectorClient.instance.client = new RestClient(
+          'gradido-backend', 
+          CONFIG.DLT_CONNECTOR_URL, 
+          undefined, 
+          { keepAlive: true }
+        )
       } catch (e) {
         logger.error("couldn't connect to dlt-connector: ", e)
         return
@@ -80,47 +55,14 @@ export class DltConnectorClient {
   }
 
   /**
-   * transmit transaction via dlt-connector to iota
-   * and update dltTransactionId of transaction in db with iota message id
+   * transmit transaction via dlt-connector to hiero
+   * and update dltTransactionId of transaction in db with hiero transaction id
    */
-  public async transmitTransaction(transaction: DbTransaction): Promise<boolean> {
-    const typeString = getTransactionTypeString(transaction.typeId)
-    // no negative values in dlt connector, gradido concept don't use negative values so the code don't use it too
-    const amountString = transaction.amount.abs().toString()
-    const params = {
-      input: {
-        user: {
-          uuid: transaction.userGradidoID,
-          communityUuid: transaction.userCommunityUuid,
-        } as UserIdentifier,
-        linkedUser: {
-          uuid: transaction.linkedUserGradidoID,
-          communityUuid: transaction.linkedUserCommunityUuid,
-        } as UserIdentifier,
-        amount: amountString,
-        type: typeString,
-        createdAt: transaction.balanceDate.toISOString(),
-        backendTransactionId: transaction.id,
-        targetDate: transaction.creationDate?.toISOString(),
-      },
-    }
-    try {
-      // TODO: add account nr for user after they have also more than one account in backend
-      logger.debug('transmit transaction to dlt connector', params)
-      const {
-        data: {
-          sendTransaction: { error, succeed },
-        },
-      } = await this.client.rawRequest<{ sendTransaction: TransactionResult }>(
-        sendTransaction,
-        params,
-      )
-      if (error) {
-        throw new Error(error.message)
-      }
-      return succeed
-    } catch (e) {
-      throw new LogError('Error send sending transaction to dlt-connector: ', e)
-    }
+  public async sendTransaction(input: TransactionDraft): Promise<IRestResponse<{ transactionId: string }>> {
+    logger.debug('transmit transaction or user to dlt connector', input)
+    return await this.client.create<{ transactionId: string }>(
+      '/sendTransaction', 
+      input
+    )
   }
 }

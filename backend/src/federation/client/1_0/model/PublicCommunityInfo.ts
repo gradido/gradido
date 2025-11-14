@@ -4,4 +4,5 @@ export interface PublicCommunityInfo {
   creationDate: Date
   publicKey: string
   publicJwtKey: string
+  hieroTopicId: string | null
 }
