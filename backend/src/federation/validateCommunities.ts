@@ -2,7 +2,6 @@ import {
   Community as DbCommunity,
   FederatedCommunity as DbFederatedCommunity,
   getHomeCommunity,
-  getReachableCommunities,
 } from 'database'
 import { IsNull } from 'typeorm'
 
@@ -16,9 +15,6 @@ import { getLogger } from 'log4js'
 import { startCommunityAuthentication } from './authenticateCommunities'
 import { PublicCommunityInfoLoggingView } from './client/1_0/logging/PublicCommunityInfoLogging.view'
 import { ApiVersionType } from 'core'
-import { CONFIG } from '@/config'
-import * as path from 'node:path'
-import * as fs from 'node:fs'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.federation.validateCommunities`)
 
@@ -145,12 +141,4 @@ async function writeForeignCommunity(
     com.hieroTopicId = pubInfo.hieroTopicId
     await DbCommunity.save(com)
   }
-}
-
-// prototype, later add api call to gradido dlt node server for adding/updating communities
-type CommunityForDltNodeServer = {
-  communityId: string
-  hieroTopicId: string
-  alias: string
-  folder: string
 }
