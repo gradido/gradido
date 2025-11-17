@@ -42,7 +42,6 @@ import {
 import { UpdateUnconfirmedContributionContext } from '@/interactions/updateUnconfirmedContribution/UpdateUnconfirmedContribution.context'
 import { LogError } from '@/server/LogError'
 import { Context, getClientTimezoneOffset, getUser } from '@/server/context'
-import { TRANSACTIONS_LOCK } from 'database'
 import { fullName } from 'core'
 import { calculateDecay, Decay } from 'shared'
 
@@ -61,7 +60,7 @@ import { findContributions } from './util/findContributions'
 import { getLastTransaction } from 'database'
 import { sendTransactionsToDltConnector } from './util/sendTransactionsToDltConnector'
 
-const db = AppDatabase.getInstance()
+const db: AppDatabase = AppDatabase.getInstance()
 const createLogger = () => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.ContributionResolver`)
 
 @Resolver(() => Contribution)
@@ -437,7 +436,9 @@ export class ContributionResolver {
     logger.addContext('contribution', id)
 
     // acquire lock
-    const releaseLock = await TRANSACTIONS_LOCK.acquire()
+    console.log('confirmContribution: vor acquireLock')
+    const releaseLock = await db.TransactionsLock().acquire()
+    console.log('confirmContribution: nach acquireLock')
     try {
       const clientTimezoneOffset = getClientTimezoneOffset(context)
       const contribution = await DbContribution.findOne({ where: { id } })

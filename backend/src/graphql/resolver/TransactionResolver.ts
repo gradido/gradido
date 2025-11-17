@@ -32,7 +32,6 @@ import { communityUser } from '@/util/communityUser'
 import { calculateBalance } from '@/util/validate'
 import { virtualDecayTransaction, virtualLinkTransaction } from '@/util/virtualTransactions'
 import { fullName } from 'core'
-import { TRANSACTIONS_LOCK } from 'database'
 
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { getLastTransaction } from 'database'
@@ -56,7 +55,7 @@ export const executeTransaction = async (
   transactionLink?: dbTransactionLink | null,
 ): Promise<boolean> => {
   // acquire lock
-  const releaseLock = await TRANSACTIONS_LOCK.acquire()
+  const releaseLock = await db.TransactionsLock().acquire()
 
   try {
     logger.info('executeTransaction', amount, memo, sender, recipient)

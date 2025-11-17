@@ -24,7 +24,8 @@ export const cleanDB = async () => {
   // this only works as long we do not have foreign key constraints
   for (const entity of entities) {
     if (entity.name !== 'Migration') {
-      await resetEntity(entity)
+      // await resetEntity(entity)
+      await clearEntity(entity)
     }
   }
 }
@@ -44,6 +45,10 @@ export const resetEntity = async (entity: any) => {
     const ids = items.map((e: any) => e.id)
     await entity.delete(ids)
   }
+}
+
+export const clearEntity = async (entity: any) => {
+  await entity.clear()
 }
 
 export const resetToken = () => {

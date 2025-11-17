@@ -13,7 +13,6 @@ import { PendingTransactionState } from 'shared'
 
 import { LogError } from '@/server/LogError'
 
-import { TRANSACTIONS_LOCK } from 'database'
 import { getLastTransaction } from '@/graphql/util/getLastTransaction'
 import Decimal from 'decimal.js-light'
 import { getLogger } from 'log4js'
@@ -30,7 +29,7 @@ export async function settlePendingReceiveTransaction(
 ): Promise<boolean> {
   // TODO: synchronisation with TRANSACTION_LOCK of backend-modul necessary!!!
   // acquire lock
-  const releaseLock = await TRANSACTIONS_LOCK.acquire()
+  const releaseLock = await db.TransactionsLock().acquire()
   const queryRunner = db.getDataSource().createQueryRunner()
   await queryRunner.connect()
   await queryRunner.startTransaction('REPEATABLE READ')

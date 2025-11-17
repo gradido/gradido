@@ -32,7 +32,7 @@ export const createServer = async (
 ): Promise<ServerDef> => {
   // open mysql connection
   const db = AppDatabase.getInstance()
-  await db.init()
+  await db.init('federation')
 
   // Express Server
   const app = express()

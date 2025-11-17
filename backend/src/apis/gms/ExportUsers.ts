@@ -21,7 +21,7 @@ async function main() {
   initLogging()
   // open mysql connection
   const con = AppDatabase.getInstance()
-  await con.init()
+  await con.init('backend')
 
   const homeCom = await getHomeCommunity()
   if (!homeCom) {

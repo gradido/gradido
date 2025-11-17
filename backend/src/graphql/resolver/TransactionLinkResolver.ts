@@ -35,7 +35,6 @@ import { LogError } from '@/server/LogError'
 import { Context, getClientTimezoneOffset, getUser } from '@/server/context'
 import { calculateBalance } from '@/util/validate'
 import { fullName } from 'core'
-import { TRANSACTION_LINK_LOCK, TRANSACTIONS_LOCK } from 'database'
 import { calculateDecay, compoundInterest, decayFormula, decode, DisburseJwtPayloadType, encode, encryptAndSign, EncryptedJWEJwtPayloadType, RedeemJwtPayloadType, verify } from 'shared'
 
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
@@ -204,7 +203,7 @@ export class TransactionLinkResolver {
     const user = getUser(context)
     if (code.match(/^CL-/)) {
       // acquire lock
-      const releaseLock = await TRANSACTIONS_LOCK.acquire()
+      const releaseLock = await db.TransactionsLock().acquire()
       try {
         methodLogger.info('redeem contribution link...')
         const now = new Date()
@@ -349,7 +348,7 @@ export class TransactionLinkResolver {
       return true
     } else {
       const now = new Date()
-      const releaseLinkLock = await TRANSACTION_LINK_LOCK.acquire()
+      const releaseLinkLock = await db.TransactionLinkLock().acquire()
       try {
         const transactionLink = await DbTransactionLink.findOne({ where: { code } })
         if (!transactionLink) {

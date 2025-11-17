@@ -65,7 +65,7 @@ async function main() {
   initLogging()
   // open mysql connection
   const con = AppDatabase.getInstance()
-  await con.init()
+  await con.init('backend')
 
   let userCount = 0
   let page = 0

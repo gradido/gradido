@@ -5,12 +5,15 @@ import { getLogger } from 'log4js'
 import { latestDbVersion } from '.'
 import { CONFIG } from './config'
 import { LOG4JS_BASE_CATEGORY_NAME } from './config/const'
+import { Semaphore } from './util/Semaphore'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.AppDatabase`)
 
 export class AppDatabase {
   private static instance: AppDatabase
   private dataSource: DBDataSource | undefined
+  private TRANSACTIONS_LOCK: Semaphore | undefined
+  private TRANSACTION_LINK_LOCK: Semaphore | undefined
 
   /**
    * The Singleton's constructor should always be private to prevent direct
@@ -43,7 +46,7 @@ export class AppDatabase {
   }
 
   // create database connection, initialize with automatic retry and check for correct database version
-  public async init(): Promise<void> {
+  public async init(owner: string): Promise<void> {
     if (this.dataSource?.isInitialized) {
       return
     }
@@ -88,10 +91,28 @@ export class AppDatabase {
     }
     // check for correct database version
     await this.checkDBVersion()
+    this.TRANSACTIONS_LOCK = await Semaphore.create('TRANSACTIONS_LOCK', 1, owner)
+    this.TRANSACTION_LINK_LOCK = await Semaphore.create('TRANSACTION_LINK_LOCK', 1, owner)
   }
 
   public async destroy(): Promise<void> {
     await this.dataSource?.destroy()
+  }
+
+  public TransactionsLock(): Semaphore {
+    console.log('TransactionsLock: this.TRANSACTIONS_LOCK', this.TRANSACTIONS_LOCK)
+    if (!this.TRANSACTIONS_LOCK) {
+      throw new Error('Transactions lock not initialized')
+    }
+    return this.TRANSACTIONS_LOCK
+  }
+
+  public TransactionLinkLock(): Semaphore {
+    console.log('TransactionLinkLock: this.TRANSACTION_LINK_LOCK', this.TRANSACTION_LINK_LOCK)
+    if (!this.TRANSACTION_LINK_LOCK) {
+      throw new Error('Transaction link lock not initialized')
+    }
+    return this.TRANSACTION_LINK_LOCK
   }
   
   // ######################################

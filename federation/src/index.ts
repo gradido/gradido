@@ -13,7 +13,11 @@ async function main() {
   // init logger
   const log4jsConfigFileName = CONFIG.LOG4JS_CONFIG_PLACEHOLDER.replace('%v', CONFIG.FEDERATION_API)
   initLogger(
-    [defaultCategory('federation', CONFIG.LOG_LEVEL), defaultCategory('apollo', CONFIG.LOG_LEVEL)],
+    [defaultCategory('federation', CONFIG.LOG_LEVEL), 
+      defaultCategory('database', CONFIG.LOG_LEVEL), 
+      defaultCategory('core', CONFIG.LOG_LEVEL), 
+      defaultCategory('shared', CONFIG.LOG_LEVEL), 
+      defaultCategory('apollo', CONFIG.LOG_LEVEL)],
     `${CONFIG.LOG_FILES_BASE_PATH}_${CONFIG.FEDERATION_API}`,
     log4jsConfigFileName,
   )

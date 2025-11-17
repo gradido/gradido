@@ -21,16 +21,13 @@ export const creationFactory = async (
   const {
     data: { createContribution: contribution },
   } = await mutate({ mutation: createContribution, variables: { ...creation } })
-
   if (creation.confirmed) {
     const user = await findUserByEmail(creation.email) // userContact.user
-
     await mutate({ mutation: login, variables: { email: 'peter@lustig.de', password: 'Aa12345_' } })
     await mutate({ mutation: confirmContribution, variables: { id: contribution.id } })
     const confirmedContribution = await Contribution.findOneOrFail({
       where: { id: contribution.id },
     })
-
     if (creation.moveCreationDate) {
       const transaction = await Transaction.findOneOrFail({
         where: { userId: user.id, creationDate: new Date(creation.contributionDate) },

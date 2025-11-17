@@ -17,10 +17,11 @@ export const userFactory = async (
   const homeCom = await writeHomeCommunityEntry()
   // console.log('call createUser with', JSON.stringify(user, null, 2))
   const response = await mutate({ mutation: createUser, variables: user })
+  console.log('userFactory: response', response)
   if (!response?.data?.createUser) {
     // biome-ignore lint/suspicious/noConsole: will be used in tests where logging is mocked
     // console.log(JSON.stringify(response, null, 2))
-    throw new Error('createUser mutation returned unexpected response')
+    throw new Error('createUser mutation returned unexpected response: error=' + response.errors?.[0].message)
   }
   const {
     data: {

@@ -6,7 +6,7 @@ import { initLogging } from '@/server/logger'
 async function executeKlicktipp(): Promise<boolean> {
   initLogging()
   const connection = AppDatabase.getInstance()
-  await connection.init()
+  await connection.init('backend')
   if (connection.isConnected()) {
     await exportEventDataToKlickTipp()
     await connection.destroy()

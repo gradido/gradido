@@ -37,7 +37,7 @@ export const createServer = async (
   // check for correct database version
   // retry max CONFIG.DB_CONNECT_RETRY_COUNT times, wait CONFIG.DB_CONNECT_RETRY_DELAY ms between tries
   const db = AppDatabase.getInstance()
-  await db.init()
+  await db.init('backend')
 
   // Express Server
   const app = express()

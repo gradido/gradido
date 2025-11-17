@@ -16,7 +16,6 @@ import { LogError } from '@/server/LogError'
 import { getLogger } from 'log4js'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 
-import { TRANSACTIONS_LOCK } from 'database'
 import { getLastTransaction } from '@/graphql/util/getLastTransaction'
 
 const db = AppDatabase.getInstance()
@@ -29,7 +28,7 @@ export async function revertSettledReceiveTransaction(
 ): Promise<boolean> {
   // TODO: synchronisation with TRANSACTION_LOCK of backend-modul necessary!!!
   // acquire lock
-  const releaseLock = await TRANSACTIONS_LOCK.acquire()
+  const releaseLock = await db.TransactionsLock().acquire()
   const queryRunner = db.getDataSource().createQueryRunner()
   await queryRunner.connect()
   await queryRunner.startTransaction('REPEATABLE READ')

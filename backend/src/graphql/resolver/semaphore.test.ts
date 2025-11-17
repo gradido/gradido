@@ -68,6 +68,7 @@ describe('semaphore', () => {
     await userFactory(testEnv, bibiBloxberg)
     await userFactory(testEnv, peterLustig)
     await userFactory(testEnv, bobBaumeister)
+    console.log('users created')
     await creationFactory(testEnv, {
       email: 'bibi@bloxberg.de',
       amount: 1000,
@@ -75,6 +76,7 @@ describe('semaphore', () => {
       contributionDate: nMonthsBefore(new Date()),
       confirmed: true,
     })
+    console.log('bibis contribution created')
     await creationFactory(testEnv, {
       email: 'bob@baumeister.de',
       amount: 1000,
@@ -82,10 +84,12 @@ describe('semaphore', () => {
       contributionDate: nMonthsBefore(new Date()),
       confirmed: true,
     })
+    console.log('bobs contribution created')
     await mutate({
       mutation: login,
       variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
     })
+    console.log('peter logged in')
     const {
       data: { createContributionLink: contributionLink },
     } = await mutate({
@@ -101,11 +105,13 @@ describe('semaphore', () => {
         maxPerCycle: 1,
       },
     })
+    console.log('contribution link created')
     contributionLinkCode = `CL-${contributionLink.code}`
     await mutate({
       mutation: login,
       variables: { email: 'bob@baumeister.de', password: 'Aa12345_' },
     })
+    console.log('bob logged in')
     const {
       data: { createTransactionLink: bobsLink },
     } = await mutate({
@@ -116,6 +122,7 @@ describe('semaphore', () => {
         memo: 'Bobs Link',
       },
     })
+    console.log('bobs transaction-link created')
     const {
       data: { createContribution: bobsContribution },
     } = await mutate({
@@ -126,10 +133,12 @@ describe('semaphore', () => {
         memo: 'Bobs Contribution',
       },
     })
+    console.log('bobs contribution created')
     await mutate({
       mutation: login,
       variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
     })
+    console.log('bibi logged in')
     const {
       data: { createTransactionLink: bibisLink },
     } = await mutate({
@@ -139,6 +148,7 @@ describe('semaphore', () => {
         memo: 'Bibis Link',
       },
     })
+    console.log('bibis transaction-link created')
     const {
       data: { createContribution: bibisContribution },
     } = await mutate({
@@ -149,6 +159,7 @@ describe('semaphore', () => {
         memo: 'Bibis Contribution',
       },
     })
+    console.log('bibis contribution created')
     bobsTransactionLinkCode = bobsLink.code
     bibisTransactionLinkCode = bibisLink.code
     bibisOpenContributionId = bibisContribution.id

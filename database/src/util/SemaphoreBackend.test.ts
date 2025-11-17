@@ -6,7 +6,7 @@ import { Semaphore as DbSemaphore } from '../entity/Semaphore'
 const db = AppDatabase.getInstance()
 
 beforeAll(async () => {
-  await db.init()
+  await db.init('backend-test')
   if(db.getDataSource().isInitialized) {
     console.log('Database is initialized')
     await DbSemaphore.clear()
@@ -17,39 +17,38 @@ afterAll(async () => {
 })
 
 describe('create several backend-semaphores with same key', async () => {
-    it('first one', async () => {
-      const TEST_LOCK = Semaphore.create('TEST_LOCK', 1, 'backend')
+    it('should create a semaphore with TEST_LOCK key', async () => {
+      const TEST_LOCK = await Semaphore.create('TEST_LOCK', 1, 'test-owner');
+      expect(TEST_LOCK).toBeInstanceOf(Semaphore);
+    });
+    it('create first one', async () => {
+      const TEST_LOCK = await Semaphore.create('TEST_LOCK', 1, 'test-backend')
       console.log('TEST_LOCK', TEST_LOCK);
       expect(TEST_LOCK).toMatchObject({
         key: 'TEST_LOCK',
         count: 1,
-      })
+        owner: 'test-backend',
+        tasks: []
+      });
     })
-    it('with one entity in db', async () => {
+    it('with no entity in db', async () => {
       const result = await DbSemaphore.findOneBy({ key: 'TEST_LOCK' })
       console.log('result', result);
-      expect(result).toMatchObject({
-        key: 'TEST_LOCK',
-        count: 1,
-      })
+      expect(result).toBeNull()
     })
-    it('second one', async () => {
-      const TEST_LOCK = Semaphore.create('TEST_LOCK', 1, 'backend')
+    it('create second one', async () => {
+      const TEST_LOCK = await Semaphore.create('TEST_LOCK', 1, 'test-backend')
       expect(TEST_LOCK).toMatchObject({
         key: 'TEST_LOCK',
         count: 1,
+        owner: 'test-backend',
+        tasks: []
       })
     })
-    it('still one entity in db', async () => {
-        const result = await DbSemaphore.findOneBy({ key: 'TEST_LOCK' })
-        expect(result).toMatchObject({
-          key: 'TEST_LOCK',
-          count: 1,
-        })
-      })
-    it('delete own semaphore from db', async () => {
-      const result = await DbSemaphore.delete({ key: 'TEST_LOCK', owner: 'backend' })
-      console.log('own semaphore deleted: result=', result);
+    it('still no entity in db', async () => {
+      const result = await DbSemaphore.findOneBy({ key: 'TEST_LOCK' })
+      console.log('result', result);
+      expect(result).toBeNull()
     })
   })
 
@@ -58,9 +57,18 @@ describe('create several backend-semaphores with same key', async () => {
       await DbSemaphore.clear()
     })
     it('first one acquired', async () => {
-      const TEST_LOCK = Semaphore.create('TEST_LOCK', 1, 'backend')
+      const TEST_LOCK = await Semaphore.create('TEST_LOCK', 1, 'test-backend')
       console.log('TEST_LOCK', TEST_LOCK);
       const releaseLock = await TEST_LOCK.acquire()
+      console.log('releaseLock', releaseLock);
+/*
+      const result = await DbSemaphore.findOneBy({ key: 'TEST_LOCK' })
+      console.log('result', result);
+      expect(result).toMatchObject({
+        key: 'TEST_LOCK',
+        count: 1,
+      })
+*/
       try {
         console.log('first one acquired and processing...time=', new Date().toISOString());
         await new Promise(resolve => setTimeout(resolve, 1000))
@@ -80,8 +88,18 @@ describe('create several backend-semaphores with same key', async () => {
       })
     })
     it('second one acquired', async () => {
-      const TEST_LOCK = Semaphore.create('TEST_LOCK', 1, 'backend')
+      const TEST_LOCK = await Semaphore.create('TEST_LOCK', 1, 'test-backend')
+      console.log('TEST_LOCK', TEST_LOCK);
       const releaseLock = await TEST_LOCK.acquire()
+      console.log('releaseLock', releaseLock);
+/*
+      const result = await DbSemaphore.findOneBy({ key: 'TEST_LOCK' })
+      console.log('result', result);
+      expect(result).toMatchObject({
+        key: 'TEST_LOCK',
+        count: 1,
+      })
+*/
       try {
         console.log('second one acquired and processing...time=', new Date().toISOString());
         await new Promise(resolve => setTimeout(resolve, 1000))

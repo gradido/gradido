@@ -10,13 +10,16 @@ import { getLogger } from 'log4js'
 async function main() {
   // init logger
   initLogger(
-    [defaultCategory(LOG4JS_BASE_CATEGORY_NAME, CONFIG.LOG_LEVEL)],
+    [defaultCategory(LOG4JS_BASE_CATEGORY_NAME, CONFIG.LOG_LEVEL), 
+      defaultCategory('database', CONFIG.LOG_LEVEL), 
+      defaultCategory('core', CONFIG.LOG_LEVEL), 
+      defaultCategory('shared', CONFIG.LOG_LEVEL)],
     CONFIG.LOG_FILES_BASE_PATH,
     CONFIG.LOG4JS_CONFIG,
   )
   const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}`)
   // open mysql connection
-  await AppDatabase.getInstance().init()
+  await AppDatabase.getInstance().init('dht-node')
   logger.debug(`dhtseed set by CONFIG.FEDERATION_DHT_SEED=${CONFIG.FEDERATION_DHT_SEED}`)
   logger.info(
     `starting Federation on ${CONFIG.FEDERATION_DHT_TOPIC} ${

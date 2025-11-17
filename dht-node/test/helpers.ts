@@ -24,7 +24,7 @@ export const cleanDB = async () => {
 
 export const testEnvironment = async () => {
   const appDB = AppDatabase.getInstance()
-  await appDB.init()
+  await appDB.init('dht-node')
   return { con: appDB.getDataSource() }
 }
 
