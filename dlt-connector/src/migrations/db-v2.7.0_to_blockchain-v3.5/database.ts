@@ -104,23 +104,23 @@ export async function loadTransactions(
 
   return result.map((row: any) => {
     // console.log(row)
-    // check for consistent data beforehand
-    const userCreatedAt = new Date(row.user.createdAt)
-    const linkedUserCreatedAd = new Date(row.linkedUser.createdAt)
-    const balanceDate = new Date(row.transaction.balanceDate)
-    if (
-      userCreatedAt.getTime() > balanceDate.getTime() ||
-      linkedUserCreatedAd.getTime() > balanceDate.getTime()
-    ) {
-      logger.error(`table row: `, row)
-      throw new Error('at least one user was created after transaction balance date, logic error!')
-    }
-
-    let amount = GradidoUnit.fromString(row.transaction.amount)
-    if (row.transaction.typeId === TransactionTypeId.SEND) {
-      amount = amount.mul(new GradidoUnit(-1))
-    }
     try {
+      // check for consistent data beforehand
+      const userCreatedAt = new Date(row.user.createdAt)
+      const linkedUserCreatedAd = new Date(row.linkedUser.createdAt)
+      const balanceDate = new Date(row.transaction.balanceDate)
+      if (
+        userCreatedAt.getTime() > balanceDate.getTime() ||
+        linkedUserCreatedAd.getTime() > balanceDate.getTime()
+      ) {
+        logger.error(`table row: `, row)
+        throw new Error('at least one user was created after transaction balance date, logic error!')
+      }
+
+      let amount = GradidoUnit.fromString(row.transaction.amount)
+      if (row.transaction.typeId === TransactionTypeId.SEND) {
+        amount = amount.mul(new GradidoUnit(-1))
+      }
       return v.parse(transactionDbSchema, {
         ...row.transaction,
         transactionLinkCode: row.transactionLink ? row.transactionLink.code : null,
@@ -128,8 +128,8 @@ export async function loadTransactions(
         linkedUser: row.linkedUser,
       })
     } catch (e) {
+      logger.error(`table row: ${JSON.stringify(row, null, 2)}`)
       if (e instanceof v.ValiError) {
-        logger.error(`table row: ${JSON.stringify(row, null, 2)}`)
         logger.error(v.flatten(e.issues))
       }
       throw e
