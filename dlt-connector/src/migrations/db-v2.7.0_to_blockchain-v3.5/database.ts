@@ -114,7 +114,9 @@ export async function loadTransactions(
         linkedUserCreatedAd.getTime() > balanceDate.getTime()
       ) {
         logger.error(`table row: `, row)
-        throw new Error('at least one user was created after transaction balance date, logic error!')
+        throw new Error(
+          'at least one user was created after transaction balance date, logic error!',
+        )
       }
 
       let amount = GradidoUnit.fromString(row.transaction.amount)
