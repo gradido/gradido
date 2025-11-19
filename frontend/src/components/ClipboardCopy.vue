@@ -2,21 +2,6 @@
   <div class="clipboard-copy">
     <div v-if="canCopyLink" class="mb-5">
       <div>
-        <label>{{ $t('gdd_per_link.copy-link') }}</label>
-        <div
-          class="copy-link-card pointer text-center gradido-border-radius p-3"
-          data-test="copyLink"
-          @click="copyLink"
-        >
-          {{ link }}
-          <div>
-            <BButton class="p-4 gradido-border-radius">
-              <IBiLink45deg />
-            </BButton>
-          </div>
-        </div>
-      </div>
-      <div class="mt-5">
         <label>{{ $t('gdd_per_link.copy-link-with-text') }}</label>
         <div
           class="copy-link-card pointer text-center gradido-border-radius p-3"
@@ -25,8 +10,23 @@
         >
           {{ linkText }}
           <div>
-            <BButton class="p-4 gradido-border-radius">
-              <IBiLink45deg />
+            <BButton class="mt-1 p-4 gradido-border-radius">
+              <IBiCopy />
+            </BButton>
+          </div>
+        </div>
+      </div>
+      <div class="mt-5">
+        <label>{{ $t('gdd_per_link.copy-link') }}</label>
+        <div
+          class="copy-link-card pointer text-center gradido-border-radius p-3"
+          data-test="copyLink"
+          @click="copyLink"
+        >
+          {{ link }}
+          <div>
+            <BButton class="mt-1 p-4 gradido-border-radius">
+              <IBiCopy />
             </BButton>
           </div>
         </div>
