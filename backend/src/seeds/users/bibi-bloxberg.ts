@@ -9,4 +9,6 @@ export const bibiBloxberg: UserInterface = {
   emailChecked: true,
   language: 'de',
   publisherId: 1234,
+  // move user createdAt before transaction link
+  createdAt: new Date(2021, 9, 17),
 }

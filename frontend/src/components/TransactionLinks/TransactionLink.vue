@@ -18,17 +18,13 @@
                 <IBiThreeDotsVertical class="link-menu-opener" />
               </template>
 
-              <BDropdownItem v-if="validLink" class="test-copy-link" @click.stop="copyLink">
-                <IBiClipboard />
-                {{ $t('gdd_per_link.copy-link') }}
-              </BDropdownItem>
-              <BDropdownItem
-                v-if="validLink"
-                class="test-copy-text pt-3"
-                @click.stop="copyLinkWithText"
-              >
+              <BDropdownItem v-if="validLink" class="test-copy-text" @click.stop="copyLinkWithText">
                 <IBiClipboardPlus />
                 {{ $t('gdd_per_link.copy-link-with-text') }}
+              </BDropdownItem>
+              <BDropdownItem v-if="validLink" class="test-copy-link pt-3" @click.stop="copyLink">
+                <IBiClipboard />
+                {{ $t('gdd_per_link.copy-link') }}
               </BDropdownItem>
               <BDropdownItem
                 v-if="validLink"
