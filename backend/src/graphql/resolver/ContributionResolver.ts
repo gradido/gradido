@@ -43,7 +43,6 @@ import {
 import { UpdateUnconfirmedContributionContext } from '@/interactions/updateUnconfirmedContribution/UpdateUnconfirmedContribution.context'
 import { LogError } from '@/server/LogError'
 import { Context, getClientTimezoneOffset, getUser } from '@/server/context'
-// import { TRANSACTIONS_LOCK } from 'database'
 import { fullName } from 'core'
 import { calculateDecay, Decay } from 'shared'
 
@@ -61,11 +60,9 @@ import { extractGraphQLFields } from './util/extractGraphQLFields'
 import { findContributions } from './util/findContributions'
 import { getLastTransaction } from 'database'
 import { contributionTransaction } from '@/apis/dltConnector'
-import { Redis } from 'ioredis'
 import { Mutex } from 'redis-semaphore'
 
 const db = AppDatabase.getInstance()
-const redisClient = new Redis()
 const createLogger = () => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.ContributionResolver`)
 
 @Resolver(() => Contribution)
@@ -440,8 +437,7 @@ export class ContributionResolver {
     const logger = createLogger()
     logger.addContext('contribution', id)
     // acquire lock
-    // const releaseLock = await TRANSACTIONS_LOCK.acquire()
-    const mutex = new Mutex(redisClient, 'TRANSACTIONS_LOCK')
+    const mutex = new Mutex (db.getRedisClient(), 'TRANSACTIONS_LOCK')
     await mutex.acquire()
 
     try {

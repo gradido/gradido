@@ -14,13 +14,12 @@ import { LOG4JS_BASE_CATEGORY_NAME } from '../../config/const'
 import { PendingTransactionState } from 'shared'
 // import { LogError } from '@/server/LogError'
 import { calculateSenderBalance } from '../../util/calculateSenderBalance'
-import { TRANSACTIONS_LOCK, getLastTransaction } from 'database'
+// import { TRANSACTIONS_LOCK, getLastTransaction } from 'database'
+import { getLastTransaction } from 'database'
 import { getLogger } from 'log4js'
-import { Redis } from 'ioredis'
 import { Mutex } from 'redis-semaphore'
 
 const db = AppDatabase.getInstance()
-const redisClient = new Redis()
 const logger = getLogger(
   `${LOG4JS_BASE_CATEGORY_NAME}.graphql.logic.settlePendingSenderTransaction`,
 )
@@ -33,7 +32,7 @@ export async function settlePendingSenderTransaction(
   // TODO: synchronisation with TRANSACTION_LOCK of federation-modul necessary!!!
   // acquire lock
   // const releaseLock = await TRANSACTIONS_LOCK.acquire()
-  const mutex = new Mutex(redisClient, 'TRANSACTIONS_LOCK')
+  const mutex = new Mutex(db.getRedisClient(), 'TRANSACTIONS_LOCK')
   await mutex.acquire()
 
   const queryRunner = db.getDataSource().createQueryRunner()

@@ -50,7 +50,6 @@ import { Redis } from 'ioredis'
 import { Mutex } from 'redis-semaphore'
 
 const db = AppDatabase.getInstance()
-const redisClient = new Redis()
 const createLogger = () => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.TransactionResolver`)
 
 export const executeTransaction = async (
@@ -63,7 +62,7 @@ export const executeTransaction = async (
 ): Promise<boolean> => {
   // acquire lock
   // const releaseLock = await TRANSACTIONS_LOCK.acquire()
-  const mutex = new Mutex(redisClient, 'TRANSACTIONS_LOCK')
+  const mutex = new Mutex(db.getRedisClient(), 'TRANSACTIONS_LOCK')
   await mutex.acquire()
 
   const receivedCallDate = new Date()

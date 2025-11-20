@@ -32,8 +32,6 @@ import { listTransactionLinksAdmin } from '@/seeds/graphql/queries'
 import { transactionLinks } from '@/seeds/transactionLink/index'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { peterLustig } from '@/seeds/users/peter-lustig'
-import { TRANSACTIONS_LOCK } from 'database'
-
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { getLogger } from 'config-schema/test/testSetup'
 import { transactionLinkCode } from './TransactionLinkResolver'
@@ -46,8 +44,8 @@ jest.mock('@/password/EncryptorUtils')
 CONFIG.DLT_CONNECTOR = false
 
 // mock semaphore to allow use fake timers
-jest.mock('database/src/util/TRANSACTIONS_LOCK')
-TRANSACTIONS_LOCK.acquire = jest.fn().mockResolvedValue(jest.fn())
+// jest.mock('database/src/util/TRANSACTIONS_LOCK')
+// TRANSACTIONS_LOCK.acquire = jest.fn().mockResolvedValue(jest.fn())
 
 let mutate: ApolloServerTestClient['mutate']
 let query: ApolloServerTestClient['query']

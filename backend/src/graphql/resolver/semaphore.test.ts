@@ -22,7 +22,9 @@ import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { CONFIG } from '@/config'
-import { TRANSACTIONS_LOCK } from 'database'
+// import { TRANSACTIONS_LOCK } from 'database'
+import { Mutex } from 'redis-semaphore'
+import { AppDatabase } from 'database'
 
 jest.mock('@/password/EncryptorUtils')
 
@@ -35,28 +37,34 @@ let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']
   con: DataSource
+  db: AppDatabase
 }
-
+let mutex: Mutex
 beforeAll(async () => {
   testEnv = await testEnvironment()
   mutate = testEnv.mutate
   con = testEnv.con
+  mutex = new Mutex(testEnv.db.getRedisClient(), 'TRANSACTIONS_LOCK')
   await cleanDB()
 })
 
 afterAll(async () => {
   await cleanDB()
   await con.destroy()
+  await testEnv.db.getRedisClient().quit()
 })
 
 type RunOrder = { [key: number]: { start: number, end: number } }
 async function fakeWork(runOrder: RunOrder, index: number) {
-  const releaseLock = await TRANSACTIONS_LOCK.acquire()
+  // const releaseLock = await TRANSACTIONS_LOCK.acquire()
+  await mutex.acquire()
+
   const startDate = new Date()
   await new Promise((resolve) => setTimeout(resolve, Math.random() * 50))
   const endDate = new Date()
   runOrder[index] = { start: startDate.getTime(), end: endDate.getTime() }
-  releaseLock()
+  // releaseLock()
+  await mutex.release()
 }
 
 describe('semaphore', () => {
