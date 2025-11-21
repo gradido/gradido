@@ -20,7 +20,7 @@
     "shared"
   ],
   "scripts": {
-    "release": "bumpp --no-commit --no-push -r",
+    "release": "bbump --no-commit --no-push -r",
     "version": "auto-changelog -p --commit-limit 0 && git add CHANGELOG.md",
     "installAll": "bun run install",
     "docker": "cross-env BUILD_COMMIT=$(git rev-parse HEAD) docker compose -f docker-compose.yml up",
