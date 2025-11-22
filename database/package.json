@@ -33,10 +33,6 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.0.0",
-    "@swc-node/register": "^1.10.10",
-    "@swc/cli": "^0.7.3",
-    "@swc/core": "^1.11.24",
-    "@swc/helpers": "^0.5.17",
     "@types/faker": "^5.5.9",
     "@types/geojson": "^7946.0.13",
     "@types/mysql": "^2.15.27",
