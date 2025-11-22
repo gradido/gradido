@@ -6,7 +6,6 @@ import {
   findPendingCommunityHandshake,
   CommunityHandshakeStateType
 } from '..'
-import { describe, expect, it, beforeEach, beforeAll, afterAll } from 'vitest'
 import { createCommunity, createVerifiedFederatedCommunity } from '../seeds/community'
 import { Ed25519PublicKey } from 'shared'
 import { randomBytes } from 'node:crypto'
