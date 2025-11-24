@@ -1,0 +1,101 @@
+{
+  "emails": {
+    "accountActivation": {
+      "activateAccount": "Konto aktivieren",
+      "emailRegistered": "deine E-Mail-Adresse wurde soeben bei Gradido registriert.",
+      "pleaseClickLink": "Klicke bitte hier, um die Registrierung abzuschließen und dein Gradido-Konto zu aktivieren.",
+      "subject": "E-Mail Überprüfung",
+      "title": "E-Mail Überprüfung"
+    },
+    "accountMultiRegistration": {
+      "contactSupport": "Support kontaktieren",
+      "emailExists": "Es existiert jedoch zu deiner E-Mail-Adresse schon ein Konto.",
+      "emailReused": "deine E-Mail-Adresse wurde soeben erneut benutzt, um bei Gradido ein Konto zu registrieren.",
+      "ifYouAreNotTheOne": "Wenn du nicht versucht hast dich erneut zu registrieren, wende dich bitte an unseren Support:",
+      "onForgottenPasswordClickLink": "Solltest du dein Passwort vergessen haben, klicke bitte hier.",
+      "subject": "Erneuter Registrierungsversuch mit deiner E-Mail",
+      "title": "Erneuter Registrierungsversuch mit deiner E-Mail"
+    },
+    "addedContributionMessage": {
+      "commonGoodContributionMessage": "du hast zu deinem Gemeinwohl-Beitrag „{contributionMemo}“ eine Nachricht von {senderFirstName} {senderLastName} erhalten.",
+      "readMessage": "Nachricht lesen und beantworten",
+      "subject": "Nachricht zu deinem Gemeinwohl-Beitrag",
+      "title": "Nachricht zu deinem Gemeinwohl-Beitrag",
+      "message": "„{message}“",
+      "toSeeAndAnswerMessage": "Um auf die Nachricht zu antworten, gehe in deinem Gradido-Konto ins Menü „Schöpfen“ auf den Tab „Meine Beiträge“."
+    },
+    "contribution": {
+      "toSeeContributionsAndMessages": "Um deine Gemeinwohl-Beiträge und dazugehörige Nachrichten zu sehen, gehe in deinem Gradido-Konto ins Menü „Schöpfen“ auf den Tab „Meine Beiträge“."
+    },
+    "contributionChangedByModerator": {
+      "subject": "Dein Gemeinwohl-Beitrag wurde geändert",
+      "text": "dein Gemeinwohl-Beitrag „{contributionMemo}“ wurde soeben von {senderFirstName} {senderLastName} geändert und lautet jetzt „{contributionMemoUpdated}“",
+      "title": "Dein Gemeinwohl-Beitrag wurde geändert"
+    },
+    "contributionConfirmed": {
+      "commonGoodContributionConfirmed": "dein Gemeinwohl-Beitrag „{contributionMemo}“ wurde soeben von {senderFirstName} {senderLastName} bestätigt. Es wurden deinem Gradido-Konto {amountGDD} GDD gutgeschrieben.",
+      "subject": "Dein Gemeinwohl-Beitrag wurde bestätigt",
+      "title": "Dein Gemeinwohl-Beitrag wurde bestätigt"
+    },
+    "contributionDeleted": {
+      "commonGoodContributionDeleted": "dein Gemeinwohl-Beitrag „{contributionMemo}“ wurde von {senderFirstName} {senderLastName} gelöscht.",
+      "subject": "Dein Gemeinwohl-Beitrag wurde gelöscht",
+      "title": "Dein Gemeinwohl-Beitrag wurde gelöscht"
+    },
+    "contributionDenied": {
+      "commonGoodContributionDenied": "dein Gemeinwohl-Beitrag „{contributionMemo}“ wurde von {senderFirstName} {senderLastName} abgelehnt.",
+      "subject": "Dein Gemeinwohl-Beitrag wurde abgelehnt",
+      "title": "Dein Gemeinwohl-Beitrag wurde abgelehnt"
+    },
+    "footer": {
+      "contactOurSupport": "Bei weiteren Fragen kontaktiere bitte unseren Support.",
+      "imprint": "Impressum",
+      "imprintAddress": "Gradido-Akademie\nInstitut für Wirtschaftsbionik\nPfarrweg 2\n74653 Künzelsau\nDeutschland",
+      "imprintImageAlt": "Gradido-Akademie Logo",
+      "privacyPolicy": "Datenschutzerklärung",
+      "supportEmail": "support@gradido.net"
+    },
+    "general": {
+      "amountGDD": "Betrag: {amountGDD} GDD",
+      "answerNow": "Jetzt antworten",
+      "completeRegistration": "Registrierung abschließen",
+      "contribution": "Gemeinwohl-Beitrag: {contributionMemo}",
+      "contributionDetails": "Beitragsdetails",
+      "detailsYouFindOnLinkToYourAccount": "Details zur Transaktion findest du in deinem Gradido-Konto.",
+      "helloName": "Hallo {firstName} {lastName},",
+      "linkValidity": "Der Link hat eine Gültigkeit von {hours} Stunden.\nSollte die Gültigkeit des Links bereits abgelaufen sein, kannst du dir hier einen neuen Link schicken lassen.",
+      "linkValidityWithMinutes": "Der Link hat eine Gültigkeit von {hours} Stunden und {minutes} Minuten.\nSollte die Gültigkeit des Links bereits abgelaufen sein, kannst du dir hier einen neuen Link schicken lassen.",
+      "message": "Nachricht",
+      "newLink": "Neuer Link",
+      "orCopyLink": "Oder kopiere den Link in dein Browserfenster.",
+      "pleaseDoNotReply": "Bitte antworte nicht auf diese E-Mail.",
+      "requestNewLink": "Neuen gültigen Link anfordern",
+      "reset": "zurücksetzen",
+      "sincerelyYours": "Liebe Grüße",
+      "toAccount": "Zum Konto",
+      "transactionDetails": "Transaktionsdetails",
+      "yourGradidoTeam": "dein Gradido-Team"
+    },
+    "resetPassword": {
+      "pleaseClickLink": "Wenn du es warst, klicke bitte hier.",
+      "subject": "Passwort zurücksetzen",
+      "title": "Passwort zurücksetzen",
+      "youOrSomeoneResetPassword": "du oder jemand anderes, hast für dieses Konto ein Zurücksetzen des Passworts angefordert."
+    },
+    "transactionLinkRedeemed": {
+      "hasRedeemedYourLink": "{senderFirstName} {senderLastName} ({senderEmail}) hat soeben deinen Link eingelöst.",
+      "memo": "Nachricht: {transactionMemo}",
+      "subject": "{senderFirstName} {senderLastName} hat deinen Gradido-Link eingelöst",
+      "title": "{senderFirstName} {senderLastName} hat deinen Gradido-Link eingelöst"
+    },
+    "transactionReceived": {
+      "haveReceivedAmountGDDFrom": "du hast soeben {transactionAmount} GDD erhalten von {senderFirstName} {senderLastName}",
+      "subject": "{senderFirstName} {senderLastName} hat dir {transactionAmount} Gradido gesendet",
+      "replySubject": "Re: {senderFirstName} {senderLastName} hat dir {transactionAmount} Gradido gesendet",
+      "title": "{senderFirstName} {senderLastName} hat dir {transactionAmount} Gradido gesendet"
+    }
+  },
+  "general": {
+    "decimalSeparator": ","
+  }
+}

@@ -1,0 +1,10 @@
+extend ../layout.pug
+
+block content
+  h2= t('emails.contributionConfirmed.title')
+  .text-block
+    include ../includes/salutation.pug
+    p= t('emails.contributionConfirmed.commonGoodContributionConfirmed', { contributionMemo, senderFirstName, senderLastName, amountGDD: contributionAmount })
+  .content
+    include ../includes/contributionDetailsCTA.pug
+    include ../includes/doNotReply.pug

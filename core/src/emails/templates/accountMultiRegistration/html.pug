@@ -1,0 +1,22 @@
+extend ../layout.pug
+
+block content
+  h2= t('emails.accountMultiRegistration.title')
+  .text-block
+    include ../includes/salutation.pug
+    p
+      = t('emails.accountMultiRegistration.emailReused')
+      br
+      = t('emails.accountMultiRegistration.emailExists')
+  .content
+    h2= t('emails.resetPassword.title')
+    div(class="p_content")= t('emails.accountMultiRegistration.onForgottenPasswordClickLink')      
+    a.button-3(href=resendLink) #{t('emails.general.reset')}
+    div(class="p_content")= t('emails.general.orCopyLink')
+
+    a.clink(href=resendLink) #{resendLink}
+
+    h2(style="color: red")= t('emails.accountMultiRegistration.contactSupport')
+    div(class="p_content")= t('emails.accountMultiRegistration.ifYouAreNotTheOne')
+
+    a.clink(href='mailto:' + supportEmail)= supportEmail

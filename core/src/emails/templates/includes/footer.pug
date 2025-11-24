@@ -1,0 +1,77 @@
+footer
+  .w-container(class="footer_01")
+    .socialmedia
+      a.slink(
+        target="_blank"
+        href="https://www.facebook.com/groups/Gradido/"
+        )
+        img.bi-facebook(
+          alt="facebook"
+          loading="lazy"
+          src="cid:facebookicon"
+          )
+      a.slink(
+        target="_blank"
+        href="https://t.me/GradidoGruppe"
+        )
+        img.bi-telegram(
+          alt="Telegram"
+          loading="lazy"
+          src="cid:telegramicon"
+          )
+      a.slink(
+        target="_blank"
+        href="https://twitter.com/gradido"
+        )
+        img.bi-twitter(
+          alt="Twitter"
+          loading="lazy"
+          src="cid:twittericon"
+          )
+      a.slink(
+        target="_blank"
+        href="https://www.youtube.com/c/GradidoNet"
+        )
+        img.bi-youtube(
+          alt="youtube"
+          loading="lazy"
+          src="cid:youtubeicon"
+          )
+    .line
+    .footer
+      div(class="footer_p1")= t("emails.footer.contactOurSupport")
+      a(
+        class="footer_p2"
+        href='mailto:' + t("emails.footer.supportEmail")
+      )= t("emails.footer.supportEmail")
+      div 
+        img.image(
+          alt="Gradido Logo"
+          src="https://gdd.gradido.net/img/brand/green.png"
+        )
+      div
+        a(
+          class="terms_of_use"
+          href="https://gradido.net/de/impressum/"
+          target="_blank"
+        )= t("emails.footer.imprint")
+      br
+      a(
+        class="terms_of_use"
+        href="https://gradido.net/de/datenschutz/"
+        target="_blank"
+        )= t("emails.footer.privacyPolicy")
+      div(class="footer_p1")
+        | Gradido-Akademie
+        br
+        | Institut für Wirtschaftsbionik
+        br
+        | Pfarrweg 2
+        br
+        | 74653 Künzelsau
+        br
+        | Deutschland
+        br
+        br
+        br
+   

@@ -1,0 +1,10 @@
+extend ../layout.pug
+
+block content
+  h2= t('emails.contributionChangedByModerator.title')
+  .text-block
+    include ../includes/salutation.pug
+    p= t('emails.contributionChangedByModerator.text', { contributionMemo, senderFirstName, senderLastName, contributionMemoUpdated })
+  .content
+    include ../includes/contributionDetailsCTA.pug
+    include ../includes/doNotReply.pug

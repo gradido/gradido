@@ -1,0 +1,16 @@
+extends ../layout.pug
+
+block content
+  h2= t('emails.resetPassword.title')
+  .text-block
+    include ../includes/salutation.pug
+    p= t('emails.resetPassword.youOrSomeoneResetPassword')
+  .content
+    h2= t('emails.resetPassword.title')
+    div(class="p_content")= t('emails.resetPassword.pleaseClickLink')
+    a.button-3(href=resetLink) #{t('emails.general.reset')}
+    div(class="p_content")= t('emails.general.orCopyLink')
+    
+    a.clink(href=resetLink) #{resetLink}
+
+    include ../includes/requestNewLink.pug
