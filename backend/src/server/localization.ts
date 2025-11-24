@@ -1,4 +1,3 @@
-import path from 'node:path'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import i18n from 'i18n'
 import { getLogger } from 'log4js'
@@ -9,7 +8,7 @@ i18n.configure({
   locales: ['en', 'de'],
   defaultLocale: 'en',
   retryInDefaultLocale: false,
-  directory: path.join(__dirname, '..', 'locales'),
+  staticCatalog: {'en': {}, 'de': {}},
   // autoReload: true, // if this is activated the seeding hangs at the very end
   updateFiles: false,
   objectNotation: true,
