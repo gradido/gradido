@@ -77,9 +77,8 @@ export const sendEmailTranslated = async ({
         ...receiver,
         attachments: [
           {
-            filename: 'gradido-header.jpeg',
-            // content: gradidoHeader,
-            path: path.join(__dirname, 'templates/includes/gradido-header.jpeg'),
+            // filename: 'gradido-header.jpeg',
+            content: gradidoHeader,
             cid: 'gradidoheader',
           },
           {
