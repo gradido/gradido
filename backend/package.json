@@ -8,7 +8,7 @@
   "author": "Gradido Academy - https://www.gradido.net",
   "main": "src/index.ts",
   "scripts": {
-    "build": "ts-node ./esbuild.config.ts && mkdirp build/templates/ && ncp ../core/src/emails/templates build/templates",
+    "build": "ts-node ./esbuild.config.ts && mkdirp build/templates/ && ncp ../core/build/templates build/templates",
     "dev": "cross-env TZ=UTC nodemon -w src --ext ts,pug,json,css -r tsconfig-paths/register src/index.ts",
     "test": "cross-env TZ=UTC NODE_ENV=development DB_DATABASE=gradido_test_backend jest --runInBand --forceExit --detectOpenHandles",
     "test:coverage": "cross-env TZ=UTC NODE_ENV=development DB_DATABASE=gradido_test_backend jest --coverage --runInBand --forceExit --detectOpenHandles",

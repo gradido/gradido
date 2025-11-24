@@ -8,7 +8,7 @@
   "license": "Apache-2.0",
   "private": false,
   "scripts": {
-    "build": "ts-node ./esbuild.config.ts && mkdirp build/templates/ && ncp ../core/src/emails/templates build/templates",
+    "build": "ts-node ./esbuild.config.ts && mkdirp build/templates/ && ncp ../core/build/templates build/templates",
     "start": "cross-env TZ=UTC NODE_ENV=production node build/index.js",
     "start:bun": "cross-env TZ=UTC NODE_ENV=production bun build/index.js",
     "dev": "cross-env TZ=UTC nodemon -w src --ext ts,json,css -r tsconfig-paths/register src/index.ts",
