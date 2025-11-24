@@ -8,13 +8,14 @@
   "license": "Apache-2.0",
   "private": false,
   "scripts": {
-    "build": "ts-node ./esbuild.config.ts",
+    "build": "ts-node ./esbuild.config.ts && mkdirp build/templates/ && ncp ../core/src/emails/templates build/templates",
     "start": "cross-env TZ=UTC NODE_ENV=production node build/index.js",
     "start:bun": "cross-env TZ=UTC NODE_ENV=production bun build/index.js",
     "dev": "cross-env TZ=UTC nodemon -w src --ext ts,json,css -r tsconfig-paths/register src/index.ts",
     "dev:bun": "cross-env TZ=UTC bun --hot src/index.ts",
     "typecheck": "tsc --noEmit",
     "test": "cross-env TZ=UTC NODE_ENV=development DB_DATABASE=gradido_test_federation jest --runInBand --forceExit --detectOpenHandles",
+    "test:bun": "cross-env TZ=UTC NODE_ENV=development DB_DATABASE=gradido_test_federation bun test",
     "test:debug": "cross-env TZ=UTC NODE_ENV=development DB_DATABASE=gradido_test_federation node --inspect-brk node_modules/.bin/jest --bail --runInBand --forceExit --detectOpenHandles",
     "test:coverage": "cross-env TZ=UTC NODE_ENV=development DB_DATABASE=gradido_test_federation jest --coverage --runInBand --forceExit --detectOpenHandles",
     "lint": "biome check --error-on-warnings .",
@@ -23,6 +24,7 @@
   },
   "dependencies": {
     "cross-env": "^7.0.3",
+    "email-templates": "^10.0.1",
     "sodium-native": "^3.4.1"
   },
   "devDependencies": {
@@ -60,6 +62,8 @@
     "joi": "17.13.3",
     "lodash.clonedeep": "^4.5.0",
     "log4js": "^6.7.1",
+    "mkdirp": "^3.0.1",
+    "ncp": "^2.0.0",
     "nodemon": "^2.0.7",
     "prettier": "^3.5.3",
     "reflect-metadata": "^0.1.13",
