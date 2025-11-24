@@ -14,7 +14,7 @@ import { Order } from '@enum/Order'
 import { ContributionMessage, ContributionMessageListResult } from '@model/ContributionMessage'
 
 import { RIGHTS } from '@/auth/RIGHTS'
-import { sendAddedContributionMessageEmail } from '@/emails/sendEmailVariants'
+import { sendAddedContributionMessageEmail } from 'core'
 import {
   EVENT_ADMIN_CONTRIBUTION_MESSAGE_CREATE,
   EVENT_CONTRIBUTION_MESSAGE_CREATE,

@@ -20,7 +20,6 @@ import { UserContactType } from '@enum/UserContactType'
 import { ContributionLink } from '@model/ContributionLink'
 import { Location } from '@model/Location'
 import { cleanDB, headerPushMock, resetToken, testEnvironment } from '@test/helpers'
-import { i18n as localization } from '@test/testSetup'
 
 import { subscribe } from '@/apis/KlicktippController'
 import { CONFIG } from '@/config'
@@ -28,7 +27,7 @@ import {
   sendAccountActivationEmail,
   sendAccountMultiRegistrationEmail,
   sendResetPasswordEmail,
-} from '@/emails/sendEmailVariants'
+} from 'core'
 import { EventType } from '@/event/Events'
 import { PublishNameType } from '@/graphql/enum/PublishNameType'
 import { SecretKeyCryptographyCreateKey } from '@/password/EncryptorUtils'
@@ -74,8 +73,8 @@ import { Location2Point } from './util/Location2Point'
 jest.mock('@/apis/humhub/HumHubClient')
 jest.mock('@/password/EncryptorUtils')
 
-jest.mock('@/emails/sendEmailVariants', () => {
-  const originalModule = jest.requireActual('@/emails/sendEmailVariants')
+jest.mock('core', () => {
+  const originalModule = jest.requireActual('core')
   return {
     __esModule: true,
     ...originalModule,
@@ -112,7 +111,7 @@ let testEnv: {
 }
 
 beforeAll(async () => {
-  testEnv = await testEnvironment(getLogger('apollo'), localization)
+  testEnv = await testEnvironment(getLogger('apollo'))
   mutate = testEnv.mutate
   query = testEnv.query
   con = testEnv.con

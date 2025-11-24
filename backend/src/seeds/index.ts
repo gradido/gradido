@@ -3,6 +3,7 @@ import { entities } from 'database'
 import { datatype, internet, name } from 'faker'
 
 import { CONFIG } from '@/config'
+import { CONFIG as CORE_CONFIG } from 'core'
 import { createServer } from '@/server/createServer'
 
 import { initLogging } from '@/server/logger'
@@ -17,7 +18,7 @@ import { userFactory } from './factory/user'
 import { transactionLinks } from './transactionLink/index'
 import { users } from './users/index'
 
-CONFIG.EMAIL = false
+CORE_CONFIG.EMAIL = false
 const logger = getLogger('seed')
 
 const context = {

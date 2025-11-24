@@ -1,5 +1,4 @@
 import path from 'path'
-
 import Email from 'email-templates'
 import { i18n } from './localization'
 import { createTransport } from 'nodemailer'
@@ -60,8 +59,8 @@ export const sendEmailTranslated = async ({
       pass: CONFIG.EMAIL_PASSWORD,
     },
   })
-  i18n.setLocale(locals.language as string) // for email
 
+  i18n.setLocale(locals.language as string) // for email
   // TESTING: see 'README.md'
   const email = new Email({
     message: {
@@ -71,7 +70,6 @@ export const sendEmailTranslated = async ({
     transport,
     preview: false,
   })
-
   const resultSend = await email
     .send({
       template: path.join(__dirname, 'templates', template),
@@ -79,8 +77,9 @@ export const sendEmailTranslated = async ({
         ...receiver,
         attachments: [
           {
-            // filename: 'gradido-header.jpeg',
-            content: gradidoHeader,
+            filename: 'gradido-header.jpeg',
+            // content: gradidoHeader,
+            path: path.join(__dirname, 'templates/includes/gradido-header.jpeg'),
             cid: 'gradidoheader',
           },
           {
@@ -115,7 +114,7 @@ export const sendEmailTranslated = async ({
     })
     .catch((error: unknown) => {
       logger.error('Error sending notification email', error)
-      return error
+      throw error
     })
 
   return resultSend

@@ -6,9 +6,9 @@ build({
   platform: 'node',
   target: 'node18.20.7',
   loader: {
-    '.png': 'dataurl',
-    '.jpeg': 'dataurl',
-    '.jpg': 'dataurl',
+    '.png': 'binary',
+    '.jpeg': 'binary',
+    '.jpg': 'binary',
   },
   bundle: true,
   sourcemap: true,

@@ -8,7 +8,10 @@ i18n.configure({
   locales: ['en', 'de'],
   defaultLocale: 'en',
   retryInDefaultLocale: false,
-  staticCatalog: {'en': {}, 'de': {}},
+  staticCatalog: {
+    en: { general: { decimalSeparator: "." } },
+    de: { general: { decimalSeparator: "," } },
+  },
   // autoReload: true, // if this is activated the seeding hangs at the very end
   updateFiles: false,
   objectNotation: true,
