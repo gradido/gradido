@@ -17,17 +17,22 @@ export function validate(schema: ObjectSchema, data: any) {
         throw new Error('missing key in config validation with joi: ' + details)
       }
       const value = err.context.value
-      const description = schemaJson.keys[key]
-        ? schema.describe().keys[key].flags.description
-        : 'No description available'
-      if (data[key] === undefined) {
-        throw new Error(
-          `Environment Variable '${key}' is missing. ${description}, details: ${details}`,
-        )
-      } else {
-        throw new Error(
-          `Error on Environment Variable ${key} with value = ${value}: ${err.message}. ${description}`,
-        )
+      try {
+        const description = schemaJson.keys[key]
+          ? schema.describe().keys[key].flags.description
+          : 'No description available'
+          if (data[key] === undefined) {
+            throw new Error(
+              `Environment Variable '${key}' is missing. ${description}, details: ${details}`,
+            )
+          } else {
+            throw new Error(
+              `Error on Environment Variable ${key} with value = ${value}: ${err.message}. ${description}`,
+            )
+          }
+      } catch (e) {
+        console.error('Error getting description for key ' + key + ': ' + e)
+        throw e
       }
     })
   }
