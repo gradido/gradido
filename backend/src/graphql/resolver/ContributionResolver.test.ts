@@ -58,15 +58,10 @@ jest.mock('core', () => {
   return {
     __esModule: true,
     ...originalModule,
-    sendContributionDeniedEmail: jest.fn((a) =>
-      originalModule.sendContributionDeniedEmail(a),
-    ),
-    sendContributionConfirmedEmail: jest.fn((a) =>
-      originalModule.sendContributionConfirmedEmail(a),
-    ),
-    sendContributionDeletedEmail: jest.fn((a) =>
-      originalModule.sendContributionDeletedEmail(a),
-    ),
+    sendContributionDeniedEmail: jest.fn(),
+    sendContributionConfirmedEmail: jest.fn(),
+    sendContributionDeletedEmail: jest.fn(),
+    sendEmailTranslated: jest.fn(),
   }
 })
 jest.mock('@/password/EncryptorUtils')

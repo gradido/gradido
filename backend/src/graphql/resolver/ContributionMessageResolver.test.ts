@@ -34,9 +34,7 @@ jest.mock('core', () => {
   return {
     __esModule: true,
     ...originalModule,
-    sendAddedContributionMessageEmail: jest.fn((a) =>
-      originalModule.sendAddedContributionMessageEmail(a),
-    ),
+    sendAddedContributionMessageEmail: jest.fn(),
   }
 })
 

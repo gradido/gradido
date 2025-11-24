@@ -3,7 +3,7 @@ import { CONFIG } from '@/config'
 import { CONFIG as CORE_CONFIG } from 'core'
 import { getLogger, printLogs, clearLogs } from 'config-schema/test/testSetup'
 
-CORE_CONFIG.EMAIL = true
+CORE_CONFIG.EMAIL = false
 CORE_CONFIG.EMAIL_TEST_MODUS = false
 CONFIG.HUMHUB_ACTIVE = false
 CONFIG.GMS_ACTIVE = false

@@ -78,11 +78,10 @@ jest.mock('core', () => {
   return {
     __esModule: true,
     ...originalModule,
-    sendAccountActivationEmail: jest.fn((a) => originalModule.sendAccountActivationEmail(a)),
-    sendAccountMultiRegistrationEmail: jest.fn((a) =>
-      originalModule.sendAccountMultiRegistrationEmail(a),
-    ),
-    sendResetPasswordEmail: jest.fn((a) => originalModule.sendResetPasswordEmail(a)),
+    sendAccountActivationEmail: jest.fn(),
+    sendAccountMultiRegistrationEmail: jest.fn(),
+    sendResetPasswordEmail: jest.fn(),
+    sendEmailTranslated: jest.fn(),
   }
 })
 
@@ -154,6 +153,7 @@ describe('UserResolver', () => {
       expect(result).toEqual(
         expect.objectContaining({ data: { createUser: { id: expect.any(Number) } } }),
       )
+
     })
 
     describe('valid input data', () => {

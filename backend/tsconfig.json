@@ -87,7 +87,7 @@
     "forceConsistentCasingInFileNames": true,        /* Disallow inconsistently-cased references to the same file. */
   },
   "include": [
-    "../core/src/types",
+    "../core/src/types"
   ],
   "ts-node": {
     "swc": true
