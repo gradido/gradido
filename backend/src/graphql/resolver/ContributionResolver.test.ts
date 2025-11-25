@@ -53,6 +53,7 @@ import { stephenHawking } from '@/seeds/users/stephen-hawking'
 import { getFirstDayOfPreviousNMonth } from 'core'
 import { getLogger } from 'config-schema/test/testSetup'
 import { getLogger as originalGetLogger } from 'log4js'
+import { AppDatabase } from 'database'
 
 jest.mock('@/emails/sendEmailVariants')
 jest.mock('@/password/EncryptorUtils')
@@ -62,10 +63,12 @@ const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)
 let mutate: ApolloServerTestClient['mutate']
 let query: ApolloServerTestClient['query']
 let con: DataSource
+let db: AppDatabase
 let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']
   con: DataSource
+  db: AppDatabase
 }
 let creation: Contribution | null
 let admin: User
@@ -81,12 +84,14 @@ beforeAll(async () => {
   mutate = testEnv.mutate
   query = testEnv.query
   con = testEnv.con
+  db = testEnv.db
   await cleanDB()
 })
 
 afterAll(async () => {
   await cleanDB()
   await con.destroy()
+  await db.getRedisClient().quit()
 })
 
 describe('ContributionResolver', () => {

@@ -34,6 +34,7 @@ import { peterLustig } from '@/seeds/users/peter-lustig'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
 import { getLogger } from 'config-schema/test/testSetup'
 import { CONFIG } from '@/config'
+import { AppDatabase } from 'database'
 
 jest.mock('@/password/EncryptorUtils')
 
@@ -48,6 +49,7 @@ let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']
   con: DataSource
+  db: AppDatabase
 }
 
 beforeAll(async () => {
@@ -61,6 +63,7 @@ beforeAll(async () => {
 afterAll(async () => {
   await cleanDB()
   await con.destroy() // close()
+  await testEnv.db.getRedisClient().quit()
 })
 
 let bobData: any

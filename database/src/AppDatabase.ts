@@ -12,7 +12,7 @@ const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.AppDatabase`)
 export class AppDatabase {
   private static instance: AppDatabase
   private dataSource: DBDataSource | undefined
-  private redisClient: Redis
+  private redisClient: Redis | undefined
 
   /**
    * The Singleton's constructor should always be private to prevent direct
@@ -100,6 +100,7 @@ export class AppDatabase {
     await this.dataSource?.destroy()
     if (this.redisClient) {
       this.redisClient.quit()
+      this.redisClient = undefined
     }
   }
 

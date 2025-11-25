@@ -5,7 +5,7 @@ import { DataSource } from 'typeorm'
 import { testEnvironment } from '@test/helpers'
 import { i18n as localization } from '@test/testSetup'
 import { getLogger } from 'config-schema/test/testSetup'
-
+import { AppDatabase } from 'database'
 import { CONFIG } from '@/config'
 
 import * as sendEmailTranslatedApi from './sendEmailTranslated'
@@ -47,19 +47,23 @@ jest.mock('nodemailer', () => {
 })
 
 let con: DataSource
+let db: AppDatabase
 let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']
   con: DataSource
+  db: AppDatabase
 }
 
 beforeAll(async () => {
   testEnv = await testEnvironment(getLogger('apollo'), localization)
   con = testEnv.con
+  db = testEnv.db
 })
 
 afterAll(async () => {
   await con.destroy()
+  await db.getRedisClient().quit()
 })
 
 const sendEmailTranslatedSpy = jest.spyOn(sendEmailTranslatedApi, 'sendEmailTranslated')

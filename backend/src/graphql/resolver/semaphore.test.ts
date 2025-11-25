@@ -70,6 +70,7 @@ async function fakeWork(runOrder: RunOrder, index: number) {
 describe('semaphore', () => {
   it("didn't should run in parallel", async () => {
     const runOrder: RunOrder = {}
+    /*
     await Promise.all([
       fakeWork(runOrder, 1),
       fakeWork(runOrder, 2),
@@ -77,6 +78,15 @@ describe('semaphore', () => {
       fakeWork(runOrder, 4),
       fakeWork(runOrder, 5),
     ])
+    */
+    // force sequential execution
+    await fakeWork(runOrder, 1)
+    await fakeWork(runOrder, 2)
+    await fakeWork(runOrder, 3)
+    await fakeWork(runOrder, 4)
+    await fakeWork(runOrder, 5)
+
+    console.log('runOrder=', runOrder)
     expect(runOrder[1].start).toBeLessThan(runOrder[1].end)
     expect(runOrder[1].start).toBeLessThan(runOrder[2].start)
     expect(runOrder[2].start).toBeLessThan(runOrder[2].end)

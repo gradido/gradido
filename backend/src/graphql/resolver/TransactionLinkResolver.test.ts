@@ -36,6 +36,7 @@ import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { getLogger } from 'config-schema/test/testSetup'
 import { transactionLinkCode } from './TransactionLinkResolver'
 import { CONFIG } from '@/config'
+import { AppDatabase } from 'database'
 
 const logErrorLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)
 
@@ -50,10 +51,12 @@ CONFIG.DLT_CONNECTOR = false
 let mutate: ApolloServerTestClient['mutate']
 let query: ApolloServerTestClient['query']
 let con: DataSource
+let db: AppDatabase
 let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']
   con: DataSource
+  db: AppDatabase
 }
 
 let user: User
@@ -63,6 +66,7 @@ beforeAll(async () => {
   mutate = testEnv.mutate
   query = testEnv.query
   con = testEnv.con
+  db = testEnv.db
   await cleanDB()
   await userFactory(testEnv, bibiBloxberg)
   await userFactory(testEnv, peterLustig)
@@ -71,6 +75,7 @@ beforeAll(async () => {
 afterAll(async () => {
   await cleanDB()
   await con.destroy()
+  await db.getRedisClient().quit()
 })
 
 describe('TransactionLinkResolver', () => {
