@@ -1,7 +1,6 @@
-import { promisify } from 'util'
-
 import { Decimal } from 'decimal.js-light'
 import i18n from 'i18n'
+import { promisify } from 'util'
 
 export const objectValuesToArray = (obj: Record<string, string>): string[] =>
   Object.keys(obj).map((key) => obj[key])
@@ -22,7 +21,7 @@ export const fullName = (firstName: string, lastName: string): string =>
 export function resetInterface<T extends Record<string, any>>(obj: T): T {
   // Iterate over all properties of the object
   for (const key in obj) {
-    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+    if (Object.hasOwn(obj, key)) {
       // Set all optional properties to undefined
 
       obj[key] = undefined as T[Extract<keyof T, string>]
@@ -36,7 +35,10 @@ export const delay = promisify(setTimeout)
 export const ensureUrlEndsWithSlash = (url: string): string => {
   return url.endsWith('/') ? url : url.concat('/')
 }
-export function splitUrlInEndPointAndApiVersion(url: string): { endPoint: string, apiVersion: string } {
+export function splitUrlInEndPointAndApiVersion(url: string): {
+  endPoint: string
+  apiVersion: string
+} {
   const endPoint = url.slice(0, url.lastIndexOf('/') + 1)
   const apiVersion = url.slice(url.lastIndexOf('/') + 1, url.length)
   return { endPoint, apiVersion }

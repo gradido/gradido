@@ -1,7 +1,6 @@
 import { AbstractLoggingView } from 'database'
-
-import { Decay } from '../model/Decay'
 import type { Decay as DecayInterface } from 'shared'
+import { Decay } from '../model/Decay'
 
 export class DecayLoggingView extends AbstractLoggingView {
   public constructor(private self: Decay | DecayInterface) {

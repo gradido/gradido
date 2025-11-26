@@ -1,8 +1,8 @@
-import { ZodError } from 'zod'
-import { getLogger } from 'log4js'
-import { LOG4JS_BASE_CATEGORY_NAME } from '../config/const'
 import { aliasExists } from 'database'
+import { getLogger } from 'log4js'
 import { aliasSchema } from 'shared'
+import { ZodError } from 'zod'
+import { LOG4JS_BASE_CATEGORY_NAME } from '../config/const'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.validation.user`)
 

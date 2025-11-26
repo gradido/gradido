@@ -1,7 +1,6 @@
-import { CommunityHandshakeState } from 'database'
-import { CommunityHandshakeStateLogic } from './CommunityHandshakeState.logic'
-import { CommunityHandshakeStateType } from 'database'
+import { CommunityHandshakeState, CommunityHandshakeStateType } from 'database'
 import { FEDERATION_AUTHENTICATION_TIMEOUT_MS } from 'shared'
+import { CommunityHandshakeStateLogic } from './CommunityHandshakeState.logic'
 
 describe('CommunityHandshakeStateLogic', () => {
   it('isTimeout', () => {

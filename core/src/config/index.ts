@@ -7,7 +7,6 @@ import { schema } from './schema'
 
 dotenv.config()
 
-
 const federation = {
   FEDERATION_BACKEND_SEND_ON_API: process.env.FEDERATION_BACKEND_SEND_ON_API ?? '1_0',
   FEDERATION_XCOM_SENDCOINS_ENABLED:
@@ -19,7 +18,6 @@ const federation = {
     process.env.FEDERATION_XCOM_MAXREPEAT_REVERTSENDCOINS ?? '3',
   ),
 }
-
 
 export const CONFIG = {
   ...federation,

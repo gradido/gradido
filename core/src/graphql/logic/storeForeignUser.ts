@@ -1,8 +1,7 @@
 import { Community as DbCommunity, User as DbUser, findForeignUserByUuids } from 'database'
-
-import { SendCoinsResult } from '../../federation/client/1_0/model/SendCoinsResult'
-import { LOG4JS_BASE_CATEGORY_NAME } from '../../config/const'
 import { getLogger } from 'log4js'
+import { LOG4JS_BASE_CATEGORY_NAME } from '../../config/const'
+import { SendCoinsResult } from '../../federation/client/1_0/model/SendCoinsResult'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.logic.storeForeignUser`)
 
@@ -12,7 +11,10 @@ export async function storeForeignUser(
 ): Promise<DbUser | null> {
   if (recipCom.communityUuid !== null && committingResult.recipGradidoID !== null) {
     try {
-      const user = await findForeignUserByUuids(recipCom.communityUuid, committingResult.recipGradidoID)
+      const user = await findForeignUserByUuids(
+        recipCom.communityUuid,
+        committingResult.recipGradidoID,
+      )
       if (!user) {
         logger.debug(
           'no foreignUser found for:',
