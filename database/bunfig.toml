@@ -1,0 +1,2 @@
+[test]
+preload = ["../config-schema/test/testSetup.bun.ts"]

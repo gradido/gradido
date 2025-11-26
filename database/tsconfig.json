@@ -72,8 +72,5 @@
     "forceConsistentCasingInFileNames": true        /* Disallow inconsistently-cased references to the same file. */
   },
   "references": [],                                  /* Any project that is referenced must itself have a `references` array (which may be empty). */
-  "ts-node": {
-    "swc": true
-  },
   "exclude": ["**/*.test.ts", "**/*.spec.ts", "test/*"]
 }

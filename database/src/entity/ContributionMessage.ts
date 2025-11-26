@@ -10,8 +10,8 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm'
-import { Contribution } from './Contribution'
-import { User } from './User'
+import { type Contribution as ContributionType } from './Contribution'
+import { type User as UserType } from './User'
 
 @Entity('contribution_messages', {
   engine: 'InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci',
@@ -25,21 +25,21 @@ export class ContributionMessage extends BaseEntity {
   contributionId: number
 
   @ManyToOne(
-    () => Contribution,
-    (contribution) => contribution.messages,
+    () => require('./Contribution').Contribution,
+    (contribution: ContributionType) => contribution.messages,
   )
   @JoinColumn({ name: 'contribution_id' })
-  contribution: Contribution
+  contribution: ContributionType
 
   @Column({ name: 'user_id', type: 'bigint', unsigned: true, nullable: false })
   userId: number
 
   @ManyToOne(
-    () => User,
-    (user) => user.messages,
+    () => require('./User').User,
+    (user: UserType) => user.messages,
   )
   @JoinColumn({ name: 'user_id' })
-  user: User
+  user: UserType
 
   @Column({ type: 'varchar', length: 2000, nullable: false, collation: 'utf8mb4_unicode_ci' })
   message: string

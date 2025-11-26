@@ -9,10 +9,10 @@ import {
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm'
-import { DltTransaction } from './DltTransaction'
-import { Transaction } from './Transaction'
+import { type DltTransaction as DltTransactionType } from './DltTransaction'
+import { type Transaction as TransactionType } from './Transaction'
 import { DecimalTransformer } from './transformer/DecimalTransformer'
-import { User } from './User'
+import { type User as UserType } from './User'
 
 @Entity('transaction_links')
 export class TransactionLink extends BaseEntity {
@@ -72,23 +72,23 @@ export class TransactionLink extends BaseEntity {
   redeemedBy: number | null
 
   @OneToOne(
-    () => DltTransaction,
-    (dlt) => dlt.transactionLinkId,
+    () => require('./DltTransaction').DltTransaction,
+    (dlt: DltTransactionType) => dlt.transactionLinkId,
   )
   @JoinColumn({ name: 'id', referencedColumnName: 'transactionLinkId' })
-  dltTransaction?: DltTransaction | null
+  dltTransaction?: DltTransactionType | null
 
   @OneToOne(
-    () => User,
-    (user) => user.transactionLink,
+    () => require('./User').User,
+    (user: UserType) => user.transactionLink,
   )
   @JoinColumn({ name: 'userId' })
-  user: User
+  user: UserType
 
   @OneToMany(
-    () => Transaction,
-    (transaction) => transaction.transactionLink,
+    () => require('./Transaction').Transaction,
+    (transaction: TransactionType) => transaction.transactionLink,
   )
   @JoinColumn({ referencedColumnName: 'transaction_link_id' })
-  transactions: Transaction[]
+  transactions: TransactionType[]
 }

@@ -3,14 +3,14 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  Geometry,
+  type Geometry,
   JoinColumn,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm'
-import { FederatedCommunity } from './FederatedCommunity'
-import { User } from './User'
+import { type FederatedCommunity as FederatedCommunityType } from './FederatedCommunity'
+import { type User as UserType } from './User'
 import { GeometryTransformer } from './transformer/GeometryTransformer'
 
 @Entity('communities')
@@ -95,16 +95,16 @@ export class Community extends BaseEntity {
   updatedAt: Date | null
 
   @OneToMany(
-    () => User,
-    (user) => user.community,
+    () => require('./User').User,
+    (user: UserType) => user.community,
   )
   @JoinColumn({ name: 'community_uuid', referencedColumnName: 'communityUuid' })
-  users: User[]
+  users: UserType[]
 
   @OneToMany(
-    () => FederatedCommunity,
-    (federatedCommunity) => federatedCommunity.community,
+    () => require('./FederatedCommunity').FederatedCommunity,
+    (federatedCommunity: FederatedCommunityType) => federatedCommunity.community,
   )
   @JoinColumn({ name: 'public_key', referencedColumnName: 'publicKey' })
-  federatedCommunities?: FederatedCommunity[]
+  federatedCommunities?: FederatedCommunityType[]
 }

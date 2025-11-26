@@ -1,7 +1,7 @@
 import { BaseEntity, Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'typeorm'
-import { Transaction } from './Transaction'
-import { TransactionLink } from './TransactionLink'
-import { User } from './User'
+import { type Transaction as TransactionType } from './Transaction'
+import { type TransactionLink as TransactionLinkType } from './TransactionLink'
+import { type User as UserType } from './User'
 
 @Entity('dlt_transactions', { engine: 'InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci' })
 export class DltTransaction extends BaseEntity {
@@ -49,23 +49,23 @@ export class DltTransaction extends BaseEntity {
   error: string | null
 
   @OneToOne(
-    () => Transaction,
-    (transaction) => transaction.dltTransaction,
+    () => require('./Transaction').Transaction,
+    (transaction: TransactionType) => transaction.dltTransaction,
   )
   @JoinColumn({ name: 'transaction_id' })
-  transaction?: Transaction | null
+  transaction?: TransactionType | null
 
   @OneToOne(
-    () => User,
-    (user) => user.dltTransaction,
+    () => require('./User').User,
+    (user: UserType) => user.dltTransaction,
   )
   @JoinColumn({ name: 'user_id' })
-  user?: User | null
+  user?: UserType | null
 
   @OneToOne(
-    () => TransactionLink,
-    (transactionLink) => transactionLink.dltTransaction,
+    () => require('./TransactionLink').TransactionLink,
+    (transactionLink: TransactionLinkType) => transactionLink.dltTransaction,
   )
   @JoinColumn({ name: 'transaction_link_id' })
-  transactionLink?: TransactionLink | null
+  transactionLink?: TransactionLinkType | null
 }
