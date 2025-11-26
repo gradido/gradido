@@ -43,6 +43,13 @@
           <BNavItem :href="`mailto:${supportEmail}`" target="_blank">
             {{ $t('navigation.support') }}
           </BNavItem>
+          <BNavItem
+            v-if="CONFIG.DLT_ACTIVE"
+            :href="`https://${CONFIG.COMMUNITY_URL}/inspector`"
+            target="_blank"
+          >
+            {{ $t('footer.inspector') }}
+          </BNavItem>
         </BNav>
       </BCol>
     </BRow>

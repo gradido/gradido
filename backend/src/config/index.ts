@@ -17,6 +17,7 @@ const logging = {
 
 const server = {
   BACKEND_PORT: process.env.BACKEND_PORT ?? 4000,
+  DLT_ACTIVE: process.env.DLT_ACTIVE === 'true' || false,
   JWT_SECRET: process.env.JWT_SECRET ?? 'secret123',
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN ?? '10m',
   REDEEM_JWT_TOKEN_EXPIRATION: process.env.REDEEM_JWT_TOKEN_EXPIRATION ?? '10m',
@@ -41,9 +42,7 @@ const COMMUNITY_URL = process.env.COMMUNITY_URL ?? `${URL_PROTOCOL}://${COMMUNIT
 const DLT_CONNECTOR_PORT = process.env.DLT_CONNECTOR_PORT ?? 6010
 
 const dltConnector = {
-  DLT_CONNECTOR: process.env.DLT_CONNECTOR === 'true' || false,
   DLT_CONNECTOR_URL: process.env.DLT_CONNECTOR_URL ?? `${COMMUNITY_URL}:${DLT_CONNECTOR_PORT}`,
-  DLT_GRADIDO_NODE_SERVER_HOME_FOLDER: process.env.DLT_GRADIDO_NODE_SERVER_HOME_FOLDER ?? '~/.gradido',
 }
 
 const community = {

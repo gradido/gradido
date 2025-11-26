@@ -4,6 +4,7 @@ import {
   COMMUNITY_SUPPORT_MAIL,
   COMMUNITY_URL,
   DECAY_START_TIME,
+  DLT_ACTIVE,
   GDT_ACTIVE,
   GDT_API_URL,
   GMS_ACTIVE,
@@ -27,6 +28,7 @@ export const schema = Joi.object({
   COMMUNITY_DESCRIPTION,
   COMMUNITY_SUPPORT_MAIL,
   DECAY_START_TIME,
+  DLT_ACTIVE,
   GDT_API_URL,
   GDT_ACTIVE,
   GMS_ACTIVE,
@@ -68,20 +70,11 @@ export const schema = Joi.object({
     .default('http://0.0.0.0/redeem/CL-')
     .required(),
 
-  DLT_CONNECTOR: Joi.boolean()
-    .description('Flag to indicate if DLT-Connector is used. (Still in development)')
-    .default(false)
-    .required(),
-
   DLT_CONNECTOR_URL: Joi.string()
     .uri({ scheme: ['http', 'https'] })
     .default('http://localhost:6010')
-    .when('DLT_CONNECTOR', { is: true, then: Joi.required() })
-    .description('The URL for GDT API endpoint'),
-
-  DLT_GRADIDO_NODE_SERVER_HOME_FOLDER: Joi.string()
-    .default('~/.gradido')
-    .description('The home folder for the gradido dlt node server'),
+    .when('DLT_ACTIVE', { is: true, then: Joi.required() })
+    .description('The URL for DLT connector'),
 
   EMAIL: Joi.boolean()
     .default(false)

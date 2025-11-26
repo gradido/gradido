@@ -216,7 +216,7 @@ log_step "======================================================================
 
 export DLT_NGINX_CONF="${DLT_NGINX_CONF:-# dlt disabled}"
 # prepare inspector and gradido dlt node nginx config blocks if enabled
-if [ "$DLT_CONNECTOR" = true ] ; then
+if [ "$DLT_ACTIVE" = true ] ; then
   log_step "prepare inspector and dlt gradido node nginx config block"
   envsubst '$DLT_NODE_SERVER_PORT' < $NGINX_CONFIG_DIR/gradido-dlt.conf.template >> $NGINX_CONFIG_DIR/gradido-dlt.conf
   export DLT_NGINX_CONF=$(< $NGINX_CONFIG_DIR/gradido-dlt.conf)
@@ -256,7 +256,7 @@ MODULES=(
   dht-node
   federation
 )
-if [ "$DLT_CONNECTOR" = true ] ; then
+if [ "$DLT_ACTIVE" = true ] ; then
   MODULES+=("inspector")
   MODULES+=("dlt-connector")
 fi
@@ -306,7 +306,7 @@ log_step 'build all modules'
 turbo build --env-mode=loose --concurrency=$(nproc)
 
 # build inspector and dlt-connector
-if [ "$DLT_CONNECTOR" = true ]; then
+if [ "$DLT_ACTIVE" = true ]; then
   log_step 'build inspector'
   cd $PROJECT_ROOT/inspector
   bun install
@@ -339,7 +339,7 @@ pm2 start --name gradido-backend \
  -l $GRADIDO_LOG_PATH/pm2.backend.$TODAY.log \
  --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
 
-if [ "$DLT_CONNECTOR" = true ] ; then
+if [ "$DLT_ACTIVE" = true ] ; then
  pm2 start --name dlt-connector \
  "env TZ=UTC NODE_ENV=production bun ./build/index.js" \
  --cwd $PROJECT_ROOT/dlt-connector \
