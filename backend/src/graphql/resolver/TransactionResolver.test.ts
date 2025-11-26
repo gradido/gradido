@@ -34,13 +34,14 @@ import { peterLustig } from '@/seeds/users/peter-lustig'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
 import { getLogger } from 'config-schema/test/testSetup'
 import { CONFIG } from '@/config'
+import { CONFIG as CORE_CONFIG} from 'core'
 import { AppDatabase } from 'database'
 
 jest.mock('@/password/EncryptorUtils')
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)
 CONFIG.DLT_CONNECTOR = false
-CONFIG.EMAIL = false
+CORE_CONFIG.EMAIL = false
 
 let mutate: ApolloServerTestClient['mutate']
 let query: ApolloServerTestClient['query']
@@ -75,7 +76,6 @@ let peter: User
 
 let homeCom: DbCommunity
 let foreignCom: DbCommunity
-let fedForeignCom: DbFederatedCommunity
 
 describe('send coins', () => {
   beforeAll(async () => {

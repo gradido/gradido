@@ -1,6 +1,6 @@
 {
   "name": "shared",
-  "version": "2.7.0",
+  "version": "2.7.1",
   "description": "Gradido Shared Code, Low-Level Shared Code, without dependencies on other modules",
   "main": "./build/index.js",
   "types": "./src/index.ts",

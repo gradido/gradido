@@ -1,4 +1,5 @@
 import { CONFIG } from '@/config'
+import { CONFIG as CORE_CONFIG } from 'core'
 import { schema } from '@/graphql/schema'
 import { elopageWebhook } from '@/webhook/elopage'
 import { gmsWebhook } from '@/webhook/gms'
@@ -29,7 +30,6 @@ interface ServerDef {
 export const createServer = async (
   apolloLogger: Logger,
   context: any = serverContext,
-  localization: i18n.I18n = i18n,
 ): Promise<ServerDef> => {
   const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.createServer`)
   logger.debug('createServer...')
@@ -74,9 +74,9 @@ export const createServer = async (
   app.use(json())
   // bodyparser urlencoded for elopage
   app.use(urlencoded({ extended: true }))
-
+  
   // i18n
-  app.use(localization.init)
+  app.use(i18n.init)
 
   // Elopage Webhook
 
@@ -101,7 +101,7 @@ export const createServer = async (
   })
   apollo.applyMiddleware({ app, path: '/' })
   logger.info(
-    `running with PRODUCTION=${CONFIG.PRODUCTION}, sending EMAIL enabled=${CONFIG.EMAIL} and EMAIL_TEST_MODUS=${CONFIG.EMAIL_TEST_MODUS} ...`,
+    `running with PRODUCTION=${CONFIG.PRODUCTION}, sending EMAIL enabled=${CORE_CONFIG.EMAIL} and EMAIL_TEST_MODUS=${CORE_CONFIG.EMAIL_TEST_MODUS} ...`,
   )
   logger.debug('createServer...successful')
 

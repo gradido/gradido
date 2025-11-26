@@ -3,20 +3,20 @@ import {
   Column,
   DeleteDateColumn,
   Entity,
-  Geometry,
+  type Geometry,
   JoinColumn,
   ManyToOne,
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm'
-import { Community } from './Community'
-import { Contribution } from './Contribution'
-import { ContributionMessage } from './ContributionMessage'
-import { DltTransaction } from './DltTransaction'
-import { TransactionLink } from './TransactionLink'
-import { UserContact } from './UserContact'
-import { UserRole } from './UserRole'
+import { type Community as CommunityType } from './Community'
+import { type Contribution as ContributionType } from './Contribution'
+import { type ContributionMessage as ContributionMessageType } from './ContributionMessage'
+import { type DltTransaction as DltTransactionType } from './DltTransaction'
+import { type TransactionLink as TransactionLinkType } from './TransactionLink'
+import { type UserContact as UserContactType } from './UserContact'
+import { type UserRole as UserRoleType } from './UserRole'
 import { GeometryTransformer } from './transformer/GeometryTransformer'
 
 @Entity('users', { engine: 'InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci' })
@@ -46,11 +46,11 @@ export class User extends BaseEntity {
   communityUuid: string
 
   @ManyToOne(
-    () => Community,
-    (community) => community.users,
+    () => require('./Community').Community,
+    (community: CommunityType) => community.users,
   )
   @JoinColumn({ name: 'community_uuid', referencedColumnName: 'communityUuid' })
-  community: Community | null
+  community: CommunityType | null
 
   @Column({
     name: 'alias',
@@ -63,11 +63,11 @@ export class User extends BaseEntity {
   alias: string
 
   @OneToOne(
-    () => UserContact,
-    (emailContact: UserContact) => emailContact.user,
+    () => require('./UserContact').UserContact,
+    (emailContact: UserContactType) => emailContact.user,
   )
   @JoinColumn({ name: 'email_id' })
-  emailContact: UserContact
+  emailContact: UserContactType
 
   @Column({ name: 'email_id', type: 'int', unsigned: true, nullable: true, default: null })
   emailId: number | null
@@ -138,11 +138,11 @@ export class User extends BaseEntity {
   hideAmountGDT: boolean
 
   @OneToMany(
-    () => UserRole,
-    (userRole) => userRole.user,
+    () => require('./UserRole').UserRole,
+    (userRole: UserRoleType) => userRole.user,
   )
   @JoinColumn({ name: 'user_id' })
-  userRoles: UserRole[]
+  userRoles: UserRoleType[]
 
   @Column({ name: 'referrer_id', type: 'bigint', unsigned: true, nullable: true, default: null })
   referrerId?: number | null
@@ -196,37 +196,37 @@ export class User extends BaseEntity {
   humhubAllowed: boolean
 
   @OneToMany(
-    () => Contribution,
-    (contribution) => contribution.user,
+    () => require('./Contribution').Contribution,
+    (contribution: ContributionType) => contribution.user,
   )
   @JoinColumn({ name: 'user_id' })
-  contributions?: Contribution[]
+  contributions?: ContributionType[]
 
   @OneToMany(
-    () => ContributionMessage,
-    (message) => message.user,
+    () => require('./ContributionMessage').ContributionMessage,
+    (message: ContributionMessageType) => message.user,
   )
   @JoinColumn({ name: 'user_id' })
-  messages?: ContributionMessage[]
+  messages?: ContributionMessageType[]
 
   @OneToMany(
-    () => UserContact,
-    (userContact: UserContact) => userContact.user,
+    () => require('./UserContact').UserContact,
+    (userContact: UserContactType) => userContact.user,
   )
   @JoinColumn({ name: 'user_id' })
-  userContacts?: UserContact[]
+  userContacts?: UserContactType[]
 
   @OneToOne(
-    () => DltTransaction,
-    (dlt) => dlt.userId,
+    () => require('./DltTransaction').DltTransaction,
+    (dlt: DltTransactionType) => dlt.userId,
   )
   @JoinColumn({ name: 'id', referencedColumnName: 'userId' })
-  dltTransaction?: DltTransaction | null
+  dltTransaction?: DltTransactionType | null
 
   @OneToOne(
-    () => TransactionLink,
-    (transactionLink) => transactionLink.userId,
+    () => require('./TransactionLink').TransactionLink,
+    (transactionLink: TransactionLinkType) => transactionLink.userId,
   )
   @JoinColumn({ name: 'id', referencedColumnName: 'userId' })
-  transactionLink?: TransactionLink | null
+  transactionLink?: TransactionLinkType | null
 }

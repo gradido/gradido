@@ -91,7 +91,8 @@ const getLoggerMocked = mock().mockImplementation((param: any) => {
 })
 
 mock.module('log4js', () => ({
-  getLogger: getLoggerMocked
+  getLogger: getLoggerMocked,
+  addLayout: jest.fn()
 }))
 
 export function getLogger(name: string) {

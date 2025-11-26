@@ -114,8 +114,7 @@ COPY --chown=app:app --from=build ${DOCKER_WORKDIR}/backend/build/worker.js ./wo
 # add node_modules from production_node_modules
 COPY --chown=app:app --from=production-node-modules ${DOCKER_WORKDIR}/node_modules ./node_modules
 
-# Copy locales
-COPY --chown=app:app --from=build ${DOCKER_WORKDIR}/backend/locales ./locales
+COPY --chown=app:app --from=build ${DOCKER_WORKDIR}/core/build/templates ./templates
 
 # Run command
 CMD ["node", "index.js"]

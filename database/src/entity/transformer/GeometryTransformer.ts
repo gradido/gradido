@@ -1,4 +1,4 @@
-import { Geometry } from 'geojson'
+import { type Geometry } from 'geojson'
 import { ValueTransformer } from 'typeorm/decorator/options/ValueTransformer'
 
 import { Geometry as wkx_Geometry } from 'wkx'

@@ -21,15 +21,15 @@ import { AdminUpdateContribution } from '@model/AdminUpdateContribution'
 import { Contribution, ContributionListResult } from '@model/Contribution'
 import { OpenCreation } from '@model/OpenCreation'
 import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
-import { TransactionTypeId } from 'core'
-
 import { RIGHTS } from '@/auth/RIGHTS'
 import {
+  fullName,
   sendContributionChangedByModeratorEmail,
   sendContributionConfirmedEmail,
   sendContributionDeletedEmail,
   sendContributionDeniedEmail,
-} from '@/emails/sendEmailVariants'
+  TransactionTypeId
+} from 'core'
 import {
   EVENT_ADMIN_CONTRIBUTION_CONFIRM,
   EVENT_ADMIN_CONTRIBUTION_CREATE,

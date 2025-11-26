@@ -20,8 +20,34 @@ const federation = {
   ),
 }
 
+const COMMUNITY_HOST = process.env.COMMUNITY_HOST ?? 'localhost'
+const URL_PROTOCOL = process.env.URL_PROTOCOL ?? 'http'
+const COMMUNITY_URL = process.env.COMMUNITY_URL ?? `${URL_PROTOCOL}://${COMMUNITY_HOST}`
+
+const community = {
+  COMMUNITY_SUPPORT_MAIL: process.env.COMMUNITY_SUPPORT_MAIL ?? 'support@supportmail.com',
+  COMMUNITY_URL,
+}
+
+
+const email = {
+  EMAIL: process.env.EMAIL === 'true',
+  EMAIL_LINK_FORGOTPASSWORD:
+    COMMUNITY_URL + (process.env.EMAIL_LINK_FORGOTPASSWORD_PATH ?? '/forgot-password'),
+  EMAIL_TLS: process.env.EMAIL_TLS !== 'false',
+  EMAIL_TEST_MODUS: process.env.EMAIL_TEST_MODUS === 'true',
+  EMAIL_TEST_RECEIVER: process.env.EMAIL_TEST_RECEIVER ?? 'stage1@gradido.net',
+  EMAIL_USERNAME: process.env.EMAIL_USERNAME ?? '',
+  EMAIL_SENDER: process.env.EMAIL_SENDER ?? 'info@gradido.net',
+  EMAIL_PASSWORD: process.env.EMAIL_PASSWORD ?? '',
+  EMAIL_SMTP_HOST: process.env.EMAIL_SMTP_HOST ?? 'mailserver',
+  EMAIL_SMTP_PORT: Number(process.env.EMAIL_SMTP_PORT) || 1025,
+}
+
 
 export const CONFIG = {
   ...federation,
+  ...community,
+  ...email,
 }
 validate(schema, CONFIG)

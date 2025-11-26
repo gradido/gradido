@@ -5,10 +5,9 @@ import { DataSource } from 'typeorm'
 
 import { ContributionStatus } from '@enum/ContributionStatus'
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
-import { i18n as localization } from '@test/testSetup'
 
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { sendAddedContributionMessageEmail } from '@/emails/sendEmailVariants'
+import { sendAddedContributionMessageEmail } from 'core'
 import { EventType } from '@/event/Events'
 import { userFactory } from '@/seeds/factory/user'
 import {
@@ -31,14 +30,12 @@ const interactionLogger = getLogger(
 )
 
 jest.mock('@/password/EncryptorUtils')
-jest.mock('@/emails/sendEmailVariants', () => {
-  const originalModule = jest.requireActual('@/emails/sendEmailVariants')
+jest.mock('core', () => {
+  const originalModule = jest.requireActual('core')
   return {
     __esModule: true,
     ...originalModule,
-    sendAddedContributionMessageEmail: jest.fn((a) =>
-      originalModule.sendAddedContributionMessageEmail(a),
-    ),
+    sendAddedContributionMessageEmail: jest.fn(),
   }
 })
 
@@ -54,7 +51,7 @@ let testEnv: {
 let result: any
 
 beforeAll(async () => {
-  testEnv = await testEnvironment(logger, localization)
+  testEnv = await testEnvironment(logger)
   mutate = testEnv.mutate
   con = testEnv.con
   db = testEnv.db

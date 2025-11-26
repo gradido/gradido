@@ -3,11 +3,10 @@ import { AppDatabase } from '../AppDatabase'
 import { aliasExists, findUserByIdentifier } from './user'
 import { userFactory } from '../seeds/factory/user'
 import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
-import { describe, expect, it, beforeAll, afterAll, beforeEach, } from 'vitest'
 import { createCommunity } from '../seeds/community'
 import { peterLustig } from '../seeds/users/peter-lustig'
 import { bobBaumeister } from '../seeds/users/bob-baumeister'
-import { getLogger, printLogs, clearLogs } from '../../../config-schema/test/testSetup.vitest'
+import { getLogger, printLogs, clearLogs } from '../../../config-schema/test/testSetup.bun'
 import { LOG4JS_QUERIES_CATEGORY_NAME } from '.'
 
 const db = AppDatabase.getInstance()

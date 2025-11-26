@@ -18,7 +18,6 @@ export const userFactory = async (
   // console.log('call createUser with', JSON.stringify(user, null, 2))
   const response = await mutate({ mutation: createUser, variables: user })
   if (!response?.data?.createUser) {
-    // biome-ignore lint/suspicious/noConsole: will be used in tests where logging is mocked
     // console.log(JSON.stringify(response, null, 2))
     throw new Error('createUser mutation returned unexpected response')
   }
@@ -40,11 +39,15 @@ export const userFactory = async (
   }
 
   // get last changes of user from database
-  dbUser = await User.findOneOrFail({ where: { id }, relations: ['userRoles'] })
+  dbUser = await User.findOneOrFail({ where: { id }, relations: { userRoles: true, emailContact: true } })
 
   if (user.createdAt || user.deletedAt || user.role) {
     if (user.createdAt) {
       dbUser.createdAt = user.createdAt
+      // make sure emailContact is also updated for e2e test, prevent failing when time between seeding and test run is < 1 minute
+      dbUser.emailContact.createdAt = user.createdAt
+      dbUser.emailContact.updatedAt = user.createdAt
+      await dbUser.emailContact.save()
     }
     if (user.deletedAt) {
       dbUser.deletedAt = user.deletedAt
