@@ -1,7 +1,4 @@
 {
-  "accountMultiRegistration": {
-    "contactSupport": "accountMultiRegistration.contactSupport"
-  },
   "emails": {
     "accountActivation": {
       "activateAccount": "Activate account",
