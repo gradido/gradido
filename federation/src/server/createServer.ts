@@ -4,7 +4,7 @@ import { ApolloServer } from 'apollo-server-express'
 import express, { Express } from 'express'
 
 // server
-import cors from './cors'
+import { cors } from './cors'
 // import serverContext from './context'
 import { plugins } from './plugins'
 
