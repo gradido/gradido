@@ -4,8 +4,6 @@ import ContentFooter from './ContentFooter'
 import CONFIG from '@/config'
 import { BCol, BNav, BNavItem, BRow } from 'bootstrap-vue-next'
 
-console.log(`CONFIG in ContentFooter.spec.js: ${JSON.stringify(CONFIG, null, 2)}`)
-
 describe('ContentFooter', () => {
   let wrapper
 
