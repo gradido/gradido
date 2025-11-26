@@ -4,7 +4,7 @@
       <auth-navbar class="index10" />
 
       <div class="left-content-box position-fixed d-none d-lg-block">
-        <div class="bg-img-box position-absolute w-100">
+        <div v-if="isDesktop" class="bg-img-box position-absolute w-100">
           <auth-carousel class="carousel" />
         </div>
         <div class="bg-txt-box position-relative d-none d-lg-block text-center align-self-center">
@@ -134,6 +134,7 @@ onBeforeMount(() => {
   // clear state
   store.commit('project', null)
 })
+const isDesktop = computed(() => window.innerWidth > 768)
 
 // put project value into store, if projectBrandingBanner query don't throw an error, so project exists
 watchEffect(() => {

@@ -39,7 +39,7 @@ export const transactionLinkFactory = async (
     }
 
     if (transactionLink.deletedAt) {
-      dbTransactionLink.deletedAt = new Date()
+      dbTransactionLink.deletedAt = new Date(dbTransactionLink.createdAt.getTime() + 1000)
       await dbTransactionLink.save()
     }
   }
