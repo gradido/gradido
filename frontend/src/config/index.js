@@ -2,7 +2,6 @@
 //            The whole contents is exposed to the client
 
 // Load Package Details for some default values
-const { DLT_ACTIVE } = require('config-schema')
 const pkg = require('../../package')
 
 const constants = {
