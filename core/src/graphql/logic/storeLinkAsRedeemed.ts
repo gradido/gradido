@@ -1,4 +1,8 @@
-import { TransactionLink as DbTransactionLink, User as DbUser } from "database";
+import { TransactionLink as DbTransactionLink, User as DbUser } from 'database'
+import { getLogger } from 'log4js'
+import { LOG4JS_BASE_CATEGORY_NAME } from '../../config/const'
+
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.logic.storeLinkAsRedeemed`)
 
 export async function storeLinkAsRedeemed(
     dbTransactionLink: DbTransactionLink,
@@ -11,7 +15,7 @@ export async function storeLinkAsRedeemed(
         await DbTransactionLink.save(dbTransactionLink)
         return true
     } catch (err) {
-        console.error('error in storeLinkAsRedeemed;', err)
+        logger.error('error: ', err)
         return false
     }
 }

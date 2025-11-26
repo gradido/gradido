@@ -73,7 +73,6 @@ let peter: User
 
 let homeCom: DbCommunity
 let foreignCom: DbCommunity
-let fedForeignCom: DbFederatedCommunity
 
 describe('send coins', () => {
   beforeAll(async () => {

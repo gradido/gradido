@@ -1,9 +1,8 @@
-import cors from 'cors'
+import corsLib from 'cors'
 
 const corsOptions = {
   origin: '*',
   exposedHeaders: ['token'],
 }
 
-// biome-ignore lint/style/noDefaultExport: <explanation>
-export default cors(corsOptions)
+export const cors = corsLib(corsOptions)
