@@ -30,7 +30,7 @@ export class DltConnectorClient {
    * just one instance of each subclass around.
    */
   public static getInstance(): DltConnectorClient | undefined {
-    if (!CONFIG.DLT_CONNECTOR || !CONFIG.DLT_CONNECTOR_URL) {
+    if (!CONFIG.DLT_ACTIVE || !CONFIG.DLT_CONNECTOR_URL) {
       logger.info(`dlt-connector are disabled via config...`)
       return
     }

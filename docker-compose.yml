@@ -61,6 +61,30 @@ services:
     volumes:
       - ./logs/nginx/admin:/var/log/nginx
 
+  ########################################################
+  # INSPECTOR  ###########################################
+  ########################################################
+  inspector:
+    # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
+    image: gradido/inspector:local-production
+    build:
+      context: ./inspector
+      dockerfile: Dockerfile
+      target: production
+    networks:
+      - internal-net
+    ports:
+      - ${INSPECTOR_MODULE_PORT:-3100}:3100
+    environment:
+      - NODE_ENV=production
+      - BUILD_COMMIT=${BUILD_COMMIT}
+      - BUILD_COMMIT_SHORT=${BUILD_COMMIT_SHORT}
+      - BUILD_VERSION=${BUILD_VERSION}
+      # - DEBUG=true
+    volumes:
+      - ./logs/nginx/inspector:/var/log/nginx
+
+
   #########################################################
   ## MARIADB ##############################################
   #########################################################
@@ -97,7 +121,7 @@ services:
     environment:
       # Envs used in Dockerfile
       # - DOCKER_WORKDIR="/app"
-      # - PORT=4000
+      - BACKEND_PORT=4000
       - BUILD_DATE
       - BUILD_VERSION
       - BUILD_COMMIT
@@ -132,7 +156,6 @@ services:
     environment:
       # Envs used in Dockerfile
       # - DOCKER_WORKDIR="/app"
-      # - PORT=5000
       - BUILD_DATE
       - BUILD_VERSION
       - BUILD_COMMIT
@@ -167,7 +190,8 @@ services:
     environment:
       # Envs used in Dockerfile
       # - DOCKER_WORKDIR="/app"
-      - PORT=6010
+      - DLT_CONNECTOR_PORT=6010
+      - BACKEND_PORT=4000
       - BUILD_DATE
       - BUILD_VERSION
       - BUILD_COMMIT

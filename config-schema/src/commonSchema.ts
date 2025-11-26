@@ -35,6 +35,11 @@ export const COMMUNITY_URL = Joi.string()
   .default('http://0.0.0.0')
   .required()
 
+export const DLT_ACTIVE = Joi.boolean()
+  .description('Flag to indicate if the DLT (Decentralized Ledger Technology) service is used.')
+  .default(false)
+  .required()
+
 export const GRAPHQL_URI = Joi.string()
   .uri({ scheme: ['http', 'https'] })
   .description(

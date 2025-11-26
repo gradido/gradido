@@ -38,6 +38,7 @@ if (process.env.FRONTEND_HOSTING === 'nodejs') {
 // version.FRONTEND_MODULE_PORT
 
 const features = {
+  DLT_ACTIVE: process.env.DLT_ACTIVE === 'true',
   GMS_ACTIVE: process.env.GMS_ACTIVE === 'true',
   HUMHUB_ACTIVE: process.env.HUMHUB_ACTIVE === 'true',
   AUTO_POLL_INTERVAL: Number.parseInt(process.env.AUTO_POLL_INTERVAL ?? 0),

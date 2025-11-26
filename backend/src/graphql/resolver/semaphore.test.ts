@@ -27,7 +27,7 @@ import { TRANSACTIONS_LOCK } from 'database'
 
 jest.mock('@/password/EncryptorUtils')
 
-CONFIG.DLT_CONNECTOR = false
+CONFIG.DLT_ACTIVE = false
 CORE_CONFIG.EMAIL = false
 
 let mutate: ApolloServerTestClient['mutate']
