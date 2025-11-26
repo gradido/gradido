@@ -5,7 +5,6 @@ import { DataSource } from 'typeorm'
 import { v4 as uuidv4 } from 'uuid'
 
 import { cleanDB, testEnvironment } from '@test/helpers'
-import { i18n as localization } from '@test/testSetup'
 
 import { userFactory } from '@/seeds/factory/user'
 import { login, updateHomeCommunityQuery } from '@/seeds/graphql/mutations'
@@ -43,7 +42,7 @@ const peterLoginData = {
 }
 
 beforeAll(async () => {
-  testEnv = await testEnvironment(getLogger('apollo'), localization)
+  testEnv = await testEnvironment(getLogger('apollo'))
   mutate = testEnv.mutate
   query = testEnv.query
   con = testEnv.con
