@@ -58,7 +58,6 @@ describe('communityHandshakes', () => {
     communityHandshakeState!.status = CommunityHandshakeStateType.START_OPEN_CONNECTION_CALLBACK    
     await communityHandshakeState!.save()
     const communityHandshakeState2 = await findPendingCommunityHandshake(publicKey, '1_0')
-    const states = await DbCommunityHandshakeState.find()
     expect(communityHandshakeState2).toBeDefined()
     expect(communityHandshakeState2).toMatchObject({
       publicKey: publicKey.asBuffer(),

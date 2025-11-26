@@ -31,6 +31,7 @@ export function validate(schema: ObjectSchema, data: any) {
             )
           }
       } catch (e) {
+        // biome-ignore lint/suspicious/noConsole: schema validation may be run before logger is initialized
         console.error('Error getting description for key ' + key + ': ' + e)
         throw e
       }
