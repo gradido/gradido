@@ -43,7 +43,7 @@
           <BNavItem :href="`mailto:${supportEmail}`" target="_blank">
             {{ $t('navigation.support') }}
           </BNavItem>
-          <BNavItem v-if="dltActive" :href="`https://${communityUrl}/inspector`" target="_blank">
+          <BNavItem v-if="dltActive" :href="`${communityUrl}/inspector`" target="_blank">
             {{ $t('footer.inspector') }}
           </BNavItem>
         </BNav>

@@ -58,7 +58,7 @@ jobs:
           bun-version-file: '.bun-version'
 
       - name: install dependencies
-        run: cd dlt-connector && bun install --frozen-lockfile
+        run: bun install --filter shared --frozen-lockfile && cd dlt-connector && bun install --frozen-lockfile
 
       - name: typecheck && unit test
         run: |

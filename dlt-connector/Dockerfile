@@ -74,6 +74,7 @@ CMD /bin/sh -c "cd dlt-connector && bun install --no-cache --frozen-lockfile  &&
 ##################################################################################
 FROM base as base-src
 COPY --chown=app:app ./dlt-connector ./dlt-connector
+COPY --chown=app:app ./shared/src ./shared/src
 
 ##################################################################################
 # Build ##########################################################################
@@ -81,7 +82,7 @@ COPY --chown=app:app ./dlt-connector ./dlt-connector
 FROM base-src as build 
 
 RUN cd dlt-connector && bun install --no-cache --frozen-lockfile 
-RUN cd dlt-connector && bun typecheck && bun run build
+RUN cd dlt-connector && bun run build
 
 ##################################################################################
 # TEST ###########################################################################

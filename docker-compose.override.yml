@@ -199,6 +199,7 @@ services:
       - debug
     environment:
      - PMA_ARBITRARY=1
+     - UPLOAD_LIMIT=200M
     #restart: always
     ports:
      - 8074:80
