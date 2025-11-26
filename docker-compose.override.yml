@@ -228,6 +228,7 @@ volumes:
   node_modules_frontend:
   node_modules_backend:
   node_modules_federation:
+  node_modules_inspector:
   node_modules_database:
   node_modules_dlt_connector:
   turbo_cache:

@@ -43,11 +43,7 @@
           <BNavItem :href="`mailto:${supportEmail}`" target="_blank">
             {{ $t('navigation.support') }}
           </BNavItem>
-          <BNavItem
-            v-if="CONFIG.DLT_ACTIVE"
-            :href="`https://${CONFIG.COMMUNITY_URL}/inspector`"
-            target="_blank"
-          >
+          <BNavItem v-if="dltActive" :href="`https://${communityUrl}/inspector`" target="_blank">
             {{ $t('footer.inspector') }}
           </BNavItem>
         </BNav>
@@ -61,6 +57,8 @@ import CONFIG from '@/config'
 export default {
   data() {
     return {
+      dltActive: CONFIG.DLT_ACTIVE,
+      communityUrl: CONFIG.COMMUNITY_URL,
       year: new Date().getFullYear(),
       version: CONFIG.APP_VERSION,
       hash: CONFIG.BUILD_COMMIT,
