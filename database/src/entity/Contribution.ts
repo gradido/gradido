@@ -10,9 +10,9 @@ import {
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm'
-import { ContributionMessage } from './ContributionMessage'
-import { Transaction } from './Transaction'
-import { User } from './User'
+import { type ContributionMessage as ContributionMessageType } from './ContributionMessage'
+import { type Transaction as TransactionType } from './Transaction'
+import { type User as UserType } from './User'
 import { DecimalTransformer } from './transformer/DecimalTransformer'
 
 @Entity('contributions')
@@ -24,11 +24,11 @@ export class Contribution extends BaseEntity {
   userId: number
 
   @ManyToOne(
-    () => User,
-    (user) => user.contributions,
+    () => require('./User').User,
+    (user: UserType) => user.contributions,
   )
   @JoinColumn({ name: 'user_id' })
-  user: User
+  user: UserType
 
   @Column({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', name: 'created_at' })
   createdAt: Date
@@ -103,16 +103,16 @@ export class Contribution extends BaseEntity {
   deletedBy: number
 
   @OneToMany(
-    () => ContributionMessage,
-    (message) => message.contribution,
+    () => require('./ContributionMessage').ContributionMessage,
+    (message: ContributionMessageType) => message.contribution,
   )
   @JoinColumn({ name: 'contribution_id' })
-  messages?: ContributionMessage[]
+  messages?: ContributionMessageType[]
 
   @OneToOne(
-    () => Transaction,
-    (transaction) => transaction.contribution,
+    () => require('./Transaction').Transaction,
+    (transaction: TransactionType) => transaction.contribution,
   )
   @JoinColumn({ name: 'transaction_id' })
-  transaction?: Transaction | null
+  transaction?: TransactionType | null
 }

@@ -1,14 +1,11 @@
 import {
   AppDatabase,
   countOpenPendingTransactions,
-  Community as DbCommunity,
   DltTransaction as DbDltTransaction,
   Transaction as dbTransaction,
   TransactionLink as dbTransactionLink,
   User as dbUser,
   findUserByIdentifier,
-  TransactionLoggingView,
-  UserLoggingView
 } from 'database'
 import { Decimal } from 'decimal.js-light'
 import { Args, Authorized, Ctx, Mutation, Query, Resolver } from 'type-graphql'
@@ -20,21 +17,22 @@ import { Order } from '@enum/Order'
 import { Transaction } from '@model/Transaction'
 import { TransactionList } from '@model/TransactionList'
 import { User } from '@model/User'
-import { processXComCompleteTransaction, TransactionTypeId } from 'core'
-
+import { 
+  fullName,
+  processXComCompleteTransaction, 
+  sendTransactionLinkRedeemedEmail,
+  sendTransactionReceivedEmail, 
+  TransactionTypeId 
+} from 'core'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { CONFIG } from '@/config'
 import {
-  sendTransactionLinkRedeemedEmail,
-  sendTransactionReceivedEmail,
-} from '@/emails/sendEmailVariants'
-import { EVENT_TRANSACTION_RECEIVE, EVENT_TRANSACTION_SEND } from '@/event/Events'
+  EVENT_TRANSACTION_RECEIVE, EVENT_TRANSACTION_SEND } from '@/event/Events'
 import { LogError } from '@/server/LogError'
 import { Context, getUser } from '@/server/context'
 import { communityUser } from '@/util/communityUser'
 import { calculateBalance } from '@/util/validate'
 import { virtualDecayTransaction, virtualLinkTransaction } from '@/util/virtualTransactions'
-import { fullName } from 'core'
 import { TRANSACTIONS_LOCK } from 'database'
 
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'

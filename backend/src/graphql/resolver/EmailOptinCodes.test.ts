@@ -5,6 +5,7 @@ import { DataSource } from 'typeorm'
 
 import { cleanDB, testEnvironment } from '@test/helpers'
 
+import { CONFIG as CORE_CONFIG } from 'core'
 import { CONFIG } from '@/config'
 import { writeHomeCommunityEntry } from '@/seeds/community'
 import { createUser, forgotPassword, setPassword } from '@/seeds/graphql/mutations'
@@ -21,7 +22,7 @@ let testEnv: {
 
 CONFIG.EMAIL_CODE_VALID_TIME = 1440
 CONFIG.EMAIL_CODE_REQUEST_TIME = 10
-CONFIG.EMAIL = false
+CORE_CONFIG.EMAIL = false
 
 beforeAll(async () => {
   testEnv = await testEnvironment()

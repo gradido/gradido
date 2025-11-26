@@ -63,22 +63,10 @@ const loginServer = {
 }
 
 const email = {
-  EMAIL: process.env.EMAIL === 'true',
-  EMAIL_TEST_MODUS: process.env.EMAIL_TEST_MODUS === 'true',
-  EMAIL_TEST_RECEIVER: process.env.EMAIL_TEST_RECEIVER ?? 'stage1@gradido.net',
-  EMAIL_USERNAME: process.env.EMAIL_USERNAME ?? '',
-  EMAIL_SENDER: process.env.EMAIL_SENDER ?? 'info@gradido.net',
-  EMAIL_PASSWORD: process.env.EMAIL_PASSWORD ?? '',
-  EMAIL_SMTP_HOST: process.env.EMAIL_SMTP_HOST ?? 'mailserver',
-  EMAIL_SMTP_PORT: Number(process.env.EMAIL_SMTP_PORT) || 1025,
-
-  EMAIL_TLS: process.env.EMAIL_TLS !== 'false',
   EMAIL_LINK_VERIFICATION:
     COMMUNITY_URL + (process.env.EMAIL_LINK_VERIFICATION_PATH ?? '/checkEmail/'),
   EMAIL_LINK_SETPASSWORD:
     COMMUNITY_URL + (process.env.EMAIL_LINK_SETPASSWORD_PATH ?? '/reset-password/'),
-  EMAIL_LINK_FORGOTPASSWORD:
-    COMMUNITY_URL + (process.env.EMAIL_LINK_FORGOTPASSWORD_PATH ?? '/forgot-password'),
   EMAIL_LINK_OVERVIEW: COMMUNITY_URL + (process.env.EMAIL_LINK_OVERVIEW_PATH ?? '/overview'),
   // time in minutes a optin code is valid
   EMAIL_CODE_VALID_TIME: process.env.EMAIL_CODE_VALID_TIME

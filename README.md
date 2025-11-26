@@ -189,11 +189,11 @@ describe('test', () => {
 ```ts
 import { clearLogs, printLogs } from 'config-schema/test/testSetup'
 ```
-- vitest (frontend, admin, database): 
+- vitest (frontend, admin): 
 ```ts
 import { clearLogs, printLogs } from 'config-schema/test/testSetup.vitest'
 ```
-- bun (shared, core): 
+- bun (shared, core, database): 
 ```ts
 import { clearLogs, printLogs } from 'config-schema/test/testSetup.bun'
 ```

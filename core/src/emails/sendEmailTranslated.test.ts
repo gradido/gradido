@@ -1,12 +1,10 @@
 import { createTransport } from 'nodemailer'
-
-import { i18n } from '@test/testSetup'
-
-import { CONFIG } from '@/config'
-
-import { getLogger } from 'config-schema/test/testSetup'
-import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { CONFIG } from '../config'
+import { i18n } from './localization'
+import { getLogger } from '../../../config-schema/test/testSetup.bun'
+import { LOG4JS_BASE_CATEGORY_NAME } from '../config/const'
 import { sendEmailTranslated } from './sendEmailTranslated'
+import { mock, jest, describe, it, expect, beforeEach, afterAll } from 'bun:test'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.emails.sendEmailTranslated`)
 
@@ -21,9 +19,8 @@ CONFIG.EMAIL_USERNAME = 'user'
 CONFIG.EMAIL_PASSWORD = 'pwd'
 CONFIG.EMAIL_TLS = true
 
-jest.mock('nodemailer', () => {
+mock.module('nodemailer', () => {
   return {
-    __esModule: true,
     createTransport: jest.fn(() => {
       return {
         sendMail: () => {
@@ -35,6 +32,13 @@ jest.mock('nodemailer', () => {
     }),
   }
 })
+
+afterAll(() => {
+  jest.restoreAllMocks()
+})
+
+const spySetLocale = jest.spyOn(i18n, 'setLocale')
+const spyTranslate = jest.spyOn(i18n, '__')
 
 describe('sendEmailTranslated', () => {
   let result: Record<string, unknown> | boolean | null
@@ -48,7 +52,7 @@ describe('sendEmailTranslated', () => {
         },
         template: 'accountMultiRegistration',
         locals: {
-          locale: 'en',
+          language: 'en',
         },
       })
     })
@@ -72,7 +76,7 @@ describe('sendEmailTranslated', () => {
         },
         template: 'accountMultiRegistration',
         locals: {
-          locale: 'en',
+          language: 'en',
         },
       })
     })
@@ -105,13 +109,13 @@ describe('sendEmailTranslated', () => {
         })
       })
     })
-
-    it.skip('calls "i18n.setLocale" with "en"', () => {
-      expect(i18n.setLocale).toBeCalledWith('en')
+    
+    it('calls "i18n.setLocale" with "en"', async () => {
+      expect(spySetLocale).toBeCalledWith('en')
     })
 
-    it.skip('calls "i18n.__" for translation', () => {
-      expect(i18n.__).toBeCalled()
+    it('calls "i18n.__" for translation', () => {
+      expect(spyTranslate).toBeCalled()
     })
   })
 
@@ -127,7 +131,7 @@ describe('sendEmailTranslated', () => {
         },
         template: 'accountMultiRegistration',
         locals: {
-          locale: 'en',
+          language: 'en',
         },
       })
     })

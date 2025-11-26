@@ -1,12 +1,16 @@
 import path from 'path'
-
 import Email from 'email-templates'
-import i18n from 'i18n'
+import { i18n } from './localization'
 import { createTransport } from 'nodemailer'
-
-import { CONFIG } from '@/config'
-import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { CONFIG } from '../config'
+import { LOG4JS_BASE_CATEGORY_NAME } from '../config/const'
 import { getLogger } from 'log4js'
+import gradidoHeader from './templates/includes/gradido-header.jpeg'
+import facebookIcon from './templates/includes/facebook-icon.png'
+import telegramIcon from './templates/includes/telegram-icon.png'
+import twitterIcon from './templates/includes/twitter-icon.png'
+import youtubeIcon from './templates/includes/youtube-icon.png'
+import chatboxIcon from './templates/includes/chatbox-icon.png'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.emails.sendEmailTranslated`)
 
@@ -21,7 +25,7 @@ export const sendEmailTranslated = async ({
   }
   template: string
   locals: Record<string, unknown>
-}): Promise<Record<string, unknown> | boolean | null> => {
+}): Promise<Record<string, unknown> | boolean | null | Error> => {
   // TODO: test the calling order of 'i18n.setLocale' for example: language of logging 'en', language of email receiver 'es', reset language of current user 'de'
 
   if (!CONFIG.EMAIL) {
@@ -31,7 +35,6 @@ export const sendEmailTranslated = async ({
 
   // because language of receiver can differ from language of current user who triggers the sending
   // const rememberLocaleToRestore = i18n.getLocale()
-
   i18n.setLocale('en') // for logging
   logger.info(
     `send Email: language=${locals.locale as string} to=${receiver.to.substring(0, 3)}...` +
@@ -45,6 +48,7 @@ export const sendEmailTranslated = async ({
     )
     receiver.to = CONFIG.EMAIL_TEST_RECEIVER
   }
+  
   const transport = createTransport({
     host: CONFIG.EMAIL_SMTP_HOST,
     port: CONFIG.EMAIL_SMTP_PORT,
@@ -56,8 +60,7 @@ export const sendEmailTranslated = async ({
     },
   })
 
-  i18n.setLocale(locals.locale as string) // for email
-
+  i18n.setLocale(locals.language as string) // for email
   // TESTING: see 'README.md'
   const email = new Email({
     message: {
@@ -66,9 +69,7 @@ export const sendEmailTranslated = async ({
     send: CONFIG.EMAIL,
     transport,
     preview: false,
-    // i18n, // is only needed if you don't install i18n
   })
-
   const resultSend = await email
     .send({
       template: path.join(__dirname, 'templates', template),
@@ -76,38 +77,39 @@ export const sendEmailTranslated = async ({
         ...receiver,
         attachments: [
           {
-            filename: 'gradido-header.jpeg',
-            path: path.join(__dirname, 'templates/includes/gradido-header.jpeg'),
+            // filename: 'gradido-header.jpeg',
+            content: gradidoHeader,
             cid: 'gradidoheader',
           },
           {
-            filename: 'facebook-icon.png',
-            path: path.join(__dirname, 'templates/includes/facebook-icon.png'),
+            // filename: 'facebook-icon.png',
+            content: facebookIcon,
             cid: 'facebookicon',
           },
           {
-            filename: 'telegram-icon.png',
-            path: path.join(__dirname, 'templates/includes/telegram-icon.png'),
+            // filename: 'telegram-icon.png',
+            content: telegramIcon,
             cid: 'telegramicon',
           },
           {
-            filename: 'twitter-icon.png',
-            path: path.join(__dirname, 'templates/includes/twitter-icon.png'),
+            // filename: 'twitter-icon.png',
+            content: twitterIcon,
             cid: 'twittericon',
           },
           {
-            filename: 'youtube-icon.png',
-            path: path.join(__dirname, 'templates/includes/youtube-icon.png'),
+            // filename: 'youtube-icon.png',
+            content: youtubeIcon,
             cid: 'youtubeicon',
           },
           {
-            filename: 'chatbox-icon.png',
-            path: path.join(__dirname, 'templates/includes/chatbox-icon.png'),
+             // filename: 'chatbox-icon.png',
+            content: chatboxIcon,
             cid: 'chatboxicon',
           },
         ],
       },
       locals, // the 'locale' in here seems not to be used by 'email-template', because it doesn't work if the language isn't set before by 'i18n.setLocale'
+      // t: i18n.__.bind(i18n),
     })
     .catch((error: unknown) => {
       logger.error('Error sending notification email', error)

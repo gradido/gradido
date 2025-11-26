@@ -63,7 +63,7 @@
     "typeRoots": [                                  /* List of folders to include type definitions from. */
       "@types",
       "node_modules/@types",
-      "../node_modules/@types"
+      "../node_modules/@types",
     ],
     // "types": [],                                 /* Type declaration files to be included in compilation. */
     // "allowSyntheticDefaultImports": true,        /* Allow default imports from modules with no default export. This does not affect code emit, just typechecking. */
@@ -86,6 +86,9 @@
     "skipLibCheck": true,                           /* Skip type checking of declaration files. */
     "forceConsistentCasingInFileNames": true,        /* Disallow inconsistently-cased references to the same file. */
   },
+  "include": [
+    "../core/src/types"
+  ],
   "ts-node": {
     "swc": true
   }

@@ -22,12 +22,13 @@ import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { CONFIG } from '@/config'
+import { CONFIG as CORE_CONFIG } from 'core'
 import { TRANSACTIONS_LOCK } from 'database'
 
 jest.mock('@/password/EncryptorUtils')
 
 CONFIG.DLT_ACTIVE = false
-CONFIG.EMAIL = false
+CORE_CONFIG.EMAIL = false
 
 let mutate: ApolloServerTestClient['mutate']
 let con: DataSource

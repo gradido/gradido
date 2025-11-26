@@ -62,6 +62,7 @@ export class AuthenticationResolver {
 
       // no await to respond immediately and invoke callback-request asynchronously
       // important: startOpenConnectionCallback must catch all exceptions them self, or server will crash!
+      // biome-ignore lint/complexity/noVoid: start it intentionally async without waiting for result
       void startOpenConnectionCallback(args.handshakeID, argsPublicKey, fedComA)
       methodLogger.debug('openConnection() successfully initiated callback and returns true immediately...')
       return true
@@ -96,6 +97,7 @@ export class AuthenticationResolver {
         `found fedComB and start authentication: ${fedComB.endPoint}${fedComB.apiVersion}`,
       )
       // no await to respond immediately and invoke authenticate-request asynchronously
+      // biome-ignore lint/complexity/noVoid: start it intentionally async without waiting for result
       void startAuthentication(args.handshakeID, openConnectionCallbackJwtPayload.oneTimeCode, fedComB)
       // methodLogger.debug('openConnectionCallback() successfully initiated authentication and returns true immediately...')
       return true
