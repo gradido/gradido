@@ -5,11 +5,11 @@
     "ignoreUnknown": false,
     "includes": [
       "**/package.json",
-      "src/**/*.js",
-      "src/**/*.ts",
-      "entity/**/*.ts",
-      "logging/**/*.ts",
-      "migrations/**/*.ts",
+      "**/src/**/*.js",
+      "**/src/**/*.ts",
+      "**/entity/**/*.ts",
+      "**/logging/**/*.ts",
+      "**/migrations/**/*.ts",
       "!**/build",
       "!**/node_modules",
       "!**/coverage"
