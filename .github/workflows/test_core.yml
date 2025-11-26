@@ -43,3 +43,18 @@ jobs:
       - name: typecheck && unit test
         run: turbo core#test core#typecheck
 
+  locales:
+    if: needs.files-changed.outputs.core == 'true'
+    name: Locales - Core
+    needs: files-changed
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: install bun 
+        uses: oven-sh/setup-bun@v2
+
+      - name: Core | Locales
+        run: cd core && bun locales
+

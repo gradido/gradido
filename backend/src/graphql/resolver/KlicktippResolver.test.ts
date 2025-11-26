@@ -2,7 +2,6 @@ import { Event as DbEvent, UserContact } from 'database'
 import { GraphQLError } from 'graphql'
 
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
-import { i18n as localization } from '@test/testSetup'
 import { getLogger } from 'config-schema/test/testSetup'
 
 import { EventType } from '@/event/Events'
@@ -20,7 +19,7 @@ let mutate: any
 let con: any
 
 beforeAll(async () => {
-  testEnv = await testEnvironment(logger, localization)
+  testEnv = await testEnvironment(logger)
   mutate = testEnv.mutate
   con = testEnv.con
   await cleanDB()

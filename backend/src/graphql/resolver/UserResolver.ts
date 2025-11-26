@@ -10,7 +10,6 @@ import {
   findUserByIdentifier 
 } from 'database'
 import { GraphQLResolveInfo } from 'graphql'
-import i18n from 'i18n'
 import {
   Arg,
   Args,
@@ -58,11 +57,6 @@ import { RIGHTS } from '@/auth/RIGHTS'
 import { CONFIG } from '@/config'
 import { PublishNameLogic } from '@/data/PublishName.logic'
 import {
-  sendAccountActivationEmail,
-  sendAccountMultiRegistrationEmail,
-  sendResetPasswordEmail,
-} from '@/emails/sendEmailVariants'
-import {
   EVENT_ADMIN_USER_DELETE,
   EVENT_ADMIN_USER_ROLE_SET,
   EVENT_ADMIN_USER_UNDELETE,
@@ -85,8 +79,12 @@ import { Context, getClientTimezoneOffset, getUser } from '@/server/context'
 import { communityDbUser } from '@/util/communityUser'
 import { hasElopageBuys } from '@/util/hasElopageBuys'
 import { durationInMinutesFromDates, getTimeDurationObject, printTimeDuration } from '@/util/time'
-import { delay } from 'core'
-
+import { 
+  delay,
+  sendAccountActivationEmail,
+  sendAccountMultiRegistrationEmail,
+  sendResetPasswordEmail,  
+} from 'core'
 import random from 'random-bigint'
 import { randombytes_random } from 'sodium-native'
 
@@ -233,7 +231,6 @@ export class UserResolver {
     logger.debug('validation of login credentials successful...')
 
     const user = new User(dbUser)
-    i18n.setLocale(user.language)
 
     // Elopage Status & Stored PublisherId
     user.hasElopage = await this.hasElopage({ ...context, user: dbUser })
@@ -322,7 +319,6 @@ export class UserResolver {
     if (!language || !isLanguage(language)) {
       language = DEFAULT_LANGUAGE
     }
-    i18n.setLocale(language)
 
     // check if user with email still exists?
     email = email.trim().toLowerCase()
@@ -764,7 +760,6 @@ export class UserResolver {
         throw new LogError('Given language is not a valid language or not supported')
       }
       user.language = language
-      i18n.setLocale(language)
       updated = true
     }
 

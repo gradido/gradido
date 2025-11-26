@@ -2,12 +2,12 @@
 
 exports[`sendEmailVariants sendAccountActivationEmail result has the correct html as snapshot 1`] = `
 "<!DOCTYPE html>
-<html lang=\\"en\\">
+<html lang=\"en\">
   <head>
-    <meta content=\\"multipart/html; charset=UTF-8\\" http-equiv=\\"content-type\\">
-    <meta name=\\"viewport\\" content=\\"width=device-width, initial-scale=1\\">
+    <meta content=\"multipart/html; charset=UTF-8\" http-equiv=\"content-type\">
+    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">
     <style>
-.wf-force-outline-none[tabindex=\\"-1\\"]:focus {
+.wf-force-outline-none[tabindex=\"-1\"]:focus {
   outline: none;
 }
 </style>
@@ -133,41 +133,41 @@ exports[`sendEmailVariants sendAccountActivationEmail result has the correct htm
 }
 </style>
   </head>
-  <body style=\\"display: block; font-family: 'Work Sans', sans-serif; font-size: 17px; text-align: center; text-align: -webkit-center; justify-content: center; padding: 0px; margin: 0px;\\">
-    <div class=\\"container\\" style=\\"max-width: 680px; margin: 0 auto; display: block;\\">
+  <body style=\"display: block; font-family: 'Work Sans', sans-serif; font-size: 17px; text-align: center; text-align: -webkit-center; justify-content: center; padding: 0px; margin: 0px;\">
+    <div class=\"container\" style=\"max-width: 680px; margin: 0 auto; display: block;\">
       <header>
-        <div class=\\"head\\"><img class=\\"head-logo\\" alt=\\"Gradido Logo\\" loading=\\"lazy\\" src=\\"cid:gradidoheader\\" style=\\"width: 100%; height: auto;\\"></div>
+        <div class=\"head\"><img class=\"head-logo\" alt=\"Gradido Logo\" loading=\"lazy\" src=\"cid:gradidoheader\" style=\"width: 100%; height: auto;\"></div>
       </header>
-      <div class=\\"wrapper\\">
-        <h2 style=\\"margin-top: 15px; color: #383838;\\">Email Verification</h2>
-        <div class=\\"text-block\\" style=\\"margin-top: 20px; color: #9ca0a8;\\">
+      <div class=\"wrapper\">
+        <h2 style=\"margin-top: 15px; color: #383838;\">Email Verification</h2>
+        <div class=\"text-block\" style=\"margin-top: 20px; color: #9ca0a8;\">
           <p>Hello Peter Lustig,</p>
           <p>Your email address has just been registered with Gradido.</p>
         </div>
-        <div class=\\"content\\" style=\\"display: block; width: 78%; margin: 40px 1% 40px 1%; padding: 20px 10% 40px 10%; border-radius: 24px; background-image: linear-gradient(180deg, #f5f5f5, #f5f5f5);\\">
-          <h2 style=\\"margin-top: 15px; color: #383838;\\">Complete registration</h2>
-          <div class=\\"p_content\\" style=\\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\\">Please click here to complete the registration and activate your Gradido account.</div><a class=\\"button-3\\" href=\\"http://localhost/checkEmail/6627633878930542284\\" style=\\"display: inline-block; padding: 9px 15px; color: white; border: 0; line-height: inherit; text-decoration: none; cursor: pointer; border-radius: 20px; background-image: radial-gradient(circle farthest-corner at 0% 0%, #f9cd69, #c58d38); box-shadow: 16px 13px 35px 0 rgba(56, 56, 56, 0.3); margin: 25px 0 25px 0; width: 50%;\\">Activate account</a>
-          <div class=\\"p_content\\" style=\\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\\">Or copy the link into your browser window.</div><a class=\\"clink\\" href=\\"http://localhost/checkEmail/6627633878930542284\\" style=\\"line-break: anywhere; margin-bottom: 40px;\\">http://localhost/checkEmail/6627633878930542284</a>
+        <div class=\"content\" style=\"display: block; width: 78%; margin: 40px 1% 40px 1%; padding: 20px 10% 40px 10%; border-radius: 24px; background-image: linear-gradient(180deg, #f5f5f5, #f5f5f5);\">
+          <h2 style=\"margin-top: 15px; color: #383838;\">Complete registration</h2>
+          <div class=\"p_content\" style=\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\">Please click here to complete the registration and activate your Gradido account.</div><a class=\"button-3\" href=\"http://localhost/checkEmail/6627633878930542284\" style=\"display: inline-block; padding: 9px 15px; color: white; border: 0; line-height: inherit; text-decoration: none; cursor: pointer; border-radius: 20px; background-image: radial-gradient(circle farthest-corner at 0% 0%, #f9cd69, #c58d38); box-shadow: 16px 13px 35px 0 rgba(56, 56, 56, 0.3); margin: 25px 0 25px 0; width: 50%;\">Activate account</a>
+          <div class=\"p_content\" style=\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\">Or copy the link into your browser window.</div><a class=\"clink\" href=\"http://localhost/checkEmail/6627633878930542284\" style=\"line-break: anywhere; margin-bottom: 40px;\">http://localhost/checkEmail/6627633878930542284</a>
           <requestnewlink>
-            <h2 style=\\"margin-top: 15px; color: #383838;\\">Request new valid link</h2>
-            <div class=\\"p_content\\" style=\\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\\">The link has a validity of 23 hours and 30 minutes.
-If the validity of the link has already expired, you can have a new link sent to you here.</div><a class=\\"button-4\\" href=\\"http://localhost/forgot-password\\" style=\\"display: inline-block; padding: 9px 15px; color: white; border: 0; line-height: inherit; text-decoration: none; cursor: pointer; border-radius: 20px; box-shadow: 16px 13px 35px 0 rgba(56, 56, 56, 0.3); margin: 25px 0 25px 0; width: 50%; background-image: radial-gradient(circle farthest-corner at 0% 0%, #616161, #c2c2c2);\\">New link</a>
+            <h2 style=\"margin-top: 15px; color: #383838;\">Request new valid link</h2>
+            <div class=\"p_content\" style=\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\">The link has a validity of 23 hours and 30 minutes.
+If the validity of the link has already expired, you can have a new link sent to you here.</div><a class=\"button-4\" href=\"http://localhost/forgot-password\" style=\"display: inline-block; padding: 9px 15px; color: white; border: 0; line-height: inherit; text-decoration: none; cursor: pointer; border-radius: 20px; box-shadow: 16px 13px 35px 0 rgba(56, 56, 56, 0.3); margin: 25px 0 25px 0; width: 50%; background-image: radial-gradient(circle farthest-corner at 0% 0%, #616161, #c2c2c2);\">New link</a>
           </requestnewlink>
         </div>
-        <div class=\\"text-block\\" style=\\"margin-top: 20px; color: #9ca0a8;\\">
+        <div class=\"text-block\" style=\"margin-top: 20px; color: #9ca0a8;\">
           <p>Kind regards,<br>your Gradido team
           </p>
         </div>
       </div>
       <footer>
-        <div class=\\"w-container footer_01\\">
-          <div class=\\"socialmedia\\" style=\\"display: flex; margin-top: 40px; max-width: 600px;\\"><a class=\\"slink\\" target=\\"_blank\\" href=\\"https://www.facebook.com/groups/Gradido/\\" style=\\"width: 150px;\\"><img class=\\"bi-facebook\\" alt=\\"facebook\\" loading=\\"lazy\\" src=\\"cid:facebookicon\\"></a><a class=\\"slink\\" target=\\"_blank\\" href=\\"https://t.me/GradidoGruppe\\" style=\\"width: 150px;\\"><img class=\\"bi-telegram\\" alt=\\"Telegram\\" loading=\\"lazy\\" src=\\"cid:telegramicon\\"></a><a class=\\"slink\\" target=\\"_blank\\" href=\\"https://twitter.com/gradido\\" style=\\"width: 150px;\\"><img class=\\"bi-twitter\\" alt=\\"Twitter\\" loading=\\"lazy\\" src=\\"cid:twittericon\\"></a><a class=\\"slink\\" target=\\"_blank\\" href=\\"https://www.youtube.com/c/GradidoNet\\" style=\\"width: 150px;\\"><img class=\\"bi-youtube\\" alt=\\"youtube\\" loading=\\"lazy\\" src=\\"cid:youtubeicon\\"></a></div>
-          <div class=\\"line\\" style=\\"width: 100%; height: 13px; margin-top: 40px; background-image: linear-gradient(90deg, #c58d38, #f3cd7c 40%, #dbb056 55%, #eec05f 71%, #cc9d3d);\\"></div>
-          <div class=\\"footer\\" style=\\"padding-bottom: 20px;\\">
-            <div class=\\"footer_p1\\" style=\\"margin-top: 30px; color: #9ca0a8; margin-bottom: 30px;\\">If you have any further questions, please contact our support.</div><a class=\\"footer_p2\\" href=\\"mailto:support@gradido.net\\" style=\\"color: #383838; font-weight: bold;\\">support@gradido.net</a>
-            <div> <img class=\\"image\\" alt=\\"Gradido Logo\\" src=\\"https://gdd.gradido.net/img/brand/green.png\\" style=\\"width: 200px; margin-top: 30px; margin-bottom: 30px;\\" width=\\"200\\"></div>
-            <div><a class=\\"terms_of_use\\" href=\\"https://gradido.net/de/impressum/\\" target=\\"_blank\\" style=\\"color: #9ca0a8;\\">Impressum</a></div><br><a class=\\"terms_of_use\\" href=\\"https://gradido.net/de/datenschutz/\\" target=\\"_blank\\" style=\\"color: #9ca0a8;\\">Privacy Policy</a>
-            <div class=\\"footer_p1\\" style=\\"margin-top: 30px; color: #9ca0a8; margin-bottom: 30px;\\">Gradido-Akademie<br>Institut für Wirtschaftsbionik<br>Pfarrweg 2<br>74653 Künzelsau<br>Deutschland<br><br><br></div>
+        <div class=\"w-container footer_01\">
+          <div class=\"socialmedia\" style=\"display: flex; margin-top: 40px; max-width: 600px;\"><a class=\"slink\" target=\"_blank\" href=\"https://www.facebook.com/groups/Gradido/\" style=\"width: 150px;\"><img class=\"bi-facebook\" alt=\"facebook\" loading=\"lazy\" src=\"cid:facebookicon\"></a><a class=\"slink\" target=\"_blank\" href=\"https://t.me/GradidoGruppe\" style=\"width: 150px;\"><img class=\"bi-telegram\" alt=\"Telegram\" loading=\"lazy\" src=\"cid:telegramicon\"></a><a class=\"slink\" target=\"_blank\" href=\"https://twitter.com/gradido\" style=\"width: 150px;\"><img class=\"bi-twitter\" alt=\"Twitter\" loading=\"lazy\" src=\"cid:twittericon\"></a><a class=\"slink\" target=\"_blank\" href=\"https://www.youtube.com/c/GradidoNet\" style=\"width: 150px;\"><img class=\"bi-youtube\" alt=\"youtube\" loading=\"lazy\" src=\"cid:youtubeicon\"></a></div>
+          <div class=\"line\" style=\"width: 100%; height: 13px; margin-top: 40px; background-image: linear-gradient(90deg, #c58d38, #f3cd7c 40%, #dbb056 55%, #eec05f 71%, #cc9d3d);\"></div>
+          <div class=\"footer\" style=\"padding-bottom: 20px;\">
+            <div class=\"footer_p1\" style=\"margin-top: 30px; color: #9ca0a8; margin-bottom: 30px;\">If you have any further questions, please contact our support.</div><a class=\"footer_p2\" href=\"mailto:support@gradido.net\" style=\"color: #383838; font-weight: bold;\">support@gradido.net</a>
+            <div> <img class=\"image\" alt=\"Gradido Logo\" src=\"https://gdd.gradido.net/img/brand/green.png\" style=\"width: 200px; margin-top: 30px; margin-bottom: 30px;\" width=\"200\"></div>
+            <div><a class=\"terms_of_use\" href=\"https://gradido.net/de/impressum/\" target=\"_blank\" style=\"color: #9ca0a8;\">Impressum</a></div><br><a class=\"terms_of_use\" href=\"https://gradido.net/de/datenschutz/\" target=\"_blank\" style=\"color: #9ca0a8;\">Privacy Policy</a>
+            <div class=\"footer_p1\" style=\"margin-top: 30px; color: #9ca0a8; margin-bottom: 30px;\">Gradido-Akademie<br>Institut für Wirtschaftsbionik<br>Pfarrweg 2<br>74653 Künzelsau<br>Deutschland<br><br><br></div>
           </div>
         </div>
       </footer>
@@ -178,12 +178,12 @@ If the validity of the link has already expired, you can have a new link sent to
 
 exports[`sendEmailVariants sendAccountMultiRegistrationEmail calls "sendEmailTranslated" result has the correct html as snapshot 1`] = `
 "<!DOCTYPE html>
-<html lang=\\"en\\">
+<html lang=\"en\">
   <head>
-    <meta content=\\"multipart/html; charset=UTF-8\\" http-equiv=\\"content-type\\">
-    <meta name=\\"viewport\\" content=\\"width=device-width, initial-scale=1\\">
+    <meta content=\"multipart/html; charset=UTF-8\" http-equiv=\"content-type\">
+    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">
     <style>
-.wf-force-outline-none[tabindex=\\"-1\\"]:focus {
+.wf-force-outline-none[tabindex=\"-1\"]:focus {
   outline: none;
 }
 </style>
@@ -309,39 +309,39 @@ exports[`sendEmailVariants sendAccountMultiRegistrationEmail calls "sendEmailTra
 }
 </style>
   </head>
-  <body style=\\"display: block; font-family: 'Work Sans', sans-serif; font-size: 17px; text-align: center; text-align: -webkit-center; justify-content: center; padding: 0px; margin: 0px;\\">
-    <div class=\\"container\\" style=\\"max-width: 680px; margin: 0 auto; display: block;\\">
+  <body style=\"display: block; font-family: 'Work Sans', sans-serif; font-size: 17px; text-align: center; text-align: -webkit-center; justify-content: center; padding: 0px; margin: 0px;\">
+    <div class=\"container\" style=\"max-width: 680px; margin: 0 auto; display: block;\">
       <header>
-        <div class=\\"head\\"><img class=\\"head-logo\\" alt=\\"Gradido Logo\\" loading=\\"lazy\\" src=\\"cid:gradidoheader\\" style=\\"width: 100%; height: auto;\\"></div>
+        <div class=\"head\"><img class=\"head-logo\" alt=\"Gradido Logo\" loading=\"lazy\" src=\"cid:gradidoheader\" style=\"width: 100%; height: auto;\"></div>
       </header>
-      <div class=\\"wrapper\\">
-        <h2 style=\\"margin-top: 15px; color: #383838;\\">Try To Register Again With Your Email</h2>
-        <div class=\\"text-block\\" style=\\"margin-top: 20px; color: #9ca0a8;\\">
+      <div class=\"wrapper\">
+        <h2 style=\"margin-top: 15px; color: #383838;\">Try To Register Again With Your Email</h2>
+        <div class=\"text-block\" style=\"margin-top: 20px; color: #9ca0a8;\">
           <p>Hello Peter Lustig,</p>
           <p>Your email address has just been used again to register an account with Gradido.<br>However, an account already exists for your email address.
           </p>
         </div>
-        <div class=\\"content\\" style=\\"display: block; width: 78%; margin: 40px 1% 40px 1%; padding: 20px 10% 40px 10%; border-radius: 24px; background-image: linear-gradient(180deg, #f5f5f5, #f5f5f5);\\">
-          <h2 style=\\"margin-top: 15px; color: #383838;\\">Reset password</h2>
-          <div class=\\"p_content\\" style=\\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\\">If you have forgotten your password, please click here.</div><a class=\\"button-3\\" href=\\"http://localhost/forgot-password\\" style=\\"display: inline-block; padding: 9px 15px; color: white; border: 0; line-height: inherit; text-decoration: none; cursor: pointer; border-radius: 20px; background-image: radial-gradient(circle farthest-corner at 0% 0%, #f9cd69, #c58d38); box-shadow: 16px 13px 35px 0 rgba(56, 56, 56, 0.3); margin: 25px 0 25px 0; width: 50%;\\">reset</a>
-          <div class=\\"p_content\\" style=\\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\\">Or copy the link into your browser window.</div><a class=\\"clink\\" href=\\"http://localhost/forgot-password\\" style=\\"line-break: anywhere; margin-bottom: 40px;\\">http://localhost/forgot-password</a>
-          <h2 style=\\"margin-top: 15px; color: red;\\">Contact support</h2>
-          <div class=\\"p_content\\" style=\\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\\">If you did not try to register again, please contact our support:</div><a class=\\"clink\\" href=\\"mailto:support@supportmail.com\\" style=\\"line-break: anywhere; margin-bottom: 40px;\\">support@supportmail.com</a>
+        <div class=\"content\" style=\"display: block; width: 78%; margin: 40px 1% 40px 1%; padding: 20px 10% 40px 10%; border-radius: 24px; background-image: linear-gradient(180deg, #f5f5f5, #f5f5f5);\">
+          <h2 style=\"margin-top: 15px; color: #383838;\">Reset password</h2>
+          <div class=\"p_content\" style=\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\">If you have forgotten your password, please click here.</div><a class=\"button-3\" href=\"http://localhost/forgot-password\" style=\"display: inline-block; padding: 9px 15px; color: white; border: 0; line-height: inherit; text-decoration: none; cursor: pointer; border-radius: 20px; background-image: radial-gradient(circle farthest-corner at 0% 0%, #f9cd69, #c58d38); box-shadow: 16px 13px 35px 0 rgba(56, 56, 56, 0.3); margin: 25px 0 25px 0; width: 50%;\">reset</a>
+          <div class=\"p_content\" style=\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\">Or copy the link into your browser window.</div><a class=\"clink\" href=\"http://localhost/forgot-password\" style=\"line-break: anywhere; margin-bottom: 40px;\">http://localhost/forgot-password</a>
+          <h2 style=\"margin-top: 15px; color: red;\">Contact support</h2>
+          <div class=\"p_content\" style=\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\">If you did not try to register again, please contact our support:</div><a class=\"clink\" href=\"mailto:support@supportmail.com\" style=\"line-break: anywhere; margin-bottom: 40px;\">support@supportmail.com</a>
         </div>
-        <div class=\\"text-block\\" style=\\"margin-top: 20px; color: #9ca0a8;\\">
+        <div class=\"text-block\" style=\"margin-top: 20px; color: #9ca0a8;\">
           <p>Kind regards,<br>your Gradido team
           </p>
         </div>
       </div>
       <footer>
-        <div class=\\"w-container footer_01\\">
-          <div class=\\"socialmedia\\" style=\\"display: flex; margin-top: 40px; max-width: 600px;\\"><a class=\\"slink\\" target=\\"_blank\\" href=\\"https://www.facebook.com/groups/Gradido/\\" style=\\"width: 150px;\\"><img class=\\"bi-facebook\\" alt=\\"facebook\\" loading=\\"lazy\\" src=\\"cid:facebookicon\\"></a><a class=\\"slink\\" target=\\"_blank\\" href=\\"https://t.me/GradidoGruppe\\" style=\\"width: 150px;\\"><img class=\\"bi-telegram\\" alt=\\"Telegram\\" loading=\\"lazy\\" src=\\"cid:telegramicon\\"></a><a class=\\"slink\\" target=\\"_blank\\" href=\\"https://twitter.com/gradido\\" style=\\"width: 150px;\\"><img class=\\"bi-twitter\\" alt=\\"Twitter\\" loading=\\"lazy\\" src=\\"cid:twittericon\\"></a><a class=\\"slink\\" target=\\"_blank\\" href=\\"https://www.youtube.com/c/GradidoNet\\" style=\\"width: 150px;\\"><img class=\\"bi-youtube\\" alt=\\"youtube\\" loading=\\"lazy\\" src=\\"cid:youtubeicon\\"></a></div>
-          <div class=\\"line\\" style=\\"width: 100%; height: 13px; margin-top: 40px; background-image: linear-gradient(90deg, #c58d38, #f3cd7c 40%, #dbb056 55%, #eec05f 71%, #cc9d3d);\\"></div>
-          <div class=\\"footer\\" style=\\"padding-bottom: 20px;\\">
-            <div class=\\"footer_p1\\" style=\\"margin-top: 30px; color: #9ca0a8; margin-bottom: 30px;\\">If you have any further questions, please contact our support.</div><a class=\\"footer_p2\\" href=\\"mailto:support@gradido.net\\" style=\\"color: #383838; font-weight: bold;\\">support@gradido.net</a>
-            <div> <img class=\\"image\\" alt=\\"Gradido Logo\\" src=\\"https://gdd.gradido.net/img/brand/green.png\\" style=\\"width: 200px; margin-top: 30px; margin-bottom: 30px;\\" width=\\"200\\"></div>
-            <div><a class=\\"terms_of_use\\" href=\\"https://gradido.net/de/impressum/\\" target=\\"_blank\\" style=\\"color: #9ca0a8;\\">Impressum</a></div><br><a class=\\"terms_of_use\\" href=\\"https://gradido.net/de/datenschutz/\\" target=\\"_blank\\" style=\\"color: #9ca0a8;\\">Privacy Policy</a>
-            <div class=\\"footer_p1\\" style=\\"margin-top: 30px; color: #9ca0a8; margin-bottom: 30px;\\">Gradido-Akademie<br>Institut für Wirtschaftsbionik<br>Pfarrweg 2<br>74653 Künzelsau<br>Deutschland<br><br><br></div>
+        <div class=\"w-container footer_01\">
+          <div class=\"socialmedia\" style=\"display: flex; margin-top: 40px; max-width: 600px;\"><a class=\"slink\" target=\"_blank\" href=\"https://www.facebook.com/groups/Gradido/\" style=\"width: 150px;\"><img class=\"bi-facebook\" alt=\"facebook\" loading=\"lazy\" src=\"cid:facebookicon\"></a><a class=\"slink\" target=\"_blank\" href=\"https://t.me/GradidoGruppe\" style=\"width: 150px;\"><img class=\"bi-telegram\" alt=\"Telegram\" loading=\"lazy\" src=\"cid:telegramicon\"></a><a class=\"slink\" target=\"_blank\" href=\"https://twitter.com/gradido\" style=\"width: 150px;\"><img class=\"bi-twitter\" alt=\"Twitter\" loading=\"lazy\" src=\"cid:twittericon\"></a><a class=\"slink\" target=\"_blank\" href=\"https://www.youtube.com/c/GradidoNet\" style=\"width: 150px;\"><img class=\"bi-youtube\" alt=\"youtube\" loading=\"lazy\" src=\"cid:youtubeicon\"></a></div>
+          <div class=\"line\" style=\"width: 100%; height: 13px; margin-top: 40px; background-image: linear-gradient(90deg, #c58d38, #f3cd7c 40%, #dbb056 55%, #eec05f 71%, #cc9d3d);\"></div>
+          <div class=\"footer\" style=\"padding-bottom: 20px;\">
+            <div class=\"footer_p1\" style=\"margin-top: 30px; color: #9ca0a8; margin-bottom: 30px;\">If you have any further questions, please contact our support.</div><a class=\"footer_p2\" href=\"mailto:support@gradido.net\" style=\"color: #383838; font-weight: bold;\">support@gradido.net</a>
+            <div> <img class=\"image\" alt=\"Gradido Logo\" src=\"https://gdd.gradido.net/img/brand/green.png\" style=\"width: 200px; margin-top: 30px; margin-bottom: 30px;\" width=\"200\"></div>
+            <div><a class=\"terms_of_use\" href=\"https://gradido.net/de/impressum/\" target=\"_blank\" style=\"color: #9ca0a8;\">Impressum</a></div><br><a class=\"terms_of_use\" href=\"https://gradido.net/de/datenschutz/\" target=\"_blank\" style=\"color: #9ca0a8;\">Privacy Policy</a>
+            <div class=\"footer_p1\" style=\"margin-top: 30px; color: #9ca0a8; margin-bottom: 30px;\">Gradido-Akademie<br>Institut für Wirtschaftsbionik<br>Pfarrweg 2<br>74653 Künzelsau<br>Deutschland<br><br><br></div>
           </div>
         </div>
       </footer>
@@ -352,12 +352,12 @@ exports[`sendEmailVariants sendAccountMultiRegistrationEmail calls "sendEmailTra
 
 exports[`sendEmailVariants sendAddedContributionMessageEmail result has the correct html as snapshot 1`] = `
 "<!DOCTYPE html>
-<html lang=\\"en\\">
+<html lang=\"en\">
   <head>
-    <meta content=\\"multipart/html; charset=UTF-8\\" http-equiv=\\"content-type\\">
-    <meta name=\\"viewport\\" content=\\"width=device-width, initial-scale=1\\">
+    <meta content=\"multipart/html; charset=UTF-8\" http-equiv=\"content-type\">
+    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">
     <style>
-.wf-force-outline-none[tabindex=\\"-1\\"]:focus {
+.wf-force-outline-none[tabindex=\"-1\"]:focus {
   outline: none;
 }
 </style>
@@ -483,39 +483,39 @@ exports[`sendEmailVariants sendAddedContributionMessageEmail result has the corr
 }
 </style>
   </head>
-  <body style=\\"display: block; font-family: 'Work Sans', sans-serif; font-size: 17px; text-align: center; text-align: -webkit-center; justify-content: center; padding: 0px; margin: 0px;\\">
-    <div class=\\"container\\" style=\\"max-width: 680px; margin: 0 auto; display: block;\\">
+  <body style=\"display: block; font-family: 'Work Sans', sans-serif; font-size: 17px; text-align: center; text-align: -webkit-center; justify-content: center; padding: 0px; margin: 0px;\">
+    <div class=\"container\" style=\"max-width: 680px; margin: 0 auto; display: block;\">
       <header>
-        <div class=\\"head\\"><img class=\\"head-logo\\" alt=\\"Gradido Logo\\" loading=\\"lazy\\" src=\\"cid:gradidoheader\\" style=\\"width: 100%; height: auto;\\"></div>
+        <div class=\"head\"><img class=\"head-logo\" alt=\"Gradido Logo\" loading=\"lazy\" src=\"cid:gradidoheader\" style=\"width: 100%; height: auto;\"></div>
       </header>
-      <div class=\\"wrapper\\">
-        <h2 style=\\"margin-top: 15px; color: #383838;\\">Message about your common good contribution</h2>
-        <div class=\\"text-block\\" style=\\"margin-top: 20px; color: #9ca0a8;\\">
+      <div class=\"wrapper\">
+        <h2 style=\"margin-top: 15px; color: #383838;\">Message about your common good contribution</h2>
+        <div class=\"text-block\" style=\"margin-top: 20px; color: #9ca0a8;\">
           <p>Hello Peter Lustig,</p>
           <p>You have received a message from Bibi Bloxberg regarding your common good contribution “My contribution.”.</p>
         </div>
-        <div class=\\"content\\" style=\\"display: block; width: 78%; margin: 40px 1% 40px 1%; padding: 20px 10% 40px 10%; border-radius: 24px; background-image: linear-gradient(180deg, #f5f5f5, #f5f5f5);\\">
-          <h2 style=\\"margin-top: 15px; color: #383838;\\">Read and reply to message</h2>
-          <div class=\\"p_content\\" style=\\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\\">
+        <div class=\"content\" style=\"display: block; width: 78%; margin: 40px 1% 40px 1%; padding: 20px 10% 40px 10%; border-radius: 24px; background-image: linear-gradient(180deg, #f5f5f5, #f5f5f5);\">
+          <h2 style=\"margin-top: 15px; color: #383838;\">Read and reply to message</h2>
+          <div class=\"p_content\" style=\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\">
             <p>„My message.“</p>
             <p>To reply to the message, go to the “Creation” menu in your Gradido account and click on the “My contributions” tab.</p>
-          </div><a class=\\"button-3\\" href=\\"https://gradido.net/contributions/own-contributions/1#contributionListItem-1\\" style=\\"display: inline-block; padding: 9px 15px; color: white; border: 0; line-height: inherit; text-decoration: none; cursor: pointer; border-radius: 20px; background-image: radial-gradient(circle farthest-corner at 0% 0%, #f9cd69, #c58d38); box-shadow: 16px 13px 35px 0 rgba(56, 56, 56, 0.3); margin: 25px 0 25px 0; width: 50%;\\">To account</a>
-          <div class=\\"p_content\\" style=\\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\\">Please do not reply to this email.</div>
+          </div><a class=\"button-3\" href=\"https://gradido.net/contributions/own-contributions/1#contributionListItem-1\" style=\"display: inline-block; padding: 9px 15px; color: white; border: 0; line-height: inherit; text-decoration: none; cursor: pointer; border-radius: 20px; background-image: radial-gradient(circle farthest-corner at 0% 0%, #f9cd69, #c58d38); box-shadow: 16px 13px 35px 0 rgba(56, 56, 56, 0.3); margin: 25px 0 25px 0; width: 50%;\">To account</a>
+          <div class=\"p_content\" style=\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\">Please do not reply to this email.</div>
         </div>
-        <div class=\\"text-block\\" style=\\"margin-top: 20px; color: #9ca0a8;\\">
+        <div class=\"text-block\" style=\"margin-top: 20px; color: #9ca0a8;\">
           <p>Kind regards,<br>your Gradido team
           </p>
         </div>
       </div>
       <footer>
-        <div class=\\"w-container footer_01\\">
-          <div class=\\"socialmedia\\" style=\\"display: flex; margin-top: 40px; max-width: 600px;\\"><a class=\\"slink\\" target=\\"_blank\\" href=\\"https://www.facebook.com/groups/Gradido/\\" style=\\"width: 150px;\\"><img class=\\"bi-facebook\\" alt=\\"facebook\\" loading=\\"lazy\\" src=\\"cid:facebookicon\\"></a><a class=\\"slink\\" target=\\"_blank\\" href=\\"https://t.me/GradidoGruppe\\" style=\\"width: 150px;\\"><img class=\\"bi-telegram\\" alt=\\"Telegram\\" loading=\\"lazy\\" src=\\"cid:telegramicon\\"></a><a class=\\"slink\\" target=\\"_blank\\" href=\\"https://twitter.com/gradido\\" style=\\"width: 150px;\\"><img class=\\"bi-twitter\\" alt=\\"Twitter\\" loading=\\"lazy\\" src=\\"cid:twittericon\\"></a><a class=\\"slink\\" target=\\"_blank\\" href=\\"https://www.youtube.com/c/GradidoNet\\" style=\\"width: 150px;\\"><img class=\\"bi-youtube\\" alt=\\"youtube\\" loading=\\"lazy\\" src=\\"cid:youtubeicon\\"></a></div>
-          <div class=\\"line\\" style=\\"width: 100%; height: 13px; margin-top: 40px; background-image: linear-gradient(90deg, #c58d38, #f3cd7c 40%, #dbb056 55%, #eec05f 71%, #cc9d3d);\\"></div>
-          <div class=\\"footer\\" style=\\"padding-bottom: 20px;\\">
-            <div class=\\"footer_p1\\" style=\\"margin-top: 30px; color: #9ca0a8; margin-bottom: 30px;\\">If you have any further questions, please contact our support.</div><a class=\\"footer_p2\\" href=\\"mailto:support@gradido.net\\" style=\\"color: #383838; font-weight: bold;\\">support@gradido.net</a>
-            <div> <img class=\\"image\\" alt=\\"Gradido Logo\\" src=\\"https://gdd.gradido.net/img/brand/green.png\\" style=\\"width: 200px; margin-top: 30px; margin-bottom: 30px;\\" width=\\"200\\"></div>
-            <div><a class=\\"terms_of_use\\" href=\\"https://gradido.net/de/impressum/\\" target=\\"_blank\\" style=\\"color: #9ca0a8;\\">Impressum</a></div><br><a class=\\"terms_of_use\\" href=\\"https://gradido.net/de/datenschutz/\\" target=\\"_blank\\" style=\\"color: #9ca0a8;\\">Privacy Policy</a>
-            <div class=\\"footer_p1\\" style=\\"margin-top: 30px; color: #9ca0a8; margin-bottom: 30px;\\">Gradido-Akademie<br>Institut für Wirtschaftsbionik<br>Pfarrweg 2<br>74653 Künzelsau<br>Deutschland<br><br><br></div>
+        <div class=\"w-container footer_01\">
+          <div class=\"socialmedia\" style=\"display: flex; margin-top: 40px; max-width: 600px;\"><a class=\"slink\" target=\"_blank\" href=\"https://www.facebook.com/groups/Gradido/\" style=\"width: 150px;\"><img class=\"bi-facebook\" alt=\"facebook\" loading=\"lazy\" src=\"cid:facebookicon\"></a><a class=\"slink\" target=\"_blank\" href=\"https://t.me/GradidoGruppe\" style=\"width: 150px;\"><img class=\"bi-telegram\" alt=\"Telegram\" loading=\"lazy\" src=\"cid:telegramicon\"></a><a class=\"slink\" target=\"_blank\" href=\"https://twitter.com/gradido\" style=\"width: 150px;\"><img class=\"bi-twitter\" alt=\"Twitter\" loading=\"lazy\" src=\"cid:twittericon\"></a><a class=\"slink\" target=\"_blank\" href=\"https://www.youtube.com/c/GradidoNet\" style=\"width: 150px;\"><img class=\"bi-youtube\" alt=\"youtube\" loading=\"lazy\" src=\"cid:youtubeicon\"></a></div>
+          <div class=\"line\" style=\"width: 100%; height: 13px; margin-top: 40px; background-image: linear-gradient(90deg, #c58d38, #f3cd7c 40%, #dbb056 55%, #eec05f 71%, #cc9d3d);\"></div>
+          <div class=\"footer\" style=\"padding-bottom: 20px;\">
+            <div class=\"footer_p1\" style=\"margin-top: 30px; color: #9ca0a8; margin-bottom: 30px;\">If you have any further questions, please contact our support.</div><a class=\"footer_p2\" href=\"mailto:support@gradido.net\" style=\"color: #383838; font-weight: bold;\">support@gradido.net</a>
+            <div> <img class=\"image\" alt=\"Gradido Logo\" src=\"https://gdd.gradido.net/img/brand/green.png\" style=\"width: 200px; margin-top: 30px; margin-bottom: 30px;\" width=\"200\"></div>
+            <div><a class=\"terms_of_use\" href=\"https://gradido.net/de/impressum/\" target=\"_blank\" style=\"color: #9ca0a8;\">Impressum</a></div><br><a class=\"terms_of_use\" href=\"https://gradido.net/de/datenschutz/\" target=\"_blank\" style=\"color: #9ca0a8;\">Privacy Policy</a>
+            <div class=\"footer_p1\" style=\"margin-top: 30px; color: #9ca0a8; margin-bottom: 30px;\">Gradido-Akademie<br>Institut für Wirtschaftsbionik<br>Pfarrweg 2<br>74653 Künzelsau<br>Deutschland<br><br><br></div>
           </div>
         </div>
       </footer>
@@ -526,12 +526,12 @@ exports[`sendEmailVariants sendAddedContributionMessageEmail result has the corr
 
 exports[`sendEmailVariants sendContributionChangedByModeratorEmail result has the correct html as snapshot 1`] = `
 "<!DOCTYPE html>
-<html lang=\\"en\\">
+<html lang=\"en\">
   <head>
-    <meta content=\\"multipart/html; charset=UTF-8\\" http-equiv=\\"content-type\\">
-    <meta name=\\"viewport\\" content=\\"width=device-width, initial-scale=1\\">
+    <meta content=\"multipart/html; charset=UTF-8\" http-equiv=\"content-type\">
+    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">
     <style>
-.wf-force-outline-none[tabindex=\\"-1\\"]:focus {
+.wf-force-outline-none[tabindex=\"-1\"]:focus {
   outline: none;
 }
 </style>
@@ -657,37 +657,37 @@ exports[`sendEmailVariants sendContributionChangedByModeratorEmail result has th
 }
 </style>
   </head>
-  <body style=\\"display: block; font-family: 'Work Sans', sans-serif; font-size: 17px; text-align: center; text-align: -webkit-center; justify-content: center; padding: 0px; margin: 0px;\\">
-    <div class=\\"container\\" style=\\"max-width: 680px; margin: 0 auto; display: block;\\">
+  <body style=\"display: block; font-family: 'Work Sans', sans-serif; font-size: 17px; text-align: center; text-align: -webkit-center; justify-content: center; padding: 0px; margin: 0px;\">
+    <div class=\"container\" style=\"max-width: 680px; margin: 0 auto; display: block;\">
       <header>
-        <div class=\\"head\\"><img class=\\"head-logo\\" alt=\\"Gradido Logo\\" loading=\\"lazy\\" src=\\"cid:gradidoheader\\" style=\\"width: 100%; height: auto;\\"></div>
+        <div class=\"head\"><img class=\"head-logo\" alt=\"Gradido Logo\" loading=\"lazy\" src=\"cid:gradidoheader\" style=\"width: 100%; height: auto;\"></div>
       </header>
-      <div class=\\"wrapper\\">
-        <h2 style=\\"margin-top: 15px; color: #383838;\\">Your common good contribution has been changed</h2>
-        <div class=\\"text-block\\" style=\\"margin-top: 20px; color: #9ca0a8;\\">
+      <div class=\"wrapper\">
+        <h2 style=\"margin-top: 15px; color: #383838;\">Your common good contribution has been changed</h2>
+        <div class=\"text-block\" style=\"margin-top: 20px; color: #9ca0a8;\">
           <p>Hello Peter Lustig,</p>
           <p>your common good contribution 'My contribution.' has just been changed by Bibi Bloxberg and now reads as 'This is a better contribution memo.'</p>
         </div>
-        <div class=\\"content\\" style=\\"display: block; width: 78%; margin: 40px 1% 40px 1%; padding: 20px 10% 40px 10%; border-radius: 24px; background-image: linear-gradient(180deg, #f5f5f5, #f5f5f5);\\">
-          <h2 style=\\"margin-top: 15px; color: #383838;\\">Contribution details</h2>
-          <div class=\\"p_content\\" style=\\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\\">To see your common good contributions and related messages, go to the “Creation” menu in your Gradido account and click on the “My contributions” tab.</div><a class=\\"button-3\\" href=\\"https://gradido.net/contributions/own-contributions/1#contributionListItem-1\\" style=\\"display: inline-block; padding: 9px 15px; color: white; border: 0; line-height: inherit; text-decoration: none; cursor: pointer; border-radius: 20px; background-image: radial-gradient(circle farthest-corner at 0% 0%, #f9cd69, #c58d38); box-shadow: 16px 13px 35px 0 rgba(56, 56, 56, 0.3); margin: 25px 0 25px 0; width: 50%;\\">To account</a>
-          <div class=\\"p_content\\" style=\\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\\">Or copy the link into your browser window.</div><a class=\\"clink\\" href=\\"https://gradido.net/contributions/own-contributions/1#contributionListItem-1\\" style=\\"line-break: anywhere; margin-bottom: 40px;\\">https://gradido.net/contributions/own-contributions/1#contributionListItem-1</a>
-          <div class=\\"p_content\\" style=\\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\\">Please do not reply to this email.</div>
+        <div class=\"content\" style=\"display: block; width: 78%; margin: 40px 1% 40px 1%; padding: 20px 10% 40px 10%; border-radius: 24px; background-image: linear-gradient(180deg, #f5f5f5, #f5f5f5);\">
+          <h2 style=\"margin-top: 15px; color: #383838;\">Contribution details</h2>
+          <div class=\"p_content\" style=\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\">To see your common good contributions and related messages, go to the “Creation” menu in your Gradido account and click on the “My contributions” tab.</div><a class=\"button-3\" href=\"https://gradido.net/contributions/own-contributions/1#contributionListItem-1\" style=\"display: inline-block; padding: 9px 15px; color: white; border: 0; line-height: inherit; text-decoration: none; cursor: pointer; border-radius: 20px; background-image: radial-gradient(circle farthest-corner at 0% 0%, #f9cd69, #c58d38); box-shadow: 16px 13px 35px 0 rgba(56, 56, 56, 0.3); margin: 25px 0 25px 0; width: 50%;\">To account</a>
+          <div class=\"p_content\" style=\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\">Or copy the link into your browser window.</div><a class=\"clink\" href=\"https://gradido.net/contributions/own-contributions/1#contributionListItem-1\" style=\"line-break: anywhere; margin-bottom: 40px;\">https://gradido.net/contributions/own-contributions/1#contributionListItem-1</a>
+          <div class=\"p_content\" style=\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\">Please do not reply to this email.</div>
         </div>
-        <div class=\\"text-block\\" style=\\"margin-top: 20px; color: #9ca0a8;\\">
+        <div class=\"text-block\" style=\"margin-top: 20px; color: #9ca0a8;\">
           <p>Kind regards,<br>your Gradido team
           </p>
         </div>
       </div>
       <footer>
-        <div class=\\"w-container footer_01\\">
-          <div class=\\"socialmedia\\" style=\\"display: flex; margin-top: 40px; max-width: 600px;\\"><a class=\\"slink\\" target=\\"_blank\\" href=\\"https://www.facebook.com/groups/Gradido/\\" style=\\"width: 150px;\\"><img class=\\"bi-facebook\\" alt=\\"facebook\\" loading=\\"lazy\\" src=\\"cid:facebookicon\\"></a><a class=\\"slink\\" target=\\"_blank\\" href=\\"https://t.me/GradidoGruppe\\" style=\\"width: 150px;\\"><img class=\\"bi-telegram\\" alt=\\"Telegram\\" loading=\\"lazy\\" src=\\"cid:telegramicon\\"></a><a class=\\"slink\\" target=\\"_blank\\" href=\\"https://twitter.com/gradido\\" style=\\"width: 150px;\\"><img class=\\"bi-twitter\\" alt=\\"Twitter\\" loading=\\"lazy\\" src=\\"cid:twittericon\\"></a><a class=\\"slink\\" target=\\"_blank\\" href=\\"https://www.youtube.com/c/GradidoNet\\" style=\\"width: 150px;\\"><img class=\\"bi-youtube\\" alt=\\"youtube\\" loading=\\"lazy\\" src=\\"cid:youtubeicon\\"></a></div>
-          <div class=\\"line\\" style=\\"width: 100%; height: 13px; margin-top: 40px; background-image: linear-gradient(90deg, #c58d38, #f3cd7c 40%, #dbb056 55%, #eec05f 71%, #cc9d3d);\\"></div>
-          <div class=\\"footer\\" style=\\"padding-bottom: 20px;\\">
-            <div class=\\"footer_p1\\" style=\\"margin-top: 30px; color: #9ca0a8; margin-bottom: 30px;\\">If you have any further questions, please contact our support.</div><a class=\\"footer_p2\\" href=\\"mailto:support@gradido.net\\" style=\\"color: #383838; font-weight: bold;\\">support@gradido.net</a>
-            <div> <img class=\\"image\\" alt=\\"Gradido Logo\\" src=\\"https://gdd.gradido.net/img/brand/green.png\\" style=\\"width: 200px; margin-top: 30px; margin-bottom: 30px;\\" width=\\"200\\"></div>
-            <div><a class=\\"terms_of_use\\" href=\\"https://gradido.net/de/impressum/\\" target=\\"_blank\\" style=\\"color: #9ca0a8;\\">Impressum</a></div><br><a class=\\"terms_of_use\\" href=\\"https://gradido.net/de/datenschutz/\\" target=\\"_blank\\" style=\\"color: #9ca0a8;\\">Privacy Policy</a>
-            <div class=\\"footer_p1\\" style=\\"margin-top: 30px; color: #9ca0a8; margin-bottom: 30px;\\">Gradido-Akademie<br>Institut für Wirtschaftsbionik<br>Pfarrweg 2<br>74653 Künzelsau<br>Deutschland<br><br><br></div>
+        <div class=\"w-container footer_01\">
+          <div class=\"socialmedia\" style=\"display: flex; margin-top: 40px; max-width: 600px;\"><a class=\"slink\" target=\"_blank\" href=\"https://www.facebook.com/groups/Gradido/\" style=\"width: 150px;\"><img class=\"bi-facebook\" alt=\"facebook\" loading=\"lazy\" src=\"cid:facebookicon\"></a><a class=\"slink\" target=\"_blank\" href=\"https://t.me/GradidoGruppe\" style=\"width: 150px;\"><img class=\"bi-telegram\" alt=\"Telegram\" loading=\"lazy\" src=\"cid:telegramicon\"></a><a class=\"slink\" target=\"_blank\" href=\"https://twitter.com/gradido\" style=\"width: 150px;\"><img class=\"bi-twitter\" alt=\"Twitter\" loading=\"lazy\" src=\"cid:twittericon\"></a><a class=\"slink\" target=\"_blank\" href=\"https://www.youtube.com/c/GradidoNet\" style=\"width: 150px;\"><img class=\"bi-youtube\" alt=\"youtube\" loading=\"lazy\" src=\"cid:youtubeicon\"></a></div>
+          <div class=\"line\" style=\"width: 100%; height: 13px; margin-top: 40px; background-image: linear-gradient(90deg, #c58d38, #f3cd7c 40%, #dbb056 55%, #eec05f 71%, #cc9d3d);\"></div>
+          <div class=\"footer\" style=\"padding-bottom: 20px;\">
+            <div class=\"footer_p1\" style=\"margin-top: 30px; color: #9ca0a8; margin-bottom: 30px;\">If you have any further questions, please contact our support.</div><a class=\"footer_p2\" href=\"mailto:support@gradido.net\" style=\"color: #383838; font-weight: bold;\">support@gradido.net</a>
+            <div> <img class=\"image\" alt=\"Gradido Logo\" src=\"https://gdd.gradido.net/img/brand/green.png\" style=\"width: 200px; margin-top: 30px; margin-bottom: 30px;\" width=\"200\"></div>
+            <div><a class=\"terms_of_use\" href=\"https://gradido.net/de/impressum/\" target=\"_blank\" style=\"color: #9ca0a8;\">Impressum</a></div><br><a class=\"terms_of_use\" href=\"https://gradido.net/de/datenschutz/\" target=\"_blank\" style=\"color: #9ca0a8;\">Privacy Policy</a>
+            <div class=\"footer_p1\" style=\"margin-top: 30px; color: #9ca0a8; margin-bottom: 30px;\">Gradido-Akademie<br>Institut für Wirtschaftsbionik<br>Pfarrweg 2<br>74653 Künzelsau<br>Deutschland<br><br><br></div>
           </div>
         </div>
       </footer>
@@ -698,12 +698,12 @@ exports[`sendEmailVariants sendContributionChangedByModeratorEmail result has th
 
 exports[`sendEmailVariants sendContributionConfirmedEmail result has the correct html as snapshot 1`] = `
 "<!DOCTYPE html>
-<html lang=\\"en\\">
+<html lang=\"en\">
   <head>
-    <meta content=\\"multipart/html; charset=UTF-8\\" http-equiv=\\"content-type\\">
-    <meta name=\\"viewport\\" content=\\"width=device-width, initial-scale=1\\">
+    <meta content=\"multipart/html; charset=UTF-8\" http-equiv=\"content-type\">
+    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">
     <style>
-.wf-force-outline-none[tabindex=\\"-1\\"]:focus {
+.wf-force-outline-none[tabindex=\"-1\"]:focus {
   outline: none;
 }
 </style>
@@ -829,37 +829,37 @@ exports[`sendEmailVariants sendContributionConfirmedEmail result has the correct
 }
 </style>
   </head>
-  <body style=\\"display: block; font-family: 'Work Sans', sans-serif; font-size: 17px; text-align: center; text-align: -webkit-center; justify-content: center; padding: 0px; margin: 0px;\\">
-    <div class=\\"container\\" style=\\"max-width: 680px; margin: 0 auto; display: block;\\">
+  <body style=\"display: block; font-family: 'Work Sans', sans-serif; font-size: 17px; text-align: center; text-align: -webkit-center; justify-content: center; padding: 0px; margin: 0px;\">
+    <div class=\"container\" style=\"max-width: 680px; margin: 0 auto; display: block;\">
       <header>
-        <div class=\\"head\\"><img class=\\"head-logo\\" alt=\\"Gradido Logo\\" loading=\\"lazy\\" src=\\"cid:gradidoheader\\" style=\\"width: 100%; height: auto;\\"></div>
+        <div class=\"head\"><img class=\"head-logo\" alt=\"Gradido Logo\" loading=\"lazy\" src=\"cid:gradidoheader\" style=\"width: 100%; height: auto;\"></div>
       </header>
-      <div class=\\"wrapper\\">
-        <h2 style=\\"margin-top: 15px; color: #383838;\\">Your contribution to the common good was confirmed</h2>
-        <div class=\\"text-block\\" style=\\"margin-top: 20px; color: #9ca0a8;\\">
+      <div class=\"wrapper\">
+        <h2 style=\"margin-top: 15px; color: #383838;\">Your contribution to the common good was confirmed</h2>
+        <div class=\"text-block\" style=\"margin-top: 20px; color: #9ca0a8;\">
           <p>Hello Peter Lustig,</p>
           <p>Your common good contribution “My contribution.” has just been approved by Bibi Bloxberg. Your Gradido account has been credited with 23.54 GDD.</p>
         </div>
-        <div class=\\"content\\" style=\\"display: block; width: 78%; margin: 40px 1% 40px 1%; padding: 20px 10% 40px 10%; border-radius: 24px; background-image: linear-gradient(180deg, #f5f5f5, #f5f5f5);\\">
-          <h2 style=\\"margin-top: 15px; color: #383838;\\">Contribution details</h2>
-          <div class=\\"p_content\\" style=\\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\\">To see your common good contributions and related messages, go to the “Creation” menu in your Gradido account and click on the “My contributions” tab.</div><a class=\\"button-3\\" href=\\"https://gradido.net/contributions/own-contributions/1#contributionListItem-1\\" style=\\"display: inline-block; padding: 9px 15px; color: white; border: 0; line-height: inherit; text-decoration: none; cursor: pointer; border-radius: 20px; background-image: radial-gradient(circle farthest-corner at 0% 0%, #f9cd69, #c58d38); box-shadow: 16px 13px 35px 0 rgba(56, 56, 56, 0.3); margin: 25px 0 25px 0; width: 50%;\\">To account</a>
-          <div class=\\"p_content\\" style=\\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\\">Or copy the link into your browser window.</div><a class=\\"clink\\" href=\\"https://gradido.net/contributions/own-contributions/1#contributionListItem-1\\" style=\\"line-break: anywhere; margin-bottom: 40px;\\">https://gradido.net/contributions/own-contributions/1#contributionListItem-1</a>
-          <div class=\\"p_content\\" style=\\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\\">Please do not reply to this email.</div>
+        <div class=\"content\" style=\"display: block; width: 78%; margin: 40px 1% 40px 1%; padding: 20px 10% 40px 10%; border-radius: 24px; background-image: linear-gradient(180deg, #f5f5f5, #f5f5f5);\">
+          <h2 style=\"margin-top: 15px; color: #383838;\">Contribution details</h2>
+          <div class=\"p_content\" style=\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\">To see your common good contributions and related messages, go to the “Creation” menu in your Gradido account and click on the “My contributions” tab.</div><a class=\"button-3\" href=\"https://gradido.net/contributions/own-contributions/1#contributionListItem-1\" style=\"display: inline-block; padding: 9px 15px; color: white; border: 0; line-height: inherit; text-decoration: none; cursor: pointer; border-radius: 20px; background-image: radial-gradient(circle farthest-corner at 0% 0%, #f9cd69, #c58d38); box-shadow: 16px 13px 35px 0 rgba(56, 56, 56, 0.3); margin: 25px 0 25px 0; width: 50%;\">To account</a>
+          <div class=\"p_content\" style=\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\">Or copy the link into your browser window.</div><a class=\"clink\" href=\"https://gradido.net/contributions/own-contributions/1#contributionListItem-1\" style=\"line-break: anywhere; margin-bottom: 40px;\">https://gradido.net/contributions/own-contributions/1#contributionListItem-1</a>
+          <div class=\"p_content\" style=\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\">Please do not reply to this email.</div>
         </div>
-        <div class=\\"text-block\\" style=\\"margin-top: 20px; color: #9ca0a8;\\">
+        <div class=\"text-block\" style=\"margin-top: 20px; color: #9ca0a8;\">
           <p>Kind regards,<br>your Gradido team
           </p>
         </div>
       </div>
       <footer>
-        <div class=\\"w-container footer_01\\">
-          <div class=\\"socialmedia\\" style=\\"display: flex; margin-top: 40px; max-width: 600px;\\"><a class=\\"slink\\" target=\\"_blank\\" href=\\"https://www.facebook.com/groups/Gradido/\\" style=\\"width: 150px;\\"><img class=\\"bi-facebook\\" alt=\\"facebook\\" loading=\\"lazy\\" src=\\"cid:facebookicon\\"></a><a class=\\"slink\\" target=\\"_blank\\" href=\\"https://t.me/GradidoGruppe\\" style=\\"width: 150px;\\"><img class=\\"bi-telegram\\" alt=\\"Telegram\\" loading=\\"lazy\\" src=\\"cid:telegramicon\\"></a><a class=\\"slink\\" target=\\"_blank\\" href=\\"https://twitter.com/gradido\\" style=\\"width: 150px;\\"><img class=\\"bi-twitter\\" alt=\\"Twitter\\" loading=\\"lazy\\" src=\\"cid:twittericon\\"></a><a class=\\"slink\\" target=\\"_blank\\" href=\\"https://www.youtube.com/c/GradidoNet\\" style=\\"width: 150px;\\"><img class=\\"bi-youtube\\" alt=\\"youtube\\" loading=\\"lazy\\" src=\\"cid:youtubeicon\\"></a></div>
-          <div class=\\"line\\" style=\\"width: 100%; height: 13px; margin-top: 40px; background-image: linear-gradient(90deg, #c58d38, #f3cd7c 40%, #dbb056 55%, #eec05f 71%, #cc9d3d);\\"></div>
-          <div class=\\"footer\\" style=\\"padding-bottom: 20px;\\">
-            <div class=\\"footer_p1\\" style=\\"margin-top: 30px; color: #9ca0a8; margin-bottom: 30px;\\">If you have any further questions, please contact our support.</div><a class=\\"footer_p2\\" href=\\"mailto:support@gradido.net\\" style=\\"color: #383838; font-weight: bold;\\">support@gradido.net</a>
-            <div> <img class=\\"image\\" alt=\\"Gradido Logo\\" src=\\"https://gdd.gradido.net/img/brand/green.png\\" style=\\"width: 200px; margin-top: 30px; margin-bottom: 30px;\\" width=\\"200\\"></div>
-            <div><a class=\\"terms_of_use\\" href=\\"https://gradido.net/de/impressum/\\" target=\\"_blank\\" style=\\"color: #9ca0a8;\\">Impressum</a></div><br><a class=\\"terms_of_use\\" href=\\"https://gradido.net/de/datenschutz/\\" target=\\"_blank\\" style=\\"color: #9ca0a8;\\">Privacy Policy</a>
-            <div class=\\"footer_p1\\" style=\\"margin-top: 30px; color: #9ca0a8; margin-bottom: 30px;\\">Gradido-Akademie<br>Institut für Wirtschaftsbionik<br>Pfarrweg 2<br>74653 Künzelsau<br>Deutschland<br><br><br></div>
+        <div class=\"w-container footer_01\">
+          <div class=\"socialmedia\" style=\"display: flex; margin-top: 40px; max-width: 600px;\"><a class=\"slink\" target=\"_blank\" href=\"https://www.facebook.com/groups/Gradido/\" style=\"width: 150px;\"><img class=\"bi-facebook\" alt=\"facebook\" loading=\"lazy\" src=\"cid:facebookicon\"></a><a class=\"slink\" target=\"_blank\" href=\"https://t.me/GradidoGruppe\" style=\"width: 150px;\"><img class=\"bi-telegram\" alt=\"Telegram\" loading=\"lazy\" src=\"cid:telegramicon\"></a><a class=\"slink\" target=\"_blank\" href=\"https://twitter.com/gradido\" style=\"width: 150px;\"><img class=\"bi-twitter\" alt=\"Twitter\" loading=\"lazy\" src=\"cid:twittericon\"></a><a class=\"slink\" target=\"_blank\" href=\"https://www.youtube.com/c/GradidoNet\" style=\"width: 150px;\"><img class=\"bi-youtube\" alt=\"youtube\" loading=\"lazy\" src=\"cid:youtubeicon\"></a></div>
+          <div class=\"line\" style=\"width: 100%; height: 13px; margin-top: 40px; background-image: linear-gradient(90deg, #c58d38, #f3cd7c 40%, #dbb056 55%, #eec05f 71%, #cc9d3d);\"></div>
+          <div class=\"footer\" style=\"padding-bottom: 20px;\">
+            <div class=\"footer_p1\" style=\"margin-top: 30px; color: #9ca0a8; margin-bottom: 30px;\">If you have any further questions, please contact our support.</div><a class=\"footer_p2\" href=\"mailto:support@gradido.net\" style=\"color: #383838; font-weight: bold;\">support@gradido.net</a>
+            <div> <img class=\"image\" alt=\"Gradido Logo\" src=\"https://gdd.gradido.net/img/brand/green.png\" style=\"width: 200px; margin-top: 30px; margin-bottom: 30px;\" width=\"200\"></div>
+            <div><a class=\"terms_of_use\" href=\"https://gradido.net/de/impressum/\" target=\"_blank\" style=\"color: #9ca0a8;\">Impressum</a></div><br><a class=\"terms_of_use\" href=\"https://gradido.net/de/datenschutz/\" target=\"_blank\" style=\"color: #9ca0a8;\">Privacy Policy</a>
+            <div class=\"footer_p1\" style=\"margin-top: 30px; color: #9ca0a8; margin-bottom: 30px;\">Gradido-Akademie<br>Institut für Wirtschaftsbionik<br>Pfarrweg 2<br>74653 Künzelsau<br>Deutschland<br><br><br></div>
           </div>
         </div>
       </footer>
@@ -870,12 +870,12 @@ exports[`sendEmailVariants sendContributionConfirmedEmail result has the correct
 
 exports[`sendEmailVariants sendContributionDeletedEmail result has the correct html as snapshot 1`] = `
 "<!DOCTYPE html>
-<html lang=\\"en\\">
+<html lang=\"en\">
   <head>
-    <meta content=\\"multipart/html; charset=UTF-8\\" http-equiv=\\"content-type\\">
-    <meta name=\\"viewport\\" content=\\"width=device-width, initial-scale=1\\">
+    <meta content=\"multipart/html; charset=UTF-8\" http-equiv=\"content-type\">
+    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">
     <style>
-.wf-force-outline-none[tabindex=\\"-1\\"]:focus {
+.wf-force-outline-none[tabindex=\"-1\"]:focus {
   outline: none;
 }
 </style>
@@ -1001,37 +1001,37 @@ exports[`sendEmailVariants sendContributionDeletedEmail result has the correct h
 }
 </style>
   </head>
-  <body style=\\"display: block; font-family: 'Work Sans', sans-serif; font-size: 17px; text-align: center; text-align: -webkit-center; justify-content: center; padding: 0px; margin: 0px;\\">
-    <div class=\\"container\\" style=\\"max-width: 680px; margin: 0 auto; display: block;\\">
+  <body style=\"display: block; font-family: 'Work Sans', sans-serif; font-size: 17px; text-align: center; text-align: -webkit-center; justify-content: center; padding: 0px; margin: 0px;\">
+    <div class=\"container\" style=\"max-width: 680px; margin: 0 auto; display: block;\">
       <header>
-        <div class=\\"head\\"><img class=\\"head-logo\\" alt=\\"Gradido Logo\\" loading=\\"lazy\\" src=\\"cid:gradidoheader\\" style=\\"width: 100%; height: auto;\\"></div>
+        <div class=\"head\"><img class=\"head-logo\" alt=\"Gradido Logo\" loading=\"lazy\" src=\"cid:gradidoheader\" style=\"width: 100%; height: auto;\"></div>
       </header>
-      <div class=\\"wrapper\\">
-        <h2 style=\\"margin-top: 15px; color: #383838;\\">Your common good contribution was deleted</h2>
-        <div class=\\"text-block\\" style=\\"margin-top: 20px; color: #9ca0a8;\\">
+      <div class=\"wrapper\">
+        <h2 style=\"margin-top: 15px; color: #383838;\">Your common good contribution was deleted</h2>
+        <div class=\"text-block\" style=\"margin-top: 20px; color: #9ca0a8;\">
           <p>Hello Peter Lustig,</p>
           <p>Your common good contribution “My contribution.” was deleted by Bibi Bloxberg.</p>
         </div>
-        <div class=\\"content\\" style=\\"display: block; width: 78%; margin: 40px 1% 40px 1%; padding: 20px 10% 40px 10%; border-radius: 24px; background-image: linear-gradient(180deg, #f5f5f5, #f5f5f5);\\">
-          <h2 style=\\"margin-top: 15px; color: #383838;\\">Contribution details</h2>
-          <div class=\\"p_content\\" style=\\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\\">To see your common good contributions and related messages, go to the “Creation” menu in your Gradido account and click on the “My contributions” tab.</div><a class=\\"button-3\\" href=\\"https://gradido.net/contributions/own-contributions/1#contributionListItem-1\\" style=\\"display: inline-block; padding: 9px 15px; color: white; border: 0; line-height: inherit; text-decoration: none; cursor: pointer; border-radius: 20px; background-image: radial-gradient(circle farthest-corner at 0% 0%, #f9cd69, #c58d38); box-shadow: 16px 13px 35px 0 rgba(56, 56, 56, 0.3); margin: 25px 0 25px 0; width: 50%;\\">To account</a>
-          <div class=\\"p_content\\" style=\\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\\">Or copy the link into your browser window.</div><a class=\\"clink\\" href=\\"https://gradido.net/contributions/own-contributions/1#contributionListItem-1\\" style=\\"line-break: anywhere; margin-bottom: 40px;\\">https://gradido.net/contributions/own-contributions/1#contributionListItem-1</a>
-          <div class=\\"p_content\\" style=\\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\\">Please do not reply to this email.</div>
+        <div class=\"content\" style=\"display: block; width: 78%; margin: 40px 1% 40px 1%; padding: 20px 10% 40px 10%; border-radius: 24px; background-image: linear-gradient(180deg, #f5f5f5, #f5f5f5);\">
+          <h2 style=\"margin-top: 15px; color: #383838;\">Contribution details</h2>
+          <div class=\"p_content\" style=\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\">To see your common good contributions and related messages, go to the “Creation” menu in your Gradido account and click on the “My contributions” tab.</div><a class=\"button-3\" href=\"https://gradido.net/contributions/own-contributions/1#contributionListItem-1\" style=\"display: inline-block; padding: 9px 15px; color: white; border: 0; line-height: inherit; text-decoration: none; cursor: pointer; border-radius: 20px; background-image: radial-gradient(circle farthest-corner at 0% 0%, #f9cd69, #c58d38); box-shadow: 16px 13px 35px 0 rgba(56, 56, 56, 0.3); margin: 25px 0 25px 0; width: 50%;\">To account</a>
+          <div class=\"p_content\" style=\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\">Or copy the link into your browser window.</div><a class=\"clink\" href=\"https://gradido.net/contributions/own-contributions/1#contributionListItem-1\" style=\"line-break: anywhere; margin-bottom: 40px;\">https://gradido.net/contributions/own-contributions/1#contributionListItem-1</a>
+          <div class=\"p_content\" style=\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\">Please do not reply to this email.</div>
         </div>
-        <div class=\\"text-block\\" style=\\"margin-top: 20px; color: #9ca0a8;\\">
+        <div class=\"text-block\" style=\"margin-top: 20px; color: #9ca0a8;\">
           <p>Kind regards,<br>your Gradido team
           </p>
         </div>
       </div>
       <footer>
-        <div class=\\"w-container footer_01\\">
-          <div class=\\"socialmedia\\" style=\\"display: flex; margin-top: 40px; max-width: 600px;\\"><a class=\\"slink\\" target=\\"_blank\\" href=\\"https://www.facebook.com/groups/Gradido/\\" style=\\"width: 150px;\\"><img class=\\"bi-facebook\\" alt=\\"facebook\\" loading=\\"lazy\\" src=\\"cid:facebookicon\\"></a><a class=\\"slink\\" target=\\"_blank\\" href=\\"https://t.me/GradidoGruppe\\" style=\\"width: 150px;\\"><img class=\\"bi-telegram\\" alt=\\"Telegram\\" loading=\\"lazy\\" src=\\"cid:telegramicon\\"></a><a class=\\"slink\\" target=\\"_blank\\" href=\\"https://twitter.com/gradido\\" style=\\"width: 150px;\\"><img class=\\"bi-twitter\\" alt=\\"Twitter\\" loading=\\"lazy\\" src=\\"cid:twittericon\\"></a><a class=\\"slink\\" target=\\"_blank\\" href=\\"https://www.youtube.com/c/GradidoNet\\" style=\\"width: 150px;\\"><img class=\\"bi-youtube\\" alt=\\"youtube\\" loading=\\"lazy\\" src=\\"cid:youtubeicon\\"></a></div>
-          <div class=\\"line\\" style=\\"width: 100%; height: 13px; margin-top: 40px; background-image: linear-gradient(90deg, #c58d38, #f3cd7c 40%, #dbb056 55%, #eec05f 71%, #cc9d3d);\\"></div>
-          <div class=\\"footer\\" style=\\"padding-bottom: 20px;\\">
-            <div class=\\"footer_p1\\" style=\\"margin-top: 30px; color: #9ca0a8; margin-bottom: 30px;\\">If you have any further questions, please contact our support.</div><a class=\\"footer_p2\\" href=\\"mailto:support@gradido.net\\" style=\\"color: #383838; font-weight: bold;\\">support@gradido.net</a>
-            <div> <img class=\\"image\\" alt=\\"Gradido Logo\\" src=\\"https://gdd.gradido.net/img/brand/green.png\\" style=\\"width: 200px; margin-top: 30px; margin-bottom: 30px;\\" width=\\"200\\"></div>
-            <div><a class=\\"terms_of_use\\" href=\\"https://gradido.net/de/impressum/\\" target=\\"_blank\\" style=\\"color: #9ca0a8;\\">Impressum</a></div><br><a class=\\"terms_of_use\\" href=\\"https://gradido.net/de/datenschutz/\\" target=\\"_blank\\" style=\\"color: #9ca0a8;\\">Privacy Policy</a>
-            <div class=\\"footer_p1\\" style=\\"margin-top: 30px; color: #9ca0a8; margin-bottom: 30px;\\">Gradido-Akademie<br>Institut für Wirtschaftsbionik<br>Pfarrweg 2<br>74653 Künzelsau<br>Deutschland<br><br><br></div>
+        <div class=\"w-container footer_01\">
+          <div class=\"socialmedia\" style=\"display: flex; margin-top: 40px; max-width: 600px;\"><a class=\"slink\" target=\"_blank\" href=\"https://www.facebook.com/groups/Gradido/\" style=\"width: 150px;\"><img class=\"bi-facebook\" alt=\"facebook\" loading=\"lazy\" src=\"cid:facebookicon\"></a><a class=\"slink\" target=\"_blank\" href=\"https://t.me/GradidoGruppe\" style=\"width: 150px;\"><img class=\"bi-telegram\" alt=\"Telegram\" loading=\"lazy\" src=\"cid:telegramicon\"></a><a class=\"slink\" target=\"_blank\" href=\"https://twitter.com/gradido\" style=\"width: 150px;\"><img class=\"bi-twitter\" alt=\"Twitter\" loading=\"lazy\" src=\"cid:twittericon\"></a><a class=\"slink\" target=\"_blank\" href=\"https://www.youtube.com/c/GradidoNet\" style=\"width: 150px;\"><img class=\"bi-youtube\" alt=\"youtube\" loading=\"lazy\" src=\"cid:youtubeicon\"></a></div>
+          <div class=\"line\" style=\"width: 100%; height: 13px; margin-top: 40px; background-image: linear-gradient(90deg, #c58d38, #f3cd7c 40%, #dbb056 55%, #eec05f 71%, #cc9d3d);\"></div>
+          <div class=\"footer\" style=\"padding-bottom: 20px;\">
+            <div class=\"footer_p1\" style=\"margin-top: 30px; color: #9ca0a8; margin-bottom: 30px;\">If you have any further questions, please contact our support.</div><a class=\"footer_p2\" href=\"mailto:support@gradido.net\" style=\"color: #383838; font-weight: bold;\">support@gradido.net</a>
+            <div> <img class=\"image\" alt=\"Gradido Logo\" src=\"https://gdd.gradido.net/img/brand/green.png\" style=\"width: 200px; margin-top: 30px; margin-bottom: 30px;\" width=\"200\"></div>
+            <div><a class=\"terms_of_use\" href=\"https://gradido.net/de/impressum/\" target=\"_blank\" style=\"color: #9ca0a8;\">Impressum</a></div><br><a class=\"terms_of_use\" href=\"https://gradido.net/de/datenschutz/\" target=\"_blank\" style=\"color: #9ca0a8;\">Privacy Policy</a>
+            <div class=\"footer_p1\" style=\"margin-top: 30px; color: #9ca0a8; margin-bottom: 30px;\">Gradido-Akademie<br>Institut für Wirtschaftsbionik<br>Pfarrweg 2<br>74653 Künzelsau<br>Deutschland<br><br><br></div>
           </div>
         </div>
       </footer>
@@ -1042,12 +1042,12 @@ exports[`sendEmailVariants sendContributionDeletedEmail result has the correct h
 
 exports[`sendEmailVariants sendContributionDeniedEmail result has the correct html as snapshot 1`] = `
 "<!DOCTYPE html>
-<html lang=\\"en\\">
+<html lang=\"en\">
   <head>
-    <meta content=\\"multipart/html; charset=UTF-8\\" http-equiv=\\"content-type\\">
-    <meta name=\\"viewport\\" content=\\"width=device-width, initial-scale=1\\">
+    <meta content=\"multipart/html; charset=UTF-8\" http-equiv=\"content-type\">
+    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">
     <style>
-.wf-force-outline-none[tabindex=\\"-1\\"]:focus {
+.wf-force-outline-none[tabindex=\"-1\"]:focus {
   outline: none;
 }
 </style>
@@ -1173,37 +1173,37 @@ exports[`sendEmailVariants sendContributionDeniedEmail result has the correct ht
 }
 </style>
   </head>
-  <body style=\\"display: block; font-family: 'Work Sans', sans-serif; font-size: 17px; text-align: center; text-align: -webkit-center; justify-content: center; padding: 0px; margin: 0px;\\">
-    <div class=\\"container\\" style=\\"max-width: 680px; margin: 0 auto; display: block;\\">
+  <body style=\"display: block; font-family: 'Work Sans', sans-serif; font-size: 17px; text-align: center; text-align: -webkit-center; justify-content: center; padding: 0px; margin: 0px;\">
+    <div class=\"container\" style=\"max-width: 680px; margin: 0 auto; display: block;\">
       <header>
-        <div class=\\"head\\"><img class=\\"head-logo\\" alt=\\"Gradido Logo\\" loading=\\"lazy\\" src=\\"cid:gradidoheader\\" style=\\"width: 100%; height: auto;\\"></div>
+        <div class=\"head\"><img class=\"head-logo\" alt=\"Gradido Logo\" loading=\"lazy\" src=\"cid:gradidoheader\" style=\"width: 100%; height: auto;\"></div>
       </header>
-      <div class=\\"wrapper\\">
-        <h2 style=\\"margin-top: 15px; color: #383838;\\">Your common good contribution was rejected</h2>
-        <div class=\\"text-block\\" style=\\"margin-top: 20px; color: #9ca0a8;\\">
+      <div class=\"wrapper\">
+        <h2 style=\"margin-top: 15px; color: #383838;\">Your common good contribution was rejected</h2>
+        <div class=\"text-block\" style=\"margin-top: 20px; color: #9ca0a8;\">
           <p>Hello Peter Lustig,</p>
           <p>Your common good contribution “My contribution.” was rejected by Bibi Bloxberg.</p>
         </div>
-        <div class=\\"content\\" style=\\"display: block; width: 78%; margin: 40px 1% 40px 1%; padding: 20px 10% 40px 10%; border-radius: 24px; background-image: linear-gradient(180deg, #f5f5f5, #f5f5f5);\\">
-          <h2 style=\\"margin-top: 15px; color: #383838;\\">Contribution details</h2>
-          <div class=\\"p_content\\" style=\\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\\">To see your common good contributions and related messages, go to the “Creation” menu in your Gradido account and click on the “My contributions” tab.</div><a class=\\"button-3\\" href=\\"https://gradido.net/contributions/own-contributions/1#contributionListItem-1\\" style=\\"display: inline-block; padding: 9px 15px; color: white; border: 0; line-height: inherit; text-decoration: none; cursor: pointer; border-radius: 20px; background-image: radial-gradient(circle farthest-corner at 0% 0%, #f9cd69, #c58d38); box-shadow: 16px 13px 35px 0 rgba(56, 56, 56, 0.3); margin: 25px 0 25px 0; width: 50%;\\">To account</a>
-          <div class=\\"p_content\\" style=\\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\\">Or copy the link into your browser window.</div><a class=\\"clink\\" href=\\"https://gradido.net/contributions/own-contributions/1#contributionListItem-1\\" style=\\"line-break: anywhere; margin-bottom: 40px;\\">https://gradido.net/contributions/own-contributions/1#contributionListItem-1</a>
-          <div class=\\"p_content\\" style=\\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\\">Please do not reply to this email.</div>
+        <div class=\"content\" style=\"display: block; width: 78%; margin: 40px 1% 40px 1%; padding: 20px 10% 40px 10%; border-radius: 24px; background-image: linear-gradient(180deg, #f5f5f5, #f5f5f5);\">
+          <h2 style=\"margin-top: 15px; color: #383838;\">Contribution details</h2>
+          <div class=\"p_content\" style=\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\">To see your common good contributions and related messages, go to the “Creation” menu in your Gradido account and click on the “My contributions” tab.</div><a class=\"button-3\" href=\"https://gradido.net/contributions/own-contributions/1#contributionListItem-1\" style=\"display: inline-block; padding: 9px 15px; color: white; border: 0; line-height: inherit; text-decoration: none; cursor: pointer; border-radius: 20px; background-image: radial-gradient(circle farthest-corner at 0% 0%, #f9cd69, #c58d38); box-shadow: 16px 13px 35px 0 rgba(56, 56, 56, 0.3); margin: 25px 0 25px 0; width: 50%;\">To account</a>
+          <div class=\"p_content\" style=\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\">Or copy the link into your browser window.</div><a class=\"clink\" href=\"https://gradido.net/contributions/own-contributions/1#contributionListItem-1\" style=\"line-break: anywhere; margin-bottom: 40px;\">https://gradido.net/contributions/own-contributions/1#contributionListItem-1</a>
+          <div class=\"p_content\" style=\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\">Please do not reply to this email.</div>
         </div>
-        <div class=\\"text-block\\" style=\\"margin-top: 20px; color: #9ca0a8;\\">
+        <div class=\"text-block\" style=\"margin-top: 20px; color: #9ca0a8;\">
           <p>Kind regards,<br>your Gradido team
           </p>
         </div>
       </div>
       <footer>
-        <div class=\\"w-container footer_01\\">
-          <div class=\\"socialmedia\\" style=\\"display: flex; margin-top: 40px; max-width: 600px;\\"><a class=\\"slink\\" target=\\"_blank\\" href=\\"https://www.facebook.com/groups/Gradido/\\" style=\\"width: 150px;\\"><img class=\\"bi-facebook\\" alt=\\"facebook\\" loading=\\"lazy\\" src=\\"cid:facebookicon\\"></a><a class=\\"slink\\" target=\\"_blank\\" href=\\"https://t.me/GradidoGruppe\\" style=\\"width: 150px;\\"><img class=\\"bi-telegram\\" alt=\\"Telegram\\" loading=\\"lazy\\" src=\\"cid:telegramicon\\"></a><a class=\\"slink\\" target=\\"_blank\\" href=\\"https://twitter.com/gradido\\" style=\\"width: 150px;\\"><img class=\\"bi-twitter\\" alt=\\"Twitter\\" loading=\\"lazy\\" src=\\"cid:twittericon\\"></a><a class=\\"slink\\" target=\\"_blank\\" href=\\"https://www.youtube.com/c/GradidoNet\\" style=\\"width: 150px;\\"><img class=\\"bi-youtube\\" alt=\\"youtube\\" loading=\\"lazy\\" src=\\"cid:youtubeicon\\"></a></div>
-          <div class=\\"line\\" style=\\"width: 100%; height: 13px; margin-top: 40px; background-image: linear-gradient(90deg, #c58d38, #f3cd7c 40%, #dbb056 55%, #eec05f 71%, #cc9d3d);\\"></div>
-          <div class=\\"footer\\" style=\\"padding-bottom: 20px;\\">
-            <div class=\\"footer_p1\\" style=\\"margin-top: 30px; color: #9ca0a8; margin-bottom: 30px;\\">If you have any further questions, please contact our support.</div><a class=\\"footer_p2\\" href=\\"mailto:support@gradido.net\\" style=\\"color: #383838; font-weight: bold;\\">support@gradido.net</a>
-            <div> <img class=\\"image\\" alt=\\"Gradido Logo\\" src=\\"https://gdd.gradido.net/img/brand/green.png\\" style=\\"width: 200px; margin-top: 30px; margin-bottom: 30px;\\" width=\\"200\\"></div>
-            <div><a class=\\"terms_of_use\\" href=\\"https://gradido.net/de/impressum/\\" target=\\"_blank\\" style=\\"color: #9ca0a8;\\">Impressum</a></div><br><a class=\\"terms_of_use\\" href=\\"https://gradido.net/de/datenschutz/\\" target=\\"_blank\\" style=\\"color: #9ca0a8;\\">Privacy Policy</a>
-            <div class=\\"footer_p1\\" style=\\"margin-top: 30px; color: #9ca0a8; margin-bottom: 30px;\\">Gradido-Akademie<br>Institut für Wirtschaftsbionik<br>Pfarrweg 2<br>74653 Künzelsau<br>Deutschland<br><br><br></div>
+        <div class=\"w-container footer_01\">
+          <div class=\"socialmedia\" style=\"display: flex; margin-top: 40px; max-width: 600px;\"><a class=\"slink\" target=\"_blank\" href=\"https://www.facebook.com/groups/Gradido/\" style=\"width: 150px;\"><img class=\"bi-facebook\" alt=\"facebook\" loading=\"lazy\" src=\"cid:facebookicon\"></a><a class=\"slink\" target=\"_blank\" href=\"https://t.me/GradidoGruppe\" style=\"width: 150px;\"><img class=\"bi-telegram\" alt=\"Telegram\" loading=\"lazy\" src=\"cid:telegramicon\"></a><a class=\"slink\" target=\"_blank\" href=\"https://twitter.com/gradido\" style=\"width: 150px;\"><img class=\"bi-twitter\" alt=\"Twitter\" loading=\"lazy\" src=\"cid:twittericon\"></a><a class=\"slink\" target=\"_blank\" href=\"https://www.youtube.com/c/GradidoNet\" style=\"width: 150px;\"><img class=\"bi-youtube\" alt=\"youtube\" loading=\"lazy\" src=\"cid:youtubeicon\"></a></div>
+          <div class=\"line\" style=\"width: 100%; height: 13px; margin-top: 40px; background-image: linear-gradient(90deg, #c58d38, #f3cd7c 40%, #dbb056 55%, #eec05f 71%, #cc9d3d);\"></div>
+          <div class=\"footer\" style=\"padding-bottom: 20px;\">
+            <div class=\"footer_p1\" style=\"margin-top: 30px; color: #9ca0a8; margin-bottom: 30px;\">If you have any further questions, please contact our support.</div><a class=\"footer_p2\" href=\"mailto:support@gradido.net\" style=\"color: #383838; font-weight: bold;\">support@gradido.net</a>
+            <div> <img class=\"image\" alt=\"Gradido Logo\" src=\"https://gdd.gradido.net/img/brand/green.png\" style=\"width: 200px; margin-top: 30px; margin-bottom: 30px;\" width=\"200\"></div>
+            <div><a class=\"terms_of_use\" href=\"https://gradido.net/de/impressum/\" target=\"_blank\" style=\"color: #9ca0a8;\">Impressum</a></div><br><a class=\"terms_of_use\" href=\"https://gradido.net/de/datenschutz/\" target=\"_blank\" style=\"color: #9ca0a8;\">Privacy Policy</a>
+            <div class=\"footer_p1\" style=\"margin-top: 30px; color: #9ca0a8; margin-bottom: 30px;\">Gradido-Akademie<br>Institut für Wirtschaftsbionik<br>Pfarrweg 2<br>74653 Künzelsau<br>Deutschland<br><br><br></div>
           </div>
         </div>
       </footer>
@@ -1214,12 +1214,12 @@ exports[`sendEmailVariants sendContributionDeniedEmail result has the correct ht
 
 exports[`sendEmailVariants sendResetPasswordEmail result has the correct html as snapshot 1`] = `
 "<!DOCTYPE html>
-<html lang=\\"en\\">
+<html lang=\"en\">
   <head>
-    <meta content=\\"multipart/html; charset=UTF-8\\" http-equiv=\\"content-type\\">
-    <meta name=\\"viewport\\" content=\\"width=device-width, initial-scale=1\\">
+    <meta content=\"multipart/html; charset=UTF-8\" http-equiv=\"content-type\">
+    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">
     <style>
-.wf-force-outline-none[tabindex=\\"-1\\"]:focus {
+.wf-force-outline-none[tabindex=\"-1\"]:focus {
   outline: none;
 }
 </style>
@@ -1345,41 +1345,41 @@ exports[`sendEmailVariants sendResetPasswordEmail result has the correct html as
 }
 </style>
   </head>
-  <body style=\\"display: block; font-family: 'Work Sans', sans-serif; font-size: 17px; text-align: center; text-align: -webkit-center; justify-content: center; padding: 0px; margin: 0px;\\">
-    <div class=\\"container\\" style=\\"max-width: 680px; margin: 0 auto; display: block;\\">
+  <body style=\"display: block; font-family: 'Work Sans', sans-serif; font-size: 17px; text-align: center; text-align: -webkit-center; justify-content: center; padding: 0px; margin: 0px;\">
+    <div class=\"container\" style=\"max-width: 680px; margin: 0 auto; display: block;\">
       <header>
-        <div class=\\"head\\"><img class=\\"head-logo\\" alt=\\"Gradido Logo\\" loading=\\"lazy\\" src=\\"cid:gradidoheader\\" style=\\"width: 100%; height: auto;\\"></div>
+        <div class=\"head\"><img class=\"head-logo\" alt=\"Gradido Logo\" loading=\"lazy\" src=\"cid:gradidoheader\" style=\"width: 100%; height: auto;\"></div>
       </header>
-      <div class=\\"wrapper\\">
-        <h2 style=\\"margin-top: 15px; color: #383838;\\">Reset password</h2>
-        <div class=\\"text-block\\" style=\\"margin-top: 20px; color: #9ca0a8;\\">
+      <div class=\"wrapper\">
+        <h2 style=\"margin-top: 15px; color: #383838;\">Reset password</h2>
+        <div class=\"text-block\" style=\"margin-top: 20px; color: #9ca0a8;\">
           <p>Hello Peter Lustig,</p>
           <p>You, or someone else, requested a password reset for this account.</p>
         </div>
-        <div class=\\"content\\" style=\\"display: block; width: 78%; margin: 40px 1% 40px 1%; padding: 20px 10% 40px 10%; border-radius: 24px; background-image: linear-gradient(180deg, #f5f5f5, #f5f5f5);\\">
-          <h2 style=\\"margin-top: 15px; color: #383838;\\">Reset password</h2>
-          <div class=\\"p_content\\" style=\\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\\">If it was you, please click here.</div><a class=\\"button-3\\" href=\\"http://localhost/reset-password/3762660021544901417\\" style=\\"display: inline-block; padding: 9px 15px; color: white; border: 0; line-height: inherit; text-decoration: none; cursor: pointer; border-radius: 20px; background-image: radial-gradient(circle farthest-corner at 0% 0%, #f9cd69, #c58d38); box-shadow: 16px 13px 35px 0 rgba(56, 56, 56, 0.3); margin: 25px 0 25px 0; width: 50%;\\">reset</a>
-          <div class=\\"p_content\\" style=\\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\\">Or copy the link into your browser window.</div><a class=\\"clink\\" href=\\"http://localhost/reset-password/3762660021544901417\\" style=\\"line-break: anywhere; margin-bottom: 40px;\\">http://localhost/reset-password/3762660021544901417</a>
+        <div class=\"content\" style=\"display: block; width: 78%; margin: 40px 1% 40px 1%; padding: 20px 10% 40px 10%; border-radius: 24px; background-image: linear-gradient(180deg, #f5f5f5, #f5f5f5);\">
+          <h2 style=\"margin-top: 15px; color: #383838;\">Reset password</h2>
+          <div class=\"p_content\" style=\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\">If it was you, please click here.</div><a class=\"button-3\" href=\"http://localhost/reset-password/3762660021544901417\" style=\"display: inline-block; padding: 9px 15px; color: white; border: 0; line-height: inherit; text-decoration: none; cursor: pointer; border-radius: 20px; background-image: radial-gradient(circle farthest-corner at 0% 0%, #f9cd69, #c58d38); box-shadow: 16px 13px 35px 0 rgba(56, 56, 56, 0.3); margin: 25px 0 25px 0; width: 50%;\">reset</a>
+          <div class=\"p_content\" style=\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\">Or copy the link into your browser window.</div><a class=\"clink\" href=\"http://localhost/reset-password/3762660021544901417\" style=\"line-break: anywhere; margin-bottom: 40px;\">http://localhost/reset-password/3762660021544901417</a>
           <requestnewlink>
-            <h2 style=\\"margin-top: 15px; color: #383838;\\">Request new valid link</h2>
-            <div class=\\"p_content\\" style=\\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\\">The link has a validity of 23 hours and 30 minutes.
-If the validity of the link has already expired, you can have a new link sent to you here.</div><a class=\\"button-4\\" href=\\"http://localhost/forgot-password\\" style=\\"display: inline-block; padding: 9px 15px; color: white; border: 0; line-height: inherit; text-decoration: none; cursor: pointer; border-radius: 20px; box-shadow: 16px 13px 35px 0 rgba(56, 56, 56, 0.3); margin: 25px 0 25px 0; width: 50%; background-image: radial-gradient(circle farthest-corner at 0% 0%, #616161, #c2c2c2);\\">New link</a>
+            <h2 style=\"margin-top: 15px; color: #383838;\">Request new valid link</h2>
+            <div class=\"p_content\" style=\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\">The link has a validity of 23 hours and 30 minutes.
+If the validity of the link has already expired, you can have a new link sent to you here.</div><a class=\"button-4\" href=\"http://localhost/forgot-password\" style=\"display: inline-block; padding: 9px 15px; color: white; border: 0; line-height: inherit; text-decoration: none; cursor: pointer; border-radius: 20px; box-shadow: 16px 13px 35px 0 rgba(56, 56, 56, 0.3); margin: 25px 0 25px 0; width: 50%; background-image: radial-gradient(circle farthest-corner at 0% 0%, #616161, #c2c2c2);\">New link</a>
           </requestnewlink>
         </div>
-        <div class=\\"text-block\\" style=\\"margin-top: 20px; color: #9ca0a8;\\">
+        <div class=\"text-block\" style=\"margin-top: 20px; color: #9ca0a8;\">
           <p>Kind regards,<br>your Gradido team
           </p>
         </div>
       </div>
       <footer>
-        <div class=\\"w-container footer_01\\">
-          <div class=\\"socialmedia\\" style=\\"display: flex; margin-top: 40px; max-width: 600px;\\"><a class=\\"slink\\" target=\\"_blank\\" href=\\"https://www.facebook.com/groups/Gradido/\\" style=\\"width: 150px;\\"><img class=\\"bi-facebook\\" alt=\\"facebook\\" loading=\\"lazy\\" src=\\"cid:facebookicon\\"></a><a class=\\"slink\\" target=\\"_blank\\" href=\\"https://t.me/GradidoGruppe\\" style=\\"width: 150px;\\"><img class=\\"bi-telegram\\" alt=\\"Telegram\\" loading=\\"lazy\\" src=\\"cid:telegramicon\\"></a><a class=\\"slink\\" target=\\"_blank\\" href=\\"https://twitter.com/gradido\\" style=\\"width: 150px;\\"><img class=\\"bi-twitter\\" alt=\\"Twitter\\" loading=\\"lazy\\" src=\\"cid:twittericon\\"></a><a class=\\"slink\\" target=\\"_blank\\" href=\\"https://www.youtube.com/c/GradidoNet\\" style=\\"width: 150px;\\"><img class=\\"bi-youtube\\" alt=\\"youtube\\" loading=\\"lazy\\" src=\\"cid:youtubeicon\\"></a></div>
-          <div class=\\"line\\" style=\\"width: 100%; height: 13px; margin-top: 40px; background-image: linear-gradient(90deg, #c58d38, #f3cd7c 40%, #dbb056 55%, #eec05f 71%, #cc9d3d);\\"></div>
-          <div class=\\"footer\\" style=\\"padding-bottom: 20px;\\">
-            <div class=\\"footer_p1\\" style=\\"margin-top: 30px; color: #9ca0a8; margin-bottom: 30px;\\">If you have any further questions, please contact our support.</div><a class=\\"footer_p2\\" href=\\"mailto:support@gradido.net\\" style=\\"color: #383838; font-weight: bold;\\">support@gradido.net</a>
-            <div> <img class=\\"image\\" alt=\\"Gradido Logo\\" src=\\"https://gdd.gradido.net/img/brand/green.png\\" style=\\"width: 200px; margin-top: 30px; margin-bottom: 30px;\\" width=\\"200\\"></div>
-            <div><a class=\\"terms_of_use\\" href=\\"https://gradido.net/de/impressum/\\" target=\\"_blank\\" style=\\"color: #9ca0a8;\\">Impressum</a></div><br><a class=\\"terms_of_use\\" href=\\"https://gradido.net/de/datenschutz/\\" target=\\"_blank\\" style=\\"color: #9ca0a8;\\">Privacy Policy</a>
-            <div class=\\"footer_p1\\" style=\\"margin-top: 30px; color: #9ca0a8; margin-bottom: 30px;\\">Gradido-Akademie<br>Institut für Wirtschaftsbionik<br>Pfarrweg 2<br>74653 Künzelsau<br>Deutschland<br><br><br></div>
+        <div class=\"w-container footer_01\">
+          <div class=\"socialmedia\" style=\"display: flex; margin-top: 40px; max-width: 600px;\"><a class=\"slink\" target=\"_blank\" href=\"https://www.facebook.com/groups/Gradido/\" style=\"width: 150px;\"><img class=\"bi-facebook\" alt=\"facebook\" loading=\"lazy\" src=\"cid:facebookicon\"></a><a class=\"slink\" target=\"_blank\" href=\"https://t.me/GradidoGruppe\" style=\"width: 150px;\"><img class=\"bi-telegram\" alt=\"Telegram\" loading=\"lazy\" src=\"cid:telegramicon\"></a><a class=\"slink\" target=\"_blank\" href=\"https://twitter.com/gradido\" style=\"width: 150px;\"><img class=\"bi-twitter\" alt=\"Twitter\" loading=\"lazy\" src=\"cid:twittericon\"></a><a class=\"slink\" target=\"_blank\" href=\"https://www.youtube.com/c/GradidoNet\" style=\"width: 150px;\"><img class=\"bi-youtube\" alt=\"youtube\" loading=\"lazy\" src=\"cid:youtubeicon\"></a></div>
+          <div class=\"line\" style=\"width: 100%; height: 13px; margin-top: 40px; background-image: linear-gradient(90deg, #c58d38, #f3cd7c 40%, #dbb056 55%, #eec05f 71%, #cc9d3d);\"></div>
+          <div class=\"footer\" style=\"padding-bottom: 20px;\">
+            <div class=\"footer_p1\" style=\"margin-top: 30px; color: #9ca0a8; margin-bottom: 30px;\">If you have any further questions, please contact our support.</div><a class=\"footer_p2\" href=\"mailto:support@gradido.net\" style=\"color: #383838; font-weight: bold;\">support@gradido.net</a>
+            <div> <img class=\"image\" alt=\"Gradido Logo\" src=\"https://gdd.gradido.net/img/brand/green.png\" style=\"width: 200px; margin-top: 30px; margin-bottom: 30px;\" width=\"200\"></div>
+            <div><a class=\"terms_of_use\" href=\"https://gradido.net/de/impressum/\" target=\"_blank\" style=\"color: #9ca0a8;\">Impressum</a></div><br><a class=\"terms_of_use\" href=\"https://gradido.net/de/datenschutz/\" target=\"_blank\" style=\"color: #9ca0a8;\">Privacy Policy</a>
+            <div class=\"footer_p1\" style=\"margin-top: 30px; color: #9ca0a8; margin-bottom: 30px;\">Gradido-Akademie<br>Institut für Wirtschaftsbionik<br>Pfarrweg 2<br>74653 Künzelsau<br>Deutschland<br><br><br></div>
           </div>
         </div>
       </footer>
@@ -1390,12 +1390,12 @@ If the validity of the link has already expired, you can have a new link sent to
 
 exports[`sendEmailVariants sendTransactionLinkRedeemedEmail result has the correct html as snapshot 1`] = `
 "<!DOCTYPE html>
-<html lang=\\"en\\">
+<html lang=\"en\">
   <head>
-    <meta content=\\"multipart/html; charset=UTF-8\\" http-equiv=\\"content-type\\">
-    <meta name=\\"viewport\\" content=\\"width=device-width, initial-scale=1\\">
+    <meta content=\"multipart/html; charset=UTF-8\" http-equiv=\"content-type\">
+    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">
     <style>
-.wf-force-outline-none[tabindex=\\"-1\\"]:focus {
+.wf-force-outline-none[tabindex=\"-1\"]:focus {
   outline: none;
 }
 </style>
@@ -1521,37 +1521,37 @@ exports[`sendEmailVariants sendTransactionLinkRedeemedEmail result has the corre
 }
 </style>
   </head>
-  <body style=\\"display: block; font-family: 'Work Sans', sans-serif; font-size: 17px; text-align: center; text-align: -webkit-center; justify-content: center; padding: 0px; margin: 0px;\\">
-    <div class=\\"container\\" style=\\"max-width: 680px; margin: 0 auto; display: block;\\">
+  <body style=\"display: block; font-family: 'Work Sans', sans-serif; font-size: 17px; text-align: center; text-align: -webkit-center; justify-content: center; padding: 0px; margin: 0px;\">
+    <div class=\"container\" style=\"max-width: 680px; margin: 0 auto; display: block;\">
       <header>
-        <div class=\\"head\\"><img class=\\"head-logo\\" alt=\\"Gradido Logo\\" loading=\\"lazy\\" src=\\"cid:gradidoheader\\" style=\\"width: 100%; height: auto;\\"></div>
+        <div class=\"head\"><img class=\"head-logo\" alt=\"Gradido Logo\" loading=\"lazy\" src=\"cid:gradidoheader\" style=\"width: 100%; height: auto;\"></div>
       </header>
-      <div class=\\"wrapper\\">
-        <h2 style=\\"margin-top: 15px; color: #383838;\\">Bibi Bloxberg has redeemed your Gradido link</h2>
-        <div class=\\"text-block\\" style=\\"margin-top: 20px; color: #9ca0a8;\\">
+      <div class=\"wrapper\">
+        <h2 style=\"margin-top: 15px; color: #383838;\">Bibi Bloxberg has redeemed your Gradido link</h2>
+        <div class=\"text-block\" style=\"margin-top: 20px; color: #9ca0a8;\">
           <p>Hello Peter Lustig,</p>
           <p>Bibi Bloxberg (bibi@bloxberg.de) has just redeemed your link.</p>
         </div>
-        <div class=\\"content\\" style=\\"display: block; width: 78%; margin: 40px 1% 40px 1%; padding: 20px 10% 40px 10%; border-radius: 24px; background-image: linear-gradient(180deg, #f5f5f5, #f5f5f5);\\">
-          <h2 style=\\"margin-top: 15px; color: #383838;\\">Transaction details</h2>
-          <div class=\\"p_content\\" style=\\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\\">Amount: 17.65 GDD<br>Message: You deserve it! 🙏🏼<br>You can find transaction details in your Gradido account.
-          </div><a class=\\"button-3\\" href=\\"http://localhost/transactions\\" style=\\"display: inline-block; padding: 9px 15px; color: white; border: 0; line-height: inherit; text-decoration: none; cursor: pointer; border-radius: 20px; background-image: radial-gradient(circle farthest-corner at 0% 0%, #f9cd69, #c58d38); box-shadow: 16px 13px 35px 0 rgba(56, 56, 56, 0.3); margin: 25px 0 25px 0; width: 50%;\\">To account</a>
-          <div class=\\"p_content\\" style=\\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\\">Please do not reply to this email.</div>
+        <div class=\"content\" style=\"display: block; width: 78%; margin: 40px 1% 40px 1%; padding: 20px 10% 40px 10%; border-radius: 24px; background-image: linear-gradient(180deg, #f5f5f5, #f5f5f5);\">
+          <h2 style=\"margin-top: 15px; color: #383838;\">Transaction details</h2>
+          <div class=\"p_content\" style=\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\">Amount: 17.65 GDD<br>Message: You deserve it! 🙏🏼<br>You can find transaction details in your Gradido account.
+          </div><a class=\"button-3\" href=\"http://localhost/transactions\" style=\"display: inline-block; padding: 9px 15px; color: white; border: 0; line-height: inherit; text-decoration: none; cursor: pointer; border-radius: 20px; background-image: radial-gradient(circle farthest-corner at 0% 0%, #f9cd69, #c58d38); box-shadow: 16px 13px 35px 0 rgba(56, 56, 56, 0.3); margin: 25px 0 25px 0; width: 50%;\">To account</a>
+          <div class=\"p_content\" style=\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\">Please do not reply to this email.</div>
         </div>
-        <div class=\\"text-block\\" style=\\"margin-top: 20px; color: #9ca0a8;\\">
+        <div class=\"text-block\" style=\"margin-top: 20px; color: #9ca0a8;\">
           <p>Kind regards,<br>your Gradido team
           </p>
         </div>
       </div>
       <footer>
-        <div class=\\"w-container footer_01\\">
-          <div class=\\"socialmedia\\" style=\\"display: flex; margin-top: 40px; max-width: 600px;\\"><a class=\\"slink\\" target=\\"_blank\\" href=\\"https://www.facebook.com/groups/Gradido/\\" style=\\"width: 150px;\\"><img class=\\"bi-facebook\\" alt=\\"facebook\\" loading=\\"lazy\\" src=\\"cid:facebookicon\\"></a><a class=\\"slink\\" target=\\"_blank\\" href=\\"https://t.me/GradidoGruppe\\" style=\\"width: 150px;\\"><img class=\\"bi-telegram\\" alt=\\"Telegram\\" loading=\\"lazy\\" src=\\"cid:telegramicon\\"></a><a class=\\"slink\\" target=\\"_blank\\" href=\\"https://twitter.com/gradido\\" style=\\"width: 150px;\\"><img class=\\"bi-twitter\\" alt=\\"Twitter\\" loading=\\"lazy\\" src=\\"cid:twittericon\\"></a><a class=\\"slink\\" target=\\"_blank\\" href=\\"https://www.youtube.com/c/GradidoNet\\" style=\\"width: 150px;\\"><img class=\\"bi-youtube\\" alt=\\"youtube\\" loading=\\"lazy\\" src=\\"cid:youtubeicon\\"></a></div>
-          <div class=\\"line\\" style=\\"width: 100%; height: 13px; margin-top: 40px; background-image: linear-gradient(90deg, #c58d38, #f3cd7c 40%, #dbb056 55%, #eec05f 71%, #cc9d3d);\\"></div>
-          <div class=\\"footer\\" style=\\"padding-bottom: 20px;\\">
-            <div class=\\"footer_p1\\" style=\\"margin-top: 30px; color: #9ca0a8; margin-bottom: 30px;\\">If you have any further questions, please contact our support.</div><a class=\\"footer_p2\\" href=\\"mailto:support@gradido.net\\" style=\\"color: #383838; font-weight: bold;\\">support@gradido.net</a>
-            <div> <img class=\\"image\\" alt=\\"Gradido Logo\\" src=\\"https://gdd.gradido.net/img/brand/green.png\\" style=\\"width: 200px; margin-top: 30px; margin-bottom: 30px;\\" width=\\"200\\"></div>
-            <div><a class=\\"terms_of_use\\" href=\\"https://gradido.net/de/impressum/\\" target=\\"_blank\\" style=\\"color: #9ca0a8;\\">Impressum</a></div><br><a class=\\"terms_of_use\\" href=\\"https://gradido.net/de/datenschutz/\\" target=\\"_blank\\" style=\\"color: #9ca0a8;\\">Privacy Policy</a>
-            <div class=\\"footer_p1\\" style=\\"margin-top: 30px; color: #9ca0a8; margin-bottom: 30px;\\">Gradido-Akademie<br>Institut für Wirtschaftsbionik<br>Pfarrweg 2<br>74653 Künzelsau<br>Deutschland<br><br><br></div>
+        <div class=\"w-container footer_01\">
+          <div class=\"socialmedia\" style=\"display: flex; margin-top: 40px; max-width: 600px;\"><a class=\"slink\" target=\"_blank\" href=\"https://www.facebook.com/groups/Gradido/\" style=\"width: 150px;\"><img class=\"bi-facebook\" alt=\"facebook\" loading=\"lazy\" src=\"cid:facebookicon\"></a><a class=\"slink\" target=\"_blank\" href=\"https://t.me/GradidoGruppe\" style=\"width: 150px;\"><img class=\"bi-telegram\" alt=\"Telegram\" loading=\"lazy\" src=\"cid:telegramicon\"></a><a class=\"slink\" target=\"_blank\" href=\"https://twitter.com/gradido\" style=\"width: 150px;\"><img class=\"bi-twitter\" alt=\"Twitter\" loading=\"lazy\" src=\"cid:twittericon\"></a><a class=\"slink\" target=\"_blank\" href=\"https://www.youtube.com/c/GradidoNet\" style=\"width: 150px;\"><img class=\"bi-youtube\" alt=\"youtube\" loading=\"lazy\" src=\"cid:youtubeicon\"></a></div>
+          <div class=\"line\" style=\"width: 100%; height: 13px; margin-top: 40px; background-image: linear-gradient(90deg, #c58d38, #f3cd7c 40%, #dbb056 55%, #eec05f 71%, #cc9d3d);\"></div>
+          <div class=\"footer\" style=\"padding-bottom: 20px;\">
+            <div class=\"footer_p1\" style=\"margin-top: 30px; color: #9ca0a8; margin-bottom: 30px;\">If you have any further questions, please contact our support.</div><a class=\"footer_p2\" href=\"mailto:support@gradido.net\" style=\"color: #383838; font-weight: bold;\">support@gradido.net</a>
+            <div> <img class=\"image\" alt=\"Gradido Logo\" src=\"https://gdd.gradido.net/img/brand/green.png\" style=\"width: 200px; margin-top: 30px; margin-bottom: 30px;\" width=\"200\"></div>
+            <div><a class=\"terms_of_use\" href=\"https://gradido.net/de/impressum/\" target=\"_blank\" style=\"color: #9ca0a8;\">Impressum</a></div><br><a class=\"terms_of_use\" href=\"https://gradido.net/de/datenschutz/\" target=\"_blank\" style=\"color: #9ca0a8;\">Privacy Policy</a>
+            <div class=\"footer_p1\" style=\"margin-top: 30px; color: #9ca0a8; margin-bottom: 30px;\">Gradido-Akademie<br>Institut für Wirtschaftsbionik<br>Pfarrweg 2<br>74653 Künzelsau<br>Deutschland<br><br><br></div>
           </div>
         </div>
       </footer>
@@ -1562,12 +1562,12 @@ exports[`sendEmailVariants sendTransactionLinkRedeemedEmail result has the corre
 
 exports[`sendEmailVariants sendTransactionReceivedEmail result has the correct html as snapshot 1`] = `
 "<!DOCTYPE html>
-<html lang=\\"en\\">
+<html lang=\"en\">
   <head>
-    <meta content=\\"multipart/html; charset=UTF-8\\" http-equiv=\\"content-type\\">
-    <meta name=\\"viewport\\" content=\\"width=device-width, initial-scale=1\\">
+    <meta content=\"multipart/html; charset=UTF-8\" http-equiv=\"content-type\">
+    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">
     <style>
-.wf-force-outline-none[tabindex=\\"-1\\"]:focus {
+.wf-force-outline-none[tabindex=\"-1\"]:focus {
   outline: none;
 }
 </style>
@@ -1693,40 +1693,40 @@ exports[`sendEmailVariants sendTransactionReceivedEmail result has the correct h
 }
 </style>
   </head>
-  <body style=\\"display: block; font-family: 'Work Sans', sans-serif; font-size: 17px; text-align: center; text-align: -webkit-center; justify-content: center; padding: 0px; margin: 0px;\\">
-    <div class=\\"container\\" style=\\"max-width: 680px; margin: 0 auto; display: block;\\">
+  <body style=\"display: block; font-family: 'Work Sans', sans-serif; font-size: 17px; text-align: center; text-align: -webkit-center; justify-content: center; padding: 0px; margin: 0px;\">
+    <div class=\"container\" style=\"max-width: 680px; margin: 0 auto; display: block;\">
       <header>
-        <div class=\\"head\\"><img class=\\"head-logo\\" alt=\\"Gradido Logo\\" loading=\\"lazy\\" src=\\"cid:gradidoheader\\" style=\\"width: 100%; height: auto;\\"></div>
+        <div class=\"head\"><img class=\"head-logo\" alt=\"Gradido Logo\" loading=\"lazy\" src=\"cid:gradidoheader\" style=\"width: 100%; height: auto;\"></div>
       </header>
-      <div class=\\"wrapper\\">
-        <h2 style=\\"margin-top: 15px; color: #383838;\\">Bibi Bloxberg has sent you 37.40 Gradido</h2>
-        <div class=\\"text-block\\" style=\\"margin-top: 20px; color: #9ca0a8;\\">
+      <div class=\"wrapper\">
+        <h2 style=\"margin-top: 15px; color: #383838;\">Bibi Bloxberg has sent you 37.40 Gradido</h2>
+        <div class=\"text-block\" style=\"margin-top: 20px; color: #9ca0a8;\">
           <p>Hello Peter Lustig,</p>
-          <p> You have just received 37.40 GDD from Bibi Bloxberg (<a href=\\"mailto:bibi@bloxberg.de?subject=RE%3A%20Bibi%20Bloxberg%20has%20sent%20you%2037.40%20Gradido\\">bibi@bloxberg.de</a>).     
+          <p> You have just received 37.40 GDD from Bibi Bloxberg (<a href=\"mailto:bibi@bloxberg.de?subject=RE%3A%20Bibi%20Bloxberg%20has%20sent%20you%2037.40%20Gradido\">bibi@bloxberg.de</a>).     
           </p>
         </div>
-        <div class=\\"content\\" style=\\"display: block; width: 78%; margin: 40px 1% 40px 1%; padding: 20px 10% 40px 10%; border-radius: 24px; background-image: linear-gradient(180deg, #f5f5f5, #f5f5f5);\\">
-          <h2 style=\\"margin-top: 15px; color: #383838;\\">Message</h2>
-          <div class=\\"child-left\\" style=\\"text-align: left;\\">
-            <div class=\\"p_content\\" style=\\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\\">Du bist schon lustiger ;)</div>
+        <div class=\"content\" style=\"display: block; width: 78%; margin: 40px 1% 40px 1%; padding: 20px 10% 40px 10%; border-radius: 24px; background-image: linear-gradient(180deg, #f5f5f5, #f5f5f5);\">
+          <h2 style=\"margin-top: 15px; color: #383838;\">Message</h2>
+          <div class=\"child-left\" style=\"text-align: left;\">
+            <div class=\"p_content\" style=\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\">Du bist schon lustiger ;)</div>
           </div>
-          <div class=\\"child-right\\" style=\\"text-align: right;\\"><a class=\\"button-5\\" href=\\"mailto:bibi@bloxberg.de?subject=RE%3A%20Bibi%20Bloxberg%20has%20sent%20you%2037.40%20Gradido\\" style=\\"display: inline-block; padding: 9px 15px; border: 0; line-height: inherit; text-decoration: none; cursor: pointer; border-radius: 20px; background-image: radial-gradient(circle farthest-corner at 0% 0%, #f9cd69, #c58d38); margin: 25px 0 25px 0; background: linear-gradient(135deg, #53900c, #6e6e6e); font-size: 20px; font-weight: 600; color: #f5f5f5; width: auto; box-shadow: 20px 20px 25px; transition: all 0.3s ease;\\"><span class=\\"chatbox-wrapper\\" style=\\"margin-right: 8px;\\"><img class=\\"bi-chatbox\\" alt=\\"chatbox\\" loading=\\"lazy\\" src=\\"cid:chatboxicon\\" style=\\"margin-bottom: -5px;\\"></span><span>Reply</span></a>
+          <div class=\"child-right\" style=\"text-align: right;\"><a class=\"button-5\" href=\"mailto:bibi@bloxberg.de?subject=RE%3A%20Bibi%20Bloxberg%20has%20sent%20you%2037.40%20Gradido\" style=\"display: inline-block; padding: 9px 15px; border: 0; line-height: inherit; text-decoration: none; cursor: pointer; border-radius: 20px; background-image: radial-gradient(circle farthest-corner at 0% 0%, #f9cd69, #c58d38); margin: 25px 0 25px 0; background: linear-gradient(135deg, #53900c, #6e6e6e); font-size: 20px; font-weight: 600; color: #f5f5f5; width: auto; box-shadow: 20px 20px 25px; transition: all 0.3s ease;\"><span class=\"chatbox-wrapper\" style=\"margin-right: 8px;\"><img class=\"bi-chatbox\" alt=\"chatbox\" loading=\"lazy\" src=\"cid:chatboxicon\" style=\"margin-bottom: -5px;\"></span><span>Reply</span></a>
           </div>
-        </div><a class=\\"button-3\\" href=\\"http://localhost/transactions\\" style=\\"display: inline-block; padding: 9px 15px; color: white; border: 0; line-height: inherit; text-decoration: none; cursor: pointer; border-radius: 20px; background-image: radial-gradient(circle farthest-corner at 0% 0%, #f9cd69, #c58d38); box-shadow: 16px 13px 35px 0 rgba(56, 56, 56, 0.3); margin: 25px 0 25px 0; width: 50%;\\">To account</a>
-        <div class=\\"text-block\\" style=\\"margin-top: 20px; color: #9ca0a8;\\">
+        </div><a class=\"button-3\" href=\"http://localhost/transactions\" style=\"display: inline-block; padding: 9px 15px; color: white; border: 0; line-height: inherit; text-decoration: none; cursor: pointer; border-radius: 20px; background-image: radial-gradient(circle farthest-corner at 0% 0%, #f9cd69, #c58d38); box-shadow: 16px 13px 35px 0 rgba(56, 56, 56, 0.3); margin: 25px 0 25px 0; width: 50%;\">To account</a>
+        <div class=\"text-block\" style=\"margin-top: 20px; color: #9ca0a8;\">
           <p>Kind regards,<br>your Gradido team
           </p>
         </div>
       </div>
       <footer>
-        <div class=\\"w-container footer_01\\">
-          <div class=\\"socialmedia\\" style=\\"display: flex; margin-top: 40px; max-width: 600px;\\"><a class=\\"slink\\" target=\\"_blank\\" href=\\"https://www.facebook.com/groups/Gradido/\\" style=\\"width: 150px;\\"><img class=\\"bi-facebook\\" alt=\\"facebook\\" loading=\\"lazy\\" src=\\"cid:facebookicon\\"></a><a class=\\"slink\\" target=\\"_blank\\" href=\\"https://t.me/GradidoGruppe\\" style=\\"width: 150px;\\"><img class=\\"bi-telegram\\" alt=\\"Telegram\\" loading=\\"lazy\\" src=\\"cid:telegramicon\\"></a><a class=\\"slink\\" target=\\"_blank\\" href=\\"https://twitter.com/gradido\\" style=\\"width: 150px;\\"><img class=\\"bi-twitter\\" alt=\\"Twitter\\" loading=\\"lazy\\" src=\\"cid:twittericon\\"></a><a class=\\"slink\\" target=\\"_blank\\" href=\\"https://www.youtube.com/c/GradidoNet\\" style=\\"width: 150px;\\"><img class=\\"bi-youtube\\" alt=\\"youtube\\" loading=\\"lazy\\" src=\\"cid:youtubeicon\\"></a></div>
-          <div class=\\"line\\" style=\\"width: 100%; height: 13px; margin-top: 40px; background-image: linear-gradient(90deg, #c58d38, #f3cd7c 40%, #dbb056 55%, #eec05f 71%, #cc9d3d);\\"></div>
-          <div class=\\"footer\\" style=\\"padding-bottom: 20px;\\">
-            <div class=\\"footer_p1\\" style=\\"margin-top: 30px; color: #9ca0a8; margin-bottom: 30px;\\">If you have any further questions, please contact our support.</div><a class=\\"footer_p2\\" href=\\"mailto:support@gradido.net\\" style=\\"color: #383838; font-weight: bold;\\">support@gradido.net</a>
-            <div> <img class=\\"image\\" alt=\\"Gradido Logo\\" src=\\"https://gdd.gradido.net/img/brand/green.png\\" style=\\"width: 200px; margin-top: 30px; margin-bottom: 30px;\\" width=\\"200\\"></div>
-            <div><a class=\\"terms_of_use\\" href=\\"https://gradido.net/de/impressum/\\" target=\\"_blank\\" style=\\"color: #9ca0a8;\\">Impressum</a></div><br><a class=\\"terms_of_use\\" href=\\"https://gradido.net/de/datenschutz/\\" target=\\"_blank\\" style=\\"color: #9ca0a8;\\">Privacy Policy</a>
-            <div class=\\"footer_p1\\" style=\\"margin-top: 30px; color: #9ca0a8; margin-bottom: 30px;\\">Gradido-Akademie<br>Institut für Wirtschaftsbionik<br>Pfarrweg 2<br>74653 Künzelsau<br>Deutschland<br><br><br></div>
+        <div class=\"w-container footer_01\">
+          <div class=\"socialmedia\" style=\"display: flex; margin-top: 40px; max-width: 600px;\"><a class=\"slink\" target=\"_blank\" href=\"https://www.facebook.com/groups/Gradido/\" style=\"width: 150px;\"><img class=\"bi-facebook\" alt=\"facebook\" loading=\"lazy\" src=\"cid:facebookicon\"></a><a class=\"slink\" target=\"_blank\" href=\"https://t.me/GradidoGruppe\" style=\"width: 150px;\"><img class=\"bi-telegram\" alt=\"Telegram\" loading=\"lazy\" src=\"cid:telegramicon\"></a><a class=\"slink\" target=\"_blank\" href=\"https://twitter.com/gradido\" style=\"width: 150px;\"><img class=\"bi-twitter\" alt=\"Twitter\" loading=\"lazy\" src=\"cid:twittericon\"></a><a class=\"slink\" target=\"_blank\" href=\"https://www.youtube.com/c/GradidoNet\" style=\"width: 150px;\"><img class=\"bi-youtube\" alt=\"youtube\" loading=\"lazy\" src=\"cid:youtubeicon\"></a></div>
+          <div class=\"line\" style=\"width: 100%; height: 13px; margin-top: 40px; background-image: linear-gradient(90deg, #c58d38, #f3cd7c 40%, #dbb056 55%, #eec05f 71%, #cc9d3d);\"></div>
+          <div class=\"footer\" style=\"padding-bottom: 20px;\">
+            <div class=\"footer_p1\" style=\"margin-top: 30px; color: #9ca0a8; margin-bottom: 30px;\">If you have any further questions, please contact our support.</div><a class=\"footer_p2\" href=\"mailto:support@gradido.net\" style=\"color: #383838; font-weight: bold;\">support@gradido.net</a>
+            <div> <img class=\"image\" alt=\"Gradido Logo\" src=\"https://gdd.gradido.net/img/brand/green.png\" style=\"width: 200px; margin-top: 30px; margin-bottom: 30px;\" width=\"200\"></div>
+            <div><a class=\"terms_of_use\" href=\"https://gradido.net/de/impressum/\" target=\"_blank\" style=\"color: #9ca0a8;\">Impressum</a></div><br><a class=\"terms_of_use\" href=\"https://gradido.net/de/datenschutz/\" target=\"_blank\" style=\"color: #9ca0a8;\">Privacy Policy</a>
+            <div class=\"footer_p1\" style=\"margin-top: 30px; color: #9ca0a8; margin-bottom: 30px;\">Gradido-Akademie<br>Institut für Wirtschaftsbionik<br>Pfarrweg 2<br>74653 Künzelsau<br>Deutschland<br><br><br></div>
           </div>
         </div>
       </footer>

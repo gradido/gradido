@@ -66,7 +66,7 @@ async function executeDltTransaction(draft: TransactionDraft | null, typeId: Dlt
  * and update dltTransactionId of transaction in db with hiero transaction id 
  */
 export async function registerAddressTransaction(user: DbUser, community: DbCommunity): Promise<DbDltTransaction | null> {
-  if (!CONFIG.DLT_CONNECTOR) {
+  if (!CONFIG.DLT_ACTIVE) {
     return Promise.resolve(null)
   }
   if (!user.id) {
@@ -90,7 +90,7 @@ export async function contributionTransaction(
   signingUser: DbUser,
   createdAt: Date,
 ): Promise<DbDltTransaction | null> {
-  if (!CONFIG.DLT_CONNECTOR) {
+  if (!CONFIG.DLT_ACTIVE) {
     return Promise.resolve(null)
   }
   const homeCommunity = await getHomeCommunity()
@@ -109,7 +109,7 @@ export async function transferTransaction(
   memo: string, 
   createdAt: Date
 ): Promise<DbDltTransaction | null> {
-  if (!CONFIG.DLT_CONNECTOR) {
+  if (!CONFIG.DLT_ACTIVE) {
     return Promise.resolve(null)
   }
   // load community if not already loaded, maybe they are remote communities
@@ -127,7 +127,7 @@ export async function transferTransaction(
 
 export async function deferredTransferTransaction(senderUser: DbUser, transactionLink: DbTransactionLink)
 : Promise<DbDltTransaction | null> {
-  if (!CONFIG.DLT_CONNECTOR) {
+  if (!CONFIG.DLT_ACTIVE) {
     return Promise.resolve(null)
   }
   // load community if not already loaded
@@ -140,7 +140,7 @@ export async function deferredTransferTransaction(senderUser: DbUser, transactio
 
 export async function redeemDeferredTransferTransaction(transactionLink: DbTransactionLink, amount: string, createdAt: Date, recipientUser: DbUser)
 : Promise<DbDltTransaction | null> {
-  if (!CONFIG.DLT_CONNECTOR) {
+  if (!CONFIG.DLT_ACTIVE) {
     return Promise.resolve(null)
   }
   // load user and communities if not already loaded
