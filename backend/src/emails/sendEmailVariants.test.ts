@@ -1,10 +1,9 @@
-import { ApolloServerTestClient } from 'apollo-server-testing'
-import { Decimal } from 'decimal.js-light'
-import { DataSource } from 'typeorm'
-
 import { testEnvironment } from '@test/helpers'
 import { i18n as localization } from '@test/testSetup'
+import { ApolloServerTestClient } from 'apollo-server-testing'
 import { getLogger } from 'config-schema/test/testSetup'
+import { Decimal } from 'decimal.js-light'
+import { DataSource } from 'typeorm'
 
 import { CONFIG } from '@/config'
 

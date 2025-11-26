@@ -1,12 +1,10 @@
 import { createTestClient } from 'apollo-server-testing'
 import { entities } from 'database'
 import { datatype, internet, name } from 'faker'
-
+import { getLogger } from 'log4js'
 import { CONFIG } from '@/config'
 import { createServer } from '@/server/createServer'
-
 import { initLogging } from '@/server/logger'
-import { getLogger } from 'log4js'
 import { writeHomeCommunityEntry } from './community'
 import { contributionLinks } from './contributionLink/index'
 import { creations } from './creation/index'

@@ -1,13 +1,9 @@
-import { TransactionLink as dbTransactionLink } from 'database'
-import { Decimal } from 'decimal.js-light'
-import { validate, version } from 'uuid'
-
 import { Decay } from 'core'
-
-import { getLastTransaction } from 'database'
-import { transactionLinkSummary } from '@/graphql/resolver/util/transactionLinkSummary'
-
+import { TransactionLink as dbTransactionLink, getLastTransaction } from 'database'
+import { Decimal } from 'decimal.js-light'
 import { calculateDecay } from 'shared'
+import { validate, version } from 'uuid'
+import { transactionLinkSummary } from '@/graphql/resolver/util/transactionLinkSummary'
 
 function isStringBoolean(value: string): boolean {
   const lowerValue = value.toLowerCase()
@@ -36,7 +32,9 @@ async function calculateBalance(
     return null
   }
 
-  const decay = new Decay(calculateDecay(lastTransaction.balance, lastTransaction.balanceDate, time))
+  const decay = new Decay(
+    calculateDecay(lastTransaction.balance, lastTransaction.balanceDate, time),
+  )
 
   const balance = decay.balance.add(amount.toString())
   const { sumHoldAvailableAmount } = await transactionLinkSummary(userId, time)

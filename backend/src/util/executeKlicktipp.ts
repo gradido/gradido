@@ -1,7 +1,6 @@
 import { AppDatabase } from 'database'
-
-import { exportEventDataToKlickTipp } from './klicktipp'
 import { initLogging } from '@/server/logger'
+import { exportEventDataToKlickTipp } from './klicktipp'
 
 async function executeKlicktipp(): Promise<boolean> {
   initLogging()

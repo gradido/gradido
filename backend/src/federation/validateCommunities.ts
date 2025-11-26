@@ -1,20 +1,19 @@
+import { ApiVersionType } from 'core'
 import {
   Community as DbCommunity,
   FederatedCommunity as DbFederatedCommunity,
   getHomeCommunity,
 } from 'database'
+import { getLogger } from 'log4js'
+import { createKeyPair, Ed25519PublicKey } from 'shared'
 import { IsNull } from 'typeorm'
-
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { FederationClient as V1_0_FederationClient } from '@/federation/client/1_0/FederationClient'
 import { PublicCommunityInfo } from '@/federation/client/1_0/model/PublicCommunityInfo'
 import { FederationClientFactory } from '@/federation/client/FederationClientFactory'
 import { LogError } from '@/server/LogError'
-import { createKeyPair, Ed25519PublicKey } from 'shared'
-import { getLogger } from 'log4js'
 import { startCommunityAuthentication } from './authenticateCommunities'
 import { PublicCommunityInfoLoggingView } from './client/1_0/logging/PublicCommunityInfoLogging.view'
-import { ApiVersionType } from 'core'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.federation.validateCommunities`)
 
@@ -47,7 +46,11 @@ export async function validateCommunities(): Promise<void> {
     logger.debug(`verify federation community: ${dbFedComB.endPoint}${dbFedComB.apiVersion}`)
     const apiValueStrings: string[] = Object.values(ApiVersionType)
     if (!apiValueStrings.includes(dbFedComB.apiVersion)) {
-      logger.debug('dbFedComB with unsupported apiVersion', dbFedComB.endPoint, dbFedComB.apiVersion)
+      logger.debug(
+        'dbFedComB with unsupported apiVersion',
+        dbFedComB.endPoint,
+        dbFedComB.apiVersion,
+      )
       logger.debug(`supported ApiVersions=`, apiValueStrings)
       continue
     }
@@ -65,18 +68,29 @@ export async function validateCommunities(): Promise<void> {
           const pubComInfo = await client.getPublicCommunityInfo()
           if (pubComInfo) {
             await writeForeignCommunity(dbFedComB, pubComInfo)
-            logger.debug(`wrote response of getPublicCommunityInfo in dbFedComB ${dbFedComB.endPoint}`)
+            logger.debug(
+              `wrote response of getPublicCommunityInfo in dbFedComB ${dbFedComB.endPoint}`,
+            )
             try {
               const result = await startCommunityAuthentication(dbFedComB)
-              logger.info(`${dbFedComB.endPoint}${dbFedComB.apiVersion} verified, authentication state: ${result}`)
+              logger.info(
+                `${dbFedComB.endPoint}${dbFedComB.apiVersion} verified, authentication state: ${result}`,
+              )
             } catch (err) {
-              logger.warn(`Warning: Authentication of community ${dbFedComB.endPoint} still ongoing:`, err)
+              logger.warn(
+                `Warning: Authentication of community ${dbFedComB.endPoint} still ongoing:`,
+                err,
+              )
             }
           } else {
             logger.debug('missing result of getPublicCommunityInfo')
           }
         } else {
-          logger.debug('received not matching publicKey:', clientPublicKey.asHex(), fedComBPublicKey.asHex())
+          logger.debug(
+            'received not matching publicKey:',
+            clientPublicKey.asHex(),
+            fedComBPublicKey.asHex(),
+          )
         }
       }
     } catch (err) {
@@ -89,25 +103,36 @@ export async function writeJwtKeyPairInHomeCommunity(): Promise<DbCommunity> {
   logger.debug(`Federation: writeJwtKeyPairInHomeCommunity`)
   try {
     // check for existing homeCommunity entry
-    let homeCom = await getHomeCommunity()
+    const homeCom = await getHomeCommunity()
     if (homeCom) {
       if (!homeCom.publicJwtKey && !homeCom.privateJwtKey) {
         // Generate key pair using jose library
-        const { publicKey, privateKey } = await createKeyPair();
-        logger.debug(`Federation: writeJwtKeyPairInHomeCommunity publicKey=`, publicKey);
-        logger.debug(`Federation: writeJwtKeyPairInHomeCommunity privateKey=`, privateKey.slice(0, 20));
-        
-        homeCom.publicJwtKey = publicKey;
-        logger.debug(`Federation: writeJwtKeyPairInHomeCommunity publicJwtKey.length=`, homeCom.publicJwtKey.length);
-        homeCom.privateJwtKey = privateKey;
-        logger.debug(`Federation: writeJwtKeyPairInHomeCommunity privateJwtKey.length=`, homeCom.privateJwtKey.length);
+        const { publicKey, privateKey } = await createKeyPair()
+        logger.debug(`Federation: writeJwtKeyPairInHomeCommunity publicKey=`, publicKey)
+        logger.debug(
+          `Federation: writeJwtKeyPairInHomeCommunity privateKey=`,
+          privateKey.slice(0, 20),
+        )
+
+        homeCom.publicJwtKey = publicKey
+        logger.debug(
+          `Federation: writeJwtKeyPairInHomeCommunity publicJwtKey.length=`,
+          homeCom.publicJwtKey.length,
+        )
+        homeCom.privateJwtKey = privateKey
+        logger.debug(
+          `Federation: writeJwtKeyPairInHomeCommunity privateJwtKey.length=`,
+          homeCom.privateJwtKey.length,
+        )
         await DbCommunity.save(homeCom)
         logger.debug(`Federation: writeJwtKeyPairInHomeCommunity done`)
       } else {
         logger.debug(`Federation: writeJwtKeyPairInHomeCommunity: keypair already exists`)
       }
     } else {
-      throw new Error(`Error! A HomeCommunity-Entry still not exist! Please start the DHT-Modul first.`)
+      throw new Error(
+        `Error! A HomeCommunity-Entry still not exist! Please start the DHT-Modul first.`,
+      )
     }
     return homeCom
   } catch (err) {

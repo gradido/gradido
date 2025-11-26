@@ -1,8 +1,7 @@
 import { KlickTipp } from '@model/KlickTipp'
-
+import { getLogger } from 'log4js'
 import { getKlickTippUser } from '@/apis/KlicktippController'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { getLogger } from 'log4js'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.util.getKlicktippState`)
 

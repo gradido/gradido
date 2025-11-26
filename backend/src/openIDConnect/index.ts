@@ -1,9 +1,9 @@
+import { createHash } from 'crypto'
+import { getHomeCommunity } from 'database'
+import { exportJWK, importSPKI } from 'jose'
+import { getLogger } from 'log4js'
 import { CONFIG } from '@/config'
 import { FRONTEND_LOGIN_ROUTE, GRADIDO_REALM, LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { getHomeCommunity } from 'database'
-import { importSPKI, exportJWK } from 'jose'
-import { createHash } from 'crypto'
-import { getLogger } from 'log4js'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.openIDConnect`)
 const defaultErrorForCaller = 'Internal Server Error'
@@ -12,7 +12,10 @@ export const openidConfiguration = async (req: any, res: any): Promise<void> => 
   res.setHeader('Content-Type', 'application/json')
   res.status(200).json({
     issuer: new URL(FRONTEND_LOGIN_ROUTE, CONFIG.COMMUNITY_URL).toString(),
-    jwks_uri: new URL(`/realms/${GRADIDO_REALM}/protocol/openid-connect/certs`, CONFIG.COMMUNITY_URL).toString(),
+    jwks_uri: new URL(
+      `/realms/${GRADIDO_REALM}/protocol/openid-connect/certs`,
+      CONFIG.COMMUNITY_URL,
+    ).toString(),
   })
 }
 
@@ -33,9 +36,7 @@ export const jwks = async (req: any, res: any): Promise<void> => {
     const jwkRsa = await exportJWK(rsaKey)
 
     // Optional: calculate Key ID (z.B. SHA-256 Fingerprint)
-    const kid = createHash('sha256')
-      .update(homeCommunity.publicJwtKey)
-      .digest('base64url')
+    const kid = createHash('sha256').update(homeCommunity.publicJwtKey).digest('base64url')
 
     const jwks = {
       keys: [
@@ -59,5 +60,5 @@ export const jwks = async (req: any, res: any): Promise<void> => {
   } catch (err) {
     logger.error('Failed to convert publicJwtKey to JWK', err)
     res.status(500).json({ error: 'Failed to generate JWKS' })
-  }  
+  }
 }

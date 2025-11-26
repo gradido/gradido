@@ -1,12 +1,11 @@
+import { cleanDB, contributionDateFormatter, testEnvironment } from '@test/helpers'
 import { ApolloServerTestClient } from 'apollo-server-testing'
-import { Community as DbCommunity } from 'database'
+import { Community as DbCommunity, TRANSACTIONS_LOCK } from 'database'
 import { Decimal } from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
 import { DataSource } from 'typeorm'
 import { v4 as uuidv4 } from 'uuid'
-
-import { cleanDB, contributionDateFormatter, testEnvironment } from '@test/helpers'
-
+import { CONFIG } from '@/config'
 import { creationFactory, nMonthsBefore } from '@/seeds/factory/creation'
 import { userFactory } from '@/seeds/factory/user'
 import {
@@ -21,8 +20,6 @@ import {
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { peterLustig } from '@/seeds/users/peter-lustig'
-import { CONFIG } from '@/config'
-import { TRANSACTIONS_LOCK } from 'database'
 
 jest.mock('@/password/EncryptorUtils')
 
@@ -49,7 +46,7 @@ afterAll(async () => {
   await con.destroy()
 })
 
-type RunOrder = { [key: number]: { start: number, end: number } }
+type RunOrder = { [key: number]: { start: number; end: number } }
 async function fakeWork(runOrder: RunOrder, index: number) {
   const releaseLock = await TRANSACTIONS_LOCK.acquire()
   const startDate = new Date()

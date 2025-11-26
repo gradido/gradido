@@ -1,7 +1,6 @@
+import { RoleNames } from '@enum/RoleNames'
 import { User } from 'database'
 import { AuthChecker } from 'type-graphql'
-
-import { RoleNames } from '@enum/RoleNames'
 
 import { INALIENABLE_RIGHTS } from '@/auth/INALIENABLE_RIGHTS'
 import { decode, encode } from '@/auth/JWT'
@@ -14,8 +13,8 @@ import {
   ROLE_UNAUTHORIZED,
   ROLE_USER,
 } from '@/auth/ROLES'
-import { LogError } from '@/server/LogError'
 import { Context } from '@/server/context'
+import { LogError } from '@/server/LogError'
 
 export const isAuthorized: AuthChecker<Context> = async ({ context }, rights) => {
   context.role = ROLE_UNAUTHORIZED // unauthorized user

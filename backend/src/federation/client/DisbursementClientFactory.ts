@@ -1,8 +1,7 @@
+import { ApiVersionType } from 'core'
 import { FederatedCommunity as DbFederatedCommunity } from 'database'
-
 import { DisbursementClient as V1_0_DisbursementClient } from '@/federation/client/1_0/DisbursementClient'
 import { DisbursementClient as V1_1_DisbursementClient } from '@/federation/client/1_1/DisbursementClient'
-import { ApiVersionType } from 'core'
 
 type DisbursementClient = V1_0_DisbursementClient | V1_1_DisbursementClient
 

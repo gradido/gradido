@@ -1,9 +1,3 @@
-import { ApolloServerTestClient } from 'apollo-server-testing'
-import { Contribution, Event as DbEvent, Transaction as DbTransaction, User } from 'database'
-import { Decimal } from 'decimal.js-light'
-import { GraphQLError } from 'graphql'
-import { DataSource, Equal } from 'typeorm'
-
 import { ContributionMessageType } from '@enum/ContributionMessageType'
 import { ContributionStatus } from '@enum/ContributionStatus'
 import { Order } from '@enum/Order'
@@ -15,7 +9,14 @@ import {
   testEnvironment,
 } from '@test/helpers'
 import { i18n as localization } from '@test/testSetup'
-
+import { ApolloServerTestClient } from 'apollo-server-testing'
+import { getLogger } from 'config-schema/test/testSetup'
+import { getFirstDayOfPreviousNMonth } from 'core'
+import { Contribution, Event as DbEvent, Transaction as DbTransaction, User } from 'database'
+import { Decimal } from 'decimal.js-light'
+import { GraphQLError } from 'graphql'
+import { getLogger as originalGetLogger } from 'log4js'
+import { DataSource, Equal } from 'typeorm'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import {
   sendContributionConfirmedEmail,
@@ -50,9 +51,6 @@ import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { raeuberHotzenplotz } from '@/seeds/users/raeuber-hotzenplotz'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
-import { getFirstDayOfPreviousNMonth } from 'core'
-import { getLogger } from 'config-schema/test/testSetup'
-import { getLogger as originalGetLogger } from 'log4js'
 
 jest.mock('@/emails/sendEmailVariants')
 jest.mock('@/password/EncryptorUtils')

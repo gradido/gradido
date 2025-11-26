@@ -18,5 +18,3 @@ describe('undefined DltConnectorClient', () => {
     CONFIG.DLT_CONNECTOR = true
   })
 })
-
-

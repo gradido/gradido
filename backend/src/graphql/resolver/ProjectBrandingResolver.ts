@@ -1,16 +1,14 @@
-import { ProjectBranding as DbProjectBranding } from 'database'
-import { Arg, Authorized, ID, Int, Mutation, Query, Resolver } from 'type-graphql'
-
 import { ProjectBrandingInput } from '@input/ProjectBrandingInput'
 import { ProjectBranding } from '@model/ProjectBranding'
 import { Space } from '@model/Space'
 import { SpaceList } from '@model/SpaceList'
-
+import { ProjectBranding as DbProjectBranding } from 'database'
+import { getLogger } from 'log4js'
+import { Arg, Authorized, ID, Int, Mutation, Query, Resolver } from 'type-graphql'
 import { HumHubClient } from '@/apis/humhub/HumHubClient'
 import { RIGHTS } from '@/auth/RIGHTS'
-import { LogError } from '@/server/LogError'
-import { getLogger } from 'log4js'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { LogError } from '@/server/LogError'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.ProjectBrandingResolver`)
 

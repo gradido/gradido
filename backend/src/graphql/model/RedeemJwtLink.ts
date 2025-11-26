@@ -1,7 +1,6 @@
 import { Decimal } from 'decimal.js-light'
-import { Field, ObjectType } from 'type-graphql'
-
 import { RedeemJwtPayloadType } from 'shared'
+import { Field, ObjectType } from 'type-graphql'
 
 import { Community } from './Community'
 import { User } from './User'

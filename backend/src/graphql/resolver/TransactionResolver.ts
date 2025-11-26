@@ -1,3 +1,10 @@
+import { Paginated } from '@arg/Paginated'
+import { TransactionSendArgs } from '@arg/TransactionSendArgs'
+import { Order } from '@enum/Order'
+import { Transaction } from '@model/Transaction'
+import { TransactionList } from '@model/TransactionList'
+import { User } from '@model/User'
+import { fullName, processXComCompleteTransaction, TransactionTypeId } from 'core'
 import {
   AppDatabase,
   countOpenPendingTransactions,
@@ -7,48 +14,38 @@ import {
   TransactionLink as dbTransactionLink,
   User as dbUser,
   findUserByIdentifier,
+  getLastTransaction,
+  TRANSACTIONS_LOCK,
   TransactionLoggingView,
-  UserLoggingView
+  UserLoggingView,
 } from 'database'
 import { Decimal } from 'decimal.js-light'
+import { getLogger, Logger } from 'log4js'
 import { Args, Authorized, Ctx, Mutation, Query, Resolver } from 'type-graphql'
 import { In, IsNull } from 'typeorm'
-
-import { Paginated } from '@arg/Paginated'
-import { TransactionSendArgs } from '@arg/TransactionSendArgs'
-import { Order } from '@enum/Order'
-import { Transaction } from '@model/Transaction'
-import { TransactionList } from '@model/TransactionList'
-import { User } from '@model/User'
-import { processXComCompleteTransaction, TransactionTypeId } from 'core'
-
+import { redeemDeferredTransferTransaction, transferTransaction } from '@/apis/dltConnector'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { CONFIG } from '@/config'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import {
   sendTransactionLinkRedeemedEmail,
   sendTransactionReceivedEmail,
 } from '@/emails/sendEmailVariants'
 import { EVENT_TRANSACTION_RECEIVE, EVENT_TRANSACTION_SEND } from '@/event/Events'
-import { LogError } from '@/server/LogError'
 import { Context, getUser } from '@/server/context'
+import { LogError } from '@/server/LogError'
 import { communityUser } from '@/util/communityUser'
 import { calculateBalance } from '@/util/validate'
 import { virtualDecayTransaction, virtualLinkTransaction } from '@/util/virtualTransactions'
-import { fullName } from 'core'
-import { TRANSACTIONS_LOCK } from 'database'
-
-import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { getLastTransaction } from 'database'
-import { getLogger, Logger } from 'log4js'
 import { BalanceResolver } from './BalanceResolver'
 import { GdtResolver } from './GdtResolver'
 import { getCommunityName, isHomeCommunity } from './util/communities'
 import { getTransactionList } from './util/getTransactionList'
 import { transactionLinkSummary } from './util/transactionLinkSummary'
-import { transferTransaction, redeemDeferredTransferTransaction } from '@/apis/dltConnector'
 
 const db = AppDatabase.getInstance()
-const createLogger = () => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.TransactionResolver`)
+const createLogger = () =>
+  getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.TransactionResolver`)
 
 export const executeTransaction = async (
   amount: Decimal,
@@ -63,15 +60,26 @@ export const executeTransaction = async (
   const receivedCallDate = new Date()
   let dltTransactionPromise: Promise<DbDltTransaction | null> = Promise.resolve(null)
   if (!transactionLink) {
-    dltTransactionPromise = transferTransaction(sender, recipient, amount.toString(), memo, receivedCallDate)
+    dltTransactionPromise = transferTransaction(
+      sender,
+      recipient,
+      amount.toString(),
+      memo,
+      receivedCallDate,
+    )
   } else {
-    dltTransactionPromise = redeemDeferredTransferTransaction(transactionLink, amount.toString(), receivedCallDate, recipient)
+    dltTransactionPromise = redeemDeferredTransferTransaction(
+      transactionLink,
+      amount.toString(),
+      receivedCallDate,
+      recipient,
+    )
   }
 
   try {
     logger.info('executeTransaction', amount, memo, sender, recipient)
 
-    if (await countOpenPendingTransactions([sender.gradidoID, recipient.gradidoID]) > 0) {
+    if ((await countOpenPendingTransactions([sender.gradidoID, recipient.gradidoID])) > 0) {
       throw new LogError(
         `There exist still ongoing 'Pending-Transactions' for the involved users on sender-side!`,
       )
@@ -81,7 +89,7 @@ export const executeTransaction = async (
       throw new LogError('Sender and Recipient are the same', sender.id)
     }
 
-    // validate amount    
+    // validate amount
     const sendBalance = await calculateBalance(
       sender.id,
       amount.mul(-1),
@@ -175,11 +183,13 @@ export const executeTransaction = async (
       const startTime = new Date()
       const dltTransaction = await dltTransactionPromise
       const endTime = new Date()
-      logger.debug(`dlt-connector transaction finished in ${endTime.getTime() - startTime.getTime()} ms`)
+      logger.debug(
+        `dlt-connector transaction finished in ${endTime.getTime() - startTime.getTime()} ms`,
+      )
       if (dltTransaction) {
         dltTransaction.transactionId = transactionSend.id
         await dltTransaction.save()
-      }      
+      }
     } catch (e) {
       await queryRunner.rollbackTransaction()
       throw new LogError('Transaction was not successful', e)

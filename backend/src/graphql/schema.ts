@@ -1,8 +1,7 @@
+import { Location } from '@model/Location'
 import { Decimal } from 'decimal.js-light'
 import { GraphQLSchema } from 'graphql'
 import { buildSchema } from 'type-graphql'
-
-import { Location } from '@model/Location'
 
 import { isAuthorized } from './directive/isAuthorized'
 import { AiChatResolver } from './resolver/AiChatResolver'

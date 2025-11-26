@@ -1,8 +1,7 @@
+import { cleanDB, contributionDateFormatter, testEnvironment } from '@test/helpers'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { Contribution, User } from 'database'
 import { DataSource } from 'typeorm'
-
-import { cleanDB, contributionDateFormatter, testEnvironment } from '@test/helpers'
 
 import { CONFIG } from '@/config'
 import { userFactory } from '@/seeds/factory/user'

@@ -1,11 +1,9 @@
 import { User } from 'database'
-
+import { getLogger } from 'log4js'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { LogError } from '@/server/LogError'
-import { getLogger } from 'log4js'
-
-import { HumHubClient } from './HumHubClient'
 import { isHumhubUserIdenticalToDbUser } from './compareHumhubUserDbUser'
+import { HumHubClient } from './HumHubClient'
 import { GetUser } from './model/GetUser'
 import { PostUser } from './model/PostUser'
 

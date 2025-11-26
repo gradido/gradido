@@ -1,7 +1,6 @@
-import { Decimal } from 'decimal.js-light'
-
-import { CONFIG } from '@/config'
 import { decimalSeparatorByLanguage } from 'core'
+import { Decimal } from 'decimal.js-light'
+import { CONFIG } from '@/config'
 
 import { sendEmailTranslated } from './sendEmailTranslated'
 

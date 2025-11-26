@@ -1,6 +1,5 @@
-import { ApolloServerTestClient } from 'apollo-server-testing'
-
 import { ContributionLink } from '@model/ContributionLink'
+import { ApolloServerTestClient } from 'apollo-server-testing'
 
 import { ContributionLinkInterface } from '@/seeds/contributionLink/ContributionLinkInterface'
 import { createContributionLink, login } from '@/seeds/graphql/mutations'

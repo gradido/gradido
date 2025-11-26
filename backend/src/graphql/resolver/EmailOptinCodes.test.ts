@@ -1,9 +1,8 @@
+import { cleanDB, testEnvironment } from '@test/helpers'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { User as DbUser } from 'database'
 import { GraphQLError } from 'graphql'
 import { DataSource } from 'typeorm'
-
-import { cleanDB, testEnvironment } from '@test/helpers'
 
 import { CONFIG } from '@/config'
 import { writeHomeCommunityEntry } from '@/seeds/community'

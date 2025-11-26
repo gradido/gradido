@@ -1,4 +1,4 @@
-import { ValidationArguments, ValidationOptions, registerDecorator } from 'class-validator'
+import { registerDecorator, ValidationArguments, ValidationOptions } from 'class-validator'
 import { Decimal } from 'decimal.js-light'
 
 export function IsPositiveDecimal(validationOptions?: ValidationOptions) {

@@ -1,12 +1,10 @@
-import path from 'path'
-
 import Email from 'email-templates'
 import i18n from 'i18n'
+import { getLogger } from 'log4js'
 import { createTransport } from 'nodemailer'
-
+import path from 'path'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { getLogger } from 'log4js'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.emails.sendEmailTranslated`)
 

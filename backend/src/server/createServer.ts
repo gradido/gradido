@@ -1,21 +1,21 @@
-import { CONFIG } from '@/config'
-import { schema } from '@/graphql/schema'
-import { elopageWebhook } from '@/webhook/elopage'
-import { gmsWebhook } from '@/webhook/gms'
 import { ApolloServer } from 'apollo-server-express'
+import { AppDatabase } from 'database'
 import express, { Express, json, urlencoded } from 'express'
 import { slowDown } from 'express-slow-down'
 import helmet from 'helmet'
-import { Logger, getLogger } from 'log4js'
+import { getLogger, Logger } from 'log4js'
 import { DataSource } from 'typeorm'
-
+import { CONFIG } from '@/config'
 import { GRADIDO_REALM, LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { AppDatabase } from 'database'
+import { schema } from '@/graphql/schema'
+import { jwks, openidConfiguration } from '@/openIDConnect'
+import { elopageWebhook } from '@/webhook/elopage'
+import { gmsWebhook } from '@/webhook/gms'
 import { context as serverContext } from './context'
 import { cors } from './cors'
 import { i18n } from './localization'
 import { plugins } from './plugins'
-import { jwks, openidConfiguration } from '@/openIDConnect'
+
 // TODO implement
 // import queryComplexity, { simpleEstimator, fieldConfigEstimator } from "graphql-query-complexity";
 

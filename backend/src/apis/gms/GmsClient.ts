@@ -1,11 +1,10 @@
 import axios from 'axios'
-
-import { httpAgent, httpsAgent } from '@/apis/ConnectionAgents'
-import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { CONFIG } from '@/config'
-import { LogError } from '@/server/LogError'
 import { ensureUrlEndsWithSlash } from 'core'
 import { getLogger } from 'log4js'
+import { httpAgent, httpsAgent } from '@/apis/ConnectionAgents'
+import { CONFIG } from '@/config'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { LogError } from '@/server/LogError'
 
 import { GmsUser } from './model/GmsUser'
 

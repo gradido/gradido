@@ -1,12 +1,11 @@
-import { ApolloServerTestClient } from 'apollo-server-testing'
-import { Contribution as DbContribution, Event as DbEvent } from 'database'
-import { GraphQLError } from 'graphql'
-import { DataSource } from 'typeorm'
-
 import { ContributionStatus } from '@enum/ContributionStatus'
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { i18n as localization } from '@test/testSetup'
-
+import { ApolloServerTestClient } from 'apollo-server-testing'
+import { getLogger } from 'config-schema/test/testSetup'
+import { Contribution as DbContribution, Event as DbEvent } from 'database'
+import { GraphQLError } from 'graphql'
+import { DataSource } from 'typeorm'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { sendAddedContributionMessageEmail } from '@/emails/sendEmailVariants'
 import { EventType } from '@/event/Events'
@@ -21,9 +20,10 @@ import { adminListContributionMessages, listContributionMessages } from '@/seeds
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { peterLustig } from '@/seeds/users/peter-lustig'
-import { getLogger} from 'config-schema/test/testSetup'
 
-const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.ContributionMessageResolver`)
+const logger = getLogger(
+  `${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.ContributionMessageResolver`,
+)
 const logErrorLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)
 const interactionLogger = getLogger(
   `${LOG4JS_BASE_CATEGORY_NAME}.interactions.updateUnconfirmedContribution`,

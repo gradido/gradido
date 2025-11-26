@@ -1,5 +1,16 @@
+import { GmsPublishLocationType } from '@enum/GmsPublishLocationType'
+import { OptInType } from '@enum/OptInType'
+import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
+import { RoleNames } from '@enum/RoleNames'
+import { UserContactType } from '@enum/UserContactType'
+import { ContributionLink } from '@model/ContributionLink'
+import { Location } from '@model/Location'
+import { cleanDB, headerPushMock, resetToken, testEnvironment } from '@test/helpers'
+import { i18n as localization } from '@test/testSetup'
 import { UserInputError } from 'apollo-server-express'
 import { ApolloServerTestClient } from 'apollo-server-testing'
+import { getLogger } from 'config-schema/test/testSetup'
+import { objectValuesToArray } from 'core'
 import {
   Community as DbCommunity,
   Event as DbEvent,
@@ -11,19 +22,9 @@ import {
 import { GraphQLError } from 'graphql'
 import { DataSource } from 'typeorm'
 import { v4 as uuidv4, validate as validateUUID, version as versionUUID } from 'uuid'
-
-import { GmsPublishLocationType } from '@enum/GmsPublishLocationType'
-import { OptInType } from '@enum/OptInType'
-import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
-import { RoleNames } from '@enum/RoleNames'
-import { UserContactType } from '@enum/UserContactType'
-import { ContributionLink } from '@model/ContributionLink'
-import { Location } from '@model/Location'
-import { cleanDB, headerPushMock, resetToken, testEnvironment } from '@test/helpers'
-import { i18n as localization } from '@test/testSetup'
-
 import { subscribe } from '@/apis/KlicktippController'
 import { CONFIG } from '@/config'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import {
   sendAccountActivationEmail,
   sendAccountMultiRegistrationEmail,
@@ -65,10 +66,6 @@ import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
 import { printTimeDuration } from '@/util/time'
-import { objectValuesToArray } from 'core'
-
-import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { getLogger } from 'config-schema/test/testSetup'
 import { Location2Point } from './util/Location2Point'
 
 jest.mock('@/apis/humhub/HumHubClient')
@@ -1050,7 +1047,9 @@ describe('UserResolver', () => {
 
       describe('duration not expired', () => {
         it('throws an error', async () => {
-          await expect(mutate({ mutation: forgotPassword, variables: { email: 'bob@baumeister.de' } })).resolves.toEqual(
+          await expect(
+            mutate({ mutation: forgotPassword, variables: { email: 'bob@baumeister.de' } }),
+          ).resolves.toEqual(
             expect.objectContaining({
               errors: [
                 new GraphQLError(
@@ -1067,7 +1066,9 @@ describe('UserResolver', () => {
       describe('duration reset to 0', () => {
         it('returns true', async () => {
           CONFIG.EMAIL_CODE_REQUEST_TIME = 0
-          await expect(mutate({ mutation: forgotPassword, variables: { email: 'bob@baumeister.de' } })).resolves.toEqual(
+          await expect(
+            mutate({ mutation: forgotPassword, variables: { email: 'bob@baumeister.de' } }),
+          ).resolves.toEqual(
             expect.objectContaining({
               data: {
                 forgotPassword: true,
@@ -1108,7 +1109,9 @@ describe('UserResolver', () => {
       describe('request reset password again', () => {
         it('throws an error', async () => {
           CONFIG.EMAIL_CODE_REQUEST_TIME = emailCodeRequestTime
-          await expect(mutate({ mutation: forgotPassword, variables: { email: 'bob@baumeister.de' } })).resolves.toEqual(
+          await expect(
+            mutate({ mutation: forgotPassword, variables: { email: 'bob@baumeister.de' } }),
+          ).resolves.toEqual(
             expect.objectContaining({
               errors: [new GraphQLError('Email already sent less than 10 minutes ago')],
             }),
@@ -1140,7 +1143,10 @@ describe('UserResolver', () => {
       it('throws an error', async () => {
         jest.clearAllMocks()
         await expect(
-          query({ query: queryOptIn, variables: { email: 'bob@baumeister.de', optIn: 'not-valid' } }),
+          query({
+            query: queryOptIn,
+            variables: { email: 'bob@baumeister.de', optIn: 'not-valid' },
+          }),
         ).resolves.toEqual(
           expect.objectContaining({
             errors: [
@@ -1161,7 +1167,10 @@ describe('UserResolver', () => {
         await expect(
           query({
             query: queryOptIn,
-            variables: { email: 'bob@baumeister.de', optIn: emailContact.emailVerificationCode.toString() },
+            variables: {
+              email: 'bob@baumeister.de',
+              optIn: emailContact.emailVerificationCode.toString(),
+            },
           }),
         ).resolves.toEqual(
           expect.objectContaining({

@@ -1,7 +1,11 @@
+import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
+import { cleanDB, resetEntity, resetToken, testEnvironment } from '@test/helpers'
 import { ApolloServerTestClient } from 'apollo-server-testing'
+import { getLogger } from 'config-schema/test/testSetup'
 import {
   ContributionLink as DbContributionLink,
   Event as DbEvent,
+  TRANSACTIONS_LOCK,
   Transaction,
   User,
   UserContact,
@@ -9,10 +13,8 @@ import {
 import { Decimal } from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
 import { DataSource } from 'typeorm'
-
-import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
-import { cleanDB, resetEntity, resetToken, testEnvironment } from '@test/helpers'
-
+import { CONFIG } from '@/config'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { EventType } from '@/event/Events'
 import { creations } from '@/seeds/creation/index'
 import { creationFactory } from '@/seeds/factory/creation'
@@ -32,12 +34,7 @@ import { listTransactionLinksAdmin } from '@/seeds/graphql/queries'
 import { transactionLinks } from '@/seeds/transactionLink/index'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { peterLustig } from '@/seeds/users/peter-lustig'
-import { TRANSACTIONS_LOCK } from 'database'
-
-import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { getLogger } from 'config-schema/test/testSetup'
 import { transactionLinkCode } from './TransactionLinkResolver'
-import { CONFIG } from '@/config'
 
 const logErrorLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)
 
@@ -964,7 +961,7 @@ describe('TransactionLinkResolver', () => {
                         createdAt: expect.any(String),
                       }),
                       expect.objectContaining({
-                        memo: "Kein Trick, keine Zauberrei,\n bei Gradidio sei dabei!",
+                        memo: 'Kein Trick, keine Zauberrei,\n bei Gradidio sei dabei!',
                         deletedAt: expect.any(String),
                       }),
                     ]),

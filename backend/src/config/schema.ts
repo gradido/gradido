@@ -10,11 +10,11 @@ import {
   GRAPHIQL,
   HUMHUB_ACTIVE,
   HUMHUB_API_URL,
+  LOG_FILES_BASE_PATH,
+  LOG_LEVEL,
   LOG4JS_CONFIG,
   LOGIN_APP_SECRET,
   LOGIN_SERVER_KEY,
-  LOG_FILES_BASE_PATH,
-  LOG_LEVEL,
   NODE_ENV,
   OPENAI_ACTIVE,
   PRODUCTION,
@@ -42,7 +42,7 @@ export const schema = Joi.object({
   OPENAI_ACTIVE,
   PRODUCTION,
 
- COMMUNITY_REDEEM_URL: Joi.string()
+  COMMUNITY_REDEEM_URL: Joi.string()
     .uri({ scheme: ['http', 'https'] })
     .description('The url for redeeming link transactions, must start with frontend base url')
     .default('http://0.0.0.0/redeem/')
@@ -213,7 +213,7 @@ export const schema = Joi.object({
     .description('Time in minutes before a new code can be requested')
     .required(),
 
-    FEDERATION_VALIDATE_COMMUNITY_TIMER: Joi.number()
+  FEDERATION_VALIDATE_COMMUNITY_TIMER: Joi.number()
     .integer()
     .min(1000)
     .default(60000)

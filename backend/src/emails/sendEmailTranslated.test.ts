@@ -1,10 +1,7 @@
-import { createTransport } from 'nodemailer'
-
 import { i18n } from '@test/testSetup'
-
-import { CONFIG } from '@/config'
-
 import { getLogger } from 'config-schema/test/testSetup'
+import { createTransport } from 'nodemailer'
+import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { sendEmailTranslated } from './sendEmailTranslated'
 

@@ -1,7 +1,6 @@
+import { Order } from '@enum/Order'
 import { IsEnum, IsPositive } from 'class-validator'
 import { ArgsType, Field, InputType, Int } from 'type-graphql'
-
-import { Order } from '@enum/Order'
 
 @ArgsType()
 @InputType()

@@ -1,28 +1,30 @@
-import { IRestResponse } from 'typed-rest-client'
-import { DltTransactionType } from './enum/DltTransactionType'
-import { getLogger } from 'log4js'
-import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { DltConnectorClient } from './DltConnectorClient'
-import { 
-  Community as DbCommunity, 
+import {
+  Community as DbCommunity,
   Contribution as DbContribution,
-  DltTransaction as DbDltTransaction, 
+  DltTransaction as DbDltTransaction,
   TransactionLink as DbTransactionLink,
   User as DbUser,
   getCommunityByUuid,
   getHomeCommunity,
   getUserById,
-  UserLoggingView,   
+  UserLoggingView,
 } from 'database'
-import { TransactionDraft } from './model/TransactionDraft'
+import { getLogger } from 'log4js'
+import { IRestResponse } from 'typed-rest-client'
 import { CONFIG } from '@/config'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { DltConnectorClient } from './DltConnectorClient'
+import { DltTransactionType } from './enum/DltTransactionType'
+import { TransactionDraft } from './model/TransactionDraft'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.dltConnector`)
 // will be undefined if dlt connect is disabled
 const dltConnectorClient = DltConnectorClient.getInstance()
 
-async function checkDltConnectorResult(dltTransaction: DbDltTransaction, clientResponse: Promise<IRestResponse<{ transactionId: string }>>)
- : Promise<DbDltTransaction> {
+async function checkDltConnectorResult(
+  dltTransaction: DbDltTransaction,
+  clientResponse: Promise<IRestResponse<{ transactionId: string }>>,
+): Promise<DbDltTransaction> {
   // check result from dlt connector
   try {
     const response = await clientResponse
@@ -31,7 +33,7 @@ async function checkDltConnectorResult(dltTransaction: DbDltTransaction, clientR
     } else {
       dltTransaction.error = `empty result with status code ${response.statusCode}`
       logger.error('error from dlt-connector', response)
-    }  
+    }
   } catch (e) {
     logger.debug(e)
     if (e instanceof Error) {
@@ -45,8 +47,12 @@ async function checkDltConnectorResult(dltTransaction: DbDltTransaction, clientR
   return dltTransaction
 }
 
-async function executeDltTransaction(draft: TransactionDraft | null, typeId: DltTransactionType, persist = true): Promise<DbDltTransaction | null> {
-  if (draft && dltConnectorClient) {    
+async function executeDltTransaction(
+  draft: TransactionDraft | null,
+  typeId: DltTransactionType,
+  persist = true,
+): Promise<DbDltTransaction | null> {
+  if (draft && dltConnectorClient) {
     const clientResponse = dltConnectorClient.sendTransaction(draft)
     let dltTransaction = new DbDltTransaction()
     dltTransaction.typeId = typeId
@@ -61,30 +67,39 @@ async function executeDltTransaction(draft: TransactionDraft | null, typeId: Dlt
 
 /**
  * send register address transaction via dlt-connector to hiero
- * and update dltTransactionId of transaction in db with hiero transaction id 
+ * and update dltTransactionId of transaction in db with hiero transaction id
  */
-export async function registerAddressTransaction(user: DbUser, community: DbCommunity): Promise<DbDltTransaction | null> {
+export async function registerAddressTransaction(
+  user: DbUser,
+  community: DbCommunity,
+): Promise<DbDltTransaction | null> {
   if (!CONFIG.DLT_CONNECTOR) {
     return Promise.resolve(null)
   }
   if (!user.id) {
-    logger.error(`missing id for user: ${user.gradidoID}, please call registerAddressTransaction after user.save()`)
+    logger.error(
+      `missing id for user: ${user.gradidoID}, please call registerAddressTransaction after user.save()`,
+    )
     return null
   }
   // return null if some data where missing and log error
   const draft = TransactionDraft.createRegisterAddress(user, community)
-  const dltTransaction = await executeDltTransaction(draft, DltTransactionType.REGISTER_ADDRESS, false)
+  const dltTransaction = await executeDltTransaction(
+    draft,
+    DltTransactionType.REGISTER_ADDRESS,
+    false,
+  )
   if (dltTransaction) {
     if (user.id) {
       dltTransaction.userId = user.id
     }
     return await dltTransaction.save()
-  } 
-  return null   
+  }
+  return null
 }
 
 export async function contributionTransaction(
-  contribution: DbContribution, 
+  contribution: DbContribution,
   signingUser: DbUser,
   createdAt: Date,
 ): Promise<DbDltTransaction | null> {
@@ -96,16 +111,21 @@ export async function contributionTransaction(
     logger.error('home community not found')
     return null
   }
-  const draft = TransactionDraft.createContribution(contribution, createdAt, signingUser, homeCommunity)
+  const draft = TransactionDraft.createContribution(
+    contribution,
+    createdAt,
+    signingUser,
+    homeCommunity,
+  )
   return await executeDltTransaction(draft, DltTransactionType.CREATION)
 }
 
 export async function transferTransaction(
-  senderUser: DbUser, 
-  recipientUser: DbUser, 
-  amount: string, 
-  memo: string, 
-  createdAt: Date
+  senderUser: DbUser,
+  recipientUser: DbUser,
+  amount: string,
+  memo: string,
+  createdAt: Date,
 ): Promise<DbDltTransaction | null> {
   if (!CONFIG.DLT_CONNECTOR) {
     return Promise.resolve(null)
@@ -123,8 +143,10 @@ export async function transferTransaction(
   return await executeDltTransaction(draft, DltTransactionType.TRANSFER)
 }
 
-export async function deferredTransferTransaction(senderUser: DbUser, transactionLink: DbTransactionLink)
-: Promise<DbDltTransaction | null> {
+export async function deferredTransferTransaction(
+  senderUser: DbUser,
+  transactionLink: DbTransactionLink,
+): Promise<DbDltTransaction | null> {
   if (!CONFIG.DLT_CONNECTOR) {
     return Promise.resolve(null)
   }
@@ -136,8 +158,12 @@ export async function deferredTransferTransaction(senderUser: DbUser, transactio
   return await executeDltTransaction(draft, DltTransactionType.DEFERRED_TRANSFER)
 }
 
-export async function redeemDeferredTransferTransaction(transactionLink: DbTransactionLink, amount: string, createdAt: Date, recipientUser: DbUser)
-: Promise<DbDltTransaction | null> {
+export async function redeemDeferredTransferTransaction(
+  transactionLink: DbTransactionLink,
+  amount: string,
+  createdAt: Date,
+  recipientUser: DbUser,
+): Promise<DbDltTransaction | null> {
   if (!CONFIG.DLT_CONNECTOR) {
     return Promise.resolve(null)
   }
@@ -156,9 +182,11 @@ export async function redeemDeferredTransferTransaction(transactionLink: DbTrans
   }
   logger.debug(`sender: ${new UserLoggingView(transactionLink.user)}`)
   logger.debug(`recipient: ${new UserLoggingView(recipientUser)}`)
-  const draft = TransactionDraft.redeemDeferredTransfer(transactionLink, amount, createdAt, recipientUser)
+  const draft = TransactionDraft.redeemDeferredTransfer(
+    transactionLink,
+    amount,
+    createdAt,
+    recipientUser,
+  )
   return await executeDltTransaction(draft, DltTransactionType.REDEEM_DEFERRED_TRANSFER)
 }
-
-
-

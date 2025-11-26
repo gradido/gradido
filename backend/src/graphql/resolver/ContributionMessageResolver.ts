@@ -1,35 +1,34 @@
+import { ContributionMessageArgs } from '@arg/ContributionMessageArgs'
+import { Paginated } from '@arg/Paginated'
+import { ContributionMessageType } from '@enum/ContributionMessageType'
+import { Order } from '@enum/Order'
+import { ContributionMessage, ContributionMessageListResult } from '@model/ContributionMessage'
 import {
   AppDatabase,
   Contribution as DbContribution,
   ContributionMessage as DbContributionMessage,
   User as DbUser,
 } from 'database'
+import { getLogger } from 'log4js'
 import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
 import { EntityManager, FindOptionsRelations } from 'typeorm'
-
-import { ContributionMessageArgs } from '@arg/ContributionMessageArgs'
-import { Paginated } from '@arg/Paginated'
-import { ContributionMessageType } from '@enum/ContributionMessageType'
-import { Order } from '@enum/Order'
-import { ContributionMessage, ContributionMessageListResult } from '@model/ContributionMessage'
-
 import { RIGHTS } from '@/auth/RIGHTS'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { sendAddedContributionMessageEmail } from '@/emails/sendEmailVariants'
 import {
   EVENT_ADMIN_CONTRIBUTION_MESSAGE_CREATE,
   EVENT_CONTRIBUTION_MESSAGE_CREATE,
 } from '@/event/Events'
 import { UpdateUnconfirmedContributionContext } from '@/interactions/updateUnconfirmedContribution/UpdateUnconfirmedContribution.context'
-import { LogError } from '@/server/LogError'
 import { Context, getUser } from '@/server/context'
-import { getLogger } from 'log4js'
-import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { LogError } from '@/server/LogError'
 
 import { contributionFrontendLink } from './util/contributions'
 import { findContributionMessages } from './util/findContributionMessages'
 
 const db = AppDatabase.getInstance()
-const createLogger = () => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.ContributionMessageResolver`)
+const createLogger = () =>
+  getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.ContributionMessageResolver`)
 
 @Resolver()
 export class ContributionMessageResolver {

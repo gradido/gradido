@@ -1,7 +1,7 @@
 import path from 'node:path'
-import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import i18n from 'i18n'
 import { getLogger } from 'log4js'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.localization`)
 

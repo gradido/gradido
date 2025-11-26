@@ -1,9 +1,8 @@
 import { AppDatabase, User } from 'database'
+import { getLogger } from 'log4js'
 import { IsNull, Not } from 'typeorm'
-
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { initLogging } from '@/server/logger'
-import { getLogger } from 'log4js'
 import { HumHubClient } from './HumHubClient'
 import { GetUser } from './model/GetUser'
 import { UsersResponse } from './model/UsersResponse'

@@ -1,6 +1,6 @@
 import { User } from 'database'
 
-import { SecretKeyCryptographyCreateKey, getUserCryptographicSalt } from './EncryptorUtils'
+import { getUserCryptographicSalt, SecretKeyCryptographyCreateKey } from './EncryptorUtils'
 
 export const encryptPassword = async (dbUser: User, password: string): Promise<bigint> => {
   const salt = getUserCryptographicSalt(dbUser)

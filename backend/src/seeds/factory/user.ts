@@ -1,7 +1,6 @@
+import { RoleNames } from '@enum/RoleNames'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { User } from 'database'
-
-import { RoleNames } from '@enum/RoleNames'
 
 import { setUserRole } from '@/graphql/resolver/util/modifyUserRole'
 import { writeHomeCommunityEntry } from '@/seeds/community'
@@ -18,7 +17,6 @@ export const userFactory = async (
   // console.log('call createUser with', JSON.stringify(user, null, 2))
   const response = await mutate({ mutation: createUser, variables: user })
   if (!response?.data?.createUser) {
-    // biome-ignore lint/suspicious/noConsole: will be used in tests where logging is mocked
     // console.log(JSON.stringify(response, null, 2))
     throw new Error('createUser mutation returned unexpected response')
   }
@@ -40,7 +38,10 @@ export const userFactory = async (
   }
 
   // get last changes of user from database
-  dbUser = await User.findOneOrFail({ where: { id }, relations: { userRoles: true, emailContact: true } })
+  dbUser = await User.findOneOrFail({
+    where: { id },
+    relations: { userRoles: true, emailContact: true },
+  })
 
   if (user.createdAt || user.deletedAt || user.role) {
     if (user.createdAt) {

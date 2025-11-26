@@ -1,9 +1,8 @@
-import { IsBoolean, IsEnum, IsInt, IsString } from 'class-validator'
-import { ArgsType, Field, InputType, Int } from 'type-graphql'
-
 import { GmsPublishLocationType } from '@enum/GmsPublishLocationType'
 import { PublishNameType } from '@enum/PublishNameType'
 import { Location } from '@model/Location'
+import { IsBoolean, IsEnum, IsInt, IsString } from 'class-validator'
+import { ArgsType, Field, InputType, Int } from 'type-graphql'
 
 import { isValidLocation } from '@/graphql/validator/Location'
 

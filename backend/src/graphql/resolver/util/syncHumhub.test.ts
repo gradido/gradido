@@ -1,12 +1,10 @@
+import { getLogger } from 'config-schema/test/testSetup'
 import { User, UserContact } from 'database'
-
 import { HumHubClient } from '@/apis/humhub/HumHubClient'
 import { GetUser } from '@/apis/humhub/model/GetUser'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { UpdateUserInfosArgs } from '@/graphql/arg/UpdateUserInfosArgs'
 import { PublishNameType } from '@/graphql/enum/PublishNameType'
-
-import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { getLogger } from 'config-schema/test/testSetup'
 import { syncHumhub } from './syncHumhub'
 
 jest.mock('@/apis/humhub/HumHubClient')

@@ -1,26 +1,32 @@
-import { 
-  CommunityHandshakeState as DbCommunityHandshakeState,
-  CommunityHandshakeStateLoggingView, 
-  FederatedCommunity as DbFederatedCommunity, 
-  findPendingCommunityHandshake, 
-  getHomeCommunityWithFederatedCommunityOrFail,
+import {
+  CommunityHandshakeStateLogic,
+  EncryptedTransferArgs,
+  ensureUrlEndsWithSlash,
+  getFederatedCommunityWithApiOrFail,
+} from 'core'
+import {
+  CommunityHandshakeStateLoggingView,
   CommunityHandshakeStateType,
+  CommunityHandshakeState as DbCommunityHandshakeState,
+  FederatedCommunity as DbFederatedCommunity,
+  findPendingCommunityHandshake,
   getCommunityByPublicKeyOrFail,
+  getHomeCommunityWithFederatedCommunityOrFail,
 } from 'database'
-import { randombytes_random } from 'sodium-native'
-
-import { AuthenticationClient as V1_0_AuthenticationClient } from '@/federation/client/1_0/AuthenticationClient'
-import { ensureUrlEndsWithSlash, getFederatedCommunityWithApiOrFail } from 'core'
-
-import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { communityAuthenticatedSchema, encryptAndSign, OpenConnectionJwtPayloadType } from 'shared'
 import { getLogger } from 'log4js'
+import {
+  communityAuthenticatedSchema,
+  Ed25519PublicKey,
+  encryptAndSign,
+  OpenConnectionJwtPayloadType,
+} from 'shared'
+import { randombytes_random } from 'sodium-native'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { AuthenticationClient as V1_0_AuthenticationClient } from '@/federation/client/1_0/AuthenticationClient'
 import { AuthenticationClientFactory } from './client/AuthenticationClientFactory'
-import { EncryptedTransferArgs } from 'core'
-import { CommunityHandshakeStateLogic } from 'core'
-import { Ed25519PublicKey } from 'shared'
 
-const createLogger = (functionName: string) => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.federation.authenticateCommunities.${functionName}`)
+const createLogger = (functionName: string) =>
+  getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.federation.authenticateCommunities.${functionName}`)
 
 export enum StartCommunityAuthenticationResult {
   ALREADY_AUTHENTICATED = 'already authenticated',
@@ -39,16 +45,18 @@ export async function startCommunityAuthentication(
   const homeComA = await getHomeCommunityWithFederatedCommunityOrFail(fedComB.apiVersion)
   // methodLogger.debug('homeComA', new CommunityLoggingView(homeComA))
   const homeFedComA = getFederatedCommunityWithApiOrFail(homeComA, fedComB.apiVersion)
-  
+
   const comB = await getCommunityByPublicKeyOrFail(fedComBPublicKey)
   // methodLogger.debug('started with comB:', new CommunityLoggingView(comB))
   // check if communityUuid is not a valid v4Uuid
-  
-  // communityAuthenticatedSchema.safeParse return true 
-  // - if communityUuid is a valid v4Uuid and 
+
+  // communityAuthenticatedSchema.safeParse return true
+  // - if communityUuid is a valid v4Uuid and
   // - if authenticatedAt is a valid date
   if (communityAuthenticatedSchema.safeParse(comB).success) {
-    methodLogger.debug(`comB.communityUuid is already a valid v4Uuid ${ comB.communityUuid || 'null' } and was authenticated at ${ comB.authenticatedAt || 'null'}`)
+    methodLogger.debug(
+      `comB.communityUuid is already a valid v4Uuid ${comB.communityUuid || 'null'} and was authenticated at ${comB.authenticatedAt || 'null'}`,
+    )
     return StartCommunityAuthenticationResult.ALREADY_AUTHENTICATED
   }
   /*methodLogger.debug('comB.uuid is null or is a not valid v4Uuid...', 
@@ -62,11 +70,14 @@ export async function startCommunityAuthentication(
     // retry on timeout or failure
     if (!(await stateLogic.isTimeoutUpdate())) {
       // authentication with community and api version is still in progress and it is not timeout yet
-      methodLogger.debug('existingState, so we exit here', new CommunityHandshakeStateLoggingView(existingState))
+      methodLogger.debug(
+        'existingState, so we exit here',
+        new CommunityHandshakeStateLoggingView(existingState),
+      )
       return StartCommunityAuthenticationResult.ALREADY_IN_PROGRESS
     }
   }
-  
+
   const client = AuthenticationClientFactory.getInstance(fedComB)
 
   if (client instanceof V1_0_AuthenticationClient) {
@@ -82,7 +93,8 @@ export async function startCommunityAuthentication(
     methodLogger.debug('[START_COMMUNITY_AUTHENTICATION] community handshake state created')
 
     //create JWT with url in payload encrypted by foreignCom.publicJwtKey and signed with homeCom.privateJwtKey
-    const payload = new OpenConnectionJwtPayloadType(handshakeID,
+    const payload = new OpenConnectionJwtPayloadType(
+      handshakeID,
       ensureUrlEndsWithSlash(homeFedComA.endPoint).concat(homeFedComA.apiVersion),
     )
     // methodLogger.debug('payload', payload)
