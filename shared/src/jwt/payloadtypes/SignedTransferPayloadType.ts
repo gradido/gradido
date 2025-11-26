@@ -6,11 +6,7 @@ export class SignedTransferPayloadType extends JwtPayloadType {
   publicKey: string
   jwt: string
 
-  constructor(
-    publicKey: string,
-    jwt: string,
-    handshakeID: string,
-  ) {
+  constructor(publicKey: string, jwt: string, handshakeID: string) {
     super(handshakeID)
     this.tokentype = SignedTransferPayloadType.SIGNED_TRANSFER_TYPE
     this.publicKey = publicKey

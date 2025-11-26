@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test'
-import { uuidv4Schema, uint32Schema } from './base.schema'
 import { v4 as uuidv4 } from 'uuid'
+import { uint32Schema, uuidv4Schema } from './base.schema'
 
 describe('uuidv4 schema', () => {
   it('should validate uuidv4 (40x)', () => {

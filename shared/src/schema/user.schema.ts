@@ -5,7 +5,7 @@ export const VALID_ALIAS_REGEX = /^(?=.{3,20}$)[a-zA-Z0-9]+(?:[_-][a-zA-Z0-9]+?)
 // first a character or ' is expected
 // then all without the last a character, space, apostrophe or hyphen is expected
 // last a character is expected
-export const VALID_NAME_REGEX = /^[\p{L}'][ \p{L}'-_]*[\p{L}]$/u 
+export const VALID_NAME_REGEX = /^[\p{L}'][ \p{L}'-_]*[\p{L}]$/u
 
 const RESERVED_ALIAS = [
   'admin',
@@ -23,7 +23,7 @@ const RESERVED_ALIAS = [
   'usr',
   'var',
   'reserved',
-  'undefined'
+  'undefined',
 ]
 
 export const aliasSchema = string()

@@ -1,34 +1,38 @@
+import { describe, expect, it } from 'bun:test'
 import { aliasSchema, firstNameSchema } from './user.schema'
-import { describe, it, expect } from 'bun:test'
 
 describe('validate alias', () => {
   describe('alias contains invalid characters', () => {
     it('throws and logs an error', () => {
-      expect(() => aliasSchema.parse('Bibi.Bloxberg')).toThrowError(expect.objectContaining(
-        expect.arrayContaining([
-          expect.objectContaining({
-            origin: 'string',
-            code: 'invalid_format',
-            format: 'regex',
-            message: 'Invalid characters in alias',
-            path: [],
-          })
-        ])
-      ))
+      expect(() => aliasSchema.parse('Bibi.Bloxberg')).toThrowError(
+        expect.objectContaining(
+          expect.arrayContaining([
+            expect.objectContaining({
+              origin: 'string',
+              code: 'invalid_format',
+              format: 'regex',
+              message: 'Invalid characters in alias',
+              path: [],
+            }),
+          ]),
+        ),
+      )
     })
   })
 
   describe('alias is a reserved word', () => {
     it('throws and logs an error', () => {
-      expect(() => aliasSchema.parse('admin')).toThrowError(expect.objectContaining(
-        expect.arrayContaining([
-          expect.objectContaining({
-            code: 'custom',
-            message: 'Given alias is not allowed',
-            path: [],
-          }),
-        ]),
-      ))
+      expect(() => aliasSchema.parse('admin')).toThrowError(
+        expect.objectContaining(
+          expect.arrayContaining([
+            expect.objectContaining({
+              code: 'custom',
+              message: 'Given alias is not allowed',
+              path: [],
+            }),
+          ]),
+        ),
+      )
     })
   })
 
@@ -49,48 +53,54 @@ describe('validate alias', () => {
 
   describe('alias is a reserved word with uppercase characters', () => {
     it('throws and logs an error', () => {
-      expect(() => aliasSchema.parse('Admin')).toThrowError(expect.objectContaining(
-        expect.arrayContaining([
-          expect.objectContaining({
-            code: 'custom',
-            message: 'Given alias is not allowed',
-            path: [],
-          }),
-        ]),
-      ))
+      expect(() => aliasSchema.parse('Admin')).toThrowError(
+        expect.objectContaining(
+          expect.arrayContaining([
+            expect.objectContaining({
+              code: 'custom',
+              message: 'Given alias is not allowed',
+              path: [],
+            }),
+          ]),
+        ),
+      )
     })
   })
 
   describe('hyphens and underscore', () => {
     describe('alias starts with underscore', () => {
       it('throws and logs an error', () => {
-        expect(() => aliasSchema.parse('_bibi')).toThrowError(expect.objectContaining(
-          expect.arrayContaining([
-            expect.objectContaining({
-              origin: 'string',
-              code: 'invalid_format',
-              format: 'regex',
-              message: 'Invalid characters in alias',
-              path: [],
-            })
-          ])
-        ))
+        expect(() => aliasSchema.parse('_bibi')).toThrowError(
+          expect.objectContaining(
+            expect.arrayContaining([
+              expect.objectContaining({
+                origin: 'string',
+                code: 'invalid_format',
+                format: 'regex',
+                message: 'Invalid characters in alias',
+                path: [],
+              }),
+            ]),
+          ),
+        )
       })
     })
 
     describe('alias contains two following hyphens', () => {
       it('throws and logs an error', () => {
-        expect(() => aliasSchema.parse('bi--bi')).toThrowError(expect.objectContaining(
-          expect.arrayContaining([
-            expect.objectContaining({
-              origin: 'string',
-              code: 'invalid_format',
-              format: 'regex',
-              message: 'Invalid characters in alias',
-              path: [],
-            })
-          ])
-        ))
+        expect(() => aliasSchema.parse('bi--bi')).toThrowError(
+          expect.objectContaining(
+            expect.arrayContaining([
+              expect.objectContaining({
+                origin: 'string',
+                code: 'invalid_format',
+                format: 'regex',
+                message: 'Invalid characters in alias',
+                path: [],
+              }),
+            ]),
+          ),
+        )
       })
     })
   })
@@ -99,17 +109,19 @@ describe('validate alias', () => {
 describe('validate first name', () => {
   describe('first name contains invalid characters', () => {
     it('throws and logs an error', () => {
-      expect(() => firstNameSchema.parse('<script>//malicious code</script>')).toThrowError(expect.objectContaining(
-        expect.arrayContaining([
-          expect.objectContaining({
-            origin: 'string',
-            code: 'invalid_format',
-            format: 'regex',
-            message: 'Invalid characters in first name',
-            path: [],
-          })
-        ])
-      ))
+      expect(() => firstNameSchema.parse('<script>//malicious code</script>')).toThrowError(
+        expect.objectContaining(
+          expect.arrayContaining([
+            expect.objectContaining({
+              origin: 'string',
+              code: 'invalid_format',
+              format: 'regex',
+              message: 'Invalid characters in first name',
+              path: [],
+            }),
+          ]),
+        ),
+      )
     })
   })
   it('use greek symbols', () => {

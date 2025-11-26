@@ -22,7 +22,7 @@ describe('utils/decay', () => {
       const seconds = 31556952
       expect(decayFormula(amount, seconds).toString()).toBe('49.99999999999999999999999')
     })
-    
+
     it('has correct backward calculation', () => {
       const amount = new Decimal(1.0)
       const seconds = -1
@@ -63,16 +63,19 @@ describe('utils/decay', () => {
       const seconds = 1209600
       expect(compoundInterest(amount, seconds).toString()).toBe('102.6924912992003635568199')
       // if I lock 102.6924912992003635568199 GDD, I will have 99.99999999999999999999998 GDD after 14 days, not 100% but near enough
-      expect(decayFormulaFast(compoundInterest(amount, seconds), seconds).toString()).toBe('99.99999999999999999999998')
+      expect(decayFormulaFast(compoundInterest(amount, seconds), seconds).toString()).toBe(
+        '99.99999999999999999999998',
+      )
       expect(compoundInterest(amount, seconds).toDecimalPlaces(4).toString()).toBe('102.6925')
       // rounded to 4 decimal places it is working like a charm
-      expect(decayFormulaFast(new Decimal(
-        compoundInterest(amount, seconds).toDecimalPlaces(4)), 
-        seconds
-      ).toDecimalPlaces(4).toString()).toBe('100')
+      expect(
+        decayFormulaFast(new Decimal(compoundInterest(amount, seconds).toDecimalPlaces(4)), seconds)
+          .toDecimalPlaces(4)
+          .toString(),
+      ).toBe('100')
     })
   })
-  
+
   it('has base 0.99999997802044727', () => {
     const now = new Date()
     now.setSeconds(1)
