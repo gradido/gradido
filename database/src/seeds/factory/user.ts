@@ -1,16 +1,16 @@
-import { UserInterface } from '../users/UserInterface'
-import { User, UserContact } from '../../entity'
-import { v4 } from 'uuid'
-import { UserContactType, OptInType, PasswordEncryptionType } from 'shared'
-import { getHomeCommunity } from '../../queries/communities'
 import random from 'crypto-random-bigint'
+import { OptInType, PasswordEncryptionType, UserContactType } from 'shared'
+import { v4 } from 'uuid'
+import { User, UserContact } from '../../entity'
+import { getHomeCommunity } from '../../queries/communities'
+import { UserInterface } from '../users/UserInterface'
 
 export const userFactory = async (user: UserInterface): Promise<User> => {
   let dbUserContact = new UserContact()
 
   dbUserContact.email = user.email ?? ''
   dbUserContact.type = UserContactType.USER_CONTACT_EMAIL
-  
+
   let dbUser = new User()
   dbUser.firstName = user.firstName ?? ''
   dbUser.lastName = user.lastName ?? ''
@@ -35,7 +35,7 @@ export const userFactory = async (user: UserInterface): Promise<User> => {
     dbUser.community = homeCommunity
     dbUser.communityUuid = homeCommunity.communityUuid!
   }
-  // TODO: improve with cascade 
+  // TODO: improve with cascade
   dbUser = await dbUser.save()
   dbUserContact.userId = dbUser.id
   dbUserContact = await dbUserContact.save()
