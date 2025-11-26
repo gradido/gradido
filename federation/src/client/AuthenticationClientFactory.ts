@@ -1,9 +1,7 @@
-import { FederatedCommunity as DbFederatedCommunity } from 'database'
-
-import { AuthenticationClient as V1_0_AuthenticationClient } from './1_0/AuthenticationClient'
-
-import { AuthenticationClient as V1_1_AuthenticationClient } from './1_1/AuthenticationClient'
 import { ApiVersionType } from 'core'
+import { FederatedCommunity as DbFederatedCommunity } from 'database'
+import { AuthenticationClient as V1_0_AuthenticationClient } from './1_0/AuthenticationClient'
+import { AuthenticationClient as V1_1_AuthenticationClient } from './1_1/AuthenticationClient'
 
 type AuthenticationClient = V1_0_AuthenticationClient | V1_1_AuthenticationClient
 

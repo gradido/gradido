@@ -1,7 +1,6 @@
+import { Decimal } from 'decimal.js-light'
 import { GraphQLSchema } from 'graphql'
 import { buildSchema } from 'type-graphql'
-
-import { Decimal } from 'decimal.js-light'
 import { getApiResolvers } from './api/schema'
 // import isAuthorized from './directive/isAuthorized'
 import { DecimalScalar } from './scalar/Decimal'

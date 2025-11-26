@@ -1,7 +1,7 @@
-import { CONFIG } from '@/config'
 import { Community as DbCommunity } from 'database'
 import { Decimal } from 'decimal.js-light'
 import { getLogger } from 'log4js'
+import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 
 export async function checkTradingLevel(homeCom: DbCommunity, amount: Decimal): Promise<boolean> {

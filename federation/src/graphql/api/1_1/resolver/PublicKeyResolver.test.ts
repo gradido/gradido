@@ -1,9 +1,9 @@
-import { CONFIG } from '@/config'
-import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { createServer } from '@/server/createServer'
 import { createTestClient } from 'apollo-server-testing'
 import { FederatedCommunity as DbFederatedCommunity } from 'database'
 import { getLogger } from 'log4js'
+import { CONFIG } from '@/config'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { createServer } from '@/server/createServer'
 
 let query: any
 

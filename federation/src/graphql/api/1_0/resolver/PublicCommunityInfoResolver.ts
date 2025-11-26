@@ -5,7 +5,9 @@ import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { GetPublicCommunityInfoResultLoggingView } from '../logger/GetPublicCommunityInfoResultLogging.view'
 import { GetPublicCommunityInfoResult } from '../model/GetPublicCommunityInfoResult'
 
-const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.api.1_0.resolver.PublicCommunityInfoResolver`)
+const logger = getLogger(
+  `${LOG4JS_BASE_CATEGORY_NAME}.graphql.api.1_0.resolver.PublicCommunityInfoResolver`,
+)
 
 @Resolver()
 export class PublicCommunityInfoResolver {

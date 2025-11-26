@@ -1,21 +1,18 @@
 import 'reflect-metadata'
 
 import { ApolloServer } from 'apollo-server-express'
-import express, { Express } from 'express'
-
-// server
-import cors from './cors'
-// import serverContext from './context'
-import { plugins } from './plugins'
-
-// graphql
-import { schema } from '@/graphql/schema'
-
 import { AppDatabase } from 'database'
+import express, { Express } from 'express'
 import { slowDown } from 'express-slow-down'
 import helmet from 'helmet'
 import { Logger } from 'log4js'
 import { DataSource } from 'typeorm'
+// graphql
+import { schema } from '@/graphql/schema'
+// server
+import cors from './cors'
+// import serverContext from './context'
+import { plugins } from './plugins'
 
 // i18n
 // import { i18n } from './localization'

@@ -1,6 +1,6 @@
+import { Decimal } from 'decimal.js-light'
 import { calculateDecay } from 'shared'
 import { getLastTransaction } from '@/graphql/util/getLastTransaction'
-import { Decimal } from 'decimal.js-light'
 import { Decay } from '../model/Decay'
 
 export async function calculateRecipientBalance(
@@ -13,7 +13,9 @@ export async function calculateRecipientBalance(
     return null
   }
 
-  const decay = new Decay(calculateDecay(lastTransaction.balance, lastTransaction.balanceDate, time))
+  const decay = new Decay(
+    calculateDecay(lastTransaction.balance, lastTransaction.balanceDate, time),
+  )
 
   const balance = decay.balance.add(amount.toString())
 

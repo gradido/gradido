@@ -4,24 +4,24 @@ import {
   Community as DbCommunity,
   PendingTransaction as DbPendingTransaction,
   User as DbUser,
+  Transaction as dbTransaction,
   PendingTransactionLoggingView,
   TransactionLoggingView,
   UserLoggingView,
-  Transaction as dbTransaction,
 } from 'database'
-import { PendingTransactionState } from 'shared'
-
-import { LogError } from '@/server/LogError'
-
-import { TRANSACTIONS_LOCK } from '@/graphql/util/TRANSACTIONS_LOCK'
-import { getLastTransaction } from '@/graphql/util/getLastTransaction'
 import Decimal from 'decimal.js-light'
 import { getLogger } from 'log4js'
+import { PendingTransactionState } from 'shared'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { getLastTransaction } from '@/graphql/util/getLastTransaction'
+import { TRANSACTIONS_LOCK } from '@/graphql/util/TRANSACTIONS_LOCK'
+import { LogError } from '@/server/LogError'
 import { calculateRecipientBalance } from './calculateRecipientBalance'
 
 const db = AppDatabase.getInstance()
-const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.api.1_0.util.settlePendingReceiveTransaction`)
+const logger = getLogger(
+  `${LOG4JS_BASE_CATEGORY_NAME}.graphql.api.1_0.util.settlePendingReceiveTransaction`,
+)
 
 export async function settlePendingReceiveTransaction(
   homeCom: DbCommunity,
