@@ -1,11 +1,10 @@
 import DHT from '@hyperswarm/dht'
-import { Community as DbCommunity, FederatedCommunity as DbFederatedCommunity } from 'database'
-import { validate as validateUUID, version as versionUUID } from 'uuid'
-
 import { cleanDB, testEnvironment } from '@test/helpers'
 import { getLogger } from 'config-schema/test/testSetup'
-import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { Community as DbCommunity, FederatedCommunity as DbFederatedCommunity } from 'database'
+import { validate as validateUUID, version as versionUUID } from 'uuid'
 import { CONFIG } from '@/config'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 
 import { startDHT } from './index'
 

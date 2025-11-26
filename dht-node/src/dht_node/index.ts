@@ -5,12 +5,10 @@ import {
   FederatedCommunity as DbFederatedCommunity,
   getHomeCommunity,
 } from 'database'
+import { getLogger } from 'log4js'
 import { v4 as uuidv4 } from 'uuid'
-
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-
-import { getLogger } from 'log4js'
 import { ApiVersionType } from './ApiVersionType'
 
 const KEY_SECRET_SEEDBYTES = 32
