@@ -33,12 +33,7 @@ import { Context, getUser } from '@/server/context'
 import { communityUser } from '@/util/communityUser'
 import { calculateBalance } from '@/util/validate'
 import { virtualDecayTransaction, virtualLinkTransaction } from '@/util/virtualTransactions'
-<<<<<<< HEAD
-import { fullName } from 'core'
 // import { TRANSACTIONS_LOCK } from 'database'
-=======
-import { TRANSACTIONS_LOCK } from 'database'
->>>>>>> refs/remotes/origin/master
 
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { getLastTransaction } from 'database'
