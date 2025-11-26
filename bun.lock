@@ -94,6 +94,7 @@
       "dependencies": {
         "cross-env": "^7.0.3",
         "email-templates": "^10.0.1",
+        "redis-semaphore": "^5.6.2",
         "sodium-native": "^3.4.1",
       },
       "devDependencies": {
@@ -194,6 +195,7 @@
         "joi": "^17.13.3",
         "jose": "^4.14.4",
         "log4js": "^6.9.1",
+        "redis-semaphore": "^5.6.2",
         "shared": "*",
         "sodium-native": "^3.4.1",
         "zod": "^3.25.61",
@@ -297,6 +299,7 @@
       "version": "2.7.0",
       "dependencies": {
         "cross-env": "^7.0.3",
+        "redis-semaphore": "^5.6.2",
         "sodium-native": "^3.4.1",
       },
       "devDependencies": {
