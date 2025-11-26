@@ -5,11 +5,11 @@
         <div class="caption-first-text">{{ $t('auth.left.gratitude') }}</div>
         <div class="caption-second-text">{{ $t('auth.left.oneGratitude') }}</div>
       </BCarouselSlide>
-      <BCarouselSlide img-src="/img/template/Foto_02_2400_small.jpg">
+      <BCarouselSlide img-src="/img/template/Foto_05_2400_small.jpg">
         <div class="caption-first-text">{{ $t('auth.left.dignity') }}</div>
         <div class="caption-second-text">{{ $t('auth.left.oneDignity') }}</div>
       </BCarouselSlide>
-      <BCarouselSlide img-src="/img/template/Foto_03_2400_small.jpg">
+      <BCarouselSlide img-src="/img/template/Foto_04_2400_small.jpg">
         <div class="caption-first-text">{{ $t('auth.left.donation') }}</div>
         <div class="caption-second-text">{{ $t('auth.left.oneDonation') }}</div>
       </BCarouselSlide>

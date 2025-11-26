@@ -40,11 +40,15 @@ export const userFactory = async (
   }
 
   // get last changes of user from database
-  dbUser = await User.findOneOrFail({ where: { id }, relations: ['userRoles'] })
+  dbUser = await User.findOneOrFail({ where: { id }, relations: { userRoles: true, emailContact: true } })
 
   if (user.createdAt || user.deletedAt || user.role) {
     if (user.createdAt) {
       dbUser.createdAt = user.createdAt
+      // make sure emailContact is also updated for e2e test, prevent failing when time between seeding and test run is < 1 minute
+      dbUser.emailContact.createdAt = user.createdAt
+      dbUser.emailContact.updatedAt = user.createdAt
+      await dbUser.emailContact.save()
     }
     if (user.deletedAt) {
       dbUser.deletedAt = user.deletedAt
