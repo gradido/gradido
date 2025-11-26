@@ -25,7 +25,7 @@ export const sendEmailTranslated = async ({
   }
   template: string
   locals: Record<string, unknown>
-}): Promise<Record<string, unknown> | boolean | null> => {
+}): Promise<Record<string, unknown> | boolean | null | Error> => {
   // TODO: test the calling order of 'i18n.setLocale' for example: language of logging 'en', language of email receiver 'es', reset language of current user 'de'
 
   if (!CONFIG.EMAIL) {
@@ -113,6 +113,7 @@ export const sendEmailTranslated = async ({
     })
     .catch((error: unknown) => {
       logger.error('Error sending notification email', error)
+      return error
     })
 
   return resultSend
