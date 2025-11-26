@@ -21,7 +21,9 @@ export const fullName = (firstName: string, lastName: string): string =>
 export function resetInterface<T extends Record<string, any>>(obj: T): T {
   // Iterate over all properties of the object
   for (const key in obj) {
-    if (Object.hasOwn(obj, key)) {
+    // TODO: Update after switch to typescript 5
+    // biome-ignore lint/suspicious/noPrototypeBuiltins: ideal solution to use Object.hasOwn isn't possible with es6
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
       // Set all optional properties to undefined
 
       obj[key] = undefined as T[Extract<keyof T, string>]
