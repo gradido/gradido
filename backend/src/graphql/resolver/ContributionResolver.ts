@@ -43,7 +43,6 @@ import {
 import { UpdateUnconfirmedContributionContext } from '@/interactions/updateUnconfirmedContribution/UpdateUnconfirmedContribution.context'
 import { LogError } from '@/server/LogError'
 import { Context, getClientTimezoneOffset, getUser } from '@/server/context'
-import { fullName } from 'core'
 import { calculateDecay, Decay } from 'shared'
 
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
