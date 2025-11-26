@@ -33,6 +33,7 @@
   "dependencies": {
     "cross-env": "^7.0.3",
     "email-templates": "^10.0.1",
+    "redis-semaphore": "^5.6.2",
     "sodium-native": "^3.4.1"
   },
   "devDependencies": {
