@@ -31,7 +31,7 @@ export const sendAddedContributionMessageEmail = (
   data: EmailCommonData & ContributionEmailCommonData & {
     message: string
   },
-): Promise<Record<string, unknown> | boolean | null> => {
+): Promise<Record<string, unknown> | boolean | null | Error> => {
   return sendEmailTranslated({
     receiver: {
       to: `${data.firstName} ${data.lastName} <${data.email}>`,
@@ -48,7 +48,7 @@ export const sendAccountActivationEmail = (data: EmailCommonData & {
   activationLink: string
   timeDurationObject: Record<string, unknown>
   logoUrl?: string | null
-}): Promise<Record<string, unknown> | boolean | null> => {
+}): Promise<Record<string, unknown> | boolean | null | Error> => {
   return sendEmailTranslated({
     receiver: { to: `${data.firstName} ${data.lastName} <${data.email}>` },
     template: 'accountActivation',
@@ -59,7 +59,7 @@ export const sendAccountActivationEmail = (data: EmailCommonData & {
   })
 }
 
-export const sendAccountMultiRegistrationEmail = (data: EmailCommonData): Promise<Record<string, unknown> | boolean | null> => {
+export const sendAccountMultiRegistrationEmail = (data: EmailCommonData): Promise<Record<string, unknown> | boolean | null | Error> => {
   return sendEmailTranslated({
     receiver: { to: `${data.firstName} ${data.lastName} <${data.email}>` },
     template: 'accountMultiRegistration',
@@ -74,7 +74,7 @@ export const sendContributionConfirmedEmail = (
   data: EmailCommonData & ContributionEmailCommonData & {
     contributionAmount: Decimal
   },
-): Promise<Record<string, unknown> | boolean | null> => {
+): Promise<Record<string, unknown> | boolean | null | Error> => {
   return sendEmailTranslated({
     receiver: { to: `${data.firstName} ${data.lastName} <${data.email}>` },
     template: 'contributionConfirmed',
@@ -90,7 +90,7 @@ export const sendContributionChangedByModeratorEmail = (
   data: EmailCommonData & ContributionEmailCommonData & {
     contributionMemoUpdated: string
   },
-): Promise<Record<string, unknown> | boolean | null> => {
+): Promise<Record<string, unknown> | boolean | null | Error> => {
   return sendEmailTranslated({
     receiver: { to: `${data.firstName} ${data.lastName} <${data.email}>` },
     template: 'contributionChangedByModerator',
@@ -104,7 +104,7 @@ export const sendContributionChangedByModeratorEmail = (
 
 export const sendContributionDeletedEmail = (
   data: EmailCommonData & ContributionEmailCommonData,
-): Promise<Record<string, unknown> | boolean | null> => {
+): Promise<Record<string, unknown> | boolean | null | Error> => {
   return sendEmailTranslated({
     receiver: { to: `${data.firstName} ${data.lastName} <${data.email}>` },
     template: 'contributionDeleted',
@@ -117,7 +117,7 @@ export const sendContributionDeletedEmail = (
 
 export const sendContributionDeniedEmail = (
   data: EmailCommonData & ContributionEmailCommonData,
-): Promise<Record<string, unknown> | boolean | null> => {
+): Promise<Record<string, unknown> | boolean | null | Error> => {
   return sendEmailTranslated({
     receiver: { to: `${data.firstName} ${data.lastName} <${data.email}>` },
     template: 'contributionDenied',
@@ -131,7 +131,7 @@ export const sendContributionDeniedEmail = (
 export const sendResetPasswordEmail = (data: EmailCommonData & {
   resetLink: string
   timeDurationObject: Record<string, unknown>
-}): Promise<Record<string, unknown> | boolean | null> => {
+}): Promise<Record<string, unknown> | boolean | null | Error> => {
   return sendEmailTranslated({
     receiver: { to: `${data.firstName} ${data.lastName} <${data.email}>` },
     template: 'resetPassword',
@@ -148,7 +148,7 @@ export const sendTransactionLinkRedeemedEmail = (data: EmailCommonData & {
   senderEmail: string
   transactionMemo: string
   transactionAmount: Decimal
-}): Promise<Record<string, unknown> | boolean | null> => {
+}): Promise<Record<string, unknown> | boolean | null | Error> => {
   return sendEmailTranslated({
     receiver: { to: `${data.firstName} ${data.lastName} <${data.email}>` },
     template: 'transactionLinkRedeemed',
@@ -166,7 +166,7 @@ export const sendTransactionReceivedEmail = (data: EmailCommonData & {
   senderEmail: string
   memo: string
   transactionAmount: Decimal
-}): Promise<Record<string, unknown> | boolean | null> => {
+}): Promise<Record<string, unknown> | boolean | null | Error> => {
   return sendEmailTranslated({
     receiver: { to: `${data.firstName} ${data.lastName} <${data.email}>` },
     template: 'transactionReceived',
