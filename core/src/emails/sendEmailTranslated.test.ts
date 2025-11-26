@@ -41,7 +41,7 @@ const spySetLocale = jest.spyOn(i18n, 'setLocale')
 const spyTranslate = jest.spyOn(i18n, '__')
 
 describe('sendEmailTranslated', () => {
-  let result: Record<string, unknown> | boolean | null
+  let result: Record<string, unknown> | boolean | null | Error
 
   describe('config email is false', () => {
     beforeEach(async () => {

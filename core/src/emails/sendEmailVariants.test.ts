@@ -1,5 +1,6 @@
 import { Decimal } from 'decimal.js-light'
 import { CONFIG } from '../config'
+import { mock, jest, describe, it, expect, beforeAll, beforeEach, afterAll } from 'bun:test'
 
 import * as sendEmailTranslatedApi from './sendEmailTranslated'
 import {
@@ -25,7 +26,7 @@ CONFIG.EMAIL_SMTP_HOST = testMailServerHost
 CONFIG.EMAIL_SMTP_PORT = testMailServerPort
 CONFIG.EMAIL_TLS = testMailTLS
 
-jest.mock('nodemailer', () => {
+mock.module('nodemailer', () => {
   return {
     __esModule: true,
     createTransport: jest.fn(() => {
