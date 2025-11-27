@@ -81,6 +81,7 @@ services:
   #########################################################
   redis:
     image: redis:6.2.6
+    attach: false
     networks:
       - internal-net
     ports:
