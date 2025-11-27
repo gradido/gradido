@@ -23,6 +23,7 @@
   "dependencies": {
     "cross-env": "^7.0.3",
     "dht-rpc": "6.18.1",
+    "require-addon": "1.1.0",
     "sodium-universal": "4.0.1"
   },
   "devDependencies": {
