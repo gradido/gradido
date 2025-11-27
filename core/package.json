@@ -22,8 +22,8 @@
     "typecheck": "tsc --noEmit",
     "lint": "biome check --error-on-warnings .",
     "lint:fix": "biome check --error-on-warnings . --write",
-    "locales": "scripts/sort.sh src/emails/locales",
-    "locales:fix": "scripts/sort.sh src/emails/locales --fix",
+    "locales": "scripts/sort.sh src/locales",
+    "locales:fix": "scripts/sort.sh src/locales --fix",
     "clear": "rm -rf node_modules && rm -rf build && rm -rf .turbo"
   },
   "dependencies": {

@@ -14,7 +14,6 @@ import { GRADIDO_REALM, LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { AppDatabase } from 'database'
 import { context as serverContext } from './context'
 import { cors } from './cors'
-import { i18n } from './localization'
 import { plugins } from './plugins'
 import { jwks, openidConfiguration } from '@/openIDConnect'
 // TODO implement
@@ -74,9 +73,6 @@ export const createServer = async (
   app.use(json())
   // bodyparser urlencoded for elopage
   app.use(urlencoded({ extended: true }))
-  
-  // i18n
-  app.use(i18n.init)
 
   // Elopage Webhook
 

@@ -1,6 +1,6 @@
 import path from 'path'
 import Email from 'email-templates'
-import { i18n } from './localization'
+import { i18n } from '../locales/localization'
 import { createTransport } from 'nodemailer'
 import { CONFIG } from '../config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../config/const'
@@ -113,7 +113,6 @@ export const sendEmailTranslated = async ({
     })
     .catch((error: unknown) => {
       logger.error('Error sending notification email', error)
-      return error
     })
 
   return resultSend
