@@ -7,7 +7,7 @@ import { DataSource, Not } from 'typeorm'
 import { cleanDB, testEnvironment } from '@test/helpers'
 import { getLogger } from 'config-schema/test/testSetup'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-
+import { AppDatabase } from 'database'
 import { validateCommunities } from './validateCommunities'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.federation.validateCommunities`)
@@ -16,21 +16,25 @@ const federationClientLogger = getLogger(
 )
 
 let con: DataSource
+let db: AppDatabase
 let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']
   con: DataSource
+  db: AppDatabase
 }
 
 beforeAll(async () => {
   testEnv = await testEnvironment(logger)
   con = testEnv.con
+  db = testEnv.db
   await cleanDB()
 })
 
 afterAll(async () => {
   // await cleanDB()
   await con.destroy()
+  await db.getRedisClient().quit()
 })
 
 describe('validate Communities', () => {

@@ -1,8 +1,9 @@
 import {
+  AppDatabase,
   Contribution as DbContribution,
   Transaction as DbTransaction,
   User as DbUser,
-  DltTransaction as DbDltTransaction,
+  getLastTransaction,
   UserContact,
 } from 'database'
 import { Decimal } from 'decimal.js-light'
@@ -10,26 +11,7 @@ import { GraphQLResolveInfo } from 'graphql'
 import { Arg, Args, Authorized, Ctx, Info, Int, Mutation, Query, Resolver } from 'type-graphql'
 import { EntityManager, IsNull } from 'typeorm'
 
-import { AdminCreateContributionArgs } from '@arg/AdminCreateContributionArgs'
-import { AdminUpdateContributionArgs } from '@arg/AdminUpdateContributionArgs'
-import { ContributionArgs } from '@arg/ContributionArgs'
-import { Paginated } from '@arg/Paginated'
-import { SearchContributionsFilterArgs } from '@arg/SearchContributionsFilterArgs'
-import { ContributionStatus } from '@enum/ContributionStatus'
-import { ContributionType } from '@enum/ContributionType'
-import { AdminUpdateContribution } from '@model/AdminUpdateContribution'
-import { Contribution, ContributionListResult } from '@model/Contribution'
-import { OpenCreation } from '@model/OpenCreation'
-import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
 import { RIGHTS } from '@/auth/RIGHTS'
-import {
-  fullName,
-  sendContributionChangedByModeratorEmail,
-  sendContributionConfirmedEmail,
-  sendContributionDeletedEmail,
-  sendContributionDeniedEmail,
-  TransactionTypeId
-} from 'core'
 import {
   EVENT_ADMIN_CONTRIBUTION_CONFIRM,
   EVENT_ADMIN_CONTRIBUTION_CREATE,
@@ -43,13 +25,32 @@ import {
 import { UpdateUnconfirmedContributionContext } from '@/interactions/updateUnconfirmedContribution/UpdateUnconfirmedContribution.context'
 import { LogError } from '@/server/LogError'
 import { Context, getClientTimezoneOffset, getUser } from '@/server/context'
-import { TRANSACTIONS_LOCK } from 'database'
+import { AdminCreateContributionArgs } from '@arg/AdminCreateContributionArgs'
+import { AdminUpdateContributionArgs } from '@arg/AdminUpdateContributionArgs'
+import { ContributionArgs } from '@arg/ContributionArgs'
+import { Paginated } from '@arg/Paginated'
+import { SearchContributionsFilterArgs } from '@arg/SearchContributionsFilterArgs'
+import { ContributionStatus } from '@enum/ContributionStatus'
+import { ContributionType } from '@enum/ContributionType'
+import { AdminUpdateContribution } from '@model/AdminUpdateContribution'
+import { Contribution, ContributionListResult } from '@model/Contribution'
+import { OpenCreation } from '@model/OpenCreation'
+import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
+import {
+  fullName,
+  sendContributionChangedByModeratorEmail,
+  sendContributionConfirmedEmail,
+  sendContributionDeletedEmail,
+  sendContributionDeniedEmail,
+  TransactionTypeId
+} from 'core'
 import { calculateDecay, Decay } from 'shared'
 
+import { contributionTransaction } from '@/apis/dltConnector'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { ContributionMessageType } from '@enum/ContributionMessageType'
-import { AppDatabase } from 'database'
 import { getLogger } from 'log4js'
+import { Mutex } from 'redis-semaphore'
 import {
   contributionFrontendLink,
   loadAllContributions,
@@ -58,8 +59,6 @@ import {
 import { getOpenCreations, getUserCreation, validateContribution } from './util/creations'
 import { extractGraphQLFields } from './util/extractGraphQLFields'
 import { findContributions } from './util/findContributions'
-import { getLastTransaction } from 'database'
-import { contributionTransaction } from '@/apis/dltConnector'
 
 const db = AppDatabase.getInstance()
 const createLogger = () => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.ContributionResolver`)
@@ -436,7 +435,9 @@ export class ContributionResolver {
     const logger = createLogger()
     logger.addContext('contribution', id)
     // acquire lock
-    const releaseLock = await TRANSACTIONS_LOCK.acquire()
+    const mutex = new Mutex (db.getRedisClient(), 'TRANSACTIONS_LOCK')
+    await mutex.acquire()
+
     try {
       const clientTimezoneOffset = getClientTimezoneOffset(context)
       const contribution = await DbContribution.findOne({ where: { id }, relations: {user: {emailContact: true}} })
@@ -549,7 +550,8 @@ export class ContributionResolver {
       }
       await EVENT_ADMIN_CONTRIBUTION_CONFIRM(user, moderatorUser, contribution, contribution.amount)
     } finally {
-      releaseLock()
+      // releaseLock()
+      await mutex.release()
     }
     return true
   }

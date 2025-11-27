@@ -33,7 +33,7 @@ export const testEnvironment = async (testLogger = getLogger('apollo')) => {
   const testClient = createTestClient(server.apollo)
   const mutate = testClient.mutate
   const query = testClient.query
-  return { mutate, query, con }
+  return { mutate, query, con, db: server.db }
 }
 
 export const resetEntity = async (entity: any) => {

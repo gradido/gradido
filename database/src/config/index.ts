@@ -24,5 +24,6 @@ const database = {
 }
 const PRODUCTION = process.env.NODE_ENV === 'production' || false
 const nodeEnv = process.env.NODE_ENV || 'development'
+const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379'
 
-export const CONFIG = { ...database, NODE_ENV: nodeEnv, PRODUCTION, ...defaults }
+export const CONFIG = { ...database, NODE_ENV: nodeEnv, PRODUCTION, REDIS_URL, ...defaults }

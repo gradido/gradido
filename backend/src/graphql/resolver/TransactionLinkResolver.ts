@@ -39,7 +39,7 @@ import { LogError } from '@/server/LogError'
 import { Context, getClientTimezoneOffset, getUser } from '@/server/context'
 import { calculateBalance } from '@/util/validate'
 import { fullName } from 'core'
-import { TRANSACTION_LINK_LOCK, TRANSACTIONS_LOCK } from 'database'
+// import { TRANSACTION_LINK_LOCK, TRANSACTIONS_LOCK } from 'database'
 import { 
   calculateDecay,
   compoundInterest,
@@ -68,6 +68,8 @@ import { transactionLinkList } from './util/transactionLinkList'
 import { SignedTransferPayloadType } from 'shared'
 import { contributionTransaction, deferredTransferTransaction, redeemDeferredTransferTransaction } from '@/apis/dltConnector'
 import { CODE_VALID_DAYS_DURATION } from './const/const'
+import { Redis } from 'ioredis'
+import { Mutex } from 'redis-semaphore'
 
 const createLogger = (method: string) => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.TransactionLinkResolver.${method}`)
 
@@ -237,7 +239,9 @@ export class TransactionLinkResolver {
     const user = getUser(context)
     if (code.match(/^CL-/)) {
       // acquire lock
-      const releaseLock = await TRANSACTIONS_LOCK.acquire()
+      // const releaseLock = await TRANSACTIONS_LOCK.acquire()
+      const mutex = new Mutex(db.getRedisClient(), 'TRANSACTIONS_LOCK')
+      await mutex.acquire()
       try {
         methodLogger.info('redeem contribution link...')
         const now = new Date()
@@ -392,11 +396,14 @@ export class TransactionLinkResolver {
           await queryRunner.release()
         }
       } finally {
-        releaseLock()
+        // releaseLock()
+        await mutex.release()
       }      
       return true
     } else {
-      const releaseLinkLock = await TRANSACTION_LINK_LOCK.acquire() 
+      // const releaseLinkLock = await TRANSACTION_LINK_LOCK.acquire() 
+      const mutex = new Mutex(db.getRedisClient(), 'TRANSACTION_LINK_LOCK')
+      await mutex.acquire()
       const now = new Date()
       try {
         const transactionLink = await DbTransactionLink.findOne({ where: { code } })
@@ -441,7 +448,8 @@ export class TransactionLinkResolver {
           transactionLink.amount,
         )
       } finally {
-        releaseLinkLock()
+        // releaseLinkLock()
+        await mutex.release()
       }
       return true
     }

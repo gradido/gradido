@@ -21,6 +21,7 @@ import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { getLogger} from 'config-schema/test/testSetup'
+import { AppDatabase } from 'database'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.ContributionMessageResolver`)
 const logErrorLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)
@@ -40,10 +41,12 @@ jest.mock('core', () => {
 
 let mutate: ApolloServerTestClient['mutate']
 let con: DataSource
+let db: AppDatabase
 let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']
   con: DataSource
+  db: AppDatabase
 }
 let result: any
 
@@ -51,12 +54,14 @@ beforeAll(async () => {
   testEnv = await testEnvironment(logger)
   mutate = testEnv.mutate
   con = testEnv.con
+  db = testEnv.db
   await cleanDB()
 })
 
 afterAll(async () => {
   await cleanDB()
   await con.destroy()
+  await db.getRedisClient().quit()
 })
 
 describe('ContributionMessageResolver', () => {

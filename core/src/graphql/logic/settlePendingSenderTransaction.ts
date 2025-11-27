@@ -14,8 +14,10 @@ import { LOG4JS_BASE_CATEGORY_NAME } from '../../config/const'
 import { PendingTransactionState } from 'shared'
 // import { LogError } from '@/server/LogError'
 import { calculateSenderBalance } from '../../util/calculateSenderBalance'
-import { TRANSACTIONS_LOCK, getLastTransaction } from 'database'
+// import { TRANSACTIONS_LOCK, getLastTransaction } from 'database'
+import { getLastTransaction } from 'database'
 import { getLogger } from 'log4js'
+import { Mutex } from 'redis-semaphore'
 
 const db = AppDatabase.getInstance()
 const logger = getLogger(
@@ -29,7 +31,10 @@ export async function settlePendingSenderTransaction(
 ): Promise<boolean> {
   // TODO: synchronisation with TRANSACTION_LOCK of federation-modul necessary!!!
   // acquire lock
-  const releaseLock = await TRANSACTIONS_LOCK.acquire()
+  // const releaseLock = await TRANSACTIONS_LOCK.acquire()
+  const mutex = new Mutex(db.getRedisClient(), 'TRANSACTIONS_LOCK')
+  await mutex.acquire()
+
   const queryRunner = db.getDataSource().createQueryRunner()
   await queryRunner.connect()
   await queryRunner.startTransaction('REPEATABLE READ')
@@ -121,7 +126,8 @@ export async function settlePendingSenderTransaction(
     throw new Error('X-Com: send Transaction was not successful')
   } finally {
     await queryRunner.release()
-    releaseLock()
+    // releaseLock()
+    await mutex.release()
   }
   /*
     void sendTransactionReceivedEmail({

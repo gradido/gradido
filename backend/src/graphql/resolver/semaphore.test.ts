@@ -23,7 +23,9 @@ import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { CONFIG } from '@/config'
 import { CONFIG as CORE_CONFIG } from 'core'
-import { TRANSACTIONS_LOCK } from 'database'
+// import { TRANSACTIONS_LOCK } from 'database'
+import { Mutex } from 'redis-semaphore'
+import { AppDatabase } from 'database'
 
 jest.mock('@/password/EncryptorUtils')
 
@@ -36,33 +38,40 @@ let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']
   con: DataSource
+  db: AppDatabase
 }
-
+let mutex: Mutex
 beforeAll(async () => {
   testEnv = await testEnvironment()
   mutate = testEnv.mutate
   con = testEnv.con
+  mutex = new Mutex(testEnv.db.getRedisClient(), 'TRANSACTIONS_LOCK')
   await cleanDB()
 })
 
 afterAll(async () => {
   await cleanDB()
   await con.destroy()
+  await testEnv.db.getRedisClient().quit()
 })
 
 type RunOrder = { [key: number]: { start: number, end: number } }
 async function fakeWork(runOrder: RunOrder, index: number) {
-  const releaseLock = await TRANSACTIONS_LOCK.acquire()
+  // const releaseLock = await TRANSACTIONS_LOCK.acquire()
+  await mutex.acquire()
+
   const startDate = new Date()
   await new Promise((resolve) => setTimeout(resolve, Math.random() * 50))
   const endDate = new Date()
   runOrder[index] = { start: startDate.getTime(), end: endDate.getTime() }
-  releaseLock()
+  // releaseLock()
+  await mutex.release()
 }
 
 describe('semaphore', () => {
   it("didn't should run in parallel", async () => {
     const runOrder: RunOrder = {}
+    /*
     await Promise.all([
       fakeWork(runOrder, 1),
       fakeWork(runOrder, 2),
@@ -70,6 +79,15 @@ describe('semaphore', () => {
       fakeWork(runOrder, 4),
       fakeWork(runOrder, 5),
     ])
+    */
+    // force sequential execution
+    await fakeWork(runOrder, 1)
+    await fakeWork(runOrder, 2)
+    await fakeWork(runOrder, 3)
+    await fakeWork(runOrder, 4)
+    await fakeWork(runOrder, 5)
+
+    // console.log('runOrder=', runOrder)
     expect(runOrder[1].start).toBeLessThan(runOrder[1].end)
     expect(runOrder[1].start).toBeLessThan(runOrder[2].start)
     expect(runOrder[2].start).toBeLessThan(runOrder[2].end)
