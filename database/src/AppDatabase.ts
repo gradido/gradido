@@ -99,7 +99,7 @@ export class AppDatabase {
   public async destroy(): Promise<void> {
     await this.dataSource?.destroy()
     if (this.redisClient) {
-      this.redisClient.quit()
+      await this.redisClient.quit()
       this.redisClient = undefined
     }
   }
