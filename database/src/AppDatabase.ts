@@ -92,7 +92,6 @@ export class AppDatabase {
     await this.checkDBVersion()
 
     this.redisClient = new Redis(CONFIG.REDIS_URL)
-    console.log('Redis status=', this.redisClient.status)
     logger.info('Redis status=', this.redisClient.status)
   }
 

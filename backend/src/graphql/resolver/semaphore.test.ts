@@ -87,7 +87,7 @@ describe('semaphore', () => {
     await fakeWork(runOrder, 4)
     await fakeWork(runOrder, 5)
 
-    console.log('runOrder=', runOrder)
+    // console.log('runOrder=', runOrder)
     expect(runOrder[1].start).toBeLessThan(runOrder[1].end)
     expect(runOrder[1].start).toBeLessThan(runOrder[2].start)
     expect(runOrder[2].start).toBeLessThan(runOrder[2].end)
