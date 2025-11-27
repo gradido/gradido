@@ -1,6 +1,6 @@
 import { Decimal } from 'decimal.js-light'
 import { CONFIG } from '../config'
-import { mock, jest, describe, it, expect, beforeAll, beforeEach, afterAll } from 'bun:test'
+import { mock, jest, describe, it, expect, beforeAll, afterEach } from 'bun:test'
 
 import * as sendEmailTranslatedApi from './sendEmailTranslated'
 import {
