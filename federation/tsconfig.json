@@ -87,6 +87,8 @@
   },
   "include": [
     "../core/src/types",
+    "src",
+    "test"
   ],
   "ts-node": {
     "swc": true
