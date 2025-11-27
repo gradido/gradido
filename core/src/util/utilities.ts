@@ -1,7 +1,7 @@
 import { promisify } from 'util'
 
 import { Decimal } from 'decimal.js-light'
-import i18n from 'i18n'
+import { i18n } from '../locales/localization'
 
 export const objectValuesToArray = (obj: Record<string, string>): string[] =>
   Object.keys(obj).map((key) => obj[key])
