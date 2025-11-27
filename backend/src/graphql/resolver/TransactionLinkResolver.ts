@@ -85,7 +85,6 @@ export const transactionLinkCode = (date: Date): string => {
 
 
 const db = AppDatabase.getInstance()
-const redisClient = new Redis()
 
 export const transactionLinkExpireDate = (date: Date): Date => {
   const validUntil = new Date(date)
@@ -241,7 +240,7 @@ export class TransactionLinkResolver {
     if (code.match(/^CL-/)) {
       // acquire lock
       // const releaseLock = await TRANSACTIONS_LOCK.acquire()
-      const mutex = new Mutex(redisClient, 'TRANSACTIONS_LOCK')
+      const mutex = new Mutex(db.getRedisClient(), 'TRANSACTIONS_LOCK')
       await mutex.acquire()
       try {
         methodLogger.info('redeem contribution link...')
@@ -403,7 +402,7 @@ export class TransactionLinkResolver {
       return true
     } else {
       // const releaseLinkLock = await TRANSACTION_LINK_LOCK.acquire() 
-      const mutex = new Mutex(redisClient, 'TRANSACTION_LINK_LOCK')
+      const mutex = new Mutex(db.getRedisClient(), 'TRANSACTION_LINK_LOCK')
       await mutex.acquire()
       const now = new Date()
       try {
