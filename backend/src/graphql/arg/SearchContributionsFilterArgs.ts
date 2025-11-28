@@ -1,7 +1,7 @@
 import { IsBoolean, IsPositive, IsString } from 'class-validator'
 import { ArgsType, Field, InputType, Int } from 'type-graphql'
 
-import { ContributionStatus } from '@enum/ContributionStatus'
+import { ContributionStatus } from 'database'
 
 import { isContributionStatusArray } from '@/graphql/validator/ContributionStatusArray'
 

@@ -1,11 +1,10 @@
 import { ApolloServerTestClient } from 'apollo-server-testing'
-import { Contribution, Event as DbEvent, Transaction as DbTransaction, User } from 'database'
+import { Contribution, Event as DbEvent, Transaction as DbTransaction, User, ContributionStatus } from 'database'
 import { Decimal } from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
 import { DataSource, Equal } from 'typeorm'
 
 import { ContributionMessageType } from '@enum/ContributionMessageType'
-import { ContributionStatus } from '@enum/ContributionStatus'
 import { Order } from '@enum/Order'
 import {
   cleanDB,

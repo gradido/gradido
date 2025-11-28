@@ -1,11 +1,10 @@
-import { Contribution, User } from 'database'
+import { Contribution, ContributionStatus, User } from 'database'
 
 import { RIGHTS } from '@/auth/RIGHTS'
 import { Role } from '@/auth/Role'
 import { ContributionMessageBuilder } from '@/data/ContributionMessage.builder'
 import { ContributionMessageArgs } from '@/graphql/arg/ContributionMessageArgs'
 import { ContributionMessageType } from '@/graphql/enum/ContributionMessageType'
-import { ContributionStatus } from '@/graphql/enum/ContributionStatus'
 import { LogError } from '@/server/LogError'
 
 import { AbstractUnconfirmedContributionRole } from './AbstractUnconfirmedContribution.role'

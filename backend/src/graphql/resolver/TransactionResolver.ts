@@ -18,11 +18,9 @@ import { Transaction } from '@model/Transaction'
 import { TransactionList } from '@model/TransactionList'
 import { User } from '@model/User'
 import { 
-  fullName,
   processXComCompleteTransaction, 
   sendTransactionLinkRedeemedEmail,
   sendTransactionReceivedEmail, 
-  TransactionTypeId 
 } from 'core'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { CONFIG } from '@/config'
@@ -33,10 +31,10 @@ import { Context, getUser } from '@/server/context'
 import { communityUser } from '@/util/communityUser'
 import { calculateBalance } from '@/util/validate'
 import { virtualDecayTransaction, virtualLinkTransaction } from '@/util/virtualTransactions'
-import { TRANSACTIONS_LOCK } from 'database'
+import { fullName } from 'shared'
 
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { getLastTransaction } from 'database'
+import { getLastTransaction, TRANSACTIONS_LOCK, TransactionTypeId } from 'database'
 import { getLogger, Logger } from 'log4js'
 import { BalanceResolver } from './BalanceResolver'
 import { GdtResolver } from './GdtResolver'

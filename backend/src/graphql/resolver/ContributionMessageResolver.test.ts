@@ -1,9 +1,8 @@
 import { ApolloServerTestClient } from 'apollo-server-testing'
-import { Contribution as DbContribution, Event as DbEvent } from 'database'
+import { Contribution as DbContribution, Event as DbEvent, ContributionStatus } from 'database'
 import { GraphQLError } from 'graphql'
 import { DataSource } from 'typeorm'
 
-import { ContributionStatus } from '@enum/ContributionStatus'
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
 
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
