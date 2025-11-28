@@ -25,6 +25,7 @@
     "up": "cross-env TZ=UTC tsx migration/index.ts up",
     "down": "cross-env TZ=UTC tsx migration/index.ts down",
     "reset": "cross-env TZ=UTC tsx migration/index.ts reset",
+    "seed": "cross-env TZ=UTC NODE_ENV=development bun src/seeds/index.ts",
     "up:test": "cross-env TZ=UTC DB_DATABASE=gradido_test tsx migration/index.ts up",
     "up:backend_test": "cross-env TZ=UTC DB_DATABASE=gradido_test_backend tsx migration/index.ts up",
     "up:federation_test": "cross-env TZ=UTC DB_DATABASE=gradido_test_federation tsx migration/index.ts up",

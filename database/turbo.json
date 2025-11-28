@@ -1,6 +1,10 @@
 {
   "extends": ["//"],
   "tasks": {
+    "seed": {
+      "dependsOn": ["database#up", "^build"],
+      "cache": false
+    },  
     "clear": {
       "cache": false
     },
