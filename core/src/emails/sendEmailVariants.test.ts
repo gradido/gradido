@@ -47,6 +47,10 @@ describe('sendEmailVariants', () => {
   const contributionFrontendLink =
     'https://gradido.net/contributions/own-contributions/1#contributionListItem-1'
 
+  afterEach(() => {
+    sendEmailTranslatedSpy.mockClear()
+  })
+
   describe('sendAddedContributionMessageEmail', () => {
     beforeAll(async () => {
       result = await sendAddedContributionMessageEmail({
@@ -162,7 +166,7 @@ describe('sendEmailVariants', () => {
     })
   })
 
-  /*
+
 
   describe('sendAccountMultiRegistrationEmail', () => {
     beforeAll(async () => {
@@ -181,20 +185,22 @@ describe('sendEmailVariants', () => {
             to: 'Peter Lustig <peter@lustig.de>',
           },
           template: 'accountMultiRegistration',
-          locals: {
+          locals: expect.objectContaining({
             firstName: 'Peter',
             lastName: 'Lustig',
-            locale: 'en',
+            language: 'en',
             resendLink: CONFIG.EMAIL_LINK_FORGOTPASSWORD,
             supportEmail: CONFIG.COMMUNITY_SUPPORT_MAIL,
             communityURL: CONFIG.COMMUNITY_URL,
-          },
+          }),
         })
       })
 
       describe('result', () => {
         it('is the expected object', () => {
-          expect(result).toMatchObject({
+          // bun testrunner bug, toMatchObject mess with 'result'
+          const resultClone = JSON.parse(JSON.stringify(result))
+          expect(resultClone).toMatchObject({
             originalMessage: expect.objectContaining({
               to: 'Peter Lustig <peter@lustig.de>',
               from: 'Gradido (emails.general.doNotAnswer) <info@gradido.net>',
@@ -235,24 +241,26 @@ describe('sendEmailVariants', () => {
             to: 'Peter Lustig <peter@lustig.de>',
           },
           template: 'contributionConfirmed',
-          locals: {
+          locals: expect.objectContaining({
             firstName: 'Peter',
             lastName: 'Lustig',
-            locale: 'en',
+            language: 'en',
             senderFirstName: 'Bibi',
             senderLastName: 'Bloxberg',
             contributionMemo: 'My contribution.',
             contributionAmount: '23.54',
             supportEmail: CONFIG.COMMUNITY_SUPPORT_MAIL,
             contributionFrontendLink,
-          },
+          }),
         })
       })
     })
 
     describe('result', () => {
       it('is the expected object', () => {
-        expect(result).toMatchObject({
+        // bun testrunner bug, toMatchObject mess with 'result'
+        const resultClone = JSON.parse(JSON.stringify(result))
+        expect(resultClone).toMatchObject({
           originalMessage: expect.objectContaining({
             to: 'Peter Lustig <peter@lustig.de>',
             from: 'Gradido (emails.general.doNotAnswer) <info@gradido.net>',
@@ -292,24 +300,26 @@ describe('sendEmailVariants', () => {
             to: 'Peter Lustig <peter@lustig.de>',
           },
           template: 'contributionChangedByModerator',
-          locals: {
+          locals: expect.objectContaining({
             firstName: 'Peter',
             lastName: 'Lustig',
-            locale: 'en',
+            language: 'en',
             senderFirstName: 'Bibi',
             senderLastName: 'Bloxberg',
             contributionMemo: 'My contribution.',
             contributionMemoUpdated: 'This is a better contribution memo.',
             contributionFrontendLink,
             supportEmail: CONFIG.COMMUNITY_SUPPORT_MAIL,
-          },
+          }),
         })
       })
     })
 
     describe('result', () => {
       it('is the expected object', () => {
-        expect(result).toMatchObject({
+        // bun testrunner bug, toMatchObject mess with 'result'
+        const resultClone = JSON.parse(JSON.stringify(result))
+        expect(resultClone).toMatchObject({
           originalMessage: expect.objectContaining({
             to: 'Peter Lustig <peter@lustig.de>',
             from: 'Gradido (emails.general.doNotAnswer) <info@gradido.net>',
@@ -348,23 +358,25 @@ describe('sendEmailVariants', () => {
             to: 'Peter Lustig <peter@lustig.de>',
           },
           template: 'contributionDenied',
-          locals: {
+          locals: expect.objectContaining({
             firstName: 'Peter',
             lastName: 'Lustig',
-            locale: 'en',
+            language: 'en',
             senderFirstName: 'Bibi',
             senderLastName: 'Bloxberg',
             contributionMemo: 'My contribution.',
             contributionFrontendLink,
             supportEmail: CONFIG.COMMUNITY_SUPPORT_MAIL,
-          },
+          }),
         })
       })
     })
 
     describe('result', () => {
       it('has expected result', () => {
-        expect(result).toMatchObject({
+        // bun testrunner bug, toMatchObject mess with 'result'
+        const resultClone = JSON.parse(JSON.stringify(result))
+        expect(resultClone).toMatchObject({
           originalMessage: expect.objectContaining({
             to: 'Peter Lustig <peter@lustig.de>',
             from: 'Gradido (emails.general.doNotAnswer) <info@gradido.net>',
@@ -403,23 +415,25 @@ describe('sendEmailVariants', () => {
             to: 'Peter Lustig <peter@lustig.de>',
           },
           template: 'contributionDeleted',
-          locals: {
+          locals: expect.objectContaining({
             firstName: 'Peter',
             lastName: 'Lustig',
-            locale: 'en',
+            language: 'en',
             senderFirstName: 'Bibi',
             senderLastName: 'Bloxberg',
             contributionMemo: 'My contribution.',
             contributionFrontendLink,
             supportEmail: CONFIG.COMMUNITY_SUPPORT_MAIL,
-          },
+          }),
         })
       })
     })
 
     describe('result', () => {
       it('is the expected object', () => {
-        expect(result).toMatchObject({
+        // bun testrunner bug, toMatchObject mess with 'result'
+        const resultClone = JSON.parse(JSON.stringify(result))
+        expect(resultClone).toMatchObject({
           originalMessage: expect.objectContaining({
             to: 'Peter Lustig <peter@lustig.de>',
             from: 'Gradido (emails.general.doNotAnswer) <info@gradido.net>',
@@ -456,23 +470,25 @@ describe('sendEmailVariants', () => {
             to: 'Peter Lustig <peter@lustig.de>',
           },
           template: 'resetPassword',
-          locals: {
+          locals: expect.objectContaining({
             firstName: 'Peter',
             lastName: 'Lustig',
-            locale: 'en',
+            language: 'en',
             resetLink: 'http://localhost/reset-password/3762660021544901417',
             timeDurationObject: { hours: 23, minutes: 30 },
             resendLink: CONFIG.EMAIL_LINK_FORGOTPASSWORD,
             supportEmail: CONFIG.COMMUNITY_SUPPORT_MAIL,
             communityURL: CONFIG.COMMUNITY_URL,
-          },
+          }),
         })
       })
     })
 
     describe('result', () => {
       it('is the expected object', () => {
-        expect(result).toMatchObject({
+        // bun testrunner bug, toMatchObject mess with 'result'
+        const resultClone = JSON.parse(JSON.stringify(result))
+        expect(resultClone).toMatchObject({
           originalMessage: expect.objectContaining({
             to: 'Peter Lustig <peter@lustig.de>',
             from: 'Gradido (emails.general.doNotAnswer) <info@gradido.net>',
@@ -512,10 +528,10 @@ describe('sendEmailVariants', () => {
             to: 'Peter Lustig <peter@lustig.de>',
           },
           template: 'transactionLinkRedeemed',
-          locals: {
+          locals: expect.objectContaining({
             firstName: 'Peter',
             lastName: 'Lustig',
-            locale: 'en',
+            language: 'en',
             senderFirstName: 'Bibi',
             senderLastName: 'Bloxberg',
             senderEmail: 'bibi@bloxberg.de',
@@ -523,14 +539,16 @@ describe('sendEmailVariants', () => {
             transactionAmount: '17.65',
             supportEmail: CONFIG.COMMUNITY_SUPPORT_MAIL,
             communityURL: CONFIG.COMMUNITY_URL,
-          },
+          }),
         })
       })
     })
 
     describe('result', () => {
       it('is the expected object', () => {
-        expect(result).toMatchObject({
+        // bun testrunner bug, toMatchObject mess with 'result'
+        const resultClone = JSON.parse(JSON.stringify(result))
+        expect(resultClone).toMatchObject({
           originalMessage: expect.objectContaining({
             to: 'Peter Lustig <peter@lustig.de>',
             from: 'Gradido (emails.general.doNotAnswer) <info@gradido.net>',
@@ -570,10 +588,10 @@ describe('sendEmailVariants', () => {
             to: 'Peter Lustig <peter@lustig.de>',
           },
           template: 'transactionReceived',
-          locals: {
+          locals: expect.objectContaining({
             firstName: 'Peter',
             lastName: 'Lustig',
-            locale: 'en',
+            language: 'en',
             memo: 'Du bist schon lustiger ;)',
             senderFirstName: 'Bibi',
             senderLastName: 'Bloxberg',
@@ -581,14 +599,16 @@ describe('sendEmailVariants', () => {
             transactionAmount: '37.40',
             supportEmail: CONFIG.COMMUNITY_SUPPORT_MAIL,
             communityURL: CONFIG.COMMUNITY_URL,
-          },
+          }),
         })
       })
     })
 
     describe('result', () => {
       it('is the expected object', () => {
-        expect(result).toMatchObject({
+        // bun testrunner bug, toMatchObject mess with 'result'
+        const resultClone = JSON.parse(JSON.stringify(result))
+        expect(resultClone).toMatchObject({
           originalMessage: expect.objectContaining({
             to: 'Peter Lustig <peter@lustig.de>',
             from: 'Gradido (emails.general.doNotAnswer) <info@gradido.net>',
@@ -605,5 +625,4 @@ describe('sendEmailVariants', () => {
       })
     })
   })
-  */ 
 })
