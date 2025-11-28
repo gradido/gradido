@@ -4,8 +4,9 @@ import { v4 } from 'uuid'
 import { UserContactType, OptInType, PasswordEncryptionType } from 'shared'
 import { getHomeCommunity } from '../../queries/communities'
 import random from 'crypto-random-bigint'
+import { Community } from '../../entity'
 
-export const userFactory = async (user: UserInterface): Promise<User> => {
+export async function userFactory(user: UserInterface, homeCommunity?: Community | null): Promise<User> {
   let dbUserContact = new UserContact()
 
   dbUserContact.email = user.email ?? ''
@@ -30,7 +31,9 @@ export const userFactory = async (user: UserInterface): Promise<User> => {
     dbUser.password = random(64)
     dbUser.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
   }
-  const homeCommunity = await getHomeCommunity()
+  if (!homeCommunity) {
+    homeCommunity = await getHomeCommunity()
+  }
   if (homeCommunity) {
     dbUser.community = homeCommunity
     dbUser.communityUuid = homeCommunity.communityUuid!
@@ -41,5 +44,6 @@ export const userFactory = async (user: UserInterface): Promise<User> => {
   dbUserContact = await dbUserContact.save()
   dbUser.emailId = dbUserContact.id
   dbUser.emailContact = dbUserContact
+
   return dbUser.save()
 }
