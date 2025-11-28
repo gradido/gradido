@@ -95,6 +95,7 @@ import LabeledInput from '@/components/Inputs/LabeledInput'
 import OpenCreationsAmount from './OpenCreationsAmount.vue'
 import { object, date as dateSchema, number, string } from 'yup'
 import { GDD_PER_HOUR } from '../../constants'
+import { useMinimalContributionDate } from '@/composables/useMinimalContributionDate'
 
 const amountToHours = (amount) => parseFloat(amount / GDD_PER_HOUR).toFixed(2)
 const hoursToAmount = (hours) => parseFloat(hours * GDD_PER_HOUR).toFixed(2)
@@ -103,6 +104,7 @@ const props = defineProps({
   modelValue: { type: Object, required: true },
   maxGddLastMonth: { type: Number, required: true },
   maxGddThisMonth: { type: Number, required: true },
+  successMessage: { type: String, required: true },
 })
 
 const emit = defineEmits(['upsert-contribution', 'abort'])
@@ -125,18 +127,13 @@ const form = reactive({ ...entityDataToForm.value })
 const now = ref(new Date()) // checked every minute, updated if day, month or year changed
 const disableSmartValidState = ref(false)
 
+const minimalDate = computed(() => useMinimalContributionDate(now.value))
 const isThisMonth = computed(() => {
   const formContributionDate = new Date(form.contributionDate)
   return (
     formContributionDate.getMonth() === now.value.getMonth() &&
     formContributionDate.getFullYear() === now.value.getFullYear()
   )
-})
-
-const minimalDate = computed(() => {
-  const minimalDate = new Date(now.value)
-  minimalDate.setMonth(now.value.getMonth() - 1, 1)
-  return minimalDate
 })
 
 // reactive validation schema, because some boundaries depend on form input and existing data
