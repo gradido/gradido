@@ -5,13 +5,55 @@ import { UserContactType, OptInType, PasswordEncryptionType } from 'shared'
 import { getHomeCommunity } from '../../queries/communities'
 import random from 'crypto-random-bigint'
 import { Community } from '../../entity'
+import { AppDatabase } from '../..'
 
 export async function userFactory(user: UserInterface, homeCommunity?: Community | null): Promise<User> {
-  let dbUserContact = new UserContact()
-
-  dbUserContact.email = user.email ?? ''
-  dbUserContact.type = UserContactType.USER_CONTACT_EMAIL
+  // TODO: improve with cascade 
+  let dbUser = await createUser(user, homeCommunity)
+  let dbUserContact = await createUserContact(user, dbUser.id)
+  dbUserContact = await dbUserContact.save()
+  dbUser.emailId = dbUserContact.id
+  dbUser.emailContact = dbUserContact
+  dbUser = await dbUser.save()
   
+  return dbUser
+}
+
+// only use in non-parallel environment (seeding for example)
+export async function userFactoryBulk(users: UserInterface[], homeCommunity?: Community | null): Promise<User[]> {
+  const dbUsers: User[] = []
+  const dbUserContacts: UserContact[] = []
+  const lastUser = await User.findOne({ order: { id: 'DESC' }, select: ['id'], where: {} })
+  const lastUserContact = await UserContact.findOne({ order: { id: 'DESC' }, select: ['id'], where: {} })
+  let userId = lastUser ? lastUser.id + 1 : 1
+  let emailId = lastUserContact ? lastUserContact.id + 1 : 1
+  for(const user of users) {
+    const dbUser = await createUser(user, homeCommunity, false)
+    dbUser.id = userId
+    dbUser.emailId = emailId
+
+    const dbUserContact = await createUserContact(user, userId, false)
+    dbUserContact.id = emailId
+    dbUserContact.userId = userId
+    dbUser.emailContact = dbUserContact
+
+    dbUsers.push(dbUser)
+    dbUserContacts.push(dbUserContact)
+    
+    userId++
+    emailId++
+  }
+  const dataSource = AppDatabase.getInstance().getDataSource()
+  await dataSource.transaction(async transaction => {
+    await Promise.all([
+      transaction.getRepository(User).insert(dbUsers),
+      transaction.getRepository(UserContact).insert(dbUserContacts)
+    ])
+  })
+  return dbUsers
+}
+
+export async function createUser(user: UserInterface, homeCommunity?: Community | null, store: boolean = true): Promise<User> {
   let dbUser = new User()
   dbUser.firstName = user.firstName ?? ''
   dbUser.lastName = user.lastName ?? ''
@@ -25,9 +67,6 @@ export async function userFactory(user: UserInterface, homeCommunity?: Community
   dbUser.gradidoID = v4()
 
   if (user.emailChecked) {
-    dbUserContact.emailVerificationCode = random(64).toString()
-    dbUserContact.emailOptInTypeId = OptInType.EMAIL_OPT_IN_REGISTER
-    dbUserContact.emailChecked = true
     dbUser.password = random(64)
     dbUser.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
   }
@@ -38,12 +77,25 @@ export async function userFactory(user: UserInterface, homeCommunity?: Community
     dbUser.community = homeCommunity
     dbUser.communityUuid = homeCommunity.communityUuid!
   }
-  // TODO: improve with cascade 
-  dbUser = await dbUser.save()
-  dbUserContact.userId = dbUser.id
-  dbUserContact = await dbUserContact.save()
-  dbUser.emailId = dbUserContact.id
-  dbUser.emailContact = dbUserContact
 
-  return dbUser.save()
+  return store ? dbUser.save() : dbUser
+}
+
+export async function createUserContact(user: UserInterface, userId?: number, store: boolean = true): Promise<UserContact> {
+  let dbUserContact = new UserContact()
+
+  dbUserContact.email = user.email ?? ''
+  dbUserContact.type = UserContactType.USER_CONTACT_EMAIL
+
+  if (user.emailChecked) {
+    dbUserContact.emailVerificationCode = random(64).toString()
+    dbUserContact.emailOptInTypeId = OptInType.EMAIL_OPT_IN_REGISTER
+    dbUserContact.emailChecked = true
+  }
+
+  if (userId) {
+    dbUserContact.userId = userId
+  }
+
+  return store ? dbUserContact.save() : dbUserContact
 }

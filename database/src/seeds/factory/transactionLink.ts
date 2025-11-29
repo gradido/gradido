@@ -1,9 +1,10 @@
 import { TransactionLinkInterface } from '../transactionLink/TransactionLinkInterface'
-import { TransactionLink } from '../../entity'
+import { TransactionLink, User } from '../../entity'
 import { Decimal } from 'decimal.js-light'
 import { findUserByIdentifier } from '../../queries'
 import { compoundInterest } from 'shared'
 import { randomBytes } from 'node:crypto'
+import { AppDatabase } from '../../AppDatabase'
 
 export async function transactionLinkFactory(
   transactionLinkData: TransactionLinkInterface,
@@ -17,6 +18,23 @@ export async function transactionLinkFactory(
     userId = user.id
   }
   return createTransactionLink(transactionLinkData, userId)
+}
+
+export async function transactionLinkFactoryBulk(
+  transactionLinks: TransactionLinkInterface[], 
+  userCreationIndexedByEmail: Map<string, User>
+): Promise<TransactionLink[]> {
+  const dbTransactionLinks: TransactionLink[] = []
+  for (const transactionLink of transactionLinks) {
+    const user = userCreationIndexedByEmail.get(transactionLink.email)
+    if (!user) {
+      throw new Error(`User ${transactionLink.email} not found`)
+    }
+    dbTransactionLinks.push(await createTransactionLink(transactionLink, user.id, false))
+  }
+  const dataSource = AppDatabase.getInstance().getDataSource()
+  await dataSource.getRepository(TransactionLink).insert(dbTransactionLinks)
+  return dbTransactionLinks
 }
 
 export async function createTransactionLink(transactionLinkData: TransactionLinkInterface, userId: number, store: boolean = true): Promise<TransactionLink> {

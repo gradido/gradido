@@ -1,102 +1,83 @@
 import { AppDatabase } from '../AppDatabase'
-import { clearDatabase } from '../../migration/clear'
 import { createCommunity } from './community'
-import { userFactory } from './factory/user'
+import { userFactoryBulk } from './factory/user'
 import { users } from './users'
-import { datatype, internet, name } from 'faker'
-import { creationFactory } from './factory/creation'
+import { internet, name } from 'faker'
+import { creationFactoryBulk } from './factory/creation'
 import { creations } from './creation'
-import { transactionLinkFactory } from './factory/transactionLink'
+import { transactionLinkFactoryBulk } from './factory/transactionLink'
 import { transactionLinks } from './transactionLink'
 import { contributionLinkFactory } from './factory/contributionLink'
 import { contributionLinks } from './contributionLink'
 import { User } from '../entity'
-import { TransactionLink } from '../entity'
-import { ContributionLink } from '../entity'
+import { UserInterface } from './users/UserInterface'
 
 const RANDOM_USER_COUNT = 100
 
 async function run() {
-  const now = new Date()
-  // clear database, use mysql2 directly, not AppDatabase
-  await clearDatabase()
-
+  console.info('##seed## seeding started...')
+  
   const db = AppDatabase.getInstance()
   await db.init()
+  await clearDatabase()
 
   // seed home community
-  const homeCommunity = await createCommunity(false)
-  console.info('##seed## seeding home community successful...')
+  const homeCommunity = await createCommunity(false)  
+  console.info(`##seed## seeding home community successful ...`)
 
   // seed standard users
-  // start creation of all users in parallel
   // put into map for later direct access
-  const userCreationIndexedByEmail = new Map<string, Promise<User>>()
-  for (const user of users) {
-    userCreationIndexedByEmail.set(user.email!, userFactory(user, homeCommunity))
+  const userCreationIndexedByEmail = new Map<string, User>()
+  const defaultUsers = await userFactoryBulk(users, homeCommunity)
+  for (const dbUser of defaultUsers) {
+    userCreationIndexedByEmail.set(dbUser.emailContact.email, dbUser)
   }
-  const defaultUsersPromise = Promise.all(userCreationIndexedByEmail.values()).then(() => {
-    // log message after all users are created
-    console.info('##seed## seeding all standard users successful...')
-  })
+  console.info(`##seed## seeding all standard users successful ...`)  
 
-  // seed 100 random users
-  // start creation of all random users in parallel
-  const randomUsersCreation: Promise<User>[] = []
+  // seed 100 random users  
+  const randomUsers = new Array<UserInterface>(RANDOM_USER_COUNT)
   for (let i = 0; i < RANDOM_USER_COUNT; i++) {
-    randomUsersCreation.push(userFactory({
+    randomUsers[i] = {
       firstName: name.firstName(),
       lastName: name.lastName(),
       email: internet.email(),
-      language: datatype.boolean() ? 'en' : 'de',
-    }, homeCommunity))
+      language: Math.random() < 0.5 ? 'en' : 'de',
+    }
   }
-  const randomUsersPromise = Promise.all(randomUsersCreation).then(() => {
-    // log message after all random users are created
-    console.info(`##seed## seeding ${RANDOM_USER_COUNT} random users successful...`)
-  })
-
-  // create Contribution Links
-  // start creation of all contribution links in parallel
-  const contributionLinksPromises: Promise<ContributionLink>[] = []
-  for (const contributionLink of contributionLinks) {
-    contributionLinksPromises.push(contributionLinkFactory(contributionLink))
-  }
-  const contributionLinksPromise = Promise.all(contributionLinksPromises).then(() => {
-    // log message after all contribution links are created
-    console.info('##seed## seeding all contributionLinks successful...')
-  })
-
-  // create Transaction Links
-  // start creation of all transaction links in parallel
-  const transactionLinksPromises: Promise<TransactionLink>[] = []
-  for (const transactionLink of transactionLinks) {
-    const user = await userCreationIndexedByEmail.get(transactionLink.email)!
-    transactionLinksPromises.push(transactionLinkFactory(transactionLink, user.id))
-  }
-  const transactionLinksPromise = Promise.all(transactionLinksPromises).then(() => {
-    // log message after all transaction links are created
-    console.info('##seed## seeding all transactionLinks successful...')
-  })
+  await userFactoryBulk(randomUsers, homeCommunity)
+  console.info(`##seed## seeding ${RANDOM_USER_COUNT} random users successful ...`)
 
   // create GDD serial, must be called one after another because seeding don't use semaphore
-  const moderatorUser = await userCreationIndexedByEmail.get('peter@lustig.de')!
-  for (const creation of creations) {
-    const user = await userCreationIndexedByEmail.get(creation.email)!
-    await creationFactory(creation, user, moderatorUser)
-  }
+  const moderatorUser = userCreationIndexedByEmail.get('peter@lustig.de')!
+  await creationFactoryBulk(creations, userCreationIndexedByEmail, moderatorUser)
+  console.info(`##seed## seeding all creations successful ...`)
 
-  // wait for all promises to be resolved
-  await Promise.all([
-    defaultUsersPromise,
-    randomUsersPromise,
-    contributionLinksPromise,
-    transactionLinksPromise,
-  ])
+  // create Contribution Links
+  for (const contributionLink of contributionLinks) {
+    await contributionLinkFactory(contributionLink)
+  }
+  console.info(`##seed## seeding all contributionLinks successful ...`)
+
+  // create Transaction Links
+  await transactionLinkFactoryBulk(transactionLinks, userCreationIndexedByEmail)
+  console.info(`##seed## seeding all transactionLinks successful ...`)
 
   await db.destroy()
-  const timeDiffSeconds = (new Date().getTime() - now.getTime()) / 1000
-  console.info(`##seed## seeding successful... after ${timeDiffSeconds} seconds`)
+  console.info(`##seed## seeding successful...`)
+}
+
+async function clearDatabase() {
+  await AppDatabase.getInstance().getDataSource().transaction(async trx => {
+    await trx.query(`SET FOREIGN_KEY_CHECKS = 0`)
+    await trx.query(`TRUNCATE TABLE contributions`)
+    await trx.query(`TRUNCATE TABLE contribution_links`)
+    await trx.query(`TRUNCATE TABLE users`)
+    await trx.query(`TRUNCATE TABLE user_contacts`)
+    await trx.query(`TRUNCATE TABLE transactions`)
+    await trx.query(`TRUNCATE TABLE transaction_links`)
+    await trx.query(`TRUNCATE TABLE communities`)
+    await trx.query(`SET FOREIGN_KEY_CHECKS = 1`)
+  })
 }
 
 run().catch((err) => {

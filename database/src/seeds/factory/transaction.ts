@@ -12,7 +12,8 @@ export async function createTransaction(
   linkedUser: User,
   type: TransactionTypeId,
   balanceDate: Date,
-  creationDate?: Date,  
+  creationDate?: Date,
+  id?: number,  
   store: boolean = true,
 ): Promise<Transaction> {
   
@@ -31,6 +32,9 @@ export async function createTransaction(
   newBalance = newBalance.add(amount.toString())
 
   const transaction = new Transaction()
+  if (id) {
+    transaction.id = id
+  }
   transaction.typeId = type
   transaction.memo = memo
   transaction.userId = user.id
