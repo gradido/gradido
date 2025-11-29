@@ -1,11 +1,12 @@
 import { UserInterface } from '../users/UserInterface'
-import { User, UserContact } from '../../entity'
+import { User, UserContact, UserRole } from '../../entity'
 import { v4 } from 'uuid'
 import { UserContactType, OptInType, PasswordEncryptionType } from 'shared'
 import { getHomeCommunity } from '../../queries/communities'
 import random from 'crypto-random-bigint'
 import { Community } from '../../entity'
 import { AppDatabase } from '../..'
+import { RoleNames } from '../../enum/RoleNames'
 
 export async function userFactory(user: UserInterface, homeCommunity?: Community | null): Promise<User> {
   // TODO: improve with cascade 
@@ -15,6 +16,11 @@ export async function userFactory(user: UserInterface, homeCommunity?: Community
   dbUser.emailId = dbUserContact.id
   dbUser.emailContact = dbUserContact
   dbUser = await dbUser.save()
+
+  const userRole = user.role as RoleNames
+  if (userRole && (userRole === RoleNames.ADMIN || userRole === RoleNames.MODERATOR)) {
+    await createUserRole(dbUser.id, userRole)
+  }
   
   return dbUser
 }
@@ -23,6 +29,7 @@ export async function userFactory(user: UserInterface, homeCommunity?: Community
 export async function userFactoryBulk(users: UserInterface[], homeCommunity?: Community | null): Promise<User[]> {
   const dbUsers: User[] = []
   const dbUserContacts: UserContact[] = []
+  const dbUserRoles: UserRole[] = []
   const lastUser = await User.findOne({ order: { id: 'DESC' }, select: ['id'], where: {} })
   const lastUserContact = await UserContact.findOne({ order: { id: 'DESC' }, select: ['id'], where: {} })
   let userId = lastUser ? lastUser.id + 1 : 1
@@ -40,6 +47,11 @@ export async function userFactoryBulk(users: UserInterface[], homeCommunity?: Co
 
     dbUsers.push(dbUser)
     dbUserContacts.push(dbUserContact)
+
+    const userRole = user.role as RoleNames
+    if (userRole && (userRole === RoleNames.ADMIN || userRole === RoleNames.MODERATOR)) {
+      dbUserRoles.push(await createUserRole(dbUser.id, userRole, false))
+    }
     
     userId++
     emailId++
@@ -50,9 +62,11 @@ export async function userFactoryBulk(users: UserInterface[], homeCommunity?: Co
     // because of manuel id assignment
     const dbUsersCopy = dbUsers.map(user => ({ ...user }))
     const dbUserContactsCopy = dbUserContacts.map(userContact => ({ ...userContact }))
+    const dbUserRolesCopy = dbUserRoles.map(userRole => ({ ...userRole }))
     await Promise.all([
       transaction.getRepository(User).insert(dbUsersCopy),
-      transaction.getRepository(UserContact).insert(dbUserContactsCopy)
+      transaction.getRepository(UserContact).insert(dbUserContactsCopy),
+      transaction.getRepository(UserRole).insert(dbUserRolesCopy)
     ])
   })
   return dbUsers
@@ -107,4 +121,11 @@ export async function createUserContact(user: UserInterface, userId?: number, st
   }
 
   return store ? dbUserContact.save() : dbUserContact
+}
+
+export async function createUserRole(userId: number, role: RoleNames, store: boolean = true): Promise<UserRole> {
+  let dbUserRole = new UserRole()
+  dbUserRole.userId = userId
+  dbUserRole.role = role
+  return store ? dbUserRole.save() : dbUserRole
 }

@@ -83,6 +83,7 @@ async function clearDatabase() {
     await trx.query(`TRUNCATE TABLE contribution_links`)
     await trx.query(`TRUNCATE TABLE users`)
     await trx.query(`TRUNCATE TABLE user_contacts`)
+    await trx.query(`TRUNCATE TABLE user_roles`)
     await trx.query(`TRUNCATE TABLE transactions`)
     await trx.query(`TRUNCATE TABLE transaction_links`)
     await trx.query(`TRUNCATE TABLE communities`)
