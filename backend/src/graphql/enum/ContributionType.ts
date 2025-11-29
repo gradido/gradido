@@ -1,10 +1,7 @@
 import { registerEnumType } from 'type-graphql'
+import { ContributionType } from 'database'
 
-export enum ContributionType {
-  ADMIN = 'ADMIN',
-  USER = 'USER',
-  LINK = 'LINK',
-}
+export { ContributionType }
 
 registerEnumType(ContributionType, {
   name: 'ContributionType',

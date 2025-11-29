@@ -1,12 +1,7 @@
 import { registerEnumType } from 'type-graphql'
+import { ContributionStatus } from 'database'
 
-export enum ContributionStatus {
-  PENDING = 'PENDING',
-  DELETED = 'DELETED',
-  IN_PROGRESS = 'IN_PROGRESS',
-  DENIED = 'DENIED',
-  CONFIRMED = 'CONFIRMED',
-}
+export { ContributionStatus }
 
 registerEnumType(ContributionStatus, {
   name: 'ContributionStatus',

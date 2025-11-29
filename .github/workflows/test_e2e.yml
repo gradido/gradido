@@ -32,11 +32,6 @@ jobs:
       - name: Boot up test system | seed backend
         run: bun turbo seed
 
-      - name: Moving logs after seeding
-        run: |
-          mkdir -p /home/runner/work/gradido/gradido/logs/backend/seed
-          mv /home/runner/work/gradido/gradido/logs/backend/*.log /home/runner/work/gradido/gradido/logs/backend/seed/
-
       - name: Boot up test system | docker-compose backend, frontend
         run: |
           cd backend
@@ -144,11 +139,6 @@ jobs:
           cd ../backend
           cp .env.test_e2e .env
 
-      - name: Moving logs after seeding
-        run: |
-          mkdir -p /home/runner/work/gradido/gradido/logs/backend/seed
-          mv /home/runner/work/gradido/gradido/logs/backend/*.log /home/runner/work/gradido/gradido/logs/backend/seed/
-
       - name: Boot up test system | docker-compose backend, frontend
         run: |
           bun turbo backend#build frontend#build --env-mode=loose
@@ -221,11 +211,6 @@ jobs:
 
       - name: Boot up test system | seed backend
         run: bun turbo seed
-
-      - name: Moving logs after seeding
-        run: |
-          mkdir -p /home/runner/work/gradido/gradido/logs/backend/seed
-          mv /home/runner/work/gradido/gradido/logs/backend/*.log /home/runner/work/gradido/gradido/logs/backend/seed/
 
       - name: Boot up test system | docker-compose backend, frontend
         run: |

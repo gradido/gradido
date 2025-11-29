@@ -14,9 +14,6 @@ export const decimalSeparatorByLanguage = (a: Decimal, language: string): string
   return result
 }
 
-export const fullName = (firstName: string, lastName: string): string =>
-  [firstName, lastName].filter(Boolean).join(' ')
-
 // Function to reset an interface by chatGPT
 
 export function resetInterface<T extends Record<string, any>>(obj: T): T {

@@ -10,22 +10,28 @@ import {
   findUserByIdentifier,
   getCommunityByUuid,
   PendingTransactionLoggingView,
-  UserLoggingView
+  UserLoggingView,
+  TransactionTypeId,
 } from 'database'
 import { Decimal } from 'decimal.js-light'
 
 import { CONFIG as CONFIG_CORE } from '../../config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../../config/const'
 
-import { encryptAndSign, PendingTransactionState, SendCoinsJwtPayloadType, SendCoinsResponseJwtPayloadType, verifyAndDecrypt } from 'shared'
+import { 
+  encryptAndSign, 
+  fullName, 
+  PendingTransactionState, 
+  SendCoinsJwtPayloadType, 
+  SendCoinsResponseJwtPayloadType, 
+  verifyAndDecrypt 
+} from 'shared'
 import { SendCoinsClient as V1_0_SendCoinsClient } from '../../federation/client/1_0/SendCoinsClient'
 import { SendCoinsResult } from '../../federation/client/1_0/model/SendCoinsResult'
 import { SendCoinsClientFactory } from '../../federation/client/SendCoinsClientFactory'
-import { TransactionTypeId } from '../../graphql/enum/TransactionTypeId'
 // import { LogError } from '@server/LogError'
 import { getLogger } from 'log4js'
 import { calculateSenderBalance } from '../../util/calculateSenderBalance'
-import { fullName } from '../../util/utilities'
 
 import { randombytes_random } from 'sodium-native'
 import { SendCoinsResultLoggingView } from '../../federation/client/1_0/logging/SendCoinsResultLogging.view'
