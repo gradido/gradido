@@ -142,7 +142,6 @@ export const creations: CreationInterface[] = [
     memo: '#Hexen',
     contributionDate: nMonthsBefore(new Date()),
     confirmed: true,
-    moveCreationDate: 12,
   },
   ...bobsTransactions,
   {

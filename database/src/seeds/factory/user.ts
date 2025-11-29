@@ -27,6 +27,7 @@ export async function userFactoryBulk(users: UserInterface[], homeCommunity?: Co
   const lastUserContact = await UserContact.findOne({ order: { id: 'DESC' }, select: ['id'], where: {} })
   let userId = lastUser ? lastUser.id + 1 : 1
   let emailId = lastUserContact ? lastUserContact.id + 1 : 1
+  // console.log(`start with userId: ${userId} and emailId: ${emailId}`)
   for(const user of users) {
     const dbUser = await createUser(user, homeCommunity, false)
     dbUser.id = userId
@@ -45,9 +46,13 @@ export async function userFactoryBulk(users: UserInterface[], homeCommunity?: Co
   }
   const dataSource = AppDatabase.getInstance().getDataSource()
   await dataSource.transaction(async transaction => {
+    // typeorm change my data what I don't want
+    // because of manuel id assignment
+    const dbUsersCopy = dbUsers.map(user => ({ ...user }))
+    const dbUserContactsCopy = dbUserContacts.map(userContact => ({ ...userContact }))
     await Promise.all([
-      transaction.getRepository(User).insert(dbUsers),
-      transaction.getRepository(UserContact).insert(dbUserContacts)
+      transaction.getRepository(User).insert(dbUsersCopy),
+      transaction.getRepository(UserContact).insert(dbUserContactsCopy)
     ])
   })
   return dbUsers
@@ -87,6 +92,10 @@ export async function createUserContact(user: UserInterface, userId?: number, st
   dbUserContact.email = user.email ?? ''
   dbUserContact.type = UserContactType.USER_CONTACT_EMAIL
 
+  if (user.createdAt) {
+    dbUserContact.createdAt = user.createdAt
+    dbUserContact.updatedAt = user.createdAt
+  }
   if (user.emailChecked) {
     dbUserContact.emailVerificationCode = random(64).toString()
     dbUserContact.emailOptInTypeId = OptInType.EMAIL_OPT_IN_REGISTER

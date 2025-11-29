@@ -5,7 +5,7 @@ import { users } from './users'
 import { internet, name } from 'faker'
 import { creationFactoryBulk } from './factory/creation'
 import { creations } from './creation'
-import { transactionLinkFactoryBulk } from './factory/transactionLink'
+import { transactionLinkCode, transactionLinkFactoryBulk } from './factory/transactionLink'
 import { transactionLinks } from './transactionLink'
 import { contributionLinkFactory } from './factory/contributionLink'
 import { contributionLinks } from './contributionLink'
@@ -59,7 +59,17 @@ async function run() {
   console.info(`##seed## seeding all contributionLinks successful ...`)
 
   // create Transaction Links
-  await transactionLinkFactoryBulk(transactionLinks, userCreationIndexedByEmail)
+  const movedTransactionLinks = transactionLinks.map(transactionLink => {
+    let createdAt = new Date(new Date().getTime() + 1000)
+    if (transactionLink.createdAt) {
+      createdAt = transactionLink.createdAt
+    }
+    return {
+      ...transactionLink,
+      createdAt: createdAt,
+    }
+  })
+  await transactionLinkFactoryBulk(movedTransactionLinks, userCreationIndexedByEmail)
   console.info(`##seed## seeding all transactionLinks successful ...`)
 
   await db.destroy()

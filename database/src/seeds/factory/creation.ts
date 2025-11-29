@@ -29,7 +29,7 @@ export async function creationFactory(
     if (!moderatorUser) {
       throw new Error('Moderator user not found')
     }
-    await confirmTransaction(contribution, moderatorUser)
+    await confirmTransaction(creation, contribution, moderatorUser)
   }
   return contribution
 }
@@ -51,7 +51,13 @@ export async function creationFactoryBulk(
     }
     let contribution = await createContribution(creation, user, false)
     if (creation.confirmed) {
-      const { contribution: _, transaction } = await confirmTransaction(contribution, moderatorUser, transactionId, false)
+      const { contribution: _, transaction } = await confirmTransaction(
+        creation, 
+        contribution, 
+        moderatorUser, 
+        transactionId, 
+        false
+      )
       dbTransactions.push(transaction)
       transactionId++
     }
@@ -80,24 +86,25 @@ export async function createContribution(creation: CreationInterface, user: User
 }
 
 export async function confirmTransaction(
+  creation: CreationInterface,
   contribution: Contribution, 
   moderatorUser: User, 
   transactionId?: number, 
   store: boolean = true
 ): Promise<{ contribution: Contribution, transaction: Transaction }> {
-  const now = new Date()
+  const balanceDate = getBalanceDate(creation)
   const transaction = await createTransaction(
     contribution.amount,
     contribution.memo,
     contribution.user,
     moderatorUser,
     TransactionTypeId.CREATION,
-    now,
+    balanceDate,
     contribution.contributionDate,
     transactionId,
     store,
   )
-  contribution.confirmedAt = now
+  contribution.confirmedAt = balanceDate
   contribution.confirmedBy = moderatorUser.id
   contribution.transactionId = transaction.id
   contribution.transaction = transaction
@@ -116,4 +123,12 @@ function getContributionDate(creation: CreationInterface): Date {
       return new Date(nMonthsBefore(new Date(creation.contributionDate), creation.moveCreationDate))
   }
   return new Date(creation.contributionDate)
+}
+
+function getBalanceDate(creation: CreationInterface): Date {
+  const now = new Date()
+  if (creation.moveCreationDate) {
+      return new Date(nMonthsBefore(now, creation.moveCreationDate))
+  }
+  return now
 }
