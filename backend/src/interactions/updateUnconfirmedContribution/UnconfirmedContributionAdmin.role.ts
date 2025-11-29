@@ -1,5 +1,6 @@
-import { Contribution, ContributionStatus, User } from 'database'
+import { Contribution, User } from 'database'
 
+import { ContributionStatus } from '@enum/ContributionStatus' 
 import { RIGHTS } from '@/auth/RIGHTS'
 import { Role } from '@/auth/Role'
 import { ContributionMessageBuilder } from '@/data/ContributionMessage.builder'

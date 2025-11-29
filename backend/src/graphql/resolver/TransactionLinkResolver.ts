@@ -3,6 +3,8 @@ import { randomBytes } from 'crypto'
 import { Paginated } from '@arg/Paginated'
 import { TransactionLinkArgs } from '@arg/TransactionLinkArgs'
 import { TransactionLinkFilters } from '@arg/TransactionLinkFilters'
+import { ContributionType } from '@enum/ContributionType'
+import { ContributionStatus } from '@enum/ContributionStatus'
 import { Community } from '@model/Community'
 import { ContributionLink } from '@model/ContributionLink'
 import { RedeemJwtLink } from '@model/RedeemJwtLink'
@@ -12,9 +14,6 @@ import { QueryLinkResult } from '@union/QueryLinkResult'
 import { Decay, interpretEncryptedTransferArgs, EncryptedTransferArgs } from 'core'
 import {
   AppDatabase, Contribution as DbContribution,
-  ContributionCycleType,
-  ContributionStatus,
-  ContributionType,
   ContributionLink as DbContributionLink, 
   FederatedCommunity as DbFederatedCommunity, 
   DltTransaction as DbDltTransaction,
@@ -26,6 +25,7 @@ import {
   findTransactionLinkByCode,
   getHomeCommunity
 } from 'database'
+import { ContributionCycleType } from '@/graphql/enum/ContributionCycleType'
 import { Decimal } from 'decimal.js-light'
 import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
 

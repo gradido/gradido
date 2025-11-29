@@ -1,7 +1,5 @@
 import {
   Contribution as DbContribution,
-  ContributionStatus,
-  ContributionType,
   Transaction as DbTransaction,
   TransactionTypeId,
   User as DbUser,
@@ -18,6 +16,7 @@ import { AdminUpdateContributionArgs } from '@arg/AdminUpdateContributionArgs'
 import { ContributionArgs } from '@arg/ContributionArgs'
 import { Paginated } from '@arg/Paginated'
 import { SearchContributionsFilterArgs } from '@arg/SearchContributionsFilterArgs'
+import { ContributionStatus } from '@enum/ContributionStatus'
 import { AdminUpdateContribution } from '@model/AdminUpdateContribution'
 import { Contribution, ContributionListResult } from '@model/Contribution'
 import { OpenCreation } from '@model/OpenCreation'
@@ -47,6 +46,7 @@ import { calculateDecay, Decay, fullName } from 'shared'
 
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { ContributionMessageType } from '@enum/ContributionMessageType'
+import { ContributionType } from '@enum/ContributionType'
 import { AppDatabase } from 'database'
 import { getLogger } from 'log4js'
 import {

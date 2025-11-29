@@ -1,6 +1,7 @@
-import { Contribution, ContributionStatus, User } from 'database'
+import { Contribution, User } from 'database'
 import { Decimal } from 'decimal.js-light'
 
+import { ContributionStatus } from '@enum/ContributionStatus' 
 import { Role } from '@/auth/Role'
 import { ContributionLogic } from '@/data/Contribution.logic'
 import { ContributionMessageBuilder } from '@/data/ContributionMessage.builder'

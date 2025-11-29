@@ -1,5 +1,6 @@
-import { Contribution, ContributionStatus, User } from 'database'
+import { Contribution, User } from 'database'
 
+import { ContributionStatus } from '@enum/ContributionStatus' 
 import { ContributionMessageBuilder } from '@/data/ContributionMessage.builder'
 import { ContributionArgs } from '@/graphql/arg/ContributionArgs'
 import { LogError } from '@/server/LogError'
