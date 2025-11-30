@@ -1,4 +1,4 @@
-import { User, userFactory as userFactoryDb } from 'database'
+import { User, userFactory as userFactoryDb, userFactoryBulk as userFactoryBulkDb, Community } from 'database'
 
 import { writeHomeCommunityEntry } from '@/seeds/community'
 import { UserInterface } from '@/seeds/users/UserInterface'
@@ -17,4 +17,19 @@ export const userFactory = async (
     await dbUser.save()
   }
   return dbUser
+}
+
+export async function userFactoryBulk(users: UserInterface[], homeCommunity?: Community | null) {
+  if (!homeCommunity) {
+    homeCommunity = await writeHomeCommunityEntry()
+  }
+  const dbUsers = await userFactoryBulkDb(users, homeCommunity)
+  for (const dbUser of dbUsers) {
+    if (dbUser.emailContact.emailChecked) {
+      const passwortHash = await encryptPassword(dbUser, 'Aa12345_')
+      dbUser.password = passwortHash
+      await dbUser.save()
+    }
+  }
+  return dbUsers
 }
