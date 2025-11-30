@@ -245,7 +245,7 @@
         "@types/mysql": "^2.15.27",
         "@types/node": "^18.7.14",
         "await-semaphore": "^0.1.3",
-        "crypto-random-bigint": "^2.1.1",
+        "random-bigint": "^0.0.1",
         "ts-node": "^10.9.2",
         "typescript": "^4.9.5",
       },
@@ -1768,8 +1768,6 @@
 
     "cross-spawn": ["cross-spawn@7.0.6", "", { "dependencies": { "path-key": "^3.1.0", "shebang-command": "^2.0.0", "which": "^2.0.1" } }, "sha512-uV2QOWP2nWzsy2aMp8aRibhi9dlzF5Hgh5SHaB9OiTGEyDTiJJyx0uy51QXdyWbtAHNua4XJzUKca3OzKUd3vA=="],
 
-    "crypto-random-bigint": ["crypto-random-bigint@2.1.1", "", { "dependencies": { "uint-rng": "^1.2.1" } }, "sha512-96+FDrenXybkpnLML/60S8NcG32KgJ5Y8yvNNCYPW02r+ssoXFR5XKenuIQcHLWumnGj8UPqUUHBzXNrDGkDmQ=="],
-
     "css-functions-list": ["css-functions-list@3.2.3", "", {}, "sha512-IQOkD3hbR5KrN93MtcYuad6YPuTSUhntLHDuLEbFWE+ff2/XSZNdZG+LcbbIW5AXKg/WFIfYItIzVoHngHXZzA=="],
 
     "css-select": ["css-select@4.3.0", "", { "dependencies": { "boolbase": "^1.0.0", "css-what": "^6.0.1", "domhandler": "^4.3.1", "domutils": "^2.8.0", "nth-check": "^2.0.1" } }, "sha512-wPpOYtnsVontu2mODhA19JrqWxNsfdatRKd64kmpRbQgh1KtItko5sTnEpPdpSaJszTOhEMlF/RPz28qj4HqhQ=="],
@@ -3278,8 +3276,6 @@
 
     "tiny-case": ["tiny-case@1.0.3", "", {}, "sha512-Eet/eeMhkO6TX8mnUteS9zgPbUMQa4I6Kkp5ORiBD5476/m+PIRiumP5tmh5ioJpH7k51Kehawy2UDfsnxxY8Q=="],
 
-    "tiny-webcrypto": ["tiny-webcrypto@1.0.3", "", {}, "sha512-LQQdNMAgz9BXNT2SKbYh3eCb+fLV0p7JB7MwUjzY6IOlQLGIadfnFqRpshERsS5Dl2OM/hs0+4I/XmSrF+RBbw=="],
-
     "tinybench": ["tinybench@2.9.0", "", {}, "sha512-0+DUvqWMValLmha6lr4kD8iAMK1HzV0/aKnCtWb9v9641TnP/MFb7Pc2bxoxQjTXAErryXVgUOfv2YqNllqGeg=="],
 
     "tinyexec": ["tinyexec@1.0.1", "", {}, "sha512-5uC6DDlmeqiOwCPmK9jMSdOuZTh8bU39Ys6yidB+UTt5hfZUPGAypSgFRiEp+jbi9qH40BLDvy85jIU88wKSqw=="],
@@ -3391,8 +3387,6 @@
     "ufo": ["ufo@1.6.1", "", {}, "sha512-9a4/uxlTWJ4+a5i0ooc1rU7C7YOw3wT+UGqdeNNHWnOF9qcMBgLRS+4IYUqbczewFx4mLEig6gawh7X6mFlEkA=="],
 
     "uglify-js": ["uglify-js@3.19.3", "", { "bin": { "uglifyjs": "bin/uglifyjs" } }, "sha512-v3Xu+yuwBXisp6QYTcH4UbH+xYJXqnq2m/LtQVWKWzYc1iehYnLixoQDN9FH6/j9/oybfd6W9Ghwkl8+UMKTKQ=="],
-
-    "uint-rng": ["uint-rng@1.2.1", "", { "dependencies": { "tiny-webcrypto": "^1.0.2" } }, "sha512-swhDg5H+3DX2sIvnYA7VMBMXV/t8mPxvh49CjCDkwFmj/3OZIDOQwJANBgM1MPSUBrUHNIlXmU7/GcL7m4907g=="],
 
     "uint8array-extras": ["uint8array-extras@1.5.0", "", {}, "sha512-rvKSBiC5zqCCiDZ9kAOszZcDvdAHwwIKJG33Ykj43OKcWsnmcBRL09YTU4nOeHZ8Y2a7l1MgTd08SBe9A8Qj6A=="],
 

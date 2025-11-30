@@ -67,7 +67,7 @@ import { printTimeDuration } from '@/util/time'
 import { objectValuesToArray } from 'core'
 
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { getLogger } from 'config-schema/test/testSetup'
+import { clearLogs, getLogger, printLogs } from 'config-schema/test/testSetup'
 import { Location2Point } from './util/Location2Point'
 
 jest.mock('@/apis/humhub/HumHubClient')
@@ -738,7 +738,7 @@ describe('UserResolver', () => {
                 hasElopage: false,
                 hideAmountGDD: false,
                 hideAmountGDT: false,
-                humhubAllowed: true,
+                humhubAllowed: false,
                 humhubPublishName: 'PUBLISH_NAME_ALIAS_OR_INITALS',
                 klickTipp: {
                   newsletterState: false,
@@ -1610,7 +1610,7 @@ describe('UserResolver', () => {
                 hasElopage: false,
                 hideAmountGDD: false,
                 hideAmountGDT: false,
-                humhubAllowed: true,
+                humhubAllowed: false,
                 humhubPublishName: 'PUBLISH_NAME_ALIAS_OR_INITALS',
                 klickTipp: {
                   newsletterState: false,
@@ -2256,7 +2256,7 @@ describe('UserResolver', () => {
               relations: ['user'],
             })
             const activationLink = `${
-              CONFIG.EMAIL_LINK_VERIFICATION
+              CONFIG.EMAIL_LINK_SETPASSWORD
             }${userContact.emailVerificationCode.toString()}`
             expect(sendAccountActivationEmail).toBeCalledWith({
               firstName: 'Bibi',

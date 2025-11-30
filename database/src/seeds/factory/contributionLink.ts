@@ -5,13 +5,11 @@ import { ContributionLinkInterface } from '../contributionLink/ContributionLinkI
 import { transactionLinkCode } from './transactionLink'
 import { ContributionCycleType } from '../../enum'
 
-export const contributionLinkFactory = async (
-  contributionLink: ContributionLinkInterface,
-): Promise<ContributionLink> => {
+export function contributionLinkFactory(contributionLink: ContributionLinkInterface): Promise<ContributionLink> {
   return createContributionLink(contributionLink)
 }
 
-export async function createContributionLink(contributionLinkData: ContributionLinkInterface): Promise<ContributionLink> {
+export function createContributionLink(contributionLinkData: ContributionLinkInterface): Promise<ContributionLink> {
   const contributionLink = new ContributionLink()
   contributionLink.amount = new Decimal(contributionLinkData.amount)
   contributionLink.name = contributionLinkData.name

@@ -1,3 +1,5 @@
+export { transactionLinks } from 'database'
+/*
 import { TransactionLinkInterface } from './TransactionLinkInterface'
 
 export const transactionLinks: TransactionLinkInterface[] = [
@@ -53,3 +55,4 @@ bei Gradidio sei dabei!`,
     deletedAt: true,
   },
 ]
+*/

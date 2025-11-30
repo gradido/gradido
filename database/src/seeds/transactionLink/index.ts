@@ -1,4 +1,5 @@
 import { TransactionLinkInterface } from './TransactionLinkInterface'
+export type { TransactionLinkInterface }
 
 export const transactionLinks: TransactionLinkInterface[] = [
   {

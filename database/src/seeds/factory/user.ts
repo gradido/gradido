@@ -3,7 +3,7 @@ import { User, UserContact, UserRole } from '../../entity'
 import { v4 } from 'uuid'
 import { UserContactType, OptInType, PasswordEncryptionType } from 'shared'
 import { getHomeCommunity } from '../../queries/communities'
-import random from 'crypto-random-bigint'
+import random from 'random-bigint'
 import { Community } from '../../entity'
 import { AppDatabase } from '../..'
 import { RoleNames } from '../../enum/RoleNames'
@@ -12,14 +12,13 @@ export async function userFactory(user: UserInterface, homeCommunity?: Community
   // TODO: improve with cascade 
   let dbUser = await createUser(user, homeCommunity)
   let dbUserContact = await createUserContact(user, dbUser.id)
-  dbUserContact = await dbUserContact.save()
   dbUser.emailId = dbUserContact.id
   dbUser.emailContact = dbUserContact
   dbUser = await dbUser.save()
 
   const userRole = user.role as RoleNames
   if (userRole && (userRole === RoleNames.ADMIN || userRole === RoleNames.MODERATOR)) {
-    await createUserRole(dbUser.id, userRole)
+    dbUser.userRoles = [await createUserRole(dbUser.id, userRole)]
   }
   
   return dbUser
@@ -86,7 +85,7 @@ export async function createUser(user: UserInterface, homeCommunity?: Community 
   dbUser.gradidoID = v4()
 
   if (user.emailChecked) {
-    dbUser.password = random(64)
+    // dbUser.password = 
     dbUser.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
   }
   if (!homeCommunity) {

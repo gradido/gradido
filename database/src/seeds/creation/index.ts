@@ -2,6 +2,8 @@ import { nMonthsBefore } from '../factory/creation'
 
 import { CreationInterface } from './CreationInterface'
 
+export type { CreationInterface }
+
 const bobsSendings = [
   {
     amount: 10,
