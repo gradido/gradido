@@ -82,6 +82,7 @@ export async function createUser(user: UserInterface, homeCommunity?: Community 
   dbUser.createdAt = user.createdAt ?? new Date()
   dbUser.deletedAt = user.deletedAt ?? null
   dbUser.publisherId = user.publisherId ?? 0
+  dbUser.humhubAllowed = true
   dbUser.gradidoID = v4()
 
   if (user.emailChecked) {

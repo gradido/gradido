@@ -4,8 +4,6 @@ import { connectToDatabaseServer } from './prepare'
 import { MIGRATIONS_TABLE } from '../src/config/const'
 
 export async function truncateTables(connection: Connection) {
-  const databaseName = CONFIG.DB_DATABASE
-  await connection.query(`USE \`${databaseName}\``)
   const [tables] = await connection.query('SHOW TABLES')
   const tableNames = (tables as any[]).map((table) => Object.values(table)[0])
 

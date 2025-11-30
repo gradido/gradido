@@ -30,7 +30,12 @@ jobs:
           sudo cp ./nginx/e2e-test.conf /etc/nginx/sites-available/default
 
       - name: Boot up test system | seed backend
-        run: bun turbo seed --env-mode=loose
+        run: bun turbo seed
+
+      - name: Moving logs after seeding
+        run: |
+          mkdir -p /home/runner/work/gradido/gradido/logs/backend/seed
+          mv /home/runner/work/gradido/gradido/logs/backend/*.log /home/runner/work/gradido/gradido/logs/backend/seed/
 
       - name: Boot up test system | docker-compose backend, frontend
         run: |
@@ -130,7 +135,7 @@ jobs:
           sudo cp ./nginx/e2e-test.conf /etc/nginx/sites-available/default
       
       - name: Boot up test system | seed backend
-        run: bun turbo seed --env-mode=loose
+        run: bun turbo seed
         
       - name: copy test config 
         run: |
@@ -138,6 +143,11 @@ jobs:
           cp .env.test_e2e .env
           cd ../backend
           cp .env.test_e2e .env
+
+      - name: Moving logs after seeding
+        run: |
+          mkdir -p /home/runner/work/gradido/gradido/logs/backend/seed
+          mv /home/runner/work/gradido/gradido/logs/backend/*.log /home/runner/work/gradido/gradido/logs/backend/seed/
 
       - name: Boot up test system | docker-compose backend, frontend
         run: |
@@ -210,7 +220,12 @@ jobs:
           sudo cp ./nginx/e2e-test.conf /etc/nginx/sites-available/default
 
       - name: Boot up test system | seed backend
-        run: bun turbo seed --env-mode=loose
+        run: bun turbo seed
+
+      - name: Moving logs after seeding
+        run: |
+          mkdir -p /home/runner/work/gradido/gradido/logs/backend/seed
+          mv /home/runner/work/gradido/gradido/logs/backend/*.log /home/runner/work/gradido/gradido/logs/backend/seed/
 
       - name: Boot up test system | docker-compose backend, frontend
         run: |

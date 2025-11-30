@@ -1,8 +1,8 @@
-import { Transaction as dbTransaction, TransactionTypeId } from 'database'
+import { Transaction as dbTransaction } from 'database'
 import { Decimal } from 'decimal.js-light'
 import { Field, Int, ObjectType } from 'type-graphql'
 
-import { Decay } from 'core'
+import { Decay, TransactionTypeId } from 'core'
 
 import { User } from './User'
 

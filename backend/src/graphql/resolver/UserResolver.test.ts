@@ -67,7 +67,7 @@ import { printTimeDuration } from '@/util/time'
 import { objectValuesToArray } from 'core'
 
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { clearLogs, getLogger, printLogs } from 'config-schema/test/testSetup'
+import { getLogger } from 'config-schema/test/testSetup'
 import { Location2Point } from './util/Location2Point'
 
 jest.mock('@/apis/humhub/HumHubClient')
@@ -738,7 +738,7 @@ describe('UserResolver', () => {
                 hasElopage: false,
                 hideAmountGDD: false,
                 hideAmountGDT: false,
-                humhubAllowed: false,
+                humhubAllowed: true,
                 humhubPublishName: 'PUBLISH_NAME_ALIAS_OR_INITALS',
                 klickTipp: {
                   newsletterState: false,
@@ -1610,7 +1610,7 @@ describe('UserResolver', () => {
                 hasElopage: false,
                 hideAmountGDD: false,
                 hideAmountGDT: false,
-                humhubAllowed: false,
+                humhubAllowed: true,
                 humhubPublishName: 'PUBLISH_NAME_ALIAS_OR_INITALS',
                 klickTipp: {
                   newsletterState: false,

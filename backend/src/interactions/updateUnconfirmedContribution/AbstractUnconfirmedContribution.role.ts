@@ -1,10 +1,10 @@
 import { Contribution, User } from 'database'
 import { Decimal } from 'decimal.js-light'
 
-import { ContributionStatus } from '@enum/ContributionStatus' 
 import { Role } from '@/auth/Role'
 import { ContributionLogic } from '@/data/Contribution.logic'
 import { ContributionMessageBuilder } from '@/data/ContributionMessage.builder'
+import { ContributionStatus } from '@/graphql/enum/ContributionStatus'
 import { LogError } from '@/server/LogError'
 import { Context, getClientTimezoneOffset } from '@/server/context'
 import { Logger, getLogger } from 'log4js'
