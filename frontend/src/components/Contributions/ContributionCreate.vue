@@ -31,14 +31,12 @@ import { GDD_PER_HOUR } from '@/constants'
 import { useQuery, useMutation } from '@vue/apollo-composable'
 import { openCreationsAmounts, createContribution } from '@/graphql/contributions.graphql'
 import { useAppToast } from '@/composables/useToast'
-import { useI18n } from 'vue-i18n'
 import { computed, ref } from 'vue'
 import SuccessMessage from '@/components/SuccessMessage.vue'
 import OpenCreationsAmount from '@/components/Contributions/OpenCreationsAmount.vue'
 import { useMinimalContributionDate } from '@/composables/useMinimalContributionDate'
 
-const { toastError, toastSuccess } = useAppToast()
-const { t } = useI18n()
+const { toastError } = useAppToast()
 
 const { result: maxForMonths, refetch } = useQuery(
   openCreationsAmounts,
@@ -68,7 +66,6 @@ async function handleCreateContribution(contribution) {
     form.value = emptyForm()
     await createContributionMutation({ ...contribution })
     await refetch()
-    toastSuccess(t('contribution.submitted'))
     showForm.value = false
   } catch (err) {
     toastError(err.message)
