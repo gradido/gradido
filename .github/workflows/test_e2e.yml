@@ -32,9 +32,6 @@ jobs:
       - name: Boot up test system | seed backend
         run: bun turbo seed --env-mode=loose
 
-      - name: Install grass 
-        run: cargo install grass
-
       - name: Boot up test system | docker-compose backend, frontend
         run: |
           cd backend
