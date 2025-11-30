@@ -1,16 +1,16 @@
 {
   "extends": ["//"],
-  "tasks": {  
-     "seed": {
+  "tasks": {
+    "seed": {
       "dependsOn": ["database#up", "^build"],
       "cache": false
-    },
+    },    
     "locales": {},
     "locales:fix": {},
     "lint": {
     },
     "lint:fix": {
-    },   
+    },
     "test": {
       "dependsOn": ["database#up:backend_test", "^build"]
     },
