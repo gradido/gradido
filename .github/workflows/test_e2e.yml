@@ -30,7 +30,7 @@ jobs:
           sudo cp ./nginx/e2e-test.conf /etc/nginx/sites-available/default
 
       - name: Boot up test system | seed backend
-        run: bun turbo seed
+        run: bun turbo seed --env-mode=loose
 
       - name: Boot up test system | docker-compose backend, frontend
         run: |
@@ -130,7 +130,7 @@ jobs:
           sudo cp ./nginx/e2e-test.conf /etc/nginx/sites-available/default
       
       - name: Boot up test system | seed backend
-        run: bun turbo seed
+        run: bun turbo seed --env-mode=loose
         
       - name: copy test config 
         run: |
@@ -210,7 +210,7 @@ jobs:
           sudo cp ./nginx/e2e-test.conf /etc/nginx/sites-available/default
 
       - name: Boot up test system | seed backend
-        run: bun turbo seed
+        run: bun turbo seed --env-mode=loose
 
       - name: Boot up test system | docker-compose backend, frontend
         run: |
