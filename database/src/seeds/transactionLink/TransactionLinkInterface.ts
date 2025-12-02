@@ -1,5 +1,3 @@
-export { TransactionLinkInterface } from 'database'
-/*
 export interface TransactionLinkInterface {
   email: string
   amount: number
@@ -10,4 +8,3 @@ export interface TransactionLinkInterface {
   // redeemedBy?: number
   deletedAt?: boolean
 }
-*/

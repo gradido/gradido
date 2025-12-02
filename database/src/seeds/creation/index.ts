@@ -1,10 +1,8 @@
-
-export { creations } from 'database'
-
-/*
-import { nMonthsBefore } from '@/seeds/factory/creation'
+import { nMonthsBefore } from '../factory/creation'
 
 import { CreationInterface } from './CreationInterface'
+
+export type { CreationInterface }
 
 const bobsSendings = [
   {
@@ -146,7 +144,6 @@ export const creations: CreationInterface[] = [
     memo: '#Hexen',
     contributionDate: nMonthsBefore(new Date()),
     confirmed: true,
-    moveCreationDate: 12,
   },
   ...bobsTransactions,
   {
@@ -157,4 +154,3 @@ export const creations: CreationInterface[] = [
     confirmed: true,
   },
 ]
-*/

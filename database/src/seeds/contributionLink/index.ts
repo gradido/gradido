@@ -1,6 +1,6 @@
-export { contributionLinks } from 'database'
+import { ContributionLinkInterface } from './ContributionLinkInterface'
+export type { ContributionLinkInterface }
 
-/*
 export const contributionLinks: ContributionLinkInterface[] = [
   {
     name: 'Dokumenta 2017',
@@ -17,4 +17,3 @@ export const contributionLinks: ContributionLinkInterface[] = [
     validTo: new Date(2022, 8, 25),
   },
 ]
-*/

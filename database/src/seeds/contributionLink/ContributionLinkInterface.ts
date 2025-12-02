@@ -1,6 +1,3 @@
-export { ContributionLinkInterface } from 'database'
-
-/*
 export interface ContributionLinkInterface {
   amount: number
   name: string
@@ -8,4 +5,3 @@ export interface ContributionLinkInterface {
   validFrom?: Date
   validTo?: Date
 }
-*/
