@@ -28,7 +28,10 @@
         ></transaction-confirmation-link>
       </template>
       <template #transactionResultSendSuccess>
-        <transaction-result-send-success @on-back="onBack"></transaction-result-send-success>
+        <success-message
+          :message="$t('form.send_transaction_success')"
+          @on-back="onBack"
+        ></success-message>
       </template>
       <template #transactionResultSendError>
         <transaction-result-send-error
@@ -58,7 +61,7 @@ import GddSend, { TRANSACTION_STEPS } from '@/components/GddSend'
 import TransactionForm from '@/components/GddSend/TransactionForm'
 import TransactionConfirmationSend from '@/components/GddSend/TransactionConfirmationSend'
 import TransactionConfirmationLink from '@/components/GddSend/TransactionConfirmationLink'
-import TransactionResultSendSuccess from '@/components/GddSend/TransactionResultSendSuccess'
+import SuccessMessage from '@/components/SuccessMessage'
 import TransactionResultSendError from '@/components/GddSend/TransactionResultSendError'
 import TransactionResultLink from '@/components/GddSend/TransactionResultLink'
 import { sendCoins, createTransactionLink } from '@/graphql/mutations.js'

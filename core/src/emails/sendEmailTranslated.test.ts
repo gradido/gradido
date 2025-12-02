@@ -1,6 +1,6 @@
 import { createTransport } from 'nodemailer'
 import { CONFIG } from '../config'
-import { i18n } from './localization'
+import { i18n } from '../locales/localization'
 import { getLogger } from '../../../config-schema/test/testSetup.bun'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../config/const'
 import { sendEmailTranslated } from './sendEmailTranslated'
@@ -41,7 +41,7 @@ const spySetLocale = jest.spyOn(i18n, 'setLocale')
 const spyTranslate = jest.spyOn(i18n, '__')
 
 describe('sendEmailTranslated', () => {
-  let result: Record<string, unknown> | boolean | null
+  let result: Record<string, unknown> | boolean | Error | null
 
   describe('config email is false', () => {
     beforeEach(async () => {

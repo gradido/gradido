@@ -1,15 +1,28 @@
 <template>
-  <transition name="fade-out" @after-leave="resetForm">
+  <div>
     <div v-if="showForm">
       <contribution-form
         v-if="maxForMonths"
         :model-value="form"
-        :max-gdd-last-month="parseFloat(maxForMonths.openCreations[1].amount)"
-        :max-gdd-this-month="parseFloat(maxForMonths.openCreations[2].amount)"
+        :max-gdd-last-month="maxGddLastMonth"
+        :max-gdd-this-month="maxGddThisMonth"
+        :success-message="$t('contribution.submitted')"
         @upsert-contribution="handleCreateContribution"
       />
     </div>
-  </transition>
+    <div v-else>
+      <open-creations-amount
+        :minimal-date="minimalDate"
+        :max-gdd-last-month="maxGddLastMonth"
+        :max-gdd-this-month="maxGddThisMonth"
+      />
+      <div class="mb-3"></div>
+      <success-message
+        :message="$t('contribution.submitted')"
+        @on-back="showForm = true"
+      ></success-message>
+    </div>
+  </div>
 </template>
 
 <script setup>
@@ -18,11 +31,12 @@ import { GDD_PER_HOUR } from '@/constants'
 import { useQuery, useMutation } from '@vue/apollo-composable'
 import { openCreationsAmounts, createContribution } from '@/graphql/contributions.graphql'
 import { useAppToast } from '@/composables/useToast'
-import { useI18n } from 'vue-i18n'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
+import SuccessMessage from '@/components/SuccessMessage.vue'
+import OpenCreationsAmount from '@/components/Contributions/OpenCreationsAmount.vue'
+import { useMinimalContributionDate } from '@/composables/useMinimalContributionDate'
 
-const { toastError, toastSuccess } = useAppToast()
-const { t } = useI18n()
+const { toastError } = useAppToast()
 
 const { result: maxForMonths, refetch } = useQuery(
   openCreationsAmounts,
@@ -33,6 +47,10 @@ const { mutate: createContributionMutation } = useMutation(createContribution)
 
 const form = ref(emptyForm())
 const showForm = ref(true)
+
+const maxGddLastMonth = computed(() => parseFloat(maxForMonths.value?.openCreations[1].amount))
+const maxGddThisMonth = computed(() => parseFloat(maxForMonths.value?.openCreations[2].amount))
+const minimalDate = computed(() => useMinimalContributionDate(new Date()))
 
 function emptyForm() {
   return {
@@ -45,17 +63,13 @@ function emptyForm() {
 
 async function handleCreateContribution(contribution) {
   try {
+    form.value = emptyForm()
     await createContributionMutation({ ...contribution })
-    toastSuccess(t('contribution.submitted'))
+    await refetch()
     showForm.value = false
   } catch (err) {
     toastError(err.message)
   }
-}
-
-function resetForm() {
-  refetch()
-  showForm.value = true
 }
 </script>
 <style scoped>

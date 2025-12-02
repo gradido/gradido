@@ -1,3 +1,7 @@
+
+export { creations } from 'database'
+
+/*
 import { nMonthsBefore } from '@/seeds/factory/creation'
 
 import { CreationInterface } from './CreationInterface'
@@ -153,3 +157,4 @@ export const creations: CreationInterface[] = [
     confirmed: true,
   },
 ]
+*/
