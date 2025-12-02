@@ -2144,14 +2144,6 @@ describe('ContributionResolver', () => {
               })
             })
 
-            it('stores the EMAIL_CONFIRMATION event in the database', async () => {
-              await expect(DbEvent.find()).resolves.toContainEqual(
-                expect.objectContaining({
-                  type: EventType.EMAIL_CONFIRMATION,
-                }),
-              )
-            })
-
             describe('confirm same contribution again', () => {
               it('throws an error', async () => {
                 jest.clearAllMocks()

@@ -2,6 +2,7 @@ import { promisify } from 'util'
 
 import { Decimal } from 'decimal.js-light'
 import { i18n } from '../locales/localization'
+export { fullName } from 'shared'
 
 export const objectValuesToArray = (obj: Record<string, string>): string[] =>
   Object.keys(obj).map((key) => obj[key])
@@ -14,11 +15,7 @@ export const decimalSeparatorByLanguage = (a: Decimal, language: string): string
   return result
 }
 
-export const fullName = (firstName: string, lastName: string): string =>
-  [firstName, lastName].filter(Boolean).join(' ')
-
 // Function to reset an interface by chatGPT
-
 export function resetInterface<T extends Record<string, any>>(obj: T): T {
   // Iterate over all properties of the object
   for (const key in obj) {

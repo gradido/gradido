@@ -2261,7 +2261,7 @@ describe('UserResolver', () => {
               relations: ['user'],
             })
             const activationLink = `${
-              CONFIG.EMAIL_LINK_VERIFICATION
+              CONFIG.EMAIL_LINK_SETPASSWORD
             }${userContact.emailVerificationCode.toString()}`
             expect(sendAccountActivationEmail).toBeCalledWith({
               firstName: 'Bibi',

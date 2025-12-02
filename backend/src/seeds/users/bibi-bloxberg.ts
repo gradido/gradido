@@ -1,3 +1,5 @@
+export { bibiBloxberg } from 'database'
+/*
 import { UserInterface } from './UserInterface'
 
 export const bibiBloxberg: UserInterface = {
@@ -12,3 +14,4 @@ export const bibiBloxberg: UserInterface = {
   // move user createdAt before transaction link
   createdAt: new Date(2021, 9, 17),
 }
+*/

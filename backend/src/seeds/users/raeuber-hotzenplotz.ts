@@ -1,3 +1,6 @@
+
+export { raeuberHotzenplotz } from 'database'
+/*
 import { UserInterface } from './UserInterface'
 
 export const raeuberHotzenplotz: UserInterface = {
@@ -8,3 +11,4 @@ export const raeuberHotzenplotz: UserInterface = {
   emailChecked: true,
   language: 'de',
 }
+*/
