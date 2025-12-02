@@ -1,3 +1,5 @@
+export { UserInterface } from 'database'
+/*
 export interface UserInterface {
   alias?: string
   email?: string
@@ -11,3 +13,4 @@ export interface UserInterface {
   publisherId?: number
   role?: string
 }
+*/

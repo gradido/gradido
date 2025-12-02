@@ -1,3 +1,5 @@
+export { peterLustig } from 'database'
+/*
 import { RoleNames } from '@enum/RoleNames'
 
 import { UserInterface } from './UserInterface'
@@ -12,3 +14,4 @@ export const peterLustig: UserInterface = {
   language: 'de',
   role: RoleNames.ADMIN,
 }
+*/

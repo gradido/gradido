@@ -1,3 +1,5 @@
+export { stephenHawking } from 'database'
+/*
 import { UserInterface } from './UserInterface'
 
 export const stephenHawking: UserInterface = {
@@ -10,3 +12,4 @@ export const stephenHawking: UserInterface = {
   deletedAt: new Date('2018-03-14T09:17:52'),
   language: 'en',
 }
+*/

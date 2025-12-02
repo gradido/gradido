@@ -1,5 +1,3 @@
-export { CreationInterface } from 'database' 
-/* 
 export interface CreationInterface {
   email: string
   amount: number
@@ -9,4 +7,3 @@ export interface CreationInterface {
   // number of months to move the confirmed creation to the past
   moveCreationDate?: number
 }
-*/
