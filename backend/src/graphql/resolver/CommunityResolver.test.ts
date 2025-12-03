@@ -19,6 +19,7 @@ import { createCommunity, createVerifiedFederatedCommunity } from 'database/src/
 
 import { getLogger } from 'config-schema/test/testSetup'
 import { CONFIG } from '@/config'
+import { AppDatabase } from 'database'
 
 jest.mock('@/password/EncryptorUtils')
 
@@ -28,11 +29,12 @@ CONFIG.FEDERATION_VALIDATE_COMMUNITY_TIMER = 1000
 let mutate: ApolloServerTestClient['mutate']
 let query: ApolloServerTestClient['query']
 let con: DataSource
-
+let db: AppDatabase
 let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']
   con: DataSource
+  db: AppDatabase
 }
 
 const peterLoginData = {
@@ -46,6 +48,7 @@ beforeAll(async () => {
   mutate = testEnv.mutate
   query = testEnv.query
   con = testEnv.con
+  db = testEnv.db
   await cleanDB()
   // reset id auto increment
   await DbCommunity.clear()
@@ -54,6 +57,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await con.destroy()
+  await db.getRedisClient().quit()
 })
 
 // real valid ed25519 key pairs

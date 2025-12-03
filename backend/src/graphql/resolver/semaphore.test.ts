@@ -23,7 +23,9 @@ import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { CONFIG } from '@/config'
 import { CONFIG as CORE_CONFIG } from 'core'
-import { TRANSACTIONS_LOCK } from 'database'
+// import { TRANSACTIONS_LOCK } from 'database'
+import { Mutex } from 'redis-semaphore'
+import { AppDatabase } from 'database'
 
 jest.mock('@/password/EncryptorUtils')
 
@@ -36,8 +38,8 @@ let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']
   con: DataSource
+  db: AppDatabase
 }
-
 beforeAll(async () => {
   testEnv = await testEnvironment()
   mutate = testEnv.mutate
@@ -48,41 +50,41 @@ beforeAll(async () => {
 afterAll(async () => {
   await cleanDB()
   await con.destroy()
+  await testEnv.db.getRedisClient().quit()
 })
 
-type RunOrder = { [key: number]: { start: number, end: number } }
-async function fakeWork(runOrder: RunOrder, index: number) {
-  const releaseLock = await TRANSACTIONS_LOCK.acquire()
+type WorkData = { start: number, end: number }
+async function fakeWork(workData: WorkData[], index: number) {
+  // const releaseLock = await TRANSACTIONS_LOCK.acquire()
+  // create a new mutex for every function call, like in production code
+  const mutex = new Mutex(testEnv.db.getRedisClient(), 'TRANSACTIONS_LOCK')
+  await mutex.acquire()
+
   const startDate = new Date()
   await new Promise((resolve) => setTimeout(resolve, Math.random() * 50))
   const endDate = new Date()
-  runOrder[index] = { start: startDate.getTime(), end: endDate.getTime() }
-  releaseLock()
+  workData[index] = { start: startDate.getTime(), end: endDate.getTime() }
+  // releaseLock()
+  await mutex.release()
 }
 
 describe('semaphore', () => {
   it("didn't should run in parallel", async () => {
-    const runOrder: RunOrder = {}
-    await Promise.all([
-      fakeWork(runOrder, 1),
-      fakeWork(runOrder, 2),
-      fakeWork(runOrder, 3),
-      fakeWork(runOrder, 4),
-      fakeWork(runOrder, 5),
-    ])
-    expect(runOrder[1].start).toBeLessThan(runOrder[1].end)
-    expect(runOrder[1].start).toBeLessThan(runOrder[2].start)
-    expect(runOrder[2].start).toBeLessThan(runOrder[2].end)
-    expect(runOrder[2].start).toBeLessThan(runOrder[3].start)
-    expect(runOrder[3].start).toBeLessThan(runOrder[3].end)
-    expect(runOrder[3].start).toBeLessThan(runOrder[4].start)
-    expect(runOrder[4].start).toBeLessThan(runOrder[4].end)
-    expect(runOrder[4].start).toBeLessThan(runOrder[5].start)
-    expect(runOrder[5].start).toBeLessThan(runOrder[5].end)
-    expect(runOrder[1].end).toBeLessThan(runOrder[2].end)
-    expect(runOrder[2].end).toBeLessThan(runOrder[3].end)
-    expect(runOrder[3].end).toBeLessThan(runOrder[4].end)
-    expect(runOrder[4].end).toBeLessThan(runOrder[5].end)
+    const workData: WorkData[] = []
+    
+    const promises: Promise<void>[] = []
+    for(let i = 0; i < 20; i++) {
+      promises.push(fakeWork(workData, i))
+    }
+    await Promise.all(promises)
+    workData.sort((a, b) => a.start - b.start)
+    workData.forEach((work, index) => {
+      expect(work.start).toBeLessThan(work.end)
+      if(index < workData.length - 1) {
+        expect(work.start).toBeLessThan(workData[index + 1].start)
+        expect(work.end).toBeLessThanOrEqual(workData[index + 1].start)
+      }
+    })
   })
 })
 
