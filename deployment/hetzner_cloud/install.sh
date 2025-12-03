@@ -124,12 +124,11 @@ sudo systemctl daemon-reload
 # setup https with certbot
 certbot certonly --nginx --non-interactive --agree-tos --domains $COMMUNITY_HOST --email $COMMUNITY_SUPPORT_MAIL
 
-# Variables
-NVM_DIR="/home/gradido/.nvm"
-NODE_VERSION="v18.20.7"
-
 # run as gradido user (until EOF)
 sudo -u gradido bash <<'EOF'
+    export NVM_DIR="/home/gradido/.nvm"
+    NODE_VERSION="v18.20.7"
+    export NVM_DIR
     # Install nvm if it doesn't exist
     if [ ! -d "$NVM_DIR" ]; then
         curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
