@@ -40,12 +40,10 @@ let testEnv: {
   con: DataSource
   db: AppDatabase
 }
-let mutex: Mutex
 beforeAll(async () => {
   testEnv = await testEnvironment()
   mutate = testEnv.mutate
   con = testEnv.con
-  mutex = new Mutex(testEnv.db.getRedisClient(), 'TRANSACTIONS_LOCK')
   await cleanDB()
 })
 
@@ -55,52 +53,38 @@ afterAll(async () => {
   await testEnv.db.getRedisClient().quit()
 })
 
-type RunOrder = { [key: number]: { start: number, end: number } }
-async function fakeWork(runOrder: RunOrder, index: number) {
+type WorkData = { start: number, end: number }
+async function fakeWork(workData: WorkData[], index: number) {
   // const releaseLock = await TRANSACTIONS_LOCK.acquire()
+  // create a new mutex for every function call, like in production code
+  const mutex = new Mutex(testEnv.db.getRedisClient(), 'TRANSACTIONS_LOCK')
   await mutex.acquire()
 
   const startDate = new Date()
   await new Promise((resolve) => setTimeout(resolve, Math.random() * 50))
   const endDate = new Date()
-  runOrder[index] = { start: startDate.getTime(), end: endDate.getTime() }
+  workData[index] = { start: startDate.getTime(), end: endDate.getTime() }
   // releaseLock()
   await mutex.release()
 }
 
 describe('semaphore', () => {
   it("didn't should run in parallel", async () => {
-    const runOrder: RunOrder = {}
-    /*
-    await Promise.all([
-      fakeWork(runOrder, 1),
-      fakeWork(runOrder, 2),
-      fakeWork(runOrder, 3),
-      fakeWork(runOrder, 4),
-      fakeWork(runOrder, 5),
-    ])
-    */
-    // force sequential execution
-    await fakeWork(runOrder, 1)
-    await fakeWork(runOrder, 2)
-    await fakeWork(runOrder, 3)
-    await fakeWork(runOrder, 4)
-    await fakeWork(runOrder, 5)
-
-    // console.log('runOrder=', runOrder)
-    expect(runOrder[1].start).toBeLessThan(runOrder[1].end)
-    expect(runOrder[1].start).toBeLessThan(runOrder[2].start)
-    expect(runOrder[2].start).toBeLessThan(runOrder[2].end)
-    expect(runOrder[2].start).toBeLessThan(runOrder[3].start)
-    expect(runOrder[3].start).toBeLessThan(runOrder[3].end)
-    expect(runOrder[3].start).toBeLessThan(runOrder[4].start)
-    expect(runOrder[4].start).toBeLessThan(runOrder[4].end)
-    expect(runOrder[4].start).toBeLessThan(runOrder[5].start)
-    expect(runOrder[5].start).toBeLessThan(runOrder[5].end)
-    expect(runOrder[1].end).toBeLessThan(runOrder[2].end)
-    expect(runOrder[2].end).toBeLessThan(runOrder[3].end)
-    expect(runOrder[3].end).toBeLessThan(runOrder[4].end)
-    expect(runOrder[4].end).toBeLessThan(runOrder[5].end)
+    const workData: WorkData[] = []
+    
+    const promises: Promise<void>[] = []
+    for(let i = 0; i < 20; i++) {
+      promises.push(fakeWork(workData, i))
+    }
+    await Promise.all(promises)
+    workData.sort((a, b) => a.start - b.start)
+    workData.forEach((work, index) => {
+      expect(work.start).toBeLessThan(work.end)
+      if(index < workData.length - 1) {
+        expect(work.start).toBeLessThan(workData[index + 1].start)
+        expect(work.end).toBeLessThanOrEqual(workData[index + 1].start)
+      }
+    })
   })
 })
 
