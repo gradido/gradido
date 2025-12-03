@@ -31,7 +31,6 @@
   "dependencies": {
     "cross-env": "^7.0.3",
     "email-templates": "^10.0.1",
-    "redis-semaphore": "^5.6.2",
     "sodium-native": "^3.4.1"
   },
   "devDependencies": {
@@ -85,6 +84,7 @@
     "openai": "^4.87.3",
     "prettier": "^3.5.3",
     "random-bigint": "^0.0.1",
+    "redis-semaphore": "^5.6.2",
     "reflect-metadata": "^0.1.13",
     "regenerator-runtime": "^0.14.1",
     "shared": "*",

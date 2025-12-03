@@ -25,7 +25,6 @@
   "dependencies": {
     "cross-env": "^7.0.3",
     "email-templates": "^10.0.1",
-    "redis-semaphore": "^5.6.2",
     "sodium-native": "^3.4.1"
   },
   "devDependencies": {
@@ -67,6 +66,7 @@
     "ncp": "^2.0.0",
     "nodemon": "^2.0.7",
     "prettier": "^3.5.3",
+    "redis-semaphore": "^5.6.2",
     "reflect-metadata": "^0.1.13",
     "shared": "*",
     "source-map-support": "^0.5.21",
