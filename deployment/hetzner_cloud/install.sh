@@ -137,8 +137,8 @@ fi
 sudo -u gradido bash -c 'export NVM_DIR="$NVM_DIR" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"'
 
 # Install Node if not already installed
-if ! sudo -u gradido bash -c "source $NVM_DIR/nvm.sh && nvm ls $NODE_VERSION >/dev/null 2>&1"; then
-  sudo -u gradido bash -c "source $NVM_DIR/nvm.sh && nvm install $NODE_VERSION"
+if ! sudo -u gradido bash -c "$NVM_DIR/nvm.sh ls $NODE_VERSION >/dev/null 2>&1"; then
+  sudo -u gradido bash -c "$NVM_DIR/nvm.sh install $NODE_VERSION"
 fi
 
 # Install yarn
