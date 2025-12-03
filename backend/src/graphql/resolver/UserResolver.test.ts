@@ -1,6 +1,7 @@
 import { UserInputError } from 'apollo-server-express'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import {
+  AppDatabase,
   Community as DbCommunity,
   Event as DbEvent,
   TransactionLink,
@@ -103,10 +104,12 @@ let user: User
 let mutate: ApolloServerTestClient['mutate']
 let query: ApolloServerTestClient['query']
 let con: DataSource
+let db: AppDatabase
 let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']
   con: DataSource
+  db: AppDatabase
 }
 
 beforeAll(async () => {
@@ -114,6 +117,7 @@ beforeAll(async () => {
   mutate = testEnv.mutate
   query = testEnv.query
   con = testEnv.con
+  db = testEnv.db
   CONFIG.HUMHUB_ACTIVE = false
   CONFIG.DLT_ACTIVE = false
   await cleanDB()
@@ -122,6 +126,7 @@ beforeAll(async () => {
 afterAll(async () => {
   await cleanDB()
   await con.destroy()
+  await db.getRedisClient().quit()
 })
 
 describe('UserResolver', () => {

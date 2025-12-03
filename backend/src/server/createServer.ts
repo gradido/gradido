@@ -9,7 +9,6 @@ import { slowDown } from 'express-slow-down'
 import helmet from 'helmet'
 import { Logger, getLogger } from 'log4js'
 import { DataSource } from 'typeorm'
-
 import { GRADIDO_REALM, LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { AppDatabase } from 'database'
 import { context as serverContext } from './context'
@@ -23,6 +22,7 @@ interface ServerDef {
   apollo: ApolloServer
   app: Express
   con: DataSource
+  db: AppDatabase
 }
 
 export const createServer = async (
@@ -100,5 +100,5 @@ export const createServer = async (
   )
   logger.debug('createServer...successful')
 
-  return { apollo, app, con: db.getDataSource() }
+  return { apollo, app, con: db.getDataSource(), db }
 }

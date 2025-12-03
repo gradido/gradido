@@ -33,7 +33,7 @@ import { Context, getUser } from '@/server/context'
 import { communityUser } from '@/util/communityUser'
 import { calculateBalance } from '@/util/validate'
 import { virtualDecayTransaction, virtualLinkTransaction } from '@/util/virtualTransactions'
-import { TRANSACTIONS_LOCK } from 'database'
+// import { TRANSACTIONS_LOCK } from 'database'
 
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { getLastTransaction } from 'database'
@@ -44,6 +44,8 @@ import { getCommunityName, isHomeCommunity } from './util/communities'
 import { getTransactionList } from './util/getTransactionList'
 import { transactionLinkSummary } from './util/transactionLinkSummary'
 import { transferTransaction, redeemDeferredTransferTransaction } from '@/apis/dltConnector'
+import { Redis } from 'ioredis'
+import { Mutex } from 'redis-semaphore'
 
 const db = AppDatabase.getInstance()
 const createLogger = () => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.TransactionResolver`)
@@ -57,7 +59,10 @@ export const executeTransaction = async (
   transactionLink?: dbTransactionLink | null,
 ): Promise<boolean> => {
   // acquire lock
-  const releaseLock = await TRANSACTIONS_LOCK.acquire()
+  // const releaseLock = await TRANSACTIONS_LOCK.acquire()
+  const mutex = new Mutex(db.getRedisClient(), 'TRANSACTIONS_LOCK')
+  await mutex.acquire()
+
   const receivedCallDate = new Date()
   let dltTransactionPromise: Promise<DbDltTransaction | null> = Promise.resolve(null)
   if (!transactionLink) {
@@ -210,7 +215,8 @@ export const executeTransaction = async (
     }
     logger.info(`finished executeTransaction successfully`)
   } finally {
-    releaseLock()
+    // releaseLock()
+    await mutex.release()
   }
   return true
 }

@@ -5,7 +5,7 @@
 # make sure correct node version is installed
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-if ! command -v nvm &> /dev/null
+if ! command -v nvm > /dev/null
 then
     echo "'nvm' is missing, will be installed now!"
     curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
@@ -20,7 +20,7 @@ install_nvm() {
 nvm use || install_nvm
 
 # unzip needed for bun install script
-if ! command -v unzip &> /dev/null
+if ! command -v unzip > /dev/null
 then
     echo "'unzip' is missing, will be installed now!"
     sudo apt-get install -y unzip
@@ -34,7 +34,7 @@ if [ ! -f "$BUN_VERSION_FILE" ]; then
     exit 1
 fi
 BUN_VERSION="$(cat "$BUN_VERSION_FILE" | tr -d '[:space:]')"
-if ! command -v bun &> /dev/null
+if ! command -v bun > /dev/null
 then    
     echo "'bun' is missing, v$BUN_VERSION will be installed now!"
     curl -fsSL https://bun.com/install | bash -s "bun-v${BUN_VERSION}"
@@ -49,22 +49,30 @@ else
     fi
 fi
 # turbo https://turborepo.com/docs/getting-started
-if ! command -v turbo &> /dev/null
+if ! command -v turbo > /dev/null
 then
     echo "'turbo' is missing, will be installed now!"
     bun install --global turbo
 fi
 
 # rust and grass 
-if ! command -v cargo &> /dev/null
+if ! command -v cargo > /dev/null
 then
     echo "'cargo' is missing, will be installed now!"
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
     export CARGO_HOME="$HOME/.cargo"
     export PATH="$CARGO_HOME/bin:$PATH"
 fi
-if ! command -v grass &> /dev/null
+if ! command -v grass > /dev/null
 then
     echo "'grass' is missing, will be installed now!"
     cargo install grass
+fi
+
+# redis
+if ! command -v  redis-cli --version > /dev/null
+then 
+    echo "redis is missing, will be installed now!"
+    sudo apt update
+    sudo apt install redis -y
 fi
