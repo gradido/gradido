@@ -105,6 +105,22 @@ turbo start
 
 [More Infos for using turbo](./working-native.md)
 
+### Dependencies & Bundling
+This project uses esbuild to bundle the main modules (backend, dht-node, federation) into single JavaScript files for optimized deployment. To ensure a minimal and reliable Docker image, dependencies are intentionally split:
+
+- dependencies: Only packages that cannot be bundled by esbuild into the output files.
+Examples include:
+  - Native modules (sodium-native)
+  - Packages incompatible with bundling (email-templates)
+  - Runtime helpers (cross-env)
+- devDependencies: All other packages that are fully bundled into the build output by esbuild.
+
+This setup ensures that:
+- The production Docker image contains only the minimal set of necessary runtime modules.
+- Native or runtime-sensitive packages are included in node_modules for proper execution.
+
+Note: Even if Docker is not used in all environments, this organization ensures consistent and predictable builds across different platforms.
+
 
 ### For Windows
 
