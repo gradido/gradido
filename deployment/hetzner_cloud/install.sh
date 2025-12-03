@@ -128,24 +128,24 @@ certbot certonly --nginx --non-interactive --agree-tos --domains $COMMUNITY_HOST
 NVM_DIR="/home/gradido/.nvm"
 NODE_VERSION="v18.20.7"
 
-# Install nvm if it doesn't exist
-if [ ! -d "$NVM_DIR" ]; then
-  sudo -u gradido bash -c 'curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash'
-fi
+# run as gradido user (until EOF)
+sudo -u gradido bash <<'EOF'
+    # Install nvm if it doesn't exist
+    if [ ! -d "$NVM_DIR" ]; then
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+    fi
+    # Load nvm 
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
-# Load nvm
-sudo -u gradido bash -c 'export NVM_DIR="$NVM_DIR" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"'
-
-# Install Node if not already installed
-if ! sudo -u gradido bash -c "$NVM_DIR/nvm.sh ls $NODE_VERSION >/dev/null 2>&1"; then
-  sudo -u gradido bash -c "$NVM_DIR/nvm.sh install $NODE_VERSION"
-fi
-
-# Install yarn
-sudo -u gradido bash -c 'source $NVM_DIR/nvm.sh && npm i -g yarn'
-
-# Install pm2
-sudo -u gradido bash -c 'source $NVM_DIR/nvm.sh && npm i -g pm2 && pm2 startup'
+    # Install Node if not already installed
+    if ! nvm ls $NODE_VERSION >/dev/null 2>&1; then
+        nvm install $NODE_VERSION
+    fi
+    # Install yarn and pm2
+    npm i -g yarn pm2 
+    # start pm2
+    pm2 startup
+EOF
 
 # Install logrotate
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $SCRIPT_PATH/logrotate/gradido.conf.template > $SCRIPT_PATH/logrotate/gradido.conf
