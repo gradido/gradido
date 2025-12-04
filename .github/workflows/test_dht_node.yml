@@ -35,7 +35,7 @@ jobs:
         run: docker build --target production -t "gradido/dht-node:production" -f dht-node/Dockerfile .
 
   unit_test:
-    name: Unit Tests - DHT Node
+    name: Unit Tests & Typecheck & Build - DHT Node
     if: needs.files-changed.outputs.config == 'true' || needs.files-changed.outputs.database == 'true' || needs.files-changed.outputs.dht_node == 'true' || needs.files-changed.outputs.docker-compose == 'true'
     needs: files-changed
     runs-on: ubuntu-latest

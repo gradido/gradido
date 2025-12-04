@@ -39,7 +39,7 @@ jobs:
 
   unit_test:
     if: needs.files-changed.outputs.backend == 'true' || needs.files-changed.outputs.database == 'true' || needs.files-changed.outputs.docker-compose == 'true' || needs.files-changed.outputs.mariadb == 'true' || needs.files-changed.outputs.config == 'true' || needs.files-changed.outputs.core == 'true' || needs.files-changed.outputs.shared == 'true'
-    name: Unit tests - Backend
+    name: Unit tests & Typecheck & Build - Backend
     needs: files-changed
     runs-on: ubuntu-latest
     steps:
@@ -65,31 +65,4 @@ jobs:
           bun install --global --no-save turbo@^2
 
       - name: Backend | Unit tests
-        run: turbo backend#test
-
-  typecheck:
-    if: needs.files-changed.outputs.backend == 'true' || needs.files-changed.outputs.core == 'true' || needs.files-changed.outputs.shared == 'true' || needs.files-changed.outputs.database == 'true' || needs.files-changed.outputs.config == 'true'
-    name: Typecheck - Backend
-    needs: files-changed
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set Node.js version
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18.20.7'
-
-      - name: install bun 
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version-file: '.bun-version'
-
-      - name: install dependencies
-        run: |
-          bun install --filter backend --frozen-lockfile
-          bun install --global --no-save turbo@^2
-
-      - name: Backend | Typecheck
-        run: turbo backend#typecheck backend#build
+        run: turbo backend#test backend#typecheck backend#build

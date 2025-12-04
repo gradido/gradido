@@ -1,5 +1,4 @@
-name: Linting with biomejs
-
+name: Linting backend
 on: push
 
 jobs:
@@ -69,67 +68,3 @@ jobs:
           cd ./federation 
           biome ci .
           echo "success=$([ $? -eq 0 ] && echo true || echo false)" >> $GITHUB_OUTPUT
-
-  lint_config_schema:
-    name: Lint - Config-Schema
-    needs: lint
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check result from previous step
-        run: if [ "${{ needs.lint.outputs.config-schema }}" != "true" ]; then exit 1; fi
-  
-  lint_shared:
-    name: Lint - Shared
-    needs: lint
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check result from previous step
-        run: if [ "${{ needs.lint.outputs.shared }}" != "true" ]; then exit 1; fi
-
-  lint_core:
-    name: Lint - Core
-    needs: lint
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check result from previous step
-        run: if [ "${{ needs.lint.outputs.core }}" != "true" ]; then exit 1; fi
-  
-  lint_backend:
-    name: Lint - Backend
-    needs: lint
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check result from previous step
-        run: if [ "${{ needs.lint.outputs.backend }}" != "true" ]; then exit 1; fi
-
-  lint_database:
-    name: Lint - Database Up
-    needs: lint
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check result from previous step
-        run: if [ "${{ needs.lint.outputs.database }}" != "true" ]; then exit 1; fi
-
-  lint_dht_node:
-    name: Lint - DHT Node
-    needs: lint
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check result from previous step
-        run: if [ "${{ needs.lint.outputs.dht-node }}" != "true" ]; then exit 1; fi
-
-  lint_dlt_connector:
-    name: Lint - DLT Connector
-    needs: lint
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check result from previous step
-        run: if [ "${{ needs.lint.outputs.dlt-connector }}" != "true" ]; then exit 1; fi
-
-  lint_federation:
-    name: Lint - Federation
-    needs: lint
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check result from previous step
-        run: if [ "${{ needs.lint.outputs.federation }}" != "true" ]; then exit 1; fi

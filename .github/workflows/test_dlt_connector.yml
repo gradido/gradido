@@ -44,7 +44,7 @@ jobs:
         run: docker build --target production -t "gradido/dlt-connector:productionTest" -f dlt-connector/Dockerfile .
 
   unit_test:
-    name: Unit Tests - DLT Connector
+    name: Unit Tests & Typecheck & Build - DLT Connector
     if: needs.files-changed.outputs.dlt_connector == 'true' || needs.files-changed.outputs.docker-compose == 'true'
     needs: [files-changed, build]
     runs-on: ubuntu-latest

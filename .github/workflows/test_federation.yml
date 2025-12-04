@@ -35,7 +35,7 @@ jobs:
         run: docker build --target production -t "gradido/federation:production" -f federation/Dockerfile .
 
   unit_test:
-    name: Unit Tests - Federation
+    name: Unit Tests & Typecheck & Build - Federation
     if: needs.files-changed.outputs.database == 'true' || needs.files-changed.outputs.docker-compose == 'true' || needs.files-changed.outputs.federation == 'true' || needs.files-changed.outputs.mariadb == 'true'
     needs: files-changed
     runs-on: ubuntu-latest

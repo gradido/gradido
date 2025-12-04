@@ -38,7 +38,7 @@ jobs:
 
   unit_test:
     if: needs.files-changed.outputs.config == 'true' || needs.files-changed.outputs.frontend == 'true'
-    name: Unit Tests - Frontend
+    name: Unit Tests & Lint & Stylelint & Locales - Frontend
     needs: files-changed
     runs-on: ubuntu-latest
     steps:
@@ -55,64 +55,11 @@ jobs:
         with:
           bun-version-file: '.bun-version'
 
-      - name: install dependencies
-        run: bun install --filter frontend --frozen-lockfile
-
-      - name: Frontend | Unit tests
-        run: cd frontend && bun run test
-
-  lint:
-    if: needs.files-changed.outputs.config == 'true' || needs.files-changed.outputs.frontend == 'true'
-    name: Lint - Frontend
-    needs: files-changed
-    runs-on: ubuntu-latest
-    outputs:
-      success: ${{ steps.lint.outputs.success }}
-    steps:
-      - name: Set Node.js version
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18.20.7'
-
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: install bun 
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version-file: '.bun-version'
-      
       - name: install dependencies
         run: |
           bun install --filter frontend --frozen-lockfile
           bun install --global --no-save turbo@^2
 
-      - name: Frontend | Lint
-        id: lint
-        run: |
-          turbo frontend#lint
-          echo "success=$([ $? -eq 0 ] && echo true || echo false)" >> $GITHUB_OUTPUT
+      - name: Frontend | Unit tests
+        run: turbo frontend#test frontend#lint frontend#locales
 
-  stylelint:
-    if: needs.files-changed.outputs.frontend == 'true'
-    name: Stylelint - Frontend
-    needs: [files-changed, lint]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check result from previous step
-        run: if [ "${{ needs.lint.outputs.success }}" != "true" ]; then exit 1; fi
-
-  locales:
-    if: needs.files-changed.outputs.frontend == 'true'
-    name: Locales - Frontend
-    needs: files-changed
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-        
-      - name: install bun 
-        uses: oven-sh/setup-bun@v2
-
-      - name: Frontend | Locales
-        run: cd frontend && bun run locales
