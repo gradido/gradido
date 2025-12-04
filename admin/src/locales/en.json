@@ -244,6 +244,7 @@
   },
   "redeemed": "redeemed",
   "registered": "Registered",
+  "registered_at": "Registered at",
   "removeNotSelf": "As an admin/moderator, you cannot delete yourself.",
   "reset": "Reset",
   "save": "Save",

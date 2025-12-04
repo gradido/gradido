@@ -138,6 +138,7 @@ async function writeForeignCommunity(
     com.publicKey = dbCom.publicKey
     com.publicJwtKey = pubInfo.publicJwtKey
     com.url = dbCom.endPoint
+    com.hieroTopicId = pubInfo.hieroTopicId
     await DbCommunity.save(com)
   }
 }

@@ -16,7 +16,8 @@ const logging = {
 }
 
 const server = {
-  PORT: process.env.PORT ?? 4000,
+  BACKEND_PORT: process.env.BACKEND_PORT ?? 4000,
+  DLT_ACTIVE: process.env.DLT_ACTIVE === 'true' || false,
   JWT_SECRET: process.env.JWT_SECRET ?? 'secret123',
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN ?? '10m',
   REDEEM_JWT_TOKEN_EXPIRATION: process.env.REDEEM_JWT_TOKEN_EXPIRATION ?? '10m',
@@ -41,8 +42,7 @@ const COMMUNITY_URL = process.env.COMMUNITY_URL ?? `${URL_PROTOCOL}://${COMMUNIT
 const DLT_CONNECTOR_PORT = process.env.DLT_CONNECTOR_PORT ?? 6010
 
 const dltConnector = {
-  DLT_CONNECTOR: process.env.DLT_CONNECTOR === 'true' || false,
-  DLT_CONNECTOR_URL: process.env.DLT_CONNECTOR_URL ?? `${COMMUNITY_URL}:${DLT_CONNECTOR_PORT}`,
+  DLT_CONNECTOR_URL: process.env.DLT_CONNECTOR_URL ?? `http://localhost:${DLT_CONNECTOR_PORT}`,
 }
 
 const community = {
@@ -63,22 +63,10 @@ const loginServer = {
 }
 
 const email = {
-  EMAIL: process.env.EMAIL === 'true',
-  EMAIL_TEST_MODUS: process.env.EMAIL_TEST_MODUS === 'true',
-  EMAIL_TEST_RECEIVER: process.env.EMAIL_TEST_RECEIVER ?? 'stage1@gradido.net',
-  EMAIL_USERNAME: process.env.EMAIL_USERNAME ?? '',
-  EMAIL_SENDER: process.env.EMAIL_SENDER ?? 'info@gradido.net',
-  EMAIL_PASSWORD: process.env.EMAIL_PASSWORD ?? '',
-  EMAIL_SMTP_HOST: process.env.EMAIL_SMTP_HOST ?? 'mailserver',
-  EMAIL_SMTP_PORT: Number(process.env.EMAIL_SMTP_PORT) || 1025,
-
-  EMAIL_TLS: process.env.EMAIL_TLS !== 'false',
   EMAIL_LINK_VERIFICATION:
     COMMUNITY_URL + (process.env.EMAIL_LINK_VERIFICATION_PATH ?? '/checkEmail/'),
   EMAIL_LINK_SETPASSWORD:
     COMMUNITY_URL + (process.env.EMAIL_LINK_SETPASSWORD_PATH ?? '/reset-password/'),
-  EMAIL_LINK_FORGOTPASSWORD:
-    COMMUNITY_URL + (process.env.EMAIL_LINK_FORGOTPASSWORD_PATH ?? '/forgot-password'),
   EMAIL_LINK_OVERVIEW: COMMUNITY_URL + (process.env.EMAIL_LINK_OVERVIEW_PATH ?? '/overview'),
   // time in minutes a optin code is valid
   EMAIL_CODE_VALID_TIME: process.env.EMAIL_CODE_VALID_TIME

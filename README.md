@@ -20,6 +20,7 @@ Clone the Gradido repository to your local machine.
 ```bash
 git clone https://github.com/gradido/gradido.git
 cd gradido
+git submodule update --init --recursive
 ```
 
 For local development, you can run Gradido with **Docker** or **natively**, depending on your preferences and system setup. If you don't have a native MariaDB or MySQL installation, Docker can be used to handle the database as well.
@@ -105,6 +106,22 @@ turbo start
 
 [More Infos for using turbo](./working-native.md)
 
+### Dependencies & Bundling
+This project uses esbuild to bundle the main modules (backend, dht-node, federation) into single JavaScript files for optimized deployment. To ensure a minimal and reliable Docker image, dependencies are intentionally split:
+
+- dependencies: Only packages that cannot be bundled by esbuild into the output files.
+Examples include:
+  - Native modules (sodium-native)
+  - Packages incompatible with bundling (email-templates)
+  - Runtime helpers (cross-env)
+- devDependencies: All other packages that are fully bundled into the build output by esbuild.
+
+This setup ensures that:
+- The production Docker image contains only the minimal set of necessary runtime modules.
+- Native or runtime-sensitive packages are included in node_modules for proper execution.
+
+Note: Even if Docker is not used in all environments, this organization ensures consistent and predictable builds across different platforms.
+
 
 ### For Windows
 
@@ -189,11 +206,11 @@ describe('test', () => {
 ```ts
 import { clearLogs, printLogs } from 'config-schema/test/testSetup'
 ```
-- vitest (frontend, admin, database): 
+- vitest (frontend, admin): 
 ```ts
 import { clearLogs, printLogs } from 'config-schema/test/testSetup.vitest'
 ```
-- bun (shared, core): 
+- bun (shared, core, database): 
 ```ts
 import { clearLogs, printLogs } from 'config-schema/test/testSetup.bun'
 ```
@@ -211,6 +228,16 @@ In root folder calling `bun clear` will clear all turbo caches, node_modules and
 bun clear
 ```
 
+### git Submodule
+The new Module `inspector` was added as git submodule. 
+So after 
+- `git clone` 
+- `git checkout`
+- `git pull`
+
+you have to run `git submodule update --init` to get the correct submodule version.
+
+[Read More](https://git-scm.com/book/en/v2/Git-Tools-Submodules)
 
 ## Services defined in this package
 

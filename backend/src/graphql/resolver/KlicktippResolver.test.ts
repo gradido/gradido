@@ -2,7 +2,6 @@ import { Event as DbEvent, UserContact } from 'database'
 import { GraphQLError } from 'graphql'
 
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
-import { i18n as localization } from '@test/testSetup'
 import { getLogger } from 'config-schema/test/testSetup'
 
 import { EventType } from '@/event/Events'
@@ -10,6 +9,7 @@ import { userFactory } from '@/seeds/factory/user'
 import { login, subscribeNewsletter, unsubscribeNewsletter } from '@/seeds/graphql/mutations'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { AppDatabase } from 'database'
 
 jest.mock('@/password/EncryptorUtils')
 
@@ -18,17 +18,20 @@ const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.Klicktip
 let testEnv: any
 let mutate: any
 let con: any
+let db: AppDatabase
 
 beforeAll(async () => {
-  testEnv = await testEnvironment(logger, localization)
+  testEnv = await testEnvironment(logger)
   mutate = testEnv.mutate
   con = testEnv.con
+  db = testEnv.db
   await cleanDB()
 })
 
 afterAll(async () => {
   await cleanDB()
   await con.destroy()
+  await db.getRedisClient().quit()
 })
 
 describe('KlicktippResolver', () => {

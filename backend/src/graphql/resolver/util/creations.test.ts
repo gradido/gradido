@@ -1,6 +1,7 @@
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { Contribution, User } from 'database'
 import { DataSource } from 'typeorm'
+import { AppDatabase } from 'database'
 
 import { cleanDB, contributionDateFormatter, testEnvironment } from '@test/helpers'
 
@@ -18,22 +19,26 @@ CONFIG.HUMHUB_ACTIVE = false
 
 let mutate: ApolloServerTestClient['mutate']
 let con: DataSource
+let db: AppDatabase
 let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']
   con: DataSource
+  db: AppDatabase
 }
 
 beforeAll(async () => {
   testEnv = await testEnvironment()
   mutate = testEnv.mutate
   con = testEnv.con
+  db = testEnv.db
   await cleanDB()
 })
 
 afterAll(async () => {
   await cleanDB()
   await con.destroy()
+  await db.getRedisClient().quit()
 })
 
 const setZeroHours = (date: Date): Date => {

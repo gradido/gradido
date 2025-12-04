@@ -1,6 +1,18 @@
 import { Decimal } from 'decimal.js-light'
-import { BaseEntity, Column, DeleteDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm'
+import {
+  BaseEntity,
+  Column,
+  DeleteDateColumn,
+  Entity,
+  JoinColumn,
+  OneToMany,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm'
+import { type DltTransaction as DltTransactionType } from './DltTransaction'
+import { type Transaction as TransactionType } from './Transaction'
 import { DecimalTransformer } from './transformer/DecimalTransformer'
+import { type User as UserType } from './User'
 
 @Entity('transaction_links')
 export class TransactionLink extends BaseEntity {
@@ -58,4 +70,25 @@ export class TransactionLink extends BaseEntity {
 
   @Column({ type: 'int', unsigned: true, nullable: true })
   redeemedBy: number | null
+
+  @OneToOne(
+    () => require('./DltTransaction').DltTransaction,
+    (dlt: DltTransactionType) => dlt.transactionLinkId,
+  )
+  @JoinColumn({ name: 'id', referencedColumnName: 'transactionLinkId' })
+  dltTransaction?: DltTransactionType | null
+
+  @OneToOne(
+    () => require('./User').User,
+    (user: UserType) => user.transactionLink,
+  )
+  @JoinColumn({ name: 'userId' })
+  user: UserType
+
+  @OneToMany(
+    () => require('./Transaction').Transaction,
+    (transaction: TransactionType) => transaction.transactionLink,
+  )
+  @JoinColumn({ referencedColumnName: 'transaction_link_id' })
+  transactions: TransactionType[]
 }

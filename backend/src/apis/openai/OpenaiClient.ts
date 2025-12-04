@@ -92,6 +92,7 @@ export class OpenaiClient {
     if (openaiThreadEntity.updatedAt < new Date(Date.now() - OPENAI_AI_THREAD_DEFAULT_TIMEOUT_DAYS * 24 * 60 * 60 * 1000)) {
       logger.info(`Openai thread for user: ${user.id} is older than ${OPENAI_AI_THREAD_DEFAULT_TIMEOUT_DAYS} days, deleting...`)
       // let run async, because it could need some time, but we don't need to wait, because we create a new one nevertheless
+      // biome-ignore lint/complexity/noVoid: start it intentionally async without waiting for result
       void this.deleteThread(openaiThreadEntity.id)
       return []
     }

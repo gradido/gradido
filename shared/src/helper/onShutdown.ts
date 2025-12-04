@@ -1,4 +1,3 @@
-import { Logger } from 'log4js'
 import colors from 'yoctocolors-cjs'
 
 export enum ShutdownReason {
@@ -44,8 +43,10 @@ export function onShutdown(shutdownHandler: (reason: ShutdownReason, error?: Err
 }
 
 export function printServerCrashAsciiArt(msg1: string, msg2: string, msg3: string) {
+  // biome-ignore-start lint/suspicious/noConsole: Server Crash Ascii Art is for console and stdout
   console.error(colors.redBright(` /\\_/\\ ${msg1}`))
   console.error(colors.redBright(`( x.x )  ${msg2}`))
   console.error(colors.redBright(` >   <   ${msg3}`))
   console.error(colors.redBright(''))
+  // biome-ignore-end lint/suspicious/noConsole: Server Crash Ascii Art is for console and stdout
 }

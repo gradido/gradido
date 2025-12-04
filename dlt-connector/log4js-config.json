@@ -8,7 +8,7 @@
       "pattern": "yyyy-MM-dd",
       "layout": 
       {
-        "type": "pattern", "pattern": "%d{ISO8601} %p %c [%X{user}] [%f : %l] -  %m"
+        "type": "pattern", "pattern": "%d{ISO8601} %p %c -  %m"
       },
       "compress": true,
       "keepFileExt" : true,
@@ -22,7 +22,7 @@
       "pattern": "yyyy-MM-dd",
       "layout": 
       {
-        "type": "pattern", "pattern": "%d{ISO8601} %p %c [%X{user}] [%f : %l] -  %m"
+        "type": "pattern", "pattern": "%d{ISO8601} %p %c [%f : %l] -  %m"
       },
       "compress": true,
       "keepFileExt" : true,
@@ -40,7 +40,7 @@
       "type": "stdout",
       "layout": 
       {
-        "type": "pattern", "pattern": "%d{ISO8601} %p %c [%X{user}] [%f : %l] -  %m"
+        "type": "pattern", "pattern": "%d{ISO8601} %p %c -  %m"
       }
     }
   },

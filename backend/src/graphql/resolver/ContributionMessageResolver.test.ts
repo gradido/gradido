@@ -5,10 +5,9 @@ import { DataSource } from 'typeorm'
 
 import { ContributionStatus } from '@enum/ContributionStatus'
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
-import { i18n as localization } from '@test/testSetup'
 
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { sendAddedContributionMessageEmail } from '@/emails/sendEmailVariants'
+import { sendAddedContributionMessageEmail } from 'core'
 import { EventType } from '@/event/Events'
 import { userFactory } from '@/seeds/factory/user'
 import {
@@ -22,6 +21,7 @@ import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { getLogger} from 'config-schema/test/testSetup'
+import { AppDatabase } from 'database'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.ContributionMessageResolver`)
 const logErrorLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)
@@ -30,36 +30,38 @@ const interactionLogger = getLogger(
 )
 
 jest.mock('@/password/EncryptorUtils')
-jest.mock('@/emails/sendEmailVariants', () => {
-  const originalModule = jest.requireActual('@/emails/sendEmailVariants')
+jest.mock('core', () => {
+  const originalModule = jest.requireActual('core')
   return {
     __esModule: true,
     ...originalModule,
-    sendAddedContributionMessageEmail: jest.fn((a) =>
-      originalModule.sendAddedContributionMessageEmail(a),
-    ),
+    sendAddedContributionMessageEmail: jest.fn(),
   }
 })
 
 let mutate: ApolloServerTestClient['mutate']
 let con: DataSource
+let db: AppDatabase
 let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']
   con: DataSource
+  db: AppDatabase
 }
 let result: any
 
 beforeAll(async () => {
-  testEnv = await testEnvironment(logger, localization)
+  testEnv = await testEnvironment(logger)
   mutate = testEnv.mutate
   con = testEnv.con
+  db = testEnv.db
   await cleanDB()
 })
 
 afterAll(async () => {
   await cleanDB()
   await con.destroy()
+  await db.getRedisClient().quit()
 })
 
 describe('ContributionMessageResolver', () => {

@@ -1,22 +1,31 @@
 import { validateAlias } from './user'
 import { getLogger } from '../../../config-schema/test/testSetup.bun'
-import { describe, it, expect, beforeEach, mock, jest } from 'bun:test'
-import { aliasExists } from 'database'
+import { describe, it, expect, mock, jest, afterAll, beforeEach } from 'bun:test'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../config/const'
+import { aliasExists, AbstractLoggingView, AppDatabase } from 'database'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.validation.user`)
 
-mock.module('database', () => ({
-  aliasExists: jest.fn(),
-}))
 mock.module('shared/src/schema/user.schema', () => ({
   aliasSchema: {
     parse: jest.fn(),
   },
 }))
 
-describe('validate alias', () => {
-  beforeEach(() => {
+// bun mock module currently cannot be restored, so we must mock compatible with all tests!
+mock.module('database', () => ({
+  aliasExists: jest.fn(),
+  AbstractLoggingView,
+  AppDatabase,
+}))
+
+
+afterAll(() => {
+  mock.restore()
+})
+
+describe('validate alias', () => {  
+   beforeEach(() => {
     jest.clearAllMocks()
   })
 
@@ -52,7 +61,7 @@ describe('validate alias', () => {
   describe('test against existing alias in database', () => {
     describe('alias exists in database', () => {
       it('throws and logs an error', () => {
-        (aliasExists as jest.Mock).mockResolvedValue(true)
+        (aliasExists as jest.Mock).mockReturnValue(true)
         expect(validateAlias('b-b')).rejects.toEqual(new Error('Given alias is already in use'))
         expect(logger.warn.mock.calls[0]).toEqual(['alias already in use', 'b-b'])
       })
@@ -60,7 +69,7 @@ describe('validate alias', () => {
 
     describe('valid alias', () => {
       it('resolves to true', async () => {
-        (aliasExists as jest.Mock).mockResolvedValue(false)
+        (aliasExists as jest.Mock).mockReturnValue(false)
         expect(validateAlias('bibi')).resolves.toEqual(true)
       })
     })

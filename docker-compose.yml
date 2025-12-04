@@ -61,6 +61,32 @@ services:
     volumes:
       - ./logs/nginx/admin:/var/log/nginx
 
+  ########################################################
+  # INSPECTOR  ###########################################
+  ########################################################
+  inspector:
+    # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
+    image: gradido/inspector:local-production
+    build:
+      context: ./inspector
+      dockerfile: Dockerfile
+      target: production
+    profiles:
+      - dlt
+    networks:
+      - internal-net
+    ports:
+      - ${INSPECTOR_MODULE_PORT:-3100}:3100
+    environment:
+      - NODE_ENV=production
+      - BUILD_COMMIT=${BUILD_COMMIT}
+      - BUILD_COMMIT_SHORT=${BUILD_COMMIT_SHORT}
+      - BUILD_VERSION=${BUILD_VERSION}
+      # - DEBUG=true
+    volumes:
+      - ./logs/nginx/inspector:/var/log/nginx
+
+
   #########################################################
   ## MARIADB ##############################################
   #########################################################
@@ -75,6 +101,18 @@ services:
       - 3306:3306
     volumes:
       - db_vol:/var/lib/mysql
+
+  #########################################################
+  ## REDIS ################################################
+  #########################################################
+  redis:
+    image: redis:6.2.6
+    networks:
+      - internal-net
+    ports:
+      - ${REDIS_PORT:-6379}:6379
+    volumes:
+      - ./logs/redis:/logs/redis
 
   ########################################################
   # BACKEND ##############################################
@@ -97,7 +135,7 @@ services:
     environment:
       # Envs used in Dockerfile
       # - DOCKER_WORKDIR="/app"
-      # - PORT=4000
+      - BACKEND_PORT=4000
       - BUILD_DATE
       - BUILD_VERSION
       - BUILD_COMMIT
@@ -132,7 +170,6 @@ services:
     environment:
       # Envs used in Dockerfile
       # - DOCKER_WORKDIR="/app"
-      # - PORT=5000
       - BUILD_DATE
       - BUILD_VERSION
       - BUILD_COMMIT
@@ -167,12 +204,12 @@ services:
     environment:
       # Envs used in Dockerfile
       # - DOCKER_WORKDIR="/app"
-      - PORT=6010
+      - DLT_CONNECTOR_PORT=6010
+      - BACKEND_PORT=4000
       - BUILD_DATE
       - BUILD_VERSION
       - BUILD_COMMIT
       - NODE_ENV="production"
-      - DB_HOST=mariadb
       # Application only envs
     volumes:
       # <host_machine_directory>:<container_directory> – mirror bidirectional path in local context with path in Docker container
@@ -234,34 +271,6 @@ services:
       - BUILD_VERSION
       - BUILD_COMMIT
       - NODE_ENV=production
-      - DB_HOST=mariadb
-      # Application only envs
-    #env_file:
-    #  - ./frontend/.env
-
-  ########################################################
-  # DLT-DATABASE #############################################
-  ########################################################
-  dlt-database:
-    # name the image so that it cannot be found in a DockerHub repository, otherwise it will not be built locally from the 'dockerfile' but pulled from there
-    image: gradido/dlt-database:local-production_up
-    build:
-      context: ./dlt-database
-      target: production_up
-    profiles: 
-      - dlt
-    depends_on:
-      - mariadb
-    networks:
-      - internal-net
-      - external-net # this is required to fetch the packages
-    environment:
-      # Envs used in Dockerfile
-      # - DOCKER_WORKDIR="/app"
-      - BUILD_DATE
-      - BUILD_VERSION
-      - BUILD_COMMIT
-      - NODE_ENV="production"
       - DB_HOST=mariadb
       # Application only envs
     #env_file:

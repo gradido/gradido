@@ -1,9 +1,13 @@
-import { createTestClient } from 'apollo-server-testing'
-import { entities } from 'database'
-import { datatype, internet, name } from 'faker'
+import { 
+  AppDatabase, 
+  User, 
+  UserInterface, 
+  creationFactoryBulk, 
+  transactionLinkFactoryBulk 
+} from 'database'
+import { internet, name } from 'faker'
 
 import { CONFIG } from '@/config'
-import { createServer } from '@/server/createServer'
 
 import { initLogging } from '@/server/logger'
 import { getLogger } from 'log4js'
@@ -11,95 +15,87 @@ import { writeHomeCommunityEntry } from './community'
 import { contributionLinks } from './contributionLink/index'
 import { creations } from './creation/index'
 import { contributionLinkFactory } from './factory/contributionLink'
-import { creationFactory } from './factory/creation'
-import { transactionLinkFactory } from './factory/transactionLink'
-import { userFactory } from './factory/user'
+import { userFactoryBulk } from './factory/user'
 import { transactionLinks } from './transactionLink/index'
 import { users } from './users/index'
 
-CONFIG.EMAIL = false
+const RANDOM_USER_COUNT = 100
 const logger = getLogger('seed')
-
-const context = {
-  token: '',
-  setHeaders: {
-    push: (value: { key: string; value: string }): void => {
-      context.token = value.value
-    },
-
-    forEach: (): void => {
-      // do nothing
-    },
-  },
-  clientTimezoneOffset: 0,
-}
-
-export const cleanDB = async () => {
-  // this only works as long we do not have foreign key constraints
-  for (const entity of entities) {
-    if (entity.name !== 'Migration') {
-      await resetEntity(entity)
-    }
-  }
-}
-
-const resetEntity = async (entity: any) => {
-  const items = await entity.find({ withDeleted: true })
-  if (items.length > 0) {
-    const ids = items.map((e: any) => e.id)
-    await entity.delete(ids)
-  }
-}
 
 const run = async () => {
   initLogging()
-  const server = await createServer(getLogger('apollo'), context)
-  const seedClient = createTestClient(server.apollo)
-  const { con } = server
-  await cleanDB()
-  logger.info('##seed## clean database successful...')
+  const db = AppDatabase.getInstance()
+  await db.init()
+  await clearDatabase(db)
+  logger.info('clean database successful...')
   logger.info(`crypto worker enabled: ${CONFIG.USE_CRYPTO_WORKER}`)
 
   // seed home community
-  await writeHomeCommunityEntry()
+  const homeCommunity = await writeHomeCommunityEntry()
 
   // seed the standard users
-  for (const user of users) {
-    await userFactory(seedClient, user)
+  // put into map for later direct access
+  const userCreationIndexedByEmail = new Map<string, User>()
+  const defaultUsers = await userFactoryBulk(users, homeCommunity)
+  for (const dbUser of defaultUsers) {
+    userCreationIndexedByEmail.set(dbUser.emailContact.email, dbUser)
   }
-  logger.info('##seed## seeding all standard users successful...')
+  logger.info('seeding all standard users successful...')
 
   // seed 100 random users
-  for (let i = 0; i < 100; i++) {
-    await userFactory(seedClient, {
+  const randomUsers = new Array<UserInterface>(RANDOM_USER_COUNT)
+  for (let i = 0; i < RANDOM_USER_COUNT; i++) {
+    randomUsers[i] = {
       firstName: name.firstName(),
       lastName: name.lastName(),
       email: internet.email(),
-      language: datatype.boolean() ? 'en' : 'de',
-    })
-    logger.info(`##seed## seed ${i}. random user`)
+      language: Math.random() < 0.5 ? 'en' : 'de',
+    }
   }
-  logger.info('##seed## seeding all random users successful...')
+  await userFactoryBulk(randomUsers, homeCommunity)
+  logger.info('seeding all random users successful...')
 
   // create GDD
-  for (const creation of creations) {
-    await creationFactory(seedClient, creation)
-  }
-  logger.info('##seed## seeding all creations successful...')
+  const moderatorUser = userCreationIndexedByEmail.get('peter@lustig.de')!
+  await creationFactoryBulk(creations, userCreationIndexedByEmail, moderatorUser)
+  logger.info('seeding all creations successful...')
 
   // create Transaction Links
-  for (const transactionLink of transactionLinks) {
-    await transactionLinkFactory(seedClient, transactionLink)
-  }
-  logger.info('##seed## seeding all transactionLinks successful...')
+  const movedTransactionLinks = transactionLinks.map(transactionLink => {
+    let createdAt = new Date(new Date().getTime() + 1000)
+    if (transactionLink.createdAt) {
+      createdAt = transactionLink.createdAt
+    }
+    return {
+      ...transactionLink,
+      createdAt: createdAt,
+    }
+  })
+  await transactionLinkFactoryBulk(movedTransactionLinks, userCreationIndexedByEmail)
+  logger.info('seeding all transactionLinks successful...')
 
   // create Contribution Links
   for (const contributionLink of contributionLinks) {
-    await contributionLinkFactory(seedClient, contributionLink)
+    await contributionLinkFactory(null, contributionLink)
   }
-  logger.info('##seed## seeding all contributionLinks successful...')
+  logger.info('seeding all contributionLinks successful...')
 
-  await con.destroy()
+  await db.destroy()
+}
+
+async function clearDatabase(db: AppDatabase) {
+  await db.getDataSource().transaction(async trx => {
+    await trx.query(`SET FOREIGN_KEY_CHECKS = 0`)
+    await trx.query(`TRUNCATE TABLE contributions`)
+    await trx.query(`TRUNCATE TABLE contribution_links`)
+    await trx.query(`TRUNCATE TABLE users`)
+    await trx.query(`TRUNCATE TABLE user_contacts`)
+    await trx.query(`TRUNCATE TABLE user_roles`)
+    await trx.query(`TRUNCATE TABLE transactions`)
+    await trx.query(`TRUNCATE TABLE transaction_links`)
+    await trx.query(`TRUNCATE TABLE communities`)
+    await trx.query(`SET FOREIGN_KEY_CHECKS = 1`)
+  })
 }
 
 run().catch((err) => {

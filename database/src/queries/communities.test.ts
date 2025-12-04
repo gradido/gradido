@@ -1,7 +1,11 @@
 import { Community as DbCommunity, FederatedCommunity as DbFederatedCommunity } from '..'
 import { AppDatabase } from '../AppDatabase'
-import { getCommunityByPublicKeyOrFail, getHomeCommunity, getHomeCommunityWithFederatedCommunityOrFail, getReachableCommunities } from './communities'
-import { describe, expect, it, beforeEach, beforeAll, afterAll } from 'vitest'
+import { 
+  getCommunityByPublicKeyOrFail, 
+  getHomeCommunity, 
+  getHomeCommunityWithFederatedCommunityOrFail, 
+  getReachableCommunities 
+} from './communities'
 import { createCommunity, createVerifiedFederatedCommunity } from '../seeds/community'
 import { Ed25519PublicKey } from 'shared'
 
@@ -50,12 +54,12 @@ describe('community.queries', () => {
     })
 
     it('should throw if no home community exists', async () => {
-      expect(() => getHomeCommunityWithFederatedCommunityOrFail('1_0')).rejects.toThrow()
+      expect(getHomeCommunityWithFederatedCommunityOrFail('1_0')).rejects.toThrow()
     })
 
     it('should throw if no federated community exists', async () => {
       await createCommunity(false)
-      expect(() => getHomeCommunityWithFederatedCommunityOrFail('1_0')).rejects.toThrow()
+      expect(getHomeCommunityWithFederatedCommunityOrFail('1_0')).rejects.toThrow()
     })
 
     it('load community by public key returned from getHomeCommunityWithFederatedCommunityOrFail', async () => {

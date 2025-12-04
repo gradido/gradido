@@ -8,10 +8,8 @@
     "locales": {},
     "locales:fix": {},
     "lint": {
-      "dependsOn": ["locales"]
     },
     "lint:fix": {
-      "dependsOn": ["locales:fix"]
     },
     "test": {
       "dependsOn": ["database#up:backend_test", "^build"]

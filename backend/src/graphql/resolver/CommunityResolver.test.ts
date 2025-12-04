@@ -5,7 +5,6 @@ import { DataSource } from 'typeorm'
 import { v4 as uuidv4 } from 'uuid'
 
 import { cleanDB, testEnvironment } from '@test/helpers'
-import { i18n as localization } from '@test/testSetup'
 
 import { userFactory } from '@/seeds/factory/user'
 import { login, updateHomeCommunityQuery } from '@/seeds/graphql/mutations'
@@ -20,6 +19,7 @@ import { createCommunity, createVerifiedFederatedCommunity } from 'database/src/
 
 import { getLogger } from 'config-schema/test/testSetup'
 import { CONFIG } from '@/config'
+import { AppDatabase } from 'database'
 
 jest.mock('@/password/EncryptorUtils')
 
@@ -29,11 +29,12 @@ CONFIG.FEDERATION_VALIDATE_COMMUNITY_TIMER = 1000
 let mutate: ApolloServerTestClient['mutate']
 let query: ApolloServerTestClient['query']
 let con: DataSource
-
+let db: AppDatabase
 let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']
   con: DataSource
+  db: AppDatabase
 }
 
 const peterLoginData = {
@@ -43,10 +44,11 @@ const peterLoginData = {
 }
 
 beforeAll(async () => {
-  testEnv = await testEnvironment(getLogger('apollo'), localization)
+  testEnv = await testEnvironment(getLogger('apollo'))
   mutate = testEnv.mutate
   query = testEnv.query
   con = testEnv.con
+  db = testEnv.db
   await cleanDB()
   // reset id auto increment
   await DbCommunity.clear()
@@ -55,6 +57,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await con.destroy()
+  await db.getRedisClient().quit()
 })
 
 // real valid ed25519 key pairs

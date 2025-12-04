@@ -8,12 +8,12 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm'
-import { Contribution } from './Contribution'
-import { ContributionLink } from './ContributionLink'
-import { ContributionMessage } from './ContributionMessage'
-import { Transaction } from './Transaction'
-import { TransactionLink } from './TransactionLink'
-import { User } from './User'
+import { type Contribution as ContributionType } from './Contribution'
+import { type ContributionLink as ContributionLinkType } from './ContributionLink'
+import { type ContributionMessage as ContributionMessageType } from './ContributionMessage'
+import { type Transaction as TransactionType } from './Transaction'
+import { type TransactionLink as TransactionLinkType } from './TransactionLink'
+import { type User as UserType } from './User'
 import { DecimalTransformer } from './transformer/DecimalTransformer'
 
 @Entity('events')
@@ -36,37 +36,37 @@ export class Event extends BaseEntity {
   @Column({ name: 'affected_user_id', type: 'bigint', unsigned: true, nullable: false })
   affectedUserId: number
 
-  @ManyToOne(() => User)
+  @ManyToOne(() => require('./User').User)
   @JoinColumn({ name: 'affected_user_id', referencedColumnName: 'id' })
-  affectedUser: User
+  affectedUser: UserType
 
   @Column({ name: 'acting_user_id', type: 'bigint', unsigned: true, nullable: false })
   actingUserId: number
 
-  @ManyToOne(() => User)
+  @ManyToOne(() => require('./User').User)
   @JoinColumn({ name: 'acting_user_id', referencedColumnName: 'id' })
-  actingUser: User
+  actingUser: UserType
 
   @Column({ name: 'involved_user_id', type: 'bigint', unsigned: true, nullable: true })
   involvedUserId: number | null
 
-  @ManyToOne(() => User)
+  @ManyToOne(() => require('./User').User)
   @JoinColumn({ name: 'involved_user_id', referencedColumnName: 'id' })
-  involvedUser: User | null
+  involvedUser: UserType | null
 
   @Column({ name: 'involved_transaction_id', type: 'bigint', unsigned: true, nullable: true })
   involvedTransactionId: number | null
 
-  @ManyToOne(() => Transaction)
+  @ManyToOne(() => require('./Transaction').Transaction)
   @JoinColumn({ name: 'involved_transaction_id', referencedColumnName: 'id' })
-  involvedTransaction: Transaction | null
+  involvedTransaction: TransactionType | null
 
   @Column({ name: 'involved_contribution_id', type: 'bigint', unsigned: true, nullable: true })
   involvedContributionId: number | null
 
-  @ManyToOne(() => Contribution)
+  @ManyToOne(() => require('./Contribution').Contribution)
   @JoinColumn({ name: 'involved_contribution_id', referencedColumnName: 'id' })
-  involvedContribution: Contribution | null
+  involvedContribution: ContributionType | null
 
   @Column({
     name: 'involved_contribution_message_id',
@@ -76,23 +76,23 @@ export class Event extends BaseEntity {
   })
   involvedContributionMessageId: number | null
 
-  @ManyToOne(() => ContributionMessage)
+  @ManyToOne(() => require('./ContributionMessage').ContributionMessage)
   @JoinColumn({ name: 'involved_contribution_message_id', referencedColumnName: 'id' })
-  involvedContributionMessage: ContributionMessage | null
+  involvedContributionMessage: ContributionMessageType | null
 
   @Column({ name: 'involved_transaction_link_id', type: 'bigint', unsigned: true, nullable: true })
   involvedTransactionLinkId: number | null
 
-  @ManyToOne(() => TransactionLink)
+  @ManyToOne(() => require('./TransactionLink').TransactionLink)
   @JoinColumn({ name: 'involved_transaction_link_id', referencedColumnName: 'id' })
-  involvedTransactionLink: TransactionLink | null
+  involvedTransactionLink: TransactionLinkType | null
 
   @Column({ name: 'involved_contribution_link_id', type: 'bigint', unsigned: true, nullable: true })
   involvedContributionLinkId: number | null
 
-  @ManyToOne(() => ContributionLink)
+  @ManyToOne(() => require('./ContributionLink').ContributionLink)
   @JoinColumn({ name: 'involved_contribution_link_id', referencedColumnName: 'id' })
-  involvedContributionLink: ContributionLink | null
+  involvedContributionLink: ContributionLinkType | null
 
   @Column({
     type: 'decimal',

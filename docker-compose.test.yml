@@ -77,18 +77,6 @@ services:
       - NODE_ENV=test
   #  restart: always # this is very dangerous, but worth a test for the delayed mariadb startup at first run
 
-  ########################################################
-  # DLT-DATABASE #############################################
-  ########################################################
-  dlt-database:
-    image: gradido/dlt-database:test_up
-    build:
-      context: ./dlt-database
-      target: test_up
-    environment:
-      - NODE_ENV=test
-  #  restart: always # this is very dangerous, but worth a test for the delayed mariadb startup at first run
-
   #########################################################
   ## MARIADB ##############################################
   #########################################################
@@ -98,6 +86,14 @@ services:
       - external-net
     volumes: 
       - db_test_vol:/var/lib/mysql
+
+  #########################################################
+  ## REDIS ################################################
+  #########################################################
+  redis:
+    networks:
+      - internal-net
+      - external-net
 
   #########################################################
   ## PHPMYADMIN ###########################################

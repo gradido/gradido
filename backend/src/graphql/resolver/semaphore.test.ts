@@ -21,8 +21,16 @@ import {
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { peterLustig } from '@/seeds/users/peter-lustig'
+import { CONFIG } from '@/config'
+import { CONFIG as CORE_CONFIG } from 'core'
+// import { TRANSACTIONS_LOCK } from 'database'
+import { Mutex } from 'redis-semaphore'
+import { AppDatabase } from 'database'
 
 jest.mock('@/password/EncryptorUtils')
+
+CONFIG.DLT_ACTIVE = false
+CORE_CONFIG.EMAIL = false
 
 let mutate: ApolloServerTestClient['mutate']
 let con: DataSource
@@ -30,8 +38,8 @@ let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']
   con: DataSource
+  db: AppDatabase
 }
-
 beforeAll(async () => {
   testEnv = await testEnvironment()
   mutate = testEnv.mutate
@@ -42,9 +50,45 @@ beforeAll(async () => {
 afterAll(async () => {
   await cleanDB()
   await con.destroy()
+  await testEnv.db.getRedisClient().quit()
 })
 
+type WorkData = { start: number, end: number }
+async function fakeWork(workData: WorkData[], index: number) {
+  // const releaseLock = await TRANSACTIONS_LOCK.acquire()
+  // create a new mutex for every function call, like in production code
+  const mutex = new Mutex(testEnv.db.getRedisClient(), 'TRANSACTIONS_LOCK')
+  await mutex.acquire()
+
+  const startDate = new Date()
+  await new Promise((resolve) => setTimeout(resolve, Math.random() * 50))
+  const endDate = new Date()
+  workData[index] = { start: startDate.getTime(), end: endDate.getTime() }
+  // releaseLock()
+  await mutex.release()
+}
+
 describe('semaphore', () => {
+  it("didn't should run in parallel", async () => {
+    const workData: WorkData[] = []
+    
+    const promises: Promise<void>[] = []
+    for(let i = 0; i < 20; i++) {
+      promises.push(fakeWork(workData, i))
+    }
+    await Promise.all(promises)
+    workData.sort((a, b) => a.start - b.start)
+    workData.forEach((work, index) => {
+      expect(work.start).toBeLessThan(work.end)
+      if(index < workData.length - 1) {
+        expect(work.start).toBeLessThan(workData[index + 1].start)
+        expect(work.end).toBeLessThanOrEqual(workData[index + 1].start)
+      }
+    })
+  })
+})
+
+describe('semaphore fullstack', () => {
   let contributionLinkCode = ''
   let bobsTransactionLinkCode = ''
   let bibisTransactionLinkCode = ''

@@ -158,6 +158,7 @@
       "year": "© {year}"
     },
     "imprint": "Legal notice",
+    "inspector": "Inspector (experimental)",
     "privacy_policy": "Privacy policy",
     "short_hash": "({shortHash})",
     "whitepaper": "Whitepaper"
@@ -266,7 +267,7 @@
     "expiredOn": "Expired on",
     "has-account": "You already have a Gradido account?",
     "header": "Send Gradidos via link",
-    "isFree": "Gradido is free of charge worldwide.",
+    "isFree": "Community-based – Decentralized – Open Source",
     "link-and-text-copied": "The link and your message have been copied to the clipboard. You can now include it in an email or message.",
     "link-copied": "Link has been copied to the clipboard. You can now paste it into an email or message.",
     "link-deleted": "The link was deleted on {date}.",

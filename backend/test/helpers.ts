@@ -3,8 +3,6 @@ import { entities } from 'database'
 
 import { createServer } from '@/server/createServer'
 
-import { i18n } from './testSetup'
-
 import { getLogger } from 'log4js'
 
 export const headerPushMock = jest.fn((t) => {
@@ -29,13 +27,13 @@ export const cleanDB = async () => {
   }
 }
 
-export const testEnvironment = async (testLogger = getLogger('apollo'), testI18n = i18n) => {
-  const server = await createServer( testLogger, context, testI18n)
+export const testEnvironment = async (testLogger = getLogger('apollo')) => {
+  const server = await createServer( testLogger, context)
   const con = server.con
   const testClient = createTestClient(server.apollo)
   const mutate = testClient.mutate
   const query = testClient.query
-  return { mutate, query, con }
+  return { mutate, query, con, db: server.db }
 }
 
 export const resetEntity = async (entity: any) => {

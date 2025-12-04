@@ -1,6 +1,7 @@
 import { UserInputError } from 'apollo-server-express'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import {
+  AppDatabase,
   Community as DbCommunity,
   Event as DbEvent,
   TransactionLink,
@@ -20,7 +21,6 @@ import { UserContactType } from '@enum/UserContactType'
 import { ContributionLink } from '@model/ContributionLink'
 import { Location } from '@model/Location'
 import { cleanDB, headerPushMock, resetToken, testEnvironment } from '@test/helpers'
-import { i18n as localization } from '@test/testSetup'
 
 import { subscribe } from '@/apis/KlicktippController'
 import { CONFIG } from '@/config'
@@ -28,7 +28,7 @@ import {
   sendAccountActivationEmail,
   sendAccountMultiRegistrationEmail,
   sendResetPasswordEmail,
-} from '@/emails/sendEmailVariants'
+} from 'core'
 import { EventType } from '@/event/Events'
 import { PublishNameType } from '@/graphql/enum/PublishNameType'
 import { SecretKeyCryptographyCreateKey } from '@/password/EncryptorUtils'
@@ -74,16 +74,15 @@ import { Location2Point } from './util/Location2Point'
 jest.mock('@/apis/humhub/HumHubClient')
 jest.mock('@/password/EncryptorUtils')
 
-jest.mock('@/emails/sendEmailVariants', () => {
-  const originalModule = jest.requireActual('@/emails/sendEmailVariants')
+jest.mock('core', () => {
+  const originalModule = jest.requireActual('core')
   return {
     __esModule: true,
     ...originalModule,
-    sendAccountActivationEmail: jest.fn((a) => originalModule.sendAccountActivationEmail(a)),
-    sendAccountMultiRegistrationEmail: jest.fn((a) =>
-      originalModule.sendAccountMultiRegistrationEmail(a),
-    ),
-    sendResetPasswordEmail: jest.fn((a) => originalModule.sendResetPasswordEmail(a)),
+    sendAccountActivationEmail: jest.fn(),
+    sendAccountMultiRegistrationEmail: jest.fn(),
+    sendResetPasswordEmail: jest.fn(),
+    sendEmailTranslated: jest.fn(),
   }
 })
 
@@ -105,24 +104,29 @@ let user: User
 let mutate: ApolloServerTestClient['mutate']
 let query: ApolloServerTestClient['query']
 let con: DataSource
+let db: AppDatabase
 let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']
   con: DataSource
+  db: AppDatabase
 }
 
 beforeAll(async () => {
-  testEnv = await testEnvironment(getLogger('apollo'), localization)
+  testEnv = await testEnvironment(getLogger('apollo'))
   mutate = testEnv.mutate
   query = testEnv.query
   con = testEnv.con
+  db = testEnv.db
   CONFIG.HUMHUB_ACTIVE = false
+  CONFIG.DLT_ACTIVE = false
   await cleanDB()
 })
 
 afterAll(async () => {
   await cleanDB()
   await con.destroy()
+  await db.getRedisClient().quit()
 })
 
 describe('UserResolver', () => {
@@ -154,6 +158,7 @@ describe('UserResolver', () => {
       expect(result).toEqual(
         expect.objectContaining({ data: { createUser: { id: expect.any(Number) } } }),
       )
+
     })
 
     describe('valid input data', () => {
@@ -1039,7 +1044,7 @@ describe('UserResolver', () => {
 
     describe('user exists in DB', () => {
       beforeAll(async () => {
-        await userFactory(testEnv, bibiBloxberg)
+        await userFactory(testEnv, bobBaumeister)
       })
 
       afterAll(async () => {
@@ -1049,7 +1054,7 @@ describe('UserResolver', () => {
 
       describe('duration not expired', () => {
         it('throws an error', async () => {
-          await expect(mutate({ mutation: forgotPassword, variables })).resolves.toEqual(
+          await expect(mutate({ mutation: forgotPassword, variables: { email: 'bob@baumeister.de' } })).resolves.toEqual(
             expect.objectContaining({
               errors: [
                 new GraphQLError(
@@ -1066,7 +1071,7 @@ describe('UserResolver', () => {
       describe('duration reset to 0', () => {
         it('returns true', async () => {
           CONFIG.EMAIL_CODE_REQUEST_TIME = 0
-          await expect(mutate({ mutation: forgotPassword, variables })).resolves.toEqual(
+          await expect(mutate({ mutation: forgotPassword, variables: { email: 'bob@baumeister.de' } })).resolves.toEqual(
             expect.objectContaining({
               data: {
                 forgotPassword: true,
@@ -1077,9 +1082,9 @@ describe('UserResolver', () => {
 
         it('sends reset password email', () => {
           expect(sendResetPasswordEmail).toBeCalledWith({
-            firstName: 'Bibi',
-            lastName: 'Bloxberg',
-            email: 'bibi@bloxberg.de',
+            firstName: 'Bob',
+            lastName: 'der Baumeister',
+            email: 'bob@baumeister.de',
             language: 'de',
             resetLink: expect.any(String),
             timeDurationObject: expect.objectContaining({
@@ -1091,7 +1096,7 @@ describe('UserResolver', () => {
 
         it('stores the EMAIL_FORGOT_PASSWORD event in the database', async () => {
           const userConatct = await UserContact.findOneOrFail({
-            where: { email: 'bibi@bloxberg.de' },
+            where: { email: 'bob@baumeister.de' },
             relations: ['user'],
           })
           await expect(DbEvent.find()).resolves.toContainEqual(
@@ -1107,7 +1112,7 @@ describe('UserResolver', () => {
       describe('request reset password again', () => {
         it('throws an error', async () => {
           CONFIG.EMAIL_CODE_REQUEST_TIME = emailCodeRequestTime
-          await expect(mutate({ mutation: forgotPassword, variables })).resolves.toEqual(
+          await expect(mutate({ mutation: forgotPassword, variables: { email: 'bob@baumeister.de' } })).resolves.toEqual(
             expect.objectContaining({
               errors: [new GraphQLError('Email already sent less than 10 minutes ago')],
             }),
@@ -1127,8 +1132,8 @@ describe('UserResolver', () => {
     let emailContact: UserContact
 
     beforeAll(async () => {
-      await userFactory(testEnv, bibiBloxberg)
-      emailContact = await UserContact.findOneOrFail({ where: { email: bibiBloxberg.email } })
+      await userFactory(testEnv, bobBaumeister)
+      emailContact = await UserContact.findOneOrFail({ where: { email: bobBaumeister.email } })
     })
 
     afterAll(async () => {
@@ -1139,7 +1144,7 @@ describe('UserResolver', () => {
       it('throws an error', async () => {
         jest.clearAllMocks()
         await expect(
-          query({ query: queryOptIn, variables: { optIn: 'not-valid' } }),
+          query({ query: queryOptIn, variables: { email: 'bob@baumeister.de', optIn: 'not-valid' } }),
         ).resolves.toEqual(
           expect.objectContaining({
             errors: [
@@ -1160,7 +1165,7 @@ describe('UserResolver', () => {
         await expect(
           query({
             query: queryOptIn,
-            variables: { optIn: emailContact.emailVerificationCode.toString() },
+            variables: { email: 'bob@baumeister.de', optIn: emailContact.emailVerificationCode.toString() },
           }),
         ).resolves.toEqual(
           expect.objectContaining({
@@ -2256,7 +2261,7 @@ describe('UserResolver', () => {
               relations: ['user'],
             })
             const activationLink = `${
-              CONFIG.EMAIL_LINK_VERIFICATION
+              CONFIG.EMAIL_LINK_SETPASSWORD
             }${userContact.emailVerificationCode.toString()}`
             expect(sendAccountActivationEmail).toBeCalledWith({
               firstName: 'Bibi',

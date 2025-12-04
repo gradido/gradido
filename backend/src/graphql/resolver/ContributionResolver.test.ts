@@ -14,14 +14,13 @@ import {
   resetToken,
   testEnvironment,
 } from '@test/helpers'
-import { i18n as localization } from '@test/testSetup'
 
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import {
   sendContributionConfirmedEmail,
   sendContributionDeletedEmail,
   sendContributionDeniedEmail,
-} from '@/emails/sendEmailVariants'
+} from 'core'
 import { EventType } from '@/event/Events'
 import { creations } from '@/seeds/creation/index'
 import { creationFactory } from '@/seeds/factory/creation'
@@ -53,8 +52,19 @@ import { stephenHawking } from '@/seeds/users/stephen-hawking'
 import { getFirstDayOfPreviousNMonth } from 'core'
 import { getLogger } from 'config-schema/test/testSetup'
 import { getLogger as originalGetLogger } from 'log4js'
+import { AppDatabase } from 'database'
 
-jest.mock('@/emails/sendEmailVariants')
+jest.mock('core', () => {
+  const originalModule = jest.requireActual('core')
+  return {
+    __esModule: true,
+    ...originalModule,
+    sendContributionDeniedEmail: jest.fn(),
+    sendContributionConfirmedEmail: jest.fn(),
+    sendContributionDeletedEmail: jest.fn(),
+    sendEmailTranslated: jest.fn(),
+  }
+})
 jest.mock('@/password/EncryptorUtils')
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)
@@ -62,10 +72,12 @@ const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)
 let mutate: ApolloServerTestClient['mutate']
 let query: ApolloServerTestClient['query']
 let con: DataSource
+let db: AppDatabase
 let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']
   con: DataSource
+  db: AppDatabase
 }
 let creation: Contribution | null
 let admin: User
@@ -77,16 +89,18 @@ let contributionToDelete: any
 let bibiCreatedContribution: Contribution
 
 beforeAll(async () => {
-  testEnv = await testEnvironment(originalGetLogger('apollo'), localization)
+  testEnv = await testEnvironment(originalGetLogger('apollo'))
   mutate = testEnv.mutate
   query = testEnv.query
   con = testEnv.con
+  db = testEnv.db
   await cleanDB()
 })
 
 afterAll(async () => {
   await cleanDB()
   await con.destroy()
+  await db.getRedisClient().quit()
 })
 
 describe('ContributionResolver', () => {
@@ -2128,14 +2142,6 @@ describe('ContributionResolver', () => {
                 contributionAmount: expect.decimalEqual(450),
                 contributionFrontendLink: `http://localhost/contributions/own-contributions/1#contributionListItem-${creation?.id}`,
               })
-            })
-
-            it('stores the EMAIL_CONFIRMATION event in the database', async () => {
-              await expect(DbEvent.find()).resolves.toContainEqual(
-                expect.objectContaining({
-                  type: EventType.EMAIL_CONFIRMATION,
-                }),
-              )
             })
 
             describe('confirm same contribution again', () => {

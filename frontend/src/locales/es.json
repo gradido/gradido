@@ -140,6 +140,7 @@
       "year": "© {year}"
     },
     "imprint": "Aviso legal",
+    "inspector": "Inspector (experimental)",
     "privacy_policy": "Protección de Datos",
     "short_hash": "({shortHash})",
     "whitepaper": "Whitepaper"
@@ -214,7 +215,7 @@
     "expiredOn": "Vencido el:",
     "has-account": "Ya tienes una cuenta Gradido?",
     "header": "Transferir Gradidos por medio de un enlace",
-    "isFree": "Gradido es gratis en todo el mundo.",
+    "isFree": "Comunitario – Descentralizado – Código abierto",
     "link-and-text-copied": "El enlace y su mensaje se han copiado en el portapapeles. Ahora puedes ponerlo en un correo electrónico o mensaje.",
     "link-copied": "El enlace se ha copiado en el portapapeles. Ahora puedes pegarlo en un correo electrónico o mensaje.",
     "link-deleted": "El enlace se eliminó el {date}.",

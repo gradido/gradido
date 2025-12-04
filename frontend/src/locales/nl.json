@@ -140,6 +140,7 @@
       "year": "© {year}"
     },
     "imprint": "Colofon",
+    "inspector": "Inspecteur (experimenteel)",
     "privacy_policy": "Privacyverklaring",
     "short_hash": "({shortHash})",
     "whitepaper": "Witboek"
@@ -214,7 +215,7 @@
     "expiredOn": "Afgelopen op",
     "has-account": "Heb je al een Gradido rekening?",
     "header": "Gradidos per link versturen",
-    "isFree": "Gradido is gratis wereldwijd.",
+    "isFree": "Gemeenschappelijk – Decentraal – Open Source",
     "link-and-text-copied": "De link en jouw bericht werden naar het klembord gekopieerd. Je kunt ze nu in een email of bericht invoegen.",
     "link-copied": "Link werd naar het klembord gekopieerd. Je kunt deze nu in een email of bericht invoegen.",
     "link-deleted": "De link werd op {date} verwijderd.",

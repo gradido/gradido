@@ -10,7 +10,6 @@ import {
   findUserByIdentifier 
 } from 'database'
 import { GraphQLResolveInfo } from 'graphql'
-import i18n from 'i18n'
 import {
   Arg,
   Args,
@@ -58,11 +57,6 @@ import { RIGHTS } from '@/auth/RIGHTS'
 import { CONFIG } from '@/config'
 import { PublishNameLogic } from '@/data/PublishName.logic'
 import {
-  sendAccountActivationEmail,
-  sendAccountMultiRegistrationEmail,
-  sendResetPasswordEmail,
-} from '@/emails/sendEmailVariants'
-import {
   EVENT_ADMIN_USER_DELETE,
   EVENT_ADMIN_USER_ROLE_SET,
   EVENT_ADMIN_USER_UNDELETE,
@@ -85,8 +79,12 @@ import { Context, getClientTimezoneOffset, getUser } from '@/server/context'
 import { communityDbUser } from '@/util/communityUser'
 import { hasElopageBuys } from '@/util/hasElopageBuys'
 import { durationInMinutesFromDates, getTimeDurationObject, printTimeDuration } from '@/util/time'
-import { delay } from 'core'
-
+import { 
+  delay,
+  sendAccountActivationEmail,
+  sendAccountMultiRegistrationEmail,
+  sendResetPasswordEmail,  
+} from 'core'
 import random from 'random-bigint'
 import { randombytes_random } from 'sodium-native'
 
@@ -104,6 +102,7 @@ import { deleteUserRole, setUserRole } from './util/modifyUserRole'
 import { sendUserToGms } from './util/sendUserToGms'
 import { syncHumhub } from './util/syncHumhub'
 import { validateAlias } from 'core'
+import { registerAddressTransaction } from '@/apis/dltConnector'
 import { updateAllDefinedAndChanged } from 'shared'
 
 const LANGUAGES = ['de', 'en', 'es', 'fr', 'nl']
@@ -232,7 +231,6 @@ export class UserResolver {
     logger.debug('validation of login credentials successful...')
 
     const user = new User(dbUser)
-    i18n.setLocale(user.language)
 
     // Elopage Status & Stored PublisherId
     user.hasElopage = await this.hasElopage({ ...context, user: dbUser })
@@ -321,7 +319,6 @@ export class UserResolver {
     if (!language || !isLanguage(language)) {
       language = DEFAULT_LANGUAGE
     }
-    i18n.setLocale(language)
 
     // check if user with email still exists?
     email = email.trim().toLowerCase()
@@ -388,6 +385,7 @@ export class UserResolver {
     if (homeCom.communityUuid) {
       dbUser.communityUuid = homeCom.communityUuid
     }
+    
     dbUser.gradidoID = gradidoID
     dbUser.firstName = firstName
     dbUser.lastName = lastName
@@ -398,8 +396,11 @@ export class UserResolver {
       dbUser.alias = alias
     }
     dbUser.publisherId = publisherId ?? 0
-    dbUser.passwordEncryptionType = PasswordEncryptionType.NO_PASSWORD
-    logger.debug('new dbUser', new UserLoggingView(dbUser))
+    dbUser.passwordEncryptionType = PasswordEncryptionType.NO_PASSWORD    
+
+    if(logger.isDebugEnabled()) {
+      logger.debug('new dbUser', new UserLoggingView(dbUser))
+    }
     if (redeemCode) {
       if (redeemCode.match(/^CL-/)) {
         const contributionLink = await DbContributionLink.findOne({
@@ -435,7 +436,7 @@ export class UserResolver {
 
       dbUser.emailContact = emailContact
       dbUser.emailId = emailContact.id
-      await queryRunner.manager.save(dbUser).catch((error) => {
+      dbUser = await queryRunner.manager.save(dbUser).catch((error) => {
         throw new LogError('Error while updating dbUser', error)
       })
 
@@ -467,6 +468,8 @@ export class UserResolver {
     } finally {
       await queryRunner.release()
     }
+    // register user into blockchain
+    const dltTransactionPromise = registerAddressTransaction(dbUser, homeCom)
     logger.info('createUser() successful...')
     if (CONFIG.HUMHUB_ACTIVE) {
       let spaceId: number | null = null
@@ -503,6 +506,11 @@ export class UserResolver {
         }
       }
     }
+    // wait for finishing dlt transaction
+    const startTime = new Date()
+    await dltTransactionPromise
+    const endTime = new Date()
+    logger.info(`dlt-connector register address finished in ${endTime.getTime() - startTime.getTime()} ms`)
     return new User(dbUser)
   }
 
@@ -752,7 +760,6 @@ export class UserResolver {
         throw new LogError('Given language is not a valid language or not supported')
       }
       user.language = language
-      i18n.setLocale(language)
       updated = true
     }
 
@@ -969,7 +976,7 @@ export class UserResolver {
     @Ctx() context: Context,
   ): Promise<SearchUsersResult> {
     const clientTimezoneOffset = getClientTimezoneOffset(context)
-    const userFields = ['id', 'firstName', 'lastName', 'emailId', 'emailContact', 'deletedAt']
+    const userFields = ['id', 'firstName', 'lastName', 'emailId', 'emailContact', 'deletedAt', 'createdAt']
     const [users, count] = await findUsers(
       userFields,
       query,

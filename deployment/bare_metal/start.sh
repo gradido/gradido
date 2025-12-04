@@ -185,6 +185,7 @@ cd $PROJECT_ROOT
 git fetch --all
 git checkout $BRANCH_NAME
 git pull
+git submodule update --init --recursive
 export BUILD_COMMIT="$(git rev-parse HEAD)"
 
 # install missing dependencies
@@ -213,6 +214,15 @@ unset FEDERATION_APIVERSION
 unset FEDERATION_PORT
 log_step "===================================================================================================="
 
+export DLT_NGINX_CONF="${DLT_NGINX_CONF:-# dlt disabled}"
+# prepare inspector and gradido dlt node nginx config blocks if enabled
+if [ "$DLT_ACTIVE" = true ] ; then
+  log_step "prepare inspector and dlt gradido node nginx config block"
+  envsubst '$DLT_NODE_SERVER_PORT' < $NGINX_CONFIG_DIR/gradido-dlt.conf.template >> $NGINX_CONFIG_DIR/gradido-dlt.conf
+  export DLT_NGINX_CONF=$(< $NGINX_CONFIG_DIR/gradido-dlt.conf)
+  rm $NGINX_CONFIG_DIR/gradido-dlt.conf
+fi
+
 # *** 2nd read gradido-federation.conf file in env variable to be replaced in 3rd step
 export FEDERATION_NGINX_CONF=$(< $NGINX_CONFIG_DIR/gradido-federation.conf.locations)
 
@@ -222,8 +232,9 @@ case "$URL_PROTOCOL" in
  'https') TEMPLATE_FILE="gradido.conf.ssl.template" ;;
        *) TEMPLATE_FILE="gradido.conf.template" ;;
 esac
-envsubst '$FEDERATION_NGINX_CONF' < $NGINX_CONFIG_DIR/$TEMPLATE_FILE > $NGINX_CONFIG_DIR/gradido.conf.tmp
+envsubst '$FEDERATION_NGINX_CONF,$DLT_NGINX_CONF' < $NGINX_CONFIG_DIR/$TEMPLATE_FILE > $NGINX_CONFIG_DIR/gradido.conf.tmp
 unset FEDERATION_NGINX_CONF
+unset DLT_NGINX_CONF
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $NGINX_CONFIG_DIR/gradido.conf.tmp > $NGINX_CONFIG_DIR/gradido.conf
 rm $NGINX_CONFIG_DIR/gradido.conf.tmp
 rm $NGINX_CONFIG_DIR/gradido-federation.conf.locations
@@ -245,6 +256,10 @@ MODULES=(
   dht-node
   federation
 )
+if [ "$DLT_ACTIVE" = true ] ; then
+  MODULES+=("inspector")
+  MODULES+=("dlt-connector")
+fi
 
 if [ "$FAST_MODE" = false ] ; then 
   log_step 'Clean tmp, bun and yarn cache'
@@ -275,7 +290,10 @@ fi
 log_step 'Regenerate .env files'
 for dir in "${MODULES[@]}"; do
   base="$PROJECT_ROOT/$dir"
-  cp -f $base/.env $base/.env.bak
+  # Backup .env file if exists
+  if [ -f "$base/.env" ]; then
+    cp -f $base/.env $base/.env.bak
+  fi
   envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $base/.env.template > $base/.env
 done
 
@@ -286,6 +304,21 @@ bun install
 # build all modules
 log_step 'build all modules'
 turbo build --env-mode=loose --concurrency=$(nproc)
+
+# build inspector and dlt-connector
+if [ "$DLT_ACTIVE" = true ]; then
+  log_step 'build inspector'
+  cd $PROJECT_ROOT/inspector
+  bun install
+  bun run build
+
+  log_step 'build dlt-connector'
+  cd $PROJECT_ROOT/dlt-connector
+  bun install
+  bun run build
+  
+  cd $PROJECT_ROOT
+fi
 
 # database
 log_step 'Updating database'
@@ -305,6 +338,14 @@ pm2 start --name gradido-backend \
  --cwd $PROJECT_ROOT/backend \
  -l $GRADIDO_LOG_PATH/pm2.backend.$TODAY.log \
  --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
+
+if [ "$DLT_ACTIVE" = true ] ; then
+ pm2 start --name dlt-connector \
+ "env TZ=UTC NODE_ENV=production bun ./build/index.js" \
+ --cwd $PROJECT_ROOT/dlt-connector \
+ -l $GRADIDO_LOG_PATH/pm2.dlt-connector.$TODAY.log \
+ --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
+fi
 
 pm2 save
 if [ ! -z $FEDERATION_DHT_TOPIC ]; then
