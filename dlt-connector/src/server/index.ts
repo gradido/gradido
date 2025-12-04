@@ -1,5 +1,5 @@
 import { TypeBoxFromValibot } from '@sinclair/typemap'
-import { Elysia, status, t } from 'elysia'
+import { Elysia, status, t, ValidationError } from 'elysia'
 import { AddressType_NONE } from 'gradido-blockchain-js'
 import { getLogger } from 'log4js'
 import * as v from 'valibot'
@@ -58,6 +58,14 @@ const logger = getLogger(`${LOG4JS_BASE_CATEGORY}.server`)
  * 🔗 More info: https://elysiajs.com/at-glance.html
  */
 export const appRoutes = new Elysia()
+  .onError(({ code, error }) => {
+    if (code === 'VALIDATION' && error instanceof ValidationError) {
+      logger.debug(JSON.stringify(error.all[0], null, 2))
+      logger.error(error.all[0].summary)
+      return error.all[0].summary
+    }
+    return error
+  })
   // check if account exists by user, call example:
   // GET /isAccountExist/by-user/0.0.21732/408780b2-59b3-402a-94be-56a4f4f4e8ec/0
   .get(

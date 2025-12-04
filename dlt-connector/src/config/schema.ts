@@ -84,7 +84,7 @@ export const configSchema = v.object({
       v.string('The version of the DLT node server, for example: 0.9.0'),
       v.regex(/^\d+\.\d+\.\d+$/),
     ),
-    '0.9.0',
+    '0.9.2',
   ),
   DLT_GRADIDO_NODE_SERVER_HOME_FOLDER: v.optional(
     v.string('The home folder for the gradido dlt node server'),
@@ -99,4 +99,39 @@ export const configSchema = v.object({
     ),
     '4000',
   ),
+  MYSQL_HOST: v.optional(v.string('The host of the database'), 'localhost'),
+  MYSQL_PORT: v.optional(
+    v.pipe(
+      v.string('The port of the database'),
+      v.transform<string, number>((input: string) => Number.parseInt(input)),
+      v.minValue(1),
+      v.maxValue(65535),
+    ),
+    '3306',
+  ),
+  MYSQL_USER: v.optional(
+    v.pipe(
+      v.string('The user name of the database'),
+      v.custom((input: unknown): boolean => {
+        if (process.env.NODE_ENV === 'production' && input === 'root') {
+          return false
+        }
+        return true
+      }, "Shouldn't use default root user in production"),
+    ),
+    'root',
+  ),
+  MYSQL_PASSWORD: v.optional(
+    v.pipe(
+      v.string('The password of the database'),
+      v.custom((input: unknown): boolean => {
+        if (process.env.NODE_ENV === 'production' && input === '') {
+          return false
+        }
+        return true
+      }, "Shouldn't use empty password in production"),
+    ),
+    '',
+  ),
+  MYSQL_DATABASE: v.optional(v.string('The name of the database'), 'gradido_community'),
 })

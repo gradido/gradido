@@ -42,7 +42,7 @@ const COMMUNITY_URL = process.env.COMMUNITY_URL ?? `${URL_PROTOCOL}://${COMMUNIT
 const DLT_CONNECTOR_PORT = process.env.DLT_CONNECTOR_PORT ?? 6010
 
 const dltConnector = {
-  DLT_CONNECTOR_URL: process.env.DLT_CONNECTOR_URL ?? `${COMMUNITY_URL}:${DLT_CONNECTOR_PORT}`,
+  DLT_CONNECTOR_URL: process.env.DLT_CONNECTOR_URL ?? `http://localhost:${DLT_CONNECTOR_PORT}`,
 }
 
 const community = {

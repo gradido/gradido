@@ -8,6 +8,7 @@ import {
 import { getLogger } from 'log4js'
 import * as v from 'valibot'
 import { ensureCommunitiesAvailable } from '../../client/GradidoNode/communities'
+import { GradidoNodeClient } from '../../client/GradidoNode/GradidoNodeClient'
 import { HieroClient } from '../../client/hiero/HieroClient'
 import { LOG4JS_BASE_CATEGORY } from '../../config/const'
 import { InputTransactionType } from '../../data/InputTransactionType.enum'
@@ -21,8 +22,10 @@ import {
   HieroId,
   HieroTransactionIdString,
   hieroTransactionIdStringSchema,
+  identifierSeedSchema,
 } from '../../schemas/typeGuard.schema'
 import { isTopicStillOpen } from '../../utils/hiero'
+import { LinkedTransactionKeyPairRole } from '../resolveKeyPair/LinkedTransactionKeyPair.role'
 import { AbstractTransactionRole } from './AbstractTransaction.role'
 import { CommunityRootTransactionRole } from './CommunityRootTransaction.role'
 import { CreationTransactionRole } from './CreationTransaction.role'
@@ -101,7 +104,7 @@ async function sendViaHiero(
   if (!transactionId) {
     throw new Error('missing transaction id from hiero')
   }
-  logger.info('transmitted Gradido Transaction to Hiero', {
+  logger.debug('give Gradido Transaction to Hiero Client', {
     transactionId: transactionId.toString(),
   })
   return v.parse(hieroTransactionIdStringSchema, transactionId.toString())
@@ -143,8 +146,26 @@ async function chooseCorrectRole(
       return new RegisterAddressTransactionRole(transaction)
     case InputTransactionType.GRADIDO_DEFERRED_TRANSFER:
       return new DeferredTransferTransactionRole(transaction)
-    case InputTransactionType.GRADIDO_REDEEM_DEFERRED_TRANSFER:
-      return new RedeemDeferredTransferTransactionRole(transaction)
+    case InputTransactionType.GRADIDO_REDEEM_DEFERRED_TRANSFER: {
+      // load deferred transfer transaction from gradido node
+      const seedKeyPairRole = new LinkedTransactionKeyPairRole(
+        v.parse(identifierSeedSchema, transaction.user.seed),
+      )
+      const seedPublicKey = seedKeyPairRole.generateKeyPair().getPublicKey()
+      if (!seedPublicKey) {
+        throw new Error("redeem deferred transfer: couldn't generate seed public key")
+      }
+      const transactions = await GradidoNodeClient.getInstance().getTransactionsForAccount(
+        { maxResultCount: 2, topic: transaction.user.communityTopicId },
+        seedPublicKey.convertToHex(),
+      )
+      if (!transactions || transactions.length !== 1) {
+        throw new Error(
+          "redeem deferred transfer: couldn't find exactly one deferred transfer on Gradido Node",
+        )
+      }
+      return new RedeemDeferredTransferTransactionRole(transaction, transactions[0])
+    }
     default:
       throw new Error('not supported transaction type: ' + transaction.type)
   }
