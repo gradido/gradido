@@ -1,6 +1,5 @@
-import { User, UserRole } from 'database'
-
 import { RoleNames } from '@enum/RoleNames'
+import { User, UserRole } from 'database'
 
 export class UserLogic {
   public constructor(private self: User) {}

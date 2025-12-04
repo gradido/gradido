@@ -1,9 +1,8 @@
+import { EncryptedTransferArgs } from 'core'
 import { FederatedCommunity as DbFederatedCommunity } from 'database'
 import { GraphQLClient } from 'graphql-request'
 import { getLogger, Logger } from 'log4js'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-
-import { EncryptedTransferArgs } from 'core'
 import { authenticate } from './query/authenticate'
 import { openConnectionCallback } from './query/openConnectionCallback'
 
@@ -27,15 +26,23 @@ export class AuthenticationClient {
   }
 
   async openConnectionCallback(args: EncryptedTransferArgs): Promise<boolean> {
-    const methodLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.client.1_0.AuthenticationClient.openConnectionCallback`)
+    const methodLogger = getLogger(
+      `${LOG4JS_BASE_CATEGORY_NAME}.client.1_0.AuthenticationClient.openConnectionCallback`,
+    )
     methodLogger.addContext('handshakeID', args.handshakeID)
     methodLogger.debug('openConnectionCallback with endpoint', this.endpoint, args)
     try {
-      const { data } = await this.client.rawRequest<{ openConnectionCallback: boolean }>(openConnectionCallback, { args })
+      const { data } = await this.client.rawRequest<{ openConnectionCallback: boolean }>(
+        openConnectionCallback,
+        { args },
+      )
       methodLogger.debug('after openConnectionCallback: data:', data)
 
       if (!data || !data.openConnectionCallback) {
-        methodLogger.warn('openConnectionCallback without response data from endpoint', this.endpoint)
+        methodLogger.warn(
+          'openConnectionCallback without response data from endpoint',
+          this.endpoint,
+        )
         return false
       }
       methodLogger.debug('openConnectionCallback successfully started with endpoint', this.endpoint)
@@ -47,11 +54,15 @@ export class AuthenticationClient {
   }
 
   async authenticate(args: EncryptedTransferArgs): Promise<string | null> {
-    const methodLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.client.1_0.AuthenticationClient.authenticate`)
+    const methodLogger = getLogger(
+      `${LOG4JS_BASE_CATEGORY_NAME}.client.1_0.AuthenticationClient.authenticate`,
+    )
     methodLogger.addContext('handshakeID', args.handshakeID)
     methodLogger.debug('authenticate with endpoint=', this.endpoint)
     try {
-      const { data } = await this.client.rawRequest<{ authenticate: string }>(authenticate, { args })
+      const { data } = await this.client.rawRequest<{ authenticate: string }>(authenticate, {
+        args,
+      })
       methodLogger.debug('after authenticate: data:', data)
 
       const responseJwt = data?.authenticate

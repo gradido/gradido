@@ -1,14 +1,14 @@
-import { AppDatabase } from '../AppDatabase'
-import { 
-  CommunityHandshakeState as DbCommunityHandshakeState, 
-  Community as DbCommunity, 
-  FederatedCommunity as DbFederatedCommunity, 
-  findPendingCommunityHandshake,
-  CommunityHandshakeStateType
-} from '..'
-import { createCommunity, createVerifiedFederatedCommunity } from '../seeds/community'
-import { Ed25519PublicKey } from 'shared'
 import { randomBytes } from 'node:crypto'
+import { Ed25519PublicKey } from 'shared'
+import {
+  CommunityHandshakeStateType,
+  Community as DbCommunity,
+  CommunityHandshakeState as DbCommunityHandshakeState,
+  FederatedCommunity as DbFederatedCommunity,
+  findPendingCommunityHandshake,
+} from '..'
+import { AppDatabase } from '../AppDatabase'
+import { createCommunity, createVerifiedFederatedCommunity } from '../seeds/community'
 
 const db = AppDatabase.getInstance()
 
@@ -40,14 +40,17 @@ describe('communityHandshakes', () => {
     const com1 = await createCommunity(false)
     await createVerifiedFederatedCommunity('1_0', 100, com1)
     await createCommunityHandshakeState(com1.publicKey)
-    const communityHandshakeState = await findPendingCommunityHandshake(new Ed25519PublicKey(com1.publicKey), '1_0')
+    const communityHandshakeState = await findPendingCommunityHandshake(
+      new Ed25519PublicKey(com1.publicKey),
+      '1_0',
+    )
     expect(communityHandshakeState).toBeDefined()
     expect(communityHandshakeState).toMatchObject({
       publicKey: com1.publicKey,
       apiVersion: '1_0',
       status: CommunityHandshakeStateType.START_COMMUNITY_AUTHENTICATION,
-      handshakeId: 1
-    })    
+      handshakeId: 1,
+    })
   })
 
   it('update state', async () => {
@@ -55,7 +58,7 @@ describe('communityHandshakes', () => {
     await createCommunityHandshakeState(publicKey.asBuffer())
     const communityHandshakeState = await findPendingCommunityHandshake(publicKey, '1_0')
     expect(communityHandshakeState).toBeDefined()
-    communityHandshakeState!.status = CommunityHandshakeStateType.START_OPEN_CONNECTION_CALLBACK    
+    communityHandshakeState!.status = CommunityHandshakeStateType.START_OPEN_CONNECTION_CALLBACK
     await communityHandshakeState!.save()
     const communityHandshakeState2 = await findPendingCommunityHandshake(publicKey, '1_0')
     expect(communityHandshakeState2).toBeDefined()
@@ -63,7 +66,7 @@ describe('communityHandshakes', () => {
       publicKey: publicKey.asBuffer(),
       apiVersion: '1_0',
       status: CommunityHandshakeStateType.START_OPEN_CONNECTION_CALLBACK,
-      handshakeId: 1
+      handshakeId: 1,
     })
   })
 })

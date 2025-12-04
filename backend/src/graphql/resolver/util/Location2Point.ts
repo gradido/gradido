@@ -1,6 +1,5 @@
-import { Point } from 'typeorm'
-
 import { Location } from '@model/Location'
+import { Point } from 'typeorm'
 
 export function Location2Point(location: Location): Point {
   let pointStr: string

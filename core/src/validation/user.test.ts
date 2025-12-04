@@ -1,8 +1,8 @@
-import { validateAlias } from './user'
+import { afterAll, beforeEach, describe, expect, it, jest, mock } from 'bun:test'
+import { AbstractLoggingView, AppDatabase, aliasExists } from 'database'
 import { getLogger } from '../../../config-schema/test/testSetup.bun'
-import { describe, it, expect, mock, jest, afterAll, beforeEach } from 'bun:test'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../config/const'
-import { aliasExists, AbstractLoggingView, AppDatabase } from 'database'
+import { validateAlias } from './user'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.validation.user`)
 
@@ -19,13 +19,12 @@ mock.module('database', () => ({
   AppDatabase,
 }))
 
-
 afterAll(() => {
   mock.restore()
 })
 
-describe('validate alias', () => {  
-   beforeEach(() => {
+describe('validate alias', () => {
+  beforeEach(() => {
     jest.clearAllMocks()
   })
 
@@ -57,11 +56,10 @@ describe('validate alias', () => {
     })
   })
 
-  
   describe('test against existing alias in database', () => {
     describe('alias exists in database', () => {
       it('throws and logs an error', () => {
-        (aliasExists as jest.Mock).mockReturnValue(true)
+        ;(aliasExists as jest.Mock).mockReturnValue(true)
         expect(validateAlias('b-b')).rejects.toEqual(new Error('Given alias is already in use'))
         expect(logger.warn.mock.calls[0]).toEqual(['alias already in use', 'b-b'])
       })
@@ -69,7 +67,7 @@ describe('validate alias', () => {
 
     describe('valid alias', () => {
       it('resolves to true', async () => {
-        (aliasExists as jest.Mock).mockReturnValue(false)
+        ;(aliasExists as jest.Mock).mockReturnValue(false)
         expect(validateAlias('bibi')).resolves.toEqual(true)
       })
     })

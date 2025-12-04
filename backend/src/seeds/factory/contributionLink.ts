@@ -1,13 +1,12 @@
-import { 
-  contributionLinkFactory as contributionLinkFactoryDb, 
-  ContributionLinkInterface 
-} from 'database'
-
 import { ContributionLink } from '@model/ContributionLink'
+import {
+  ContributionLinkInterface,
+  contributionLinkFactory as contributionLinkFactoryDb,
+} from 'database'
 
 export { ContributionLinkInterface }
 
-export async function contributionLinkFactory (
+export async function contributionLinkFactory(
   _client: any,
   contributionLink: ContributionLinkInterface,
 ): Promise<ContributionLink> {

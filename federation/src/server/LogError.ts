@@ -1,5 +1,5 @@
-import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { getLogger } from 'log4js'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 
 /**
  * A custom Error that logs itself immediately upon instantiation.

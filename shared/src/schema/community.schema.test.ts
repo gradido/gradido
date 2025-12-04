@@ -1,7 +1,6 @@
+import { describe, expect, it } from 'bun:test'
 import { v4 as uuidv4 } from 'uuid'
 import { communityAuthenticatedSchema } from './community.schema'
-import { describe, it, expect } from 'bun:test'
-
 
 describe('communityAuthenticatedSchema', () => {
   it('should return an error if communityUuid is not a uuidv4', () => {

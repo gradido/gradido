@@ -1,11 +1,10 @@
+import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { ApolloServerTestClient } from 'apollo-server-testing'
-import { ContributionLink as DbContributionLink, Event as DbEvent } from 'database'
+import { getLogger } from 'config-schema/test/testSetup'
+import { AppDatabase, ContributionLink as DbContributionLink, Event as DbEvent } from 'database'
 import { Decimal } from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
 import { DataSource } from 'typeorm'
-
-import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
-
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { EventType } from '@/event/Events'
 import { userFactory } from '@/seeds/factory/user'
@@ -18,8 +17,6 @@ import {
 import { listContributionLinks } from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { peterLustig } from '@/seeds/users/peter-lustig'
-import { getLogger } from 'config-schema/test/testSetup'
-import { AppDatabase } from 'database'
 
 jest.mock('@/password/EncryptorUtils')
 

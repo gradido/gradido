@@ -1,6 +1,6 @@
 import { Community } from '../entity'
-import { FederatedCommunityLoggingView } from './FederatedCommunityLogging.view'
 import { AbstractLoggingView } from './AbstractLogging.view'
+import { FederatedCommunityLoggingView } from './FederatedCommunityLogging.view'
 
 export class CommunityLoggingView extends AbstractLoggingView {
   public constructor(private self: Community) {
@@ -22,7 +22,7 @@ export class CommunityLoggingView extends AbstractLoggingView {
       createdAt: this.dateToString(this.self.createdAt),
       updatedAt: this.dateToString(this.self.updatedAt),
       federatedCommunities: this.self.federatedCommunities?.map(
-        (federatedCommunity) => new FederatedCommunityLoggingView(federatedCommunity)
+        (federatedCommunity) => new FederatedCommunityLoggingView(federatedCommunity),
       ),
     }
   }

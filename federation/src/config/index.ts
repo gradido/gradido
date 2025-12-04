@@ -1,9 +1,9 @@
 // ATTENTION: DO NOT PUT ANY SECRETS IN HERE (or the .env)
+
+import type { LogLevel } from 'config-schema'
+import { validate } from 'config-schema'
 import { Decimal } from 'decimal.js-light'
 import dotenv from 'dotenv'
-
-import { validate } from 'config-schema'
-import type { LogLevel } from 'config-schema'
 
 import { schema } from './schema'
 

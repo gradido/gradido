@@ -1,18 +1,12 @@
-import { User } from 'database'
-
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
-
-import { CONFIG } from '@/config'
-import { LogError } from '@/server/LogError'
+import { User } from 'database'
 import { getLogger } from 'log4js'
-
-import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import {
   crypto_box_SEEDBYTES,
   crypto_hash_sha512_BYTES,
-  crypto_hash_sha512_STATEBYTES,
   crypto_hash_sha512_final,
   crypto_hash_sha512_init,
+  crypto_hash_sha512_STATEBYTES,
   crypto_hash_sha512_update,
   crypto_pwhash,
   crypto_pwhash_MEMLIMIT_MIN,
@@ -22,6 +16,10 @@ import {
   crypto_shorthash_BYTES,
   crypto_shorthash_KEYBYTES,
 } from 'sodium-native'
+import { CONFIG } from '@/config'
+
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { LogError } from '@/server/LogError'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.password.EncryptorUtils`)
 

@@ -15,11 +15,11 @@ export interface Decay {
   end: Date | null
   duration: number | null
 }
-  
+
 export function decayFormula(value: Decimal, seconds: number): Decimal {
   // TODO why do we need to convert this here to a string to work properly?
-  // chatgpt: We convert to string here to avoid precision loss: 
-  //          .pow(seconds) can internally round the result, especially for large values of `seconds`. 
+  // chatgpt: We convert to string here to avoid precision loss:
+  //          .pow(seconds) can internally round the result, especially for large values of `seconds`.
   //          Using .toString() ensures full precision is preserved in the multiplication.
   return value.mul(
     new Decimal('0.99999997803504048973201202316767079413460520837376').pow(seconds).toString(),
@@ -27,17 +27,17 @@ export function decayFormula(value: Decimal, seconds: number): Decimal {
 }
 
 export function decayFormulaFast(value: Decimal, seconds: number): Decimal {
-  return value.mul(new Decimal(2).pow(new Decimal(-seconds).div(new Decimal(SECONDS_PER_YEAR_GREGORIAN_CALENDER))))
+  return value.mul(
+    new Decimal(2).pow(new Decimal(-seconds).div(new Decimal(SECONDS_PER_YEAR_GREGORIAN_CALENDER))),
+  )
 }
 export function compoundInterest(value: Decimal, seconds: number): Decimal {
-  return value.mul(new Decimal(2).pow(new Decimal(seconds).div(new Decimal(SECONDS_PER_YEAR_GREGORIAN_CALENDER))))
+  return value.mul(
+    new Decimal(2).pow(new Decimal(seconds).div(new Decimal(SECONDS_PER_YEAR_GREGORIAN_CALENDER))),
+  )
 }
 
-export function calculateDecay(
-  amount: Decimal,
-  from: Date,
-  to: Date
-): Decay {
+export function calculateDecay(amount: Decimal, from: Date, to: Date): Decay {
   const fromMs = from.getTime()
   const toMs = to.getTime()
   const startBlockMs = DECAY_START_TIME.getTime()

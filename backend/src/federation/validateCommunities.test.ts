@@ -1,13 +1,11 @@
+import { cleanDB, testEnvironment } from '@test/helpers'
 import { ApolloServerTestClient } from 'apollo-server-testing'
-import { FederatedCommunity as DbFederatedCommunity } from 'database'
+import { getLogger } from 'config-schema/test/testSetup'
+import { AppDatabase, FederatedCommunity as DbFederatedCommunity } from 'database'
 import { GraphQLClient } from 'graphql-request'
 import { Response } from 'graphql-request/dist/types'
 import { DataSource, Not } from 'typeorm'
-
-import { cleanDB, testEnvironment } from '@test/helpers'
-import { getLogger } from 'config-schema/test/testSetup'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { AppDatabase } from 'database'
 import { validateCommunities } from './validateCommunities'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.federation.validateCommunities`)

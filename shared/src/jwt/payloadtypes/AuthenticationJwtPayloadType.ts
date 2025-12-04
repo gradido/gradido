@@ -6,11 +6,7 @@ export class AuthenticationJwtPayloadType extends JwtPayloadType {
   oneTimeCode: string
   uuid: string
 
-  constructor(
-    handshakeID: string,
-    oneTimeCode: string,
-    uuid: string,
-  ) {
+  constructor(handshakeID: string, oneTimeCode: string, uuid: string) {
     super(handshakeID)
     this.tokentype = AuthenticationJwtPayloadType.AUTHENTICATION_TYPE
     this.oneTimeCode = oneTimeCode

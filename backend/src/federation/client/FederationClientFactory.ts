@@ -1,8 +1,7 @@
+import { ApiVersionType, ensureUrlEndsWithSlash } from 'core'
 import { FederatedCommunity as DbFederatedCommunity } from 'database'
-
 import { FederationClient as V1_0_FederationClient } from '@/federation/client/1_0/FederationClient'
 import { FederationClient as V1_1_FederationClient } from '@/federation/client/1_1/FederationClient'
-import { ApiVersionType, ensureUrlEndsWithSlash } from 'core'
 
 type FederationClient = V1_0_FederationClient | V1_1_FederationClient
 

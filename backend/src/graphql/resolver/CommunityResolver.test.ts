@@ -1,25 +1,26 @@
+import { cleanDB, testEnvironment } from '@test/helpers'
 import { ApolloServerTestClient } from 'apollo-server-testing'
-import { Community as DbCommunity, FederatedCommunity as DbFederatedCommunity, getHomeCommunity } from 'database'
+import { getLogger } from 'config-schema/test/testSetup'
+import {
+  AppDatabase,
+  Community as DbCommunity,
+  FederatedCommunity as DbFederatedCommunity,
+  getHomeCommunity,
+} from 'database'
+import { createCommunity, createVerifiedFederatedCommunity } from 'database/src/seeds/community'
 import { GraphQLError } from 'graphql/error/GraphQLError'
 import { DataSource } from 'typeorm'
 import { v4 as uuidv4 } from 'uuid'
-
-import { cleanDB, testEnvironment } from '@test/helpers'
-
+import { CONFIG } from '@/config'
 import { userFactory } from '@/seeds/factory/user'
 import { login, updateHomeCommunityQuery } from '@/seeds/graphql/mutations'
 import {
-  allCommunities,  
+  allCommunities,
   getCommunityByIdentifierQuery,
   getHomeCommunityQuery,
   reachableCommunities,
 } from '@/seeds/graphql/queries'
 import { peterLustig } from '@/seeds/users/peter-lustig'
-import { createCommunity, createVerifiedFederatedCommunity } from 'database/src/seeds/community'
-
-import { getLogger } from 'config-schema/test/testSetup'
-import { CONFIG } from '@/config'
-import { AppDatabase } from 'database'
 
 jest.mock('@/password/EncryptorUtils')
 
@@ -121,11 +122,11 @@ describe('CommunityResolver', () => {
     let homeCom3: DbFederatedCommunity
     let foreignCom1: DbFederatedCommunity
     let foreignCom2: DbFederatedCommunity
-    let foreignCom3: DbFederatedCommunity    
+    let foreignCom3: DbFederatedCommunity
 
     beforeAll(async () => {
       // create admin and login as admin
-      await userFactory(testEnv, peterLustig)      
+      await userFactory(testEnv, peterLustig)
       await mutate({ mutation: login, variables: peterLoginData })
     })
 
@@ -498,7 +499,7 @@ describe('CommunityResolver', () => {
           DbCommunity.insert(foreignCom2),
           DbFederatedCommunity.insert(com1FedCom),
           DbFederatedCommunity.insert(com1FedCom2),
-          DbFederatedCommunity.insert(com2FedCom)
+          DbFederatedCommunity.insert(com2FedCom),
         ])
       })
 
@@ -512,13 +513,14 @@ describe('CommunityResolver', () => {
             description: homeCom1.description,
             url: homeCom1.url,
             uuid: homeCom1.communityUuid,
-          }, {
+          },
+          {
             foreign: foreignCom1.foreign,
             name: foreignCom1.name,
             description: foreignCom1.description,
             url: foreignCom1.url,
             uuid: foreignCom1.communityUuid,
-          }
+          },
         ])
       })
     })
@@ -574,7 +576,7 @@ describe('CommunityResolver', () => {
               description: homeCom?.description,
               url: homeCom?.url,
               creationDate: homeCom?.creationDate?.toISOString(),
-              uuid: homeCom?.communityUuid
+              uuid: homeCom?.communityUuid,
             },
           },
         })
@@ -591,7 +593,7 @@ describe('CommunityResolver', () => {
       await DbCommunity.clear()
 
       // create admin and login as admin
-      await userFactory(testEnv, peterLustig)      
+      await userFactory(testEnv, peterLustig)
       homeCom = (await getHomeCommunity())!
       foreignCom1 = await createCommunity(true, false)
       foreignCom2 = await createCommunity(true, false)
@@ -599,7 +601,7 @@ describe('CommunityResolver', () => {
       await Promise.all([
         DbCommunity.insert(foreignCom1),
         DbCommunity.insert(foreignCom2),
-        mutate({ mutation: login, variables: peterLoginData })
+        mutate({ mutation: login, variables: peterLoginData }),
       ])
     })
 

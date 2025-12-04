@@ -1,4 +1,3 @@
-
 export { raeuberHotzenplotz } from 'database'
 /*
 import { UserInterface } from './UserInterface'

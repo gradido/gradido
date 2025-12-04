@@ -1,6 +1,6 @@
 import { Decimal } from 'decimal.js-light'
+import { Decay as DecayInterface } from 'shared'
 import { Field, Int, ObjectType } from 'type-graphql'
-import { Decay as DecayInterface} from 'shared'
 
 @ObjectType()
 export class Decay {

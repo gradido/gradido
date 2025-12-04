@@ -1,9 +1,9 @@
 import { latestDbVersion } from './detectLastDBVersion'
 export { latestDbVersion }
 
+export { AppDatabase } from './AppDatabase'
 export * from './entity'
+export * from './enum'
 export * from './logging'
 export * from './queries'
-export * from './seeds'  
-export * from './enum'
-export { AppDatabase } from './AppDatabase'
+export * from './seeds'

@@ -6,11 +6,7 @@ export class OpenConnectionCallbackJwtPayloadType extends JwtPayloadType {
   oneTimeCode: string
   url: string
 
-  constructor(
-    handshakeID: string,
-    oneTimeCode: string,
-    url: string,
-  ) {
+  constructor(handshakeID: string, oneTimeCode: string, url: string) {
     super(handshakeID)
     this.tokentype = OpenConnectionCallbackJwtPayloadType.OPEN_CONNECTION_CALLBACK_TYPE
     this.oneTimeCode = oneTimeCode

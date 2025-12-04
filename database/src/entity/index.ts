@@ -1,4 +1,5 @@
 import { Community } from './Community'
+import { CommunityHandshakeState } from './CommunityHandshakeState'
 import { Contribution } from './Contribution'
 import { ContributionLink } from './ContributionLink'
 import { ContributionMessage } from './ContributionMessage'
@@ -7,7 +8,6 @@ import { Event } from './Event'
 import { FederatedCommunity } from './FederatedCommunity'
 import { LoginElopageBuys } from './LoginElopageBuys'
 import { Migration } from './Migration'
-import { CommunityHandshakeState } from './CommunityHandshakeState'
 import { OpenaiThreads } from './OpenaiThreads'
 import { PendingTransaction } from './PendingTransaction'
 import { ProjectBranding } from './ProjectBranding'
@@ -27,7 +27,7 @@ export {
   Event,
   FederatedCommunity,
   LoginElopageBuys,
-  Migration,  
+  Migration,
   ProjectBranding,
   OpenaiThreads,
   PendingTransaction,

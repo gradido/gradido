@@ -1,11 +1,10 @@
+import { ensureUrlEndsWithSlash } from 'core'
 import { FederatedCommunity as DbFederatedCommunity } from 'database'
 import { GraphQLClient } from 'graphql-request'
-
+import { getLogger } from 'log4js'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { getPublicCommunityInfo } from '@/federation/client/1_0/query/getPublicCommunityInfo'
 import { getPublicKey } from '@/federation/client/1_0/query/getPublicKey'
-import { ensureUrlEndsWithSlash } from 'core'
-import { getLogger } from 'log4js'
 
 import { PublicCommunityInfoLoggingView } from './logging/PublicCommunityInfoLogging.view'
 import { GetPublicKeyResult } from './model/GetPublicKeyResult'

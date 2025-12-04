@@ -1,16 +1,14 @@
-import { 
-  AppDatabase, 
-  User, 
-  UserInterface, 
-  creationFactoryBulk, 
-  transactionLinkFactoryBulk 
+import {
+  AppDatabase,
+  creationFactoryBulk,
+  transactionLinkFactoryBulk,
+  User,
+  UserInterface,
 } from 'database'
 import { internet, name } from 'faker'
-
-import { CONFIG } from '@/config'
-
-import { initLogging } from '@/server/logger'
 import { getLogger } from 'log4js'
+import { CONFIG } from '@/config'
+import { initLogging } from '@/server/logger'
 import { writeHomeCommunityEntry } from './community'
 import { contributionLinks } from './contributionLink/index'
 import { creations } from './creation/index'
@@ -61,7 +59,7 @@ const run = async () => {
   logger.info('seeding all creations successful...')
 
   // create Transaction Links
-  const movedTransactionLinks = transactionLinks.map(transactionLink => {
+  const movedTransactionLinks = transactionLinks.map((transactionLink) => {
     let createdAt = new Date(new Date().getTime() + 1000)
     if (transactionLink.createdAt) {
       createdAt = transactionLink.createdAt
@@ -84,7 +82,7 @@ const run = async () => {
 }
 
 async function clearDatabase(db: AppDatabase) {
-  await db.getDataSource().transaction(async trx => {
+  await db.getDataSource().transaction(async (trx) => {
     await trx.query(`SET FOREIGN_KEY_CHECKS = 0`)
     await trx.query(`TRUNCATE TABLE contributions`)
     await trx.query(`TRUNCATE TABLE contribution_links`)

@@ -11,11 +11,11 @@ export class CommunityHandshakeStateLoggingView extends AbstractLoggingView {
       id: this.self.id,
       handshakeId: this.self.handshakeId,
       oneTimeCode: this.self.oneTimeCode,
-      publicKey: this.self.publicKey.toString(this.bufferStringFormat),      
+      publicKey: this.self.publicKey.toString(this.bufferStringFormat),
       status: this.self.status,
       lastError: this.self.lastError,
       createdAt: this.dateToString(this.self.createdAt),
-      updatedAt: this.dateToString(this.self.updatedAt),      
+      updatedAt: this.dateToString(this.self.updatedAt),
     }
   }
 }

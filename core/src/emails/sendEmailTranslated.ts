@@ -1,16 +1,16 @@
-import path from 'path'
 import Email from 'email-templates'
-import { i18n } from '../locales/localization'
+import { getLogger } from 'log4js'
 import { createTransport } from 'nodemailer'
+import path from 'path'
 import { CONFIG } from '../config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../config/const'
-import { getLogger } from 'log4js'
-import gradidoHeader from './templates/includes/gradido-header.jpeg'
+import { i18n } from '../locales/localization'
+import chatboxIcon from './templates/includes/chatbox-icon.png'
 import facebookIcon from './templates/includes/facebook-icon.png'
+import gradidoHeader from './templates/includes/gradido-header.jpeg'
 import telegramIcon from './templates/includes/telegram-icon.png'
 import twitterIcon from './templates/includes/twitter-icon.png'
 import youtubeIcon from './templates/includes/youtube-icon.png'
-import chatboxIcon from './templates/includes/chatbox-icon.png'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.emails.sendEmailTranslated`)
 
@@ -48,7 +48,7 @@ export const sendEmailTranslated = async ({
     )
     receiver.to = CONFIG.EMAIL_TEST_RECEIVER
   }
-  
+
   const transport = createTransport({
     host: CONFIG.EMAIL_SMTP_HOST,
     port: CONFIG.EMAIL_SMTP_PORT,
@@ -102,7 +102,7 @@ export const sendEmailTranslated = async ({
             cid: 'youtubeicon',
           },
           {
-             // filename: 'chatbox-icon.png',
+            // filename: 'chatbox-icon.png',
             content: chatboxIcon,
             cid: 'chatboxicon',
           },

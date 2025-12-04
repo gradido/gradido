@@ -1,14 +1,13 @@
 import { Contribution, User } from 'database'
 import { Decimal } from 'decimal.js-light'
-
+import { getLogger, Logger } from 'log4js'
 import { Role } from '@/auth/Role'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { ContributionLogic } from '@/data/Contribution.logic'
 import { ContributionMessageBuilder } from '@/data/ContributionMessage.builder'
 import { ContributionStatus } from '@/graphql/enum/ContributionStatus'
-import { LogError } from '@/server/LogError'
 import { Context, getClientTimezoneOffset } from '@/server/context'
-import { Logger, getLogger } from 'log4js'
-import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { LogError } from '@/server/LogError'
 
 export abstract class AbstractUnconfirmedContributionRole {
   private availableCreationSums?: Decimal[]
@@ -24,7 +23,9 @@ export abstract class AbstractUnconfirmedContributionRole {
     if (self.confirmedAt || self.deniedAt) {
       throw new LogError("this contribution isn't unconfirmed!")
     }
-    this.logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.interactions.updateUnconfirmedContribution`)
+    this.logger = getLogger(
+      `${LOG4JS_BASE_CATEGORY_NAME}.interactions.updateUnconfirmedContribution`,
+    )
     this.logger.addContext('contribution', this.self.id)
   }
 

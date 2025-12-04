@@ -2,7 +2,7 @@ import { Community as DbCommunity, FederatedCommunity as DbFederatedCommunity } 
 
 export function getFederatedCommunityWithApiOrFail(
   community: DbCommunity,
-  apiVersion: string
+  apiVersion: string,
 ): DbFederatedCommunity {
   const fedCom = community.federatedCommunities?.find((fedCom) => fedCom.apiVersion === apiVersion)
   if (!fedCom) {

@@ -1,5 +1,9 @@
+import { cleanDB, testEnvironment } from '@test/helpers'
 import { ApolloServerTestClient } from 'apollo-server-testing'
+import { getLogger } from 'config-schema/test/testSetup'
+import { CONFIG as CORE_CONFIG } from 'core'
 import {
+  AppDatabase,
   Community as DbCommunity,
   Event as DbEvent,
   FederatedCommunity as DbFederatedCommunity,
@@ -10,9 +14,7 @@ import {
 import { GraphQLError } from 'graphql'
 import { DataSource, In } from 'typeorm'
 import { v4 as uuidv4 } from 'uuid'
-
-import { cleanDB, testEnvironment } from '@test/helpers'
-
+import { CONFIG } from '@/config'
 // import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { EventType } from '@/event/Events'
@@ -32,10 +34,6 @@ import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
-import { getLogger } from 'config-schema/test/testSetup'
-import { CONFIG } from '@/config'
-import { CONFIG as CORE_CONFIG} from 'core'
-import { AppDatabase } from 'database'
 
 jest.mock('@/password/EncryptorUtils')
 
@@ -552,7 +550,7 @@ describe('send coins', () => {
         })
       })
     })
-/*
+    /*
     describe.skip('X-Com send coins via gradido ID', () => {
       beforeAll(async () => {
         CONFIG.FEDERATION_XCOM_SENDCOINS_ENABLED = true

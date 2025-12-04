@@ -1,13 +1,14 @@
-import { User, userFactory as userFactoryDb, userFactoryBulk as userFactoryBulkDb, Community } from 'database'
-
+import {
+  Community,
+  User,
+  userFactoryBulk as userFactoryBulkDb,
+  userFactory as userFactoryDb,
+} from 'database'
+import { encryptPassword } from '@/password/PasswordEncryptor'
 import { writeHomeCommunityEntry } from '@/seeds/community'
 import { UserInterface } from '@/seeds/users/UserInterface'
-import { encryptPassword } from '@/password/PasswordEncryptor'
 
-export const userFactory = async (
-  _client: any,
-  user: UserInterface,
-): Promise<User> => {
+export const userFactory = async (_client: any, user: UserInterface): Promise<User> => {
   const homeCom = await writeHomeCommunityEntry()
   const dbUser = await userFactoryDb(user, homeCom)
 

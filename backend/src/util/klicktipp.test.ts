@@ -1,9 +1,7 @@
-import { ApolloServerTestClient } from 'apollo-server-testing'
-import { Event as DbEvent } from 'database'
-import { DataSource } from 'typeorm'
-import { AppDatabase } from 'database'
-
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
+import { ApolloServerTestClient } from 'apollo-server-testing'
+import { AppDatabase, Event as DbEvent } from 'database'
+import { DataSource } from 'typeorm'
 
 import { addFieldsToSubscriber } from '@/apis/KlicktippController'
 import { creations } from '@/seeds/creation'

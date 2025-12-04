@@ -1,15 +1,22 @@
-import { CONFIG } from '@/config'
-import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { fullName } from '@/graphql/util/fullName'
 import { cleanDB, testEnvironment } from '@test/helpers'
 import { ApolloServerTestClient } from 'apollo-server-testing'
+import { EncryptedTransferArgs } from 'core'
 import { Community as DbCommunity, User as DbUser, UserContact as DbUserContact } from 'database'
 import Decimal from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
 import { getLogger } from 'log4js'
+import {
+  createKeyPair,
+  encryptAndSign,
+  SendCoinsJwtPayloadType,
+  SendCoinsResponseJwtPayloadType,
+  verifyAndDecrypt,
+} from 'shared'
 import { DataSource } from 'typeorm'
-import { EncryptedTransferArgs } from 'core'
-import { createKeyPair, encryptAndSign, SendCoinsJwtPayloadType, SendCoinsResponseJwtPayloadType, verifyAndDecrypt } from 'shared'
+import { CONFIG } from '@/config'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { fullName } from '@/graphql/util/fullName'
+
 let mutate: ApolloServerTestClient['mutate'] // , con: Connection
 // let query: ApolloServerTestClient['query']
 
@@ -64,29 +71,37 @@ describe('SendCoinsResolver', () => {
   beforeEach(async () => {
     await cleanDB()
     // Generate key pair using jose library
-    const { publicKey: homePublicKey, privateKey: homePrivateKey } = await createKeyPair();
+    const { publicKey: homePublicKey, privateKey: homePrivateKey } = await createKeyPair()
     recipientCom = DbCommunity.create()
     recipientCom.foreign = false
     recipientCom.url = 'homeCom-url'
     recipientCom.name = 'homeCom-Name'
     recipientCom.description = 'homeCom-Description'
     recipientCom.creationDate = new Date()
-    recipientCom.publicKey = Buffer.alloc(32, '15F92F8EC2EA685D5FD51EE3588F5B4805EBD330EF9EDD16043F3BA9C35C0D91', 'hex') // 'homeCom-publicKey', 'hex')
-    recipientCom.publicJwtKey = homePublicKey;
-    recipientCom.privateJwtKey = homePrivateKey;
+    recipientCom.publicKey = Buffer.alloc(
+      32,
+      '15F92F8EC2EA685D5FD51EE3588F5B4805EBD330EF9EDD16043F3BA9C35C0D91',
+      'hex',
+    ) // 'homeCom-publicKey', 'hex')
+    recipientCom.publicJwtKey = homePublicKey
+    recipientCom.privateJwtKey = homePrivateKey
     recipientCom.communityUuid = '56a55482-909e-46a4-bfa2-cd025e894eba'
     await DbCommunity.insert(recipientCom)
 
-    const { publicKey: foreignPublicKey, privateKey: foreignPrivateKey } = await createKeyPair();
+    const { publicKey: foreignPublicKey, privateKey: foreignPrivateKey } = await createKeyPair()
     senderCom = DbCommunity.create()
     senderCom.foreign = true
     senderCom.url = 'foreignCom-url'
     senderCom.name = 'foreignCom-Name'
     senderCom.description = 'foreignCom-Description'
     senderCom.creationDate = new Date()
-    senderCom.publicKey = Buffer.alloc(32, '15F92F8EC2EA685D5FD51EE3588F5B4805EBD330EF9EDD16043F3BA9C35C0D92', 'hex') // 'foreignCom-publicKey', 'hex')
-    senderCom.publicJwtKey = foreignPublicKey;
-    senderCom.privateJwtKey = foreignPrivateKey;
+    senderCom.publicKey = Buffer.alloc(
+      32,
+      '15F92F8EC2EA685D5FD51EE3588F5B4805EBD330EF9EDD16043F3BA9C35C0D92',
+      'hex',
+    ) // 'foreignCom-publicKey', 'hex')
+    senderCom.publicJwtKey = foreignPublicKey
+    senderCom.privateJwtKey = foreignPrivateKey
     senderCom.communityUuid = '56a55482-909e-46a4-bfa2-cd025e894ebb'
     await DbCommunity.insert(senderCom)
 
@@ -121,7 +136,7 @@ describe('SendCoinsResolver', () => {
     await DbUser.save(recipUser)
   })
 
-  describe('voteForSendCoins', () => { 
+  describe('voteForSendCoins', () => {
     describe('unknown recipient community', () => {
       it('throws an error', async () => {
         jest.clearAllMocks()
@@ -135,10 +150,14 @@ describe('SendCoinsResolver', () => {
           senderCom.communityUuid!,
           sendUser.gradidoID,
           fullName(sendUser.firstName, sendUser.lastName),
-          sendUser.alias
+          sendUser.alias,
         )
         // invoke encryption as beeing on the foreignCom side to find in voteForSendCoins the correct homeCom
-        const jws = await encryptAndSign(payload, senderCom.privateJwtKey!, recipientCom.publicJwtKey!)
+        const jws = await encryptAndSign(
+          payload,
+          senderCom.privateJwtKey!,
+          recipientCom.publicJwtKey!,
+        )
         const args = new EncryptedTransferArgs()
         args.publicKey = senderCom.publicKey.toString('hex')
         args.jwt = jws
@@ -147,11 +166,13 @@ describe('SendCoinsResolver', () => {
           mutation: voteForSendCoinsMutation,
           variables: { args },
         })
-        expect(
-          graphQLResponse,
-        ).toEqual(
+        expect(graphQLResponse).toEqual(
           expect.objectContaining({
-            errors: [new GraphQLError('voteForSendCoins with wrong recipientCommunityUuid: invalid recipientCom')],
+            errors: [
+              new GraphQLError(
+                'voteForSendCoins with wrong recipientCommunityUuid: invalid recipientCom',
+              ),
+            ],
           }),
         )
       })
@@ -171,10 +192,14 @@ describe('SendCoinsResolver', () => {
           senderCom.communityUuid!,
           sendUser.gradidoID,
           fullName(sendUser.firstName, sendUser.lastName),
-          sendUser.alias
+          sendUser.alias,
         )
         // invoke encryption as beeing on the foreignCom side to find in voteForSendCoins the correct homeCom
-        const jws = await encryptAndSign(payload, senderCom.privateJwtKey!, recipientCom.publicJwtKey!)
+        const jws = await encryptAndSign(
+          payload,
+          senderCom.privateJwtKey!,
+          recipientCom.publicJwtKey!,
+        )
         const args = new EncryptedTransferArgs()
         args.publicKey = senderCom.publicKey.toString('hex')
         args.jwt = jws
@@ -210,10 +235,14 @@ describe('SendCoinsResolver', () => {
           senderCom.communityUuid!,
           sendUser.gradidoID,
           fullName(sendUser.firstName, sendUser.lastName),
-          sendUser.alias
+          sendUser.alias,
         )
         // invoke encryption as beeing on the foreignCom side to find in voteForSendCoins the correct homeCom
-        const jws = await encryptAndSign(payload, senderCom.privateJwtKey!, recipientCom.publicJwtKey!)
+        const jws = await encryptAndSign(
+          payload,
+          senderCom.privateJwtKey!,
+          recipientCom.publicJwtKey!,
+        )
         const args = new EncryptedTransferArgs()
         args.publicKey = senderCom.publicKey.toString('hex')
         args.jwt = jws
@@ -222,10 +251,13 @@ describe('SendCoinsResolver', () => {
           mutation: voteForSendCoinsMutation,
           variables: { args },
         })
-        const voteResult = await verifyAndDecrypt('handshakeID', responseJwt.data.voteForSendCoins, senderCom.privateJwtKey!, recipientCom.publicJwtKey!) as SendCoinsResponseJwtPayloadType
-        expect(
-          voteResult,
-        ).toEqual(
+        const voteResult = (await verifyAndDecrypt(
+          'handshakeID',
+          responseJwt.data.voteForSendCoins,
+          senderCom.privateJwtKey!,
+          recipientCom.publicJwtKey!,
+        )) as SendCoinsResponseJwtPayloadType
+        expect(voteResult).toEqual(
           expect.objectContaining({
             expiration: '10m',
             handshakeID: 'handshakeID',
@@ -254,10 +286,14 @@ describe('SendCoinsResolver', () => {
           senderCom.communityUuid!,
           sendUser.gradidoID,
           fullName(sendUser.firstName, sendUser.lastName),
-          sendUser.alias
+          sendUser.alias,
         )
         // invoke encryption as beeing on the foreignCom side to find in voteForSendCoins the correct homeCom
-        const jws = await encryptAndSign(payload, senderCom.privateJwtKey!, recipientCom.publicJwtKey!)
+        const jws = await encryptAndSign(
+          payload,
+          senderCom.privateJwtKey!,
+          recipientCom.publicJwtKey!,
+        )
         const args = new EncryptedTransferArgs()
         args.publicKey = senderCom.publicKey.toString('hex')
         args.jwt = jws
@@ -266,10 +302,13 @@ describe('SendCoinsResolver', () => {
           mutation: voteForSendCoinsMutation,
           variables: { args },
         })
-        const voteResult = await verifyAndDecrypt('handshakeID', responseJwt.data.voteForSendCoins, senderCom.privateJwtKey!, recipientCom.publicJwtKey!) as SendCoinsResponseJwtPayloadType
-        expect(
-          voteResult,
-        ).toEqual(
+        const voteResult = (await verifyAndDecrypt(
+          'handshakeID',
+          responseJwt.data.voteForSendCoins,
+          senderCom.privateJwtKey!,
+          recipientCom.publicJwtKey!,
+        )) as SendCoinsResponseJwtPayloadType
+        expect(voteResult).toEqual(
           expect.objectContaining({
             recipGradidoID: '56a55482-909e-46a4-bfa2-cd025e894ebd',
             recipFirstName: 'recipUser-FirstName',
@@ -285,7 +324,6 @@ describe('SendCoinsResolver', () => {
       it('throws an error', async () => {
         jest.clearAllMocks()
 
-
         const payload = new SendCoinsJwtPayloadType(
           'handshakeID',
           recipientCom.communityUuid!,
@@ -296,10 +334,14 @@ describe('SendCoinsResolver', () => {
           senderCom.communityUuid!,
           sendUser.gradidoID,
           fullName(sendUser.firstName, sendUser.lastName),
-          sendUser.alias
+          sendUser.alias,
         )
         // invoke encryption as beeing on the foreignCom side to find in voteForSendCoins the correct homeCom
-        const jws = await encryptAndSign(payload, senderCom.privateJwtKey!, recipientCom.publicJwtKey!)
+        const jws = await encryptAndSign(
+          payload,
+          senderCom.privateJwtKey!,
+          recipientCom.publicJwtKey!,
+        )
         const args = new EncryptedTransferArgs()
         args.publicKey = senderCom.publicKey.toString('hex')
         args.jwt = jws
@@ -308,10 +350,13 @@ describe('SendCoinsResolver', () => {
           mutation: voteForSendCoinsMutation,
           variables: { args },
         })
-        const voteResult = await verifyAndDecrypt('handshakeID', responseJwt.data.voteForSendCoins, senderCom.privateJwtKey!, recipientCom.publicJwtKey!) as SendCoinsResponseJwtPayloadType
-        expect(
-          voteResult,
-        ).toEqual(
+        const voteResult = (await verifyAndDecrypt(
+          'handshakeID',
+          responseJwt.data.voteForSendCoins,
+          senderCom.privateJwtKey!,
+          recipientCom.publicJwtKey!,
+        )) as SendCoinsResponseJwtPayloadType
+        expect(voteResult).toEqual(
           expect.objectContaining({
             recipGradidoID: '56a55482-909e-46a4-bfa2-cd025e894ebd',
             recipFirstName: 'recipUser-FirstName',
@@ -328,7 +373,6 @@ describe('SendCoinsResolver', () => {
     const creationDate = new Date()
 
     beforeEach(async () => {
-
       const payload = new SendCoinsJwtPayloadType(
         'handshakeID',
         recipientCom.communityUuid!,
@@ -339,10 +383,14 @@ describe('SendCoinsResolver', () => {
         senderCom.communityUuid!,
         sendUser.gradidoID,
         fullName(sendUser.firstName, sendUser.lastName),
-        sendUser.alias
+        sendUser.alias,
       )
       // invoke encryption as beeing on the foreignCom side to find in voteForSendCoins the correct homeCom
-      const jws = await encryptAndSign(payload, senderCom.privateJwtKey!, recipientCom.publicJwtKey!)
+      const jws = await encryptAndSign(
+        payload,
+        senderCom.privateJwtKey!,
+        recipientCom.publicJwtKey!,
+      )
       const args = new EncryptedTransferArgs()
       args.publicKey = senderCom.publicKey.toString('hex')
       args.jwt = jws
@@ -367,10 +415,14 @@ describe('SendCoinsResolver', () => {
           senderCom.communityUuid!,
           sendUser.gradidoID,
           fullName(sendUser.firstName, sendUser.lastName),
-          sendUser.alias
+          sendUser.alias,
         )
         // invoke encryption as beeing on the foreignCom side to find in voteForSendCoins the correct homeCom
-        const jws = await encryptAndSign(payload, senderCom.privateJwtKey!, recipientCom.publicJwtKey!)
+        const jws = await encryptAndSign(
+          payload,
+          senderCom.privateJwtKey!,
+          recipientCom.publicJwtKey!,
+        )
         const args = new EncryptedTransferArgs()
         args.publicKey = senderCom.publicKey.toString('hex')
         args.jwt = jws
@@ -382,7 +434,11 @@ describe('SendCoinsResolver', () => {
           }),
         ).toEqual(
           expect.objectContaining({
-            errors: [new GraphQLError('revertSendCoins with wrong recipientCommunityUuid=invalid recipientCom')],
+            errors: [
+              new GraphQLError(
+                'revertSendCoins with wrong recipientCommunityUuid=invalid recipientCom',
+              ),
+            ],
           }),
         )
       })
@@ -402,10 +458,14 @@ describe('SendCoinsResolver', () => {
           senderCom.communityUuid!,
           sendUser.gradidoID,
           fullName(sendUser.firstName, sendUser.lastName),
-          sendUser.alias
+          sendUser.alias,
         )
         // invoke encryption as beeing on the foreignCom side to find in voteForSendCoins the correct homeCom
-        const jws = await encryptAndSign(payload, senderCom.privateJwtKey!, recipientCom.publicJwtKey!)
+        const jws = await encryptAndSign(
+          payload,
+          senderCom.privateJwtKey!,
+          recipientCom.publicJwtKey!,
+        )
         const args = new EncryptedTransferArgs()
         args.publicKey = senderCom.publicKey.toString('hex')
         args.jwt = jws
@@ -441,10 +501,14 @@ describe('SendCoinsResolver', () => {
           senderCom.communityUuid!,
           sendUser.gradidoID,
           fullName(sendUser.firstName, sendUser.lastName),
-          sendUser.alias
+          sendUser.alias,
         )
         // invoke encryption as beeing on the foreignCom side to find in voteForSendCoins the correct homeCom
-        const jws = await encryptAndSign(payload, senderCom.privateJwtKey!, recipientCom.publicJwtKey!)
+        const jws = await encryptAndSign(
+          payload,
+          senderCom.privateJwtKey!,
+          recipientCom.publicJwtKey!,
+        )
         const args = new EncryptedTransferArgs()
         args.publicKey = senderCom.publicKey.toString('hex')
         args.jwt = jws
@@ -480,10 +544,14 @@ describe('SendCoinsResolver', () => {
         senderCom.communityUuid!,
         sendUser.gradidoID,
         fullName(sendUser.firstName, sendUser.lastName),
-        sendUser.alias
+        sendUser.alias,
       )
       // invoke encryption as beeing on the foreignCom side to find in voteForSendCoins the correct homeCom
-      const jws = await encryptAndSign(payload, senderCom.privateJwtKey!, recipientCom.publicJwtKey!)
+      const jws = await encryptAndSign(
+        payload,
+        senderCom.privateJwtKey!,
+        recipientCom.publicJwtKey!,
+      )
       const args = new EncryptedTransferArgs()
       args.publicKey = senderCom.publicKey.toString('hex')
       args.jwt = jws
@@ -508,10 +576,14 @@ describe('SendCoinsResolver', () => {
           senderCom.communityUuid!,
           sendUser.gradidoID,
           fullName(sendUser.firstName, sendUser.lastName),
-          sendUser.alias
+          sendUser.alias,
         )
         // invoke encryption as beeing on the foreignCom side to find in voteForSendCoins the correct homeCom
-        const jws = await encryptAndSign(payload, senderCom.privateJwtKey!, recipientCom.publicJwtKey!)
+        const jws = await encryptAndSign(
+          payload,
+          senderCom.privateJwtKey!,
+          recipientCom.publicJwtKey!,
+        )
         const args = new EncryptedTransferArgs()
         args.publicKey = senderCom.publicKey.toString('hex')
         args.jwt = jws
@@ -523,7 +595,11 @@ describe('SendCoinsResolver', () => {
           }),
         ).toEqual(
           expect.objectContaining({
-            errors: [new GraphQLError('settleSendCoins with wrong recipientCommunityUuid=invalid recipientCom')],
+            errors: [
+              new GraphQLError(
+                'settleSendCoins with wrong recipientCommunityUuid=invalid recipientCom',
+              ),
+            ],
           }),
         )
       })
@@ -542,10 +618,14 @@ describe('SendCoinsResolver', () => {
           senderCom.communityUuid!,
           sendUser.gradidoID,
           fullName(sendUser.firstName, sendUser.lastName),
-          sendUser.alias
+          sendUser.alias,
         )
         // invoke encryption as beeing on the foreignCom side to find in voteForSendCoins the correct homeCom
-        const jws = await encryptAndSign(payload, senderCom.privateJwtKey!, recipientCom.publicJwtKey!)
+        const jws = await encryptAndSign(
+          payload,
+          senderCom.privateJwtKey!,
+          recipientCom.publicJwtKey!,
+        )
         const args = new EncryptedTransferArgs()
         args.publicKey = senderCom.publicKey.toString('hex')
         args.jwt = jws
@@ -559,7 +639,8 @@ describe('SendCoinsResolver', () => {
           expect.objectContaining({
             errors: [
               new GraphQLError(
-                'settleSendCoins with unknown recipientUserIdentifier in the community=' + recipientCom.name,
+                'settleSendCoins with unknown recipientUserIdentifier in the community=' +
+                  recipientCom.name,
               ),
             ],
           }),
@@ -580,10 +661,14 @@ describe('SendCoinsResolver', () => {
           senderCom.communityUuid!,
           sendUser.gradidoID,
           fullName(sendUser.firstName, sendUser.lastName),
-          sendUser.alias
+          sendUser.alias,
         )
         // invoke encryption as beeing on the foreignCom side to find in voteForSendCoins the correct homeCom
-        const jws = await encryptAndSign(payload, senderCom.privateJwtKey!, recipientCom.publicJwtKey!)
+        const jws = await encryptAndSign(
+          payload,
+          senderCom.privateJwtKey!,
+          recipientCom.publicJwtKey!,
+        )
         const args = new EncryptedTransferArgs()
         args.publicKey = senderCom.publicKey.toString('hex')
         args.jwt = jws
@@ -618,10 +703,14 @@ describe('SendCoinsResolver', () => {
         senderCom.communityUuid!,
         sendUser.gradidoID,
         fullName(sendUser.firstName, sendUser.lastName),
-        sendUser.alias
+        sendUser.alias,
       )
       // invoke encryption as beeing on the foreignCom side to find in voteForSendCoins the correct homeCom
-      const jws = await encryptAndSign(payload, senderCom.privateJwtKey!, recipientCom.publicJwtKey!)
+      const jws = await encryptAndSign(
+        payload,
+        senderCom.privateJwtKey!,
+        recipientCom.publicJwtKey!,
+      )
       const args = new EncryptedTransferArgs()
       args.publicKey = senderCom.publicKey.toString('hex')
       args.jwt = jws
@@ -649,10 +738,14 @@ describe('SendCoinsResolver', () => {
           senderCom.communityUuid!,
           sendUser.gradidoID,
           fullName(sendUser.firstName, sendUser.lastName),
-          sendUser.alias
+          sendUser.alias,
         )
         // invoke encryption as beeing on the foreignCom side to find in voteForSendCoins the correct homeCom
-        const jws = await encryptAndSign(payload, senderCom.privateJwtKey!, recipientCom.publicJwtKey!)
+        const jws = await encryptAndSign(
+          payload,
+          senderCom.privateJwtKey!,
+          recipientCom.publicJwtKey!,
+        )
         const args = new EncryptedTransferArgs()
         args.publicKey = senderCom.publicKey.toString('hex')
         args.jwt = jws
@@ -664,7 +757,11 @@ describe('SendCoinsResolver', () => {
           }),
         ).toEqual(
           expect.objectContaining({
-            errors: [new GraphQLError('revertSettledSendCoins with wrong recipientCommunityUuid=invalid recipientCom')],
+            errors: [
+              new GraphQLError(
+                'revertSettledSendCoins with wrong recipientCommunityUuid=invalid recipientCom',
+              ),
+            ],
           }),
         )
       })
@@ -683,10 +780,14 @@ describe('SendCoinsResolver', () => {
           senderCom.communityUuid!,
           sendUser.gradidoID,
           fullName(sendUser.firstName, sendUser.lastName),
-          sendUser.alias
+          sendUser.alias,
         )
         // invoke encryption as beeing on the foreignCom side to find in voteForSendCoins the correct homeCom
-        const jws = await encryptAndSign(payload, senderCom.privateJwtKey!, recipientCom.publicJwtKey!)
+        const jws = await encryptAndSign(
+          payload,
+          senderCom.privateJwtKey!,
+          recipientCom.publicJwtKey!,
+        )
         const args = new EncryptedTransferArgs()
         args.publicKey = senderCom.publicKey.toString('hex')
         args.jwt = jws
@@ -700,7 +801,8 @@ describe('SendCoinsResolver', () => {
           expect.objectContaining({
             errors: [
               new GraphQLError(
-                'revertSettledSendCoins with unknown recipientUserIdentifier in the community=' + recipientCom.name,
+                'revertSettledSendCoins with unknown recipientUserIdentifier in the community=' +
+                  recipientCom.name,
               ),
             ],
           }),
@@ -721,10 +823,14 @@ describe('SendCoinsResolver', () => {
           senderCom.communityUuid!,
           sendUser.gradidoID,
           fullName(sendUser.firstName, sendUser.lastName),
-          sendUser.alias
+          sendUser.alias,
         )
         // invoke encryption as beeing on the foreignCom side to find in voteForSendCoins the correct homeCom
-        const jws = await encryptAndSign(payload, senderCom.privateJwtKey!, recipientCom.publicJwtKey!)
+        const jws = await encryptAndSign(
+          payload,
+          senderCom.privateJwtKey!,
+          recipientCom.publicJwtKey!,
+        )
         const args = new EncryptedTransferArgs()
         args.publicKey = senderCom.publicKey.toString('hex')
         args.jwt = jws

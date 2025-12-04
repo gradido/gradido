@@ -1,7 +1,7 @@
-import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { CONFIG } from '@/config'
 import KlicktippConnector from 'klicktipp-api'
 import { getLogger } from 'log4js'
+import { CONFIG } from '@/config'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 
 const klicktippConnector = new KlicktippConnector()
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.apis.KlicktippController`)

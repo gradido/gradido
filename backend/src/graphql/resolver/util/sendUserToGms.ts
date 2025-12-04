@@ -1,11 +1,10 @@
 import { Community as DbCommunity, User as DbUser } from 'database'
-
+import { getLogger } from 'log4js'
 import { createGmsUser, updateGmsUser } from '@/apis/gms/GmsClient'
 import { GmsUser } from '@/apis/gms/model/GmsUser'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { LogError } from '@/server/LogError'
-import { getLogger } from 'log4js'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.util.sendUserToGms`)
 

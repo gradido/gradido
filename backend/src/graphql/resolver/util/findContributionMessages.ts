@@ -1,8 +1,7 @@
-import { ContributionMessage as DbContributionMessage } from 'database'
-import { In } from 'typeorm'
-
 import { Paginated } from '@arg/Paginated'
 import { ContributionMessageType } from '@enum/ContributionMessageType'
+import { ContributionMessage as DbContributionMessage } from 'database'
+import { In } from 'typeorm'
 
 interface FindContributionMessagesOptions {
   contributionId: number

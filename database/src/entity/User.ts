@@ -15,9 +15,9 @@ import { type Contribution as ContributionType } from './Contribution'
 import { type ContributionMessage as ContributionMessageType } from './ContributionMessage'
 import { type DltTransaction as DltTransactionType } from './DltTransaction'
 import { type TransactionLink as TransactionLinkType } from './TransactionLink'
+import { GeometryTransformer } from './transformer/GeometryTransformer'
 import { type UserContact as UserContactType } from './UserContact'
 import { type UserRole as UserRoleType } from './UserRole'
-import { GeometryTransformer } from './transformer/GeometryTransformer'
 
 @Entity('users', { engine: 'InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci' })
 export class User extends BaseEntity {

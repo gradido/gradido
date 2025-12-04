@@ -25,11 +25,10 @@
     I assume that the webhook arrives via POST and transmits a string as shown above
 */
 
-import { LoginElopageBuys, UserContact as dbUserContact } from 'database'
-
+import { UserContact as dbUserContact, LoginElopageBuys } from 'database'
+import { getLogger } from 'log4js'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { UserResolver } from '@/graphql/resolver/UserResolver'
-import { getLogger } from 'log4js'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.webhook.elopage`)
 

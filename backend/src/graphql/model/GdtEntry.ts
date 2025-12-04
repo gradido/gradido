@@ -1,6 +1,5 @@
-import { Field, Float, Int, ObjectType } from 'type-graphql'
-
 import { GdtEntryType } from '@enum/GdtEntryType'
+import { Field, Float, Int, ObjectType } from 'type-graphql'
 
 @ObjectType()
 export class GdtEntry {

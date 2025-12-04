@@ -6,14 +6,14 @@ import { raeuberHotzenplotz } from './raeuber-hotzenplotz'
 import { stephenHawking } from './stephen-hawking'
 import { UserInterface } from './UserInterface'
 
-export { 
-  type UserInterface, 
-  bibiBloxberg, 
-  bobBaumeister, 
-  garrickOllivander, 
-  peterLustig, 
-  raeuberHotzenplotz, 
-  stephenHawking 
+export {
+  type UserInterface,
+  bibiBloxberg,
+  bobBaumeister,
+  garrickOllivander,
+  peterLustig,
+  raeuberHotzenplotz,
+  stephenHawking,
 }
 
 export const users: UserInterface[] = [

@@ -1,9 +1,8 @@
+import { getLogger } from 'log4js'
+import { IRestResponse } from 'typed-rest-client'
+import { TransactionDraft } from '@/apis/dltConnector/model/TransactionDraft'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { getLogger } from 'log4js'
-
-import { TransactionDraft } from '@/apis/dltConnector/model/TransactionDraft'
-import { IRestResponse } from 'typed-rest-client'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.apis.dltConnector`)
 

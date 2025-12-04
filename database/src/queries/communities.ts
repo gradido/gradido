@@ -1,6 +1,6 @@
+import { Ed25519PublicKey, urlSchema, uuidv4Schema } from 'shared'
 import { FindOptionsOrder, FindOptionsWhere, IsNull, MoreThanOrEqual, Not } from 'typeorm'
 import { Community as DbCommunity } from '../entity'
-import { Ed25519PublicKey, urlSchema, uuidv4Schema } from 'shared'
 
 /**
  * Retrieves the home community, i.e., a community that is not foreign.
@@ -10,11 +10,13 @@ export async function getHomeCommunity(): Promise<DbCommunity | null> {
   // TODO: Put in Cache, it is needed nearly always
   // TODO: return only DbCommunity or throw to reduce unnecessary checks, because there should be always a home community
   return await DbCommunity.findOne({
-    where: { foreign: false }
+    where: { foreign: false },
   })
 }
 
-export async function getHomeCommunityWithFederatedCommunityOrFail(apiVersion: string): Promise<DbCommunity> {
+export async function getHomeCommunityWithFederatedCommunityOrFail(
+  apiVersion: string,
+): Promise<DbCommunity> {
   return await DbCommunity.findOneOrFail({
     where: { foreign: false, federatedCommunities: { apiVersion } },
     relations: { federatedCommunities: true },
@@ -27,7 +29,9 @@ export async function getCommunityByUuid(communityUuid: string): Promise<DbCommu
   })
 }
 
-export function findWithCommunityIdentifier(communityIdentifier: string): FindOptionsWhere<DbCommunity> {
+export function findWithCommunityIdentifier(
+  communityIdentifier: string,
+): FindOptionsWhere<DbCommunity> {
   const where: FindOptionsWhere<DbCommunity> = {}
   // pre filter identifier type to reduce db query complexity
   if (urlSchema.safeParse(communityIdentifier).success) {
@@ -51,7 +55,7 @@ export async function getCommunityWithFederatedCommunityByIdentifier(
 
 export async function getCommunityWithFederatedCommunityWithApiOrFail(
   publicKey: Ed25519PublicKey,
-  apiVersion: string
+  apiVersion: string,
 ): Promise<DbCommunity> {
   return await DbCommunity.findOneOrFail({
     where: { foreign: true, publicKey: publicKey.asBuffer(), federatedCommunities: { apiVersion } },
@@ -59,25 +63,27 @@ export async function getCommunityWithFederatedCommunityWithApiOrFail(
   })
 }
 
-export async function getCommunityByPublicKeyOrFail(publicKey: Ed25519PublicKey): Promise<DbCommunity> {
+export async function getCommunityByPublicKeyOrFail(
+  publicKey: Ed25519PublicKey,
+): Promise<DbCommunity> {
   return await DbCommunity.findOneOrFail({
     where: { publicKey: publicKey.asBuffer() },
   })
 }
 
-// returns all reachable communities 
+// returns all reachable communities
 // home community and all federated communities which have been verified within the last authenticationTimeoutMs
 export async function getReachableCommunities(
   authenticationTimeoutMs: number,
-  order?: FindOptionsOrder<DbCommunity>
+  order?: FindOptionsOrder<DbCommunity>,
 ): Promise<DbCommunity[]> {
   return await DbCommunity.find({
-    where: [ 
-      { 
-        authenticatedAt: Not(IsNull()), 
-        federatedCommunities: { 
+    where: [
+      {
+        authenticatedAt: Not(IsNull()),
+        federatedCommunities: {
           verifiedAt: MoreThanOrEqual(new Date(Date.now() - authenticationTimeoutMs)),
-        } 
+        },
       },
       { foreign: false },
     ],
@@ -86,7 +92,7 @@ export async function getReachableCommunities(
 }
 
 export async function getNotReachableCommunities(
-  order?: FindOptionsOrder<DbCommunity>
+  order?: FindOptionsOrder<DbCommunity>,
 ): Promise<DbCommunity[]> {
   return await DbCommunity.find({
     where: { authenticatedAt: IsNull(), foreign: true },

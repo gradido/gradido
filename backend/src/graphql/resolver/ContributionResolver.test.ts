@@ -1,9 +1,3 @@
-import { ApolloServerTestClient } from 'apollo-server-testing'
-import { Contribution, Event as DbEvent, Transaction as DbTransaction, User } from 'database'
-import { Decimal } from 'decimal.js-light'
-import { GraphQLError } from 'graphql'
-import { DataSource, Equal } from 'typeorm'
-
 import { ContributionMessageType } from '@enum/ContributionMessageType'
 import { ContributionStatus } from '@enum/ContributionStatus'
 import { Order } from '@enum/Order'
@@ -14,13 +8,26 @@ import {
   resetToken,
   testEnvironment,
 } from '@test/helpers'
-
-import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { ApolloServerTestClient } from 'apollo-server-testing'
+import { getLogger } from 'config-schema/test/testSetup'
 import {
+  getFirstDayOfPreviousNMonth,
   sendContributionConfirmedEmail,
   sendContributionDeletedEmail,
   sendContributionDeniedEmail,
 } from 'core'
+import {
+  AppDatabase,
+  Contribution,
+  Event as DbEvent,
+  Transaction as DbTransaction,
+  User,
+} from 'database'
+import { Decimal } from 'decimal.js-light'
+import { GraphQLError } from 'graphql'
+import { getLogger as originalGetLogger } from 'log4js'
+import { DataSource, Equal } from 'typeorm'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { EventType } from '@/event/Events'
 import { creations } from '@/seeds/creation/index'
 import { creationFactory } from '@/seeds/factory/creation'
@@ -49,10 +56,6 @@ import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { raeuberHotzenplotz } from '@/seeds/users/raeuber-hotzenplotz'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
-import { getFirstDayOfPreviousNMonth } from 'core'
-import { getLogger } from 'config-schema/test/testSetup'
-import { getLogger as originalGetLogger } from 'log4js'
-import { AppDatabase } from 'database'
 
 jest.mock('core', () => {
   const originalModule = jest.requireActual('core')

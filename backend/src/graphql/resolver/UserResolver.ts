@@ -1,32 +1,3 @@
-import {
-  AppDatabase,
-  ContributionLink as DbContributionLink,
-  TransactionLink as DbTransactionLink,
-  User as DbUser,
-  UserContact as DbUserContact,
-  ProjectBranding,
-  UserLoggingView,
-  getHomeCommunity, 
-  findUserByIdentifier 
-} from 'database'
-import { GraphQLResolveInfo } from 'graphql'
-import {
-  Arg,
-  Args,
-  Authorized,
-  Ctx,
-  FieldResolver,
-  Info,
-  Int,
-  Mutation,
-  Query,
-  Resolver,
-  Root,
-} from 'type-graphql'
-import { IRestResponse } from 'typed-rest-client'
-import { EntityManager, EntityNotFoundError, In, Point } from 'typeorm'
-import { v4 as uuidv4 } from 'uuid'
-
 import { UserArgs } from '@arg//UserArgs'
 import { CreateUserArgs } from '@arg/CreateUserArgs'
 import { Paginated } from '@arg/Paginated'
@@ -46,15 +17,55 @@ import { User } from '@model/User'
 import { SearchUsersResult, UserAdmin } from '@model/UserAdmin'
 import { UserContact } from '@model/UserContact'
 import { UserLocationResult } from '@model/UserLocationResult'
-
-import { subscribe } from '@/apis/KlicktippController'
+import {
+  delay,
+  sendAccountActivationEmail,
+  sendAccountMultiRegistrationEmail,
+  sendResetPasswordEmail,
+  validateAlias,
+} from 'core'
+import {
+  AppDatabase,
+  ContributionLink as DbContributionLink,
+  TransactionLink as DbTransactionLink,
+  User as DbUser,
+  UserContact as DbUserContact,
+  findUserByIdentifier,
+  getHomeCommunity,
+  ProjectBranding,
+  UserLoggingView,
+} from 'database'
+import { GraphQLResolveInfo } from 'graphql'
+import { getLogger, Logger } from 'log4js'
+import random from 'random-bigint'
+import { updateAllDefinedAndChanged } from 'shared'
+import { randombytes_random } from 'sodium-native'
+import {
+  Arg,
+  Args,
+  Authorized,
+  Ctx,
+  FieldResolver,
+  Info,
+  Int,
+  Mutation,
+  Query,
+  Resolver,
+  Root,
+} from 'type-graphql'
+import { IRestResponse } from 'typed-rest-client'
+import { EntityManager, EntityNotFoundError, In, Point } from 'typeorm'
+import { v4 as uuidv4 } from 'uuid'
+import { registerAddressTransaction } from '@/apis/dltConnector'
 import { HumHubClient } from '@/apis/humhub/HumHubClient'
 import { Account as HumhubAccount } from '@/apis/humhub/model/Account'
 import { GetUser } from '@/apis/humhub/model/GetUser'
 import { PostUser } from '@/apis/humhub/model/PostUser'
+import { subscribe } from '@/apis/KlicktippController'
 import { encode } from '@/auth/JWT'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { CONFIG } from '@/config'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { PublishNameLogic } from '@/data/PublishName.logic'
 import {
   EVENT_ADMIN_USER_DELETE,
@@ -74,36 +85,22 @@ import {
 } from '@/event/Events'
 import { isValidPassword } from '@/password/EncryptorUtils'
 import { encryptPassword, verifyPassword } from '@/password/PasswordEncryptor'
-import { LogError } from '@/server/LogError'
 import { Context, getClientTimezoneOffset, getUser } from '@/server/context'
+import { LogError } from '@/server/LogError'
 import { communityDbUser } from '@/util/communityUser'
 import { hasElopageBuys } from '@/util/hasElopageBuys'
 import { durationInMinutesFromDates, getTimeDurationObject, printTimeDuration } from '@/util/time'
-import { 
-  delay,
-  sendAccountActivationEmail,
-  sendAccountMultiRegistrationEmail,
-  sendResetPasswordEmail,  
-} from 'core'
-import random from 'random-bigint'
-import { randombytes_random } from 'sodium-native'
-
-import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { Logger, getLogger } from 'log4js'
 import { FULL_CREATION_AVAILABLE } from './const/const'
-import { Location2Point, Point2Location } from './util/Location2Point'
 import { authenticateGmsUserPlayground } from './util/authenticateGmsUserPlayground'
 import { compareGmsRelevantUserSettings } from './util/compareGmsRelevantUserSettings'
 import { getUserCreations } from './util/creations'
 import { extractGraphQLFieldsForSelect } from './util/extractGraphQLFields'
 import { findUsers } from './util/findUsers'
 import { getKlicktippState } from './util/getKlicktippState'
+import { Location2Point, Point2Location } from './util/Location2Point'
 import { deleteUserRole, setUserRole } from './util/modifyUserRole'
 import { sendUserToGms } from './util/sendUserToGms'
 import { syncHumhub } from './util/syncHumhub'
-import { validateAlias } from 'core'
-import { registerAddressTransaction } from '@/apis/dltConnector'
-import { updateAllDefinedAndChanged } from 'shared'
 
 const LANGUAGES = ['de', 'en', 'es', 'fr', 'nl']
 const DEFAULT_LANGUAGE = 'de'
@@ -380,12 +377,14 @@ export class UserResolver {
     const homeCom = await getHomeCommunity()
     if (!homeCom) {
       logger.error('no home community found, please start the dht-node first')
-      throw new Error(`Error creating user, please write the support team: ${CONFIG.COMMUNITY_SUPPORT_MAIL}`)
+      throw new Error(
+        `Error creating user, please write the support team: ${CONFIG.COMMUNITY_SUPPORT_MAIL}`,
+      )
     }
     if (homeCom.communityUuid) {
       dbUser.communityUuid = homeCom.communityUuid
     }
-    
+
     dbUser.gradidoID = gradidoID
     dbUser.firstName = firstName
     dbUser.lastName = lastName
@@ -396,9 +395,9 @@ export class UserResolver {
       dbUser.alias = alias
     }
     dbUser.publisherId = publisherId ?? 0
-    dbUser.passwordEncryptionType = PasswordEncryptionType.NO_PASSWORD    
+    dbUser.passwordEncryptionType = PasswordEncryptionType.NO_PASSWORD
 
-    if(logger.isDebugEnabled()) {
+    if (logger.isDebugEnabled()) {
       logger.debug('new dbUser', new UserLoggingView(dbUser))
     }
     if (redeemCode) {
@@ -510,7 +509,9 @@ export class UserResolver {
     const startTime = new Date()
     await dltTransactionPromise
     const endTime = new Date()
-    logger.info(`dlt-connector register address finished in ${endTime.getTime() - startTime.getTime()} ms`)
+    logger.info(
+      `dlt-connector register address finished in ${endTime.getTime() - startTime.getTime()} ms`,
+    )
     return new User(dbUser)
   }
 
@@ -736,13 +737,13 @@ export class UserResolver {
       user.humhubPublishName as PublishNameType,
     )
 
-    let updated = updateAllDefinedAndChanged(user, { 
-      firstName, 
-      lastName, 
-      hideAmountGDD, 
-      hideAmountGDT, 
-      humhubAllowed, 
-      gmsAllowed, 
+    let updated = updateAllDefinedAndChanged(user, {
+      firstName,
+      lastName,
+      hideAmountGDD,
+      hideAmountGDT,
+      humhubAllowed,
+      gmsAllowed,
       gmsPublishName: gmsPublishName?.valueOf(),
       humhubPublishName: humhubPublishName?.valueOf(),
       gmsPublishLocation: gmsPublishLocation?.valueOf(),
@@ -813,7 +814,7 @@ export class UserResolver {
         if (!homeCom) {
           logger.error('no home community found, please start the dht-node first')
           throw new Error(
-            `Error updating user, please write the support team: ${CONFIG.COMMUNITY_SUPPORT_MAIL}`
+            `Error updating user, please write the support team: ${CONFIG.COMMUNITY_SUPPORT_MAIL}`,
           )
         }
         if (homeCom.gmsApiKey !== null) {
@@ -859,9 +860,11 @@ export class UserResolver {
     if (context.token) {
       const homeCom = await getHomeCommunity()
       if (!homeCom) {
-        logger.error("couldn't authenticate for gms, no home community found, please start the dht-node first")
+        logger.error(
+          "couldn't authenticate for gms, no home community found, please start the dht-node first",
+        )
         throw new Error(
-          `Error authenticating for gms, please write the support team: ${CONFIG.COMMUNITY_SUPPORT_MAIL}`
+          `Error authenticating for gms, please write the support team: ${CONFIG.COMMUNITY_SUPPORT_MAIL}`,
         )
       }
       if (!homeCom.gmsApiKey) {
@@ -888,9 +891,11 @@ export class UserResolver {
     if (context.token) {
       const homeCom = await getHomeCommunity()
       if (!homeCom) {
-        logger.error("couldn't load home community location, no home community found, please start the dht-node first")
+        logger.error(
+          "couldn't load home community location, no home community found, please start the dht-node first",
+        )
         throw new Error(
-          `Error loading user location, please write the support team: ${CONFIG.COMMUNITY_SUPPORT_MAIL}`
+          `Error loading user location, please write the support team: ${CONFIG.COMMUNITY_SUPPORT_MAIL}`,
         )
       }
       result.communityLocation = Point2Location(homeCom.location as Point)
@@ -976,7 +981,15 @@ export class UserResolver {
     @Ctx() context: Context,
   ): Promise<SearchUsersResult> {
     const clientTimezoneOffset = getClientTimezoneOffset(context)
-    const userFields = ['id', 'firstName', 'lastName', 'emailId', 'emailContact', 'deletedAt', 'createdAt']
+    const userFields = [
+      'id',
+      'firstName',
+      'lastName',
+      'emailId',
+      'emailContact',
+      'deletedAt',
+      'createdAt',
+    ]
     const [users, count] = await findUsers(
       userFields,
       query,
@@ -1141,7 +1154,7 @@ export class UserResolver {
     if (identifier.includes('/')) {
       const parts = identifier.split('/')
       communityIdentifier = parts[0]
-      identifier = parts[1]      
+      identifier = parts[1]
     }
     const foundDbUser = await findUserByIdentifier(identifier, communityIdentifier)
     if (!foundDbUser) {

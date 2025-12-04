@@ -1,10 +1,10 @@
-import { TransactionLinkInterface } from '../transactionLink/TransactionLinkInterface'
-import { TransactionLink, User } from '../../entity'
-import { Decimal } from 'decimal.js-light'
-import { findUserByIdentifier } from '../../queries'
-import { compoundInterest } from 'shared'
 import { randomBytes } from 'node:crypto'
+import { Decimal } from 'decimal.js-light'
+import { compoundInterest } from 'shared'
 import { AppDatabase } from '../../AppDatabase'
+import { TransactionLink, User } from '../../entity'
+import { findUserByIdentifier } from '../../queries'
+import { TransactionLinkInterface } from '../transactionLink/TransactionLinkInterface'
 
 export async function transactionLinkFactory(
   transactionLinkData: TransactionLinkInterface,
@@ -21,8 +21,8 @@ export async function transactionLinkFactory(
 }
 
 export async function transactionLinkFactoryBulk(
-  transactionLinks: TransactionLinkInterface[], 
-  userCreationIndexedByEmail: Map<string, User>
+  transactionLinks: TransactionLinkInterface[],
+  userCreationIndexedByEmail: Map<string, User>,
 ): Promise<TransactionLink[]> {
   const dbTransactionLinks: TransactionLink[] = []
   for (const transactionLink of transactionLinks) {
@@ -37,9 +37,16 @@ export async function transactionLinkFactoryBulk(
   return dbTransactionLinks
 }
 
-export async function createTransactionLink(transactionLinkData: TransactionLinkInterface, userId: number, store: boolean = true): Promise<TransactionLink> {
-  const holdAvailableAmount = compoundInterest(new Decimal(transactionLinkData.amount.toString()), CODE_VALID_DAYS_DURATION * 24 * 60 * 60)
-  let createdAt = transactionLinkData.createdAt || new Date()
+export async function createTransactionLink(
+  transactionLinkData: TransactionLinkInterface,
+  userId: number,
+  store: boolean = true,
+): Promise<TransactionLink> {
+  const holdAvailableAmount = compoundInterest(
+    new Decimal(transactionLinkData.amount.toString()),
+    CODE_VALID_DAYS_DURATION * 24 * 60 * 60,
+  )
+  const createdAt = transactionLinkData.createdAt || new Date()
   const validUntil = transactionLinkExpireDate(createdAt)
 
   const transactionLink = new TransactionLink()
@@ -52,7 +59,7 @@ export async function createTransactionLink(transactionLinkData: TransactionLink
   transactionLink.validUntil = validUntil
 
   if (transactionLinkData.deletedAt) {
-   transactionLink.deletedAt = new Date(createdAt.getTime() + 1000) 
+    transactionLink.deletedAt = new Date(createdAt.getTime() + 1000)
   }
 
   return store ? transactionLink.save() : transactionLink

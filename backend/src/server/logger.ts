@@ -1,5 +1,5 @@
-import { CONFIG } from '@/config'
 import { defaultCategory, initLogger } from 'config-schema'
+import { CONFIG } from '@/config'
 
 export function initLogging() {
   // init logger

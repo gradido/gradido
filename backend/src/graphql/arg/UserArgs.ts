@@ -9,5 +9,5 @@ export class UserArgs {
 
   @Field({ nullable: true })
   @IsString()
-  communityIdentifier?: string 
+  communityIdentifier?: string
 }

@@ -1,7 +1,7 @@
+import { inspect } from 'node:util'
 import { Level, LoggingEvent } from 'log4js'
 import colors from 'yoctocolors-cjs'
 import { ColoredContextLayoutConfig, LogLevel } from './types'
-import { inspect } from 'node:util'
 
 function colorize(str: string, level: Level): string {
   switch (level.colour) {
@@ -34,7 +34,7 @@ function composeDataString(data: (string | Object)[]): string {
     .map((d) => {
       // if it is a object and his toString function return only garbage
       if (d && typeof d === 'object' && d.toString() === '[object Object]') {
-        return inspect(d, )
+        return inspect(d)
       }
       if (d) {
         return d.toString()

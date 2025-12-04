@@ -1,13 +1,13 @@
+import { Ed25519PublicKey } from 'shared'
 import { Community as DbCommunity, FederatedCommunity as DbFederatedCommunity } from '..'
 import { AppDatabase } from '../AppDatabase'
-import { 
-  getCommunityByPublicKeyOrFail, 
-  getHomeCommunity, 
-  getHomeCommunityWithFederatedCommunityOrFail, 
-  getReachableCommunities 
-} from './communities'
 import { createCommunity, createVerifiedFederatedCommunity } from '../seeds/community'
-import { Ed25519PublicKey } from 'shared'
+import {
+  getCommunityByPublicKeyOrFail,
+  getHomeCommunity,
+  getHomeCommunityWithFederatedCommunityOrFail,
+  getReachableCommunities,
+} from './communities'
 
 const db = AppDatabase.getInstance()
 
@@ -48,7 +48,7 @@ describe('community.queries', () => {
     it('should return the home community with federated communities', async () => {
       const homeCom = await createCommunity(false)
       await createVerifiedFederatedCommunity('1_0', 100, homeCom)
-      const community = await getHomeCommunityWithFederatedCommunityOrFail('1_0')      
+      const community = await getHomeCommunityWithFederatedCommunityOrFail('1_0')
       expect(community).toBeDefined()
       expect(community?.federatedCommunities).toHaveLength(1)
     })
@@ -74,7 +74,7 @@ describe('community.queries', () => {
       expect(communityByPublicKey?.communityUuid).toBe(homeCom.communityUuid)
     })
   })
-  describe('getReachableCommunities', () => {  
+  describe('getReachableCommunities', () => {
     it('home community counts also to reachable communities', async () => {
       await createCommunity(false)
       expect(await getReachableCommunities(1000)).toHaveLength(1)
