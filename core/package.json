@@ -1,6 +1,6 @@
 {
   "name": "core",
-  "version": "2.7.2",
+  "version": "2.7.3",
   "description": "Gradido Core Code, High-Level Shared Code, with dependencies on other modules",
   "main": "./build/index.js",
   "types": "./src/index.ts",
