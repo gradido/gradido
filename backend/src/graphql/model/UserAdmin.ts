@@ -13,6 +13,7 @@ export class UserAdmin {
     this.emailChecked = user.emailContact?.emailChecked
     this.hasElopage = hasElopage
     this.deletedAt = user.deletedAt
+    this.createdAt = user.createdAt
     this.emailConfirmationSend = emailConfirmationSend
     this.roles = user.userRoles?.map((userRole) => userRole.role) ?? []
   }
@@ -40,6 +41,9 @@ export class UserAdmin {
 
   @Field(() => Date, { nullable: true })
   deletedAt: Date | null
+
+  @Field(() => Date)
+  createdAt: Date
 
   @Field(() => String, { nullable: true })
   emailConfirmationSend: string | null

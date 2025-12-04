@@ -1,6 +1,6 @@
 {
   "name": "backend",
-  "version": "2.7.1",
+  "version": "2.7.3",
   "private": false,
   "description": "Gradido unified backend providing an API-Service for Gradido Transactions",
   "repository": "https://github.com/gradido/gradido/backend",
@@ -84,6 +84,7 @@
     "openai": "^4.87.3",
     "prettier": "^3.5.3",
     "random-bigint": "^0.0.1",
+    "redis-semaphore": "^5.6.2",
     "reflect-metadata": "^0.1.13",
     "regenerator-runtime": "^0.14.1",
     "shared": "*",

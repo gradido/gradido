@@ -1,3 +1,6 @@
+
+export { garrickOllivander } from 'database'
+/*
 import { UserInterface } from './UserInterface'
 
 export const garrickOllivander: UserInterface = {
@@ -10,3 +13,4 @@ export const garrickOllivander: UserInterface = {
   emailChecked: false,
   language: 'en',
 }
+*/

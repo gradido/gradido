@@ -1,6 +1,6 @@
 {
   "name": "core",
-  "version": "2.7.1",
+  "version": "2.7.3",
   "description": "Gradido Core Code, High-Level Shared Code, with dependencies on other modules",
   "main": "./build/index.js",
   "types": "./src/index.ts",
@@ -22,8 +22,8 @@
     "typecheck": "tsc --noEmit",
     "lint": "biome check --error-on-warnings .",
     "lint:fix": "biome check --error-on-warnings . --write",
-    "locales": "scripts/sort.sh src/emails/locales",
-    "locales:fix": "scripts/sort.sh src/emails/locales --fix",
+    "locales": "scripts/sort.sh src/locales",
+    "locales:fix": "scripts/sort.sh src/locales --fix",
     "clear": "rm -rf node_modules && rm -rf build && rm -rf .turbo"
   },
   "dependencies": {
@@ -36,6 +36,7 @@
     "log4js": "^6.9.1",
     "nodemailer": "^6.6.5",
     "pug": "^3.0.2",
+    "redis-semaphore": "^5.6.2",
     "shared": "*",
     "sodium-native": "^3.4.1",
     "zod": "^3.25.61"
