@@ -8,7 +8,6 @@
         "auto-changelog": "^2.4.0",
         "cross-env": "^7.0.3",
         "jose": "^4.14.4",
-        "redis-semaphore": "^5.6.2",
         "turbo": "^2.5.0",
         "uuid": "^8.3.2",
       },
@@ -20,7 +19,7 @@
     },
     "admin": {
       "name": "admin",
-      "version": "2.7.2",
+      "version": "2.7.3",
       "dependencies": {
         "@iconify/json": "^2.2.228",
         "@popperjs/core": "^2.11.8",
@@ -90,7 +89,7 @@
     },
     "backend": {
       "name": "backend",
-      "version": "2.7.2",
+      "version": "2.7.3",
       "dependencies": {
         "cross-env": "^7.0.3",
         "email-templates": "^10.0.1",
@@ -166,7 +165,7 @@
     },
     "config-schema": {
       "name": "config-schema",
-      "version": "2.7.2",
+      "version": "2.7.3",
       "dependencies": {
         "esbuild": "^0.25.2",
         "joi": "17.13.3",
@@ -184,7 +183,7 @@
     },
     "core": {
       "name": "core",
-      "version": "2.7.2",
+      "version": "2.7.3",
       "dependencies": {
         "database": "*",
         "email-templates": "^10.0.1",
@@ -221,7 +220,7 @@
     },
     "database": {
       "name": "database",
-      "version": "2.7.2",
+      "version": "2.7.3",
       "dependencies": {
         "@types/uuid": "^8.3.4",
         "cross-env": "^7.0.3",
@@ -255,7 +254,7 @@
     },
     "dht-node": {
       "name": "dht-node",
-      "version": "2.7.2",
+      "version": "2.7.3",
       "dependencies": {
         "cross-env": "^7.0.3",
         "dht-rpc": "6.18.1",
@@ -293,7 +292,7 @@
     },
     "federation": {
       "name": "federation",
-      "version": "2.7.2",
+      "version": "2.7.3",
       "dependencies": {
         "cross-env": "^7.0.3",
         "email-templates": "^10.0.1",
@@ -353,7 +352,7 @@
     },
     "frontend": {
       "name": "frontend",
-      "version": "2.7.2",
+      "version": "2.7.3",
       "dependencies": {
         "@morev/vue-transitions": "^3.0.2",
         "@types/leaflet": "^1.9.12",
@@ -449,7 +448,7 @@
     },
     "shared": {
       "name": "shared",
-      "version": "2.7.2",
+      "version": "2.7.3",
       "dependencies": {
         "decimal.js-light": "^2.5.1",
         "esbuild": "^0.25.2",

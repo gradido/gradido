@@ -36,9 +36,9 @@ jobs:
       - name: Admin Interface | Build 'test' image
         run: docker build -f ./admin/Dockerfile --target production -t "gradido/admin:production" --build-arg NODE_ENV="production" --build-arg BUILD_COMMIT=$(git rev-parse HEAD) --build-arg BUILD_COMMIT_SHORT=$(git rev-parse --short HEAD) .
 
-  unit_test:
+  unit_test_lint:
     if: needs.files-changed.outputs.config == 'true' || needs.files-changed.outputs.admin == 'true'
-    name: Unit Tests - Admin Interface
+    name: Unit Tests & Lint & Stylelint & Locales - Admin Interface
     needs: files-changed
     runs-on: ubuntu-latest
     outputs:
@@ -65,39 +65,4 @@ jobs:
       - name: Admin Interface | Unit tests
         id: test
         run: |
-          turbo admin#test admin#lint
-          echo "success=$([ $? -eq 0 ] && echo true || echo false)" >> $GITHUB_OUTPUT
-
-  lint:
-    name: Lint - Admin Interface
-    needs: unit_test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check result from previous step
-        run: if [ "${{ needs.unit_test.outputs.test-success }}" != "true" ]; then exit 1; fi
-
-  stylelint:
-    name: Stylelint - Admin Interface
-    needs: unit_test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Check result from previous step
-        run: if [ "${{ needs.unit_test.outputs.test-success }}" != "true" ]; then exit 1; fi
-
-  locales:
-    if: needs.files-changed.outputs.admin == 'true'
-    name: Locales - Admin Interface
-    needs: files-changed
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-        
-      - name: install bun 
-        uses: oven-sh/setup-bun@v2
-
-      - name: Admin Interface | Locales
-        run: cd admin && bun locales
+          turbo admin#test admin#lint admin#locales
