@@ -1,7 +1,28 @@
 #!/bin/bash
+# stop if something fails
+set -euo pipefail
+
+log_error() {
+    local message="$1"
+    echo -e "\e[31m$message\e[0m" >&3 # red in console
+}
+
+# called always on error, log error really visible with ascii art in red on console and html
+# stop script execution
+onError() {
+  local exit_code=$?
+  log_error "Command failed!"
+  log_error " /\\_/\\ Line: $(caller 0)"
+  log_error "( x.x )  Exit Code: $exit_code"
+  log_error " >   <   Offending command: '$BASH_COMMAND'"
+  log_error ""
+  exit 1  
+}
+trap onError ERR
+
 # check for parameter
 if [ -z "$1" ]; then
-    echo "Usage: Please provide a branch name as the first argument."
+    log_error "Usage: Please provide a branch name as the first argument."
     exit 1
 fi
 
@@ -19,24 +40,95 @@ LOCAL_SCRIPT_DIR=$(dirname $LOCAL_SCRIPT_PATH)
 PROJECT_ROOT=$SCRIPT_DIR/..
 set +o allexport
 
+# Replace placeholder secrets in .env
+echo 'Replace placeholder secrets in .env'
+# Load .env or .env.dist if not present
+# NOTE: all config values will be in process.env when starting
+# the services and will therefore take precedence over the .env
+if [ -f "$SCRIPT_PATH/.env" ]; then
+    ENV_FILE = $SCRIPT_PATH/.env    
+
+    # --- Secret Generators -------------------------------------------------------
+
+    gen_jwt_secret() {
+    # 32 Character, URL-safe: A-Z a-z 0-9 _ -
+    tr -dc 'A-Za-z0-9_-' < /dev/urandom | head -c 32
+    }
+
+    gen_webhook_secret() {
+    # URL-safe, longer security (40 chars)
+    tr -dc 'A-Za-z0-9_-' < /dev/urandom | head -c 40
+    }
+
+    gen_binary_secret() {
+    local bytes="$1"
+    # Hex -> 2 chars pro byte
+    openssl rand -hex "$bytes"
+    }
+
+    # --- Mapping of Placeholder -> Function --------------------------------------
+
+    generate_secret_for() {
+    case "$1" in
+        jwt_secret)
+        gen_jwt_secret
+        ;;
+        webhook_secret)
+        gen_webhook_secret
+        ;;
+        binary8_secret)
+        gen_binary_secret 8
+        ;;
+        binary16_secret)
+        gen_binary_secret 16
+        ;;
+        binary32_secret)
+        gen_binary_secret 32
+        ;;
+        *)
+        echo "Unknown Placeholder: $1" >&2
+        exit 1
+        ;;
+    esac
+    }
+
+    # --- Placeholder List --------------------------------------------------------
+
+    placeholders=(
+    "jwt_secret"
+    "webhook_secret"
+    "binary8_secret"
+    "binary16_secret"
+    "binary32_secret"
+    )
+
+    # --- Processing in .env -------------------------------------------------
+
+    TMP_FILE="${ENV_FILE}.tmp"
+    cp "$ENV_FILE" "$TMP_FILE"
+
+    for ph in "${placeholders[@]}"; do
+    # Secret generate
+    new_value="$(generate_secret_for "$ph")"
+
+    # Only replace lines that do NOT start with #
+    sed -i "/^[[:space:]]*#/! s/$ph/$new_value/g" "$TMP_FILE"
+    done
+
+    # Write back
+    mv "$TMP_FILE" "$ENV_FILE"
+fi
+
 # If install.sh will be called more than once
-# We have to load the backend .env to get DB_USERNAME, DB_PASSWORD AND JWT_SECRET
-# and the dht-node .env to get FEDERATION_DHT_SEED
+# We have to load the backend .env to get DB_USERNAME and DB_PASSWORD 
 export_var(){
   export $1=$(grep -v '^#' $PROJECT_ROOT/backend/.env | grep -e "$1" | sed -e 's/.*=//')
-  export $1=$(grep -v '^#' $PROJECT_ROOT/dht-node/.env | grep -e "$1" | sed -e 's/.*=//')
 }
 
 if [ -f "$PROJECT_ROOT/backend/.env" ]; then
     export_var 'DB_USER'
     export_var 'DB_PASSWORD'
-    export_var 'JWT_SECRET'
 fi
-
-if [ -f "$PROJECT_ROOT/dht-node/.env" ]; then
-    export_var 'FEDERATION_DHT_SEED'
-fi
-
 
 # Load .env or .env.dist if not present
 # NOTE: all config values will be in process.env when starting
@@ -97,15 +189,17 @@ systemctl restart fail2ban
 rm /etc/nginx/sites-enabled/default
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $SCRIPT_PATH/nginx/sites-available/gradido.conf.template > $SCRIPT_PATH/nginx/sites-available/gradido.conf
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $SCRIPT_PATH/nginx/sites-available/update-page.conf.template > $SCRIPT_PATH/nginx/sites-available/update-page.conf
-mkdir $SCRIPT_PATH/nginx/sites-enabled
-ln -s $SCRIPT_PATH/nginx/sites-available/update-page.conf $SCRIPT_PATH/nginx/sites-enabled/default
-ln -s $SCRIPT_PATH/nginx/sites-enabled/default /etc/nginx/sites-enabled
-ln -s $SCRIPT_PATH/nginx/common /etc/nginx/
-rmdir /etc/nginx/conf.d
-ln -s $SCRIPT_PATH/nginx/conf.d /etc/nginx/
+mkdir -p $SCRIPT_PATH/nginx/sites-enabled
+ln -sf $SCRIPT_PATH/nginx/sites-available/update-page.conf $SCRIPT_PATH/nginx/sites-enabled/default
+ln -sf $SCRIPT_PATH/nginx/sites-enabled/default /etc/nginx/sites-enabled
+ln -sf $SCRIPT_PATH/nginx/common /etc/nginx/
+if [ -e /etc/nginx/conf.d ] && [ ! -L /etc/nginx/conf.d ]; then
+    rm -rf /etc/nginx/conf.d
+    ln -s $SCRIPT_PATH/nginx/conf.d /etc/nginx/
+fi
 
 # Make nginx restart automatic
-mkdir /etc/systemd/system/nginx.service.d
+mkdir -p /etc/systemd/system/nginx.service.d
 # Define the content to be put into the override.conf file
 CONFIG_CONTENT="[Unit]
 StartLimitIntervalSec=500
