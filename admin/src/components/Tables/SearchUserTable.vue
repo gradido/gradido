@@ -16,6 +16,10 @@
         <div v-html="data.value" />
       </template>
 
+      <template #cell(createdAt)="data">
+        {{ $d(new Date(data.value), 'long') }}
+      </template>
+
       <template #cell(status)="row">
         <div class="d-flex gap-3 justify-content-end align-items-center">
           <div

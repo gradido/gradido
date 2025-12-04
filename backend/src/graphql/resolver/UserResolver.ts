@@ -976,7 +976,7 @@ export class UserResolver {
     @Ctx() context: Context,
   ): Promise<SearchUsersResult> {
     const clientTimezoneOffset = getClientTimezoneOffset(context)
-    const userFields = ['id', 'firstName', 'lastName', 'emailId', 'emailContact', 'deletedAt']
+    const userFields = ['id', 'firstName', 'lastName', 'emailId', 'emailContact', 'deletedAt', 'createdAt']
     const [users, count] = await findUsers(
       userFields,
       query,
