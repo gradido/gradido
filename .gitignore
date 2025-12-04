@@ -7,14 +7,14 @@ vite.config.mjs.timestamp-*
 log4js-config*.json
 /node_modules/*
 node_modules
+coverage
 build
 messages.pot
 nbproject
 .metadata
 /out/*
-/.env
+.env
 package-lock.json
-/deployment/bare_metal/.env
 /deployment/bare_metal/nginx/sites-available/gradido.conf
 /deployment/bare_metal/nginx/sites-available/update-page.conf
 /deployment/bare_metal/nginx/update-page/updating.html
@@ -23,3 +23,6 @@ package-lock.json
 
 # Apple macOS folder attribute file
 .DS_Store
+
+# emacs
+*~

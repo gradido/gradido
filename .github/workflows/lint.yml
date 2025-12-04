@@ -26,7 +26,6 @@ jobs:
         run: |
           cd ./config-schema 
           biome ci . 
-          echo $?
           echo "success=$([ $? -eq 0 ] && echo true || echo false)" >> $GITHUB_OUTPUT
       - name: Lint - Shared
         id: shared
