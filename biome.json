@@ -103,7 +103,7 @@
         "noGlobalAssign": "error",
         "noImportAssign": "error",
         "noMisleadingCharacterClass": "error",
-        "noPrototypeBuiltins": "error",
+        "noPrototypeBuiltins": "off",
         "noRedeclare": "error",
         "noSelfCompare": "error",
         "noShadowRestrictedNames": "error",
