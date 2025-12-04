@@ -10,14 +10,17 @@ import { CONFIG } from '@/config'
 import { writeHomeCommunityEntry } from '@/seeds/community'
 import { createUser, forgotPassword, setPassword } from '@/seeds/graphql/mutations'
 import { queryOptIn } from '@/seeds/graphql/queries'
+import { AppDatabase } from 'database'
 
 let mutate: ApolloServerTestClient['mutate']
 let query: ApolloServerTestClient['query']
 let con: DataSource
+let db: AppDatabase
 let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']
   con: DataSource
+  db: AppDatabase
 }
 
 CONFIG.EMAIL_CODE_VALID_TIME = 1440
@@ -29,12 +32,14 @@ beforeAll(async () => {
   mutate = testEnv.mutate
   query = testEnv.query
   con = testEnv.con
+  db = testEnv.db
   await cleanDB()
 })
 
 afterAll(async () => {
   await cleanDB()
   await con.destroy()
+  await db.getRedisClient().quit()
 })
 
 describe('EmailOptinCodes', () => {

@@ -5,12 +5,14 @@ import { getLogger } from 'log4js'
 import { latestDbVersion } from '.'
 import { CONFIG } from './config'
 import { LOG4JS_BASE_CATEGORY_NAME } from './config/const'
+import Redis from 'ioredis'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.AppDatabase`)
 
 export class AppDatabase {
   private static instance: AppDatabase
   private dataSource: DBDataSource | undefined
+  private redisClient: Redis | undefined
 
   /**
    * The Singleton's constructor should always be private to prevent direct
@@ -88,10 +90,24 @@ export class AppDatabase {
     }
     // check for correct database version
     await this.checkDBVersion()
+
+    this.redisClient = new Redis(CONFIG.REDIS_URL)
+    logger.info('Redis status=', this.redisClient.status)
   }
 
   public async destroy(): Promise<void> {
     await this.dataSource?.destroy()
+    if (this.redisClient) {
+      await this.redisClient.quit()
+      this.redisClient = undefined
+    }
+  }
+
+  public getRedisClient(): Redis {
+    if (!this.redisClient) {
+      throw new Error('Redis client not initialized')
+    }
+    return this.redisClient
   }
  
   // ######################################
