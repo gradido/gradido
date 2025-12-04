@@ -119,7 +119,7 @@ beforeAll(async () => {
   con = testEnv.con
   db = testEnv.db
   CONFIG.HUMHUB_ACTIVE = false
-  CONFIG.DLT_CONNECTOR = false
+  CONFIG.DLT_ACTIVE = false
   await cleanDB()
 })
 

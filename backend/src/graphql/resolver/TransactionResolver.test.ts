@@ -40,7 +40,7 @@ import { AppDatabase } from 'database'
 jest.mock('@/password/EncryptorUtils')
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)
-CONFIG.DLT_CONNECTOR = false
+CONFIG.DLT_ACTIVE = false
 CORE_CONFIG.EMAIL = false
 
 let mutate: ApolloServerTestClient['mutate']

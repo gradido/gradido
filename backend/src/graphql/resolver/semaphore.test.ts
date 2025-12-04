@@ -29,7 +29,7 @@ import { AppDatabase } from 'database'
 
 jest.mock('@/password/EncryptorUtils')
 
-CONFIG.DLT_CONNECTOR = false
+CONFIG.DLT_ACTIVE = false
 CORE_CONFIG.EMAIL = false
 
 let mutate: ApolloServerTestClient['mutate']

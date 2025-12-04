@@ -20,6 +20,7 @@ Clone the Gradido repository to your local machine.
 ```bash
 git clone https://github.com/gradido/gradido.git
 cd gradido
+git submodule update --init --recursive
 ```
 
 For local development, you can run Gradido with **Docker** or **natively**, depending on your preferences and system setup. If you don't have a native MariaDB or MySQL installation, Docker can be used to handle the database as well.
@@ -227,6 +228,16 @@ In root folder calling `bun clear` will clear all turbo caches, node_modules and
 bun clear
 ```
 
+### git Submodule
+The new Module `inspector` was added as git submodule. 
+So after 
+- `git clone` 
+- `git checkout`
+- `git pull`
+
+you have to run `git submodule update --init` to get the correct submodule version.
+
+[Read More](https://git-scm.com/book/en/v2/Git-Tools-Submodules)
 
 ## Services defined in this package
 

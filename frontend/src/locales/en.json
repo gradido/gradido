@@ -158,6 +158,7 @@
       "year": "© {year}"
     },
     "imprint": "Legal notice",
+    "inspector": "Inspector (experimental)",
     "privacy_policy": "Privacy policy",
     "short_hash": "({shortHash})",
     "whitepaper": "Whitepaper"

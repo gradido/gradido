@@ -80,14 +80,17 @@ export const configSchema = v.object({
     '8340',
   ),
   DLT_GRADIDO_NODE_SERVER_VERSION: v.optional(
-    v.string('The version of the DLT node server'),
+    v.pipe(
+      v.string('The version of the DLT node server, for example: 0.9.0'),
+      v.regex(/^\d+\.\d+\.\d+$/),
+    ),
     '0.9.0',
   ),
   DLT_GRADIDO_NODE_SERVER_HOME_FOLDER: v.optional(
     v.string('The home folder for the gradido dlt node server'),
     path.join(__dirname, '..', '..', 'gradido_node'),
   ),
-  PORT: v.optional(
+  BACKEND_PORT: v.optional(
     v.pipe(
       v.string('A valid port on which the backend server is running'),
       v.transform<string, number>((input: string) => Number(input)),

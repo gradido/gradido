@@ -42,7 +42,7 @@ const logErrorLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)
 
 jest.mock('@/password/EncryptorUtils')
 
-CONFIG.DLT_CONNECTOR = false
+CONFIG.DLT_ACTIVE = false
 
 // mock semaphore to allow use fake timers
 // jest.mock('database/src/util/TRANSACTIONS_LOCK')

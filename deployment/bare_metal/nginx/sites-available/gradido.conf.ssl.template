@@ -196,6 +196,9 @@ server {
         access_log $GRADIDO_LOG_PATH/nginx-access.admin.log gradido_log;
         error_log $GRADIDO_LOG_PATH/nginx-error.admin.log warn;
     }
+
+    # dlt
+    $DLT_NGINX_CONF
     
     # Federation
     $FEDERATION_NGINX_CONF
