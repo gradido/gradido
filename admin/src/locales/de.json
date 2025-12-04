@@ -244,6 +244,7 @@
   },
   "redeemed": "eingelöst",
   "registered": "Registriert",
+  "registered_at": "Registriert am",
   "removeNotSelf": "Als Admin/Moderator kannst du dich nicht selber löschen.",
   "reset": "Zurücksetzen",
   "save": "Speichern",
