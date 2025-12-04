@@ -1,8 +1,7 @@
+import { getLogger } from 'log4js'
 import { registerEnumType } from 'type-graphql'
-
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { LogError } from '@/server/LogError'
-import { getLogger } from 'log4js'
 
 export enum MonitorNames {
   SEND_DLT_TRANSACTIONS = 1,

@@ -1,11 +1,10 @@
+import { ensureUrlEndsWithSlash } from 'core'
 import { User as DbUser } from 'database'
-
+import { getLogger } from 'log4js'
 import { verifyAuthToken } from '@/apis/gms/GmsClient'
 import { CONFIG } from '@/config'
-import { GmsUserAuthenticationResult } from '@/graphql/model/GmsUserAuthenticationResult'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { ensureUrlEndsWithSlash } from 'core'
-import { getLogger } from 'log4js'
+import { GmsUserAuthenticationResult } from '@/graphql/model/GmsUserAuthenticationResult'
 
 const logger = getLogger(
   `${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.util.authenticateGmsUserPlayground`,

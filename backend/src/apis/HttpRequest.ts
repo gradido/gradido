@@ -1,8 +1,7 @@
 import axios from 'axios'
-
+import { getLogger } from 'log4js'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { LogError } from '@/server/LogError'
-import { getLogger } from 'log4js'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.apis.HttpRequest`)
 

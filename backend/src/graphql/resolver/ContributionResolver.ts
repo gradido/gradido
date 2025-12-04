@@ -1,35 +1,9 @@
-import {
-  AppDatabase,
-  Contribution as DbContribution,
-  Transaction as DbTransaction,
-  User as DbUser,
-  getLastTransaction,
-  UserContact,
-} from 'database'
-import { Decimal } from 'decimal.js-light'
-import { GraphQLResolveInfo } from 'graphql'
-import { Arg, Args, Authorized, Ctx, Info, Int, Mutation, Query, Resolver } from 'type-graphql'
-import { EntityManager, IsNull } from 'typeorm'
-
-import { RIGHTS } from '@/auth/RIGHTS'
-import {
-  EVENT_ADMIN_CONTRIBUTION_CONFIRM,
-  EVENT_ADMIN_CONTRIBUTION_CREATE,
-  EVENT_ADMIN_CONTRIBUTION_DELETE,
-  EVENT_ADMIN_CONTRIBUTION_DENY,
-  EVENT_ADMIN_CONTRIBUTION_UPDATE,
-  EVENT_CONTRIBUTION_CREATE,
-  EVENT_CONTRIBUTION_DELETE,
-  EVENT_CONTRIBUTION_UPDATE,
-} from '@/event/Events'
-import { UpdateUnconfirmedContributionContext } from '@/interactions/updateUnconfirmedContribution/UpdateUnconfirmedContribution.context'
-import { LogError } from '@/server/LogError'
-import { Context, getClientTimezoneOffset, getUser } from '@/server/context'
 import { AdminCreateContributionArgs } from '@arg/AdminCreateContributionArgs'
 import { AdminUpdateContributionArgs } from '@arg/AdminUpdateContributionArgs'
 import { ContributionArgs } from '@arg/ContributionArgs'
 import { Paginated } from '@arg/Paginated'
 import { SearchContributionsFilterArgs } from '@arg/SearchContributionsFilterArgs'
+import { ContributionMessageType } from '@enum/ContributionMessageType'
 import { ContributionStatus } from '@enum/ContributionStatus'
 import { ContributionType } from '@enum/ContributionType'
 import { AdminUpdateContribution } from '@model/AdminUpdateContribution'
@@ -42,15 +16,39 @@ import {
   sendContributionConfirmedEmail,
   sendContributionDeletedEmail,
   sendContributionDeniedEmail,
-  TransactionTypeId
+  TransactionTypeId,
 } from 'core'
-import { calculateDecay, Decay } from 'shared'
-
-import { contributionTransaction } from '@/apis/dltConnector'
-import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { ContributionMessageType } from '@enum/ContributionMessageType'
+import {
+  AppDatabase,
+  Contribution as DbContribution,
+  Transaction as DbTransaction,
+  User as DbUser,
+  getLastTransaction,
+  UserContact,
+} from 'database'
+import { Decimal } from 'decimal.js-light'
+import { GraphQLResolveInfo } from 'graphql'
 import { getLogger } from 'log4js'
 import { Mutex } from 'redis-semaphore'
+import { calculateDecay, Decay } from 'shared'
+import { Arg, Args, Authorized, Ctx, Info, Int, Mutation, Query, Resolver } from 'type-graphql'
+import { EntityManager, IsNull } from 'typeorm'
+import { contributionTransaction } from '@/apis/dltConnector'
+import { RIGHTS } from '@/auth/RIGHTS'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import {
+  EVENT_ADMIN_CONTRIBUTION_CONFIRM,
+  EVENT_ADMIN_CONTRIBUTION_CREATE,
+  EVENT_ADMIN_CONTRIBUTION_DELETE,
+  EVENT_ADMIN_CONTRIBUTION_DENY,
+  EVENT_ADMIN_CONTRIBUTION_UPDATE,
+  EVENT_CONTRIBUTION_CREATE,
+  EVENT_CONTRIBUTION_DELETE,
+  EVENT_CONTRIBUTION_UPDATE,
+} from '@/event/Events'
+import { UpdateUnconfirmedContributionContext } from '@/interactions/updateUnconfirmedContribution/UpdateUnconfirmedContribution.context'
+import { Context, getClientTimezoneOffset, getUser } from '@/server/context'
+import { LogError } from '@/server/LogError'
 import {
   contributionFrontendLink,
   loadAllContributions,
@@ -61,7 +59,8 @@ import { extractGraphQLFields } from './util/extractGraphQLFields'
 import { findContributions } from './util/findContributions'
 
 const db = AppDatabase.getInstance()
-const createLogger = () => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.ContributionResolver`)
+const createLogger = () =>
+  getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.ContributionResolver`)
 
 @Resolver(() => Contribution)
 export class ContributionResolver {
@@ -435,12 +434,15 @@ export class ContributionResolver {
     const logger = createLogger()
     logger.addContext('contribution', id)
     // acquire lock
-    const mutex = new Mutex (db.getRedisClient(), 'TRANSACTIONS_LOCK')
+    const mutex = new Mutex(db.getRedisClient(), 'TRANSACTIONS_LOCK')
     await mutex.acquire()
 
     try {
       const clientTimezoneOffset = getClientTimezoneOffset(context)
-      const contribution = await DbContribution.findOne({ where: { id }, relations: {user: {emailContact: true}} })
+      const contribution = await DbContribution.findOne({
+        where: { id },
+        relations: { user: { emailContact: true } },
+      })
       if (!contribution) {
         throw new LogError('Contribution not found', id)
       }
@@ -450,7 +452,7 @@ export class ContributionResolver {
       if (contribution.contributionStatus === 'DENIED') {
         throw new LogError('Contribution already denied', id)
       }
-      
+
       const moderatorUser = getUser(context)
       if (moderatorUser.id === contribution.userId) {
         throw new LogError('Moderator can not confirm own contribution')
@@ -460,7 +462,11 @@ export class ContributionResolver {
         throw new LogError('Can not confirm contribution since the user was deleted')
       }
       const receivedCallDate = new Date()
-      const dltTransactionPromise = contributionTransaction(contribution, moderatorUser, receivedCallDate)
+      const dltTransactionPromise = contributionTransaction(
+        contribution,
+        moderatorUser,
+        receivedCallDate,
+      )
       const creations = await getUserCreation(contribution.userId, clientTimezoneOffset, false)
       validateContribution(
         creations,
@@ -468,7 +474,7 @@ export class ContributionResolver {
         contribution.contributionDate,
         clientTimezoneOffset,
       )
-      
+
       const queryRunner = db.getDataSource().createQueryRunner()
       await queryRunner.connect()
       await queryRunner.startTransaction('REPEATABLE READ') // 'READ COMMITTED')
@@ -515,7 +521,7 @@ export class ContributionResolver {
         await queryRunner.manager.update(DbContribution, { id: contribution.id }, contribution)
 
         await queryRunner.commitTransaction()
-        
+
         logger.info('creation commited successfuly.')
         await sendContributionConfirmedEmail({
           firstName: user.firstName,
@@ -536,12 +542,14 @@ export class ContributionResolver {
         // wait for finishing transaction by dlt-connector/hiero
         const dltStartTime = new Date()
         const dltTransaction = await dltTransactionPromise
-        if(dltTransaction) {
+        if (dltTransaction) {
           dltTransaction.transactionId = transaction.id
           await dltTransaction.save()
         }
         const dltEndTime = new Date()
-        logger.debug(`dlt-connector contribution finished in ${dltEndTime.getTime() - dltStartTime.getTime()} ms`)
+        logger.debug(
+          `dlt-connector contribution finished in ${dltEndTime.getTime() - dltStartTime.getTime()} ms`,
+        )
       } catch (e) {
         await queryRunner.rollbackTransaction()
         throw new LogError('Creation was not successful', e)

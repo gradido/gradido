@@ -1,5 +1,5 @@
-import { JwtPayloadType } from './JwtPayloadType'
 import { Decimal } from 'decimal.js-light'
+import { JwtPayloadType } from './JwtPayloadType'
 
 export class SendCoinsJwtPayloadType extends JwtPayloadType {
   static SEND_COINS_TYPE = 'send-coins'

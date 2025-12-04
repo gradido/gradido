@@ -1,6 +1,6 @@
+import { afterEach, beforeAll, describe, expect, it, jest, mock } from 'bun:test'
 import { Decimal } from 'decimal.js-light'
 import { CONFIG } from '../config'
-import { mock, jest, describe, it, expect, beforeAll, afterEach } from 'bun:test'
 
 import * as sendEmailTranslatedApi from './sendEmailTranslated'
 import {
@@ -64,7 +64,7 @@ describe('sendEmailVariants', () => {
         contributionMemo: 'My contribution.',
         contributionFrontendLink,
         message: 'My message.',
-      })      
+      })
     })
 
     describe('calls "sendEmailTranslated"', () => {
@@ -144,7 +144,6 @@ describe('sendEmailVariants', () => {
       })
     })
 
-    
     describe('result', () => {
       it('is the expected object', () => {
         // bun testrunner bug, toMatchObject mess with 'result'
@@ -166,8 +165,6 @@ describe('sendEmailVariants', () => {
       })
     })
   })
-
-
 
   describe('sendAccountMultiRegistrationEmail', () => {
     beforeAll(async () => {

@@ -2,8 +2,8 @@ import { IsString, IsUUID } from 'class-validator'
 import { ArgsType, Field, InputType } from 'type-graphql'
 
 import { Location } from '@/graphql/model/Location'
-import { isValidLocation } from '@/graphql/validator/Location'
 import { isValidHieroId } from '@/graphql/validator/HieroId'
+import { isValidLocation } from '@/graphql/validator/Location'
 
 @ArgsType()
 @InputType()

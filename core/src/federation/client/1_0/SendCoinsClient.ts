@@ -1,15 +1,13 @@
 import { FederatedCommunity as DbFederatedCommunity } from 'database'
 import { GraphQLClient } from 'graphql-request'
-
-import { ensureUrlEndsWithSlash } from '../../../util/utilities'
 import { getLogger } from 'log4js'
-
 import { LOG4JS_BASE_CATEGORY_NAME } from '../../../config/const'
+import { EncryptedTransferArgs } from '../../../graphql/model/EncryptedTransferArgs'
+import { ensureUrlEndsWithSlash } from '../../../util/utilities'
 import { revertSendCoins as revertSendCoinsQuery } from './query/revertSendCoins'
 import { revertSettledSendCoins as revertSettledSendCoinsQuery } from './query/revertSettledSendCoins'
 import { settleSendCoins as settleSendCoinsQuery } from './query/settleSendCoins'
 import { voteForSendCoins as voteForSendCoinsQuery } from './query/voteForSendCoins'
-import { EncryptedTransferArgs } from '../../../graphql/model/EncryptedTransferArgs'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.federation.client.1_0.SendCoinsClient`)
 
@@ -33,7 +31,10 @@ export class SendCoinsClient {
   async voteForSendCoins(args: EncryptedTransferArgs): Promise<string | null> {
     logger.debug('voteForSendCoins against endpoint=', this.endpoint)
     try {
-      const { data } = await this.client.rawRequest<{ voteForSendCoins: string }>(voteForSendCoinsQuery, { args })
+      const { data } = await this.client.rawRequest<{ voteForSendCoins: string }>(
+        voteForSendCoinsQuery,
+        { args },
+      )
       const responseJwt = data?.voteForSendCoins
       if (responseJwt) {
         logger.debug('received response jwt', responseJwt)

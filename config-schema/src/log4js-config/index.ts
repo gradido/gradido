@@ -1,5 +1,5 @@
 import { readFileSync, writeFileSync } from 'node:fs'
-import { Configuration, LoggingEvent, addLayout, configure } from 'log4js'
+import { addLayout, Configuration, configure, LoggingEvent } from 'log4js'
 import { createAppenderConfig } from './appenders'
 import { createColoredContextLayout } from './coloredContext'
 import type { Category, CustomFileAppender, LogLevel } from './types'

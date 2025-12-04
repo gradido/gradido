@@ -1,26 +1,15 @@
-import { 
-  Community as DbCommunity, 
-  getReachableCommunities, 
-  getHomeCommunity 
-} from 'database'
-import { Arg, Args, Authorized, Mutation, Query, Resolver } from 'type-graphql'
 import { Paginated } from '@arg/Paginated'
 import { EditCommunityInput } from '@input/EditCommunityInput'
 import { AdminCommunityView } from '@model/AdminCommunityView'
 import { Community } from '@model/Community'
-
-import { RIGHTS } from '@/auth/RIGHTS'
-import { LogError } from '@/server/LogError'
-
-import { Location2Point } from './util/Location2Point'
-import {
-  getAllCommunities,
-  getCommunityByIdentifier,
-  getCommunityByUuid,
-} from './util/communities'
+import { Community as DbCommunity, getHomeCommunity, getReachableCommunities } from 'database'
 import { updateAllDefinedAndChanged } from 'shared'
-
+import { Arg, Args, Authorized, Mutation, Query, Resolver } from 'type-graphql'
+import { RIGHTS } from '@/auth/RIGHTS'
 import { CONFIG } from '@/config'
+import { LogError } from '@/server/LogError'
+import { getAllCommunities, getCommunityByIdentifier, getCommunityByUuid } from './util/communities'
+import { Location2Point } from './util/Location2Point'
 
 @Resolver()
 export class CommunityResolver {
@@ -35,11 +24,13 @@ export class CommunityResolver {
   @Query(() => [Community])
   async reachableCommunities(): Promise<Community[]> {
     const dbCommunities: DbCommunity[] = await getReachableCommunities(
-      CONFIG.FEDERATION_VALIDATE_COMMUNITY_TIMER * 2, {
-        // order by 
+      CONFIG.FEDERATION_VALIDATE_COMMUNITY_TIMER * 2,
+      {
+        // order by
         foreign: 'ASC', // home community first
         name: 'ASC', // sort foreign communities by name
-    })
+      },
+    )
     return dbCommunities.map((dbCom: DbCommunity) => new Community(dbCom))
   }
 

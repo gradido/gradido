@@ -1,9 +1,9 @@
-import { CONFIG } from '@/config'
-import { createServer } from '@/server/createServer'
 import { createTestClient } from 'apollo-server-testing'
 import { Community as DbCommunity } from 'database'
 import { getLogger } from 'log4js'
 import { DataSource } from 'typeorm'
+import { CONFIG } from '@/config'
+import { createServer } from '@/server/createServer'
 
 let query: any
 

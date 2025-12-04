@@ -1,13 +1,11 @@
 import { User as DbUser, UserLoggingView } from 'database'
+import { getLogger } from 'log4js'
 import { Point } from 'typeorm'
-
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { UpdateUserInfosArgs } from '@/graphql/arg/UpdateUserInfosArgs'
 import { GmsPublishLocationType } from '@/graphql/enum/GmsPublishLocationType'
 import { PublishNameType } from '@/graphql/enum/PublishNameType'
 import { LogError } from '@/server/LogError'
-
-import { getLogger } from 'log4js'
-import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { Point2Location } from './Location2Point'
 
 const logger = getLogger(

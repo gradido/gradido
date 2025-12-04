@@ -1,23 +1,22 @@
+// import { TRANSACTIONS_LOCK, getLastTransaction } from 'database'
 import {
   AppDatabase,
   CommunityLoggingView,
   Community as DbCommunity,
   PendingTransaction as DbPendingTransaction,
   User as DbUser,
+  Transaction as dbTransaction,
+  getLastTransaction,
   PendingTransactionLoggingView,
   UserLoggingView,
-  Transaction as dbTransaction,
 } from 'database'
 import { Decimal } from 'decimal.js-light'
-
-import { LOG4JS_BASE_CATEGORY_NAME } from '../../config/const'
-import { PendingTransactionState } from 'shared'
-// import { LogError } from '@/server/LogError'
-import { calculateSenderBalance } from '../../util/calculateSenderBalance'
-// import { TRANSACTIONS_LOCK, getLastTransaction } from 'database'
-import { getLastTransaction } from 'database'
 import { getLogger } from 'log4js'
 import { Mutex } from 'redis-semaphore'
+import { PendingTransactionState } from 'shared'
+import { LOG4JS_BASE_CATEGORY_NAME } from '../../config/const'
+// import { LogError } from '@/server/LogError'
+import { calculateSenderBalance } from '../../util/calculateSenderBalance'
 
 const db = AppDatabase.getInstance()
 const logger = getLogger(
@@ -41,7 +40,12 @@ export async function settlePendingSenderTransaction(
   logger.debug(`start Transaction for write-access...`)
 
   try {
-    logger.info('settlePendingSenderTransaction:', new CommunityLoggingView(homeCom), new UserLoggingView(senderUser), new PendingTransactionLoggingView(pendingTx))
+    logger.info(
+      'settlePendingSenderTransaction:',
+      new CommunityLoggingView(homeCom),
+      new UserLoggingView(senderUser),
+      new PendingTransactionLoggingView(pendingTx),
+    )
 
     // ensure that no other pendingTx with the same sender or recipient exists
     const openSenderPendingTx = await DbPendingTransaction.count({

@@ -1,10 +1,10 @@
+import { afterAll, beforeEach, describe, expect, it, jest, mock } from 'bun:test'
 import { createTransport } from 'nodemailer'
-import { CONFIG } from '../config'
-import { i18n } from '../locales/localization'
 import { getLogger } from '../../../config-schema/test/testSetup.bun'
+import { CONFIG } from '../config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../config/const'
+import { i18n } from '../locales/localization'
 import { sendEmailTranslated } from './sendEmailTranslated'
-import { mock, jest, describe, it, expect, beforeEach, afterAll } from 'bun:test'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.emails.sendEmailTranslated`)
 
@@ -109,7 +109,7 @@ describe('sendEmailTranslated', () => {
         })
       })
     })
-    
+
     it('calls "i18n.setLocale" with "en"', async () => {
       expect(spySetLocale).toBeCalledWith('en')
     })

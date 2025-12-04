@@ -5,10 +5,7 @@ export class EncryptedJWEJwtPayloadType extends JwtPayloadType {
 
   jwe: string
 
-  constructor(
-    handshakeID: string,
-    jwe: string,
-  ) {
+  constructor(handshakeID: string, jwe: string) {
     super(handshakeID)
     this.tokentype = EncryptedJWEJwtPayloadType.ENCRYPTED_JWE_TYPE
     this.jwe = jwe

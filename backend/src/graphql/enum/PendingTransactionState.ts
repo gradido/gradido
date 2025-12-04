@@ -1,5 +1,5 @@
-import { registerEnumType } from 'type-graphql'
 import { PendingTransactionState } from 'shared'
+import { registerEnumType } from 'type-graphql'
 
 export { PendingTransactionState }
 

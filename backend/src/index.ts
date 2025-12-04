@@ -2,9 +2,11 @@ import 'reflect-metadata'
 import 'source-map-support/register'
 import { getLogger } from 'log4js'
 import { CONFIG } from './config'
-import { startValidateCommunities } from './federation/validateCommunities'
+import {
+  startValidateCommunities,
+  writeJwtKeyPairInHomeCommunity,
+} from './federation/validateCommunities'
 import { createServer } from './server/createServer'
-import { writeJwtKeyPairInHomeCommunity } from './federation/validateCommunities'
 import { initLogging } from './server/logger'
 
 async function main() {

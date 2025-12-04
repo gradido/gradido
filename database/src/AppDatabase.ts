@@ -1,11 +1,10 @@
-import { DataSource as DBDataSource, FileLogger } from 'typeorm'
-import { Migration, entities } from './entity'
-
+import Redis from 'ioredis'
 import { getLogger } from 'log4js'
+import { DataSource as DBDataSource, FileLogger } from 'typeorm'
 import { latestDbVersion } from '.'
 import { CONFIG } from './config'
 import { LOG4JS_BASE_CATEGORY_NAME } from './config/const'
-import Redis from 'ioredis'
+import { entities, Migration } from './entity'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.AppDatabase`)
 
@@ -109,7 +108,7 @@ export class AppDatabase {
     }
     return this.redisClient
   }
- 
+
   // ######################################
   // private methods
   // ######################################

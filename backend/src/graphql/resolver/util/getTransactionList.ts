@@ -1,6 +1,5 @@
-import { Transaction as DbTransaction } from 'database'
-
 import { Order } from '@enum/Order'
+import { Transaction as DbTransaction } from 'database'
 
 export const getTransactionList = async (
   userId: number,

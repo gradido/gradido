@@ -1,4 +1,4 @@
-import { ValidationArguments, ValidationOptions, registerDecorator } from 'class-validator'
+import { registerDecorator, ValidationArguments, ValidationOptions } from 'class-validator'
 
 export function isValidHieroId(validationOptions?: ValidationOptions) {
   return function (object: Object, propertyName: string) {

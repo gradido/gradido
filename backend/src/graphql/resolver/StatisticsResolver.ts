@@ -1,11 +1,9 @@
+import { CommunityStatistics, DynamicStatisticsFields } from '@model/CommunityStatistics'
 import { AppDatabase, Transaction as DbTransaction, User as DbUser } from 'database'
 import { Decimal } from 'decimal.js-light'
-import { Authorized, FieldResolver, Query, Resolver } from 'type-graphql'
-
-import { CommunityStatistics, DynamicStatisticsFields } from '@model/CommunityStatistics'
-
-import { RIGHTS } from '@/auth/RIGHTS'
 import { calculateDecay } from 'shared'
+import { Authorized, FieldResolver, Query, Resolver } from 'type-graphql'
+import { RIGHTS } from '@/auth/RIGHTS'
 
 const db = AppDatabase.getInstance()
 

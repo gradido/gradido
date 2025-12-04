@@ -1,5 +1,12 @@
+import {
+  BaseEntity,
+  Column,
+  CreateDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm'
 import { CommunityHandshakeStateType } from '../enum'
-import { BaseEntity, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm'
 
 @Entity('community_handshake_states')
 export class CommunityHandshakeState extends BaseEntity {

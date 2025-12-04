@@ -7,7 +7,6 @@ import { schema } from './schema'
 
 dotenv.config()
 
-
 const federation = {
   FEDERATION_BACKEND_SEND_ON_API: process.env.FEDERATION_BACKEND_SEND_ON_API ?? '1_0',
   FEDERATION_XCOM_SENDCOINS_ENABLED:
@@ -29,7 +28,6 @@ const community = {
   COMMUNITY_URL,
 }
 
-
 const email = {
   EMAIL: process.env.EMAIL === 'true',
   EMAIL_LINK_FORGOTPASSWORD:
@@ -43,7 +41,6 @@ const email = {
   EMAIL_SMTP_HOST: process.env.EMAIL_SMTP_HOST ?? 'mailserver',
   EMAIL_SMTP_PORT: Number(process.env.EMAIL_SMTP_PORT) || 1025,
 }
-
 
 export const CONFIG = {
   ...federation,

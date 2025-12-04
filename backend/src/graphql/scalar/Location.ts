@@ -1,6 +1,5 @@
-import { GraphQLScalarType, Kind } from 'graphql'
-
 import { Location } from '@model/Location'
+import { GraphQLScalarType, Kind } from 'graphql'
 
 import { LogError } from '@/server/LogError'
 

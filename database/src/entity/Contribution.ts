@@ -12,8 +12,8 @@ import {
 } from 'typeorm'
 import { type ContributionMessage as ContributionMessageType } from './ContributionMessage'
 import { type Transaction as TransactionType } from './Transaction'
-import { type User as UserType } from './User'
 import { DecimalTransformer } from './transformer/DecimalTransformer'
+import { type User as UserType } from './User'
 
 @Entity('contributions')
 export class Contribution extends BaseEntity {

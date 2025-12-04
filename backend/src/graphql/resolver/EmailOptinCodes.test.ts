@@ -1,16 +1,13 @@
+import { cleanDB, testEnvironment } from '@test/helpers'
 import { ApolloServerTestClient } from 'apollo-server-testing'
-import { User as DbUser } from 'database'
+import { CONFIG as CORE_CONFIG } from 'core'
+import { AppDatabase, User as DbUser } from 'database'
 import { GraphQLError } from 'graphql'
 import { DataSource } from 'typeorm'
-
-import { cleanDB, testEnvironment } from '@test/helpers'
-
-import { CONFIG as CORE_CONFIG } from 'core'
 import { CONFIG } from '@/config'
 import { writeHomeCommunityEntry } from '@/seeds/community'
 import { createUser, forgotPassword, setPassword } from '@/seeds/graphql/mutations'
 import { queryOptIn } from '@/seeds/graphql/queries'
-import { AppDatabase } from 'database'
 
 let mutate: ApolloServerTestClient['mutate']
 let query: ApolloServerTestClient['query']

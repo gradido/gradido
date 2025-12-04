@@ -1,17 +1,19 @@
-import { UserInterface } from '../users/UserInterface'
-import { User, UserContact, UserRole } from '../../entity'
-import { v4 } from 'uuid'
-import { UserContactType, OptInType, PasswordEncryptionType } from 'shared'
-import { getHomeCommunity } from '../../queries/communities'
 import random from 'random-bigint'
-import { Community } from '../../entity'
+import { OptInType, PasswordEncryptionType, UserContactType } from 'shared'
+import { v4 } from 'uuid'
 import { AppDatabase } from '../..'
+import { Community, User, UserContact, UserRole } from '../../entity'
 import { RoleNames } from '../../enum/RoleNames'
+import { getHomeCommunity } from '../../queries/communities'
+import { UserInterface } from '../users/UserInterface'
 
-export async function userFactory(user: UserInterface, homeCommunity?: Community | null): Promise<User> {
-  // TODO: improve with cascade 
+export async function userFactory(
+  user: UserInterface,
+  homeCommunity?: Community | null,
+): Promise<User> {
+  // TODO: improve with cascade
   let dbUser = await createUser(user, homeCommunity)
-  let dbUserContact = await createUserContact(user, dbUser.id)
+  const dbUserContact = await createUserContact(user, dbUser.id)
   dbUser.emailId = dbUserContact.id
   dbUser.emailContact = dbUserContact
   dbUser = await dbUser.save()
@@ -20,21 +22,28 @@ export async function userFactory(user: UserInterface, homeCommunity?: Community
   if (userRole && (userRole === RoleNames.ADMIN || userRole === RoleNames.MODERATOR)) {
     dbUser.userRoles = [await createUserRole(dbUser.id, userRole)]
   }
-  
+
   return dbUser
 }
 
 // only use in non-parallel environment (seeding for example)
-export async function userFactoryBulk(users: UserInterface[], homeCommunity?: Community | null): Promise<User[]> {
+export async function userFactoryBulk(
+  users: UserInterface[],
+  homeCommunity?: Community | null,
+): Promise<User[]> {
   const dbUsers: User[] = []
   const dbUserContacts: UserContact[] = []
   const dbUserRoles: UserRole[] = []
   const lastUser = await User.findOne({ order: { id: 'DESC' }, select: ['id'], where: {} })
-  const lastUserContact = await UserContact.findOne({ order: { id: 'DESC' }, select: ['id'], where: {} })
+  const lastUserContact = await UserContact.findOne({
+    order: { id: 'DESC' },
+    select: ['id'],
+    where: {},
+  })
   let userId = lastUser ? lastUser.id + 1 : 1
   let emailId = lastUserContact ? lastUserContact.id + 1 : 1
   // console.log(`start with userId: ${userId} and emailId: ${emailId}`)
-  for(const user of users) {
+  for (const user of users) {
     const dbUser = await createUser(user, homeCommunity, false)
     dbUser.id = userId
     dbUser.emailId = emailId
@@ -51,28 +60,32 @@ export async function userFactoryBulk(users: UserInterface[], homeCommunity?: Co
     if (userRole && (userRole === RoleNames.ADMIN || userRole === RoleNames.MODERATOR)) {
       dbUserRoles.push(await createUserRole(dbUser.id, userRole, false))
     }
-    
+
     userId++
     emailId++
   }
   const dataSource = AppDatabase.getInstance().getDataSource()
-  await dataSource.transaction(async transaction => {
+  await dataSource.transaction(async (transaction) => {
     // typeorm change my data what I don't want
     // because of manuel id assignment
-    const dbUsersCopy = dbUsers.map(user => ({ ...user }))
-    const dbUserContactsCopy = dbUserContacts.map(userContact => ({ ...userContact }))
-    const dbUserRolesCopy = dbUserRoles.map(userRole => ({ ...userRole }))
+    const dbUsersCopy = dbUsers.map((user) => ({ ...user }))
+    const dbUserContactsCopy = dbUserContacts.map((userContact) => ({ ...userContact }))
+    const dbUserRolesCopy = dbUserRoles.map((userRole) => ({ ...userRole }))
     await Promise.all([
       transaction.getRepository(User).insert(dbUsersCopy),
       transaction.getRepository(UserContact).insert(dbUserContactsCopy),
-      transaction.getRepository(UserRole).insert(dbUserRolesCopy)
+      transaction.getRepository(UserRole).insert(dbUserRolesCopy),
     ])
   })
   return dbUsers
 }
 
-export async function createUser(user: UserInterface, homeCommunity?: Community | null, store: boolean = true): Promise<User> {
-  let dbUser = new User()
+export async function createUser(
+  user: UserInterface,
+  homeCommunity?: Community | null,
+  store: boolean = true,
+): Promise<User> {
+  const dbUser = new User()
   dbUser.firstName = user.firstName ?? ''
   dbUser.lastName = user.lastName ?? ''
   if (user.alias) {
@@ -86,7 +99,7 @@ export async function createUser(user: UserInterface, homeCommunity?: Community 
   dbUser.gradidoID = v4()
 
   if (user.emailChecked) {
-    // dbUser.password = 
+    // dbUser.password =
     dbUser.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
   }
   if (!homeCommunity) {
@@ -100,8 +113,12 @@ export async function createUser(user: UserInterface, homeCommunity?: Community 
   return store ? dbUser.save() : dbUser
 }
 
-export async function createUserContact(user: UserInterface, userId?: number, store: boolean = true): Promise<UserContact> {
-  let dbUserContact = new UserContact()
+export async function createUserContact(
+  user: UserInterface,
+  userId?: number,
+  store: boolean = true,
+): Promise<UserContact> {
+  const dbUserContact = new UserContact()
 
   dbUserContact.email = user.email ?? ''
   dbUserContact.type = UserContactType.USER_CONTACT_EMAIL
@@ -123,8 +140,12 @@ export async function createUserContact(user: UserInterface, userId?: number, st
   return store ? dbUserContact.save() : dbUserContact
 }
 
-export async function createUserRole(userId: number, role: RoleNames, store: boolean = true): Promise<UserRole> {
-  let dbUserRole = new UserRole()
+export async function createUserRole(
+  userId: number,
+  role: RoleNames,
+  store: boolean = true,
+): Promise<UserRole> {
+  const dbUserRole = new UserRole()
   dbUserRole.userId = userId
   dbUserRole.role = role
   return store ? dbUserRole.save() : dbUserRole

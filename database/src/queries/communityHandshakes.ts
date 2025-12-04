@@ -1,6 +1,6 @@
-import { Not, In } from 'typeorm'
-import { CommunityHandshakeState, CommunityHandshakeStateType} from '..'
 import { Ed25519PublicKey } from 'shared'
+import { In, Not } from 'typeorm'
+import { CommunityHandshakeState, CommunityHandshakeStateType } from '..'
 
 /**
  * Find a pending community handshake by public key.
@@ -10,26 +10,31 @@ import { Ed25519PublicKey } from 'shared'
  * @returns The CommunityHandshakeState with associated federated community and community.
  */
 export function findPendingCommunityHandshake(
-  publicKey: Ed25519PublicKey, apiVersion: string, status?: CommunityHandshakeStateType
+  publicKey: Ed25519PublicKey,
+  apiVersion: string,
+  status?: CommunityHandshakeStateType,
 ): Promise<CommunityHandshakeState | null> {
   return CommunityHandshakeState.findOne({
-    where: { 
-      publicKey: publicKey.asBuffer(), 
+    where: {
+      publicKey: publicKey.asBuffer(),
       apiVersion,
-      status: status || Not(In([
-        CommunityHandshakeStateType.EXPIRED,
-        CommunityHandshakeStateType.FAILED,
-        CommunityHandshakeStateType.SUCCESS
-      ]))
+      status:
+        status ||
+        Not(
+          In([
+            CommunityHandshakeStateType.EXPIRED,
+            CommunityHandshakeStateType.FAILED,
+            CommunityHandshakeStateType.SUCCESS,
+          ]),
+        ),
     },
   })
 }
 
 export function findPendingCommunityHandshakeOrFailByOneTimeCode(
-  oneTimeCode: number
+  oneTimeCode: number,
 ): Promise<CommunityHandshakeState> {
   return CommunityHandshakeState.findOneOrFail({
     where: { oneTimeCode },
   })
 }
-  

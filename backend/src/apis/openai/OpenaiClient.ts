@@ -1,14 +1,12 @@
 import { OpenaiThreads, User } from 'database'
+import { getLogger } from 'log4js'
 import { OpenAI } from 'openai'
 import { Message } from 'openai/resources/beta/threads/messages'
-
 import { httpsAgent } from '@/apis/ConnectionAgents'
 import { CONFIG } from '@/config'
 
-import { Message as MessageModel } from './model/Message'
-
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { getLogger } from 'log4js'
+import { Message as MessageModel } from './model/Message'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.apis.openai.OpenaiClient`)
 // this is the time after when openai is deleting an inactive thread
@@ -89,8 +87,13 @@ export class OpenaiClient {
       logger.warn(`No openai thread found for user: ${user.id}`)
       return []
     }
-    if (openaiThreadEntity.updatedAt < new Date(Date.now() - OPENAI_AI_THREAD_DEFAULT_TIMEOUT_DAYS * 24 * 60 * 60 * 1000)) {
-      logger.info(`Openai thread for user: ${user.id} is older than ${OPENAI_AI_THREAD_DEFAULT_TIMEOUT_DAYS} days, deleting...`)
+    if (
+      openaiThreadEntity.updatedAt <
+      new Date(Date.now() - OPENAI_AI_THREAD_DEFAULT_TIMEOUT_DAYS * 24 * 60 * 60 * 1000)
+    ) {
+      logger.info(
+        `Openai thread for user: ${user.id} is older than ${OPENAI_AI_THREAD_DEFAULT_TIMEOUT_DAYS} days, deleting...`,
+      )
       // let run async, because it could need some time, but we don't need to wait, because we create a new one nevertheless
       // biome-ignore lint/complexity/noVoid: start it intentionally async without waiting for result
       void this.deleteThread(openaiThreadEntity.id)
@@ -113,10 +116,10 @@ export class OpenaiClient {
         )
         .reverse()
     } catch (e) {
-      if(e instanceof Error && e.toString().includes('No thread found with id')) {
+      if (e instanceof Error && e.toString().includes('No thread found with id')) {
         logger.info(`Thread not found: ${openaiThreadEntity.id}`)
         return []
-      } 
+      }
       throw e
     }
   }
@@ -141,7 +144,10 @@ export class OpenaiClient {
   }
 
   public async runAndGetLastNewMessage(threadId: string): Promise<MessageModel> {
-    const updateOpenAiThreadResolver = OpenaiThreads.update({ id: threadId }, { updatedAt: new Date() })
+    const updateOpenAiThreadResolver = OpenaiThreads.update(
+      { id: threadId },
+      { updatedAt: new Date() },
+    )
     const run = await this.openai.beta.threads.runs.createAndPoll(threadId, {
       assistant_id: CONFIG.OPENAI_ASSISTANT_ID,
     })

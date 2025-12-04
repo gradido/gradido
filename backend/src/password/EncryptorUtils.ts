@@ -1,15 +1,11 @@
 import { cpus } from 'node:os'
 import path from 'node:path'
-
-import { User } from 'database'
-import { Pool, pool } from 'workerpool'
-
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
-
+import { User } from 'database'
+import { crypto_shorthash_KEYBYTES } from 'sodium-native'
+import { Pool, pool } from 'workerpool'
 import { CONFIG } from '@/config'
 import { LogError } from '@/server/LogError'
-
-import { crypto_shorthash_KEYBYTES } from 'sodium-native'
 
 import { SecretKeyCryptographyCreateKeyFunc } from './EncryptionWorker.js'
 

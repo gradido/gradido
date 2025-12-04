@@ -1,6 +1,5 @@
-import { ValidationOptions, registerDecorator } from 'class-validator'
-
 import { ContributionStatus } from '@enum/ContributionStatus'
+import { registerDecorator, ValidationOptions } from 'class-validator'
 
 export function isContributionStatusArray(validationOptions?: ValidationOptions) {
   return function (object: Object, propertyName: string) {

@@ -10,8 +10,8 @@ import {
   UpdateDateColumn,
 } from 'typeorm'
 import { type FederatedCommunity as FederatedCommunityType } from './FederatedCommunity'
-import { type User as UserType } from './User'
 import { GeometryTransformer } from './transformer/GeometryTransformer'
+import { type User as UserType } from './User'
 
 @Entity('communities')
 export class Community extends BaseEntity {

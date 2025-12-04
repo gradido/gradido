@@ -6,5 +6,11 @@ import { PublicKeyResolver } from './resolver/PublicKeyResolver'
 import { SendCoinsResolver } from './resolver/SendCoinsResolver'
 
 export const getApiResolvers = (): NonEmptyArray<Function> => {
-  return [AuthenticationResolver, DisbursementResolver, PublicCommunityInfoResolver, PublicKeyResolver, SendCoinsResolver]
+  return [
+    AuthenticationResolver,
+    DisbursementResolver,
+    PublicCommunityInfoResolver,
+    PublicKeyResolver,
+    SendCoinsResolver,
+  ]
 }

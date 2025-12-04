@@ -34,7 +34,7 @@ describe('updateIfDefinedAndChanged', () => {
 
 describe('updateAllDefinedAndChanged', () => {
   it('should update all fields if incoming is different from current', () => {
-    type TestEntity = { field1: string | null, field2: string | null, field3: string | null }
+    type TestEntity = { field1: string | null; field2: string | null; field3: string | null }
     const current: TestEntity = { field1: 'current', field2: 'current', field3: 'current' }
     const incoming = { field1: 'incoming', field2: 'incoming', otherField: 'incoming' }
     const result = updateAllDefinedAndChanged(current, incoming)
@@ -56,7 +56,7 @@ describe('updateAllDefinedAndChanged', () => {
     expect(current).toEqual({ field1: 'current', field2: 'current' })
   })
   it('should update field if incoming is null', () => {
-    type TestEntity = { field1: string | null, field2: string | null }
+    type TestEntity = { field1: string | null; field2: string | null }
     type TestInput = { field1: string | null }
     const current: TestEntity = { field1: 'current', field2: 'current' }
     const incoming: TestInput = { field1: null }
@@ -65,4 +65,3 @@ describe('updateAllDefinedAndChanged', () => {
     expect(current).toEqual({ field1: null, field2: 'current' })
   })
 })
-  

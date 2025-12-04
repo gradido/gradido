@@ -5,10 +5,7 @@ export class AuthenticationResponseJwtPayloadType extends JwtPayloadType {
 
   uuid: string
 
-  constructor(
-    handshakeID: string,
-    uuid: string,
-  ) {
+  constructor(handshakeID: string, uuid: string) {
     super(handshakeID)
     this.tokentype = AuthenticationResponseJwtPayloadType.AUTHENTICATION_RESPONSE_TYPE
     this.uuid = uuid

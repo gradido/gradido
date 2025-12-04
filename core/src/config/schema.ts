@@ -1,12 +1,11 @@
-
-import Joi from 'joi'
 import { COMMUNITY_SUPPORT_MAIL, COMMUNITY_URL, NODE_ENV } from 'config-schema'
+import Joi from 'joi'
 
 export const schema = Joi.object({
   COMMUNITY_SUPPORT_MAIL,
   COMMUNITY_URL,
   NODE_ENV,
-  
+
   EMAIL: Joi.boolean()
     .default(false)
     .description('Enable or disable email functionality')

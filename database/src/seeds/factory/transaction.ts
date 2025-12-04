@@ -1,9 +1,8 @@
 import Decimal from 'decimal.js-light'
-import { User, Transaction } from '../../entity'
+import { calculateDecay, Decay, fullName } from 'shared'
+import { Transaction, User } from '../../entity'
 import { TransactionTypeId } from '../../enum'
-import { fullName } from 'shared'
 import { getLastTransaction } from '../../queries'
-import { calculateDecay, Decay } from 'shared'
 
 export async function createTransaction(
   amount: Decimal,
@@ -13,20 +12,15 @@ export async function createTransaction(
   type: TransactionTypeId,
   balanceDate: Date,
   creationDate?: Date,
-  id?: number,  
+  id?: number,
   store: boolean = true,
 ): Promise<Transaction> {
-  
   const lastTransaction = await getLastTransaction(user.id)
   // balance and decay calculation
   let newBalance = new Decimal(0)
   let decay: Decay | null = null
   if (lastTransaction) {
-    decay = calculateDecay(
-      lastTransaction.balance,
-      lastTransaction.balanceDate,
-      balanceDate,
-    )
+    decay = calculateDecay(lastTransaction.balance, lastTransaction.balanceDate, balanceDate)
     newBalance = decay.balance
   }
   newBalance = newBalance.add(amount.toString())
@@ -54,6 +48,6 @@ export async function createTransaction(
   transaction.balanceDate = balanceDate
   transaction.decay = decay ? decay.decay : new Decimal(0)
   transaction.decayStart = decay ? decay.start : null
-  
+
   return store ? transaction.save() : transaction
 }

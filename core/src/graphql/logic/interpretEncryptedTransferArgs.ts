@@ -1,14 +1,17 @@
-import { EncryptedTransferArgs } from '../model/EncryptedTransferArgs'
-import { Ed25519PublicKey, JwtPayloadType } from 'shared'
-import { Community as DbCommunity } from 'database'
+import { CommunityLoggingView, Community as DbCommunity, getHomeCommunity } from 'database'
 import { getLogger } from 'log4js'
-import { CommunityLoggingView, getHomeCommunity } from 'database'
-import { verifyAndDecrypt } from 'shared'
+import { Ed25519PublicKey, JwtPayloadType, verifyAndDecrypt } from 'shared'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../../config/const'
+import { EncryptedTransferArgs } from '../model/EncryptedTransferArgs'
 
-const createLogger = (functionName: string) => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.logic.interpretEncryptedTransferArgs.${functionName}`)
+const createLogger = (functionName: string) =>
+  getLogger(
+    `${LOG4JS_BASE_CATEGORY_NAME}.graphql.logic.interpretEncryptedTransferArgs.${functionName}`,
+  )
 
-export const interpretEncryptedTransferArgs = async (args: EncryptedTransferArgs): Promise<JwtPayloadType | null> => {
+export const interpretEncryptedTransferArgs = async (
+  args: EncryptedTransferArgs,
+): Promise<JwtPayloadType | null> => {
   const methodLogger = createLogger('interpretEncryptedTransferArgs')
   methodLogger.addContext('handshakeID', args.handshakeID)
   methodLogger.debug('interpretEncryptedTransferArgs()... args:', args)
@@ -30,7 +33,12 @@ export const interpretEncryptedTransferArgs = async (args: EncryptedTransferArgs
   // verify the signing of args.jwt with homeCom.privateJwtKey and decrypt args.jwt with requestingCom.publicJwtKey
   // TODO: maybe use community from caller instead of loading it separately
   const homeCom = await getHomeCommunity()
-  const jwtPayload = await verifyAndDecrypt(args.handshakeID, args.jwt, homeCom!.privateJwtKey!, requestingCom.publicJwtKey) as JwtPayloadType
+  const jwtPayload = (await verifyAndDecrypt(
+    args.handshakeID,
+    args.jwt,
+    homeCom!.privateJwtKey!,
+    requestingCom.publicJwtKey,
+  )) as JwtPayloadType
   if (!jwtPayload) {
     const errmsg = `invalid payload of community with publicKey ${argsPublicKey.asHex()}`
     methodLogger.error(errmsg)

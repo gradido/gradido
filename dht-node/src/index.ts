@@ -1,11 +1,10 @@
 import 'source-map-support/register'
-import { startDHT } from '@/dht_node/index'
-
-import { CONFIG } from '@/config'
-import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { defaultCategory, initLogger } from 'config-schema'
 import { AppDatabase } from 'database'
 import { getLogger } from 'log4js'
+import { CONFIG } from '@/config'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { startDHT } from '@/dht_node/index'
 
 async function main() {
   // init logger

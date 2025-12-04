@@ -1,10 +1,10 @@
-import { Contribution, Transaction, User } from '../../entity'
 import { Decimal } from 'decimal.js-light'
-import { CreationInterface } from '../creation/CreationInterface'
-import { ContributionType, ContributionStatus, TransactionTypeId } from '../../enum'
-import { findUserByIdentifier } from '../../queries'
-import { createTransaction } from './transaction'
 import { AppDatabase } from '../../AppDatabase'
+import { Contribution, Transaction, User } from '../../entity'
+import { ContributionStatus, ContributionType, TransactionTypeId } from '../../enum'
+import { findUserByIdentifier } from '../../queries'
+import { CreationInterface } from '../creation/CreationInterface'
+import { createTransaction } from './transaction'
 
 export function nMonthsBefore(date: Date, months = 1): string {
   return new Date(date.getFullYear(), date.getMonth() - months, 1).toISOString()
@@ -21,7 +21,7 @@ export async function creationFactory(
   if (!user) {
     throw new Error(`User ${creation.email} not found`)
   }
-  let contribution = await createContribution(creation, user)
+  const contribution = await createContribution(creation, user)
   if (creation.confirmed) {
     if (!moderatorUser) {
       moderatorUser = await findUserByIdentifier('peter@lustig.de')
@@ -39,7 +39,11 @@ export async function creationFactoryBulk(
   userCreationIndexedByEmail: Map<string, User>,
   moderatorUser: User,
 ): Promise<Contribution[]> {
-  const lastTransaction = await Transaction.findOne({ order: { id: 'DESC' }, select: ['id'], where: {} })
+  const lastTransaction = await Transaction.findOne({
+    order: { id: 'DESC' },
+    select: ['id'],
+    where: {},
+  })
   let transactionId = lastTransaction ? lastTransaction.id + 1 : 1
   const dbContributions: Contribution[] = []
   const dbTransactions: Transaction[] = []
@@ -49,14 +53,14 @@ export async function creationFactoryBulk(
     if (!user) {
       throw new Error(`User ${creation.email} not found`)
     }
-    let contribution = await createContribution(creation, user, false)
+    const contribution = await createContribution(creation, user, false)
     if (creation.confirmed) {
       const { contribution: _, transaction } = await confirmTransaction(
-        creation, 
-        contribution, 
-        moderatorUser, 
-        transactionId, 
-        false
+        creation,
+        contribution,
+        moderatorUser,
+        transactionId,
+        false,
       )
       dbTransactions.push(transaction)
       transactionId++
@@ -66,12 +70,16 @@ export async function creationFactoryBulk(
   const dataSource = AppDatabase.getInstance().getDataSource()
   await dataSource.transaction(async (transaction) => {
     await dataSource.getRepository(Contribution).insert(dbContributions)
-    await dataSource.getRepository(Transaction).insert(dbTransactions)    
+    await dataSource.getRepository(Transaction).insert(dbTransactions)
   })
   return dbContributions
 }
 
-export async function createContribution(creation: CreationInterface, user: User, store: boolean = true): Promise<Contribution> {
+export async function createContribution(
+  creation: CreationInterface,
+  user: User,
+  store: boolean = true,
+): Promise<Contribution> {
   const contribution = new Contribution()
   contribution.user = user
   contribution.userId = user.id
@@ -81,17 +89,17 @@ export async function createContribution(creation: CreationInterface, user: User
   contribution.memo = creation.memo
   contribution.contributionType = ContributionType.USER
   contribution.contributionStatus = ContributionStatus.PENDING
-  
+
   return store ? contribution.save() : contribution
 }
 
 export async function confirmTransaction(
   creation: CreationInterface,
-  contribution: Contribution, 
-  moderatorUser: User, 
-  transactionId?: number, 
-  store: boolean = true
-): Promise<{ contribution: Contribution, transaction: Transaction }> {
+  contribution: Contribution,
+  moderatorUser: User,
+  transactionId?: number,
+  store: boolean = true,
+): Promise<{ contribution: Contribution; transaction: Transaction }> {
   const balanceDate = getBalanceDate(creation)
   const transaction = await createTransaction(
     contribution.amount,
@@ -117,10 +125,10 @@ export async function confirmTransaction(
 
   return { contribution, transaction }
 }
-    
+
 function getContributionDate(creation: CreationInterface): Date {
   if (creation.moveCreationDate) {
-      return new Date(nMonthsBefore(new Date(creation.contributionDate), creation.moveCreationDate))
+    return new Date(nMonthsBefore(new Date(creation.contributionDate), creation.moveCreationDate))
   }
   return new Date(creation.contributionDate)
 }
@@ -128,7 +136,7 @@ function getContributionDate(creation: CreationInterface): Date {
 function getBalanceDate(creation: CreationInterface): Date {
   const now = new Date()
   if (creation.moveCreationDate) {
-      return new Date(nMonthsBefore(now, creation.moveCreationDate))
+    return new Date(nMonthsBefore(now, creation.moveCreationDate))
   }
   return now
 }

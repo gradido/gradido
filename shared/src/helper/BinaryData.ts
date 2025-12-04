@@ -4,7 +4,7 @@ import { LOG4JS_BASE_CATEGORY_NAME } from '../const'
 const logging = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.helper.BinaryData`)
 
 /**
- * Class mainly for handling ed25519 public keys, 
+ * Class mainly for handling ed25519 public keys,
  * to make sure we have always the correct Format (Buffer or Hex String)
  */
 export class BinaryData {

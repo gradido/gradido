@@ -21,15 +21,15 @@ export function validate(schema: ObjectSchema, data: any) {
         const description = schemaJson.keys[key]
           ? schema.describe().keys[key].flags.description
           : 'No description available'
-          if (data[key] === undefined) {
-            throw new Error(
-              `Environment Variable '${key}' is missing. ${description}, details: ${details}`,
-            )
-          } else {
-            throw new Error(
-              `Error on Environment Variable ${key} with value = ${value}: ${err.message}. ${description}`,
-            )
-          }
+        if (data[key] === undefined) {
+          throw new Error(
+            `Environment Variable '${key}' is missing. ${description}, details: ${details}`,
+          )
+        } else {
+          throw new Error(
+            `Error on Environment Variable ${key} with value = ${value}: ${err.message}. ${description}`,
+          )
+        }
       } catch (e) {
         // biome-ignore lint/suspicious/noConsole: schema validation may be run before logger is initialized
         console.error('Error getting description for key ' + key + ': ' + e)

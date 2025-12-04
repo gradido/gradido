@@ -1,7 +1,6 @@
 import { User as DbUser } from 'database'
-
-import { decode } from '@/auth/JWT'
 import { getLogger } from 'log4js'
+import { decode } from '@/auth/JWT'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.webhook.gms`)

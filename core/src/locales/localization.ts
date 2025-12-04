@@ -1,8 +1,8 @@
-import en from './en.json'
-import de from './de.json'
 import { I18n } from 'i18n'
 import { getLogger } from 'log4js'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../config/const'
+import de from './de.json'
+import en from './en.json'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.emails.localization`)
 
@@ -35,4 +35,3 @@ export const i18n = new I18n({
     disable: false,
   },
 })
-

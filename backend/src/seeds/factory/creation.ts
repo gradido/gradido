@@ -1,8 +1,8 @@
-import { 
+import {
   Contribution,
-  creationFactory as creationFactoryDb, 
-  CreationInterface, 
-  nMonthsBefore 
+  CreationInterface,
+  creationFactory as creationFactoryDb,
+  nMonthsBefore,
 } from 'database'
 
 export { CreationInterface, nMonthsBefore }

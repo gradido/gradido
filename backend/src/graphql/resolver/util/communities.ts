@@ -1,11 +1,10 @@
+import { Paginated } from '@arg/Paginated'
 import {
   AppDatabase,
   Community as DbCommunity,
   FederatedCommunity as DbFederatedCommunity,
 } from 'database'
 import { FindOneOptions, IsNull, Not } from 'typeorm'
-
-import { Paginated } from '@arg/Paginated'
 
 import { LogError } from '@/server/LogError'
 

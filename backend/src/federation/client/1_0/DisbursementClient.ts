@@ -1,11 +1,8 @@
+import { EncryptedTransferArgs, ensureUrlEndsWithSlash } from 'core'
 import { FederatedCommunity as DbFederatedCommunity } from 'database'
 import { GraphQLClient } from 'graphql-request'
-
-import { ensureUrlEndsWithSlash } from 'core'
 import { getLogger } from 'log4js'
-
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { EncryptedTransferArgs } from 'core'
 import { processDisburseJwtOnSenderCommunity as processDisburseJwtOnSenderCommunityQuery } from './query/processDisburseJwtOnSenderCommunity'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.federation.client.1_0.DisbursementClient`)
@@ -30,7 +27,9 @@ export class DisbursementClient {
   async sendDisburseJwtToSenderCommunity(args: EncryptedTransferArgs): Promise<string | null> {
     logger.debug('sendDisburseJwtToSenderCommunity against endpoint=', this.endpoint)
     try {
-      const { data } = await this.client.rawRequest<{ processDisburseJwtOnSenderCommunity: string }>(processDisburseJwtOnSenderCommunityQuery, { args })
+      const { data } = await this.client.rawRequest<{
+        processDisburseJwtOnSenderCommunity: string
+      }>(processDisburseJwtOnSenderCommunityQuery, { args })
       const response = data?.processDisburseJwtOnSenderCommunity
       if (response) {
         logger.debug('received response:', response)
@@ -43,5 +42,4 @@ export class DisbursementClient {
     }
     return null
   }
-
 }

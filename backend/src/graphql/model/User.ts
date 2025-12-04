@@ -1,9 +1,8 @@
+import { GmsPublishLocationType } from '@enum/GmsPublishLocationType'
+import { PublishNameType } from '@enum/PublishNameType'
 import { User as DbUser } from 'database'
 import { Field, Int, ObjectType } from 'type-graphql'
 import { Point } from 'typeorm'
-
-import { GmsPublishLocationType } from '@enum/GmsPublishLocationType'
-import { PublishNameType } from '@enum/PublishNameType'
 
 import { PublishNameLogic } from '@/data/PublishName.logic'
 import { Point2Location } from '@/graphql/resolver/util/Location2Point'

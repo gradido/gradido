@@ -1,5 +1,5 @@
-import { registerEnumType } from 'type-graphql'
 import { ContributionType } from 'database'
+import { registerEnumType } from 'type-graphql'
 
 export { ContributionType }
 

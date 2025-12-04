@@ -1,12 +1,11 @@
 import { ProjectBranding } from 'database'
 import { SignJWT } from 'jose'
+import { getLogger } from 'log4js'
 import { IRequestOptions, IRestResponse, RestClient } from 'typed-rest-client'
-
 import { CONFIG } from '@/config'
-import { LogError } from '@/server/LogError'
 
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { getLogger } from 'log4js'
+import { LogError } from '@/server/LogError'
 import { PostUserLoggingView } from './logging/PostUserLogging.view'
 import { GetUser } from './model/GetUser'
 import { PostUser } from './model/PostUser'

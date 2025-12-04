@@ -5,4 +5,3 @@ export const voteForSendCoins = gql`
     voteForSendCoins(data: $args)
   }
 `
-

@@ -1,12 +1,14 @@
+import { cleanDB, contributionDateFormatter, testEnvironment } from '@test/helpers'
 import { ApolloServerTestClient } from 'apollo-server-testing'
-import { Community as DbCommunity } from 'database'
+import { CONFIG as CORE_CONFIG } from 'core'
+import { AppDatabase, Community as DbCommunity } from 'database'
 import { Decimal } from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
+// import { TRANSACTIONS_LOCK } from 'database'
+import { Mutex } from 'redis-semaphore'
 import { DataSource } from 'typeorm'
 import { v4 as uuidv4 } from 'uuid'
-
-import { cleanDB, contributionDateFormatter, testEnvironment } from '@test/helpers'
-
+import { CONFIG } from '@/config'
 import { creationFactory, nMonthsBefore } from '@/seeds/factory/creation'
 import { userFactory } from '@/seeds/factory/user'
 import {
@@ -21,11 +23,6 @@ import {
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { peterLustig } from '@/seeds/users/peter-lustig'
-import { CONFIG } from '@/config'
-import { CONFIG as CORE_CONFIG } from 'core'
-// import { TRANSACTIONS_LOCK } from 'database'
-import { Mutex } from 'redis-semaphore'
-import { AppDatabase } from 'database'
 
 jest.mock('@/password/EncryptorUtils')
 
@@ -53,7 +50,7 @@ afterAll(async () => {
   await testEnv.db.getRedisClient().quit()
 })
 
-type WorkData = { start: number, end: number }
+type WorkData = { start: number; end: number }
 async function fakeWork(workData: WorkData[], index: number) {
   // const releaseLock = await TRANSACTIONS_LOCK.acquire()
   // create a new mutex for every function call, like in production code
@@ -71,16 +68,16 @@ async function fakeWork(workData: WorkData[], index: number) {
 describe('semaphore', () => {
   it("didn't should run in parallel", async () => {
     const workData: WorkData[] = []
-    
+
     const promises: Promise<void>[] = []
-    for(let i = 0; i < 20; i++) {
+    for (let i = 0; i < 20; i++) {
       promises.push(fakeWork(workData, i))
     }
     await Promise.all(promises)
     workData.sort((a, b) => a.start - b.start)
     workData.forEach((work, index) => {
       expect(work.start).toBeLessThan(work.end)
-      if(index < workData.length - 1) {
+      if (index < workData.length - 1) {
         expect(work.start).toBeLessThan(workData[index + 1].start)
         expect(work.end).toBeLessThanOrEqual(workData[index + 1].start)
       }

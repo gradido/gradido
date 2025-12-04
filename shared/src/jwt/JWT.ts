@@ -1,27 +1,42 @@
-import { generateKeyPair, exportSPKI, exportPKCS8, SignJWT, decodeJwt, importPKCS8, importSPKI, jwtVerify, CompactEncrypt, compactDecrypt } from 'jose'
-import { LOG4JS_BASE_CATEGORY_NAME } from '../const'
+import {
+  CompactEncrypt,
+  compactDecrypt,
+  decodeJwt,
+  exportPKCS8,
+  exportSPKI,
+  generateKeyPair,
+  importPKCS8,
+  importSPKI,
+  jwtVerify,
+  SignJWT,
+} from 'jose'
 import { getLogger } from 'log4js'
+import { LOG4JS_BASE_CATEGORY_NAME } from '../const'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.auth.jwt.JWT`)
 
-import { JwtPayloadType } from './payloadtypes/JwtPayloadType'
 import { EncryptedJWEJwtPayloadType } from './payloadtypes/EncryptedJWEJwtPayloadType'
+import { JwtPayloadType } from './payloadtypes/JwtPayloadType'
 
 export const createKeyPair = async (): Promise<{ publicKey: string; privateKey: string }> => {
   // Generate key pair using jose library
   const keyPair = await generateKeyPair('RS256', {
     modulusLength: 2048, // recommended key size
     extractable: true,
-  });
-  logger.debug(`Federation: writeJwtKeyPairInHomeCommunity generated keypair...`);
-  
+  })
+  logger.debug(`Federation: writeJwtKeyPairInHomeCommunity generated keypair...`)
+
   // Convert keys to PEM format for storage in database
-  const publicKeyPem = await exportSPKI(keyPair.publicKey);
-  const privateKeyPem = await exportPKCS8(keyPair.privateKey);
-  return { publicKey: publicKeyPem, privateKey: privateKeyPem };
+  const publicKeyPem = await exportSPKI(keyPair.publicKey)
+  const privateKeyPem = await exportPKCS8(keyPair.privateKey)
+  return { publicKey: publicKeyPem, privateKey: privateKeyPem }
 }
 
-export const verify = async (handshakeID: string, token: string, publicKey: string): Promise<JwtPayloadType | null> => {
+export const verify = async (
+  handshakeID: string,
+  token: string,
+  publicKey: string,
+): Promise<JwtPayloadType | null> => {
   const methodLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.auth.jwt.JWT.verify`)
   methodLogger.addContext('handshakeID', handshakeID)
   if (!token) {
@@ -33,9 +48,7 @@ export const verify = async (handshakeID: string, token: string, publicKey: stri
   try {
     const importedKey = await importSPKI(publicKey, 'RS256')
     // Convert the key to JWK format if needed
-    const secret = typeof importedKey === 'string' 
-      ? JSON.parse(importedKey)
-      : importedKey;
+    const secret = typeof importedKey === 'string' ? JSON.parse(importedKey) : importedKey
     // const secret = new TextEncoder().encode(publicKey)
     const { payload } = await jwtVerify(token, secret, {
       issuer: JwtPayloadType.ISSUER,
@@ -57,9 +70,7 @@ export const encode = async (payload: JwtPayloadType, privatekey: string): Promi
   methodLogger.debug('encode... privatekey=', privatekey.substring(0, 20))
   try {
     const importedKey = await importPKCS8(privatekey, 'RS256')
-    const secret = typeof importedKey === 'string' 
-    ? JSON.parse(importedKey)
-    : importedKey;
+    const secret = typeof importedKey === 'string' ? JSON.parse(importedKey) : importedKey
 
     // const secret = new TextEncoder().encode(privatekey)
     const token = await new SignJWT({ payload, 'urn:gradido:claim': true })
@@ -79,7 +90,11 @@ export const encode = async (payload: JwtPayloadType, privatekey: string): Promi
   }
 }
 
-export const verifyJwtType = async (handshakeID: string, token: string, publicKey: string): Promise<string> => {
+export const verifyJwtType = async (
+  handshakeID: string,
+  token: string,
+  publicKey: string,
+): Promise<string> => {
   const payload = await verify(handshakeID, token, publicKey)
   return payload ? payload.tokentype : 'unknown token type'
 }
@@ -97,13 +112,9 @@ export const encrypt = async (payload: JwtPayloadType, publicKey: string): Promi
   try {
     const encryptKey = await importSPKI(publicKey, 'RSA-OAEP-256')
     // Convert the key to JWK format if needed
-    const recipientKey = typeof encryptKey === 'string' 
-      ? JSON.parse(encryptKey)
-      : encryptKey;
-    
-    const jwe = await new CompactEncrypt(
-      new TextEncoder().encode(JSON.stringify(payload)),
-    )
+    const recipientKey = typeof encryptKey === 'string' ? JSON.parse(encryptKey) : encryptKey
+
+    const jwe = await new CompactEncrypt(new TextEncoder().encode(JSON.stringify(payload)))
       .setProtectedHeader({ alg: 'RSA-OAEP-256', enc: 'A256GCM' })
       .encrypt(recipientKey)
     methodLogger.debug('encrypt... jwe=', jwe)
@@ -114,15 +125,18 @@ export const encrypt = async (payload: JwtPayloadType, publicKey: string): Promi
   }
 }
 
-export const decrypt = async(handshakeID: string, jwe: string, privateKey: string): Promise<string> => {
+export const decrypt = async (
+  handshakeID: string,
+  jwe: string,
+  privateKey: string,
+): Promise<string> => {
   const methodLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.auth.jwt.JWT.decrypt`)
   methodLogger.addContext('handshakeID', handshakeID)
   methodLogger.debug('decrypt... jwe=', jwe)
   methodLogger.debug('decrypt... privateKey=', privateKey.substring(0, 10))
   try {
     const decryptKey = await importPKCS8(privateKey, 'RSA-OAEP-256')
-    const { plaintext, protectedHeader } =
-      await compactDecrypt(jwe, decryptKey)
+    const { plaintext, protectedHeader } = await compactDecrypt(jwe, decryptKey)
     methodLogger.debug('decrypt... plaintext=', plaintext)
     methodLogger.debug('decrypt... protectedHeader=', protectedHeader)
     return new TextDecoder().decode(plaintext)
@@ -132,7 +146,11 @@ export const decrypt = async(handshakeID: string, jwe: string, privateKey: strin
   }
 }
 
-export const encryptAndSign = async (payload: JwtPayloadType, privateKey: string, publicKey: string): Promise<string> => {
+export const encryptAndSign = async (
+  payload: JwtPayloadType,
+  privateKey: string,
+  publicKey: string,
+): Promise<string> => {
   const methodLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.auth.jwt.JWT.encryptAndSign`)
   methodLogger.addContext('handshakeID', payload.handshakeID)
   const jwe = await encrypt(payload, publicKey)
@@ -142,7 +160,12 @@ export const encryptAndSign = async (payload: JwtPayloadType, privateKey: string
   return jws
 }
 
-export const verifyAndDecrypt = async (handshakeID: string, token: string, privateKey: string, publicKey: string): Promise<JwtPayloadType | null> => {
+export const verifyAndDecrypt = async (
+  handshakeID: string,
+  token: string,
+  privateKey: string,
+  publicKey: string,
+): Promise<JwtPayloadType | null> => {
   const methodLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.auth.jwt.JWT.verifyAndDecrypt`)
   methodLogger.addContext('handshakeID', handshakeID)
   const jweVerifyResult = await verify(handshakeID, token, publicKey)

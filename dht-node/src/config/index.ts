@@ -1,5 +1,5 @@
-import { validate } from 'config-schema'
 import type { LogLevel } from 'config-schema'
+import { validate } from 'config-schema'
 import dotenv from 'dotenv'
 import { schema } from './schema'
 

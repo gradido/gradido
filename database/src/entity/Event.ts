@@ -13,8 +13,8 @@ import { type ContributionLink as ContributionLinkType } from './ContributionLin
 import { type ContributionMessage as ContributionMessageType } from './ContributionMessage'
 import { type Transaction as TransactionType } from './Transaction'
 import { type TransactionLink as TransactionLinkType } from './TransactionLink'
-import { type User as UserType } from './User'
 import { DecimalTransformer } from './transformer/DecimalTransformer'
+import { type User as UserType } from './User'
 
 @Entity('events')
 export class Event extends BaseEntity {

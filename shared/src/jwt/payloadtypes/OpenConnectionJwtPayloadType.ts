@@ -5,10 +5,7 @@ export class OpenConnectionJwtPayloadType extends JwtPayloadType {
 
   url: string
 
-  constructor(
-    handshakeID: string,
-    url: string,
-  ) {
+  constructor(handshakeID: string, url: string) {
     super(handshakeID)
     this.tokentype = OpenConnectionJwtPayloadType.OPEN_CONNECTION_TYPE
     this.url = url
