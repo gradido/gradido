@@ -40,6 +40,7 @@ export async function loadCommunities(db: MySql2Database): Promise<CommunityDb[]
     .from(communitiesTable)
     .leftJoin(usersTable, eq(communitiesTable.communityUuid, usersTable.communityUuid))
     .where(isNotNull(communitiesTable.communityUuid))
+    .orderBy(asc(communitiesTable.id))
     .groupBy(communitiesTable.communityUuid)
 
   const communityNames = new Set<string>()
@@ -65,7 +66,7 @@ export async function loadUsers(
   const result = await db
     .select()
     .from(usersTable)
-    .orderBy(asc(usersTable.createdAt))
+    .orderBy(asc(usersTable.createdAt), asc(usersTable.id))
     .limit(count)
     .offset(offset)
 
@@ -98,7 +99,7 @@ export async function loadTransactions(
       transactionLinksTable,
       eq(transactionsTable.transactionLinkId, transactionLinksTable.id),
     )
-    .orderBy(asc(transactionsTable.balanceDate))
+    .orderBy(asc(transactionsTable.balanceDate), asc(transactionsTable.id))
     .limit(count)
     .offset(offset)
 
@@ -148,7 +149,7 @@ export async function loadTransactionLinks(
     .select()
     .from(transactionLinksTable)
     .leftJoin(usersTable, eq(transactionLinksTable.userId, usersTable.id))
-    .orderBy(asc(transactionLinksTable.createdAt))
+    .orderBy(asc(transactionLinksTable.createdAt), asc(transactionLinksTable.id))
     .limit(count)
     .offset(offset)
 
@@ -170,7 +171,7 @@ export async function loadDeletedTransactionLinks(
     .from(transactionLinksTable)
     .leftJoin(usersTable, eq(transactionLinksTable.userId, usersTable.id))
     .where(isNotNull(transactionLinksTable.deletedAt))
-    .orderBy(asc(transactionLinksTable.deletedAt))
+    .orderBy(asc(transactionLinksTable.deletedAt), asc(transactionLinksTable.id))
     .limit(count)
     .offset(offset)
 

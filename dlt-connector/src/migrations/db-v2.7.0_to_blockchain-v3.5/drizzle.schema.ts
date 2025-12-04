@@ -15,6 +15,7 @@ import {
 export const communitiesTable = mysqlTable(
   'communities',
   {
+    id: int().autoincrement().notNull(),
     foreign: tinyint().default(1).notNull(),
     communityUuid: char('community_uuid', { length: 36 }).default(sql`NULL`),
     name: varchar({ length: 40 }).default(sql`NULL`),
