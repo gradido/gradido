@@ -75,9 +75,10 @@ $ ssh -i /path/to/privKey gradido@gddhost.tld
 ```
 
 ### Install `Gradido` code
+`latest` is a tag pointing on last stable release
 ```bash
 cd ~
-git clone https://github.com/gradido/gradido.git --branch latest
+git clone https://github.com/gradido/gradido.git --branch latest --depth 1
 ```
 
 ### Adjust the values in `.env`
@@ -102,7 +103,7 @@ nano .env
 # adjust values accordingly
 ```
 
-### Run `install.sh` with branch name
+### Run `install.sh` with branch or tag name
 ***!!! Attention !!!***
 Don't use this script if you have custom config in /etc/nginx/conf.d, because this script
 will remove it and ln ../bare_metal/nginx/conf.d
