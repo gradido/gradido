@@ -77,7 +77,7 @@ $ ssh -i /path/to/privKey gradido@gddhost.tld
 ### Install `Gradido` code
 ```bash
 cd ~
-git clone https://github.com/gradido/gradido.git
+git clone https://github.com/gradido/gradido.git --branch latest
 ```
 
 ### Adjust the values in `.env`
@@ -109,7 +109,7 @@ will remove it and ln ../bare_metal/nginx/conf.d
 
 ```bash
 cd ~/gradido/deployment/hetzner_cloud
-sudo ./install.sh release-2_7_4
+sudo ./install.sh latest
 ```
 
 I made a (german) video to show it to you (video is older, output will differ):

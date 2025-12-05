@@ -4,7 +4,7 @@ set -euo pipefail
 
 log_error() {
     local message="$1"
-    echo -e "\e[31m$message\e[0m" >&3 # red in console
+    echo -e "\e[31m$message\e[0m" # red in console
 }
 
 # called always on error, log error really visible with ascii art in red on console and html
@@ -46,49 +46,39 @@ echo 'Replace placeholder secrets in .env'
 # NOTE: all config values will be in process.env when starting
 # the services and will therefore take precedence over the .env
 if [ -f "$SCRIPT_PATH/.env" ]; then
-    ENV_FILE = $SCRIPT_PATH/.env    
+    ENV_FILE="$SCRIPT_PATH/.env"
 
     # --- Secret Generators -------------------------------------------------------
 
     gen_jwt_secret() {
-    # 32 Character, URL-safe: A-Z a-z 0-9 _ -
-    tr -dc 'A-Za-z0-9_-' < /dev/urandom | head -c 32
+        # 32 Character, URL-safe: A-Z a-z 0-9 _ -
+        tr -dc 'A-Za-z0-9_-' < /dev/urandom | head -c 32 2>/dev/null || true
     }
 
     gen_webhook_secret() {
-    # URL-safe, longer security (40 chars)
-    tr -dc 'A-Za-z0-9_-' < /dev/urandom | head -c 40
+        # URL-safe, longer security (40 chars)
+        tr -dc 'A-Za-z0-9_-' < /dev/urandom | head -c 40 2>/dev/null || true
     }
 
     gen_binary_secret() {
-    local bytes="$1"
-    # Hex -> 2 chars pro byte
-    openssl rand -hex "$bytes"
+        local bytes="$1"
+        # Hex -> 2 chars pro byte
+        openssl rand -hex "$bytes" 2>/dev/null || true
     }
 
     # --- Mapping of Placeholder -> Function --------------------------------------
 
     generate_secret_for() {
     case "$1" in
-        jwt_secret)
-        gen_jwt_secret
-        ;;
-        webhook_secret)
-        gen_webhook_secret
-        ;;
-        binary8_secret)
-        gen_binary_secret 8
-        ;;
-        binary16_secret)
-        gen_binary_secret 16
-        ;;
-        binary32_secret)
-        gen_binary_secret 32
-        ;;
-        *)
-        echo "Unknown Placeholder: $1" >&2
-        exit 1
-        ;;
+        jwt_secret)      gen_jwt_secret      ;;
+        webhook_secret)  gen_webhook_secret  ;;
+        binary8_secret)  gen_binary_secret 8 ;;
+        binary16_secret) gen_binary_secret 16;;
+        binary32_secret) gen_binary_secret 32;;
+        *) 
+            echo "Unknown Placeholder: $1" >&2 
+            exit 1
+            ;;
     esac
     }
 
@@ -108,15 +98,17 @@ if [ -f "$SCRIPT_PATH/.env" ]; then
     cp "$ENV_FILE" "$TMP_FILE"
 
     for ph in "${placeholders[@]}"; do
-    # Secret generate
-    new_value="$(generate_secret_for "$ph")"
-
-    # Only replace lines that do NOT start with #
-    sed -i "/^[[:space:]]*#/! s/$ph/$new_value/g" "$TMP_FILE"
+        # Iterate over all lines containing the placeholder
+        while grep -q "$ph" "$TMP_FILE"; do
+            new_value=$(generate_secret_for "$ph")
+            # Replace only the first occurrence per line
+            sed -i "0,/$ph/s//$new_value/" "$TMP_FILE"
+        done
     done
 
     # Write back
     mv "$TMP_FILE" "$ENV_FILE"
+    chown gradido:gradido "$ENV_FILE"
 fi
 
 # If install.sh will be called more than once
@@ -236,9 +228,12 @@ sudo -u gradido bash <<'EOF'
     fi
     # Install yarn and pm2
     npm i -g yarn pm2 
-    # start pm2
-    pm2 startup
 EOF
+# Load nvm 
+export NVM_DIR="/home/gradido/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+# start pm2
+pm2 startup
 
 # Install logrotate
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $SCRIPT_PATH/logrotate/gradido.conf.template > $SCRIPT_PATH/logrotate/gradido.conf
@@ -247,9 +242,7 @@ cp $SCRIPT_PATH/logrotate/gradido.conf /etc/logrotate.d/gradido.conf
 # create db user
 export DB_USER=gradido
 # create a new password only if it not already exist
-if [ -z "${DB_PASSWORD}" ]; then
-    export DB_PASSWORD=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c 32; echo);
-fi
+: "${DB_PASSWORD:=$(tr -dc '_A-Za-z0-9' < /dev/urandom | head -c 32)}"
 
 # Check if DB_PASSWORD is still empty, then exit with an error
 if [ -z "${DB_PASSWORD}" ]; then
