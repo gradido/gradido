@@ -15,7 +15,7 @@ ssh_authorized_keys:
   - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAkLGbzbG7KIGfkssKJBkc/0EVAzQ/8vjvVHzNdxhK8J yourname
 ```
 
-I made a (german) video to show it to you:
+I made a (german) video to show it to you (video is older, cloudConfig.yaml differ):
 
 [![Video](https://img.youtube.com/vi/fORK3Bt3lPw/hqdefault.jpg)](https://www.youtube.com/watch?v=fORK3Bt3lPw)
 
@@ -58,9 +58,8 @@ $ ssh -i /path/to/privKey gradido@gddhost.tld
 ### Disable password root login via ssh
 
 ```bash
-sudo cp /etc/ssh/sshd_config /etc/ssh/sshd_config.org
-sudo sed -i -e '/^\(#\|\)PermitRootLogin/s/^.*$/PermitRootLogin no/' /etc/ssh/sshd_config
-sudo sed -i '$a AllowUsers gradido' /etc/ssh/sshd_config
+sudo sed -i -e '/^\(#\|\)PermitRootLogin/s/^.*$/PermitRootLogin no/' /etc/ssh/sshd_config.d/ssh-hardening.conf
+sudo sed -i '$a AllowUsers gradido' /etc/ssh/sshd_config.d/ssh-hardening.conf
 sudo /etc/init.d/ssh restart
 ```
 
@@ -110,10 +109,10 @@ will remove it and ln ../bare_metal/nginx/conf.d
 
 ```bash
 cd ~/gradido/deployment/hetzner_cloud
-sudo ./install.sh release-2_2_0
+sudo ./install.sh release-2_7_4
 ```
 
-I made a (german) video to show it to you:
+I made a (german) video to show it to you (video is older, output will differ):
 
 [![Video](https://img.youtube.com/vi/9h-55Si6bMk/hqdefault.jpg)](https://www.youtube.com/watch?v=9h-55Si6bMk)
 
