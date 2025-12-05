@@ -4,7 +4,7 @@ import { getLogger } from 'config-schema/test/testSetup'
 import { AppDatabase, FederatedCommunity as DbFederatedCommunity } from 'database'
 import { GraphQLClient } from 'graphql-request'
 import { Response } from 'graphql-request/dist/types'
-import { DataSource, Not } from 'typeorm'
+import { Not } from 'typeorm'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { validateCommunities } from './validateCommunities'
 
@@ -13,26 +13,22 @@ const federationClientLogger = getLogger(
   `${LOG4JS_BASE_CATEGORY_NAME}.federation.client.1_0.FederationClient`,
 )
 
-let con: DataSource
 let db: AppDatabase
 let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']
-  con: DataSource
   db: AppDatabase
 }
 
 beforeAll(async () => {
   testEnv = await testEnvironment(logger)
-  con = testEnv.con
   db = testEnv.db
   await cleanDB()
 })
 
 afterAll(async () => {
   // await cleanDB()
-  await con.destroy()
-  await db.getRedisClient().quit()
+  await db.destroy()
 })
 
 describe('validate Communities', () => {

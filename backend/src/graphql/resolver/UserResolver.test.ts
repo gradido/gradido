@@ -25,7 +25,6 @@ import {
   UserRole,
 } from 'database'
 import { GraphQLError } from 'graphql'
-import { DataSource } from 'typeorm'
 import { v4 as uuidv4, validate as validateUUID, version as versionUUID } from 'uuid'
 import { subscribe } from '@/apis/KlicktippController'
 import { CONFIG } from '@/config'
@@ -100,12 +99,10 @@ let admin: User
 let user: User
 let mutate: ApolloServerTestClient['mutate']
 let query: ApolloServerTestClient['query']
-let con: DataSource
 let db: AppDatabase
 let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']
-  con: DataSource
   db: AppDatabase
 }
 
@@ -113,7 +110,6 @@ beforeAll(async () => {
   testEnv = await testEnvironment(getLogger('apollo'))
   mutate = testEnv.mutate
   query = testEnv.query
-  con = testEnv.con
   db = testEnv.db
   CONFIG.HUMHUB_ACTIVE = false
   CONFIG.DLT_ACTIVE = false
@@ -122,8 +118,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await cleanDB()
-  await con.destroy()
-  await db.getRedisClient().quit()
+  await db.destroy()
 })
 
 describe('UserResolver', () => {

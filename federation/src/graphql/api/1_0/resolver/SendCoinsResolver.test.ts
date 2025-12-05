@@ -1,7 +1,7 @@
 import { cleanDB, testEnvironment } from '@test/helpers'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { EncryptedTransferArgs } from 'core'
-import { Community as DbCommunity, User as DbUser, UserContact as DbUserContact } from 'database'
+import { AppDatabase, Community as DbCommunity, User as DbUser, UserContact as DbUserContact } from 'database'
 import Decimal from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
 import { getLogger } from 'log4js'
@@ -14,7 +14,6 @@ import {
 } from 'shared'
 import { DataSource } from 'typeorm'
 import { CONFIG } from '@/config'
-import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { fullName } from '@/graphql/util/fullName'
 
 let mutate: ApolloServerTestClient['mutate'] // , con: Connection
@@ -46,7 +45,7 @@ beforeAll(async () => {
 afterAll(async () => {
   await cleanDB()
   if (testEnv.con?.isInitialized) {
-    await testEnv.con.destroy()
+    await AppDatabase.getInstance().destroy()
   }
 })
 

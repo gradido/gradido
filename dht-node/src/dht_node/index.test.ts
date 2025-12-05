@@ -1,7 +1,7 @@
 import DHT from '@hyperswarm/dht'
 import { cleanDB, testEnvironment } from '@test/helpers'
 import { getLogger } from 'config-schema/test/testSetup'
-import { Community as DbCommunity, FederatedCommunity as DbFederatedCommunity } from 'database'
+import { AppDatabase, Community as DbCommunity, FederatedCommunity as DbFederatedCommunity } from 'database'
 import { validate as validateUUID, version as versionUUID } from 'uuid'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
@@ -94,18 +94,18 @@ DHT.mockImplementation(() => {
   }
 })
 
-let con: any
+let db: AppDatabase
 let testEnv: any
 
 beforeAll(async () => {
   testEnv = await testEnvironment()
-  con = testEnv.con
+  db = testEnv.db
   await cleanDB()
 })
 
 afterAll(async () => {
   await cleanDB()
-  await con.close()
+  await db.destroy()
 })
 
 describe('federation', () => {

@@ -25,7 +25,7 @@ export const cleanDB = async () => {
 export const testEnvironment = async () => {
   const appDB = AppDatabase.getInstance()
   await appDB.init()
-  return { con: appDB.getDataSource() }
+  return { con: appDB.getDataSource(), db: appDB }
 }
 
 export const resetEntity = async (entity: any) => {
