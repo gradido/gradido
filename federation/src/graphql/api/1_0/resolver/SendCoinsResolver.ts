@@ -128,6 +128,7 @@ export class SendCoinsResolver {
         receiverUser.firstName,
         receiverUser.lastName,
         receiverUser.alias,
+        receiverUser.emailContact.email
       )
       const responseJwt = await encryptAndSign(
         responseArgs,
