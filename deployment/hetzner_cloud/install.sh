@@ -249,6 +249,8 @@ if [ -z "${DB_PASSWORD}" ]; then
     echo "Error: Failed to generate DB_PASSWORD."
     exit 1
 fi
+export DB_PASSWORD
+
 mysql <<EOFMYSQL
     CREATE USER IF NOT EXISTS '$DB_USER'@'localhost' IDENTIFIED BY '$DB_PASSWORD';
     GRANT ALL PRIVILEGES ON *.* TO '$DB_USER'@'localhost';

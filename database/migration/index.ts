@@ -25,7 +25,7 @@ const run = async (command: string) => {
       host: ${CONFIG.DB_HOST}
       port: ${CONFIG.DB_PORT}
       user: ${CONFIG.DB_USER}
-      password: ${CONFIG.DB_PASSWORD.slice(-2)}
+      password: last 2 character: ${CONFIG.DB_PASSWORD.slice(-2)}
       database: ${CONFIG.DB_DATABASE}`,
     )
   }
