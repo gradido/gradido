@@ -303,10 +303,6 @@ bun install --frozen-lockfile
 
 # build all modules
 log_step 'build all modules'
-echo "PROJECT_ROOT='$PROJECT_ROOT'"
-echo "Checking: $PROJECT_ROOT/frontend/.env"
-ls -l $PROJECT_ROOT/frontend
-cat $PROJECT_ROOT/frontend/.env
 turbo build --env-mode=loose --concurrency=$(nproc)
 
 # build inspector and dlt-connector
