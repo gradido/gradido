@@ -184,7 +184,7 @@ cd $PROJECT_ROOT
 # TODO: this overfetches alot, but ensures we can use start.sh with tags
 git fetch --all
 git checkout $BRANCH_NAME
-git pull
+git pull origin $BRANCH_NAME
 git submodule update --init --recursive
 export BUILD_COMMIT="$(git rev-parse HEAD)"
 
