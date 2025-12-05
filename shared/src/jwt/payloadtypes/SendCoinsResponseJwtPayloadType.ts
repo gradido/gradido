@@ -8,6 +8,7 @@ export class SendCoinsResponseJwtPayloadType extends JwtPayloadType {
   recipFirstName: string | null
   recipLastName: string | null
   recipAlias: string | null
+  recipEmail: string | null
 
   constructor(
     handshakeID: string,
@@ -16,6 +17,7 @@ export class SendCoinsResponseJwtPayloadType extends JwtPayloadType {
     recipFirstName: string | null,
     recipLastName: string | null,
     recipAlias: string | null,
+    recipEmail: string | null,
   ) {
     super(handshakeID)
     this.tokentype = SendCoinsResponseJwtPayloadType.SEND_COINS_RESPONSE_TYPE
@@ -24,5 +26,6 @@ export class SendCoinsResponseJwtPayloadType extends JwtPayloadType {
     this.recipFirstName = recipFirstName
     this.recipLastName = recipLastName
     this.recipAlias = recipAlias
+    this.recipEmail = recipEmail
   }
 }

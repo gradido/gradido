@@ -36,6 +36,7 @@ import { fullName } from '../../util/utilities'
 import { settlePendingSenderTransaction } from './settlePendingSenderTransaction'
 import { storeForeignUser } from './storeForeignUser'
 import { storeLinkAsRedeemed } from './storeLinkAsRedeemed'
+import { sendTransactionLinkRedeemedEmail, sendTransactionReceivedEmail } from '../../emails'
 
 const createLogger = (method: string) =>
   getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.util.processXComSendCoins.${method}`)
@@ -167,6 +168,34 @@ export async function processXComCompleteTransaction(
           )
         }
       }
+
+
+      await sendTransactionReceivedEmail({
+        firstName: foreignUser.firstName,
+        lastName: foreignUser.lastName,
+        email: foreignUser.emailContact.email,
+        language: foreignUser.language,
+        memo,
+        senderFirstName: senderUser.firstName,
+        senderLastName: senderUser.lastName,
+        senderEmail: senderUser.emailContact.email,
+        transactionAmount: new Decimal(amount),
+      })
+      if (dbTransactionLink) {
+        await sendTransactionLinkRedeemedEmail({
+          firstName: senderUser.firstName,
+          lastName: senderUser.lastName,
+          email: senderUser.emailContact.email,
+          language: senderUser.language,
+          senderFirstName: foreignUser.firstName,
+          senderLastName: foreignUser.lastName,
+          senderEmail: foreignUser.emailContact.email,
+          transactionAmount: new Decimal(amount),
+          transactionMemo: memo,
+        })
+      }
+
+
     }
   } catch (err) {
     const errmsg =
@@ -483,6 +512,7 @@ export async function processXComCommittingSendCoins(
               }
               sendCoinsResult.recipGradidoID = pendingTx.linkedUserGradidoID
               sendCoinsResult.recipAlias = recipient.recipAlias
+              sendCoinsResult.recipEmail = recipient.recipEmail              
             }
           } catch (err) {
             methodLogger.error(

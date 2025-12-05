@@ -1,4 +1,7 @@
-import { Community as DbCommunity, User as DbUser, findForeignUserByUuids } from 'database'
+import { Community as DbCommunity, 
+  User as DbUser, 
+  UserContact as DbUserContact, 
+  findForeignUserByUuids } from 'database'
 import { getLogger } from 'log4js'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../../config/const'
 import { SendCoinsResult } from '../../federation/client/1_0/model/SendCoinsResult'
@@ -35,16 +38,28 @@ export async function storeForeignUser(
         }
         foreignUser.gradidoID = committingResult.recipGradidoID
         foreignUser = await DbUser.save(foreignUser)
+
         logger.debug('new foreignUser inserted:', foreignUser)
+        let foreignUserEmail = DbUserContact.create()
+        foreignUserEmail.email = committingResult.recipEmail!
+        foreignUserEmail.emailChecked = true
+        foreignUserEmail.user = foreignUser
+        foreignUserEmail = await DbUserContact.save(foreignUserEmail)
+        logger.debug('new foreignUserEmail inserted:', foreignUserEmail)
+
+        foreignUser.emailContact = foreignUserEmail
+        foreignUser.emailId = foreignUserEmail.id
+        foreignUser = await DbUser.save(foreignUser)
 
         return foreignUser
       } else if (
         user.firstName !== committingResult.recipFirstName ||
         user.lastName !== committingResult.recipLastName ||
-        user.alias !== committingResult.recipAlias
+        user.alias !== committingResult.recipAlias ||
+        user.emailContact.email !== committingResult.recipEmail
       ) {
         logger.warn(
-          'foreignUser still exists, but with different name or alias:',
+          'foreignUser still exists, but with different name, alias or email:',
           user,
           committingResult,
         )
@@ -56,6 +71,11 @@ export async function storeForeignUser(
         }
         if (committingResult.recipAlias !== null) {
           user.alias = committingResult.recipAlias
+        }
+        if (committingResult.recipEmail != null) {
+          let userContact = user.emailContact
+          userContact.email = committingResult.recipEmail
+          user.emailContact = await DbUserContact.save(userContact)
         }
         await DbUser.save(user)
         logger.debug('update recipient successful.', user)
