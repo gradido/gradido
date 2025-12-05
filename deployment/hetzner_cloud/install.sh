@@ -226,9 +226,27 @@ sudo -u gradido bash <<'EOF'
     if ! nvm ls $NODE_VERSION >/dev/null 2>&1; then
         nvm install $NODE_VERSION
     fi
-    # Install yarn and pm2
-    npm i -g yarn pm2 
+
+    BUN_VERSION_FILE="$PROJECT_ROOT/.bun-version"
+    if [ ! -f "$BUN_VERSION_FILE" ]; then
+        echo ".bun-version file not found at: $BUN_VERSION_FILE"
+        exit 1
+    fi
+    BUN_VERSION="$(cat "$BUN_VERSION_FILE" | tr -d '[:space:]')"
+    echo "'bun' v$BUN_VERSION will be installed now!"
+    curl -fsSL https://bun.com/install | bash -s "bun-v${BUN_VERSION}"   
+    
+    # Load bun
+    export BUN_INSTALL="$HOME/.bun"
+    export PATH="$BUN_INSTALL/bin:$PATH"
+
+    # Install pm2 and turbo
+    bun add -g pm2 turbo
 EOF
+# Load bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
+
 # Load nvm 
 export NVM_DIR="/home/gradido/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
