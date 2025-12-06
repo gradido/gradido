@@ -16,13 +16,17 @@ let db: MySql2Database
 beforeAll(async () => {
   await appDB.init()
   db = appDB.getDrizzleDataSource()
-  await db.delete(openaiThreadsTable)
+  try {
+    await db.delete(openaiThreadsTable)
+  } catch(e) {
+    console.error(JSON.stringify(e, null, 2))
+  }
 })
 afterAll(async () => {
   await appDB.destroy()
 })
 
-describe('openaiThreads query test', () => {  
+describe('openaiThreads query test', () => {
   it('should insert a new openai thread', async () => {
     await Promise.resolve([dbInsertOpenaiThread('7', 1), dbInsertOpenaiThread('72', 6)])
     const result = await db.select().from(openaiThreadsTable)
