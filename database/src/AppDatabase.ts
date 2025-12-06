@@ -1,4 +1,3 @@
-import { sql } from 'drizzle-orm'
 import { drizzle, MySql2Database } from 'drizzle-orm/mysql2'
 import Redis from 'ioredis'
 import { getLogger } from 'log4js'
@@ -92,6 +91,7 @@ export class AppDatabase {
         database: CONFIG.DB_DATABASE,
         port: CONFIG.DB_PORT,
       })
+      await this.drizzleConnection.ping()
       this.drizzleDataSource = drizzle({ client: this.drizzleConnection })
     }
     // retry connection on failure some times to allow database to catch up

@@ -16,7 +16,7 @@ let db: MySql2Database
 beforeAll(async () => {
   await appDB.init()
   db = appDB.getDrizzleDataSource()
-  // await db.delete(openaiThreadsTable)
+  await db.delete(openaiThreadsTable)
 })
 afterAll(async () => {
   await appDB.destroy()
