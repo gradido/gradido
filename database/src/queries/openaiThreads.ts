@@ -1,6 +1,6 @@
 import { desc, eq } from 'drizzle-orm'
+import { drizzleDb } from '../AppDatabase'
 import { openaiThreadsTable } from '../schemas/drizzle.schema'
-import { drizzleDb } from '.'
 
 // TODO: replace results with valibot schema after update to typescript 5 is possible
 

@@ -83,17 +83,6 @@ export class AppDatabase {
       })
     }
 
-    if (!this.drizzleDataSource) {
-      this.drizzleConnection = await createConnection({
-        host: CONFIG.DB_HOST,
-        user: CONFIG.DB_USER,
-        password: CONFIG.DB_PASSWORD,
-        database: CONFIG.DB_DATABASE,
-        port: CONFIG.DB_PORT,
-      })
-      await this.drizzleConnection.ping()
-      this.drizzleDataSource = drizzle({ client: this.drizzleConnection })
-    }
     // retry connection on failure some times to allow database to catch up
     for (let attempt = 1; attempt <= CONFIG.DB_CONNECT_RETRY_COUNT; attempt++) {
       try {
@@ -115,6 +104,17 @@ export class AppDatabase {
 
     this.redisClient = new Redis(CONFIG.REDIS_URL)
     logger.info('Redis status=', this.redisClient.status)
+
+    if (!this.drizzleDataSource) {
+      this.drizzleConnection = await createConnection({
+        host: CONFIG.DB_HOST,
+        user: CONFIG.DB_USER,
+        password: CONFIG.DB_PASSWORD,
+        database: CONFIG.DB_DATABASE,
+        port: CONFIG.DB_PORT,
+      })
+      this.drizzleDataSource = drizzle({ client: this.drizzleConnection })
+    }
   }
 
   public async destroy(): Promise<void> {
@@ -151,3 +151,4 @@ export class AppDatabase {
 }
 
 export const getDataSource = () => AppDatabase.getInstance().getDataSource()
+export const drizzleDb = () => AppDatabase.getInstance().getDrizzleDataSource()
