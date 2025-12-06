@@ -113,7 +113,8 @@ export class AppDatabase {
         database: CONFIG.DB_DATABASE,
         port: CONFIG.DB_PORT,
       })
-      this.drizzleDataSource = drizzle({ client: this.drizzleConnection })
+      // this.drizzleDataSource = drizzle({ client: this.drizzleConnection })
+      this.drizzleDataSource = drizzle('mysql2://root@127.0.0.1:3306/gradido_test')
     }
   }
 

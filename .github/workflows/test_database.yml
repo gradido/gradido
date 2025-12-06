@@ -61,11 +61,6 @@ jobs:
           bun install --filter database --frozen-lockfile
           bun install --global --no-save turbo@^2
 
-      - name: wait on mariadb & redis ready
-        run: |
-          until nc -z 127.0.0.1 3306; do echo waiting for mariadb; sleep 1; done;
-          until nc -z 127.0.0.1 6379; do echo waiting for redis; sleep 1; done;
-
       - name: Database | up + test
         run: turbo database#test database#build database#typecheck
       

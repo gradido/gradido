@@ -1,5 +1,5 @@
 import { eq } from 'drizzle-orm'
-import { MySql2Database } from 'drizzle-orm/mysql2'
+import { drizzle, MySql2Database } from 'drizzle-orm/mysql2'
 import { AppDatabase, drizzleDb } from '../AppDatabase'
 import { openaiThreadsTable } from '../schemas'
 import {
