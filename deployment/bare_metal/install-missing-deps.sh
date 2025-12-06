@@ -1,10 +1,11 @@
 #!/bin/bash
 
+# source profile so PATH/NVM/BUN werden gesetzt (safe for non-login)
+if [ -f /home/gradido/.profile ]; then
+  . /home/gradido/.profile
+fi
 # Ensure required tools are installed
 
-# make sure correct node version is installed
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 if ! command -v nvm > /dev/null
 then
     echo "'nvm' is missing, will be installed now!"
@@ -14,7 +15,7 @@ install_nvm() {
     nvm install 
     nvm use 
     nvm alias default 
-    npm i -g yarn pm2
+    npm i -g pm2 turbo
     pm2 startup
 }
 nvm use || install_nvm
@@ -52,7 +53,7 @@ fi
 if ! command -v turbo > /dev/null
 then
     echo "'turbo' is missing, will be installed now!"
-    bun install --global turbo
+    npm i -g turbo
 fi
 
 # rust and grass 

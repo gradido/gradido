@@ -210,11 +210,17 @@ sudo systemctl daemon-reload
 # setup https with certbot
 certbot certonly --nginx --non-interactive --agree-tos --domains $COMMUNITY_HOST --email $COMMUNITY_SUPPORT_MAIL
 
+export NVM_DIR="/home/gradido/.nvm"
+BUN_VERSION_FILE="$PROJECT_ROOT/.bun-version"
+if [ ! -f "$BUN_VERSION_FILE" ]; then
+    echo ".bun-version file not found at: $BUN_VERSION_FILE"
+    exit 1
+fi
+export BUN_VERSION="$(cat "$BUN_VERSION_FILE" | tr -d '[:space:]')"
+export BUN_INSTALL="/home/gradido/.bun"
+
 # run as gradido user (until EOF)
-sudo -u gradido bash <<'EOF'
-    export NVM_DIR="/home/gradido/.nvm"
-    NODE_VERSION="v18.20.7"
-    export NVM_DIR
+sudo -u gradido bash <<EOF
     # Install nvm if it doesn't exist
     if [ ! -d "$NVM_DIR" ]; then
         curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
@@ -223,28 +229,18 @@ sudo -u gradido bash <<'EOF'
     [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
     # Install Node if not already installed
-    if ! nvm ls $NODE_VERSION >/dev/null 2>&1; then
-        nvm install $NODE_VERSION
+    if ! nvm ls >/dev/null 2>&1; then
+        nvm install
     fi
-
-    BUN_VERSION_FILE="$PROJECT_ROOT/.bun-version"
-    if [ ! -f "$BUN_VERSION_FILE" ]; then
-        echo ".bun-version file not found at: $BUN_VERSION_FILE"
-        exit 1
-    fi
-    BUN_VERSION="$(cat "$BUN_VERSION_FILE" | tr -d '[:space:]')"
-    echo "'bun' v$BUN_VERSION will be installed now!"
-    curl -fsSL https://bun.com/install | bash -s "bun-v${BUN_VERSION}"   
-    
-    # Load bun
-    export BUN_INSTALL="$HOME/.bun"
-    export PATH="$BUN_INSTALL/bin:$PATH"
-
     # Install pm2 and turbo
-    bun add -g pm2 turbo
+    npm i -g pm2 turbo
+
+    echo "'bun' v$BUN_VERSION will be installed now!"
+    curl -fsSL https://bun.com/install | bash -s "bun-v${BUN_VERSION}"
 EOF
+
 # Load bun
-export BUN_INSTALL="$HOME/.bun"
+export BUN_INSTALL="/home/gradido/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
 
 # Load nvm 
@@ -302,5 +298,4 @@ chown -R gradido:gradido $PROJECT_ROOT
 sudo -u gradido crontab < $LOCAL_SCRIPT_DIR/crontabs.txt
 
 # Start gradido
-# Note: on first startup some errors will occur - nothing serious
 sudo -u gradido $SCRIPT_PATH/start.sh $1

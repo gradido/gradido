@@ -2,6 +2,11 @@
 # stop if something fails
 set -euo pipefail
 
+# source profile so PATH/NVM/BUN werden gesetzt (safe for non-login)
+if [ -f /home/gradido/.profile ]; then
+  . /home/gradido/.profile
+fi
+
 # check for parameter
 FAST_MODE=false
 POSITIONAL_ARGS=()
