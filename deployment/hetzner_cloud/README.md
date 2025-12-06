@@ -150,6 +150,15 @@ I made a (german) video to show it to you:
 
 [![Video](https://img.youtube.com/vi/xVQ5t4MnLrE/hqdefault.jpg)](https://www.youtube.com/watch?v=xVQ5t4MnLrE)
 
+### Troubleshooting
+
+If after some tests this error occur, right after `Requesting a certificate for your-domain.tld`, try again another day. Letsencrypt is rate limited:
+
+```bash
+An unexpected error occurred:
+AttributeError: can't set attribute
+```
+
 ### But it isn't working
 
 If it isn't working you can write us: [support@gradido.net](mailto:support@gradido.net)
