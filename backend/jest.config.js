@@ -23,21 +23,22 @@ module.exports = {
     '@repository/(.*)': '<rootDir>/src/typeorm/repository/$1',
     '@typeorm/(.*)': '<rootDir>/src/typeorm/$1',
     '@test/(.*)': '<rootDir>/test/$1',
-    '@entity/(.*)':
-      process.env.NODE_ENV === 'development'
-        ? '<rootDir>/../database/entity/$1'
-        : '<rootDir>/../database/build/entity/$1',
-    '@logging/(.*)':
-      process.env.NODE_ENV === 'development'
-        ? '<rootDir>/../database/logging/$1'
-        : '<rootDir>/../database/build/logging/$1',
-    '@dbTools/(.*)':
-      process.env.NODE_ENV === 'development'
-        ? '<rootDir>/../database/src/$1'
-        : '<rootDir>/../database/build/src/$1',
-    '@config/(.*)':
-      process.env.NODE_ENV === 'development'
-        ? '<rootDir>/../config/src/$1'
-        : '<rootDir>/../config/build/$1',
   },
+  transform: {
+    '^.+\\.(t|j)sx?$': ['@swc/jest', {
+      jsc: {
+        parser: {
+          syntax: 'typescript',
+          decorators: true,
+          tsc: true,
+        },
+        transform: {
+          decoratorMetadata: true,
+        },
+      }
+    }],
+  },
+  transformIgnorePatterns: [
+    '/node_modules/(?!drizzle-orm/)',
+  ],
 }

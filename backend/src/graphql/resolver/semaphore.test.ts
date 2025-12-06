@@ -6,7 +6,6 @@ import { Decimal } from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
 // import { TRANSACTIONS_LOCK } from 'database'
 import { Mutex } from 'redis-semaphore'
-import { DataSource } from 'typeorm'
 import { v4 as uuidv4 } from 'uuid'
 import { CONFIG } from '@/config'
 import { creationFactory, nMonthsBefore } from '@/seeds/factory/creation'
@@ -30,24 +29,20 @@ CONFIG.DLT_ACTIVE = false
 CORE_CONFIG.EMAIL = false
 
 let mutate: ApolloServerTestClient['mutate']
-let con: DataSource
 let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']
-  con: DataSource
   db: AppDatabase
 }
 beforeAll(async () => {
   testEnv = await testEnvironment()
   mutate = testEnv.mutate
-  con = testEnv.con
   await cleanDB()
 })
 
 afterAll(async () => {
   await cleanDB()
-  await con.destroy()
-  await testEnv.db.getRedisClient().quit()
+  await testEnv.db.destroy()
 })
 
 type WorkData = { start: number; end: number }

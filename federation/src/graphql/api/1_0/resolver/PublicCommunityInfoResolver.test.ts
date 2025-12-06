@@ -1,26 +1,21 @@
 import { createTestClient } from 'apollo-server-testing'
-import { Community as DbCommunity } from 'database'
+import { AppDatabase, Community as DbCommunity } from 'database'
 import { getLogger } from 'log4js'
-import { DataSource } from 'typeorm'
 import { CONFIG } from '@/config'
 import { createServer } from '@/server/createServer'
 
 let query: any
 
-// to do: We need a setup for the tests that closes the connection
-let con: DataSource
-
 CONFIG.FEDERATION_API = '1_0'
 
 beforeAll(async () => {
   const server = await createServer(getLogger('apollo'))
-  con = server.con
   query = createTestClient(server.apollo).query
   DbCommunity.clear()
 })
 
 afterAll(async () => {
-  await con.close()
+  await AppDatabase.getInstance().destroy()
 })
 
 describe('PublicCommunityInfoResolver', () => {

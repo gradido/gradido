@@ -4,7 +4,6 @@ import { getLogger } from 'config-schema/test/testSetup'
 import { AppDatabase, ContributionLink as DbContributionLink, Event as DbEvent } from 'database'
 import { Decimal } from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
-import { DataSource } from 'typeorm'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { EventType } from '@/event/Events'
 import { userFactory } from '@/seeds/factory/user'
@@ -24,12 +23,10 @@ const logErrorLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)
 
 let mutate: ApolloServerTestClient['mutate']
 let query: ApolloServerTestClient['query']
-let con: DataSource
 let db: AppDatabase
 let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']
-  con: DataSource
   db: AppDatabase
 }
 
@@ -37,7 +34,6 @@ beforeAll(async () => {
   testEnv = await testEnvironment()
   mutate = testEnv.mutate
   query = testEnv.query
-  con = testEnv.con
   db = testEnv.db
   await cleanDB()
   await userFactory(testEnv, bibiBloxberg)
@@ -46,8 +42,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await cleanDB()
-  await con.destroy()
-  await db.getRedisClient().quit()
+  await db.destroy()
 })
 
 describe('Contribution Links', () => {

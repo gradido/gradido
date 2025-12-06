@@ -26,7 +26,7 @@ import {
 import { Decimal } from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
 import { getLogger as originalGetLogger } from 'log4js'
-import { DataSource, Equal } from 'typeorm'
+import { Equal } from 'typeorm'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { EventType } from '@/event/Events'
 import { creations } from '@/seeds/creation/index'
@@ -74,12 +74,10 @@ const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)
 
 let mutate: ApolloServerTestClient['mutate']
 let query: ApolloServerTestClient['query']
-let con: DataSource
 let db: AppDatabase
 let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']
-  con: DataSource
   db: AppDatabase
 }
 let creation: Contribution | null
@@ -95,15 +93,13 @@ beforeAll(async () => {
   testEnv = await testEnvironment(originalGetLogger('apollo'))
   mutate = testEnv.mutate
   query = testEnv.query
-  con = testEnv.con
   db = testEnv.db
   await cleanDB()
 })
 
 afterAll(async () => {
   await cleanDB()
-  await con.destroy()
-  await db.getRedisClient().quit()
+  await db.destroy()
 })
 
 describe('ContributionResolver', () => {

@@ -1,5 +1,7 @@
+import { drizzle, MySql2Database } from 'drizzle-orm/mysql2'
 import Redis from 'ioredis'
 import { getLogger } from 'log4js'
+import { Connection, createConnection } from 'mysql2/promise'
 import { DataSource as DBDataSource, FileLogger } from 'typeorm'
 import { latestDbVersion } from '.'
 import { CONFIG } from './config'
@@ -11,6 +13,8 @@ const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.AppDatabase`)
 export class AppDatabase {
   private static instance: AppDatabase
   private dataSource: DBDataSource | undefined
+  private drizzleDataSource: MySql2Database | undefined
+  private drizzleConnection: Connection | undefined
   private redisClient: Redis | undefined
 
   /**
@@ -43,6 +47,13 @@ export class AppDatabase {
     return this.dataSource
   }
 
+  public getDrizzleDataSource(): MySql2Database {
+    if (!this.drizzleDataSource) {
+      throw new Error('Drizzle connection not initialized')
+    }
+    return this.drizzleDataSource
+  }
+
   // create database connection, initialize with automatic retry and check for correct database version
   public async init(): Promise<void> {
     if (this.dataSource?.isInitialized) {
@@ -71,6 +82,7 @@ export class AppDatabase {
         },
       })
     }
+
     // retry connection on failure some times to allow database to catch up
     for (let attempt = 1; attempt <= CONFIG.DB_CONNECT_RETRY_COUNT; attempt++) {
       try {
@@ -92,10 +104,24 @@ export class AppDatabase {
 
     this.redisClient = new Redis(CONFIG.REDIS_URL)
     logger.info('Redis status=', this.redisClient.status)
+
+    if (!this.drizzleDataSource) {
+      this.drizzleConnection = await createConnection({
+        host: CONFIG.DB_HOST,
+        user: CONFIG.DB_USER,
+        password: CONFIG.DB_PASSWORD,
+        database: CONFIG.DB_DATABASE,
+        port: CONFIG.DB_PORT,
+      })
+      this.drizzleDataSource = drizzle({ client: this.drizzleConnection })
+    }
   }
 
   public async destroy(): Promise<void> {
-    await this.dataSource?.destroy()
+    await Promise.all([this.dataSource?.destroy(), this.drizzleConnection?.end()])
+    this.dataSource = undefined
+    this.drizzleConnection = undefined
+    this.drizzleDataSource = undefined
     if (this.redisClient) {
       await this.redisClient.quit()
       this.redisClient = undefined
@@ -128,3 +154,4 @@ export class AppDatabase {
 }
 
 export const getDataSource = () => AppDatabase.getInstance().getDataSource()
+export const drizzleDb = () => AppDatabase.getInstance().getDrizzleDataSource()

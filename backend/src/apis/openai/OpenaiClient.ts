@@ -1,10 +1,15 @@
-import { OpenaiThreads, User } from 'database'
+import {
+  dbDeleteOpenaiThread,
+  dbFindNewestCreatedOpenaiThreadByUserId,
+  dbInsertOpenaiThread,
+  dbUpdateOpenaiThread,
+  User,
+} from 'database'
 import { getLogger } from 'log4js'
 import { OpenAI } from 'openai'
 import { Message } from 'openai/resources/beta/threads/messages'
 import { httpsAgent } from '@/apis/ConnectionAgents'
 import { CONFIG } from '@/config'
-
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { Message as MessageModel } from './model/Message'
 
@@ -64,10 +69,7 @@ export class OpenaiClient {
       messages: [initialMessage],
     })
     // store id in db because it isn't possible to list all open threads via openai api
-    const openaiThreadEntity = OpenaiThreads.create()
-    openaiThreadEntity.id = messageThread.id
-    openaiThreadEntity.userId = user.id
-    await openaiThreadEntity.save()
+    await dbInsertOpenaiThread(messageThread.id, user.id)
 
     logger.info(`Created new message thread: ${messageThread.id}`)
     return messageThread.id
@@ -79,10 +81,7 @@ export class OpenaiClient {
    * @returns
    */
   public async resumeThread(user: User): Promise<MessageModel[]> {
-    const openaiThreadEntity = await OpenaiThreads.findOne({
-      where: { userId: user.id },
-      order: { createdAt: 'DESC' },
-    })
+    const openaiThreadEntity = await dbFindNewestCreatedOpenaiThreadByUserId(user.id)
     if (!openaiThreadEntity) {
       logger.warn(`No openai thread found for user: ${user.id}`)
       return []
@@ -126,7 +125,7 @@ export class OpenaiClient {
 
   public async deleteThread(threadId: string): Promise<boolean> {
     const [, result] = await Promise.all([
-      OpenaiThreads.delete({ id: threadId }),
+      dbDeleteOpenaiThread(threadId),
       this.openai.beta.threads.del(threadId),
     ])
     if (result.deleted) {
@@ -144,10 +143,7 @@ export class OpenaiClient {
   }
 
   public async runAndGetLastNewMessage(threadId: string): Promise<MessageModel> {
-    const updateOpenAiThreadResolver = OpenaiThreads.update(
-      { id: threadId },
-      { updatedAt: new Date() },
-    )
+    const updateOpenAiThreadResolver = dbUpdateOpenaiThread(threadId)
     const run = await this.openai.beta.threads.runs.createAndPoll(threadId, {
       assistant_id: CONFIG.OPENAI_ASSISTANT_ID,
     })

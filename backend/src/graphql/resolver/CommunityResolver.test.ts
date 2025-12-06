@@ -9,7 +9,6 @@ import {
 } from 'database'
 import { createCommunity, createVerifiedFederatedCommunity } from 'database/src/seeds/community'
 import { GraphQLError } from 'graphql/error/GraphQLError'
-import { DataSource } from 'typeorm'
 import { v4 as uuidv4 } from 'uuid'
 import { CONFIG } from '@/config'
 import { userFactory } from '@/seeds/factory/user'
@@ -29,12 +28,10 @@ CONFIG.FEDERATION_VALIDATE_COMMUNITY_TIMER = 1000
 // to do: We need a setup for the tests that closes the connection
 let mutate: ApolloServerTestClient['mutate']
 let query: ApolloServerTestClient['query']
-let con: DataSource
 let db: AppDatabase
 let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']
-  con: DataSource
   db: AppDatabase
 }
 
@@ -48,7 +45,6 @@ beforeAll(async () => {
   testEnv = await testEnvironment(getLogger('apollo'))
   mutate = testEnv.mutate
   query = testEnv.query
-  con = testEnv.con
   db = testEnv.db
   await cleanDB()
   // reset id auto increment
@@ -57,8 +53,7 @@ beforeAll(async () => {
 })
 
 afterAll(async () => {
-  await con.destroy()
-  await db.getRedisClient().quit()
+  await db.destroy()
 })
 
 // real valid ed25519 key pairs

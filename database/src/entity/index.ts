@@ -8,7 +8,6 @@ import { Event } from './Event'
 import { FederatedCommunity } from './FederatedCommunity'
 import { LoginElopageBuys } from './LoginElopageBuys'
 import { Migration } from './Migration'
-import { OpenaiThreads } from './OpenaiThreads'
 import { PendingTransaction } from './PendingTransaction'
 import { ProjectBranding } from './ProjectBranding'
 import { Transaction } from './Transaction'
@@ -29,7 +28,6 @@ export {
   LoginElopageBuys,
   Migration,
   ProjectBranding,
-  OpenaiThreads,
   PendingTransaction,
   Transaction,
   TransactionLink,
@@ -50,7 +48,6 @@ export const entities = [
   LoginElopageBuys,
   Migration,
   ProjectBranding,
-  OpenaiThreads,
   PendingTransaction,
   Transaction,
   TransactionLink,

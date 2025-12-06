@@ -5,7 +5,6 @@ import { getLogger } from 'config-schema/test/testSetup'
 import { sendAddedContributionMessageEmail } from 'core'
 import { AppDatabase, Contribution as DbContribution, Event as DbEvent } from 'database'
 import { GraphQLError } from 'graphql'
-import { DataSource } from 'typeorm'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { EventType } from '@/event/Events'
 import { userFactory } from '@/seeds/factory/user'
@@ -39,12 +38,10 @@ jest.mock('core', () => {
 })
 
 let mutate: ApolloServerTestClient['mutate']
-let con: DataSource
 let db: AppDatabase
 let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']
-  con: DataSource
   db: AppDatabase
 }
 let result: any
@@ -52,15 +49,13 @@ let result: any
 beforeAll(async () => {
   testEnv = await testEnvironment(logger)
   mutate = testEnv.mutate
-  con = testEnv.con
   db = testEnv.db
   await cleanDB()
 })
 
 afterAll(async () => {
   await cleanDB()
-  await con.destroy()
-  await db.getRedisClient().quit()
+  await db.destroy()
 })
 
 describe('ContributionMessageResolver', () => {

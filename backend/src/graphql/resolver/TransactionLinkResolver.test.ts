@@ -48,12 +48,10 @@ CONFIG.DLT_ACTIVE = false
 
 let mutate: ApolloServerTestClient['mutate']
 let query: ApolloServerTestClient['query']
-let con: DataSource
 let db: AppDatabase
 let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']
-  con: DataSource
   db: AppDatabase
 }
 
@@ -63,7 +61,6 @@ beforeAll(async () => {
   testEnv = await testEnvironment()
   mutate = testEnv.mutate
   query = testEnv.query
-  con = testEnv.con
   db = testEnv.db
   await cleanDB()
   await userFactory(testEnv, bibiBloxberg)
@@ -72,8 +69,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await cleanDB()
-  await con.destroy()
-  await db.getRedisClient().quit()
+  await db.destroy()
 })
 
 describe('TransactionLinkResolver', () => {
