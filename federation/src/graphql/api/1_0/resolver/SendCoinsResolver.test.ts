@@ -1,7 +1,12 @@
 import { cleanDB, testEnvironment } from '@test/helpers'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { EncryptedTransferArgs } from 'core'
-import { AppDatabase, Community as DbCommunity, User as DbUser, UserContact as DbUserContact } from 'database'
+import {
+  AppDatabase,
+  Community as DbCommunity,
+  User as DbUser,
+  UserContact as DbUserContact,
+} from 'database'
 import Decimal from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
 import { getLogger } from 'log4js'

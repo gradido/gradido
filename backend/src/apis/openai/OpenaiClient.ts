@@ -1,7 +1,7 @@
-import { 
-  dbDeleteOpenaiThread, 
-  dbFindNewestCreatedOpenaiThreadByUserId, 
-  dbInsertOpenaiThread, 
+import {
+  dbDeleteOpenaiThread,
+  dbFindNewestCreatedOpenaiThreadByUserId,
+  dbInsertOpenaiThread,
   dbUpdateOpenaiThread,
   User,
 } from 'database'
@@ -81,7 +81,7 @@ export class OpenaiClient {
    * @returns
    */
   public async resumeThread(user: User): Promise<MessageModel[]> {
-    const openaiThreadEntity = await dbFindNewestCreatedOpenaiThreadByUserId(user.id) 
+    const openaiThreadEntity = await dbFindNewestCreatedOpenaiThreadByUserId(user.id)
     if (!openaiThreadEntity) {
       logger.warn(`No openai thread found for user: ${user.id}`)
       return []

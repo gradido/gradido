@@ -118,10 +118,7 @@ export class AppDatabase {
   }
 
   public async destroy(): Promise<void> {
-    await Promise.all([
-      this.dataSource?.destroy(),
-      this.drizzleConnection?.end(),
-    ])
+    await Promise.all([this.dataSource?.destroy(), this.drizzleConnection?.end()])
     if (this.redisClient) {
       await this.redisClient.quit()
       this.redisClient = undefined

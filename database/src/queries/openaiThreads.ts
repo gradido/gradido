@@ -5,9 +5,7 @@ import { drizzleDb } from '.'
 // TODO: replace results with valibot schema after update to typescript 5 is possible
 
 export async function dbInsertOpenaiThread(id: string, userId: number): Promise<void> {
-  await drizzleDb()
-   .insert(openaiThreadsTable)
-   .values({ id, userId })
+  await drizzleDb().insert(openaiThreadsTable).values({ id, userId })
 }
 
 export async function dbUpdateOpenaiThread(id: string): Promise<void> {
@@ -17,7 +15,9 @@ export async function dbUpdateOpenaiThread(id: string): Promise<void> {
     .where(eq(openaiThreadsTable.id, id))
 }
 
-export async function dbFindNewestCreatedOpenaiThreadByUserId(userId: number): Promise<typeof openaiThreadsTable.$inferSelect | undefined> {
+export async function dbFindNewestCreatedOpenaiThreadByUserId(
+  userId: number,
+): Promise<typeof openaiThreadsTable.$inferSelect | undefined> {
   const result = await drizzleDb()
     .select()
     .from(openaiThreadsTable)
@@ -28,7 +28,5 @@ export async function dbFindNewestCreatedOpenaiThreadByUserId(userId: number): P
 }
 
 export async function dbDeleteOpenaiThread(id: string): Promise<void> {
-  await drizzleDb()
-    .delete(openaiThreadsTable)
-    .where(eq(openaiThreadsTable.id, id))
+  await drizzleDb().delete(openaiThreadsTable).where(eq(openaiThreadsTable.id, id))
 }
