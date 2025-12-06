@@ -1,3 +1,4 @@
+import { beforeEach } from 'node:test'
 import { eq } from 'drizzle-orm'
 import { MySql2Database } from 'drizzle-orm/mysql2'
 import { AppDatabase } from '../AppDatabase'
@@ -15,14 +16,13 @@ let db: MySql2Database
 beforeAll(async () => {
   await appDB.init()
   db = appDB.getDrizzleDataSource()
-  await db.delete(openaiThreadsTable)
+  // await db.delete(openaiThreadsTable)
 })
 afterAll(async () => {
-  console.log('destroying database')
   await appDB.destroy()
 })
 
-describe('openaiThreads query test', () => {
+describe('openaiThreads query test', () => {  
   it('should insert a new openai thread', async () => {
     await Promise.resolve([dbInsertOpenaiThread('7', 1), dbInsertOpenaiThread('72', 6)])
     const result = await db.select().from(openaiThreadsTable)
