@@ -1,6 +1,15 @@
 # Migration
 [Migration from 2.2.0 to 2.2.1](migration/2_2_0-2_2_1/README.md)
 
+# Key Pair
+It is recommended to create a new ssh key pair for your gradido server.
+You can create it with this command:
+```bash
+ssh-keygen -t ed25519 -C "your_email@example.com"
+```
+
+**Reason**: We recommend `ed25519` because it provides strong security with smaller key sizes, faster performance, and resistance to known attacks, making it more secure and efficient than traditional RSA keys.
+
 # Setup on Hetzner Cloud Server
 Suggested OS:
 Debian 12
@@ -23,14 +32,7 @@ I made a (german) video to show it to you (video is older, cloudConfig.yaml diff
 ### setup your domain pointing on server ip address 
 ### login to your new server as root
 ```bash
-ssh -i /path/to/privKey root@gddhost.tld
-```
-
-### Change default shell
-
-```bash
-chsh -s /bin/bash
-chsh -s /bin/bash gradido
+ssh -i ~/.ssh/id_ed25519 root@gddhost.tld
 ```
 
 ### Set password for user `gradido`
@@ -51,7 +53,7 @@ su gradido
 If you logout from the server you can test authentication:
 
 ```bash
-$ ssh -i /path/to/privKey gradido@gddhost.tld
+$ ssh -i ~/.ssh/id_ed25519 gradido@gddhost.tld
 # This should log you in and allow you to use sudo commands, which will require the user's password
 ```
 
@@ -68,9 +70,9 @@ sudo /etc/init.d/ssh restart
 ```bash
 $ ssh gradido@gddhost.tld
 # Will result in in either a passphrase request for your key or the message 'Permission denied (publickey)'
-$ ssh -i /path/to/privKey root@gddhost.tld
+$ ssh -i ~/.ssh/id_ed25519 root@gddhost.tld
 # Will result in 'Permission denied (publickey)'
-$ ssh -i /path/to/privKey gradido@gddhost.tld
+$ ssh -i ~/.ssh/id_ed25519 gradido@gddhost.tld
 # Will succeed after entering the correct keys passphrase (if any)
 ```
 
@@ -99,8 +101,22 @@ All your following installations in `install.sh` will fail!*
 cd ~/gradido/deployment/bare_metal
 cp .env.dist .env
 nano .env
+```
 
-# adjust values accordingly
+For a minimal setup you need at least to change this values: 
+```env
+COMMUNITY_NAME="Your community name"
+COMMUNITY_DESCRIPTION="Short Description from your Community."
+# your domain name, without protocol (without https:// or http:// )
+# domain name should be configured in your dns records to point to this server
+# hetzner_cloud/install.sh will be acquire a SSL-certificate via letsencrypt for this domain
+COMMUNITY_HOST=gddhost.tld
+
+# setup email account for sending gradido system messages to users
+EMAIL_USERNAME=peter@lustig.de
+EMAIL_SENDER=peter@lustig.de
+EMAIL_PASSWORD=1234
+EMAIL_SMTP_HOST=smtp.lustig.de
 ```
 
 ### Run `install.sh` with branch or tag name
@@ -133,3 +149,7 @@ sudo mysql -D gradido_community -e "insert into user_roles(user_id, role) values
 I made a (german) video to show it to you:
 
 [![Video](https://img.youtube.com/vi/xVQ5t4MnLrE/hqdefault.jpg)](https://www.youtube.com/watch?v=xVQ5t4MnLrE)
+
+### But it isn't working
+
+If it isn't working you can write us: [support@gradido.net](mailto:support@gradido.net)
