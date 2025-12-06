@@ -113,21 +113,15 @@ export class AppDatabase {
         database: CONFIG.DB_DATABASE,
         port: CONFIG.DB_PORT,
       })
-      console.log({ 
-        host: CONFIG.DB_HOST,
-        user: CONFIG.DB_USER,
-        password: CONFIG.DB_PASSWORD,
-        database: CONFIG.DB_DATABASE,
-        port: CONFIG.DB_PORT
-      })
-      const result = await this.drizzleConnection.execute('SELECT * from migrations order by version DESC limit 1')
-      console.log(result)
       this.drizzleDataSource = drizzle({ client: this.drizzleConnection })
     }
   }
 
   public async destroy(): Promise<void> {
     await Promise.all([this.dataSource?.destroy(), this.drizzleConnection?.end()])
+    this.dataSource = undefined
+    this.drizzleConnection = undefined
+    this.drizzleDataSource = undefined
     if (this.redisClient) {
       await this.redisClient.quit()
       this.redisClient = undefined
