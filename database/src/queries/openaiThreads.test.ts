@@ -1,5 +1,5 @@
 import { eq } from 'drizzle-orm'
-import { drizzle, MySql2Database } from 'drizzle-orm/mysql2'
+import { MySql2Database } from 'drizzle-orm/mysql2'
 import { AppDatabase, drizzleDb } from '../AppDatabase'
 import { openaiThreadsTable } from '../schemas'
 import {
@@ -15,11 +15,7 @@ let db: MySql2Database
 beforeAll(async () => {
   await appDB.init()
   db = drizzleDb()
-  try {
-    await db.delete(openaiThreadsTable)
-  } catch(e) {
-    console.error(JSON.stringify(e, null, 2))
-  }
+  await db.delete(openaiThreadsTable)
 })
 afterAll(async () => {
   await appDB.destroy()
