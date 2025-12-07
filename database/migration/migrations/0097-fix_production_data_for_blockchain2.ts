@@ -92,16 +92,16 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
         WHERE r.role IN ('ADMIN', 'MODERATOR')
         ORDER BY r.created_at ASC
         LIMIT 1
-    ) mod ON 1=1
+    ) moderator ON 1=1
     LEFT JOIN users u on(t.linked_user_id = u.id)
-    SET t.linked_user_id = mod.id,
-        t.linked_user_community_uuid = mod.community_uuid,
-        t.linked_user_gradido_id = mod.gradido_id,
-        t.linked_user_name = mod.linked_user_name
+    SET t.linked_user_id = moderator.id,
+        t.linked_user_community_uuid = moderator.community_uuid,
+        t.linked_user_gradido_id = moderator.gradido_id,
+        t.linked_user_name = moderator.linked_user_name
     WHERE t.type_id = 1
       AND t.balance_date >= u.created_at
-      AND t.balance_date < mod.created_at
-      AND t.user_id <> mod.id
+      AND t.balance_date < moderator.created_at
+      AND t.user_id <> moderator.id
     ;`)
 
   /**
