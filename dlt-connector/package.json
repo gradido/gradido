@@ -7,17 +7,18 @@
   "license": "Apache-2.0",
   "private": true,
   "scripts": {
-    "start": "bun run src/index.ts",
+    "start": "cross-env TZ=UTC bun run src/index.ts",
     "build": "bun build src/index.ts --outdir=build --target=bun --external=gradido-blockchain-js --minify",
-    "dev": "bun run --watch src/index.ts",
-    "migrate": "bun src/migrations/db-v2.7.0_to_blockchain-v3.5",
-    "test": "bun test",
-    "test:debug": "bun test --inspect-brk",
+    "dev": "cross-env TZ=UTC bun run --watch src/index.ts",
+    "migrate": "cross-env TZ=UTC bun src/migrations/db-v2.7.0_to_blockchain-v3.5",
+    "test": "cross-env TZ=UTC bun test",
+    "test:debug": "cross-env TZ=UTC bun test --inspect-brk",
     "typecheck": "tsc --noEmit",
     "lint": "biome check --error-on-warnings .",
     "lint:fix": "biome check --error-on-warnings . --write"
   },
   "dependencies": {
+    "cross-env": "^7.0.3",
     "gradido-blockchain-js": "git+https://github.com/gradido/gradido-blockchain-js#f265dbb1780a912cf8b0418dfe3eaf5cdc5b51cf"
   },
   "devDependencies": {
