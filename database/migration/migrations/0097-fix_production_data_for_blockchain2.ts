@@ -66,7 +66,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
    *
    * Background:
    * Early production records contain contribution transactions where the assigned
-   * moderator ("linked_user") was created *after* the contribution itself. This
+   * moderator ("linked_user" or "contribution.moderator_id") was created *after* the contribution itself. This
    * is invalid in the blockchain verification process, which requires that the
    * moderator account must have existed *before* the time of the transaction.
    *
@@ -86,21 +86,22 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   await queryFn(`
     UPDATE transactions t
     JOIN (
-        SELECT u.created_at, u.id, u.community_uuid, u.gradido_id, CONCAT(u.first_name, ' ', u.last_name) AS linked_user_name
-        FROM users u
-        JOIN user_roles r ON u.id = r.user_id
-        WHERE r.role IN ('ADMIN', 'MODERATOR')
-        ORDER BY r.created_at ASC
-        LIMIT 1
-    ) moderator ON 1=1
+        SELECT t_sub.id as sub_t_id, u_sub.created_at, u_sub.id, u_sub.community_uuid, u_sub.gradido_id, CONCAT(u_sub.first_name, ' ', u_sub.last_name) AS linked_user_name
+        FROM transactions t_sub
+		    JOIN users u_sub on(t_sub.user_id <> u_sub.id)
+        JOIN user_roles r_sub ON u_sub.id = r_sub.user_id		
+        WHERE r_sub.role IN ('ADMIN', 'MODERATOR')
+        GROUP BY t_sub.id
+        ORDER BY r_sub.created_at ASC
+    ) moderator ON (t.id = moderator.sub_t_id)
     LEFT JOIN users u on(t.linked_user_id = u.id)
     SET t.linked_user_id = moderator.id,
         t.linked_user_community_uuid = moderator.community_uuid,
         t.linked_user_gradido_id = moderator.gradido_id,
         t.linked_user_name = moderator.linked_user_name
     WHERE t.type_id = 1
-      AND t.balance_date >= u.created_at
-      AND t.balance_date < moderator.created_at
+      AND t.balance_date <= u.created_at
+      AND t.balance_date > moderator.created_at
       AND t.user_id <> moderator.id
     ;`)
 
