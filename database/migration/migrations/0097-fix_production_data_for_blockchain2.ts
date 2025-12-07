@@ -1,6 +1,6 @@
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   /**
-   * Migration: Correct historical inconsistencies in transactions and users.
+   * Migration: Correct historical inconsistencies in transactions, users, and contribution_links.
    *
    * Background:
    * Early Gradido production data contains several inconsistencies that violate
@@ -11,6 +11,8 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
    *   - Users whose `created_at` timestamp is after or equal to their first
    *     transaction.
    *   - Transaction memos shorter than the required minimum length (5 characters).
+   *   - Existing contribution_links without an associated 'ADMIN_CONTRIBUTION_LINK_CREATE' event,
+   *     which is used to find someone who confirmed the contribution.
    *
    * Purpose:
    * This migration performs the following corrections to ensure historical
@@ -20,11 +22,16 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
    *      the linked user was created after the transaction.
    *   3. Update user creation dates to be before their first transaction.
    *   4. Ensure all transaction memos meet the minimum length requirement.
+   *   5. Insert missing 'ADMIN_CONTRIBUTION_LINK_CREATE' events for contribution_links
+   *      that do not yet have such events, using the first Admin as acting_user.
    *
    * Outcome:
-   * After this migration, all contribution transactions reference a valid
-   * moderator existing at the time of the transaction, user creation dates are
-   * logically consistent, and memos meet the minimum formatting rules.
+   * After this migration:
+   *   - All contribution transactions reference a valid moderator existing at the time of the transaction.
+   *   - User creation dates are logically consistent with their transactions.
+   *   - Transaction memos meet the minimum formatting rules.
+   *   - Every contribution_link has a corresponding 'ADMIN_CONTRIBUTION_LINK_CREATE' event,
+   *     ensuring blockchain consistency for contributions.
    */
 
   /**
@@ -138,7 +145,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
     ;`)
 
   /**
-   * Ensure all transaction memos meet the minimum length requirement.
+   * Fix 4: Ensure all transaction memos meet the minimum length requirement.
    *
    * Background:
    * In early Gradido production data, some transactions have a `memo` field
@@ -165,6 +172,34 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
       ELSE t.memo
     END
     WHERE CHAR_LENGTH(t.memo) < 5
+    ;`)
+
+  /**
+   * Fix 5: Insert missing 'ADMIN_CONTRIBUTION_LINK_CREATE' events for contribution_links.
+   *
+   * Background:
+   * Each contribution in the blockchain requires a confirmation by a user.
+   * In the current DB version, there is no information about who confirmed contributions based on contribution_links.
+   * Recently, functionality was added to create an 'ADMIN_CONTRIBUTION_LINK_CREATE' event
+   * for newly created contribution_links, but existing contribution_links were not updated.
+   * 
+   * This query inserts an 'ADMIN_CONTRIBUTION_LINK_CREATE' event for every contribution_link
+   * that does not already have such an event. 
+   * The acting_user_id is set to the first Admin, and affected_user_id is set to 0.
+   */
+  await queryFn(`
+    INSERT INTO \`events\`(acting_user_id, affected_user_id, \`type\`, involved_contribution_link_id)
+    SELECT (
+      SELECT u.id
+      FROM users u
+      JOIN user_roles r ON r.user_id = u.id
+      WHERE r.role = 'ADMIN'
+      ORDER BY r.id ASC
+      LIMIT 1
+    ) AS acting_user_id, 0 as affected_user_id, 'ADMIN_CONTRIBUTION_LINK_CREATE' AS \`type\`, c.id AS involved_contribution_link_id
+    FROM contribution_links c
+    LEFT JOIN \`events\` e ON e.involved_contribution_link_id = c.id AND e.type = 'ADMIN_CONTRIBUTION_LINK_CREATE'
+    WHERE e.id IS NULL
     ;`)
 }
 
