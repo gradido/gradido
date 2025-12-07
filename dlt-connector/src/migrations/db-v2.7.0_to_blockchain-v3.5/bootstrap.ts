@@ -4,13 +4,14 @@ import { HieroId, hieroIdSchema } from '../../schemas/typeGuard.schema'
 import { addCommunityRootTransaction } from './blockchain'
 import { Context } from './Context'
 import { communityDbToCommunity } from './convert'
-import { loadCommunities } from './database'
+import { loadCommunities, loadContributionLinkModeratorCache } from './database'
 import { generateKeyPairCommunity } from './keyPair'
 import { CommunityContext } from './valibot.schema'
 
 export async function bootstrap(): Promise<Context> {
   const context = await Context.create()
   context.communities = await bootstrapCommunities(context)
+  await loadContributionLinkModeratorCache(context.db)
   return context
 }
 

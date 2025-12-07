@@ -6,21 +6,23 @@ import { TransactionsSyncRole } from './TransactionsSync.role'
 import { UsersSyncRole } from './UsersSync.role'
 
 export async function syncDbWithBlockchainContext(context: Context, batchSize: number) {
-  const timeUsed = new Profiler()
+  const timeUsedDB = new Profiler()
+  const timeUsedBlockchain = new Profiler()
   const containers = [
     new UsersSyncRole(context),
     new TransactionsSyncRole(context),
     new DeletedTransactionLinksSyncRole(context),
     new TransactionLinksSyncRole(context),
   ]
-
+  let transactionsCount = 0
+  let transactionsCountSinceLastLog = 0
   while (true) {
-    timeUsed.reset()
+    timeUsedDB.reset()
     const results = await Promise.all(containers.map((c) => c.ensureFilled(batchSize)))
     const loadedItemsCount = results.reduce((acc, c) => acc + c, 0)
     // log only, if at least one new item was loaded
-    if (loadedItemsCount && context.logger.isInfoEnabled()) {
-      context.logger.info(`${loadedItemsCount} new items loaded from db in ${timeUsed.string()}`)
+    if (loadedItemsCount && context.logger.isDebugEnabled()) {
+      context.logger.debug(`${loadedItemsCount} new items loaded from db in ${timeUsedDB.string()}`)      
     }
 
     // remove empty containers
@@ -34,5 +36,14 @@ export async function syncDbWithBlockchainContext(context: Context, batchSize: n
       available.sort((a, b) => a.getDate().getTime() - b.getDate().getTime())
     }
     await available[0].toBlockchain()
+    process.stdout.write(`successfully added to blockchain: ${transactionsCount}\r`)
+    transactionsCount++
+    transactionsCountSinceLastLog++
+    if (transactionsCountSinceLastLog >= batchSize) {
+      context.logger.debug(`${transactionsCountSinceLastLog} transactions added to blockchain in ${timeUsedBlockchain.string()}`)
+      timeUsedBlockchain.reset()
+      transactionsCountSinceLastLog = 0
+    }
   }
+  process.stdout.write(`\n`)
 }

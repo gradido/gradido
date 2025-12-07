@@ -4,7 +4,7 @@ import { exportAllCommunities } from './binaryExport'
 import { bootstrap } from './bootstrap'
 import { syncDbWithBlockchainContext } from './interaction/syncDbWithBlockchain/syncDbWithBlockchain.context'
 
-const BATCH_SIZE = 100
+const BATCH_SIZE = 250
 
 async function main() {
   // prepare in memory blockchains

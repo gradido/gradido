@@ -1,4 +1,4 @@
-import { addRegisterAddressTransaction } from '../../blockchain'
+import { addTransaction } from '../../blockchain'
 import { userDbToTransaction } from '../../convert'
 import { loadUsers } from '../../database'
 import { generateKeyPairUserAccount } from '../../keyPair'
@@ -26,6 +26,6 @@ export class UsersSyncRole extends AbstractSyncRole<CreatedUserDb> {
   async pushToBlockchain(item: CreatedUserDb): Promise<void> {
     const communityContext = this.context.getCommunityContextByUuid(item.communityUuid)
     const transaction = userDbToTransaction(item, communityContext.topicId)
-    return await addRegisterAddressTransaction(communityContext.blockchain, transaction)
+    return await addTransaction(communityContext.blockchain, communityContext.blockchain, transaction)
   }
 }

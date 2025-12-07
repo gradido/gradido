@@ -21,7 +21,7 @@ export const userDbSchema = v.object({
   communityUuid: uuidv4Schema,
 })
 
-export const transactionDbSchema = v.object({
+export const transactionDbSchema = v.pipe(v.object({
   typeId: v.enum(TransactionTypeId),
   amount: gradidoAmountSchema,
   balanceDate: dateSchema,
@@ -30,7 +30,12 @@ export const transactionDbSchema = v.object({
   user: userDbSchema,
   linkedUser: userDbSchema,
   transactionLinkCode: v.nullish(identifierSeedSchema),
-})
+}), v.custom((value: any) => {
+  if (value.user && value.linkedUser && !value.transactionLinkCode && value.user.gradidoId === value.linkedUser.gradidoId) {
+    throw new Error(`expect user to be different from linkedUser: ${JSON.stringify(value, null, 2)}`)
+  }
+  return value
+}))
 
 export const transactionLinkDbSchema = v.object({
   user: userDbSchema,

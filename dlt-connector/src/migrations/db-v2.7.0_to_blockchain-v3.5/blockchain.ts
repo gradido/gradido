@@ -5,10 +5,13 @@ import {
   HieroTransactionId,
   InMemoryBlockchain,
   InteractionSerialize,
+  Pagination,
+  Profiler,
+  SearchDirection_DESC,
   Timestamp,
+  TransactionType_DEFERRED_TRANSFER,
 } from 'gradido-blockchain-js'
 import { getLogger } from 'log4js'
-import * as v from 'valibot'
 import { LOG4JS_BASE_CATEGORY } from '../../config/const'
 import { InputTransactionType } from '../../data/InputTransactionType.enum'
 import { LinkedTransactionKeyPairRole } from '../../interactions/resolveKeyPair/LinkedTransactionKeyPair.role'
@@ -20,11 +23,14 @@ import { RegisterAddressTransactionRole } from '../../interactions/sendToHiero/R
 import { TransferTransactionRole } from '../../interactions/sendToHiero/TransferTransaction.role'
 import { Community, Transaction } from '../../schemas/transaction.schema'
 import { identifierSeedSchema } from '../../schemas/typeGuard.schema'
+import { AbstractTransactionRole } from '../../interactions/sendToHiero/AbstractTransaction.role'
+import * as v from 'valibot'
 
 const logger = getLogger(
   `${LOG4JS_BASE_CATEGORY}.migrations.db-v2.7.0_to_blockchain-v3.6.blockchain`,
 )
 export const defaultHieroAccount = new HieroAccountId(0, 0, 2)
+let transactionAddedToBlockchainSum = 0
 
 function addToBlockchain(
   builder: GradidoTransactionBuilder,
@@ -36,7 +42,7 @@ function addToBlockchain(
   const transactionId = new HieroTransactionId(createdAtTimestamp, defaultHieroAccount)
   const interactionSerialize = new InteractionSerialize(transactionId)
 
-  try {
+  try {    
     const result = blockchain.createAndAddConfirmedTransaction(
       transaction,
       interactionSerialize.run(),
@@ -67,115 +73,77 @@ export async function addCommunityRootTransaction(
   }
 }
 
-export async function addRegisterAddressTransaction(
-  blockchain: InMemoryBlockchain,
-  transaction: Transaction,
-): Promise<void> {
-  const registerAddressRole = new RegisterAddressTransactionRole(transaction)
-  if (
-    addToBlockchain(
-      await registerAddressRole.getGradidoTransactionBuilder(),
-      blockchain,
-      new Timestamp(transaction.createdAt),
-    )
-  ) {
-    logger.debug(
-      `Register Address Transaction added for user ${transaction.user.account!.userUuid}`,
-    )
-  } else {
-    throw new Error(
-      `Register Address Transaction not added for user ${transaction.user.account!.userUuid}`,
-    )
-  }
-}
-
 export async function addTransaction(
   senderBlockchain: InMemoryBlockchain,
   _recipientBlockchain: InMemoryBlockchain,
   transaction: Transaction,
 ): Promise<void> {
+
+  let debugTmpStr = ''
+
   const createdAtTimestamp = new Timestamp(transaction.createdAt)
+  let role: AbstractTransactionRole
   if (transaction.type === InputTransactionType.GRADIDO_CREATION) {
-    const creationTransactionRole = new CreationTransactionRole(transaction)
-    if (
-      addToBlockchain(
-        await creationTransactionRole.getGradidoTransactionBuilder(),
-        senderBlockchain,
-        createdAtTimestamp,
-      )
-    ) {
-      logger.debug(`Creation Transaction added for user ${transaction.user.account!.userUuid}`)
-    } else {
-      throw new Error(
-        `Creation Transaction not added for user ${transaction.user.account!.userUuid}`,
-      )
-    }
+    role = new CreationTransactionRole(transaction)
   } else if (transaction.type === InputTransactionType.GRADIDO_TRANSFER) {
-    const transferTransactionRole = new TransferTransactionRole(transaction)
-    // will crash with cross group transaction
-    if (
-      addToBlockchain(
-        await transferTransactionRole.getGradidoTransactionBuilder(),
-        senderBlockchain,
-        createdAtTimestamp,
-      )
-    ) {
-      logger.debug(`Transfer Transaction added for user ${transaction.user.account!.userUuid}`)
-    } else {
-      throw new Error(
-        `Transfer Transaction not added for user ${transaction.user.account!.userUuid}`,
-      )
-    }
+    role = new TransferTransactionRole(transaction)
+  } else if (transaction.type == InputTransactionType.REGISTER_ADDRESS) {
+    role = new RegisterAddressTransactionRole(transaction)
   } else if (transaction.type === InputTransactionType.GRADIDO_DEFERRED_TRANSFER) {
-    const transferTransactionRole = new DeferredTransferTransactionRole(transaction)
-    if (
-      addToBlockchain(
-        await transferTransactionRole.getGradidoTransactionBuilder(),
-        senderBlockchain,
-        createdAtTimestamp,
-      )
-    ) {
-      logger.debug(
-        `Deferred Transfer Transaction added for user ${transaction.user.account!.userUuid}`,
-      )
-    } else {
-      throw new Error(
-        `Deferred Transfer Transaction not added for user ${transaction.user.account!.userUuid}`,
-      )
-    }
+    role = new DeferredTransferTransactionRole(transaction)
   } else if (transaction.type === InputTransactionType.GRADIDO_REDEEM_DEFERRED_TRANSFER) {
     const seedKeyPairRole = new LinkedTransactionKeyPairRole(
       v.parse(identifierSeedSchema, transaction.user.seed),
     )
     const f = new Filter()
     f.involvedPublicKey = seedKeyPairRole.generateKeyPair().getPublicKey()
-    const deferredTransaction = senderBlockchain.findOne(f)
-    if (!deferredTransaction) {
+    f.transactionType = TransactionType_DEFERRED_TRANSFER
+    const deferredTransactions = senderBlockchain.findAll(f)
+    if (!deferredTransactions) {
       throw new Error(
         `redeem deferred transfer: couldn't find parent deferred transfer on Gradido Node for ${JSON.stringify(transaction, null, 2)} and public key from seed: ${f.involvedPublicKey?.convertToHex()}`,
       )
     }
+    if (deferredTransactions.size() != 1) {
+      logger.error(
+        `redeem deferred transfer: found ${deferredTransactions.size()} parent deferred transfer on Gradido Node for ${JSON.stringify(transaction, null, 2)} and public key from seed: ${f.involvedPublicKey?.convertToHex()}`,
+      )
+      for(let i = 0; i < deferredTransactions.size(); i++) {
+        logger.error(`deferred transaction ${i}: ${deferredTransactions.get(i)?.getConfirmedTransaction()?.toJson(true)}`)
+      }
+      throw new Error(
+        `redeem deferred transfer: found ${deferredTransactions.size()} parent deferred transfer on Gradido Node for ${JSON.stringify(transaction, null, 2)} and public key from seed: ${f.involvedPublicKey?.convertToHex()}`,
+      )
+    }
+    const deferredTransaction = deferredTransactions.get(0)!
     const confirmedDeferredTransaction = deferredTransaction.getConfirmedTransaction()
     if (!confirmedDeferredTransaction) {
       throw new Error('redeem deferred transfer: invalid TransactionEntry')
     }
-    const redeemTransactionRole = new RedeemDeferredTransferTransactionRole(
+    debugTmpStr += `\nconfirmed deferred transaction: ${confirmedDeferredTransaction.toJson(true)} with filter: ${f.toJson(true)}`
+    role = new RedeemDeferredTransferTransactionRole(
       transaction,
       confirmedDeferredTransaction,
     )
-    const involvedUser = transaction.user.account
-      ? transaction.user.account.userUuid
-      : transaction.linkedUser?.account?.userUuid
-    if (
-      addToBlockchain(
-        await redeemTransactionRole.getGradidoTransactionBuilder(),
-        senderBlockchain,
-        createdAtTimestamp,
-      )
-    ) {
-      logger.debug(`Redeem Deferred Transfer Transaction added for user ${involvedUser}`)
-    } else {
-      throw new Error(`Redeem Deferred Transfer Transaction not added for user ${involvedUser}`)
-    }
+  } else {
+    throw new Error(`Transaction type ${transaction.type} not supported`)
+  }
+  const involvedUser = transaction.user.account
+    ? transaction.user.account.userUuid
+    : transaction.linkedUser?.account?.userUuid
+  if (addToBlockchain(await role.getGradidoTransactionBuilder(), senderBlockchain, createdAtTimestamp)) {
+    logger.debug(`${transaction.type} Transaction added for user ${involvedUser}`)
+    transactionAddedToBlockchainSum++
+  } else {
+    logger.error(debugTmpStr)
+    /*const f = new Filter()
+    f.searchDirection = SearchDirection_DESC
+    f.pagination = new Pagination(15)
+    const transactions = senderBlockchain.findAll(f)
+    for(let i = transactions.size() - 1; i >= 0; i--) {
+      logger.error(`transaction ${i}: ${transactions.get(i)?.getConfirmedTransaction()?.toJson(true)}`)
+    }*/
+    logger.error(`transaction: ${JSON.stringify(transaction, null, 2)}`)
+    throw new Error(`${transaction.type} Transaction not added for user ${involvedUser}, after ${transactionAddedToBlockchainSum} transactions`)
   }
 }

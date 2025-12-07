@@ -1,4 +1,4 @@
-import { asc, eq, inArray, isNotNull, sql } from 'drizzle-orm'
+import { and, asc, eq, inArray, isNotNull, lt, sql } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/mysql-core'
 import { MySql2Database } from 'drizzle-orm/mysql2'
 import { GradidoUnit } from 'gradido-blockchain-js'
@@ -7,6 +7,8 @@ import * as v from 'valibot'
 import { LOG4JS_BASE_CATEGORY } from '../../config/const'
 import {
   communitiesTable,
+  contributionsTable,
+  eventsTable,
   transactionLinksTable,
   transactionsTable,
   usersTable,
@@ -26,6 +28,24 @@ import {
 const logger = getLogger(
   `${LOG4JS_BASE_CATEGORY}.migrations.db-v2.7.0_to_blockchain-v3.6.blockchain`,
 )
+
+const contributionLinkModerators = new Map<number, CreatedUserDb>()
+
+export async function loadContributionLinkModeratorCache(db: MySql2Database): Promise<void> {
+  const result = await db
+    .select({
+      event: eventsTable,
+      user: usersTable,
+    })
+    .from(eventsTable)
+    .leftJoin(usersTable, eq(eventsTable.actingUserId, usersTable.id))
+    .where(eq(eventsTable.type, 'ADMIN_CONTRIBUTION_LINK_CREATE'))
+    .orderBy(asc(eventsTable.id))
+
+  result.map((row: any) => {
+    contributionLinkModerators.set(row.event.involvedContributionLinkId, v.parse(createdUserDbSchema, row.user))
+  })
+}
 
 // queries
 export async function loadCommunities(db: MySql2Database): Promise<CommunityDb[]> {
@@ -103,16 +123,32 @@ export async function loadTransactions(
     .limit(count)
     .offset(offset)
 
-  return result.map((row: any) => {
+  return await Promise.all(result.map(async (row: any) => {
     // console.log(row)
     try {
+      const user = v.parse(createdUserDbSchema, row.user)
+      let linkedUser: CreatedUserDb | null | undefined = null
+      if (!row.linkedUser) {
+        const contribution = await db
+          .select({contributionLinkId: contributionsTable.contributionLinkId})
+          .from(contributionsTable)
+          .where(eq(contributionsTable.transactionId, row.transaction.id))
+          .limit(1)
+        if (contribution && contribution.length > 0 && contribution[0].contributionLinkId) {
+          linkedUser = contributionLinkModerators.get(contribution[0].contributionLinkId)
+        }
+      } else {
+        linkedUser = v.parse(createdUserDbSchema, row.linkedUser)
+      }
+      if (!linkedUser) {
+        throw new Error(`linked user not found for transaction ${row.transaction.id}`)
+      }
+      
       // check for consistent data beforehand
-      const userCreatedAt = new Date(row.user.createdAt)
-      const linkedUserCreatedAd = new Date(row.linkedUser.createdAt)
       const balanceDate = new Date(row.transaction.balanceDate)
       if (
-        userCreatedAt.getTime() > balanceDate.getTime() ||
-        linkedUserCreatedAd.getTime() > balanceDate.getTime()
+        user.createdAt.getTime() > balanceDate.getTime() ||
+        linkedUser?.createdAt.getTime() > balanceDate.getTime()
       ) {
         logger.error(`table row: `, row)
         throw new Error(
@@ -127,8 +163,8 @@ export async function loadTransactions(
       return v.parse(transactionDbSchema, {
         ...row.transaction,
         transactionLinkCode: row.transactionLink ? row.transactionLink.code : null,
-        user: row.user,
-        linkedUser: row.linkedUser,
+        user,
+        linkedUser,
       })
     } catch (e) {
       logger.error(`table row: ${JSON.stringify(row, null, 2)}`)
@@ -137,7 +173,7 @@ export async function loadTransactions(
       }
       throw e
     }
-  })
+  }))
 }
 
 export async function loadTransactionLinks(
@@ -170,7 +206,10 @@ export async function loadDeletedTransactionLinks(
     .select()
     .from(transactionLinksTable)
     .leftJoin(usersTable, eq(transactionLinksTable.userId, usersTable.id))
-    .where(isNotNull(transactionLinksTable.deletedAt))
+    .where(and(
+      isNotNull(transactionLinksTable.deletedAt),
+      lt(transactionLinksTable.deletedAt, transactionLinksTable.validUntil)
+    ))
     .orderBy(asc(transactionLinksTable.deletedAt), asc(transactionLinksTable.id))
     .limit(count)
     .offset(offset)

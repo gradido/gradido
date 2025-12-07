@@ -1,5 +1,6 @@
 import { sql } from 'drizzle-orm'
 import {
+  bigint,
   char,
   datetime,
   decimal,
@@ -23,6 +24,22 @@ export const communitiesTable = mysqlTable(
   },
   (table) => [unique('uuid_key').on(table.communityUuid)],
 )
+
+export const contributionsTable = mysqlTable("contributions", {
+	id: int().autoincrement().notNull(),
+	contributionLinkId: int("contribution_link_id").default(sql`NULL`),
+	confirmedBy: int("confirmed_by").default(sql`NULL`),
+	confirmedAt: datetime("confirmed_at", { mode: 'string'}).default(sql`NULL`),
+	deletedAt: datetime("deleted_at", { mode: 'string'}).default(sql`NULL`),
+	transactionId: int("transaction_id").default(sql`NULL`),
+})
+
+export const eventsTable = mysqlTable("events", {
+	id: int().autoincrement().notNull(),
+	type: varchar({ length: 100 }).notNull(),
+	actingUserId: int("acting_user_id").notNull(),
+	involvedContributionLinkId: int("involved_contribution_link_id").default(sql`NULL`),
+})
 
 export const usersTable = mysqlTable(
   'users',
