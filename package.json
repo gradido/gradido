@@ -21,7 +21,8 @@
   ],
   "scripts": {
     "release": "bumpp -r",
-    "version": "auto-changelog -p --commit-limit 0 && git add CHANGELOG.md",
+    "version": "auto-changelog -p --commit-limit 0 && git add CHANGELOG.md && git commit -m \"update changelog\" && git push",
+    "postversion": "git push origin :refs/tags/latest && git tag -f latest && git push origin latest",
     "installAll": "bun run install",
     "docker": "cross-env BUILD_COMMIT=$(git rev-parse HEAD) docker compose -f docker-compose.yml up",
     "docker:rebuild": "cross-env BUILD_COMMIT=$(git rev-parse HEAD) docker compose -f docker-compose.yml build",

@@ -2,6 +2,11 @@
 # stop if something fails
 set -euo pipefail
 
+# source profile so PATH/NVM/BUN werden gesetzt (safe for non-login)
+if [ -f /home/gradido/.profile ]; then
+  . /home/gradido/.profile
+fi
+
 # check for parameter
 FAST_MODE=false
 POSITIONAL_ARGS=()
@@ -184,7 +189,7 @@ cd $PROJECT_ROOT
 # TODO: this overfetches alot, but ensures we can use start.sh with tags
 git fetch --all
 git checkout $BRANCH_NAME
-git pull
+git pull origin $BRANCH_NAME
 git submodule update --init --recursive
 export BUILD_COMMIT="$(git rev-parse HEAD)"
 
@@ -299,7 +304,7 @@ done
 
 # Install all node_modules
 log_step 'Installing node_modules'
-bun install
+bun install --frozen-lockfile
 
 # build all modules
 log_step 'build all modules'
@@ -309,12 +314,12 @@ turbo build --env-mode=loose --concurrency=$(nproc)
 if [ "$DLT_ACTIVE" = true ]; then
   log_step 'build inspector'
   cd $PROJECT_ROOT/inspector
-  bun install
+  bun install --frozen-lockfile
   bun run build
 
   log_step 'build dlt-connector'
   cd $PROJECT_ROOT/dlt-connector
-  bun install
+  bun install --frozen-lockfile
   bun run build
   
   cd $PROJECT_ROOT
