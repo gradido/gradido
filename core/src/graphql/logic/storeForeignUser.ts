@@ -58,7 +58,7 @@ export async function storeForeignUser(
         user.lastName !== committingResult.recipLastName ||
         user.alias !== committingResult.recipAlias ||
         (user.emailContact === null && committingResult.recipEmail !== null) ||
-        (user.emailContact !== null && user.emailContact.email !== committingResult.recipEmail)
+        (user.emailContact !== null && user.emailContact.email !== null && user.emailContact.email !== committingResult.recipEmail)
       ) {
         logger.warn(
           'foreignUser still exists, but with different name, alias or email:',
