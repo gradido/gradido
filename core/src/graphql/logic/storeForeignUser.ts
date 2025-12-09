@@ -57,7 +57,8 @@ export async function storeForeignUser(
         user.firstName !== committingResult.recipFirstName ||
         user.lastName !== committingResult.recipLastName ||
         user.alias !== committingResult.recipAlias ||
-        user.emailContact.email !== committingResult.recipEmail
+        (user.emailContact === null && committingResult.recipEmail !== null) ||
+        (user.emailContact !== null && user.emailContact.email !== committingResult.recipEmail)
       ) {
         logger.warn(
           'foreignUser still exists, but with different name, alias or email:',
@@ -73,10 +74,22 @@ export async function storeForeignUser(
         if (committingResult.recipAlias !== null) {
           user.alias = committingResult.recipAlias
         }
-        if (committingResult.recipEmail != null) {
+        if(user.emailContact === null && committingResult.recipEmail !== null) {
+          let foreignUserEmail = DbUserContact.create()
+          foreignUserEmail.email = committingResult.recipEmail!
+          foreignUserEmail.emailChecked = true
+          foreignUserEmail.user = user
+          foreignUserEmail = await DbUserContact.save(foreignUserEmail)
+          logger.debug('new foreignUserEmail inserted:', foreignUserEmail)
+          user.emailContact = foreignUserEmail
+          user.emailId = foreignUserEmail.id
+        }
+        else if (user.emailContact !== null && committingResult.recipEmail != null) {
           const userContact = user.emailContact
           userContact.email = committingResult.recipEmail
           user.emailContact = await DbUserContact.save(userContact)
+          user.emailId = userContact.id
+          logger.debug('foreignUserEmail updated:', userContact)
         }
         await DbUser.save(user)
         logger.debug('update recipient successful.', user)
