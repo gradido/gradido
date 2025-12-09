@@ -1,5 +1,5 @@
 import { createTestClient } from 'apollo-server-testing'
-import { FederatedCommunity as DbFederatedCommunity } from 'database'
+import { AppDatabase, FederatedCommunity as DbFederatedCommunity } from 'database'
 import { getLogger } from 'log4js'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
@@ -8,19 +8,17 @@ import { createServer } from '@/server/createServer'
 let query: any
 
 // to do: We need a setup for the tests that closes the connection
-let con: any
 
 CONFIG.FEDERATION_API = '1_1'
 
 beforeAll(async () => {
   const server = await createServer(getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.apollo`))
-  con = server.con
   query = createTestClient(server.apollo).query
   DbFederatedCommunity.clear()
 })
 
 afterAll(async () => {
-  await con.close()
+  await AppDatabase.getInstance().destroy()
 })
 
 describe('PublicKeyResolver', () => {

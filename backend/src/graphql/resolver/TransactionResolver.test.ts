@@ -6,13 +6,10 @@ import {
   AppDatabase,
   Community as DbCommunity,
   Event as DbEvent,
-  FederatedCommunity as DbFederatedCommunity,
-  DltTransaction,
   Transaction,
   User,
 } from 'database'
 import { GraphQLError } from 'graphql'
-import { DataSource, In } from 'typeorm'
 import { v4 as uuidv4 } from 'uuid'
 import { CONFIG } from '@/config'
 // import { CONFIG } from '@/config'
@@ -43,11 +40,9 @@ CORE_CONFIG.EMAIL = false
 
 let mutate: ApolloServerTestClient['mutate']
 let query: ApolloServerTestClient['query']
-let con: DataSource
 let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']
-  con: DataSource
   db: AppDatabase
 }
 
@@ -55,14 +50,12 @@ beforeAll(async () => {
   testEnv = await testEnvironment(logger)
   mutate = testEnv.mutate
   query = testEnv.query
-  con = testEnv.con
   await cleanDB()
 })
 
 afterAll(async () => {
   await cleanDB()
-  await con.destroy() // close()
-  await testEnv.db.getRedisClient().quit()
+  await testEnv.db.destroy()
 })
 
 let bobData: any
