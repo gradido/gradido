@@ -169,7 +169,6 @@ export async function processXComCompleteTransaction(
         }
       }
 
-
       await sendTransactionReceivedEmail({
         firstName: foreignUser.firstName,
         lastName: foreignUser.lastName,
@@ -194,8 +193,6 @@ export async function processXComCompleteTransaction(
           transactionMemo: memo,
         })
       }
-
-
     }
   } catch (err) {
     const errmsg =
@@ -512,7 +509,7 @@ export async function processXComCommittingSendCoins(
               }
               sendCoinsResult.recipGradidoID = pendingTx.linkedUserGradidoID
               sendCoinsResult.recipAlias = recipient.recipAlias
-              sendCoinsResult.recipEmail = recipient.recipEmail              
+              sendCoinsResult.recipEmail = recipient.recipEmail
             }
           } catch (err) {
             methodLogger.error(

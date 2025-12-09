@@ -40,16 +40,17 @@ export async function storeForeignUser(
         foreignUser = await DbUser.save(foreignUser)
 
         logger.debug('new foreignUser inserted:', foreignUser)
-        let foreignUserEmail = DbUserContact.create()
-        foreignUserEmail.email = committingResult.recipEmail!
-        foreignUserEmail.emailChecked = true
-        foreignUserEmail.user = foreignUser
-        foreignUserEmail = await DbUserContact.save(foreignUserEmail)
-        logger.debug('new foreignUserEmail inserted:', foreignUserEmail)
-
-        foreignUser.emailContact = foreignUserEmail
-        foreignUser.emailId = foreignUserEmail.id
-        foreignUser = await DbUser.save(foreignUser)
+        if (committingResult.recipEmail !== null) {
+          let foreignUserEmail = DbUserContact.create()
+          foreignUserEmail.email = committingResult.recipEmail!
+          foreignUserEmail.emailChecked = true
+          foreignUserEmail.user = foreignUser
+          foreignUserEmail = await DbUserContact.save(foreignUserEmail)
+          logger.debug('new foreignUserEmail inserted:', foreignUserEmail)
+          foreignUser.emailContact = foreignUserEmail
+          foreignUser.emailId = foreignUserEmail.id
+          foreignUser = await DbUser.save(foreignUser)
+        }
 
         return foreignUser
       } else if (
