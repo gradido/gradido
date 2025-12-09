@@ -1,7 +1,6 @@
 import { cleanDB, contributionDateFormatter, testEnvironment } from '@test/helpers'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { AppDatabase, Contribution, User } from 'database'
-import { DataSource } from 'typeorm'
 
 import { CONFIG } from '@/config'
 import { userFactory } from '@/seeds/factory/user'
@@ -16,27 +15,23 @@ jest.mock('@/password/EncryptorUtils')
 CONFIG.HUMHUB_ACTIVE = false
 
 let mutate: ApolloServerTestClient['mutate']
-let con: DataSource
 let db: AppDatabase
 let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']
-  con: DataSource
   db: AppDatabase
 }
 
 beforeAll(async () => {
   testEnv = await testEnvironment()
   mutate = testEnv.mutate
-  con = testEnv.con
   db = testEnv.db
   await cleanDB()
 })
 
 afterAll(async () => {
   await cleanDB()
-  await con.destroy()
-  await db.getRedisClient().quit()
+  await db.destroy()
 })
 
 const setZeroHours = (date: Date): Date => {
