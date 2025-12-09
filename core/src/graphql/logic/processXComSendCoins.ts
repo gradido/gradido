@@ -1,15 +1,15 @@
 import {
-  CommunityLoggingView,
   countOpenPendingTransactions,
-  Community as DbCommunity,
-  FederatedCommunity as DbFederatedCommunity,
-  PendingTransaction as DbPendingTransaction,
-  TransactionLink as DbTransactionLink,
-  User as dbUser,
   findTransactionLinkByCode,
   findUserByIdentifier,
   getCommunityByUuid,
+  Community as DbCommunity,
+  CommunityLoggingView,
+  FederatedCommunity as DbFederatedCommunity,
+  PendingTransaction as DbPendingTransaction,
   PendingTransactionLoggingView,
+  TransactionLink as DbTransactionLink,
+  User as dbUser,
   UserLoggingView,
 } from 'database'
 import { Decimal } from 'decimal.js-light'
@@ -25,6 +25,7 @@ import {
 import { randombytes_random } from 'sodium-native'
 import { CONFIG as CONFIG_CORE } from '../../config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../../config/const'
+import { sendTransactionLinkRedeemedEmail, sendTransactionReceivedEmail } from '../../emails'
 import { SendCoinsResultLoggingView } from '../../federation/client/1_0/logging/SendCoinsResultLogging.view'
 import { SendCoinsResult } from '../../federation/client/1_0/model/SendCoinsResult'
 import { SendCoinsClient as V1_0_SendCoinsClient } from '../../federation/client/1_0/SendCoinsClient'
@@ -36,7 +37,6 @@ import { fullName } from '../../util/utilities'
 import { settlePendingSenderTransaction } from './settlePendingSenderTransaction'
 import { storeForeignUser } from './storeForeignUser'
 import { storeLinkAsRedeemed } from './storeLinkAsRedeemed'
-import { sendTransactionLinkRedeemedEmail, sendTransactionReceivedEmail } from '../../emails'
 
 const createLogger = (method: string) =>
   getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.util.processXComSendCoins.${method}`)

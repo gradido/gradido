@@ -73,7 +73,7 @@ export async function storeForeignUser(
           user.alias = committingResult.recipAlias
         }
         if (committingResult.recipEmail != null) {
-          let userContact = user.emailContact
+          const userContact = user.emailContact
           userContact.email = committingResult.recipEmail
           user.emailContact = await DbUserContact.save(userContact)
         }
