@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray, isNotNull, lt, sql } from 'drizzle-orm'
+import { and, asc, eq, inArray, isNotNull, lt, ne, sql } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/mysql-core'
 import { MySql2Database } from 'drizzle-orm/mysql2'
 import { GradidoUnit } from 'gradido-blockchain-js'
@@ -11,6 +11,7 @@ import {
   eventsTable,
   transactionLinksTable,
   transactionsTable,
+  userRolesTable,
   usersTable,
 } from './drizzle.schema'
 import { TransactionTypeId } from './TransactionTypeId'
@@ -136,6 +137,21 @@ export async function loadTransactions(
           .limit(1)
         if (contribution && contribution.length > 0 && contribution[0].contributionLinkId) {
           linkedUser = contributionLinkModerators.get(contribution[0].contributionLinkId)
+          if (linkedUser?.gradidoId === user.gradidoId) {
+            const adminUser = await db
+              .select({
+                user: usersTable
+              })
+              .from(usersTable)
+              .leftJoin(userRolesTable, and(eq(usersTable.id, userRolesTable.userId), eq(userRolesTable.role, 'admin')))
+              .orderBy(asc(userRolesTable.id))
+              .where(ne(userRolesTable.userId,  row.user.id))
+              .limit(1)
+            if (!adminUser || !adminUser.length) {
+              throw new Error(`cannot find replace admin for contribution link`)
+            }
+            linkedUser = v.parse(createdUserDbSchema, adminUser[0].user)
+          }
         }
       } else {
         linkedUser = v.parse(createdUserDbSchema, row.linkedUser)

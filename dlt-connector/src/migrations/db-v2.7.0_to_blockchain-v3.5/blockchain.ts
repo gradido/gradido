@@ -25,12 +25,14 @@ import { Community, Transaction } from '../../schemas/transaction.schema'
 import { identifierSeedSchema } from '../../schemas/typeGuard.schema'
 import { AbstractTransactionRole } from '../../interactions/sendToHiero/AbstractTransaction.role'
 import * as v from 'valibot'
+import * as fs from 'node:fs'
 
 const logger = getLogger(
   `${LOG4JS_BASE_CATEGORY}.migrations.db-v2.7.0_to_blockchain-v3.6.blockchain`,
 )
 export const defaultHieroAccount = new HieroAccountId(0, 0, 2)
 let transactionAddedToBlockchainSum = 0
+const sizeBuffer = Buffer.alloc(2)
 
 function addToBlockchain(
   builder: GradidoTransactionBuilder,
@@ -38,7 +40,18 @@ function addToBlockchain(
   createdAtTimestamp: Timestamp,
 ): boolean {
   const transaction = builder.build()
-  // TOD: use actual transaction id if exist in dlt_transactions table
+  /* const transactionSerializer = new InteractionSerialize(transaction)
+  const binTransaction = transactionSerializer.run()
+  if (!binTransaction) {
+    logger.error(`Failed to serialize transaction ${transaction.toJson(true)}`)
+    return false
+  }
+  const filePath = `${blockchain.getCommunityId()}.bin`
+  sizeBuffer.writeUInt16LE(binTransaction.size(), 0)
+  fs.appendFileSync(filePath, sizeBuffer)
+  fs.appendFileSync(filePath, binTransaction.data())
+  */
+  // TODO: use actual transaction id if exist in dlt_transactions table
   const transactionId = new HieroTransactionId(createdAtTimestamp, defaultHieroAccount)
   const interactionSerialize = new InteractionSerialize(transactionId)
 
@@ -51,7 +64,7 @@ function addToBlockchain(
     return result
   } catch (error) {
     logger.error(`Transaction ${transaction.toJson(true)} not added: ${error}`)
-    return false
+    return true
   }
 }
 
