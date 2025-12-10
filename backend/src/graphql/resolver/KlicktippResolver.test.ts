@@ -14,21 +14,18 @@ const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.Klicktip
 
 let testEnv: any
 let mutate: any
-let con: any
 let db: AppDatabase
 
 beforeAll(async () => {
   testEnv = await testEnvironment(logger)
   mutate = testEnv.mutate
-  con = testEnv.con
   db = testEnv.db
   await cleanDB()
 })
 
 afterAll(async () => {
   await cleanDB()
-  await con.destroy()
-  await db.getRedisClient().quit()
+  await db.destroy()
 })
 
 describe('KlicktippResolver', () => {
