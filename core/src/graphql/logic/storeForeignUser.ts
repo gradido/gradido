@@ -75,7 +75,7 @@ export async function storeForeignUser(
         if (committingResult.recipAlias !== null) {
           user.alias = committingResult.recipAlias
         }
-        if(user.emailContact === null && committingResult.recipEmail !== null) {
+        if(!user.emailContact && committingResult.recipEmail !== null) {
           logger.debug('creating new userContact:', new UserContactLoggingView(user.emailContact), committingResult)
           let foreignUserEmail = DbUserContact.create()
           foreignUserEmail.email = committingResult.recipEmail!
@@ -86,7 +86,7 @@ export async function storeForeignUser(
           user.emailContact = foreignUserEmail
           user.emailId = foreignUserEmail.id
         }
-        else if (user.emailContact !== null && committingResult.recipEmail != null) {
+        else if (user.emailContact && committingResult.recipEmail != null) {
           const userContact = user.emailContact
           userContact.email = committingResult.recipEmail
           user.emailContact = await DbUserContact.save(userContact)
