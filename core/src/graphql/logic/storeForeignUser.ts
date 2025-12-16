@@ -6,6 +6,7 @@ import { getLogger } from 'log4js'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../../config/const'
 import { SendCoinsResult } from '../../federation/client/1_0/model/SendCoinsResult'
 import { UserLoggingView, UserContactLoggingView } from 'database'
+import { UserContactType } from 'shared'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.logic.storeForeignUser`)
 
@@ -78,6 +79,7 @@ export async function storeForeignUser(
         if(!user.emailContact && committingResult.recipEmail !== null) {
           logger.debug('creating new userContact:', new UserContactLoggingView(user.emailContact), committingResult)
           let foreignUserEmail = DbUserContact.create()
+          foreignUserEmail.type = UserContactType.USER_CONTACT_EMAIL
           foreignUserEmail.email = committingResult.recipEmail!
           foreignUserEmail.emailChecked = true
           foreignUserEmail.user = user
