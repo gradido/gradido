@@ -83,6 +83,7 @@ export async function storeForeignUser(
           foreignUserEmail.email = committingResult.recipEmail!
           foreignUserEmail.emailChecked = true
           foreignUserEmail.user = user
+          foreignUserEmail.userId = user.id
           foreignUserEmail = await DbUserContact.save(foreignUserEmail)
           logger.debug('new foreignUserEmail inserted:', new UserContactLoggingView(foreignUserEmail))  
           user.emailContact = foreignUserEmail
