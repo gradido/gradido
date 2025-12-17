@@ -18,8 +18,8 @@
     "test:coverage": "cross-env TZ=UTC vitest run --coverage",
     "test:debug": "cross-env TZ=UTC node --inspect-brk ./node_modules/vitest/vitest.mjs",
     "test:watch": "cross-env TZ=UTC vitest",
-    "locales": "scripts/sort.sh",
-    "locales:fix": "scripts/sort.sh --fix",
+    "locales": "bun scripts/sortLocales.ts",
+    "locales:fix": "bun scripts/sortLocales.ts --fix",
     "clear": "rm -rf node_modules && rm -rf build && rm -rf .turbo"
   },
   "dependencies": {
