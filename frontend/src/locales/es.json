@@ -1,8 +1,8 @@
 {
-  "100": "100%",
-  "1000thanks": "1000 Gracias, por estar con nosotros!",
-  "125": "125%",
   "85": "85%",
+  "100": "100%",
+  "125": "125%",
+  "1000thanks": "1000 Gracias, por estar con nosotros!",
   "GDD": "GDD",
   "GDT": "GDT",
   "PersonalDetails": "Datos personales",
@@ -22,32 +22,32 @@
   },
   "back": "Volver",
   "card-circles": {
-    "headline": "Plataforma de cooperación «Círculos Gradido»",
-    "text": "Círculos locales, círculos de estudio, proyectos, ev entos y congresos",
     "allowed": {
       "button": "Abrir círculos..."
     },
+    "headline": "Plataforma de cooperación «Círculos Gradido»",
     "not-allowed": {
       "button": "Configurar..."
-    }
+    },
+    "text": "Círculos locales, círculos de estudio, proyectos, ev entos y congresos"
   },
   "card-user-search": {
-    "headline": "Búsqueda geográfica de miembros (beta)",
     "allowed": {
       "button": "Abrir búsqueda de miembros...",
       "disabled-button": "GMS offline...",
       "text": "Encuentra Miembros de todas las Comunidades en un Mapa."
     },
+    "headline": "Búsqueda geográfica de miembros (beta)",
+    "info": "Así se hace",
     "not-allowed": {
       "button": "Introducir ubicación...",
       "text": "Para encontrar otros miembros cerca de ti, ¡introduce ahora tu ubicación en el mapa!"
-    },
-    "info": "Así se hace"
+    }
   },
   "circles": {
+    "button": "Abrir Círculos...",
     "headline": "Juntos nos apoyamos - atentos a la cultura de los círculos.",
-    "text": "Haga clic en el botón para abrir la plataforma de cooperación en una nueva ventana del navegador.",
-    "button": "Abrir Círculos..."
+    "text": "Haga clic en el botón para abrir la plataforma de cooperación en una nueva ventana del navegador."
   },
   "community": {
     "admins": "Administradores",
@@ -60,8 +60,8 @@
     "moderators": "Moderadores",
     "myContributions": "Mis contribuciones al bien común",
     "noOpenContributionLinkText": "Actualmente no hay creaciones generadas por enlaces.",
-    "openContributionLinks": "Creaciones generadas por enlace",
     "openContributionLinkText": "Para créditos iniciales o fines similares, la comunidad puede crear los llamados enlaces de creación. Éstos activan creaciones automáticas que se acreditan al usuario.\nLa comunidad \"{name}\" admite actualmente {count} creaciones generadas por enlaces:",
+    "openContributionLinks": "Creaciones generadas por enlace",
     "other-communities": "Otras comunidades",
     "startNewsButton": "Enviar Gradidos",
     "statistic": "Estadísticas",
@@ -103,6 +103,7 @@
   },
   "copy-to-clipboard": "Copiar al portapapeles",
   "decay": {
+    "Starting_block_decay": "Startblock disminución gradual",
     "before_startblock_transaction": "Esta transacción no implica disminución en su valor.",
     "calculation_decay": "Cálculo de la disminución gradual del valor",
     "calculation_total": "Cálculo de la suma total",
@@ -111,7 +112,6 @@
     "decay_since_last_transaction": "Disminución gradual",
     "last_transaction": "Transacción anterior",
     "past_time": "Tiempo transcurrido",
-    "Starting_block_decay": "Startblock disminución gradual",
     "total": "Total",
     "types": {
       "creation": "Creado",
@@ -166,8 +166,8 @@
     "link_decay_description": "El importe del enlace se bloquea junto con la ransience máxima. Una vez que el enlace se ha canjeado, caducado o eliminado, el resto se libera de nuevo.",
     "memo": "Mensaje",
     "message": "Noticia",
-    "new_balance": "Saldo de cuenta nuevo depués de confirmación",
     "newPasswordRepeat": "Repetir contraseña nueva",
+    "new_balance": "Saldo de cuenta nuevo depués de confirmación",
     "no_gdd_available": "No dispones de GDD para enviar.",
     "password": "Contraseña",
     "passwordRepeat": "Repetir contraseña",
@@ -179,11 +179,11 @@
     "reset": "Restablecer",
     "save": "Guardar",
     "scann_code": "<strong>QR Code Scanner</strong> - Escanea el código QR de tu pareja",
-    "sender": "Remitente",
     "send_check": "Confirma tu transacción. Por favor revisa toda la información nuevamente!",
     "send_now": "Enviar ahora",
     "send_transaction_error": "Desafortunadamente, la transacción no se pudo ejecutar!",
     "send_transaction_success": "Su transacción fue ejecutada con éxito",
+    "sender": "Remitente",
     "sorry": "Disculpa",
     "thx": "Gracias",
     "time": "Tiempo",
@@ -295,6 +295,7 @@
   },
   "openHours": "Open Hours",
   "pageTitle": {
+    "circles": "Círculos Gradido",
     "contributions": "Cuchara Gradido",
     "gdt": "Tu GDT Transacciones",
     "information": "{community}",
@@ -302,7 +303,6 @@
     "send": "Enviar Gradidos",
     "settings": "Soporte",
     "transactions": "Tu Transacciones",
-    "circles": "Círculos Gradido",
     "usersearch": "Búsqueda geográfica de miembros (beta)"
   },
   "qrCode": "Código QR",
@@ -326,10 +326,10 @@
         "communityCoords": "Ubicación de tu comunidad: Lat {lat}, Lng {lng}",
         "communityLocationLabel": "Ubicación de tu comunidad",
         "headline": "Captura de ubicación geográfica del usuario",
-        "userCoords": "Tu ubicación: Lat {lat}, Lng {lng}",
-        "userLocationLabel": "Tu ubicación",
         "search": "Buscar una ubicación",
-        "success": "Ubicación guardada exitosamente"
+        "success": "Ubicación guardada exitosamente",
+        "userCoords": "Tu ubicación: Lat {lat}, Lng {lng}",
+        "userLocationLabel": "Tu ubicación"
       }
     },
     "language": {
@@ -414,9 +414,9 @@
     "send_you": "te envía"
   },
   "usersearch": {
+    "button": "Iniciar la búsqueda de usuarios...",
     "headline": "Búsqueda geográfica de usuarios",
-    "text": "No importa a qué comunidad pertenezcas, con el Geo Matching System puedes encontrar miembros de todas las comunidades en un mapa. Puedes filtrar según ofertas y requisitos y visualizar los usuarios que coinciden con tu perfil.\n\nEl botón abre una nueva ventana del navegador en la que se muestran en un mapa los usuarios de tu zona.",
-    "button": "Iniciar la búsqueda de usuarios..."
+    "text": "No importa a qué comunidad pertenezcas, con el Geo Matching System puedes encontrar miembros de todas las comunidades en un mapa. Puedes filtrar según ofertas y requisitos y visualizar los usuarios que coinciden con tu perfil.\n\nEl botón abre una nueva ventana del navegador en la que se muestran en un mapa los usuarios de tu zona."
   },
   "via_link": "atraves de un enlace",
   "welcome": "Bienvenido a la comunidad."
