@@ -16,6 +16,11 @@
   "back": "back",
   "change_user_role": "Change user role",
   "close": "Close",
+  "contribution": {
+    "confirmedBy": "Confirmed by {name}.",
+    "deletedBy": "Deleted by {name}.",
+    "deniedBy": "Denied by {name}."
+  },
   "contributionLink": {
     "amount": "Amount",
     "changeSaved": "Changes saved",
@@ -171,10 +176,11 @@
     "notice-tooltip": "The note is only visible to moderators",
     "memo": "Edit text",
     "memo-tooltip": "Edit the text of the contribution",
-    "memo-modified": "Text edited by moderator",
+    "memo-modified": "Text edited by {name}",
     "message": "Message",
     "message-tooltip": "Write message to user",
-    "request": "This message is only visible to the moderators!"
+    "request": "This message is only visible to the moderators!",
+    "who": "Who?"
   },
   "name": "Name",
   "navbar": {

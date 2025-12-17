@@ -23,15 +23,20 @@ query adminListContributions(
       contributionDate
       confirmedAt
       confirmedBy
+      confirmedByUserName
       updatedAt
-      updatedBy
+      updatedBy 
+      updatedByUserName
       contributionStatus
       messagesCount
       deniedAt
       deniedBy
+      deniedByUserName
       deletedAt
       deletedBy
+      deletedByUserName
       moderatorId
+      moderatorUserName
       userId
       resubmissionAt
     }

@@ -23,9 +23,11 @@ import {
   Contribution as DbContribution,
   Transaction as DbTransaction,
   User as DbUser,
+  findUserNamesByIds,
   getLastTransaction,
   UserContact,
 } from 'database'
+import DataLoader from 'dataloader'
 import { Decimal } from 'decimal.js-light'
 import { GraphQLResolveInfo } from 'graphql'
 import { getLogger } from 'log4js'
@@ -348,6 +350,7 @@ export class ContributionResolver {
   ): Promise<ContributionListResult> {
     // Check if only count was requested (without contributionList)
     const fields = Object.keys(extractGraphQLFields(info))
+    // console.log(`fields: ${fields}`)
     const countOnly: boolean = fields.includes('contributionCount') && fields.length === 1
     // check if related user was requested
     const userRequested =
@@ -370,8 +373,32 @@ export class ContributionResolver {
       },
       countOnly,
     )
+    const result = new ContributionListResult(count, dbContributions)
 
-    return new ContributionListResult(count, dbContributions)
+    const dataLoader = new DataLoader(async (userIds: readonly number[]) => {
+      const uniqueUserIds = new Set<number>()
+      userIds.forEach((userId) => uniqueUserIds.add(userId))
+      const users = await findUserNamesByIds(Array.from(uniqueUserIds))
+      return userIds.map((userId) => users.get(userId))
+    })
+    for (const contribution of result.contributionList) {
+      if (contribution.confirmedBy) {
+        contribution.confirmedByUserName = await dataLoader.load(contribution.confirmedBy)
+      }
+      if (contribution.updatedBy) {
+        contribution.updatedByUserName = await dataLoader.load(contribution.updatedBy)
+      }
+      if (contribution.moderatorId) {
+        contribution.moderatorUserName = await dataLoader.load(contribution.moderatorId)
+      }
+      if (contribution.deletedBy) {
+        contribution.deletedByUserName = await dataLoader.load(contribution.deletedBy)
+      }
+      if (contribution.deniedBy) {
+        contribution.deniedByUserName = await dataLoader.load(contribution.deniedBy)
+      }
+    }
+    return result
   }
 
   @Authorized([RIGHTS.ADMIN_DELETE_CONTRIBUTION])

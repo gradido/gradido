@@ -16,6 +16,11 @@
   "back": "zurück",
   "change_user_role": "Nutzerrolle ändern",
   "close": "Schließen",
+  "contribution": {
+    "confirmedBy": "Bestätigt von {name}.",
+    "deletedBy": "Gelöscht von {name}.",
+    "deniedBy": "Abgelehnt von {name}."
+  },
   "contributionLink": {
     "amount": "Betrag",
     "changeSaved": "Änderungen gespeichert",
@@ -171,10 +176,11 @@
     "notice-tooltip": "Die Notiz ist nur für Moderatoren sichtbar",
     "memo": "Text ändern",
     "memo-tooltip": "Den Beitragstext bearbeiten",
-    "memo-modified": "Text vom Moderator bearbeitet.",
+    "memo-modified": "Text von {name} bearbeitet.",
     "message": "Nachricht",
     "message-tooltip": "Nachricht an Benutzer schreiben",
-    "request": "Diese Nachricht ist nur für die Moderatoren sichtbar!"
+    "request": "Diese Nachricht ist nur für die Moderatoren sichtbar!",
+    "who": "Wer?"
   },
   "name": "Name",
   "navbar": {

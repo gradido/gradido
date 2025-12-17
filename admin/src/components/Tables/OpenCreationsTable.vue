@@ -30,9 +30,9 @@
       </template>
       <template #cell(memo)="row">
         {{ row.value }}
-        <small v-if="row.item.updatedBy > 0">
+        <small v-if="isAddCommentToMemo(row.item)">
           <hr />
-          {{ $t('moderator.memo-modified') }}
+          {{ getMemoComment(row.item) }}
         </small>
       </template>
       <template #cell(editCreation)="row">
@@ -228,6 +228,27 @@ export default {
         this.openRow = row
         this.creationUserData = row.item
       }
+    },
+    isAddCommentToMemo(item) {
+      return item.updatedBy > 0 || item.confirmedBy > 0 || item.deletedBy > 0 || item.deniedBy > 0
+    },
+    getMemoComment(item) {
+      let comment = ''
+      if (item.confirmedBy > 0) {
+        comment = this.$t('contribution.confirmedBy', { name: item.confirmedByUserName })
+      } else if (item.deletedBy > 0) {
+        comment = this.$t('contribution.deletedBy', { name: item.deletedByUserName })
+      } else if (item.deniedBy > 0) {
+        comment = this.$t('contribution.deniedBy', { name: item.deniedByUserName })
+      }
+
+      if (item.updatedBy > 0) {
+        if (comment.length) {
+          comment += ' '
+        }
+        comment += this.$t('moderator.memo-modified', { name: item.updatedByUserName })
+      }
+      return comment
     },
     addClipboardListener() {
       document.addEventListener('copy', this.handleCopy)
