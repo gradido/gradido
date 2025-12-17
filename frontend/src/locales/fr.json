@@ -1,10 +1,10 @@
 {
+  "85": "85%",
+  "100": "100%",
+  "125": "125%",
   "(": "(",
   ")": ")",
-  "100": "100%",
   "1000thanks": "1000 mercis d'être avec nous!",
-  "125": "125%",
-  "85": "85%",
   "GDD": "GDD",
   "GDT": "GDT",
   "PersonalDetails": "Informations personnelles",
@@ -24,32 +24,32 @@
   },
   "back": "Retour",
   "card-circles": {
-    "headline": "Plate-forme de coopération «Cercles Gradido»",
-    "text": "Cercles locaux, cercles d'études, projets, événements et congrès",
     "allowed": {
       "button": "Ouvrir les cercles..."
     },
+    "headline": "Plate-forme de coopération «Cercles Gradido»",
     "not-allowed": {
       "button": "Configurer..."
-    }
+    },
+    "text": "Cercles locaux, cercles d'études, projets, événements et congrès"
   },
   "card-user-search": {
-    "headline": "Recherche géographique de membres (bêta)",
     "allowed": {
       "button": "Ouvrir la recherche de membres...",
       "disabled-button": "GMS offline...",
       "text": "Trouve des membres de toutes les communautés sur une carte."
     },
+    "headline": "Recherche géographique de membres (bêta)",
+    "info": "Comment ça marche",
     "not-allowed": {
       "button": "Indiquer ta position...",
       "text": "Pour trouver d'autres membres près de chez toi, indique dès maintenant ta position sur la carte!"
-    },
-    "info": "Comment ça marche"
+    }
   },
   "circles": {
+    "button": "Ouvrir les Cercles...",
     "headline": "Ensemble, nous nous soutenons mutuellement - attentifs à la culture du cercle.",
-    "text": "En cliquant sur le bouton, tu ouvres la plateforme de coopération dans une nouvelle fenêtre de navigation.",
-    "button": "Ouvrir les Cercles..."
+    "text": "En cliquant sur le bouton, tu ouvres la plateforme de coopération dans une nouvelle fenêtre de navigation."
   },
   "community": {
     "admins": "Administrateurs",
@@ -61,8 +61,8 @@
     "moderators": "Modérateurs",
     "myContributions": "Mes contributions",
     "noOpenContributionLinkText": "Actuellement, il n'y a pas de créations générées par lien.",
-    "openContributionLinks": "Créations générées par lien",
     "openContributionLinkText": "Pour les crédits de départ ou à des fins similaires, la communauté peut créer des \"liens de création\". Ils déclenchent des créations automatiques qui sont créditées à l'utilisateur.\nLa communauté \"{name}\" soutient actuellement {count} créations générées par lien:",
+    "openContributionLinks": "Créations générées par lien",
     "startNewsButton": "Envoyer des gradidos",
     "submitContribution": "Contribuer"
   },
@@ -106,6 +106,7 @@
   "copy-to-clipboard": "Copier dans le presse-papier",
   "creation": "Création",
   "decay": {
+    "Starting_block_decay": "Début de la décroissance",
     "before_startblock_transaction": "Cette transaction n'est pas péremptoire.",
     "calculation_decay": "Calcul de la décroissance",
     "calculation_total": "Calcul du montant total",
@@ -114,7 +115,6 @@
     "decay_since_last_transaction": "Décroissance depuis la dernière transaction",
     "last_transaction": "Dernière transaction:",
     "past_time": "Le temps a expiré",
-    "Starting_block_decay": "Début de la décroissance",
     "total": "Total",
     "types": {
       "creation": "Créé",
@@ -172,8 +172,8 @@
     "link_decay_description": "Le montant du lien est bloqué avec le dépérissement maximale. Une fois le lien utilisé, expiré ou supprimé, le reste est à nouveau débloqué.",
     "memo": "Note",
     "message": "Message",
-    "new_balance": "Montant du solde après confirmation",
     "newPasswordRepeat": "Répétez le nouveau mot de passe",
+    "new_balance": "Montant du solde après confirmation",
     "no_gdd_available": "Vous n'avez pas de GDD à envoyer.",
     "password": "Mot de passe",
     "passwordRepeat": "Répétez le mot de passe",
@@ -185,11 +185,11 @@
     "reset": "Réinitialiser",
     "save": "Sauvegarder",
     "scann_code": "<strong>QR Code Scanner</strong> - Scannez le QR code de votre partenaire",
-    "sender": "Expéditeur",
     "send_check": "Confirmez la transaction. Veuillez revérifier toutes les données svp!",
     "send_now": "Envoyez maintenant",
     "send_transaction_error": "Malheureusement, la transaction n'a pas pu être effectuée!",
     "send_transaction_success": "Votre transaction a été effectuée avec succès",
+    "sender": "Expéditeur",
     "sorry": "Désolé",
     "thx": "Merci",
     "to": "à",
@@ -303,6 +303,7 @@
   },
   "openHours": "Heures ouverte",
   "pageTitle": {
+    "circles": "Cercles Gradido",
     "contributions": "Ma communauté",
     "gdt": "Vos transactions GDT",
     "information": "{community}",
@@ -310,7 +311,6 @@
     "send": "Envoyé Gradidos",
     "settings": "Configuration",
     "transactions": "Vos transactions",
-    "circles": "Cercles Gradido",
     "usersearch": "Recherche géographique de membres (bèta)"
   },
   "qrCode": "QR Code",
@@ -334,10 +334,10 @@
         "communityCoords": "Emplacement de votre communauté : Lat {lat}, Long {lng}",
         "communityLocationLabel": "Emplacement de votre communauté",
         "headline": "Capture de la localisation géographique de l'utilisateur",
-        "userCoords": "Votre emplacement : Lat {lat}, Long {lng}",
-        "userLocationLabel": "Votre emplacement",
         "search": "Rechercher un emplacement",
-        "success": "Emplacement enregistré avec succès"
+        "success": "Emplacement enregistré avec succès",
+        "userCoords": "Votre emplacement : Lat {lat}, Long {lng}",
+        "userLocationLabel": "Votre emplacement"
       }
     },
     "hideAmountGDD": "Votre montant GDD est caché.",
@@ -422,9 +422,9 @@
     "send_you": "veut vous envoyer"
   },
   "usersearch": {
+    "button": "Commence la recherche d'utilisateurs...",
     "headline": "Recherche géographique d'utilisateurs",
-    "text": "Quelle que soit la communauté à laquelle tu appartiens, le système de géo-matching te permet de trouver des membres de toutes les communautés sur une carte géographique. Tu peux filtrer selon les offres et les besoins et afficher les utilisateurs qui te correspondent.\n\nEn cliquant sur le bouton, une nouvelle fenêtre de navigateur s'ouvre et t'affiche les utilisateurs de ton entourage sur une carte.",
-    "button": "Commence la recherche d'utilisateurs..."
+    "text": "Quelle que soit la communauté à laquelle tu appartiens, le système de géo-matching te permet de trouver des membres de toutes les communautés sur une carte géographique. Tu peux filtrer selon les offres et les besoins et afficher les utilisateurs qui te correspondent.\n\nEn cliquant sur le bouton, une nouvelle fenêtre de navigateur s'ouvre et t'affiche les utilisateurs de ton entourage sur une carte."
   },
   "via_link": "par lien",
   "welcome": "Bienvenu dans la communauté"
