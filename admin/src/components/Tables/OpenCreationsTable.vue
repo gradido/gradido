@@ -14,7 +14,13 @@
         <IBiBellFill v-else-if="row.item.contributionStatus === 'PENDING'" />
         <IBiCheck v-else-if="row.item.contributionStatus === 'CONFIRMED'" />
         <IBiXCircle v-else-if="row.item.contributionStatus === 'DENIED'" />
-        <IBiTrash v-else-if="row.item.contributionStatus === 'DELETED'" />
+        <IBiTrash
+          v-else-if="row.item.contributionStatus === 'DELETED'"
+          class="p-1"
+          width="24"
+          height="24"
+          style="background-color: #dc3545; color: white"
+        />
       </template>
       <template #cell(bookmark)="row">
         <div v-if="!myself(row.item)">
@@ -253,5 +259,10 @@ export default {
 .btn-warning {
   background-color: #e1a908;
   border-color: #e1a908;
+}
+
+.table-danger {
+  --bs-table-bg: #e78d8d;
+  --bs-table-striped-bg: #e57373;
 }
 </style>
