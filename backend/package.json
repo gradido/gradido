@@ -60,7 +60,6 @@
     "core": "*",
     "cors": "^2.8.5",
     "database": "*",
-    "dataloader": "^2.2.3",
     "decimal.js-light": "^2.5.1",
     "dotenv": "^10.0.0",
     "esbuild": "^0.25.2",

@@ -27,7 +27,6 @@ import {
   getLastTransaction,
   UserContact,
 } from 'database'
-import DataLoader from 'dataloader'
 import { Decimal } from 'decimal.js-light'
 import { GraphQLResolveInfo } from 'graphql'
 import { getLogger } from 'log4js'
@@ -375,28 +374,32 @@ export class ContributionResolver {
     )
     const result = new ContributionListResult(count, dbContributions)
 
-    const dataLoader = new DataLoader(async (userIds: readonly number[]) => {
-      const uniqueUserIds = new Set<number>()
-      userIds.forEach((userId) => uniqueUserIds.add(userId))
-      const users = await findUserNamesByIds(Array.from(uniqueUserIds))
-      return userIds.map((userId) => users.get(userId))
-    })
+    const uniqueUserIds = new Set<number>()
+    const addIfExist = (userId?: number | null) => {
+      if (userId) {
+        uniqueUserIds.add(userId)
+      }
+    }
+    const getNameById = (userId?: number | null) => {
+      if (userId) {
+        return users.get(userId)
+      }
+      return null
+    }
     for (const contribution of result.contributionList) {
-      if (contribution.confirmedBy) {
-        contribution.confirmedByUserName = await dataLoader.load(contribution.confirmedBy)
-      }
-      if (contribution.updatedBy) {
-        contribution.updatedByUserName = await dataLoader.load(contribution.updatedBy)
-      }
-      if (contribution.moderatorId) {
-        contribution.moderatorUserName = await dataLoader.load(contribution.moderatorId)
-      }
-      if (contribution.deletedBy) {
-        contribution.deletedByUserName = await dataLoader.load(contribution.deletedBy)
-      }
-      if (contribution.deniedBy) {
-        contribution.deniedByUserName = await dataLoader.load(contribution.deniedBy)
-      }
+      addIfExist(contribution.confirmedBy)
+      addIfExist(contribution.updatedBy)
+      addIfExist(contribution.moderatorId)
+      addIfExist(contribution.deletedBy)
+      addIfExist(contribution.deniedBy)
+    }
+    const users = await findUserNamesByIds(Array.from(uniqueUserIds))
+    for (const contribution of result.contributionList) {
+      contribution.confirmedByUserName = getNameById(contribution.confirmedBy)
+      contribution.updatedByUserName = getNameById(contribution.updatedBy)
+      contribution.moderatorUserName = getNameById(contribution.moderatorId)
+      contribution.deletedByUserName = getNameById(contribution.deletedBy)
+      contribution.deniedByUserName = getNameById(contribution.deniedBy)
     }
     return result
   }
