@@ -14,6 +14,7 @@ export class SendCoinsResultLoggingView extends AbstractLoggingView {
       recipFirstName: this.self.recipFirstName?.substring(0, 3),
       recipLastName: this.self.recipLastName?.substring(0, 3),
       recipAlias: this.self.recipAlias?.substring(0, 3),
+      recipEmail: this.self.recipEmail?.substring(0, 3),
     }
   }
 }

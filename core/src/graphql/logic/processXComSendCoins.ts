@@ -25,6 +25,7 @@ import {
 import { randombytes_random } from 'sodium-native'
 import { CONFIG as CONFIG_CORE } from '../../config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../../config/const'
+import { sendTransactionLinkRedeemedEmail, sendTransactionReceivedEmail } from '../../emails'
 import { SendCoinsResultLoggingView } from '../../federation/client/1_0/logging/SendCoinsResultLogging.view'
 import { SendCoinsResult } from '../../federation/client/1_0/model/SendCoinsResult'
 import { SendCoinsClient as V1_0_SendCoinsClient } from '../../federation/client/1_0/SendCoinsClient'
@@ -167,6 +168,31 @@ export async function processXComCompleteTransaction(
           )
         }
       }
+
+      await sendTransactionReceivedEmail({
+        firstName: foreignUser.firstName,
+        lastName: foreignUser.lastName,
+        email: foreignUser.emailContact.email,
+        language: foreignUser.language,
+        memo,
+        senderFirstName: senderUser.firstName,
+        senderLastName: senderUser.lastName,
+        senderEmail: senderUser.emailContact.email,
+        transactionAmount: new Decimal(amount),
+      })
+      if (dbTransactionLink) {
+        await sendTransactionLinkRedeemedEmail({
+          firstName: senderUser.firstName,
+          lastName: senderUser.lastName,
+          email: senderUser.emailContact.email,
+          language: senderUser.language,
+          senderFirstName: foreignUser.firstName,
+          senderLastName: foreignUser.lastName,
+          senderEmail: foreignUser.emailContact.email,
+          transactionAmount: new Decimal(amount),
+          transactionMemo: memo,
+        })
+      }
     }
   } catch (err) {
     const errmsg =
@@ -227,7 +253,7 @@ export async function processXComPendingSendCoins(
 
     const receiverFCom = await DbFederatedCommunity.findOneOrFail({
       where: {
-        publicKey: Buffer.from(receiverCom.publicKey),
+        publicKey: receiverCom.publicKey,
         apiVersion: CONFIG_CORE.FEDERATION_BACKEND_SEND_ON_API,
       },
     })
@@ -483,6 +509,7 @@ export async function processXComCommittingSendCoins(
               }
               sendCoinsResult.recipGradidoID = pendingTx.linkedUserGradidoID
               sendCoinsResult.recipAlias = recipient.recipAlias
+              sendCoinsResult.recipEmail = recipient.recipEmail
             }
           } catch (err) {
             methodLogger.error(
