@@ -1,8 +1,8 @@
 {
-  "100": "100%",
-  "1000thanks": "1000 dank, omdat je bij ons bent!",
-  "125": "125%",
   "85": "85%",
+  "100": "100%",
+  "125": "125%",
+  "1000thanks": "1000 dank, omdat je bij ons bent!",
   "GDD": "GDD",
   "GDT": "GDT",
   "PersonalDetails": "Persoonlijke gegevens",
@@ -22,32 +22,32 @@
   },
   "back": "Terug",
   "card-circles": {
-    "headline": "Samenwerkingsplatform “Gradido Kringen”",
-    "text": "Lokale kringen, studiekringen, projecten, evenementen en congressen",
     "allowed": {
       "button": "Kringen openen..."
     },
+    "headline": "Samenwerkingsplatform “Gradido Kringen”",
     "not-allowed": {
       "button": "Configureren..."
-    }
+    },
+    "text": "Lokale kringen, studiekringen, projecten, evenementen en congressen"
   },
   "card-user-search": {
-    "headline": "Geografisch leden zoeken (bèta)",
     "allowed": {
       "button": "Leden zoeken openen...",
       "disabled-button": "GMS offline...",
       "text": "Vind leden van alle gemeenschappen op een kaart."
     },
+    "headline": "Geografisch leden zoeken (bèta)",
+    "info": "Zo gaat dat",
     "not-allowed": {
       "button": "Locatie invoeren",
       "text": "Om andere leden in jouw omgeving te vinden, voer nu je locatie in op de kaart!"
-    },
-    "info": "Zo gaat dat"
+    }
   },
   "circles": {
+    "button": "Cirkels openen...",
     "headline": "Samen ondersteunen we elkaar - mindful in de cirkelcultuur.",
-    "text": "Klik op de knop om het samenwerkingsplatform te openen in een nieuw browservenster.",
-    "button": "Cirkels openen..."
+    "text": "Klik op de knop om het samenwerkingsplatform te openen in een nieuw browservenster."
   },
   "community": {
     "admins": "Beheerders",
@@ -60,8 +60,8 @@
     "moderators": "Moderators",
     "myContributions": "Mijn bijdragen voor het algemeen belang",
     "noOpenContributionLinkText": "Er zijn momenteel geen link-gegenereerde creaties.",
-    "openContributionLinks": "Creaties gegenereerd door link",
     "openContributionLinkText": "Voor startcredits of soortgelijke doeleinden kan de community zogenaamde creatielinks maken. Deze activeren automatische creaties die worden gecrediteerd aan de gebruiker.\nDe community \"{name}\" ondersteunt momenteel {count} link-gegenereerde creaties:",
+    "openContributionLinks": "Creaties gegenereerd door link",
     "other-communities": "Verdere gemeenschappen",
     "startNewsButton": "Stuur Gradidos",
     "statistic": "Statistieken",
@@ -103,6 +103,7 @@
   },
   "copy-to-clipboard": "Kopieer naar klembord",
   "decay": {
+    "Starting_block_decay": "Startblok vergankelijkheid",
     "before_startblock_transaction": "Deze transactie heeft geen vergankelijkheid.",
     "calculation_decay": "Berekening van de vergankelijkheid",
     "calculation_total": "Berekening van het totaalbedrag",
@@ -111,7 +112,6 @@
     "decay_since_last_transaction": "Vergankelijkheid sinds de laatste transactie",
     "last_transaction": "Laatste transactie",
     "past_time": "Verlopen tijd",
-    "Starting_block_decay": "Startblok vergankelijkheid",
     "total": "Totaal",
     "types": {
       "creation": "Gecreëerd",
@@ -166,8 +166,8 @@
     "link_decay_description": "Het linkbedrag wordt geblokkeerd samen met de maximale vergankelijkheid. Nadat de link is ingewisseld, verlopen of verwijderd, wordt het resterende bedrag weer vrijgegeven.",
     "memo": "Memo",
     "message": "Bericht",
-    "new_balance": "Nieuw banksaldo na bevestiging",
     "newPasswordRepeat": "Nieuw wachtwoord herhalen",
+    "new_balance": "Nieuw banksaldo na bevestiging",
     "no_gdd_available": "Je hebt geen GDD om te versturen.",
     "password": "Wachtwoord",
     "passwordRepeat": "Wachtwoord herhalen",
@@ -179,11 +179,11 @@
     "reset": "Resetten",
     "save": "Opslaan",
     "scann_code": "<strong>QR Code Scanner</strong> - Scan de QR Code van uw partner",
-    "sender": "Afzender",
     "send_check": "Bevestig jouw transactie. Controleer alsjeblieft nogmaals alle gegevens!",
     "send_now": "Nu versturen",
     "send_transaction_error": "Helaas kon de transactie niet uitgevoerd worden!",
     "send_transaction_success": " Jouw transactie werd succesvol uitgevoerd ",
+    "sender": "Afzender",
     "sorry": "Sorry",
     "thx": "Dankjewel",
     "time": "Tijd",
@@ -295,6 +295,7 @@
   },
   "openHours": "Open Hours",
   "pageTitle": {
+    "circles": "Gradido Kringen",
     "contributions": "Gradido scoop",
     "gdt": "Your GDT transactions",
     "information": "{community}",
@@ -302,7 +303,6 @@
     "send": "Send Gradidos",
     "settings": "Settings",
     "transactions": "Your transactions",
-    "circles": "Gradido Kringen",
     "usersearch": "Geografisch leden zoeken (bèta)"
   },
   "qrCode": "QR Code",
@@ -326,10 +326,10 @@
         "communityCoords": "Locatie van je gemeenschap: Lat {lat}, Lng {lng}",
         "communityLocationLabel": "Locatie van je gemeenschap",
         "headline": "Geografische locatiebepaling van de gebruiker",
-        "userCoords": "Jouw locatie: Lat {lat}, Lng {lng}",
-        "userLocationLabel": "Jouw locatie",
         "search": "Zoek een locatie",
-        "success": "Locatie succesvol opgeslagen"
+        "success": "Locatie succesvol opgeslagen",
+        "userCoords": "Jouw locatie: Lat {lat}, Lng {lng}",
+        "userLocationLabel": "Jouw locatie"
       }
     },
     "language": {
@@ -414,9 +414,9 @@
     "send_you": "stuurt jou"
   },
   "usersearch": {
+    "button": "Start het zoeken naar gebruikers...",
     "headline": "Geografisch zoeken naar gebruikers",
-    "text": "Het maakt niet uit tot welke community je behoort, met het Geo Matching System kun je leden van alle communities vinden op een kaart. Je kunt filteren op aanbiedingen en vereisten en de gebruikers weergeven die aan je profiel voldoen.\n\nDe knop opent een nieuw browservenster waarin de gebruikers in je omgeving op een kaart worden weergegeven.",
-    "button": "Start het zoeken naar gebruikers..."
+    "text": "Het maakt niet uit tot welke community je behoort, met het Geo Matching System kun je leden van alle communities vinden op een kaart. Je kunt filteren op aanbiedingen en vereisten en de gebruikers weergeven die aan je profiel voldoen.\n\nDe knop opent een nieuw browservenster waarin de gebruikers in je omgeving op een kaart worden weergegeven."
   },
   "via_link": "via een link",
   "welcome": "Welkom in de gemeenschap"

@@ -1,21 +1,21 @@
 {
+  "85": "85%",
+  "100": "100%",
+  "125": "125%",
   "(": "(",
   ")": ")",
-  "100": "100%",
   "1000thanks": "1000 thanks for being with us!",
-  "125": "125%",
-  "85": "85%",
   "Chat": "Chat",
   "GDD": "GDD",
   "GDD-long": "Gradido",
   "GDT": "GDT",
   "GMS": {
-    "title": "Geo Matching System GMS (in develop)",
-    "desc": "Find members of all communities on a map."
+    "desc": "Find members of all communities on a map.",
+    "title": "Geo Matching System GMS (in develop)"
   },
   "Humhub": {
-    "title": "Gradido-circles",
-    "desc": "Together we support each other - mindful in circle culture."
+    "desc": "Together we support each other - mindful in circle culture.",
+    "title": "Gradido-circles"
   },
   "PersonalDetails": "Personal details",
   "advanced-calculation": "Advanced calculation",
@@ -34,27 +34,27 @@
   },
   "back": "Back",
   "card-circles": {
-    "headline": "Cooperation platform “Gradido Circles”",
-    "text": "Local circles, study circles, projects, events and congresses",
     "allowed": {
       "button": "Open Circles..."
     },
+    "headline": "Cooperation platform “Gradido Circles”",
     "not-allowed": {
       "button": "Configurate..."
-    }
+    },
+    "text": "Local circles, study circles, projects, events and congresses"
   },
   "card-user-search": {
-    "headline": "Geographic member search (beta)",
     "allowed": {
       "button": "Open member search...",
       "disabled-button": "GMS offline...",
       "text": "Find Members of all Communities on a Map."
     },
+    "headline": "Geographic member search (beta)",
+    "info": "How it works",
     "not-allowed": {
       "button": "Enter location...",
       "text": "To find other members in your area, enter your location on the map now!"
-    },
-    "info": "How it works"
+    }
   },
   "community": {
     "admins": "Administrators",
@@ -95,8 +95,8 @@
     "lastContribution": "Last Contributions",
     "noContributions": {
       "allContributions": "No contributions have been submitted yet.",
-      "myContributions": "You have not submitted any entries yet.",
-      "emptyPage": "This page is empty."
+      "emptyPage": "This page is empty.",
+      "myContributions": "You have not submitted any entries yet."
     },
     "noOpenCreation": {
       "allMonth": "For all two months your creation limit is reached. The next month you can create 1000 GDD again.",
@@ -117,6 +117,7 @@
   "copy-to-clipboard": "Copy to clipboard",
   "creation": "Creation",
   "decay": {
+    "Starting_block_decay": "Starting Block Decay",
     "before_startblock_transaction": "This transaction does not include decay.",
     "calculation_decay": "Calculation of Decay",
     "calculation_total": "Calculation of the total Amount",
@@ -127,7 +128,6 @@
     "new_balance": "New balance",
     "old_balance": "Previous balance",
     "past_time": "Time passed",
-    "Starting_block_decay": "Starting Block Decay",
     "total": "Total",
     "types": {
       "creation": "Created",
@@ -186,8 +186,8 @@
     "link_decay_description": "The link amount is blocked along with the maximum decay. After the link has been redeemed, expired, or deleted, the rest is released again.",
     "memo": "Message",
     "message": "Message",
-    "new_balance": "Account balance after confirmation",
     "newPasswordRepeat": "Repeat new password",
+    "new_balance": "Account balance after confirmation",
     "no_gdd_available": "You do not have GDD to send.",
     "ok": "Ok",
     "password": "Password",
@@ -201,11 +201,11 @@
     "reset": "Reset",
     "save": "Save",
     "scann_code": "<strong>QR Code Scanner</strong> - Scan the QR Code of your partner",
-    "sender": "Sender",
     "send_check": "Confirm your transaction. Please check all data again!",
     "send_now": "Send now",
     "send_transaction_error": "Unfortunately, the transaction could not be executed!",
     "send_transaction_success": "Your transaction was successfully completed",
+    "sender": "Sender",
     "sorry": "Sorry",
     "thx": "Thank you",
     "to": "to",
@@ -214,28 +214,28 @@
     "username-placeholder": "Choose your username",
     "validation": {
       "amount": {
-        "min": "The amount should be at least {min} in size.",
-        "max": "The amount should not be larger than {max}.",
         "decimal-places": "The amount should contain a maximum of two decimal places.",
+        "max": "The amount should not be larger than {max}.",
+        "min": "The amount should be at least {min} in size.",
         "typeError": "The amount should be a number between {min} and {max} with at most two digits after the decimal point."
       },
       "contributionDate": {
-        "required": "The contribution date is a required field.",
+        "max": "The latest contribution date is today, {max}.",
         "min": "The earliest contribution date is {min}.",
-        "max": "The latest contribution date is today, {max}."
+        "required": "The contribution date is a required field."
       },
       "contributionMemo": {
-        "min": "The job description should be at least {min} characters long.",
         "max": "The job description should not be longer than {max} characters.",
+        "min": "The job description should be at least {min} characters long.",
         "required": "The job description is required."
       },
+      "gddSendAmount": "The {_field_} field must be a number between {min} and {max} with at most two digits after the decimal point.",
       "hours": {
-        "min": "The hours should be at least {min} in size.",
-        "max": "The hours should not be larger than {max}.",
         "decimal-places": "The hours should contain a maximum of two decimal places.",
+        "max": "The hours should not be larger than {max}.",
+        "min": "The hours should be at least {min} in size.",
         "typeError": "The hours should be a number between {min} and {max} with at most two digits after the decimal point."
       },
-      "gddSendAmount": "The {_field_} field must be a number between {min} and {max} with at most two digits after the decimal point.",
       "identifier": {
         "communityIsReachable": "Community not found our not reachable!",
         "required": "The recipient is a required field.",
@@ -243,8 +243,8 @@
       },
       "is-not": "You cannot send Gradidos to yourself!",
       "memo": {
-        "min": "The message should be at least {min} characters long.",
         "max": "The message should not be longer than {max} characters.",
+        "min": "The message should be at least {min} characters long.",
         "required": "The message is required."
       },
       "requiredField": "The {fieldName} field is required",
@@ -347,6 +347,7 @@
   },
   "openHours": "Open Hours",
   "pageTitle": {
+    "circles": "Gradido Circles",
     "contributions": "Create Gradido",
     "gdt": "Your GDT transactions",
     "information": "{community}",
@@ -354,7 +355,6 @@
     "send": "Send Gradidos",
     "settings": "Settings",
     "transactions": "Your transactions",
-    "circles": "Gradido Circles",
     "usersearch": "Geographic member search (beta)"
   },
   "qrCode": "QR Code",
@@ -367,8 +367,6 @@
     "warningText": "Are you still there?"
   },
   "settings": {
-    "community": "Community",
-    "emailInfo": "Cannot be changed at this time.",
     "GMS": {
       "disabled": "Data not exported to GMS",
       "enabled": "Data exported to GMS",
@@ -383,20 +381,22 @@
         "communityCoords": "Your Community Location: Lat {lat}, Lng {lng}",
         "communityLocationLabel": "Your Community-Location",
         "headline": "Geographic Location-Capturing of the User",
+        "search": "Search for a location",
         "userCoords": "Your Location: Lat {lat}, Lng {lng}",
-        "userLocationLabel": "Your Location",
-        "search": "Search for a location"
+        "userLocationLabel": "Your Location"
       },
       "naming-format": "Show Name:",
       "publish-location": {
-        "exact": "exact position",
         "approximate": "approximate position",
+        "exact": "exact position",
         "updated": "format of location for GMS updated"
       },
       "publish-name": {
         "updated": "format of name for GMS updated"
       }
     },
+    "community": "Community",
+    "emailInfo": "Cannot be changed at this time.",
     "hideAmountGDD": "Your GDD amount is hidden.",
     "hideAmountGDT": "Your GDT amount is hidden.",
     "humhub": {
@@ -448,9 +448,9 @@
       "alias-or-initials": "Username or initials (Default)",
       "alias-or-initials-tooltip": "username, if available, or the initials of the first name and last name, the first two letters in each case",
       "first": "Firstname",
-      "first-tooltip": "the first name only",
       "first-initial": "First name and initial",
       "first-initial-tooltip": "first name plus the first letter of the last name",
+      "first-tooltip": "the first name only",
       "initials": "Initials",
       "initials-tooltip": "Initials of first name and last name, i.e. the first two letters of each regardless of the existence of the user name",
       "name-full": "first name and last name",
@@ -507,9 +507,9 @@
     "send_you": "wants to send you"
   },
   "usersearch": {
+    "button": "Start user search... ",
     "headline": "Geographical User Search",
-    "text": "No matter which community you belong to, with the Geo Matching System you can find members of all communities on a map. You can filter according to offers and needs and display the users that match you.\n\nThe button opens a new browser window in which the users in your area are displayed on a map.",
-    "button": "Start user search... "
+    "text": "No matter which community you belong to, with the Geo Matching System you can find members of all communities on a map. You can filter according to offers and needs and display the users that match you.\n\nThe button opens a new browser window in which the users in your area are displayed on a map."
   },
   "via_link": "via Link",
   "welcome": "Welcome to the community"
