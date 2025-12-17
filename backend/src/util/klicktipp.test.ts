@@ -1,7 +1,6 @@
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { AppDatabase, Event as DbEvent } from 'database'
-import { DataSource } from 'typeorm'
 
 import { addFieldsToSubscriber } from '@/apis/KlicktippController'
 import { creations } from '@/seeds/creation'
@@ -17,27 +16,23 @@ jest.mock('@/apis/KlicktippController')
 jest.mock('@/password/EncryptorUtils')
 
 let mutate: ApolloServerTestClient['mutate']
-let con: DataSource
 let db: AppDatabase
 let testEnv: {
   mutate: ApolloServerTestClient['mutate']
   query: ApolloServerTestClient['query']
-  con: DataSource
   db: AppDatabase
 }
 
 beforeAll(async () => {
   testEnv = await testEnvironment()
   mutate = testEnv.mutate
-  con = testEnv.con
   db = testEnv.db
   await DbEvent.clear()
 })
 
 afterAll(async () => {
   await cleanDB()
-  await con.destroy()
-  await db.getRedisClient().quit()
+  await db.destroy()
 })
 
 describe('klicktipp', () => {
