@@ -1,12 +1,15 @@
-import { Community as DbCommunity, 
-  User as DbUser, 
-  UserContact as DbUserContact, 
-  findForeignUserByUuids } from 'database'
+import {
+  Community as DbCommunity,
+  User as DbUser,
+  UserContact as DbUserContact,
+  findForeignUserByUuids,
+  UserContactLoggingView,
+  UserLoggingView,
+} from 'database'
 import { getLogger } from 'log4js'
+import { UserContactType } from 'shared'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../../config/const'
 import { SendCoinsResult } from '../../federation/client/1_0/model/SendCoinsResult'
-import { UserLoggingView, UserContactLoggingView } from 'database'
-import { UserContactType } from 'shared'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.logic.storeForeignUser`)
 
@@ -48,7 +51,10 @@ export async function storeForeignUser(
           foreignUserEmail.emailChecked = true
           foreignUserEmail.user = foreignUser
           foreignUserEmail = await DbUserContact.save(foreignUserEmail)
-          logger.debug('new foreignUserEmail inserted:', new UserContactLoggingView(foreignUserEmail))
+          logger.debug(
+            'new foreignUserEmail inserted:',
+            new UserContactLoggingView(foreignUserEmail),
+          )
           foreignUser.emailContact = foreignUserEmail
           foreignUser.emailId = foreignUserEmail.id
           foreignUser = await DbUser.save(foreignUser)
@@ -60,7 +66,9 @@ export async function storeForeignUser(
         user.lastName !== committingResult.recipLastName ||
         user.alias !== committingResult.recipAlias ||
         (user.emailContact === null && committingResult.recipEmail !== null) ||
-        (user.emailContact !== null && user.emailContact?.email !== null && user.emailContact?.email !== committingResult.recipEmail)
+        (user.emailContact !== null &&
+          user.emailContact?.email !== null &&
+          user.emailContact?.email !== committingResult.recipEmail)
       ) {
         logger.debug(
           'foreignUser still exists, but with different name, alias or email:',
@@ -76,8 +84,12 @@ export async function storeForeignUser(
         if (committingResult.recipAlias !== null) {
           user.alias = committingResult.recipAlias
         }
-        if(!user.emailContact && committingResult.recipEmail !== null) {
-          logger.debug('creating new userContact:', new UserContactLoggingView(user.emailContact), committingResult)
+        if (!user.emailContact && committingResult.recipEmail !== null) {
+          logger.debug(
+            'creating new userContact:',
+            new UserContactLoggingView(user.emailContact),
+            committingResult,
+          )
           let foreignUserEmail = DbUserContact.create()
           foreignUserEmail.type = UserContactType.USER_CONTACT_EMAIL
           foreignUserEmail.email = committingResult.recipEmail!
@@ -85,11 +97,13 @@ export async function storeForeignUser(
           foreignUserEmail.user = user
           foreignUserEmail.userId = user.id
           foreignUserEmail = await DbUserContact.save(foreignUserEmail)
-          logger.debug('new foreignUserEmail inserted:', new UserContactLoggingView(foreignUserEmail))  
+          logger.debug(
+            'new foreignUserEmail inserted:',
+            new UserContactLoggingView(foreignUserEmail),
+          )
           user.emailContact = foreignUserEmail
           user.emailId = foreignUserEmail.id
-        }
-        else if (user.emailContact && committingResult.recipEmail != null) {
+        } else if (user.emailContact && committingResult.recipEmail != null) {
           const userContact = user.emailContact
           userContact.email = committingResult.recipEmail
           user.emailContact = await DbUserContact.save(userContact)
