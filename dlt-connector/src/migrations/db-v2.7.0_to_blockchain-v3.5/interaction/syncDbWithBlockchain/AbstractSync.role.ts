@@ -36,7 +36,7 @@ export abstract class AbstractSyncRole<T> {
       return this.items.length
     }
     return 0
-  }
+  }  
 
   async toBlockchain(): Promise<void> {
     if (this.isEmpty()) {

@@ -1,17 +1,24 @@
-import { InMemoryBlockchainProvider } from 'gradido-blockchain-js'
+import { AccountBalance, AccountBalances, GradidoUnit, InMemoryBlockchainProvider } from 'gradido-blockchain-js'
 import * as v from 'valibot'
+import { KeyPairIdentifierLogic } from '../../data/KeyPairIdentifier.logic'
+import { GradidoBlockchainCryptoError } from '../../errors'
+import { ResolveKeyPair } from '../../interactions/resolveKeyPair/ResolveKeyPair.context'
 import { HieroId, hieroIdSchema } from '../../schemas/typeGuard.schema'
+import { AUF_ACCOUNT_DERIVATION_INDEX, GMW_ACCOUNT_DERIVATION_INDEX, hardenDerivationIndex } from '../../utils/derivationHelper'
 import { addCommunityRootTransaction } from './blockchain'
 import { Context } from './Context'
 import { communityDbToCommunity } from './convert'
-import { loadCommunities, loadContributionLinkModeratorCache } from './database'
+import { loadAdminUsersCache, loadCommunities, loadContributionLinkModeratorCache } from './database'
 import { generateKeyPairCommunity } from './keyPair'
 import { CommunityContext } from './valibot.schema'
 
 export async function bootstrap(): Promise<Context> {
   const context = await Context.create()
   context.communities = await bootstrapCommunities(context)
-  await loadContributionLinkModeratorCache(context.db)
+  await Promise.all([
+    loadContributionLinkModeratorCache(context.db),
+    loadAdminUsersCache(context.db)
+  ])
   return context
 }
 
@@ -50,7 +57,28 @@ async function bootstrapCommunities(context: Context): Promise<Map<string, Commu
     }
     // community from db to community format the dlt connector normally uses
     const community = communityDbToCommunity(topicId, communityDb, creationDate)
-    await addCommunityRootTransaction(blockchain, community)
+    // TODO: remove code for gmw and auf key somewhere else
+    const communityKeyPair = await ResolveKeyPair(new KeyPairIdentifierLogic({ communityTopicId: topicId }))
+    const gmwKeyPair = communityKeyPair.deriveChild(
+      hardenDerivationIndex(GMW_ACCOUNT_DERIVATION_INDEX),
+    )
+    if (!gmwKeyPair) {
+      throw new GradidoBlockchainCryptoError(
+        `KeyPairEd25519 child derivation failed, has private key: ${communityKeyPair.hasPrivateKey()} for community: ${communityDb.communityUuid}`,
+      )
+    }
+    const aufKeyPair = communityKeyPair.deriveChild(
+      hardenDerivationIndex(AUF_ACCOUNT_DERIVATION_INDEX),
+    )
+    if (!aufKeyPair) {
+      throw new GradidoBlockchainCryptoError(
+        `KeyPairEd25519 child derivation failed, has private key: ${communityKeyPair.hasPrivateKey()} for community: ${communityDb.communityUuid}`,
+      )
+    }
+    const accountBalances = new AccountBalances()
+    accountBalances.add(new AccountBalance(gmwKeyPair.getPublicKey(), GradidoUnit.zero(), ''))
+    accountBalances.add(new AccountBalance(aufKeyPair.getPublicKey(), GradidoUnit.zero(), ''))
+    await addCommunityRootTransaction(blockchain, community, accountBalances)
   }
   return communities
 }

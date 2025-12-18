@@ -1,20 +1,19 @@
+import * as fs from 'node:fs'
 import {
+  AccountBalances,
   Filter,
   GradidoTransactionBuilder,
   HieroAccountId,
-  HieroTransactionId,
   InMemoryBlockchain,
   InteractionSerialize,
-  Pagination,
-  Profiler,
-  SearchDirection_DESC,
-  Timestamp,
   TransactionType_DEFERRED_TRANSFER,
 } from 'gradido-blockchain-js'
 import { getLogger } from 'log4js'
+import * as v from 'valibot'
 import { LOG4JS_BASE_CATEGORY } from '../../config/const'
 import { InputTransactionType } from '../../data/InputTransactionType.enum'
 import { LinkedTransactionKeyPairRole } from '../../interactions/resolveKeyPair/LinkedTransactionKeyPair.role'
+import { AbstractTransactionRole } from '../../interactions/sendToHiero/AbstractTransaction.role'
 import { CommunityRootTransactionRole } from '../../interactions/sendToHiero/CommunityRootTransaction.role'
 import { CreationTransactionRole } from '../../interactions/sendToHiero/CreationTransaction.role'
 import { DeferredTransferTransactionRole } from '../../interactions/sendToHiero/DeferredTransferTransaction.role'
@@ -23,61 +22,74 @@ import { RegisterAddressTransactionRole } from '../../interactions/sendToHiero/R
 import { TransferTransactionRole } from '../../interactions/sendToHiero/TransferTransaction.role'
 import { Community, Transaction } from '../../schemas/transaction.schema'
 import { identifierSeedSchema } from '../../schemas/typeGuard.schema'
-import { AbstractTransactionRole } from '../../interactions/sendToHiero/AbstractTransaction.role'
-import * as v from 'valibot'
-import * as fs from 'node:fs'
+import { NotEnoughGradidoBalanceError } from './errors'
 
 const logger = getLogger(
   `${LOG4JS_BASE_CATEGORY}.migrations.db-v2.7.0_to_blockchain-v3.6.blockchain`,
 )
 export const defaultHieroAccount = new HieroAccountId(0, 0, 2)
 let transactionAddedToBlockchainSum = 0
+let addToBlockchainSum = 0
 const sizeBuffer = Buffer.alloc(2)
 
 function addToBlockchain(
   builder: GradidoTransactionBuilder,
   blockchain: InMemoryBlockchain,
-  createdAtTimestamp: Timestamp,
+  transactionId: number,
+  accountBalances: AccountBalances,
 ): boolean {
   const transaction = builder.build()
-  /* const transactionSerializer = new InteractionSerialize(transaction)
+  const transactionSerializer = new InteractionSerialize(transaction)
   const binTransaction = transactionSerializer.run()
   if (!binTransaction) {
     logger.error(`Failed to serialize transaction ${transaction.toJson(true)}`)
     return false
   }
   const filePath = `${blockchain.getCommunityId()}.bin`
+  if (!addToBlockchainSum) {
+    // clear file
+    fs.writeFileSync(filePath, Buffer.alloc(0))
+  }
   sizeBuffer.writeUInt16LE(binTransaction.size(), 0)
   fs.appendFileSync(filePath, sizeBuffer)
   fs.appendFileSync(filePath, binTransaction.data())
-  */
-  // TODO: use actual transaction id if exist in dlt_transactions table
-  const transactionId = new HieroTransactionId(createdAtTimestamp, defaultHieroAccount)
-  const interactionSerialize = new InteractionSerialize(transactionId)
-
+  //
+  
   try {    
-    const result = blockchain.createAndAddConfirmedTransaction(
+    const result = blockchain.createAndAddConfirmedTransactionExtern(
       transaction,
-      interactionSerialize.run(),
-      createdAtTimestamp,
+      transactionId,
+      accountBalances,
     )
+    // logger.info(`${transactionTypeToString(transaction.getTransactionBody()?.getTransactionType()!)} Transaction added in ${timeUsed.string()}`)
+    addToBlockchainSum++
     return result
   } catch (error) {
-    logger.error(`Transaction ${transaction.toJson(true)} not added: ${error}`)
-    return true
+    if (error instanceof Error) {
+      const matches = error.message.match(/not enough Gradido Balance for (send coins|operation), needed: -?(\d+\.\d+), exist: (\d+\.\d+)/)
+      if (matches) {
+        const needed = parseFloat(matches[2])
+        const exist = parseFloat(matches[3])
+        throw new NotEnoughGradidoBalanceError(needed, exist)
+      }
+    }
+    const lastTransaction = blockchain.findOne(Filter.LAST_TRANSACTION)
+    throw new Error(`Transaction ${transaction.toJson(true)} not added: ${error}, last transaction was: ${lastTransaction?.getConfirmedTransaction()?.toJson(true)}`)
   }
 }
 
 export async function addCommunityRootTransaction(
   blockchain: InMemoryBlockchain,
   community: Community,
+  accountBalances: AccountBalances
 ): Promise<void> {
   const communityRootTransactionRole = new CommunityRootTransactionRole(community)
   if (
     addToBlockchain(
       await communityRootTransactionRole.getGradidoTransactionBuilder(),
       blockchain,
-      new Timestamp(community.creationDate),
+      0,
+      accountBalances,
     )
   ) {
     logger.info(`Community Root Transaction added`)
@@ -90,17 +102,17 @@ export async function addTransaction(
   senderBlockchain: InMemoryBlockchain,
   _recipientBlockchain: InMemoryBlockchain,
   transaction: Transaction,
+  transactionId: number,
+  accountBalances: AccountBalances,
 ): Promise<void> {
 
   let debugTmpStr = ''
-
-  const createdAtTimestamp = new Timestamp(transaction.createdAt)
   let role: AbstractTransactionRole
   if (transaction.type === InputTransactionType.GRADIDO_CREATION) {
     role = new CreationTransactionRole(transaction)
   } else if (transaction.type === InputTransactionType.GRADIDO_TRANSFER) {
     role = new TransferTransactionRole(transaction)
-  } else if (transaction.type == InputTransactionType.REGISTER_ADDRESS) {
+  } else if (transaction.type === InputTransactionType.REGISTER_ADDRESS) {
     role = new RegisterAddressTransactionRole(transaction)
   } else if (transaction.type === InputTransactionType.GRADIDO_DEFERRED_TRANSFER) {
     role = new DeferredTransferTransactionRole(transaction)
@@ -117,7 +129,7 @@ export async function addTransaction(
         `redeem deferred transfer: couldn't find parent deferred transfer on Gradido Node for ${JSON.stringify(transaction, null, 2)} and public key from seed: ${f.involvedPublicKey?.convertToHex()}`,
       )
     }
-    if (deferredTransactions.size() != 1) {
+    if (deferredTransactions.size() !== 1) {
       logger.error(
         `redeem deferred transfer: found ${deferredTransactions.size()} parent deferred transfer on Gradido Node for ${JSON.stringify(transaction, null, 2)} and public key from seed: ${f.involvedPublicKey?.convertToHex()}`,
       )
@@ -144,19 +156,20 @@ export async function addTransaction(
   const involvedUser = transaction.user.account
     ? transaction.user.account.userUuid
     : transaction.linkedUser?.account?.userUuid
-  if (addToBlockchain(await role.getGradidoTransactionBuilder(), senderBlockchain, createdAtTimestamp)) {
-    logger.debug(`${transaction.type} Transaction added for user ${involvedUser}`)
-    transactionAddedToBlockchainSum++
-  } else {
-    logger.error(debugTmpStr)
-    /*const f = new Filter()
-    f.searchDirection = SearchDirection_DESC
-    f.pagination = new Pagination(15)
-    const transactions = senderBlockchain.findAll(f)
-    for(let i = transactions.size() - 1; i >= 0; i--) {
-      logger.error(`transaction ${i}: ${transactions.get(i)?.getConfirmedTransaction()?.toJson(true)}`)
-    }*/
-    logger.error(`transaction: ${JSON.stringify(transaction, null, 2)}`)
-    throw new Error(`${transaction.type} Transaction not added for user ${involvedUser}, after ${transactionAddedToBlockchainSum} transactions`)
+  try {
+    if (addToBlockchain(await role.getGradidoTransactionBuilder(), senderBlockchain, transactionId, accountBalances)) {
+      // logger.debug(`${transaction.type} Transaction added for user ${involvedUser}`)
+      transactionAddedToBlockchainSum++
+    } else {
+      logger.error(debugTmpStr)
+      logger.error(`transaction: ${JSON.stringify(transaction, null, 2)}`)
+      throw new Error(`${transaction.type} Transaction not added for user ${involvedUser}, after ${transactionAddedToBlockchainSum} transactions`)
+    }
+  } catch(e) {
+    if (e instanceof NotEnoughGradidoBalanceError) {
+      throw e
+    }
+    logger.error(`error adding transaction: ${JSON.stringify(transaction, null, 2)}`)
+    throw e
   }
 }

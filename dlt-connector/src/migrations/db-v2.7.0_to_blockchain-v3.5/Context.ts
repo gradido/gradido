@@ -1,4 +1,5 @@
 import { heapStats } from 'bun:jsc'
+import dotenv from 'dotenv'
 import { drizzle, MySql2Database } from 'drizzle-orm/mysql2'
 import { Filter, Profiler, SearchDirection_ASC } from 'gradido-blockchain-js'
 import { getLogger, Logger } from 'log4js'
@@ -8,22 +9,27 @@ import { KeyPairCacheManager } from '../../cache/KeyPairCacheManager'
 import { CONFIG } from '../../config'
 import { LOG4JS_BASE_CATEGORY } from '../../config/const'
 import { Uuidv4 } from '../../schemas/typeGuard.schema'
+import { loadUserByGradidoId } from './database'
 import { bytesToMbyte } from './utils'
-import { CommunityContext } from './valibot.schema'
+import { CommunityContext, CreatedUserDb } from './valibot.schema'
+
+dotenv.config()
 
 export class Context {
   public logger: Logger
   public db: MySql2Database
   public communities: Map<string, CommunityContext>
   public cache: KeyPairCacheManager
+  public balanceFixGradidoUser: CreatedUserDb | null
   private timeUsed: Profiler
 
-  constructor(logger: Logger, db: MySql2Database, cache: KeyPairCacheManager) {
+  constructor(logger: Logger, db: MySql2Database, cache: KeyPairCacheManager, balanceFixGradidoUser: CreatedUserDb | null) {
     this.logger = logger
     this.db = db
     this.cache = cache
     this.communities = new Map<string, CommunityContext>()
     this.timeUsed = new Profiler()
+    this.balanceFixGradidoUser = balanceFixGradidoUser
   }
 
   static async create(): Promise<Context> {
@@ -36,10 +42,22 @@ export class Context {
       database: CONFIG.MYSQL_DATABASE,
       port: CONFIG.MYSQL_PORT,
     })
+    const db =  drizzle({ client: connection })
+    const logger = getLogger(`${LOG4JS_BASE_CATEGORY}.migrations.db-v2.7.0_to_blockchain-v3.5`)
+    let balanceFixGradidoUser: CreatedUserDb | null = null
+    if (process.env.MIGRATION_ACCOUNT_BALANCE_FIX_GRADIDO_ID) {
+      balanceFixGradidoUser = await loadUserByGradidoId(db, process.env.MIGRATION_ACCOUNT_BALANCE_FIX_GRADIDO_ID)
+      if (!balanceFixGradidoUser) {
+        logger.error(`MIGRATION_ACCOUNT_BALANCE_FIX_GRADIDO_ID was set to ${process.env.MIGRATION_ACCOUNT_BALANCE_FIX_GRADIDO_ID} but user not found`)
+      }
+    } else {
+      logger.debug(`MIGRATION_ACCOUNT_BALANCE_FIX_GRADIDO_ID was not set`)
+    }
     return new Context(
-      getLogger(`${LOG4JS_BASE_CATEGORY}.migrations.db-v2.7.0_to_blockchain-v3.5`),
-      drizzle({ client: connection }),
+      logger,
+      db,
       KeyPairCacheManager.getInstance(),
+      balanceFixGradidoUser,
     )
   }
 

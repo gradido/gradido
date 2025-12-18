@@ -1,18 +1,21 @@
-import { and, asc, eq, inArray, isNotNull, lt, ne, sql } from 'drizzle-orm'
+import { and, asc, count, eq, gt, inArray, isNotNull, isNull, lt, sql } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/mysql-core'
 import { MySql2Database } from 'drizzle-orm/mysql2'
-import { GradidoUnit } from 'gradido-blockchain-js'
 import { getLogger } from 'log4js'
 import * as v from 'valibot'
 import { LOG4JS_BASE_CATEGORY } from '../../config/const'
 import {
   communitiesTable,
-  contributionsTable,
+  contributionsTable,  
   eventsTable,
+  TransactionSelect,
   transactionLinksTable,
+  transactionSelectSchema,
   transactionsTable,
+  UserSelect,
   userRolesTable,
-  usersTable,
+  userSelectSchema,
+  usersTable
 } from './drizzle.schema'
 import { TransactionTypeId } from './TransactionTypeId'
 import {
@@ -30,7 +33,9 @@ const logger = getLogger(
   `${LOG4JS_BASE_CATEGORY}.migrations.db-v2.7.0_to_blockchain-v3.6.blockchain`,
 )
 
-const contributionLinkModerators = new Map<number, CreatedUserDb>()
+export const contributionLinkModerators = new Map<number, CreatedUserDb>()
+export const adminUsers = new Map<string, CreatedUserDb>()
+const transactionIdSet = new Set<number>()
 
 export async function loadContributionLinkModeratorCache(db: MySql2Database): Promise<void> {
   const result = await db
@@ -45,6 +50,20 @@ export async function loadContributionLinkModeratorCache(db: MySql2Database): Pr
 
   result.map((row: any) => {
     contributionLinkModerators.set(row.event.involvedContributionLinkId, v.parse(createdUserDbSchema, row.user))
+  })
+}
+
+export async function loadAdminUsersCache(db: MySql2Database): Promise<void> {
+  const result = await db
+    .select({
+      user: usersTable,
+    })
+    .from(userRolesTable)
+    .where(eq(userRolesTable.role, 'ADMIN'))
+    .leftJoin(usersTable, eq(userRolesTable.userId, usersTable.id))
+
+  result.map((row: any) => {
+    adminUsers.set(row.gradidoId, v.parse(createdUserDbSchema, row.user))
   })
 }
 
@@ -96,23 +115,42 @@ export async function loadUsers(
   })
 }
 
+export async function loadUserByGradidoId(db: MySql2Database, gradidoId: string): Promise<CreatedUserDb | null> {
+  const result = await db
+    .select()
+    .from(usersTable)
+    .where(eq(usersTable.gradidoId, gradidoId))
+    .limit(1)
+
+  return result.length ? v.parse(createdUserDbSchema, result[0]) : null
+}
+
 export async function loadTransactions(
   db: MySql2Database,
   offset: number,
   count: number,
 ): Promise<TransactionDb[]> {
   const linkedUsers = alias(usersTable, 'linkedUser')
+  const linkedTransactions = alias(transactionsTable, 'linkedTransaction')
 
   const result = await db
     .select({
       transaction: transactionsTable,
       user: usersTable,
       linkedUser: linkedUsers,
-      transactionLink: transactionLinksTable,
+      transactionLink: {
+        id: transactionLinksTable.id,
+        code: transactionLinksTable.code
+      },
+      linkedUserBalance: linkedTransactions.balance,
     })
     .from(transactionsTable)
     .where(
-      inArray(transactionsTable.typeId, [TransactionTypeId.CREATION, TransactionTypeId.RECEIVE]),
+      and(
+        inArray(transactionsTable.typeId, [TransactionTypeId.CREATION, TransactionTypeId.RECEIVE]),
+        isNotNull(transactionsTable.linkedUserId),
+        eq(usersTable.foreign, 0)
+      )
     )
     .leftJoin(usersTable, eq(transactionsTable.userId, usersTable.id))
     .leftJoin(linkedUsers, eq(transactionsTable.linkedUserId, linkedUsers.id))
@@ -120,67 +158,25 @@ export async function loadTransactions(
       transactionLinksTable,
       eq(transactionsTable.transactionLinkId, transactionLinksTable.id),
     )
+    .leftJoin(linkedTransactions, eq(transactionsTable.linkedTransactionId, linkedTransactions.id))
     .orderBy(asc(transactionsTable.balanceDate), asc(transactionsTable.id))
     .limit(count)
     .offset(offset)
 
-  return await Promise.all(result.map(async (row: any) => {
+  return result.map((row: any) => {
     // console.log(row)
     try {
-      const user = v.parse(createdUserDbSchema, row.user)
-      let linkedUser: CreatedUserDb | null | undefined = null
-      if (!row.linkedUser) {
-        const contribution = await db
-          .select({contributionLinkId: contributionsTable.contributionLinkId})
-          .from(contributionsTable)
-          .where(eq(contributionsTable.transactionId, row.transaction.id))
-          .limit(1)
-        if (contribution && contribution.length > 0 && contribution[0].contributionLinkId) {
-          linkedUser = contributionLinkModerators.get(contribution[0].contributionLinkId)
-          if (linkedUser?.gradidoId === user.gradidoId) {
-            const adminUser = await db
-              .select({
-                user: usersTable
-              })
-              .from(usersTable)
-              .leftJoin(userRolesTable, and(eq(usersTable.id, userRolesTable.userId), eq(userRolesTable.role, 'admin')))
-              .orderBy(asc(userRolesTable.id))
-              .where(ne(userRolesTable.userId,  row.user.id))
-              .limit(1)
-            if (!adminUser || !adminUser.length) {
-              throw new Error(`cannot find replace admin for contribution link`)
-            }
-            linkedUser = v.parse(createdUserDbSchema, adminUser[0].user)
-          }
-        }
-      } else {
-        linkedUser = v.parse(createdUserDbSchema, row.linkedUser)
+      /*if (transactionIdSet.has(row.transaction.id)) {
+        throw new Error(`transaction ${row.transaction.id} already loaded`)
       }
-      if (!linkedUser) {
-        throw new Error(`linked user not found for transaction ${row.transaction.id}`)
-      }
-      
-      // check for consistent data beforehand
-      const balanceDate = new Date(row.transaction.balanceDate)
-      if (
-        user.createdAt.getTime() > balanceDate.getTime() ||
-        linkedUser?.createdAt.getTime() > balanceDate.getTime()
-      ) {
-        logger.error(`table row: `, row)
-        throw new Error(
-          'at least one user was created after transaction balance date, logic error!',
-        )
-      }
-
-      let amount = GradidoUnit.fromString(row.transaction.amount)
-      if (row.transaction.typeId === TransactionTypeId.SEND) {
-        amount = amount.mul(new GradidoUnit(-1))
-      }
+      transactionIdSet.add(row.transaction.id)
+      */ 
       return v.parse(transactionDbSchema, {
         ...row.transaction,
         transactionLinkCode: row.transactionLink ? row.transactionLink.code : null,
-        user,
-        linkedUser,
+        user: row.user,
+        linkedUser: row.linkedUser,
+        linkedUserBalance: row.linkedUserBalance,
       })
     } catch (e) {
       logger.error(`table row: ${JSON.stringify(row, null, 2)}`)
@@ -189,7 +185,108 @@ export async function loadTransactions(
       }
       throw e
     }
-  }))
+  })
+}
+
+export async function loadInvalidContributionTransactions(
+  db: MySql2Database,
+  offset: number,
+  count: number,
+): Promise<{ id: number, balanceDate: Date }[]> {
+  const result = await db
+    .select({
+      id: transactionsTable.id,
+      balanceDate: transactionsTable.balanceDate,
+    })
+    .from(transactionsTable)
+    .where(
+      and(
+        eq(transactionsTable.typeId, TransactionTypeId.CREATION),
+        sql`NOT EXISTS (SELECT 1 FROM contributions WHERE contributions.transaction_id = transactions.id)`,
+      )
+    )
+    .orderBy(asc(transactionsTable.balanceDate), asc(transactionsTable.id))
+    .limit(count)
+    .offset(offset)
+  
+  return result.map((row: any) => {
+    return {
+      id: row.id,
+      balanceDate: new Date(row.balanceDate),
+    }
+  })
+}
+
+export async function loadDoubleLinkedTransactions(
+  db: MySql2Database,
+  offset: number,
+  rowsCount: number,
+): Promise<{ id: number, balanceDate: Date }[]> {
+  const result = await db
+    .select({
+      id: transactionsTable.id,
+      balanceDate: transactionsTable.balanceDate,
+      transactionLinkId: transactionsTable.transactionLinkId,
+      cnt: count(),
+    })
+    .from(transactionsTable)
+    .where(
+      and(
+        eq(transactionsTable.typeId, TransactionTypeId.RECEIVE),
+        isNotNull(transactionsTable.transactionLinkId),
+      )
+    )
+    .groupBy(transactionsTable.transactionLinkId)
+    .having(gt(count(), 1))
+    .orderBy(asc(transactionsTable.balanceDate), asc(transactionsTable.id))
+    .limit(rowsCount)
+    .offset(offset)
+
+  // logger.info(`loadDoubleLinkedTransactions ${result.length}: ${timeUsed.string()}`)
+  
+  return result.map((row: any) => {
+    return {
+      id: row.transactionLinkId,
+      balanceDate: new Date(row.balanceDate),
+    }
+  })
+}
+
+export async function loadContributionLinkTransactions(
+  db: MySql2Database,
+  offset: number,
+  count: number,
+): Promise<{ transaction: TransactionSelect, user: UserSelect, contributionLinkId: number }[]> {
+  const result = await db
+    .select({
+      transaction: transactionsTable,
+      user: usersTable,
+      contributionLinkId: contributionsTable.contributionLinkId,
+    })
+    .from(contributionsTable)
+    .where(
+      and(
+        isNotNull(contributionsTable.contributionLinkId),
+        isNull(transactionsTable.linkedUserId)
+      )
+    )
+    .leftJoin(transactionsTable, eq(contributionsTable.transactionId, transactionsTable.id))
+    .leftJoin(usersTable, eq(transactionsTable.userId, usersTable.id))
+    .orderBy(asc(transactionsTable.balanceDate), asc(transactionsTable.id))
+    .limit(count)
+    .offset(offset)
+
+  return result.map((row: any) => {
+    if (transactionIdSet.has(row.transaction.id)) {
+        throw new Error(`transaction ${row.transaction.id} already loaded`)
+      }
+      transactionIdSet.add(row.transaction.id)
+    return {
+      transaction: v.parse(transactionSelectSchema, row.transaction),
+      user: v.parse(userSelectSchema, row.user),
+      contributionLinkId: row.contributionLinkId,
+    }
+  })
 }
 
 export async function loadTransactionLinks(
@@ -232,6 +329,7 @@ export async function loadDeletedTransactionLinks(
 
   return result.map((row: any) => {
     return v.parse(transactionDbSchema, {
+      id: row.transaction_links.id,
       typeId: TransactionTypeId.RECEIVE,
       amount: row.transaction_links.amount,
       balanceDate: new Date(row.transaction_links.deletedAt),
