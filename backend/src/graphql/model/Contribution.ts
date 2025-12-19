@@ -20,18 +20,17 @@ export class Contribution extends UnconfirmedContribution {
     this.updatedAt = dbContribution.updatedAt
     this.updatedBy = dbContribution.updatedBy
     this.resubmissionAt = dbContribution.resubmissionAt
-    if( ContributionStatus.CONFIRMED === dbContribution.contributionStatus) {
+    if (ContributionStatus.CONFIRMED === dbContribution.contributionStatus) {
       this.closedAt = dbContribution.confirmedAt
       this.closedBy = dbContribution.confirmedBy
     } else if (ContributionStatus.DELETED === dbContribution.contributionStatus) {
       this.closedAt = dbContribution.deletedAt
       this.closedBy = dbContribution.deletedBy
-    } else if (ContributionStatus.DENIED === dbContribution.contributionStatus ) {
+    } else if (ContributionStatus.DENIED === dbContribution.contributionStatus) {
       this.closedAt = dbContribution.deniedAt
       this.closedBy = dbContribution.deniedBy
     }
   }
-
 
   @Field(() => Date, { nullable: true })
   closedAt?: Date | null
