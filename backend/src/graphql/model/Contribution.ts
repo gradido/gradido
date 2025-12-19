@@ -1,3 +1,4 @@
+import { ContributionStatus } from '@enum/ContributionStatus'
 import { Contribution as DbContribution } from 'database'
 import { Field, Int, ObjectType } from 'type-graphql'
 import { UnconfirmedContribution } from './UnconfirmedContribution'
@@ -19,7 +20,27 @@ export class Contribution extends UnconfirmedContribution {
     this.updatedAt = dbContribution.updatedAt
     this.updatedBy = dbContribution.updatedBy
     this.resubmissionAt = dbContribution.resubmissionAt
+    if( ContributionStatus.CONFIRMED === dbContribution.contributionStatus) {
+      this.closedAt = dbContribution.confirmedAt
+      this.closedBy = dbContribution.confirmedBy
+    } else if (ContributionStatus.DELETED === dbContribution.contributionStatus) {
+      this.closedAt = dbContribution.deletedAt
+      this.closedBy = dbContribution.deletedBy
+    } else if (ContributionStatus.DENIED === dbContribution.contributionStatus ) {
+      this.closedAt = dbContribution.deniedAt
+      this.closedBy = dbContribution.deniedBy
+    }
   }
+
+
+  @Field(() => Date, { nullable: true })
+  closedAt?: Date | null
+
+  @Field(() => Int, { nullable: true })
+  closedBy?: number | null
+
+  @Field(() => String, { nullable: true })
+  closedByUserName?: string | null
 
   @Field(() => Date)
   createdAt: Date
@@ -36,26 +57,17 @@ export class Contribution extends UnconfirmedContribution {
   @Field(() => Int, { nullable: true })
   confirmedBy: number | null
 
-  @Field(() => String, { nullable: true })
-  confirmedByUserName?: string | null
-
   @Field(() => Date, { nullable: true })
   deniedAt: Date | null
 
   @Field(() => Int, { nullable: true })
   deniedBy: number | null
 
-  @Field(() => String, { nullable: true })
-  deniedByUserName?: string | null
-
   @Field(() => Date, { nullable: true })
   deletedAt: Date | null
 
   @Field(() => Int, { nullable: true })
   deletedBy: number | null
-
-  @Field(() => String, { nullable: true })
-  deletedByUserName?: string | null
 
   @Field(() => Date, { nullable: true })
   updatedAt: Date | null

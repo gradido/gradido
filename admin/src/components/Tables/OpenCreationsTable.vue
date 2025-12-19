@@ -99,9 +99,6 @@
           </BButton>
         </div>
       </template>
-      <template #cell(closed)="row">
-        {{ formatDateOrDash(getClosedDate(row.item)) }}
-      </template>
       <template #row-details="row">
         <row-details
           :row="row"
@@ -214,16 +211,6 @@ export default {
       if (item.contributionStatus === 'IN_PROGRESS') return 'table-primary'
       if (item.contributionStatus === 'PENDING') return 'table-primary'
     },
-    getClosedDate(item) {
-      if (item.contributionStatus === 'CONFIRMED') {
-        return item.confirmedAt
-      } else if (item.contributionStatus === 'DENIED') {
-        return item.deniedAt
-      } else if (item.contributionStatus === 'DELETED') {
-        return item.deletedAt
-      }
-      return null
-    },
     updateStatus(id) {
       this.$emit('update-status', id)
     },
@@ -251,22 +238,18 @@ export default {
       }
     },
     isAddCommentToMemo(item) {
-      return (
-        item.updatedBy > 0 ||
-        item.confirmedBy > 0 ||
-        item.deletedBy > 0 ||
-        item.deniedBy > 0 ||
-        item.moderatorId > 0
-      )
+      return item.closedBy > 0 || item.moderatorId > 0 || item.updatedBy > 0
     },
     getMemoComment(item) {
       let comment = ''
-      if (item.confirmedBy > 0) {
-        comment = this.$t('contribution.confirmedBy', { name: item.confirmedByUserName })
-      } else if (item.deletedBy > 0) {
-        comment = this.$t('contribution.deletedBy', { name: item.deletedByUserName })
-      } else if (item.deniedBy > 0) {
-        comment = this.$t('contribution.deniedBy', { name: item.deniedByUserName })
+      if (item.closedBy > 0) {
+        if (item.contributionStatus === 'CONFIRMED') {
+          comment = this.$t('contribution.confirmedBy', { name: item.closedByUserName })
+        } else if (item.contributionStatus === 'DENIED') {
+          comment = this.$t('contribution.deniedBy', { name: item.closedByUserName })
+        } else if (item.contributionStatus === 'DELETED') {
+          comment = this.$t('contribution.deletedBy', { name: item.closedByUserName })
+        }
       }
 
       if (item.updatedBy > 0) {

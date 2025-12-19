@@ -154,9 +154,9 @@ const baseFields = {
     class: 'no-select',
     formatter: formatDateOrDash,
   },
-  confirmedAt: {
-    key: 'confirmedAt',
-    label: t('contributions.confirms'),
+  closedAt: {
+    key: 'closedAt',
+    label: t('contributions.closed'),
     class: 'no-select',
     formatter: formatDateOrDash,
   },
@@ -185,7 +185,7 @@ const fields = computed(
         baseFields.memo,
         baseFields.contributionDate,
         baseFields.createdAt,
-        baseFields.confirmedAt,
+        baseFields.closedAt,
         { key: 'chatCreation', label: t('details') },
       ],
       // denied contributions
@@ -196,11 +196,7 @@ const fields = computed(
         baseFields.memo,
         baseFields.contributionDate,
         baseFields.createdAt,
-        {
-          key: 'deniedAt',
-          label: t('contributions.denied'),
-          formatter: formatDateOrDash,
-        },
+        baseFields.closedAt,
         { key: 'chatCreation', label: t('details') },
       ],
       // deleted contributions
@@ -211,11 +207,7 @@ const fields = computed(
         baseFields.memo,
         baseFields.contributionDate,
         baseFields.createdAt,
-        {
-          key: 'deletedAt',
-          label: t('contributions.deleted'),
-          formatter: formatDateOrDash,
-        },
+        baseFields.closedAt,
         { key: 'chatCreation', label: t('details') },
       ],
       // all contributions
@@ -227,11 +219,7 @@ const fields = computed(
         baseFields.memo,
         baseFields.contributionDate,
         baseFields.createdAt,
-        {
-          key: 'closed',
-          label: t('contributions.closed'),
-          class: 'no-select',
-        },
+        baseFields.closedAt,
         { key: 'chatCreation', label: t('details') },
       ],
     ][tabIndex.value],

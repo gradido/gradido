@@ -372,27 +372,24 @@ export class ContributionResolver {
       },
       countOnly,
     )
+    console.log(dbContributions)
     const result = new ContributionListResult(count, dbContributions)
 
     const uniqueUserIds = new Set<number>()
     const addIfExist = (userId?: number | null) => (userId ? uniqueUserIds.add(userId) : null)
 
     for (const contribution of result.contributionList) {
-      addIfExist(contribution.confirmedBy)
       addIfExist(contribution.updatedBy)
       addIfExist(contribution.moderatorId)
-      addIfExist(contribution.deletedBy)
-      addIfExist(contribution.deniedBy)
+      addIfExist(contribution.closedBy)
     }
     const users = await findUserNamesByIds(Array.from(uniqueUserIds))
     const getNameById = (userId?: number | null) => (userId ? (users.get(userId) ?? null) : null)
 
     for (const contribution of result.contributionList) {
-      contribution.confirmedByUserName = getNameById(contribution.confirmedBy)
       contribution.updatedByUserName = getNameById(contribution.updatedBy)
       contribution.moderatorUserName = getNameById(contribution.moderatorId)
-      contribution.deletedByUserName = getNameById(contribution.deletedBy)
-      contribution.deniedByUserName = getNameById(contribution.deniedBy)
+      contribution.closedByUserName = getNameById(contribution.closedBy)
     }
     return result
   }
