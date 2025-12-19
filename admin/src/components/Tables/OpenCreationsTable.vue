@@ -99,6 +99,9 @@
           </BButton>
         </div>
       </template>
+      <template #cell(closed)="row">
+        {{ formatDateOrDash(getClosedDate(row.item)) }}
+      </template>
       <template #row-details="row">
         <row-details
           :row="row"
@@ -140,6 +143,7 @@
 import RowDetails from '../RowDetails'
 import EditCreationFormular from '../EditCreationFormular'
 import ContributionMessagesList from '../ContributionMessages/ContributionMessagesList'
+import { useDateFormatter } from '@/composables/useDateFormatter'
 
 const iconMap = {
   IN_PROGRESS: 'question-square',
@@ -195,6 +199,7 @@ export default {
     this.removeClipboardListener()
   },
   methods: {
+    ...useDateFormatter(),
     myself(item) {
       return item.userId === this.$store.state.moderator.id
     },
@@ -208,6 +213,16 @@ export default {
       if (item.contributionStatus === 'DELETED') return 'table-danger'
       if (item.contributionStatus === 'IN_PROGRESS') return 'table-primary'
       if (item.contributionStatus === 'PENDING') return 'table-primary'
+    },
+    getClosedDate(item) {
+      if (item.contributionStatus === 'CONFIRMED') {
+        return item.confirmedAt
+      } else if (item.contributionStatus === 'DENIED') {
+        return item.deniedAt
+      } else if (item.contributionStatus === 'DELETED') {
+        return item.deletedAt
+      }
+      return null
     },
     updateStatus(id) {
       this.$emit('update-status', id)

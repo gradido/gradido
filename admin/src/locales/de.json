@@ -55,6 +55,7 @@
   },
   "contributions": {
     "all": "Alle",
+    "closed": "Geschlossen",
     "confirms": "Bestätigt",
     "deleted": "Gelöscht",
     "denied": "Abgelehnt",

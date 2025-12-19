@@ -108,6 +108,7 @@ import { confirmContribution } from '../graphql/confirmContribution'
 import { denyContribution } from '../graphql/denyContribution'
 import { getContribution } from '../graphql/getContribution'
 import { useAppToast } from '@/composables/useToast'
+import { useDateFormatter } from '@/composables/useDateFormatter'
 import CONFIG from '@/config'
 
 const FILTER_TAB_MAP = [
@@ -134,7 +135,7 @@ const query = ref('')
 const noHashtag = ref(null)
 const hideResubmissionModel = ref(true)
 
-const formatDateOrDash = (value) => (value ? new Date(value).toLocaleDateString() : '—')
+const { formatDateOrDash } = useDateFormatter()
 
 const baseFields = {
   firstName: { key: 'user.firstName', label: t('firstname'), class: 'no-select' },
@@ -158,11 +159,6 @@ const baseFields = {
     label: t('contributions.confirms'),
     class: 'no-select',
     formatter: formatDateOrDash,
-  },
-  confirmedByUserName: {
-    key: 'confirmedByUserName',
-    label: t('moderator.who'),
-    class: 'no-select',
   },
 }
 
@@ -231,7 +227,11 @@ const fields = computed(
         baseFields.memo,
         baseFields.contributionDate,
         baseFields.createdAt,
-        baseFields.confirmedAt,
+        {
+          key: 'closed',
+          label: t('contributions.closed'),
+          class: 'no-select',
+        },
         { key: 'chatCreation', label: t('details') },
       ],
     ][tabIndex.value],
