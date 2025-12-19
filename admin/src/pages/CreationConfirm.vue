@@ -138,6 +138,7 @@ const hideResubmissionModel = ref(true)
 const { formatDateOrDash } = useDateFormatter()
 
 const baseFields = {
+  name: { key: 'name', label: t('name'), class: 'no-select' },
   firstName: { key: 'user.firstName', label: t('firstname'), class: 'no-select' },
   lastName: { key: 'user.lastName', label: t('lastname'), class: 'no-select' },
   amount: { key: 'amount', label: t('creation'), formatter: (value) => value + ' GDD' },
@@ -169,8 +170,7 @@ const fields = computed(
       [
         { key: 'bookmark', label: t('delete') },
         { key: 'deny', label: t('deny') },
-        baseFields.firstName,
-        baseFields.lastName,
+        baseFields.name,
         baseFields.amount,
         baseFields.memo,
         baseFields.contributionDate,
@@ -179,8 +179,7 @@ const fields = computed(
       ],
       // confirmed contributions
       [
-        baseFields.firstName,
-        baseFields.lastName,
+        baseFields.name,
         baseFields.amount,
         baseFields.memo,
         baseFields.contributionDate,
@@ -190,8 +189,7 @@ const fields = computed(
       ],
       // denied contributions
       [
-        baseFields.firstName,
-        baseFields.lastName,
+        baseFields.name,
         baseFields.amount,
         baseFields.memo,
         baseFields.contributionDate,
@@ -201,8 +199,7 @@ const fields = computed(
       ],
       // deleted contributions
       [
-        baseFields.firstName,
-        baseFields.lastName,
+        baseFields.name,
         baseFields.amount,
         baseFields.memo,
         baseFields.contributionDate,
@@ -213,8 +210,7 @@ const fields = computed(
       // all contributions
       [
         { key: 'contributionStatus', label: t('status') },
-        baseFields.firstName,
-        baseFields.lastName,
+        baseFields.name,
         baseFields.amount,
         baseFields.memo,
         baseFields.contributionDate,

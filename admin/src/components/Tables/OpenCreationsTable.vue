@@ -34,6 +34,15 @@
           </BButton>
         </div>
       </template>
+      <template #cell(name)="row">
+        <span v-if="row.item.user">
+          {{ row.item.user.firstName }} {{ row.item.user.lastName }}
+          <small v-if="row.item.user.alias">
+            <hr />
+            {{ row.item.user.alias }}
+          </small>
+        </span>
+      </template>
       <template #cell(memo)="row">
         {{ row.value }}
         <small v-if="isAddCommentToMemo(row.item)">
