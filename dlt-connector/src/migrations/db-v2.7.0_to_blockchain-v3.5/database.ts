@@ -17,7 +17,7 @@ import {
   userSelectSchema,
   usersTable
 } from './drizzle.schema'
-import { TransactionTypeId } from './TransactionTypeId'
+import { TransactionTypeId } from './data/TransactionTypeId'
 import {
   CommunityDb,
   CreatedUserDb,

@@ -8,7 +8,8 @@ import {
   memoSchema,
   uuidv4Schema,
 } from '../../schemas/typeGuard.schema'
-import { TransactionTypeId } from './TransactionTypeId'
+import { TransactionTypeId } from './data/TransactionTypeId'
+import { Balance } from './data/Balance'
 
 export const createdUserDbSchema = v.object({
   id: v.pipe(v.number(), v.minValue(1)),
@@ -81,6 +82,8 @@ export const communityContextSchema = v.object({
     v.maxLength(512, 'expect string length <= 512'),
     v.regex(/^[a-zA-Z0-9-_]+$/, 'expect string to be a valid (alphanumeric, _, -) folder name'),
   ),
+  gmwBalance: v.instance(Balance),
+  aufBalance: v.instance(Balance),
 })
 
 export type TransactionDb = v.InferOutput<typeof transactionDbSchema>
@@ -88,4 +91,5 @@ export type UserDb = v.InferOutput<typeof userDbSchema>
 export type CreatedUserDb = v.InferOutput<typeof createdUserDbSchema>
 export type TransactionLinkDb = v.InferOutput<typeof transactionLinkDbSchema>
 export type CommunityDb = v.InferOutput<typeof communityDbSchema>
+export type Balance = v.InferOutput<typeof balanceSchema>
 export type CommunityContext = v.InferOutput<typeof communityContextSchema>

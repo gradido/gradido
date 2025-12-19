@@ -1,50 +1,19 @@
-import Decimal from 'decimal.js-light'
-import { AccountBalance, AccountBalances, GradidoUnit } from 'gradido-blockchain-js'
 import { InputTransactionType } from '../../../../data/InputTransactionType.enum'
-import { KeyPairIdentifierLogic } from '../../../../data/KeyPairIdentifier.logic'
-import { GradidoBlockchainCryptoError } from '../../../../errors'
-import { ResolveKeyPair } from '../../../../interactions/resolveKeyPair/ResolveKeyPair.context'
-import { AUF_ACCOUNT_DERIVATION_INDEX, GMW_ACCOUNT_DERIVATION_INDEX, hardenDerivationIndex } from '../../../../utils/derivationHelper'
-import { addTransaction } from '../../blockchain'
-import { transactionDbToTransaction } from '../../convert'
-import { loadTransactions } from '../../database'
-import { legacyCalculateDecay } from '../../utils'
+import { Transaction } from '../../../../schemas/transaction.schema'
+import { Context } from '../../Context'
 import { TransactionDb } from '../../valibot.schema'
-import { AbstractSyncRole } from './AbstractSync.role'
+import { AbstractBalancesRole } from './AbstractBalances.role'
+import { CreationBalancesRole } from './CreationBalances.role'
 
-type BalanceDate = {
-  balance: Decimal
-  date: Date
+export function accountBalancesContext(transaction: Transaction, dbTransaction: TransactionDb, context: Context) {
+    let role: AbstractBalancesRole | null = null
+    if (InputTransactionType.GRADIDO_CREATION === transaction.type) {
+        role = new CreationBalancesRole()
+    }
 }
 
-export class TransactionsSyncRole extends AbstractSyncRole<TransactionDb> {
-  private static transactionLinkCodes = new Set<string>()
-  static doubleTransactionLinkCodes: string[] = []
-
-  getDate(): Date {
-    return this.peek().balanceDate
-  }
-
-  itemTypeName(): string {
-    return 'transactions'
-  }
-
-  async loadFromDb(offset: number, count: number): Promise<TransactionDb[]> {
-    const result = await loadTransactions(this.context.db, offset, count)
-    return result.filter((item) => {
-      if (item.transactionLinkCode) {
-        if (TransactionsSyncRole.transactionLinkCodes.has(item.transactionLinkCode)) {
-          TransactionsSyncRole.doubleTransactionLinkCodes.push(item.transactionLinkCode)
-          return false
-        }
-        TransactionsSyncRole.transactionLinkCodes.add(item.transactionLinkCode)
-      }
-      return true
-    })
-  }
-
-  async pushToBlockchain(item: TransactionDb): Promise<void> {
-    const senderCommunityContext = this.context.getCommunityContextByUuid(item.user.communityUuid)
+/*
+const senderCommunityContext = this.context.getCommunityContextByUuid(item.user.communityUuid)
     const recipientCommunityContext = this.context.getCommunityContextByUuid(
       item.linkedUser.communityUuid,
     )
@@ -98,19 +67,4 @@ export class TransactionsSyncRole extends AbstractSyncRole<TransactionDb> {
       )
       accountBalances.add(new AccountBalance(senderKeyPair.getPublicKey(), item.linkedUserBalance, ''))
       accountBalances.add(new AccountBalance(recipientKeyPair.getPublicKey(), item.balance, ''))
-    }
-    
-    try {
-      await addTransaction(
-        senderCommunityContext.blockchain,
-        recipientCommunityContext.blockchain,
-        transaction,
-        item.id,
-        accountBalances,
-      )
-    } catch(e) {
-      this.context.logger.error(`error adding transaction: ${JSON.stringify(transaction, null, 2)}`)
-      throw e
-    }
-  }
-}
+      */

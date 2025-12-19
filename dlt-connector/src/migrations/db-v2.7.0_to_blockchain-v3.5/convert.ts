@@ -14,7 +14,7 @@ import {
   memoSchema,
   timeoutDurationSchema,
 } from '../../schemas/typeGuard.schema'
-import { TransactionTypeId } from './TransactionTypeId'
+import { TransactionTypeId } from './data/TransactionTypeId'
 import { CommunityDb, CreatedUserDb, TransactionDb, TransactionLinkDb } from './valibot.schema'
 
 export function getInputTransactionTypeFromTypeId(typeId: TransactionTypeId): InputTransactionType {

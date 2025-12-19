@@ -1,7 +1,7 @@
 import { addTransaction } from '../../blockchain'
 import { userDbToTransaction } from '../../convert'
 import { loadUsers } from '../../database'
-import { generateKeyPairUserAccount } from '../../keyPair'
+import { generateKeyPairUserAccount } from '../../data/keyPair'
 import { CreatedUserDb } from '../../valibot.schema'
 import { AbstractSyncRole } from './AbstractSync.role'
 

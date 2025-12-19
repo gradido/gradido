@@ -9,8 +9,9 @@ import { addCommunityRootTransaction } from './blockchain'
 import { Context } from './Context'
 import { communityDbToCommunity } from './convert'
 import { loadAdminUsersCache, loadCommunities, loadContributionLinkModeratorCache } from './database'
-import { generateKeyPairCommunity } from './keyPair'
+import { generateKeyPairCommunity } from './data/keyPair'
 import { CommunityContext } from './valibot.schema'
+import { Balance } from './data/Balance'
 
 export async function bootstrap(): Promise<Context> {
   const context = await Context.create()
@@ -47,6 +48,8 @@ async function bootstrapCommunities(context: Context): Promise<Map<string, Commu
       blockchain,
       topicId,
       folder: communityDb.uniqueAlias.replace(/[^a-zA-Z0-9]/g, '_'),
+      gmwBalance: new Balance(),
+      aufBalance: new Balance(),
     })
 
     generateKeyPairCommunity(communityDb, context.cache, topicId)
