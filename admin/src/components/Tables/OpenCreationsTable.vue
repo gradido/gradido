@@ -45,7 +45,7 @@
       </template>
       <template #cell(memo)="row">
         {{ row.value }}
-        <small v-if="isAddCommentToMemo(row.item)">
+        <small v-if="isAddCommentToMemo(row.item)" class="no-select">
           <hr />
           {{ getMemoComment(row.item) }}
         </small>
