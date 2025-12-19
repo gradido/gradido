@@ -18,6 +18,7 @@
   "close": "Schließen",
   "contribution": {
     "confirmedBy": "Bestätigt von {name}.",
+    "createdBy": "Erstellt von {name}.",
     "deletedBy": "Gelöscht von {name}.",
     "deniedBy": "Abgelehnt von {name}."
   },
@@ -179,8 +180,7 @@
     "notice": "Notiz",
     "notice-tooltip": "Die Notiz ist nur für Moderatoren sichtbar",
     "request": "Diese Nachricht ist nur für die Moderatoren sichtbar!",
-    "show-submission-form": "warten auf Erinnerung?",
-    "who": "Wer?"
+    "show-submission-form": "warten auf Erinnerung?"
   },
   "name": "Name",
   "navbar": {

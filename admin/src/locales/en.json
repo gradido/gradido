@@ -18,8 +18,9 @@
   "close": "Close",
   "contribution": {
     "confirmedBy": "Confirmed by {name}.",
+    "createdBy": "Created by {name}.",
     "deletedBy": "Deleted by {name}.",
-    "deniedBy": "Denied by {name}."
+    "deniedBy": "Rejected by {name}."
   },
   "contributionLink": {
     "amount": "Amount",
@@ -179,8 +180,7 @@
     "notice": "Note",
     "notice-tooltip": "The note is only visible to moderators",
     "request": "This message is only visible to the moderators!",
-    "show-submission-form": "wait for reminder?",
-    "who": "Who?"
+    "show-submission-form": "wait for reminder?"
   },
   "name": "Name",
   "navbar": {

@@ -178,7 +178,6 @@ const fields = computed(
         baseFields.amount,
         baseFields.memo,
         baseFields.contributionDate,
-        { key: 'moderatorUserName', label: t('moderator.who'), class: 'no-select' },
         { key: 'editCreation', label: t('details') },
         { key: 'confirm', label: t('save') },
       ],
@@ -191,7 +190,6 @@ const fields = computed(
         baseFields.contributionDate,
         baseFields.createdAt,
         baseFields.confirmedAt,
-        baseFields.confirmedByUserName,
         { key: 'chatCreation', label: t('details') },
       ],
       // denied contributions
@@ -207,7 +205,6 @@ const fields = computed(
           label: t('contributions.denied'),
           formatter: formatDateOrDash,
         },
-        { key: 'deniedByUserName', label: t('moderator.who') },
         { key: 'chatCreation', label: t('details') },
       ],
       // deleted contributions
@@ -223,7 +220,6 @@ const fields = computed(
           label: t('contributions.deleted'),
           formatter: formatDateOrDash,
         },
-        { key: 'deletedByUserName', label: t('moderator.who') },
         { key: 'chatCreation', label: t('details') },
       ],
       // all contributions
@@ -236,7 +232,6 @@ const fields = computed(
         baseFields.contributionDate,
         baseFields.createdAt,
         baseFields.confirmedAt,
-        baseFields.confirmedByUserName,
         { key: 'chatCreation', label: t('details') },
       ],
     ][tabIndex.value],

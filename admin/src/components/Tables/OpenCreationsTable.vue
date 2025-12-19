@@ -236,7 +236,13 @@ export default {
       }
     },
     isAddCommentToMemo(item) {
-      return item.updatedBy > 0 || item.confirmedBy > 0 || item.deletedBy > 0 || item.deniedBy > 0
+      return (
+        item.updatedBy > 0 ||
+        item.confirmedBy > 0 ||
+        item.deletedBy > 0 ||
+        item.deniedBy > 0 ||
+        item.moderatorId > 0
+      )
     },
     getMemoComment(item) {
       let comment = ''
@@ -250,9 +256,16 @@ export default {
 
       if (item.updatedBy > 0) {
         if (comment.length) {
-          comment += ' '
+          comment += ' | '
         }
         comment += this.$t('moderator.memo-modified', { name: item.updatedByUserName })
+      }
+
+      if (item.moderatorId > 0) {
+        if (comment.length) {
+          comment += ' | '
+        }
+        comment += this.$t('contribution.createdBy', { name: item.moderatorUserName })
       }
       return comment
     },

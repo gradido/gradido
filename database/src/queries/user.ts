@@ -89,11 +89,7 @@ export async function findUserNamesByIds(userIds: number[]): Promise<Map<number,
   })
   return new Map(
     users.map((user) => {
-      let name = `${user.firstName} ${user.lastName}`
-      if (user.alias && user.alias.length > 2) {
-        name = user.alias
-      }
-      return [user.id, name]
+      return [user.id, `${user.firstName} ${user.lastName}`]
     }),
   )
 }
