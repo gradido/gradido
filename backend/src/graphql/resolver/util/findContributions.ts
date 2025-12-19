@@ -66,6 +66,8 @@ export const findContributions = async (
         if (relations?.user) {
           qb.orWhere('user.first_name LIKE :firstName', { firstName: queryString })
             .orWhere('user.last_name LIKE :lastName', { lastName: queryString })
+            .orWhere('user.alias LIKE :alias', { alias: queryString })
+            .orWhere("LOWER(CONCAT(user.first_name, ' ', user.last_name)) LIKE LOWER(:fullName)", { fullName: queryString.toLowerCase() })
             .orWhere('emailContact.email LIKE :emailContact', { emailContact: queryString })
             .orWhere({ memo: Like(queryString) })
         }
