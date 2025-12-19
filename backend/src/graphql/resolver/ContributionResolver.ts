@@ -372,7 +372,6 @@ export class ContributionResolver {
       },
       countOnly,
     )
-    console.log(dbContributions)
     const result = new ContributionListResult(count, dbContributions)
 
     const uniqueUserIds = new Set<number>()
