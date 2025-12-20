@@ -1,6 +1,6 @@
 import { getLogger } from 'log4js'
 import { aliasSchema, emailSchema, uuidv4Schema } from 'shared'
-import { Raw } from 'typeorm'
+import { In, Raw } from 'typeorm'
 import { User as DbUser, UserContact as DbUserContact } from '../entity'
 import { findWithCommunityIdentifier, LOG4JS_QUERIES_CATEGORY_NAME } from './index'
 
@@ -80,4 +80,16 @@ export async function findForeignUserByUuids(
   return DbUser.findOne({
     where: { foreign: true, communityUuid, gradidoID },
   })
+}
+
+export async function findUserNamesByIds(userIds: number[]): Promise<Map<number, string>> {
+  const users = await DbUser.find({
+    select: { id: true, firstName: true, lastName: true, alias: true },
+    where: { id: In(userIds) },
+  })
+  return new Map(
+    users.map((user) => {
+      return [user.id, `${user.firstName} ${user.lastName}`]
+    }),
+  )
 }

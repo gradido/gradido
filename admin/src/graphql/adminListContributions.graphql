@@ -19,19 +19,18 @@ query adminListContributions(
       }
       amount
       memo
-      createdAt
+      closedAt
+      closedBy
+      closedByUserName
       contributionDate
-      confirmedAt
-      confirmedBy
+      createdAt      
       updatedAt
-      updatedBy
+      updatedBy 
+      updatedByUserName
       contributionStatus
       messagesCount
-      deniedAt
-      deniedBy
-      deletedAt
-      deletedBy
       moderatorId
+      moderatorUserName
       userId
       resubmissionAt
     }
