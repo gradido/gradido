@@ -32,7 +32,7 @@ let transactionAddedToBlockchainSum = 0
 let addToBlockchainSum = 0
 const sizeBuffer = Buffer.alloc(2)
 
-function addToBlockchain(
+export function addToBlockchain(
   builder: GradidoTransactionBuilder,
   blockchain: InMemoryBlockchain,
   transactionId: number,
@@ -53,7 +53,7 @@ function addToBlockchain(
   sizeBuffer.writeUInt16LE(binTransaction.size(), 0)
   fs.appendFileSync(filePath, sizeBuffer)
   fs.appendFileSync(filePath, binTransaction.data())
-  //
+  //*/
   
   try {    
     const result = blockchain.createAndAddConfirmedTransactionExtern(

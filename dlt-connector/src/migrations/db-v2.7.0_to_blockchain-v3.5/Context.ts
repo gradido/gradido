@@ -11,7 +11,7 @@ import { LOG4JS_BASE_CATEGORY } from '../../config/const'
 import { Uuidv4 } from '../../schemas/typeGuard.schema'
 import { loadUserByGradidoId } from './database'
 import { bytesToMbyte } from './utils'
-import { CommunityContext, CreatedUserDb } from './valibot.schema'
+import { CommunityContext, UserDb } from './valibot.schema'
 
 dotenv.config()
 
@@ -20,10 +20,10 @@ export class Context {
   public db: MySql2Database
   public communities: Map<string, CommunityContext>
   public cache: KeyPairCacheManager
-  public balanceFixGradidoUser: CreatedUserDb | null
+  public balanceFixGradidoUser: UserDb | null
   private timeUsed: Profiler
 
-  constructor(logger: Logger, db: MySql2Database, cache: KeyPairCacheManager, balanceFixGradidoUser: CreatedUserDb | null) {
+  constructor(logger: Logger, db: MySql2Database, cache: KeyPairCacheManager, balanceFixGradidoUser: UserDb | null) {
     this.logger = logger
     this.db = db
     this.cache = cache
@@ -44,7 +44,7 @@ export class Context {
     })
     const db =  drizzle({ client: connection })
     const logger = getLogger(`${LOG4JS_BASE_CATEGORY}.migrations.db-v2.7.0_to_blockchain-v3.5`)
-    let balanceFixGradidoUser: CreatedUserDb | null = null
+    let balanceFixGradidoUser: UserDb | null = null
     if (process.env.MIGRATION_ACCOUNT_BALANCE_FIX_GRADIDO_ID) {
       balanceFixGradidoUser = await loadUserByGradidoId(db, process.env.MIGRATION_ACCOUNT_BALANCE_FIX_GRADIDO_ID)
       if (!balanceFixGradidoUser) {

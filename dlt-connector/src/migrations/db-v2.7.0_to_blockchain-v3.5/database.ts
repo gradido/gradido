@@ -4,6 +4,8 @@ import { MySql2Database } from 'drizzle-orm/mysql2'
 import { getLogger } from 'log4js'
 import * as v from 'valibot'
 import { LOG4JS_BASE_CATEGORY } from '../../config/const'
+import { ContributionStatus } from './data/ContributionStatus'
+import { TransactionTypeId } from './data/TransactionTypeId'
 import {
   communitiesTable,
   contributionsTable,  
@@ -17,12 +19,14 @@ import {
   userSelectSchema,
   usersTable
 } from './drizzle.schema'
-import { TransactionTypeId } from './data/TransactionTypeId'
+import { DatabaseError } from './errors'
 import {
   CommunityDb,
-  CreatedUserDb,
+  UserDb,
+  CreationTransactionDb,
   communityDbSchema,
-  createdUserDbSchema,
+  userDbSchema,
+  creationTransactionDbSchema,
   TransactionDb,
   TransactionLinkDb,
   transactionDbSchema,
@@ -33,8 +37,8 @@ const logger = getLogger(
   `${LOG4JS_BASE_CATEGORY}.migrations.db-v2.7.0_to_blockchain-v3.6.blockchain`,
 )
 
-export const contributionLinkModerators = new Map<number, CreatedUserDb>()
-export const adminUsers = new Map<string, CreatedUserDb>()
+export const contributionLinkModerators = new Map<number, UserDb>()
+export const adminUsers = new Map<string, UserDb>()
 const transactionIdSet = new Set<number>()
 
 export async function loadContributionLinkModeratorCache(db: MySql2Database): Promise<void> {
@@ -49,7 +53,7 @@ export async function loadContributionLinkModeratorCache(db: MySql2Database): Pr
     .orderBy(asc(eventsTable.id))
 
   result.map((row: any) => {
-    contributionLinkModerators.set(row.event.involvedContributionLinkId, v.parse(createdUserDbSchema, row.user))
+    contributionLinkModerators.set(row.event.involvedContributionLinkId, v.parse(userDbSchema, row.user))
   })
 }
 
@@ -63,7 +67,7 @@ export async function loadAdminUsersCache(db: MySql2Database): Promise<void> {
     .leftJoin(usersTable, eq(userRolesTable.userId, usersTable.id))
 
   result.map((row: any) => {
-    adminUsers.set(row.gradidoId, v.parse(createdUserDbSchema, row.user))
+    adminUsers.set(row.gradidoId, v.parse(userDbSchema, row.user))
   })
 }
 
@@ -71,6 +75,7 @@ export async function loadAdminUsersCache(db: MySql2Database): Promise<void> {
 export async function loadCommunities(db: MySql2Database): Promise<CommunityDb[]> {
   const result = await db
     .select({
+      id: communitiesTable.id,
       foreign: communitiesTable.foreign,
       communityUuid: communitiesTable.communityUuid,
       name: communitiesTable.name,
@@ -83,18 +88,8 @@ export async function loadCommunities(db: MySql2Database): Promise<CommunityDb[]
     .orderBy(asc(communitiesTable.id))
     .groupBy(communitiesTable.communityUuid)
 
-  const communityNames = new Set<string>()
   return result.map((row: any) => {
-    let alias = row.name
-    if (communityNames.has(row.name)) {
-      alias = row.community_uuid
-    } else {
-      communityNames.add(row.name)
-    }
-    return v.parse(communityDbSchema, {
-      ...row,
-      uniqueAlias: alias,
-    })
+    return v.parse(communityDbSchema, row)
   })
 }
 
@@ -102,7 +97,7 @@ export async function loadUsers(
   db: MySql2Database,
   offset: number,
   count: number,
-): Promise<CreatedUserDb[]> {
+): Promise<UserDb[]> {
   const result = await db
     .select()
     .from(usersTable)
@@ -110,19 +105,59 @@ export async function loadUsers(
     .limit(count)
     .offset(offset)
 
-  return result.map((row: any) => {
-    return v.parse(createdUserDbSchema, row)
-  })
+  return result.map((row: any) => v.parse(userDbSchema, row))
 }
 
-export async function loadUserByGradidoId(db: MySql2Database, gradidoId: string): Promise<CreatedUserDb | null> {
+export async function loadUserByGradidoId(db: MySql2Database, gradidoId: string): Promise<UserDb | null> {
   const result = await db
     .select()
     .from(usersTable)
     .where(eq(usersTable.gradidoId, gradidoId))
     .limit(1)
 
-  return result.length ? v.parse(createdUserDbSchema, result[0]) : null
+  return result.length ? v.parse(userDbSchema, result[0]) : null
+}
+
+export async function loadLocalTransferTransactions(
+  db: MySql2Database,
+  offset: number,
+  count: number,
+): Promise<TransactionDb[]> {
+  const linkedUsers = alias(usersTable, 'linkedUser')
+  const result = await db
+    .select({
+      transaction: transactionsTable,
+      user: usersTable,
+      linkedUser: linkedUsers,
+    })
+    .from(transactionsTable)
+    .where(
+      and(
+        eq(transactionsTable.typeId, TransactionTypeId.RECEIVE),
+        isNull(transactionsTable.transactionLinkId),
+        isNotNull(transactionsTable.linkedUserId),
+        eq(usersTable.foreign, 0),
+        eq(linkedUsers.foreign, 0),
+      )
+    )
+    .leftJoin(usersTable, eq(transactionsTable.userId, usersTable.id))
+    .leftJoin(linkedUsers, eq(transactionsTable.linkedUserId, linkedUsers.id))
+    .orderBy(asc(transactionsTable.balanceDate), asc(transactionsTable.id))
+    .limit(count)
+    .offset(offset)
+
+  return result.map((row: any) => {
+    const item = {
+        ...row.transaction,
+        user: row.user,
+        linkedUser: row.linkedUser,
+      }
+    try {
+      return v.parse(transactionDbSchema, item)
+    } catch (e) {
+      throw new DatabaseError('loadLocalTransferTransactions', item, e as Error)
+    }
+  })
 }
 
 export async function loadTransactions(
@@ -131,8 +166,7 @@ export async function loadTransactions(
   count: number,
 ): Promise<TransactionDb[]> {
   const linkedUsers = alias(usersTable, 'linkedUser')
-  const linkedTransactions = alias(transactionsTable, 'linkedTransaction')
-
+  
   const result = await db
     .select({
       transaction: transactionsTable,
@@ -142,7 +176,6 @@ export async function loadTransactions(
         id: transactionLinksTable.id,
         code: transactionLinksTable.code
       },
-      linkedUserBalance: linkedTransactions.balance,
     })
     .from(transactionsTable)
     .where(
@@ -158,7 +191,6 @@ export async function loadTransactions(
       transactionLinksTable,
       eq(transactionsTable.transactionLinkId, transactionLinksTable.id),
     )
-    .leftJoin(linkedTransactions, eq(transactionsTable.linkedTransactionId, linkedTransactions.id))
     .orderBy(asc(transactionsTable.balanceDate), asc(transactionsTable.id))
     .limit(count)
     .offset(offset)
@@ -176,7 +208,6 @@ export async function loadTransactions(
         transactionLinkCode: row.transactionLink ? row.transactionLink.code : null,
         user: row.user,
         linkedUser: row.linkedUser,
-        linkedUserBalance: row.linkedUserBalance,
       })
     } catch (e) {
       logger.error(`table row: ${JSON.stringify(row, null, 2)}`)
@@ -184,6 +215,43 @@ export async function loadTransactions(
         logger.error(v.flatten(e.issues))
       }
       throw e
+    }
+  })
+}
+
+export async function loadCreations(
+  db: MySql2Database,
+  offset: number,
+  count: number,
+): Promise<CreationTransactionDb[]> {
+  const confirmedByUsers = alias(usersTable, 'confirmedByUser')  
+  const result = await db
+    .select({
+      contribution: contributionsTable,
+      user: usersTable,
+      confirmedByUser: confirmedByUsers,
+    })
+    .from(contributionsTable)
+    .where(and(
+      isNull(contributionsTable.contributionLinkId),
+      eq(contributionsTable.contributionStatus, ContributionStatus.CONFIRMED),
+    ))
+    .leftJoin(usersTable, eq(contributionsTable.userId, usersTable.id))
+    .leftJoin(confirmedByUsers, eq(contributionsTable.confirmedBy, confirmedByUsers.id))
+    .orderBy(asc(contributionsTable.confirmedAt), asc(contributionsTable.id))
+    .limit(count)
+    .offset(offset)
+
+  return result.map((row) => {
+    const creationTransactionDb = {
+      ...row.contribution,
+      user: row.user,
+      confirmedByUser: row.confirmedByUser,
+    }
+    try {
+      return v.parse(creationTransactionDbSchema, creationTransactionDb)
+    } catch (e) {
+      throw new DatabaseError('loadCreations', creationTransactionDb, e as Error)
     }
   })
 }

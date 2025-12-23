@@ -4,7 +4,7 @@ import { Context } from '../../Context'
 import { TransactionDb } from '../../valibot.schema'
 import { AbstractBalancesRole } from './AbstractBalances.role'
 
-export class TransferBalancesRole extends AbstractBalancesRole  {
+export class RedeemDeferredTransferBalancesRole extends AbstractBalancesRole  {
   constructor(transaction: Transaction, protected dbTransaction: TransactionDb) {
     super(transaction)
   }

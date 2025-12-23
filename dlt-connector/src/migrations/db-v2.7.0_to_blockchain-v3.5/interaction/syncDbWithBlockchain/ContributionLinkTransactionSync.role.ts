@@ -1,10 +1,14 @@
+import { and, asc, eq, isNotNull } from 'drizzle-orm'
 import * as v from 'valibot'
 import { Context } from '../../Context'
-import { adminUsers, contributionLinkModerators, loadContributionLinkTransactions } from '../../database'
-import { CreatedUserDb, TransactionDb, transactionDbSchema } from '../../valibot.schema'
-import { TransactionsSyncRole } from './TransactionsSync.role'
+import { contributionLinkModerators } from '../../database'
+import { CreationTransactionDb, creationTransactionDbSchema } from '../../valibot.schema'
+import { CreationsSyncRole } from './CreationsSync.role'
+import { contributionsTable, usersTable } from '../../drizzle.schema'
+import { ContributionStatus } from '../../data/ContributionStatus'
+import { DatabaseError } from '../../errors'
 
-export class ContributionLinkTransactionSyncRole extends TransactionsSyncRole {
+export class ContributionLinkTransactionSyncRole extends CreationsSyncRole {
   constructor(readonly context: Context) {
     super(context)
   }
@@ -12,24 +16,42 @@ export class ContributionLinkTransactionSyncRole extends TransactionsSyncRole {
     return 'contributionLinkTransaction'
   }
 
-  async loadFromDb(offset: number, count: number): Promise<TransactionDb[]> {
-    const transactionUsers = await loadContributionLinkTransactions(this.context.db, offset, count)
-    return transactionUsers.map((transactionUser) => {
-      let linkedUser: CreatedUserDb | null | undefined = null
-      linkedUser = contributionLinkModerators.get(transactionUser.contributionLinkId)
-      if (linkedUser?.gradidoId === transactionUser.user.gradidoId) {
-        for (const adminUser of adminUsers.values()) {
-          if (adminUser.gradidoId !== transactionUser.user.gradidoId) {
-            linkedUser = adminUser
-            break
-          }
-        }
-      }
-      return v.parse(transactionDbSchema, {
-        ...transactionUser.transaction,
-        user: transactionUser.user,
-        linkedUser,
+  async loadFromDb(offset: number, count: number): Promise<CreationTransactionDb[]> {
+    const result = await this.context.db
+      .select({
+        contribution: contributionsTable,
+        user: usersTable,
       })
-    })
+      .from(contributionsTable)
+      .where(and(
+        isNotNull(contributionsTable.contributionLinkId),
+        eq(contributionsTable.contributionStatus, ContributionStatus.CONFIRMED),
+      ))
+      .innerJoin(usersTable, eq(contributionsTable.userId, usersTable.id))
+      .orderBy(asc(contributionsTable.confirmedAt), asc(contributionsTable.transactionId))
+      .limit(count)
+      .offset(offset)
+    
+    const verifiedCreationTransactions: CreationTransactionDb[] = []
+    for(const row of result) {
+      if (!row.contribution.contributionLinkId) {
+        throw new Error(`expect contributionLinkId to be set: ${JSON.stringify(row.contribution, null, 2)}`)
+      }
+      const item = {
+        ...row.contribution,
+        user: row.user,
+        confirmedByUser: contributionLinkModerators.get(row.contribution.contributionLinkId)
+      }
+      if (!item.confirmedByUser || item.userId === item.confirmedByUser.id) {
+        this.context.logger.warn(`skipped Contribution Link Transaction ${row.contribution.id}`)
+        continue
+      }
+      try {
+        verifiedCreationTransactions.push(v.parse(creationTransactionDbSchema, item))
+      } catch (e) {
+        throw new DatabaseError('load contributions with contribution link id', item, e as Error)
+      }
+    }
+    return verifiedCreationTransactions
   }
 }

@@ -68,6 +68,16 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
     AND t.user_id <> u.id
     ;`)
 
+  await queryFn(`
+    UPDATE contributions c
+    JOIN users u ON(c.moderator_id = u.id)
+    SET c.confirmed_by = u.id
+    WHERE c.contribution_status = 'CONFIRMED'
+    AND c.user_id = c.confirmed_by
+    AND u.created_at < c.confirmed_at 
+    AND c.user_id <> u.id
+    ;`)
+
   /**
    * Fix 2: Replace invalid moderators with the earliest ADMIN.
    *
@@ -110,6 +120,25 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
       AND t.balance_date <= u.created_at
       AND t.balance_date > moderator.created_at
       AND t.user_id <> moderator.id
+    ;`)
+
+  // similar but with confirmed by user
+  await queryFn(`
+    UPDATE contributions c
+    JOIN (
+        SELECT c_sub.id as sub_c_id, u_sub.created_at, u_sub.id
+        FROM contributions c_sub
+		    JOIN users u_sub ON (c_sub.confirmed_by <> u_sub.id AND c_sub.user_id <> u_sub.id)
+        JOIN user_roles r_sub ON (u_sub.id = r_sub.user_id)		
+        WHERE r_sub.role IN ('ADMIN', 'MODERATOR')
+        GROUP BY c_sub.id
+        ORDER BY r_sub.created_at ASC
+    ) confirmingUser ON (c.id = confirmingUser.sub_c_id)
+    LEFT JOIN users u on(c.confirmed_by = u.id)
+    SET c.confirmed_by = confirmingUser.id
+    WHERE c.confirmed_at <= u.created_at
+      AND c.confirmed_at > confirmingUser.created_at
+      AND c.user_id <> confirmingUser.id
     ;`)
 
   /**
@@ -166,6 +195,26 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
    */
   await queryFn(`
     UPDATE transactions t
+    SET t.memo = CASE 
+      WHEN CHAR_LENGTH(t.memo) = 0 THEN 'empty empty'
+      WHEN CHAR_LENGTH(t.memo) < 5 THEN LPAD(t.memo, 5, ' ')
+      ELSE t.memo
+    END
+    WHERE CHAR_LENGTH(t.memo) < 5
+    ;`)
+
+  await queryFn(`
+    UPDATE contributions t
+    SET t.memo = CASE 
+      WHEN CHAR_LENGTH(t.memo) = 0 THEN 'empty empty'
+      WHEN CHAR_LENGTH(t.memo) < 5 THEN LPAD(t.memo, 5, ' ')
+      ELSE t.memo
+    END
+    WHERE CHAR_LENGTH(t.memo) < 5
+    ;`)
+
+  await queryFn(`
+    UPDATE transaction_links t
     SET t.memo = CASE 
       WHEN CHAR_LENGTH(t.memo) = 0 THEN 'empty empty'
       WHEN CHAR_LENGTH(t.memo) < 5 THEN LPAD(t.memo, 5, ' ')

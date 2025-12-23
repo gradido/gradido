@@ -1,11 +1,13 @@
 import { Profiler } from 'gradido-blockchain-js'
 import { Context } from '../../Context'
+import { CreationsSyncRole } from './CreationsSync.role'
+import { InvalidContributionTransactionSyncRole } from './InvalidContributionTransactionSync.role'
+import { LocalTransactionsSyncRole } from './LocalTransactionsSync.role'
+import { UsersSyncRole } from './UsersSync.role'
+import { TransactionLinkFundingsSyncRole } from './TransactionLinkFundingsSync.role'
+import { RedeemTransactionLinksSyncRole } from './RedeemTransactionLinksSync.role'
 import { ContributionLinkTransactionSyncRole } from './ContributionLinkTransactionSync.role'
 import { DeletedTransactionLinksSyncRole } from './DeletedTransactionLinksSync.role'
-import { InvalidContributionTransactionSyncRole } from './InvalidContributionTransactionSync.role'
-import { TransactionLinksSyncRole } from './TransactionLinksSync.role'
-import { TransactionsSyncRole } from './TransactionsSync.role'
-import { UsersSyncRole } from './UsersSync.role'
 
 export async function syncDbWithBlockchainContext(context: Context, batchSize: number) {
   const timeUsedDB = new Profiler()
@@ -13,11 +15,12 @@ export async function syncDbWithBlockchainContext(context: Context, batchSize: n
   const timeUsedAll = new Profiler()
   const containers = [
     new UsersSyncRole(context),
-    new TransactionsSyncRole(context),
-    new DeletedTransactionLinksSyncRole(context),
-    new TransactionLinksSyncRole(context),
-    new InvalidContributionTransactionSyncRole(context),
+    new CreationsSyncRole(context),
+    new LocalTransactionsSyncRole(context),
+    new TransactionLinkFundingsSyncRole(context),
+    new RedeemTransactionLinksSyncRole(context),
     new ContributionLinkTransactionSyncRole(context),
+    new DeletedTransactionLinksSyncRole(context),
   ]
   let transactionsCount = 0
   let transactionsCountSinceLastLog = 0
@@ -38,10 +41,12 @@ export async function syncDbWithBlockchainContext(context: Context, batchSize: n
     }
 
     // sort by date, to ensure container on index 0 is the one with the smallest date
-    if (available.length > 0) {
+    if (available.length > 1) {
+      // const sortTime = new Profiler()
       available.sort((a, b) => a.getDate().getTime() - b.getDate().getTime())
+      // context.logger.debug(`sorted ${available.length} containers in ${sortTime.string()}`)
     }
-    await available[0].toBlockchain()
+    available[0].toBlockchain()
     process.stdout.write(`successfully added to blockchain: ${transactionsCount}\r`)
     transactionsCount++
     transactionsCountSinceLastLog++
@@ -57,8 +62,8 @@ export async function syncDbWithBlockchainContext(context: Context, batchSize: n
   if (context.logger.isDebugEnabled()) {
     context.logger.debug(InvalidContributionTransactionSyncRole.allTransactionIds.join(', '))
   }
-  context.logger.info(`Double linked transactions: ${TransactionsSyncRole.doubleTransactionLinkCodes.length}`)
+  /*context.logger.info(`Double linked transactions: ${TransactionsSyncRole.doubleTransactionLinkCodes.length}`)
   if (context.logger.isDebugEnabled()) {
     context.logger.debug(TransactionsSyncRole.doubleTransactionLinkCodes.join(', '))
-  }
+  }*/
 }

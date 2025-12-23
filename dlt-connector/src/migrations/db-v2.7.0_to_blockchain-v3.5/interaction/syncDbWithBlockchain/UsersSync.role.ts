@@ -1,11 +1,24 @@
-import { addTransaction } from '../../blockchain'
-import { userDbToTransaction } from '../../convert'
-import { loadUsers } from '../../database'
-import { generateKeyPairUserAccount } from '../../data/keyPair'
-import { CreatedUserDb } from '../../valibot.schema'
+import { asc } from 'drizzle-orm'
+import { 
+  AccountBalance, 
+  AccountBalances, 
+  AddressType_COMMUNITY_HUMAN, 
+  GradidoTransactionBuilder, 
+  GradidoUnit, 
+  KeyPairEd25519, 
+  MemoryBlockPtr 
+} from 'gradido-blockchain-js'
+import * as v from 'valibot'
+import { deriveFromKeyPairAndUuid } from '../../../../data/deriveKeyPair'
+import { Uuidv4Hash } from '../../../../data/Uuidv4Hash'
+import { addToBlockchain } from '../../blockchain'
+import { usersTable } from '../../drizzle.schema'
+import { BlockchainError, DatabaseError } from '../../errors'
+import { UserDb, userDbSchema } from '../../valibot.schema'
 import { AbstractSyncRole } from './AbstractSync.role'
 
-export class UsersSyncRole extends AbstractSyncRole<CreatedUserDb> {
+export class UsersSyncRole extends AbstractSyncRole<UserDb> {
+
   getDate(): Date {
     return this.peek().createdAt
   }
@@ -14,18 +27,66 @@ export class UsersSyncRole extends AbstractSyncRole<CreatedUserDb> {
     return 'users'
   }
 
-  async loadFromDb(offset: number, count: number): Promise<CreatedUserDb[]> {
-    const users = await loadUsers(this.context.db, offset, count)
-    for (const user of users) {
-      const communityContext = this.context.getCommunityContextByUuid(user.communityUuid)
-      await generateKeyPairUserAccount(user, this.context.cache, communityContext.topicId)
-    }
-    return users
+  async loadFromDb(offset: number, count: number): Promise<UserDb[]> {
+    const result = await this.context.db
+        .select()
+        .from(usersTable)
+        .orderBy(asc(usersTable.createdAt), asc(usersTable.id))
+        .limit(count)
+        .offset(offset)
+    
+    return result.map((row) => {
+      try {
+        return v.parse(userDbSchema, row)
+      } catch (e) {
+        throw new DatabaseError('loadUsers', row, e as Error)
+      }
+    })
   }
 
-  async pushToBlockchain(item: CreatedUserDb): Promise<void> {
+  buildTransaction(
+    item: UserDb, 
+    communityKeyPair: KeyPairEd25519, 
+    accountKeyPair: KeyPairEd25519, 
+    userKeyPair: KeyPairEd25519
+  ): GradidoTransactionBuilder {
+    return new GradidoTransactionBuilder()
+      .setCreatedAt(item.createdAt)
+      .setRegisterAddress(
+        userKeyPair.getPublicKey(),
+        AddressType_COMMUNITY_HUMAN,
+        new Uuidv4Hash(item.gradidoId).getAsMemoryBlock(),
+        accountKeyPair.getPublicKey(),
+      )
+      .sign(communityKeyPair)
+      .sign(accountKeyPair)
+      .sign(userKeyPair)
+  }
+
+  calculateAccountBalances(accountPublicKey: MemoryBlockPtr): AccountBalances {
+    const accountBalances = new AccountBalances()
+    accountBalances.add(new AccountBalance(accountPublicKey, GradidoUnit.zero(), ''))
+    return accountBalances
+  }
+
+  pushToBlockchain(item: UserDb): void {
     const communityContext = this.context.getCommunityContextByUuid(item.communityUuid)
-    const transaction = userDbToTransaction(item, communityContext.topicId)
-    return await addTransaction(communityContext.blockchain, communityContext.blockchain, transaction, item.id)
+    const userKeyPair = deriveFromKeyPairAndUuid(communityContext.keyPair, item.gradidoId)
+    const accountKeyPair = this.getAccountKeyPair(communityContext, item.gradidoId)
+    const accountPublicKey = accountKeyPair.getPublicKey()
+    if (!userKeyPair || !accountKeyPair || !accountPublicKey) {
+      throw new Error(`missing key for ${this.itemTypeName()}: ${JSON.stringify(item, null, 2)}`)
+    }
+
+    try {
+      addToBlockchain(
+        this.buildTransaction(item, communityContext.keyPair, accountKeyPair, userKeyPair),
+        communityContext.blockchain,
+        item.id,
+        this.calculateAccountBalances(accountPublicKey),
+      )
+    } catch (e) {
+      throw new BlockchainError(`Error adding ${this.itemTypeName()}`, item, e as Error)
+    }
   }
 }

@@ -28,10 +28,14 @@ export const communitiesTable = mysqlTable(
 
 export const contributionsTable = mysqlTable('contributions', {
 	id: int().autoincrement().notNull(),
+  userId: int('user_id').default(sql`NULL`),
+  contributionDate: datetime("contribution_date", { mode: 'string'}).default(sql`NULL`),
+	memo: varchar({ length: 512 }).notNull(),
+	amount: decimal({ precision: 40, scale: 20 }).notNull(),
 	contributionLinkId: int('contribution_link_id').default(sql`NULL`),
 	confirmedBy: int('confirmed_by').default(sql`NULL`),
 	confirmedAt: datetime('confirmed_at', { mode: 'string'}).default(sql`NULL`),
-	deletedAt: datetime('deleted_at', { mode: 'string'}).default(sql`NULL`),
+  contributionStatus: varchar('contribution_status', { length: 12 }).default('\'PENDING\'').notNull(),
 	transactionId: int('transaction_id').default(sql`NULL`),
 })
 
@@ -49,9 +53,11 @@ export const usersTable = mysqlTable(
     foreign: tinyint().default(0).notNull(),
     gradidoId: char('gradido_id', { length: 36 }).notNull(),
     communityUuid: varchar('community_uuid', { length: 36 }).default(sql`NULL`),
+    deletedAt: datetime('deleted_at', { mode: 'string', fsp: 3 }).default(sql`NULL`),
     createdAt: datetime('created_at', { mode: 'string', fsp: 3 })
       .default(sql`current_timestamp(3)`)
       .notNull(),
+    
   },
   (table) => [unique('uuid_key').on(table.gradidoId, table.communityUuid)],
 )
@@ -100,4 +106,6 @@ export const transactionLinksTable = mysqlTable('transaction_links', {
   createdAt: datetime({ mode: 'string' }).notNull(),
   deletedAt: datetime({ mode: 'string' }).default(sql`NULL`),
   validUntil: datetime({ mode: 'string' }).notNull(),
+  redeemedAt: datetime({ mode: 'string'}).default(sql`NULL`),
+	redeemedBy: int().default(sql`NULL`),
 })

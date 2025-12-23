@@ -1,7 +1,11 @@
-import { Profiler } from 'gradido-blockchain-js'
+import { Filter, InMemoryBlockchain, KeyPairEd25519, MemoryBlockPtr, Profiler, SearchDirection_DESC } from 'gradido-blockchain-js'
 import { getLogger, Logger } from 'log4js'
 import { LOG4JS_BASE_CATEGORY } from '../../../../config/const'
+import { deriveFromKeyPairAndIndex, deriveFromKeyPairAndUuid } from '../../../../data/deriveKeyPair'
+import { Uuidv4 } from '../../../../schemas/typeGuard.schema'
 import { Context } from '../../Context'
+import { Balance } from '../../data/Balance'
+import { CommunityContext } from '../../valibot.schema'
 
 export abstract class AbstractSyncRole<T> {
   private items: T[] = []
@@ -14,9 +18,34 @@ export abstract class AbstractSyncRole<T> {
     )
   }
 
+  getAccountKeyPair(communityContext: CommunityContext, gradidoId: Uuidv4): KeyPairEd25519 {
+    return this.context.cache.getKeyPairSync(gradidoId, () => {
+      return deriveFromKeyPairAndIndex(deriveFromKeyPairAndUuid(communityContext.keyPair, gradidoId), 1)
+    })
+  }
+
+  getLastBalanceForUser(publicKey: MemoryBlockPtr, blockchain: InMemoryBlockchain, communityId: string = ''): Balance {
+    if (publicKey.isEmpty()) {
+      throw new Error('publicKey is empty')
+    }
+    const lastSenderTransaction = blockchain.findOne(Filter.lastBalanceFor(publicKey))
+    if (!lastSenderTransaction) {
+      return new Balance(publicKey, communityId)
+    }
+    const lastConfirmedTransaction = lastSenderTransaction.getConfirmedTransaction()
+    if (!lastConfirmedTransaction) {
+      throw new Error(`invalid transaction, getConfirmedTransaction call failed for transaction nr: ${lastSenderTransaction.getTransactionNr()}`)
+    }
+    const senderLastAccountBalance = lastConfirmedTransaction.getAccountBalance(publicKey, communityId)
+    if (!senderLastAccountBalance) {
+      return new Balance(publicKey, communityId)
+    }
+    return Balance.fromAccountBalance(senderLastAccountBalance, lastConfirmedTransaction.getConfirmedAt().getDate())
+  }
+
   abstract getDate(): Date
   abstract loadFromDb(offset: number, count: number): Promise<T[]>
-  abstract pushToBlockchain(item: T): Promise<void>
+  abstract pushToBlockchain(item: T): void
   abstract itemTypeName(): string
 
   // return count of new loaded items
@@ -38,11 +67,11 @@ export abstract class AbstractSyncRole<T> {
     return 0
   }  
 
-  async toBlockchain(): Promise<void> {
+  toBlockchain(): void {
     if (this.isEmpty()) {
       throw new Error(`[toBlockchain] No items, please call this only if isEmpty returns false`)
     }
-    await this.pushToBlockchain(this.shift())
+    this.pushToBlockchain(this.shift())
   }
 
   peek(): T {
