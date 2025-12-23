@@ -1,70 +1,125 @@
-import { InMemoryBlockchain } from 'gradido-blockchain-js'
+import { InMemoryBlockchain, KeyPairEd25519 } from 'gradido-blockchain-js'
 import * as v from 'valibot'
 import { booleanSchema, dateSchema } from '../../schemas/typeConverter.schema'
 import {
   gradidoAmountSchema,
-  hieroIdSchema,
   identifierSeedSchema,
   memoSchema,
   uuidv4Schema,
 } from '../../schemas/typeGuard.schema'
-import { TransactionTypeId } from './TransactionTypeId'
+import { Balance } from './data/Balance'
+import { TransactionTypeId } from './data/TransactionTypeId'
 
-export const createdUserDbSchema = v.object({
+const positiveNumberSchema = v.pipe(v.number(), v.minValue(1))
+
+export const userDbSchema = v.object({
+  id: positiveNumberSchema,
   gradidoId: uuidv4Schema,
   communityUuid: uuidv4Schema,
   createdAt: dateSchema,
 })
 
-export const userDbSchema = v.object({
-  gradidoId: uuidv4Schema,
-  communityUuid: uuidv4Schema,
+export const transactionBaseSchema = v.object({
+  id: positiveNumberSchema,
+  amount: gradidoAmountSchema,
+  memo: memoSchema,
+  user: userDbSchema,
 })
 
-export const transactionDbSchema = v.object({
+export const transactionDbSchema = v.pipe(v.object({
+  ...transactionBaseSchema.entries,
   typeId: v.enum(TransactionTypeId),
-  amount: gradidoAmountSchema,
   balanceDate: dateSchema,
-  memo: memoSchema,
-  creationDate: v.nullish(dateSchema),
-  user: userDbSchema,
   linkedUser: userDbSchema,
-  transactionLinkCode: v.nullish(identifierSeedSchema),
-})
+}), v.custom((value: any) => {
+  if (value.user && value.linkedUser && !value.transactionLinkCode && value.user.gradidoId === value.linkedUser.gradidoId) {
+    throw new Error(`expect user to be different from linkedUser: ${JSON.stringify(value, null, 2)}`)
+  }
+  // check that user and linked user exist before transaction balance date
+  const balanceDate = new Date(value.balanceDate)
+  if (
+    value.user.createdAt.getTime() >= balanceDate.getTime() ||
+    value.linkedUser?.createdAt.getTime() >= balanceDate.getTime()
+  ) {
+    throw new Error(
+      `at least one user was created after transaction balance date, logic error! ${JSON.stringify(value, null, 2)}`,
+    )
+  }
+  
+  return value
+}))
+
+export const creationTransactionDbSchema = v.pipe(v.object({
+  ...transactionBaseSchema.entries,
+  contributionDate: dateSchema,
+  confirmedAt: dateSchema,
+  confirmedByUser: userDbSchema,
+}), v.custom((value: any) => {
+  if (value.user && value.confirmedByUser && value.user.gradidoId === value.confirmedByUser.gradidoId) {
+    throw new Error(`expect user to be different from confirmedByUser: ${JSON.stringify(value, null, 2)}`)
+  }
+  // check that user and confirmedByUser exist before transaction balance date
+  const confirmedAt = new Date(value.confirmedAt)
+  if (
+    value.user.createdAt.getTime() >= confirmedAt.getTime() ||
+    value.confirmedByUser?.createdAt.getTime() >= confirmedAt.getTime()
+  ) {
+    throw new Error(
+      `at least one user was created after transaction confirmedAt date, logic error! ${JSON.stringify(value, null, 2)}`,
+    )
+  }
+  
+  return value
+}))
 
 export const transactionLinkDbSchema = v.object({
-  user: userDbSchema,
+  ...transactionBaseSchema.entries,
   code: identifierSeedSchema,
-  amount: gradidoAmountSchema,
-  memo: memoSchema,
   createdAt: dateSchema,
   validUntil: dateSchema,
 })
 
+export const redeemedTransactionLinkDbSchema = v.object({
+  ...transactionLinkDbSchema.entries,
+  redeemedAt: dateSchema,
+  redeemedBy: userDbSchema,
+})
+
+export const deletedTransactionLinKDbSchema = v.object({
+  id: positiveNumberSchema,
+  user: userDbSchema,
+  code: identifierSeedSchema,
+  deletedAt: dateSchema,
+})
+
 export const communityDbSchema = v.object({
+  id: positiveNumberSchema,
   foreign: booleanSchema,
   communityUuid: uuidv4Schema,
   name: v.string(),
   creationDate: dateSchema,
   userMinCreatedAt: v.nullish(dateSchema),
-  uniqueAlias: v.string(),
 })
 
 export const communityContextSchema = v.object({
   communityId: v.string(),
   blockchain: v.instance(InMemoryBlockchain, 'expect InMemoryBlockchain type'),
-  topicId: hieroIdSchema,
+  keyPair: v.instance(KeyPairEd25519),
   folder: v.pipe(
     v.string(),
     v.minLength(1, 'expect string length >= 1'),
-    v.maxLength(255, 'expect string length <= 255'),
+    v.maxLength(512, 'expect string length <= 512'),
     v.regex(/^[a-zA-Z0-9-_]+$/, 'expect string to be a valid (alphanumeric, _, -) folder name'),
   ),
+  gmwBalance: v.instance(Balance),
+  aufBalance: v.instance(Balance),
 })
 
 export type TransactionDb = v.InferOutput<typeof transactionDbSchema>
+export type CreationTransactionDb = v.InferOutput<typeof creationTransactionDbSchema>
 export type UserDb = v.InferOutput<typeof userDbSchema>
-export type CreatedUserDb = v.InferOutput<typeof createdUserDbSchema>
 export type TransactionLinkDb = v.InferOutput<typeof transactionLinkDbSchema>
+export type RedeemedTransactionLinkDb = v.InferOutput<typeof redeemedTransactionLinkDbSchema>
+export type DeletedTransactionLinkDb = v.InferOutput<typeof deletedTransactionLinKDbSchema>
 export type CommunityDb = v.InferOutput<typeof communityDbSchema>
 export type CommunityContext = v.InferOutput<typeof communityContextSchema>

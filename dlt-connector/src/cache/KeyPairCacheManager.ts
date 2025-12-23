@@ -76,4 +76,17 @@ export class KeyPairCacheManager {
     }
     return keyPair
   }
+
+  public getKeyPairSync(
+    input: string,
+    createKeyPair: () => KeyPairEd25519,
+  ): KeyPairEd25519 {
+    const keyPair = this.cache.get(input)
+    if (!keyPair) {
+      const keyPair = createKeyPair()
+      this.cache.set(input, keyPair)
+      return keyPair
+    }
+    return keyPair
+  }
 }
