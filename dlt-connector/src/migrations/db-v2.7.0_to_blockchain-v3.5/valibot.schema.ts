@@ -77,6 +77,8 @@ export const transactionLinkDbSchema = v.object({
   code: identifierSeedSchema,
   createdAt: dateSchema,
   validUntil: dateSchema,
+  redeemedAt: v.nullish(dateSchema),
+  deletedAt: v.nullish(dateSchema),
 })
 
 export const redeemedTransactionLinkDbSchema = v.object({

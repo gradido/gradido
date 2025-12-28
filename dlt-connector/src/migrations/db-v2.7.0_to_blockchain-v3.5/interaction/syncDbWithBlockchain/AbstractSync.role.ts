@@ -43,6 +43,21 @@ export abstract class AbstractSyncRole<T> {
     return Balance.fromAccountBalance(senderLastAccountBalance, lastConfirmedTransaction.getConfirmedAt().getDate())
   }
 
+  logLastBalanceChangingTransactions(publicKey: MemoryBlockPtr, blockchain: InMemoryBlockchain, transactionCount: number = 5) {
+    if (!this.context.logger.isDebugEnabled()) {
+      return
+    }
+    const f = new Filter()
+    f.updatedBalancePublicKey = publicKey
+    f.searchDirection = SearchDirection_DESC
+    f.pagination.size = transactionCount
+    const lastTransactions = blockchain.findAll(f)
+    for (let i = lastTransactions.size() - 1; i >= 0; i--) {
+      const tx = lastTransactions.get(i)
+      this.context.logger.debug(`${tx?.getConfirmedTransaction()!.toJson(true)}`)
+    }
+  }
+
   abstract getDate(): Date
   abstract loadFromDb(offset: number, count: number): Promise<T[]>
   abstract pushToBlockchain(item: T): void

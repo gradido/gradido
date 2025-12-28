@@ -15,7 +15,7 @@ import * as v from 'valibot'
 import { addToBlockchain } from '../../blockchain'
 import { TransactionTypeId } from '../../data/TransactionTypeId'
 import { transactionsTable, usersTable } from '../../drizzle.schema'
-import { BlockchainError, DatabaseError } from '../../errors'
+import { BlockchainError, DatabaseError, NegativeBalanceError, NotEnoughGradidoBalanceError } from '../../errors'
 import { CommunityContext, TransactionDb, transactionDbSchema } from '../../valibot.schema'
 import { AbstractSyncRole } from './AbstractSync.role'
 
@@ -99,20 +99,14 @@ export class LocalTransactionsSyncRole extends AbstractSyncRole<TransactionDb> {
     const senderLastBalance = this.getLastBalanceForUser(senderPublicKey, communityContext.blockchain)
     const recipientLastBalance = this.getLastBalanceForUser(recipientPublicKey, communityContext.blockchain)
 
-    if (senderLastBalance.getAccountBalance().getBalance().lt(item.amount)) {
-      const f = new Filter()
-      f.updatedBalancePublicKey = senderPublicKey
-      f.searchDirection = SearchDirection_DESC
-      f.pagination.size = 5
-      const lastTransactions = communityContext.blockchain.findAll(f)
-      for (let i = lastTransactions.size() - 1; i >= 0; i--) {
-        const tx = lastTransactions.get(i)
-        this.context.logger.error(`${tx?.getConfirmedTransaction()!.toJson(true)}`)
+    try {
+      senderLastBalance.updateLegacyDecay(item.amount.negated(), item.balanceDate)
+    } catch(e) {
+      if (e instanceof NegativeBalanceError) {
+        this.logLastBalanceChangingTransactions(senderPublicKey, communityContext.blockchain)
+        throw e
       }
-      throw new Error(`sender has not enough balance (${senderLastBalance.getAccountBalance().getBalance().toString()}) to send ${item.amount.toString()} to ${recipientPublicKey.convertToHex()}`)
     }
-
-    senderLastBalance.updateLegacyDecay(item.amount.negated(), item.balanceDate)
     recipientLastBalance.updateLegacyDecay(item.amount, item.balanceDate)
     
     accountBalances.add(senderLastBalance.getAccountBalance())
@@ -145,6 +139,9 @@ export class LocalTransactionsSyncRole extends AbstractSyncRole<TransactionDb> {
         this.calculateBalances(item, communityContext, senderPublicKey, recipientPublicKey),
       )
     } catch(e) {
+      if (e instanceof NotEnoughGradidoBalanceError) {
+        this.logLastBalanceChangingTransactions(senderPublicKey, blockchain)        
+      }
       throw new BlockchainError(`Error adding ${this.itemTypeName()}`, item, e as Error)
     }
   }

@@ -1,6 +1,7 @@
 import Decimal from 'decimal.js-light'
 import { AccountBalance, GradidoUnit, MemoryBlockPtr } from 'gradido-blockchain-js'
 import { legacyCalculateDecay } from '../utils'
+import { NegativeBalanceError } from '../errors'
 
 export class Balance {
     private balance: GradidoUnit
@@ -25,8 +26,15 @@ export class Balance {
         return this.balance
     }
 
+    getDate(): Date {
+        return this.date
+    }
+
     updateLegacyDecay(amount: GradidoUnit, date: Date) {
+        // make sure to copy instead of referencing
         const previousBalanceString = this.balance.toString()
+        const previousDate = new Date(this.date.getTime())
+
         if (this.balance.equal(GradidoUnit.zero())) {
             this.balance = amount
             this.date = date
@@ -37,12 +45,20 @@ export class Balance {
             this.date = date
         }
         if (this.balance.lt(GradidoUnit.zero())) {
-            throw new Error(`negative Gradido amount detected in Balance.updateLegacyDecay, previous balance: ${previousBalanceString}, amount: ${amount.toString()}`)
+            const previousDecayedBalance = legacyCalculateDecay(new Decimal(previousBalanceString), previousDate, date)
+            throw new NegativeBalanceError(
+                `negative Gradido amount detected in Balance.updateLegacyDecay`,
+                previousBalanceString,
+                amount.toString(),
+                previousDecayedBalance.toString(),
+            )
         }
     }
 
     update(amount: GradidoUnit, date: Date) {
-        const previousBalanceString = this.balance.toString()
+        const previousBalance = new GradidoUnit(this.balance.toString())
+        const previousDate = new Date(this.date.getTime())
+
         if (this.balance.equal(GradidoUnit.zero())) {
             this.balance = amount
             this.date = date
@@ -53,7 +69,13 @@ export class Balance {
             this.date = date
         }
         if (this.balance.lt(GradidoUnit.zero())) {
-            throw new Error(`negative Gradido amount detected in Balance.update, previous balance: ${previousBalanceString}, amount: ${amount.toString()}`)
+            const previousDecayedBalance = this.balance.calculateDecay(previousDate, date)
+            throw new NegativeBalanceError(
+                `negative Gradido amount detected in Balance.update`,
+                previousBalance.toString(),
+                amount.toString(),
+                previousDecayedBalance.toString(),
+            )
         }
     }
 

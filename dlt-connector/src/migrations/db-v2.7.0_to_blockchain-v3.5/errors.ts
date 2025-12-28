@@ -3,6 +3,7 @@ import * as v from 'valibot'
 export class NotEnoughGradidoBalanceError extends Error {
   constructor(public needed: number, public exist: number) {
     super(`Not enough Gradido Balance for send coins, needed: ${needed} Gradido, exist: ${exist} Gradido`)
+    this.name = 'NotEnoughGradidoBalanceError'
   }
 }
 
@@ -40,5 +41,16 @@ export class BlockchainError extends Error {
 
     this.name = 'BlockchainError'
     this.stack = originalError.stack
+  }
+}
+
+export class NegativeBalanceError extends Error {
+  constructor(message: string, previousBalanceString: string, amount: string, previousDecayedBalance: string) {
+    const parts: string[] = [`NegativeBalanceError in ${message}`]
+    parts.push(`Previous balance: ${previousBalanceString}`)
+    parts.push(`Amount: ${amount}`)
+    parts.push(`Previous decayed balance: ${previousDecayedBalance}`)
+    super(parts.join('\n'))
+    this.name = 'NegativeBalanceError'
   }
 }

@@ -17,10 +17,12 @@ import {
 import * as v from 'valibot'
 import { addToBlockchain } from '../../blockchain'
 import { transactionLinksTable, usersTable } from '../../drizzle.schema'
-import { BlockchainError, DatabaseError } from '../../errors'
+import { BlockchainError, DatabaseError, NegativeBalanceError } from '../../errors'
 import { CommunityContext, TransactionLinkDb, transactionLinkDbSchema } from '../../valibot.schema'
 import { AbstractSyncRole } from './AbstractSync.role'
 import { deriveFromCode } from '../../../../data/deriveKeyPair'
+import { legacyCalculateDecay } from '../../utils'
+import Decimal from 'decimal.js-light'
 
 export class TransactionLinkFundingsSyncRole extends AbstractSyncRole<TransactionLinkDb> {
   getDate(): Date {
@@ -87,22 +89,9 @@ export class TransactionLinkFundingsSyncRole extends AbstractSyncRole<Transactio
       recipientPublicKey: MemoryBlockPtr,
     ): AccountBalances {
       const accountBalances = new AccountBalances()
-
-      const senderLastBalance = this.getLastBalanceForUser(senderPublicKey, communityContext.blockchain)      
-      if (senderLastBalance.getBalance().lt(blockedAmount)) {
-        const f = new Filter()
-        f.updatedBalancePublicKey = senderPublicKey
-        f.pagination.size = 4
-        f.searchDirection = SearchDirection_DESC
-        const lastSenderTransactions = communityContext.blockchain.findAll(f)
-        this.context.logger.error(`sender hasn't enough balance: ${senderPublicKey.convertToHex()}, last ${lastSenderTransactions.size()} balance changing transactions:`)
-        for(let i = lastSenderTransactions.size() - 1; i >= 0; i--) {
-          const lastSenderTransaction = lastSenderTransactions.get(i)          
-          this.context.logger.error(`${lastSenderTransaction?.getConfirmedTransaction()?.toJson(true)}`)
-        }
-      }
+      let senderLastBalance = this.getLastBalanceForUser(senderPublicKey, communityContext.blockchain)
       senderLastBalance.updateLegacyDecay(blockedAmount.negated(), item.createdAt)
-      
+           
       accountBalances.add(senderLastBalance.getAccountBalance())
       accountBalances.add(new AccountBalance(recipientPublicKey, blockedAmount, ''))
       return accountBalances
@@ -122,16 +111,39 @@ export class TransactionLinkFundingsSyncRole extends AbstractSyncRole<Transactio
     }
 
     const duration = new DurationSeconds((item.validUntil.getTime() - item.createdAt.getTime()) / 1000)
-    const blockedAmount = item.amount.calculateCompoundInterest(duration.getSeconds())
-    
+    let blockedAmount = item.amount.calculateCompoundInterest(duration.getSeconds())
+    let accountBalances: AccountBalances
+    try {
+      accountBalances = this.calculateBalances(item, blockedAmount, communityContext, senderPublicKey, recipientPublicKey)
+    } catch(e) {
+      if (item.deletedAt && e instanceof NegativeBalanceError) {
+        const senderLastBalance = this.getLastBalanceForUser(senderPublicKey, communityContext.blockchain)
+        senderLastBalance.updateLegacyDecay(GradidoUnit.zero(), item.createdAt)
+        blockedAmount = senderLastBalance.getBalance()
+        accountBalances = this.calculateBalances(item, blockedAmount, communityContext, senderPublicKey, recipientPublicKey)
+      } else {
+        throw e
+      }
+    }
+    /*
+    const decayedAmount = GradidoUnit.fromString(legacyCalculateDecay(new Decimal(item.amount.toString()), item.createdAt, item.validUntil).toString())
+    const blockedAmount = item.amount.add(item.amount.minus(decayedAmount))
+    */
+
     try {
       addToBlockchain(
         this.buildTransaction(item, blockedAmount, duration, senderKeyPair, recipientKeyPair),
         blockchain,
         item.id,
-        this.calculateBalances(item, blockedAmount, communityContext, senderPublicKey, recipientPublicKey),
+        accountBalances,
       )
     } catch(e) {
+      if (e instanceof NegativeBalanceError) {
+        if (!item.deletedAt && !item.redeemedAt && item.validUntil.getTime() < new Date().getTime()) {
+          this.context.logger.warn(`TransactionLinks: ${item.id} skipped, because else it lead to negative balance error, but it wasn't used.`)
+          return
+        }
+      }
       throw new BlockchainError(`Error adding ${this.itemTypeName()}`, item, e as Error)
     }
   }
