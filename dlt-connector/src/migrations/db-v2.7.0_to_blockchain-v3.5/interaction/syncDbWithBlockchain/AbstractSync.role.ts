@@ -7,9 +7,14 @@ import { Context } from '../../Context'
 import { Balance } from '../../data/Balance'
 import { CommunityContext } from '../../valibot.schema'
 
-export abstract class AbstractSyncRole<T> {
-  private items: T[] = []
-  private offset = 0
+export type IndexType = {
+  date: Date
+  id: number
+}
+
+export abstract class AbstractSyncRole<ItemType> {
+  private items: ItemType[] = []
+  protected lastIndex: IndexType = { date: new Date(0), id: 0 }
   protected logger: Logger
 
   constructor(protected readonly context: Context) {
@@ -54,13 +59,15 @@ export abstract class AbstractSyncRole<T> {
     const lastTransactions = blockchain.findAll(f)
     for (let i = lastTransactions.size() - 1; i >= 0; i--) {
       const tx = lastTransactions.get(i)
-      this.context.logger.debug(`${tx?.getConfirmedTransaction()!.toJson(true)}`)
+      this.context.logger.debug(`${i}: ${tx?.getConfirmedTransaction()!.toJson(true)}`)
     }
   }
 
   abstract getDate(): Date
-  abstract loadFromDb(offset: number, count: number): Promise<T[]>
-  abstract pushToBlockchain(item: T): void
+  // for using seek rather than offset pagination approach
+  abstract getLastIndex(): IndexType
+  abstract loadFromDb(lastIndex: IndexType, count: number): Promise<ItemType[]>
+  abstract pushToBlockchain(item: ItemType): void
   abstract itemTypeName(): string
 
   // return count of new loaded items
@@ -70,12 +77,14 @@ export abstract class AbstractSyncRole<T> {
       if (this.logger.isDebugEnabled()) {
         timeUsed = new Profiler()
       }
-      this.items = await this.loadFromDb(this.offset, batchSize)
-      this.offset += this.items.length
-      if (timeUsed && this.items.length) {
-        this.logger.debug(
-          `${timeUsed.string()} for loading ${this.items.length} ${this.itemTypeName()} from db`,
-        )
+      this.items = await this.loadFromDb(this.lastIndex, batchSize)
+      if (this.length > 0) {
+        this.lastIndex = this.getLastIndex()
+        if (timeUsed) {
+          this.logger.debug(
+            `${timeUsed.string()} for loading ${this.items.length} ${this.itemTypeName()} from db`,
+          )
+        }
       }
       return this.items.length
     }
@@ -89,14 +98,20 @@ export abstract class AbstractSyncRole<T> {
     this.pushToBlockchain(this.shift())
   }
 
-  peek(): T {
+  peek(): ItemType {
     if (this.isEmpty()) {
       throw new Error(`[peek] No items, please call this only if isEmpty returns false`)
     }
     return this.items[0]
   }
+  peekLast(): ItemType {
+    if (this.isEmpty()) {
+      throw new Error(`[peekLast] No items, please call this only if isEmpty returns false`)
+    }
+    return this.items[this.items.length - 1]
+  }
 
-  shift(): T {
+  shift(): ItemType {
     const item = this.items.shift()
     if (!item) {
       throw new Error(`[shift] No items, shift return undefined`)

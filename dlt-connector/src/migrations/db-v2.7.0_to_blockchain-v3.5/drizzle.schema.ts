@@ -10,8 +10,6 @@ import {
   unique,
   varchar,
 } from 'drizzle-orm/mysql-core'
-import { createSelectSchema } from 'drizzle-valibot'
-import * as v from 'valibot'
 
 // use only fields needed in the migration, after update the rest of the project, import database instead
 export const communitiesTable = mysqlTable(
@@ -62,9 +60,6 @@ export const usersTable = mysqlTable(
   (table) => [unique('uuid_key').on(table.gradidoId, table.communityUuid)],
 )
 
-export const userSelectSchema = createSelectSchema(usersTable)
-export type UserSelect = v.InferOutput<typeof userSelectSchema>
-
 export const userRolesTable = mysqlTable('user_roles', {
 	id: int().autoincrement().notNull(),
 	userId: int('user_id').notNull(),
@@ -94,13 +89,11 @@ export const transactionsTable = mysqlTable(
   (table) => [index('user_id').on(table.userId)],
 )
 
-export const transactionSelectSchema = createSelectSchema(transactionsTable)
-export type TransactionSelect = v.InferOutput<typeof transactionSelectSchema>
-
 export const transactionLinksTable = mysqlTable('transaction_links', {
   id: int().autoincrement().notNull(),
   userId: int().notNull(),
   amount: decimal({ precision: 40, scale: 20 }).notNull(),
+  holdAvailableAmount: decimal("hold_available_amount", { precision: 40, scale: 20 }).notNull(),
   memo: varchar({ length: 255 }).notNull(),
   code: varchar({ length: 24 }).notNull(),
   createdAt: datetime({ mode: 'string' }).notNull(),

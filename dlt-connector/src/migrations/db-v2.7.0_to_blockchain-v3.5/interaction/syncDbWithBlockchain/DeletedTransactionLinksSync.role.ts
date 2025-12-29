@@ -1,7 +1,7 @@
 import { CommunityContext, DeletedTransactionLinkDb, deletedTransactionLinKDbSchema } from '../../valibot.schema'
-import { AbstractSyncRole } from './AbstractSync.role'
+import { AbstractSyncRole, IndexType } from './AbstractSync.role'
 import { transactionLinksTable, usersTable } from '../../drizzle.schema'
-import { and, lt, asc, isNotNull, eq } from 'drizzle-orm'
+import { and, lt, asc, isNotNull, eq, or, gt } from 'drizzle-orm'
 import * as v from 'valibot'
 import { 
   AccountBalance, 
@@ -19,17 +19,23 @@ import { deriveFromCode } from '../../../../data/deriveKeyPair'
 import { addToBlockchain } from '../../blockchain'
 import { BlockchainError, DatabaseError } from '../../errors'
 import { Balance } from '../../data/Balance'
+import { toMysqlDateTime } from '../../utils'
 
 export class DeletedTransactionLinksSyncRole extends AbstractSyncRole<DeletedTransactionLinkDb> {
   getDate(): Date {
     return this.peek().deletedAt
   }
 
+  getLastIndex(): IndexType {
+    const lastItem = this.peekLast()
+    return { date: lastItem.deletedAt, id: lastItem.id }
+  }
+
   itemTypeName(): string {
     return 'deletedTransactionLinks'
   }
 
-  async loadFromDb(offset: number, count: number): Promise<DeletedTransactionLinkDb[]> {
+  async loadFromDb(lastIndex: IndexType, count: number): Promise<DeletedTransactionLinkDb[]> {
     const result = await this.context.db
       .select({
         transactionLink: transactionLinksTable,
@@ -39,13 +45,19 @@ export class DeletedTransactionLinksSyncRole extends AbstractSyncRole<DeletedTra
       .where(
         and(
           isNotNull(transactionLinksTable.deletedAt),
-          lt(transactionLinksTable.deletedAt, transactionLinksTable.validUntil)
+          lt(transactionLinksTable.deletedAt, transactionLinksTable.validUntil),
+          or(
+            gt(transactionLinksTable.deletedAt, toMysqlDateTime(lastIndex.date)),
+            and(
+              eq(transactionLinksTable.deletedAt, toMysqlDateTime(lastIndex.date)),
+              gt(transactionLinksTable.id, lastIndex.id)
+            )
+          )
         )
       )
       .innerJoin(usersTable, eq(transactionLinksTable.userId, usersTable.id))
       .orderBy(asc(transactionLinksTable.deletedAt), asc(transactionLinksTable.id))
       .limit(count)
-      .offset(offset)
   
     return result.map((row) => {
       const item = {

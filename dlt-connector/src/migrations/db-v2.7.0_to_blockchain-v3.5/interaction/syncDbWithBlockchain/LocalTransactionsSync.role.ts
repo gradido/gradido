@@ -1,4 +1,4 @@
-import { and, asc, eq, isNotNull, isNull } from 'drizzle-orm'
+import { and, asc, eq, isNotNull, isNull, gt, or } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/mysql-core'
 import { 
   AccountBalances, 
@@ -17,7 +17,8 @@ import { TransactionTypeId } from '../../data/TransactionTypeId'
 import { transactionsTable, usersTable } from '../../drizzle.schema'
 import { BlockchainError, DatabaseError, NegativeBalanceError, NotEnoughGradidoBalanceError } from '../../errors'
 import { CommunityContext, TransactionDb, transactionDbSchema } from '../../valibot.schema'
-import { AbstractSyncRole } from './AbstractSync.role'
+import { AbstractSyncRole, IndexType } from './AbstractSync.role'
+import { toMysqlDateTime } from '../../utils'
 
 export class LocalTransactionsSyncRole extends AbstractSyncRole<TransactionDb> {
   
@@ -25,11 +26,16 @@ export class LocalTransactionsSyncRole extends AbstractSyncRole<TransactionDb> {
     return this.peek().balanceDate
   }
 
+  getLastIndex(): IndexType {
+    const lastItem = this.peekLast()
+    return { date: lastItem.balanceDate, id: lastItem.id }
+  }
+
   itemTypeName(): string {
     return 'localTransactions'
   }
 
-  async loadFromDb(offset: number, count: number): Promise<TransactionDb[]> {
+  async loadFromDb(lastIndex: IndexType, count: number): Promise<TransactionDb[]> {
     const linkedUsers = alias(usersTable, 'linkedUser')
     const result = await this.context.db
       .select({
@@ -45,13 +51,19 @@ export class LocalTransactionsSyncRole extends AbstractSyncRole<TransactionDb> {
           isNotNull(transactionsTable.linkedUserId),
           eq(usersTable.foreign, 0),
           eq(linkedUsers.foreign, 0),
+          or(
+            gt(transactionsTable.balanceDate, toMysqlDateTime(lastIndex.date)),
+            and(
+              eq(transactionsTable.balanceDate, toMysqlDateTime(lastIndex.date)), 
+              gt(transactionsTable.id, lastIndex.id)
+            )
+          )
         )
       )
       .innerJoin(usersTable, eq(transactionsTable.userId, usersTable.id))
       .innerJoin(linkedUsers, eq(transactionsTable.linkedUserId, linkedUsers.id))
       .orderBy(asc(transactionsTable.balanceDate), asc(transactionsTable.id))
       .limit(count)
-      .offset(offset)
   
     return result.map((row) => {
       const item = {
@@ -74,8 +86,7 @@ export class LocalTransactionsSyncRole extends AbstractSyncRole<TransactionDb> {
     ): GradidoTransactionBuilder {
       return new GradidoTransactionBuilder()
         .setCreatedAt(item.balanceDate)
-        .addMemo(
-          new EncryptedMemo(
+        .addMemo(new EncryptedMemo(
             item.memo,
             new AuthenticatedEncryption(senderKeyPair),
             new AuthenticatedEncryption(recipientKeyPair),

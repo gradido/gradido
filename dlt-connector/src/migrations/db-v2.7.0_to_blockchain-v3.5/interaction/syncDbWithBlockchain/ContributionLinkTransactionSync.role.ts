@@ -1,4 +1,4 @@
-import { and, asc, eq, isNotNull } from 'drizzle-orm'
+import { and, asc, eq, gt, isNotNull, or } from 'drizzle-orm'
 import * as v from 'valibot'
 import { Context } from '../../Context'
 import { contributionLinkModerators } from '../../database'
@@ -7,6 +7,8 @@ import { CreationsSyncRole } from './CreationsSync.role'
 import { contributionsTable, usersTable } from '../../drizzle.schema'
 import { ContributionStatus } from '../../data/ContributionStatus'
 import { DatabaseError } from '../../errors'
+import { IndexType } from './AbstractSync.role'
+import { toMysqlDateTime } from '../../utils'
 
 export class ContributionLinkTransactionSyncRole extends CreationsSyncRole {
   constructor(readonly context: Context) {
@@ -16,7 +18,7 @@ export class ContributionLinkTransactionSyncRole extends CreationsSyncRole {
     return 'contributionLinkTransaction'
   }
 
-  async loadFromDb(offset: number, count: number): Promise<CreationTransactionDb[]> {
+  async loadFromDb(lastIndex: IndexType, count: number): Promise<CreationTransactionDb[]> {
     const result = await this.context.db
       .select({
         contribution: contributionsTable,
@@ -26,11 +28,17 @@ export class ContributionLinkTransactionSyncRole extends CreationsSyncRole {
       .where(and(
         isNotNull(contributionsTable.contributionLinkId),
         eq(contributionsTable.contributionStatus, ContributionStatus.CONFIRMED),
+        or(
+          gt(contributionsTable.confirmedAt, toMysqlDateTime(lastIndex.date)),
+          and(
+            eq(contributionsTable.confirmedAt, toMysqlDateTime(lastIndex.date)),
+            gt(contributionsTable.transactionId, lastIndex.id)
+          )
+        )
       ))
       .innerJoin(usersTable, eq(contributionsTable.userId, usersTable.id))
       .orderBy(asc(contributionsTable.confirmedAt), asc(contributionsTable.transactionId))
       .limit(count)
-      .offset(offset)
     
     const verifiedCreationTransactions: CreationTransactionDb[] = []
     for(const row of result) {

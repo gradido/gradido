@@ -1,7 +1,6 @@
 import { Profiler } from 'gradido-blockchain-js'
 import { Context } from '../../Context'
 import { CreationsSyncRole } from './CreationsSync.role'
-import { InvalidContributionTransactionSyncRole } from './InvalidContributionTransactionSync.role'
 import { LocalTransactionsSyncRole } from './LocalTransactionsSync.role'
 import { UsersSyncRole } from './UsersSync.role'
 import { TransactionLinkFundingsSyncRole } from './TransactionLinkFundingsSync.role'
@@ -24,13 +23,15 @@ export async function syncDbWithBlockchainContext(context: Context, batchSize: n
   ]
   let transactionsCount = 0
   let transactionsCountSinceLastLog = 0
+  let transactionsCountSinceLastPrint = 0
   let available = containers
+  const isDebug = context.logger.isDebugEnabled()
   while (true) {
     timeUsedDB.reset()
     const results = await Promise.all(available.map((c) => c.ensureFilled(batchSize)))
     const loadedItemsCount = results.reduce((acc, c) => acc + c, 0)
     // log only, if at least one new item was loaded
-    if (loadedItemsCount && context.logger.isDebugEnabled()) {
+    if (loadedItemsCount && isDebug) {
       context.logger.debug(`${loadedItemsCount} new items loaded from db in ${timeUsedDB.string()}`)      
     }
 
@@ -46,24 +47,24 @@ export async function syncDbWithBlockchainContext(context: Context, batchSize: n
       available.sort((a, b) => a.getDate().getTime() - b.getDate().getTime())
       // context.logger.debug(`sorted ${available.length} containers in ${sortTime.string()}`)
     }
-    available[0].toBlockchain()
-    process.stdout.write(`successfully added to blockchain: ${transactionsCount}\r`)
+    available[0].toBlockchain()    
     transactionsCount++
-    transactionsCountSinceLastLog++
-    if (transactionsCountSinceLastLog >= batchSize) {
-      context.logger.debug(`${transactionsCountSinceLastLog} transactions added to blockchain in ${timeUsedBlockchain.string()}`)
-      timeUsedBlockchain.reset()
-      transactionsCountSinceLastLog = 0
+    if (isDebug) {      
+      process.stdout.write(`successfully added to blockchain: ${transactionsCount}\r`)
+      transactionsCountSinceLastLog++       
+      if (transactionsCountSinceLastLog >= batchSize) {
+        context.logger.debug(`${transactionsCountSinceLastLog} transactions added to blockchain in ${timeUsedBlockchain.string()}`)
+        timeUsedBlockchain.reset()
+        transactionsCountSinceLastLog = 0
+      }
+    } else {
+      transactionsCountSinceLastPrint++
+      if (transactionsCountSinceLastPrint >= 100) {
+        process.stdout.write(`successfully added to blockchain: ${transactionsCount}\r`)
+        transactionsCountSinceLastPrint = 0
+      }
     }
   }
-  process.stdout.write(`\n`)
-  context.logger.info(`Synced ${transactionsCount} transactions to blockchain in ${(timeUsedAll.seconds() / 60).toFixed(2)} minutes`)
-  context.logger.info(`Invalid contribution transactions: ${InvalidContributionTransactionSyncRole.allTransactionIds.length}`)
-  if (context.logger.isDebugEnabled()) {
-    context.logger.debug(InvalidContributionTransactionSyncRole.allTransactionIds.join(', '))
-  }
-  /*context.logger.info(`Double linked transactions: ${TransactionsSyncRole.doubleTransactionLinkCodes.length}`)
-  if (context.logger.isDebugEnabled()) {
-    context.logger.debug(TransactionsSyncRole.doubleTransactionLinkCodes.join(', '))
-  }*/
+  process.stdout.write(`successfully added to blockchain: ${transactionsCount}\n`)  
+  context.logger.info(`Synced ${transactionsCount} transactions to blockchain in ${timeUsedAll.string()}`)
 }

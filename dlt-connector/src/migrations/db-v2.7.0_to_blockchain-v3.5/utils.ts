@@ -9,6 +9,19 @@ export function bytesToKbyte(bytes: number): string {
   return (bytes / 1024).toFixed(0)
 }
 
+export function bytesString(bytes: number): string {
+  if (bytes > (1024 * 1024)) {
+    return `${bytesToMbyte(bytes)} MB`
+  } else if (bytes > 1024) {
+    return `${bytesToKbyte(bytes)} KB`
+  }
+  return `${bytes.toFixed(0)} Bytes`
+}
+
+export function toMysqlDateTime(date: Date): string {
+  return date.toISOString().slice(0, 23).replace('T', ' ')
+}
+
 export function calculateOneHashStep(hash: Buffer, data: Buffer): Buffer<ArrayBuffer> {
   const outputHash = Buffer.alloc(crypto_generichash_KEYBYTES, 0)
   crypto_generichash_batch(outputHash, [hash, data])
@@ -17,15 +30,22 @@ export function calculateOneHashStep(hash: Buffer, data: Buffer): Buffer<ArrayBu
 
 export const DECAY_START_TIME = new Date('2021-05-13T17:46:31Z')
 export const SECONDS_PER_YEAR_GREGORIAN_CALENDER = 31556952.0
+const FACTOR = new Decimal('0.99999997803504048973201202316767079413460520837376')
 
 export function legacyDecayFormula(value: Decimal, seconds: number): Decimal {
   // TODO why do we need to convert this here to a string to work properly?
   // chatgpt: We convert to string here to avoid precision loss:
   //          .pow(seconds) can internally round the result, especially for large values of `seconds`.
   //          Using .toString() ensures full precision is preserved in the multiplication.
-  return value.mul(
-    new Decimal('0.99999997803504048973201202316767079413460520837376').pow(seconds).toString(),
-  )
+  return value.mul(FACTOR.pow(seconds).toString())
+}
+
+export function reverseLegacyDecay(result: Decimal, seconds: number): Decimal {
+  return result.div(FACTOR.pow(seconds).toString())
+}
+
+export function calculateEffectiveSeconds(holdOriginal: Decimal, holdCorrected: Decimal): Decimal {
+  return holdOriginal.div(holdCorrected).ln().div(FACTOR.ln());
 }
 
 export function legacyCalculateDecay(amount: Decimal, from: Date, to: Date): Decimal {
@@ -34,7 +54,7 @@ export function legacyCalculateDecay(amount: Decimal, from: Date, to: Date): Dec
   const startBlockMs = DECAY_START_TIME.getTime()
 
   if (toMs < fromMs) {
-    throw new Error('calculateDecay: to < from, reverse decay calculation is invalid')
+    throw new Error(`calculateDecay: to (${to.toISOString()}) < from (${from.toISOString()}), reverse decay calculation is invalid`)
   }
 
   // decay started after end date; no decay

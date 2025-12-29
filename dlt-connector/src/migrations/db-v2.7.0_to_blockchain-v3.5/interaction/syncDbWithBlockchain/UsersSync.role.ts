@@ -1,4 +1,4 @@
-import { asc } from 'drizzle-orm'
+import { asc, and, gt, eq, or } from 'drizzle-orm'
 import { 
   AccountBalance, 
   AccountBalances, 
@@ -15,7 +15,8 @@ import { addToBlockchain } from '../../blockchain'
 import { usersTable } from '../../drizzle.schema'
 import { BlockchainError, DatabaseError } from '../../errors'
 import { UserDb, userDbSchema } from '../../valibot.schema'
-import { AbstractSyncRole } from './AbstractSync.role'
+import { AbstractSyncRole, IndexType } from './AbstractSync.role'
+import { toMysqlDateTime } from '../../utils'
 
 export class UsersSyncRole extends AbstractSyncRole<UserDb> {
 
@@ -23,17 +24,28 @@ export class UsersSyncRole extends AbstractSyncRole<UserDb> {
     return this.peek().createdAt
   }
 
+  getLastIndex(): IndexType {
+    const lastItem = this.peekLast()
+    return { date: lastItem.createdAt, id: lastItem.id }
+  }
+
   itemTypeName(): string {
     return 'users'
   }
 
-  async loadFromDb(offset: number, count: number): Promise<UserDb[]> {
+  async loadFromDb(lastIndex: IndexType, count: number): Promise<UserDb[]> {
     const result = await this.context.db
         .select()
         .from(usersTable)
+        .where(or(
+          gt(usersTable.createdAt, toMysqlDateTime(lastIndex.date)),
+          and(
+            eq(usersTable.createdAt, toMysqlDateTime(lastIndex.date)),
+            gt(usersTable.id, lastIndex.id)
+          )
+        ))
         .orderBy(asc(usersTable.createdAt), asc(usersTable.id))
         .limit(count)
-        .offset(offset)
     
     return result.map((row) => {
       try {

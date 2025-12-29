@@ -1,4 +1,4 @@
-import { and, asc, eq, isNotNull, isNull } from 'drizzle-orm'
+import { and, asc, eq, isNotNull, isNull, or, gt } from 'drizzle-orm'
 import { 
   AccountBalance,
   AccountBalances, 
@@ -18,20 +18,26 @@ import { addToBlockchain } from '../../blockchain'
 import { transactionLinksTable, usersTable } from '../../drizzle.schema'
 import { BlockchainError, DatabaseError } from '../../errors'
 import { CommunityContext, RedeemedTransactionLinkDb, redeemedTransactionLinkDbSchema } from '../../valibot.schema'
-import { AbstractSyncRole } from './AbstractSync.role'
+import { AbstractSyncRole, IndexType } from './AbstractSync.role'
 import { deriveFromCode } from '../../../../data/deriveKeyPair'
 import { alias } from 'drizzle-orm/mysql-core'
+import { toMysqlDateTime } from '../../utils'
 
 export class RedeemTransactionLinksSyncRole extends AbstractSyncRole<RedeemedTransactionLinkDb> {  
   getDate(): Date {
     return this.peek().redeemedAt
   }
 
+  getLastIndex(): IndexType {
+    const lastItem = this.peekLast()
+    return { date: lastItem.redeemedAt, id: lastItem.id }
+  }
+
   itemTypeName(): string {
     return 'redeemTransactionLinks'
   }
 
-  async loadFromDb(offset: number, count: number): Promise<RedeemedTransactionLinkDb[]> {
+  async loadFromDb(lastIndex: IndexType, count: number): Promise<RedeemedTransactionLinkDb[]> {
     const redeemedByUser = alias(usersTable, 'redeemedByUser')
     const result = await this.context.db
       .select({
@@ -45,14 +51,20 @@ export class RedeemTransactionLinksSyncRole extends AbstractSyncRole<RedeemedTra
           isNull(transactionLinksTable.deletedAt),
           isNotNull(transactionLinksTable.redeemedAt),
           eq(usersTable.foreign, 0),
-          eq(redeemedByUser.foreign, 0)
+          eq(redeemedByUser.foreign, 0),
+          or(
+            gt(transactionLinksTable.redeemedAt, toMysqlDateTime(lastIndex.date)),
+            and(
+              eq(transactionLinksTable.redeemedAt, toMysqlDateTime(lastIndex.date)), 
+              gt(transactionLinksTable.id, lastIndex.id)
+            )
+          )
         )
       )
       .innerJoin(usersTable, eq(transactionLinksTable.userId, usersTable.id))
       .innerJoin(redeemedByUser, eq(transactionLinksTable.redeemedBy, redeemedByUser.id))
       .orderBy(asc(transactionLinksTable.redeemedAt), asc(transactionLinksTable.id))
       .limit(count)
-      .offset(offset)
   
     return result.map((row) => {
       const item = {

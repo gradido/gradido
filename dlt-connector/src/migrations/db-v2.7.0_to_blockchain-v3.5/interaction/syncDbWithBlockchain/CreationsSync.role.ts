@@ -1,12 +1,15 @@
-import { and, asc, eq, isNull } from 'drizzle-orm'
+import { and, asc, eq, isNull, gt, or } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/mysql-core'
 import { 
   AccountBalances, 
   AuthenticatedEncryption, 
   EncryptedMemo, 
+  Filter, 
   GradidoTransactionBuilder, 
   KeyPairEd25519, 
   MemoryBlockPtr, 
+  SearchDirection_DESC, 
+  TransactionType_CREATION, 
   TransferAmount 
 } from 'gradido-blockchain-js'
 import * as v from 'valibot'
@@ -18,7 +21,8 @@ import {
 } from '../../drizzle.schema'
 import { BlockchainError, DatabaseError } from '../../errors'
 import { CommunityContext, CreationTransactionDb, creationTransactionDbSchema } from '../../valibot.schema'
-import { AbstractSyncRole } from './AbstractSync.role'
+import { AbstractSyncRole, IndexType } from './AbstractSync.role'
+import { toMysqlDateTime } from '../../utils'
 
 export class CreationsSyncRole extends AbstractSyncRole<CreationTransactionDb> {  
 
@@ -26,11 +30,16 @@ export class CreationsSyncRole extends AbstractSyncRole<CreationTransactionDb> {
     return this.peek().confirmedAt
   }
 
+  getLastIndex(): IndexType {
+      const lastItem = this.peekLast()
+      return { date: lastItem.confirmedAt, id: lastItem.transactionId }
+    }
+
   itemTypeName(): string {
     return 'creationTransactions'
   }
 
-  async loadFromDb(offset: number, count: number): Promise<CreationTransactionDb[]> {
+  async loadFromDb(lastIndex: IndexType, count: number): Promise<CreationTransactionDb[]> {
     const confirmedByUsers = alias(usersTable, 'confirmedByUser')  
     const result = await this.context.db
       .select({
@@ -42,12 +51,18 @@ export class CreationsSyncRole extends AbstractSyncRole<CreationTransactionDb> {
       .where(and(
         isNull(contributionsTable.contributionLinkId),
         eq(contributionsTable.contributionStatus, ContributionStatus.CONFIRMED),
+        or(
+          gt(contributionsTable.confirmedAt, toMysqlDateTime(lastIndex.date)),
+          and(
+            eq(contributionsTable.confirmedAt, toMysqlDateTime(lastIndex.date)),
+            gt(contributionsTable.transactionId, lastIndex.id)
+          )
+        )
       ))
       .innerJoin(usersTable, eq(contributionsTable.userId, usersTable.id))
       .innerJoin(confirmedByUsers, eq(contributionsTable.confirmedBy, confirmedByUsers.id))
       .orderBy(asc(contributionsTable.confirmedAt), asc(contributionsTable.transactionId))
       .limit(count)
-      .offset(offset)
   
     return result.map((row) => {
       const item = {
@@ -126,6 +141,14 @@ export class CreationsSyncRole extends AbstractSyncRole<CreationTransactionDb> {
         this.calculateAccountBalances(item, communityContext, recipientPublicKey),
       )
     } catch(e) {
+      const f= new Filter()
+      f.transactionType = TransactionType_CREATION
+      f.searchDirection = SearchDirection_DESC
+      f.pagination.size = 1
+      const lastContribution = blockchain.findOne(f)
+      if (lastContribution) {
+        this.context.logger.warn(`last contribution: ${lastContribution.getConfirmedTransaction()?.toJson(true)}`)
+      }
       throw new BlockchainError(`Error adding ${this.itemTypeName()}`, item, e as Error)
     }
   }

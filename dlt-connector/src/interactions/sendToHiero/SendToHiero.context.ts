@@ -1,8 +1,8 @@
 import {
   GradidoTransaction,
   HieroTransactionId,
-  InteractionSerialize,
   InteractionValidate,
+  LedgerAnchor,
   ValidateType_SINGLE,
 } from 'gradido-blockchain-js'
 import { getLogger } from 'log4js'
@@ -61,11 +61,8 @@ export async function SendToHieroContext(
       role.getSenderCommunityTopicId(),
     )
 
-    // serialize Hiero transaction ID and attach it to the builder for the inbound transaction
-    const transactionIdSerializer = new InteractionSerialize(
-      new HieroTransactionId(outboundHieroTransactionIdString),
-    )
-    builder.setParentMessageId(transactionIdSerializer.run())
+    // attach Hiero transaction ID to the builder for the inbound transaction
+    builder.setParentLedgerAnchor(new LedgerAnchor(new HieroTransactionId(outboundHieroTransactionIdString)))
 
     // build and validate inbound transaction
     const inboundTransaction = builder.buildInbound()

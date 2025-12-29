@@ -26,6 +26,7 @@ export class DatabaseError extends Error {
     super(parts.join('\n\n'))
 
     this.name = 'DatabaseError'
+    this.cause = originalError
   }
 }
 
@@ -40,7 +41,7 @@ export class BlockchainError extends Error {
     super(parts.join('\n\n'))
 
     this.name = 'BlockchainError'
-    this.stack = originalError.stack
+    this.cause = originalError
   }
 }
 

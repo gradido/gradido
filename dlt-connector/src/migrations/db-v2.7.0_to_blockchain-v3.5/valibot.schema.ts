@@ -54,6 +54,7 @@ export const creationTransactionDbSchema = v.pipe(v.object({
   contributionDate: dateSchema,
   confirmedAt: dateSchema,
   confirmedByUser: userDbSchema,
+  transactionId: positiveNumberSchema,
 }), v.custom((value: any) => {
   if (value.user && value.confirmedByUser && value.user.gradidoId === value.confirmedByUser.gradidoId) {
     throw new Error(`expect user to be different from confirmedByUser: ${JSON.stringify(value, null, 2)}`)
@@ -77,6 +78,7 @@ export const transactionLinkDbSchema = v.object({
   code: identifierSeedSchema,
   createdAt: dateSchema,
   validUntil: dateSchema,
+  holdAvailableAmount: gradidoAmountSchema,
   redeemedAt: v.nullish(dateSchema),
   deletedAt: v.nullish(dateSchema),
 })
