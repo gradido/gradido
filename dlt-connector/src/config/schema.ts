@@ -37,7 +37,7 @@ export const configSchema = v.object({
   GRADIDO_BLOCKCHAIN_SERVER_CRYPTO_KEY: hex16Schema,
   HOME_COMMUNITY_SEED: v.pipe(
     hexSchema,
-    v.length(64, 'expect seed length minimum 64 characters (32 Bytes)'),
+    v.length(64, 'expect seed length 64 characters (32 Bytes)'),
     v.transform<string, MemoryBlock>((input: string) => MemoryBlock.fromHex(input)),
   ),
   HIERO_HEDERA_NETWORK: v.optional(
