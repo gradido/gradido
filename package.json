@@ -1,6 +1,6 @@
 {
   "name": "gradido",
-  "version": "2.7.3",
+  "version": "2.7.4",
   "description": "Gradido",
   "main": "index.js",
   "repository": "git@github.com:gradido/gradido.git",
