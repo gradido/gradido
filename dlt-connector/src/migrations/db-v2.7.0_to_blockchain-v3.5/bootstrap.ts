@@ -1,5 +1,5 @@
 import { randomBytes } from 'node:crypto'
-import { AccountBalances, GradidoTransactionBuilder, InMemoryBlockchainProvider } from 'gradido-blockchain-js'
+import { AccountBalances, GradidoTransactionBuilder, InMemoryBlockchainProvider, LedgerAnchor } from 'gradido-blockchain-js'
 import * as v from 'valibot'
 import { CONFIG } from '../../config'
 import { deriveFromSeed } from '../../data/deriveKeyPair'
@@ -80,7 +80,12 @@ async function bootstrapCommunities(context: Context): Promise<Map<string, Commu
     const accountBalances = new AccountBalances()
     accountBalances.add(communityContext.aufBalance.getAccountBalance())
     accountBalances.add(communityContext.gmwBalance.getAccountBalance())
-    addToBlockchain(builder, blockchain, communityDb.id, accountBalances)
+    addToBlockchain(
+      builder,
+      blockchain,
+      new LedgerAnchor(communityDb.id, LedgerAnchor.Type_LEGACY_GRADIDO_DB_COMMUNITY_ID),
+      accountBalances,
+    )
   }
   return communities
 }

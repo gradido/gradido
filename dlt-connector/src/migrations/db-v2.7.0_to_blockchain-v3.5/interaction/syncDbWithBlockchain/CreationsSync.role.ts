@@ -7,6 +7,7 @@ import {
   Filter, 
   GradidoTransactionBuilder, 
   KeyPairEd25519, 
+  LedgerAnchor, 
   MemoryBlockPtr, 
   SearchDirection_DESC, 
   TransactionType_CREATION, 
@@ -137,7 +138,7 @@ export class CreationsSyncRole extends AbstractSyncRole<CreationTransactionDb> {
       addToBlockchain(
         this.buildTransaction(item, communityContext, recipientKeyPair, signerKeyPair),
         blockchain,
-        item.id,
+        new LedgerAnchor(item.id, LedgerAnchor.Type_LEGACY_GRADIDO_DB_CONTRIBUTION_ID),
         this.calculateAccountBalances(item, communityContext, recipientPublicKey),
       )
     } catch(e) {

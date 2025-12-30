@@ -6,6 +6,7 @@ import {
   GradidoTransactionBuilder, 
   GradidoUnit, 
   KeyPairEd25519, 
+  LedgerAnchor, 
   MemoryBlockPtr 
 } from 'gradido-blockchain-js'
 import * as v from 'valibot'
@@ -37,11 +38,14 @@ export class UsersSyncRole extends AbstractSyncRole<UserDb> {
     const result = await this.context.db
         .select()
         .from(usersTable)
-        .where(or(
-          gt(usersTable.createdAt, toMysqlDateTime(lastIndex.date)),
-          and(
-            eq(usersTable.createdAt, toMysqlDateTime(lastIndex.date)),
-            gt(usersTable.id, lastIndex.id)
+        .where(and(
+          eq(usersTable.foreign, 0),
+          or(
+            gt(usersTable.createdAt, toMysqlDateTime(lastIndex.date)),
+            and(
+              eq(usersTable.createdAt, toMysqlDateTime(lastIndex.date)),
+              gt(usersTable.id, lastIndex.id)
+            )
           )
         ))
         .orderBy(asc(usersTable.createdAt), asc(usersTable.id))
@@ -94,7 +98,7 @@ export class UsersSyncRole extends AbstractSyncRole<UserDb> {
       addToBlockchain(
         this.buildTransaction(item, communityContext.keyPair, accountKeyPair, userKeyPair),
         communityContext.blockchain,
-        item.id,
+        new LedgerAnchor(item.id, LedgerAnchor.Type_LEGACY_GRADIDO_DB_USER_ID),
         this.calculateAccountBalances(accountPublicKey),
       )
     } catch (e) {

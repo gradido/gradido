@@ -12,6 +12,7 @@ import {
   GradidoTransfer, 
   GradidoUnit, 
   KeyPairEd25519, 
+  LedgerAnchor, 
   MemoryBlockPtr,
   TransferAmount
 } from 'gradido-blockchain-js'
@@ -149,7 +150,7 @@ export class DeletedTransactionLinksSyncRole extends AbstractSyncRole<DeletedTra
             linkFundingPublicKey,
           ),
           blockchain,
-          item.id,
+          new LedgerAnchor(item.id, LedgerAnchor.Type_LEGACY_GRADIDO_DB_TRANSACTION_LINK_ID),
           this.calculateBalances(item, deferredTransfer, senderLastBalance, communityContext, senderPublicKey),
         )
       } catch(e) {

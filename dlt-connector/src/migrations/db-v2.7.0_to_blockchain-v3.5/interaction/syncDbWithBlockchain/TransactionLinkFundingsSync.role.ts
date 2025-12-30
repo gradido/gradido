@@ -9,6 +9,7 @@ import {
   GradidoTransfer, 
   GradidoUnit, 
   KeyPairEd25519, 
+  LedgerAnchor, 
   MemoryBlockPtr, 
   TransferAmount 
 } from 'gradido-blockchain-js'
@@ -179,7 +180,7 @@ export class TransactionLinkFundingsSyncRole extends AbstractSyncRole<Transactio
       addToBlockchain(
         this.buildTransaction(item, blockedAmount, duration, senderKeyPair, recipientKeyPair),
         blockchain,
-        item.id,
+        new LedgerAnchor(item.id, LedgerAnchor.Type_LEGACY_GRADIDO_DB_TRANSACTION_LINK_ID),
         accountBalances,
       )
     } catch(e) {
