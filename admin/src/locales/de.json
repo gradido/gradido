@@ -16,6 +16,12 @@
   "back": "zurück",
   "change_user_role": "Nutzerrolle ändern",
   "close": "Schließen",
+  "contribution": {
+    "confirmedBy": "Bestätigt von {name}.",
+    "createdBy": "Erstellt von {name}.",
+    "deletedBy": "Gelöscht von {name}.",
+    "deniedBy": "Abgelehnt von {name}."
+  },
   "contributionLink": {
     "amount": "Betrag",
     "changeSaved": "Änderungen gespeichert",
@@ -49,6 +55,7 @@
   },
   "contributions": {
     "all": "Alle",
+    "closed": "Geschlossen",
     "confirms": "Bestätigt",
     "deleted": "Gelöscht",
     "denied": "Abgelehnt",
@@ -166,7 +173,7 @@
   "moderator": {
     "history": "Die Daten wurden geändert. Dies sind die alten Daten.",
     "memo": "Text ändern",
-    "memo-modified": "Text vom Moderator bearbeitet.",
+    "memo-modified": "Text von {name} bearbeitet.",
     "memo-tooltip": "Den Beitragstext bearbeiten",
     "message": "Nachricht",
     "message-tooltip": "Nachricht an Benutzer schreiben",

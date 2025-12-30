@@ -6,7 +6,7 @@
         :icon="type === 'PageCreationConfirm' ? 'x' : 'eye-slash-fill'"
         aria-label="Help"
       ></b-icon>
-      {{ $t('hide_details') }} {{ row.item.user.firstName }} {{ row.item.user.lastName }}
+      {{ $t('hide_details') }}
     </b-button>
   </b-card>
 </template>

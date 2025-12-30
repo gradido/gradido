@@ -108,6 +108,7 @@ import { confirmContribution } from '../graphql/confirmContribution'
 import { denyContribution } from '../graphql/denyContribution'
 import { getContribution } from '../graphql/getContribution'
 import { useAppToast } from '@/composables/useToast'
+import { useDateFormatter } from '@/composables/useDateFormatter'
 import CONFIG from '@/config'
 
 const FILTER_TAB_MAP = [
@@ -134,9 +135,10 @@ const query = ref('')
 const noHashtag = ref(null)
 const hideResubmissionModel = ref(true)
 
-const formatDateOrDash = (value) => (value ? new Date(value).toLocaleDateString() : '—')
+const { formatDateOrDash } = useDateFormatter()
 
 const baseFields = {
+  name: { key: 'name', label: t('name'), class: 'no-select' },
   firstName: { key: 'user.firstName', label: t('firstname'), class: 'no-select' },
   lastName: { key: 'user.lastName', label: t('lastname'), class: 'no-select' },
   amount: { key: 'amount', label: t('creation'), formatter: (value) => value + ' GDD' },
@@ -153,13 +155,12 @@ const baseFields = {
     class: 'no-select',
     formatter: formatDateOrDash,
   },
-  confirmedAt: {
-    key: 'confirmedAt',
-    label: t('contributions.confirms'),
+  closedAt: {
+    key: 'closedAt',
+    label: t('contributions.closed'),
     class: 'no-select',
     formatter: formatDateOrDash,
   },
-  confirmedBy: { key: 'confirmedBy', label: t('moderator.moderator'), class: 'no-select' },
 }
 
 const fields = computed(
@@ -169,70 +170,52 @@ const fields = computed(
       [
         { key: 'bookmark', label: t('delete') },
         { key: 'deny', label: t('deny') },
-        baseFields.firstName,
-        baseFields.lastName,
+        baseFields.name,
         baseFields.amount,
         baseFields.memo,
         baseFields.contributionDate,
-        { key: 'moderatorId', label: t('moderator.moderator'), class: 'no-select' },
         { key: 'editCreation', label: t('details') },
         { key: 'confirm', label: t('save') },
       ],
       // confirmed contributions
       [
-        baseFields.firstName,
-        baseFields.lastName,
+        baseFields.name,
         baseFields.amount,
         baseFields.memo,
         baseFields.contributionDate,
         baseFields.createdAt,
-        baseFields.confirmedAt,
-        baseFields.confirmedBy,
+        baseFields.closedAt,
         { key: 'chatCreation', label: t('details') },
       ],
       // denied contributions
       [
-        baseFields.firstName,
-        baseFields.lastName,
+        baseFields.name,
         baseFields.amount,
         baseFields.memo,
         baseFields.contributionDate,
         baseFields.createdAt,
-        {
-          key: 'deniedAt',
-          label: t('contributions.denied'),
-          formatter: formatDateOrDash,
-        },
-        { key: 'deniedBy', label: t('moderator.moderator') },
+        baseFields.closedAt,
         { key: 'chatCreation', label: t('details') },
       ],
       // deleted contributions
       [
-        baseFields.firstName,
-        baseFields.lastName,
+        baseFields.name,
         baseFields.amount,
         baseFields.memo,
         baseFields.contributionDate,
         baseFields.createdAt,
-        {
-          key: 'deletedAt',
-          label: t('contributions.deleted'),
-          formatter: formatDateOrDash,
-        },
-        { key: 'deletedBy', label: t('moderator.moderator') },
+        baseFields.closedAt,
         { key: 'chatCreation', label: t('details') },
       ],
       // all contributions
       [
         { key: 'contributionStatus', label: t('status') },
-        baseFields.firstName,
-        baseFields.lastName,
+        baseFields.name,
         baseFields.amount,
         baseFields.memo,
         baseFields.contributionDate,
         baseFields.createdAt,
-        baseFields.confirmedAt,
-        baseFields.confirmedBy,
+        baseFields.closedAt,
         { key: 'chatCreation', label: t('details') },
       ],
     ][tabIndex.value],
