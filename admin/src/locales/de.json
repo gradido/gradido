@@ -3,8 +3,8 @@
   "actions": "Aktionen",
   "ai": {
     "chat": "Chat",
-    "chat-open": "Chat öffnen",
     "chat-clear": "Chat-Verlauf löschen",
+    "chat-open": "Chat öffnen",
     "chat-placeholder": "Schreibe eine Nachricht...",
     "chat-placeholder-loading": "Warte, ich denke nach...",
     "chat-thread-deleted": "Chatverlauf gelöscht",
@@ -23,8 +23,8 @@
     "contributionLinks": "Beitragslinks",
     "create": "Anlegen",
     "cycle": "Zyklus",
-    "deleted": "Automatische Schöpfung gelöscht!",
     "deleteNow": "Automatische Creations '{name}' wirklich löschen?",
+    "deleted": "Automatische Schöpfung gelöscht!",
     "maxPerCycle": "Wiederholungen",
     "memo": "Nachricht",
     "name": "Name",
@@ -44,8 +44,8 @@
     "validTo": "Enddatum"
   },
   "contributionMessagesForm": {
-    "resubmissionDateInPast": "Wiedervorlage Datum befindet sich in der Vergangenheit!",
-    "hasRegisteredAt": "hat sich am {createdAt} registriert."
+    "hasRegisteredAt": "hat sich am {createdAt} registriert.",
+    "resubmissionDateInPast": "Wiedervorlage Datum befindet sich in der Vergangenheit!"
   },
   "contributions": {
     "all": "Alle",
@@ -96,16 +96,16 @@
     "coordinates": "Koordinaten:",
     "createdAt": "Erstellt am",
     "gmsApiKey": "GMS API Key:",
-    "hieroTopicId": "Hiero Topic ID:",
-    "toast_gmsApiKeyAndLocationUpdated": "Der GMS Api Key und die Location wurden erfolgreich aktualisiert!",
-    "toast_gmsApiKeyUpdated": "Der GMS Api Key wurde erfolgreich aktualisiert!",
-    "toast_gmsLocationUpdated": "Die GMS Location wurde erfolgreich aktualisiert!",
-    "toast_hieroTopicIdUpdated": "Die Hiero Topic ID wurde erfolgreich aktualisiert!",
     "gradidoInstances": "Gradido Instanzen",
+    "hieroTopicId": "Hiero Topic ID:",
     "lastAnnouncedAt": "letzte Bekanntgabe",
     "lastErrorAt": "Letzer Fehler am",
     "name": "Name",
     "publicKey": "PublicKey:",
+    "toast_gmsApiKeyAndLocationUpdated": "Der GMS Api Key und die Location wurden erfolgreich aktualisiert!",
+    "toast_gmsApiKeyUpdated": "Der GMS Api Key wurde erfolgreich aktualisiert!",
+    "toast_gmsLocationUpdated": "Die GMS Location wurde erfolgreich aktualisiert!",
+    "toast_hieroTopicIdUpdated": "Die Hiero Topic ID wurde erfolgreich aktualisiert!",
     "url": "Url",
     "verified": "Verifiziert",
     "verifiedAt": "Verifiziert am"
@@ -134,8 +134,8 @@
     }
   },
   "goTo": {
-    "userSearch": "Zur Nutzersuche gehen",
-    "humhubProfile": "Zum Humhub Profil gehen"
+    "humhubProfile": "Zum Humhub Profil gehen",
+    "userSearch": "Zur Nutzersuche gehen"
   },
   "help": {
     "help": "Hilfe",
@@ -165,16 +165,16 @@
   },
   "moderator": {
     "history": "Die Daten wurden geändert. Dies sind die alten Daten.",
-    "show-submission-form": "warten auf Erinnerung?",
+    "memo": "Text ändern",
+    "memo-modified": "Text vom Moderator bearbeitet.",
+    "memo-tooltip": "Den Beitragstext bearbeiten",
+    "message": "Nachricht",
+    "message-tooltip": "Nachricht an Benutzer schreiben",
     "moderator": "Moderator",
     "notice": "Notiz",
     "notice-tooltip": "Die Notiz ist nur für Moderatoren sichtbar",
-    "memo": "Text ändern",
-    "memo-tooltip": "Den Beitragstext bearbeiten",
-    "memo-modified": "Text vom Moderator bearbeitet.",
-    "message": "Nachricht",
-    "message-tooltip": "Nachricht an Benutzer schreiben",
-    "request": "Diese Nachricht ist nur für die Moderatoren sichtbar!"
+    "request": "Diese Nachricht ist nur für die Moderatoren sichtbar!",
+    "show-submission-form": "warten auf Erinnerung?"
   },
   "name": "Name",
   "navbar": {
@@ -233,14 +233,14 @@
     "chosenSpace": "Gewählter Space: {space}",
     "created": "Neuer Projekt Branding Eintrag wurde erstellt.",
     "error": "Fehler beim Erstellen des Projekt Branding Eintrags: {message}",
+    "newUserToSpace": "Benutzer hinzufügen?",
+    "newUserToSpaceTooltip": "Neue Benutzer automatisch zum Space hinzufügen, falls Space vorhanden",
     "noAccessRightSpace": "Gewählter Space: {spaceId} (Keine Zugriffsrechte)",
     "openSpaceInHumhub": "In Humhub öffnen",
-    "spaceId": "Humhub Space ID",
     "selectSpace": "Humhub Space auswählen",
+    "spaceId": "Humhub Space ID",
     "title": "Projekt Brandings",
-    "updated": "Projekt Branding Eintrag wurde aktualisiert.",
-    "newUserToSpace": "Benutzer hinzufügen?",
-    "newUserToSpaceTooltip": "Neue Benutzer automatisch zum Space hinzufügen, falls Space vorhanden"
+    "updated": "Projekt Branding Eintrag wurde aktualisiert."
   },
   "redeemed": "eingelöst",
   "registered": "Registriert",
