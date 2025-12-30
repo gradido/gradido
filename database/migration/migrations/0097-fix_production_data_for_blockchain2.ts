@@ -231,9 +231,9 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
    * In the current DB version, there is no information about who confirmed contributions based on contribution_links.
    * Recently, functionality was added to create an 'ADMIN_CONTRIBUTION_LINK_CREATE' event
    * for newly created contribution_links, but existing contribution_links were not updated.
-   * 
+   *
    * This query inserts an 'ADMIN_CONTRIBUTION_LINK_CREATE' event for every contribution_link
-   * that does not already have such an event. 
+   * that does not already have such an event.
    * The acting_user_id is set to the first Admin, and affected_user_id is set to 0.
    */
   await queryFn(`
