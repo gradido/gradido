@@ -127,32 +127,8 @@ export class TransactionLinkFundingsSyncRole extends AbstractSyncRole<Transactio
     if (!senderKeyPair || !senderPublicKey || !recipientKeyPair || !recipientPublicKey) {
       throw new Error(`missing key for ${this.itemTypeName()}: ${JSON.stringify(item, null, 2)}`)
     }
-    let endDateTime: number = item.validUntil.getTime()
-    
-    if (item.redeemedAt) {
-      endDateTime = item.redeemedAt.getTime() + (1000 * 120)
-    } else if (item.deletedAt) {
-      endDateTime = item.deletedAt.getTime() + (1000 * 120)
-    } else {
-      const duration = new DurationSeconds((endDateTime - item.createdAt.getTime()) / 1000)
-      const blockedAmount = GradidoUnit.fromString(reverseLegacyDecay(new Decimal(item.amount.toString()), duration.getSeconds()).toString())
-      const secondsDiff = calculateEffectiveSeconds(
-        new Decimal(item.holdAvailableAmount.toString()), 
-        new Decimal(blockedAmount.toString())
-      )
-      endDateTime = endDateTime - secondsDiff.toNumber() * 1000
-    }
-    if (endDateTime > item.validUntil.getTime()) {
-      endDateTime = item.validUntil.getTime()
-    }
-    let duration = new DurationSeconds((endDateTime - item.createdAt.getTime()) / 1000)
-    const hourInSeconds = 60 * 60
-    if (duration.getSeconds() < hourInSeconds) {
-      duration = new DurationSeconds(hourInSeconds)
-    }
+    let duration = new DurationSeconds((item.validUntil.getTime() - item.createdAt.getTime()) / 1000)
     let blockedAmount = GradidoUnit.fromString(reverseLegacyDecay(new Decimal(item.amount.toString()), duration.getSeconds()).toString())
-    blockedAmount = blockedAmount.add(GradidoUnit.fromGradidoCent(1))
-    // let blockedAmount = decayedAmount.calculateCompoundInterest(duration.getSeconds())
     let accountBalances: AccountBalances
     try {
       accountBalances = this.calculateBalances(item, blockedAmount, communityContext, senderPublicKey, recipientPublicKey)
@@ -171,11 +147,6 @@ export class TransactionLinkFundingsSyncRole extends AbstractSyncRole<Transactio
         throw e
       }
     }
-    /*
-    const decayedAmount = GradidoUnit.fromString(legacyCalculateDecay(new Decimal(item.amount.toString()), item.createdAt, item.validUntil).toString())
-    const blockedAmount = item.amount.add(item.amount.minus(decayedAmount))
-    */
-
     try {
       addToBlockchain(
         this.buildTransaction(item, blockedAmount, duration, senderKeyPair, recipientKeyPair),

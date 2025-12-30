@@ -44,10 +44,6 @@ export function reverseLegacyDecay(result: Decimal, seconds: number): Decimal {
   return result.div(FACTOR.pow(seconds).toString())
 }
 
-export function calculateEffectiveSeconds(holdOriginal: Decimal, holdCorrected: Decimal): Decimal {
-  return holdOriginal.div(holdCorrected).ln().div(FACTOR.ln());
-}
-
 export function legacyCalculateDecay(amount: Decimal, from: Date, to: Date): Decimal {
   const fromMs = from.getTime()
   const toMs = to.getTime()

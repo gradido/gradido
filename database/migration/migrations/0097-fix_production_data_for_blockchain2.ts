@@ -1,3 +1,10 @@
+import Decimal from 'decimal.js-light'
+import { DECAY_FACTOR, reverseLegacyDecay } from 'shared'
+
+function calculateEffectiveSeconds(holdOriginal: Decimal, holdCorrected: Decimal): Decimal {
+  return holdOriginal.div(holdCorrected).ln().div(DECAY_FACTOR.ln())
+}
+
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   /**
    * Migration: Correct historical inconsistencies in transactions, users, and contribution_links.
@@ -34,6 +41,77 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
    *     ensuring blockchain consistency for contributions.
    */
 
+  /**
+   * Fix 0: Update transaction links to match holdAvailableAmount with validUntil, because the old formula lead to incorrect values
+   */
+
+  let sumCount = 0
+  let count = 0
+  let lastProcessedId = 0
+  const LIMIT = 200
+  do {
+    const rows = await queryFn(
+      `
+      SELECT id, amount, hold_available_amount, validUntil, createdAt, redeemedAt, deletedAt
+      FROM transaction_links
+      WHERE id > ?
+      ORDER BY id ASC
+      LIMIT ?
+    `,
+      [lastProcessedId, LIMIT],
+    )
+    if (!rows.length) {
+      break
+    }
+    const updates: Array<{ id: number; newValidUntil: string }> = []
+    for (const row of rows) {
+      const validUntil = new Date(row.validUntil)
+      const redeemedAt = row.redeemedAt ? new Date(row.redeemedAt) : null
+      const deletedAt = row.deletedAt ? new Date(row.deletedAt) : null
+      const createdAt = new Date(row.createdAt)
+      const amount = new Decimal(row.amount)
+      const duration = (validUntil.getTime() - createdAt.getTime()) / 1000
+      const blockedAmountCorrected = reverseLegacyDecay(amount, duration)
+      // fix only if the difference is big enough to have an impact
+      if (blockedAmountCorrected.sub(amount).abs().lt(new Decimal('0.001'))) {
+        continue
+      }
+      const holdAvailableAmount = new Decimal(row.hold_available_amount)
+      const secondsDiff = calculateEffectiveSeconds(
+        new Decimal(holdAvailableAmount.toString()),
+        new Decimal(blockedAmountCorrected.toString()),
+      )
+      const newValidUntil = new Date(validUntil.getTime() - secondsDiff.mul(1000).toNumber())
+      if (
+        (redeemedAt && redeemedAt.getTime() < validUntil.getTime()) ||
+        (deletedAt && deletedAt.getTime() < validUntil.getTime())
+      ) {
+        continue
+      }
+      updates.push({
+        id: row.id,
+        newValidUntil: newValidUntil.toISOString().replace('T', ' ').replace('Z', ''),
+      })
+    }
+    if (updates.length > 0) {
+      const caseStatements = updates.map((u) => `WHEN ${u.id} THEN '${u.newValidUntil}'`).join('\n')
+
+      await queryFn(
+        `
+        UPDATE transaction_links
+        SET validUntil = CASE id
+          ${caseStatements}
+        END
+        WHERE id IN (?)
+      `,
+        [updates.map((u) => u.id)],
+      )
+      sumCount += updates.length
+    }
+    count = rows.length
+    lastProcessedId = rows[rows.length - 1].id
+  } while (count === LIMIT)
+  ///*/
   /**
    * Fix 1: Remove self-signed contributions.
    *
