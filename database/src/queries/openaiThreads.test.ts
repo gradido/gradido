@@ -23,7 +23,7 @@ afterAll(async () => {
 
 describe('openaiThreads query test', () => {
   it('should insert a new openai thread', async () => {
-    await Promise.resolve([dbInsertOpenaiThread('7', 1), dbInsertOpenaiThread('72', 6)])
+    await Promise.all([dbInsertOpenaiThread('7', 1), dbInsertOpenaiThread('72', 6)])
     const result = await db.select().from(openaiThreadsTable)
     expect(result).toHaveLength(2)
     expect(result).toMatchObject([
