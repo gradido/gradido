@@ -34,11 +34,20 @@
           </BButton>
         </div>
       </template>
+      <template #cell(name)="row">
+        <span v-if="row.item.user">
+          {{ row.item.user.firstName }} {{ row.item.user.lastName }}
+          <small v-if="row.item.user.alias">
+            <hr />
+            {{ row.item.user.alias }}
+          </small>
+        </span>
+      </template>
       <template #cell(memo)="row">
         {{ row.value }}
-        <small v-if="row.item.updatedBy > 0">
+        <small v-if="isAddCommentToMemo(row.item)" class="no-select">
           <hr />
-          {{ $t('moderator.memo-modified') }}
+          {{ getMemoComment(row.item) }}
         </small>
       </template>
       <template #cell(editCreation)="row">
@@ -140,6 +149,7 @@
 import RowDetails from '../RowDetails'
 import EditCreationFormular from '../EditCreationFormular'
 import ContributionMessagesList from '../ContributionMessages/ContributionMessagesList'
+import { useDateFormatter } from '@/composables/useDateFormatter'
 
 const iconMap = {
   IN_PROGRESS: 'question-square',
@@ -195,6 +205,7 @@ export default {
     this.removeClipboardListener()
   },
   methods: {
+    ...useDateFormatter(),
     myself(item) {
       return item.userId === this.$store.state.moderator.id
     },
@@ -234,6 +245,36 @@ export default {
         this.openRow = row
         this.creationUserData = row.item
       }
+    },
+    isAddCommentToMemo(item) {
+      return item.closedBy > 0 || item.moderatorId > 0 || item.updatedBy > 0
+    },
+    getMemoComment(item) {
+      let comment = ''
+      if (item.closedBy > 0) {
+        if (item.contributionStatus === 'CONFIRMED') {
+          comment = this.$t('contribution.confirmedBy', { name: item.closedByUserName })
+        } else if (item.contributionStatus === 'DENIED') {
+          comment = this.$t('contribution.deniedBy', { name: item.closedByUserName })
+        } else if (item.contributionStatus === 'DELETED') {
+          comment = this.$t('contribution.deletedBy', { name: item.closedByUserName })
+        }
+      }
+
+      if (item.updatedBy > 0) {
+        if (comment.length) {
+          comment += ' | '
+        }
+        comment += this.$t('moderator.memo-modified', { name: item.updatedByUserName })
+      }
+
+      if (item.moderatorId > 0) {
+        if (comment.length) {
+          comment += ' | '
+        }
+        comment += this.$t('contribution.createdBy', { name: item.moderatorUserName })
+      }
+      return comment
     },
     addClipboardListener() {
       document.addEventListener('copy', this.handleCopy)

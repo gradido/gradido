@@ -1,7 +1,28 @@
 #!/bin/bash
+# stop if something fails
+set -euo pipefail
+
+log_error() {
+    local message="$1"
+    echo -e "\e[31m$message\e[0m" # red in console
+}
+
+# called always on error, log error really visible with ascii art in red on console and html
+# stop script execution
+onError() {
+  local exit_code=$?
+  log_error "Command failed!"
+  log_error " /\\_/\\ Line: $(caller 0)"
+  log_error "( x.x )  Exit Code: $exit_code"
+  log_error " >   <   Offending command: '$BASH_COMMAND'"
+  log_error ""
+  exit 1  
+}
+trap onError ERR
+
 # check for parameter
 if [ -z "$1" ]; then
-    echo "Usage: Please provide a branch name as the first argument."
+    log_error "Usage: Please provide a branch name as the first argument."
     exit 1
 fi
 
@@ -19,24 +40,87 @@ LOCAL_SCRIPT_DIR=$(dirname $LOCAL_SCRIPT_PATH)
 PROJECT_ROOT=$SCRIPT_DIR/..
 set +o allexport
 
+# Replace placeholder secrets in .env
+echo 'Replace placeholder secrets in .env'
+# Load .env or .env.dist if not present
+# NOTE: all config values will be in process.env when starting
+# the services and will therefore take precedence over the .env
+if [ -f "$SCRIPT_PATH/.env" ]; then
+    ENV_FILE="$SCRIPT_PATH/.env"
+
+    # --- Secret Generators -------------------------------------------------------
+
+    gen_jwt_secret() {
+        # 32 Character, URL-safe: A-Z a-z 0-9 _ -
+        tr -dc 'A-Za-z0-9_-' < /dev/urandom | head -c 32 2>/dev/null || true
+    }
+
+    gen_webhook_secret() {
+        # URL-safe, longer security (40 chars)
+        tr -dc 'A-Za-z0-9_-' < /dev/urandom | head -c 40 2>/dev/null || true
+    }
+
+    gen_binary_secret() {
+        local bytes="$1"
+        # Hex -> 2 chars pro byte
+        openssl rand -hex "$bytes" 2>/dev/null || true
+    }
+
+    # --- Mapping of Placeholder -> Function --------------------------------------
+
+    generate_secret_for() {
+    case "$1" in
+        jwt_secret)      gen_jwt_secret      ;;
+        webhook_secret)  gen_webhook_secret  ;;
+        binary8_secret)  gen_binary_secret 8 ;;
+        binary16_secret) gen_binary_secret 16;;
+        binary32_secret) gen_binary_secret 32;;
+        *) 
+            echo "Unknown Placeholder: $1" >&2 
+            exit 1
+            ;;
+    esac
+    }
+
+    # --- Placeholder List --------------------------------------------------------
+
+    placeholders=(
+    "jwt_secret"
+    "webhook_secret"
+    "binary8_secret"
+    "binary16_secret"
+    "binary32_secret"
+    )
+
+    # --- Processing in .env -------------------------------------------------
+
+    TMP_FILE="${ENV_FILE}.tmp"
+    cp "$ENV_FILE" "$TMP_FILE"
+
+    for ph in "${placeholders[@]}"; do
+        # Iterate over all lines containing the placeholder
+        while grep -q "$ph" "$TMP_FILE"; do
+            new_value=$(generate_secret_for "$ph")
+            # Replace only the first occurrence per line
+            sed -i "0,/$ph/s//$new_value/" "$TMP_FILE"
+        done
+    done
+
+    # Write back
+    mv "$TMP_FILE" "$ENV_FILE"
+    chown gradido:gradido "$ENV_FILE"
+fi
+
 # If install.sh will be called more than once
-# We have to load the backend .env to get DB_USERNAME, DB_PASSWORD AND JWT_SECRET
-# and the dht-node .env to get FEDERATION_DHT_SEED
+# We have to load the backend .env to get DB_USERNAME and DB_PASSWORD 
 export_var(){
   export $1=$(grep -v '^#' $PROJECT_ROOT/backend/.env | grep -e "$1" | sed -e 's/.*=//')
-  export $1=$(grep -v '^#' $PROJECT_ROOT/dht-node/.env | grep -e "$1" | sed -e 's/.*=//')
 }
 
 if [ -f "$PROJECT_ROOT/backend/.env" ]; then
     export_var 'DB_USER'
     export_var 'DB_PASSWORD'
-    export_var 'JWT_SECRET'
 fi
-
-if [ -f "$PROJECT_ROOT/dht-node/.env" ]; then
-    export_var 'FEDERATION_DHT_SEED'
-fi
-
 
 # Load .env or .env.dist if not present
 # NOTE: all config values will be in process.env when starting
@@ -97,15 +181,17 @@ systemctl restart fail2ban
 rm /etc/nginx/sites-enabled/default
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $SCRIPT_PATH/nginx/sites-available/gradido.conf.template > $SCRIPT_PATH/nginx/sites-available/gradido.conf
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $SCRIPT_PATH/nginx/sites-available/update-page.conf.template > $SCRIPT_PATH/nginx/sites-available/update-page.conf
-mkdir $SCRIPT_PATH/nginx/sites-enabled
-ln -s $SCRIPT_PATH/nginx/sites-available/update-page.conf $SCRIPT_PATH/nginx/sites-enabled/default
-ln -s $SCRIPT_PATH/nginx/sites-enabled/default /etc/nginx/sites-enabled
-ln -s $SCRIPT_PATH/nginx/common /etc/nginx/
-rmdir /etc/nginx/conf.d
-ln -s $SCRIPT_PATH/nginx/conf.d /etc/nginx/
+mkdir -p $SCRIPT_PATH/nginx/sites-enabled
+ln -sf $SCRIPT_PATH/nginx/sites-available/update-page.conf $SCRIPT_PATH/nginx/sites-enabled/default
+ln -sf $SCRIPT_PATH/nginx/sites-enabled/default /etc/nginx/sites-enabled
+ln -sf $SCRIPT_PATH/nginx/common /etc/nginx/
+if [ -e /etc/nginx/conf.d ] && [ ! -L /etc/nginx/conf.d ]; then
+    rm -rf /etc/nginx/conf.d
+    ln -s $SCRIPT_PATH/nginx/conf.d /etc/nginx/
+fi
 
 # Make nginx restart automatic
-mkdir /etc/systemd/system/nginx.service.d
+mkdir -p /etc/systemd/system/nginx.service.d
 # Define the content to be put into the override.conf file
 CONFIG_CONTENT="[Unit]
 StartLimitIntervalSec=500
@@ -124,11 +210,17 @@ sudo systemctl daemon-reload
 # setup https with certbot
 certbot certonly --nginx --non-interactive --agree-tos --domains $COMMUNITY_HOST --email $COMMUNITY_SUPPORT_MAIL
 
+export NVM_DIR="/home/gradido/.nvm"
+BUN_VERSION_FILE="$PROJECT_ROOT/.bun-version"
+if [ ! -f "$BUN_VERSION_FILE" ]; then
+    echo ".bun-version file not found at: $BUN_VERSION_FILE"
+    exit 1
+fi
+export BUN_VERSION="$(cat "$BUN_VERSION_FILE" | tr -d '[:space:]')"
+export BUN_INSTALL="/home/gradido/.bun"
+
 # run as gradido user (until EOF)
-sudo -u gradido bash <<'EOF'
-    export NVM_DIR="/home/gradido/.nvm"
-    NODE_VERSION="v18.20.7"
-    export NVM_DIR
+sudo -u gradido bash <<EOF
     # Install nvm if it doesn't exist
     if [ ! -d "$NVM_DIR" ]; then
         curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
@@ -137,14 +229,25 @@ sudo -u gradido bash <<'EOF'
     [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
     # Install Node if not already installed
-    if ! nvm ls $NODE_VERSION >/dev/null 2>&1; then
-        nvm install $NODE_VERSION
+    if ! nvm ls >/dev/null 2>&1; then
+        nvm install
     fi
-    # Install yarn and pm2
-    npm i -g yarn pm2 
-    # start pm2
-    pm2 startup
+    # Install pm2 and turbo
+    npm i -g pm2 turbo
+
+    echo "'bun' v$BUN_VERSION will be installed now!"
+    curl -fsSL https://bun.com/install | bash -s "bun-v${BUN_VERSION}"
 EOF
+
+# Load bun
+export BUN_INSTALL="/home/gradido/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
+
+# Load nvm 
+export NVM_DIR="/home/gradido/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+# start pm2
+pm2 startup
 
 # Install logrotate
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $SCRIPT_PATH/logrotate/gradido.conf.template > $SCRIPT_PATH/logrotate/gradido.conf
@@ -153,15 +256,15 @@ cp $SCRIPT_PATH/logrotate/gradido.conf /etc/logrotate.d/gradido.conf
 # create db user
 export DB_USER=gradido
 # create a new password only if it not already exist
-if [ -z "${DB_PASSWORD}" ]; then
-    export DB_PASSWORD=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c 32; echo);
-fi
+: "${DB_PASSWORD:=$(tr -dc '_A-Za-z0-9' < /dev/urandom | head -c 32)}"
 
 # Check if DB_PASSWORD is still empty, then exit with an error
 if [ -z "${DB_PASSWORD}" ]; then
     echo "Error: Failed to generate DB_PASSWORD."
     exit 1
 fi
+export DB_PASSWORD
+
 mysql <<EOFMYSQL
     CREATE USER IF NOT EXISTS '$DB_USER'@'localhost' IDENTIFIED BY '$DB_PASSWORD';
     GRANT ALL PRIVILEGES ON *.* TO '$DB_USER'@'localhost';
@@ -195,5 +298,4 @@ chown -R gradido:gradido $PROJECT_ROOT
 sudo -u gradido crontab < $LOCAL_SCRIPT_DIR/crontabs.txt
 
 # Start gradido
-# Note: on first startup some errors will occur - nothing serious
 sudo -u gradido $SCRIPT_PATH/start.sh $1

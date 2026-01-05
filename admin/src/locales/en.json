@@ -16,6 +16,12 @@
   "back": "back",
   "change_user_role": "Change user role",
   "close": "Close",
+  "contribution": {
+    "confirmedBy": "Confirmed by {name}.",
+    "createdBy": "Created by {name}.",
+    "deletedBy": "Deleted by {name}.",
+    "deniedBy": "Rejected by {name}."
+  },
   "contributionLink": {
     "amount": "Amount",
     "changeSaved": "Changes saved",
@@ -49,6 +55,7 @@
   },
   "contributions": {
     "all": "All",
+    "closed": "Closed",
     "confirms": "Confirmed",
     "deleted": "Deleted",
     "denied": "Rejected",
@@ -166,7 +173,7 @@
   "moderator": {
     "history": "The data has been changed. This is the old data.",
     "memo": "Edit text",
-    "memo-modified": "Text edited by moderator",
+    "memo-modified": "Text edited by {name}",
     "memo-tooltip": "Edit the text of the contribution",
     "message": "Message",
     "message-tooltip": "Write message to user",
