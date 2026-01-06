@@ -15,6 +15,7 @@ import {
   EncryptedTransferArgs,
   fullName,
   interpretEncryptedTransferArgs,
+  sendTransactionReceivedEmail,
   TransactionTypeId,
 } from 'core'
 import { randomBytes } from 'crypto'
@@ -660,6 +661,12 @@ export class TransactionLinkResolver {
         const result = await client.sendDisburseJwtToSenderCommunity(args)
         if (methodLogger.isDebugEnabled()) {
           methodLogger.debug('Disburse JWT was sent successfully with result=', result)
+        }
+        const senderUser = await findUserByIdentifier(senderGradidoId, senderCommunityUuid)
+        if (!senderUser) {
+          const errmsg = `Sender user not found with identifier=${senderGradidoId}`
+          methodLogger.error(errmsg)
+          throw new LogError(errmsg)
         }
         const recipientUser = await findUserByIdentifier(recipientGradidoId, recipientCommunityUuid)
         if (!recipientUser) {

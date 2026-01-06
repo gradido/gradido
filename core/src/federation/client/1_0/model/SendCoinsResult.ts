@@ -20,7 +20,4 @@ export class SendCoinsResult {
 
   @Field(() => String, { nullable: true })
   recipAlias: string | null
-
-  @Field(() => String, { nullable: true })
-  recipEmail: string | null
 }

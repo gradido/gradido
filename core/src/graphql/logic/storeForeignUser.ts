@@ -45,6 +45,7 @@ export async function storeForeignUser(
         foreignUser = await DbUser.save(foreignUser)
 
         logger.debug('new foreignUser inserted:', new UserLoggingView(foreignUser))
+        /*
         if (committingResult.recipEmail !== null) {
           let foreignUserEmail = DbUserContact.create()
           foreignUserEmail.email = committingResult.recipEmail!
@@ -59,19 +60,20 @@ export async function storeForeignUser(
           foreignUser.emailId = foreignUserEmail.id
           foreignUser = await DbUser.save(foreignUser)
         }
-
+        */
         return foreignUser
       } else if (
         user.firstName !== committingResult.recipFirstName ||
         user.lastName !== committingResult.recipLastName ||
-        user.alias !== committingResult.recipAlias ||
+        user.alias !== committingResult.recipAlias/* ||
         (user.emailContact === null && committingResult.recipEmail !== null) ||
         (user.emailContact !== null &&
           user.emailContact?.email !== null &&
           user.emailContact?.email !== committingResult.recipEmail)
+          */
       ) {
         logger.debug(
-          'foreignUser still exists, but with different name, alias or email:',
+          'foreignUser still exists, but with different name or alias:',
           new UserLoggingView(user),
           committingResult,
         )
@@ -84,6 +86,7 @@ export async function storeForeignUser(
         if (committingResult.recipAlias !== null) {
           user.alias = committingResult.recipAlias
         }
+        /*
         if (!user.emailContact && committingResult.recipEmail !== null) {
           logger.debug(
             'creating new userContact:',
@@ -110,6 +113,7 @@ export async function storeForeignUser(
           user.emailId = userContact.id
           logger.debug('foreignUserEmail updated:', new UserContactLoggingView(userContact))
         }
+        */
         await DbUser.save(user)
         logger.debug('update recipient successful.', new UserLoggingView(user))
         return user
