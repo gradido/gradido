@@ -29,6 +29,7 @@ import {
   User as DbUser,
   findModeratorCreatingContributionLink,
   findTransactionLinkByCode,
+  findUserByIdentifier,
   getHomeCommunity,
   getLastTransaction,
 } from 'database'
@@ -660,6 +661,24 @@ export class TransactionLinkResolver {
         if (methodLogger.isDebugEnabled()) {
           methodLogger.debug('Disburse JWT was sent successfully with result=', result)
         }
+        const recipientUser = await findUserByIdentifier(recipientGradidoId, recipientCommunityUuid)
+        if (!recipientUser) {
+          const errmsg = `Recipient user not found with identifier=${recipientGradidoId}`
+          methodLogger.error(errmsg)
+          throw new LogError(errmsg)
+        }
+        await sendTransactionReceivedEmail({
+          firstName: recipientFirstName,
+          lastName: recipientUser.lastName,
+          email: recipientUser.emailContact.email,
+          language: recipientUser.language,
+          memo,
+                senderFirstName: senderUser.firstName,
+                senderLastName: senderUser.lastName,
+                senderEmail: senderUser.emailContact.email,
+                transactionAmount: new Decimal(amount),
+              })
+        
       } catch (e) {
         const errmsg = `Disburse JWT was not sent successfully with error=${e}`
         methodLogger.error(errmsg)
