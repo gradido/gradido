@@ -10,7 +10,7 @@
     "start": "cross-env TZ=UTC bun run src/index.ts",
     "build": "bun build src/index.ts --outdir=build --target=bun --external=gradido-blockchain-js --minify",
     "dev": "cross-env TZ=UTC bun run --watch src/index.ts",
-    "migrate": "cross-env TZ=UTC bun src/migrations/db-v2.7.0_to_blockchain-v3.5",
+    "migrate": "cross-env TZ=UTC bun src/migrations/db-v2.7.0_to_blockchain-v3.7",
     "test": "cross-env TZ=UTC bun test",
     "test:debug": "cross-env TZ=UTC bun test --inspect-brk",
     "typecheck": "tsc --noEmit",
