@@ -674,9 +674,9 @@ export class TransactionLinkResolver {
           methodLogger.error(errmsg)
           throw new LogError(errmsg)
         }
-        if(recipientUser.emailContact?.email !== null){
+        if(recipientUser.emailContact?.email !== null && senderUser.emailContact?.email !== null){
           if (methodLogger.isDebugEnabled()) {
-            methodLogger.debug('Sending Transaction Received Email to recipient:', recipientUser.firstName, recipientUser.lastName)
+            methodLogger.debug('Sending Transaction Received Email to recipient=' + recipientUser.firstName + ' ' + recipientUser.lastName + 'sender=' + senderUser.firstName + ' ' + senderUser.lastName)
           }
           try {
             await sendTransactionReceivedEmail({
@@ -697,7 +697,7 @@ export class TransactionLinkResolver {
           }
         } else {
           if (methodLogger.isDebugEnabled()) {
-            methodLogger.debug('Recipient as foreign user has no email contact, not sending Transaction Received Email to recipient:', recipientUser.firstName, recipientUser.lastName)
+            methodLogger.debug('Sender or Recipient are foreign users with no email contact, not sending Transaction Received Email: recipient=' + recipientUser.firstName + ' ' + recipientUser.lastName + 'sender=' + senderUser.firstName + ' ' + senderUser.lastName)
           }
         }
       } catch (e) {
