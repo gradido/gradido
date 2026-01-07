@@ -674,18 +674,32 @@ export class TransactionLinkResolver {
           methodLogger.error(errmsg)
           throw new LogError(errmsg)
         }
-        await sendTransactionReceivedEmail({
-          firstName: recipientFirstName,
-          lastName: recipientUser.lastName,
-          email: recipientUser.emailContact.email,
-          language: recipientUser.language,
-          memo,
-                senderFirstName: senderUser.firstName,
-                senderLastName: senderUser.lastName,
-                senderEmail: senderUser.emailContact.email,
-                transactionAmount: new Decimal(amount),
-              })
-        
+        if(recipientUser.emailContact?.email !== null){
+          if (methodLogger.isDebugEnabled()) {
+            methodLogger.debug('Sending Transaction Received Email to recipient:', recipientUser.firstName, recipientUser.lastName)
+          }
+          try {
+            await sendTransactionReceivedEmail({
+              firstName: recipientFirstName,
+              lastName: recipientUser.lastName,
+              email: recipientUser.emailContact.email,
+              language: recipientUser.language,
+              memo,
+              senderFirstName: senderUser.firstName,
+              senderLastName: senderUser.lastName,
+              senderEmail: senderUser.emailContact.email,
+              transactionAmount: new Decimal(amount),
+            })
+          } catch (e) {
+            const errmsg = `Send Transaction Received Email to recipient failed with error=${e}`
+            methodLogger.error(errmsg)
+            throw new Error(errmsg)
+          }
+        } else {
+          if (methodLogger.isDebugEnabled()) {
+            methodLogger.debug('Recipient as foreign user has no email contact, not sending Transaction Received Email to recipient:', recipientUser.firstName, recipientUser.lastName)
+          }
+        }
       } catch (e) {
         const errmsg = `Disburse JWT was not sent successfully with error=${e}`
         methodLogger.error(errmsg)
