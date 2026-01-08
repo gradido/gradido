@@ -182,7 +182,7 @@ export const sendTransactionReceivedEmail = (
 ): Promise<Record<string, unknown> | boolean | null | Error> => {
   return sendEmailTranslated({
     receiver: { to: `${data.firstName} ${data.lastName} <${data.email}>` },
-    template: 'transactionReceived',
+    template: data.senderEmail ? 'transactionReceived' : 'transactionReceivedNoSender',
     locals: {
       ...data,
       transactionAmount: decimalSeparatorByLanguage(data.transactionAmount, data.language),
