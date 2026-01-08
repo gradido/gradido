@@ -677,22 +677,22 @@ export class TransactionLinkResolver {
         }
         if(recipientUser.emailContact?.email !== null){
           if (methodLogger.isDebugEnabled()) {
-            methodLogger.debug('Sending Transaction Received Email to recipient=' + recipientUser.firstName + ' ' + recipientUser.lastName + 'sender=' + senderUser.firstName + ' ' + senderUser.lastName)
+            methodLogger.debug('Sending TransactionLinkRedeem Email to recipient=' + recipientUser.firstName + ' ' + recipientUser.lastName + 'sender=' + senderUser.firstName + ' ' + senderUser.lastName)
           }
           try {
             await sendTransactionLinkRedeemedEmail({
-              firstName: senderUser.firstName,
-              lastName: senderUser.lastName,
-              email: senderUser.emailContact.email,
-              language: senderUser.language,
-              senderFirstName: recipientFirstName,
-              senderLastName: recipientUser.lastName,
-              senderEmail: recipientUser.emailContact.email,
+              firstName: recipientUser.firstName,
+              lastName: recipientUser.lastName,
+              email: recipientUser.emailContact.email,
+              language: recipientUser.language,
+              senderFirstName: senderUser.firstName,
+              senderLastName: senderUser.lastName,
+              senderEmail: senderUser.emailContact?.email,
               transactionMemo: memo,
               transactionAmount: new Decimal(amount),
             })
           } catch (e) {
-            const errmsg = `Send Transaction Received Email to recipient failed with error=${e}`
+            const errmsg = `Send TransactionLinkRedeem Email to recipient failed with error=${e}`
             methodLogger.error(errmsg)
             throw new Error(errmsg)
           }
