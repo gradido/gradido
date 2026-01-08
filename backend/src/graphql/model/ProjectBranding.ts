@@ -1,9 +1,10 @@
-import { ProjectBranding as dbProjectBranding } from 'database'
+import { projectBrandingsTable } from 'database'
 import { Field, Int, ObjectType } from 'type-graphql'
 
 @ObjectType()
 export class ProjectBranding {
-  constructor(projectBranding: dbProjectBranding) {
+  // TODO: replace with valibot schema
+  constructor(projectBranding: typeof projectBrandingsTable.$inferSelect) {
     Object.assign(this, projectBranding)
   }
 

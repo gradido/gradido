@@ -2,7 +2,13 @@ import { ProjectBrandingInput } from '@input/ProjectBrandingInput'
 import { ProjectBranding } from '@model/ProjectBranding'
 import { Space } from '@model/Space'
 import { SpaceList } from '@model/SpaceList'
-import { ProjectBranding as DbProjectBranding } from 'database'
+import { 
+  dbDeleteProjectBranding, 
+  dbFindAllProjectBrandings, 
+  dbFindProjectBrandingById, 
+  dbGetProjectLogoURL, 
+  projectBrandingsTable 
+} from 'database'
 import { getLogger } from 'log4js'
 import { Arg, Authorized, ID, Int, Mutation, Query, Resolver } from 'type-graphql'
 import { HumHubClient } from '@/apis/humhub/HumHubClient'
@@ -17,15 +23,15 @@ export class ProjectBrandingResolver {
   @Query(() => [ProjectBranding])
   @Authorized([RIGHTS.PROJECT_BRANDING_VIEW])
   async projectBrandings(): Promise<ProjectBranding[]> {
-    return (await DbProjectBranding.find()).map(
-      (entity: DbProjectBranding) => new ProjectBranding(entity),
+    return (await dbFindAllProjectBrandings()).map(
+      (entity: typeof projectBrandingsTable.$inferSelect) => new ProjectBranding(entity),
     )
   }
 
   @Query(() => ProjectBranding)
   @Authorized([RIGHTS.PROJECT_BRANDING_VIEW])
   async projectBranding(@Arg('id', () => Int) id: number): Promise<ProjectBranding> {
-    const projectBrandingEntity = await DbProjectBranding.findOneBy({ id })
+    const projectBrandingEntity = await dbFindProjectBrandingById(id)
     if (!projectBrandingEntity) {
       throw new LogError(`Project Branding with id: ${id} not found`)
     }
@@ -35,14 +41,7 @@ export class ProjectBrandingResolver {
   @Query(() => String, { nullable: true })
   @Authorized([RIGHTS.PROJECT_BRANDING_BANNER])
   async projectBrandingBanner(@Arg('alias', () => String) alias: string): Promise<string | null> {
-    const projectBrandingEntity = await DbProjectBranding.findOne({
-      where: { alias },
-      select: { id: true, logoUrl: true },
-    })
-    if (!projectBrandingEntity) {
-      throw new LogError(`Project Branding with alias: ${alias} not found`)
-    }
-    return projectBrandingEntity.logoUrl
+    return await dbGetProjectLogoURL(alias)
   }
 
   @Mutation(() => ProjectBranding, { nullable: true })
@@ -64,7 +63,7 @@ export class ProjectBrandingResolver {
   @Authorized([RIGHTS.PROJECT_BRANDING_MUTATE])
   async deleteProjectBranding(@Arg('id', () => ID) id: number): Promise<boolean> {
     try {
-      await DbProjectBranding.delete({ id })
+      await dbDeleteProjectBranding(id)
       return true
     } catch (err) {
       logger.error(err)
