@@ -126,6 +126,8 @@ const form = reactive({ ...entityDataToForm.value })
 
 const now = ref(new Date()) // checked every minute, updated if day, month or year changed
 const disableSmartValidState = ref(false)
+// set to true after submit, to disable submit button
+const submitted = ref(false)
 
 const minimalDate = computed(() => useMinimalContributionDate(now.value))
 const isThisMonth = computed(() => {
@@ -195,7 +197,7 @@ const validationSchema = computed(() => {
   })
 })
 
-const disabled = computed(() => !validationSchema.value.isValidSync(form))
+const disabled = computed(() => !validationSchema.value.isValidSync(form) || submitted.value)
 
 // decide message if no open creation exists
 const noOpenCreation = computed(() => {
@@ -243,6 +245,7 @@ const updateField = (newValue, name) => {
 }
 
 function submit() {
+  submitted.value = true
   emit('upsert-contribution', toRaw(form))
 }
 </script>
