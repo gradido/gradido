@@ -9,7 +9,6 @@ export class SendCoinsResponseJwtPayloadType extends JwtPayloadType {
   recipLastName: string | null
   recipAlias: string | null
 
-
   constructor(
     handshakeID: string,
     vote: boolean,

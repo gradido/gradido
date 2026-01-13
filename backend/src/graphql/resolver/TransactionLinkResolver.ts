@@ -675,9 +675,18 @@ export class TransactionLinkResolver {
           methodLogger.error(errmsg)
           throw new LogError(errmsg)
         }
-        if(recipientUser.emailContact?.email !== null){
+        if (recipientUser.emailContact?.email !== null) {
           if (methodLogger.isDebugEnabled()) {
-            methodLogger.debug('Sending TransactionLinkRedeem Email to recipient=' + recipientUser.firstName + ' ' + recipientUser.lastName + 'sender=' + senderUser.firstName + ' ' + senderUser.lastName)
+            methodLogger.debug(
+              'Sending TransactionLinkRedeem Email to recipient=' +
+                recipientUser.firstName +
+                ' ' +
+                recipientUser.lastName +
+                'sender=' +
+                senderUser.firstName +
+                ' ' +
+                senderUser.lastName,
+            )
           }
           try {
             await sendTransactionLinkRedeemedEmail({
@@ -698,7 +707,16 @@ export class TransactionLinkResolver {
           }
         } else {
           if (methodLogger.isDebugEnabled()) {
-            methodLogger.debug('Sender or Recipient are foreign users with no email contact, not sending Transaction Received Email: recipient=' + recipientUser.firstName + ' ' + recipientUser.lastName + 'sender=' + senderUser.firstName + ' ' + senderUser.lastName)
+            methodLogger.debug(
+              'Sender or Recipient are foreign users with no email contact, not sending Transaction Received Email: recipient=' +
+                recipientUser.firstName +
+                ' ' +
+                recipientUser.lastName +
+                'sender=' +
+                senderUser.firstName +
+                ' ' +
+                senderUser.lastName,
+            )
           }
         }
       } catch (e) {

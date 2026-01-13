@@ -65,7 +65,7 @@ export async function storeForeignUser(
       } else if (
         user.firstName !== committingResult.recipFirstName ||
         user.lastName !== committingResult.recipLastName ||
-        user.alias !== committingResult.recipAlias/* ||
+        user.alias !== committingResult.recipAlias /* ||
         (user.emailContact === null && committingResult.recipEmail !== null) ||
         (user.emailContact !== null &&
           user.emailContact?.email !== null &&
