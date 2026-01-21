@@ -52,7 +52,7 @@ export const sendEmailTranslated = async ({
   const transport = createTransport({
     host: CONFIG.EMAIL_SMTP_HOST,
     port: CONFIG.EMAIL_SMTP_PORT,
-    secure: true, // true for 465, false for other ports
+    secure: false, // true for 465, false for other ports
     requireTLS: CONFIG.EMAIL_TLS,
     auth: {
       user: CONFIG.EMAIL_USERNAME,

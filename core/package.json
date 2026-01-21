@@ -34,7 +34,7 @@
     "joi": "^17.13.3",
     "jose": "^4.14.4",
     "log4js": "^6.9.1",
-    "nodemailer": "^6.6.5",
+    "nodemailer": "^7.0.12",
     "pug": "^3.0.2",
     "redis-semaphore": "^5.6.2",
     "shared": "*",
