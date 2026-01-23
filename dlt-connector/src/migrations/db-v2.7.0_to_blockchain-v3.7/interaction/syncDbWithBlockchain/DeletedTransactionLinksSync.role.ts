@@ -74,6 +74,7 @@ export class DeletedTransactionLinksSyncRole extends AbstractSyncRole<DeletedTra
   }
 
   buildTransaction(
+      communityContext: CommunityContext,
       item: DeletedTransactionLinkDb, 
       linkFundingTransactionNr: number,
       restAmount: GradidoUnit,
@@ -85,10 +86,11 @@ export class DeletedTransactionLinksSyncRole extends AbstractSyncRole<DeletedTra
         .setRedeemDeferredTransfer(
           linkFundingTransactionNr,
           new GradidoTransfer(
-            new TransferAmount(senderKeyPair.getPublicKey(), restAmount),
+            new TransferAmount(senderKeyPair.getPublicKey(), restAmount, communityContext.communityId),
             linkFundingPublicKey,
           ),
         )
+        .setSenderCommunity(communityContext.communityId)
         .sign(senderKeyPair)
   }
 
@@ -101,11 +103,15 @@ export class DeletedTransactionLinksSyncRole extends AbstractSyncRole<DeletedTra
   ): AccountBalances {
     const accountBalances = new AccountBalances()
     
-    const fundingUserLastBalance = this.getLastBalanceForUser(fundingTransaction.getSenderPublicKey()!, communityContext.blockchain)
+    const fundingUserLastBalance = this.getLastBalanceForUser(
+      fundingTransaction.getSenderPublicKey()!, 
+      communityContext.blockchain, 
+      communityContext.communityId
+    )
     fundingUserLastBalance.updateLegacyDecay(senderLastBalance.getBalance(), item.deletedAt)
     
     // account of link is set to zero, gdd will be send back to initiator
-    accountBalances.add(new AccountBalance(senderPublicKey, GradidoUnit.zero(), ''))
+    accountBalances.add(new AccountBalance(senderPublicKey, GradidoUnit.zero(), communityContext.communityId))
     accountBalances.add(fundingUserLastBalance.getAccountBalance())
     return accountBalances
   }
@@ -138,17 +144,18 @@ export class DeletedTransactionLinksSyncRole extends AbstractSyncRole<DeletedTra
       if (!linkFundingPublicKey) {
         throw new Error(`missing sender public key of transaction link founder`)
       }
-      const senderLastBalance = this.getLastBalanceForUser(senderPublicKey, communityContext.blockchain)
+      const senderLastBalance = this.getLastBalanceForUser(senderPublicKey, communityContext.blockchain, communityContext.communityId)
       senderLastBalance.updateLegacyDecay(GradidoUnit.zero(), item.deletedAt)
   
       try {
         addToBlockchain(
           this.buildTransaction(
+            communityContext,
             item, transaction.getTransactionNr(), 
             senderLastBalance.getBalance(), 
             senderKeyPair, 
             linkFundingPublicKey,
-          ),
+          ).build(),
           blockchain,
           new LedgerAnchor(item.id, LedgerAnchor.Type_LEGACY_GRADIDO_DB_TRANSACTION_LINK_ID),
           this.calculateBalances(item, deferredTransfer, senderLastBalance, communityContext, senderPublicKey),

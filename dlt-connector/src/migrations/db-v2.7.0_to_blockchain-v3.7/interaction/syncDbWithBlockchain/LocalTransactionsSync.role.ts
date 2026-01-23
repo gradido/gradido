@@ -4,12 +4,10 @@ import {
   AccountBalances, 
   AuthenticatedEncryption, 
   EncryptedMemo, 
-  Filter, 
   GradidoTransactionBuilder, 
   KeyPairEd25519, 
   LedgerAnchor, 
   MemoryBlockPtr, 
-  SearchDirection_DESC, 
   TransferAmount 
 } from 'gradido-blockchain-js'
 import * as v from 'valibot'
@@ -81,6 +79,7 @@ export class LocalTransactionsSyncRole extends AbstractSyncRole<TransactionDb> {
   }
 
   buildTransaction(
+      communityContext: CommunityContext,
       item: TransactionDb, 
       senderKeyPair: KeyPairEd25519,
       recipientKeyPair: KeyPairEd25519,       
@@ -94,9 +93,10 @@ export class LocalTransactionsSyncRole extends AbstractSyncRole<TransactionDb> {
           ),
         )
         .setTransactionTransfer(
-          new TransferAmount(senderKeyPair.getPublicKey(), item.amount),
+          new TransferAmount(senderKeyPair.getPublicKey(), item.amount, communityContext.communityId),
           recipientKeyPair.getPublicKey(),
         )
+        .setSenderCommunity(communityContext.communityId)
         .sign(senderKeyPair)
   }
 
@@ -108,8 +108,8 @@ export class LocalTransactionsSyncRole extends AbstractSyncRole<TransactionDb> {
   ): AccountBalances {
     const accountBalances = new AccountBalances()
     
-    const senderLastBalance = this.getLastBalanceForUser(senderPublicKey, communityContext.blockchain)
-    const recipientLastBalance = this.getLastBalanceForUser(recipientPublicKey, communityContext.blockchain)
+    const senderLastBalance = this.getLastBalanceForUser(senderPublicKey, communityContext.blockchain, communityContext.communityId)
+    const recipientLastBalance = this.getLastBalanceForUser(recipientPublicKey, communityContext.blockchain, communityContext.communityId)
 
     try {
       senderLastBalance.updateLegacyDecay(item.amount.negated(), item.balanceDate)
@@ -145,7 +145,7 @@ export class LocalTransactionsSyncRole extends AbstractSyncRole<TransactionDb> {
 
     try {
       addToBlockchain(
-        this.buildTransaction(item, senderKeyPair, recipientKeyPair),
+        this.buildTransaction(communityContext, item, senderKeyPair, recipientKeyPair).build(),
         blockchain,
         new LedgerAnchor(item.id, LedgerAnchor.Type_LEGACY_GRADIDO_DB_TRANSACTION_ID),
         this.calculateBalances(item, communityContext, senderPublicKey, recipientPublicKey),

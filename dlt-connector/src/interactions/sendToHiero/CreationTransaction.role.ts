@@ -36,7 +36,7 @@ export class CreationTransactionRole extends AbstractTransactionRole {
   }
 
   getRecipientCommunityTopicId(): HieroId {
-    throw new Error('creation: cannot be used as cross group transaction')
+    return this.creationTransaction.user.communityTopicId
   }
 
   public async getGradidoTransactionBuilder(): Promise<GradidoTransactionBuilder> {

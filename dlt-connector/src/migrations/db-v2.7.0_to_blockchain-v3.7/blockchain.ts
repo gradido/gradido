@@ -1,7 +1,7 @@
 import {
   AccountBalances,
   Filter,
-  GradidoTransactionBuilder,
+  GradidoTransaction,
   HieroAccountId,
   InMemoryBlockchain,
   LedgerAnchor,
@@ -11,12 +11,12 @@ import { NotEnoughGradidoBalanceError } from './errors'
 export const defaultHieroAccount = new HieroAccountId(0, 0, 2)
 
 export function addToBlockchain(
-  builder: GradidoTransactionBuilder,
+  transaction: GradidoTransaction,
   blockchain: InMemoryBlockchain,
   ledgerAnchor: LedgerAnchor,
   accountBalances: AccountBalances,
 ): boolean {
-  const transaction = builder.build()
+  
   try {    
     const result = blockchain.createAndAddConfirmedTransactionExtern(
       transaction,
@@ -33,7 +33,7 @@ export function addToBlockchain(
         throw new NotEnoughGradidoBalanceError(needed, exist)
       }
     }
-    const lastTransaction = blockchain.findOne(Filter.LAST_TRANSACTION)
+    const lastTransaction = blockchain.findOne(Filter.LAST_TRANSACTION)    
     throw new Error(`Transaction ${transaction.toJson(true)} not added: ${error}, last transaction was: ${lastTransaction?.getConfirmedTransaction()?.toJson(true)}`)
   }
 }

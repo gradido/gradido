@@ -1,5 +1,5 @@
 import { randomBytes } from 'node:crypto'
-import { AccountBalances, GradidoTransactionBuilder, InMemoryBlockchainProvider, LedgerAnchor } from 'gradido-blockchain-js'
+import { Abstract, AccountBalances, GradidoTransactionBuilder, InMemoryBlockchain, InMemoryBlockchainProvider, LedgerAnchor } from 'gradido-blockchain-js'
 import * as v from 'valibot'
 import { CONFIG } from '../../config'
 import { deriveFromSeed } from '../../data/deriveKeyPair'
@@ -27,15 +27,13 @@ async function bootstrapCommunities(context: Context): Promise<Map<string, Commu
   const communityNames = new Set<string>()
 
   for (const communityDb of communitiesDb) {
-    let alias = communityDb.name
-    if (communityNames.has(communityDb.name)) {
+    let alias = communityDb.name.toLowerCase()
+    if (communityNames.has(alias)) {
       alias = communityDb.communityUuid
     } else {
-      communityNames.add(communityDb.name)
+      communityNames.add(alias)
     }
-    const blockchain = InMemoryBlockchainProvider.getInstance().findBlockchain(
-      alias,
-    )
+    const blockchain = InMemoryBlockchainProvider.getInstance().findBlockchain(alias)
     if (!blockchain) {
       throw new Error(`Couldn't create Blockchain for community ${alias}`)
     }
@@ -66,22 +64,24 @@ async function bootstrapCommunities(context: Context): Promise<Map<string, Commu
         gmwKeyPair.getPublicKey(),
         aufKeyPair.getPublicKey(),
       )
+      .setSenderCommunity(alias)
       .sign(communityKeyPair)
 
     const communityContext: CommunityContext = {
       communityId: alias,
+      foreign: communityDb.foreign,
       blockchain,
       keyPair: communityKeyPair,
-      folder: alias.replace(/[^a-zA-Z0-9]/g, '_'),
-      gmwBalance: new Balance(gmwKeyPair.getPublicKey()!),
-      aufBalance: new Balance(aufKeyPair.getPublicKey()!),
+      folder: alias.replace(/[^a-z0-9]/g, '_'),
+      gmwBalance: new Balance(gmwKeyPair.getPublicKey()!, alias),
+      aufBalance: new Balance(aufKeyPair.getPublicKey()!, alias),
     }
     communities.set(communityDb.communityUuid, communityContext)
     const accountBalances = new AccountBalances()
     accountBalances.add(communityContext.aufBalance.getAccountBalance())
     accountBalances.add(communityContext.gmwBalance.getAccountBalance())
     addToBlockchain(
-      builder,
+      builder.build(),
       blockchain,
       new LedgerAnchor(communityDb.id, LedgerAnchor.Type_LEGACY_GRADIDO_DB_COMMUNITY_ID),
       accountBalances,

@@ -95,9 +95,10 @@ export class CreationsSyncRole extends AbstractSyncRole<CreationTransactionDb> {
         ),
       )
       .setTransactionCreation(
-        new TransferAmount(recipientKeyPair.getPublicKey(), item.amount),
+        new TransferAmount(recipientKeyPair.getPublicKey(), item.amount, communityContext.communityId),
         item.contributionDate,
       )
+      .setRecipientCommunity(communityContext.communityId)
       .sign(signerKeyPair)
   }
 
@@ -107,7 +108,7 @@ export class CreationsSyncRole extends AbstractSyncRole<CreationTransactionDb> {
     recipientPublicKey: MemoryBlockPtr
   ): AccountBalances {
     const accountBalances = new AccountBalances()
-    const balance = this.getLastBalanceForUser(recipientPublicKey, communityContext.blockchain)
+    const balance = this.getLastBalanceForUser(recipientPublicKey, communityContext.blockchain, communityContext.communityId)
 
     // calculate decay since last balance with legacy calculation method
     balance.updateLegacyDecay(item.amount, item.confirmedAt)
@@ -136,7 +137,7 @@ export class CreationsSyncRole extends AbstractSyncRole<CreationTransactionDb> {
 
     try {
       addToBlockchain(
-        this.buildTransaction(item, communityContext, recipientKeyPair, signerKeyPair),
+        this.buildTransaction(item, communityContext, recipientKeyPair, signerKeyPair).build(),
         blockchain,
         new LedgerAnchor(item.id, LedgerAnchor.Type_LEGACY_GRADIDO_DB_CONTRIBUTION_ID),
         this.calculateAccountBalances(item, communityContext, recipientPublicKey),

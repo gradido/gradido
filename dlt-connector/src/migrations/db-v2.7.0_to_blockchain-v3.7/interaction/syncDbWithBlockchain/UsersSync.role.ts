@@ -15,7 +15,7 @@ import { Uuidv4Hash } from '../../../../data/Uuidv4Hash'
 import { addToBlockchain } from '../../blockchain'
 import { usersTable } from '../../drizzle.schema'
 import { BlockchainError, DatabaseError } from '../../errors'
-import { UserDb, userDbSchema } from '../../valibot.schema'
+import { CommunityContext, UserDb, userDbSchema } from '../../valibot.schema'
 import { AbstractSyncRole, IndexType } from './AbstractSync.role'
 import { toMysqlDateTime } from '../../utils'
 
@@ -39,7 +39,6 @@ export class UsersSyncRole extends AbstractSyncRole<UserDb> {
         .select()
         .from(usersTable)
         .where(and(
-          eq(usersTable.foreign, 0),
           or(
             gt(usersTable.createdAt, toMysqlDateTime(lastIndex.date)),
             and(
@@ -61,6 +60,7 @@ export class UsersSyncRole extends AbstractSyncRole<UserDb> {
   }
 
   buildTransaction(
+    communityContext: CommunityContext,
     item: UserDb, 
     communityKeyPair: KeyPairEd25519, 
     accountKeyPair: KeyPairEd25519, 
@@ -74,14 +74,15 @@ export class UsersSyncRole extends AbstractSyncRole<UserDb> {
         new Uuidv4Hash(item.gradidoId).getAsMemoryBlock(),
         accountKeyPair.getPublicKey(),
       )
+      .setSenderCommunity(communityContext.communityId)
       .sign(communityKeyPair)
       .sign(accountKeyPair)
       .sign(userKeyPair)
   }
 
-  calculateAccountBalances(accountPublicKey: MemoryBlockPtr): AccountBalances {
+  calculateAccountBalances(accountPublicKey: MemoryBlockPtr, communityContext: CommunityContext,): AccountBalances {
     const accountBalances = new AccountBalances()
-    accountBalances.add(new AccountBalance(accountPublicKey, GradidoUnit.zero(), ''))
+    accountBalances.add(new AccountBalance(accountPublicKey, GradidoUnit.zero(), communityContext.communityId))
     return accountBalances
   }
 
@@ -96,10 +97,10 @@ export class UsersSyncRole extends AbstractSyncRole<UserDb> {
 
     try {
       addToBlockchain(
-        this.buildTransaction(item, communityContext.keyPair, accountKeyPair, userKeyPair),
+        this.buildTransaction(communityContext, item, communityContext.keyPair, accountKeyPair, userKeyPair).build(),
         communityContext.blockchain,
         new LedgerAnchor(item.id, LedgerAnchor.Type_LEGACY_GRADIDO_DB_USER_ID),
-        this.calculateAccountBalances(accountPublicKey),
+        this.calculateAccountBalances(accountPublicKey, communityContext),
       )
     } catch (e) {
       throw new BlockchainError(`Error adding ${this.itemTypeName()}`, item, e as Error)

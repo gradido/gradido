@@ -7,6 +7,7 @@ import { TransactionLinkFundingsSyncRole } from './TransactionLinkFundingsSync.r
 import { RedeemTransactionLinksSyncRole } from './RedeemTransactionLinksSync.role'
 import { ContributionLinkTransactionSyncRole } from './ContributionLinkTransactionSync.role'
 import { DeletedTransactionLinksSyncRole } from './DeletedTransactionLinksSync.role'
+import { RemoteTransactionsSyncRole } from './RemoteTransactionsSync.role'
 
 export async function syncDbWithBlockchainContext(context: Context, batchSize: number) {
   const timeUsedDB = new Profiler()
@@ -20,6 +21,7 @@ export async function syncDbWithBlockchainContext(context: Context, batchSize: n
     new RedeemTransactionLinksSyncRole(context),
     new ContributionLinkTransactionSyncRole(context),
     new DeletedTransactionLinksSyncRole(context),
+    new RemoteTransactionsSyncRole(context),
   ]
   let transactionsCount = 0
   let transactionsCountSinceLastLog = 0

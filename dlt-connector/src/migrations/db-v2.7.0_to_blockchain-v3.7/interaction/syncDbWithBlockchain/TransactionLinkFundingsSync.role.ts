@@ -1,4 +1,4 @@
-import { asc, eq, or, gt, and, isNull } from 'drizzle-orm'
+import { asc, eq, or, gt, and } from 'drizzle-orm'
 import { 
   AccountBalance,
   AccountBalances, 
@@ -20,7 +20,7 @@ import { BlockchainError, DatabaseError, NegativeBalanceError } from '../../erro
 import { CommunityContext, TransactionLinkDb, transactionLinkDbSchema } from '../../valibot.schema'
 import { AbstractSyncRole, IndexType } from './AbstractSync.role'
 import { deriveFromCode } from '../../../../data/deriveKeyPair'
-import { calculateEffectiveSeconds, reverseLegacyDecay, toMysqlDateTime } from '../../utils'
+import { reverseLegacyDecay, toMysqlDateTime } from '../../utils'
 import Decimal from 'decimal.js-light'
 
 export class TransactionLinkFundingsSyncRole extends AbstractSyncRole<TransactionLinkDb> {
@@ -66,6 +66,7 @@ export class TransactionLinkFundingsSyncRole extends AbstractSyncRole<Transactio
   }
 
   buildTransaction(
+    communityContext: CommunityContext,
     item: TransactionLinkDb, 
     blockedAmount: GradidoUnit,
     duration: DurationSeconds,
@@ -83,11 +84,12 @@ export class TransactionLinkFundingsSyncRole extends AbstractSyncRole<Transactio
       )
       .setDeferredTransfer(
         new GradidoTransfer(
-          new TransferAmount(senderKeyPair.getPublicKey(), blockedAmount),
+          new TransferAmount(senderKeyPair.getPublicKey(), blockedAmount, communityContext.communityId),
           recipientKeyPair.getPublicKey(),
         ),
         duration,
       )
+      .setSenderCommunity(communityContext.communityId)
       .sign(senderKeyPair)
   }
 
@@ -99,7 +101,7 @@ export class TransactionLinkFundingsSyncRole extends AbstractSyncRole<Transactio
       recipientPublicKey: MemoryBlockPtr,
     ): AccountBalances {
       const accountBalances = new AccountBalances()
-      let senderLastBalance = this.getLastBalanceForUser(senderPublicKey, communityContext.blockchain)
+      let senderLastBalance = this.getLastBalanceForUser(senderPublicKey, communityContext.blockchain, communityContext.communityId)
       try {
        senderLastBalance.updateLegacyDecay(blockedAmount.negated(), item.createdAt)
        } catch(e) {
@@ -111,7 +113,7 @@ export class TransactionLinkFundingsSyncRole extends AbstractSyncRole<Transactio
       }
            
       accountBalances.add(senderLastBalance.getAccountBalance())
-      accountBalances.add(new AccountBalance(recipientPublicKey, blockedAmount, ''))
+      accountBalances.add(new AccountBalance(recipientPublicKey, blockedAmount, communityContext.communityId))
       return accountBalances
     }
 
@@ -134,7 +136,7 @@ export class TransactionLinkFundingsSyncRole extends AbstractSyncRole<Transactio
       accountBalances = this.calculateBalances(item, blockedAmount, communityContext, senderPublicKey, recipientPublicKey)
     } catch(e) {
       if (item.deletedAt && e instanceof NegativeBalanceError) {
-        const senderLastBalance = this.getLastBalanceForUser(senderPublicKey, communityContext.blockchain)
+        const senderLastBalance = this.getLastBalanceForUser(senderPublicKey, communityContext.blockchain, communityContext.communityId)
         senderLastBalance.updateLegacyDecay(GradidoUnit.zero(), item.createdAt)
         const oldBlockedAmountString = blockedAmount.toString()
         blockedAmount = senderLastBalance.getBalance()
@@ -149,7 +151,7 @@ export class TransactionLinkFundingsSyncRole extends AbstractSyncRole<Transactio
     }
     try {
       addToBlockchain(
-        this.buildTransaction(item, blockedAmount, duration, senderKeyPair, recipientKeyPair),
+        this.buildTransaction(communityContext, item, blockedAmount, duration, senderKeyPair, recipientKeyPair).build(),
         blockchain,
         new LedgerAnchor(item.id, LedgerAnchor.Type_LEGACY_GRADIDO_DB_TRANSACTION_LINK_ID),
         accountBalances,

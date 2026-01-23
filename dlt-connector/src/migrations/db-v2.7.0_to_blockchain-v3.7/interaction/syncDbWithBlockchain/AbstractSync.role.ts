@@ -29,7 +29,8 @@ export abstract class AbstractSyncRole<ItemType> {
     })
   }
 
-  getLastBalanceForUser(publicKey: MemoryBlockPtr, blockchain: InMemoryBlockchain, communityId: string = ''): Balance {
+  getLastBalanceForUser(publicKey: MemoryBlockPtr, blockchain: InMemoryBlockchain, communityId: string
+  ): Balance {
     if (publicKey.isEmpty()) {
       throw new Error('publicKey is empty')
     }
@@ -45,7 +46,7 @@ export abstract class AbstractSyncRole<ItemType> {
     if (!senderLastAccountBalance) {
       return new Balance(publicKey, communityId)
     }
-    return Balance.fromAccountBalance(senderLastAccountBalance, lastConfirmedTransaction.getConfirmedAt().getDate())
+    return Balance.fromAccountBalance(senderLastAccountBalance, lastConfirmedTransaction.getConfirmedAt().getDate(), communityId)
   }
 
   logLastBalanceChangingTransactions(publicKey: MemoryBlockPtr, blockchain: InMemoryBlockchain, transactionCount: number = 5) {

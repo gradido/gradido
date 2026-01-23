@@ -251,6 +251,18 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
     WHERE u.created_at >= t.first_date;
     ;`)
 
+  // linked user also, but we need to use gradido_id as index, because on cross group transactions linked_user_id is empty
+  await queryFn(`
+    UPDATE users u 
+    LEFT JOIN (
+        SELECT linked_user_gradido_id , MIN(balance_date) AS first_date
+        FROM transactions
+        GROUP BY linked_user_gradido_id
+    ) t ON t.linked_user_gradido_id = u.gradido_id
+    SET u.created_at = DATE_SUB(t.first_date, INTERVAL 1 SECOND)
+    WHERE u.created_at >= t.first_date;
+    ;`)
+
   /**
    * Fix 4: Ensure all transaction memos meet the minimum length requirement.
    *

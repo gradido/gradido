@@ -82,6 +82,7 @@ export class RedeemTransactionLinksSyncRole extends AbstractSyncRole<RedeemedTra
   }
 
   buildTransaction(
+      communityContext: CommunityContext,
       item: RedeemedTransactionLinkDb, 
       linkFundingTransactionNr: number,
       senderKeyPair: KeyPairEd25519,
@@ -99,10 +100,11 @@ export class RedeemTransactionLinksSyncRole extends AbstractSyncRole<RedeemedTra
         .setRedeemDeferredTransfer(
           linkFundingTransactionNr,
           new GradidoTransfer(
-            new TransferAmount(senderKeyPair.getPublicKey(), item.amount),
+            new TransferAmount(senderKeyPair.getPublicKey(), item.amount, communityContext.communityId),
             recipientKeyPair.getPublicKey(),
           ),
         )
+        .setSenderCommunity(communityContext.communityId)
         .sign(senderKeyPair)
   }
 
@@ -115,9 +117,21 @@ export class RedeemTransactionLinksSyncRole extends AbstractSyncRole<RedeemedTra
   ): AccountBalances {
     const accountBalances = new AccountBalances()
     
-    const senderLastBalance = this.getLastBalanceForUser(senderPublicKey, communityContext.blockchain)
-    const fundingUserLastBalance = this.getLastBalanceForUser(fundingTransaction.getSenderPublicKey()!, communityContext.blockchain)
-    const recipientLastBalance = this.getLastBalanceForUser(recipientPublicKey, communityContext.blockchain)
+    const senderLastBalance = this.getLastBalanceForUser(
+      senderPublicKey, 
+      communityContext.blockchain, 
+      communityContext.communityId
+    )
+    const fundingUserLastBalance = this.getLastBalanceForUser(
+      fundingTransaction.getSenderPublicKey()!, 
+      communityContext.blockchain, 
+      communityContext.communityId
+    )
+    const recipientLastBalance = this.getLastBalanceForUser(
+      recipientPublicKey, 
+      communityContext.blockchain, 
+      communityContext.communityId
+    )
 
     if (senderLastBalance.getAccountBalance().getBalance().lt(item.amount)) {
       throw new Error(`sender has not enough balance (${senderLastBalance.getAccountBalance().getBalance().toString()}) to send ${item.amount.toString()} to ${recipientPublicKey.convertToHex()}`)
@@ -127,7 +141,7 @@ export class RedeemTransactionLinksSyncRole extends AbstractSyncRole<RedeemedTra
     recipientLastBalance.updateLegacyDecay(item.amount, item.redeemedAt)
     
     // account of link is set to zero, and change send back to link creator
-    accountBalances.add(new AccountBalance(senderPublicKey, GradidoUnit.zero(), ''))
+    accountBalances.add(new AccountBalance(senderPublicKey, GradidoUnit.zero(), communityContext.communityId))
     accountBalances.add(recipientLastBalance.getAccountBalance())
     accountBalances.add(fundingUserLastBalance.getAccountBalance())
     return accountBalances
@@ -162,7 +176,7 @@ export class RedeemTransactionLinksSyncRole extends AbstractSyncRole<RedeemedTra
 
     try {
       addToBlockchain(
-        this.buildTransaction(item, transaction.getTransactionNr(), senderKeyPair, recipientKeyPair),
+        this.buildTransaction(communityContext, item, transaction.getTransactionNr(), senderKeyPair, recipientKeyPair).build(),
         blockchain,
         new LedgerAnchor(item.id, LedgerAnchor.Type_LEGACY_GRADIDO_DB_TRANSACTION_LINK_ID),
         this.calculateBalances(item, deferredTransfer, communityContext, senderPublicKey, recipientPublicKey),

@@ -84,6 +84,8 @@ export const transactionsTable = mysqlTable(
     creationDate: datetime('creation_date', { mode: 'string', fsp: 3 }).default(sql`NULL`),
     userId: int('user_id').notNull(),
     linkedUserId: int('linked_user_id').default(sql`NULL`),
+    linkedUserCommunityUuid: char("linked_user_community_uuid", { length: 36 }).default(sql`NULL`),
+	  linkedUserGradidoId: char("linked_user_gradido_id", { length: 36 }).default(sql`NULL`),
     linkedTransactionId: int('linked_transaction_id').default(sql`NULL`),
   },
   (table) => [index('user_id').on(table.userId)],
