@@ -1,0 +1,20 @@
+#ifndef __GRADIDO_BLOCKCHAIN_C_DATA_CROSS_GROUP_TYPE_H
+#define __GRADIDO_BLOCKCHAIN_C_DATA_CROSS_GROUP_TYPE_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+enum grdd_cross_group_type
+{
+  GRDD_CROSS_GROUP_TYPE_LOCAL = 0,
+  GRDD_CROSS_GROUP_TYPE_INBOUND = 1,
+  GRDD_CROSS_GROUP_TYPE_OUTBOUND = 2,
+  GRDD_CROSS_GROUP_TYPE_CROSS = 3
+};
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif // __GRADIDO_BLOCKCHAIN_C_DATA_CROSS_GROUP_TYPE_H

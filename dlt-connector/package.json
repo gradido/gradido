@@ -18,6 +18,7 @@
     "lint:fix": "biome check --error-on-warnings . --write"
   },
   "dependencies": {
+    "bun-zigar": "^0.15.2",
     "cross-env": "^7.0.3",
     "gradido-blockchain-js": "git+https://github.com/gradido/gradido-blockchain-js#f265dbb1780a912cf8b0418dfe3eaf5cdc5b51cf"
   },
