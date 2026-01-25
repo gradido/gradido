@@ -11,6 +11,8 @@ export type IndexType = {
   date: Date
   id: number
 }
+export let nanosBalanceForUser = 0
+const lastBalanceOfUserTimeUsed = new Profiler
 
 export abstract class AbstractSyncRole<ItemType> {
   private items: ItemType[] = []
@@ -31,9 +33,10 @@ export abstract class AbstractSyncRole<ItemType> {
 
   getLastBalanceForUser(publicKey: MemoryBlockPtr, blockchain: InMemoryBlockchain, communityId: string
   ): Balance {
+    lastBalanceOfUserTimeUsed.reset()
     if (publicKey.isEmpty()) {
       throw new Error('publicKey is empty')
-    }
+    }    
     const lastSenderTransaction = blockchain.findOne(Filter.lastBalanceFor(publicKey))
     if (!lastSenderTransaction) {
       return new Balance(publicKey, communityId)
@@ -46,7 +49,9 @@ export abstract class AbstractSyncRole<ItemType> {
     if (!senderLastAccountBalance) {
       return new Balance(publicKey, communityId)
     }
-    return Balance.fromAccountBalance(senderLastAccountBalance, lastConfirmedTransaction.getConfirmedAt().getDate(), communityId)
+    const result = Balance.fromAccountBalance(senderLastAccountBalance, lastConfirmedTransaction.getConfirmedAt().getDate(), communityId)
+    nanosBalanceForUser += lastBalanceOfUserTimeUsed.nanos()
+    return result
   }
 
   logLastBalanceChangingTransactions(publicKey: MemoryBlockPtr, blockchain: InMemoryBlockchain, transactionCount: number = 5) {

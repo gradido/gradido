@@ -5,10 +5,13 @@ import {
   HieroAccountId,
   InMemoryBlockchain,
   LedgerAnchor,
+  Profiler,
 } from 'gradido-blockchain-js'
 import { NotEnoughGradidoBalanceError } from './errors'
 
 export const defaultHieroAccount = new HieroAccountId(0, 0, 2)
+export let callTime: number = 0
+const timeUsed = new Profiler
 
 export function addToBlockchain(
   transaction: GradidoTransaction,
@@ -18,11 +21,13 @@ export function addToBlockchain(
 ): boolean {
   
   try {    
+    timeUsed.reset()
     const result = blockchain.createAndAddConfirmedTransactionExtern(
       transaction,
       ledgerAnchor,
       accountBalances,
     )
+    callTime += timeUsed.nanos()
     return result
   } catch (error) {
     if (error instanceof Error) {

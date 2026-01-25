@@ -8,6 +8,8 @@ import { RedeemTransactionLinksSyncRole } from './RedeemTransactionLinksSync.rol
 import { ContributionLinkTransactionSyncRole } from './ContributionLinkTransactionSync.role'
 import { DeletedTransactionLinksSyncRole } from './DeletedTransactionLinksSync.role'
 import { RemoteTransactionsSyncRole } from './RemoteTransactionsSync.role'
+import { callTime } from '../../blockchain'
+import { nanosBalanceForUser } from './AbstractSync.role'
 
 export async function syncDbWithBlockchainContext(context: Context, batchSize: number) {
   const timeUsedDB = new Profiler()
@@ -28,6 +30,7 @@ export async function syncDbWithBlockchainContext(context: Context, batchSize: n
   let transactionsCountSinceLastPrint = 0
   let available = containers
   const isDebug = context.logger.isDebugEnabled()
+  let lastPrintedCallTime = 0
   while (true) {
     timeUsedDB.reset()
     const results = await Promise.all(available.map((c) => c.ensureFilled(batchSize)))
@@ -56,6 +59,8 @@ export async function syncDbWithBlockchainContext(context: Context, batchSize: n
       transactionsCountSinceLastLog++       
       if (transactionsCountSinceLastLog >= batchSize) {
         context.logger.debug(`${transactionsCountSinceLastLog} transactions added to blockchain in ${timeUsedBlockchain.string()}`)
+        context.logger.info(`Time for createAndConfirm: ${((callTime - lastPrintedCallTime) / 1000 / 1000).toFixed(2)} milliseconds`) 
+        lastPrintedCallTime = callTime
         timeUsedBlockchain.reset()
         transactionsCountSinceLastLog = 0
       }
@@ -69,4 +74,6 @@ export async function syncDbWithBlockchainContext(context: Context, batchSize: n
   }
   process.stdout.write(`successfully added to blockchain: ${transactionsCount}\n`)  
   context.logger.info(`Synced ${transactionsCount} transactions to blockchain in ${timeUsedAll.string()}`)
+  context.logger.info(`Time for createAndConfirm: ${(callTime / 1000 / 1000 / 1000).toFixed(2)} seconds`) 
+  context.logger.info(`Time for call lastBalance of user: ${(nanosBalanceForUser / 1000 / 1000 / 1000).toFixed(2)} seconds`)
 }
