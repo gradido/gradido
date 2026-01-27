@@ -7,6 +7,7 @@ import { onShutdown, printServerCrashAsciiArt, ShutdownReason } from 'shared'
 import { CONFIG } from './config'
 import { LOG4JS_BASE_CATEGORY_NAME } from './config/const'
 import { createServer } from './server/createServer'
+import { initializeCommands } from 'core'
 
 async function main() {
   const startTime = new Date()
@@ -44,6 +45,9 @@ async function main() {
       }
     })
   })
+
+  initializeCommands()
+
 }
 
 main().catch((e) => {

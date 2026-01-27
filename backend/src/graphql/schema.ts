@@ -6,6 +6,7 @@ import { buildSchema } from 'type-graphql'
 import { isAuthorized } from './directive/isAuthorized'
 import { AiChatResolver } from './resolver/AiChatResolver'
 import { BalanceResolver } from './resolver/BalanceResolver'
+import { CommandResolver } from 'core/src/graphql/resolver/CommandResolver'
 import { CommunityResolver } from './resolver/CommunityResolver'
 import { ContributionLinkResolver } from './resolver/ContributionLinkResolver'
 import { ContributionMessageResolver } from './resolver/ContributionMessageResolver'
@@ -25,6 +26,7 @@ export const schema = async (): Promise<GraphQLSchema> => {
     resolvers: [
       AiChatResolver,
       BalanceResolver,
+      CommandResolver,
       CommunityResolver,
       ContributionLinkResolver,
       ContributionMessageResolver,

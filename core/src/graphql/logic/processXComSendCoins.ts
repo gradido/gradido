@@ -16,6 +16,7 @@ import { Decimal } from 'decimal.js-light'
 // import { LogError } from '@server/LogError'
 import { getLogger } from 'log4js'
 import {
+  CommandJwtPayloadType,
   encryptAndSign,
   PendingTransactionState,
   SendCoinsJwtPayloadType,
@@ -30,6 +31,7 @@ import { SendCoinsResultLoggingView } from '../../federation/client/1_0/logging/
 import { SendCoinsResult } from '../../federation/client/1_0/model/SendCoinsResult'
 import { SendCoinsClient as V1_0_SendCoinsClient } from '../../federation/client/1_0/SendCoinsClient'
 import { SendCoinsClientFactory } from '../../federation/client/SendCoinsClientFactory'
+import { CommandClientFactory } from '../../federation/client/CommandClientFactory'
 import { TransactionTypeId } from '../../graphql/enum/TransactionTypeId'
 import { EncryptedTransferArgs } from '../../graphql/model/EncryptedTransferArgs'
 import { calculateSenderBalance } from '../../util/calculateSenderBalance'
@@ -37,6 +39,8 @@ import { fullName } from '../../util/utilities'
 import { settlePendingSenderTransaction } from './settlePendingSenderTransaction'
 import { storeForeignUser } from './storeForeignUser'
 import { storeLinkAsRedeemed } from './storeLinkAsRedeemed'
+import { V1_0_CommandClient } from '../..'
+import { SendEmailCommand } from '../../command/commands/SendEmailCommand'
 
 const createLogger = (method: string) =>
   getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.util.processXComSendCoins.${method}`)
@@ -510,6 +514,36 @@ export async function processXComCommittingSendCoins(
               }
               sendCoinsResult.recipGradidoID = pendingTx.linkedUserGradidoID
               sendCoinsResult.recipAlias = recipient.recipAlias
+            }
+            // ** after successfull settle of the pending transaction on sender side we have to send a trigger to the recipient community to send an email to the x-com-tx recipient
+            const cmdClient = CommandClientFactory.getInstance(receiverFCom)
+
+            if (cmdClient instanceof V1_0_CommandClient) {
+              const payload = new CommandJwtPayloadType(
+                handshakeID,
+                SendEmailCommand.SEND_MAIL_COMMAND,
+                SendEmailCommand.name,
+                [
+                  JSON.stringify({
+                    mailType: 'sendTransactionReceivedEmail',
+                    senderComUuid: senderCom.communityUuid,
+                    senderGradidoId: sender.gradidoID,
+                    receiverComUuid: receiverCom.communityUuid,
+                    receiverGradidoId: sendCoinsResult.recipGradidoID,
+                    memo: pendingTx.memo,
+                    amount: pendingTx.amount,
+                  }),
+                ])
+              const jws = await encryptAndSign(
+                payload,
+                senderCom.privateJwtKey!,
+                receiverCom.publicJwtKey!,
+              )
+              const args = new EncryptedTransferArgs()
+              args.publicKey = senderCom.publicKey.toString('hex')
+              args.jwt = jws
+              args.handshakeID = handshakeID
+              cmdClient.sendCommand(args)
             }
           } catch (err) {
             methodLogger.error(
