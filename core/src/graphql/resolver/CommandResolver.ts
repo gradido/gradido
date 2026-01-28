@@ -2,6 +2,7 @@
 import { Resolver, Mutation, Arg, Ctx } from 'type-graphql';
 import { CommandExecutor } from '../../command/CommandExecutor';
 import { CommandResult } from '../model/CommandResult';
+import { EncryptedTransferArgs } from '../model/EncryptedTransferArgs';
 
 @Resolver()
 export class CommandResolver {
@@ -9,7 +10,7 @@ export class CommandResolver {
 
   @Mutation(() => CommandResult)
   async executeCommand(
-    @Arg('encryptedArgs', () => Object) encryptedArgs: any,
+    @Arg('encryptedArgs', () => EncryptedTransferArgs) encryptedArgs: any,
     @Ctx() context: any
   ): Promise<CommandResult> {
     // Convert to EncryptedTransferArgs if needed
