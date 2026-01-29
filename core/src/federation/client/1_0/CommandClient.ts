@@ -1,9 +1,10 @@
-import { EncryptedTransferArgs, ensureUrlEndsWithSlash } from 'core'
+import { EncryptedTransferArgs } from '../../../graphql/model/EncryptedTransferArgs'
 import { FederatedCommunity as DbFederatedCommunity } from 'database'
 import { GraphQLClient } from 'graphql-request'
 import { getLogger } from 'log4js'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../../../config/const'
 import { sendCommand } from './query/sendCommand'
+import { ensureUrlEndsWithSlash } from '../../../util/utilities'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.federation.client.1_0.CommandClient`)
 

@@ -39,7 +39,7 @@ import { fullName } from '../../util/utilities'
 import { settlePendingSenderTransaction } from './settlePendingSenderTransaction'
 import { storeForeignUser } from './storeForeignUser'
 import { storeLinkAsRedeemed } from './storeLinkAsRedeemed'
-import { V1_0_CommandClient } from '../..'
+import { CommandClient as V1_0_CommandClient } from '../../federation/client/1_0/CommandClient'
 import { SendEmailCommand } from '../../command/commands/SendEmailCommand'
 
 const createLogger = (method: string) =>
