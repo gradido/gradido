@@ -3,7 +3,7 @@ import { FederatedCommunity as DbFederatedCommunity } from 'database'
 import { GraphQLClient } from 'graphql-request'
 import { getLogger } from 'log4js'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../../../config/const'
-import { sendCommand } from './query/sendCommand'
+import { sendCommand as sendCommandQuery} from './query/sendCommand'
 import { ensureUrlEndsWithSlash } from '../../../util/utilities'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.federation.client.1_0.CommandClient`)
@@ -28,7 +28,7 @@ export class CommandClient {
   async sendCommand(args: EncryptedTransferArgs): Promise<boolean> {
     logger.debug(`sendCommand at ${this.endpoint} for args:`, args)
     try {
-      const { data } = await this.client.rawRequest<{ success: boolean }>(sendCommand, {
+      const { data } = await this.client.rawRequest<{ success: boolean }>(sendCommandQuery, {
         args,
       })
       if (!data?.success) {
