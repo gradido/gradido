@@ -1,8 +1,7 @@
-// backend/src/graphql/resolver/CommandResolver.ts
 import { Resolver, Mutation, Arg, Ctx } from 'type-graphql';
-import { CommandExecutor } from '../../command/CommandExecutor';
-import { CommandResult } from '../model/CommandResult';
-import { EncryptedTransferArgs } from '../model/EncryptedTransferArgs';
+import { CommandExecutor } from 'core';
+import { CommandResult } from 'core';
+import { EncryptedTransferArgs } from 'core';
 
 @Resolver()
 export class CommandResolver {

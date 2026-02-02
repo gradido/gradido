@@ -1,6 +1,6 @@
 import { NonEmptyArray } from 'type-graphql'
 import { AuthenticationResolver } from './resolver/AuthenticationResolver'
-import { CommandResolver } from 'core'
+import { CommandResolver } from './resolver/CommandResolver'
 import { DisbursementResolver } from './resolver/DisbursementResolver'
 import { PublicCommunityInfoResolver } from './resolver/PublicCommunityInfoResolver'
 import { PublicKeyResolver } from './resolver/PublicKeyResolver'
