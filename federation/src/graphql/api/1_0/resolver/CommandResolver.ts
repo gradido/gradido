@@ -8,7 +8,7 @@ export class CommandResolver {
   private commandExecutor = new CommandExecutor();
 
   @Mutation(() => CommandResult)
-  async executeCommand(
+  async sendCommand(
     @Arg('encryptedArgs', () => EncryptedTransferArgs) encryptedArgs: any,
     @Ctx() context: any
   ): Promise<CommandResult> {
