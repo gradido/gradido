@@ -51,6 +51,9 @@ export class CommandExecutor {
         methodLogger.debug(`executeEncryptedCommand() commandArgs=${JSON.stringify(commandArgs)}`)
       }
       const command = CommandFactory.getInstance().createCommand(commandArgs.commandName, commandArgs.params);
+      if (methodLogger.isDebugEnabled()) {
+        methodLogger.debug(`executeEncryptedCommand() command=${JSON.stringify(command)}`)
+      }
       
       // Execute the command
       const result = await this.executeCommand(command);
