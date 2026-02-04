@@ -9,6 +9,7 @@ const createLogger = (method: string) =>
 
 export class SendEmailCommand extends BaseCommand<{ success: boolean }> {
   static readonly SEND_MAIL_COMMAND = 'SEND_MAIL_COMMAND';
+  protected requiredFields: string[] = ['mailType', 'senderComUuid', 'senderGradidoId', 'receiverComUuid', 'receiverGradidoId'];
 
   constructor(params: { 
     mailType: string,
@@ -23,7 +24,11 @@ export class SendEmailCommand extends BaseCommand<{ success: boolean }> {
   }
 
   validate(): boolean {
-    return this.validateParams(['mailType', 'senderComUuid', 'senderGradidoId', 'receiverComUuid', 'receiverGradidoId']);
+    const baseValid = super.validate();
+    if (!baseValid) {
+      return false;
+    }
+    return true;
   }
 
   async execute(): Promise<{ success: boolean }> {

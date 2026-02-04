@@ -15,9 +15,12 @@ const createLogger = (method: string) =>
 export class CommandExecutor {
   async executeCommand<T>(command: Command<T>): Promise<CommandResult> {
     const methodLogger = createLogger(`executeCommand`)
+    methodLogger.debug(`executeCommand() command=${command.constructor.name}`)
     try {
       if (command.validate && !command.validate()) {
-        return { success: false, error: 'Command validation failed' };
+        const errmsg = `Command validation failed for command=${command.constructor.name}`
+        methodLogger.error(errmsg)
+        return { success: false, error: errmsg };
       }
       methodLogger.debug(`executeCommand() executing command=${command.constructor.name}`)
       const result = await command.execute();
