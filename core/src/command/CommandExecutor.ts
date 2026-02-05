@@ -50,7 +50,7 @@ export class CommandExecutor {
       if (methodLogger.isDebugEnabled()) {
         methodLogger.debug(`executeEncryptedCommand() commandArgs=${JSON.stringify(commandArgs)}`)
       }
-      const command = CommandFactory.getInstance().createCommand(commandArgs.commandName, commandArgs.params);
+      const command = CommandFactory.getInstance().createCommand(commandArgs.commandName, commandArgs.commandArgs);
       if (methodLogger.isDebugEnabled()) {
         methodLogger.debug(`executeEncryptedCommand() command=${JSON.stringify(command)}`)
       }
