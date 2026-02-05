@@ -20,15 +20,21 @@ export class CommandFactory {
   }
 
   registerCommand(name: string, commandClass: new (params: any) => Command): void {
-    this.commands.set(name, commandClass);
     const methodLogger = createLogger(`registerCommand`)
     if (methodLogger.isDebugEnabled()) {
       methodLogger.debug(`registerCommand() name=${name}`)
+    }
+    this.commands.set(name, commandClass);
+    if (methodLogger.isDebugEnabled()) {
+      methodLogger.debug(`registerCommand() commands=${JSON.stringify(Array.from(this.commands.entries()))}`)
     }
   }
 
   createCommand<T>(name: string, params: any = {}): Command<T> {
     const methodLogger = createLogger(`createCommand`)
+    if (methodLogger.isDebugEnabled()) {
+      methodLogger.debug(`createCommand() name=${name} params=${JSON.stringify(params)}`)
+    }
     const CommandClass = this.commands.get(name);
     if (!CommandClass) {
       const errmsg = `Command ${name} not found`;
