@@ -2,13 +2,14 @@ import { Command } from './Command';
 import { BaseCommand } from './BaseCommand';
 import { getLogger } from 'log4js';
 import { LOG4JS_BASE_CATEGORY_NAME } from '../config/const';
+import { ICommandConstructor } from './CommandTypes';
 
 const createLogger = (method: string) =>
   getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.command.CommandFactory.${method}`)
 
 export class CommandFactory {
   private static instance: CommandFactory;
-  private commands: Map<string, new (params: any) => Command> = new Map();
+  private commands: Map<string, ICommandConstructor> = new Map();
 
   private constructor() {}
 
@@ -19,10 +20,10 @@ export class CommandFactory {
     return CommandFactory.instance;
   }
 
-  registerCommand(name: string, commandClass: new (params: any) => Command): void {
+  registerCommand<T>(name: string, commandClass: ICommandConstructor<T>): void {
     const methodLogger = createLogger(`registerCommand`)
     if (methodLogger.isDebugEnabled()) {
-      methodLogger.debug(`registerCommand() name=${name}`)
+      methodLogger.debug(`registerCommand() name=${name}, commandClass=${commandClass.name}`)
     }
     this.commands.set(name, commandClass);
     if (methodLogger.isDebugEnabled()) {
@@ -36,6 +37,9 @@ export class CommandFactory {
       methodLogger.debug(`createCommand() name=${name} params=${JSON.stringify(params)}`)
     }
     const CommandClass = this.commands.get(name);
+    if (methodLogger.isDebugEnabled()) {
+      methodLogger.debug(`createCommand() name=${name} commandClass=${CommandClass ? CommandClass.name : 'null'}`)
+    }
     if (!CommandClass) {
       const errmsg = `Command ${name} not found`;
       methodLogger.error(errmsg);

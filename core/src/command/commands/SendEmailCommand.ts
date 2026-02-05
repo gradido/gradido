@@ -7,19 +7,20 @@ import { getLogger } from 'log4js';
 const createLogger = (method: string) =>
   getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.command.CommandExecutor.${method}`)
 
+export interface SendEmailCommandParams {
+  mailType: string;
+  senderComUuid: string;
+  senderGradidoId: string;
+  receiverComUuid: string;
+  receiverGradidoId: string;
+  memo?: string;
+  amount?: number;
+}
 export class SendEmailCommand extends BaseCommand<{ success: boolean }> {
   static readonly SEND_MAIL_COMMAND = 'SEND_MAIL_COMMAND';
   protected requiredFields: string[] = ['mailType', 'senderComUuid', 'senderGradidoId', 'receiverComUuid', 'receiverGradidoId'];
 
-  constructor(params: { 
-    mailType: string,
-    senderComUuid: string,
-    senderGradidoId: string,
-    receiverComUuid: string,
-    receiverGradidoId: string,
-    memo?: string,
-    amount?: number,
-  }) {
+  constructor(params: SendEmailCommandParams) {
     super(params);
   }
 
@@ -28,6 +29,8 @@ export class SendEmailCommand extends BaseCommand<{ success: boolean }> {
     if (!baseValid) {
       return false;
     }
+    // Additional validations
+
     return true;
   }
 
