@@ -18,9 +18,11 @@ export interface SendEmailCommandParams {
 }
 export class SendEmailCommand extends BaseCommand<{ success: boolean }> {
   static readonly SEND_MAIL_COMMAND = 'SEND_MAIL_COMMAND';
-  protected requiredFields: string[] = ['mailType', 'senderComUuid', 'senderGradidoId', 'receiverComUuid', 'receiverGradidoId'];
+  requiredFields: string[] = ['mailType', 'senderComUuid', 'senderGradidoId', 'receiverComUuid', 'receiverGradidoId'];
 
   constructor(params: SendEmailCommandParams) {
+    const methodLogger = createLogger(`constructor`)
+    methodLogger.debug(`constructor() params=${JSON.stringify(params)}`)
     super(params);
   }
 
