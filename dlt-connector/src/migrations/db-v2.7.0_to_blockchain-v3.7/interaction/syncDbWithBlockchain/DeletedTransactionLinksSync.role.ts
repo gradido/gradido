@@ -21,8 +21,14 @@ import { addToBlockchain } from '../../blockchain'
 import { BlockchainError, DatabaseError } from '../../errors'
 import { Balance } from '../../data/Balance'
 import { toMysqlDateTime } from '../../utils'
+import { Context } from '../../Context'
 
 export class DeletedTransactionLinksSyncRole extends AbstractSyncRole<DeletedTransactionLinkDb> {
+  constructor(context: Context) {
+    super(context)
+    this.accountBalances.reserve(2)
+  }
+  
   getDate(): Date {
     return this.peek().deletedAt
   }
@@ -81,7 +87,7 @@ export class DeletedTransactionLinksSyncRole extends AbstractSyncRole<DeletedTra
       senderKeyPair: KeyPairEd25519,
       linkFundingPublicKey: MemoryBlockPtr,       
     ): GradidoTransactionBuilder {
-      return new GradidoTransactionBuilder()
+      return this.transactionBuilder
         .setCreatedAt(item.deletedAt)
         .setRedeemDeferredTransfer(
           linkFundingTransactionNr,
@@ -101,7 +107,7 @@ export class DeletedTransactionLinksSyncRole extends AbstractSyncRole<DeletedTra
     communityContext: CommunityContext,
     senderPublicKey: MemoryBlockPtr,
   ): AccountBalances {
-    const accountBalances = new AccountBalances()
+    this.accountBalances.clear()    
     
     const fundingUserLastBalance = this.getLastBalanceForUser(
       fundingTransaction.getSenderPublicKey()!, 
@@ -111,9 +117,9 @@ export class DeletedTransactionLinksSyncRole extends AbstractSyncRole<DeletedTra
     fundingUserLastBalance.updateLegacyDecay(senderLastBalance.getBalance(), item.deletedAt)
     
     // account of link is set to zero, gdd will be send back to initiator
-    accountBalances.add(new AccountBalance(senderPublicKey, GradidoUnit.zero(), communityContext.communityId))
-    accountBalances.add(fundingUserLastBalance.getAccountBalance())
-    return accountBalances
+    this.accountBalances.add(new AccountBalance(senderPublicKey, GradidoUnit.zero(), communityContext.communityId))
+    this.accountBalances.add(fundingUserLastBalance.getAccountBalance())
+    return this.accountBalances
   }
 
   pushToBlockchain(item: DeletedTransactionLinkDb): void {

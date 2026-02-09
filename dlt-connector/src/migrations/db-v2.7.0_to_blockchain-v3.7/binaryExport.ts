@@ -27,6 +27,7 @@ export function exportCommunity(
   batchSize: number,
 ) {
   const timeUsed = new Profiler()
+  const timeSinceLastPrint = new Profiler()
   // write as binary file for GradidoNode
   const f = new Filter()
   f.pagination.size = batchSize
@@ -64,7 +65,10 @@ export function exportCommunity(
         count++
       }
       if (isDebug) {
-        printConsole()
+        if (timeSinceLastPrint.millis() > 100) {
+          printConsole()
+          timeSinceLastPrint.reset()
+        }
       } else {
         printCount++
         if (printCount >= 100) {

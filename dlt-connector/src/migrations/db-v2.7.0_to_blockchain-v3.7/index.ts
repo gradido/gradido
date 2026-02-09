@@ -2,10 +2,13 @@ import { onShutdown } from '../../../../shared/src/helper/onShutdown'
 import { exportAllCommunities } from './binaryExport'
 import { bootstrap } from './bootstrap'
 import { syncDbWithBlockchainContext } from './interaction/syncDbWithBlockchain/syncDbWithBlockchain.context'
+// import { hello } from '../../../zig/hello.zig'
 
 const BATCH_SIZE = 1000
 
 async function main() {
+  // hello()
+  // return 
   // prepare in memory blockchains
   const context = await bootstrap()
   onShutdown(async (reason, error) => {

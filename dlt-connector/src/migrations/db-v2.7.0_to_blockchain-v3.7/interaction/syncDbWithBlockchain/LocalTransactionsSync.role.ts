@@ -18,9 +18,14 @@ import { BlockchainError, DatabaseError, NegativeBalanceError, NotEnoughGradidoB
 import { CommunityContext, TransactionDb, transactionDbSchema } from '../../valibot.schema'
 import { AbstractSyncRole, IndexType } from './AbstractSync.role'
 import { toMysqlDateTime } from '../../utils'
+import { Context } from '../../Context'
 
 export class LocalTransactionsSyncRole extends AbstractSyncRole<TransactionDb> {
-  
+  constructor(context: Context) {
+    super(context)
+    this.accountBalances.reserve(2)
+  }
+    
   getDate(): Date {
     return this.peek().balanceDate
   }
@@ -84,7 +89,7 @@ export class LocalTransactionsSyncRole extends AbstractSyncRole<TransactionDb> {
       senderKeyPair: KeyPairEd25519,
       recipientKeyPair: KeyPairEd25519,       
     ): GradidoTransactionBuilder {
-      return new GradidoTransactionBuilder()
+      return this.transactionBuilder
         .setCreatedAt(item.balanceDate)
         .addMemo(new EncryptedMemo(
             item.memo,
@@ -106,7 +111,7 @@ export class LocalTransactionsSyncRole extends AbstractSyncRole<TransactionDb> {
     senderPublicKey: MemoryBlockPtr,
     recipientPublicKey: MemoryBlockPtr,
   ): AccountBalances {
-    const accountBalances = new AccountBalances()
+    this.accountBalances.clear()
     
     const senderLastBalance = this.getLastBalanceForUser(senderPublicKey, communityContext.blockchain, communityContext.communityId)
     const recipientLastBalance = this.getLastBalanceForUser(recipientPublicKey, communityContext.blockchain, communityContext.communityId)
@@ -121,9 +126,9 @@ export class LocalTransactionsSyncRole extends AbstractSyncRole<TransactionDb> {
     }
     recipientLastBalance.updateLegacyDecay(item.amount, item.balanceDate)
     
-    accountBalances.add(senderLastBalance.getAccountBalance())
-    accountBalances.add(recipientLastBalance.getAccountBalance())
-    return accountBalances
+    this.accountBalances.add(senderLastBalance.getAccountBalance())
+    this.accountBalances.add(recipientLastBalance.getAccountBalance())
+    return this.accountBalances
   }
 
   pushToBlockchain(item: TransactionDb): void {

@@ -1,4 +1,13 @@
-import { Filter, InMemoryBlockchain, KeyPairEd25519, MemoryBlockPtr, Profiler, SearchDirection_DESC } from 'gradido-blockchain-js'
+import { 
+  AccountBalances, 
+  Filter, 
+  InMemoryBlockchain, 
+  KeyPairEd25519, 
+  MemoryBlockPtr, 
+  Profiler, 
+  SearchDirection_DESC, 
+  GradidoTransactionBuilder 
+} from 'gradido-blockchain-js'
 import { getLogger, Logger } from 'log4js'
 import { LOG4JS_BASE_CATEGORY } from '../../../../config/const'
 import { deriveFromKeyPairAndIndex, deriveFromKeyPairAndUuid } from '../../../../data/deriveKeyPair'
@@ -18,11 +27,15 @@ export abstract class AbstractSyncRole<ItemType> {
   private items: ItemType[] = []
   protected lastIndex: IndexType = { date: new Date(0), id: 0 }
   protected logger: Logger
+  protected transactionBuilder: GradidoTransactionBuilder
+  protected accountBalances: AccountBalances
 
   constructor(protected readonly context: Context) {
     this.logger = getLogger(
       `${LOG4JS_BASE_CATEGORY}.migrations.db-v2.7.0_to_blockchain-v3.5.interaction.syncDbWithBlockchain`,
     )
+    this.transactionBuilder = new GradidoTransactionBuilder()
+    this.accountBalances = new AccountBalances()
   }
 
   getAccountKeyPair(communityContext: CommunityContext, gradidoId: Uuidv4): KeyPairEd25519 {

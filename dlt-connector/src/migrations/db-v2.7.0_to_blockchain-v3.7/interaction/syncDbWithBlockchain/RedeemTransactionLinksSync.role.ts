@@ -23,8 +23,14 @@ import { AbstractSyncRole, IndexType } from './AbstractSync.role'
 import { deriveFromCode } from '../../../../data/deriveKeyPair'
 import { alias } from 'drizzle-orm/mysql-core'
 import { toMysqlDateTime } from '../../utils'
+import { Context } from '../../Context'
 
 export class RedeemTransactionLinksSyncRole extends AbstractSyncRole<RedeemedTransactionLinkDb> {  
+  constructor(context: Context) {
+    super(context)
+    this.accountBalances.reserve(3)
+  }
+  
   getDate(): Date {
     return this.peek().redeemedAt
   }
@@ -88,7 +94,7 @@ export class RedeemTransactionLinksSyncRole extends AbstractSyncRole<RedeemedTra
       senderKeyPair: KeyPairEd25519,
       recipientKeyPair: KeyPairEd25519,       
     ): GradidoTransactionBuilder {
-      return new GradidoTransactionBuilder()
+      return this.transactionBuilder
         .setCreatedAt(item.redeemedAt)
         .addMemo(
           new EncryptedMemo(
@@ -115,7 +121,7 @@ export class RedeemTransactionLinksSyncRole extends AbstractSyncRole<RedeemedTra
     senderPublicKey: MemoryBlockPtr,
     recipientPublicKey: MemoryBlockPtr,
   ): AccountBalances {
-    const accountBalances = new AccountBalances()
+    this.accountBalances.clear()
     
     const senderLastBalance = this.getLastBalanceForUser(
       senderPublicKey, 
@@ -141,10 +147,10 @@ export class RedeemTransactionLinksSyncRole extends AbstractSyncRole<RedeemedTra
     recipientLastBalance.updateLegacyDecay(item.amount, item.redeemedAt)
     
     // account of link is set to zero, and change send back to link creator
-    accountBalances.add(new AccountBalance(senderPublicKey, GradidoUnit.zero(), communityContext.communityId))
-    accountBalances.add(recipientLastBalance.getAccountBalance())
-    accountBalances.add(fundingUserLastBalance.getAccountBalance())
-    return accountBalances
+    this.accountBalances.add(new AccountBalance(senderPublicKey, GradidoUnit.zero(), communityContext.communityId))
+    this.accountBalances.add(recipientLastBalance.getAccountBalance())
+    this.accountBalances.add(fundingUserLastBalance.getAccountBalance())
+    return this.accountBalances
   }
 
   pushToBlockchain(item: RedeemedTransactionLinkDb): void {

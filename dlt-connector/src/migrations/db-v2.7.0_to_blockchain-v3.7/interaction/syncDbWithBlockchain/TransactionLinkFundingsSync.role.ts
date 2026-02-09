@@ -22,8 +22,13 @@ import { AbstractSyncRole, IndexType } from './AbstractSync.role'
 import { deriveFromCode } from '../../../../data/deriveKeyPair'
 import { reverseLegacyDecay, toMysqlDateTime } from '../../utils'
 import Decimal from 'decimal.js-light'
+import { Context } from '../../Context'
 
 export class TransactionLinkFundingsSyncRole extends AbstractSyncRole<TransactionLinkDb> {
+  constructor(context: Context) {
+    super(context)
+    this.accountBalances.reserve(2)
+  }
   getDate(): Date {
     return this.peek().createdAt
   }
@@ -73,7 +78,7 @@ export class TransactionLinkFundingsSyncRole extends AbstractSyncRole<Transactio
     senderKeyPair: KeyPairEd25519,
     recipientKeyPair: KeyPairEd25519,       
   ): GradidoTransactionBuilder {
-    return new GradidoTransactionBuilder()
+    return this.transactionBuilder
       .setCreatedAt(item.createdAt)
       .addMemo(
         new EncryptedMemo(
@@ -100,7 +105,7 @@ export class TransactionLinkFundingsSyncRole extends AbstractSyncRole<Transactio
       senderPublicKey: MemoryBlockPtr,
       recipientPublicKey: MemoryBlockPtr,
     ): AccountBalances {
-      const accountBalances = new AccountBalances()
+      this.accountBalances.clear()
       let senderLastBalance = this.getLastBalanceForUser(senderPublicKey, communityContext.blockchain, communityContext.communityId)
       try {
        senderLastBalance.updateLegacyDecay(blockedAmount.negated(), item.createdAt)
@@ -112,9 +117,9 @@ export class TransactionLinkFundingsSyncRole extends AbstractSyncRole<Transactio
         }
       }
            
-      accountBalances.add(senderLastBalance.getAccountBalance())
-      accountBalances.add(new AccountBalance(recipientPublicKey, blockedAmount, communityContext.communityId))
-      return accountBalances
+      this.accountBalances.add(senderLastBalance.getAccountBalance())
+      this.accountBalances.add(new AccountBalance(recipientPublicKey, blockedAmount, communityContext.communityId))
+      return this.accountBalances
     }
 
   pushToBlockchain(item: TransactionLinkDb): void {

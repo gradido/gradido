@@ -12,8 +12,14 @@ import { BlockchainError } from '../../errors'
 import { addToBlockchain } from '../../blockchain'
 import { AccountBalance, AccountBalances, AuthenticatedEncryption, EncryptedMemo, GradidoTransactionBuilder, GradidoUnit, KeyPairEd25519, LedgerAnchor, MemoryBlockPtr, TransferAmount } from 'gradido-blockchain-js'
 import { Decimal } from 'decimal.js'
+import { Context } from '../../Context'
 
 export class RemoteTransactionsSyncRole extends AbstractSyncRole<TransactionDb> {
+  constructor(context: Context) {
+    super(context)
+    this.accountBalances.reserve(1)
+  }
+  
   getDate(): Date {
     return this.peek().balanceDate
   }
@@ -79,7 +85,7 @@ export class RemoteTransactionsSyncRole extends AbstractSyncRole<TransactionDb> 
       senderCommunityId: string,
       recipientCommunityId: string,
     ): GradidoTransactionBuilder {
-      const builder = new GradidoTransactionBuilder()
+      return this.transactionBuilder
         .setCreatedAt(item.balanceDate)
         .addMemo(new EncryptedMemo(
             item.memo,
@@ -94,7 +100,6 @@ export class RemoteTransactionsSyncRole extends AbstractSyncRole<TransactionDb> 
         .setSenderCommunity(senderCommunityId)
         .setRecipientCommunity(recipientCommunityId)
         .sign(senderKeyPair)
-      return builder
   }
 
   calculateBalances(
@@ -103,10 +108,10 @@ export class RemoteTransactionsSyncRole extends AbstractSyncRole<TransactionDb> 
       amount: GradidoUnit,
       publicKey: MemoryBlockPtr,
     ): AccountBalances {
-      const accountBalances = new AccountBalances()
+      this.accountBalances.clear()
       if (communityContext.foreign) {
-        accountBalances.add(new AccountBalance(publicKey, GradidoUnit.zero(), communityContext.communityId))
-        return accountBalances
+        this.accountBalances.add(new AccountBalance(publicKey, GradidoUnit.zero(), communityContext.communityId))
+        return this.accountBalances
       } else {
         const lastBalance = this.getLastBalanceForUser(publicKey, communityContext.blockchain, communityContext.communityId)
     
@@ -118,8 +123,8 @@ export class RemoteTransactionsSyncRole extends AbstractSyncRole<TransactionDb> 
             throw e
           }
         }
-        accountBalances.add(lastBalance.getAccountBalance())
-        return accountBalances
+        this.accountBalances.add(lastBalance.getAccountBalance())
+        return this.accountBalances
       }
   }
 

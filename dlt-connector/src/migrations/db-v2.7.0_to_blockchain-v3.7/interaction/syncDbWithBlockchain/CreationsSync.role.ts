@@ -16,6 +16,7 @@ import {
 import * as v from 'valibot'
 import { addToBlockchain } from '../../blockchain'
 import { ContributionStatus } from '../../data/ContributionStatus'
+import { Context } from '../../Context'
 import {
   contributionsTable,  
   usersTable
@@ -26,6 +27,11 @@ import { AbstractSyncRole, IndexType } from './AbstractSync.role'
 import { toMysqlDateTime } from '../../utils'
 
 export class CreationsSyncRole extends AbstractSyncRole<CreationTransactionDb> {  
+
+  constructor(context: Context) {
+    super(context)
+    this.accountBalances.reserve(3)
+  }
 
   getDate(): Date {
     return this.peek().confirmedAt
@@ -85,7 +91,7 @@ export class CreationsSyncRole extends AbstractSyncRole<CreationTransactionDb> {
     recipientKeyPair: KeyPairEd25519, 
     signerKeyPair: KeyPairEd25519
   ): GradidoTransactionBuilder {
-    return new GradidoTransactionBuilder()    
+    return this.transactionBuilder    
       .setCreatedAt(item.confirmedAt)
       .addMemo(
         new EncryptedMemo(
@@ -107,7 +113,7 @@ export class CreationsSyncRole extends AbstractSyncRole<CreationTransactionDb> {
     communityContext: CommunityContext, 
     recipientPublicKey: MemoryBlockPtr
   ): AccountBalances {
-    const accountBalances = new AccountBalances()
+    this.accountBalances.clear()
     const balance = this.getLastBalanceForUser(recipientPublicKey, communityContext.blockchain, communityContext.communityId)
 
     // calculate decay since last balance with legacy calculation method
@@ -115,10 +121,10 @@ export class CreationsSyncRole extends AbstractSyncRole<CreationTransactionDb> {
     communityContext.aufBalance.updateLegacyDecay(item.amount, item.confirmedAt)
     communityContext.gmwBalance.updateLegacyDecay(item.amount, item.confirmedAt)
 
-    accountBalances.add(balance.getAccountBalance())
-    accountBalances.add(communityContext.aufBalance.getAccountBalance())
-    accountBalances.add(communityContext.gmwBalance.getAccountBalance())
-    return accountBalances
+    this.accountBalances.add(balance.getAccountBalance())
+    this.accountBalances.add(communityContext.aufBalance.getAccountBalance())
+    this.accountBalances.add(communityContext.gmwBalance.getAccountBalance())
+    return this.accountBalances
   }
 
   pushToBlockchain(item: CreationTransactionDb): void {

@@ -18,9 +18,13 @@ import { BlockchainError, DatabaseError } from '../../errors'
 import { CommunityContext, UserDb, userDbSchema } from '../../valibot.schema'
 import { AbstractSyncRole, IndexType } from './AbstractSync.role'
 import { toMysqlDateTime } from '../../utils'
+import { Context } from '../../Context'
 
 export class UsersSyncRole extends AbstractSyncRole<UserDb> {
-
+  constructor(context: Context) {
+    super(context)
+    this.accountBalances.reserve(1)
+  }
   getDate(): Date {
     return this.peek().createdAt
   }
@@ -66,7 +70,7 @@ export class UsersSyncRole extends AbstractSyncRole<UserDb> {
     accountKeyPair: KeyPairEd25519, 
     userKeyPair: KeyPairEd25519
   ): GradidoTransactionBuilder {
-    return new GradidoTransactionBuilder()
+    return this.transactionBuilder
       .setCreatedAt(item.createdAt)
       .setRegisterAddress(
         userKeyPair.getPublicKey(),
@@ -81,9 +85,9 @@ export class UsersSyncRole extends AbstractSyncRole<UserDb> {
   }
 
   calculateAccountBalances(accountPublicKey: MemoryBlockPtr, communityContext: CommunityContext,): AccountBalances {
-    const accountBalances = new AccountBalances()
-    accountBalances.add(new AccountBalance(accountPublicKey, GradidoUnit.zero(), communityContext.communityId))
-    return accountBalances
+    this.accountBalances.clear()
+    this.accountBalances.add(new AccountBalance(accountPublicKey, GradidoUnit.zero(), communityContext.communityId))
+    return this.accountBalances
   }
 
   pushToBlockchain(item: UserDb): void {

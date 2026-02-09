@@ -15,6 +15,7 @@ export async function syncDbWithBlockchainContext(context: Context, batchSize: n
   const timeUsedDB = new Profiler()
   const timeUsedBlockchain = new Profiler()
   const timeUsedAll = new Profiler()
+  const timeBetweenPrints = new Profiler()
   const containers = [
     new UsersSyncRole(context),
     new CreationsSyncRole(context),
@@ -23,7 +24,7 @@ export async function syncDbWithBlockchainContext(context: Context, batchSize: n
     new RedeemTransactionLinksSyncRole(context),
     new ContributionLinkTransactionSyncRole(context),
     new DeletedTransactionLinksSyncRole(context),
-    new RemoteTransactionsSyncRole(context),
+    // new RemoteTransactionsSyncRole(context),
   ]
   let transactionsCount = 0
   let transactionsCountSinceLastLog = 0
@@ -54,8 +55,11 @@ export async function syncDbWithBlockchainContext(context: Context, batchSize: n
     }
     available[0].toBlockchain()    
     transactionsCount++
-    if (isDebug) {      
-      process.stdout.write(`successfully added to blockchain: ${transactionsCount}\r`)
+    if (isDebug) {    
+      if (timeBetweenPrints.millis() > 100) {  
+        process.stdout.write(`successfully added to blockchain: ${transactionsCount}\r`)
+        timeBetweenPrints.reset()
+      }
       transactionsCountSinceLastLog++       
       if (transactionsCountSinceLastLog >= batchSize) {
         context.logger.debug(`${transactionsCountSinceLastLog} transactions added to blockchain in ${timeUsedBlockchain.string()}`)
