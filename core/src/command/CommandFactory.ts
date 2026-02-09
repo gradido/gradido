@@ -38,17 +38,24 @@ export class CommandFactory {
     }
     const CommandClass = this.commands.get(name);
     if (methodLogger.isDebugEnabled()) {
-      methodLogger.debug(`createCommand() name=${name} commandClass=${CommandClass ? CommandClass.name : 'null'}`)
+      methodLogger.debug(`createCommand() name=${name} commandClass=${CommandClass ? JSON.stringify(CommandClass) : 'null'}`)
     }
     if (!CommandClass) {
       const errmsg = `Command ${name} not found`;
       methodLogger.error(errmsg);
       throw new Error(errmsg);
     }
-    const command = new CommandClass(params) as Command<T>;
-    if (methodLogger.isDebugEnabled()) {
-      methodLogger.debug(`createCommand() command=${JSON.stringify(command)}`)
+    try {
+      const command = new CommandClass(params) as Command<T>;
+      if (methodLogger.isDebugEnabled()) {
+        methodLogger.debug(`createCommand() command=${JSON.stringify(command)}`)
+      }
+      return command;
+    } catch (error) {
+      const errmsg = `Failed to create command ${name}: ${error instanceof Error ? error.message : 'Unknown error'}`;
+      methodLogger.error(errmsg);
+      throw new Error(errmsg);
     }
-    return command;
+
   }
 }
