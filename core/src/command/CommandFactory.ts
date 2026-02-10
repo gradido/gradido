@@ -27,7 +27,7 @@ export class CommandFactory {
     }
     this.commands.set(name, commandClass);
     if (methodLogger.isDebugEnabled()) {
-      methodLogger.debug(`registerCommand() commands=${JSON.stringify(Array.from(this.commands.entries()))}`)
+      methodLogger.debug(`registerCommand() commands=${JSON.stringify(this.commands.entries())}`)
     }
   }
 
@@ -38,9 +38,9 @@ export class CommandFactory {
     }
     const CommandClass = this.commands.get(name);
     if (methodLogger.isDebugEnabled()) {
-      methodLogger.debug(`createCommand() name=${name} commandClass=${CommandClass ? JSON.stringify(CommandClass) : 'null'}`)
+      methodLogger.debug(`createCommand() name=${name} commandClass=${CommandClass ? CommandClass.name : 'null'}`)
     }
-    if (!CommandClass) {
+    if (CommandClass === undefined) {
       const errmsg = `Command ${name} not found`;
       methodLogger.error(errmsg);
       throw new Error(errmsg);
