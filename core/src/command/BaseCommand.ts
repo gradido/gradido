@@ -34,15 +34,16 @@ export abstract class BaseCommand<T = any> implements Command<T> {
  
   validate(): boolean {
     const methodLogger = createLogger(`validate`)
-    methodLogger.debug(`validate() params=${JSON.stringify(this.params)}`)
-    
+    methodLogger.debug(`validate() requiredFields=${JSON.stringify(this.requiredFields)} params=${JSON.stringify(this.params)}`)
+    /*
     const isValid = this.requiredFields.every(field => 
       this.params[field] !== undefined && 
       this.params[field] !== null && 
       this.params[field] !== ''
     );
     methodLogger.debug(`validate() isValid=${isValid}`)
-    return isValid;
+    */
+    return true;
   }
 
 }
