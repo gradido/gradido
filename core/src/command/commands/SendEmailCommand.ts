@@ -45,13 +45,18 @@ export class SendEmailCommand extends BaseCommand<{ success: boolean }> {
       throw new Error('Invalid command parameters');
     }
     // find sender user
+    methodLogger.debug(`find sender user: ${this.sendEmailCommandParams.senderComUuid} ${this.sendEmailCommandParams.senderGradidoId}`)
     const senderUser = await findForeignUserByUuids(this.sendEmailCommandParams.senderComUuid, this.sendEmailCommandParams.senderGradidoId);
+    methodLogger.debug(`senderUser=${JSON.stringify(senderUser)}`)
     if (!senderUser) {
       const errmsg = `Sender user not found: ${this.sendEmailCommandParams.senderComUuid} ${this.sendEmailCommandParams.senderGradidoId}`;
       methodLogger.error(errmsg);
       throw new Error(errmsg);
     }
+    
+    methodLogger.debug(`find recipient user: ${this.sendEmailCommandParams.receiverComUuid} ${this.sendEmailCommandParams.receiverGradidoId}`)
     const recipientUser = await findUserByIdentifier(this.sendEmailCommandParams.receiverGradidoId, this.sendEmailCommandParams.receiverComUuid);
+    methodLogger.debug(`recipientUser=${JSON.stringify(recipientUser)}`)
     if (!recipientUser) {
       const errmsg = `Recipient user not found: ${this.sendEmailCommandParams.receiverComUuid} ${this.sendEmailCommandParams.receiverGradidoId}`;
       methodLogger.error(errmsg);
