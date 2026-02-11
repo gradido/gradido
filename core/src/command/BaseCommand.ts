@@ -3,7 +3,7 @@ import { Command } from './Command';
 import { LOG4JS_BASE_CATEGORY_NAME } from '../config/const';
 
 const createLogger = (method: string) =>
-  getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.command.CommandExecutor.${method}`)
+  getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.command.BaseCommand.${method}`)
 
 export abstract class BaseCommand<T = any> implements Command<T> {
   protected abstract requiredFields: string[];

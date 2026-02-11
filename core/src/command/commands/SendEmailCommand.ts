@@ -5,7 +5,7 @@ import { LOG4JS_BASE_CATEGORY_NAME } from '../../config/const';
 import { getLogger } from 'log4js';
 
 const createLogger = (method: string) =>
-  getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.command.CommandExecutor.${method}`)
+  getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.command.commands.SendEmailCommand.${method}`)
 
 export interface SendEmailCommandParams {
   mailType: string;
