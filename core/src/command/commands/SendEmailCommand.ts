@@ -20,13 +20,11 @@ export interface SendEmailCommandParams {
 export class SendEmailCommand extends BaseCommand<{ success: boolean }> {
   static readonly SEND_MAIL_COMMAND = 'SEND_MAIL_COMMAND';
   protected requiredFields: string[] = ['mailType', 'senderComUuid', 'senderGradidoId', 'receiverComUuid', 'receiverGradidoId'];
-  protected sendEmailCommandParams: SendEmailCommandParams;
 
   constructor(params: SendEmailCommandParams) {
     const methodLogger = createLogger(`constructor`)
     methodLogger.debug(`constructor() params=${JSON.stringify(params)}`)
     super(params);
-    this.sendEmailCommandParams = params;
   }
 
   validate(): boolean {
@@ -45,20 +43,20 @@ export class SendEmailCommand extends BaseCommand<{ success: boolean }> {
       throw new Error('Invalid command parameters');
     }
     // find sender user
-    methodLogger.debug(`find sender user: ${this.sendEmailCommandParams.senderComUuid} ${this.sendEmailCommandParams.senderGradidoId}`)
-    const senderUser = await findForeignUserByUuids(this.sendEmailCommandParams.senderComUuid, this.sendEmailCommandParams.senderGradidoId);
+    methodLogger.debug(`find sender user: ${this.params.senderComUuid} ${this.params.senderGradidoId}`)
+    const senderUser = await findForeignUserByUuids(this.params.senderComUuid, this.params.senderGradidoId);
     methodLogger.debug(`senderUser=${JSON.stringify(senderUser)}`)
     if (!senderUser) {
-      const errmsg = `Sender user not found: ${this.sendEmailCommandParams.senderComUuid} ${this.sendEmailCommandParams.senderGradidoId}`;
+      const errmsg = `Sender user not found: ${this.params.senderComUuid} ${this.params.senderGradidoId}`;
       methodLogger.error(errmsg);
       throw new Error(errmsg);
     }
     
-    methodLogger.debug(`find recipient user: ${this.sendEmailCommandParams.receiverComUuid} ${this.sendEmailCommandParams.receiverGradidoId}`)
-    const recipientUser = await findUserByIdentifier(this.sendEmailCommandParams.receiverGradidoId, this.sendEmailCommandParams.receiverComUuid);
+    methodLogger.debug(`find recipient user: ${this.params.receiverComUuid} ${this.params.receiverGradidoId}`)
+    const recipientUser = await findUserByIdentifier(this.params.receiverGradidoId, this.params.receiverComUuid);
     methodLogger.debug(`recipientUser=${JSON.stringify(recipientUser)}`)
     if (!recipientUser) {
-      const errmsg = `Recipient user not found: ${this.sendEmailCommandParams.receiverComUuid} ${this.sendEmailCommandParams.receiverGradidoId}`;
+      const errmsg = `Recipient user not found: ${this.params.receiverComUuid} ${this.params.receiverGradidoId}`;
       methodLogger.error(errmsg);
       throw new Error(errmsg);
     }
@@ -71,15 +69,15 @@ export class SendEmailCommand extends BaseCommand<{ success: boolean }> {
       senderFirstName: senderUser.firstName,
       senderLastName: senderUser.lastName,
       senderEmail: 'transactionReceivedNoSender',
-      memo: this.sendEmailCommandParams.memo || '',
-      transactionAmount: new Decimal(this.sendEmailCommandParams.amount || 0),
+      memo: this.params.memo || '',
+      transactionAmount: new Decimal(this.params.amount || 0),
     };
-    switch(this.sendEmailCommandParams.mailType) {
+    switch(this.params.mailType) {
       case 'sendTransactionReceivedEmail':
         await sendTransactionReceivedEmail(emailParams);
         break;
       default:
-        throw new Error(`Unknown mail type: ${this.sendEmailCommandParams.mailType}`);
+        throw new Error(`Unknown mail type: ${this.params.mailType}`);
     }
     
     try {
