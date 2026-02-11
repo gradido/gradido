@@ -39,6 +39,7 @@ export class SendEmailCommand extends BaseCommand<{ success: boolean }> {
 
   async execute(): Promise<{ success: boolean }> {
     const methodLogger = createLogger(`execute`)
+    methodLogger.debug(`execute() params=${JSON.stringify(this.params)}`)
     if (!this.validate()) {
       throw new Error('Invalid command parameters');
     }
