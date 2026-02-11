@@ -3,6 +3,7 @@ import { BaseCommand } from './BaseCommand';
 import { getLogger } from 'log4js';
 import { LOG4JS_BASE_CATEGORY_NAME } from '../config/const';
 import { ICommandConstructor } from './CommandTypes';
+import { SendEmailCommand } from './commands/SendEmailCommand';
 
 const createLogger = (method: string) =>
   getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.command.CommandFactory.${method}`)
@@ -45,6 +46,7 @@ export class CommandFactory {
       methodLogger.error(errmsg);
       throw new Error(errmsg);
     }
+    /*
     try {
       const command = new CommandClass(params) as Command<T>;
       if (methodLogger.isDebugEnabled()) {
@@ -56,6 +58,20 @@ export class CommandFactory {
       methodLogger.error(errmsg);
       throw new Error(errmsg);
     }
-
+    */
+   let command: BaseCommand;
+   switch(CommandClass.name) {
+    case 'SendEmailCommand':
+      command = new SendEmailCommand(params);
+      break;
+    default:
+      const errmsg = `Command ${name} not found`;
+      methodLogger.error(errmsg);
+      throw new Error(errmsg);  
+   }
+    if (methodLogger.isDebugEnabled()) {
+      methodLogger.debug(`createCommand() created command=${JSON.stringify(command)}`)
+    }
+    return command
   }
 }
