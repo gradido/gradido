@@ -32,7 +32,7 @@ export class CommandFactory {
     }
   }
 
-  createCommand<T>(name: string, params: any = {}): Command<T> {
+  createCommand<T>(name: string, params: string[]): Command<T> {
     const methodLogger = createLogger(`createCommand`)
     if (methodLogger.isDebugEnabled()) {
       methodLogger.debug(`createCommand() name=${name} params=${JSON.stringify(params)}`)

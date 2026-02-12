@@ -8,7 +8,7 @@ const createLogger = (method: string) =>
 export abstract class BaseCommand<T = any> implements Command<T> {
   protected abstract requiredFields: string[];
 
-  protected constructor(protected readonly params: any = {}) {
+  protected constructor(protected readonly params: any[]) {
     // this.validateRequiredFields();
   }
 
@@ -21,6 +21,7 @@ export abstract class BaseCommand<T = any> implements Command<T> {
       return;
     }
     methodLogger.debug(`validateRequiredFields() requiredFields=${JSON.stringify(this.requiredFields)}`)
+    /*
     const missingFields = this.requiredFields.filter(field => 
       this.params[field] === undefined || this.params[field] === null || this.params[field] === ''
     );
@@ -30,6 +31,7 @@ export abstract class BaseCommand<T = any> implements Command<T> {
       methodLogger.error(`validateRequiredFields() missing fields: ${missingFields.join(', ')}`)
       throw new Error(`Missing required fields for ${this.constructor.name}: ${missingFields.join(', ')}`);
     }
+    */
   }
  
   validate(): boolean {
