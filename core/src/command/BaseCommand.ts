@@ -21,9 +21,10 @@ export abstract class BaseCommand<T = any> implements Command<T> {
       return;
     }
     methodLogger.debug(`validateRequiredFields() requiredFields=${JSON.stringify(this.requiredFields)}`)
+    const commandArgs = JSON.parse(this.params[0])
     /*
     const missingFields = this.requiredFields.filter(field => 
-      this.params[field] === undefined || this.params[field] === null || this.params[field] === ''
+      commandArgs.{ field } === undefined || commandArgs.{ field } === null || commandArgs.{ field } === ''
     );
     methodLogger.debug(`validateRequiredFields() missingFields=${JSON.stringify(missingFields)}`)
     
