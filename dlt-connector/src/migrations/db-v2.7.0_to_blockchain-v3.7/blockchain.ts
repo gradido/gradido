@@ -4,8 +4,10 @@ import {
   GradidoTransaction,
   HieroAccountId,
   InMemoryBlockchain,
+  InMemoryBlockchainProvider,
   LedgerAnchor,
   Profiler,
+  TransactionEntry,
 } from 'gradido-blockchain-js'
 import { NotEnoughGradidoBalanceError } from './errors'
 
@@ -38,6 +40,9 @@ export function addToBlockchain(
         throw new NotEnoughGradidoBalanceError(needed, exist)
       }
     }
+    // const wekingheim = InMemoryBlockchainProvider.getInstance().getBlockchain('wekingheim')
+    // const lastTransactionw = wekingheim?.findOne(Filter.LAST_TRANSACTION)
+
     const lastTransaction = blockchain.findOne(Filter.LAST_TRANSACTION)    
     throw new Error(`Transaction ${transaction.toJson(true)} not added: ${error}, last transaction was: ${lastTransaction?.getConfirmedTransaction()?.toJson(true)}`)
   }

@@ -97,11 +97,11 @@ export class LocalTransactionsSyncRole extends AbstractSyncRole<TransactionDb> {
             new AuthenticatedEncryption(recipientKeyPair),
           ),
         )
+        .setSenderCommunity(communityContext.communityId)
         .setTransactionTransfer(
           new TransferAmount(senderKeyPair.getPublicKey(), item.amount, communityContext.communityId),
           recipientKeyPair.getPublicKey(),
         )
-        .setSenderCommunity(communityContext.communityId)
         .sign(senderKeyPair)
   }
 

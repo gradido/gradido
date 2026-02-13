@@ -24,7 +24,7 @@ export async function syncDbWithBlockchainContext(context: Context, batchSize: n
     new RedeemTransactionLinksSyncRole(context),
     new ContributionLinkTransactionSyncRole(context),
     new DeletedTransactionLinksSyncRole(context),
-    // new RemoteTransactionsSyncRole(context),
+    new RemoteTransactionsSyncRole(context),
   ]
   let transactionsCount = 0
   let transactionsCountSinceLastLog = 0

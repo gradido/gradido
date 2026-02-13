@@ -87,14 +87,14 @@ export class TransactionLinkFundingsSyncRole extends AbstractSyncRole<Transactio
           new AuthenticatedEncryption(recipientKeyPair),
         ),
       )
+      .setSenderCommunity(communityContext.communityId)
       .setDeferredTransfer(
         new GradidoTransfer(
           new TransferAmount(senderKeyPair.getPublicKey(), blockedAmount, communityContext.communityId),
           recipientKeyPair.getPublicKey(),
         ),
         duration,
-      )
-      .setSenderCommunity(communityContext.communityId)
+      )      
       .sign(senderKeyPair)
   }
 

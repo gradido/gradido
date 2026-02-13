@@ -72,13 +72,13 @@ export class UsersSyncRole extends AbstractSyncRole<UserDb> {
   ): GradidoTransactionBuilder {
     return this.transactionBuilder
       .setCreatedAt(item.createdAt)
+      .setSenderCommunity(communityContext.communityId)
       .setRegisterAddress(
         userKeyPair.getPublicKey(),
         AddressType_COMMUNITY_HUMAN,
         new Uuidv4Hash(item.gradidoId).getAsMemoryBlock(),
         accountKeyPair.getPublicKey(),
       )
-      .setSenderCommunity(communityContext.communityId)
       .sign(communityKeyPair)
       .sign(accountKeyPair)
       .sign(userKeyPair)

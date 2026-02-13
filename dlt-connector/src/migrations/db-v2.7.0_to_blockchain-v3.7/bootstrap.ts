@@ -1,5 +1,5 @@
 import { randomBytes } from 'node:crypto'
-import { Abstract, AccountBalances, GradidoTransactionBuilder, InMemoryBlockchain, InMemoryBlockchainProvider, LedgerAnchor } from 'gradido-blockchain-js'
+import { AccountBalances, GradidoTransactionBuilder, InMemoryBlockchainProvider, LedgerAnchor } from 'gradido-blockchain-js'
 import * as v from 'valibot'
 import { CONFIG } from '../../config'
 import { deriveFromSeed } from '../../data/deriveKeyPair'
@@ -33,7 +33,7 @@ async function bootstrapCommunities(context: Context): Promise<Map<string, Commu
     } else {
       communityNames.add(alias)
     }
-    const blockchain = InMemoryBlockchainProvider.getInstance().findBlockchain(alias)
+    const blockchain = InMemoryBlockchainProvider.getInstance().getBlockchain(alias)
     if (!blockchain) {
       throw new Error(`Couldn't create Blockchain for community ${alias}`)
     }
@@ -59,12 +59,12 @@ async function bootstrapCommunities(context: Context): Promise<Map<string, Commu
     const builder = new GradidoTransactionBuilder()
     builder
       .setCreatedAt(creationDate)
+      .setSenderCommunity(alias)
       .setCommunityRoot(
         communityKeyPair.getPublicKey(),
         gmwKeyPair.getPublicKey(),
         aufKeyPair.getPublicKey(),
-      )
-      .setSenderCommunity(alias)
+      )      
       .sign(communityKeyPair)
 
     const communityContext: CommunityContext = {

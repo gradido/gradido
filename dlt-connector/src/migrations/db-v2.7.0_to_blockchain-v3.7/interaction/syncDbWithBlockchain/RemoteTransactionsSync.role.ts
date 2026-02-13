@@ -93,12 +93,12 @@ export class RemoteTransactionsSyncRole extends AbstractSyncRole<TransactionDb> 
             new AuthenticatedEncryption(recipientKeyPair),
           ),
         )
+        .setSenderCommunity(senderCommunityId)
+        .setRecipientCommunity(recipientCommunityId)
         .setTransactionTransfer(
           new TransferAmount(senderKeyPair.getPublicKey(), item.amount, senderCommunityId),
           recipientKeyPair.getPublicKey(),
-        )
-        .setSenderCommunity(senderCommunityId)
-        .setRecipientCommunity(recipientCommunityId)
+        )        
         .sign(senderKeyPair)
   }
 
@@ -165,6 +165,9 @@ export class RemoteTransactionsSyncRole extends AbstractSyncRole<TransactionDb> 
       recipientCommunityContext.communityId
     )
     const outboundTransaction = transactionBuilder.buildOutbound()
+    console.log(ledgerAnchor.toJson(true))
+    console.log(outboundTransaction.toJson(true))
+    console.log("outbound coin color: %d", outboundTransaction.getTransactionBody()?.getTransferAmount().getCoinCommunityIdIndex())
 
     try {
       addToBlockchain(
@@ -181,6 +184,8 @@ export class RemoteTransactionsSyncRole extends AbstractSyncRole<TransactionDb> 
     }
     transactionBuilder.setParentLedgerAnchor(ledgerAnchor)
     const inboundTransaction = transactionBuilder.buildInbound()
+    console.log(inboundTransaction.toJson(true))
+    console.log("inbound coin color: %d", inboundTransaction.getTransactionBody()?.getTransferAmount().getCoinCommunityIdIndex())
     try {
       addToBlockchain(
         inboundTransaction,

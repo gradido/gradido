@@ -103,6 +103,7 @@ export class RedeemTransactionLinksSyncRole extends AbstractSyncRole<RedeemedTra
             new AuthenticatedEncryption(recipientKeyPair),
           ),
         )
+        .setSenderCommunity(communityContext.communityId)
         .setRedeemDeferredTransfer(
           linkFundingTransactionNr,
           new GradidoTransfer(
@@ -110,7 +111,6 @@ export class RedeemTransactionLinksSyncRole extends AbstractSyncRole<RedeemedTra
             recipientKeyPair.getPublicKey(),
           ),
         )
-        .setSenderCommunity(communityContext.communityId)
         .sign(senderKeyPair)
   }
 

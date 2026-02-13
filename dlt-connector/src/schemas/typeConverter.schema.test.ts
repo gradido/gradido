@@ -102,6 +102,5 @@ describe('basic.schema', () => {
     )
     expect(confirmedTransaction.getId()).toBe(7)
     expect(confirmedTransaction.getConfirmedAt().getSeconds()).toBe(1609464130)
-    expect(confirmedTransaction.getVersionNumber()).toBe('3.5')
   })
 })

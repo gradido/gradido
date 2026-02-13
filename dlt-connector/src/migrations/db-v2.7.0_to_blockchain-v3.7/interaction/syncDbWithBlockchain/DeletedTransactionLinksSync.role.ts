@@ -89,6 +89,7 @@ export class DeletedTransactionLinksSyncRole extends AbstractSyncRole<DeletedTra
     ): GradidoTransactionBuilder {
       return this.transactionBuilder
         .setCreatedAt(item.deletedAt)
+        .setSenderCommunity(communityContext.communityId)
         .setRedeemDeferredTransfer(
           linkFundingTransactionNr,
           new GradidoTransfer(
@@ -96,7 +97,6 @@ export class DeletedTransactionLinksSyncRole extends AbstractSyncRole<DeletedTra
             linkFundingPublicKey,
           ),
         )
-        .setSenderCommunity(communityContext.communityId)
         .sign(senderKeyPair)
   }
 

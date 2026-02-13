@@ -93,6 +93,7 @@ export class CreationsSyncRole extends AbstractSyncRole<CreationTransactionDb> {
   ): GradidoTransactionBuilder {
     return this.transactionBuilder    
       .setCreatedAt(item.confirmedAt)
+      .setRecipientCommunity(communityContext.communityId)
       .addMemo(
         new EncryptedMemo(
           item.memo,
@@ -104,7 +105,6 @@ export class CreationsSyncRole extends AbstractSyncRole<CreationTransactionDb> {
         new TransferAmount(recipientKeyPair.getPublicKey(), item.amount, communityContext.communityId),
         item.contributionDate,
       )
-      .setRecipientCommunity(communityContext.communityId)
       .sign(signerKeyPair)
   }
 
