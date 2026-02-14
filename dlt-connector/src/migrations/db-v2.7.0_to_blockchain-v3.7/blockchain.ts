@@ -4,10 +4,8 @@ import {
   GradidoTransaction,
   HieroAccountId,
   InMemoryBlockchain,
-  InMemoryBlockchainProvider,
   LedgerAnchor,
   Profiler,
-  TransactionEntry,
 } from 'gradido-blockchain-js'
 import { NotEnoughGradidoBalanceError } from './errors'
 
@@ -21,10 +19,9 @@ export function addToBlockchain(
   ledgerAnchor: LedgerAnchor,
   accountBalances: AccountBalances,
 ): boolean {
-  
   try {    
     timeUsed.reset()
-    const result = blockchain.createAndAddConfirmedTransactionExtern(
+    const result = blockchain.createAndAddConfirmedTransactionExternFast(
       transaction,
       ledgerAnchor,
       accountBalances,

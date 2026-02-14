@@ -2,7 +2,8 @@ import { onShutdown } from '../../../../shared/src/helper/onShutdown'
 import { exportAllCommunities } from './binaryExport'
 import { bootstrap } from './bootstrap'
 import { syncDbWithBlockchainContext } from './interaction/syncDbWithBlockchain/syncDbWithBlockchain.context'
-// import { hello } from '../../../zig/hello.zig'
+import { Filter, Profiler, ThreadingPolicy_Half, verifySignatures } from 'gradido-blockchain-js'
+  // import { hello } from '../../../zig/hello.zig'
 
 const BATCH_SIZE = 1000
 
@@ -25,6 +26,17 @@ async function main() {
     console.error(e)
     //context.logBlogchain(v.parse(uuidv4Schema, 'e70da33e-5976-4767-bade-aa4e4fa1c01a'))
   }
+
+  const timeUsed = new Profiler()
+  // bulk verify transaction signatures
+  for (const communityContext of context.communities.values()) {
+    // verifySignatures(Filter.ALL_TRANSACTIONS, ThreadingPolicy_Half)
+    const result = verifySignatures(Filter.ALL_TRANSACTIONS, communityContext.communityId, ThreadingPolicy_Half)
+    if(!result.isEmpty()){
+      throw new Error(`Verification of signatures failed for community ${communityContext.communityId}`)
+    }
+  }
+  context.logger.info(`verified in ${timeUsed.string()}`)
 
   // write as binary file for GradidoNode
   exportAllCommunities(context, BATCH_SIZE)
