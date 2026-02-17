@@ -71,7 +71,7 @@ export class SendEmailCommand extends BaseCommand<{ success: boolean }> {
       language: recipientUser.language,
       senderFirstName: senderUser.firstName,
       senderLastName: senderUser.lastName,
-      senderEmail: undefined, // 'transactionReceivedNoSender',
+      senderEmail: senderUser.emailId !== null ? senderUser.emailContact.email : null,
       memo: this.sendEmailCommandParams.memo || '',
       transactionAmount: new Decimal(this.sendEmailCommandParams.amount || 0).abs(),
     };
