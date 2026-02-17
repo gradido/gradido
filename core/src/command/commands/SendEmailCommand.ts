@@ -71,10 +71,11 @@ export class SendEmailCommand extends BaseCommand<{ success: boolean }> {
       language: recipientUser.language,
       senderFirstName: senderUser.firstName,
       senderLastName: senderUser.lastName,
-      senderEmail: 'transactionReceivedNoSender',
+      senderEmail: undefined, // 'transactionReceivedNoSender',
       memo: this.sendEmailCommandParams.memo || '',
-      transactionAmount: new Decimal(this.sendEmailCommandParams.amount || 0),
+      transactionAmount: new Decimal(this.sendEmailCommandParams.amount || 0).abs(),
     };
+    methodLogger.debug(`emailParams=${JSON.stringify(emailParams)}`)
     switch(this.sendEmailCommandParams.mailType) {
       case 'sendTransactionReceivedEmail':
         await sendTransactionReceivedEmail(emailParams);

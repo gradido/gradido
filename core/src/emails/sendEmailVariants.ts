@@ -175,14 +175,14 @@ export const sendTransactionReceivedEmail = (
   data: EmailCommonData & {
     senderFirstName: string
     senderLastName: string
-    senderEmail: string
+    senderEmail: string | undefined
     memo: string
     transactionAmount: Decimal
   },
 ): Promise<Record<string, unknown> | boolean | null | Error> => {
   return sendEmailTranslated({
     receiver: { to: `${data.firstName} ${data.lastName} <${data.email}>` },
-    template: data.senderEmail ? 'transactionReceived' : 'transactionReceivedNoSender',
+    template: data.senderEmail !== undefined ? 'transactionReceived' : 'transactionReceivedNoSender',
     locals: {
       ...data,
       transactionAmount: decimalSeparatorByLanguage(data.transactionAmount, data.language),
