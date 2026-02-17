@@ -186,7 +186,7 @@ export const sendTransactionReceivedEmail = (
     locals: {
       ...data,
       transactionAmount: decimalSeparatorByLanguage(data.transactionAmount, data.language),
-      ...getEmailCommonLocales(),
+      ...data.senderEmail !== null ? getEmailCommonLocales() : {locale: data.language},
     },
   })
 }
