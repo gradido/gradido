@@ -51,7 +51,7 @@ export abstract class AbstractSyncRole<ItemType> {
       throw new Error('publicKey is empty')
     }    
     const f = Filter.lastBalanceFor(publicKey)
-    f.coinCommunityId = communityId
+    f.setCommunityId(communityId)
     const lastSenderTransaction = blockchain.findOne(f)
     if (!lastSenderTransaction) {
       return new Balance(publicKey, communityId)
@@ -59,6 +59,7 @@ export abstract class AbstractSyncRole<ItemType> {
     const lastConfirmedTransaction = lastSenderTransaction.getConfirmedTransaction()
     if (!lastConfirmedTransaction) {
       throw new Error(`invalid transaction, getConfirmedTransaction call failed for transaction nr: ${lastSenderTransaction.getTransactionNr()}`)
+  
     }
     const senderLastAccountBalance = lastConfirmedTransaction.getAccountBalance(publicKey, communityId)
     if (!senderLastAccountBalance) {

@@ -114,13 +114,19 @@ export class RemoteTransactionsSyncRole extends AbstractSyncRole<TransactionDb> 
         this.accountBalances.add(new AccountBalance(publicKey, GradidoUnit.zero(), coinCommunityId))
         return this.accountBalances
       } else {
-        const lastBalance = this.getLastBalanceForUser(publicKey, communityContext.blockchain, coinCommunityId)
+        // try to use same coins from this community
+        let lastBalance = this.getLastBalanceForUser(publicKey, communityContext.blockchain, coinCommunityId)
+        if (lastBalance.getBalance().equal(GradidoUnit.zero()) || lastBalance.getBalance().calculateDecay(lastBalance.getDate(), item.balanceDate).lt(amount)) {
+          // don't work, so we use or own coins
+          lastBalance = this.getLastBalanceForUser(publicKey, communityContext.blockchain, communityContext.communityId)
+        }
     
         try {
           lastBalance.updateLegacyDecay(amount, item.balanceDate)
         } catch(e) {
           if (e instanceof NegativeBalanceError) {
-            this.logLastBalanceChangingTransactions(publicKey, communityContext.blockchain, 10)
+            console.log(`coin community id: ${coinCommunityId}, context community id: ${communityContext.communityId}`)
+            this.logLastBalanceChangingTransactions(publicKey, communityContext.blockchain, 1)
             throw e
           }
         }
@@ -195,5 +201,7 @@ export class RemoteTransactionsSyncRole extends AbstractSyncRole<TransactionDb> 
       }
       throw new BlockchainError(`Error adding ${this.itemTypeName()}`, item, e as Error)
     }
+    // this.logLastBalanceChangingTransactions(senderPublicKey, senderCommunityContext.blockchain, 1)
+    // this.logLastBalanceChangingTransactions(recipientPublicKey, recipientCommunityContext.blockchain, 1)
   }
 }
