@@ -17,7 +17,7 @@ export interface SendEmailCommandParams {
   memo?: string;
   amount?: string;
 }
-export class SendEmailCommand extends BaseCommand<{ success: boolean }> {
+export class SendEmailCommand extends BaseCommand<Record<string, unknown> | boolean | null | Error> {
   static readonly SEND_MAIL_COMMAND = 'SEND_MAIL_COMMAND';
   protected requiredFields: string[] = ['mailType', 'senderComUuid', 'senderGradidoId', 'receiverComUuid', 'receiverGradidoId'];
   protected sendEmailCommandParams: SendEmailCommandParams;
@@ -39,9 +39,10 @@ export class SendEmailCommand extends BaseCommand<{ success: boolean }> {
     return true;
   }
 
-  async execute(): Promise<{ success: boolean }> {
+  async execute(): Promise<Record<string, unknown> | boolean | null | Error> {
     const methodLogger = createLogger(`execute`)
     methodLogger.debug(`execute() sendEmailCommandParams=${JSON.stringify(this.sendEmailCommandParams)}`)
+    let result: Record<string, unknown> | boolean | null | Error;
     if (!this.validate()) {
       throw new Error('Invalid command parameters');
     }
@@ -78,7 +79,7 @@ export class SendEmailCommand extends BaseCommand<{ success: boolean }> {
     methodLogger.debug(`emailParams=${JSON.stringify(emailParams)}`)
     switch(this.sendEmailCommandParams.mailType) {
       case 'sendTransactionReceivedEmail':
-        await sendTransactionReceivedEmail(emailParams);
+        result = await sendTransactionReceivedEmail(emailParams);
         break;
       default:
         throw new Error(`Unknown mail type: ${this.sendEmailCommandParams.mailType}`);
@@ -86,7 +87,7 @@ export class SendEmailCommand extends BaseCommand<{ success: boolean }> {
     
     try {
       // Example: const result = await emailService.sendEmail(this.params);
-      return { success: true };
+      return result;
     } catch (error) {
       methodLogger.error('Error executing SendEmailCommand:', error);
       throw error;
