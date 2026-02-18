@@ -1,9 +1,10 @@
-import { Command } from './Command';
+import { ICommandConstructor } from './CommandTypes';
 import { BaseCommand } from './BaseCommand';
 import { getLogger } from 'log4js';
 import { LOG4JS_BASE_CATEGORY_NAME } from '../config/const';
-import { ICommandConstructor } from './CommandTypes';
+// import { ICommandConstructor } from './CommandTypes';
 import { SendEmailCommand } from './commands/SendEmailCommand';
+import { Command } from './Command';
 
 const createLogger = (method: string) =>
   getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.command.CommandFactory.${method}`)

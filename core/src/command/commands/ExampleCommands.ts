@@ -1,4 +1,5 @@
 // core/src/command/commands/ExampleCommand.ts
+/*
 import { BaseCommand } from '../BaseCommand';
 import { CommandRegistry } from '../CommandRegistry';
 
@@ -24,3 +25,4 @@ export class ExampleCommand extends BaseCommand<{ processed: boolean }> {
 
 // Register the command
 CommandRegistry.registerCommand('EXAMPLE_COMMAND', ExampleCommand);
+*/

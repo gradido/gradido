@@ -1,6 +1,6 @@
 import { BaseCommand } from '../BaseCommand';
 import { sendTransactionReceivedEmail } from '../../emails/sendEmailVariants';
-import { findForeignUserByUuids, findUserByIdentifier } from 'database';
+import { findUserByUuids } from 'database';
 import { LOG4JS_BASE_CATEGORY_NAME } from '../../config/const';
 import { getLogger } from 'log4js';
 import Decimal from 'decimal.js-light';
@@ -48,7 +48,7 @@ export class SendEmailCommand extends BaseCommand<Record<string, unknown> | bool
     }
     // find sender user
     methodLogger.debug(`find sender user: ${this.sendEmailCommandParams.senderComUuid} ${this.sendEmailCommandParams.senderGradidoId}`)
-    const senderUser = await findForeignUserByUuids(this.sendEmailCommandParams.senderComUuid, this.sendEmailCommandParams.senderGradidoId);
+    const senderUser = await findUserByUuids(this.sendEmailCommandParams.senderComUuid, this.sendEmailCommandParams.senderGradidoId, true);
     methodLogger.debug(`senderUser=${JSON.stringify(senderUser)}`)
     if (!senderUser) {
       const errmsg = `Sender user not found: ${this.sendEmailCommandParams.senderComUuid} ${this.sendEmailCommandParams.senderGradidoId}`;
@@ -57,7 +57,7 @@ export class SendEmailCommand extends BaseCommand<Record<string, unknown> | bool
     }
     
     methodLogger.debug(`find recipient user: ${this.sendEmailCommandParams.receiverComUuid} ${this.sendEmailCommandParams.receiverGradidoId}`)
-    const recipientUser = await findUserByIdentifier(this.sendEmailCommandParams.receiverGradidoId, this.sendEmailCommandParams.receiverComUuid);
+    const recipientUser = await findUserByUuids(this.sendEmailCommandParams.receiverGradidoId, this.sendEmailCommandParams.receiverComUuid);
     methodLogger.debug(`recipientUser=${JSON.stringify(recipientUser)}`)
     if (!recipientUser) {
       const errmsg = `Recipient user not found: ${this.sendEmailCommandParams.receiverComUuid} ${this.sendEmailCommandParams.receiverGradidoId}`;

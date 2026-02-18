@@ -25,12 +25,17 @@ export class CommandExecutor {
       methodLogger.debug(`executeCommand() executing command=${command.constructor.name}`)
       const result = await command.execute();
       // "accepted":["stage5@gradido.net"],"rejected":[],"ehlo":["PIPELINING","SIZE 25600000","ETRN","AUTH DIGEST-MD5 CRAM-MD5 PLAIN LOGIN","ENHANCEDSTATUSCODES","8BITMIME","DSN","CHUNKING"],"envelopeTime":25,"messageTime":146,"messageSize":37478,"response":"250 2.0.0 Ok: queued as 14B46100B7F","envelope":{"from":"stage5@gradido.net","to":["stage5@gradido.net"]}
-      const resultMsg = {
+      const resultMsg = this.isEmailResult(result) ? {
         accepted: result.accepted,
         messageSize: result.messageSize,
         response: result.response,
         envelope: result.envelope,
-      }
+      } : {
+        accepted: [],
+        messageSize: 0,
+        response: JSON.stringify(result),
+        envelope: null
+      };
       methodLogger.debug(`executeCommand() executed result=${JSON.stringify(resultMsg)}`)
       return { success: true, data: JSON.stringify(resultMsg) };
     } catch (error) {
@@ -78,4 +83,19 @@ export class CommandExecutor {
       return errorResult;
     }
   }
+
+  private isEmailResult(result: any): result is {
+    accepted: string[];
+    messageSize: number;
+    response: string;
+    envelope: any;
+  } {
+    return result && 
+      typeof result === 'object' &&
+      Array.isArray(result.accepted) &&
+      typeof result.messageSize === 'number' &&
+      typeof result.response === 'string' &&
+      typeof result.envelope === 'object';
+  }
+
 }

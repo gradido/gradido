@@ -1,6 +1,6 @@
 import { getLogger } from 'log4js';
-import { Command } from './Command';
 import { LOG4JS_BASE_CATEGORY_NAME } from '../config/const';
+import { Command } from './Command';
 
 const createLogger = (method: string) =>
   getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.command.BaseCommand.${method}`)
