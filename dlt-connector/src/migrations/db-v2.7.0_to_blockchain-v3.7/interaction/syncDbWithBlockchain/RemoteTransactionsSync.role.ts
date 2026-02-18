@@ -105,15 +105,16 @@ export class RemoteTransactionsSyncRole extends AbstractSyncRole<TransactionDb> 
   calculateBalances(
       item: TransactionDb, 
       communityContext: CommunityContext,
+      coinCommunityId: string,
       amount: GradidoUnit,
       publicKey: MemoryBlockPtr,
     ): AccountBalances {
       this.accountBalances.clear()
       if (communityContext.foreign) {
-        this.accountBalances.add(new AccountBalance(publicKey, GradidoUnit.zero(), communityContext.communityId))
+        this.accountBalances.add(new AccountBalance(publicKey, GradidoUnit.zero(), coinCommunityId))
         return this.accountBalances
       } else {
-        const lastBalance = this.getLastBalanceForUser(publicKey, communityContext.blockchain, communityContext.communityId)
+        const lastBalance = this.getLastBalanceForUser(publicKey, communityContext.blockchain, coinCommunityId)
     
         try {
           lastBalance.updateLegacyDecay(amount, item.balanceDate)
@@ -171,7 +172,7 @@ export class RemoteTransactionsSyncRole extends AbstractSyncRole<TransactionDb> 
         outboundTransaction,
         senderBlockchain,
         ledgerAnchor,
-        this.calculateBalances(item, senderCommunityContext, item.amount.negated(), senderPublicKey),
+        this.calculateBalances(item, senderCommunityContext, senderCommunityContext.communityId, item.amount.negated(), senderPublicKey),
       )
     } catch(e) {
       if (e instanceof NotEnoughGradidoBalanceError) {
@@ -186,7 +187,7 @@ export class RemoteTransactionsSyncRole extends AbstractSyncRole<TransactionDb> 
         inboundTransaction,
         recipientBlockchain,
         ledgerAnchor,
-        this.calculateBalances(item, recipientCommunityContext, item.amount, recipientPublicKey),
+        this.calculateBalances(item, recipientCommunityContext, senderCommunityContext.communityId, item.amount, recipientPublicKey),
       )
     } catch(e) {
       if (e instanceof NotEnoughGradidoBalanceError) {

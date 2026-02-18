@@ -50,7 +50,9 @@ export abstract class AbstractSyncRole<ItemType> {
     if (publicKey.isEmpty()) {
       throw new Error('publicKey is empty')
     }    
-    const lastSenderTransaction = blockchain.findOne(Filter.lastBalanceFor(publicKey))
+    const f = Filter.lastBalanceFor(publicKey)
+    f.coinCommunityId = communityId
+    const lastSenderTransaction = blockchain.findOne(f)
     if (!lastSenderTransaction) {
       return new Balance(publicKey, communityId)
     }
