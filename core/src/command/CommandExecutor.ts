@@ -24,8 +24,15 @@ export class CommandExecutor {
       }
       methodLogger.debug(`executeCommand() executing command=${command.constructor.name}`)
       const result = await command.execute();
-      methodLogger.debug(`executeCommand() executed result=${JSON.stringify(result)}`)
-      return { success: true, data: result };
+      // "accepted":["stage5@gradido.net"],"rejected":[],"ehlo":["PIPELINING","SIZE 25600000","ETRN","AUTH DIGEST-MD5 CRAM-MD5 PLAIN LOGIN","ENHANCEDSTATUSCODES","8BITMIME","DSN","CHUNKING"],"envelopeTime":25,"messageTime":146,"messageSize":37478,"response":"250 2.0.0 Ok: queued as 14B46100B7F","envelope":{"from":"stage5@gradido.net","to":["stage5@gradido.net"]}
+      const resultMsg = {
+        accepted: result.accepted,
+        messageSize: result.messageSize,
+        response: result.response,
+        envelope: result.envelope,
+      }
+      methodLogger.debug(`executeCommand() executed result=${JSON.stringify(resultMsg)}`)
+      return { success: true, data: JSON.stringify(resultMsg) };
     } catch (error) {
       methodLogger.error(`executeCommand() error=${error}`)
       return { 
