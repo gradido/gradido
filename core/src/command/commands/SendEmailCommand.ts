@@ -57,7 +57,7 @@ export class SendEmailCommand extends BaseCommand<Record<string, unknown> | bool
     }
     
     methodLogger.debug(`find recipient user: ${this.sendEmailCommandParams.receiverComUuid} ${this.sendEmailCommandParams.receiverGradidoId}`)
-    const recipientUser = await findUserByUuids(this.sendEmailCommandParams.receiverGradidoId, this.sendEmailCommandParams.receiverComUuid);
+    const recipientUser = await findUserByUuids(this.sendEmailCommandParams.receiverComUuid, this.sendEmailCommandParams.receiverGradidoId);
     methodLogger.debug(`recipientUser=${JSON.stringify(recipientUser)}`)
     if (!recipientUser) {
       const errmsg = `Recipient user not found: ${this.sendEmailCommandParams.receiverComUuid} ${this.sendEmailCommandParams.receiverGradidoId}`;
