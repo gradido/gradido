@@ -39,10 +39,10 @@ export class SendEmailCommand extends BaseCommand<Record<string, unknown> | bool
     return true;
   }
 
-  async execute(): Promise<Record<string, unknown> | boolean | null | Error> {
+  async execute(): Promise<string | boolean | null | Error> {
     const methodLogger = createLogger(`execute`)
     methodLogger.debug(`execute() sendEmailCommandParams=${JSON.stringify(this.sendEmailCommandParams)}`)
-    let result: Record<string, unknown> | boolean | null | Error;
+    let result: string;
     if (!this.validate()) {
       throw new Error('Invalid command parameters');
     }
@@ -79,7 +79,8 @@ export class SendEmailCommand extends BaseCommand<Record<string, unknown> | bool
     methodLogger.debug(`emailParams=${JSON.stringify(emailParams)}`)
     switch(this.sendEmailCommandParams.mailType) {
       case 'sendTransactionReceivedEmail':
-        result = await sendTransactionReceivedEmail(emailParams);
+        const emailResult = await sendTransactionReceivedEmail(emailParams);
+        result = this.getEmailResult(emailResult);
         break;
       default:
         throw new Error(`Unknown mail type: ${this.sendEmailCommandParams.mailType}`);
@@ -93,4 +94,35 @@ export class SendEmailCommand extends BaseCommand<Record<string, unknown> | bool
       throw error;
     }
   }
+
+  private getEmailResult(result: Record<string, unknown> | boolean | null | Error): string {
+    const methodLogger = createLogger(`getEmailResult`)
+    if (methodLogger.isDebugEnabled()) {
+      methodLogger.debug(`getEmailResult() result=${JSON.stringify(result)}`)
+    }
+    let emailResult: string;
+    if(result === null) {
+      emailResult = `getEmailResult() result is null`
+    }
+    else if(typeof result === 'boolean') {
+      emailResult = `getEmailResult() result is ${result}`
+   }
+    else if(result instanceof Error) {
+      emailResult = `getEmailResult() error-message is ${result.message}`
+    }
+    else if(typeof result === 'object') {
+      // {"accepted":["stage5@gradido.net"],"rejected":[],"ehlo":["PIPELINING","SIZE 25600000","ETRN","AUTH DIGEST-MD5 CRAM-MD5 PLAIN LOGIN","ENHANCEDSTATUSCODES","8BITMIME","DSN","CHUNKING"],"envelopeTime":23,"messageTime":135,"messageSize":37478,"response":"250 2.0.0 Ok: queued as C45C2100BD7","envelope":{"from":"stage5@gradido.net","to":["stage5@gradido.net"]},"messageId":"<d269161f-f3d2-2c96-49c0-58154366271b@gradido.net>"
+      const accepted = (result as Record<string, unknown>).accepted;
+      const messageSize = (result as Record<string, unknown>).messageSize;
+      const response = (result as Record<string, unknown>).response;
+      const envelope = JSON.stringify((result as Record<string, unknown>).envelope);
+      emailResult = `getEmailResult() accepted=${accepted}, messageSize=${messageSize}, response=${response}, envelope=${envelope}`
+    }
+    else {
+      emailResult = `getEmailResult() result is unknown type`
+    }
+
+    return emailResult;
+  }
+
 }

@@ -23,9 +23,8 @@ export class CommandExecutor {
       }
       methodLogger.debug(`executeCommand() executing command=${command.constructor.name}`)
       const result = await command.execute();
-      const resultMsg = this.getEmailResult(result);
-      methodLogger.debug(`executeCommand() executed email-result=${resultMsg}`)
-      return { success: true, data: resultMsg };
+      methodLogger.debug(`executeCommand() executed result=${result}`)
+      return { success: true, data: result };
     } catch (error) {
       methodLogger.error(`executeCommand() error=${error}`)
       return { 
@@ -71,36 +70,4 @@ export class CommandExecutor {
       return errorResult;
     }
   }
-
-  private getEmailResult(result: Record<string, unknown> | boolean | null | Error): string {
-    const methodLogger = createLogger(`getEmailResult`)
-    if (methodLogger.isDebugEnabled()) {
-      methodLogger.debug(`getEmailResult() result=${JSON.stringify(result)}`)
-    }
-    let emailResult: string;
-    if(result === null) {
-      emailResult = `getEmailResult() result is null`
-    }
-    else if(typeof result === 'boolean') {
-      emailResult = `getEmailResult() result is ${result}`
-   }
-    else if(result instanceof Error) {
-      emailResult = `getEmailResult() error-message is ${result.message}`
-    }
-    else if(typeof result === 'object') {
-      // "accepted":["stage5@gradido.net"],"rejected":[],"ehlo":["PIPELINING","SIZE 25600000","ETRN","AUTH DIGEST-MD5 CRAM-MD5 PLAIN LOGIN","ENHANCEDSTATUSCODES","8BITMIME","DSN","CHUNKING"],"envelopeTime":25,"messageTime":146,"messageSize":37478,"response":"250 2.0.0 Ok: queued as 14B46100B7F","envelope":{"from":"stage5@gradido.net","to":["stage5@gradido.net"]}
-
-      const accepted = (result as Record<string, unknown>).accepted;
-      const messageSize = (result as Record<string, unknown>).messageSize;
-      const response = (result as Record<string, unknown>).response;
-      const envelope = (result as Record<string, unknown>).envelope;
-      emailResult = `getEmailResult() accepted=${accepted}, messageSize=${messageSize}, response=${response}, envelope=${envelope}`
-    }
-    else {
-      emailResult = `getEmailResult() result is unknown type`
-    }
-
-    return emailResult;
-  }
-
 }

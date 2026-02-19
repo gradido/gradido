@@ -12,7 +12,7 @@ export abstract class BaseCommand<T = any> implements Command<T> {
     // this.validateRequiredFields();
   }
 
-  abstract execute(): Promise<Record<string, unknown> | boolean | null | Error>;
+  abstract execute(): Promise<string | boolean | null | Error>;
 
   private validateRequiredFields(): void {
     const methodLogger = createLogger(`validateRequiredFields`)
