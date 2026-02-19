@@ -24,14 +24,16 @@ import {
   verifyAndDecrypt,
 } from 'shared'
 import { randombytes_random } from 'sodium-native'
+import { SendEmailCommand } from '../../command/commands/SendEmailCommand'
 import { CONFIG as CONFIG_CORE } from '../../config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../../config/const'
 import { sendTransactionLinkRedeemedEmail, sendTransactionReceivedEmail } from '../../emails'
+import { CommandClient as V1_0_CommandClient } from '../../federation/client/1_0/CommandClient'
 import { SendCoinsResultLoggingView } from '../../federation/client/1_0/logging/SendCoinsResultLogging.view'
 import { SendCoinsResult } from '../../federation/client/1_0/model/SendCoinsResult'
 import { SendCoinsClient as V1_0_SendCoinsClient } from '../../federation/client/1_0/SendCoinsClient'
-import { SendCoinsClientFactory } from '../../federation/client/SendCoinsClientFactory'
 import { CommandClientFactory } from '../../federation/client/CommandClientFactory'
+import { SendCoinsClientFactory } from '../../federation/client/SendCoinsClientFactory'
 import { TransactionTypeId } from '../../graphql/enum/TransactionTypeId'
 import { EncryptedTransferArgs } from '../../graphql/model/EncryptedTransferArgs'
 import { calculateSenderBalance } from '../../util/calculateSenderBalance'
@@ -39,8 +41,6 @@ import { fullName } from '../../util/utilities'
 import { settlePendingSenderTransaction } from './settlePendingSenderTransaction'
 import { storeForeignUser } from './storeForeignUser'
 import { storeLinkAsRedeemed } from './storeLinkAsRedeemed'
-import { CommandClient as V1_0_CommandClient } from '../../federation/client/1_0/CommandClient'
-import { SendEmailCommand } from '../../command/commands/SendEmailCommand'
 
 const createLogger = (method: string) =>
   getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.util.processXComSendCoins.${method}`)
@@ -533,7 +533,8 @@ export async function processXComCommittingSendCoins(
                     memo: pendingTx.memo,
                     amount: pendingTx.amount,
                   }),
-                ])
+                ],
+              )
               const jws = await encryptAndSign(
                 payload,
                 senderCom.privateJwtKey!,

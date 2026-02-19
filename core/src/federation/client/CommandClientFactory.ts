@@ -39,9 +39,7 @@ export class CommandClientFactory {
    * just one instance of each subclass around.
    */
   public static getInstance(dbCom: DbFederatedCommunity): CommandClient | null {
-    const instance = CommandClientFactory.instanceArray.find(
-      (instance) => instance.id === dbCom.id,
-    )
+    const instance = CommandClientFactory.instanceArray.find((instance) => instance.id === dbCom.id)
     if (instance) {
       return instance.client
     }

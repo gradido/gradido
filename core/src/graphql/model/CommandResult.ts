@@ -3,11 +3,11 @@ import { Field, ObjectType } from 'type-graphql'
 @ObjectType()
 export class CommandResult {
   @Field(() => Boolean)
-  success: boolean;
-  
+  success: boolean
+
   @Field(() => String, { nullable: true })
-  data?: any;
-  
+  data?: any
+
   @Field(() => String, { nullable: true })
-  error?: string;
+  error?: string
 }

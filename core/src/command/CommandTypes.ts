@@ -1,5 +1,5 @@
-import { Command } from "./Command";
+import { Command } from './Command'
 
 export interface ICommandConstructor<T = any> {
-  new (params: any): Command<T>;
+  new (params: any): Command<T>
 }
