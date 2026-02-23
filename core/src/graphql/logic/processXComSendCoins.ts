@@ -16,6 +16,7 @@ import { Decimal } from 'decimal.js-light'
 // import { LogError } from '@server/LogError'
 import { getLogger } from 'log4js'
 import {
+  CommandJwtPayloadType,
   encryptAndSign,
   PendingTransactionState,
   SendCoinsJwtPayloadType,
@@ -23,11 +24,15 @@ import {
   verifyAndDecrypt,
 } from 'shared'
 import { randombytes_random } from 'sodium-native'
+import { SendEmailCommand } from '../../command/commands/SendEmailCommand'
 import { CONFIG as CONFIG_CORE } from '../../config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../../config/const'
+import { sendTransactionLinkRedeemedEmail, sendTransactionReceivedEmail } from '../../emails'
+import { CommandClient as V1_0_CommandClient } from '../../federation/client/1_0/CommandClient'
 import { SendCoinsResultLoggingView } from '../../federation/client/1_0/logging/SendCoinsResultLogging.view'
 import { SendCoinsResult } from '../../federation/client/1_0/model/SendCoinsResult'
 import { SendCoinsClient as V1_0_SendCoinsClient } from '../../federation/client/1_0/SendCoinsClient'
+import { CommandClientFactory } from '../../federation/client/CommandClientFactory'
 import { SendCoinsClientFactory } from '../../federation/client/SendCoinsClientFactory'
 import { TransactionTypeId } from '../../graphql/enum/TransactionTypeId'
 import { EncryptedTransferArgs } from '../../graphql/model/EncryptedTransferArgs'
@@ -167,6 +172,32 @@ export async function processXComCompleteTransaction(
           )
         }
       }
+      /*
+      await sendTransactionReceivedEmail({
+        firstName: foreignUser.firstName,
+        lastName: foreignUser.lastName,
+        email: foreignUser.emailContact.email,
+        language: foreignUser.language,
+        memo,
+        senderFirstName: senderUser.firstName,
+        senderLastName: senderUser.lastName,
+        senderEmail: senderUser.emailContact.email,
+        transactionAmount: new Decimal(amount),
+      })
+      */
+      if (dbTransactionLink) {
+        await sendTransactionLinkRedeemedEmail({
+          firstName: senderUser.firstName,
+          lastName: senderUser.lastName,
+          email: senderUser.emailContact.email,
+          language: senderUser.language,
+          senderFirstName: foreignUser.firstName,
+          senderLastName: foreignUser.lastName,
+          senderEmail: 'unknown', // foreignUser.emailContact.email,
+          transactionAmount: new Decimal(amount),
+          transactionMemo: memo,
+        })
+      }
     }
   } catch (err) {
     const errmsg =
@@ -227,7 +258,7 @@ export async function processXComPendingSendCoins(
 
     const receiverFCom = await DbFederatedCommunity.findOneOrFail({
       where: {
-        publicKey: Buffer.from(receiverCom.publicKey),
+        publicKey: receiverCom.publicKey,
         apiVersion: CONFIG_CORE.FEDERATION_BACKEND_SEND_ON_API,
       },
     })
@@ -483,6 +514,37 @@ export async function processXComCommittingSendCoins(
               }
               sendCoinsResult.recipGradidoID = pendingTx.linkedUserGradidoID
               sendCoinsResult.recipAlias = recipient.recipAlias
+            }
+            // ** after successfull settle of the pending transaction on sender side we have to send a trigger to the recipient community to send an email to the x-com-tx recipient
+            const cmdClient = CommandClientFactory.getInstance(receiverFCom)
+
+            if (cmdClient instanceof V1_0_CommandClient) {
+              const payload = new CommandJwtPayloadType(
+                handshakeID,
+                SendEmailCommand.SEND_MAIL_COMMAND,
+                SendEmailCommand.name,
+                [
+                  JSON.stringify({
+                    mailType: 'sendTransactionReceivedEmail',
+                    senderComUuid: senderCom.communityUuid,
+                    senderGradidoId: sender.gradidoID,
+                    receiverComUuid: receiverCom.communityUuid,
+                    receiverGradidoId: sendCoinsResult.recipGradidoID,
+                    memo: pendingTx.memo,
+                    amount: pendingTx.amount,
+                  }),
+                ],
+              )
+              const jws = await encryptAndSign(
+                payload,
+                senderCom.privateJwtKey!,
+                receiverCom.publicJwtKey!,
+              )
+              const args = new EncryptedTransferArgs()
+              args.publicKey = senderCom.publicKey.toString('hex')
+              args.jwt = jws
+              args.handshakeID = handshakeID
+              cmdClient.sendCommand(args)
             }
           } catch (err) {
             methodLogger.error(

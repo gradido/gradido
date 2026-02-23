@@ -82,6 +82,17 @@ export async function findForeignUserByUuids(
   })
 }
 
+export async function findUserByUuids(
+  communityUuid: string,
+  gradidoID: string,
+  foreign: boolean = false,
+): Promise<DbUser | null> {
+  return DbUser.findOne({
+    where: { foreign, communityUuid, gradidoID },
+    relations: ['emailContact'],
+  })
+}
+
 export async function findUserNamesByIds(userIds: number[]): Promise<Map<number, string>> {
   const users = await DbUser.find({
     select: { id: true, firstName: true, lastName: true, alias: true },
