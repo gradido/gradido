@@ -1,10 +1,11 @@
 extend ../layout.pug
 
 block content  
-  mixin mailto(email, subject)
-    - var formattedSubject = encodeURIComponent(subject)
-    a(class!=attributes.class href=`mailto:${email}?subject=${formattedSubject}`)
-      block
+  //
+    mixin mailto(email, subject)
+      - var formattedSubject = encodeURIComponent(subject)
+      a(class!=attributes.class href=`mailto:${email}?subject=${formattedSubject}`)
+        block
 
   - var subject= t('emails.transactionReceived.replySubject', { senderFirstName, senderLastName, transactionAmount })
   h2= t('emails.transactionReceived.title', { senderFirstName, senderLastName, transactionAmount })
