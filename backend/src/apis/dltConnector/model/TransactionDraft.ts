@@ -36,6 +36,7 @@ export class TransactionDraft {
       const draft = new TransactionDraft()
       draft.user = new AccountIdentifier(
         community.hieroTopicId,
+        community.communityUuid!,
         new CommunityAccountIdentifier(user.gradidoID),
       )
       draft.type = TransactionType.REGISTER_ADDRESS
@@ -58,10 +59,12 @@ export class TransactionDraft {
       const draft = new TransactionDraft()
       draft.user = new AccountIdentifier(
         community.hieroTopicId,
+        community.communityUuid!,
         new CommunityAccountIdentifier(contribution.user.gradidoID),
       )
       draft.linkedUser = new AccountIdentifier(
         community.hieroTopicId,
+        community.communityUuid!,
         new CommunityAccountIdentifier(signingUser.gradidoID),
       )
       draft.type = TransactionType.GRADIDO_CREATION
@@ -96,10 +99,12 @@ export class TransactionDraft {
     const draft = new TransactionDraft()
     draft.user = new AccountIdentifier(
       senderUserTopic,
+      sendingUser.community.communityUuid!,
       new CommunityAccountIdentifier(sendingUser.gradidoID),
     )
     draft.linkedUser = new AccountIdentifier(
       receiverUserTopic,
+      receivingUser.community.communityUuid!,
       new CommunityAccountIdentifier(receivingUser.gradidoID),
     )
     draft.type = TransactionType.GRADIDO_TRANSFER
@@ -125,9 +130,10 @@ export class TransactionDraft {
     const draft = new TransactionDraft()
     draft.user = new AccountIdentifier(
       senderUserTopic,
+      sendingUser.community.communityUuid!,
       new CommunityAccountIdentifier(sendingUser.gradidoID),
     )
-    draft.linkedUser = new AccountIdentifier(senderUserTopic, transactionLink.code)
+    draft.linkedUser = new AccountIdentifier(senderUserTopic, sendingUser.community.communityUuid!, transactionLink.code)
     draft.type = TransactionType.GRADIDO_DEFERRED_TRANSFER
     draft.createdAt = createdAtOnlySeconds.toISOString()
     draft.amount = transactionLink.amount.toString()
@@ -159,9 +165,14 @@ export class TransactionDraft {
     const createdAtOnlySeconds = createdAt
     createdAtOnlySeconds.setMilliseconds(0)
     const draft = new TransactionDraft()
-    draft.user = new AccountIdentifier(senderUserTopic, transactionLink.code)
+    draft.user = new AccountIdentifier(
+      senderUserTopic,
+      transactionLink.user.community.communityUuid!,
+      transactionLink.code,
+    )
     draft.linkedUser = new AccountIdentifier(
       recipientUserTopic,
+      recipientUser.community.communityUuid!,
       new CommunityAccountIdentifier(recipientUser.gradidoID),
     )
     draft.type = TransactionType.GRADIDO_REDEEM_DEFERRED_TRANSFER
