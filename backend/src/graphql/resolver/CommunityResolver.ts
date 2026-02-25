@@ -2,7 +2,7 @@ import { Paginated } from '@arg/Paginated'
 import { EditCommunityInput } from '@input/EditCommunityInput'
 import { AdminCommunityView } from '@model/AdminCommunityView'
 import { Community } from '@model/Community'
-import { Community as DbCommunity, getHomeCommunity, getReachableCommunities } from 'database'
+import { Community as DbCommunity, getAuthorizedCommunities, getHomeCommunity, getReachableCommunities } from 'database'
 import { updateAllDefinedAndChanged } from 'shared'
 import { Arg, Args, Authorized, Mutation, Query, Resolver } from 'type-graphql'
 import { RIGHTS } from '@/auth/RIGHTS'
@@ -31,6 +31,17 @@ export class CommunityResolver {
         name: 'ASC', // sort foreign communities by name
       },
     )
+    return dbCommunities.map((dbCom: DbCommunity) => new Community(dbCom))
+  }
+
+  @Authorized([RIGHTS.COMMUNITIES])
+  @Query(() => [Community])
+  async authorizedCommunities(): Promise<Community[]> {
+    const dbCommunities: DbCommunity[] = await getAuthorizedCommunities({
+      // order by 
+      foreign: 'ASC', // home community first
+      name: 'ASC', 
+    })
     return dbCommunities.map((dbCom: DbCommunity) => new Community(dbCom))
   }
 

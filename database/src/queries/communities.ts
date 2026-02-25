@@ -84,7 +84,7 @@ export async function getReachableCommunities(
         federatedCommunities: {
           verifiedAt: MoreThanOrEqual(new Date(Date.now() - authenticationTimeoutMs)),
         },
-      },
+      }, // or
       { foreign: false },
     ],
     order,
@@ -97,5 +97,19 @@ export async function getNotReachableCommunities(
   return await DbCommunity.find({
     where: { authenticatedAt: IsNull(), foreign: true },
     order,
+  })
+}
+
+// return the home community and all communities which had at least once make it through the first handshake
+export async function getAuthorizedCommunities(
+  order?: FindOptionsOrder<DbCommunity>,
+): Promise<DbCommunity[]>
+{
+  return await DbCommunity.find({
+    where: [
+      { authenticatedAt: Not(IsNull()) }, // or
+      { foreign: false }
+    ], 
+    order
   })
 }
