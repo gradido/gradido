@@ -663,6 +663,7 @@ export class TransactionLinkResolver {
         if (methodLogger.isDebugEnabled()) {
           methodLogger.debug('Disburse JWT was sent successfully with result=', result)
         }
+        /* don't send email here, because it is sent by the sender community
         const senderUser = await findUserByIdentifier(senderGradidoId, senderCommunityUuid)
         if (!senderUser) {
           const errmsg = `Sender user not found with identifier=${senderGradidoId}`
@@ -719,6 +720,7 @@ export class TransactionLinkResolver {
             )
           }
         }
+        */
       } catch (e) {
         const errmsg = `Disburse JWT was not sent successfully with error=${e}`
         methodLogger.error(errmsg)
