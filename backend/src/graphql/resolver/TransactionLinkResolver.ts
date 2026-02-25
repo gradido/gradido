@@ -570,7 +570,7 @@ export class TransactionLinkResolver {
     } catch (e) {
       const errmsg = `Error on creating Redeem JWT: error=${e}`
       methodLogger.error(errmsg)
-      throw new LogError(errmsg)
+      throw new Error(errmsg)
     }
   }
 
@@ -612,19 +612,19 @@ export class TransactionLinkResolver {
     if (!senderCom) {
       const errmsg = `Sender community not found with uuid=${senderCommunityUuid}`
       methodLogger.error(errmsg)
-      throw new LogError(errmsg)
+      throw new Error(errmsg)
     }
     const senderFedCom = await DbFederatedCommunity.findOneBy({ publicKey: senderCom.publicKey })
     if (!senderFedCom) {
       const errmsg = `Sender federated community not found with publicKey=${senderCom.publicKey}`
       methodLogger.error(errmsg)
-      throw new LogError(errmsg)
+      throw new Error(errmsg)
     }
     const recipientCom = await getCommunityByUuid(recipientCommunityUuid)
     if (!recipientCom) {
       const errmsg = `Recipient community not found with uuid=${recipientCommunityUuid}`
       methodLogger.error(errmsg)
-      throw new LogError(errmsg)
+      throw new Error(errmsg)
     }
     const client = DisbursementClientFactory.getInstance(senderFedCom)
     if (client instanceof V1_0_DisbursementClient) {
@@ -663,17 +663,18 @@ export class TransactionLinkResolver {
         if (methodLogger.isDebugEnabled()) {
           methodLogger.debug('Disburse JWT was sent successfully with result=', result)
         }
+        /* don't send email here, because it is sent by the sender community
         const senderUser = await findUserByIdentifier(senderGradidoId, senderCommunityUuid)
         if (!senderUser) {
           const errmsg = `Sender user not found with identifier=${senderGradidoId}`
           methodLogger.error(errmsg)
-          throw new LogError(errmsg)
+          throw new Error(errmsg)
         }
         const recipientUser = await findUserByIdentifier(recipientGradidoId, recipientCommunityUuid)
         if (!recipientUser) {
           const errmsg = `Recipient user not found with identifier=${recipientGradidoId}`
           methodLogger.error(errmsg)
-          throw new LogError(errmsg)
+          throw new Error(errmsg)
         }
         if (recipientUser.emailContact?.email !== null) {
           if (methodLogger.isDebugEnabled()) {
@@ -719,6 +720,7 @@ export class TransactionLinkResolver {
             )
           }
         }
+        */
       } catch (e) {
         const errmsg = `Disburse JWT was not sent successfully with error=${e}`
         methodLogger.error(errmsg)
