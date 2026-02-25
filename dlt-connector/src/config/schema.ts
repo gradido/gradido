@@ -90,6 +90,13 @@ export const configSchema = v.object({
     v.string('The home folder for the gradido dlt node server'),
     path.join(__dirname, '..', '..', 'gradido_node'),
   ),
+  DLT_GRADIDO_NODE_SERVER_ALLOW_CORS: v.optional(
+    v.pipe(
+      v.string('Whether to allow CORS for the gradido dlt node server'),
+      v.transform<string, boolean>((input: string) => input === 'true'),
+    ),
+    'false',
+  ),
   BACKEND_PORT: v.optional(
     v.pipe(
       v.string('A valid port on which the backend server is running'),

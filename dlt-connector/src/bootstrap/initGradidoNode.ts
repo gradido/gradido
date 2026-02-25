@@ -9,7 +9,6 @@ import { HieroClient } from '../client/hiero/HieroClient'
 import { CONFIG } from '../config'
 import {
   GRADIDO_NODE_HOME_FOLDER_NAME,
-  GRADIDO_NODE_RUNTIME_PATH,
   LOG4JS_BASE_CATEGORY,
 } from '../config/const'
 import { checkFileExist, checkPathExist } from '../utils/filesystem'
@@ -37,7 +36,7 @@ export async function initGradidoNode(clients: AppContextClients): Promise<void>
     // write Hedera Address Book
     exportHederaAddressbooks(gradidoNodeHomeFolder, clients.hiero),
     // check GradidoNode Runtime, download when missing
-    ensureGradidoNodeRuntimeAvailable(GRADIDO_NODE_RUNTIME_PATH),
+    ensureGradidoNodeRuntimeAvailable(GradidoNodeProcess.getRuntimePathFileName()),
     // export communities to GradidoNode Folder
     exportCommunities(gradidoNodeHomeFolder, clients.backend),
   ])

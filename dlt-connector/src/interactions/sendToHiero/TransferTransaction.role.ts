@@ -51,7 +51,11 @@ export class TransferTransactionRole extends AbstractTransactionRole {
         ),
       )
       .setTransactionTransfer(
-        new TransferAmount(senderKeyPair.getPublicKey(), this.transferTransaction.amount),
+        new TransferAmount(
+          senderKeyPair.getPublicKey(),
+          this.transferTransaction.amount,
+          this.transferTransaction.user.communityId,
+        ),
         recipientKeyPair.getPublicKey(),
       )
     const senderCommunity = this.transferTransaction.user.communityTopicId

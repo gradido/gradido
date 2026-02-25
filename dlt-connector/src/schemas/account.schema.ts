@@ -11,6 +11,7 @@ export type IdentifierCommunityAccount = v.InferOutput<typeof identifierCommunit
 
 export const identifierKeyPairSchema = v.object({
   communityTopicId: hieroIdSchema,
+  communityId: uuidv4Schema,
   account: v.optional(identifierCommunityAccountSchema),
   seed: v.optional(identifierSeedSchema),
 })

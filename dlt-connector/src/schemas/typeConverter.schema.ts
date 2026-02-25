@@ -8,6 +8,7 @@ import {
   toAccountType,
   toAddressType,
 } from '../utils/typeConverter'
+import { Uuidv4, uuidv4Schema } from './typeGuard.schema'
 
 /**
  * dateSchema for creating a date from string or Date object
@@ -72,17 +73,23 @@ export const accountTypeSchema = v.pipe(
 export const confirmedTransactionSchema = v.pipe(
   v.union([
     v.instance(ConfirmedTransaction, 'expect ConfirmedTransaction'),
-    v.pipe(
-      v.string('expect confirmed Transaction base64 as string type'),
-      v.base64('expect to be valid base64'),
-    ),
+    v.object({
+      base64: v.pipe(
+        v.string('expect confirmed Transaction base64 as string type'),
+        v.base64('expect to be valid base64'),
+      ),
+      communityId: uuidv4Schema,
+    }),
   ]),
-  v.transform<string | ConfirmedTransaction, ConfirmedTransaction>(
-    (data: string | ConfirmedTransaction) => {
+  v.transform<ConfirmedTransaction | { base64: string; communityId: Uuidv4 }, ConfirmedTransaction>(
+    (data: string | ConfirmedTransaction | { base64: string; communityId: Uuidv4 }) => {
       if (data instanceof ConfirmedTransaction) {
         return data
       }
-      return confirmedTransactionFromBase64(data)
+      if (typeof data === 'object' && 'base64' in data && 'communityId' in data) {
+        return confirmedTransactionFromBase64(data.base64, data.communityId)
+      }
+      throw new Error('invalid data, community id missing, couldn\'t deserialize')
     },
   ),
 )

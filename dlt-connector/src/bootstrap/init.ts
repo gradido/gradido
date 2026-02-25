@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs'
-import { loadCryptoKeys, MemoryBlock } from 'gradido-blockchain-js'
+import { InMemoryBlockchainProvider, loadCryptoKeys, MemoryBlock } from 'gradido-blockchain-js'
 import { configure, getLogger, Logger } from 'log4js'
 import * as v from 'valibot'
 import { CONFIG } from '../config'
@@ -80,6 +80,7 @@ export async function checkGradidoNode(
 
   // ask gradido node if community blockchain was created
   try {
+    InMemoryBlockchainProvider.getInstance().getBlockchain(homeCommunity.uuid)
     if (
       !(await clients.gradidoNode.getTransaction({
         transactionId: 1,

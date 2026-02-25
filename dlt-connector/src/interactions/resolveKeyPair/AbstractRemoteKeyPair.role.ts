@@ -1,10 +1,10 @@
 import { KeyPairEd25519 } from 'gradido-blockchain-js'
-import { HieroId } from '../../schemas/typeGuard.schema'
+import { Uuidv4 } from '../../schemas/typeGuard.schema'
 
 export abstract class AbstractRemoteKeyPairRole {
-  protected topic: HieroId
-  public constructor(communityTopicId: HieroId) {
-    this.topic = communityTopicId
+  protected communityId: Uuidv4
+  public constructor(communityId: Uuidv4) {
+    this.communityId = communityId
   }
   public abstract retrieveKeyPair(): Promise<KeyPairEd25519>
 }

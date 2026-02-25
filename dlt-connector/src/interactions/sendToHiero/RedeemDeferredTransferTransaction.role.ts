@@ -65,6 +65,7 @@ export class RedeemDeferredTransferTransactionRole extends AbstractTransactionRo
           new TransferAmount(
             senderKeyPair.getPublicKey(),
             this.redeemDeferredTransferTransaction.amount,
+            this.redeemDeferredTransferTransaction.user.communityId,
           ),
           recipientKeyPair.getPublicKey(),
         ),
