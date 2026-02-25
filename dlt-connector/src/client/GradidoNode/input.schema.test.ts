@@ -1,18 +1,20 @@
 import { beforeAll, describe, expect, it } from 'bun:test'
 import * as v from 'valibot'
 import {
-  HieroId,
   HieroTransactionIdString,
+  Uuidv4,
   hieroIdSchema,
   hieroTransactionIdStringSchema,
+  uuidv4Schema,
 } from '../../schemas/typeGuard.schema'
 import { transactionIdentifierSchema } from './input.schema'
+import { v4 as uuidv4 } from 'uuid'
 
-let topic: HieroId
-const topicString = '0.0.261'
+let communityId: Uuidv4
+const uuidv4String = uuidv4()
 let hieroTransactionId: HieroTransactionIdString
 beforeAll(() => {
-  topic = v.parse(hieroIdSchema, topicString)
+  communityId = v.parse(uuidv4Schema, uuidv4String)
   hieroTransactionId = v.parse(hieroTransactionIdStringSchema, '0.0.261-1755348116-1281621')
 })
 
@@ -21,26 +23,26 @@ describe('transactionIdentifierSchema ', () => {
     expect(
       v.parse(transactionIdentifierSchema, {
         transactionId: 1,
-        topic: topicString,
+        communityId,
       }),
     ).toEqual({
       transactionId: 1,
       hieroTransactionId: undefined,
-      topic,
+      communityId,
     })
   })
   it('valid, transaction identified by hieroTransactionId and topic', () => {
     expect(
       v.parse(transactionIdentifierSchema, {
         hieroTransactionId: '0.0.261-1755348116-1281621',
-        topic: topicString,
+        communityId,
       }),
     ).toEqual({
       hieroTransactionId,
-      topic,
+      communityId,
     })
   })
-  it('invalid, missing topic', () => {
+  it('invalid, missing communityId', () => {
     expect(() =>
       v.parse(transactionIdentifierSchema, {
         transactionId: 1,
@@ -53,7 +55,7 @@ describe('transactionIdentifierSchema ', () => {
       v.parse(transactionIdentifierSchema, {
         transactionId: 1,
         hieroTransactionId: '0.0.261-1755348116-1281621',
-        topic,
+        communityId,
       }),
     ).toThrowError(new Error('expect transactionNr or hieroTransactionId not both'))
   })

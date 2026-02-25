@@ -45,7 +45,7 @@ export async function ResolveKeyPair(input: KeyPairIdentifierLogic): Promise<Key
       if (cache.getHomeCommunityTopicId() !== input.getCommunityTopicId()) {
         const role = input.isAccountKeyPair()
           ? new RemoteAccountKeyPairRole(input.identifier)
-          : new ForeignCommunityKeyPairRole(input.getCommunityTopicId())
+          : new ForeignCommunityKeyPairRole(input.getCommunityId())
         return await role.retrieveKeyPair()
       }
       // Community

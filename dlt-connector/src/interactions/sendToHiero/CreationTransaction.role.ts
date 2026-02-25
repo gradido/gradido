@@ -52,6 +52,7 @@ export class CreationTransactionRole extends AbstractTransactionRole {
     const homeCommunityKeyPair = await ResolveKeyPair(
       new KeyPairIdentifierLogic({
         communityTopicId: this.homeCommunityTopicId,
+        communityId: this.creationTransaction.user.communityId,
       }),
     )
     // Memo: encrypted, home community and recipient can decrypt it
@@ -65,7 +66,11 @@ export class CreationTransactionRole extends AbstractTransactionRole {
         ),
       )
       .setTransactionCreation(
-        new TransferAmount(recipientKeyPair.getPublicKey(), this.creationTransaction.amount),
+        new TransferAmount(
+          recipientKeyPair.getPublicKey(),
+          this.creationTransaction.amount,
+          this.creationTransaction.user.communityId,
+        ),
         this.creationTransaction.targetDate,
       )
       .sign(signerKeyPair)

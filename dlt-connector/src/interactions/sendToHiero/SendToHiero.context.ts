@@ -23,6 +23,8 @@ import {
   HieroTransactionIdString,
   hieroTransactionIdStringSchema,
   identifierSeedSchema,
+  Uuidv4,
+  uuidv4Schema,
 } from '../../schemas/typeGuard.schema'
 import { isTopicStillOpen } from '../../utils/hiero'
 import { LinkedTransactionKeyPairRole } from '../resolveKeyPair/LinkedTransactionKeyPair.role'
@@ -59,6 +61,7 @@ export async function SendToHieroContext(
     const outboundHieroTransactionIdString = await sendViaHiero(
       outboundTransaction,
       role.getSenderCommunityTopicId(),
+      v.parse(uuidv4Schema, outboundTransaction.getCommunityId()),
     )
 
     // attach Hiero transaction ID to the builder for the inbound transaction
@@ -69,7 +72,11 @@ export async function SendToHieroContext(
     validate(inboundTransaction)
 
     // send inbound transaction to hiero
-    await sendViaHiero(inboundTransaction, role.getRecipientCommunityTopicId())
+    await sendViaHiero(
+      inboundTransaction,
+      role.getRecipientCommunityTopicId(),
+      v.parse(uuidv4Schema, inboundTransaction.getCommunityId()),
+    )
     return outboundHieroTransactionIdString
   } else {
     // build and validate local transaction
@@ -80,6 +87,7 @@ export async function SendToHieroContext(
     const hieroTransactionIdString = await sendViaHiero(
       transaction,
       role.getSenderCommunityTopicId(),
+      v.parse(uuidv4Schema, transaction.getCommunityId()),
     )
     return hieroTransactionIdString
   }
@@ -95,9 +103,10 @@ function validate(transaction: GradidoTransaction): void {
 async function sendViaHiero(
   gradidoTransaction: GradidoTransaction,
   topic: HieroId,
+  communityId: Uuidv4
 ): Promise<HieroTransactionIdString> {
   const client = HieroClient.getInstance()
-  const transactionId = await client.sendMessage(topic, gradidoTransaction)
+  const transactionId = await client.sendMessage(topic, communityId, gradidoTransaction)
   if (!transactionId) {
     throw new Error('missing transaction id from hiero')
   }
@@ -153,7 +162,7 @@ async function chooseCorrectRole(
         throw new Error("redeem deferred transfer: couldn't generate seed public key")
       }
       const transactions = await GradidoNodeClient.getInstance().getTransactionsForAccount(
-        { maxResultCount: 2, topic: transaction.user.communityTopicId },
+        { maxResultCount: 2, communityId: transaction.user.communityId },
         seedPublicKey.convertToHex(),
       )
       if (!transactions || transactions.length !== 1) {

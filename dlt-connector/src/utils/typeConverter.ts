@@ -6,14 +6,15 @@ import {
 } from 'gradido-blockchain-js'
 import { AccountType } from '../data/AccountType.enum'
 import { AddressType } from '../data/AddressType.enum'
+import { Uuidv4 } from '../schemas/typeGuard.schema'
 
-export const confirmedTransactionFromBase64 = (base64: string): ConfirmedTransaction => {
+export const confirmedTransactionFromBase64 = (base64: string, communityId: Uuidv4): ConfirmedTransaction => {
   const confirmedTransactionBinaryPtr = MemoryBlock.createPtr(MemoryBlock.fromBase64(base64))
   const deserializer = new InteractionDeserialize(
     confirmedTransactionBinaryPtr,
     DeserializeType_CONFIRMED_TRANSACTION,
   )
-  deserializer.run()
+  deserializer.run(communityId)
   const confirmedTransaction = deserializer.getConfirmedTransaction()
   if (!confirmedTransaction) {
     throw new Error("invalid data, couldn't deserialize")

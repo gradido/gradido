@@ -27,7 +27,10 @@ export class CommunityRootTransactionRole extends AbstractTransactionRole {
   public async getGradidoTransactionBuilder(): Promise<GradidoTransactionBuilder> {
     const builder = new GradidoTransactionBuilder()
     const communityKeyPair = await ResolveKeyPair(
-      new KeyPairIdentifierLogic({ communityTopicId: this.community.hieroTopicId }),
+      new KeyPairIdentifierLogic({
+        communityTopicId: this.community.hieroTopicId,
+        communityId: this.community.uuid,
+      }),
     )
     const gmwKeyPair = communityKeyPair.deriveChild(
       hardenDerivationIndex(GMW_ACCOUNT_DERIVATION_INDEX),

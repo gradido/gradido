@@ -10,7 +10,7 @@ export class ForeignCommunityKeyPairRole extends AbstractRemoteKeyPairRole {
   public async retrieveKeyPair(): Promise<KeyPairEd25519> {
     const transactionIdentifier = {
       transactionId: 1,
-      topic: this.topic,
+      communityId: this.communityId,
     }
     const firstTransaction =
       await GradidoNodeClient.getInstance().getTransaction(transactionIdentifier)

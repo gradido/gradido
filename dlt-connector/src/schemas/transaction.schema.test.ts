@@ -34,8 +34,12 @@ const transactionLinkCode = (date: Date): string => {
 }
 let topic: HieroId
 const topicString = '0.0.261'
+let communityUuid: Uuidv4
+const communityUuidString = '123e4567-e89b-12d3-a456-426614174000'
+
 beforeAll(() => {
   topic = v.parse(hieroIdSchema, topicString)
+  communityUuid = v.parse(uuidv4Schema, communityUuidString)
 })
 
 describe('transaction schemas', () => {
@@ -55,6 +59,7 @@ describe('transaction schemas', () => {
       registerAddress = {
         user: {
           communityTopicId: topicString,
+          communityId: communityUuidString,
           account: { userUuid: userUuidString },
         },
         type: InputTransactionType.REGISTER_ADDRESS,
@@ -66,6 +71,7 @@ describe('transaction schemas', () => {
       expect(v.parse(transactionSchema, registerAddress)).toEqual({
         user: {
           communityTopicId: topic,
+          communityId: communityUuid,
           account: {
             userUuid,
             accountNr: 0,
@@ -80,6 +86,7 @@ describe('transaction schemas', () => {
       expect(v.parse(registerAddressTransactionSchema, registerAddress)).toEqual({
         user: {
           communityTopicId: topic,
+          communityId: communityUuid,
           account: {
             userUuid,
             accountNr: 0,
@@ -101,10 +108,12 @@ describe('transaction schemas', () => {
     const gradidoTransfer: TransactionInput = {
       user: {
         communityTopicId: topicString,
+        communityId: communityUuidString,
         account: { userUuid: userUuidString },
       },
       linkedUser: {
         communityTopicId: topicString,
+        communityId: communityUuidString,
         account: { userUuid: userUuidString },
       },
       amount: '100',
@@ -115,6 +124,7 @@ describe('transaction schemas', () => {
     expect(v.parse(transactionSchema, gradidoTransfer)).toEqual({
       user: {
         communityTopicId: topic,
+        communityId: communityUuid,
         account: {
           userUuid,
           accountNr: 0,
@@ -122,6 +132,7 @@ describe('transaction schemas', () => {
       },
       linkedUser: {
         communityTopicId: topic,
+        communityId: communityUuid,
         account: {
           userUuid,
           accountNr: 0,
@@ -138,10 +149,12 @@ describe('transaction schemas', () => {
     const gradidoCreation: TransactionInput = {
       user: {
         communityTopicId: topicString,
+        communityId: communityUuidString,
         account: { userUuid: userUuidString },
       },
       linkedUser: {
         communityTopicId: topicString,
+        communityId: communityUuidString,
         account: { userUuid: userUuidString },
       },
       amount: '1000',
@@ -153,10 +166,12 @@ describe('transaction schemas', () => {
     expect(v.parse(transactionSchema, gradidoCreation)).toEqual({
       user: {
         communityTopicId: topic,
+        communityId: communityUuid,
         account: { userUuid, accountNr: 0 },
       },
       linkedUser: {
         communityTopicId: topic,
+        communityId: communityUuid,
         account: { userUuid, accountNr: 0 },
       },
       amount: v.parse(gradidoAmountSchema, gradidoCreation.amount!),
@@ -172,12 +187,14 @@ describe('transaction schemas', () => {
     const gradidoTransactionLink: TransactionInput = {
       user: {
         communityTopicId: topicString,
+        communityId: communityUuidString,
         account: {
           userUuid: userUuidString,
         },
       },
       linkedUser: {
         communityTopicId: topicString,
+        communityId: communityUuidString,
         seed,
       },
       amount: '100',
@@ -189,6 +206,7 @@ describe('transaction schemas', () => {
     expect(v.parse(transactionSchema, gradidoTransactionLink)).toEqual({
       user: {
         communityTopicId: topic,
+        communityId: communityUuid,
         account: {
           userUuid,
           accountNr: 0,
@@ -196,6 +214,7 @@ describe('transaction schemas', () => {
       },
       linkedUser: {
         communityTopicId: topic,
+        communityId: communityUuid,
         seed: seedParsed,
       },
       amount: v.parse(gradidoAmountSchema, gradidoTransactionLink.amount!),

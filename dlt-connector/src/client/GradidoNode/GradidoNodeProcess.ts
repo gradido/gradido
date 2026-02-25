@@ -10,6 +10,7 @@ import {
   LOG4JS_BASE_CATEGORY,
 } from '../../config/const'
 import { delay } from '../../utils/time'
+import path from 'node:path'
 /**
  * A Singleton class defines the `getInstance` method that lets clients access
  * the unique singleton instance.
@@ -43,6 +44,20 @@ export class GradidoNodeProcess {
     return GradidoNodeProcess.instance
   }
 
+  public static getRuntimePathFileName(): string {
+    const isWindows = process.platform === 'win32'
+    const binaryName = isWindows ? 'GradidoNode.exe' : 'GradidoNode'
+
+    return path.join(
+      __dirname,
+      '..',
+      '..',
+      'gradido_node',
+      'bin',
+      binaryName,
+    )
+  }
+
   public start() {
     if (this.proc) {
       this.logger.warn('GradidoNodeProcess already running.')
@@ -57,6 +72,7 @@ export class GradidoNodeProcess {
         SERVER_JSON_RPC_PORT: CONFIG.DLT_NODE_SERVER_PORT.toString(),
         USERPROFILE: CONFIG.DLT_GRADIDO_NODE_SERVER_HOME_FOLDER,
         HOME: CONFIG.DLT_GRADIDO_NODE_SERVER_HOME_FOLDER,
+        UNSECURE_ALLOW_CORS_ALL: CONFIG.DLT_GRADIDO_NODE_SERVER_ALLOW_CORS ? '1' : '0',
       },
       onExit(_proc, exitCode, signalCode, error) {
         logger.warn(`GradidoNodeProcess exited with code ${exitCode} and signalCode ${signalCode}`)

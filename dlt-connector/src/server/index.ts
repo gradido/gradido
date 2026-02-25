@@ -69,9 +69,10 @@ export const appRoutes = new Elysia()
   // check if account exists by user, call example:
   // GET /isAccountExist/by-user/0.0.21732/408780b2-59b3-402a-94be-56a4f4f4e8ec/0
   .get(
-    '/isAccountExist/by-user/:communityTopicId/:userUuid/:accountNr',
-    async ({ params: { communityTopicId, userUuid, accountNr } }) => ({
+    '/isAccountExist/by-user/:communityId/:communityTopicId/:userUuid/:accountNr',
+    async ({ params: { communityId, communityTopicId, userUuid, accountNr } }) => ({
       exists: await isAccountExist({
+        communityId,
         communityTopicId,
         account: { userUuid, accountNr },
       }),
@@ -84,9 +85,10 @@ export const appRoutes = new Elysia()
   // check if account exists by seed, call example:
   // GET /isAccountExist/by-seed/0.0.21732/0c4676adfd96519a0551596c
   .get(
-    '/isAccountExist/by-seed/:communityTopicId/:seed',
-    async ({ params: { communityTopicId, seed } }) => ({
+    '/isAccountExist/by-seed/:communityId/:communityTopicId/:seed',
+    async ({ params: { communityId, communityTopicId, seed } }) => ({
       exists: await isAccountExist({
+        communityId,
         communityTopicId,
         seed,
       }),
@@ -145,7 +147,7 @@ async function isAccountExist(identifierAccount: IdentifierAccountInput): Promis
   // ask gradido node server for account type, if type !== NONE account exist
   const addressType = await GradidoNodeClient.getInstance().getAddressType(
     publicKey.convertToHex(),
-    identifierAccountParsed.communityTopicId,
+    identifierAccountParsed.communityId,
   )
   const exists = addressType !== AddressType_NONE
   const endTime = Date.now()
