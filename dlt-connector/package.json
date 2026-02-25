@@ -20,7 +20,7 @@
   "dependencies": {
     "bun-zigar": "^0.15.2",
     "cross-env": "^7.0.3",
-    "gradido-blockchain-js": "git+https://github.com/gradido/gradido-blockchain-js#f265dbb1780a912cf8b0418dfe3eaf5cdc5b51cf"
+    "gradido-blockchain-js": "git+https://github.com/gradido/gradido-blockchain-js#66c8f6839dd95fc34d323066951b80043690fdc2"
   },
   "devDependencies": {
     "@biomejs/biome": "2.0.0",
