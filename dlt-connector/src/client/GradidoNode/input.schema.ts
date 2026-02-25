@@ -1,12 +1,12 @@
 import * as v from 'valibot'
-import { hieroIdSchema, hieroTransactionIdStringSchema } from '../../schemas/typeGuard.schema'
+import { uuidv4Schema, hieroTransactionIdStringSchema } from '../../schemas/typeGuard.schema'
 
 export const transactionsRangeSchema = v.object({
   // default value is 1, from first transactions
   fromTransactionId: v.nullish(v.pipe(v.number(), v.minValue(1, 'expect number >= 1')), 1),
   // default value is 100, max 100 transactions
   maxResultCount: v.nullish(v.pipe(v.number(), v.minValue(1, 'expect number >= 1')), 100),
-  topic: hieroIdSchema,
+  communityId: uuidv4Schema,
 })
 
 export type TransactionsRangeInput = v.InferInput<typeof transactionsRangeSchema>
@@ -19,7 +19,7 @@ export const transactionIdentifierSchema = v.pipe(
       undefined,
     ),
     hieroTransactionId: v.nullish(hieroTransactionIdStringSchema, undefined),
-    topic: hieroIdSchema,
+    communityId: uuidv4Schema,
   }),
   v.custom((value: any) => {
     const setFieldsCount =

@@ -5,7 +5,7 @@ import { getLogger } from 'log4js'
 import { CONFIG } from '../../config'
 import { GRADIDO_NODE_HOME_FOLDER_NAME, LOG4JS_BASE_CATEGORY } from '../../config/const'
 import { HieroId } from '../../schemas/typeGuard.schema'
-import { checkFileExist, checkPathExist } from '../../utils/filesystem'
+import { checkFileExist, checkPathExist, toFolderName } from '../../utils/filesystem'
 import { BackendClient } from '../backend/BackendClient'
 import { GradidoNodeProcess } from './GradidoNodeProcess'
 
@@ -15,7 +15,7 @@ const ensureCommunitiesAvailableMutex: Mutex = new Mutex()
 // prototype, later add api call to gradido dlt node server for adding/updating communities
 type CommunityForDltNodeServer = {
   communityId: string
-  hieroTopicId: string
+  hieroTopicId?: string | null
   alias: string
   folder: string
 }
@@ -38,28 +38,21 @@ export async function ensureCommunitiesAvailable(communityTopicIds: HieroId[]): 
 }
 
 export async function exportCommunities(homeFolder: string, client: BackendClient): Promise<void> {
-  const communities = await client.getReachableCommunities()
+  const communities = await client.getAuthorizedCommunities()
+  console.log(`communities: ${JSON.stringify(communities, null, 2)}`)
   const communitiesPath = path.join(homeFolder, 'communities.json')
   checkPathExist(path.dirname(communitiesPath), true)
-  // make sure communityName is unique
-  const communityName = new Set<string>()
   const communitiesForDltNodeServer: CommunityForDltNodeServer[] = []
   for (const com of communities) {
-    if (!com.uuid || !com.hieroTopicId) {
+    if (!com.uuid) {
       continue
     }
-    // use name as alias if not empty and unique, otherwise use uuid
-    let alias = com.name
-    if (!alias || communityName.has(alias)) {
-      alias = com.uuid
-    }
-    communityName.add(alias)
     communitiesForDltNodeServer.push({
       communityId: com.uuid,
       hieroTopicId: com.hieroTopicId,
-      alias,
+      alias: com.name,
       // use only alpha-numeric chars for folder name
-      folder: alias.replace(/[^a-zA-Z0-9]/g, '_'),
+      folder: toFolderName(com.uuid), 
     })
   }
   fs.writeFileSync(communitiesPath, JSON.stringify(communitiesForDltNodeServer, null, 2))

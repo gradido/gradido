@@ -44,3 +44,14 @@ export const getReachableCommunities = gql`
   }
   ${communityFragment}
 `
+
+export const getAuthorizedCommunities = gql`
+  query {
+    authorizedCommunities {
+    ...Community_common
+    }
+  }
+  ${communityFragment}
+`
+
+

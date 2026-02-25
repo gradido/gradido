@@ -6,6 +6,7 @@ import { CONFIG } from '../../config'
 import { LOG4JS_BASE_CATEGORY } from '../../config/const'
 import { HieroId, Uuidv4 } from '../../schemas/typeGuard.schema'
 import {
+  getAuthorizedCommunities,
   getReachableCommunities,
   homeCommunityGraphqlQuery,
   setHomeCommunityTopicId,
@@ -99,6 +100,19 @@ export class BackendClient {
       throw errors[0]
     }
     return v.parse(v.array(communitySchema), data.reachableCommunities)
+  }
+
+  public async getAuthorizedCommunities(): Promise<Community[]> {
+    this.logger.info('get authorized communities on backend')
+    const { data, errors } = await this.client.rawRequest<{ authorizedCommunities: Community[] }>(
+      getAuthorizedCommunities,
+      {},
+      await this.getRequestHeader(),
+    )
+    if (errors) {
+      throw errors[0]
+    }
+    return v.parse(v.array(communitySchema), data.authorizedCommunities)
   }
 
   private async getRequestHeader(): Promise<{

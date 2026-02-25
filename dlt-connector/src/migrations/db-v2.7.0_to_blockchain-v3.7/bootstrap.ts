@@ -10,6 +10,7 @@ import { Context } from './Context'
 import { Balance } from './data/Balance'
 import { loadAdminUsersCache, loadCommunities, loadContributionLinkModeratorCache } from './database'
 import { CommunityContext } from './valibot.schema'
+import { toFolderName } from '../../utils/filesystem'
 
 export async function bootstrap(): Promise<Context> {
   const context = await Context.create()
@@ -24,20 +25,14 @@ export async function bootstrap(): Promise<Context> {
 async function bootstrapCommunities(context: Context): Promise<Map<string, CommunityContext>> {
   const communities = new Map<string, CommunityContext>()
   const communitiesDb = await loadCommunities(context.db)
-  const communityNames = new Set<string>()
 
   for (const communityDb of communitiesDb) {
-    let alias = communityDb.name.toLowerCase()
-    if (communityNames.has(alias)) {
-      alias = communityDb.communityUuid
-    } else {
-      communityNames.add(alias)
-    }
-    const blockchain = InMemoryBlockchainProvider.getInstance().getBlockchain(alias)
+    const communityId = communityDb.communityUuid
+    const blockchain = InMemoryBlockchainProvider.getInstance().getBlockchain(communityId)
     if (!blockchain) {
-      throw new Error(`Couldn't create Blockchain for community ${alias}`)
+      throw new Error(`Couldn't create Blockchain for community ${communityId}`)
     }
-    context.logger.info(`Blockchain for community '${alias}' created`)
+    context.logger.info(`Blockchain for community '${communityId}' created`)
     let seed: Hex32
     if (!communityDb.foreign) {
       seed = v.parse(hex32Schema, CONFIG.HOME_COMMUNITY_SEED.convertToHex())
@@ -59,7 +54,7 @@ async function bootstrapCommunities(context: Context): Promise<Map<string, Commu
     const builder = new GradidoTransactionBuilder()
     builder
       .setCreatedAt(creationDate)
-      .setSenderCommunity(alias)
+      .setSenderCommunity(communityId)
       .setCommunityRoot(
         communityKeyPair.getPublicKey(),
         gmwKeyPair.getPublicKey(),
@@ -68,15 +63,15 @@ async function bootstrapCommunities(context: Context): Promise<Map<string, Commu
       .sign(communityKeyPair)
 
     const communityContext: CommunityContext = {
-      communityId: alias,
+      communityId,
       foreign: communityDb.foreign,
       blockchain,
       keyPair: communityKeyPair,
-      folder: alias.replace(/[^a-z0-9]/g, '_'),
-      gmwBalance: new Balance(gmwKeyPair.getPublicKey()!, alias),
-      aufBalance: new Balance(aufKeyPair.getPublicKey()!, alias),
+      folder: toFolderName(communityId),
+      gmwBalance: new Balance(gmwKeyPair.getPublicKey()!, communityId),
+      aufBalance: new Balance(aufKeyPair.getPublicKey()!, communityId),
     }
-    communities.set(communityDb.communityUuid, communityContext)
+    communities.set(communityId, communityContext)
     const accountBalances = new AccountBalances()
     accountBalances.add(communityContext.aufBalance.getAccountBalance())
     accountBalances.add(communityContext.gmwBalance.getAccountBalance())

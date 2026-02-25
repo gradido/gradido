@@ -28,3 +28,7 @@ export function checkPathExist(path: string, createIfMissing: boolean = false): 
   }
   return false
 }
+
+export function toFolderName(name: string): string {
+  return name.toLowerCase().replace(/[^a-z0-9]/g, '_')
+}

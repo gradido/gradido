@@ -1,8 +1,6 @@
 import { asc, eq, isNotNull, sql } from 'drizzle-orm'
 import { MySql2Database } from 'drizzle-orm/mysql2'
-import { getLogger } from 'log4js'
 import * as v from 'valibot'
-import { LOG4JS_BASE_CATEGORY } from '../../config/const'
 import {
   communitiesTable,
   eventsTable,
@@ -16,13 +14,8 @@ import {
   userDbSchema,
 } from './valibot.schema'
 
-const logger = getLogger(
-  `${LOG4JS_BASE_CATEGORY}.migrations.db-v2.7.0_to_blockchain-v3.6.blockchain`,
-)
-
 export const contributionLinkModerators = new Map<number, UserDb>()
 export const adminUsers = new Map<string, UserDb>()
-const transactionIdSet = new Set<number>()
 
 export async function loadContributionLinkModeratorCache(db: MySql2Database): Promise<void> {
   const result = await db

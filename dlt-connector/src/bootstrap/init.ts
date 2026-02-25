@@ -83,7 +83,7 @@ export async function checkGradidoNode(
     if (
       !(await clients.gradidoNode.getTransaction({
         transactionId: 1,
-        topic: homeCommunity.hieroTopicId,
+        communityId: homeCommunity.uuid,
       }))
     ) {
       // if not exist, create community root transaction
