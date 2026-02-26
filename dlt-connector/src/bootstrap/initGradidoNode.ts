@@ -74,6 +74,8 @@ async function ensureGradidoNodeRuntimeAvailable(runtimeFileName: string): Promi
       fs.writeFileSync(archivePath, Buffer.from(compressedBuffer))
       execSync(`tar -xzf ${archivePath}`, { cwd: runtimeFolder })
     }
+  } else {
+    console.log('file exist')
   }
 }
 

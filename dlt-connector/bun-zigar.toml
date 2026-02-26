@@ -1,8 +1,0 @@
-optimize = "ReleaseSmall"
-
-[modules."lib/hello.zigar"]
-source = "zig/hello.zig"
-
-[[targets]]
-arch = "x64"
-platform = "linux"

@@ -48,7 +48,7 @@ export class GradidoNodeProcess {
     const isWindows = process.platform === 'win32'
     const binaryName = isWindows ? 'GradidoNode.exe' : 'GradidoNode'
 
-    return path.join(__dirname, '..', '..', 'gradido_node', 'bin', binaryName)
+    return path.join(__dirname, CONFIG.DLT_GRADIDO_NODE_SERVER_HOME_FOLDER, 'bin', binaryName)
   }
 
   public start() {
@@ -56,10 +56,10 @@ export class GradidoNodeProcess {
       this.logger.warn('GradidoNodeProcess already running.')
       return
     }
-    this.logger.info(`starting GradidoNodeProcess with path: ${GRADIDO_NODE_RUNTIME_PATH}`)
+    this.logger.info(`starting GradidoNodeProcess with path: ${GradidoNodeProcess.getRuntimePathFileName()}`)
     this.lastStarted = new Date()
     const logger = this.logger
-    this.proc = spawn([GRADIDO_NODE_RUNTIME_PATH], {
+    this.proc = spawn([GradidoNodeProcess.getRuntimePathFileName()], {
       env: {
         CLIENTS_HIERO_NETWORKTYPE: CONFIG.HIERO_HEDERA_NETWORK,
         SERVER_JSON_RPC_PORT: CONFIG.DLT_NODE_SERVER_PORT.toString(),
