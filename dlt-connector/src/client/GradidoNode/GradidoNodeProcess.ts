@@ -56,10 +56,11 @@ export class GradidoNodeProcess {
       this.logger.warn('GradidoNodeProcess already running.')
       return
     }
-    this.logger.info(`starting GradidoNodeProcess with path: ${GradidoNodeProcess.getRuntimePathFileName()}`)
+    const gradidoNodeRuntimePath = GradidoNodeProcess.getRuntimePathFileName()
+    this.logger.info(`starting GradidoNodeProcess with path: ${gradidoNodeRuntimePath}`)
     this.lastStarted = new Date()
     const logger = this.logger
-    this.proc = spawn([GradidoNodeProcess.getRuntimePathFileName()], {
+    this.proc = spawn([gradidoNodeRuntimePath], {
       env: {
         CLIENTS_HIERO_NETWORKTYPE: CONFIG.HIERO_HEDERA_NETWORK,
         SERVER_JSON_RPC_PORT: CONFIG.DLT_NODE_SERVER_PORT.toString(),

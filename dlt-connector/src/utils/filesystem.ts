@@ -6,7 +6,6 @@ const logger = getLogger(`${LOG4JS_BASE_CATEGORY}.utils.filesystem`)
 
 export function checkFileExist(filePath: string): boolean {
   try {
-    console.log(`check access to ${filePath}`)
     fs.accessSync(filePath, fs.constants.R_OK | fs.constants.W_OK)
     return true
   } catch (_err) {
