@@ -17,9 +17,7 @@ export function deriveFromCode(code: string): KeyPairEd25519 {
   const hash = new MemoryBlock(code).calculateHash()
   const keyPair = KeyPairEd25519.create(hash)
   if (!keyPair) {
-    throw new ParameterError(
-      `error creating Ed25519 KeyPair from seed: ${code.substring(0, 5)}...`,
-    )
+    throw new ParameterError(`error creating Ed25519 KeyPair from seed: ${code.substring(0, 5)}...`)
   }
   return keyPair
 }
@@ -31,7 +29,10 @@ export function deriveFromKeyPairAndUuid(keyPair: KeyPairEd25519, uuid: Uuidv4):
     parts[i] = hardenDerivationIndex(wholeHex.subarray(i * 4, (i + 1) * 4).readUInt32BE())
   }
   // parts: [2206563009, 2629978174, 2324817329, 2405141782]
-  return parts.reduce((keyPair: KeyPairEd25519, node: number) => deriveFromKeyPairAndIndex(keyPair, node), keyPair)
+  return parts.reduce(
+    (keyPair: KeyPairEd25519, node: number) => deriveFromKeyPairAndIndex(keyPair, node),
+    keyPair,
+  )
 }
 
 export function deriveFromKeyPairAndIndex(keyPair: KeyPairEd25519, index: number): KeyPairEd25519 {

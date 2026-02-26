@@ -1,5 +1,5 @@
 import * as v from 'valibot'
-import { uuidv4Schema, hieroTransactionIdStringSchema } from '../../schemas/typeGuard.schema'
+import { hieroTransactionIdStringSchema, uuidv4Schema } from '../../schemas/typeGuard.schema'
 
 export const transactionsRangeSchema = v.object({
   // default value is 1, from first transactions

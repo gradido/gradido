@@ -8,7 +8,7 @@ import { LOG4JS_BASE_CATEGORY } from '../../config/const'
 import { AddressType } from '../../data/AddressType.enum'
 import { Uuidv4Hash } from '../../data/Uuidv4Hash'
 import { addressTypeSchema, confirmedTransactionSchema } from '../../schemas/typeConverter.schema'
-import { Hex32, Hex32Input, Uuidv4, hex32Schema } from '../../schemas/typeGuard.schema'
+import { Hex32, Hex32Input, hex32Schema, Uuidv4 } from '../../schemas/typeGuard.schema'
 import { isPortOpenRetry } from '../../utils/network'
 import { GradidoNodeErrorCodes } from './GradidoNodeErrorCodes'
 import {
@@ -75,7 +75,10 @@ export class GradidoNodeClient {
     const response = await this.rpcCall<{ transaction: string }>('getTransaction', parameter)
     if (response.isSuccess()) {
       // this.logger.debug('result: ', response.result.transaction)
-      return v.parse(confirmedTransactionSchema, { base64: response.result.transaction, communityId: parameter.communityId })
+      return v.parse(confirmedTransactionSchema, {
+        base64: response.result.transaction,
+        communityId: parameter.communityId,
+      })
     }
     if (response.isError()) {
       if (response.error.code === GradidoNodeErrorCodes.TRANSACTION_NOT_FOUND) {
@@ -100,7 +103,10 @@ export class GradidoNodeClient {
     }
     const response = await this.rpcCall<{ transaction: string }>('getLastTransaction', parameter)
     if (response.isSuccess()) {
-      return v.parse(confirmedTransactionSchema, { base64: response.result.transaction, communityId: parameter.communityId })
+      return v.parse(confirmedTransactionSchema, {
+        base64: response.result.transaction,
+        communityId: parameter.communityId,
+      })
     }
     if (response.isError()) {
       if (response.error.code === GradidoNodeErrorCodes.GRADIDO_NODE_ERROR) {
@@ -137,7 +143,10 @@ export class GradidoNodeClient {
       parameter,
     )
     return result.transactions.map((transactionBase64) =>
-      v.parse(confirmedTransactionSchema, { base64: transactionBase64, communityId: parameter.communityId }),
+      v.parse(confirmedTransactionSchema, {
+        base64: transactionBase64,
+        communityId: parameter.communityId,
+      }),
     )
   }
 
@@ -163,7 +172,10 @@ export class GradidoNodeClient {
       parameter,
     )
     return response.transactions.map((transactionBase64) =>
-      v.parse(confirmedTransactionSchema, { base64: transactionBase64, communityId: parameter.communityId }),
+      v.parse(confirmedTransactionSchema, {
+        base64: transactionBase64,
+        communityId: parameter.communityId,
+      }),
     )
   }
 

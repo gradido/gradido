@@ -23,7 +23,12 @@ export class Context {
   public balanceFixGradidoUser: UserDb | null
   private timeUsed: Profiler
 
-  constructor(logger: Logger, db: MySql2Database, cache: KeyPairCacheManager, balanceFixGradidoUser: UserDb | null) {
+  constructor(
+    logger: Logger,
+    db: MySql2Database,
+    cache: KeyPairCacheManager,
+    balanceFixGradidoUser: UserDb | null,
+  ) {
     this.logger = logger
     this.db = db
     this.cache = cache
@@ -42,23 +47,23 @@ export class Context {
       database: CONFIG.MYSQL_DATABASE,
       port: CONFIG.MYSQL_PORT,
     })
-    const db =  drizzle({ client: connection })
+    const db = drizzle({ client: connection })
     const logger = getLogger(`${LOG4JS_BASE_CATEGORY}.migrations.db-v2.7.0_to_blockchain-v3.5`)
     let balanceFixGradidoUser: UserDb | null = null
     if (process.env.MIGRATION_ACCOUNT_BALANCE_FIX_GRADIDO_ID) {
-      balanceFixGradidoUser = await loadUserByGradidoId(db, process.env.MIGRATION_ACCOUNT_BALANCE_FIX_GRADIDO_ID)
+      balanceFixGradidoUser = await loadUserByGradidoId(
+        db,
+        process.env.MIGRATION_ACCOUNT_BALANCE_FIX_GRADIDO_ID,
+      )
       if (!balanceFixGradidoUser) {
-        logger.error(`MIGRATION_ACCOUNT_BALANCE_FIX_GRADIDO_ID was set to ${process.env.MIGRATION_ACCOUNT_BALANCE_FIX_GRADIDO_ID} but user not found`)
+        logger.error(
+          `MIGRATION_ACCOUNT_BALANCE_FIX_GRADIDO_ID was set to ${process.env.MIGRATION_ACCOUNT_BALANCE_FIX_GRADIDO_ID} but user not found`,
+        )
       }
     } else {
       logger.debug(`MIGRATION_ACCOUNT_BALANCE_FIX_GRADIDO_ID was not set`)
     }
-    return new Context(
-      logger,
-      db,
-      KeyPairCacheManager.getInstance(),
-      balanceFixGradidoUser,
-    )
+    return new Context(logger, db, KeyPairCacheManager.getInstance(), balanceFixGradidoUser)
   }
 
   getCommunityContextByUuid(communityUuid: Uuidv4): CommunityContext {

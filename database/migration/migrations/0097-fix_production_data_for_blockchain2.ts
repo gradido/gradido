@@ -45,7 +45,6 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
    * Fix 0: Update transaction links to match holdAvailableAmount with validUntil, because the old formula lead to incorrect values
    */
 
-  let sumCount = 0
   let count = 0
   let lastProcessedId = 0
   const LIMIT = 200
@@ -106,7 +105,6 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
       `,
         [updates.map((u) => u.id)],
       )
-      sumCount += updates.length
     }
     count = rows.length
     lastProcessedId = rows[rows.length - 1].id

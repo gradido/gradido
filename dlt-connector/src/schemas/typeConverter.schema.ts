@@ -89,7 +89,7 @@ export const confirmedTransactionSchema = v.pipe(
       if (typeof data === 'object' && 'base64' in data && 'communityId' in data) {
         return confirmedTransactionFromBase64(data.base64, data.communityId)
       }
-      throw new Error('invalid data, community id missing, couldn\'t deserialize')
+      throw new Error("invalid data, community id missing, couldn't deserialize")
     },
   ),
 )

@@ -1,24 +1,24 @@
-import { asc, and, gt, eq, or } from 'drizzle-orm'
-import { 
-  AccountBalance, 
-  AccountBalances, 
-  AddressType_COMMUNITY_HUMAN, 
-  GradidoTransactionBuilder, 
-  GradidoUnit, 
-  KeyPairEd25519, 
-  LedgerAnchor, 
-  MemoryBlockPtr 
+import { and, asc, eq, gt, or } from 'drizzle-orm'
+import {
+  AccountBalance,
+  AccountBalances,
+  AddressType_COMMUNITY_HUMAN,
+  GradidoTransactionBuilder,
+  GradidoUnit,
+  KeyPairEd25519,
+  LedgerAnchor,
+  MemoryBlockPtr,
 } from 'gradido-blockchain-js'
 import * as v from 'valibot'
 import { deriveFromKeyPairAndUuid } from '../../../../data/deriveKeyPair'
 import { Uuidv4Hash } from '../../../../data/Uuidv4Hash'
 import { addToBlockchain } from '../../blockchain'
+import { Context } from '../../Context'
 import { usersTable } from '../../drizzle.schema'
 import { BlockchainError, DatabaseError } from '../../errors'
+import { toMysqlDateTime } from '../../utils'
 import { CommunityContext, UserDb, userDbSchema } from '../../valibot.schema'
 import { AbstractSyncRole, IndexType } from './AbstractSync.role'
-import { toMysqlDateTime } from '../../utils'
-import { Context } from '../../Context'
 
 export class UsersSyncRole extends AbstractSyncRole<UserDb> {
   constructor(context: Context) {
@@ -40,20 +40,22 @@ export class UsersSyncRole extends AbstractSyncRole<UserDb> {
 
   async loadFromDb(lastIndex: IndexType, count: number): Promise<UserDb[]> {
     const result = await this.context.db
-        .select()
-        .from(usersTable)
-        .where(and(
+      .select()
+      .from(usersTable)
+      .where(
+        and(
           or(
             gt(usersTable.createdAt, toMysqlDateTime(lastIndex.date)),
             and(
               eq(usersTable.createdAt, toMysqlDateTime(lastIndex.date)),
-              gt(usersTable.id, lastIndex.id)
-            )
-          )
-        ))
-        .orderBy(asc(usersTable.createdAt), asc(usersTable.id))
-        .limit(count)
-    
+              gt(usersTable.id, lastIndex.id),
+            ),
+          ),
+        ),
+      )
+      .orderBy(asc(usersTable.createdAt), asc(usersTable.id))
+      .limit(count)
+
     return result.map((row) => {
       try {
         return v.parse(userDbSchema, row)
@@ -65,10 +67,10 @@ export class UsersSyncRole extends AbstractSyncRole<UserDb> {
 
   buildTransaction(
     communityContext: CommunityContext,
-    item: UserDb, 
-    communityKeyPair: KeyPairEd25519, 
-    accountKeyPair: KeyPairEd25519, 
-    userKeyPair: KeyPairEd25519
+    item: UserDb,
+    communityKeyPair: KeyPairEd25519,
+    accountKeyPair: KeyPairEd25519,
+    userKeyPair: KeyPairEd25519,
   ): GradidoTransactionBuilder {
     return this.transactionBuilder
       .setCreatedAt(item.createdAt)
@@ -84,9 +86,14 @@ export class UsersSyncRole extends AbstractSyncRole<UserDb> {
       .sign(userKeyPair)
   }
 
-  calculateAccountBalances(accountPublicKey: MemoryBlockPtr, communityContext: CommunityContext,): AccountBalances {
+  calculateAccountBalances(
+    accountPublicKey: MemoryBlockPtr,
+    communityContext: CommunityContext,
+  ): AccountBalances {
     this.accountBalances.clear()
-    this.accountBalances.add(new AccountBalance(accountPublicKey, GradidoUnit.zero(), communityContext.communityId))
+    this.accountBalances.add(
+      new AccountBalance(accountPublicKey, GradidoUnit.zero(), communityContext.communityId),
+    )
     return this.accountBalances
   }
 
@@ -101,7 +108,13 @@ export class UsersSyncRole extends AbstractSyncRole<UserDb> {
 
     try {
       addToBlockchain(
-        this.buildTransaction(communityContext, item, communityContext.keyPair, accountKeyPair, userKeyPair).build(),
+        this.buildTransaction(
+          communityContext,
+          item,
+          communityContext.keyPair,
+          accountKeyPair,
+          userKeyPair,
+        ).build(),
         communityContext.blockchain,
         new LedgerAnchor(item.id, LedgerAnchor.Type_LEGACY_GRADIDO_DB_USER_ID),
         this.calculateAccountBalances(accountPublicKey, communityContext),

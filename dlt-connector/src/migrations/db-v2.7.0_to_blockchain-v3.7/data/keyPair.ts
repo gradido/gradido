@@ -30,7 +30,10 @@ export function generateKeyPairCommunity(
   if (!keyPair) {
     throw new Error(`Couldn't create key pair for community ${community.communityUuid}`)
   }
-  const communityKeyPairKey = new KeyPairIdentifierLogic({ communityTopicId: topicId, communityId: community.communityUuid }).getKey()
+  const communityKeyPairKey = new KeyPairIdentifierLogic({
+    communityTopicId: topicId,
+    communityId: community.communityUuid,
+  }).getKey()
   cache.addKeyPair(communityKeyPairKey, keyPair)
   logger.info(`Community Key Pair added with key: ${communityKeyPairKey}`)
 }

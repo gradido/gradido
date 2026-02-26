@@ -1,18 +1,8 @@
 import { asc, eq, isNotNull, sql } from 'drizzle-orm'
 import { MySql2Database } from 'drizzle-orm/mysql2'
 import * as v from 'valibot'
-import {
-  communitiesTable,
-  eventsTable,
-  userRolesTable,
-  usersTable
-} from './drizzle.schema'
-import {
-  CommunityDb,
-  UserDb,
-  communityDbSchema,
-  userDbSchema,
-} from './valibot.schema'
+import { communitiesTable, eventsTable, userRolesTable, usersTable } from './drizzle.schema'
+import { CommunityDb, communityDbSchema, UserDb, userDbSchema } from './valibot.schema'
 
 export const contributionLinkModerators = new Map<number, UserDb>()
 export const adminUsers = new Map<string, UserDb>()
@@ -29,7 +19,10 @@ export async function loadContributionLinkModeratorCache(db: MySql2Database): Pr
     .orderBy(asc(eventsTable.id))
 
   result.map((row: any) => {
-    contributionLinkModerators.set(row.event.involvedContributionLinkId, v.parse(userDbSchema, row.user))
+    contributionLinkModerators.set(
+      row.event.involvedContributionLinkId,
+      v.parse(userDbSchema, row.user),
+    )
   })
 }
 
@@ -69,7 +62,10 @@ export async function loadCommunities(db: MySql2Database): Promise<CommunityDb[]
   })
 }
 
-export async function loadUserByGradidoId(db: MySql2Database, gradidoId: string): Promise<UserDb | null> {
+export async function loadUserByGradidoId(
+  db: MySql2Database,
+  gradidoId: string,
+): Promise<UserDb | null> {
   const result = await db
     .select()
     .from(usersTable)
@@ -78,4 +74,3 @@ export async function loadUserByGradidoId(db: MySql2Database, gradidoId: string)
 
   return result.length ? v.parse(userDbSchema, result[0]) : null
 }
-

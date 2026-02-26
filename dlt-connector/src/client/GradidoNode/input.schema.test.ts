@@ -1,14 +1,14 @@
 import { beforeAll, describe, expect, it } from 'bun:test'
+import { v4 as uuidv4 } from 'uuid'
 import * as v from 'valibot'
 import {
   HieroTransactionIdString,
-  Uuidv4,
   hieroIdSchema,
   hieroTransactionIdStringSchema,
+  Uuidv4,
   uuidv4Schema,
 } from '../../schemas/typeGuard.schema'
 import { transactionIdentifierSchema } from './input.schema'
-import { v4 as uuidv4 } from 'uuid'
 
 let communityId: Uuidv4
 const uuidv4String = uuidv4()

@@ -22,9 +22,7 @@ export function decayFormula(value: Decimal, seconds: number): Decimal {
   // chatgpt: We convert to string here to avoid precision loss:
   //          .pow(seconds) can internally round the result, especially for large values of `seconds`.
   //          Using .toString() ensures full precision is preserved in the multiplication.
-  return value.mul(
-    DECAY_FACTOR.pow(seconds).toString(),
-  )
+  return value.mul(DECAY_FACTOR.pow(seconds).toString())
 }
 
 // legacy reverse decay formula

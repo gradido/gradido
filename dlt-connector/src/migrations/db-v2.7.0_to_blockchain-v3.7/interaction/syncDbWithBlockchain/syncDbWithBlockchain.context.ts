@@ -1,15 +1,15 @@
 import { Profiler } from 'gradido-blockchain-js'
-import { Context } from '../../Context'
-import { CreationsSyncRole } from './CreationsSync.role'
-import { LocalTransactionsSyncRole } from './LocalTransactionsSync.role'
-import { UsersSyncRole } from './UsersSync.role'
-import { TransactionLinkFundingsSyncRole } from './TransactionLinkFundingsSync.role'
-import { RedeemTransactionLinksSyncRole } from './RedeemTransactionLinksSync.role'
-import { ContributionLinkTransactionSyncRole } from './ContributionLinkTransactionSync.role'
-import { DeletedTransactionLinksSyncRole } from './DeletedTransactionLinksSync.role'
-import { RemoteTransactionsSyncRole } from './RemoteTransactionsSync.role'
 import { callTime } from '../../blockchain'
+import { Context } from '../../Context'
 import { nanosBalanceForUser } from './AbstractSync.role'
+import { ContributionLinkTransactionSyncRole } from './ContributionLinkTransactionSync.role'
+import { CreationsSyncRole } from './CreationsSync.role'
+import { DeletedTransactionLinksSyncRole } from './DeletedTransactionLinksSync.role'
+import { LocalTransactionsSyncRole } from './LocalTransactionsSync.role'
+import { RedeemTransactionLinksSyncRole } from './RedeemTransactionLinksSync.role'
+import { RemoteTransactionsSyncRole } from './RemoteTransactionsSync.role'
+import { TransactionLinkFundingsSyncRole } from './TransactionLinkFundingsSync.role'
+import { UsersSyncRole } from './UsersSync.role'
 
 export async function syncDbWithBlockchainContext(context: Context, batchSize: number) {
   const timeUsedDB = new Profiler()
@@ -38,7 +38,7 @@ export async function syncDbWithBlockchainContext(context: Context, batchSize: n
     const loadedItemsCount = results.reduce((acc, c) => acc + c, 0)
     // log only, if at least one new item was loaded
     if (loadedItemsCount && isDebug) {
-      context.logger.debug(`${loadedItemsCount} new items loaded from db in ${timeUsedDB.string()}`)      
+      context.logger.debug(`${loadedItemsCount} new items loaded from db in ${timeUsedDB.string()}`)
     }
 
     // remove empty containers
@@ -53,17 +53,21 @@ export async function syncDbWithBlockchainContext(context: Context, batchSize: n
       available.sort((a, b) => a.getDate().getTime() - b.getDate().getTime())
       // context.logger.debug(`sorted ${available.length} containers in ${sortTime.string()}`)
     }
-    available[0].toBlockchain()    
+    available[0].toBlockchain()
     transactionsCount++
-    if (isDebug) {    
-      if (timeBetweenPrints.millis() > 100) {  
+    if (isDebug) {
+      if (timeBetweenPrints.millis() > 100) {
         process.stdout.write(`successfully added to blockchain: ${transactionsCount}\r`)
         timeBetweenPrints.reset()
       }
-      transactionsCountSinceLastLog++       
+      transactionsCountSinceLastLog++
       if (transactionsCountSinceLastLog >= batchSize) {
-        context.logger.debug(`${transactionsCountSinceLastLog} transactions added to blockchain in ${timeUsedBlockchain.string()}`)
-        context.logger.info(`Time for createAndConfirm: ${((callTime - lastPrintedCallTime) / 1000 / 1000).toFixed(2)} milliseconds`) 
+        context.logger.debug(
+          `${transactionsCountSinceLastLog} transactions added to blockchain in ${timeUsedBlockchain.string()}`,
+        )
+        context.logger.info(
+          `Time for createAndConfirm: ${((callTime - lastPrintedCallTime) / 1000 / 1000).toFixed(2)} milliseconds`,
+        )
         lastPrintedCallTime = callTime
         timeUsedBlockchain.reset()
         transactionsCountSinceLastLog = 0
@@ -76,8 +80,14 @@ export async function syncDbWithBlockchainContext(context: Context, batchSize: n
       }
     }
   }
-  process.stdout.write(`successfully added to blockchain: ${transactionsCount}\n`)  
-  context.logger.info(`Synced ${transactionsCount} transactions to blockchain in ${timeUsedAll.string()}`)
-  context.logger.info(`Time for createAndConfirm: ${(callTime / 1000 / 1000 / 1000).toFixed(2)} seconds`) 
-  context.logger.info(`Time for call lastBalance of user: ${(nanosBalanceForUser / 1000 / 1000 / 1000).toFixed(2)} seconds`)
+  process.stdout.write(`successfully added to blockchain: ${transactionsCount}\n`)
+  context.logger.info(
+    `Synced ${transactionsCount} transactions to blockchain in ${timeUsedAll.string()}`,
+  )
+  context.logger.info(
+    `Time for createAndConfirm: ${(callTime / 1000 / 1000 / 1000).toFixed(2)} seconds`,
+  )
+  context.logger.info(
+    `Time for call lastBalance of user: ${(nanosBalanceForUser / 1000 / 1000 / 1000).toFixed(2)} seconds`,
+  )
 }

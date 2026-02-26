@@ -103,13 +103,12 @@ export async function getNotReachableCommunities(
 // return the home community and all communities which had at least once make it through the first handshake
 export async function getAuthorizedCommunities(
   order?: FindOptionsOrder<DbCommunity>,
-): Promise<DbCommunity[]>
-{
+): Promise<DbCommunity[]> {
   return await DbCommunity.find({
     where: [
       { authenticatedAt: Not(IsNull()) }, // or
-      { foreign: false }
-    ], 
-    order
+      { foreign: false },
+    ],
+    order,
   })
 }

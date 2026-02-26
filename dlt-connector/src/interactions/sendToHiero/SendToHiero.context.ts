@@ -65,7 +65,9 @@ export async function SendToHieroContext(
     )
 
     // attach Hiero transaction ID to the builder for the inbound transaction
-    builder.setParentLedgerAnchor(new LedgerAnchor(new HieroTransactionId(outboundHieroTransactionIdString)))
+    builder.setParentLedgerAnchor(
+      new LedgerAnchor(new HieroTransactionId(outboundHieroTransactionIdString)),
+    )
 
     // build and validate inbound transaction
     const inboundTransaction = builder.buildInbound()
@@ -103,7 +105,7 @@ function validate(transaction: GradidoTransaction): void {
 async function sendViaHiero(
   gradidoTransaction: GradidoTransaction,
   topic: HieroId,
-  communityId: Uuidv4
+  communityId: Uuidv4,
 ): Promise<HieroTransactionIdString> {
   const client = HieroClient.getInstance()
   const transactionId = await client.sendMessage(topic, communityId, gradidoTransaction)

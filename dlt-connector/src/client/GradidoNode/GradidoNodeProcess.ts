@@ -1,3 +1,4 @@
+import path from 'node:path'
 import { Mutex } from 'async-mutex'
 import { Subprocess, spawn } from 'bun'
 import { getLogger, Logger } from 'log4js'
@@ -10,7 +11,6 @@ import {
   LOG4JS_BASE_CATEGORY,
 } from '../../config/const'
 import { delay } from '../../utils/time'
-import path from 'node:path'
 /**
  * A Singleton class defines the `getInstance` method that lets clients access
  * the unique singleton instance.
@@ -48,14 +48,7 @@ export class GradidoNodeProcess {
     const isWindows = process.platform === 'win32'
     const binaryName = isWindows ? 'GradidoNode.exe' : 'GradidoNode'
 
-    return path.join(
-      __dirname,
-      '..',
-      '..',
-      'gradido_node',
-      'bin',
-      binaryName,
-    )
+    return path.join(__dirname, '..', '..', 'gradido_node', 'bin', binaryName)
   }
 
   public start() {

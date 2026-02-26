@@ -43,7 +43,9 @@ export function exportCommunity(
   const isDebug = context.logger.isDebugEnabled()
   const printConsole = () => {
     if (triggeredTransactionsCount > 0) {
-      process.stdout.write(`exported ${count} transactions + ${triggeredTransactionsCount} triggered from timeouted transaction links\r`)
+      process.stdout.write(
+        `exported ${count} transactions + ${triggeredTransactionsCount} triggered from timeouted transaction links\r`,
+      )
     } else {
       process.stdout.write(`exported ${count} transactions\r`)
     }
@@ -59,7 +61,12 @@ export function exportCommunity(
         throw new Error(`invalid TransactionEntry at index: ${transactionNr} `)
       }
       hash = exportTransaction(confirmedTransaction, hash, binFilePath)
-      if (confirmedTransaction?.getGradidoTransaction()?.getTransactionBody()?.isTimeoutDeferredTransfer()) {
+      if (
+        confirmedTransaction
+          ?.getGradidoTransaction()
+          ?.getTransactionBody()
+          ?.isTimeoutDeferredTransfer()
+      ) {
         triggeredTransactionsCount++
       } else {
         count++
@@ -77,7 +84,7 @@ export function exportCommunity(
         }
       }
     }
-    f.pagination.page++    
+    f.pagination.page++
   } while (lastTransactionCount === batchSize)
   printConsole()
   process.stdout.write(`\n`)
@@ -86,7 +93,7 @@ export function exportCommunity(
   context.logger.info(
     `binary file for community ${communityContext.communityId} written to ${binFilePath}`,
   )
-  const sumTransactionsCount = ((f.pagination.page - 2) * batchSize) + lastTransactionCount
+  const sumTransactionsCount = (f.pagination.page - 2) * batchSize + lastTransactionCount
   const fileSize = fs.statSync(binFilePath).size
   context.logger.info(
     `exported ${sumTransactionsCount} transactions (${bytesString(fileSize)}) in ${timeUsed.string()}`,

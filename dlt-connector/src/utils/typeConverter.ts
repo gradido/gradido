@@ -8,7 +8,10 @@ import { AccountType } from '../data/AccountType.enum'
 import { AddressType } from '../data/AddressType.enum'
 import { Uuidv4 } from '../schemas/typeGuard.schema'
 
-export const confirmedTransactionFromBase64 = (base64: string, communityId: Uuidv4): ConfirmedTransaction => {
+export const confirmedTransactionFromBase64 = (
+  base64: string,
+  communityId: Uuidv4,
+): ConfirmedTransaction => {
   const confirmedTransactionBinaryPtr = MemoryBlock.createPtr(MemoryBlock.fromBase64(base64))
   const deserializer = new InteractionDeserialize(
     confirmedTransactionBinaryPtr,

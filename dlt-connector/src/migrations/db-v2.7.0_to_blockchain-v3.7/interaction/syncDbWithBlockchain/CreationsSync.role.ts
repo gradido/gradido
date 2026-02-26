@@ -1,33 +1,33 @@
-import { and, asc, eq, isNull, gt, or } from 'drizzle-orm'
+import { and, asc, eq, gt, isNull, or } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/mysql-core'
-import { 
-  AccountBalances, 
-  AuthenticatedEncryption, 
-  EncryptedMemo, 
-  Filter, 
-  GradidoTransactionBuilder, 
-  KeyPairEd25519, 
-  LedgerAnchor, 
-  MemoryBlockPtr, 
-  SearchDirection_DESC, 
-  TransactionType_CREATION, 
-  TransferAmount 
+import {
+  AccountBalances,
+  AuthenticatedEncryption,
+  EncryptedMemo,
+  Filter,
+  GradidoTransactionBuilder,
+  KeyPairEd25519,
+  LedgerAnchor,
+  MemoryBlockPtr,
+  SearchDirection_DESC,
+  TransactionType_CREATION,
+  TransferAmount,
 } from 'gradido-blockchain-js'
 import * as v from 'valibot'
 import { addToBlockchain } from '../../blockchain'
-import { ContributionStatus } from '../../data/ContributionStatus'
 import { Context } from '../../Context'
-import {
-  contributionsTable,  
-  usersTable
-} from '../../drizzle.schema'
+import { ContributionStatus } from '../../data/ContributionStatus'
+import { contributionsTable, usersTable } from '../../drizzle.schema'
 import { BlockchainError, DatabaseError } from '../../errors'
-import { CommunityContext, CreationTransactionDb, creationTransactionDbSchema } from '../../valibot.schema'
-import { AbstractSyncRole, IndexType } from './AbstractSync.role'
 import { toMysqlDateTime } from '../../utils'
+import {
+  CommunityContext,
+  CreationTransactionDb,
+  creationTransactionDbSchema,
+} from '../../valibot.schema'
+import { AbstractSyncRole, IndexType } from './AbstractSync.role'
 
-export class CreationsSyncRole extends AbstractSyncRole<CreationTransactionDb> {  
-
+export class CreationsSyncRole extends AbstractSyncRole<CreationTransactionDb> {
   constructor(context: Context) {
     super(context)
     this.accountBalances.reserve(3)
@@ -38,16 +38,16 @@ export class CreationsSyncRole extends AbstractSyncRole<CreationTransactionDb> {
   }
 
   getLastIndex(): IndexType {
-      const lastItem = this.peekLast()
-      return { date: lastItem.confirmedAt, id: lastItem.transactionId }
-    }
+    const lastItem = this.peekLast()
+    return { date: lastItem.confirmedAt, id: lastItem.transactionId }
+  }
 
   itemTypeName(): string {
     return 'creationTransactions'
   }
 
   async loadFromDb(lastIndex: IndexType, count: number): Promise<CreationTransactionDb[]> {
-    const confirmedByUsers = alias(usersTable, 'confirmedByUser')  
+    const confirmedByUsers = alias(usersTable, 'confirmedByUser')
     const result = await this.context.db
       .select({
         contribution: contributionsTable,
@@ -55,22 +55,24 @@ export class CreationsSyncRole extends AbstractSyncRole<CreationTransactionDb> {
         confirmedByUser: confirmedByUsers,
       })
       .from(contributionsTable)
-      .where(and(
-        isNull(contributionsTable.contributionLinkId),
-        eq(contributionsTable.contributionStatus, ContributionStatus.CONFIRMED),
-        or(
-          gt(contributionsTable.confirmedAt, toMysqlDateTime(lastIndex.date)),
-          and(
-            eq(contributionsTable.confirmedAt, toMysqlDateTime(lastIndex.date)),
-            gt(contributionsTable.transactionId, lastIndex.id)
-          )
-        )
-      ))
+      .where(
+        and(
+          isNull(contributionsTable.contributionLinkId),
+          eq(contributionsTable.contributionStatus, ContributionStatus.CONFIRMED),
+          or(
+            gt(contributionsTable.confirmedAt, toMysqlDateTime(lastIndex.date)),
+            and(
+              eq(contributionsTable.confirmedAt, toMysqlDateTime(lastIndex.date)),
+              gt(contributionsTable.transactionId, lastIndex.id),
+            ),
+          ),
+        ),
+      )
       .innerJoin(usersTable, eq(contributionsTable.userId, usersTable.id))
       .innerJoin(confirmedByUsers, eq(contributionsTable.confirmedBy, confirmedByUsers.id))
       .orderBy(asc(contributionsTable.confirmedAt), asc(contributionsTable.transactionId))
       .limit(count)
-  
+
     return result.map((row) => {
       const item = {
         ...row.contribution,
@@ -86,12 +88,12 @@ export class CreationsSyncRole extends AbstractSyncRole<CreationTransactionDb> {
   }
 
   buildTransaction(
-    item: CreationTransactionDb, 
-    communityContext: CommunityContext, 
-    recipientKeyPair: KeyPairEd25519, 
-    signerKeyPair: KeyPairEd25519
+    item: CreationTransactionDb,
+    communityContext: CommunityContext,
+    recipientKeyPair: KeyPairEd25519,
+    signerKeyPair: KeyPairEd25519,
   ): GradidoTransactionBuilder {
-    return this.transactionBuilder    
+    return this.transactionBuilder
       .setCreatedAt(item.confirmedAt)
       .setRecipientCommunity(communityContext.communityId)
       .addMemo(
@@ -102,19 +104,27 @@ export class CreationsSyncRole extends AbstractSyncRole<CreationTransactionDb> {
         ),
       )
       .setTransactionCreation(
-        new TransferAmount(recipientKeyPair.getPublicKey(), item.amount, communityContext.communityId),
+        new TransferAmount(
+          recipientKeyPair.getPublicKey(),
+          item.amount,
+          communityContext.communityId,
+        ),
         item.contributionDate,
       )
       .sign(signerKeyPair)
   }
 
   calculateAccountBalances(
-    item: CreationTransactionDb, 
-    communityContext: CommunityContext, 
-    recipientPublicKey: MemoryBlockPtr
+    item: CreationTransactionDb,
+    communityContext: CommunityContext,
+    recipientPublicKey: MemoryBlockPtr,
   ): AccountBalances {
     this.accountBalances.clear()
-    const balance = this.getLastBalanceForUser(recipientPublicKey, communityContext.blockchain, communityContext.communityId)
+    const balance = this.getLastBalanceForUser(
+      recipientPublicKey,
+      communityContext.blockchain,
+      communityContext.communityId,
+    )
 
     // calculate decay since last balance with legacy calculation method
     balance.updateLegacyDecay(item.amount, item.confirmedAt)
@@ -131,9 +141,11 @@ export class CreationsSyncRole extends AbstractSyncRole<CreationTransactionDb> {
     const communityContext = this.context.getCommunityContextByUuid(item.user.communityUuid)
     const blockchain = communityContext.blockchain
     if (item.confirmedByUser.communityUuid !== item.user.communityUuid) {
-      throw new Error(`contribution was confirmed from other community: ${JSON.stringify(item, null, 2)}`)
+      throw new Error(
+        `contribution was confirmed from other community: ${JSON.stringify(item, null, 2)}`,
+      )
     }
-    
+
     const recipientKeyPair = this.getAccountKeyPair(communityContext, item.user.gradidoId)
     const recipientPublicKey = recipientKeyPair.getPublicKey()
     const signerKeyPair = this.getAccountKeyPair(communityContext, item.confirmedByUser.gradidoId)
@@ -148,14 +160,16 @@ export class CreationsSyncRole extends AbstractSyncRole<CreationTransactionDb> {
         new LedgerAnchor(item.id, LedgerAnchor.Type_LEGACY_GRADIDO_DB_CONTRIBUTION_ID),
         this.calculateAccountBalances(item, communityContext, recipientPublicKey),
       )
-    } catch(e) {
-      const f= new Filter()
+    } catch (e) {
+      const f = new Filter()
       f.transactionType = TransactionType_CREATION
       f.searchDirection = SearchDirection_DESC
       f.pagination.size = 1
       const lastContribution = blockchain.findOne(f)
       if (lastContribution) {
-        this.context.logger.warn(`last contribution: ${lastContribution.getConfirmedTransaction()?.toJson(true)}`)
+        this.context.logger.warn(
+          `last contribution: ${lastContribution.getConfirmedTransaction()?.toJson(true)}`,
+        )
       }
       throw new BlockchainError(`Error adding ${this.itemTypeName()}`, item, e as Error)
     }

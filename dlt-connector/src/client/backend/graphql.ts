@@ -53,5 +53,3 @@ export const getAuthorizedCommunities = gql`
   }
   ${communityFragment}
 `
-
-

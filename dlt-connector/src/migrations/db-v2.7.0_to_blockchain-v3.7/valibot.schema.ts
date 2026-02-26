@@ -1,3 +1,4 @@
+import Decimal from 'decimal.js-light'
 import { GradidoUnit, InMemoryBlockchain, KeyPairEd25519 } from 'gradido-blockchain-js'
 import * as v from 'valibot'
 import { booleanSchema, dateSchema } from '../../schemas/typeConverter.schema'
@@ -9,7 +10,6 @@ import {
 } from '../../schemas/typeGuard.schema'
 import { Balance } from './data/Balance'
 import { TransactionTypeId } from './data/TransactionTypeId'
-import Decimal from 'decimal.js-light'
 
 const positiveNumberSchema = v.pipe(v.number(), v.minValue(1))
 
@@ -51,53 +51,71 @@ export const transactionBaseSchema = v.object({
   user: userDbSchema,
 })
 
+export const transactionDbSchema = v.pipe(
+  v.object({
+    ...transactionBaseSchema.entries,
+    typeId: v.enum(TransactionTypeId),
+    balanceDate: dateSchema,
+    linkedUser: userDbSchema,
+  }),
+  v.custom((value: any) => {
+    if (
+      value.user &&
+      value.linkedUser &&
+      !value.transactionLinkCode &&
+      value.user.gradidoId === value.linkedUser.gradidoId
+    ) {
+      throw new Error(
+        `expect user to be different from linkedUser: ${JSON.stringify(value, null, 2)}`,
+      )
+    }
+    // check that user and linked user exist before transaction balance date
+    const balanceDate = new Date(value.balanceDate)
+    if (
+      value.user.createdAt.getTime() >= balanceDate.getTime() ||
+      value.linkedUser?.createdAt.getTime() >= balanceDate.getTime()
+    ) {
+      throw new Error(
+        `at least one user was created after transaction balance date, logic error! ${JSON.stringify(value, null, 2)}`,
+      )
+    }
 
-export const transactionDbSchema = v.pipe(v.object({
-  ...transactionBaseSchema.entries,
-  typeId: v.enum(TransactionTypeId),
-  balanceDate: dateSchema,
-  linkedUser: userDbSchema,
-}), v.custom((value: any) => {
-  if (value.user && value.linkedUser && !value.transactionLinkCode && value.user.gradidoId === value.linkedUser.gradidoId) {
-    throw new Error(`expect user to be different from linkedUser: ${JSON.stringify(value, null, 2)}`)
-  }
-  // check that user and linked user exist before transaction balance date
-  const balanceDate = new Date(value.balanceDate)
-  if (
-    value.user.createdAt.getTime() >= balanceDate.getTime() ||
-    value.linkedUser?.createdAt.getTime() >= balanceDate.getTime()
-  ) {
-    throw new Error(
-      `at least one user was created after transaction balance date, logic error! ${JSON.stringify(value, null, 2)}`,
-    )
-  }
-  
-  return value
-}))
+    return value
+  }),
+)
 
-export const creationTransactionDbSchema = v.pipe(v.object({
-  ...transactionBaseSchema.entries,
-  contributionDate: dateSchema,
-  confirmedAt: dateSchema,
-  confirmedByUser: userDbSchema,
-  transactionId: positiveNumberSchema,
-}), v.custom((value: any) => {
-  if (value.user && value.confirmedByUser && value.user.gradidoId === value.confirmedByUser.gradidoId) {
-    throw new Error(`expect user to be different from confirmedByUser: ${JSON.stringify(value, null, 2)}`)
-  }
-  // check that user and confirmedByUser exist before transaction balance date
-  const confirmedAt = new Date(value.confirmedAt)
-  if (
-    value.user.createdAt.getTime() >= confirmedAt.getTime() ||
-    value.confirmedByUser?.createdAt.getTime() >= confirmedAt.getTime()
-  ) {
-    throw new Error(
-      `at least one user was created after transaction confirmedAt date, logic error! ${JSON.stringify(value, null, 2)}`,
-    )
-  }
-  
-  return value
-}))
+export const creationTransactionDbSchema = v.pipe(
+  v.object({
+    ...transactionBaseSchema.entries,
+    contributionDate: dateSchema,
+    confirmedAt: dateSchema,
+    confirmedByUser: userDbSchema,
+    transactionId: positiveNumberSchema,
+  }),
+  v.custom((value: any) => {
+    if (
+      value.user &&
+      value.confirmedByUser &&
+      value.user.gradidoId === value.confirmedByUser.gradidoId
+    ) {
+      throw new Error(
+        `expect user to be different from confirmedByUser: ${JSON.stringify(value, null, 2)}`,
+      )
+    }
+    // check that user and confirmedByUser exist before transaction balance date
+    const confirmedAt = new Date(value.confirmedAt)
+    if (
+      value.user.createdAt.getTime() >= confirmedAt.getTime() ||
+      value.confirmedByUser?.createdAt.getTime() >= confirmedAt.getTime()
+    ) {
+      throw new Error(
+        `at least one user was created after transaction confirmedAt date, logic error! ${JSON.stringify(value, null, 2)}`,
+      )
+    }
+
+    return value
+  }),
+)
 
 export const transactionLinkDbSchema = v.object({
   ...transactionBaseSchema.entries,

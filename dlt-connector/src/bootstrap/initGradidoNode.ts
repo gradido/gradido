@@ -7,10 +7,7 @@ import { exportCommunities } from '../client/GradidoNode/communities'
 import { GradidoNodeProcess } from '../client/GradidoNode/GradidoNodeProcess'
 import { HieroClient } from '../client/hiero/HieroClient'
 import { CONFIG } from '../config'
-import {
-  GRADIDO_NODE_HOME_FOLDER_NAME,
-  LOG4JS_BASE_CATEGORY,
-} from '../config/const'
+import { GRADIDO_NODE_HOME_FOLDER_NAME, LOG4JS_BASE_CATEGORY } from '../config/const'
 import { checkFileExist, checkPathExist } from '../utils/filesystem'
 import { isPortOpen } from '../utils/network'
 import { AppContextClients } from './appContext'

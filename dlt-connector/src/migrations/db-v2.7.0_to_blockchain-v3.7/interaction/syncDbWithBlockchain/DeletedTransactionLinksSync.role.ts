@@ -1,34 +1,38 @@
-import { CommunityContext, DeletedTransactionLinkDb, deletedTransactionLinKDbSchema } from '../../valibot.schema'
-import { AbstractSyncRole, IndexType } from './AbstractSync.role'
-import { transactionLinksTable, usersTable } from '../../drizzle.schema'
-import { and, lt, asc, isNotNull, eq, or, gt } from 'drizzle-orm'
-import * as v from 'valibot'
-import { 
-  AccountBalance, 
-  AccountBalances, 
-  Filter, 
-  GradidoDeferredTransfer, 
+import { and, asc, eq, gt, isNotNull, lt, or } from 'drizzle-orm'
+import {
+  AccountBalance,
+  AccountBalances,
+  Filter,
+  GradidoDeferredTransfer,
   GradidoTransactionBuilder,
-  GradidoTransfer, 
-  GradidoUnit, 
-  KeyPairEd25519, 
-  LedgerAnchor, 
+  GradidoTransfer,
+  GradidoUnit,
+  KeyPairEd25519,
+  LedgerAnchor,
   MemoryBlockPtr,
-  TransferAmount
+  TransferAmount,
 } from 'gradido-blockchain-js'
+import * as v from 'valibot'
 import { deriveFromCode } from '../../../../data/deriveKeyPair'
 import { addToBlockchain } from '../../blockchain'
-import { BlockchainError, DatabaseError } from '../../errors'
-import { Balance } from '../../data/Balance'
-import { toMysqlDateTime } from '../../utils'
 import { Context } from '../../Context'
+import { Balance } from '../../data/Balance'
+import { transactionLinksTable, usersTable } from '../../drizzle.schema'
+import { BlockchainError, DatabaseError } from '../../errors'
+import { toMysqlDateTime } from '../../utils'
+import {
+  CommunityContext,
+  DeletedTransactionLinkDb,
+  deletedTransactionLinKDbSchema,
+} from '../../valibot.schema'
+import { AbstractSyncRole, IndexType } from './AbstractSync.role'
 
 export class DeletedTransactionLinksSyncRole extends AbstractSyncRole<DeletedTransactionLinkDb> {
   constructor(context: Context) {
     super(context)
     this.accountBalances.reserve(2)
   }
-  
+
   getDate(): Date {
     return this.peek().deletedAt
   }
@@ -57,15 +61,15 @@ export class DeletedTransactionLinksSyncRole extends AbstractSyncRole<DeletedTra
             gt(transactionLinksTable.deletedAt, toMysqlDateTime(lastIndex.date)),
             and(
               eq(transactionLinksTable.deletedAt, toMysqlDateTime(lastIndex.date)),
-              gt(transactionLinksTable.id, lastIndex.id)
-            )
-          )
-        )
+              gt(transactionLinksTable.id, lastIndex.id),
+            ),
+          ),
+        ),
       )
       .innerJoin(usersTable, eq(transactionLinksTable.userId, usersTable.id))
       .orderBy(asc(transactionLinksTable.deletedAt), asc(transactionLinksTable.id))
       .limit(count)
-  
+
     return result.map((row) => {
       const item = {
         ...row.transactionLink,
@@ -80,95 +84,118 @@ export class DeletedTransactionLinksSyncRole extends AbstractSyncRole<DeletedTra
   }
 
   buildTransaction(
-      communityContext: CommunityContext,
-      item: DeletedTransactionLinkDb, 
-      linkFundingTransactionNr: number,
-      restAmount: GradidoUnit,
-      senderKeyPair: KeyPairEd25519,
-      linkFundingPublicKey: MemoryBlockPtr,       
-    ): GradidoTransactionBuilder {
-      return this.transactionBuilder
-        .setCreatedAt(item.deletedAt)
-        .setSenderCommunity(communityContext.communityId)
-        .setRedeemDeferredTransfer(
-          linkFundingTransactionNr,
-          new GradidoTransfer(
-            new TransferAmount(senderKeyPair.getPublicKey(), restAmount, communityContext.communityId),
-            linkFundingPublicKey,
+    communityContext: CommunityContext,
+    item: DeletedTransactionLinkDb,
+    linkFundingTransactionNr: number,
+    restAmount: GradidoUnit,
+    senderKeyPair: KeyPairEd25519,
+    linkFundingPublicKey: MemoryBlockPtr,
+  ): GradidoTransactionBuilder {
+    return this.transactionBuilder
+      .setCreatedAt(item.deletedAt)
+      .setSenderCommunity(communityContext.communityId)
+      .setRedeemDeferredTransfer(
+        linkFundingTransactionNr,
+        new GradidoTransfer(
+          new TransferAmount(
+            senderKeyPair.getPublicKey(),
+            restAmount,
+            communityContext.communityId,
           ),
-        )
-        .sign(senderKeyPair)
+          linkFundingPublicKey,
+        ),
+      )
+      .sign(senderKeyPair)
   }
 
   calculateBalances(
-    item: DeletedTransactionLinkDb, 
+    item: DeletedTransactionLinkDb,
     fundingTransaction: GradidoDeferredTransfer,
     senderLastBalance: Balance,
     communityContext: CommunityContext,
     senderPublicKey: MemoryBlockPtr,
   ): AccountBalances {
-    this.accountBalances.clear()    
-    
+    this.accountBalances.clear()
+
     const fundingUserLastBalance = this.getLastBalanceForUser(
-      fundingTransaction.getSenderPublicKey()!, 
-      communityContext.blockchain, 
-      communityContext.communityId
+      fundingTransaction.getSenderPublicKey()!,
+      communityContext.blockchain,
+      communityContext.communityId,
     )
     fundingUserLastBalance.updateLegacyDecay(senderLastBalance.getBalance(), item.deletedAt)
-    
+
     // account of link is set to zero, gdd will be send back to initiator
-    this.accountBalances.add(new AccountBalance(senderPublicKey, GradidoUnit.zero(), communityContext.communityId))
+    this.accountBalances.add(
+      new AccountBalance(senderPublicKey, GradidoUnit.zero(), communityContext.communityId),
+    )
     this.accountBalances.add(fundingUserLastBalance.getAccountBalance())
     return this.accountBalances
   }
 
   pushToBlockchain(item: DeletedTransactionLinkDb): void {
-      const communityContext = this.context.getCommunityContextByUuid(item.user.communityUuid)
-      const blockchain = communityContext.blockchain
-  
-      const senderKeyPair = deriveFromCode(item.code)
-      const senderPublicKey = senderKeyPair.getPublicKey()
-      
-      if (!senderKeyPair || !senderPublicKey) {
-        throw new Error(`missing key for ${this.itemTypeName()}: ${JSON.stringify(item, null, 2)}`)
-      }
-      
-      const transaction = blockchain.findOne(Filter.lastBalanceFor(senderPublicKey))
-      if (!transaction) {
-        throw new Error(`expect transaction for code: ${item.code}`)
-      }
-      // should be funding transaction
-      if (!transaction.isDeferredTransfer()) {
-        throw new Error(`expect funding transaction: ${transaction.getConfirmedTransaction()?.toJson(true)}`)
-      }
-      const body = transaction.getConfirmedTransaction()?.getGradidoTransaction()?.getTransactionBody();
-      const deferredTransfer = body?.getDeferredTransfer()
-      if (!deferredTransfer || !deferredTransfer.getRecipientPublicKey()?.equal(senderPublicKey)) {
-        throw new Error(`expect funding transaction to belong to code: ${item.code}: ${transaction.getConfirmedTransaction()?.toJson(true)}`)
-      }
-      const linkFundingPublicKey = deferredTransfer.getSenderPublicKey()
-      if (!linkFundingPublicKey) {
-        throw new Error(`missing sender public key of transaction link founder`)
-      }
-      const senderLastBalance = this.getLastBalanceForUser(senderPublicKey, communityContext.blockchain, communityContext.communityId)
-      senderLastBalance.updateLegacyDecay(GradidoUnit.zero(), item.deletedAt)
-  
-      try {
-        addToBlockchain(
-          this.buildTransaction(
-            communityContext,
-            item, transaction.getTransactionNr(), 
-            senderLastBalance.getBalance(), 
-            senderKeyPair, 
-            linkFundingPublicKey,
-          ).build(),
-          blockchain,
-          new LedgerAnchor(item.id, LedgerAnchor.Type_LEGACY_GRADIDO_DB_TRANSACTION_LINK_ID),
-          this.calculateBalances(item, deferredTransfer, senderLastBalance, communityContext, senderPublicKey),
-        )
-      } catch(e) {
-        throw new BlockchainError(`Error adding ${this.itemTypeName()}`, item, e as Error)
-      }
+    const communityContext = this.context.getCommunityContextByUuid(item.user.communityUuid)
+    const blockchain = communityContext.blockchain
+
+    const senderKeyPair = deriveFromCode(item.code)
+    const senderPublicKey = senderKeyPair.getPublicKey()
+
+    if (!senderKeyPair || !senderPublicKey) {
+      throw new Error(`missing key for ${this.itemTypeName()}: ${JSON.stringify(item, null, 2)}`)
     }
-  
+
+    const transaction = blockchain.findOne(Filter.lastBalanceFor(senderPublicKey))
+    if (!transaction) {
+      throw new Error(`expect transaction for code: ${item.code}`)
+    }
+    // should be funding transaction
+    if (!transaction.isDeferredTransfer()) {
+      throw new Error(
+        `expect funding transaction: ${transaction.getConfirmedTransaction()?.toJson(true)}`,
+      )
+    }
+    const body = transaction
+      .getConfirmedTransaction()
+      ?.getGradidoTransaction()
+      ?.getTransactionBody()
+    const deferredTransfer = body?.getDeferredTransfer()
+    if (!deferredTransfer || !deferredTransfer.getRecipientPublicKey()?.equal(senderPublicKey)) {
+      throw new Error(
+        `expect funding transaction to belong to code: ${item.code}: ${transaction.getConfirmedTransaction()?.toJson(true)}`,
+      )
+    }
+    const linkFundingPublicKey = deferredTransfer.getSenderPublicKey()
+    if (!linkFundingPublicKey) {
+      throw new Error(`missing sender public key of transaction link founder`)
+    }
+    const senderLastBalance = this.getLastBalanceForUser(
+      senderPublicKey,
+      communityContext.blockchain,
+      communityContext.communityId,
+    )
+    senderLastBalance.updateLegacyDecay(GradidoUnit.zero(), item.deletedAt)
+
+    try {
+      addToBlockchain(
+        this.buildTransaction(
+          communityContext,
+          item,
+          transaction.getTransactionNr(),
+          senderLastBalance.getBalance(),
+          senderKeyPair,
+          linkFundingPublicKey,
+        ).build(),
+        blockchain,
+        new LedgerAnchor(item.id, LedgerAnchor.Type_LEGACY_GRADIDO_DB_TRANSACTION_LINK_ID),
+        this.calculateBalances(
+          item,
+          deferredTransfer,
+          senderLastBalance,
+          communityContext,
+          senderPublicKey,
+        ),
+      )
+    } catch (e) {
+      throw new BlockchainError(`Error adding ${this.itemTypeName()}`, item, e as Error)
+    }
+  }
 }

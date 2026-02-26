@@ -1,12 +1,12 @@
-import { 
-  AccountBalances, 
-  Filter, 
-  InMemoryBlockchain, 
-  KeyPairEd25519, 
-  MemoryBlockPtr, 
-  Profiler, 
-  SearchDirection_DESC, 
-  GradidoTransactionBuilder 
+import {
+  AccountBalances,
+  Filter,
+  GradidoTransactionBuilder,
+  InMemoryBlockchain,
+  KeyPairEd25519,
+  MemoryBlockPtr,
+  Profiler,
+  SearchDirection_DESC,
 } from 'gradido-blockchain-js'
 import { getLogger, Logger } from 'log4js'
 import { LOG4JS_BASE_CATEGORY } from '../../../../config/const'
@@ -21,7 +21,7 @@ export type IndexType = {
   id: number
 }
 export let nanosBalanceForUser = 0
-const lastBalanceOfUserTimeUsed = new Profiler
+const lastBalanceOfUserTimeUsed = new Profiler()
 
 export abstract class AbstractSyncRole<ItemType> {
   private items: ItemType[] = []
@@ -40,16 +40,22 @@ export abstract class AbstractSyncRole<ItemType> {
 
   getAccountKeyPair(communityContext: CommunityContext, gradidoId: Uuidv4): KeyPairEd25519 {
     return this.context.cache.getKeyPairSync(gradidoId, () => {
-      return deriveFromKeyPairAndIndex(deriveFromKeyPairAndUuid(communityContext.keyPair, gradidoId), 1)
+      return deriveFromKeyPairAndIndex(
+        deriveFromKeyPairAndUuid(communityContext.keyPair, gradidoId),
+        1,
+      )
     })
   }
 
-  getLastBalanceForUser(publicKey: MemoryBlockPtr, blockchain: InMemoryBlockchain, communityId: string
+  getLastBalanceForUser(
+    publicKey: MemoryBlockPtr,
+    blockchain: InMemoryBlockchain,
+    communityId: string,
   ): Balance {
     lastBalanceOfUserTimeUsed.reset()
     if (publicKey.isEmpty()) {
       throw new Error('publicKey is empty')
-    }    
+    }
     const f = Filter.lastBalanceFor(publicKey)
     f.setCommunityId(communityId)
     const lastSenderTransaction = blockchain.findOne(f)
@@ -58,19 +64,31 @@ export abstract class AbstractSyncRole<ItemType> {
     }
     const lastConfirmedTransaction = lastSenderTransaction.getConfirmedTransaction()
     if (!lastConfirmedTransaction) {
-      throw new Error(`invalid transaction, getConfirmedTransaction call failed for transaction nr: ${lastSenderTransaction.getTransactionNr()}`)
-  
+      throw new Error(
+        `invalid transaction, getConfirmedTransaction call failed for transaction nr: ${lastSenderTransaction.getTransactionNr()}`,
+      )
     }
-    const senderLastAccountBalance = lastConfirmedTransaction.getAccountBalance(publicKey, communityId)
+    const senderLastAccountBalance = lastConfirmedTransaction.getAccountBalance(
+      publicKey,
+      communityId,
+    )
     if (!senderLastAccountBalance) {
       return new Balance(publicKey, communityId)
     }
-    const result = Balance.fromAccountBalance(senderLastAccountBalance, lastConfirmedTransaction.getConfirmedAt().getDate(), communityId)
+    const result = Balance.fromAccountBalance(
+      senderLastAccountBalance,
+      lastConfirmedTransaction.getConfirmedAt().getDate(),
+      communityId,
+    )
     nanosBalanceForUser += lastBalanceOfUserTimeUsed.nanos()
     return result
   }
 
-  logLastBalanceChangingTransactions(publicKey: MemoryBlockPtr, blockchain: InMemoryBlockchain, transactionCount: number = 5) {
+  logLastBalanceChangingTransactions(
+    publicKey: MemoryBlockPtr,
+    blockchain: InMemoryBlockchain,
+    transactionCount: number = 5,
+  ) {
     if (!this.context.logger.isDebugEnabled()) {
       return
     }
@@ -111,7 +129,7 @@ export abstract class AbstractSyncRole<ItemType> {
       return this.items.length
     }
     return 0
-  }  
+  }
 
   toBlockchain(): void {
     if (this.isEmpty()) {

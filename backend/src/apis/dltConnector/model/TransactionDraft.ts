@@ -133,7 +133,11 @@ export class TransactionDraft {
       sendingUser.community.communityUuid!,
       new CommunityAccountIdentifier(sendingUser.gradidoID),
     )
-    draft.linkedUser = new AccountIdentifier(senderUserTopic, sendingUser.community.communityUuid!, transactionLink.code)
+    draft.linkedUser = new AccountIdentifier(
+      senderUserTopic,
+      sendingUser.community.communityUuid!,
+      transactionLink.code,
+    )
     draft.type = TransactionType.GRADIDO_DEFERRED_TRANSFER
     draft.createdAt = createdAtOnlySeconds.toISOString()
     draft.amount = transactionLink.amount.toString()

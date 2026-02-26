@@ -39,7 +39,6 @@ export async function ensureCommunitiesAvailable(communityTopicIds: HieroId[]): 
 
 export async function exportCommunities(homeFolder: string, client: BackendClient): Promise<void> {
   const communities = await client.getAuthorizedCommunities()
-  console.log(`communities: ${JSON.stringify(communities, null, 2)}`)
   const communitiesPath = path.join(homeFolder, 'communities.json')
   checkPathExist(path.dirname(communitiesPath), true)
   const communitiesForDltNodeServer: CommunityForDltNodeServer[] = []
@@ -52,7 +51,7 @@ export async function exportCommunities(homeFolder: string, client: BackendClien
       hieroTopicId: com.hieroTopicId,
       alias: com.name,
       // use only alpha-numeric chars for folder name
-      folder: toFolderName(com.uuid), 
+      folder: toFolderName(com.uuid),
     })
   }
   fs.writeFileSync(communitiesPath, JSON.stringify(communitiesForDltNodeServer, null, 2))

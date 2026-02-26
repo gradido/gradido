@@ -1,23 +1,36 @@
 import { randomBytes } from 'node:crypto'
-import { AccountBalances, GradidoTransactionBuilder, InMemoryBlockchainProvider, LedgerAnchor } from 'gradido-blockchain-js'
+import {
+  AccountBalances,
+  GradidoTransactionBuilder,
+  InMemoryBlockchainProvider,
+  LedgerAnchor,
+} from 'gradido-blockchain-js'
 import * as v from 'valibot'
 import { CONFIG } from '../../config'
 import { deriveFromSeed } from '../../data/deriveKeyPair'
 import { Hex32, hex32Schema } from '../../schemas/typeGuard.schema'
-import { AUF_ACCOUNT_DERIVATION_INDEX, GMW_ACCOUNT_DERIVATION_INDEX, hardenDerivationIndex } from '../../utils/derivationHelper'
+import {
+  AUF_ACCOUNT_DERIVATION_INDEX,
+  GMW_ACCOUNT_DERIVATION_INDEX,
+  hardenDerivationIndex,
+} from '../../utils/derivationHelper'
+import { toFolderName } from '../../utils/filesystem'
 import { addToBlockchain } from './blockchain'
 import { Context } from './Context'
 import { Balance } from './data/Balance'
-import { loadAdminUsersCache, loadCommunities, loadContributionLinkModeratorCache } from './database'
+import {
+  loadAdminUsersCache,
+  loadCommunities,
+  loadContributionLinkModeratorCache,
+} from './database'
 import { CommunityContext } from './valibot.schema'
-import { toFolderName } from '../../utils/filesystem'
 
 export async function bootstrap(): Promise<Context> {
   const context = await Context.create()
   context.communities = await bootstrapCommunities(context)
   await Promise.all([
     loadContributionLinkModeratorCache(context.db),
-    loadAdminUsersCache(context.db)
+    loadAdminUsersCache(context.db),
   ])
   return context
 }
@@ -39,17 +52,23 @@ async function bootstrapCommunities(context: Context): Promise<Map<string, Commu
     } else {
       seed = v.parse(hex32Schema, randomBytes(32).toString('hex'))
     }
-    
+
     let creationDate = communityDb.creationDate
     if (communityDb.userMinCreatedAt && communityDb.userMinCreatedAt < communityDb.creationDate) {
       // create community root transaction 1 minute before first user
       creationDate = new Date(new Date(communityDb.userMinCreatedAt).getTime() - 1000 * 60)
     }
     const communityKeyPair = deriveFromSeed(seed)
-    const gmwKeyPair = communityKeyPair.deriveChild(hardenDerivationIndex(GMW_ACCOUNT_DERIVATION_INDEX))
-    const aufKeyPair = communityKeyPair.deriveChild(hardenDerivationIndex(AUF_ACCOUNT_DERIVATION_INDEX))
+    const gmwKeyPair = communityKeyPair.deriveChild(
+      hardenDerivationIndex(GMW_ACCOUNT_DERIVATION_INDEX),
+    )
+    const aufKeyPair = communityKeyPair.deriveChild(
+      hardenDerivationIndex(AUF_ACCOUNT_DERIVATION_INDEX),
+    )
     if (!communityKeyPair || !gmwKeyPair || !aufKeyPair) {
-      throw new Error(`Error on creating key pair for community ${JSON.stringify(communityDb, null, 2)}`)
+      throw new Error(
+        `Error on creating key pair for community ${JSON.stringify(communityDb, null, 2)}`,
+      )
     }
     const builder = new GradidoTransactionBuilder()
     builder
@@ -59,7 +78,7 @@ async function bootstrapCommunities(context: Context): Promise<Map<string, Commu
         communityKeyPair.getPublicKey(),
         gmwKeyPair.getPublicKey(),
         aufKeyPair.getPublicKey(),
-      )      
+      )
       .sign(communityKeyPair)
 
     const communityContext: CommunityContext = {

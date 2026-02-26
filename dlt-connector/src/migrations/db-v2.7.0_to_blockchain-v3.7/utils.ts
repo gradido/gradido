@@ -10,7 +10,7 @@ export function bytesToKbyte(bytes: number): string {
 }
 
 export function bytesString(bytes: number): string {
-  if (bytes > (1024 * 1024)) {
+  if (bytes > 1024 * 1024) {
     return `${bytesToMbyte(bytes)} MB`
   } else if (bytes > 1024) {
     return `${bytesToKbyte(bytes)} KB`
@@ -50,7 +50,9 @@ export function legacyCalculateDecay(amount: Decimal, from: Date, to: Date): Dec
   const startBlockMs = DECAY_START_TIME.getTime()
 
   if (toMs < fromMs) {
-    throw new Error(`calculateDecay: to (${to.toISOString()}) < from (${from.toISOString()}), reverse decay calculation is invalid`)
+    throw new Error(
+      `calculateDecay: to (${to.toISOString()}) < from (${from.toISOString()}), reverse decay calculation is invalid`,
+    )
   }
 
   // decay started after end date; no decay
@@ -59,7 +61,7 @@ export function legacyCalculateDecay(amount: Decimal, from: Date, to: Date): Dec
   }
   // decay started before start date; decay for full duration
   let duration = (toMs - fromMs) / 1000
-  
+
   // decay started between start and end date; decay from decay start till end date
   if (startBlockMs >= fromMs) {
     duration = (toMs - startBlockMs) / 1000

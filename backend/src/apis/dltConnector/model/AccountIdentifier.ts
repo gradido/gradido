@@ -5,7 +5,11 @@ export class AccountIdentifier {
   account?: CommunityAccountIdentifier
   seed?: string // used for deferred transfers
 
-  constructor(communityTopicId: string, communityUuid: string, input: CommunityAccountIdentifier | string) {
+  constructor(
+    communityTopicId: string,
+    communityUuid: string,
+    input: CommunityAccountIdentifier | string,
+  ) {
     if (input instanceof CommunityAccountIdentifier) {
       this.account = input
     } else {
