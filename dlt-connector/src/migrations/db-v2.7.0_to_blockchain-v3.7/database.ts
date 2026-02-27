@@ -54,10 +54,8 @@ export async function loadCommunities(db: MySql2Database): Promise<CommunityDb[]
     .from(communitiesTable)
     .innerJoin(usersTable, eq(communitiesTable.communityUuid, usersTable.communityUuid))
     .where(
-      and(
-        isNotNull(communitiesTable.communityUuid), 
-        sql`${usersTable.createdAt} > '2000-01-01'`),
-      )
+      and(isNotNull(communitiesTable.communityUuid), sql`${usersTable.createdAt} > '2000-01-01'`),
+    )
     .orderBy(asc(communitiesTable.id))
     .groupBy(communitiesTable.communityUuid)
 

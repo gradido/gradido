@@ -125,7 +125,7 @@ export class RemoteTransactionsSyncRole extends AbstractSyncRole<TransactionDb> 
     publicKey: MemoryBlockPtr,
   ): AccountBalances {
     this.accountBalances.clear()
-    
+
     // try to use same coins from this community
     let lastBalance = this.getLastBalanceForUser(
       publicKey,
@@ -133,11 +133,10 @@ export class RemoteTransactionsSyncRole extends AbstractSyncRole<TransactionDb> 
       coinCommunityId,
     )
     if (
-      coinCommunityId != communityContext.communityId && 
-      (
-        lastBalance.getBalance().equal(GradidoUnit.zero()) ||
+      coinCommunityId !== communityContext.communityId &&
+      (lastBalance.getBalance().equal(GradidoUnit.zero()) ||
         lastBalance.getBalance().calculateDecay(lastBalance.getDate(), item.balanceDate).lt(amount))
-      ) {
+    ) {
       // don't work, so we use or own coins
       lastBalance = this.getLastBalanceForUser(
         publicKey,
@@ -146,8 +145,12 @@ export class RemoteTransactionsSyncRole extends AbstractSyncRole<TransactionDb> 
       )
     }
     if (
-        lastBalance.getBalance().calculateDecay(lastBalance.getDate(), item.balanceDate).add(amount).lt(GradidoUnit.zero())
-        && communityContext.foreign 
+      lastBalance
+        .getBalance()
+        .calculateDecay(lastBalance.getDate(), item.balanceDate)
+        .add(amount)
+        .lt(GradidoUnit.zero()) &&
+      communityContext.foreign
     ) {
       this.accountBalances.add(new AccountBalance(publicKey, GradidoUnit.zero(), coinCommunityId))
       return this.accountBalances
@@ -156,7 +159,7 @@ export class RemoteTransactionsSyncRole extends AbstractSyncRole<TransactionDb> 
     try {
       lastBalance.updateLegacyDecay(amount, item.balanceDate)
     } catch (e) {
-      if (e instanceof NegativeBalanceError) {        
+      if (e instanceof NegativeBalanceError) {
         this.logLastBalanceChangingTransactions(publicKey, communityContext.blockchain, 1)
         throw e
       }

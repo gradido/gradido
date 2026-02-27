@@ -21,11 +21,7 @@ export class Context {
   public cache: KeyPairCacheManager
   private timeUsed: Profiler
 
-  constructor(
-    logger: Logger,
-    db: MySql2Database,
-    cache: KeyPairCacheManager
-  ) {
+  constructor(logger: Logger, db: MySql2Database, cache: KeyPairCacheManager) {
     this.logger = logger
     this.db = db
     this.cache = cache

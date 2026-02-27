@@ -51,7 +51,7 @@ export class UsersSyncRole extends AbstractSyncRole<UserDb> {
               gt(usersTable.id, lastIndex.id),
             ),
           ),
-          isNotNull(usersTable.communityUuid)
+          isNotNull(usersTable.communityUuid),
         ),
       )
       .orderBy(asc(usersTable.createdAt), asc(usersTable.id))
