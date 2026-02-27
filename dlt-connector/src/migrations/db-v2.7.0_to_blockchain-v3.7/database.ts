@@ -1,4 +1,4 @@
-import { asc, eq, isNotNull, sql } from 'drizzle-orm'
+import { and, asc, eq, isNotNull, isNull, or, sql } from 'drizzle-orm'
 import { MySql2Database } from 'drizzle-orm/mysql2'
 import * as v from 'valibot'
 import { communitiesTable, eventsTable, userRolesTable, usersTable } from './drizzle.schema'
@@ -14,7 +14,7 @@ export async function loadContributionLinkModeratorCache(db: MySql2Database): Pr
       user: usersTable,
     })
     .from(eventsTable)
-    .leftJoin(usersTable, eq(eventsTable.actingUserId, usersTable.id))
+    .innerJoin(usersTable, eq(eventsTable.actingUserId, usersTable.id))
     .where(eq(eventsTable.type, 'ADMIN_CONTRIBUTION_LINK_CREATE'))
     .orderBy(asc(eventsTable.id))
 
@@ -33,7 +33,7 @@ export async function loadAdminUsersCache(db: MySql2Database): Promise<void> {
     })
     .from(userRolesTable)
     .where(eq(userRolesTable.role, 'ADMIN'))
-    .leftJoin(usersTable, eq(userRolesTable.userId, usersTable.id))
+    .innerJoin(usersTable, eq(userRolesTable.userId, usersTable.id))
 
   result.map((row: any) => {
     adminUsers.set(row.gradidoId, v.parse(userDbSchema, row.user))
@@ -52,25 +52,16 @@ export async function loadCommunities(db: MySql2Database): Promise<CommunityDb[]
       userMinCreatedAt: sql`MIN(${usersTable.createdAt})`,
     })
     .from(communitiesTable)
-    .leftJoin(usersTable, eq(communitiesTable.communityUuid, usersTable.communityUuid))
-    .where(isNotNull(communitiesTable.communityUuid))
+    .innerJoin(usersTable, eq(communitiesTable.communityUuid, usersTable.communityUuid))
+    .where(
+      and(
+        isNotNull(communitiesTable.communityUuid), 
+        sql`${usersTable.createdAt} > '2000-01-01'`),
+      )
     .orderBy(asc(communitiesTable.id))
     .groupBy(communitiesTable.communityUuid)
 
   return result.map((row: any) => {
     return v.parse(communityDbSchema, row)
   })
-}
-
-export async function loadUserByGradidoId(
-  db: MySql2Database,
-  gradidoId: string,
-): Promise<UserDb | null> {
-  const result = await db
-    .select()
-    .from(usersTable)
-    .where(eq(usersTable.gradidoId, gradidoId))
-    .limit(1)
-
-  return result.length ? v.parse(userDbSchema, result[0]) : null
 }

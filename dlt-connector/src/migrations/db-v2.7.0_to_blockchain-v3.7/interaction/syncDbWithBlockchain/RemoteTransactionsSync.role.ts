@@ -125,39 +125,44 @@ export class RemoteTransactionsSyncRole extends AbstractSyncRole<TransactionDb> 
     publicKey: MemoryBlockPtr,
   ): AccountBalances {
     this.accountBalances.clear()
-    if (communityContext.foreign) {
-      this.accountBalances.add(new AccountBalance(publicKey, GradidoUnit.zero(), coinCommunityId))
-      return this.accountBalances
-    } else {
-      // try to use same coins from this community
-      let lastBalance = this.getLastBalanceForUser(
+    
+    // try to use same coins from this community
+    let lastBalance = this.getLastBalanceForUser(
+      publicKey,
+      communityContext.blockchain,
+      coinCommunityId,
+    )
+    if (
+      coinCommunityId != communityContext.communityId && 
+      (
+        lastBalance.getBalance().equal(GradidoUnit.zero()) ||
+        lastBalance.getBalance().calculateDecay(lastBalance.getDate(), item.balanceDate).lt(amount))
+      ) {
+      // don't work, so we use or own coins
+      lastBalance = this.getLastBalanceForUser(
         publicKey,
         communityContext.blockchain,
-        coinCommunityId,
+        communityContext.communityId,
       )
-      if (
-        lastBalance.getBalance().equal(GradidoUnit.zero()) ||
-        lastBalance.getBalance().calculateDecay(lastBalance.getDate(), item.balanceDate).lt(amount)
-      ) {
-        // don't work, so we use or own coins
-        lastBalance = this.getLastBalanceForUser(
-          publicKey,
-          communityContext.blockchain,
-          communityContext.communityId,
-        )
-      }
-
-      try {
-        lastBalance.updateLegacyDecay(amount, item.balanceDate)
-      } catch (e) {
-        if (e instanceof NegativeBalanceError) {
-          this.logLastBalanceChangingTransactions(publicKey, communityContext.blockchain, 1)
-          throw e
-        }
-      }
-      this.accountBalances.add(lastBalance.getAccountBalance())
+    }
+    if (
+        lastBalance.getBalance().calculateDecay(lastBalance.getDate(), item.balanceDate).add(amount).lt(GradidoUnit.zero())
+        && communityContext.foreign 
+    ) {
+      this.accountBalances.add(new AccountBalance(publicKey, GradidoUnit.zero(), coinCommunityId))
       return this.accountBalances
     }
+
+    try {
+      lastBalance.updateLegacyDecay(amount, item.balanceDate)
+    } catch (e) {
+      if (e instanceof NegativeBalanceError) {        
+        this.logLastBalanceChangingTransactions(publicKey, communityContext.blockchain, 1)
+        throw e
+      }
+    }
+    this.accountBalances.add(lastBalance.getAccountBalance())
+    return this.accountBalances
   }
 
   getUser(item: TransactionDb): { senderUser: UserDb; recipientUser: UserDb } {

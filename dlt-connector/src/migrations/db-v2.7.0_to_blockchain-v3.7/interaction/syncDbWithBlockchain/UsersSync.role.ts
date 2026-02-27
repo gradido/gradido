@@ -1,4 +1,4 @@
-import { and, asc, eq, gt, or } from 'drizzle-orm'
+import { and, asc, eq, gt, isNotNull, or } from 'drizzle-orm'
 import {
   AccountBalance,
   AccountBalances,
@@ -51,6 +51,7 @@ export class UsersSyncRole extends AbstractSyncRole<UserDb> {
               gt(usersTable.id, lastIndex.id),
             ),
           ),
+          isNotNull(usersTable.communityUuid)
         ),
       )
       .orderBy(asc(usersTable.createdAt), asc(usersTable.id))
