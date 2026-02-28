@@ -65,6 +65,7 @@ export class CreationTransactionRole extends AbstractTransactionRole {
           new AuthenticatedEncryption(recipientKeyPair),
         ),
       )
+      .setRecipientCommunity(this.creationTransaction.user.communityId)
       .setTransactionCreation(
         new TransferAmount(
           recipientKeyPair.getPublicKey(),

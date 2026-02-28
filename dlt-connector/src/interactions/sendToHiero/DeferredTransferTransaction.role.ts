@@ -55,6 +55,7 @@ export class DeferredTransferTransactionRole extends AbstractTransactionRole {
           new AuthenticatedEncryption(recipientKeyPair),
         ),
       )
+      .setSenderCommunity(this.deferredTransferTransaction.user.communityId)
       .setDeferredTransfer(
         new GradidoTransfer(
           new TransferAmount(

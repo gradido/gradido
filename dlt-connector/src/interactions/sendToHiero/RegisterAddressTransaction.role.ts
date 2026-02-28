@@ -50,6 +50,7 @@ export class RegisterAddressTransactionRole extends AbstractTransactionRole {
 
     builder
       .setCreatedAt(this.registerAddressTransaction.createdAt)
+      .setSenderCommunity(this.registerAddressTransaction.user.communityId)
       .setRegisterAddress(
         userKeyPair.getPublicKey(),
         this.registerAddressTransaction.accountType as AddressType,

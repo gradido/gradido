@@ -50,6 +50,7 @@ export class CommunityRootTransactionRole extends AbstractTransactionRole {
     }
     builder
       .setCreatedAt(this.community.creationDate)
+      .setSenderCommunity(this.community.uuid)
       .setCommunityRoot(
         communityKeyPair.getPublicKey(),
         gmwKeyPair.getPublicKey(),

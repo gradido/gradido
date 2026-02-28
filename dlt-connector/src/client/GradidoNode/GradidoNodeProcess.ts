@@ -48,7 +48,7 @@ export class GradidoNodeProcess {
     const isWindows = process.platform === 'win32'
     const binaryName = isWindows ? 'GradidoNode.exe' : 'GradidoNode'
 
-    return path.join(__dirname, CONFIG.DLT_GRADIDO_NODE_SERVER_HOME_FOLDER, 'bin', binaryName)
+    return path.join(CONFIG.DLT_GRADIDO_NODE_SERVER_HOME_FOLDER, 'bin', binaryName)
   }
 
   public start() {
