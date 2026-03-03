@@ -35,7 +35,7 @@ const transactionLinkCode = (date: Date): string => {
 let topic: HieroId
 const topicString = '0.0.261'
 let communityUuid: Uuidv4
-const communityUuidString = '123e4567-e89b-12d3-a456-426614174000'
+const communityUuidString = 'fcd48487-6d31-4f4c-be9b-b3c8ca853912'
 
 beforeAll(() => {
   topic = v.parse(hieroIdSchema, topicString)

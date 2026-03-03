@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'bun:test'
 import { TypeCompiler } from '@sinclair/typebox/compiler'
 import { Static, TypeBoxFromValibot } from '@sinclair/typemap'
-import { AddressType_COMMUNITY_AUF } from 'gradido-blockchain-js'
+import { AddressType_COMMUNITY_AUF, InMemoryBlockchainProvider } from 'gradido-blockchain-js'
 import * as v from 'valibot'
 import { AccountType } from '../data/AccountType.enum'
 import {
@@ -96,9 +96,15 @@ describe('basic.schema', () => {
   })
 
   it('confirmedTransactionSchema', () => {
+    // create blockchain in native module
+    const communityId = 'fcd48487-6d31-4f4c-be9b-b3c8ca853912'
+    InMemoryBlockchainProvider.getInstance().getBlockchain(communityId)
     const confirmedTransaction = v.parse(
       confirmedTransactionSchema,
-      'CAcS5AEKZgpkCiCBZwMplGmI7fRR9MQkaR2Dz1qQQ5BCiC1btyJD71Ue9BJABODQ9sS70th9yHn8X3K+SNv2gsiIdX/V09baCvQCb+yEj2Dd/fzShIYqf3pooIMwJ01BkDJdNGBZs5MDzEAkChJ6ChkIAhIVRGFua2UgZnVlciBkZWluIFNlaW4hEggIgMy5/wUQABoDMy41IAAyTAooCiDbDtYSWhTwMKvtG/yDHgohjPn6v87n7NWBwMDniPAXxxCUmD0aABIgJE0o18xb6P6PsNjh0bkN52AzhggteTzoh09jV+blMq0aCAjC8rn/BRAAIgMzLjUqICiljeEjGHifWe4VNzoe+DN9oOLNZvJmv3VlkP+1RH7MMiAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADomCiDbDtYSWhTwMKvtG/yDHgohjPn6v87n7NWBwMDniPAXxxDAhD06JwogJE0o18xb6P6PsNjh0bkN52AzhggteTzoh09jV+blMq0Q65SlBA==',
+      {
+        base64: 'CAcS4AEKZgpkCiCBZwMplGmI7fRR9MQkaR2Dz1qQQ5BCiC1btyJD71Ue9BJABODQ9sS70th9yHn8X3K+SNv2gsiIdX/V09baCvQCb+zo7nEQgCUXOEe/tN7YaRppwt6TDcXBPxkwnw4gfpCODhJ0ChkIAhIVRGFua2UgZnVlciBkZWluIFNlaW4hEgYIgMy5/wUaAzMuNTJKCiYKINsO1hJaFPAwq+0b/IMeCiGM+fq/zufs1YHAwOeI8BfHEJSYPRIgJE0o18xb6P6PsNjh0bkN52AzhggteTzoh09jV+blMq0aABoGCMLyuf8FIgMzLjcqIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMhUIAhoRCgkIqemnUhD+4wESBBj8sgc6Jgog2w7WEloU8DCr7Rv8gx4KIYz5+r/O5+zVgcDA54jwF8cQwIQ9OicKICRNKNfMW+j+j7DY4dG5DedgM4YILXk86IdPY1fm5TKtEOuUpQRAAg==',
+        communityId,
+      },
     )
     expect(confirmedTransaction.getId()).toBe(7)
     expect(confirmedTransaction.getConfirmedAt().getSeconds()).toBe(1609464130)

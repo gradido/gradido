@@ -48,7 +48,7 @@ describe('transactionIdentifierSchema ', () => {
         transactionId: 1,
         hieroTransactionId: '0.0.261-1755348116-1281621',
       }),
-    ).toThrowError(new Error('Invalid key: Expected "topic" but received undefined'))
+    ).toThrowError(new Error('Invalid key: Expected "communityId" but received undefined'))
   })
   it('invalid, transactionNr and iotaMessageId set', () => {
     expect(() =>

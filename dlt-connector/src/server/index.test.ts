@@ -5,6 +5,7 @@ import * as v from 'valibot'
 import { KeyPairCacheManager } from '../cache/KeyPairCacheManager'
 import { HieroId, hieroIdSchema } from '../schemas/typeGuard.schema'
 import { appRoutes } from '.'
+import { InMemoryBlockchainProvider } from 'gradido-blockchain-js'
 
 const userUuid = '408780b2-59b3-402a-94be-56a4f4f4e8ec'
 
@@ -55,9 +56,13 @@ beforeAll(() => {
 
 describe('Server', () => {
   it('send register address transaction', async () => {
+    // create blockchain in native module
+    const communityId = '1e88a0f4-d4fc-4cae-a7e8-a88e613ce324'
+    InMemoryBlockchainProvider.getInstance().getBlockchain(communityId)
     const transaction = {
       user: {
         communityTopicId: '0.0.21732',
+        communityId,
         account: {
           userUuid,
           accountNr: 0,
