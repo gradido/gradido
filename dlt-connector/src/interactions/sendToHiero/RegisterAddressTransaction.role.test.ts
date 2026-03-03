@@ -1,10 +1,13 @@
 import { describe, expect, it } from 'bun:test'
-import { InteractionValidate, ValidateType_SINGLE } from 'gradido-blockchain-js'
+import {
+  InMemoryBlockchainProvider,
+  InteractionValidate,
+  ValidateType_SINGLE,
+} from 'gradido-blockchain-js'
 import * as v from 'valibot'
 import { transactionSchema } from '../../schemas/transaction.schema'
 import { hieroIdSchema } from '../../schemas/typeGuard.schema'
 import { RegisterAddressTransactionRole } from './RegisterAddressTransaction.role'
-import { InMemoryBlockchainProvider } from 'gradido-blockchain-js'
 
 const userUuid = '408780b2-59b3-402a-94be-56a4f4f4e8ec'
 const communityId = '1e88a0f4-d4fc-4cae-a7e8-a88e613ce324'

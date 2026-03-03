@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'bun:test'
 import { v4 as uuidv4 } from 'uuid'
 import * as v from 'valibot'
-import { memoSchema, MEMO_MAX_CHARS, MEMO_MIN_CHARS, uuidv4Schema } from './typeGuard.schema'
+import { MEMO_MAX_CHARS, MEMO_MIN_CHARS, memoSchema, uuidv4Schema } from './typeGuard.schema'
 
 describe('typeGuard.schema', () => {
   describe('Uuidv4', () => {
@@ -26,7 +26,9 @@ describe('typeGuard.schema', () => {
       })
       it('to short', () => {
         const memoValue = 'memo'
-        expect(() => v.parse(memoSchema, memoValue)).toThrow(new Error(`expect string length >= ${MEMO_MIN_CHARS}`))
+        expect(() => v.parse(memoSchema, memoValue)).toThrow(
+          new Error(`expect string length >= ${MEMO_MIN_CHARS}`),
+        )
       })
       it('to long', () => {
         const memoValue = 's'.repeat(MEMO_MAX_CHARS + 1)

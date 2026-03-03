@@ -1,4 +1,4 @@
-import { Decimal } from 'decimal.js'
+import { Decimal } from 'decimal.js-light'
 import { and, asc, eq, gt, inArray, isNull, ne, or } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/mysql-core'
 import {
