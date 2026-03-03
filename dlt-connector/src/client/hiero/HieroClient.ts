@@ -100,7 +100,7 @@ export class HieroClient {
           )
           // TODO: fix issue in GradidoNode
           // hot fix, when gradido node is running some time, the hiero listener stop working, so we check if our new transaction is received
-          // after 10 seconds, else restart GradidoNode
+          // after 20 seconds, else restart GradidoNode
           setTimeout(async () => {
             const transaction = await GradidoNodeClient.getInstance().getTransaction({
               communityId,
@@ -122,7 +122,7 @@ export class HieroClient {
                 GradidoNodeProcess.getInstance().start()
               }
             }
-          }, 10000)
+          }, 20000)
           if (logger.isInfoEnabled()) {
             // only for logging
             sendResponse.getReceiptWithSigner(this.wallet).then((receipt) => {

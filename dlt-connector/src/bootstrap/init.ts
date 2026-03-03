@@ -9,6 +9,8 @@ import { Community, communitySchema } from '../schemas/transaction.schema'
 import { isPortOpenRetry } from '../utils/network'
 import { type AppContext, type AppContextClients } from './appContext'
 import { initGradidoNode } from './initGradidoNode'
+import { ResolveKeyPair } from '../interactions/resolveKeyPair/ResolveKeyPair.context'
+import { KeyPairIdentifierLogic } from '../data/KeyPairIdentifier.logic'
 
 export function loadConfig(): Logger {
   // configure log4js
@@ -67,6 +69,10 @@ export async function checkHomeCommunity(
   logger.info(`home community topic: ${homeCommunity.hieroTopicId}`)
   logger.info(`gradido node server: ${appContext.clients.gradidoNode.url}`)
   logger.info(`gradido backend server: ${appContext.clients.backend.url}`)
+  const keyPair = await ResolveKeyPair(new KeyPairIdentifierLogic({
+    communityTopicId: homeCommunity.hieroTopicId,
+    communityId: homeCommunity.uuid,
+  }))
   return v.parse(communitySchema, homeCommunity)
 }
 
