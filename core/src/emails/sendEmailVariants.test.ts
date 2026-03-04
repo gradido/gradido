@@ -25,6 +25,7 @@ CONFIG.EMAIL_SENDER = 'info@gradido.net'
 CONFIG.EMAIL_SMTP_HOST = testMailServerHost
 CONFIG.EMAIL_SMTP_PORT = testMailServerPort
 CONFIG.EMAIL_TLS = testMailTLS
+CONFIG.EMAIL_TEST_MODUS = false
 
 mock.module('nodemailer', () => {
   return {

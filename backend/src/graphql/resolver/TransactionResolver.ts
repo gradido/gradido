@@ -214,6 +214,7 @@ export const executeTransaction = async (
       transactionAmount: amount,
     })
     if (transactionLink) {
+      const recipientCom = await getCommunityName(recipient.communityUuid)
       await sendTransactionLinkRedeemedEmail({
         firstName: sender.firstName,
         lastName: sender.lastName,
@@ -221,7 +222,7 @@ export const executeTransaction = async (
         language: sender.language,
         senderFirstName: recipient.firstName,
         senderLastName: recipient.lastName,
-        senderEmail: recipient.emailContact.email,
+        senderEmail: recipientCom, // recipient.emailContact.email,
         transactionAmount: amount,
         transactionMemo: memo,
       })
