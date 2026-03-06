@@ -8,6 +8,7 @@ export const getPublicCommunityInfo = gql`
       creationDate
       publicKey
       publicJwtKey
+      hieroTopicId
     }
   }
 `
