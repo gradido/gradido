@@ -6,12 +6,15 @@ import {
   AuthenticatedEncryption,
   DurationSeconds,
   EncryptedMemo,
+  Filter,
   GradidoTransactionBuilder,
   GradidoTransfer,
   GradidoUnit,
   KeyPairEd25519,
   LedgerAnchor,
   MemoryBlockPtr,
+  SearchDirection_DESC,
+  transactionTypeToString,
   TransferAmount,
 } from 'gradido-blockchain-js'
 import * as v from 'valibot'
@@ -23,6 +26,7 @@ import { BlockchainError, DatabaseError, NegativeBalanceError } from '../../erro
 import { reverseLegacyDecay, toMysqlDateTime } from '../../utils'
 import { CommunityContext, TransactionLinkDb, transactionLinkDbSchema } from '../../valibot.schema'
 import { AbstractSyncRole, IndexType } from './AbstractSync.role'
+import { Uuidv4 } from '../../../../schemas/typeGuard.schema'
 
 export class TransactionLinkFundingsSyncRole extends AbstractSyncRole<TransactionLinkDb> {
   constructor(context: Context) {
@@ -31,6 +35,10 @@ export class TransactionLinkFundingsSyncRole extends AbstractSyncRole<Transactio
   }
   getDate(): Date {
     return this.peek().createdAt
+  }
+
+  getCommunityUuids(): Uuidv4[] {
+    return [this.peek().user.communityUuid]
   }
 
   getLastIndex(): IndexType {
@@ -111,6 +119,7 @@ export class TransactionLinkFundingsSyncRole extends AbstractSyncRole<Transactio
     senderPublicKey: MemoryBlockPtr,
     recipientPublicKey: MemoryBlockPtr,
   ): AccountBalances {
+
     this.accountBalances.clear()
     const senderLastBalance = this.getLastBalanceForUser(
       senderPublicKey,

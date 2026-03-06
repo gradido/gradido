@@ -28,6 +28,7 @@ import {
   redeemedTransactionLinkDbSchema,
 } from '../../valibot.schema'
 import { AbstractSyncRole, IndexType } from './AbstractSync.role'
+import { Uuidv4 } from '../../../../schemas/typeGuard.schema'
 
 export class RedeemTransactionLinksSyncRole extends AbstractSyncRole<RedeemedTransactionLinkDb> {
   constructor(context: Context) {
@@ -37,6 +38,10 @@ export class RedeemTransactionLinksSyncRole extends AbstractSyncRole<RedeemedTra
 
   getDate(): Date {
     return this.peek().redeemedAt
+  }
+
+  getCommunityUuids(): Uuidv4[] {
+    return [this.peek().user.communityUuid]
   }
 
   getLastIndex(): IndexType {

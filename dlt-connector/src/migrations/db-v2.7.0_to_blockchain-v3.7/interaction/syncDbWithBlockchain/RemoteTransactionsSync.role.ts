@@ -27,6 +27,7 @@ import {
 import { toMysqlDateTime } from '../../utils'
 import { CommunityContext, TransactionDb, transactionDbSchema, UserDb } from '../../valibot.schema'
 import { AbstractSyncRole, IndexType } from './AbstractSync.role'
+import { Uuidv4 } from '../../../../schemas/typeGuard.schema'
 
 export class RemoteTransactionsSyncRole extends AbstractSyncRole<TransactionDb> {
   constructor(context: Context) {
@@ -36,6 +37,11 @@ export class RemoteTransactionsSyncRole extends AbstractSyncRole<TransactionDb> 
 
   getDate(): Date {
     return this.peek().balanceDate
+  }
+
+  getCommunityUuids(): Uuidv4[] {
+    const currentItem = this.peek()
+    return [ currentItem.user.communityUuid, currentItem.linkedUser.communityUuid ]
   }
 
   getLastIndex(): IndexType {

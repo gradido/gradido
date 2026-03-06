@@ -19,6 +19,7 @@ import { BlockchainError, DatabaseError } from '../../errors'
 import { toMysqlDateTime } from '../../utils'
 import { CommunityContext, UserDb, userDbSchema } from '../../valibot.schema'
 import { AbstractSyncRole, IndexType } from './AbstractSync.role'
+import { Uuidv4 } from '../../../../schemas/typeGuard.schema'
 
 export class UsersSyncRole extends AbstractSyncRole<UserDb> {
   constructor(context: Context) {
@@ -27,6 +28,10 @@ export class UsersSyncRole extends AbstractSyncRole<UserDb> {
   }
   getDate(): Date {
     return this.peek().createdAt
+  }
+
+  getCommunityUuids(): Uuidv4[] {
+    return [this.peek().communityUuid]
   }
 
   getLastIndex(): IndexType {

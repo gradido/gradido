@@ -109,6 +109,7 @@ export abstract class AbstractSyncRole<ItemType> {
   abstract loadFromDb(lastIndex: IndexType, count: number): Promise<ItemType[]>
   abstract pushToBlockchain(item: ItemType): void
   abstract itemTypeName(): string
+  abstract getCommunityUuids(): Uuidv4[]
 
   // return count of new loaded items
   async ensureFilled(batchSize: number): Promise<number> {

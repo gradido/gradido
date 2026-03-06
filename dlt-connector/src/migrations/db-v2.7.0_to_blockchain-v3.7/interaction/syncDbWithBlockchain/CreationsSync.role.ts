@@ -26,6 +26,7 @@ import {
   creationTransactionDbSchema,
 } from '../../valibot.schema'
 import { AbstractSyncRole, IndexType } from './AbstractSync.role'
+import { Uuidv4 } from '../../../../schemas/typeGuard.schema'
 
 export class CreationsSyncRole extends AbstractSyncRole<CreationTransactionDb> {
   constructor(context: Context) {
@@ -35,6 +36,9 @@ export class CreationsSyncRole extends AbstractSyncRole<CreationTransactionDb> {
 
   getDate(): Date {
     return this.peek().confirmedAt
+  }
+  getCommunityUuids(): Uuidv4[] {
+    return [ this.peek().user.communityUuid ]
   }
 
   getLastIndex(): IndexType {

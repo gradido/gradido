@@ -26,6 +26,7 @@ import {
   deletedTransactionLinKDbSchema,
 } from '../../valibot.schema'
 import { AbstractSyncRole, IndexType } from './AbstractSync.role'
+import { Uuidv4 } from '../../../../schemas/typeGuard.schema'
 
 export class DeletedTransactionLinksSyncRole extends AbstractSyncRole<DeletedTransactionLinkDb> {
   constructor(context: Context) {
@@ -35,6 +36,9 @@ export class DeletedTransactionLinksSyncRole extends AbstractSyncRole<DeletedTra
 
   getDate(): Date {
     return this.peek().deletedAt
+  }
+  getCommunityUuids(): Uuidv4[] {
+    return [this.peek().user.communityUuid]
   }
 
   getLastIndex(): IndexType {
