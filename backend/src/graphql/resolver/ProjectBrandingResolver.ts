@@ -2,12 +2,13 @@ import { ProjectBrandingInput } from '@input/ProjectBrandingInput'
 import { ProjectBranding } from '@model/ProjectBranding'
 import { Space } from '@model/Space'
 import { SpaceList } from '@model/SpaceList'
-import { 
-  dbDeleteProjectBranding, 
-  dbFindAllProjectBrandings, 
-  dbFindProjectBrandingById, 
-  dbGetProjectLogoURL, 
-  projectBrandingsTable 
+import {
+  dbDeleteProjectBranding,
+  dbFindAllProjectBrandings,
+  dbFindProjectBrandingById,
+  dbGetProjectLogoURL,
+  dbUpsertProjectBranding,
+  projectBrandingsTable,
 } from 'database'
 import { getLogger } from 'log4js'
 import { Arg, Authorized, ID, Int, Mutation, Query, Resolver } from 'type-graphql'
@@ -49,14 +50,7 @@ export class ProjectBrandingResolver {
   async upsertProjectBranding(
     @Arg('input') input: ProjectBrandingInput,
   ): Promise<ProjectBranding | null> {
-    const projectBranding = input.id
-      ? await DbProjectBranding.findOneOrFail({ where: { id: input.id } })
-      : new DbProjectBranding()
-
-    Object.assign(projectBranding, input)
-    await projectBranding.save()
-
-    return new ProjectBranding(projectBranding)
+    return new ProjectBranding(await dbUpsertProjectBranding(input))
   }
 
   @Mutation(() => Boolean)
