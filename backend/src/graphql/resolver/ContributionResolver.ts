@@ -23,6 +23,7 @@ import {
   Contribution as DbContribution,
   Transaction as DbTransaction,
   User as DbUser,
+  findUserNamesByIds,
   getLastTransaction,
   UserContact,
 } from 'database'
@@ -348,6 +349,7 @@ export class ContributionResolver {
   ): Promise<ContributionListResult> {
     // Check if only count was requested (without contributionList)
     const fields = Object.keys(extractGraphQLFields(info))
+    // console.log(`fields: ${fields}`)
     const countOnly: boolean = fields.includes('contributionCount') && fields.length === 1
     // check if related user was requested
     const userRequested =
@@ -370,8 +372,25 @@ export class ContributionResolver {
       },
       countOnly,
     )
+    const result = new ContributionListResult(count, dbContributions)
 
-    return new ContributionListResult(count, dbContributions)
+    const uniqueUserIds = new Set<number>()
+    const addIfExist = (userId?: number | null) => (userId ? uniqueUserIds.add(userId) : null)
+
+    for (const contribution of result.contributionList) {
+      addIfExist(contribution.updatedBy)
+      addIfExist(contribution.moderatorId)
+      addIfExist(contribution.closedBy)
+    }
+    const users = await findUserNamesByIds(Array.from(uniqueUserIds))
+    const getNameById = (userId?: number | null) => (userId ? (users.get(userId) ?? null) : null)
+
+    for (const contribution of result.contributionList) {
+      contribution.updatedByUserName = getNameById(contribution.updatedBy)
+      contribution.moderatorUserName = getNameById(contribution.moderatorId)
+      contribution.closedByUserName = getNameById(contribution.closedBy)
+    }
+    return result
   }
 
   @Authorized([RIGHTS.ADMIN_DELETE_CONTRIBUTION])

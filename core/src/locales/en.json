@@ -18,10 +18,10 @@
     },
     "addedContributionMessage": {
       "commonGoodContributionMessage": "You have received a message from {senderFirstName} {senderLastName} regarding your common good contribution “{contributionMemo}”.",
+      "message": "„{message}“",
       "readMessage": "Read and reply to message",
       "subject": "Message about your common good contribution",
       "title": "Message about your common good contribution",
-      "message": "„{message}“",
       "toSeeAndAnswerMessage": "To reply to the message, go to the “Creation” menu in your Gradido account and click on the “My contributions” tab."
     },
     "contribution": {

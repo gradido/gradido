@@ -14,6 +14,7 @@ packages:
   - git
   - mariadb-server
   - nginx
+  - redis
   - curl
   - build-essential
   - gnupg
@@ -22,6 +23,7 @@ packages:
   - logrotate
   - automysqlbackup
   - expect
+  - unzip
 package_update: true
 package_upgrade: true
 write_files:

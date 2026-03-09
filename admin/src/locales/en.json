@@ -3,8 +3,8 @@
   "actions": "Actions",
   "ai": {
     "chat": "Chat",
-    "chat-open": "Open chat",
     "chat-clear": "Clear chat",
+    "chat-open": "Open chat",
     "chat-placeholder": "Type your message here...",
     "chat-placeholder-loading": "Wait, I think...",
     "chat-thread-deleted": "Chat thread has been deleted",
@@ -16,6 +16,12 @@
   "back": "back",
   "change_user_role": "Change user role",
   "close": "Close",
+  "contribution": {
+    "confirmedBy": "Confirmed by {name}.",
+    "createdBy": "Created by {name}.",
+    "deletedBy": "Deleted by {name}.",
+    "deniedBy": "Rejected by {name}."
+  },
   "contributionLink": {
     "amount": "Amount",
     "changeSaved": "Changes saved",
@@ -23,8 +29,8 @@
     "contributionLinks": "Contribution Links",
     "create": "Create",
     "cycle": "Cycle",
-    "deleted": "Automatic creation deleted!",
     "deleteNow": "Do you really delete automatic creations '{name}'?",
+    "deleted": "Automatic creation deleted!",
     "maxPerCycle": "Repetition",
     "memo": "Memo",
     "name": "Name",
@@ -44,11 +50,12 @@
     "validTo": "End-Date"
   },
   "contributionMessagesForm": {
-    "resubmissionDateInPast": "Resubmission date is in the past!",
-    "hasRegisteredAt": "registered on {createdAt}."
+    "hasRegisteredAt": "registered on {createdAt}.",
+    "resubmissionDateInPast": "Resubmission date is in the past!"
   },
   "contributions": {
     "all": "All",
+    "closed": "Closed",
     "confirms": "Confirmed",
     "deleted": "Deleted",
     "denied": "Rejected",
@@ -96,16 +103,16 @@
     "coordinates": "Coordinates:",
     "createdAt": "Created At ",
     "gmsApiKey": "GMS API Key:",
-    "hieroTopicId": "Hiero Topic ID:",
-    "toast_gmsApiKeyAndLocationUpdated": "The GMS Api Key and the location have been successfully updated!",
-    "toast_gmsApiKeyUpdated": "The GMS Api Key has been successfully updated!",
-    "toast_gmsLocationUpdated": "The GMS location has been successfully updated!",
-    "toast_hieroTopicIdUpdated": "The Hiero Topic ID has been successfully updated!",
     "gradidoInstances": "Gradido Instances",
+    "hieroTopicId": "Hiero Topic ID:",
     "lastAnnouncedAt": "Last Announced",
     "lastErrorAt": "last error at",
     "name": "Name",
     "publicKey": "PublicKey:",
+    "toast_gmsApiKeyAndLocationUpdated": "The GMS Api Key and the location have been successfully updated!",
+    "toast_gmsApiKeyUpdated": "The GMS Api Key has been successfully updated!",
+    "toast_gmsLocationUpdated": "The GMS location has been successfully updated!",
+    "toast_hieroTopicIdUpdated": "The Hiero Topic ID has been successfully updated!",
     "url": "Url",
     "verified": "Verified",
     "verifiedAt": "Verified at"
@@ -127,15 +134,15 @@
   },
   "geo-coordinates": {
     "both-or-none": "Please enter both or none!",
-    "label": "geo-coordinates",
     "format": "{latitude}, {longitude}",
+    "label": "geo-coordinates",
     "latitude-longitude-smart": {
       "describe": "Automatically splits coordinates in the format 'latitude, longitude'. Simply enter your coordinates from Google Maps here, for example: 49.28187664243721, 9.740672183943639."
     }
   },
   "goTo": {
-    "userSearch": "Go to user search",
-    "humhubProfile": "Go to Humhub profile"
+    "humhubProfile": "Go to Humhub profile",
+    "userSearch": "Go to user search"
   },
   "help": {
     "help": "Help",
@@ -165,16 +172,16 @@
   },
   "moderator": {
     "history": "The data has been changed. This is the old data.",
-    "show-submission-form": "wait for reminder?",
+    "memo": "Edit text",
+    "memo-modified": "Text edited by {name}",
+    "memo-tooltip": "Edit the text of the contribution",
+    "message": "Message",
+    "message-tooltip": "Write message to user",
     "moderator": "Moderator",
     "notice": "Note",
     "notice-tooltip": "The note is only visible to moderators",
-    "memo": "Edit text",
-    "memo-tooltip": "Edit the text of the contribution",
-    "memo-modified": "Text edited by moderator",
-    "message": "Message",
-    "message-tooltip": "Write message to user",
-    "request": "This message is only visible to the moderators!"
+    "request": "This message is only visible to the moderators!",
+    "show-submission-form": "wait for reminder?"
   },
   "name": "Name",
   "navbar": {
@@ -233,14 +240,14 @@
     "chosenSpace": "Choosen Humhub Space: {space}",
     "created": "New project branding entry has been created.",
     "error": "Error when creating the project branding entry: {message}",
+    "newUserToSpace": "Add user?",
+    "newUserToSpaceTooltip": "The hours should contain a maximum of two decimal places",
     "noAccessRightSpace": "Selected space: {spaceId} (No access rights)",
     "openSpaceInHumhub": "Open in Humhub",
-    "spaceId": "Humhub Space ID",
     "selectSpace": "Select Humhub Space",
+    "spaceId": "Humhub Space ID",
     "title": "Project Branding",
-    "updated": "Project branding entry has been updated.",
-    "newUserToSpace": "Add user?",
-    "newUserToSpaceTooltip": "The hours should contain a maximum of two decimal places"
+    "updated": "Project branding entry has been updated."
   },
   "redeemed": "redeemed",
   "registered": "Registered",

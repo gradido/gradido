@@ -1,6 +1,7 @@
 import 'source-map-support/register'
 
 import { defaultCategory, initLogger } from 'config-schema'
+import { initializeCommands } from 'core'
 import { getLogger } from 'log4js'
 import { onShutdown, printServerCrashAsciiArt, ShutdownReason } from 'shared'
 // config
@@ -44,6 +45,8 @@ async function main() {
       }
     })
   })
+
+  initializeCommands()
 }
 
 main().catch((e) => {

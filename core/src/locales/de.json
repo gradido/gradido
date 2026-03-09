@@ -18,10 +18,10 @@
     },
     "addedContributionMessage": {
       "commonGoodContributionMessage": "du hast zu deinem Gemeinwohl-Beitrag „{contributionMemo}“ eine Nachricht von {senderFirstName} {senderLastName} erhalten.",
+      "message": "„{message}“",
       "readMessage": "Nachricht lesen und beantworten",
       "subject": "Nachricht zu deinem Gemeinwohl-Beitrag",
       "title": "Nachricht zu deinem Gemeinwohl-Beitrag",
-      "message": "„{message}“",
       "toSeeAndAnswerMessage": "Um auf die Nachricht zu antworten, gehe in deinem Gradido-Konto ins Menü „Schöpfen“ auf den Tab „Meine Beiträge“."
     },
     "contribution": {
@@ -90,8 +90,8 @@
     },
     "transactionReceived": {
       "haveReceivedAmountGDDFrom": "du hast soeben {transactionAmount} GDD erhalten von {senderFirstName} {senderLastName}",
-      "subject": "{senderFirstName} {senderLastName} hat dir {transactionAmount} Gradido gesendet",
       "replySubject": "Re: {senderFirstName} {senderLastName} hat dir {transactionAmount} Gradido gesendet",
+      "subject": "{senderFirstName} {senderLastName} hat dir {transactionAmount} Gradido gesendet",
       "title": "{senderFirstName} {senderLastName} hat dir {transactionAmount} Gradido gesendet"
     }
   },
