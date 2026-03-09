@@ -11,6 +11,7 @@ import {
   projectBrandingsTable,
 } from 'database'
 import { getLogger } from 'log4js'
+import { projectBrandingSchema } from 'shared'
 import { Arg, Authorized, ID, Int, Mutation, Query, Resolver } from 'type-graphql'
 import { HumHubClient } from '@/apis/humhub/HumHubClient'
 import { RIGHTS } from '@/auth/RIGHTS'
@@ -50,7 +51,7 @@ export class ProjectBrandingResolver {
   async upsertProjectBranding(
     @Arg('input') input: ProjectBrandingInput,
   ): Promise<ProjectBranding | null> {
-    return new ProjectBranding(await dbUpsertProjectBranding(input))
+    return new ProjectBranding(await dbUpsertProjectBranding(projectBrandingSchema.parse(input)))
   }
 
   @Mutation(() => Boolean)

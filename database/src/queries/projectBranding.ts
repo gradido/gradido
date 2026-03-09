@@ -56,6 +56,15 @@ export async function dbFindProjectSpaceUrl(alias: string): Promise<string | nul
     .limit(1)
   return result.at(0)?.spaceUrl
 }
+
+export async function dbFindProjectSpaceId(alias: string): Promise<number | null | undefined> {
+  const result = await drizzleDb()
+    .select({ spaceId: projectBrandingsTable.spaceId })
+    .from(projectBrandingsTable)
+    .where(eq(projectBrandingsTable.alias, alias))
+    .limit(1)
+  return result.at(0)?.spaceId
+}
 /**
  *
  * @param alias throw if project not found
@@ -87,6 +96,17 @@ export async function dbFindProjectBrandingById(
     .select()
     .from(projectBrandingsTable)
     .where(eq(projectBrandingsTable.id, id))
+    .limit(1)
+  return result.at(0)
+}
+
+export async function dbFindProjectBrandingByAlias(
+  alias: string,
+): Promise<ProjectBrandingSelect | undefined> {
+  const result = await drizzleDb()
+    .select()
+    .from(projectBrandingsTable)
+    .where(eq(projectBrandingsTable.alias, alias))
     .limit(1)
   return result.at(0)
 }
