@@ -1,8 +1,8 @@
 {
-  "100": "%100",
-  "1000thanks": "Bizimle olduğun için 1000lerce teşekkür!",
-  "125": "%125",
   "85": "%85",
+  "100": "%100",
+  "125": "%125",
+  "1000thanks": "Bizimle olduğun için 1000lerce teşekkür!",
   "GDD": "GDD",
   "GDT": "GDT",
   "PersonalDetails": "Kişisel bilgiler",
@@ -64,6 +64,7 @@
     "thanksYouWith": "Sana gönderiyor"
   },
   "decay": {
+    "Starting_block_decay": "Blok erimenin başlatılması ",
     "before_startblock_transaction": "Bu işlem erimeyi içermez.",
     "calculation_decay": "Erimenin hesaplanması",
     "calculation_total": "Toplam miktarın hesaplanması",
@@ -72,7 +73,6 @@
     "decay_since_last_transaction": "Son işlemden bu yana olan erime",
     "last_transaction": "Son işlem:",
     "past_time": "Geçen süre",
-    "Starting_block_decay": "Blok erimenin başlatılması ",
     "total": "Toplam",
     "types": {
       "creation": "Oluşturuldu",
@@ -123,8 +123,8 @@
     "lastname": "Soyadı",
     "memo": "Mesaj",
     "message": "Mesaj",
-    "new_balance": "Onay sonrası hesap bakiyesi",
     "newPasswordRepeat": "Yeni şifreyi tekrarla",
+    "new_balance": "Onay sonrası hesap bakiyesi",
     "no_gdd_available": "Göndermek için GDD'niz yok.",
     "password": "Şifre",
     "passwordRepeat": "Şifreyi tekrarla",
@@ -135,11 +135,11 @@
     "reset": "Sıfırla",
     "save": "Kaydet",
     "scann_code": "<strong>QR Code Scanner</strong> - Ortağınızın QR Kodunu tarayın",
-    "sender": "Gönderen",
     "send_check": "İşlemi onayla. Lütfen tüm verileri tekrar kontrol et!",
     "send_now": "Şimdi gönder",
     "send_transaction_error": "Ne yazık ki işlem gerçekleştirilemedi!",
     "send_transaction_success": "İşleminiz başarıyla tamamlandı",
+    "sender": "Gönderen",
     "sorry": "Üzgünüz",
     "thx": "Teşekkür ederiz",
     "to": "Geçerlik",
@@ -257,10 +257,10 @@
         "communityCoords": "Topluluk Konumunuz: Enlem {lat}, Boylam {lng}",
         "communityLocationLabel": "Topluluk Konumunuz",
         "headline": "Kullanıcının Coğrafi Konum Tespiti",
-        "userCoords": "Konumunuz: Enlem {lat}, Boylam {lng}",
-        "userLocationLabel": "Konumunuz",
         "search": "Konum ara",
-        "success": "Konum başarıyla kaydedildi"
+        "success": "Konum başarıyla kaydedildi",
+        "userCoords": "Konumunuz: Enlem {lat}, Boylam {lng}",
+        "userLocationLabel": "Konumunuz"
       }
     },
     "language": {

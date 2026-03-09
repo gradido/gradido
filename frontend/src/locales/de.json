@@ -1,21 +1,21 @@
 {
+  "85": "85%",
+  "100": "100%",
+  "125": "125%",
   "(": "(",
   ")": ")",
-  "100": "100%",
   "1000thanks": "1000 Dank, weil du bei uns bist!",
-  "125": "125%",
-  "85": "85%",
   "Chat": "Chat",
   "GDD": "GDD",
   "GDD-long": "Gradido",
   "GDT": "GDT",
   "GMS": {
-    "title": "Geo Matching System GMS (in Entwicklung)",
-    "desc": "Finde Mitglieder aller Communities auf einer Landkarte."
+    "desc": "Finde Mitglieder aller Communities auf einer Landkarte.",
+    "title": "Geo Matching System GMS (in Entwicklung)"
   },
   "Humhub": {
-    "title": "Gradido-Kreise",
-    "desc": "Gemeinsam unterstützen wir einander –  achtsam in Kreiskultur."
+    "desc": "Gemeinsam unterstützen wir einander –  achtsam in Kreiskultur.",
+    "title": "Gradido-Kreise"
   },
   "PersonalDetails": "Persönliche Angaben",
   "advanced-calculation": "Vorausberechnung",
@@ -34,27 +34,27 @@
   },
   "back": "Zurück",
   "card-circles": {
-    "headline": "Kooperationsplattform »Gradido-Kreise«",
-    "text": "Lokale Kreise, Studienkreise, Projekte, Events und Kongresse",
     "allowed": {
       "button": "Kreise öffnen..."
     },
+    "headline": "Kooperationsplattform »Gradido-Kreise«",
     "not-allowed": {
       "button": "Konfigurieren..."
-    }
+    },
+    "text": "Lokale Kreise, Studienkreise, Projekte, Events und Kongresse"
   },
   "card-user-search": {
-    "headline": "Geografische Mitgliedssuche (beta)",
     "allowed": {
       "button": "Mitgliedssuche öffnen...",
       "disabled-button": "GMS offline...",
       "text": "Finde Mitglieder aller Communities auf einer Landkarte."
     },
+    "headline": "Geografische Mitgliedssuche (beta)",
+    "info": "So gehts",
     "not-allowed": {
       "button": "Standort eintragen...",
       "text": "Um andere Mitglieder in deinem Umkreis zu finden, trage jetzt deinen Standort auf der Karte ein!"
-    },
-    "info": "So gehts"
+    }
   },
   "community": {
     "admins": "Administratoren",
@@ -95,8 +95,8 @@
     "lastContribution": "Letzte Beiträge",
     "noContributions": {
       "allContributions": "Es wurden noch keine Beiträge eingereicht.",
-      "myContributions": "Du hast noch keine Beiträge eingereicht.",
-      "emptyPage": "Diese Seite ist leer."
+      "emptyPage": "Diese Seite ist leer.",
+      "myContributions": "Du hast noch keine Beiträge eingereicht."
     },
     "noOpenCreation": {
       "allMonth": "Für alle beiden Monate ist dein Schöpfungslimit erreicht. Den Nächsten Monat kannst du wieder 1000 GDD Schöpfen.",
@@ -117,6 +117,7 @@
   "copy-to-clipboard": "In Zwischenablage kopieren",
   "creation": "Schöpfen",
   "decay": {
+    "Starting_block_decay": "Startblock Vergänglichkeit",
     "before_startblock_transaction": "Diese Transaktion beinhaltet keine Vergänglichkeit.",
     "calculation_decay": "Berechnung der Vergänglichkeit",
     "calculation_total": "Berechnung der Gesamtsumme",
@@ -127,7 +128,6 @@
     "new_balance": "Neuer Kontostand",
     "old_balance": "Vorheriger Kontostand",
     "past_time": "Vergangene Zeit",
-    "Starting_block_decay": "Startblock Vergänglichkeit",
     "total": "Gesamt",
     "types": {
       "creation": "Geschöpft",
@@ -186,8 +186,8 @@
     "link_decay_description": "Der Link-Betrag wird zusammen mit der maximalen Vergänglichkeit blockiert. Nach Einlösen, Verfallen oder Löschen des Links wird der Rest wieder freigegeben.",
     "memo": "Nachricht",
     "message": "Nachricht",
-    "new_balance": "Neuer Kontostand nach Bestätigung",
     "newPasswordRepeat": "Neues Passwort wiederholen",
+    "new_balance": "Neuer Kontostand nach Bestätigung",
     "no_gdd_available": "Du hast keine GDD zum versenden.",
     "ok": "Ok",
     "password": "Passwort",
@@ -201,11 +201,11 @@
     "reset": "Zurücksetzen",
     "save": "Speichern",
     "scann_code": "<strong>QR Code Scanner</strong> - Scanne den QR Code deines Partners",
-    "sender": "Absender",
     "send_check": "Bestätige deine Transaktion. Prüfe bitte nochmal alle Angaben!",
     "send_now": "Jetzt senden",
     "send_transaction_error": "Leider konnte die Transaktion nicht ausgeführt werden!",
     "send_transaction_success": "Deine Transaktion wurde erfolgreich ausgeführt",
+    "sender": "Absender",
     "sorry": "Entschuldigung",
     "thx": "Danke",
     "to": "bis",
@@ -214,28 +214,28 @@
     "username-placeholder": "Wähle deinen Benutzernamen",
     "validation": {
       "amount": {
-        "min": "Der Betrag sollte mindestens {min} groß sein.",
-        "max": "Der Betrag sollte höchstens {max} groß sein.",
         "decimal-places": "Der Betrag sollte maximal zwei Nachkommastellen enthalten.",
+        "max": "Der Betrag sollte höchstens {max} groß sein.",
+        "min": "Der Betrag sollte mindestens {min} groß sein.",
         "typeError": "Der Betrag sollte eine Zahl zwischen {min} und {max} mit höchstens zwei Nachkommastellen sein."
       },
       "contributionDate": {
-        "required": "Das Beitragsdatum ist ein Pflichtfeld.",
+        "max": "Das Späteste Beitragsdatum ist heute, der {max}.",
         "min": "Das Frühste Beitragsdatum ist {min}.",
-        "max": "Das Späteste Beitragsdatum ist heute, der {max}."
+        "required": "Das Beitragsdatum ist ein Pflichtfeld."
       },
       "contributionMemo": {
-        "min": "Die Tätigkeitsbeschreibung sollte mindestens {min} Zeichen lang sein.",
         "max": "Die Tätigkeitsbeschreibung sollte höchstens {max} Zeichen lang sein.",
+        "min": "Die Tätigkeitsbeschreibung sollte mindestens {min} Zeichen lang sein.",
         "required": "Die Tätigkeitsbeschreibung ist ein Pflichtfeld."
       },
+      "gddSendAmount": "Das Feld {_field_} muss eine Zahl zwischen {min} und {max} mit höchstens zwei Nachkommastellen sein.",
       "hours": {
-        "min": "Die Stunden sollten mindestens {min} groß sein.",
-        "max": "Die Stunden sollten höchstens {max} groß sein.",
         "decimal-places": "Die Stunden sollten maximal zwei Nachkommastellen enthalten.",
+        "max": "Die Stunden sollten höchstens {max} groß sein.",
+        "min": "Die Stunden sollten mindestens {min} groß sein.",
         "typeError": "Die Stunden sollten eine Zahl zwischen {min} und {max} mit höchstens zwei Nachkommastellen sein."
       },
-      "gddSendAmount": "Das Feld {_field_} muss eine Zahl zwischen {min} und {max} mit höchstens zwei Nachkommastellen sein.",
       "identifier": {
         "communityIsReachable": "Community nicht gefunden oder nicht erreichbar!",
         "required": "Der Empfänger ist ein Pflichtfeld.",
@@ -243,8 +243,8 @@
       },
       "is-not": "Du kannst dir selbst keine Gradidos überweisen!",
       "memo": {
-        "min": "Die Nachricht sollte mindestens {min} Zeichen lang sein.",
         "max": "Die Nachricht sollte höchstens {max} Zeichen lang sein.",
+        "min": "Die Nachricht sollte mindestens {min} Zeichen lang sein.",
         "required": "Die Nachricht ist ein Pflichtfeld."
       },
       "requiredField": "{fieldName} ist ein Pflichtfeld",
@@ -347,13 +347,13 @@
   },
   "openHours": "Offene Stunden",
   "pageTitle": {
+    "circles": "Gradido Kreise",
     "contributions": "Gradido schöpfen",
     "gdt": "Deine GDT Transaktionen",
     "information": "{community}",
     "overview": "Willkommen {name}",
     "send": "Sende Gradidos",
     "settings": "Einstellungen",
-    "circles": "Gradido Kreise",
     "transactions": "Deine Transaktionen",
     "usersearch": "Geografische Mitgliedssuche (beta)"
   },
@@ -367,8 +367,6 @@
     "warningText": "Bist du noch da?"
   },
   "settings": {
-    "community": "Kreise & Mitgliedssuche",
-    "emailInfo": "Kann aktuell noch nicht geändert werden.",
     "GMS": {
       "disabled": "Daten werden nicht nach GMS exportiert",
       "enabled": "Daten werden nach GMS exportiert",
@@ -383,20 +381,22 @@
         "communityCoords": "Ihr Gemeinschafts-Standort: Breitengrad {lat}, Längengrad {lng}",
         "communityLocationLabel": "Ihr Gemeinschafts-Standort",
         "headline": "Geografische Standorterfassung des Benutzers",
+        "search": "Nach einem Standort suchen",
         "userCoords": "Ihr Standort: Breitengrad {lat}, Längengrad {lng}",
-        "userLocationLabel": "Ihr Standort",
-        "search": "Nach einem Standort suchen"
+        "userLocationLabel": "Ihr Standort"
       },
       "naming-format": "Namen anzeigen:",
       "publish-location": {
-        "exact": "Genaue Position",
         "approximate": "Ungefähre Position",
+        "exact": "Genaue Position",
         "updated": "Positionstyp für GMS aktualisiert"
       },
       "publish-name": {
         "updated": "Namensformat für GMS aktualisiert"
       }
     },
+    "community": "Kreise & Mitgliedssuche",
+    "emailInfo": "Kann aktuell noch nicht geändert werden.",
     "hideAmountGDD": "Dein GDD Betrag ist versteckt.",
     "hideAmountGDT": "Dein GDT Betrag ist versteckt.",
     "humhub": {
@@ -448,9 +448,9 @@
       "alias-or-initials": "Benutzername oder Initialen",
       "alias-or-initials-tooltip": "Benutzername, falls vorhanden, oder die Initialen von Vorname und Nachname jeweils die ersten zwei Buchstaben",
       "first": "Vorname",
-      "first-tooltip": "Nur der Vornamen",
       "first-initial": "Vorname und Initial",
       "first-initial-tooltip": "Vornamen plus den ersten Anfangsbuchstaben des Nachnamens",
+      "first-tooltip": "Nur der Vornamen",
       "initials": "Initialen",
       "initials-tooltip": "Initialen von Vor- und Nachname also jeweils die ersten zwei Buchstaben unabhängig von der Existenz des Benutzernamens",
       "name-full": "Vorname und Nachname",
@@ -507,9 +507,9 @@
     "send_you": "sendet dir"
   },
   "usersearch": {
+    "button": "Starte die Nutzersuche...",
     "headline": "Geografische Nutzersuche",
-    "text": "Ganz gleich zu welcher Community du gehörst, mit dem Geo Matching System findest du Mitglieder aller Communities auf einer Landkarte. Du kannst nach  Angeboten und Bedürfnissen filtern und dir die Nutzer anzeigen lassen, die zu Dir passen.\n\nMit dem Button wird ein neues Browser-Fenster geöffnet, in dem dir die Nutzer in deinem Umfeld auf einer Karte angezeigt werden.",
-    "button": "Starte die Nutzersuche..."
+    "text": "Ganz gleich zu welcher Community du gehörst, mit dem Geo Matching System findest du Mitglieder aller Communities auf einer Landkarte. Du kannst nach  Angeboten und Bedürfnissen filtern und dir die Nutzer anzeigen lassen, die zu Dir passen.\n\nMit dem Button wird ein neues Browser-Fenster geöffnet, in dem dir die Nutzer in deinem Umfeld auf einer Karte angezeigt werden."
   },
   "via_link": "über einen Link",
   "welcome": "Willkommen in der Gemeinschaft"

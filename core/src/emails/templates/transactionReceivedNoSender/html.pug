@@ -1,0 +1,24 @@
+extend ../layout.pug
+
+block content  
+  //
+    mixin mailto(email, subject)
+      - var formattedSubject = encodeURIComponent(subject)
+      a(class!=attributes.class href=`mailto:${email}?subject=${formattedSubject}`)
+        block
+
+  - var subject= t('emails.transactionReceived.replySubject', { senderFirstName, senderLastName, transactionAmount })
+  h2= t('emails.transactionReceived.title', { senderFirstName, senderLastName, transactionAmount })
+  .text-block
+    include ../includes/salutation.pug
+    p 
+      = t('emails.transactionReceived.haveReceivedAmountGDDFrom', { transactionAmount, senderFirstName, senderLastName })
+  .content
+    h2= t('emails.general.message')
+    .child-left
+      div(class="p_content")= memo
+    
+  a.button-3(href=`${communityURL}/transactions`) #{t('emails.general.toAccount')}
+
+  
+

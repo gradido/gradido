@@ -1,7 +1,7 @@
 import { drizzle, MySql2Database } from 'drizzle-orm/mysql2'
 import Redis from 'ioredis'
 import { getLogger } from 'log4js'
-import { Connection, createConnection } from 'mysql2/promise'
+import { Connection, createConnection, createPool, Pool } from 'mysql2/promise'
 import { DataSource as DBDataSource, FileLogger } from 'typeorm'
 import { latestDbVersion } from '.'
 import { CONFIG } from './config'
@@ -14,7 +14,7 @@ export class AppDatabase {
   private static instance: AppDatabase
   private dataSource: DBDataSource | undefined
   private drizzleDataSource: MySql2Database | undefined
-  private drizzleConnection: Connection | undefined
+  private drizzlePool: Pool | undefined
   private redisClient: Redis | undefined
 
   /**
@@ -48,10 +48,10 @@ export class AppDatabase {
   }
 
   public getDrizzleDataSource(): MySql2Database {
-    if (!this.drizzleDataSource) {
-      throw new Error('Drizzle connection not initialized')
+    if (!this.drizzlePool) {
+      throw new Error('Drizzle connection pool not initialized')
     }
-    return this.drizzleDataSource
+    return drizzle({ client: this.drizzlePool })
   }
 
   // create database connection, initialize with automatic retry and check for correct database version
@@ -106,22 +106,25 @@ export class AppDatabase {
     logger.info('Redis status=', this.redisClient.status)
 
     if (!this.drizzleDataSource) {
-      this.drizzleConnection = await createConnection({
+      this.drizzlePool = createPool({
         host: CONFIG.DB_HOST,
         user: CONFIG.DB_USER,
         password: CONFIG.DB_PASSWORD,
         database: CONFIG.DB_DATABASE,
         port: CONFIG.DB_PORT,
+        waitForConnections: true,
+        connectionLimit: 20,
+        queueLimit: 100,
+        enableKeepAlive: true,
+        keepAliveInitialDelay: 10000,
       })
-      this.drizzleDataSource = drizzle({ client: this.drizzleConnection })
     }
   }
 
   public async destroy(): Promise<void> {
-    await Promise.all([this.dataSource?.destroy(), this.drizzleConnection?.end()])
+    await Promise.all([this.dataSource?.destroy(), this.drizzlePool?.end()])
     this.dataSource = undefined
-    this.drizzleConnection = undefined
-    this.drizzleDataSource = undefined
+    this.drizzlePool = undefined
     if (this.redisClient) {
       await this.redisClient.quit()
       this.redisClient = undefined

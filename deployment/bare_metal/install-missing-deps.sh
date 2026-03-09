@@ -1,10 +1,11 @@
 #!/bin/bash
 
+# source profile so PATH/NVM/BUN werden gesetzt (safe for non-login)
+if [ -f /home/gradido/.profile ]; then
+  . /home/gradido/.profile
+fi
 # Ensure required tools are installed
 
-# make sure correct node version is installed
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 if ! command -v nvm > /dev/null
 then
     echo "'nvm' is missing, will be installed now!"
@@ -14,7 +15,7 @@ install_nvm() {
     nvm install 
     nvm use 
     nvm alias default 
-    npm i -g yarn pm2
+    npm i -g pm2 turbo
     pm2 startup
 }
 nvm use || install_nvm
@@ -52,23 +53,24 @@ fi
 if ! command -v turbo > /dev/null
 then
     echo "'turbo' is missing, will be installed now!"
-    bun install --global turbo
+    npm i -g turbo
 fi
 
 # rust and grass 
-if ! command -v cargo > /dev/null
-then
-    echo "'cargo' is missing, will be installed now!"
-    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-    export CARGO_HOME="$HOME/.cargo"
-    export PATH="$CARGO_HOME/bin:$PATH"
+if [ "$USE_GRASS" = true ]; then
+    if ! command -v cargo > /dev/null
+    then
+        echo "'cargo' is missing, will be installed now!"
+        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+        export CARGO_HOME="$HOME/.cargo"
+        export PATH="$CARGO_HOME/bin:$PATH"
+    fi
+    if ! command -v grass > /dev/null
+    then
+        echo "'grass' is missing, will be installed now!"
+        cargo install grass
+    fi
 fi
-if ! command -v grass > /dev/null
-then
-    echo "'grass' is missing, will be installed now!"
-    cargo install grass
-fi
-
 # redis
 if ! command -v  redis-cli --version > /dev/null
 then 

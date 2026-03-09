@@ -1,5 +1,13 @@
-import { Community as DbCommunity, User as DbUser, findForeignUserByUuids } from 'database'
+import {
+  Community as DbCommunity,
+  User as DbUser,
+  UserContact as DbUserContact,
+  findForeignUserByUuids,
+  UserContactLoggingView,
+  UserLoggingView,
+} from 'database'
 import { getLogger } from 'log4js'
+import { UserContactType } from 'shared'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../../config/const'
 import { SendCoinsResult } from '../../federation/client/1_0/model/SendCoinsResult'
 
@@ -35,17 +43,38 @@ export async function storeForeignUser(
         }
         foreignUser.gradidoID = committingResult.recipGradidoID
         foreignUser = await DbUser.save(foreignUser)
-        logger.debug('new foreignUser inserted:', foreignUser)
 
+        logger.debug('new foreignUser inserted:', new UserLoggingView(foreignUser))
+        /*
+        if (committingResult.recipEmail !== null) {
+          let foreignUserEmail = DbUserContact.create()
+          foreignUserEmail.email = committingResult.recipEmail!
+          foreignUserEmail.emailChecked = true
+          foreignUserEmail.user = foreignUser
+          foreignUserEmail = await DbUserContact.save(foreignUserEmail)
+          logger.debug(
+            'new foreignUserEmail inserted:',
+            new UserContactLoggingView(foreignUserEmail),
+          )
+          foreignUser.emailContact = foreignUserEmail
+          foreignUser.emailId = foreignUserEmail.id
+          foreignUser = await DbUser.save(foreignUser)
+        }
+        */
         return foreignUser
       } else if (
         user.firstName !== committingResult.recipFirstName ||
         user.lastName !== committingResult.recipLastName ||
-        user.alias !== committingResult.recipAlias
+        user.alias !== committingResult.recipAlias /* ||
+        (user.emailContact === null && committingResult.recipEmail !== null) ||
+        (user.emailContact !== null &&
+          user.emailContact?.email !== null &&
+          user.emailContact?.email !== committingResult.recipEmail)
+          */
       ) {
-        logger.warn(
+        logger.debug(
           'foreignUser still exists, but with different name or alias:',
-          user,
+          new UserLoggingView(user),
           committingResult,
         )
         if (committingResult.recipFirstName !== null) {
@@ -57,11 +86,39 @@ export async function storeForeignUser(
         if (committingResult.recipAlias !== null) {
           user.alias = committingResult.recipAlias
         }
+        /*
+        if (!user.emailContact && committingResult.recipEmail !== null) {
+          logger.debug(
+            'creating new userContact:',
+            new UserContactLoggingView(user.emailContact),
+            committingResult,
+          )
+          let foreignUserEmail = DbUserContact.create()
+          foreignUserEmail.type = UserContactType.USER_CONTACT_EMAIL
+          foreignUserEmail.email = committingResult.recipEmail!
+          foreignUserEmail.emailChecked = true
+          foreignUserEmail.user = user
+          foreignUserEmail.userId = user.id
+          foreignUserEmail = await DbUserContact.save(foreignUserEmail)
+          logger.debug(
+            'new foreignUserEmail inserted:',
+            new UserContactLoggingView(foreignUserEmail),
+          )
+          user.emailContact = foreignUserEmail
+          user.emailId = foreignUserEmail.id
+        } else if (user.emailContact && committingResult.recipEmail != null) {
+          const userContact = user.emailContact
+          userContact.email = committingResult.recipEmail
+          user.emailContact = await DbUserContact.save(userContact)
+          user.emailId = userContact.id
+          logger.debug('foreignUserEmail updated:', new UserContactLoggingView(userContact))
+        }
+        */
         await DbUser.save(user)
-        logger.debug('update recipient successful.', user)
+        logger.debug('update recipient successful.', new UserLoggingView(user))
         return user
       } else {
-        logger.debug('foreignUser still exists...:', user)
+        logger.debug('foreignUser still exists...:', new UserLoggingView(user))
         return user
       }
     } catch (err) {

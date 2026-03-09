@@ -40,6 +40,8 @@ ENV BRANCH_NAME=$BRANCH_NAME
 RUN git clone https://github.com/gradido/gradido.git --branch $BRANCH_NAME 
 RUN cp /app/gradido/deployment/bare_metal/.env.dist /app/gradido/deployment/bare_metal/.env
 RUN sed -i 's/^URL_PROTOCOL=https$/URL_PROTOCOL=http/' /app/gradido/deployment/bare_metal/.env
+RUN sed -i 's/^COMMUNITY_HOST=gddhost.tld$/COMMUNITY_HOST=localhost/' /app/gradido/deployment/bare_metal/.env
+
 
 # setup nginx
 WORKDIR /app/gradido/deployment/bare_metal/nginx
