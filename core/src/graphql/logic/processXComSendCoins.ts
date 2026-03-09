@@ -172,19 +172,6 @@ export async function processXComCompleteTransaction(
           )
         }
       }
-      /*
-      await sendTransactionReceivedEmail({
-        firstName: foreignUser.firstName,
-        lastName: foreignUser.lastName,
-        email: foreignUser.emailContact.email,
-        language: foreignUser.language,
-        memo,
-        senderFirstName: senderUser.firstName,
-        senderLastName: senderUser.lastName,
-        senderEmail: senderUser.emailContact.email,
-        transactionAmount: new Decimal(amount),
-      })
-      */
       if (dbTransactionLink) {
         await sendTransactionLinkRedeemedEmail({
           firstName: senderUser.firstName,
@@ -193,7 +180,7 @@ export async function processXComCompleteTransaction(
           language: senderUser.language,
           senderFirstName: foreignUser.firstName,
           senderLastName: foreignUser.lastName,
-          senderEmail: 'unknown', // foreignUser.emailContact.email,
+          senderEmail: recipientCom.name!, // foreignUser.emailContact.email,
           transactionAmount: new Decimal(amount),
           transactionMemo: memo,
         })
