@@ -22,7 +22,7 @@ export async function syncHumhub(
   updateUserInfosArg: UpdateUserInfosArgs | null,
   user: User,
   oldHumhubUsername: string,
-  spaceId?: number | null,
+  spaceId?: number | null | undefined,
 ): Promise<GetUser | null | undefined> {
   const logger = createLogger()
   logger.addContext('user', user.id)
