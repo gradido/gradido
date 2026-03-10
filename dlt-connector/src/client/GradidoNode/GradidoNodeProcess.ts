@@ -1,13 +1,12 @@
 import path from 'node:path'
 import { Mutex } from 'async-mutex'
-import { Subprocess, spawn } from 'bun'
+import { $, Subprocess, spawn } from 'bun'
 import { getLogger, Logger } from 'log4js'
 import { CONFIG } from '../../config'
 import {
   GRADIDO_NODE_KILL_TIMEOUT_MILLISECONDS,
   GRADIDO_NODE_MIN_RUNTIME_BEFORE_EXIT_MILLISECONDS,
   GRADIDO_NODE_MIN_RUNTIME_BEFORE_RESTART_MILLISECONDS,
-  GRADIDO_NODE_RUNTIME_PATH,
   LOG4JS_BASE_CATEGORY,
 } from '../../config/const'
 import { delay } from '../../utils/time'
@@ -49,6 +48,10 @@ export class GradidoNodeProcess {
     const binaryName = isWindows ? 'GradidoNode.exe' : 'GradidoNode'
 
     return path.join(CONFIG.DLT_GRADIDO_NODE_SERVER_HOME_FOLDER, 'bin', binaryName)
+  }
+
+  public static async checkRuntimeVersion(): Promise<string> {
+    return (await $`${GradidoNodeProcess.getRuntimePathFileName()} --version`.text()).trim()
   }
 
   public start() {

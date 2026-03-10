@@ -14,6 +14,7 @@ import {
 } from 'gradido-blockchain-js'
 import * as v from 'valibot'
 import { deriveFromCode } from '../../../../data/deriveKeyPair'
+import { Uuidv4 } from '../../../../schemas/typeGuard.schema'
 import { addToBlockchain } from '../../blockchain'
 import { Context } from '../../Context'
 import { Balance } from '../../data/Balance'
@@ -26,7 +27,6 @@ import {
   deletedTransactionLinKDbSchema,
 } from '../../valibot.schema'
 import { AbstractSyncRole, IndexType } from './AbstractSync.role'
-import { Uuidv4 } from '../../../../schemas/typeGuard.schema'
 
 export class DeletedTransactionLinksSyncRole extends AbstractSyncRole<DeletedTransactionLinkDb> {
   constructor(context: Context) {

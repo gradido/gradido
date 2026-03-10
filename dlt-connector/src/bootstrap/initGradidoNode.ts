@@ -53,11 +53,24 @@ async function exportHederaAddressbooks(
 
 async function ensureGradidoNodeRuntimeAvailable(runtimeFileName: string): Promise<void> {
   const runtimeFolder = path.dirname(runtimeFileName)
+  const wantedVersion = `v${CONFIG.DLT_GRADIDO_NODE_SERVER_VERSION}`
   checkPathExist(runtimeFolder, true)
-  if (!checkFileExist(runtimeFileName)) {
+  let versionMatch = false
+  const isFileExist = checkFileExist(runtimeFileName)
+  if (isFileExist) {
+    const foundVersion = await GradidoNodeProcess.checkRuntimeVersion()
+    if (wantedVersion !== foundVersion) {
+      logger.info(
+        `GradidoNode version detected: ${foundVersion}, required: ${wantedVersion}`
+      )
+    } else {
+      versionMatch = true
+    }
+  }
+  if (!isFileExist || !versionMatch) {
     const runtimeArchiveFilename = createGradidoNodeRuntimeArchiveFilename()
     const downloadUrl = new URL(
-      `https://github.com/gradido/gradido_node/releases/download/v${CONFIG.DLT_GRADIDO_NODE_SERVER_VERSION}/${runtimeArchiveFilename}`,
+      `https://github.com/gradido/gradido_node/releases/download/${wantedVersion}/${runtimeArchiveFilename}`,
     )
     logger.debug(`download GradidoNode Runtime from ${downloadUrl}`)
     const archive = await fetch(downloadUrl)

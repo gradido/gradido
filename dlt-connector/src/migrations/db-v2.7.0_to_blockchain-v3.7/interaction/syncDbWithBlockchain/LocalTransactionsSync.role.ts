@@ -11,6 +11,7 @@ import {
   TransferAmount,
 } from 'gradido-blockchain-js'
 import * as v from 'valibot'
+import { Uuidv4 } from '../../../../schemas/typeGuard.schema'
 import { addToBlockchain } from '../../blockchain'
 import { Context } from '../../Context'
 import { TransactionTypeId } from '../../data/TransactionTypeId'
@@ -24,7 +25,6 @@ import {
 import { toMysqlDateTime } from '../../utils'
 import { CommunityContext, TransactionDb, transactionDbSchema } from '../../valibot.schema'
 import { AbstractSyncRole, IndexType } from './AbstractSync.role'
-import { Uuidv4 } from '../../../../schemas/typeGuard.schema'
 
 export class LocalTransactionsSyncRole extends AbstractSyncRole<TransactionDb> {
   constructor(context: Context) {

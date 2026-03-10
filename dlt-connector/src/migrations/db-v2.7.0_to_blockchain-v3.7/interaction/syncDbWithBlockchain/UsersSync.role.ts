@@ -12,6 +12,7 @@ import {
 import * as v from 'valibot'
 import { deriveFromKeyPairAndUuid } from '../../../../data/deriveKeyPair'
 import { Uuidv4Hash } from '../../../../data/Uuidv4Hash'
+import { Uuidv4 } from '../../../../schemas/typeGuard.schema'
 import { addToBlockchain } from '../../blockchain'
 import { Context } from '../../Context'
 import { usersTable } from '../../drizzle.schema'
@@ -19,7 +20,6 @@ import { BlockchainError, DatabaseError } from '../../errors'
 import { toMysqlDateTime } from '../../utils'
 import { CommunityContext, UserDb, userDbSchema } from '../../valibot.schema'
 import { AbstractSyncRole, IndexType } from './AbstractSync.role'
-import { Uuidv4 } from '../../../../schemas/typeGuard.schema'
 
 export class UsersSyncRole extends AbstractSyncRole<UserDb> {
   constructor(context: Context) {

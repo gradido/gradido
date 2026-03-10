@@ -14,6 +14,7 @@ import {
   TransferAmount,
 } from 'gradido-blockchain-js'
 import * as v from 'valibot'
+import { Uuidv4 } from '../../../../schemas/typeGuard.schema'
 import { addToBlockchain } from '../../blockchain'
 import { Context } from '../../Context'
 import { TransactionTypeId } from '../../data/TransactionTypeId'
@@ -27,7 +28,6 @@ import {
 import { toMysqlDateTime } from '../../utils'
 import { CommunityContext, TransactionDb, transactionDbSchema, UserDb } from '../../valibot.schema'
 import { AbstractSyncRole, IndexType } from './AbstractSync.role'
-import { Uuidv4 } from '../../../../schemas/typeGuard.schema'
 
 export class RemoteTransactionsSyncRole extends AbstractSyncRole<TransactionDb> {
   constructor(context: Context) {
@@ -41,7 +41,7 @@ export class RemoteTransactionsSyncRole extends AbstractSyncRole<TransactionDb> 
 
   getCommunityUuids(): Uuidv4[] {
     const currentItem = this.peek()
-    return [ currentItem.user.communityUuid, currentItem.linkedUser.communityUuid ]
+    return [currentItem.user.communityUuid, currentItem.linkedUser.communityUuid]
   }
 
   getLastIndex(): IndexType {

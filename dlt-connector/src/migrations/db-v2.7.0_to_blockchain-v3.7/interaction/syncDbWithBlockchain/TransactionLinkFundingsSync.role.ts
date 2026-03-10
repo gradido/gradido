@@ -14,11 +14,12 @@ import {
   LedgerAnchor,
   MemoryBlockPtr,
   SearchDirection_DESC,
-  transactionTypeToString,
   TransferAmount,
+  transactionTypeToString,
 } from 'gradido-blockchain-js'
 import * as v from 'valibot'
 import { deriveFromCode } from '../../../../data/deriveKeyPair'
+import { Uuidv4 } from '../../../../schemas/typeGuard.schema'
 import { addToBlockchain } from '../../blockchain'
 import { Context } from '../../Context'
 import { transactionLinksTable, usersTable } from '../../drizzle.schema'
@@ -26,7 +27,6 @@ import { BlockchainError, DatabaseError, NegativeBalanceError } from '../../erro
 import { reverseLegacyDecay, toMysqlDateTime } from '../../utils'
 import { CommunityContext, TransactionLinkDb, transactionLinkDbSchema } from '../../valibot.schema'
 import { AbstractSyncRole, IndexType } from './AbstractSync.role'
-import { Uuidv4 } from '../../../../schemas/typeGuard.schema'
 
 export class TransactionLinkFundingsSyncRole extends AbstractSyncRole<TransactionLinkDb> {
   constructor(context: Context) {
@@ -119,7 +119,6 @@ export class TransactionLinkFundingsSyncRole extends AbstractSyncRole<Transactio
     senderPublicKey: MemoryBlockPtr,
     recipientPublicKey: MemoryBlockPtr,
   ): AccountBalances {
-
     this.accountBalances.clear()
     const senderLastBalance = this.getLastBalanceForUser(
       senderPublicKey,

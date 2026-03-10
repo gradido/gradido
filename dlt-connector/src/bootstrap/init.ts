@@ -35,11 +35,18 @@ export async function checkHieroAccount(logger: Logger, clients: AppContextClien
 export async function checkHomeCommunity(
   appContext: AppContext,
   logger: Logger,
-): Promise<Community> {
+): Promise<Community | undefined> {
   const { backend, hiero } = appContext.clients
 
   // wait for backend server
-  await isPortOpenRetry(backend.url)
+  try {
+    logger.info(`Waiting for backend server to become available at ${backend.url}`)
+    await isPortOpenRetry(backend.url)
+  } catch (e) {
+    logger.error(`Backend server at ${backend.url} is not reachable`)
+    return
+  }
+
   // ask backend for home community
   let homeCommunity = await backend.getHomeCommunityDraft()
   // on missing topicId, create one
@@ -58,7 +65,7 @@ export async function checkHomeCommunity(
       await hiero.updateTopic(homeCommunity.hieroTopicId)
       topicInfo = await hiero.getTopicInfo(homeCommunity.hieroTopicId)
       logger.info(
-        `updated topic info, new expiration time: ${topicInfo.expirationTime.toLocaleDateString()}`,
+        `Topic expiration extended. New expiration time: ${topicInfo.expirationTime.toLocaleDateString()}`,
       )
     }
   }
@@ -66,9 +73,10 @@ export async function checkHomeCommunity(
     throw new Error('still no topic id, after creating topic and update community in backend.')
   }
   appContext.cache.setHomeCommunityTopicId(homeCommunity.hieroTopicId)
-  logger.info(`home community topic: ${homeCommunity.hieroTopicId}`)
-  logger.info(`gradido node server: ${appContext.clients.gradidoNode.url}`)
-  logger.info(`gradido backend server: ${appContext.clients.backend.url}`)
+  logger.info(`Home community topic id: ${homeCommunity.hieroTopicId}`)
+  logger.info(`Gradido node server: ${appContext.clients.gradidoNode.url}`)
+  logger.info(`Gradido backend server: ${appContext.clients.backend.url}`)
+  
   await ResolveKeyPair(
     new KeyPairIdentifierLogic({
       communityTopicId: homeCommunity.hieroTopicId,

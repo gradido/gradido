@@ -14,6 +14,7 @@ import {
   TransferAmount,
 } from 'gradido-blockchain-js'
 import * as v from 'valibot'
+import { Uuidv4 } from '../../../../schemas/typeGuard.schema'
 import { addToBlockchain } from '../../blockchain'
 import { Context } from '../../Context'
 import { ContributionStatus } from '../../data/ContributionStatus'
@@ -26,7 +27,6 @@ import {
   creationTransactionDbSchema,
 } from '../../valibot.schema'
 import { AbstractSyncRole, IndexType } from './AbstractSync.role'
-import { Uuidv4 } from '../../../../schemas/typeGuard.schema'
 
 export class CreationsSyncRole extends AbstractSyncRole<CreationTransactionDb> {
   constructor(context: Context) {
@@ -38,7 +38,7 @@ export class CreationsSyncRole extends AbstractSyncRole<CreationTransactionDb> {
     return this.peek().confirmedAt
   }
   getCommunityUuids(): Uuidv4[] {
-    return [ this.peek().user.communityUuid ]
+    return [this.peek().user.communityUuid]
   }
 
   getLastIndex(): IndexType {

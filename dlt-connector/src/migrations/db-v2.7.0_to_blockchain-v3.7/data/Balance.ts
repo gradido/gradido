@@ -103,11 +103,15 @@ export class Balance {
   }
 
   toString(): string {
-   return JSON.stringify({
-    balance: this.balance.toString(),
-    date: this.date,
-    publicKey: this.publicKey.convertToHex(),
-    communityId: this.communityId
-   }, null, 2)
+    return JSON.stringify(
+      {
+        balance: this.balance.toString(),
+        date: this.date,
+        publicKey: this.publicKey.convertToHex(),
+        communityId: this.communityId,
+      },
+      null,
+      2,
+    )
   }
 }

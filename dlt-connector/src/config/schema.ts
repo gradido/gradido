@@ -82,9 +82,9 @@ export const configSchema = v.object({
   DLT_GRADIDO_NODE_SERVER_VERSION: v.optional(
     v.pipe(
       v.string('The version of the DLT node server, for example: 0.9.0'),
-      v.regex(/^\d+\.\d+\.\d+$/),
+      v.regex(/^\d+\.\d+\.\d+(.\d+)?$/),
     ),
-    '0.9.4',
+    '0.9.6.10',
   ),
   DLT_GRADIDO_NODE_SERVER_HOME_FOLDER: v.optional(
     v.string('The home folder for the gradido dlt node server'),
