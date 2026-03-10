@@ -86,6 +86,7 @@ async function clearDatabase(db: AppDatabase) {
     await trx.query(`SET FOREIGN_KEY_CHECKS = 0`)
     await trx.query(`TRUNCATE TABLE contributions`)
     await trx.query(`TRUNCATE TABLE contribution_links`)
+    await trx.query(`TRUNCATE TABLE events`)
     await trx.query(`TRUNCATE TABLE users`)
     await trx.query(`TRUNCATE TABLE user_contacts`)
     await trx.query(`TRUNCATE TABLE user_roles`)

@@ -1,4 +1,7 @@
+import Decimal from 'decimal.js-light'
+
 export const DECAY_START_TIME = new Date('2021-05-13T17:46:31Z')
+export const DECAY_FACTOR = new Decimal('0.99999997803504048973201202316767079413460520837376')
 export const SECONDS_PER_YEAR_GREGORIAN_CALENDER = 31556952.0
 export const LOG4JS_BASE_CATEGORY_NAME = 'shared'
 export const REDEEM_JWT_TOKEN_EXPIRATION = '10m'

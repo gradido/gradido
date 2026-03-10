@@ -163,7 +163,7 @@ export type HieroTransactionIdInput = v.InferInput<typeof hieroTransactionIdStri
  * memo string inside bounds [5, 255]
  */
 export const MEMO_MIN_CHARS = 5
-export const MEMO_MAX_CHARS = 255
+export const MEMO_MAX_CHARS = 512
 
 declare const validMemo: unique symbol
 export type Memo = string & { [validMemo]: true }

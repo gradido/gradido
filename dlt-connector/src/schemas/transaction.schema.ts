@@ -43,12 +43,14 @@ export type Transaction = v.InferOutput<typeof transactionSchema>
 // if the account is identified by seed
 export const seedAccountSchema = v.object({
   communityTopicId: hieroIdSchema,
+  communityId: uuidv4Schema,
   seed: identifierSeedSchema,
 })
 
 // if the account is identified by userUuid and accountNr
 export const userAccountSchema = v.object({
   communityTopicId: hieroIdSchema,
+  communityId: uuidv4Schema,
   account: identifierCommunityAccountSchema,
 })
 

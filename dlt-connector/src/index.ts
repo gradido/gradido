@@ -21,6 +21,9 @@ async function main() {
 
   // get home community, create topic if not exist, or check topic expiration and update it if needed
   const homeCommunity = await checkHomeCommunity(appContext, logger)
+  if (!homeCommunity) {
+    process.exit(1)
+  }
 
   // ask gradido node if community blockchain was created
   // if not exist, create community root transaction

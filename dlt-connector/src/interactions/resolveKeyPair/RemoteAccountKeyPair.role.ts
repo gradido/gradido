@@ -7,7 +7,7 @@ import { AbstractRemoteKeyPairRole } from './AbstractRemoteKeyPair.role'
 
 export class RemoteAccountKeyPairRole extends AbstractRemoteKeyPairRole {
   public constructor(private identifier: IdentifierAccount) {
-    super(identifier.communityTopicId)
+    super(identifier.communityId)
   }
 
   public async retrieveKeyPair(): Promise<KeyPairEd25519> {
@@ -17,7 +17,7 @@ export class RemoteAccountKeyPairRole extends AbstractRemoteKeyPairRole {
 
     const accountPublicKey = await GradidoNodeClient.getInstance().findUserByNameHash(
       new Uuidv4Hash(this.identifier.account.userUuid),
-      this.topic,
+      this.communityId,
     )
     if (accountPublicKey) {
       return new KeyPairEd25519(MemoryBlock.createPtr(MemoryBlock.fromHex(accountPublicKey)))

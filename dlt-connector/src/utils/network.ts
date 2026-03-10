@@ -29,7 +29,7 @@ export async function isPortOpen(
       socket.destroy()
       const logger = getLogger(`${LOG4JS_BASE_CATEGORY}.network.isPortOpen`)
       logger.addContext('url', url)
-      logger.error(`${err.message}: ${err.code}`)
+      logger.debug(`${err.message}: ${err.code}`)
       resolve(false)
     })
   })

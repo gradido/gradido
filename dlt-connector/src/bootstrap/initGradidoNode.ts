@@ -7,11 +7,7 @@ import { exportCommunities } from '../client/GradidoNode/communities'
 import { GradidoNodeProcess } from '../client/GradidoNode/GradidoNodeProcess'
 import { HieroClient } from '../client/hiero/HieroClient'
 import { CONFIG } from '../config'
-import {
-  GRADIDO_NODE_HOME_FOLDER_NAME,
-  GRADIDO_NODE_RUNTIME_PATH,
-  LOG4JS_BASE_CATEGORY,
-} from '../config/const'
+import { GRADIDO_NODE_HOME_FOLDER_NAME, LOG4JS_BASE_CATEGORY } from '../config/const'
 import { checkFileExist, checkPathExist } from '../utils/filesystem'
 import { isPortOpen } from '../utils/network'
 import { AppContextClients } from './appContext'
@@ -37,7 +33,7 @@ export async function initGradidoNode(clients: AppContextClients): Promise<void>
     // write Hedera Address Book
     exportHederaAddressbooks(gradidoNodeHomeFolder, clients.hiero),
     // check GradidoNode Runtime, download when missing
-    ensureGradidoNodeRuntimeAvailable(GRADIDO_NODE_RUNTIME_PATH),
+    ensureGradidoNodeRuntimeAvailable(GradidoNodeProcess.getRuntimePathFileName()),
     // export communities to GradidoNode Folder
     exportCommunities(gradidoNodeHomeFolder, clients.backend),
   ])
@@ -57,11 +53,22 @@ async function exportHederaAddressbooks(
 
 async function ensureGradidoNodeRuntimeAvailable(runtimeFileName: string): Promise<void> {
   const runtimeFolder = path.dirname(runtimeFileName)
+  const wantedVersion = `v${CONFIG.DLT_GRADIDO_NODE_SERVER_VERSION}`
   checkPathExist(runtimeFolder, true)
-  if (!checkFileExist(runtimeFileName)) {
+  let versionMatch = false
+  const isFileExist = checkFileExist(runtimeFileName)
+  if (isFileExist) {
+    const foundVersion = await GradidoNodeProcess.checkRuntimeVersion()
+    if (wantedVersion !== foundVersion) {
+      logger.info(`GradidoNode version detected: ${foundVersion}, required: ${wantedVersion}`)
+    } else {
+      versionMatch = true
+    }
+  }
+  if (!isFileExist || !versionMatch) {
     const runtimeArchiveFilename = createGradidoNodeRuntimeArchiveFilename()
     const downloadUrl = new URL(
-      `https://github.com/gradido/gradido_node/releases/download/v${CONFIG.DLT_GRADIDO_NODE_SERVER_VERSION}/${runtimeArchiveFilename}`,
+      `https://github.com/gradido/gradido_node/releases/download/${wantedVersion}/${runtimeArchiveFilename}`,
     )
     logger.debug(`download GradidoNode Runtime from ${downloadUrl}`)
     const archive = await fetch(downloadUrl)

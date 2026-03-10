@@ -54,6 +54,9 @@ export class KeyPairIdentifierLogic {
     return this.identifier.seed
   }
 
+  getCommunityId(): Uuidv4 {
+    return this.identifier.communityId
+  }
   getCommunityTopicId(): HieroId {
     return this.identifier.communityTopicId
   }
@@ -76,7 +79,7 @@ export class KeyPairIdentifierLogic {
     return this.getSeed()
   }
   getCommunityKey(): string {
-    return this.getCommunityTopicId()
+    return this.getCommunityId()
   }
   getCommunityUserKey(): string {
     return this.deriveCommunityUserHash(0)
@@ -107,7 +110,7 @@ export class KeyPairIdentifierLogic {
       )
     }
     const resultString =
-      this.identifier.communityTopicId +
+      this.identifier.communityId +
       this.identifier.account.userUuid.replace(/-/g, '') +
       accountNr.toString()
     return new MemoryBlock(resultString).calculateHash().convertToHex()

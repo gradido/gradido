@@ -41,6 +41,7 @@ export class DeferredTransferTransactionRole extends AbstractTransactionRole {
     const recipientKeyPair = await ResolveKeyPair(
       new KeyPairIdentifierLogic({
         communityTopicId: this.deferredTransferTransaction.linkedUser.communityTopicId,
+        communityId: this.deferredTransferTransaction.linkedUser.communityId,
         seed: this.seed,
       }),
     )
@@ -54,6 +55,7 @@ export class DeferredTransferTransactionRole extends AbstractTransactionRole {
           new AuthenticatedEncryption(recipientKeyPair),
         ),
       )
+      .setSenderCommunity(this.deferredTransferTransaction.user.communityId)
       .setDeferredTransfer(
         new GradidoTransfer(
           new TransferAmount(
@@ -61,6 +63,7 @@ export class DeferredTransferTransactionRole extends AbstractTransactionRole {
             this.deferredTransferTransaction.amount.calculateCompoundInterest(
               this.deferredTransferTransaction.timeoutDuration.getSeconds(),
             ),
+            this.deferredTransferTransaction.user.communityId,
           ),
           recipientKeyPair.getPublicKey(),
         ),

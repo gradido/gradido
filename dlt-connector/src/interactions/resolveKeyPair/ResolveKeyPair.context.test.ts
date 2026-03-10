@@ -33,6 +33,7 @@ mock.module('../../config', () => ({
 }))
 
 const topicId = '0.0.21732'
+const communityId = '1e88a0f4-d4fc-4cae-a7e8-a88e613ce324'
 const userUuid = 'aa25cf6f-2879-4745-b2ea-6d3c37fb44b0'
 
 afterAll(() => {
@@ -45,7 +46,7 @@ describe('KeyPairCalculation', () => {
   })
   it('community key pair', async () => {
     const identifier = new KeyPairIdentifierLogic(
-      v.parse(identifierKeyPairSchema, { communityTopicId: topicId }),
+      v.parse(identifierKeyPairSchema, { communityId, communityTopicId: topicId }),
     )
     const keyPair = await ResolveKeyPair(identifier)
     expect(keyPair.getPublicKey()?.convertToHex()).toBe(
@@ -55,6 +56,7 @@ describe('KeyPairCalculation', () => {
   it('user key pair', async () => {
     const identifier = new KeyPairIdentifierLogic(
       v.parse(identifierKeyPairSchema, {
+        communityId,
         communityTopicId: topicId,
         account: { userUuid },
       }),
@@ -70,6 +72,7 @@ describe('KeyPairCalculation', () => {
   it('account key pair', async () => {
     const identifier = new KeyPairIdentifierLogic(
       v.parse(identifierKeyPairSchema, {
+        communityId,
         communityTopicId: topicId,
         account: { userUuid, accountNr: 1 },
       }),

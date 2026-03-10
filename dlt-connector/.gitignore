@@ -3,6 +3,8 @@
 /.env.bak
 /build/
 /locales/
+lib
+.zigar-cache
 package-json.lock
 coverage
 # emacs

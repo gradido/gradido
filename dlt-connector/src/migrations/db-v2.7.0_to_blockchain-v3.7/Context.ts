@@ -1,4 +1,5 @@
 import { heapStats } from 'bun:jsc'
+import dotenv from 'dotenv'
 import { drizzle, MySql2Database } from 'drizzle-orm/mysql2'
 import { Filter, Profiler, SearchDirection_ASC } from 'gradido-blockchain-js'
 import { getLogger, Logger } from 'log4js'
@@ -10,6 +11,8 @@ import { LOG4JS_BASE_CATEGORY } from '../../config/const'
 import { Uuidv4 } from '../../schemas/typeGuard.schema'
 import { bytesToMbyte } from './utils'
 import { CommunityContext } from './valibot.schema'
+
+dotenv.config()
 
 export class Context {
   public logger: Logger
@@ -36,11 +39,9 @@ export class Context {
       database: CONFIG.MYSQL_DATABASE,
       port: CONFIG.MYSQL_PORT,
     })
-    return new Context(
-      getLogger(`${LOG4JS_BASE_CATEGORY}.migrations.db-v2.7.0_to_blockchain-v3.5`),
-      drizzle({ client: connection }),
-      KeyPairCacheManager.getInstance(),
-    )
+    const db = drizzle({ client: connection })
+    const logger = getLogger(`${LOG4JS_BASE_CATEGORY}.migrations.db-v2.7.0_to_blockchain-v3.5`)
+    return new Context(logger, db, KeyPairCacheManager.getInstance())
   }
 
   getCommunityContextByUuid(communityUuid: Uuidv4): CommunityContext {
