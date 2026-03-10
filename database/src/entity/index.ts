@@ -9,7 +9,6 @@ import { FederatedCommunity } from './FederatedCommunity'
 import { LoginElopageBuys } from './LoginElopageBuys'
 import { Migration } from './Migration'
 import { PendingTransaction } from './PendingTransaction'
-import { ProjectBranding } from './ProjectBranding'
 import { Transaction } from './Transaction'
 import { TransactionLink } from './TransactionLink'
 import { User } from './User'
@@ -27,7 +26,6 @@ export {
   FederatedCommunity,
   LoginElopageBuys,
   Migration,
-  ProjectBranding,
   PendingTransaction,
   Transaction,
   TransactionLink,
@@ -47,7 +45,6 @@ export const entities = [
   FederatedCommunity,
   LoginElopageBuys,
   Migration,
-  ProjectBranding,
   PendingTransaction,
   Transaction,
   TransactionLink,

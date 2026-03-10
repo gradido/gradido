@@ -30,9 +30,11 @@ import {
   TransactionLink as DbTransactionLink,
   User as DbUser,
   UserContact as DbUserContact,
+  dbFindProjectBrandingByAlias,
+  dbFindProjectSpaceId,
   findUserByIdentifier,
   getHomeCommunity,
-  ProjectBranding,
+  ProjectBrandingSelect,
   UserLoggingView,
 } from 'database'
 import { GraphQLResolveInfo } from 'graphql'
@@ -202,7 +204,7 @@ export class UserResolver {
 
     // request to humhub and klicktipp run in parallel
     let humhubUserPromise: Promise<IRestResponse<GetUser>> | undefined
-    let projectBrandingPromise: Promise<ProjectBranding | null> | undefined
+    let projectBrandingSpaceIdPromise: Promise<number | null | undefined> | undefined
     const klicktippStatePromise = getKlicktippState(dbUser.emailContact.email)
     if (CONFIG.HUMHUB_ACTIVE && dbUser.humhubAllowed) {
       const getHumhubUser = new PostUser(dbUser)
@@ -211,10 +213,7 @@ export class UserResolver {
       )
     }
     if (project) {
-      projectBrandingPromise = ProjectBranding.findOne({
-        where: { alias: project },
-        select: { spaceId: true },
-      })
+      projectBrandingSpaceIdPromise = dbFindProjectSpaceId(project)
     }
 
     if (
@@ -244,19 +243,15 @@ export class UserResolver {
     })
 
     await EVENT_USER_LOGIN(dbUser)
-    const projectBranding = await projectBrandingPromise
-    logger.debug('project branding: ', projectBranding?.id)
+    const projectBrandingSpaceId = await projectBrandingSpaceIdPromise
+    logger.debug('project branding: ', projectBrandingSpaceId)
     // load humhub state
     if (humhubUserPromise) {
       try {
         const result = await humhubUserPromise
         user.humhubAllowed = result?.result?.account.status === 1
         if (user.humhubAllowed && result?.result?.account?.username) {
-          let spaceId = null
-          if (projectBranding) {
-            spaceId = projectBranding.spaceId
-          }
-          await syncHumhub(null, dbUser, result.result.account.username, spaceId)
+          await syncHumhub(null, dbUser, result.result.account.username, projectBrandingSpaceId)
         }
       } catch (e) {
         logger.error("couldn't reach out to humhub, disable for now", e)
@@ -359,12 +354,9 @@ export class UserResolver {
         return user
       }
     }
-    let projectBrandingPromise: Promise<ProjectBranding | null> | undefined
+    let projectBrandingPromise: Promise<ProjectBrandingSelect | undefined> | undefined
     if (project) {
-      projectBrandingPromise = ProjectBranding.findOne({
-        where: { alias: project },
-        select: { logoUrl: true, spaceId: true },
-      })
+      projectBrandingPromise = dbFindProjectBrandingByAlias(project)
     }
     const gradidoID = await newGradidoID(logger)
 
@@ -423,7 +415,7 @@ export class UserResolver {
     const queryRunner = db.getDataSource().createQueryRunner()
     await queryRunner.connect()
     await queryRunner.startTransaction('REPEATABLE READ')
-    let projectBranding: ProjectBranding | null | undefined
+    let projectBranding: ProjectBrandingSelect | undefined
     try {
       dbUser = await queryRunner.manager.save(dbUser).catch((error) => {
         throw new LogError('Error while saving dbUser', error)
@@ -924,7 +916,9 @@ export class UserResolver {
     }
     // should rarely happen, so we don't optimize for parallel processing
     if (!dbUser.humhubAllowed && project) {
-      await ProjectBranding.findOneOrFail({ where: { alias: project } })
+      if (!(await dbFindProjectBrandingByAlias(project))) {
+        throw new LogError(`project branding with alias: ${project} not found`)
+      }
       dbUser.humhubAllowed = true
       await dbUser.save()
     }
