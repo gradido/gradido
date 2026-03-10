@@ -43,7 +43,7 @@ export async function checkHomeCommunity(
     logger.info(`Waiting for backend server to become available at ${backend.url}`)
     await isPortOpenRetry(backend.url)
   } catch (e) {
-    logger.error(`Backend server at ${backend.url} is not reachable`)
+    logger.error(`Backend server at ${backend.url} is not reachable (${e})`)
     return
   }
 
@@ -76,7 +76,7 @@ export async function checkHomeCommunity(
   logger.info(`Home community topic id: ${homeCommunity.hieroTopicId}`)
   logger.info(`Gradido node server: ${appContext.clients.gradidoNode.url}`)
   logger.info(`Gradido backend server: ${appContext.clients.backend.url}`)
-  
+
   await ResolveKeyPair(
     new KeyPairIdentifierLogic({
       communityTopicId: homeCommunity.hieroTopicId,

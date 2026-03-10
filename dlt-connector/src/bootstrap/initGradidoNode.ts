@@ -60,9 +60,7 @@ async function ensureGradidoNodeRuntimeAvailable(runtimeFileName: string): Promi
   if (isFileExist) {
     const foundVersion = await GradidoNodeProcess.checkRuntimeVersion()
     if (wantedVersion !== foundVersion) {
-      logger.info(
-        `GradidoNode version detected: ${foundVersion}, required: ${wantedVersion}`
-      )
+      logger.info(`GradidoNode version detected: ${foundVersion}, required: ${wantedVersion}`)
     } else {
       versionMatch = true
     }
