@@ -358,8 +358,9 @@
     "usersearch": "Geographic member search (beta)"
   },
   "qrCode": "QR Code",
+  "send_email": "Send email",
   "send_gdd": "Send GDD",
-  "send_per_link": "Send GDD via Link",
+  "send_per_link": "create GDD-Link",
   "session": {
     "extend": "Stay logged in",
     "lightText": "If you have not performed any action for more than 10 minutes, you will be logged out for security reasons.",

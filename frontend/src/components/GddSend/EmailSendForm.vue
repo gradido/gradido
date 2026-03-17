@@ -1,69 +1,10 @@
 <template>
-  <div class="transaction-form">
+  <div class="email-send-form">
     <BRow>
       <BCol cols="12">
         <BCard class="app-box-shadow gradido-border-radius" body-class="p-4">
           <BForm role="form" @submit.prevent="onSubmit" @reset="onReset">
-            <!-- <nav-send v-bind="tabRoutes" route-base="/gddsend/" /> -->
-            <!-- <nav-send :selected="radioSelected" route-base="/gddsend/" /> -->
-            <div
-              class="nav-send-btn-wrapper bg-209 rounded-26 d-flex bd-highlight mx-xl-6 mx-lg-5 shadow justify-content-between"
-              style="margin-bottom: 20px"
-            >
-              <BButton
-                :to="{ path: routeToTab(transactionForm) }"
-                :class="stateClasses(SEND_TYPES.send)"
-                block
-                variant="link"
-                class="nav-send__btn"
-              >
-                <b-img
-                  src="/img/svg/gdd_coin_sw.svg"
-                  height="20"
-                  class="svg-icon"
-                  style="margin-right: 10px"
-                />
-                {{ $t('send_gdd') }}
-              </BButton>
-              <BButton
-                :to="{ path: routeToTab(transactionConfirmationLink) }"
-                :class="stateClasses(SEND_TYPES.link)"
-                block
-                variant="link"
-                class="nav-send__btn"
-              >
-                <i-mdi-link-variant height="20" class="svg-icon" />
-                {{ $t('send_per_link') }}
-              </BButton>
-              <BButton
-                :to="{ path: routeToTab(emailSendForm) }"
-                :class="stateClasses(SEND_TYPES.email)"
-                block
-                variant="link"
-                class="nav-send__btn"
-              >
-                <i-mdi-email-fast-outline height="20" class="svg-icon" style="margin-right: 3px" />
-                {{ $t('send_email') }}
-              </BButton>
-              <!--
-              <BFormRadioGroup
-                name="shipping"
-                class="bg-209 rounded-26 d-flex bd-highlight mx-xl-6 mx-lg-5 shadow justify-content-between"
-                :model-value="radioSelected"
-                @update:model-value="radioSelected = $event"
-              >
-                <BFormRadio name="shipping" size="md" reverse :value="SEND_TYPES.send">
-                  {{ $t('send_gdd') }}
-                </BFormRadio>
-                <BFormRadio name="shipping" size="md" reverse :value="SEND_TYPES.link" >
-                  {{ $t('send_per_link') }}
-                </BFormRadio>
-                <BFormRadio name="shipping" size="md" reverse :value="SEND_TYPES.email">
-                  {{ $t('send_email') }}
-                </BFormRadio>
-              </BFormRadioGroup>
-              -->
-            </div>
+            <nav-send v-bind="tabRoutes" route-base="/gddsend/" />
             <!--
             <BFormRadioGroup
               name="shipping"
@@ -91,13 +32,13 @@
                 </BCol>
               </BRow>
             </BFormRadioGroup>
-            -->
             <div v-if="radioSelected === SEND_TYPES.link" class="mt-4 mb-4">
               <h2 class="alert-heading">{{ $t('gdd_per_link.header') }}</h2>
               <div>
                 {{ $t('gdd_per_link.choose-amount') }}
               </div>
             </div>
+            -->
             <BRow class="mb-4">
               <BCol>
                 <BRow>
@@ -140,6 +81,7 @@
                       </BRow>
                     </div>
                   </BCol>
+                  <!--
                   <BCol cols="12" lg="6">
                     <ValidatedInput
                       id="amount"
@@ -153,6 +95,7 @@
                       @update:model-value="updateField"
                     />
                   </BCol>
+                  -->
                 </BRow>
               </BCol>
             </BRow>
@@ -173,6 +116,7 @@
                 />
               </BCol>
             </BRow>
+            <!--
             <div v-if="!!isBalanceEmpty" class="text-danger mt-5">
               {{ $t('form.no_gdd_available') }}
             </div>
@@ -200,6 +144,7 @@
                 </BButton>
               </BCol>
             </BRow>
+            -->
           </BForm>
         </BCard>
       </BCol>
@@ -224,7 +169,6 @@ const props = defineProps({
   balance: { type: Number, default: 0 },
   identifier: { type: String, default: '' },
   amount: { type: Number, default: 0 },
-  subject: { type: String, default: '' },
   memo: { type: String, default: '' },
   selected: { type: String, default: 'send' },
   targetCommunity: {
@@ -257,17 +201,6 @@ const userIdentifier = computed(() => {
   }
   return null
 })
-
-const stateClasses = (sendType) => {
-  if (radioSelected.value === sendType) {
-    return 'router-link-active router-link-exact-active'
-  }
-  return ''
-}
-
-const routeToTab = (route) => {
-  return '/send/' + route // this.routeBase + route
-}
 
 function setCommunities(returnedCommunities) {
   communities.value = returnedCommunities
@@ -404,7 +337,7 @@ function onReset(event) {
 }
 </script>
 
-<style scoped lang="scss">
+<style>
 span.errors {
   color: red;
 }
@@ -467,38 +400,6 @@ label {
   right: 35px;
   top: 50%;
   transform: translateY(-70%);
-}
-
-.nav-send-btn-wrapper {
-  background-color: #d1d1d1;
-
-  > :deep(*) {
-    width: calc(100% / 3);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-decoration: none;
-    font-size: 14px;
-    text-wrap: nowrap;
-    color: black !important;
-    border-radius: 25px;
-  }
-}
-
-:deep(.svg-icon) {
-  filter: brightness(0) invert(0);
-}
-
-:deep(.router-link-active) {
-  background-color: rgb(23 141 129);
-  color: white !important;
-  font-weight: bold;
-  padding: 0.625rem 1.25rem;
-  border-radius: 25px;
-}
-
-:deep(.router-link-active .svg-icon) {
-  filter: brightness(0) invert(1);
 }
 </style>
 

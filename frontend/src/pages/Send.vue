@@ -49,13 +49,21 @@
           @on-back="onBack"
         ></transaction-result-link>
       </template>
+      <template #emailSendForm>
+        <email-send-form
+          :balance="balance"
+          v-bind="transactionData"
+          @send-transaction="sendEmail"
+          @on-back="onBack"
+        ></email-send-form>
+      </template>
     </gdd-send>
   </div>
 </template>
 
 <script setup>
 import { ref, reactive } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useMutation } from '@vue/apollo-composable'
 import GddSend, { TRANSACTION_STEPS } from '@/components/GddSend'
 import TransactionForm from '@/components/GddSend/TransactionForm'
@@ -67,7 +75,30 @@ import TransactionResultLink from '@/components/GddSend/TransactionResultLink'
 import { sendCoins, createTransactionLink } from '@/graphql/mutations.js'
 import { useAppToast } from '@/composables/useToast'
 import { SEND_TYPES } from '@/utils/sendTypes'
+import EmailSendForm from '@/components/GddSend/EmailSendForm'
 
+/*
+const tabRoutes = {
+  transactionForm: 'transactionForm',
+  transactionConfirmationSend: 'transactionConfirmationSend',
+  transactionConfirmationLink: 'transactionConfirmationLink',
+  transactionResultSendSuccess: 'transactionResultSendSuccess',
+  transactionResultSendError: 'transactionResultSendError',
+  transactionResultLink: 'transactionResultLink',
+  sendEmailForm: 'sendEmailForm',
+}
+
+const route = useRoute()
+
+const tabRouteToIndex = (route) => {
+  const index = Object.values(tabRoutes).indexOf(route)
+  if (index > -1) {
+    return index
+  }
+  router.push({ path: '/gddsend/' + tabRoutes.transactionForm })
+  return 0
+}
+*/
 const EMPTY_TRANSACTION_DATA = {
   identifier: '',
   amount: 0,
@@ -107,10 +138,23 @@ const { mutate: createTransactionLinkMutation } = useMutation(createTransactionL
 
 function setTransaction(data) {
   Object.assign(transactionData, data)
+  /*
   currentTransactionStep.value =
     data.selected === SEND_TYPES.send
       ? TRANSACTION_STEPS.transactionConfirmationSend
       : TRANSACTION_STEPS.transactionConfirmationLink
+  */
+  switch (data.selected) {
+    case SEND_TYPES.send:
+      currentTransactionStep.value = TRANSACTION_STEPS.transactionConfirmationSend
+      break
+    case SEND_TYPES.link:
+      currentTransactionStep.value = TRANSACTION_STEPS.transactionConfirmationLink
+      break
+    case SEND_TYPES.email:
+      currentTransactionStep.value = TRANSACTION_STEPS.sendEmailForm
+      break
+  }
 }
 
 async function sendTransaction() {
@@ -151,11 +195,18 @@ async function sendTransaction() {
       Object.assign(transactionData, EMPTY_TRANSACTION_DATA)
       currentTransactionStep.value = TRANSACTION_STEPS.transactionResultLink
       updateTransactions({})
+    } else if (transactionData.selected === SEND_TYPES.email) {
+      currentTransactionStep.value = TRANSACTION_STEPS.sendEmailForm
+      // throw new Error('Email transaction sending not implemented yet')
     } else {
       throw new Error(`undefined transactionData.selected : ${transactionData.selected}`)
     }
   } catch (err) {
     if (transactionData.selected === SEND_TYPES.send) {
+      errorResult.value = err.message
+      error.value = true
+      currentTransactionStep.value = TRANSACTION_STEPS.transactionResultSendError
+    } else if (transactionData.selected === SEND_TYPES.email) {
       errorResult.value = err.message
       error.value = true
       currentTransactionStep.value = TRANSACTION_STEPS.transactionResultSendError

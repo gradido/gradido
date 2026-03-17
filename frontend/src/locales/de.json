@@ -358,8 +358,9 @@
     "usersearch": "Geografische Mitgliedssuche (beta)"
   },
   "qrCode": "QR Code",
-  "send_gdd": "GDD versenden",
-  "send_per_link": "GDD versenden per Link",
+  "send_email": "Email senden",
+  "send_gdd": "GDD senden",
+  "send_per_link": "GDD Link erzeugen",
   "session": {
     "extend": "Angemeldet bleiben",
     "lightText": "Wenn du länger als 10 Minuten keine Aktion getätigt hast, wirst du aus Sicherheitsgründen abgemeldet.",
