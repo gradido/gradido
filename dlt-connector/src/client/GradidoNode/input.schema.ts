@@ -1,11 +1,14 @@
 import * as v from 'valibot'
-import { hieroTransactionIdStringSchema, uuidv4Schema } from '../../schemas/typeGuard.schema'
-import { SearchDirection } from '../../data/SearchDirection.enum'
 import { PublicKeySearchType } from '../../data/PublicKeySearchType.enum'
+import { SearchDirection } from '../../data/SearchDirection.enum'
+import { TransactionType } from '../../data/TransactionType.enum'
 import { WireOutputFormat } from '../../data/WireOutputFormat.enum'
 import { dateStringSchema } from '../../schemas/typeConverter.schema'
-import { TransactionType } from '../../data/TransactionType.enum'
-import { hex32Schema } from '../../schemas/typeGuard.schema'
+import {
+  hex32Schema,
+  hieroTransactionIdStringSchema,
+  uuidv4Schema,
+} from '../../schemas/typeGuard.schema'
 
 export const transactionsRangeSchema = v.object({
   // default value is 1, from first transactions
@@ -18,15 +21,15 @@ export const transactionsRangeSchema = v.object({
 export type TransactionsRangeInput = v.InferInput<typeof transactionsRangeSchema>
 
 export const PaginationSchema = v.object({
-  size: v.optional(v.pipe(
-    v.number(), 
-    v.minValue(0, 'expect number >= 0'), 
-    v.maxValue(100, 'expect number <= 100')
-  ), 0),
-  page: v.optional(v.pipe(
-    v.number(), 
-    v.minValue(0, 'expect number >= 0')
-  ), 0),
+  size: v.optional(
+    v.pipe(
+      v.number(),
+      v.minValue(0, 'expect number >= 0'),
+      v.maxValue(100, 'expect number <= 100'),
+    ),
+    0,
+  ),
+  page: v.optional(v.pipe(v.number(), v.minValue(0, 'expect number >= 0')), 0),
 })
 
 export const TimepointIntervalSchema = v.object({
@@ -45,7 +48,7 @@ export const blockchainFilterSchema = v.object({
   minTransactionNr: v.optional(v.pipe(v.number(), v.minValue(1, 'expect number >= 1')), undefined),
   publicKey: v.optional(hex32Schema, undefined),
   pagination: v.optional(PaginationSchema, undefined),
-  timepointInterval: v.optional(TimepointIntervalSchema, undefined),  
+  timepointInterval: v.optional(TimepointIntervalSchema, undefined),
 })
 
 export type BlockchainFilterInput = v.InferInput<typeof blockchainFilterSchema>

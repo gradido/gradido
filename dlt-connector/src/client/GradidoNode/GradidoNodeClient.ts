@@ -13,9 +13,9 @@ import { isPortOpenRetry } from '../../utils/network'
 import { GradidoNodeErrorCodes } from './GradidoNodeErrorCodes'
 import {
   BlockchainFilterInput,
+  blockchainFilterSchema,
   TransactionIdentifierInput,
   TransactionsRangeInput,
-  blockchainFilterSchema,
   transactionIdentifierSchema,
   transactionsRangeSchema,
 } from './input.schema'
@@ -128,7 +128,7 @@ export class GradidoNodeClient {
    * @param input - BlockchainFilterInput object containing the filter criteria:
    *   - `searchDirection` (optional) - The order in which to return results (ASC or DESC). Default: DESC.
    *   - `transactionType` (optional) - Filter transactions by their type.
-   *   - `publicKeySearchType` (optional) - Specify the type of public key search, 
+   *   - `publicKeySearchType` (optional) - Specify the type of public key search,
    *     can be either:
    *       - InvolvedPublicKey: involved in any way in the transaction (sender, recipient, signer, etc.)
    *       - BalanceChangingPublicKey: only affecting balance in the transaction (sender, recipient, change)

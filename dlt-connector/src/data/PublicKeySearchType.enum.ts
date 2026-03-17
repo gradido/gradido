@@ -1,4 +1,4 @@
 export enum PublicKeySearchType {
-  InvolvedPublicKey = "InvolvedPublicKey",
-  BalanceChangingPublicKey = "BalanceChangingPublicKey",
+  InvolvedPublicKey = 'InvolvedPublicKey',
+  BalanceChangingPublicKey = 'BalanceChangingPublicKey',
 }
