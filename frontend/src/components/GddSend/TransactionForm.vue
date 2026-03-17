@@ -4,94 +4,46 @@
       <BCol cols="12">
         <BCard class="app-box-shadow gradido-border-radius" body-class="p-4">
           <BForm role="form" @submit.prevent="onSubmit" @reset="onReset">
-            <!-- <nav-send v-bind="tabRoutes" route-base="/gddsend/" /> -->
-            <!-- <nav-send :selected="radioSelected" route-base="/gddsend/" /> -->
             <div
               class="nav-send-btn-wrapper bg-209 rounded-26 d-flex bd-highlight mx-xl-6 mx-lg-5 shadow justify-content-between"
               style="margin-bottom: 20px"
             >
               <BButton
-                :to="{ path: routeToTab(transactionForm) }"
                 :class="stateClasses(SEND_TYPES.send)"
                 block
                 variant="link"
                 class="nav-send__btn"
+                @click="setSendType('send')"
               >
                 <b-img
                   src="/img/svg/gdd_coin_sw.svg"
                   height="20"
                   class="svg-icon"
-                  style="margin-right: 10px"
+                  style="margin-right: 5px"
                 />
                 {{ $t('send_gdd') }}
               </BButton>
               <BButton
-                :to="{ path: routeToTab(transactionConfirmationLink) }"
                 :class="stateClasses(SEND_TYPES.link)"
                 block
                 variant="link"
                 class="nav-send__btn"
+                @click="setSendType('link')"
               >
                 <i-mdi-link-variant height="20" class="svg-icon" />
                 {{ $t('send_per_link') }}
               </BButton>
               <BButton
-                :to="{ path: routeToTab(emailSendForm) }"
                 :class="stateClasses(SEND_TYPES.email)"
                 block
                 variant="link"
                 class="nav-send__btn"
+                @click="setSendType('email')"
               >
                 <i-mdi-email-fast-outline height="20" class="svg-icon" style="margin-right: 3px" />
                 {{ $t('send_email') }}
               </BButton>
-              <!--
-              <BFormRadioGroup
-                name="shipping"
-                class="bg-209 rounded-26 d-flex bd-highlight mx-xl-6 mx-lg-5 shadow justify-content-between"
-                :model-value="radioSelected"
-                @update:model-value="radioSelected = $event"
-              >
-                <BFormRadio name="shipping" size="md" reverse :value="SEND_TYPES.send">
-                  {{ $t('send_gdd') }}
-                </BFormRadio>
-                <BFormRadio name="shipping" size="md" reverse :value="SEND_TYPES.link" >
-                  {{ $t('send_per_link') }}
-                </BFormRadio>
-                <BFormRadio name="shipping" size="md" reverse :value="SEND_TYPES.email">
-                  {{ $t('send_email') }}
-                </BFormRadio>
-              </BFormRadioGroup>
-              -->
             </div>
-            <!--
-            <BFormRadioGroup
-              name="shipping"
-              :model-value="radioSelected"
-              @update:model-value="radioSelected = $event"
-            >
-              <BRow class="mb-4 gap-5">
-                <BCol>
-                  <BRow
-                    class="bg-209 rounded-26 d-flex bd-highlight mx-xl-6 mx-lg-5 shadow justify-content-between"
-                  >
-                    <BFormRadio name="shipping" size="md" reverse :value="SEND_TYPES.send">
-                      {{ $t('send_gdd') }}
-                    </BFormRadio>
-                  </BRow>
-                </BCol>
-                <BCol>
-                  <BRow
-                    class="bg-209 rounded-26 d-flex bd-highlight mx-xl-6 mx-lg-5 shadow justify-content-between"
-                  >
-                    <BFormRadio name="shipping" :value="SEND_TYPES.link" size="md" reverse>
-                      {{ $t('send_per_link') }}
-                    </BFormRadio>
-                  </BRow>
-                </BCol>
-              </BRow>
-            </BFormRadioGroup>
-            -->
             <div v-if="radioSelected === SEND_TYPES.link" class="mt-4 mb-4">
               <h2 class="alert-heading">{{ $t('gdd_per_link.header') }}</h2>
               <div>
@@ -239,7 +191,7 @@ const disableSmartValidState = ref(false)
 const communities = ref([])
 const autoCommunityIdentifier = ref('')
 
-const emit = defineEmits(['set-transaction'])
+const emit = defineEmits(['set-transaction', 'set-send-type'])
 
 const route = useRoute()
 const router = useRouter()
@@ -265,8 +217,9 @@ const stateClasses = (sendType) => {
   return ''
 }
 
-const routeToTab = (route) => {
-  return '/send/' + route // this.routeBase + route
+const setSendType = (sendType) => {
+  radioSelected.value = sendType
+  emit('set-send-type', sendType)
 }
 
 function setCommunities(returnedCommunities) {

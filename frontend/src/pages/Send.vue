@@ -6,6 +6,7 @@
           v-bind="transactionData"
           :balance="balance"
           @set-transaction="setTransaction"
+          @set-send-type="handleSendTypeChange"
         ></transaction-form>
       </template>
       <template #transactionConfirmationSend>
@@ -77,28 +78,6 @@ import { useAppToast } from '@/composables/useToast'
 import { SEND_TYPES } from '@/utils/sendTypes'
 import EmailSendForm from '@/components/GddSend/EmailSendForm'
 
-/*
-const tabRoutes = {
-  transactionForm: 'transactionForm',
-  transactionConfirmationSend: 'transactionConfirmationSend',
-  transactionConfirmationLink: 'transactionConfirmationLink',
-  transactionResultSendSuccess: 'transactionResultSendSuccess',
-  transactionResultSendError: 'transactionResultSendError',
-  transactionResultLink: 'transactionResultLink',
-  sendEmailForm: 'sendEmailForm',
-}
-
-const route = useRoute()
-
-const tabRouteToIndex = (route) => {
-  const index = Object.values(tabRoutes).indexOf(route)
-  if (index > -1) {
-    return index
-  }
-  router.push({ path: '/gddsend/' + tabRoutes.transactionForm })
-  return 0
-}
-*/
 const EMPTY_TRANSACTION_DATA = {
   identifier: '',
   amount: 0,
@@ -136,14 +115,20 @@ const validUntil = ref(null)
 const { mutate: sendCoinsMutation } = useMutation(sendCoins)
 const { mutate: createTransactionLinkMutation } = useMutation(createTransactionLink)
 
+const handleSendTypeChange = (sendType) => {
+  // Update the radioSelected in transactionData
+  transactionData.selected = sendType
+  // Optionally, you could also update the currentTransactionStep
+  // if you want different initial states for each send type
+  if (sendType === SEND_TYPES.email) {
+    currentTransactionStep.value = TRANSACTION_STEPS.sendEmailForm
+  } else {
+    currentTransactionStep.value = TRANSACTION_STEPS.transactionForm
+  }
+}
+
 function setTransaction(data) {
   Object.assign(transactionData, data)
-  /*
-  currentTransactionStep.value =
-    data.selected === SEND_TYPES.send
-      ? TRANSACTION_STEPS.transactionConfirmationSend
-      : TRANSACTION_STEPS.transactionConfirmationLink
-  */
   switch (data.selected) {
     case SEND_TYPES.send:
       currentTransactionStep.value = TRANSACTION_STEPS.transactionConfirmationSend
