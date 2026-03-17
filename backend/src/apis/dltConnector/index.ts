@@ -151,7 +151,13 @@ export async function transferTransaction(
     }
     logger.info(`sender user: ${new UserLoggingView(senderUser)}`)
     logger.info(`recipient user: ${new UserLoggingView(recipientUser)}`)
-    const draft = TransactionDraft.createTransfer(senderUser, recipientUser, amount, memo, createdAt)
+    const draft = TransactionDraft.createTransfer(
+      senderUser,
+      recipientUser,
+      amount,
+      memo,
+      createdAt,
+    )
     return await executeDltTransaction(draft, DltTransactionType.TRANSFER)
   } catch (error) {
     logger.error(`Error in transferTransaction: ${error}`)
