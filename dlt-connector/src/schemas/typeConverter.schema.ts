@@ -29,6 +29,17 @@ export const dateSchema = v.pipe(
   }),
 )
 
+export const dateStringSchema = v.pipe(
+  v.union([v.string('expect string type'), v.instance(Date, 'expect Date object')]),
+  v.transform<string | Date, string>((input) => {
+    if (input instanceof Date) {
+      return input.toISOString()
+    } else {
+      return new Date(input).toISOString()
+    }
+  }),
+)
+
 export const booleanSchema = v.pipe(
   v.union([
     v.boolean('expect boolean type'),
