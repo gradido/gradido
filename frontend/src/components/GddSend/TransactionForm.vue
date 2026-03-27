@@ -53,7 +53,11 @@
             <BRow class="mb-4">
               <BCol>
                 <BRow>
-                  <BCol v-if="radioSelected === SEND_TYPES.send" class="mb-4" cols="12">
+                  <BCol
+                    v-if="radioSelected === SEND_TYPES.send || radioSelected === SEND_TYPES.email"
+                    class="mb-4"
+                    cols="12"
+                  >
                     <BRow>
                       <BCol>{{ $t('form.recipientCommunity') }}</BCol>
                     </BRow>
@@ -69,7 +73,10 @@
                       </BCol>
                     </BRow>
                   </BCol>
-                  <BCol v-if="radioSelected === SEND_TYPES.send" cols="12">
+                  <BCol
+                    v-if="radioSelected === SEND_TYPES.send || radioSelected === SEND_TYPES.email"
+                    cols="12"
+                  >
                     <div v-if="!userIdentifier">
                       <ValidatedInput
                         id="identifier"
@@ -92,7 +99,11 @@
                       </BRow>
                     </div>
                   </BCol>
-                  <BCol cols="12" lg="6">
+                  <BCol
+                    v-if="radioSelected === SEND_TYPES.send || radioSelected === SEND_TYPES.link"
+                    cols="12"
+                    lg="6"
+                  >
                     <ValidatedInput
                       id="amount"
                       :model-value="form.amount"
@@ -101,6 +112,19 @@
                       :placeholder="'0.01'"
                       :rules="validationSchema.fields.amount"
                       :disabled="isBalanceEmpty"
+                      :disable-smart-valid-state="disableSmartValidState"
+                      @update:model-value="updateField"
+                    />
+                  </BCol>
+                  <BCol v-else cols="12">
+                    <ValidatedInput
+                      id="subject"
+                      :model-value="form.subject"
+                      name="subject"
+                      :label="$t('form.subject')"
+                      :placeholder="$t('form.subject')"
+                      :rules="validationSchema.fields.subject"
+                      textarea="false"
                       :disable-smart-valid-state="disableSmartValidState"
                       @update:model-value="updateField"
                     />
@@ -147,9 +171,16 @@
                 class="text-lg-end"
                 @mouseover="disableSmartValidState = true"
               >
-                <BButton block type="submit" variant="gradido" :disabled="formIsInvalid">
-                  {{ $t('form.check_now') }}
-                </BButton>
+                <div v-if="radioSelected === SEND_TYPES.email">
+                  <BButton block type="submit" variant="gradido" :disabled="formIsInvalid">
+                    {{ $t('form.sendEmail') }}
+                  </BButton>
+                </div>
+                <div v-else>
+                  <BButton block type="submit" variant="gradido" :disabled="formIsInvalid">
+                    {{ $t('form.check_now') }}
+                  </BButton>
+                </div>
               </BCol>
             </BRow>
           </BForm>
@@ -166,7 +197,11 @@ import { useQuery } from '@vue/apollo-composable'
 import { SEND_TYPES } from '@/utils/sendTypes'
 import CommunitySwitch from '@/components/CommunitySwitch.vue'
 import ValidatedInput from '@/components/Inputs/ValidatedInput.vue'
-import { memo as memoSchema, identifier as identifierSchema } from '@/validationSchemas'
+import {
+  memo as memoSchema,
+  identifier as identifierSchema,
+  subject as subjectSchema,
+} from '@/validationSchemas'
 import { object, number } from 'yup'
 import { user } from '@/graphql/queries'
 import CONFIG from '@/config'
@@ -268,6 +303,28 @@ const validationSchema = computed(() => {
         },
       ),
     })
+  } else if (radioSelected.value === SEND_TYPES.email) {
+    return object({
+      memo: memoSchema,
+      subject: subjectSchema,
+      identifier: identifierSchema.test(
+        'community-is-reachable',
+        'form.validation.identifier.communityIsReachable',
+        (value) => {
+          const parts = value.split('/')
+          if (parts.length !== 2) {
+            return true
+          }
+          return communities.value.some((community) => {
+            return (
+              community.uuid === parts[0] ||
+              community.name === parts[0] ||
+              community.url === parts[0]
+            )
+          })
+        },
+      ),
+    })
   } else {
     // don't need identifier schema if it is a transaction link or identifier was set via url
     return object({
@@ -331,6 +388,7 @@ watch(
 )
 
 function onSubmit() {
+  console.log('onSubmit() radioSelected=' + radioSelected.value + ', form=' + JSON.stringify(form))
   const transformedForm = validationSchema.value.cast(form)
   const parts = transformedForm.identifier.split('/')
   if (parts.length === 2) {
@@ -339,6 +397,14 @@ function onSubmit() {
       return com.uuid === parts[0] || com.name === parts[0] || com.url === parts[0]
     })
   }
+  console.log(
+    'vor emit set-transaction: transformedForm=' +
+      JSON.stringify(transformedForm) +
+      ', radioSelected.value=' +
+      radioSelected.value +
+      ', userName.value=' +
+      userName.value,
+  )
   emit('set-transaction', {
     ...transformedForm,
     selected: radioSelected.value,

@@ -50,7 +50,7 @@
           @on-back="onBack"
         ></transaction-result-link>
       </template>
-      <template #emailSendForm>
+      <template #sendEmailForm>
         <email-send-form
           :balance="balance"
           v-bind="transactionData"
@@ -116,6 +116,7 @@ const { mutate: sendCoinsMutation } = useMutation(sendCoins)
 const { mutate: createTransactionLinkMutation } = useMutation(createTransactionLink)
 
 const handleSendTypeChange = (sendType) => {
+  console.log('handleSendTypeChange', sendType)
   // Update the radioSelected in transactionData
   transactionData.selected = sendType
   // Optionally, you could also update the currentTransactionStep
@@ -125,21 +126,31 @@ const handleSendTypeChange = (sendType) => {
   } else {
     currentTransactionStep.value = TRANSACTION_STEPS.transactionForm
   }
+  console.log('currentTransactionStep', currentTransactionStep.value)
 }
 
 function setTransaction(data) {
+  console.log('setTransaction', data)
   Object.assign(transactionData, data)
   switch (data.selected) {
     case SEND_TYPES.send:
+      console.log('data.selected=' + SEND_TYPES.send)
       currentTransactionStep.value = TRANSACTION_STEPS.transactionConfirmationSend
       break
     case SEND_TYPES.link:
+      console.log('data.selected=' + SEND_TYPES.link)
       currentTransactionStep.value = TRANSACTION_STEPS.transactionConfirmationLink
       break
     case SEND_TYPES.email:
-      currentTransactionStep.value = TRANSACTION_STEPS.sendEmailForm
+      console.log('data.selected=' + SEND_TYPES.email)
+      // currentTransactionStep.value = TRANSACTION_STEPS.sendEmail
+      break
+    default:
+      console.log('data.selected=default')
+      currentTransactionStep.value = TRANSACTION_STEPS.transactionConfirmationSend
       break
   }
+  console.log('currentTransactionStep', currentTransactionStep.value)
 }
 
 async function sendTransaction() {
@@ -181,6 +192,7 @@ async function sendTransaction() {
       currentTransactionStep.value = TRANSACTION_STEPS.transactionResultLink
       updateTransactions({})
     } else if (transactionData.selected === SEND_TYPES.email) {
+      console.log('sendTransaction()=email transactionData=' + transactionData)
       currentTransactionStep.value = TRANSACTION_STEPS.sendEmailForm
       // throw new Error('Email transaction sending not implemented yet')
     } else {

@@ -4,8 +4,8 @@
       <BCol cols="12">
         <BCard class="app-box-shadow gradido-border-radius" body-class="p-4">
           <BForm role="form" @submit.prevent="onSubmit" @reset="onReset">
-            <nav-send v-bind="tabRoutes" route-base="/gddsend/" />
             <!--
+            <nav-send v-bind="tabRoutes" route-base="/gddsend/" />
             <BFormRadioGroup
               name="shipping"
               :model-value="radioSelected"
@@ -42,7 +42,7 @@
             <BRow class="mb-4">
               <BCol>
                 <BRow>
-                  <BCol v-if="radioSelected === SEND_TYPES.send" class="mb-4" cols="12">
+                  <BCol v-if="radioSelected === SEND_TYPES.email" class="mb-4" cols="12">
                     <BRow>
                       <BCol>{{ $t('form.recipientCommunity') }}</BCol>
                     </BRow>
@@ -58,7 +58,7 @@
                       </BCol>
                     </BRow>
                   </BCol>
-                  <BCol v-if="radioSelected === SEND_TYPES.send" cols="12">
+                  <BCol v-if="radioSelected === SEND_TYPES.email" cols="12">
                     <div v-if="!userIdentifier">
                       <ValidatedInput
                         id="identifier"
@@ -100,6 +100,21 @@
               </BCol>
             </BRow>
 
+            <BRow>
+              <BCol>
+                <ValidatedInput
+                  id="subject"
+                  :model-value="form.subject"
+                  name="subject"
+                  :label="$t('form.subject')"
+                  :placeholder="$t('form.subject')"
+                  :rules="validationSchema.fields.subject"
+                  textarea="true"
+                  :disable-smart-valid-state="disableSmartValidState"
+                  @update:model-value="updateField"
+                />
+              </BCol>
+            </BRow>
             <BRow>
               <BCol>
                 <ValidatedInput
@@ -169,6 +184,7 @@ const props = defineProps({
   balance: { type: Number, default: 0 },
   identifier: { type: String, default: '' },
   amount: { type: Number, default: 0 },
+  subject: { type: String, default: '' },
   memo: { type: String, default: '' },
   selected: { type: String, default: 'send' },
   targetCommunity: {
@@ -207,6 +223,7 @@ function setCommunities(returnedCommunities) {
 }
 
 const validationSchema = computed(() => {
+  /*
   const amountSchema = number()
     .required()
     .typeError({
@@ -225,10 +242,11 @@ const validationSchema = computed(() => {
       if (value === undefined || value === null) return true
       return /^\d+(\.\d{0,2})?$/.test(value.toString())
     })
-  if (!userIdentifier.value && radioSelected.value === SEND_TYPES.send) {
+  */
+  if (!userIdentifier.value && radioSelected.value === SEND_TYPES.email) {
     return object({
       memo: memoSchema,
-      amount: amountSchema,
+      // amount: amountSchema,
       identifier: identifierSchema.test(
         'community-is-reachable',
         'form.validation.identifier.communityIsReachable',
@@ -252,7 +270,7 @@ const validationSchema = computed(() => {
     // don't need identifier schema if it is a transaction link or identifier was set via url
     return object({
       memo: memoSchema,
-      amount: amountSchema,
+      // amount: amountSchema,
     })
   }
 })
