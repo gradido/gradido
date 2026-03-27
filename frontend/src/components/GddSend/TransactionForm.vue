@@ -226,7 +226,7 @@ const disableSmartValidState = ref(false)
 const communities = ref([])
 const autoCommunityIdentifier = ref('')
 
-const emit = defineEmits(['set-transaction', 'set-send-type'])
+const emit = defineEmits(['send-email', 'set-transaction', 'set-send-type'])
 
 const route = useRoute()
 const router = useRouter()
@@ -390,6 +390,22 @@ watch(
 function onSubmit() {
   console.log('onSubmit() radioSelected=' + radioSelected.value + ', form=' + JSON.stringify(form))
   const transformedForm = validationSchema.value.cast(form)
+  if (radioSelected.value === SEND_TYPES.email) {
+    console.log(
+      'vor emit send-email: transformedForm=' +
+        JSON.stringify(transformedForm) +
+        ', radioSelected.value=' +
+        radioSelected.value +
+        ', userName.value=' +
+        userName.value,
+    )
+    emit('send-email', {
+      ...transformedForm,
+      selected: radioSelected.value,
+      userName: userName.value,
+    })
+    return
+  }
   const parts = transformedForm.identifier.split('/')
   if (parts.length === 2) {
     transformedForm.identifier = parts[1]

@@ -5,6 +5,7 @@
         <transaction-form
           v-bind="transactionData"
           :balance="balance"
+          @send-email="sendEmail"
           @set-transaction="setTransaction"
           @set-send-type="handleSendTypeChange"
         ></transaction-form>
@@ -153,7 +154,17 @@ function setTransaction(data) {
   console.log('currentTransactionStep', currentTransactionStep.value)
 }
 
+async function sendEmail(data) {
+  console.log('sendEmail', data)
+  Object.assign(transactionData, data)
+  if (data.selected === SEND_TYPES.email) {
+    console.log('data.selected=' + data.selected)
+    // TODO: Implement email sending logic
+  }
+}
+
 async function sendTransaction() {
+  console.log('sendTransaction() transactionData=', JSON.stringify(transactionData))
   loading.value = true
   error.value = false
 
