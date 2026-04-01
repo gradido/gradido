@@ -1,0 +1,8 @@
+optimize = "ReleaseSmall"
+
+[modules."lib/GradidoUnit.zigar"]
+source = "src/zig/GradidoUnit.zig"
+
+[[targets]]
+arch = "x64"
+platform = "linux"
