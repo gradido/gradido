@@ -10,10 +10,9 @@ block content
     include ../includes/salutation.pug
     p 
       = t('emails.customEmail.haveReceivedMessageFrom', { senderFirstName, senderLastName })     
+    div(class="p_content")= t('emails.customEmail.betreff', { subject })
   .content
-    
     .child-left
-      div(class="p_content")= t('emails.customEmail.betreff', { subject })
       div(class="p_content")= memo
     
   a.button-3(href=`${communityURL}/send`) #{t('emails.general.toAccount')}
