@@ -1,12 +1,19 @@
 extend ../layout.pug
 
 block content  
+  mixin mailto(email, subject)
+    - var formattedSubject = encodeURIComponent(subject)
+    a(class!=attributes.class href=`mailto:${email}?subject=${formattedSubject}`)
+      block
+
   .text-block
     include ../includes/salutation.pug
+    p 
+      = t('emails.customEmail.haveReceivedMessageFrom', { senderFirstName, senderLastName })     
   .content
-    div
-      = t('emails.customEmail.betreff', { subject })
+    
     .child-left
+      div(class="p_content")= t('emails.customEmail.betreff', { subject })
       div(class="p_content")= memo
     
   a.button-3(href=`${communityURL}/send`) #{t('emails.general.toAccount')}
