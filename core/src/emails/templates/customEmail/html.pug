@@ -11,8 +11,8 @@ block content
     p 
       = t('emails.customEmail.haveReceivedMessageFrom', { senderFirstName, senderLastName })   
   .subject-block  
-      p 
-        = t('emails.customEmail.betreff', { subject })
+    p 
+      = t('emails.customEmail.subject', { subject })
   .content
     .child-left
       div(class="p_content")= memo
