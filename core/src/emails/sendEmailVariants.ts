@@ -4,6 +4,12 @@ import { CONFIG } from '../config'
 import { decimalSeparatorByLanguage } from '../util/utilities'
 
 import { sendEmailTranslated } from './sendEmailTranslated'
+import { getLogger } from 'log4js'
+import { LOG4JS_BASE_CATEGORY_NAME } from '../config/const'
+
+const createLogger = () =>
+  getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.emails.sendEmailVariants`)
+
 
 export interface EmailCommonData {
   firstName: string
@@ -199,6 +205,8 @@ export const sendCustomEmail = (
     memo: string
   },
 ): Promise<Record<string, unknown> | boolean | null | Error> => {
+  const logger = createLogger()
+  logger.debug(`sendCustomEmail(data=${JSON.stringify(data)})`)
   return sendEmailTranslated({
     receiver: { to: `${data.firstName} ${data.lastName} <${data.email}>` },
     template: data.email !== null ? data.email : 'customEmail',
