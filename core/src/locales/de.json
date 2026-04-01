@@ -47,6 +47,11 @@
       "subject": "Dein Gemeinwohl-Beitrag wurde abgelehnt",
       "title": "Dein Gemeinwohl-Beitrag wurde abgelehnt"
     },
+    "customEmail": {
+      "haveReceivedMessageFrom": "du hast soeben von {senderFirstName} {senderLastName} eine Nachricht erhalten",
+      "subject": "{senderFirstName} {senderLastName} hat dir eine Nachricht gesendet",
+      "title": "{senderFirstName} {senderLastName} hat dir eine Nachricht gesendet"
+    },
     "footer": {
       "contactOurSupport": "Bei weiteren Fragen kontaktiere bitte unseren Support.",
       "imprint": "Impressum",

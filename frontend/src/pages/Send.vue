@@ -64,6 +64,7 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
 import { ref, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useMutation } from '@vue/apollo-composable'
@@ -74,11 +75,12 @@ import TransactionConfirmationLink from '@/components/GddSend/TransactionConfirm
 import SuccessMessage from '@/components/SuccessMessage'
 import TransactionResultSendError from '@/components/GddSend/TransactionResultSendError'
 import TransactionResultLink from '@/components/GddSend/TransactionResultLink'
-import { sendCoins, createTransactionLink } from '@/graphql/mutations.js'
+import { sendCoins, createTransactionLink, sendEmail as sendEmailMut } from '@/graphql/mutations.js'
 import { useAppToast } from '@/composables/useToast'
 import { SEND_TYPES } from '@/utils/sendTypes'
 import EmailSendForm from '@/components/GddSend/EmailSendForm'
 
+const { t } = useI18n()
 const EMPTY_TRANSACTION_DATA = {
   identifier: '',
   amount: 0,
@@ -101,7 +103,7 @@ const props = defineProps({
 const emit = defineEmits(['set-tunneled-email', 'update-transactions'])
 
 const router = useRouter()
-const { toastError } = useAppToast()
+const { toastError, toastSuccess } = useAppToast()
 
 const transactionData = reactive({ ...EMPTY_TRANSACTION_DATA })
 const error = ref(false)
@@ -115,6 +117,7 @@ const validUntil = ref(null)
 
 const { mutate: sendCoinsMutation } = useMutation(sendCoins)
 const { mutate: createTransactionLinkMutation } = useMutation(createTransactionLink)
+const { mutate: sendEmailMutation } = useMutation(sendEmailMut)
 
 const handleSendTypeChange = (sendType) => {
   console.log('handleSendTypeChange', sendType)
@@ -156,10 +159,22 @@ function setTransaction(data) {
 
 async function sendEmail(data) {
   console.log('sendEmail', data)
-  Object.assign(transactionData, data)
+  // Object.assign(transactionData, data)
   if (data.selected === SEND_TYPES.email) {
     console.log('data.selected=' + data.selected)
     // TODO: Implement email sending logic
+    const result = await sendEmailMutation({
+      recipientCommunityIdentifier: data.targetCommunity.uuid,
+      recipientIdentifier: data.identifier,
+      subject: data.subject,
+      memo: data.memo,
+    })
+    if (result) {
+      toastSuccess(t('email-sent-success'))
+    } else {
+      toastError(t('email-sent-error'))
+    }
+    console.log('sendEmail result', result)
   }
 }
 

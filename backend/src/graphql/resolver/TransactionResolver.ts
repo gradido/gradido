@@ -5,11 +5,14 @@ import { Transaction } from '@model/Transaction'
 import { TransactionList } from '@model/TransactionList'
 import { User } from '@model/User'
 import {
+  CommandClientFactory,
   fullName,
   processXComCompleteTransaction,
+  sendCustomEmail,
   sendTransactionLinkRedeemedEmail,
   sendTransactionReceivedEmail,
   TransactionTypeId,
+  V1_0_CommandClient,
 } from 'core'
 import {
   AppDatabase,
@@ -19,6 +22,9 @@ import {
   TransactionLink as dbTransactionLink,
   User as dbUser,
   findUserByIdentifier,
+  getCommunityByUuid,
+  getCommunityWithFederatedCommunityByIdentifier,
+  getCommunityWithFederatedCommunityWithApiOrFail,
 } from 'database'
 import { Decimal } from 'decimal.js-light'
 import { Args, Authorized, Ctx, Mutation, Query, Resolver } from 'type-graphql'
@@ -45,6 +51,7 @@ import { GdtResolver } from './GdtResolver'
 import { getCommunityName, isHomeCommunity } from './util/communities'
 import { getTransactionList } from './util/getTransactionList'
 import { transactionLinkSummary } from './util/transactionLinkSummary'
+import { SendEmailArgs } from '../arg/SendEmailArgs'
 
 const db = AppDatabase.getInstance()
 const createLogger = () =>
@@ -499,6 +506,86 @@ export class TransactionResolver {
         memo,
       )
     }
+    return true
+  }
+
+  @Authorized([RIGHTS.SEND_COINS])
+  @Mutation(() => Boolean)
+  async sendEmail(
+    @Args()
+    { recipientCommunityIdentifier, recipientIdentifier, subject, memo }: SendEmailArgs,
+    @Ctx() context: Context,
+  ): Promise<boolean> {
+    const logger = createLogger()
+    logger.addContext('from', context.user?.id)
+    logger.debug(
+      `sendEmail(recipientCommunityIdentifier=${recipientCommunityIdentifier}, recipientIdentifier=${recipientIdentifier}, subject=${subject}, memo=${memo})`,
+    )
+    const senderUser = getUser(context)
+    if (!recipientCommunityIdentifier || (await isHomeCommunity(recipientCommunityIdentifier))) {
+      // processing sendEmail within sender and recipient are both in home community
+      const recipientUser = await findUserByIdentifier(
+        recipientIdentifier,
+        recipientCommunityIdentifier,
+      )
+      if (!recipientUser) {
+        throw new LogError('The recipient user was not found', recipientUser)
+      }
+      logger.addContext('to', recipientUser?.id)
+      if (recipientUser.foreign) {
+        throw new LogError('Found foreign recipient user for a local transaction:', recipientUser)
+      }
+      sendCustomEmail({
+        firstName: recipientUser.firstName,
+        lastName: recipientUser.lastName,
+        email: 'customEmail',
+        language: recipientUser.language,
+        senderFirstName: senderUser.firstName,
+        senderLastName: senderUser.lastName,
+        subject: subject,
+        memo: memo,
+      })
+    } else {
+      // sendEmail for foreign communities
+      /*
+      const receiverCom = await getCommunityByUuid(recipientCommunityIdentifier)
+      if (receiverCom === null) {
+        throw new LogError('The recipient community was not found', recipientCommunityIdentifier)
+      }
+      const receiverFCom = await getCommunityWithFederatedCommunityWithApiOrFail(receiverCom.publicKey, 
+      const cmdClient = CommandClientFactory.getInstance(receiverFCom)
+
+      if (cmdClient instanceof V1_0_CommandClient) {
+        const payload = new CommandJwtPayloadType(
+          handshakeID,
+          SendEmailCommand.SEND_MAIL_COMMAND,
+          SendEmailCommand.name,
+          [
+            JSON.stringify({
+              mailType: 'sendTransactionReceivedEmail',
+              senderComUuid: senderCom.communityUuid,
+              senderGradidoId: sender.gradidoID,
+              receiverComUuid: receiverCom.communityUuid,
+              receiverGradidoId: sendCoinsResult.recipGradidoID,
+              memo: pendingTx.memo,
+              amount: pendingTx.amount,
+            }),
+          ],
+        )
+        const jws = await encryptAndSign(
+          payload,
+          senderCom.privateJwtKey!,
+          receiverCom.publicJwtKey!,
+        )
+        const args = new EncryptedTransferArgs()
+        args.publicKey = senderCom.publicKey.toString('hex')
+        args.jwt = jws
+        args.handshakeID = handshakeID
+        cmdClient.sendCommand(args)
+      }
+      */
+    }
+    
     return true
   }
 }

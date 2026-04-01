@@ -190,3 +190,22 @@ export const sendTransactionReceivedEmail = (
     },
   })
 }
+
+export const sendCustomEmail = (
+  data: EmailCommonData & {
+    senderFirstName: string
+    senderLastName: string
+    subject: string
+    memo: string
+  },
+): Promise<Record<string, unknown> | boolean | null | Error> => {
+  return sendEmailTranslated({
+    receiver: { to: `${data.firstName} ${data.lastName} <${data.email}>` },
+    template: data.email !== null ? data.email : 'customEmail',
+    locals: {
+      ...data,
+      subject: data.subject,
+      ...getEmailCommonLocales(),
+    },
+  })
+}

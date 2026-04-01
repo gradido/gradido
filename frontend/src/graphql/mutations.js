@@ -111,6 +111,22 @@ export const sendCoins = gql`
   }
 `
 
+export const sendEmail = gql`
+  mutation (
+    $recipientCommunityIdentifier: String!
+    $recipientIdentifier: String!
+    $subject: String!
+    $memo: String!
+  ) {
+    sendEmail(
+      recipientCommunityIdentifier: $recipientCommunityIdentifier
+      recipientIdentifier: $recipientIdentifier
+      subject: $subject
+      memo: $memo
+    )
+  }
+`
+
 export const createTransactionLink = gql`
   mutation ($amount: Decimal!, $memo: String!) {
     createTransactionLink(amount: $amount, memo: $memo) {

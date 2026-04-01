@@ -140,6 +140,8 @@
   "download": "Download",
   "edit": "edit",
   "em-dash": "—",
+  "email-sent-error": "E-Mail could not be sent",
+  "email-sent-success": "E-Mail successfully sent",
   "error": {
     "email-already-sent": "We already sent you an email less than 10 minutes ago.",
     "empty-transactionlist": "There was an error with the transmission of the number of your transactions.",
