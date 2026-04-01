@@ -9,9 +9,10 @@ block content
   .text-block
     include ../includes/salutation.pug
     p 
-      = t('emails.customEmail.haveReceivedMessageFrom', { senderFirstName, senderLastName })     
-    .child-left
-      div(class="p_content")= t('emails.customEmail.betreff', { subject })
+      = t('emails.customEmail.haveReceivedMessageFrom', { senderFirstName, senderLastName })   
+  .subject-block  
+      p 
+        = t('emails.customEmail.betreff', { subject })
   .content
     .child-left
       div(class="p_content")= memo
