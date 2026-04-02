@@ -12,6 +12,8 @@ import { Hex32, Hex32Input, hex32Schema, Uuidv4 } from '../../schemas/typeGuard.
 import { isPortOpenRetry } from '../../utils/network'
 import { GradidoNodeErrorCodes } from './GradidoNodeErrorCodes'
 import {
+  BlockchainFilterInput,
+  blockchainFilterSchema,
   TransactionIdentifierInput,
   TransactionsRangeInput,
   transactionIdentifierSchema,
@@ -118,26 +120,43 @@ export class GradidoNodeClient {
 
   /**
    * getTransactions
-   * get list of confirmed transactions from a specific community
-   * @param input fromTransactionId is the id of the first transaction to return
-   * @param input maxResultCount is the max number of transactions to return
-   * @param input communityId is the community id
-   * @returns list of confirmed transactions
-   * @throws GradidoNodeRequestError
+   * Retrieves a list of confirmed transactions based on flexible filtering criteria.
+   *
+   * This function allows filtering by community, coin community, transaction number range,
+   * transaction type, public key involvement, time interval, and supports pagination.
+   *
+   * @param input - BlockchainFilterInput object containing the filter criteria:
+   *   - `searchDirection` (optional) - The order in which to return results (ASC or DESC). Default: DESC.
+   *   - `transactionType` (optional) - Filter transactions by their type.
+   *   - `publicKeySearchType` (optional) - Specify the type of public key search,
+   *     can be either:
+   *       - InvolvedPublicKey: involved in any way in the transaction (sender, recipient, signer, etc.)
+   *       - BalanceChangingPublicKey: only affecting balance in the transaction (sender, recipient, change)
+   *   - `format` (optional) - Output format: Base64 or Json. Default: Base64.
+   *   - `communityId` - ID of the community.
+   *   - `coinCommunityId` (optional) - ID of the colored coin community.
+   *   - `maxTransactionNr` (optional) - Maximum transaction number to return.
+   *   - `minTransactionNr` (optional) - Minimum transaction number to return.
+   *   - `publicKey` (optional) - Filter transactions involving this public key, publicKeySearchType define which type of key it is
+   *   - `pagination` (optional) - Pagination options: page number and page size.
+   *   - `timepointInterval` (optional) - Filter transactions within a specific start and end date.
+   *
+   * @returns Promise<ConfirmedTransaction[]> - Array of confirmed transactions matching the filters.
+   *
+   * @throws GradidoNodeRequestError - If the request fails or input validation fails.
+   *
    * @example
-   * ```
+   * ```ts
    * const transactions = await getTransactions({
-   *   fromTransactionId: 1,
-   *   maxResultCount: 100,
+   *   searchDirection: SearchDirection.DESC,
    *   communityId: communityUuid,
+   *   pagination: { page: 0, size: 50 },
+   *   timepointInterval: { startDate: "2026-01-01", endDate: "2026-03-01" },
    * })
    * ```
    */
-  public async getTransactions(input: TransactionsRangeInput): Promise<ConfirmedTransaction[]> {
-    const parameter = {
-      ...v.parse(transactionsRangeSchema, input),
-      format: 'base64',
-    }
+  public async getTransactions(input: BlockchainFilterInput): Promise<ConfirmedTransaction[]> {
+    const parameter = v.parse(blockchainFilterSchema, input)
     const result = await this.rpcCallResolved<{ transactions: string[] }>(
       'getTransactions',
       parameter,
