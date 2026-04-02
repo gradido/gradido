@@ -1,4 +1,0 @@
-preload = ["bun-zigar"]
-
-[test]
-preload = ["bun-zigar"]

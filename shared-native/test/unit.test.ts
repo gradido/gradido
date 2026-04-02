@@ -1,154 +1,213 @@
-import { decayFormula } from 'shared'
-import { Decimal } from 'decimal.js'
+import { describe, expect, it } from 'bun:test'
+import { GradidoUnit } from '../'
 
-export function testGradidoUnit(name: string, getUnit: (amount: number | string) => any) {
-  describe(name, () => {
-    describe('create', () => {
-      it('create from string', () => {
-        const amount = getUnit('100.0103')
-        expect(amount.toString()).toBe('100.0103')
-      })
-      it('create from number', () => {
-        const amount = getUnit(100.0204)
-        expect(amount.toString()).toBe('100.0204')
-      })
+describe('GradidoUnit Native', () => {
+  describe('create', () => {
+    it('create from string', () => {
+      const amount = new GradidoUnit('100.0103')
+      expect(amount.toString()).toBe('100.0103')
+      expect(amount.toString(2)).toBe('100.01')
+      expect(amount.toString(0)).toBe('100')
+      expect(amount.toNumber()).toBe(100.0103)
     })
-    describe('test negate and negated', () => {
-      it('negate', () => {
-        const amount = getUnit(100.7204)
-        const result = amount.negate()
-        expect(result.toString()).toBe(amount.toString())
-        expect(result).toBe(amount)
-        expect(amount.toString()).toBe('-100.7204')
-      })
-      it('negated', () => {
-        const amount = getUnit(100.1204)
-        const negated = amount.negated()
-        expect(negated.toString()).toBe('-100.1204')
-        expect(amount.toString()).toBe('100.1204')
-      })
+    it('create from number', () => {
+      const amount = new GradidoUnit(100.0204)
+      expect(amount.toNumber()).toBe(100.0204)
+      expect(amount.toString()).toBe('100.0204')
     })
-    describe('test add and sub', () => {
+  })
+  describe('test negate and negated', () => {
+    it('negate', () => {
+      const amount = new GradidoUnit(100.7204)
+      const result = amount.negate()
+      expect(result.eq(amount)).toBeTrue()
+      expect(result).toBe(amount)
+      expect(amount.toString()).toBe('-100.7204')
+      expect(amount.toNumber()).toBe(-100.7204)
+    })
+    it('negated', () => {
+      const amount = new GradidoUnit(100.1204)
+      const negated = amount.negated()
+      expect(negated.toString()).toBe('-100.1204')
+      expect(negated.toNumber()).toBe(-100.1204)
+      expect(amount.toString()).toBe('100.1204')
+      expect(amount.toNumber()).toBe(100.1204)
+    })
+  })
+  describe('test add and sub', () => {
     it('add', () => {
-      const amount = getUnit(100.1204)
-      const amount2 = getUnit(50.8271)
+      const amount = new GradidoUnit(100.1204)
+      const amount2 = new GradidoUnit(50.8271)
       const result = amount.add(amount2)
-      expect(result.toString()).toBe(amount.toString())
+      expect(result.eq(amount)).toBeTrue()
       expect(result).toBe(amount)
       expect(result).not.toBe(amount2)
       expect(amount.toString()).toBe('150.9475')
+      expect(amount.toNumber()).toBe(150.9475)
     })
     it('plus', () => {
-      const amount = getUnit(100.1204)
-      const amount2 = getUnit(50.8271)
+      const amount = new GradidoUnit(100.1204)
+      const amount2 = new GradidoUnit(50.8271)
       const result = amount.plus(amount2)
       expect(result).not.toBe(amount)
       expect(result).not.toBe(amount2)
       expect(result.toString()).toBe('150.9475')
+      expect(result.toNumber()).toBe(150.9475)
       expect(amount.toString()).toBe('100.1204')
+      expect(amount.toNumber()).toBe(100.1204)
     })
     it('sub (subtract)', () => {
-      const amount = getUnit(100.1204)
-      const amount2 = getUnit(50.8271)
+      const amount = new GradidoUnit(100.1204)
+      const amount2 = new GradidoUnit(50.8271)
       const result = amount.sub(amount2)
       expect(result.toString()).toBe('49.2933')
+      expect(result.toNumber()).toBe(49.2933)
       expect(result).toBe(amount)
       expect(result).not.toBe(amount2)
-      expect(result.toString()).toBe(amount.toString())
-      expect(result.toString()).not.toBe(amount2.toString())
+      expect(result.eq(amount)).toBeTrue()
+      expect(result.ne(amount2)).toBeTrue()
     })
     it('minus', () => {
-      const amount = getUnit(100.1204)
-      const amount2 = getUnit(50.8271)
+      const amount = new GradidoUnit(100.1204)
+      const amount2 = new GradidoUnit(50.8271)
       const result = amount.minus(amount2)
       expect(result.toString()).toBe('49.2933')
+      expect(result.toNumber()).toBe(49.2933)
       expect(amount.toString()).toBe('100.1204')
+      expect(amount.toNumber()).toBe(100.1204)
     })
+  })
+  describe('compare', () => {
+    it('equal', () => {
+      const amount = new GradidoUnit(100.1204)
+      const amount2 = new GradidoUnit(100.1204)
+      expect(amount.equal(amount2)).toBe(true)
+      expect(amount.eq(amount2)).toBe(true)
     })
-    describe('compare', () => {
-      it('equal', () => {
-        const amount = getUnit(100.1204)
-        const amount2 = getUnit(100.1204)
-        expect(amount.equal(amount2)).toBe(true)
-        expect(amount.eq(amount2)).toBe(true)
+    it('not equal', () => {
+      const amount = new GradidoUnit(100.1204)
+      const amount2 = new GradidoUnit(100.1205)
+      expect(amount.notEqual(amount2)).toBe(true)
+      expect(amount.ne(amount2)).toBe(true)
+    })
+    it('less than', () => {
+      const amount = new GradidoUnit(100.1204)
+      const amount2 = new GradidoUnit(100.1205)
+      expect(amount.lessThan(amount2)).toBe(true)
+      expect(amount.lt(amount2)).toBe(true)
+    })
+    it('less than or equal', () => {
+      const amount = new GradidoUnit(100.1204)
+      const amount2 = new GradidoUnit(100.1205)
+      expect(amount.lessOrEqual(amount2)).toBe(true)
+      expect(amount.lte(amount2)).toBe(true)
+    })
+    it('greater than', () => {
+      const amount = new GradidoUnit(100.1205)
+      const amount2 = new GradidoUnit(100.1204)
+      expect(amount.greaterThan(amount2)).toBe(true)
+      expect(amount.gt(amount2)).toBe(true)
+    })
+    it('greater than or equal', () => {
+      const amount = new GradidoUnit(100.1205)
+      const amount2 = new GradidoUnit(100.1204)
+      expect(amount.greaterOrEqual(amount2)).toBe(true)
+      expect(amount.gte(amount2)).toBe(true)
+    })
+  })
+  describe('decay', () => {
+    it('decay 0 seconds', () => {
+      const amount = new GradidoUnit(1001.2041)
+      const decay = amount.decay(0)
+      expect(decay.eq(amount)).toBeTrue()
+      expect(decay.toNumber()).toBe(1001.2041)
+      expect(amount.toNumber()).toBe(1001.2041)
+    })
+    it('decay 10 seconds', () => {
+      const amount = new GradidoUnit(1001.2041)
+      const decay = amount.decay(10)
+      expect(decay.eq(amount)).toBeTrue()
+      expect(decay.toNumber()).toBe(1001.2038)
+      expect(amount.toNumber()).toBe(1001.2038)
+    })
+    it('decayed 10 seconds', () => {
+      const amount = new GradidoUnit(1001.2041)
+      const decayed = amount.decayed(10)
+      expect(decayed.eq(amount)).toBeFalse()
+      expect(decayed.toNumber()).toBe(1001.2038)
+      expect(amount.toNumber()).toBe(1001.2041)
+    })
+    describe('different gdd seconds pairs', () => {
+      it('1 gdd, 1 second', () => {
+        const amount = new GradidoUnit(1.0)
+        amount.decay(1)
+        expect(amount.toNumber()).toBe(0.9999)
       })
-      it('not equal', () => {
-        const amount = getUnit(100.1204)
-        const amount2 = getUnit(100.1205)
-        expect(amount.notEqual(amount2)).toBe(true)
-        expect(amount.ne(amount2)).toBe(true)
+      it('100 gdd, 14 days', () => {
+        const amount = new GradidoUnit(100.0)
+        amount.decay(14 * 24 * 60 * 60)
+        expect(amount.toNumber()).toBe(97.3781)
       })
-      it('less than', () => {
-        const amount = getUnit(100.1204)
-        const amount2 = getUnit(100.1205)
-        expect(amount.lessThan(amount2)).toBe(true)
-        expect(amount.lt(amount2)).toBe(true)
-      })
-      it('less than or equal', () => {
-        const amount = getUnit(100.1204)
-        const amount2 = getUnit(100.1205)
-        expect(amount.lessOrEqual(amount2)).toBe(true)
-        expect(amount.lte(amount2)).toBe(true)
-      })
-      it('greater than', () => {
-        const amount = getUnit(100.1205)
-        const amount2 = getUnit(100.1204)
-        expect(amount.greaterThan(amount2)).toBe(true)
-        expect(amount.gt(amount2)).toBe(true)
-      })
-      it('greater than or equal', () => {
-        const amount = getUnit(100.1205)
-        const amount2 = getUnit(100.1204)
-        expect(amount.greaterOrEqual(amount2)).toBe(true)
-        expect(amount.gte(amount2)).toBe(true)
+      it('100 gdd, 1 year', () => {
+        const amount = new GradidoUnit(100.0)
+        amount.decay(31556952)
+        expect(amount.toNumber()).toBe(50)
       })
     })
-    describe('decay', () => {
-      it('decay 10 seconds', () => {
-        const amount = getUnit(1001.2041)
-        const decay = amount.decay(10)
-        expect(decayFormula(new Decimal(amount.toString()), 10).toString()).toBe('1001.2035800860124515')
-        expect(decay.toString()).toBe('1001.2038')
-        expect(amount.toString()).toBe('1001.2038')
+    it('inverse decay calculation', () => {
+      const amount = new GradidoUnit(100)
+      amount.compoundInterest(14 * 24 * 60 * 60)
+      expect(amount.toNumber()).toBe(102.6924)
+    })
+    it('inverse decay calculation with compoundInterested', () => {
+      const amount = new GradidoUnit(100)
+      const decayed = amount.compoundInterested(14 * 24 * 60 * 60)
+      expect(decayed.ne(amount)).toBeTrue()
+      expect(decayed.toNumber()).toBe(102.6924)
+    })
+    describe('performance', () => {
+      it('mutate object 100k times', () => {
+        const amount = new GradidoUnit(1001.2041)
+        for (let i = 0; i < 100000; i++) {
+          amount.decay(10)
+        }
+        expect(amount.toNumber()).toBe(971.2041)
       })
-      it('decayed 10 seconds', () => {
-        const amount = getUnit(1001.2041)
-        const decayed = amount.decayed(10)
-        expect(decayed.toString()).toBe('1001.2038')
-        expect(amount.toString()).toBe('1001.2041')
-      })
-      describe('performance', () => {
-        it('mutate object 1 million times', () => {
-          const amount = getUnit(1001.2041)
-          const start = Date.now()
-          for (let i = 0; i < 1000000; i++) {
-            amount.decay(10)
-          }
-          const end = Date.now()
-          console.log('mutate object', end - start, 'ms')
-          expect(amount.toString()).toBe('770.9831')
-        })
-        it('create new object 1 million times', () => {
-          const amount = getUnit(1001.2041)
-          const start = Date.now()
-          for (let i = 0; i < 1000000; i++) {
-            amount.decayed(10)
-          }
-          const end = Date.now()
-          console.log('create new object', end - start, 'ms')
-          expect(amount.toString()).toBe('1001.2041')
-        })
-        it('decay with old formula 10 thousand times', () => {
-          const amount = new Decimal(1001.2041)
-          const start = Date.now()
-          for (let i = 0; i < 10000; i++) {
-            decayFormula(amount, 10)
-          }
-          const end = Date.now()
-          console.log('decay with old formula', end - start, 'ms')
-          expect(amount.toString()).toBe('1001.2041')
-        })
+      it('create new object 100k times', () => {
+        const amount = new GradidoUnit(1001.2041)
+        for (let i = 0; i < 100000; i++) {
+          amount.decayed(10)
+        }
+        expect(amount.toNumber()).toBe(1001.2041)
       })
     })
   })
-}
+  // const DECAY_START_TIME = new Date('2021-05-13T17:46:31Z')
+  describe('secondsBetween', () => {
+    it('should calculate seconds between two dates', () => {
+      const start = new Date('2026-01-01T00:00:00Z')
+      const end = new Date('2026-01-01T01:00:00Z')
+      const result = GradidoUnit.secondsBetween(start, end)
+      expect(result).toBe(3600)
+    })
+    it('should return error if end is before start', () => {
+      const start = new Date('2026-01-01T01:00:00Z')
+      const end = new Date('2026-01-01T00:00:00Z')
+      expect(() => GradidoUnit.secondsBetween(start, end)).toThrow(
+        'End date must be after start date',
+      )
+    })
+    it('no decay seconds before decay start date', () => {
+      const start = new Date('2020-05-13T17:46:31Z')
+      const end = new Date('2021-05-13T17:46:31Z')
+      const result = GradidoUnit.secondsBetween(start, end)
+      expect(result).toBe(0)
+    })
+    it('decay seconds if start time is before and end time is after decay start date', () => {
+      const start = new Date('2021-05-11T10:18:21Z')
+      const end = new Date('2021-05-14T17:46:31Z')
+      const result = GradidoUnit.secondsBetween(start, end)
+      expect(result).toBe(60 * 60 * 24)
+    })
+  })
+})

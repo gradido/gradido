@@ -11,6 +11,7 @@ public:
 
     // Methods
     Napi::Value ToString(const Napi::CallbackInfo& info);
+    Napi::Value ToNumber(const Napi::CallbackInfo& info);    
     Napi::Value Negate(const Napi::CallbackInfo& info);
     Napi::Value Negated(const Napi::CallbackInfo& info);
     Napi::Value Add(const Napi::CallbackInfo& info);
@@ -20,6 +21,7 @@ public:
     Napi::Value Decay(const Napi::CallbackInfo& info);
     Napi::Value Decayed(const Napi::CallbackInfo& info);
     Napi::Value CompoundInterest(const Napi::CallbackInfo& info);
+    Napi::Value CompoundInterested(const Napi::CallbackInfo& info);
     
     // Comparison methods
     Napi::Value Equal(const Napi::CallbackInfo& info);

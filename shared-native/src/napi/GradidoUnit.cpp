@@ -12,6 +12,7 @@ Napi::Object GradidoUnit::Init(Napi::Env env, Napi::Object exports)
 
     Napi::Function func = DefineClass(env, "GradidoUnit", {
         InstanceMethod("toString", &GradidoUnit::ToString),
+        InstanceMethod("toNumber", &GradidoUnit::ToNumber),
         InstanceMethod("negate", &GradidoUnit::Negate),
         InstanceMethod("negated", &GradidoUnit::Negated),
         InstanceMethod("add", &GradidoUnit::Add),
@@ -21,6 +22,7 @@ Napi::Object GradidoUnit::Init(Napi::Env env, Napi::Object exports)
         InstanceMethod("decay", &GradidoUnit::Decay),
         InstanceMethod("decayed", &GradidoUnit::Decayed),
         InstanceMethod("compoundInterest", &GradidoUnit::CompoundInterest),
+        InstanceMethod("compoundInterested", &GradidoUnit::CompoundInterested),
         
         // Comparison methods
         InstanceMethod("equal", &GradidoUnit::Equal),
@@ -116,6 +118,14 @@ Napi::Value GradidoUnit::ToString(const Napi::CallbackInfo& info)
     }
 
     return Napi::String::New(env, buffer);
+}
+
+Napi::Value GradidoUnit::ToNumber(const Napi::CallbackInfo& info) 
+{
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+
+    return Napi::Number::New(env, grdd_unit_to_decimal(mValue));
 }
 
 Napi::Value GradidoUnit::Negate(const Napi::CallbackInfo& info) 
@@ -274,6 +284,25 @@ Napi::Value GradidoUnit::CompoundInterest(const Napi::CallbackInfo& info)
     return info.This();
 }
 
+Napi::Value GradidoUnit::CompoundInterested(const Napi::CallbackInfo& info)   
+{
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+
+    if (info.Length() != 1) {
+        Napi::TypeError::New(env, "Expected 1 argument").ThrowAsJavaScriptException();
+        return env.Null();
+    }
+
+    if (!info[0].IsNumber()) {
+        Napi::TypeError::New(env, "Expected number for duration in seconds").ThrowAsJavaScriptException();
+        return env.Null();
+    }
+
+    int64_t duration = info[0].As<Napi::Number>().Int64Value();
+    return CreateNewInstance(grdd_unit_calculate_decay(mValue, -duration));
+}
+
 Napi::Value GradidoUnit::SecondsBetween(const Napi::CallbackInfo& info) 
 {
     Napi::Env env = info.Env();
@@ -302,7 +331,7 @@ Napi::Value GradidoUnit::SecondsBetween(const Napi::CallbackInfo& info)
 
     grdd_duration_seconds duration;
     if (!grdd_unit_calculate_duration_seconds(start, end, &duration)) {
-        Napi::RangeError::New(env, "start > end").ThrowAsJavaScriptException();
+        Napi::RangeError::New(env, "End date must be after start date").ThrowAsJavaScriptException();
         return env.Null();
     }
 
