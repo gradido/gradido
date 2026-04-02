@@ -15,6 +15,8 @@ Napi::Object GradidoUnit::Init(Napi::Env env, Napi::Object exports)
         InstanceMethod("toNumber", &GradidoUnit::ToNumber),
         InstanceMethod("negate", &GradidoUnit::Negate),
         InstanceMethod("negated", &GradidoUnit::Negated),
+        InstanceMethod("round", &GradidoUnit::Round),
+        InstanceMethod("rounded", &GradidoUnit::Rounded),
         InstanceMethod("add", &GradidoUnit::Add),
         InstanceMethod("plus", &GradidoUnit::Plus),
         InstanceMethod("sub", &GradidoUnit::Sub),
@@ -39,6 +41,7 @@ Napi::Object GradidoUnit::Init(Napi::Env env, Napi::Object exports)
         InstanceMethod("lte", &GradidoUnit::Lte),
         
         StaticMethod("secondsBetween", &GradidoUnit::SecondsBetween),
+        StaticMethod("getDecayStartTime", &GradidoUnit::GetDecayStartTime),
     });
 
     constructor = Napi::Persistent(func);
@@ -143,6 +146,35 @@ Napi::Value GradidoUnit::Negated(const Napi::CallbackInfo& info)
     Napi::HandleScope scope(env);
 
     return CreateNewInstance(grdd_unit_negated(mValue));
+}
+
+Napi::Value GradidoUnit::Round(const Napi::CallbackInfo& info)
+{
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+
+    uint32_t precision = 2;
+    if (info.Length() >= 1 && info[0].IsNumber()) {
+        precision = info[0].As<Napi::Number>().Uint32Value();
+    }
+    
+    auto rounded = roundToPrecision(static_cast<double>(mValue) / 10000.0, precision) * 10000.0;
+    mValue = static_cast<grdd_unit>(rounded);
+    return info.This();
+}
+
+Napi::Value GradidoUnit::Rounded(const Napi::CallbackInfo& info)
+{
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+
+    uint32_t precision = 2;
+    if (info.Length() >= 1 && info[0].IsNumber()) {
+        precision = info[0].As<Napi::Number>().Uint32Value();
+    }
+    
+    auto rounded = roundToPrecision(static_cast<double>(mValue) / 10000.0, precision) * 10000.0;
+    return CreateNewInstance(static_cast<grdd_unit>(rounded));
 }
 
 Napi::Value GradidoUnit::Add(const Napi::CallbackInfo& info) 
@@ -336,6 +368,15 @@ Napi::Value GradidoUnit::SecondsBetween(const Napi::CallbackInfo& info)
     }
 
     return Napi::Number::New(env, static_cast<double>(duration));
+}
+
+Napi::Value GradidoUnit::GetDecayStartTime(const Napi::CallbackInfo& info) 
+{
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    
+    grdd_timestamp_seconds start = get_decay_start_time();
+    return Napi::Date::New(env, static_cast<double>(start) * 1000.0);
 }
 
 // Comparison method implementations

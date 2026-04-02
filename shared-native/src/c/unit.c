@@ -9,7 +9,14 @@ const grdd_timestamp_seconds DECAY_START_TIME = 1620927991;
 
 double roundToPrecision(double gdd, uint8_t precision) 
 {
-  double factor = pow(10.0, precision);
+	// replace pow(10, precision) with lookup table
+	static const double factors[] = {1.0, 10.0, 100.0, 1000, 10000};
+
+	if (precision > 4) {
+		precision = 4;
+	}
+
+	double factor = factors[precision];
 	return round(gdd * factor) / factor;
 }
 
@@ -40,7 +47,7 @@ bool grdd_unit_from_string(const char* gdd_string, grdd_unit* resultGdd)
 
 int grdd_unit_to_string(grdd_unit u, char* buffer, size_t bufferSize, uint8_t precision)
 {
-  if (precision > 4) return 1; // C hat keine Exceptions
+  if (precision > 4) return 1; // C hasn't exceptions
 
   // Convert to double
   double decimal = (double)(u) / 10000.0;
@@ -61,6 +68,11 @@ int grdd_unit_to_string(grdd_unit u, char* buffer, size_t bufferSize, uint8_t pr
     return 0;
   }
   return bufferSize - written;
+}
+
+grdd_timestamp_seconds get_decay_start_time()
+{
+	return DECAY_START_TIME;
 }
 
 grdd_unit grdd_unit_calculate_decay(grdd_unit u, grdd_duration_seconds duration)

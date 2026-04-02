@@ -13,6 +13,7 @@ typedef int64_t grdd_unit;
 typedef int64_t grdd_timestamp_seconds;
 typedef int64_t grdd_duration_seconds;
 
+double roundToPrecision(double gdd, uint8_t precision);
 grdd_unit grdd_unit_from_decimal(double gdd);
 double grdd_unit_to_decimal(grdd_unit u);
 
@@ -29,6 +30,8 @@ static inline void grdd_unit_negate(grdd_unit* u)
 {
     if (u) *u = -*u;
 }
+
+grdd_timestamp_seconds get_decay_start_time();
 
 //! return false if startTime > endTime
 bool grdd_unit_calculate_duration_seconds(grdd_timestamp_seconds startTime, grdd_timestamp_seconds endTime, grdd_duration_seconds* outSeconds);

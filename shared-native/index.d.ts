@@ -46,6 +46,21 @@ export class GradidoUnit {
   negated(): GradidoUnit
 
   /**
+   * Round the current value of this GradidoUnit to the specified precision.
+   * @param precision - Number of decimal places to round to (default: 2)
+   * @returns Returns `this` for chaining
+   */
+  round(precision?: number): this
+
+  /**
+   * Create new GradidoUnit with rounded value from this
+   * Does NOT modify the current instance.
+   * @param precision - Number of decimal places to round to (default: 2)
+   * @returns Returns new GradidoUnit instance
+   */
+  rounded(precision?: number): GradidoUnit
+
+  /**
    * Apply decay to the current unit for a given duration in seconds.
    * The decay formula uses a compound-interest-like algorithm (e.g., 50% decay per year).
    * @param duration - Duration in seconds for decay
@@ -121,6 +136,11 @@ export class GradidoUnit {
    * ```
    */
   static secondsBetween(startTime: Date, endTime: Date): number
+
+  /**
+   * Returns the decay start time as a JavaScript Date object.
+   */
+  static getDecayStartTime(): Date
 
   /**
    * Returns true if this value is equal to the other.

@@ -14,6 +14,8 @@ public:
     Napi::Value ToNumber(const Napi::CallbackInfo& info);    
     Napi::Value Negate(const Napi::CallbackInfo& info);
     Napi::Value Negated(const Napi::CallbackInfo& info);
+    Napi::Value Round(const Napi::CallbackInfo& info);
+    Napi::Value Rounded(const Napi::CallbackInfo& info);
     Napi::Value Add(const Napi::CallbackInfo& info);
     Napi::Value Plus(const Napi::CallbackInfo& info);
     Napi::Value Sub(const Napi::CallbackInfo& info);
@@ -39,6 +41,7 @@ public:
     
     // Static methods
     static Napi::Value SecondsBetween(const Napi::CallbackInfo& info);
+    static Napi::Value GetDecayStartTime(const Napi::CallbackInfo& info);
 
 private:
     grdd_unit mValue;
