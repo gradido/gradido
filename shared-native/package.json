@@ -25,7 +25,9 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.0.0",
+    "decimal.js-light": "^2.5.1",
     "dotenv": "^17.3.1",
+    "shared": "*",
     "typescript": "^4.9.5"
   },
   "dependencies": {

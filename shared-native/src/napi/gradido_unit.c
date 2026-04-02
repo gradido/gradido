@@ -196,19 +196,13 @@ napi_value GradidoUnit_sub(napi_env env, napi_callback_info info) {
 // ---------- negated ----------
 
 napi_value GradidoUnit_negated(napi_env env, napi_callback_info info) {
-    size_t argc = 1;
-    napi_value args[1];
     napi_value this_arg;
 
-    napi_get_cb_info(env, info, &argc, args, &this_arg, NULL);
-    if (argc != 1) {
-        napi_throw_type_error(env, NULL, "Expected 1 argument");
-        return NULL;
-    }
+    napi_get_cb_info(env, info, NULL, NULL, &this_arg, NULL);
+    
     
     gradido_unit_wrapper* self = load_gradido_unit_from_value(env, this_arg);
-    gradido_unit_wrapper* other = load_gradido_unit_from_value(env, args[0]);
-    if (!self || !other) {
+    if (!self) {
         return NULL;
     }
 
