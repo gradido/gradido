@@ -40,7 +40,7 @@ Napi::Object GradidoUnit::Init(Napi::Env env, Napi::Object exports)
         InstanceMethod("lessOrEqual", &GradidoUnit::LessOrEqual),
         InstanceMethod("lte", &GradidoUnit::Lte),
         
-        StaticMethod("secondsBetween", &GradidoUnit::SecondsBetween),
+        StaticMethod("effectiveDecayDuration", &GradidoUnit::EffectiveDecayDuration),
         StaticMethod("getDecayStartTime", &GradidoUnit::GetDecayStartTime),
     });
 
@@ -157,7 +157,7 @@ Napi::Value GradidoUnit::Round(const Napi::CallbackInfo& info)
     if (info.Length() >= 1 && info[0].IsNumber()) {
         precision = info[0].As<Napi::Number>().Uint32Value();
     }
-    
+
     auto rounded = roundToPrecision(static_cast<double>(mValue) / 10000.0, precision) * 10000.0;
     mValue = static_cast<grdd_unit>(rounded);
     return info.This();
@@ -335,7 +335,7 @@ Napi::Value GradidoUnit::CompoundInterested(const Napi::CallbackInfo& info)
     return CreateNewInstance(grdd_unit_calculate_decay(mValue, -duration));
 }
 
-Napi::Value GradidoUnit::SecondsBetween(const Napi::CallbackInfo& info) 
+Napi::Value GradidoUnit::EffectiveDecayDuration(const Napi::CallbackInfo& info) 
 {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);

@@ -45,7 +45,7 @@ jobs:
           bun install --global turbo@^2
 
       - name: typecheck, locales && unit test
-        run: turbo core#typecheck core#locales database#test database#typecheck shared#test shared#typecheck config-schema#test config-schema#typecheck
+        run: turbo core#typecheck core#locales database#test database#typecheck shared#test shared#typecheck shared-native#test shared-native#typecheck config-schema#test config-schema#typecheck
       - name: core test extra
         run: turbo core#test
 

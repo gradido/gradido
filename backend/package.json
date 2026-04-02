@@ -8,7 +8,7 @@
   "author": "Gradido Academy - https://www.gradido.net",
   "main": "src/index.ts",
   "scripts": {
-    "build": "ts-node ./esbuild.config.ts && mkdirp build/templates/ && ncp ../core/build/templates build/templates",
+    "build": "ts-node ./esbuild.config.ts && mkdirp build/templates/ && ncp ../core/build/templates build/templates && ncp ../shared-native/build/shared_native.node build/shared_native.node",
     "dev": "cross-env TZ=UTC nodemon -w src --ext ts,pug,json,css -r tsconfig-paths/register src/index.ts",
     "test": "cross-env TZ=UTC NODE_ENV=development DB_DATABASE=gradido_test_backend jest --runInBand --forceExit --detectOpenHandles",
     "test:coverage": "cross-env TZ=UTC NODE_ENV=development DB_DATABASE=gradido_test_backend jest --coverage --runInBand --forceExit --detectOpenHandles",
@@ -31,6 +31,7 @@
   "dependencies": {
     "cross-env": "^7.0.3",
     "email-templates": "^10.0.1",
+    "shared-native": "*",
     "sodium-native": "^3.4.1"
   },
   "devDependencies": {

@@ -34,6 +34,7 @@ static inline void grdd_unit_negate(grdd_unit* u)
 grdd_timestamp_seconds get_decay_start_time();
 
 //! return false if startTime > endTime
+//! make sure that returned duration starts after decay start time, returns 0 if time range is entirely before decay start time
 bool grdd_unit_calculate_duration_seconds(grdd_timestamp_seconds startTime, grdd_timestamp_seconds endTime, grdd_duration_seconds* outSeconds);
 
 int grdd_unit_to_string(grdd_unit u, char* buffer, size_t bufferSize, uint8_t precision);

@@ -209,6 +209,24 @@ describe('GradidoUnit Native', () => {
         expect(amount.toNumber()).toBe(50)
       })
     })
+    describe('method chaining', () => {
+      it('decay twice', () => {
+        const amount = new GradidoUnit(100.0)
+        amount.decay(14 * 24 * 60 * 60).decay(14 * 24 * 60 * 60)
+        expect(amount.toNumber()).toBe(94.8249)
+      })
+      it('decay then add', () => {
+        const amount = new GradidoUnit(100.0)
+        amount.decay(14 * 24 * 60 * 60).add(new GradidoUnit(17.21))
+        expect(amount.toNumber()).toBe(114.5881)
+      })
+      it('decayed then add', () => {
+        const amount = new GradidoUnit(100.0)
+        const decayed = amount.decayed(14 * 24 * 60 * 60).add(new GradidoUnit(17.21))
+        expect(decayed.ne(amount)).toBeTrue()
+        expect(decayed.toNumber()).toBe(114.5881)
+      })
+    })
     it('inverse decay calculation', () => {
       const amount = new GradidoUnit(100)
       amount.compoundInterest(14 * 24 * 60 * 60)
@@ -238,30 +256,30 @@ describe('GradidoUnit Native', () => {
     })
   })
   // const DECAY_START_TIME = new Date('2021-05-13T17:46:31Z')
-  describe('secondsBetween', () => {
+  describe('effectiveDecayDuration', () => {
     it('should calculate seconds between two dates', () => {
       const start = new Date('2026-01-01T00:00:00Z')
       const end = new Date('2026-01-01T01:00:00Z')
-      const result = GradidoUnit.secondsBetween(start, end)
+      const result = GradidoUnit.effectiveDecayDuration(start, end)
       expect(result).toBe(3600)
     })
     it('should return error if end is before start', () => {
       const start = new Date('2026-01-01T01:00:00Z')
       const end = new Date('2026-01-01T00:00:00Z')
-      expect(() => GradidoUnit.secondsBetween(start, end)).toThrow(
+      expect(() => GradidoUnit.effectiveDecayDuration(start, end)).toThrow(
         'End date must be after start date',
       )
     })
     it('no decay seconds before decay start date', () => {
       const start = new Date('2020-05-13T17:46:31Z')
       const end = new Date('2021-05-13T17:46:31Z')
-      const result = GradidoUnit.secondsBetween(start, end)
+      const result = GradidoUnit.effectiveDecayDuration(start, end)
       expect(result).toBe(0)
     })
     it('decay seconds if start time is before and end time is after decay start date', () => {
       const start = new Date('2021-05-11T10:18:21Z')
       const end = new Date('2021-05-14T17:46:31Z')
-      const result = GradidoUnit.secondsBetween(start, end)
+      const result = GradidoUnit.effectiveDecayDuration(start, end)
       expect(result).toBe(60 * 60 * 24)
     })
   })

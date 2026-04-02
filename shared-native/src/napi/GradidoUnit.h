@@ -40,7 +40,7 @@ public:
     inline Napi::Value Lte(const Napi::CallbackInfo& info) { return LessOrEqual(info); }
     
     // Static methods
-    static Napi::Value SecondsBetween(const Napi::CallbackInfo& info);
+    static Napi::Value EffectiveDecayDuration(const Napi::CallbackInfo& info);
     static Napi::Value GetDecayStartTime(const Napi::CallbackInfo& info);
 
 private:

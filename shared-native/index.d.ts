@@ -121,21 +121,31 @@ export class GradidoUnit {
   sub(other: GradidoUnit): this
 
   /**
-   * Calculate the duration in seconds between two JavaScript Date objects.
+   * Calculates the effective decay duration in seconds between two dates.
+   *
+   * The decay starts at the global fixed decay start time.
+   *
+   * - If both start and end are before the decay start time -> returns 0
+   * - If start is before the decay start time -> returns duration from decay start time to end
+   * - Otherwise -> returns duration from start to end
+   *
    * Delegates to the underlying C implementation for accurate handling.
    *
-   * @param start - Start Date
-   * @param end - End Date
+   * @param startTime - Start Date
+   * @param endTime - End Date
    * @returns Duration in seconds
-   * @throws EndTimeBeforeStartTime if start > end
+   * @throws EndTimeBeforeStartTime if startTime > endTime
    *
    * @example
    * ```ts
-   * const duration = GradidoUnit.secondsBetween(new Date('2026-01-01'), new Date('2026-01-02'));
-   * console.log(duration); // 86400
+   * const duration = GradidoUnit.effectiveDecayDuration(
+   *   new Date('2026-01-01'),
+   *   new Date('2026-01-02')
+   * )
+   * console.log(duration) // 86400
    * ```
    */
-  static secondsBetween(startTime: Date, endTime: Date): number
+  static effectiveDecayDuration(startTime: Date, endTime: Date): number
 
   /**
    * Returns the decay start time as a JavaScript Date object.
