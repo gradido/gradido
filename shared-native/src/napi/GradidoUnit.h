@@ -11,7 +11,9 @@ public:
 
     // Methods
     Napi::Value ToString(const Napi::CallbackInfo& info);
-    Napi::Value ToNumber(const Napi::CallbackInfo& info);    
+    Napi::Value ToNumber(const Napi::CallbackInfo& info);
+    Napi::Value ToBigInt(const Napi::CallbackInfo& info);
+    Napi::Value Clone(const Napi::CallbackInfo& info);
     Napi::Value Negate(const Napi::CallbackInfo& info);
     Napi::Value Negated(const Napi::CallbackInfo& info);
     Napi::Value Round(const Napi::CallbackInfo& info);
@@ -38,6 +40,7 @@ public:
     inline Napi::Value Gte(const Napi::CallbackInfo& info) { return GreaterOrEqual(info); }
     Napi::Value LessOrEqual(const Napi::CallbackInfo& info);
     inline Napi::Value Lte(const Napi::CallbackInfo& info) { return LessOrEqual(info); }
+    Napi::Value LessThanZero(const Napi::CallbackInfo& info);
     
     // Static methods
     static Napi::Value EffectiveDecayDuration(const Napi::CallbackInfo& info);

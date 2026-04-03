@@ -17,7 +17,7 @@ export class GradidoUnit {
    * Create a new GradidoUnit instance.
    * @param value - Initial value, either as number or string. Strings must be valid decimal representations. Optional.
    */
-  constructor(value?: number | string)
+  constructor(value?: number | string | bigint)
 
   /**
    * Convert the GradidoUnit to a string representation with optional precision.
@@ -31,6 +31,17 @@ export class GradidoUnit {
    * @returns Number representation of the unit
    */
   toNumber(): number
+
+  /**
+   * @returns BigInt representation of the unit, you need to * 10000 it when you want to use it as gdd
+   */
+  toBigInt(): bigint
+
+  /**
+   * Create a clone of this GradidoUnit.
+   * @returns Returns new GradidoUnit instance with the same value
+   */
+  clone(): GradidoUnit
 
   /**
    * Negate the current value of this GradidoUnit.
@@ -155,70 +166,71 @@ export class GradidoUnit {
   /**
    * Returns true if this value is equal to the other.
    */
-  equal(other: GradidoUnit): boolean
+  equal(other: GradidoUnit | number): boolean
 
   /**
    * Alias for {@link equal}
    */
-  eq(other: GradidoUnit): boolean
+  eq(other: GradidoUnit | number): boolean
 
   // --------------------------------------------------
 
   /**
    * Returns true if this value is not equal to the other.
    */
-  notEqual(other: GradidoUnit): boolean
+  notEqual(other: GradidoUnit | number): boolean
 
   /**
    * Alias for {@link notEqual}
    */
-  ne(other: GradidoUnit): boolean
+  ne(other: GradidoUnit | number): boolean
 
   // --------------------------------------------------
 
   /**
    * Returns true if this value is greater than the other.
    */
-  greaterThan(other: GradidoUnit): boolean
+  greaterThan(other: GradidoUnit | number): boolean
 
   /**
    * Alias for {@link greaterThan}
    */
-  gt(other: GradidoUnit): boolean
+  gt(other: GradidoUnit | number): boolean
 
   // --------------------------------------------------
 
   /**
    * Returns true if this value is less than the other.
    */
-  lessThan(other: GradidoUnit): boolean
+  lessThan(other: GradidoUnit | number): boolean
 
   /**
    * Alias for {@link lessThan}
    */
-  lt(other: GradidoUnit): boolean
+  lt(other: GradidoUnit | number): boolean
 
   // --------------------------------------------------
 
   /**
    * Returns true if this value is greater than or equal to the other.
    */
-  greaterOrEqual(other: GradidoUnit): boolean
+  greaterOrEqual(other: GradidoUnit | number): boolean
 
   /**
    * Alias for {@link greaterOrEqual}
    */
-  gte(other: GradidoUnit): boolean
+  gte(other: GradidoUnit | number): boolean
 
   // --------------------------------------------------
 
   /**
    * Returns true if this value is less than or equal to the other.
    */
-  lessOrEqual(other: GradidoUnit): boolean
+  lessOrEqual(other: GradidoUnit | number): boolean
 
   /**
    * Alias for {@link lessOrEqual}
    */
-  lte(other: GradidoUnit): boolean
+  lte(other: GradidoUnit | number): boolean
+
 }

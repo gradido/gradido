@@ -9,11 +9,19 @@ describe('GradidoUnit Native', () => {
       expect(amount.toString(2)).toBe('100.01')
       expect(amount.toString(0)).toBe('100')
       expect(amount.toNumber()).toBe(100.0103)
+      expect(amount.toBigInt()).toBe(1000103n)
     })
     it('create from number', () => {
       const amount = new GradidoUnit(100.0204)
       expect(amount.toNumber()).toBe(100.0204)
       expect(amount.toString()).toBe('100.0204')
+      expect(amount.toBigInt()).toBe(1000204n)
+    })
+    it('create from bigint', () => {
+      const amount = new GradidoUnit(1000204n)
+      expect(amount.toNumber()).toBe(100.0204)
+      expect(amount.toString()).toBe('100.0204')
+      expect(amount.toBigInt()).toBe(1000204n)
     })
   })
   describe('test negate and negated', () => {
@@ -139,11 +147,21 @@ describe('GradidoUnit Native', () => {
       expect(amount.equal(amount2)).toBe(true)
       expect(amount.eq(amount2)).toBe(true)
     })
+    it('equal with number', () => {
+      const amount = new GradidoUnit(100.1204)
+      expect(amount.equal(100.1204)).toBe(true)
+      expect(amount.eq(100.1204)).toBe(true)
+    })
     it('not equal', () => {
       const amount = new GradidoUnit(100.1204)
       const amount2 = new GradidoUnit(100.1205)
       expect(amount.notEqual(amount2)).toBe(true)
       expect(amount.ne(amount2)).toBe(true)
+    })
+    it('not equal with number', () => {
+      const amount = new GradidoUnit(100.1204)
+      expect(amount.notEqual(100.1205)).toBe(true)
+      expect(amount.ne(100.1205)).toBe(true)
     })
     it('less than', () => {
       const amount = new GradidoUnit(100.1204)
@@ -151,11 +169,21 @@ describe('GradidoUnit Native', () => {
       expect(amount.lessThan(amount2)).toBe(true)
       expect(amount.lt(amount2)).toBe(true)
     })
+    it('less than with number', () => {
+      const amount = new GradidoUnit(100.1204)
+      expect(amount.lessThan(100.1205)).toBe(true)
+      expect(amount.lt(100.1205)).toBe(true)
+    })
     it('less than or equal', () => {
       const amount = new GradidoUnit(100.1204)
       const amount2 = new GradidoUnit(100.1205)
       expect(amount.lessOrEqual(amount2)).toBe(true)
       expect(amount.lte(amount2)).toBe(true)
+    })
+    it('less than or equal with number', () => {
+      const amount = new GradidoUnit(100.1204)
+      expect(amount.lessOrEqual(100.1205)).toBe(true)
+      expect(amount.lte(100.1205)).toBe(true)
     })
     it('greater than', () => {
       const amount = new GradidoUnit(100.1205)
@@ -163,11 +191,21 @@ describe('GradidoUnit Native', () => {
       expect(amount.greaterThan(amount2)).toBe(true)
       expect(amount.gt(amount2)).toBe(true)
     })
+    it('greater than with number', () => {
+      const amount = new GradidoUnit(100.1205)
+      expect(amount.greaterThan(100.1204)).toBe(true)
+      expect(amount.gt(100.1204)).toBe(true)
+    })
     it('greater than or equal', () => {
       const amount = new GradidoUnit(100.1205)
       const amount2 = new GradidoUnit(100.1204)
       expect(amount.greaterOrEqual(amount2)).toBe(true)
       expect(amount.gte(amount2)).toBe(true)
+    })
+    it('greater than or equal with number', () => {
+      const amount = new GradidoUnit(100.1205)
+      expect(amount.greaterOrEqual(100.1204)).toBe(true)
+      expect(amount.gte(100.1204)).toBe(true)
     })
   })
   describe('decay', () => {
@@ -288,6 +326,16 @@ describe('GradidoUnit Native', () => {
       const result = GradidoUnit.getDecayStartTime()
       expect(result).toBeInstanceOf(Date)
       expect(result.toISOString()).toBe('2021-05-13T17:46:31.000Z')
+    })
+  })
+  describe('test clone', () => {
+    it('should return a new instance with the same value', () => {
+      const unit = new GradidoUnit(1)
+      const cloned = unit.clone()
+      expect(cloned.eq(unit)).toBe(true)
+      expect(cloned).not.toBe(unit)
+      unit.add(new GradidoUnit(1))
+      expect(cloned.eq(unit)).toBe(false)
     })
   })
 })

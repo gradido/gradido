@@ -13,6 +13,8 @@ Napi::Object GradidoUnit::Init(Napi::Env env, Napi::Object exports)
     Napi::Function func = DefineClass(env, "GradidoUnit", {
         InstanceMethod("toString", &GradidoUnit::ToString),
         InstanceMethod("toNumber", &GradidoUnit::ToNumber),
+        InstanceMethod("toBigInt", &GradidoUnit::ToBigInt),
+        InstanceMethod("clone", &GradidoUnit::Clone),
         InstanceMethod("negate", &GradidoUnit::Negate),
         InstanceMethod("negated", &GradidoUnit::Negated),
         InstanceMethod("round", &GradidoUnit::Round),
@@ -48,6 +50,7 @@ Napi::Object GradidoUnit::Init(Napi::Env env, Napi::Object exports)
     constructor.SuppressDestruct();
 
     exports.Set("GradidoUnit", func);
+    
     return exports;
 }
 
@@ -70,6 +73,15 @@ GradidoUnit::GradidoUnit(const Napi::CallbackInfo& info) : Napi::ObjectWrap<Grad
         if (arg.IsNumber()) {
             double gdd = arg.As<Napi::Number>().DoubleValue();
             mValue = grdd_unit_from_decimal(gdd);
+        } else if (arg.IsBigInt()) {
+            bool lossless;
+            int64_t value = arg.As<Napi::BigInt>().Int64Value(&lossless);
+            if (!lossless) {
+                Napi::TypeError::New(env, "BigInt value is too large for int64_t")
+                    .ThrowAsJavaScriptException();
+                return;
+            }
+            mValue = (grdd_unit)value;
         } else if (arg.IsString()) {
             std::string str = arg.As<Napi::String>().Utf8Value();
             if (!grdd_unit_from_string(str.c_str(), &mValue)) {
@@ -131,6 +143,22 @@ Napi::Value GradidoUnit::ToNumber(const Napi::CallbackInfo& info)
     return Napi::Number::New(env, grdd_unit_to_decimal(mValue));
 }
 
+Napi::Value GradidoUnit::ToBigInt(const Napi::CallbackInfo& info)
+{
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+
+    return Napi::BigInt::New(env, (int64_t)mValue);
+}
+
+Napi::Value GradidoUnit::Clone(const Napi::CallbackInfo& info) 
+{
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+
+    return CreateNewInstance(mValue);
+}
+
 Napi::Value GradidoUnit::Negate(const Napi::CallbackInfo& info) 
 {
     Napi::Env env = info.Env();
@@ -186,7 +214,7 @@ Napi::Value GradidoUnit::Add(const Napi::CallbackInfo& info)
         Napi::TypeError::New(env, "Expected 1 argument").ThrowAsJavaScriptException();
         return env.Null();
     }
-
+    
     GradidoUnit* other = Napi::ObjectWrap<GradidoUnit>::Unwrap(info[0].As<Napi::Object>());
     if (!other) {
         Napi::TypeError::New(env, "Expected GradidoUnit instance").ThrowAsJavaScriptException();
@@ -389,14 +417,18 @@ Napi::Value GradidoUnit::Equal(const Napi::CallbackInfo& info)
         Napi::TypeError::New(env, "Expected 1 argument").ThrowAsJavaScriptException();
         return env.Null();
     }
+    if(info[0].IsNumber()) {
+        double value = info[0].As<Napi::Number>().DoubleValue();
+        return Napi::Boolean::New(env, mValue == grdd_unit_from_decimal(value));
+    } else {
+        GradidoUnit* other = Napi::ObjectWrap<GradidoUnit>::Unwrap(info[0].As<Napi::Object>());
+        if (!other) {
+            Napi::TypeError::New(env, "Expected GradidoUnit instance").ThrowAsJavaScriptException();
+            return env.Null();
+        }
 
-    GradidoUnit* other = Napi::ObjectWrap<GradidoUnit>::Unwrap(info[0].As<Napi::Object>());
-    if (!other) {
-        Napi::TypeError::New(env, "Expected GradidoUnit instance").ThrowAsJavaScriptException();
-        return env.Null();
+        return Napi::Boolean::New(env, mValue == other->mValue);
     }
-
-    return Napi::Boolean::New(env, mValue == other->mValue);
 }
 
 Napi::Value GradidoUnit::NotEqual(const Napi::CallbackInfo& info) 
@@ -409,13 +441,18 @@ Napi::Value GradidoUnit::NotEqual(const Napi::CallbackInfo& info)
         return env.Null();
     }
 
-    GradidoUnit* other = Napi::ObjectWrap<GradidoUnit>::Unwrap(info[0].As<Napi::Object>());
-    if (!other) {
-        Napi::TypeError::New(env, "Expected GradidoUnit instance").ThrowAsJavaScriptException();
-        return env.Null();
-    }
+    if(info[0].IsNumber()) {
+        double value = info[0].As<Napi::Number>().DoubleValue();
+        return Napi::Boolean::New(env, mValue != grdd_unit_from_decimal(value));
+    } else {
+        GradidoUnit* other = Napi::ObjectWrap<GradidoUnit>::Unwrap(info[0].As<Napi::Object>());
+        if (!other) {
+            Napi::TypeError::New(env, "Expected GradidoUnit instance").ThrowAsJavaScriptException();
+            return env.Null();
+        }
 
-    return Napi::Boolean::New(env, mValue != other->mValue);
+        return Napi::Boolean::New(env, mValue != other->mValue);
+    }
 }
 
 Napi::Value GradidoUnit::GreaterThan(const Napi::CallbackInfo& info) 
@@ -428,13 +465,19 @@ Napi::Value GradidoUnit::GreaterThan(const Napi::CallbackInfo& info)
         return env.Null();
     }
 
-    GradidoUnit* other = Napi::ObjectWrap<GradidoUnit>::Unwrap(info[0].As<Napi::Object>());
-    if (!other) {
-        Napi::TypeError::New(env, "Expected GradidoUnit instance").ThrowAsJavaScriptException();
-        return env.Null();
+    if(info[0].IsNumber()) {
+        double other_value = info[0].As<Napi::Number>().DoubleValue();
+        return Napi::Boolean::New(env, mValue > grdd_unit_from_decimal(other_value));
     }
+    else {
+        GradidoUnit* other = Napi::ObjectWrap<GradidoUnit>::Unwrap(info[0].As<Napi::Object>());
+        if (!other) {
+            Napi::TypeError::New(env, "Expected GradidoUnit instance").ThrowAsJavaScriptException();
+            return env.Null();
+        }
 
-    return Napi::Boolean::New(env, mValue > other->mValue);
+        return Napi::Boolean::New(env, mValue > other->mValue);
+    }
 }
 
 Napi::Value GradidoUnit::LessThan(const Napi::CallbackInfo& info) 
@@ -447,13 +490,18 @@ Napi::Value GradidoUnit::LessThan(const Napi::CallbackInfo& info)
         return env.Null();
     }
 
-    GradidoUnit* other = Napi::ObjectWrap<GradidoUnit>::Unwrap(info[0].As<Napi::Object>());
-    if (!other) {
-        Napi::TypeError::New(env, "Expected GradidoUnit instance").ThrowAsJavaScriptException();
-        return env.Null();
-    }
+    if(info[0].IsNumber()) {
+        double other_value = info[0].As<Napi::Number>().DoubleValue();
+        return Napi::Boolean::New(env, mValue < grdd_unit_from_decimal(other_value));
+    } else {
+        GradidoUnit* other = Napi::ObjectWrap<GradidoUnit>::Unwrap(info[0].As<Napi::Object>());
+        if (!other) {
+            Napi::TypeError::New(env, "Expected GradidoUnit instance").ThrowAsJavaScriptException();
+            return env.Null();
+        }
 
-    return Napi::Boolean::New(env, mValue < other->mValue);
+        return Napi::Boolean::New(env, mValue < other->mValue);
+    }
 }
 
 Napi::Value GradidoUnit::GreaterOrEqual(const Napi::CallbackInfo& info) 
@@ -465,14 +513,18 @@ Napi::Value GradidoUnit::GreaterOrEqual(const Napi::CallbackInfo& info)
         Napi::TypeError::New(env, "Expected 1 argument").ThrowAsJavaScriptException();
         return env.Null();
     }
+    if(info[0].IsNumber()) {
+        double other_value = info[0].As<Napi::Number>().DoubleValue();
+        return Napi::Boolean::New(env, mValue >= grdd_unit_from_decimal(other_value));
+    } else {
+        GradidoUnit* other = Napi::ObjectWrap<GradidoUnit>::Unwrap(info[0].As<Napi::Object>());
+        if (!other) {
+            Napi::TypeError::New(env, "Expected GradidoUnit instance").ThrowAsJavaScriptException();
+            return env.Null();
+        }
 
-    GradidoUnit* other = Napi::ObjectWrap<GradidoUnit>::Unwrap(info[0].As<Napi::Object>());
-    if (!other) {
-        Napi::TypeError::New(env, "Expected GradidoUnit instance").ThrowAsJavaScriptException();
-        return env.Null();
+        return Napi::Boolean::New(env, mValue >= other->mValue);
     }
-
-    return Napi::Boolean::New(env, mValue >= other->mValue);
 }
 
 Napi::Value GradidoUnit::LessOrEqual(const Napi::CallbackInfo& info) 
@@ -485,13 +537,18 @@ Napi::Value GradidoUnit::LessOrEqual(const Napi::CallbackInfo& info)
         return env.Null();
     }
 
-    GradidoUnit* other = Napi::ObjectWrap<GradidoUnit>::Unwrap(info[0].As<Napi::Object>());
-    if (!other) {
-        Napi::TypeError::New(env, "Expected GradidoUnit instance").ThrowAsJavaScriptException();
-        return env.Null();
-    }
+    if(info[0].IsNumber()) {
+        double other_value = info[0].As<Napi::Number>().DoubleValue();
+        return Napi::Boolean::New(env, mValue <= grdd_unit_from_decimal(other_value));
+    } else {
+        GradidoUnit* other = Napi::ObjectWrap<GradidoUnit>::Unwrap(info[0].As<Napi::Object>());
+        if (!other) {
+            Napi::TypeError::New(env, "Expected GradidoUnit instance").ThrowAsJavaScriptException();
+            return env.Null();
+        }
 
-    return Napi::Boolean::New(env, mValue <= other->mValue);
+        return Napi::Boolean::New(env, mValue <= other->mValue);
+    }
 }
 
 // Module initialization

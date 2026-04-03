@@ -10,7 +10,7 @@ const grdd_timestamp_seconds DECAY_START_TIME = 1620927991;
 double roundToPrecision(double gdd, uint8_t precision) 
 {
 	// replace pow(10, precision) with lookup table
-	static const double factors[] = {1.0, 10.0, 100.0, 1000, 10000};
+	static const double factors[] = {1.0, 10.0, 100.0, 1000.0, 10000.0};
 
 	if (precision > 4) {
 		precision = 4;
@@ -52,10 +52,8 @@ int grdd_unit_to_string(grdd_unit u, char* buffer, size_t bufferSize, uint8_t pr
   // Convert to double
   double decimal = (double)(u) / 10000.0;
 
-  // Round down like Node.js if precision < 4
   if (precision < 4) {
-      double factor = pow(10.0, precision);
-      decimal = round(decimal * factor) / factor;
+    decimal = roundToPrecision(decimal, precision);
   }
 
   // Write to buffer
