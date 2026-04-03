@@ -4,6 +4,7 @@ import { CONFIG } from '../config'
 import { decimalSeparatorByLanguage } from '../util/utilities'
 
 import { sendEmailTranslated } from './sendEmailTranslated'
+import { GradidoUnit } from 'shared-native'
 
 export interface EmailCommonData {
   firstName: string
@@ -157,7 +158,7 @@ export const sendTransactionLinkRedeemedEmail = (
     senderLastName: string
     senderEmail: string
     transactionMemo: string
-    transactionAmount: Decimal
+    transactionAmount: Decimal | GradidoUnit
   },
 ): Promise<Record<string, unknown> | boolean | null | Error> => {
   return sendEmailTranslated({
@@ -177,7 +178,7 @@ export const sendTransactionReceivedEmail = (
     senderLastName: string
     senderEmail: string | null
     memo: string
-    transactionAmount: Decimal
+    transactionAmount: Decimal | GradidoUnit
   },
 ): Promise<Record<string, unknown> | boolean | null | Error> => {
   return sendEmailTranslated({

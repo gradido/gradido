@@ -31,7 +31,7 @@ import { Decimal } from 'decimal.js-light'
 import { GraphQLResolveInfo } from 'graphql'
 import { getLogger } from 'log4js'
 import { Mutex } from 'redis-semaphore'
-import { calculateDecay, Decay } from 'shared'
+import { Decay } from 'shared'
 import { Arg, Args, Authorized, Ctx, Info, Int, Mutation, Query, Resolver } from 'type-graphql'
 import { EntityManager, IsNull } from 'typeorm'
 import { contributionTransaction } from '@/apis/dltConnector'
@@ -58,6 +58,7 @@ import {
 import { getOpenCreations, getUserCreation, validateContribution } from './util/creations'
 import { extractGraphQLFields } from './util/extractGraphQLFields'
 import { findContributions } from './util/findContributions'
+import { GradidoUnit } from 'shared-native'
 
 const db = AppDatabase.getInstance()
 const createLogger = () =>
@@ -501,17 +502,14 @@ export class ContributionResolver {
       logger.info('lastTransaction ID', lastTransaction ? lastTransaction.id : 'undefined')
 
       try {
-        let newBalance = new Decimal(0)
+        let newBalance = new GradidoUnit(0)
         let decay: Decay | null = null
         if (lastTransaction) {
-          decay = calculateDecay(
-            lastTransaction.balance,
-            lastTransaction.balanceDate,
-            receivedCallDate,
-          )
+          decay = new Decay(new GradidoUnit(lastTransaction.balance.toString()))
+          decay.calculateDecay(lastTransaction.balanceDate, receivedCallDate)
           newBalance = decay.balance
         }
-        newBalance = newBalance.add(contribution.amount.toString())
+        newBalance.add(new GradidoUnit(contribution.amount.toString()))
 
         let transaction = new DbTransaction()
         transaction.typeId = TransactionTypeId.CREATION
@@ -527,9 +525,9 @@ export class ContributionResolver {
         transaction.previous = lastTransaction ? lastTransaction.id : null
         transaction.amount = contribution.amount
         transaction.creationDate = contribution.contributionDate
-        transaction.balance = newBalance
+        transaction.balance = new Decimal(newBalance.toString())
         transaction.balanceDate = receivedCallDate
-        transaction.decay = decay ? decay.decay : new Decimal(0)
+        transaction.decay = decay ? new Decimal(decay.decay.toString()) : new Decimal(0)
         transaction.decayStart = decay ? decay.start : null
         transaction = await queryRunner.manager.save(DbTransaction, transaction)
 

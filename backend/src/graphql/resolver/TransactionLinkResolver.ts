@@ -11,7 +11,6 @@ import { TransactionLink, TransactionLinkResult } from '@model/TransactionLink'
 import { User } from '@model/User'
 import { QueryLinkResult } from '@union/QueryLinkResult'
 import {
-  Decay,
   EncryptedTransferArgs,
   fullName,
   interpretEncryptedTransferArgs,
@@ -41,8 +40,6 @@ import { getLogger, Logger } from 'log4js'
 import { Mutex } from 'redis-semaphore'
 // import { TRANSACTION_LINK_LOCK, TRANSACTIONS_LOCK } from 'database'
 import {
-  calculateDecay,
-  compoundInterest,
   DisburseJwtPayloadType,
   decode,
   encode,
@@ -50,6 +47,7 @@ import {
   RedeemJwtPayloadType,
   SignedTransferPayloadType,
   verify,
+  Decay,
 } from 'shared'
 import { randombytes_random } from 'sodium-native'
 import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
@@ -80,6 +78,7 @@ import {
 } from './util/communities'
 import { getUserCreation, validateContribution } from './util/creations'
 import { transactionLinkList } from './util/transactionLinkList'
+import { GradidoUnit } from 'shared-native'
 
 const createLogger = (method: string) =>
   getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.TransactionLinkResolver.${method}`)
@@ -114,10 +113,10 @@ export class TransactionLinkResolver {
     const createdDate = new Date()
     const validUntil = transactionLinkExpireDate(createdDate)
 
-    const holdAvailableAmount = compoundInterest(amount, CODE_VALID_DAYS_DURATION * 24 * 60 * 60)
+    const holdAvailableAmount = amount.compoundInterested(CODE_VALID_DAYS_DURATION * 24 * 60 * 60)
 
     // validate amount
-    const sendBalance = await calculateBalance(user.id, holdAvailableAmount.mul(-1), createdDate)
+    const sendBalance = await calculateBalance(user.id, holdAvailableAmount.negated(), createdDate)
 
     if (!sendBalance) {
       throw new LogError('User has not enough GDD', user.id)
@@ -125,9 +124,9 @@ export class TransactionLinkResolver {
 
     const transactionLink = DbTransactionLink.create()
     transactionLink.userId = user.id
-    transactionLink.amount = amount
+    transactionLink.amount = new Decimal(amount.toString())
     transactionLink.memo = memo
-    transactionLink.holdAvailableAmount = holdAvailableAmount
+    transactionLink.holdAvailableAmount = new Decimal(holdAvailableAmount.toString())
     transactionLink.code = transactionLinkCode(createdDate)
     transactionLink.createdAt = createdDate
     transactionLink.validUntil = validUntil
@@ -135,7 +134,7 @@ export class TransactionLinkResolver {
     await DbTransactionLink.save(transactionLink).catch((e) => {
       throw new LogError('Unable to save transaction link', e)
     })
-    await EVENT_TRANSACTION_LINK_CREATE(user, transactionLink, amount)
+    await EVENT_TRANSACTION_LINK_CREATE(user, transactionLink, new Decimal(amount.toString()))
     // wait for dlt transaction to be created
     const startTime = Date.now()
     const dltTransaction = await dltTransactionPromise
@@ -355,14 +354,15 @@ export class TransactionLinkResolver {
           await queryRunner.manager.insert(DbContribution, contribution)
 
           const lastTransaction = await getLastTransaction(user.id)
-          let newBalance = new Decimal(0)
+          let newBalance = new GradidoUnit(0)
 
           let decay: Decay | null = null
           if (lastTransaction) {
-            decay = calculateDecay(lastTransaction.balance, lastTransaction.balanceDate, now)
+            decay = new Decay(new GradidoUnit(lastTransaction.balance.toString()))
+            decay.calculateDecay(lastTransaction.balanceDate, now)
             newBalance = decay.balance
           }
-          newBalance = newBalance.add(contributionLink.amount.toString())
+          newBalance.add(new GradidoUnit(contributionLink.amount.toString()))
 
           const transaction = new DbTransaction()
           transaction.typeId = TransactionTypeId.CREATION
@@ -378,9 +378,9 @@ export class TransactionLinkResolver {
           transaction.previous = lastTransaction ? lastTransaction.id : null
           transaction.amount = contribution.amount
           transaction.creationDate = contribution.contributionDate
-          transaction.balance = newBalance
+          transaction.balance = new Decimal(newBalance.toString())
           transaction.balanceDate = now
-          transaction.decay = decay ? decay.decay : new Decimal(0)
+          transaction.decay = decay ? new Decimal(decay.decay.toString()) : new Decimal(0)
           transaction.decayStart = decay ? decay.start : null
           await queryRunner.manager.insert(DbTransaction, transaction)
 
@@ -454,7 +454,7 @@ export class TransactionLinkResolver {
           throw new LogError('Transaction link already redeemed', transactionLink.redeemedBy)
         }
         await executeTransaction(
-          transactionLink.amount,
+          new GradidoUnit(transactionLink.amount.toString()),
           transactionLink.memo,
           linkedUser,
           user,

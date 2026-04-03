@@ -45,13 +45,15 @@ import { GdtResolver } from './GdtResolver'
 import { getCommunityName, isHomeCommunity } from './util/communities'
 import { getTransactionList } from './util/getTransactionList'
 import { transactionLinkSummary } from './util/transactionLinkSummary'
+import { GradidoUnit } from 'shared-native'
+import { DecayCalculationType } from 'shared'
 
 const db = AppDatabase.getInstance()
 const createLogger = () =>
   getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.TransactionResolver`)
 
 export const executeTransaction = async (
-  amount: Decimal,
+  amount: GradidoUnit,
   memo: string,
   sender: dbUser,
   recipient: dbUser,
@@ -95,10 +97,11 @@ export const executeTransaction = async (
       throw new LogError('Sender and Recipient are the same', sender.id)
     }
 
+    const negativeAmount = amount.negated()
     // validate amount
     const sendBalance = await calculateBalance(
       sender.id,
-      amount.mul(-1),
+      negativeAmount,
       receivedCallDate,
       transactionLink,
     )
@@ -124,11 +127,12 @@ export const executeTransaction = async (
       transactionSend.linkedUserGradidoID = recipient.gradidoID
       transactionSend.linkedUserName = fullName(recipient.firstName, recipient.lastName)
       transactionSend.linkedUserCommunityUuid = recipient.communityUuid
-      transactionSend.amount = amount.mul(-1)
-      transactionSend.balance = sendBalance.balance
+      transactionSend.amount = new Decimal(negativeAmount.toString())
+      transactionSend.balance = new Decimal(sendBalance.decay.balance.toString())
       transactionSend.balanceDate = receivedCallDate
-      transactionSend.decay = sendBalance.decay.decay
+      transactionSend.decay = new Decimal(sendBalance.decay.decay.toString())
       transactionSend.decayStart = sendBalance.decay.start
+      transactionSend.decayCalculationType = DecayCalculationType.NATIVE_C_DYNAMIC_FACTOR
       transactionSend.previous = sendBalance.lastTransactionId
       transactionSend.transactionLinkId = transactionLink ? transactionLink.id : null
       await queryRunner.manager.insert(dbTransaction, transactionSend)
@@ -146,12 +150,13 @@ export const executeTransaction = async (
       transactionReceive.linkedUserGradidoID = sender.gradidoID
       transactionReceive.linkedUserName = fullName(sender.firstName, sender.lastName)
       transactionReceive.linkedUserCommunityUuid = sender.communityUuid
-      transactionReceive.amount = amount
+      transactionReceive.amount = new Decimal(amount.toString())
       const receiveBalance = await calculateBalance(recipient.id, amount, receivedCallDate)
-      transactionReceive.balance = receiveBalance ? receiveBalance.balance : amount
+      transactionReceive.balance = receiveBalance ? new Decimal(receiveBalance.decay.balance.toString()) : new Decimal(amount.toString())
       transactionReceive.balanceDate = receivedCallDate
-      transactionReceive.decay = receiveBalance ? receiveBalance.decay.decay : new Decimal(0)
+      transactionReceive.decay = receiveBalance ? new Decimal(receiveBalance.decay.decay.toString()) : new Decimal(0)
       transactionReceive.decayStart = receiveBalance ? receiveBalance.decay.start : null
+      transactionReceive.decayCalculationType = DecayCalculationType.NATIVE_C_DYNAMIC_FACTOR
       transactionReceive.previous = receiveBalance ? receiveBalance.lastTransactionId : null
       transactionReceive.linkedTransactionId = transactionSend.id
       transactionReceive.transactionLinkId = transactionLink ? transactionLink.id : null
@@ -358,6 +363,7 @@ export class TransactionResolver {
     context.sumHoldAvailableAmount = sumHoldAvailableAmount
     logger.debug(`sumHoldAvailableAmount=${sumHoldAvailableAmount.toString()}`)
 
+    const lastTransactionBalance = new GradidoUnit(lastTransaction.balance.toString())
     // decay & link transactions
     if (currentPage === 1 && order === Order.DESC) {
       logger.debug(`currentPage == 1: transactions=${transactions.map((t) => t.id)}`)
@@ -365,7 +371,7 @@ export class TransactionResolver {
       // since the decay is substantially different when the amount is less
       transactions.push(
         virtualDecayTransaction(
-          lastTransaction.balance,
+          lastTransactionBalance,
           lastTransaction.balanceDate,
           now,
           self,
@@ -375,7 +381,7 @@ export class TransactionResolver {
       logger.debug(`transactions=${transactions.map((t) => t.id)}`)
 
       // virtual transaction for pending transaction-links sum
-      if (sumHoldAvailableAmount.isZero()) {
+      if (sumHoldAvailableAmount.equal(0)) {
         const linkCount = await dbTransactionLink.count({
           where: {
             userId: user.id,
@@ -385,14 +391,14 @@ export class TransactionResolver {
         if (linkCount > 0) {
           transactions.push(
             virtualLinkTransaction(
-              lastTransaction.balance,
-              new Decimal(0),
-              new Decimal(0),
-              new Decimal(0),
+              lastTransactionBalance,
+              new GradidoUnit(0),
+              new GradidoUnit(0),
+              new GradidoUnit(0),
               now,
               now,
               self,
-              (userTransactions.length && userTransactions[0].balance) || new Decimal(0),
+              userTransactions.length ? new GradidoUnit(userTransactions[0].balance.toString()) : new GradidoUnit(0),
             ),
           )
         }
@@ -400,14 +406,15 @@ export class TransactionResolver {
         logger.debug(`sumHoldAvailableAmount > 0: transactions=${transactions.map((t) => t.id)}`)
         transactions.push(
           virtualLinkTransaction(
-            lastTransaction.balance.minus(sumHoldAvailableAmount.toString()),
-            sumAmount.mul(-1),
-            sumHoldAvailableAmount.mul(-1),
-            sumHoldAvailableAmount.minus(sumAmount.toString()).mul(-1),
+            lastTransactionBalance.minus(sumHoldAvailableAmount),
+            sumAmount.negated(),
+            sumHoldAvailableAmount.negated(),
+            // minus create new instance, negate mutate it, here we don't really need another instance only for reverse sign
+            sumHoldAvailableAmount.minus(sumAmount).negate(),
             firstDate ?? now,
             lastDate ?? now,
             self,
-            (userTransactions.length && userTransactions[0].balance) || new Decimal(0),
+            (userTransactions.length && new GradidoUnit(userTransactions[0].balance.toString())) || new GradidoUnit(0),
           ),
         )
         logger.debug(`transactions=${transactions.map((t) => t.id)}`)
@@ -442,14 +449,6 @@ export class TransactionResolver {
       transactions.map((t) => t.id),
     )
 
-    transactions.forEach((transaction: Transaction) => {
-      if (transaction.typeId !== TransactionTypeId.DECAY) {
-        const { balance, previousBalance, amount } = transaction
-        transaction.decay.decay = new Decimal(
-          Number(balance) - Number(amount) - Number(previousBalance),
-        ).toDecimalPlaces(2, Decimal.ROUND_HALF_UP)
-      }
-    })
     if (CONFIG.GDT_ACTIVE) {
       const balanceGDT = await balanceGDTPromise
       context.balanceGDT = balanceGDT
@@ -495,7 +494,7 @@ export class TransactionResolver {
         senderUser.gradidoID,
         recipientCommunityIdentifier,
         recipientIdentifier,
-        amount.valueOf(),
+        amount.toString(),
         memo,
       )
     }

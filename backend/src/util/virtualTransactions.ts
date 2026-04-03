@@ -3,7 +3,8 @@ import { User } from '@model/User'
 import { TransactionTypeId } from 'core'
 import { Transaction as dbTransaction } from 'database'
 import { Decimal } from 'decimal.js-light'
-import { calculateDecay } from 'shared'
+import { calculateDecay, Decay, DecayCalculationType } from 'shared'
+import { GradidoUnit } from 'shared-native'
 import { RemoveOptions, SaveOptions } from 'typeorm'
 
 const defaultModelFunctions = {
@@ -28,25 +29,26 @@ const defaultModelFunctions = {
 }
 
 const virtualLinkTransaction = (
-  balance: Decimal,
-  amount: Decimal,
-  _holdAvailableAmount: Decimal,
-  decay: Decimal,
+  balance: GradidoUnit,
+  amount: GradidoUnit,
+  _holdAvailableAmount: GradidoUnit,
+  decay: GradidoUnit,
   createdAt: Date,
   validUntil: Date,
   user: User,
-  _previousBalance: Decimal,
+  _previousBalance: GradidoUnit,
 ): Transaction => {
   const linkDbTransaction: dbTransaction = {
     id: -2,
     userId: -1,
     previous: -1,
     typeId: TransactionTypeId.LINK_SUMMARY,
-    amount: amount.toDecimalPlaces(2, Decimal.ROUND_FLOOR),
-    balance: balance.toDecimalPlaces(2, Decimal.ROUND_DOWN),
+    amount: new Decimal(amount.toString()).toDecimalPlaces(2, Decimal.ROUND_FLOOR),
+    balance: new Decimal(balance.toString()).toDecimalPlaces(2, Decimal.ROUND_DOWN),
     balanceDate: validUntil,
+    decay: new Decimal(decay.toString()).toDecimalPlaces(2, Decimal.ROUND_FLOOR),
     decayStart: createdAt,
-    decay: decay.toDecimalPlaces(2, Decimal.ROUND_FLOOR),
+    decayCalculationType: DecayCalculationType.NATIVE_C_DYNAMIC_FACTOR,
     memo: '',
     creationDate: null,
     contribution: null,
@@ -62,27 +64,26 @@ const virtualLinkTransaction = (
 }
 
 const virtualDecayTransaction = (
-  balance: Decimal,
+  balance: GradidoUnit,
   balanceDate: Date,
   time: Date = new Date(),
   user: User,
-  holdAvailabeAmount: Decimal,
+  holdAvailabeAmount: GradidoUnit,
 ): Transaction => {
-  const decay = calculateDecay(balance, balanceDate, time)
+  const decay = new Decay(balance).calculateDecay(balanceDate, time)
+  const roundedDecayAmount = decay.decay ? new Decimal(decay.roundedDecay.toString()) : new Decimal(0)
   // const balance = decay.balance.minus(lastTransaction.balance)
   const decayDbTransaction: dbTransaction = {
     id: -1,
     userId: -1,
     previous: -1,
     typeId: TransactionTypeId.DECAY,
-    amount: decay.decay ? decay.roundedDecay : new Decimal(0),
-    balance: decay.balance
-      .toDecimalPlaces(2, Decimal.ROUND_DOWN)
-      .minus(holdAvailabeAmount.toString())
-      .toDecimalPlaces(2, Decimal.ROUND_DOWN),
+    amount: roundedDecayAmount,
+    balance: new Decimal(decay.balance.rounded(2).sub(holdAvailabeAmount).round(2).toString()),
     balanceDate: time,
-    decay: decay.decay ? decay.roundedDecay : new Decimal(0),
+    decay: roundedDecayAmount,
     decayStart: decay.start,
+    decayCalculationType: DecayCalculationType.NATIVE_C_DYNAMIC_FACTOR,
     memo: '',
     creationDate: null,
     contribution: null,

@@ -12,32 +12,10 @@ export class Transaction {
     this.user = user
     this.previous = transaction.previous
     this.typeId = transaction.typeId
-    this.amount = transaction.amount.toDecimalPlaces(2, Decimal.ROUND_DOWN)
-    this.balance = transaction.balance.toDecimalPlaces(2, Decimal.ROUND_DOWN)
+    this.amount = transaction.amount.toDecimalPlaces(2, Decimal.ROUND_DOWN).toString()
+    this.balance = transaction.balance.toDecimalPlaces(2, Decimal.ROUND_DOWN).toString()
     this.balanceDate = transaction.balanceDate
-    if (!transaction.decayStart) {
-      // TODO: hot fix, we should separate decay calculation from decay graphql model
-      this.decay = new Decay({
-        balance: transaction.balance.toDecimalPlaces(2, Decimal.ROUND_DOWN),
-        decay: new Decimal(0),
-        roundedDecay: new Decimal(0),
-        start: null,
-        end: null,
-        duration: null,
-      })
-    } else {
-      this.decay = new Decay({
-        balance: transaction.balance.toDecimalPlaces(2, Decimal.ROUND_DOWN),
-        decay: transaction.decay.toDecimalPlaces(2, Decimal.ROUND_FLOOR),
-        // TODO: add correct value when decay must be rounded in transaction context
-        roundedDecay: new Decimal(0),
-        start: transaction.decayStart,
-        end: transaction.balanceDate,
-        duration: Math.round(
-          (transaction.balanceDate.getTime() - transaction.decayStart.getTime()) / 1000,
-        ),
-      })
-    }
+    this.decay = new Decay(transaction)
     this.memo = transaction.memo
     this.creationDate = transaction.creationDate
     this.linkedUser = linkedUser
@@ -46,8 +24,8 @@ export class Transaction {
       ? transaction.contribution.contributionLinkId
       : (transaction.transactionLinkId ?? null)
     this.previousBalance =
-      transaction.previousTransaction?.balance.toDecimalPlaces(2, Decimal.ROUND_DOWN) ??
-      new Decimal(0)
+      transaction.previousTransaction?.balance.toDecimalPlaces(2, Decimal.ROUND_DOWN).toString() ??
+      '0'
   }
 
   @Field(() => Int)
@@ -62,17 +40,17 @@ export class Transaction {
   @Field(() => TransactionTypeId)
   typeId: TransactionTypeId
 
-  @Field(() => Decimal)
-  amount: Decimal
+  @Field(() => String)
+  amount: string
 
-  @Field(() => Decimal)
-  balance: Decimal
+  @Field(() => String)
+  balance: string
 
   @Field(() => Date)
   balanceDate: Date
 
-  @Field(() => Decimal)
-  previousBalance: Decimal
+  @Field(() => String)
+  previousBalance: string
 
   @Field(() => Decay)
   decay: Decay

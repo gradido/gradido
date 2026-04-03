@@ -18,7 +18,9 @@ import { TransactionLinkResolver } from './resolver/TransactionLinkResolver'
 import { TransactionResolver } from './resolver/TransactionResolver'
 import { UserResolver } from './resolver/UserResolver'
 import { DecimalScalar } from './scalar/Decimal'
+import { GradidoUnitScalar } from './scalar/GradidoUnit'
 import { LocationScalar } from './scalar/Location'
+import { GradidoUnit } from 'shared-native'
 
 export const schema = async (): Promise<GraphQLSchema> => {
   return buildSchema({
@@ -41,6 +43,7 @@ export const schema = async (): Promise<GraphQLSchema> => {
     scalarsMap: [
       { type: Decimal, scalar: DecimalScalar },
       { type: Location, scalar: LocationScalar },
+      { type: GradidoUnit, scalar: GradidoUnitScalar },
     ],
     validate: {
       validationError: { target: false },

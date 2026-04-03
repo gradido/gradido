@@ -1,7 +1,7 @@
 import { AppDatabase, TransactionLink as DbTransactionLink } from 'database'
-import { Decimal } from 'decimal.js-light'
 
 import { LogError } from '@/server/LogError'
+import { GradidoUnit } from 'shared-native'
 
 const db = AppDatabase.getInstance()
 
@@ -9,8 +9,8 @@ export const transactionLinkSummary = async (
   userId: number,
   date: Date,
 ): Promise<{
-  sumHoldAvailableAmount: Decimal
-  sumAmount: Decimal
+  sumHoldAvailableAmount: GradidoUnit
+  sumAmount: GradidoUnit
   lastDate: Date | null
   firstDate: Date | null
   transactionLinkcount: number
@@ -33,9 +33,9 @@ export const transactionLinkSummary = async (
         .getRawOne()
     return {
       sumHoldAvailableAmount: sumHoldAvailableAmount
-        ? new Decimal(sumHoldAvailableAmount)
-        : new Decimal(0),
-      sumAmount: sumAmount ? new Decimal(sumAmount) : new Decimal(0),
+        ? new GradidoUnit(sumHoldAvailableAmount)
+        : new GradidoUnit(0),
+      sumAmount: sumAmount ? new GradidoUnit(sumAmount) : new GradidoUnit(0),
       lastDate: lastDate || null,
       firstDate: firstDate || null,
       transactionLinkcount: count || 0,

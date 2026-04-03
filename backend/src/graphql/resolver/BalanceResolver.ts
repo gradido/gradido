@@ -1,5 +1,4 @@
 import { Balance } from '@model/Balance'
-import { DecayLoggingView } from 'core'
 import {
   Transaction as dbTransaction,
   TransactionLink as dbTransactionLink,
@@ -7,7 +6,6 @@ import {
 } from 'database'
 import { Decimal } from 'decimal.js-light'
 import { getLogger } from 'log4js'
-import { calculateDecay } from 'shared'
 import { Authorized, Ctx, Query, Resolver } from 'type-graphql'
 import { IsNull } from 'typeorm'
 import { RIGHTS } from '@/auth/RIGHTS'
@@ -17,6 +15,7 @@ import { BalanceLoggingView } from '@/logging/BalanceLogging.view'
 import { Context, getUser } from '@/server/context'
 import { GdtResolver } from './GdtResolver'
 import { transactionLinkSummary } from './util/transactionLinkSummary'
+import { GradidoUnit } from 'shared-native'
 
 @Resolver()
 export class BalanceResolver {
@@ -73,44 +72,29 @@ export class BalanceResolver {
     })
     logger.debug(`linkCount=${linkCount}`)
 
-    // The decay is always calculated on the last booked transaction
-    const calculatedDecay = calculateDecay(
-      lastTransaction.balance,
-      lastTransaction.balanceDate,
-      now,
-    )
-    logger.info(
-      'calculatedDecay',
-      lastTransaction.balance.toString(),
-      lastTransaction.balanceDate.toISOString(),
-      new DecayLoggingView(calculatedDecay),
-    )
-
+    const lastTransactionBalance = new GradidoUnit(lastTransaction.balance.toString())
+    lastTransactionBalance.decay(GradidoUnit.effectiveDecayDuration(lastTransaction.balanceDate, now))
+    
     // The final balance is reduced by the link amount withheld
+    // TODO: improve caching
     const { sumHoldAvailableAmount } = context.sumHoldAvailableAmount
       ? { sumHoldAvailableAmount: context.sumHoldAvailableAmount }
       : await transactionLinkSummary(user.id, now)
 
-    logger.debug(`context.sumHoldAvailableAmount=${context.sumHoldAvailableAmount}`)
-    logger.debug(`sumHoldAvailableAmount=${sumHoldAvailableAmount}`)
+    logger.debug(`context.sumHoldAvailableAmount=${context.sumHoldAvailableAmount?.toString()}`)
+    logger.debug(`sumHoldAvailableAmount=${sumHoldAvailableAmount.toString()}`)
 
-    const balance = calculatedDecay.balance
-      .minus(sumHoldAvailableAmount.toString())
-      .toDecimalPlaces(2, Decimal.ROUND_DOWN) // round towards zero
+    lastTransactionBalance.sub(sumHoldAvailableAmount)
 
-    // const newBalance = new Balance({
-    //      balance: calculatedDecay.balance
-    //        .minus(sumHoldAvailableAmount.toString())
-    //        .toDecimalPlaces(2, Decimal.ROUND_DOWN),
     const newBalance = new Balance({
-      balance,
+      balance: new Decimal(lastTransactionBalance.toString(2)),
       balanceGDT,
       count,
       linkCount,
     })
     logger.info(
       'new Balance',
-      balance.toString(),
+      lastTransactionBalance.toString(),
       balanceGDT?.toString(),
       count,
       linkCount,

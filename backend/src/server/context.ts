@@ -1,10 +1,10 @@
 import { ExpressContext } from 'apollo-server-express'
 import { Transaction as dbTransaction, User as dbUser } from 'database'
-import { Decimal } from 'decimal.js-light'
 
 import { Role } from '@/auth/Role'
 
 import { LogError } from './LogError'
+import { GradidoUnit } from 'shared-native'
 
 export interface Context {
   token: string | null
@@ -18,7 +18,7 @@ export interface Context {
   balanceGDT?: number | null
   transactionCount?: number
   linkCount?: number
-  sumHoldAvailableAmount?: Decimal
+  sumHoldAvailableAmount?: GradidoUnit
 }
 
 export const context = (args: ExpressContext): Context => {
