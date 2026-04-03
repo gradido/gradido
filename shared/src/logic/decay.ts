@@ -7,7 +7,7 @@ Decimal.set({
   rounding: Decimal.ROUND_HALF_UP,
 })
 
-export interface Decay {
+export interface LegacyDecay {
   balance: Decimal
   decay: Decimal
   roundedDecay: Decimal
@@ -44,7 +44,7 @@ export function compoundInterest(value: Decimal, seconds: number): Decimal {
   )
 }
 
-export function calculateDecay(amount: Decimal, from: Date, to: Date): Decay {
+export function calculateDecay(amount: Decimal, from: Date, to: Date): LegacyDecay {
   const fromMs = from.getTime()
   const toMs = to.getTime()
   const startBlockMs = DECAY_START_TIME.getTime()
@@ -55,7 +55,7 @@ export function calculateDecay(amount: Decimal, from: Date, to: Date): Decay {
   }
 
   // Initialize with no decay
-  const decay: Decay = {
+  const decay: LegacyDecay = {
     balance: amount,
     decay: new Decimal(0),
     roundedDecay: new Decimal(0),
