@@ -62,8 +62,10 @@ jobs:
           bun install --filter database --frozen-lockfile
           bun install --global --no-save turbo@^2
 
+      - name: Database | build
+        run: turbo database#build
       - name: Database | up + test
-        run: turbo database#test database#build database#typecheck
+        run: turbo database#test database#typecheck
       
       - name: Database | reset
         run: turbo database#reset
