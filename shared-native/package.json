@@ -22,7 +22,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "biome check --error-on-warnings .",
     "lint:fix": "biome check --error-on-warnings . --write",
-    "clear": "rm -rf node_modules && rm -rf build && rm -rf .turbo"
+    "clear": "rm -rf node_modules && rm -rf build && rm -rf .turbo && rm -rf .cache"
   },
   "devDependencies": {
     "@biomejs/biome": "2.0.0",
