@@ -2,6 +2,8 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import process from 'node:process'
+import AdmZip from 'adm-zip'
+import { $ } from 'bun'
 import { family, MUSL } from 'detect-libc'
 import headers from 'node-api-headers'
 import { build, Target, type TargetTriple } from 'zig-build'
@@ -10,8 +12,10 @@ async function isMusl(): Promise<boolean> {
   return (await family()) === MUSL
 }
 
+const ZIG_VERSION = '0.10.1'
 const DOWNLOAD_DIR = path.join(os.homedir(), '.zig-build')
 const NODE_DIR = path.join(DOWNLOAD_DIR, 'node')
+const ZIG_DIR = path.join(DOWNLOAD_DIR, 'zig', ZIG_VERSION)
 
 async function fetchNodeHeaders(version?: string): Promise<void> {
   version ??= process.versions.node
@@ -24,6 +28,64 @@ async function fetchNodeHeaders(version?: string): Promise<void> {
 
   // copy from installedIncludePath to includePath
   fs.cpSync(installedIncludePath, includePath, { recursive: true })
+}
+
+const ZIGS: Partial<Record<NodeJS.Platform, Partial<Record<string, string>>>> = {
+  linux: {
+    x64: `https://ziglang.org/download/${ZIG_VERSION}/zig-linux-x86_64-${ZIG_VERSION}.tar.xz`,
+    arm64: `https://ziglang.org/download/${ZIG_VERSION}/zig-linux-aarch64-${ZIG_VERSION}.tar.xz`,
+  },
+  darwin: {
+    x64: `https://ziglang.org/download/${ZIG_VERSION}/zig-macos-x86_64-${ZIG_VERSION}.tar.xz`,
+    arm64: `https://ziglang.org/download/${ZIG_VERSION}/zig-macos-aarch64-${ZIG_VERSION}.tar.xz`,
+  },
+  win32: {
+    x64: `https://ziglang.org/download/${ZIG_VERSION}/zig-windows-x86_64-${ZIG_VERSION}.zip`,
+    arm64: `https://ziglang.org/download/${ZIG_VERSION}/zig-windows-aarch64-${ZIG_VERSION}.zip`,
+  },
+}
+
+function checkFileExist(filePath: string): boolean {
+  try {
+    fs.accessSync(filePath, fs.constants.R_OK | fs.constants.W_OK)
+    return true
+  } catch (_err) {
+    return false
+  }
+}
+
+export async function fetchZig(): Promise<void> {
+  const platform = os.platform()
+  const arch = os.arch()
+
+  const binary = platform === 'win32' ? 'zig.exe' : 'zig'
+  const binaryPath = path.join(ZIG_DIR, binary)
+
+  if (checkFileExist(binaryPath)) {
+    return
+  }
+  // biome-ignore lint/suspicious/noConsole: no logging in build.ts
+  console.log('Fetching Zig...')
+  const url = ZIGS[platform]?.[arch]
+  if (!url) {
+    throw new Error(`unsupported platform ${platform} ${arch}`)
+  }
+
+  fs.mkdirSync(ZIG_DIR, { recursive: true })
+  const response = await fetch(url)
+  if (!response.ok) {
+    throw new Error(`Failed to fetch Zig: ${response.status} ${response.statusText} from ${url}`)
+  }
+  const responseBuffer = Buffer.from(await response.arrayBuffer())
+
+  if (platform === 'win32') {
+    const zip = new AdmZip(responseBuffer)
+    zip.extractAllTo(ZIG_DIR, true)
+  } else {
+    const archivePath = path.join(ZIG_DIR, 'zig.tar.xz')
+    fs.writeFileSync(archivePath, responseBuffer)
+    await $`tar -xJf zig.tar.xz --strip-components=1`.cwd(ZIG_DIR)
+  }
 }
 
 async function detectTargetTriple(): Promise<TargetTriple> {
@@ -85,6 +147,7 @@ async function main() {
   const currentNodeVersion = fs.readFileSync('../.nvmrc', 'utf-8').trim().replace(/^v/, '')
   // workaround because node header download from zig-build doesn't work on each platform
   await fetchNodeHeaders(currentNodeVersion)
+  await fetchZig()
 
   const commonConfigs = {
     target,
