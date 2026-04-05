@@ -69,7 +69,7 @@ async function main() {
     target,
     mode: 'small',
     cpu: 'native',
-    nodeVersion: currentNodeVersion,
+    // nodeVersion: currentNodeVersion,
   }
 
   await build(
