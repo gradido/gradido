@@ -1,3 +1,4 @@
+import { execFile } from 'node:child_process'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
@@ -7,7 +8,6 @@ import { $ } from 'bun'
 import { family, MUSL } from 'detect-libc'
 import headers from 'node-api-headers'
 import { build, Target, type TargetTriple } from 'zig-build'
-import { execFile } from 'node:child_process'
 
 async function isMusl(): Promise<boolean> {
   return (await family()) === MUSL
@@ -151,7 +151,7 @@ async function main() {
   // workaround because node header download from zig-build doesn't work on each platform
   await fetchNodeHeaders(currentNodeVersion)
   await fetchZig()
-  
+
   const commonConfigs = {
     target,
     mode: 'small',
