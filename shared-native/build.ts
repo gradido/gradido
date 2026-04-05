@@ -1,4 +1,4 @@
-import { execFile } from 'node:child_process'
+import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
@@ -84,7 +84,7 @@ export async function fetchZig(): Promise<void> {
   } else {
     const archivePath = path.join(ZIG_DIR, 'zig.tar.xz')
     fs.writeFileSync(archivePath, responseBuffer)
-    execFile('tar', ['-xJf', 'zig.tar.xz', '--strip-components=1'], {
+    execFileSync('tar', ['-xJf', 'zig.tar.xz', '--strip-components=1'], {
       cwd: ZIG_DIR,
     })
   }
