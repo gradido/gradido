@@ -7,6 +7,7 @@ import { $ } from 'bun'
 import { family, MUSL } from 'detect-libc'
 import headers from 'node-api-headers'
 import { build, Target, type TargetTriple } from 'zig-build'
+import { execFile } from 'node:child_process'
 
 async function isMusl(): Promise<boolean> {
   return (await family()) === MUSL
@@ -84,7 +85,9 @@ export async function fetchZig(): Promise<void> {
   } else {
     const archivePath = path.join(ZIG_DIR, 'zig.tar.xz')
     fs.writeFileSync(archivePath, responseBuffer)
-    await $`tar -xJf zig.tar.xz --strip-components=1`.cwd(ZIG_DIR)
+    execFile('tar', ['-xJf', 'zig.tar.xz', '--strip-components=1'], {
+      cwd: ZIG_DIR,
+    })
   }
 }
 
@@ -148,7 +151,7 @@ async function main() {
   // workaround because node header download from zig-build doesn't work on each platform
   await fetchNodeHeaders(currentNodeVersion)
   await fetchZig()
-
+  
   const commonConfigs = {
     target,
     mode: 'small',
