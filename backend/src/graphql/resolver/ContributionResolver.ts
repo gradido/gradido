@@ -31,7 +31,7 @@ import { Decimal } from 'decimal.js-light'
 import { GraphQLResolveInfo } from 'graphql'
 import { getLogger } from 'log4js'
 import { Mutex } from 'redis-semaphore'
-import { calculateDecay, Decay } from 'shared'
+import { calculateDecay, Decay, DecayCalculationType } from 'shared'
 import { Arg, Args, Authorized, Ctx, Info, Int, Mutation, Query, Resolver } from 'type-graphql'
 import { EntityManager, IsNull } from 'typeorm'
 import { contributionTransaction } from '@/apis/dltConnector'
@@ -531,6 +531,7 @@ export class ContributionResolver {
         transaction.balanceDate = receivedCallDate
         transaction.decay = decay ? decay.decay : new Decimal(0)
         transaction.decayStart = decay ? decay.start : null
+        transaction.decayCalculationType = DecayCalculationType.NATIVE_C_DYNAMIC_FACTOR
         transaction = await queryRunner.manager.save(DbTransaction, transaction)
 
         contribution.confirmedAt = receivedCallDate

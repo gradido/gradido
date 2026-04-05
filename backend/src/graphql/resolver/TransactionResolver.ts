@@ -45,6 +45,7 @@ import { GdtResolver } from './GdtResolver'
 import { getCommunityName, isHomeCommunity } from './util/communities'
 import { getTransactionList } from './util/getTransactionList'
 import { transactionLinkSummary } from './util/transactionLinkSummary'
+import { DecayCalculationType } from 'shared'
 
 const db = AppDatabase.getInstance()
 const createLogger = () =>
@@ -129,6 +130,7 @@ export const executeTransaction = async (
       transactionSend.balanceDate = receivedCallDate
       transactionSend.decay = sendBalance.decay.decay
       transactionSend.decayStart = sendBalance.decay.start
+      transactionSend.decayCalculationType = DecayCalculationType.NATIVE_C_DYNAMIC_FACTOR
       transactionSend.previous = sendBalance.lastTransactionId
       transactionSend.transactionLinkId = transactionLink ? transactionLink.id : null
       await queryRunner.manager.insert(dbTransaction, transactionSend)
@@ -152,6 +154,7 @@ export const executeTransaction = async (
       transactionReceive.balanceDate = receivedCallDate
       transactionReceive.decay = receiveBalance ? receiveBalance.decay.decay : new Decimal(0)
       transactionReceive.decayStart = receiveBalance ? receiveBalance.decay.start : null
+      transactionReceive.decayCalculationType = DecayCalculationType.NATIVE_C_DYNAMIC_FACTOR
       transactionReceive.previous = receiveBalance ? receiveBalance.lastTransactionId : null
       transactionReceive.linkedTransactionId = transactionSend.id
       transactionReceive.transactionLinkId = transactionLink ? transactionLink.id : null

@@ -9,6 +9,7 @@ import {
 import Decimal from 'decimal.js-light'
 import { getLogger } from 'log4js'
 import {
+  DecayCalculationType,
   encryptAndSign,
   PendingTransactionState,
   SendCoinsJwtPayloadType,
@@ -106,6 +107,7 @@ export class SendCoinsResolver {
       pendingTx.balanceDate = txDate
       pendingTx.decay = receiveBalance ? receiveBalance.decay.decay : new Decimal(0)
       pendingTx.decayStart = receiveBalance ? receiveBalance.decay.start : null
+      pendingTx.decayCalculationType = DecayCalculationType.NATIVE_C_DYNAMIC_FACTOR
       pendingTx.creationDate = new Date()
       pendingTx.linkedUserCommunityUuid = authArgs.senderCommunityUuid
       pendingTx.linkedUserGradidoID = authArgs.senderUserUuid

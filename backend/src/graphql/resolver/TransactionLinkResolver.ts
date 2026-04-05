@@ -50,6 +50,7 @@ import {
   RedeemJwtPayloadType,
   SignedTransferPayloadType,
   verify,
+  DecayCalculationType,
 } from 'shared'
 import { randombytes_random } from 'sodium-native'
 import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
@@ -382,6 +383,7 @@ export class TransactionLinkResolver {
           transaction.balanceDate = now
           transaction.decay = decay ? decay.decay : new Decimal(0)
           transaction.decayStart = decay ? decay.start : null
+          transaction.decayCalculationType = DecayCalculationType.NATIVE_C_DYNAMIC_FACTOR
           await queryRunner.manager.insert(DbTransaction, transaction)
 
           contribution.confirmedAt = now
