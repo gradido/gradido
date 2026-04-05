@@ -43,6 +43,7 @@ import { Mutex } from 'redis-semaphore'
 import {
   calculateDecay,
   compoundInterest,
+  DecayCalculationType,
   DisburseJwtPayloadType,
   decode,
   encode,
@@ -50,7 +51,6 @@ import {
   RedeemJwtPayloadType,
   SignedTransferPayloadType,
   verify,
-  DecayCalculationType,
 } from 'shared'
 import { randombytes_random } from 'sodium-native'
 import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'

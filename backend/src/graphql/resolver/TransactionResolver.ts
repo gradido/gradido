@@ -38,6 +38,7 @@ import { getLastTransaction } from 'database'
 import { Redis } from 'ioredis'
 import { getLogger, Logger } from 'log4js'
 import { Mutex } from 'redis-semaphore'
+import { DecayCalculationType } from 'shared'
 import { redeemDeferredTransferTransaction, transferTransaction } from '@/apis/dltConnector'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { BalanceResolver } from './BalanceResolver'
@@ -45,7 +46,6 @@ import { GdtResolver } from './GdtResolver'
 import { getCommunityName, isHomeCommunity } from './util/communities'
 import { getTransactionList } from './util/getTransactionList'
 import { transactionLinkSummary } from './util/transactionLinkSummary'
-import { DecayCalculationType } from 'shared'
 
 const db = AppDatabase.getInstance()
 const createLogger = () =>

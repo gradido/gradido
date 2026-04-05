@@ -87,7 +87,10 @@ export function calculateDecay(amount: Decimal, from: Date, to: Date): Decay {
     decay.duration = (toMs - startBlockMs) / 1000
   }
   const amountGddCent = decimalGddToBigInt(amount)
-  const decayedBalanceGddCent = calculateDecayNative(amountGddCent, BigInt(Math.floor(decay.duration)))
+  const decayedBalanceGddCent = calculateDecayNative(
+    amountGddCent,
+    BigInt(Math.floor(decay.duration)),
+  )
   decay.end = to
   decay.balance = bigIntGddToDecimal(decayedBalanceGddCent)
   decay.decay = decay.balance.minus(amount)

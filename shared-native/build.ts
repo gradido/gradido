@@ -1,17 +1,17 @@
 import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
 import process from 'node:process'
 import { family, MUSL } from 'detect-libc'
-import { build, Target, type TargetTriple } from 'zig-build'
 import headers from 'node-api-headers'
-import path from 'node:path'
-import os from 'node:os'
+import { build, Target, type TargetTriple } from 'zig-build'
 
 async function isMusl(): Promise<boolean> {
   return (await family()) === MUSL
 }
 
-const DOWNLOAD_DIR = path.join(os.homedir(), ".zig-build")
-const NODE_DIR = path.join(DOWNLOAD_DIR, "node")
+const DOWNLOAD_DIR = path.join(os.homedir(), '.zig-build')
+const NODE_DIR = path.join(DOWNLOAD_DIR, 'node')
 
 async function fetchNodeHeaders(version?: string): Promise<void> {
   version ??= process.versions.node
@@ -21,7 +21,7 @@ async function fetchNodeHeaders(version?: string): Promise<void> {
   const includePath = path.join(headersDir, 'include', 'node')
   const installedIncludePath = headers.include_dir
   fs.mkdirSync(includePath, { recursive: true })
-  
+
   // copy from installedIncludePath to includePath
   fs.cpSync(installedIncludePath, includePath, { recursive: true })
 }
@@ -78,7 +78,6 @@ async function detectTargetTriple(): Promise<TargetTriple> {
 
 async function main() {
   const target = await detectTargetTriple()
-
 
   if (!fs.existsSync('build')) {
     fs.mkdirSync('build')
