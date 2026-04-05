@@ -63,6 +63,9 @@ jobs:
           bun install --filter dht-node --frozen-lockfile
           bun install --global --no-save turbo@^2
 
+      - name: DHT Node | Build
+        run: turbo dht-node#build
+
       - name: run unit test & build & typecheck
-        run: turbo dht-node#test dht-node#build dht-node#typecheck
+        run: turbo dht-node#test dht-node#typecheck
 

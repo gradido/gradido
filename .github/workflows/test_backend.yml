@@ -64,6 +64,9 @@ jobs:
         run: |
           bun install --filter backend --filter core --frozen-lockfile
           bun install --global --no-save turbo@^2
+      
+      - name: Backend | Build
+        run: turbo backend#build
 
       - name: Backend | Unit tests
-        run: turbo backend#test backend#typecheck backend#build
+        run: turbo backend#test backend#typecheck

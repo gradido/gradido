@@ -63,6 +63,9 @@ jobs:
           bun install --filter federation --frozen-lockfile
           bun install --global --no-save turbo@^2
 
+      - name: Federation | Build
+        run: turbo federation#build
+
       - name: Federation | Unit tests
         id: test
-        run: turbo federation#test federation#build federation#typecheck
+        run: turbo federation#test federation#typecheck
