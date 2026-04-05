@@ -11,6 +11,8 @@ jobs:
       database: ${{ steps.changes.outputs.database }}
       docker-compose: ${{ steps.changes.outputs.docker-compose }}
       federation: ${{ steps.changes.outputs.federation }}
+      shared: ${{ steps.changes.outputs.shared }}
+      shared-native: ${{ steps.changes.outputs.shared-native }}
     steps:
       - uses: actions/checkout@v3.3.0
 
@@ -24,7 +26,7 @@ jobs:
   
   build:
     name: Docker Build Test - Federation
-    if: needs.files-changed.outputs.federation == 'true'
+    if: needs.files-changed.outputs.federation == 'true' || needs.files-changed.outputs.shared == 'true' || needs.files-changed.outputs.shared-native == 'true'
     needs: files-changed
     runs-on: ubuntu-latest
     steps:
@@ -36,7 +38,7 @@ jobs:
 
   unit_test:
     name: Unit Tests & Typecheck & Build - Federation
-    if: needs.files-changed.outputs.database == 'true' || needs.files-changed.outputs.docker-compose == 'true' || needs.files-changed.outputs.federation == 'true' || needs.files-changed.outputs.mariadb == 'true'
+    if: needs.files-changed.outputs.database == 'true' || needs.files-changed.outputs.docker-compose == 'true' || needs.files-changed.outputs.federation == 'true' || needs.files-changed.outputs.mariadb == 'true' || needs.files-changed.outputs.shared == 'true' || needs.files-changed.outputs.shared-native == 'true'
     needs: files-changed
     runs-on: ubuntu-latest
     steps:

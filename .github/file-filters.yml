@@ -39,6 +39,9 @@ config: &config
 shared: &shared
   - 'shared/**/*'
 
+shared_native: &shared_native
+  - 'shared-native/**/*'
+
 core: &core
   - 'core/**/*'
 

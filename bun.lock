@@ -18,7 +18,7 @@
     },
     "admin": {
       "name": "admin",
-      "version": "2.7.4",
+      "version": "2.7.5",
       "dependencies": {
         "@iconify/json": "^2.2.228",
         "@popperjs/core": "^2.11.8",
@@ -88,7 +88,7 @@
     },
     "backend": {
       "name": "backend",
-      "version": "2.7.4",
+      "version": "2.7.5",
       "dependencies": {
         "cross-env": "^7.0.3",
         "email-templates": "^10.0.1",
@@ -165,7 +165,7 @@
     },
     "config-schema": {
       "name": "config-schema",
-      "version": "2.7.4",
+      "version": "2.7.5",
       "dependencies": {
         "esbuild": "^0.25.2",
         "joi": "17.13.3",
@@ -183,7 +183,7 @@
     },
     "core": {
       "name": "core",
-      "version": "2.7.4",
+      "version": "2.7.5",
       "dependencies": {
         "database": "*",
         "email-templates": "^10.0.1",
@@ -220,7 +220,7 @@
     },
     "database": {
       "name": "database",
-      "version": "2.7.4",
+      "version": "2.7.5",
       "dependencies": {
         "@types/uuid": "^8.3.4",
         "cross-env": "^7.0.3",
@@ -256,7 +256,7 @@
     },
     "dht-node": {
       "name": "dht-node",
-      "version": "2.7.4",
+      "version": "2.7.5",
       "dependencies": {
         "cross-env": "^7.0.3",
         "dht-rpc": "6.18.1",
@@ -294,7 +294,7 @@
     },
     "federation": {
       "name": "federation",
-      "version": "2.7.4",
+      "version": "2.7.5",
       "dependencies": {
         "cross-env": "^7.0.3",
         "email-templates": "^10.0.1",
@@ -355,7 +355,7 @@
     },
     "frontend": {
       "name": "frontend",
-      "version": "2.7.4",
+      "version": "2.7.5",
       "dependencies": {
         "@morev/vue-transitions": "^3.0.2",
         "@types/leaflet": "^1.9.12",
@@ -451,12 +451,13 @@
     },
     "shared": {
       "name": "shared",
-      "version": "2.7.4",
+      "version": "2.7.5",
       "dependencies": {
         "decimal.js-light": "^2.5.1",
         "esbuild": "^0.25.2",
         "jose": "^4.14.4",
         "log4js": "^6.9.1",
+        "shared-native": "*",
         "yoctocolors-cjs": "^2.1.2",
         "zod": "^3.25.61",
       },
@@ -467,6 +468,19 @@
         "@types/uuid": "^10.0.0",
         "typescript": "^4.9.5",
         "uuid": "^8.3.2",
+      },
+    },
+    "shared-native": {
+      "name": "shared-native",
+      "version": "2.7.5",
+      "dependencies": {
+        "detect-libc": "^2.1.2",
+        "node-addon-api": "^8.7.0",
+        "zig-build": "0.3.0",
+      },
+      "devDependencies": {
+        "@biomejs/biome": "2.0.0",
+        "typescript": "^4.9.5",
       },
     },
   },
@@ -2741,7 +2755,7 @@
 
     "no-case": ["no-case@3.0.4", "", { "dependencies": { "lower-case": "^2.0.2", "tslib": "^2.0.3" } }, "sha512-fgAN3jGAh+RoxUGZHTSOLJIqUc2wmoBwGR4tbpNAKmmovFoWq0OdRkb0VkldReO2a2iBT/OEulG9XSUc10r3zg=="],
 
-    "node-addon-api": ["node-addon-api@7.1.1", "", {}, "sha512-5m3bsyrjFWE1xf7nz7YXdN4udnVtXK6/Yfgn5qnahL6bCkf2yKt4k3nuTKAtT4r3IG8JNR2ncsIMdZuAzJjHQQ=="],
+    "node-addon-api": ["node-addon-api@8.7.0", "", {}, "sha512-9MdFxmkKaOYVTV+XVRG8ArDwwQ77XIgIPyKASB1k3JPq3M8fGQQQE3YpMOrKm6g//Ktx8ivZr8xo1Qmtqub+GA=="],
 
     "node-domexception": ["node-domexception@1.0.0", "", {}, "sha512-/jKZoMpw0F8GRwl4/eLROPA3cfcXtLApP0QzLmUT/HuPCZWyB7IY9ZrMeKw2O/nFIqPQB3PVM9aYm0F312AXDQ=="],
 
@@ -3124,6 +3138,8 @@
     "sha.js": ["sha.js@2.4.12", "", { "dependencies": { "inherits": "^2.0.4", "safe-buffer": "^5.2.1", "to-buffer": "^1.2.0" }, "bin": { "sha.js": "bin.js" } }, "sha512-8LzC5+bvI45BjpfXU8V5fdU2mfeKiQe1D1gIMn7XUlF3OTUrpdJpPPH4EMAnF0DsHHdSZqCdSss5qCmJKuiO3w=="],
 
     "shared": ["shared@workspace:shared"],
+
+    "shared-native": ["shared-native@workspace:shared-native"],
 
     "shebang-command": ["shebang-command@2.0.0", "", { "dependencies": { "shebang-regex": "^3.0.0" } }, "sha512-kHxr2zZpYtdmrN1qDjrrX/Z1rR1kG8Dx+gkpK1G4eXmvXswmcE1hTWBWYUzlraYw1/yZp6YuDY77YtvbN0dmDA=="],
 
@@ -3601,6 +3617,8 @@
 
     "zen-observable-ts": ["zen-observable-ts@1.2.5", "", { "dependencies": { "zen-observable": "0.8.15" } }, "sha512-QZWQekv6iB72Naeake9hS1KxHlotfRpe+WGNbNx5/ta+R3DNjVO2bswf63gXlWDcs+EMd7XY8HfVQyP1X6T4Zg=="],
 
+    "zig-build": ["zig-build@0.3.0", "", { "dependencies": { "chalk": "^4.1.2" }, "peerDependencies": { "node-addon-api": "*" }, "optionalPeers": ["node-addon-api"] }, "sha512-1QAROkf1rJjLkkwCz9+DEuF6U4Yy3nu6oX772mGd7os96E/2AdL50xjd7PuVsGpHIYmtBKG4EPCki6mzBwUtxw=="],
+
     "zod": ["zod@3.25.76", "", {}, "sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ=="],
 
     "@anatine/esbuild-decorators/esbuild": ["esbuild@0.27.0", "", { "optionalDependencies": { "@esbuild/aix-ppc64": "0.27.0", "@esbuild/android-arm": "0.27.0", "@esbuild/android-arm64": "0.27.0", "@esbuild/android-x64": "0.27.0", "@esbuild/darwin-arm64": "0.27.0", "@esbuild/darwin-x64": "0.27.0", "@esbuild/freebsd-arm64": "0.27.0", "@esbuild/freebsd-x64": "0.27.0", "@esbuild/linux-arm": "0.27.0", "@esbuild/linux-arm64": "0.27.0", "@esbuild/linux-ia32": "0.27.0", "@esbuild/linux-loong64": "0.27.0", "@esbuild/linux-mips64el": "0.27.0", "@esbuild/linux-ppc64": "0.27.0", "@esbuild/linux-riscv64": "0.27.0", "@esbuild/linux-s390x": "0.27.0", "@esbuild/linux-x64": "0.27.0", "@esbuild/netbsd-arm64": "0.27.0", "@esbuild/netbsd-x64": "0.27.0", "@esbuild/openbsd-arm64": "0.27.0", "@esbuild/openbsd-x64": "0.27.0", "@esbuild/openharmony-arm64": "0.27.0", "@esbuild/sunos-x64": "0.27.0", "@esbuild/win32-arm64": "0.27.0", "@esbuild/win32-ia32": "0.27.0", "@esbuild/win32-x64": "0.27.0" }, "bin": { "esbuild": "bin/esbuild" } }, "sha512-jd0f4NHbD6cALCyGElNpGAOtWxSq46l9X/sWB0Nzd5er4Kz2YTm+Vl0qKFT9KUJvD8+fiO8AvoHhFvEatfVixA=="],
@@ -3732,6 +3750,8 @@
     "@nuxt/kit/pathe": ["pathe@2.0.3", "", {}, "sha512-WUjGcAqP1gQacoQe+OBJsFA7Ld4DyXuUIjZ5cc75cLHvJ7dtNsTugphxIADwspS+AraAUePCKrSVtPLFj/F88w=="],
 
     "@parcel/watcher/detect-libc": ["detect-libc@1.0.3", "", { "bin": { "detect-libc": "./bin/detect-libc.js" } }, "sha512-pGjwhsmsp4kL2RTz08wcOlGN83otlqHeD/Z5T8GXZB+/YcpQ/dgo+lbU8ZsGxV0HIvqqxo9l7mqYwyYMD9bKDg=="],
+
+    "@parcel/watcher/node-addon-api": ["node-addon-api@7.1.1", "", {}, "sha512-5m3bsyrjFWE1xf7nz7YXdN4udnVtXK6/Yfgn5qnahL6bCkf2yKt4k3nuTKAtT4r3IG8JNR2ncsIMdZuAzJjHQQ=="],
 
     "@selderee/plugin-htmlparser2/domhandler": ["domhandler@4.3.1", "", { "dependencies": { "domelementtype": "^2.2.0" } }, "sha512-GrwoxYN+uWlzO8uhUXRl0P+kHE4GtVPfYzVLcUxPL7KNdHKj66vvlhiweIHqYYXWlw+T8iLMp42Lm67ghw4WMQ=="],
 

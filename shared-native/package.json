@@ -1,0 +1,39 @@
+{
+  "name": "shared-native",
+  "version": "2.7.5",
+  "description": "Gradido Shared Native Code, Low-Level Shared Code logic from blockchain rewritten in C",
+  "main": "./index.cjs",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./index.cjs",
+      "require": "./index.cjs"
+    }
+  },
+  "repository": "https://github.com/gradido/gradido/shared-native",
+  "author": "Gradido Academy - https://www.gradido.net",
+  "license": "Apache-2.0",
+  "private": true,
+  "scripts": {
+    "build": "bun build.ts",
+    "test": "bun test",
+    "test:debug": "bun test --inspect-brk",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check --error-on-warnings .",
+    "lint:fix": "biome check --error-on-warnings . --write",
+    "clear": "rm -rf node_modules && rm -rf build && rm -rf .turbo"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.0.0",
+    "typescript": "^4.9.5"
+  },
+  "dependencies": {
+    "detect-libc": "^2.1.2",
+    "node-addon-api": "^8.7.0",
+    "zig-build": "0.3.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

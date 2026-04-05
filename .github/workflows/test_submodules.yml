@@ -10,6 +10,7 @@ jobs:
       core: ${{ steps.changes.outputs.core }}
       database: ${{ steps.changes.outputs.database }}
       shared: ${{ steps.changes.outputs.shared }}
+      shared-native: ${{ steps.changes.outputs.shared-native }}
       config: ${{ steps.changes.outputs.config }}
     steps:
       - uses: actions/checkout@v3.3.0
@@ -24,7 +25,7 @@ jobs:
 
   build:
     name: Unit Tests & Typecheck & Build - Submodules
-    if: needs.files-changed.outputs.core == 'true' || needs.files-changed.outputs.database == 'true' || needs.files-changed.outputs.shared == 'true' || needs.files-changed.outputs.config == 'true'
+    if: needs.files-changed.outputs.core == 'true' || needs.files-changed.outputs.database == 'true' || needs.files-changed.outputs.shared == 'true' || needs.files-changed.outputs.shared-native == 'true' || needs.files-changed.outputs.config == 'true'
     needs: files-changed
     runs-on: ubuntu-latest
     steps:
@@ -45,7 +46,7 @@ jobs:
           bun install --global turbo@^2
 
       - name: typecheck, locales && unit test
-        run: turbo core#typecheck core#locales database#test database#typecheck shared#test shared#typecheck config-schema#test config-schema#typecheck
+        run: turbo core#typecheck core#locales database#test database#typecheck shared#test shared#typecheck shared-native#test shared-native#typecheck config-schema#test config-schema#typecheck
       - name: core test extra
         run: turbo core#test
 
