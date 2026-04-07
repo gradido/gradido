@@ -12,3 +12,18 @@ export function getDecayStartTime(): Date
  * @returns The decayed BigInt value (in gdd units)
  */
 export function calculateDecay(value: bigint, seconds: bigint): bigint
+
+/**
+ * Converts a string to a BigInt value.
+ * @param str - The string to convert
+ * @returns The BigInt value
+ */
+export function fromString(str: string): bigint
+
+/**
+ * Converts a BigInt value to a string.
+ * @param value - The BigInt value to convert
+ * @param precision - The number of decimal places to include (max/default: 4)
+ * @returns The string representation of the BigInt value
+ */
+export function toString(value: bigint, precision?: number): string

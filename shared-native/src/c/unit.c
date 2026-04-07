@@ -1,28 +1,42 @@
 #include "unit.h"
-
+#include <ctype.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 const grdd_duration_seconds SECONDS_PER_YEAR = 31556952; // seconds in a year in gregorian calender
 const grdd_timestamp_seconds DECAY_START_TIME = 1620927991;
+static const int64_t POW10[] = {1, 10, 100, 1000, 10000};
 
-double roundToPrecision(double gdd, uint8_t precision) 
+static double round_to_precision(double gdd, uint8_t precision) 
 {
-	// replace pow(10, precision) with lookup table
-	static const double factors[] = {1.0, 10.0, 100.0, 1000.0, 10000.0};
-
 	if (precision > 4) {
 		precision = 4;
 	}
 
-	double factor = factors[precision];
+	double factor = POW10[precision];
 	return round(gdd * factor) / factor;
+}
+
+grdd_unit grdd_unit_round_to_precision(grdd_unit value, uint8_t precision)
+{
+	if (precision >= 4) return value;
+
+	int shift = 4 - precision;
+	int64_t divisor = POW10[shift];
+
+	// half-up rounding
+	int64_t half = divisor / 2;
+
+	if (value >= 0)
+		return ((value + half) / divisor) * divisor;
+	else
+		return ((value - half) / divisor) * divisor;
 }
 
 grdd_unit grdd_unit_from_decimal(double gdd)
 {
-  return (grdd_unit)(roundToPrecision(gdd, 4) * 10000.0);
+  return (grdd_unit)(round_to_precision(gdd, 4) * 10000.0);
 }
 
 double grdd_unit_to_decimal(grdd_unit u)
@@ -30,45 +44,122 @@ double grdd_unit_to_decimal(grdd_unit u)
 	return (double)u / 10000.0;
 }
 
-bool grdd_unit_from_string(const char* gdd_string, grdd_unit* resultGdd)
+bool grdd_unit_from_string(const char* str, grdd_unit* out)
 {
-  if (!gdd_string) return false;
-  char* end;
-  double gdd_double = strtod(gdd_string, &end);
-  if (end == gdd_string || *end != '\0') {
-    // invalid string 
-    return false;
-  }
-  if (resultGdd) {
-    *resultGdd = grdd_unit_from_decimal(gdd_double);
-  } 
-  return true;
+    if (!str || !out) return false;
+
+    const char* p = str;
+
+    // --- integer part ---
+    char* end;
+    int64_t integerPart = strtoll(p, &end, 10);
+    if (end == p && *p != '.') return false;
+
+    int64_t fractionalPart = 0;
+    int digits = 0;
+
+    p = end;
+
+    // --- fractional part ---
+    if (*p == '.') {
+        p++;
+        
+        // first 4 digits
+        while (isdigit(*p) && digits < 4) {
+            fractionalPart = fractionalPart * 10 + (*p - '0');
+            p++;
+            digits++;
+        }
+
+        // pad with zeros
+        while (digits < 4) {
+            fractionalPart *= 10;
+            digits++;
+        }
+
+        // --- rounding digit (5th) ---
+        if (isdigit(*p)) {
+            int roundDigit = *p - '0';
+
+            if (roundDigit >= 5) {
+                fractionalPart += 1;
+
+                // handle carry (e.g. 0.99995 -> 1.0000)
+                if (fractionalPart >= 10000) {
+                    fractionalPart = 0;
+                    integerPart += 1;
+                }
+            }
+
+            // skip remaining digits
+            while (isdigit(*p)) p++;
+        }
+    }
+
+    if (*p != '\0') return false;
+		// int64 max:  9,223,372,036,854,775,807
+		// int64 min: -9,223,372,036,854,775,807
+		// int64 max for integer part (without fractional part): 922,337,203,685,476
+    if (integerPart > 922337203685476 || integerPart < -922337203685476) return false;
+
+		int64_t result = 0;
+		if (integerPart < 0 && fractionalPart > 0) {
+			// e.g. -1.2041 -> -12041
+			result = integerPart * 10000 - fractionalPart;
+		} else {
+			result = integerPart * 10000 + fractionalPart;
+		}
+
+    *out = result;
+    return true;
 }
 
 int grdd_unit_to_string(grdd_unit u, char* buffer, size_t bufferSize, uint8_t precision)
 {
-  if (precision > 4) return 1; // C hasn't exceptions
+	if (!buffer || bufferSize == 0) return -1;
+  if (precision > 4) precision = 4;
 
-  // Convert to double
-  double decimal = (double)(u) / 10000.0;
+	grdd_unit rounded = grdd_unit_round_to_precision(u, precision);
 
-  if (precision < 4) {
-    decimal = roundToPrecision(decimal, precision);
-  }
+	int64_t factor = POW10[precision];
+	int written = 0;
 
-  // Write to buffer
-  int written = snprintf(buffer, bufferSize, "%.*f", precision, decimal);
+	int64_t integerPart = rounded / 10000;
+	if (precision == 0) {
+			written = snprintf(buffer, bufferSize, "%lld", (long long)integerPart);
+	} else {
+		int64_t fractionalRaw = rounded % 10000;	
+		if (fractionalRaw < 0) {
+			fractionalRaw = -fractionalRaw;
+		}
 
+		// Write to buffer
+		written = snprintf(
+				buffer,
+				bufferSize,
+				"%lld.%0*lld",
+				(long long)integerPart,
+				precision,
+				(long long)fractionalRaw
+		);
+		if (written > 0 && written < bufferSize && precision < 4) {
+			// remove trailing zeros
+			for (int i = 0; i < 4 - precision; i++) {
+				buffer[written - 1 - i] = '\0';
+			}
+		}
+	}
+	
   // snprintf returns number of chars that would have been written (excluding null)
   // snprintf return negative value on encoding error
-  if (written < 0) return 2;
+  if (written < 0) return -2;
   if ((size_t)written < bufferSize) {
     return 0;
   }
-  return bufferSize - written;
+  return written;
 }
 
-grdd_timestamp_seconds get_decay_start_time()
+grdd_timestamp_seconds grdd_unit_get_decay_start_time()
 {
 	return DECAY_START_TIME;
 }
