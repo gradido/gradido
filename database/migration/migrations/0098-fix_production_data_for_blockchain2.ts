@@ -1,9 +1,15 @@
 import Decimal from 'decimal.js-light'
-import { DECAY_FACTOR, reverseLegacyDecay } from 'shared'
+import { DECAY_FACTOR } from 'shared'
 
 function calculateEffectiveSeconds(holdOriginal: Decimal, holdCorrected: Decimal): Decimal {
   return holdOriginal.div(holdCorrected).ln().div(DECAY_FACTOR.ln())
 }
+
+// legacy reverse decay formula
+function reverseLegacyDecay(result: Decimal, seconds: number): Decimal {
+  return result.div(DECAY_FACTOR.pow(seconds).toString())
+}
+
 
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   /**
