@@ -182,7 +182,7 @@
     "from": "Von",
     "generate_now": "Jetzt generieren",
     "hours": "Stunden",
-    "identifier": "Email, Nutzername oder Gradido ID",
+    "identifier": "E-Mail, Nutzername oder Gradido ID",
     "lastname": "Nachname",
     "link_amount": "Link-Betrag",
     "link_decay_description": "Der Link-Betrag wird zusammen mit der maximalen Vergänglichkeit blockiert. Nach Einlösen, Verfallen oder Löschen des Links wird der Rest wieder freigegeben.",
@@ -243,7 +243,7 @@
       "identifier": {
         "communityIsReachable": "Community nicht gefunden oder nicht erreichbar!",
         "required": "Der Empfänger ist ein Pflichtfeld.",
-        "typeError": "Der Empfänger muss eine Email, ein Nutzernamen oder eine Gradido ID sein."
+        "typeError": "Der Empfänger muss eine E-Mail, ein Nutzernamen oder eine Gradido ID sein."
       },
       "is-not": "Du kannst dir selbst keine Gradidos überweisen!",
       "memo": {
@@ -331,7 +331,7 @@
     "checkEmail": "Deine E-Mail wurde erfolgreich verifiziert. Du kannst dich jetzt anmelden.",
     "email": "Wir haben dir eine E-Mail gesendet.",
     "errorTitle": "Achtung!",
-    "register": "Du bist jetzt registriert, bitte überprüfe deine Emails und klicke auf den Aktivierungslink.",
+    "register": "Du bist jetzt registriert, bitte überprüfe deine E-Mails und klicke auf den Aktivierungslink.",
     "reply": "Danke, Deine Antwort wurde abgesendet.",
     "reset": "Dein Passwort wurde geändert.",
     "title": "Danke!",
@@ -362,7 +362,7 @@
     "usersearch": "Geografische Mitgliedssuche (beta)"
   },
   "qrCode": "QR Code",
-  "send_email": "Email senden",
+  "send_email": "E-Mail senden",
   "send_gdd": "GDD senden",
   "send_per_link": "GDD Link erzeugen",
   "session": {
