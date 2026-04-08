@@ -437,7 +437,7 @@ export async function processXComCommittingSendCoins(
       }
       const receiverFCom = await DbFederatedCommunity.findOneOrFail({
         where: {
-          publicKey: Buffer.from(receiverCom.publicKey),
+          publicKey: receiverCom.publicKey,
           apiVersion: CONFIG_CORE.FEDERATION_BACKEND_SEND_ON_API,
         },
       })

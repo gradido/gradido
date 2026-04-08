@@ -1,6 +1,7 @@
 export * from './command/CommandExecutor'
 export * from './command/CommandFactory'
 export * from './command/initCommands'
+export * from './command/commands/SendEmailCommand'
 export * from './config/index'
 export * from './emails'
 export { CommandClient as V1_0_CommandClient } from './federation/client/1_0/CommandClient'

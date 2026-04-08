@@ -56,7 +56,7 @@ import { transactionLinkSummary } from './util/transactionLinkSummary'
 import { SendEmailArgs } from '../arg/SendEmailArgs'
 import { CommandJwtPayloadType, Ed25519PublicKey, encryptAndSign } from 'shared'
 import { randombytes_random } from 'sodium-native'
-import { SendEmailCommand } from 'core/src/command/commands/SendEmailCommand'
+import { SendEmailCommand } from 'core'
 
 const db = AppDatabase.getInstance()
 const createLogger = () =>
