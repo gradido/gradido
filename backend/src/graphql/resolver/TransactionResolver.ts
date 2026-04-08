@@ -5,7 +5,9 @@ import { Transaction } from '@model/Transaction'
 import { TransactionList } from '@model/TransactionList'
 import { User } from '@model/User'
 import {
+  ApiVersionType,
   CommandClientFactory,
+  EncryptedTransferArgs,
   fullName,
   processXComCompleteTransaction,
   sendCustomEmail,
@@ -52,6 +54,9 @@ import { getCommunityName, isHomeCommunity } from './util/communities'
 import { getTransactionList } from './util/getTransactionList'
 import { transactionLinkSummary } from './util/transactionLinkSummary'
 import { SendEmailArgs } from '../arg/SendEmailArgs'
+import { CommandJwtPayloadType, Ed25519PublicKey, encryptAndSign } from 'shared'
+import { randombytes_random } from 'sodium-native'
+import { SendEmailCommand } from 'core/src/command/commands/SendEmailCommand'
 
 const db = AppDatabase.getInstance()
 const createLogger = () =>
@@ -487,11 +492,15 @@ export class TransactionResolver {
         recipientCommunityIdentifier,
       )
       if (!recipientUser) {
-        throw new LogError('The recipient user was not found', recipientUser)
+        const errmsg = 'The recipient user was not found' + recipientIdentifier
+        logger.error(errmsg)
+        throw new Error(errmsg)
       }
       logger.addContext('to', recipientUser?.id)
       if (recipientUser.foreign) {
-        throw new LogError('Found foreign recipient user for a local transaction:', recipientUser)
+        const errmsg = 'Found foreign recipient user for a local transaction:' + recipientUser
+        logger.error(errmsg)
+        throw new Error(errmsg)
       }
 
       await executeTransaction(amount, memo, senderUser, recipientUser, logger)
@@ -529,11 +538,15 @@ export class TransactionResolver {
         recipientCommunityIdentifier,
       )
       if (!recipientUser) {
-        throw new LogError('The recipient user was not found', recipientUser)
+        const errmsg = 'The recipient user was not found' + recipientIdentifier
+        logger.error(errmsg)
+        throw new Error(errmsg)
       }
       logger.addContext('to', recipientUser?.id)
       if (recipientUser.foreign) {
-        throw new LogError('Found foreign recipient user for a local transaction:', recipientUser)
+        const errmsg = 'Found foreign recipient user for a local transaction:' + recipientUser
+        logger.error(errmsg)
+        throw new Error(errmsg)
       }
       sendCustomEmail({
         firstName: recipientUser.firstName,
@@ -547,28 +560,48 @@ export class TransactionResolver {
       })
     } else {
       // sendEmail for foreign communities
-      /*
-      const receiverCom = await getCommunityByUuid(recipientCommunityIdentifier)
-      if (receiverCom === null) {
-        throw new LogError('The recipient community was not found', recipientCommunityIdentifier)
+      const senderCom = await getCommunityByUuid(senderUser.communityUuid)
+      if (senderCom === null) {
+        const errmsg = 'The sender community was not found' + senderUser.communityUuid
+        logger.error(errmsg)
+        throw new Error(errmsg)
       }
-      const receiverFCom = await getCommunityWithFederatedCommunityWithApiOrFail(receiverCom.publicKey, 
+      
+      const receiverCom = await getCommunityWithFederatedCommunityByIdentifier(recipientCommunityIdentifier)
+      if (receiverCom === null) {
+        const errmsg = 'The recipient community was not found' + recipientCommunityIdentifier
+        logger.error(errmsg)
+        throw new Error(errmsg)
+      }
+      if (!receiverCom.federatedCommunities || receiverCom.federatedCommunities.length === 0) {
+        const errmsg = 'The recipient community has no federated communities' + recipientCommunityIdentifier
+        logger.error(errmsg)
+        throw new Error(errmsg)
+      }
+      const receiverFCom = receiverCom.federatedCommunities.find(fcom => fcom.apiVersion === ApiVersionType.V1_0)
+      if (!receiverFCom) {
+        const errmsg = 'The federated community of the recipient community was not found ' + recipientCommunityIdentifier
+        logger.error(errmsg)
+        throw new Error(errmsg)
+      }
       const cmdClient = CommandClientFactory.getInstance(receiverFCom)
 
       if (cmdClient instanceof V1_0_CommandClient) {
+        const handshakeID = randombytes_random().toString()
+        
         const payload = new CommandJwtPayloadType(
           handshakeID,
           SendEmailCommand.SEND_MAIL_COMMAND,
           SendEmailCommand.name,
           [
             JSON.stringify({
-              mailType: 'sendTransactionReceivedEmail',
-              senderComUuid: senderCom.communityUuid,
-              senderGradidoId: sender.gradidoID,
-              receiverComUuid: receiverCom.communityUuid,
-              receiverGradidoId: sendCoinsResult.recipGradidoID,
-              memo: pendingTx.memo,
-              amount: pendingTx.amount,
+              mailType: 'sendCustomEmail',
+              senderComUuid: senderUser.communityUuid,
+              senderGradidoId: senderUser.gradidoID,
+              receiverComUuid: recipientCommunityIdentifier,
+              receiverGradidoId: recipientIdentifier,
+              subject: subject,
+              memo: memo
             }),
           ],
         )
@@ -583,9 +616,7 @@ export class TransactionResolver {
         args.handshakeID = handshakeID
         cmdClient.sendCommand(args)
       }
-      */
     }
-    
     return true
   }
 }

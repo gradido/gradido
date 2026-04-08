@@ -2,7 +2,7 @@ import { findUserByUuids } from 'database'
 import Decimal from 'decimal.js-light'
 import { getLogger } from 'log4js'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../../config/const'
-import { sendTransactionReceivedEmail } from '../../emails/sendEmailVariants'
+import { sendCustomEmail, sendTransactionReceivedEmail } from '../../emails/sendEmailVariants'
 import { BaseCommand } from '../BaseCommand'
 
 const createLogger = (method: string) =>
@@ -14,6 +14,7 @@ export interface SendEmailCommandParams {
   senderGradidoId: string
   receiverComUuid: string
   receiverGradidoId: string
+  subject?: string
   memo?: string
   amount?: string
 }
@@ -94,11 +95,17 @@ export class SendEmailCommand extends BaseCommand<
       senderFirstName: senderUser.firstName,
       senderLastName: senderUser.lastName,
       senderEmail: senderUser.emailId !== null ? senderUser.emailContact.email : null,
+      subject: this.sendEmailCommandParams.subject || '',
       memo: this.sendEmailCommandParams.memo || '',
       transactionAmount: new Decimal(this.sendEmailCommandParams.amount || 0).abs(),
     }
     methodLogger.debug(`emailParams=${JSON.stringify(emailParams)}`)
     switch (this.sendEmailCommandParams.mailType) {
+      case 'sendCustomEmail': {
+        const emailResult = await sendCustomEmail(emailParams)
+        result = this.getEmailResult(emailResult)
+        break
+      }
       case 'sendTransactionReceivedEmail': {
         const emailResult = await sendTransactionReceivedEmail(emailParams)
         result = this.getEmailResult(emailResult)
