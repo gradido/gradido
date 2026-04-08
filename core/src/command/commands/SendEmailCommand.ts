@@ -88,13 +88,13 @@ export class SendEmailCommand extends BaseCommand<
     }
 
     const emailParams = {
-      firstName: recipientUser.firstName,
-      lastName: recipientUser.lastName,
-      email: recipientUser.emailContact.email,
+      firstName: recipientUser.firstName, // will be part of receiver
+      lastName: recipientUser.lastName, // will be part of receiver
+      email: recipientUser.emailContact.email, // will be part of receiver
       language: recipientUser.language,
       senderFirstName: senderUser.firstName,
       senderLastName: senderUser.lastName,
-      senderEmail: senderUser.emailId !== null ? senderUser.emailContact.email : null,
+      senderEmail: senderUser.emailId !== null ? senderUser.emailContact.email : null, // will define the template
       subject: this.sendEmailCommandParams.subject || '',
       memo: this.sendEmailCommandParams.memo || '',
       transactionAmount: new Decimal(this.sendEmailCommandParams.amount || 0).abs(),
