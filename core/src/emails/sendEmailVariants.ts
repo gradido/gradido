@@ -209,7 +209,7 @@ export const sendCustomEmail = (
   logger.debug(`sendCustomEmail(data=${JSON.stringify(data)})`)
   return sendEmailTranslated({
     receiver: { to: `${data.firstName} ${data.lastName} <${data.email}>` },
-    template: data.email !== null ? data.email : 'customEmail',
+    template: 'customEmail',
     locals: {
       ...data,
       subject: data.subject,
