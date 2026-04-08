@@ -12,12 +12,10 @@ block content
       = t('emails.customEmail.haveReceivedMessageFrom', { senderFirstName, senderLastName })   
 
   .subject-block
-    p
-      = subject
+    div(class="p_content")= subject
 
   .memo-block
-    p
-      = memo
+    div(class="p_content")= memo
     
   a.button-3(href=`${communityURL}/send`) #{t('emails.general.toAccount')}
 
