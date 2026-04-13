@@ -8,7 +8,6 @@ import {
 import { getLogger } from 'log4js'
 import { OpenAI } from 'openai'
 import { Message } from 'openai/resources/beta/threads/messages'
-import { httpsAgent } from '@/apis/ConnectionAgents'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { Message as MessageModel } from './model/Message'
@@ -38,7 +37,7 @@ export class OpenaiClient {
    * Initializes the OpenAI client with the provided API key from the configuration.
    */
   private constructor() {
-    this.openai = new OpenAI({ apiKey: CONFIG.OPENAI_API_KEY, httpAgent: httpsAgent })
+    this.openai = new OpenAI({ apiKey: CONFIG.OPENAI_API_KEY })
   }
 
   /**
@@ -126,7 +125,7 @@ export class OpenaiClient {
   public async deleteThread(threadId: string): Promise<boolean> {
     const [, result] = await Promise.all([
       dbDeleteOpenaiThread(threadId),
-      this.openai.beta.threads.del(threadId),
+      this.openai.beta.threads.delete(threadId),
     ])
     if (result.deleted) {
       logger.info(`Deleted thread: ${threadId}`)
