@@ -1,4 +1,3 @@
-import 'openai/shims/node'
 import { CONFIG } from '@/config'
 import { CONFIG as CORE_CONFIG } from 'core'
 import { getLogger, printLogs, clearLogs } from 'config-schema/test/testSetup'
