@@ -18,7 +18,7 @@ export function calculateDecay(value: bigint, seconds: bigint): bigint
  * @param str - The string to convert
  * @returns The BigInt value
  */
-export function fromString(str: string): bigint
+export function gradidoUnitFromString(str: string): bigint
 
 /**
  * Converts a BigInt value to a string.
@@ -26,4 +26,12 @@ export function fromString(str: string): bigint
  * @param precision - The number of decimal places to include (max/default: 4)
  * @returns The string representation of the BigInt value
  */
-export function toString(value: bigint, precision?: number): string
+export function gradidoUnitToString(value: bigint, precision?: number): string
+
+/**
+ * Rounds gradido units to a specified number of decimal places.
+ * @param value - The BigInt value to round (in gdd units)
+ * @param places - The number of decimal places to round to
+ * @returns The rounded BigInt value (in gdd units)
+ */
+export function toDecimalPlaces(value: bigint, places: number): bigint

@@ -99,7 +99,7 @@ export const sendCoins = gql`
   mutation (
     $recipientCommunityIdentifier: String!
     $recipientIdentifier: String!
-    $amount: Decimal!
+    $amount: GradidoUnit!
     $memo: String!
   ) {
     sendCoins(
@@ -112,7 +112,7 @@ export const sendCoins = gql`
 `
 
 export const createTransactionLink = gql`
-  mutation ($amount: Decimal!, $memo: String!) {
+  mutation ($amount: GradidoUnit!, $memo: String!) {
     createTransactionLink(amount: $amount, memo: $memo) {
       link
       amount

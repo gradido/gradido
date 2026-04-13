@@ -1,6 +1,7 @@
-import { Decimal } from 'decimal.js-light'
+import { GradidoUnit } from 'shared'
 
-export const MAX_CREATION_AMOUNT = new Decimal(1000)
+// 1'000 gdd = 10'000'000 gdd cent
+export const MAX_CREATION_AMOUNT = new GradidoUnit(10000000n)
 export const FULL_CREATION_AVAILABLE = [
   MAX_CREATION_AMOUNT,
   MAX_CREATION_AMOUNT,
@@ -12,4 +13,4 @@ export const MEMO_MAX_CHARS = 512
 export const MEMO_MIN_CHARS = 5
 export const DEFAULT_PAGINATION_PAGE_SIZE = 25
 export const FRONTEND_CONTRIBUTIONS_ITEM_ANCHOR_PREFIX = 'contributionListItem-'
-export const CODE_VALID_DAYS_DURATION = 14
+export const CODE_VALID_DAYS_DURATION = 14n

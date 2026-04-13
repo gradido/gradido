@@ -1,11 +1,13 @@
 import Decimal from 'decimal.js-light'
-import { getLogger } from 'log4js'
-import { calculateDecay as calculateDecayNative, fromString as fromStringNative, toString as toStringNative } from 'shared-native'
-import { DECAY_START_TIME, LOG4JS_BASE_CATEGORY_NAME } from '../const'
+import {
+  calculateDecay as calculateDecayNative,
+  gradidoUnitFromString,
+  gradidoUnitToString,
+  toDecimalPlaces as toDecimalPlacesNative,
+} from 'shared-native'
+import { DECAY_START_TIME } from '../const'
 import { Decay } from '../schema'
 import { Duration } from './Duration'
-
-const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.data.GradidoUnit`)
 
 export class GradidoUnit {
   protected gddCentValue: bigint = 0n
@@ -78,7 +80,9 @@ export class GradidoUnit {
     return decay
   }
 
-
+  public toDecimalPlaces(places: number): GradidoUnit {
+    return new GradidoUnit(toDecimalPlacesNative(this.gddCentValue, places))
+  }
 
   /**
    * Computes the initial Gradido amount required so that after applying decay
@@ -89,13 +93,19 @@ export class GradidoUnit {
    * "How much do I need to start with so that after decay I end up with this balance?"
    * Used by Transaction Links to calculate the required initial amount.
    *
-   * @param from The starting point of the period for the reverse decay calculation
-   * @param to The end point of the period for the reverse decay calculation
-   * @returns A GradidoUnit representing the required initial amount
+   * @param from The starting point of the period for the reverse decay calculation or the duration
+   * @param to [Optional] The end point of the period for the reverse decay calculation.
+   *            If not provided, from needs to be a duration
+   * @returns A new GradidoUnit representing the required initial amount
    */
-  public requiredBeforeDecay(from: Date, to: Date): GradidoUnit {
-    const duration = GradidoUnit.effectiveDecayDuration(from, to)
-    return new GradidoUnit(calculateDecayNative(this.gddCentValue, -duration.seconds))
+  public requiredBeforeDecay(from: Date | Duration, to?: Date): GradidoUnit {
+    if (from instanceof Duration) {
+      return new GradidoUnit(calculateDecayNative(this.gddCentValue, -from.seconds))
+    } else if (from instanceof Date && to) {
+      const duration = GradidoUnit.effectiveDecayDuration(from, to)
+      return new GradidoUnit(calculateDecayNative(this.gddCentValue, -duration.seconds))
+    }
+    throw new Error('Invalid parameters for requiredBeforeDecay')
   }
 
   /**
@@ -116,6 +126,25 @@ export class GradidoUnit {
     return new GradidoUnit(this.gddCentValue + other.gddCentValue)
   }
 
+  /**
+   * Returns the negation of this GradidoUnit
+   * @returns A new GradidoUnit with the negated value
+   */
+  public negated(): GradidoUnit {
+    return new GradidoUnit(-this.gddCentValue)
+  }
+
+  /**
+   * Returns the absolute value of this GradidoUnit
+   * @returns A new GradidoUnit with the absolute value
+   */
+  public abs(): GradidoUnit {
+    if (this.gddCentValue < 0) {
+      return new GradidoUnit(-this.gddCentValue)
+    }
+    return new GradidoUnit(this.gddCentValue)
+  }
+
   public static fromNumber(value: number): GradidoUnit {
     return new GradidoUnit(BigInt(Math.round(value * 10000)))
   }
@@ -124,11 +153,11 @@ export class GradidoUnit {
    * @deprecated best construct from gddCent directly or use fromNumber
    */
   public static fromDecimal(gdd: Decimal): GradidoUnit {
-    return new GradidoUnit(BigInt(gdd.mul(10000).toDecimalPlaces(0, Decimal.ROUND_DOWN).toString()))
+    return this.fromString(gdd.toString())
   }
 
   public static fromString(value: string): GradidoUnit {
-    return new GradidoUnit(fromStringNative(value))
+    return new GradidoUnit(gradidoUnitFromString(value))
   }
 
   /**
@@ -141,6 +170,10 @@ export class GradidoUnit {
     return Number(this.gddCentValue) / 10000
   }
   public toString(places: number = 4): string {
-    return toStringNative(this.gddCentValue, places)
+    return gradidoUnitToString(this.gddCentValue, places)
+  }
+
+  public toJSON() {
+    return this.toString()
   }
 }

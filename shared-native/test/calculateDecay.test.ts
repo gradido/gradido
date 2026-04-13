@@ -1,103 +1,110 @@
 import { describe, expect, it } from 'bun:test'
-import { calculateDecay, getDecayStartTime, fromString, toString } from '../'
+import {
+  calculateDecay,
+  getDecayStartTime,
+  gradidoUnitFromString,
+  gradidoUnitToString,
+  toDecimalPlaces,
+} from '../'
 
 describe('GradidoUnit', () => {
   describe('fromString', () => {
     it('converts string to GradidoUnit', () => {
-      const result = fromString('10012041')
+      const result = gradidoUnitFromString('10012041')
       expect(result).toBe(100120410000n)
     })
     it('converts string to GradidoUnit (negative)', () => {
-      const result = fromString('-10012041')
+      const result = gradidoUnitFromString('-10012041')
       expect(result).toBe(-100120410000n)
     })
     it('converts string with decimal to GradidoUnit', () => {
-      const result = fromString('1001.2041')
+      const result = gradidoUnitFromString('1001.2041')
       expect(result).toBe(10012041n)
     })
     it('converts invalid (to big) string to GradidoUnit ', () => {
-      expect(() => fromString('922337203685576.12812')).toThrowError(
-        "Invalid unit string. Must be a decimal with up to 4 fractional digits, integer part between -922'337'203'685'476 and 922'337'203'685'476."
+      expect(() => gradidoUnitFromString('922337203685576.12812')).toThrowError(
+        "Invalid unit string. Must be a decimal with up to 4 fractional digits, integer part between -922'337'203'685'476 and 922'337'203'685'476.",
       )
     })
     it('converts invalid (to small) string to GradidoUnit ', () => {
-      expect(() => fromString('-922337203685576.12812')).toThrowError(
-        "Invalid unit string. Must be a decimal with up to 4 fractional digits, integer part between -922'337'203'685'476 and 922'337'203'685'476."
+      expect(() => gradidoUnitFromString('-922337203685576.12812')).toThrowError(
+        "Invalid unit string. Must be a decimal with up to 4 fractional digits, integer part between -922'337'203'685'476 and 922'337'203'685'476.",
       )
     })
     it('round 5th decimal', () => {
-      const result = fromString('1001.20415')
+      const result = gradidoUnitFromString('1001.20415')
       expect(result).toBe(10012042n)
     })
     it('round 5th decimal (negative)', () => {
-      const result = fromString('-1001.20415')
+      const result = gradidoUnitFromString('-1001.20415')
       expect(result).toBe(-10012042n)
     })
     it('round 5th decimal down', () => {
-      const result = fromString('1001.20414')
+      const result = gradidoUnitFromString('1001.20414')
       expect(result).toBe(10012041n)
     })
     it('round 5th decimal down (negative)', () => {
-      const result = fromString('-1001.20414')
+      const result = gradidoUnitFromString('-1001.20414')
       expect(result).toBe(-10012041n)
     })
 
     it("don't round 6th decimal", () => {
-      const result = fromString('1001.204145')
+      const result = gradidoUnitFromString('1001.204145')
       expect(result).toBe(10012041n)
     })
     it('positive number 1001.2041', () => {
-      const result = fromString('1001.2041')
+      const result = gradidoUnitFromString('1001.2041')
       expect(result).toBe(10012041n)
     })
     it('negative number -1001.2041', () => {
-      const result = fromString('-1001.2041')
+      const result = gradidoUnitFromString('-1001.2041')
       expect(result).toBe(-10012041n)
     })
   })
   describe('toString', () => {
     it('converts BigInt to string', () => {
-      const result = toString(10012041n)
+      const result = gradidoUnitToString(10012041n)
       expect(result).toBe('1001.2041')
     })
-    it('converts BigInt to string with precision 7 (will be capped to 4)', () => {
-      const result = toString(10012041n, 7)
-      expect(result).toBe('1001.2041')
+    it('converts BigInt to string with precision 7 (throw error)', () => {
+      expect(() => gradidoUnitToString(10012041n, 7)).toThrowError(
+        'Precision must be between 0 and 4',
+      )
     })
     it('converts BigInt to string with precision 3', () => {
-      const result = toString(10012041n, 3)
+      const result = gradidoUnitToString(10012041n, 3)
       expect(result).toBe('1001.204')
     })
     it('converts BigInt to string with precision 2', () => {
-      const result = toString(10012041n, 2)
+      const result = gradidoUnitToString(10012041n, 2)
       expect(result).toBe('1001.20')
     })
     it('converts BigInt to string with precision 1', () => {
-      const result = toString(10012041n, 1)
+      const result = gradidoUnitToString(10012041n, 1)
       expect(result).toBe('1001.2')
     })
     it('converts BigInt to string with precision 0', () => {
-      const result = toString(10012041n, 0)
+      const result = gradidoUnitToString(10012041n, 0)
       expect(result).toBe('1001')
     })
     it('converts negative BigInt to string with precision 3', () => {
-      const result = toString(-10012041n, 3)
+      const result = gradidoUnitToString(-10012041n, 3)
       expect(result).toBe('-1001.204')
     })
     it('converts negative BigInt to string with precision 2', () => {
-      const result = toString(-10012041n, 2)
+      const result = gradidoUnitToString(-10012041n, 2)
       expect(result).toBe('-1001.20')
     })
     it('converts negative BigInt to string with precision 1', () => {
-      const result = toString(-10012041n, 1)
+      const result = gradidoUnitToString(-10012041n, 1)
       expect(result).toBe('-1001.2')
     })
     it('converts negative BigInt to string with precision 0', () => {
-      const result = toString(-10012041n, 0)
+      const result = gradidoUnitToString(-10012041n, 0)
       expect(result).toBe('-1001')
     })
     it('converts negative BigInt to string', () => {
-      const result = toString(-10012041n)
+      const result = gradidoUnitToString(-10012041n)
       expect(result).toBe('-1001.2041')
     })
   })
@@ -157,6 +164,28 @@ describe('GradidoUnit', () => {
       const startTime = getDecayStartTime()
       expect(startTime).toBeInstanceOf(Date)
       expect(startTime.getTime()).toBe(1620927)
+    })
+  })
+  describe('toDecimalPlaces', () => {
+    it('rounds to 3 decimal places', () => {
+      const result = toDecimalPlaces(10012041n, 3)
+      expect(result).toBe(10012040n)
+    })
+    it('rounds to 2 decimal places', () => {
+      const result = toDecimalPlaces(10012041n, 2)
+      expect(result).toBe(10012000n)
+    })
+    it('rounds to 1 decimal place', () => {
+      const result = toDecimalPlaces(10012741n, 1)
+      expect(result).toBe(10013000n)
+    })
+    it('rounds to 0 decimal places', () => {
+      const result = toDecimalPlaces(10012041n, 0)
+      expect(result).toBe(10010000n)
+    })
+    it('handles negative numbers', () => {
+      const result = toDecimalPlaces(-10012041n, 2)
+      expect(result).toBe(-10012000n)
     })
   })
 })

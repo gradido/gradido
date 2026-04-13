@@ -1,6 +1,9 @@
 #include "unit.h"
+#include "utils.h"
+
 #include <ctype.h>
 #include <math.h>
+#include <memory.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -18,20 +21,36 @@ static double round_to_precision(double gdd, uint8_t precision)
 	return round(gdd * factor) / factor;
 }
 
-grdd_unit grdd_unit_round_to_precision(grdd_unit value, uint8_t precision)
-{
-	if (precision >= 4) return value;
+bool grdd_unit_round_to_precision(grdd_unit value, uint8_t precision, grdd_unit* result)
+{	
+	if (!result || precision > 4) {
+		return false;
+	}
+	if (precision == 4) {
+		*result = value;
+		return true;
+	}
 
 	int shift = 4 - precision;
-	int64_t divisor = POW10[shift];
+	uint64_t divisor = POW10[shift];
 
 	// half-up rounding
-	int64_t half = divisor / 2;
-
-	if (value >= 0)
-		return ((value + half) / divisor) * divisor;
-	else
-		return ((value - half) / divisor) * divisor;
+	uint64_t half = divisor / 2;
+	uint64_t rounded = 0;
+	uint64_t gdd = value;
+	if (value < 0) {
+		gdd = -value;
+	}
+	rounded = ((gdd + half) / divisor) * divisor;
+	if (rounded > 9223372036854775807u) {
+		return false;
+	}
+	if (value < 0) {
+		*result = -rounded;
+	} else {
+		*result = rounded;
+	}
+	return true;
 }
 
 grdd_unit grdd_unit_from_decimal(double gdd)
@@ -62,19 +81,19 @@ bool grdd_unit_from_string(const char* str, grdd_unit* out)
 
     // --- fractional part ---
     if (*p == '.') {
-        p++;
+        ++p;
         
         // first 4 digits
         while (isdigit(*p) && digits < 4) {
             fractionalPart = fractionalPart * 10 + (*p - '0');
-            p++;
-            digits++;
+            ++p;
+            ++digits;
         }
 
         // pad with zeros
         while (digits < 4) {
             fractionalPart *= 10;
-            digits++;
+            ++digits;
         }
 
         // --- rounding digit (5th) ---
@@ -92,7 +111,7 @@ bool grdd_unit_from_string(const char* str, grdd_unit* out)
             }
 
             // skip remaining digits
-            while (isdigit(*p)) p++;
+            while (isdigit(*p)) ++p;
         }
     }
 
@@ -114,49 +133,49 @@ bool grdd_unit_from_string(const char* str, grdd_unit* out)
     return true;
 }
 
-int grdd_unit_to_string(grdd_unit u, char* buffer, size_t bufferSize, uint8_t precision)
+int grdd_unit_to_string(grdd_unit u, char* buffer, uint8_t precision)
 {
-	if (!buffer || bufferSize == 0) return -1;
-  if (precision > 4) precision = 4;
+	if (precision > 4) precision = 4;
 
-	grdd_unit rounded = grdd_unit_round_to_precision(u, precision);
+	grdd_unit rounded = 0;
+	if (!grdd_unit_round_to_precision(u, precision, &rounded)) {
+		return -1;
+	}
 
-	int64_t factor = POW10[precision];
-	int written = 0;
+	bool negative = rounded < 0;
 
-	int64_t integerPart = rounded / 10000;
-	if (precision == 0) {
-			written = snprintf(buffer, bufferSize, "%lld", (long long)integerPart);
-	} else {
-		int64_t fractionalRaw = rounded % 10000;	
-		if (fractionalRaw < 0) {
-			fractionalRaw = -fractionalRaw;
-		}
+	size_t cursor = 0;
 
-		// Write to buffer
-		written = snprintf(
-				buffer,
-				bufferSize,
-				"%lld.%0*lld",
-				(long long)integerPart,
-				precision,
-				(long long)fractionalRaw
-		);
-		if (written > 0 && written < bufferSize && precision < 4) {
-			// remove trailing zeros
-			for (int i = 0; i < 4 - precision; i++) {
-				buffer[written - 1 - i] = '\0';
-			}
-		}
+	if (negative) {
+		rounded *= -1;
+		buffer[cursor++] = '-';
+	}
+	if (!precision) {
+		int64_t integerPart = rounded / 10000;
+		cursor += grdu_uint64ToString(integerPart, &buffer[cursor]);
+		return cursor;
 	}
 	
-  // snprintf returns number of chars that would have been written (excluding null)
-  // snprintf return negative value on encoding error
-  if (written < 0) return -2;
-  if ((size_t)written < bufferSize) {
-    return 0;
-  }
-  return written;
+	size_t numberPlacesCount = grdu_uint64ToString(rounded, &buffer[cursor]);
+	// pad with 0
+	if (numberPlacesCount < 5) {
+		size_t paddingCount = 5 - numberPlacesCount;
+		memcpy(&buffer[paddingCount + cursor], &buffer[cursor], numberPlacesCount);
+		memset(&buffer[cursor], '0', paddingCount);
+		cursor += paddingCount;
+	}
+	cursor += numberPlacesCount;
+	// make room for .
+	memcpy(&buffer[cursor - 3], &buffer[cursor - 4], 5);
+	cursor++;
+	buffer[cursor - 5] = '.';
+	
+	if (precision != 4) {
+		cursor -= 4 - precision;
+		buffer[cursor] = '\0';
+	}
+	
+	return cursor;
 }
 
 grdd_timestamp_seconds grdd_unit_get_decay_start_time()

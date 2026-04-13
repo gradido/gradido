@@ -361,7 +361,7 @@ describe('send coins', () => {
                   {
                     property: 'amount',
                     constraints: {
-                      isPositiveDecimal: 'The amount must be a positive value amount',
+                      isPositiveGradidoUnit: 'The amount must be a positive value amount',
                     },
                   },
                 ],

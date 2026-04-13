@@ -11,7 +11,7 @@ import {
 } from 'database'
 import Decimal from 'decimal.js-light'
 import { getLogger } from 'log4js'
-import { DecayCalculationType, PendingTransactionState } from 'shared'
+import { DecayCalculationType, GradidoUnit, PendingTransactionState } from 'shared'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { getLastTransaction } from '@/graphql/util/getLastTransaction'
 import { TRANSACTIONS_LOCK } from '@/graphql/util/TRANSACTIONS_LOCK'
@@ -83,12 +83,16 @@ export async function settlePendingReceiveTransaction(
     transactionReceive.amount = pendingTx.amount
     const receiveBalance = await calculateRecipientBalance(
       receiverUser.id,
-      pendingTx.amount,
+      GradidoUnit.fromDecimal(pendingTx.amount),
       pendingTx.balanceDate,
     )
-    transactionReceive.balance = receiveBalance ? receiveBalance.balance : pendingTx.amount
+    transactionReceive.balance = receiveBalance
+      ? receiveBalance.balance.toDecimal()
+      : pendingTx.amount
     transactionReceive.balanceDate = pendingTx.balanceDate
-    transactionReceive.decay = receiveBalance ? receiveBalance.decay.decay : new Decimal(0)
+    transactionReceive.decay = receiveBalance
+      ? receiveBalance.decay.decay.toDecimal()
+      : new Decimal(0)
     transactionReceive.decayStart = receiveBalance ? receiveBalance.decay.start : null
     transactionReceive.decayCalculationType = pendingTx.decayCalculationType
     transactionReceive.previous = receiveBalance ? receiveBalance.lastTransactionId : null

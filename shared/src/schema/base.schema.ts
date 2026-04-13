@@ -19,3 +19,24 @@ export const decaySchema = z.object({
 })
 
 export type Decay = z.infer<typeof decaySchema>
+
+// wire format, safe for JSON which doesn't know GradidoUnit or Date
+export const wireDecaySchema = z.object({
+  balance: z.string(),
+  decay: z.string(),
+  start: z.string().nullable(),
+  end: z.string().nullable(),
+  duration: z.string().nullable(),
+})
+
+export type WireDecay = z.infer<typeof wireDecaySchema>
+
+export function decayToWireDecay(decay: Decay): WireDecay {
+  return {
+    balance: decay.balance.toString(),
+    decay: decay.decay.toString(),
+    start: decay.start?.toISOString() ?? null,
+    end: decay.end?.toISOString() ?? null,
+    duration: decay.duration?.toString() ?? null,
+  }
+}

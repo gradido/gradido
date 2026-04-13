@@ -142,7 +142,7 @@ export class TransactionDraft {
     draft.createdAt = createdAtOnlySeconds.toISOString()
     draft.amount = transactionLink.amount.toString()
     draft.memo = transactionLink.memo
-    draft.timeoutDuration = CODE_VALID_DAYS_DURATION * 24 * 60 * 60
+    draft.timeoutDuration = Number(CODE_VALID_DAYS_DURATION * 24n * 60n * 60n)
     return draft
   }
 

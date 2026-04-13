@@ -40,7 +40,7 @@ export class ContributionLinkResolver {
     isStartEndDateValid(validFrom, validTo)
 
     const dbContributionLink = new DbContributionLink()
-    dbContributionLink.amount = amount
+    dbContributionLink.amount = amount.toDecimal()
     dbContributionLink.name = name
     dbContributionLink.memo = memo
     dbContributionLink.createdAt = new Date()
@@ -52,10 +52,14 @@ export class ContributionLinkResolver {
     if (validTo) {
       dbContributionLink.validTo = new Date(validTo)
     }
-    dbContributionLink.maxAmountPerMonth = maxAmountPerMonth
+    dbContributionLink.maxAmountPerMonth = maxAmountPerMonth?.toDecimal() || null
     dbContributionLink.maxPerCycle = maxPerCycle
     await dbContributionLink.save()
-    await EVENT_ADMIN_CONTRIBUTION_LINK_CREATE(getUser(context), dbContributionLink, amount)
+    await EVENT_ADMIN_CONTRIBUTION_LINK_CREATE(
+      getUser(context),
+      dbContributionLink,
+      amount.toDecimal(),
+    )
 
     return new ContributionLink(dbContributionLink)
   }
@@ -115,7 +119,7 @@ export class ContributionLinkResolver {
     if (!dbContributionLink) {
       throw new LogError('Contribution Link not found', id)
     }
-    dbContributionLink.amount = amount
+    dbContributionLink.amount = amount.toDecimal()
     dbContributionLink.name = name
     dbContributionLink.memo = memo
     dbContributionLink.cycle = cycle
@@ -125,10 +129,14 @@ export class ContributionLinkResolver {
     if (validTo) {
       dbContributionLink.validTo = new Date(validTo)
     }
-    dbContributionLink.maxAmountPerMonth = maxAmountPerMonth
+    dbContributionLink.maxAmountPerMonth = maxAmountPerMonth?.toDecimal() || null
     dbContributionLink.maxPerCycle = maxPerCycle
     await dbContributionLink.save()
-    await EVENT_ADMIN_CONTRIBUTION_LINK_UPDATE(getUser(context), dbContributionLink, amount)
+    await EVENT_ADMIN_CONTRIBUTION_LINK_UPDATE(
+      getUser(context),
+      dbContributionLink,
+      amount.toDecimal(),
+    )
 
     return new ContributionLink(dbContributionLink)
   }

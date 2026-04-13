@@ -26,6 +26,7 @@ import {
 import { Decimal } from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
 import { getLogger as originalGetLogger } from 'log4js'
+import { GradidoUnit } from 'shared'
 import { Equal } from 'typeorm'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { EventType } from '@/event/Events'
@@ -588,8 +589,8 @@ describe('ContributionResolver', () => {
         it('logs the error "The amount to be created exceeds the amount still available for this month"', () => {
           expect(logger.error).toBeCalledWith(
             'The amount to be created exceeds the amount still available for this month',
-            new Decimal(1019),
-            new Decimal(600),
+            GradidoUnit.fromNumber(1019),
+            GradidoUnit.fromNumber(600),
           )
         })
       })
@@ -1625,8 +1626,8 @@ describe('ContributionResolver', () => {
               it('logs the error "The amount to be created exceeds the amount still available for this month"', () => {
                 expect(logger.error).toBeCalledWith(
                   'The amount to be created exceeds the amount still available for this month',
-                  new Decimal(2000),
-                  new Decimal(790),
+                  GradidoUnit.fromNumber(2000),
+                  GradidoUnit.fromNumber(790),
                 )
               })
             })
@@ -1639,7 +1640,7 @@ describe('ContributionResolver', () => {
                 ).resolves.toEqual(
                   expect.objectContaining({
                     data: {
-                      adminCreateContribution: ['1000', '1000', '590'],
+                      adminCreateContribution: ['1000.0000', '1000.0000', '590.0000'],
                     },
                   }),
                 )
@@ -1721,8 +1722,8 @@ describe('ContributionResolver', () => {
               it('logs the error "The amount to be created exceeds the amount still available for this month"', () => {
                 expect(logger.error).toBeCalledWith(
                   'The amount to be created exceeds the amount still available for this month',
-                  new Decimal(1000),
-                  new Decimal(590),
+                  GradidoUnit.fromNumber(1000),
+                  GradidoUnit.fromNumber(590),
                 )
               })
             })
@@ -1791,8 +1792,8 @@ describe('ContributionResolver', () => {
             it('logs the error "The amount to be created exceeds the amount still available for this month"', () => {
               expect(logger.error).toBeCalledWith(
                 'The amount to be created exceeds the amount still available for this month',
-                new Decimal(1900),
-                new Decimal(1000),
+                GradidoUnit.fromNumber(1900),
+                GradidoUnit.fromNumber(1000),
               )
             })
           })

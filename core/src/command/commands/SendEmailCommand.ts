@@ -1,6 +1,6 @@
 import { findUserByUuids } from 'database'
-import Decimal from 'decimal.js-light'
 import { getLogger } from 'log4js'
+import { GradidoUnit } from 'shared'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../../config/const'
 import { sendTransactionReceivedEmail } from '../../emails/sendEmailVariants'
 import { BaseCommand } from '../BaseCommand'
@@ -95,7 +95,7 @@ export class SendEmailCommand extends BaseCommand<
       senderLastName: senderUser.lastName,
       senderEmail: senderUser.emailId !== null ? senderUser.emailContact.email : null,
       memo: this.sendEmailCommandParams.memo || '',
-      transactionAmount: new Decimal(this.sendEmailCommandParams.amount || 0).abs(),
+      transactionAmount: GradidoUnit.fromString(this.sendEmailCommandParams.amount || '0').abs(),
     }
     methodLogger.debug(`emailParams=${JSON.stringify(emailParams)}`)
     switch (this.sendEmailCommandParams.mailType) {

@@ -10,7 +10,6 @@ function reverseLegacyDecay(result: Decimal, seconds: number): Decimal {
   return result.div(DECAY_FACTOR.pow(seconds).toString())
 }
 
-
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   /**
    * Migration: Correct historical inconsistencies in transactions, users, and contribution_links.

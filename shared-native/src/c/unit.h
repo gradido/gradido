@@ -13,7 +13,36 @@ typedef int64_t grdd_unit;
 typedef int64_t grdd_timestamp_seconds;
 typedef int64_t grdd_duration_seconds;
 
-grdd_unit grdd_unit_round_to_precision(grdd_unit value, uint8_t precision);
+
+ /**
+ * @brief Rounds a fixed-point grdd_unit value to a specified decimal precision.
+ *
+ * This function performs deterministic HALF-UP rounding using integer arithmetic.
+ * The input value is assumed to use a fixed scale of 4 decimal places.
+ *
+ * Rounding is applied by reducing the number of fractional digits to the
+ * requested precision (0–4). Values are rounded away from zero at the midpoint.
+ *
+ * The implementation avoids floating-point arithmetic entirely, ensuring
+ * reproducible and platform-independent results, which is essential for
+ * financial or consensus-critical calculations.
+ *
+ * @param[in]  value
+ *   The input value in fixed-point representation (scaled by 10^4).
+ *
+ * @param[in]  precision
+ *   Target number of decimal places (0–3). 4 will return the value as is and > 4 will return false.
+ *
+ * @param[out] result
+ *   Pointer to store the rounded result. Must not be NULL.
+ *
+ * @return
+ *   true  - rounding succeeded
+ *   false - result pointer is NULL, precision out of range, or result would overflow int64_t
+ *           (< -922337203685476 or > 922337203685476)
+ */
+bool grdd_unit_round_to_precision(grdd_unit value, uint8_t precision, grdd_unit* result);
+
 grdd_unit grdd_unit_from_decimal(double gdd);
 double grdd_unit_to_decimal(grdd_unit u);
 
@@ -63,41 +92,38 @@ grdd_timestamp_seconds grdd_unit_get_decay_start_time();
 bool grdd_unit_calculate_duration_seconds(grdd_timestamp_seconds startTime, grdd_timestamp_seconds endTime, grdd_duration_seconds* outSeconds);
 
 /**
- * @brief Converts a fixed-point grdd_unit value into a decimal string.
+ * @brief Converts a fixed-point grdd_unit value to its string representation.
  *
- * The value is interpreted as a fixed-point number with 4 decimal places
- * (scaled by 10,000). The output is formatted according to the requested
- * precision, using HALF-UP rounding via grdd_unit_round_to_precision().
+ * This function formats a grdd_unit value (scaled by 10^4) into a human-readable
+ * decimal string with the specified precision (0–4 fractional digits).
  *
- * No floating-point arithmetic is used, ensuring deterministic and
- * platform-independent results.
+ * The value is first rounded using HALF-UP rounding to the requested precision.
+ * If the requested precision is greater than 4, it is clamped to 4.
+ *
+ * The resulting string:
+ * - Includes a leading '-' sign for negative values
+ * - Uses a '.' as decimal separator if precision > 0
+ * - Omits the fractional part entirely if precision == 0
+ *
+ * The conversion is performed using integer arithmetic only, ensuring
+ * deterministic and platform-independent results.
  *
  * @param[in]  u
- *   The input value in fixed-point representation (GDD cents).
+ *   The input value in fixed-point representation (scaled by 10^4).
  *
  * @param[out] buffer
- *   Output buffer that will receive the null-terminated string.
- *
- * @param[in]  bufferSize
- *   Size of the output buffer in bytes, including space for the null terminator.
+ *   Destination buffer to store the resulting null-terminated string.
+ *   The caller must ensure that the buffer is large enough. Maximal possible size should be 22 characters.
  *
  * @param[in]  precision
- *   Number of digits after the decimal point (0–4).
- *   Values greater than 4 will be clamped to 4.
+ *   Number of digits after the decimal point (0–4). Values greater than 4
+ *   are clamped to 4.
  *
  * @return
- *    0 - success
- *   -1 - invalid buffer or encoding error
- *   -2 - snprintf error
- *   >0 - error or insufficient buffer size:
- *        n>0 -> required buffer size (excluding null terminator) if buffer is too small
- *
- * @note
- *   The function uses snprintf(), which returns the number of characters that
- *   would have been written (excluding the null terminator). If this value is
- *   greater than or equal to bufferSize, the output was truncated.
+ *   >= 0 - number of characters written (excluding null terminator)
+ *   -1   - rounding failed (e.g. due to overflow)
  */
-int grdd_unit_to_string(grdd_unit u, char* buffer, size_t bufferSize, uint8_t precision);
+int grdd_unit_to_string(grdd_unit u, char* buffer, uint8_t precision);
 
 grdd_unit grdd_unit_calculate_decay(grdd_unit u, grdd_duration_seconds duration);
 

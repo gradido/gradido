@@ -65,22 +65,40 @@ namespace gradidoUnit {
         if (info.Length() > 1) {
             precision = info[1].As<Napi::Number>().Uint32Value();
         }
-        // biggest string: -922337203685476.9999 (21 chars + null terminator = 22)
+        if (precision > 4) {
+            Napi::TypeError::New(info.Env(), "Precision must be between 0 and 4").ThrowAsJavaScriptException();
+            return info.Env().Null();
+        }
+        // biggest string: -922337203685477.5807 (21 chars + null terminator = 22)
         char str[22];
-        int result = grdd_unit_to_string(unit, str, sizeof(str), precision);
-        if (-1 == result) {
-            Napi::TypeError::New(info.Env(), "Invalid buffer or encoding error").ThrowAsJavaScriptException();
+        int written = grdd_unit_to_string(unit, str, precision);
+        if (-1 == written) {
+            Napi::TypeError::New(info.Env(), "Rounding failed (overflow)").ThrowAsJavaScriptException();
             return info.Env().Null();
         }
-        if (-2 == result) {
-            Napi::TypeError::New(info.Env(), "snprintf error").ThrowAsJavaScriptException();
-            return info.Env().Null();
+        return Napi::String::New(info.Env(), str, written);
+    }
+
+    Napi::Value ToDecimalPlaces(const Napi::CallbackInfo& info) {
+        Napi::Env env = info.Env();
+        if (info.Length() < 2) {
+            Napi::TypeError::New(env, "Expected two arguments: unit and places").ThrowAsJavaScriptException();
+            return env.Null();
         }
-        if (result > 0) {
-            Napi::TypeError::New(info.Env(), "Failed to convert unit to string: buffer size is too small").ThrowAsJavaScriptException();
-            return info.Env().Null();
+        
+        bool lossless = false;
+        grdd_unit unit = info[0].As<Napi::BigInt>().Int64Value(&lossless);
+        if (!lossless) {
+            Napi::TypeError::New(env, "BigInt value is too large to fit in grdd_unit").ThrowAsJavaScriptException();
+            return env.Null();
         }
-        return Napi::String::New(info.Env(), str);
+        int places = info[1].As<Napi::Number>().Int32Value();
+        grdd_unit rounded = 0;
+        if(!grdd_unit_round_to_precision(unit, places, &rounded)) {
+            Napi::TypeError::New(env, "Rounding failed (overflow)").ThrowAsJavaScriptException();
+            return env.Null();
+        }
+        return Napi::BigInt::New(env, rounded);
     }
 
 }
@@ -89,8 +107,9 @@ namespace gradidoUnit {
 Napi::Object Init(Napi::Env env, Napi::Object exports) {
     exports.Set("calculateDecay", Napi::Function::New(env, gradidoUnit::CalculateDecay));
     exports.Set("getDecayStartTime", Napi::Function::New(env, gradidoUnit::GetDecayStartTime));
-    exports.Set("fromString", Napi::Function::New(env, gradidoUnit::FromString));
-    exports.Set("toString", Napi::Function::New(env, gradidoUnit::ToString));
+    exports.Set("gradidoUnitFromString", Napi::Function::New(env, gradidoUnit::FromString));
+    exports.Set("gradidoUnitToString", Napi::Function::New(env, gradidoUnit::ToString));
+    exports.Set("toDecimalPlaces", Napi::Function::New(env, gradidoUnit::ToDecimalPlaces));
     return exports;
 }
 

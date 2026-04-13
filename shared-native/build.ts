@@ -17,14 +17,43 @@ const DOWNLOAD_DIR = path.join(os.homedir(), '.zig-build')
 const NODE_DIR = path.join(DOWNLOAD_DIR, 'node')
 const ZIG_DIR = path.join(DOWNLOAD_DIR, 'zig', ZIG_VERSION)
 
+// copied from dlt connector
+// TODO: move into shared after all modules use the same typescript version
+function isFileExist(filePath: string): boolean {
+  try {
+    fs.accessSync(filePath, fs.constants.R_OK | fs.constants.W_OK)
+    return true
+  } catch (_err) {
+    return false
+  }
+}
+
+// copied from dlt connector
+// TODO: move into shared after all modules use the same typescript version
+function isPathExist(path: string, createIfMissing: boolean = false): boolean {
+  const exists = isFileExist(path)
+  if (exists) {
+    return true
+  }
+  if (createIfMissing) {
+    fs.mkdirSync(path, { recursive: true })
+    if (!isPathExist(path)) {
+      throw new Error(`Failed to create path ${path}`)
+    }
+  }
+  return false
+}
+
 async function fetchNodeHeaders(version?: string): Promise<void> {
   version ??= process.versions.node
   const vversion = `v${version}`
 
   const headersDir = path.join(NODE_DIR, vversion)
   const includePath = path.join(headersDir, 'include', 'node')
+  if (isPathExist(includePath, true)) {
+    return Promise.resolve()
+  }
   const installedIncludePath = headers.include_dir
-  fs.mkdirSync(includePath, { recursive: true })
 
   // copy from installedIncludePath to includePath
   fs.cpSync(installedIncludePath, includePath, { recursive: true })
@@ -45,15 +74,6 @@ const ZIGS: Partial<Record<NodeJS.Platform, Partial<Record<string, string>>>> = 
   },
 }
 
-function checkFileExist(filePath: string): boolean {
-  try {
-    fs.accessSync(filePath, fs.constants.R_OK | fs.constants.W_OK)
-    return true
-  } catch (_err) {
-    return false
-  }
-}
-
 export async function fetchZig(): Promise<void> {
   const platform = os.platform()
   const arch = os.arch()
@@ -61,8 +81,8 @@ export async function fetchZig(): Promise<void> {
   const binary = platform === 'win32' ? 'zig.exe' : 'zig'
   const binaryPath = path.join(ZIG_DIR, binary)
 
-  if (checkFileExist(binaryPath)) {
-    return
+  if (isFileExist(binaryPath)) {
+    return Promise.resolve()
   }
   // biome-ignore lint/suspicious/noConsole: no logging in build.ts
   console.log('Fetching Zig...')
@@ -163,7 +183,7 @@ async function main() {
       c_core: {
         ...commonConfigs,
         output: 'build/libcore.a',
-        sources: ['src/c/unit.c'],
+        sources: ['src/c/unit.c', 'src/c/utils.c'],
         type: 'static',
         cflags: ['-g0', '-s', '-c'],
       } as Target,

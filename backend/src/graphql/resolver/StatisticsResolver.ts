@@ -1,7 +1,7 @@
 import { CommunityStatistics, DynamicStatisticsFields } from '@model/CommunityStatistics'
 import { AppDatabase, Transaction as DbTransaction, User as DbUser } from 'database'
 import { Decimal } from 'decimal.js-light'
-import { calculateDecay } from 'shared'
+import { GradidoUnit } from 'shared'
 import { Authorized, FieldResolver, Query, Resolver } from 'type-graphql'
 import { RIGHTS } from '@/auth/RIGHTS'
 
@@ -66,8 +66,8 @@ export class StatisticsResolver {
 
   @FieldResolver()
   async dynamicStatisticsFields(): Promise<DynamicStatisticsFields> {
-    let totalGradidoAvailable: Decimal = new Decimal(0)
-    let totalGradidoUnbookedDecayed: Decimal = new Decimal(0)
+    let totalGradidoAvailable: GradidoUnit = new GradidoUnit(0n)
+    let totalGradidoUnbookedDecayed: GradidoUnit = new GradidoUnit(0n)
 
     const receivedCallDate = new Date()
 
@@ -90,10 +90,11 @@ export class StatisticsResolver {
       const activeUsers = lastUserTransactions.length
 
       lastUserTransactions.forEach(({ balance, balanceDate }) => {
-        const decay = calculateDecay(new Decimal(balance), new Date(balanceDate), receivedCallDate)
+        const balanceGradidoUnit = GradidoUnit.fromNumber(balance)
+        const decay = balanceGradidoUnit.calculateDecay(new Date(balanceDate), receivedCallDate)
         if (decay) {
-          totalGradidoAvailable = totalGradidoAvailable.plus(decay.balance.toString())
-          totalGradidoUnbookedDecayed = totalGradidoUnbookedDecayed.plus(decay.decay.toString())
+          totalGradidoAvailable = totalGradidoAvailable.add(decay.balance)
+          totalGradidoUnbookedDecayed = totalGradidoUnbookedDecayed.add(decay.decay)
         }
       })
 

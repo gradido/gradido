@@ -3,7 +3,7 @@ import gql from 'graphql-tag'
 export const adminUpdateContribution = gql`
   mutation (
     $id: Int!
-    $amount: Decimal
+    $amount: GradidoUnit
     $memo: String
     $creationDate: String
     $resubmissionAt: String

@@ -1,4 +1,4 @@
-import { Decimal } from 'decimal.js-light'
+import { GradidoUnit } from 'shared'
 import { Field, Int, ObjectType } from 'type-graphql'
 
 @ObjectType()
@@ -6,11 +6,11 @@ export class DynamicStatisticsFields {
   @Field(() => Int)
   activeUsers: number
 
-  @Field(() => Decimal)
-  totalGradidoAvailable: Decimal
+  @Field(() => GradidoUnit)
+  totalGradidoAvailable: GradidoUnit
 
-  @Field(() => Decimal)
-  totalGradidoUnbookedDecayed: Decimal
+  @Field(() => GradidoUnit)
+  totalGradidoUnbookedDecayed: GradidoUnit
 }
 
 @ObjectType()
@@ -24,11 +24,11 @@ export class CommunityStatistics {
   @Field(() => Int)
   deletedUsers: number
 
-  @Field(() => Decimal)
-  totalGradidoCreated: Decimal
+  @Field(() => GradidoUnit)
+  totalGradidoCreated: GradidoUnit
 
-  @Field(() => Decimal)
-  totalGradidoDecayed: Decimal
+  @Field(() => GradidoUnit)
+  totalGradidoDecayed: GradidoUnit
 
   // be carefull querying this, takes longer than 2 secs.
   @Field(() => DynamicStatisticsFields)

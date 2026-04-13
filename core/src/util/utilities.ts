@@ -1,4 +1,5 @@
 import { Decimal } from 'decimal.js-light'
+import { GradidoUnit } from 'shared'
 import { promisify } from 'util'
 import { i18n } from '../locales/localization'
 
@@ -7,10 +8,15 @@ export { fullName } from 'shared'
 export const objectValuesToArray = (obj: Record<string, string>): string[] =>
   Object.keys(obj).map((key) => obj[key])
 
-export const decimalSeparatorByLanguage = (a: Decimal, language: string): string => {
+export const decimalSeparatorByLanguage = (a: Decimal | GradidoUnit, language: string): string => {
   const rememberLocaleToRestore = i18n.getLocale()
   i18n.setLocale(language)
-  const result = a.toFixed(2).replace('.', i18n.__('general.decimalSeparator'))
+  let result: string = ''
+  if (a instanceof Decimal) {
+    result = a.toFixed(2).replace('.', i18n.__('general.decimalSeparator'))
+  } else {
+    result = a.toString(2).replace('.', i18n.__('general.decimalSeparator'))
+  }
   i18n.setLocale(rememberLocaleToRestore)
   return result
 }

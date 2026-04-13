@@ -11,6 +11,7 @@ import { getLogger } from 'log4js'
 import {
   DecayCalculationType,
   encryptAndSign,
+  GradidoUnit,
   PendingTransactionState,
   SendCoinsJwtPayloadType,
   SendCoinsResponseJwtPayloadType,
@@ -98,14 +99,14 @@ export class SendCoinsResolver {
       const txDate = new Date(authArgs.creationDate)
       const receiveBalance = await calculateRecipientBalance(
         receiverUser.id,
-        authArgs.amount,
+        GradidoUnit.fromDecimal(authArgs.amount),
         txDate,
       )
       const pendingTx = DbPendingTransaction.create()
       pendingTx.amount = authArgs.amount
-      pendingTx.balance = receiveBalance ? receiveBalance.balance : authArgs.amount
+      pendingTx.balance = receiveBalance ? receiveBalance.balance.toDecimal() : authArgs.amount
       pendingTx.balanceDate = txDate
-      pendingTx.decay = receiveBalance ? receiveBalance.decay.decay : new Decimal(0)
+      pendingTx.decay = receiveBalance ? receiveBalance.decay.decay.toDecimal() : new Decimal(0)
       pendingTx.decayStart = receiveBalance ? receiveBalance.decay.start : null
       pendingTx.decayCalculationType = DecayCalculationType.NATIVE_C_DYNAMIC_FACTOR
       pendingTx.creationDate = new Date()

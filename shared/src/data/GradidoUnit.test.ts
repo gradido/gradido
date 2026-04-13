@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'bun:test'
-import { GradidoUnit } from './GradidoUnit'
+import Decimal from 'decimal.js-light'
 import { calculateDecay as calculateDecayNative } from 'shared-native'
+import { GradidoUnit } from './GradidoUnit'
 
 describe('GradidoUnit', () => {
   it('adds properly', () => {
@@ -39,7 +40,9 @@ describe('GradidoUnit', () => {
     const gdd = new GradidoUnit(10000n)
     const from = new Date('2022-01-02')
     const to = new Date('2022-01-01')
-    expect(() => gdd.calculateDecay(from, to)).toThrow('effectiveDecayDuration: to < from, reverse decay calculation is invalid')
+    expect(() => gdd.calculateDecay(from, to)).toThrow(
+      'effectiveDecayDuration: to < from, reverse decay calculation is invalid',
+    )
   })
 
   it('decayed', () => {
@@ -83,13 +86,61 @@ describe('GradidoUnit', () => {
       const gdd = new GradidoUnit(12345n)
       expect(gdd.toString(0)).toBe('1')
     })
-    it('with 5 places after comma (auto capped to 4)', () => {
+    it('with 5 places after comma (throws error)', () => {
       const gdd = new GradidoUnit(12345n)
-      expect(gdd.toString(5)).toBe('1.2345')
+      expect(() => gdd.toString(5)).toThrow('Precision must be between 0 and 4')
     })
     it('big, but valid number with 3 places after comma', () => {
       const gdd = new GradidoUnit(156789012345n)
       expect(gdd.toString(3)).toBe('15678901.235')
+    })
+  })
+  describe('performance compared with DecimalJs', () => {
+    it('GradidoUnit.fromString 10k', () => {
+      for (let i = 0; i < 10000; i++) {
+        GradidoUnit.fromString('1.2345')
+      }
+    })
+    it('Decimal.js fromString 10k', () => {
+      for (let i = 0; i < 10000; i++) {
+        new Decimal('1.2345')
+      }
+    })
+    it('GradidoUnit.toString 10k', () => {
+      const gdd = new GradidoUnit(12345n)
+      for (let i = 0; i < 10000; i++) {
+        gdd.toString()
+      }
+    })
+    it('Decimal.js toString 10k', () => {
+      const d = new Decimal('1.2345')
+      for (let i = 0; i < 10000; i++) {
+        d.toString()
+      }
+    })
+    it('GradidoUnit.toString 10k without after comma', () => {
+      const gdd = new GradidoUnit(12345n)
+      for (let i = 0; i < 10000; i++) {
+        gdd.toString(0)
+      }
+    })
+    it('Decimal.js toString 10k without after comma', () => {
+      const d = new Decimal('1.2345')
+      for (let i = 0; i < 10000; i++) {
+        d.toDecimalPlaces(0).toString()
+      }
+    })
+    it('GradidoUnit.toString 10k big number', () => {
+      const gdd = new GradidoUnit(156789012345n)
+      for (let i = 0; i < 10000; i++) {
+        gdd.toString()
+      }
+    })
+    it('Decimal.js toString 10k big number', () => {
+      const d = new Decimal('15678901.2345')
+      for (let i = 0; i < 10000; i++) {
+        d.toString()
+      }
     })
   })
   describe('legacy decay tests', () => {
@@ -113,13 +164,13 @@ describe('GradidoUnit', () => {
 
     it("has correct backward calculation 1'000 GDD, 1 minute", () => {
       const amount = GradidoUnit.fromNumber(1000.0)
-      const seconds = -(60n)
+      const seconds = -60n
       expect(calculateDecayNative(amount.gddCent, seconds)).toBe(10000013n)
     })
 
     it("has correct backward calculation 10'000 GDD, 1 second", () => {
       const amount = GradidoUnit.fromNumber(10000.0)
-      const seconds = -(1n)
+      const seconds = -1n
       expect(calculateDecayNative(amount.gddCent, seconds)).toBe(100000002n)
     })
 

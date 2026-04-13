@@ -12,4 +12,8 @@ export class Duration {
   get seconds(): bigint {
     return this._seconds
   }
+
+  toString(): string {
+    return this._seconds.toString()
+  }
 }

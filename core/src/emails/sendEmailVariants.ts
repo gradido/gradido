@@ -1,8 +1,7 @@
 import { Decimal } from 'decimal.js-light'
-
+import { GradidoUnit } from 'shared'
 import { CONFIG } from '../config'
 import { decimalSeparatorByLanguage } from '../util/utilities'
-
 import { sendEmailTranslated } from './sendEmailTranslated'
 
 export interface EmailCommonData {
@@ -157,7 +156,7 @@ export const sendTransactionLinkRedeemedEmail = (
     senderLastName: string
     senderEmail: string
     transactionMemo: string
-    transactionAmount: Decimal
+    transactionAmount: GradidoUnit
   },
 ): Promise<Record<string, unknown> | boolean | null | Error> => {
   return sendEmailTranslated({
@@ -177,7 +176,7 @@ export const sendTransactionReceivedEmail = (
     senderLastName: string
     senderEmail: string | null
     memo: string
-    transactionAmount: Decimal
+    transactionAmount: GradidoUnit
   },
 ): Promise<Record<string, unknown> | boolean | null | Error> => {
   return sendEmailTranslated({

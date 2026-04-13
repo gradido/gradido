@@ -1,19 +1,17 @@
 import { Balance } from '@model/Balance'
-import { DecayLoggingView } from 'core'
 import {
   Transaction as dbTransaction,
   TransactionLink as dbTransactionLink,
   getLastTransaction,
 } from 'database'
-import { Decimal } from 'decimal.js-light'
 import { getLogger } from 'log4js'
-import { calculateDecay } from 'shared'
+import { GradidoUnit } from 'shared'
 import { Authorized, Ctx, Query, Resolver } from 'type-graphql'
 import { IsNull } from 'typeorm'
 import { RIGHTS } from '@/auth/RIGHTS'
-
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { BalanceLoggingView } from '@/logging/BalanceLogging.view'
+import { DecayLoggingView } from '@/logging/DecayLogging.view'
 import { Context, getUser } from '@/server/context'
 import { GdtResolver } from './GdtResolver'
 import { transactionLinkSummary } from './util/transactionLinkSummary'
@@ -50,7 +48,7 @@ export class BalanceResolver {
     if (!lastTransaction) {
       logger.info(`no balance found, return Default-Balance!`)
       return new Balance({
-        balance: new Decimal(0),
+        balance: new GradidoUnit(0n),
         balanceGDT,
         count: 0,
         linkCount: 0,
@@ -73,12 +71,9 @@ export class BalanceResolver {
     })
     logger.debug(`linkCount=${linkCount}`)
 
+    const lastTxBalance = GradidoUnit.fromDecimal(lastTransaction.balance)
     // The decay is always calculated on the last booked transaction
-    const calculatedDecay = calculateDecay(
-      lastTransaction.balance,
-      lastTransaction.balanceDate,
-      now,
-    )
+    const calculatedDecay = lastTxBalance.calculateDecay(lastTransaction.balanceDate, now)
     logger.info(
       'calculatedDecay',
       lastTransaction.balance.toString(),
@@ -94,14 +89,12 @@ export class BalanceResolver {
     logger.debug(`context.sumHoldAvailableAmount=${context.sumHoldAvailableAmount}`)
     logger.debug(`sumHoldAvailableAmount=${sumHoldAvailableAmount}`)
 
-    const balance = calculatedDecay.balance
-      .minus(sumHoldAvailableAmount.toString())
-      .toDecimalPlaces(2, Decimal.ROUND_DOWN) // round towards zero
+    const balance = calculatedDecay.balance.subtract(sumHoldAvailableAmount).toDecimalPlaces(4)
 
     // const newBalance = new Balance({
     //      balance: calculatedDecay.balance
     //        .minus(sumHoldAvailableAmount.toString())
-    //        .toDecimalPlaces(2, Decimal.ROUND_DOWN),
+    //        .toDecimalPlaces(4, Decimal.ROUND_DOWN),
     const newBalance = new Balance({
       balance,
       balanceGDT,
