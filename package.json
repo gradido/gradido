@@ -17,7 +17,8 @@
     "dht-node",
     "federation",
     "frontend",
-    "shared"
+    "shared",
+    "shared-native"
   ],
   "scripts": {
     "release": "bumpp -r",

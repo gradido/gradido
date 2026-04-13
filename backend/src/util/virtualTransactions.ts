@@ -3,7 +3,7 @@ import { User } from '@model/User'
 import { TransactionTypeId } from 'core'
 import { Transaction as dbTransaction } from 'database'
 import { Decimal } from 'decimal.js-light'
-import { calculateDecay } from 'shared'
+import { calculateDecay, DecayCalculationType } from 'shared'
 import { RemoveOptions, SaveOptions } from 'typeorm'
 
 const defaultModelFunctions = {
@@ -47,6 +47,7 @@ const virtualLinkTransaction = (
     balanceDate: validUntil,
     decayStart: createdAt,
     decay: decay.toDecimalPlaces(2, Decimal.ROUND_FLOOR),
+    decayCalculationType: DecayCalculationType.NATIVE_C_DYNAMIC_FACTOR,
     memo: '',
     creationDate: null,
     contribution: null,
@@ -83,6 +84,7 @@ const virtualDecayTransaction = (
     balanceDate: time,
     decay: decay.decay ? decay.roundedDecay : new Decimal(0),
     decayStart: decay.start,
+    decayCalculationType: DecayCalculationType.NATIVE_C_DYNAMIC_FACTOR,
     memo: '',
     creationDate: null,
     contribution: null,

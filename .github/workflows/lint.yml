@@ -8,6 +8,7 @@ jobs:
     outputs:
       config-schema: ${{ steps.config-schema.outputs.success }}
       shared: ${{ steps.shared.outputs.success }}
+      shared-native: ${{ steps.shared-native.outputs.success }}
       core: ${{ steps.core.outputs.success }}
       backend: ${{ steps.backend.outputs.success }}
       database: ${{ steps.database.outputs.success }}
@@ -32,6 +33,12 @@ jobs:
         id: shared
         run: |
           cd ./shared 
+          biome ci .
+          echo "success=$([ $? -eq 0 ] && echo true || echo false)" >> $GITHUB_OUTPUT
+      - name: Lint - Shared-Native
+        id: shared-native
+        run: |
+          cd ./shared-native 
           biome ci .
           echo "success=$([ $? -eq 0 ] && echo true || echo false)" >> $GITHUB_OUTPUT
       - name: Lint - Core
