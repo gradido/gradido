@@ -1,15 +1,11 @@
 import { Decimal } from 'decimal.js-light'
-
-import { CONFIG } from '../config'
-import { decimalSeparatorByLanguage } from '../util/utilities'
-
-import { sendEmailTranslated } from './sendEmailTranslated'
 import { getLogger } from 'log4js'
+import { CONFIG } from '../config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../config/const'
+import { decimalSeparatorByLanguage } from '../util/utilities'
+import { sendEmailTranslated } from './sendEmailTranslated'
 
-const createLogger = () =>
-  getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.emails.sendEmailVariants`)
-
+const createLogger = () => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.emails.sendEmailVariants`)
 
 export interface EmailCommonData {
   firstName: string

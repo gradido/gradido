@@ -388,9 +388,10 @@ watch(
 )
 
 function onSubmit() {
-  console.log('onSubmit() radioSelected=' + radioSelected.value + ', form=' + JSON.stringify(form))
+  // console.log('onSubmit() radioSelected=' + radioSelected.value + ', form=' + JSON.stringify(form))
   const transformedForm = validationSchema.value.cast(form)
   if (radioSelected.value === SEND_TYPES.email) {
+    /*
     console.log(
       'vor emit send-email: transformedForm=' +
         JSON.stringify(transformedForm) +
@@ -399,6 +400,7 @@ function onSubmit() {
         ', userName.value=' +
         userName.value,
     )
+    */
     emit('send-email', {
       ...transformedForm,
       selected: radioSelected.value,
@@ -413,6 +415,7 @@ function onSubmit() {
       return com.uuid === parts[0] || com.name === parts[0] || com.url === parts[0]
     })
   }
+  /*
   console.log(
     'vor emit set-transaction: transformedForm=' +
       JSON.stringify(transformedForm) +
@@ -421,6 +424,7 @@ function onSubmit() {
       ', userName.value=' +
       userName.value,
   )
+  */
   emit('set-transaction', {
     ...transformedForm,
     selected: radioSelected.value,

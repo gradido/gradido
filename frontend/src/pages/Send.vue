@@ -120,7 +120,7 @@ const { mutate: createTransactionLinkMutation } = useMutation(createTransactionL
 const { mutate: sendEmailMutation } = useMutation(sendEmailMut)
 
 const handleSendTypeChange = (sendType) => {
-  console.log('handleSendTypeChange', sendType)
+  // console.log('handleSendTypeChange', sendType)
   // Update the radioSelected in transactionData
   transactionData.selected = sendType
   // Optionally, you could also update the currentTransactionStep
@@ -130,38 +130,38 @@ const handleSendTypeChange = (sendType) => {
   } else {
     currentTransactionStep.value = TRANSACTION_STEPS.transactionForm
   }
-  console.log('currentTransactionStep', currentTransactionStep.value)
+  // console.log('currentTransactionStep', currentTransactionStep.value)
 }
 
 function setTransaction(data) {
-  console.log('setTransaction', data)
+  // console.log('setTransaction', data)
   Object.assign(transactionData, data)
   switch (data.selected) {
     case SEND_TYPES.send:
-      console.log('data.selected=' + SEND_TYPES.send)
+      // console.log('data.selected=' + SEND_TYPES.send)
       currentTransactionStep.value = TRANSACTION_STEPS.transactionConfirmationSend
       break
     case SEND_TYPES.link:
-      console.log('data.selected=' + SEND_TYPES.link)
+      // console.log('data.selected=' + SEND_TYPES.link)
       currentTransactionStep.value = TRANSACTION_STEPS.transactionConfirmationLink
       break
     case SEND_TYPES.email:
-      console.log('data.selected=' + SEND_TYPES.email)
+      // console.log('data.selected=' + SEND_TYPES.email)
       // currentTransactionStep.value = TRANSACTION_STEPS.sendEmail
       break
     default:
-      console.log('data.selected=default')
+      // console.log('data.selected=default')
       currentTransactionStep.value = TRANSACTION_STEPS.transactionConfirmationSend
       break
   }
-  console.log('currentTransactionStep', currentTransactionStep.value)
+  // console.log('currentTransactionStep', currentTransactionStep.value)
 }
 
 async function sendEmail(data) {
-  console.log('sendEmail', data)
+  // console.log('sendEmail', data)
   // Object.assign(transactionData, data)
   if (data.selected === SEND_TYPES.email) {
-    console.log('data.selected=' + data.selected)
+    // console.log('data.selected=' + data.selected)
     // TODO: Implement email sending logic
     const result = await sendEmailMutation({
       recipientCommunityIdentifier: data.targetCommunity.uuid,
@@ -174,12 +174,12 @@ async function sendEmail(data) {
     } else {
       toastError(t('email-sent-error'))
     }
-    console.log('sendEmail result', result)
+    // console.log('sendEmail result', result)
   }
 }
 
 async function sendTransaction() {
-  console.log('sendTransaction() transactionData=', JSON.stringify(transactionData))
+  // console.log('sendTransaction() transactionData=', JSON.stringify(transactionData))
   loading.value = true
   error.value = false
 
@@ -218,7 +218,7 @@ async function sendTransaction() {
       currentTransactionStep.value = TRANSACTION_STEPS.transactionResultLink
       updateTransactions({})
     } else if (transactionData.selected === SEND_TYPES.email) {
-      console.log('sendTransaction()=email transactionData=' + transactionData)
+      // console.log('sendTransaction()=email transactionData=' + transactionData)
       currentTransactionStep.value = TRANSACTION_STEPS.sendEmailForm
       // throw new Error('Email transaction sending not implemented yet')
     } else {

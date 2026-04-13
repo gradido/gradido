@@ -42,22 +42,26 @@ import { virtualDecayTransaction, virtualLinkTransaction } from '@/util/virtualT
 
 // import { TRANSACTIONS_LOCK } from 'database'
 
+import { SendEmailCommand } from 'core'
 import { getLastTransaction } from 'database'
 import { Redis } from 'ioredis'
 import { getLogger, Logger } from 'log4js'
 import { Mutex } from 'redis-semaphore'
-import { DecayCalculationType } from 'shared'
+import {
+  CommandJwtPayloadType,
+  DecayCalculationType,
+  Ed25519PublicKey,
+  encryptAndSign,
+} from 'shared'
+import { randombytes_random } from 'sodium-native'
 import { redeemDeferredTransferTransaction, transferTransaction } from '@/apis/dltConnector'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { SendEmailArgs } from '../arg/SendEmailArgs'
 import { BalanceResolver } from './BalanceResolver'
 import { GdtResolver } from './GdtResolver'
 import { getCommunityName, isHomeCommunity } from './util/communities'
 import { getTransactionList } from './util/getTransactionList'
 import { transactionLinkSummary } from './util/transactionLinkSummary'
-import { SendEmailArgs } from '../arg/SendEmailArgs'
-import { CommandJwtPayloadType, Ed25519PublicKey, encryptAndSign } from 'shared'
-import { randombytes_random } from 'sodium-native'
-import { SendEmailCommand } from 'core'
 
 const db = AppDatabase.getInstance()
 const createLogger = () =>
@@ -569,21 +573,28 @@ export class TransactionResolver {
         logger.error(errmsg)
         throw new Error(errmsg)
       }
-      
-      const receiverCom = await getCommunityWithFederatedCommunityByIdentifier(recipientCommunityIdentifier)
+
+      const receiverCom = await getCommunityWithFederatedCommunityByIdentifier(
+        recipientCommunityIdentifier,
+      )
       if (receiverCom === null) {
         const errmsg = 'The recipient community was not found' + recipientCommunityIdentifier
         logger.error(errmsg)
         throw new Error(errmsg)
       }
       if (!receiverCom.federatedCommunities || receiverCom.federatedCommunities.length === 0) {
-        const errmsg = 'The recipient community has no federated communities' + recipientCommunityIdentifier
+        const errmsg =
+          'The recipient community has no federated communities' + recipientCommunityIdentifier
         logger.error(errmsg)
         throw new Error(errmsg)
       }
-      const receiverFCom = receiverCom.federatedCommunities.find(fcom => fcom.apiVersion === ApiVersionType.V1_0)
+      const receiverFCom = receiverCom.federatedCommunities.find(
+        (fcom) => fcom.apiVersion === ApiVersionType.V1_0,
+      )
       if (!receiverFCom) {
-        const errmsg = 'The federated community of the recipient community was not found ' + recipientCommunityIdentifier
+        const errmsg =
+          'The federated community of the recipient community was not found ' +
+          recipientCommunityIdentifier
         logger.error(errmsg)
         throw new Error(errmsg)
       }
@@ -591,7 +602,7 @@ export class TransactionResolver {
 
       if (cmdClient instanceof V1_0_CommandClient) {
         const handshakeID = randombytes_random().toString()
-        
+
         const payload = new CommandJwtPayloadType(
           handshakeID,
           SendEmailCommand.SEND_MAIL_COMMAND,
@@ -604,7 +615,7 @@ export class TransactionResolver {
               receiverComUuid: recipientCommunityIdentifier,
               receiverGradidoId: recipientIdentifier,
               subject: subject,
-              memo: memo
+              memo: memo,
             }),
           ],
         )
