@@ -54,7 +54,7 @@ WORKDIR ${DOCKER_WORKDIR}
 ##################################################################################
 FROM base as bun-base
 
-RUN apt update && apt install -y --no-install-recommends ca-certificates curl bash unzip
+RUN apt update && apt install -y --no-install-recommends ca-certificates curl bash unzip xz-utils
 COPY .bun-version .bun-version
 RUN BUN_VERSION=$(cat .bun-version) && \
   curl -fsSL https://bun.com/install | bash -s "bun-v${BUN_VERSION}"
@@ -115,6 +115,9 @@ COPY --chown=app:app --from=build ${DOCKER_WORKDIR}/federation/build/index.js ./
 
 # add node_modules from production_node_modules
 COPY --chown=app:app --from=production-node-modules ${DOCKER_WORKDIR}/node_modules ./node_modules
+COPY --chown=app:app --from=build ${DOCKER_WORKDIR}/shared-native/build/shared_native.node ./node_modules/shared-native/build/
+COPY --chown=app:app --from=build ${DOCKER_WORKDIR}/shared-native/index.cjs ./node_modules/shared-native/
+COPY --chown=app:app --from=build ${DOCKER_WORKDIR}/shared-native/package.json ./node_modules/shared-native/
 
 COPY --chown=app:app --from=build ${DOCKER_WORKDIR}/core/build/templates ./templates
 

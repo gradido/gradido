@@ -40,7 +40,6 @@ export class TransferTransactionRole extends AbstractTransactionRole {
     const recipientKeyPair = await ResolveKeyPair(
       new KeyPairIdentifierLogic(this.transferTransaction.linkedUser),
     )
-
     builder
       .setCreatedAt(this.transferTransaction.createdAt)
       .addMemo(
@@ -50,16 +49,16 @@ export class TransferTransactionRole extends AbstractTransactionRole {
           new AuthenticatedEncryption(recipientKeyPair),
         ),
       )
+      .setSenderCommunity(this.transferTransaction.user.communityId)
+      .setRecipientCommunity(this.transferTransaction.linkedUser.communityId)
       .setTransactionTransfer(
-        new TransferAmount(senderKeyPair.getPublicKey(), this.transferTransaction.amount),
+        new TransferAmount(
+          senderKeyPair.getPublicKey(),
+          this.transferTransaction.amount,
+          this.transferTransaction.user.communityId,
+        ),
         recipientKeyPair.getPublicKey(),
       )
-    const senderCommunity = this.transferTransaction.user.communityTopicId
-    const recipientCommunity = this.transferTransaction.linkedUser.communityTopicId
-    if (senderCommunity !== recipientCommunity) {
-      // we have a cross group transaction
-      builder.setSenderCommunity(senderCommunity).setRecipientCommunity(recipientCommunity)
-    }
     builder.sign(senderKeyPair)
     return builder
   }

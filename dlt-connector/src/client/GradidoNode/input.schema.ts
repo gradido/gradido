@@ -1,15 +1,58 @@
 import * as v from 'valibot'
-import { hieroIdSchema, hieroTransactionIdStringSchema } from '../../schemas/typeGuard.schema'
+import { PublicKeySearchType } from '../../data/PublicKeySearchType.enum'
+import { SearchDirection } from '../../data/SearchDirection.enum'
+import { TransactionType } from '../../data/TransactionType.enum'
+import { WireOutputFormat } from '../../data/WireOutputFormat.enum'
+import { dateStringSchema } from '../../schemas/typeConverter.schema'
+import {
+  hex32Schema,
+  hieroTransactionIdStringSchema,
+  uuidv4Schema,
+} from '../../schemas/typeGuard.schema'
 
 export const transactionsRangeSchema = v.object({
   // default value is 1, from first transactions
   fromTransactionId: v.nullish(v.pipe(v.number(), v.minValue(1, 'expect number >= 1')), 1),
   // default value is 100, max 100 transactions
   maxResultCount: v.nullish(v.pipe(v.number(), v.minValue(1, 'expect number >= 1')), 100),
-  topic: hieroIdSchema,
+  communityId: uuidv4Schema,
 })
 
 export type TransactionsRangeInput = v.InferInput<typeof transactionsRangeSchema>
+
+export const PaginationSchema = v.object({
+  size: v.optional(
+    v.pipe(
+      v.number(),
+      v.minValue(0, 'expect number >= 0'),
+      v.maxValue(100, 'expect number <= 100'),
+    ),
+    0,
+  ),
+  page: v.optional(v.pipe(v.number(), v.minValue(0, 'expect number >= 0')), 0),
+})
+
+export const TimepointIntervalSchema = v.object({
+  startDate: dateStringSchema,
+  endDate: dateStringSchema,
+})
+
+export const blockchainFilterSchema = v.object({
+  searchDirection: v.optional(v.enum(SearchDirection), SearchDirection.DESC),
+  transactionType: v.optional(v.enum(TransactionType), undefined),
+  publicKeySearchType: v.optional(v.enum(PublicKeySearchType), undefined),
+  format: v.optional(v.enum(WireOutputFormat), WireOutputFormat.Base64),
+  communityId: uuidv4Schema,
+  coinCommunityId: v.optional(uuidv4Schema, undefined),
+  maxTransactionNr: v.optional(v.pipe(v.number(), v.minValue(1, 'expect number >= 1')), undefined),
+  minTransactionNr: v.optional(v.pipe(v.number(), v.minValue(1, 'expect number >= 1')), undefined),
+  publicKey: v.optional(hex32Schema, undefined),
+  pagination: v.optional(PaginationSchema, undefined),
+  timepointInterval: v.optional(TimepointIntervalSchema, undefined),
+})
+
+export type BlockchainFilterInput = v.InferInput<typeof blockchainFilterSchema>
+export type BlockchainFilter = v.InferOutput<typeof blockchainFilterSchema>
 
 // allow TransactionIdentifier to only contain either transactionNr or iotaMessageId
 export const transactionIdentifierSchema = v.pipe(
@@ -19,7 +62,7 @@ export const transactionIdentifierSchema = v.pipe(
       undefined,
     ),
     hieroTransactionId: v.nullish(hieroTransactionIdStringSchema, undefined),
-    topic: hieroIdSchema,
+    communityId: uuidv4Schema,
   }),
   v.custom((value: any) => {
     const setFieldsCount =

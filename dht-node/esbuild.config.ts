@@ -8,7 +8,7 @@ build({
   bundle: true,
   keepNames: true,
   // legalComments: 'inline',
-  external: ['dht-rpc', 'sodium-universal'],
+  external: ['dht-rpc', 'sodium-universal', 'shared-native'],
   minify: true,
   sourcemap: true,
 })

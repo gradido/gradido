@@ -1,14 +1,20 @@
 import { describe, expect, it } from 'bun:test'
-import { InteractionValidate, ValidateType_SINGLE } from 'gradido-blockchain-js'
+import {
+  InMemoryBlockchainProvider,
+  InteractionValidate,
+  ValidateType_SINGLE,
+} from 'gradido-blockchain-js'
 import * as v from 'valibot'
 import { transactionSchema } from '../../schemas/transaction.schema'
 import { hieroIdSchema } from '../../schemas/typeGuard.schema'
 import { RegisterAddressTransactionRole } from './RegisterAddressTransaction.role'
 
 const userUuid = '408780b2-59b3-402a-94be-56a4f4f4e8ec'
+const communityId = '1e88a0f4-d4fc-4cae-a7e8-a88e613ce324'
 const transaction = {
   user: {
     communityTopicId: '0.0.21732',
+    communityId,
     account: {
       userUuid,
       accountNr: 0,
@@ -18,6 +24,8 @@ const transaction = {
   accountType: 'COMMUNITY_HUMAN',
   createdAt: '2022-01-01T00:00:00.000Z',
 }
+// create blockchain in native module
+InMemoryBlockchainProvider.getInstance().getBlockchain(communityId)
 
 describe('RegisterAddressTransaction.role', () => {
   it('get correct prepared builder', async () => {

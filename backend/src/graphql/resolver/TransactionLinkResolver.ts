@@ -43,6 +43,7 @@ import { Mutex } from 'redis-semaphore'
 import {
   calculateDecay,
   compoundInterest,
+  DecayCalculationType,
   DisburseJwtPayloadType,
   decode,
   encode,
@@ -382,6 +383,7 @@ export class TransactionLinkResolver {
           transaction.balanceDate = now
           transaction.decay = decay ? decay.decay : new Decimal(0)
           transaction.decayStart = decay ? decay.start : null
+          transaction.decayCalculationType = DecayCalculationType.NATIVE_C_DYNAMIC_FACTOR
           await queryRunner.manager.insert(DbTransaction, transaction)
 
           contribution.confirmedAt = now

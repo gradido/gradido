@@ -9,7 +9,7 @@ export function checkFileExist(filePath: string): boolean {
     fs.accessSync(filePath, fs.constants.R_OK | fs.constants.W_OK)
     return true
   } catch (_err) {
-    // logger.debug(`file ${filePath} does not exist: ${_err}`)
+    logger.debug(`file ${filePath} does not exist: ${_err}`)
     return false
   }
 }
@@ -27,4 +27,8 @@ export function checkPathExist(path: string, createIfMissing: boolean = false): 
     }
   }
   return false
+}
+
+export function toFolderName(name: string): string {
+  return name.toLowerCase().replace(/[^a-z0-9]/g, '_')
 }

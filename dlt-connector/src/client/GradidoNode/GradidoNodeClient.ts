@@ -8,10 +8,12 @@ import { LOG4JS_BASE_CATEGORY } from '../../config/const'
 import { AddressType } from '../../data/AddressType.enum'
 import { Uuidv4Hash } from '../../data/Uuidv4Hash'
 import { addressTypeSchema, confirmedTransactionSchema } from '../../schemas/typeConverter.schema'
-import { Hex32, Hex32Input, HieroId, hex32Schema } from '../../schemas/typeGuard.schema'
+import { Hex32, Hex32Input, hex32Schema, Uuidv4 } from '../../schemas/typeGuard.schema'
 import { isPortOpenRetry } from '../../utils/network'
 import { GradidoNodeErrorCodes } from './GradidoNodeErrorCodes'
 import {
+  BlockchainFilterInput,
+  blockchainFilterSchema,
   TransactionIdentifierInput,
   TransactionsRangeInput,
   transactionIdentifierSchema,
@@ -75,7 +77,10 @@ export class GradidoNodeClient {
     const response = await this.rpcCall<{ transaction: string }>('getTransaction', parameter)
     if (response.isSuccess()) {
       // this.logger.debug('result: ', response.result.transaction)
-      return v.parse(confirmedTransactionSchema, response.result.transaction)
+      return v.parse(confirmedTransactionSchema, {
+        base64: response.result.transaction,
+        communityId: parameter.communityId,
+      })
     }
     if (response.isError()) {
       if (response.error.code === GradidoNodeErrorCodes.TRANSACTION_NOT_FOUND) {
@@ -88,19 +93,22 @@ export class GradidoNodeClient {
   /**
    * getLastTransaction
    * get the last confirmed transaction from a specific community
-   * @param hieroTopic the community hiero topic id
+   * @param communityId the community id
    * @returns the last confirmed transaction or undefined if blockchain for community is empty or not found
    * @throws GradidoNodeRequestError
    */
 
-  public async getLastTransaction(hieroTopic: HieroId): Promise<ConfirmedTransaction | undefined> {
+  public async getLastTransaction(communityId: Uuidv4): Promise<ConfirmedTransaction | undefined> {
     const parameter = {
       format: 'base64',
-      topic: hieroTopic,
+      communityId,
     }
     const response = await this.rpcCall<{ transaction: string }>('getLastTransaction', parameter)
     if (response.isSuccess()) {
-      return v.parse(confirmedTransactionSchema, response.result.transaction)
+      return v.parse(confirmedTransactionSchema, {
+        base64: response.result.transaction,
+        communityId: parameter.communityId,
+      })
     }
     if (response.isError()) {
       if (response.error.code === GradidoNodeErrorCodes.GRADIDO_NODE_ERROR) {
@@ -112,32 +120,52 @@ export class GradidoNodeClient {
 
   /**
    * getTransactions
-   * get list of confirmed transactions from a specific community
-   * @param input fromTransactionId is the id of the first transaction to return
-   * @param input maxResultCount is the max number of transactions to return
-   * @param input topic is the community hiero topic id
-   * @returns list of confirmed transactions
-   * @throws GradidoNodeRequestError
+   * Retrieves a list of confirmed transactions based on flexible filtering criteria.
+   *
+   * This function allows filtering by community, coin community, transaction number range,
+   * transaction type, public key involvement, time interval, and supports pagination.
+   *
+   * @param input - BlockchainFilterInput object containing the filter criteria:
+   *   - `searchDirection` (optional) - The order in which to return results (ASC or DESC). Default: DESC.
+   *   - `transactionType` (optional) - Filter transactions by their type.
+   *   - `publicKeySearchType` (optional) - Specify the type of public key search,
+   *     can be either:
+   *       - InvolvedPublicKey: involved in any way in the transaction (sender, recipient, signer, etc.)
+   *       - BalanceChangingPublicKey: only affecting balance in the transaction (sender, recipient, change)
+   *   - `format` (optional) - Output format: Base64 or Json. Default: Base64.
+   *   - `communityId` - ID of the community.
+   *   - `coinCommunityId` (optional) - ID of the colored coin community.
+   *   - `maxTransactionNr` (optional) - Maximum transaction number to return.
+   *   - `minTransactionNr` (optional) - Minimum transaction number to return.
+   *   - `publicKey` (optional) - Filter transactions involving this public key, publicKeySearchType define which type of key it is
+   *   - `pagination` (optional) - Pagination options: page number and page size.
+   *   - `timepointInterval` (optional) - Filter transactions within a specific start and end date.
+   *
+   * @returns Promise<ConfirmedTransaction[]> - Array of confirmed transactions matching the filters.
+   *
+   * @throws GradidoNodeRequestError - If the request fails or input validation fails.
+   *
    * @example
-   * ```
+   * ```ts
    * const transactions = await getTransactions({
-   *   fromTransactionId: 1,
-   *   maxResultCount: 100,
-   *   topic: communityUuid,
+   *   searchDirection: SearchDirection.DESC,
+   *   communityId: communityUuid,
+   *   pagination: { page: 0, size: 50 },
+   *   timepointInterval: { startDate: "2026-01-01", endDate: "2026-03-01" },
    * })
    * ```
    */
-  public async getTransactions(input: TransactionsRangeInput): Promise<ConfirmedTransaction[]> {
-    const parameter = {
-      ...v.parse(transactionsRangeSchema, input),
-      format: 'base64',
-    }
+  public async getTransactions(input: BlockchainFilterInput): Promise<ConfirmedTransaction[]> {
+    const parameter = v.parse(blockchainFilterSchema, input)
     const result = await this.rpcCallResolved<{ transactions: string[] }>(
       'getTransactions',
       parameter,
     )
     return result.transactions.map((transactionBase64) =>
-      v.parse(confirmedTransactionSchema, transactionBase64),
+      v.parse(confirmedTransactionSchema, {
+        base64: transactionBase64,
+        communityId: parameter.communityId,
+      }),
     )
   }
 
@@ -163,7 +191,10 @@ export class GradidoNodeClient {
       parameter,
     )
     return response.transactions.map((transactionBase64) =>
-      v.parse(confirmedTransactionSchema, transactionBase64),
+      v.parse(confirmedTransactionSchema, {
+        base64: transactionBase64,
+        communityId: parameter.communityId,
+      }),
     )
   }
 
@@ -173,15 +204,15 @@ export class GradidoNodeClient {
    * can be used to check if user/account exists on blockchain
    * look also for gmw, auf and deferred transfer accounts
    * @param pubkey the public key of the user or account
-   * @param hieroTopic the community hiero topic id
+   * @param communityId the community id
    * @returns the address type of the user/account, AddressType.NONE if not found
    * @throws GradidoNodeRequestError
    */
 
-  public async getAddressType(pubkey: Hex32Input, hieroTopic: HieroId): Promise<AddressType> {
+  public async getAddressType(pubkey: Hex32Input, communityId: Uuidv4): Promise<AddressType> {
     const parameter = {
       pubkey: v.parse(hex32Schema, pubkey),
-      topic: hieroTopic,
+      communityId,
     }
     const response = await this.rpcCallResolved<{ addressType: string }>(
       'getAddressType',
@@ -194,17 +225,17 @@ export class GradidoNodeClient {
    * findUserByNameHash
    * find a user by name hash
    * @param nameHash the name hash of the user
-   * @param hieroTopic the community hiero topic id
+   * @param communityId the community id
    * @returns the public key of the user as hex32 string or undefined if user is not found
    * @throws GradidoNodeRequestError
    */
   public async findUserByNameHash(
     nameHash: Uuidv4Hash,
-    hieroTopic: HieroId,
+    communityId: Uuidv4,
   ): Promise<Hex32 | undefined> {
     const parameter = {
       nameHash: nameHash.getAsHexString(),
-      topic: hieroTopic,
+      communityId,
     }
     const response = await this.rpcCall<{ pubkey: string; timeUsed: string }>(
       'findUserByNameHash',

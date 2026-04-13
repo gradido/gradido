@@ -1,9 +1,11 @@
 import { readFileSync } from 'node:fs'
-import { loadCryptoKeys, MemoryBlock } from 'gradido-blockchain-js'
+import { InMemoryBlockchainProvider, loadCryptoKeys, MemoryBlock } from 'gradido-blockchain-js'
 import { configure, getLogger, Logger } from 'log4js'
 import * as v from 'valibot'
 import { CONFIG } from '../config'
 import { MIN_TOPIC_EXPIRE_MILLISECONDS_FOR_UPDATE } from '../config/const'
+import { KeyPairIdentifierLogic } from '../data/KeyPairIdentifier.logic'
+import { ResolveKeyPair } from '../interactions/resolveKeyPair/ResolveKeyPair.context'
 import { SendToHieroContext } from '../interactions/sendToHiero/SendToHiero.context'
 import { Community, communitySchema } from '../schemas/transaction.schema'
 import { isPortOpenRetry } from '../utils/network'
@@ -33,11 +35,18 @@ export async function checkHieroAccount(logger: Logger, clients: AppContextClien
 export async function checkHomeCommunity(
   appContext: AppContext,
   logger: Logger,
-): Promise<Community> {
+): Promise<Community | undefined> {
   const { backend, hiero } = appContext.clients
 
   // wait for backend server
-  await isPortOpenRetry(backend.url)
+  try {
+    logger.info(`Waiting for backend server to become available at ${backend.url}`)
+    await isPortOpenRetry(backend.url)
+  } catch (e) {
+    logger.error(`Backend server at ${backend.url} is not reachable (${e})`)
+    return
+  }
+
   // ask backend for home community
   let homeCommunity = await backend.getHomeCommunityDraft()
   // on missing topicId, create one
@@ -56,7 +65,7 @@ export async function checkHomeCommunity(
       await hiero.updateTopic(homeCommunity.hieroTopicId)
       topicInfo = await hiero.getTopicInfo(homeCommunity.hieroTopicId)
       logger.info(
-        `updated topic info, new expiration time: ${topicInfo.expirationTime.toLocaleDateString()}`,
+        `Topic expiration extended. New expiration time: ${topicInfo.expirationTime.toLocaleDateString()}`,
       )
     }
   }
@@ -64,9 +73,16 @@ export async function checkHomeCommunity(
     throw new Error('still no topic id, after creating topic and update community in backend.')
   }
   appContext.cache.setHomeCommunityTopicId(homeCommunity.hieroTopicId)
-  logger.info(`home community topic: ${homeCommunity.hieroTopicId}`)
-  logger.info(`gradido node server: ${appContext.clients.gradidoNode.url}`)
-  logger.info(`gradido backend server: ${appContext.clients.backend.url}`)
+  logger.info(`Home community topic id: ${homeCommunity.hieroTopicId}`)
+  logger.info(`Gradido node server: ${appContext.clients.gradidoNode.url}`)
+  logger.info(`Gradido backend server: ${appContext.clients.backend.url}`)
+
+  await ResolveKeyPair(
+    new KeyPairIdentifierLogic({
+      communityTopicId: homeCommunity.hieroTopicId,
+      communityId: homeCommunity.uuid,
+    }),
+  )
   return v.parse(communitySchema, homeCommunity)
 }
 
@@ -80,10 +96,11 @@ export async function checkGradidoNode(
 
   // ask gradido node if community blockchain was created
   try {
+    InMemoryBlockchainProvider.getInstance().getBlockchain(homeCommunity.uuid)
     if (
       !(await clients.gradidoNode.getTransaction({
         transactionId: 1,
-        topic: homeCommunity.hieroTopicId,
+        communityId: homeCommunity.uuid,
       }))
     ) {
       // if not exist, create community root transaction

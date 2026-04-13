@@ -59,12 +59,15 @@ export class RedeemDeferredTransferTransactionRole extends AbstractTransactionRo
 
     builder
       .setCreatedAt(this.redeemDeferredTransferTransaction.createdAt)
+      .setSenderCommunity(this.redeemDeferredTransferTransaction.user.communityId)
+      .setRecipientCommunity(this.linkedUser.communityId)
       .setRedeemDeferredTransfer(
         this.parentDeferredTransaction.getId(),
         new GradidoTransfer(
           new TransferAmount(
             senderKeyPair.getPublicKey(),
             this.redeemDeferredTransferTransaction.amount,
+            this.redeemDeferredTransferTransaction.user.communityId,
           ),
           recipientKeyPair.getPublicKey(),
         ),
@@ -72,12 +75,6 @@ export class RedeemDeferredTransferTransactionRole extends AbstractTransactionRo
     const memos = deferredTransferBody.getMemos()
     for (let i = 0; i < memos.size(); i++) {
       builder.addMemo(memos.get(i))
-    }
-    const senderCommunity = this.redeemDeferredTransferTransaction.user.communityTopicId
-    const recipientCommunity = this.linkedUser.communityTopicId
-    if (senderCommunity !== recipientCommunity) {
-      // we have a cross group transaction
-      builder.setSenderCommunity(senderCommunity).setRecipientCommunity(recipientCommunity)
     }
     builder.sign(senderKeyPair)
     return builder

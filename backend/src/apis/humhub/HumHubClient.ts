@@ -1,9 +1,8 @@
-import { ProjectBranding } from 'database'
+import { dbFindProjectSpaceUrl } from 'database'
 import { SignJWT } from 'jose'
 import { getLogger } from 'log4js'
 import { IRequestOptions, IRestResponse, RestClient } from 'typed-rest-client'
 import { CONFIG } from '@/config'
-
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { LogError } from '@/server/LogError'
 import { PostUserLoggingView } from './logging/PostUserLogging.view'
@@ -67,15 +66,9 @@ export class HumHubClient {
   public async createAutoLoginUrl(username: string, project?: string | null) {
     const secret = new TextEncoder().encode(CONFIG.HUMHUB_JWT_KEY)
     logger.info(`user ${username} as username for humhub auto-login`)
-    let redirectLink: string | undefined
+    let redirectLink: string | undefined | null
     if (project) {
-      const projectBranding = await ProjectBranding.findOne({
-        where: { alias: project },
-        select: { spaceUrl: true },
-      })
-      if (projectBranding?.spaceUrl) {
-        redirectLink = projectBranding.spaceUrl
-      }
+      redirectLink = await dbFindProjectSpaceUrl(project)
     }
     const token = await new SignJWT({ username, redirectLink })
       .setProtectedHeader({ alg: 'HS256' })

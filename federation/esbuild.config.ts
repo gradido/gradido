@@ -10,7 +10,7 @@ build({
   keepNames: true,
   entryNames: '[name]',
   // legalComments: 'inline',
-  external: ['sodium-native', 'email-templates'],
+  external: ['sodium-native', 'email-templates', 'shared-native'],
   plugins: [esbuildDecorators()],
   minify: true,
   sourcemap: true,

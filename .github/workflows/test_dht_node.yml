@@ -11,6 +11,8 @@ jobs:
       database: ${{ steps.changes.outputs.database }}
       dht_node: ${{ steps.changes.outputs.dht_node }}
       docker-compose: ${{ steps.changes.outputs.docker-compose }}
+      shared: ${{ steps.changes.outputs.shared }}
+      shared-native: ${{ steps.changes.outputs.shared-native }}
     steps:
       - uses: actions/checkout@v3.3.0
 
@@ -24,7 +26,7 @@ jobs:
 
   build:
     name: Docker Build Test - DHT Node
-    if: needs.files-changed.outputs.config == 'true' || needs.files-changed.outputs.database == 'true' || needs.files-changed.outputs.dht_node == 'true' || needs.files-changed.outputs.docker-compose == 'true'
+    if: needs.files-changed.outputs.config == 'true' || needs.files-changed.outputs.database == 'true' || needs.files-changed.outputs.dht_node == 'true' || needs.files-changed.outputs.docker-compose == 'true' || needs.files-changed.outputs.shared == 'true' || needs.files-changed.outputs.shared-native == 'true'
     needs: files-changed
     runs-on: ubuntu-latest
     steps:
@@ -36,7 +38,7 @@ jobs:
 
   unit_test:
     name: Unit Tests & Typecheck & Build - DHT Node
-    if: needs.files-changed.outputs.config == 'true' || needs.files-changed.outputs.database == 'true' || needs.files-changed.outputs.dht_node == 'true' || needs.files-changed.outputs.docker-compose == 'true'
+    if: needs.files-changed.outputs.config == 'true' || needs.files-changed.outputs.database == 'true' || needs.files-changed.outputs.dht_node == 'true' || needs.files-changed.outputs.docker-compose == 'true' || needs.files-changed.outputs.shared == 'true' || needs.files-changed.outputs.shared-native == 'true'
     needs: files-changed
     runs-on: ubuntu-latest
     steps:
@@ -61,6 +63,9 @@ jobs:
           bun install --filter dht-node --frozen-lockfile
           bun install --global --no-save turbo@^2
 
+      - name: DHT Node | Build
+        run: turbo dht-node#build
+
       - name: run unit test & build & typecheck
-        run: turbo dht-node#test dht-node#build dht-node#typecheck
+        run: turbo dht-node#test dht-node#typecheck
 

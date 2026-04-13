@@ -1,12 +1,12 @@
+import path from 'node:path'
 import { Mutex } from 'async-mutex'
-import { Subprocess, spawn } from 'bun'
+import { $, Subprocess, spawn } from 'bun'
 import { getLogger, Logger } from 'log4js'
 import { CONFIG } from '../../config'
 import {
   GRADIDO_NODE_KILL_TIMEOUT_MILLISECONDS,
   GRADIDO_NODE_MIN_RUNTIME_BEFORE_EXIT_MILLISECONDS,
   GRADIDO_NODE_MIN_RUNTIME_BEFORE_RESTART_MILLISECONDS,
-  GRADIDO_NODE_RUNTIME_PATH,
   LOG4JS_BASE_CATEGORY,
 } from '../../config/const'
 import { delay } from '../../utils/time'
@@ -43,20 +43,33 @@ export class GradidoNodeProcess {
     return GradidoNodeProcess.instance
   }
 
+  public static getRuntimePathFileName(): string {
+    const isWindows = process.platform === 'win32'
+    const binaryName = isWindows ? 'GradidoNode.exe' : 'GradidoNode'
+
+    return path.join(CONFIG.DLT_GRADIDO_NODE_SERVER_HOME_FOLDER, 'bin', binaryName)
+  }
+
+  public static async checkRuntimeVersion(): Promise<string> {
+    return (await $`${GradidoNodeProcess.getRuntimePathFileName()} --version`.text()).trim()
+  }
+
   public start() {
     if (this.proc) {
       this.logger.warn('GradidoNodeProcess already running.')
       return
     }
-    this.logger.info(`starting GradidoNodeProcess with path: ${GRADIDO_NODE_RUNTIME_PATH}`)
+    const gradidoNodeRuntimePath = GradidoNodeProcess.getRuntimePathFileName()
+    this.logger.info(`starting GradidoNodeProcess with path: ${gradidoNodeRuntimePath}`)
     this.lastStarted = new Date()
     const logger = this.logger
-    this.proc = spawn([GRADIDO_NODE_RUNTIME_PATH], {
+    this.proc = spawn([gradidoNodeRuntimePath], {
       env: {
         CLIENTS_HIERO_NETWORKTYPE: CONFIG.HIERO_HEDERA_NETWORK,
         SERVER_JSON_RPC_PORT: CONFIG.DLT_NODE_SERVER_PORT.toString(),
         USERPROFILE: CONFIG.DLT_GRADIDO_NODE_SERVER_HOME_FOLDER,
         HOME: CONFIG.DLT_GRADIDO_NODE_SERVER_HOME_FOLDER,
+        UNSECURE_ALLOW_CORS_ALL: CONFIG.DLT_GRADIDO_NODE_SERVER_ALLOW_CORS ? '1' : '0',
       },
       onExit(_proc, exitCode, signalCode, error) {
         logger.warn(`GradidoNodeProcess exited with code ${exitCode} and signalCode ${signalCode}`)

@@ -35,7 +35,12 @@ export class RegisterAddressTransactionRole extends AbstractTransactionRole {
   public async getGradidoTransactionBuilder(): Promise<GradidoTransactionBuilder> {
     const builder = new GradidoTransactionBuilder()
     const communityTopicId = this.registerAddressTransaction.user.communityTopicId
-    const communityKeyPair = await ResolveKeyPair(new KeyPairIdentifierLogic({ communityTopicId }))
+    const communityKeyPair = await ResolveKeyPair(
+      new KeyPairIdentifierLogic({
+        communityTopicId,
+        communityId: this.registerAddressTransaction.user.communityId,
+      }),
+    )
     const keyPairIdentifier = this.registerAddressTransaction.user
     // when accountNr is 0 it is the user account
     keyPairIdentifier.account.accountNr = 0
@@ -45,6 +50,7 @@ export class RegisterAddressTransactionRole extends AbstractTransactionRole {
 
     builder
       .setCreatedAt(this.registerAddressTransaction.createdAt)
+      .setSenderCommunity(this.registerAddressTransaction.user.communityId)
       .setRegisterAddress(
         userKeyPair.getPublicKey(),
         this.registerAddressTransaction.accountType as AddressType,

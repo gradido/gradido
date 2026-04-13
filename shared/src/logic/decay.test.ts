@@ -1,6 +1,6 @@
 import { Decimal } from 'decimal.js-light'
 
-import { calculateDecay, compoundInterest, decayFormula, decayFormulaFast } from './decay'
+import { calculateDecay, compoundInterest, decayFormulaFast, decayFormulaLegacy } from './decay'
 
 describe('utils/decay', () => {
   describe('decayFormula', () => {
@@ -8,25 +8,25 @@ describe('utils/decay', () => {
       const amount = new Decimal(1.0)
       const seconds = 1
       // TODO: toString() was required, we could not compare two decimals
-      expect(decayFormula(amount, seconds).toString()).toBe('0.999999978035040489732012')
+      expect(decayFormulaLegacy(amount, seconds).toString()).toBe('0.999999978035040489732012')
     })
 
     it('with large values', () => {
       const amount = new Decimal(100.0)
       const seconds = 1209600
-      expect(decayFormula(amount, seconds).toString()).toBe('97.3781030481034505778419')
+      expect(decayFormulaLegacy(amount, seconds).toString()).toBe('97.3781030481034505778419')
     })
 
     it('with one year', () => {
       const amount = new Decimal(100.0)
       const seconds = 31556952
-      expect(decayFormula(amount, seconds).toString()).toBe('49.99999999999999999999999')
+      expect(decayFormulaLegacy(amount, seconds).toString()).toBe('49.99999999999999999999999')
     })
 
     it('has correct backward calculation', () => {
       const amount = new Decimal(1.0)
       const seconds = -1
-      expect(decayFormula(amount, seconds).toString()).toBe('1.000000021964959992727444')
+      expect(decayFormulaLegacy(amount, seconds).toString()).toBe('1.000000021964959992727444')
     })
     // we get pretty close, but not exact here, skipping
 
@@ -35,7 +35,7 @@ describe('utils/decay', () => {
         new Decimal('0.99999997803504048973201202316767079413460520837376'),
       )
       const seconds = 1
-      expect(decayFormula(amount, seconds).toString()).toBe('1.0')
+      expect(decayFormulaLegacy(amount, seconds).toString()).toBe('1.0')
     })
   })
 
@@ -74,16 +74,6 @@ describe('utils/decay', () => {
           .toString(),
       ).toBe('100')
     })
-  })
-
-  it('has base 0.99999997802044727', () => {
-    const now = new Date()
-    now.setSeconds(1)
-    const oneSecondAgo = new Date(now.getTime())
-    oneSecondAgo.setSeconds(0)
-    expect(calculateDecay(new Decimal(1.0), oneSecondAgo, now).balance.toString()).toBe(
-      '0.999999978035040489732012',
-    )
   })
 
   it('returns input amount when from and to is the same', () => {

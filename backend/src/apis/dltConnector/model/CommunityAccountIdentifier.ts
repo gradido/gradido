@@ -1,9 +1,9 @@
 export class CommunityAccountIdentifier {
   // for community user, uuid and communityUuid used
   userUuid: string
-  accountNr?: number
+  accountNr: number
 
-  constructor(userUuid: string, accountNr?: number) {
+  constructor(userUuid: string, accountNr: number = 1) {
     this.userUuid = userUuid
     this.accountNr = accountNr
   }

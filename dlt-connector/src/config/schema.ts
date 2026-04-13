@@ -82,13 +82,20 @@ export const configSchema = v.object({
   DLT_GRADIDO_NODE_SERVER_VERSION: v.optional(
     v.pipe(
       v.string('The version of the DLT node server, for example: 0.9.0'),
-      v.regex(/^\d+\.\d+\.\d+$/),
+      v.regex(/^\d+\.\d+\.\d+(.\d+)?$/),
     ),
-    '0.9.2',
+    '0.9.7.3',
   ),
   DLT_GRADIDO_NODE_SERVER_HOME_FOLDER: v.optional(
     v.string('The home folder for the gradido dlt node server'),
     path.join(__dirname, '..', '..', 'gradido_node'),
+  ),
+  DLT_GRADIDO_NODE_SERVER_ALLOW_CORS: v.optional(
+    v.pipe(
+      v.string('Whether to allow CORS for the gradido dlt node server'),
+      v.transform<string, boolean>((input: string) => input === 'true'),
+    ),
+    'false',
   ),
   BACKEND_PORT: v.optional(
     v.pipe(

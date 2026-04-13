@@ -1,6 +1,6 @@
 import { Decimal } from 'decimal.js-light'
-
-import { DECAY_START_TIME, SECONDS_PER_YEAR_GREGORIAN_CALENDER } from '../const'
+import { calculateDecay as calculateDecayNative } from 'shared-native'
+import { DECAY_FACTOR, DECAY_START_TIME, SECONDS_PER_YEAR_GREGORIAN_CALENDER } from '../const'
 
 Decimal.set({
   precision: 25,
@@ -16,25 +16,40 @@ export interface Decay {
   duration: number | null
 }
 
-export function decayFormula(value: Decimal, seconds: number): Decimal {
+// legacy decay formula
+export function decayFormulaLegacy(value: Decimal, seconds: number): Decimal {
   // TODO why do we need to convert this here to a string to work properly?
   // chatgpt: We convert to string here to avoid precision loss:
   //          .pow(seconds) can internally round the result, especially for large values of `seconds`.
   //          Using .toString() ensures full precision is preserved in the multiplication.
-  return value.mul(
-    new Decimal('0.99999997803504048973201202316767079413460520837376').pow(seconds).toString(),
-  )
+  return value.mul(DECAY_FACTOR.pow(seconds).toString())
 }
 
+// legacy reverse decay formula
+export function reverseLegacyDecay(result: Decimal, seconds: number): Decimal {
+  return result.div(DECAY_FACTOR.pow(seconds).toString())
+}
+
+// fast and more correct decay formula
 export function decayFormulaFast(value: Decimal, seconds: number): Decimal {
   return value.mul(
     new Decimal(2).pow(new Decimal(-seconds).div(new Decimal(SECONDS_PER_YEAR_GREGORIAN_CALENDER))),
   )
 }
+
+// compound interest formula, the reverse decay formula for decayFormulaFast
 export function compoundInterest(value: Decimal, seconds: number): Decimal {
   return value.mul(
     new Decimal(2).pow(new Decimal(seconds).div(new Decimal(SECONDS_PER_YEAR_GREGORIAN_CALENDER))),
   )
+}
+
+export function decimalGddToBigInt(gdd: Decimal): bigint {
+  return BigInt(gdd.mul(10000).toDecimalPlaces(0, Decimal.ROUND_DOWN).toString())
+}
+
+export function bigIntGddToDecimal(gdd: bigint): Decimal {
+  return new Decimal(gdd.toString()).div(10000)
 }
 
 export function calculateDecay(amount: Decimal, from: Date, to: Date): Decay {
@@ -71,9 +86,13 @@ export function calculateDecay(amount: Decimal, from: Date, to: Date): Decay {
     decay.start = DECAY_START_TIME
     decay.duration = (toMs - startBlockMs) / 1000
   }
-
+  const amountGddCent = decimalGddToBigInt(amount)
+  const decayedBalanceGddCent = calculateDecayNative(
+    amountGddCent,
+    BigInt(Math.floor(decay.duration)),
+  )
   decay.end = to
-  decay.balance = decayFormula(amount, decay.duration)
+  decay.balance = bigIntGddToDecimal(decayedBalanceGddCent)
   decay.decay = decay.balance.minus(amount)
   decay.roundedDecay = amount
     .toDecimalPlaces(2, Decimal.ROUND_DOWN)

@@ -36,7 +36,7 @@ export class CreationTransactionRole extends AbstractTransactionRole {
   }
 
   getRecipientCommunityTopicId(): HieroId {
-    throw new Error('creation: cannot be used as cross group transaction')
+    return this.creationTransaction.user.communityTopicId
   }
 
   public async getGradidoTransactionBuilder(): Promise<GradidoTransactionBuilder> {
@@ -52,6 +52,7 @@ export class CreationTransactionRole extends AbstractTransactionRole {
     const homeCommunityKeyPair = await ResolveKeyPair(
       new KeyPairIdentifierLogic({
         communityTopicId: this.homeCommunityTopicId,
+        communityId: this.creationTransaction.user.communityId,
       }),
     )
     // Memo: encrypted, home community and recipient can decrypt it
@@ -64,8 +65,13 @@ export class CreationTransactionRole extends AbstractTransactionRole {
           new AuthenticatedEncryption(recipientKeyPair),
         ),
       )
+      .setRecipientCommunity(this.creationTransaction.user.communityId)
       .setTransactionCreation(
-        new TransferAmount(recipientKeyPair.getPublicKey(), this.creationTransaction.amount),
+        new TransferAmount(
+          recipientKeyPair.getPublicKey(),
+          this.creationTransaction.amount,
+          this.creationTransaction.user.communityId,
+        ),
         this.creationTransaction.targetDate,
       )
       .sign(signerKeyPair)

@@ -36,6 +36,7 @@ jobs:
             docker
             other
             shared
+            shared-native
           # Configure that a scope must always be provided.
           requireScope: true
           # Configure which scopes (newline delimited) are disallowed in PR

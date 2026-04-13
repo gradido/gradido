@@ -20,7 +20,7 @@ import { getLogger, Logger } from 'log4js'
 import * as v from 'valibot'
 import { CONFIG } from '../../config'
 import { LOG4JS_BASE_CATEGORY } from '../../config/const'
-import { HieroId, hieroIdSchema } from '../../schemas/typeGuard.schema'
+import { HieroId, hieroIdSchema, Uuidv4 } from '../../schemas/typeGuard.schema'
 import { durationInMinutesFromDates, printTimeDuration } from '../../utils/time'
 import { GradidoNodeClient } from '../GradidoNode/GradidoNodeClient'
 import { GradidoNodeProcess } from '../GradidoNode/GradidoNodeProcess'
@@ -72,6 +72,7 @@ export class HieroClient {
 
   public async sendMessage(
     topicId: HieroId,
+    communityId: Uuidv4,
     transaction: GradidoTransaction,
   ): Promise<TransactionId | null> {
     const timeUsed = new Profiler()
@@ -99,10 +100,10 @@ export class HieroClient {
           )
           // TODO: fix issue in GradidoNode
           // hot fix, when gradido node is running some time, the hiero listener stop working, so we check if our new transaction is received
-          // after 10 seconds, else restart GradidoNode
+          // after 20 seconds, else restart GradidoNode
           setTimeout(async () => {
             const transaction = await GradidoNodeClient.getInstance().getTransaction({
-              topic: topicId,
+              communityId,
               hieroTransactionId: sendResponse.transactionId.toString(),
             })
             if (!transaction) {
@@ -121,7 +122,7 @@ export class HieroClient {
                 GradidoNodeProcess.getInstance().start()
               }
             }
-          }, 10000)
+          }, 20000)
           if (logger.isInfoEnabled()) {
             // only for logging
             sendResponse.getReceiptWithSigner(this.wallet).then((receipt) => {

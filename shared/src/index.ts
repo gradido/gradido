@@ -1,4 +1,5 @@
 export * from './const'
+export * from './data'
 export * from './enum'
 export * from './helper'
 export * from './jwt/JWT'
