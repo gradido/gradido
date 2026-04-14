@@ -8,11 +8,17 @@ export abstract class AbstractLoggingView {
   // This function gets called automatically when JSON.stringify() is called on this class instance
 
   public abstract toJSON(): any
+
+  // if I have forgotten a bigint in the object, this will convert it to string
+  safeStringify(obj: any) {
+    return JSON.stringify(obj, (_, value) => typeof value === 'bigint' ? value.toString() : value)
+  }
+
   public toString(compact = false): string {
     if (compact) {
-      return JSON.stringify(this.toJSON())
+      return this.safeStringify(this.toJSON())
     } else {
-      return JSON.stringify(this.toJSON(), null, 2)
+      return this.safeStringify(this.toJSON())
     }
   }
 

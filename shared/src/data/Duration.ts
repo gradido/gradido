@@ -16,4 +16,8 @@ export class Duration {
   toString(): string {
     return this._seconds.toString()
   }
+  public toJSON() {
+    return `${this.toString()} seconds`
+  }
 }
+

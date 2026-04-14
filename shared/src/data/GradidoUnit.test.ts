@@ -64,7 +64,7 @@ describe('GradidoUnit', () => {
   describe('toString', () => {
     it('with default places after comma', () => {
       const gdd = new GradidoUnit(12345n)
-      expect(gdd.toString()).toBe('1.2345')
+      expect(gdd.toString(4)).toBe('1.2345')
     })
 
     it('with 3 places after comma', () => {

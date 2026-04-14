@@ -169,7 +169,7 @@ export class GradidoUnit {
   public toNumber(): number {
     return Number(this.gddCentValue) / 10000
   }
-  public toString(places: number = 4): string {
+  public toString(places: number = 2): string {
     return gradidoUnitToString(this.gddCentValue, places)
   }
 

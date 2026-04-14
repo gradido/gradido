@@ -21,6 +21,10 @@ describe('GradidoUnit', () => {
       const result = gradidoUnitFromString('1001.2041')
       expect(result).toBe(10012041n)
     })
+    it('converts negative sub integer to GradidoUnit', () => {
+      const result = gradidoUnitFromString('-0.2041')
+      expect(result).toBe(-2041n)
+    })
     it('converts invalid (to big) string to GradidoUnit ', () => {
       expect(() => gradidoUnitFromString('922337203685576.12812')).toThrowError(
         "Invalid unit string. Must be a decimal with up to 4 fractional digits, integer part between -922'337'203'685'476 and 922'337'203'685'476.",

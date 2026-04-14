@@ -69,6 +69,13 @@ bool grdd_unit_from_string(const char* str, grdd_unit* out)
 
     const char* p = str;
 
+    bool negative = false;
+
+    if (*p == '-') {
+    	negative = true;
+			++p;
+    } 
+
     // --- integer part ---
     char* end;
     int64_t integerPart = strtoll(p, &end, 10);
@@ -122,12 +129,11 @@ bool grdd_unit_from_string(const char* str, grdd_unit* out)
     if (integerPart > 922337203685476 || integerPart < -922337203685476) return false;
 
 		int64_t result = 0;
-		if (integerPart < 0 && fractionalPart > 0) {
-			// e.g. -1.2041 -> -12041
-			result = integerPart * 10000 - fractionalPart;
-		} else {
-			result = integerPart * 10000 + fractionalPart;
+		if (negative) {
+			integerPart *= -1;
+			fractionalPart *= -1;
 		}
+		result = integerPart * 10000 + fractionalPart;
 
     *out = result;
     return true;
@@ -160,13 +166,13 @@ int grdd_unit_to_string(grdd_unit u, char* buffer, uint8_t precision)
 	// pad with 0
 	if (numberPlacesCount < 5) {
 		size_t paddingCount = 5 - numberPlacesCount;
-		memcpy(&buffer[paddingCount + cursor], &buffer[cursor], numberPlacesCount);
+		memmove(&buffer[paddingCount + cursor], &buffer[cursor], numberPlacesCount);
 		memset(&buffer[cursor], '0', paddingCount);
 		cursor += paddingCount;
 	}
 	cursor += numberPlacesCount;
 	// make room for .
-	memcpy(&buffer[cursor - 3], &buffer[cursor - 4], 5);
+	memmove(&buffer[cursor - 3], &buffer[cursor - 4], 5);
 	cursor++;
 	buffer[cursor - 5] = '.';
 	
