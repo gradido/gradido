@@ -11,7 +11,7 @@ export abstract class AbstractLoggingView {
 
   // if I have forgotten a bigint in the object, this will convert it to string
   safeStringify(obj: any) {
-    return JSON.stringify(obj, (_, value) => typeof value === 'bigint' ? value.toString() : value)
+    return JSON.stringify(obj, (_, value) => (typeof value === 'bigint' ? value.toString() : value))
   }
 
   public toString(compact = false): string {

@@ -20,4 +20,3 @@ export class Duration {
     return `${this.toString()} seconds`
   }
 }
-

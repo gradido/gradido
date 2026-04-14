@@ -38,9 +38,6 @@ export class Decay {
       self.decay = GradidoUnit.fromDecimal(decay.toDecimalPlaces(4, Decimal.ROUND_FLOOR))
       self.start = decayStart
       self.duration = Duration.fromDateDiff(decayStart, balanceDate)
-      if (self.decay.gddCent > 0) {
-        console.log(`why?, src: ${decay.toString()}, gddCent: ${self.decay.gddCent}`)
-      }
     }
     return self
   }
