@@ -54,6 +54,31 @@ function checkFileExist(filePath: string): boolean {
   }
 }
 
+// move contents from one folder up
+function moveContentsUp(baseDir: string) {
+  const entries = fs.readdirSync(baseDir, { withFileTypes: true })
+
+  // find the one subfolder (zig-windows-...)
+  const innerDirEntry = entries.find(e => e.isDirectory())
+  if (!innerDirEntry) {
+    throw new Error(`No subfolder found in ${baseDir}`)
+  }
+
+  const innerDir = path.join(baseDir, innerDirEntry.name)
+
+  // Move contents
+  const innerEntries = fs.readdirSync(innerDir)
+  for (const entry of innerEntries) {
+    const src = path.join(innerDir, entry)
+    const dest = path.join(baseDir, entry)
+
+    fs.renameSync(src, dest) // move file/folder
+  }
+
+  // delete empty folder
+  fs.rmdirSync(innerDir)
+}
+
 export async function fetchZig(): Promise<void> {
   const platform = os.platform()
   const arch = os.arch()
@@ -77,10 +102,11 @@ export async function fetchZig(): Promise<void> {
     throw new Error(`Failed to fetch Zig: ${response.status} ${response.statusText} from ${url}`)
   }
   const responseBuffer = Buffer.from(await response.arrayBuffer())
-
+  console.log(`zig dir: ${ZIG_DIR}`)
   if (platform === 'win32') {
     const zip = new AdmZip(responseBuffer)
     zip.extractAllTo(ZIG_DIR, true)
+    moveContentsUp(ZIG_DIR)
   } else {
     const archivePath = path.join(ZIG_DIR, 'zig.tar.xz')
     fs.writeFileSync(archivePath, responseBuffer)
@@ -142,6 +168,7 @@ async function detectTargetTriple(): Promise<TargetTriple> {
 
 async function main() {
   const target = await detectTargetTriple()
+  const platform = os.platform()
 
   if (!fs.existsSync('build')) {
     fs.mkdirSync('build')
@@ -157,12 +184,12 @@ async function main() {
     cpu: 'native',
     nodeVersion: currentNodeVersion,
   }
-
+  const coreFileName = platform === 'win32' ? 'core.lib' : 'libcore.a'
   await build(
     {
       c_core: {
         ...commonConfigs,
-        output: 'build/libcore.a',
+        output: `build/${coreFileName}`,
         sources: ['src/c/unit.c'],
         type: 'static',
         cflags: ['-g0', '-s', '-c'],
