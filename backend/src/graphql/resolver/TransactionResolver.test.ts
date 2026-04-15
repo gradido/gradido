@@ -134,7 +134,7 @@ describe('send coins', () => {
         }),
       ).toEqual(
         expect.objectContaining({
-          errors: [new GraphQLError('The recipient user was not found')],
+          errors: [new GraphQLError('The recipient user was not found: wrong@email.com')],
         }),
       )
     })

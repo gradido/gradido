@@ -499,13 +499,13 @@ export class TransactionResolver {
         recipientCommunityIdentifier,
       )
       if (!recipientUser) {
-        const errmsg = 'The recipient user was not found' + recipientIdentifier
+        const errmsg = 'The recipient user was not found: ' + recipientIdentifier
         logger.error(errmsg)
         throw new Error(errmsg)
       }
       logger.addContext('to', recipientUser?.id)
       if (recipientUser.foreign) {
-        const errmsg = 'Found foreign recipient user for a local transaction:' + recipientUser
+        const errmsg = 'Found foreign recipient user for a local transaction: ' + recipientUser
         logger.error(errmsg)
         throw new Error(errmsg)
       }
@@ -545,13 +545,13 @@ export class TransactionResolver {
         recipientCommunityIdentifier,
       )
       if (!recipientUser) {
-        const errmsg = 'The recipient user was not found' + recipientIdentifier
+        const errmsg = 'The recipient user was not found: ' + recipientIdentifier
         logger.error(errmsg)
         throw new Error(errmsg)
       }
       logger.addContext('to', recipientUser?.id)
       if (recipientUser.foreign) {
-        const errmsg = 'Found foreign recipient user for a local transaction:' + recipientUser
+        const errmsg = 'Found foreign recipient user for a local transaction: ' + recipientUser
         logger.error(errmsg)
         throw new Error(errmsg)
       }
