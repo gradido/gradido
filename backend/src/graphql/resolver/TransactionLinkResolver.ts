@@ -115,9 +115,7 @@ export class TransactionLinkResolver {
     const createdDate = new Date()
     const validUntil = transactionLinkExpireDate(createdDate)
 
-    const holdAvailableAmount = amount.requiredBeforeDecay(
-      new Duration(CODE_VALID_DAYS_DURATION * 24n * 60n * 60n),
-    )
+    const holdAvailableAmount = amount.requiredBeforeDecay(Duration.days(CODE_VALID_DAYS_DURATION))
 
     // validate amount
     const sendBalance = await calculateBalance(user.id, holdAvailableAmount.negated(), createdDate)

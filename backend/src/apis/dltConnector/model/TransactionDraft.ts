@@ -12,6 +12,7 @@ import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { CODE_VALID_DAYS_DURATION } from '@/graphql/resolver/const/const'
 import { AccountIdentifier } from './AccountIdentifier'
 import { CommunityAccountIdentifier } from './CommunityAccountIdentifier'
+import { Duration } from 'shared'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.dltConnector.model.TransactionDraft`)
 
@@ -142,7 +143,7 @@ export class TransactionDraft {
     draft.createdAt = createdAtOnlySeconds.toISOString()
     draft.amount = transactionLink.amount.toString()
     draft.memo = transactionLink.memo
-    draft.timeoutDuration = Number(CODE_VALID_DAYS_DURATION * 24n * 60n * 60n)
+    draft.timeoutDuration = Number(Duration.days(CODE_VALID_DAYS_DURATION).seconds)
     return draft
   }
 

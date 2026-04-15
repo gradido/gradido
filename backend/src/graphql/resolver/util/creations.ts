@@ -84,8 +84,11 @@ export const getUserCreations = async (
           (raw: { month: string; userId: string; creation: number[] }) =>
             parseInt(raw.month) === month && parseInt(raw.userId) === id,
         )
+        if (!creation) {
+          return MAX_CREATION_AMOUNT
+        }
         return MAX_CREATION_AMOUNT.subtract(
-          creation ? GradidoUnit.fromDecimal(creation.sum) : new GradidoUnit(0n),
+          GradidoUnit.fromDecimal(creation.sum),
         )
       }),
     }

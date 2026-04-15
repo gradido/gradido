@@ -89,12 +89,12 @@ export class BalanceResolver {
     logger.debug(`context.sumHoldAvailableAmount=${context.sumHoldAvailableAmount}`)
     logger.debug(`sumHoldAvailableAmount=${sumHoldAvailableAmount}`)
 
-    const balance = calculatedDecay.balance.subtract(sumHoldAvailableAmount).toDecimalPlaces(4)
+    const balance = calculatedDecay.balance.subtract(sumHoldAvailableAmount).toDecimalPlaces(2)
 
     // const newBalance = new Balance({
     //      balance: calculatedDecay.balance
     //        .minus(sumHoldAvailableAmount.toString())
-    //        .toDecimalPlaces(4, Decimal.ROUND_DOWN),
+    //        .toDecimalPlaces(2, Decimal.ROUND_DOWN),
     const newBalance = new Balance({
       balance,
       balanceGDT,
