@@ -17,13 +17,17 @@ const DOWNLOAD_DIR = path.join(os.homedir(), '.zig-build')
 const NODE_DIR = path.join(DOWNLOAD_DIR, 'node')
 const ZIG_DIR = path.join(DOWNLOAD_DIR, 'zig', ZIG_VERSION)
 
-async function fetchNodeHeaders(version?: string): Promise<void> {
+function getNodePath(version?: string): string {
   version ??= process.versions.node
   const vversion = `v${version}`
+  return path.join(NODE_DIR, vversion)
+}
 
-  const headersDir = path.join(NODE_DIR, vversion)
+async function fetchNodeHeaders(version?: string): Promise<void> {
+  const headersDir = getNodePath(version)
   const includePath = path.join(headersDir, 'include', 'node')
   const installedIncludePath = headers.include_dir
+  
   fs.mkdirSync(includePath, { recursive: true })
 
   // copy from installedIncludePath to includePath
@@ -185,27 +189,43 @@ async function main() {
     nodeVersion: currentNodeVersion,
   }
   const coreFileName = platform === 'win32' ? 'core.lib' : 'libcore.a'
-  await build(
-    {
-      c_core: {
-        ...commonConfigs,
-        output: `build/${coreFileName}`,
-        sources: ['src/c/unit.c'],
-        type: 'static',
-        cflags: ['-g0', '-s', '-c'],
-      } as Target,
-      cpp_napi: {
-        ...commonConfigs,
-        librariesSearch: ['build'],
-        libraries: ['core'],
-        output: 'build/shared_native.node',
-        sources: ['src/napi/gradidoUnit.cpp'],
-        cflags: ['-g0', '-s', '-std=c++17'],
-      } as Target,
-    },
-    undefined,
-    './compile_commands.json',
-  )
+  if (platform === 'win32') {
+    await build(
+      {
+        native: {
+          ...commonConfigs,
+          librariesSearch: [getNodePath(currentNodeVersion)],
+          libraries: ['node'],
+          std: 'c17',
+          output: 'build/shared_native.node',
+          sources: ['src/napi/gradido_unit.c', 'src/c/unit.c'],
+          cflags: ['-g0', '-s'],
+        } as Target,
+      }
+    )
+  } else {
+    await build(
+      {
+        c_core: {
+          ...commonConfigs,
+          output: `build/${coreFileName}`,
+          sources: ['src/c/unit.c'],
+          type: 'static',
+          cflags: ['-g0', '-s', '-c'],
+        } as Target,
+        cpp_napi: {
+          ...commonConfigs,
+          librariesSearch: ['build', getNodePath(currentNodeVersion)],
+          libraries: ['core', 'node'],
+          output: 'build/shared_native.node',
+          sources: ['src/napi/gradidoUnit.cpp'],
+          cflags: ['-g0', '-s', '-std=c++17'],
+        } as Target,
+      },
+      undefined,
+      './compile_commands.json',
+    )
+  }
 }
 
 main()
