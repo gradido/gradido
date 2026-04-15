@@ -80,6 +80,10 @@ export class GradidoUnit {
     return decay
   }
 
+  public decayForDuration(duration: Duration): GradidoUnit {
+    return new GradidoUnit(calculateDecayNative(this.gddCentValue, duration.seconds))
+  }
+
   public toDecimalPlaces(places: number): GradidoUnit {
     return new GradidoUnit(toDecimalPlacesNative(this.gddCentValue, places))
   }

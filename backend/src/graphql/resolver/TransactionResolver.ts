@@ -357,10 +357,8 @@ export class TransactionResolver {
     const self = new User(user)
     const transactions: Transaction[] = []
 
-    const { sumHoldAvailableAmount, transactionLinkcount } = await transactionLinkSummary(
-      user.id,
-      now,
-    )
+    const { sumHoldAvailableAmount, sumAmount, transactionLinkcount } =
+      await transactionLinkSummary(user.id, now)
 
     context.linkCount = transactionLinkcount
     logger.debug(`transactionLinkcount=${transactionLinkcount}`)
@@ -394,13 +392,11 @@ export class TransactionResolver {
           },
         })
         if (linkCount > 0) {
-          transactions.push(virtualLinkTransaction(lastTransactionBalance, self))
+          transactions.push(virtualLinkTransaction(new GradidoUnit(0n), self))
         }
       } else if (sumHoldAvailableAmount.gddCent > 0) {
         logger.debug(`sumHoldAvailableAmount > 0: transactions=${transactions.map((t) => t.id)}`)
-        transactions.push(
-          virtualLinkTransaction(lastTransactionBalance.subtract(sumHoldAvailableAmount), self),
-        )
+        transactions.push(virtualLinkTransaction(sumAmount.negated(), self))
         logger.debug(`transactions=${transactions.map((t) => t.id)}`)
       }
     }
