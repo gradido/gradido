@@ -87,9 +87,7 @@ export const getUserCreations = async (
         if (!creation) {
           return MAX_CREATION_AMOUNT
         }
-        return MAX_CREATION_AMOUNT.subtract(
-          GradidoUnit.fromDecimal(creation.sum),
-        )
+        return MAX_CREATION_AMOUNT.subtract(GradidoUnit.fromDecimal(creation.sum))
       }),
     }
   })
