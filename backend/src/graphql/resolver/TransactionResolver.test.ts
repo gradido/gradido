@@ -159,7 +159,7 @@ describe('send coins', () => {
           }),
         ).toEqual(
           expect.objectContaining({
-            errors: [new GraphQLError('The recipient user was not found')],
+            errors: [new GraphQLError('The recipient user was not found: stephen@hawking.uk')],
           }),
         )
       })
@@ -185,7 +185,7 @@ describe('send coins', () => {
           }),
         ).toEqual(
           expect.objectContaining({
-            errors: [new GraphQLError('The recipient user was not found')],
+            errors: [new GraphQLError('The recipient user was not found: garrick@ollivander.com')],
           }),
         )
       })
