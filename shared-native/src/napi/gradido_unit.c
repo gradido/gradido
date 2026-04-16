@@ -51,7 +51,7 @@ napi_value grdnjs_calculate_decay(napi_env env, napi_callback_info info) {
 napi_value grdnjs_get_decay_start_time(napi_env env, napi_callback_info info) {
   napi_status status;
 
-  grdd_timestamp_seconds start_time = get_decay_start_time();
+  grdd_timestamp_seconds start_time = grdd_unit_decay_start_time();
 
   napi_value resultValue;
   status = napi_create_date(env, start_time * 1000, &resultValue);
@@ -62,7 +62,6 @@ napi_value grdnjs_get_decay_start_time(napi_env env, napi_callback_info info) {
 
   return resultValue;
 }
-
 
 // register functions with nodejs
 

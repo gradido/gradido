@@ -17,10 +17,17 @@ const DOWNLOAD_DIR = path.join(os.homedir(), '.zig-build')
 const NODE_DIR = path.join(DOWNLOAD_DIR, 'node')
 const ZIG_DIR = path.join(DOWNLOAD_DIR, 'zig', ZIG_VERSION)
 
-function getNodePath(version?: string): string {
+function nodeVersion(version?: string): string {
   version ??= process.versions.node
-  const vversion = `v${version}`
-  return path.join(NODE_DIR, vversion)
+  return `v${version}`
+}
+
+function getNodePath(version?: string): string {
+  return path.join(NODE_DIR, nodeVersion(version))
+}
+
+function getNodeDownloadUrl(version?: string): string {
+  return `https://nodejs.org/dist/${nodeVersion(version)}/win-x64/node.lib`
 }
 
 async function fetchNodeHeaders(version?: string): Promise<void> {
@@ -32,6 +39,13 @@ async function fetchNodeHeaders(version?: string): Promise<void> {
 
   // copy from installedIncludePath to includePath
   fs.cpSync(installedIncludePath, includePath, { recursive: true })
+  
+  // download node.lib
+  const nodeLibUrl = getNodeDownloadUrl(version)
+  const nodeLibPath = path.join(headersDir, 'node.lib')
+  const nodeLibResponse = await fetch(nodeLibUrl)
+  const nodeLibBuffer = await nodeLibResponse.arrayBuffer()
+  fs.writeFileSync(nodeLibPath, Buffer.from(nodeLibBuffer))
 }
 
 const ZIGS: Partial<Record<NodeJS.Platform, Partial<Record<string, string>>>> = {
@@ -48,6 +62,7 @@ const ZIGS: Partial<Record<NodeJS.Platform, Partial<Record<string, string>>>> = 
     arm64: `https://ziglang.org/download/${ZIG_VERSION}/zig-windows-aarch64-${ZIG_VERSION}.zip`,
   },
 }
+
 
 function checkFileExist(filePath: string): boolean {
   try {
@@ -188,18 +203,28 @@ async function main() {
     cpu: 'native',
     nodeVersion: currentNodeVersion,
   }
-  const coreFileName = platform === 'win32' ? 'core.lib' : 'libcore.a'
+  const coreFileName = platform === 'win32' ? 'core.dll' : 'libcore.so'
   if (platform === 'win32') {
+    // windows build is a bit special
+
     await build(
       {
+        core: {
+          ...commonConfigs,
+          output: `build/${coreFileName}`,
+          sources: ['src/c/unit.c'],
+          type: 'shared',
+          std: 'c17',
+          cflags: ['-g0', '-s'],
+        } as Target,
         native: {
           ...commonConfigs,
           librariesSearch: [getNodePath(currentNodeVersion)],
           libraries: ['node'],
-          std: 'c17',
+          // std: 'c17',
           output: 'build/shared_native.node',
-          sources: ['src/napi/gradido_unit.c', 'src/c/unit.c'],
-          cflags: ['-g0', '-s'],
+          sources: ['src/napi/gradidoUnit.cpp', 'src/c/unit.c'],
+          cflags: ['-DNAPI_VERSION=8'],
         } as Target,
       }
     )
@@ -215,8 +240,6 @@ async function main() {
         } as Target,
         cpp_napi: {
           ...commonConfigs,
-          librariesSearch: ['build', getNodePath(currentNodeVersion)],
-          libraries: ['core', 'node'],
           output: 'build/shared_native.node',
           sources: ['src/napi/gradidoUnit.cpp'],
           cflags: ['-g0', '-s', '-std=c++17'],
