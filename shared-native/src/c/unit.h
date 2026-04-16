@@ -5,14 +5,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#ifndef uint8_t
-typedef unsigned char uint8_t;
-#endif
-
-#ifndef int64_t
-typedef long long int64_t;
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif
