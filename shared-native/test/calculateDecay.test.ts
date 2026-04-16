@@ -56,6 +56,6 @@ describe('getDecayStartTime', () => {
   it('returns a valid Date object', () => {
     const startTime = getDecayStartTime()
     expect(startTime).toBeInstanceOf(Date)
-    expect(startTime.getTime()).toBe(1620927)
+    expect(startTime.getTime()).toBe(1620927991000)
   })
 })

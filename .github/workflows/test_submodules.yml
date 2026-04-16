@@ -23,6 +23,28 @@ jobs:
           filters: .github/file-filters.yml
           list-files: shell
 
+  build-windows:
+    name: Build Windows - Submodules
+    if:  needs.files-changed.outputs.shared-native == 'true' || needs.files-changed.outputs.shared == 'true'
+    needs: files-changed
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        
+      - name: install bun 
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: '.bun-version'
+
+      - name: install dependencies
+        run: |
+          bun install --filter shared --frozen-lockfile
+          bun install --global turbo@^2
+
+      - name: test shared and shared-native
+        run: turbo shared#test shared-native#test
+  
   build:
     name: Unit Tests & Typecheck & Build - Submodules
     if: needs.files-changed.outputs.core == 'true' || needs.files-changed.outputs.database == 'true' || needs.files-changed.outputs.shared == 'true' || needs.files-changed.outputs.shared-native == 'true' || needs.files-changed.outputs.config == 'true'
