@@ -10,6 +10,8 @@
 const grdd_duration_seconds SECONDS_PER_YEAR = 31556952; // seconds in a year in gregorian calender
 const grdd_timestamp_seconds DECAY_START_TIME = 1620927991;
 static const int64_t POW10[] = {1, 10, 100, 1000, 10000};
+const int DECAY_SCALE_BITS = 60;
+const __int128 DECAY_SCALE = (__int128)1 << DECAY_SCALE_BITS;
 
 static double round_to_precision(double gdd, uint8_t precision) 
 {
@@ -233,7 +235,31 @@ grdd_unit grdd_unit_calculate_decay(grdd_unit u, grdd_duration_seconds duration)
 	 */
 	// https://www.wolframalpha.com/input?i=%28e%5E%28lg%282%29+%2F+31556952%29%29%5Ex&assumption=%7B%22FunClash%22%2C+%22lg%22%7D+-%3E+%7B%22Log%22%7D
 	// from wolframalpha, based on the interest rate formula
-	return (grdd_unit)((double)gradidoCent * pow(2.0, (double)-duration / (double)SECONDS_PER_YEAR));
+	//__int128 zahl;
+	//return (grdd_unit)((double)gradidoCent * pow(2.0, (double)-duration / (double)SECONDS_PER_YEAR));
+
+	// 2. Calculate the decay factor as a scaled integer
+	//    decayFactor = 2^(-seconds / SECONDS_PER_YEAR)
+	//    scaledFactor = decayFactor * 2^DECAY_SCALE_BITS
+	//    Since we want an exact calculation, we use double for the factor,
+	//    BUT scale it immediately to an integer. The error in the double is then
+	//    in the least significant bits that we later control through rounding.
+	double factorDouble = pow(2.0, (double)-duration / (double)SECONDS_PER_YEAR);
+	__int128 scaledFactor = (__int128)llround(factorDouble * (DECAY_SCALE));
+    
+	// 3. Multiply the amount by the scaled factor
+	__int128 scaledResult = (__int128)gradidoCent * scaledFactor;
+    
+	// 4. Round commercially by adding half of the scaling
+	//    (only for positive results; for negative we must subtract)
+	__int128 roundingTerm = (gradidoCent >= 0) ? (1LL << (DECAY_SCALE_BITS - 1)) : -(1LL << (DECAY_SCALE_BITS - 1));
+	__int128 roundedResult = (scaledResult + roundingTerm) >> DECAY_SCALE_BITS;
+    
+	// 5. Convert back to int64_t (with overflow check)
+	if (roundedResult < INT64_MIN || roundedResult > INT64_MAX) {
+		return 0;
+	}
+	return (grdd_unit)roundedResult;
 }
 
 bool grdd_unit_calculate_duration_seconds(grdd_timestamp_seconds startTime, grdd_timestamp_seconds endTime, grdd_duration_seconds* outSeconds)

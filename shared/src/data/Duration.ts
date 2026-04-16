@@ -19,31 +19,40 @@ export class Duration {
     return new Duration(BigInt(Math.floor((to.getTime() - from.getTime()) / 1000)))
   }
 
-  public static seconds(seconds: bigint): Duration {
-    return new Duration(seconds)
+  public static seconds(seconds: number): Duration {
+    return new Duration(BigInt(seconds))
   }
 
-  public static minutes(minutes: bigint): Duration {
-    return new Duration(minutes * 60n)
+  public static minutes(minutes: number): Duration {
+    return new Duration(BigInt(minutes * 60))
   }
 
-  public static hours(hours: bigint): Duration {
-    return new Duration(hours * 60n * 60n)
+  public static hours(hours: number): Duration {
+    return new Duration(BigInt(hours * 60 * 60))
   }
 
-  public static days(days: bigint): Duration {
-    return new Duration(days * 24n * 60n * 60n)
+  public static days(days: number): Duration {
+    return new Duration(BigInt(days * 24 * 60 * 60))
   }
 
   public add(duration: Duration): Duration {
     return new Duration(this._seconds + duration._seconds)
   }
+  public addToDate(date: Date): Date {
+    return new Date(date.getTime() + Number(this._seconds * 1000n))
+  }
   public subtract(duration: Duration): Duration {
     return new Duration(this._seconds - duration._seconds)
+  }
+  public negated(): Duration {
+    return new Duration(-this._seconds)
   }
 
   get seconds(): bigint {
     return this._seconds
+  }
+  public toNumber(): number {
+    return Number(this._seconds)
   }
 
   toString(): string {

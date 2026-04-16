@@ -13,7 +13,6 @@ typedef int64_t grdd_unit;
 typedef int64_t grdd_timestamp_seconds;
 typedef int64_t grdd_duration_seconds;
 
-
  /**
  * @brief Rounds a fixed-point grdd_unit value to a specified decimal precision.
  *
@@ -126,7 +125,6 @@ bool grdd_unit_calculate_duration_seconds(grdd_timestamp_seconds startTime, grdd
 int grdd_unit_to_string(grdd_unit u, char* buffer, uint8_t precision);
 
 grdd_unit grdd_unit_calculate_decay(grdd_unit u, grdd_duration_seconds duration);
-
 
 #ifdef __cplusplus
 }

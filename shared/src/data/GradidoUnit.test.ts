@@ -59,8 +59,9 @@ describe('GradidoUnit', () => {
     const gdd = new GradidoUnit(10000n)
     const from = new Date('2022-01-01')
     const to = new Date('2022-01-02')
-    const decayed = gdd.requiredBeforeDecay(from, to)
-    expect(decayed.gddCent).toBe(10018n)
+    const buffed = gdd.requiredBeforeDecay(from, to)
+    expect(buffed.gddCent).toBe(10019n)
+    expect(buffed.decayed(from, to).gddCent).toBe(10000n)
   })
 
   describe('toString', () => {
@@ -160,35 +161,41 @@ describe('GradidoUnit', () => {
 
     it('has correct backward calculation 1 GDD, 1 day', () => {
       const amount = GradidoUnit.fromNumber(1.0)
-      const seconds = -(3600n * 24n)
-      expect(calculateDecayNative(amount.gddCent, seconds)).toBe(10018n)
+      const duration = Duration.days(1)
+      const buffed = amount.requiredBeforeDecay(duration)
+      expect(buffed.gddCent).toBe(10019n)
+      expect(buffed.decayForDuration(duration).gddCent).toBe(amount.gddCent)
     })
 
     it("has correct backward calculation 1'000 GDD, 1 minute", () => {
       const amount = GradidoUnit.fromNumber(1000.0)
-      const seconds = -60n
-      expect(calculateDecayNative(amount.gddCent, seconds)).toBe(10000013n)
+      const duration = Duration.minutes(1)
+      const buffed = amount.requiredBeforeDecay(duration)
+      expect(buffed.gddCent).toBe(10000013n)
+      expect(buffed.decayForDuration(duration).gddCent).toBe(amount.gddCent)
     })
 
     it("has correct backward calculation 10'000 GDD, 1 second", () => {
       const amount = GradidoUnit.fromNumber(10000.0)
-      const seconds = -1n
-      expect(calculateDecayNative(amount.gddCent, seconds)).toBe(100000002n)
+      const duration = Duration.seconds(1)
+      const buffed = amount.requiredBeforeDecay(duration)
+      expect(buffed.gddCent).toBe(100000002n)
+      expect(buffed.decayForDuration(duration).gddCent).toBe(amount.gddCent)
     })
 
     it('has correct forward calculation from number', () => {
       const amount = GradidoUnit.fromNumber(1.0019)
-      const seconds = 3600n * 24n
-      expect(calculateDecayNative(amount.gddCent, seconds)).toBe(10000n)
+      const duration = Duration.days(1)
+      expect(amount.decayForDuration(duration).gddCent).toBe(10000n)
     })
     it('has correct forward calculation from bigInt', () => {
       const amount = new GradidoUnit(10019n)
-      const seconds = 3600n * 24n
-      expect(calculateDecayNative(amount.gddCent, seconds)).toBe(10000n)
+      const duration = Duration.days(1)
+      expect(amount.decayForDuration(duration).gddCent).toBe(10000n)
     })
   })
-  describe('legacy link blocked amount decay test', () => {
-    const days14 = Duration.days(14n)
+  describe('link blocked amount decay test compare with blockchain', () => {
+    const days14 = Duration.days(14)
     const startDate = new Date('2022-01-01 17:12:01Z')
     const endDate = new Date('2022-01-12 00:50:10Z')
 
@@ -204,12 +211,12 @@ describe('GradidoUnit', () => {
       expect(link1Hold.toString(2)).toBe('10.27')
       expect(link2Hold.toString(2)).toBe('15.40')
 
-      // legacy way: decay from last transaction to now (endDate) and then subtract sum of blocked amounts
+      // db way: decay from last transaction to now (endDate) and then subtract sum of blocked amounts
       const decayedStartAmount = startAmount.decayedTo(endDate).balance
-      expect(decayedStartAmount.toString(4)).toBe('1079.5729')
+      expect(decayedStartAmount.toString(4)).toBe('1079.5730')
       const blockedSum = link1Hold.add(link2Hold)
-      const finalBalanceLegacy = decayedStartAmount.subtract(blockedSum)
-      expect(finalBalanceLegacy.toString(4)).toBe('1053.8999')
+      const finalBalanceDb = decayedStartAmount.subtract(blockedSum)
+      expect(finalBalanceDb.toString(4)).toBe('1053.8999')
 
       // blockchain way: subtract blocked amount at their creation date and proper decay the account balance before (that is what TemporalGradidoUnit is doing)
       const blocked1 = new TemporalGradidoUnit(link1Hold, new Date('2022-01-02 10:10:50Z'))
@@ -224,12 +231,150 @@ describe('GradidoUnit', () => {
       expect(durationBetweenBlocked1AndBlocked2.seconds).toBe(247921n)
       expect(durationBetweenBlocked2AndEnd.seconds).toBe(582439n)
       const afterSubtractBlocked1 = startAmount.subtract(blocked1)
-      expect(afterSubtractBlocked1.balance.toString(4)).toBe('1089.1745')
+      expect(afterSubtractBlocked1.balance.toString(4)).toBe('1089.1746')
       const afterSubtractBlocked2 = afterSubtractBlocked1.subtract(blocked2)
       expect(afterSubtractBlocked2.balance.toString(4)).toBe('1067.8556')
       const blockchainState = startAmount.subtract(blocked1).subtract(blocked2).decayedTo(endDate)
-      expect(blockchainState.balance.toString(4)).toBe('1054.2812')
-      expect(blockchainState.balance.gddCent).not.toBe(finalBalanceLegacy.gddCent)
+      expect(blockchainState.balance.toString(4)).toBe('1054.2813')
+      expect(blockchainState.balance.gddCent).not.toBe(finalBalanceDb.gddCent)
+
+    })
+
+    it('only one blocked time, large duration between create and end date', () => {
+      // prepare
+      const durationBetweenStartAndEnd = Duration.fromDateDiff(startDate, endDate)
+      expect(durationBetweenStartAndEnd.seconds).toBe(891489n)
+      const startAmount = new TemporalGradidoUnit(GradidoUnit.fromNumber(1100.921), startDate)
+      const link1 = GradidoUnit.fromNumber(10)
+      const link1Hold = link1.requiredBeforeDecay(days14)
+      expect(link1Hold.toString(2)).toBe('10.27')
+
+      // db way: decay from last transaction to now (endDate) and then subtract sum of blocked amounts
+      const decayedStartAmount = startAmount.decayedTo(endDate).balance
+      expect(decayedStartAmount.toString(4)).toBe('1079.5730')
+      const finalBalanceDb = decayedStartAmount.subtract(link1Hold)
+      expect(finalBalanceDb.toString(4)).toBe('1069.3038')
+      
+      const blocked1 = new TemporalGradidoUnit(link1Hold, new Date('2022-01-02 10:10:50Z'))
+
+      // new solution, decay link balance
+      const blocked1Decayed = blocked1.decayedTo(endDate)
+      expect(blocked1Decayed.balance.toString(4)).toBe('10.0836')
+      const finalBalanceDbFixed = decayedStartAmount.subtract(blocked1Decayed.balance)
+      expect(finalBalanceDbFixed.toString(4)).toBe('1069.4894')
+
+      // blockchain way: subtract blocked amount at their creation date and proper decay the account balance before (that is what TemporalGradidoUnit is doing)
+      const afterSubtractBlocked1 = startAmount.subtract(blocked1)
+      expect(afterSubtractBlocked1.balance.toString(4)).toBe('1089.1746')
+      const blockchainState = startAmount.subtract(blocked1).decayedTo(endDate)
+      expect(blockchainState.balance.toString(4)).toBe('1069.4894')
+      expect(blockchainState.balance.gddCent).not.toBe(finalBalanceDb.gddCent)   
+      expect(blockchainState.balance.gddCent).toBe(finalBalanceDbFixed.gddCent)   
+    })
+
+    it('only one blocked time, small duration between create and end date', () => {
+      // prepare
+      const durationBetweenStartAndEnd = Duration.fromDateDiff(startDate, endDate)
+      expect(durationBetweenStartAndEnd.seconds).toBe(891489n)
+      const startAmount = new TemporalGradidoUnit(GradidoUnit.fromNumber(1100.921), startDate)
+      const link1 = GradidoUnit.fromNumber(10)
+      const link1Hold = link1.requiredBeforeDecay(days14)
+      expect(link1Hold.toString(2)).toBe('10.27')
+
+      // db way: decay from last transaction to now (endDate) and then subtract sum of blocked amounts
+      const decayedStartAmount = startAmount.decayedTo(endDate).balance
+      expect(decayedStartAmount.toString(4)).toBe('1079.5730')
+      const finalBalanceDb = decayedStartAmount.subtract(link1Hold)
+      expect(finalBalanceDb.toString(4)).toBe('1069.3038')
+      
+      const blocked1 = new TemporalGradidoUnit(link1Hold, new Date('2022-01-11 10:10:50Z'))
+
+      // new solution, decay link balance
+      const blocked1Decayed = blocked1.decayedTo(endDate)
+      expect(blocked1Decayed.balance.toString(4)).toBe('10.2573')
+      const finalBalanceDbFixed = decayedStartAmount.subtract(blocked1Decayed.balance)
+      expect(finalBalanceDbFixed.toString(4)).toBe('1069.3157')
+
+      // blockchain way: subtract blocked amount at their creation date and proper decay the account balance before (that is what TemporalGradidoUnit is doing)
+      const afterSubtractBlocked1 = startAmount.subtract(blocked1)
+      expect(afterSubtractBlocked1.balance.toString(4)).toBe('1070.5556')
+      const blockchainState = startAmount.subtract(blocked1).decayedTo(endDate)
+      expect(blockchainState.balance.toString(4)).toBe('1069.3157')
+      expect(blockchainState.balance.gddCent).not.toBe(finalBalanceDb.gddCent)      
+      expect(blockchainState.balance.gddCent).toBe(finalBalanceDbFixed.gddCent)   
+    })
+
+    it('only one blocked time, small duration between create and end date, large start amount', () => {
+      // prepare
+      const durationBetweenStartAndEnd = Duration.fromDateDiff(startDate, endDate)
+      expect(durationBetweenStartAndEnd.seconds).toBe(891489n)
+      const startAmount = new TemporalGradidoUnit(GradidoUnit.fromNumber(1100000.921), startDate)
+      const link1 = GradidoUnit.fromNumber(10)
+      const link1Hold = link1.requiredBeforeDecay(days14)
+      expect(link1Hold.toString(2)).toBe('10.27')
+
+      // db way: decay from last transaction to now (endDate) and then subtract sum of blocked amounts
+      const decayedStartAmount = startAmount.decayedTo(endDate).balance
+      expect(decayedStartAmount.toString(4)).toBe('1078670.7511')
+      const finalBalanceDb = decayedStartAmount.subtract(link1Hold)
+      expect(finalBalanceDb.toString(4)).toBe('1078660.4819')
+      
+      const blocked1 = new TemporalGradidoUnit(link1Hold, new Date('2022-01-11 10:10:50Z'))
+
+      // new solution, decay link balance
+      const blocked1Decayed = blocked1.decayedTo(endDate)
+      expect(blocked1Decayed.balance.toString(4)).toBe('10.2573')
+      const finalBalanceDbFixed = decayedStartAmount.subtract(blocked1Decayed.balance)
+      expect(finalBalanceDbFixed.toString(4)).toBe('1078660.4938')
+
+      // blockchain way: subtract blocked amount at their creation date and proper decay the account balance before (that is what TemporalGradidoUnit is doing)
+      const afterSubtractBlocked1 = startAmount.subtract(blocked1)
+      expect(afterSubtractBlocked1.balance.toString(4)).toBe('1079911.2470')
+      const blockchainState = startAmount.subtract(blocked1).decayedTo(endDate)
+      expect(blockchainState.balance.toString(4)).toBe('1078660.4937')
+      expect(blockchainState.balance.gddCent).not.toBe(finalBalanceDb.gddCent)      
+      // expect(blockchainState.balance.gddCent).toBe(finalBalanceDbFixed.gddCent)   
+    })
+
+    it('adjust link blocked amount to current time', () => {
+      // prepare
+      const durationBetweenStartAndEnd = Duration.fromDateDiff(startDate, endDate)
+      expect(durationBetweenStartAndEnd.seconds).toBe(891489n)
+      const startAmount = new TemporalGradidoUnit(GradidoUnit.fromNumber(1100.921), startDate)
+      const link1 = GradidoUnit.fromNumber(10)
+      const link2 = GradidoUnit.fromNumber(15)
+      const link1Hold = link1.requiredBeforeDecay(days14)
+      const link2Hold = link2.requiredBeforeDecay(days14)
+      expect(link1Hold.toString(2)).toBe('10.27')
+      expect(link2Hold.toString(2)).toBe('15.40')
+
+      // db way: decay from last transaction to now (endDate) and then subtract sum of blocked amounts
+      const decayedStartAmount = startAmount.decayedTo(endDate).balance
+      expect(decayedStartAmount.toString(4)).toBe('1079.5730')
+      const blockedSum = link1Hold.add(link2Hold)
+      const finalBalanceDb = decayedStartAmount.subtract(blockedSum)
+      expect(finalBalanceDb.toString(4)).toBe('1053.8999')
+      
+      const blocked1 = new TemporalGradidoUnit(link1Hold, new Date('2022-01-02 10:10:50Z'))
+      const blocked2 = new TemporalGradidoUnit(link2Hold, new Date('2022-01-05 07:02:51Z'))
+
+      // new solution, decay link balance
+      const blocked1Decayed = blocked1.decayedTo(endDate)
+      expect(blocked1Decayed.balance.toString(4)).toBe('10.0836')
+      const blocked2Decayed = blocked2.decayedTo(endDate)
+      expect(blocked2Decayed.balance.toString(4)).toBe('15.2081')
+      const finalBalanceDbFixed = decayedStartAmount.subtract(blocked1Decayed.balance).subtract(blocked2Decayed.balance)
+      expect(finalBalanceDbFixed.toString(4)).toBe('1054.2813')
+
+      // blockchain way: subtract blocked amount at their creation date and proper decay the account balance before (that is what TemporalGradidoUnit is doing)
+      const afterSubtractBlocked1 = startAmount.subtract(blocked1)
+      expect(afterSubtractBlocked1.balance.toString(4)).toBe('1089.1746')
+      const afterSubtractBlocked2 = afterSubtractBlocked1.subtract(blocked2)
+      expect(afterSubtractBlocked2.balance.toString(4)).toBe('1067.8556')
+      const blockchainState = startAmount.subtract(blocked1).subtract(blocked2).decayedTo(endDate)
+      expect(blockchainState.balance.toString(4)).toBe('1054.2813')
+      expect(blockchainState.balance.gddCent).not.toBe(finalBalanceDb.gddCent)      
+      expect(blockchainState.balance.gddCent).toBe(finalBalanceDbFixed.gddCent)
     })
 
     it('redeemed links', () => {
@@ -240,18 +385,18 @@ describe('GradidoUnit', () => {
       const redeemedDate = new Date('2022-01-10 06:05:23Z')
       const link1RedeemTemporal = new TemporalGradidoUnit(link1, redeemedDate)
 
-      // legacy
-      const afterRedeemLinkLegacy = startAmount.subtract(link1RedeemTemporal)
-      expect(afterRedeemLinkLegacy.balance.toString(4)).toBe('1073.2282')
+      // db
+      const afterRedeemLinkDb = startAmount.subtract(link1RedeemTemporal)
+      expect(afterRedeemLinkDb.balance.toString(4)).toBe('1073.2283')
 
       // blockchain
       const link1Temporal = new TemporalGradidoUnit(link1Hold, new Date('2022-01-02 10:10:50Z'))
       const afterLink1Founded = startAmount.subtract(link1Temporal)
-      expect(afterLink1Founded.balance.toString(4)).toBe('1089.1745')
+      expect(afterLink1Founded.balance.toString(4)).toBe('1089.1746')
       const afterAddingChangeFromLink1Redeem = afterLink1Founded.add(
         link1Temporal.subtract(link1RedeemTemporal),
       )
-      expect(afterAddingChangeFromLink1Redeem.balance.toString(4)).toBe('1073.2281')
+      expect(afterAddingChangeFromLink1Redeem.balance.toString(4)).toBe('1073.2282')
     })
     it('redeemed links with bigger numbers', () => {
       const startAmount = new TemporalGradidoUnit(GradidoUnit.fromNumber(1100000.921), startDate)
@@ -261,18 +406,18 @@ describe('GradidoUnit', () => {
       const redeemedDate = new Date('2022-01-10 06:05:23Z')
       const link1RedeemTemporal = new TemporalGradidoUnit(link1, redeemedDate)
 
-      // legacy
-      const afterRedeemLinkLegacy = startAmount.subtract(link1RedeemTemporal)
-      expect(afterRedeemLinkLegacy.balance.toString(4)).toBe('1081322.9585')
+      // db
+      const afterRedeemLinkDb = startAmount.subtract(link1RedeemTemporal)
+      expect(afterRedeemLinkDb.balance.toString(4)).toBe('1081322.9585')
 
       // blockchain
       const link1Temporal = new TemporalGradidoUnit(link1Hold, new Date('2022-01-02 10:10:50Z'))
       const afterLink1Founded = startAmount.subtract(link1Temporal)
-      expect(afterLink1Founded.balance.toString(4)).toBe('1097498.0203')
+      expect(afterLink1Founded.balance.toString(4)).toBe('1097498.0204')
       const afterAddingChangeFromLink1Redeem = afterLink1Founded.add(
         link1Temporal.subtract(link1RedeemTemporal),
       )
-      expect(afterAddingChangeFromLink1Redeem.balance.toString(4)).toBe('1081322.9584')
+      expect(afterAddingChangeFromLink1Redeem.balance.toString(4)).toBe('1081322.9586')
     })
     it('redeemed links with later redeem', () => {
       const startAmount = new TemporalGradidoUnit(GradidoUnit.fromNumber(1100.921), startDate)
@@ -282,59 +427,188 @@ describe('GradidoUnit', () => {
       const redeemedDate = new Date('2022-01-16 06:05:23Z')
       const link1RedeemTemporal = new TemporalGradidoUnit(link1, redeemedDate)
 
-      // legacy
-      const afterRedeemLinkLegacy = startAmount.subtract(link1RedeemTemporal)
-      expect(afterRedeemLinkLegacy.balance.toString(4)).toBe('1060.9638')
+      // db
+      const afterRedeemLinkDb = startAmount.subtract(link1RedeemTemporal)
+      expect(afterRedeemLinkDb.balance.toString(4)).toBe('1060.9639')
 
       // blockchain
       const link1Temporal = new TemporalGradidoUnit(link1Hold, new Date('2022-01-02 10:10:50Z'))
       const afterLink1Founded = startAmount.subtract(link1Temporal)
-      expect(afterLink1Founded.balance.toString(4)).toBe('1089.1745')
+      expect(afterLink1Founded.balance.toString(4)).toBe('1089.1746')
       const afterAddingChangeFromLink1Redeem = afterLink1Founded.add(
         link1Temporal.subtract(link1RedeemTemporal),
       )
-      expect(afterAddingChangeFromLink1Redeem.balance.toString(4)).toBe('1060.9637')
+      expect(afterAddingChangeFromLink1Redeem.balance.toString(4)).toBe('1060.9639')
+    })
+    it('redeemed links with earlier redeem', () => {
+      const startAmount = new TemporalGradidoUnit(GradidoUnit.fromNumber(1100.921), startDate)
+      const link1 = GradidoUnit.fromNumber(10)
+      const link1Hold = link1.requiredBeforeDecay(days14)
+      expect(link1Hold.toString(2)).toBe('10.27')
+      const redeemedDate = new Date('2022-01-02 12:05:23Z')
+      const link1RedeemTemporal = new TemporalGradidoUnit(link1, redeemedDate)
+
+      // db
+      const afterRedeemLinkDb = startAmount.subtract(link1RedeemTemporal)
+      expect(afterRedeemLinkDb.balance.toString(4)).toBe('1089.2778')
+
+      // blockchain
+      const link1Temporal = new TemporalGradidoUnit(link1Hold, new Date('2022-01-02 10:10:50Z'))
+      const afterLink1Founded = startAmount.subtract(link1Temporal)
+      expect(afterLink1Founded.balance.toString(4)).toBe('1089.1746')
+      const afterAddingChangeFromLink1Redeem = afterLink1Founded.add(
+        link1Temporal.subtract(link1RedeemTemporal),
+      )
+      expect(afterAddingChangeFromLink1Redeem.balance.toString(4)).toBe('1089.2778')
     })
     it('redeemed links with longer link duration', () => {
       const startAmount = new TemporalGradidoUnit(GradidoUnit.fromNumber(1100.921), startDate)
       const link1 = GradidoUnit.fromNumber(10)
-      const link1Hold = link1.requiredBeforeDecay(Duration.days(90n))
+      const link1Hold = link1.requiredBeforeDecay(Duration.days(90))
       expect(link1Hold.toString(2)).toBe('11.86')
       const redeemedDate = new Date('2022-04-01 06:05:23Z')
       const link1RedeemTemporal = new TemporalGradidoUnit(link1, redeemedDate)
 
-      // legacy
-      const afterRedeemLinkLegacy = startAmount.subtract(link1RedeemTemporal)
-      expect(afterRedeemLinkLegacy.balance.toString(4)).toBe('918.8817')
+      // db
+      const afterRedeemLinkDb = startAmount.subtract(link1RedeemTemporal)
+      expect(afterRedeemLinkDb.balance.toString(4)).toBe('918.8817')
 
       // blockchain
       const link1Temporal = new TemporalGradidoUnit(link1Hold, new Date('2022-01-02 10:10:50Z'))
       const afterLink1Founded = startAmount.subtract(link1Temporal)
-      expect(afterLink1Founded.balance.toString(4)).toBe('1087.5812')
+      expect(afterLink1Founded.balance.toString(4)).toBe('1087.5813')
       const afterAddingChangeFromLink1Redeem = afterLink1Founded.add(
         link1Temporal.subtract(link1RedeemTemporal),
       )
-      expect(afterAddingChangeFromLink1Redeem.balance.toString(4)).toBe('918.8816')
+      expect(afterAddingChangeFromLink1Redeem.balance.toString(4)).toBe('918.8817')
     })
     it('deleted links', () => {
       const startAmount = new TemporalGradidoUnit(GradidoUnit.fromNumber(1100.921), startDate)
       const link1 = GradidoUnit.fromNumber(10)
-      const link1Hold = link1.requiredBeforeDecay(Duration.days(14n))
+      const link1Hold = link1.requiredBeforeDecay(days14)
       expect(link1Hold.toString(2)).toBe('10.27')
       const deletedDate = new Date('2022-01-10 06:05:23Z')
 
-      // legacy
+      // db
       const endAmount = startAmount.decayedTo(deletedDate)
-      expect(endAmount.balance.toString(4)).toBe('1083.2282')
+      expect(endAmount.balance.toString(4)).toBe('1083.2283')
 
       // blockchain
       const link1Temporal = new TemporalGradidoUnit(link1Hold, new Date('2022-01-02 10:10:50Z'))
       const afterLink1Founded = startAmount.subtract(link1Temporal)
-      expect(afterLink1Founded.balance.toString(4)).toBe('1089.1745')
+      expect(afterLink1Founded.balance.toString(4)).toBe('1089.1746')
       const afterAddingChangeFromLink1Delete = afterLink1Founded.add(
         link1Temporal.decayedTo(deletedDate),
       )
-      expect(afterAddingChangeFromLink1Delete.balance.toString(4)).toBe('1083.2281')
+      expect(afterAddingChangeFromLink1Delete.balance.toString(4)).toBe('1083.2282')
+      // expect(afterAddingChangeFromLink1Delete.balance.gddCent).toBe(endAmount.balance.gddCent)
+    })
+    it('deleted link almost instantly', () => {
+      const startAmount = new TemporalGradidoUnit(GradidoUnit.fromNumber(1100.921), startDate)
+      const link1 = GradidoUnit.fromNumber(10)
+      const link1Hold = link1.requiredBeforeDecay(days14)
+      expect(link1Hold.toString(2)).toBe('10.27')
+      const linkCreationDate = Duration.minutes(20).addToDate(startDate)
+      const deletedDate = Duration.minutes(20).addToDate(linkCreationDate)
+
+      // db
+      const endAmount = startAmount.decayedTo(deletedDate)
+      expect(endAmount.balance.toString(4)).toBe('1100.8630')
+
+      // blockchain
+      const link1Temporal = new TemporalGradidoUnit(link1Hold, linkCreationDate)
+      const afterLink1Founded = startAmount.subtract(link1Temporal)
+      expect(afterLink1Founded.balance.toString(4)).toBe('1090.6228')
+      const afterAddingChangeFromLink1Delete = afterLink1Founded.add(
+        link1Temporal.decayedTo(deletedDate),
+      )
+      expect(afterAddingChangeFromLink1Delete.balance.toString(4)).toBe('1100.8630')
+      expect(afterAddingChangeFromLink1Delete.balance.gddCent).toBe(endAmount.balance.gddCent)
+    })
+    it('deleted links after 14 days', () => {
+      const startAmount = new TemporalGradidoUnit(GradidoUnit.fromNumber(1100.921), startDate)
+      const link1 = GradidoUnit.fromNumber(10)
+      const link1Hold = link1.requiredBeforeDecay(days14)
+      expect(link1Hold.toString(2)).toBe('10.27')
+      const deletedDate = days14.addToDate(startDate)
+
+      // db
+      const endAmount = startAmount.decayedTo(deletedDate)
+      expect(endAmount.balance.toString(4)).toBe('1072.0560')
+
+      // blockchain
+      const link1Temporal = new TemporalGradidoUnit(link1Hold, new Date('2022-01-02 10:10:50Z'))
+      const afterLink1Founded = startAmount.subtract(link1Temporal)
+      expect(afterLink1Founded.balance.toString(4)).toBe('1089.1746')
+      const afterAddingChangeFromLink1Delete = afterLink1Founded.add(
+        link1Temporal.decayedTo(deletedDate),
+      )
+      expect(afterAddingChangeFromLink1Delete.balance.toString(4)).toBe('1072.0560')
+      expect(afterAddingChangeFromLink1Delete.balance.gddCent).toBe(endAmount.balance.gddCent)
+    })
+    it('deleted links after 14 days, bigger start amount', () => {
+      const startAmount = new TemporalGradidoUnit(GradidoUnit.fromNumber(110000.921), startDate)
+      const link1 = GradidoUnit.fromNumber(10)
+      const link1Hold = link1.requiredBeforeDecay(days14)
+      expect(link1Hold.toString(2)).toBe('10.27')
+      const deletedDate = days14.addToDate(startDate)
+
+      // db
+      const endAmount = startAmount.decayedTo(deletedDate)
+      expect(endAmount.balance.toString(4)).toBe('107116.8102')
+
+      // blockchain
+      const link1Temporal = new TemporalGradidoUnit(link1Hold, new Date('2022-01-02 10:10:50Z'))
+      const afterLink1Founded = startAmount.subtract(link1Temporal)
+      expect(afterLink1Founded.balance.toString(4)).toBe('109843.0531')
+      const afterAddingChangeFromLink1Delete = afterLink1Founded.add(
+        link1Temporal.decayedTo(deletedDate),
+      )
+      expect(afterAddingChangeFromLink1Delete.balance.toString(4)).toBe('107116.8102')
+      expect(afterAddingChangeFromLink1Delete.balance.gddCent).toBe(endAmount.balance.gddCent)
+    })
+
+    it('deleted links after 14 days, bigger start amount and link amount', () => {
+      const startAmount = new TemporalGradidoUnit(GradidoUnit.fromNumber(110000.921), startDate)
+      const link1 = GradidoUnit.fromNumber(1000)
+      const link1Hold = link1.requiredBeforeDecay(days14)
+      expect(link1Hold.toString(2)).toBe('1026.92')
+      const deletedDate = days14.addToDate(startDate)
+
+      // db
+      const endAmount = startAmount.decayedTo(deletedDate)
+      expect(endAmount.balance.toString(4)).toBe('107116.8102')
+
+      // blockchain
+      const link1Temporal = new TemporalGradidoUnit(link1Hold, new Date('2022-01-02 10:10:50Z'))
+      const afterLink1Founded = startAmount.subtract(link1Temporal)
+      expect(afterLink1Founded.balance.toString(4)).toBe('108826.3974')
+      const afterAddingChangeFromLink1Delete = afterLink1Founded.add(
+        link1Temporal.decayedTo(deletedDate),
+      )
+      expect(afterAddingChangeFromLink1Delete.balance.toString(4)).toBe('107116.8102')
+      expect(afterAddingChangeFromLink1Delete.balance.gddCent).toBe(endAmount.balance.gddCent)
+    })
+    it('deleted links after 14 days, small start amount and big link amount', () => {
+      const startAmount = new TemporalGradidoUnit(GradidoUnit.fromNumber(1100.921), startDate)
+      const link1 = GradidoUnit.fromNumber(1000)
+      const link1Hold = link1.requiredBeforeDecay(days14)
+      expect(link1Hold.toString(2)).toBe('1026.92')
+      const deletedDate = days14.addToDate(startDate)
+
+      // db
+      const endAmount = startAmount.decayedTo(deletedDate)
+      expect(endAmount.balance.toString(4)).toBe('1072.0560')
+
+      // blockchain
+      const link1Temporal = new TemporalGradidoUnit(link1Hold, new Date('2022-01-02 10:10:50Z'))
+      const afterLink1Founded = startAmount.subtract(link1Temporal)
+      expect(afterLink1Founded.balance.toString(4)).toBe('72.5189')
+      const afterAddingChangeFromLink1Delete = afterLink1Founded.add(
+        link1Temporal.decayedTo(deletedDate),
+      )
+      expect(afterAddingChangeFromLink1Delete.balance.toString(4)).toBe('1072.0560')
+      expect(afterAddingChangeFromLink1Delete.balance.gddCent).toBe(endAmount.balance.gddCent)
     })
   })
 })
