@@ -79,6 +79,7 @@ describe('Send', () => {
         pending: false,
       },
       global: {
+        plugins: [i18n],
         stubs: {
           'gdd-send': true,
         },

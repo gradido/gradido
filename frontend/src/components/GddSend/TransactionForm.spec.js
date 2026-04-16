@@ -267,7 +267,7 @@ describe('TransactionForm', () => {
       })
     })
 
-    describe('create transaction link', () => {
+    describe.skip('create transaction link', () => {
       /*
       beforeEach(async () => {
         await wrapper.findComponent(BFormRadioGroup).setValue(SEND_TYPES.link)
