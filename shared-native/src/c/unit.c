@@ -68,7 +68,7 @@ int grdd_unit_to_string(grdd_unit u, char* buffer, size_t bufferSize, uint8_t pr
   return bufferSize - written;
 }
 
-grdd_timestamp_seconds get_decay_start_time()
+grdd_timestamp_seconds grdd_unit_decay_start_time()
 {
 	return DECAY_START_TIME;
 }

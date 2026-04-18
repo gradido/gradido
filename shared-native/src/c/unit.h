@@ -31,7 +31,7 @@ static inline void grdd_unit_negate(grdd_unit* u)
     if (u) *u = -*u;
 }
 
-grdd_timestamp_seconds get_decay_start_time();
+grdd_timestamp_seconds grdd_unit_decay_start_time();
 
 //! return false if startTime > endTime
 //! make sure that returned duration starts after decay start time, returns 0 if time range is entirely before decay start time
