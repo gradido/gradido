@@ -4,6 +4,7 @@
 #include <ctype.h>
 #include <math.h>
 #include <memory.h>
+#include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -81,7 +82,9 @@ bool grdd_unit_from_string(const char* str, grdd_unit* out)
     // --- integer part ---
     char* end;
     int64_t integerPart = strtoll(p, &end, 10);
-    if (end == p && *p != '.') return false;
+    if (end == p && *p != '.') {
+			return false;
+		}
 
     int64_t fractionalPart = 0;
     int digits = 0;
@@ -124,11 +127,15 @@ bool grdd_unit_from_string(const char* str, grdd_unit* out)
         }
     }
 
-    if (*p != '\0') return false;
+    if (*p != '\0') {
+			return false;
+		}
 		// int64 max:  9,223,372,036,854,775,807
 		// int64 min: -9,223,372,036,854,775,807
 		// int64 max for integer part (without fractional part): 922,337,203,685,476
-    if (integerPart > 922337203685476 || integerPart < -922337203685476) return false;
+    if (integerPart > 922337203685476 || integerPart < -922337203685476) {
+			return false;
+		}
 
 		int64_t result = 0;
 		if (negative) {
@@ -186,7 +193,7 @@ int grdd_unit_to_string(grdd_unit u, char* buffer, uint8_t precision)
 	return cursor;
 }
 
-grdd_timestamp_seconds grdd_unit_get_decay_start_time()
+grdd_timestamp_seconds grdd_unit_decay_start_time()
 {
 	return DECAY_START_TIME;
 }
