@@ -191,5 +191,24 @@ describe('GradidoUnit', () => {
       const result = toDecimalPlaces(-10012041n, 2)
       expect(result).toBe(-10012000n)
     })
+describe('calculateDecay with very large numbers', () => {
+  it('handles very large amounts', () => {
+    const amount = 1000000000000000000n
+    const decay = calculateDecay(amount, 0n)
+    expect(decay).toBe(amount)
+  })
+})
+describe('calculateDecay with edge cases', () => {
+  it('handles edge case with minimal amount', () => {
+    const amount = 1n
+    const decay = calculateDecay(amount, 0n)
+    expect(decay).toBe(amount)
+  })
+})
+describe('getDecayStartTime', () => {
+  it('returns a valid Date object', () => {
+    const startTime = getDecayStartTime()
+    expect(startTime).toBeInstanceOf(Date)
+    expect(startTime.getTime()).toBe(1620927991000)
   })
 })

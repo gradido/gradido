@@ -27,7 +27,7 @@ namespace gradidoUnit {
 
     
     Napi::Value GetDecayStartTime(const Napi::CallbackInfo& info) {
-        double timestamp = static_cast<double>(grdd_unit_get_decay_start_time()) / 1000.0;
+        double timestamp = static_cast<double>(grdd_unit_decay_start_time()) / 1000.0;
         return Napi::Date::New(info.Env(), timestamp);
     }
 

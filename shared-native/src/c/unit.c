@@ -184,7 +184,7 @@ int grdd_unit_to_string(grdd_unit u, char* buffer, uint8_t precision)
 	return cursor;
 }
 
-grdd_timestamp_seconds grdd_unit_get_decay_start_time()
+grdd_timestamp_seconds grdd_unit_decay_start_time()
 {
 	return DECAY_START_TIME;
 }
