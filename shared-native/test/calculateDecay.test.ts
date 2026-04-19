@@ -167,7 +167,7 @@ describe('GradidoUnit', () => {
     it('returns a valid Date object', () => {
       const startTime = getDecayStartTime()
       expect(startTime).toBeInstanceOf(Date)
-      expect(startTime.getTime()).toBe(1620927)
+      expect(startTime.getTime()).toBe(1620927991000)
     })
   })
   describe('toDecimalPlaces', () => {
@@ -191,6 +191,8 @@ describe('GradidoUnit', () => {
       const result = toDecimalPlaces(-10012041n, 2)
       expect(result).toBe(-10012000n)
     })
+  })
+})
 describe('calculateDecay with very large numbers', () => {
   it('handles very large amounts', () => {
     const amount = 1000000000000000000n
