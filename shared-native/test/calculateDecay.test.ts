@@ -200,4 +200,26 @@ describe('GradidoUnit', () => {
       expect(reversed).toBe(amount)
     })
   })
+  describe('find good break points', () => {
+    const secondsPerYear = 33554432n// 31556952n
+    it('finds good break points', () => {
+      const amount = 1000000n
+      const values = [
+        secondsPerYear / 2n,
+        secondsPerYear / 4n,
+        secondsPerYear / 8n,
+        secondsPerYear / 16n,
+        secondsPerYear / 32n,
+        secondsPerYear / 64n,
+        secondsPerYear / 128n,
+        secondsPerYear / 256n,
+        secondsPerYear / 512n,
+        secondsPerYear / 1024n,
+      ]
+      values.forEach((value, index) => {
+        const decay = calculateDecay(amount, value)
+        console.log(`[${index}] Decay after ${value} seconds: ${decay}`)
+      })
+    })
+  })
 })

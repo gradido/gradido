@@ -244,8 +244,8 @@ grdd_unit grdd_unit_calculate_decay(grdd_unit u, grdd_duration_seconds duration)
 	//    Since we want an exact calculation, we use double for the factor,
 	//    BUT scale it immediately to an integer. The error in the double is then
 	//    in the least significant bits that we later control through rounding.
-	double factorDouble = pow(2.0, (double)-duration / (double)SECONDS_PER_YEAR);
-	__int128 scaledFactor = (__int128)llround(factorDouble * (DECAY_SCALE));
+	long double factorDouble = powl(2.0L, (long double)-duration / (long double)SECONDS_PER_YEAR);
+	__int128 scaledFactor = (__int128)llroundl(factorDouble * (DECAY_SCALE));
     
 	// 3. Multiply the amount by the scaled factor
 	__int128 scaledResult = (__int128)gradidoCent * scaledFactor;
@@ -259,6 +259,8 @@ grdd_unit grdd_unit_calculate_decay(grdd_unit u, grdd_duration_seconds duration)
 	if (roundedResult < INT64_MIN || roundedResult > INT64_MAX) {
 		return 0;
 	}
+	printf("rounded result: %lld\n", (long long)roundedResult);
+	printf("double result: %Lf\n", (long double)gradidoCent * factorDouble);
 	return (grdd_unit)roundedResult;
 }
 
