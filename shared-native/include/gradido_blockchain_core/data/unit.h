@@ -1,5 +1,9 @@
-#ifndef GRADIDO_BLOCKCHAIN_C_DATA_UNIT_H
-#define GRADIDO_BLOCKCHAIN_C_DATA_UNIT_H
+#ifndef GRADIDO_BLOCKCHAIN_CORE_DATA_UNIT_H
+#define GRADIDO_BLOCKCHAIN_CORE_DATA_UNIT_H
+
+#include "types.h"
+
+#include "r128/r128.h"
 
 #include <stdbool.h> 
 #include <stddef.h>
@@ -10,11 +14,8 @@ extern "C" {
 #endif
 
 typedef int64_t grdd_unit;
-typedef int64_t grdd_timestamp_seconds;
-typedef int64_t grdd_duration_seconds;
 
-
- /**
+/**
  * @brief Rounds a fixed-point grdd_unit value to a specified decimal precision.
  *
  * This function performs deterministic HALF-UP rounding using integer arithmetic.
@@ -41,10 +42,10 @@ typedef int64_t grdd_duration_seconds;
  *   false - result pointer is NULL, precision out of range, or result would overflow int64_t
  *           (< -922337203685476 or > 922337203685476)
  */
-bool grdd_unit_round_to_precision(grdd_unit value, uint8_t precision, grdd_unit* result);
+bool grdd_unit_round_to_precision(grdd_unit* result, grdd_unit value, uint8_t precision);
 
 grdd_unit grdd_unit_from_decimal(double gdd);
-double grdd_unit_to_decimal(grdd_unit u);
+double grdd_unit_to_decimal(grdd_unit value);
 
 /**
  * @brief Parses a decimal string into a fixed-point grdd_unit (scaled by 10,000)
@@ -73,17 +74,7 @@ double grdd_unit_to_decimal(grdd_unit u);
  *   false - input or output is NULL, invalid format, or integer part out of range
  *           (< -922337203685476 or > 922337203685476)
  */
-bool grdd_unit_from_string(const char* gdd_string, grdd_unit* resultGdd);
-
-static inline grdd_unit grdd_unit_negated(const grdd_unit u) 
-{
-  return u * -1;
-}
-
-static inline void grdd_unit_negate(grdd_unit* u)
-{
-    if (u) *u = -*u;
-}
+bool grdd_unit_from_string(grdd_unit* resultGdd, const char* gdd_string);
 
 grdd_timestamp_seconds grdd_unit_decay_start_time();
 
@@ -95,25 +86,22 @@ bool grdd_unit_calculate_duration_seconds(grdd_timestamp_seconds startTime, grdd
  * @brief Converts a fixed-point grdd_unit value to its string representation.
  *
  * This function formats a grdd_unit value (scaled by 10^4) into a human-readable
- * decimal string with the specified precision (0–4 fractional digits).
- *
- * The value is first rounded using HALF-UP rounding to the requested precision.
- * If the requested precision is greater than 4, it is clamped to 4.
+ * decimal string with the specified precision (0–4 fractional digits). Rounded.
  *
  * The resulting string:
  * - Includes a leading '-' sign for negative values
  * - Uses a '.' as decimal separator if precision > 0
  * - Omits the fractional part entirely if precision == 0
  *
- * The conversion is performed using integer arithmetic only, ensuring
- * deterministic and platform-independent results.
- *
- * @param[in]  u
- *   The input value in fixed-point representation (scaled by 10^4).
- *
  * @param[out] buffer
  *   Destination buffer to store the resulting null-terminated string.
  *   The caller must ensure that the buffer is large enough. Maximal possible size should be 22 characters.
+ *
+ * @param[in] bufferSize
+ *   The size of the destination buffer in characters.
+ *
+ * @param[in] value
+ *   The input value in fixed-point representation (scaled by 10^4).
  *
  * @param[in]  precision
  *   Number of digits after the decimal point (0–4). Values greater than 4
@@ -121,16 +109,16 @@ bool grdd_unit_calculate_duration_seconds(grdd_timestamp_seconds startTime, grdd
  *
  * @return
  *   >= 0 - number of characters written (excluding null terminator)
- *   -1   - rounding failed (e.g. due to overflow)
+ *   -1   - invalid buffer or buffer size
+ *   -2   - invalid precision or rounding error
  */
-int grdd_unit_to_string(grdd_unit u, char* buffer, uint8_t precision);
+int grdd_unit_to_string(char* buffer, size_t bufferSize, grdd_unit value, uint8_t precision);
 
-grdd_unit grdd_unit_calculate_decay(grdd_unit u, grdd_duration_seconds duration);
-
+grdd_unit grdd_unit_calculate_decay(grdd_unit gdd, grdd_duration_seconds duration);
 
 #ifdef __cplusplus
 }
 #endif
 
 
-#endif // GRADIDO_BLOCKCHAIN_C_DATA_UNIT_H
+#endif // GRADIDO_BLOCKCHAIN_CORE_DATA_UNIT_H

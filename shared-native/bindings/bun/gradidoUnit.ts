@@ -2,7 +2,7 @@ import { dlopen, FFIType, ptr, read } from 'bun:ffi'
 import path from 'path'
 import { getCoreFileName } from '../../build_helper/host_configuration'
 
-const { u8, i32, i64, cstring, bool, pointer } = FFIType
+const { i64, u64, i32, bool, cstring, pointer, u8 } = FFIType
 
 const filePath = path.resolve(__dirname, `../../build/${getCoreFileName()}`)
 // direct importing c library via ffi, without nodejs addon wrapper
@@ -13,6 +13,7 @@ const {
     grdd_unit_from_string,
     grdd_unit_to_string,
     grdd_unit_round_to_precision,
+    grdu_duration_string,
   },
 } = dlopen(filePath, {
   grdd_unit_decay_start_time: {
@@ -25,21 +26,26 @@ const {
   },
   grdd_unit_from_string: {
     returns: bool,
-    args: [cstring, pointer],
+    args: [pointer, cstring],
   },
   grdd_unit_to_string: {
     returns: i32,
-    args: [i64, cstring, u8],
+    args: [cstring, u64, i64, u8],
   },
   grdd_unit_round_to_precision: {
     returns: bool,
-    args: [i64, u8, pointer],
+    args: [pointer, i64, u8],
+  },
+  grdu_duration_string: {
+    returns: i32,
+    args: [cstring, u64, i64, u8],
   },
 })
+
 // replace nodejs wrapper written in c++ with this in TypeScript Written Wrappers
 
 export function getDecayStartTime(): Date {
-  return new Date(Number(grdd_unit_decay_start_time() * 1000n))
+  return new Date(Number(grdd_unit_decay_start_time()) * 1000)
 }
 
 export function calculateDecay(value: bigint, seconds: bigint): bigint {
@@ -50,7 +56,7 @@ export function gradidoUnitFromString(str: string): bigint {
   const resultBufferPtr = ptr(new Int8Array(8))
   // c expect \0 terminated string, but JavaScript don't auto null terminate strings
   const strBuffer = Buffer.from(str + '\0', 'utf8')
-  if (!grdd_unit_from_string(strBuffer, resultBufferPtr)) {
+  if (!grdd_unit_from_string(resultBufferPtr, strBuffer)) {
     throw new Error(
       "Invalid unit string. Must be a decimal with up to 4 fractional digits, integer part between -922'337'203'685'476 and 922'337'203'685'476.",
     )
@@ -67,7 +73,7 @@ export function gradidoUnitToString(value: bigint, precision?: number): string {
   }
   const resultBuffer = new Uint8Array(32)
   const resultBufferPtr = ptr(resultBuffer)
-  const result = grdd_unit_to_string(value, resultBufferPtr, precision ?? 4)
+  const result = grdd_unit_to_string(resultBufferPtr, 32, value, precision ?? 4)
   if (result < 0) {
     throw new Error('Rounding failed (overflow)')
   }
@@ -82,8 +88,15 @@ export function toDecimalPlaces(value: bigint, places: number): bigint {
     throw new Error('BigInt value is too large to fit in grdd_unit')
   }
   const resultBufferPtr = ptr(new Int8Array(8))
-  if (!grdd_unit_round_to_precision(value, places, resultBufferPtr)) {
+  if (!grdd_unit_round_to_precision(resultBufferPtr, value, places)) {
     throw new Error('Rounding failed (overflow)')
   }
   return read.i64(resultBufferPtr)
+}
+
+export function durationToString(duration: bigint, precision?: number): string {
+  const resultBuffer = new Uint8Array(32)
+  const resultBufferPtr = ptr(resultBuffer)
+  const result = grdu_duration_string(resultBufferPtr, 32, duration, precision ?? 2)
+  return Buffer.from(resultBuffer).toString('utf8').slice(0, result)
 }
