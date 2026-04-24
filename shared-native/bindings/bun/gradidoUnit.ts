@@ -7,8 +7,8 @@ const { i64, u64, i32, bool, cstring, pointer, u8 } = FFIType
 const filePath = path.resolve(__dirname, `../../build/${getCoreFileName()}`)
 // direct importing c library via ffi, without nodejs addon wrapper
 const {
-  symbols: { 
-    grdd_unit_decay_start_time, 
+  symbols: {
+    grdd_unit_decay_start_time,
     grdd_unit_calculate_decay,
     grdd_unit_from_string,
     grdd_unit_to_string,
@@ -57,7 +57,6 @@ export function gradidoUnitFromString(str: string): bigint {
   // c expect \0 terminated string, but JavaScript don't auto null terminate strings
   const strBuffer = Buffer.from(str + '\0', 'utf8')
   if (!grdd_unit_from_string(resultBufferPtr, strBuffer)) {
-    console.log('Failed to parse string:', str, read.i64(resultBufferPtr).toString())
     throw new Error(
       "Invalid unit string. Must be a decimal with up to 4 fractional digits, integer part between -922'337'203'685'476 and 922'337'203'685'476.",
     )
