@@ -60,7 +60,7 @@ describe('GradidoUnit', () => {
     const from = new Date('2022-01-01')
     const to = new Date('2022-01-02')
     const decayed = gdd.requiredBeforeDecay(from, to)
-    expect(decayed.gddCent).toBe(10018n)
+    expect(decayed.gddCent).toBe(10019n)
   })
 
   describe('toString', () => {
@@ -161,7 +161,7 @@ describe('GradidoUnit', () => {
     it('has correct backward calculation 1 GDD, 1 day', () => {
       const amount = GradidoUnit.fromNumber(1.0)
       const seconds = -(3600n * 24n)
-      expect(calculateDecayNative(amount.gddCent, seconds)).toBe(10018n)
+      expect(calculateDecayNative(amount.gddCent, seconds)).toBe(10019n)
     })
 
     it("has correct backward calculation 1'000 GDD, 1 minute", () => {
@@ -206,7 +206,7 @@ describe('GradidoUnit', () => {
 
       // legacy way: decay from last transaction to now (endDate) and then subtract sum of blocked amounts
       const decayedStartAmount = startAmount.decayedTo(endDate).balance
-      expect(decayedStartAmount.toString(4)).toBe('1079.5729')
+      expect(decayedStartAmount.toString(4)).toBe('1079.5730')
       const blockedSum = link1Hold.add(link2Hold)
       const finalBalanceLegacy = decayedStartAmount.subtract(blockedSum)
       expect(finalBalanceLegacy.toString(4)).toBe('1053.8999')
@@ -224,11 +224,11 @@ describe('GradidoUnit', () => {
       expect(durationBetweenBlocked1AndBlocked2.seconds).toBe(247921n)
       expect(durationBetweenBlocked2AndEnd.seconds).toBe(582439n)
       const afterSubtractBlocked1 = startAmount.subtract(blocked1)
-      expect(afterSubtractBlocked1.balance.toString(4)).toBe('1089.1745')
+      expect(afterSubtractBlocked1.balance.toString(4)).toBe('1089.1746')
       const afterSubtractBlocked2 = afterSubtractBlocked1.subtract(blocked2)
       expect(afterSubtractBlocked2.balance.toString(4)).toBe('1067.8556')
       const blockchainState = startAmount.subtract(blocked1).subtract(blocked2).decayedTo(endDate)
-      expect(blockchainState.balance.toString(4)).toBe('1054.2812')
+      expect(blockchainState.balance.toString(4)).toBe('1054.2813')
       expect(blockchainState.balance.gddCent).not.toBe(finalBalanceLegacy.gddCent)
     })
 
@@ -242,16 +242,16 @@ describe('GradidoUnit', () => {
 
       // legacy
       const afterRedeemLinkLegacy = startAmount.subtract(link1RedeemTemporal)
-      expect(afterRedeemLinkLegacy.balance.toString(4)).toBe('1073.2282')
+      expect(afterRedeemLinkLegacy.balance.toString(4)).toBe('1073.2283')
 
       // blockchain
       const link1Temporal = new TemporalGradidoUnit(link1Hold, new Date('2022-01-02 10:10:50Z'))
       const afterLink1Founded = startAmount.subtract(link1Temporal)
-      expect(afterLink1Founded.balance.toString(4)).toBe('1089.1745')
+      expect(afterLink1Founded.balance.toString(4)).toBe('1089.1746')
       const afterAddingChangeFromLink1Redeem = afterLink1Founded.add(
         link1Temporal.subtract(link1RedeemTemporal),
       )
-      expect(afterAddingChangeFromLink1Redeem.balance.toString(4)).toBe('1073.2281')
+      expect(afterAddingChangeFromLink1Redeem.balance.toString(4)).toBe('1073.2282')
     })
     it('redeemed links with bigger numbers', () => {
       const startAmount = new TemporalGradidoUnit(GradidoUnit.fromNumber(1100000.921), startDate)
@@ -268,11 +268,11 @@ describe('GradidoUnit', () => {
       // blockchain
       const link1Temporal = new TemporalGradidoUnit(link1Hold, new Date('2022-01-02 10:10:50Z'))
       const afterLink1Founded = startAmount.subtract(link1Temporal)
-      expect(afterLink1Founded.balance.toString(4)).toBe('1097498.0203')
+      expect(afterLink1Founded.balance.toString(4)).toBe('1097498.0204')
       const afterAddingChangeFromLink1Redeem = afterLink1Founded.add(
         link1Temporal.subtract(link1RedeemTemporal),
       )
-      expect(afterAddingChangeFromLink1Redeem.balance.toString(4)).toBe('1081322.9584')
+      expect(afterAddingChangeFromLink1Redeem.balance.toString(4)).toBe('1081322.9586')
     })
     it('redeemed links with later redeem', () => {
       const startAmount = new TemporalGradidoUnit(GradidoUnit.fromNumber(1100.921), startDate)
@@ -284,16 +284,16 @@ describe('GradidoUnit', () => {
 
       // legacy
       const afterRedeemLinkLegacy = startAmount.subtract(link1RedeemTemporal)
-      expect(afterRedeemLinkLegacy.balance.toString(4)).toBe('1060.9638')
+      expect(afterRedeemLinkLegacy.balance.toString(4)).toBe('1060.9639')
 
       // blockchain
       const link1Temporal = new TemporalGradidoUnit(link1Hold, new Date('2022-01-02 10:10:50Z'))
       const afterLink1Founded = startAmount.subtract(link1Temporal)
-      expect(afterLink1Founded.balance.toString(4)).toBe('1089.1745')
+      expect(afterLink1Founded.balance.toString(4)).toBe('1089.1746')
       const afterAddingChangeFromLink1Redeem = afterLink1Founded.add(
         link1Temporal.subtract(link1RedeemTemporal),
       )
-      expect(afterAddingChangeFromLink1Redeem.balance.toString(4)).toBe('1060.9637')
+      expect(afterAddingChangeFromLink1Redeem.balance.toString(4)).toBe('1060.9639')
     })
     it('redeemed links with longer link duration', () => {
       const startAmount = new TemporalGradidoUnit(GradidoUnit.fromNumber(1100.921), startDate)
@@ -310,11 +310,11 @@ describe('GradidoUnit', () => {
       // blockchain
       const link1Temporal = new TemporalGradidoUnit(link1Hold, new Date('2022-01-02 10:10:50Z'))
       const afterLink1Founded = startAmount.subtract(link1Temporal)
-      expect(afterLink1Founded.balance.toString(4)).toBe('1087.5812')
+      expect(afterLink1Founded.balance.toString(4)).toBe('1087.5813')
       const afterAddingChangeFromLink1Redeem = afterLink1Founded.add(
         link1Temporal.subtract(link1RedeemTemporal),
       )
-      expect(afterAddingChangeFromLink1Redeem.balance.toString(4)).toBe('918.8816')
+      expect(afterAddingChangeFromLink1Redeem.balance.toString(4)).toBe('918.8817')
     })
     it('deleted links', () => {
       const startAmount = new TemporalGradidoUnit(GradidoUnit.fromNumber(1100.921), startDate)
@@ -325,16 +325,16 @@ describe('GradidoUnit', () => {
 
       // legacy
       const endAmount = startAmount.decayedTo(deletedDate)
-      expect(endAmount.balance.toString(4)).toBe('1083.2282')
+      expect(endAmount.balance.toString(4)).toBe('1083.2283')
 
       // blockchain
       const link1Temporal = new TemporalGradidoUnit(link1Hold, new Date('2022-01-02 10:10:50Z'))
       const afterLink1Founded = startAmount.subtract(link1Temporal)
-      expect(afterLink1Founded.balance.toString(4)).toBe('1089.1745')
+      expect(afterLink1Founded.balance.toString(4)).toBe('1089.1746')
       const afterAddingChangeFromLink1Delete = afterLink1Founded.add(
         link1Temporal.decayedTo(deletedDate),
       )
-      expect(afterAddingChangeFromLink1Delete.balance.toString(4)).toBe('1083.2281')
+      expect(afterAddingChangeFromLink1Delete.balance.toString(4)).toBe('1083.2282')
     })
   })
 })

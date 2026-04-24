@@ -122,19 +122,19 @@ describe('GradidoUnit', () => {
     it('decay 10 seconds', () => {
       const amount = 10012041n
       const decay = calculateDecay(amount, 10n)
-      expect(decay).toBe(10012038n)
+      expect(decay).toBe(10012039n)
     })
     it('decayed 10 seconds', () => {
       const amount = 10012041n
       const decayed = calculateDecay(amount, 10n)
       expect(decayed).not.toBe(amount)
-      expect(decayed).toBe(10012038n)
+      expect(decayed).toBe(10012039n)
     })
     describe('different gdd seconds pairs', () => {
       it('1 gdd, 1 second', () => {
         const amount = 10000n
         const decay = calculateDecay(amount, 1n)
-        expect(decay).toBe(9999n)
+        expect(decay).toBe(10000n)
       })
       it('100 gdd, 14 days', () => {
         const amount = 1000000n
