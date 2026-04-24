@@ -12,3 +12,26 @@ export function getDecayStartTime(): Date
  * @returns The decayed BigInt value (in gdd units)
  */
 export function calculateDecay(value: bigint, seconds: bigint): bigint
+
+/**
+ * Converts a string to a BigInt value.
+ * @param str - The string to convert
+ * @returns The BigInt value
+ */
+export function gradidoUnitFromString(str: string): bigint
+
+/**
+ * Converts a BigInt value to a string.
+ * @param value - The BigInt value to convert
+ * @param precision - The number of decimal places to include (max/default: 4)
+ * @returns The string representation of the BigInt value
+ */
+export function gradidoUnitToString(value: bigint, precision?: number): string
+
+/**
+ * Rounds gradido units to a specified number of decimal places.
+ * @param value - The BigInt value to round (in gdd units)
+ * @param places - The number of decimal places to round to
+ * @returns The rounded BigInt value (in gdd units)
+ */
+export function toDecimalPlaces(value: bigint, places: number): bigint

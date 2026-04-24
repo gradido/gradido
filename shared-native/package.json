@@ -18,6 +18,7 @@
   "scripts": {
     "build": "bun build.ts",
     "test": "bun test",
+    "test:node": "node --test",
     "test:debug": "bun test --inspect-brk",
     "typecheck": "tsc --noEmit",
     "lint": "biome check --error-on-warnings .",
