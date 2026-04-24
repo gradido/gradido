@@ -1,8 +1,11 @@
 #include <napi.h>
 #include "gradido_blockchain_core/data/unit.h"
+#include "gradido_blockchain_core/utils/duration.h"
+#include "gradido_blockchain_core/data/types.h"
 
 namespace gradidoUnit {
-    Napi::Value CalculateDecay(const Napi::CallbackInfo& info) {
+    Napi::Value CalculateDecay(const Napi::CallbackInfo& info) 
+    {
         Napi::Env env = info.Env();
         if (info.Length() != 2) {
             Napi::TypeError::New(env, "Expected two arguments").ThrowAsJavaScriptException();
@@ -26,12 +29,14 @@ namespace gradidoUnit {
     }
 
     
-    Napi::Value GetDecayStartTime(const Napi::CallbackInfo& info) {
+    Napi::Value GetDecayStartTime(const Napi::CallbackInfo& info) 
+    {
         double timestamp = static_cast<double>(grdd_unit_decay_start_time()) * 1000.0;
         return Napi::Date::New(info.Env(), timestamp);
     }
 
-    Napi::Value FromString(const Napi::CallbackInfo& info) {
+    Napi::Value FromString(const Napi::CallbackInfo& info) 
+    {
         if (info.Length() != 1) {
             Napi::TypeError::New(info.Env(), "Expected one argument").ThrowAsJavaScriptException();
             return info.Env().Null();
@@ -49,7 +54,8 @@ namespace gradidoUnit {
         return Napi::BigInt::New(info.Env(), unit);
     }
     
-    Napi::Value ToString(const Napi::CallbackInfo& info) {
+    Napi::Value ToString(const Napi::CallbackInfo& info) 
+    {
         if (info.Length() < 1) {
             Napi::TypeError::New(info.Env(), "Expected at least one argument").ThrowAsJavaScriptException();
             return info.Env().Null();
@@ -86,7 +92,8 @@ namespace gradidoUnit {
         return Napi::String::New(info.Env(), str, written);
     }
 
-    Napi::Value ToDecimalPlaces(const Napi::CallbackInfo& info) {
+    Napi::Value ToDecimalPlaces(const Napi::CallbackInfo& info)
+    {
         Napi::Env env = info.Env();
         if (info.Length() < 2) {
             Napi::TypeError::New(env, "Expected two arguments: unit and places").ThrowAsJavaScriptException();
@@ -107,6 +114,33 @@ namespace gradidoUnit {
         }
         return Napi::BigInt::New(env, rounded);
     }
+
+    Napi::Value DurationToString(const Napi::CallbackInfo& info) 
+    {
+        Napi::Env env = info.Env();
+        if (info.Length() < 1) {
+            Napi::TypeError::New(env, "Expected at least one argument: duration").ThrowAsJavaScriptException();
+            return env.Null();
+        }
+        
+        bool lossless = false;
+        grdu_duration duration = info[0].As<Napi::BigInt>().Int64Value(&lossless);
+        if (!lossless) {
+            Napi::TypeError::New(env, "BigInt value is too large to fit in grdu_duration").ThrowAsJavaScriptException();
+            return env.Null();
+        }
+        uint8_t precision = 2;
+        if (info.Length() > 1) {
+            precision = info[1].As<Napi::Number>().Uint32Value();
+        }
+        char str[32];
+        int written = grdu_duration_string(str, sizeof(str), duration, precision);
+        if (written < 0) {
+            Napi::TypeError::New(env, "Duration string conversion failed").ThrowAsJavaScriptException();
+            return env.Null();
+        }
+        return Napi::String::New(env, str, written);
+    }
 }
 
 // Module initialization
@@ -116,6 +150,7 @@ Napi::Object Init(Napi::Env env, Napi::Object exports) {
     exports.Set("gradidoUnitFromString", Napi::Function::New(env, gradidoUnit::FromString));
     exports.Set("gradidoUnitToString", Napi::Function::New(env, gradidoUnit::ToString));   
     exports.Set("toDecimalPlaces", Napi::Function::New(env, gradidoUnit::ToDecimalPlaces));
+    exports.Set("durationToString", Napi::Function::New(env, gradidoUnit::DurationToString));
     
     return exports;
 }

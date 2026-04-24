@@ -13,6 +13,7 @@ const {
     grdd_unit_from_string,
     grdd_unit_to_string,
     grdd_unit_round_to_precision,
+    grdu_duration_string,
   },
 } = dlopen(filePath, {
   grdd_unit_decay_start_time: {
@@ -34,6 +35,10 @@ const {
   grdd_unit_round_to_precision: {
     returns: bool,
     args: [pointer, i64, u8],
+  },
+  grdu_duration_string: {
+    returns: i32,
+    args: [cstring, u64, i64, u8],
   },
 })
 
@@ -88,4 +93,11 @@ export function toDecimalPlaces(value: bigint, places: number): bigint {
     throw new Error('Rounding failed (overflow)')
   }
   return read.i64(resultBufferPtr)
+}
+
+export function durationToString(duration: bigint, precision?: number): string {
+  const resultBuffer = new Uint8Array(32)
+  const resultBufferPtr = ptr(resultBuffer)
+  const result = grdu_duration_string(resultBufferPtr, 32, duration, precision ?? 2)
+  return Buffer.from(resultBuffer).toString('utf8').slice(0, result)
 }

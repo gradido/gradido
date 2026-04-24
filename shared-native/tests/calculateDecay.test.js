@@ -7,6 +7,7 @@ const {
   gradidoUnitFromString,
   gradidoUnitToString,
   toDecimalPlaces,
+  durationToString
 } = require('../');
 
 describe('GradidoUnit', () => {
@@ -196,6 +197,39 @@ describe('GradidoUnit', () => {
       const startTime = getDecayStartTime()
       assert(startTime instanceof Date)
       assert.equal(startTime.getTime(), 1620927991000)
+    })
+  })
+
+  describe('durationToString', () => {
+    it('converts duration to string', () => {
+      const duration = 1000000000n
+      const result = durationToString(duration)
+      assert.equal(result, '1.00 s')
+    })
+    it('converts duration to string with custom precision', () => {
+      const duration = 1000000000n
+      const result = durationToString(duration, 3)
+      assert.equal(result, '1.000 s')
+    })
+    it('converts duration to string with zero precision', () => {
+      const duration = 1000000000n
+      const result = durationToString(duration, 0)
+      assert.equal(result, '1 s')
+    })
+    it('converts for ms', () => {
+      const duration = 1000000n
+      const result = durationToString(duration)
+      assert.equal(result, '1.00 ms')
+    })
+    it('converts for us', () => {
+      const duration = 1000n
+      const result = durationToString(duration)
+      assert.equal(result, '1.00 us')
+    })
+    it('converts for ms with decimal places', () => {
+      const duration = 726372839n
+      const result = durationToString(duration)
+      assert.equal(result, '726.37 ms')
     })
   })
 })
