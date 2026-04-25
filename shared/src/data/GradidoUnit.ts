@@ -6,7 +6,7 @@ import {
   toDecimalPlaces as toDecimalPlacesNative,
 } from 'shared-native'
 import { DECAY_START_TIME } from '../const'
-import { Decay } from '../schema'
+import { Decay } from '../logic/decay'
 import { Duration } from './Duration'
 
 export class GradidoUnit {
@@ -69,19 +69,26 @@ export class GradidoUnit {
   public calculateDecay(from: Date, to: Date): Decay {
     const duration = GradidoUnit.effectiveDecayDuration(from, to)
     const decay: Decay = {
-      balance: this,
-      decay: new GradidoUnit(0n),
+      balance: this.toDecimal(),
+      decay: new Decimal(0),
+      roundedDecay: new Decimal(0),
       start: null,
       end: null,
-      duration: duration,
+      duration: Number(duration.seconds),
     }
     if (duration.seconds === 0n) {
       return decay
     }
+    const balance = new GradidoUnit(calculateDecayNative(this.gddCentValue, duration.seconds))
+    const decayAmount = balance.subtract(this)
     decay.start = DECAY_START_TIME.getTime() > from.getTime() ? DECAY_START_TIME : from
     decay.end = to
-    decay.balance = new GradidoUnit(calculateDecayNative(this.gddCentValue, duration.seconds))
-    decay.decay = decay.balance.subtract(this)
+    decay.balance = balance.toDecimal()
+    decay.decay = decayAmount.toDecimal()
+    decay.roundedDecay = this.toDecimalPlaces(2)
+      .subtract(balance.toDecimalPlaces(2))
+      .negated()
+      .toDecimal()
     return decay
   }
 

@@ -1,7 +1,5 @@
 import { validate, version } from 'uuid'
 import { z } from 'zod'
-import { Duration } from '../data/Duration'
-import { GradidoUnit } from '../data/GradidoUnit'
 
 export const uuidv4Schema = z
   .string()
@@ -9,13 +7,3 @@ export const uuidv4Schema = z
 export const emailSchema = z.string().email()
 export const urlSchema = z.string().url()
 export const uint32Schema = z.number().positive().lte(4294967295)
-
-export const decaySchema = z.object({
-  balance: z.instanceof(GradidoUnit),
-  decay: z.instanceof(GradidoUnit),
-  start: z.date().nullable(),
-  end: z.date().nullable(),
-  duration: z.union([z.instanceof(Duration), z.null()]).nullable(),
-})
-
-export type Decay = z.infer<typeof decaySchema>
