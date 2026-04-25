@@ -44,9 +44,81 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
     ADD COLUMN amount_gdd4 bigint NULL DEFAULT NULL AFTER amount_legacy,
     ADD COLUMN hold_available_amount_gdd4 bigint NULL DEFAULT NULL AFTER hold_available_amount_legacy; `
   )
+
+  // transform values from legacy to gdd4
+  await queryFn(`
+    UPDATE transactions 
+    SET amount_gdd4 = CAST(ROUND(amount_legacy * 10000) AS SIGNED),
+        balance_gdd4 = CAST(ROUND(balance_legacy * 10000) AS SIGNED),
+        decay_gdd4 = CAST(ROUND(decay_legacy * 10000) AS SIGNED); `
+  )
+  await queryFn(`
+    UPDATE pending_transactions 
+    SET amount_gdd4 = CAST(ROUND(amount_legacy * 10000) AS SIGNED),
+        balance_gdd4 = CAST(ROUND(balance_legacy * 10000) AS SIGNED),
+        decay_gdd4 = CAST(ROUND(decay_legacy * 10000) AS SIGNED); `
+  )
+  await queryFn(`
+    UPDATE contributions 
+    SET amount_gdd4 = CAST(ROUND(amount_legacy * 10000) AS SIGNED); `
+  )
+  await queryFn(`
+    UPDATE transaction_links
+    SET amount_gdd4 = CAST(ROUND(amount_legacy * 10000) AS SIGNED),
+        hold_available_amount_gdd4 = CAST(ROUND(hold_available_amount_legacy * 10000) AS SIGNED); `
+  )
+
+  // validate that transformation take place without precision lost at the first 4 decimal places
+  const tableValuePairs = {
+    'transactions': ['amount', 'balance', 'decay'],
+    'pending_transactions': ['amount', 'balance', 'decay'],
+    'contributions': ['amount'],
+    'transaction_links': ['amount', 'hold_available_amount'],
+  }
+  for (const [table, columns] of Object.entries(tableValuePairs)) {
+    for (const column of columns) {
+      const result = await queryFn(`
+        SELECT 
+          ${column}_legacy,
+          ${column}_gdd4,
+          ${column}_gdd4 / 10000 AS reconstructed
+        FROM ${table}
+        WHERE ABS(${column}_legacy - (${column}_gdd4 / 10000)) > 0.00005
+        ;`
+      )
+      if (result.length > 0) {
+        // biome-ignore lint/suspicious/noConsole: no logger in migration
+        console.error(`Precision lost in ${table}.${column} in ${result.length} rows, first 10 rows: ${JSON.stringify(result.slice(0, 10), null, 2)}`)
+      }
+    }
+  }
 }
 
 export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
+/*
+  // transform values from gdd4 to legacy
+  await queryFn(`
+    UPDATE transactions 
+    SET amount_legacy = CAST(amount_gdd4 / 10000 AS DECIMAL(40,20)),
+        balance_legacy = CAST(balance_gdd4 / 10000 AS DECIMAL(40,20)),
+        decay_legacy = CAST(decay_gdd4 / 10000 AS DECIMAL(40,20)); `
+  )
+  await queryFn(`
+    UPDATE pending_transactions 
+    SET amount_legacy = CAST(amount_gdd4 / 10000 AS DECIMAL(40,20)),
+        balance_legacy = CAST(balance_gdd4 / 10000 AS DECIMAL(40,20)),
+        decay_legacy = CAST(decay_gdd4 / 10000 AS DECIMAL(40,20)); `
+  )
+  await queryFn(`
+    UPDATE contributions 
+    SET amount_legacy = CAST(amount_gdd4 / 10000 AS DECIMAL(40,20)); `
+  )
+  await queryFn(`
+    UPDATE transaction_links
+    SET amount_legacy = CAST(amount_gdd4 / 10000 AS DECIMAL(40,20)),
+        hold_available_amount_legacy = CAST(hold_available_amount_gdd4 / 10000 AS DECIMAL(40,20)); `
+  )
+*/
   // rename legacy columns back to original names
   await queryFn(`
     ALTER TABLE transactions 
