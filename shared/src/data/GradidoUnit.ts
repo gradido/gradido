@@ -12,8 +12,28 @@ import { Duration } from './Duration'
 export class GradidoUnit {
   protected gddCentValue: bigint = 0n
 
-  constructor(value: bigint) {
+  // please use one of the static constructors instead
+  protected constructor(value: bigint) {
     this.gddCentValue = value
+  }
+
+  public static fromNumber(value: number): GradidoUnit {
+    return new GradidoUnit(BigInt(Math.round(value * 10000)))
+  }
+
+  public static fromDecimal(gdd: Decimal): GradidoUnit {
+    return this.fromString(gdd.toString())
+  }
+
+  public static fromString(value: string): GradidoUnit {
+    return new GradidoUnit(gradidoUnitFromString(value))
+  }
+
+  /**
+   * construct from non decimal value, e.g. 10000n = 1.0000 gdd
+   */
+  public static fromGradidoCent(gddCent: bigint): GradidoUnit {
+    return new GradidoUnit(gddCent)
   }
 
   get gddCent(): bigint {
@@ -159,21 +179,6 @@ export class GradidoUnit {
       return new GradidoUnit(-this.gddCentValue)
     }
     return new GradidoUnit(this.gddCentValue)
-  }
-
-  public static fromNumber(value: number): GradidoUnit {
-    return new GradidoUnit(BigInt(Math.round(value * 10000)))
-  }
-
-  /**
-   * @deprecated best construct from gddCent directly or use fromNumber
-   */
-  public static fromDecimal(gdd: Decimal): GradidoUnit {
-    return this.fromString(gdd.toString())
-  }
-
-  public static fromString(value: string): GradidoUnit {
-    return new GradidoUnit(gradidoUnitFromString(value))
   }
 
   public toDecimal(): Decimal {

@@ -7,15 +7,15 @@ import { TemporalGradidoUnit } from './TemporalGradidoUnit'
 
 describe('GradidoUnit', () => {
   it('adds properly', () => {
-    const a = new GradidoUnit(10n)
-    const b = new GradidoUnit(3n)
+    const a = GradidoUnit.fromGradidoCent(10n)
+    const b = GradidoUnit.fromGradidoCent(3n)
     const sum = a.add(b)
     expect(sum.gddCent).toEqual(13n)
   })
 
   it('subtracts properly', () => {
-    const a = new GradidoUnit(10n)
-    const b = new GradidoUnit(3n)
+    const a = GradidoUnit.fromGradidoCent(10n)
+    const b = GradidoUnit.fromGradidoCent(3n)
     const diff = a.subtract(b)
     expect(diff.gddCent).toEqual(7n)
   })
@@ -27,19 +27,19 @@ describe('GradidoUnit', () => {
   })
 
   it('can decay', () => {
-    const gdd = new GradidoUnit(10000n)
+    const gdd = GradidoUnit.fromGradidoCent(10000n)
     const from = new Date('2022-01-01')
     const to = new Date('2022-01-02')
     const decay = gdd.calculateDecay(from, to)
-    expect(decay.balance.gddCent).toBe(9981n)
-    expect(decay.decay.gddCent).toBe(-19n)
-    expect(decay.duration?.seconds).toBe(86400n)
+    expect(decay.balance.toNumber()).toBe(0.9981)
+    expect(decay.decay.toNumber()).toBe(-0.0019)
+    expect(decay.duration).toBe(86400)
     expect(decay.start).toBe(from)
     expect(decay.end).toBe(to)
   })
 
   it('calculateDecay called with invalid dates', () => {
-    const gdd = new GradidoUnit(10000n)
+    const gdd = GradidoUnit.fromGradidoCent(10000n)
     const from = new Date('2022-01-02')
     const to = new Date('2022-01-01')
     expect(() => gdd.calculateDecay(from, to)).toThrow(
@@ -48,7 +48,7 @@ describe('GradidoUnit', () => {
   })
 
   it('decayed', () => {
-    const gdd = new GradidoUnit(10000n)
+    const gdd = GradidoUnit.fromGradidoCent(10000n)
     const from = new Date('2022-01-01')
     const to = new Date('2022-01-02')
     const decayed = gdd.decayed(from, to)
@@ -56,7 +56,7 @@ describe('GradidoUnit', () => {
   })
 
   it('can calculate required amount before decay', () => {
-    const gdd = new GradidoUnit(10000n)
+    const gdd = GradidoUnit.fromGradidoCent(10000n)
     const from = new Date('2022-01-01')
     const to = new Date('2022-01-02')
     const decayed = gdd.requiredBeforeDecay(from, to)
@@ -65,35 +65,35 @@ describe('GradidoUnit', () => {
 
   describe('toString', () => {
     it('with default places after comma', () => {
-      const gdd = new GradidoUnit(12345n)
+      const gdd = GradidoUnit.fromGradidoCent(12345n)
       expect(gdd.toString(4)).toBe('1.2345')
     })
 
     it('with 3 places after comma', () => {
-      const gdd = new GradidoUnit(12345n)
+      const gdd = GradidoUnit.fromGradidoCent(12345n)
       expect(gdd.toString(3)).toBe('1.235')
     })
 
     it('with 2 places after comma', () => {
-      const gdd = new GradidoUnit(12345n)
+      const gdd = GradidoUnit.fromGradidoCent(12345n)
       expect(gdd.toString(2)).toBe('1.23')
     })
 
     it('with 1 place after comma', () => {
-      const gdd = new GradidoUnit(12345n)
+      const gdd = GradidoUnit.fromGradidoCent(12345n)
       expect(gdd.toString(1)).toBe('1.2')
     })
 
     it('with 0 places after comma', () => {
-      const gdd = new GradidoUnit(12345n)
+      const gdd = GradidoUnit.fromGradidoCent(12345n)
       expect(gdd.toString(0)).toBe('1')
     })
     it('with 5 places after comma (throws error)', () => {
-      const gdd = new GradidoUnit(12345n)
+      const gdd = GradidoUnit.fromGradidoCent(12345n)
       expect(() => gdd.toString(5)).toThrow('Precision must be between 0 and 4')
     })
     it('big, but valid number with 3 places after comma', () => {
-      const gdd = new GradidoUnit(156789012345n)
+      const gdd = GradidoUnit.fromGradidoCent(156789012345n)
       expect(gdd.toString(3)).toBe('15678901.235')
     })
   })
@@ -109,7 +109,7 @@ describe('GradidoUnit', () => {
       }
     })
     it('GradidoUnit.toString 10k', () => {
-      const gdd = new GradidoUnit(12345n)
+      const gdd = GradidoUnit.fromGradidoCent(12345n)
       for (let i = 0; i < 10000; i++) {
         gdd.toString()
       }
@@ -121,7 +121,7 @@ describe('GradidoUnit', () => {
       }
     })
     it('GradidoUnit.toString 10k without after comma', () => {
-      const gdd = new GradidoUnit(12345n)
+      const gdd = GradidoUnit.fromGradidoCent(12345n)
       for (let i = 0; i < 10000; i++) {
         gdd.toString(0)
       }
@@ -133,7 +133,7 @@ describe('GradidoUnit', () => {
       }
     })
     it('GradidoUnit.toString 10k big number', () => {
-      const gdd = new GradidoUnit(156789012345n)
+      const gdd = GradidoUnit.fromGradidoCent(156789012345n)
       for (let i = 0; i < 10000; i++) {
         gdd.toString()
       }
@@ -182,7 +182,7 @@ describe('GradidoUnit', () => {
       expect(calculateDecayNative(amount.gddCent, seconds)).toBe(10000n)
     })
     it('has correct forward calculation from bigInt', () => {
-      const amount = new GradidoUnit(10019n)
+      const amount = GradidoUnit.fromGradidoCent(10019n)
       const seconds = 3600n * 24n
       expect(calculateDecayNative(amount.gddCent, seconds)).toBe(10000n)
     })
