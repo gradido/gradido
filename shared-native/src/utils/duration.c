@@ -14,6 +14,9 @@ int grdu_duration_string(char* buffer, size_t buffer_size, grdu_duration duratio
     if (duration < 0) {
         return -1; // negative durations are not supported
     }
+    if (precision > 15) {
+        precision = 15; // limit precision to 15 to avoid overflow in fractional part
+    }
 
     // --- unit selection (branch tree, kein array) ---
     if (ns < 1000ULL) {
@@ -30,18 +33,18 @@ int grdu_duration_string(char* buffer, size_t buffer_size, grdu_duration duratio
         suffix = " s";
     } else if (ns < 3600000000000ULL) {
         divisor = 60ULL * 1000000000ULL;
-        suffix = " m";
+        suffix = " min";
     } else if (ns < 86400000000000ULL) {
         divisor = 60ULL * 60ULL * 1000000000ULL;
         suffix = " h";
     } else {
         divisor = 24ULL * 60ULL * 60ULL * 1000000000ULL;
-        suffix = " d";
+        suffix = " days";
     }
 
     double decimalValue = (double)ns / divisor;
     int64_t integerPart = (int64_t)decimalValue;
-    int64_t fractionalPart = (int64_t)((decimalValue - integerPart) * 1000000000000000000ULL);
+    int64_t fractionalPart = (int64_t)((decimalValue - integerPart) * 1000000000000000ULL);
 
     size_t int_size = grdu_uint64_to_string_size(integerPart);
     size_t suffix_len = strlen(suffix);
@@ -54,18 +57,26 @@ int grdu_duration_string(char* buffer, size_t buffer_size, grdu_duration duratio
     if (precision > 0 && divisor > 1)
     {
         buffer[written++] = '.';
-        char tempBuffer[20]; // enough to hold fractional part
-        size_t frac_size = grdu_uint64_to_string(tempBuffer, sizeof(tempBuffer), fractionalPart);
-        if (frac_size < precision) {
-            // pad with zeros
-            memset(buffer + written, '0', precision - frac_size);
-            written += precision - frac_size;
-        } else if (frac_size > precision) {
-            // truncate
-            frac_size = precision;
+        size_t fractionalPartSize = 0;
+        if (fractionalPart) {
+            fractionalPartSize = grdu_uint64_to_string_size(fractionalPart);
         }
-        memcpy(buffer + written, tempBuffer, frac_size);
-        written += frac_size;
+        // 15 = max fractional part size (15 zeros near the double boundary)
+        size_t zerosBeforeCount = 15 - fractionalPartSize;
+        if (zerosBeforeCount > precision) {
+            zerosBeforeCount = precision;
+        }
+        if (zerosBeforeCount > 0) {
+            memset(buffer + written, '0', zerosBeforeCount);
+            written += zerosBeforeCount;
+        }
+        size_t restNumbers = precision - zerosBeforeCount;
+        if (restNumbers) {
+            char tempBuffer[20]; // enough to hold fractional part
+            size_t frac_size = grdu_uint64_to_string_known_string_size(tempBuffer, fractionalPart, fractionalPartSize);
+            memcpy(buffer + written, tempBuffer, restNumbers);
+            written += restNumbers;
+        }
     }
 
     // --- suffix ---
