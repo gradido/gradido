@@ -84,7 +84,7 @@
                         name="identifier"
                         :label="$t('form.recipient')"
                         :placeholder="$t('form.identifier')"
-                        :rules="validationSchema.fields.identifier"
+                        :rules="validationSchema.fields.identifier || {}"
                         :disabled="isBalanceEmpty || isCommunitiesEmpty"
                         :disable-smart-valid-state="disableSmartValidState"
                         @update:model-value="updateField"
@@ -110,20 +110,20 @@
                       name="amount"
                       :label="$t('form.amount')"
                       :placeholder="'0.01'"
-                      :rules="validationSchema.fields.amount"
+                      :rules="validationSchema.fields.amount || {}"
                       :disabled="isBalanceEmpty"
                       :disable-smart-valid-state="disableSmartValidState"
                       @update:model-value="updateField"
                     />
                   </BCol>
-                  <BCol v-else cols="12">
+                  <BCol v-if="radioSelected === SEND_TYPES.email" cols="12">
                     <ValidatedInput
                       id="subject"
                       :model-value="form.subject"
                       name="subject"
                       :label="$t('form.subject')"
                       :placeholder="$t('form.subject')"
-                      :rules="validationSchema.fields.subject"
+                      :rules="validationSchema.fields.subject || {}"
                       textarea="false"
                       :disable-smart-valid-state="disableSmartValidState"
                       @update:model-value="updateField"
@@ -141,7 +141,7 @@
                   name="memo"
                   :label="$t('form.message')"
                   :placeholder="$t('form.message')"
-                  :rules="validationSchema.fields.memo"
+                  :rules="validationSchema.fields.memo || {}"
                   textarea="true"
                   :disabled="isBalanceEmpty"
                   :disable-smart-valid-state="disableSmartValidState"
@@ -388,10 +388,14 @@ watch(
 )
 
 function onSubmit() {
-  // console.log('onSubmit() radioSelected=' + radioSelected.value + ', form=' + JSON.stringify(form))
+  console.log(
+    'TransactionForm.vue: onSubmit() radioSelected=' +
+      radioSelected.value +
+      ', form=' +
+      JSON.stringify(form),
+  )
   const transformedForm = validationSchema.value.cast(form)
   if (radioSelected.value === SEND_TYPES.email) {
-    /*
     console.log(
       'vor emit send-email: transformedForm=' +
         JSON.stringify(transformedForm) +
@@ -400,36 +404,33 @@ function onSubmit() {
         ', userName.value=' +
         userName.value,
     )
-    */
     emit('send-email', {
       ...transformedForm,
       selected: radioSelected.value,
       userName: userName.value,
     })
-    return
-  }
-  const parts = transformedForm.identifier.split('/')
-  if (parts.length === 2) {
-    transformedForm.identifier = parts[1]
-    transformedForm.targetCommunity = communities.value.find((com) => {
-      return com.uuid === parts[0] || com.name === parts[0] || com.url === parts[0]
+  } else {
+    const parts = transformedForm.identifier.split('/')
+    if (parts.length === 2) {
+      transformedForm.identifier = parts[1]
+      transformedForm.targetCommunity = communities.value.find((com) => {
+        return com.uuid === parts[0] || com.name === parts[0] || com.url === parts[0]
+      })
+    }
+    console.log(
+      'vor emit set-transaction: transformedForm=' +
+        JSON.stringify(transformedForm) +
+        ', radioSelected.value=' +
+        radioSelected.value +
+        ', userName.value=' +
+        userName.value,
+    )
+    emit('set-transaction', {
+      ...transformedForm,
+      selected: radioSelected.value,
+      userName: userName.value,
     })
   }
-  /*
-  console.log(
-    'vor emit set-transaction: transformedForm=' +
-      JSON.stringify(transformedForm) +
-      ', radioSelected.value=' +
-      radioSelected.value +
-      ', userName.value=' +
-      userName.value,
-  )
-  */
-  emit('set-transaction', {
-    ...transformedForm,
-    selected: radioSelected.value,
-    userName: userName.value,
-  })
 }
 
 function onReset(event) {

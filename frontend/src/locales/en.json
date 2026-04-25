@@ -204,7 +204,13 @@
     "save": "Save",
     "scann_code": "<strong>QR Code Scanner</strong> - Scan the QR Code of your partner",
     "sendEmail": "Send email",
+    "sendemailerror": {
+      "receiverDeleted": "The user account for your email recipient has been deleted",
+      "receiverNotFound": "No user account exists for your specified email recipient."
+    },
     "send_check": "Confirm your transaction. Please check all data again!",
+    "send_email_success": "Your email was sent successfully",
+    "send_email_error": "Unfortunately, your email could not be sent!",
     "send_now": "Send now",
     "send_transaction_error": "Unfortunately, the transaction could not be executed!",
     "send_transaction_success": "Your transaction was successfully completed",

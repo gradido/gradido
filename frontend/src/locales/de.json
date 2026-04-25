@@ -204,7 +204,13 @@
     "save": "Speichern",
     "scann_code": "<strong>QR Code Scanner</strong> - Scanne den QR Code deines Partners",
     "sendEmail": "E-Mail senden",
+    "sendemailerror": {
+      "receiverDeleted": "Das Nutzerkonto zu deinem E-Mail-Empfänger wurde gelöscht",
+      "receiverNotFound": "Zu deinem angegebenen E-Mail-Empfänger existiert kein Nutzerkonto."
+    },
     "send_check": "Bestätige deine Transaktion. Prüfe bitte nochmal alle Angaben!",
+    "send_email_success": "Deine E-Mail wurde erfolgreich gesendet",
+    "send_email_error": "Leider konnte deine E-Mail nicht gesendet werden!",
     "send_now": "Jetzt senden",
     "send_transaction_error": "Leider konnte die Transaktion nicht ausgeführt werden!",
     "send_transaction_success": "Deine Transaktion wurde erfolgreich ausgeführt",

@@ -11,7 +11,8 @@ export const TRANSACTION_STEPS = {
   transactionResultSendSuccess: 'transactionResultSendSuccess',
   transactionResultSendError: 'transactionResultSendError',
   transactionResultLink: 'transactionResultLink',
-  sendEmail: 'sendEmailForm',
+  sendEmailResultSuccess: 'sendEmailResultSuccess',
+  sendEmailResultError: 'sendEmailResultError',
 }
 
 export default {
