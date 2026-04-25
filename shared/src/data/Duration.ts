@@ -3,11 +3,11 @@ import { durationToString } from 'shared-native'
 /**
  * Immutable time duration represented in seconds (bigint precision).
  *
- *
  * @example
  * ```typescript
  * const duration = Duration.days(1n).add(Duration.hours(2n).add(Duration.minutes(3n).add(Duration.seconds(4n))))
  * console.log(duration.seconds) // 93784n
+ * console.log(duration.toString()) // "1.08 days"
  * ```
  */
 export class Duration {
@@ -52,6 +52,6 @@ export class Duration {
   }
 
   public toJSON() {
-    return `${this.toString(2)} seconds`
+    return this.toString(2)
   }
 }

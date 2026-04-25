@@ -7,13 +7,13 @@ describe('Duration', () => {
     const to = new Date('2020-01-02T03:04:05Z')
     const duration = Duration.fromDateDiff(from, to)
     expect(duration.seconds).toBe(97445n)
-    expect(duration.toString(2)).toBe('1.12 d')
+    expect(duration.toString(2)).toBe('1.12 days')
   })
 
   it('should create a duration from days', () => {
     const duration = Duration.days(1n)
     expect(duration.seconds).toBe(86400n)
-    expect(duration.toString(2)).toBe('1.00 d')
+    expect(duration.toString(2)).toBe('1.00 days')
   })
 
   it('should create a duration from hours', () => {
@@ -25,7 +25,7 @@ describe('Duration', () => {
   it('should create a duration from minutes', () => {
     const duration = Duration.minutes(1n)
     expect(duration.seconds).toBe(60n)
-    expect(duration.toString(2)).toBe('1.00 m')
+    expect(duration.toString(2)).toBe('1.00 min')
   })
 
   it('should create a duration from seconds', () => {
@@ -55,8 +55,8 @@ describe('Duration', () => {
       Duration.hours(2n).add(Duration.minutes(3n).add(Duration.seconds(4n))),
     )
     expect(duration.seconds).toBe(93784n)
-    expect(duration.toString(2)).toBe('1.08 d')
-    expect(duration.toString(3)).toBe('1.085 d')
-    expect(duration.toString(4)).toBe('1.0854 d')
+    expect(duration.toString(2)).toBe('1.08 days')
+    expect(duration.toString(3)).toBe('1.085 days')
+    expect(duration.toString(4)).toBe('1.0854 days')
   })
 })
