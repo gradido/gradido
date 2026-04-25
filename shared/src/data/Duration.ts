@@ -1,3 +1,5 @@
+import { durationToString } from 'shared-native'
+
 /**
  * Immutable time duration represented in seconds (bigint precision).
  *
@@ -41,15 +43,15 @@ export class Duration {
   public subtract(duration: Duration): Duration {
     return new Duration(this._seconds - duration._seconds)
   }
+  public toString(precision: number = 2): string {
+    return durationToString(this._seconds * 1_000_000_000n, precision)
+  }
 
   get seconds(): bigint {
     return this._seconds
   }
 
-  toString(): string {
-    return this._seconds.toString()
-  }
   public toJSON() {
-    return `${this.toString()} seconds`
+    return `${this.toString(2)} seconds`
   }
 }
