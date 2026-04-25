@@ -17,9 +17,17 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
     CHANGE amount amount_legacy DECIMAL(40,20) NULL DEFAULT NULL; `
   )  
   await queryFn(`
+    ALTER TABLE contribution_links 
+    CHANGE amount amount_legacy bigint NULL DEFAULT NULL; `
+  )  
+  await queryFn(`
     ALTER TABLE transaction_links
     CHANGE amount amount_legacy DECIMAL(40,20) NULL DEFAULT NULL,
     CHANGE hold_available_amount hold_available_amount_legacy DECIMAL(40,20) NULL DEFAULT NULL; `
+  )
+  await queryFn(`
+    ALTER TABLE events 
+    CHANGE amount amount_legacy bigint NULL DEFAULT NULL; `
   )
   
   // add new columns with gdd storing columns as bigint with gdd4 suffix
@@ -40,9 +48,17 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
     ADD COLUMN amount_gdd4 bigint NULL DEFAULT NULL AFTER amount_legacy; `
   )
   await queryFn(`
+    ALTER TABLE contribution_links 
+    ADD COLUMN amount_gdd4 bigint NULL DEFAULT NULL AFTER amount_legacy; `
+  )
+  await queryFn(`
     ALTER TABLE transaction_links
     ADD COLUMN amount_gdd4 bigint NULL DEFAULT NULL AFTER amount_legacy,
     ADD COLUMN hold_available_amount_gdd4 bigint NULL DEFAULT NULL AFTER hold_available_amount_legacy; `
+  )
+  await queryFn(`
+    ALTER TABLE events
+    ADD COLUMN amount_gdd4 bigint NULL DEFAULT NULL AFTER amount_legacy; `
   )
 
   // transform values from legacy to gdd4
@@ -63,9 +79,17 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
     SET amount_gdd4 = CAST(ROUND(amount_legacy * 10000) AS SIGNED); `
   )
   await queryFn(`
+    UPDATE contribution_links
+    SET amount_gdd4 = CAST(ROUND(amount_legacy * 10000) AS SIGNED); `
+  )
+  await queryFn(`
     UPDATE transaction_links
     SET amount_gdd4 = CAST(ROUND(amount_legacy * 10000) AS SIGNED),
         hold_available_amount_gdd4 = CAST(ROUND(hold_available_amount_legacy * 10000) AS SIGNED); `
+  )
+  await queryFn(`
+    UPDATE events
+    SET amount_gdd4 = CAST(ROUND(amount_legacy * 10000) AS SIGNED); `
   )
 
   // validate that transformation take place without precision lost at the first 4 decimal places
@@ -73,7 +97,9 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
     'transactions': ['amount', 'balance', 'decay'],
     'pending_transactions': ['amount', 'balance', 'decay'],
     'contributions': ['amount'],
+    'contribution_links': ['amount'],
     'transaction_links': ['amount', 'hold_available_amount'],
+    'events': ['amount'],
   }
   for (const [table, columns] of Object.entries(tableValuePairs)) {
     for (const column of columns) {
@@ -95,7 +121,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
 }
 
 export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
-/*
+
   // transform values from gdd4 to legacy
   await queryFn(`
     UPDATE transactions 
@@ -114,11 +140,18 @@ export async function downgrade(queryFn: (query: string, values?: any[]) => Prom
     SET amount_legacy = CAST(amount_gdd4 / 10000 AS DECIMAL(40,20)); `
   )
   await queryFn(`
+    UPDATE contribution_links
+    SET amount_legacy = CAST(amount_gdd4 / 10000 AS SIGNED); `
+  )
+  await queryFn(`
     UPDATE transaction_links
     SET amount_legacy = CAST(amount_gdd4 / 10000 AS DECIMAL(40,20)),
         hold_available_amount_legacy = CAST(hold_available_amount_gdd4 / 10000 AS DECIMAL(40,20)); `
   )
-*/
+  await queryFn(`
+    UPDATE events
+    SET amount_legacy = CAST(amount_gdd4 / 10000 AS SIGNED); `
+  )
   // rename legacy columns back to original names
   await queryFn(`
     ALTER TABLE transactions 
@@ -137,11 +170,18 @@ export async function downgrade(queryFn: (query: string, values?: any[]) => Prom
     CHANGE amount_legacy amount DECIMAL(40,20) NULL DEFAULT NULL; `
   )
   await queryFn(`
+    ALTER TABLE contribution_links
+    CHANGE amount_legacy amount bigint NULL DEFAULT NULL; `
+  )
+  await queryFn(`
     ALTER TABLE transaction_links
     CHANGE amount_legacy amount DECIMAL(40,20) NULL DEFAULT NULL, 
     CHANGE hold_available_amount_legacy hold_available_amount DECIMAL(40,20) NULL DEFAULT NULL; `
   )
-
+  await queryFn(`
+    ALTER TABLE events
+    CHANGE amount_legacy amount bigint NULL DEFAULT NULL; `
+  )
   // remove new columns
   await queryFn(`
     ALTER TABLE transactions 
@@ -160,8 +200,16 @@ export async function downgrade(queryFn: (query: string, values?: any[]) => Prom
     DROP COLUMN amount_gdd4; `
   )
   await queryFn(`
+    ALTER TABLE contribution_links 
+    DROP COLUMN amount_gdd4; `
+  )
+  await queryFn(`
     ALTER TABLE transaction_links 
     DROP COLUMN amount_gdd4, 
     DROP COLUMN hold_available_amount_gdd4; `
+  )
+  await queryFn(`
+    ALTER TABLE events 
+    DROP COLUMN amount_gdd4; `
   )
 }
