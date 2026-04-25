@@ -35,3 +35,11 @@ export function gradidoUnitToString(value: bigint, precision?: number): string
  * @returns The rounded BigInt value (in gdd units)
  */
 export function toDecimalPlaces(value: bigint, places: number): bigint
+
+/**
+ * Converts a duration in nanoseconds to a string (for debugging purposes).
+ * @param duration - The duration in nanoseconds
+ * @param precision - The number of decimal places to include (max/default: 4)
+ * @returns The string representation of the duration
+ */
+export function durationToString(duration: bigint, precision?: number): string

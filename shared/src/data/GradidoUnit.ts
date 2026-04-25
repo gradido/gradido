@@ -12,8 +12,44 @@ import { Duration } from './Duration'
 export class GradidoUnit {
   protected gddCentValue: bigint = 0n
 
-  constructor(value: bigint) {
-    this.gddCentValue = value
+  /**
+   * GradidoUnit supports the following value types:
+   * - bigint: stores the value as integer in gradido cent (1 gdd = 10000 cent)
+   * - number: stores the value as decimal, rounded to 4 decimal places, rounded to nearest cent
+   * - string: parses the value from string representation, rounded to 4 decimal places, rounded to nearest cent
+   * - Decimal: stores the value as decimal, rounded to 4 decimal places, rounded to nearest cent
+   */
+  constructor(value: bigint | number | string | Decimal) {
+    if (typeof value === 'bigint') {
+      this.gddCentValue = value
+    } else if (typeof value === 'number') {
+      this.gddCentValue = BigInt(Math.round(value * 10000))
+    } else if (typeof value === 'string') {
+      this.gddCentValue = gradidoUnitFromString(value)
+    } else if (value instanceof Decimal) {
+      this.gddCentValue = BigInt(Math.round(value.toNumber() * 10000))
+    } else {
+      throw new Error('Invalid value type for GradidoUnit')
+    }
+  }
+
+  public static fromNumber(value: number): GradidoUnit {
+    return new GradidoUnit(BigInt(Math.round(value * 10000)))
+  }
+
+  public static fromDecimal(gdd: Decimal): GradidoUnit {
+    return this.fromString(gdd.toString())
+  }
+
+  public static fromString(value: string): GradidoUnit {
+    return new GradidoUnit(gradidoUnitFromString(value))
+  }
+
+  /**
+   * construct from non decimal value, e.g. 10000n = 1.0000 gdd
+   */
+  public static fromGradidoCent(gddCent: bigint): GradidoUnit {
+    return new GradidoUnit(gddCent)
   }
 
   get gddCent(): bigint {
@@ -56,9 +92,14 @@ export class GradidoUnit {
     return Duration.fromDateDiff(DECAY_START_TIME, to)
   }
 
-  public decayed(from: Date, to: Date): GradidoUnit {
-    const duration = GradidoUnit.effectiveDecayDuration(from, to)
-    return new GradidoUnit(calculateDecayNative(this.gddCentValue, duration.seconds))
+  public decayed(from: Date | Duration, to?: Date): GradidoUnit {
+    if (from instanceof Duration) {
+      return new GradidoUnit(calculateDecayNative(this.gddCentValue, from.seconds))
+    } else if (from instanceof Date && to) {
+      const duration = GradidoUnit.effectiveDecayDuration(from, to)
+      return new GradidoUnit(calculateDecayNative(this.gddCentValue, duration.seconds))
+    }
+    throw new Error('Invalid parameters for decayed')
   }
 
   public calculateDecay(from: Date, to: Date): Decay {
@@ -149,24 +190,6 @@ export class GradidoUnit {
     return new GradidoUnit(this.gddCentValue)
   }
 
-  public static fromNumber(value: number): GradidoUnit {
-    return new GradidoUnit(BigInt(Math.round(value * 10000)))
-  }
-
-  /**
-   * @deprecated best construct from gddCent directly or use fromNumber
-   */
-  public static fromDecimal(gdd: Decimal): GradidoUnit {
-    return this.fromString(gdd.toString())
-  }
-
-  public static fromString(value: string): GradidoUnit {
-    return new GradidoUnit(gradidoUnitFromString(value))
-  }
-
-  /**
-   * @deprecated best use gddCent directly or use toNumber
-   */
   public toDecimal(): Decimal {
     return new Decimal(this.gddCentValue.toString()).div(10000)
   }

@@ -71,5 +71,5 @@
     "forceConsistentCasingInFileNames": true        /* Disallow inconsistently-cased references to the same file. */
   },
   "references": [],                                  /* Any project that is referenced must itself have a `references` array (which may be empty). */
-  "exclude": ["**/*.test.ts", "**/*.spec.ts", "test/*", "**/bun.d.ts"],
+  "exclude": ["**/*.test.ts", "**/*.spec.ts", "tests/*", "**/bun.d.ts"],
 }
