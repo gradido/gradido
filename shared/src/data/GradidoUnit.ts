@@ -12,13 +12,29 @@ import { Duration } from './Duration'
 export class GradidoUnit {
   protected gddCentValue: bigint = 0n
 
-  // please use one of the static constructors instead
-  protected constructor(value: bigint) {
-    this.gddCentValue = value
+  /**
+   * GradidoUnit supports the following value types:
+   * - bigint: stores the value as integer in gradido cent (1 gdd = 10000 cent)
+   * - number: stores the value as decimal, rounded to 4 decimal places, rounded to nearest cent
+   * - string: parses the value from string representation, rounded to 4 decimal places, rounded to nearest cent
+   * - Decimal: stores the value as decimal, rounded to 4 decimal places, rounded to nearest cent
+   */
+  constructor(value: bigint | number | string | Decimal) {
+    if (typeof value === 'bigint') {
+      this.gddCentValue = value
+    } else if (typeof value === 'number') {
+      this.gddCentValue = BigInt(Math.round(value * 10000))
+    } else if (typeof value === 'string') {
+      this.gddCentValue = gradidoUnitFromString(value)
+    } else if (value instanceof Decimal) {
+      this.gddCentValue = BigInt(Math.round(value.toNumber() * 10000))
+    } else {
+      throw new Error('Invalid value type for GradidoUnit')
+    }
   }
 
   public static fromNumber(value: number): GradidoUnit {
-    return new GradidoUnit(BigInt(Math.round(value * 10000)))
+    return new GradidoUnit(value)
   }
 
   public static fromDecimal(gdd: Decimal): GradidoUnit {
