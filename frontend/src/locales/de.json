@@ -205,6 +205,10 @@
     "scann_code": "<strong>QR Code Scanner</strong> - Scanne den QR Code deines Partners",
     "sendEmail": "E-Mail senden",
     "sendemailerror": {
+      "failedToSendCommandToFederatedCommunity": "Dein E-Mail konnte nicht an die federierte Gemeinschaft deines E-Mail-Empfängers gesendet werden",
+      "federatedCommunityOfReceiverCommunityNotFound": "Für die Gemeinschaft deines E-Mail-Empfängers liegt keine valide Federierung vor",
+      "receiverCommunityNoFederatedCommunities": "Die Federierung der Gemeinschaft deines E-Mail-Empfängers ist nicht aktiv oder abgeschlossen",
+      "receiverCommunityNotFound": "Die Gemeinschaft deines E-Mail-Empfängers wurde nicht gefunden",
       "receiverDeleted": "Das Nutzerkonto zu deinem E-Mail-Empfänger wurde gelöscht",
       "receiverNotFound": "Zu deinem angegebenen E-Mail-Empfänger existiert kein Nutzerkonto."
     },

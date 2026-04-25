@@ -19,6 +19,32 @@
       >
         {{ $t('form.sendemailerror.receiverDeleted') }}
       </div>
+      <div
+        v-else-if="errorResult.includes('The recipient community was not found')"
+        class="test-receiver-not-found"
+      >
+        {{ $t('form.sendemailerror.receiverCommunityNotFound') }}
+      </div>
+      <div
+        v-else-if="errorResult.includes('The recipient community has no federated communities')"
+        class="test-receiver-not-found"
+      >
+        {{ $t('form.sendemailerror.receiverCommunityNoFederatedCommunities') }}
+      </div>
+      <div
+        v-else-if="
+          errorResult.includes('The federated community of the recipient community was not found')
+        "
+        class="test-receiver-not-found"
+      >
+        {{ $t('form.sendemailerror.federatedCommunityOfReceiverCommunityNotFound') }}
+      </div>
+      <div
+        v-else-if="errorResult.includes('Failed to send command to federated community')"
+        class="test-receiver-not-found"
+      >
+        {{ $t('form.sendemailerror.failedToSendCommandToFederatedCommunity') }}
+      </div>
       <div v-else>{{ errorResult }}</div>
     </div>
     <p class="text-center mt-5">

@@ -62,6 +62,7 @@ import { GdtResolver } from './GdtResolver'
 import { getCommunityName, isHomeCommunity } from './util/communities'
 import { getTransactionList } from './util/getTransactionList'
 import { transactionLinkSummary } from './util/transactionLinkSummary'
+import { SendEmailResult } from '../model/SendEmailResult'
 
 const db = AppDatabase.getInstance()
 const createLogger = () =>
@@ -551,7 +552,7 @@ export class TransactionResolver {
       }
       logger.addContext('to', recipientUser?.id)
       if (recipientUser.foreign) {
-        const errmsg = 'Found foreign recipient user for a local transaction: ' + recipientUser
+        const errmsg = 'Found foreign recipient user for a local action: ' + recipientUser
         logger.error(errmsg)
         throw new Error(errmsg)
       }
@@ -628,7 +629,12 @@ export class TransactionResolver {
         args.publicKey = senderCom.publicKey.toString('hex')
         args.jwt = jws
         args.handshakeID = handshakeID
-        cmdClient.sendCommand(args)
+        const result = await cmdClient.sendCommand(args)
+        if (!result) {
+          const errmsg = 'Failed to send command to federated community'
+          logger.error(errmsg)
+          throw new Error(errmsg)
+        }
       }
     }
     return true

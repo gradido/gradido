@@ -205,6 +205,10 @@
     "scann_code": "<strong>QR Code Scanner</strong> - Scan the QR Code of your partner",
     "sendEmail": "Send email",
     "sendemailerror": {
+      "failedToSendCommandToFederatedCommunity": "Your email could not be sent to the federated community of your email recipient",
+      "federatedCommunityOfReceiverCommunityNotFound": "No valid federation exists for the community of your email recipient",
+      "receiverCommunityNoFederatedCommunities": "The federation of your email recipient's community is not active or completed",
+      "receiverCommunityNotFound": "The community of your email recipient was not found",
       "receiverDeleted": "The user account for your email recipient has been deleted",
       "receiverNotFound": "No user account exists for your specified email recipient."
     },
