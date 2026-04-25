@@ -75,9 +75,7 @@ double grdd_unit_to_decimal(grdd_unit u)
 
 bool grdd_unit_from_string(grdd_unit* resultGdd, const char* gdd_string)
 {
-    if (!gdd_string || !resultGdd) {
-			return false;
-		}
+    if (!gdd_string || !resultGdd) return false;
 
     const char* p = gdd_string;
     bool negative = false;
@@ -213,6 +211,7 @@ int grdd_unit_to_string(char* buffer, size_t bufferSize, grdd_unit value, uint8_
 		cursor -= 4 - precision;
 		buffer[cursor] = '\0';
 	}
+
 	return cursor;
 }
 
