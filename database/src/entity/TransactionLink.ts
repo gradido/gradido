@@ -1,4 +1,4 @@
-import { Decimal } from 'decimal.js-light'
+import { GradidoUnit } from 'shared'
 import {
   BaseEntity,
   Column,
@@ -11,7 +11,7 @@ import {
 } from 'typeorm'
 import { type DltTransaction as DltTransactionType } from './DltTransaction'
 import { type Transaction as TransactionType } from './Transaction'
-import { DecimalTransformer } from './transformer/DecimalTransformer'
+import { GradidoUnitTransformer } from './transformer/GradidoUnitTransformer'
 import { type User as UserType } from './User'
 
 @Entity('transaction_links')
@@ -23,23 +23,20 @@ export class TransactionLink extends BaseEntity {
   userId: number
 
   @Column({
-    type: 'decimal',
-    precision: 40,
-    scale: 20,
+    name: 'amount_gdd4',
+    type: 'bigint',
     nullable: false,
-    transformer: DecimalTransformer,
+    transformer: GradidoUnitTransformer,
   })
-  amount: Decimal
+  amount: GradidoUnit
 
   @Column({
-    type: 'decimal',
-    name: 'hold_available_amount',
-    precision: 40,
-    scale: 20,
+    name: 'hold_available_amount_gdd4',
+    type: 'bigint',
     nullable: false,
-    transformer: DecimalTransformer,
+    transformer: GradidoUnitTransformer,
   })
-  holdAvailableAmount: Decimal
+  holdAvailableAmount: GradidoUnit
 
   @Column({ type: 'varchar', length: 512, nullable: false, collation: 'utf8mb4_unicode_ci' })
   memo: string

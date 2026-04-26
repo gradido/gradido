@@ -1,4 +1,4 @@
-import { Decimal } from 'decimal.js-light'
+import { GradidoUnit } from 'shared'
 import {
   BaseEntity,
   Column,
@@ -12,7 +12,7 @@ import {
 } from 'typeorm'
 import { type ContributionMessage as ContributionMessageType } from './ContributionMessage'
 import { type Transaction as TransactionType } from './Transaction'
-import { DecimalTransformer } from './transformer/DecimalTransformer'
+import { GradidoUnitTransformer } from './transformer/GradidoUnitTransformer'
 import { type User as UserType } from './User'
 
 @Entity('contributions')
@@ -43,13 +43,12 @@ export class Contribution extends BaseEntity {
   memo: string
 
   @Column({
-    type: 'decimal',
-    precision: 40,
-    scale: 20,
+    name: 'amount_gdd4',
+    type: 'bigint',
     nullable: false,
-    transformer: DecimalTransformer,
+    transformer: GradidoUnitTransformer,
   })
-  amount: Decimal
+  amountGdd4: GradidoUnit
 
   @Column({ type: 'bigint', unsigned: true, nullable: true, name: 'moderator_id' })
   moderatorId: number
