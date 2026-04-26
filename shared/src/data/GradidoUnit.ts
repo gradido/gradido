@@ -34,7 +34,7 @@ export class GradidoUnit {
   }
 
   public static fromNumber(value: number): GradidoUnit {
-    return new GradidoUnit(BigInt(Math.round(value * 10000)))
+    return new GradidoUnit(value)
   }
 
   public static fromDecimal(gdd: Decimal): GradidoUnit {

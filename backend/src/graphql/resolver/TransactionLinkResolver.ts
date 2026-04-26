@@ -389,7 +389,7 @@ export class TransactionLinkResolver {
           transaction.balanceDate = now
           transaction.decay = decay ? decay.decay.toDecimal() : new Decimal(0)
           transaction.decayStart = decay ? decay.start : null
-          transaction.decayCalculationType = DecayCalculationType.NATIVE_C_DYNAMIC_FACTOR
+          transaction.decayCalculationType = DecayCalculationType.NATIVE_C_FIXED_FACTOR_INTEGER
           await queryRunner.manager.insert(DbTransaction, transaction)
 
           contribution.confirmedAt = now

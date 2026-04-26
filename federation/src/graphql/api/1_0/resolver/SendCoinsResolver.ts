@@ -108,7 +108,7 @@ export class SendCoinsResolver {
       pendingTx.balanceDate = txDate
       pendingTx.decay = receiveBalance ? receiveBalance.decay.decay.toDecimal() : new Decimal(0)
       pendingTx.decayStart = receiveBalance ? receiveBalance.decay.start : null
-      pendingTx.decayCalculationType = DecayCalculationType.NATIVE_C_DYNAMIC_FACTOR
+      pendingTx.decayCalculationType = DecayCalculationType.NATIVE_C_FIXED_FACTOR_INTEGER
       pendingTx.creationDate = new Date()
       pendingTx.linkedUserCommunityUuid = authArgs.senderCommunityUuid
       pendingTx.linkedUserGradidoID = authArgs.senderUserUuid
