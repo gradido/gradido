@@ -20,7 +20,6 @@ import {
   User as dbUser,
   findUserByIdentifier,
 } from 'database'
-import { Decimal } from 'decimal.js-light'
 import { Args, Authorized, Ctx, Mutation, Query, Resolver } from 'type-graphql'
 import { In, IsNull } from 'typeorm'
 import { RIGHTS } from '@/auth/RIGHTS'

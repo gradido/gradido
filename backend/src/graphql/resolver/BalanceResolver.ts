@@ -5,7 +5,7 @@ import {
   getLastTransaction,
 } from 'database'
 import { getLogger } from 'log4js'
-import { GradidoUnit, TemporalGradidoUnit } from 'shared'
+import { GradidoUnit } from 'shared'
 import { Authorized, Ctx, Query, Resolver } from 'type-graphql'
 import { IsNull } from 'typeorm'
 import { RIGHTS } from '@/auth/RIGHTS'

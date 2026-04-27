@@ -1,6 +1,5 @@
 import { CommunityStatistics, DynamicStatisticsFields } from '@model/CommunityStatistics'
 import { AppDatabase, Transaction as DbTransaction, User as DbUser } from 'database'
-import { Decimal } from 'decimal.js-light'
 import { GradidoUnit } from 'shared'
 import { Authorized, FieldResolver, Query, Resolver } from 'type-graphql'
 import { RIGHTS } from '@/auth/RIGHTS'
@@ -15,7 +14,7 @@ export class StatisticsResolver {
     return new CommunityStatistics()
   }
 
-  @FieldResolver(() => Decimal)
+  @FieldResolver(() => Number)
   async allUsers(): Promise<number> {
     return await DbUser.count({ withDeleted: true })
   }
@@ -31,34 +30,34 @@ export class StatisticsResolver {
   }
 
   @FieldResolver()
-  async totalGradidoCreated(): Promise<Decimal> {
+  async totalGradidoCreated(): Promise<GradidoUnit> {
     const queryRunner = db.getDataSource().createQueryRunner()
     try {
       await queryRunner.connect()
       const { totalGradidoCreated } = await queryRunner.manager
         .createQueryBuilder()
-        .select('SUM(transaction.amount) AS totalGradidoCreated')
+        .select('SUM(transaction.amount_gdd4) AS totalGradidoCreated')
         .from(DbTransaction, 'transaction')
         .where('transaction.typeId = 1')
         .getRawOne()
-      return totalGradidoCreated
+      return GradidoUnit.fromGradidoCent(BigInt(totalGradidoCreated))
     } finally {
       await queryRunner.release()
     }
   }
 
   @FieldResolver()
-  async totalGradidoDecayed(): Promise<Decimal> {
+  async totalGradidoDecayed(): Promise<GradidoUnit> {
     const queryRunner = db.getDataSource().createQueryRunner()
     try {
       await queryRunner.connect()
       const { totalGradidoDecayed } = await queryRunner.manager
         .createQueryBuilder()
-        .select('SUM(transaction.decay) AS totalGradidoDecayed')
+        .select('SUM(transaction.decay_gdd4) AS totalGradidoDecayed')
         .from(DbTransaction, 'transaction')
         .where('transaction.decay IS NOT NULL')
         .getRawOne()
-      return totalGradidoDecayed
+      return GradidoUnit.fromGradidoCent(BigInt(totalGradidoDecayed))
     } finally {
       await queryRunner.release()
     }
@@ -77,7 +76,7 @@ export class StatisticsResolver {
 
       const lastUserTransactions = await queryRunner.manager
         .createQueryBuilder(DbUser, 'user')
-        .select('transaction.balance', 'balance')
+        .select('transaction.balance_gdd4', 'balance')
         .addSelect('transaction.balance_date', 'balanceDate')
         .innerJoin(DbTransaction, 'transaction', 'user.id = transaction.user_id')
         .where(
@@ -90,7 +89,7 @@ export class StatisticsResolver {
       const activeUsers = lastUserTransactions.length
 
       lastUserTransactions.forEach(({ balance, balanceDate }) => {
-        const balanceGradidoUnit = GradidoUnit.fromNumber(balance)
+        const balanceGradidoUnit = GradidoUnit.fromGradidoCent(BigInt(balance))
         const decay = balanceGradidoUnit.calculateDecay(new Date(balanceDate), receivedCallDate)
         if (decay) {
           totalGradidoAvailable = totalGradidoAvailable.add(decay.balance)

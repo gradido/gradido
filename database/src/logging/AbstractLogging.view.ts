@@ -1,4 +1,3 @@
-import { Decimal } from 'decimal.js-light'
 import { GradidoUnit } from 'shared'
 import util from 'util'
 
@@ -38,12 +37,6 @@ export abstract class AbstractLoggingView {
     return undefined
   }
 
-  public decimalToString(number: Decimal | undefined | null): string | undefined {
-    if (number) {
-      return number.toString()
-    }
-    return undefined
-  }
   public gradidoUnitToString(gdd: GradidoUnit | undefined | null): string | undefined {
     if (gdd) {
       return gdd.toString(4)

@@ -34,7 +34,6 @@ import {
   getHomeCommunity,
   getLastTransaction,
 } from 'database'
-import { Decimal } from 'decimal.js-light'
 import { Redis } from 'ioredis'
 import { getLogger, Logger } from 'log4js'
 import { Mutex } from 'redis-semaphore'

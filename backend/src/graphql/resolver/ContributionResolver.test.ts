@@ -23,7 +23,6 @@ import {
   Transaction as DbTransaction,
   User,
 } from 'database'
-import { Decimal } from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
 import { getLogger as originalGetLogger } from 'log4js'
 import { GradidoUnit } from 'shared'

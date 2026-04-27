@@ -14,8 +14,8 @@ export const decimalSeparatorByLanguage = (a: Decimal | GradidoUnit, language: s
   let result: string = ''
   if (a instanceof Decimal) {
     result = a.toFixed(2).replace('.', i18n.__('general.decimalSeparator'))
-  } else {
-    result = a.toString(2).replace('.', i18n.__('general.decimalSeparator'))
+  } else if (a instanceof GradidoUnit) {
+    result = a.toString(2, true).replace('.', i18n.__('general.decimalSeparator'))
   }
   i18n.setLocale(rememberLocaleToRestore)
   return result

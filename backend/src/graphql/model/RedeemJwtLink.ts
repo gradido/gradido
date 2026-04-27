@@ -1,5 +1,4 @@
-import { Decimal } from 'decimal.js-light'
-import { RedeemJwtPayloadType } from 'shared'
+import { GradidoUnit, RedeemJwtPayloadType } from 'shared'
 import { Field, ObjectType } from 'type-graphql'
 
 import { Community } from './Community'
@@ -22,7 +21,7 @@ export class RedeemJwtLink {
     } else {
       this.recipientUser = null
     }
-    this.amount = new Decimal(redeemJwtPayload.amount)
+    this.amount = GradidoUnit.fromString(redeemJwtPayload.amount)
     this.memo = redeemJwtPayload.memo
     this.code = redeemJwtPayload.redeemcode
     this.validUntil = new Date(redeemJwtPayload.validuntil)
@@ -40,8 +39,8 @@ export class RedeemJwtLink {
   @Field(() => User, { nullable: true })
   recipientUser: User | null
 
-  @Field(() => Decimal)
-  amount: Decimal
+  @Field(() => GradidoUnit)
+  amount: GradidoUnit
 
   @Field(() => String)
   memo: string

@@ -27,7 +27,6 @@ import {
   getLastTransaction,
   UserContact,
 } from 'database'
-import { Decimal } from 'decimal.js-light'
 import { GraphQLResolveInfo } from 'graphql'
 import { getLogger } from 'log4js'
 import { Mutex } from 'redis-semaphore'
