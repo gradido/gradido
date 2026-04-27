@@ -1,13 +1,12 @@
 import { cleanDB, contributionDateFormatter, testEnvironment } from '@test/helpers'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { AppDatabase, Contribution, User } from 'database'
-
+import { GradidoUnit } from 'shared'
 import { CONFIG } from '@/config'
 import { userFactory } from '@/seeds/factory/user'
 import { adminCreateContribution, createContribution, login } from '@/seeds/graphql/mutations'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { peterLustig } from '@/seeds/users/peter-lustig'
-
 import { getOpenCreations, getUserCreation } from './creations'
 
 jest.mock('@/password/EncryptorUtils')
@@ -59,7 +58,7 @@ describe('util/creation', () => {
         mutation: adminCreateContribution,
         variables: {
           email: 'bibi@bloxberg.de',
-          amount: 250.0,
+          amount: '250.0',
           memo: 'Admin contribution for this month',
           creationDate: contributionDateFormatter(now),
         },
@@ -68,7 +67,7 @@ describe('util/creation', () => {
         mutation: adminCreateContribution,
         variables: {
           email: 'bibi@bloxberg.de',
-          amount: 160.0,
+          amount: '160.0',
           memo: 'Admin contribution for the last month',
           creationDate: contributionDateFormatter(
             new Date(now.getFullYear(), now.getMonth() - 1, 1),
@@ -79,7 +78,7 @@ describe('util/creation', () => {
         mutation: adminCreateContribution,
         variables: {
           email: 'bibi@bloxberg.de',
-          amount: 450.0,
+          amount: '450.0',
           memo: 'Admin contribution for two months ago',
           creationDate: contributionDateFormatter(
             new Date(now.getFullYear(), now.getMonth() - 2, 1),
@@ -93,7 +92,7 @@ describe('util/creation', () => {
       await mutate({
         mutation: createContribution,
         variables: {
-          amount: 400.0,
+          amount: '400.0',
           memo: 'Contribution for this month',
           contributionDate: contributionDateFormatter(now),
         },
@@ -101,7 +100,7 @@ describe('util/creation', () => {
       await mutate({
         mutation: createContribution,
         variables: {
-          amount: 500.0,
+          amount: '500.0',
           memo: 'Contribution for the last month',
           contributionDate: contributionDateFormatter(
             new Date(now.getFullYear(), now.getMonth() - 1, 1),
@@ -115,7 +114,7 @@ describe('util/creation', () => {
         expect.objectContaining({
           userId: user.id,
           contributionDate: setZeroHours(now),
-          amount: expect.decimalEqual(250),
+          amount: GradidoUnit.fromNumber(250),
           memo: 'Admin contribution for this month',
           moderatorId: admin.id,
           contributionType: 'ADMIN',
@@ -124,7 +123,7 @@ describe('util/creation', () => {
         expect.objectContaining({
           userId: user.id,
           contributionDate: setZeroHours(new Date(now.getFullYear(), now.getMonth() - 1, 1)),
-          amount: expect.decimalEqual(160),
+          amount: GradidoUnit.fromNumber(160),
           memo: 'Admin contribution for the last month',
           moderatorId: admin.id,
           contributionType: 'ADMIN',
@@ -133,7 +132,7 @@ describe('util/creation', () => {
         expect.objectContaining({
           userId: user.id,
           contributionDate: setZeroHours(new Date(now.getFullYear(), now.getMonth() - 2, 1)),
-          amount: expect.decimalEqual(450),
+          amount: GradidoUnit.fromNumber(450),
           memo: 'Admin contribution for two months ago',
           moderatorId: admin.id,
           contributionType: 'ADMIN',
@@ -142,7 +141,7 @@ describe('util/creation', () => {
         expect.objectContaining({
           userId: user.id,
           contributionDate: setZeroHours(now),
-          amount: expect.decimalEqual(400),
+          amount: GradidoUnit.fromNumber(400),
           memo: 'Contribution for this month',
           moderatorId: null,
           contributionType: 'USER',
@@ -151,7 +150,7 @@ describe('util/creation', () => {
         expect.objectContaining({
           userId: user.id,
           contributionDate: setZeroHours(new Date(now.getFullYear(), now.getMonth() - 1, 1)),
-          amount: expect.decimalEqual(500),
+          amount: GradidoUnit.fromNumber(500),
           memo: 'Contribution for the last month',
           moderatorId: null,
           contributionType: 'USER',
@@ -163,9 +162,9 @@ describe('util/creation', () => {
     describe('call getUserCreation now', () => {
       it('returns the expected open contributions', async () => {
         await expect(getUserCreation(user.id, 0)).resolves.toEqual([
-          expect.decimalEqual(550),
-          expect.decimalEqual(340),
-          expect.decimalEqual(350),
+          GradidoUnit.fromNumber(550),
+          GradidoUnit.fromNumber(340),
+          GradidoUnit.fromNumber(350),
         ])
       })
 
@@ -196,9 +195,9 @@ describe('util/creation', () => {
         describe('call getUserCreation with UTC', () => {
           it('returns the expected open contributions', async () => {
             await expect(getUserCreation(user.id, 0)).resolves.toEqual([
-              expect.decimalEqual(550),
-              expect.decimalEqual(340),
-              expect.decimalEqual(350),
+              GradidoUnit.fromNumber(550),
+              GradidoUnit.fromNumber(340),
+              GradidoUnit.fromNumber(350),
             ])
           })
         })
@@ -206,9 +205,9 @@ describe('util/creation', () => {
         describe('call getUserCreation with JST (GMT+0900)', () => {
           it('returns the expected open contributions', async () => {
             await expect(getUserCreation(user.id, -540, true)).resolves.toEqual([
-              expect.decimalEqual(340),
-              expect.decimalEqual(350),
-              expect.decimalEqual(1000),
+              GradidoUnit.fromNumber(340),
+              GradidoUnit.fromNumber(350),
+              GradidoUnit.fromNumber(1000),
             ])
           })
         })
@@ -216,9 +215,9 @@ describe('util/creation', () => {
         describe('call getUserCreation with PST (GMT-0800)', () => {
           it('returns the expected open contributions', async () => {
             await expect(getUserCreation(user.id, 480, true)).resolves.toEqual([
-              expect.decimalEqual(550),
-              expect.decimalEqual(340),
-              expect.decimalEqual(350),
+              GradidoUnit.fromNumber(550),
+              GradidoUnit.fromNumber(340),
+              GradidoUnit.fromNumber(350),
             ])
           })
         })
@@ -243,9 +242,9 @@ describe('util/creation', () => {
           describe('call getUserCreation with UTC', () => {
             it('returns the expected open contributions', async () => {
               await expect(getUserCreation(user.id, 0, true)).resolves.toEqual([
-                expect.decimalEqual(340),
-                expect.decimalEqual(350),
-                expect.decimalEqual(1000),
+                GradidoUnit.fromNumber(340),
+                GradidoUnit.fromNumber(350),
+                GradidoUnit.fromNumber(1000),
               ])
             })
           })
@@ -253,9 +252,9 @@ describe('util/creation', () => {
           describe('call getUserCreation with JST (GMT+0900)', () => {
             it('returns the expected open contributions', async () => {
               await expect(getUserCreation(user.id, -540, true)).resolves.toEqual([
-                expect.decimalEqual(340),
-                expect.decimalEqual(350),
-                expect.decimalEqual(1000),
+                GradidoUnit.fromNumber(340),
+                GradidoUnit.fromNumber(350),
+                GradidoUnit.fromNumber(1000),
               ])
             })
           })
@@ -263,9 +262,9 @@ describe('util/creation', () => {
           describe('call getUserCreation with PST (GMT-0800)', () => {
             it('returns the expected open contributions', async () => {
               await expect(getUserCreation(user.id, 450, true)).resolves.toEqual([
-                expect.decimalEqual(550),
-                expect.decimalEqual(340),
-                expect.decimalEqual(350),
+                GradidoUnit.fromNumber(550),
+                GradidoUnit.fromNumber(340),
+                GradidoUnit.fromNumber(350),
               ])
             })
           })

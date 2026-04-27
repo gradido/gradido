@@ -79,7 +79,7 @@ describe('TransactionLinkResolver', () => {
         jest.clearAllMocks()
         resetToken()
         await expect(
-          mutate({ mutation: createTransactionLink, variables: { amount: 0, memo: 'Test' } }),
+          mutate({ mutation: createTransactionLink, variables: { amount: '0', memo: 'Test' } }),
         ).resolves.toEqual(
           expect.objectContaining({
             errors: [new GraphQLError('401 Unauthorized')],
@@ -101,7 +101,7 @@ describe('TransactionLinkResolver', () => {
         const { errors: errorObjects } = await mutate({
           mutation: createTransactionLink,
           variables: {
-            amount: 0,
+            amount: '0',
             memo: 'Test Test',
           },
         })
@@ -129,7 +129,7 @@ describe('TransactionLinkResolver', () => {
         const { errors: errorObjects } = await mutate({
           mutation: createTransactionLink,
           variables: {
-            amount: -10,
+            amount: '-10',
             memo: 'Test Test',
           },
         })
@@ -157,7 +157,7 @@ describe('TransactionLinkResolver', () => {
         const { errors: errorObjects } = await mutate({
           mutation: createTransactionLink,
           variables: {
-            amount: 100,
+            amount: '100',
             memo: 'Test',
           },
         })
@@ -186,7 +186,7 @@ describe('TransactionLinkResolver', () => {
           mutation: createTransactionLink,
           variables: {
             identifier: 'peter@lustig.de',
-            amount: 100,
+            amount: '100',
             memo: 'test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test',
           },
         })
@@ -215,7 +215,7 @@ describe('TransactionLinkResolver', () => {
           mutate({
             mutation: createTransactionLink,
             variables: {
-              amount: 1001,
+              amount: '1001',
               memo: 'Test Test',
             },
           }),
@@ -692,7 +692,7 @@ describe('TransactionLinkResolver', () => {
             } = await mutate({
               mutation: createTransactionLink,
               variables: {
-                amount: 200,
+                amount: '200',
                 memo: 'This is a transaction link from bibi',
               },
             })
@@ -782,7 +782,7 @@ describe('TransactionLinkResolver', () => {
               } = await mutate({
                 mutation: createTransactionLink,
                 variables: {
-                  amount: 200,
+                  amount: '200',
                   memo: 'This is a transaction link from bibi',
                 },
               })

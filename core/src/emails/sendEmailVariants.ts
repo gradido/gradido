@@ -1,4 +1,3 @@
-import { Decimal } from 'decimal.js-light'
 import { GradidoUnit } from 'shared'
 import { CONFIG } from '../config'
 import { decimalSeparatorByLanguage } from '../util/utilities'

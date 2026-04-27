@@ -49,13 +49,13 @@ afterAll(async () => {
 describe('Contribution Links', () => {
   const now = new Date()
   const variables = {
-    amount: 200,
+    amount: '200',
     name: 'Dokumenta 2022',
     memo: 'Danke für deine Teilnahme an der Dokumenta 2022',
     cycle: 'once',
     validFrom: new Date(2022, 5, 18).toISOString(),
     validTo: new Date(now.getFullYear() + 1, 7, 14).toISOString(),
-    maxAmountPerMonth: 200,
+    maxAmountPerMonth: '200',
     maxPerCycle: 1,
   }
 
@@ -520,7 +520,7 @@ describe('Contribution Links', () => {
                 variables: {
                   ...variables,
                   id: -1,
-                  amount: 400,
+                  amount: '400',
                   name: 'Dokumenta 2023',
                   memo: 'Danke für deine Teilnahme an der Dokumenta 2023',
                 },

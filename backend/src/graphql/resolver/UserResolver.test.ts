@@ -461,7 +461,7 @@ describe('UserResolver', () => {
           contribution = await mutate({
             mutation: createContribution,
             variables: {
-              amount: 1000,
+              amount: '1000',
               memo: 'testing',
               contributionDate: new Date().toISOString(),
             },
