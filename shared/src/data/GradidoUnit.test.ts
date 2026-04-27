@@ -188,7 +188,7 @@ describe('GradidoUnit', () => {
     })
   })
   describe('legacy link blocked amount decay test', () => {
-    const days14 = Duration.days(14n)
+    const days14 = Duration.days(14)
     const startDate = new Date('2022-01-01 17:12:01Z')
     const endDate = new Date('2022-01-12 00:50:10Z')
 

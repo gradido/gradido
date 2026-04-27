@@ -26,15 +26,15 @@ export class Duration {
   }
 
   public static minutes(minutes: number): Duration {
-    return new Duration(BigInt(minutes * 60))
+    return new Duration(BigInt(minutes) * 60n)
   }
 
   public static hours(hours: number): Duration {
-    return new Duration(BigInt(hours * 60 * 60))
+    return new Duration(BigInt(hours) * 60n * 60n)
   }
 
   public static days(days: number): Duration {
-    return new Duration(BigInt(days * 24 * 60 * 60))
+    return new Duration(BigInt(days) * 24n * 60n * 60n)
   }
 
   public add(duration: Duration): Duration {
