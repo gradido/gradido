@@ -1,4 +1,3 @@
-import Decimal from 'decimal.js-light'
 import { Decay, fullName, GradidoUnit } from 'shared'
 import { Transaction, User } from '../../entity'
 import { TransactionTypeId } from '../../enum'
@@ -20,7 +19,7 @@ export async function createTransaction(
   let newBalance = new GradidoUnit(0n)
   let decay: Decay | null = null
   if (lastTransaction) {
-    const lastTransactionBalance = GradidoUnit.fromDecimal(lastTransaction.balance)
+    const lastTransactionBalance = lastTransaction.balance
     decay = lastTransactionBalance.calculateDecay(lastTransaction.balanceDate, balanceDate)
     newBalance = decay.balance
   }
@@ -41,13 +40,13 @@ export async function createTransaction(
   transaction.linkedUserName = fullName(linkedUser.firstName, linkedUser.lastName)
   transaction.linkedUserCommunityUuid = linkedUser.communityUuid
   transaction.previous = lastTransaction ? lastTransaction.id : null
-  transaction.amount = amount.toDecimal()
+  transaction.amount = amount
   if (creationDate) {
     transaction.creationDate = creationDate
   }
-  transaction.balance = newBalance.toDecimal()
+  transaction.balance = newBalance
   transaction.balanceDate = balanceDate
-  transaction.decay = decay ? decay.decay.toDecimal() : new Decimal(0)
+  transaction.decay = decay ? decay.decay : new GradidoUnit(0n)
   transaction.decayStart = decay ? decay.start : null
 
   return store ? transaction.save() : transaction

@@ -1,6 +1,5 @@
 import { dbTransactionsSchema, Transaction, transactionsSchema } from 'core'
 import { Transaction as dbTransaction } from 'database'
-import Decimal from 'decimal.js-light'
 import { Decay as DecayInterface, Duration, decaySchema, GradidoUnit } from 'shared'
 import { Field, ObjectType } from 'type-graphql'
 
@@ -27,15 +26,15 @@ export class Decay {
     const { balance, decay, decayStart, balanceDate } = dbTransactionsSchema.parse(input)
     const self = new Decay()
 
-    self.balance = GradidoUnit.fromDecimal(balance.toDecimalPlaces(4, Decimal.ROUND_DOWN))
+    self.balance = balance
     self.end = balanceDate
 
     if (!decayStart) {
-      self.decay = GradidoUnit.fromDecimal(new Decimal(0))
+      self.decay = new GradidoUnit(0n)
       self.start = null
       self.duration = null
     } else {
-      self.decay = GradidoUnit.fromDecimal(decay.toDecimalPlaces(4, Decimal.ROUND_FLOOR))
+      self.decay = decay
       self.start = decayStart
       self.duration = Duration.fromDateDiff(decayStart, balanceDate)
     }

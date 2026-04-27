@@ -20,7 +20,7 @@ export class UnconfirmedContributionAdminRole extends AbstractUnconfirmedContrib
   ) {
     super(
       contribution,
-      updateData.amount ?? GradidoUnit.fromDecimal(contribution.amount),
+      updateData.amount ?? contribution.amount,
       updateData.creationDate ? new Date(updateData.creationDate) : contribution.contributionDate,
     )
     this.logger.debug('use UnconfirmedContributionAdminRole')
@@ -36,8 +36,7 @@ export class UnconfirmedContributionAdminRole extends AbstractUnconfirmedContrib
     }
     return (
       (this.updateData.memo && this.self.memo !== this.updateData.memo) ||
-      (this.updatedAmount &&
-        GradidoUnit.fromDecimal(this.self.amount).gddCent !== this.updatedAmount.gddCent) ||
+      (this.updatedAmount && this.self.amount.comparedTo(this.updatedAmount) !== 0n) ||
       +this.self.contributionDate !== +this.updatedCreationDate
     )
   }
@@ -49,7 +48,7 @@ export class UnconfirmedContributionAdminRole extends AbstractUnconfirmedContrib
       this.self.updatedBy = this.moderator.id
       this.self.contributionStatus = ContributionStatus.PENDING
     }
-    this.self.amount = this.updatedAmount.toDecimal()
+    this.self.amount = this.updatedAmount
     this.self.memo = this.updateData.memo ?? this.self.memo
     this.self.contributionDate = this.updatedCreationDate
     if (this.updateData.resubmissionAt) {

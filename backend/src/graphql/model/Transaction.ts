@@ -1,6 +1,5 @@
 import { TransactionTypeId } from 'core'
 import { Transaction as dbTransaction } from 'database'
-import Decimal from 'decimal.js-light'
 import { GradidoUnit } from 'shared'
 import { Field, Int, ObjectType } from 'type-graphql'
 import { Decay } from './Decay'
@@ -13,10 +12,8 @@ export class Transaction {
     this.user = user
     this.previous = transaction.previous
     this.typeId = transaction.typeId
-    this.amount = GradidoUnit.fromDecimal(transaction.amount.toDecimalPlaces(4, Decimal.ROUND_DOWN))
-    this.balance = GradidoUnit.fromDecimal(
-      transaction.balance.toDecimalPlaces(4, Decimal.ROUND_DOWN),
-    )
+    this.amount = transaction.amount
+    this.balance = transaction.balance
     this.balanceDate = transaction.balanceDate
     this.decay = Decay.createFromDBTransaction(transaction)
     this.memo = transaction.memo
@@ -26,10 +23,7 @@ export class Transaction {
     this.linkId = transaction.contribution
       ? transaction.contribution.contributionLinkId
       : (transaction.transactionLinkId ?? null)
-    this.previousBalance = GradidoUnit.fromDecimal(
-      transaction.previousTransaction?.balance.toDecimalPlaces(4, Decimal.ROUND_DOWN) ??
-        new Decimal(0),
-    )
+    this.previousBalance = transaction.previousTransaction?.balance ?? new GradidoUnit(0n)
   }
 
   @Field(() => Int)

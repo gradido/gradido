@@ -2,11 +2,9 @@ import { cleanDB, contributionDateFormatter, testEnvironment } from '@test/helpe
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { CONFIG as CORE_CONFIG } from 'core'
 import { AppDatabase, Community as DbCommunity } from 'database'
-import { Decimal } from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
 // import { TRANSACTIONS_LOCK } from 'database'
 import { Mutex } from 'redis-semaphore'
-import { GradidoUnit } from 'shared'
 import { v4 as uuidv4 } from 'uuid'
 import { CONFIG } from '@/config'
 import { creationFactory, nMonthsBefore } from '@/seeds/factory/creation'
@@ -128,13 +126,13 @@ describe('semaphore fullstack', () => {
     } = await mutate({
       mutation: createContributionLink,
       variables: {
-        amount: new Decimal(200),
+        amount: 200,
         name: 'Test Contribution Link',
         memo: 'Danke für deine Teilnahme an dem Test der Contribution Links',
         cycle: 'ONCE',
         validFrom: new Date(2022, 5, 18).toISOString(),
         validTo: new Date(now.getFullYear() + 1, 7, 14).toISOString(),
-        maxAmountPerMonth: new Decimal(200),
+        maxAmountPerMonth: 200,
         maxPerCycle: 1,
       },
     })
@@ -231,7 +229,7 @@ describe('semaphore fullstack', () => {
       variables: {
         recipientCommunityIdentifier: homeCom.communityUuid,
         recipientIdentifier: 'bibi@bloxberg.de',
-        amount: '50',
+        amount: 50,
         memo: 'Das ist für dich, Bibi',
       },
     })

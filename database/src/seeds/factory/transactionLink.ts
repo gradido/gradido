@@ -1,5 +1,4 @@
 import { randomBytes } from 'node:crypto'
-import { Decimal } from 'decimal.js-light'
 import { Duration, GradidoUnit } from 'shared'
 import { AppDatabase } from '../../AppDatabase'
 import { TransactionLink, User } from '../../entity'
@@ -51,9 +50,9 @@ export async function createTransactionLink(
 
   const transactionLink = new TransactionLink()
   transactionLink.userId = userId
-  transactionLink.amount = new Decimal(transactionLinkData.amount)
+  transactionLink.amount = GradidoUnit.fromNumber(transactionLinkData.amount)
   transactionLink.memo = transactionLinkData.memo
-  transactionLink.holdAvailableAmount = holdAvailableAmount.toDecimal()
+  transactionLink.holdAvailableAmount = holdAvailableAmount
   transactionLink.code = transactionLinkCode(createdAt)
   transactionLink.createdAt = createdAt
   transactionLink.validUntil = validUntil

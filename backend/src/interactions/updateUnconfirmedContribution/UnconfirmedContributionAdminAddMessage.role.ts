@@ -1,5 +1,4 @@
 import { Contribution, User } from 'database'
-import { GradidoUnit } from 'shared'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { Role } from '@/auth/Role'
 import { ContributionMessageBuilder } from '@/data/ContributionMessage.builder'
@@ -18,7 +17,7 @@ export class UnconfirmedContributionAdminAddMessageRole extends AbstractUnconfir
     contribution: Contribution,
     private updateData: ContributionMessageArgs,
   ) {
-    super(contribution, GradidoUnit.fromDecimal(contribution.amount), contribution.contributionDate)
+    super(contribution, contribution.amount, contribution.contributionDate)
     this.logger.debug('use UnconfirmedContributionAdminAddMessageRole')
   }
 

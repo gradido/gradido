@@ -1,4 +1,9 @@
-import { EncryptedTransferArgs, interpretEncryptedTransferArgs } from 'core'
+import {
+  EncryptedTransferArgs,
+  interpretEncryptedTransferArgs,
+  SendCoinsArgs,
+  SendCoinsArgsLoggingView,
+} from 'core'
 import {
   countOpenPendingTransactions,
   Community as DbCommunity,
@@ -6,7 +11,6 @@ import {
   findUserByIdentifier,
   PendingTransactionLoggingView,
 } from 'database'
-import Decimal from 'decimal.js-light'
 import { getLogger } from 'log4js'
 import {
   DecayCalculationType,
@@ -22,8 +26,6 @@ import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { fullName } from '@/graphql/util/fullName'
 import { LogError } from '@/server/LogError'
 import { TransactionTypeId } from '../enum/TransactionTypeId'
-import { SendCoinsArgsLoggingView } from '../logger/SendCoinsArgsLogging.view'
-import { SendCoinsArgs } from '../model/SendCoinsArgs'
 import { calculateRecipientBalance } from '../util/calculateRecipientBalance'
 // import { checkTradingLevel } from '@/graphql/util/checkTradingLevel'
 import { revertSettledReceiveTransaction } from '../util/revertSettledReceiveTransaction'
@@ -97,16 +99,13 @@ export class SendCoinsResolver {
 
     try {
       const txDate = new Date(authArgs.creationDate)
-      const receiveBalance = await calculateRecipientBalance(
-        receiverUser.id,
-        GradidoUnit.fromDecimal(authArgs.amount),
-        txDate,
-      )
+      const amount = GradidoUnit.fromString(authArgs.amount)
+      const receiveBalance = await calculateRecipientBalance(receiverUser.id, amount, txDate)
       const pendingTx = DbPendingTransaction.create()
-      pendingTx.amount = authArgs.amount
-      pendingTx.balance = receiveBalance ? receiveBalance.balance.toDecimal() : authArgs.amount
+      pendingTx.amount = amount
+      pendingTx.balance = receiveBalance ? receiveBalance.balance : amount
       pendingTx.balanceDate = txDate
-      pendingTx.decay = receiveBalance ? receiveBalance.decay.decay.toDecimal() : new Decimal(0)
+      pendingTx.decay = receiveBalance ? receiveBalance.decay.decay : new GradidoUnit(0n)
       pendingTx.decayStart = receiveBalance ? receiveBalance.decay.start : null
       pendingTx.decayCalculationType = DecayCalculationType.NATIVE_C_DYNAMIC_FACTOR
       pendingTx.creationDate = new Date()
@@ -199,6 +198,7 @@ export class SendCoinsResolver {
           pendingTx ? new PendingTransactionLoggingView(pendingTx) : 'null',
         )
       }
+      // authArgs.amount is typed as GradidoUnit but when parsed from JWT it might be a string
       if (pendingTx && pendingTx.amount.toString() === authArgs.amount.toString()) {
         methodLogger.debug('XCom: revertSendCoins matching pendingTX for remove...')
         try {
@@ -212,13 +212,13 @@ export class SendCoinsResolver {
       } else {
         methodLogger.debug(
           'XCom: revertSendCoins NOT matching pendingTX for remove:',
-          pendingTx?.amount.toString(),
-          authArgs.amount.toString(),
+          pendingTx?.amount?.toString(),
+          authArgs.amount?.toString(),
         )
         const errmsg =
           `Can't find in revertSendCoins the pending receiver TX for ` +
           {
-            args: new SendCoinsArgsLoggingView(authArgs),
+            args: new SendCoinsArgsLoggingView(new SendCoinsArgs(authArgs)),
             pendingTransactionState: PendingTransactionState.NEW,
             transactionType: TransactionTypeId.RECEIVE,
           }
@@ -295,7 +295,7 @@ export class SendCoinsResolver {
       await settlePendingReceiveTransaction(homeCom, receiverUser, pendingTx)
       // after successful x-com-tx store the recipient as foreign user
       methodLogger.debug('store recipient as foreign user...')
-      if (await storeForeignUser(authArgs)) {
+      if (await storeForeignUser(new SendCoinsArgs(authArgs))) {
         methodLogger.info(
           'X-Com: new foreign user inserted successfully...',
           authArgs.senderCommunityUuid,
@@ -312,7 +312,7 @@ export class SendCoinsResolver {
       const errmsg =
         `Can't find in settlePendingReceiveTransaction the pending receiver TX for ` +
         {
-          args: new SendCoinsArgsLoggingView(authArgs),
+          args: new SendCoinsArgsLoggingView(new SendCoinsArgs(authArgs)),
           pendingTransactionState: PendingTransactionState.NEW,
           transactionTypeId: TransactionTypeId.RECEIVE,
         }
@@ -389,7 +389,7 @@ export class SendCoinsResolver {
       const errmsg =
         `Can't find in revertSettledSendCoins the pending receiver TX for ` +
         {
-          args: new SendCoinsArgsLoggingView(authArgs),
+          args: new SendCoinsArgsLoggingView(new SendCoinsArgs(authArgs)),
           pendingTransactionState: PendingTransactionState.SETTLED,
           transactionTypeId: TransactionTypeId.RECEIVE,
         }

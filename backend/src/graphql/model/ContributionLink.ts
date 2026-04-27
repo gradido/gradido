@@ -1,7 +1,6 @@
 import { ContributionLink as dbContributionLink } from 'database'
-import { Decimal } from 'decimal.js-light'
+import { GradidoUnit } from 'shared'
 import { Field, Int, ObjectType } from 'type-graphql'
-
 import { CONFIG } from '@/config'
 
 @ObjectType()
@@ -25,8 +24,8 @@ export class ContributionLink {
   @Field(() => Int)
   id: number
 
-  @Field(() => Decimal)
-  amount: Decimal
+  @Field(() => GradidoUnit)
+  amount: GradidoUnit
 
   @Field(() => String)
   name: string
@@ -52,8 +51,8 @@ export class ContributionLink {
   @Field(() => Date, { nullable: true })
   validTo: Date | null
 
-  @Field(() => Decimal, { nullable: true })
-  maxAmountPerMonth: Decimal | null
+  @Field(() => GradidoUnit, { nullable: true })
+  maxAmountPerMonth: GradidoUnit | null
 
   @Field(() => String)
   cycle: string

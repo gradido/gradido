@@ -12,24 +12,15 @@ import { Duration } from './Duration'
 export class GradidoUnit {
   protected gddCentValue: bigint = 0n
 
-  /**
-   * GradidoUnit supports the following value types:
-   * - bigint: stores the value as integer in gradido cent (1 gdd = 10000 cent)
-   * - number: stores the value as decimal, rounded to 4 decimal places, rounded to nearest cent
-   * - string: parses the value from string representation, rounded to 4 decimal places, rounded to nearest cent
-   * - Decimal: stores the value as decimal, rounded to 4 decimal places, rounded to nearest cent
-   */
-  constructor(value: bigint | number | string | Decimal) {
-    if (typeof value === 'bigint') {
-      this.gddCentValue = value
+  constructor(value: bigint | string | number | GradidoUnit) {
+    if (value instanceof GradidoUnit) {
+      this.gddCentValue = value.gddCent
+    } else if (typeof value === 'string') {
+      this.gddCentValue = BigInt(gradidoUnitFromString(value))
     } else if (typeof value === 'number') {
       this.gddCentValue = BigInt(Math.round(value * 10000))
-    } else if (typeof value === 'string') {
-      this.gddCentValue = gradidoUnitFromString(value)
-    } else if (value instanceof Decimal) {
-      this.gddCentValue = BigInt(Math.round(value.toNumber() * 10000))
     } else {
-      throw new Error('Invalid value type for GradidoUnit')
+      this.gddCentValue = value
     }
   }
 
@@ -42,7 +33,7 @@ export class GradidoUnit {
   }
 
   public static fromString(value: string): GradidoUnit {
-    return new GradidoUnit(gradidoUnitFromString(value))
+    return new GradidoUnit(BigInt(gradidoUnitFromString(value)))
   }
 
   /**
@@ -172,6 +163,15 @@ export class GradidoUnit {
   }
 
   /**
+   * Returns the comparison of this GradidoUnit with another
+   * @param other The GradidoUnit to compare with
+   * @returns A bigint representing the difference, 0 == identical, > 0 if this is greater, < 0 if this is smaller
+   */
+  public comparedTo(other: GradidoUnit): bigint {
+    return this.gddCentValue - other.gddCentValue
+  }
+
+  /**
    * Returns the negation of this GradidoUnit
    * @returns A new GradidoUnit with the negated value
    */
@@ -196,8 +196,22 @@ export class GradidoUnit {
   public toNumber(): number {
     return Number(this.gddCentValue) / 10000
   }
-  public toString(places: number = 2): string {
-    return gradidoUnitToString(this.gddCentValue, places)
+  public toString(places = 2, keepTrailingZeros = false): string {
+    if (keepTrailingZeros) {
+      return gradidoUnitToString(this.gddCentValue, places)
+    } else {
+      return this.toStringSmart(places)
+    }
+  }
+  /**
+   * Mirror Decimal.toString which will remove trailing zeros
+   * @param maxPlaces
+   */
+  public toStringSmart(maxPlaces: number = 2): string {
+    const str = gradidoUnitToString(this.gddCentValue, maxPlaces)
+    // remove trailing zeros
+    const trimmed = str.replace(/0+$/, '')
+    return trimmed.replace(/\.$/, '')
   }
 
   public toJSON() {

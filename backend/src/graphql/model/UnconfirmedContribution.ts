@@ -2,9 +2,8 @@ import {
   Contribution as DbContribution,
   ContributionMessage as DbContributionMessage,
 } from 'database'
-import { Decimal } from 'decimal.js-light'
+import { GradidoUnit } from 'shared'
 import { Field, Int, ObjectType } from 'type-graphql'
-
 import { ContributionMessage } from './ContributionMessage'
 import { User } from './User'
 
@@ -44,8 +43,8 @@ export class UnconfirmedContribution {
   @Field(() => String)
   memo: string
 
-  @Field(() => Decimal)
-  amount: Decimal
+  @Field(() => GradidoUnit)
+  amount: GradidoUnit
 
   @Field(() => Int, { nullable: true })
   moderatorId: number | null

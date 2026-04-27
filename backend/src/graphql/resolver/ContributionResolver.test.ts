@@ -1251,7 +1251,7 @@ describe('ContributionResolver', () => {
   describe('contributions', () => {
     const variables = {
       email: 'bibi@bloxberg.de',
-      amount: new Decimal(2000),
+      amount: '2000',
       memo: 'Aktives Grundeinkommen',
       creationDate: 'not-valid',
     }
@@ -1274,7 +1274,7 @@ describe('ContributionResolver', () => {
               mutation: adminUpdateContribution,
               variables: {
                 id: 1,
-                amount: new Decimal(300),
+                amount: '300',
                 memo: 'Danke Bibi!',
                 creationDate: contributionDateFormatter(new Date()),
               },
@@ -1352,7 +1352,7 @@ describe('ContributionResolver', () => {
                 mutation: adminUpdateContribution,
                 variables: {
                   id: 1,
-                  amount: new Decimal(300),
+                  amount: '300',
                   memo: 'Danke Bibi!',
                   creationDate: contributionDateFormatter(new Date()),
                 },
@@ -1430,7 +1430,7 @@ describe('ContributionResolver', () => {
             creation = await Contribution.findOneOrFail({
               where: {
                 memo: 'Herzlich Willkommen bei Gradido!',
-                amount: Equal(new Decimal('400')),
+                amount: Equal(GradidoUnit.fromString('400')),
               },
             })
           })
@@ -1634,13 +1634,13 @@ describe('ContributionResolver', () => {
 
             describe('creation is valid', () => {
               it('returns an array of the open creations for the last three months', async () => {
-                variables.amount = new Decimal(200)
+                variables.amount = '200'
                 await expect(
                   mutate({ mutation: adminCreateContribution, variables }),
                 ).resolves.toEqual(
                   expect.objectContaining({
                     data: {
-                      adminCreateContribution: ['1000.00', '1000.00', '590.00'],
+                      adminCreateContribution: ['1000', '1000', '590'],
                     },
                   }),
                 )
@@ -1652,7 +1652,7 @@ describe('ContributionResolver', () => {
                     type: EventType.ADMIN_CONTRIBUTION_CREATE,
                     affectedUserId: bibi.id,
                     actingUserId: admin.id,
-                    amount: expect.decimalEqual(200),
+                    amount: GradidoUnit.fromNumber(200),
                   }),
                 )
               })
@@ -1685,7 +1685,7 @@ describe('ContributionResolver', () => {
                       mutation: updateContribution,
                       variables: {
                         contributionId: adminContribution?.id ?? -1,
-                        amount: 100.0,
+                        amount: '100',
                         memo: 'Test Test Test',
                         contributionDate: new Date().toString(),
                       },
@@ -1705,7 +1705,7 @@ describe('ContributionResolver', () => {
             describe('second creation surpasses the available amount ', () => {
               it('returns an array of the open creations for the last three months', async () => {
                 jest.clearAllMocks()
-                variables.amount = new Decimal(1000)
+                variables.amount = '1000'
                 await expect(
                   mutate({ mutation: adminCreateContribution, variables }),
                 ).resolves.toEqual(
@@ -1745,7 +1745,7 @@ describe('ContributionResolver', () => {
                   mutation: adminUpdateContribution,
                   variables: {
                     id: 728,
-                    amount: new Decimal(300),
+                    amount: '300',
                     memo: 'Danke Bibi!',
                     creationDate: contributionDateFormatter(new Date()),
                   },
@@ -1771,7 +1771,7 @@ describe('ContributionResolver', () => {
                   mutation: adminUpdateContribution,
                   variables: {
                     id: creation ? creation.id : -1,
-                    amount: new Decimal(1900),
+                    amount: '1900',
                     memo: 'Danke Peter!',
                     creationDate: creation
                       ? contributionDateFormatter(creation.contributionDate)
@@ -1806,7 +1806,7 @@ describe('ContributionResolver', () => {
                   mutation: adminUpdateContribution,
                   variables: {
                     id: creation?.id,
-                    amount: new Decimal(300),
+                    amount: '300',
                     memo: 'Danke Peter!',
                     creationDate: creation
                       ? contributionDateFormatter(creation.contributionDate)
@@ -1846,7 +1846,7 @@ describe('ContributionResolver', () => {
                   mutation: adminUpdateContribution,
                   variables: {
                     id: creation?.id,
-                    amount: new Decimal(200),
+                    amount: '200',
                     memo: 'Das war leider zu Viel!',
                     creationDate: creation
                       ? contributionDateFormatter(creation.contributionDate)
@@ -1872,7 +1872,7 @@ describe('ContributionResolver', () => {
                   type: EventType.ADMIN_CONTRIBUTION_UPDATE,
                   affectedUserId: creation?.userId,
                   actingUserId: admin.id,
-                  amount: expect.decimalEqual(200),
+                  amount: GradidoUnit.fromString('200'),
                 }),
               )
             })

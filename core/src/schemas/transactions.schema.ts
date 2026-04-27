@@ -1,4 +1,3 @@
-import Decimal from 'decimal.js-light'
 import { decaySchema, GradidoUnit } from 'shared'
 import { z } from 'zod'
 
@@ -8,9 +7,9 @@ export const dbTransactionsSchema = z.object({
   previous: z.number().int().nonnegative().nullable(),
   typeId: z.number().int().nonnegative(),
   transactionLinkId: z.number().int().nonnegative().nullable().optional(),
-  amount: z.instanceof(Decimal),
-  balance: z.instanceof(Decimal),
-  decay: z.instanceof(Decimal),
+  amount: z.instanceof(GradidoUnit),
+  balance: z.instanceof(GradidoUnit),
+  decay: z.instanceof(GradidoUnit),
   balanceDate: z.coerce.date(),
   decayStart: z.coerce.date().nullable(),
   decayCalculationType: z.number().int().nonnegative().default(0),

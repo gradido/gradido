@@ -29,8 +29,7 @@ async function calculateBalance(
   if (!lastTransaction) {
     return null
   }
-  const lastTransactionBalance = GradidoUnit.fromDecimal(lastTransaction.balance)
-  const decay = lastTransactionBalance.calculateDecay(lastTransaction.balanceDate, time)
+  const decay = lastTransaction.balance.calculateDecay(lastTransaction.balanceDate, time)
 
   const balance = decay.balance.add(amount)
   const { sumHoldAvailableAmount } = await transactionLinkSummary(userId, time)
@@ -38,7 +37,7 @@ async function calculateBalance(
   // If we want to redeem a link we need to make sure that the link amount is not considered as blocked
   // else we cannot redeem links which are more or equal to half of what an account actually owns
   const releasedLinkAmount = transactionLink
-    ? GradidoUnit.fromDecimal(transactionLink.holdAvailableAmount)
+    ? transactionLink.holdAvailableAmount
     : new GradidoUnit(0n)
 
   if (balance.subtract(sumHoldAvailableAmount).add(releasedLinkAmount).gddCent < 0) {

@@ -48,7 +48,7 @@ export class Contribution extends BaseEntity {
     nullable: false,
     transformer: GradidoUnitTransformer,
   })
-  amountGdd4: GradidoUnit
+  amount: GradidoUnit
 
   @Column({ type: 'bigint', unsigned: true, nullable: true, name: 'moderator_id' })
   moderatorId: number

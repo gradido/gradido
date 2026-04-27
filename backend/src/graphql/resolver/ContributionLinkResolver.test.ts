@@ -4,6 +4,7 @@ import { getLogger } from 'config-schema/test/testSetup'
 import { AppDatabase, ContributionLink as DbContributionLink, Event as DbEvent } from 'database'
 import { Decimal } from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
+import { GradidoUnit } from 'shared'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { EventType } from '@/event/Events'
 import { userFactory } from '@/seeds/factory/user'
@@ -16,6 +17,7 @@ import {
 import { listContributionLinks } from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { peterLustig } from '@/seeds/users/peter-lustig'
+import { ContributionLink } from '../model/ContributionLink'
 
 jest.mock('@/password/EncryptorUtils')
 
@@ -48,13 +50,13 @@ afterAll(async () => {
 describe('Contribution Links', () => {
   const now = new Date()
   const variables = {
-    amount: new Decimal(200),
+    amount: 200,
     name: 'Dokumenta 2022',
     memo: 'Danke für deine Teilnahme an der Dokumenta 2022',
     cycle: 'once',
     validFrom: new Date(2022, 5, 18).toISOString(),
     validTo: new Date(now.getFullYear() + 1, 7, 14).toISOString(),
-    maxAmountPerMonth: new Decimal(200),
+    maxAmountPerMonth: 200,
     maxPerCycle: 1,
   }
 
@@ -209,6 +211,8 @@ describe('Contribution Links', () => {
 
       describe('createContributionLink', () => {
         it('returns a contribution link object', async () => {
+          // const result = await mutate({ mutation: createContributionLink, variables })
+          // console.log(`is instance: ${result.data?.createContributionLink instanceof ContributionLink}, type: ${typeof result}, result: ${JSON.stringify(result, null, 2)}`)
           await expect(mutate({ mutation: createContributionLink, variables })).resolves.toEqual(
             expect.objectContaining({
               data: {
@@ -250,8 +254,8 @@ describe('Contribution Links', () => {
               deletedAt: null,
               code: expect.stringMatching(/^[0-9a-f]{24,24}$/),
               linkEnabled: true,
-              amount: expect.decimalEqual(200),
-              maxAmountPerMonth: expect.decimalEqual(200),
+              amount: GradidoUnit.fromNumber(200),
+              maxAmountPerMonth: GradidoUnit.fromNumber(200),
             }),
           )
         })
@@ -263,7 +267,7 @@ describe('Contribution Links', () => {
               affectedUserId: 0,
               actingUserId: expect.any(Number),
               involvedContributionLinkId: expect.any(Number),
-              amount: expect.decimalEqual(200),
+              amount: GradidoUnit.fromNumber(200),
             }),
           )
         })

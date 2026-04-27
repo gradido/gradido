@@ -10,7 +10,6 @@ import {
   PendingTransactionLoggingView,
   UserLoggingView,
 } from 'database'
-import { Decimal } from 'decimal.js-light'
 import { getLogger } from 'log4js'
 import { Mutex } from 'redis-semaphore'
 import { GradidoUnit, PendingTransactionState } from 'shared'
@@ -88,7 +87,7 @@ export async function settlePendingSenderTransaction(
     transactionSend.amount = pendingTx.amount
     const sendBalance = await calculateSenderBalance(
       senderUser.id,
-      GradidoUnit.fromDecimal(pendingTx.amount),
+      pendingTx.amount,
       pendingTx.balanceDate,
     )
     if (!sendBalance) {
@@ -96,9 +95,9 @@ export async function settlePendingSenderTransaction(
       logger.error(errmsg)
       throw new Error(errmsg)
     }
-    transactionSend.balance = sendBalance?.balance.toDecimal() ?? new Decimal(0)
+    transactionSend.balance = sendBalance?.balance ?? new GradidoUnit(0n)
     transactionSend.balanceDate = pendingTx.balanceDate
-    transactionSend.decay = sendBalance.decay.decay.toDecimal() // pendingTx.decay
+    transactionSend.decay = sendBalance.decay.decay // pendingTx.decay
     transactionSend.decayStart = sendBalance.decay.start // pendingTx.decayStart
     transactionSend.previous = pendingTx.previous
     transactionSend.transactionLinkId = pendingTx.transactionLinkId

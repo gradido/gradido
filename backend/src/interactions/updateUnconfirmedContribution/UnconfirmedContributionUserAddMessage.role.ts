@@ -1,5 +1,4 @@
 import { Contribution, User } from 'database'
-import { GradidoUnit } from 'shared'
 import { ContributionMessageBuilder } from '@/data/ContributionMessage.builder'
 import { ContributionMessageArgs } from '@/graphql/arg/ContributionMessageArgs'
 import { ContributionMessageType } from '@/graphql/enum/ContributionMessageType'
@@ -17,7 +16,7 @@ export class UnconfirmedContributionUserAddMessageRole extends AbstractUnconfirm
     contribution: Contribution,
     private updateData: ContributionMessageArgs,
   ) {
-    super(contribution, GradidoUnit.fromDecimal(contribution.amount), contribution.contributionDate)
+    super(contribution, contribution.amount, contribution.contributionDate)
     this.logger.debug('use UnconfirmedContributionUserAddMessageRole')
   }
 

@@ -5,7 +5,7 @@ import {
   getLastTransaction,
 } from 'database'
 import { getLogger } from 'log4js'
-import { GradidoUnit } from 'shared'
+import { GradidoUnit, TemporalGradidoUnit } from 'shared'
 import { Authorized, Ctx, Query, Resolver } from 'type-graphql'
 import { IsNull } from 'typeorm'
 import { RIGHTS } from '@/auth/RIGHTS'
@@ -71,9 +71,8 @@ export class BalanceResolver {
     })
     logger.debug(`linkCount=${linkCount}`)
 
-    const lastTxBalance = GradidoUnit.fromDecimal(lastTransaction.balance)
     // The decay is always calculated on the last booked transaction
-    const calculatedDecay = lastTxBalance.calculateDecay(lastTransaction.balanceDate, now)
+    const calculatedDecay = lastTransaction.balance.calculateDecay(lastTransaction.balanceDate, now)
     logger.info(
       'calculatedDecay',
       lastTransaction.balance.toString(),
@@ -82,6 +81,7 @@ export class BalanceResolver {
     )
 
     // The final balance is reduced by the link amount withheld
+    // TODO: calculate also decay for open links
     const { sumHoldAvailableAmount } = context.sumHoldAvailableAmount
       ? { sumHoldAvailableAmount: context.sumHoldAvailableAmount }
       : await transactionLinkSummary(user.id, now)

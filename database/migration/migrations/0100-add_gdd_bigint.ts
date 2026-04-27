@@ -113,29 +113,69 @@ export async function downgrade(queryFn: (query: string, values?: any[]) => Prom
   // transform values from gdd4 to legacy
   await queryFn(`
     UPDATE transactions 
-    SET amount_legacy = CAST(amount_gdd4 / 10000 AS DECIMAL(40,20)),
-        balance_legacy = CAST(balance_gdd4 / 10000 AS DECIMAL(40,20)),
-        decay_legacy = CAST(decay_gdd4 / 10000 AS DECIMAL(40,20)); `)
+    SET amount_legacy = CAST(amount_gdd4 / 10000 AS DECIMAL(40,20))
+    where amount_legacy is null
+  ;`)
+  await queryFn(`
+    UPDATE transactions 
+    SET balance_legacy = CAST(balance_gdd4 / 10000 AS DECIMAL(40,20))
+    where balance_legacy is null
+  ;`)
+  await queryFn(`
+    UPDATE transactions 
+    SET decay_legacy = CAST(decay_gdd4 / 10000 AS DECIMAL(40,20))
+    where decay_legacy is null
+  ;`)
   await queryFn(`
     UPDATE pending_transactions 
-    SET amount_legacy = CAST(amount_gdd4 / 10000 AS DECIMAL(40,20)),
-        balance_legacy = CAST(balance_gdd4 / 10000 AS DECIMAL(40,20)),
-        decay_legacy = CAST(decay_gdd4 / 10000 AS DECIMAL(40,20)); `)
+    SET amount_legacy = CAST(amount_gdd4 / 10000 AS DECIMAL(40,20))
+    where amount_legacy is null
+  ;`)
+  await queryFn(`
+    UPDATE pending_transactions 
+    SET balance_legacy = CAST(balance_gdd4 / 10000 AS DECIMAL(40,20))
+    where balance_legacy is null
+  ;`)
+  await queryFn(`
+    UPDATE pending_transactions 
+    SET decay_legacy = CAST(decay_gdd4 / 10000 AS DECIMAL(40,20))
+    where decay_legacy is null
+  ;`)
   await queryFn(`
     UPDATE contributions 
-    SET amount_legacy = CAST(amount_gdd4 / 10000 AS DECIMAL(40,20)); `)
+    SET amount_legacy = CAST(amount_gdd4 / 10000 AS DECIMAL(40,20))
+    where amount_legacy is null
+  ;`)
   await queryFn(`
     UPDATE contribution_links
-    SET amount_legacy = CAST(amount_gdd4 / 10000 AS SIGNED), 
-        max_amount_per_month_legacy = CAST(max_amount_per_month_gdd4 / 10000 AS SIGNED), 
-        max_account_balance_legacy = CAST(max_account_balance_gdd4 / 10000 AS SIGNED); `)
+    SET amount_legacy = CAST(amount_gdd4 / 10000 AS SIGNED)
+    where amount_legacy is null
+  ;`)
+  await queryFn(`
+    UPDATE contribution_links
+    SET max_amount_per_month_legacy = CAST(max_amount_per_month_gdd4 / 10000 AS SIGNED)
+    where max_amount_per_month_legacy is null
+  ;`)
+  await queryFn(`
+    UPDATE contribution_links
+    SET max_account_balance_legacy = CAST(max_account_balance_gdd4 / 10000 AS SIGNED)
+    where max_account_balance_legacy is null
+  ;`)
   await queryFn(`
     UPDATE transaction_links
-    SET amount_legacy = CAST(amount_gdd4 / 10000 AS DECIMAL(40,20)),
-        hold_available_amount_legacy = CAST(hold_available_amount_gdd4 / 10000 AS DECIMAL(40,20)); `)
+    SET amount_legacy = CAST(amount_gdd4 / 10000 AS DECIMAL(40,20))
+    where amount_legacy is null
+  ;`)
+  await queryFn(`
+    UPDATE transaction_links
+    SET hold_available_amount_legacy = CAST(hold_available_amount_gdd4 / 10000 AS DECIMAL(40,20))
+    where hold_available_amount_legacy is null
+  ;`)
   await queryFn(`
     UPDATE events
-    SET amount_legacy = CAST(amount_gdd4 / 10000 AS SIGNED); `)
+    SET amount_legacy = CAST(amount_gdd4 / 10000 AS SIGNED)
+    where amount_legacy is null
+  ;`)
   // rename legacy columns back to original names
   await queryFn(`
     ALTER TABLE transactions 

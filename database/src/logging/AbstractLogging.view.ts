@@ -46,7 +46,7 @@ export abstract class AbstractLoggingView {
   }
   public gradidoUnitToString(gdd: GradidoUnit | undefined | null): string | undefined {
     if (gdd) {
-      return gdd.toString()
+      return gdd.toString(4)
     }
     return undefined
   }

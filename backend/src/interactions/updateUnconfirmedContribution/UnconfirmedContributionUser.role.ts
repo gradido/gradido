@@ -1,5 +1,4 @@
 import { Contribution, User } from 'database'
-import { GradidoUnit } from 'shared'
 import { ContributionMessageBuilder } from '@/data/ContributionMessage.builder'
 import { ContributionArgs } from '@/graphql/arg/ContributionArgs'
 import { ContributionStatus } from '@/graphql/enum/ContributionStatus'
@@ -20,7 +19,7 @@ export class UnconfirmedContributionUserRole extends AbstractUnconfirmedContribu
   }
 
   protected update(): void {
-    this.self.amount = this.updateData.amount.toDecimal()
+    this.self.amount = this.updateData.amount
     this.self.memo = this.updateData.memo
     this.self.contributionDate = new Date(this.updateData.contributionDate)
     this.self.contributionStatus = ContributionStatus.PENDING
@@ -58,7 +57,7 @@ export class UnconfirmedContributionUserRole extends AbstractUnconfirmedContribu
     // creation date is currently not changeable
     if (
       this.self.memo === this.updateData.memo &&
-      GradidoUnit.fromDecimal(this.self.amount).gddCent === this.updateData.amount.gddCent &&
+      this.self.amount.comparedTo(this.updateData.amount) === 0n &&
       this.self.contributionDate.getTime() === new Date(this.updateData.contributionDate).getTime()
     ) {
       throw new LogError("the contribution wasn't changed at all")

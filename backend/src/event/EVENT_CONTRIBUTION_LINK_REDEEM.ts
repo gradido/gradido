@@ -5,7 +5,7 @@ import {
   Transaction as DbTransaction,
   User as DbUser,
 } from 'database'
-import { Decimal } from 'decimal.js-light'
+import { GradidoUnit } from 'shared'
 
 import { Event } from './Event'
 import { EventType } from './EventType'
@@ -15,7 +15,7 @@ export const EVENT_CONTRIBUTION_LINK_REDEEM = async (
   transaction: DbTransaction,
   contribution: DbContribution,
   contributionLink: DbContributionLink,
-  amount: Decimal,
+  amount: GradidoUnit,
 ): Promise<DbEvent> =>
   Event(
     EventType.CONTRIBUTION_LINK_REDEEM,

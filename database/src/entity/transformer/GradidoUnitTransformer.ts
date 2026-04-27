@@ -3,12 +3,26 @@ import { ValueTransformer } from 'typeorm'
 
 export const GradidoUnitTransformer: ValueTransformer = {
   /**
-   * Used to marshal Decimal when writing to the database.
+   * Used to marshal GradidoUnit when writing to the database.
    */
-  to: (gdd: GradidoUnit | null): string | null => (gdd ? gdd.toString(4) : null),
+  to: (gdd: GradidoUnit | null | string): bigint | null => {
+    return gdd
+      ? typeof gdd === 'string'
+        ? GradidoUnit.fromString(gdd).gddCent
+        : gdd.gddCent
+      : null
+  },
 
   /**
-   * Used to unmarshal Decimal when reading from the database.
+   * Used to unmarshal GradidoUnit when reading from the database.
    */
-  from: (gdd: string | null): GradidoUnit | null => (gdd ? GradidoUnit.fromString(gdd) : null),
+  from: (gdd: bigint | GradidoUnit | null): GradidoUnit | null => {
+    if (!gdd) {
+      return null
+    } else if (gdd instanceof GradidoUnit) {
+      return gdd
+    } else {
+      return GradidoUnit.fromGradidoCent(BigInt(gdd))
+    }
+  },
 }
