@@ -1,5 +1,5 @@
 import Decimal from 'decimal.js-light'
-import { DECAY_FACTOR } from 'shared'
+const DECAY_FACTOR = new Decimal('0.99999997803504048973201202316767079413460520837376')
 
 function calculateEffectiveSeconds(holdOriginal: Decimal, holdCorrected: Decimal): Decimal {
   return holdOriginal.div(holdCorrected).ln().div(DECAY_FACTOR.ln())
