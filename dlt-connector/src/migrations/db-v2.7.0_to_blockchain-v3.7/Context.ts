@@ -50,7 +50,12 @@ export class Context {
     const db = drizzle({ client: connection })
     const logger = getLogger(`${LOG4JS_BASE_CATEGORY}.migrations.db-v2.7.0_to_blockchain-v3.5`)
     const nativeDecayCalculationStartDate = await loadNativeDecayCalculationStartDate(db)
-    return new Context(logger, db, KeyPairCacheManager.getInstance(), nativeDecayCalculationStartDate)
+    return new Context(
+      logger,
+      db,
+      KeyPairCacheManager.getInstance(),
+      nativeDecayCalculationStartDate,
+    )
   }
 
   getCommunityContextByUuid(communityUuid: Uuidv4): CommunityContext {
