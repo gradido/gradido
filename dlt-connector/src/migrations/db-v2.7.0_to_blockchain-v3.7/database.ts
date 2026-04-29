@@ -1,9 +1,15 @@
 import { and, asc, eq, isNotNull, ne, sql } from 'drizzle-orm'
 import { MySql2Database } from 'drizzle-orm/mysql2'
 import * as v from 'valibot'
-import { communitiesTable, eventsTable, transactionsTable, userRolesTable, usersTable } from './drizzle.schema'
-import { CommunityDb, communityDbSchema, UserDb, userDbSchema } from './valibot.schema'
 import { DecayCalculationType } from './data/DecayCalculationType'
+import {
+  communitiesTable,
+  eventsTable,
+  transactionsTable,
+  userRolesTable,
+  usersTable,
+} from './drizzle.schema'
+import { CommunityDb, communityDbSchema, UserDb, userDbSchema } from './valibot.schema'
 
 export const contributionLinkModerators = new Map<number, UserDb>()
 export const adminUsers = new Map<string, UserDb>()
@@ -50,10 +56,10 @@ export async function loadDecayCalculationSwapDate(db: MySql2Database): Promise<
     .where(ne(transactionsTable.decayCalculationType, DecayCalculationType.DECIMAL_JS_FIXED_FACTOR))
     .orderBy(asc(transactionsTable.balanceDate))
     .limit(1)
-  
+
   if (result.length === 0) {
     return new Date()
-  } else {  
+  } else {
     return new Date(result[0].date)
   }
 }

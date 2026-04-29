@@ -32,7 +32,7 @@ export function addToBlockchain(
       result = blockchain.createAndAddConfirmedTransaction(
         transaction,
         ledgerAnchor,
-        transaction.getTransactionBody()!.getCreatedAt()
+        transaction.getTransactionBody()!.getCreatedAt(),
       )
     }
     callTime += timeUsed.nanos()

@@ -215,10 +215,14 @@ declare const validAmount: unique symbol
 export type Amount = string & { [validAmount]: true }
 
 export const amountSchema = v.pipe(
-  v.union([v.pipe(v.string('expect string type'), v.regex(/^[0-9]+(\.[0-9]+)?$/, 'expect positive number'))]),
+  v.union([
+    v.pipe(
+      v.string('expect string type'),
+      v.regex(/^[0-9]+(\.[0-9]+)?$/, 'expect positive number'),
+    ),
+  ]),
   v.transform<string, Amount>((input: string) => input as Amount),
 )
-
 
 /**
  * type guard for gradido amount
@@ -230,14 +234,20 @@ declare const validGradidoAmount: unique symbol
 export type GradidoAmount = GradidoUnit & { [validGradidoAmount]: true }
 
 export const gradidoAmountSchema = v.pipe(
-  v.union([amountSchema, v.bigint('expect a bigint'), v.instance(GradidoUnit, 'expect GradidoUnit type')]),
-  v.transform<Amount | GradidoUnit | bigint, GradidoAmount>((input: Amount | GradidoUnit | bigint) => {
-    if (typeof input === 'bigint') {
-      return GradidoUnit.fromGradidoCent(input) as GradidoAmount
-    }
-    if (input instanceof GradidoUnit) {
-      return input as GradidoAmount
-    }
-    return GradidoUnit.fromString(input) as GradidoAmount
-  }),
+  v.union([
+    amountSchema,
+    v.bigint('expect a bigint'),
+    v.instance(GradidoUnit, 'expect GradidoUnit type'),
+  ]),
+  v.transform<Amount | GradidoUnit | bigint, GradidoAmount>(
+    (input: Amount | GradidoUnit | bigint) => {
+      if (typeof input === 'bigint') {
+        return GradidoUnit.fromGradidoCent(input) as GradidoAmount
+      }
+      if (input instanceof GradidoUnit) {
+        return input as GradidoAmount
+      }
+      return GradidoUnit.fromString(input) as GradidoAmount
+    },
+  ),
 )

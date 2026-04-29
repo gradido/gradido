@@ -1,7 +1,7 @@
+import Decimal from 'decimal.js-light'
 import { AccountBalance, GradidoUnit, MemoryBlockPtr } from 'gradido-blockchain-js'
 import { NegativeBalanceError } from '../errors'
 import { legacyCalculateDecay } from '../utils'
-import Decimal from 'decimal.js-light'
 
 export class Balance {
   private balance: GradidoUnit

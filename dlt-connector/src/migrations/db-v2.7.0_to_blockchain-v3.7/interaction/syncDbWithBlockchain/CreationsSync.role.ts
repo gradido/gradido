@@ -18,6 +18,7 @@ import { Uuidv4 } from '../../../../schemas/typeGuard.schema'
 import { addToBlockchain } from '../../blockchain'
 import { Context } from '../../Context'
 import { ContributionStatus } from '../../data/ContributionStatus'
+import { DecayCalculationType } from '../../data/DecayCalculationType'
 import { contributionsTable, usersTable } from '../../drizzle.schema'
 import { BlockchainError, DatabaseError } from '../../errors'
 import { toMysqlDateTime } from '../../utils'
@@ -27,7 +28,6 @@ import {
   creationTransactionDbSchema,
 } from '../../valibot.schema'
 import { AbstractSyncRole, IndexType } from './AbstractSync.role'
-import { DecayCalculationType } from '../../data/DecayCalculationType'
 
 export class CreationsSyncRole extends AbstractSyncRole<CreationTransactionDb> {
   constructor(context: Context) {

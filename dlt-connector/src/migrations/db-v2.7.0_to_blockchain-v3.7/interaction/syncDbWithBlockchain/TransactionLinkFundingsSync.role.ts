@@ -157,7 +157,7 @@ export class TransactionLinkFundingsSyncRole extends AbstractSyncRole<Transactio
     let blockedAmount = GradidoUnit.fromString(
       reverseLegacyDecay(new Decimal(item.amount.toString()), duration.getSeconds()).toString(),
     )
-    let accountBalances: AccountBalances | undefined = undefined
+    let accountBalances: AccountBalances | undefined
     try {
       if (!this.context.isDecayCalculationTypeChanged(item.createdAt)) {
         accountBalances = this.calculateBalances(

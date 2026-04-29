@@ -9,9 +9,9 @@ import { KeyPairCacheManager } from '../../cache/KeyPairCacheManager'
 import { CONFIG } from '../../config'
 import { LOG4JS_BASE_CATEGORY } from '../../config/const'
 import { Uuidv4 } from '../../schemas/typeGuard.schema'
+import { loadDecayCalculationSwapDate } from './database'
 import { bytesToMbyte } from './utils'
 import { CommunityContext } from './valibot.schema'
-import { loadDecayCalculationSwapDate } from './database'
 
 dotenv.config()
 
@@ -22,14 +22,19 @@ export class Context {
   public cache: KeyPairCacheManager
   public decayCalculationSwapDate: Date
   private timeUsed: MonotonicTimer
-  
-  constructor(logger: Logger, db: MySql2Database, cache: KeyPairCacheManager, decayCalculationSwapDate: Date) {
+
+  constructor(
+    logger: Logger,
+    db: MySql2Database,
+    cache: KeyPairCacheManager,
+    decayCalculationSwapDate: Date,
+  ) {
     this.logger = logger
     this.db = db
     this.cache = cache
     this.communities = new Map<string, CommunityContext>()
     this.decayCalculationSwapDate = decayCalculationSwapDate
-    this.timeUsed = new MonotonicTimer()    
+    this.timeUsed = new MonotonicTimer()
   }
 
   static async create(): Promise<Context> {

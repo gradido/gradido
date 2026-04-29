@@ -93,7 +93,8 @@ export function exportCommunity(
   context.logger.info(
     `binary file for community ${communityContext.communityId} written to ${binFilePath}`,
   )
-  const sumTransactionsCount = (BigInt(f.pagination.page) - 2n) * BigInt(batchSize) + lastTransactionCount
+  const sumTransactionsCount =
+    (BigInt(f.pagination.page) - 2n) * BigInt(batchSize) + lastTransactionCount
   const fileSize = fs.statSync(binFilePath).size
   context.logger.info(
     `exported ${sumTransactionsCount} transactions (${bytesString(fileSize)}) in ${timeUsed.string()}`,
