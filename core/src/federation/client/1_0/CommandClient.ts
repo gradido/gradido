@@ -28,11 +28,11 @@ export class CommandClient {
   async sendCommand(args: EncryptedTransferArgs): Promise<boolean> {
     logger.debug(`sendCommand at ${this.endpoint} for args:`, args)
     try {
-      const result = await this.client.rawRequest<{ success: boolean }>(sendCommandQuery, {
+      const result = await this.client.rawRequest<{ sendCommand: { success: boolean } }>(sendCommandQuery, {
         args,
       })
       logger.debug('nach rawRequest: result', result)
-      if (!result?.data?.success) {
+      if (!result?.data?.sendCommand?.success) {
         logger.warn('sendCommand without response data from endpoint', this.endpoint)
         return false
       }
