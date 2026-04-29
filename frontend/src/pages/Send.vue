@@ -5,7 +5,9 @@
         <transaction-form
           v-bind="transactionData"
           :balance="balance"
+          @send-email="sendEmail"
           @set-transaction="setTransaction"
+          @set-send-type="handleSendTypeChange"
         ></transaction-form>
       </template>
       <template #transactionConfirmationSend>
@@ -49,25 +51,41 @@
           @on-back="onBack"
         ></transaction-result-link>
       </template>
+      <template #sendEmailResultSuccess>
+        <success-message
+          :message="$t('form.send_email_success')"
+          @on-back="onBack"
+        ></success-message>
+      </template>
+      <template #sendEmailResultError>
+        <send-email-result-error
+          :error="error"
+          :error-result="errorResult"
+          @on-back="onBack"
+        ></send-email-result-error>
+      </template>
     </gdd-send>
   </div>
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
 import { ref, reactive } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useMutation } from '@vue/apollo-composable'
 import GddSend, { TRANSACTION_STEPS } from '@/components/GddSend'
 import TransactionForm from '@/components/GddSend/TransactionForm'
 import TransactionConfirmationSend from '@/components/GddSend/TransactionConfirmationSend'
 import TransactionConfirmationLink from '@/components/GddSend/TransactionConfirmationLink'
 import SuccessMessage from '@/components/SuccessMessage'
+import SendEmailResultError from '@/components/GddSend/SendEmailResultError'
 import TransactionResultSendError from '@/components/GddSend/TransactionResultSendError'
 import TransactionResultLink from '@/components/GddSend/TransactionResultLink'
-import { sendCoins, createTransactionLink } from '@/graphql/mutations.js'
+import { sendCoins, createTransactionLink, sendEmail as sendEmailMut } from '@/graphql/mutations.js'
 import { useAppToast } from '@/composables/useToast'
 import { SEND_TYPES } from '@/utils/sendTypes'
 
+const { t } = useI18n()
 const EMPTY_TRANSACTION_DATA = {
   identifier: '',
   amount: 0,
@@ -90,7 +108,7 @@ const props = defineProps({
 const emit = defineEmits(['set-tunneled-email', 'update-transactions'])
 
 const router = useRouter()
-const { toastError } = useAppToast()
+const { toastError, toastSuccess } = useAppToast()
 
 const transactionData = reactive({ ...EMPTY_TRANSACTION_DATA })
 const error = ref(false)
@@ -104,16 +122,88 @@ const validUntil = ref(null)
 
 const { mutate: sendCoinsMutation } = useMutation(sendCoins)
 const { mutate: createTransactionLinkMutation } = useMutation(createTransactionLink)
+const { mutate: sendEmailMutation } = useMutation(sendEmailMut)
+
+const handleSendTypeChange = (sendType) => {
+  // console.log('handleSendTypeChange', sendType)
+  // Update the radioSelected in transactionData
+  transactionData.selected = sendType
+  // Optionally, you could also update the currentTransactionStep
+  // if you want different initial states for each send type
+  if (sendType === SEND_TYPES.email) {
+    currentTransactionStep.value = TRANSACTION_STEPS.sendEmailForm
+  } else {
+    currentTransactionStep.value = TRANSACTION_STEPS.transactionForm
+  }
+  // console.log('currentTransactionStep', currentTransactionStep.value)
+}
 
 function setTransaction(data) {
+  console.log('Send.vue: setTransaction', data)
   Object.assign(transactionData, data)
-  currentTransactionStep.value =
-    data.selected === SEND_TYPES.send
-      ? TRANSACTION_STEPS.transactionConfirmationSend
-      : TRANSACTION_STEPS.transactionConfirmationLink
+  switch (data.selected) {
+    case SEND_TYPES.send:
+      console.log('Send.vue setTransaction: data.selected=' + SEND_TYPES.send)
+      currentTransactionStep.value = TRANSACTION_STEPS.transactionConfirmationSend
+      break
+    case SEND_TYPES.link:
+      console.log('Send.vue setTransaction: data.selected=' + SEND_TYPES.link)
+      currentTransactionStep.value = TRANSACTION_STEPS.transactionConfirmationLink
+      break
+    case SEND_TYPES.email:
+      console.log('Send.vue setTransaction: data.selected=' + SEND_TYPES.email)
+      console.log('ERROR: setTransaction: mit SEND_TYPES=email darf eigentlich nicht vorkommen!!!')
+
+      // currentTransactionStep.value = TRANSACTION_STEPS.sendEmail
+      break
+    default:
+      console.log('Send.vue setTransaction: data.selected=default')
+      currentTransactionStep.value = TRANSACTION_STEPS.transactionConfirmationSend
+      break
+  }
+  console.log('Send.vue setTransaction: currentTransactionStep', currentTransactionStep.value)
+}
+
+async function sendEmail(data) {
+  console.log('Send.vue sendEmail', data)
+  Object.assign(transactionData, data)
+  loading.value = true
+  error.value = false
+
+  try {
+    if (data.selected === SEND_TYPES.email) {
+      console.log('Send.vue sendEmail: data.selected=' + data.selected)
+      const result = await sendEmailMutation({
+        recipientCommunityIdentifier: data.targetCommunity.uuid,
+        recipientIdentifier: data.identifier,
+        subject: data.subject,
+        memo: data.memo,
+      })
+      if (result) {
+        currentTransactionStep.value = TRANSACTION_STEPS.sendEmailResultSuccess
+        // toastSuccess(t('email-sent-success'))
+      } else {
+        currentTransactionStep.value = TRANSACTION_STEPS.sendEmailResultError
+        // toastError(t('email-sent-error'))
+      }
+      console.log('Send.vue sendEmail: result', result)
+    }
+  } catch (err) {
+    if (transactionData.selected === SEND_TYPES.email) {
+      errorResult.value = err.message
+      error.value = true
+      currentTransactionStep.value = TRANSACTION_STEPS.sendEmailResultError
+    } else {
+      toastError(err.message)
+    }
+  } finally {
+    loading.value = false
+    // await router.push({ path: '/send' })
+  }
 }
 
 async function sendTransaction() {
+  console.log('Send.vue sendTransaction(): transactionData=', JSON.stringify(transactionData))
   loading.value = true
   error.value = false
 
@@ -151,6 +241,10 @@ async function sendTransaction() {
       Object.assign(transactionData, EMPTY_TRANSACTION_DATA)
       currentTransactionStep.value = TRANSACTION_STEPS.transactionResultLink
       updateTransactions({})
+    } else if (transactionData.selected === SEND_TYPES.email) {
+      console.log('Send.vue sendTransaction(): email transactionData=' + transactionData)
+      currentTransactionStep.value = TRANSACTION_STEPS.sendEmailResultSuccess
+      // throw new Error('Email transaction sending not implemented yet')
     } else {
       throw new Error(`undefined transactionData.selected : ${transactionData.selected}`)
     }
@@ -159,6 +253,10 @@ async function sendTransaction() {
       errorResult.value = err.message
       error.value = true
       currentTransactionStep.value = TRANSACTION_STEPS.transactionResultSendError
+    } else if (transactionData.selected === SEND_TYPES.email) {
+      errorResult.value = err.message
+      error.value = true
+      currentTransactionStep.value = TRANSACTION_STEPS.sendEmailResultError
     } else {
       toastError(err.message)
     }

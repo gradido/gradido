@@ -4,32 +4,46 @@
       <BCol cols="12">
         <BCard class="app-box-shadow gradido-border-radius" body-class="p-4">
           <BForm role="form" @submit.prevent="onSubmit" @reset="onReset">
-            <BFormRadioGroup
-              name="shipping"
-              :model-value="radioSelected"
-              @update:model-value="radioSelected = $event"
+            <div
+              class="nav-send-btn-wrapper bg-209 rounded-26 d-flex bd-highlight mx-xl-6 mx-lg-5 shadow justify-content-between"
+              style="margin-bottom: 20px"
             >
-              <BRow class="mb-4 gap-5">
-                <BCol>
-                  <BRow
-                    class="bg-248 gradido-border-radius position-relative transaction-form-radio"
-                  >
-                    <BFormRadio name="shipping" size="md" reverse :value="SEND_TYPES.send">
-                      {{ $t('send_gdd') }}
-                    </BFormRadio>
-                  </BRow>
-                </BCol>
-                <BCol>
-                  <BRow
-                    class="bg-248 gradido-border-radius position-relative transaction-form-radio"
-                  >
-                    <BFormRadio name="shipping" :value="SEND_TYPES.link" size="md" reverse>
-                      {{ $t('send_per_link') }}
-                    </BFormRadio>
-                  </BRow>
-                </BCol>
-              </BRow>
-            </BFormRadioGroup>
+              <BButton
+                :class="stateClasses(SEND_TYPES.send)"
+                block
+                variant="link"
+                class="nav-send__btn"
+                @click="setSendType('send')"
+              >
+                <b-img
+                  src="/img/svg/gdd_coin_sw.svg"
+                  height="20"
+                  class="svg-icon"
+                  style="margin-right: 5px"
+                />
+                {{ $t('send_gdd') }}
+              </BButton>
+              <BButton
+                :class="stateClasses(SEND_TYPES.link)"
+                block
+                variant="link"
+                class="nav-send__btn"
+                @click="setSendType('link')"
+              >
+                <i-mdi-link-variant height="20" class="svg-icon" />
+                {{ $t('send_per_link') }}
+              </BButton>
+              <BButton
+                :class="stateClasses(SEND_TYPES.email)"
+                block
+                variant="link"
+                class="nav-send__btn"
+                @click="setSendType('email')"
+              >
+                <i-mdi-email-fast-outline height="20" class="svg-icon" style="margin-right: 3px" />
+                {{ $t('send_email') }}
+              </BButton>
+            </div>
             <div v-if="radioSelected === SEND_TYPES.link" class="mt-4 mb-4">
               <h2 class="alert-heading">{{ $t('gdd_per_link.header') }}</h2>
               <div>
@@ -39,7 +53,11 @@
             <BRow class="mb-4">
               <BCol>
                 <BRow>
-                  <BCol v-if="radioSelected === SEND_TYPES.send" class="mb-4" cols="12">
+                  <BCol
+                    v-if="radioSelected === SEND_TYPES.send || radioSelected === SEND_TYPES.email"
+                    class="mb-4"
+                    cols="12"
+                  >
                     <BRow>
                       <BCol>{{ $t('form.recipientCommunity') }}</BCol>
                     </BRow>
@@ -55,7 +73,10 @@
                       </BCol>
                     </BRow>
                   </BCol>
-                  <BCol v-if="radioSelected === SEND_TYPES.send" cols="12">
+                  <BCol
+                    v-if="radioSelected === SEND_TYPES.send || radioSelected === SEND_TYPES.email"
+                    cols="12"
+                  >
                     <div v-if="!userIdentifier">
                       <ValidatedInput
                         id="identifier"
@@ -63,7 +84,7 @@
                         name="identifier"
                         :label="$t('form.recipient')"
                         :placeholder="$t('form.identifier')"
-                        :rules="validationSchema.fields.identifier"
+                        :rules="validationSchema.fields.identifier || {}"
                         :disabled="isBalanceEmpty || isCommunitiesEmpty"
                         :disable-smart-valid-state="disableSmartValidState"
                         @update:model-value="updateField"
@@ -78,15 +99,32 @@
                       </BRow>
                     </div>
                   </BCol>
-                  <BCol cols="12" lg="6">
+                  <BCol
+                    v-if="radioSelected === SEND_TYPES.send || radioSelected === SEND_TYPES.link"
+                    cols="12"
+                    lg="6"
+                  >
                     <ValidatedInput
                       id="amount"
                       :model-value="form.amount"
                       name="amount"
                       :label="$t('form.amount')"
                       :placeholder="'0.01'"
-                      :rules="validationSchema.fields.amount"
+                      :rules="validationSchema.fields.amount || {}"
                       :disabled="isBalanceEmpty"
+                      :disable-smart-valid-state="disableSmartValidState"
+                      @update:model-value="updateField"
+                    />
+                  </BCol>
+                  <BCol v-if="radioSelected === SEND_TYPES.email" cols="12">
+                    <ValidatedInput
+                      id="subject"
+                      :model-value="form.subject"
+                      name="subject"
+                      :label="$t('form.subject')"
+                      :placeholder="$t('form.subject')"
+                      :rules="validationSchema.fields.subject || {}"
+                      textarea="false"
                       :disable-smart-valid-state="disableSmartValidState"
                       @update:model-value="updateField"
                     />
@@ -103,7 +141,7 @@
                   name="memo"
                   :label="$t('form.message')"
                   :placeholder="$t('form.message')"
-                  :rules="validationSchema.fields.memo"
+                  :rules="validationSchema.fields.memo || {}"
                   textarea="true"
                   :disabled="isBalanceEmpty"
                   :disable-smart-valid-state="disableSmartValidState"
@@ -133,9 +171,16 @@
                 class="text-lg-end"
                 @mouseover="disableSmartValidState = true"
               >
-                <BButton block type="submit" variant="gradido" :disabled="formIsInvalid">
-                  {{ $t('form.check_now') }}
-                </BButton>
+                <div v-if="radioSelected === SEND_TYPES.email">
+                  <BButton block type="submit" variant="gradido" :disabled="formIsInvalid">
+                    {{ $t('form.sendEmail') }}
+                  </BButton>
+                </div>
+                <div v-else>
+                  <BButton block type="submit" variant="gradido" :disabled="formIsInvalid">
+                    {{ $t('form.check_now') }}
+                  </BButton>
+                </div>
               </BCol>
             </BRow>
           </BForm>
@@ -152,7 +197,11 @@ import { useQuery } from '@vue/apollo-composable'
 import { SEND_TYPES } from '@/utils/sendTypes'
 import CommunitySwitch from '@/components/CommunitySwitch.vue'
 import ValidatedInput from '@/components/Inputs/ValidatedInput.vue'
-import { memo as memoSchema, identifier as identifierSchema } from '@/validationSchemas'
+import {
+  memo as memoSchema,
+  identifier as identifierSchema,
+  subject as subjectSchema,
+} from '@/validationSchemas'
 import { object, number } from 'yup'
 import { user } from '@/graphql/queries'
 import CONFIG from '@/config'
@@ -162,6 +211,7 @@ const props = defineProps({
   balance: { type: Number, default: 0 },
   identifier: { type: String, default: '' },
   amount: { type: Number, default: 0 },
+  subject: { type: String, default: '' },
   memo: { type: String, default: '' },
   selected: { type: String, default: 'send' },
   targetCommunity: {
@@ -176,7 +226,7 @@ const disableSmartValidState = ref(false)
 const communities = ref([])
 const autoCommunityIdentifier = ref('')
 
-const emit = defineEmits(['set-transaction'])
+const emit = defineEmits(['send-email', 'set-transaction', 'set-send-type'])
 
 const route = useRoute()
 const router = useRouter()
@@ -194,6 +244,18 @@ const userIdentifier = computed(() => {
   }
   return null
 })
+
+const stateClasses = (sendType) => {
+  if (radioSelected.value === sendType) {
+    return 'router-link-active router-link-exact-active'
+  }
+  return ''
+}
+
+const setSendType = (sendType) => {
+  radioSelected.value = sendType
+  emit('set-send-type', sendType)
+}
 
 function setCommunities(returnedCommunities) {
   communities.value = returnedCommunities
@@ -228,6 +290,28 @@ const validationSchema = computed(() => {
         (value) => {
           const parts = value.split('/')
           // early exit if no community id is in identifier string
+          if (parts.length !== 2) {
+            return true
+          }
+          return communities.value.some((community) => {
+            return (
+              community.uuid === parts[0] ||
+              community.name === parts[0] ||
+              community.url === parts[0]
+            )
+          })
+        },
+      ),
+    })
+  } else if (radioSelected.value === SEND_TYPES.email) {
+    return object({
+      memo: memoSchema,
+      subject: subjectSchema,
+      identifier: identifierSchema.test(
+        'community-is-reachable',
+        'form.validation.identifier.communityIsReachable',
+        (value) => {
+          const parts = value.split('/')
           if (parts.length !== 2) {
             return true
           }
@@ -304,19 +388,49 @@ watch(
 )
 
 function onSubmit() {
+  console.log(
+    'TransactionForm.vue: onSubmit() radioSelected=' +
+      radioSelected.value +
+      ', form=' +
+      JSON.stringify(form),
+  )
   const transformedForm = validationSchema.value.cast(form)
-  const parts = transformedForm.identifier.split('/')
-  if (parts.length === 2) {
-    transformedForm.identifier = parts[1]
-    transformedForm.targetCommunity = communities.value.find((com) => {
-      return com.uuid === parts[0] || com.name === parts[0] || com.url === parts[0]
+  if (radioSelected.value === SEND_TYPES.email) {
+    console.log(
+      'vor emit send-email: transformedForm=' +
+        JSON.stringify(transformedForm) +
+        ', radioSelected.value=' +
+        radioSelected.value +
+        ', userName.value=' +
+        userName.value,
+    )
+    emit('send-email', {
+      ...transformedForm,
+      selected: radioSelected.value,
+      userName: userName.value,
+    })
+  } else {
+    const parts = transformedForm.identifier.split('/')
+    if (parts.length === 2) {
+      transformedForm.identifier = parts[1]
+      transformedForm.targetCommunity = communities.value.find((com) => {
+        return com.uuid === parts[0] || com.name === parts[0] || com.url === parts[0]
+      })
+    }
+    console.log(
+      'vor emit set-transaction: transformedForm=' +
+        JSON.stringify(transformedForm) +
+        ', radioSelected.value=' +
+        radioSelected.value +
+        ', userName.value=' +
+        userName.value,
+    )
+    emit('set-transaction', {
+      ...transformedForm,
+      selected: radioSelected.value,
+      userName: userName.value,
     })
   }
-  emit('set-transaction', {
-    ...transformedForm,
-    selected: radioSelected.value,
-    userName: userName.value,
-  })
 }
 
 function onReset(event) {
@@ -330,7 +444,7 @@ function onReset(event) {
 }
 </script>
 
-<style>
+<style scoped lang="scss">
 span.errors {
   color: red;
 }
@@ -393,6 +507,38 @@ label {
   right: 35px;
   top: 50%;
   transform: translateY(-70%);
+}
+
+.nav-send-btn-wrapper {
+  background-color: #d1d1d1;
+
+  > :deep(*) {
+    width: calc(100% / 3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    font-size: 14px;
+    text-wrap: nowrap;
+    color: black !important;
+    border-radius: 25px;
+  }
+}
+
+:deep(.svg-icon) {
+  filter: brightness(0) invert(0);
+}
+
+:deep(.router-link-active) {
+  background-color: rgb(23 141 129);
+  color: white !important;
+  font-weight: bold;
+  padding: 0.625rem 1.25rem;
+  border-radius: 25px;
+}
+
+:deep(.router-link-active .svg-icon) {
+  filter: brightness(0) invert(1);
 }
 </style>
 

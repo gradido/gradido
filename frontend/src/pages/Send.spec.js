@@ -4,6 +4,7 @@ import Send from './Send.vue'
 import { useMutation } from '@vue/apollo-composable'
 import { sendCoins, createTransactionLink } from '@/graphql/mutations.js'
 import { SEND_TYPES } from '@/utils/sendTypes'
+import { createI18n } from 'vue-i18n'
 
 // Mock child components
 vi.mock('@/components/GddSend/TransactionForm', () => ({
@@ -48,6 +49,9 @@ describe('Send', () => {
   let wrapper
   let sendCoinsMock
   let createTransactionLinkMock
+  const i18n = createI18n({
+    // vue-i18n options here ...
+  })
 
   beforeEach(() => {
     sendCoinsMock = vi.fn().mockResolvedValue({})
@@ -79,6 +83,7 @@ describe('Send', () => {
         pending: false,
       },
       global: {
+        plugins: [i18n],
         stubs: {
           'gdd-send': true,
         },

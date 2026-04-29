@@ -26,6 +26,11 @@ export const memo = string()
   .min(5, ({ min }) => ({ key: 'form.validation.memo.min', values: { min } }))
   .max(512, ({ max }) => ({ key: 'form.validation.memo.max', values: { max } }))
 
+export const subject = string()
+  .required('form.validation.subject.required')
+  .min(5, ({ min }) => ({ key: 'form.validation.subject.min', values: { min } }))
+  .max(100, ({ max }) => ({ key: 'form.validation.subject.max', values: { max } }))
+
 export const identifier = string()
   .required('form.validation.identifier.required')
   .test(

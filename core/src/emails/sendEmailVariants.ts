@@ -1,9 +1,11 @@
 import { Decimal } from 'decimal.js-light'
-
+import { getLogger } from 'log4js'
 import { CONFIG } from '../config'
+import { LOG4JS_BASE_CATEGORY_NAME } from '../config/const'
 import { decimalSeparatorByLanguage } from '../util/utilities'
-
 import { sendEmailTranslated } from './sendEmailTranslated'
+
+const createLogger = () => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.emails.sendEmailVariants`)
 
 export interface EmailCommonData {
   firstName: string
@@ -187,6 +189,27 @@ export const sendTransactionReceivedEmail = (
       ...data,
       transactionAmount: decimalSeparatorByLanguage(data.transactionAmount, data.language),
       ...(data.senderEmail !== null ? getEmailCommonLocales() : { locale: data.language }),
+    },
+  })
+}
+
+export const sendCustomEmail = (
+  data: EmailCommonData & {
+    senderFirstName: string
+    senderLastName: string
+    subject: string
+    memo: string
+  },
+): Promise<Record<string, unknown> | boolean | null | Error> => {
+  const logger = createLogger()
+  logger.debug(`sendCustomEmail(data=${JSON.stringify(data)})`)
+  return sendEmailTranslated({
+    receiver: { to: `${data.firstName} ${data.lastName} <${data.email}>` },
+    template: 'customEmail',
+    locals: {
+      ...data,
+      subject: data.subject,
+      ...getEmailCommonLocales(),
     },
   })
 }

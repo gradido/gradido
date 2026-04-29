@@ -140,6 +140,8 @@
   "download": "Herunterladen",
   "edit": "bearbeiten",
   "em-dash": "—",
+  "email-sent-error": "E-Mail konnte nicht gesendet werden",
+  "email-sent-success": "E-Mail erfolgreich gesendet",
   "error": {
     "email-already-sent": "Wir haben dir bereits eine E-Mail vor weniger als 10 Minuten geschickt.",
     "empty-transactionlist": "Es gab einen Fehler mit der Übermittlung der Anzahl deiner Transaktionen.",
@@ -180,7 +182,7 @@
     "from": "Von",
     "generate_now": "Jetzt generieren",
     "hours": "Stunden",
-    "identifier": "Email, Nutzername oder Gradido ID",
+    "identifier": "E-Mail, Nutzername oder Gradido ID",
     "lastname": "Nachname",
     "link_amount": "Link-Betrag",
     "link_decay_description": "Der Link-Betrag wird zusammen mit der maximalen Vergänglichkeit blockiert. Nach Einlösen, Verfallen oder Löschen des Links wird der Rest wieder freigegeben.",
@@ -201,12 +203,24 @@
     "reset": "Zurücksetzen",
     "save": "Speichern",
     "scann_code": "<strong>QR Code Scanner</strong> - Scanne den QR Code deines Partners",
+    "sendEmail": "E-Mail senden",
+    "sendemailerror": {
+      "failedToSendCommandToFederatedCommunity": "Dein E-Mail konnte nicht an die federierte Gemeinschaft deines E-Mail-Empfängers gesendet werden",
+      "federatedCommunityOfReceiverCommunityNotFound": "Für die Gemeinschaft deines E-Mail-Empfängers liegt keine valide Federierung vor",
+      "receiverCommunityNoFederatedCommunities": "Die Federierung der Gemeinschaft deines E-Mail-Empfängers ist nicht aktiv oder abgeschlossen",
+      "receiverCommunityNotFound": "Die Gemeinschaft deines E-Mail-Empfängers wurde nicht gefunden",
+      "receiverDeleted": "Das Nutzerkonto zu deinem E-Mail-Empfänger wurde gelöscht",
+      "receiverNotFound": "Zu deinem angegebenen E-Mail-Empfänger existiert kein Nutzerkonto."
+    },
     "send_check": "Bestätige deine Transaktion. Prüfe bitte nochmal alle Angaben!",
+    "send_email_success": "Deine E-Mail wurde erfolgreich gesendet",
+    "send_email_error": "Leider konnte deine E-Mail nicht gesendet werden!",
     "send_now": "Jetzt senden",
     "send_transaction_error": "Leider konnte die Transaktion nicht ausgeführt werden!",
     "send_transaction_success": "Deine Transaktion wurde erfolgreich ausgeführt",
     "sender": "Absender",
     "sorry": "Entschuldigung",
+    "subject": "Betreff",
     "thx": "Danke",
     "to": "bis",
     "to1": "an",
@@ -239,7 +253,7 @@
       "identifier": {
         "communityIsReachable": "Community nicht gefunden oder nicht erreichbar!",
         "required": "Der Empfänger ist ein Pflichtfeld.",
-        "typeError": "Der Empfänger muss eine Email, ein Nutzernamen oder eine Gradido ID sein."
+        "typeError": "Der Empfänger muss eine E-Mail, ein Nutzernamen oder eine Gradido ID sein."
       },
       "is-not": "Du kannst dir selbst keine Gradidos überweisen!",
       "memo": {
@@ -327,7 +341,7 @@
     "checkEmail": "Deine E-Mail wurde erfolgreich verifiziert. Du kannst dich jetzt anmelden.",
     "email": "Wir haben dir eine E-Mail gesendet.",
     "errorTitle": "Achtung!",
-    "register": "Du bist jetzt registriert, bitte überprüfe deine Emails und klicke auf den Aktivierungslink.",
+    "register": "Du bist jetzt registriert, bitte überprüfe deine E-Mails und klicke auf den Aktivierungslink.",
     "reply": "Danke, Deine Antwort wurde abgesendet.",
     "reset": "Dein Passwort wurde geändert.",
     "title": "Danke!",
@@ -358,8 +372,9 @@
     "usersearch": "Geografische Mitgliedssuche (beta)"
   },
   "qrCode": "QR Code",
-  "send_gdd": "GDD versenden",
-  "send_per_link": "GDD versenden per Link",
+  "send_email": "E-Mail senden",
+  "send_gdd": "GDD senden",
+  "send_per_link": "GDD Link erzeugen",
   "session": {
     "extend": "Angemeldet bleiben",
     "lightText": "Wenn du länger als 10 Minuten keine Aktion getätigt hast, wirst du aus Sicherheitsgründen abgemeldet.",
