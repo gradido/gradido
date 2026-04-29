@@ -25,11 +25,12 @@ import {
 import { toMysqlDateTime } from '../../utils'
 import { CommunityContext, TransactionDb, transactionDbSchema } from '../../valibot.schema'
 import { AbstractSyncRole, IndexType } from './AbstractSync.role'
+import { DecayCalculationType } from '../../data/DecayCalculationType'
 
 export class LocalTransactionsSyncRole extends AbstractSyncRole<TransactionDb> {
   constructor(context: Context) {
     super(context)
-    this.accountBalances.reserve(2)
+    this.accountBalances.reserve(2n)
   }
 
   getDate(): Date {
@@ -174,7 +175,9 @@ export class LocalTransactionsSyncRole extends AbstractSyncRole<TransactionDb> {
         this.buildTransaction(communityContext, item, senderKeyPair, recipientKeyPair).build(),
         blockchain,
         new LedgerAnchor(item.id, LedgerAnchor.Type_LEGACY_GRADIDO_DB_TRANSACTION_ID),
-        this.calculateBalances(item, communityContext, senderPublicKey, recipientPublicKey),
+        item.decayCalculationType === DecayCalculationType.DECIMAL_JS_FIXED_FACTOR
+          ? this.calculateBalances(item, communityContext, senderPublicKey, recipientPublicKey)
+          : undefined,
       )
     } catch (e) {
       if (e instanceof NotEnoughGradidoBalanceError) {

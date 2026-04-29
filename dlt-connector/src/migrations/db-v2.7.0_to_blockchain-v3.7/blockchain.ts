@@ -5,27 +5,36 @@ import {
   HieroAccountId,
   InMemoryBlockchain,
   LedgerAnchor,
-  Profiler,
+  MonotonicTimer,
 } from 'gradido-blockchain-js'
 import { NotEnoughGradidoBalanceError } from './errors'
 
-export const defaultHieroAccount = new HieroAccountId(0, 0, 2)
+export const defaultHieroAccount = new HieroAccountId(0n, 0n, 2n)
 export let callTime: number = 0
-const timeUsed = new Profiler()
+const timeUsed = new MonotonicTimer()
 
 export function addToBlockchain(
   transaction: GradidoTransaction,
   blockchain: InMemoryBlockchain,
   ledgerAnchor: LedgerAnchor,
-  accountBalances: AccountBalances,
+  accountBalances?: AccountBalances,
 ): boolean {
   try {
     timeUsed.reset()
-    const result = blockchain.createAndAddConfirmedTransactionExternFast(
-      transaction,
-      ledgerAnchor,
-      accountBalances,
-    )
+    let result = false
+    if (accountBalances) {
+      result = blockchain.createAndAddConfirmedTransactionExternFast(
+        transaction,
+        ledgerAnchor,
+        accountBalances,
+      )
+    } else {
+      result = blockchain.createAndAddConfirmedTransaction(
+        transaction,
+        ledgerAnchor,
+        transaction.getTransactionBody()!.getCreatedAt()
+      )
+    }
     callTime += timeUsed.nanos()
     return result
   } catch (error) {

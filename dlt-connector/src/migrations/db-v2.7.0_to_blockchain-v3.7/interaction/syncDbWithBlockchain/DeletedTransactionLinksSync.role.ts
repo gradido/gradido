@@ -31,7 +31,7 @@ import { AbstractSyncRole, IndexType } from './AbstractSync.role'
 export class DeletedTransactionLinksSyncRole extends AbstractSyncRole<DeletedTransactionLinkDb> {
   constructor(context: Context) {
     super(context)
-    this.accountBalances.reserve(2)
+    this.accountBalances.reserve(2n)
   }
 
   getDate(): Date {

@@ -15,7 +15,7 @@ import {
   TransactionId,
   Wallet,
 } from '@hashgraph/sdk'
-import { GradidoTransaction, Profiler } from 'gradido-blockchain-js'
+import { GradidoTransaction, MonotonicTimer } from 'gradido-blockchain-js'
 import { getLogger, Logger } from 'log4js'
 import * as v from 'valibot'
 import { CONFIG } from '../../config'
@@ -75,7 +75,7 @@ export class HieroClient {
     communityId: Uuidv4,
     transaction: GradidoTransaction,
   ): Promise<TransactionId | null> {
-    const timeUsed = new Profiler()
+    const timeUsed = new MonotonicTimer()
     this.transactionInternNr++
     const logger = getLogger(`${LOG4JS_BASE_CATEGORY}.client.HieroClient`)
     logger.addContext('trNr', this.transactionInternNr)

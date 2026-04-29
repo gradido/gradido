@@ -1,8 +1,8 @@
 import { sql } from 'drizzle-orm'
 import {
+  bigint,
   char,
   datetime,
-  decimal,
   index,
   int,
   mysqlTable,
@@ -29,7 +29,7 @@ export const contributionsTable = mysqlTable('contributions', {
   userId: int('user_id').default(sql`NULL`),
   contributionDate: datetime('contribution_date', { mode: 'string' }).default(sql`NULL`),
   memo: varchar({ length: 512 }).notNull(),
-  amount: decimal({ precision: 40, scale: 20 }).notNull(),
+  amount: bigint('amount_gdd4', { mode: 'bigint' }).notNull(),
   contributionLinkId: int('contribution_link_id').default(sql`NULL`),
   confirmedBy: int('confirmed_by').default(sql`NULL`),
   confirmedAt: datetime('confirmed_at', { mode: 'string' }).default(sql`NULL`),
@@ -75,11 +75,12 @@ export const transactionsTable = mysqlTable(
     id: int().autoincrement().notNull(),
     typeId: int('type_id').default(sql`NULL`),
     transactionLinkId: int('transaction_link_id').default(sql`NULL`),
-    amount: decimal({ precision: 40, scale: 20 }).default(sql`NULL`),
-    balance: decimal({ precision: 40, scale: 20 }).default(sql`NULL`),
+    amount: bigint('amount_gdd4', { mode: 'bigint' }).default(sql`NULL`),
+    balance: bigint('balance_gdd4', { mode: 'bigint' }).default(sql`NULL`),
     balanceDate: datetime('balance_date', { mode: 'string', fsp: 3 })
       .default(sql`current_timestamp(3)`)
       .notNull(),
+    decayCalculationType: int('decay_calculation_type').default(0),
     memo: varchar({ length: 255 }).notNull(),
     creationDate: datetime('creation_date', { mode: 'string', fsp: 3 }).default(sql`NULL`),
     userId: int('user_id').notNull(),
@@ -94,8 +95,8 @@ export const transactionsTable = mysqlTable(
 export const transactionLinksTable = mysqlTable('transaction_links', {
   id: int().autoincrement().notNull(),
   userId: int().notNull(),
-  amount: decimal({ precision: 40, scale: 20 }).notNull(),
-  holdAvailableAmount: decimal('hold_available_amount', { precision: 40, scale: 20 }).notNull(),
+  amount: bigint('amount_gdd4', { mode: 'bigint' }).notNull(),
+  holdAvailableAmount: bigint('hold_available_amount_gdd4', { mode: 'bigint' }).notNull(),
   memo: varchar({ length: 255 }).notNull(),
   code: varchar({ length: 24 }).notNull(),
   createdAt: datetime({ mode: 'string' }).notNull(),

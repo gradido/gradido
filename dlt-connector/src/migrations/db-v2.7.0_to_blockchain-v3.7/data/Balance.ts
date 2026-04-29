@@ -1,7 +1,7 @@
-import Decimal from 'decimal.js-light'
 import { AccountBalance, GradidoUnit, MemoryBlockPtr } from 'gradido-blockchain-js'
 import { NegativeBalanceError } from '../errors'
 import { legacyCalculateDecay } from '../utils'
+import Decimal from 'decimal.js-light'
 
 export class Balance {
   private balance: GradidoUnit
@@ -53,7 +53,7 @@ export class Balance {
       this.date = date
     }
     if (this.balance.lt(GradidoUnit.zero())) {
-      if (this.balance.lt(GradidoUnit.fromGradidoCent(100).negated())) {
+      if (this.balance.lt(GradidoUnit.fromGradidoCent(100n).negated())) {
         const previousDecayedBalance = legacyCalculateDecay(
           new Decimal(previousBalanceString),
           previousDate,
@@ -72,7 +72,7 @@ export class Balance {
   }
 
   update(amount: GradidoUnit, date: Date) {
-    const previousBalance = new GradidoUnit(this.balance.toString())
+    const previousBalance = GradidoUnit.fromGradidoCent(this.balance.getGradidoCent())
     const previousDate = new Date(this.date.getTime())
 
     if (this.balance.equal(GradidoUnit.zero())) {
@@ -84,7 +84,7 @@ export class Balance {
     }
     if (this.balance.lt(GradidoUnit.zero())) {
       // ignore diffs less than a gradido cent
-      if (this.balance.lt(GradidoUnit.fromGradidoCent(100).negated())) {
+      if (this.balance.lt(GradidoUnit.fromGradidoCent(100n).negated())) {
         const previousDecayedBalance = this.balance.calculateDecay(previousDate, date)
         throw new NegativeBalanceError(
           `negative Gradido amount detected in Balance.update`,

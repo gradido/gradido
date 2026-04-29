@@ -9,6 +9,7 @@ import {
   uuidv4Schema,
 } from '../../schemas/typeGuard.schema'
 import { Balance } from './data/Balance'
+import { DecayCalculationType } from './data/DecayCalculationType'
 import { TransactionTypeId } from './data/TransactionTypeId'
 
 const positiveNumberSchema = v.pipe(v.number(), v.minValue(1))
@@ -57,6 +58,7 @@ export const transactionDbSchema = v.pipe(
     typeId: v.enum(TransactionTypeId),
     balanceDate: dateSchema,
     linkedUser: userDbSchema,
+    decayCalculationType: v.enum(DecayCalculationType),
   }),
   v.custom((value: any) => {
     if (
@@ -138,6 +140,7 @@ export const deletedTransactionLinKDbSchema = v.object({
   user: userDbSchema,
   code: identifierSeedSchema,
   deletedAt: dateSchema,
+  createdAt: dateSchema,
 })
 
 export const communityDbSchema = v.object({

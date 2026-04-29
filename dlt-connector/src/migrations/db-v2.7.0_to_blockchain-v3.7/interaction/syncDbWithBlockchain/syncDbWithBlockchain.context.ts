@@ -3,7 +3,7 @@ import {
   Filter,
   InteractionCreateTransactionByEvent,
   LedgerAnchor,
-  Profiler,
+  MonotonicTimer,
   Timestamp,
 } from 'gradido-blockchain-js'
 import { Logger } from 'log4js'
@@ -71,10 +71,10 @@ function processTransactionTrigger(context: CommunityContext, endDate: Date, log
 }
 
 export async function syncDbWithBlockchainContext(context: Context, batchSize: number) {
-  const timeUsedDB = new Profiler()
-  const timeUsedBlockchain = new Profiler()
-  const timeUsedAll = new Profiler()
-  const timeBetweenPrints = new Profiler()
+  const timeUsedDB = new MonotonicTimer()
+  const timeUsedBlockchain = new MonotonicTimer()
+  const timeUsedAll = new MonotonicTimer()
+  const timeBetweenPrints = new MonotonicTimer()
   const containers = [
     new UsersSyncRole(context),
     new CreationsSyncRole(context),

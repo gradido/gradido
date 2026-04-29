@@ -28,11 +28,12 @@ import {
 import { toMysqlDateTime } from '../../utils'
 import { CommunityContext, TransactionDb, transactionDbSchema, UserDb } from '../../valibot.schema'
 import { AbstractSyncRole, IndexType } from './AbstractSync.role'
+import { DecayCalculationType } from '../../data/DecayCalculationType'
 
 export class RemoteTransactionsSyncRole extends AbstractSyncRole<TransactionDb> {
   constructor(context: Context) {
     super(context)
-    this.accountBalances.reserve(1)
+    this.accountBalances.reserve(1n)
   }
 
   getDate(): Date {
@@ -88,7 +89,7 @@ export class RemoteTransactionsSyncRole extends AbstractSyncRole<TransactionDb> 
         linkedUser: row.linkedUser,
       }
       if (item.typeId === TransactionTypeId.SEND && item.amount) {
-        item.amount = new Decimal(item.amount).neg().toString()
+        item.amount *= -1n
       }
       try {
         return v.parse(transactionDbSchema, item)
@@ -163,7 +164,11 @@ export class RemoteTransactionsSyncRole extends AbstractSyncRole<TransactionDb> 
     }
 
     try {
-      lastBalance.updateLegacyDecay(amount, item.balanceDate)
+      if (item.decayCalculationType === DecayCalculationType.DECIMAL_JS_FIXED_FACTOR) {
+        lastBalance.updateLegacyDecay(amount, item.balanceDate)
+      } else {
+        lastBalance.update(amount, item.balanceDate)
+      }
     } catch (e) {
       if (e instanceof NegativeBalanceError) {
         this.logLastBalanceChangingTransactions(publicKey, communityContext.blockchain, 1)

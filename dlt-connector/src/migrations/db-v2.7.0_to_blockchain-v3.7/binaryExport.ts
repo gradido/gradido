@@ -4,7 +4,7 @@ import {
   ConfirmedTransaction,
   Filter,
   InteractionSerialize,
-  Profiler,
+  MonotonicTimer,
   SearchDirection_ASC,
 } from 'gradido-blockchain-js'
 import { CONFIG } from '../../config'
@@ -13,7 +13,7 @@ import { bytesString, calculateOneHashStep } from './utils'
 import { CommunityContext } from './valibot.schema'
 
 export function exportAllCommunities(context: Context, batchSize: number) {
-  const timeUsed = new Profiler()
+  const timeUsed = new MonotonicTimer()
   for (const communityContext of context.communities.values()) {
     context.logger.info(`exporting community ${communityContext.communityId} to binary file`)
     exportCommunity(communityContext, context, batchSize)
@@ -26,8 +26,8 @@ export function exportCommunity(
   context: Context,
   batchSize: number,
 ) {
-  const timeUsed = new Profiler()
-  const timeSinceLastPrint = new Profiler()
+  const timeUsed = new MonotonicTimer()
+  const timeSinceLastPrint = new MonotonicTimer()
   // write as binary file for GradidoNode
   const f = new Filter()
   f.pagination.size = batchSize
@@ -37,7 +37,7 @@ export function exportCommunity(
   let count = 0
   let printCount = 0
 
-  let lastTransactionCount = 0
+  let lastTransactionCount = 0n
   let triggeredTransactionsCount = 0
   let hash = Buffer.alloc(32, 0)
   const isDebug = context.logger.isDebugEnabled()
@@ -85,7 +85,7 @@ export function exportCommunity(
       }
     }
     f.pagination.page++
-  } while (lastTransactionCount === batchSize)
+  } while (lastTransactionCount === BigInt(batchSize))
   printConsole()
   process.stdout.write(`\n`)
 
@@ -93,7 +93,7 @@ export function exportCommunity(
   context.logger.info(
     `binary file for community ${communityContext.communityId} written to ${binFilePath}`,
   )
-  const sumTransactionsCount = (f.pagination.page - 2) * batchSize + lastTransactionCount
+  const sumTransactionsCount = (BigInt(f.pagination.page) - 2n) * BigInt(batchSize) + lastTransactionCount
   const fileSize = fs.statSync(binFilePath).size
   context.logger.info(
     `exported ${sumTransactionsCount} transactions (${bytesString(fileSize)}) in ${timeUsed.string()}`,
@@ -115,7 +115,7 @@ function exportTransaction(
   }
 
   hash = calculateOneHashStep(hash, binBlock.data())
-  sizeBuffer.writeUInt16LE(binBlock.size(), 0)
+  sizeBuffer.writeUInt16LE(Number(binBlock.size()), 0)
   fs.appendFileSync(binFilePath, sizeBuffer)
   fs.appendFileSync(binFilePath, binBlock.data())
   return hash
