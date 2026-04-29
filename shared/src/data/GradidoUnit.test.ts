@@ -105,7 +105,7 @@ describe('GradidoUnit', () => {
       expect(gdd.toString(3)).toBe('15678901.235')
     })
   })
-  
+
   describe('legacy decay tests', () => {
     it('with large values', () => {
       const amount = GradidoUnit.fromNumber(100.0)
