@@ -1,5 +1,4 @@
-import Decimal from 'decimal.js-light'
-import { GradidoUnit, InMemoryBlockchain, KeyPairEd25519 } from 'gradido-blockchain-js'
+import { InMemoryBlockchain, KeyPairEd25519 } from 'gradido-blockchain-js'
 import * as v from 'valibot'
 import { booleanSchema, dateSchema } from '../../schemas/typeConverter.schema'
 import {

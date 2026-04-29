@@ -9,7 +9,7 @@ import { KeyPairCacheManager } from '../../cache/KeyPairCacheManager'
 import { CONFIG } from '../../config'
 import { LOG4JS_BASE_CATEGORY } from '../../config/const'
 import { Uuidv4 } from '../../schemas/typeGuard.schema'
-import { loadDecayCalculationSwapDate } from './database'
+import { loadNativeDecayCalculationStartDate } from './database'
 import { bytesToMbyte } from './utils'
 import { CommunityContext } from './valibot.schema'
 
@@ -20,20 +20,20 @@ export class Context {
   public db: MySql2Database
   public communities: Map<string, CommunityContext>
   public cache: KeyPairCacheManager
-  public decayCalculationSwapDate: Date
+  public nativeDecayCalculationStartDate: Date
   private timeUsed: MonotonicTimer
 
   constructor(
     logger: Logger,
     db: MySql2Database,
     cache: KeyPairCacheManager,
-    decayCalculationSwapDate: Date,
+    nativeDecayCalculationStartDate: Date,
   ) {
     this.logger = logger
     this.db = db
     this.cache = cache
     this.communities = new Map<string, CommunityContext>()
-    this.decayCalculationSwapDate = decayCalculationSwapDate
+    this.nativeDecayCalculationStartDate = nativeDecayCalculationStartDate
     this.timeUsed = new MonotonicTimer()
   }
 
@@ -49,8 +49,8 @@ export class Context {
     })
     const db = drizzle({ client: connection })
     const logger = getLogger(`${LOG4JS_BASE_CATEGORY}.migrations.db-v2.7.0_to_blockchain-v3.5`)
-    const decayCalculationSwapDate = await loadDecayCalculationSwapDate(db)
-    return new Context(logger, db, KeyPairCacheManager.getInstance(), decayCalculationSwapDate)
+    const nativeDecayCalculationStartDate = await loadNativeDecayCalculationStartDate(db)
+    return new Context(logger, db, KeyPairCacheManager.getInstance(), nativeDecayCalculationStartDate)
   }
 
   getCommunityContextByUuid(communityUuid: Uuidv4): CommunityContext {
@@ -87,6 +87,6 @@ export class Context {
    * @return true if at this date, node js backend already used the new decay algorithm
    */
   isDecayCalculationTypeChanged(date: Date): boolean {
-    return date >= this.decayCalculationSwapDate
+    return date >= this.nativeDecayCalculationStartDate
   }
 }

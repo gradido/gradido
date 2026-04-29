@@ -47,7 +47,7 @@ export async function loadAdminUsersCache(db: MySql2Database): Promise<void> {
   })
 }
 
-export async function loadDecayCalculationSwapDate(db: MySql2Database): Promise<Date> {
+export async function loadNativeDecayCalculationStartDate(db: MySql2Database): Promise<Date> {
   const result = await db
     .select({
       date: transactionsTable.balanceDate,
