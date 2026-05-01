@@ -1,13 +1,19 @@
-// Bun FFI lets you call native C functions directly from JavaScript.
-// You manually describe the function signatures (arguments and return types),
-// and Bun handles calling them at runtime.
-// Key concepts:
-// - dlopen: loads native library and exposes symbols (functions)
-// - ptr() gives C access to the raw memory of this array.
-//   Important: the memory is owned by JavaScript.
-//   C can write into it, but must NOT free or reallocate it.
-// - read: reads raw memory at a pointer and interprets it as a specific type (e.g. i64)
-// - FFIType: defines type mappings between JS and C types
+/**
+ * The same functionality as the nodejs wrapper written in c++ but in TypeScript for using with bun
+ * because bun on windows currently don't work with nodejs addons compiled with zig compiler (clang)
+ *
+ * Bun FFI lets you call native C functions directly from JavaScript.
+ * {@link https://bun.com/docs/runtime/ffi}
+ * You manually describe the function signatures (arguments and return types),
+ * and Bun handles calling them at runtime.
+ * Key concepts:
+ * - dlopen: loads native library and exposes symbols (functions)
+ * - ptr() gives C access to the raw memory of this array.
+ *   Important: the memory is owned by JavaScript.
+ *   C can write into it, but must NOT free or reallocate it.
+ * - read: reads raw memory at a pointer and interprets it as a specific type (e.g. i64)
+ * - FFIType: defines type mappings between JS and C types
+ */
 
 import { dlopen, FFIType, ptr, read } from 'bun:ffi'
 import path from 'path'
@@ -62,14 +68,13 @@ const {
   },
 })
 
-// High-level flow if C functions expect a ptr (*) as argument:
-// 1. Allocate memory in JavaScript (TypedArray / Buffer)
-// 2. Pass a pointer to that memory into a C function
-// 3. Let the C function write data into that memory
-// 4. Read the result back into JavaScript
-
-// the same functionality as the nodejs wrapper written in c++ but in TypeScript for using with bun
-// because bun on windows currently don't work with nodejs addons compiled with zig compiler (clang)
+/**
+ * High-level flow if C functions expect a ptr (*) as argument:
+ * 1. Allocate memory in JavaScript (TypedArray / Buffer)
+ * 2. Pass a pointer to that memory into a C function
+ * 3. Let the C function write data into that memory
+ * 4. Read the result back into JavaScript
+ */
 
 export function getDecayStartTime(): Date {
   return new Date(Number(grdd_unit_decay_start_time()) * 1000)
