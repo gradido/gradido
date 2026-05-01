@@ -152,8 +152,8 @@ namespace gradidoUnit {
             Napi::TypeError::New(env, "Expected first argument to be a bigint").ThrowAsJavaScriptException();
             return env.Null();
         }
-        if (!info[1].IsNumber()) {
-            Napi::TypeError::New(env, "Expected second argument to be a number").ThrowAsJavaScriptException();
+        if (info.Length() > 1 && !info[1].IsNumber()) {
+            Napi::TypeError::New(env, "Expected second argument to be a number or undefined").ThrowAsJavaScriptException();
             return env.Null();
         }
         
