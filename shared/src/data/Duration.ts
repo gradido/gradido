@@ -43,7 +43,7 @@ export class Duration {
    * @returns A new Duration with the given number of minutes
    */
   public static minutes(minutes: number): Duration {
-    return new Duration(BigInt(minutes * 60))
+    return new Duration(BigInt(minutes) * 60n)
   }
 
   /**
@@ -52,7 +52,7 @@ export class Duration {
    * @returns A new Duration with the given number of hours
    */
   public static hours(hours: number): Duration {
-    return new Duration(BigInt(hours * 60 * 60))
+    return new Duration(BigInt(hours) * 60n * 60n)
   }
 
   /**
@@ -61,7 +61,7 @@ export class Duration {
    * @returns A new Duration with the given number of days
    */
   public static days(days: number): Duration {
-    return new Duration(BigInt(days * 24 * 60 * 60))
+    return new Duration(BigInt(days) * 24n * 60n * 60n)
   }
 
   /**
