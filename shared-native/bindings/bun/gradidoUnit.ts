@@ -1,9 +1,12 @@
-// Bun FFI (Foreign Function Interface) enables high-performance calls to native C libraries from JavaScript
-// It works by dynamically loading native libraries and generating JIT-compiled bindings
+// Bun FFI lets you call native C functions directly from JavaScript.
+// You manually describe the function signatures (arguments and return types),
+// and Bun handles calling them at runtime.
 // Key concepts:
 // - dlopen: loads native library and exposes symbols (functions)
-// - ptr: converts JavaScript TypedArrays/ArrayBuffers to C pointers (memory addresses)
-// - read: reads data from C pointers back into JavaScript types
+// - ptr() gives C access to the raw memory of this array.
+//   Important: the memory is owned by JavaScript.
+//   C can write into it, but must NOT free or reallocate it.
+// - read: reads raw memory at a pointer and interprets it as a specific type (e.g. i64)
 // - FFIType: defines type mappings between JS and C types
 
 import { dlopen, FFIType, ptr, read } from 'bun:ffi'
@@ -59,6 +62,12 @@ const {
   },
 })
 
+// High-level flow if C functions expect a ptr (*) as argument:
+// 1. Allocate memory in JavaScript (TypedArray / Buffer)
+// 2. Pass a pointer to that memory into a C function
+// 3. Let the C function write data into that memory
+// 4. Read the result back into JavaScript
+
 // the same functionality as the nodejs wrapper written in c++ but in TypeScript for using with bun
 // because bun on windows currently don't work with nodejs addons compiled with zig compiler (clang)
 
@@ -77,6 +86,7 @@ export function gradidoUnitFromString(str: string): bigint {
   const resultBufferPtr = ptr(new Int8Array(8))
 
   // C expects null-terminated strings, but JavaScript strings don't have null terminators
+  // Without the '\0', C would read past the end of the string into random memory.
   // We create a Buffer with explicit null termination for C compatibility
   const strBuffer = Buffer.from(str + '\0', 'utf8')
 
@@ -102,6 +112,8 @@ export function gradidoUnitToString(value: bigint, precision?: number): string {
   }
 
   // Allocate 32 bytes for the C string output buffer
+  // Maximal length for a 64-bit integer with 4 decimal places should be 22 characters,
+  // but we allocate 32 bytes to be safe (22 + 1 for null termination + some buffer)
   // C strings are null-terminated, so we need enough space for the formatted result
   const resultBuffer = new Uint8Array(32)
 
@@ -111,6 +123,7 @@ export function gradidoUnitToString(value: bigint, precision?: number): string {
 
   // grdd_unit_to_string writes the formatted string to our buffer and returns the string length
   // The function takes: buffer pointer, buffer size, value to format, and precision
+  // Returns the number of bytes written (excluding null terminator)
   const result = grdd_unit_to_string(resultBufferPtr, 32, value, precision ?? 4)
   if (result < 0) {
     throw new Error('Rounding failed (overflow)')
@@ -130,8 +143,9 @@ export function toDecimalPlaces(value: bigint, places: number): bigint {
   }
 
   // Allocate 8 bytes for the 64-bit integer result
+  const resultBuffer = new Int8Array(8)
   // ptr() creates a C pointer to this memory location
-  const resultBufferPtr = ptr(new Int8Array(8))
+  const resultBufferPtr = ptr(resultBuffer)
 
   // grdd_unit_round_to_precision writes the rounded result to the memory pointed to by resultBufferPtr
   // Returns false if rounding fails (overflow)
@@ -155,6 +169,10 @@ export function durationToString(duration: bigint, precision?: number): string {
   // grdu_duration_string writes the formatted duration string to our buffer
   // Returns the length of the written string
   const result = grdu_duration_string(resultBufferPtr, 32, duration, precision ?? 2)
+
+  if (result < 0) {
+    throw new Error('Duration string conversion failed')
+  }
 
   // Convert the buffer back to JavaScript string and slice to actual length
   // The C function wrote the string data to the memory location pointed to by resultBufferPtr
