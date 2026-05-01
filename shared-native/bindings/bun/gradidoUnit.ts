@@ -20,6 +20,7 @@ import path from 'path'
 import { getCoreFileName } from '../../build_helper/host_configuration'
 
 const { i64, u64, i32, bool, cstring, pointer, u8 } = FFIType
+const INT64_MAX = (1n << 63n) - 1n
 
 const filePath = path.resolve(__dirname, `../../build/${getCoreFileName()}`)
 // direct importing c library via ffi, without nodejs addon wrapper
@@ -81,7 +82,11 @@ export function getDecayStartTime(): Date {
 }
 
 export function calculateDecay(value: bigint, seconds: bigint): bigint {
-  return grdd_unit_calculate_decay(value, seconds)
+  const result = grdd_unit_calculate_decay(value, seconds)
+  if (result === INT64_MAX) {
+    throw new Error('Decay calculation probably resulted in overflow')
+  }
+  return result
 }
 
 export function gradidoUnitFromString(str: string): bigint {

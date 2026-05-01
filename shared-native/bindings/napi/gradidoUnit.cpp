@@ -32,6 +32,10 @@ namespace gradidoUnit {
             return env.Null();
         }
         grdd_unit result = grdd_unit_calculate_decay(amount, duration);
+        if (result == INT64_MAX) {
+            Napi::Error::New(env, "Decay calculation probably resulted in overflow").ThrowAsJavaScriptException();
+            return env.Null();
+        }
         
         return Napi::BigInt::New(env, result);
     }
