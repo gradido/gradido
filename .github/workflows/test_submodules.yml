@@ -53,6 +53,11 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
+
+      - name: install node
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc' 
         
       - name: install bun 
         uses: oven-sh/setup-bun@v2
@@ -73,4 +78,6 @@ jobs:
         run: turbo core#typecheck core#locales database#test database#typecheck shared#test shared#typecheck shared-native#test shared-native#typecheck config-schema#test config-schema#typecheck
       - name: core test extra
         run: turbo core#test
+      - name: test with node js test runner and therefore windows napi nodejs addon
+        run: cd shared-native && bun run test:node
 
