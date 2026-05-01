@@ -24,9 +24,11 @@ const {
     grdu_duration_string,
   },
 } = dlopen(filePath, {
-  // describe from lib exported functions with args and return types
-  // C function declarations are found in include/gradido_blockchain_core/data/unit.h
-  // and include/gradido_blockchain_core/data/duration.h
+  /**
+   * describe from lib exported functions with args and return types
+   * C function declarations for  grdd_unit_* are found in
+   * {@link include/gradido_blockchain_core/data/unit.h}
+   */
   grdd_unit_decay_start_time: {
     returns: i64,
     args: [],
@@ -47,6 +49,10 @@ const {
     returns: bool,
     args: [pointer, i64, u8],
   },
+  /**
+   * C function declarations for  grdu_duration_string are found in
+   * {@link include/gradido_blockchain_core/data/duration.h}
+   */
   grdu_duration_string: {
     returns: i32,
     args: [cstring, u64, i64, u8],
