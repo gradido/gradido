@@ -210,8 +210,6 @@ describe('Contribution Links', () => {
 
       describe('createContributionLink', () => {
         it('returns a contribution link object', async () => {
-          // const result = await mutate({ mutation: createContributionLink, variables })
-          // console.log(`is instance: ${result.data?.createContributionLink instanceof ContributionLink}, type: ${typeof result}, result: ${JSON.stringify(result, null, 2)}`)
           await expect(mutate({ mutation: createContributionLink, variables })).resolves.toEqual(
             expect.objectContaining({
               data: {

@@ -87,6 +87,8 @@ export const getUserCreations = async (
         if (!creation) {
           return MAX_CREATION_AMOUNT
         }
+        // db call return GradidoUnit bigints as string, we cannot use GradidoUnit.fromString here,
+        // because GradidoUnit.fromString expect Gradido and will convert it to gradido cent, but in db it is already stored as gradido cent
         return MAX_CREATION_AMOUNT.subtract(GradidoUnit.fromGradidoCent(BigInt(creation.sum)))
       }),
     }

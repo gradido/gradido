@@ -90,7 +90,7 @@
     "../core/src/types",
     "src",
     "test"
-, "../core/src/graphql/scalar/GradidoUnit.ts"  ],
+  ],
   "ts-node": {
     "swc": true
   }
