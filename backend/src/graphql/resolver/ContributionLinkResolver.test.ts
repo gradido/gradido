@@ -16,7 +16,6 @@ import {
 import { listContributionLinks } from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { peterLustig } from '@/seeds/users/peter-lustig'
-import { ContributionLink } from '../model/ContributionLink'
 
 jest.mock('@/password/EncryptorUtils')
 
