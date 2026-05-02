@@ -27,7 +27,6 @@ import {
   getLastTransaction,
   UserContact,
 } from 'database'
-import { Decimal } from 'decimal.js-light'
 import { GraphQLResolveInfo } from 'graphql'
 import { getLogger } from 'log4js'
 import { Mutex } from 'redis-semaphore'
@@ -93,7 +92,7 @@ export class ContributionResolver {
 
     const contribution = DbContribution.create()
     contribution.userId = user.id
-    contribution.amount = amount.toDecimal()
+    contribution.amount = amount
     contribution.createdAt = new Date()
     contribution.contributionDate = contributionDateObj
     contribution.memo = memo
@@ -102,7 +101,7 @@ export class ContributionResolver {
 
     logger.trace('contribution to save', contribution)
     await DbContribution.save(contribution)
-    await EVENT_CONTRIBUTION_CREATE(user, contribution, amount.toDecimal())
+    await EVENT_CONTRIBUTION_CREATE(user, contribution, amount)
 
     return new UnconfirmedContribution(contribution)
   }
@@ -206,7 +205,7 @@ export class ContributionResolver {
       }
     })
     const user = getUser(context)
-    await EVENT_CONTRIBUTION_UPDATE(user, contribution, contributionArgs.amount.toDecimal())
+    await EVENT_CONTRIBUTION_UPDATE(user, contribution, contributionArgs.amount)
 
     return new UnconfirmedContribution(contribution)
   }
@@ -250,7 +249,7 @@ export class ContributionResolver {
     validateContribution(creations, amount, creationDateObj, clientTimezoneOffset)
     const contribution = DbContribution.create()
     contribution.userId = emailContact.userId
-    contribution.amount = amount.toDecimal()
+    contribution.amount = amount
     contribution.createdAt = new Date()
     contribution.contributionDate = creationDateObj
     contribution.memo = memo
@@ -259,12 +258,7 @@ export class ContributionResolver {
     contribution.contributionStatus = ContributionStatus.PENDING
     logger.trace('contribution to save', contribution)
     await DbContribution.save(contribution)
-    await EVENT_ADMIN_CONTRIBUTION_CREATE(
-      emailContact.user,
-      moderator,
-      contribution,
-      amount.toDecimal(),
-    )
+    await EVENT_ADMIN_CONTRIBUTION_CREATE(emailContact.user, moderator, contribution, amount)
 
     return getUserCreation(emailContact.userId, clientTimezoneOffset)
   }
@@ -494,7 +488,7 @@ export class ContributionResolver {
       const creations = await getUserCreation(contribution.userId, clientTimezoneOffset, false)
       validateContribution(
         creations,
-        GradidoUnit.fromDecimal(contribution.amount),
+        contribution.amount,
         contribution.contributionDate,
         clientTimezoneOffset,
       )
@@ -509,14 +503,13 @@ export class ContributionResolver {
         let newBalance = new GradidoUnit(0n)
         let decay: Decay | null = null
         if (lastTransaction) {
-          const lastTransactionBalance = GradidoUnit.fromDecimal(lastTransaction.balance)
-          decay = lastTransactionBalance.calculateDecay(
+          decay = lastTransaction.balance.calculateDecay(
             lastTransaction.balanceDate,
             receivedCallDate,
           )
           newBalance = decay.balance
         }
-        newBalance = newBalance.add(GradidoUnit.fromDecimal(contribution.amount))
+        newBalance = newBalance.add(contribution.amount)
 
         let transaction = new DbTransaction()
         transaction.typeId = TransactionTypeId.CREATION
@@ -532,9 +525,9 @@ export class ContributionResolver {
         transaction.previous = lastTransaction ? lastTransaction.id : null
         transaction.amount = contribution.amount
         transaction.creationDate = contribution.contributionDate
-        transaction.balance = newBalance.toDecimal()
+        transaction.balance = newBalance
         transaction.balanceDate = receivedCallDate
-        transaction.decay = decay ? decay.decay.toDecimal() : new Decimal(0)
+        transaction.decay = decay ? decay.decay : new GradidoUnit(0n)
         transaction.decayStart = decay ? decay.start : null
         transaction.decayCalculationType = DecayCalculationType.NATIVE_C_FIXED_FACTOR_INTEGER
         transaction = await queryRunner.manager.save(DbTransaction, transaction)

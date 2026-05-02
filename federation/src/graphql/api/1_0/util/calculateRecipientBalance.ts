@@ -10,9 +10,7 @@ export async function calculateRecipientBalance(
   if (!lastTransaction) {
     return null
   }
-  const lastTransactionBalance = GradidoUnit.fromDecimal(lastTransaction.balance)
-
-  const decay = lastTransactionBalance.calculateDecay(lastTransaction.balanceDate, time)
+  const decay = lastTransaction.balance.calculateDecay(lastTransaction.balanceDate, time)
 
   const balance = decay.balance.add(amount)
 

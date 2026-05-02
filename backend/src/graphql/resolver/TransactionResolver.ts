@@ -20,7 +20,6 @@ import {
   User as dbUser,
   findUserByIdentifier,
 } from 'database'
-import { Decimal } from 'decimal.js-light'
 import { Args, Authorized, Ctx, Mutation, Query, Resolver } from 'type-graphql'
 import { In, IsNull } from 'typeorm'
 import { RIGHTS } from '@/auth/RIGHTS'
@@ -125,10 +124,10 @@ export const executeTransaction = async (
       transactionSend.linkedUserGradidoID = recipient.gradidoID
       transactionSend.linkedUserName = fullName(recipient.firstName, recipient.lastName)
       transactionSend.linkedUserCommunityUuid = recipient.communityUuid
-      transactionSend.amount = negativeAmount.toDecimal()
-      transactionSend.balance = sendBalance.balance.toDecimal()
+      transactionSend.amount = negativeAmount
+      transactionSend.balance = sendBalance.balance
       transactionSend.balanceDate = receivedCallDate
-      transactionSend.decay = sendBalance.decay.decay.toDecimal()
+      transactionSend.decay = sendBalance.decay.decay
       transactionSend.decayStart = sendBalance.decay.start
       transactionSend.decayCalculationType = DecayCalculationType.NATIVE_C_FIXED_FACTOR_INTEGER
       transactionSend.previous = sendBalance.lastTransactionId
@@ -148,15 +147,11 @@ export const executeTransaction = async (
       transactionReceive.linkedUserGradidoID = sender.gradidoID
       transactionReceive.linkedUserName = fullName(sender.firstName, sender.lastName)
       transactionReceive.linkedUserCommunityUuid = sender.communityUuid
-      transactionReceive.amount = amount.toDecimal()
+      transactionReceive.amount = amount
       const receiveBalance = await calculateBalance(recipient.id, amount, receivedCallDate)
-      transactionReceive.balance = receiveBalance
-        ? receiveBalance.balance.toDecimal()
-        : amount.toDecimal()
+      transactionReceive.balance = receiveBalance ? receiveBalance.balance : amount
       transactionReceive.balanceDate = receivedCallDate
-      transactionReceive.decay = receiveBalance
-        ? receiveBalance.decay.decay.toDecimal()
-        : new Decimal(0)
+      transactionReceive.decay = receiveBalance ? receiveBalance.decay.decay : new GradidoUnit(0n)
       transactionReceive.decayStart = receiveBalance ? receiveBalance.decay.start : null
       transactionReceive.decayCalculationType = DecayCalculationType.NATIVE_C_FIXED_FACTOR_INTEGER
       transactionReceive.previous = receiveBalance ? receiveBalance.lastTransactionId : null
@@ -365,7 +360,7 @@ export class TransactionResolver {
     context.sumHoldAvailableAmount = sumHoldAvailableAmount
     logger.debug(`sumHoldAvailableAmount=${sumHoldAvailableAmount.toString()}`)
 
-    const lastTransactionBalance = GradidoUnit.fromDecimal(lastTransaction.balance)
+    const lastTransactionBalance = lastTransaction.balance
 
     // decay & link transactions
     if (currentPage === 1 && order === Order.DESC) {

@@ -1,6 +1,5 @@
 import { Location } from '@model/Location'
 import { GradidoUnitScalar } from 'core'
-import { Decimal } from 'decimal.js-light'
 import { GraphQLSchema } from 'graphql'
 import { Duration, GradidoUnit } from 'shared'
 import { buildSchema } from 'type-graphql'
@@ -18,7 +17,6 @@ import { StatisticsResolver } from './resolver/StatisticsResolver'
 import { TransactionLinkResolver } from './resolver/TransactionLinkResolver'
 import { TransactionResolver } from './resolver/TransactionResolver'
 import { UserResolver } from './resolver/UserResolver'
-import { DecimalScalar } from './scalar/Decimal'
 import { DurationScalar } from './scalar/Duration'
 import { LocationScalar } from './scalar/Location'
 
@@ -41,7 +39,6 @@ export const schema = async (): Promise<GraphQLSchema> => {
     ],
     authChecker: isAuthorized,
     scalarsMap: [
-      { type: Decimal, scalar: DecimalScalar },
       { type: Duration, scalar: DurationScalar },
       { type: Location, scalar: LocationScalar },
       { type: GradidoUnit, scalar: GradidoUnitScalar },

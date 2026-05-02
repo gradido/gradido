@@ -1,5 +1,3 @@
-import { Decimal } from 'decimal.js-light'
-import { GradidoUnit } from 'shared'
 import util from 'util'
 
 export abstract class AbstractLoggingView {
@@ -34,13 +32,6 @@ export abstract class AbstractLoggingView {
       } else {
         return new Date(date).toISOString()
       }
-    }
-    return undefined
-  }
-
-  public decimalToString(number: Decimal | undefined | null): string | undefined {
-    if (number) {
-      return number.toString()
     }
     return undefined
   }

@@ -10,6 +10,7 @@ import {
   User,
 } from 'database'
 import { GraphQLError } from 'graphql'
+import { GradidoUnit } from 'shared'
 import { v4 as uuidv4 } from 'uuid'
 import { CONFIG } from '@/config'
 // import { CONFIG } from '@/config'
@@ -506,7 +507,7 @@ describe('send coins', () => {
                     typeId: 'DECAY',
                   }),
                   expect.objectContaining({
-                    amount: expect.decimalEqual(-6.66),
+                    amount: '-6.66',
                     linkedUser: {
                       firstName: 'Bob',
                       gradidoID: bob?.gradidoID,
@@ -516,7 +517,7 @@ describe('send coins', () => {
                     typeId: 'SEND',
                   }),
                   expect.objectContaining({
-                    amount: expect.decimalEqual(10),
+                    amount: '10',
                     linkedUser: {
                       firstName: 'Bob',
                       gradidoID: bob?.gradidoID,
@@ -526,7 +527,7 @@ describe('send coins', () => {
                     typeId: 'RECEIVE',
                   }),
                   expect.objectContaining({
-                    amount: expect.decimalEqual(50),
+                    amount: '50',
                     linkedUser: {
                       firstName: 'Bob',
                       gradidoID: bob?.gradidoID,
@@ -708,7 +709,7 @@ describe('transactionList', () => {
           data: {
             transactionList: {
               balance: expect.objectContaining({
-                balance: expect.decimalEqual(0),
+                balance: '0',
               }),
               transactions: [],
             },

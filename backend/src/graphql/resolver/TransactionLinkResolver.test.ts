@@ -10,8 +10,8 @@ import {
   User,
   UserContact,
 } from 'database'
-import { Decimal } from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
+import { GradidoUnit } from 'shared'
 import { DataSource } from 'typeorm'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
@@ -464,8 +464,8 @@ describe('TransactionLinkResolver', () => {
                 deletedAt: null,
                 code: expect.stringMatching(/^[0-9a-f]{24,24}$/),
                 linkEnabled: true,
-                amount: expect.decimalEqual(5),
-                maxAmountPerMonth: expect.decimalEqual(200),
+                amount: GradidoUnit.fromNumber(5),
+                maxAmountPerMonth: GradidoUnit.fromNumber(200),
               }),
             )
           })
@@ -711,7 +711,7 @@ describe('TransactionLinkResolver', () => {
                 affectedUserId: userConatct.user.id,
                 actingUserId: userConatct.user.id,
                 involvedTransactionLinkId: myId,
-                amount: expect.decimalEqual(200),
+                amount: GradidoUnit.fromNumber(200),
               }),
             )
           })
@@ -824,7 +824,7 @@ describe('TransactionLinkResolver', () => {
                   actingUserId: redeemer.user.id,
                   involvedUserId: creator.user.id,
                   involvedTransactionLinkId: myId,
-                  amount: expect.decimalEqual(200),
+                  amount: GradidoUnit.fromNumber(200),
                 }),
               )
             })

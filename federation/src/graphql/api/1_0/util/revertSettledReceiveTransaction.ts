@@ -88,14 +88,14 @@ export async function revertSettledReceiveTransaction(
       pendingTx.linkedUserGradidoID,
     )
     logger.debug(`linkedUserName:`, lastTransaction?.linkedUserName, pendingTx.linkedUserName)
-    // now the last Tx must be the equivalant to the pendingTX
+    // now the last Tx must be the equivalent to the pendingTX
     if (
       lastTransaction &&
-      lastTransaction.balance.comparedTo(pendingTx.balance) === 0 &&
+      lastTransaction.balance.comparedTo(pendingTx.balance) === 0n &&
       lastTransaction.balanceDate.toISOString() === pendingTx.balanceDate.toISOString() &&
       lastTransaction.userGradidoID === pendingTx.userGradidoID &&
       lastTransaction.userName === pendingTx.userName &&
-      lastTransaction.amount.comparedTo(pendingTx.amount) === 0 &&
+      lastTransaction.amount.comparedTo(pendingTx.amount) === 0n &&
       lastTransaction.memo === pendingTx.memo &&
       lastTransaction.linkedUserGradidoID === pendingTx.linkedUserGradidoID &&
       lastTransaction.linkedUserName === pendingTx.linkedUserName

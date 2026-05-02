@@ -56,7 +56,7 @@ export const getUserCreations = async (
     .createQueryBuilder(Contribution, 'c')
     .select('month(contribution_date)', 'month')
     .addSelect('user_id', 'userId')
-    .addSelect('sum(amount)', 'sum')
+    .addSelect('sum(amount_gdd4)', 'sum')
     .where(`user_id in (${ids.toString()})`)
     .andWhere(`contribution_date >= ${dateFilter}`)
     .andWhere('deleted_at IS NULL')
@@ -81,13 +81,15 @@ export const getUserCreations = async (
       id,
       creations: months.map((month) => {
         const creation = sumAmountContributionPerUserAndLast3Month.find(
-          (raw: { month: string; userId: string; creation: number[] }) =>
+          (raw: { month: string; userId: string }) =>
             parseInt(raw.month) === month && parseInt(raw.userId) === id,
         )
         if (!creation) {
           return MAX_CREATION_AMOUNT
         }
-        return MAX_CREATION_AMOUNT.subtract(GradidoUnit.fromDecimal(creation.sum))
+        // db call return GradidoUnit bigints as string, we cannot use GradidoUnit.fromString here,
+        // because GradidoUnit.fromString expect Gradido and will convert it to gradido cent, but in db it is already stored as gradido cent
+        return MAX_CREATION_AMOUNT.subtract(GradidoUnit.fromGradidoCent(BigInt(creation.sum)))
       }),
     }
   })
@@ -154,7 +156,7 @@ export const updateCreations = (
     throw new LogError('You cannot create GDD for a month older than the last three months')
   }
 
-  creations[index] = creations[index].add(GradidoUnit.fromDecimal(contribution.amount))
+  creations[index] = creations[index].add(contribution.amount)
   return creations
 }
 

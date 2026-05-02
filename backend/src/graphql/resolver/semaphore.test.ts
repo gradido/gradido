@@ -2,7 +2,6 @@ import { cleanDB, contributionDateFormatter, testEnvironment } from '@test/helpe
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { CONFIG as CORE_CONFIG } from 'core'
 import { AppDatabase, Community as DbCommunity } from 'database'
-import { Decimal } from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
 // import { TRANSACTIONS_LOCK } from 'database'
 import { Mutex } from 'redis-semaphore'

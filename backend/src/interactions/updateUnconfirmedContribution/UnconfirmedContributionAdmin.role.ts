@@ -1,5 +1,4 @@
 import { Contribution, User } from 'database'
-import { GradidoUnit } from 'shared'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { Role } from '@/auth/Role'
 import { ContributionMessageBuilder } from '@/data/ContributionMessage.builder'
@@ -20,7 +19,7 @@ export class UnconfirmedContributionAdminRole extends AbstractUnconfirmedContrib
   ) {
     super(
       contribution,
-      updateData.amount ?? GradidoUnit.fromDecimal(contribution.amount),
+      updateData.amount ?? contribution.amount,
       updateData.creationDate ? new Date(updateData.creationDate) : contribution.contributionDate,
     )
     this.logger.debug('use UnconfirmedContributionAdminRole')
@@ -36,8 +35,7 @@ export class UnconfirmedContributionAdminRole extends AbstractUnconfirmedContrib
     }
     return (
       (this.updateData.memo && this.self.memo !== this.updateData.memo) ||
-      (this.updatedAmount &&
-        GradidoUnit.fromDecimal(this.self.amount).comparedTo(this.updatedAmount) !== 0n) ||
+      (this.updatedAmount && this.self.amount.comparedTo(this.updatedAmount) !== 0n) ||
       +this.self.contributionDate !== +this.updatedCreationDate
     )
   }
@@ -49,7 +47,7 @@ export class UnconfirmedContributionAdminRole extends AbstractUnconfirmedContrib
       this.self.updatedBy = this.moderator.id
       this.self.contributionStatus = ContributionStatus.PENDING
     }
-    this.self.amount = this.updatedAmount.toDecimal()
+    this.self.amount = this.updatedAmount
     this.self.memo = this.updateData.memo ?? this.self.memo
     this.self.contributionDate = this.updatedCreationDate
     if (this.updateData.resubmissionAt) {

@@ -2,8 +2,8 @@ import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { getLogger } from 'config-schema/test/testSetup'
 import { AppDatabase, ContributionLink as DbContributionLink, Event as DbEvent } from 'database'
-import { Decimal } from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
+import { GradidoUnit } from 'shared'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { EventType } from '@/event/Events'
 import { userFactory } from '@/seeds/factory/user'
@@ -250,8 +250,8 @@ describe('Contribution Links', () => {
               deletedAt: null,
               code: expect.stringMatching(/^[0-9a-f]{24,24}$/),
               linkEnabled: true,
-              amount: expect.decimalEqual(200),
-              maxAmountPerMonth: expect.decimalEqual(200),
+              amount: GradidoUnit.fromNumber(200),
+              maxAmountPerMonth: GradidoUnit.fromNumber(200),
             }),
           )
         })
@@ -263,7 +263,7 @@ describe('Contribution Links', () => {
               affectedUserId: 0,
               actingUserId: expect.any(Number),
               involvedContributionLinkId: expect.any(Number),
-              amount: expect.decimalEqual(200),
+              amount: GradidoUnit.fromNumber(200),
             }),
           )
         })
@@ -581,7 +581,7 @@ describe('Contribution Links', () => {
                 id: linkId,
                 name: 'Dokumenta 2023',
                 memo: 'Danke für deine Teilnahme an der Dokumenta 2023',
-                amount: expect.decimalEqual(400),
+                amount: GradidoUnit.fromNumber(400),
               }),
             )
           })
@@ -593,7 +593,7 @@ describe('Contribution Links', () => {
                 affectedUserId: 0,
                 actingUserId: expect.any(Number),
                 involvedContributionLinkId: expect.any(Number),
-                amount: expect.decimalEqual(400),
+                amount: GradidoUnit.fromNumber(400),
               }),
             )
           })

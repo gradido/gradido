@@ -1,4 +1,3 @@
-import { Decimal } from 'decimal.js-light'
 import { GradidoUnit } from 'shared'
 import { CONFIG } from '../config'
 import { decimalSeparatorByLanguage } from '../util/utilities'
@@ -77,7 +76,7 @@ export const sendAccountMultiRegistrationEmail = (
 export const sendContributionConfirmedEmail = (
   data: EmailCommonData &
     ContributionEmailCommonData & {
-      contributionAmount: Decimal
+      contributionAmount: GradidoUnit
     },
 ): Promise<Record<string, unknown> | boolean | null | Error> => {
   return sendEmailTranslated({

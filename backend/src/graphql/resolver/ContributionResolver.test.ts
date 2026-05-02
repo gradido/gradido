@@ -23,7 +23,6 @@ import {
   Transaction as DbTransaction,
   User,
 } from 'database'
-import { Decimal } from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
 import { getLogger as originalGetLogger } from 'log4js'
 import { GradidoUnit } from 'shared'
@@ -343,7 +342,7 @@ describe('ContributionResolver', () => {
               affectedUserId: bibi.id,
               actingUserId: bibi.id,
               involvedContributionId: pendingContribution.data.createContribution.id,
-              amount: expect.decimalEqual(100),
+              amount: GradidoUnit.fromNumber(100),
             }),
           )
         })
@@ -650,7 +649,7 @@ describe('ContributionResolver', () => {
               affectedUserId: bibi.id,
               actingUserId: bibi.id,
               involvedContributionId: pendingContribution.data.createContribution.id,
-              amount: expect.decimalEqual(10),
+              amount: GradidoUnit.fromNumber(10),
             }),
           )
         })
@@ -881,7 +880,7 @@ describe('ContributionResolver', () => {
               affectedUserId: bibi.id,
               actingUserId: admin.id,
               involvedContributionId: contributionToDeny.data.createContribution.id,
-              amount: expect.decimalEqual(100),
+              amount: GradidoUnit.fromNumber(100),
             }),
           )
         })
@@ -1010,7 +1009,7 @@ describe('ContributionResolver', () => {
               affectedUserId: bibi.id,
               actingUserId: bibi.id,
               involvedContributionId: contributionToDelete.data.createContribution.id,
-              amount: expect.decimalEqual(100),
+              amount: GradidoUnit.fromNumber(100),
             }),
           )
         })
@@ -1430,7 +1429,7 @@ describe('ContributionResolver', () => {
             creation = await Contribution.findOneOrFail({
               where: {
                 memo: 'Herzlich Willkommen bei Gradido!',
-                amount: Equal(new Decimal('400')),
+                amount: Equal(GradidoUnit.fromString('400')),
               },
             })
           })
@@ -1652,7 +1651,7 @@ describe('ContributionResolver', () => {
                     type: EventType.ADMIN_CONTRIBUTION_CREATE,
                     affectedUserId: bibi.id,
                     actingUserId: admin.id,
-                    amount: expect.decimalEqual(200),
+                    amount: GradidoUnit.fromNumber(200),
                   }),
                 )
               })
@@ -1832,7 +1831,7 @@ describe('ContributionResolver', () => {
                   type: EventType.ADMIN_CONTRIBUTION_UPDATE,
                   affectedUserId: creation?.userId,
                   actingUserId: admin.id,
-                  amount: 300,
+                  amount: GradidoUnit.fromNumber(300),
                 }),
               )
             })
@@ -1872,7 +1871,7 @@ describe('ContributionResolver', () => {
                   type: EventType.ADMIN_CONTRIBUTION_UPDATE,
                   affectedUserId: creation?.userId,
                   actingUserId: admin.id,
-                  amount: expect.decimalEqual(200),
+                  amount: GradidoUnit.fromNumber(200),
                 }),
               )
             })
@@ -1959,7 +1958,7 @@ describe('ContributionResolver', () => {
                   affectedUserId: creation?.userId,
                   actingUserId: admin.id,
                   involvedContributionId: creation?.id,
-                  amount: expect.decimalEqual(200),
+                  amount: GradidoUnit.fromNumber(200),
                 }),
               )
             })
@@ -2139,7 +2138,7 @@ describe('ContributionResolver', () => {
                 senderFirstName: 'Peter',
                 senderLastName: 'Lustig',
                 contributionMemo: 'Herzlich Willkommen bei Gradido liebe Bibi!',
-                contributionAmount: expect.decimalEqual(450),
+                contributionAmount: GradidoUnit.fromNumber(450),
                 contributionFrontendLink: `http://localhost/contributions/own-contributions/1#contributionListItem-${creation?.id}`,
               })
             })
@@ -2321,7 +2320,7 @@ describe('ContributionResolver', () => {
           contributionCount: 18,
           contributionList: expect.arrayContaining([
             expect.objectContaining({
-              amount: expect.decimalEqual(100),
+              amount: '100',
               id: expect.any(Number),
               memo: '#firefighters',
               messagesCount: 0,
@@ -2335,7 +2334,7 @@ describe('ContributionResolver', () => {
               }),
             }),
             expect.objectContaining({
-              amount: expect.decimalEqual(50),
+              amount: '50',
               id: expect.any(Number),
               memo: 'Herzlich Willkommen bei Gradido liebe Bibi!',
               messagesCount: 0,
@@ -2349,7 +2348,7 @@ describe('ContributionResolver', () => {
               }),
             }),
             expect.objectContaining({
-              amount: expect.decimalEqual(50),
+              amount: '50',
               id: expect.any(Number),
               memo: 'Herzlich Willkommen bei Gradido liebe Bibi!',
               messagesCount: 0,
@@ -2363,7 +2362,7 @@ describe('ContributionResolver', () => {
               }),
             }),
             expect.objectContaining({
-              amount: expect.decimalEqual(450),
+              amount: '450',
               id: expect.any(Number),
               memo: 'Herzlich Willkommen bei Gradido liebe Bibi!',
               messagesCount: 0,
@@ -2377,7 +2376,7 @@ describe('ContributionResolver', () => {
               }),
             }),
             expect.objectContaining({
-              amount: expect.decimalEqual(400),
+              amount: '400',
               id: expect.any(Number),
               memo: 'Herzlich Willkommen bei Gradido!',
               messagesCount: 0,
@@ -2391,7 +2390,7 @@ describe('ContributionResolver', () => {
               }),
             }),
             expect.objectContaining({
-              amount: expect.decimalEqual(100),
+              amount: '100',
               id: expect.any(Number),
               memo: 'Confirmed Contribution',
               messagesCount: 0,
@@ -2405,7 +2404,7 @@ describe('ContributionResolver', () => {
               }),
             }),
             expect.objectContaining({
-              amount: expect.decimalEqual(100),
+              amount: '100',
               id: expect.any(Number),
               memo: 'Test env contribution',
               messagesCount: 0,
@@ -2419,7 +2418,7 @@ describe('ContributionResolver', () => {
               }),
             }),
             expect.objectContaining({
-              amount: expect.decimalEqual(200),
+              amount: '200',
               id: expect.any(Number),
               memo: 'Aktives Grundeinkommen',
               messagesCount: 0,
@@ -2433,7 +2432,7 @@ describe('ContributionResolver', () => {
               }),
             }),
             expect.objectContaining({
-              amount: expect.decimalEqual(200),
+              amount: '200',
               id: expect.any(Number),
               memo: 'Das war leider zu Viel!',
               messagesCount: 1,
@@ -2447,7 +2446,7 @@ describe('ContributionResolver', () => {
               }),
             }),
             expect.objectContaining({
-              amount: expect.decimalEqual(166),
+              amount: '166',
               id: expect.any(Number),
               memo: 'Whatever contribution',
               messagesCount: 0,
@@ -2461,7 +2460,7 @@ describe('ContributionResolver', () => {
               }),
             }),
             expect.objectContaining({
-              amount: expect.decimalEqual(166),
+              amount: '166',
               id: expect.any(Number),
               memo: 'Whatever contribution',
               messagesCount: 0,
@@ -2475,7 +2474,7 @@ describe('ContributionResolver', () => {
               }),
             }),
             expect.objectContaining({
-              amount: expect.decimalEqual(166),
+              amount: '166',
               id: expect.any(Number),
               memo: 'Whatever contribution',
               messagesCount: 0,
@@ -2489,7 +2488,7 @@ describe('ContributionResolver', () => {
               }),
             }),
             expect.objectContaining({
-              amount: expect.decimalEqual(100),
+              amount: '100',
               id: expect.any(Number),
               memo: 'Test contribution to delete',
               messagesCount: 0,
@@ -2503,7 +2502,7 @@ describe('ContributionResolver', () => {
               }),
             }),
             expect.objectContaining({
-              amount: expect.decimalEqual(100),
+              amount: '100',
               id: expect.any(Number),
               memo: 'Test contribution to deny',
               messagesCount: 0,
@@ -2517,7 +2516,7 @@ describe('ContributionResolver', () => {
               }),
             }),
             expect.objectContaining({
-              amount: expect.decimalEqual(100),
+              amount: '100',
               id: expect.any(Number),
               memo: 'Test contribution to confirm',
               messagesCount: 0,
@@ -2531,7 +2530,7 @@ describe('ContributionResolver', () => {
               }),
             }),
             expect.objectContaining({
-              amount: expect.decimalEqual(100),
+              amount: '100',
               id: expect.any(Number),
               memo: 'Test IN_PROGRESS contribution',
               messagesCount: 1,
@@ -2545,7 +2544,7 @@ describe('ContributionResolver', () => {
               }),
             }),
             expect.objectContaining({
-              amount: expect.decimalEqual(10),
+              amount: '10',
               id: expect.any(Number),
               memo: 'Test PENDING contribution update',
               messagesCount: 2,
@@ -2559,7 +2558,7 @@ describe('ContributionResolver', () => {
               }),
             }),
             expect.objectContaining({
-              amount: expect.decimalEqual(1000),
+              amount: '1000',
               id: expect.any(Number),
               memo: 'Herzlich Willkommen bei Gradido!',
               messagesCount: 0,
@@ -2658,7 +2657,7 @@ describe('ContributionResolver', () => {
             contributionCount: 4,
             contributionList: expect.arrayContaining([
               expect.objectContaining({
-                amount: expect.decimalEqual(100),
+                amount: '100',
                 id: expect.any(Number),
                 memo: '#firefighters',
                 messagesCount: 0,
@@ -2672,7 +2671,7 @@ describe('ContributionResolver', () => {
                 }),
               }),
               expect.objectContaining({
-                amount: expect.decimalEqual(400),
+                amount: '400',
                 id: expect.any(Number),
                 memo: 'Herzlich Willkommen bei Gradido!',
                 messagesCount: 0,
@@ -2686,7 +2685,7 @@ describe('ContributionResolver', () => {
                 }),
               }),
               expect.objectContaining({
-                amount: expect.decimalEqual(100),
+                amount: '100',
                 id: expect.any(Number),
                 memo: 'Test env contribution',
                 messagesCount: 0,
@@ -2700,7 +2699,7 @@ describe('ContributionResolver', () => {
                 }),
               }),
               expect.objectContaining({
-                amount: expect.decimalEqual(200),
+                amount: '200',
                 id: expect.any(Number),
                 memo: 'Das war leider zu Viel!',
                 messagesCount: 1,
@@ -2735,7 +2734,7 @@ describe('ContributionResolver', () => {
             contributionCount: 3,
             contributionList: expect.arrayContaining([
               expect.objectContaining({
-                amount: expect.decimalEqual(400),
+                amount: '400',
                 id: expect.any(Number),
                 memo: 'Herzlich Willkommen bei Gradido!',
                 messagesCount: 0,
@@ -2749,7 +2748,7 @@ describe('ContributionResolver', () => {
                 }),
               }),
               expect.objectContaining({
-                amount: expect.decimalEqual(100),
+                amount: '100',
                 id: expect.any(Number),
                 memo: 'Test env contribution',
                 messagesCount: 0,
@@ -2763,7 +2762,7 @@ describe('ContributionResolver', () => {
                 }),
               }),
               expect.objectContaining({
-                amount: expect.decimalEqual(200),
+                amount: '200',
                 id: expect.any(Number),
                 memo: 'Das war leider zu Viel!',
                 messagesCount: 1,
@@ -2796,7 +2795,7 @@ describe('ContributionResolver', () => {
             contributionCount: 1,
             contributionList: expect.arrayContaining([
               expect.objectContaining({
-                amount: expect.decimalEqual(100),
+                amount: '100',
                 id: expect.any(Number),
                 memo: '#firefighters',
                 messagesCount: 0,
@@ -2849,7 +2848,7 @@ describe('ContributionResolver', () => {
             contributionCount: 3,
             contributionList: expect.arrayContaining([
               expect.objectContaining({
-                amount: expect.decimalEqual(166),
+                amount: '166',
                 id: expect.any(Number),
                 memo: 'Whatever contribution',
                 messagesCount: 0,
@@ -2863,7 +2862,7 @@ describe('ContributionResolver', () => {
                 }),
               }),
               expect.objectContaining({
-                amount: expect.decimalEqual(166),
+                amount: '166',
                 id: expect.any(Number),
                 memo: 'Whatever contribution',
                 messagesCount: 0,
@@ -2877,7 +2876,7 @@ describe('ContributionResolver', () => {
                 }),
               }),
               expect.objectContaining({
-                amount: expect.decimalEqual(166),
+                amount: '166',
                 id: expect.any(Number),
                 memo: 'Whatever contribution',
                 messagesCount: 0,

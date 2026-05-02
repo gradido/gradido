@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'bun:test'
-import Decimal from 'decimal.js-light'
 import { calculateDecay as calculateDecayNative } from 'shared-native'
 import { Duration } from './Duration'
 import { GradidoUnit } from './GradidoUnit'
@@ -106,54 +105,7 @@ describe('GradidoUnit', () => {
       expect(gdd.toString(3)).toBe('15678901.235')
     })
   })
-  describe('performance compared with DecimalJs', () => {
-    it('GradidoUnit.fromString 10k', () => {
-      for (let i = 0; i < 10000; i++) {
-        GradidoUnit.fromString('1.2345')
-      }
-    })
-    it('Decimal.js fromString 10k', () => {
-      for (let i = 0; i < 10000; i++) {
-        new Decimal('1.2345')
-      }
-    })
-    it('GradidoUnit.toString 10k', () => {
-      const gdd = GradidoUnit.fromGradidoCent(12345n)
-      for (let i = 0; i < 10000; i++) {
-        gdd.toString()
-      }
-    })
-    it('Decimal.js toString 10k', () => {
-      const d = new Decimal('1.2345')
-      for (let i = 0; i < 10000; i++) {
-        d.toString()
-      }
-    })
-    it('GradidoUnit.toString 10k without after comma', () => {
-      const gdd = GradidoUnit.fromGradidoCent(12345n)
-      for (let i = 0; i < 10000; i++) {
-        gdd.toString(0)
-      }
-    })
-    it('Decimal.js toString 10k without after comma', () => {
-      const d = new Decimal('1.2345')
-      for (let i = 0; i < 10000; i++) {
-        d.toDecimalPlaces(0).toString()
-      }
-    })
-    it('GradidoUnit.toString 10k big number', () => {
-      const gdd = GradidoUnit.fromGradidoCent(156789012345n)
-      for (let i = 0; i < 10000; i++) {
-        gdd.toString()
-      }
-    })
-    it('Decimal.js toString 10k big number', () => {
-      const d = new Decimal('15678901.2345')
-      for (let i = 0; i < 10000; i++) {
-        d.toString()
-      }
-    })
-  })
+
   describe('legacy decay tests', () => {
     it('with large values', () => {
       const amount = GradidoUnit.fromNumber(100.0)

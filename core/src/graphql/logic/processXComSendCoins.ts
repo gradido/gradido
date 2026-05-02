@@ -12,7 +12,6 @@ import {
   PendingTransactionLoggingView,
   UserLoggingView,
 } from 'database'
-import { Decimal } from 'decimal.js-light'
 // import { LogError } from '@server/LogError'
 import { getLogger } from 'log4js'
 import {
@@ -130,7 +129,7 @@ export async function processXComCompleteTransaction(
         recipientCom,
         senderCom,
         creationDate,
-        new Decimal(amount),
+        GradidoUnit.fromString(amount),
         memo,
         senderUser,
         pendingResult,
@@ -258,7 +257,7 @@ export async function processXComPendingSendCoins(
         receiverCom.communityUuid!,
         recipientIdentifier,
         creationDate.toISOString(),
-        amount.toDecimal(),
+        amount.toString(4),
         memo,
         senderCom.communityUuid!,
         sender.gradidoID,
@@ -311,10 +310,10 @@ export async function processXComPendingSendCoins(
           // writing the pending transaction on receiver-side was successfull, so now write the sender side
           try {
             const pendingTx = DbPendingTransaction.create()
-            pendingTx.amount = amount.negated().toDecimal()
-            pendingTx.balance = senderBalance.balance.toDecimal()
+            pendingTx.amount = amount.negated()
+            pendingTx.balance = senderBalance.balance
             pendingTx.balanceDate = creationDate
-            pendingTx.decay = senderBalance ? senderBalance.decay.decay.toDecimal() : new Decimal(0)
+            pendingTx.decay = senderBalance ? senderBalance.decay.decay : new GradidoUnit(0n)
             pendingTx.decayStart = senderBalance ? senderBalance.decay.start : null
             if (receiverCom.communityUuid) {
               pendingTx.linkedUserCommunityUuid = receiverCom.communityUuid
@@ -394,7 +393,7 @@ export async function processXComCommittingSendCoins(
   receiverCom: DbCommunity,
   senderCom: DbCommunity,
   creationDate: Date,
-  amount: Decimal,
+  amount: GradidoUnit,
   memo: string,
   sender: dbUser,
   recipient: SendCoinsResult,
@@ -452,7 +451,7 @@ export async function processXComCommittingSendCoins(
             : CONFIG_CORE.FEDERATION_XCOM_RECEIVER_COMMUNITY_UUID,
           pendingTx.linkedUserGradidoID!,
           pendingTx.balanceDate.toISOString(),
-          pendingTx.amount.mul(-1),
+          pendingTx.amount.negated().toString(4),
           pendingTx.memo,
           pendingTx.userCommunityUuid,
           pendingTx.userGradidoID!,

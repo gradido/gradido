@@ -9,7 +9,6 @@ import {
   TransactionLoggingView,
   UserLoggingView,
 } from 'database'
-import Decimal from 'decimal.js-light'
 import { getLogger } from 'log4js'
 import { DecayCalculationType, GradidoUnit, PendingTransactionState } from 'shared'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
@@ -83,16 +82,12 @@ export async function settlePendingReceiveTransaction(
     transactionReceive.amount = pendingTx.amount
     const receiveBalance = await calculateRecipientBalance(
       receiverUser.id,
-      GradidoUnit.fromDecimal(pendingTx.amount),
+      pendingTx.amount,
       pendingTx.balanceDate,
     )
-    transactionReceive.balance = receiveBalance
-      ? receiveBalance.balance.toDecimal()
-      : pendingTx.amount
+    transactionReceive.balance = receiveBalance ? receiveBalance.balance : pendingTx.amount
     transactionReceive.balanceDate = pendingTx.balanceDate
-    transactionReceive.decay = receiveBalance
-      ? receiveBalance.decay.decay.toDecimal()
-      : new Decimal(0)
+    transactionReceive.decay = receiveBalance ? receiveBalance.decay.decay : new GradidoUnit(0n)
     transactionReceive.decayStart = receiveBalance ? receiveBalance.decay.start : null
     transactionReceive.decayCalculationType = pendingTx.decayCalculationType
     transactionReceive.previous = receiveBalance ? receiveBalance.lastTransactionId : null
