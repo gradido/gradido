@@ -58,7 +58,7 @@ export class UnconfirmedContributionUserRole extends AbstractUnconfirmedContribu
     // creation date is currently not changeable
     if (
       this.self.memo === this.updateData.memo &&
-      GradidoUnit.fromDecimal(this.self.amount).gddCent === this.updateData.amount.gddCent &&
+      GradidoUnit.fromDecimal(this.self.amount).comparedTo(this.updateData.amount) === 0n &&
       this.self.contributionDate.getTime() === new Date(this.updateData.contributionDate).getTime()
     ) {
       throw new LogError("the contribution wasn't changed at all")

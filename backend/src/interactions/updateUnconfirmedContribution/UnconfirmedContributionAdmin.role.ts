@@ -37,7 +37,7 @@ export class UnconfirmedContributionAdminRole extends AbstractUnconfirmedContrib
     return (
       (this.updateData.memo && this.self.memo !== this.updateData.memo) ||
       (this.updatedAmount &&
-        GradidoUnit.fromDecimal(this.self.amount).gddCent !== this.updatedAmount.gddCent) ||
+        GradidoUnit.fromDecimal(this.self.amount).comparedTo(this.updatedAmount) !== 0n) ||
       +this.self.contributionDate !== +this.updatedCreationDate
     )
   }
