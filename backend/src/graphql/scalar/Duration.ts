@@ -10,12 +10,15 @@ export const DurationScalar = new GraphQLScalarType({
   },
 
   parseValue(value) {
+    if (typeof value !== 'string') {
+      throw new TypeError(`${String(value)} is not a valid string value.`)
+    }
     return new Duration(BigInt(value))
   },
 
   parseLiteral(ast) {
     if (ast.kind !== Kind.STRING) {
-      throw new TypeError(`${String(ast)} is not a valid float value.`)
+      throw new TypeError(`${String(ast)} is not a valid string value.`)
     }
 
     return new Duration(BigInt(ast.value))

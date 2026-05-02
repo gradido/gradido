@@ -9,7 +9,7 @@ export class BalanceLoggingView extends AbstractLoggingView {
 
   public toJSON(): any {
     return {
-      balance: this.gradidoUnitToString(this.self.balance),
+      balance: this.self.balance,
       balanceGDT: this.self.balanceGDT,
       count: this.self.count,
       linkCount: this.self.linkCount,

@@ -98,7 +98,7 @@ describe('Send', () => {
   it('sets transaction data correctly', async () => {
     const testData = {
       identifier: 'test@example.com',
-      amount: '100',
+      amount: 100,
       memo: 'Test transaction',
       selected: 'send',
     }
@@ -112,7 +112,7 @@ describe('Send', () => {
       selected: 'send',
       targetCommunity: { uuid: 'community-uuid' },
       identifier: 'recipient@example.com',
-      amount: '50',
+      amount: 50,
       memo: 'Test send',
     })
 
@@ -130,7 +130,7 @@ describe('Send', () => {
   it('handles create transaction link', async () => {
     wrapper.vm.setTransaction({
       selected: 'link',
-      amount: '75',
+      amount: 75,
       memo: 'Test link',
     })
 
@@ -164,7 +164,7 @@ describe('Send', () => {
       selected: SEND_TYPES.send,
       targetCommunity: { uuid: 'community-uuid' },
       identifier: 'recipient@example.com',
-      amount: '50',
+      amount: 50,
       memo: 'Test send',
     })
 

@@ -1,4 +1,3 @@
-import Decimal from 'decimal.js-light'
 import {
   calculateDecay as calculateDecayNative,
   gradidoUnitFromString,
@@ -12,24 +11,12 @@ import { Duration } from './Duration'
 export class GradidoUnit {
   protected gddCentValue: bigint = 0n
 
-  constructor(value: bigint | string | number | GradidoUnit) {
-    if (value instanceof GradidoUnit) {
-      this.gddCentValue = value.gddCent
-    } else if (typeof value === 'string') {
-      this.gddCentValue = BigInt(gradidoUnitFromString(value))
-    } else if (typeof value === 'number') {
-      this.gddCentValue = BigInt(Math.round(value * 10000))
-    } else {
-      this.gddCentValue = value
-    }
+  constructor(value: bigint) {
+    this.gddCentValue = value
   }
 
   public static fromNumber(value: number): GradidoUnit {
     return new GradidoUnit(BigInt(Math.round(value * 10000)))
-  }
-
-  public static fromDecimal(gdd: Decimal): GradidoUnit {
-    return this.fromString(gdd.toString())
   }
 
   public static fromString(value: string): GradidoUnit {
@@ -61,6 +48,7 @@ export class GradidoUnit {
    *
    * @param from The beginning of the period to consider
    * @param to The end of the period to consider
+   * @throws Error if to < from
    * @returns The effective decay duration as a Duration object
    */
   public static effectiveDecayDuration(from: Date, to: Date): Duration {
@@ -83,16 +71,33 @@ export class GradidoUnit {
     return Duration.fromDateDiff(DECAY_START_TIME, to)
   }
 
-  public decayed(from: Date | Duration, to?: Date): GradidoUnit {
-    if (from instanceof Duration) {
-      return new GradidoUnit(calculateDecayNative(this.gddCentValue, from.seconds))
-    } else if (from instanceof Date && to) {
-      const duration = GradidoUnit.effectiveDecayDuration(from, to)
+  /**
+   * Calculates the decayed value of this GradidoUnit based on the given time period.
+   *
+   * @param fromOrDuration The start time or duration to calculate decay from
+   * @param to The end time (required if fromOrDuration is a Date)
+   * @returns A new GradidoUnit representing the decayed value
+   */
+  public decayed(fromOrDuration: Date | Duration, to?: Date): GradidoUnit {
+    if (fromOrDuration instanceof Duration) {
+      return new GradidoUnit(calculateDecayNative(this.gddCentValue, fromOrDuration.seconds))
+    } else if (fromOrDuration instanceof Date) {
+      if (!to) {
+        throw new Error('to is required when fromOrDuration is a Date')
+      }
+      const duration = GradidoUnit.effectiveDecayDuration(fromOrDuration, to)
       return new GradidoUnit(calculateDecayNative(this.gddCentValue, duration.seconds))
     }
     throw new Error('Invalid parameters for decayed')
   }
 
+  /**
+   * Calculates the decay for this GradidoUnit over a given time period.
+   *
+   * @param from The start time of the decay period
+   * @param to The end time of the decay period
+   * @returns A Decay object containing the original balance, decay amount, and time period
+   */
   public calculateDecay(from: Date, to: Date): Decay {
     const duration = GradidoUnit.effectiveDecayDuration(from, to)
     const decay: Decay = {
@@ -112,10 +117,12 @@ export class GradidoUnit {
     return decay
   }
 
-  public decayForDuration(duration: Duration): GradidoUnit {
-    return new GradidoUnit(calculateDecayNative(this.gddCentValue, duration.seconds))
-  }
-
+  /**
+   * Rounds the GradidoUnit to a specified number of decimal places.
+   *
+   * @param places The number of decimal places to round to
+   * @returns A new GradidoUnit with the rounded value
+   */
   public toDecimalPlaces(places: number): GradidoUnit {
     return new GradidoUnit(toDecimalPlacesNative(this.gddCentValue, places))
   }
@@ -190,12 +197,16 @@ export class GradidoUnit {
     return new GradidoUnit(this.gddCentValue)
   }
 
-  public toDecimal(): Decimal {
-    return new Decimal(this.gddCentValue.toString()).div(10000)
-  }
   public toNumber(): number {
     return Number(this.gddCentValue) / 10000
   }
+
+  /**
+   * Converts the GradidoUnit to a string representation
+   * @param places The number of decimal places to include (default: 2)
+   * @param keepTrailingZeros Whether to keep trailing zeros (default: false) or remove them like Decimal.js does it
+   * @returns A string representation of the GradidoUnit
+   */
   public toString(places = 2, keepTrailingZeros = false): string {
     if (keepTrailingZeros) {
       return gradidoUnitToString(this.gddCentValue, places)

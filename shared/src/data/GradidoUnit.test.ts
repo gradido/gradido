@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'bun:test'
-import Decimal from 'decimal.js-light'
 import { calculateDecay as calculateDecayNative } from 'shared-native'
 import { Duration } from './Duration'
 import { GradidoUnit } from './GradidoUnit'
@@ -39,9 +38,9 @@ describe('GradidoUnit', () => {
     const from = new Date('2022-01-01')
     const to = new Date('2022-01-02')
     const decay = gdd.calculateDecay(from, to)
-    expect(decay.balance.gddCent).toBe(9981n)
-    expect(decay.decay.gddCent).toBe(-19n)
-    expect(decay.duration?.seconds).toBe(86400n)
+    expect(decay.balance.toNumber()).toBe(0.9981)
+    expect(decay.decay.toNumber()).toBe(-0.0019)
+    expect(decay.duration?.toNumber()).toBe(86400)
     expect(decay.start).toBe(from)
     expect(decay.end).toBe(to)
   })
@@ -106,54 +105,7 @@ describe('GradidoUnit', () => {
       expect(gdd.toString(3)).toBe('15678901.235')
     })
   })
-  describe('performance compared with DecimalJs', () => {
-    it('GradidoUnit.fromString 10k', () => {
-      for (let i = 0; i < 10000; i++) {
-        GradidoUnit.fromString('1.2345')
-      }
-    })
-    it('Decimal.js fromString 10k', () => {
-      for (let i = 0; i < 10000; i++) {
-        new Decimal('1.2345')
-      }
-    })
-    it('GradidoUnit.toString 10k', () => {
-      const gdd = GradidoUnit.fromGradidoCent(12345n)
-      for (let i = 0; i < 10000; i++) {
-        gdd.toString()
-      }
-    })
-    it('Decimal.js toString 10k', () => {
-      const d = new Decimal('1.2345')
-      for (let i = 0; i < 10000; i++) {
-        d.toString()
-      }
-    })
-    it('GradidoUnit.toString 10k without after comma', () => {
-      const gdd = GradidoUnit.fromGradidoCent(12345n)
-      for (let i = 0; i < 10000; i++) {
-        gdd.toString(0)
-      }
-    })
-    it('Decimal.js toString 10k without after comma', () => {
-      const d = new Decimal('1.2345')
-      for (let i = 0; i < 10000; i++) {
-        d.toDecimalPlaces(0).toString()
-      }
-    })
-    it('GradidoUnit.toString 10k big number', () => {
-      const gdd = GradidoUnit.fromGradidoCent(156789012345n)
-      for (let i = 0; i < 10000; i++) {
-        gdd.toString()
-      }
-    })
-    it('Decimal.js toString 10k big number', () => {
-      const d = new Decimal('15678901.2345')
-      for (let i = 0; i < 10000; i++) {
-        d.toString()
-      }
-    })
-  })
+
   describe('legacy decay tests', () => {
     it('with large values', () => {
       const amount = GradidoUnit.fromNumber(100.0)
@@ -172,7 +124,7 @@ describe('GradidoUnit', () => {
       const duration = Duration.days(1)
       const buffed = amount.requiredBeforeDecay(duration)
       expect(buffed.gddCent).toBe(10019n)
-      expect(buffed.decayForDuration(duration).gddCent).toBe(amount.gddCent)
+      expect(buffed.decayed(duration).gddCent).toBe(amount.gddCent)
     })
 
     it("has correct backward calculation 1'000 GDD, 1 minute", () => {
@@ -180,7 +132,7 @@ describe('GradidoUnit', () => {
       const duration = Duration.minutes(1)
       const buffed = amount.requiredBeforeDecay(duration)
       expect(buffed.gddCent).toBe(10000013n)
-      expect(buffed.decayForDuration(duration).gddCent).toBe(amount.gddCent)
+      expect(buffed.decayed(duration).gddCent).toBe(amount.gddCent)
     })
 
     it("has correct backward calculation 10'000 GDD, 1 second", () => {
@@ -188,18 +140,18 @@ describe('GradidoUnit', () => {
       const duration = Duration.seconds(1)
       const buffed = amount.requiredBeforeDecay(duration)
       expect(buffed.gddCent).toBe(100000002n)
-      expect(buffed.decayForDuration(duration).gddCent).toBe(amount.gddCent)
+      expect(buffed.decayed(duration).gddCent).toBe(amount.gddCent)
     })
 
     it('has correct forward calculation from number', () => {
       const amount = GradidoUnit.fromNumber(1.0019)
       const duration = Duration.days(1)
-      expect(amount.decayForDuration(duration).gddCent).toBe(10000n)
+      expect(amount.decayed(duration).gddCent).toBe(10000n)
     })
     it('has correct forward calculation from bigInt', () => {
       const amount = new GradidoUnit(10019n)
       const duration = Duration.days(1)
-      expect(amount.decayForDuration(duration).gddCent).toBe(10000n)
+      expect(amount.decayed(duration).gddCent).toBe(10000n)
     })
   })
   describe('link blocked amount decay test compare with blockchain', () => {

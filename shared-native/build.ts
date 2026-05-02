@@ -31,8 +31,8 @@ async function main() {
     {
       c_core: {
         ...commonConfigs,
-        sources: libSrcs,
         output: `build/${coreFileName}`,
+        sources: libSrcs,
         type: 'shared',
         std: 'c17',
         cflags: ['-g0', '-s'],

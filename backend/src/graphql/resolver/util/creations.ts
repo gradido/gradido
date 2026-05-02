@@ -28,7 +28,7 @@ export const validateContribution = (
     throw new LogError('No information for available creations for the given date', creationDate)
   }
 
-  if (amount.gddCent > creations[index].gddCent) {
+  if (amount.comparedTo(creations[index]) > 0) {
     throw new LogError(
       'The amount to be created exceeds the amount still available for this month',
       amount,
@@ -87,6 +87,8 @@ export const getUserCreations = async (
         if (!creation) {
           return MAX_CREATION_AMOUNT
         }
+        // db call return GradidoUnit bigints as string, we cannot use GradidoUnit.fromString here,
+        // because GradidoUnit.fromString expect Gradido and will convert it to gradido cent, but in db it is already stored as gradido cent
         return MAX_CREATION_AMOUNT.subtract(GradidoUnit.fromGradidoCent(BigInt(creation.sum)))
       }),
     }

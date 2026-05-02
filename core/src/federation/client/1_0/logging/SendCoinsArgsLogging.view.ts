@@ -12,7 +12,7 @@ export class SendCoinsArgsLoggingView extends AbstractLoggingView {
       recipientCommunityUuid: this.self.recipientCommunityUuid,
       recipientUserIdentifier: this.self.recipientUserIdentifier,
       creationDate: this.self.creationDate,
-      amount: this.gradidoUnitToString(this.self.amount),
+      amount: this.self.amount,
       memoLength: this.self.memo.length,
       senderCommunityUuid: this.self.senderCommunityUuid,
       senderUserUuid: this.self.senderUserUuid,

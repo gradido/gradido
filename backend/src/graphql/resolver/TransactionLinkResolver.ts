@@ -96,11 +96,6 @@ export const transactionLinkCode = (date: Date): string => {
 
 const db = AppDatabase.getInstance()
 
-export const transactionLinkExpireDate = (date: Date): Date => {
-  const validUntil = new Date(date)
-  return new Date(validUntil.setDate(date.getDate() + Number(CODE_VALID_DAYS_DURATION)))
-}
-
 @Resolver()
 export class TransactionLinkResolver {
   @Authorized([RIGHTS.CREATE_TRANSACTION_LINK])
@@ -112,7 +107,7 @@ export class TransactionLinkResolver {
     const user = getUser(context)
 
     const createdDate = new Date()
-    const validUntil = transactionLinkExpireDate(createdDate)
+    const validUntil = Duration.days(CODE_VALID_DAYS_DURATION).addToDate(createdDate)
 
     const holdAvailableAmount = amount.requiredBeforeDecay(Duration.days(CODE_VALID_DAYS_DURATION))
 
@@ -382,7 +377,7 @@ export class TransactionLinkResolver {
           transaction.balanceDate = now
           transaction.decay = decay ? decay.decay : new GradidoUnit(0n)
           transaction.decayStart = decay ? decay.start : null
-          transaction.decayCalculationType = DecayCalculationType.NATIVE_C_DYNAMIC_FACTOR
+          transaction.decayCalculationType = DecayCalculationType.NATIVE_C_FIXED_FACTOR_INTEGER
           await queryRunner.manager.insert(DbTransaction, transaction)
 
           contribution.confirmedAt = now
