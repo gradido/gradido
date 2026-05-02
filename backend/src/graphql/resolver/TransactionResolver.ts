@@ -130,7 +130,7 @@ export const executeTransaction = async (
       transactionSend.balanceDate = receivedCallDate
       transactionSend.decay = sendBalance.decay.decay
       transactionSend.decayStart = sendBalance.decay.start
-      transactionSend.decayCalculationType = DecayCalculationType.NATIVE_C_DYNAMIC_FACTOR
+      transactionSend.decayCalculationType = DecayCalculationType.NATIVE_C_FIXED_FACTOR_INTEGER
       transactionSend.previous = sendBalance.lastTransactionId
       transactionSend.transactionLinkId = transactionLink ? transactionLink.id : null
       await queryRunner.manager.insert(dbTransaction, transactionSend)
@@ -154,7 +154,7 @@ export const executeTransaction = async (
       transactionReceive.balanceDate = receivedCallDate
       transactionReceive.decay = receiveBalance ? receiveBalance.decay.decay : new Decimal(0)
       transactionReceive.decayStart = receiveBalance ? receiveBalance.decay.start : null
-      transactionReceive.decayCalculationType = DecayCalculationType.NATIVE_C_DYNAMIC_FACTOR
+      transactionReceive.decayCalculationType = DecayCalculationType.NATIVE_C_FIXED_FACTOR_INTEGER
       transactionReceive.previous = receiveBalance ? receiveBalance.lastTransactionId : null
       transactionReceive.linkedTransactionId = transactionSend.id
       transactionReceive.transactionLinkId = transactionLink ? transactionLink.id : null

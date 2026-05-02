@@ -15,6 +15,7 @@ async function main() {
     mode: 'small',
     cpu: 'native',
     nodeVersion: nodeVersion().replace(/^v/, ''),
+    include: ['include', 'third_party'],
   }
 
   const coreFileName = getCoreFileName()
@@ -25,13 +26,13 @@ async function main() {
     libs.librariesSearch = [getNodePath()]
     libs.libraries = ['node']
   }
-
+  const libSrcs = ['src/data/unit.c', 'src/utils/converter.c', 'src/utils/duration.c']
   await build(
     {
       c_core: {
         ...commonConfigs,
         output: `build/${coreFileName}`,
-        sources: ['src/c/unit.c'],
+        sources: libSrcs,
         type: 'shared',
         std: 'c17',
         cflags: ['-g0', '-s'],
@@ -40,7 +41,7 @@ async function main() {
         ...commonConfigs,
         ...libs,
         output: 'build/shared_native.node',
-        sources: ['src/napi/gradidoUnit.cpp', 'src/c/unit.c'],
+        sources: ['bindings/napi/gradidoUnit.cpp', ...libSrcs],
         cflags: ['-g0', '-s', '-DNAPI_VERSION=8'],
       } as Target,
     },
