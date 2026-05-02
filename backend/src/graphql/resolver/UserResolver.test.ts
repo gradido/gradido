@@ -529,7 +529,7 @@ describe('UserResolver', () => {
           // factory logs in as Peter Lustig
           await transactionLinkFactory(testEnv, {
             email: 'peter@lustig.de',
-            amount: 19.99,
+            amount: '19.99',
             memo: `Kein Trick, keine Zauberrei,
     bei Gradidio sei dabei!`,
           })

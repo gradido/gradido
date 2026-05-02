@@ -28,7 +28,7 @@ export const validateContribution = (
     throw new LogError('No information for available creations for the given date', creationDate)
   }
 
-  if (amount.gddCent > creations[index].gddCent) {
+  if (amount.comparedTo(creations[index]) > 0) {
     throw new LogError(
       'The amount to be created exceeds the amount still available for this month',
       amount,

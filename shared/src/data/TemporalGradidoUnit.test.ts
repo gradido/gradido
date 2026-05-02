@@ -22,9 +22,7 @@ describe('TemporalGradidoUnit', () => {
     const balance1 = new TemporalGradidoUnit(GradidoUnit.fromNumber(100), new Date('2022-01-01'))
     const balance2 = new TemporalGradidoUnit(GradidoUnit.fromNumber(100), new Date('2022-01-02'))
     const expected = new TemporalGradidoUnit(
-      GradidoUnit.fromNumber(100)
-        .decayForDuration(Duration.hours(24))
-        .add(GradidoUnit.fromNumber(100)),
+      GradidoUnit.fromNumber(100).decayed(Duration.hours(24)).add(GradidoUnit.fromNumber(100)),
       new Date('2022-01-02'),
     )
     const result = balance1.add(balance2)
@@ -38,9 +36,7 @@ describe('TemporalGradidoUnit', () => {
     const balance2 = new TemporalGradidoUnit(GradidoUnit.fromNumber(50), new Date('2022-01-02'))
     const balance3 = new TemporalGradidoUnit(GradidoUnit.fromNumber(150), new Date('2022-01-03'))
     const expected = new TemporalGradidoUnit(
-      GradidoUnit.fromNumber(100)
-        .decayForDuration(Duration.hours(24))
-        .subtract(GradidoUnit.fromNumber(50)),
+      GradidoUnit.fromNumber(100).decayed(Duration.hours(24)).subtract(GradidoUnit.fromNumber(50)),
       new Date('2022-01-02'),
     )
     expect(() => balance1.subtract(balance3)).toThrow(
