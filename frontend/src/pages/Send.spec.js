@@ -121,7 +121,7 @@ describe('Send', () => {
     expect(sendCoinsMock).toHaveBeenCalledWith({
       recipientCommunityIdentifier: 'community-uuid',
       recipientIdentifier: 'recipient@example.com',
-      amount: 50,
+      amount: '50',
       memo: 'Test send',
     })
     expect(wrapper.vm.currentTransactionStep).toBe('transactionResultSendSuccess')
@@ -137,7 +137,7 @@ describe('Send', () => {
     await wrapper.vm.sendTransaction()
 
     expect(createTransactionLinkMock).toHaveBeenCalledWith({
-      amount: 75,
+      amount: '75',
       memo: 'Test link',
     })
     expect(wrapper.vm.currentTransactionStep).toBe('transactionResultLink')
