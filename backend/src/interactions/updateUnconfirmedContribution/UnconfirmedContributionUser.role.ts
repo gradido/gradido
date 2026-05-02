@@ -59,7 +59,7 @@ export class UnconfirmedContributionUserRole extends AbstractUnconfirmedContribu
     if (
       this.self.memo === this.updateData.memo &&
       GradidoUnit.fromDecimal(this.self.amount).comparedTo(this.updateData.amount) === 0n &&
-      this.self.contributionDate.getTime() === new Date(this.updateData.contributionDate).getTime()
+      this.self.contributionDate.getTime() === new Date(this.updatedCreationDate).getTime()
     ) {
       throw new LogError("the contribution wasn't changed at all")
     }

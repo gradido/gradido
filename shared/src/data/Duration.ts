@@ -128,6 +128,7 @@ export class Duration {
   get seconds(): bigint {
     return this._seconds
   }
+
   public toNumber(): number {
     return Number(this._seconds)
   }

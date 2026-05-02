@@ -41,7 +41,12 @@ async function calculateBalance(
     ? GradidoUnit.fromDecimal(transactionLink.holdAvailableAmount)
     : new GradidoUnit(0n)
 
-  if (balance.subtract(sumHoldAvailableAmount).add(releasedLinkAmount).gddCent < 0) {
+  if (
+    balance
+      .subtract(sumHoldAvailableAmount)
+      .add(releasedLinkAmount)
+      .comparedTo(new GradidoUnit(0n)) < 0
+  ) {
     return null
   }
   return { balance, lastTransactionId: lastTransaction.id, decay }
