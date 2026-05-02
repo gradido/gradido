@@ -164,7 +164,7 @@ describe('Send', () => {
       selected: SEND_TYPES.send,
       targetCommunity: { uuid: 'community-uuid' },
       identifier: 'recipient@example.com',
-      amount: '50',
+      amount: 50,
       memo: 'Test send',
     })
 
