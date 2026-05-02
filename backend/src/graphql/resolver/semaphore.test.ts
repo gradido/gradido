@@ -127,13 +127,13 @@ describe('semaphore fullstack', () => {
     } = await mutate({
       mutation: createContributionLink,
       variables: {
-        amount: new Decimal(200),
+        amount: '200',
         name: 'Test Contribution Link',
         memo: 'Danke für deine Teilnahme an dem Test der Contribution Links',
         cycle: 'ONCE',
         validFrom: new Date(2022, 5, 18).toISOString(),
         validTo: new Date(now.getFullYear() + 1, 7, 14).toISOString(),
-        maxAmountPerMonth: new Decimal(200),
+        maxAmountPerMonth: '200',
         maxPerCycle: 1,
       },
     })
@@ -148,7 +148,7 @@ describe('semaphore fullstack', () => {
       mutation: createTransactionLink,
       variables: {
         email: 'bob@baumeister.de',
-        amount: 20,
+        amount: '20',
         memo: 'Bobs Link',
       },
     })
@@ -158,7 +158,7 @@ describe('semaphore fullstack', () => {
       mutation: createContribution,
       variables: {
         contributionDate: contributionDateFormatter(new Date()),
-        amount: 200,
+        amount: '200',
         memo: 'Bobs Contribution',
       },
     })
@@ -171,7 +171,7 @@ describe('semaphore fullstack', () => {
     } = await mutate({
       mutation: createTransactionLink,
       variables: {
-        amount: 20,
+        amount: '20',
         memo: 'Bibis Link',
       },
     })
@@ -181,7 +181,7 @@ describe('semaphore fullstack', () => {
       mutation: createContribution,
       variables: {
         contributionDate: contributionDateFormatter(new Date()),
-        amount: 200,
+        amount: '200',
         memo: 'Bibis Contribution',
       },
     })
@@ -269,7 +269,7 @@ describe('semaphore fullstack', () => {
       } = await mutate({
         mutation: createTransactionLink,
         variables: {
-          amount: 20,
+          amount: '20',
           memo: 'Bibis Link',
         },
       })

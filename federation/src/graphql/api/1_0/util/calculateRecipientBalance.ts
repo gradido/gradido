@@ -1,23 +1,20 @@
-import { Decimal } from 'decimal.js-light'
-import { calculateDecay } from 'shared'
+import { Decay, GradidoUnit } from 'shared'
 import { getLastTransaction } from '@/graphql/util/getLastTransaction'
-import { Decay } from '../model/Decay'
 
 export async function calculateRecipientBalance(
   userId: number,
-  amount: Decimal,
+  amount: GradidoUnit,
   time: Date,
-): Promise<{ balance: Decimal; decay: Decay; lastTransactionId: number } | null> {
+): Promise<{ balance: GradidoUnit; decay: Decay; lastTransactionId: number } | null> {
   const lastTransaction = await getLastTransaction(userId)
   if (!lastTransaction) {
     return null
   }
+  const lastTransactionBalance = GradidoUnit.fromDecimal(lastTransaction.balance)
 
-  const decay = new Decay(
-    calculateDecay(lastTransaction.balance, lastTransaction.balanceDate, time),
-  )
+  const decay = lastTransactionBalance.calculateDecay(lastTransaction.balanceDate, time)
 
-  const balance = decay.balance.add(amount.toString())
+  const balance = decay.balance.add(amount)
 
   return { balance, lastTransactionId: lastTransaction.id, decay }
 }

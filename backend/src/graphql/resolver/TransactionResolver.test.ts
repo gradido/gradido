@@ -128,7 +128,7 @@ describe('send coins', () => {
           variables: {
             recipientCommunityIdentifier: homeCom.communityUuid,
             recipientIdentifier: 'wrong@email.com',
-            amount: 100,
+            amount: '100',
             memo: 'test test',
           },
         }),
@@ -153,7 +153,7 @@ describe('send coins', () => {
             variables: {
               recipientCommunityIdentifier: homeCom.communityUuid,
               recipientIdentifier: 'stephen@hawking.uk',
-              amount: 100,
+              amount: '100',
               memo: 'test test',
             },
           }),
@@ -179,7 +179,7 @@ describe('send coins', () => {
             variables: {
               recipientCommunityIdentifier: homeCom.communityUuid,
               recipientIdentifier: 'garrick@ollivander.com',
-              amount: 100,
+              amount: '100',
               memo: 'test test',
             },
           }),
@@ -209,7 +209,7 @@ describe('send coins', () => {
             variables: {
               recipientCommunityIdentifier: homeCom.communityUuid,
               recipientIdentifier: 'bob@baumeister.de',
-              amount: 100,
+              amount: '100',
               memo: 'test test',
             },
           }),
@@ -233,7 +233,7 @@ describe('send coins', () => {
           variables: {
             recipientCommunityIdentifier: homeCom.communityUuid,
             recipientIdentifier: 'peter@lustig.de',
-            amount: 100,
+            amount: '100',
             memo: 'Test',
           },
         })
@@ -265,7 +265,7 @@ describe('send coins', () => {
           variables: {
             recipientCommunityIdentifier: homeCom.communityUuid,
             recipientIdentifier: 'peter@lustig.de',
-            amount: 100,
+            amount: '100',
             memo: 'test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test',
           },
         })
@@ -298,7 +298,7 @@ describe('send coins', () => {
             variables: {
               recipientCommunityIdentifier: homeCom.communityUuid,
               recipientIdentifier: 'peter@lustig.de',
-              amount: 100,
+              amount: '100',
               memo: 'testing',
             },
           }),
@@ -320,7 +320,7 @@ describe('send coins', () => {
       // create contribution as user bob
       const contribution = await mutate({
         mutation: createContribution,
-        variables: { amount: 1000, memo: 'testing', contributionDate: new Date().toISOString() },
+        variables: { amount: '1000', memo: 'testing', contributionDate: new Date().toISOString() },
       })
 
       // login as admin
@@ -348,7 +348,7 @@ describe('send coins', () => {
           variables: {
             recipientCommunityIdentifier: homeCom.communityUuid,
             recipientIdentifier: 'peter@lustig.de',
-            amount: -50,
+            amount: '-50',
             memo: 'testing negative',
           },
         })
@@ -361,7 +361,7 @@ describe('send coins', () => {
                   {
                     property: 'amount',
                     constraints: {
-                      isPositiveDecimal: 'The amount must be a positive value amount',
+                      isPositiveGradidoUnit: 'The amount must be a positive value amount',
                     },
                   },
                 ],
@@ -380,7 +380,7 @@ describe('send coins', () => {
             variables: {
               recipientCommunityIdentifier: homeCom.communityUuid,
               recipientIdentifier: 'peter@lustig.de',
-              amount: 50,
+              amount: '50',
               memo: 'unrepeatable memo',
             },
           }),
@@ -440,7 +440,7 @@ describe('send coins', () => {
             variables: {
               recipientCommunityIdentifier: homeCom.communityUuid,
               recipientIdentifier: peter?.gradidoID,
-              amount: 10,
+              amount: '10',
               memo: 'send via gradido ID',
             },
           }),
@@ -483,7 +483,7 @@ describe('send coins', () => {
             variables: {
               recipientCommunityIdentifier: homeCom.communityUuid,
               recipientIdentifier: 'bob',
-              amount: 6.66,
+              amount: '6.66',
               memo: 'send via alias',
             },
           }),
@@ -614,7 +614,7 @@ describe('send coins', () => {
             variables: {
               recipientCommunityIdentifier: homeCom.communityUuid,
               recipientIdentifier: 'peter@lustig.de',
-              amount: 10,
+              amount: '10',
               memo: 'first transaction',
             },
           }),
@@ -631,7 +631,7 @@ describe('send coins', () => {
             variables: {
               recipientCommunityIdentifier: homeCom.communityUuid,
               recipientIdentifier: 'peter@lustig.de',
-              amount: 20,
+              amount: '20',
               memo: 'second transaction',
             },
           }),
@@ -648,7 +648,7 @@ describe('send coins', () => {
             variables: {
               recipientCommunityIdentifier: homeCom.communityUuid,
               recipientIdentifier: 'peter@lustig.de',
-              amount: 30,
+              amount: '30',
               memo: 'third transaction',
             },
           }),
@@ -665,7 +665,7 @@ describe('send coins', () => {
             variables: {
               recipientCommunityIdentifier: homeCom.communityUuid,
               recipientIdentifier: 'peter@lustig.de',
-              amount: 40,
+              amount: '40',
               memo: 'fourth transaction',
             },
           }),

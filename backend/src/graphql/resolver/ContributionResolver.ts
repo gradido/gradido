@@ -31,7 +31,7 @@ import { Decimal } from 'decimal.js-light'
 import { GraphQLResolveInfo } from 'graphql'
 import { getLogger } from 'log4js'
 import { Mutex } from 'redis-semaphore'
-import { calculateDecay, Decay, DecayCalculationType } from 'shared'
+import { Decay, DecayCalculationType, GradidoUnit } from 'shared'
 import { Arg, Args, Authorized, Ctx, Info, Int, Mutation, Query, Resolver } from 'type-graphql'
 import { EntityManager, IsNull } from 'typeorm'
 import { contributionTransaction } from '@/apis/dltConnector'
@@ -93,7 +93,7 @@ export class ContributionResolver {
 
     const contribution = DbContribution.create()
     contribution.userId = user.id
-    contribution.amount = amount
+    contribution.amount = amount.toDecimal()
     contribution.createdAt = new Date()
     contribution.contributionDate = contributionDateObj
     contribution.memo = memo
@@ -102,7 +102,7 @@ export class ContributionResolver {
 
     logger.trace('contribution to save', contribution)
     await DbContribution.save(contribution)
-    await EVENT_CONTRIBUTION_CREATE(user, contribution, amount)
+    await EVENT_CONTRIBUTION_CREATE(user, contribution, amount.toDecimal())
 
     return new UnconfirmedContribution(contribution)
   }
@@ -206,21 +206,21 @@ export class ContributionResolver {
       }
     })
     const user = getUser(context)
-    await EVENT_CONTRIBUTION_UPDATE(user, contribution, contributionArgs.amount)
+    await EVENT_CONTRIBUTION_UPDATE(user, contribution, contributionArgs.amount.toDecimal())
 
     return new UnconfirmedContribution(contribution)
   }
 
   @Authorized([RIGHTS.ADMIN_CREATE_CONTRIBUTION])
-  @Mutation(() => [Decimal])
+  @Mutation(() => [GradidoUnit])
   async adminCreateContribution(
     @Args() { email, amount, memo, creationDate }: AdminCreateContributionArgs,
     @Ctx() context: Context,
-  ): Promise<Decimal[]> {
+  ): Promise<GradidoUnit[]> {
     const logger = createLogger()
     logger.addContext('admin', context.user?.id)
     logger.info(
-      `adminCreateContribution(email=${email}, amount=${amount.toString()}, memo=${memo}, creationDate=${creationDate})`,
+      `adminCreateContribution(email=${email}, amount=${amount.toString(0)}, memo=${memo}, creationDate=${creationDate})`,
     )
     const clientTimezoneOffset = getClientTimezoneOffset(context)
     const emailContact = await UserContact.findOne({
@@ -250,7 +250,7 @@ export class ContributionResolver {
     validateContribution(creations, amount, creationDateObj, clientTimezoneOffset)
     const contribution = DbContribution.create()
     contribution.userId = emailContact.userId
-    contribution.amount = amount
+    contribution.amount = amount.toDecimal()
     contribution.createdAt = new Date()
     contribution.contributionDate = creationDateObj
     contribution.memo = memo
@@ -259,7 +259,12 @@ export class ContributionResolver {
     contribution.contributionStatus = ContributionStatus.PENDING
     logger.trace('contribution to save', contribution)
     await DbContribution.save(contribution)
-    await EVENT_ADMIN_CONTRIBUTION_CREATE(emailContact.user, moderator, contribution, amount)
+    await EVENT_ADMIN_CONTRIBUTION_CREATE(
+      emailContact.user,
+      moderator,
+      contribution,
+      amount.toDecimal(),
+    )
 
     return getUserCreation(emailContact.userId, clientTimezoneOffset)
   }
@@ -489,7 +494,7 @@ export class ContributionResolver {
       const creations = await getUserCreation(contribution.userId, clientTimezoneOffset, false)
       validateContribution(
         creations,
-        contribution.amount,
+        GradidoUnit.fromDecimal(contribution.amount),
         contribution.contributionDate,
         clientTimezoneOffset,
       )
@@ -501,17 +506,17 @@ export class ContributionResolver {
       logger.info('lastTransaction ID', lastTransaction ? lastTransaction.id : 'undefined')
 
       try {
-        let newBalance = new Decimal(0)
+        let newBalance = new GradidoUnit(0n)
         let decay: Decay | null = null
         if (lastTransaction) {
-          decay = calculateDecay(
-            lastTransaction.balance,
+          const lastTransactionBalance = GradidoUnit.fromDecimal(lastTransaction.balance)
+          decay = lastTransactionBalance.calculateDecay(
             lastTransaction.balanceDate,
             receivedCallDate,
           )
           newBalance = decay.balance
         }
-        newBalance = newBalance.add(contribution.amount.toString())
+        newBalance = newBalance.add(GradidoUnit.fromDecimal(contribution.amount))
 
         let transaction = new DbTransaction()
         transaction.typeId = TransactionTypeId.CREATION
@@ -527,9 +532,9 @@ export class ContributionResolver {
         transaction.previous = lastTransaction ? lastTransaction.id : null
         transaction.amount = contribution.amount
         transaction.creationDate = contribution.contributionDate
-        transaction.balance = newBalance
+        transaction.balance = newBalance.toDecimal()
         transaction.balanceDate = receivedCallDate
-        transaction.decay = decay ? decay.decay : new Decimal(0)
+        transaction.decay = decay ? decay.decay.toDecimal() : new Decimal(0)
         transaction.decayStart = decay ? decay.start : null
         transaction.decayCalculationType = DecayCalculationType.NATIVE_C_FIXED_FACTOR_INTEGER
         transaction = await queryRunner.manager.save(DbTransaction, transaction)

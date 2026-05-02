@@ -18,6 +18,7 @@ import { getLogger } from 'log4js'
 import {
   CommandJwtPayloadType,
   encryptAndSign,
+  GradidoUnit,
   PendingTransactionState,
   SendCoinsJwtPayloadType,
   SendCoinsResponseJwtPayloadType,
@@ -116,7 +117,7 @@ export async function processXComCompleteTransaction(
       recipientCom,
       senderCom,
       creationDate,
-      new Decimal(amount),
+      GradidoUnit.fromString(amount),
       memo,
       senderUser,
       recipientGradidoId,
@@ -181,7 +182,7 @@ export async function processXComCompleteTransaction(
           senderFirstName: foreignUser.firstName,
           senderLastName: foreignUser.lastName,
           senderEmail: recipientCom.name!, // foreignUser.emailContact.email,
-          transactionAmount: new Decimal(amount),
+          transactionAmount: GradidoUnit.fromString(amount),
           transactionMemo: memo,
         })
       }
@@ -204,7 +205,7 @@ export async function processXComPendingSendCoins(
   receiverCom: DbCommunity,
   senderCom: DbCommunity,
   creationDate: Date,
-  amount: Decimal,
+  amount: GradidoUnit,
   memo: string,
   sender: dbUser,
   recipientIdentifier: string,
@@ -233,7 +234,7 @@ export async function processXComPendingSendCoins(
     const handshakeID = randombytes_random().toString()
     methodLogger.addContext('handshakeID', handshakeID)
     // first calculate the sender balance and check if the transaction is allowed
-    const senderBalance = await calculateSenderBalance(sender.id, amount.mul(-1), creationDate)
+    const senderBalance = await calculateSenderBalance(sender.id, amount.negated(), creationDate)
     if (!senderBalance) {
       const errmsg = `User has not enough GDD or amount is < 0`
       methodLogger.error(errmsg)
@@ -257,7 +258,7 @@ export async function processXComPendingSendCoins(
         receiverCom.communityUuid!,
         recipientIdentifier,
         creationDate.toISOString(),
-        amount,
+        amount.toDecimal(),
         memo,
         senderCom.communityUuid!,
         sender.gradidoID,
@@ -310,10 +311,10 @@ export async function processXComPendingSendCoins(
           // writing the pending transaction on receiver-side was successfull, so now write the sender side
           try {
             const pendingTx = DbPendingTransaction.create()
-            pendingTx.amount = amount.mul(-1)
-            pendingTx.balance = senderBalance.balance
+            pendingTx.amount = amount.negated().toDecimal()
+            pendingTx.balance = senderBalance.balance.toDecimal()
             pendingTx.balanceDate = creationDate
-            pendingTx.decay = senderBalance ? senderBalance.decay.decay : new Decimal(0)
+            pendingTx.decay = senderBalance ? senderBalance.decay.decay.toDecimal() : new Decimal(0)
             pendingTx.decayStart = senderBalance ? senderBalance.decay.start : null
             if (receiverCom.communityUuid) {
               pendingTx.linkedUserCommunityUuid = receiverCom.communityUuid

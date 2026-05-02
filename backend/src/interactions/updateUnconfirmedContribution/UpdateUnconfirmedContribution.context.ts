@@ -1,9 +1,8 @@
 import { AdminUpdateContributionArgs } from '@arg/AdminUpdateContributionArgs'
 import { ContributionArgs } from '@arg/ContributionArgs'
 import { Contribution, ContributionMessage } from 'database'
-import { Decimal } from 'decimal.js-light'
+import { GradidoUnit } from 'shared'
 import { EntityManager, FindOneOptions, FindOptionsRelations } from 'typeorm'
-
 import { ContributionMessageArgs } from '@/graphql/arg/ContributionMessageArgs'
 import { Context } from '@/server/context'
 import { LogError } from '@/server/LogError'
@@ -38,7 +37,7 @@ export class UpdateUnconfirmedContributionContext {
   ): Promise<{
     contribution: Contribution
     contributionMessage: ContributionMessage | undefined
-    availableCreationSums: Decimal[]
+    availableCreationSums: GradidoUnit[]
     createdByUserChangedByModerator: boolean
     contributionChanged: boolean
   }> {

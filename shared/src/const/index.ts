@@ -1,6 +1,7 @@
 import Decimal from 'decimal.js-light'
 import { getDecayStartTime } from 'shared-native'
 
+export const CODE_VALID_DAYS_DURATION = 14
 export const DECAY_START_TIME = getDecayStartTime()
 export const DECAY_FACTOR = new Decimal('0.99999997803504048973201202316767079413460520837376')
 export const SECONDS_PER_YEAR_GREGORIAN_CALENDER = 31556952.0

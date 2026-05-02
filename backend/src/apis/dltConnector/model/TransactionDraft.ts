@@ -8,6 +8,7 @@ import {
   User as DbUser,
 } from 'database'
 import { getLogger } from 'log4js'
+import { Duration } from 'shared'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { CODE_VALID_DAYS_DURATION } from '@/graphql/resolver/const/const'
 import { AccountIdentifier } from './AccountIdentifier'
@@ -142,7 +143,7 @@ export class TransactionDraft {
     draft.createdAt = createdAtOnlySeconds.toISOString()
     draft.amount = transactionLink.amount.toString()
     draft.memo = transactionLink.memo
-    draft.timeoutDuration = CODE_VALID_DAYS_DURATION * 24 * 60 * 60
+    draft.timeoutDuration = Duration.days(CODE_VALID_DAYS_DURATION).toNumber()
     return draft
   }
 

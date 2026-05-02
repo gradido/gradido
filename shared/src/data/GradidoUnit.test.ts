@@ -41,7 +41,7 @@ describe('GradidoUnit', () => {
     const decay = gdd.calculateDecay(from, to)
     expect(decay.balance.toNumber()).toBe(0.9981)
     expect(decay.decay.toNumber()).toBe(-0.0019)
-    expect(decay.duration).toBe(86400)
+    expect(decay.duration?.toNumber()).toBe(86400)
     expect(decay.start).toBe(from)
     expect(decay.end).toBe(to)
   })

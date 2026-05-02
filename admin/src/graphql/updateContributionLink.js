@@ -2,7 +2,7 @@ import gql from 'graphql-tag'
 
 export const updateContributionLink = gql`
   mutation (
-    $amount: Decimal!
+    $amount: GradidoUnit!
     $name: String!
     $memo: String!
     $cycle: String!

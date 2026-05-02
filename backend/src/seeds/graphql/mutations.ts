@@ -88,7 +88,7 @@ export const sendActivationEmail = gql`
 
 /*
 export const sendCoins = gql`
-  mutation ($identifier: String!, $amount: Decimal!, $memo: String!, $communityIdentifier: String) {
+  mutation ($identifier: String!, $amount: GradidoUnit!, $memo: String!, $communityIdentifier: String) {
     sendCoins(
       identifier: $identifier
       amount: $amount
@@ -102,7 +102,7 @@ export const sendCoins = gql`
   mutation (
     $recipientCommunityIdentifier: String!
     $recipientIdentifier: String!
-    $amount: Decimal!
+    $amount: GradidoUnit!
     $memo: String!
   ) {
     sendCoins(
@@ -115,7 +115,7 @@ export const sendCoins = gql`
 `
 
 export const createTransactionLink = gql`
-  mutation ($amount: Decimal!, $memo: String!) {
+  mutation ($amount: GradidoUnit!, $memo: String!) {
     createTransactionLink(amount: $amount, memo: $memo) {
       id
       code
@@ -132,7 +132,7 @@ export const deleteTransactionLink = gql`
 // from admin interface
 
 export const adminCreateContribution = gql`
-  mutation ($email: String!, $amount: Decimal!, $memo: String!, $creationDate: String!) {
+  mutation ($email: String!, $amount: GradidoUnit!, $memo: String!, $creationDate: String!) {
     adminCreateContribution(
       email: $email
       amount: $amount
@@ -167,7 +167,7 @@ export const unDeleteUser = gql`
 `
 
 export const adminUpdateContribution = gql`
-  mutation ($id: Int!, $amount: Decimal!, $memo: String!, $creationDate: String!) {
+  mutation ($id: Int!, $amount: GradidoUnit!, $memo: String!, $creationDate: String!) {
     adminUpdateContribution(id: $id, amount: $amount, memo: $memo, creationDate: $creationDate) {
       amount
       date
@@ -184,13 +184,13 @@ export const adminDeleteContribution = gql`
 
 export const createContributionLink = gql`
   mutation (
-    $amount: Decimal!
+    $amount: GradidoUnit!
     $name: String!
     $memo: String!
     $cycle: String!
     $validFrom: String
     $validTo: String
-    $maxAmountPerMonth: Decimal
+    $maxAmountPerMonth: GradidoUnit
     $maxPerCycle: Int! = 1
   ) {
     createContributionLink(
@@ -221,13 +221,13 @@ export const createContributionLink = gql`
 
 export const updateContributionLink = gql`
   mutation (
-    $amount: Decimal!
+    $amount: GradidoUnit!
     $name: String!
     $memo: String!
     $cycle: String!
     $validFrom: String
     $validTo: String
-    $maxAmountPerMonth: Decimal
+    $maxAmountPerMonth: GradidoUnit
     $maxPerCycle: Int! = 1
     $id: Int!
   ) {
@@ -265,7 +265,7 @@ export const deleteContributionLink = gql`
 `
 
 export const createContribution = gql`
-  mutation ($amount: Decimal!, $memo: String!, $contributionDate: String!) {
+  mutation ($amount: GradidoUnit!, $memo: String!, $contributionDate: String!) {
     createContribution(amount: $amount, memo: $memo, contributionDate: $contributionDate) {
       id
       amount
@@ -276,7 +276,7 @@ export const createContribution = gql`
 `
 
 export const updateContribution = gql`
-  mutation ($contributionId: Int!, $amount: Decimal!, $memo: String!, $contributionDate: String!) {
+  mutation ($contributionId: Int!, $amount: GradidoUnit!, $memo: String!, $contributionDate: String!) {
     updateContribution(
       contributionId: $contributionId
       amount: $amount

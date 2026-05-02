@@ -1,6 +1,6 @@
 import { randomBytes } from 'node:crypto'
 import { Decimal } from 'decimal.js-light'
-import { compoundInterest } from 'shared'
+import { CODE_VALID_DAYS_DURATION, Duration, GradidoUnit } from 'shared'
 import { AppDatabase } from '../../AppDatabase'
 import { TransactionLink, User } from '../../entity'
 import { findUserByIdentifier } from '../../queries'
@@ -42,18 +42,16 @@ export async function createTransactionLink(
   userId: number,
   store: boolean = true,
 ): Promise<TransactionLink> {
-  const holdAvailableAmount = compoundInterest(
-    new Decimal(transactionLinkData.amount.toString()),
-    CODE_VALID_DAYS_DURATION * 24 * 60 * 60,
-  )
+  const amount = GradidoUnit.fromNumber(transactionLinkData.amount)
+  const holdAvailableAmount = amount.requiredBeforeDecay(Duration.days(CODE_VALID_DAYS_DURATION))
   const createdAt = transactionLinkData.createdAt || new Date()
-  const validUntil = transactionLinkExpireDate(createdAt)
+  const validUntil = Duration.days(CODE_VALID_DAYS_DURATION).addToDate(createdAt)
 
   const transactionLink = new TransactionLink()
   transactionLink.userId = userId
   transactionLink.amount = new Decimal(transactionLinkData.amount)
   transactionLink.memo = transactionLinkData.memo
-  transactionLink.holdAvailableAmount = holdAvailableAmount
+  transactionLink.holdAvailableAmount = holdAvailableAmount.toDecimal()
   transactionLink.code = transactionLinkCode(createdAt)
   transactionLink.createdAt = createdAt
   transactionLink.validUntil = validUntil
@@ -63,15 +61,6 @@ export async function createTransactionLink(
   }
 
   return store ? transactionLink.save() : transactionLink
-}
-
-//////  Transaction Link BUSINESS LOGIC  //////
-// TODO: move business logic to shared
-export const CODE_VALID_DAYS_DURATION = 14
-
-export const transactionLinkExpireDate = (date: Date): Date => {
-  const validUntil = new Date(date)
-  return new Date(validUntil.setDate(date.getDate() + CODE_VALID_DAYS_DURATION))
 }
 
 export const transactionLinkCode = (date: Date): string => {

@@ -1,6 +1,7 @@
-import { Decimal } from 'decimal.js-light'
+import { GradidoUnit } from 'shared'
 
-export const MAX_CREATION_AMOUNT = new Decimal(1000)
+// 1'000 gdd = 10'000'000 gdd cent
+export const MAX_CREATION_AMOUNT = new GradidoUnit(10000000n)
 export const FULL_CREATION_AVAILABLE = [
   MAX_CREATION_AMOUNT,
   MAX_CREATION_AMOUNT,

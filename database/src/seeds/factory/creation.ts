@@ -1,4 +1,5 @@
 import { Decimal } from 'decimal.js-light'
+import { GradidoUnit } from 'shared'
 import { AppDatabase } from '../../AppDatabase'
 import { Contribution, Transaction, User } from '../../entity'
 import { ContributionStatus, ContributionType, TransactionTypeId } from '../../enum'
@@ -102,7 +103,7 @@ export async function confirmTransaction(
 ): Promise<{ contribution: Contribution; transaction: Transaction }> {
   const balanceDate = getBalanceDate(creation)
   const transaction = await createTransaction(
-    contribution.amount,
+    GradidoUnit.fromDecimal(contribution.amount),
     contribution.memo,
     contribution.user,
     moderatorUser,

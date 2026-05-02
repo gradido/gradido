@@ -1,6 +1,5 @@
 import { Contribution } from 'database'
-import { Decimal } from 'decimal.js-light'
-
+import { GradidoUnit } from 'shared'
 import {
   getUserCreation,
   updateCreations,
@@ -10,7 +9,7 @@ import { LogError } from '@/server/LogError'
 
 export class ContributionLogic {
   // how much gradido can be still created
-  private availableCreationSums?: Decimal[]
+  private availableCreationSums?: GradidoUnit[]
   public constructor(private self: Contribution) {}
 
   /**
@@ -23,7 +22,7 @@ export class ContributionLogic {
   public async getAvailableCreationSums(
     clientTimezoneOffset: number,
     putThisBack = false,
-  ): Promise<Decimal[]> {
+  ): Promise<GradidoUnit[]> {
     // TODO: move code from getUserCreation and updateCreations inside this function/class
     this.availableCreationSums = await getUserCreation(this.self.userId, clientTimezoneOffset)
     if (putThisBack) {
@@ -37,7 +36,7 @@ export class ContributionLogic {
   }
 
   public checkAvailableCreationSumsNotExceeded(
-    amount: Decimal,
+    amount: GradidoUnit,
     creationDate: Date,
     clientTimezoneOffset: number,
   ): void {

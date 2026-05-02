@@ -1,10 +1,15 @@
 import { User } from 'database'
-import { Decimal } from 'decimal.js-light'
+import { GradidoUnit } from 'shared'
 import { Field, Int, ObjectType } from 'type-graphql'
 
 @ObjectType()
 export class UserAdmin {
-  constructor(user: User, creation: Decimal[], hasElopage: boolean, emailConfirmationSend: string) {
+  constructor(
+    user: User,
+    creation: GradidoUnit[],
+    hasElopage: boolean,
+    emailConfirmationSend: string,
+  ) {
     this.userId = user.id
     this.email = user.emailContact?.email
     this.firstName = user.firstName
@@ -30,8 +35,8 @@ export class UserAdmin {
   @Field(() => String)
   lastName: string
 
-  @Field(() => [Decimal])
-  creation: Decimal[]
+  @Field(() => [GradidoUnit])
+  creation: GradidoUnit[]
 
   @Field(() => Boolean, { nullable: true })
   emailChecked: boolean | null
