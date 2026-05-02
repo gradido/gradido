@@ -6,16 +6,13 @@ import {
   AuthenticatedEncryption,
   DurationSeconds,
   EncryptedMemo,
-  Filter,
   GradidoTransactionBuilder,
   GradidoTransfer,
   GradidoUnit,
   KeyPairEd25519,
   LedgerAnchor,
   MemoryBlockPtr,
-  SearchDirection_DESC,
   TransferAmount,
-  transactionTypeToString,
 } from 'gradido-blockchain-js'
 import * as v from 'valibot'
 import { deriveFromCode } from '../../../../data/deriveKeyPair'
@@ -31,7 +28,7 @@ import { AbstractSyncRole, IndexType } from './AbstractSync.role'
 export class TransactionLinkFundingsSyncRole extends AbstractSyncRole<TransactionLinkDb> {
   constructor(context: Context) {
     super(context)
-    this.accountBalances.reserve(2)
+    this.accountBalances.reserve(2n)
   }
   getDate(): Date {
     return this.peek().createdAt
@@ -160,15 +157,17 @@ export class TransactionLinkFundingsSyncRole extends AbstractSyncRole<Transactio
     let blockedAmount = GradidoUnit.fromString(
       reverseLegacyDecay(new Decimal(item.amount.toString()), duration.getSeconds()).toString(),
     )
-    let accountBalances: AccountBalances
+    let accountBalances: AccountBalances | undefined
     try {
-      accountBalances = this.calculateBalances(
-        item,
-        blockedAmount,
-        communityContext,
-        senderPublicKey,
-        recipientPublicKey,
-      )
+      if (!this.context.isDecayCalculationTypeChanged(item.createdAt)) {
+        accountBalances = this.calculateBalances(
+          item,
+          blockedAmount,
+          communityContext,
+          senderPublicKey,
+          recipientPublicKey,
+        )
+      }
     } catch (e) {
       if (item.deletedAt && e instanceof NegativeBalanceError) {
         const senderLastBalance = this.getLastBalanceForUser(

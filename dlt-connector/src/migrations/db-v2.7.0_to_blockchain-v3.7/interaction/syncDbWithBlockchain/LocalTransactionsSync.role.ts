@@ -14,6 +14,7 @@ import * as v from 'valibot'
 import { Uuidv4 } from '../../../../schemas/typeGuard.schema'
 import { addToBlockchain } from '../../blockchain'
 import { Context } from '../../Context'
+import { DecayCalculationType } from '../../data/DecayCalculationType'
 import { TransactionTypeId } from '../../data/TransactionTypeId'
 import { transactionsTable, usersTable } from '../../drizzle.schema'
 import {
@@ -29,7 +30,7 @@ import { AbstractSyncRole, IndexType } from './AbstractSync.role'
 export class LocalTransactionsSyncRole extends AbstractSyncRole<TransactionDb> {
   constructor(context: Context) {
     super(context)
-    this.accountBalances.reserve(2)
+    this.accountBalances.reserve(2n)
   }
 
   getDate(): Date {
@@ -174,7 +175,9 @@ export class LocalTransactionsSyncRole extends AbstractSyncRole<TransactionDb> {
         this.buildTransaction(communityContext, item, senderKeyPair, recipientKeyPair).build(),
         blockchain,
         new LedgerAnchor(item.id, LedgerAnchor.Type_LEGACY_GRADIDO_DB_TRANSACTION_ID),
-        this.calculateBalances(item, communityContext, senderPublicKey, recipientPublicKey),
+        item.decayCalculationType === DecayCalculationType.DECIMAL_JS_FIXED_FACTOR
+          ? this.calculateBalances(item, communityContext, senderPublicKey, recipientPublicKey)
+          : undefined,
       )
     } catch (e) {
       if (e instanceof NotEnoughGradidoBalanceError) {

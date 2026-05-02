@@ -18,6 +18,7 @@ import { Uuidv4 } from '../../../../schemas/typeGuard.schema'
 import { addToBlockchain } from '../../blockchain'
 import { Context } from '../../Context'
 import { ContributionStatus } from '../../data/ContributionStatus'
+import { DecayCalculationType } from '../../data/DecayCalculationType'
 import { contributionsTable, usersTable } from '../../drizzle.schema'
 import { BlockchainError, DatabaseError } from '../../errors'
 import { toMysqlDateTime } from '../../utils'
@@ -31,7 +32,7 @@ import { AbstractSyncRole, IndexType } from './AbstractSync.role'
 export class CreationsSyncRole extends AbstractSyncRole<CreationTransactionDb> {
   constructor(context: Context) {
     super(context)
-    this.accountBalances.reserve(3)
+    this.accountBalances.reserve(3n)
   }
 
   getDate(): Date {
@@ -162,7 +163,9 @@ export class CreationsSyncRole extends AbstractSyncRole<CreationTransactionDb> {
         this.buildTransaction(item, communityContext, recipientKeyPair, signerKeyPair).build(),
         blockchain,
         new LedgerAnchor(item.id, LedgerAnchor.Type_LEGACY_GRADIDO_DB_CONTRIBUTION_ID),
-        this.calculateAccountBalances(item, communityContext, recipientPublicKey),
+        !this.context.isDecayCalculationTypeChanged(item.confirmedAt)
+          ? this.calculateAccountBalances(item, communityContext, recipientPublicKey)
+          : undefined,
       )
     } catch (e) {
       const f = new Filter()

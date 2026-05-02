@@ -1,4 +1,3 @@
-import { Decimal } from 'decimal.js-light'
 import { and, asc, eq, gt, inArray, isNull, ne, or } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/mysql-core'
 import {
@@ -17,6 +16,7 @@ import * as v from 'valibot'
 import { Uuidv4 } from '../../../../schemas/typeGuard.schema'
 import { addToBlockchain } from '../../blockchain'
 import { Context } from '../../Context'
+import { DecayCalculationType } from '../../data/DecayCalculationType'
 import { TransactionTypeId } from '../../data/TransactionTypeId'
 import { transactionsTable, usersTable } from '../../drizzle.schema'
 import {
@@ -32,7 +32,7 @@ import { AbstractSyncRole, IndexType } from './AbstractSync.role'
 export class RemoteTransactionsSyncRole extends AbstractSyncRole<TransactionDb> {
   constructor(context: Context) {
     super(context)
-    this.accountBalances.reserve(1)
+    this.accountBalances.reserve(1n)
   }
 
   getDate(): Date {
@@ -88,7 +88,7 @@ export class RemoteTransactionsSyncRole extends AbstractSyncRole<TransactionDb> 
         linkedUser: row.linkedUser,
       }
       if (item.typeId === TransactionTypeId.SEND && item.amount) {
-        item.amount = new Decimal(item.amount).neg().toString()
+        item.amount *= -1n
       }
       try {
         return v.parse(transactionDbSchema, item)
@@ -163,7 +163,11 @@ export class RemoteTransactionsSyncRole extends AbstractSyncRole<TransactionDb> 
     }
 
     try {
-      lastBalance.updateLegacyDecay(amount, item.balanceDate)
+      if (item.decayCalculationType === DecayCalculationType.DECIMAL_JS_FIXED_FACTOR) {
+        lastBalance.updateLegacyDecay(amount, item.balanceDate)
+      } else {
+        lastBalance.update(amount, item.balanceDate)
+      }
     } catch (e) {
       if (e instanceof NegativeBalanceError) {
         this.logLastBalanceChangingTransactions(publicKey, communityContext.blockchain, 1)

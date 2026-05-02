@@ -33,7 +33,7 @@ import { AbstractSyncRole, IndexType } from './AbstractSync.role'
 export class RedeemTransactionLinksSyncRole extends AbstractSyncRole<RedeemedTransactionLinkDb> {
   constructor(context: Context) {
     super(context)
-    this.accountBalances.reserve(3)
+    this.accountBalances.reserve(3n)
   }
 
   getDate(): Date {
@@ -215,13 +215,15 @@ export class RedeemTransactionLinksSyncRole extends AbstractSyncRole<RedeemedTra
         ).build(),
         blockchain,
         new LedgerAnchor(item.id, LedgerAnchor.Type_LEGACY_GRADIDO_DB_TRANSACTION_LINK_ID),
-        this.calculateBalances(
-          item,
-          deferredTransfer,
-          communityContext,
-          senderPublicKey,
-          recipientPublicKey,
-        ),
+        this.context.isDecayCalculationTypeChanged(item.redeemedAt)
+          ? undefined
+          : this.calculateBalances(
+              item,
+              deferredTransfer,
+              communityContext,
+              senderPublicKey,
+              recipientPublicKey,
+            ),
       )
     } catch (e) {
       throw new BlockchainError(`Error adding ${this.itemTypeName()}`, item, e as Error)
