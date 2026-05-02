@@ -59,7 +59,7 @@ describe('util/creation', () => {
         mutation: adminCreateContribution,
         variables: {
           email: 'bibi@bloxberg.de',
-          amount: 250.0,
+          amount: '250',
           memo: 'Admin contribution for this month',
           creationDate: contributionDateFormatter(now),
         },
@@ -68,7 +68,7 @@ describe('util/creation', () => {
         mutation: adminCreateContribution,
         variables: {
           email: 'bibi@bloxberg.de',
-          amount: 160.0,
+          amount: '160',
           memo: 'Admin contribution for the last month',
           creationDate: contributionDateFormatter(
             new Date(now.getFullYear(), now.getMonth() - 1, 1),
@@ -79,7 +79,7 @@ describe('util/creation', () => {
         mutation: adminCreateContribution,
         variables: {
           email: 'bibi@bloxberg.de',
-          amount: 450.0,
+          amount: '450',
           memo: 'Admin contribution for two months ago',
           creationDate: contributionDateFormatter(
             new Date(now.getFullYear(), now.getMonth() - 2, 1),
@@ -93,7 +93,7 @@ describe('util/creation', () => {
       await mutate({
         mutation: createContribution,
         variables: {
-          amount: 400.0,
+          amount: '400',
           memo: 'Contribution for this month',
           contributionDate: contributionDateFormatter(now),
         },
@@ -101,7 +101,7 @@ describe('util/creation', () => {
       await mutate({
         mutation: createContribution,
         variables: {
-          amount: 500.0,
+          amount: '500',
           memo: 'Contribution for the last month',
           contributionDate: contributionDateFormatter(
             new Date(now.getFullYear(), now.getMonth() - 1, 1),

@@ -1,4 +1,5 @@
 import { Location } from '@model/Location'
+import { GradidoUnitScalar } from 'core'
 import { Decimal } from 'decimal.js-light'
 import { GraphQLSchema } from 'graphql'
 import { Duration, GradidoUnit } from 'shared'
@@ -19,7 +20,6 @@ import { TransactionResolver } from './resolver/TransactionResolver'
 import { UserResolver } from './resolver/UserResolver'
 import { DecimalScalar } from './scalar/Decimal'
 import { DurationScalar } from './scalar/Duration'
-import { GradidoUnitScalar } from './scalar/GradidoUnit'
 import { LocationScalar } from './scalar/Location'
 
 export const schema = async (): Promise<GraphQLSchema> => {

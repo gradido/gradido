@@ -384,7 +384,7 @@ export class TransactionResolver {
       logger.debug(`transactions=${transactions.map((t) => t.id)}`)
 
       // virtual transaction for pending transaction-links sum
-      if (sumHoldAvailableAmount.gddCent === 0n) {
+      if (sumHoldAvailableAmount.comparedTo(GradidoUnit.fromNumber(0)) === 0n) {
         const linkCount = await dbTransactionLink.count({
           where: {
             userId: user.id,

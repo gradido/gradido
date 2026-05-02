@@ -120,7 +120,7 @@ describe('ContributionResolver', () => {
     pendingContribution = await mutate({
       mutation: createContribution,
       variables: {
-        amount: 100.0,
+        amount: '100',
         memo: 'Test PENDING contribution',
         contributionDate: new Date().toString(),
       },
@@ -128,7 +128,7 @@ describe('ContributionResolver', () => {
     inProgressContribution = await mutate({
       mutation: createContribution,
       variables: {
-        amount: 100.0,
+        amount: '100',
         memo: 'Test IN_PROGRESS contribution',
         contributionDate: new Date().toString(),
       },
@@ -136,7 +136,7 @@ describe('ContributionResolver', () => {
     contributionToConfirm = await mutate({
       mutation: createContribution,
       variables: {
-        amount: 100.0,
+        amount: '100',
         memo: 'Test contribution to confirm',
         contributionDate: new Date().toString(),
       },
@@ -144,7 +144,7 @@ describe('ContributionResolver', () => {
     contributionToDeny = await mutate({
       mutation: createContribution,
       variables: {
-        amount: 100.0,
+        amount: '100',
         memo: 'Test contribution to deny',
         contributionDate: new Date().toString(),
       },
@@ -152,7 +152,7 @@ describe('ContributionResolver', () => {
     contributionToDelete = await mutate({
       mutation: createContribution,
       variables: {
-        amount: 100.0,
+        amount: '100',
         memo: 'Test contribution to delete',
         contributionDate: new Date().toString(),
       },
@@ -192,7 +192,7 @@ describe('ContributionResolver', () => {
       it('returns an error', async () => {
         const { errors: errorObjects } = await mutate({
           mutation: createContribution,
-          variables: { amount: 100.0, memo: 'Test Contribution', contributionDate: 'not-valid' },
+          variables: { amount: '100', memo: 'Test Contribution', contributionDate: 'not-valid' },
         })
 
         expect(errorObjects).toEqual([new GraphQLError('401 Unauthorized')])
@@ -219,7 +219,7 @@ describe('ContributionResolver', () => {
           const { errors: errorObjects } = await mutate({
             mutation: createContribution,
             variables: {
-              amount: 100.0,
+              amount: '100',
               memo: 'Test',
               contributionDate: date.toString(),
             },
@@ -249,7 +249,7 @@ describe('ContributionResolver', () => {
           const { errors: errorObjects } = await mutate({
             mutation: createContribution,
             variables: {
-              amount: 100.0,
+              amount: '100',
               memo: 'Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test',
               contributionDate: date.toString(),
             },
@@ -278,7 +278,7 @@ describe('ContributionResolver', () => {
           const { errors: errorObjects } = await mutate({
             mutation: createContribution,
             variables: {
-              amount: 100.0,
+              amount: '100',
               memo: 'Test env contribution',
               contributionDate: 'not-valid',
             },
@@ -309,7 +309,7 @@ describe('ContributionResolver', () => {
           const { errors: errorObjects } = await mutate({
             mutation: createContribution,
             variables: {
-              amount: 100.0,
+              amount: '100',
               memo: 'Test env contribution',
               contributionDate: date.toString(),
             },
@@ -358,7 +358,7 @@ describe('ContributionResolver', () => {
           mutation: updateContribution,
           variables: {
             contributionId: 1,
-            amount: 100.0,
+            amount: '100',
             memo: 'Test Contribution',
             contributionDate: 'not-valid',
           },
@@ -387,7 +387,7 @@ describe('ContributionResolver', () => {
             mutation: updateContribution,
             variables: {
               contributionId: pendingContribution.data.createContribution.id,
-              amount: 100.0,
+              amount: '100',
               memo: 'Test',
               contributionDate: date.toString(),
             },
@@ -420,7 +420,7 @@ describe('ContributionResolver', () => {
             mutation: updateContribution,
             variables: {
               contributionId: pendingContribution.data.createContribution.id,
-              amount: 100.0,
+              amount: '100',
               memo: 'Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test',
               contributionDate: date.toString(),
             },
@@ -453,7 +453,7 @@ describe('ContributionResolver', () => {
               mutation: updateContribution,
               variables: {
                 contributionId: -1,
-                amount: 100.0,
+                amount: '100',
                 memo: 'Test env contribution',
                 contributionDate: new Date().toString(),
               },
@@ -484,7 +484,7 @@ describe('ContributionResolver', () => {
             mutation: updateContribution,
             variables: {
               contributionId: pendingContribution.data.createContribution.id,
-              amount: 10.0,
+              amount: '10',
               memo: 'Test env contribution',
               contributionDate: new Date().toString(),
             },
@@ -539,7 +539,7 @@ describe('ContributionResolver', () => {
                 mutation: updateContribution,
                 variables: {
                   contributionId: pendingContribution.data.createContribution.id,
-                  amount: 10.0,
+                  amount: '10',
                   memo: 'Test env contribution',
                   contributionDate: new Date().toString(),
                 },
@@ -574,7 +574,7 @@ describe('ContributionResolver', () => {
             mutation: updateContribution,
             variables: {
               contributionId: pendingContribution.data.createContribution.id,
-              amount: 1019.0,
+              amount: '1019',
               memo: 'Test env contribution',
               contributionDate: new Date().toString(),
             },
@@ -603,7 +603,7 @@ describe('ContributionResolver', () => {
             mutation: updateContribution,
             variables: {
               contributionId: pendingContribution.data.createContribution.id,
-              amount: 10.0,
+              amount: '10',
               memo: 'Test env contribution',
               contributionDate: date.toString(),
             },
@@ -626,7 +626,7 @@ describe('ContributionResolver', () => {
             mutation: updateContribution,
             variables: {
               contributionId: pendingContribution.data.createContribution.id,
-              amount: 10.0,
+              amount: '10',
               memo: 'Test PENDING contribution update',
               contributionDate: new Date().toString(),
             },
@@ -735,7 +735,7 @@ describe('ContributionResolver', () => {
           contribution = await mutate({
             mutation: createContribution,
             variables: {
-              amount: 166.0,
+              amount: '166',
               memo: 'Whatever contribution',
               contributionDate: new Date().toString(),
             },
@@ -780,7 +780,7 @@ describe('ContributionResolver', () => {
           contribution = await mutate({
             mutation: createContribution,
             variables: {
-              amount: 166.0,
+              amount: '166',
               memo: 'Whatever contribution',
               contributionDate: new Date().toString(),
             },
@@ -825,7 +825,7 @@ describe('ContributionResolver', () => {
           contribution = await mutate({
             mutation: createContribution,
             variables: {
-              amount: 166.0,
+              amount: '166',
               memo: 'Whatever contribution',
               contributionDate: new Date().toString(),
             },
@@ -1251,7 +1251,7 @@ describe('ContributionResolver', () => {
   describe('contributions', () => {
     const variables = {
       email: 'bibi@bloxberg.de',
-      amount: new Decimal(2000),
+      amount: '2000',
       memo: 'Aktives Grundeinkommen',
       creationDate: 'not-valid',
     }
@@ -1274,7 +1274,7 @@ describe('ContributionResolver', () => {
               mutation: adminUpdateContribution,
               variables: {
                 id: 1,
-                amount: new Decimal(300),
+                amount: '300',
                 memo: 'Danke Bibi!',
                 creationDate: contributionDateFormatter(new Date()),
               },
@@ -1352,7 +1352,7 @@ describe('ContributionResolver', () => {
                 mutation: adminUpdateContribution,
                 variables: {
                   id: 1,
-                  amount: new Decimal(300),
+                  amount: '300',
                   memo: 'Danke Bibi!',
                   creationDate: contributionDateFormatter(new Date()),
                 },
@@ -1420,7 +1420,7 @@ describe('ContributionResolver', () => {
               mutation: adminCreateContribution,
               variables: {
                 email: 'peter@lustig.de',
-                amount: 400,
+                amount: '400',
                 memo: 'Herzlich Willkommen bei Gradido!',
                 creationDate: contributionDateFormatter(
                   new Date(now.getFullYear(), now.getMonth() - 1, 1),
@@ -1634,13 +1634,13 @@ describe('ContributionResolver', () => {
 
             describe('creation is valid', () => {
               it('returns an array of the open creations for the last three months', async () => {
-                variables.amount = new Decimal(200)
+                variables.amount = '200'
                 await expect(
                   mutate({ mutation: adminCreateContribution, variables }),
                 ).resolves.toEqual(
                   expect.objectContaining({
                     data: {
-                      adminCreateContribution: ['1000.00', '1000.00', '590.00'],
+                      adminCreateContribution: ['1000', '1000', '590'],
                     },
                   }),
                 )
@@ -1685,7 +1685,7 @@ describe('ContributionResolver', () => {
                       mutation: updateContribution,
                       variables: {
                         contributionId: adminContribution?.id ?? -1,
-                        amount: 100.0,
+                        amount: '100',
                         memo: 'Test Test Test',
                         contributionDate: new Date().toString(),
                       },
@@ -1705,7 +1705,7 @@ describe('ContributionResolver', () => {
             describe('second creation surpasses the available amount ', () => {
               it('returns an array of the open creations for the last three months', async () => {
                 jest.clearAllMocks()
-                variables.amount = new Decimal(1000)
+                variables.amount = '1000'
                 await expect(
                   mutate({ mutation: adminCreateContribution, variables }),
                 ).resolves.toEqual(
@@ -1745,7 +1745,7 @@ describe('ContributionResolver', () => {
                   mutation: adminUpdateContribution,
                   variables: {
                     id: 728,
-                    amount: new Decimal(300),
+                    amount: '300',
                     memo: 'Danke Bibi!',
                     creationDate: contributionDateFormatter(new Date()),
                   },
@@ -1771,7 +1771,7 @@ describe('ContributionResolver', () => {
                   mutation: adminUpdateContribution,
                   variables: {
                     id: creation ? creation.id : -1,
-                    amount: new Decimal(1900),
+                    amount: '1900',
                     memo: 'Danke Peter!',
                     creationDate: creation
                       ? contributionDateFormatter(creation.contributionDate)
@@ -1806,7 +1806,7 @@ describe('ContributionResolver', () => {
                   mutation: adminUpdateContribution,
                   variables: {
                     id: creation?.id,
-                    amount: new Decimal(300),
+                    amount: '300',
                     memo: 'Danke Peter!',
                     creationDate: creation
                       ? contributionDateFormatter(creation.contributionDate)
@@ -1846,7 +1846,7 @@ describe('ContributionResolver', () => {
                   mutation: adminUpdateContribution,
                   variables: {
                     id: creation?.id,
-                    amount: new Decimal(200),
+                    amount: '200',
                     memo: 'Das war leider zu Viel!',
                     creationDate: creation
                       ? contributionDateFormatter(creation.contributionDate)
@@ -1912,7 +1912,7 @@ describe('ContributionResolver', () => {
               ownContribution = await mutate({
                 mutation: createContribution,
                 variables: {
-                  amount: 100.0,
+                  amount: '100',
                   memo: 'Test env contribution',
                   contributionDate: contributionDateFormatter(new Date()),
                 },
@@ -1990,7 +1990,7 @@ describe('ContributionResolver', () => {
               } = await mutate({
                 mutation: createContribution,
                 variables: {
-                  amount: 100.0,
+                  amount: '100',
                   memo: 'Confirmed Contribution',
                   contributionDate: contributionDateFormatter(new Date()),
                 },
@@ -2277,7 +2277,7 @@ describe('ContributionResolver', () => {
         await mutate({
           mutation: createContribution,
           variables: {
-            amount: 100.0,
+            amount: '100',
             memo: '#firefighters',
             contributionDate: new Date().toString(),
           },

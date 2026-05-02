@@ -1,15 +1,15 @@
-import { Decimal } from 'decimal.js-light'
+// import isAuthorized from './directive/isAuthorized'
+import { GradidoUnitScalar } from 'core'
 import { GraphQLSchema } from 'graphql'
+import { GradidoUnit } from 'shared'
 import { buildSchema } from 'type-graphql'
 import { getApiResolvers } from './api/schema'
-// import isAuthorized from './directive/isAuthorized'
-import { DecimalScalar } from './scalar/Decimal'
 
 export const schema = async (): Promise<GraphQLSchema> => {
   return await buildSchema({
     resolvers: getApiResolvers(),
     // authChecker: isAuthorized,
-    scalarsMap: [{ type: Decimal, scalar: DecimalScalar }],
+    scalarsMap: [{ type: GradidoUnit, scalar: GradidoUnitScalar }],
     /*
     validate: {
       validationError: { target: false },

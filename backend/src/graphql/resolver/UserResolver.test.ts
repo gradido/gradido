@@ -461,7 +461,7 @@ describe('UserResolver', () => {
           contribution = await mutate({
             mutation: createContribution,
             variables: {
-              amount: 1000,
+              amount: '1000',
               memo: 'testing',
               contributionDate: new Date().toISOString(),
             },
@@ -529,7 +529,7 @@ describe('UserResolver', () => {
           // factory logs in as Peter Lustig
           await transactionLinkFactory(testEnv, {
             email: 'peter@lustig.de',
-            amount: 19.99,
+            amount: '19.99',
             memo: `Kein Trick, keine Zauberrei,
     bei Gradidio sei dabei!`,
           })

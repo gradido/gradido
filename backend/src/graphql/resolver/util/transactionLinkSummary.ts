@@ -32,9 +32,9 @@ export const transactionLinkSummary = async (
         .getRawOne()
     return {
       sumHoldAvailableAmount: sumHoldAvailableAmount
-        ? GradidoUnit.fromDecimal(sumHoldAvailableAmount)
+        ? GradidoUnit.fromString(sumHoldAvailableAmount)
         : new GradidoUnit(0n),
-      sumAmount: sumAmount ? GradidoUnit.fromDecimal(sumAmount) : new GradidoUnit(0n),
+      sumAmount: sumAmount ? GradidoUnit.fromString(sumAmount) : new GradidoUnit(0n),
       lastDate: lastDate || null,
       firstDate: firstDate || null,
       transactionLinkcount: count || 0,
