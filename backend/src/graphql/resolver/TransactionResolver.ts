@@ -384,7 +384,8 @@ export class TransactionResolver {
       logger.debug(`transactions=${transactions.map((t) => t.id)}`)
 
       // virtual transaction for pending transaction-links sum
-      if (sumHoldAvailableAmount.comparedTo(GradidoUnit.fromNumber(0)) === 0n) {
+      const zeroAmount = new GradidoUnit(0n)
+      if (sumHoldAvailableAmount.comparedTo(zeroAmount) === 0n) {
         const linkCount = await dbTransactionLink.count({
           where: {
             userId: user.id,
@@ -392,9 +393,9 @@ export class TransactionResolver {
           },
         })
         if (linkCount > 0) {
-          transactions.push(virtualLinkTransaction(new GradidoUnit(0n), self))
+          transactions.push(virtualLinkTransaction(zeroAmount, self))
         }
-      } else if (sumHoldAvailableAmount.gddCent > 0) {
+      } else if (sumHoldAvailableAmount.comparedTo(zeroAmount) > 0) {
         logger.debug(`sumHoldAvailableAmount > 0: transactions=${transactions.map((t) => t.id)}`)
         transactions.push(virtualLinkTransaction(sumAmount.negated(), self))
         logger.debug(`transactions=${transactions.map((t) => t.id)}`)
