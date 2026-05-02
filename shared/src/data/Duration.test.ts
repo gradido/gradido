@@ -34,6 +34,30 @@ describe('Duration', () => {
     expect(duration.toString(2)).toBe('1.00 s')
   })
 
+  it('should create a duration from days', () => {
+    const duration = Duration.days(1)
+    expect(duration.seconds).toBe(86400n)
+    expect(duration.toString(2)).toBe('1.00 days')
+  })
+
+  it('should create a duration from hours', () => {
+    const duration = Duration.hours(1)
+    expect(duration.seconds).toBe(3600n)
+    expect(duration.toString(2)).toBe('1.00 h')
+  })
+
+  it('should create a duration from minutes', () => {
+    const duration = Duration.minutes(1)
+    expect(duration.seconds).toBe(60n)
+    expect(duration.toString(2)).toBe('1.00 min')
+  })
+
+  it('should create a duration from seconds', () => {
+    const duration = Duration.seconds(1)
+    expect(duration.seconds).toBe(1n)
+    expect(duration.toString(2)).toBe('1.00 s')
+  })
+
   it('should add durations', () => {
     const duration1 = Duration.seconds(1)
     const duration2 = Duration.seconds(2)
