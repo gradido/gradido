@@ -19,7 +19,7 @@ export class ContributionLoggingView extends AbstractLoggingView {
       resubmissionAt: this.dateToString(this.self.resubmissionAt),
       contributionDate: this.dateToString(this.self.contributionDate),
       memoLength: this.self.memo.length,
-      amount: this.gradidoUnitToString(this.self.amount),
+      amount: this.self.amount,
       moderatorId: this.self.moderatorId,
       contributionLinkId: this.self.contributionLinkId,
       confirmedBy: this.self.confirmedBy,

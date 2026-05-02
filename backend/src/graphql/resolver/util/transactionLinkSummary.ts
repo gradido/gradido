@@ -31,7 +31,7 @@ export const transactionLinkSummary = async (
         .orderBy('transactionLink.createdAt', 'DESC')
         .getRawOne()
     return {
-      // db call return GradidoUnit bigints as string, we cannot use GradidoUnit.fromString here, 
+      // db call return GradidoUnit bigints as string, we cannot use GradidoUnit.fromString here,
       // because GradidoUnit.fromString expect Gradido and will convert it to gradido cent, but in db it is already stored as gradido cent
       sumHoldAvailableAmount: sumHoldAvailableAmount
         ? GradidoUnit.fromGradidoCent(BigInt(sumHoldAvailableAmount))
