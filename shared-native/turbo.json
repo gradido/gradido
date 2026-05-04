@@ -3,6 +3,9 @@
   "tasks": {
     "test": {
       "dependsOn": ["build"]
+    },
+    "test:node": {
+      "dependsOn": ["build"]
     }
   }
 }

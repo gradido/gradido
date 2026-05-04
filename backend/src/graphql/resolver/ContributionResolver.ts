@@ -529,7 +529,7 @@ export class ContributionResolver {
         transaction.balanceDate = receivedCallDate
         transaction.decay = decay ? decay.decay : new GradidoUnit(0n)
         transaction.decayStart = decay ? decay.start : null
-        transaction.decayCalculationType = DecayCalculationType.NATIVE_C_DYNAMIC_FACTOR
+        transaction.decayCalculationType = DecayCalculationType.NATIVE_C_FIXED_FACTOR_INTEGER
         transaction = await queryRunner.manager.save(DbTransaction, transaction)
 
         contribution.confirmedAt = receivedCallDate

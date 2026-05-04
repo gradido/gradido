@@ -1,5 +1,5 @@
 import { randomBytes } from 'node:crypto'
-import { Duration, GradidoUnit } from 'shared'
+import { CODE_VALID_DAYS_DURATION, Duration, GradidoUnit } from 'shared'
 import { AppDatabase } from '../../AppDatabase'
 import { TransactionLink, User } from '../../entity'
 import { findUserByIdentifier } from '../../queries'
@@ -42,11 +42,9 @@ export async function createTransactionLink(
   store: boolean = true,
 ): Promise<TransactionLink> {
   const amount = GradidoUnit.fromNumber(transactionLinkData.amount)
-  const holdAvailableAmount = amount.requiredBeforeDecay(
-    new Duration(CODE_VALID_DAYS_DURATION * 24n * 60n * 60n),
-  )
+  const holdAvailableAmount = amount.requiredBeforeDecay(Duration.days(CODE_VALID_DAYS_DURATION))
   const createdAt = transactionLinkData.createdAt || new Date()
-  const validUntil = transactionLinkExpireDate(createdAt)
+  const validUntil = Duration.days(CODE_VALID_DAYS_DURATION).addToDate(createdAt)
 
   const transactionLink = new TransactionLink()
   transactionLink.userId = userId
@@ -62,15 +60,6 @@ export async function createTransactionLink(
   }
 
   return store ? transactionLink.save() : transactionLink
-}
-
-//////  Transaction Link BUSINESS LOGIC  //////
-// TODO: move business logic to shared
-export const CODE_VALID_DAYS_DURATION = 14n
-
-export const transactionLinkExpireDate = (date: Date): Date => {
-  const validUntil = new Date(date)
-  return new Date(validUntil.setDate(date.getDate() + Number(CODE_VALID_DAYS_DURATION)))
 }
 
 export const transactionLinkCode = (date: Date): string => {

@@ -7,13 +7,11 @@ import {
   User as DbUser,
   UserContact as DbUserContact,
 } from 'database'
-import Decimal from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
 import { getLogger } from 'log4js'
 import {
   createKeyPair,
   encryptAndSign,
-  GradidoUnit,
   SendCoinsJwtPayloadType,
   SendCoinsResponseJwtPayloadType,
   verifyAndDecrypt,

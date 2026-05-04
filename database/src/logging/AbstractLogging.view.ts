@@ -1,4 +1,3 @@
-import { GradidoUnit } from 'shared'
 import util from 'util'
 
 export abstract class AbstractLoggingView {
@@ -33,13 +32,6 @@ export abstract class AbstractLoggingView {
       } else {
         return new Date(date).toISOString()
       }
-    }
-    return undefined
-  }
-
-  public gradidoUnitToString(gdd: GradidoUnit | undefined | null): string | undefined {
-    if (gdd) {
-      return gdd.toString(4)
     }
     return undefined
   }

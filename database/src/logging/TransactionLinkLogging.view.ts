@@ -14,8 +14,8 @@ export class TransactionLinkLoggingView extends AbstractLoggingView {
     return {
       id: this.self.id,
       userId: this.self.userId,
-      amount: this.gradidoUnitToString(this.self.amount),
-      holdAvailableAmount: this.gradidoUnitToString(this.self.holdAvailableAmount),
+      amount: this.self.amount,
+      holdAvailableAmount: this.self.holdAvailableAmount,
       memoLength: this.self.memo.length,
       createdAt: this.dateToString(this.self.createdAt),
       deletedAt: this.dateToString(this.self.deletedAt),

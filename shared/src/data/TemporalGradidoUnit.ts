@@ -45,7 +45,7 @@ export class TemporalGradidoUnit {
    * @returns A new TemporalGradidoUnit with the decayed balance at (balanceDate + duration).
    */
   public decayedFor(duration: Duration) {
-    return this.decayedTo(new Date(this.balanceDate.getTime() + Number(duration.seconds) * 1000))
+    return this.decayedTo(new Date(this.balanceDate.getTime() + Number(duration.seconds * 1000n)))
   }
 
   /**

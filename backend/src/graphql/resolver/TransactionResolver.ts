@@ -129,7 +129,7 @@ export const executeTransaction = async (
       transactionSend.balanceDate = receivedCallDate
       transactionSend.decay = sendBalance.decay.decay
       transactionSend.decayStart = sendBalance.decay.start
-      transactionSend.decayCalculationType = DecayCalculationType.NATIVE_C_DYNAMIC_FACTOR
+      transactionSend.decayCalculationType = DecayCalculationType.NATIVE_C_FIXED_FACTOR_INTEGER
       transactionSend.previous = sendBalance.lastTransactionId
       transactionSend.transactionLinkId = transactionLink ? transactionLink.id : null
       await queryRunner.manager.insert(dbTransaction, transactionSend)
@@ -153,7 +153,7 @@ export const executeTransaction = async (
       transactionReceive.balanceDate = receivedCallDate
       transactionReceive.decay = receiveBalance ? receiveBalance.decay.decay : new GradidoUnit(0n)
       transactionReceive.decayStart = receiveBalance ? receiveBalance.decay.start : null
-      transactionReceive.decayCalculationType = DecayCalculationType.NATIVE_C_DYNAMIC_FACTOR
+      transactionReceive.decayCalculationType = DecayCalculationType.NATIVE_C_FIXED_FACTOR_INTEGER
       transactionReceive.previous = receiveBalance ? receiveBalance.lastTransactionId : null
       transactionReceive.linkedTransactionId = transactionSend.id
       transactionReceive.transactionLinkId = transactionLink ? transactionLink.id : null
@@ -379,7 +379,8 @@ export class TransactionResolver {
       logger.debug(`transactions=${transactions.map((t) => t.id)}`)
 
       // virtual transaction for pending transaction-links sum
-      if (sumHoldAvailableAmount.gddCent === 0n) {
+      const zeroAmount = new GradidoUnit(0n)
+      if (sumHoldAvailableAmount.comparedTo(zeroAmount) === 0n) {
         const linkCount = await dbTransactionLink.count({
           where: {
             userId: user.id,
@@ -387,9 +388,9 @@ export class TransactionResolver {
           },
         })
         if (linkCount > 0) {
-          transactions.push(virtualLinkTransaction(new GradidoUnit(0n), self))
+          transactions.push(virtualLinkTransaction(zeroAmount, self))
         }
-      } else if (sumHoldAvailableAmount.gddCent > 0) {
+      } else if (sumHoldAvailableAmount.comparedTo(zeroAmount) > 0) {
         logger.debug(`sumHoldAvailableAmount > 0: transactions=${transactions.map((t) => t.id)}`)
         transactions.push(virtualLinkTransaction(sumAmount.negated(), self))
         logger.debug(`transactions=${transactions.map((t) => t.id)}`)

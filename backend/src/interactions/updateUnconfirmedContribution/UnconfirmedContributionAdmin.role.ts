@@ -1,5 +1,4 @@
 import { Contribution, User } from 'database'
-import { GradidoUnit } from 'shared'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { Role } from '@/auth/Role'
 import { ContributionMessageBuilder } from '@/data/ContributionMessage.builder'

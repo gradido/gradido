@@ -1,4 +1,3 @@
-import Decimal from 'decimal.js-light'
 import {
   calculateDecay as calculateDecayNative,
   gradidoUnitFromString,
@@ -18,10 +17,6 @@ export class GradidoUnit {
 
   public static fromNumber(value: number): GradidoUnit {
     return new GradidoUnit(BigInt(Math.round(value * 10000)))
-  }
-
-  public static fromDecimal(gdd: Decimal): GradidoUnit {
-    return this.fromString(gdd.toString())
   }
 
   public static fromString(value: string): GradidoUnit {
@@ -202,9 +197,6 @@ export class GradidoUnit {
     return new GradidoUnit(this.gddCentValue)
   }
 
-  public toDecimal(): Decimal {
-    return new Decimal(this.gddCentValue.toString()).div(10000)
-  }
   public toNumber(): number {
     return Number(this.gddCentValue) / 10000
   }

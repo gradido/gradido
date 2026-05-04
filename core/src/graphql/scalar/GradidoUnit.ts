@@ -6,9 +6,7 @@ export const GradidoUnitScalar = new GraphQLScalarType({
   description: 'The `GradidoUnit` scalar type to represent currency values',
 
   serialize(value: GradidoUnit) {
-    // TODO: Talk about this, maybe it is better to send it with fixed after comma digits
-    // this is to ensure same functionality like Decimal.toString what was used before
-    return value.toStringSmart(2)
+    return value.toString()
   },
 
   parseValue(value) {

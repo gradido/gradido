@@ -8,16 +8,20 @@
       "cache": false
     },
     "up:backend_test": {
-      "cache": false
+      "cache": false,
+      "dependsOn": ["build"]
     },
     "up:federation_test": {
-      "cache": false
+      "cache": false,
+      "dependsOn": ["build"]
     },
     "up:dht_test": {
-      "cache": false
+      "cache": false,
+      "dependsOn": ["build"]
     },
     "up:test": {
-      "cache": false
+      "cache": false,
+      "dependsOn": ["build"]
     },
     "up": {
       "cache": false,

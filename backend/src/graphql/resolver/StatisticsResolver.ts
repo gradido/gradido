@@ -36,7 +36,7 @@ export class StatisticsResolver {
       await queryRunner.connect()
       const { totalGradidoCreated } = await queryRunner.manager
         .createQueryBuilder()
-        .select('SUM(transaction.amount_gdd4) AS totalGradidoCreated')
+        .select('SUM(transaction.amount) AS totalGradidoCreated')
         .from(DbTransaction, 'transaction')
         .where('transaction.typeId = 1')
         .getRawOne()
@@ -53,7 +53,7 @@ export class StatisticsResolver {
       await queryRunner.connect()
       const { totalGradidoDecayed } = await queryRunner.manager
         .createQueryBuilder()
-        .select('SUM(transaction.decay_gdd4) AS totalGradidoDecayed')
+        .select('SUM(transaction.decay) AS totalGradidoDecayed')
         .from(DbTransaction, 'transaction')
         .where('transaction.decay IS NOT NULL')
         .getRawOne()
@@ -76,7 +76,7 @@ export class StatisticsResolver {
 
       const lastUserTransactions = await queryRunner.manager
         .createQueryBuilder(DbUser, 'user')
-        .select('transaction.balance_gdd4', 'balance')
+        .select('transaction.balance', 'balance')
         .addSelect('transaction.balance_date', 'balanceDate')
         .innerJoin(DbTransaction, 'transaction', 'user.id = transaction.user_id')
         .where(
