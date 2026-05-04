@@ -66,12 +66,12 @@ export class UsersSyncRole extends AbstractSyncRole<UserDb> {
       )
       .orderBy(asc(usersTable.createdAt), asc(usersTable.id))
       .limit(count)
-      
+
     return result.map((row) => {
       try {
         return v.parse(userDbSchema, {
           ...row.user,
-          messageId: row.dltTransaction?.messageId
+          messageId: row.dltTransaction?.messageId,
         })
       } catch (e) {
         throw new DatabaseError('loadUsers', row, e as Error)

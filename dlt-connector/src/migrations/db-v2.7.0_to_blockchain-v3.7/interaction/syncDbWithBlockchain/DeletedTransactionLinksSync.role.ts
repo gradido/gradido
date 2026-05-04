@@ -73,7 +73,10 @@ export class DeletedTransactionLinksSyncRole extends AbstractSyncRole<DeletedTra
         ),
       )
       .innerJoin(usersTable, eq(transactionLinksTable.userId, usersTable.id))
-      .leftJoin(dltTransactionsTable, eq(transactionLinksTable.id, dltTransactionsTable.transactionLinkId))
+      .leftJoin(
+        dltTransactionsTable,
+        eq(transactionLinksTable.id, dltTransactionsTable.transactionLinkId),
+      )
       .orderBy(asc(transactionLinksTable.deletedAt), asc(transactionLinksTable.id))
       .limit(count)
 
@@ -187,7 +190,10 @@ export class DeletedTransactionLinksSyncRole extends AbstractSyncRole<DeletedTra
       if (item.messageId) {
         ledgerAnchor = new LedgerAnchor(new HieroTransactionId(item.messageId))
       } else {
-        ledgerAnchor = new LedgerAnchor(item.id, LedgerAnchor.Type_LEGACY_GRADIDO_DB_TRANSACTION_LINK_ID)
+        ledgerAnchor = new LedgerAnchor(
+          item.id,
+          LedgerAnchor.Type_LEGACY_GRADIDO_DB_TRANSACTION_LINK_ID,
+        )
       }
       addToBlockchain(
         this.buildTransaction(

@@ -76,10 +76,13 @@ export class CreationsSyncRole extends AbstractSyncRole<CreationTransactionDb> {
       )
       .innerJoin(usersTable, eq(contributionsTable.userId, usersTable.id))
       .innerJoin(confirmedByUsers, eq(contributionsTable.confirmedBy, confirmedByUsers.id))
-      .leftJoin(dltTransactionsTable, eq(contributionsTable.transactionId, dltTransactionsTable.transactionId))
+      .leftJoin(
+        dltTransactionsTable,
+        eq(contributionsTable.transactionId, dltTransactionsTable.transactionId),
+      )
       .orderBy(asc(contributionsTable.confirmedAt), asc(contributionsTable.transactionId))
       .limit(count)
-      
+
     return result.map((row) => {
       const item = {
         ...row.contribution,
@@ -166,7 +169,10 @@ export class CreationsSyncRole extends AbstractSyncRole<CreationTransactionDb> {
       if (item.messageId) {
         ledgerAnchor = new LedgerAnchor(new HieroTransactionId(item.messageId))
       } else {
-        ledgerAnchor = new LedgerAnchor(item.id, LedgerAnchor.Type_LEGACY_GRADIDO_DB_CONTRIBUTION_ID)
+        ledgerAnchor = new LedgerAnchor(
+          item.id,
+          LedgerAnchor.Type_LEGACY_GRADIDO_DB_CONTRIBUTION_ID,
+        )
       }
       addToBlockchain(
         this.buildTransaction(item, communityContext, recipientKeyPair, signerKeyPair).build(),

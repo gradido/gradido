@@ -21,7 +21,13 @@ import { deriveFromCode } from '../../../../data/deriveKeyPair'
 import { Uuidv4 } from '../../../../schemas/typeGuard.schema'
 import { addToBlockchain } from '../../blockchain'
 import { Context } from '../../Context'
-import { dltTransactionsTable, transactionLinksTable, transactionsTable, usersTable } from '../../drizzle.schema'
+import { TransactionTypeId } from '../../data/TransactionTypeId'
+import {
+  dltTransactionsTable,
+  transactionLinksTable,
+  transactionsTable,
+  usersTable,
+} from '../../drizzle.schema'
 import { BlockchainError, DatabaseError } from '../../errors'
 import { toMysqlDateTime } from '../../utils'
 import {
@@ -30,7 +36,6 @@ import {
   redeemedTransactionLinkDbSchema,
 } from '../../valibot.schema'
 import { AbstractSyncRole, IndexType } from './AbstractSync.role'
-import { TransactionTypeId } from '../../data/TransactionTypeId'
 
 export class RedeemTransactionLinksSyncRole extends AbstractSyncRole<RedeemedTransactionLinkDb> {
   constructor(context: Context) {
@@ -94,10 +99,7 @@ export class RedeemTransactionLinksSyncRole extends AbstractSyncRole<RedeemedTra
       .innerJoin(redeemedByUser, eq(transactionLinksTable.redeemedBy, redeemedByUser.id))
       .leftJoin(minTransactions, eq(minTransactions.transactionLinkId, transactionLinksTable.id))
       .leftJoin(dltTransactionsTable, eq(minTransactions.minId, dltTransactionsTable.transactionId))
-      .orderBy(
-        asc(transactionLinksTable.redeemedAt),
-        asc(transactionLinksTable.id),
-      )
+      .orderBy(asc(transactionLinksTable.redeemedAt), asc(transactionLinksTable.id))
       .limit(count)
 
     return result.map((row) => {
@@ -224,11 +226,14 @@ export class RedeemTransactionLinksSyncRole extends AbstractSyncRole<RedeemedTra
     }
 
     try {
-      let ledgerAnchor: LedgerAnchor | undefined = undefined
+      let ledgerAnchor: LedgerAnchor | undefined
       if (item.messageId) {
         ledgerAnchor = new LedgerAnchor(new HieroTransactionId(item.messageId))
       } else {
-        ledgerAnchor = new LedgerAnchor(item.id, LedgerAnchor.Type_LEGACY_GRADIDO_DB_TRANSACTION_LINK_ID)
+        ledgerAnchor = new LedgerAnchor(
+          item.id,
+          LedgerAnchor.Type_LEGACY_GRADIDO_DB_TRANSACTION_LINK_ID,
+        )
       }
       addToBlockchain(
         this.buildTransaction(

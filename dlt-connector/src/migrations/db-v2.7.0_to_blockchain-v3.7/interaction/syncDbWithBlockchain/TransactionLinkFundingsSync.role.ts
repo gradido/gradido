@@ -57,7 +57,10 @@ export class TransactionLinkFundingsSyncRole extends AbstractSyncRole<Transactio
       })
       .from(transactionLinksTable)
       .innerJoin(usersTable, eq(transactionLinksTable.userId, usersTable.id))
-      .leftJoin(dltTransactionsTable, eq(transactionLinksTable.id, dltTransactionsTable.transactionLinkId))
+      .leftJoin(
+        dltTransactionsTable,
+        eq(transactionLinksTable.id, dltTransactionsTable.transactionLinkId),
+      )
       .where(
         or(
           gt(transactionLinksTable.createdAt, toMysqlDateTime(lastIndex.date)),
@@ -207,7 +210,10 @@ export class TransactionLinkFundingsSyncRole extends AbstractSyncRole<Transactio
       if (item.messageId) {
         ledgerAnchor = new LedgerAnchor(new HieroTransactionId(item.messageId))
       } else {
-        ledgerAnchor = new LedgerAnchor(item.id, LedgerAnchor.Type_LEGACY_GRADIDO_DB_TRANSACTION_LINK_ID)
+        ledgerAnchor = new LedgerAnchor(
+          item.id,
+          LedgerAnchor.Type_LEGACY_GRADIDO_DB_TRANSACTION_LINK_ID,
+        )
       }
       addToBlockchain(
         this.buildTransaction(

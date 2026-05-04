@@ -143,7 +143,7 @@ export const deletedTransactionLinKDbSchema = v.object({
   code: identifierSeedSchema,
   deletedAt: dateSchema,
   createdAt: dateSchema,
-  messageId: v.nullish(hieroTransactionIdStringSchema)
+  messageId: v.nullish(hieroTransactionIdStringSchema),
 })
 
 export const communityDbSchema = v.object({
