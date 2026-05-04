@@ -1,5 +1,6 @@
 /* eslint-disable no-use-before-define */
-import { Decimal } from 'decimal.js-light'
+
+import { GradidoUnit } from 'shared'
 import {
   BaseEntity,
   Column,
@@ -12,7 +13,7 @@ import {
 import { Contribution } from './Contribution'
 import { DltTransaction } from './DltTransaction'
 import { TransactionLink } from './TransactionLink'
-import { DecimalTransformer } from './transformer/DecimalTransformer'
+import { GradidoUnitTransformer } from './transformer/GradidoUnitTransformer'
 
 @Entity('transactions')
 export class Transaction extends BaseEntity {
@@ -35,22 +36,20 @@ export class Transaction extends BaseEntity {
   transactionLinkId?: number | null
 
   @Column({
-    type: 'decimal',
-    precision: 40,
-    scale: 20,
+    name: 'amount_gdd4',
+    type: 'bigint',
     nullable: false,
-    transformer: DecimalTransformer,
+    transformer: GradidoUnitTransformer,
   })
-  amount: Decimal
+  amount: GradidoUnit
 
   @Column({
-    type: 'decimal',
-    precision: 40,
-    scale: 20,
+    name: 'balance_gdd4',
+    type: 'bigint',
     nullable: false,
-    transformer: DecimalTransformer,
+    transformer: GradidoUnitTransformer,
   })
-  balance: Decimal
+  balance: GradidoUnit
 
   @Column({
     name: 'balance_date',
@@ -62,13 +61,12 @@ export class Transaction extends BaseEntity {
   balanceDate: Date
 
   @Column({
-    type: 'decimal',
-    precision: 40,
-    scale: 20,
+    name: 'decay_gdd4',
+    type: 'bigint',
     nullable: false,
-    transformer: DecimalTransformer,
+    transformer: GradidoUnitTransformer,
   })
-  decay: Decimal
+  decay: GradidoUnit
 
   @Column({
     name: 'decay_start',

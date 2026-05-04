@@ -1,4 +1,4 @@
-import { Decimal } from 'decimal.js-light'
+import { GradidoUnit } from 'shared'
 import { AppDatabase } from '../../AppDatabase'
 import { Contribution, Transaction, User } from '../../entity'
 import { ContributionStatus, ContributionType, TransactionTypeId } from '../../enum'
@@ -83,7 +83,7 @@ export async function createContribution(
   const contribution = new Contribution()
   contribution.user = user
   contribution.userId = user.id
-  contribution.amount = new Decimal(creation.amount)
+  contribution.amount = GradidoUnit.fromNumber(creation.amount)
   contribution.createdAt = new Date()
   contribution.contributionDate = getContributionDate(creation)
   contribution.memo = creation.memo

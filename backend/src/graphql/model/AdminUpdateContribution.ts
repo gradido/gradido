@@ -1,4 +1,4 @@
-import { Decimal } from 'decimal.js-light'
+import { GradidoUnit } from 'shared'
 import { Field, ObjectType } from 'type-graphql'
 
 @ObjectType()
@@ -9,9 +9,9 @@ export class AdminUpdateContribution {
   @Field(() => String)
   memo: string
 
-  @Field(() => Decimal)
-  amount: Decimal
+  @Field(() => GradidoUnit)
+  amount: GradidoUnit
 
-  @Field(() => [Decimal])
-  creation: Decimal[]
+  @Field(() => [GradidoUnit])
+  creation: GradidoUnit[]
 }

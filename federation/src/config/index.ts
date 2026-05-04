@@ -2,17 +2,11 @@
 
 import type { LogLevel } from 'config-schema'
 import { validate } from 'config-schema'
-import { Decimal } from 'decimal.js-light'
 import dotenv from 'dotenv'
 
 import { schema } from './schema'
 
 dotenv.config()
-
-Decimal.set({
-  precision: 25,
-  rounding: Decimal.ROUND_HALF_UP,
-})
 
 const logging = {
   LOG4JS_CONFIG_PLACEHOLDER: process.env.LOG4JS_CONFIG_PLACEHOLDER ?? 'log4js-config-%v.json',

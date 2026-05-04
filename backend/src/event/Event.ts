@@ -7,7 +7,7 @@ import {
   TransactionLink as DbTransactionLink,
   User as DbUser,
 } from 'database'
-import { Decimal } from 'decimal.js-light'
+import { GradidoUnit } from 'shared'
 
 import { EventType } from './EventType'
 
@@ -21,7 +21,7 @@ export const Event = (
   involvedContributionMessage: DbContributionMessage | null = null,
   involvedTransactionLink: DbTransactionLink | null = null,
   involvedContributionLink: DbContributionLink | null = null,
-  amount: Decimal | null = null,
+  amount: GradidoUnit | null = null,
 ): DbEvent => {
   const event = new DbEvent()
   event.type = type

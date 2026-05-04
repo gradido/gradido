@@ -1,4 +1,4 @@
-import Decimal from 'decimal.js-light'
+import { GradidoUnit } from 'shared'
 import { ContributionLink } from '../../entity'
 import { ContributionCycleType } from '../../enum'
 import { ContributionLinkInterface } from '../contributionLink/ContributionLinkInterface'
@@ -14,7 +14,7 @@ export function createContributionLink(
   contributionLinkData: ContributionLinkInterface,
 ): Promise<ContributionLink> {
   const contributionLink = new ContributionLink()
-  contributionLink.amount = new Decimal(contributionLinkData.amount)
+  contributionLink.amount = GradidoUnit.fromNumber(contributionLinkData.amount)
   contributionLink.name = contributionLinkData.name
   contributionLink.memo = contributionLinkData.memo
   contributionLink.createdAt = new Date()
@@ -26,7 +26,7 @@ export function createContributionLink(
   if (contributionLinkData.validTo) {
     contributionLink.validTo = contributionLinkData.validTo
   }
-  contributionLink.maxAmountPerMonth = new Decimal(200)
+  contributionLink.maxAmountPerMonth = GradidoUnit.fromNumber(200)
   contributionLink.maxPerCycle = 1
 
   return contributionLink.save()

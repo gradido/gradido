@@ -1,4 +1,4 @@
-import { Decimal } from 'decimal.js-light'
+import { GradidoUnit } from 'shared'
 import {
   BaseEntity,
   Column,
@@ -13,7 +13,7 @@ import { type ContributionLink as ContributionLinkType } from './ContributionLin
 import { type ContributionMessage as ContributionMessageType } from './ContributionMessage'
 import { type Transaction as TransactionType } from './Transaction'
 import { type TransactionLink as TransactionLinkType } from './TransactionLink'
-import { DecimalTransformer } from './transformer/DecimalTransformer'
+import { GradidoUnitTransformer } from './transformer/GradidoUnitTransformer'
 import { type User as UserType } from './User'
 
 @Entity('events')
@@ -95,11 +95,10 @@ export class Event extends BaseEntity {
   involvedContributionLink: ContributionLinkType | null
 
   @Column({
-    type: 'decimal',
-    precision: 40,
-    scale: 20,
+    name: 'amount_gdd4',
+    type: 'bigint',
     nullable: true,
-    transformer: DecimalTransformer,
+    transformer: GradidoUnitTransformer,
   })
-  amount: Decimal | null
+  amount: GradidoUnit | null
 }

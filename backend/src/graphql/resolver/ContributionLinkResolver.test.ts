@@ -2,8 +2,8 @@ import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { getLogger } from 'config-schema/test/testSetup'
 import { AppDatabase, ContributionLink as DbContributionLink, Event as DbEvent } from 'database'
-import { Decimal } from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
+import { GradidoUnit } from 'shared'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { EventType } from '@/event/Events'
 import { userFactory } from '@/seeds/factory/user'
@@ -48,13 +48,13 @@ afterAll(async () => {
 describe('Contribution Links', () => {
   const now = new Date()
   const variables = {
-    amount: new Decimal(200),
+    amount: '200',
     name: 'Dokumenta 2022',
     memo: 'Danke für deine Teilnahme an der Dokumenta 2022',
     cycle: 'once',
     validFrom: new Date(2022, 5, 18).toISOString(),
     validTo: new Date(now.getFullYear() + 1, 7, 14).toISOString(),
-    maxAmountPerMonth: new Decimal(200),
+    maxAmountPerMonth: '200',
     maxPerCycle: 1,
   }
 
@@ -92,7 +92,7 @@ describe('Contribution Links', () => {
             variables: {
               ...variables,
               id: -1,
-              amount: new Decimal(400),
+              amount: '400',
               name: 'Dokumenta 2023',
               memo: 'Danke für deine Teilnahme an der Dokumenta 2023',
             },
@@ -167,7 +167,7 @@ describe('Contribution Links', () => {
               variables: {
                 ...variables,
                 id: -1,
-                amount: new Decimal(400),
+                amount: '400',
                 name: 'Dokumenta 2023',
                 memo: 'Danke für deine Teilnahme an der Dokumenta 2023',
               },
@@ -250,8 +250,8 @@ describe('Contribution Links', () => {
               deletedAt: null,
               code: expect.stringMatching(/^[0-9a-f]{24,24}$/),
               linkEnabled: true,
-              amount: expect.decimalEqual(200),
-              maxAmountPerMonth: expect.decimalEqual(200),
+              amount: GradidoUnit.fromNumber(200),
+              maxAmountPerMonth: GradidoUnit.fromNumber(200),
             }),
           )
         })
@@ -263,7 +263,7 @@ describe('Contribution Links', () => {
               affectedUserId: 0,
               actingUserId: expect.any(Number),
               involvedContributionLinkId: expect.any(Number),
-              amount: expect.decimalEqual(200),
+              amount: GradidoUnit.fromNumber(200),
             }),
           )
         })
@@ -454,7 +454,7 @@ describe('Contribution Links', () => {
             mutation: createContributionLink,
             variables: {
               ...variables,
-              amount: new Decimal(0),
+              amount: '0',
             },
           })
           expect(errorObjects).toMatchObject([
@@ -466,7 +466,7 @@ describe('Contribution Links', () => {
                     {
                       property: 'amount',
                       constraints: {
-                        isPositiveDecimal: 'The amount must be a positive value amount',
+                        isPositiveGradidoUnit: 'The amount must be a positive value amount',
                       },
                     },
                   ],
@@ -517,7 +517,7 @@ describe('Contribution Links', () => {
                 variables: {
                   ...variables,
                   id: -1,
-                  amount: new Decimal(400),
+                  amount: '400',
                   name: 'Dokumenta 2023',
                   memo: 'Danke für deine Teilnahme an der Dokumenta 2023',
                 },
@@ -548,7 +548,7 @@ describe('Contribution Links', () => {
                 variables: {
                   ...variables,
                   id: linkId,
-                  amount: new Decimal(400),
+                  amount: '400',
                   name: 'Dokumenta 2023',
                   memo: 'Danke für deine Teilnahme an der Dokumenta 2023',
                 },
@@ -581,7 +581,7 @@ describe('Contribution Links', () => {
                 id: linkId,
                 name: 'Dokumenta 2023',
                 memo: 'Danke für deine Teilnahme an der Dokumenta 2023',
-                amount: expect.decimalEqual(400),
+                amount: GradidoUnit.fromNumber(400),
               }),
             )
           })
@@ -593,7 +593,7 @@ describe('Contribution Links', () => {
                 affectedUserId: 0,
                 actingUserId: expect.any(Number),
                 involvedContributionLinkId: expect.any(Number),
-                amount: expect.decimalEqual(400),
+                amount: GradidoUnit.fromNumber(400),
               }),
             )
           })

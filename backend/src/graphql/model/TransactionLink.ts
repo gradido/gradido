@@ -1,7 +1,6 @@
 import { Community as DbCommunity, TransactionLink as DbTransactionLink } from 'database'
-import { Decimal } from 'decimal.js-light'
+import { GradidoUnit } from 'shared'
 import { Field, Int, ObjectType } from 'type-graphql'
-
 import { CONFIG } from '@/config'
 
 import { Community } from './Community'
@@ -44,11 +43,11 @@ export class TransactionLink {
   @Field(() => User)
   senderUser: User
 
-  @Field(() => Decimal)
-  amount: Decimal
+  @Field(() => GradidoUnit)
+  amount: GradidoUnit
 
-  @Field(() => Decimal)
-  holdAvailableAmount: Decimal
+  @Field(() => GradidoUnit)
+  holdAvailableAmount: GradidoUnit
 
   @Field(() => String)
   memo: string

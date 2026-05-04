@@ -1,21 +1,20 @@
 import { IsPositive, IsString, MaxLength, MinLength } from 'class-validator'
-import { Decimal } from 'decimal.js-light'
-import { ArgsType, Field, Int } from 'type-graphql'
-
 import {
   CONTRIBUTIONLINK_NAME_MAX_CHARS,
   CONTRIBUTIONLINK_NAME_MIN_CHARS,
+  GradidoUnit,
   MEMO_MAX_CHARS,
   MEMO_MIN_CHARS,
-} from '@/graphql/resolver/const/const'
+} from 'shared'
+import { ArgsType, Field, Int } from 'type-graphql'
 import { isValidDateString } from '@/graphql/validator/DateString'
-import { IsPositiveDecimal } from '@/graphql/validator/Decimal'
+import { IsPositiveGradidoUnit } from '@/graphql/validator/GradidoUnit'
 
 @ArgsType()
 export class ContributionLinkArgs {
-  @Field(() => Decimal)
-  @IsPositiveDecimal()
-  amount: Decimal
+  @Field(() => GradidoUnit)
+  @IsPositiveGradidoUnit()
+  amount: GradidoUnit
 
   @Field(() => String)
   @MaxLength(CONTRIBUTIONLINK_NAME_MAX_CHARS)
@@ -39,9 +38,9 @@ export class ContributionLinkArgs {
   @isValidDateString()
   validTo?: string | null
 
-  @Field(() => Decimal, { nullable: true })
-  @IsPositiveDecimal()
-  maxAmountPerMonth?: Decimal | null
+  @Field(() => GradidoUnit, { nullable: true })
+  @IsPositiveGradidoUnit()
+  maxAmountPerMonth?: GradidoUnit | null
 
   @Field(() => Int)
   @IsPositive()

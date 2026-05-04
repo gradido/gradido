@@ -1,10 +1,8 @@
 import { Contribution, User } from 'database'
-
 import { ContributionMessageBuilder } from '@/data/ContributionMessage.builder'
 import { ContributionArgs } from '@/graphql/arg/ContributionArgs'
 import { ContributionStatus } from '@/graphql/enum/ContributionStatus'
 import { LogError } from '@/server/LogError'
-
 import { AbstractUnconfirmedContributionRole } from './AbstractUnconfirmedContribution.role'
 
 /**
@@ -59,7 +57,7 @@ export class UnconfirmedContributionUserRole extends AbstractUnconfirmedContribu
     // creation date is currently not changeable
     if (
       this.self.memo === this.updateData.memo &&
-      this.self.amount === this.updatedAmount &&
+      this.self.amount.comparedTo(this.updateData.amount) === 0n &&
       this.self.contributionDate.getTime() === new Date(this.updatedCreationDate).getTime()
     ) {
       throw new LogError("the contribution wasn't changed at all")

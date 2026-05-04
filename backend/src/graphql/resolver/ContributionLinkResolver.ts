@@ -52,7 +52,7 @@ export class ContributionLinkResolver {
     if (validTo) {
       dbContributionLink.validTo = new Date(validTo)
     }
-    dbContributionLink.maxAmountPerMonth = maxAmountPerMonth
+    dbContributionLink.maxAmountPerMonth = maxAmountPerMonth || null
     dbContributionLink.maxPerCycle = maxPerCycle
     await dbContributionLink.save()
     await EVENT_ADMIN_CONTRIBUTION_LINK_CREATE(getUser(context), dbContributionLink, amount)
@@ -125,7 +125,7 @@ export class ContributionLinkResolver {
     if (validTo) {
       dbContributionLink.validTo = new Date(validTo)
     }
-    dbContributionLink.maxAmountPerMonth = maxAmountPerMonth
+    dbContributionLink.maxAmountPerMonth = maxAmountPerMonth || null
     dbContributionLink.maxPerCycle = maxPerCycle
     await dbContributionLink.save()
     await EVENT_ADMIN_CONTRIBUTION_LINK_UPDATE(getUser(context), dbContributionLink, amount)

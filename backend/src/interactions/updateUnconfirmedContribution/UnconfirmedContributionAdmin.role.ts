@@ -1,5 +1,4 @@
 import { Contribution, User } from 'database'
-
 import { RIGHTS } from '@/auth/RIGHTS'
 import { Role } from '@/auth/Role'
 import { ContributionMessageBuilder } from '@/data/ContributionMessage.builder'
@@ -36,7 +35,7 @@ export class UnconfirmedContributionAdminRole extends AbstractUnconfirmedContrib
     }
     return (
       (this.updateData.memo && this.self.memo !== this.updateData.memo) ||
-      (this.updatedAmount && this.self.amount !== this.updatedAmount) ||
+      (this.updatedAmount && this.self.amount.comparedTo(this.updatedAmount) !== 0n) ||
       +this.self.contributionDate !== +this.updatedCreationDate
     )
   }

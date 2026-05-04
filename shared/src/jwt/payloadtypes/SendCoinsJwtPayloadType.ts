@@ -1,4 +1,3 @@
-import { Decimal } from 'decimal.js-light'
 import { JwtPayloadType } from './JwtPayloadType'
 
 export class SendCoinsJwtPayloadType extends JwtPayloadType {
@@ -7,7 +6,7 @@ export class SendCoinsJwtPayloadType extends JwtPayloadType {
   recipientCommunityUuid: string
   recipientUserIdentifier: string
   creationDate: string
-  amount: Decimal
+  amount: string
   memo: string
   senderCommunityUuid: string
   senderUserUuid: string
@@ -20,7 +19,7 @@ export class SendCoinsJwtPayloadType extends JwtPayloadType {
     recipientCommunityUuid: string,
     recipientUserIdentifier: string,
     creationDate: string,
-    amount: Decimal,
+    amount: string,
     memo: string,
     senderCommunityUuid: string,
     senderUserUuid: string,

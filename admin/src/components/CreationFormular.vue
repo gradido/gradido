@@ -160,7 +160,7 @@ const submitCreation = async () => {
     const result = await createContribution({
       email: props.item.email,
       creationDate: selected.value.date,
-      amount: Number(value.value),
+      amount: value.value,
       memo: text.value,
     })
 

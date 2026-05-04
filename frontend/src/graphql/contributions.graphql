@@ -85,7 +85,7 @@ query openCreationsAmounts {
 }
 
 # return unconfirmedContributionFields
-mutation createContribution ($amount: Decimal!, $memo: String!, $contributionDate: String!) {
+mutation createContribution ($amount: GradidoUnit!, $memo: String!, $contributionDate: String!) {
   createContribution(amount: $amount, memo: $memo, contributionDate: $contributionDate)  {
     id
   }
@@ -94,7 +94,7 @@ mutation createContribution ($amount: Decimal!, $memo: String!, $contributionDat
 # return unconfirmedContributionFields
 mutation updateContribution (
   $contributionId: Int!,
-  $amount: Decimal!,
+  $amount: GradidoUnit!,
   $memo: String!,
   $contributionDate: String!
 ) {

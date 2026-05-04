@@ -1,11 +1,10 @@
-import { Decimal } from 'decimal.js-light'
-import { PendingTransactionState } from 'shared'
+import { GradidoUnit, PendingTransactionState } from 'shared'
 import { PendingTransaction as DbPendingTransaction, User as DbUser } from '../..'
 
 export async function pendingTransactionFactory(
   sender: DbUser,
   receiver: DbUser,
-  amount: Decimal,
+  amount: GradidoUnit,
   memo: string,
   state: PendingTransactionState,
 ) {

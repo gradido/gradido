@@ -87,7 +87,7 @@ describe('ContributionMessageResolver', () => {
         result = await mutate({
           mutation: createContribution,
           variables: {
-            amount: 100.0,
+            amount: '100',
             memo: 'Test env contribution',
             contributionDate: new Date().toString(),
           },
@@ -140,7 +140,7 @@ describe('ContributionMessageResolver', () => {
           const result2 = await mutate({
             mutation: createContribution,
             variables: {
-              amount: 100.0,
+              amount: '100',
               memo: 'Test env contribution',
               contributionDate: new Date().toString(),
             },

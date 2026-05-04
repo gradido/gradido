@@ -1,5 +1,6 @@
 import { Decimal } from 'decimal.js-light'
 import { getLogger } from 'log4js'
+import { GradidoUnit } from 'shared'
 import { CONFIG } from '../config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../config/const'
 import { decimalSeparatorByLanguage } from '../util/utilities'
@@ -80,7 +81,7 @@ export const sendAccountMultiRegistrationEmail = (
 export const sendContributionConfirmedEmail = (
   data: EmailCommonData &
     ContributionEmailCommonData & {
-      contributionAmount: Decimal
+      contributionAmount: GradidoUnit
     },
 ): Promise<Record<string, unknown> | boolean | null | Error> => {
   return sendEmailTranslated({
@@ -159,7 +160,7 @@ export const sendTransactionLinkRedeemedEmail = (
     senderLastName: string
     senderEmail: string
     transactionMemo: string
-    transactionAmount: Decimal
+    transactionAmount: GradidoUnit
   },
 ): Promise<Record<string, unknown> | boolean | null | Error> => {
   return sendEmailTranslated({
@@ -179,7 +180,7 @@ export const sendTransactionReceivedEmail = (
     senderLastName: string
     senderEmail: string | null
     memo: string
-    transactionAmount: Decimal
+    transactionAmount: GradidoUnit
   },
 ): Promise<Record<string, unknown> | boolean | null | Error> => {
   return sendEmailTranslated({

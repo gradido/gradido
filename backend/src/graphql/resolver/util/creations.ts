@@ -1,8 +1,8 @@
 import { OpenCreation } from '@model/OpenCreation'
 import { getFirstDayOfPreviousNMonth } from 'core'
 import { AppDatabase, Contribution } from 'database'
-import { Decimal } from 'decimal.js-light'
 import { getLogger } from 'log4js'
+import { GradidoUnit } from 'shared'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { FULL_CREATION_AVAILABLE, MAX_CREATION_AMOUNT } from '@/graphql/resolver/const/const'
 import { LogError } from '@/server/LogError'
@@ -12,12 +12,12 @@ const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.util.cre
 
 interface CreationMap {
   id: number
-  creations: Decimal[]
+  creations: GradidoUnit[]
 }
 
 export const validateContribution = (
-  creations: Decimal[],
-  amount: Decimal,
+  creations: GradidoUnit[],
+  amount: GradidoUnit,
   creationDate: Date,
   timezoneOffset: number,
 ): void => {
@@ -28,11 +28,10 @@ export const validateContribution = (
     throw new LogError('No information for available creations for the given date', creationDate)
   }
 
-  if (amount.greaterThan(creations[index].toString())) {
+  if (amount.comparedTo(creations[index]) > 0) {
     throw new LogError(
       'The amount to be created exceeds the amount still available for this month',
       amount,
-
       creations[index],
     )
   }
@@ -57,7 +56,7 @@ export const getUserCreations = async (
     .createQueryBuilder(Contribution, 'c')
     .select('month(contribution_date)', 'month')
     .addSelect('user_id', 'userId')
-    .addSelect('sum(amount)', 'sum')
+    .addSelect('sum(amount_gdd4)', 'sum')
     .where(`user_id in (${ids.toString()})`)
     .andWhere(`contribution_date >= ${dateFilter}`)
     .andWhere('deleted_at IS NULL')
@@ -82,10 +81,15 @@ export const getUserCreations = async (
       id,
       creations: months.map((month) => {
         const creation = sumAmountContributionPerUserAndLast3Month.find(
-          (raw: { month: string; userId: string; creation: number[] }) =>
+          (raw: { month: string; userId: string }) =>
             parseInt(raw.month) === month && parseInt(raw.userId) === id,
         )
-        return MAX_CREATION_AMOUNT.minus(creation ? creation.sum : 0)
+        if (!creation) {
+          return MAX_CREATION_AMOUNT
+        }
+        // db call return GradidoUnit bigints as string, we cannot use GradidoUnit.fromString here,
+        // because GradidoUnit.fromString expect Gradido and will convert it to gradido cent, but in db it is already stored as gradido cent
+        return MAX_CREATION_AMOUNT.subtract(GradidoUnit.fromGradidoCent(BigInt(creation.sum)))
       }),
     }
   })
@@ -95,7 +99,7 @@ export const getUserCreation = async (
   id: number,
   timezoneOffset: number,
   includePending = true,
-): Promise<Decimal[]> => {
+): Promise<GradidoUnit[]> => {
   logger.trace('getUserCreation', id, includePending, timezoneOffset)
   const creations = await getUserCreations([id], timezoneOffset, includePending)
   logger.trace('getUserCreation  creations=', creations)
@@ -142,17 +146,17 @@ export const isStartEndDateValid = (
 }
 
 export const updateCreations = (
-  creations: Decimal[],
+  creations: GradidoUnit[],
   contribution: Contribution,
   timezoneOffset: number,
-): Decimal[] => {
+): GradidoUnit[] => {
   const index = getCreationIndex(contribution.contributionDate.getMonth(), timezoneOffset)
 
   if (index < 0) {
     throw new LogError('You cannot create GDD for a month older than the last three months')
   }
 
-  creations[index] = creations[index].plus(contribution.amount.toString())
+  creations[index] = creations[index].add(contribution.amount)
   return creations
 }
 

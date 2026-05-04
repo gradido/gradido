@@ -11,7 +11,6 @@ import { TransactionLink, TransactionLinkResult } from '@model/TransactionLink'
 import { User } from '@model/User'
 import { QueryLinkResult } from '@union/QueryLinkResult'
 import {
-  Decay,
   EncryptedTransferArgs,
   fullName,
   interpretEncryptedTransferArgs,
@@ -35,19 +34,19 @@ import {
   getHomeCommunity,
   getLastTransaction,
 } from 'database'
-import { Decimal } from 'decimal.js-light'
 import { Redis } from 'ioredis'
 import { getLogger, Logger } from 'log4js'
 import { Mutex } from 'redis-semaphore'
 // import { TRANSACTION_LINK_LOCK, TRANSACTIONS_LOCK } from 'database'
 import {
-  calculateDecay,
-  compoundInterest,
+  Decay,
   DecayCalculationType,
   DisburseJwtPayloadType,
+  Duration,
   decode,
   encode,
   encryptAndSign,
+  GradidoUnit,
   RedeemJwtPayloadType,
   SignedTransferPayloadType,
   verify,
@@ -97,11 +96,6 @@ export const transactionLinkCode = (date: Date): string => {
 
 const db = AppDatabase.getInstance()
 
-export const transactionLinkExpireDate = (date: Date): Date => {
-  const validUntil = new Date(date)
-  return new Date(validUntil.setDate(date.getDate() + CODE_VALID_DAYS_DURATION))
-}
-
 @Resolver()
 export class TransactionLinkResolver {
   @Authorized([RIGHTS.CREATE_TRANSACTION_LINK])
@@ -113,12 +107,12 @@ export class TransactionLinkResolver {
     const user = getUser(context)
 
     const createdDate = new Date()
-    const validUntil = transactionLinkExpireDate(createdDate)
+    const validUntil = Duration.days(CODE_VALID_DAYS_DURATION).addToDate(createdDate)
 
-    const holdAvailableAmount = compoundInterest(amount, CODE_VALID_DAYS_DURATION * 24 * 60 * 60)
+    const holdAvailableAmount = amount.requiredBeforeDecay(Duration.days(CODE_VALID_DAYS_DURATION))
 
     // validate amount
-    const sendBalance = await calculateBalance(user.id, holdAvailableAmount.mul(-1), createdDate)
+    const sendBalance = await calculateBalance(user.id, holdAvailableAmount.negated(), createdDate)
 
     if (!sendBalance) {
       throw new LogError('User has not enough GDD', user.id)
@@ -356,14 +350,14 @@ export class TransactionLinkResolver {
           await queryRunner.manager.insert(DbContribution, contribution)
 
           const lastTransaction = await getLastTransaction(user.id)
-          let newBalance = new Decimal(0)
+          let newBalance = new GradidoUnit(0n)
 
           let decay: Decay | null = null
           if (lastTransaction) {
-            decay = calculateDecay(lastTransaction.balance, lastTransaction.balanceDate, now)
+            decay = lastTransaction.balance.calculateDecay(lastTransaction.balanceDate, now)
             newBalance = decay.balance
           }
-          newBalance = newBalance.add(contributionLink.amount.toString())
+          newBalance = newBalance.add(contributionLink.amount)
 
           const transaction = new DbTransaction()
           transaction.typeId = TransactionTypeId.CREATION
@@ -381,9 +375,9 @@ export class TransactionLinkResolver {
           transaction.creationDate = contribution.contributionDate
           transaction.balance = newBalance
           transaction.balanceDate = now
-          transaction.decay = decay ? decay.decay : new Decimal(0)
+          transaction.decay = decay ? decay.decay : new GradidoUnit(0n)
           transaction.decayStart = decay ? decay.start : null
-          transaction.decayCalculationType = DecayCalculationType.NATIVE_C_DYNAMIC_FACTOR
+          transaction.decayCalculationType = DecayCalculationType.NATIVE_C_FIXED_FACTOR_INTEGER
           await queryRunner.manager.insert(DbTransaction, transaction)
 
           contribution.confirmedAt = now

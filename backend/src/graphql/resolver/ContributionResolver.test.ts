@@ -23,9 +23,9 @@ import {
   Transaction as DbTransaction,
   User,
 } from 'database'
-import { Decimal } from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
 import { getLogger as originalGetLogger } from 'log4js'
+import { GradidoUnit } from 'shared'
 import { Equal } from 'typeorm'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { EventType } from '@/event/Events'
@@ -119,7 +119,7 @@ describe('ContributionResolver', () => {
     pendingContribution = await mutate({
       mutation: createContribution,
       variables: {
-        amount: 100.0,
+        amount: '100',
         memo: 'Test PENDING contribution',
         contributionDate: new Date().toString(),
       },
@@ -127,7 +127,7 @@ describe('ContributionResolver', () => {
     inProgressContribution = await mutate({
       mutation: createContribution,
       variables: {
-        amount: 100.0,
+        amount: '100',
         memo: 'Test IN_PROGRESS contribution',
         contributionDate: new Date().toString(),
       },
@@ -135,7 +135,7 @@ describe('ContributionResolver', () => {
     contributionToConfirm = await mutate({
       mutation: createContribution,
       variables: {
-        amount: 100.0,
+        amount: '100',
         memo: 'Test contribution to confirm',
         contributionDate: new Date().toString(),
       },
@@ -143,7 +143,7 @@ describe('ContributionResolver', () => {
     contributionToDeny = await mutate({
       mutation: createContribution,
       variables: {
-        amount: 100.0,
+        amount: '100',
         memo: 'Test contribution to deny',
         contributionDate: new Date().toString(),
       },
@@ -151,7 +151,7 @@ describe('ContributionResolver', () => {
     contributionToDelete = await mutate({
       mutation: createContribution,
       variables: {
-        amount: 100.0,
+        amount: '100',
         memo: 'Test contribution to delete',
         contributionDate: new Date().toString(),
       },
@@ -191,7 +191,7 @@ describe('ContributionResolver', () => {
       it('returns an error', async () => {
         const { errors: errorObjects } = await mutate({
           mutation: createContribution,
-          variables: { amount: 100.0, memo: 'Test Contribution', contributionDate: 'not-valid' },
+          variables: { amount: '100', memo: 'Test Contribution', contributionDate: 'not-valid' },
         })
 
         expect(errorObjects).toEqual([new GraphQLError('401 Unauthorized')])
@@ -218,7 +218,7 @@ describe('ContributionResolver', () => {
           const { errors: errorObjects } = await mutate({
             mutation: createContribution,
             variables: {
-              amount: 100.0,
+              amount: '100',
               memo: 'Test',
               contributionDate: date.toString(),
             },
@@ -248,7 +248,7 @@ describe('ContributionResolver', () => {
           const { errors: errorObjects } = await mutate({
             mutation: createContribution,
             variables: {
-              amount: 100.0,
+              amount: '100',
               memo: 'Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test',
               contributionDate: date.toString(),
             },
@@ -277,7 +277,7 @@ describe('ContributionResolver', () => {
           const { errors: errorObjects } = await mutate({
             mutation: createContribution,
             variables: {
-              amount: 100.0,
+              amount: '100',
               memo: 'Test env contribution',
               contributionDate: 'not-valid',
             },
@@ -308,7 +308,7 @@ describe('ContributionResolver', () => {
           const { errors: errorObjects } = await mutate({
             mutation: createContribution,
             variables: {
-              amount: 100.0,
+              amount: '100',
               memo: 'Test env contribution',
               contributionDate: date.toString(),
             },
@@ -342,7 +342,7 @@ describe('ContributionResolver', () => {
               affectedUserId: bibi.id,
               actingUserId: bibi.id,
               involvedContributionId: pendingContribution.data.createContribution.id,
-              amount: expect.decimalEqual(100),
+              amount: GradidoUnit.fromNumber(100),
             }),
           )
         })
@@ -357,7 +357,7 @@ describe('ContributionResolver', () => {
           mutation: updateContribution,
           variables: {
             contributionId: 1,
-            amount: 100.0,
+            amount: '100',
             memo: 'Test Contribution',
             contributionDate: 'not-valid',
           },
@@ -386,7 +386,7 @@ describe('ContributionResolver', () => {
             mutation: updateContribution,
             variables: {
               contributionId: pendingContribution.data.createContribution.id,
-              amount: 100.0,
+              amount: '100',
               memo: 'Test',
               contributionDate: date.toString(),
             },
@@ -419,7 +419,7 @@ describe('ContributionResolver', () => {
             mutation: updateContribution,
             variables: {
               contributionId: pendingContribution.data.createContribution.id,
-              amount: 100.0,
+              amount: '100',
               memo: 'Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test',
               contributionDate: date.toString(),
             },
@@ -452,7 +452,7 @@ describe('ContributionResolver', () => {
               mutation: updateContribution,
               variables: {
                 contributionId: -1,
-                amount: 100.0,
+                amount: '100',
                 memo: 'Test env contribution',
                 contributionDate: new Date().toString(),
               },
@@ -483,7 +483,7 @@ describe('ContributionResolver', () => {
             mutation: updateContribution,
             variables: {
               contributionId: pendingContribution.data.createContribution.id,
-              amount: 10.0,
+              amount: '10',
               memo: 'Test env contribution',
               contributionDate: new Date().toString(),
             },
@@ -538,7 +538,7 @@ describe('ContributionResolver', () => {
                 mutation: updateContribution,
                 variables: {
                   contributionId: pendingContribution.data.createContribution.id,
-                  amount: 10.0,
+                  amount: '10',
                   memo: 'Test env contribution',
                   contributionDate: new Date().toString(),
                 },
@@ -573,7 +573,7 @@ describe('ContributionResolver', () => {
             mutation: updateContribution,
             variables: {
               contributionId: pendingContribution.data.createContribution.id,
-              amount: 1019.0,
+              amount: '1019',
               memo: 'Test env contribution',
               contributionDate: new Date().toString(),
             },
@@ -588,8 +588,8 @@ describe('ContributionResolver', () => {
         it('logs the error "The amount to be created exceeds the amount still available for this month"', () => {
           expect(logger.error).toBeCalledWith(
             'The amount to be created exceeds the amount still available for this month',
-            new Decimal(1019),
-            new Decimal(600),
+            GradidoUnit.fromNumber(1019),
+            GradidoUnit.fromNumber(600),
           )
         })
       })
@@ -602,7 +602,7 @@ describe('ContributionResolver', () => {
             mutation: updateContribution,
             variables: {
               contributionId: pendingContribution.data.createContribution.id,
-              amount: 10.0,
+              amount: '10',
               memo: 'Test env contribution',
               contributionDate: date.toString(),
             },
@@ -625,7 +625,7 @@ describe('ContributionResolver', () => {
             mutation: updateContribution,
             variables: {
               contributionId: pendingContribution.data.createContribution.id,
-              amount: 10.0,
+              amount: '10',
               memo: 'Test PENDING contribution update',
               contributionDate: new Date().toString(),
             },
@@ -649,7 +649,7 @@ describe('ContributionResolver', () => {
               affectedUserId: bibi.id,
               actingUserId: bibi.id,
               involvedContributionId: pendingContribution.data.createContribution.id,
-              amount: expect.decimalEqual(10),
+              amount: GradidoUnit.fromNumber(10),
             }),
           )
         })
@@ -734,7 +734,7 @@ describe('ContributionResolver', () => {
           contribution = await mutate({
             mutation: createContribution,
             variables: {
-              amount: 166.0,
+              amount: '166',
               memo: 'Whatever contribution',
               contributionDate: new Date().toString(),
             },
@@ -779,7 +779,7 @@ describe('ContributionResolver', () => {
           contribution = await mutate({
             mutation: createContribution,
             variables: {
-              amount: 166.0,
+              amount: '166',
               memo: 'Whatever contribution',
               contributionDate: new Date().toString(),
             },
@@ -824,7 +824,7 @@ describe('ContributionResolver', () => {
           contribution = await mutate({
             mutation: createContribution,
             variables: {
-              amount: 166.0,
+              amount: '166',
               memo: 'Whatever contribution',
               contributionDate: new Date().toString(),
             },
@@ -880,7 +880,7 @@ describe('ContributionResolver', () => {
               affectedUserId: bibi.id,
               actingUserId: admin.id,
               involvedContributionId: contributionToDeny.data.createContribution.id,
-              amount: expect.decimalEqual(100),
+              amount: GradidoUnit.fromNumber(100),
             }),
           )
         })
@@ -1009,7 +1009,7 @@ describe('ContributionResolver', () => {
               affectedUserId: bibi.id,
               actingUserId: bibi.id,
               involvedContributionId: contributionToDelete.data.createContribution.id,
-              amount: expect.decimalEqual(100),
+              amount: GradidoUnit.fromNumber(100),
             }),
           )
         })
@@ -1250,7 +1250,7 @@ describe('ContributionResolver', () => {
   describe('contributions', () => {
     const variables = {
       email: 'bibi@bloxberg.de',
-      amount: new Decimal(2000),
+      amount: '2000',
       memo: 'Aktives Grundeinkommen',
       creationDate: 'not-valid',
     }
@@ -1273,7 +1273,7 @@ describe('ContributionResolver', () => {
               mutation: adminUpdateContribution,
               variables: {
                 id: 1,
-                amount: new Decimal(300),
+                amount: '300',
                 memo: 'Danke Bibi!',
                 creationDate: contributionDateFormatter(new Date()),
               },
@@ -1351,7 +1351,7 @@ describe('ContributionResolver', () => {
                 mutation: adminUpdateContribution,
                 variables: {
                   id: 1,
-                  amount: new Decimal(300),
+                  amount: '300',
                   memo: 'Danke Bibi!',
                   creationDate: contributionDateFormatter(new Date()),
                 },
@@ -1419,7 +1419,7 @@ describe('ContributionResolver', () => {
               mutation: adminCreateContribution,
               variables: {
                 email: 'peter@lustig.de',
-                amount: 400,
+                amount: '400',
                 memo: 'Herzlich Willkommen bei Gradido!',
                 creationDate: contributionDateFormatter(
                   new Date(now.getFullYear(), now.getMonth() - 1, 1),
@@ -1429,7 +1429,7 @@ describe('ContributionResolver', () => {
             creation = await Contribution.findOneOrFail({
               where: {
                 memo: 'Herzlich Willkommen bei Gradido!',
-                amount: Equal(new Decimal('400')),
+                amount: Equal(GradidoUnit.fromString('400')),
               },
             })
           })
@@ -1625,15 +1625,15 @@ describe('ContributionResolver', () => {
               it('logs the error "The amount to be created exceeds the amount still available for this month"', () => {
                 expect(logger.error).toBeCalledWith(
                   'The amount to be created exceeds the amount still available for this month',
-                  new Decimal(2000),
-                  new Decimal(790),
+                  GradidoUnit.fromNumber(2000),
+                  GradidoUnit.fromNumber(790),
                 )
               })
             })
 
             describe('creation is valid', () => {
               it('returns an array of the open creations for the last three months', async () => {
-                variables.amount = new Decimal(200)
+                variables.amount = '200'
                 await expect(
                   mutate({ mutation: adminCreateContribution, variables }),
                 ).resolves.toEqual(
@@ -1651,7 +1651,7 @@ describe('ContributionResolver', () => {
                     type: EventType.ADMIN_CONTRIBUTION_CREATE,
                     affectedUserId: bibi.id,
                     actingUserId: admin.id,
-                    amount: expect.decimalEqual(200),
+                    amount: GradidoUnit.fromNumber(200),
                   }),
                 )
               })
@@ -1684,7 +1684,7 @@ describe('ContributionResolver', () => {
                       mutation: updateContribution,
                       variables: {
                         contributionId: adminContribution?.id ?? -1,
-                        amount: 100.0,
+                        amount: '100',
                         memo: 'Test Test Test',
                         contributionDate: new Date().toString(),
                       },
@@ -1704,7 +1704,7 @@ describe('ContributionResolver', () => {
             describe('second creation surpasses the available amount ', () => {
               it('returns an array of the open creations for the last three months', async () => {
                 jest.clearAllMocks()
-                variables.amount = new Decimal(1000)
+                variables.amount = '1000'
                 await expect(
                   mutate({ mutation: adminCreateContribution, variables }),
                 ).resolves.toEqual(
@@ -1721,8 +1721,8 @@ describe('ContributionResolver', () => {
               it('logs the error "The amount to be created exceeds the amount still available for this month"', () => {
                 expect(logger.error).toBeCalledWith(
                   'The amount to be created exceeds the amount still available for this month',
-                  new Decimal(1000),
-                  new Decimal(590),
+                  GradidoUnit.fromNumber(1000),
+                  GradidoUnit.fromNumber(590),
                 )
               })
             })
@@ -1744,7 +1744,7 @@ describe('ContributionResolver', () => {
                   mutation: adminUpdateContribution,
                   variables: {
                     id: 728,
-                    amount: new Decimal(300),
+                    amount: '300',
                     memo: 'Danke Bibi!',
                     creationDate: contributionDateFormatter(new Date()),
                   },
@@ -1770,7 +1770,7 @@ describe('ContributionResolver', () => {
                   mutation: adminUpdateContribution,
                   variables: {
                     id: creation ? creation.id : -1,
-                    amount: new Decimal(1900),
+                    amount: '1900',
                     memo: 'Danke Peter!',
                     creationDate: creation
                       ? contributionDateFormatter(creation.contributionDate)
@@ -1791,8 +1791,8 @@ describe('ContributionResolver', () => {
             it('logs the error "The amount to be created exceeds the amount still available for this month"', () => {
               expect(logger.error).toBeCalledWith(
                 'The amount to be created exceeds the amount still available for this month',
-                new Decimal(1900),
-                new Decimal(1000),
+                GradidoUnit.fromNumber(1900),
+                GradidoUnit.fromNumber(1000),
               )
             })
           })
@@ -1805,7 +1805,7 @@ describe('ContributionResolver', () => {
                   mutation: adminUpdateContribution,
                   variables: {
                     id: creation?.id,
-                    amount: new Decimal(300),
+                    amount: '300',
                     memo: 'Danke Peter!',
                     creationDate: creation
                       ? contributionDateFormatter(creation.contributionDate)
@@ -1831,7 +1831,7 @@ describe('ContributionResolver', () => {
                   type: EventType.ADMIN_CONTRIBUTION_UPDATE,
                   affectedUserId: creation?.userId,
                   actingUserId: admin.id,
-                  amount: 300,
+                  amount: GradidoUnit.fromNumber(300),
                 }),
               )
             })
@@ -1845,7 +1845,7 @@ describe('ContributionResolver', () => {
                   mutation: adminUpdateContribution,
                   variables: {
                     id: creation?.id,
-                    amount: new Decimal(200),
+                    amount: '200',
                     memo: 'Das war leider zu Viel!',
                     creationDate: creation
                       ? contributionDateFormatter(creation.contributionDate)
@@ -1871,7 +1871,7 @@ describe('ContributionResolver', () => {
                   type: EventType.ADMIN_CONTRIBUTION_UPDATE,
                   affectedUserId: creation?.userId,
                   actingUserId: admin.id,
-                  amount: expect.decimalEqual(200),
+                  amount: GradidoUnit.fromNumber(200),
                 }),
               )
             })
@@ -1911,7 +1911,7 @@ describe('ContributionResolver', () => {
               ownContribution = await mutate({
                 mutation: createContribution,
                 variables: {
-                  amount: 100.0,
+                  amount: '100',
                   memo: 'Test env contribution',
                   contributionDate: contributionDateFormatter(new Date()),
                 },
@@ -1958,7 +1958,7 @@ describe('ContributionResolver', () => {
                   affectedUserId: creation?.userId,
                   actingUserId: admin.id,
                   involvedContributionId: creation?.id,
-                  amount: expect.decimalEqual(200),
+                  amount: GradidoUnit.fromNumber(200),
                 }),
               )
             })
@@ -1989,7 +1989,7 @@ describe('ContributionResolver', () => {
               } = await mutate({
                 mutation: createContribution,
                 variables: {
-                  amount: 100.0,
+                  amount: '100',
                   memo: 'Confirmed Contribution',
                   contributionDate: contributionDateFormatter(new Date()),
                 },
@@ -2138,7 +2138,7 @@ describe('ContributionResolver', () => {
                 senderFirstName: 'Peter',
                 senderLastName: 'Lustig',
                 contributionMemo: 'Herzlich Willkommen bei Gradido liebe Bibi!',
-                contributionAmount: expect.decimalEqual(450),
+                contributionAmount: GradidoUnit.fromNumber(450),
                 contributionFrontendLink: `http://localhost/contributions/own-contributions/1#contributionListItem-${creation?.id}`,
               })
             })
@@ -2276,7 +2276,7 @@ describe('ContributionResolver', () => {
         await mutate({
           mutation: createContribution,
           variables: {
-            amount: 100.0,
+            amount: '100',
             memo: '#firefighters',
             contributionDate: new Date().toString(),
           },
@@ -2320,7 +2320,7 @@ describe('ContributionResolver', () => {
           contributionCount: 18,
           contributionList: expect.arrayContaining([
             expect.objectContaining({
-              amount: expect.decimalEqual(100),
+              amount: '100',
               id: expect.any(Number),
               memo: '#firefighters',
               messagesCount: 0,
@@ -2334,7 +2334,7 @@ describe('ContributionResolver', () => {
               }),
             }),
             expect.objectContaining({
-              amount: expect.decimalEqual(50),
+              amount: '50',
               id: expect.any(Number),
               memo: 'Herzlich Willkommen bei Gradido liebe Bibi!',
               messagesCount: 0,
@@ -2348,7 +2348,7 @@ describe('ContributionResolver', () => {
               }),
             }),
             expect.objectContaining({
-              amount: expect.decimalEqual(50),
+              amount: '50',
               id: expect.any(Number),
               memo: 'Herzlich Willkommen bei Gradido liebe Bibi!',
               messagesCount: 0,
@@ -2362,7 +2362,7 @@ describe('ContributionResolver', () => {
               }),
             }),
             expect.objectContaining({
-              amount: expect.decimalEqual(450),
+              amount: '450',
               id: expect.any(Number),
               memo: 'Herzlich Willkommen bei Gradido liebe Bibi!',
               messagesCount: 0,
@@ -2376,7 +2376,7 @@ describe('ContributionResolver', () => {
               }),
             }),
             expect.objectContaining({
-              amount: expect.decimalEqual(400),
+              amount: '400',
               id: expect.any(Number),
               memo: 'Herzlich Willkommen bei Gradido!',
               messagesCount: 0,
@@ -2390,7 +2390,7 @@ describe('ContributionResolver', () => {
               }),
             }),
             expect.objectContaining({
-              amount: expect.decimalEqual(100),
+              amount: '100',
               id: expect.any(Number),
               memo: 'Confirmed Contribution',
               messagesCount: 0,
@@ -2404,7 +2404,7 @@ describe('ContributionResolver', () => {
               }),
             }),
             expect.objectContaining({
-              amount: expect.decimalEqual(100),
+              amount: '100',
               id: expect.any(Number),
               memo: 'Test env contribution',
               messagesCount: 0,
@@ -2418,7 +2418,7 @@ describe('ContributionResolver', () => {
               }),
             }),
             expect.objectContaining({
-              amount: expect.decimalEqual(200),
+              amount: '200',
               id: expect.any(Number),
               memo: 'Aktives Grundeinkommen',
               messagesCount: 0,
@@ -2432,7 +2432,7 @@ describe('ContributionResolver', () => {
               }),
             }),
             expect.objectContaining({
-              amount: expect.decimalEqual(200),
+              amount: '200',
               id: expect.any(Number),
               memo: 'Das war leider zu Viel!',
               messagesCount: 1,
@@ -2446,7 +2446,7 @@ describe('ContributionResolver', () => {
               }),
             }),
             expect.objectContaining({
-              amount: expect.decimalEqual(166),
+              amount: '166',
               id: expect.any(Number),
               memo: 'Whatever contribution',
               messagesCount: 0,
@@ -2460,7 +2460,7 @@ describe('ContributionResolver', () => {
               }),
             }),
             expect.objectContaining({
-              amount: expect.decimalEqual(166),
+              amount: '166',
               id: expect.any(Number),
               memo: 'Whatever contribution',
               messagesCount: 0,
@@ -2474,7 +2474,7 @@ describe('ContributionResolver', () => {
               }),
             }),
             expect.objectContaining({
-              amount: expect.decimalEqual(166),
+              amount: '166',
               id: expect.any(Number),
               memo: 'Whatever contribution',
               messagesCount: 0,
@@ -2488,7 +2488,7 @@ describe('ContributionResolver', () => {
               }),
             }),
             expect.objectContaining({
-              amount: expect.decimalEqual(100),
+              amount: '100',
               id: expect.any(Number),
               memo: 'Test contribution to delete',
               messagesCount: 0,
@@ -2502,7 +2502,7 @@ describe('ContributionResolver', () => {
               }),
             }),
             expect.objectContaining({
-              amount: expect.decimalEqual(100),
+              amount: '100',
               id: expect.any(Number),
               memo: 'Test contribution to deny',
               messagesCount: 0,
@@ -2516,7 +2516,7 @@ describe('ContributionResolver', () => {
               }),
             }),
             expect.objectContaining({
-              amount: expect.decimalEqual(100),
+              amount: '100',
               id: expect.any(Number),
               memo: 'Test contribution to confirm',
               messagesCount: 0,
@@ -2530,7 +2530,7 @@ describe('ContributionResolver', () => {
               }),
             }),
             expect.objectContaining({
-              amount: expect.decimalEqual(100),
+              amount: '100',
               id: expect.any(Number),
               memo: 'Test IN_PROGRESS contribution',
               messagesCount: 1,
@@ -2544,7 +2544,7 @@ describe('ContributionResolver', () => {
               }),
             }),
             expect.objectContaining({
-              amount: expect.decimalEqual(10),
+              amount: '10',
               id: expect.any(Number),
               memo: 'Test PENDING contribution update',
               messagesCount: 2,
@@ -2558,7 +2558,7 @@ describe('ContributionResolver', () => {
               }),
             }),
             expect.objectContaining({
-              amount: expect.decimalEqual(1000),
+              amount: '1000',
               id: expect.any(Number),
               memo: 'Herzlich Willkommen bei Gradido!',
               messagesCount: 0,
@@ -2657,7 +2657,7 @@ describe('ContributionResolver', () => {
             contributionCount: 4,
             contributionList: expect.arrayContaining([
               expect.objectContaining({
-                amount: expect.decimalEqual(100),
+                amount: '100',
                 id: expect.any(Number),
                 memo: '#firefighters',
                 messagesCount: 0,
@@ -2671,7 +2671,7 @@ describe('ContributionResolver', () => {
                 }),
               }),
               expect.objectContaining({
-                amount: expect.decimalEqual(400),
+                amount: '400',
                 id: expect.any(Number),
                 memo: 'Herzlich Willkommen bei Gradido!',
                 messagesCount: 0,
@@ -2685,7 +2685,7 @@ describe('ContributionResolver', () => {
                 }),
               }),
               expect.objectContaining({
-                amount: expect.decimalEqual(100),
+                amount: '100',
                 id: expect.any(Number),
                 memo: 'Test env contribution',
                 messagesCount: 0,
@@ -2699,7 +2699,7 @@ describe('ContributionResolver', () => {
                 }),
               }),
               expect.objectContaining({
-                amount: expect.decimalEqual(200),
+                amount: '200',
                 id: expect.any(Number),
                 memo: 'Das war leider zu Viel!',
                 messagesCount: 1,
@@ -2734,7 +2734,7 @@ describe('ContributionResolver', () => {
             contributionCount: 3,
             contributionList: expect.arrayContaining([
               expect.objectContaining({
-                amount: expect.decimalEqual(400),
+                amount: '400',
                 id: expect.any(Number),
                 memo: 'Herzlich Willkommen bei Gradido!',
                 messagesCount: 0,
@@ -2748,7 +2748,7 @@ describe('ContributionResolver', () => {
                 }),
               }),
               expect.objectContaining({
-                amount: expect.decimalEqual(100),
+                amount: '100',
                 id: expect.any(Number),
                 memo: 'Test env contribution',
                 messagesCount: 0,
@@ -2762,7 +2762,7 @@ describe('ContributionResolver', () => {
                 }),
               }),
               expect.objectContaining({
-                amount: expect.decimalEqual(200),
+                amount: '200',
                 id: expect.any(Number),
                 memo: 'Das war leider zu Viel!',
                 messagesCount: 1,
@@ -2795,7 +2795,7 @@ describe('ContributionResolver', () => {
             contributionCount: 1,
             contributionList: expect.arrayContaining([
               expect.objectContaining({
-                amount: expect.decimalEqual(100),
+                amount: '100',
                 id: expect.any(Number),
                 memo: '#firefighters',
                 messagesCount: 0,
@@ -2848,7 +2848,7 @@ describe('ContributionResolver', () => {
             contributionCount: 3,
             contributionList: expect.arrayContaining([
               expect.objectContaining({
-                amount: expect.decimalEqual(166),
+                amount: '166',
                 id: expect.any(Number),
                 memo: 'Whatever contribution',
                 messagesCount: 0,
@@ -2862,7 +2862,7 @@ describe('ContributionResolver', () => {
                 }),
               }),
               expect.objectContaining({
-                amount: expect.decimalEqual(166),
+                amount: '166',
                 id: expect.any(Number),
                 memo: 'Whatever contribution',
                 messagesCount: 0,
@@ -2876,7 +2876,7 @@ describe('ContributionResolver', () => {
                 }),
               }),
               expect.objectContaining({
-                amount: expect.decimalEqual(166),
+                amount: '166',
                 id: expect.any(Number),
                 memo: 'Whatever contribution',
                 messagesCount: 0,

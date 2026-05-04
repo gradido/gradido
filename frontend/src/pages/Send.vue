@@ -212,7 +212,7 @@ async function sendTransaction() {
       await sendCoinsMutation({
         recipientCommunityIdentifier: transactionData.targetCommunity.uuid,
         recipientIdentifier: transactionData.identifier,
-        amount: transactionData.amount,
+        amount: transactionData.amount.toString(),
         memo: transactionData.memo,
       })
 
@@ -223,7 +223,7 @@ async function sendTransaction() {
       currentTransactionStep.value = TRANSACTION_STEPS.transactionResultSendSuccess
     } else if (transactionData.selected === SEND_TYPES.link) {
       const result = await createTransactionLinkMutation({
-        amount: transactionData.amount,
+        amount: transactionData.amount.toString(),
         memo: transactionData.memo,
       })
 

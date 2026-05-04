@@ -5,7 +5,7 @@ export const createContributionLink = gql`
     $validFrom: String!
     $validTo: String!
     $name: String!
-    $amount: Decimal!
+    $amount: GradidoUnit!
     $memo: String!
     $cycle: String!
     $maxPerCycle: Int! = 1

@@ -10,8 +10,8 @@ import {
   User,
   UserContact,
 } from 'database'
-import { Decimal } from 'decimal.js-light'
 import { GraphQLError } from 'graphql'
+import { GradidoUnit } from 'shared'
 import { DataSource } from 'typeorm'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
@@ -79,7 +79,7 @@ describe('TransactionLinkResolver', () => {
         jest.clearAllMocks()
         resetToken()
         await expect(
-          mutate({ mutation: createTransactionLink, variables: { amount: 0, memo: 'Test' } }),
+          mutate({ mutation: createTransactionLink, variables: { amount: '0', memo: 'Test' } }),
         ).resolves.toEqual(
           expect.objectContaining({
             errors: [new GraphQLError('401 Unauthorized')],
@@ -101,7 +101,7 @@ describe('TransactionLinkResolver', () => {
         const { errors: errorObjects } = await mutate({
           mutation: createTransactionLink,
           variables: {
-            amount: 0,
+            amount: '0',
             memo: 'Test Test',
           },
         })
@@ -114,7 +114,7 @@ describe('TransactionLinkResolver', () => {
                   {
                     property: 'amount',
                     constraints: {
-                      isPositiveDecimal: 'The amount must be a positive value amount',
+                      isPositiveGradidoUnit: 'The amount must be a positive value amount',
                     },
                   },
                 ],
@@ -129,7 +129,7 @@ describe('TransactionLinkResolver', () => {
         const { errors: errorObjects } = await mutate({
           mutation: createTransactionLink,
           variables: {
-            amount: -10,
+            amount: '-10',
             memo: 'Test Test',
           },
         })
@@ -142,7 +142,7 @@ describe('TransactionLinkResolver', () => {
                   {
                     property: 'amount',
                     constraints: {
-                      isPositiveDecimal: 'The amount must be a positive value amount',
+                      isPositiveGradidoUnit: 'The amount must be a positive value amount',
                     },
                   },
                 ],
@@ -157,7 +157,7 @@ describe('TransactionLinkResolver', () => {
         const { errors: errorObjects } = await mutate({
           mutation: createTransactionLink,
           variables: {
-            amount: 100,
+            amount: '100',
             memo: 'Test',
           },
         })
@@ -186,7 +186,7 @@ describe('TransactionLinkResolver', () => {
           mutation: createTransactionLink,
           variables: {
             identifier: 'peter@lustig.de',
-            amount: 100,
+            amount: '100',
             memo: 'test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test',
           },
         })
@@ -215,7 +215,7 @@ describe('TransactionLinkResolver', () => {
           mutate({
             mutation: createTransactionLink,
             variables: {
-              amount: 1001,
+              amount: '1001',
               memo: 'Test Test',
             },
           }),
@@ -296,13 +296,13 @@ describe('TransactionLinkResolver', () => {
             } = await mutate({
               mutation: createContributionLink,
               variables: {
-                amount: new Decimal(5),
+                amount: '5',
                 name: 'Daily Contribution  Link',
                 memo: 'Thank you for contribute daily to the community',
                 cycle: 'DAILY',
                 validFrom: validFrom.toISOString(),
                 validTo: new Date(now.getFullYear() + 1, 11, 31, 23, 59, 59, 999).toISOString(),
-                maxAmountPerMonth: new Decimal(200),
+                maxAmountPerMonth: '200',
                 maxPerCycle: 1,
               },
             })
@@ -338,13 +338,13 @@ describe('TransactionLinkResolver', () => {
             } = await mutate({
               mutation: createContributionLink,
               variables: {
-                amount: new Decimal(5),
+                amount: '5',
                 name: 'Daily Contribution  Link',
                 memo: 'Thank you for contribute daily to the community',
                 cycle: 'INVALID',
                 validFrom: new Date(now.getFullYear(), 0, 1).toISOString(),
                 validTo: new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999).toISOString(),
-                maxAmountPerMonth: new Decimal(200),
+                maxAmountPerMonth: '200',
                 maxPerCycle: 1,
               },
             })
@@ -380,13 +380,13 @@ describe('TransactionLinkResolver', () => {
             } = await mutate({
               mutation: createContributionLink,
               variables: {
-                amount: new Decimal(5),
+                amount: '5',
                 name: 'Daily Contribution  Link',
                 memo: 'Thank you for contribute daily to the community',
                 cycle: 'DAILY',
                 validFrom: new Date(now.getFullYear() - 1, 0, 1).toISOString(),
                 validTo: validTo.toISOString(),
-                maxAmountPerMonth: new Decimal(200),
+                maxAmountPerMonth: '200',
                 maxPerCycle: 1,
               },
             })
@@ -428,13 +428,13 @@ describe('TransactionLinkResolver', () => {
             await mutate({
               mutation: createContributionLink,
               variables: {
-                amount: new Decimal(5),
+                amount: '5',
                 name: 'Daily Contribution  Link',
                 memo: 'Thank you for contribute daily to the community',
                 cycle: 'DAILY',
                 validFrom: new Date(now.getFullYear(), 0, 1).toISOString(),
                 validTo: new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999).toISOString(),
-                maxAmountPerMonth: new Decimal(200),
+                maxAmountPerMonth: '200',
                 maxPerCycle: 1,
               },
             })
@@ -464,8 +464,8 @@ describe('TransactionLinkResolver', () => {
                 deletedAt: null,
                 code: expect.stringMatching(/^[0-9a-f]{24,24}$/),
                 linkEnabled: true,
-                amount: expect.decimalEqual(5),
-                maxAmountPerMonth: expect.decimalEqual(200),
+                amount: GradidoUnit.fromNumber(5),
+                maxAmountPerMonth: GradidoUnit.fromNumber(200),
               }),
             )
           })
@@ -479,7 +479,7 @@ describe('TransactionLinkResolver', () => {
               const result = await mutate({
                 mutation: createContribution,
                 variables: {
-                  amount: new Decimal(1000),
+                  amount: '1000',
                   memo: 'I was brewing potions for the community the whole month',
                   contributionDate: now.toISOString(),
                 },
@@ -522,7 +522,7 @@ describe('TransactionLinkResolver', () => {
                 mutation: updateContribution,
                 variables: {
                   contributionId: contribution ? contribution.id : -1,
-                  amount: new Decimal(800),
+                  amount: '800',
                   memo: 'I was brewing potions for the community the whole month',
                   contributionDate: now.toISOString(),
                 },
@@ -692,7 +692,7 @@ describe('TransactionLinkResolver', () => {
             } = await mutate({
               mutation: createTransactionLink,
               variables: {
-                amount: 200,
+                amount: '200',
                 memo: 'This is a transaction link from bibi',
               },
             })
@@ -711,7 +711,7 @@ describe('TransactionLinkResolver', () => {
                 affectedUserId: userConatct.user.id,
                 actingUserId: userConatct.user.id,
                 involvedTransactionLinkId: myId,
-                amount: expect.decimalEqual(200),
+                amount: GradidoUnit.fromNumber(200),
               }),
             )
           })
@@ -782,7 +782,7 @@ describe('TransactionLinkResolver', () => {
               } = await mutate({
                 mutation: createTransactionLink,
                 variables: {
-                  amount: 200,
+                  amount: '200',
                   memo: 'This is a transaction link from bibi',
                 },
               })
@@ -824,7 +824,7 @@ describe('TransactionLinkResolver', () => {
                   actingUserId: redeemer.user.id,
                   involvedUserId: creator.user.id,
                   involvedTransactionLinkId: myId,
-                  amount: expect.decimalEqual(200),
+                  amount: GradidoUnit.fromNumber(200),
                 }),
               )
             })

@@ -1,6 +1,6 @@
 import { Contribution, User } from 'database'
-import { Decimal } from 'decimal.js-light'
 import { getLogger, Logger } from 'log4js'
+import { GradidoUnit } from 'shared'
 import { Role } from '@/auth/Role'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { ContributionLogic } from '@/data/Contribution.logic'
@@ -10,14 +10,14 @@ import { Context, getClientTimezoneOffset } from '@/server/context'
 import { LogError } from '@/server/LogError'
 
 export abstract class AbstractUnconfirmedContributionRole {
-  private availableCreationSums?: Decimal[]
+  private availableCreationSums?: GradidoUnit[]
   protected changed = true
   private currentStep = 0
   protected logger: Logger
 
   public constructor(
     protected self: Contribution,
-    protected updatedAmount: Decimal,
+    protected updatedAmount: GradidoUnit,
     protected updatedCreationDate: Date,
   ) {
     if (self.confirmedAt || self.deniedAt) {
@@ -89,7 +89,7 @@ export abstract class AbstractUnconfirmedContributionRole {
     return contributionMessageBuilder.setParentContribution(this.self).setHistoryType(this.self)
   }
 
-  public getAvailableCreationSums(): Decimal[] {
+  public getAvailableCreationSums(): GradidoUnit[] {
     if (!this.availableCreationSums) {
       throw new LogError('availableCreationSums is empty, please call validate before!')
     }

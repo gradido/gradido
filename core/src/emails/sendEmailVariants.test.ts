@@ -1,7 +1,6 @@
 import { afterEach, beforeAll, describe, expect, it, jest, mock } from 'bun:test'
-import { Decimal } from 'decimal.js-light'
+import { GradidoUnit } from 'shared'
 import { CONFIG } from '../config'
-
 import * as sendEmailTranslatedApi from './sendEmailTranslated'
 import {
   sendAccountActivationEmail,
@@ -228,7 +227,7 @@ describe('sendEmailVariants', () => {
         senderFirstName: 'Bibi',
         senderLastName: 'Bloxberg',
         contributionMemo: 'My contribution.',
-        contributionAmount: new Decimal(23.54),
+        contributionAmount: GradidoUnit.fromNumber(23.54),
         contributionFrontendLink,
       })
     })
@@ -516,7 +515,7 @@ describe('sendEmailVariants', () => {
         senderLastName: 'Bloxberg',
         senderEmail: 'bibi@bloxberg.de',
         transactionMemo: 'You deserve it! 🙏🏼',
-        transactionAmount: new Decimal(17.65),
+        transactionAmount: GradidoUnit.fromNumber(17.65),
       })
     })
 
@@ -576,7 +575,7 @@ describe('sendEmailVariants', () => {
         senderFirstName: 'Bibi',
         senderLastName: 'Bloxberg',
         senderEmail: 'bibi@bloxberg.de',
-        transactionAmount: new Decimal(37.4),
+        transactionAmount: GradidoUnit.fromNumber(37.4),
       })
     })
 

@@ -1,10 +1,10 @@
-import { Decimal } from 'decimal.js-light'
+import { GradidoUnit } from 'shared'
 import { Field, Float, Int, ObjectType } from 'type-graphql'
 
 @ObjectType()
 export class Balance {
   constructor(data: {
-    balance: Decimal
+    balance: GradidoUnit
     balanceGDT: number | null
     count: number
     linkCount: number
@@ -16,8 +16,8 @@ export class Balance {
   }
 
   // the actual balance, decay included
-  @Field(() => Decimal)
-  balance: Decimal
+  @Field(() => GradidoUnit)
+  balance: GradidoUnit
 
   @Field(() => Float, { nullable: true })
   balanceGDT: number | null

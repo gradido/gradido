@@ -1,6 +1,6 @@
-import { Decimal } from 'decimal.js-light'
+import { GradidoUnit } from 'shared'
 import { BaseEntity, Column, DeleteDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm'
-import { DecimalTransformer } from './transformer/DecimalTransformer'
+import { GradidoUnitTransformer } from './transformer/GradidoUnitTransformer'
 
 @Entity('contribution_links')
 export class ContributionLink extends BaseEntity {
@@ -20,13 +20,12 @@ export class ContributionLink extends BaseEntity {
   validTo: Date | null
 
   @Column({
-    type: 'decimal',
-    precision: 40,
-    scale: 20,
+    name: 'amount_gdd4',
+    type: 'bigint',
     nullable: false,
-    transformer: DecimalTransformer,
+    transformer: GradidoUnitTransformer,
   })
-  amount: Decimal
+  amount: GradidoUnit
 
   @Column({ type: 'varchar', length: 12, nullable: false, collation: 'utf8mb4_unicode_ci' })
   cycle: string
@@ -35,15 +34,13 @@ export class ContributionLink extends BaseEntity {
   maxPerCycle: number
 
   @Column({
-    name: 'max_amount_per_month',
-    type: 'decimal',
-    precision: 40,
-    scale: 20,
+    name: 'max_amount_per_month_gdd4',
+    type: 'bigint',
     nullable: true,
     default: null,
-    transformer: DecimalTransformer,
+    transformer: GradidoUnitTransformer,
   })
-  maxAmountPerMonth: Decimal | null
+  maxAmountPerMonth: GradidoUnit | null
 
   @Column({
     name: 'total_max_count_of_contribution',
@@ -55,15 +52,13 @@ export class ContributionLink extends BaseEntity {
   totalMaxCountOfContribution: number | null
 
   @Column({
-    name: 'max_account_balance',
-    type: 'decimal',
-    precision: 40,
-    scale: 20,
+    name: 'max_account_balance_gdd4',
+    type: 'bigint',
     nullable: true,
     default: null,
-    transformer: DecimalTransformer,
+    transformer: GradidoUnitTransformer,
   })
-  maxAccountBalance: Decimal | null
+  maxAccountBalance: GradidoUnit | null
 
   @Column({
     name: 'min_gap_hours',
