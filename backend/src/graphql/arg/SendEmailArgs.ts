@@ -1,7 +1,7 @@
 import { IsString, MaxLength, MinLength } from 'class-validator'
 import { ArgsType, Field } from 'type-graphql'
 
-import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from '@/graphql/resolver/const/const'
+import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from 'shared'
 
 @ArgsType()
 export class SendEmailArgs {
