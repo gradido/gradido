@@ -164,12 +164,15 @@ async function chooseCorrectRole(
         throw new Error("redeem deferred transfer: couldn't generate seed public key")
       }
       const transactions = await GradidoNodeClient.getInstance().getTransactionsForAccount(
-        { maxResultCount: 2, communityId: transaction.user.communityId },
+        { maxResultCount: 10, communityId: transaction.user.communityId },
         seedPublicKey.convertToHex(),
       )
-      if (!transactions || transactions.length !== 1) {
+      if (!transactions) {
+        throw new Error("redeem deferred transfer: couldn't get transactions from Gradido Node")
+      }
+      if (transactions.length !== 1) {
         throw new Error(
-          "redeem deferred transfer: couldn't find exactly one deferred transfer on Gradido Node",
+          `redeem deferred transfer: returned more than one transaction (count: ${transactions.length})`,
         )
       }
       return new RedeemDeferredTransferTransactionRole(transaction, transactions[0])
