@@ -139,40 +139,40 @@ const handleSendTypeChange = (sendType) => {
 }
 
 function setTransaction(data) {
-  console.log('Send.vue: setTransaction', data)
+  // console.log('Send.vue: setTransaction', data)
   Object.assign(transactionData, data)
   switch (data.selected) {
     case SEND_TYPES.send:
-      console.log('Send.vue setTransaction: data.selected=' + SEND_TYPES.send)
+      // console.log('Send.vue setTransaction: data.selected=' + SEND_TYPES.send)
       currentTransactionStep.value = TRANSACTION_STEPS.transactionConfirmationSend
       break
     case SEND_TYPES.link:
-      console.log('Send.vue setTransaction: data.selected=' + SEND_TYPES.link)
+      // console.log('Send.vue setTransaction: data.selected=' + SEND_TYPES.link)
       currentTransactionStep.value = TRANSACTION_STEPS.transactionConfirmationLink
       break
     case SEND_TYPES.email:
-      console.log('Send.vue setTransaction: data.selected=' + SEND_TYPES.email)
-      console.log('ERROR: setTransaction: mit SEND_TYPES=email darf eigentlich nicht vorkommen!!!')
+      // console.log('Send.vue setTransaction: data.selected=' + SEND_TYPES.email)
+      // console.log('ERROR: setTransaction: mit SEND_TYPES=email darf eigentlich nicht vorkommen!!!')
 
       // currentTransactionStep.value = TRANSACTION_STEPS.sendEmail
       break
     default:
-      console.log('Send.vue setTransaction: data.selected=default')
+      // console.log('Send.vue setTransaction: data.selected=default')
       currentTransactionStep.value = TRANSACTION_STEPS.transactionConfirmationSend
       break
   }
-  console.log('Send.vue setTransaction: currentTransactionStep', currentTransactionStep.value)
+  // console.log('Send.vue setTransaction: currentTransactionStep', currentTransactionStep.value)
 }
 
 async function sendEmail(data) {
-  console.log('Send.vue sendEmail', data)
+  // console.log('Send.vue sendEmail', data)
   Object.assign(transactionData, data)
   loading.value = true
   error.value = false
 
   try {
     if (data.selected === SEND_TYPES.email) {
-      console.log('Send.vue sendEmail: data.selected=' + data.selected)
+      // console.log('Send.vue sendEmail: data.selected=' + data.selected)
       const result = await sendEmailMutation({
         recipientCommunityIdentifier: data.targetCommunity.uuid,
         recipientIdentifier: data.identifier,
@@ -186,7 +186,7 @@ async function sendEmail(data) {
         currentTransactionStep.value = TRANSACTION_STEPS.sendEmailResultError
         // toastError(t('email-sent-error'))
       }
-      console.log('Send.vue sendEmail: result', result)
+      // console.log('Send.vue sendEmail: result', result)
     }
   } catch (err) {
     if (transactionData.selected === SEND_TYPES.email) {
@@ -203,7 +203,7 @@ async function sendEmail(data) {
 }
 
 async function sendTransaction() {
-  console.log('Send.vue sendTransaction(): transactionData=', JSON.stringify(transactionData))
+  // console.log('Send.vue sendTransaction(): transactionData=', JSON.stringify(transactionData))
   loading.value = true
   error.value = false
 
@@ -242,7 +242,7 @@ async function sendTransaction() {
       currentTransactionStep.value = TRANSACTION_STEPS.transactionResultLink
       updateTransactions({})
     } else if (transactionData.selected === SEND_TYPES.email) {
-      console.log('Send.vue sendTransaction(): email transactionData=' + transactionData)
+      // console.log('Send.vue sendTransaction(): email transactionData=' + transactionData)
       currentTransactionStep.value = TRANSACTION_STEPS.sendEmailResultSuccess
       // throw new Error('Email transaction sending not implemented yet')
     } else {
