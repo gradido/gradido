@@ -51,9 +51,9 @@ import {
   DecayCalculationType,
   Ed25519PublicKey,
   encryptAndSign,
+  GradidoUnit,
 } from 'shared'
 import { randombytes_random } from 'sodium-native'
-import { DecayCalculationType, GradidoUnit } from 'shared'
 import { redeemDeferredTransferTransaction, transferTransaction } from '@/apis/dltConnector'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { SendEmailArgs } from '../arg/SendEmailArgs'
