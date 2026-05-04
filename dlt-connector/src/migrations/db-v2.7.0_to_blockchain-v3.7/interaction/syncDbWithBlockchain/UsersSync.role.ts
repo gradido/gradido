@@ -5,6 +5,7 @@ import {
   AddressType_COMMUNITY_HUMAN,
   GradidoTransactionBuilder,
   GradidoUnit,
+  HieroTransactionId,
   KeyPairEd25519,
   LedgerAnchor,
   MemoryBlockPtr,
@@ -15,7 +16,7 @@ import { Uuidv4Hash } from '../../../../data/Uuidv4Hash'
 import { Uuidv4 } from '../../../../schemas/typeGuard.schema'
 import { addToBlockchain } from '../../blockchain'
 import { Context } from '../../Context'
-import { usersTable } from '../../drizzle.schema'
+import { dltTransactionsTable, usersTable } from '../../drizzle.schema'
 import { BlockchainError, DatabaseError } from '../../errors'
 import { toMysqlDateTime } from '../../utils'
 import { CommunityContext, UserDb, userDbSchema } from '../../valibot.schema'
@@ -45,8 +46,12 @@ export class UsersSyncRole extends AbstractSyncRole<UserDb> {
 
   async loadFromDb(lastIndex: IndexType, count: number): Promise<UserDb[]> {
     const result = await this.context.db
-      .select()
+      .select({
+        user: usersTable,
+        dltTransaction: dltTransactionsTable,
+      })
       .from(usersTable)
+      .leftJoin(dltTransactionsTable, eq(usersTable.id, dltTransactionsTable.userId))
       .where(
         and(
           or(
@@ -61,10 +66,13 @@ export class UsersSyncRole extends AbstractSyncRole<UserDb> {
       )
       .orderBy(asc(usersTable.createdAt), asc(usersTable.id))
       .limit(count)
-
+      
     return result.map((row) => {
       try {
-        return v.parse(userDbSchema, row)
+        return v.parse(userDbSchema, {
+          ...row.user,
+          messageId: row.dltTransaction?.messageId
+        })
       } catch (e) {
         throw new DatabaseError('loadUsers', row, e as Error)
       }
@@ -113,6 +121,12 @@ export class UsersSyncRole extends AbstractSyncRole<UserDb> {
     }
 
     try {
+      let ledgerAnchor: LedgerAnchor | undefined
+      if (item.messageId) {
+        ledgerAnchor = new LedgerAnchor(new HieroTransactionId(item.messageId))
+      } else {
+        ledgerAnchor = new LedgerAnchor(item.id, LedgerAnchor.Type_LEGACY_GRADIDO_DB_USER_ID)
+      }
       addToBlockchain(
         this.buildTransaction(
           communityContext,
@@ -122,7 +136,7 @@ export class UsersSyncRole extends AbstractSyncRole<UserDb> {
           userKeyPair,
         ).build(),
         communityContext.blockchain,
-        new LedgerAnchor(item.id, LedgerAnchor.Type_LEGACY_GRADIDO_DB_USER_ID),
+        ledgerAnchor,
         !this.context.isDecayCalculationTypeChanged(item.createdAt)
           ? this.calculateAccountBalances(accountPublicKey, communityContext)
           : undefined,

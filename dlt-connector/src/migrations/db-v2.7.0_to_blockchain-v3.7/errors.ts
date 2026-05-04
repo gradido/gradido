@@ -1,5 +1,9 @@
 import * as v from 'valibot'
 
+function bigIntToString(value: bigint | any): string {
+  return typeof value === 'bigint' ? value.toString() : value
+}
+
 export class NotEnoughGradidoBalanceError extends Error {
   constructor(
     public needed: number,
@@ -20,13 +24,13 @@ export class DatabaseError extends Error {
     if (originalError instanceof v.ValiError) {
       const flattened = v.flatten(originalError.issues)
       parts.push('Validation errors:')
-      parts.push(JSON.stringify(flattened, (_, v) => (typeof v === 'bigint' ? v.toString() : v), 2))
+      parts.push(JSON.stringify(flattened, (_, v) => bigIntToString(v), 2))
     } else {
       parts.push(`Original error: ${originalError.message}`)
     }
 
     parts.push('Rows:')
-    parts.push(JSON.stringify(rows, (_, v) => (typeof v === 'bigint' ? v.toString() : v), 2))
+    parts.push(JSON.stringify(rows, (_, v) => bigIntToString(v), 2))
 
     super(parts.join('\n\n'))
 
@@ -41,7 +45,7 @@ export class BlockchainError extends Error {
 
     parts.push(`Original error: ${originalError.message}`)
     parts.push('Item:')
-    parts.push(JSON.stringify(item, (_, v) => (typeof v === 'bigint' ? v.toString() : v), 2))
+    parts.push(JSON.stringify(item, (_, v) => bigIntToString(v), 2))
 
     super(parts.join('\n\n'))
 

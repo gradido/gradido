@@ -105,3 +105,10 @@ export const transactionLinksTable = mysqlTable('transaction_links', {
   redeemedAt: datetime({ mode: 'string' }).default(sql`NULL`),
   redeemedBy: int().default(sql`NULL`),
 })
+
+export const dltTransactionsTable = mysqlTable('dlt_transactions', {
+  transactionId: int('transaction_id').default(sql`NULL`),
+  userId: int('user_id').default(sql`NULL`),
+  transactionLinkId: int('transaction_link_id').default(sql`NULL`),
+  messageId: varchar('message_id', { length: 64 }).default(sql`NULL`),
+})

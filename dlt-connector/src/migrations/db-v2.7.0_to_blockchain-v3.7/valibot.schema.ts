@@ -3,6 +3,7 @@ import * as v from 'valibot'
 import { booleanSchema, dateSchema } from '../../schemas/typeConverter.schema'
 import {
   gradidoAmountSchema,
+  hieroTransactionIdStringSchema,
   identifierSeedSchema,
   memoSchema,
   uuidv4Schema,
@@ -18,6 +19,7 @@ export const userDbSchema = v.object({
   gradidoId: uuidv4Schema,
   communityUuid: uuidv4Schema,
   createdAt: dateSchema,
+  messageId: v.nullish(hieroTransactionIdStringSchema),
 })
 /*
 declare const validLegacyAmount: unique symbol
@@ -49,6 +51,7 @@ export const transactionBaseSchema = v.object({
   amount: gradidoAmountSchema,
   memo: memoSchema,
   user: userDbSchema,
+  messageId: v.nullish(hieroTransactionIdStringSchema),
 })
 
 export const transactionDbSchema = v.pipe(
@@ -140,6 +143,7 @@ export const deletedTransactionLinKDbSchema = v.object({
   code: identifierSeedSchema,
   deletedAt: dateSchema,
   createdAt: dateSchema,
+  messageId: v.nullish(hieroTransactionIdStringSchema)
 })
 
 export const communityDbSchema = v.object({

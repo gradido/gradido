@@ -11,6 +11,7 @@ import { CONFIG } from './config'
 import { appRoutes } from './server'
 
 async function main() {
+
   // load log4js-config, logger and gradido-blockchain-js crypto keys
   const logger = loadConfig()
   // initialize singletons (clients and cache)
