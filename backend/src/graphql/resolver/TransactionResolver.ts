@@ -62,7 +62,6 @@ import { GdtResolver } from './GdtResolver'
 import { getCommunityName, isHomeCommunity } from './util/communities'
 import { getTransactionList } from './util/getTransactionList'
 import { transactionLinkSummary } from './util/transactionLinkSummary'
-import { SendEmailResult } from '../model/SendEmailResult'
 
 const db = AppDatabase.getInstance()
 const createLogger = () =>
