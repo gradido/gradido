@@ -25,25 +25,24 @@ export class CommandClient {
     })
   }
 
-  async sendCommand(args: EncryptedTransferArgs): Promise<boolean> {
+  async sendCommand(args: EncryptedTransferArgs): Promise<string | boolean> {
     logger.debug(`sendCommand at ${this.endpoint} for args:`, args)
     try {
-      const result = await this.client.rawRequest<{ sendCommand: { success: boolean } }>(
-        sendCommandQuery,
-        {
-          args,
-        },
-      )
+      const result = await this.client.rawRequest<{
+        sendCommand: { success: boolean; error?: string }
+      }>(sendCommandQuery, {
+        args,
+      })
       logger.debug('nach rawRequest: result', result)
       if (!result?.data?.sendCommand?.success) {
-        logger.warn('sendCommand without response data from endpoint', this.endpoint)
-        return false
+        logger.error('sendCommand failed with response error:', result?.data?.sendCommand?.error)
+        return result?.data?.sendCommand?.error ? result.data.sendCommand.error : 'Unknown error'
       }
       logger.debug('sendCommand successfully started with endpoint', this.endpoint)
       return true
     } catch (err) {
       logger.error('error on sendCommand: ', err)
-      return false
+      return err instanceof Error ? err.message : 'Unknown error'
     }
   }
 }

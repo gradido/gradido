@@ -531,7 +531,12 @@ export async function processXComCommittingSendCoins(
               args.publicKey = senderCom.publicKey.toString('hex')
               args.jwt = jws
               args.handshakeID = handshakeID
-              cmdClient.sendCommand(args)
+              const result = await cmdClient.sendCommand(args)
+              if (typeof result === 'string') {
+                const errmsg = 'Failed to send command with error: ' + result
+                methodLogger.error(errmsg)
+                throw new Error(errmsg)
+              }
             }
           } catch (err) {
             methodLogger.error(

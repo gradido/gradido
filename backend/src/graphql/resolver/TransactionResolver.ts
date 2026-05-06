@@ -602,8 +602,8 @@ export class TransactionResolver {
         args.jwt = jws
         args.handshakeID = handshakeID
         const result = await cmdClient.sendCommand(args)
-        if (!result) {
-          const errmsg = 'Failed to send command to federated community'
+        if (typeof result === 'string') {
+          const errmsg = 'Failed to send command to federated community with error: ' + result
           logger.error(errmsg)
           throw new Error(errmsg)
         }
