@@ -215,7 +215,7 @@
       "receiverCommunityNotFound": "Die Gemeinschaft deines E-Mail-Empfängers wurde nicht gefunden",
       "receiverDeleted": "Das Nutzerkonto zu deinem E-Mail-Empfänger wurde gelöscht",
       "receiverNotFound": "Zu deinem angegebenen E-Mail-Empfänger existiert kein Nutzerkonto.",
-      "unkonwnError": "Ein unbekannter Fehler ist aufgetreten: "
+      "unknownError": "Ein unbekannter Fehler ist aufgetreten: "
     },
     "sender": "Absender",
     "sorry": "Entschuldigung",
