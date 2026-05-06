@@ -209,12 +209,13 @@
     "send_transaction_error": "Leider konnte die Transaktion nicht ausgeführt werden!",
     "send_transaction_success": "Deine Transaktion wurde erfolgreich ausgeführt",
     "sendemailerror": {
-      "failedToSendCommandToFederatedCommunity": "Beim Senden deiner E-Mail gab es in der Gemeinschaft deines E-Mail-Empfängers den Fehler:",
+      "failedToSendCommandToFederatedCommunity": "Beim Senden deiner E-Mail gab es in der Gemeinschaft deines E-Mail-Empfängers den Fehler: ",
       "federatedCommunityOfReceiverCommunityNotFound": "Für die Gemeinschaft deines E-Mail-Empfängers liegt keine valide Federierung vor",
       "receiverCommunityNoFederatedCommunities": "Die Federierung der Gemeinschaft deines E-Mail-Empfängers ist nicht aktiv oder abgeschlossen",
       "receiverCommunityNotFound": "Die Gemeinschaft deines E-Mail-Empfängers wurde nicht gefunden",
       "receiverDeleted": "Das Nutzerkonto zu deinem E-Mail-Empfänger wurde gelöscht",
-      "receiverNotFound": "Zu deinem angegebenen E-Mail-Empfänger existiert kein Nutzerkonto."
+      "receiverNotFound": "Zu deinem angegebenen E-Mail-Empfänger existiert kein Nutzerkonto.",
+      "unkonwnError": "Ein unbekannter Fehler ist aufgetreten: "
     },
     "sender": "Absender",
     "sorry": "Entschuldigung",

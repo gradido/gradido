@@ -40,13 +40,16 @@
         {{ $t('form.sendemailerror.federatedCommunityOfReceiverCommunityNotFound') }}
       </div>
       <div
-        v-else-if="errorResult.includes('sendCommand failed with response error')"
+        v-else-if="errorResult.includes('sendCommand failed with response error: ')"
         class="test-receiver-not-found"
       >
         {{ $t('form.sendemailerror.failedToSendCommandToFederatedCommunity') }}
+        {{ errorResult.split('sendCommand failed with response error: ')[1] }}
+      </div>
+      <div v-else>
+        {{ $t('form.sendemailerror.unknownError') }}
         {{ errorResult }}
       </div>
-      <div v-else>{{ errorResult }}</div>
     </div>
     <p class="text-center mt-5">
       <BButton variant="secondary" @click="$emit('on-back')">

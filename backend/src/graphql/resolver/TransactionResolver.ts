@@ -605,7 +605,7 @@ export class TransactionResolver {
         if (typeof result === 'string') {
           const errmsg = 'Failed to send command to federated community with error: ' + result
           logger.error(errmsg)
-          throw new Error(errmsg)
+          throw new Error(result)
         }
       }
     }
