@@ -16,7 +16,7 @@
           </BNavItem>
           <BNavItem to="/send" class="mb-3" active-class="active-route">
             <div class="sidebar-menu-item-wrapper">
-              <i-mdi-send-outline class="svg-icon" />
+              <IBiSend class="svg-icon" />
               <span class="ms-2">{{ $t('navigation.send') }}</span>
             </div>
           </BNavItem>
