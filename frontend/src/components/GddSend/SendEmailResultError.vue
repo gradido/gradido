@@ -40,10 +40,11 @@
         {{ $t('form.sendemailerror.federatedCommunityOfReceiverCommunityNotFound') }}
       </div>
       <div
-        v-else-if="errorResult.includes('Failed to send command to federated community')"
+        v-else-if="errorResult.includes('sendCommand failed with response error')"
         class="test-receiver-not-found"
       >
         {{ $t('form.sendemailerror.failedToSendCommandToFederatedCommunity') }}
+        {{ errorResult }}
       </div>
       <div v-else>{{ errorResult }}</div>
     </div>

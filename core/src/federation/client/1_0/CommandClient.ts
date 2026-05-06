@@ -35,8 +35,9 @@ export class CommandClient {
       })
       logger.debug('nach rawRequest: result', result)
       if (!result?.data?.sendCommand?.success) {
-        logger.error('sendCommand failed with response error:', result?.data?.sendCommand?.error)
-        return result?.data?.sendCommand?.error ? result.data.sendCommand.error : 'Unknown error'
+        const errmsg = 'sendCommand failed with response error: ' + result?.data?.sendCommand?.error
+        logger.error(errmsg)
+        return errmsg
       }
       logger.debug('sendCommand successfully started with endpoint', this.endpoint)
       return true
