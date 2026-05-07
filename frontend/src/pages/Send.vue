@@ -68,7 +68,7 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { useI18n } from 'vue-i18n'
 import { ref, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -84,7 +84,7 @@ import TransactionResultLink from '@/components/GddSend/TransactionResultLink'
 import { sendCoins, createTransactionLink, sendEmail as sendEmailMut } from '@/graphql/mutations.js'
 import { useAppToast } from '@/composables/useToast'
 import { SEND_TYPES } from '@/utils/sendTypes'
-
+/*
 export default {
   name: 'Send',
 
@@ -275,7 +275,7 @@ export default {
   },
 }
 
-/*
+*/
 const { t } = useI18n()
 const EMPTY_TRANSACTION_DATA = {
   identifier: '',
@@ -464,5 +464,4 @@ function onBack() {
 function updateTransactions(pagination) {
   emit('update-transactions', pagination)
 }
-*/
 </script>
