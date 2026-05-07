@@ -169,7 +169,7 @@ export default {
     },
 
     async sendEmail(data) {
-      console.log('Send.vue sendEmail', data)
+      // console.log('Send.vue sendEmail', data)
       Object.assign(this.transactionData, data)
       this.loading = true
       this.error = false
