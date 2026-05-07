@@ -105,7 +105,7 @@ export default {
 
   data() {
     const { t } = useI18n()
-    const route = useRoute()
+    // const route = useRoute()
     const router = useRouter()
     const { toastError, toastSuccess } = useAppToast()
     const { mutate: sendCoinsMutation } = useMutation(sendCoins)
@@ -114,7 +114,7 @@ export default {
 
     return {
       t,
-      route,
+      // route,
       router,
       toastError,
       toastSuccess,
