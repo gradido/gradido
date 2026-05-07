@@ -68,7 +68,7 @@
   </div>
 </template>
 
-<script setup>
+<script>
 import { useI18n } from 'vue-i18n'
 import { ref, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -85,6 +85,197 @@ import { sendCoins, createTransactionLink, sendEmail as sendEmailMut } from '@/g
 import { useAppToast } from '@/composables/useToast'
 import { SEND_TYPES } from '@/utils/sendTypes'
 
+export default {
+  name: 'Send',
+
+  props: {
+    balance: { type: Number, default: 0 },
+    GdtBalance: { type: Number, default: 0 },
+    transactions: {
+      type: Array,
+      default: () => [],
+    },
+    pending: {
+      type: Boolean,
+      default: true,
+    },
+  },
+
+  emits: ['set-tunneled-email', 'update-transactions'],
+
+  data() {
+    const { t } = useI18n()
+    const route = useRoute()
+    const router = useRouter()
+    const { toastError, toastSuccess } = useAppToast()
+    const { mutate: sendCoinsMutation } = useMutation(sendCoins)
+    const { mutate: createTransactionLinkMutation } = useMutation(createTransactionLink)
+    const { mutate: sendEmailMutation } = useMutation(sendEmailMut)
+
+    return {
+      t,
+      route,
+      router,
+      toastError,
+      toastSuccess,
+      sendCoinsMutation,
+      createTransactionLinkMutation,
+      sendEmailMutation,
+
+      EMPTY_TRANSACTION_DATA: {
+        identifier: '',
+        amount: 0,
+        memo: '',
+      },
+
+      transactionData: reactive({ ...this.EMPTY_TRANSACTION_DATA }),
+      error: false,
+      errorResult: '',
+      currentTransactionStep: TRANSACTION_STEPS.transactionForm,
+      loading: false,
+      link: null,
+      amount: 0,
+      memo: '',
+      validUntil: null,
+    }
+  },
+
+  methods: {
+    handleSendTypeChange(sendType) {
+      this.transactionData.selected = sendType
+      if (sendType === SEND_TYPES.email) {
+        this.currentTransactionStep = TRANSACTION_STEPS.sendEmailForm
+      } else {
+        this.currentTransactionStep = TRANSACTION_STEPS.transactionForm
+      }
+    },
+
+    setTransaction(data) {
+      // console.log('Send.vue: setTransaction', data)
+      Object.assign(this.transactionData, data)
+      switch (data.selected) {
+        case SEND_TYPES.send:
+          this.currentTransactionStep = TRANSACTION_STEPS.transactionConfirmationSend
+          break
+        case SEND_TYPES.link:
+          this.currentTransactionStep = TRANSACTION_STEPS.transactionConfirmationLink
+          break
+        case SEND_TYPES.email:
+          break
+        default:
+          this.currentTransactionStep = TRANSACTION_STEPS.transactionConfirmationSend
+          break
+      }
+    },
+
+    async sendEmail(data) {
+      console.log('Send.vue sendEmail', data)
+      Object.assign(this.transactionData, data)
+      this.loading = true
+      this.error = false
+
+      try {
+        if (data.selected === SEND_TYPES.email) {
+          const result = await this.sendEmailMutation({
+            recipientCommunityIdentifier: data.targetCommunity.uuid,
+            recipientIdentifier: data.identifier,
+            subject: data.subject,
+            memo: data.memo,
+          })
+          if (result) {
+            this.currentTransactionStep = TRANSACTION_STEPS.sendEmailResultSuccess
+          } else {
+            this.currentTransactionStep = TRANSACTION_STEPS.sendEmailResultError
+          }
+        }
+      } catch (err) {
+        if (this.transactionData.selected === SEND_TYPES.email) {
+          this.errorResult = err.message
+          this.error = true
+          this.currentTransactionStep = TRANSACTION_STEPS.sendEmailResultError
+        } else {
+          this.toastError(err.message)
+        }
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async sendTransaction() {
+      // console.log('Send.vue sendTransaction(): transactionData=', JSON.stringify(transactionData))
+      this.loading = true
+      this.error = false
+
+      try {
+        if (this.transactionData.selected === SEND_TYPES.send) {
+          await this.sendCoinsMutation({
+            recipientCommunityIdentifier: this.transactionData.targetCommunity.uuid,
+            recipientIdentifier: this.transactionData.identifier,
+            amount: this.transactionData.amount.toString(),
+            memo: this.transactionData.memo,
+          })
+
+          this.error = false
+          this.emit('set-tunneled-email', null)
+          this.updateTransactions({})
+          Object.assign(this.transactionData, this.EMPTY_TRANSACTION_DATA)
+          this.currentTransactionStep = TRANSACTION_STEPS.transactionResultSendSuccess
+        } else if (this.transactionData.selected === SEND_TYPES.link) {
+          const result = await this.createTransactionLinkMutation({
+            amount: this.transactionData.amount.toString(),
+            memo: this.transactionData.memo,
+          })
+
+          this.emit('set-tunneled-email', null)
+          const {
+            link: newLink,
+            amount: newAmount,
+            memo: newMemo,
+            validUntil: newValidUntil,
+          } = result.data.createTransactionLink
+          this.link = newLink
+          this.amount = newAmount
+          this.memo = newMemo
+          this.validUntil = newValidUntil
+          Object.assign(this.transactionData, this.EMPTY_TRANSACTION_DATA)
+          this.currentTransactionStep = TRANSACTION_STEPS.transactionResultLink
+          this.updateTransactions({})
+        } else if (this.transactionData.selected === SEND_TYPES.email) {
+          // console.log('Send.vue sendTransaction(): email transactionData=' + transactionData)
+          this.currentTransactionStep = TRANSACTION_STEPS.sendEmailResultSuccess
+          // throw new Error('Email transaction sending not implemented yet')
+        } else {
+          throw new Error(`undefined transactionData.selected : ${this.transactionData.selected}`)
+        }
+      } catch (err) {
+        if (this.transactionData.selected === SEND_TYPES.send) {
+          this.errorResult = err.message
+          this.error = true
+          this.currentTransactionStep = TRANSACTION_STEPS.transactionResultSendError
+        } else if (this.transactionData.selected === SEND_TYPES.email) {
+          this.errorResult = err.message
+          this.error = true
+          this.currentTransactionStep = TRANSACTION_STEPS.sendEmailResultError
+        } else {
+          this.toastError(err.message)
+        }
+      } finally {
+        this.loading = false
+        await this.router.push({ path: '/send' })
+      }
+    },
+
+    onBack() {
+      this.currentTransactionStep = TRANSACTION_STEPS.transactionForm
+    },
+
+    updateTransactions(pagination) {
+      this.$emit('update-transactions', pagination)
+    },
+  },
+}
+
+/*
 const { t } = useI18n()
 const EMPTY_TRANSACTION_DATA = {
   identifier: '',
@@ -273,4 +464,5 @@ function onBack() {
 function updateTransactions(pagination) {
   emit('update-transactions', pagination)
 }
+*/
 </script>
