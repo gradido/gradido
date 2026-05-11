@@ -483,7 +483,7 @@ export class TransactionResolver {
      *   Recalculate and persist correct decay values for all legacy transactions.
      *
      * Once legacy data is cleaned up, this block should be removed to restore deterministic behavior.
-*/
+     */
     transactions.forEach((transaction: Transaction) => {
       if (transaction.typeId !== TransactionTypeId.DECAY) {
         const { balance, previousBalance, amount } = transaction
