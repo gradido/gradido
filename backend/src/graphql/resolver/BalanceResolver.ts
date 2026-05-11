@@ -83,12 +83,14 @@ export class BalanceResolver {
     // The final balance is reduced by the link amount decayed
     const { sumHoldAvailableDecayedAmount } = context.sumHoldAvailableDecayedAmount
       ? { sumHoldAvailableDecayedAmount: context.sumHoldAvailableDecayedAmount }
-      : (await transactionLinksDecayed(user.id, now))
+      : await transactionLinksDecayed(user.id, now)
 
     logger.debug(`context.sumHoldAvailableDecayedAmount=${context.sumHoldAvailableDecayedAmount}`)
     logger.debug(`sumHoldAvailableDecayedAmount=${sumHoldAvailableDecayedAmount}`)
 
-    const balance = calculatedDecay.balance.subtract(sumHoldAvailableDecayedAmount).toDecimalPlaces(2)
+    const balance = calculatedDecay.balance
+      .subtract(sumHoldAvailableDecayedAmount)
+      .toDecimalPlaces(2)
 
     // const newBalance = new Balance({
     //      balance: calculatedDecay.balance
