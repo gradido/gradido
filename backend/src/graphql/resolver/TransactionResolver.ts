@@ -425,6 +425,72 @@ export class TransactionResolver {
       transactions.map((t) => t.id),
     )
 
+    /**
+     * ⚠️ Legacy Data Correction – Decay Recalculation
+     *
+     * This block recalculates the decay value for transactions on-the-fly during read operations.
+     * It exists to compensate for historical precision inconsistencies in earlier system versions.
+     *
+     * --- Background ---
+     * Previously, monetary values (balance, amount, previousBalance) were stored and calculated
+     * using high precision (Decimal.js with ~25 decimal places). However, when these values were
+     * transferred to and displayed in the frontend (rounded to 2 decimal places), small rounding
+     * discrepancies occasionally appeared.
+     *
+     * In rare cases (~0.126%), this caused the following invariant to break from the user's perspective:
+     *
+     * previousBalance ± amount ± decay === balance
+     *
+     * Instead, users would observe slight mismatches due to precision loss during rounding.
+     *
+     * Showing 4 decimal places in the frontend would make it even worse, because than it occurs in ~ 25% of cases.
+     *
+     * --- Purpose of this Code ---
+     * This loop recomputes decay dynamically using the formula:
+     *
+     * decay = balance - amount - previousBalance
+     *
+     * This ensures that the invariant holds again when values are displayed, effectively masking
+     * historical rounding inconsistencies for legacy transactions.
+     *
+     * --- Important Notes ---
+     *
+     * The recalculation is NOT persisted to the database.
+     * It mutates the transaction object in memory on every read.
+     *
+     * --- Trade-offs / Risks ---
+     *
+     * ⚠️ Hidden data mutation:
+     * The system silently alters values at read time, which can make debugging and auditing harder.
+     *
+     * ⚠️ Performance overhead:
+     * Every transaction list query incurs additional computation.
+     *
+     * ⚠️ Non-deterministic representation:
+     * The value of decay depends on whether this code path is executed.
+     *
+     * ⚠️ Technical debt:
+     * This is a workaround for historical inconsistencies, not a root-cause fix.
+     *
+     * --- Current Situation ---
+     * Newer transactions are now consistently calculated and stored using a unified precision
+     * (4 decimal places across backend and frontend), which eliminates this issue going forward.
+     *
+     * --- Recommended Next Steps ---
+     * Consider replacing this runtime correction with:
+     *
+     * - One-time data migration:
+     *   Recalculate and persist correct decay values for all legacy transactions.
+     *
+     * Once legacy data is cleaned up, this block should be removed to restore deterministic behavior.
+*/
+    transactions.forEach((transaction: Transaction) => {
+      if (transaction.typeId !== TransactionTypeId.DECAY) {
+        const { balance, previousBalance, amount } = transaction
+        transaction.decay.decay = balance.subtract(amount).subtract(previousBalance)
+      }
+    })
+
     if (CONFIG.GDT_ACTIVE) {
       const balanceGDT = await balanceGDTPromise
       context.balanceGDT = balanceGDT

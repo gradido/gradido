@@ -1,7 +1,13 @@
 import Decimal from 'decimal.js-light'
 import { AccountBalance, GradidoUnit, MemoryBlockPtr } from 'gradido-blockchain-js'
+import { Amount } from '../../../schemas/typeGuard.schema'
 import { NegativeBalanceError } from '../errors'
 import { legacyCalculateDecay } from '../utils'
+
+Decimal.set({
+  precision: 25,
+  rounding: Decimal.ROUND_HALF_UP,
+})
 
 export class Balance {
   private balance: GradidoUnit
@@ -34,7 +40,7 @@ export class Balance {
     return this.date
   }
 
-  updateLegacyDecay(amount: GradidoUnit, date: Date) {
+  updateLegacyDecay(amount: GradidoUnit, date: Date, dbBalance?: Amount) {
     // make sure to copy instead of referencing
     const previousBalanceString = this.balance.toString()
     const previousDate = new Date(this.date.getTime())
@@ -48,7 +54,26 @@ export class Balance {
         this.date,
         date,
       ).toDecimalPlaces(4, Decimal.ROUND_CEIL)
-      const newBalance = decayedBalance.add(new Decimal(amount.toString()))
+      /*
+        if (!decayedBalance.equals(this.balance.toString())) {
+        console.log({
+          input: this.balance.toString(4),
+          decayed: decayedBalance.toString(),
+          amount: amount.toString(4),
+          date
+        })
+        // throw new Error("Test Exit")
+      }
+      // */
+
+      let newBalance = decayedBalance.add(new Decimal(amount.toString()))
+      // reduce small deviations between db decay and balance calculation with 25 decimal places vs gradido-blockchain with 4
+      if (
+        dbBalance &&
+        new Decimal(newBalance.toString()).minus(dbBalance).abs() < new Decimal(0.01)
+      ) {
+        newBalance = new Decimal(dbBalance)
+      }
       this.balance = GradidoUnit.fromString(newBalance.toString())
       this.date = date
     }

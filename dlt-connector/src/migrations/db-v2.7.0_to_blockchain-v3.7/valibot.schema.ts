@@ -2,6 +2,7 @@ import { InMemoryBlockchain, KeyPairEd25519 } from 'gradido-blockchain-js'
 import * as v from 'valibot'
 import { booleanSchema, dateSchema } from '../../schemas/typeConverter.schema'
 import {
+  amountSchema,
   gradidoAmountSchema,
   hieroTransactionIdStringSchema,
   identifierSeedSchema,
@@ -58,6 +59,7 @@ export const transactionDbSchema = v.pipe(
   v.object({
     ...transactionBaseSchema.entries,
     typeId: v.enum(TransactionTypeId),
+    balanceFull: amountSchema,
     balanceDate: dateSchema,
     linkedUser: userDbSchema,
     decayCalculationType: v.enum(DecayCalculationType),

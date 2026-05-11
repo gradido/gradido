@@ -9,8 +9,6 @@ import { exportAllCommunities } from './binaryExport'
 import { bootstrap } from './bootstrap'
 import { syncDbWithBlockchainContext } from './interaction/syncDbWithBlockchain/syncDbWithBlockchain.context'
 
-// import { hello } from '../../../zig/hello.zig'
-
 const BATCH_SIZE = 1000
 
 async function main() {
