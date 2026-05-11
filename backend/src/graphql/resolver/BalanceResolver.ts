@@ -14,7 +14,7 @@ import { BalanceLoggingView } from '@/logging/BalanceLogging.view'
 import { DecayLoggingView } from '@/logging/DecayLogging.view'
 import { Context, getUser } from '@/server/context'
 import { GdtResolver } from './GdtResolver'
-import { transactionLinkSummary } from './util/transactionLinkSummary'
+import { transactionLinksDecayed } from './util/transactionLinksDecayed'
 
 @Resolver()
 export class BalanceResolver {
@@ -80,16 +80,15 @@ export class BalanceResolver {
       new DecayLoggingView(calculatedDecay),
     )
 
-    // The final balance is reduced by the link amount withheld
-    // TODO: calculate also decay for open links
-    const { sumHoldAvailableAmount } = context.sumHoldAvailableAmount
-      ? { sumHoldAvailableAmount: context.sumHoldAvailableAmount }
-      : await transactionLinkSummary(user.id, now)
+    // The final balance is reduced by the link amount decayed
+    const { sumHoldAvailableDecayedAmount } = context.sumHoldAvailableDecayedAmount
+      ? { sumHoldAvailableDecayedAmount: context.sumHoldAvailableDecayedAmount }
+      : (await transactionLinksDecayed(user.id, now))
 
-    logger.debug(`context.sumHoldAvailableAmount=${context.sumHoldAvailableAmount}`)
-    logger.debug(`sumHoldAvailableAmount=${sumHoldAvailableAmount}`)
+    logger.debug(`context.sumHoldAvailableDecayedAmount=${context.sumHoldAvailableDecayedAmount}`)
+    logger.debug(`sumHoldAvailableDecayedAmount=${sumHoldAvailableDecayedAmount}`)
 
-    const balance = calculatedDecay.balance.subtract(sumHoldAvailableAmount).toDecimalPlaces(2)
+    const balance = calculatedDecay.balance.subtract(sumHoldAvailableDecayedAmount).toDecimalPlaces(2)
 
     // const newBalance = new Balance({
     //      balance: calculatedDecay.balance

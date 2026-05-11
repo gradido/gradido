@@ -79,7 +79,7 @@ import {
   getCommunityByUuid,
 } from './util/communities'
 import { getUserCreation, validateContribution } from './util/creations'
-import { transactionLinkList } from './util/transactionLinkList'
+import { transactionLinkListDecayed } from './util/transactionLinkListDecayed'
 
 const createLogger = (method: string) =>
   getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.TransactionLinkResolver.${method}`)
@@ -733,7 +733,7 @@ export class TransactionLinkResolver {
     paginated: Paginated,
     @Ctx() context: Context,
   ): Promise<TransactionLinkResult> {
-    return transactionLinkList(
+    return transactionLinkListDecayed(
       paginated,
       {
         withDeleted: false,
@@ -758,7 +758,7 @@ export class TransactionLinkResolver {
     if (!user) {
       throw new LogError('Could not find requested User', userId)
     }
-    return transactionLinkList(paginated, filters, user)
+    return transactionLinkListDecayed(paginated, filters, user)
   }
 
   async queryRedeemJwtLink(code: string, logger: Logger): Promise<RedeemJwtLink> {

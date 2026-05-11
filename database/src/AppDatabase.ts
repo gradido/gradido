@@ -16,6 +16,7 @@ export class AppDatabase {
   private drizzleDataSource: MySql2Database | undefined
   private drizzlePool: Pool | undefined
   private redisClient: Redis | undefined
+  private defaultBatchSize: number = 100
 
   /**
    * The Singleton's constructor should always be private to prevent direct
@@ -52,6 +53,13 @@ export class AppDatabase {
       throw new Error('Drizzle connection pool not initialized')
     }
     return drizzle({ client: this.drizzlePool })
+  }
+
+  public getDefaultBatchSize(): number {
+    return this.defaultBatchSize
+  }
+  public changeDefaultBatchSize(size: number): void {
+    this.defaultBatchSize = size
   }
 
   // create database connection, initialize with automatic retry and check for correct database version

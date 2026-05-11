@@ -18,7 +18,7 @@ export interface Context {
   balanceGDT?: number | null
   transactionCount?: number
   linkCount?: number
-  sumHoldAvailableAmount?: GradidoUnit
+  sumHoldAvailableDecayedAmount?: GradidoUnit
 }
 
 export const context = (args: ExpressContext): Context => {
