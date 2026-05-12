@@ -171,7 +171,12 @@
                 class="text-lg-end"
                 @mouseover="disableSmartValidState = true"
               >
-                <div v-if="radioSelected === SEND_TYPES.email">
+                <BButton block type="submit" variant="gradido" :disabled="formIsInvalid">
+                  {{
+                    radioSelected === SEND_TYPES.email ? $t('form.sendEmail') : $t('form.check_now')
+                  }}
+                </BButton>
+                <!-- div v-if="radioSelected === SEND_TYPES.email">
                   <BButton block type="submit" variant="gradido" :disabled="formIsInvalid">
                     {{ $t('form.sendEmail') }}
                   </BButton>
@@ -180,7 +185,7 @@
                   <BButton block type="submit" variant="gradido" :disabled="formIsInvalid">
                     {{ $t('form.check_now') }}
                   </BButton>
-                </div>
+                </div -->
               </BCol>
             </BRow>
           </BForm>
