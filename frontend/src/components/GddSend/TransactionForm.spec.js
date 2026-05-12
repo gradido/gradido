@@ -133,11 +133,9 @@ describe('TransactionForm', () => {
     })
 
     describe('send GDD', () => {
-      /*
       beforeEach(async () => {
-        await wrapper.findComponent(BFormRadioGroup).setValue(SEND_TYPES.send)
+        wrapper.vm.radioSelected = SEND_TYPES.send
       })
-      */
 
       it('has SEND_TYPES = send', () => {
         expect(wrapper.vm.radioSelected).toBe(SEND_TYPES.send)
@@ -192,7 +190,7 @@ describe('TransactionForm', () => {
 
         it.skip('resets the form when clicked', async () => {
           // Set some values in the form
-          // await wrapper.findComponent(BFormRadioGroup).setValue(SEND_TYPES.send)
+          wrapper.vm.radioSelected = SEND_TYPES.email
           wrapper.vm.form.identifier = 'test@example.com'
           wrapper.vm.form.amount = '100,00'
           wrapper.vm.form.memo = 'Test memo'
@@ -229,7 +227,7 @@ describe('TransactionForm', () => {
       beforeEach(async () => {
         wrapper = createWrapper({ balance: 100.0 })
         await nextTick()
-        // await wrapper.findComponent(BFormRadioGroup).setValue(SEND_TYPES.send)
+        wrapper.vm.radioSelected = SEND_TYPES.send
       })
 
       it('emits set-transaction event with correct data when form is submitted', async () => {
@@ -268,11 +266,9 @@ describe('TransactionForm', () => {
     })
 
     describe.skip('create transaction link', () => {
-      /*
       beforeEach(async () => {
-        await wrapper.findComponent(BFormRadioGroup).setValue(SEND_TYPES.link)
+        wrapper.vm.radioSelected = SEND_TYPES.link
       })
-      */
 
       it('has SEND_TYPES = link', () => {
         expect(wrapper.vm.radioSelected).toBe(SEND_TYPES.link)
