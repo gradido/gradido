@@ -47,6 +47,10 @@
       "subject": "Your common good contribution was rejected",
       "title": "Your common good contribution was rejected"
     },
+    "customEmail": {
+      "haveReceivedMessageFrom": "you have just received a message from {senderFirstName} {senderLastName}",
+      "title": "{senderFirstName} {senderLastName} has sent you a message"
+    },
     "footer": {
       "contactOurSupport": "If you have any further questions, please contact our support.",
       "imprint": "Impressum",
