@@ -14,18 +14,11 @@
           </a>
           |
           <a
-            href="https://github.com/gradido/gradido/releases/latest"
+            :href="'https://github.com/gradido/gradido/commit/' + hash"
             target="_blank"
             class="link-underline link-underline-opacity-0 link-underline-opacity-100-hover"
           >
             {{ $t('footer.app_version', { version }) }}
-          </a>
-          <a
-            v-if="hash"
-            :href="'https://github.com/gradido/gradido/commit/' + hash"
-            target="_blank"
-          >
-            {{ $t('footer.short_hash', { shortHash }) }}
           </a>
         </div>
       </BCol>
@@ -39,7 +32,6 @@ import { BTr, BCol } from 'bootstrap-vue-next'
 const year = new Date().getFullYear()
 const version = CONFIG.APP_VERSION
 const hash = CONFIG.BUILD_COMMIT
-const shortHash = CONFIG.BUILD_COMMIT_SHORT
 </script>
 <style lang="scss" scoped>
 .content-footer {
