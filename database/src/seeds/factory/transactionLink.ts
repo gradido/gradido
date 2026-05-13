@@ -55,6 +55,13 @@ export async function createTransactionLink(
   transactionLink.createdAt = createdAt
   transactionLink.validUntil = validUntil
 
+  if (transactionLinkData.redeemedAt) {
+    transactionLink.redeemedAt = transactionLinkData.redeemedAt
+  }
+  if (transactionLinkData.redeemedBy) {
+    transactionLink.redeemedBy = transactionLinkData.redeemedBy
+  }
+
   if (transactionLinkData.deletedAt) {
     transactionLink.deletedAt = new Date(createdAt.getTime() + 1000)
   }

@@ -44,7 +44,7 @@ import { BalanceResolver } from './BalanceResolver'
 import { GdtResolver } from './GdtResolver'
 import { getCommunityName, isHomeCommunity } from './util/communities'
 import { getTransactionList } from './util/getTransactionList'
-import { transactionLinkSummary } from './util/transactionLinkSummary'
+import { transactionLinksDecayed } from './util/transactionLinksDecayed'
 
 const db = AppDatabase.getInstance()
 const createLogger = () =>
@@ -352,13 +352,13 @@ export class TransactionResolver {
     const self = new User(user)
     const transactions: Transaction[] = []
 
-    const { sumHoldAvailableAmount, sumAmount, transactionLinkcount } =
-      await transactionLinkSummary(user.id, now)
+    const { sumHoldAvailableDecayedAmount, sumAmount, transactionLinkCount } =
+      await transactionLinksDecayed(user.id, now)
 
-    context.linkCount = transactionLinkcount
-    logger.debug(`transactionLinkcount=${transactionLinkcount}`)
-    context.sumHoldAvailableAmount = sumHoldAvailableAmount
-    logger.debug(`sumHoldAvailableAmount=${sumHoldAvailableAmount.toString()}`)
+    context.linkCount = transactionLinkCount
+    logger.debug(`transactionLinkCount=${transactionLinkCount}`)
+    context.sumHoldAvailableDecayedAmount = sumHoldAvailableDecayedAmount
+    logger.debug(`sumHoldAvailableDecayedAmount=${sumHoldAvailableDecayedAmount.toString()}`)
 
     const lastTransactionBalance = lastTransaction.balance
 
@@ -373,14 +373,14 @@ export class TransactionResolver {
           lastTransaction.balanceDate,
           now,
           self,
-          sumHoldAvailableAmount,
+          sumHoldAvailableDecayedAmount,
         ),
       )
       logger.debug(`transactions=${transactions.map((t) => t.id)}`)
 
       // virtual transaction for pending transaction-links sum
       const zeroAmount = new GradidoUnit(0n)
-      if (sumHoldAvailableAmount.comparedTo(zeroAmount) === 0n) {
+      if (sumHoldAvailableDecayedAmount.comparedTo(zeroAmount) === 0n) {
         const linkCount = await dbTransactionLink.count({
           where: {
             userId: user.id,
@@ -390,8 +390,10 @@ export class TransactionResolver {
         if (linkCount > 0) {
           transactions.push(virtualLinkTransaction(zeroAmount, self))
         }
-      } else if (sumHoldAvailableAmount.comparedTo(zeroAmount) > 0) {
-        logger.debug(`sumHoldAvailableAmount > 0: transactions=${transactions.map((t) => t.id)}`)
+      } else if (sumHoldAvailableDecayedAmount.comparedTo(zeroAmount) > 0) {
+        logger.debug(
+          `sumHoldAvailableDecayedAmount > 0: transactions=${transactions.map((t) => t.id)}`,
+        )
         transactions.push(virtualLinkTransaction(sumAmount.negated(), self))
         logger.debug(`transactions=${transactions.map((t) => t.id)}`)
       }

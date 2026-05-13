@@ -1,7 +1,7 @@
 import { TransactionLink as dbTransactionLink, getLastTransaction } from 'database'
 import { Decay, GradidoUnit } from 'shared'
 import { validate, version } from 'uuid'
-import { transactionLinkSummary } from '@/graphql/resolver/util/transactionLinkSummary'
+import { transactionLinksDecayed } from '@/graphql/resolver/util/transactionLinksDecayed'
 
 function isStringBoolean(value: string): boolean {
   const lowerValue = value.toLowerCase()
@@ -32,7 +32,7 @@ async function calculateBalance(
   const decay = lastTransaction.balance.calculateDecay(lastTransaction.balanceDate, time)
 
   const balance = decay.balance.add(amount)
-  const { sumHoldAvailableAmount } = await transactionLinkSummary(userId, time)
+  const { sumHoldAvailableDecayedAmount } = await transactionLinksDecayed(userId, time)
 
   // If we want to redeem a link we need to make sure that the link amount is not considered as blocked
   // else we cannot redeem links which are more or equal to half of what an account actually owns
@@ -42,7 +42,7 @@ async function calculateBalance(
 
   if (
     balance
-      .subtract(sumHoldAvailableAmount)
+      .subtract(sumHoldAvailableDecayedAmount)
       .add(releasedLinkAmount)
       .comparedTo(new GradidoUnit(0n)) < 0
   ) {
