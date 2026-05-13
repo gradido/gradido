@@ -7,6 +7,7 @@ import {
   GradidoTransactionBuilder,
   GradidoTransfer,
   GradidoUnit,
+  HieroTransactionId,
   KeyPairEd25519,
   LedgerAnchor,
   MemoryBlockPtr,
@@ -18,7 +19,7 @@ import { Uuidv4 } from '../../../../schemas/typeGuard.schema'
 import { addToBlockchain } from '../../blockchain'
 import { Context } from '../../Context'
 import { Balance } from '../../data/Balance'
-import { transactionLinksTable, usersTable } from '../../drizzle.schema'
+import { dltTransactionsTable, transactionLinksTable, usersTable } from '../../drizzle.schema'
 import { BlockchainError, DatabaseError } from '../../errors'
 import { toMysqlDateTime } from '../../utils'
 import {
@@ -31,7 +32,7 @@ import { AbstractSyncRole, IndexType } from './AbstractSync.role'
 export class DeletedTransactionLinksSyncRole extends AbstractSyncRole<DeletedTransactionLinkDb> {
   constructor(context: Context) {
     super(context)
-    this.accountBalances.reserve(2)
+    this.accountBalances.reserve(2n)
   }
 
   getDate(): Date {
@@ -55,6 +56,7 @@ export class DeletedTransactionLinksSyncRole extends AbstractSyncRole<DeletedTra
       .select({
         transactionLink: transactionLinksTable,
         user: usersTable,
+        dltTransaction: dltTransactionsTable,
       })
       .from(transactionLinksTable)
       .where(
@@ -71,6 +73,10 @@ export class DeletedTransactionLinksSyncRole extends AbstractSyncRole<DeletedTra
         ),
       )
       .innerJoin(usersTable, eq(transactionLinksTable.userId, usersTable.id))
+      .leftJoin(
+        dltTransactionsTable,
+        eq(transactionLinksTable.id, dltTransactionsTable.transactionLinkId),
+      )
       .orderBy(asc(transactionLinksTable.deletedAt), asc(transactionLinksTable.id))
       .limit(count)
 
@@ -78,6 +84,7 @@ export class DeletedTransactionLinksSyncRole extends AbstractSyncRole<DeletedTra
       const item = {
         ...row.transactionLink,
         user: row.user,
+        messageId: row.dltTransaction?.messageId,
       }
       try {
         return v.parse(deletedTransactionLinKDbSchema, item)
@@ -179,6 +186,15 @@ export class DeletedTransactionLinksSyncRole extends AbstractSyncRole<DeletedTra
     senderLastBalance.updateLegacyDecay(GradidoUnit.zero(), item.deletedAt)
 
     try {
+      let ledgerAnchor: LedgerAnchor
+      if (item.messageId) {
+        ledgerAnchor = new LedgerAnchor(new HieroTransactionId(item.messageId))
+      } else {
+        ledgerAnchor = new LedgerAnchor(
+          item.id,
+          LedgerAnchor.Type_LEGACY_GRADIDO_DB_TRANSACTION_LINK_ID,
+        )
+      }
       addToBlockchain(
         this.buildTransaction(
           communityContext,
@@ -189,7 +205,7 @@ export class DeletedTransactionLinksSyncRole extends AbstractSyncRole<DeletedTra
           linkFundingPublicKey,
         ).build(),
         blockchain,
-        new LedgerAnchor(item.id, LedgerAnchor.Type_LEGACY_GRADIDO_DB_TRANSACTION_LINK_ID),
+        ledgerAnchor,
         this.calculateBalances(
           item,
           deferredTransfer,

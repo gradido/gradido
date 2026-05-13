@@ -1,10 +1,13 @@
-import { Filter, Profiler, ThreadingPolicy_Half, verifySignatures } from 'gradido-blockchain-js'
+import {
+  Filter,
+  MonotonicTimer,
+  ThreadingPolicy_Half,
+  verifySignatures,
+} from 'gradido-blockchain-js'
 import { onShutdown } from '../../../../shared/src/helper/onShutdown'
 import { exportAllCommunities } from './binaryExport'
 import { bootstrap } from './bootstrap'
 import { syncDbWithBlockchainContext } from './interaction/syncDbWithBlockchain/syncDbWithBlockchain.context'
-
-// import { hello } from '../../../zig/hello.zig'
 
 const BATCH_SIZE = 1000
 
@@ -28,7 +31,7 @@ async function main() {
     //context.logBlogchain(v.parse(uuidv4Schema, 'e70da33e-5976-4767-bade-aa4e4fa1c01a'))
   }
 
-  const timeUsed = new Profiler()
+  const timeUsed = new MonotonicTimer()
   // bulk verify transaction signatures
   for (const communityContext of context.communities.values()) {
     // verifySignatures(Filter.ALL_TRANSACTIONS, ThreadingPolicy_Half)

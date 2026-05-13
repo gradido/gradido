@@ -6,23 +6,21 @@ import {
   AuthenticatedEncryption,
   DurationSeconds,
   EncryptedMemo,
-  Filter,
   GradidoTransactionBuilder,
   GradidoTransfer,
   GradidoUnit,
+  HieroTransactionId,
   KeyPairEd25519,
   LedgerAnchor,
   MemoryBlockPtr,
-  SearchDirection_DESC,
   TransferAmount,
-  transactionTypeToString,
 } from 'gradido-blockchain-js'
 import * as v from 'valibot'
 import { deriveFromCode } from '../../../../data/deriveKeyPair'
 import { Uuidv4 } from '../../../../schemas/typeGuard.schema'
 import { addToBlockchain } from '../../blockchain'
 import { Context } from '../../Context'
-import { transactionLinksTable, usersTable } from '../../drizzle.schema'
+import { dltTransactionsTable, transactionLinksTable, usersTable } from '../../drizzle.schema'
 import { BlockchainError, DatabaseError, NegativeBalanceError } from '../../errors'
 import { reverseLegacyDecay, toMysqlDateTime } from '../../utils'
 import { CommunityContext, TransactionLinkDb, transactionLinkDbSchema } from '../../valibot.schema'
@@ -31,7 +29,7 @@ import { AbstractSyncRole, IndexType } from './AbstractSync.role'
 export class TransactionLinkFundingsSyncRole extends AbstractSyncRole<TransactionLinkDb> {
   constructor(context: Context) {
     super(context)
-    this.accountBalances.reserve(2)
+    this.accountBalances.reserve(2n)
   }
   getDate(): Date {
     return this.peek().createdAt
@@ -52,9 +50,17 @@ export class TransactionLinkFundingsSyncRole extends AbstractSyncRole<Transactio
 
   async loadFromDb(lastIndex: IndexType, count: number): Promise<TransactionLinkDb[]> {
     const result = await this.context.db
-      .select()
+      .select({
+        transactionLinks: transactionLinksTable,
+        users: usersTable,
+        dltTransactions: dltTransactionsTable,
+      })
       .from(transactionLinksTable)
       .innerJoin(usersTable, eq(transactionLinksTable.userId, usersTable.id))
+      .leftJoin(
+        dltTransactionsTable,
+        eq(transactionLinksTable.id, dltTransactionsTable.transactionLinkId),
+      )
       .where(
         or(
           gt(transactionLinksTable.createdAt, toMysqlDateTime(lastIndex.date)),
@@ -69,8 +75,9 @@ export class TransactionLinkFundingsSyncRole extends AbstractSyncRole<Transactio
 
     return result.map((row) => {
       const item = {
-        ...row.transaction_links,
+        ...row.transactionLinks,
         user: row.users,
+        messageId: row.dltTransactions?.messageId,
       }
       try {
         return v.parse(transactionLinkDbSchema, item)
@@ -160,15 +167,17 @@ export class TransactionLinkFundingsSyncRole extends AbstractSyncRole<Transactio
     let blockedAmount = GradidoUnit.fromString(
       reverseLegacyDecay(new Decimal(item.amount.toString()), duration.getSeconds()).toString(),
     )
-    let accountBalances: AccountBalances
+    let accountBalances: AccountBalances | undefined
     try {
-      accountBalances = this.calculateBalances(
-        item,
-        blockedAmount,
-        communityContext,
-        senderPublicKey,
-        recipientPublicKey,
-      )
+      if (!this.context.isDecayCalculationTypeChanged(item.createdAt)) {
+        accountBalances = this.calculateBalances(
+          item,
+          blockedAmount,
+          communityContext,
+          senderPublicKey,
+          recipientPublicKey,
+        )
+      }
     } catch (e) {
       if (item.deletedAt && e instanceof NegativeBalanceError) {
         const senderLastBalance = this.getLastBalanceForUser(
@@ -197,6 +206,15 @@ export class TransactionLinkFundingsSyncRole extends AbstractSyncRole<Transactio
       }
     }
     try {
+      let ledgerAnchor: LedgerAnchor | undefined
+      if (item.messageId) {
+        ledgerAnchor = new LedgerAnchor(new HieroTransactionId(item.messageId))
+      } else {
+        ledgerAnchor = new LedgerAnchor(
+          item.id,
+          LedgerAnchor.Type_LEGACY_GRADIDO_DB_TRANSACTION_LINK_ID,
+        )
+      }
       addToBlockchain(
         this.buildTransaction(
           communityContext,
@@ -207,7 +225,7 @@ export class TransactionLinkFundingsSyncRole extends AbstractSyncRole<Transactio
           recipientKeyPair,
         ).build(),
         blockchain,
-        new LedgerAnchor(item.id, LedgerAnchor.Type_LEGACY_GRADIDO_DB_TRANSACTION_LINK_ID),
+        ledgerAnchor,
         accountBalances,
       )
     } catch (e) {

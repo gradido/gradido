@@ -1,7 +1,14 @@
-import { and, asc, eq, isNotNull, isNull, or, sql } from 'drizzle-orm'
+import { and, asc, eq, isNotNull, ne, sql } from 'drizzle-orm'
 import { MySql2Database } from 'drizzle-orm/mysql2'
 import * as v from 'valibot'
-import { communitiesTable, eventsTable, userRolesTable, usersTable } from './drizzle.schema'
+import { DecayCalculationType } from './data/DecayCalculationType'
+import {
+  communitiesTable,
+  eventsTable,
+  transactionsTable,
+  userRolesTable,
+  usersTable,
+} from './drizzle.schema'
 import { CommunityDb, communityDbSchema, UserDb, userDbSchema } from './valibot.schema'
 
 export const contributionLinkModerators = new Map<number, UserDb>()
@@ -38,6 +45,23 @@ export async function loadAdminUsersCache(db: MySql2Database): Promise<void> {
   result.map((row: any) => {
     adminUsers.set(row.gradidoId, v.parse(userDbSchema, row.user))
   })
+}
+
+export async function loadNativeDecayCalculationStartDate(db: MySql2Database): Promise<Date> {
+  const result = await db
+    .select({
+      date: transactionsTable.balanceDate,
+    })
+    .from(transactionsTable)
+    .where(ne(transactionsTable.decayCalculationType, DecayCalculationType.DECIMAL_JS_FIXED_FACTOR))
+    .orderBy(asc(transactionsTable.balanceDate))
+    .limit(1)
+
+  if (result.length === 0) {
+    return new Date()
+  } else {
+    return new Date(result[0].date)
+  }
 }
 
 // queries

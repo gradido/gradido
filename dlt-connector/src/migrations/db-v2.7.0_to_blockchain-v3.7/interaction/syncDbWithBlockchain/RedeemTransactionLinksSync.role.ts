@@ -1,4 +1,4 @@
-import { and, asc, eq, gt, isNotNull, isNull, or } from 'drizzle-orm'
+import { and, asc, eq, gt, isNotNull, isNull, min, or } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/mysql-core'
 import {
   AccountBalance,
@@ -10,6 +10,7 @@ import {
   GradidoTransactionBuilder,
   GradidoTransfer,
   GradidoUnit,
+  HieroTransactionId,
   KeyPairEd25519,
   LedgerAnchor,
   MemoryBlockPtr,
@@ -20,7 +21,13 @@ import { deriveFromCode } from '../../../../data/deriveKeyPair'
 import { Uuidv4 } from '../../../../schemas/typeGuard.schema'
 import { addToBlockchain } from '../../blockchain'
 import { Context } from '../../Context'
-import { transactionLinksTable, usersTable } from '../../drizzle.schema'
+import { TransactionTypeId } from '../../data/TransactionTypeId'
+import {
+  dltTransactionsTable,
+  transactionLinksTable,
+  transactionsTable,
+  usersTable,
+} from '../../drizzle.schema'
 import { BlockchainError, DatabaseError } from '../../errors'
 import { toMysqlDateTime } from '../../utils'
 import {
@@ -33,7 +40,7 @@ import { AbstractSyncRole, IndexType } from './AbstractSync.role'
 export class RedeemTransactionLinksSyncRole extends AbstractSyncRole<RedeemedTransactionLinkDb> {
   constructor(context: Context) {
     super(context)
-    this.accountBalances.reserve(3)
+    this.accountBalances.reserve(3n)
   }
 
   getDate(): Date {
@@ -55,11 +62,22 @@ export class RedeemTransactionLinksSyncRole extends AbstractSyncRole<RedeemedTra
 
   async loadFromDb(lastIndex: IndexType, count: number): Promise<RedeemedTransactionLinkDb[]> {
     const redeemedByUser = alias(usersTable, 'redeemedByUser')
+    const minTransactions = this.context.db
+      .select({
+        transactionLinkId: transactionsTable.transactionLinkId,
+        minId: min(transactionsTable.id).as('minId'),
+      })
+      .from(transactionsTable)
+      .where(eq(transactionsTable.typeId, TransactionTypeId.RECEIVE))
+      .groupBy(transactionsTable.transactionLinkId)
+      .as('t_min')
+
     const result = await this.context.db
       .select({
         transactionLink: transactionLinksTable,
         user: usersTable,
         redeemedBy: redeemedByUser,
+        dltTransaction: dltTransactionsTable,
       })
       .from(transactionLinksTable)
       .where(
@@ -79,6 +97,8 @@ export class RedeemTransactionLinksSyncRole extends AbstractSyncRole<RedeemedTra
       )
       .innerJoin(usersTable, eq(transactionLinksTable.userId, usersTable.id))
       .innerJoin(redeemedByUser, eq(transactionLinksTable.redeemedBy, redeemedByUser.id))
+      .leftJoin(minTransactions, eq(minTransactions.transactionLinkId, transactionLinksTable.id))
+      .leftJoin(dltTransactionsTable, eq(minTransactions.minId, dltTransactionsTable.transactionId))
       .orderBy(asc(transactionLinksTable.redeemedAt), asc(transactionLinksTable.id))
       .limit(count)
 
@@ -87,6 +107,7 @@ export class RedeemTransactionLinksSyncRole extends AbstractSyncRole<RedeemedTra
         ...row.transactionLink,
         redeemedBy: row.redeemedBy,
         user: row.user,
+        messageId: row.dltTransaction?.messageId,
       }
       try {
         return v.parse(redeemedTransactionLinkDbSchema, item)
@@ -205,6 +226,15 @@ export class RedeemTransactionLinksSyncRole extends AbstractSyncRole<RedeemedTra
     }
 
     try {
+      let ledgerAnchor: LedgerAnchor | undefined
+      if (item.messageId) {
+        ledgerAnchor = new LedgerAnchor(new HieroTransactionId(item.messageId))
+      } else {
+        ledgerAnchor = new LedgerAnchor(
+          item.id,
+          LedgerAnchor.Type_LEGACY_GRADIDO_DB_TRANSACTION_LINK_ID,
+        )
+      }
       addToBlockchain(
         this.buildTransaction(
           communityContext,
@@ -214,14 +244,16 @@ export class RedeemTransactionLinksSyncRole extends AbstractSyncRole<RedeemedTra
           recipientKeyPair,
         ).build(),
         blockchain,
-        new LedgerAnchor(item.id, LedgerAnchor.Type_LEGACY_GRADIDO_DB_TRANSACTION_LINK_ID),
-        this.calculateBalances(
-          item,
-          deferredTransfer,
-          communityContext,
-          senderPublicKey,
-          recipientPublicKey,
-        ),
+        ledgerAnchor,
+        this.context.isDecayCalculationTypeChanged(item.redeemedAt)
+          ? undefined
+          : this.calculateBalances(
+              item,
+              deferredTransfer,
+              communityContext,
+              senderPublicKey,
+              recipientPublicKey,
+            ),
       )
     } catch (e) {
       throw new BlockchainError(`Error adding ${this.itemTypeName()}`, item, e as Error)

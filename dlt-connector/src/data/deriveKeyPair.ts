@@ -8,6 +8,7 @@ export function deriveFromSeed(seed: Hex32): KeyPairEd25519 {
   if (!keyPair) {
     throw new Error(`couldn't create keyPair from seed: ${seed}`)
   }
+
   return keyPair
 }
 
@@ -36,7 +37,7 @@ export function deriveFromKeyPairAndUuid(keyPair: KeyPairEd25519, uuid: Uuidv4):
 }
 
 export function deriveFromKeyPairAndIndex(keyPair: KeyPairEd25519, index: number): KeyPairEd25519 {
-  const localKeyPair = keyPair.deriveChild(index)
+  const localKeyPair = keyPair.deriveChild(hardenDerivationIndex(index))
   if (!localKeyPair) {
     throw new GradidoBlockchainCryptoError(
       `KeyPairEd25519 child derivation failed, has private key: ${keyPair.hasPrivateKey()}, index: ${index}`,
