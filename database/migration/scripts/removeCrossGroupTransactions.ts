@@ -1,8 +1,8 @@
 import { CONFIG } from '../../src/config'
 import { drizzle, MySql2Database } from 'drizzle-orm/mysql2'
 import mysql from 'mysql2/promise'
-import { transactionsTable } from './drizzle.schema'
-import { ne, or, isNull, isNotNull, and, eq, gt, asc } from 'drizzle-orm'
+import { communitiesTable, transactionsTable, usersTable } from './drizzle.schema'
+import { or, and, eq, gt, asc } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/mysql-core'
 import Decimal from 'decimal.js-light'
 import { GradidoUnit } from 'shared'
@@ -128,7 +128,7 @@ async function updateUserBalance(
   return Promise.all(updatePromises)
 }
 
-export async function removeCrossGroupTransactions(db: MySql2Database): Promise<void> {
+async function removeCrossGroupTransactions(db: MySql2Database, communityUUID: string): Promise<void> {
   console.log('Removing cross-group transactions...')
   const previousTx = alias(transactionsTable, 'previousTx')
   let transactions: { transaction: typeof transactionsTable.$inferSelect; previousTx: typeof transactionsTable.$inferSelect | null }[] = []
@@ -141,13 +141,9 @@ export async function removeCrossGroupTransactions(db: MySql2Database): Promise<
       .from(transactionsTable)
       .leftJoin(previousTx, eq(transactionsTable.previous, previousTx.id))
       .where(or(
-          ne(transactionsTable.userCommunityUuid, transactionsTable.linkedUserCommunityUuid),
-          and(
-            isNull(transactionsTable.userCommunityUuid),
-            isNotNull(transactionsTable.linkedUserCommunityUuid)
-          ),
-        )
-      )
+        eq(transactionsTable.userCommunityUuid, communityUUID), 
+        eq(transactionsTable.linkedUserCommunityUuid, communityUUID)
+      ))
       .orderBy(asc(transactionsTable.balanceDate))
       .limit(1)
 
@@ -163,8 +159,15 @@ export async function removeCrossGroupTransactions(db: MySql2Database): Promise<
   return Promise.resolve()
 }
 
+async function removeCommunityRemoteUser(db: MySql2Database, communityUUID: string): Promise<void> {
+  console.log('Removing remote community and there remote users...')
+  await Promise.all([
+    db.delete(communitiesTable).where(and(eq(communitiesTable.communityUuid, communityUUID), eq(communitiesTable.foreign, 1))),
+    db.delete(usersTable).where(and(eq(usersTable.communityUuid, communityUUID), eq(usersTable.foreign, 1))),
+  ])
+}
 
-async function main() : Promise<void> {
+async function main(communityUUID: string) : Promise<void> {
   const startDate = new Date()
   const connection = await mysql.createConnection({
       host: CONFIG.DB_HOST,
@@ -176,7 +179,17 @@ async function main() : Promise<void> {
     })
   const db = drizzle({ client: connection })
   await db.transaction(async (tx) => {
-    await removeCrossGroupTransactions(tx)
+    const community = await tx.select().from(communitiesTable).where(eq(communitiesTable.communityUuid, communityUUID)).limit(1)
+    if (!community.length) {
+      throw new Error('Community not found')
+    }
+    if (!community[0].foreign) {
+      throw new Error('Cannot remove non-foreign community')
+    }
+    await Promise.all([
+      removeCrossGroupTransactions(tx, communityUUID),
+      removeCommunityRemoteUser(tx, communityUUID)
+    ])
   })
   await connection.end()
   const endDate = new Date()
@@ -185,7 +198,11 @@ async function main() : Promise<void> {
 }
 
 if (require.main === module) {
-  main().catch((e) => {
+  if (!process.argv[2]) {
+    console.error('Usage: bun removeCrossGroupTransactions <communityUUID>')
+    process.exit(1)
+  }
+  main(process.argv[2]).catch((e) => {
     console.error(e)
     process.exit(1)
   })

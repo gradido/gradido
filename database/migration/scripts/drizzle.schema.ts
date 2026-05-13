@@ -1,11 +1,14 @@
 import { sql } from 'drizzle-orm'
 import {
   bigint,
-  char,
   datetime,
   decimal,
   int,
   mysqlTable,
+  tinyint,
+  char,
+  unique,
+  varchar,
 } from 'drizzle-orm/mysql-core'
 
 // use only fields needed for the scripts in this folder
@@ -31,3 +34,21 @@ export const transactionsTable = mysqlTable(
     linkedUserCommunityUuid: char('linked_user_community_uuid', { length: 36 }).default(sql`NULL`),
   }
 )
+
+
+
+export const communitiesTable = mysqlTable("communities", {
+	id: int().autoincrement().notNull(),
+	foreign: tinyint().default(1).notNull(),
+	communityUuid: char("community_uuid", { length: 36 }).default('NULL'),
+},
+(table) => [
+	unique("uuid_key").on(table.communityUuid),
+])
+
+
+export const usersTable = mysqlTable("users", {
+	id: int().autoincrement().notNull(),
+	foreign: tinyint().default(0).notNull(),
+	communityUuid: varchar("community_uuid", { length: 36 }).default('NULL'),
+})
