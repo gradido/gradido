@@ -10,17 +10,6 @@ import {
 
 // use only fields needed for the scripts in this folder
 
-export const contributionsTable = mysqlTable('contributions', {
-  id: int().autoincrement().notNull(),
-  transactionId: int('transaction_id').default(sql`NULL`),
-})
-
-export const eventsTable = mysqlTable('events', {
-  id: int().autoincrement().notNull(),
-  involvedTransactionId: int('involved_transaction_id').default(sql`NULL`),
-})
-
-
 export const transactionsTable = mysqlTable(
   'transactions',
   {
@@ -42,8 +31,3 @@ export const transactionsTable = mysqlTable(
     linkedUserCommunityUuid: char('linked_user_community_uuid', { length: 36 }).default(sql`NULL`),
   }
 )
-
-export const dltTransactionsTable = mysqlTable('dlt_transactions', {
-  id: int().autoincrement().notNull(),
-  transactionId: int('transaction_id').default(sql`NULL`),
-})

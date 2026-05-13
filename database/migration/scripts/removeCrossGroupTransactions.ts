@@ -1,8 +1,8 @@
 import { CONFIG } from '../../src/config'
-import { drizzle, MySql2Database, MySql2QueryResultHKT } from 'drizzle-orm/mysql2'
+import { drizzle, MySql2Database } from 'drizzle-orm/mysql2'
 import mysql from 'mysql2/promise'
-import { contributionsTable, dltTransactionsTable, eventsTable, transactionsTable } from './drizzle.schema'
-import { ne, or, isNull, isNotNull, and, eq, gt, asc, sql } from 'drizzle-orm'
+import { transactionsTable } from './drizzle.schema'
+import { ne, or, isNull, isNotNull, and, eq, gt, asc } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/mysql-core'
 import Decimal from 'decimal.js-light'
 import { GradidoUnit } from 'shared'
@@ -75,63 +75,6 @@ function calculateLegacyBalance(
     }
   }
 }
-
-
-async function updateTransactionIds(db: MySql2Database, removedTransactionId: number): Promise<void[]> {
-  const updates: Promise<any>[] = []
-  // update transaction ids in transactions table
-  updates.push(
-    db.update(transactionsTable)
-      .set({
-        id: sql`${transactionsTable.id} - 1`
-      })
-      .where(gt(transactionsTable.id, removedTransactionId))
-      .orderBy(asc(transactionsTable.id))
-  )
-
-  // update previous transaction ids in transactions table
-  updates.push(
-    db.update(transactionsTable)
-      .set({
-        previous: sql`${transactionsTable.previous} - 1`
-      })
-      .where(gt(transactionsTable.previous, removedTransactionId))
-      .orderBy(asc(transactionsTable.previous))
-  )
-
-  // update transaction ids in contributions table
-  updates.push(
-    db.update(contributionsTable)
-    .set({
-      transactionId: sql`${contributionsTable.transactionId} - 1`
-    })
-    .where(gt(contributionsTable.transactionId, removedTransactionId))
-    .orderBy(asc(contributionsTable.transactionId))
-  )
-
-  // update transaction ids in events table
-  updates.push(
-    db.update(eventsTable)
-    .set({
-      involvedTransactionId: sql`${eventsTable.involvedTransactionId} - 1`
-    })
-    .where(and(gt(eventsTable.involvedTransactionId, removedTransactionId), isNotNull(eventsTable.involvedTransactionId)))
-    .orderBy(asc(eventsTable.involvedTransactionId))
-  )
-
-  // update transaction ids in dlt transactions table
-  updates.push(
-    db.update(dltTransactionsTable)
-    .set({
-      transactionId: sql`${dltTransactionsTable.transactionId} - 1`
-    })
-    .where(and(gt(dltTransactionsTable.transactionId, removedTransactionId), isNotNull(dltTransactionsTable.transactionId)))
-    .orderBy(asc(dltTransactionsTable.transactionId))
-  )
-  
-  return Promise.all(updates)
-}
-
 
 async function updateUserBalance(
   db: MySql2Database,
@@ -215,8 +158,7 @@ export async function removeCrossGroupTransactions(db: MySql2Database): Promise<
     // console.log(`Process Transaction: ${workTxId} `)
     await db.delete(transactionsTable).where(eq(transactionsTable.id, workTxId))
     await updateUserBalance(db, transactions[0].transaction, transactions[0].previousTx)    
-    // await updateTransactionIds(db, workTxId)
-    console.log(`Processed: ${workTxId}`)
+    console.log(`Deleted and updated: ${workTxId}`)
   } while(transactions.length > 0)
   return Promise.resolve()
 }
