@@ -50,7 +50,7 @@ describe('KeyPairCalculation', () => {
     )
     const keyPair = await ResolveKeyPair(identifier)
     expect(keyPair.getPublicKey()?.convertToHex()).toBe(
-      '7bcb0d0ad26d3f7ba597716c38a570220cece49b959e57927ee0c39a5a9c3adf',
+      '571ea784d90af7072b84ed6ff7246b54f101b39006dec5dd8532a6f0e2c6ba42',
     )
   })
   it('user key pair', async () => {
@@ -65,7 +65,7 @@ describe('KeyPairCalculation', () => {
     expect(identifier.isUserKeyPair()).toBe(true)
     const keyPair = await ResolveKeyPair(identifier)
     expect(keyPair.getPublicKey()?.convertToHex()).toBe(
-      'd61ae86c262fc0b5d763a8f41a03098fae73a7649a62aac844378a0eb0055921',
+      '7cfaf45b6f87ca37ea7a566905497d6a8dde556ba773ed730c103158503f3c11',
     )
   })
 
@@ -81,7 +81,7 @@ describe('KeyPairCalculation', () => {
     expect(identifier.isUserKeyPair()).toBe(false)
     const keyPair = await ResolveKeyPair(identifier)
     expect(keyPair.getPublicKey()?.convertToHex()).toBe(
-      '6cffb0ee0b20dae828e46f2e003f78ac57b85e7268e587703932f06e1b2daee4',
+      '1f4efb7fb7b00f8ba7031b6360732c404f1e357b0e786c1079eec72ca8b99e3f',
     )
   })
 })

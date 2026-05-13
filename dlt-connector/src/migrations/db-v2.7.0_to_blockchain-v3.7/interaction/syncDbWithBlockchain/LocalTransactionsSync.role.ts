@@ -1,3 +1,4 @@
+import Decimal from 'decimal.js-light'
 import { and, asc, eq, gt, isNotNull, isNull, or } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/mysql-core'
 import {
@@ -5,6 +6,7 @@ import {
   AuthenticatedEncryption,
   EncryptedMemo,
   GradidoTransactionBuilder,
+  HieroTransactionId,
   KeyPairEd25519,
   LedgerAnchor,
   MemoryBlockPtr,
@@ -14,8 +16,9 @@ import * as v from 'valibot'
 import { Uuidv4 } from '../../../../schemas/typeGuard.schema'
 import { addToBlockchain } from '../../blockchain'
 import { Context } from '../../Context'
+import { DecayCalculationType } from '../../data/DecayCalculationType'
 import { TransactionTypeId } from '../../data/TransactionTypeId'
-import { transactionsTable, usersTable } from '../../drizzle.schema'
+import { dltTransactionsTable, transactionsTable, usersTable } from '../../drizzle.schema'
 import {
   BlockchainError,
   DatabaseError,
@@ -29,7 +32,7 @@ import { AbstractSyncRole, IndexType } from './AbstractSync.role'
 export class LocalTransactionsSyncRole extends AbstractSyncRole<TransactionDb> {
   constructor(context: Context) {
     super(context)
-    this.accountBalances.reserve(2)
+    this.accountBalances.reserve(2n)
   }
 
   getDate(): Date {
@@ -56,11 +59,12 @@ export class LocalTransactionsSyncRole extends AbstractSyncRole<TransactionDb> {
         transaction: transactionsTable,
         user: usersTable,
         linkedUser: linkedUsers,
+        dltTransaction: dltTransactionsTable,
       })
       .from(transactionsTable)
       .where(
         and(
-          eq(transactionsTable.typeId, TransactionTypeId.RECEIVE),
+          eq(transactionsTable.typeId, TransactionTypeId.SEND),
           isNull(transactionsTable.transactionLinkId),
           isNotNull(transactionsTable.linkedUserId),
           eq(usersTable.foreign, 0),
@@ -76,6 +80,7 @@ export class LocalTransactionsSyncRole extends AbstractSyncRole<TransactionDb> {
       )
       .innerJoin(usersTable, eq(transactionsTable.userId, usersTable.id))
       .innerJoin(linkedUsers, eq(transactionsTable.linkedUserId, linkedUsers.id))
+      .leftJoin(dltTransactionsTable, eq(transactionsTable.id, dltTransactionsTable.transactionId))
       .orderBy(asc(transactionsTable.balanceDate), asc(transactionsTable.id))
       .limit(count)
 
@@ -84,6 +89,13 @@ export class LocalTransactionsSyncRole extends AbstractSyncRole<TransactionDb> {
         ...row.transaction,
         user: row.user,
         linkedUser: row.linkedUser,
+        messageId: row.dltTransaction?.messageId,
+      }
+      if (item.amount) {
+        item.amount = -item.amount
+      }
+      if (item.balanceFull && new Decimal(item.balanceFull).isNegative()) {
+        item.balanceFull = '0'
       }
       try {
         return v.parse(transactionDbSchema, item)
@@ -136,7 +148,7 @@ export class LocalTransactionsSyncRole extends AbstractSyncRole<TransactionDb> {
     )
 
     try {
-      senderLastBalance.updateLegacyDecay(item.amount.negated(), item.balanceDate)
+      senderLastBalance.updateLegacyDecay(item.amount.negated(), item.balanceDate, item.balanceFull)
     } catch (e) {
       if (e instanceof NegativeBalanceError) {
         this.logLastBalanceChangingTransactions(senderPublicKey, communityContext.blockchain)
@@ -159,10 +171,9 @@ export class LocalTransactionsSyncRole extends AbstractSyncRole<TransactionDb> {
       )
     }
 
-    // I use the received transaction so user and linked user are swapped and user is recipient and linkedUser ist sender
-    const senderKeyPair = this.getAccountKeyPair(communityContext, item.linkedUser.gradidoId)
+    const senderKeyPair = this.getAccountKeyPair(communityContext, item.user.gradidoId)
     const senderPublicKey = senderKeyPair.getPublicKey()
-    const recipientKeyPair = this.getAccountKeyPair(communityContext, item.user.gradidoId)
+    const recipientKeyPair = this.getAccountKeyPair(communityContext, item.linkedUser.gradidoId)
     const recipientPublicKey = recipientKeyPair.getPublicKey()
 
     if (!senderKeyPair || !senderPublicKey || !recipientKeyPair || !recipientPublicKey) {
@@ -170,11 +181,19 @@ export class LocalTransactionsSyncRole extends AbstractSyncRole<TransactionDb> {
     }
 
     try {
+      let ledgerAnchor: LedgerAnchor | undefined
+      if (item.messageId) {
+        ledgerAnchor = new LedgerAnchor(new HieroTransactionId(item.messageId))
+      } else {
+        ledgerAnchor = new LedgerAnchor(item.id, LedgerAnchor.Type_LEGACY_GRADIDO_DB_TRANSACTION_ID)
+      }
       addToBlockchain(
         this.buildTransaction(communityContext, item, senderKeyPair, recipientKeyPair).build(),
         blockchain,
-        new LedgerAnchor(item.id, LedgerAnchor.Type_LEGACY_GRADIDO_DB_TRANSACTION_ID),
-        this.calculateBalances(item, communityContext, senderPublicKey, recipientPublicKey),
+        ledgerAnchor,
+        item.decayCalculationType === DecayCalculationType.DECIMAL_JS_FIXED_FACTOR
+          ? this.calculateBalances(item, communityContext, senderPublicKey, recipientPublicKey)
+          : undefined,
       )
     } catch (e) {
       if (e instanceof NotEnoughGradidoBalanceError) {

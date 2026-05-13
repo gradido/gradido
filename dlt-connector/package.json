@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "cross-env": "^7.0.3",
-    "gradido-blockchain-js": "git+https://github.com/gradido/gradido-blockchain-js#785fd766289726d41ae01f1e80a274aed871a7fb"
+    "gradido-blockchain-js": "git+https://github.com/gradido/gradido-blockchain-js#222991bf1ea25ca14222911181f66914c6dc2197"
   },
   "devDependencies": {
     "@biomejs/biome": "2.0.0",

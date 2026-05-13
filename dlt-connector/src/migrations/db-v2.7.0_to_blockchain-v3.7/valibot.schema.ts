@@ -1,14 +1,16 @@
-import Decimal from 'decimal.js-light'
-import { GradidoUnit, InMemoryBlockchain, KeyPairEd25519 } from 'gradido-blockchain-js'
+import { InMemoryBlockchain, KeyPairEd25519 } from 'gradido-blockchain-js'
 import * as v from 'valibot'
 import { booleanSchema, dateSchema } from '../../schemas/typeConverter.schema'
 import {
+  amountSchema,
   gradidoAmountSchema,
+  hieroTransactionIdStringSchema,
   identifierSeedSchema,
   memoSchema,
   uuidv4Schema,
 } from '../../schemas/typeGuard.schema'
 import { Balance } from './data/Balance'
+import { DecayCalculationType } from './data/DecayCalculationType'
 import { TransactionTypeId } from './data/TransactionTypeId'
 
 const positiveNumberSchema = v.pipe(v.number(), v.minValue(1))
@@ -18,6 +20,7 @@ export const userDbSchema = v.object({
   gradidoId: uuidv4Schema,
   communityUuid: uuidv4Schema,
   createdAt: dateSchema,
+  messageId: v.nullish(hieroTransactionIdStringSchema),
 })
 /*
 declare const validLegacyAmount: unique symbol
@@ -49,14 +52,17 @@ export const transactionBaseSchema = v.object({
   amount: gradidoAmountSchema,
   memo: memoSchema,
   user: userDbSchema,
+  messageId: v.nullish(hieroTransactionIdStringSchema),
 })
 
 export const transactionDbSchema = v.pipe(
   v.object({
     ...transactionBaseSchema.entries,
     typeId: v.enum(TransactionTypeId),
+    balanceFull: amountSchema,
     balanceDate: dateSchema,
     linkedUser: userDbSchema,
+    decayCalculationType: v.enum(DecayCalculationType),
   }),
   v.custom((value: any) => {
     if (
@@ -138,6 +144,8 @@ export const deletedTransactionLinKDbSchema = v.object({
   user: userDbSchema,
   code: identifierSeedSchema,
   deletedAt: dateSchema,
+  createdAt: dateSchema,
+  messageId: v.nullish(hieroTransactionIdStringSchema),
 })
 
 export const communityDbSchema = v.object({

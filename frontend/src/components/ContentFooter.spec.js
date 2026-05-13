@@ -61,7 +61,7 @@ describe('ContentFooter', () => {
 
       it('links to latest release on GitHub', () => {
         expect(wrapper.find('div.copyright').findAll('a').at(1).attributes('href')).toBe(
-          'https://github.com/gradido/gradido/releases/latest',
+          `https://github.com/gradido/gradido/commit/${CONFIG.BUILD_COMMIT}`,
         )
       })
 

@@ -1,7 +1,7 @@
 import { heapStats } from 'bun:jsc'
 import dotenv from 'dotenv'
 import { drizzle, MySql2Database } from 'drizzle-orm/mysql2'
-import { Filter, Profiler, SearchDirection_ASC } from 'gradido-blockchain-js'
+import { Filter, MonotonicTimer, SearchDirection_ASC } from 'gradido-blockchain-js'
 import { getLogger, Logger } from 'log4js'
 import mysql from 'mysql2/promise'
 import { loadConfig } from '../../bootstrap/init'
@@ -9,6 +9,7 @@ import { KeyPairCacheManager } from '../../cache/KeyPairCacheManager'
 import { CONFIG } from '../../config'
 import { LOG4JS_BASE_CATEGORY } from '../../config/const'
 import { Uuidv4 } from '../../schemas/typeGuard.schema'
+import { loadNativeDecayCalculationStartDate } from './database'
 import { bytesToMbyte } from './utils'
 import { CommunityContext } from './valibot.schema'
 
@@ -19,14 +20,21 @@ export class Context {
   public db: MySql2Database
   public communities: Map<string, CommunityContext>
   public cache: KeyPairCacheManager
-  private timeUsed: Profiler
+  public nativeDecayCalculationStartDate: Date
+  private timeUsed: MonotonicTimer
 
-  constructor(logger: Logger, db: MySql2Database, cache: KeyPairCacheManager) {
+  constructor(
+    logger: Logger,
+    db: MySql2Database,
+    cache: KeyPairCacheManager,
+    nativeDecayCalculationStartDate: Date,
+  ) {
     this.logger = logger
     this.db = db
     this.cache = cache
     this.communities = new Map<string, CommunityContext>()
-    this.timeUsed = new Profiler()
+    this.nativeDecayCalculationStartDate = nativeDecayCalculationStartDate
+    this.timeUsed = new MonotonicTimer()
   }
 
   static async create(): Promise<Context> {
@@ -41,7 +49,13 @@ export class Context {
     })
     const db = drizzle({ client: connection })
     const logger = getLogger(`${LOG4JS_BASE_CATEGORY}.migrations.db-v2.7.0_to_blockchain-v3.5`)
-    return new Context(logger, db, KeyPairCacheManager.getInstance())
+    const nativeDecayCalculationStartDate = await loadNativeDecayCalculationStartDate(db)
+    return new Context(
+      logger,
+      db,
+      KeyPairCacheManager.getInstance(),
+      nativeDecayCalculationStartDate,
+    )
   }
 
   getCommunityContextByUuid(communityUuid: Uuidv4): CommunityContext {
@@ -74,5 +88,10 @@ export class Context {
     }
   }
 
-  // TODO: move into utils
+  /**
+   * @return true if at this date, node js backend already used the new decay algorithm
+   */
+  isDecayCalculationTypeChanged(date: Date): boolean {
+    return date >= this.nativeDecayCalculationStartDate
+  }
 }

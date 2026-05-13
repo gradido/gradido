@@ -6,6 +6,7 @@ import {
   EncryptedMemo,
   Filter,
   GradidoTransactionBuilder,
+  HieroTransactionId,
   KeyPairEd25519,
   LedgerAnchor,
   MemoryBlockPtr,
@@ -18,7 +19,7 @@ import { Uuidv4 } from '../../../../schemas/typeGuard.schema'
 import { addToBlockchain } from '../../blockchain'
 import { Context } from '../../Context'
 import { ContributionStatus } from '../../data/ContributionStatus'
-import { contributionsTable, usersTable } from '../../drizzle.schema'
+import { contributionsTable, dltTransactionsTable, usersTable } from '../../drizzle.schema'
 import { BlockchainError, DatabaseError } from '../../errors'
 import { toMysqlDateTime } from '../../utils'
 import {
@@ -31,7 +32,7 @@ import { AbstractSyncRole, IndexType } from './AbstractSync.role'
 export class CreationsSyncRole extends AbstractSyncRole<CreationTransactionDb> {
   constructor(context: Context) {
     super(context)
-    this.accountBalances.reserve(3)
+    this.accountBalances.reserve(3n)
   }
 
   getDate(): Date {
@@ -57,6 +58,7 @@ export class CreationsSyncRole extends AbstractSyncRole<CreationTransactionDb> {
         contribution: contributionsTable,
         user: usersTable,
         confirmedByUser: confirmedByUsers,
+        dltTransaction: dltTransactionsTable,
       })
       .from(contributionsTable)
       .where(
@@ -74,6 +76,10 @@ export class CreationsSyncRole extends AbstractSyncRole<CreationTransactionDb> {
       )
       .innerJoin(usersTable, eq(contributionsTable.userId, usersTable.id))
       .innerJoin(confirmedByUsers, eq(contributionsTable.confirmedBy, confirmedByUsers.id))
+      .leftJoin(
+        dltTransactionsTable,
+        eq(contributionsTable.transactionId, dltTransactionsTable.transactionId),
+      )
       .orderBy(asc(contributionsTable.confirmedAt), asc(contributionsTable.transactionId))
       .limit(count)
 
@@ -82,6 +88,7 @@ export class CreationsSyncRole extends AbstractSyncRole<CreationTransactionDb> {
         ...row.contribution,
         user: row.user,
         confirmedByUser: row.confirmedByUser,
+        messageId: row.dltTransaction?.messageId,
       }
       try {
         return v.parse(creationTransactionDbSchema, item)
@@ -158,11 +165,22 @@ export class CreationsSyncRole extends AbstractSyncRole<CreationTransactionDb> {
     }
 
     try {
+      let ledgerAnchor: LedgerAnchor | undefined
+      if (item.messageId) {
+        ledgerAnchor = new LedgerAnchor(new HieroTransactionId(item.messageId))
+      } else {
+        ledgerAnchor = new LedgerAnchor(
+          item.id,
+          LedgerAnchor.Type_LEGACY_GRADIDO_DB_CONTRIBUTION_ID,
+        )
+      }
       addToBlockchain(
         this.buildTransaction(item, communityContext, recipientKeyPair, signerKeyPair).build(),
         blockchain,
-        new LedgerAnchor(item.id, LedgerAnchor.Type_LEGACY_GRADIDO_DB_CONTRIBUTION_ID),
-        this.calculateAccountBalances(item, communityContext, recipientPublicKey),
+        ledgerAnchor,
+        !this.context.isDecayCalculationTypeChanged(item.confirmedAt)
+          ? this.calculateAccountBalances(item, communityContext, recipientPublicKey)
+          : undefined,
       )
     } catch (e) {
       const f = new Filter()

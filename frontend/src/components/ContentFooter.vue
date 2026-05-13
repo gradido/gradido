@@ -8,15 +8,8 @@
             {{ $t('footer.copyright.link') }}
           </a>
           {{ $t('|') }}
-          <a href="https://github.com/gradido/gradido/releases/latest" target="_blank">
+          <a :href="'https://github.com/gradido/gradido/commit/' + hash" target="_blank">
             {{ $t('footer.app_version', { version }) }}
-          </a>
-          <a
-            v-if="hash"
-            :href="'https://github.com/gradido/gradido/commit/' + hash"
-            target="_blank"
-          >
-            {{ $t('footer.short_hash', { shortHash }) }}
           </a>
         </div>
       </BCol>

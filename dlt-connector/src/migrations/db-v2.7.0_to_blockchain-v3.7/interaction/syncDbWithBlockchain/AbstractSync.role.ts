@@ -5,7 +5,7 @@ import {
   InMemoryBlockchain,
   KeyPairEd25519,
   MemoryBlockPtr,
-  Profiler,
+  MonotonicTimer,
   SearchDirection_DESC,
 } from 'gradido-blockchain-js'
 import { getLogger, Logger } from 'log4js'
@@ -21,7 +21,7 @@ export type IndexType = {
   id: number
 }
 export let nanosBalanceForUser = 0
-const lastBalanceOfUserTimeUsed = new Profiler()
+const lastBalanceOfUserTimeUsed = new MonotonicTimer()
 
 export abstract class AbstractSyncRole<ItemType> {
   private items: ItemType[] = []
@@ -97,8 +97,8 @@ export abstract class AbstractSyncRole<ItemType> {
     f.searchDirection = SearchDirection_DESC
     f.pagination.size = transactionCount
     const lastTransactions = blockchain.findAll(f)
-    for (let i = lastTransactions.size() - 1; i >= 0; i--) {
-      const tx = lastTransactions.get(i)
+    for (let i = lastTransactions.size() - 1n; i >= 0n; i--) {
+      const tx = lastTransactions.get(Number(i))
       this.context.logger.debug(`${i}: ${tx?.getConfirmedTransaction()!.toJson(true)}`)
     }
   }
@@ -114,9 +114,9 @@ export abstract class AbstractSyncRole<ItemType> {
   // return count of new loaded items
   async ensureFilled(batchSize: number): Promise<number> {
     if (this.items.length === 0) {
-      let timeUsed: Profiler | undefined
+      let timeUsed: MonotonicTimer | undefined
       if (this.logger.isDebugEnabled()) {
-        timeUsed = new Profiler()
+        timeUsed = new MonotonicTimer()
       }
       this.items = await this.loadFromDb(this.lastIndex, batchSize)
       if (this.length > 0) {

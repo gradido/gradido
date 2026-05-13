@@ -7,7 +7,7 @@ import { IsNull, MoreThan } from 'typeorm'
 
 import { User } from '@/graphql/model/User'
 
-export async function transactionLinkList(
+export async function transactionLinkListDecayed(
   { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
   filters: TransactionLinkFilters | null,
   user: DbUser,
@@ -33,6 +33,14 @@ export async function transactionLinkList(
 
   return {
     count,
-    links: transactionLinks.map((tl) => new TransactionLink(tl, new User(user))),
+    links: transactionLinks.map((tl) => {
+      const now = new Date()
+      if (withExpired && now >= tl.validUntil) {
+        tl.holdAvailableAmount = tl.amount
+      } else {
+        tl.holdAvailableAmount = tl.holdAvailableAmount.decayed(tl.createdAt, now)
+      }
+      return new TransactionLink(tl, new User(user))
+    }),
   }
 }
