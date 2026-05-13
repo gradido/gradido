@@ -37,6 +37,8 @@ export const transactionsTable = mysqlTable(
       .default(sql`current_timestamp(3)`)
       .notNull(),
     decayCalculationType: int('decay_calculation_type').default(0),
+    userId: int('user_id').default(sql`NULL`),
+    userCommunityUuid: char('user_community_uuid', { length: 36 }).default(sql`NULL`),
     linkedUserCommunityUuid: char('linked_user_community_uuid', { length: 36 }).default(sql`NULL`),
   }
 )
