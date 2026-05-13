@@ -79,12 +79,13 @@
                   >
                     <div v-if="!userIdentifier">
                       <ValidatedInput
+                        v-if="validationSchema.fields.identifier"
                         id="identifier"
                         :model-value="form.identifier"
                         name="identifier"
                         :label="$t('form.recipient')"
                         :placeholder="$t('form.identifier')"
-                        :rules="validationSchema.fields.identifier || {}"
+                        :rules="validationSchema.fields.identifier"
                         :disabled="isBalanceEmpty || isCommunitiesEmpty"
                         :disable-smart-valid-state="disableSmartValidState"
                         @update:model-value="updateField"
@@ -105,12 +106,13 @@
                     lg="6"
                   >
                     <ValidatedInput
+                      v-if="validationSchema.fields.amount"
                       id="amount"
                       :model-value="form.amount"
                       name="amount"
                       :label="$t('form.amount')"
                       :placeholder="'0.01'"
-                      :rules="validationSchema.fields.amount || {}"
+                      :rules="validationSchema.fields.amount"
                       :disabled="isBalanceEmpty"
                       :disable-smart-valid-state="disableSmartValidState"
                       @update:model-value="updateField"
@@ -118,12 +120,13 @@
                   </BCol>
                   <BCol v-if="radioSelected === SEND_TYPES.email" cols="12">
                     <ValidatedInput
+                      v-if="validationSchema.fields.subject"
                       id="subject"
                       :model-value="form.subject"
                       name="subject"
                       :label="$t('form.subject')"
                       :placeholder="$t('form.subject')"
-                      :rules="validationSchema.fields.subject || {}"
+                      :rules="validationSchema.fields.subject"
                       textarea="false"
                       :disable-smart-valid-state="disableSmartValidState"
                       @update:model-value="updateField"
@@ -136,12 +139,13 @@
             <BRow>
               <BCol>
                 <ValidatedInput
+                  v-if="validationSchema.fields.memo"
                   id="memo"
                   :model-value="form.memo"
                   name="memo"
                   :label="$t('form.message')"
                   :placeholder="$t('form.message')"
-                  :rules="validationSchema.fields.memo || {}"
+                  :rules="validationSchema.fields.memo"
                   textarea="true"
                   :disabled="isBalanceEmpty"
                   :disable-smart-valid-state="disableSmartValidState"
