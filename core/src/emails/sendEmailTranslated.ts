@@ -27,7 +27,9 @@ export const sendEmailTranslated = async ({
   locals: Record<string, unknown>
 }): Promise<Record<string, unknown> | boolean | null | Error> => {
   // TODO: test the calling order of 'i18n.setLocale' for example: language of logging 'en', language of email receiver 'es', reset language of current user 'de'
-
+  logger.debug(`sendEmailTranslated(receiver=${JSON.stringify(receiver, null, 2)})`)
+  logger.debug(`sendEmailTranslated(template=${JSON.stringify(template, null, 2)})`)
+  logger.debug(`sendEmailTranslated(locals=${JSON.stringify(locals, null, 2)})`)
   if (!CONFIG.EMAIL) {
     logger.info(`Emails are disabled via config...`)
     return null
