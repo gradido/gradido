@@ -1,5 +1,6 @@
 export * from './command/CommandExecutor'
 export * from './command/CommandFactory'
+export * from './command/commands/SendEmailCommand'
 export * from './command/initCommands'
 export * from './config/index'
 export * from './emails'
