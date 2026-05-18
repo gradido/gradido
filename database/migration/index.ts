@@ -46,6 +46,9 @@ const run = async (command: string) => {
     user: CONFIG.DB_USER,
     password: CONFIG.DB_PASSWORD,
     database: CONFIG.DB_DATABASE,
+    supportBigNumbers: true,
+    bigNumberStrings: true,
+    multipleStatements: true
   })
   const migration = new Migration({
     conn: pool,
