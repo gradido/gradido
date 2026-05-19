@@ -32,7 +32,7 @@ import { AbstractSyncRole, IndexType } from './AbstractSync.role'
 
 export class RemoteTransactionsSyncRole extends AbstractSyncRole<TransactionDb> {
   constructor(context: Context) {
-    super(context)
+    super(context, LedgerAnchor.Type_LEGACY_GRADIDO_DB_TRANSACTION_ID)
     this.accountBalances.reserve(1n)
   }
 
@@ -190,10 +190,7 @@ export class RemoteTransactionsSyncRole extends AbstractSyncRole<TransactionDb> 
 
   pushToBlockchain(item: TransactionDb): void {
     const { senderUser, recipientUser } = this.getUser(item)
-    const ledgerAnchor = new LedgerAnchor(
-      item.id,
-      LedgerAnchor.Type_LEGACY_GRADIDO_DB_TRANSACTION_ID,
-    )
+    const ledgerAnchor = this.getLedgerAnchor(item)
 
     if (senderUser.communityUuid === recipientUser.communityUuid) {
       throw new Error(
