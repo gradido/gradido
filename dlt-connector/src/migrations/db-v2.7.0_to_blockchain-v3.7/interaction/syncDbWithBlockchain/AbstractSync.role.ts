@@ -2,11 +2,8 @@ import {
   AccountBalances,
   Filter,
   GradidoTransactionBuilder,
-  HieroTransactionId,
   InMemoryBlockchain,
   KeyPairEd25519,
-  LedgerAnchor,
-  LedgerAnchor_Type,
   MemoryBlockPtr,
   MonotonicTimer,
   SearchDirection_DESC,
@@ -32,15 +29,13 @@ export abstract class AbstractSyncRole<ItemType> {
   protected logger: Logger
   protected transactionBuilder: GradidoTransactionBuilder
   protected accountBalances: AccountBalances
-  protected legacyAnchorType: LedgerAnchor_Type
 
-  constructor(protected readonly context: Context, legacyAnchorType: LedgerAnchor_Type) {
+  constructor(protected readonly context: Context) {
     this.logger = getLogger(
       `${LOG4JS_BASE_CATEGORY}.migrations.db-v2.7.0_to_blockchain-v3.5.interaction.syncDbWithBlockchain`,
     )
     this.transactionBuilder = new GradidoTransactionBuilder()
     this.accountBalances = new AccountBalances()
-    this.legacyAnchorType = legacyAnchorType
   }
 
   getAccountKeyPair(communityContext: CommunityContext, gradidoId: Uuidv4): KeyPairEd25519 {
@@ -87,17 +82,6 @@ export abstract class AbstractSyncRole<ItemType> {
     )
     nanosBalanceForUser += lastBalanceOfUserTimeUsed.nanos()
     return result
-  }
-
-  getLedgerAnchor(item: ItemType): LedgerAnchor {
-    if (item.messageId && !this.context.useOnlyLegacyLedgerAnchorIds) {
-      return new LedgerAnchor(new HieroTransactionId(item.messageId))
-    } else {
-      return new LedgerAnchor(
-        item.id,
-        this.legacyAnchorType,
-      )
-    }
   }
 
   logLastBalanceChangingTransactions(

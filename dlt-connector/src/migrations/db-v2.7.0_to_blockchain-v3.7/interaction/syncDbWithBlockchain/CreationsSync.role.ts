@@ -30,7 +30,7 @@ import { AbstractSyncRole, IndexType } from './AbstractSync.role'
 
 export class CreationsSyncRole extends AbstractSyncRole<CreationTransactionDb> {
   constructor(context: Context) {
-    super(context, LedgerAnchor.Type_LEGACY_GRADIDO_DB_CONTRIBUTION_ID)
+    super(context)
     this.accountBalances.reserve(3n)
   }
 
@@ -164,10 +164,19 @@ export class CreationsSyncRole extends AbstractSyncRole<CreationTransactionDb> {
     }
 
     try {
+      let ledgerAnchor: LedgerAnchor | undefined
+      if (item.messageId) {
+        ledgerAnchor = new LedgerAnchor(new HieroTransactionId(item.messageId))
+      } else {
+        ledgerAnchor = new LedgerAnchor(
+          item.id,
+          LedgerAnchor.Type_LEGACY_GRADIDO_DB_CONTRIBUTION_ID,
+        )
+      }
       addToBlockchain(
         this.buildTransaction(item, communityContext, recipientKeyPair, signerKeyPair).build(),
         blockchain,
-        this.getLedgerAnchor(item),
+        ledgerAnchor,
         !this.context.isDecayCalculationTypeChanged(item.confirmedAt)
           ? this.calculateAccountBalances(item, communityContext, recipientPublicKey)
           : undefined,

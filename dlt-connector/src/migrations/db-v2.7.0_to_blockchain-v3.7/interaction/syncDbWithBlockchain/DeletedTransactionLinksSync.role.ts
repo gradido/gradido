@@ -30,7 +30,7 @@ import { AbstractSyncRole, IndexType } from './AbstractSync.role'
 
 export class DeletedTransactionLinksSyncRole extends AbstractSyncRole<DeletedTransactionLinkDb> {
   constructor(context: Context) {
-    super(context, LedgerAnchor.Type_LEGACY_GRADIDO_DB_TRANSACTION_LINK_ID)
+    super(context)
     this.accountBalances.reserve(2n)
   }
 
@@ -185,6 +185,15 @@ export class DeletedTransactionLinksSyncRole extends AbstractSyncRole<DeletedTra
     senderLastBalance.updateLegacyDecay(GradidoUnit.zero(), item.deletedAt)
 
     try {
+      let ledgerAnchor: LedgerAnchor
+      if (item.messageId) {
+        ledgerAnchor = new LedgerAnchor(new HieroTransactionId(item.messageId))
+      } else {
+        ledgerAnchor = new LedgerAnchor(
+          item.id,
+          LedgerAnchor.Type_LEGACY_GRADIDO_DB_TRANSACTION_LINK_ID,
+        )
+      }
       addToBlockchain(
         this.buildTransaction(
           communityContext,
@@ -195,7 +204,7 @@ export class DeletedTransactionLinksSyncRole extends AbstractSyncRole<DeletedTra
           linkFundingPublicKey,
         ).build(),
         blockchain,
-        this.getLedgerAnchor(item),
+        ledgerAnchor,
         this.calculateBalances(
           item,
           deferredTransfer,
