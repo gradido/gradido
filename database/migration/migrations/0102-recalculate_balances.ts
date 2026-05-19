@@ -1,4 +1,4 @@
-import { GradidoUnit } from 'shared'
+import { DecayCalculationType, GradidoUnit } from 'shared'
 import { calculateDecay } from 'shared-native'
 
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
@@ -52,7 +52,10 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
       // await queryFn(transactionsToUpdate.join('\n'))
     }
   }
-  //await Promise.all(runningRequests)
+  runningRequests.push(
+    queryFn(`UPDATE transactions set decay_calculation_type = ${DecayCalculationType.NATIVE_C_FIXED_FACTOR_INTEGER}`),
+  )
+  await Promise.all(runningRequests)
   process.stdout.write(`\n`)
   // biome-ignore lint/suspicious/noConsole: no logger present
   console.log(`${countDiffs} updated transactions`)
@@ -63,4 +66,5 @@ export async function downgrade(queryFn: (query: string, values?: any[]) => Prom
     UPDATE transactions
     SET balance_gdd4 = CAST(ROUND(balance_legacy * 10000) AS SIGNED),
         decay_gdd4 = CAST(ROUND(decay_legacy * 10000) AS SIGNED); `)
+  await queryFn(`UPDATE transactions set decay_calculation_type = ${DecayCalculationType.DECIMAL_JS_FIXED_FACTOR}`)
 }
