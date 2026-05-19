@@ -40,7 +40,7 @@ export const transactionsTable = mysqlTable(
 export const communitiesTable = mysqlTable("communities", {
 	id: int().autoincrement().notNull(),
 	foreign: tinyint().default(1).notNull(),
-	communityUuid: char("community_uuid", { length: 36 }).default('NULL'),
+	communityUuid: char("community_uuid", { length: 36 }).default(sql`NULL`),
 },
 (table) => [
 	unique("uuid_key").on(table.communityUuid),
@@ -50,5 +50,5 @@ export const communitiesTable = mysqlTable("communities", {
 export const usersTable = mysqlTable("users", {
 	id: int().autoincrement().notNull(),
 	foreign: tinyint().default(0).notNull(),
-	communityUuid: varchar("community_uuid", { length: 36 }).default('NULL'),
+	communityUuid: varchar("community_uuid", { length: 36 }).default(sql`NULL`),
 })

@@ -6,7 +6,7 @@ Decimal.set({
   rounding: Decimal.ROUND_HALF_UP,
 })
 
-const DECAY_START_TIME = new Date('2021-05-13 17:46:31') // GMT+0
+const DECAY_START_TIME = new Date('2021-05-13T17:46:31.000Z') // GMT+0
 
 export interface Decay {
   balance: Decimal
@@ -23,6 +23,8 @@ export enum TransactionTypeId {
 }
 
 function decayFormula(value: Decimal, seconds: number): Decimal {
+  // Decay factor per second: approximately 0.9999999780350404897
+  // Results in ~50% decay over 1 year
   return value.mul(new Decimal('0.99999997803504048973201202316767079413460520837376').pow(seconds))
 }
 

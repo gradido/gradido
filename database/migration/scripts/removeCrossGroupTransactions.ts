@@ -11,7 +11,7 @@ import { calculateDecayLegacy } from './decayLegacy'
 
 export const transactionSchema = z.object({
   id: z.number().int().positive(),
-  amount: z.bigint(),  
+  amount: z.bigint(),
   amountFull: z.string(),
   decay: z.bigint(),
   decayFull: z.string(),
@@ -30,19 +30,19 @@ function calculateBalance(
 
   if (!lastTransaction) {
     // first transaction
-    if (currentTransaction.amount < 0n) {
-      throw new Error('invalid tx, amount_gdd4 is negative for first tx')
+    if (currentTransaction.amount <= 0n) {
+      throw new Error('invalid tx, amount_gdd4 is negative or zero for first tx')
     }
     return {
       balance: currentTransaction.amount,
       decay: 0n
     }
-  } else {    
+  } else {
     // update balance with decay
     const lastTransactionBalance = GradidoUnit.fromGradidoCent(lastTransaction.balance)
     const decay = lastTransactionBalance.calculateDecay(lastTransaction.balanceDate, currentTransaction.balanceDate)
     const newBalance = decay.balance.add(GradidoUnit.fromGradidoCent(currentTransaction.amount))
-    
+
     return {
       balance: newBalance.gddCent,
       decay: decay.decay.gddCent
@@ -57,18 +57,18 @@ function calculateLegacyBalance(
   if (!lastTransaction) {
     // first transaction
     if (new Decimal(currentTransaction.amountFull).lessThanOrEqualTo(0)) {
-      throw new Error('invalid tx, amount_gdd4 is negative for first tx')
+      throw new Error('invalid tx, amount_gdd4 is negative or zero for first tx')
     }
     return {
       balanceFull: currentTransaction.amountFull,
       decayFull: '0'
     }
-  } else {    
+  } else {
     // update balance with decay
     const lastTransactionBalance = new Decimal(lastTransaction.balanceFull)
     const decay = calculateDecayLegacy(lastTransactionBalance, lastTransaction.balanceDate, currentTransaction.balanceDate)
     const newBalance = decay.balance.add(new Decimal(currentTransaction.amountFull))
-    
+
     return {
       balanceFull: newBalance.toString(),
       decayFull: decay.decay?.toString() || '0'
@@ -78,7 +78,7 @@ function calculateLegacyBalance(
 
 async function updateUserBalance(
   db: MySql2Database,
-  transaction: typeof transactionsTable.$inferSelect, 
+  transaction: typeof transactionsTable.$inferSelect,
   previousTransaction: typeof transactionsTable.$inferSelect | null
 ): Promise<any[]> {
   const userId = transaction.userId
@@ -97,13 +97,13 @@ async function updateUserBalance(
 
   let lastTransaction = previousTransaction
   const updatePromises: Promise<any>[] = []
-  for (const userTransaction of userTransactions) {    
+  for (const userTransaction of userTransactions) {
     const currentTransactionValidated = transactionSchema.parse(userTransaction)
     const lastTransactionValidated = lastTransaction ? transactionSchema.parse(lastTransaction) : null
-    
+
     const { balance, decay } = calculateBalance(currentTransactionValidated, lastTransactionValidated)
     const { balanceFull, decayFull } = calculateLegacyBalance(currentTransactionValidated, lastTransactionValidated)
-   
+
     userTransaction.balance = balance
     userTransaction.balanceFull = balanceFull
     userTransaction.decay = decay
@@ -122,8 +122,8 @@ async function updateUserBalance(
     )
 
     lastTransaction = userTransaction
-    
-    
+
+
   }
   return Promise.all(updatePromises)
 }
@@ -141,7 +141,7 @@ async function removeCrossGroupTransactions(db: MySql2Database, communityUUID: s
       .from(transactionsTable)
       .leftJoin(previousTx, eq(transactionsTable.previous, previousTx.id))
       .where(or(
-        eq(transactionsTable.userCommunityUuid, communityUUID), 
+        eq(transactionsTable.userCommunityUuid, communityUUID),
         eq(transactionsTable.linkedUserCommunityUuid, communityUUID)
       ))
       .orderBy(asc(transactionsTable.balanceDate))
@@ -149,11 +149,11 @@ async function removeCrossGroupTransactions(db: MySql2Database, communityUUID: s
 
     if (!transactions.length) {
       break
-    }    
+    }
     const workTxId = transactions[0].transaction.id
     // console.log(`Process Transaction: ${workTxId} `)
     await db.delete(transactionsTable).where(eq(transactionsTable.id, workTxId))
-    await updateUserBalance(db, transactions[0].transaction, transactions[0].previousTx)    
+    await updateUserBalance(db, transactions[0].transaction, transactions[0].previousTx)
     console.log(`Deleted and updated: ${workTxId}`)
   } while(transactions.length > 0)
   return Promise.resolve()
