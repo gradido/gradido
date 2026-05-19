@@ -10,7 +10,6 @@ import {
   GradidoTransactionBuilder,
   GradidoTransfer,
   GradidoUnit,
-  HieroTransactionId,
   KeyPairEd25519,
   LedgerAnchor,
   MemoryBlockPtr,
@@ -39,7 +38,7 @@ import { AbstractSyncRole, IndexType } from './AbstractSync.role'
 
 export class RedeemTransactionLinksSyncRole extends AbstractSyncRole<RedeemedTransactionLinkDb> {
   constructor(context: Context) {
-    super(context)
+    super(context, LedgerAnchor.Type_LEGACY_GRADIDO_DB_TRANSACTION_LINK_ID)
     this.accountBalances.reserve(3n)
   }
 
@@ -226,15 +225,6 @@ export class RedeemTransactionLinksSyncRole extends AbstractSyncRole<RedeemedTra
     }
 
     try {
-      let ledgerAnchor: LedgerAnchor | undefined
-      if (item.messageId) {
-        ledgerAnchor = new LedgerAnchor(new HieroTransactionId(item.messageId))
-      } else {
-        ledgerAnchor = new LedgerAnchor(
-          item.id,
-          LedgerAnchor.Type_LEGACY_GRADIDO_DB_TRANSACTION_LINK_ID,
-        )
-      }
       addToBlockchain(
         this.buildTransaction(
           communityContext,
@@ -244,7 +234,7 @@ export class RedeemTransactionLinksSyncRole extends AbstractSyncRole<RedeemedTra
           recipientKeyPair,
         ).build(),
         blockchain,
-        ledgerAnchor,
+        this.getLedgerAnchor(item),
         this.context.isDecayCalculationTypeChanged(item.redeemedAt)
           ? undefined
           : this.calculateBalances(
