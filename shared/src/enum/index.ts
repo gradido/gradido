@@ -1,3 +1,4 @@
+export * from './DecayCalculationType'
 export * from './OptInType'
 export * from './PasswordEncryptionType'
 export * from './PendingTransactionState'
