@@ -6,7 +6,6 @@ import {
   AuthenticatedEncryption,
   EncryptedMemo,
   GradidoTransactionBuilder,
-  HieroTransactionId,
   KeyPairEd25519,
   LedgerAnchor,
   MemoryBlockPtr,

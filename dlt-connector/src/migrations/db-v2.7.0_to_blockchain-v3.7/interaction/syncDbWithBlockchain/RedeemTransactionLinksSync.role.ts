@@ -10,7 +10,6 @@ import {
   GradidoTransactionBuilder,
   GradidoTransfer,
   GradidoUnit,
-  HieroTransactionId,
   KeyPairEd25519,
   LedgerAnchor,
   MemoryBlockPtr,
