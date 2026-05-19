@@ -184,9 +184,7 @@ export class LocalTransactionsSyncRole extends AbstractSyncRole<TransactionDb> {
         this.buildTransaction(communityContext, item, senderKeyPair, recipientKeyPair).build(),
         blockchain,
         this.getLedgerAnchor(item),
-        item.decayCalculationType === DecayCalculationType.DECIMAL_JS_FIXED_FACTOR
-          ? this.calculateBalances(item, communityContext, senderPublicKey, recipientPublicKey)
-          : undefined,
+        this.calculateBalances(item, communityContext, senderPublicKey, recipientPublicKey),
       )
     } catch (e) {
       if (e instanceof NotEnoughGradidoBalanceError) {

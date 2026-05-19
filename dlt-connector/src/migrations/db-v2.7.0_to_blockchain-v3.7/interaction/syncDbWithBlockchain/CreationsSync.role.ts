@@ -168,9 +168,7 @@ export class CreationsSyncRole extends AbstractSyncRole<CreationTransactionDb> {
         this.buildTransaction(item, communityContext, recipientKeyPair, signerKeyPair).build(),
         blockchain,
         this.getLedgerAnchor(item),
-        !this.context.isDecayCalculationTypeChanged(item.confirmedAt)
-          ? this.calculateAccountBalances(item, communityContext, recipientPublicKey)
-          : undefined,
+        this.calculateAccountBalances(item, communityContext, recipientPublicKey),
       )
     } catch (e) {
       const f = new Filter()

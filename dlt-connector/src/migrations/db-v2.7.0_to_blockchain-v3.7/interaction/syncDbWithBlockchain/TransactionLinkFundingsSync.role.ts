@@ -168,15 +168,13 @@ export class TransactionLinkFundingsSyncRole extends AbstractSyncRole<Transactio
     )
     let accountBalances: AccountBalances | undefined
     try {
-      if (!this.context.isDecayCalculationTypeChanged(item.createdAt)) {
-        accountBalances = this.calculateBalances(
-          item,
-          blockedAmount,
-          communityContext,
-          senderPublicKey,
-          recipientPublicKey,
-        )
-      }
+      accountBalances = this.calculateBalances(
+        item,
+        blockedAmount,
+        communityContext,
+        senderPublicKey,
+        recipientPublicKey,
+      )
     } catch (e) {
       if (item.deletedAt && e instanceof NegativeBalanceError) {
         const senderLastBalance = this.getLastBalanceForUser(

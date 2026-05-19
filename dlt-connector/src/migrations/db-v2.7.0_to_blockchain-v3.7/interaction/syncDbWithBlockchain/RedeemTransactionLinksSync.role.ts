@@ -235,15 +235,13 @@ export class RedeemTransactionLinksSyncRole extends AbstractSyncRole<RedeemedTra
         ).build(),
         blockchain,
         this.getLedgerAnchor(item),
-        this.context.isDecayCalculationTypeChanged(item.redeemedAt)
-          ? undefined
-          : this.calculateBalances(
-              item,
-              deferredTransfer,
-              communityContext,
-              senderPublicKey,
-              recipientPublicKey,
-            ),
+        this.calculateBalances(
+          item,
+          deferredTransfer,
+          communityContext,
+          senderPublicKey,
+          recipientPublicKey,
+        ),
       )
     } catch (e) {
       throw new BlockchainError(`Error adding ${this.itemTypeName()}`, item, e as Error)
