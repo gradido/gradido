@@ -25,6 +25,14 @@ vi.mock('@/components/GddSend/TransactionResultLink', () => ({
   default: { template: '<div></div>' },
 }))
 
+// Mock i18n
+const t = (key) => key
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({
+    t,
+  }),
+}))
+
 // Mock vue-router
 vi.mock('vue-router', () => ({
   useRouter: vi.fn(() => ({
@@ -79,6 +87,9 @@ describe('Send', () => {
         pending: false,
       },
       global: {
+        mocks: {
+          $t: t, // Add this line to mock $t in the component context
+        },
         stubs: {
           'gdd-send': true,
         },
