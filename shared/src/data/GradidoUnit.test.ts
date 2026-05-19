@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test'
-import { calculateDecay as calculateDecayNative } from 'shared-native'
+import { calculateDecay as calculateDecayNative, getDecayStartTime } from 'shared-native'
 import { Duration } from './Duration'
 import { GradidoUnit } from './GradidoUnit'
 import { TemporalGradidoUnit } from './TemporalGradidoUnit'
@@ -618,6 +618,14 @@ describe('GradidoUnit', () => {
       expect(afterAddingChangeFromLink1Delete.balance.toString(4, true)).toBe('1072.0560')
       expect(afterAddingChangeFromLink1Delete.balance.toString(4)).toBe('1072.056')
       expect(afterAddingChangeFromLink1Delete.balance.gddCent).toBe(endAmount.balance.gddCent)
+    })
+  })
+  describe('decay start time', () => {
+    it('compare with previous definition', () => {
+      const DECAY_START_TIME1 = new Date('2021-05-13 17:46:31') // GMT+ 0
+      const DECAY_START_TIME_ISO8601 = new Date('2021-05-13T17:46:31.000Z') // UTC
+      expect(DECAY_START_TIME1.getTime()).toBe(getDecayStartTime().getTime())
+      expect(DECAY_START_TIME_ISO8601.getTime()).toBe(getDecayStartTime().getTime())
     })
   })
 })
