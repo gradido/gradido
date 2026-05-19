@@ -24,7 +24,7 @@ import { AbstractSyncRole, IndexType } from './AbstractSync.role'
 
 export class UsersSyncRole extends AbstractSyncRole<UserDb> {
   constructor(context: Context) {
-    super(context)
+    super(context, LedgerAnchor.Type_LEGACY_GRADIDO_DB_USER_ID)
     this.accountBalances.reserve(1n)
   }
   getDate(): Date {
@@ -137,9 +137,7 @@ export class UsersSyncRole extends AbstractSyncRole<UserDb> {
         ).build(),
         communityContext.blockchain,
         ledgerAnchor,
-        !this.context.isDecayCalculationTypeChanged(item.createdAt)
-          ? this.calculateAccountBalances(accountPublicKey, communityContext)
-          : undefined,
+        this.calculateAccountBalances(accountPublicKey, communityContext),
       )
     } catch (e) {
       throw new BlockchainError(`Error adding ${this.itemTypeName()}`, item, e as Error)

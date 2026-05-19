@@ -6,7 +6,6 @@ import {
   EncryptedMemo,
   Filter,
   GradidoTransactionBuilder,
-  HieroTransactionId,
   KeyPairEd25519,
   LedgerAnchor,
   MemoryBlockPtr,
@@ -31,7 +30,7 @@ import { AbstractSyncRole, IndexType } from './AbstractSync.role'
 
 export class CreationsSyncRole extends AbstractSyncRole<CreationTransactionDb> {
   constructor(context: Context) {
-    super(context)
+    super(context, LedgerAnchor.Type_LEGACY_GRADIDO_DB_CONTRIBUTION_ID)
     this.accountBalances.reserve(3n)
   }
 
@@ -165,22 +164,11 @@ export class CreationsSyncRole extends AbstractSyncRole<CreationTransactionDb> {
     }
 
     try {
-      let ledgerAnchor: LedgerAnchor | undefined
-      if (item.messageId) {
-        ledgerAnchor = new LedgerAnchor(new HieroTransactionId(item.messageId))
-      } else {
-        ledgerAnchor = new LedgerAnchor(
-          item.id,
-          LedgerAnchor.Type_LEGACY_GRADIDO_DB_CONTRIBUTION_ID,
-        )
-      }
       addToBlockchain(
         this.buildTransaction(item, communityContext, recipientKeyPair, signerKeyPair).build(),
         blockchain,
-        ledgerAnchor,
-        !this.context.isDecayCalculationTypeChanged(item.confirmedAt)
-          ? this.calculateAccountBalances(item, communityContext, recipientPublicKey)
-          : undefined,
+        this.getLedgerAnchor(item),
+        this.calculateAccountBalances(item, communityContext, recipientPublicKey),
       )
     } catch (e) {
       const f = new Filter()
