@@ -53,7 +53,9 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
     }
   }
   runningRequests.push(
-    queryFn(`UPDATE transactions set decay_calculation_type = ${DecayCalculationType.NATIVE_C_FIXED_FACTOR_INTEGER}`),
+    queryFn(
+      `UPDATE transactions set decay_calculation_type = ${DecayCalculationType.NATIVE_C_FIXED_FACTOR_INTEGER}`,
+    ),
   )
   await Promise.all(runningRequests)
   process.stdout.write(`\n`)
@@ -66,5 +68,7 @@ export async function downgrade(queryFn: (query: string, values?: any[]) => Prom
     UPDATE transactions
     SET balance_gdd4 = CAST(ROUND(balance_legacy * 10000) AS SIGNED),
         decay_gdd4 = CAST(ROUND(decay_legacy * 10000) AS SIGNED); `)
-  await queryFn(`UPDATE transactions set decay_calculation_type = ${DecayCalculationType.DECIMAL_JS_FIXED_FACTOR}`)
+  await queryFn(
+    `UPDATE transactions set decay_calculation_type = ${DecayCalculationType.DECIMAL_JS_FIXED_FACTOR}`,
+  )
 }
