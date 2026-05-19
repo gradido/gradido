@@ -14,7 +14,7 @@ import {
 import { getLogger, Logger } from 'log4js'
 import { LOG4JS_BASE_CATEGORY } from '../../../../config/const'
 import { deriveFromKeyPairAndIndex, deriveFromKeyPairAndUuid } from '../../../../data/deriveKeyPair'
-import { Uuidv4 } from '../../../../schemas/typeGuard.schema'
+import { Uuidv4, HieroTransactionIdString } from '../../../../schemas/typeGuard.schema'
 import { Context } from '../../Context'
 import { Balance } from '../../data/Balance'
 import { CommunityContext } from '../../valibot.schema'
@@ -23,10 +23,14 @@ export type IndexType = {
   date: Date
   id: number
 }
+export interface SyncItem {
+  id: number
+  messageId?: HieroTransactionIdString | null | undefined
+}
 export let nanosBalanceForUser = 0
 const lastBalanceOfUserTimeUsed = new MonotonicTimer()
 
-export abstract class AbstractSyncRole<ItemType> {
+export abstract class AbstractSyncRole<ItemType extends SyncItem> {
   private items: ItemType[] = []
   protected lastIndex: IndexType = { date: new Date(0), id: 0 }
   protected logger: Logger
@@ -34,7 +38,10 @@ export abstract class AbstractSyncRole<ItemType> {
   protected accountBalances: AccountBalances
   protected legacyAnchorType: LedgerAnchor_Type
 
-  constructor(protected readonly context: Context, legacyAnchorType: LedgerAnchor_Type) {
+  constructor(
+    protected readonly context: Context,
+    legacyAnchorType: LedgerAnchor_Type,
+  ) {
     this.logger = getLogger(
       `${LOG4JS_BASE_CATEGORY}.migrations.db-v2.7.0_to_blockchain-v3.5.interaction.syncDbWithBlockchain`,
     )
@@ -93,10 +100,7 @@ export abstract class AbstractSyncRole<ItemType> {
     if (item.messageId && !this.context.useOnlyLegacyLedgerAnchorIds) {
       return new LedgerAnchor(new HieroTransactionId(item.messageId))
     } else {
-      return new LedgerAnchor(
-        item.id,
-        this.legacyAnchorType,
-      )
+      return new LedgerAnchor(item.id, this.legacyAnchorType)
     }
   }
 
