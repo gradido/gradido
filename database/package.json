@@ -29,6 +29,7 @@
     "up:backend_test": "cross-env TZ=UTC DB_DATABASE=gradido_test_backend tsx migration/index.ts up",
     "up:federation_test": "cross-env TZ=UTC DB_DATABASE=gradido_test_federation tsx migration/index.ts up",
     "up:dht_test": "cross-env TZ=UTC DB_DATABASE=gradido_test_dht tsx migration/index.ts up",
+    "removeCrossGroupTransactions": "cross-env TZ=UTC bun migration/scripts/removeCrossGroupTransactions.ts",
     "clear": "rm -rf node_modules && rm -rf build && rm -rf .turbo"
   },
   "devDependencies": {
