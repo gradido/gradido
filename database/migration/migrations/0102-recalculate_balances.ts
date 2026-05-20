@@ -11,7 +11,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
     // find all transactions for a user
     const transactions = await queryFn(
       `
-       SELECT id, amount_gdd4, balance_gdd4, decay_gdd4, balance_date
+       SELECT id, amount_gdd4, balance_gdd4, balance_legacy, decay_gdd4, balance_date
        FROM transactions
        WHERE user_id = ?
        ORDER BY balance_date ASC, id ASC
@@ -22,6 +22,10 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
 
     let previous = null
     let balance = 0n
+    let logEachStep = false
+    if (users[u].id === 764) {
+      logEachStep = true
+    }
     const transactionsToUpdate: string[] = []
 
     for (let t = 0; t < transactions.length; t++) {
@@ -34,11 +38,24 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
           GradidoUnit.effectiveDecayDuration(previous.balance_date, transaction.balance_date)
             .seconds,
         )
+        const durationSeconds = GradidoUnit.effectiveDecayDuration(previous.balance_date, transaction.balance_date)
+          .seconds
         decay = decayedBalance - balance
+        if (logEachStep) {
+            console.log(`previous balance: ${balance.toString()}, decay for: ${durationSeconds.toString()} seconds = ${decayedBalance.toString()}, legacy balance: ${transaction.balance_legacy}`)
+        }
         balance = decayedBalance
+
+      } else {
+        if (logEachStep) {
+          console.log(`Transaction ${transaction.id}: no previous transaction, balance=${balance.toString()}, decay=${decay.toString()}`)
+        }
       }
       balance += amount
       if (BigInt(transaction.balance_gdd4) !== balance) {
+        if (logEachStep) {
+          console.log(`Transaction ${transaction.id}: balance=${balance.toString()}, decay=${decay.toString()}`)
+        }
         countDiffs++
         transactionsToUpdate.push(
           `UPDATE transactions
@@ -48,6 +65,10 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
            ;
         `,
         )
+      } else {
+        if (logEachStep) {
+          console.log(`Transaction ${transaction.id}: no difference, balance=${balance.toString()}, decay=${decay.toString()}`)
+        }
       }
       previous = transaction
     }
