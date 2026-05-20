@@ -14,7 +14,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
        SELECT id, amount_gdd4, balance_gdd4, decay_gdd4, balance_date
        FROM transactions
        WHERE user_id = ?
-       ORDER BY balance_date ASC
+       ORDER BY balance_date ASC, id ASC
        ;
     `,
       [users[u].id],
@@ -44,7 +44,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
           `UPDATE transactions
            SET balance_gdd4 = '${balance.toString()}',
                decay_gdd4 = '${decay.toString()}'
-           WHERE id = ${Number(transaction.id)}
+           WHERE id = ${transaction.id}
            ;
         `,
         )
@@ -56,12 +56,10 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
       // await queryFn(transactionsToUpdate.join('\n'))
     }
   }
-  runningRequests.push(
-    queryFn(`UPDATE transactions set decay_calculation_type = ?`, [
-      DecayCalculationType.NATIVE_C_FIXED_FACTOR_INTEGER,
-    ]),
-  )
   await Promise.all(runningRequests)
+  await queryFn(`UPDATE transactions set decay_calculation_type = ?`, [
+    DecayCalculationType.NATIVE_C_FIXED_FACTOR_INTEGER,
+  ])
   process.stdout.write(`\n`)
   // biome-ignore lint/suspicious/noConsole: no logger present
   console.log(`${countDiffs} updated transactions`)
