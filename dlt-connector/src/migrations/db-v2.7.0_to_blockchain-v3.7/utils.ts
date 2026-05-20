@@ -26,4 +26,3 @@ export function calculateOneHashStep(hash: Buffer, data: Buffer): Buffer<ArrayBu
   crypto_generichash_batch(outputHash, [hash, data])
   return outputHash
 }
-

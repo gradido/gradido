@@ -9,13 +9,16 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   for (let u = 0; u < users.length; u++) {
     process.stdout.write(`Recalculating balances for user ${u}/${users.length}\r`)
     // find all transactions for a user
-    const transactions = await queryFn(`
+    const transactions = await queryFn(
+      `
        SELECT id, amount_gdd4, balance_gdd4, decay_gdd4, balance_date
        FROM transactions
        WHERE user_id = ?
        ORDER BY balance_date ASC
        ;
-    `, [users[u].id])
+    `,
+      [users[u].id],
+    )
 
     let previous = null
     let balance = 0n
