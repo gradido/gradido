@@ -1,13 +1,5 @@
-import Decimal from 'decimal.js-light'
 import { AccountBalance, GradidoUnit, MemoryBlockPtr } from 'gradido-blockchain-js'
-import { Amount } from '../../../schemas/typeGuard.schema'
 import { NegativeBalanceError } from '../errors'
-import { legacyCalculateDecay } from '../utils'
-
-Decimal.set({
-  precision: 25,
-  rounding: Decimal.ROUND_HALF_UP,
-})
 
 export class Balance {
   private balance: GradidoUnit
@@ -38,62 +30,6 @@ export class Balance {
 
   getDate(): Date {
     return this.date
-  }
-
-  updateLegacyDecay(amount: GradidoUnit, date: Date, dbBalance?: Amount) {
-    // make sure to copy instead of referencing
-    const previousBalanceString = this.balance.toString()
-    const previousDate = new Date(this.date.getTime())
-
-    if (this.balance.equal(GradidoUnit.zero())) {
-      this.balance = amount
-      this.date = date
-    } else {
-      const decayedBalance = legacyCalculateDecay(
-        new Decimal(this.balance.toString()),
-        this.date,
-        date,
-      ).toDecimalPlaces(4, Decimal.ROUND_CEIL)
-      /*
-        if (!decayedBalance.equals(this.balance.toString())) {
-        console.log({
-          input: this.balance.toString(4),
-          decayed: decayedBalance.toString(),
-          amount: amount.toString(4),
-          date
-        })
-        // throw new Error("Test Exit")
-      }
-      // */
-
-      let newBalance = decayedBalance.add(new Decimal(amount.toString()))
-      // reduce small deviations between db decay and balance calculation with 25 decimal places vs gradido-blockchain with 4
-      if (
-        dbBalance &&
-        new Decimal(newBalance.toString()).minus(dbBalance).abs() < new Decimal(0.01)
-      ) {
-        newBalance = new Decimal(dbBalance)
-      }
-      this.balance = GradidoUnit.fromString(newBalance.toString())
-      this.date = date
-    }
-    if (this.balance.lt(GradidoUnit.zero())) {
-      if (this.balance.lt(GradidoUnit.fromGradidoCent(100n).negated())) {
-        const previousDecayedBalance = legacyCalculateDecay(
-          new Decimal(previousBalanceString),
-          previousDate,
-          date,
-        )
-        throw new NegativeBalanceError(
-          `negative Gradido amount detected in Balance.updateLegacyDecay`,
-          previousBalanceString,
-          amount.toString(),
-          previousDecayedBalance.toString(),
-        )
-      } else {
-        this.balance = GradidoUnit.zero()
-      }
-    }
   }
 
   update(amount: GradidoUnit, date: Date) {

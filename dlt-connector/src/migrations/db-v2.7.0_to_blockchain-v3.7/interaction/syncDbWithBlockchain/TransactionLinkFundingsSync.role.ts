@@ -1,4 +1,3 @@
-import Decimal from 'decimal.js-light'
 import { and, asc, eq, gt, or } from 'drizzle-orm'
 import {
   AccountBalance,
@@ -21,7 +20,7 @@ import { addToBlockchain } from '../../blockchain'
 import { Context } from '../../Context'
 import { dltTransactionsTable, transactionLinksTable, usersTable } from '../../drizzle.schema'
 import { BlockchainError, DatabaseError, NegativeBalanceError } from '../../errors'
-import { reverseLegacyDecay, toMysqlDateTime } from '../../utils'
+import { toMysqlDateTime } from '../../utils'
 import { CommunityContext, TransactionLinkDb, transactionLinkDbSchema } from '../../valibot.schema'
 import { AbstractSyncRole, IndexType } from './AbstractSync.role'
 
@@ -132,7 +131,7 @@ export class TransactionLinkFundingsSyncRole extends AbstractSyncRole<Transactio
       communityContext.communityId,
     )
     try {
-      senderLastBalance.updateLegacyDecay(blockedAmount.negated(), item.createdAt)
+      senderLastBalance.update(blockedAmount.negated(), item.createdAt)
     } catch (e) {
       if (e instanceof NegativeBalanceError) {
         this.logLastBalanceChangingTransactions(senderPublicKey, communityContext.blockchain)
@@ -163,9 +162,7 @@ export class TransactionLinkFundingsSyncRole extends AbstractSyncRole<Transactio
     const duration = new DurationSeconds(
       (item.validUntil.getTime() - item.createdAt.getTime()) / 1000,
     )
-    let blockedAmount = GradidoUnit.fromString(
-      reverseLegacyDecay(new Decimal(item.amount.toString()), duration.getSeconds()).toString(),
-    )
+    let blockedAmount = item.amount.calculateCompoundInterest(duration.getSeconds())
     let accountBalances: AccountBalances | undefined
     try {
       accountBalances = this.calculateBalances(
@@ -182,7 +179,7 @@ export class TransactionLinkFundingsSyncRole extends AbstractSyncRole<Transactio
           communityContext.blockchain,
           communityContext.communityId,
         )
-        senderLastBalance.updateLegacyDecay(GradidoUnit.zero(), item.createdAt)
+        senderLastBalance.update(GradidoUnit.zero(), item.createdAt)
         const oldBlockedAmountString = blockedAmount.toString()
         blockedAmount = senderLastBalance.getBalance()
         accountBalances = this.calculateBalances(

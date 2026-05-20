@@ -209,7 +209,7 @@ export const timeoutDurationSchema = v.pipe(
 /**
  * type guard for amount
  * create with `v.parse(amountSchema, '123')`
- * amount is a string representing a positive decimal number, compatible with decimal.js
+ * amount is a string representing a positive decimal number
  */
 declare const validAmount: unique symbol
 export type Amount = string & { [validAmount]: true }

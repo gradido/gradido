@@ -1,4 +1,3 @@
-import Decimal from 'decimal.js-light'
 import { and, asc, eq, gt, inArray, isNull, ne, or } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/mysql-core'
 import {
@@ -91,9 +90,6 @@ export class RemoteTransactionsSyncRole extends AbstractSyncRole<TransactionDb> 
       if (item.typeId === TransactionTypeId.SEND && item.amount) {
         item.amount *= -1n
       }
-      if (item.balanceFull && new Decimal(item.balanceFull).isNegative()) {
-        item.balanceFull = '0'
-      }
       try {
         return v.parse(transactionDbSchema, item)
       } catch (e) {
@@ -167,11 +163,7 @@ export class RemoteTransactionsSyncRole extends AbstractSyncRole<TransactionDb> 
     }
 
     try {
-      if (item.decayCalculationType === DecayCalculationType.DECIMAL_JS_FIXED_FACTOR) {
-        lastBalance.updateLegacyDecay(amount, item.balanceDate, item.balanceFull)
-      } else {
-        lastBalance.update(amount, item.balanceDate)
-      }
+      lastBalance.update(amount, item.balanceDate)
     } catch (e) {
       if (e instanceof NegativeBalanceError) {
         this.logLastBalanceChangingTransactions(publicKey, communityContext.blockchain, 1)

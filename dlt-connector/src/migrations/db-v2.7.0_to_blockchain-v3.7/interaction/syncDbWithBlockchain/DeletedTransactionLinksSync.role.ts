@@ -132,7 +132,7 @@ export class DeletedTransactionLinksSyncRole extends AbstractSyncRole<DeletedTra
       communityContext.blockchain,
       communityContext.communityId,
     )
-    fundingUserLastBalance.updateLegacyDecay(senderLastBalance.getBalance(), item.deletedAt)
+    fundingUserLastBalance.update(senderLastBalance.getBalance(), item.deletedAt)
 
     // account of link is set to zero, gdd will be send back to initiator
     this.accountBalances.add(
@@ -182,7 +182,7 @@ export class DeletedTransactionLinksSyncRole extends AbstractSyncRole<DeletedTra
       communityContext.blockchain,
       communityContext.communityId,
     )
-    senderLastBalance.updateLegacyDecay(GradidoUnit.zero(), item.deletedAt)
+    senderLastBalance.update(GradidoUnit.zero(), item.deletedAt)
 
     try {
       addToBlockchain(

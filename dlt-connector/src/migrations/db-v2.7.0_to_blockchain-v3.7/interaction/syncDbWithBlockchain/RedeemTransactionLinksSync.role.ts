@@ -177,9 +177,9 @@ export class RedeemTransactionLinksSyncRole extends AbstractSyncRole<RedeemedTra
         `sender has not enough balance (${senderLastBalance.getAccountBalance().getBalance().toString()}) to send ${item.amount.toString()} to ${recipientPublicKey.convertToHex()}`,
       )
     }
-    senderLastBalance.updateLegacyDecay(item.amount.negated(), item.redeemedAt)
-    fundingUserLastBalance.updateLegacyDecay(senderLastBalance.getBalance(), item.redeemedAt)
-    recipientLastBalance.updateLegacyDecay(item.amount, item.redeemedAt)
+    senderLastBalance.update(item.amount.negated(), item.redeemedAt)
+    fundingUserLastBalance.update(senderLastBalance.getBalance(), item.redeemedAt)
+    recipientLastBalance.update(item.amount, item.redeemedAt)
 
     // account of link is set to zero, and change send back to link creator
     this.accountBalances.add(

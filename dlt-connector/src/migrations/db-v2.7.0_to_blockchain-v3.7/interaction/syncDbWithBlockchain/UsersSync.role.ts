@@ -5,7 +5,6 @@ import {
   AddressType_COMMUNITY_HUMAN,
   GradidoTransactionBuilder,
   GradidoUnit,
-  HieroTransactionId,
   KeyPairEd25519,
   LedgerAnchor,
   MemoryBlockPtr,
@@ -121,12 +120,6 @@ export class UsersSyncRole extends AbstractSyncRole<UserDb> {
     }
 
     try {
-      let ledgerAnchor: LedgerAnchor | undefined
-      if (item.messageId) {
-        ledgerAnchor = new LedgerAnchor(new HieroTransactionId(item.messageId))
-      } else {
-        ledgerAnchor = new LedgerAnchor(item.id, LedgerAnchor.Type_LEGACY_GRADIDO_DB_USER_ID)
-      }
       addToBlockchain(
         this.buildTransaction(
           communityContext,
@@ -136,7 +129,7 @@ export class UsersSyncRole extends AbstractSyncRole<UserDb> {
           userKeyPair,
         ).build(),
         communityContext.blockchain,
-        ledgerAnchor,
+        this.getLedgerAnchor(item),
         this.calculateAccountBalances(accountPublicKey, communityContext),
       )
     } catch (e) {
