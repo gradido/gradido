@@ -13,7 +13,7 @@ async function main() {
   const commonConfigs = {
     target: await detectTargetTriple(),
     mode: 'small',
-    cpu: 'native',
+    // cpu: ,
     nodeVersion: nodeVersion().replace(/^v/, ''),
     include: ['include', 'third_party'],
   }
@@ -27,6 +27,14 @@ async function main() {
     libs.libraries = ['node']
   }
   const libSrcs = ['src/data/unit.c', 'src/utils/converter.c', 'src/utils/duration.c']
+  const cflags = [
+    '-O2',
+    '-fno-fast-math',
+    '-ffp-contract=off',
+    '-ffp-model=strict',
+    '-fwrapv',
+    '-fno-strict-overflow'
+  ]
   await build(
     {
       c_core: {
@@ -35,14 +43,14 @@ async function main() {
         sources: libSrcs,
         type: 'shared',
         std: 'c17',
-        cflags: ['-g0', '-s'],
+        cflags: ['-g0', '-s'].concat(cflags),
       } as Target,
       cpp_napi: {
         ...commonConfigs,
         ...libs,
         output: 'build/shared_native.node',
         sources: ['bindings/napi/gradidoUnit.cpp', ...libSrcs],
-        cflags: ['-g0', '-s', '-DNAPI_VERSION=8'],
+        cflags: ['-g0', '-s', '-DNAPI_VERSION=8'].concat(cflags),
       } as Target,
     },
     undefined,
