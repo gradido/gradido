@@ -57,9 +57,9 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
     }
   }
   runningRequests.push(
-    queryFn(
-      `UPDATE transactions set decay_calculation_type = ?`, [DecayCalculationType.NATIVE_C_FIXED_FACTOR_INTEGER]
-    ),
+    queryFn(`UPDATE transactions set decay_calculation_type = ?`, [
+      DecayCalculationType.NATIVE_C_FIXED_FACTOR_INTEGER,
+    ]),
   )
   await Promise.all(runningRequests)
   process.stdout.write(`\n`)
