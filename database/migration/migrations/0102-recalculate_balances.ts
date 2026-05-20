@@ -12,10 +12,11 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
     const transactions = await queryFn(`
        SELECT id, amount_gdd4, balance_gdd4, decay_gdd4, balance_date
        FROM transactions
-       WHERE user_id = ${users[u].id}
+       WHERE user_id = ?
        ORDER BY balance_date ASC
        ;
-    `)
+    `, [users[u].id])
+
     let previous = null
     let balance = 0n
     const transactionsToUpdate: string[] = []
@@ -40,7 +41,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
           `UPDATE transactions
            SET balance_gdd4 = '${balance.toString()}',
                decay_gdd4 = '${decay.toString()}'
-           WHERE id = ${transaction.id}
+           WHERE id = ${Number(transaction.id)}
            ;
         `,
         )
