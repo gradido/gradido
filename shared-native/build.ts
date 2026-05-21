@@ -33,7 +33,6 @@ async function main() {
     '-ffp-contract=off',
     '-ffp-model=strict',
     '-fwrapv',
-    '-fno-strict-overflow'
   ]
   await build(
     {

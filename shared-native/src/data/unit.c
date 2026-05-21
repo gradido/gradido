@@ -2,6 +2,7 @@
 #include "gradido_blockchain_core/utils/converter.h"
 
 #define R128_IMPLEMENTATION
+#define R128_STDC_ONLY
 #include "r128/r128.h"
 
 #include <ctype.h>
@@ -14,12 +15,82 @@
 static const grdd_duration_seconds SECONDS_PER_YEAR = 31556952; // seconds in a year in gregorian calender
 static const grdd_timestamp_seconds DECAY_START_TIME = 1620927991;
 // precalculated decay factor for deterministic decay calculation across platforms, 2^64 / SECONDS_PER_YEAR
-// static const uint64_t DECAY_FACTOR_PER_SECOND =   18446743668527564941ULL; // TypeScript Decimal.js
+//static const uint64_t DECAY_FACTOR_PER_SECOND =   18446743668527564941ULL; // TypeScript Decimal.js
 static const uint64_t DECAY_FACTOR_PER_SECOND =   18446743668527564940ULL;
 static const uint64_t GROW_FACTOR_PER_SECOND =    405181995575ULL; // for low, and 1 for hi
 
+
 // precalculated powers of 10 for fast rounding
 static const uint64_t POW10[] = { 1, 10, 100, 1000, 10000 };
+// precalculated decay powers for more consistent result across plattforms
+static const uint64_t DECAY_POWERS[] = {
+    0xffffffa1a945888dULL,
+    0xffffff43528b33ddULL,
+    0xfffffe86a516f2caULL,
+    0xfffffd0d4a3011d0ULL,
+    0xfffffa1a9468d494ULL,
+    0xfffff43528f46cf5ULL,
+    0xffffe86a5273e91dULL,
+    0xffffd0d4a7140eedULL,
+    0xffffa1a956d90fd7ULL,
+    0xffff4352d075e13dULL,
+    0xfffe86a62bfa9575ULL,
+    0xfffd0d4e842edce8ULL,
+    0xfffa1aa5b937b238ULL,
+    0xfff4356e3570cabcULL,
+    0xffe86b6773b36477ULL,
+    0xffd0d8faf110bbd2ULL,
+    0xffa1baa53bef7e25ULL,
+    0xff43980179510649ULL,
+    0xfe87baabdab6ab02ULL,
+    0xfd119e636f615530ULL,
+    0xfa2bd446f55a1169ULL,
+    0xf479a21b970ff04cULL,
+    0xe97816cf3cb21d4bULL,
+    0xd4ebd1daa0cd667fULL,
+    0xb1176ccd0dbe2022ULL,
+    0x7a81669848170871ULL,
+    0x3a9f9731b34c4f4aULL,
+    0xd6cb3ffae46f7e2ULL,
+    0xb4387055fdce22ULL,
+    0x7edf6a6a43d4ULL,
+    0x3ee0afbbULL,
+    0x0ULL,
+};
+
+/*
+ // table was calculated with this TypeScript Code:
+  import Decimal from 'decimal.js' // "decimal.js": "^10.6.0",
+ 
+ 	Decimal.set({
+		precision: 25,
+			rounding: Decimal.ROUND_HALF_UP,
+		})
+		const SCALE = new Decimal(2).pow(64)
+		const base = new Decimal('0.99999997803504048973201202316767079413460520837376')
+		let current = base
+
+		console.log('static const uint64_t DECAY_POWERS[] = {')
+
+		for (let i = 0; i < 64; i++) {
+			const scaled = current.mul(SCALE)//.floor()
+
+			const value = BigInt(scaled.toFixed(0))
+
+			const lo = value & ((1n << 64n) - 1n)
+
+			console.log(
+				`    0x${lo.toString(16)}ULL,`
+			)
+			if (lo === 0n) {
+				break
+			}
+
+			current = current.mul(current)
+		}
+
+		console.log('};')
+ */
 
 static double round_to_precision(double gdd, uint8_t precision)
 {
@@ -284,6 +355,14 @@ grdd_unit grdd_unit_calculate_decay(grdd_unit gdd, grdd_duration_seconds duratio
 		base.lo = GROW_FACTOR_PER_SECOND;
 		base.hi = 1;
 	}
+ 	for (int i = 0; i < 32; i++) {
+        if (duration & (1ULL << i)) {
+            R128 static_factor = { .lo = DECAY_POWERS[i], .hi = 0 };
+            r128Mul(&factor, &factor, &static_factor);
+        }
+	}
+	//  */
+	/*
 
 	while (exp > 0) {
 			if ((exp & 1) == 1) {
@@ -292,6 +371,7 @@ grdd_unit grdd_unit_calculate_decay(grdd_unit gdd, grdd_duration_seconds duratio
 			r128Mul(&base, &base, &base);        // base *= base
 			exp >>= 1;
 	}
+	//  */
 	R128 gdd128;
 	r128FromInt(&gdd128, gdd_temp);
 	// Final: balance * factor
