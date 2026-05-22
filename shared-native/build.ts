@@ -1,4 +1,4 @@
-import { build, Target } from 'zig-build'
+import { build, type Target } from 'zig-build'
 import { detectTargetTriple, setup_dependencies } from './build_helper/deps'
 import {
   getCoreFileName,
@@ -26,8 +26,14 @@ async function main() {
     libs.librariesSearch = [getNodePath()]
     libs.libraries = ['node']
   }
-  const libSrcs = ['src/data/unit.c', 'src/utils/converter.c', 'src/utils/duration.c']
   const cflags = ['-O2', '-fno-fast-math', '-ffp-contract=off', '-ffp-model=strict', '-fwrapv']
+  const libSrcs = [
+    'src/data/unit.c',
+    'src/utils/converter.c',
+    'src/utils/duration.c',
+    'third_party/fp256/src/fp256_mul.c',
+    'third_party/fp256/src/fp256_utils.c',
+  ]
   await build(
     {
       c_core: {
