@@ -26,7 +26,7 @@ async function main() {
     libs.librariesSearch = [getNodePath()]
     libs.libraries = ['node']
   }
-  const cflags = ['-O2', '-fno-fast-math', '-ffp-contract=off', '-ffp-model=strict', '-fwrapv']
+  const cflags = ['-O2', '-fno-fast-math', '-fwrapv']
   const libSrcs = [
     'src/data/unit.c',
     'src/utils/converter.c',
