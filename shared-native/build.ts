@@ -26,7 +26,13 @@ async function main() {
     libs.librariesSearch = [getNodePath()]
     libs.libraries = ['node']
   }
-  const libSrcs = ['src/data/unit.c', 'src/utils/converter.c', 'src/utils/duration.c']
+  const libSrcs = [
+    'src/data/unit.c',
+    'src/utils/converter.c',
+    'src/utils/duration.c',
+    'third_party/fp256/src/fp256_mul.c',
+    'third_party/fp256/src/fp256_utils.c',
+  ]
   await build(
     {
       c_core: {
