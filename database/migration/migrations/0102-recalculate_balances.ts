@@ -23,8 +23,8 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
     let previous = null
     let balance = 0n
     let logEachStep = false
-    if (users[u].id === 764) {
-      logEachStep = true
+    if (users[u].id === 4705) {
+      // logEachStep = true
     }
     const transactionsToUpdate: string[] = []
 
@@ -32,7 +32,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
       const transaction = transactions[t]
       const amount = BigInt(transaction.amount_gdd4)
       let decay = 0n
-      if (balance && previous) {
+      if (balance > 0n && previous) {
         const decayedBalance = calculateDecay(
           balance,
           GradidoUnit.effectiveDecayDuration(previous.balance_date, transaction.balance_date)
@@ -49,6 +49,12 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
           )
         }
         balance = decayedBalance
+      } else if (balance <= 0n) {
+        if (balance < 0) {
+          // biome-ignore lint/suspicious/noConsole: no logger in migration
+          console.warn(`set negative balance: ${balance.toString()} for transaction: ${transaction.id} to zero.`)
+        }
+        balance = 0n
       } else {
         if (logEachStep) {
           console.log(
@@ -64,7 +70,9 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
           )
         }
         countDiffs++
-        transactionsToUpdate.push(
+        // transactionsToUpdate.push
+        await queryFn(
+
           `UPDATE transactions
            SET balance_gdd4 = '${balance.toString()}',
                decay_gdd4 = '${decay.toString()}'
@@ -82,7 +90,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
       previous = transaction
     }
     if (transactionsToUpdate.length) {
-      runningRequests.push(queryFn(transactionsToUpdate.join('\n')))
+      // runningRequests.push(queryFn(transactionsToUpdate.join('\n')))
       // await queryFn(transactionsToUpdate.join('\n'))
     }
   }
