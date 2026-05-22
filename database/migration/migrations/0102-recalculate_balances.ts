@@ -38,23 +38,30 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
           GradidoUnit.effectiveDecayDuration(previous.balance_date, transaction.balance_date)
             .seconds,
         )
-        const durationSeconds = GradidoUnit.effectiveDecayDuration(previous.balance_date, transaction.balance_date)
-          .seconds
+        const durationSeconds = GradidoUnit.effectiveDecayDuration(
+          previous.balance_date,
+          transaction.balance_date,
+        ).seconds
         decay = decayedBalance - balance
         if (logEachStep) {
-            console.log(`previous balance: ${balance.toString()}, decay for: ${durationSeconds.toString()} seconds = ${decayedBalance.toString()}, legacy balance: ${transaction.balance_legacy}`)
+          console.log(
+            `previous balance: ${balance.toString()}, decay for: ${durationSeconds.toString()} seconds = ${decayedBalance.toString()}, legacy balance: ${transaction.balance_legacy}`,
+          )
         }
         balance = decayedBalance
-
       } else {
         if (logEachStep) {
-          console.log(`Transaction ${transaction.id}: no previous transaction, balance=${balance.toString()}, decay=${decay.toString()}`)
+          console.log(
+            `Transaction ${transaction.id}: no previous transaction, balance=${balance.toString()}, decay=${decay.toString()}`,
+          )
         }
       }
       balance += amount
       if (BigInt(transaction.balance_gdd4) !== balance) {
         if (logEachStep) {
-          console.log(`Transaction ${transaction.id}: balance=${balance.toString()}, decay=${decay.toString()}`)
+          console.log(
+            `Transaction ${transaction.id}: balance=${balance.toString()}, decay=${decay.toString()}`,
+          )
         }
         countDiffs++
         transactionsToUpdate.push(
@@ -67,7 +74,9 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
         )
       } else {
         if (logEachStep) {
-          console.log(`Transaction ${transaction.id}: no difference, balance=${balance.toString()}, decay=${decay.toString()}`)
+          console.log(
+            `Transaction ${transaction.id}: no difference, balance=${balance.toString()}, decay=${decay.toString()}`,
+          )
         }
       }
       previous = transaction

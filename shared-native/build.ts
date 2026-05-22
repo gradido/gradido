@@ -27,13 +27,7 @@ async function main() {
     libs.libraries = ['node']
   }
   const libSrcs = ['src/data/unit.c', 'src/utils/converter.c', 'src/utils/duration.c']
-  const cflags = [
-    '-O2',
-    '-fno-fast-math',
-    '-ffp-contract=off',
-    '-ffp-model=strict',
-    '-fwrapv',
-  ]
+  const cflags = ['-O2', '-fno-fast-math', '-ffp-contract=off', '-ffp-model=strict', '-fwrapv']
   await build(
     {
       c_core: {
