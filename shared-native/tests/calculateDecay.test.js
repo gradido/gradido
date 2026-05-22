@@ -18,8 +18,17 @@ Decimal.set({
   rounding: Decimal.ROUND_HALF_UP,
 })
 // legacy decay calculation for comparisation with new decay calculation
+// Expect bigint, return bigint
 function decayFormula(value, seconds) {
-  return new Decimal(value.toString()).mul(new Decimal('0.99999997803504048973201202316767079413460520837376').pow(seconds))
+  return BigInt(
+    new Decimal(value.toString())
+      .mul(
+        new Decimal('0.99999997803504048973201202316767079413460520837376')
+        .pow(seconds)
+      )
+      .toDecimalPlaces(0)
+      .toString()
+  )
 }
 
 describe('GradidoUnit', () => {
@@ -177,28 +186,28 @@ describe('GradidoUnit', () => {
         const decay = calculateDecay(amount, 1n)
         const legacyDecay = decayFormula(amount, 1)
         assert.equal(decay, 10000n)
-        assert.equal(legacyDecay.toDecimalPlaces(0).toString(), decay.toString())
+        assert.equal(legacyDecay, decay)
       })
       it('100 gdd, 14 days', () => {
         const amount = 1000000n
         const decay = calculateDecay(amount, 14n * 24n * 60n * 60n)
         const legacyDecay = decayFormula(amount, 14 * 24 * 60 * 60)
         assert.equal(decay, 973781n)
-        assert.equal(legacyDecay.toDecimalPlaces(0).toString(), decay.toString())
+        assert.equal(legacyDecay, decay)
       })
       it('100 gdd, 1 year', () => {
         const amount = 1000000n
         const decay = calculateDecay(amount, 31556952n)
         const legacyDecay = decayFormula(amount, 31556952)
         assert.equal(decay, 500000n)
-        assert.equal(legacyDecay.toDecimalPlaces(0).toString(), decay.toString())
+        assert.equal(legacyDecay, decay)
       })
       it('0.0001 gdd, 1 second', () => {
           const amount = 1n
           const decay = calculateDecay(amount, 1n)
           const legacyDecay = decayFormula(amount, 1)
           assert.equal(decay, 1n)
-          assert.equal(legacyDecay.toDecimalPlaces(0).toString(), decay.toString())
+          assert.equal(legacyDecay, decay)
       })
 
       it('1 gdd, 1 hour', () => {
@@ -206,7 +215,7 @@ describe('GradidoUnit', () => {
         const decay = calculateDecay(amount, 3600n)
         const legacyDecay = decayFormula(amount, 3600)
         assert.equal(decay, 9999n)
-        assert.equal(legacyDecay.toDecimalPlaces(0).toString(), decay.toString())
+        assert.equal(legacyDecay, decay)
       })
 
       it('1 gdd, 1 day', () => {
@@ -214,7 +223,7 @@ describe('GradidoUnit', () => {
         const decay = calculateDecay(amount, 86400n)
         const legacyDecay = decayFormula(amount, 86400)
         assert.equal(decay, 9981n)
-        assert.equal(legacyDecay.toDecimalPlaces(0).toString(), decay.toString())
+        assert.equal(legacyDecay, decay)
       })
 
       it('100 gdd, 30 days', () => {
@@ -222,7 +231,7 @@ describe('GradidoUnit', () => {
         const decay = calculateDecay(amount, 30n * 24n * 60n * 60n)
         const legacyDecay = decayFormula(amount, 30 * 24 * 60 * 60)
         assert.equal(decay, 944657n)
-        assert.equal(legacyDecay.toDecimalPlaces(0).toString(), decay.toString())
+        assert.equal(legacyDecay, decay)
       })
 
       it('100 gdd, half year', () => {
@@ -230,7 +239,7 @@ describe('GradidoUnit', () => {
         const decay = calculateDecay(amount, 15778476n)
         const legacyDecay = decayFormula(amount, 15778476)
         assert.equal(decay, 707107n)
-        assert.equal(legacyDecay.toDecimalPlaces(0).toString(), decay.toString())
+        assert.equal(legacyDecay, decay)
       })
 
       it('1000 gdd, 1 year', () => {
@@ -238,7 +247,7 @@ describe('GradidoUnit', () => {
         const decay = calculateDecay(amount, 31556952n)
         const legacyDecay = decayFormula(amount, 31556952)
         assert.equal(decay, 5000000n)
-        assert.equal(legacyDecay.toDecimalPlaces(0).toString(), decay.toString())
+        assert.equal(legacyDecay, decay)
       })
 
       it('1000 gdd, 2 years', () => {
@@ -246,7 +255,7 @@ describe('GradidoUnit', () => {
         const decay = calculateDecay(amount, 2n * 31556952n)
         const legacyDecay = decayFormula(amount, 2 * 31556952)
         assert.equal(decay, 2500000n)
-        assert.equal(legacyDecay.toDecimalPlaces(0).toString(), decay.toString())
+        assert.equal(legacyDecay, decay)
       })
 
       it('2 gdd, 1 second', () => {
@@ -254,7 +263,7 @@ describe('GradidoUnit', () => {
         const decay = calculateDecay(amount, 1n)
         const legacyDecay = decayFormula(amount, 1)
         assert.equal(decay, 20000n)
-        assert.equal(legacyDecay.toDecimalPlaces(0).toString(), decay.toString())
+        assert.equal(legacyDecay, decay)
       })
 
       it('5 gdd, 1 second', () => {
@@ -262,7 +271,7 @@ describe('GradidoUnit', () => {
         const decay = calculateDecay(amount, 1n)
         const legacyDecay = decayFormula(amount, 1)
         assert.equal(decay, 50000n)
-        assert.equal(legacyDecay.toDecimalPlaces(0).toString(), decay.toString())
+        assert.equal(legacyDecay, decay)
       })
 
       it('10 gdd, 1 second', () => {
@@ -270,7 +279,7 @@ describe('GradidoUnit', () => {
         const decay = calculateDecay(amount, 1n)
         const legacyDecay = decayFormula(amount, 1)
         assert.equal(decay, 100000n)
-        assert.equal(legacyDecay.toDecimalPlaces(0).toString(), decay.toString())
+        assert.equal(legacyDecay, decay)
       })
 
       it('25 gdd, 1 second', () => {
@@ -278,7 +287,7 @@ describe('GradidoUnit', () => {
         const decay = calculateDecay(amount, 1n)
         const legacyDecay = decayFormula(amount, 1)
         assert.equal(decay, 250000n)
-        assert.equal(legacyDecay.toDecimalPlaces(0).toString(), decay.toString())
+        assert.equal(legacyDecay, decay)
       })
 
       it('50 gdd, 1 second', () => {
@@ -286,7 +295,7 @@ describe('GradidoUnit', () => {
         const decay = calculateDecay(amount, 1n)
         const legacyDecay = decayFormula(amount, 1)
         assert.equal(decay, 500000n)
-        assert.equal(legacyDecay.toDecimalPlaces(0).toString(), decay.toString())
+        assert.equal(legacyDecay, decay)
       })
 
       it('75 gdd, 1 second', () => {
@@ -294,7 +303,7 @@ describe('GradidoUnit', () => {
         const decay = calculateDecay(amount, 1n)
         const legacyDecay = decayFormula(amount, 1)
         assert.equal(decay, 750000n)
-        assert.equal(legacyDecay.toDecimalPlaces(0).toString(), decay.toString())
+        assert.equal(legacyDecay, decay)
       })
 
       it('100 gdd, 1 second', () => {
@@ -302,7 +311,7 @@ describe('GradidoUnit', () => {
         const decay = calculateDecay(amount, 1n)
         const legacyDecay = decayFormula(amount, 1)
         assert.equal(decay, 1000000n)
-        assert.equal(legacyDecay.toDecimalPlaces(0).toString(), decay.toString())
+        assert.equal(legacyDecay, decay)
       })
 
       it('250 gdd, 1 second', () => {
@@ -310,7 +319,7 @@ describe('GradidoUnit', () => {
         const decay = calculateDecay(amount, 1n)
         const legacyDecay = decayFormula(amount, 1)
         assert.equal(decay, 2500000n)
-        assert.equal(legacyDecay.toDecimalPlaces(0).toString(), decay.toString())
+        assert.equal(legacyDecay, decay)
       })
 
       it('500 gdd, 1 second', () => {
@@ -318,7 +327,7 @@ describe('GradidoUnit', () => {
         const decay = calculateDecay(amount, 1n)
         const legacyDecay = decayFormula(amount, 1)
         assert.equal(decay, 5000000n)
-        assert.equal(legacyDecay.toDecimalPlaces(0).toString(), decay.toString())
+        assert.equal(legacyDecay, decay)
       })
 
       it('750 gdd, 1 second', () => {
@@ -326,7 +335,7 @@ describe('GradidoUnit', () => {
         const decay = calculateDecay(amount, 1n)
         const legacyDecay = decayFormula(amount, 1)
         assert.equal(decay, 7500000n)
-        assert.equal(legacyDecay.toDecimalPlaces(0).toString(), decay.toString())
+        assert.equal(legacyDecay, decay)
       })
 
       it('1000 gdd, 1 second', () => {
@@ -334,7 +343,7 @@ describe('GradidoUnit', () => {
         const decay = calculateDecay(amount, 1n)
         const legacyDecay = decayFormula(amount, 1)
         assert.equal(decay, 10000000n)
-        assert.equal(legacyDecay.toDecimalPlaces(0).toString(), decay.toString())
+        assert.equal(legacyDecay, decay)
       })
 
       it('2500 gdd, 1 second', () => {
@@ -342,7 +351,7 @@ describe('GradidoUnit', () => {
         const decay = calculateDecay(amount, 1n)
         const legacyDecay = decayFormula(amount, 1)
         assert.equal(decay, 24999999n)
-        assert.equal(legacyDecay.toDecimalPlaces(0).toString(), decay.toString())
+        assert.equal(legacyDecay, decay)
       })
 
       it('5000 gdd, 1 second', () => {
@@ -350,7 +359,7 @@ describe('GradidoUnit', () => {
         const decay = calculateDecay(amount, 1n)
         const legacyDecay = decayFormula(amount, 1)
         assert.equal(decay, 49999999n)
-        assert.equal(legacyDecay.toDecimalPlaces(0).toString(), decay.toString())
+        assert.equal(legacyDecay, decay)
       })
 
       it('10000 gdd, 1 second', () => {
@@ -358,7 +367,7 @@ describe('GradidoUnit', () => {
         const decay = calculateDecay(amount, 1n)
         const legacyDecay = decayFormula(amount, 1)
         assert.equal(decay, 99999998n)
-        assert.equal(legacyDecay.toDecimalPlaces(0).toString(), decay.toString())
+        assert.equal(legacyDecay, decay)
       })
 
       it('25000 gdd, 1 second', () => {
@@ -366,7 +375,7 @@ describe('GradidoUnit', () => {
         const decay = calculateDecay(amount, 1n)
         const legacyDecay = decayFormula(amount, 1)
         assert.equal(decay, 249999995n)
-        assert.equal(legacyDecay.toDecimalPlaces(0).toString(), decay.toString())
+        assert.equal(legacyDecay, decay)
       })
 
       it('50000 gdd, 1 second', () => {
@@ -374,7 +383,7 @@ describe('GradidoUnit', () => {
         const decay = calculateDecay(amount, 1n)
         const legacyDecay = decayFormula(amount, 1)
         assert.equal(decay, 499999989n)
-        assert.equal(legacyDecay.toDecimalPlaces(0).toString(), decay.toString())
+        assert.equal(legacyDecay, decay)
       })
 
       it('100000 gdd, 1 second', () => {
@@ -382,7 +391,7 @@ describe('GradidoUnit', () => {
         const decay = calculateDecay(amount, 1n)
         const legacyDecay = decayFormula(amount, 1)
         assert.equal(decay, 999999978n)
-        assert.equal(legacyDecay.toDecimalPlaces(0).toString(), decay.toString())
+        assert.equal(legacyDecay, decay)
       })
 
       it('250000 gdd, 1 second', () => {
@@ -390,7 +399,7 @@ describe('GradidoUnit', () => {
         const decay = calculateDecay(amount, 1n)
         const legacyDecay = decayFormula(amount, 1)
         assert.equal(decay, 2499999945n)
-        assert.equal(legacyDecay.toDecimalPlaces(0).toString(), decay.toString())
+        assert.equal(legacyDecay, decay)
       })
 
       it('500000 gdd, 1 second', () => {
@@ -398,7 +407,7 @@ describe('GradidoUnit', () => {
         const decay = calculateDecay(amount, 1n)
         const legacyDecay = decayFormula(amount, 1)
         assert.equal(decay, 4999999890n)
-        assert.equal(legacyDecay.toDecimalPlaces(0).toString(), decay.toString())
+        assert.equal(legacyDecay, decay)
       })
 
       it('1000000 gdd, 1 second', () => {
@@ -406,7 +415,7 @@ describe('GradidoUnit', () => {
         const decay = calculateDecay(amount, 1n)
         const legacyDecay = decayFormula(amount, 1)
         assert.equal(decay, 9999999780n)
-        assert.equal(legacyDecay.toDecimalPlaces(0).toString(), decay.toString())
+        assert.equal(legacyDecay, decay)
       })
 
       it('max-ish value, 1 year', () => {
@@ -414,8 +423,50 @@ describe('GradidoUnit', () => {
         const decay = calculateDecay(amount, 31556952n)
         const legacyDecay = decayFormula(amount, 31556952)
         assert.equal(decay, 4611686018427387903n)
-        assert.equal(legacyDecay.toDecimalPlaces(0).toString(), decay.toString())
+        assert.equal(legacyDecay, decay)
       })
+    })
+  })
+
+  describe('GradidoUnit > calculateDecay > monotonic stability over long range', () => {
+    it.skip('TestWithManyDifferentDuration', () => {
+      const amount = 100000000n
+
+      let prevValue = 0n
+      let prevDistance = 0n
+
+      const TWO_YEARS = 31556952 * 2
+
+      for (let i = 1; i < TWO_YEARS; i += 32) {
+        const decayed = decayFormula(amount, i)
+
+        if (prevValue !== 0n) {
+          // monotonicity: value must never increase
+          assert.ok(
+            prevValue >= decayed,
+            `previous value wasn't greater on i: ${i}`
+          )
+
+          const distance = prevValue - decayed
+
+          if (prevDistance !== 0n) {
+            const diff = prevDistance > distance
+              ? prevDistance - distance
+              : distance - prevDistance
+
+            assert.ok(
+              diff <= 1n,
+              `distance increased unexpectedly i: ${i} (diff=${diff})`
+            )
+          }
+
+          prevDistance = distance
+        }
+
+        prevValue = decayed
+        process.stdout.write(`${i}/${TWO_YEARS} = ${i / TWO_YEARS * 100} %\r`)
+      }
+      process.stdout.write(`\n`)
     })
   })
 
