@@ -46,7 +46,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
         balance = 0n
       }
       balance += amount
-      if (BigInt(transaction.balance_gdd4) !== balance) {
+      if (!transaction.balance_gdd4 || BigInt(transaction.balance_gdd4) !== balance) {
         countDiffs++
         transactionsToUpdate.push(
           `UPDATE transactions
