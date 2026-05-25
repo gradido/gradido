@@ -56,8 +56,8 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
            ;
         `,
         )
-        previous = transaction
       }
+      previous = transaction
     }
     if (transactionsToUpdate.length) {
       runningRequests.push(queryFn(transactionsToUpdate.join('\n')))
