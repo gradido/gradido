@@ -1,6 +1,7 @@
 import {
   Abstract,
   Filter,
+  GRDT_LEDGER_ANCHOR_NODE_TRIGGER_TRANSACTION_ID,
   InteractionCreateTransactionByEvent,
   LedgerAnchor,
   MonotonicTimer,
@@ -53,7 +54,7 @@ function processTransactionTrigger(context: CommunityContext, endDate: Date, log
           createTransactionByEvent.run(triggerEvent),
           new LedgerAnchor(
             triggerEvent.getLinkedTransactionId(),
-            LedgerAnchor.Type_NODE_TRIGGER_TRANSACTION_ID,
+            GRDT_LEDGER_ANCHOR_NODE_TRIGGER_TRANSACTION_ID,
           ),
           triggerEvent.getTargetDate(),
         )

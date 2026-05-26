@@ -4,9 +4,9 @@ import {
   AccountBalances,
   AuthenticatedEncryption,
   EncryptedMemo,
+  GRDT_LEDGER_ANCHOR_LEGACY_GRADIDO_DB_TRANSACTION_ID,
   GradidoTransactionBuilder,
   KeyPairEd25519,
-  LedgerAnchor,
   MemoryBlockPtr,
   TransferAmount,
 } from 'gradido-blockchain-js'
@@ -29,7 +29,7 @@ import { AbstractSyncRole, IndexType } from './AbstractSync.role'
 
 export class LocalTransactionsSyncRole extends AbstractSyncRole<TransactionDb> {
   constructor(context: Context) {
-    super(context, LedgerAnchor.Type_LEGACY_GRADIDO_DB_TRANSACTION_ID)
+    super(context, GRDT_LEDGER_ANCHOR_LEGACY_GRADIDO_DB_TRANSACTION_ID)
     this.accountBalances.reserve(2n)
   }
 

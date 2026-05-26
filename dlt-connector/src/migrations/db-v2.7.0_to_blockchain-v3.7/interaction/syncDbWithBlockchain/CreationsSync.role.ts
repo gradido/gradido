@@ -5,12 +5,13 @@ import {
   AuthenticatedEncryption,
   EncryptedMemo,
   Filter,
+  GRDT_LEDGER_ANCHOR_LEGACY_GRADIDO_DB_CONTRIBUTION_ID,
+  GRDT_TRANSACTION_CREATION,
   GradidoTransactionBuilder,
   KeyPairEd25519,
   LedgerAnchor,
   MemoryBlockPtr,
   SearchDirection_DESC,
-  TransactionType_CREATION,
   TransferAmount,
 } from 'gradido-blockchain-js'
 import * as v from 'valibot'
@@ -30,7 +31,7 @@ import { AbstractSyncRole, IndexType } from './AbstractSync.role'
 
 export class CreationsSyncRole extends AbstractSyncRole<CreationTransactionDb> {
   constructor(context: Context) {
-    super(context, LedgerAnchor.Type_LEGACY_GRADIDO_DB_CONTRIBUTION_ID)
+    super(context, GRDT_LEDGER_ANCHOR_LEGACY_GRADIDO_DB_CONTRIBUTION_ID)
     this.accountBalances.reserve(3n)
   }
 
@@ -172,7 +173,7 @@ export class CreationsSyncRole extends AbstractSyncRole<CreationTransactionDb> {
       )
     } catch (e) {
       const f = new Filter()
-      f.transactionType = TransactionType_CREATION
+      f.transactionType = GRDT_TRANSACTION_CREATION
       f.searchDirection = SearchDirection_DESC
       f.pagination.size = 1
       const lastContribution = blockchain.findOne(f)

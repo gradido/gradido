@@ -1,6 +1,6 @@
 import { TypeBoxFromValibot } from '@sinclair/typemap'
 import { Elysia, status, t, ValidationError } from 'elysia'
-import { AddressType_NONE } from 'gradido-blockchain-js'
+import { GRDT_ADDRESS_NONE } from 'gradido-blockchain-js'
 import { getLogger } from 'log4js'
 import * as v from 'valibot'
 import { ensureCommunitiesAvailable } from '../client/GradidoNode/communities'
@@ -149,7 +149,7 @@ async function isAccountExist(identifierAccount: IdentifierAccountInput): Promis
     publicKey.convertToHex(),
     identifierAccountParsed.communityId,
   )
-  const exists = addressType !== AddressType_NONE
+  const exists = addressType !== GRDT_ADDRESS_NONE
   const endTime = Date.now()
   logger.info(`isAccountExist: ${exists}, time used: ${endTime - startTime}ms`)
   if (logger.isDebugEnabled()) {

@@ -2,7 +2,7 @@ import { beforeAll, describe, expect, it } from 'bun:test'
 import { TypeCompiler } from '@sinclair/typebox/compiler'
 import { TypeBoxFromValibot } from '@sinclair/typemap'
 import { randomBytes } from 'crypto'
-import { AddressType_COMMUNITY_HUMAN } from 'gradido-blockchain-js'
+import { GRDT_ADDRESS_COMMUNITY_HUMAN } from 'gradido-blockchain-js'
 import { v4 as uuidv4 } from 'uuid'
 import * as v from 'valibot'
 import { AccountType } from '../data/AccountType.enum'
@@ -92,7 +92,7 @@ describe('transaction schemas', () => {
             accountNr: 0,
           },
         },
-        accountType: AddressType_COMMUNITY_HUMAN,
+        accountType: GRDT_ADDRESS_COMMUNITY_HUMAN,
         createdAt: new Date(registerAddress.createdAt),
       })
     })

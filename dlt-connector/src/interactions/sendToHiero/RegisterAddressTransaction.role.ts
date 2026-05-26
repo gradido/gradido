@@ -1,4 +1,4 @@
-import { AddressType, GradidoTransactionBuilder } from 'gradido-blockchain-js'
+import { GradidoTransactionBuilder, grdt_address } from 'gradido-blockchain-js'
 import * as v from 'valibot'
 import { KeyPairIdentifierLogic } from '../../data/KeyPairIdentifier.logic'
 import { Uuidv4Hash } from '../../data/Uuidv4Hash'
@@ -53,7 +53,7 @@ export class RegisterAddressTransactionRole extends AbstractTransactionRole {
       .setSenderCommunity(this.registerAddressTransaction.user.communityId)
       .setRegisterAddress(
         userKeyPair.getPublicKey(),
-        this.registerAddressTransaction.accountType as AddressType,
+        this.registerAddressTransaction.accountType as grdt_address,
         new Uuidv4Hash(this.account.userUuid).getAsMemoryBlock(),
         accountKeyPair.getPublicKey(),
       )

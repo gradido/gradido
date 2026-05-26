@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'bun:test'
 import { TypeCompiler } from '@sinclair/typebox/compiler'
 import { Static, TypeBoxFromValibot } from '@sinclair/typemap'
-import { AddressType_COMMUNITY_AUF, InMemoryBlockchainProvider } from 'gradido-blockchain-js'
+import { GRDT_ADDRESS_COMMUNITY_AUF, InMemoryBlockchainProvider } from 'gradido-blockchain-js'
 import * as v from 'valibot'
 import { AccountType } from '../data/AccountType.enum'
 import {
@@ -50,23 +50,23 @@ describe('basic.schema', () => {
 
   describe('AddressType and AccountType', () => {
     it('AddressType from string', () => {
-      const addressType = v.parse(addressTypeSchema, 'COMMUNITY_AUF')
-      expect(addressType).toBe(AddressType_COMMUNITY_AUF)
+      const addressType = v.parse(addressTypeSchema, 'GRDT_ADDRESS_COMMUNITY_AUF')
+      expect(addressType).toBe(GRDT_ADDRESS_COMMUNITY_AUF)
     })
     it('AddressType from AddressType', () => {
-      const addressType = v.parse(addressTypeSchema, AddressType_COMMUNITY_AUF)
-      expect(addressType).toBe(AddressType_COMMUNITY_AUF)
+      const addressType = v.parse(addressTypeSchema, GRDT_ADDRESS_COMMUNITY_AUF)
+      expect(addressType).toBe(GRDT_ADDRESS_COMMUNITY_AUF)
     })
     it('AddressType from AccountType', () => {
       const accountType = v.parse(addressTypeSchema, AccountType.COMMUNITY_AUF)
-      expect(accountType).toBe(AddressType_COMMUNITY_AUF)
+      expect(accountType).toBe(GRDT_ADDRESS_COMMUNITY_AUF)
     })
     it('AccountType from AccountType', () => {
       const accountType = v.parse(accountTypeSchema, AccountType.COMMUNITY_AUF)
       expect(accountType).toBe(AccountType.COMMUNITY_AUF)
     })
     it('AccountType from AddressType', () => {
-      const accountType = v.parse(accountTypeSchema, AddressType_COMMUNITY_AUF)
+      const accountType = v.parse(accountTypeSchema, GRDT_ADDRESS_COMMUNITY_AUF)
       expect(accountType).toBe(AccountType.COMMUNITY_AUF)
     })
     it('addressType with type box', () => {
@@ -74,7 +74,7 @@ describe('basic.schema', () => {
       const check = TypeCompiler.Compile(AddressTypeSchema)
       expect(check.Check(AccountType.COMMUNITY_AUF)).toBe(true)
       // type box will throw an error, because it cannot handle valibots custom validation
-      expect(() => check.Check(AddressType_COMMUNITY_AUF)).toThrow(
+      expect(() => check.Check(GRDT_ADDRESS_COMMUNITY_AUF)).toThrow(
         new TypeError(`undefined is not an object (evaluating 'schema["~run"]')`),
       )
       expect(() => check.Check('invalid')).toThrow(
@@ -86,7 +86,7 @@ describe('basic.schema', () => {
       const check = TypeCompiler.Compile(AccountTypeSchema)
       expect(check.Check(AccountType.COMMUNITY_AUF)).toBe(true)
       // type box will throw an error, because it cannot handle valibots custom validation
-      expect(() => check.Check(AddressType_COMMUNITY_AUF)).toThrow(
+      expect(() => check.Check(GRDT_ADDRESS_COMMUNITY_AUF)).toThrow(
         new TypeError(`undefined is not an object (evaluating 'schema["~run"]')`),
       )
       expect(() => check.Check('invalid')).toThrow(
