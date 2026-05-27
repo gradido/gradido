@@ -1,6 +1,6 @@
 {
   "name": "shared-native",
-  "version": "2.8.1",
+  "version": "2.8.2",
   "description": "Gradido Shared Native Code, Low-Level Shared Code logic from blockchain rewritten in C",
   "main": "./index.cjs",
   "types": "./index.d.ts",
