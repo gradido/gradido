@@ -590,6 +590,11 @@ export class TransactionResolver {
         logger.error(errmsg)
         throw new Error(errmsg)
       }
+      if (senderUser.id === recipientUser.id) {
+        const errmsg = 'You cannot send an email to yourself'
+        logger.error(errmsg)
+        throw new Error(errmsg)
+      }
       logger.addContext('to', recipientUser?.id)
       if (recipientUser.foreign) {
         const errmsg = 'Found foreign recipient user for a local action: ' + recipientUser
@@ -610,6 +615,8 @@ export class TransactionResolver {
         senderLastName: senderUser.lastName,
         subject: subject,
         memo: memo,
+        senderUuid: senderUser.gradidoID,
+        senderCommunityUuid: senderUser.communityUuid,
       })
     } else {
       // sendEmail for foreign communities
