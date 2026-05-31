@@ -19,6 +19,7 @@ export { SendCoinsClient as V1_1_SendCoinsClient } from './federation/client/1_1
 export * from './federation/client/CommandClientFactory'
 export * from './federation/client/SendCoinsClientFactory'
 export * from './federation/enum/apiVersionType'
+export * from './graphql'
 export * from './graphql/enum/TransactionTypeId'
 export * from './graphql/logic/interpretEncryptedTransferArgs'
 export * from './graphql/logic/processCommand'
