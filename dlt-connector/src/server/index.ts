@@ -130,6 +130,16 @@ export const appRoutes = new Elysia()
       response: t.Object({ transactionId: TypeBoxFromValibot(hieroTransactionIdStringSchema) }),
     },
   )
+  .post(
+    '/validateAndDecodeConfirmedTransaction',
+    async ({ body }) => ({
+      success: true,
+    }),
+    {
+      body: t.Object({ transactionBase64: t.String() }),
+      response: t.Object({ success: t.Boolean() }),
+    },
+  )
 
 // function stay here for now because it is small and simple, but maybe later if more functions are added, move it to a separate file
 async function isAccountExist(identifierAccount: IdentifierAccountInput): Promise<boolean> {
