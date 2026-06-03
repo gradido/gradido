@@ -7,4 +7,7 @@ export class InvalidTransactionInput {
 
   @Field(() => String)
   hieroTransactionId: string
+
+  @Field(() => String)
+  communityUuid: string
 }
