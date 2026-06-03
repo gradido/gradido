@@ -1,8 +1,13 @@
 import { t } from 'elysia'
 import * as v from 'valibot'
-import { hex32Schema, uuidv4Schema, amountSchema, hieroTransactionIdStringSchema } from '../schemas/typeGuard.schema'
-import { dateStringSchema } from '../schemas/typeConverter.schema'
 import { TransactionType } from '../data/TransactionType.enum'
+import { dateStringSchema } from '../schemas/typeConverter.schema'
+import {
+  amountSchema,
+  hex32Schema,
+  hieroTransactionIdStringSchema,
+  uuidv4Schema,
+} from '../schemas/typeGuard.schema'
 
 export const existTypeBoxSchema = t.Object({
   exists: t.Boolean(),
@@ -29,7 +34,5 @@ export const checkedTransactionSchema = v.object({
   transactionType: v.optional(v.nullable(v.enum(TransactionType)), null),
 })
 
-
 export type CheckedTransactionInput = v.InferInput<typeof checkedTransactionSchema>
 export type CheckedTransaction = v.InferOutput<typeof checkedTransactionSchema>
-

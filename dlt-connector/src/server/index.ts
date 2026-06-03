@@ -1,6 +1,12 @@
 import { TypeBoxFromValibot } from '@sinclair/typemap'
 import { Elysia, status, t, ValidationError } from 'elysia'
-import { CompleteTransaction, gradidoCoreResultToString, GRD_SUCCESS, GRDT_ADDRESS_NONE, MonotonicTimer } from 'gradido-blockchain-js'
+import {
+  CompleteTransaction,
+  GRD_SUCCESS,
+  GRDT_ADDRESS_NONE,
+  gradidoCoreResultToString,
+  MonotonicTimer,
+} from 'gradido-blockchain-js'
 import { getLogger } from 'log4js'
 import * as v from 'valibot'
 import { ensureCommunitiesAvailable } from '../client/GradidoNode/communities'
@@ -16,7 +22,12 @@ import {
   accountIdentifierSeedTypeBoxSchema,
   accountIdentifierUserTypeBoxSchema,
 } from './input.schema'
-import { CheckedTransactionInput, checkedTransactionSchema, existTypeBoxSchema, TransactionPartyInput } from './output.schema'
+import {
+  CheckedTransactionInput,
+  checkedTransactionSchema,
+  existTypeBoxSchema,
+  TransactionPartyInput,
+} from './output.schema'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY}.server`)
 
@@ -132,11 +143,19 @@ export const appRoutes = new Elysia()
   )
   .post(
     '/validateAndDecodeConfirmedTransaction',
-    async ({ body }) => (
-      v.parse(checkedTransactionSchema, await validateAndDecodeConfirmedTransaction(body.transactionBase64, v.parse(uuidv4Schema, body.communityId)))
-    ),
+    async ({ body }) =>
+      v.parse(
+        checkedTransactionSchema,
+        await validateAndDecodeConfirmedTransaction(
+          body.transactionBase64,
+          v.parse(uuidv4Schema, body.communityId),
+        ),
+      ),
     {
-      body: t.Object({ transactionBase64: t.String(), communityId: TypeBoxFromValibot(uuidv4Schema) }),
+      body: t.Object({
+        transactionBase64: t.String(),
+        communityId: TypeBoxFromValibot(uuidv4Schema),
+      }),
       response: TypeBoxFromValibot(checkedTransactionSchema),
     },
   )
@@ -168,12 +187,18 @@ async function isAccountExist(identifierAccount: IdentifierAccountInput): Promis
   return exists
 }
 
-async function validateAndDecodeConfirmedTransaction(transactionBase64: string, communityId: Uuidv4): Promise<CheckedTransactionInput> {
+async function validateAndDecodeConfirmedTransaction(
+  transactionBase64: string,
+  communityId: Uuidv4,
+): Promise<CheckedTransactionInput> {
   try {
     const timeUsed = new MonotonicTimer()
     const serializedTransaction = Buffer.from(transactionBase64, 'base64')
     const tx = new CompleteTransaction()
-    let result = tx.initFromProtobuf(serializedTransaction, Buffer.from(communityId.replaceAll('-', ''), 'hex'))
+    let result = tx.initFromProtobuf(
+      serializedTransaction,
+      Buffer.from(communityId.replaceAll('-', ''), 'hex'),
+    )
     if (GRD_SUCCESS !== result) {
       return { valid: false, error: gradidoCoreResultToString(result) }
     }
@@ -202,7 +227,7 @@ async function validateAndDecodeConfirmedTransaction(transactionBase64: string, 
       }
     }
     const checkedTransaction: CheckedTransactionInput = {
-      valid: true, 
+      valid: true,
       amount: tx.getAmount()?.toString() || null,
       createdAt: tx.getCreatedAt()?.toString() || null,
       confirmedAt: tx.getConfirmedAt()?.toString() || null,
@@ -213,12 +238,9 @@ async function validateAndDecodeConfirmedTransaction(transactionBase64: string, 
     }
     logger.info(`validateAndDecodeConfirmedTransaction: ${timeUsed.string()}`)
     return checkedTransaction
-
   } catch (e) {
     logger.error(`validateAndDecodeConfirmedTransaction failed: ${e}`)
     return { valid: false, error: e instanceof Error ? e.message : 'unknown error' }
   }
 }
 export type DltRoutes = typeof appRoutes
-
-
