@@ -19,6 +19,7 @@ import { UserContact } from '@model/UserContact'
 import { UserLocationResult } from '@model/UserLocationResult'
 import {
   delay,
+  registerAddressTransaction,
   sendAccountActivationEmail,
   sendAccountMultiRegistrationEmail,
   sendResetPasswordEmail,
@@ -58,7 +59,6 @@ import {
 import { IRestResponse } from 'typed-rest-client'
 import { EntityManager, EntityNotFoundError, In, Point } from 'typeorm'
 import { v4 as uuidv4 } from 'uuid'
-import { registerAddressTransaction } from '@/apis/dltConnector'
 import { HumHubClient } from '@/apis/humhub/HumHubClient'
 import { Account as HumhubAccount } from '@/apis/humhub/model/Account'
 import { GetUser } from '@/apis/humhub/model/GetUser'

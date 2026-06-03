@@ -24,16 +24,18 @@ import {
   verifyAndDecrypt,
 } from 'shared'
 import { randombytes_random } from 'sodium-native'
+import {
+  CommandClientFactory,
+  SendCoinsClientFactory,
+  SendCoinsResult,
+  SendCoinsResultLoggingView,
+  V1_0_CommandClient,
+  V1_0_SendCoinsClient,
+} from '../../apis'
 import { SendEmailCommand } from '../../command/commands/SendEmailCommand'
 import { CONFIG as CONFIG_CORE } from '../../config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../../config/const'
 import { sendTransactionLinkRedeemedEmail, sendTransactionReceivedEmail } from '../../emails'
-import { CommandClient as V1_0_CommandClient } from '../../federation/client/1_0/CommandClient'
-import { SendCoinsResultLoggingView } from '../../federation/client/1_0/logging/SendCoinsResultLogging.view'
-import { SendCoinsResult } from '../../federation/client/1_0/model/SendCoinsResult'
-import { SendCoinsClient as V1_0_SendCoinsClient } from '../../federation/client/1_0/SendCoinsClient'
-import { CommandClientFactory } from '../../federation/client/CommandClientFactory'
-import { SendCoinsClientFactory } from '../../federation/client/SendCoinsClientFactory'
 import { TransactionTypeId } from '../../graphql/enum/TransactionTypeId'
 import { EncryptedTransferArgs } from '../../graphql/model/EncryptedTransferArgs'
 import { calculateSenderBalance } from '../../util/calculateSenderBalance'

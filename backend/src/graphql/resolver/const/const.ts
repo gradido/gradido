@@ -9,4 +9,4 @@ export const FULL_CREATION_AVAILABLE = [
 ]
 export const DEFAULT_PAGINATION_PAGE_SIZE = 25
 export const FRONTEND_CONTRIBUTIONS_ITEM_ANCHOR_PREFIX = 'contributionListItem-'
-export const CODE_VALID_DAYS_DURATION = 14
+export { CODE_VALID_DAYS_DURATION } from 'shared'

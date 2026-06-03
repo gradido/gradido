@@ -1,6 +1,6 @@
 import { AbstractLoggingView } from 'database'
 
-import { SendCoinsResult } from '../model/SendCoinsResult'
+import { SendCoinsResult } from '../model'
 
 export class SendCoinsResultLoggingView extends AbstractLoggingView {
   public constructor(private self: SendCoinsResult) {
