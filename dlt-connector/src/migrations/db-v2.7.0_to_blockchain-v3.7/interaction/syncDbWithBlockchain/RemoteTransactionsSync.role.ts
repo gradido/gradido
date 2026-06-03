@@ -1,4 +1,3 @@
-import Decimal from 'decimal.js-light'
 import { and, asc, eq, gt, inArray, isNull, ne, or } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/mysql-core'
 import {
@@ -32,7 +31,7 @@ import { AbstractSyncRole, IndexType } from './AbstractSync.role'
 
 export class RemoteTransactionsSyncRole extends AbstractSyncRole<TransactionDb> {
   constructor(context: Context) {
-    super(context)
+    super(context, LedgerAnchor.Type_LEGACY_GRADIDO_DB_TRANSACTION_ID)
     this.accountBalances.reserve(1n)
   }
 
@@ -90,9 +89,6 @@ export class RemoteTransactionsSyncRole extends AbstractSyncRole<TransactionDb> 
       }
       if (item.typeId === TransactionTypeId.SEND && item.amount) {
         item.amount *= -1n
-      }
-      if (item.balanceFull && new Decimal(item.balanceFull).isNegative()) {
-        item.balanceFull = '0'
       }
       try {
         return v.parse(transactionDbSchema, item)
@@ -167,11 +163,7 @@ export class RemoteTransactionsSyncRole extends AbstractSyncRole<TransactionDb> 
     }
 
     try {
-      if (item.decayCalculationType === DecayCalculationType.DECIMAL_JS_FIXED_FACTOR) {
-        lastBalance.updateLegacyDecay(amount, item.balanceDate, item.balanceFull)
-      } else {
-        lastBalance.update(amount, item.balanceDate)
-      }
+      lastBalance.update(amount, item.balanceDate)
     } catch (e) {
       if (e instanceof NegativeBalanceError) {
         this.logLastBalanceChangingTransactions(publicKey, communityContext.blockchain, 1)
@@ -190,10 +182,7 @@ export class RemoteTransactionsSyncRole extends AbstractSyncRole<TransactionDb> 
 
   pushToBlockchain(item: TransactionDb): void {
     const { senderUser, recipientUser } = this.getUser(item)
-    const ledgerAnchor = new LedgerAnchor(
-      item.id,
-      LedgerAnchor.Type_LEGACY_GRADIDO_DB_TRANSACTION_ID,
-    )
+    const ledgerAnchor = this.getLedgerAnchor(item)
 
     if (senderUser.communityUuid === recipientUser.communityUuid) {
       throw new Error(

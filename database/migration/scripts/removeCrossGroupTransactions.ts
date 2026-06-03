@@ -39,7 +39,13 @@ function calculateBalance(
     }
   } else {
     // update balance with decay
-    const lastTransactionBalance = GradidoUnit.fromGradidoCent(lastTransaction.balance)
+    let lastTransactionBalance = GradidoUnit.fromGradidoCent(lastTransaction.balance)
+    if (lastTransactionBalance.gddCent <= 0) {
+      return {
+        balance: currentTransaction.amount,
+        decay: 0n
+      }
+    }
     const decay = lastTransactionBalance.calculateDecay(lastTransaction.balanceDate, currentTransaction.balanceDate)
     const newBalance = decay.balance.add(GradidoUnit.fromGradidoCent(currentTransaction.amount))
 

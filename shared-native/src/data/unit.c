@@ -356,9 +356,10 @@ inline void r128Mul_specialized_factor(R128* dst, const R128* a, const R128* b)
 
 grdd_unit grdd_unit_calculate_decay(grdd_unit gdd, grdd_duration_seconds duration)
 {
-  if (duration == 0) {
+    if (duration == 0) {
 		return gdd;
 	}
+    assert(gdd >= 0);
 
 	// decay for one year is 50%
 	/*
@@ -373,8 +374,8 @@ grdd_unit grdd_unit_calculate_decay(grdd_unit gdd, grdd_duration_seconds duratio
 	if (duration >= SECONDS_PER_YEAR) {
 		uint64_t times = (uint64_t)(duration / SECONDS_PER_YEAR);
 		if (times > 63) {
-				// after more than 63 years, all gradidos are decayed
-				return 0;
+			// after more than 63 years, all gradidos are decayed
+			return 0;
 		}
 		duration = duration - times * SECONDS_PER_YEAR;
 		gdd_temp =  gdd >> times; // equivalent to gdd / (2^times)

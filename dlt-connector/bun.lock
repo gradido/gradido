@@ -5,7 +5,7 @@
       "name": "dlt-connector",
       "dependencies": {
         "cross-env": "^7.0.3",
-        "gradido-blockchain-js": "git+https://github.com/gradido/gradido-blockchain-js#61dabaaca680dedbe6911482d5562f103497d86a",
+        "gradido-blockchain-js": "git+https://github.com/gradido/gradido-blockchain-js#08c8dab30103ba3027a2d056df3d1467ed153edb",
       },
       "devDependencies": {
         "@biomejs/biome": "2.0.0",
@@ -19,7 +19,6 @@
         "@types/uuid": "^8.3.4",
         "adm-zip": "^0.5.16",
         "async-mutex": "^0.5.0",
-        "decimal.js-light": "^2.5.1",
         "dotenv": "^10.0.0",
         "drizzle-orm": "^0.44.7",
         "elysia": "1.3.8",
@@ -447,8 +446,6 @@
 
     "debug": ["debug@4.4.1", "", { "dependencies": { "ms": "^2.1.3" } }, "sha512-KcKCqiftBJcZr++7ykoDIEwSa3XWowTfNPo92BYxjXiyYEVrUQh2aLyhxBCwww+heortUFxEJYcRzosstTEBYQ=="],
 
-    "decimal.js-light": ["decimal.js-light@2.5.1", "", {}, "sha512-qIMFpTMZmny+MMIitAB6D7iVPEorVw6YQRWkvarTkT4tBeSLLiHzcwj6q0MmYSFCiVpiqPJTJEYIrpcPzVEIvg=="],
-
     "deep-extend": ["deep-extend@0.6.0", "", {}, "sha512-LOHxIOaPYdHlJRtCQfDIVZtfw/ufM8+rVj649RIHzcm/vGwQRXFt6OPqIFWsm2XEMrNIEtWR64sY1LEKD2vAOA=="],
 
     "delayed-stream": ["delayed-stream@1.0.0", "", {}, "sha512-ZySD7Nf91aLB0RxL4KGrKHBXl7Eds1DAmEdcoVawXnLD7SDhpNgtuII2aAkg7a7QS41jxPSZ17p4VdGnMHk3MQ=="],
@@ -581,7 +578,7 @@
 
     "graceful-fs": ["graceful-fs@4.2.11", "", {}, "sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ=="],
 
-    "gradido-blockchain-js": ["gradido-blockchain-js@github:gradido/gradido-blockchain-js#61dabaa", { "dependencies": { "bindings": "^1.5.0", "nan": "^2.20.0", "node-addon-api": "^7.1.1", "node-gyp-build": "^4.8.1", "prebuildify": "git+https://github.com/einhornimmond/prebuildify#65d94455fab86b902c0d59bb9c06ac70470e56b2" } }, "gradido-gradido-blockchain-js-61dabaa"],
+    "gradido-blockchain-js": ["gradido-blockchain-js@github:gradido/gradido-blockchain-js#08c8dab", { "dependencies": { "bindings": "^1.5.0", "nan": "^2.20.0", "node-addon-api": "^7.1.1", "node-gyp-build": "^4.8.1", "prebuildify": "git+https://github.com/einhornimmond/prebuildify#65d94455fab86b902c0d59bb9c06ac70470e56b2" } }, "gradido-gradido-blockchain-js-08c8dab"],
 
     "graphql": ["graphql@16.11.0", "", {}, "sha512-mS1lbMsxgQj6hge1XZ6p7GPhbrtFwUFYi3wRzXAC/FmYnyXMTvvI3td3rjmQ2u8ewXueaSvRPWaEcgVVOT9Jnw=="],
 

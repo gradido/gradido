@@ -5,7 +5,6 @@ import {
   AddressType_COMMUNITY_HUMAN,
   GradidoTransactionBuilder,
   GradidoUnit,
-  HieroTransactionId,
   KeyPairEd25519,
   LedgerAnchor,
   MemoryBlockPtr,
@@ -24,7 +23,7 @@ import { AbstractSyncRole, IndexType } from './AbstractSync.role'
 
 export class UsersSyncRole extends AbstractSyncRole<UserDb> {
   constructor(context: Context) {
-    super(context)
+    super(context, LedgerAnchor.Type_LEGACY_GRADIDO_DB_USER_ID)
     this.accountBalances.reserve(1n)
   }
   getDate(): Date {
@@ -121,12 +120,6 @@ export class UsersSyncRole extends AbstractSyncRole<UserDb> {
     }
 
     try {
-      let ledgerAnchor: LedgerAnchor | undefined
-      if (item.messageId) {
-        ledgerAnchor = new LedgerAnchor(new HieroTransactionId(item.messageId))
-      } else {
-        ledgerAnchor = new LedgerAnchor(item.id, LedgerAnchor.Type_LEGACY_GRADIDO_DB_USER_ID)
-      }
       addToBlockchain(
         this.buildTransaction(
           communityContext,
@@ -136,10 +129,8 @@ export class UsersSyncRole extends AbstractSyncRole<UserDb> {
           userKeyPair,
         ).build(),
         communityContext.blockchain,
-        ledgerAnchor,
-        !this.context.isDecayCalculationTypeChanged(item.createdAt)
-          ? this.calculateAccountBalances(accountPublicKey, communityContext)
-          : undefined,
+        this.getLedgerAnchor(item),
+        this.calculateAccountBalances(accountPublicKey, communityContext),
       )
     } catch (e) {
       throw new BlockchainError(`Error adding ${this.itemTypeName()}`, item, e as Error)

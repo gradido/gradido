@@ -21,6 +21,7 @@ export class Context {
   public communities: Map<string, CommunityContext>
   public cache: KeyPairCacheManager
   public nativeDecayCalculationStartDate: Date
+  public useOnlyLegacyLedgerAnchorIds: boolean = false
   private timeUsed: MonotonicTimer
 
   constructor(
@@ -35,6 +36,7 @@ export class Context {
     this.communities = new Map<string, CommunityContext>()
     this.nativeDecayCalculationStartDate = nativeDecayCalculationStartDate
     this.timeUsed = new MonotonicTimer()
+    this.useOnlyLegacyLedgerAnchorIds = process.argv.includes('--use-only-legacy-ledger-anchor-ids')
   }
 
   static async create(): Promise<Context> {
