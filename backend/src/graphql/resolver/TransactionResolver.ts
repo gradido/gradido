@@ -41,7 +41,7 @@ import { virtualDecayTransaction, virtualLinkTransaction } from '@/util/virtualT
 
 // import { TRANSACTIONS_LOCK } from 'database'
 
-import { SendEmailCommand } from 'core'
+import { redeemDeferredTransferTransaction, SendEmailCommand, transferTransaction } from 'core'
 import { getLastTransaction } from 'database'
 import { Redis } from 'ioredis'
 import { getLogger, Logger } from 'log4js'
@@ -54,7 +54,6 @@ import {
   GradidoUnit,
 } from 'shared'
 import { randombytes_random } from 'sodium-native'
-import { redeemDeferredTransferTransaction, transferTransaction } from '@/apis/dltConnector'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { SendEmailArgs } from '../arg/SendEmailArgs'
 import { BalanceResolver } from './BalanceResolver'

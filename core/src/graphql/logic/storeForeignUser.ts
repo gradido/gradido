@@ -8,8 +8,8 @@ import {
 } from 'database'
 import { getLogger } from 'log4js'
 import { UserContactType } from 'shared'
+import { SendCoinsResult } from '../../apis'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../../config/const'
-import { SendCoinsResult } from '../../federation/client/1_0/model/SendCoinsResult'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.logic.storeForeignUser`)
 

@@ -50,7 +50,7 @@ describe('basic.schema', () => {
 
   describe('AddressType and AccountType', () => {
     it('AddressType from string', () => {
-      const addressType = v.parse(addressTypeSchema, 'GRDT_ADDRESS_COMMUNITY_AUF')
+      const addressType = v.parse(addressTypeSchema, 'COMMUNITY_AUF')
       expect(addressType).toBe(GRDT_ADDRESS_COMMUNITY_AUF)
     })
     it('AddressType from AddressType', () => {

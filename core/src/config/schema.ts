@@ -1,9 +1,17 @@
-import { COMMUNITY_SUPPORT_MAIL, COMMUNITY_URL, NODE_ENV } from 'config-schema'
+import {
+  COMMUNITY_SUPPORT_MAIL,
+  COMMUNITY_URL,
+  DLT_ACTIVE,
+  DLT_CONNECTOR_URL,
+  NODE_ENV,
+} from 'config-schema'
 import Joi from 'joi'
 
 export const schema = Joi.object({
   COMMUNITY_SUPPORT_MAIL,
   COMMUNITY_URL,
+  DLT_ACTIVE,
+  DLT_CONNECTOR_URL,
   NODE_ENV,
 
   EMAIL: Joi.boolean()
