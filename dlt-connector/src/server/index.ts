@@ -1,6 +1,6 @@
 import { TypeBoxFromValibot } from '@sinclair/typemap'
 import { Elysia, status, t, ValidationError } from 'elysia'
-import { GRDT_ADDRESS_NONE } from 'gradido-blockchain-js'
+import { CompleteTransaction, gradidoCoreResultToString, GRD_SUCCESS, GRDT_ADDRESS_NONE, MonotonicTimer } from 'gradido-blockchain-js'
 import { getLogger } from 'log4js'
 import * as v from 'valibot'
 import { ensureCommunitiesAvailable } from '../client/GradidoNode/communities'
@@ -11,12 +11,12 @@ import { ResolveKeyPair } from '../interactions/resolveKeyPair/ResolveKeyPair.co
 import { SendToHieroContext } from '../interactions/sendToHiero/SendToHiero.context'
 import { IdentifierAccountInput, identifierAccountSchema } from '../schemas/account.schema'
 import { transactionSchema } from '../schemas/transaction.schema'
-import { hieroTransactionIdStringSchema } from '../schemas/typeGuard.schema'
+import { hieroTransactionIdStringSchema, Uuidv4, uuidv4Schema } from '../schemas/typeGuard.schema'
 import {
   accountIdentifierSeedTypeBoxSchema,
   accountIdentifierUserTypeBoxSchema,
 } from './input.schema'
-import { existTypeBoxSchema } from './output.schema'
+import { CheckedTransactionInput, checkedTransactionSchema, existTypeBoxSchema, TransactionPartyInput } from './output.schema'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY}.server`)
 
@@ -130,6 +130,16 @@ export const appRoutes = new Elysia()
       response: t.Object({ transactionId: TypeBoxFromValibot(hieroTransactionIdStringSchema) }),
     },
   )
+  .post(
+    '/validateAndDecodeConfirmedTransaction',
+    async ({ body }) => (
+      v.parse(checkedTransactionSchema, await validateAndDecodeConfirmedTransaction(body.transactionBase64, v.parse(uuidv4Schema, body.communityId)))
+    ),
+    {
+      body: t.Object({ transactionBase64: t.String(), communityId: TypeBoxFromValibot(uuidv4Schema) }),
+      response: TypeBoxFromValibot(checkedTransactionSchema),
+    },
+  )
 
 // function stay here for now because it is small and simple, but maybe later if more functions are added, move it to a separate file
 async function isAccountExist(identifierAccount: IdentifierAccountInput): Promise<boolean> {
@@ -157,4 +167,58 @@ async function isAccountExist(identifierAccount: IdentifierAccountInput): Promis
   }
   return exists
 }
+
+async function validateAndDecodeConfirmedTransaction(transactionBase64: string, communityId: Uuidv4): Promise<CheckedTransactionInput> {
+  try {
+    const timeUsed = new MonotonicTimer()
+    const serializedTransaction = Buffer.from(transactionBase64, 'base64')
+    const tx = new CompleteTransaction()
+    let result = tx.initFromProtobuf(serializedTransaction, Buffer.from(communityId.replaceAll('-', ''), 'hex'))
+    if (GRD_SUCCESS !== result) {
+      return { valid: false, error: gradidoCoreResultToString(result) }
+    }
+    result = tx.validate(true)
+    if (GRD_SUCCESS !== result) {
+      return { valid: false, error: gradidoCoreResultToString(result) }
+    }
+    let sender: TransactionPartyInput | null = null
+    const senderPublicKey = tx.getSenderPublicKey()
+    if (senderPublicKey) {
+      const accountBalance = tx.getAccountBalance(senderPublicKey)
+      sender = {
+        publicKey: senderPublicKey.toString('hex'),
+        communityUuid: tx.getSenderCommunityUuidString(),
+        finalBalance: accountBalance.getBalance().toString(),
+      }
+    }
+    let recipient: TransactionPartyInput | null = null
+    const recipientPublicKey = tx.getRecipientPublicKey()
+    if (recipientPublicKey) {
+      const accountBalance = tx.getAccountBalance(recipientPublicKey)
+      recipient = {
+        publicKey: recipientPublicKey.toString('hex'),
+        communityUuid: tx.getRecipientCommunityUuidString(),
+        finalBalance: accountBalance.getBalance().toString(),
+      }
+    }
+    const checkedTransaction: CheckedTransactionInput = {
+      valid: true, 
+      amount: tx.getAmount()?.toString() || null,
+      createdAt: tx.getCreatedAt()?.toString() || null,
+      confirmedAt: tx.getConfirmedAt()?.toString() || null,
+      hieroTransactionId: tx.getLedgerAnchor().getHieroTransactionId().toString() || null,
+      recipient,
+      sender,
+      transactionType: tx.getTransactionType(),
+    }
+    logger.info(`validateAndDecodeConfirmedTransaction: ${timeUsed.string()}`)
+    return checkedTransaction
+
+  } catch (e) {
+    logger.error(`validateAndDecodeConfirmedTransaction failed: ${e}`)
+    return { valid: false, error: e instanceof Error ? e.message : 'unknown error' }
+  }
+}
 export type DltRoutes = typeof appRoutes
+
+
