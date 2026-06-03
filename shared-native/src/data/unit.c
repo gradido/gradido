@@ -2,7 +2,9 @@
 #include "gradido_blockchain_core/utils/converter.h"
 
 #define R128_IMPLEMENTATION
+#define R128_STDC_ONLY
 #include "r128/r128.h"
+#include "fp256/fp256.h"
 
 #include <ctype.h>
 #include <math.h>
@@ -20,6 +22,41 @@ static const uint64_t GROW_FACTOR_PER_SECOND =    405181995575ULL; // for low, a
 
 // precalculated powers of 10 for fast rounding
 static const uint64_t POW10[] = { 1, 10, 100, 1000, 10000 };
+// precalculated decay powers for consistent result across plattforms
+static const uint64_t DECAY_POWERS[] = {
+    18446743668527564940ULL,
+    18446743263345587163ULL,
+    18446742452981658309ULL,
+    18446740832253907398ULL,
+    18446737590798832767ULL,
+    18446731107890392267ULL,
+    18446718142080346313ULL,
+    18446692210487594564ULL,
+    18446640347411451525ULL,
+    18446536621696605848ULL,
+    18446329172016664620ULL,
+    18445914279655690837ULL,
+    18445084522928643346ULL,
+    18443425121448271984ULL,
+    18440106766335414243ULL,
+    18433471847125226169ULL,
+    18420209169759874097ULL,
+    18393712435208807257ULL,
+    18340833254760868098ULL,
+    18235530516106764452ULL,
+    18026735334708307356ULL,
+    17616289656815978922ULL,
+    16823221487369777986ULL,
+    15342587292489394070ULL,
+    12760787697116905635ULL,
+    8827449548832185865ULL,
+    4224261215193812073ULL,
+    967345930690427918ULL,
+    50727550937131514ULL,
+    139498028150492ULL,
+    1054912443ULL,
+    0ULL,
+};
 
 static double round_to_precision(double gdd, uint8_t precision)
 {
@@ -220,6 +257,103 @@ grdd_timestamp_seconds grdd_unit_decay_start_time()
 	return DECAY_START_TIME;
 }
 
+#if defined(__SIZEOF_INT128__)
+// specialized version of r128Mul_precise, with the assumption that b.hi is 0, speedup by ~ 20%
+static void r128Mul_specialized_factor(R128* dst, const R128* a, const R128* b)
+{
+    R128_ASSERT(dst != NULL && a != NULL && b != NULL);
+    // Q64.64 multiplication:
+    // (ahi<<64 + alo) * (bhi<<64 + blo)
+    //
+    // Result after >>64:
+    //   (alo*blo)>>64
+    // + (ahi*blo)
+    //
+    // High-high term contributes above Q64.64 range.
+    __uint128_t p1 = (__uint128_t)a->hi * (__uint128_t)b->lo;
+    __uint128_t low = (((__uint128_t)a->lo * (__uint128_t)b->lo) >> 64) + (uint64_t)p1;
+    dst->lo = (uint64_t)low;
+    dst->hi = (uint64_t)((p1 >> 64) + (low >> 64));
+}
+
+static void r128Mul_precise(R128* dst, const R128* a, const R128* b)
+{
+    R128_ASSERT(dst != NULL && a != NULL && b != NULL);
+    // Q64.64 multiplication:
+    // (ahi<<64 + alo) * (bhi<<64 + blo)
+    //
+    // Result after >>64:
+    //   (alo*blo)>>64
+    // + (ahi*blo)
+    // + (alo*bhi)
+    //
+    // High-high term contributes above Q64.64 range.
+
+    __uint128_t p1 = (__uint128_t)a->hi * (__uint128_t)b->lo;
+    __uint128_t p2 = (__uint128_t)a->lo * (__uint128_t)b->hi;
+    __uint128_t low = ((((__uint128_t)a->lo * (__uint128_t)b->lo)) >> 64) + (uint64_t)p1 + (uint64_t)p2;
+    dst->lo = (uint64_t)low;
+    dst->hi = (uint64_t)((p1 >> 64) + (p2 >> 64) + (__uint128_t)a->hi * (__uint128_t)b->hi + (low >> 64));
+}
+
+#else
+
+static void r128Mul_precise(R128* dst, const R128* a, const R128* b)
+{
+    R128_ASSERT(dst != NULL && a != NULL && b != NULL);
+    fp256 fa;
+    fp256 fb;
+    fp256 rhi;
+    fp256 rlo;
+
+    // Convert R128 -> fp256
+    // Q64.64 layout:
+    //   hi = integer part
+    //   lo = fractional part
+    //   numeric value: (hi << 64) | lo
+
+    fa.d[0] = a->lo;
+    fa.d[1] = a->hi;
+    fa.d[2] = 0;
+    fa.d[3] = 0;
+
+    fb.d[0] = b->lo;
+    fb.d[1] = b->hi;
+    fb.d[2] = 0;
+    fb.d[3] = 0;
+
+    // Full 256-bit multiplication:
+    // product = fa * fb
+    // result is 512 bit
+    //   rhi:rlo
+    fp256_mul(&rhi, &rlo, &fa, &fb);
+
+    // Q64.64 requires:
+    //   result = (a * b) >> 64
+    //
+    // We therefore extract bits [64..191]
+    // rlo layout after multiplication:
+    //   d[0] = bits   0..63
+    //   d[1] = bits  64..127
+    //   d[2] = bits 128..191
+    //   d[3] = bits 192..255
+    //
+    // Desired Q64.64 result:
+    //
+    //   lo = d[1]
+    //   hi = d[2]
+
+    dst->lo = rlo.d[1];
+    dst->hi = rlo.d[2];
+}
+
+// use intern fp256 for better precision
+inline void r128Mul_specialized_factor(R128* dst, const R128* a, const R128* b)
+{
+    r128Mul_precise(dst, a, b);
+}
+#endif
+
 grdd_unit grdd_unit_calculate_decay(grdd_unit gdd, grdd_duration_seconds duration)
 {
   if (duration == 0) {
@@ -272,30 +406,36 @@ grdd_unit grdd_unit_calculate_decay(grdd_unit gdd, grdd_duration_seconds duratio
 	// https://www.wolframalpha.com/input?i=%28e%5E%28lg%282%29+%2F+31556952%29%29%5Ex&assumption=%7B%22FunClash%22%2C+%22lg%22%7D+-%3E+%7B%22Log%22%7D
 	// from wolframalpha, based on the interest rate formula
 	//return (grdd_unit)((double)gradidoCent * pow(2.0, (double)-duration / (double)SECONDS_PER_YEAR));
-
+	//
+	// r128 Version
 	R128 factor = { .lo = 0, .hi = 1 };
-	R128 base = { .lo = DECAY_FACTOR_PER_SECOND, .hi = 0 };
 	bool negative = false;
 	uint64_t exp = duration;
 
 	if (duration < 0) {
 		negative = true;
 		exp = -duration;
-		base.lo = GROW_FACTOR_PER_SECOND;
-		base.hi = 1;
 	}
 
-	while (exp > 0) {
-			if ((exp & 1) == 1) {
-					r128Mul(&factor, &factor, &base);  // factor *= base
-			}
-			r128Mul(&base, &base, &base);        // base *= base
-			exp >>= 1;
+	int i = 0;
+	while (exp > 0)
+    {
+        if ((exp & 1) == 1) {
+            R128 static_factor =  { .lo = DECAY_POWERS[i], .hi = 0 };
+            r128Mul_specialized_factor(&factor, &factor, &static_factor);
+        }
+        exp >>= 1;
+        ++i;
+    }
+
+	if (negative) {
+	    r128Div(&factor, &R128_one, &factor);
 	}
+
 	R128 gdd128;
 	r128FromInt(&gdd128, gdd_temp);
 	// Final: balance * factor
-	r128Mul(&gdd128, &gdd128, &factor);
+	r128Mul_precise(&gdd128, &gdd128, &factor);
 	r128Round(&gdd128, &gdd128); // round to nearest integer
 	grdd_unit decayed = r128ToInt(&gdd128);
 	if (negative && gdd > 0 && decayed < 0) {
@@ -310,17 +450,17 @@ bool grdd_unit_calculate_duration_seconds(grdd_timestamp_seconds startTime, grdd
 	if (!outSeconds) {
 		return false;
 	}
-  if(startTime > endTime) {
+    if(startTime > endTime) {
 		return false;
 	}
 	grdd_timestamp_seconds start = startTime >  DECAY_START_TIME ? startTime : DECAY_START_TIME;
 	grdd_timestamp_seconds end = endTime > DECAY_START_TIME ? endTime : DECAY_START_TIME;
-  if (outSeconds) {
-    if (start == end) {
-      *outSeconds = 0;
-    } else {
-      *outSeconds = end - start;
+    if (outSeconds) {
+        if (start == end) {
+            *outSeconds = 0;
+        } else {
+            *outSeconds = end - start;
+        }
     }
-  }
 	return true;
 }
