@@ -11,7 +11,7 @@ const ZIG_DIR = path.join(DOWNLOAD_DIR, 'zig', ZIG_VERSION)
 
 export function getCoreFileName(): string {
   const platform = os.platform()
-  return platform === 'win32' ? 'core.dll' : 'libcore.so'
+  return platform === 'win32' ? 'gradido_blockchain_core.dll' : 'libgradido_blockchain_core.so'
 }
 
 export async function isMusl(): Promise<boolean> {

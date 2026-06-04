@@ -10,6 +10,7 @@ extern "C" {
 typedef int64_t grdd_timestamp_seconds;
 typedef int64_t grdd_duration_seconds;
 
+typedef int64_t grdd_unit;
 
 #ifdef __cplusplus
 }

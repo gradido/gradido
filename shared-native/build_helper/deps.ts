@@ -16,9 +16,14 @@ import { getNodeDownloadUrl, getZigDownloadUrl } from './dowload_paths'
 import { checkFileExist, moveContentsUp } from './filesystem'
 import { getNodePath, getZigPath, isMusl, isWin32 } from './host_configuration'
 
-async function fetchNodeHeaders(): Promise<void> {
+async function fetchNodeHeaders(): Promise<string> {
   const headersDir = getNodePath()
   const includePath = path.join(headersDir, 'include', 'node')
+  
+  if (fs.existsSync(includePath)) {
+    return includePath
+  }
+  
   const installedIncludePath = headers.include_dir
 
   fs.mkdirSync(includePath, { recursive: true })
@@ -34,14 +39,15 @@ async function fetchNodeHeaders(): Promise<void> {
     const nodeLibBuffer = await nodeLibResponse.arrayBuffer()
     fs.writeFileSync(nodeLibPath, Buffer.from(nodeLibBuffer))
   }
+  return includePath
 }
 
-export async function fetchZig(): Promise<void> {
+export async function fetchZig(): Promise<string> {
   const binary = isWin32() ? 'zig.exe' : 'zig'
   const binaryPath = path.join(getZigPath(), binary)
 
   if (checkFileExist(binaryPath)) {
-    return
+    return binaryPath
   }
   // biome-ignore lint/suspicious/noConsole: no logging in build.ts
   console.log('Fetching Zig...')
@@ -64,6 +70,7 @@ export async function fetchZig(): Promise<void> {
       cwd: getZigPath(),
     })
   }
+  return binaryPath
 }
 
 export async function detectTargetTriple(): Promise<TargetTriple> {
@@ -116,11 +123,15 @@ export async function detectTargetTriple(): Promise<TargetTriple> {
   throw new Error(`Unsupported platform/arch combination: ${platform}/${arch}`)
 }
 
-export async function setup_dependencies() {
-  if (!fs.existsSync('build')) {
-    fs.mkdirSync('build')
-  }
-  // workaround because node header download from zig-build doesn't work on each platform
-  await fetchNodeHeaders()
-  await fetchZig()
+export async function fetchDeps(): Promise<
+  [node: string, zig: string, napi: string | null]
+> {
+  const node = await fetchNodeHeaders()
+  const zig = await fetchZig()
+  // if node-addon-api is in the dependency tree grab its include path
+  // and strip the surrounding quotes
+  const napi = await import("node-addon-api")
+    .then((napi) => napi.include.slice(1, -1))
+    .catch(() => null)
+  return [node, zig, napi]
 }
