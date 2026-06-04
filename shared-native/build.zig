@@ -123,8 +123,10 @@ pub fn build(b: *std.Build) void {
     if (flatten_out) {               
         const bin_install_step = b.addInstallBinFile(lib.getEmittedBin(), b.fmt("../{s}", .{ lib.out_filename }));
         b.getInstallStep().dependOn(&bin_install_step.step);
-        const lib_install_step = b.addInstallLibFile(lib.getEmittedImplib(), b.fmt("../{s}", .{ lib.out_lib_filename }));
-        b.getInstallStep().dependOn(&lib_install_step.step);
+        if (target.result.os.tag == .windows) {
+            const lib_install_step = b.addInstallLibFile(lib.getEmittedImplib(), b.fmt("../{s}", .{ lib.out_lib_filename }));
+            b.getInstallStep().dependOn(&lib_install_step.step);
+        }
     } else {
         b.installArtifact(lib);
     }
