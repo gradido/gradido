@@ -1,6 +1,6 @@
 {
   "name": "database",
-  "version": "2.8.1",
+  "version": "2.8.2",
   "description": "Gradido Database Tool to execute database migrations",
   "main": "./build/index.js",
   "types": "./src/index.ts",
