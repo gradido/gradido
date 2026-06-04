@@ -596,10 +596,15 @@ export class TransactionResolver {
         logger.error(errmsg)
         throw new Error(errmsg)
       }
+      if (!recipientUser.emailContact) {
+        const errmsg = 'Recipient user has no email contact: ' + recipientUser
+        logger.error(errmsg)
+        throw new Error(errmsg)
+      }
       sendCustomEmail({
         firstName: recipientUser.firstName,
         lastName: recipientUser.lastName,
-        email: 'customEmail',
+        email: recipientUser.emailContact.email,
         language: recipientUser.language,
         senderFirstName: senderUser.firstName,
         senderLastName: senderUser.lastName,
