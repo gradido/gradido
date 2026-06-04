@@ -64,7 +64,7 @@
                     <BRow>
                       <BCol class="fw-bold">
                         <community-switch
-                          :disabled="isBalanceEmpty"
+                          :disabled="isFormDisabled"
                           :model-value="form.targetCommunity"
                           :community-identifier="autoCommunityIdentifier"
                           @update:model-value="updateField($event, 'targetCommunity')"
@@ -86,7 +86,7 @@
                         :label="$t('form.recipient')"
                         :placeholder="$t('form.identifier')"
                         :rules="validationSchema.fields.identifier"
-                        :disabled="isBalanceEmpty || isCommunitiesEmpty"
+                        :disabled="isFormDisabled || isCommunitiesEmpty"
                         :disable-smart-valid-state="disableSmartValidState"
                         @update:model-value="updateField"
                       />
@@ -113,7 +113,7 @@
                       :label="$t('form.amount')"
                       :placeholder="'0.01'"
                       :rules="validationSchema.fields.amount"
-                      :disabled="isBalanceEmpty"
+                      :disabled="isFormDisabled"
                       :disable-smart-valid-state="disableSmartValidState"
                       @update:model-value="updateField"
                     />
@@ -147,13 +147,13 @@
                   :placeholder="$t('form.message')"
                   :rules="validationSchema.fields.memo"
                   textarea="true"
-                  :disabled="isBalanceEmpty"
+                  :disabled="isFormDisabled"
                   :disable-smart-valid-state="disableSmartValidState"
                   @update:model-value="updateField"
                 />
               </BCol>
             </BRow>
-            <div v-if="!!isBalanceEmpty" class="text-danger mt-5">
+            <div v-if="!!isFormDisabled" class="text-danger mt-5">
               {{ $t('form.no_gdd_available') }}
             </div>
             <BRow v-else class="test-buttons mt-3">
@@ -350,7 +350,9 @@ const updateField = (newValue, name) => {
   }
 }
 
-const isBalanceEmpty = computed(() => props.balance <= 0)
+const isFormDisabled = computed(
+  () => (props.balance <= 0 && radioSelected.value === SEND_TYPES.send) || false,
+)
 const isCommunitiesEmpty = computed(() => communities.value.length === 0)
 
 const { result: userResult, error: userError } = useQuery(
