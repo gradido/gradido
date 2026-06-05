@@ -63,6 +63,18 @@ export class User extends BaseEntity {
   })
   alias: string
 
+  @Column({
+    name: 'alias_startupdate_at',
+    type: 'datetime',
+    precision: 3,
+    default: null,
+    nullable: true,
+  })
+  aliasStartUpdateAt: Date | null
+
+  @Column({ name: 'alias_update_count', type: 'int', unsigned: true, nullable: false, default: 0 })
+  aliasUpdateCount: number
+
   @OneToOne(
     () => require('./UserContact').UserContact,
     (emailContact: UserContactType) => emailContact.user,

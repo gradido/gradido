@@ -115,6 +115,10 @@ const openai = {
   OPENAI_ASSISTANT_ID: process.env.OPENAI_ASSISTANT_ID ?? '',
 }
 
+const user = {
+  ALIAS_GENERAL_EDIT_TIME_LIMIT: Number(process.env.ALIAS_GENERAL_EDIT_TIME_LIMIT ?? 1000 * 60 * 60 * 5) // 5 hours editing
+}
+
 export const CONFIG = {
   ...logging,
   ...server,
@@ -128,5 +132,6 @@ export const CONFIG = {
   ...gms,
   ...humhub,
   ...openai,
+  ...user,
 }
 validate(schema, CONFIG)

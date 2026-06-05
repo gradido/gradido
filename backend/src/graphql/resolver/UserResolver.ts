@@ -25,6 +25,7 @@ import {
   validateAlias,
 } from 'core'
 import {
+  AliasHistory as DbAliasHistory,
   AppDatabase,
   ContributionLink as DbContributionLink,
   TransactionLink as DbTransactionLink,
@@ -36,6 +37,7 @@ import {
   getHomeCommunity,
   ProjectBrandingSelect,
   UserLoggingView,
+  getLastAliasStorageTimeDistance as getLastAliasStorageTimeDistance,
 } from 'database'
 import { GraphQLResolveInfo } from 'graphql'
 import { getLogger, Logger } from 'log4js'
@@ -107,7 +109,7 @@ import { syncHumhub } from './util/syncHumhub'
 const LANGUAGES = ['de', 'en', 'es', 'fr', 'nl']
 const DEFAULT_LANGUAGE = 'de'
 const db = AppDatabase.getInstance()
-const createLogger = () => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.UserResolver`)
+const createLogger = (method: string) => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.UserResolver.${method}`)
 const isLanguage = (language: string): boolean => {
   return LANGUAGES.includes(language)
 }
@@ -148,7 +150,7 @@ export class UserResolver {
   @Authorized([RIGHTS.VERIFY_LOGIN])
   @Query(() => User)
   async verifyLogin(@Ctx() context: Context): Promise<User> {
-    const logger = createLogger()
+    const logger = createLogger('verifyLogin')
     logger.info('verifyLogin...')
     // TODO refactor and do not have duplicate code with login(see below)
     const userEntity = getUser(context)
@@ -168,7 +170,7 @@ export class UserResolver {
     @Args() { email, password, publisherId, project }: UnsecureLoginArgs,
     @Ctx() context: Context,
   ): Promise<User> {
-    const logger = createLogger()
+    const logger = createLogger('login')
     logger.info(`login with ${email.substring(0, 3)}..., project=${project} ...`)
     email = email.trim().toLowerCase()
     let dbUser: DbUser
@@ -286,7 +288,7 @@ export class UserResolver {
       project = null,
     }: CreateUserArgs,
   ): Promise<User> {
-    const logger = createLogger()
+    const logger = createLogger('createUser')
     const shortEmail = email.substring(0, 3)
     logger.addContext('email', shortEmail)
 
@@ -510,7 +512,7 @@ export class UserResolver {
   @Authorized([RIGHTS.SEND_RESET_PASSWORD_EMAIL])
   @Mutation(() => Boolean)
   async forgotPassword(@Arg('email') email: string): Promise<boolean> {
-    const logger = createLogger()
+    const logger = createLogger('forgotPassword')
     const shortEmail = email.substring(0, 3)
     logger.addContext('email', shortEmail)
     logger.info('forgotPassword...')
@@ -571,7 +573,7 @@ export class UserResolver {
     @Arg('code') code: string,
     @Arg('password') password: string,
   ): Promise<boolean> {
-    const logger = createLogger()
+    const logger = createLogger('setPassword')
     logger.info(`setPassword...`)
     // Validate Password
     if (!isValidPassword(password)) {
@@ -651,7 +653,7 @@ export class UserResolver {
   @Authorized([RIGHTS.QUERY_OPT_IN])
   @Query(() => Boolean)
   async queryOptIn(@Arg('optIn') optIn: string): Promise<boolean> {
-    const logger = createLogger()
+    const logger = createLogger('queryOptIn')
     logger.addContext('optIn', optIn.substring(0, 4))
     logger.info(`queryOptIn...`)
     const userContact = await DbUserContact.findOneOrFail({
@@ -671,9 +673,10 @@ export class UserResolver {
 
   @Authorized([RIGHTS.CHECK_USERNAME])
   @Query(() => Boolean)
-  async checkUsername(@Arg('username') username: string): Promise<boolean> {
+  async checkUsername(@Arg('username') username: string, @Ctx() context: Context): Promise<boolean> {
+    const user = getUser(context)
     try {
-      await validateAlias(username)
+      await validateAlias(username, user?.id)
       return true
     } catch {
       return false
@@ -703,7 +706,7 @@ export class UserResolver {
       gmsPublishLocation,
     } = updateUserInfosArgs
     const user = getUser(context)
-    const logger = createLogger()
+    const logger = createLogger('updateUserInfos')
     logger.addContext('user', user.id)
     // log only if a value is set
     logger.info(`updateUserInfos...`, {
@@ -740,13 +743,77 @@ export class UserResolver {
       humhubPublishName: humhubPublishName?.valueOf(),
       gmsPublishLocation: gmsPublishLocation?.valueOf(),
     })
+    // in case alias is set and valid, check if it is new or update
+    if (alias) {
+      await validateAlias(alias, user.id) // true or throws an error
+      // alias can simply be set in user for the first time    
+      if (!user.alias) {
+        logger.debug(`write alias=${alias} the first time in user`)
+        user.alias = alias
+        user.aliasStartUpdateAt = new Date()
+        user.aliasUpdateCount += 1
+        updated = true
+      } else {
+        logger.debug(`user.alias=${user.alias} should be updated with alias=${alias}...`)
 
-    // currently alias can only be set, not updated
-    if (alias && !user.alias && (await validateAlias(alias))) {
-      user.alias = alias
-      updated = true
+        let aliasHistoryEntry: DbAliasHistory | null = null
+        // check last alias-storage time
+        const lastAliasStorageTimeDistance = await getLastAliasStorageTimeDistance(user.id, logger)
+        logger.debug(`lastAliasStorageTimeDistance=${lastAliasStorageTimeDistance}`)
+        // if no aliasHistory entry exists or it is less than ALIAS_GENERAL_EDIT_TIME_LIMIT ago
+        if (lastAliasStorageTimeDistance === null || 
+            (lastAliasStorageTimeDistance < CONFIG.ALIAS_GENERAL_EDIT_TIME_LIMIT)) {
+          // simply update alias in user without changing aliasStartUpdateAt
+          logger.debug(`simply update user.alias=${user.alias} with alias=${alias}`)
+          user.alias = alias
+          user.aliasUpdateCount += 1
+          updated = true
+          // and remove aliasHistory-entry with same alias if exists (comparable with: reuse previous alias again)
+          const deleteResult = await DbAliasHistory.delete({
+            userId: user.id,
+            alias: alias,
+            communityUuid: user.communityUuid,
+          })
+          logger.debug(`remove optional existing DbAliasHistory same alias: deleteResult`, deleteResult)
+        } else {
+          logger.debug(`alias edit time limit is past, so the previous used alias have to be stored in history`)
+
+          // for update history of existing user-specific alias entries has to be checked
+          aliasHistoryEntry = await DbAliasHistory.findOne({
+            where: {
+              userId: user.id,
+              alias: alias,
+              communityUuid: user.communityUuid,
+            },
+          })
+          logger.debug(`found aliasHistoryEntry=${aliasHistoryEntry}`)
+          // if no history entry exists, create one with the previous user.alias
+          if (aliasHistoryEntry === null) {
+            // create new history entry
+            const aliasHistory = DbAliasHistory.create({
+              userId: user.id,
+              alias: user.alias,
+              communityUuid: user.communityUuid,
+            })
+            await DbAliasHistory.save(aliasHistory)
+            logger.debug('saved new aliasHistory', aliasHistory)
+          } else {
+            // remove aliasHistory-entry with same alias if exists (comparable with: reuse previous alias again)
+            const deleteResult = await DbAliasHistory.delete({
+              userId: user.id,
+              alias: alias,
+              communityUuid: user.communityUuid,
+            })
+            logger.debug(`remove existing and reused DbAliasHistory same alias: deleteResult`, deleteResult)
+          }
+          // and store captured alias in user
+          user.alias = alias
+          user.aliasStartUpdateAt = new Date()
+          user.aliasUpdateCount = 0
+          updated = true
+        }
+      }
     }
-
     if (language) {
       if (!isLanguage(language)) {
         logger.warn('try to set unsupported language', language)
@@ -833,7 +900,7 @@ export class UserResolver {
   @Query(() => Boolean)
   async hasElopage(@Ctx() context: Context): Promise<boolean> {
     const dbUser = getUser(context)
-    const logger = createLogger()
+    const logger = createLogger('hasElopage')
     logger.addContext('user', dbUser.id)
     const elopageBuys = await hasElopageBuys(dbUser.emailContact.email)
     logger.info(`has Elopage (ablify): ${elopageBuys}`)
@@ -844,7 +911,7 @@ export class UserResolver {
   @Query(() => GmsUserAuthenticationResult)
   async authenticateGmsUserSearch(@Ctx() context: Context): Promise<GmsUserAuthenticationResult> {
     const dbUser = getUser(context)
-    const logger = createLogger()
+    const logger = createLogger('authenticateGmsUserSearch')
     logger.addContext('user', dbUser.id)
     logger.info(`authenticateGmsUserSearch()...`)
 
@@ -875,7 +942,7 @@ export class UserResolver {
   @Query(() => UserLocationResult)
   async userLocation(@Ctx() context: Context): Promise<UserLocationResult> {
     const dbUser = getUser(context)
-    const logger = createLogger()
+    const logger = createLogger('userLocation')
     logger.addContext('user', dbUser.id)
     logger.info(`userLocation()...`)
 
@@ -906,7 +973,7 @@ export class UserResolver {
     @Arg('project', () => String, { nullable: true }) project?: string | null,
   ): Promise<string> {
     const dbUser = getUser(context)
-    const logger = createLogger()
+    const logger = createLogger('authenticateHumhubAutoLogin')
     logger.addContext('user', dbUser.id)
     logger.info(`authenticateHumhubAutoLogin()...`)
 
@@ -1112,7 +1179,7 @@ export class UserResolver {
     @Arg('email') email: string,
     @Ctx() context: Context,
   ): Promise<boolean> {
-    const logger = createLogger()
+    const logger = createLogger('sendActivationEmail')
     email = email.trim().toLowerCase()
     const user = await findUserByEmail(email)
     logger.addContext('user', user.id)
@@ -1152,7 +1219,7 @@ export class UserResolver {
     }
     const foundDbUser = await findUserByIdentifier(identifier, communityIdentifier)
     if (!foundDbUser) {
-      createLogger().debug('User not found', identifier, communityIdentifier)
+      createLogger('user').debug('User not found', identifier, communityIdentifier)
       throw new Error('User not found')
     }
     return new User(foundDbUser)
@@ -1194,7 +1261,7 @@ export async function findUserByEmail(email: string): Promise<DbUser> {
     })
     return dbUser
   } catch (e) {
-    const logger = createLogger()
+    const logger = createLogger('findUserByEmail')
     if (e instanceof EntityNotFoundError || (e as Error).name === 'EntityNotFoundError') {
       logger.warn(`findUserByEmail failed, user with email=${email} not found`)
     } else {

@@ -1,4 +1,4 @@
-import { BaseEntity, Column, Entity, OneToOne, PrimaryGeneratedColumn } from 'typeorm'
+import { BaseEntity, Column, CreateDateColumn, Entity, OneToOne, PrimaryGeneratedColumn } from 'typeorm'
 import { User } from './User'
 
 @Entity('alias_history', { engine: 'InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci' })
@@ -33,7 +33,7 @@ export class AliasHistory extends BaseEntity {
   })
   communityUuid: string
 
-  @Column({
+  @CreateDateColumn({
     name: 'created_at',
     type: 'datetime',
     precision: 3,
@@ -47,5 +47,4 @@ export class AliasHistory extends BaseEntity {
     (user) => user.aliasHistory,
   )
   user: User
-
 }
