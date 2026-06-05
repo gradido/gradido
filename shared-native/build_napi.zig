@@ -85,21 +85,21 @@ pub fn build(b: *std.Build) void {
 
     //set node js and Napi header path
     if (napi_include) |path| {
-        napi_lib.addSystemIncludePath(.{ .cwd_relative = path });
+        napi_lib.root_module.addSystemIncludePath(.{ .cwd_relative = path });
     }
     if (node_include) |path| {
-        napi_lib.addSystemIncludePath(.{ .cwd_relative = path });
+        napi_lib.root_module.addSystemIncludePath(.{ .cwd_relative = path });
     }
     addDirSources(napi_lib, b, "bindings/napi");
 
     // link with node js on windows
     if (.windows == target.result.os.tag) {
         if (node_lib) |path| {
-            napi_lib.addLibPath(.{ .cwd_relative = path });
+            napi_lib.root_module.lib_paths.append(b.allocator, .{ .cwd_relative = path }) catch @panic("error adding node js path");
         } else {
             std.debug.panic("Need node-lib path on Windows, please set -DNODE_LIB=<path>", .{});
         }
-        napi_lib.linkSystemLibrary("node");
+        napi_lib.root_module.linkSystemLibrary("node", .{});
     }
 
     const install_step = b.addInstallBinFile(
