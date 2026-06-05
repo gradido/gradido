@@ -116,6 +116,8 @@ interface BaseTarget {
   nodeVersion?: NodeVersion
   /** Node-API version */
   napiVersion?: number
+
+  isNodeJsAddon?: boolean
   /** Preprocessor defines (-D flag) */
   defines?: Record<string, boolean | string | number>
   /** C/C++ standard */
@@ -188,7 +190,7 @@ function buildOne(
 
   const [lang, clang] =
     target.std?.includes("++") ?? true ? ["c++", "clang++"] : ["cc", "clang"]
-  
+
   // base flags for c/++ compilation, always the same
   // use baseline instruction set for the target by default
   let flags: string[] = []
@@ -199,7 +201,6 @@ function buildOne(
       `-Dcpu=${target.cpu ?? "baseline"}`,
       '-p',
       './build',
-      '-DflattenOut=true',
       //`-Doutput=${target.output}`,
       '--cache-dir',
       '.zig-cache',
@@ -231,7 +232,7 @@ function buildOne(
         break
       }
     }
-  
+
 
     switch (target.mode ?? "fast") {
       // use -O3 for fast (-Ofast) is not standard compliant
@@ -253,7 +254,7 @@ function buildOne(
     if (target.exceptions === false) {
       push(flags, dbFlags)("-fno-exceptions")
     }
-  
+
     push(flags, dbFlags)(`-I${node}`)
     if (napi) {
       // add node-addon-api include directory if it's in the dependency tree
@@ -262,12 +263,20 @@ function buildOne(
     for (const i of a(target.include)) {
       push(flags, dbFlags)(`-I${i}`)
     }
-  
+
     for (const l of a(target.libraries)) {
       push(flags)(`-l${l}`)
     }
     for (const l of a(target.librariesSearch)) {
       push(flags)(`-L${l}`)
+    }
+  } else {
+    if (target.isNodeJsAddon) {
+      push(flags)(`-DNODE_INCLUDE=${node}`)
+      if (napi) {
+        // add node-addon-api include directory if it's in the dependency tree
+        push(flags)(`-DNAPI_INCLUDE=${napi}`)
+      }
     }
   }
 

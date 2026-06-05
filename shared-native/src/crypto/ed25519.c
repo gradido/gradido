@@ -81,7 +81,7 @@ grd_result ed25519_key_pair_slip10_derive_child(
   return GRD_SUCCESS;
 }
 
-inline uint32_t harden_derivation_key(const uint32_t index) {
+inline static uint32_t harden_derivation_key(const uint32_t index) {
   return (index | HARDENED_KEY_BITMASK) >> 0;
 }
 
@@ -139,4 +139,4 @@ grd_result ed25519_key_pair_slip10_derive_account_child_key_full(
   return result;
 }
 
-#endif // USE_SODIUM
+#endif //USE_SODIUM

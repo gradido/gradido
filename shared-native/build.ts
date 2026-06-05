@@ -23,48 +23,34 @@ async function main() {
         output: `build/core`,
         std: 'c17',
         sources: [],
-        cflags: ['-Dsodium=true', '-Dshared=true', '--release=small'],
+        cflags: ['-Dsodium=true', '-Dshared=true', '--release=small', '-DsingleOutputDir=true'],
         useBuildZig: true
       } as Target,
-      /*c_core: {
-        ...commonConfigs,
-        output: `build/${coreFileName}`,
-        sources: libSrcs,
-        type: 'shared',
-        std: 'c17',
-        cflags: ['-g0', '-s'].concat(cflags),
-      } as Target,
-      cpp_napi: {
-        ...commonConfigs,
-        ...libs,
-        output: 'build/shared_native.node',
-        sources: ['bindings/napi/gradidoUnit.cpp'],
-        cflags: ['-g0', '-s', '-DNAPI_VERSION=8'].concat(cflags),
-        } as Target,
-        //*/
     },
     undefined,
     './compile_commands.json',
   )
-  const libs: { librariesSearch: string[]; libraries: string[] } = {
-    librariesSearch: ['./build'],
-    libraries: ['gradido_blockchain_core']
-  }
-
+  const cflags: string[] = []
   if (isWin32()) {
     // on windows we need to link against the node library
-    libs.librariesSearch.push(getNodePath())
-    libs.libraries.push('node')
+    cflags.push('--search-prefix');
+    cflags.push(getNodePath());
   }
+
   process.env.ZIG_GLOBAL_CACHE_DIR = './.zig-cache'
   process.env.ZIG_LOCAL_CACHE_DIR  = './.zig-cache'
   await build({
     cpp_napi: {
       ...commonConfigs,
-      ...libs,
       output: 'build/shared_native.node',
-      sources: ['bindings/napi/gradidoUnit.cpp'],
-      cflags: ['-g0', '-s', '-DNAPI_VERSION=8', '-O2', '-fno-fast-math', '-fwrapv']
+      sources: [],
+      cflags: [
+        '-DNAPI_VERSION=8',
+        '--release=small',
+        '--build-file', 'build_napi.zig',
+        ].concat(cflags),
+      useBuildZig: true,
+      isNodeJsAddon: true
     } as Target
   })
 }

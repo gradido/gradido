@@ -10,6 +10,7 @@ extern "C" {
 #include "gradido_blockchain_core/const.h"
 #include "gradido_blockchain_core/result.h"
 
+#include <stddef.h>
 #include <stdint.h>
 
 typedef struct grdc_ed25519_key_pair {

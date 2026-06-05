@@ -19,11 +19,10 @@ import { getNodePath, getZigPath, isMusl, isWin32 } from './host_configuration'
 async function fetchNodeHeaders(): Promise<string> {
   const headersDir = getNodePath()
   const includePath = path.join(headersDir, 'include', 'node')
-  
   if (fs.existsSync(includePath)) {
     return includePath
   }
-  
+
   const installedIncludePath = headers.include_dir
 
   fs.mkdirSync(includePath, { recursive: true })
