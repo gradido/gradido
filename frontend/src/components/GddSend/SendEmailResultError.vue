@@ -46,6 +46,9 @@
         {{ $t('form.sendemailerror.failedToSendCommandToFederatedCommunity') }}
         {{ errorResult.split('sendCommand failed with response error: ')[1] }}
       </div>
+      <div v-else-if="errorResult.includes('You cannot send an email to yourself')">
+        {{ $t('form.sendemailerror.youCannotSendEmailToYourself') }}
+      </div>
       <div v-else>
         {{ $t('form.sendemailerror.unknownError') }}
         {{ errorResult }}
