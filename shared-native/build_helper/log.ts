@@ -20,16 +20,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-import chalk, { type Chalk } from "chalk"
+import chalk, { type Chalk } from 'chalk'
 
-export const COLOURS = [
-  "red",
-  "cyan",
-  "magenta",
-  "blue",
-  "yellow",
-  "green",
-] as const
+export const COLOURS = ['red', 'cyan', 'magenta', 'blue', 'yellow', 'green'] as const
 export type Colour = (typeof COLOURS)[number]
 
 export type Logger = (message: string) => void
@@ -39,7 +32,7 @@ export function makeLogger(prefix: string, colour?: Colour | number): Logger {
   const b = chalk.bold
 
   let c: Chalk = b
-  if (typeof colour === "number") {
+  if (typeof colour === 'number') {
     c = c.ansi256(colour)
   } else {
     // either use the provided colour name or rotate through the list
@@ -50,7 +43,9 @@ export function makeLogger(prefix: string, colour?: Colour | number): Logger {
     if (message.trim().length > 0) {
       // this is unreadable but basically we have the coloured prefix surrounded by square brackets
       // then that is made bold and followed by the message
-      console.log(`${b("[")}${c(prefix)}${b("]")} ${message}`)
+      // TODO: use log4js for it
+      // biome-ignore lint/suspicious/noConsole: no logger present yet
+      console.log(`${b('[')}${c(prefix)}${b(']')} ${message}`)
     }
   }
 }

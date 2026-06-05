@@ -122,14 +122,12 @@ export async function detectTargetTriple(): Promise<TargetTriple> {
   throw new Error(`Unsupported platform/arch combination: ${platform}/${arch}`)
 }
 
-export async function fetchDeps(): Promise<
-  [node: string, zig: string, napi: string | null]
-> {
+export async function fetchDeps(): Promise<[node: string, zig: string, napi: string | null]> {
   const node = await fetchNodeHeaders()
   const zig = await fetchZig()
   // if node-addon-api is in the dependency tree grab its include path
   // and strip the surrounding quotes
-  const napi = await import("node-addon-api")
+  const napi = await import('node-addon-api')
     .then((napi) => napi.include.slice(1, -1))
     .catch(() => null)
   return [node, zig, napi]

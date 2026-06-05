@@ -20,65 +20,53 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-import * as assert from "node:assert"
-import * as fs from "node:fs/promises"
-import * as path from "node:path"
-import * as process from "node:process"
+import * as assert from 'node:assert'
+import * as fs from 'node:fs/promises'
+import * as path from 'node:path'
+import * as process from 'node:process'
 
-import { fetchDeps } from "./deps"
-import { type Logger, makeLogger } from "./log"
-import { exec } from "./proc"
+import { fetchDeps } from './deps'
+import { type Logger, makeLogger } from './log'
+import { exec } from './proc'
 
 type GnuTargetTriple =
-  | "x86_64-linux-gnu"
-  | "aarch64-linux-gnu"
-  | "x86-linux-gnu"
-  | "arm-linux-gnueabi"
-  | "arm-linux-gnueabihf"
-type MacosTargetTriple = "x86_64-macos" | "aarch64-macos"
+  | 'x86_64-linux-gnu'
+  | 'aarch64-linux-gnu'
+  | 'x86-linux-gnu'
+  | 'arm-linux-gnueabi'
+  | 'arm-linux-gnueabihf'
+type MacosTargetTriple = 'x86_64-macos' | 'aarch64-macos'
 type NixTargetTriple =
   | GnuTargetTriple
   | MacosTargetTriple
-  | "x86_64-linux-musl"
-  | "aarch64-linux-musl"
-  | "x86-linux-musl"
-  | "arm-linux-musleabi"
-  | "arm-linux-musleabihf"
-export type TargetTriple =
-  | NixTargetTriple
-  | "x86_64-windows"
-  | "aarch64-windows"
-  | "x86-windows"
+  | 'x86_64-linux-musl'
+  | 'aarch64-linux-musl'
+  | 'x86-linux-musl'
+  | 'arm-linux-musleabi'
+  | 'arm-linux-musleabihf'
+export type TargetTriple = NixTargetTriple | 'x86_64-windows' | 'aarch64-windows' | 'x86-windows'
 
-type OutputType = "bin" | "shared" | "static"
-type OutputMode = "debug" | "fast" | "small"
+type OutputType = 'bin' | 'shared' | 'static'
+type OutputMode = 'debug' | 'fast' | 'small'
 
 type NodeVersion = `${number}.${number}.${number}`
 
-type CStd =
-  | "c89"
-  | "gnu89"
-  | "c99"
-  | "gnu99"
-  | "c11"
-  | "gnu11"
-  | "c17"
-  | "gnu17"
+type CStd = 'c89' | 'gnu89' | 'c99' | 'gnu99' | 'c11' | 'gnu11' | 'c17' | 'gnu17'
 type CppStd =
-  | "c++98"
-  | "gnu++98"
-  | "c++03"
-  | "gnu++03"
-  | "c++11"
-  | "gnu++11"
-  | "c++14"
-  | "gnu++14"
-  | "c++17"
-  | "gnu++17"
-  | "c++20"
-  | "gnu++20"
-  | "c++2b"
-  | "gnu++2b"
+  | 'c++98'
+  | 'gnu++98'
+  | 'c++03'
+  | 'gnu++03'
+  | 'c++11'
+  | 'gnu++11'
+  | 'c++14'
+  | 'gnu++14'
+  | 'c++17'
+  | 'gnu++17'
+  | 'c++20'
+  | 'gnu++20'
+  | 'c++2b'
+  | 'gnu++2b'
 export type Std = CStd | CppStd
 
 type Glibc = `2.${number}` | `2.${number}.${number}`
@@ -151,9 +139,13 @@ type CompilationDatabase = {
 
 // turn an optional array or element into an array
 function a<T>(v: T | T[] | undefined): T[] {
-  if (v === undefined) return []
-  else if (Array.isArray(v)) return v
-  else return [v]
+  if (v === undefined) {
+    return []
+  } else if (Array.isArray(v)) {
+    return v
+  } else {
+    return [v]
+  }
 }
 
 // returns a function that pushes to all the provided arrays
@@ -183,13 +175,12 @@ function buildOne(
   log: Logger,
 ): [task: Promise<number>, db: CompilationDatabase[]] {
   let triple = target.target
-  if ("glibc" in target && target.glibc) {
+  if ('glibc' in target && target.glibc) {
     // zig reads the glibc version from the end of gnu triple after a dot
     triple += `.${target.glibc}`
   }
 
-  const [lang, clang] =
-    target.std?.includes("++") ?? true ? ["c++", "clang++"] : ["cc", "clang"]
+  const [lang, clang] = (target.std?.includes('++') ?? true) ? ['c++', 'clang++'] : ['cc', 'clang']
 
   // base flags for c/++ compilation, always the same
   // use baseline instruction set for the target by default
@@ -198,61 +189,53 @@ function buildOne(
     flags = [
       'build',
       `-Dtarget=${triple}`,
-      `-Dcpu=${target.cpu ?? "baseline"}`,
+      `-Dcpu=${target.cpu ?? 'baseline'}`,
       '-p',
       './build',
       //`-Doutput=${target.output}`,
       '--cache-dir',
       '.zig-cache',
       '--global-cache-dir',
-      '.zig-cache'
+      '.zig-cache',
     ]
   } else {
-    flags = [
-      lang,
-      "-target",
-      triple,
-      `-mcpu=${target.cpu ?? "baseline"}`,
-      "-o",
-      target.output,
-    ]
+    flags = [lang, '-target', triple, `-mcpu=${target.cpu ?? 'baseline'}`, '-o', target.output]
   }
   const dbFlags = [clang]
 
   if (!target.useBuildZig) {
-    switch (target.type ?? "shared") {
-      case "bin":
-      case "static": {
-        push(flags)("-static")
+    switch (target.type ?? 'shared') {
+      case 'bin':
+      case 'static': {
+        push(flags)('-static')
         break
       }
-      case "shared": {
+      case 'shared': {
         // generate position independent code for shared objects
-        push(flags)("-shared", "-fPIC")
+        push(flags)('-shared', '-fPIC')
         break
       }
     }
 
-
-    switch (target.mode ?? "fast") {
+    switch (target.mode ?? 'fast') {
       // use -O3 for fast (-Ofast) is not standard compliant
-      case "fast": {
-        push(flags)("-O3")
+      case 'fast': {
+        push(flags)('-O3')
         break
       }
       // use -Oz for small
-      case "small": {
-        push(flags)("-Oz")
+      case 'small': {
+        push(flags)('-Oz')
         break
       }
-      case "debug":
+      case 'debug':
     }
 
     if (target.std) {
       push(flags, dbFlags)(`-std=${target.std}`)
     }
     if (target.exceptions === false) {
-      push(flags, dbFlags)("-fno-exceptions")
+      push(flags, dbFlags)('-fno-exceptions')
     }
 
     push(flags, dbFlags)(`-I${node}`)
@@ -297,12 +280,12 @@ function buildOne(
   for (const [n, v] of Object.entries(target.defines)) {
     if (v === true) {
       push(flags, dbFlags)(`-D${n}`)
-    } else if (typeof v === "string" || typeof v === "number") {
+    } else if (typeof v === 'string' || typeof v === 'number') {
       push(flags, dbFlags)(`-D${n}=${v}`)
     }
   }
 
-  if ("rpath" in target && target.rpath) {
+  if ('rpath' in target && target.rpath) {
     // specify rpaths as a linker flags
     for (const r of a(target.rpath)) {
       push(flags)(`-Wl,-rpath,${r}`)
@@ -310,7 +293,7 @@ function buildOne(
   }
 
   if (target.verbose) {
-    push(flags)("-v")
+    push(flags)('-v')
   }
 
   push(flags, dbFlags)(...a(target.cflags))
@@ -344,18 +327,9 @@ export async function build(
 
   // for each target merge the task into an array of tasks and
   // the partial compilation database into the complete one
-  const [tasks, db] = Object.entries(targets).reduce<
-    [Promise<number>[], CompilationDatabase[]]
-  >(
+  const [tasks, db] = Object.entries(targets).reduce<[Promise<number>[], CompilationDatabase[]]>(
     ([tasks, db], [name, target]) => {
-      const [task, partialDb] = buildOne(
-        target,
-        cwd,
-        node,
-        zig,
-        napi,
-        makeLogger(name),
-      )
+      const [task, partialDb] = buildOne(target, cwd, node, zig, napi, makeLogger(name))
 
       return [
         [...tasks, task],
@@ -368,16 +342,12 @@ export async function build(
   await Promise.all(tasks)
 
   if (compilationDatabase) {
-    if (typeof compilationDatabase !== "string") {
-      compilationDatabase = "compile_commands.json"
+    if (typeof compilationDatabase !== 'string') {
+      compilationDatabase = 'compile_commands.json'
     }
 
     // don't keep duplicate entries in the compilation database
     const unique = db.filter((l, idx) => db.findIndex((r) => eq(l, r)) === idx)
-    await fs.writeFile(
-      path.join(cwd, compilationDatabase),
-      JSON.stringify(unique),
-    )
+    await fs.writeFile(path.join(cwd, compilationDatabase), JSON.stringify(unique))
   }
 }
-export default build
