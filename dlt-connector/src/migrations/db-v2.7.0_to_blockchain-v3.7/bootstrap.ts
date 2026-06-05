@@ -1,6 +1,7 @@
 import { randomBytes } from 'node:crypto'
 import {
   AccountBalances,
+  GRDT_LEDGER_ANCHOR_LEGACY_GRADIDO_DB_COMMUNITY_ID,
   GradidoTransactionBuilder,
   InMemoryBlockchainProvider,
   LedgerAnchor,
@@ -97,7 +98,7 @@ async function bootstrapCommunities(context: Context): Promise<Map<string, Commu
     addToBlockchain(
       builder.build(),
       blockchain,
-      new LedgerAnchor(communityDb.id, LedgerAnchor.Type_LEGACY_GRADIDO_DB_COMMUNITY_ID),
+      new LedgerAnchor(communityDb.id, GRDT_LEDGER_ANCHOR_LEGACY_GRADIDO_DB_COMMUNITY_ID),
       accountBalances,
     )
   }

@@ -2,11 +2,11 @@ import {
   AccountBalances,
   Filter,
   GradidoTransactionBuilder,
+  grdt_ledger_anchor,
   HieroTransactionId,
   InMemoryBlockchain,
   KeyPairEd25519,
   LedgerAnchor,
-  LedgerAnchor_Type,
   MemoryBlockPtr,
   MonotonicTimer,
   SearchDirection_DESC,
@@ -36,11 +36,11 @@ export abstract class AbstractSyncRole<ItemType extends SyncItem> {
   protected logger: Logger
   protected transactionBuilder: GradidoTransactionBuilder
   protected accountBalances: AccountBalances
-  protected legacyAnchorType: LedgerAnchor_Type
+  protected legacyAnchorType: grdt_ledger_anchor
 
   constructor(
     protected readonly context: Context,
-    legacyAnchorType: LedgerAnchor_Type,
+    legacyAnchorType: grdt_ledger_anchor,
   ) {
     this.logger = getLogger(
       `${LOG4JS_BASE_CATEGORY}.migrations.db-v2.7.0_to_blockchain-v3.5.interaction.syncDbWithBlockchain`,

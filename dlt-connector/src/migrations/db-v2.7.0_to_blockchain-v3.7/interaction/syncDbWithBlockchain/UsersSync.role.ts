@@ -2,11 +2,11 @@ import { and, asc, eq, gt, isNotNull, or } from 'drizzle-orm'
 import {
   AccountBalance,
   AccountBalances,
-  AddressType_COMMUNITY_HUMAN,
+  GRDT_ADDRESS_COMMUNITY_HUMAN,
+  GRDT_LEDGER_ANCHOR_LEGACY_GRADIDO_DB_USER_ID,
   GradidoTransactionBuilder,
   GradidoUnit,
   KeyPairEd25519,
-  LedgerAnchor,
   MemoryBlockPtr,
 } from 'gradido-blockchain-js'
 import * as v from 'valibot'
@@ -23,7 +23,7 @@ import { AbstractSyncRole, IndexType } from './AbstractSync.role'
 
 export class UsersSyncRole extends AbstractSyncRole<UserDb> {
   constructor(context: Context) {
-    super(context, LedgerAnchor.Type_LEGACY_GRADIDO_DB_USER_ID)
+    super(context, GRDT_LEDGER_ANCHOR_LEGACY_GRADIDO_DB_USER_ID)
     this.accountBalances.reserve(1n)
   }
   getDate(): Date {
@@ -90,7 +90,7 @@ export class UsersSyncRole extends AbstractSyncRole<UserDb> {
       .setSenderCommunity(communityContext.communityId)
       .setRegisterAddress(
         userKeyPair.getPublicKey(),
-        AddressType_COMMUNITY_HUMAN,
+        GRDT_ADDRESS_COMMUNITY_HUMAN,
         new Uuidv4Hash(item.gradidoId).getAsMemoryBlock(),
         accountKeyPair.getPublicKey(),
       )

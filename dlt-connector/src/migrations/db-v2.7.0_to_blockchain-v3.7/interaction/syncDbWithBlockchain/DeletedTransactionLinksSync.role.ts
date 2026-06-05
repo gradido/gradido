@@ -3,12 +3,12 @@ import {
   AccountBalance,
   AccountBalances,
   Filter,
+  GRDT_LEDGER_ANCHOR_LEGACY_GRADIDO_DB_TRANSACTION_LINK_ID,
   GradidoDeferredTransfer,
   GradidoTransactionBuilder,
   GradidoTransfer,
   GradidoUnit,
   KeyPairEd25519,
-  LedgerAnchor,
   MemoryBlockPtr,
   TransferAmount,
 } from 'gradido-blockchain-js'
@@ -30,7 +30,7 @@ import { AbstractSyncRole, IndexType } from './AbstractSync.role'
 
 export class DeletedTransactionLinksSyncRole extends AbstractSyncRole<DeletedTransactionLinkDb> {
   constructor(context: Context) {
-    super(context, LedgerAnchor.Type_LEGACY_GRADIDO_DB_TRANSACTION_LINK_ID)
+    super(context, GRDT_LEDGER_ANCHOR_LEGACY_GRADIDO_DB_TRANSACTION_LINK_ID)
     this.accountBalances.reserve(2n)
   }
 
