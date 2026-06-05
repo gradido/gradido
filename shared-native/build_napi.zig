@@ -34,6 +34,7 @@ pub fn build(b: *std.Build) void {
     const napi_version = b.option([]const u8, "NAPI_VERSION", "Napi Version") orelse "8";
     const napi_include = b.option([]const u8, "NAPI_INCLUDE", "Path to Napi headers") orelse null;
     const node_include = b.option([]const u8, "NODE_INCLUDE", "Path to NodeJs headers") orelse null;
+    const node_lib = b.option([]const u8, "NODE_LIB", "Path to Node.js library (node.lib)") orelse null;
 
     const core_lib = b.addLibrary(.{ .name = "gradido_blockchain_core", .linkage = .static, .root_module = b.createModule(.{
         .target = target,
@@ -93,6 +94,11 @@ pub fn build(b: *std.Build) void {
 
     // link with node js on windows
     if (.windows == target.result.os.tag) {
+        if (node_lib) |path| {
+            napi_lib.addLibPath(.{ .cwd_relative = path });
+        } else {
+            std.debug.panic("Need node-lib path on Windows, please set -DNODE_LIB=<path>", .{});
+        }
         napi_lib.linkSystemLibrary("node");
     }
 
