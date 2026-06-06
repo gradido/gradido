@@ -25,28 +25,26 @@ async function main() {
     cflags.push(`-DNODE_LIB=${getNodePath()}`)
   }
 
-  await build(
-    {
-      c_core_bun: {
-        ...commonConfigs,
-        output: `build/core`,
-        std: 'c17',
-        sources: [],
-        cflags: ['-Dsodium=true', '-Dshared=true', '--release=small', '-DsingleOutputDir=true'],
-        useBuildZig: true,
-      } as Target,
-      cpp_napi_node: {
-        ...commonConfigs,
-        output: 'build/shared_native.node',
-        sources: [],
-        cflags: ['-DNAPI_VERSION=8', '--release=small', '--build-file', 'build_napi.zig'].concat(
-          cflags,
-        ),
-        useBuildZig: true,
-        isNodeJsAddon: true,
-      } as Target,
-    },
-  )
+  await build({
+    c_core_bun: {
+      ...commonConfigs,
+      output: `build/core`,
+      std: 'c17',
+      sources: [],
+      cflags: ['-Dsodium=true', '-Dshared=true', '--release=small', '-DsingleOutputDir=true'],
+      useBuildZig: true,
+    } as Target,
+    cpp_napi_node: {
+      ...commonConfigs,
+      output: 'build/shared_native.node',
+      sources: [],
+      cflags: ['-DNAPI_VERSION=8', '--release=small', '--build-file', 'build_napi.zig'].concat(
+        cflags,
+      ),
+      useBuildZig: true,
+      isNodeJsAddon: true,
+    } as Target,
+  })
 
   await build({})
 }
