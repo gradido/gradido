@@ -1,7 +1,7 @@
 const { describe, it } = require('node:test')
 const { strict } = require("node:assert")
 const assert = strict
-const { signKeyPairDeriveAccountFromCommunity, signKeyPairGenerateFromSeed, signKeyPairDeriveUuid, signKeyPairDerive } = require('../')
+const { signKeyPairDeriveAccountFromCommunity, signKeyPairGenerateFromSeed, signKeyPairDeriveUuid, signKeyPairDerive, genericHash } = require('../')
 
 const communitySeed = 'a84bfff0cb3195357b03c0aeb90306da50bc88e73b9437a70cc8e7d6d091af40'
 const userUuid = '693efa00-c553-42c6-a8ab-d194a8962242'
@@ -70,7 +70,7 @@ describe('Crypto', () => {
         const result = signKeyPairDeriveAccountFromCommunity(communityRootSeedRaw, userUuidRaw);
         assert.equal(result.length, 96)
       }
-    }),
+    })
     it('test community key pair', () => {
       const communitySeedRaw = new Uint8Array(Buffer.from(communityRootSeed, 'hex'))
       const communityKeyPair = signKeyPairGenerateFromSeed(communitySeedRaw)
@@ -92,7 +92,6 @@ describe('Crypto', () => {
         assert.equal(publicKeyHex, pair.userPublicKeyHex)
       }
     })
-
     it('test account key pair from user key pair', () => {
       const communitySeedRaw = new Uint8Array(Buffer.from(communityRootSeed, 'hex'))
       const communityKeyPair = signKeyPairGenerateFromSeed(communitySeedRaw)
@@ -119,6 +118,12 @@ describe('Crypto', () => {
         const publicKeyHex = Buffer.from(accountKeyPair.slice(32, 64)).toString('hex')
         assert.equal(publicKeyHex, pair.accountPublicKeyHex)
       }
+    })
+  })
+  describe('hash', () => {
+    it('generic hash', () => {
+       const result = genericHash(new Uint8Array(Buffer.from(communitySeed, 'hex')))
+       assert.equal(Buffer.from(result).toString('hex'), '2032a0d175ae01d934dd892c175bedd45232b7681aebd02b3595924cd9a8112e')
     })
   })
 })

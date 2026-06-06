@@ -81,4 +81,12 @@ export const blockchain_core = dlopen(filePath, {
     returns: i32,
     args: [pointer, pointer, pointer, u32],
   },
+  /**
+   * C function declarations for grdc_hash are found in
+   * {@link include/gradido_blockchain_core/crypto/hash.h}
+   */
+  grdc_hash_generic: {
+    returns: i32,
+    args: [pointer, pointer, u64],
+  },
 })

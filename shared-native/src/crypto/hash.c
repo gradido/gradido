@@ -5,7 +5,7 @@
 
 #include "sodium.h"
 
-grd_result grdc_generic_hash(uint8_t *hash, const uint8_t *data, size_t size) {
+grd_result grdc_hash_generic(uint8_t *hash, const uint8_t *data, size_t size) {
   if (!hash || !data) { return GRD_ERROR_NULL_POINTER; }
   if (!size) { return GRD_ERROR_INVALID_PARAM; }
   crypto_generichash(hash, GENERIC_HASH_SIZE, data, size, NULL, 0);

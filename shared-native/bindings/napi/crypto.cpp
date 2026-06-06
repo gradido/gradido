@@ -58,10 +58,10 @@ namespace gradido::crypto {
         Napi::Buffer<uint8_t> parentKeyPair = info[0].As<Napi::Buffer<uint8_t>>();
         if (parentKeyPair.Length() != sizeof(grdc_sign_key_pair)) {
             Napi::TypeError::New(
-                env, 
-                "Expected parentKeyPair to be " 
-                + std::to_string(sizeof(grdc_sign_key_pair)) 
-                + " Bytes, got " 
+                env,
+                "Expected parentKeyPair to be "
+                + std::to_string(sizeof(grdc_sign_key_pair))
+                + " Bytes, got "
                 + std::to_string(parentKeyPair.Length())
             ).ThrowAsJavaScriptException();
             return env.Null();
@@ -112,9 +112,9 @@ namespace gradido::crypto {
         Napi::Buffer<uint8_t> parentKeyPair = info[0].As<Napi::Buffer<uint8_t>>();
         if (parentKeyPair.Length() != sizeof(grdc_sign_key_pair)) {
             Napi::TypeError::New(
-                env, 
-                "Expected parentKeyPair to be 96 Bytes, got " 
-                + std::to_string(parentKeyPair.Length()) 
+                env,
+                "Expected parentKeyPair to be 96 Bytes, got "
+                + std::to_string(parentKeyPair.Length())
                 + " bytes"
             ).ThrowAsJavaScriptException();
             return env.Null();
@@ -123,9 +123,9 @@ namespace gradido::crypto {
         Napi::Buffer<uint8_t> uuid = info[1].As<Napi::Buffer<uint8_t>>();
         if (uuid.Length() != UUID_BINARY_SIZE) {
             Napi::TypeError::New(
-                env, 
-                "Expected a valid uuid (16 Bytes), got " 
-                + std::to_string(uuid.Length()) 
+                env,
+                "Expected a valid uuid (16 Bytes), got "
+                + std::to_string(uuid.Length())
                 + " bytes"
             ).ThrowAsJavaScriptException();
             return env.Null();
@@ -168,9 +168,9 @@ namespace gradido::crypto {
         Napi::Buffer<uint8_t> communitySeed = info[0].As<Napi::Buffer<uint8_t>>();
         if (communitySeed.Length() != SIGN_SEED_SIZE) {
             Napi::TypeError::New(
-                env, 
-                "Expected a valid community seed (32 Bytes), got " 
-                + std::to_string(communitySeed.Length()) 
+                env,
+                "Expected a valid community seed (32 Bytes), got "
+                + std::to_string(communitySeed.Length())
                 + " bytes"
             ).ThrowAsJavaScriptException();
             return env.Null();
@@ -179,9 +179,9 @@ namespace gradido::crypto {
         Napi::Buffer<uint8_t> userUuid = info[1].As<Napi::Buffer<uint8_t>>();
         if (userUuid.Length() != UUID_BINARY_SIZE) {
             Napi::TypeError::New(
-                env, 
-                "Expected a valid uuid (16 Bytes), got " 
-                + std::to_string(userUuid.Length()) 
+                env,
+                "Expected a valid uuid (16 Bytes), got "
+                + std::to_string(userUuid.Length())
                 + " bytes"
             ).ThrowAsJavaScriptException();
             return env.Null();
@@ -214,4 +214,4 @@ namespace gradido::crypto {
         return resultBuffer;
     }
 
-} // namespace gradidoSign
+} // namespace gradido::crypto

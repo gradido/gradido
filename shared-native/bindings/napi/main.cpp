@@ -1,5 +1,6 @@
 #include "crypto.h"
 #include "gradidoUnit.h"
+#include "hash.h"
 
 #include <napi.h>
 
@@ -15,6 +16,7 @@ Napi::Object Init(Napi::Env env, Napi::Object exports) {
     exports.Set("signKeyPairDerive", Napi::Function::New(env, gradido::crypto::Derive));
     exports.Set("signKeyPairDeriveUuid", Napi::Function::New(env, gradido::crypto::DeriveUuid));
     exports.Set("signKeyPairDeriveAccountFromCommunity", Napi::Function::New(env, gradido::crypto::DeriveAccountFromCommunity));
+    exports.Set("hashGeneric", Napi::Function::New(env, gradido::crypto::HashGeneric));
 
     return exports;
 }

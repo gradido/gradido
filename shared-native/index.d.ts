@@ -86,3 +86,10 @@ export function signKeyPairDeriveAccountFromCommunity(
   userUuid: Uint8Array,
   accountNumber: number = 1,
 ): Uint8Array
+
+/**
+ * C function declarations for grdc_hash are found in
+ * {@link include/gradido_blockchain_core/crypto/hash.h}
+ */
+
+export function hashGeneric(data: Uint8Array): Uint8Array
