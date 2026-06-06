@@ -123,7 +123,7 @@ export async function detectTargetTriple(): Promise<TargetTriple> {
 }
 
 interface NapiModule {
-    include: string
+  include: string
 }
 export async function fetchDeps(): Promise<[node: string, zig: string, napi: string | null]> {
   const node = await fetchNodeHeaders()
