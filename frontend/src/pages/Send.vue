@@ -280,6 +280,7 @@ const { t } = useI18n()
 const EMPTY_TRANSACTION_DATA = {
   identifier: '',
   amount: 0,
+  subject: '',
   memo: '',
 }
 
@@ -372,6 +373,7 @@ async function sendEmail(data) {
       })
       if (result) {
         currentTransactionStep.value = TRANSACTION_STEPS.sendEmailResultSuccess
+        Object.assign(transactionData, EMPTY_TRANSACTION_DATA)
         // toastSuccess(t('email-sent-success'))
       } else {
         currentTransactionStep.value = TRANSACTION_STEPS.sendEmailResultError
