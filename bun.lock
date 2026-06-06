@@ -18,7 +18,7 @@
     },
     "admin": {
       "name": "admin",
-      "version": "2.8.1",
+      "version": "2.8.3",
       "dependencies": {
         "@iconify/json": "^2.2.228",
         "@popperjs/core": "^2.11.8",
@@ -88,7 +88,7 @@
     },
     "backend": {
       "name": "backend",
-      "version": "2.8.1",
+      "version": "2.8.3",
       "dependencies": {
         "cross-env": "^7.0.3",
         "email-templates": "^10.0.1",
@@ -164,7 +164,7 @@
     },
     "config-schema": {
       "name": "config-schema",
-      "version": "2.8.1",
+      "version": "2.8.3",
       "dependencies": {
         "esbuild": "^0.25.2",
         "joi": "17.13.3",
@@ -182,7 +182,7 @@
     },
     "core": {
       "name": "core",
-      "version": "2.8.1",
+      "version": "2.8.3",
       "dependencies": {
         "database": "*",
         "email-templates": "^10.0.1",
@@ -218,7 +218,7 @@
     },
     "database": {
       "name": "database",
-      "version": "2.8.1",
+      "version": "2.8.3",
       "dependencies": {
         "@types/uuid": "^8.3.4",
         "cross-env": "^7.0.3",
@@ -254,7 +254,7 @@
     },
     "dht-node": {
       "name": "dht-node",
-      "version": "2.8.1",
+      "version": "2.8.3",
       "dependencies": {
         "cross-env": "^7.0.3",
         "dht-rpc": "6.18.1",
@@ -292,7 +292,7 @@
     },
     "federation": {
       "name": "federation",
-      "version": "2.8.1",
+      "version": "2.8.3",
       "dependencies": {
         "cross-env": "^7.0.3",
         "email-templates": "^10.0.1",
@@ -352,7 +352,7 @@
     },
     "frontend": {
       "name": "frontend",
-      "version": "2.8.1",
+      "version": "2.8.3",
       "dependencies": {
         "@morev/vue-transitions": "^3.0.2",
         "@types/leaflet": "^1.9.12",
@@ -448,7 +448,7 @@
     },
     "shared": {
       "name": "shared",
-      "version": "2.8.1",
+      "version": "2.8.3",
       "dependencies": {
         "esbuild": "^0.25.2",
         "jose": "^4.14.4",
@@ -468,7 +468,7 @@
     },
     "shared-native": {
       "name": "shared-native",
-      "version": "2.8.1",
+      "version": "2.8.3",
       "dependencies": {
         "detect-libc": "^2.1.2",
         "node-addon-api": "^8.7.0",
@@ -477,6 +477,7 @@
         "@biomejs/biome": "2.0.0",
         "@types/adm-zip": "^0.5.8",
         "adm-zip": "^0.5.16",
+        "chalk": "4.1.2",
         "decimal.js": "^10.6.0",
         "decimal.js-light": "^2.5.1",
         "node-api-headers": "^1.8.0",
