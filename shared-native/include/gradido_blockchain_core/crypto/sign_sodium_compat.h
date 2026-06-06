@@ -1,5 +1,5 @@
-#ifndef GRADIDO_BLOCKCHAIN_CORE_CRYPTO_ED25519_SODIUM_COMPAT_H
-#define GRADIDO_BLOCKCHAIN_CORE_CRYPTO_ED25519_SODIUM_COMPAT_H
+#ifndef GRADIDO_BLOCKCHAIN_CORE_CRYPTO_SIGN_SODIUM_COMPAT_H
+#define GRADIDO_BLOCKCHAIN_CORE_CRYPTO_SIGN_SODIUM_COMPAT_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -21,19 +21,18 @@ extern "C" {
 #endif
 
 static_assert(
-    ED25519_PUBLIC_KEY_SIZE == crypto_sign_PUBLICKEYBYTES,
+    SIGN_PUBLIC_KEY_SIZE == crypto_sign_PUBLICKEYBYTES,
     "sodium sign public key size don't match ed25519 public key size"
 );
 static_assert(
-    ED25519_SEED_SIZE == crypto_sign_SEEDBYTES,
-    "sodium sign seed size don't match ed25519 seed size"
+    SIGN_SEED_SIZE == crypto_sign_SEEDBYTES, "sodium sign seed size don't match ed25519 seed size"
 );
 static_assert(
-    ED25519_PRIVATE_KEY_SIZE == crypto_sign_SECRETKEYBYTES,
+    SIGN_PRIVATE_KEY_SIZE == crypto_sign_SECRETKEYBYTES,
     "sodium sign private key size don't match ed25519 private key size"
 );
 static_assert(
-    ED25519_SIGNATURE_SIZE == crypto_sign_BYTES,
+    SIGN_SIGNATURE_SIZE == crypto_sign_BYTES,
     "sodium sign signature size don't match ed25519 signature size"
 );
 
@@ -43,4 +42,4 @@ static_assert(
 }
 #endif
 
-#endif // GRADIDO_BLOCKCHAIN_CORE_CRYPTO_ED25519_SODIUM_COMPAT_H
+#endif // GRADIDO_BLOCKCHAIN_CORE_CRYPTO_SIGN_SODIUM_COMPAT_H

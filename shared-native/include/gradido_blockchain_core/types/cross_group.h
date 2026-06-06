@@ -12,6 +12,8 @@ typedef enum grdt_cross_group {
   GRDT_CROSS_GROUP_CROSS = 3
 } grdt_cross_group;
 
+const char *grdt_cross_group_to_string(grdt_cross_group cross_group);
+
 #ifdef __cplusplus
 }
 #endif

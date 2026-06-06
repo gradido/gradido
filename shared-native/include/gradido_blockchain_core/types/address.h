@@ -16,6 +16,8 @@ typedef enum grdt_address {
   GRDT_ADDRESS_DEFERRED_TRANSFER = 7  // special type, no need for register address
 } grdt_address;
 
+const char *grdt_address_to_string(grdt_address address);
+
 #ifdef __cplusplus
 }
 #endif

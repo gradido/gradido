@@ -36,7 +36,7 @@ typedef struct grdw_confirmed_transaction {
   //! created_at
   grdd_timestamp confirmed_at;
   //! hash of this transaction, including runnning_hash from previous transaction (id - 1 )
-  uint8_t running_hash[BLAKE2B_HASH_SIZE];
+  uint8_t running_hash[GENERIC_HASH_SIZE];
   //! Ledger anchor linking to the hiero transaction id oder db id on imported legacy transactions
   grdw_ledger_anchor ledger_anchor;
   //! Array of account balances after the transaction applied, account which where changed from this

@@ -34,7 +34,7 @@ extern "C" {
  * 16-byte UUID of the community where the gdd where created.
  */
 typedef struct grdw_account_balance {
-  uint8_t pubkey[ED25519_PUBLIC_KEY_SIZE];
+  uint8_t pubkey[SIGN_PUBLIC_KEY_SIZE];
   int64_t balance;
   uint8_t community_uuid[UUID_BINARY_SIZE];
 } grdw_account_balance;
@@ -71,8 +71,8 @@ typedef struct grdw_encrypted_memo {
  * 64-byte Ed25519 signature over the signed data.
  */
 typedef struct grdw_signature_pair {
-  uint8_t public_key[ED25519_PUBLIC_KEY_SIZE];
-  uint8_t signature[ED25519_SIGNATURE_SIZE];
+  uint8_t public_key[SIGN_PUBLIC_KEY_SIZE];
+  uint8_t signature[SIGN_SIGNATURE_SIZE];
 } grdw_signature_pair;
 
 /**
@@ -105,7 +105,7 @@ typedef struct grdw_timestamp_seconds {
  * 16-byte UUID of the community where the gdd where created.
  */
 typedef struct grdw_transfer_amount {
-  uint8_t pubkey[ED25519_PUBLIC_KEY_SIZE];
+  uint8_t pubkey[SIGN_PUBLIC_KEY_SIZE];
   int64_t amount;
   uint8_t community_uuid[UUID_BINARY_SIZE];
 } grdw_transfer_amount;

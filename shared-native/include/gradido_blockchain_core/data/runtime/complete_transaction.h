@@ -35,20 +35,20 @@ typedef struct grdr_complete_transaction {
   //   GRDT_TRANSACTION_COMMUNITY_ROOT             -> community_root
   union {
     struct {
-      uint8_t sender_pubkey[ED25519_PUBLIC_KEY_SIZE]; // set to 00000... on creation tx
-      uint8_t recipient_pubkey[ED25519_PUBLIC_KEY_SIZE];
+      uint8_t sender_pubkey[SIGN_PUBLIC_KEY_SIZE]; // set to 00000... on creation tx
+      uint8_t recipient_pubkey[SIGN_PUBLIC_KEY_SIZE];
       grdd_unit amount;
       uint8_t coin_community_uuid[UUID_BINARY_SIZE];
     } transfer;
     struct {
-      uint8_t user_public_key[ED25519_PUBLIC_KEY_SIZE];
-      uint8_t name_hash[BLAKE2B_HASH_SIZE];
-      uint8_t account_public_key[ED25519_PUBLIC_KEY_SIZE];
+      uint8_t user_public_key[SIGN_PUBLIC_KEY_SIZE];
+      uint8_t name_hash[GENERIC_HASH_SIZE];
+      uint8_t account_public_key[SIGN_PUBLIC_KEY_SIZE];
     } register_address;
     struct {
-      uint8_t public_key[ED25519_PUBLIC_KEY_SIZE];
-      uint8_t gmw_public_key[ED25519_PUBLIC_KEY_SIZE];
-      uint8_t auf_public_key[ED25519_PUBLIC_KEY_SIZE];
+      uint8_t public_key[SIGN_PUBLIC_KEY_SIZE];
+      uint8_t gmw_public_key[SIGN_PUBLIC_KEY_SIZE];
+      uint8_t auf_public_key[SIGN_PUBLIC_KEY_SIZE];
     } community_root;
   };
 
@@ -74,7 +74,7 @@ typedef struct grdr_complete_transaction {
 
   grdt_transaction transaction_type;
   grdt_balance_derivation balance_derivation_type;
-  uint8_t tx_running_hash[BLAKE2B_HASH_SIZE];
+  uint8_t tx_running_hash[GENERIC_HASH_SIZE];
 
   // arrays
   grdw_account_balance *account_balances;
@@ -106,7 +106,7 @@ void grdr_complete_transaction_init(grdr_complete_transaction *tx);
 void grdr_complete_transaction_release(grdr_complete_transaction *tx);
 
 const grdw_account_balance *grdr_complete_transaction_get_account_balance_for_public_key(
-    const grdr_complete_transaction *tx, const uint8_t public_key[ED25519_PUBLIC_KEY_SIZE]
+    const grdr_complete_transaction *tx, const uint8_t public_key[SIGN_PUBLIC_KEY_SIZE]
 );
 /**
  * @param return: pointer to 16 Byte Array with uuid or NULL

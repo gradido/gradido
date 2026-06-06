@@ -1,6 +1,7 @@
 #ifndef GRADIDO_BLOCKCHAIN_CORE_TYPES_TRANSACTION_H
 #define GRADIDO_BLOCKCHAIN_CORE_TYPES_TRANSACTION_H
 
+#include "gradido_blockchain_core/types/memo_key.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -46,6 +47,8 @@ typedef enum grdt_transaction {
   //! Technical type for using it in for loops, as max index
   GRDT_TRANSACTION_COUNT
 } grdt_transaction;
+
+const char *grdt_transaction_to_string(grdt_transaction transaction);
 
 /*! @} */
 

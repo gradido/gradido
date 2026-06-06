@@ -1,4 +1,5 @@
 const std = @import("std");
+const zcc = @import("compile_commands");
 
 /// Recursively add .c files from a directory
 fn addDirSources(
@@ -107,4 +108,14 @@ pub fn build(b: *std.Build) void {
         "../shared_native.node",
     );
     b.getInstallStep().dependOn(&install_step.step);
+
+    // make compile_commands
+    var cdbTargets: std.ArrayList(*std.Build.Step.Compile) = .empty;
+    cdbTargets.append(b.allocator, napi_lib) catch @panic("OOM");
+
+    const cdbTargetsSlice = cdbTargets.toOwnedSlice(b.allocator) catch @panic("OOM");
+    const build_cdb_step = zcc.createStep(b, "cdb", cdbTargetsSlice);
+
+    build_cdb_step.dependOn(&napi_lib.step);
+    b.getInstallStep().dependOn(build_cdb_step);
 }

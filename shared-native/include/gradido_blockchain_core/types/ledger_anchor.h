@@ -17,6 +17,8 @@ typedef enum {
   GRDT_LEDGER_ANCHOR_LEGACY_GRADIDO_DB_TRANSACTION_LINK_ID = 8
 } grdt_ledger_anchor;
 
+const char *grdt_ledger_anchor_to_string(grdt_ledger_anchor ledger_anchor);
+
 #ifdef __cplusplus
 }
 #endif

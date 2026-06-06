@@ -1,8 +1,6 @@
 #ifndef GRADIDO_BLOCKCHAIN_CORE_BLAKE2B_SODIUM_COMPAT_H
 #define GRADIDO_BLOCKCHAIN_CORE_BLAKE2B_SODIUM_COMPAT_H
 
-
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -23,7 +21,7 @@ extern "C" {
 #endif
 
 static_assert(
-    BLAKE2B_HASH_SIZE == crypto_generichash_BYTES,
+    GENERIC_HASH_SIZE == crypto_generichash_BYTES,
     "sodium generic hash size don't match blake2b hash size"
 );
 

@@ -38,6 +38,8 @@ typedef enum grd_result {
   GRD_ERROR_PB_INCORRECT_VERSION
 } grd_result;
 
+const char *grd_result_to_string(grd_result result);
+
 /** @} */
 
 #ifdef __cplusplus

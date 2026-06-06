@@ -11,6 +11,8 @@ typedef enum {
   GRDT_MEMO_KEY_PLAIN = 2,
 } grdt_memo_key;
 
+const char *grdt_memo_key_to_string(grdt_memo_key memo_key);
+
 #ifdef __cplusplus
 }
 #endif

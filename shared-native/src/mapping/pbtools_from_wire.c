@@ -61,7 +61,7 @@ static void account_balance_from_wire(
   if (!account_balance || !pb_account_balance) { return; }
 
   pb_account_balance->pubkey.buf_p = (uint8_t *)account_balance->pubkey;
-  pb_account_balance->pubkey.size = ED25519_PUBLIC_KEY_SIZE;
+  pb_account_balance->pubkey.size = SIGN_PUBLIC_KEY_SIZE;
 
   pb_account_balance->balance = account_balance->balance;
 
@@ -86,10 +86,10 @@ static void signature_pair_from_wire(
   if (!signature_pair || !pb_signature_pair) { return; }
 
   pb_signature_pair->pubkey.buf_p = (uint8_t *)signature_pair->public_key;
-  pb_signature_pair->pubkey.size = ED25519_PUBLIC_KEY_SIZE;
+  pb_signature_pair->pubkey.size = SIGN_PUBLIC_KEY_SIZE;
 
   pb_signature_pair->signature.buf_p = (uint8_t *)signature_pair->signature;
-  pb_signature_pair->signature.size = ED25519_SIGNATURE_SIZE;
+  pb_signature_pair->signature.size = SIGN_SIGNATURE_SIZE;
 }
 
 static void timestamp_from_wire(
@@ -117,7 +117,7 @@ static void transfer_amount_from_wire(
   if (!transfer_amount || !pb_transfer_amount) { return; }
 
   pb_transfer_amount->pubkey.buf_p = (uint8_t *)transfer_amount->pubkey;
-  pb_transfer_amount->pubkey.size = ED25519_PUBLIC_KEY_SIZE;
+  pb_transfer_amount->pubkey.size = SIGN_PUBLIC_KEY_SIZE;
 
   pb_transfer_amount->amount = transfer_amount->amount;
 
@@ -201,13 +201,13 @@ static grd_result community_root_from_wire(
   if (!community_root || !pb_community_root) { return GRD_ERROR_NULL_POINTER; }
 
   pb_community_root->pubkey.buf_p = (uint8_t *)community_root->pubkey;
-  pb_community_root->pubkey.size = ED25519_PUBLIC_KEY_SIZE;
+  pb_community_root->pubkey.size = SIGN_PUBLIC_KEY_SIZE;
 
   pb_community_root->gmw_pubkey.buf_p = (uint8_t *)community_root->gmw_pubkey;
-  pb_community_root->gmw_pubkey.size = ED25519_PUBLIC_KEY_SIZE;
+  pb_community_root->gmw_pubkey.size = SIGN_PUBLIC_KEY_SIZE;
 
   pb_community_root->auf_pubkey.buf_p = (uint8_t *)community_root->auf_pubkey;
-  pb_community_root->auf_pubkey.size = ED25519_PUBLIC_KEY_SIZE;
+  pb_community_root->auf_pubkey.size = SIGN_PUBLIC_KEY_SIZE;
 
   return GRD_SUCCESS;
 }
@@ -237,7 +237,7 @@ static grd_result gradido_transfer_from_wire(
   if (!gradido_transfer || !pb_gradido_transfer) { return GRD_ERROR_NULL_POINTER; }
 
   pb_gradido_transfer->recipient.buf_p = (uint8_t *)gradido_transfer->recipient;
-  pb_gradido_transfer->recipient.size = ED25519_PUBLIC_KEY_SIZE;
+  pb_gradido_transfer->recipient.size = SIGN_PUBLIC_KEY_SIZE;
 
   if (proto_gradido_gradido_transfer_sender_alloc(pb_gradido_transfer)) {
     return GRD_ERROR_OUT_OF_MEMORY;
@@ -309,17 +309,17 @@ static grd_result register_address_from_wire(
   if (!register_address || !pb_register_address) { return GRD_ERROR_NULL_POINTER; }
 
   pb_register_address->user_pubkey.buf_p = (uint8_t *)register_address->user_pubkey;
-  pb_register_address->user_pubkey.size = ED25519_PUBLIC_KEY_SIZE;
+  pb_register_address->user_pubkey.size = SIGN_PUBLIC_KEY_SIZE;
 
   pb_register_address->address_type =
       (enum proto_gradido_register_address_address_type_e)register_address->address_type;
   pb_register_address->derivation_index = register_address->derivation_index;
 
   pb_register_address->name_hash.buf_p = (uint8_t *)register_address->name_hash;
-  pb_register_address->name_hash.size = BLAKE2B_HASH_SIZE;
+  pb_register_address->name_hash.size = GENERIC_HASH_SIZE;
 
   pb_register_address->account_pubkey.buf_p = (uint8_t *)register_address->account_pubkey;
-  pb_register_address->account_pubkey.size = ED25519_PUBLIC_KEY_SIZE;
+  pb_register_address->account_pubkey.size = SIGN_PUBLIC_KEY_SIZE;
 
   return GRD_SUCCESS;
 }
@@ -481,7 +481,7 @@ grd_result grdm_confirmed_transaction_from_wire(
   timestamp_from_wire(pb_confirmed_tx->confirmed_at_p, &confirmed_tx->confirmed_at);
 
   pb_confirmed_tx->running_hash.buf_p = (uint8_t *)confirmed_tx->running_hash;
-  pb_confirmed_tx->running_hash.size = BLAKE2B_HASH_SIZE;
+  pb_confirmed_tx->running_hash.size = GENERIC_HASH_SIZE;
 
   if (proto_gradido_confirmed_transaction_ledger_anchor_alloc(pb_confirmed_tx)) {
     return GRD_ERROR_OUT_OF_MEMORY;

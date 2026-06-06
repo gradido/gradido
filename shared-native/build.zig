@@ -1,4 +1,5 @@
 const std = @import("std");
+const zcc = @import("compile_commands");
 
 /// Recursively add .c files from a directory
 fn addDirSources(
@@ -27,7 +28,16 @@ fn addDirSources(
     }
 }
 
-const BuildContext = struct { b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode, core_lib: *std.Build.Step.Compile, googletest_dep: ?*std.Build.Dependency, sodium_dep: ?*std.Build.Dependency, singleOutputDir: bool };
+const BuildContext = struct {
+    b: *std.Build,
+    target: std.Build.ResolvedTarget,
+    optimize: std.builtin.OptimizeMode,
+    core_lib: *std.Build.Step.Compile,
+    googletest_dep: ?*std.Build.Dependency,
+    sodium_dep: ?*std.Build.Dependency,
+    singleOutputDir: bool,
+    cdb: *std.ArrayList(*std.Build.Step.Compile),
+};
 
 const BuildTarget = struct {
     link_googletest: bool = false,
@@ -70,6 +80,8 @@ fn processBuildTarget(context: *const BuildContext, build_target: BuildTarget, p
         });
     }
 
+    context.cdb.append(b.allocator, exe) catch @panic("OOM");
+
     if (context.singleOutputDir) {
         const bin_install_step = b.addInstallBinFile(exe.getEmittedBin(), b.fmt("../{s}", .{exe.out_filename}));
         b.getInstallStep().dependOn(&bin_install_step.step);
@@ -81,6 +93,8 @@ fn processBuildTarget(context: *const BuildContext, build_target: BuildTarget, p
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
+    // make a list of targets that have include files and c source files
+    var cdbTargets: std.ArrayList(*std.Build.Step.Compile) = .empty;
 
     // Options
     const enable_benchmarks = b.option(bool, "benchmarks", "Enable benchmarks") orelse false;
@@ -94,15 +108,24 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     }) });
 
-    const context: BuildContext = .{ .b = b, .target = target, .optimize = optimize, .core_lib = core_lib, .googletest_dep = b.lazyDependency("googletest", .{
+    const context: BuildContext = .{
+        .b = b,
         .target = target,
         .optimize = optimize,
-    }), .sodium_dep = b.lazyDependency("libsodium", .{
-        .target = target,
-        .optimize = optimize,
-        .static = true,
-        .shared = false,
-    }), .singleOutputDir = singleOutputDir };
+        .core_lib = core_lib,
+        .googletest_dep = b.lazyDependency("googletest", .{
+            .target = target,
+            .optimize = optimize,
+        }),
+        .sodium_dep = b.lazyDependency("libsodium", .{
+            .target = target,
+            .optimize = optimize,
+            .static = true,
+            .shared = false,
+        }),
+        .singleOutputDir = singleOutputDir,
+        .cdb = &cdbTargets,
+    };
 
     if (enable_sodium) {
         core_lib.root_module.addCMacro("USE_SODIUM", "1");
@@ -120,6 +143,9 @@ pub fn build(b: *std.Build) void {
 
     addDirSources(core_lib, b, "src");
     addDirSources(core_lib, b, "third_party");
+
+    // keep track of it, so later we can pass it to compile_commands
+    cdbTargets.append(b.allocator, core_lib) catch @panic("OOM");
 
     if (singleOutputDir) {
         const bin_install_step = b.addInstallBinFile(core_lib.getEmittedBin(), b.fmt("../{s}", .{core_lib.out_filename}));
@@ -155,4 +181,9 @@ pub fn build(b: *std.Build) void {
             processBuildTarget(&context, .{ .link_googletest = true, .link_sodium = true, .name = "test_runtime", .srcs = &.{ "test_runtime.cpp", "key_pairs.cpp" } }, path);
         }
     }
+
+    const cdbTargetsSlice = cdbTargets.toOwnedSlice(b.allocator) catch @panic("OOM");
+    const buildStep = zcc.createStep(b, "cdb", cdbTargetsSlice);
+    // Build everything in the project before generating the compile_commands
+    for (cdbTargetsSlice) |cdbTarget| buildStep.dependOn(&cdbTarget.step);
 }

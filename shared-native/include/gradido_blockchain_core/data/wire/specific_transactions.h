@@ -67,11 +67,11 @@ typedef struct grdw_community_friends_update {
  */
 typedef struct grdw_community_root {
   //! Root public key: verifies register-address txs and identifies the community.
-  uint8_t pubkey[ED25519_PUBLIC_KEY_SIZE];
+  uint8_t pubkey[SIGN_PUBLIC_KEY_SIZE];
   //! Public key for Common Good (Gemeinwohl) creation funds.
-  uint8_t gmw_pubkey[ED25519_PUBLIC_KEY_SIZE];
+  uint8_t gmw_pubkey[SIGN_PUBLIC_KEY_SIZE];
   //! Public key for Compensation & Environment Fund (AUF) creation funds.
-  uint8_t auf_pubkey[ED25519_PUBLIC_KEY_SIZE];
+  uint8_t auf_pubkey[SIGN_PUBLIC_KEY_SIZE];
 } grdw_community_root;
 
 /**
@@ -115,7 +115,7 @@ typedef struct grdw_gradido_transfer {
   //! Sender's pulic key, transfer amount, and coin origin community UUID.
   grdw_transfer_amount sender;
   //! Recipient's 32-byte Ed25519 public key.
-  uint8_t recipient[ED25519_PUBLIC_KEY_SIZE];
+  uint8_t recipient[SIGN_PUBLIC_KEY_SIZE];
 } grdw_gradido_transfer;
 
 /**
@@ -210,7 +210,7 @@ typedef struct grdw_gradido_timeout_deferred_transfer {
  */
 typedef struct grdw_register_address {
   //! User's 32-byte Ed25519 public key.
-  uint8_t user_pubkey[ED25519_PUBLIC_KEY_SIZE];
+  uint8_t user_pubkey[SIGN_PUBLIC_KEY_SIZE];
   //! The role of this address in the community. For new human members,
   //! GRDT_ADDRESS_COMMUNITY_HUMAN.
   grdt_address address_type;
@@ -218,10 +218,10 @@ typedef struct grdw_register_address {
   //! the only one allowed to receive creations.
   uint32_t derivation_index;
   //! 32-byte hash of the human-readable name.
-  uint8_t name_hash[BLAKE2B_HASH_SIZE];
+  uint8_t name_hash[GENERIC_HASH_SIZE];
   //! SLIP-0010-derived Ed25519 public key of the account at the given derivation
   //! index.
-  uint8_t account_pubkey[ED25519_PUBLIC_KEY_SIZE];
+  uint8_t account_pubkey[SIGN_PUBLIC_KEY_SIZE];
 } grdw_register_address;
 
 // functions for fill structures
@@ -260,9 +260,9 @@ void grdw_community_friends_update_assemble(
  */
 void grdw_community_root_assemble(
     grdw_community_root *community_root,
-    const uint8_t pubkey[ED25519_PUBLIC_KEY_SIZE],
-    const uint8_t gmw_pubkey[ED25519_PUBLIC_KEY_SIZE],
-    const uint8_t auf_pubkey[ED25519_PUBLIC_KEY_SIZE]
+    const uint8_t pubkey[SIGN_PUBLIC_KEY_SIZE],
+    const uint8_t gmw_pubkey[SIGN_PUBLIC_KEY_SIZE],
+    const uint8_t auf_pubkey[SIGN_PUBLIC_KEY_SIZE]
 );
 
 /**
@@ -286,7 +286,7 @@ void grdw_community_root_assemble(
  */
 void grdw_gradido_creation_assemble(
     grdw_gradido_creation *gradido_creation,
-    const uint8_t recipient_pubkey[ED25519_PUBLIC_KEY_SIZE],
+    const uint8_t recipient_pubkey[SIGN_PUBLIC_KEY_SIZE],
     const int64_t amount,
     const uint8_t community_uuid[UUID_BINARY_SIZE],
     const uint64_t target_date_seconds
@@ -310,10 +310,10 @@ void grdw_gradido_creation_assemble(
  */
 void grdw_gradido_transfer_assemble(
     grdw_gradido_transfer *gradido_transfer,
-    const uint8_t sender_pubkey[ED25519_PUBLIC_KEY_SIZE],
+    const uint8_t sender_pubkey[SIGN_PUBLIC_KEY_SIZE],
     const int64_t amount,
     const uint8_t community_uuid[UUID_BINARY_SIZE],
-    const uint8_t recipient_pubkey[ED25519_PUBLIC_KEY_SIZE]
+    const uint8_t recipient_pubkey[SIGN_PUBLIC_KEY_SIZE]
 );
 
 /**
@@ -338,10 +338,10 @@ void grdw_gradido_transfer_assemble(
  */
 void grdw_gradido_deferred_transfer_assemble(
     grdw_gradido_deferred_transfer *gradido_deferred_transfer,
-    const uint8_t sender_pubkey[ED25519_PUBLIC_KEY_SIZE],
+    const uint8_t sender_pubkey[SIGN_PUBLIC_KEY_SIZE],
     const int64_t amount,
     const uint8_t community_uuid[UUID_BINARY_SIZE],
-    const uint8_t recipient_pubkey[ED25519_PUBLIC_KEY_SIZE],
+    const uint8_t recipient_pubkey[SIGN_PUBLIC_KEY_SIZE],
     const uint32_t timeout_duration
 );
 
@@ -371,10 +371,10 @@ void grdw_gradido_deferred_transfer_assemble(
 void grdw_gradido_redeem_deferred_transfer_assemble(
     grdw_gradido_redeem_deferred_transfer *gradido_redeem_deferred_transfer,
     const uint64_t deferred_transfer_transaction_nr,
-    const uint8_t sender_pubkey[ED25519_PUBLIC_KEY_SIZE],
+    const uint8_t sender_pubkey[SIGN_PUBLIC_KEY_SIZE],
     const int64_t amount,
     const uint8_t community_uuid[UUID_BINARY_SIZE],
-    const uint8_t recipient_pubkey[ED25519_PUBLIC_KEY_SIZE]
+    const uint8_t recipient_pubkey[SIGN_PUBLIC_KEY_SIZE]
 );
 
 /**
@@ -417,11 +417,11 @@ void grdw_gradido_timeout_deferred_transfer_assemble(
  */
 void grdw_register_address_assemble(
     grdw_register_address *register_address,
-    const uint8_t user_pubkey[ED25519_PUBLIC_KEY_SIZE],
+    const uint8_t user_pubkey[SIGN_PUBLIC_KEY_SIZE],
     const grdt_address address_type,
     const uint32_t derivation_index,
-    const uint8_t name_hash[BLAKE2B_HASH_SIZE],
-    const uint8_t account_pubkey[ED25519_PUBLIC_KEY_SIZE]
+    const uint8_t name_hash[GENERIC_HASH_SIZE],
+    const uint8_t account_pubkey[SIGN_PUBLIC_KEY_SIZE]
 );
 
 /** @} */

@@ -46,8 +46,6 @@ async function main() {
         isNodeJsAddon: true,
       } as Target,
     },
-    undefined,
-    './compile_commands.json',
   )
 
   await build({})

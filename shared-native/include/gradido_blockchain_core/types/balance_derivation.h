@@ -19,6 +19,8 @@ typedef enum grdt_balance_derivation {
   GRDT_BALANCE_DERIVATION_EXTERN = 2
 } grdt_balance_derivation;
 
+const char *grdt_balance_derivation_to_string(grdt_balance_derivation balance_derivation);
+
 #ifdef __cplusplus
 }
 #endif

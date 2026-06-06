@@ -180,17 +180,3 @@ namespace gradidoUnit {
         return Napi::String::New(env, str, written);
     }
 }
-
-// Module initialization
-Napi::Object Init(Napi::Env env, Napi::Object exports) {
-    exports.Set("calculateDecay", Napi::Function::New(env, gradidoUnit::CalculateDecay));
-    exports.Set("getDecayStartTime", Napi::Function::New(env, gradidoUnit::GetDecayStartTime));
-    exports.Set("gradidoUnitFromString", Napi::Function::New(env, gradidoUnit::FromString));
-    exports.Set("gradidoUnitToString", Napi::Function::New(env, gradidoUnit::ToString));
-    exports.Set("toDecimalPlaces", Napi::Function::New(env, gradidoUnit::ToDecimalPlaces));
-    exports.Set("durationToString", Napi::Function::New(env, gradidoUnit::DurationToString));
-
-    return exports;
-}
-
-NODE_API_MODULE(GradidoUnit, Init)
