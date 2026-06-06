@@ -9,11 +9,18 @@
 
 #include <string.h>
 
-// needed for ntohl
-#ifdef _WIN32
-#include <winsock.h>
+#if defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+#define IS_BIG_ENDIAN 1
 #else
-#include <arpa/inet.h>
+#define IS_BIG_ENDIAN 0
+#endif
+
+#if IS_BIG_ENDIAN
+#define swapEndian32(x) (x)
+#elif defined(_WIN32)
+#define swapEndian32(x) _byteswap_ulong(x)
+#else
+#define swapEndian32(x) __builtin_bswap32(x)
 #endif
 
 #define HARDENED_KEY_BITMASK 0x80000000
@@ -99,7 +106,7 @@ grd_result grdc_sign_key_pair_derive_uuid(
   for (int i = 0; i < 4; i++) {
     uint32_t word;
     memcpy(&word, &user_uuid[i * 4], sizeof(uint32_t));
-    word = ntohl(word); // Network-to-Host: convert from Big-Endian to Little-Endian
+    word = swapEndian32(word);
     if (word >= HARDENED_KEY_BITMASK) { word -= HARDENED_KEY_BITMASK; }
     if (0 == i) {
       result = grdc_sign_key_pair_derive(sign_key_pair, sign_parent_key, word);
