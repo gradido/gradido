@@ -2,9 +2,8 @@ import { OpenCreation } from '@model/OpenCreation'
 import { getFirstDayOfPreviousNMonth } from 'core'
 import { AppDatabase, Contribution } from 'database'
 import { getLogger } from 'log4js'
-import { GradidoUnit } from 'shared'
+import { FULL_CREATION_AVAILABLE, GradidoUnit, MAX_CREATION_AMOUNT } from 'shared'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { FULL_CREATION_AVAILABLE, MAX_CREATION_AMOUNT } from '@/graphql/resolver/const/const'
 import { LogError } from '@/server/LogError'
 
 const db = AppDatabase.getInstance()

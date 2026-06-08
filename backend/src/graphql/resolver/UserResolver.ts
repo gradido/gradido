@@ -41,7 +41,7 @@ import {
 import { GraphQLResolveInfo } from 'graphql'
 import { getLogger, Logger } from 'log4js'
 import random from 'random-bigint'
-import { updateAllDefinedAndChanged } from 'shared'
+import { FULL_CREATION_AVAILABLE, updateAllDefinedAndChanged } from 'shared'
 import { randombytes_random } from 'sodium-native'
 import {
   Arg,
@@ -57,7 +57,7 @@ import {
   Root,
 } from 'type-graphql'
 import { IRestResponse } from 'typed-rest-client'
-import { EntityManager, EntityNotFoundError, In, Point } from 'typeorm'
+import { EntityNotFoundError, In, Point } from 'typeorm'
 import { v4 as uuidv4 } from 'uuid'
 import { HumHubClient } from '@/apis/humhub/HumHubClient'
 import { Account as HumhubAccount } from '@/apis/humhub/model/Account'
@@ -92,7 +92,6 @@ import { LogError } from '@/server/LogError'
 import { communityDbUser } from '@/util/communityUser'
 import { hasElopageBuys } from '@/util/hasElopageBuys'
 import { durationInMinutesFromDates, getTimeDurationObject, printTimeDuration } from '@/util/time'
-import { FULL_CREATION_AVAILABLE } from './const/const'
 import { authenticateGmsUserPlayground } from './util/authenticateGmsUserPlayground'
 import { compareGmsRelevantUserSettings } from './util/compareGmsRelevantUserSettings'
 import { getUserCreations } from './util/creations'

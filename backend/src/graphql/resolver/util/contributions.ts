@@ -1,12 +1,9 @@
 import { Paginated } from '@arg/Paginated'
 import { Contribution as DbContribution } from 'database'
-import { FindManyOptions, In, MoreThan } from 'typeorm'
+import { FRONTEND_CONTRIBUTIONS_ITEM_ANCHOR_PREFIX } from 'shared'
+import { FindManyOptions, In } from 'typeorm'
 import { CONFIG } from '@/config'
 import { Order } from '@/graphql/enum/Order'
-import {
-  DEFAULT_PAGINATION_PAGE_SIZE,
-  FRONTEND_CONTRIBUTIONS_ITEM_ANCHOR_PREFIX,
-} from '@/graphql/resolver/const/const'
 
 // TODO: combine with Pagination class for all queries to use
 function buildPaginationOptions(paginated: Paginated): FindManyOptions<DbContribution> {
