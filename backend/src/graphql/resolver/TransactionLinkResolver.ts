@@ -11,9 +11,12 @@ import { TransactionLink, TransactionLinkResult } from '@model/TransactionLink'
 import { User } from '@model/User'
 import { QueryLinkResult } from '@union/QueryLinkResult'
 import {
+  contributionTransaction,
+  deferredTransferTransaction,
   EncryptedTransferArgs,
   fullName,
   interpretEncryptedTransferArgs,
+  redeemDeferredTransferTransaction,
   sendTransactionLinkRedeemedEmail,
   sendTransactionReceivedEmail,
   TransactionTypeId,
@@ -53,11 +56,6 @@ import {
 } from 'shared'
 import { randombytes_random } from 'sodium-native'
 import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
-import {
-  contributionTransaction,
-  deferredTransferTransaction,
-  redeemDeferredTransferTransaction,
-} from '@/apis/dltConnector'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import {
