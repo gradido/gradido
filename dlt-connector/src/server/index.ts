@@ -208,12 +208,19 @@ async function validateAndDecodeConfirmedTransaction(
     }
     let sender: TransactionPartyInput | null = null
     const senderPublicKey = tx.getSenderPublicKey()
+    const registeredAccount = tx.getRegisteredAccount()
     if (senderPublicKey) {
       const accountBalance = tx.getAccountBalance(senderPublicKey)
       sender = {
         publicKey: senderPublicKey.toString('hex'),
         communityUuid: tx.getSenderCommunityUuidString(),
         finalBalance: accountBalance.getBalance().toString(),
+      }
+    } else if (registeredAccount) {
+      sender = {
+        publicKey: registeredAccount.toString('hex'),
+        communityUuid: tx.getSenderCommunityUuidString(),
+        finalBalance: '0',
       }
     }
     let recipient: TransactionPartyInput | null = null
@@ -228,7 +235,7 @@ async function validateAndDecodeConfirmedTransaction(
     }
     const checkedTransaction: CheckedTransactionInput = {
       valid: true,
-      amount: tx.getAmount()?.toString() || null,
+      amount: tx.getAmount()?.toString(4) || null,
       createdAt: tx.getCreatedAt()?.toString() || null,
       confirmedAt: tx.getConfirmedAt()?.toString() || null,
       hieroTransactionId: tx.getLedgerAnchor().getHieroTransactionId().toString() || null,

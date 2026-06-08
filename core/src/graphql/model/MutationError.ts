@@ -7,7 +7,7 @@ export class MutationError {
   name: string
 
   @Field(() => String)
-  message: string
+  message?: string
 
   @Field(() => MutationErrorType)
   type: MutationErrorType

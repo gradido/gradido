@@ -1,1 +1,0 @@
-export { MutationErrorType } from './MutationErrorType'

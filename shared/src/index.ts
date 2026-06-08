@@ -1,6 +1,7 @@
 export * from './const'
 export * from './data'
 export * from './enum'
+export * from './errorTypes'
 export * from './helper'
 export * from './jwt/JWT'
 export * from './jwt/payloadtypes/AuthenticationJwtPayloadType'

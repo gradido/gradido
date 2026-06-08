@@ -2,6 +2,7 @@ import { getLogger } from 'log4js'
 import { IRestResponse, RestClient } from 'typed-rest-client'
 import { CONFIG } from '../../config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../../config/const'
+import { CheckedTransactionInput } from './model/CheckedTransactionInput'
 import { TransactionDraft } from './model/TransactionDraft'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.apis.dltConnector`)
@@ -62,5 +63,19 @@ export class DltConnectorClient {
   ): Promise<IRestResponse<{ transactionId: string }>> {
     logger.debug('transmit transaction or user to dlt connector', input)
     return await this.client.create<{ transactionId: string }>('/sendTransaction', input)
+  }
+
+  public async validateAndDecodeConfirmedTransaction(
+    transactionBase64: string,
+    communityUuid: string,
+  ): Promise<IRestResponse<CheckedTransactionInput>> {
+    logger.debug('validate and decode confirmed transaction', { transactionBase64, communityUuid })
+    return await this.client.create<CheckedTransactionInput>(
+      '/validateAndDecodeConfirmedTransaction',
+      {
+        transactionBase64,
+        communityUuid,
+      },
+    )
   }
 }

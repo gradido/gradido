@@ -1,7 +1,10 @@
-import { registerEnumType } from "type-graphql";
+import { registerEnumType } from 'type-graphql'
 
 export enum MutationErrorType {
   UNKNOWN = 'UNKNOWN',
+  HTTP_ERROR = 'HTTP_ERROR',
+  DLT_CONNECTOR_ERROR = 'DLT_CONNECTOR_ERROR',
+  DB_ENTRY_NOT_FOUND = 'DB_ENTRY_NOT_FOUND ',
 }
 
 registerEnumType(MutationErrorType, {
