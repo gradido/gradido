@@ -21,9 +21,6 @@ export * from './DltConnectorClient'
 export * from './enum'
 export * from './model'
 
-export * from './enum'
-export * from './model'
-
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.dltConnector`)
 // will be undefined if dlt connect is disabled
 const dltConnectorClient = DltConnectorClient.getInstance()

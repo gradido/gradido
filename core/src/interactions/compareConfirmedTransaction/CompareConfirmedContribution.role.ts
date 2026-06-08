@@ -1,9 +1,9 @@
 import { ContributionStatus, ContributionsSelect } from 'database'
 import { CompareError, VoidResult } from 'shared'
 import { CheckedTransactionInput } from '../../apis'
-import { CompareConfirmedAbstractRole } from './CompareConfirmedAbstract.role'
+import { AbstractCompareConfirmedRole } from './AbstractCompareConfirmed.role'
 
-export class CompareConfirmedContributionRole extends CompareConfirmedAbstractRole {
+export class CompareConfirmedContributionRole extends AbstractCompareConfirmedRole {
   public constructor(
     protected confirmedTx: CheckedTransactionInput,
     protected contribution: ContributionsSelect,

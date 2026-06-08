@@ -1,6 +1,7 @@
 import { CompareError, GradidoUnit, VoidResult } from 'shared'
 
-export abstract class CompareConfirmedAbstractRole {
+export abstract class AbstractCompareConfirmedRole {
+  abstract isIdentical(): VoidResult<CompareError>
   isIdenticalAmount(
     dbValue?: GradidoUnit | null,
     dltValue?: string | null,
