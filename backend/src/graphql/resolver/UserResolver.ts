@@ -41,7 +41,7 @@ import {
 import { GraphQLResolveInfo } from 'graphql'
 import { getLogger, Logger } from 'log4js'
 import random from 'random-bigint'
-import { FULL_CREATION_AVAILABLE, updateAllDefinedAndChanged } from 'shared'
+import { updateAllDefinedAndChanged } from 'shared'
 import { randombytes_random } from 'sodium-native'
 import {
   Arg,
@@ -94,7 +94,7 @@ import { hasElopageBuys } from '@/util/hasElopageBuys'
 import { durationInMinutesFromDates, getTimeDurationObject, printTimeDuration } from '@/util/time'
 import { authenticateGmsUserPlayground } from './util/authenticateGmsUserPlayground'
 import { compareGmsRelevantUserSettings } from './util/compareGmsRelevantUserSettings'
-import { getUserCreations } from './util/creations'
+import { getFullUserCreation, getUserCreations } from './util/creations'
 import { extractGraphQLFieldsForSelect } from './util/extractGraphQLFields'
 import { findUsers } from './util/findUsers'
 import { getKlicktippState } from './util/getKlicktippState'
@@ -1017,7 +1017,7 @@ export class UserResolver {
         const userCreations = creations.find((c) => c.id === user.id)
         const adminUser = new UserAdmin(
           user,
-          userCreations ? userCreations.creations : FULL_CREATION_AVAILABLE,
+          userCreations ? userCreations.creations : getFullUserCreation(),
           await hasElopageBuys(user.emailContact?.email),
           emailConfirmationSend,
         )

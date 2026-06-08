@@ -2,7 +2,7 @@ import { OpenCreation } from '@model/OpenCreation'
 import { getFirstDayOfPreviousNMonth } from 'core'
 import { AppDatabase, Contribution } from 'database'
 import { getLogger } from 'log4js'
-import { FULL_CREATION_AVAILABLE, GradidoUnit, MAX_CREATION_AMOUNT } from 'shared'
+import { GradidoUnit, MAX_CREATION_AMOUNT } from 'shared'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { LogError } from '@/server/LogError'
 
@@ -74,7 +74,7 @@ export const getUserCreations = async (
   logger.trace(sumAmountContributionPerUserAndLast3Month)
 
   await queryRunner.release()
-
+  const maxCreationGdd = GradidoUnit.fromGradidoCent(MAX_CREATION_AMOUNT)
   return ids.map((id) => {
     return {
       id,
@@ -84,16 +84,22 @@ export const getUserCreations = async (
             parseInt(raw.month) === month && parseInt(raw.userId) === id,
         )
         if (!creation) {
-          return MAX_CREATION_AMOUNT
+          return maxCreationGdd
         }
         // db call return GradidoUnit bigints as string, we cannot use GradidoUnit.fromString here,
         // because GradidoUnit.fromString expect Gradido and will convert it to gradido cent, but in db it is already stored as gradido cent
-        return MAX_CREATION_AMOUNT.subtract(GradidoUnit.fromGradidoCent(BigInt(creation.sum)))
+        return maxCreationGdd.subtract(GradidoUnit.fromGradidoCent(BigInt(creation.sum)))
       }),
     }
   })
 }
-
+export function getFullUserCreation(): GradidoUnit[] {
+  return [
+    GradidoUnit.fromGradidoCent(MAX_CREATION_AMOUNT),
+    GradidoUnit.fromGradidoCent(MAX_CREATION_AMOUNT),
+    GradidoUnit.fromGradidoCent(MAX_CREATION_AMOUNT),
+  ]
+}
 export const getUserCreation = async (
   id: number,
   timezoneOffset: number,
@@ -102,7 +108,7 @@ export const getUserCreation = async (
   logger.trace('getUserCreation', id, includePending, timezoneOffset)
   const creations = await getUserCreations([id], timezoneOffset, includePending)
   logger.trace('getUserCreation  creations=', creations)
-  return creations[0] ? creations[0].creations : FULL_CREATION_AVAILABLE
+  return creations[0] ? creations[0].creations : getFullUserCreation()
 }
 
 const getCreationMonths = (timezoneOffset: number): number[] => {

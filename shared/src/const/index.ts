@@ -1,7 +1,5 @@
-import { GradidoUnit } from 'shared'
 import { getDecayStartTime } from 'shared-native'
 
-// logging
 export const LOG4JS_BASE_CATEGORY_NAME = 'shared'
 
 // gradido transaction logic constants
@@ -13,12 +11,7 @@ export const DECAY_START_TIME = getDecayStartTime()
 
 // for contributions
 // 1'000 gdd = 10'000'000 gdd cent
-export const MAX_CREATION_AMOUNT = new GradidoUnit(10000000n)
-export const FULL_CREATION_AVAILABLE = [
-  MAX_CREATION_AMOUNT,
-  MAX_CREATION_AMOUNT,
-  MAX_CREATION_AMOUNT,
-]
+export const MAX_CREATION_AMOUNT = 10000000n
 
 // input validation
 export const CONTRIBUTIONLINK_NAME_MAX_CHARS = 100
