@@ -4,6 +4,7 @@ import {
   DltTransaction as DbDltTransaction,
   TransactionLink as DbTransactionLink,
   User as DbUser,
+  DltTransactionType,
   getCommunityByUuid,
   getHomeCommunity,
   getUserById,
@@ -14,7 +15,6 @@ import { IRestResponse } from 'typed-rest-client'
 import { CONFIG } from '../../config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../../config/const'
 import { DltConnectorClient } from './DltConnectorClient'
-import { DltTransactionType } from 'database'
 import { TransactionDraft } from './model'
 
 export * from './DltConnectorClient'

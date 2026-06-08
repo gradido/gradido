@@ -260,7 +260,9 @@ describe('dlt transactions query test', () => {
       expect(result.success).toBeFalsy()
       if (!result.success) {
         expect(result.error).toBeDefined()
-        expect(result.error.message).toBe('DB_NOT_FOUND in dlt_transactions where: hieroTransactionId = ')
+        expect(result.error.message).toBe(
+          'DB_NOT_FOUND in dlt_transactions where: hieroTransactionId = ',
+        )
       }
     })
 
