@@ -76,7 +76,7 @@
   },
   "include": [
     "src/**/*.ts",
-    "src/**/*.json",
+    "src/**/*.json", "../database/src/enum/DltTransactionType.ts",
   ],
   "references": [],                                  /* Any project that is referenced must itself have a `references` array (which may be empty). */
   "exclude": ["**/*.test.ts", "**/*.spec.ts", "test/*", "**/bun.d.ts", "esbuild.config.ts"],
