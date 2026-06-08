@@ -3,6 +3,43 @@ import { Transaction, User } from '../../entity'
 import { TransactionTypeId } from '../../enum'
 import { getLastTransaction } from '../../queries'
 
+export async function transferGradidos(
+  sendUser: User,
+  recipientUser: User,
+  amount: GradidoUnit,
+  memo: string,
+  balanceDate: Date,
+  store: boolean = true,
+): Promise<[Transaction, Transaction]> {
+  // send transaction
+  const sendResolver = createTransaction(
+    amount,
+    memo,
+    sendUser,
+    recipientUser,
+    TransactionTypeId.SEND,
+    balanceDate,
+    undefined,
+    undefined,
+    store,
+  )
+
+  // receive transaction
+  const receiveResolver = createTransaction(
+    amount,
+    memo,
+    recipientUser,
+    sendUser,
+    TransactionTypeId.RECEIVE,
+    balanceDate,
+    undefined,
+    undefined,
+    store,
+  )
+
+  return await Promise.all([sendResolver, receiveResolver])
+}
+
 export async function createTransaction(
   amount: GradidoUnit,
   memo: string,

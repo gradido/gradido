@@ -1,4 +1,4 @@
-import { TransactionParty } from './TransactionParty'
+import { TransactionParty } from './'
 
 export class CheckedTransactionInput {
   valid: boolean

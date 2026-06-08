@@ -10,10 +10,13 @@ import {
   EncryptedTransferArgs,
   fullName,
   processXComCompleteTransaction,
+  redeemDeferredTransferTransaction,
+  SendEmailCommand,
   sendCustomEmail,
   sendTransactionLinkRedeemedEmail,
   sendTransactionReceivedEmail,
   TransactionTypeId,
+  transferTransaction,
   V1_0_CommandClient,
 } from 'core'
 import {
@@ -26,35 +29,23 @@ import {
   findUserByIdentifier,
   getCommunityByUuid,
   getCommunityWithFederatedCommunityByIdentifier,
-  getCommunityWithFederatedCommunityWithApiOrFail,
+  getLastTransaction,
 } from 'database'
+import { getLogger, Logger } from 'log4js'
+import { Mutex } from 'redis-semaphore'
+import { CommandJwtPayloadType, DecayCalculationType, encryptAndSign, GradidoUnit } from 'shared'
+import { randombytes_random } from 'sodium-native'
 import { Args, Authorized, Ctx, Mutation, Query, Resolver } from 'type-graphql'
 import { In, IsNull } from 'typeorm'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { CONFIG } from '@/config'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { EVENT_TRANSACTION_RECEIVE, EVENT_TRANSACTION_SEND } from '@/event/Events'
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
 import { communityUser } from '@/util/communityUser'
 import { calculateBalance } from '@/util/validate'
 import { virtualDecayTransaction, virtualLinkTransaction } from '@/util/virtualTransactions'
-
-// import { TRANSACTIONS_LOCK } from 'database'
-
-import { redeemDeferredTransferTransaction, SendEmailCommand, transferTransaction } from 'core'
-import { getLastTransaction } from 'database'
-import { Redis } from 'ioredis'
-import { getLogger, Logger } from 'log4js'
-import { Mutex } from 'redis-semaphore'
-import {
-  CommandJwtPayloadType,
-  DecayCalculationType,
-  Ed25519PublicKey,
-  encryptAndSign,
-  GradidoUnit,
-} from 'shared'
-import { randombytes_random } from 'sodium-native'
-import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { SendEmailArgs } from '../arg/SendEmailArgs'
 import { BalanceResolver } from './BalanceResolver'
 import { GdtResolver } from './GdtResolver'
@@ -589,21 +580,33 @@ export class TransactionResolver {
         logger.error(errmsg)
         throw new Error(errmsg)
       }
+      if (senderUser.id === recipientUser.id) {
+        const errmsg = 'You cannot send an email to yourself'
+        logger.error(errmsg)
+        throw new Error(errmsg)
+      }
       logger.addContext('to', recipientUser?.id)
       if (recipientUser.foreign) {
         const errmsg = 'Found foreign recipient user for a local action: ' + recipientUser
         logger.error(errmsg)
         throw new Error(errmsg)
       }
+      if (!recipientUser.emailContact) {
+        const errmsg = 'Recipient user has no email contact: ' + recipientUser
+        logger.error(errmsg)
+        throw new Error(errmsg)
+      }
       sendCustomEmail({
         firstName: recipientUser.firstName,
         lastName: recipientUser.lastName,
-        email: 'customEmail',
+        email: recipientUser.emailContact.email,
         language: recipientUser.language,
         senderFirstName: senderUser.firstName,
         senderLastName: senderUser.lastName,
         subject: subject,
         memo: memo,
+        senderUuid: senderUser.gradidoID,
+        senderCommunityUuid: senderUser.communityUuid,
       })
     } else {
       // sendEmail for foreign communities

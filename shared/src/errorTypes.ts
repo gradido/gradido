@@ -6,10 +6,18 @@ export abstract class DomainError extends Error {
 }
 
 export class CompareError extends DomainError {
-  constructor(message: string, public actual?: string, public expected?: string) {
+  constructor(
+    message: string,
+    public actual?: string,
+    public expected?: string,
+  ) {
     let messageSum = message
-    if (actual) { messageSum = messageSum.concat(`, actual: ${actual}`) }
-    if (expected) { messageSum = messageSum.concat(`, expected: ${expected}`)}
+    if (actual) {
+      messageSum = messageSum.concat(`, actual: ${actual}`)
+    }
+    if (expected) {
+      messageSum = messageSum.concat(`, expected: ${expected}`)
+    }
     super(messageSum)
   }
 }

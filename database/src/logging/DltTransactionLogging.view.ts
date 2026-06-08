@@ -13,7 +13,7 @@ export class DltTransactionLoggingView extends AbstractLoggingView {
       transaction: this.self.transaction
         ? new TransactionLoggingView(this.self.transaction).toJSON()
         : { id: this.self.transactionId },
-      messageId: this.self.messageId,
+      hieroTransactionId: this.self.hieroTransactionId,
       verified: this.self.verified,
       createdAt: this.dateToString(this.self.createdAt),
       verifiedAt: this.dateToString(this.self.verifiedAt),

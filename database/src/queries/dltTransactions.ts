@@ -52,7 +52,12 @@ export async function dbUpdateWithErrorDltTransaction(
 async function dltTransactionWithTransactionJoinsQuery(hieroTransactionId: string) {
   const linkedUsers = alias(usersTable, 'linkedUser')
   return await drizzleDb()
-    .select()
+    .select({
+      dltTransaction: dltTransactionsTable,
+      transaction: transactionsTable,
+      user: usersTable,
+      linkedUser: linkedUsers,
+    })
     .from(dltTransactionsTable)
     .leftJoin(transactionsTable, eq(transactionsTable.id, dltTransactionsTable.transactionId))
     .leftJoin(usersTable, eq(transactionsTable.userId, usersTable.id))
@@ -63,7 +68,10 @@ async function dltTransactionWithTransactionJoinsQuery(hieroTransactionId: strin
 // dlt transaction with user (register address)
 async function dltTransactionWithUserJoinsQuery(hieroTransactionId: string) {
   return await drizzleDb()
-    .select()
+    .select({
+      dltTransaction: dltTransactionsTable,
+      user: usersTable,
+    })
     .from(dltTransactionsTable)
     .leftJoin(usersTable, eq(dltTransactionsTable.userId, usersTable.id))
     .where(eq(dltTransactionsTable.hieroTransactionId, hieroTransactionId))
@@ -72,9 +80,16 @@ async function dltTransactionWithUserJoinsQuery(hieroTransactionId: string) {
 // dlt transaction with transaction link
 async function dltTransactionWithTransactionLinkJoinsQuery(hieroTransactionId: string) {
   return await drizzleDb()
-    .select()
+    .select({
+      dltTransaction: dltTransactionsTable,
+      transactionLink: transactionLinksTable,
+      user: usersTable,
+    })
     .from(dltTransactionsTable)
-    .leftJoin(transactionLinksTable, eq(transactionLinksTable.id, dltTransactionsTable.transactionLinkId))
+    .leftJoin(
+      transactionLinksTable,
+      eq(transactionLinksTable.id, dltTransactionsTable.transactionLinkId),
+    )
     .leftJoin(usersTable, eq(transactionLinksTable.userId, usersTable.id))
     .where(eq(dltTransactionsTable.hieroTransactionId, hieroTransactionId))
 }
@@ -105,28 +120,46 @@ async function dbSelectDltTransactionWithJoins<T>(
 }
 
 // type via typinferenz
-export type DltTransactionWithTransaction = Awaited<ReturnType<typeof dltTransactionWithTransactionJoinsQuery>>[number]
+export type DltTransactionWithTransaction = Awaited<
+  ReturnType<typeof dltTransactionWithTransactionJoinsQuery>
+>[number]
 
 export async function dbSelectDltTransactionWithTransaction(
   hieroTransactionId: string,
 ): Promise<Result<DltTransactionWithTransaction, DBNotFoundError | DBMissingJoin>> {
-  return dbSelectDltTransactionWithJoins(hieroTransactionId, dltTransactionWithTransactionJoinsQuery, 'transactions')
+  return dbSelectDltTransactionWithJoins(
+    hieroTransactionId,
+    dltTransactionWithTransactionJoinsQuery,
+    'transaction',
+  )
 }
 
 // type via typinferenz
-export type DltTransactionWithUser = Awaited<ReturnType<typeof dltTransactionWithUserJoinsQuery>>[number]
+export type DltTransactionWithUser = Awaited<
+  ReturnType<typeof dltTransactionWithUserJoinsQuery>
+>[number]
 
 export async function dbSelectDltTransactionWithUser(
   hieroTransactionId: string,
 ): Promise<Result<DltTransactionWithUser, DBNotFoundError | DBMissingJoin>> {
-  return dbSelectDltTransactionWithJoins(hieroTransactionId, dltTransactionWithUserJoinsQuery, 'users')
+  return dbSelectDltTransactionWithJoins(
+    hieroTransactionId,
+    dltTransactionWithUserJoinsQuery,
+    'user',
+  )
 }
 
 // type via typinferenz
-export type DltTransactionWithTransactionLink = Awaited<ReturnType<typeof dltTransactionWithTransactionLinkJoinsQuery>>[number]
+export type DltTransactionWithTransactionLink = Awaited<
+  ReturnType<typeof dltTransactionWithTransactionLinkJoinsQuery>
+>[number]
 
 export async function dbSelectDltTransactionWithTransactionLink(
   hieroTransactionId: string,
 ): Promise<Result<DltTransactionWithTransactionLink, DBNotFoundError | DBMissingJoin>> {
-  return dbSelectDltTransactionWithJoins(hieroTransactionId, dltTransactionWithTransactionLinkJoinsQuery, 'transaction_links')
+  return dbSelectDltTransactionWithJoins(
+    hieroTransactionId,
+    dltTransactionWithTransactionLinkJoinsQuery,
+    'transactionLink',
+  )
 }

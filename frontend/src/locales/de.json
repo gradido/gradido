@@ -214,7 +214,8 @@
       "receiverCommunityNotFound": "Die Gemeinschaft deines E-Mail-Empfängers wurde nicht gefunden",
       "receiverDeleted": "Das Nutzerkonto zu deinem E-Mail-Empfänger wurde gelöscht",
       "receiverNotFound": "Zu deinem angegebenen E-Mail-Empfänger existiert kein Nutzerkonto.",
-      "unknownError": "Ein unbekannter Fehler ist aufgetreten: "
+      "unknownError": "Ein unbekannter Fehler ist aufgetreten: ",
+      "youCannotSendEmailToYourself": "Du kannst keine E-Mail an dich selbst senden."
     },
     "sender": "Absender",
     "sorry": "Entschuldigung",
@@ -260,6 +261,11 @@
         "required": "Die Nachricht ist ein Pflichtfeld."
       },
       "requiredField": "{fieldName} ist ein Pflichtfeld",
+      "subject": {
+        "max": "Der Betreff darf höchstens {max} Zeichen lang sein.",
+        "min": "Der Betreff sollte mindestens {min} Zeichen lang sein.",
+        "required": "Der Betreff ist ein Pflichtfeld."
+      },
       "username-allowed-chars": "Der Nutzername darf nur aus Buchstaben (ohne Umlaute), Zahlen, Binde- oder Unterstrichen bestehen.",
       "username-hyphens": "Binde- oder Unterstriche müssen zwischen Buchstaben oder Zahlen stehen.",
       "username-unique": "Der Nutzername ist bereits vergeben."

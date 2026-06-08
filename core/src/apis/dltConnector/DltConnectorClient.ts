@@ -2,8 +2,7 @@ import { getLogger } from 'log4js'
 import { IRestResponse, RestClient } from 'typed-rest-client'
 import { CONFIG } from '../../config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../../config/const'
-import { CheckedTransactionInput } from './model/CheckedTransactionInput'
-import { TransactionDraft } from './model/TransactionDraft'
+import { CheckedTransactionInput, TransactionDraft } from './model'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.apis.dltConnector`)
 
