@@ -36,7 +36,6 @@ import {
 } from 'database'
 import { getLogger, Logger } from 'log4js'
 import { Mutex } from 'redis-semaphore'
-// import { TRANSACTION_LINK_LOCK, TRANSACTIONS_LOCK } from 'database'
 import {
   CODE_VALID_DAYS_DURATION,
   Decay,
