@@ -40,6 +40,12 @@ export const DLT_ACTIVE = Joi.boolean()
   .default(false)
   .required()
 
+export const DLT_CONNECTOR_URL = Joi.string()
+  .uri({ scheme: ['http', 'https'] })
+  .default('http://localhost:6010')
+  .when('DLT_ACTIVE', { is: true, then: Joi.required() })
+  .description('The URL for DLT connector')
+
 export const GRAPHQL_URI = Joi.string()
   .uri({ scheme: ['http', 'https'] })
   .description(

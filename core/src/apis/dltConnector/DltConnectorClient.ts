@@ -1,8 +1,8 @@
 import { getLogger } from 'log4js'
-import { IRestResponse } from 'typed-rest-client'
-import { TransactionDraft } from '@/apis/dltConnector/model/TransactionDraft'
-import { CONFIG } from '@/config'
-import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { IRestResponse, RestClient } from 'typed-rest-client'
+import { CONFIG } from '../../config'
+import { LOG4JS_BASE_CATEGORY_NAME } from '../../config/const'
+import { CheckedTransactionInput, TransactionDraft } from './model'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.apis.dltConnector`)
 
@@ -15,6 +15,7 @@ const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.apis.dltConnector`)
 
 export class DltConnectorClient {
   private static instance: DltConnectorClient
+  client: RestClient
   /**
    * The Singleton's constructor should always be private to prevent direct
    * construction calls with the `new` operator.
@@ -36,6 +37,19 @@ export class DltConnectorClient {
     if (!DltConnectorClient.instance) {
       DltConnectorClient.instance = new DltConnectorClient()
     }
+    if (!DltConnectorClient.instance.client) {
+      try {
+        DltConnectorClient.instance.client = new RestClient(
+          'gradido-backend',
+          CONFIG.DLT_CONNECTOR_URL,
+          undefined,
+          { keepAlive: true },
+        )
+      } catch (e) {
+        logger.error("couldn't connect to dlt-connector: ", e)
+        return
+      }
+    }
     return DltConnectorClient.instance
   }
 
@@ -43,12 +57,24 @@ export class DltConnectorClient {
    * transmit transaction via dlt-connector to hiero
    * and update dltTransactionId of transaction in db with hiero transaction id
    */
-  public async sendTransaction(input: TransactionDraft): Promise<IRestResponse<string>> {
+  public async sendTransaction(
+    input: TransactionDraft,
+  ): Promise<IRestResponse<{ transactionId: string }>> {
     logger.debug('transmit transaction or user to dlt connector', input)
-    return Promise.resolve({
-      statusCode: 200,
-      result: 'test',
-      headers: {},
-    })
+    return await this.client.create<{ transactionId: string }>('/sendTransaction', input)
+  }
+
+  public async validateAndDecodeConfirmedTransaction(
+    transactionBase64: string,
+    communityUuid: string,
+  ): Promise<IRestResponse<CheckedTransactionInput>> {
+    logger.debug('validate and decode confirmed transaction', { transactionBase64, communityUuid })
+    return await this.client.create<CheckedTransactionInput>(
+      '/validateAndDecodeConfirmedTransaction',
+      {
+        transactionBase64,
+        communityUuid,
+      },
+    )
   }
 }

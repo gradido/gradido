@@ -42,9 +42,15 @@ const email = {
   EMAIL_SMTP_PORT: Number(process.env.EMAIL_SMTP_PORT) || 1025,
 }
 
+const dlt = {
+  DLT_ACTIVE: process.env.DLT_ACTIVE === 'true' || false,
+  DLT_CONNECTOR_URL: process.env.DLT_CONNECTOR_URL ?? 'http://localhost:6010',
+}
+
 export const CONFIG = {
   ...federation,
   ...community,
   ...email,
+  ...dlt,
 }
 validate(schema, CONFIG)

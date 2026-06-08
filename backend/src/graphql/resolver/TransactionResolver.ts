@@ -10,10 +10,13 @@ import {
   EncryptedTransferArgs,
   fullName,
   processXComCompleteTransaction,
+  redeemDeferredTransferTransaction,
+  SendEmailCommand,
   sendCustomEmail,
   sendTransactionLinkRedeemedEmail,
   sendTransactionReceivedEmail,
   TransactionTypeId,
+  transferTransaction,
   V1_0_CommandClient,
 } from 'core'
 import {
@@ -26,36 +29,23 @@ import {
   findUserByIdentifier,
   getCommunityByUuid,
   getCommunityWithFederatedCommunityByIdentifier,
-  getCommunityWithFederatedCommunityWithApiOrFail,
+  getLastTransaction,
 } from 'database'
+import { getLogger, Logger } from 'log4js'
+import { Mutex } from 'redis-semaphore'
+import { CommandJwtPayloadType, DecayCalculationType, encryptAndSign, GradidoUnit } from 'shared'
+import { randombytes_random } from 'sodium-native'
 import { Args, Authorized, Ctx, Mutation, Query, Resolver } from 'type-graphql'
 import { In, IsNull } from 'typeorm'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { CONFIG } from '@/config'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { EVENT_TRANSACTION_RECEIVE, EVENT_TRANSACTION_SEND } from '@/event/Events'
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
 import { communityUser } from '@/util/communityUser'
 import { calculateBalance } from '@/util/validate'
 import { virtualDecayTransaction, virtualLinkTransaction } from '@/util/virtualTransactions'
-
-// import { TRANSACTIONS_LOCK } from 'database'
-
-import { SendEmailCommand } from 'core'
-import { getLastTransaction } from 'database'
-import { Redis } from 'ioredis'
-import { getLogger, Logger } from 'log4js'
-import { Mutex } from 'redis-semaphore'
-import {
-  CommandJwtPayloadType,
-  DecayCalculationType,
-  Ed25519PublicKey,
-  encryptAndSign,
-  GradidoUnit,
-} from 'shared'
-import { randombytes_random } from 'sodium-native'
-import { redeemDeferredTransferTransaction, transferTransaction } from '@/apis/dltConnector'
-import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { SendEmailArgs } from '../arg/SendEmailArgs'
 import { BalanceResolver } from './BalanceResolver'
 import { GdtResolver } from './GdtResolver'

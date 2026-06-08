@@ -11,6 +11,7 @@ import { Contribution, ContributionListResult } from '@model/Contribution'
 import { OpenCreation } from '@model/OpenCreation'
 import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
 import {
+  contributionTransaction,
   fullName,
   sendContributionChangedByModeratorEmail,
   sendContributionConfirmedEmail,
@@ -33,7 +34,6 @@ import { Mutex } from 'redis-semaphore'
 import { Decay, DecayCalculationType, GradidoUnit } from 'shared'
 import { Arg, Args, Authorized, Ctx, Info, Int, Mutation, Query, Resolver } from 'type-graphql'
 import { EntityManager, IsNull } from 'typeorm'
-import { contributionTransaction } from '@/apis/dltConnector'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import {

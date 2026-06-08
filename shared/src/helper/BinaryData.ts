@@ -1,5 +1,5 @@
 import { getLogger } from 'log4js'
-import { LOG4JS_BASE_CATEGORY_NAME } from '../const'
+import { LOG4JS_BASE_CATEGORY_NAME } from '..'
 
 const logging = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.helper.BinaryData`)
 
