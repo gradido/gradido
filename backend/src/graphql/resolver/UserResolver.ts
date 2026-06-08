@@ -11,7 +11,6 @@ import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
 import { PublishNameType } from '@enum/PublishNameType'
 import { UserContactType } from '@enum/UserContactType'
 import { SearchAdminUsersResult } from '@model/AdminUser'
-// import { Location } from '@model/Location'
 import { GmsUserAuthenticationResult } from '@model/GmsUserAuthenticationResult'
 import { User } from '@model/User'
 import { SearchUsersResult, UserAdmin } from '@model/UserAdmin'
@@ -56,7 +55,7 @@ import {
   Root,
 } from 'type-graphql'
 import { IRestResponse } from 'typed-rest-client'
-import { EntityManager, EntityNotFoundError, In, Point } from 'typeorm'
+import { EntityNotFoundError, In, Point } from 'typeorm'
 import { v4 as uuidv4 } from 'uuid'
 import { registerAddressTransaction } from '@/apis/dltConnector'
 import { HumHubClient } from '@/apis/humhub/HumHubClient'
@@ -92,10 +91,9 @@ import { LogError } from '@/server/LogError'
 import { communityDbUser } from '@/util/communityUser'
 import { hasElopageBuys } from '@/util/hasElopageBuys'
 import { durationInMinutesFromDates, getTimeDurationObject, printTimeDuration } from '@/util/time'
-import { FULL_CREATION_AVAILABLE } from './const/const'
 import { authenticateGmsUserPlayground } from './util/authenticateGmsUserPlayground'
 import { compareGmsRelevantUserSettings } from './util/compareGmsRelevantUserSettings'
-import { getUserCreations } from './util/creations'
+import { getFullUserCreation, getUserCreations } from './util/creations'
 import { extractGraphQLFieldsForSelect } from './util/extractGraphQLFields'
 import { findUsers } from './util/findUsers'
 import { getKlicktippState } from './util/getKlicktippState'
@@ -1018,7 +1016,7 @@ export class UserResolver {
         const userCreations = creations.find((c) => c.id === user.id)
         const adminUser = new UserAdmin(
           user,
-          userCreations ? userCreations.creations : FULL_CREATION_AVAILABLE,
+          userCreations ? userCreations.creations : getFullUserCreation(),
           await hasElopageBuys(user.emailContact?.email),
           emailConfirmationSend,
         )

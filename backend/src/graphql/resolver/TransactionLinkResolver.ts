@@ -14,8 +14,6 @@ import {
   EncryptedTransferArgs,
   fullName,
   interpretEncryptedTransferArgs,
-  sendTransactionLinkRedeemedEmail,
-  sendTransactionReceivedEmail,
   TransactionTypeId,
 } from 'core'
 import { randomBytes } from 'crypto'
@@ -30,15 +28,14 @@ import {
   User as DbUser,
   findModeratorCreatingContributionLink,
   findTransactionLinkByCode,
-  findUserByIdentifier,
   getHomeCommunity,
   getLastTransaction,
 } from 'database'
-import { Redis } from 'ioredis'
+
 import { getLogger, Logger } from 'log4js'
 import { Mutex } from 'redis-semaphore'
-// import { TRANSACTION_LINK_LOCK, TRANSACTIONS_LOCK } from 'database'
 import {
+  CODE_VALID_DAYS_DURATION,
   Decay,
   DecayCalculationType,
   DisburseJwtPayloadType,
@@ -71,7 +68,6 @@ import { DisbursementClientFactory } from '@/federation/client/DisbursementClien
 import { Context, getClientTimezoneOffset, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
 import { calculateBalance } from '@/util/validate'
-import { CODE_VALID_DAYS_DURATION } from './const/const'
 import { executeTransaction } from './TransactionResolver'
 import {
   getAuthenticatedCommunities,
