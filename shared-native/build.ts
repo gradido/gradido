@@ -1,5 +1,6 @@
-import { build, type Target } from 'zig-build'
-import { detectTargetTriple, setup_dependencies } from './build_helper/deps'
+import path from 'node:path'
+import { build, type Target } from './build_helper'
+import { detectTargetTriple } from './build_helper/deps'
 import {
   getCoreFileName,
   getNodePath,
@@ -8,8 +9,6 @@ import {
 } from './build_helper/host_configuration'
 
 async function main() {
-  await setup_dependencies()
-
   const commonConfigs = {
     target: await detectTargetTriple(),
     mode: 'small',
@@ -17,44 +16,37 @@ async function main() {
     nodeVersion: nodeVersion().replace(/^v/, ''),
     include: ['include', 'third_party'],
   }
+  process.env.ZIG_GLOBAL_CACHE_DIR = './.zig-cache'
+  process.env.ZIG_LOCAL_CACHE_DIR = './.zig-cache'
 
-  const coreFileName = getCoreFileName()
-  const libs: { librariesSearch?: string[]; libraries?: string[] } = {}
-
+  const cflags: string[] = []
   if (isWin32()) {
     // on windows we need to link against the node library
-    libs.librariesSearch = [getNodePath()]
-    libs.libraries = ['node']
+    cflags.push(`-DNODE_LIB=${getNodePath()}`)
   }
-  const cflags = ['-O2', '-fno-fast-math', '-fwrapv']
-  const libSrcs = [
-    'src/data/unit.c',
-    'src/utils/converter.c',
-    'src/utils/duration.c',
-    'third_party/fp256/src/fp256_mul.c',
-    'third_party/fp256/src/fp256_utils.c',
-  ]
-  await build(
-    {
-      c_core: {
-        ...commonConfigs,
-        output: `build/${coreFileName}`,
-        sources: libSrcs,
-        type: 'shared',
-        std: 'c17',
-        cflags: ['-g0', '-s'].concat(cflags),
-      } as Target,
-      cpp_napi: {
-        ...commonConfigs,
-        ...libs,
-        output: 'build/shared_native.node',
-        sources: ['bindings/napi/gradidoUnit.cpp', ...libSrcs],
-        cflags: ['-g0', '-s', '-DNAPI_VERSION=8'].concat(cflags),
-      } as Target,
-    },
-    undefined,
-    './compile_commands.json',
-  )
+
+  await build({
+    c_core_bun: {
+      ...commonConfigs,
+      output: `build/core`,
+      std: 'c17',
+      sources: [],
+      cflags: ['-Dsodium=true', '-Dshared=true', '--release=small', '-DsingleOutputDir=true'],
+      useBuildZig: true,
+    } as Target,
+    cpp_napi_node: {
+      ...commonConfigs,
+      output: 'build/shared_native.node',
+      sources: [],
+      cflags: ['-DNAPI_VERSION=8', '--release=small', '--build-file', 'build_napi.zig'].concat(
+        cflags,
+      ),
+      useBuildZig: true,
+      isNodeJsAddon: true,
+    } as Target,
+  })
+
+  await build({})
 }
 
 main()

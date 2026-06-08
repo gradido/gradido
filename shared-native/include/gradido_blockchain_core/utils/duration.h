@@ -20,7 +20,6 @@ extern "C" {
  * @{
  */
 
-
 // store duration in nanoseconds, can represent up to ~292 years
 typedef int64_t grdu_duration;
 
@@ -48,7 +47,9 @@ typedef int64_t grdu_duration;
  *
  * @whisper Time settles into the scale it needs
  */
-int grdu_duration_string(char* buffer, size_t buffer_size, grdu_duration duration, uint8_t precision);
+int grdu_duration_string(
+    char *buffer, size_t buffer_size, grdu_duration duration, uint8_t precision
+);
 
 /**
  * @}

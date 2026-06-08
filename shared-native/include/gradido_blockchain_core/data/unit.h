@@ -28,8 +28,6 @@ extern "C" {
  * @{
  */
 
-typedef int64_t grdd_unit;
-
 /**
  * @brief Round a fixed-point grdd_unit to a given decimal precision.
  *
@@ -50,7 +48,7 @@ typedef int64_t grdd_unit;
  *
  * @whisper Even rounding has its instincts — and this one always chooses a side.
  */
-bool grdd_unit_round_to_precision(grdd_unit* result, grdd_unit value, uint8_t precision);
+bool grdd_unit_round_to_precision(grdd_unit *result, grdd_unit value, uint8_t precision);
 
 /**
  * @brief Convert a floating-point value into fixed-point grdd_unit.
@@ -108,7 +106,7 @@ double grdd_unit_to_decimal(grdd_unit value);
  *
  * @whisper String distills to essence — only what matters persists
  */
-bool grdd_unit_from_string(grdd_unit* resultGdd, const char* gdd_string);
+bool grdd_unit_from_string(grdd_unit *resultGdd, const char *gdd_string);
 
 /**
  * @brief Get the global decay start timestamp.
@@ -143,7 +141,11 @@ grdd_timestamp_seconds grdd_unit_decay_start_time();
  *
  * @whisper Only the moments in the rhythm are counted
  */
-bool grdd_unit_calculate_duration_seconds(grdd_timestamp_seconds startTime, grdd_timestamp_seconds endTime, grdd_duration_seconds* outSeconds);
+bool grdd_unit_calculate_duration_seconds(
+    grdd_timestamp_seconds startTime,
+    grdd_timestamp_seconds endTime,
+    grdd_duration_seconds *outSeconds
+);
 
 /**
  * @brief Format a fixed-point grdd_unit into a decimal string.
@@ -172,7 +174,7 @@ bool grdd_unit_calculate_duration_seconds(grdd_timestamp_seconds startTime, grdd
  *
  * @whisper Numbers form, arranged precisely — as requested, nothing more
  */
-int grdd_unit_to_string(char* buffer, size_t bufferSize, grdd_unit value, uint8_t precision);
+int grdd_unit_to_string(char *buffer, size_t bufferSize, grdd_unit value, uint8_t precision);
 
 /**
  * @brief Applies time-based decay (or its inverse for forward preparation).
@@ -224,6 +226,5 @@ grdd_unit grdd_unit_calculate_decay(grdd_unit gdd, grdd_duration_seconds duratio
 #ifdef __cplusplus
 }
 #endif
-
 
 #endif // GRADIDO_BLOCKCHAIN_CORE_DATA_UNIT_H

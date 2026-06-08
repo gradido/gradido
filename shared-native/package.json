@@ -23,12 +23,13 @@
     "typecheck": "tsc --noEmit",
     "lint": "biome check --error-on-warnings .",
     "lint:fix": "biome check --error-on-warnings . --write",
-    "clear": "rm -rf node_modules && rm -rf build && rm -rf .turbo && rm -rf .cache"
+    "clear": "rm -rf node_modules && rm -rf build && rm -rf .turbo && rm -rf .cache && rm -rf .zig-cache"
   },
   "devDependencies": {
     "@biomejs/biome": "2.0.0",
     "@types/adm-zip": "^0.5.8",
     "adm-zip": "^0.5.16",
+    "chalk": "4.1.2",
     "decimal.js": "^10.6.0",
     "decimal.js-light": "^2.5.1",
     "node-api-headers": "^1.8.0",
@@ -36,8 +37,7 @@
   },
   "dependencies": {
     "detect-libc": "^2.1.2",
-    "node-addon-api": "^8.7.0",
-    "zig-build": "0.3.0"
+    "node-addon-api": "^8.7.0"
   },
   "engines": {
     "node": ">=18"
