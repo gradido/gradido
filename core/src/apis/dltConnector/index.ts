@@ -14,8 +14,12 @@ import { IRestResponse } from 'typed-rest-client'
 import { CONFIG } from '../../config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../../config/const'
 import { DltConnectorClient } from './DltConnectorClient'
-import { DltTransactionType } from './enum/DltTransactionType'
-import { TransactionDraft } from './model/TransactionDraft'
+import { DltTransactionType } from './enum'
+import { TransactionDraft } from './model'
+
+export * from './DltConnectorClient'
+export * from './enum'
+export * from './model'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.dltConnector`)
 // will be undefined if dlt connect is disabled
