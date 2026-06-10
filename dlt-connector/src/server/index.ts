@@ -243,10 +243,7 @@ async function validateAndDecodeConfirmedTransaction(
       for (let i = 0; i <= accountBalances.size(); i++) {
         const accountBalance = accountBalances.get(i)
         const publicKeyHex = accountBalance.getPublicKey()!.convertToHex()
-        if (
-          publicKeyHex !== sender.publicKey &&
-          publicKeyHex !== recipient.publicKey
-        ) {
+        if (publicKeyHex !== sender.publicKey && publicKeyHex !== recipient.publicKey) {
           sender.finalBalance = accountBalance.getBalance().toString(4)
           sender.publicKey = publicKeyHex
           break
