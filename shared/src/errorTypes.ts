@@ -26,7 +26,7 @@ export class UnhandledEnum extends DomainError {
   constructor(
     message: string,
     public enumName?: string,
-    public enumValue?: string
+    public enumValue?: string,
   ) {
     let messageSum = message
     if (enumName) {
