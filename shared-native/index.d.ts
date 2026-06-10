@@ -93,3 +93,115 @@ export function signKeyPairDeriveAccountFromCommunity(
  */
 
 export function hashGeneric(data: Uint8Array): Uint8Array
+
+/**
+ * Gradido Blockchain Core – Enum Type Definitions
+ *
+ * These types mirror the C enum definitions from the blockchain core,
+ * ensuring type safety across TypeScript, NAPI, and Bun FFI bindings.
+ *
+ * Each enum consists of:
+ * - A readonly const array containing all valid string values (serves as
+ *   the single source of truth and enables runtime validation)
+ * - A TypeScript union type derived from that array (for compile‑time checks)
+ * - A type guard function `isGrdt*Type(input)` that checks at runtime whether
+ *   a given string is a valid member of the enum
+ *
+ * The indices of the arrays match the integer values of the corresponding
+ * C enums, allowing direct bidirectional mapping between strings and integers
+ * via the `grdt*ToString` helper functions declared below.
+ *
+ * Usage as function parameter:
+ *   import { GrdtTransactionType } from 'shared-native'
+ *   function processTransaction(type: GrdtTransactionType) {
+ *     // TypeScript ensures only valid transaction type strings can be passed
+ *   }
+ *   processTransaction('GRDT_TRANSACTION_CREATION') // OK
+ *   processTransaction('INVALID_TYPE')               // TypeScript error
+ *
+ * Usage with runtime validation:
+ *   import { GRDT_TRANSACTION_TYPES, isGrdtTransactionType } from 'shared-native'
+ *   if (isGrdtTransactionType(someString)) {
+ *     // someString is now typed as GrdtTransactionType
+ *   }
+ *   const index = GRDT_TRANSACTION_TYPES.indexOf(someString) // → C enum value
+ */
+export const GRDT_ADDRESS_TYPES: readonly [
+  'GRDT_ADDRESS_NONE',
+  'GRDT_ADDRESS_COMMUNITY_HUMAN',
+  'GRDT_ADDRESS_COMMUNITY_GMW',
+  'GRDT_ADDRESS_COMMUNITY_AUF',
+  'GRDT_ADDRESS_COMMUNITY_PROJECT',
+  'GRDT_ADDRESS_SUBACCOUNT',
+  'GRDT_ADDRESS_CRYPTO_ACCOUNT',
+  'GRDT_ADDRESS_DEFERRED_TRANSFER',
+]
+
+export type GrdtAddressType = (typeof GRDT_ADDRESS_TYPES)[number]
+export function isGrdtAddressType(input: string): input is GrdtAddressType
+
+export const GRDT_BALANCE_DERIVATION_TYPES: readonly [
+  'GRDT_BALANCE_DERIVATION_UNSPECIFIED',
+  'GRDT_BALANCE_DERIVATION_NODE',
+  'GRDT_BALANCE_DERIVATION_EXTERN',
+]
+
+export type GrdtBalanceDerivationType = (typeof GRDT_BALANCE_DERIVATION_TYPES)[number]
+export function isGrdtBalanceDerivationType(input: string): input is GrdtBalanceDerivationType
+
+export const GRDT_CROSS_GROUP_TYPES: readonly [
+  'GRDT_CROSS_GROUP_LOCAL',
+  'GRDT_CROSS_GROUP_INBOUND',
+  'GRDT_CROSS_GROUP_OUTBOUND',
+  'GRDT_CROSS_GROUP_CROSS',
+]
+
+export type GrdtCrossGroupType = (typeof GRDT_CROSS_GROUP_TYPES)[number]
+export function isGrdtCrossGroupType(input: string): input is GrdtCrossGroupType
+
+export const GRDT_LEDGER_ANCHOR_TYPES: readonly [
+  'GRDT_LEDGER_ANCHOR_UNSPECIFIED',
+  'GRDT_LEDGER_ANCHOR_IOTA_MESSAGE_ID', // not used any more, but stay for not disturbing indices
+  'GRDT_LEDGER_ANCHOR_HIERO_TRANSACTION_ID',
+  'GRDT_LEDGER_ANCHOR_LEGACY_GRADIDO_DB_TRANSACTION_ID',
+  'GRDT_LEDGER_ANCHOR_NODE_TRIGGER_TRANSACTION_ID',
+  'GRDT_LEDGER_ANCHOR_LEGACY_GRADIDO_DB_COMMUNITY_ID',
+  'GRDT_LEDGER_ANCHOR_LEGACY_GRADIDO_DB_USER_ID',
+  'GRDT_LEDGER_ANCHOR_LEGACY_GRADIDO_DB_CONTRIBUTION_ID',
+  'GRDT_LEDGER_ANCHOR_LEGACY_GRADIDO_DB_TRANSACTION_LINK_ID',
+]
+
+export type GrdtLedgerAnchorType = (typeof GRDT_LEDGER_ANCHOR_TYPES)[number]
+export function isGrdtLedgerAnchorType(input: string): input is GrdtLedgerAnchorType
+
+export const GRDT_MEMO_KEY_TYPES: readonly [
+  'GRDT_MEMO_KEY_SHARED_SECRET',
+  'GRDT_MEMO_KEY_COMMUNITY_SECRET',
+  'GRDT_MEMO_KEY_PLAIN',
+]
+
+export type GrdtMemoKeyType = (typeof GRDT_MEMO_KEY_TYPES)[number]
+export function isGrdtMemoKeyType(input: string): input is GrdtMemoKeyType
+
+export const GRDT_TRANSACTION_TYPES: readonly [
+  'GRDT_TRANSACTION_NONE',
+  'GRDT_TRANSACTION_CREATION',
+  'GRDT_TRANSACTION_TRANSFER',
+  'GRDT_TRANSACTION_COMMUNITY_FRIENDS_UPDATE',
+  'GRDT_TRANSACTION_REGISTER_ADDRESS',
+  'GRDT_TRANSACTION_DEFERRED_TRANSFER',
+  'GRDT_TRANSACTION_COMMUNITY_ROOT',
+  'GRDT_TRANSACTION_REDEEM_DEFERRED_TRANSFER',
+  'GRDT_TRANSACTION_TIMEOUT_DEFERRED_TRANSFER',
+]
+
+export type GrdtTransactionType = (typeof GRDT_TRANSACTION_TYPES)[number]
+export function isGrdtTransactionType(input: string): input is GrdtTransactionType
+
+// type helpers, used to test if TypeScript Enums and C-Enums are identical
+export function grdtAddressToString(addressType: number): string
+export function grdtBalanceDerivationToString(addressType: number): string
+export function grdtCrossGroupToString(addressType: number): string
+export function grdtLedgerAnchorToString(addressType: number): string
+export function grdtMemoKeyToString(addressType: number): string
+export function grdtTransactionToString(addressType: number): string

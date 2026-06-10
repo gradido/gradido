@@ -1,7 +1,13 @@
 const { describe, it } = require('node:test')
-const { strict } = require("node:assert")
+const { strict } = require('node:assert')
 const assert = strict
-const { signKeyPairDeriveAccountFromCommunity, signKeyPairGenerateFromSeed, signKeyPairDeriveUuid, signKeyPairDerive, hashGeneric } = require('../')
+const {
+  signKeyPairDeriveAccountFromCommunity,
+  signKeyPairGenerateFromSeed,
+  signKeyPairDeriveUuid,
+  signKeyPairDerive,
+  hashGeneric,
+} = require('../')
 
 const communitySeed = 'a84bfff0cb3195357b03c0aeb90306da50bc88e73b9437a70cc8e7d6d091af40'
 const userUuid = '693efa00-c553-42c6-a8ab-d194a8962242'
@@ -67,7 +73,7 @@ describe('Crypto', () => {
       for (let i = 0; i < 1000; i++) {
         const communityRootSeedRaw = new Uint8Array(Buffer.from(communitySeed, 'hex'))
         const userUuidRaw = new Uint8Array(Buffer.from(userUuid.replace(/-/g, ''), 'hex'))
-        const result = signKeyPairDeriveAccountFromCommunity(communityRootSeedRaw, userUuidRaw);
+        const result = signKeyPairDeriveAccountFromCommunity(communityRootSeedRaw, userUuidRaw)
         assert.equal(result.length, 96)
       }
     })
@@ -111,7 +117,10 @@ describe('Crypto', () => {
       for (const pair of userUUidPublicKeyPairs) {
         const communityRootSeedRaw = new Uint8Array(Buffer.from(communityRootSeed, 'hex'))
         const userUuidRaw = new Uint8Array(Buffer.from(pair.userUuid.replace(/-/g, ''), 'hex'))
-        const accountKeyPair = signKeyPairDeriveAccountFromCommunity(communityRootSeedRaw, userUuidRaw);
+        const accountKeyPair = signKeyPairDeriveAccountFromCommunity(
+          communityRootSeedRaw,
+          userUuidRaw,
+        )
 
         assert(accountKeyPair)
         assert.equal(accountKeyPair.length, 96)
@@ -122,8 +131,11 @@ describe('Crypto', () => {
   })
   describe('hash', () => {
     it('generic hash', () => {
-       const result = hashGeneric(new Uint8Array(Buffer.from(communitySeed, 'hex')))
-       assert.equal(Buffer.from(result).toString('hex'), '2032a0d175ae01d934dd892c175bedd45232b7681aebd02b3595924cd9a8112e')
+      const result = hashGeneric(new Uint8Array(Buffer.from(communitySeed, 'hex')))
+      assert.equal(
+        Buffer.from(result).toString('hex'),
+        '2032a0d175ae01d934dd892c175bedd45232b7681aebd02b3595924cd9a8112e',
+      )
     })
   })
 })

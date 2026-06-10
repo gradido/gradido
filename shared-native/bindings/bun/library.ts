@@ -89,4 +89,31 @@ export const blockchain_core = dlopen(filePath, {
     returns: i32,
     args: [pointer, pointer, u64],
   },
+  /**
+   * enum type to string functions from include/gradido_blockchain_core/types/
+   */
+  grdt_address_to_string: {
+    returns: cstring,
+    args: [i32],
+  },
+  grdt_balance_derivation_to_string: {
+    returns: cstring,
+    args: [i32],
+  },
+  grdt_cross_group_to_string: {
+    returns: cstring,
+    args: [i32],
+  },
+  grdt_ledger_anchor_to_string: {
+    returns: cstring,
+    args: [i32],
+  },
+  grdt_memo_key_to_string: {
+    returns: cstring,
+    args: [i32],
+  },
+  grdt_transaction_to_string: {
+    returns: cstring,
+    args: [i32],
+  },
 })
