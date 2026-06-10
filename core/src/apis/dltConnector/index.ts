@@ -4,6 +4,7 @@ import {
   DltTransaction as DbDltTransaction,
   TransactionLink as DbTransactionLink,
   User as DbUser,
+  DltTransactionType,
   getCommunityByUuid,
   getHomeCommunity,
   getUserById,
@@ -14,7 +15,6 @@ import { IRestResponse } from 'typed-rest-client'
 import { CONFIG } from '../../config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../../config/const'
 import { DltConnectorClient } from './DltConnectorClient'
-import { DltTransactionType } from './enum'
 import { TransactionDraft } from './model'
 
 export * from './DltConnectorClient'
@@ -33,7 +33,7 @@ async function checkDltConnectorResult(
   try {
     const response = await clientResponse
     if (response.statusCode === 200 && response.result) {
-      dltTransaction.messageId = response.result.transactionId
+      dltTransaction.hieroTransactionId = response.result.transactionId
     } else {
       dltTransaction.error = `empty result with status code ${response.statusCode}`
       logger.error('error from dlt-connector', response)

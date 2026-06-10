@@ -21,14 +21,14 @@ export class DltTransaction extends BaseEntity {
   typeId: number
 
   @Column({
-    name: 'message_id',
+    name: 'hiero_transaction_id',
     type: 'varchar',
-    length: 64,
+    length: 255,
     nullable: true,
     default: null,
     collation: 'utf8mb4_unicode_ci',
   })
-  messageId: string
+  hieroTransactionId: string
 
   @Column({ name: 'verified', type: 'bool', nullable: false, default: false })
   verified: boolean

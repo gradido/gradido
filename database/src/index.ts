@@ -4,6 +4,7 @@ export { latestDbVersion }
 export { AppDatabase } from './AppDatabase'
 export * from './entity'
 export * from './enum'
+export * from './errorTypes'
 export * from './logging'
 export * from './queries'
 export * from './schemas'
