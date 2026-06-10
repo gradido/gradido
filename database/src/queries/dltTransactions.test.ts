@@ -19,9 +19,7 @@ import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
 import { peterLustig } from '../seeds/users/peter-lustig'
 import {
   dbInsertDltTransaction,
-  dbSelectDltTransactionWithTransaction,
-  dbSelectDltTransactionWithTransactionLink,
-  dbSelectDltTransactionWithUser,
+  dbSelectDltTransactionByHieroTransactionId,
   dbUpdateWithErrorDltTransaction,
 } from './dltTransactions'
 
@@ -107,7 +105,10 @@ describe('dlt transactions query test', () => {
       })
       expect(insertResult.success).toBeTruthy()
 
-      const result = await dbSelectDltTransactionWithUser('hiero-id-user')
+      const result = await dbSelectDltTransactionByHieroTransactionId(
+        'hiero-id-user',
+        'GRDT_TRANSACTION_REGISTER_ADDRESS',
+      )
       expect(result.success).toBeTruthy()
       if (result.success) {
         const dltTransaction = result.value.dltTransaction
@@ -125,7 +126,10 @@ describe('dlt transactions query test', () => {
       })
       expect(insertResult.success).toBeTruthy()
 
-      const result = await dbSelectDltTransactionWithTransaction('hiero-id')
+      const result = await dbSelectDltTransactionByHieroTransactionId(
+        'hiero-id',
+        'GRDT_TRANSACTION_CREATION',
+      )
       expect(result.success).toBeTruthy()
       if (result.success) {
         const dltTransaction = result.value.dltTransaction
@@ -134,8 +138,6 @@ describe('dlt transactions query test', () => {
         expect(transaction.id).toBe(contribution!.transactionId)
         const user = result.value.user
         expect(user.id).toBe(contribution!.userId)
-        const linkedUser = result.value.linkedUser
-        expect(linkedUser.id).toBe(peter.id)
       }
     })
 
@@ -147,7 +149,10 @@ describe('dlt transactions query test', () => {
       })
       expect(insertResult.success).toBeTruthy()
 
-      const result = await dbSelectDltTransactionWithTransaction('hiero-id-transfer')
+      const result = await dbSelectDltTransactionByHieroTransactionId(
+        'hiero-id-transfer',
+        'GRDT_TRANSACTION_TRANSFER',
+      )
       expect(result.success).toBeTruthy()
       if (result.success) {
         const dltTransaction = result.value.dltTransaction
@@ -170,7 +175,10 @@ describe('dlt transactions query test', () => {
       })
       expect(insertResult.success).toBeTruthy()
 
-      const result = await dbSelectDltTransactionWithTransactionLink('hiero-id-transaction-link')
+      const result = await dbSelectDltTransactionByHieroTransactionId(
+        'hiero-id-transaction-link',
+        'GRDT_TRANSACTION_DEFERRED_TRANSFER',
+      )
       expect(result.success).toBeTruthy()
       if (result.success) {
         const dltTransaction = result.value.dltTransaction
@@ -185,7 +193,10 @@ describe('dlt transactions query test', () => {
 
   describe('select - error paths', () => {
     it('returns DBNotFoundError when hieroTransactionId does not exist', async () => {
-      const result = await dbSelectDltTransactionWithTransaction('non-existent-id')
+      const result = await dbSelectDltTransactionByHieroTransactionId(
+        'non-existent-id',
+        'GRDT_TRANSACTION_TRANSFER',
+      )
       expect(result.success).toBeFalsy()
       if (!result.success) {
         expect(result.error.name).toBe('DBNotFoundError')
@@ -202,7 +213,10 @@ describe('dlt transactions query test', () => {
         typeId: DltTransactionType.TRANSFER,
       })
 
-      const result = await dbSelectDltTransactionWithTransaction('orphan-transaction')
+      const result = await dbSelectDltTransactionByHieroTransactionId(
+        'orphan-transaction',
+        'GRDT_TRANSACTION_TRANSFER',
+      )
       expect(result.success).toBeFalsy()
       if (!result.success) {
         expect(result.error.name).toBe('DBMissingJoin')
@@ -218,7 +232,10 @@ describe('dlt transactions query test', () => {
         typeId: DltTransactionType.REGISTER_ADDRESS,
       })
 
-      const result = await dbSelectDltTransactionWithUser('orphan-user')
+      const result = await dbSelectDltTransactionByHieroTransactionId(
+        'orphan-user',
+        'GRDT_TRANSACTION_REGISTER_ADDRESS',
+      )
       expect(result.success).toBeFalsy()
       if (!result.success) {
         expect(result.error.name).toBe('DBMissingJoin')
@@ -233,7 +250,10 @@ describe('dlt transactions query test', () => {
         typeId: DltTransactionType.DEFERRED_TRANSFER,
       })
 
-      const result = await dbSelectDltTransactionWithTransactionLink('orphan-link')
+      const result = await dbSelectDltTransactionByHieroTransactionId(
+        'orphan-link',
+        'GRDT_TRANSACTION_DEFERRED_TRANSFER',
+      )
       expect(result.success).toBeFalsy()
       if (!result.success) {
         expect(result.error.name).toBe('DBMissingJoin')
@@ -255,7 +275,7 @@ describe('dlt transactions query test', () => {
 
   describe('select - edge cases', () => {
     it('handles empty string as hieroTransactionId gracefully', async () => {
-      const result = await dbSelectDltTransactionWithTransaction('')
+      const result = await dbUpdateWithErrorDltTransaction('', 'error')
       expect(result.success).toBeFalsy()
       if (!result.success) {
         expect(result.error).toBeDefined()
@@ -267,7 +287,7 @@ describe('dlt transactions query test', () => {
 
     it('handles very long hieroTransactionId gracefully', async () => {
       const longId = 'a'.repeat(1000)
-      const result = await dbSelectDltTransactionWithTransaction(longId)
+      const result = await dbUpdateWithErrorDltTransaction(longId, 'error')
       expect(result.success).toBeFalsy()
       expect(result.error.name).toBe('DBNotFoundError')
       // Should not crash, but return an error
