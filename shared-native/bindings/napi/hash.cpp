@@ -10,7 +10,7 @@ namespace gradido::crypto {
     {
         Napi::Env env = info.Env();
         if (info.Length() != 1) {
-            Napi::TypeError::New(env, "Expected one arguments: data (Uint8Array)").ThrowAsJavaScriptException();
+            Napi::TypeError::New(env, "Expected one argument: data (Uint8Array)").ThrowAsJavaScriptException();
             return env.Null();
         }
         if (!info[0].IsBuffer()) {

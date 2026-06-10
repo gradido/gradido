@@ -1,5 +1,5 @@
 const { describe, it } = require('node:test')
-const { strict } = require("node:assert")
+const { strict } = require('node:assert')
 const assert = strict
 const {
   calculateDecay,
@@ -7,7 +7,7 @@ const {
   gradidoUnitFromString,
   gradidoUnitToString,
   toDecimalPlaces,
-  durationToString
+  durationToString,
 } = require('../')
 
 const { Decimal } = require('decimal.js-light')
@@ -22,17 +22,13 @@ Decimal.set({
 function decayFormula(value, seconds) {
   return BigInt(
     new Decimal(value.toString())
-      .mul(
-        new Decimal('0.99999997803504048973201202316767079413460520837376')
-        .pow(seconds)
-      )
+      .mul(new Decimal('0.99999997803504048973201202316767079413460520837376').pow(seconds))
       .toDecimalPlaces(0)
-      .toString()
+      .toString(),
   )
 }
 
 describe('GradidoUnit', () => {
-
   describe('gradidoUnitFromString', () => {
     it('converts string to GradidoUnit', () => {
       const result = gradidoUnitFromString('10012041')
@@ -52,12 +48,14 @@ describe('GradidoUnit', () => {
     })
     it('converts invalid (to big) string to GradidoUnit ', () => {
       assert.throws(() => gradidoUnitFromString('922337203685576.12812'), {
-        message: "Invalid unit string. Must be a decimal with up to 4 fractional digits, integer part between -922'337'203'685'476 and 922'337'203'685'476."
+        message:
+          "Invalid unit string. Must be a decimal with up to 4 fractional digits, integer part between -922'337'203'685'476 and 922'337'203'685'476.",
       })
     })
     it('converts invalid (to small) string to GradidoUnit ', () => {
       assert.throws(() => gradidoUnitFromString('-922337203685576.12812'), {
-        message: "Invalid unit string. Must be a decimal with up to 4 fractional digits, integer part between -922'337'203'685'476 and 922'337'203'685'476."
+        message:
+          "Invalid unit string. Must be a decimal with up to 4 fractional digits, integer part between -922'337'203'685'476 and 922'337'203'685'476.",
       })
     })
     it('round 5th decimal', () => {
@@ -98,7 +96,7 @@ describe('GradidoUnit', () => {
     })
     it('converts BigInt to string with precision 7 (throw error)', () => {
       assert.throws(() => gradidoUnitToString(10012041n, 7), {
-        message: 'Precision must be between 0 and 4'
+        message: 'Precision must be between 0 and 4',
       })
     })
     it('converts BigInt to string with precision 3', () => {
@@ -203,11 +201,11 @@ describe('GradidoUnit', () => {
         assert.equal(legacyDecay, decay)
       })
       it('0.0001 gdd, 1 second', () => {
-          const amount = 1n
-          const decay = calculateDecay(amount, 1n)
-          const legacyDecay = decayFormula(amount, 1)
-          assert.equal(decay, 1n)
-          assert.equal(legacyDecay, decay)
+        const amount = 1n
+        const decay = calculateDecay(amount, 1n)
+        const legacyDecay = decayFormula(amount, 1)
+        assert.equal(decay, 1n)
+        assert.equal(legacyDecay, decay)
       })
 
       it('1 gdd, 1 hour', () => {
@@ -442,29 +440,21 @@ describe('GradidoUnit', () => {
 
         if (prevValue !== 0n) {
           // monotonicity: value must never increase
-          assert.ok(
-            prevValue >= decayed,
-            `previous value wasn't greater on i: ${i}`
-          )
+          assert.ok(prevValue >= decayed, `previous value wasn't greater on i: ${i}`)
 
           const distance = prevValue - decayed
 
           if (prevDistance !== 0n) {
-            const diff = prevDistance > distance
-              ? prevDistance - distance
-              : distance - prevDistance
+            const diff = prevDistance > distance ? prevDistance - distance : distance - prevDistance
 
-            assert.ok(
-              diff <= 1n,
-              `distance increased unexpectedly i: ${i} (diff=${diff})`
-            )
+            assert.ok(diff <= 1n, `distance increased unexpectedly i: ${i} (diff=${diff})`)
           }
 
           prevDistance = distance
         }
 
         prevValue = decayed
-        process.stdout.write(`${i}/${TWO_YEARS} = ${i / TWO_YEARS * 100} %\r`)
+        process.stdout.write(`${i}/${TWO_YEARS} = ${(i / TWO_YEARS) * 100} %\r`)
       }
       process.stdout.write(`\n`)
     })

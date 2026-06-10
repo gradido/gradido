@@ -1,0 +1,22 @@
+const GRDT_ADDRESS_TYPES = [
+  'GRDT_ADDRESS_NONE',
+  'GRDT_ADDRESS_COMMUNITY_HUMAN',
+  'GRDT_ADDRESS_COMMUNITY_GMW',
+  'GRDT_ADDRESS_COMMUNITY_AUF',
+  'GRDT_ADDRESS_COMMUNITY_PROJECT',
+  'GRDT_ADDRESS_SUBACCOUNT',
+  'GRDT_ADDRESS_CRYPTO_ACCOUNT',
+  'GRDT_ADDRESS_DEFERRED_TRANSFER',
+]
+
+// for runtime check
+function isGrdtAddressType(input) {
+  return GRDT_ADDRESS_TYPES.includes(input)
+}
+
+module.exports = {
+  GRDT_ADDRESS_TYPES,
+  isGrdtAddressType,
+}
+
+
