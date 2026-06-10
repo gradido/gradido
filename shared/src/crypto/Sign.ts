@@ -5,6 +5,8 @@ import {
   signKeyPairGenerateFromSeed,
 } from 'shared-native'
 
+import { hashGeneric } from './hash'
+
 /**
  * TODO: move diagram into separate md file for auto rendering on github
  * ```mermaid
@@ -63,6 +65,9 @@ export class SignKeyPair {
   get publicKey(): Uint8Array {
     return this.keyData.slice(32, 64)
   }
+  get publicKeyString(): string {
+    return Buffer.from(this.publicKey).toString('hex')
+  }
   get chainCode(): Uint8Array {
     return this.keyData.slice(64, 96)
   }
@@ -116,5 +121,12 @@ export class AccountKeyPair extends SignKeyPair {
     return new AccountKeyPair(
       signKeyPairDeriveAccountFromCommunity(communityRootSeedRaw, userUuidRaw, accountNumber),
     )
+  }
+
+  static fromTransactionLinkCode(code: string): AccountKeyPair {
+    // seed is expected to be 24 bytes long, but we need 32
+    // so hash the seed with blake2 and we have 32 Bytes
+    const hash = hashGeneric(Buffer.from(code))
+    return new AccountKeyPair(signKeyPairGenerateFromSeed(hash))
   }
 }

@@ -8,7 +8,7 @@ import {
   dltTransactionsTable,
   transactionLinksTable,
   transactionsTable,
-  usersTable,
+  usersTableIdentity as usersTable,
 } from '../schemas'
 
 const DltTransactionNotFound = (where: string) => new DBNotFoundError('dlt_transactions', where)
@@ -48,20 +48,43 @@ export async function dbUpdateWithErrorDltTransaction(
     error: DltTransactionNotFound(`hieroTransactionId = ${hieroTransactionId}`),
   }
 }
-// dlt transaction with transaction (transfer, contribution, redeem link)
+// dlt transaction with transaction (contribution link)
 async function dltTransactionWithTransactionJoinsQuery(hieroTransactionId: string) {
-  const linkedUsers = alias(usersTable, 'linkedUser')
+  const linkedUsersTable = alias(usersTable, 'linkedUser')
   return await drizzleDb()
     .select({
       dltTransaction: dltTransactionsTable,
       transaction: transactionsTable,
       user: usersTable,
-      linkedUser: linkedUsers,
+      linkedUser: linkedUsersTable,
     })
     .from(dltTransactionsTable)
     .leftJoin(transactionsTable, eq(transactionsTable.id, dltTransactionsTable.transactionId))
     .leftJoin(usersTable, eq(transactionsTable.userId, usersTable.id))
-    .leftJoin(linkedUsers, eq(transactionsTable.linkedUserId, linkedUsers.id))
+    .leftJoin(linkedUsersTable, eq(transactionsTable.linkedUserId, linkedUsersTable.id))
+    .where(eq(dltTransactionsTable.hieroTransactionId, hieroTransactionId))
+}
+
+// dlt transaction with both transactions (tranfer, redeem)
+async function dltTransactionWithBothTransactionsJoinsQuery(hieroTransactionId: string) {
+  const linkedUsersTable = alias(usersTable, 'linkedUser')
+  const linkedTransactionsTable = alias(transactionsTable, 'linkedTransaction')
+  return await drizzleDb()
+    .select({
+      dltTransaction: dltTransactionsTable,
+      transaction: transactionsTable,
+      linkedTransaction: linkedTransactionsTable,
+      user: usersTable,
+      linkedUser: linkedUsersTable,
+    })
+    .from(dltTransactionsTable)
+    .leftJoin(transactionsTable, eq(transactionsTable.id, dltTransactionsTable.transactionId))
+    .leftJoin(
+      linkedTransactionsTable,
+      eq(linkedTransactionsTable.id, transactionsTable.linkedTransactionId),
+    )
+    .leftJoin(usersTable, eq(transactionsTable.userId, usersTable.id))
+    .leftJoin(linkedUsersTable, eq(transactionsTable.linkedUserId, linkedUsersTable.id))
     .where(eq(dltTransactionsTable.hieroTransactionId, hieroTransactionId))
 }
 
@@ -99,16 +122,18 @@ async function dltTransactionWithTransactionLinkJoinsQuery(hieroTransactionId: s
 async function dbSelectDltTransactionWithJoins<T>(
   hieroTransactionId: string,
   queryFn: (hieroTransactionId: string) => Promise<T[]>,
-  joinName: string,
+  joinNames: string[],
 ): Promise<Result<T, DBNotFoundError | DBMissingJoin>> {
   const result = await queryFn(hieroTransactionId)
 
   if (result.length === 1) {
     const firstRow = result[0]
-    if (!(firstRow as Record<string, unknown>)[joinName]) {
-      return {
-        success: false,
-        error: DltTransactionMissingJoin(joinName, `hieroTransactionId = ${hieroTransactionId}`),
+    for (const joinName of joinNames) {
+      if (!(firstRow as Record<string, unknown>)[joinName]) {
+        return {
+          success: false,
+          error: DltTransactionMissingJoin(joinName, `hieroTransactionId = ${hieroTransactionId}`),
+        }
       }
     }
     return { success: true, value: firstRow }
@@ -130,7 +155,22 @@ export async function dbSelectDltTransactionWithTransaction(
   return dbSelectDltTransactionWithJoins(
     hieroTransactionId,
     dltTransactionWithTransactionJoinsQuery,
-    'transaction',
+    ['transaction', 'user', 'linkedUser'],
+  )
+}
+
+// type via typinferenz
+export type DltTransactionWithBothTransactions = Awaited<
+  ReturnType<typeof dltTransactionWithBothTransactionsJoinsQuery>
+>[number]
+
+export async function dbSelectDltTransactionWithBothTransactions(
+  hieroTransactionId: string,
+): Promise<Result<DltTransactionWithBothTransactions, DBNotFoundError | DBMissingJoin>> {
+  return dbSelectDltTransactionWithJoins(
+    hieroTransactionId,
+    dltTransactionWithBothTransactionsJoinsQuery,
+    ['transaction', 'linkedTransaction', 'user', 'linkedUser'],
   )
 }
 
@@ -142,11 +182,9 @@ export type DltTransactionWithUser = Awaited<
 export async function dbSelectDltTransactionWithUser(
   hieroTransactionId: string,
 ): Promise<Result<DltTransactionWithUser, DBNotFoundError | DBMissingJoin>> {
-  return dbSelectDltTransactionWithJoins(
-    hieroTransactionId,
-    dltTransactionWithUserJoinsQuery,
+  return dbSelectDltTransactionWithJoins(hieroTransactionId, dltTransactionWithUserJoinsQuery, [
     'user',
-  )
+  ])
 }
 
 // type via typinferenz
@@ -160,6 +198,6 @@ export async function dbSelectDltTransactionWithTransactionLink(
   return dbSelectDltTransactionWithJoins(
     hieroTransactionId,
     dltTransactionWithTransactionLinkJoinsQuery,
-    'transactionLink',
+    ['transactionLink', 'user'],
   )
 }

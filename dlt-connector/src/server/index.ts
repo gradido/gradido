@@ -13,6 +13,7 @@ import { ensureCommunitiesAvailable } from '../client/GradidoNode/communities'
 import { GradidoNodeClient } from '../client/GradidoNode/GradidoNodeClient'
 import { LOG4JS_BASE_CATEGORY } from '../config/const'
 import { KeyPairIdentifierLogic } from '../data/KeyPairIdentifier.logic'
+import { TransactionType } from '../data/TransactionType.enum'
 import { ResolveKeyPair } from '../interactions/resolveKeyPair/ResolveKeyPair.context'
 import { SendToHieroContext } from '../interactions/sendToHiero/SendToHiero.context'
 import { IdentifierAccountInput, identifierAccountSchema } from '../schemas/account.schema'
@@ -214,7 +215,7 @@ async function validateAndDecodeConfirmedTransaction(
       sender = {
         publicKey: senderPublicKey.toString('hex'),
         communityUuid: tx.getSenderCommunityUuidString(),
-        finalBalance: accountBalance.getBalance().toString(),
+        finalBalance: accountBalance.getBalance().toString(4),
       }
     } else if (registeredAccount) {
       sender = {
@@ -230,7 +231,26 @@ async function validateAndDecodeConfirmedTransaction(
       recipient = {
         publicKey: recipientPublicKey.toString('hex'),
         communityUuid: tx.getRecipientCommunityUuidString(),
-        finalBalance: accountBalance.getBalance().toString(),
+        finalBalance: accountBalance.getBalance().toString(4),
+      }
+    }
+    // GRDT_TRANSACTION_REDEEM_DEFERRED_TRANSFER
+    // On redeem deferred transfer, sender is the virtual account created with transactionLink.code as seed
+    // but legacy backend expect for sender, the original sender, so we use the third account balance entries on redeem deferred transfer,
+    // which carry the final balance, after the change was returned, exact the sender, the legacy backend expected
+    if (tx.getTransactionType() === 7 && sender && recipient) {
+      const accountBalances = tx.getAccountBalances()
+      for (let i = 0; i <= accountBalances.size(); i++) {
+        const accountBalance = accountBalances.get(i)
+        const publicKeyHex = accountBalance.getPublicKey()!.convertToHex()
+        if (
+          publicKeyHex !== sender.publicKey &&
+          publicKeyHex !== recipient.publicKey
+        ) {
+          sender.finalBalance = accountBalance.getBalance().toString(4)
+          sender.publicKey = publicKeyHex
+          break
+        }
       }
     }
     const checkedTransaction: CheckedTransactionInput = {

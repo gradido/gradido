@@ -45,9 +45,13 @@ export async function exportCommunities(homeFolder: string, client: BackendClien
   const communitiesPath = path.join(homeFolder, 'communities.json')
   checkPathExist(path.dirname(communitiesPath), true)
   const communitiesForDltNodeServer: CommunityForDltNodeServer[] = []
-  const federationUrl = CONFIG.FEDERATION_COMMUNITY_URL || `${CONFIG.COMMUNITY_URL}/api/${CONFIG.DLT_BLOCK_UPDATE_FEDERATION_API_VERSION}`
+  const federationUrl =
+    CONFIG.FEDERATION_COMMUNITY_URL ||
+    `${CONFIG.COMMUNITY_URL}/api/${CONFIG.DLT_BLOCK_UPDATE_FEDERATION_API_VERSION}`
   if (!federationUrl) {
-    throw new Error('No FEDERATION_COMMUNITY_URL or COMMUNITY_URL set, federation will not receive blockchain updates')
+    throw new Error(
+      'No FEDERATION_COMMUNITY_URL or COMMUNITY_URL set, federation will not receive blockchain updates',
+    )
   }
 
   for (const com of communities) {
