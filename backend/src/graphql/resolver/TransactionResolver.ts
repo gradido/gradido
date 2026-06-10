@@ -10,11 +10,13 @@ import {
   EncryptedTransferArgs,
   fullName,
   processXComCompleteTransaction,
+  redeemDeferredTransferTransaction,
   SendEmailCommand,
   sendCustomEmail,
   sendTransactionLinkRedeemedEmail,
   sendTransactionReceivedEmail,
   TransactionTypeId,
+  transferTransaction,
   V1_0_CommandClient,
 } from 'core'
 import {
@@ -35,7 +37,6 @@ import { CommandJwtPayloadType, DecayCalculationType, encryptAndSign, GradidoUni
 import { randombytes_random } from 'sodium-native'
 import { Args, Authorized, Ctx, Mutation, Query, Resolver } from 'type-graphql'
 import { In, IsNull } from 'typeorm'
-import { redeemDeferredTransferTransaction, transferTransaction } from '@/apis/dltConnector'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'

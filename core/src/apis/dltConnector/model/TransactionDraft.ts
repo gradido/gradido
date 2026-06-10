@@ -1,6 +1,3 @@
-// https://www.npmjs.com/package/@apollo/protobufjs
-import { AccountType } from '@dltConnector/enum/AccountType'
-import { TransactionType } from '@dltConnector/enum/TransactionType'
 import {
   Community as DbCommunity,
   Contribution as DbContribution,
@@ -9,7 +6,9 @@ import {
 } from 'database'
 import { getLogger } from 'log4js'
 import { CODE_VALID_DAYS_DURATION, Duration } from 'shared'
-import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { LOG4JS_BASE_CATEGORY_NAME } from '../../../config/const'
+import { AccountType } from '../enum/AccountType'
+import { TransactionType } from '../enum/TransactionType'
 import { AccountIdentifier } from './AccountIdentifier'
 import { CommunityAccountIdentifier } from './CommunityAccountIdentifier'
 
