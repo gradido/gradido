@@ -8,9 +8,8 @@ import {
   User as DbUser,
 } from 'database'
 import { getLogger } from 'log4js'
-import { Duration } from 'shared'
+import { CODE_VALID_DAYS_DURATION, Duration } from 'shared'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { CODE_VALID_DAYS_DURATION } from '@/graphql/resolver/const/const'
 import { AccountIdentifier } from './AccountIdentifier'
 import { CommunityAccountIdentifier } from './CommunityAccountIdentifier'
 
