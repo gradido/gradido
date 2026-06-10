@@ -11,12 +11,12 @@ import {
   dbUpdateWithErrorDltTransaction,
 } from 'database'
 import { getLogger } from 'log4js'
+import { VoidResult } from 'shared'
 import { isGrdtTransactionType } from 'shared-native'
 import { Arg, Mutation, Resolver } from 'type-graphql'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { ConfirmedTransactionInput } from '../input/ConfirmedTransactionInput'
 import { InvalidTransactionInput } from '../input/InvalidTransactionInput'
-import { VoidResult } from 'shared'
 
 const logger = getLogger(
   `${LOG4JS_BASE_CATEGORY_NAME}.graphql.api.1_0.resolver.BlockchainNotificationResolver`,
@@ -102,7 +102,10 @@ export class BlockchainNotificationResolver {
         dlt: response.result,
         node: args.transactionBase64,
       })
-      updateResult = await dbUpdateWithErrorDltTransaction(hieroTransactionId, compareResult.error.message)
+      updateResult = await dbUpdateWithErrorDltTransaction(
+        hieroTransactionId,
+        compareResult.error.message,
+      )
     } else {
       updateResult = await dbUpdateConfirmedDltTransaction(hieroTransactionId, confirmedAt)
     }
