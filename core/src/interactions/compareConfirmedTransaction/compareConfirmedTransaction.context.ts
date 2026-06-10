@@ -1,8 +1,8 @@
 import {
-  DltTransactionWithBothTransactions,
-  DltTransactionWithTransaction,
-  DltTransactionWithTransactionLink,
-  DltTransactionWithUser,
+  DltTransactionContribution,
+  DltTransactionDeferredTransfer,
+  DltTransactionRegisterAddress,
+  DltTransactionTransfer,
 } from 'database'
 import { CompareError, VoidResult } from 'shared'
 import { CheckedTransactionInput, TransactionType } from '../../apis'
@@ -14,10 +14,10 @@ import { CompareConfirmedTransferRole } from './CompareConfirmedTransfer.role'
 
 export function compareConfirmedTransaction(
   dbTransaction:
-    | DltTransactionWithBothTransactions
-    | DltTransactionWithTransaction
-    | DltTransactionWithUser
-    | DltTransactionWithTransactionLink,
+    | DltTransactionTransfer
+    | DltTransactionContribution
+    | DltTransactionRegisterAddress
+    | DltTransactionDeferredTransfer,
   confirmedTx: CheckedTransactionInput,
 ): VoidResult<CompareError> {
   if (!confirmedTx.createdAt) {
@@ -43,27 +43,24 @@ export function compareConfirmedTransaction(
   switch (confirmedTx.transactionType) {
     case TransactionType.GRDT_TRANSACTION_TRANSFER:
     case TransactionType.GRDT_TRANSACTION_REDEEM_DEFERRED_TRANSFER:
-      role = new CompareConfirmedTransferRole(
-        confirmedTx,
-        dbTransaction as DltTransactionWithBothTransactions,
-      )
+      role = new CompareConfirmedTransferRole(confirmedTx, dbTransaction as DltTransactionTransfer)
       break
     case TransactionType.GRDT_TRANSACTION_CREATION:
       role = new CompareConfirmedContributionRole(
         confirmedTx,
-        dbTransaction as DltTransactionWithTransaction,
+        dbTransaction as DltTransactionContribution,
       )
       break
     case TransactionType.GRDT_TRANSACTION_DEFERRED_TRANSFER:
       role = new CompareConfirmedTransactionLinkRole(
         confirmedTx,
-        dbTransaction as DltTransactionWithTransactionLink,
+        dbTransaction as DltTransactionDeferredTransfer,
       )
       break
     case TransactionType.GRDT_TRANSACTION_REGISTER_ADDRESS:
       role = new CompareConfirmedRegisterUserRole(
         confirmedTx,
-        dbTransaction as DltTransactionWithUser,
+        dbTransaction as DltTransactionRegisterAddress,
       )
       break
     default:

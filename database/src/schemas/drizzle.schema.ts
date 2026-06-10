@@ -193,30 +193,27 @@ export const usersTable = mysqlTable(
 export type UserSelect = typeof usersTable.$inferSelect
 export type UserInsert = typeof usersTable.$inferInsert
 
-export const usersTableIdentity = mysqlTable(
-  'users',
-  {
-    id: int().autoincrement().notNull(),
-    foreign: tinyint().default(0).notNull(),
-    gradidoId: char('gradido_id', { length: 36 }).notNull(),
-    communityUuid: varchar('community_uuid', { length: 36 }).default(sql`NULL`),
-    alias: varchar({ length: 20 }).default(sql`NULL`),
-    emailId: int('email_id').default(sql`NULL`),
-    gmsPublishName: int('gms_publish_name').default(0).notNull(),
-    humhubPublishName: int('humhub_publish_name').default(0).notNull(),
-    deletedAt: datetime('deleted_at', { mode: 'string', fsp: 3 }).default(sql`NULL`),
-    createdAt: datetime('created_at', { mode: 'string', fsp: 3 })
-      .default(sql`current_timestamp(3)`)
-      .notNull(),
-    language: varchar({ length: 4 }).default(sql`'de'`).notNull(),
-    gmsAllowed: tinyint('gms_allowed').default(1).notNull(),
-    // Warning: Can't parse geometry from database
-    // geometryType: geometry("location"),
-    gmsPublishLocation: int('gms_publish_location').default(2).notNull(),
-    gmsRegistered: tinyint('gms_registered').default(0).notNull(),
-    humhubAllowed: tinyint('humhub_allowed').default(0).notNull(),
-  }
-)
+export const usersTableIdentity = mysqlTable('users', {
+  id: int().autoincrement().notNull(),
+  foreign: tinyint().default(0).notNull(),
+  gradidoId: char('gradido_id', { length: 36 }).notNull(),
+  communityUuid: varchar('community_uuid', { length: 36 }).default(sql`NULL`),
+  alias: varchar({ length: 20 }).default(sql`NULL`),
+  emailId: int('email_id').default(sql`NULL`),
+  gmsPublishName: int('gms_publish_name').default(0).notNull(),
+  humhubPublishName: int('humhub_publish_name').default(0).notNull(),
+  deletedAt: datetime('deleted_at', { mode: 'string', fsp: 3 }).default(sql`NULL`),
+  createdAt: datetime('created_at', { mode: 'string', fsp: 3 })
+    .default(sql`current_timestamp(3)`)
+    .notNull(),
+  language: varchar({ length: 4 }).default(sql`'de'`).notNull(),
+  gmsAllowed: tinyint('gms_allowed').default(1).notNull(),
+  // Warning: Can't parse geometry from database
+  // geometryType: geometry("location"),
+  gmsPublishLocation: int('gms_publish_location').default(2).notNull(),
+  gmsRegistered: tinyint('gms_registered').default(0).notNull(),
+  humhubAllowed: tinyint('humhub_allowed').default(0).notNull(),
+})
 
 export type UserSelectIdentity = typeof usersTableIdentity.$inferSelect
 export type UserInsertIdentity = typeof usersTableIdentity.$inferInsert

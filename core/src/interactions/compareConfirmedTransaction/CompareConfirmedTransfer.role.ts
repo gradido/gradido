@@ -1,4 +1,4 @@
-import { DltTransactionWithBothTransactions, TransactionTypeId } from 'database'
+import { DltTransactionTransfer, TransactionTypeId } from 'database'
 import { CompareError, VoidResult } from 'shared'
 import { CheckedTransactionInput, TransactionType } from '../../apis'
 import { AbstractCompareConfirmedRole } from './AbstractCompareConfirmed.role'
@@ -6,11 +6,10 @@ import { AbstractCompareConfirmedRole } from './AbstractCompareConfirmed.role'
 export class CompareConfirmedTransferRole extends AbstractCompareConfirmedRole {
   public constructor(
     protected confirmedTx: CheckedTransactionInput,
-    protected dbTransaction: DltTransactionWithBothTransactions,
+    protected dbTransaction: DltTransactionTransfer,
   ) {
     super()
   }
-
 
   isIdentical(): VoidResult<CompareError> {
     const tx = this.dbTransaction.transaction
@@ -30,7 +29,10 @@ export class CompareConfirmedTransferRole extends AbstractCompareConfirmedRole {
       throw new CompareError('missing transaction type on dlt transaction')
     }
 
-    if (transactionType !== TransactionType.GRDT_TRANSACTION_TRANSFER && transactionType !== TransactionType.GRDT_TRANSACTION_REDEEM_DEFERRED_TRANSFER) {
+    if (
+      transactionType !== TransactionType.GRDT_TRANSACTION_TRANSFER &&
+      transactionType !== TransactionType.GRDT_TRANSACTION_REDEEM_DEFERRED_TRANSFER
+    ) {
       return {
         success: false,
         error: new CompareError(

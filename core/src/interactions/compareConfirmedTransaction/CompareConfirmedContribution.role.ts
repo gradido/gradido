@@ -1,4 +1,4 @@
-import { DltTransactionWithTransaction, TransactionTypeId } from 'database'
+import { DltTransactionContribution, TransactionTypeId } from 'database'
 import { CompareError, VoidResult } from 'shared'
 import { CheckedTransactionInput, TransactionType } from '../../apis'
 import { AbstractCompareConfirmedRole } from './AbstractCompareConfirmed.role'
@@ -6,7 +6,7 @@ import { AbstractCompareConfirmedRole } from './AbstractCompareConfirmed.role'
 export class CompareConfirmedContributionRole extends AbstractCompareConfirmedRole {
   public constructor(
     protected confirmedTx: CheckedTransactionInput,
-    protected dbTransaction: DltTransactionWithTransaction,
+    protected dbTransaction: DltTransactionContribution,
   ) {
     super()
   }

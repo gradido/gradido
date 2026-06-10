@@ -1,6 +1,7 @@
 import { eq } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/mysql-core'
-import { Result, VoidResult } from 'shared'
+import { Result, UnhandledEnum, VoidResult } from 'shared'
+import { GrdtTransactionType } from 'shared-native'
 import { DBInsertFailed, DBMissingJoin, DBNotFoundError } from '../'
 import { drizzleDb } from '../AppDatabase'
 import {
@@ -48,25 +49,42 @@ export async function dbUpdateWithErrorDltTransaction(
     error: DltTransactionNotFound(`hieroTransactionId = ${hieroTransactionId}`),
   }
 }
-// dlt transaction with transaction (contribution link)
-async function dltTransactionWithTransactionJoinsQuery(hieroTransactionId: string) {
-  const linkedUsersTable = alias(usersTable, 'linkedUser')
+
+export async function dbUpdateConfirmedDltTransaction(
+  hieroTransactionId: string,
+  verifiedAt: string,
+): Promise<VoidResult<DBNotFoundError>> {
+  const result = await drizzleDb()
+    .update(dltTransactionsTable)
+    .set({ verifiedAt, verified: 1 })
+    .where(eq(dltTransactionsTable.hieroTransactionId, hieroTransactionId))
+
+  const firstRow = result[0]
+  if (firstRow && firstRow.affectedRows === 1) {
+    return { success: true }
+  }
+  return {
+    success: false,
+    error: DltTransactionNotFound(`hieroTransactionId = ${hieroTransactionId}`),
+  }
+}
+
+// dlt transaction with transaction and user (contribution)
+async function dltTransactionContributionJoinsQuery(hieroTransactionId: string) {
   return await drizzleDb()
     .select({
       dltTransaction: dltTransactionsTable,
       transaction: transactionsTable,
       user: usersTable,
-      linkedUser: linkedUsersTable,
     })
     .from(dltTransactionsTable)
     .leftJoin(transactionsTable, eq(transactionsTable.id, dltTransactionsTable.transactionId))
     .leftJoin(usersTable, eq(transactionsTable.userId, usersTable.id))
-    .leftJoin(linkedUsersTable, eq(transactionsTable.linkedUserId, linkedUsersTable.id))
     .where(eq(dltTransactionsTable.hieroTransactionId, hieroTransactionId))
 }
 
 // dlt transaction with both transactions (tranfer, redeem)
-async function dltTransactionWithBothTransactionsJoinsQuery(hieroTransactionId: string) {
+async function dltTransactionTransferJoinsQuery(hieroTransactionId: string) {
   const linkedUsersTable = alias(usersTable, 'linkedUser')
   const linkedTransactionsTable = alias(transactionsTable, 'linkedTransaction')
   return await drizzleDb()
@@ -89,7 +107,7 @@ async function dltTransactionWithBothTransactionsJoinsQuery(hieroTransactionId: 
 }
 
 // dlt transaction with user (register address)
-async function dltTransactionWithUserJoinsQuery(hieroTransactionId: string) {
+async function dltTransactionRegisterAddressJoinsQuery(hieroTransactionId: string) {
   return await drizzleDb()
     .select({
       dltTransaction: dltTransactionsTable,
@@ -101,7 +119,7 @@ async function dltTransactionWithUserJoinsQuery(hieroTransactionId: string) {
 }
 
 // dlt transaction with transaction link
-async function dltTransactionWithTransactionLinkJoinsQuery(hieroTransactionId: string) {
+async function dltTransactionDeferredTransferJoinsQuery(hieroTransactionId: string) {
   return await drizzleDb()
     .select({
       dltTransaction: dltTransactionsTable,
@@ -122,17 +140,20 @@ async function dltTransactionWithTransactionLinkJoinsQuery(hieroTransactionId: s
 async function dbSelectDltTransactionWithJoins<T>(
   hieroTransactionId: string,
   queryFn: (hieroTransactionId: string) => Promise<T[]>,
-  joinNames: string[],
+  joinNames: (keyof T)[],
 ): Promise<Result<T, DBNotFoundError | DBMissingJoin>> {
   const result = await queryFn(hieroTransactionId)
 
   if (result.length === 1) {
     const firstRow = result[0]
     for (const joinName of joinNames) {
-      if (!(firstRow as Record<string, unknown>)[joinName]) {
+      if (firstRow[joinName] === null || firstRow[joinName] === undefined) {
         return {
           success: false,
-          error: DltTransactionMissingJoin(joinName, `hieroTransactionId = ${hieroTransactionId}`),
+          error: DltTransactionMissingJoin(
+            String(joinName),
+            `hieroTransactionId = ${hieroTransactionId}`,
+          ),
         }
       }
     }
@@ -144,60 +165,67 @@ async function dbSelectDltTransactionWithJoins<T>(
   }
 }
 
-// type via typinferenz
-export type DltTransactionWithTransaction = Awaited<
-  ReturnType<typeof dltTransactionWithTransactionJoinsQuery>
+// types via typinferenz
+
+export type DltTransactionContribution = Awaited<
+  ReturnType<typeof dltTransactionContributionJoinsQuery>
 >[number]
 
-export async function dbSelectDltTransactionWithTransaction(
-  hieroTransactionId: string,
-): Promise<Result<DltTransactionWithTransaction, DBNotFoundError | DBMissingJoin>> {
-  return dbSelectDltTransactionWithJoins(
-    hieroTransactionId,
-    dltTransactionWithTransactionJoinsQuery,
-    ['transaction', 'user', 'linkedUser'],
-  )
-}
-
-// type via typinferenz
-export type DltTransactionWithBothTransactions = Awaited<
-  ReturnType<typeof dltTransactionWithBothTransactionsJoinsQuery>
+export type DltTransactionTransfer = Awaited<
+  ReturnType<typeof dltTransactionTransferJoinsQuery>
 >[number]
 
-export async function dbSelectDltTransactionWithBothTransactions(
-  hieroTransactionId: string,
-): Promise<Result<DltTransactionWithBothTransactions, DBNotFoundError | DBMissingJoin>> {
-  return dbSelectDltTransactionWithJoins(
-    hieroTransactionId,
-    dltTransactionWithBothTransactionsJoinsQuery,
-    ['transaction', 'linkedTransaction', 'user', 'linkedUser'],
-  )
-}
-
-// type via typinferenz
-export type DltTransactionWithUser = Awaited<
-  ReturnType<typeof dltTransactionWithUserJoinsQuery>
+export type DltTransactionRegisterAddress = Awaited<
+  ReturnType<typeof dltTransactionRegisterAddressJoinsQuery>
 >[number]
 
-export async function dbSelectDltTransactionWithUser(
-  hieroTransactionId: string,
-): Promise<Result<DltTransactionWithUser, DBNotFoundError | DBMissingJoin>> {
-  return dbSelectDltTransactionWithJoins(hieroTransactionId, dltTransactionWithUserJoinsQuery, [
-    'user',
-  ])
-}
-
-// type via typinferenz
-export type DltTransactionWithTransactionLink = Awaited<
-  ReturnType<typeof dltTransactionWithTransactionLinkJoinsQuery>
+export type DltTransactionDeferredTransfer = Awaited<
+  ReturnType<typeof dltTransactionDeferredTransferJoinsQuery>
 >[number]
 
-export async function dbSelectDltTransactionWithTransactionLink(
+export async function dbSelectDltTransactionByHieroTransactionId(
   hieroTransactionId: string,
-): Promise<Result<DltTransactionWithTransactionLink, DBNotFoundError | DBMissingJoin>> {
-  return dbSelectDltTransactionWithJoins(
-    hieroTransactionId,
-    dltTransactionWithTransactionLinkJoinsQuery,
-    ['transactionLink', 'user'],
-  )
+  transactionType: GrdtTransactionType,
+): Promise<
+  Result<
+    | DltTransactionTransfer
+    | DltTransactionContribution
+    | DltTransactionRegisterAddress
+    | DltTransactionDeferredTransfer,
+    DBNotFoundError | DBMissingJoin | Error
+  >
+> {
+  switch (transactionType) {
+    case 'GRDT_TRANSACTION_TRANSFER':
+    case 'GRDT_TRANSACTION_REDEEM_DEFERRED_TRANSFER':
+      return dbSelectDltTransactionWithJoins(hieroTransactionId, dltTransactionTransferJoinsQuery, [
+        'transaction',
+        'linkedTransaction',
+        'user',
+        'linkedUser',
+      ])
+    case 'GRDT_TRANSACTION_CREATION':
+      return dbSelectDltTransactionWithJoins(
+        hieroTransactionId,
+        dltTransactionContributionJoinsQuery,
+        ['transaction', 'user'],
+      )
+    case 'GRDT_TRANSACTION_DEFERRED_TRANSFER':
+      return dbSelectDltTransactionWithJoins(
+        hieroTransactionId,
+        dltTransactionDeferredTransferJoinsQuery,
+        ['transactionLink', 'user'],
+      )
+    case 'GRDT_TRANSACTION_REGISTER_ADDRESS':
+      return dbSelectDltTransactionWithJoins(
+        hieroTransactionId,
+        dltTransactionRegisterAddressJoinsQuery,
+        ['user'],
+      )
+    default:
+      return {
+        success: false,
+        error: new UnhandledEnum(`unhandled enum`, 'GrdtTransactionType', transactionType),
+      }
+  }
 }
