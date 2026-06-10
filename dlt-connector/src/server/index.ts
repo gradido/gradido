@@ -144,18 +144,21 @@ export const appRoutes = new Elysia()
   )
   .post(
     '/validateAndDecodeConfirmedTransaction',
-    async ({ body }) =>
-      v.parse(
+    async ({ body }) => {
+      console.log(body)
+      const result = v.parse(
         checkedTransactionSchema,
         await validateAndDecodeConfirmedTransaction(
           body.transactionBase64,
-          v.parse(uuidv4Schema, body.communityId),
+          v.parse(uuidv4Schema, body.communityUuid),
         ),
-      ),
+      )
+      return result
+    },
     {
       body: t.Object({
         transactionBase64: t.String(),
-        communityId: TypeBoxFromValibot(uuidv4Schema),
+        communityUuid: TypeBoxFromValibot(uuidv4Schema),
       }),
       response: TypeBoxFromValibot(checkedTransactionSchema),
     },
@@ -190,7 +193,7 @@ async function isAccountExist(identifierAccount: IdentifierAccountInput): Promis
 
 async function validateAndDecodeConfirmedTransaction(
   transactionBase64: string,
-  communityId: Uuidv4,
+  communityUuid: Uuidv4,
 ): Promise<CheckedTransactionInput> {
   try {
     const timeUsed = new MonotonicTimer()
@@ -198,7 +201,7 @@ async function validateAndDecodeConfirmedTransaction(
     const tx = new CompleteTransaction()
     let result = tx.initFromProtobuf(
       serializedTransaction,
-      Buffer.from(communityId.replaceAll('-', ''), 'hex'),
+      Buffer.from(communityUuid.replaceAll('-', ''), 'hex'),
     )
     if (GRD_SUCCESS !== result) {
       return { valid: false, error: gradidoCoreResultToString(result) }

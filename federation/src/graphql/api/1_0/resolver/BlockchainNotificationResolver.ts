@@ -9,6 +9,7 @@ import {
   dbSelectDltTransactionByHieroTransactionId,
   dbUpdateConfirmedDltTransaction,
   dbUpdateWithErrorDltTransaction,
+  getHomeCommunity,
 } from 'database'
 import { getLogger } from 'log4js'
 import { VoidResult } from 'shared'
@@ -32,6 +33,17 @@ export class BlockchainNotificationResolver {
     const dltConnectorClient = DltConnectorClient.getInstance()
     if (!dltConnectorClient) {
       return { success: true }
+    }
+
+    const homeCommunity = await getHomeCommunity()
+    if (homeCommunity?.communityUuid !== args.communityUuid) {
+      console.warn('Notification for non Home-Community')
+      return {
+        success: false, error: {
+          name: 'community uuid check',
+          message: "community uuid don't belong to home community",
+          type: MutationErrorType.UNKNOWN_COMMUNITY
+      }}
     }
 
     const response = await dltConnectorClient.validateAndDecodeConfirmedTransaction(

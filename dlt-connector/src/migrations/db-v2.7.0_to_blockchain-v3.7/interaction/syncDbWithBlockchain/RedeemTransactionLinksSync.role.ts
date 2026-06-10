@@ -106,7 +106,7 @@ export class RedeemTransactionLinksSyncRole extends AbstractSyncRole<RedeemedTra
         ...row.transactionLink,
         redeemedBy: row.redeemedBy,
         user: row.user,
-        messageId: row.dltTransaction?.messageId,
+        hieroTransactionId: row.dltTransaction?.hieroTransactionId,
       }
       try {
         return v.parse(redeemedTransactionLinkDbSchema, item)

@@ -62,7 +62,7 @@ describe('transaction schemas', () => {
           communityId: communityUuidString,
           account: { userUuid: userUuidString },
         },
-        type: InputTransactionType.REGISTER_ADDRESS,
+        type: InputTransactionType.GRDT_TRANSACTION_REGISTER_ADDRESS,
         accountType: AccountType.COMMUNITY_HUMAN,
         createdAt: new Date().toISOString(),
       }
@@ -118,7 +118,7 @@ describe('transaction schemas', () => {
       },
       amount: '100',
       memo: memoString,
-      type: InputTransactionType.GRADIDO_TRANSFER,
+      type: InputTransactionType.GRDT_TRANSACTION_TRANSFER,
       createdAt: '2022-01-01T00:00:00.000Z',
     }
     expect(v.parse(transactionSchema, gradidoTransfer)).toEqual({
@@ -159,7 +159,7 @@ describe('transaction schemas', () => {
       },
       amount: '1000',
       memo: memoString,
-      type: InputTransactionType.GRADIDO_CREATION,
+      type: InputTransactionType.GRDT_TRANSACTION_CREATION,
       createdAt: '2022-01-01T00:00:00.000Z',
       targetDate: '2021-11-01T10:00',
     }
@@ -199,7 +199,7 @@ describe('transaction schemas', () => {
       },
       amount: '100',
       memo: memoString,
-      type: InputTransactionType.GRADIDO_DEFERRED_TRANSFER,
+      type: InputTransactionType.GRDT_TRANSACTION_DEFERRED_TRANSFER,
       createdAt: '2022-01-01T00:00:00.000Z',
       timeoutDuration: 60 * 60 * 24 * 30,
     }
