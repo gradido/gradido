@@ -12,7 +12,7 @@ extern "C" {
 #include <stdint.h>
 
 //! \param hash expect to be GENERIC_HASH_SIZE
-grd_result grdc_hash_generic(uint8_t *hash, const uint8_t *data, size_t size);
+grd_result grdc_generic_hash(uint8_t *hash, const uint8_t *data, size_t size);
 
 #ifdef __cplusplus
 }

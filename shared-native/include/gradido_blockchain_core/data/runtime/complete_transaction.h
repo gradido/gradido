@@ -134,6 +134,14 @@ const uint8_t *grdr_complete_transaction_get_recipient_public_key(
     const grdr_complete_transaction *tx
 );
 
+const uint8_t *grdr_complete_transaction_get_registered_account(
+    const grdr_complete_transaction *tx
+);
+
+grdt_transaction grdr_complete_transaction_get_transaction_type(
+    const grdr_complete_transaction *tx
+);
+
 #ifdef __cplusplus
 }
 #endif

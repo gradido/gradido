@@ -82,3 +82,20 @@ const uint8_t *grdr_complete_transaction_get_recipient_public_key(
   }
   return NULL;
 }
+
+const uint8_t *grdr_complete_transaction_get_registered_account(
+    const grdr_complete_transaction *tx
+) {
+  if (!tx) { return NULL; }
+  if (GRDT_TRANSACTION_REGISTER_ADDRESS == tx->transaction_type) {
+    return tx->register_address.account_public_key;
+  }
+  return NULL;
+}
+
+grdt_transaction grdr_complete_transaction_get_transaction_type(
+    const grdr_complete_transaction *tx
+) {
+  if (!tx) { return GRDT_TRANSACTION_NONE; }
+  return tx->transaction_type;
+}
