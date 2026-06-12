@@ -205,3 +205,26 @@ export function grdtCrossGroupToString(addressType: number): string
 export function grdtLedgerAnchorToString(addressType: number): string
 export function grdtMemoKeyToString(addressType: number): string
 export function grdtTransactionToString(addressType: number): string
+
+export class CompleteTransaction {
+  public initFromProtobuf(serialized: Uint8Array, communityUuid: Uint8Array | string): void
+  public validate(verifySignatures: boolean = true): void
+  public getSenderPublicKey(): Uint8Array | null
+  public getRecipientPublicKey(): Uint8Array | null
+  public getSenderCommunityUuid(): string | null
+  public getRecipientCommunityUuid(): string | null
+  public getRegisteredAccount(): Uint8Array | null
+  // return 0 if tx type hasn't amount
+  public getAmount(): bigint
+  public getAccountBalanceForPublicKey(
+    publicKey: Uint8Array | string,
+  ): { balance: bigint; communityUuid: string } | null
+  public getTransactionType(): GrdtTransactionType
+  public getTargetDate(): Date | null
+  public getTimeoutDuration(): bigint
+}
+
+export class MonotonicTimer {
+  public reset(): void
+  public toString(): string
+}

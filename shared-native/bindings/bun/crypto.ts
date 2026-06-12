@@ -4,18 +4,19 @@
  */
 
 import { ptr } from 'bun:ffi'
-import { blockchain_core } from './library'
-
-/*
-grd_result grdc_sign_key_pair_generate_from_seed(
-    grdc_sign_key_pair *esign_key_pair, const uint8_t *seed, const size_t seed_size
-);
-*/
+import {
+  blockchain_core,
+  SIGN_CHAIN_CODE_SIZE,
+  SIGN_PUBLIC_KEY_SIZE,
+  SIGN_SEED_SIZE,
+  UUID_BINARY_SIZE,
+} from './library'
 
 const MAX_DERIVATION_INDEX = 0x80000000 - 1
+const KEY_PAIR_SIZE = SIGN_SEED_SIZE + SIGN_PUBLIC_KEY_SIZE + SIGN_CHAIN_CODE_SIZE
 
 export function signKeyPairGenerateFromSeed(seed: Uint8Array): Uint8Array {
-  const resultBuffer = new Uint8Array(96)
+  const resultBuffer = new Uint8Array(KEY_PAIR_SIZE)
   const resultBufferPtr = ptr(resultBuffer)
   const seedPtr = ptr(seed)
   const result = blockchain_core.symbols.grdc_sign_key_pair_generate_from_seed(
@@ -32,13 +33,15 @@ export function signKeyPairGenerateFromSeed(seed: Uint8Array): Uint8Array {
 }
 
 export function signKeyPairDerive(parentKeyPair: Uint8Array, index: number): Uint8Array {
-  if (parentKeyPair.length !== 96) {
-    throw new Error(`Expected parentKeyPair to be 96 Bytes, got ${parentKeyPair.length}`)
+  if (parentKeyPair.length !== KEY_PAIR_SIZE) {
+    throw new Error(
+      `Expected parentKeyPair to be ${KEY_PAIR_SIZE} Bytes, got ${parentKeyPair.length}`,
+    )
   }
   if (index > MAX_DERIVATION_INDEX) {
     throw new Error(`Max index value is: ${MAX_DERIVATION_INDEX}, but got: ${index}`)
   }
-  const resultBuffer = new Uint8Array(96)
+  const resultBuffer = new Uint8Array(KEY_PAIR_SIZE)
 
   const resultBufferPtr = ptr(resultBuffer)
   const parentKeyPairPtr = ptr(parentKeyPair)
@@ -56,13 +59,15 @@ export function signKeyPairDerive(parentKeyPair: Uint8Array, index: number): Uin
 }
 
 export function signKeyPairDeriveUuid(parentKeyPair: Uint8Array, uuid: Uint8Array): Uint8Array {
-  if (parentKeyPair.length !== 96) {
-    throw new Error(`Expected parentKeyPair to be 96 Bytes, got ${parentKeyPair.length} bytes`)
+  if (parentKeyPair.length !== KEY_PAIR_SIZE) {
+    throw new Error(
+      `Expected parentKeyPair to be ${KEY_PAIR_SIZE} Bytes, got ${parentKeyPair.length} bytes`,
+    )
   }
-  if (uuid.length !== 16) {
-    throw new Error(`Expected a valid uuid (16 Bytes), got ${uuid.length} bytes`)
+  if (uuid.length !== UUID_BINARY_SIZE) {
+    throw new Error(`Expected a valid uuid (${UUID_BINARY_SIZE} Bytes), got ${uuid.length} bytes`)
   }
-  const resultBuffer = new Uint8Array(96)
+  const resultBuffer = new Uint8Array(KEY_PAIR_SIZE)
 
   const parentKeyPairPtr = ptr(parentKeyPair)
   const uuidPtr = ptr(uuid)
@@ -86,16 +91,20 @@ export function signKeyPairDeriveAccountFromCommunity(
   userUuid: Uint8Array,
   accountNumber: number = 1,
 ): Uint8Array {
-  if (communitySeed.length !== 32) {
-    throw new Error(`Expected communitySeed to be 32 Bytes, got ${communitySeed.length}`)
+  if (communitySeed.length !== SIGN_SEED_SIZE) {
+    throw new Error(
+      `Expected communitySeed to be ${SIGN_SEED_SIZE} Bytes, got ${communitySeed.length}`,
+    )
   }
-  if (userUuid.length !== 16) {
-    throw new Error(`Expected a valid uuid (16 Bytes), got ${userUuid.length} bytes`)
+  if (userUuid.length !== UUID_BINARY_SIZE) {
+    throw new Error(
+      `Expected a valid uuid (${UUID_BINARY_SIZE} Bytes), got ${userUuid.length} bytes`,
+    )
   }
   if (accountNumber > MAX_DERIVATION_INDEX) {
     throw new Error(`Max index value is: ${MAX_DERIVATION_INDEX}, but got: ${accountNumber}`)
   }
-  const resultBuffer = new Uint8Array(96)
+  const resultBuffer = new Uint8Array(KEY_PAIR_SIZE)
 
   const communitySeedPtr = ptr(communitySeed)
   const userUuidPtr = ptr(userUuid)

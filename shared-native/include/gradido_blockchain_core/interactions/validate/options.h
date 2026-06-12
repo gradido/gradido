@@ -5,6 +5,8 @@
 extern "C" {
 #endif
 
+#include <stdbool.h>
+
 typedef struct grdi_validate_options {
   bool enable_verify;
 } grdi_validate_options;

@@ -179,3 +179,10 @@ grdi_validate_result_type grdi_validate_complete_transaction(
   */
   return result;
 }
+
+grdi_validate_result_type grdi_validate_complete_transaction_flat_options(
+    const grdr_complete_transaction *input_tx, bool enable_verify, grd_error_details *error_details
+) {
+  grdi_validate_options options = {.enable_verify = enable_verify};
+  return grdi_validate_complete_transaction(input_tx, &options, error_details);
+}
