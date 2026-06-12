@@ -22,6 +22,8 @@ typedef enum grdi_validate_result_type {
   GRDI_VALIDATE_WRONG_ERROR_DETAILS_USAGE
 } grdi_validate_result_type;
 
+const char *grdi_validate_result_to_string(grdi_validate_result_type result);
+
 #ifdef __cplusplus
 }
 #endif

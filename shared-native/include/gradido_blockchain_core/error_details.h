@@ -23,6 +23,11 @@ typedef struct grd_error_details {
 //! \param alloc is optional, can be null, but then grd_error_details_fill will use malloc for each
 //! string
 grd_result grd_error_details_init(grd_error_details *error_details, grd_memory *alloc);
+
+//! \param alloc is optional, can be null, but then grd_error_details_fill will use malloc for each
+//! string
+grd_error_details *grd_error_details_create(grd_memory *alloc);
+
 int grd_error_details_is_initalized_and_empty(grd_error_details *error_details);
 //! use own allocator to allocate memory for error messages and copy them over with memcpy, only if
 //! not set to null if allocator is full, will use default malloc
@@ -35,7 +40,13 @@ grd_result grd_error_details_fill_actual_is_number(
     const int64_t actual,
     const char *expected
 );
+
+const char *grd_error_details_get_message(const grd_error_details *error_details);
+const char *grd_error_details_get_actual(const grd_error_details *error_details);
+const char *grd_error_details_get_expected(const grd_error_details *error_details);
+
 void grd_error_details_release(grd_error_details *error_details);
+void grd_error_details_free(grd_error_details *error_details);
 
 #ifdef __cplusplus
 }

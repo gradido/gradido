@@ -252,9 +252,11 @@ size_t grdu_binary_to_base64_length(size_t binSize) {
   return sodium_base64_encoded_len(binSize, BASE64_VARIANT);
 }
 
-grd_result grdu_binary_to_base64(grd_memory_block *result_block, const grd_memory_block *data) {
+grd_result grdu_binary_to_base64_with_known_size(
+    grd_memory_block *result_block, const grd_memory_block *data
+) {
   if (!result_block || !data) { return GRD_ERROR_NULL_POINTER; }
-  if (nullptr ==
+  if (NULL ==
       sodium_bin2base64(
           (char *)result_block->data, result_block->size, data->data, data->size, BASE64_VARIANT
       )) {
@@ -271,14 +273,14 @@ grd_result grdu_binary_to_base64(
   grd_result result = grd_memory_block_alloc(result_block, allocator, strSize);
   if (result != GRD_SUCCESS) { return result; }
 
-  return grdu_binary_to_base64(result_block, data);
+  return grdu_binary_to_base64_with_known_size(result_block, data);
 }
 
-size_t grdu_binary_from_base64(uint8_t *result_buffer, const char *base64_str) {
-  if (!result_buffer || !base64_str) { return 0; }
+size_t grdu_binary_from_base64(grd_memory_block *result_block, const char *base64_str) {
+  if (!result_block || !base64_str) { return 0; }
   size_t result_bin_size = 0;
   if (sodium_base642bin(
-          result_buffer.data, result_buffer.size, base64_str, strlen(base64_str), NULL,
+          result_block->data, result_block->size, base64_str, strlen(base64_str), NULL,
           &result_bin_size, NULL, BASE64_VARIANT
       )) {
     return 0;

@@ -100,10 +100,24 @@ typedef struct grdr_complete_transaction {
 
 typedef struct grdr_transaction_party grdr_transaction_party;
 
+// will malloc memory for grdr_complete_transaction, for using with FFI
+grdr_complete_transaction *grdr_complete_transaction_create();
+
 // will set everything to null
 void grdr_complete_transaction_init(grdr_complete_transaction *tx);
 // will release memory and call init to set everything to null
 void grdr_complete_transaction_release(grdr_complete_transaction *tx);
+// call grdr_complete_transaction_release and will free memory where tx is pointing
+void grdr_complete_transaction_free(grdr_complete_transaction *tx);
+
+grd_result grdr_complete_transaction_init_from_protobuf(
+    grdr_complete_transaction *tx,
+    const uint8_t *serialized_data,
+    size_t serialized_len,
+    const uint8_t community_uuid[16],
+    uint8_t *buffer,
+    size_t buffer_size
+);
 
 const grdw_account_balance *grdr_complete_transaction_get_account_balance_for_public_key(
     const grdr_complete_transaction *tx, const uint8_t public_key[SIGN_PUBLIC_KEY_SIZE]
@@ -139,6 +153,15 @@ const uint8_t *grdr_complete_transaction_get_registered_account(
 );
 
 grdt_transaction grdr_complete_transaction_get_transaction_type(
+    const grdr_complete_transaction *tx
+);
+
+grdd_unit grdr_complete_transaction_get_amount(const grdr_complete_transaction *tx);
+
+grdd_timestamp_seconds grdr_complete_transaction_get_target_date(
+    const grdr_complete_transaction *tx
+);
+grdd_duration_seconds grdr_complete_transaction_get_timeout_duration(
     const grdr_complete_transaction *tx
 );
 

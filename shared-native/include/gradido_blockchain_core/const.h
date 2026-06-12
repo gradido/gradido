@@ -14,6 +14,15 @@ extern "C" {
 #define UUID_BINARY_SIZE 16
 const static int MAGIC_NUMBER_MAX_TIMESPAN_BETWEEN_CREATING_AND_RECEIVING_TRANSACTION_SECONDS = 120;
 
+// for ffi
+int grdc_sign_public_key_size();
+int grdc_sign_seed_size();
+int grdc_sign_chain_code_size();
+int grdc_sign_private_key_size();
+int grdc_sign_signature_size();
+int grdc_generic_hash_size();
+int uuid_binary_size();
+
 #ifdef __cplusplus
 }
 #endif

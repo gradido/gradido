@@ -28,6 +28,35 @@ export const blockchain_core = dlopen(filePath, {
     returns: cstring,
     args: [i32],
   },
+  // consts
+  grdc_sign_public_key_size: {
+    returns: i32,
+    args: [],
+  },
+  grdc_sign_seed_size: {
+    returns: i32,
+    args: [],
+  },
+  grdc_sign_chain_code_size: {
+    returns: i32,
+    args: [],
+  },
+  grdc_sign_private_key_size: {
+    returns: i32,
+    args: [],
+  },
+  grdc_sign_signature_size: {
+    returns: i32,
+    args: [],
+  },
+  grdc_generic_hash_size: {
+    returns: i32,
+    args: [],
+  },
+  uuid_binary_size: {
+    returns: i32,
+    args: [],
+  },
   /**
    * describe from lib exported functions with args and return types
    * C function declarations for  grdd_unit_* are found in
@@ -116,4 +145,126 @@ export const blockchain_core = dlopen(filePath, {
     returns: cstring,
     args: [i32],
   },
+  grdu_uuid_to_string: {
+    returns: 'void',
+    args: [pointer, pointer],
+  },
+
+  // Complete Transaction
+  grdr_complete_transaction_create: {
+    returns: pointer,
+    args: [],
+  },
+  grdr_complete_transaction_free: {
+    returns: 'void',
+    args: [pointer],
+  },
+  grdr_complete_transaction_init_from_protobuf: {
+    returns: i32,
+    args: [pointer, pointer, u64, pointer, pointer, u64],
+  },
+  grdr_complete_transaction_get_account_balance_for_public_key: {
+    returns: pointer,
+    args: [pointer, pointer],
+  },
+  grdr_complete_transaction_get_sender_community_uuid: {
+    returns: pointer,
+    args: [pointer],
+  },
+  grdr_complete_transaction_get_recipient_community_uuid: {
+    returns: pointer,
+    args: [pointer],
+  },
+  grdr_complete_transaction_get_sender_public_key: {
+    returns: pointer,
+    args: [pointer],
+  },
+  grdr_complete_transaction_get_recipient_public_key: {
+    returns: pointer,
+    args: [pointer],
+  },
+  grdr_complete_transaction_get_registered_account: {
+    returns: pointer,
+    args: [pointer],
+  },
+  grdr_complete_transaction_get_transaction_type: {
+    returns: pointer,
+    args: [pointer],
+  },
+  grdr_complete_transaction_get_amount: {
+    returns: i64,
+    args: [pointer],
+  },
+  grdr_complete_transaction_get_target_date: {
+    returns: i64,
+    args: [pointer],
+  },
+  grdr_complete_transaction_get_timeout_duration: {
+    returns: i64,
+    args: [pointer],
+  },
+  // basic_types: grdw_account_balance
+  grdw_account_balance_get_balance: {
+    returns: i64,
+    args: [pointer],
+  },
+  grdw_account_balance_get_public_key: {
+    returns: pointer,
+    args: [pointer],
+  },
+  grdw_account_balance_get_community_uuid: {
+    returns: pointer,
+    args: [pointer],
+  },
+  // interactions : validate
+  grdi_validate_complete_transaction_flat_options: {
+    returns: i32,
+    args: [pointer, bool, pointer],
+  },
+  grdi_validate_result_to_string: {
+    returns: cstring,
+    args: [i32],
+  },
+  // error details
+  grd_error_details_create: {
+    returns: pointer,
+    args: [pointer],
+  },
+  grd_error_details_get_message: {
+    returns: cstring,
+    args: [pointer],
+  },
+  grd_error_details_get_actual: {
+    returns: cstring,
+    args: [pointer],
+  },
+  grd_error_details_get_expected: {
+    returns: cstring,
+    args: [pointer],
+  },
+  grd_error_details_free: {
+    returns: 'void',
+    args: [pointer],
+  },
+  // monotonic timer
+  grdu_mono_timer_init: {
+    returns: bool,
+    args: [],
+  },
+  grdu_mono_timer_reset: {
+    returns: 'void',
+    args: [pointer],
+  },
+  grdu_mono_timer_string: {
+    returns: i32,
+    args: [pointer, u64, i64],
+  },
 })
+
+export const SIGN_PUBLIC_KEY_SIZE = blockchain_core.symbols.grdc_sign_public_key_size()
+export const SIGN_SEED_SIZE = blockchain_core.symbols.grdc_sign_seed_size()
+export const SIGN_CHAIN_CODE_SIZE = blockchain_core.symbols.grdc_sign_chain_code_size()
+export const SIGN_PRIVATE_KEY_SIZE = blockchain_core.symbols.grdc_sign_private_key_size()
+export const SIGN_SIGNATURE_SIZE = blockchain_core.symbols.grdc_sign_signature_size()
+export const GENERIC_HASH_SIZE = blockchain_core.symbols.grdc_generic_hash_size()
+export const UUID_BINARY_SIZE = blockchain_core.symbols.uuid_binary_size()

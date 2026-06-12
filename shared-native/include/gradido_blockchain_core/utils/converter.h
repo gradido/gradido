@@ -132,7 +132,7 @@ grd_result grdu_binary_to_base64(
  * @param base64_str[in] expected to be null terminated string
  * @return actual binary size or 0 on error
  */
-size_t grdu_binary_from_base64(uint8_t *result_buffer, const char *base64_str);
+size_t grdu_binary_from_base64(grd_memory_block *result_block, const char *base64_str);
 
 #endif // USE_SODIUM
 /**
