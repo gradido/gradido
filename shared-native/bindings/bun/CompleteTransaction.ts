@@ -1,5 +1,5 @@
 import { ptr, toArrayBuffer } from 'bun:ffi'
-import { GrdtTransactionType } from '../../'
+import { ErrorDetails, GrdtTransactionType, VoidResult } from '../../'
 import { blockchain_core, SIGN_PUBLIC_KEY_SIZE, UUID_BINARY_SIZE } from './library'
 
 const registry = new FinalizationRegistry((handle: bigint) => {
@@ -22,7 +22,7 @@ export class CompleteTransaction {
     registry.register(this, this.handle)
   }
 
-  public initFromProtobuf(serialized: Uint8Array, communityUuid: Uint8Array | string): void {
+  public initFromProtobuf(serialized: Uint8Array, communityUuid: Uint8Array | string): VoidResult {
     if (!this.handle) {
       throw new Error('Object not initalized')
     }
@@ -38,7 +38,7 @@ export class CompleteTransaction {
     let resultString = 'GRD_SUCCESS'
     do {
       if (bufferSize >= 1024 * 1024 * 1024) {
-        throw new Error('serialized data is to big')
+        return { success: false, error: new Error('serialized data is to big') }
       }
       const resultBuffer = new Uint8Array(bufferSize)
       const result = blockchain_core.symbols.grdr_complete_transaction_init_from_protobuf(
@@ -56,12 +56,15 @@ export class CompleteTransaction {
       resultString === 'GRD_ERROR_DESTINATION_BUFFER_TO_SMALL'
     )
     if (resultString !== 'GRD_SUCCESS') {
-      throw new Error(
-        `Couldn't parse CompleteTransaction from serialized, returned: ${resultString}`,
-      )
+      return {
+        success: false, error: new Error(
+          `Couldn't parse CompleteTransaction from serialized, returned: ${resultString}`,
+        )
+      }
     }
+    return { success: true }
   }
-  public validate(verifySignatures: boolean = true): void {
+  public validate(verifySignatures: boolean = true): VoidResult<ErrorDetails> {
     if (!this.handle) {
       throw new Error('Object not initalized')
     }
@@ -73,26 +76,20 @@ export class CompleteTransaction {
       errorDetailsPtr,
     )
     const resultString = blockchain_core.symbols.grdi_validate_result_to_string(result)
-    let errorMessage: string | undefined
+    let errorDetails: ErrorDetails | undefined
     if (resultString.toString() !== 'GRDI_VALIDATE_SUCCESS') {
-      errorMessage = String(resultString)
       const message = blockchain_core.symbols.grd_error_details_get_message(errorDetailsPtr)
-      if (message) {
-        errorMessage = errorMessage.concat(`, ${message}`)
-      }
       const actual = blockchain_core.symbols.grd_error_details_get_message(errorDetailsPtr)
-      if (actual) {
-        errorMessage = errorMessage.concat(`, actual: ${actual}`)
-      }
       const expected = blockchain_core.symbols.grd_error_details_get_message(errorDetailsPtr)
-      if (expected) {
-        errorMessage = errorMessage.concat(`, expected: ${expected}`)
+      errorDetails = {
+        name: resultString,
+        message,
+        actual,
+        expected
       }
     }
     blockchain_core.symbols.grd_error_details_free(errorDetailsPtr)
-    if (errorMessage) {
-      throw new Error(errorMessage)
-    }
+    return errorDetails ? { success: false, error: errorDetails } : { success: true }
   }
 
   public getSenderPublicKey(): Uint8Array | null {

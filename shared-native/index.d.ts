@@ -206,9 +206,12 @@ export function grdtLedgerAnchorToString(addressType: number): string
 export function grdtMemoKeyToString(addressType: number): string
 export function grdtTransactionToString(addressType: number): string
 
+export type VoidResult<E = Error> = { success: true } | { success: false; error: E }
+export type ErrorDetails = Error & { actual: string, expected: string }
+
 export class CompleteTransaction {
-  public initFromProtobuf(serialized: Uint8Array, communityUuid: Uint8Array | string): void
-  public validate(verifySignatures: boolean = true): void
+  public initFromProtobuf(serialized: Uint8Array, communityUuid: Uint8Array | string): VoidResult
+  public validate(verifySignatures: boolean = true): VoidResult<ErrorDetails>
   public getSenderPublicKey(): Uint8Array | null
   public getRecipientPublicKey(): Uint8Array | null
   public getSenderCommunityUuid(): string | null

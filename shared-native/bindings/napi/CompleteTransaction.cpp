@@ -45,6 +45,7 @@ namespace gradido::data::runtime {
     Napi::Value CompleteTransaction::InitFromProtobuf(const Napi::CallbackInfo& info)
     {
         auto env = info.Env();
+                
         if (info.Length() < 2) {
             throw Napi::Error::New(info.Env(), "Expected two arguments: serialized Transaction (UInt8Array) and community uuid (UInt8Array(16) or string(36))");
             return env.Undefined();
@@ -81,19 +82,19 @@ namespace gradido::data::runtime {
         int bufferSize = 4096;
         uint8_t* dynBuffer = nullptr;
         uint8_t buffer[bufferSize];
-        grd_result result = grdr_complete_transaction_init_from_protobuf(
+        grd_result init_result = grdr_complete_transaction_init_from_protobuf(
             &m_tx, 
             serializedTx.Data(), serializedTx.Length(), 
             communityUuid, 
             buffer, bufferSize
         );
         
-        while(GRD_ERROR_OUT_OF_MEMORY == result || GRD_ERROR_DESTINATION_BUFFER_TO_SMALL == result) {
+        while(GRD_ERROR_OUT_OF_MEMORY == init_result || GRD_ERROR_DESTINATION_BUFFER_TO_SMALL == init_result) {
             bufferSize *= 2;
             // 1 MB should be more as enough
             if(bufferSize >= 1024 * 1024 * 1024) { break;}
             dynBuffer = (uint8_t*)malloc(bufferSize);
-            result = grdr_complete_transaction_init_from_protobuf(
+            init_result = grdr_complete_transaction_init_from_protobuf(
                 &m_tx, 
                 serializedTx.Data(), serializedTx.Length(), 
                 communityUuid, 
@@ -101,12 +102,19 @@ namespace gradido::data::runtime {
             );
             free(dynBuffer);
         };
-        if (GRD_SUCCESS != result) {
+        Napi::Object result = Napi::Object::New(env);        
+        if (GRD_SUCCESS != init_result) {
             std::string message = "deserialize or mapping failed: ";
-            message += grd_result_to_string(result);
-            Napi::TypeError::New(env, message.c_str()).ThrowAsJavaScriptException();
+            message += grd_result_to_string(init_result);
+            Napi::Object error = Napi::Object::New(env);
+            error.Set("name", Napi::String::New(env, grd_result_to_string(init_result)));
+            error.Set("message", Napi::String::New(env, "Deserialize or mapping failed"));
+            result.Set("success", Napi::Boolean::New(env, false));    
+            result.Set("error", error);
+            return result;
         }
-        return env.Undefined();
+        result.Set("success", Napi::Boolean::New(env, true));    
+        return result;
     }
 
     Napi::Value CompleteTransaction::Validate(const Napi::CallbackInfo& info)
@@ -127,30 +135,34 @@ namespace gradido::data::runtime {
         grd_memory alloc;
         grd_memory_init_arena_static(&alloc, errorStringBuffer, 256);
         // error details will use malloc for error message, when alloc has run out of memory
-        grd_result result = grd_error_details_init(&errorDetails, &alloc);
-        if (result != GRD_SUCCESS) { 
-            Napi::TypeError::New(env, "Memory Allocation failed").ThrowAsJavaScriptException();
+        grd_result errorDetailsInitResult = grd_error_details_init(&errorDetails, &alloc);
+        if (errorDetailsInitResult != GRD_SUCCESS) { 
+            std::string message = "Error on error details init: ";
+            message += grd_result_to_string(errorDetailsInitResult);
+            Napi::TypeError::New(env, message.c_str()).ThrowAsJavaScriptException();
             return env.Undefined();
         }
         grdi_validate_result_type validateResult = grdi_validate_complete_transaction(&m_tx, &opt, &errorDetails);
+        Napi::Object result = Napi::Object::New(env);
         if (validateResult != GRDI_VALIDATE_SUCCESS) {
-            std::string message = grdi_validate_result_to_string(validateResult);
+            result.Set("success", Napi::Boolean::New(env, false));
+            Napi::Object error = Napi::Object::New(env);
+            error.Set("name", Napi::String::New(env, grdi_validate_result_to_string(validateResult)));
             if (errorDetails.message) {
-                message += ", ";
-                message += errorDetails.message;
+                error.Set("message", Napi::String::New(env, errorDetails.message));
             }
             if (errorDetails.actual) {
-                message += ", actual: ";
-                message += errorDetails.actual;
+                error.Set("actual", Napi::String::New(env, errorDetails.actual));
             }
             if (errorDetails.expected) {
-                message += ", expected: ";
-                message += errorDetails.expected;
+                error.Set("expected", Napi::String::New(env, errorDetails.expected));
             }
-            Napi::TypeError::New(env, message.c_str()).ThrowAsJavaScriptException();            
-        }    
+            result.Set("error", error);        
+        } else {
+            result.Set("success", Napi::Boolean::New(env, true));
+        }
         grd_error_details_release(&errorDetails);
-        return env.Undefined();
+        return result;
     }
     
     Napi::Value CompleteTransaction::GetSenderPublicKey(const Napi::CallbackInfo& info) {
@@ -228,16 +240,16 @@ namespace gradido::data::runtime {
         }
         const grdw_account_balance* account_balance = grdr_complete_transaction_get_account_balance_for_public_key(&m_tx, publicKey);
         if (!account_balance) {
-            return info.Env().Null();
+            return env.Null();
         }
         
-        Napi::Object result = Napi::Object::New(info.Env());
-        result.Set("balance", Napi::Number::New(info.Env(), grdw_account_balance_get_balance(account_balance)));
+        Napi::Object result = Napi::Object::New(env);
+        result.Set("balance", Napi::Number::New(env, grdw_account_balance_get_balance(account_balance)));
         result.Set("publicKey", Napi::Buffer<uint8_t>::Copy(env, grdw_account_balance_get_public_key(account_balance), SIGN_PUBLIC_KEY_SIZE));        
         // Community UUID as string
         char uuidString[37];
         grdu_uuid_to_string(uuidString, grdw_account_balance_get_community_uuid(account_balance));
-        result.Set("communityUuid", Napi::String::New(info.Env(), uuidString));
+        result.Set("communityUuid", Napi::String::New(env, uuidString));
         
         return result;
     }
