@@ -207,11 +207,24 @@ export function grdtMemoKeyToString(addressType: number): string
 export function grdtTransactionToString(addressType: number): string
 
 export type VoidResult<E = Error> = { success: true } | { success: false; error: E }
-export type ErrorDetails = Error & { actual: string, expected: string }
+export type ErrorDetails = Error & { actual: string; expected: string }
+
+export class LedgerAnchor {
+  public getType(): GrdtLedgerAnchorType
+  public isLegacy(): boolean
+  public isNodeTrigger(): boolean
+  public isHieroTransactionId(): boolean
+  public getLegacyId(): bigint
+  public getNodeTriggerId(): bigint
+  public getHieroTransactionId(): string | null
+}
 
 export class CompleteTransaction {
   public initFromProtobuf(serialized: Uint8Array, communityUuid: Uint8Array | string): VoidResult
   public validate(verifySignatures: boolean = true): VoidResult<ErrorDetails>
+  public getConfirmedAt(): Date
+  public getCreatedAt(): Date
+  public getLedgerAnchor(): LedgerAnchor
   public getSenderPublicKey(): Uint8Array | null
   public getRecipientPublicKey(): Uint8Array | null
   public getSenderCommunityUuid(): string | null
@@ -221,7 +234,7 @@ export class CompleteTransaction {
   public getAmount(): bigint
   public getAccountBalanceForPublicKey(
     publicKey: Uint8Array | string,
-  ): { balance: bigint; communityUuid: string } | null
+  ): { balance: bigint; coinCommunityUuid: string } | null
   public getTransactionType(): GrdtTransactionType
   public getTargetDate(): Date | null
   public getTimeoutDuration(): bigint

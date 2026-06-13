@@ -1,4 +1,6 @@
 #include "CompleteTransaction.h"
+#include "LedgerAnchor.h"
+#include "napiUtils.h"
 
 #include "gradido_blockchain_core/const.h"
 #include "gradido_blockchain_core/data/runtime/complete_transaction.h"
@@ -10,12 +12,17 @@
 #include "gradido_blockchain_core/utils/converter.h"
 #include "napi.h"
 
+using gradido::data::wire::LedgerAnchor;
+
 namespace gradido::data::runtime {
     
     Napi::Object CompleteTransaction::Init(Napi::Env env, Napi::Object exports) {
         Napi::Function func = DefineClass(env, "CompleteTransaction", {
             InstanceMethod("initFromProtobuf", &CompleteTransaction::InitFromProtobuf),
             InstanceMethod("validate", &CompleteTransaction::Validate),
+            InstanceMethod("getConfirmedAt", &CompleteTransaction::GetConfirmedAt),
+            InstanceMethod("getCreatedAt", &CompleteTransaction::GetCreatedAt),
+            InstanceMethod("getLedgerAnchor", &CompleteTransaction::GetLedgerAnchor),
             InstanceMethod("getAccountBalanceForPublicKey", &CompleteTransaction::GetAccountBalanceForPublicKey),
             InstanceMethod("getSenderPublicKey", &CompleteTransaction::GetSenderPublicKey),
             InstanceMethod("getRecipientPublicKey", &CompleteTransaction::GetRecipientPublicKey),
@@ -25,7 +32,7 @@ namespace gradido::data::runtime {
             InstanceMethod("getAmount", &CompleteTransaction::GetAmount),
             InstanceMethod("getTransactionType", &CompleteTransaction::GetTransactionType),
             InstanceMethod("getTargetDate", &CompleteTransaction::GetTargetDate),
-            InstanceMethod("getTimeoutDuration", &CompleteTransaction::GetTimeoutDuration)
+            InstanceMethod("getTimeoutDuration", &CompleteTransaction::GetTimeoutDuration)            
         });
         
         exports.Set("CompleteTransaction", func);
@@ -164,6 +171,24 @@ namespace gradido::data::runtime {
         grd_error_details_release(&errorDetails);
         return result;
     }
+
+    Napi::Value CompleteTransaction::GetConfirmedAt(const Napi::CallbackInfo& info) {
+        return GrddTimestampToDate(info, &m_tx.confirmed_at);
+    }
+    Napi::Value CompleteTransaction::GetCreatedAt(const Napi::CallbackInfo& info) {
+        return GrddTimestampToDate(info, &m_tx.created_at);
+    }
+    Napi::Value CompleteTransaction::GetLedgerAnchor(const Napi::CallbackInfo& info) {
+        auto env = info.Env();
+        
+        // LedgerAnchor
+        Napi::Value newLedgerAnchor = LedgerAnchor::CreateCopy(info, &m_tx.ledger_anchor); // crash
+        if (!newLedgerAnchor.IsObject()) {
+            Napi::TypeError::New(env, "LedgerAnchor::Create did not return an object").ThrowAsJavaScriptException();
+            return env.Undefined();
+        }
+        return newLedgerAnchor;
+    }
     
     Napi::Value CompleteTransaction::GetSenderPublicKey(const Napi::CallbackInfo& info) {
         auto env = info.Env();
@@ -249,7 +274,7 @@ namespace gradido::data::runtime {
         // Community UUID as string
         char uuidString[37];
         grdu_uuid_to_string(uuidString, grdw_account_balance_get_community_uuid(account_balance));
-        result.Set("communityUuid", Napi::String::New(env, uuidString));
+        result.Set("coinCommunityUuid", Napi::String::New(env, uuidString));
         
         return result;
     }
@@ -273,4 +298,6 @@ namespace gradido::data::runtime {
     Napi::Value CompleteTransaction::GetTimeoutDuration(const Napi::CallbackInfo& info) {
         return Napi::BigInt::New(info.Env(), grdr_complete_transaction_get_timeout_duration(&m_tx));
     }
+
+   
 }

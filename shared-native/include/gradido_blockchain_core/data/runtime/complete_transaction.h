@@ -119,6 +119,15 @@ grd_result grdr_complete_transaction_init_from_protobuf(
     size_t buffer_size
 );
 
+const grdd_timestamp *grdr_complete_transaction_get_confirmed_at(
+    const grdr_complete_transaction *tx
+);
+const grdd_timestamp *grdr_complete_transaction_get_created_at(const grdr_complete_transaction *tx);
+const uint8_t *grdr_complete_transaction_get_tx_community_uuid(const grdr_complete_transaction *tx);
+const grdw_ledger_anchor *grdr_complete_transaction_get_ledger_anchor(
+    const grdr_complete_transaction *tx
+);
+
 const grdw_account_balance *grdr_complete_transaction_get_account_balance_for_public_key(
     const grdr_complete_transaction *tx, const uint8_t public_key[SIGN_PUBLIC_KEY_SIZE]
 );

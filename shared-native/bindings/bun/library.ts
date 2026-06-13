@@ -149,7 +149,15 @@ export const blockchain_core = dlopen(filePath, {
     returns: 'void',
     args: [pointer, pointer],
   },
-
+  // Timestamp
+  grdd_timestamp_get_seconds: {
+    returns: i64,
+    args: [pointer],
+  },
+  grdd_timestamp_get_nanos: {
+    returns: i32,
+    args: [pointer],
+  },
   // Complete Transaction
   grdr_complete_transaction_create: {
     returns: pointer,
@@ -162,6 +170,22 @@ export const blockchain_core = dlopen(filePath, {
   grdr_complete_transaction_init_from_protobuf: {
     returns: i32,
     args: [pointer, pointer, u64, pointer, pointer, u64],
+  },
+  grdr_complete_transaction_get_confirmed_at: {
+    returns: pointer,
+    args: [pointer],
+  },
+  grdr_complete_transaction_get_created_at: {
+    returns: pointer,
+    args: [pointer],
+  },
+  grdr_complete_transaction_get_tx_community_uuid: {
+    returns: pointer,
+    args: [pointer],
+  },
+  grdr_complete_transaction_get_ledger_anchor: {
+    returns: pointer,
+    args: [pointer],
   },
   grdr_complete_transaction_get_account_balance_for_public_key: {
     returns: pointer,
@@ -202,6 +226,48 @@ export const blockchain_core = dlopen(filePath, {
   grdr_complete_transaction_get_timeout_duration: {
     returns: i64,
     args: [pointer],
+  },
+  // LedgerAnchor
+  grdw_ledger_anchor_create_copy: {
+    returns: pointer,
+    args: [pointer],
+  },
+  grdw_ledger_anchor_free: {
+    returns: 'void',
+    args: [pointer],
+  },
+  grdw_ledger_anchor_get_type: {
+    returns: i32,
+    args: [pointer],
+  },
+  grdw_ledger_anchor_is_legacy: {
+    returns: bool,
+    args: [pointer],
+  },
+  grdw_ledger_anchor_is_hiero_transaction_id: {
+    returns: bool,
+    args: [pointer],
+  },
+  grdw_ledger_anchor_is_node_trigger_transaction_id: {
+    returns: bool,
+    args: [pointer],
+  },
+  grdw_ledger_anchor_get_legacy_id: {
+    returns: u64,
+    args: [pointer],
+  },
+  grdw_ledger_anchor_get_node_trigger_id: {
+    returns: u64,
+    args: [pointer],
+  },
+  grdw_ledger_anchor_get_hiero_transaction_id: {
+    returns: pointer,
+    args: [pointer],
+  },
+  // hiero transaction id
+  grdw_hiero_transaction_id_to_string: {
+    returns: u64,
+    args: [pointer, u64, pointer],
   },
   // basic_types: grdw_account_balance
   grdw_account_balance_get_balance: {

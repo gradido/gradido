@@ -1,6 +1,5 @@
 import { TransactionSelect, UserSelectIdentity as UserSelect } from 'database'
 import { AccountKeyPair, CompareError, GradidoUnit, VoidResult } from 'shared'
-import { TransactionParty } from '../../apis'
 import { CONFIG } from '../../config'
 
 export abstract class AbstractCompareConfirmedRole {
@@ -8,15 +7,18 @@ export abstract class AbstractCompareConfirmedRole {
   isIdenticalGdd(
     fieldName: string,
     dbValue?: GradidoUnit | null,
-    dltValue?: string | null,
+    dltValue?: bigint,
   ): VoidResult<CompareError> {
     let error: CompareError | undefined
     if (!dbValue) {
       error = new CompareError(`GDD ${fieldName} from db is missing`)
     } else if (!dltValue) {
       error = new CompareError(`GDD ${fieldName} from dlt connector is missing`)
-    } else if (dbValue.comparedTo(GradidoUnit.fromString(dltValue)) !== 0n) {
-      error = new CompareError(`GDD ${fieldName} differ`, `${dbValue.toString(4)} != ${dltValue}`)
+    } else if (dbValue.gddCent !== dltValue) {
+      error = new CompareError(
+        `GDD ${fieldName} differ`,
+        `${dbValue.toString(4)} != ${GradidoUnit.fromGradidoCent(dltValue).toString(4)}`,
+      )
     }
 
     return error ? { success: false, error } : { success: true }
@@ -24,17 +26,20 @@ export abstract class AbstractCompareConfirmedRole {
 
   isIdenticalUser(
     dbUser?: UserSelect | null,
-    transactionParty?: TransactionParty | null,
+    dltUserPublicKey?: Uint8Array | null,
+    dltUserCommunityUuid?: string | null,
   ): VoidResult<CompareError> {
     let error: CompareError | undefined
     if (!dbUser) {
       error = new CompareError('User from db is missing')
-    } else if (!transactionParty) {
+    } else if (!dltUserPublicKey) {
       error = new CompareError('User from dlt connector is missing')
-    } else if (dbUser.communityUuid !== transactionParty.communityUuid) {
+    } else if (!dltUserCommunityUuid) {
+      error = new CompareError('User Community Uuid from dlt connector is missing')
+    } else if (dbUser.communityUuid !== dltUserCommunityUuid) {
       error = new CompareError(
         "Community Uuids doesn't match",
-        `${dbUser.communityUuid} != ${transactionParty.communityUuid}`,
+        `${dbUser.communityUuid} != ${dltUserCommunityUuid}`,
       )
     } else if (!CONFIG.HOME_COMMUNITY_SEED) {
       error = new CompareError('Missing Home Community Seed for calculating Account Key Pair')
@@ -44,10 +49,12 @@ export abstract class AbstractCompareConfirmedRole {
         dbUser.gradidoId,
         1,
       )
-      if (accountKeyPair.publicKeyString !== transactionParty.publicKey) {
+      // sadly TypeScript/JavaScript don't offer a method for comparing binary data, so we must first convert both to hex strings
+      const dltPublicKeyHex = Buffer.from(dltUserPublicKey).toString('hex')
+      if (accountKeyPair.publicKeyString !== dltPublicKeyHex) {
         error = new CompareError(
           "Public Keys doesn't match",
-          `${accountKeyPair.publicKeyString} != ${transactionParty.publicKey}`,
+          `${accountKeyPair.publicKeyString} != ${dltPublicKeyHex}`,
         )
       }
     }

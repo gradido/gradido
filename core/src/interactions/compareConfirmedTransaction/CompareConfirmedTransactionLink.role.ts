@@ -1,11 +1,11 @@
 import { DltTransactionDeferredTransfer } from 'database'
 import { AccountKeyPair, CompareError, VoidResult } from 'shared'
-import { CheckedTransactionInput, TransactionType } from '../../apis'
+import { CompleteTransaction } from 'shared-native'
 import { AbstractCompareConfirmedRole } from './AbstractCompareConfirmed.role'
 
 export class CompareConfirmedTransactionLinkRole extends AbstractCompareConfirmedRole {
   public constructor(
-    protected confirmedTx: CheckedTransactionInput,
+    protected confirmedTx: CompleteTransaction,
     protected dbTransaction: DltTransactionDeferredTransfer,
   ) {
     super()
@@ -17,13 +17,13 @@ export class CompareConfirmedTransactionLinkRole extends AbstractCompareConfirme
       throw new CompareError('Missing transaction link')
     }
 
-    if (this.confirmedTx.transactionType !== TransactionType.GRDT_TRANSACTION_DEFERRED_TRANSFER) {
+    if (this.confirmedTx.getTransactionType() !== 'GRDT_TRANSACTION_DEFERRED_TRANSFER') {
       return {
         success: false,
         error: new CompareError(
           'Dlt transaction wrong type',
-          this.confirmedTx.transactionType,
-          TransactionType.GRDT_TRANSACTION_DEFERRED_TRANSFER,
+          this.confirmedTx.getTransactionType(),
+          'GRDT_TRANSACTION_DEFERRED_TRANSFER',
         ),
       }
     }
@@ -33,33 +33,32 @@ export class CompareConfirmedTransactionLinkRole extends AbstractCompareConfirme
       return { success: false, error: new CompareError('Missing sender user in db') }
     }
 
-    const dltSenderUser = this.confirmedTx.sender
+    const dltSenderUser = this.confirmedTx.getSenderPublicKey()
     if (!dltSenderUser) {
       return { success: false, error: new CompareError('Missing sender user in dlt data') }
     }
 
-    const foundedAccountPublicKey = this.confirmedTx.recipient?.publicKey
+    const dltSenderCommunityUuid = this.confirmedTx.getSenderCommunityUuid()
+    if (!dltSenderCommunityUuid) {
+      return {
+        success: false,
+        error: new CompareError('Missing sender user community uuid in dlt data'),
+      }
+    }
+
+    const foundedAccountPublicKey = this.confirmedTx.getRecipientPublicKey()
     if (!foundedAccountPublicKey) {
       return {
         success: false,
         error: new CompareError('Missing founding account public key for transaction link'),
       }
     }
-
-    if (this.confirmedTx.recipient?.communityUuid !== dltSenderUser.communityUuid) {
-      return {
-        success: false,
-        error: new CompareError(
-          'Community uuid mismatch',
-          `${this.confirmedTx.recipient?.communityUuid} != ${dltSenderUser.communityUuid}`,
-        ),
-      }
-    }
+    const foundedAccountPublicKeyHex = Buffer.from(foundedAccountPublicKey).toString('hex')
 
     const result = this.isIdenticalGdd(
       'amount with future decay',
       transactionLink.holdAvailableAmount,
-      this.confirmedTx.amount,
+      this.confirmedTx.getAmount(),
     )
     if (!result.success) {
       return result
@@ -67,18 +66,18 @@ export class CompareConfirmedTransactionLinkRole extends AbstractCompareConfirme
 
     // GRDT_ADDRESS_DEFERRED_TRANSFER
     const foundingAccount = AccountKeyPair.fromTransactionLinkCode(transactionLink.code)
-    if (foundingAccount.publicKeyString !== foundedAccountPublicKey) {
+    if (foundingAccount.publicKeyString !== foundedAccountPublicKeyHex) {
       return {
         success: false,
         error: new CompareError(
           "code hash as seed for ed25519 key pair generation don't produce correct public key",
           foundingAccount.publicKeyString,
-          foundedAccountPublicKey,
+          foundedAccountPublicKeyHex,
         ),
       }
     }
 
     // most expensive compare at the end
-    return this.isIdenticalUser(senderUser, dltSenderUser)
+    return this.isIdenticalUser(senderUser, dltSenderUser, dltSenderCommunityUuid)
   }
 }

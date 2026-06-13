@@ -1,10 +1,6 @@
 import { build, type Target } from './build_helper'
 import { detectTargetTriple } from './build_helper/deps'
-import {
-  getNodePath,
-  isWin32,
-  nodeVersion,
-} from './build_helper/host_configuration'
+import { getNodePath, isWin32, nodeVersion } from './build_helper/host_configuration'
 
 async function main() {
   const commonConfigs = {
@@ -30,7 +26,8 @@ async function main() {
       output: `build/core`,
       std: 'c17',
       sources: [],
-      cflags: ['-Dsodium=true', '-Dshared=true', '--release=small', '-DsingleOutputDir=true'],
+      // '-Dsodium=true'
+      cflags: ['-Dshared=true', '--release=small', '-DsingleOutputDir=true'],
       useBuildZig: true,
     } as Target,*/
     shared_native: {
@@ -42,7 +39,8 @@ async function main() {
       ),
       useBuildZig: true,
       isNodeJsAddon: true,
-      } as Target,
+    } as Target,
+    //*/
   })
 
   await build({})

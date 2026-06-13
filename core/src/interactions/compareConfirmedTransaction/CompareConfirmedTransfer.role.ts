@@ -1,11 +1,11 @@
 import { DltTransactionTransfer, TransactionTypeId } from 'database'
 import { CompareError, VoidResult } from 'shared'
-import { CheckedTransactionInput, TransactionType } from '../../apis'
+import { CompleteTransaction } from 'shared-native'
 import { AbstractCompareConfirmedRole } from './AbstractCompareConfirmed.role'
 
 export class CompareConfirmedTransferRole extends AbstractCompareConfirmedRole {
   public constructor(
-    protected confirmedTx: CheckedTransactionInput,
+    protected confirmedTx: CompleteTransaction,
     protected dbTransaction: DltTransactionTransfer,
   ) {
     super()
@@ -24,21 +24,18 @@ export class CompareConfirmedTransferRole extends AbstractCompareConfirmedRole {
       throw new CompareError('Missing linked transaction')
     }
 
-    const transactionType = this.confirmedTx.transactionType
-    if (!transactionType) {
-      throw new CompareError('missing transaction type on dlt transaction')
-    }
+    const transactionType = this.confirmedTx.getTransactionType()
 
     if (
-      transactionType !== TransactionType.GRDT_TRANSACTION_TRANSFER &&
-      transactionType !== TransactionType.GRDT_TRANSACTION_REDEEM_DEFERRED_TRANSFER
+      transactionType !== 'GRDT_TRANSACTION_TRANSFER' &&
+      transactionType !== 'GRDT_TRANSACTION_REDEEM_DEFERRED_TRANSFER'
     ) {
       return {
         success: false,
         error: new CompareError(
           'Dlt transaction wrong type',
           transactionType,
-          `${TransactionType.GRDT_TRANSACTION_TRANSFER} or ${TransactionType.GRDT_TRANSACTION_REDEEM_DEFERRED_TRANSFER}`,
+          'GRDT_TRANSACTION_TRANSFER or GRDT_TRANSACTION_REDEEM_DEFERRED_TRANSFER',
         ),
       }
     }
@@ -74,7 +71,7 @@ export class CompareConfirmedTransferRole extends AbstractCompareConfirmedRole {
       throw result.error
     }
 
-    result = this.isIdenticalGdd('amount', tx.amount, this.confirmedTx.amount)
+    result = this.isIdenticalGdd('amount', tx.amount, this.confirmedTx.getAmount())
     if (!result.success) {
       return result
     }
@@ -89,21 +86,39 @@ export class CompareConfirmedTransferRole extends AbstractCompareConfirmedRole {
       return { success: false, error: new CompareError('Missing linked user in db') }
     }
 
-    const dltSenderUser = this.confirmedTx.sender
+    const dltSenderUser = this.confirmedTx.getSenderPublicKey()
     if (!dltSenderUser) {
       return { success: false, error: new CompareError('Missing sender user in dlt data') }
     }
 
-    const dltRecipientUser = this.confirmedTx.recipient
+    const dltSenderUserCommunityUuid = this.confirmedTx.getSenderCommunityUuid()
+    if (!dltSenderUserCommunityUuid) {
+      return {
+        success: false,
+        error: new CompareError('Missing sender user community uuid in dlt data'),
+      }
+    }
+
+    const dltRecipientUser = this.confirmedTx.getRecipientPublicKey()
     if (!dltRecipientUser) {
       return { success: false, error: new CompareError('Missing recipient user in dlt data') }
     }
+
+    const dltRecipientUserCommunityUuid = this.confirmedTx.getRecipientCommunityUuid()
+    if (!dltRecipientUserCommunityUuid) {
+      return {
+        success: false,
+        error: new CompareError('Missing recipient user community uuid in dlt data'),
+      }
+    }
+    const senderAccountBalance = this.confirmedTx.getAccountBalanceForPublicKey(dltSenderUser)
+    const recipientAccountBalance = this.confirmedTx.getAccountBalanceForPublicKey(dltRecipientUser)
 
     if (tx.typeId === TransactionTypeId.SEND) {
       result = this.isIdenticalGdd(
         'send transaction balance',
         tx.balance,
-        dltSenderUser.finalBalance,
+        senderAccountBalance?.balance,
       )
       if (!result.success) {
         return result
@@ -111,24 +126,24 @@ export class CompareConfirmedTransferRole extends AbstractCompareConfirmedRole {
       result = this.isIdenticalGdd(
         'recipient transaction balance',
         linkedTx.balance,
-        dltRecipientUser.finalBalance,
+        recipientAccountBalance?.balance,
       )
       if (!result.success) {
         return result
       }
 
-      result = this.isIdenticalUser(user, dltSenderUser)
+      result = this.isIdenticalUser(user, dltSenderUser, dltSenderUserCommunityUuid)
       if (!result.success) {
         return result
       }
 
-      return this.isIdenticalUser(linkedUser, dltRecipientUser)
+      return this.isIdenticalUser(linkedUser, dltRecipientUser, dltRecipientUserCommunityUuid)
     } else if (tx.typeId === TransactionTypeId.RECEIVE) {
       // in db transactions receive has geswapped user <-> linkedUser compared to blockchain transactions
       result = this.isIdenticalGdd(
         'send transaction balance',
         linkedTx.balance,
-        dltSenderUser.finalBalance,
+        senderAccountBalance?.balance,
       )
       if (!result.success) {
         return result
@@ -137,7 +152,7 @@ export class CompareConfirmedTransferRole extends AbstractCompareConfirmedRole {
       result = this.isIdenticalGdd(
         'recipient transaction balance',
         tx.balance,
-        dltRecipientUser.finalBalance,
+        recipientAccountBalance?.balance,
       )
       if (!result.success) {
         return result

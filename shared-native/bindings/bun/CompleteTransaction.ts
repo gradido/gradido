@@ -1,6 +1,8 @@
 import { ptr, toArrayBuffer } from 'bun:ffi'
-import { ErrorDetails, GrdtTransactionType, VoidResult } from '../../'
-import { blockchain_core, SIGN_PUBLIC_KEY_SIZE, UUID_BINARY_SIZE } from './library'
+import type { ErrorDetails, GrdtTransactionType, VoidResult } from '../../'
+import { LedgerAnchor } from './LedgerAnchor'
+import { blockchain_core, SIGN_PUBLIC_KEY_SIZE } from './library'
+import { grddTimestampToDate } from './utils'
 
 const registry = new FinalizationRegistry((handle: bigint) => {
   if (handle && blockchain_core.symbols.grdr_complete_transaction_release) {
@@ -57,9 +59,10 @@ export class CompleteTransaction {
     )
     if (resultString !== 'GRD_SUCCESS') {
       return {
-        success: false, error: new Error(
+        success: false,
+        error: new Error(
           `Couldn't parse CompleteTransaction from serialized, returned: ${resultString}`,
-        )
+        ),
       }
     }
     return { success: true }
@@ -85,11 +88,40 @@ export class CompleteTransaction {
         name: resultString,
         message,
         actual,
-        expected
+        expected,
       }
     }
     blockchain_core.symbols.grd_error_details_free(errorDetailsPtr)
     return errorDetails ? { success: false, error: errorDetails } : { success: true }
+  }
+
+  public getConfirmedAt(): Date {
+    if (!this.handle) {
+      throw new Error('Object not initalized')
+    }
+    const timestampHandle = blockchain_core.symbols.grdr_complete_transaction_get_confirmed_at(
+      this.handle,
+    )
+    return grddTimestampToDate(timestampHandle)
+  }
+
+  public getCreatedAt(): Date {
+    if (!this.handle) {
+      throw new Error('Object not initalized')
+    }
+    const timestampHandle = blockchain_core.symbols.grdr_complete_transaction_get_created_at(
+      this.handle,
+    )
+    return grddTimestampToDate(timestampHandle)
+  }
+
+  public getLedgerAnchor(): LedgerAnchor {
+    if (!this.handle) {
+      throw new Error('Object not initalized')
+    }
+    return LedgerAnchor.copy(
+      blockchain_core.symbols.grdr_complete_transaction_get_ledger_anchor(this.handle),
+    )
   }
 
   public getSenderPublicKey(): Uint8Array | null {
@@ -182,7 +214,7 @@ export class CompleteTransaction {
 
   public getAccountBalanceForPublicKey(
     publicKey: Uint8Array | string,
-  ): { balance: bigint; communityUuid: string } | null {
+  ): { balance: bigint; coinCommunityUuid: string } | null {
     if (!this.handle) {
       throw new Error('Object not initalized')
     }
@@ -220,7 +252,7 @@ export class CompleteTransaction {
 
     return {
       balance: BigInt(blockchain_core.symbols.grdw_account_balance_get_balance(result)),
-      communityUuid: Buffer.from(communityUuidStringBuffer).toString('utf8').slice(0, 36),
+      coinCommunityUuid: Buffer.from(communityUuidStringBuffer).toString('utf8').slice(0, 36),
     }
   }
 
@@ -258,4 +290,3 @@ export class CompleteTransaction {
     return blockchain_core.symbols.grdr_complete_transaction_get_timeout_duration(this.handle)
   }
 }
-// */

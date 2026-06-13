@@ -6,6 +6,8 @@
 #include "gradido_blockchain_core/types/ledger_anchor.h"
 #include "hiero.h"
 
+#include <stdbool.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -33,6 +35,10 @@ typedef struct grdw_ledger_anchor {
     uint64_t id;
   };
 } grdw_ledger_anchor;
+
+grdw_ledger_anchor *grdw_ledger_anchor_create();
+grdw_ledger_anchor *grdw_ledger_anchor_create_copy(const grdw_ledger_anchor *ledger_anchor);
+void grdw_ledger_anchor_free(grdw_ledger_anchor *ledger_anchor);
 
 /**
  * @brief Set the ledger anchor to a Hiero transaction ID.
@@ -83,6 +89,20 @@ grd_result grdw_ledger_anchor_set_legacy_id(
  */
 grd_result grdw_ledger_anchor_set_node_trigger_transaction_id(
     grdw_ledger_anchor *ledger_anchor, uint64_t node_trigger_transaction_id
+);
+
+grdt_ledger_anchor grdw_ledger_anchor_get_type(grdw_ledger_anchor *ledger_anchor);
+bool grdw_ledger_anchor_is_legacy(grdw_ledger_anchor *ledger_anchor);
+bool grdw_ledger_anchor_is_hiero_transaction_id(grdw_ledger_anchor *ledger_anchor);
+bool grdw_ledger_anchor_is_node_trigger_transaction_id(grdw_ledger_anchor *ledger_anchor);
+
+// @return 0 if wrong type for legacy id
+uint64_t grdw_ledger_anchor_get_legacy_id(grdw_ledger_anchor *ledger_anchor);
+uint64_t grdw_ledger_anchor_get_node_trigger_id(grdw_ledger_anchor *ledger_anchor);
+
+// @return NULL if wrong type hiero transaction id
+grdw_hiero_transaction_id *grdw_ledger_anchor_get_hiero_transaction_id(
+    grdw_ledger_anchor *ledger_anchor
 );
 
 /** @} */

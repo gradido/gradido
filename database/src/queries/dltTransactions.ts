@@ -1,10 +1,11 @@
-import { eq } from 'drizzle-orm'
+import { Column, ColumnBaseConfig, ColumnDataType, eq } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/mysql-core'
 import { Result, UnhandledEnum, VoidResult } from 'shared'
-import { GrdtTransactionType } from 'shared-native'
+import { GrdtTransactionType, LedgerAnchor } from 'shared-native'
 import { DBInsertFailed, DBMissingJoin, DBNotFoundError } from '../'
 import { drizzleDb } from '../AppDatabase'
 import {
+  contributionsTable,
   DltTransactionInsert,
   dltTransactionsTable,
   transactionLinksTable,
@@ -32,6 +33,25 @@ export async function dbInsertDltTransaction(
 }
 
 export async function dbUpdateWithErrorDltTransaction(
+  id: number,
+  error: string,
+): Promise<VoidResult<DBNotFoundError>> {
+  const result = await drizzleDb()
+    .update(dltTransactionsTable)
+    .set({ error })
+    .where(eq(dltTransactionsTable.id, id))
+
+  const firstRow = result[0]
+  if (firstRow && firstRow.affectedRows === 1) {
+    return { success: true }
+  }
+  return {
+    success: false,
+    error: DltTransactionNotFound(`id = ${id}`),
+  }
+}
+
+export async function dbUpdateWithErrorDltTransactionByHieroTransactionId(
   hieroTransactionId: string,
   error: string,
 ): Promise<VoidResult<DBNotFoundError>> {
@@ -51,13 +71,13 @@ export async function dbUpdateWithErrorDltTransaction(
 }
 
 export async function dbUpdateConfirmedDltTransaction(
-  hieroTransactionId: string,
+  id: number,
   verifiedAt: string,
 ): Promise<VoidResult<DBNotFoundError>> {
   const result = await drizzleDb()
     .update(dltTransactionsTable)
     .set({ verifiedAt, verified: 1 })
-    .where(eq(dltTransactionsTable.hieroTransactionId, hieroTransactionId))
+    .where(eq(dltTransactionsTable.id, id))
 
   const firstRow = result[0]
   if (firstRow && firstRow.affectedRows === 1) {
@@ -65,13 +85,16 @@ export async function dbUpdateConfirmedDltTransaction(
   }
   return {
     success: false,
-    error: DltTransactionNotFound(`hieroTransactionId = ${hieroTransactionId}`),
+    error: DltTransactionNotFound(`id = ${id}`),
   }
 }
 
 // dlt transaction with transaction and user (contribution)
-async function dltTransactionContributionJoinsQuery(hieroTransactionId: string) {
-  return await drizzleDb()
+async function dltTransactionContributionJoinsQuery<
+  F extends Column<ColumnBaseConfig<ColumnDataType, string>, object, object>,
+  V,
+>(field: F, value: V) {
+  return drizzleDb()
     .select({
       dltTransaction: dltTransactionsTable,
       transaction: transactionsTable,
@@ -80,14 +103,17 @@ async function dltTransactionContributionJoinsQuery(hieroTransactionId: string) 
     .from(dltTransactionsTable)
     .leftJoin(transactionsTable, eq(transactionsTable.id, dltTransactionsTable.transactionId))
     .leftJoin(usersTable, eq(transactionsTable.userId, usersTable.id))
-    .where(eq(dltTransactionsTable.hieroTransactionId, hieroTransactionId))
+    .where(eq(field, value))
 }
 
 // dlt transaction with both transactions (tranfer, redeem)
-async function dltTransactionTransferJoinsQuery(hieroTransactionId: string) {
+async function dltTransactionTransferJoinsQuery<
+  F extends Column<ColumnBaseConfig<ColumnDataType, string>, object, object>,
+  V,
+>(field: F, value: V) {
   const linkedUsersTable = alias(usersTable, 'linkedUser')
   const linkedTransactionsTable = alias(transactionsTable, 'linkedTransaction')
-  return await drizzleDb()
+  return drizzleDb()
     .select({
       dltTransaction: dltTransactionsTable,
       transaction: transactionsTable,
@@ -103,24 +129,30 @@ async function dltTransactionTransferJoinsQuery(hieroTransactionId: string) {
     )
     .leftJoin(usersTable, eq(transactionsTable.userId, usersTable.id))
     .leftJoin(linkedUsersTable, eq(transactionsTable.linkedUserId, linkedUsersTable.id))
-    .where(eq(dltTransactionsTable.hieroTransactionId, hieroTransactionId))
+    .where(eq(field, value))
 }
 
 // dlt transaction with user (register address)
-async function dltTransactionRegisterAddressJoinsQuery(hieroTransactionId: string) {
-  return await drizzleDb()
+async function dltTransactionRegisterAddressJoinsQuery<
+  F extends Column<ColumnBaseConfig<ColumnDataType, string>, object, object>,
+  V,
+>(field: F, value: V) {
+  return drizzleDb()
     .select({
       dltTransaction: dltTransactionsTable,
       user: usersTable,
     })
     .from(dltTransactionsTable)
     .leftJoin(usersTable, eq(dltTransactionsTable.userId, usersTable.id))
-    .where(eq(dltTransactionsTable.hieroTransactionId, hieroTransactionId))
+    .where(eq(field, value))
 }
 
 // dlt transaction with transaction link
-async function dltTransactionDeferredTransferJoinsQuery(hieroTransactionId: string) {
-  return await drizzleDb()
+async function dltTransactionDeferredTransferJoinsQuery<
+  F extends Column<ColumnBaseConfig<ColumnDataType, string>, object, object>,
+  V,
+>(field: F, value: V) {
+  return drizzleDb()
     .select({
       dltTransaction: dltTransactionsTable,
       transactionLink: transactionLinksTable,
@@ -132,17 +164,60 @@ async function dltTransactionDeferredTransferJoinsQuery(hieroTransactionId: stri
       eq(transactionLinksTable.id, dltTransactionsTable.transactionLinkId),
     )
     .leftJoin(usersTable, eq(transactionLinksTable.userId, usersTable.id))
-    .where(eq(dltTransactionsTable.hieroTransactionId, hieroTransactionId))
+    .where(eq(field, value))
 }
 
 // template function for each dlt transaction select with one of the three join options
 // will return different errors if hieroTransactionId wasn't found or joining table was missing
 async function dbSelectDltTransactionWithJoins<T>(
-  hieroTransactionId: string,
-  queryFn: (hieroTransactionId: string) => Promise<T[]>,
+  ledgerAnchor: LedgerAnchor,
+  queryFn: <F extends Column<ColumnBaseConfig<ColumnDataType, string>, object, object>, V>(
+    field: F,
+    value: V,
+  ) => Promise<T[]>,
   joinNames: (keyof T)[],
-): Promise<Result<T, DBNotFoundError | DBMissingJoin>> {
-  const result = await queryFn(hieroTransactionId)
+): Promise<Result<T, DBNotFoundError | DBMissingJoin | UnhandledEnum>> {
+  let result: T[] = []
+  let where = ''
+  const hieroTransactionId = ledgerAnchor.getHieroTransactionId()
+  const legacyId = Number(ledgerAnchor.getLegacyId())
+  if (hieroTransactionId) {
+    where = `hieroTransactionId = ${hieroTransactionId}`
+    result = await queryFn(dltTransactionsTable.hieroTransactionId, hieroTransactionId)
+  } else if (legacyId) {
+    const ledgerAnchorType = ledgerAnchor.getType()
+
+    if (ledgerAnchorType === 'GRDT_LEDGER_ANCHOR_LEGACY_GRADIDO_DB_TRANSACTION_ID') {
+      where = `transactionId = ${legacyId}`
+      result = await queryFn(dltTransactionsTable.transactionId, legacyId)
+    } else if (ledgerAnchorType === 'GRDT_LEDGER_ANCHOR_LEGACY_GRADIDO_DB_TRANSACTION_LINK_ID') {
+      where = `transactionLinkId = ${legacyId}`
+      result = await queryFn(dltTransactionsTable.transactionLinkId, legacyId)
+    } else if (ledgerAnchorType === 'GRDT_LEDGER_ANCHOR_LEGACY_GRADIDO_DB_USER_ID') {
+      where = `userId = ${legacyId}`
+      result = await queryFn(dltTransactionsTable.userId, legacyId)
+    } else if (ledgerAnchorType === 'GRDT_LEDGER_ANCHOR_LEGACY_GRADIDO_DB_CONTRIBUTION_ID') {
+      const contributions = await drizzleDb()
+        .select({ transactionId: contributionsTable.transactionId })
+        .from(contributionsTable)
+        .where(eq(contributionsTable.id, legacyId))
+      if (contributions.length !== 1) {
+        return { success: false, error: new DBNotFoundError('contributions', `id = ${legacyId}`) }
+      }
+      where = `transactionId = ${contributions[0].transactionId}`
+      result = await queryFn(dltTransactionsTable.transactionId, contributions[0].transactionId)
+    } else {
+      return {
+        success: false,
+        error: new UnhandledEnum(
+          'ledgerAnchor has unhandled type',
+          'GrdtLedgerAnchorType',
+          ledgerAnchorType,
+        ),
+      }
+    }
+  }
+  // const result = await queryFn()
 
   if (result.length === 1) {
     const firstRow = result[0]
@@ -150,10 +225,7 @@ async function dbSelectDltTransactionWithJoins<T>(
       if (firstRow[joinName] === null || firstRow[joinName] === undefined) {
         return {
           success: false,
-          error: DltTransactionMissingJoin(
-            String(joinName),
-            `hieroTransactionId = ${hieroTransactionId}`,
-          ),
+          error: DltTransactionMissingJoin(String(joinName), where),
         }
       }
     }
@@ -161,7 +233,7 @@ async function dbSelectDltTransactionWithJoins<T>(
   }
   return {
     success: false,
-    error: DltTransactionNotFound(`hieroTransactionId = ${hieroTransactionId}`),
+    error: DltTransactionNotFound(where),
   }
 }
 
@@ -183,8 +255,8 @@ export type DltTransactionDeferredTransfer = Awaited<
   ReturnType<typeof dltTransactionDeferredTransferJoinsQuery>
 >[number]
 
-export async function dbSelectDltTransactionByHieroTransactionId(
-  hieroTransactionId: string,
+export async function dbSelectDltTransactionByLedgerAnchor(
+  ledgerAnchor: LedgerAnchor,
   transactionType: GrdtTransactionType,
 ): Promise<
   Result<
@@ -198,27 +270,26 @@ export async function dbSelectDltTransactionByHieroTransactionId(
   switch (transactionType) {
     case 'GRDT_TRANSACTION_TRANSFER':
     case 'GRDT_TRANSACTION_REDEEM_DEFERRED_TRANSFER':
-      return dbSelectDltTransactionWithJoins(hieroTransactionId, dltTransactionTransferJoinsQuery, [
+      return dbSelectDltTransactionWithJoins(ledgerAnchor, dltTransactionTransferJoinsQuery, [
         'transaction',
         'linkedTransaction',
         'user',
         'linkedUser',
       ])
     case 'GRDT_TRANSACTION_CREATION':
-      return dbSelectDltTransactionWithJoins(
-        hieroTransactionId,
-        dltTransactionContributionJoinsQuery,
-        ['transaction', 'user'],
-      )
+      return dbSelectDltTransactionWithJoins(ledgerAnchor, dltTransactionContributionJoinsQuery, [
+        'transaction',
+        'user',
+      ])
     case 'GRDT_TRANSACTION_DEFERRED_TRANSFER':
       return dbSelectDltTransactionWithJoins(
-        hieroTransactionId,
+        ledgerAnchor,
         dltTransactionDeferredTransferJoinsQuery,
         ['transactionLink', 'user'],
       )
     case 'GRDT_TRANSACTION_REGISTER_ADDRESS':
       return dbSelectDltTransactionWithJoins(
-        hieroTransactionId,
+        ledgerAnchor,
         dltTransactionRegisterAddressJoinsQuery,
         ['user'],
       )

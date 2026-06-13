@@ -1,11 +1,11 @@
 import { DltTransactionRegisterAddress } from 'database'
 import { CompareError, VoidResult } from 'shared'
-import { CheckedTransactionInput, TransactionType } from '../../apis'
+import { CompleteTransaction } from 'shared-native'
 import { AbstractCompareConfirmedRole } from './AbstractCompareConfirmed.role'
 
 export class CompareConfirmedRegisterUserRole extends AbstractCompareConfirmedRole {
   public constructor(
-    protected confirmedTx: CheckedTransactionInput,
+    protected confirmedTx: CompleteTransaction,
     protected dbTransaction: DltTransactionRegisterAddress,
   ) {
     super()
@@ -16,17 +16,21 @@ export class CompareConfirmedRegisterUserRole extends AbstractCompareConfirmedRo
       throw new CompareError('Missing user')
     }
 
-    if (this.confirmedTx.transactionType !== TransactionType.GRDT_TRANSACTION_REGISTER_ADDRESS) {
+    if (this.confirmedTx.getTransactionType() !== 'GRDT_TRANSACTION_REGISTER_ADDRESS') {
       return {
         success: false,
         error: new CompareError(
           'Dlt transaction wrong type',
-          this.confirmedTx.transactionType,
-          TransactionType.GRDT_TRANSACTION_REGISTER_ADDRESS,
+          this.confirmedTx.getTransactionType(),
+          'GRDT_TRANSACTION_REGISTER_ADDRESS',
         ),
       }
     }
 
-    return this.isIdenticalUser(user, this.confirmedTx.sender)
+    return this.isIdenticalUser(
+      user,
+      this.confirmedTx.getRegisteredAccount(),
+      this.confirmedTx.getSenderCommunityUuid(),
+    )
   }
 }

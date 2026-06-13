@@ -124,7 +124,9 @@ size_t grdu_int64_to_string_known_string_size(char *buffer, int64_t value, size_
     return grdu_uint64_to_string_known_string_size(buffer, (uint64_t)value, stringSize);
   } else {
     buffer[0] = '-';
-    return grdu_uint64_to_string_known_string_size(&buffer[1], (uint64_t)(value * -1), stringSize) +
+    return grdu_uint64_to_string_known_string_size(
+               &buffer[1], (uint64_t)(value * -1), stringSize - 1
+           ) +
            1;
   }
 }

@@ -1,11 +1,11 @@
 import { DltTransactionContribution, TransactionTypeId } from 'database'
 import { CompareError, VoidResult } from 'shared'
-import { CheckedTransactionInput, TransactionType } from '../../apis'
+import { CompleteTransaction } from 'shared-native'
 import { AbstractCompareConfirmedRole } from './AbstractCompareConfirmed.role'
 
 export class CompareConfirmedContributionRole extends AbstractCompareConfirmedRole {
   public constructor(
-    protected confirmedTx: CheckedTransactionInput,
+    protected confirmedTx: CompleteTransaction,
     protected dbTransaction: DltTransactionContribution,
   ) {
     super()
@@ -17,13 +17,13 @@ export class CompareConfirmedContributionRole extends AbstractCompareConfirmedRo
       throw new CompareError('Missing transaction')
     }
 
-    if (this.confirmedTx.transactionType !== TransactionType.GRDT_TRANSACTION_CREATION) {
+    if (this.confirmedTx.getTransactionType() !== 'GRDT_TRANSACTION_CREATION') {
       return {
         success: false,
         error: new CompareError(
           'Dlt transaction wrong type',
-          this.confirmedTx.transactionType,
-          TransactionType.GRDT_TRANSACTION_CREATION,
+          this.confirmedTx.getTransactionType(),
+          'GRDT_TRANSACTION_CREATION',
         ),
       }
     }
@@ -44,22 +44,30 @@ export class CompareConfirmedContributionRole extends AbstractCompareConfirmedRo
       return { success: false, error: new CompareError('Missing recipient user in db') }
     }
 
-    const dltRecipientUser = this.confirmedTx.recipient
+    const dltRecipientUser = this.confirmedTx.getRecipientPublicKey()
     if (!dltRecipientUser) {
       return { success: false, error: new CompareError('Missing recipient user in dlt data') }
     }
 
-    let result = this.isIdenticalGdd('amount', tx.amount, this.confirmedTx.amount)
+    const dltRecipientUserCommunityUuid = this.confirmedTx.getRecipientCommunityUuid()
+    if (!dltRecipientUserCommunityUuid) {
+      return {
+        success: false,
+        error: new CompareError('Missing recipient user community uuid in dlt data'),
+      }
+    }
+
+    let result = this.isIdenticalGdd('amount', tx.amount, this.confirmedTx.getAmount())
     if (!result.success) {
       return result
     }
-
-    result = this.isIdenticalGdd('balance', tx.balance, dltRecipientUser.finalBalance)
+    const accountBalance = this.confirmedTx.getAccountBalanceForPublicKey(dltRecipientUser)
+    result = this.isIdenticalGdd('balance', tx.balance, accountBalance?.balance)
     if (!result.success) {
       return result
     }
 
     // most expensive compare at the end
-    return this.isIdenticalUser(recipientUser, dltRecipientUser)
+    return this.isIdenticalUser(recipientUser, dltRecipientUser, dltRecipientUserCommunityUuid)
   }
 }

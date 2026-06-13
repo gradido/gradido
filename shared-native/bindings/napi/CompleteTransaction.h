@@ -1,8 +1,6 @@
 #include <napi.h>
 #include "gradido_blockchain_core/data/runtime/complete_transaction.h"
 
-struct grdr_complete_transaction;
-
 namespace gradido::data::runtime {
     
     class CompleteTransaction : public Napi::ObjectWrap<CompleteTransaction> {
@@ -15,6 +13,9 @@ namespace gradido::data::runtime {
     private:
         Napi::Value InitFromProtobuf(const Napi::CallbackInfo& info);
         Napi::Value Validate(const Napi::CallbackInfo& info);
+        Napi::Value GetConfirmedAt(const Napi::CallbackInfo& info);
+        Napi::Value GetCreatedAt(const Napi::CallbackInfo& info);
+        Napi::Value GetLedgerAnchor(const Napi::CallbackInfo& info);
         Napi::Value GetSenderPublicKey(const Napi::CallbackInfo& info);
         Napi::Value GetRecipientPublicKey(const Napi::CallbackInfo& info);
         Napi::Value GetSenderCommunityUuid(const Napi::CallbackInfo& info);
