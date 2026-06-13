@@ -28,19 +28,32 @@ fn addDirSources(
     }
 }
 
+pub fn prepareLib(lib: *std.Build.Step.Compile, b: *std.Build, sodium: ?*std.Build.Dependency, target: std.Build.ResolvedTarget) void {
+    lib.root_module.addCMacro("USE_SODIUM", "1");
+    if (sodium) |dep| {
+        lib.linkLibrary(dep.artifact(if (target.result.os.tag == .windows) "libsodium-static" else "sodium"));
+    }
+
+    lib.linkLibC();
+
+    lib.addIncludePath(b.path("include"));
+    lib.addIncludePath(b.path("include/gradido_blockchain_core/data/proto/gradido"));
+    lib.addIncludePath(b.path("third_party"));
+    lib.addIncludePath(b.path("third_party/pbtools"));
+
+    addDirSources(lib, b, "src");
+    addDirSources(lib, b, "third_party");
+}
+
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
+    const is_windows = target.result.os.tag == .windows;
     const optimize = b.standardOptimizeOption(.{});
 
     const napi_version = b.option([]const u8, "NAPI_VERSION", "Napi Version") orelse "8";
     const napi_include = b.option([]const u8, "NAPI_INCLUDE", "Path to Napi headers") orelse null;
     const node_include = b.option([]const u8, "NODE_INCLUDE", "Path to NodeJs headers") orelse null;
     const node_lib = b.option([]const u8, "NODE_LIB", "Path to Node.js library (node.lib)") orelse null;
-
-    const core_lib = b.addLibrary(.{ .name = "gradido_blockchain_core", .linkage = .static, .root_module = b.createModule(.{
-        .target = target,
-        .optimize = optimize,
-    }) });
 
     const sodium = b.lazyDependency("libsodium", .{
         .target = target,
@@ -49,20 +62,43 @@ pub fn build(b: *std.Build) void {
         .shared = false,
     });
 
-    core_lib.root_module.addCMacro("USE_SODIUM", "1");
-    if (sodium) |dep| {
-        core_lib.linkLibrary(dep.artifact(if (target.result.os.tag == .windows) "libsodium-static" else "sodium"));
+    var core_lib: *std.Build.Step.Compile = undefined;
+    var core_lib_dyn: *std.Build.Step.Compile = undefined;
+
+    if (is_windows) {
+        core_lib = b.addLibrary(.{ .name = "gradido_blockchain_core", .linkage = .static, .root_module = b.createModule(.{
+            .target = target,
+            .optimize = optimize,
+        }) });
+
+        prepareLib(core_lib, b, sodium, target);
+
+        core_lib_dyn = b.addLibrary(.{ .name = "gradido_blockchain_core", .linkage = .dynamic, .root_module = b.createModule(.{
+            .target = target,
+            .optimize = optimize,
+        }) });
+
+        prepareLib(core_lib_dyn, b, sodium, target);
+    } else {
+        const core_obj = b.addObject(.{ .name = "gradido_blockchain_core_obj", .root_module = b.createModule(.{
+            .target = target,
+            .optimize = optimize,
+        }) });
+
+        prepareLib(core_obj, b, sodium, target);
+
+        core_lib = b.addLibrary(.{ .name = "gradido_blockchain_core", .linkage = .static, .root_module = b.createModule(.{
+            .target = target,
+            .optimize = optimize,
+        }) });
+        core_lib.addObject(core_obj);
+
+        core_lib_dyn = b.addLibrary(.{ .name = "gradido_blockchain_core", .linkage = .dynamic, .root_module = b.createModule(.{
+            .target = target,
+            .optimize = optimize,
+        }) });
+        core_lib_dyn.addObject(core_obj); // ← gleiche
     }
-
-    core_lib.linkLibC();
-
-    core_lib.addIncludePath(b.path("include"));
-    core_lib.addIncludePath(b.path("include/gradido_blockchain_core/data/proto/gradido"));
-    core_lib.addIncludePath(b.path("third_party"));
-    core_lib.addIncludePath(b.path("third_party/pbtools"));
-
-    addDirSources(core_lib, b, "src");
-    addDirSources(core_lib, b, "third_party");
 
     // b.installArtifact(core_lib);
 
@@ -75,7 +111,7 @@ pub fn build(b: *std.Build) void {
     napi_lib.root_module.addCMacro("USE_SODIUM", "1");
     napi_lib.root_module.addCMacro("NAPI_VERSION", napi_version);
     if (sodium) |dep| {
-      napi_lib.linkLibrary(dep.artifact(if (target.result.os.tag == .windows) "libsodium-static" else "sodium"));
+        napi_lib.linkLibrary(dep.artifact(if (target.result.os.tag == .windows) "libsodium-static" else "sodium"));
     }
     napi_lib.linkLibrary(core_lib);
     napi_lib.linkLibC();
@@ -94,7 +130,7 @@ pub fn build(b: *std.Build) void {
     addDirSources(napi_lib, b, "bindings/napi");
 
     // link with node js on windows
-    if (.windows == target.result.os.tag) {
+    if (is_windows) {
         if (node_lib) |path| {
             napi_lib.root_module.lib_paths.append(b.allocator, .{ .cwd_relative = path }) catch @panic("error adding node js path");
         } else {
@@ -108,6 +144,9 @@ pub fn build(b: *std.Build) void {
         "../shared_native.node",
     );
     b.getInstallStep().dependOn(&install_step.step);
+
+    const core_dyn_install_step = b.addInstallBinFile(core_lib_dyn.getEmittedBin(), b.fmt("../{s}", .{core_lib_dyn.out_filename}));
+    b.getInstallStep().dependOn(&core_dyn_install_step.step);
 
     // make compile_commands
     var cdbTargets: std.ArrayList(*std.Build.Step.Compile) = .empty;
