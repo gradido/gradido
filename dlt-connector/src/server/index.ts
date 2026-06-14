@@ -1,35 +1,22 @@
 import { TypeBoxFromValibot } from '@sinclair/typemap'
 import { Elysia, status, t, ValidationError } from 'elysia'
-import {
-  CompleteTransaction,
-  GRD_SUCCESS,
-  GRDT_ADDRESS_NONE,
-  gradidoCoreResultToString,
-  MonotonicTimer,
-  MemoryBlock,
-} from 'gradido-blockchain-js'
+import { GRDT_ADDRESS_NONE } from 'gradido-blockchain-js'
 import { getLogger } from 'log4js'
 import * as v from 'valibot'
 import { ensureCommunitiesAvailable } from '../client/GradidoNode/communities'
 import { GradidoNodeClient } from '../client/GradidoNode/GradidoNodeClient'
 import { LOG4JS_BASE_CATEGORY } from '../config/const'
 import { KeyPairIdentifierLogic } from '../data/KeyPairIdentifier.logic'
-import { TransactionType } from '../data/TransactionType.enum'
 import { ResolveKeyPair } from '../interactions/resolveKeyPair/ResolveKeyPair.context'
 import { SendToHieroContext } from '../interactions/sendToHiero/SendToHiero.context'
 import { IdentifierAccountInput, identifierAccountSchema } from '../schemas/account.schema'
 import { transactionSchema } from '../schemas/transaction.schema'
-import { hieroTransactionIdStringSchema, Uuidv4, uuidv4Schema } from '../schemas/typeGuard.schema'
+import { hieroTransactionIdStringSchema } from '../schemas/typeGuard.schema'
 import {
   accountIdentifierSeedTypeBoxSchema,
   accountIdentifierUserTypeBoxSchema,
 } from './input.schema'
-import {
-  CheckedTransactionInput,
-  checkedTransactionSchema,
-  existTypeBoxSchema,
-  TransactionPartyInput,
-} from './output.schema'
+import { existTypeBoxSchema } from './output.schema'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY}.server`)
 
@@ -143,27 +130,6 @@ export const appRoutes = new Elysia()
       response: t.Object({ transactionId: TypeBoxFromValibot(hieroTransactionIdStringSchema) }),
     },
   )
-  .post(
-    '/validateAndDecodeConfirmedTransaction',
-    async ({ body }) => {
-      console.log(body)
-      const result = v.parse(
-        checkedTransactionSchema,
-        await validateAndDecodeConfirmedTransaction(
-          body.transactionBase64,
-          v.parse(uuidv4Schema, body.communityUuid),
-        ),
-      )
-      return result
-    },
-    {
-      body: t.Object({
-        transactionBase64: t.String(),
-        communityUuid: TypeBoxFromValibot(uuidv4Schema),
-      }),
-      response: TypeBoxFromValibot(checkedTransactionSchema),
-    },
-  )
 
 // function stay here for now because it is small and simple, but maybe later if more functions are added, move it to a separate file
 async function isAccountExist(identifierAccount: IdentifierAccountInput): Promise<boolean> {
@@ -192,83 +158,4 @@ async function isAccountExist(identifierAccount: IdentifierAccountInput): Promis
   return exists
 }
 
-async function validateAndDecodeConfirmedTransaction(
-  transactionBase64: string,
-  communityUuid: Uuidv4,
-): Promise<CheckedTransactionInput> {
-  try {
-    const timeUsed = new MonotonicTimer()
-    // const serializedTransaction = Buffer.from(transactionBase64, 'base64')
-    const tx = new CompleteTransaction()
-    let result = tx.initFromProtobuf(
-      MemoryBlock.fromBase64(transactionBase64),
-      Buffer.from(communityUuid.replace(/-/g, ''), 'hex'),
-    )
-    if (GRD_SUCCESS !== result) {
-      return { valid: false, error: gradidoCoreResultToString(result) }
-    }
-    result = tx.validate(true)
-    if (GRD_SUCCESS !== result) {
-      return { valid: false, error: gradidoCoreResultToString(result) }
-    }
-    let sender: TransactionPartyInput | null = null
-    const senderPublicKey = tx.getSenderPublicKey()
-    const registeredAccount = tx.getRegisteredAccount()
-    if (senderPublicKey) {
-      const accountBalance = tx.getAccountBalance(senderPublicKey)
-      sender = {
-        publicKey: senderPublicKey.toString('hex'),
-        communityUuid: tx.getSenderCommunityUuidString(),
-        finalBalance: accountBalance.getBalance().toString(4),
-      }
-    } else if (registeredAccount) {
-      sender = {
-        publicKey: registeredAccount.toString('hex'),
-        communityUuid: tx.getSenderCommunityUuidString(),
-        finalBalance: '0',
-      }
-    }
-    let recipient: TransactionPartyInput | null = null
-    const recipientPublicKey = tx.getRecipientPublicKey()
-    if (recipientPublicKey) {
-      const accountBalance = tx.getAccountBalance(recipientPublicKey)
-      recipient = {
-        publicKey: recipientPublicKey.toString('hex'),
-        communityUuid: tx.getRecipientCommunityUuidString(),
-        finalBalance: accountBalance.getBalance().toString(4),
-      }
-    }
-    // GRDT_TRANSACTION_REDEEM_DEFERRED_TRANSFER
-    // On redeem deferred transfer, sender is the virtual account created with transactionLink.code as seed
-    // but legacy backend expect for sender, the original sender, so we use the third account balance entries on redeem deferred transfer,
-    // which carry the final balance, after the change was returned, exact the sender, the legacy backend expected
-    if (tx.getTransactionType() === 7 && sender && recipient) {
-      const accountBalances = tx.getAccountBalances()
-      for (let i = 0; i <= accountBalances.size(); i++) {
-        const accountBalance = accountBalances.get(i)
-        const publicKeyHex = accountBalance.getPublicKey()!.convertToHex()
-        if (publicKeyHex !== sender.publicKey && publicKeyHex !== recipient.publicKey) {
-          sender.finalBalance = accountBalance.getBalance().toString(4)
-          sender.publicKey = publicKeyHex
-          break
-        }
-      }
-    }
-    const checkedTransaction: CheckedTransactionInput = {
-      valid: true,
-      amount: tx.getAmount()?.toString(4) || null,
-      createdAt: tx.getCreatedAt()?.toString() || null,
-      confirmedAt: tx.getConfirmedAt()?.toString() || null,
-      hieroTransactionId: tx.getLedgerAnchor().getHieroTransactionId().toString() || null,
-      recipient,
-      sender,
-      transactionType: tx.getTransactionType(),
-    }
-    logger.info(`validateAndDecodeConfirmedTransaction: ${timeUsed.string()}`)
-    return checkedTransaction
-  } catch (e) {
-    logger.error(`validateAndDecodeConfirmedTransaction failed: ${e}`)
-    return { valid: false, error: e instanceof Error ? e.message : 'unknown error' }
-  }
-}
 export type DltRoutes = typeof appRoutes
