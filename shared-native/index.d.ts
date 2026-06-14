@@ -210,6 +210,10 @@ export type VoidResult<E = Error> = { success: true } | { success: false; error:
 export type ErrorDetails = Error & { actual: string; expected: string }
 
 export class LedgerAnchor {
+  public static createFromHieroTransactionId(
+    transactionValidStart: { seconds: bigint; nanos?: number },
+    hieroAccountId: { accountNum: bigint; shardNum?: bigint; realmNum?: bigint },
+  ): LedgerAnchor
   public getType(): GrdtLedgerAnchorType
   public isLegacy(): boolean
   public isNodeTrigger(): boolean

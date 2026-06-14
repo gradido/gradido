@@ -24,6 +24,25 @@ export class LedgerAnchor {
     return new LedgerAnchor(handle)
   }
 
+  static createFromHieroTransactionId(
+    transactionValidStart: { seconds: bigint; nanos?: number },
+    hieroAccountId: { accountNum: bigint; shardNum?: bigint; realmNum?: bigint },
+  ): LedgerAnchor {
+    const handle = blockchain_core.symbols.grdw_ledger_anchor_create()
+    if (!handle) {
+      throw new Error('Failed to create new LedgerAnchor')
+    }
+    blockchain_core.symbols.grdw_ledger_anchor_assemble_hiero_transaction_id(
+      handle,
+      transactionValidStart.seconds,
+      transactionValidStart.nanos,
+      hieroAccountId.shardNum,
+      hieroAccountId.realmNum,
+      hieroAccountId.accountNum,
+    )
+    return new LedgerAnchor(handle)
+  }
+
   // Getter
   public getType(): GrdtLedgerAnchorType {
     if (!this._handle) {

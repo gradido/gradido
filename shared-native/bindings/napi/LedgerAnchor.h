@@ -2,13 +2,14 @@
 #include "gradido_blockchain_core/data/wire/ledger_anchor.h"
 
 namespace gradido::data::wire {
-    
+
     class LedgerAnchor : public Napi::ObjectWrap<LedgerAnchor> {
     public:
         static Napi::Object Init(Napi::Env env, Napi::Object exports);
         static Napi::Value CreateCopy(const Napi::CallbackInfo& info, const grdw_ledger_anchor* ledger_anchor);
-        
-        LedgerAnchor(const Napi::CallbackInfo& info); 
+        static Napi::Value CreateFromHieroTransactionId(const Napi::CallbackInfo& info);
+
+        LedgerAnchor(const Napi::CallbackInfo& info);
         ~LedgerAnchor();
 
     private:
@@ -19,9 +20,9 @@ namespace gradido::data::wire {
         Napi::Value GetLegacyId(const Napi::CallbackInfo& info);
         Napi::Value GetNodeTriggerId(const Napi::CallbackInfo& info);
         Napi::Value GetHieroTransactionId(const Napi::CallbackInfo& info);
-        
-        // static Napi::FunctionReference constructor; 
+
+        // static Napi::FunctionReference constructor;
         grdw_ledger_anchor mLedgerAnchor;
-        
+
     };
 }

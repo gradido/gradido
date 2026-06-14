@@ -228,6 +228,10 @@ export const blockchain_core = dlopen(filePath, {
     args: [pointer],
   },
   // LedgerAnchor
+  grdw_ledger_anchor_create: {
+    returns: pointer,
+    args: [],
+  },
   grdw_ledger_anchor_create_copy: {
     returns: pointer,
     args: [pointer],
@@ -235,6 +239,10 @@ export const blockchain_core = dlopen(filePath, {
   grdw_ledger_anchor_free: {
     returns: 'void',
     args: [pointer],
+  },
+  grdw_ledger_anchor_assemble_hiero_transaction_id: {
+    return: 'void',
+    args: [pointer, i64, i32, i64, i64, i64],
   },
   grdw_ledger_anchor_get_type: {
     returns: i32,

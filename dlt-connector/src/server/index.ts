@@ -6,6 +6,7 @@ import {
   GRDT_ADDRESS_NONE,
   gradidoCoreResultToString,
   MonotonicTimer,
+  MemoryBlock,
 } from 'gradido-blockchain-js'
 import { getLogger } from 'log4js'
 import * as v from 'valibot'
@@ -197,11 +198,11 @@ async function validateAndDecodeConfirmedTransaction(
 ): Promise<CheckedTransactionInput> {
   try {
     const timeUsed = new MonotonicTimer()
-    const serializedTransaction = Buffer.from(transactionBase64, 'base64')
+    // const serializedTransaction = Buffer.from(transactionBase64, 'base64')
     const tx = new CompleteTransaction()
     let result = tx.initFromProtobuf(
-      serializedTransaction,
-      Buffer.from(communityUuid.replaceAll('-', ''), 'hex'),
+      MemoryBlock.fromBase64(transactionBase64),
+      Buffer.from(communityUuid.replace(/-/g, ''), 'hex'),
     )
     if (GRD_SUCCESS !== result) {
       return { valid: false, error: gradidoCoreResultToString(result) }

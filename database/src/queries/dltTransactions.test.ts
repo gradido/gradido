@@ -1,4 +1,5 @@
 import { GradidoUnit } from 'shared'
+import { LedgerAnchor } from 'shared-native'
 import { clearDatabase } from '../../migration/clear'
 import {
   Contribution as DbContribution,
@@ -19,7 +20,7 @@ import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
 import { peterLustig } from '../seeds/users/peter-lustig'
 import {
   dbInsertDltTransaction,
-  dbSelectDltTransactionByHieroTransactionId,
+  dbSelectDltTransactionByLedgerAnchor,
   dbUpdateWithErrorDltTransaction,
 } from './dltTransactions'
 
@@ -98,42 +99,50 @@ describe('dlt transactions query test', () => {
   })
   describe('select', () => {
     it('insert dlt transaction with user and test select', async () => {
+      const ledgerAnchor = LedgerAnchor.createFromHieroTransactionId(
+        { seconds: 1781427358n },
+        { accountNum: 21281n },
+      )
       const insertResult = await dbInsertDltTransaction({
-        hieroTransactionId: 'hiero-id-user',
+        hieroTransactionId: ledgerAnchor.getHieroTransactionId(),
         userId: bibi.id,
         typeId: DltTransactionType.REGISTER_ADDRESS,
       })
       expect(insertResult.success).toBeTruthy()
 
-      const result = await dbSelectDltTransactionByHieroTransactionId(
-        'hiero-id-user',
+      const result = await dbSelectDltTransactionByLedgerAnchor(
+        ledgerAnchor,
         'GRDT_TRANSACTION_REGISTER_ADDRESS',
       )
       expect(result.success).toBeTruthy()
       if (result.success) {
         const dltTransaction = result.value.dltTransaction
-        expect(dltTransaction.hieroTransactionId).toBe('hiero-id-user')
+        expect(dltTransaction.hieroTransactionId).toBe('0.0.21281@1781427358.0')
         const user = result.value.user
         expect(user.id).toBe(bibi.id)
       }
     })
 
     it('insert dlt transaction with creation and test select', async () => {
+      const ledgerAnchor = LedgerAnchor.createFromHieroTransactionId(
+        { seconds: 1781427658n },
+        { accountNum: 21281n },
+      )
       const insertResult = await dbInsertDltTransaction({
-        hieroTransactionId: 'hiero-id',
+        hieroTransactionId: ledgerAnchor.getHieroTransactionId(),
         transactionId: contribution!.transactionId,
         typeId: DltTransactionType.CREATION,
       })
       expect(insertResult.success).toBeTruthy()
 
-      const result = await dbSelectDltTransactionByHieroTransactionId(
-        'hiero-id',
+      const result = await dbSelectDltTransactionByLedgerAnchor(
+        ledgerAnchor,
         'GRDT_TRANSACTION_CREATION',
       )
       expect(result.success).toBeTruthy()
       if (result.success) {
         const dltTransaction = result.value.dltTransaction
-        expect(dltTransaction.hieroTransactionId).toBe('hiero-id')
+        expect(dltTransaction.hieroTransactionId).toBe('0.0.21281@1781427658.0')
         const transaction = result.value.transaction
         expect(transaction.id).toBe(contribution!.transactionId)
         const user = result.value.user
@@ -142,21 +151,25 @@ describe('dlt transactions query test', () => {
     })
 
     it('insert dlt transaction with transfer and test select', async () => {
+      const ledgerAnchor = LedgerAnchor.createFromHieroTransactionId(
+        { seconds: 1781427921n },
+        { accountNum: 21281n },
+      )
       const insertResult = await dbInsertDltTransaction({
-        hieroTransactionId: 'hiero-id-transfer',
+        hieroTransactionId: ledgerAnchor.getHieroTransactionId(),
         transactionId: transferTransactions[0].id,
         typeId: DltTransactionType.TRANSFER,
       })
       expect(insertResult.success).toBeTruthy()
 
-      const result = await dbSelectDltTransactionByHieroTransactionId(
-        'hiero-id-transfer',
+      const result = await dbSelectDltTransactionByLedgerAnchor(
+        ledgerAnchor,
         'GRDT_TRANSACTION_TRANSFER',
       )
       expect(result.success).toBeTruthy()
       if (result.success) {
         const dltTransaction = result.value.dltTransaction
-        expect(dltTransaction.hieroTransactionId).toBe('hiero-id-transfer')
+        expect(dltTransaction.hieroTransactionId).toBe('0.0.21281@1781427921.0')
         const transaction = result.value.transaction
         expect(transaction.id).toBe(transferTransactions[0].id)
         expect(transaction.typeId).toBe(TransactionTypeId.SEND)
@@ -168,21 +181,25 @@ describe('dlt transactions query test', () => {
     })
 
     it('insert dlt transaction with transaction link and test select', async () => {
+      const ledgerAnchor = LedgerAnchor.createFromHieroTransactionId(
+        { seconds: 1781428262n },
+        { accountNum: 21281n },
+      )
       const insertResult = await dbInsertDltTransaction({
-        hieroTransactionId: 'hiero-id-transaction-link',
+        hieroTransactionId: ledgerAnchor.getHieroTransactionId(),
         transactionLinkId: transactionLink.id,
         typeId: DltTransactionType.DEFERRED_TRANSFER,
       })
       expect(insertResult.success).toBeTruthy()
 
-      const result = await dbSelectDltTransactionByHieroTransactionId(
-        'hiero-id-transaction-link',
+      const result = await dbSelectDltTransactionByLedgerAnchor(
+        ledgerAnchor,
         'GRDT_TRANSACTION_DEFERRED_TRANSFER',
       )
       expect(result.success).toBeTruthy()
       if (result.success) {
         const dltTransaction = result.value.dltTransaction
-        expect(dltTransaction.hieroTransactionId).toBe('hiero-id-transaction-link')
+        expect(dltTransaction.hieroTransactionId).toBe('0.0.21281@1781428262.0')
         const transactionLink = result.value.transactionLink
         expect(transactionLink.id).toBe(transactionLink.id)
         const user = result.value.user
@@ -193,28 +210,36 @@ describe('dlt transactions query test', () => {
 
   describe('select - error paths', () => {
     it('returns DBNotFoundError when hieroTransactionId does not exist', async () => {
-      const result = await dbSelectDltTransactionByHieroTransactionId(
-        'non-existent-id',
+      const ledgerAnchor = LedgerAnchor.createFromHieroTransactionId(
+        { seconds: 1781429262n },
+        { accountNum: 21281n },
+      )
+      const result = await dbSelectDltTransactionByLedgerAnchor(
+        ledgerAnchor,
         'GRDT_TRANSACTION_TRANSFER',
       )
       expect(result.success).toBeFalsy()
       if (!result.success) {
         expect(result.error.name).toBe('DBNotFoundError')
         expect(result.error.table).toBe('dlt_transactions')
-        expect(result.error.where).toContain('non-existent-id')
+        expect(result.error.where).toContain('0.0.21281@1781429262.0')
       }
     })
 
     it('returns DBMissingJoin when transactionId is set but transaction does not exist', async () => {
+      const ledgerAnchor = LedgerAnchor.createFromHieroTransactionId(
+        { seconds: 1781431762n },
+        { accountNum: 21281n },
+      )
       // Insert a DLT transaction with a non-existent transactionId
       await dbInsertDltTransaction({
-        hieroTransactionId: 'orphan-transaction',
+        hieroTransactionId: ledgerAnchor.getHieroTransactionId(),
         transactionId: 999999, // This ID does not exist in the transactions table
         typeId: DltTransactionType.TRANSFER,
       })
 
-      const result = await dbSelectDltTransactionByHieroTransactionId(
-        'orphan-transaction',
+      const result = await dbSelectDltTransactionByLedgerAnchor(
+        ledgerAnchor,
         'GRDT_TRANSACTION_TRANSFER',
       )
       expect(result.success).toBeFalsy()
@@ -226,14 +251,18 @@ describe('dlt transactions query test', () => {
     })
 
     it('returns DBMissingJoin when userId is set but user does not exist', async () => {
+      const ledgerAnchor = LedgerAnchor.createFromHieroTransactionId(
+        { seconds: 1781432762n },
+        { accountNum: 21281n },
+      )
       await dbInsertDltTransaction({
-        hieroTransactionId: 'orphan-user',
+        hieroTransactionId: ledgerAnchor.getHieroTransactionId(),
         userId: 999999, // This ID does not exist
         typeId: DltTransactionType.REGISTER_ADDRESS,
       })
 
-      const result = await dbSelectDltTransactionByHieroTransactionId(
-        'orphan-user',
+      const result = await dbSelectDltTransactionByLedgerAnchor(
+        ledgerAnchor,
         'GRDT_TRANSACTION_REGISTER_ADDRESS',
       )
       expect(result.success).toBeFalsy()
@@ -244,14 +273,18 @@ describe('dlt transactions query test', () => {
     })
 
     it('returns DBMissingJoin when transactionLinkId is set but link does not exist', async () => {
+      const ledgerAnchor = LedgerAnchor.createFromHieroTransactionId(
+        { seconds: 1781432962n },
+        { accountNum: 21281n },
+      )
       await dbInsertDltTransaction({
-        hieroTransactionId: 'orphan-link',
+        hieroTransactionId: ledgerAnchor.getHieroTransactionId(),
         transactionLinkId: 999999,
         typeId: DltTransactionType.DEFERRED_TRANSFER,
       })
 
-      const result = await dbSelectDltTransactionByHieroTransactionId(
-        'orphan-link',
+      const result = await dbSelectDltTransactionByLedgerAnchor(
+        ledgerAnchor,
         'GRDT_TRANSACTION_DEFERRED_TRANSFER',
       )
       expect(result.success).toBeFalsy()
@@ -279,9 +312,7 @@ describe('dlt transactions query test', () => {
       expect(result.success).toBeFalsy()
       if (!result.success) {
         expect(result.error).toBeDefined()
-        expect(result.error.message).toBe(
-          'DB_NOT_FOUND in dlt_transactions where: hieroTransactionId = ',
-        )
+        expect(result.error.message).toBe('DB_NOT_FOUND in dlt_transactions where: id = ')
       }
     })
 

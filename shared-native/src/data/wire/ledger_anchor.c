@@ -21,27 +21,30 @@ void grdw_ledger_anchor_free(grdw_ledger_anchor *ledger_anchor) {
   if (ledger_anchor) { free(ledger_anchor); }
 }
 
-grd_result grdw_ledger_anchor_set_hiero_transaction_id(
+void grdw_ledger_anchor_assemble_hiero_transaction_id(
     grdw_ledger_anchor *ledger_anchor,
-    grdd_timestamp transaction_valid_start,
+    int64_t transaction_valid_start_seconds,
+    int32_t transaction_valid_start_nanos,
     int64_t account_id_shard_num,
     int64_t account_id_realm_num,
     int64_t account_id_account_num
 ) {
-  if (!ledger_anchor) { return GRD_ERROR_NULL_POINTER; }
+  if (!ledger_anchor) { return; }
   ledger_anchor->type = GRDT_LEDGER_ANCHOR_HIERO_TRANSACTION_ID;
   ledger_anchor->hiero_transaction_id = (grdw_hiero_transaction_id){
-      .transactionValidStart = transaction_valid_start,
+      .transactionValidStart =
+          (grdd_timestamp){
+              .seconds = transaction_valid_start_seconds, .nanos = transaction_valid_start_nanos
+          },
       .accountID = (grdw_hiero_account_id){
           .shardNum = account_id_shard_num,
           .realmNum = account_id_realm_num,
           .accountNum = account_id_account_num
       }
   };
-  return GRD_SUCCESS;
 }
 
-grd_result grdw_ledger_anchor_set_legacy_id(
+grd_result grdw_ledger_anchor_assemble_legacy_id(
     grdw_ledger_anchor *ledger_anchor, grdt_ledger_anchor type, uint64_t legacy_id
 ) {
   if (!ledger_anchor) { return GRD_ERROR_NULL_POINTER; }
@@ -55,7 +58,7 @@ grd_result grdw_ledger_anchor_set_legacy_id(
   return GRD_SUCCESS;
 }
 
-grd_result grdw_ledger_anchor_set_node_trigger_transaction_id(
+grd_result grdw_ledger_anchor_assemble_node_trigger_transaction_id(
     grdw_ledger_anchor *ledger_anchor, uint64_t node_trigger_transaction_id
 ) {
   if (!ledger_anchor) { return GRD_ERROR_NULL_POINTER; }
