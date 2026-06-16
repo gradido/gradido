@@ -76,7 +76,7 @@ describe('LanguageSwitch', () => {
       expect(wrapper.find('div.language-switch').exists()).toBe(true)
     })
 
-    describe('with locales en, de, es, fr, and nl', () => {
+    describe('with locales en, de, es, fr, nl, and it', () => {
       describe('empty store', () => {
         describe('navigator language is "en-US"', () => {
           const languageGetter = vi.spyOn(navigator, 'language', 'get')
@@ -137,8 +137,8 @@ describe('LanguageSwitch', () => {
           await wrapper.vm.setCurrentLanguage()
         })
 
-        it('has five languages to choose from', () => {
-          expect(wrapper.findAll('span.locales').length).toBe(5)
+        it('has six languages to choose from', () => {
+          expect(wrapper.findAll('span.locales').length).toBe(6)
         })
       })
     })
