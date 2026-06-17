@@ -1,0 +1,105 @@
+{
+  "emails": {
+    "accountActivation": {
+      "activateAccount": "Ενεργοποίηση λογαριασμού",
+      "emailRegistered": "η διεύθυνση email σου μόλις καταχωρίστηκε στο Gradido.",
+      "pleaseClickLink": "Κάνε κλικ εδώ για να ολοκληρώσεις την εγγραφή και να ενεργοποιήσεις τον λογαριασμό σου στο Gradido.",
+      "subject": "Επαλήθευση email",
+      "title": "Επαλήθευση email"
+    },
+    "accountMultiRegistration": {
+      "contactSupport": "Επικοινωνία με την υποστήριξη",
+      "emailExists": "Ωστόσο, υπάρχει ήδη λογαριασμός για τη διεύθυνση email σου.",
+      "emailReused": "η διεύθυνση email σου μόλις χρησιμοποιήθηκε ξανά για την εγγραφή λογαριασμού στο Gradido.",
+      "ifYouAreNotTheOne": "Αν δεν προσπάθησες να εγγραφείς ξανά, επικοινώνησε με την υποστήριξή μας:",
+      "onForgottenPasswordClickLink": "Αν ξέχασες τον κωδικό πρόσβασής σου, κάνε κλικ εδώ.",
+      "subject": "Νέα προσπάθεια εγγραφής με το email σου",
+      "title": "Νέα προσπάθεια εγγραφής με το email σου"
+    },
+    "addedContributionMessage": {
+      "commonGoodContributionMessage": "έλαβες ένα μήνυμα από {senderFirstName} {senderLastName} σχετικά με τη συνεισφορά σου στο κοινό καλό «{contributionMemo}».",
+      "message": "«{message}»",
+      "readMessage": "Διάβασε και απάντησε στο μήνυμα",
+      "subject": "Μήνυμα σχετικά με τη συνεισφορά σου στο κοινό καλό",
+      "title": "Μήνυμα σχετικά με τη συνεισφορά σου στο κοινό καλό",
+      "toSeeAndAnswerMessage": "Για να απαντήσεις στο μήνυμα, πήγαινε στο μενού «Δημιουργία» του λογαριασμού σου στο Gradido και κάνε κλικ στην καρτέλα «Οι συνεισφορές μου»."
+    },
+    "contribution": {
+      "toSeeContributionsAndMessages": "Για να δεις τις συνεισφορές σου στο κοινό καλό και τα σχετικά μηνύματα, πήγαινε στο μενού «Δημιουργία» του λογαριασμού σου στο Gradido και κάνε κλικ στην καρτέλα «Οι συνεισφορές μου»."
+    },
+    "contributionChangedByModerator": {
+      "subject": "Η συνεισφορά σου στο κοινό καλό άλλαξε",
+      "text": "η συνεισφορά σου στο κοινό καλό «{contributionMemo}» μόλις άλλαξε από {senderFirstName} {senderLastName} και τώρα είναι «{contributionMemoUpdated}»",
+      "title": "Η συνεισφορά σου στο κοινό καλό άλλαξε"
+    },
+    "contributionConfirmed": {
+      "commonGoodContributionConfirmed": "η συνεισφορά σου στο κοινό καλό «{contributionMemo}» μόλις επιβεβαιώθηκε από {senderFirstName} {senderLastName}. Στον λογαριασμό σου στο Gradido πιστώθηκαν {amountGDD} GDD.",
+      "subject": "Η συνεισφορά σου στο κοινό καλό επιβεβαιώθηκε",
+      "title": "Η συνεισφορά σου στο κοινό καλό επιβεβαιώθηκε"
+    },
+    "contributionDeleted": {
+      "commonGoodContributionDeleted": "η συνεισφορά σου στο κοινό καλό «{contributionMemo}» διαγράφηκε από {senderFirstName} {senderLastName}.",
+      "subject": "Η συνεισφορά σου στο κοινό καλό διαγράφηκε",
+      "title": "Η συνεισφορά σου στο κοινό καλό διαγράφηκε"
+    },
+    "contributionDenied": {
+      "commonGoodContributionDenied": "η συνεισφορά σου στο κοινό καλό «{contributionMemo}» απορρίφθηκε από {senderFirstName} {senderLastName}.",
+      "subject": "Η συνεισφορά σου στο κοινό καλό απορρίφθηκε",
+      "title": "Η συνεισφορά σου στο κοινό καλό απορρίφθηκε"
+    },
+    "customEmail": {
+      "haveReceivedMessageFrom": "μόλις έλαβες ένα μήνυμα από {senderFirstName} {senderLastName}",
+      "title": "{senderFirstName} {senderLastName} σου έστειλε ένα μήνυμα"
+    },
+    "footer": {
+      "contactOurSupport": "Αν έχεις περαιτέρω ερωτήσεις, επικοινώνησε με την υποστήριξή μας.",
+      "imprint": "Νομική σημείωση",
+      "imprintAddress": "Gradido-Akademie\nInstitut für Wirtschaftsbionik\nPfarrweg 2\n74653 Künzelsau\nDeutschland",
+      "imprintImageAlt": "Λογότυπο Gradido-Akademie",
+      "privacyPolicy": "Πολιτική απορρήτου",
+      "supportEmail": "support@gradido.net"
+    },
+    "general": {
+      "amountGDD": "Ποσό: {amountGDD} GDD",
+      "answerNow": "Απάντησε",
+      "completeRegistration": "Ολοκλήρωση εγγραφής",
+      "contribution": "Συνεισφορά στο κοινό καλό: {contributionMemo}",
+      "contributionDetails": "Λεπτομέρειες συνεισφοράς",
+      "detailsYouFindOnLinkToYourAccount": "Τις λεπτομέρειες της συναλλαγής θα τις βρεις στον λογαριασμό σου στο Gradido.",
+      "helloName": "Γεια σου {firstName} {lastName},",
+      "linkValidity": "Ο σύνδεσμος ισχύει για {hours} ώρες.\nΑν η ισχύς του συνδέσμου έχει ήδη λήξει, μπορείς να ζητήσεις εδώ την αποστολή νέου συνδέσμου.",
+      "linkValidityWithMinutes": "Ο σύνδεσμος ισχύει για {hours} ώρες και {minutes} λεπτά.\nΑν η ισχύς του συνδέσμου έχει ήδη λήξει, μπορείς να ζητήσεις εδώ την αποστολή νέου συνδέσμου.",
+      "message": "Μήνυμα",
+      "newLink": "Νέος σύνδεσμος",
+      "orCopyLink": "Ή αντίγραψε τον σύνδεσμο στο παράθυρο του προγράμματος περιήγησής σου.",
+      "pleaseDoNotReply": "Παρακαλώ μην απαντήσεις σε αυτό το email.",
+      "requestNewLink": "Ζήτησε νέο έγκυρο σύνδεσμο",
+      "reset": "επαναφορά",
+      "sincerelyYours": "Με εκτίμηση,",
+      "toAccount": "Στον λογαριασμό",
+      "transactionDetails": "Λεπτομέρειες συναλλαγής",
+      "yourGradidoTeam": "η ομάδα σου Gradido"
+    },
+    "resetPassword": {
+      "pleaseClickLink": "Αν ήσουν εσύ, κάνε κλικ εδώ.",
+      "subject": "Επαναφορά κωδικού πρόσβασης",
+      "title": "Επαναφορά κωδικού πρόσβασης",
+      "youOrSomeoneResetPassword": "εσύ, ή κάποιος άλλος, ζήτησες επαναφορά κωδικού πρόσβασης για αυτόν τον λογαριασμό."
+    },
+    "transactionLinkRedeemed": {
+      "hasRedeemedYourLink": "{senderFirstName} {senderLastName} ({senderEmail}) μόλις εξαργύρωσε τον σύνδεσμό σου.",
+      "memo": "Μήνυμα: {transactionMemo}",
+      "subject": "{senderFirstName} {senderLastName} εξαργύρωσε τον σύνδεσμό σου Gradido",
+      "title": "{senderFirstName} {senderLastName} εξαργύρωσε τον σύνδεσμό σου Gradido"
+    },
+    "transactionReceived": {
+      "haveReceivedAmountGDDFrom": "μόλις έλαβες {transactionAmount} GDD από {senderFirstName} {senderLastName}",
+      "replySubject": "RE: {senderFirstName} {senderLastName} σου έστειλε {transactionAmount} Gradido",
+      "subject": "{senderFirstName} {senderLastName} σου έστειλε {transactionAmount} Gradido",
+      "title": "{senderFirstName} {senderLastName} σου έστειλε {transactionAmount} Gradido"
+    }
+  },
+  "general": {
+    "decimalSeparator": ","
+  }
+}
