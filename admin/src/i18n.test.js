@@ -5,7 +5,7 @@ import en from './locales/en.json'
 import es from './locales/es.json'
 import fr from './locales/fr.json'
 import nl from './locales/nl.json'
-import it from './locales/it.json'
+import itLocale from './locales/it.json'
 import tr from './locales/tr.json'
 import ru from './locales/ru.json'
 import pt from './locales/pt.json'
@@ -47,7 +47,7 @@ describe('i18n', () => {
       locale: 'en',
       legacy: false,
       fallbackLocale: 'en',
-      messages: { de, en, es, fr, nl, it, tr, ru, pt, el },
+      messages: { de, en, es, fr, nl, it: itLocale, tr, ru, pt, el },
       numberFormats: expect.any(Object),
       datetimeFormats: expect.any(Object),
     })
