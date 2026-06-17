@@ -29,6 +29,12 @@ const locales = [
     iso: 'nl-NL',
     enabled: true,
   },
+  {
+    name: 'Ελληνικά',
+    code: 'el',
+    iso: 'el-GR',
+    enabled: true,
+  },
 ]
 
 export default locales

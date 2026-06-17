@@ -3,6 +3,7 @@ import { describe, it, expect, beforeEach, beforeAll, vi } from 'vitest'
 import LanguageSwitch from './LanguageSwitch2.vue'
 import { createStore } from 'vuex'
 import { createI18n } from 'vue-i18n'
+import locales from '@/locales/'
 
 const updateUserInfosMutationMock = vi.fn().mockResolvedValue({
   data: {
@@ -137,8 +138,8 @@ describe('LanguageSwitch', () => {
           await wrapper.vm.setCurrentLanguage()
         })
 
-        it('has five languages to choose from', () => {
-          expect(wrapper.findAll('span.locales').length).toBe(5)
+        it('has all configured languages to choose from', () => {
+          expect(wrapper.findAll('span.locales').length).toBe(locales.length)
         })
       })
     })
