@@ -1,0 +1,314 @@
+{
+  "GDD": "GDD",
+  "actions": "İşlemler",
+  "ai": {
+    "chat": "Chat",
+    "chat-clear": "Sohbet geçmişini temizle",
+    "chat-open": "Sohbeti aç",
+    "chat-placeholder": "Bir mesaj yaz...",
+    "chat-placeholder-loading": "Bekle, düşünüyorum...",
+    "chat-thread-deleted": "Sohbet geçmişi silindi",
+    "error-chat-thread-deleted": "Sohbet geçmişi silinirken hata: {error}",
+    "start-prompt": "Dil: Türkçe\nÜslup: Samimi, senli\nBağlam: Sen «Crea», Gradido hesabının yönetim arayüzünde bir destek asistanısın. Görevin, moderatörlere ortak yarara katkıları işlemede yardımcı olmak.\nSelamlama:\n«Merhaba, ben Crea! Gönderilen ortak yarara katkıları yanıtlamana yardımcı oluyorum. Yanıtlarını kişiselleştirebilmem için lütfen bana adını söyle. 😊»\nŞimdi adın girilmesini bekle!\nAd girildikten sonra:\n«Teşekkürler, [ad]! Seninle çalışmak güzel. 😊 Şimdi bir veya daha fazla ortak yarara katkıyı metin alanına kopyala, işlemende sana yardımcı olayım.»"
+  },
+  "alias": "Takma ad",
+  "all_emails": "Tüm kullanıcılar",
+  "back": "geri",
+  "change_user_role": "Kullanıcı rolünü değiştir",
+  "close": "Kapat",
+  "contribution": {
+    "confirmedBy": "{name} tarafından onaylandı.",
+    "createdBy": "{name} tarafından oluşturuldu.",
+    "deletedBy": "{name} tarafından silindi.",
+    "deniedBy": "{name} tarafından reddedildi."
+  },
+  "contributionLink": {
+    "amount": "Tutar",
+    "changeSaved": "Değişiklikler kaydedildi",
+    "clear": "Temizle",
+    "contributionLinks": "Katkı bağlantıları",
+    "create": "Oluştur",
+    "cycle": "Döngü",
+    "deleteNow": "Otomatik oluşturmalar '{name}' gerçekten silinsin mi?",
+    "deleted": "Otomatik oluşturma silindi!",
+    "maxPerCycle": "Tekrarlar",
+    "memo": "Mesaj",
+    "name": "Ad",
+    "newContributionLink": "Yeni katkı bağlantısı",
+    "noContributionLinks": "Hiç katkı bağlantısı oluşturulmadı.",
+    "noDateSelected": "Tarih seçilmedi",
+    "noEndDate": "Bitiş tarihi seçilmedi.",
+    "noStartDate": "Başlangıç tarihi seçilmedi.",
+    "options": {
+      "cycle": {
+        "daily": "günlük",
+        "once": "bir kez"
+      }
+    },
+    "saveChange": "Değişiklikleri kaydet",
+    "validFrom": "Başlangıç tarihi",
+    "validTo": "Bitiş tarihi"
+  },
+  "contributionMessagesForm": {
+    "hasRegisteredAt": "{createdAt} tarihinde kaydoldu.",
+    "resubmissionDateInPast": "Hatırlatma tarihi geçmişte!"
+  },
+  "contributions": {
+    "all": "Tümü",
+    "closed": "Kapalı",
+    "confirms": "Onaylandı",
+    "deleted": "Silindi",
+    "denied": "Reddedildi",
+    "open": "Açık"
+  },
+  "copied-to-clipboard": "Panoya kopyalandı",
+  "copy-to-clipboard": "Panoya kopyala",
+  "created": "Oluşturuldu",
+  "createdAt": "Oluşturulma",
+  "creation": "Oluşturma",
+  "creationList": "Oluşturma listesi",
+  "creation_for_month": "Ay için oluşturma",
+  "creation_form": {
+    "creation_for": "Şunun için aktif temel gelir:",
+    "enter_text": "Metin gir",
+    "form": "Oluşturma formu",
+    "min_characters": "En az 10 karakter gir",
+    "reset": "Sıfırla",
+    "select_month": "Ay seç",
+    "select_value": "Tutar seç",
+    "submit_creation": "Oluşturmayı gönder",
+    "toasted": "{email} için açık oluşturma ({value} GDD) kaydedildi ve onaya hazır.",
+    "toasted_created": "Oluşturma başarıyla kaydedildi",
+    "toasted_delete": "Açık oluşturma silindi",
+    "toasted_denied": "Açık oluşturma reddedildi",
+    "toasted_update": "{email} için açık oluşturma ({value} GDD) değiştirildi ve onaya hazır.",
+    "update_creation": "Oluşturmayı güncelle"
+  },
+  "delete": "Sil",
+  "delete_user": "Kullanıcıyı sil",
+  "deleted": "silindi",
+  "deleted_user": "Tüm silinen kullanıcılar",
+  "deny": "Reddet",
+  "description": "Açıklama",
+  "details": "Ayrıntılar",
+  "e_mail": "E-posta",
+  "edit": "düzenle",
+  "enabled": "etkin",
+  "error": "Hata",
+  "expired": "süresi doldu",
+  "federation": {
+    "apiVersion": "API Sürümü",
+    "authenticatedAt": "doğrulandığı tarih:",
+    "communityUuid": "Topluluk UUID:",
+    "coordinates": "Koordinatlar:",
+    "createdAt": "Oluşturulma tarihi",
+    "gmsApiKey": "GMS API Anahtarı:",
+    "gradidoInstances": "Gradido Örnekleri",
+    "hieroTopicId": "Hiero Topic ID:",
+    "lastAnnouncedAt": "Son duyuru",
+    "lastErrorAt": "Son hata tarihi",
+    "name": "Ad",
+    "publicKey": "PublicKey:",
+    "toast_gmsApiKeyAndLocationUpdated": "GMS API Anahtarı ve konum başarıyla güncellendi!",
+    "toast_gmsApiKeyUpdated": "GMS API Anahtarı başarıyla güncellendi!",
+    "toast_gmsLocationUpdated": "GMS konumu başarıyla güncellendi!",
+    "toast_hieroTopicIdUpdated": "Hiero Topic ID başarıyla güncellendi!",
+    "url": "Url",
+    "verified": "Doğrulandı",
+    "verifiedAt": "Doğrulandığı tarih"
+  },
+  "filter": {
+    "byEmail": "E-postaya göre filtrele"
+  },
+  "firstname": "Ad",
+  "footer": {
+    "app_version": "Uygulama sürümü {version}",
+    "copyright": {
+      "link": "Gradido-Akademie Yönetim Konsolu",
+      "year": "© {year}"
+    },
+    "short_hash": "({shortHash})"
+  },
+  "form": {
+    "cancel": "İptal"
+  },
+  "geo-coordinates": {
+    "both-or-none": "Lütfen ikisini de gir ya da hiçbirini!",
+    "format": "{latitude}, {longitude}",
+    "label": "coğrafi koordinatlar",
+    "latitude-longitude-smart": {
+      "describe": "Koordinatları 'enlem, boylam' biçiminde otomatik olarak ayırır. Örneğin Google Haritalar'dan aldığın koordinatları buraya gir, örneğin: 49.28187664243721, 9.740672183943639."
+    }
+  },
+  "goTo": {
+    "humhubProfile": "Humhub profiline git",
+    "userSearch": "Kullanıcı aramasına git"
+  },
+  "help": {
+    "help": "Yardım",
+    "transactionlist": {
+      "confirmed": "Bir moderatör / yönetici tarafından ne zaman onaylandı.",
+      "periods": "Üye tarafından hangi dönem için gönderildi.",
+      "status": "[PENDING = gönderildi, DELETED = silindi, IN_PROGRESS = moderatörle diyalogda, DENIED = reddedildi, CONFIRMED = onaylandı]",
+      "submitted": "Üye tarafından ne zaman gönderildi"
+    }
+  },
+  "hide_details": "Ayrıntıları gizle",
+  "hide_resubmission": "Hatırlatmaları gizle",
+  "hide_resubmission_tooltip": "Bir moderatörün hatırlatma tarihi belirlediği tüm oluşturmaları gizler.",
+  "lastname": "Soyad",
+  "latitude": "Enlem:",
+  "latitude-longitude-smart": "Enlem, Boylam",
+  "link": "Bağlantı",
+  "logo": "Logo",
+  "longitude": "Boylam:",
+  "math": {
+    "equals": "=",
+    "pipe": "|",
+    "plus": "+"
+  },
+  "message": {
+    "request": "Giriş kaydedildi."
+  },
+  "moderator": {
+    "history": "Veriler değiştirildi. Bunlar eski veriler.",
+    "memo": "Metni düzenle",
+    "memo-modified": "Metin {name} tarafından düzenlendi",
+    "memo-tooltip": "Katkının metnini düzenle",
+    "message": "Mesaj",
+    "message-tooltip": "Kullanıcıya mesaj yaz",
+    "moderator": "Moderatör",
+    "notice": "Not",
+    "notice-tooltip": "Not yalnızca moderatörlere görünür",
+    "request": "Bu mesaj yalnızca moderatörlere görünür!",
+    "show-submission-form": "hatırlatma beklensin mi?"
+  },
+  "name": "Ad",
+  "navbar": {
+    "automaticContributions": "Otomatik katkılar",
+    "instances": "Örnekler",
+    "logout": "Çıkış yap",
+    "my-account": "Hesabım",
+    "projectBranding": "Proje markalaması",
+    "projectBrandingTooltip": "Gradido girişinde kendi logonu kullan ve yeni kullanıcıları bir Humhub alanına ekle",
+    "statistic": "İstatistik",
+    "user_search": "Kullanıcı arama"
+  },
+  "no_hashtag": "#hashtag'leri gizle",
+  "no_hashtag_tooltip": "Yalnızca metninde hashtag olmayan katkıları gösterir",
+  "not_open_creations": "Açık oluşturma yok",
+  "open": "açık",
+  "open_creations": "Açık oluşturmalar",
+  "overlay": {
+    "cancel": "İptal",
+    "changeUserRole": {
+      "question": "{username} kullanıcısının rolünü gerçekten {newRole} olarak değiştirmek istiyor musun?",
+      "title": "Kullanıcı rolünü değiştir",
+      "yes": "Evet, kullanıcı rolünü değiştir"
+    },
+    "confirm": {
+      "question": "Bu ortak yarara katkıyı gerçekten onaylamak ve hesabına geçirmek istiyor musun?",
+      "text": "Kaydettikten sonra kayıt artık değiştirilemez. Her şeyin doğru olduğunu dikkatlice kontrol et.",
+      "title": "Ortak yarara katkıyı onayla!",
+      "yes": "Evet, katkıyı onayla ve kaydet!"
+    },
+    "delete": {
+      "question": "Bu ortak yarara katkıyı gerçekten kalıcı olarak silmek istiyor musun?",
+      "text": "Sildikten sonra kayıt artık mevcut değildir.",
+      "title": "Ortak yarara katkıyı sil!",
+      "yes": "Evet, katkıyı sil!"
+    },
+    "deleteUser": {
+      "question": "{username} kullanıcısını gerçekten silmek istiyor musun?",
+      "title": "Kullanıcıyı sil",
+      "yes": "Evet, kullanıcıyı sil"
+    },
+    "deny": {
+      "question": "Bu ortak yarara katkıyı gerçekten reddetmek istiyor musun?",
+      "text": "Kaydettikten sonra kayıt artık değiştirilemez ve silinemez. Her şeyin doğru olduğunu dikkatlice kontrol et.",
+      "title": "Ortak yarara katkıyı reddet!",
+      "yes": "Evet, katkıyı reddet ve kaydet!"
+    },
+    "undeleteUser": {
+      "question": "{username} kullanıcısını gerçekten geri yüklemek istiyor musun?",
+      "title": "Kullanıcıyı geri yükle",
+      "yes": "Evet, kullanıcıyı geri yükle"
+    }
+  },
+  "projectBranding": {
+    "addTooltip": "Yeni proje markalama girişi ekle",
+    "chosenSpace": "Seçilen Humhub alanı: {space}",
+    "created": "Yeni bir proje markalama girişi oluşturuldu.",
+    "error": "Proje markalama girişi oluşturulurken hata: {message}",
+    "newUserToSpace": "Kullanıcı eklensin mi?",
+    "newUserToSpaceTooltip": "Alan varsa yeni kullanıcıları otomatik olarak alana ekle",
+    "noAccessRightSpace": "Seçilen alan: {spaceId} (Erişim hakkı yok)",
+    "openSpaceInHumhub": "Humhub'da aç",
+    "selectSpace": "Humhub alanı seç",
+    "spaceId": "Humhub Alan ID",
+    "title": "Proje markalaması",
+    "updated": "Proje markalama girişi güncellendi."
+  },
+  "redeemed": "kullanıldı",
+  "registered": "Kayıtlı",
+  "registered_at": "Kayıt tarihi",
+  "removeNotSelf": "Yönetici/moderatör olarak kendini silemezsin.",
+  "reset": "Sıfırla",
+  "save": "Kaydet",
+  "send": "Gönder",
+  "statistic": {
+    "activeUsers": "Aktif üyeler",
+    "count": "Miktar",
+    "deletedUsers": "Silinen üyeler",
+    "details": "Ayrıntılar",
+    "totalGradidoAvailable": "Dolaşımdaki toplam GDD",
+    "totalGradidoCreated": "Toplam oluşturulan GDD",
+    "totalGradidoDecayed": "Toplam GDD erimesi",
+    "totalGradidoUnbookedDecayed": "Kaydedilmemiş GDD erimesi",
+    "totalUsers": "Üyeler"
+  },
+  "status": "Durum",
+  "success": "Başarılı",
+  "text": "Metin",
+  "transactionlink": {
+    "created": "Oluşturuldu",
+    "name": "İşlem bağlantıları",
+    "valid_until": "Geçerlilik tarihi"
+  },
+  "transactionlist": {
+    "amount": "Tutar",
+    "confirmed": "Onaylandı",
+    "memo": "Mesaj",
+    "period": "Dönem",
+    "status": "Durum",
+    "submitted": "Gönderildi",
+    "title": "Kullanıcı için tüm oluşturma işlemleri"
+  },
+  "undelete_user": "Kullanıcıyı geri yükle",
+  "unregister_mail": {
+    "button": "Kayıt e-postasını onayla, şimdi gönder",
+    "error": "Onay bağlantısı kullanıcıya gönderilirken hata: {message}",
+    "info": "E-postayı onayla, tekrar gönder:",
+    "never_sent": "Görünüşe göre {email} üyesine hiç e-posta göndermedik",
+    "success": "Onay bağlantısı kullanıcının e-postasına başarıyla gönderildi! ({email})",
+    "text_false": "Son e-posta, {email} üyesine {date} tarihinde gönderildi.",
+    "text_true": "E-posta onaylandı."
+  },
+  "unregistered_emails": "Yalnızca kayıtsız kullanıcılar",
+  "userRole": {
+    "notChangeYourSelf": "Yönetici/moderatör olarak kendi rolünü değiştiremezsin.",
+    "selectLabel": "Rol:",
+    "selectRoles": {
+      "admin": "yönetici",
+      "moderator": "moderatör",
+      "moderatorAi": "yapay zekâ moderatörü",
+      "user": "sıradan kullanıcı"
+    },
+    "successfullyChangedTo": "Kullanıcı artık «{role}».",
+    "tabTitle": "Kullanıcı rolü"
+  },
+  "user_deleted": "Kullanıcı silindi.",
+  "user_memo_search": "Kullanıcı ve metin araması",
+  "user_recovered": "Kullanıcı geri yüklendi.",
+  "user_search": "Kullanıcı arama"
+}
