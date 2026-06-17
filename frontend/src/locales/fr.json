@@ -56,11 +56,6 @@
       "text": "Pour trouver d'autres membres près de chez toi, indique dès maintenant ta position sur la carte!"
     }
   },
-  "circles": {
-    "button": "Ouvrir les Cercles...",
-    "headline": "Ensemble, nous nous soutenons mutuellement - attentifs à la culture du cercle.",
-    "text": "En cliquant sur le bouton, tu ouvres la plateforme de coopération dans une nouvelle fenêtre de navigation."
-  },
   "community": {
     "admins": "Administrateurs",
     "choose-another-community": "Choisis une autre communauté",
@@ -70,10 +65,6 @@
     "moderator": "Modérateur",
     "moderators": "Modérateurs",
     "myContributions": "Mes contributions",
-    "noOpenContributionLinkText": "Actuellement, il n'y a pas de créations générées par lien.",
-    "openContributionLinkText": "Pour les crédits de départ ou à des fins similaires, la communauté peut créer des \"liens de création\". Ils déclenchent des créations automatiques qui sont créditées à l'utilisateur.\nLa communauté \"{name}\" soutient actuellement {count} créations générées par lien:",
-    "openContributionLinks": "Créations générées par lien",
-    "startNewsButton": "Envoyer des gradidos",
     "submitContribution": "Contribuer"
   },
   "communityInfo": "Information communauté^^",
@@ -91,7 +82,6 @@
       "myContributionNoteList": "À tout moment tu peux éditer ou supprimer les données qui n'ont pas été confirmées.",
       "pending": "Inscription en attente de validation"
     },
-    "date": "Contribution pour:",
     "delete": "Supprimer la contribution ! Es-tu sûr ?",
     "deleted": "La contribution a été supprimée! Mais elle restera visible.",
     "formText": {
@@ -108,7 +98,6 @@
       "emptyPage": "Cette page est vide.",
       "myContributions": "Tu n'as encore soumis aucune contribution."
     },
-    "noDateSelected": "Choisis n'importe quelle date du mois",
     "noOpenCreation": {
       "allMonth": "Ta limite de création est atteinte pour les deux mois. Le mois prochain, tu pourras de nouveau créer 1000 GDD.",
       "lastMonth": "La limite de création est atteinte pour le mois sélectionné.",
@@ -122,8 +111,7 @@
     "yourActivity": "Saisis une activité !"
   },
   "contribution-link": {
-    "thanksYouWith": "te remercie avec",
-    "unique": "(unique)"
+    "thanksYouWith": "te remercie avec"
   },
   "contributionText": "Texte de la contribution",
   "copy-to-clipboard": "Copier dans le presse-papier",
@@ -155,7 +143,6 @@
   "error": {
     "email-already-sent": "Nous t'avons déjà envoyé un e-mail il y a moins de 10 minutes.",
     "empty-transactionlist": "Il y a eu une erreur lors de la transmission du numéro de ta transaction.",
-    "error": "Erreur!",
     "no-account": "Malheureusement nous n'avons pas pu trouver de compte (actif) correspondant aux données transmises.",
     "no-transactionlist": "Il y a malheureusement eu une erreur. Aucune transaction n'a été envoyée depuis l'serveur.",
     "no-user": "Pas d'utilisateur pour cet identifiant.",
@@ -173,7 +160,6 @@
     "imprint": "Notification légale",
     "inspector": "Inspecteur (expérimental)",
     "privacy_policy": "Politique de confidentialité",
-    "short_hash": "({shortHash})",
     "whitepaper": "Papier blanc"
   },
   "form": {
@@ -256,7 +242,6 @@
         "min": "La description de l'activité doit comporter au moins {min} caractères.",
         "required": "La description de l'activité est un champ obligatoire."
       },
-      "gddCreationTime": "Le champ {_field_} doit comprendre un nombre entre {min} et {max} avec un maximum de une décimale.",
       "gddSendAmount": "Le champ {_field_} doit comprendre un nombre entre {min} et {max} avec un maximum de deux chiffres après la virgule",
       "hours": {
         "decimal-places": "Les heures ne doivent pas comporter plus de deux décimales.",
@@ -283,9 +268,7 @@
       },
       "username-allowed-chars": "Le nom d'utilisateur ne peut contenir que des lettres (sans accents), des chiffres, des traits d'union ou des traits de soulignement.",
       "username-hyphens": "Les traits d'union ou de soulignement doivent se trouver entre des lettres ou des chiffres.",
-      "username-unique": "Ce nom d'utilisateur est déjà pris.",
-      "usernmae-regex": "Le nom d'utilisateur doit commencer par une lettre, suivi d'au moins deux caractères alphanumériques.",
-      "usernmae-unique": "Ce nom d'utilisateur est déjà pris."
+      "username-unique": "Ce nom d'utilisateur est déjà pris."
     },
     "your_amount": "Ton montant"
   },
@@ -320,7 +303,6 @@
     "redeem-community": "Créditer dans ",
     "redeemed": "Encaissé avec succès ! Ton compte est crédité de {n} GDD.",
     "redeemed-at": "Le lien a déjà été perçu le {date}.",
-    "redeemed-title": "encaisser",
     "redeemlink-error": "Ce lien d'encaissement n'est pas complet.",
     "to-login": "Connexion",
     "to-register": "Enregistrer un nouveau compte.",
@@ -330,14 +312,12 @@
   },
   "gdt": {
     "calculation": "Calcul de Gradido Transform",
-    "contribution": "Contribution",
     "conversion": "Conversion",
     "conversion-gdt-euro": "Conversion Euro / Gradido Transform (GDT)",
     "credit": "Crédit",
     "factor": "Coefficient",
     "formula": "Formule de calcul",
     "funding": "Aux contributions au financement",
-    "gdt": "Gradido Transform",
     "gdt-received": "Gradido Transform (GDT) perçu",
     "gdtKonto": "Compte GDT",
     "no-transactions": "Tu ne possèdes pas encore Gradido Transform (GDT).",
@@ -356,8 +336,7 @@
   "math": {
     "asterisk": "*",
     "equal": "=",
-    "minus": "−",
-    "pipe": "|"
+    "minus": "−"
   },
   "maxReached": "Max. atteint",
   "member": "Membre",
@@ -422,7 +401,6 @@
         "communityLocationLabel": "Emplacement de ta communauté",
         "headline": "Capture de la localisation géographique de l'utilisateur",
         "search": "Rechercher un emplacement",
-        "success": "Emplacement enregistré avec succès",
         "userCoords": "Ton emplacement : Lat {lat}, Long {lng}",
         "userLocationLabel": "Ton emplacement"
       },
@@ -451,7 +429,6 @@
     },
     "info": "Les transactions peuvent désormais être effectuées par nom d'utilisateur ou adresse e-mail.",
     "language": {
-      "changeLanguage": "Changer la langue",
       "de": "Deutsch",
       "en": "English",
       "error": "Échec de la mise à jour des paramètres linguistiques.",
@@ -461,7 +438,6 @@
       "success": "Ta langue de préférence a bien été actualisée."
     },
     "name": {
-      "change-name": "Changer le nom",
       "change-success": "Ton nom a bien été changé.",
       "enterFirstname": "Saisir le prénom",
       "enterLastname": "Saisir le nom de famille"

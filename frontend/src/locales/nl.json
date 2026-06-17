@@ -56,30 +56,16 @@
       "text": "Om andere leden in jouw omgeving te vinden, voer nu je locatie in op de kaart!"
     }
   },
-  "circles": {
-    "button": "Cirkels openen...",
-    "headline": "Samen ondersteunen we elkaar - mindful in de cirkelcultuur.",
-    "text": "Klik op de knop om het samenwerkingsplatform te openen in een nieuw browservenster."
-  },
   "community": {
     "admins": "Beheerders",
     "choose-another-community": "Kies een andere gemeenschap",
     "community": "Gemeenschap",
     "communityMember": "Je bent een actief lid",
     "continue-to-registration": "Verder ter registratie",
-    "current-community": "Actuele gemeenschap",
-    "members": "Leden",
     "moderator": "Moderator",
     "moderators": "Moderators",
     "myContributions": "Mijn bijdragen voor het algemeen belang",
-    "noOpenContributionLinkText": "Er zijn momenteel geen link-gegenereerde creaties.",
-    "openContributionLinkText": "Voor startcredits of soortgelijke doeleinden kan de community zogenaamde creatielinks maken. Deze activeren automatische creaties die worden gecrediteerd aan de gebruiker.\nDe community \"{name}\" ondersteunt momenteel {count} link-gegenereerde creaties:",
-    "openContributionLinks": "Creaties gegenereerd door link",
-    "other-communities": "Verdere gemeenschappen",
-    "startNewsButton": "Stuur Gradidos",
-    "statistic": "Statistieken",
-    "submitContribution": "schrijf",
-    "switch-to-this-community": "naar deze gemeenschap wisselen"
+    "submitContribution": "schrijf"
   },
   "communityInfo": "Informatie over de gemeenschap",
   "contact": "Contact",
@@ -96,7 +82,6 @@
       "myContributionNoteList": "Ingediende bijdragen, die nog niet bevestigd zijn, kun je op elk moment wijzigen of verwijderen.",
       "pending": "Ingediend en wacht op bevestiging"
     },
-    "date": "Bijdrage voor:",
     "delete": "Bijdrage verwijderen! Weet je het zeker?",
     "deleted": "De bijdrage werd verwijderd! Blijft echter zichtbaar.",
     "formText": {
@@ -113,7 +98,6 @@
       "emptyPage": "Deze pagina is leeg.",
       "myContributions": "Je hebt nog geen bijdragen ingediend."
     },
-    "noDateSelected": "Kies een willekeurige datum in de maand",
     "noOpenCreation": {
       "allMonth": "Je creatielimiet is voor beide maanden bereikt. Volgende maand kun je weer 1000 GDD creëren.",
       "lastMonth": "De creatielimiet is bereikt voor de geselecteerde maand.",
@@ -127,8 +111,7 @@
     "yourActivity": "Voer een activiteit in!"
   },
   "contribution-link": {
-    "thanksYouWith": "bedankt jou met",
-    "unique": "(uniek)"
+    "thanksYouWith": "bedankt jou met"
   },
   "contributionText": "Bijdragetekst",
   "copy-to-clipboard": "Kopieer naar klembord",
@@ -160,7 +143,6 @@
   "error": {
     "email-already-sent": "Wij hebben jou minder dan 10 minuten geleden een email gestuurd.",
     "empty-transactionlist": "Er was een fout met de overdracht van het aantal van jouw transacties.",
-    "error": "Fout!",
     "no-account": "Helaas kunnen we geen (geactiveerde) rekening met deze gegevens vinden.",
     "no-transactionlist": "  Helaas was er een fout. Door de server werden er geen transacties overgedragen.",
     "no-user": "Geen gebruiker met deze login gegevens.",
@@ -178,7 +160,6 @@
     "imprint": "Colofon",
     "inspector": "Inspecteur (experimenteel)",
     "privacy_policy": "Privacyverklaring",
-    "short_hash": "({shortHash})",
     "whitepaper": "Witboek"
   },
   "form": {
@@ -240,7 +221,6 @@
     "sorry": "Sorry",
     "subject": "Onderwerp",
     "thx": "Dankjewel",
-    "time": "Tijd",
     "to": "tot",
     "to1": "aan",
     "username": "Gebruikersnaam",
@@ -288,9 +268,7 @@
       },
       "username-allowed-chars": "De gebruikersnaam mag alleen uit letters (zonder accenten), cijfers, koppeltekens of underscores bestaan.",
       "username-hyphens": "Koppeltekens of underscores moeten tussen letters of cijfers staan.",
-      "username-unique": "Deze gebruikersnaam is al in gebruik.",
-      "usernmae-regex": "De gebruikersnaam moet met een letter beginnen, waarop minimaal twee alfanumerieke tekens dienen te volgen.",
-      "usernmae-unique": "De gebruikersnaam is al bezet."
+      "username-unique": "Deze gebruikersnaam is al in gebruik."
     },
     "your_amount": "Jouw bijdrage"
   },
@@ -301,7 +279,6 @@
     "copy-link-with-text": "Link en tekst kopiëren",
     "created": "De link werd gecreëerd!",
     "credit-your-gradido": "Om de Gradidos bijgeschreven te krijgen, klik op de link!",
-    "decay-14-day": "Vergankelijkheid voor 14 dagen",
     "delete-the-link": "De link verwijderen?",
     "deleted": "De link werd verwijderd!",
     "disbured": "De uitbetaling van het linktegoed is succesvol gestart! Het bedrag van {n} GDD wordt binnenkort op je rekening bijgeschreven.",
@@ -326,7 +303,6 @@
     "redeem-community": "Crediteren in ",
     "redeemed": "Succesvol ingewisseld! Op jouw rekening werden {n} GDD bijgeschreven.",
     "redeemed-at": "De link werd al op {date} ingewisseld.",
-    "redeemed-title": "ingewisseld",
     "redeemlink-error": "Deze inwissel-link is niet volledig.",
     "to-login": "Inloggen",
     "to-register": "Registreer een nieuwe rekening.",
@@ -336,14 +312,12 @@
   },
   "gdt": {
     "calculation": "Berekening van de Gradido Transform",
-    "contribution": "Bedrag",
     "conversion": "Omrekening",
     "conversion-gdt-euro": "Omrekening Euro / Gradido Transform (GDT)",
     "credit": "Krediet",
     "factor": "Factor",
     "formula": "Berekeningsformule",
     "funding": "Naar de donaties",
-    "gdt": "Gradido Transform",
     "gdt-received": "Gradido Transform (GDT) ontvangen",
     "gdtKonto": "GDT-account",
     "no-transactions": "Je hebt nog geen Gradido Transform (GDT).",
@@ -360,11 +334,9 @@
   "link-load-more": "verdere {n} links herladen",
   "login": "Aanmelding",
   "math": {
-    "aprox": "~",
     "asterisk": "*",
     "equal": "=",
-    "minus": "−",
-    "pipe": "|"
+    "minus": "−"
   },
   "maxReached": "Max. bereikt",
   "member": "Lid",
@@ -385,9 +357,7 @@
     "admin_area": "Beheerder",
     "community": "Gemeenschap",
     "logout": "Afmelden",
-    "members_area": "Ledenbestand",
     "overview": "Overzicht",
-    "profile": "Mijn profiel",
     "send": "Sturen",
     "settings": "Instellingen",
     "support": "Support",
@@ -431,7 +401,6 @@
         "communityLocationLabel": "Locatie van je gemeenschap",
         "headline": "Geografische locatiebepaling van de gebruiker",
         "search": "Zoek een locatie",
-        "success": "Locatie succesvol opgeslagen",
         "userCoords": "Jouw locatie: Lat {lat}, Lng {lng}",
         "userLocationLabel": "Jouw locatie"
       },
@@ -460,7 +429,6 @@
     },
     "info": "Transacties kunnen nu worden uitgevoerd via gebruikersnaam of e-mailadres.",
     "language": {
-      "changeLanguage": "Taal veranderen",
       "de": "Deutsch",
       "en": "English",
       "error": "Het is niet gelukt om de taalinstellingen bij te werken.",
@@ -470,7 +438,6 @@
       "success": "Jouw taal werd succesvol veranderd."
     },
     "name": {
-      "change-name": "Naam veranderen",
       "change-success": "Jouw naam werd succesvol veranderd.",
       "enterFirstname": "Voornaam invoeren",
       "enterLastname": "Achternaam invoeren"
@@ -536,11 +503,6 @@
       "uppercase": "Hoofdletter noodzakelijk."
     }
   },
-  "statistic": {
-    "totalGradidoAvailable": "Totaal GDD in omloop",
-    "totalGradidoCreated": "Totaal GDD geschept",
-    "totalGradidoDecayed": "Totaal GDD vervallen"
-  },
   "status": "Status",
   "submitted": "Ingediend",
   "success": "Succes",
@@ -554,8 +516,6 @@
     "years": "Jaar"
   },
   "transaction": {
-    "gdd-text": "Gradido transacties",
-    "gdt-text": "GradidoTransform transacties",
     "lastTransactions": "Laatste transacties",
     "nullTransactions": "Je hebt nog geen transacties op jouw rekening.",
     "receiverDeleted": "De rekening van de ontvanger werd verwijderd",

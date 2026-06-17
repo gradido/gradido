@@ -56,30 +56,16 @@
       "text": "Para encontrar otros miembros cerca de ti, ¡introduce ahora tu ubicación en el mapa!"
     }
   },
-  "circles": {
-    "button": "Abrir Círculos...",
-    "headline": "Juntos nos apoyamos - atentos a la cultura de los círculos.",
-    "text": "Haga clic en el botón para abrir la plataforma de cooperación en una nueva ventana del navegador."
-  },
   "community": {
     "admins": "Administradores",
     "choose-another-community": "Escoger otra comunidad",
     "community": "Comunidad",
     "communityMember": "Eres un miembro activo",
     "continue-to-registration": "Continuar con el registro",
-    "current-community": "Comunidad actual",
-    "members": "Miembros",
     "moderator": "Moderador",
     "moderators": "Moderadores",
     "myContributions": "Mis contribuciones al bien común",
-    "noOpenContributionLinkText": "Actualmente no hay creaciones generadas por enlaces.",
-    "openContributionLinkText": "Para créditos iniciales o fines similares, la comunidad puede crear los llamados enlaces de creación. Éstos activan creaciones automáticas que se acreditan al usuario.\nLa comunidad \"{name}\" admite actualmente {count} creaciones generadas por enlaces:",
-    "openContributionLinks": "Creaciones generadas por enlace",
-    "other-communities": "Otras comunidades",
-    "startNewsButton": "Enviar Gradidos",
-    "statistic": "Estadísticas",
-    "submitContribution": "escribir",
-    "switch-to-this-community": "cambiar a esta comunidad"
+    "submitContribution": "escribir"
   },
   "communityInfo": "Información de la comunidad",
   "contact": "Contacto",
@@ -96,7 +82,6 @@
       "myContributionNoteList": "Puedes editar o eliminar las contribuciones enviadas que aún no han sido confirmadas en cualquier momento.",
       "pending": "Enviado y a la espera de confirmación"
     },
-    "date": "Contribución para:",
     "delete": "Eliminar la contribución. ¿Estás seguro?",
     "deleted": "¡La contribución ha sido borrada! Pero seguirá siendo visible.",
     "formText": {
@@ -113,7 +98,6 @@
       "emptyPage": "Esta página está vacía.",
       "myContributions": "Aún no has enviado ninguna contribución."
     },
-    "noDateSelected": "Elige cualquier fecha del mes.",
     "noOpenCreation": {
       "allMonth": "Has alcanzado tu límite de creación para ambos meses. El mes que viene podrás volver a crear 1000 GDD.",
       "lastMonth": "Se ha alcanzado el límite de creación para el mes seleccionado.",
@@ -127,8 +111,7 @@
     "yourActivity": "¡Por favor, introduce una actividad!"
   },
   "contribution-link": {
-    "thanksYouWith": "te agradece con",
-    "unique": "(único)"
+    "thanksYouWith": "te agradece con"
   },
   "contributionText": "Texto de la contribución",
   "copy-to-clipboard": "Copiar al portapapeles",
@@ -160,7 +143,6 @@
   "error": {
     "email-already-sent": "Ya te hemos enviado un correo electrónico hace menos de 10 minutos.",
     "empty-transactionlist": "Ha habido un error en la transmisión del número de sus transacciones.",
-    "error": "Error!",
     "no-account": "Lamentablemente no hemos podido encontrar una cuenta (activada) con estos datos.",
     "no-transactionlist": "Lamentablemente, hubo un error. No se ha transmitido ninguna transacción desde el servidor.",
     "no-user": "No hay usuario con estas referencias.",
@@ -178,7 +160,6 @@
     "imprint": "Aviso legal",
     "inspector": "Inspector (experimental)",
     "privacy_policy": "Protección de Datos",
-    "short_hash": "({shortHash})",
     "whitepaper": "Whitepaper"
   },
   "form": {
@@ -240,7 +221,6 @@
     "sorry": "Disculpa",
     "subject": "Asunto",
     "thx": "Gracias",
-    "time": "Tiempo",
     "to": "hasta",
     "to1": "para",
     "username": "Nombre de usuario",
@@ -288,9 +268,7 @@
       },
       "username-allowed-chars": "El nombre de usuario solo puede contener letras (sin tildes), números, guiones o guiones bajos.",
       "username-hyphens": "Los guiones o guiones bajos deben estar entre letras o números.",
-      "username-unique": "Este nombre de usuario ya está en uso.",
-      "usernmae-regex": "El nombre de usuario debe comenzar con una letra seguida de al menos dos caracteres alfanuméricos.",
-      "usernmae-unique": "Este nombre de usuario ya está adjudicado."
+      "username-unique": "Este nombre de usuario ya está en uso."
     },
     "your_amount": "Tu importe"
   },
@@ -301,7 +279,6 @@
     "copy-link-with-text": "Copiar texto y enlace",
     "created": "El enlace ha sido creado",
     "credit-your-gradido": "Para que se te acrediten los Gradidos, haz clic en el enlace!",
-    "decay-14-day": "Disminución gradual por 14 días",
     "delete-the-link": "Eliminar el enlace?",
     "deleted": "El enlace ha sido eliminado!",
     "disbured": "¡El desembolso del saldo del enlace se ha iniciado con éxito! El abono de {n} GDD se registrará pronto en tu cuenta.",
@@ -326,7 +303,6 @@
     "redeem-community": "Acreditar en ",
     "redeemed": "¡Canjeado con éxito! Tu cuenta ha sido acreditada con {n} GDD.",
     "redeemed-at": "El enlace ya se canjeó el {date}.",
-    "redeemed-title": "canjeado",
     "redeemlink-error": "Este enlace de canje no está completo.",
     "to-login": "iniciar sesión",
     "to-register": "Registre una nueva cuenta.",
@@ -336,14 +312,12 @@
   },
   "gdt": {
     "calculation": "Cálculo del Gradido Transform",
-    "contribution": "Importe",
     "conversion": "Conversión",
     "conversion-gdt-euro": "Conversión Euro / Gradido Transform (GDT)",
     "credit": "Abono",
     "factor": "Factor",
     "formula": "Formula de cálculo",
     "funding": "Las donaciones",
-    "gdt": "Gradido Transform",
     "gdt-received": "Gradido Transform (GDT) recibido",
     "gdtKonto": "Cuenta GDT",
     "no-transactions": "Aún no tienes un Gradido Transform (GDT).",
@@ -360,11 +334,9 @@
   "link-load-more": "descargar más {n} enlaces",
   "login": "iniciar sesión",
   "math": {
-    "aprox": "~",
     "asterisk": "*",
     "equal": "=",
-    "minus": "−",
-    "pipe": "|"
+    "minus": "−"
   },
   "maxReached": "Máx. alcanzado",
   "member": "Miembro",
@@ -385,9 +357,7 @@
     "admin_area": "Área de administración",
     "community": "Comunidad",
     "logout": "Salir",
-    "members_area": "Área de afiliados",
     "overview": "Resumen",
-    "profile": "Mi Perfil",
     "send": "Enviar",
     "settings": "Configuración",
     "support": "Soporte",
@@ -431,7 +401,6 @@
         "communityLocationLabel": "Ubicación de tu comunidad",
         "headline": "Captura de ubicación geográfica del usuario",
         "search": "Buscar una ubicación",
-        "success": "Ubicación guardada exitosamente",
         "userCoords": "Tu ubicación: Lat {lat}, Lng {lng}",
         "userLocationLabel": "Tu ubicación"
       },
@@ -460,7 +429,6 @@
     },
     "info": "Las transacciones ahora se pueden realizar mediante nombre de usuario o dirección de correo electrónico.",
     "language": {
-      "changeLanguage": "Cambiar idioma",
       "de": "Deutsch",
       "en": "English",
       "error": "No se ha podido actualizar la configuración de idioma.",
@@ -470,7 +438,6 @@
       "success": "Tu idioma ha sido cambiado con éxito."
     },
     "name": {
-      "change-name": "Cambiar nombre",
       "change-success": "Tu nombre ha sido cambiado con éxito.",
       "enterFirstname": "Introduce el nombre",
       "enterLastname": "Introduce el apellido"
@@ -536,11 +503,6 @@
       "uppercase": "Letra mayúscula requerida."
     }
   },
-  "statistic": {
-    "totalGradidoAvailable": "GDD total en circulación",
-    "totalGradidoCreated": "GDD total creado",
-    "totalGradidoDecayed": "GDD total decaído"
-  },
   "status": "Estado",
   "submitted": "Enviado",
   "success": "Lo lograste",
@@ -554,8 +516,6 @@
     "years": "Año"
   },
   "transaction": {
-    "gdd-text": "Transacciones Gradido",
-    "gdt-text": "Transacciones GradidoTransform ",
     "lastTransactions": "Últimas transacciones",
     "nullTransactions": "Todavía no tienes ninguna transacción en tu cuenta.",
     "receiverDeleted": "La cuenta del destinatario ha sido eliminada.",
