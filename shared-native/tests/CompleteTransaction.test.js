@@ -1,6 +1,6 @@
 const { describe, it } = require('node:test')
 const { strict } = require('node:assert')
-const { CompleteTransaction, MonotonicTimer } = require('../')
+const { NativeCompleteTransaction, MonotonicTimer } = require('../')
 const assert = strict
 
 // full, valid blockchain with community root tx at start
@@ -17,8 +17,8 @@ const transactions = [
   'CAoS5QEKZgpkCiDLLdd0UgpB2Y6jrOdA7rM/oXmddzKtt3bj3fTAY9YBvBJAui7VQS+t1g2Kd2Mq62/+KsV1ytemMPg0mP1pfu58k9JNO5lVFp8YKWZLj6oclEk/nFdiEJ6OJvvWXyf7+7FECBJ7Ml0KOQogyy3XdFIKQdmOo6znQO6zP6F5nXcyrbd24930wGPWAbwQhOSQARoQAZ40fFQKc9KYhn/s4A1aLhIgfvV+405Mrl4BQDS3+AQ7pkDRom8H1iKsNC5krXW59g0KDggCEgpkdW1teSBtZW1vEgYI+PWHjwYYiIAMGgYItPaHjwYgiIAMKiDQ9AeGOhrFeeBYRDWIk4Qxe9QG7bWI/JtAOcKCLy1xvDIQGgwKBgj49YePBhICGHkIAjo5CiDLLdd0UgpB2Y6jrOdA7rM/oXmddzKtt3bj3fTAY9YBvBCcv9gBGhABnjR8VApz0piGf+zgDVouOjkKIH71fuNOTK5eAUA0t/gEO6ZA0aJvB9YirDQuZK11ufYNEITkkAEaEAGeNHxUCnPSmIZ/7OANWi5AAQ==',
 ]
 /*
- json represantation of transactions: 
- "./CompleteTransactions.fixture.json"
+ json represantation of transactions:
+ "./NativeCompleteTransactions.fixture.json"
  */
 const communityUuid = '019e347c-540a-73d2-9886-7fece00d5a2e'
 
@@ -26,9 +26,9 @@ function toHex(buffer) {
   return buffer ? Buffer.from(buffer).toString('hex') : null
 }
 
-describe('CompleteTransaction', () => {
+describe('NativeCompleteTransaction', () => {
   it('Register Address Tx', () => {
-    const tx = new CompleteTransaction()
+    const tx = new NativeCompleteTransaction()
     tx.initFromProtobuf(Buffer.from(transactions[1], 'base64'), communityUuid)
     tx.validate()
     assert.equal(
@@ -39,7 +39,7 @@ describe('CompleteTransaction', () => {
     assert.equal(tx.getConfirmedAt().toISOString(), '2022-01-09T02:44:21.000Z')
     const ledgerAnchor = tx.getLedgerAnchor()
     assert.equal(ledgerAnchor.isHieroTransactionId(), true)
-    assert.equal(ledgerAnchor.getHieroTransactionId(), '0.0.121@1641696201.0')
+    assert.equal(ledgerAnchor.getHieroTransactionId(), '0.0.121@1641696201.000000000')
     assert.equal(tx.getTransactionType(), 'GRDT_TRANSACTION_REGISTER_ADDRESS')
     assert.equal(tx.getSenderPublicKey(), null)
     assert.equal(tx.getRecipientPublicKey(), null)
@@ -52,7 +52,7 @@ describe('CompleteTransaction', () => {
   })
 
   it('Contribution Transaction', () => {
-    const tx = new CompleteTransaction()
+    const tx = new NativeCompleteTransaction()
     tx.initFromProtobuf(Buffer.from(transactions[4], 'base64'), communityUuid)
     tx.validate()
     assert.equal(tx.getConfirmedAt().toISOString(), '2022-01-12T14:35:58.000Z')
@@ -60,7 +60,7 @@ describe('CompleteTransaction', () => {
     assert.equal(tx.getRegisteredAccount(), null)
     const ledgerAnchor = tx.getLedgerAnchor()
     assert.equal(ledgerAnchor.isHieroTransactionId(), true)
-    assert.equal(ledgerAnchor.getHieroTransactionId(), '0.0.121@1641998098.0')
+    assert.equal(ledgerAnchor.getHieroTransactionId(), '0.0.121@1641998098.000000000')
     assert.equal(tx.getTransactionType(), 'GRDT_TRANSACTION_CREATION')
     assert.equal(tx.getSenderPublicKey(), null)
     assert.equal(
@@ -76,7 +76,7 @@ describe('CompleteTransaction', () => {
   })
 
   it('Deferred Transfer', () => {
-    const tx = new CompleteTransaction()
+    const tx = new NativeCompleteTransaction()
     tx.initFromProtobuf(Buffer.from(transactions[5], 'base64'), communityUuid)
     tx.validate()
     assert.equal(tx.getConfirmedAt().toISOString(), '2022-01-13T00:35:58.000Z')
@@ -84,7 +84,7 @@ describe('CompleteTransaction', () => {
     assert.equal(tx.getRegisteredAccount(), null)
     const ledgerAnchor = tx.getLedgerAnchor()
     assert.equal(ledgerAnchor.isHieroTransactionId(), true)
-    assert.equal(ledgerAnchor.getHieroTransactionId(), '0.0.121@1641998098.0')
+    assert.equal(ledgerAnchor.getHieroTransactionId(), '0.0.121@1641998098.000000000')
     assert.equal(tx.getTransactionType(), 'GRDT_TRANSACTION_DEFERRED_TRANSFER')
     assert.equal(
       toHex(tx.getSenderPublicKey()),
@@ -103,7 +103,7 @@ describe('CompleteTransaction', () => {
   })
 
   it('Redeem Deferred Transfer', () => {
-    const tx = new CompleteTransaction()
+    const tx = new NativeCompleteTransaction()
     tx.initFromProtobuf(Buffer.from(transactions[6], 'base64'), communityUuid)
     tx.validate()
     assert.equal(tx.getConfirmedAt().toISOString(), '2022-01-14T12:36:58.000Z')
@@ -111,7 +111,7 @@ describe('CompleteTransaction', () => {
     assert.equal(tx.getRegisteredAccount(), null)
     const ledgerAnchor = tx.getLedgerAnchor()
     assert.equal(ledgerAnchor.isHieroTransactionId(), true)
-    assert.equal(ledgerAnchor.getHieroTransactionId(), '0.0.121@1642163758.0')
+    assert.equal(ledgerAnchor.getHieroTransactionId(), '0.0.121@1642163758.000000000')
     assert.equal(tx.getTransactionType(), 'GRDT_TRANSACTION_REDEEM_DEFERRED_TRANSFER')
     assert.equal(
       toHex(tx.getSenderPublicKey()),
@@ -131,7 +131,7 @@ describe('CompleteTransaction', () => {
 
   it('Transfer Transaction', () => {
     const timeUsed = new MonotonicTimer()
-    const tx = new CompleteTransaction()
+    const tx = new NativeCompleteTransaction()
     tx.initFromProtobuf(Buffer.from(transactions[9], 'base64'), communityUuid)
     tx.validate()
     assert.equal(tx.getConfirmedAt().toISOString(), '2022-01-14T22:37:40.000Z')
@@ -139,7 +139,7 @@ describe('CompleteTransaction', () => {
     assert.equal(tx.getRegisteredAccount(), null)
     const ledgerAnchor = tx.getLedgerAnchor()
     assert.equal(ledgerAnchor.isHieroTransactionId(), true)
-    assert.equal(ledgerAnchor.getHieroTransactionId(), '0.0.121@1642199800.0')
+    assert.equal(ledgerAnchor.getHieroTransactionId(), '0.0.121@1642199800.000000000')
     assert.equal(tx.getTransactionType(), 'GRDT_TRANSACTION_TRANSFER')
     assert.equal(
       toHex(tx.getSenderPublicKey()),

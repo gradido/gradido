@@ -1,4 +1,9 @@
-import { compareConfirmedTransaction, MutationErrorType, MutationResult } from 'core'
+import {
+  compareConfirmedTransaction,
+  MutationErrorType,
+  MutationResult,
+  transactionLinksDecayed,
+} from 'core'
 import {
   DBNotFoundError,
   dbSelectDltTransactionByLedgerAnchor,
@@ -8,8 +13,7 @@ import {
   getHomeCommunity,
 } from 'database'
 import { getLogger } from 'log4js'
-import { VoidResult } from 'shared'
-import { CompleteTransaction } from 'shared-native'
+import { CompleteTransaction, VoidResult } from 'shared'
 import { Arg, Mutation, Resolver } from 'type-graphql'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { ConfirmedTransactionInput } from '../input/ConfirmedTransactionInput'
@@ -26,82 +30,83 @@ export class BlockchainNotificationResolver {
     @Arg('data') args: ConfirmedTransactionInput,
   ): Promise<MutationResult> {
     logger.debug('Blockchain notification received:', JSON.stringify(args, null, 2))
-
-    const homeCommunity = await getHomeCommunity()
-    if (homeCommunity?.communityUuid !== args.communityUuid) {
-      logger.warn('Notification for non Home-Community')
-      return {
-        success: false,
-        error: {
-          name: 'community uuid check',
-          message: "community uuid don't belong to home community",
-          type: MutationErrorType.UNKNOWN_COMMUNITY,
-        },
+    try {
+      const homeCommunity = await getHomeCommunity()
+      if (homeCommunity?.communityUuid !== args.communityUuid) {
+        logger.warn('Notification for non Home-Community')
+        return {
+          success: false,
+          error: {
+            name: 'community uuid check',
+            message: "community uuid don't belong to home community",
+            type: MutationErrorType.UNKNOWN_COMMUNITY,
+          },
+        }
       }
-    }
 
-    const tx = new CompleteTransaction()
-    const initFromProtobufResult = tx.initFromProtobuf(
-      new Uint8Array(Buffer.from(args.transactionBase64, 'base64')),
-      args.communityUuid,
-    )
-    if (!initFromProtobufResult.success) {
-      logger.error('decode confirmed transaction failed:', initFromProtobufResult.error)
-      return {
-        success: false,
-        error: {
-          name: initFromProtobufResult.error.name,
-          message: initFromProtobufResult.error.message,
-          type: MutationErrorType.PROTOBUF_DECODE_ERROR,
-        },
+      const tx = new CompleteTransaction()
+      const initFromProtobufResult = tx.initFromProtobuf(args.transactionBase64, args.communityUuid)
+      if (!initFromProtobufResult.success) {
+        logger.error('decode confirmed transaction failed:', initFromProtobufResult.error)
+        return {
+          success: false,
+          error: {
+            name: initFromProtobufResult.error.name,
+            message: initFromProtobufResult.error.message,
+            type: MutationErrorType.PROTOBUF_DECODE_ERROR,
+          },
+        }
       }
-    }
-    const validateResult = tx.validate(true)
-    if (!validateResult.success) {
-      logger.error('validate confirmed transaction failed:', validateResult.error)
-      return {
-        success: false,
-        error: {
-          name: validateResult.error.name,
-          message: validateResult.error.message,
-          type: MutationErrorType.VALIDATION_ERROR,
-        },
+      const validateResult = tx.validate(true)
+      if (!validateResult.success) {
+        logger.error('validate confirmed transaction failed:', validateResult.error)
+        return {
+          success: false,
+          error: {
+            name: validateResult.error.name,
+            message: validateResult.error.message,
+            type: MutationErrorType.VALIDATION_ERROR,
+          },
+        }
       }
-    }
 
-    const transactionType = tx.getTransactionType()
-    const ledgerAnchor = tx.getLedgerAnchor()
+      const transactionType = tx.getTransactionType()
+      const ledgerAnchor = tx.getLedgerAnchor()
 
-    const dltTransactionResult = await dbSelectDltTransactionByLedgerAnchor(
-      ledgerAnchor,
-      transactionType,
-    )
-    if (!dltTransactionResult.success) {
-      logger.error("Couldn't load dlt transaction row", dltTransactionResult.error)
-      // probably our own mistake, didn't need to tell GradidoNode
-      return { success: true }
-    }
-
-    const compareResult = compareConfirmedTransaction(dltTransactionResult.value, tx)
-    let updateResult: VoidResult<DBNotFoundError>
-    if (!compareResult.success) {
-      logger.error('Compare Transactions failed', {
-        error: compareResult.error,
-        db: dltTransactionResult.value,
-        node: args.transactionBase64,
-      })
-      updateResult = await dbUpdateWithErrorDltTransaction(
-        dltTransactionResult.value.dltTransaction.id,
-        compareResult.error.message,
+      const dltTransactionResult = await dbSelectDltTransactionByLedgerAnchor(
+        ledgerAnchor,
+        transactionType,
       )
-    } else {
-      updateResult = await dbUpdateConfirmedDltTransaction(
-        dltTransactionResult.value.dltTransaction.id,
-        tx.getConfirmedAt().toISOString(),
-      )
-    }
-    if (!updateResult.success) {
-      logger.error("couldn't update dlt transaction", updateResult.error)
+      if (!dltTransactionResult.success) {
+        logger.error("Couldn't load dlt transaction row", dltTransactionResult.error)
+        // probably our own mistake, didn't need to tell GradidoNode
+        return { success: true }
+      }
+      // load balance taking pending transaction links into account
+      // will also sync tx balance and balance date with confirmed transaction confirmedAt
+      const compareResult = await compareConfirmedTransaction(dltTransactionResult.value, tx, true)
+      let updateResult: VoidResult<DBNotFoundError>
+      if (!compareResult.success) {
+        logger.error('Compare Transactions failed', {
+          error: compareResult.error,
+          db: dltTransactionResult.value,
+          node: args.transactionBase64,
+        })
+        updateResult = await dbUpdateWithErrorDltTransaction(
+          dltTransactionResult.value.dltTransaction.id,
+          compareResult.error.message,
+        )
+      } else {
+        updateResult = await dbUpdateConfirmedDltTransaction(
+          dltTransactionResult.value.dltTransaction.id,
+          tx.getConfirmedAt().toISOString(),
+        )
+      }
+      if (!updateResult.success) {
+        logger.error("couldn't update dlt transaction", updateResult.error)
+      }
+    } catch (e) {
+      logger.fatal(e)
     }
 
     return { success: true }

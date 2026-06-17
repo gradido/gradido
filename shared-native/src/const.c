@@ -1,5 +1,7 @@
 #include "gradido_blockchain_core/const.h"
 
+#include <stdint.h>
+
 // for ffi
 int grdc_sign_public_key_size() {
   return SIGN_PUBLIC_KEY_SIZE;
@@ -19,6 +21,9 @@ int grdc_sign_signature_size() {
 int grdc_generic_hash_size() {
   return GENERIC_HASH_SIZE;
 }
-int uuid_binary_size() {
+int grdc_uuid_binary_size() {
   return UUID_BINARY_SIZE;
+}
+int64_t grdc_decay_respite_cent() {
+  return GRADIDO_DECAY_RESPITE_CENT;
 }

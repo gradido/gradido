@@ -57,11 +57,11 @@ static grdi_validate_result_type validateCommon(
     return GRDI_VALIDATE_INVALID_FIELD;
   }
   grdd_timestamp diff = grdd_timestamp_minus(&input_tx->created_at, &input_tx->confirmed_at);
-  if (abs(diff.seconds) >
+  if (llabs(diff.seconds) >
       MAGIC_NUMBER_MAX_TIMESPAN_BETWEEN_CREATING_AND_RECEIVING_TRANSACTION_SECONDS) {
     grd_error_details_fill_actual_is_number(
         error_details, "timespan between created at and confirmed at are more than expected",
-        abs(diff.seconds), "120 seconds"
+        llabs(diff.seconds), "120 seconds"
     );
 
     return GRDI_VALIDATE_INVALID_FIELD;

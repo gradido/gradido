@@ -98,10 +98,15 @@ async function dltTransactionContributionJoinsQuery<
     .select({
       dltTransaction: dltTransactionsTable,
       transaction: transactionsTable,
+      contributionDate: contributionsTable.contributionDate,
       user: usersTable,
     })
     .from(dltTransactionsTable)
     .leftJoin(transactionsTable, eq(transactionsTable.id, dltTransactionsTable.transactionId))
+    .leftJoin(
+      contributionsTable,
+      eq(contributionsTable.transactionId, dltTransactionsTable.transactionId),
+    )
     .leftJoin(usersTable, eq(transactionsTable.userId, usersTable.id))
     .where(eq(field, value))
 }

@@ -21,13 +21,17 @@ export function getDecayStartTime(): Date {
   return new Date(Number(blockchain_core.symbols.grdd_unit_decay_start_time()) * 1000)
 }
 
+export function getDecayRespiteCent(): bigint {
+  return blockchain_core.symbols.grdc_decay_respite_cent()
+}
+
 export function calculateDecay(value: bigint, seconds: bigint): bigint {
   if (value < 0) {
-    throw new Error('First Argument must be >= 0')
+    throw new Error('[calculateDecay] First Argument must be >= 0')
   }
   const result = blockchain_core.symbols.grdd_unit_calculate_decay(value, seconds)
   if (result === INT64_MAX) {
-    throw new Error('Decay calculation probably resulted in overflow')
+    throw new Error('[calculateDecay] Decay calculation probably resulted in overflow')
   }
   return result
 }
@@ -47,7 +51,7 @@ export function gradidoUnitFromString(str: string): bigint {
   // The function returns false if parsing fails
   if (!blockchain_core.symbols.grdd_unit_from_string(resultBufferPtr, strBuffer)) {
     throw new Error(
-      "Invalid unit string. Must be a decimal with up to 4 fractional digits, integer part between -922'337'203'685'476 and 922'337'203'685'476.",
+      "[gradidoUnitFromString] Invalid unit string. Must be a decimal with up to 4 fractional digits, integer part between -922'337'203'685'476 and 922'337'203'685'476.",
     )
   }
 
@@ -58,10 +62,10 @@ export function gradidoUnitFromString(str: string): bigint {
 
 export function gradidoUnitToString(value: bigint, precision?: number): string {
   if (value > 9223372036854775807n || value < -9223372036854775807n) {
-    throw new Error('BigInt value is too large to fit in grdd_unit')
+    throw new Error('[gradidoUnitToString] BigInt value is too large to fit in grdd_unit')
   }
   if (precision !== undefined && (precision < 0 || precision > 4)) {
-    throw new Error('Precision must be between 0 and 4')
+    throw new Error('[gradidoUnitToString] Precision must be between 0 and 4')
   }
 
   // Allocate 32 bytes for the C string output buffer
@@ -84,7 +88,7 @@ export function gradidoUnitToString(value: bigint, precision?: number): string {
     precision ?? 4,
   )
   if (result < 0) {
-    throw new Error('Rounding failed (overflow)')
+    throw new Error('[gradidoUnitToString] Rounding failed (overflow)')
   }
 
   // Convert the buffer back to a JavaScript string and slice to the actual length
@@ -94,10 +98,10 @@ export function gradidoUnitToString(value: bigint, precision?: number): string {
 
 export function toDecimalPlaces(value: bigint, places: number): bigint {
   if (places < 0 || places > 4) {
-    throw new Error('Places must be between 0 and 4')
+    throw new Error('[toDecimalPlaces] Places must be between 0 and 4')
   }
   if (value > 9223372036854775807n || value < -9223372036854775807n) {
-    throw new Error('BigInt value is too large to fit in grdd_unit')
+    throw new Error('[toDecimalPlaces] BigInt value is too large to fit in grdd_unit')
   }
 
   // Allocate 8 bytes for the 64-bit integer result
@@ -108,7 +112,7 @@ export function toDecimalPlaces(value: bigint, places: number): bigint {
   // grdd_unit_round_to_precision writes the rounded result to the memory pointed to by resultBufferPtr
   // Returns false if rounding fails (overflow)
   if (!blockchain_core.symbols.grdd_unit_round_to_precision(resultBufferPtr, value, places)) {
-    throw new Error('Rounding failed (overflow)')
+    throw new Error('[toDecimalPlaces] Rounding failed (overflow)')
   }
 
   // read.i64() reads the 64-bit integer from the C pointer back into JavaScript BigInt

@@ -7,7 +7,7 @@ Napi::Value GrddTimestampToDate(const Napi::CallbackInfo& info, const grdd_times
 {
     double seconds = static_cast<double>(timestamp->seconds);
     double nanos = static_cast<double>(timestamp->nanos);
-    return Napi::Date::New(info.Env(), seconds * 1000.0 + nanos / 1000.0);
+    return Napi::Date::New(info.Env(), seconds * 1000.0 + nanos / 1000000.0);
 }
 
 bool getInt64FromObject(const Napi::CallbackInfo& info, Napi::Object obj, const char* name, int64_t& out, bool required/* = true */) {

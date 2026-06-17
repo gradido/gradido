@@ -8,6 +8,7 @@
  * Returns the decay start time as a JavaScript Date object.
  */
 export function getDecayStartTime(): Date
+export function getDecayRespiteCent(): bigint
 
 /**
  * Calculates decay for a given BigInt value over a duration in seconds.
@@ -223,7 +224,7 @@ export class LedgerAnchor {
   public getHieroTransactionId(): string | null
 }
 
-export class CompleteTransaction {
+export class NativeCompleteTransaction {
   public initFromProtobuf(serialized: Uint8Array, communityUuid: Uint8Array | string): VoidResult
   public validate(verifySignatures: boolean = true): VoidResult<ErrorDetails>
   public getConfirmedAt(): Date

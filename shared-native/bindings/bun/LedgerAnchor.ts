@@ -19,7 +19,7 @@ export class LedgerAnchor {
   static copy(original: bigint): LedgerAnchor {
     const handle = blockchain_core.symbols.grdw_ledger_anchor_create_copy(original)
     if (!handle) {
-      throw new Error('Failed to copy LedgerAnchor')
+      throw new Error('[LedgerAnchor.copy] Failed to copy LedgerAnchor')
     }
     return new LedgerAnchor(handle)
   }
@@ -30,7 +30,9 @@ export class LedgerAnchor {
   ): LedgerAnchor {
     const handle = blockchain_core.symbols.grdw_ledger_anchor_create()
     if (!handle) {
-      throw new Error('Failed to create new LedgerAnchor')
+      throw new Error(
+        '[LedgerAnchor.createFromHieroTransactionId] Failed to create new LedgerAnchor',
+      )
     }
     blockchain_core.symbols.grdw_ledger_anchor_assemble_hiero_transaction_id(
       handle,
@@ -46,7 +48,7 @@ export class LedgerAnchor {
   // Getter
   public getType(): GrdtLedgerAnchorType {
     if (!this._handle) {
-      throw new Error('Object not initialized')
+      throw new Error('[LedgerAnchor.getType] Object not initialized')
     }
     const type = blockchain_core.symbols.grdw_ledger_anchor_get_type(this._handle)
     return blockchain_core.symbols.grdt_ledger_anchor_to_string(type)
@@ -54,42 +56,42 @@ export class LedgerAnchor {
 
   public isLegacy(): boolean {
     if (!this._handle) {
-      throw new Error('Object not initialized')
+      throw new Error('[LedgerAnchor.isLegacy] Object not initialized')
     }
     return blockchain_core.symbols.grdw_ledger_anchor_is_legacy(this._handle)
   }
 
   public isNodeTrigger(): boolean {
     if (!this._handle) {
-      throw new Error('Object not initialized')
+      throw new Error('[LedgerAnchor.isNodeTrigger] Object not initialized')
     }
     return blockchain_core.symbols.grdw_ledger_anchor_is_node_trigger(this._handle)
   }
 
   public isHieroTransactionId(): boolean {
     if (!this._handle) {
-      throw new Error('Object not initialized')
+      throw new Error('[LedgerAnchor.isHieroTransactionId] Object not initialized')
     }
     return blockchain_core.symbols.grdw_ledger_anchor_is_hiero_transaction_id(this._handle)
   }
 
   public getLegacyId(): bigint {
     if (!this._handle) {
-      throw new Error('Object not initialized')
+      throw new Error('[LedgerAnchor.getLegacyId] Object not initialized')
     }
     return blockchain_core.symbols.grdw_ledger_anchor_get_legacy_id(this._handle)
   }
 
   public getNodeTriggerId(): bigint {
     if (!this._handle) {
-      throw new Error('Object not initialized')
+      throw new Error('[LedgerAnchor.getNodeTriggerId] Object not initialized')
     }
     return blockchain_core.symbols.grdw_ledger_anchor_get_node_trigger_id(this._handle)
   }
 
   public getHieroTransactionId(): string | null {
     if (!this._handle) {
-      throw new Error('Object not initialized')
+      throw new Error('[LedgerAnchor.getHieroTransactionId] Object not initialized')
     }
     const hieroTransactionIdPtr =
       blockchain_core.symbols.grdw_ledger_anchor_get_hiero_transaction_id(this._handle)
@@ -111,7 +113,7 @@ export class LedgerAnchor {
     }
     if (written > buffer.length) {
       throw new Error(
-        `Hiero Transaction Id String is to big, max expected: 128, actually: ${written}`,
+        `[LedgerAnchor.getHieroTransactionId] Hiero Transaction Id String is to big, max expected: 128, actually: ${written}`,
       )
     }
     return Buffer.from(buffer).toString('utf8').slice(0, written)

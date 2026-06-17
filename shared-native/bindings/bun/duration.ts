@@ -24,7 +24,7 @@ export function durationToString(duration: bigint, precision?: number): string {
   )
 
   if (result < 0) {
-    throw new Error('Duration string conversion failed')
+    throw new Error('[durationToString] Duration string conversion failed')
   }
 
   // Convert the buffer back to JavaScript string and slice to actual length

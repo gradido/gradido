@@ -117,7 +117,7 @@ describe('dlt transactions query test', () => {
       expect(result.success).toBeTruthy()
       if (result.success) {
         const dltTransaction = result.value.dltTransaction
-        expect(dltTransaction.hieroTransactionId).toBe('0.0.21281@1781427358.0')
+        expect(dltTransaction.hieroTransactionId).toBe('0.0.21281@1781427358.000000000')
         const user = result.value.user
         expect(user.id).toBe(bibi.id)
       }
@@ -142,7 +142,7 @@ describe('dlt transactions query test', () => {
       expect(result.success).toBeTruthy()
       if (result.success) {
         const dltTransaction = result.value.dltTransaction
-        expect(dltTransaction.hieroTransactionId).toBe('0.0.21281@1781427658.0')
+        expect(dltTransaction.hieroTransactionId).toBe('0.0.21281@1781427658.000000000')
         const transaction = result.value.transaction
         expect(transaction.id).toBe(contribution!.transactionId)
         const user = result.value.user
@@ -169,7 +169,7 @@ describe('dlt transactions query test', () => {
       expect(result.success).toBeTruthy()
       if (result.success) {
         const dltTransaction = result.value.dltTransaction
-        expect(dltTransaction.hieroTransactionId).toBe('0.0.21281@1781427921.0')
+        expect(dltTransaction.hieroTransactionId).toBe('0.0.21281@1781427921.000000000')
         const transaction = result.value.transaction
         expect(transaction.id).toBe(transferTransactions[0].id)
         expect(transaction.typeId).toBe(TransactionTypeId.SEND)
@@ -199,7 +199,7 @@ describe('dlt transactions query test', () => {
       expect(result.success).toBeTruthy()
       if (result.success) {
         const dltTransaction = result.value.dltTransaction
-        expect(dltTransaction.hieroTransactionId).toBe('0.0.21281@1781428262.0')
+        expect(dltTransaction.hieroTransactionId).toBe('0.0.21281@1781428262.000000000')
         const transactionLink = result.value.transactionLink
         expect(transactionLink.id).toBe(transactionLink.id)
         const user = result.value.user

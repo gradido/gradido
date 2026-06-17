@@ -26,7 +26,7 @@ export function signKeyPairGenerateFromSeed(seed: Uint8Array): Uint8Array {
   )
   if (result !== 0) {
     throw new Error(
-      `Failed to generate ed25519 key pair, result: ${blockchain_core.symbols.grd_result_to_string(result)}`,
+      `[signKeyPairGenerateFromSeed] Failed to generate ed25519 key pair, result: ${blockchain_core.symbols.grd_result_to_string(result)}`,
     )
   }
   return resultBuffer
@@ -35,11 +35,13 @@ export function signKeyPairGenerateFromSeed(seed: Uint8Array): Uint8Array {
 export function signKeyPairDerive(parentKeyPair: Uint8Array, index: number): Uint8Array {
   if (parentKeyPair.length !== KEY_PAIR_SIZE) {
     throw new Error(
-      `Expected parentKeyPair to be ${KEY_PAIR_SIZE} Bytes, got ${parentKeyPair.length}`,
+      `[signKeyPairDerive] Expected parentKeyPair to be ${KEY_PAIR_SIZE} Bytes, got ${parentKeyPair.length}`,
     )
   }
   if (index > MAX_DERIVATION_INDEX) {
-    throw new Error(`Max index value is: ${MAX_DERIVATION_INDEX}, but got: ${index}`)
+    throw new Error(
+      `[signKeyPairDerive] Max index value is: ${MAX_DERIVATION_INDEX}, but got: ${index}`,
+    )
   }
   const resultBuffer = new Uint8Array(KEY_PAIR_SIZE)
 
@@ -52,7 +54,7 @@ export function signKeyPairDerive(parentKeyPair: Uint8Array, index: number): Uin
   )
   if (result !== 0) {
     throw new Error(
-      `Failed to derive child sign key, result: ${blockchain_core.symbols.grd_result_to_string(result)}`,
+      `[signKeyPairDerive] Failed to derive child sign key, result: ${blockchain_core.symbols.grd_result_to_string(result)}`,
     )
   }
   return resultBuffer
@@ -61,11 +63,13 @@ export function signKeyPairDerive(parentKeyPair: Uint8Array, index: number): Uin
 export function signKeyPairDeriveUuid(parentKeyPair: Uint8Array, uuid: Uint8Array): Uint8Array {
   if (parentKeyPair.length !== KEY_PAIR_SIZE) {
     throw new Error(
-      `Expected parentKeyPair to be ${KEY_PAIR_SIZE} Bytes, got ${parentKeyPair.length} bytes`,
+      `[signKeyPairDeriveUuid] Expected parentKeyPair to be ${KEY_PAIR_SIZE} Bytes, got ${parentKeyPair.length} bytes`,
     )
   }
   if (uuid.length !== UUID_BINARY_SIZE) {
-    throw new Error(`Expected a valid uuid (${UUID_BINARY_SIZE} Bytes), got ${uuid.length} bytes`)
+    throw new Error(
+      `[signKeyPairDeriveUuid] Expected a valid uuid (${UUID_BINARY_SIZE} Bytes), got ${uuid.length} bytes`,
+    )
   }
   const resultBuffer = new Uint8Array(KEY_PAIR_SIZE)
 
@@ -80,7 +84,7 @@ export function signKeyPairDeriveUuid(parentKeyPair: Uint8Array, uuid: Uint8Arra
   )
   if (result !== 0) {
     throw new Error(
-      `Failed to derive account key, result: ${blockchain_core.symbols.grd_result_to_string(result)}`,
+      `[signKeyPairDeriveUuid] Failed to derive account key, result: ${blockchain_core.symbols.grd_result_to_string(result)}`,
     )
   }
   return resultBuffer
@@ -93,16 +97,18 @@ export function signKeyPairDeriveAccountFromCommunity(
 ): Uint8Array {
   if (communitySeed.length !== SIGN_SEED_SIZE) {
     throw new Error(
-      `Expected communitySeed to be ${SIGN_SEED_SIZE} Bytes, got ${communitySeed.length}`,
+      `[signKeyPairDeriveAccountFromCommunity] Expected communitySeed to be ${SIGN_SEED_SIZE} Bytes, got ${communitySeed.length}`,
     )
   }
   if (userUuid.length !== UUID_BINARY_SIZE) {
     throw new Error(
-      `Expected a valid uuid (${UUID_BINARY_SIZE} Bytes), got ${userUuid.length} bytes`,
+      `[signKeyPairDeriveAccountFromCommunity] Expected a valid uuid (${UUID_BINARY_SIZE} Bytes), got ${userUuid.length} bytes`,
     )
   }
   if (accountNumber > MAX_DERIVATION_INDEX) {
-    throw new Error(`Max index value is: ${MAX_DERIVATION_INDEX}, but got: ${accountNumber}`)
+    throw new Error(
+      `[signKeyPairDeriveAccountFromCommunity] Max index value is: ${MAX_DERIVATION_INDEX}, but got: ${accountNumber}`,
+    )
   }
   const resultBuffer = new Uint8Array(KEY_PAIR_SIZE)
 
@@ -118,7 +124,7 @@ export function signKeyPairDeriveAccountFromCommunity(
   )
   if (result !== 0) {
     throw new Error(
-      `Failed to derive account key, result: ${blockchain_core.symbols.grd_result_to_string(result)}`,
+      `[signKeyPairDeriveAccountFromCommunity] Failed to derive account key, result: ${blockchain_core.symbols.grd_result_to_string(result)}`,
     )
   }
   return resultBuffer

@@ -11,6 +11,7 @@
 Napi::Object Init(Napi::Env env, Napi::Object exports) {
     exports.Set("calculateDecay", Napi::Function::New(env, gradidoUnit::CalculateDecay));
     exports.Set("getDecayStartTime", Napi::Function::New(env, gradidoUnit::GetDecayStartTime));
+    exports.Set("getDecayRespiteCent", Napi::Function::New(env, gradidoUnit::GetDecayRespiteCent));
     exports.Set("gradidoUnitFromString", Napi::Function::New(env, gradidoUnit::FromString));
     exports.Set("gradidoUnitToString", Napi::Function::New(env, gradidoUnit::ToString));
     exports.Set("toDecimalPlaces", Napi::Function::New(env, gradidoUnit::ToDecimalPlaces));

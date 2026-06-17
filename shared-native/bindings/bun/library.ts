@@ -53,8 +53,12 @@ export const blockchain_core = dlopen(filePath, {
     returns: i32,
     args: [],
   },
-  uuid_binary_size: {
+  grdc_uuid_binary_size: {
     returns: i32,
+    args: [],
+  },
+  grdc_decay_respite_cent: {
+    return: i64,
     args: [],
   },
   /**
@@ -341,4 +345,5 @@ export const SIGN_CHAIN_CODE_SIZE = blockchain_core.symbols.grdc_sign_chain_code
 export const SIGN_PRIVATE_KEY_SIZE = blockchain_core.symbols.grdc_sign_private_key_size()
 export const SIGN_SIGNATURE_SIZE = blockchain_core.symbols.grdc_sign_signature_size()
 export const GENERIC_HASH_SIZE = blockchain_core.symbols.grdc_generic_hash_size()
-export const UUID_BINARY_SIZE = blockchain_core.symbols.uuid_binary_size()
+export const UUID_BINARY_SIZE = blockchain_core.symbols.grdc_uuid_binary_size()
+export const GRADIDO_DECAY_RESPITE_CENT = blockchain_core.symbols.grdc_decay_respite_cent()

@@ -9,6 +9,6 @@ export const customGradidoUnit = customType<{ data: GradidoUnit; driverData: big
     return value.gddCent
   },
   fromDriver(value: bigint): GradidoUnit {
-    return GradidoUnit.fromGradidoCent(value)
+    return GradidoUnit.fromGradidoCent(BigInt(value))
   },
 })

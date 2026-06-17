@@ -48,16 +48,16 @@ namespace gradido::data::wire {
     {
       auto env = info.Env();
       if (info.Length() < 2 || !info[0].IsObject() || !info[1].IsObject()) {
-          Napi::Error::New(
+          Napi::TypeError::New(
             info.Env(),
-            "Expected two argument: transaction valid start timestamp {seconds:bigint, nanos?:number} and hiero account id { accountNum: bigint, shardNum?: bigint, realmNum?: bigint }"
+            "[LedgerAnchor.createFromHieroTransactionId] Expected two argument: transaction valid start timestamp {seconds:bigint, nanos?:number} and hiero account id { accountNum: bigint, shardNum?: bigint, realmNum?: bigint }"
           ).ThrowAsJavaScriptException();
           return env.Null();
       }
       auto transactionValidStartObj = info[0].As<Napi::Object>();
       grdd_timestamp transactionValidStart{};
       if (!getInt64FromObject(info, transactionValidStartObj, "seconds", transactionValidStart.seconds, true)) {
-        Napi::Error::New(info.Env(), "Missing or invalid seconds: bigint in first argument").ThrowAsJavaScriptException();
+        Napi::TypeError::New(info.Env(), "[LedgerAnchor.createFromHieroTransactionId] Missing or invalid seconds: bigint in timestamp").ThrowAsJavaScriptException();
         return env.Null();
       }
       if (!getInt32FromObject(info, transactionValidStartObj, "nanos", transactionValidStart.nanos, false)) {
@@ -67,7 +67,7 @@ namespace gradido::data::wire {
       auto hieroAccountIdObj = info[1].As<Napi::Object>();
       grdw_hiero_account_id hieroAccountId{};
       if (!getInt64FromObject(info, hieroAccountIdObj, "accountNum", hieroAccountId.accountNum, true)) {
-        Napi::Error::New(info.Env(), "Missing or invalid accountNum: bigint in second argument").ThrowAsJavaScriptException();
+        Napi::TypeError::New(info.Env(), "[LedgerAnchor.createFromHieroTransactionId] Missing or invalid accountNum: bigint in account id").ThrowAsJavaScriptException();
         return env.Null();
       }
       if (!getInt64FromObject(info, hieroAccountIdObj, "shardNum", hieroAccountId.shardNum, false)) {
@@ -127,10 +127,10 @@ namespace gradido::data::wire {
         char buffer[128];
         size_t written = grdw_hiero_transaction_id_to_string(buffer, 128, hieroTransactionId);
         if (written > 128) {
-            std::string message = "Hiero Transaction Id String is to big, max expected: 128, actually: ";
+            std::string message = "[LedgerAnchor.getHieroTransactionId] Hiero Transaction Id String is to big, max expected: 128, actually: ";
             grdu_uint64_to_string(buffer, 128, written);
             message += buffer;
-            Napi::TypeError::New(env, message.c_str()).ThrowAsJavaScriptException();
+            Napi::Error::New(env, message.c_str()).ThrowAsJavaScriptException();
             return env.Null();
         }
 

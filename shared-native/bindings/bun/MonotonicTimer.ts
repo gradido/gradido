@@ -25,7 +25,7 @@ export class MonotonicTimer {
       read.i64(timerBufferPtr),
     )
     if (written < 0) {
-      throw new Error('invalid Timer')
+      throw new Error('[MonotonicTimer.toString] invalid Timer')
     }
     this.reset()
     return Buffer.from(resultBuffer).toString('utf8').slice(0, written)

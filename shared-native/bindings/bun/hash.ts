@@ -15,7 +15,7 @@ export function hashGeneric(data: Uint8Array): Uint8Array {
   const result = blockchain_core.symbols.grdc_hash_generic(resultBufferPtr, dataPtr, data.length)
   if (result !== 0) {
     throw new Error(
-      `Failed to calculate generic hash, result: ${blockchain_core.symbols.grd_result_to_string(result)}`,
+      `[hashGeneric] Failed to calculate generic hash, result: ${blockchain_core.symbols.grd_result_to_string(result)}`,
     )
   }
   return resultBuffer

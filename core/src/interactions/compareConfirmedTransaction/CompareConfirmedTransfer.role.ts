@@ -1,17 +1,24 @@
-import { DltTransactionTransfer, TransactionTypeId } from 'database'
-import { CompareError, VoidResult } from 'shared'
-import { CompleteTransaction } from 'shared-native'
+import { transactionLinksDecayed } from 'core'
+import { DltTransactionTransfer, dbUpdateBalanceAndDate, TransactionTypeId } from 'database'
+import {
+  CompareError,
+  CompleteTransaction,
+  GradidoUnit,
+  TemporalGradidoUnit,
+  VoidResult,
+} from 'shared'
 import { AbstractCompareConfirmedRole } from './AbstractCompareConfirmed.role'
 
 export class CompareConfirmedTransferRole extends AbstractCompareConfirmedRole {
   public constructor(
     protected confirmedTx: CompleteTransaction,
     protected dbTransaction: DltTransactionTransfer,
+    protected sync: boolean,
   ) {
     super()
   }
 
-  isIdentical(): VoidResult<CompareError> {
+  async isIdentical(): Promise<VoidResult<CompareError>> {
     const tx = this.dbTransaction.transaction
     if (!tx) {
       // we throw because this should be already checked before calling into this interaction
@@ -22,6 +29,12 @@ export class CompareConfirmedTransferRole extends AbstractCompareConfirmedRole {
     if (!linkedTx) {
       // we throw because this should be already checked before calling into this interaction
       throw new CompareError('Missing linked transaction')
+    }
+
+    let result = this.isTxPairing(tx, linkedTx)
+    if (!result.success) {
+      // throw exception, because when both transactions from db, which should belong to the same transaction don't match, we have a serious problem
+      throw result.error
     }
 
     const transactionType = this.confirmedTx.getTransactionType()
@@ -65,10 +78,13 @@ export class CompareConfirmedTransferRole extends AbstractCompareConfirmedRole {
       }
     }
 
-    let result = this.isTxPairing(tx, linkedTx)
+    result = this.isIdenticalDate(
+      'createdAt',
+      this.dbTransaction.transaction?.balanceDate,
+      this.confirmedTx.getCreatedAt(),
+    )
     if (!result.success) {
-      // throw exception, because when both transactions from db, which should belong to the same transaction don't match, we have a serious problem
-      throw result.error
+      return result
     }
 
     result = this.isIdenticalGdd('amount', tx.amount, this.confirmedTx.getAmount())
@@ -111,61 +127,117 @@ export class CompareConfirmedTransferRole extends AbstractCompareConfirmedRole {
         error: new CompareError('Missing recipient user community uuid in dlt data'),
       }
     }
+
+    const dbAccountBalanceDate = new Date(tx.balanceDate)
+    const [
+      { sumHoldAvailableDecayedAmount },
+      { sumHoldAvailableDecayedAmount: linkedUserSumHoldAvailableDecayedAmount },
+    ] = await Promise.all([
+      transactionLinksDecayed(user.id, dbAccountBalanceDate),
+      transactionLinksDecayed(linkedUser.id, dbAccountBalanceDate),
+    ])
+
     const senderAccountBalance = this.confirmedTx.getAccountBalanceForPublicKey(dltSenderUser)
     const recipientAccountBalance = this.confirmedTx.getAccountBalanceForPublicKey(dltRecipientUser)
+    const dbTxAccountBalance = tx.balance
+      ? new TemporalGradidoUnit(
+          tx.balance.subtract(sumHoldAvailableDecayedAmount),
+          new Date(tx.balanceDate),
+        )
+      : null
+    const dbTxLinkedAccountBalance = linkedTx.balance
+      ? new TemporalGradidoUnit(
+          linkedTx.balance.subtract(linkedUserSumHoldAvailableDecayedAmount),
+          new Date(linkedTx.balanceDate),
+        )
+      : null
+
+    let txBalanceDiff: GradidoUnit
+    let txLinkedBalanceDiff: GradidoUnit
 
     if (tx.typeId === TransactionTypeId.SEND) {
-      result = this.isIdenticalGdd(
+      let balanceCompareDiffResult = this.compareAndGetDifference(
         'send transaction balance',
-        tx.balance,
+        dbTxAccountBalance,
         senderAccountBalance?.balance,
       )
-      if (!result.success) {
-        return result
+      if (!balanceCompareDiffResult.success) {
+        return balanceCompareDiffResult
       }
-      result = this.isIdenticalGdd(
+      txBalanceDiff = balanceCompareDiffResult.value
+
+      balanceCompareDiffResult = this.compareAndGetDifference(
         'recipient transaction balance',
-        linkedTx.balance,
+        dbTxLinkedAccountBalance,
         recipientAccountBalance?.balance,
       )
-      if (!result.success) {
-        return result
+      if (!balanceCompareDiffResult.success) {
+        return balanceCompareDiffResult
       }
+      txLinkedBalanceDiff = balanceCompareDiffResult.value
 
       result = this.isIdenticalUser(user, dltSenderUser, dltSenderUserCommunityUuid)
       if (!result.success) {
         return result
       }
 
-      return this.isIdenticalUser(linkedUser, dltRecipientUser, dltRecipientUserCommunityUuid)
+      result = this.isIdenticalUser(linkedUser, dltRecipientUser, dltRecipientUserCommunityUuid)
+      if (!result.success) {
+        return result
+      }
     } else if (tx.typeId === TransactionTypeId.RECEIVE) {
       // in db transactions receive has geswapped user <-> linkedUser compared to blockchain transactions
-      result = this.isIdenticalGdd(
+      let balanceCompareDiffResult = this.compareAndGetDifference(
         'send transaction balance',
-        linkedTx.balance,
+        dbTxLinkedAccountBalance,
         senderAccountBalance?.balance,
       )
-      if (!result.success) {
-        return result
+      if (!balanceCompareDiffResult.success) {
+        return balanceCompareDiffResult
       }
+      txLinkedBalanceDiff = balanceCompareDiffResult.value
 
-      result = this.isIdenticalGdd(
+      balanceCompareDiffResult = this.compareAndGetDifference(
         'recipient transaction balance',
-        tx.balance,
+        dbTxAccountBalance,
         recipientAccountBalance?.balance,
       )
-      if (!result.success) {
-        return result
+      if (!balanceCompareDiffResult.success) {
+        return balanceCompareDiffResult
       }
+      txBalanceDiff = balanceCompareDiffResult.value
 
       result = this.isIdenticalUser(user, dltRecipientUser)
       if (!result.success) {
         return result
       }
 
-      return this.isIdenticalUser(linkedUser, dltSenderUser)
+      result = this.isIdenticalUser(linkedUser, dltSenderUser)
+      if (!result.success) {
+        return result
+      }
     } else {
       throw new CompareError('unexpected branch')
     }
+    if (this.sync) {
+      if (!tx.balance || !linkedTx.balance) {
+        throw new CompareError('Missing balance for Transaction or LinkedTransaction')
+      }
+
+      const newTxBalance = tx.balance.subtract(txBalanceDiff)
+      await dbUpdateBalanceAndDate({
+        id: tx.id,
+        balance: newTxBalance,
+        balanceDate: dbAccountBalanceDate,
+      })
+
+      const newTxLinkedBalance = linkedTx.balance.subtract(txLinkedBalanceDiff)
+      await dbUpdateBalanceAndDate({
+        id: linkedTx.id,
+        balance: newTxLinkedBalance,
+        balanceDate: dbAccountBalanceDate,
+      })
+    }
+    return { success: true }
   }
 }

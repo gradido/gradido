@@ -11,11 +11,11 @@ namespace gradido::crypto {
     {
         Napi::Env env = info.Env();
         if (info.Length() != 1) {
-            Napi::TypeError::New(env, "Expected one argument: seed (Uint8Array)").ThrowAsJavaScriptException();
+            Napi::TypeError::New(env, "[signKeyPairGenerateFromSeed] Expected one argument: seed (Uint8Array)").ThrowAsJavaScriptException();
             return env.Null();
         }
         if (!info[0].IsBuffer()) {
-            Napi::TypeError::New(env, "Expected first argument to be a Uint8Array").ThrowAsJavaScriptException();
+            Napi::TypeError::New(env, "[signKeyPairGenerateFromSeed] Expected first argument to be a Uint8Array").ThrowAsJavaScriptException();
             return env.Null();
         }
 
@@ -31,7 +31,7 @@ namespace gradido::crypto {
         );
 
         if (result != GRD_SUCCESS) {
-            Napi::Error::New(env, std::string("Failed to generate ed25519 key pair, result: ") + grd_result_to_string(result))
+            Napi::Error::New(env, std::string("[signKeyPairGenerateFromSeed] Failed to generate ed25519 key pair, result: ") + grd_result_to_string(result))
                 .ThrowAsJavaScriptException();
             return env.Null();
         }
@@ -43,16 +43,16 @@ namespace gradido::crypto {
     {
         Napi::Env env = info.Env();
         if (info.Length() != 2) {
-            Napi::TypeError::New(env, "Expected two arguments: parentKeyPair (Uint8Array of 96 bytes) and index (number)")
+            Napi::TypeError::New(env, "[signKeyPairDerive] Expected two arguments: parentKeyPair (Uint8Array of 96 bytes) and index (number)")
                 .ThrowAsJavaScriptException();
             return env.Null();
         }
         if (!info[0].IsBuffer()) {
-            Napi::TypeError::New(env, "Expected first argument to be a Uint8Array").ThrowAsJavaScriptException();
+            Napi::TypeError::New(env, "[signKeyPairDerive] Expected parentKeyPair to be a Uint8Array").ThrowAsJavaScriptException();
             return env.Null();
         }
         if (!info[1].IsNumber()) {
-            Napi::TypeError::New(env, "Expected second argument to be a number").ThrowAsJavaScriptException();
+            Napi::TypeError::New(env, "[signKeyPairDerive] Expected index to be a number").ThrowAsJavaScriptException();
             return env.Null();
         }
 
@@ -60,7 +60,7 @@ namespace gradido::crypto {
         if (parentKeyPair.Length() != sizeof(grdc_sign_key_pair)) {
             Napi::TypeError::New(
                 env,
-                "Expected parentKeyPair to be "
+                "[signKeyPairDerive] Expected parentKeyPair to be "
                 + std::to_string(sizeof(grdc_sign_key_pair))
                 + " Bytes, got "
                 + std::to_string(parentKeyPair.Length())
@@ -71,7 +71,7 @@ namespace gradido::crypto {
         uint32_t index = info[1].As<Napi::Number>().Uint32Value();
 
         if (index > MAX_DERIVATION_INDEX) {
-            Napi::TypeError::New(env, "Max index value is: " + std::to_string(MAX_DERIVATION_INDEX) + ", but got: " + std::to_string(index))
+            Napi::TypeError::New(env, "[signKeyPairDerive] Max index value is: " + std::to_string(MAX_DERIVATION_INDEX) + ", but got: " + std::to_string(index))
                 .ThrowAsJavaScriptException();
             return env.Null();
         }
@@ -85,7 +85,7 @@ namespace gradido::crypto {
         );
 
         if (result != GRD_SUCCESS) {
-            Napi::Error::New(env, std::string("Failed to derive child sign key, result: ") + grd_result_to_string(result))
+            Napi::Error::New(env, std::string("[signKeyPairDerive] Failed to derive child sign key, result: ") + grd_result_to_string(result))
                 .ThrowAsJavaScriptException();
             return env.Null();
         }
@@ -97,16 +97,16 @@ namespace gradido::crypto {
     {
         Napi::Env env = info.Env();
         if (info.Length() != 2) {
-            Napi::TypeError::New(env, "Expected two arguments: parentKeyPair (Uint8Array of 96 bytes) and uuid (Uint8Array of 16 bytes)")
+            Napi::TypeError::New(env, "[signKeyPairDeriveUuid] Expected two arguments: parentKeyPair (Uint8Array of 96 bytes) and uuid (Uint8Array of 16 bytes)")
                 .ThrowAsJavaScriptException();
             return env.Null();
         }
         if (!info[0].IsBuffer()) {
-            Napi::TypeError::New(env, "Expected first argument to be a Uint8Array").ThrowAsJavaScriptException();
+            Napi::TypeError::New(env, "[signKeyPairDeriveUuid] Expected parentKeyPair to be a Uint8Array").ThrowAsJavaScriptException();
             return env.Null();
         }
         if (!info[1].IsBuffer()) {
-            Napi::TypeError::New(env, "Expected second argument to be a Uint8Array").ThrowAsJavaScriptException();
+            Napi::TypeError::New(env, "[signKeyPairDeriveUuid] Expected uuid to be a Uint8Array").ThrowAsJavaScriptException();
             return env.Null();
         }
 
@@ -114,7 +114,7 @@ namespace gradido::crypto {
         if (parentKeyPair.Length() != sizeof(grdc_sign_key_pair)) {
             Napi::TypeError::New(
                 env,
-                "Expected parentKeyPair to be 96 Bytes, got "
+                "[signKeyPairDeriveUuid] Expected parentKeyPair to be 96 Bytes, got "
                 + std::to_string(parentKeyPair.Length())
                 + " bytes"
             ).ThrowAsJavaScriptException();
@@ -125,7 +125,7 @@ namespace gradido::crypto {
         if (uuid.Length() != UUID_BINARY_SIZE) {
             Napi::TypeError::New(
                 env,
-                "Expected a valid uuid (16 Bytes), got "
+                "[signKeyPairDeriveUuid] Expected a valid uuid (16 Bytes), got "
                 + std::to_string(uuid.Length())
                 + " bytes"
             ).ThrowAsJavaScriptException();
@@ -141,7 +141,7 @@ namespace gradido::crypto {
         );
 
         if (result != GRD_SUCCESS) {
-            Napi::Error::New(env, std::string("UUID derivation failed: ") + grd_result_to_string(result))
+            Napi::Error::New(env, std::string("[signKeyPairDeriveUuid] UUID derivation failed: ") + grd_result_to_string(result))
                 .ThrowAsJavaScriptException();
             return env.Null();
         }
@@ -153,16 +153,16 @@ namespace gradido::crypto {
     {
         Napi::Env env = info.Env();
         if (info.Length() < 2 || info.Length() > 3) {
-            Napi::TypeError::New(env, "Expected two or three arguments: communitySeed (Uint8Array of 32 bytes), userUuid (Uint8Array of 16 bytes), and optional accountNumber (number, default 1)")
+            Napi::TypeError::New(env, "[signKeyPairDeriveAccountFromCommunity] Expected two or three arguments: communitySeed (Uint8Array of 32 bytes), userUuid (Uint8Array of 16 bytes), and optional accountNumber (number, default 1)")
                 .ThrowAsJavaScriptException();
             return env.Null();
         }
         if (!info[0].IsBuffer()) {
-            Napi::TypeError::New(env, "Expected first argument to be a Uint8Array").ThrowAsJavaScriptException();
+            Napi::TypeError::New(env, "[signKeyPairDeriveAccountFromCommunity] Expected communitySeed to be a Uint8Array").ThrowAsJavaScriptException();
             return env.Null();
         }
         if (!info[1].IsBuffer()) {
-            Napi::TypeError::New(env, "Expected second argument to be a Uint8Array").ThrowAsJavaScriptException();
+            Napi::TypeError::New(env, "[signKeyPairDeriveAccountFromCommunity] Expected userUuid to be a Uint8Array").ThrowAsJavaScriptException();
             return env.Null();
         }
 
@@ -170,7 +170,7 @@ namespace gradido::crypto {
         if (communitySeed.Length() != SIGN_SEED_SIZE) {
             Napi::TypeError::New(
                 env,
-                "Expected a valid community seed (32 Bytes), got "
+                "[signKeyPairDeriveAccountFromCommunity] Expected a valid community seed (32 Bytes), got "
                 + std::to_string(communitySeed.Length())
                 + " bytes"
             ).ThrowAsJavaScriptException();
@@ -181,7 +181,7 @@ namespace gradido::crypto {
         if (userUuid.Length() != UUID_BINARY_SIZE) {
             Napi::TypeError::New(
                 env,
-                "Expected a valid uuid (16 Bytes), got "
+                "[signKeyPairDeriveAccountFromCommunity] Expected a valid uuid (16 Bytes), got "
                 + std::to_string(userUuid.Length())
                 + " bytes"
             ).ThrowAsJavaScriptException();
@@ -191,7 +191,7 @@ namespace gradido::crypto {
         uint32_t accountNumber = 1;
         if (info.Length() > 2 && !info[2].IsUndefined()) {
             if (!info[2].IsNumber()) {
-                Napi::TypeError::New(env, "Expected third argument to be a number").ThrowAsJavaScriptException();
+                Napi::TypeError::New(env, "[signKeyPairDeriveAccountFromCommunity] Expected accountNumber to be a number").ThrowAsJavaScriptException();
                 return env.Null();
             }
             accountNumber = info[2].As<Napi::Number>().Uint32Value();
@@ -207,7 +207,7 @@ namespace gradido::crypto {
         );
 
         if (result != GRD_SUCCESS) {
-            Napi::Error::New(env, std::string("Account derivation failed: ") + grd_result_to_string(result))
+            Napi::Error::New(env, std::string("[signKeyPairDeriveAccountFromCommunity] Account derivation failed: ") + grd_result_to_string(result))
                 .ThrowAsJavaScriptException();
             return env.Null();
         }
@@ -219,11 +219,11 @@ namespace gradido::crypto {
     {
         Napi::Env env = info.Env();
         if (info.Length() != 1) {
-            Napi::TypeError::New(env, "Expected one argument: data (Uint8Array)").ThrowAsJavaScriptException();
+            Napi::TypeError::New(env, "[hashGeneric] Expected one argument: data (Uint8Array)").ThrowAsJavaScriptException();
             return env.Null();
         }
         if (!info[0].IsBuffer()) {
-            Napi::TypeError::New(env, "Expected first argument to be a Uint8Array").ThrowAsJavaScriptException();
+            Napi::TypeError::New(env, "[hashGeneric] Expected data to be a Uint8Array").ThrowAsJavaScriptException();
             return env.Null();
         }
 
@@ -233,7 +233,7 @@ namespace gradido::crypto {
         grd_result result = grdc_hash_generic(resultBuffer.Data(), data.Data(), data.Length());
 
         if (result != GRD_SUCCESS) {
-            Napi::Error::New(env, std::string("Failed to calculate generic hash, result: ") + grd_result_to_string(result))
+            Napi::Error::New(env, std::string("[hashGeneric] Failed to calculate generic hash, result: ") + grd_result_to_string(result))
                 .ThrowAsJavaScriptException();
             return env.Null();
         }

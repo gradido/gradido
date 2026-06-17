@@ -1,32 +1,98 @@
 import { TransactionSelect, UserSelectIdentity as UserSelect } from 'database'
-import { AccountKeyPair, CompareError, GradidoUnit, VoidResult } from 'shared'
+import {
+  AccountKeyPair,
+  CompareError,
+  DECAY_RESPITE_CENT,
+  GradidoUnit,
+  Result,
+  TemporalGradidoUnit,
+  VoidResult,
+} from 'shared'
 import { CONFIG } from '../../config'
 
+function abs(n: bigint | number) {
+  return n < 0n ? -n : n
+}
+
 export abstract class AbstractCompareConfirmedRole {
-  abstract isIdentical(): VoidResult<CompareError>
+  abstract isIdentical(): Promise<VoidResult<CompareError>>
+
+  isIdenticalDate(
+    fieldName: string,
+    dbValue?: Date | string | null,
+    dltValue?: Date | string | null,
+  ): VoidResult<CompareError> {
+    let error: CompareError | undefined
+    if (!dbValue) {
+      error = new CompareError(`${fieldName} from db is missing`)
+    } else if (!dltValue) {
+      error = new CompareError(`${fieldName} from dlt is missing`)
+    } else {
+      const dbDate = dbValue instanceof Date ? dbValue : new Date(String(dbValue))
+      const dltDate = dltValue instanceof Date ? dltValue : new Date(String(dltValue))
+      if (isNaN(dbDate.getTime()) || isNaN(dltDate.getTime())) {
+        error = new CompareError('dbDate and/or dltDate are invalid date(s)')
+      } else {
+        if (dbDate.getTime() !== dltDate.getTime()) {
+          error = new CompareError(
+            `${fieldName} mismatch`,
+            `${dbDate.toISOString()} != ${dltDate.toISOString()}`,
+          )
+        }
+      }
+    }
+    return error ? { success: false, error } : { success: true }
+  }
+
   isIdenticalGdd(
     fieldName: string,
     dbValue?: GradidoUnit | null,
-    dltValue?: bigint,
+    dltValue?: GradidoUnit | null,
   ): VoidResult<CompareError> {
     let error: CompareError | undefined
     if (!dbValue) {
       error = new CompareError(`GDD ${fieldName} from db is missing`)
     } else if (!dltValue) {
       error = new CompareError(`GDD ${fieldName} from dlt connector is missing`)
-    } else if (dbValue.gddCent !== dltValue) {
+    } else if (dbValue.comparedTo(dltValue) !== 0n) {
       error = new CompareError(
         `GDD ${fieldName} differ`,
-        `${dbValue.toString(4)} != ${GradidoUnit.fromGradidoCent(dltValue).toString(4)}`,
+        `${dbValue.toString(4)} != ${dltValue.toString(4)}`,
       )
     }
 
     return error ? { success: false, error } : { success: true }
   }
 
+  compareAndGetDifference(
+    fieldName: string,
+    dbValue?: TemporalGradidoUnit | null,
+    dltValue?: TemporalGradidoUnit | null,
+  ): Result<GradidoUnit, CompareError> {
+    let error: CompareError | undefined
+    if (!dbValue) {
+      error = new CompareError(`GDD ${fieldName} from db is missing`)
+    } else if (!dltValue) {
+      error = new CompareError(`GDD ${fieldName} from dlt connector is missing`)
+    } else {
+      const dbValueAtDltTime = dbValue.decayedTo(dltValue.balanceDate)
+      const diff = dbValueAtDltTime.balance.comparedTo(dltValue.balance)
+      if (abs(diff) > DECAY_RESPITE_CENT) {
+        error = new CompareError(
+          `GDD ${fieldName} differ`,
+          `${dbValue.toString()} != ${dltValue.toString()}`,
+        )
+      } else {
+        return { success: true, value: GradidoUnit.fromGradidoCent(diff) }
+      }
+    }
+
+    return { success: false, error }
+  }
+
   isIdenticalUser(
     dbUser?: UserSelect | null,
-    dltUserPublicKey?: Uint8Array | null,
+    dltUserPublicKey?: string | null,
     dltUserCommunityUuid?: string | null,
   ): VoidResult<CompareError> {
     let error: CompareError | undefined
@@ -49,12 +115,10 @@ export abstract class AbstractCompareConfirmedRole {
         dbUser.gradidoId,
         1,
       )
-      // sadly TypeScript/JavaScript don't offer a method for comparing binary data, so we must first convert both to hex strings
-      const dltPublicKeyHex = Buffer.from(dltUserPublicKey).toString('hex')
-      if (accountKeyPair.publicKeyString !== dltPublicKeyHex) {
+      if (accountKeyPair.publicKeyString !== dltUserPublicKey) {
         error = new CompareError(
           "Public Keys doesn't match",
-          `${accountKeyPair.publicKeyString} != ${dltPublicKeyHex}`,
+          `${accountKeyPair.publicKeyString} != ${dltUserPublicKey}`,
         )
       }
     }
@@ -65,25 +129,23 @@ export abstract class AbstractCompareConfirmedRole {
   isTxPairing(tx: TransactionSelect, linkedTx: TransactionSelect): VoidResult<CompareError> {
     let error: CompareError | undefined
     if (linkedTx.typeId === tx.typeId) {
-      error = new CompareError('Db transaction and linked transaction have same typeId')
+      error = new CompareError('tx and linkedTx have same typeId')
     } else if (tx.userId === linkedTx.userId) {
-      error = new CompareError('transaction user and linked transaction user are identical')
+      error = new CompareError('tx.user and linkedTx.user are identical')
     } else if (tx.linkedUserId === linkedTx.linkedUserId) {
-      error = new CompareError(
-        'transaction linkedUserId and linked transaction linkedUserId are identical',
-      )
-    } else if (tx.userId !== linkedTx.linkedUserId || tx.linkedUserId !== linkedTx.userId) {
-      error = new CompareError('transaction user is not the same as linked transaction linked user')
+      error = new CompareError('tx.linkedUserId and linkedTx.linkedUserId are identical')
+    } else if (tx.userId !== linkedTx.linkedUserId) {
+      error = new CompareError('tx.user is not the same as linkedTx.linkedUserId')
     } else if (tx.linkedUserId !== linkedTx.userId) {
-      error = new CompareError('transaction linked user is not the same as linked transaction user')
+      error = new CompareError('tx.linkedUserId is not the same as linkedTx.userId')
     } else if (tx.amount !== linkedTx.amount) {
-      error = new CompareError('transaction amount is not the same as linked transaction amount')
+      error = new CompareError('tx.amount is not the same as linkedTx.amount')
     } else if (tx.balanceDate !== linkedTx.balanceDate) {
-      error = new CompareError(
-        'transaction balanceDate is not the same as linked transaction balanceDate',
-      )
+      error = new CompareError('tx.balanceDate is not the same as linkedTx.balanceDate')
     } else if (tx.transactionLinkId !== linkedTx.transactionLinkId) {
-      error = new CompareError('transactionLinkId are not identical')
+      error = new CompareError(
+        'tx.transactionLinkId and linkedTx.transactionLinkId are not identical',
+      )
     }
     return error ? { success: false, error } : { success: true }
   }
