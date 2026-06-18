@@ -5,9 +5,24 @@ import es from './locales/es.json'
 import fr from './locales/fr.json'
 import nl from './locales/nl.json'
 import tr from './locales/tr.json'
+import it from './locales/it.json'
+import ru from './locales/ru.json'
 import pt from './locales/pt.json'
 
 const numberFormats = {
+  it: {
+    decimal: {
+      style: 'decimal',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    },
+    ungroupedDecimal: {
+      style: 'decimal',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+      useGrouping: false,
+    },
+  },
   en: {
     decimal: {
       style: 'decimal',
@@ -73,6 +88,19 @@ const numberFormats = {
       useGrouping: false,
     },
   },
+  ru: {
+    decimal: {
+      style: 'decimal',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    },
+    ungroupedDecimal: {
+      style: 'decimal',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+      useGrouping: false,
+    },
+  },
   pt: {
     decimal: {
       style: 'decimal',
@@ -89,6 +117,37 @@ const numberFormats = {
 }
 
 const datetimeFormats = {
+  it: {
+    short: {
+      day: 'numeric',
+      month: 'numeric',
+      year: 'numeric',
+    },
+    long: {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: 'numeric',
+    },
+    monthShort: {
+      month: 'short',
+    },
+    month: {
+      month: 'long',
+    },
+    year: {
+      year: 'numeric',
+    },
+    monthAndYear: {
+      month: 'long',
+      year: 'numeric',
+    },
+    time: {
+      hour: 'numeric',
+      minute: 'numeric',
+    },
+  },
   en: {
     short: {
       year: 'numeric',
@@ -245,6 +304,37 @@ const datetimeFormats = {
       minute: 'numeric',
     },
   },
+  ru: {
+    short: {
+      day: 'numeric',
+      month: 'numeric',
+      year: 'numeric',
+    },
+    long: {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: 'numeric',
+    },
+    monthShort: {
+      month: 'short',
+    },
+    month: {
+      month: 'long',
+    },
+    year: {
+      year: 'numeric',
+    },
+    monthAndYear: {
+      month: 'long',
+      year: 'numeric',
+    },
+    time: {
+      hour: 'numeric',
+      minute: 'numeric',
+    },
+  },
   pt: {
     short: {
       day: 'numeric',
@@ -282,7 +372,7 @@ export default createI18n({
   locale: 'en',
   legacy: false,
   fallbackLocale: 'en',
-  messages: { de, en, es, fr, tr, nl, pt },
+  messages: { de, en, es, fr, tr, nl, it, ru, pt },
   numberFormats,
   datetimeFormats,
 })
