@@ -1,0 +1,105 @@
+{
+  "emails": {
+    "accountActivation": {
+      "activateAccount": "Account activeren",
+      "emailRegistered": "je e-mailadres is zojuist geregistreerd bij Gradido.",
+      "pleaseClickLink": "Klik hier om de registratie te voltooien en je Gradido-account te activeren.",
+      "subject": "E-mailverificatie",
+      "title": "E-mailverificatie"
+    },
+    "accountMultiRegistration": {
+      "contactSupport": "Contact opnemen met support",
+      "emailExists": "Er bestaat echter al een account voor je e-mailadres.",
+      "emailReused": "je e-mailadres is zojuist opnieuw gebruikt om een account bij Gradido te registreren.",
+      "ifYouAreNotTheOne": "Als je niet hebt geprobeerd je opnieuw te registreren, neem dan contact op met onze support:",
+      "onForgottenPasswordClickLink": "Als je je wachtwoord bent vergeten, klik dan hier.",
+      "subject": "Nieuwe registratiepoging met je e-mailadres",
+      "title": "Nieuwe registratiepoging met je e-mailadres"
+    },
+    "addedContributionMessage": {
+      "commonGoodContributionMessage": "je hebt een bericht ontvangen van {senderFirstName} {senderLastName} over je bijdrage aan het algemeen welzijn ‘{contributionMemo}’.",
+      "message": "‘{message}’",
+      "readMessage": "Bericht lezen en beantwoorden",
+      "subject": "Bericht over je bijdrage aan het algemeen welzijn",
+      "title": "Bericht over je bijdrage aan het algemeen welzijn",
+      "toSeeAndAnswerMessage": "Om het bericht te beantwoorden, ga je in je Gradido-account naar het menu ‘Creëren’ en klik je op het tabblad ‘Mijn bijdragen’."
+    },
+    "contribution": {
+      "toSeeContributionsAndMessages": "Om je bijdragen aan het algemeen welzijn en de bijbehorende berichten te zien, ga je in je Gradido-account naar het menu ‘Creëren’ en klik je op het tabblad ‘Mijn bijdragen’."
+    },
+    "contributionChangedByModerator": {
+      "subject": "Je bijdrage aan het algemeen welzijn is gewijzigd",
+      "text": "je bijdrage aan het algemeen welzijn ‘{contributionMemo}’ is zojuist gewijzigd door {senderFirstName} {senderLastName} en luidt nu ‘{contributionMemoUpdated}’",
+      "title": "Je bijdrage aan het algemeen welzijn is gewijzigd"
+    },
+    "contributionConfirmed": {
+      "commonGoodContributionConfirmed": "je bijdrage aan het algemeen welzijn ‘{contributionMemo}’ is zojuist bevestigd door {senderFirstName} {senderLastName}. Er is {amountGDD} GDD op je Gradido-account bijgeschreven.",
+      "subject": "Je bijdrage aan het algemeen welzijn is bevestigd",
+      "title": "Je bijdrage aan het algemeen welzijn is bevestigd"
+    },
+    "contributionDeleted": {
+      "commonGoodContributionDeleted": "je bijdrage aan het algemeen welzijn ‘{contributionMemo}’ is verwijderd door {senderFirstName} {senderLastName}.",
+      "subject": "Je bijdrage aan het algemeen welzijn is verwijderd",
+      "title": "Je bijdrage aan het algemeen welzijn is verwijderd"
+    },
+    "contributionDenied": {
+      "commonGoodContributionDenied": "je bijdrage aan het algemeen welzijn ‘{contributionMemo}’ is afgewezen door {senderFirstName} {senderLastName}.",
+      "subject": "Je bijdrage aan het algemeen welzijn is afgewezen",
+      "title": "Je bijdrage aan het algemeen welzijn is afgewezen"
+    },
+    "customEmail": {
+      "haveReceivedMessageFrom": "je hebt zojuist een bericht ontvangen van {senderFirstName} {senderLastName}",
+      "title": "{senderFirstName} {senderLastName} heeft je een bericht gestuurd"
+    },
+    "footer": {
+      "contactOurSupport": "Neem bij verdere vragen contact op met onze support.",
+      "imprint": "Colofon",
+      "imprintAddress": "Gradido-Akademie\nInstitut für Wirtschaftsbionik\nPfarrweg 2\n74653 Künzelsau\nDeutschland",
+      "imprintImageAlt": "Logo Gradido-Akademie",
+      "privacyPolicy": "Privacybeleid",
+      "supportEmail": "support@gradido.net"
+    },
+    "general": {
+      "amountGDD": "Bedrag: {amountGDD} GDD",
+      "answerNow": "Beantwoorden",
+      "completeRegistration": "Registratie voltooien",
+      "contribution": "Bijdrage aan het algemeen welzijn: {contributionMemo}",
+      "contributionDetails": "Details van de bijdrage",
+      "detailsYouFindOnLinkToYourAccount": "De details van de transactie vind je in je Gradido-account.",
+      "helloName": "Hallo {firstName} {lastName},",
+      "linkValidity": "De link is {hours} uur geldig.\nAls de geldigheid van de link al verlopen is, kun je hier een nieuwe link laten toesturen.",
+      "linkValidityWithMinutes": "De link is {hours} uur en {minutes} minuten geldig.\nAls de geldigheid van de link al verlopen is, kun je hier een nieuwe link laten toesturen.",
+      "message": "Bericht",
+      "newLink": "Nieuwe link",
+      "orCopyLink": "Of kopieer de link naar je browservenster.",
+      "pleaseDoNotReply": "Beantwoord deze e-mail alsjeblieft niet.",
+      "requestNewLink": "Nieuwe geldige link aanvragen",
+      "reset": "resetten",
+      "sincerelyYours": "Hartelijke groet,",
+      "toAccount": "Naar het account",
+      "transactionDetails": "Transactiedetails",
+      "yourGradidoTeam": "je Gradido-team"
+    },
+    "resetPassword": {
+      "pleaseClickLink": "Als jij het was, klik dan hier.",
+      "subject": "Wachtwoord resetten",
+      "title": "Wachtwoord resetten",
+      "youOrSomeoneResetPassword": "jij, of iemand anders, heeft voor dit account een wachtwoordreset aangevraagd."
+    },
+    "transactionLinkRedeemed": {
+      "hasRedeemedYourLink": "{senderFirstName} {senderLastName} ({senderEmail}) heeft zojuist je link ingewisseld.",
+      "memo": "Bericht: {transactionMemo}",
+      "subject": "{senderFirstName} {senderLastName} heeft je Gradido-link ingewisseld",
+      "title": "{senderFirstName} {senderLastName} heeft je Gradido-link ingewisseld"
+    },
+    "transactionReceived": {
+      "haveReceivedAmountGDDFrom": "je hebt zojuist {transactionAmount} GDD ontvangen van {senderFirstName} {senderLastName}",
+      "replySubject": "RE: {senderFirstName} {senderLastName} heeft je {transactionAmount} Gradido gestuurd",
+      "subject": "{senderFirstName} {senderLastName} heeft je {transactionAmount} Gradido gestuurd",
+      "title": "{senderFirstName} {senderLastName} heeft je {transactionAmount} Gradido gestuurd"
+    }
+  },
+  "general": {
+    "decimalSeparator": ","
+  }
+}
