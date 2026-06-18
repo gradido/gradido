@@ -1,0 +1,535 @@
+{
+  "85": "85%",
+  "100": "100%",
+  "125": "125%",
+  "(": "(",
+  ")": ")",
+  "1000thanks": "1000 obrigado por estares connosco!",
+  "Chat": "Chat",
+  "GDD": "GDD",
+  "GDD-long": "Gradido",
+  "GDT": "GDT",
+  "GMS": {
+    "desc": "Encontra membros de todas as comunidades num mapa.",
+    "title": "Geo Matching System GMS (em desenvolvimento)"
+  },
+  "Humhub": {
+    "desc": "Juntos apoiamo-nos uns aos outros – atentos numa cultura de círculo.",
+    "title": "Círculos Gradido"
+  },
+  "PersonalDetails": "Dados pessoais",
+  "advanced-calculation": "Cálculo antecipado",
+  "answerNow": "→ Responde agora!",
+  "asterisks": "****",
+  "auth": {
+    "left": {
+      "dignity": "Dignidade",
+      "donation": "Dádiva",
+      "gratitude": "Gratidão",
+      "learnMore": "Sabe mais …",
+      "oneDignity": "Presenteamo-nos uns aos outros e agradecemos com Gradido.",
+      "oneDonation": "És um presente para a comunidade. 1000 obrigado por estares connosco.",
+      "oneGratitude": "Uns pelos outros, por todas as pessoas, pela natureza."
+    }
+  },
+  "back": "Voltar",
+  "card-circles": {
+    "allowed": {
+      "button": "Abrir círculos..."
+    },
+    "headline": "Plataforma de cooperação «Círculos Gradido»",
+    "not-allowed": {
+      "button": "Configurar..."
+    },
+    "text": "Círculos locais, círculos de estudo, projetos, eventos e congressos"
+  },
+  "card-user-search": {
+    "allowed": {
+      "button": "Abrir pesquisa de membros...",
+      "disabled-button": "GMS offline...",
+      "text": "Encontra membros de todas as comunidades num mapa."
+    },
+    "headline": "Pesquisa geográfica de membros (beta)",
+    "info": "Como funciona",
+    "not-allowed": {
+      "button": "Introduzir localização...",
+      "text": "Para encontrares outros membros na tua área, introduz agora a tua localização no mapa!"
+    }
+  },
+  "community": {
+    "admins": "Administradores",
+    "choose-another-community": "Escolher outra comunidade",
+    "community": "Comunidade",
+    "communityMember": "És um membro ativo",
+    "continue-to-registration": "Continuar para o registo",
+    "moderator": "Moderador",
+    "moderators": "Moderadores",
+    "myContributions": "As minhas contribuições",
+    "submitContribution": "Contribuir"
+  },
+  "communityInfo": "Informação da comunidade",
+  "contact": "Contacto",
+  "contribution": {
+    "activity": "Atividade",
+    "alert": {
+      "answerQuestion": "Existe uma nova mensagem para esta contribuição.",
+      "answerQuestionToast": "Tens novas mensagens.",
+      "communityNoteList": "Aqui encontras todas as contribuições submetidas e confirmadas de todos os membros desta comunidade.",
+      "confirm": "confirmado",
+      "deleted": "eliminado",
+      "denied": "rejeitado",
+      "in_progress": "Há uma questão dos moderadores.",
+      "myContributionNoteList": "Podes editar ou eliminar a qualquer momento as contribuições que ainda não foram confirmadas.",
+      "pending": "Submetido e à espera de confirmação"
+    },
+    "delete": "Eliminar contribuição! Tens a certeza?",
+    "deleted": "A contribuição foi eliminada! Mas continuará visível.",
+    "formText": {
+      "bringYourTalentsTo": "Traz os teus talentos para a comunidade! Recompensamos o teu compromisso voluntário com 20 GDD por hora, até um máximo de 1.000 GDD por mês.",
+      "describeYourCommunity": "Descreve a tua atividade de bem comum e indica o número de horas! O montante de 20 GDD por hora é calculado automaticamente. Após a confirmação por um moderador, o montante é creditado na tua conta.",
+      "maxGDDforMonth": "Só podes submeter no máximo {amount} GDD para o mês selecionado.",
+      "openAmountForMonth": "Para <b>{monthAndYear}</b>, ainda podes submeter <b>{creation}</b> GDD.",
+      "yourContribution": "A tua contribuição para o bem comum"
+    },
+    "isEdited": "editou a contribuição",
+    "lastContribution": "Últimas contribuições",
+    "noContributions": {
+      "allContributions": "Ainda não foram submetidas contribuições.",
+      "emptyPage": "Esta página está vazia.",
+      "myContributions": "Ainda não submeteste nenhuma contribuição."
+    },
+    "noOpenCreation": {
+      "allMonth": "Para ambos os meses atingiste o teu limite de criação. No próximo mês poderás criar novamente 1000 GDD.",
+      "lastMonth": "O limite de criação foi atingido para o mês selecionado.",
+      "thisMonth": "O limite de criação foi atingido para o mês atual."
+    },
+    "oldContribution": "Versão anterior",
+    "selectDate": "Quando foi a tua contribuição?",
+    "submit": "Submeter",
+    "submitted": "A contribuição foi submetida.",
+    "updated": "A contribuição foi alterada.",
+    "yourActivity": "Por favor, indica uma atividade!"
+  },
+  "contribution-link": {
+    "thanksYouWith": "agradece-te com"
+  },
+  "contributionText": "Texto da contribuição",
+  "copy-to-clipboard": "Copiar para a área de transferência",
+  "creation": "Criação",
+  "decay": {
+    "Starting_block_decay": "Decaimento do bloco inicial",
+    "before_startblock_transaction": "Esta transação não inclui decaimento.",
+    "calculation_decay": "Cálculo do decaimento",
+    "calculation_total": "Cálculo do montante total",
+    "decay": "Decaimento",
+    "decay_introduced": "O decaimento foi introduzido em:",
+    "decay_since_last_transaction": "Decaimento desde a última transação",
+    "last_transaction": "Última transação",
+    "new_balance": "Novo saldo",
+    "old_balance": "Saldo anterior",
+    "past_time": "Tempo decorrido",
+    "total": "Total",
+    "types": {
+      "creation": "Criado",
+      "noDecay": "Sem decaimento",
+      "receive": "Recebido",
+      "send": "Enviado"
+    }
+  },
+  "delete": "Eliminar",
+  "download": "Transferir",
+  "edit": "editar",
+  "em-dash": "—",
+  "error": {
+    "email-already-sent": "Já te enviámos um e-mail há menos de 10 minutos.",
+    "empty-transactionlist": "Ocorreu um erro na transmissão do número das tuas transações.",
+    "no-account": "Infelizmente não encontrámos uma conta (ativada) para os dados indicados.",
+    "no-transactionlist": "Infelizmente ocorreu um erro. Não foram transmitidas transações pelo servidor.",
+    "no-user": "Nenhum utilizador com estes dados de acesso.",
+    "session-expired": "A sessão foi terminada por motivos de segurança.",
+    "unknown-error": "Erro desconhecido: "
+  },
+  "existingGradidoAccount": "Já tens uma conta {communityName}?",
+  "followUs": "segue-nos:",
+  "footer": {
+    "app_version": "Versão da app {version}",
+    "copyright": {
+      "link": "Gradido-Akademie",
+      "year": "© {year}"
+    },
+    "imprint": "Aviso legal",
+    "inspector": "Inspetor (experimental)",
+    "privacy_policy": "Política de privacidade",
+    "whitepaper": "Whitepaper"
+  },
+  "form": {
+    "amount": "Montante",
+    "at": "em",
+    "available_after": "Disponível após confirmação",
+    "cancel": "Cancelar",
+    "change": "Alterar",
+    "check_now": "Verificar agora",
+    "close": "Fechar",
+    "current_available": "Atualmente disponível",
+    "current_balance": "Saldo atual",
+    "date": "Data",
+    "description": "Descrição",
+    "email": "E-mail",
+    "firstname": "Nome próprio",
+    "from": "De",
+    "generate_now": "Gerar agora",
+    "hours": "Horas",
+    "identifier": "E-mail, nome de utilizador ou ID Gradido",
+    "lastname": "Apelido",
+    "link_amount": "Montante do link",
+    "link_decay_description": "O montante do link é bloqueado juntamente com o decaimento máximo. Depois de o link ser resgatado, expirar ou ser eliminado, o restante é novamente libertado.",
+    "memo": "Mensagem",
+    "message": "Mensagem",
+    "newPasswordRepeat": "Repetir a nova palavra-passe",
+    "new_balance": "Saldo da conta após confirmação",
+    "no_gdd_available": "Não tens GDD para enviar.",
+    "ok": "Ok",
+    "password": "Palavra-passe",
+    "passwordRepeat": "Repetir a palavra-passe",
+    "password_new": "Nova palavra-passe",
+    "password_new_repeat": "Repetir a nova palavra-passe",
+    "password_old": "Palavra-passe antiga",
+    "recipient": "Destinatário",
+    "recipientCommunity": "Comunidade do destinatário",
+    "reply": "Responder",
+    "reset": "Repor",
+    "save": "Guardar",
+    "scann_code": "<strong>Leitor de código QR</strong> - Lê o código QR do teu parceiro",
+    "sendEmail": "Enviar e-mail",
+    "send_check": "Confirma a tua transação. Por favor, verifica novamente todos os dados!",
+    "send_email_error": "Infelizmente, não foi possível enviar o teu e-mail!",
+    "send_email_success": "O teu e-mail foi enviado com sucesso",
+    "send_now": "Enviar agora",
+    "send_transaction_error": "Infelizmente, não foi possível executar a transação!",
+    "send_transaction_success": "A tua transação foi concluída com sucesso",
+    "sendemailerror": {
+      "failedToSendCommandToFederatedCommunity": "Ao enviar o teu e-mail, ocorreu na comunidade do teu destinatário de e-mail o erro: ",
+      "federatedCommunityOfReceiverCommunityNotFound": "Não existe uma federação válida para a comunidade do teu destinatário de e-mail",
+      "receiverCommunityNoFederatedCommunities": "A federação da comunidade do teu destinatário de e-mail não está ativa ou concluída",
+      "receiverCommunityNotFound": "A comunidade do teu destinatário de e-mail não foi encontrada",
+      "receiverDeleted": "A conta de utilizador do teu destinatário de e-mail foi eliminada",
+      "receiverNotFound": "Não existe nenhuma conta de utilizador para o destinatário de e-mail indicado.",
+      "unknownError": "Ocorreu um erro desconhecido: ",
+      "youCannotSendEmailToYourself": "Não podes enviar um e-mail a ti mesmo."
+    },
+    "sender": "Remetente",
+    "sorry": "Desculpa",
+    "subject": "Assunto",
+    "thx": "Obrigado",
+    "to": "até",
+    "to1": "para",
+    "username": "Nome de utilizador",
+    "username-placeholder": "Escolhe o teu nome de utilizador",
+    "validation": {
+      "amount": {
+        "decimal-places": "O montante deve conter no máximo duas casas decimais.",
+        "max": "O montante não deve ser superior a {max}.",
+        "min": "O montante deve ser de pelo menos {min}.",
+        "typeError": "O montante deve ser um número entre {min} e {max} com no máximo duas casas decimais."
+      },
+      "contributionDate": {
+        "max": "A data de contribuição mais recente é hoje, {max}.",
+        "min": "A data de contribuição mais antiga é {min}.",
+        "required": "A data de contribuição é um campo obrigatório."
+      },
+      "contributionMemo": {
+        "max": "A descrição da atividade não deve ter mais de {max} caracteres.",
+        "min": "A descrição da atividade deve ter pelo menos {min} caracteres.",
+        "required": "A descrição da atividade é obrigatória."
+      },
+      "gddSendAmount": "O campo {_field_} deve ser um número entre {min} e {max} com no máximo duas casas decimais.",
+      "hours": {
+        "decimal-places": "As horas devem conter no máximo duas casas decimais.",
+        "max": "As horas não devem ser superiores a {max}.",
+        "min": "As horas devem ser de pelo menos {min}.",
+        "typeError": "As horas devem ser um número entre {min} e {max} com no máximo duas casas decimais."
+      },
+      "identifier": {
+        "communityIsReachable": "Comunidade não encontrada ou não acessível!",
+        "required": "O destinatário é um campo obrigatório.",
+        "typeError": "O destinatário deve ser um e-mail, um nome de utilizador ou um ID Gradido."
+      },
+      "is-not": "Não podes enviar Gradidos a ti mesmo!",
+      "memo": {
+        "max": "A mensagem não deve ter mais de {max} caracteres.",
+        "min": "A mensagem deve ter pelo menos {min} caracteres.",
+        "required": "A mensagem é obrigatória."
+      },
+      "requiredField": "O campo {fieldName} é obrigatório",
+      "subject": {
+        "max": "O assunto não deve ter mais de {max} caracteres.",
+        "min": "O assunto deve ter pelo menos {min} caracteres.",
+        "required": "O assunto é obrigatório."
+      },
+      "username-allowed-chars": "O nome de utilizador só pode conter letras (sem acentos), números, hífenes ou sublinhados.",
+      "username-hyphens": "Os hífenes ou sublinhados devem estar entre letras ou números.",
+      "username-unique": "Este nome de utilizador já está em uso."
+    },
+    "your_amount": "O teu montante"
+  },
+  "gddKonto": "Conta GDD",
+  "gdd_per_link": {
+    "choose-amount": "Seleciona um montante que queiras enviar por link e escreve uma mensagem. A mensagem é obrigatória.",
+    "copy-link": "Copiar link",
+    "copy-link-with-text": "Copiar link e texto",
+    "created": "O link foi criado!",
+    "credit-your-gradido": "Para que os Gradido sejam creditados, clica no link!",
+    "delete-the-link": "Eliminar o link?",
+    "deleted": "O link foi eliminado!",
+    "disbured": "Pagamento do saldo do link iniciado com sucesso! O crédito de {n} GDD será lançado em breve na tua conta",
+    "expiredOn": "Expirou em",
+    "has-account": "Já tens uma conta Gradido?",
+    "header": "Enviar Gradidos por link",
+    "isFree": "Baseado na comunidade – Descentralizado – Open Source",
+    "link-and-text-copied": "O link e a tua mensagem foram copiados para a área de transferência. Podes agora inseri-los num e-mail ou mensagem.",
+    "link-copied": "O link foi copiado para a área de transferência. Podes agora colá-lo num e-mail ou mensagem.",
+    "link-deleted": "O link foi eliminado em {date}.",
+    "link-expired": "O link já não é válido. A validade expirou em {date}.",
+    "link-hint": "Atenção: qualquer pessoa pode resgatar este link. Por favor, usa-o com cuidado!",
+    "link-overview": "Vista geral dos links",
+    "links_count": "Links ativos",
+    "links_sum": "Links e códigos QR abertos",
+    "no-account": "Ainda não tens uma conta Gradido?",
+    "no-redeem": "Não podes resgatar o teu próprio link!",
+    "not-copied": "Infelizmente, o teu dispositivo não permite copiar! Por favor, copia o link manualmente!",
+    "recipientCommunityRedirection": "Reencaminhar para crédito em:",
+    "recipientCommunitySelection": "Seleciona a comunidade Gradido:",
+    "redeem": "Resgatar",
+    "redeem-community": "Creditar em ",
+    "redeemed": "Resgatado com sucesso! A tua conta foi creditada com {n} GDD.",
+    "redeemed-at": "O link já foi resgatado em {date}.",
+    "redeemlink-error": "Este link de resgate não está completo.",
+    "to-login": "Inicia sessão",
+    "to-register": "Regista uma nova conta.",
+    "to-switch": "Reencaminhar agora",
+    "validUntil": "Válido até",
+    "validUntilDate": "O link é válido até {date}."
+  },
+  "gdt": {
+    "calculation": "Cálculo do Gradido Transform",
+    "conversion": "Conversão",
+    "conversion-gdt-euro": "Conversão Euro / Gradido Transform (GDT)",
+    "credit": "Crédito",
+    "factor": "Fator",
+    "formula": "Fórmula de cálculo",
+    "funding": "Para as contribuições de apoio",
+    "gdt-received": "Gradido Transform (GDT) recebido",
+    "gdtKonto": "Conta GDT",
+    "no-transactions": "Ainda não tens Gradido Transform (GDT).",
+    "not-reachable": "O servidor GDT não está acessível.",
+    "publisher": "Um membro que indicaste pagou uma contribuição",
+    "raise": "Aumento",
+    "recruited-member": "Membro convidado"
+  },
+  "gradidoid-copied-to-clipboard": "O ID Gradido foi copiado para a área de transferência.",
+  "h": "h",
+  "info": "Informação",
+  "language": "Idioma",
+  "link-load": "Carregar o último link | Carregar os últimos {n} links",
+  "link-load-more": "Carregar mais {n} links",
+  "login": "Iniciar sessão",
+  "math": {
+    "asterisk": "*",
+    "equal": "=",
+    "minus": "−"
+  },
+  "maxReached": "Máx. atingido",
+  "member": "Membro",
+  "message": {
+    "activateEmail": "A tua conta ainda não foi ativada. Por favor, verifica os teus e-mails e clica no link de ativação ou solicita um novo link de ativação através da página de reposição de palavra-passe.",
+    "checkEmail": "O teu e-mail foi verificado com sucesso. Podes iniciar sessão agora.",
+    "email": "Enviámos-te um e-mail.",
+    "errorTitle": "Atenção!",
+    "register": "Estás agora registado, por favor verifica os teus e-mails e clica no link de ativação.",
+    "reply": "Obrigado, a tua resposta foi enviada.",
+    "reset": "A tua palavra-passe foi alterada.",
+    "title": "Obrigado!",
+    "unsetPassword": "A tua palavra-passe ainda não foi definida. Por favor, define-a novamente."
+  },
+  "missingGradidoAccount": "Ainda não tens uma conta {communityName}?",
+  "moderatorChangedMemo": "Texto editado pelo moderador",
+  "navigation": {
+    "admin_area": "Área de administração",
+    "community": "Comunidade",
+    "logout": "Terminar sessão",
+    "overview": "Vista geral",
+    "send": "Enviar",
+    "settings": "Definições",
+    "support": "Suporte",
+    "transactions": "Transações"
+  },
+  "openHours": "Horas em aberto",
+  "pageTitle": {
+    "circles": "Círculos Gradido",
+    "contributions": "Criar Gradido",
+    "gdt": "As tuas transações GDT",
+    "information": "{community}",
+    "overview": "Bem-vindo {name}",
+    "send": "Enviar Gradidos",
+    "settings": "Definições",
+    "transactions": "As tuas transações",
+    "usersearch": "Pesquisa geográfica de membros (beta)"
+  },
+  "qrCode": "Código QR",
+  "send_email": "Enviar e-mail",
+  "send_gdd": "Enviar GDD",
+  "send_per_link": "criar link GDD",
+  "session": {
+    "extend": "Manter sessão iniciada",
+    "lightText": "Se não realizares qualquer ação durante mais de 10 minutos, terminarás a sessão por motivos de segurança.",
+    "logoutIn": "Terminar sessão em ",
+    "warningText": "Ainda estás aí?"
+  },
+  "settings": {
+    "GMS": {
+      "disabled": "Os dados não são exportados para o GMS",
+      "enabled": "Os dados são exportados para o GMS",
+      "location": {
+        "button": "Abrir mapa",
+        "label": "A tua localização",
+        "saveLocation": "Guardar localização",
+        "updateSuccess": "Localização guardada com sucesso"
+      },
+      "location-format": "Mostrar posição no mapa:",
+      "map": {
+        "communityCoords": "A localização da tua comunidade: Lat {lat}, Lng {lng}",
+        "communityLocationLabel": "A localização da tua comunidade",
+        "headline": "Captura geográfica da localização do utilizador",
+        "search": "Procurar uma localização",
+        "userCoords": "A tua localização: Lat {lat}, Lng {lng}",
+        "userLocationLabel": "A tua localização"
+      },
+      "naming-format": "Mostrar nome:",
+      "publish-location": {
+        "approximate": "posição aproximada",
+        "exact": "posição exata",
+        "updated": "tipo de posição para o GMS atualizado"
+      },
+      "publish-name": {
+        "updated": "formato do nome para o GMS atualizado"
+      }
+    },
+    "community": "Círculos e pesquisa de membros",
+    "emailInfo": "De momento, não pode ser alterado.",
+    "hideAmountGDD": "O teu montante GDD está oculto.",
+    "hideAmountGDT": "O teu montante GDT está oculto.",
+    "humhub": {
+      "delete-disabled": "A conta de utilizador só pode ser eliminada no menu de perfil da plataforma de cooperação.",
+      "disabled": "Os dados não são exportados para a Gradido Community",
+      "enabled": "Os dados são exportados para a Gradido Community",
+      "naming-format": "Mostrar nome:",
+      "publish-name": {
+        "updated": "Formato do nome para a Gradido Community atualizado."
+      }
+    },
+    "info": "As transações podem agora ser feitas por nome de utilizador ou endereço de e-mail.",
+    "language": {
+      "de": "Deutsch",
+      "en": "English",
+      "error": "Não foi possível atualizar as definições de idioma.",
+      "es": "Español",
+      "fr": "Français",
+      "nl": "Nederlands",
+      "success": "O teu idioma foi alterado com sucesso."
+    },
+    "name": {
+      "change-success": "O teu nome foi alterado com sucesso.",
+      "enterFirstname": "Introduz o teu nome próprio",
+      "enterLastname": "Introduz o teu apelido"
+    },
+    "newSettings": "Novas definições",
+    "newsletter": {
+      "newsletter": "Informações por e-mail",
+      "newsletterFalse": "Não receberás informações por e-mail.",
+      "newsletterTrue": "Receberás informações por e-mail."
+    },
+    "password": {
+      "change-password": "Alterar palavra-passe",
+      "forgot_pwd": "Esqueceste-te da palavra-passe?",
+      "resend_subtitle": "O teu link de ativação expirou, aqui podes solicitar um novo.",
+      "reset": "Repor palavra-passe",
+      "reset-password": {
+        "text": "Introduz agora uma nova palavra-passe com a qual queiras iniciar sessão na tua conta Gradido no futuro."
+      },
+      "send_now": "Enviar agora",
+      "set": "Definir palavra-passe",
+      "set-password": {
+        "text": "Guarda agora a tua nova palavra-passe, com a qual poderás iniciar sessão na tua conta Gradido no futuro."
+      },
+      "subtitle": "Se te esqueceste da tua palavra-passe, podes repô-la aqui."
+    },
+    "publish-name": {
+      "alias-or-initials": "Nome de utilizador ou iniciais (predefinição)",
+      "alias-or-initials-tooltip": "nome de utilizador, se disponível, ou as iniciais do nome próprio e do apelido, em cada caso as duas primeiras letras",
+      "first": "Nome próprio",
+      "first-initial": "Nome próprio e inicial",
+      "first-initial-tooltip": "nome próprio mais a primeira letra do apelido",
+      "first-tooltip": "apenas o nome próprio",
+      "initials": "Iniciais",
+      "initials-tooltip": "Iniciais do nome próprio e do apelido, ou seja, as duas primeiras letras de cada, independentemente da existência do nome de utilizador",
+      "name-full": "nome próprio e apelido",
+      "name-full-tooltip": "nome completo: nome próprio mais apelido"
+    },
+    "showAmountGDD": "O teu montante GDD está visível.",
+    "showAmountGDT": "O teu montante GDT está visível.",
+    "username": {
+      "change-success": "O teu nome de utilizador foi alterado com sucesso.",
+      "no-username": "Por favor, introduz um nome de utilizador. Assim ajudas outros utilizadores a encontrar-te sem teres de revelar o teu endereço de e-mail."
+    },
+    "usernameInfo": "Não pode ser alterado após guardar!"
+  },
+  "signin": "Iniciar sessão",
+  "signup": "Registar",
+  "site": {
+    "forgotPassword": {
+      "heading": "Por favor, introduz o endereço de e-mail com o qual estás registado no Gradido."
+    },
+    "resetPassword": {
+      "heading": "Por favor, introduz a tua palavra-passe e repete-a."
+    },
+    "signup": {
+      "agree": "Concordo com a <a href='https://gradido.net/datenschutz/' target='_blank' >política de privacidade</a>.",
+      "dont_match": "As palavras-passe não coincidem.",
+      "lowercase": "É necessária uma letra minúscula.",
+      "minimum": "Mínimo de 8 caracteres.",
+      "no-whitespace": "Sem espaços nem tabulações",
+      "one_number": "É necessário um número.",
+      "special-char": "É necessário um caractere especial (p. ex. _ ou ä)",
+      "uppercase": "É necessária uma letra maiúscula."
+    }
+  },
+  "status": "Estado",
+  "submitted": "Submetido",
+  "success": "Sucesso",
+  "time": {
+    "days": "Dias",
+    "hours": "Horas",
+    "minutes": "Minutos",
+    "month": "Mês",
+    "months": "Meses",
+    "seconds": "Segundos",
+    "years": "Ano"
+  },
+  "transaction": {
+    "lastTransactions": "Últimas transações",
+    "nullTransactions": "Ainda não tens transações na tua conta.",
+    "receiverDeleted": "A conta do destinatário foi eliminada",
+    "receiverNotFound": "Destinatário não encontrado",
+    "show_all": "Ver todas as <strong>{count}</strong> transações"
+  },
+  "transaction-link": {
+    "send_you": "envia-te"
+  },
+  "usersearch": {
+    "button": "Iniciar a pesquisa de utilizadores...",
+    "headline": "Pesquisa geográfica de utilizadores",
+    "text": "Não importa a que comunidade pertenças, com o Geo Matching System encontras membros de todas as comunidades num mapa. Podes filtrar por ofertas e necessidades e ver os utilizadores que combinam contigo.\n\nO botão abre uma nova janela do navegador onde os utilizadores na tua área são apresentados num mapa."
+  },
+  "via_link": "através de um link",
+  "welcome": "Bem-vindo à comunidade"
+}
