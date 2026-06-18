@@ -4,7 +4,6 @@ import LanguageSwitch from './LanguageSwitch2.vue'
 import locales from '@/locales/'
 import { createStore } from 'vuex'
 import { createI18n } from 'vue-i18n'
-import locales from '@/locales/'
 
 const updateUserInfosMutationMock = vi.fn().mockResolvedValue({
   data: {
