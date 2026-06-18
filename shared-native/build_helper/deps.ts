@@ -11,35 +11,11 @@ import path from 'node:path'
 import process from 'node:process'
 import AdmZip from 'adm-zip'
 import headers from 'node-api-headers'
+import addonHeaders from 'node-addon-api'
 import { type TargetTriple } from '.'
-import { getNodeDownloadUrl, getZigDownloadUrl } from './dowload_paths'
+import { getZigDownloadUrl } from './dowload_paths'
 import { checkFileExist, moveContentsUp } from './filesystem'
 import { getNodePath, getZigPath, isMusl, isWin32 } from './host_configuration'
-
-async function fetchNodeHeaders(): Promise<string> {
-  const headersDir = getNodePath()
-  const includePath = path.join(headersDir, 'include', 'node')
-  if (fs.existsSync(includePath)) {
-    return includePath
-  }
-
-  const installedIncludePath = headers.include_dir
-
-  fs.mkdirSync(includePath, { recursive: true })
-
-  // copy from installedIncludePath to includePath
-  fs.cpSync(installedIncludePath, includePath, { recursive: true })
-
-  // download node.lib
-  if (isWin32()) {
-    const nodeLibUrl = getNodeDownloadUrl()
-    const nodeLibPath = path.join(headersDir, 'node.lib')
-    const nodeLibResponse = await fetch(nodeLibUrl)
-    const nodeLibBuffer = await nodeLibResponse.arrayBuffer()
-    fs.writeFileSync(nodeLibPath, Buffer.from(nodeLibBuffer))
-  }
-  return includePath
-}
 
 export async function fetchZig(): Promise<string> {
   const binary = isWin32() ? 'zig.exe' : 'zig'
@@ -125,13 +101,12 @@ export async function detectTargetTriple(): Promise<TargetTriple> {
 interface NapiModule {
   include: string
 }
-export async function fetchDeps(): Promise<[node: string, zig: string, napi: string | null]> {
-  const node = await fetchNodeHeaders()
+export async function fetchDeps(): Promise<[flags: string[], zig: string]> {
+  const flags = [
+    `-Dnode-headers=${headers.include_dir}`,
+    `-Dnode-api-def=${headers.def_paths.node_api_def}`,
+    `-Dnapi-headers=${addonHeaders.include_dir}`
+  ]
   const zig = await fetchZig()
-  // if node-addon-api is in the dependency tree grab its include path
-  // and strip the surrounding quotes
-  const napi = await import('node-addon-api')
-    .then((napi) => (napi as unknown as NapiModule).include.slice(1, -1))
-    .catch(() => null)
-  return [node, zig, napi]
+  return [flags, zig]
 }
