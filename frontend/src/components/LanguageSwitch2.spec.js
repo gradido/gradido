@@ -1,9 +1,9 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, beforeAll, vi } from 'vitest'
 import LanguageSwitch from './LanguageSwitch2.vue'
+import locales from '@/locales/'
 import { createStore } from 'vuex'
 import { createI18n } from 'vue-i18n'
-import locales from '@/locales/'
 
 const updateUserInfosMutationMock = vi.fn().mockResolvedValue({
   data: {
@@ -77,7 +77,7 @@ describe('LanguageSwitch', () => {
       expect(wrapper.find('div.language-switch').exists()).toBe(true)
     })
 
-    describe('with locales en, de, es, fr, and nl', () => {
+    describe('with locales en, de, es, fr, nl, and it', () => {
       describe('empty store', () => {
         describe('navigator language is "en-US"', () => {
           const languageGetter = vi.spyOn(navigator, 'language', 'get')
