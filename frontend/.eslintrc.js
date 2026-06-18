@@ -24,6 +24,15 @@ module.exports = {
       rules: {
         // TODO: enable
         '@intlify/vue-i18n/no-html-messages': 'off',
+        '@intlify/vue-i18n/no-missing-keys': 'warn',
+        '@intlify/vue-i18n/no-unused-keys': 'warn',
+      },
+    },
+    {
+      files: ['{de,en}.json'],
+      rules: {
+        '@intlify/vue-i18n/no-missing-keys': 'error',
+        '@intlify/vue-i18n/no-unused-keys': 'error',
       },
     },
   ],
@@ -75,7 +84,7 @@ module.exports = {
         enableFix: false,
       },
     ],
-    '@intlify/vue-i18n/no-missing-keys-in-other-locales': 'error',
+    '@intlify/vue-i18n/no-missing-keys-in-other-locales': 'warn',
     'prettier/prettier': [
       'error',
       {
@@ -85,7 +94,7 @@ module.exports = {
   },
   settings: {
     'vue-i18n': {
-      localeDir: './src/locales/{en,de}.json',
+      localeDir: './src/locales/*.json',
       // Specify the version of `vue-i18n` you are using.
       // If not specified, the message will be parsed twice.
       messageSyntaxVersion: '^9.13.1',
