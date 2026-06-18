@@ -41,6 +41,12 @@ const locales = [
     iso: 'tr-TR',
     enabled: true,
   },
+  {
+    name: 'Русский',
+    code: 'ru',
+    iso: 'ru-RU',
+    enabled: true,
+  },
 ]
 
 export default locales
