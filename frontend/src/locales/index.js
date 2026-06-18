@@ -35,6 +35,12 @@ const locales = [
     iso: 'it-IT',
     enabled: true,
   },
+  {
+    name: 'Türkçe',
+    code: 'tr',
+    iso: 'tr-TR',
+    enabled: true,
+  },
 ]
 
 export default locales
