@@ -2,11 +2,25 @@
   "85": "%85",
   "100": "%100",
   "125": "%125",
+  "(": "(",
+  ")": ")",
   "1000thanks": "Bizimle olduğun için 1000lerce teşekkür!",
+  "Chat": "Sohbet",
   "GDD": "GDD",
+  "GDD-long": "Gradido",
   "GDT": "GDT",
+  "GMS": {
+    "desc": "Tüm toplulukların üyelerini bir haritada bul.",
+    "title": "Coğrafi Eşleştirme Sistemi GMS (geliştirme aşamasında)"
+  },
+  "Humhub": {
+    "desc": "Birlikte birbirimizi destekliyoruz – çember kültüründe özenle.",
+    "title": "Gradido-Çemberleri"
+  },
   "PersonalDetails": "Kişisel bilgiler",
   "advanced-calculation": "Önceden hesaplama",
+  "answerNow": "→ Şimdi yanıtla!",
+  "asterisks": "****",
   "auth": {
     "left": {
       "dignity": "Onur",
@@ -16,44 +30,80 @@
       "oneDignity": "Gradidoyla birbirimize armağan verip teşekkür ediyoruz",
       "oneDonation": "Sen toplum için bir armağansın. Bizimle olduğun için 1000lerce teşekkürler.",
       "oneGratitude": "Birbirimiz, tüm insanlar ve doğa için."
-    },
-    "navbar": {
-      "aboutGradido": "Gradido hakkında"
     }
   },
   "back": "Geri",
+  "card-circles": {
+    "allowed": {
+      "button": "Çemberleri aç..."
+    },
+    "headline": "İşbirliği platformu »Gradido-Çemberleri«",
+    "not-allowed": {
+      "button": "Yapılandır..."
+    },
+    "text": "Yerel çemberler, çalışma çemberleri, projeler, etkinlikler ve kongreler"
+  },
+  "card-user-search": {
+    "allowed": {
+      "button": "Üye aramasını aç...",
+      "disabled-button": "GMS çevrimdışı...",
+      "text": "Tüm toplulukların üyelerini bir haritada bul."
+    },
+    "headline": "Coğrafi üye arama (beta)",
+    "info": "Nasıl çalışır",
+    "not-allowed": {
+      "button": "Konum gir...",
+      "text": "Çevrendeki diğer üyeleri bulmak için şimdi konumunu haritaya gir!"
+    }
+  },
   "community": {
     "admins": "Yöneticiler",
     "choose-another-community": "Başka bir topluluk seçin",
     "community": "Topluluk",
+    "communityMember": "Aktif bir üyesin",
     "continue-to-registration": "Kayıt işlemine devam et",
-    "current-community": "Varolan topluluk",
+    "moderator": "Moderatör",
+    "moderators": "Moderatörler",
     "myContributions": "Toplum yararına yaptığım hizmetler",
-    "other-communities": "Diğer topluluklar",
-    "startNewsButton": "Gradidos gönder",
-    "submitContribution": "yaz",
-    "switch-to-this-community": "Bu topluluğa giriş yap"
+    "submitContribution": "yaz"
   },
+  "communityInfo": "Topluluk Bilgisi",
+  "contact": "İletişim",
   "contribution": {
     "activity": "Hizmet",
     "alert": {
+      "answerQuestion": "Bu katkı için yeni bir mesaj var.",
+      "answerQuestionToast": "Yeni mesajların var.",
       "communityNoteList": "Burada, bu topluluğun tüm üyelerinden gönderilen ve onaylanan bütün faydalı hizmetleri bulacaksın.",
       "confirm": "onaylandı",
+      "deleted": "silindi",
       "denied": "reddedildi",
+      "in_progress": "Moderatörlerden bir soru var.",
       "myContributionNoteList": "Bildirmiş olduğun henüz onaylanmamış olan  faaliyetleri istediğin zaman düzenleyebilir veya silebilirsin.",
-      "myContributionNoteSupport": "Yakın zamanda moderatörlerle aranda bir diyalog olasılığı olacak. Şu anda herhangi bir sorun yaşıyorsan, lütfen destek hattına başvur.",
       "pending": "Gönderildi ve onay bekleniyor"
     },
-    "date": "Hizmet:",
     "delete": "Hizmeti sil! Emin misin?",
     "deleted": "Hizmet silindi! Fakat hala görünüyor olacak.",
     "formText": {
       "bringYourTalentsTo": "Yeteneklerini topluluğa sun! Gönüllü olarak sunduğun hizmetler ayda max 1,000 GDD olacak şekilde saati 20 GDD olarak ödüllendirilecektir! Bir moderatör tarafından onaylandıktan sonra bu tutar hesabına yatırılacaktır.",
+      "describeYourCommunity": "Kamu yararına faaliyetini açıkla ve saat sayısını belirt! Saat başına 20 GDD tutarı otomatik olarak hesaplanır. Bir moderatör onayladıktan sonra tutar hesabına işlenir.",
       "maxGDDforMonth": "Seçilen ay için yalnızca maksimum {amount} GDD gönderebilirsin.",
       "openAmountForMonth": "<b>{monthAndYear}</b> tarihi için <b>{creation}</b> hala GDD gönderebilirsin.",
       "yourContribution": "Yaptığın hizmetin topluma katkısı"
     },
-    "noDateSelected": "Ay içindeki herhangi bir tarihi seç",
+    "isEdited": "katkıyı düzenledi",
+    "lastContribution": "Son Katkılar",
+    "noContributions": {
+      "allContributions": "Henüz hiç katkı gönderilmedi.",
+      "emptyPage": "Bu sayfa boş.",
+      "myContributions": "Henüz hiç katkı göndermedin."
+    },
+    "noOpenCreation": {
+      "allMonth": "Her iki ay için de yaratım limitine ulaştın. Önümüzdeki ay tekrar 1000 GDD yaratabilirsin.",
+      "lastMonth": "Seçilen ay için yaratım limitine ulaşıldı.",
+      "thisMonth": "İçinde bulunduğun ay için yaratım limitine ulaşıldı."
+    },
+    "oldContribution": "Önceki sürüm",
     "selectDate": "Hizmet ne zaman verildi?",
     "submit": "Başvuru yapıldı",
     "submitted": "Hizmet gönderildi.",
@@ -63,6 +113,9 @@
   "contribution-link": {
     "thanksYouWith": "Sana gönderiyor"
   },
+  "contributionText": "Katkı Metni",
+  "copy-to-clipboard": "Panoya kopyala",
+  "creation": "Yarat",
   "decay": {
     "Starting_block_decay": "Blok erimenin başlatılması ",
     "before_startblock_transaction": "Bu işlem erimeyi içermez.",
@@ -72,6 +125,8 @@
     "decay_introduced": "Erime hesaplamasının başlangıcı:",
     "decay_since_last_transaction": "Son işlemden bu yana olan erime",
     "last_transaction": "Son işlem:",
+    "new_balance": "Yeni bakiye",
+    "old_balance": "Önceki bakiye",
     "past_time": "Geçen süre",
     "total": "Toplam",
     "types": {
@@ -82,17 +137,19 @@
     }
   },
   "delete": "Silmek",
+  "download": "İndir",
+  "edit": "düzenle",
   "em-dash": "—",
   "error": {
     "email-already-sent": "Sana 10 dakikadan daha az sürede e-posta gönderdik .",
     "empty-transactionlist": "İşlem sayısının iletiminde bir hata oluştu.",
-    "error": "Hata!",
     "no-account": "Ne yazık ki bu verilere ait (etkinleştirilmiş) bir hesap bulamadık.",
     "no-transactionlist": "Maalesef bir hata oluştu. Sunucudan hiçbir işlem gönderilmedi.",
     "no-user": "Bu kimlik bilgilerine sahip kullanıcı yok.",
     "session-expired": "Oturum güvenlik nedeniyle kapatıldı.",
     "unknown-error": "Bilinmeyen hata: "
   },
+  "existingGradidoAccount": "Zaten bir {communityName} hesabın var mı?",
   "followUs": "Bizi takip et:",
   "footer": {
     "app_version": "Uygulama versiyonu {version}",
@@ -101,17 +158,19 @@
       "year": "© {year}"
     },
     "imprint": "Yasal uyarı",
+    "inspector": "Denetleyici (deneysel)",
     "privacy_policy": "Gizlilik politikası",
-    "short_hash": "({shortHash})",
     "whitepaper": "Whitepaper"
   },
   "form": {
     "amount": "Miktar",
     "at": "",
+    "available_after": "Onaydan sonra kullanılabilir",
     "cancel": "İptal",
     "change": "Değiştir",
     "check_now": "Şimdi kontrol et",
     "close": "Kapat",
+    "current_available": "Şu anda kullanılabilir",
     "current_balance": "Mevcut Bakiye",
     "date": "Tarih",
     "description": "Açıklama",
@@ -120,48 +179,109 @@
     "from": "Gönderen",
     "generate_now": "Şimdi oluştur",
     "hours": "Saat",
+    "identifier": "E-posta, kullanıcı adı veya Gradido ID",
     "lastname": "Soyadı",
+    "link_amount": "Bağlantı tutarı",
+    "link_decay_description": "Bağlantı tutarı, azami erimeyle birlikte bloke edilir. Bağlantı kullanıldıktan, süresi dolduktan veya silindikten sonra kalan kısım tekrar serbest bırakılır.",
     "memo": "Mesaj",
     "message": "Mesaj",
     "newPasswordRepeat": "Yeni şifreyi tekrarla",
     "new_balance": "Onay sonrası hesap bakiyesi",
     "no_gdd_available": "Göndermek için GDD'niz yok.",
+    "ok": "Tamam",
     "password": "Şifre",
     "passwordRepeat": "Şifreyi tekrarla",
     "password_new": "Yeni şifre",
     "password_new_repeat": "Yeni şifreyi tekrarla",
     "password_old": "Eski şifre",
     "recipient": "Alıcı",
+    "recipientCommunity": "Alıcının topluluğu",
+    "reply": "Yanıtla",
     "reset": "Sıfırla",
     "save": "Kaydet",
     "scann_code": "<strong>QR Code Scanner</strong> - Ortağınızın QR Kodunu tarayın",
+    "sendEmail": "E-posta gönder",
     "send_check": "İşlemi onayla. Lütfen tüm verileri tekrar kontrol et!",
+    "send_email_error": "Maalesef e-postan gönderilemedi!",
+    "send_email_success": "E-postan başarıyla gönderildi",
     "send_now": "Şimdi gönder",
     "send_transaction_error": "Ne yazık ki işlem gerçekleştirilemedi!",
     "send_transaction_success": "İşleminiz başarıyla tamamlandı",
+    "sendemailerror": {
+      "failedToSendCommandToFederatedCommunity": "E-postanı gönderirken e-posta alıcının topluluğunda şu hata oluştu: ",
+      "federatedCommunityOfReceiverCommunityNotFound": "E-posta alıcının topluluğu için geçerli bir federasyon bulunmuyor",
+      "receiverCommunityNoFederatedCommunities": "E-posta alıcının topluluğunun federasyonu aktif değil veya tamamlanmamış",
+      "receiverCommunityNotFound": "E-posta alıcının topluluğu bulunamadı",
+      "receiverDeleted": "E-posta alıcına ait kullanıcı hesabı silindi",
+      "receiverNotFound": "Belirttiğin e-posta alıcısına ait bir kullanıcı hesabı yok.",
+      "unknownError": "Bilinmeyen bir hata oluştu: ",
+      "youCannotSendEmailToYourself": "Kendine e-posta gönderemezsin."
+    },
     "sender": "Gönderen",
     "sorry": "Üzgünüz",
+    "subject": "Konu",
     "thx": "Teşekkür ederiz",
     "to": "Geçerlik",
     "to1": "Alıcı",
+    "username": "Kullanıcı adı",
+    "username-placeholder": "Kullanıcı adını seç",
     "validation": {
+      "amount": {
+        "decimal-places": "Tutar en fazla iki ondalık basamak içermeli.",
+        "max": "Tutar en fazla {max} olmalı.",
+        "min": "Tutar en az {min} olmalı.",
+        "typeError": "Tutar, {min} ile {max} arasında, en fazla iki ondalık basamaklı bir sayı olmalı."
+      },
+      "contributionDate": {
+        "max": "En son katkı tarihi bugündür, {max}.",
+        "min": "En erken katkı tarihi {min}.",
+        "required": "Katkı tarihi zorunlu bir alandır."
+      },
+      "contributionMemo": {
+        "max": "Faaliyet açıklaması en fazla {max} karakter olmalı.",
+        "min": "Faaliyet açıklaması en az {min} karakter olmalı.",
+        "required": "Faaliyet açıklaması zorunlu bir alandır."
+      },
       "gddSendAmount": "Bu alan {_field_} {min}  {max} arasında ondalık noktadan sonra en fazla iki basamaklı bir sayı olmalıdır",
+      "hours": {
+        "decimal-places": "Saatler en fazla iki ondalık basamak içermeli.",
+        "max": "Saatler en fazla {max} olmalı.",
+        "min": "Saatler en az {min} olmalı.",
+        "typeError": "Saatler, {min} ile {max} arasında, en fazla iki ondalık basamaklı bir sayı olmalı."
+      },
+      "identifier": {
+        "communityIsReachable": "Topluluk bulunamadı veya erişilemiyor!",
+        "required": "Alıcı zorunlu bir alandır.",
+        "typeError": "Alıcı bir e-posta, kullanıcı adı veya Gradido ID olmalı."
+      },
       "is-not": "Gradidoları kendine gönderemezsin",
+      "memo": {
+        "max": "Mesaj en fazla {max} karakter olmalı.",
+        "min": "Mesaj en az {min} karakter olmalı.",
+        "required": "Mesaj zorunlu bir alandır."
+      },
       "requiredField": "{fieldName} alanı zorunludur",
-      "usernmae-regex": "Kullanıcı adı bir harfle başlamalı, ardından en az iki alfasayısal karakter gelmelidir.",
-      "usernmae-unique": "Bu kullanıcı adı zaten alınmış."
+      "subject": {
+        "max": "Konu en fazla {max} karakter olmalı.",
+        "min": "Konu en az {min} karakter olmalı.",
+        "required": "Konu zorunlu bir alandır."
+      },
+      "username-allowed-chars": "Kullanıcı adı yalnızca harf, rakam, tire veya alt çizgi içerebilir.",
+      "username-hyphens": "Tire veya alt çizgiler harf ya da rakamların arasında olmalı.",
+      "username-unique": "Bu kullanıcı adı zaten alınmış."
     },
     "your_amount": "Sendeki tutar"
   },
+  "gddKonto": "GDD Hesabı",
   "gdd_per_link": {
     "choose-amount": "Linke tıklayıp göndermek istediğiniz tutarı seç. Ayrıca bir mesaj da girebilirsin. Paylaşabileceğin bir bağlantı oluşturmak için 'Şimdi oluştur'a tıkla.",
     "copy-link": "Linki kopyala ",
     "copy-link-with-text": "Linki ve metni kopyala",
     "created": "Link oluşturuldu!",
     "credit-your-gradido": "Senin hesabına Gradido transferi için linke tıklayın!",
-    "decay-14-day": "14 günlük erime",
     "delete-the-link": "Link silinsin mi?",
     "deleted": "Link silindi!",
+    "disbured": "Bağlantı bakiyesinin ödemesi başarıyla başlatıldı! {n} GDD kısa süre içinde hesabına alacak olarak işlenecek",
     "expiredOn": "Geçerlilik süresi",
     "has-account": "Halihazırda bir Gradido hesabın var mı?",
     "header": "Gradidoları link yoluyla gönderin",
@@ -170,73 +290,93 @@
     "link-copied": "Link panoya kopyalandı. Artık bir e-postaya veya mesaja yapıştırabilirsin.",
     "link-deleted": "Link {date} tarihinde silindi.",
     "link-expired": "Bağlantı artık geçerli değil. Geçerlilik süresi {date} tarihinde doldu.",
+    "link-hint": "Dikkat: Bu bağlantıyı herkes kullanabilir. Lütfen onunla özenli ol!",
     "link-overview": "Linke toplu bakış",
     "links_count": "Aktif linkler",
     "links_sum": "Linkleri ve QR kodlarını açma",
     "no-account": "Henüz bir Gradido hesabınız yok mu?",
     "no-redeem": "Kendi linkini kullanarak GDD'lerini paraya dönüştüremezsin!",
     "not-copied": "Maalesef cihazın kopyalamaya izin vermiyor! Lütfen bağlantıyı elle kopyala!",
+    "recipientCommunityRedirection": "Hesaba işlemek için şuraya yönlendir:",
+    "recipientCommunitySelection": "Gradido topluluğunu seç:",
     "redeem": "Paraya dönüştürme",
-    "redeem-text": "Şu anda paraya dönüştürmek ister misin?",
+    "redeem-community": "Şuraya işle: ",
     "redeemed": "Başarıyla dönüştürüldü! Hesabına {n} GDD yatırıldı.",
     "redeemed-at": "Link  {date} tarihinde paraya dönüştürüldü.",
-    "redeemed-title": "paraya dönüştürüldü",
+    "redeemlink-error": "Bu kullanım bağlantısı tam değil.",
     "to-login": "Giriş yap",
     "to-register": "Yeni hesap aç.",
+    "to-switch": "Şimdi yönlendir",
     "validUntil": "Geçerlilik süresi",
     "validUntilDate": "Link {date} tarihine kadar geçerli."
   },
   "gdt": {
     "calculation": "Gradido Transform (GDT) Hesaplanması",
-    "contribution": "Katkı",
     "conversion": "Dönüştürme",
     "conversion-gdt-euro": "Euro'dan Gradido Transform (GDT)'a dönüştürme",
     "credit": "Alıcının dekontu",
     "factor": "Faktör",
     "formula": "Hesaplama formülü",
     "funding": "Fon katkı paylarına",
-    "gdt": "Gradido Transform (GDT)",
     "gdt-received": "Gradido Transform (GDT) alındı",
+    "gdtKonto": "GDT Hesabı",
     "no-transactions": "Henüz Gradido Transform (GDT)'un yok.",
     "not-reachable": "GDT sürücüsüne ulaşılamıyor.",
     "publisher": "Yönlendirdiğin bir üye katkı payını ödedi",
     "raise": "Artış",
     "recruited-member": "Davetli üye"
   },
+  "gradidoid-copied-to-clipboard": "Gradido ID panoya kopyalandı.",
+  "h": "sa",
+  "info": "Bilgi",
   "language": "Dil",
   "link-load": "Son linki yükle| Son {n} linki yükle",
   "link-load-more": "{n} link daha yükle",
   "login": "Giriş",
   "math": {
-    "aprox": "~",
     "asterisk": "*",
     "equal": "=",
-    "minus": "−",
-    "pipe": "|"
+    "minus": "−"
   },
+  "maxReached": "Azami ulaşıldı",
+  "member": "Üye",
   "message": {
     "activateEmail": "Hesabın henüz etkinleştirilmedi. Lütfen e-postalarını kontrol et ve aktivasyon linkine tıkla veya şifre sıfırlama sayfası üzerinden yeni bir aktivasyon linki talep et.",
     "checkEmail": "E-posta adresin başarıyla doğrulandı. Şimdi giriş yapabilirsin.",
     "email": "Sana bir e-posta gönderdik.",
     "errorTitle": "Dikkat!",
     "register": "Şİmdi kayıt oldun, lütfen e-postalarını kontrol et ve aktivasyon linkine tıkla.",
+    "reply": "Teşekkürler, yanıtın gönderildi.",
     "reset": "Şifren değiştirildi.",
     "title": "Teşekkürler!",
     "unsetPassword": "Şifre henüz olışturulmadı. Lütfen tekrar ayarla."
   },
+  "missingGradidoAccount": "Henüz bir {communityName} hesabın yok mu?",
   "moderatorChangedMemo": "Metin moderatör tarafından düzenlendi",
   "navigation": {
     "admin_area": "Yönetici Alanı",
     "community": "Topluluk",
     "logout": "Çıkış",
-    "members_area": "Üye alanı",
     "overview": "Toplu Bakış",
-    "profile": "Profilim",
     "send": "Gönder",
+    "settings": "Ayarlar",
     "support": "Destek",
     "transactions": "İşlemler"
   },
+  "openHours": "Açık Saatler",
+  "pageTitle": {
+    "circles": "Gradido Çemberleri",
+    "contributions": "Gradido yarat",
+    "gdt": "GDT işlemlerin",
+    "information": "{community}",
+    "overview": "Hoş geldin {name}",
+    "send": "Gradido gönder",
+    "settings": "Ayarlar",
+    "transactions": "İşlemlerin",
+    "usersearch": "Coğrafi üye arama (beta)"
+  },
   "qrCode": "QR Kodu",
+  "send_email": "E-posta gönder",
   "send_gdd": "GDD gönder",
   "send_per_link": "Link yoluyla GDD send gönder",
   "session": {
@@ -247,38 +387,62 @@
   },
   "settings": {
     "GMS": {
+      "disabled": "Veriler GMS'e aktarılmıyor",
+      "enabled": "Veriler GMS'e aktarılıyor",
       "location": {
         "button": "Buraya tıklayın!",
         "label": "Tam konum",
         "saveLocation": "Konumu Kaydet",
         "updateSuccess": "Konum başarıyla kaydedildi"
       },
+      "location-format": "Konumu haritada göster:",
       "map": {
         "communityCoords": "Topluluk Konumunuz: Enlem {lat}, Boylam {lng}",
         "communityLocationLabel": "Topluluk Konumunuz",
         "headline": "Kullanıcının Coğrafi Konum Tespiti",
         "search": "Konum ara",
-        "success": "Konum başarıyla kaydedildi",
         "userCoords": "Konumunuz: Enlem {lat}, Boylam {lng}",
         "userLocationLabel": "Konumunuz"
+      },
+      "naming-format": "İsmi göster:",
+      "publish-location": {
+        "approximate": "Yaklaşık konum",
+        "exact": "Tam konum",
+        "updated": "GMS için konum türü güncellendi"
+      },
+      "publish-name": {
+        "updated": "GMS için isim biçimi güncellendi"
       }
     },
+    "community": "Çemberler & Üye arama",
+    "emailInfo": "Şu anda henüz değiştirilemiyor.",
+    "hideAmountGDD": "GDD tutarın gizli.",
+    "hideAmountGDT": "GDT tutarın gizli.",
+    "humhub": {
+      "delete-disabled": "Kullanıcı hesabı yalnızca işbirliği platformunun profil menüsünden silinebilir.",
+      "disabled": "Veriler Gradido Topluluğuna aktarılmıyor",
+      "enabled": "Veriler Gradido Topluluğuna aktarılıyor",
+      "naming-format": "İsmi göster:",
+      "publish-name": {
+        "updated": "Gradido Topluluğu için isim biçimi güncellendi."
+      }
+    },
+    "info": "İşlemler artık kullanıcı adı veya e-posta adresiyle yapılabilir.",
     "language": {
-      "changeLanguage": "Dili değiştir",
       "de": "Deutsch",
       "en": "English",
       "error": "Dil ayarları güncellenemedi.",
       "es": "Español",
       "fr": "Français",
       "nl": "Nederlands",
-      "ru": "Русский",
-      "success": "Dil başarıyla güncellendi.",
-      "tr": "Türkçe"
+      "success": "Dil başarıyla güncellendi."
     },
     "name": {
-      "change-name": "Ad değiştir",
-      "change-success": "Adın başarıyla değiştirildi."
+      "change-success": "Adın başarıyla değiştirildi.",
+      "enterFirstname": "Adını gir",
+      "enterLastname": "Soyadını gir"
     },
+    "newSettings": "Yeni Ayarlar",
     "newsletter": {
       "newsletter": "E-posta yoluyla bilgilendirme",
       "newsletterFalse": "E-posta ile herhangi bir bilgi almayacaksın.",
@@ -298,7 +462,26 @@
         "text": "Gelecekte Gradido hesabına giriş yapmak için kullanabileceğin yeni şifreni kaydet."
       },
       "subtitle": "Şifreni unuttuysan, buradan sıfırlayabilirsin."
-    }
+    },
+    "publish-name": {
+      "alias-or-initials": "Kullanıcı adı veya baş harfler",
+      "alias-or-initials-tooltip": "Varsa kullanıcı adı, yoksa adın ve soyadın baş harfleri, her birinin ilk iki harfi",
+      "first": "Ad",
+      "first-initial": "Ad ve baş harf",
+      "first-initial-tooltip": "Ad artı soyadının ilk harfi",
+      "first-tooltip": "Yalnızca ad",
+      "initials": "Baş harfler",
+      "initials-tooltip": "Ad ve soyadın baş harfleri, yani kullanıcı adının varlığından bağımsız olarak her birinin ilk iki harfi",
+      "name-full": "Ad ve soyad",
+      "name-full-tooltip": "Tam ad: ad artı soyad"
+    },
+    "showAmountGDD": "GDD tutarın görünür.",
+    "showAmountGDT": "GDT tutarın görünür.",
+    "username": {
+      "change-success": "Kullanıcı adın başarıyla değiştirildi.",
+      "no-username": "Lütfen bir kullanıcı adı gir. Böylece diğer kullanıcıların e-posta adresini açıklamadan seni bulmasına yardımcı olursun."
+    },
+    "usernameInfo": "Kaydettikten sonra değiştirilemez!"
   },
   "signin": "Giriş yap",
   "signup": "Kayıt ol",
@@ -306,16 +489,12 @@
     "forgotPassword": {
       "heading": "Lütfen kayıtlı olduğun e-posta adresini buraya gir."
     },
-    "login": {
-      "heading": "Erişim bilgilerinle oturum aç. Onları güvenle sakla!"
-    },
     "resetPassword": {
       "heading": "Lütfen şifreni gir ve tekrarla."
     },
     "signup": {
       "agree": "<a href='https://gradido.net/en/datenschutz/' target='_blank' > gizlilik politikasını</a> kabul ediyorum.",
       "dont_match": "Şifreler eşleşmiyor.",
-      "heading": "Tüm verileri eksiksiz ve doğru alanlara girerek kayıt ol.",
       "lowercase": "Küçük bir harf gerekli.",
       "minimum": "Minimum 8 karakter.",
       "no-whitespace": "Boşluk ve sekme yok",
@@ -324,6 +503,8 @@
       "uppercase": "Büyük bir harf gerekli."
     }
   },
+  "status": "Durum",
+  "submitted": "Gönderildi",
   "success": "Başarılı",
   "time": {
     "days": "Günler",
@@ -335,8 +516,7 @@
     "years": "Yıl"
   },
   "transaction": {
-    "gdd-text": "Gradido İşlemleri",
-    "gdt-text": "GradidoTransform (GDT) İşlemleri",
+    "lastTransactions": "Son İşlemler",
     "nullTransactions": "Henüz hesabınında herhangi bir işlem yok.",
     "receiverDeleted": "Alıcı hesabı silindi",
     "receiverNotFound": "Alıcı bulunamadı",
@@ -344,6 +524,11 @@
   },
   "transaction-link": {
     "send_you": "sana gönderiyor"
+  },
+  "usersearch": {
+    "button": "Kullanıcı aramasını başlat...",
+    "headline": "Coğrafi Kullanıcı Arama",
+    "text": "Hangi topluluğa ait olursan ol, Geo Matching System ile tüm toplulukların üyelerini bir haritada bulabilirsin. Tekliflere ve ihtiyaçlara göre filtreleyebilir ve sana uygun kullanıcıları görüntüleyebilirsin.\n\nDüğmeyle, çevrendeki kullanıcıların bir haritada gösterildiği yeni bir tarayıcı penceresi açılır."
   },
   "via_link": "link yoluyla",
   "welcome": "Topluluğa hoşgeldin"
