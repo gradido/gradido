@@ -30,6 +30,12 @@ const locales = [
     enabled: true,
   },
   {
+    name: 'Italiano',
+    code: 'it',
+    iso: 'it-IT',
+    enabled: true,
+  },
+  {
     name: 'Türkçe',
     code: 'tr',
     iso: 'tr-TR',

@@ -9,6 +9,7 @@ import es from '@vee-validate/i18n/dist/locale/es.json'
 import fr from '@vee-validate/i18n/dist/locale/fr.json'
 import nl from '@vee-validate/i18n/dist/locale/nl.json'
 import tr from '@vee-validate/i18n/dist/locale/tr.json'
+import it from '@vee-validate/i18n/dist/locale/it.json'
 import { useI18n } from 'vue-i18n'
 
 // username regex pattern remain the same
@@ -31,6 +32,7 @@ export const loadAllRules = (i18nCallback, apollo) => {
         fr,
         nl,
         tr,
+        it,
       })(context)
     },
     validateOnBlur: true,
