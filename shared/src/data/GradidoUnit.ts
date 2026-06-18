@@ -1,3 +1,4 @@
+import { inspect } from 'node:util'
 import {
   calculateDecay as calculateDecayNative,
   gradidoUnitFromString,
@@ -13,6 +14,10 @@ export class GradidoUnit {
 
   constructor(value: bigint) {
     this.gddCentValue = BigInt(value)
+  }
+
+  [inspect.custom]() {
+    return `${this.toString(4)} GDD`
   }
 
   public static fromNumber(value: number): GradidoUnit {

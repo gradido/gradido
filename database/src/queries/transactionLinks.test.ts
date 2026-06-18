@@ -1,3 +1,5 @@
+import { CODE_VALID_DAYS_DURATION, Duration, GradidoUnit } from 'shared'
+import { calculateDecay } from 'shared-native'
 import {
   AppDatabase,
   bibiBloxberg,
@@ -6,11 +8,9 @@ import {
   UserContact as DbUserContact,
   TransactionLinkInterface,
   transactionLinkFactoryBulk,
+  transactionLinksPendingFromUserOrderByIdASC,
   userFactory,
-} from 'database'
-import { CODE_VALID_DAYS_DURATION, Duration, GradidoUnit } from 'shared'
-import { calculateDecay } from 'shared-native'
-import { transactionLinksDecayed } from './transactionLinksDecayed'
+} from '..'
 
 const db = AppDatabase.getInstance()
 
@@ -24,7 +24,7 @@ afterAll(async () => {
 let bibiUser: DbUser
 const startDate = new Date('2022-03-21T03:33:33Z')
 
-describe('transactionLinksDecayed', () => {
+describe('transactionLinks', () => {
   beforeAll(async () => {
     await DbUser.clear()
     await DbUserContact.clear()
@@ -33,7 +33,7 @@ describe('transactionLinksDecayed', () => {
     const bibi = bibiBloxberg
     bibiUser = await userFactory(bibi)
   })
-  it('should calculate decayed amounts correctly', async () => {
+  it('transactionLinksPendingFromUserOrderByIdASC', async () => {
     const transactionLinks: TransactionLinkInterface[] = [
       {
         email: bibiUser.emailContact.email,
@@ -61,38 +61,30 @@ describe('transactionLinksDecayed', () => {
       },
     ]
     // fill db
-    const transactionLinkDBPromise = transactionLinkFactoryBulk(
+    await transactionLinkFactoryBulk(
       transactionLinks,
       new Map([[bibiUser.emailContact.email, bibiUser]]),
     )
+    let dbTransactionLinks = await transactionLinksPendingFromUserOrderByIdASC(
+      bibiUser.id,
+      4,
+      0,
+      Duration.days(11).addToDate(startDate),
+    )
+    expect(dbTransactionLinks.length).toBe(4)
 
-    // calculate decayed sum manually while db is filled
-    let decayedSum = new GradidoUnit(0n)
-    let sumAmount = new GradidoUnit(0n)
-    const endDate = Duration.days(12).addToDate(startDate)
-    const linkTime = Duration.days(CODE_VALID_DAYS_DURATION)
-    for (const tx of transactionLinks) {
-      const duration = GradidoUnit.effectiveDecayDuration(tx.createdAt!, endDate)
-      const gddAmount = GradidoUnit.fromNumber(tx.amount).gddCent
-      const holdAvailableAmount = calculateDecay(gddAmount, BigInt(-linkTime.seconds))
-      const decayed = calculateDecay(holdAvailableAmount, BigInt(duration.seconds))
-      decayedSum = decayedSum.add(GradidoUnit.fromGradidoCent(decayed))
-      sumAmount = sumAmount.add(GradidoUnit.fromNumber(tx.amount))
-    }
-
-    await transactionLinkDBPromise
-    const result = await transactionLinksDecayed(bibiUser.id, endDate)
-    expect(result.sumAmount.comparedTo(sumAmount)).toBe(0n)
-    expect(result.sumHoldAvailableDecayedAmount.comparedTo(decayedSum)).toBe(0n)
-    expect(result.transactionLinkCount).toBe(transactionLinks.length)
-    // verified reference decay value for fixed test dataset
-    expect(result.sumHoldAvailableDecayedAmount.comparedTo(new GradidoUnit(3467208n))).toBe(0n)
+    dbTransactionLinks = await transactionLinksPendingFromUserOrderByIdASC(
+      bibiUser.id,
+      2,
+      0,
+      Duration.days(11).addToDate(startDate),
+    )
+    expect(dbTransactionLinks.length).toBe(2)
   })
 
-  it('test pagination', async () => {
+  it('transactionLinksPendingFromUserOrderByIdASC pagination', async () => {
     // the data from previous test are still in db, so let's start after all should be expired
     const localStartDate = Duration.days(17).addToDate(startDate)
-    db.changeDefaultBatchSize(10)
     const transactionLinks: TransactionLinkInterface[] = []
     let sumAmount = new GradidoUnit(0n)
     for (let i = 0; i < 25; i++) {
@@ -110,10 +102,12 @@ describe('transactionLinksDecayed', () => {
       transactionLinks,
       new Map([[bibiUser.emailContact.email, bibiUser]]),
     )
-    const result = await transactionLinksDecayed(bibiUser.id, endDate)
-    expect(result.sumAmount.comparedTo(sumAmount)).toBe(0n)
-    expect(result.transactionLinkCount).toBe(transactionLinks.length)
-    db.changeDefaultBatchSize(100)
+    let result = await transactionLinksPendingFromUserOrderByIdASC(bibiUser.id, 10, 0, endDate)
+    expect(result.length).toBe(10)
+    expect(result[0].id).toBe(5)
+    result = await transactionLinksPendingFromUserOrderByIdASC(bibiUser.id, 8, 10, endDate)
+    expect(result.length).toBe(8)
+    expect(result[0].id).toBe(11)
   })
 
   it('fill db with 1.000 random data sets', async () => {
@@ -138,8 +132,8 @@ describe('transactionLinksDecayed', () => {
 
   it('test speed with 1.000 random data sets', async () => {
     const endDate = Duration.days(12 + 35).addToDate(startDate)
-    const result = await transactionLinksDecayed(bibiUser.id, endDate)
-    expect(result.transactionLinkCount).toBe(1000)
+    const result = await transactionLinksPendingFromUserOrderByIdASC(bibiUser.id, 1000, 0, endDate)
+    expect(result.length).toBe(1000)
     // no assertion, just to check if it is fast enough
   })
 })
