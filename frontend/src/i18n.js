@@ -8,6 +8,7 @@ import tr from './locales/tr.json'
 import it from './locales/it.json'
 import ru from './locales/ru.json'
 import pt from './locales/pt.json'
+import el from './locales/el.json'
 
 const numberFormats = {
   it: {
@@ -102,6 +103,19 @@ const numberFormats = {
     },
   },
   pt: {
+    decimal: {
+      style: 'decimal',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    },
+    ungroupedDecimal: {
+      style: 'decimal',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+      useGrouping: false,
+    },
+  },
+  el: {
     decimal: {
       style: 'decimal',
       minimumFractionDigits: 2,
@@ -366,13 +380,44 @@ const datetimeFormats = {
       minute: 'numeric',
     },
   },
+  el: {
+    short: {
+      day: 'numeric',
+      month: 'numeric',
+      year: 'numeric',
+    },
+    long: {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: 'numeric',
+    },
+    monthShort: {
+      month: 'short',
+    },
+    month: {
+      month: 'long',
+    },
+    year: {
+      year: 'numeric',
+    },
+    monthAndYear: {
+      month: 'long',
+      year: 'numeric',
+    },
+    time: {
+      hour: 'numeric',
+      minute: 'numeric',
+    },
+  },
 }
 
 export default createI18n({
   locale: 'en',
   legacy: false,
   fallbackLocale: 'en',
-  messages: { de, en, es, fr, tr, nl, it, ru, pt },
+  messages: { de, en, es, fr, tr, nl, it, ru, pt, el },
   numberFormats,
   datetimeFormats,
 })
