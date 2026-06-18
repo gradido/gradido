@@ -10,8 +10,8 @@ import fs from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
 import AdmZip from 'adm-zip'
-import headers from 'node-api-headers'
 import addonHeaders from 'node-addon-api'
+import headers from 'node-api-headers'
 import { type TargetTriple } from '.'
 import { getZigDownloadUrl } from './dowload_paths'
 import { checkFileExist, moveContentsUp } from './filesystem'
@@ -98,14 +98,11 @@ export async function detectTargetTriple(): Promise<TargetTriple> {
   throw new Error(`Unsupported platform/arch combination: ${platform}/${arch}`)
 }
 
-interface NapiModule {
-  include: string
-}
 export async function fetchDeps(): Promise<[flags: string[], zig: string]> {
   const flags = [
     `-Dnode-headers=${headers.include_dir}`,
     `-Dnode-api-def=${headers.def_paths.node_api_def}`,
-    `-Dnapi-headers=${addonHeaders.include_dir}`
+    `-Dnapi-headers=${addonHeaders.include_dir}`,
   ]
   const zig = await fetchZig()
   return [flags, zig]

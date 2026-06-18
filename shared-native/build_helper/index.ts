@@ -116,7 +116,7 @@ interface BaseTarget {
 interface NixTarget extends BaseTarget {
   target: NixTargetTriple
   /** Runtime library search paths */
-  rpath?: string | string[]
+  rpath?: string[]
 }
 interface GnuTarget extends NixTarget {
   target: GnuTargetTriple
@@ -137,8 +137,6 @@ function buildOne(
     // zig reads the glibc version from the end of gnu triple after a dot
     triple += `.${target.glibc}`
   }
-
-  const lang = (target.std?.includes('++') ?? true) ? 'c++' : 'cc'
 
   // base flags for c/++ compilation, always the same
   // use baseline instruction set for the target by default
@@ -183,10 +181,8 @@ function buildOne(
   }
 
   if ('rpath' in target && target.rpath) {
-    // specify rpaths as a linker flags
-    for (const r of a(target.rpath)) {
-      flags.push(`-Drpath=${r}`)
-    }
+    // specify rpath as a linker flag
+    flags.push(`-Drpath=${target.rpath}`)
   }
 
   if (target.verbose) {
@@ -198,7 +194,6 @@ function buildOne(
   }
 
   return exec(zig, flags, { cwd, log })
-
 }
 
 /**
@@ -213,8 +208,8 @@ export async function build(
 ): Promise<void> {
   const [nodeFlags, zig] = await fetchDeps()
 
-  let tasks: Promise<number>[] = []
-  for(const [name, target] of Object.entries(targets)) {
+  const tasks: Promise<number>[] = []
+  for (const [name, target] of Object.entries(targets)) {
     tasks.push(buildOne(target, cwd, nodeFlags, zig, makeLogger(name)))
   }
   await Promise.all(tasks)
