@@ -101,9 +101,11 @@ export async function detectTargetTriple(): Promise<TargetTriple> {
 export async function fetchDeps(): Promise<[flags: string[], zig: string]> {
   const flags = [
     `-Dnode-headers=${headers.include_dir}`,
-    `-Dnode-api-def=${headers.def_paths.node_api_def}`,
     `-Dnapi-headers=${addonHeaders.include_dir}`,
   ]
+  if (isWin32()) {
+    flags.push(`-Dnode-api-def=${headers.def_paths.node_api_def}`)
+  }
   const zig = await fetchZig()
   return [flags, zig]
 }
