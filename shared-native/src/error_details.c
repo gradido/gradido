@@ -79,7 +79,7 @@ static void release_field(char *field, grd_error_details *error_details, int fie
   if (field_flag == (field_flag & error_details->used_default_malloc_flag)) {
     free(field);
   } else {
-    grd_memory_buffer_free(field, error_details->allocator);
+    grd_memory_buffer_free((uint8_t *)field, error_details->allocator);
   }
 }
 

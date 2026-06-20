@@ -67,6 +67,34 @@ grd_result grdr_complete_transaction_init_from_protobuf(
   return grdm_complete_transaction_from_wire(tx, &body, &wire_tx, community_uuid);
 }
 
+const grdd_timestamp *grdr_complete_transaction_get_confirmed_at(
+    const grdr_complete_transaction *tx
+) {
+  if (!tx) { return NULL; }
+  return &tx->confirmed_at;
+}
+
+const grdd_timestamp *grdr_complete_transaction_get_created_at(
+    const grdr_complete_transaction *tx
+) {
+  if (!tx) { return NULL; }
+  return &tx->created_at;
+}
+
+const uint8_t *grdr_complete_transaction_get_tx_community_uuid(
+    const grdr_complete_transaction *tx
+) {
+  if (!tx) { return NULL; }
+  return tx->tx_community_uuid;
+}
+
+const grdw_ledger_anchor *grdr_complete_transaction_get_ledger_anchor(
+    const grdr_complete_transaction *tx
+) {
+  if (!tx) { return NULL; }
+  return &tx->ledger_anchor;
+}
+
 const grdw_account_balance *grdr_complete_transaction_get_account_balance_for_public_key(
     const grdr_complete_transaction *tx, const uint8_t public_key[SIGN_PUBLIC_KEY_SIZE]
 ) {

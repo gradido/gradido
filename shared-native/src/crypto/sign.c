@@ -27,7 +27,7 @@
 
 void grdc_sign_key_pair_init(grdc_sign_key_pair *sign_key_pair) {
   if (!sign_key_pair) { return; }
-  memset(sign_key_pair, 0, sizeof(sign_key_pair));
+  memset(sign_key_pair, 0, sizeof(grdc_sign_key_pair));
 }
 
 grd_result grdc_sign_key_pair_generate_from_seed(
@@ -73,7 +73,7 @@ grd_result grdc_sign_key_pair_derive(
   data[0] = 0;
 
   // key
-  memcpy(data + 1, sign_parent_key_pair->seed, 32);
+  memcpy(data + 1, sign_parent_key_pair->seed, SIGN_SEED_SIZE);
 
   // index (big endian!)
   data[33] = (harden_index >> 24) & 0xFF;

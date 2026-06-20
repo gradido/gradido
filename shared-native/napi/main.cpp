@@ -1,6 +1,7 @@
 #include "CompleteTransaction.h"
 #include "crypto.h"
 #include "gradidoUnit.h"
+#include "LedgerAnchor.h"
 #include "types.h"
 #include "utils.h"
 
@@ -10,6 +11,7 @@
 Napi::Object Init(Napi::Env env, Napi::Object exports) {
     exports.Set("calculateDecay", Napi::Function::New(env, gradidoUnit::CalculateDecay));
     exports.Set("getDecayStartTime", Napi::Function::New(env, gradidoUnit::GetDecayStartTime));
+    exports.Set("getDecayRespiteCent", Napi::Function::New(env, gradidoUnit::GetDecayRespiteCent));
     exports.Set("gradidoUnitFromString", Napi::Function::New(env, gradidoUnit::FromString));
     exports.Set("gradidoUnitToString", Napi::Function::New(env, gradidoUnit::ToString));
     exports.Set("toDecimalPlaces", Napi::Function::New(env, gradidoUnit::ToDecimalPlaces));
@@ -28,6 +30,7 @@ Napi::Object Init(Napi::Env env, Napi::Object exports) {
 
     gradido::data::runtime::CompleteTransaction::Init(env, exports);
     gradido::utils::MonotonicTimer::Init(env, exports);
+    gradido::data::wire::LedgerAnchor::Init(env, exports);
 
     return exports;
 }

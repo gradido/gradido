@@ -5,10 +5,10 @@
 extern "C" {
 #endif
 
-#include "basic_types.h"
 #include "gradido_blockchain_core/data/timestamp.h"
 #include "gradido_blockchain_core/result.h"
 
+#include <stddef.h>
 #include <stdint.h>
 
 /** @defgroup grdw_hiero grdw_hiero
@@ -33,6 +33,14 @@ typedef struct grdw_hiero_account_id {
   int64_t accountNum;
 } grdw_hiero_account_id;
 
+int64_t grdw_hiero_account_id_get_shared_num(const grdw_hiero_account_id *hiero_account_id);
+int64_t grdw_hiero_account_id_get_realm_num(const grdw_hiero_account_id *hiero_account_id);
+int64_t grdw_hiero_account_id_get_account_num(const grdw_hiero_account_id *hiero_account_id);
+size_t grdw_hiero_account_id_calculate_string_size(const grdw_hiero_account_id *hiero_account_id);
+size_t grdw_hiero_account_id_to_string(
+    char *buffer, size_t buffer_size, const grdw_hiero_account_id *hiero_account_id
+);
+
 /**
  * @brief Hiero transaction identifier with valid start time and account.
  *
@@ -46,6 +54,19 @@ typedef struct grdw_hiero_transaction_id {
   //! Account identifier of the transaction initiator.
   grdw_hiero_account_id accountID;
 } grdw_hiero_transaction_id;
+
+const grdd_timestamp *grdw_hiero_transaction_id_get_transaction_valid_start(
+    const grdw_hiero_transaction_id *hiero_transaction_id
+);
+const grdw_hiero_account_id *grdw_hiero_transaction_id_get_account_id(
+    const grdw_hiero_transaction_id *hiero_transaction_id
+);
+size_t grdw_hiero_transaction_id_calculate_string_size(
+    const grdw_hiero_transaction_id *hiero_transaction_id
+);
+size_t grdw_hiero_transaction_id_to_string(
+    char *buffer, size_t buffer_size, const grdw_hiero_transaction_id *hiero_transaction_id
+);
 
 /** @} */
 
