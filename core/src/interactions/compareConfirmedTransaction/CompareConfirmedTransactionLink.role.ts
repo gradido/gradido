@@ -81,7 +81,6 @@ export class CompareConfirmedTransactionLinkRole extends AbstractCompareConfirme
         error: new CompareError('Missing founding account public key for transaction link'),
       })
     }
-    const foundedAccountPublicKeyHex = Buffer.from(foundedAccountPublicKey).toString('hex')
 
     result = this.isIdenticalGdd(
       'amount with future decay',
@@ -96,13 +95,13 @@ export class CompareConfirmedTransactionLinkRole extends AbstractCompareConfirme
 
     // GRDT_ADDRESS_DEFERRED_TRANSFER
     const foundingAccount = AccountKeyPair.fromTransactionLinkCode(transactionLink.code)
-    if (foundingAccount.publicKeyString !== foundedAccountPublicKeyHex) {
+    if (foundingAccount.publicKeyString !== foundedAccountPublicKey) {
       return Promise.resolve({
         success: false,
         error: new CompareError(
           "code hash as seed for ed25519 key pair generation don't produce correct public key",
           foundingAccount.publicKeyString,
-          foundedAccountPublicKeyHex,
+          foundedAccountPublicKey,
         ),
       })
     }

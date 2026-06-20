@@ -27,7 +27,7 @@ export async function dbUpdateBalanceAndDate(txPart: {
     .update(transactionsTable)
     .set({
       balance: txPart.balance,
-      balanceDate: txPart.balanceDate.toISOString(),
+      balanceDate: txPart.balanceDate,
     })
     .where(eq(transactionsTable.id, txPart.id))
 

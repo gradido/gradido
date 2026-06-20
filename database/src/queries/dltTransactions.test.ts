@@ -10,6 +10,7 @@ import {
   TransactionTypeId,
 } from '..'
 import { AppDatabase } from '../AppDatabase'
+import { resolveDltTransactionByLedgerAnchor } from '../logic'
 import { createCommunity } from '../seeds/community'
 import { creationFactory, nMonthsBefore } from '../seeds/factory/creation'
 import { transferGradidos } from '../seeds/factory/transaction'
@@ -18,11 +19,7 @@ import { userFactory } from '../seeds/factory/user'
 import { transactionLinks } from '../seeds/transactionLink'
 import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
 import { peterLustig } from '../seeds/users/peter-lustig'
-import {
-  dbInsertDltTransaction,
-  dbSelectDltTransactionByLedgerAnchor,
-  dbUpdateWithErrorDltTransaction,
-} from './dltTransactions'
+import { dbInsertDltTransaction, dbUpdateWithErrorDltTransaction } from './dltTransactions'
 
 const appDB = AppDatabase.getInstance()
 
@@ -110,7 +107,7 @@ describe('dlt transactions query test', () => {
       })
       expect(insertResult.success).toBeTruthy()
 
-      const result = await dbSelectDltTransactionByLedgerAnchor(
+      const result = await resolveDltTransactionByLedgerAnchor(
         ledgerAnchor,
         'GRDT_TRANSACTION_REGISTER_ADDRESS',
       )
@@ -135,7 +132,7 @@ describe('dlt transactions query test', () => {
       })
       expect(insertResult.success).toBeTruthy()
 
-      const result = await dbSelectDltTransactionByLedgerAnchor(
+      const result = await resolveDltTransactionByLedgerAnchor(
         ledgerAnchor,
         'GRDT_TRANSACTION_CREATION',
       )
@@ -162,7 +159,7 @@ describe('dlt transactions query test', () => {
       })
       expect(insertResult.success).toBeTruthy()
 
-      const result = await dbSelectDltTransactionByLedgerAnchor(
+      const result = await resolveDltTransactionByLedgerAnchor(
         ledgerAnchor,
         'GRDT_TRANSACTION_TRANSFER',
       )
@@ -192,7 +189,7 @@ describe('dlt transactions query test', () => {
       })
       expect(insertResult.success).toBeTruthy()
 
-      const result = await dbSelectDltTransactionByLedgerAnchor(
+      const result = await resolveDltTransactionByLedgerAnchor(
         ledgerAnchor,
         'GRDT_TRANSACTION_DEFERRED_TRANSFER',
       )
@@ -214,7 +211,7 @@ describe('dlt transactions query test', () => {
         { seconds: 1781429262n },
         { accountNum: 21281n },
       )
-      const result = await dbSelectDltTransactionByLedgerAnchor(
+      const result = await resolveDltTransactionByLedgerAnchor(
         ledgerAnchor,
         'GRDT_TRANSACTION_TRANSFER',
       )
@@ -238,7 +235,7 @@ describe('dlt transactions query test', () => {
         typeId: DltTransactionType.TRANSFER,
       })
 
-      const result = await dbSelectDltTransactionByLedgerAnchor(
+      const result = await resolveDltTransactionByLedgerAnchor(
         ledgerAnchor,
         'GRDT_TRANSACTION_TRANSFER',
       )
@@ -261,7 +258,7 @@ describe('dlt transactions query test', () => {
         typeId: DltTransactionType.REGISTER_ADDRESS,
       })
 
-      const result = await dbSelectDltTransactionByLedgerAnchor(
+      const result = await resolveDltTransactionByLedgerAnchor(
         ledgerAnchor,
         'GRDT_TRANSACTION_REGISTER_ADDRESS',
       )
@@ -283,7 +280,7 @@ describe('dlt transactions query test', () => {
         typeId: DltTransactionType.DEFERRED_TRANSFER,
       })
 
-      const result = await dbSelectDltTransactionByLedgerAnchor(
+      const result = await resolveDltTransactionByLedgerAnchor(
         ledgerAnchor,
         'GRDT_TRANSACTION_DEFERRED_TRANSFER',
       )

@@ -1,16 +1,11 @@
-import {
-  compareConfirmedTransaction,
-  MutationErrorType,
-  MutationResult,
-  transactionLinksDecayed,
-} from 'core'
+import { compareConfirmedTransaction, MutationErrorType, MutationResult } from 'core'
 import {
   DBNotFoundError,
-  dbSelectDltTransactionByLedgerAnchor,
   dbUpdateConfirmedDltTransaction,
   dbUpdateWithErrorDltTransaction,
   dbUpdateWithErrorDltTransactionByHieroTransactionId,
   getHomeCommunity,
+  resolveDltTransactionByLedgerAnchor,
 } from 'database'
 import { getLogger } from 'log4js'
 import { CompleteTransaction, VoidResult } from 'shared'
@@ -73,7 +68,7 @@ export class BlockchainNotificationResolver {
       const transactionType = tx.getTransactionType()
       const ledgerAnchor = tx.getLedgerAnchor()
 
-      const dltTransactionResult = await dbSelectDltTransactionByLedgerAnchor(
+      const dltTransactionResult = await resolveDltTransactionByLedgerAnchor(
         ledgerAnchor,
         transactionType,
       )
@@ -82,6 +77,7 @@ export class BlockchainNotificationResolver {
         // probably our own mistake, didn't need to tell GradidoNode
         return { success: true }
       }
+      const dltTransactionId = dltTransactionResult.value.dltTransaction.id
       // load balance taking pending transaction links into account
       // will also sync tx balance and balance date with confirmed transaction confirmedAt
       const compareResult = await compareConfirmedTransaction(dltTransactionResult.value, tx, true)
@@ -93,22 +89,27 @@ export class BlockchainNotificationResolver {
           node: args.transactionBase64,
         })
         updateResult = await dbUpdateWithErrorDltTransaction(
-          dltTransactionResult.value.dltTransaction.id,
+          dltTransactionId,
           compareResult.error.message,
         )
       } else {
-        updateResult = await dbUpdateConfirmedDltTransaction(
-          dltTransactionResult.value.dltTransaction.id,
-          tx.getConfirmedAt().toISOString(),
-        )
+        updateResult = await dbUpdateConfirmedDltTransaction(dltTransactionId, tx.getConfirmedAt())
       }
       if (!updateResult.success) {
         logger.error("couldn't update dlt transaction", updateResult.error)
+      } else if (!compareResult.success) {
+        logger.error(
+          `Error on confirming Transaction by GradidoNode for dltTransaction.id = ${dltTransactionId}`,
+          compareResult.error,
+        )
+      } else {
+        logger.info(
+          `Success on confirming Transaction by GradidoNode for dltTransaction.id = ${dltTransactionId}`,
+        )
       }
     } catch (e) {
       logger.fatal(e)
     }
-
     return { success: true }
   }
 

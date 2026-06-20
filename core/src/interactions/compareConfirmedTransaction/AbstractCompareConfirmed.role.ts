@@ -10,8 +10,12 @@ import {
 } from 'shared'
 import { CONFIG } from '../../config'
 
-function abs(n: bigint | number) {
-  return n < 0n ? -n : n
+function abs<T extends number | bigint>(n: T): T {
+  if (typeof n === 'bigint') {
+    return (n < 0n ? -n : n) as T
+  } else {
+    return (n < 0 ? -n : n) as T
+  }
 }
 
 export abstract class AbstractCompareConfirmedRole {
@@ -108,7 +112,7 @@ export abstract class AbstractCompareConfirmedRole {
         `${dbUser.communityUuid} != ${dltUserCommunityUuid}`,
       )
     } else if (!CONFIG.HOME_COMMUNITY_SEED) {
-      error = new CompareError('Missing Home Community Seed for calculating Account Key Pair')
+      throw new CompareError('Missing Home Community Seed for calculating Account Key Pair')
     } else {
       const accountKeyPair = AccountKeyPair.fromSeedAndUserUuidAndAccountNumber(
         CONFIG.HOME_COMMUNITY_SEED,
@@ -138,9 +142,12 @@ export abstract class AbstractCompareConfirmedRole {
       error = new CompareError('tx.user is not the same as linkedTx.linkedUserId')
     } else if (tx.linkedUserId !== linkedTx.userId) {
       error = new CompareError('tx.linkedUserId is not the same as linkedTx.userId')
-    } else if (tx.amount !== linkedTx.amount) {
+    } else if (!tx.amount || !linkedTx.amount) {
+      error = new CompareError('tx.amount or linkedTx.amount are missing')
+    } else if (tx.amount.comparedTo(linkedTx.amount.negated()) !== 0n) {
+      // in db on tx pair one has a reverted amount
       error = new CompareError('tx.amount is not the same as linkedTx.amount')
-    } else if (tx.balanceDate !== linkedTx.balanceDate) {
+    } else if (tx.balanceDate.getTime() !== linkedTx.balanceDate.getTime()) {
       error = new CompareError('tx.balanceDate is not the same as linkedTx.balanceDate')
     } else if (tx.transactionLinkId !== linkedTx.transactionLinkId) {
       error = new CompareError(
