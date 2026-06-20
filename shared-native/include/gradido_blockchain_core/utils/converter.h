@@ -12,6 +12,7 @@ extern "C" {
 #endif
 
 typedef struct grd_memory_block grd_memory_block;
+typedef struct grd_memory grd_memory;
 
 /** @defgroup utils Utilities */
 
@@ -83,6 +84,7 @@ size_t grdu_uint64_to_string_size(uint64_t value);
 size_t grdu_int64_to_string_size(int64_t value);
 
 #ifdef USE_SODIUM
+
 /**
  * @param[out] result_buffer expected to be 37 bytes for string uuid format with \0
  */
@@ -104,6 +106,33 @@ grd_result grdu_binary_to_hex(char *result_buffer, const grd_memory_block *data)
  * @param hex[in] expected to be null terminated string
  */
 grd_result grdu_binary_from_hex(uint8_t *result_buffer, const char *hex);
+
+/**
+ * for precalculation of neccessary size
+ */
+size_t grdu_binary_to_base64_length(size_t binSize);
+
+/**
+ * reserve enough memory before in result_block, for example with grdu_binary_to_base64_length
+ * will write string with terminator \0 into result_block->data
+ */
+grd_result grdu_binary_to_base64_with_known_size(
+    grd_memory_block *result_block, const grd_memory_block *data
+);
+
+/**
+ * will reserve memory through allocator
+ */
+grd_result grdu_binary_to_base64(
+    grd_memory_block *result_block, const grd_memory_block *data, grd_memory *allocator
+);
+
+/**
+ * @param result_buffer[out] expected to be (strlen(base64_str) / 4) * 3
+ * @param base64_str[in] expected to be null terminated string
+ * @return actual binary size or 0 on error
+ */
+size_t grdu_binary_from_base64(grd_memory_block *result_block, const char *base64_str);
 
 #endif // USE_SODIUM
 /**

@@ -1,0 +1,105 @@
+{
+  "emails": {
+    "accountActivation": {
+      "activateAccount": "Ativar conta",
+      "emailRegistered": "o teu endereço de e-mail acabou de ser registado no Gradido.",
+      "pleaseClickLink": "Clica aqui para concluir o registo e ativar a tua conta Gradido.",
+      "subject": "Verificação de e-mail",
+      "title": "Verificação de e-mail"
+    },
+    "accountMultiRegistration": {
+      "contactSupport": "Contactar o suporte",
+      "emailExists": "No entanto, já existe uma conta para o teu endereço de e-mail.",
+      "emailReused": "o teu endereço de e-mail acabou de ser utilizado novamente para registar uma conta no Gradido.",
+      "ifYouAreNotTheOne": "Se não tentaste registar-te novamente, contacta o nosso suporte:",
+      "onForgottenPasswordClickLink": "Se te esqueceste da tua palavra-passe, clica aqui.",
+      "subject": "Nova tentativa de registo com o teu e-mail",
+      "title": "Nova tentativa de registo com o teu e-mail"
+    },
+    "addedContributionMessage": {
+      "commonGoodContributionMessage": "recebeste uma mensagem de {senderFirstName} {senderLastName} sobre a tua contribuição para o bem comum «{contributionMemo}».",
+      "message": "«{message}»",
+      "readMessage": "Ler e responder à mensagem",
+      "subject": "Mensagem sobre a tua contribuição para o bem comum",
+      "title": "Mensagem sobre a tua contribuição para o bem comum",
+      "toSeeAndAnswerMessage": "Para responder à mensagem, vai ao menu «Criar» da tua conta Gradido e clica no separador «As minhas contribuições»."
+    },
+    "contribution": {
+      "toSeeContributionsAndMessages": "Para veres as tuas contribuições para o bem comum e as mensagens associadas, vai ao menu «Criar» da tua conta Gradido e clica no separador «As minhas contribuições»."
+    },
+    "contributionChangedByModerator": {
+      "subject": "A tua contribuição para o bem comum foi alterada",
+      "text": "a tua contribuição para o bem comum «{contributionMemo}» acabou de ser alterada por {senderFirstName} {senderLastName} e agora diz «{contributionMemoUpdated}»",
+      "title": "A tua contribuição para o bem comum foi alterada"
+    },
+    "contributionConfirmed": {
+      "commonGoodContributionConfirmed": "a tua contribuição para o bem comum «{contributionMemo}» acabou de ser confirmada por {senderFirstName} {senderLastName}. Foram creditados {amountGDD} GDD na tua conta Gradido.",
+      "subject": "A tua contribuição para o bem comum foi confirmada",
+      "title": "A tua contribuição para o bem comum foi confirmada"
+    },
+    "contributionDeleted": {
+      "commonGoodContributionDeleted": "a tua contribuição para o bem comum «{contributionMemo}» foi eliminada por {senderFirstName} {senderLastName}.",
+      "subject": "A tua contribuição para o bem comum foi eliminada",
+      "title": "A tua contribuição para o bem comum foi eliminada"
+    },
+    "contributionDenied": {
+      "commonGoodContributionDenied": "a tua contribuição para o bem comum «{contributionMemo}» foi rejeitada por {senderFirstName} {senderLastName}.",
+      "subject": "A tua contribuição para o bem comum foi rejeitada",
+      "title": "A tua contribuição para o bem comum foi rejeitada"
+    },
+    "customEmail": {
+      "haveReceivedMessageFrom": "acabaste de receber uma mensagem de {senderFirstName} {senderLastName}",
+      "title": "{senderFirstName} {senderLastName} enviou-te uma mensagem"
+    },
+    "footer": {
+      "contactOurSupport": "Se tiveres mais questões, contacta o nosso suporte.",
+      "imprint": "Aviso legal",
+      "imprintAddress": "Gradido-Akademie\nInstitut für Wirtschaftsbionik\nPfarrweg 2\n74653 Künzelsau\nDeutschland",
+      "imprintImageAlt": "Logótipo Gradido-Akademie",
+      "privacyPolicy": "Política de privacidade",
+      "supportEmail": "support@gradido.net"
+    },
+    "general": {
+      "amountGDD": "Montante: {amountGDD} GDD",
+      "answerNow": "Responder",
+      "completeRegistration": "Concluir o registo",
+      "contribution": "Contribuição para o bem comum: {contributionMemo}",
+      "contributionDetails": "Detalhes da contribuição",
+      "detailsYouFindOnLinkToYourAccount": "Encontras os detalhes da transação na tua conta Gradido.",
+      "helloName": "Olá {firstName} {lastName},",
+      "linkValidity": "O link é válido durante {hours} horas.\nSe a validade do link já tiver expirado, podes pedir aqui o envio de um novo link.",
+      "linkValidityWithMinutes": "O link é válido durante {hours} horas e {minutes} minutos.\nSe a validade do link já tiver expirado, podes pedir aqui o envio de um novo link.",
+      "message": "Mensagem",
+      "newLink": "Novo link",
+      "orCopyLink": "Ou copia o link para a janela do teu navegador.",
+      "pleaseDoNotReply": "Por favor, não respondas a este e-mail.",
+      "requestNewLink": "Pedir um novo link válido",
+      "reset": "repor",
+      "sincerelyYours": "Com os melhores cumprimentos,",
+      "toAccount": "Para a conta",
+      "transactionDetails": "Detalhes da transação",
+      "yourGradidoTeam": "a tua equipa Gradido"
+    },
+    "resetPassword": {
+      "pleaseClickLink": "Se foste tu, clica aqui.",
+      "subject": "Repor a palavra-passe",
+      "title": "Repor a palavra-passe",
+      "youOrSomeoneResetPassword": "tu, ou outra pessoa, pediste a reposição da palavra-passe desta conta."
+    },
+    "transactionLinkRedeemed": {
+      "hasRedeemedYourLink": "{senderFirstName} {senderLastName} ({senderEmail}) acabou de resgatar o teu link.",
+      "memo": "Mensagem: {transactionMemo}",
+      "subject": "{senderFirstName} {senderLastName} resgatou o teu link Gradido",
+      "title": "{senderFirstName} {senderLastName} resgatou o teu link Gradido"
+    },
+    "transactionReceived": {
+      "haveReceivedAmountGDDFrom": "acabaste de receber {transactionAmount} GDD de {senderFirstName} {senderLastName}",
+      "replySubject": "RE: {senderFirstName} {senderLastName} enviou-te {transactionAmount} Gradido",
+      "subject": "{senderFirstName} {senderLastName} enviou-te {transactionAmount} Gradido",
+      "title": "{senderFirstName} {senderLastName} enviou-te {transactionAmount} Gradido"
+    }
+  },
+  "general": {
+    "decimalSeparator": ","
+  }
+}

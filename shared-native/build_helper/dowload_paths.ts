@@ -2,10 +2,6 @@ import { arch, platform } from 'node:os'
 import { ZIG_VERSION } from './const'
 import { nodeVersion } from './host_configuration'
 
-export function getNodeDownloadUrl(): string {
-  return `https://nodejs.org/dist/${nodeVersion()}/win-x64/node.lib`
-}
-
 // 0.10.0
 /*
 const ZIGS: Partial<Record<NodeJS.Platform, Partial<Record<string, string>>>> = {

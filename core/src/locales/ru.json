@@ -1,0 +1,105 @@
+{
+  "emails": {
+    "accountActivation": {
+      "activateAccount": "Активировать аккаунт",
+      "emailRegistered": "ваш адрес электронной почты только что был зарегистрирован в Gradido.",
+      "pleaseClickLink": "Пожалуйста, нажмите здесь, чтобы завершить регистрацию и активировать ваш аккаунт Gradido.",
+      "subject": "Проверка электронной почты",
+      "title": "Проверка электронной почты"
+    },
+    "accountMultiRegistration": {
+      "contactSupport": "Связаться с поддержкой",
+      "emailExists": "Однако для вашего адреса электронной почты уже существует аккаунт.",
+      "emailReused": "ваш адрес электронной почты только что снова использовали для регистрации аккаунта в Gradido.",
+      "ifYouAreNotTheOne": "Если вы не пытались зарегистрироваться снова, пожалуйста, обратитесь в нашу поддержку:",
+      "onForgottenPasswordClickLink": "Если вы забыли пароль, пожалуйста, нажмите здесь.",
+      "subject": "Повторная попытка регистрации с вашим адресом электронной почты",
+      "title": "Повторная попытка регистрации с вашим адресом электронной почты"
+    },
+    "addedContributionMessage": {
+      "commonGoodContributionMessage": "вы получили сообщение от {senderFirstName} {senderLastName} по поводу вашего вклада в общее благо «{contributionMemo}».",
+      "message": "«{message}»",
+      "readMessage": "Прочитать и ответить на сообщение",
+      "subject": "Сообщение о вашем вкладе в общее благо",
+      "title": "Сообщение о вашем вкладе в общее благо",
+      "toSeeAndAnswerMessage": "Чтобы ответить на сообщение, перейдите в вашем аккаунте Gradido в меню «Создание» и нажмите на вкладку «Мои вклады»."
+    },
+    "contribution": {
+      "toSeeContributionsAndMessages": "Чтобы увидеть ваши вклады в общее благо и связанные с ними сообщения, перейдите в вашем аккаунте Gradido в меню «Создание» и нажмите на вкладку «Мои вклады»."
+    },
+    "contributionChangedByModerator": {
+      "subject": "Ваш вклад в общее благо был изменён",
+      "text": "ваш вклад в общее благо «{contributionMemo}» только что был изменён пользователем {senderFirstName} {senderLastName} и теперь звучит так: «{contributionMemoUpdated}»",
+      "title": "Ваш вклад в общее благо был изменён"
+    },
+    "contributionConfirmed": {
+      "commonGoodContributionConfirmed": "ваш вклад в общее благо «{contributionMemo}» только что был подтверждён пользователем {senderFirstName} {senderLastName}. На ваш аккаунт Gradido зачислено {amountGDD} GDD.",
+      "subject": "Ваш вклад в общее благо подтверждён",
+      "title": "Ваш вклад в общее благо подтверждён"
+    },
+    "contributionDeleted": {
+      "commonGoodContributionDeleted": "ваш вклад в общее благо «{contributionMemo}» был удалён пользователем {senderFirstName} {senderLastName}.",
+      "subject": "Ваш вклад в общее благо был удалён",
+      "title": "Ваш вклад в общее благо был удалён"
+    },
+    "contributionDenied": {
+      "commonGoodContributionDenied": "ваш вклад в общее благо «{contributionMemo}» был отклонён пользователем {senderFirstName} {senderLastName}.",
+      "subject": "Ваш вклад в общее благо был отклонён",
+      "title": "Ваш вклад в общее благо был отклонён"
+    },
+    "customEmail": {
+      "haveReceivedMessageFrom": "вы только что получили сообщение от {senderFirstName} {senderLastName}",
+      "title": "{senderFirstName} {senderLastName} отправил вам сообщение"
+    },
+    "footer": {
+      "contactOurSupport": "Если у вас есть другие вопросы, пожалуйста, обратитесь в нашу поддержку.",
+      "imprint": "Правовая информация",
+      "imprintAddress": "Gradido-Akademie\nInstitut für Wirtschaftsbionik\nPfarrweg 2\n74653 Künzelsau\nDeutschland",
+      "imprintImageAlt": "Логотип Gradido-Akademie",
+      "privacyPolicy": "Политика конфиденциальности",
+      "supportEmail": "support@gradido.net"
+    },
+    "general": {
+      "amountGDD": "Сумма: {amountGDD} GDD",
+      "answerNow": "Ответить",
+      "completeRegistration": "Завершить регистрацию",
+      "contribution": "Вклад в общее благо: {contributionMemo}",
+      "contributionDetails": "Сведения о вкладе",
+      "detailsYouFindOnLinkToYourAccount": "Сведения о транзакции вы найдёте в вашем аккаунте Gradido.",
+      "helloName": "Здравствуйте, {firstName} {lastName},",
+      "linkValidity": "Ссылка действительна {hours} часов.\nЕсли срок действия ссылки уже истёк, вы можете запросить здесь новую ссылку.",
+      "linkValidityWithMinutes": "Ссылка действительна {hours} часов и {minutes} минут.\nЕсли срок действия ссылки уже истёк, вы можете запросить здесь новую ссылку.",
+      "message": "Сообщение",
+      "newLink": "Новая ссылка",
+      "orCopyLink": "Или скопируйте ссылку в окно вашего браузера.",
+      "pleaseDoNotReply": "Пожалуйста, не отвечайте на это письмо.",
+      "requestNewLink": "Запросить новую действующую ссылку",
+      "reset": "сбросить",
+      "sincerelyYours": "С наилучшими пожеланиями,",
+      "toAccount": "В аккаунт",
+      "transactionDetails": "Сведения о транзакции",
+      "yourGradidoTeam": "ваша команда Gradido"
+    },
+    "resetPassword": {
+      "pleaseClickLink": "Если это были вы, пожалуйста, нажмите здесь.",
+      "subject": "Сброс пароля",
+      "title": "Сброс пароля",
+      "youOrSomeoneResetPassword": "вы или кто-то другой запросили сброс пароля для этого аккаунта."
+    },
+    "transactionLinkRedeemed": {
+      "hasRedeemedYourLink": "{senderFirstName} {senderLastName} ({senderEmail}) только что воспользовался вашей ссылкой.",
+      "memo": "Сообщение: {transactionMemo}",
+      "subject": "{senderFirstName} {senderLastName} воспользовался вашей ссылкой Gradido",
+      "title": "{senderFirstName} {senderLastName} воспользовался вашей ссылкой Gradido"
+    },
+    "transactionReceived": {
+      "haveReceivedAmountGDDFrom": "вы только что получили {transactionAmount} GDD от {senderFirstName} {senderLastName}",
+      "replySubject": "RE: {senderFirstName} {senderLastName} отправил вам {transactionAmount} Gradido",
+      "subject": "{senderFirstName} {senderLastName} отправил вам {transactionAmount} Gradido",
+      "title": "{senderFirstName} {senderLastName} отправил вам {transactionAmount} Gradido"
+    }
+  },
+  "general": {
+    "decimalSeparator": ","
+  }
+}

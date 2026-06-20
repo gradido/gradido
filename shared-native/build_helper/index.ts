@@ -76,14 +76,10 @@ interface BaseTarget {
   target: TargetTriple
   /** Target CPU */
   cpu?: string
-  /** Output file | on zig build mode, output folder */
-  output: string
   /** Output file type (binary executable, shared library (default) or static library) */
   type?: OutputType
   /** Optimisation mode (debug, fast (default) or small) */
   mode?: OutputMode
-  /** Source files to compile into the output */
-  sources: string[]
   /**
    * Include paths (-I flag)
    *
@@ -110,8 +106,6 @@ interface BaseTarget {
   defines?: Record<string, boolean | string | number>
   /** C/C++ standard */
   std?: Std
-  /** use build.zig file in root */
-  useBuildZig?: boolean
   /** Optionally disable C++ exceptions */
   exceptions?: boolean
   /** Compiler flags */
@@ -122,7 +116,7 @@ interface BaseTarget {
 interface NixTarget extends BaseTarget {
   target: NixTargetTriple
   /** Runtime library search paths */
-  rpath?: string | string[]
+  rpath?: string[]
 }
 interface GnuTarget extends NixTarget {
   target: GnuTargetTriple
@@ -131,136 +125,37 @@ interface GnuTarget extends NixTarget {
 }
 export type Target = BaseTarget | NixTarget | GnuTarget
 
-type CompilationDatabase = {
-  directory: string
-  file: string
-  output?: string
-} & ({ arguments: string[] } | { command: string })
-
-// turn an optional array or element into an array
-function a<T>(v: T | T[] | undefined): T[] {
-  if (v === undefined) {
-    return []
-  } else if (Array.isArray(v)) {
-    return v
-  } else {
-    return [v]
-  }
-}
-
-// returns a function that pushes to all the provided arrays
-function push<T>(...as: T[][]): (...v: T[]) => void {
-  return (...v) => {
-    for (const a of as) {
-      a.push(...v)
-    }
-  }
-}
-
-function eq(l: unknown, r: unknown): boolean {
-  try {
-    assert.deepStrictEqual(l, r)
-    return true
-  } catch {
-    return false
-  }
-}
-
 function buildOne(
   target: Target,
   cwd: string,
-  node: string,
+  nodeFlags: string[],
   zig: string,
-  napi: string | null,
   log: Logger,
-): [task: Promise<number>, db: CompilationDatabase[]] {
+): Promise<number> {
   let triple = target.target
   if ('glibc' in target && target.glibc) {
     // zig reads the glibc version from the end of gnu triple after a dot
     triple += `.${target.glibc}`
   }
 
-  const [lang, clang] = (target.std?.includes('++') ?? true) ? ['c++', 'clang++'] : ['cc', 'clang']
-
   // base flags for c/++ compilation, always the same
   // use baseline instruction set for the target by default
   let flags: string[] = []
-  if (target.useBuildZig) {
-    flags = [
-      'build',
-      `-Dtarget=${triple}`,
-      `-Dcpu=${target.cpu ?? 'baseline'}`,
-      '-p',
-      './build',
-      //`-Doutput=${target.output}`,
-      '--cache-dir',
-      '.zig-cache',
-      '--global-cache-dir',
-      '.zig-cache',
-    ]
-  } else {
-    flags = [lang, '-target', triple, `-mcpu=${target.cpu ?? 'baseline'}`, '-o', target.output]
-  }
-  const dbFlags = [clang]
 
-  if (!target.useBuildZig) {
-    switch (target.type ?? 'shared') {
-      case 'bin':
-      case 'static': {
-        push(flags)('-static')
-        break
-      }
-      case 'shared': {
-        // generate position independent code for shared objects
-        push(flags)('-shared', '-fPIC')
-        break
-      }
-    }
+  flags = [
+    'build',
+    `-Dtarget=${triple}`,
+    `-Dcpu=${target.cpu ?? 'baseline'}`,
+    '-p',
+    './build',
+    '--cache-dir',
+    '.zig-cache',
+    '--global-cache-dir',
+    '.zig-cache',
+  ]
 
-    switch (target.mode ?? 'fast') {
-      // use -O3 for fast (-Ofast) is not standard compliant
-      case 'fast': {
-        push(flags)('-O3')
-        break
-      }
-      // use -Oz for small
-      case 'small': {
-        push(flags)('-Oz')
-        break
-      }
-      case 'debug':
-    }
-
-    if (target.std) {
-      push(flags, dbFlags)(`-std=${target.std}`)
-    }
-    if (target.exceptions === false) {
-      push(flags, dbFlags)('-fno-exceptions')
-    }
-
-    push(flags, dbFlags)(`-I${node}`)
-    if (napi) {
-      // add node-addon-api include directory if it's in the dependency tree
-      push(flags, dbFlags)(`-I${napi}`)
-    }
-    for (const i of a(target.include)) {
-      push(flags, dbFlags)(`-I${i}`)
-    }
-
-    for (const l of a(target.libraries)) {
-      push(flags)(`-l${l}`)
-    }
-    for (const l of a(target.librariesSearch)) {
-      push(flags)(`-L${l}`)
-    }
-  } else {
-    if (target.isNodeJsAddon) {
-      push(flags)(`-DNODE_INCLUDE=${node}`)
-      if (napi) {
-        // add node-addon-api include directory if it's in the dependency tree
-        push(flags)(`-DNAPI_INCLUDE=${napi}`)
-      }
-    }
+  if (target.isNodeJsAddon) {
+    flags = flags.concat(nodeFlags)
   }
 
   target.defines ??= {}
@@ -279,36 +174,26 @@ function buildOne(
   }
   for (const [n, v] of Object.entries(target.defines)) {
     if (v === true) {
-      push(flags, dbFlags)(`-D${n}`)
+      flags.push(`-D${n}`)
     } else if (typeof v === 'string' || typeof v === 'number') {
-      push(flags, dbFlags)(`-D${n}=${v}`)
+      flags.push(`-D${n}=${v}`)
     }
   }
 
   if ('rpath' in target && target.rpath) {
-    // specify rpaths as a linker flags
-    for (const r of a(target.rpath)) {
-      push(flags)(`-Wl,-rpath,${r}`)
-    }
+    // specify rpath as a linker flag
+    flags.push(`-Drpath=${target.rpath}`)
   }
 
   if (target.verbose) {
-    push(flags)('-v')
+    flags.push('--verbose')
   }
 
-  push(flags, dbFlags)(...a(target.cflags))
+  if (target.cflags) {
+    flags = flags.concat(target.cflags)
+  }
 
-  push(flags)(...target.sources)
-
-  const task = exec(zig, flags, { cwd, log })
-  // create a compilation database entry for each source file
-  const db = target.sources.map((source) => ({
-    directory: cwd,
-    arguments: dbFlags,
-    file: source,
-  }))
-
-  return [task, db]
+  return exec(zig, flags, { cwd, log })
 }
 
 /**
@@ -316,38 +201,16 @@ function buildOne(
  *
  * @param targets - Targets definitions
  * @param cwd - Working directory to use for compiler invocations
- * @param compilationDatabase - Location of an optionally generated Clang JSON compilation database (https://clang.llvm.org/docs/JSONCompilationDatabase.html)
  */
 export async function build(
   targets: Record<string, Target>,
   cwd: string = process.cwd(),
-  compilationDatabase: boolean | string = false,
 ): Promise<void> {
-  const [node, zig, napi] = await fetchDeps()
+  const [nodeFlags, zig] = await fetchDeps()
 
-  // for each target merge the task into an array of tasks and
-  // the partial compilation database into the complete one
-  const [tasks, db] = Object.entries(targets).reduce<[Promise<number>[], CompilationDatabase[]]>(
-    ([tasks, db], [name, target]) => {
-      const [task, partialDb] = buildOne(target, cwd, node, zig, napi, makeLogger(name))
-
-      return [
-        [...tasks, task],
-        [...db, ...partialDb],
-      ]
-    },
-    [[], []],
-  )
-
-  await Promise.all(tasks)
-
-  if (compilationDatabase) {
-    if (typeof compilationDatabase !== 'string') {
-      compilationDatabase = 'compile_commands.json'
-    }
-
-    // don't keep duplicate entries in the compilation database
-    const unique = db.filter((l, idx) => db.findIndex((r) => eq(l, r)) === idx)
-    await fs.writeFile(path.join(cwd, compilationDatabase), JSON.stringify(unique))
+  const tasks: Promise<number>[] = []
+  for (const [name, target] of Object.entries(targets)) {
+    tasks.push(buildOne(target, cwd, nodeFlags, zig, makeLogger(name)))
   }
+  await Promise.all(tasks)
 }

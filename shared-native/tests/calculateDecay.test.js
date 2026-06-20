@@ -49,13 +49,13 @@ describe('GradidoUnit', () => {
     it('converts invalid (to big) string to GradidoUnit ', () => {
       assert.throws(() => gradidoUnitFromString('922337203685576.12812'), {
         message:
-          "Invalid unit string. Must be a decimal with up to 4 fractional digits, integer part between -922'337'203'685'476 and 922'337'203'685'476.",
+          "[gradidoUnitFromString] Invalid unit string. Must be a decimal with up to 4 fractional digits, integer part between -922'337'203'685'476 and 922'337'203'685'476.",
       })
     })
     it('converts invalid (to small) string to GradidoUnit ', () => {
       assert.throws(() => gradidoUnitFromString('-922337203685576.12812'), {
         message:
-          "Invalid unit string. Must be a decimal with up to 4 fractional digits, integer part between -922'337'203'685'476 and 922'337'203'685'476.",
+          "[gradidoUnitFromString] Invalid unit string. Must be a decimal with up to 4 fractional digits, integer part between -922'337'203'685'476 and 922'337'203'685'476.",
       })
     })
     it('round 5th decimal', () => {
@@ -96,7 +96,7 @@ describe('GradidoUnit', () => {
     })
     it('converts BigInt to string with precision 7 (throw error)', () => {
       assert.throws(() => gradidoUnitToString(10012041n, 7), {
-        message: 'Precision must be between 0 and 4',
+        message: '[gradidoUnitToString] Precision must be between 0 and 4',
       })
     })
     it('converts BigInt to string with precision 3', () => {

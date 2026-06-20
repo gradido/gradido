@@ -7,9 +7,15 @@ extern "C" {
 
 #include "result_type.h"
 
+#include <stdbool.h>
+
 typedef struct grdi_validate_options grdi_validate_options;
 typedef struct grdr_complete_transaction grdr_complete_transaction;
 typedef struct grd_error_details grd_error_details;
+
+grdi_validate_result_type grdi_validate_complete_transaction_flat_options(
+    const grdr_complete_transaction *input_tx, bool enable_verify, grd_error_details *error_details
+);
 
 //! \param error_details only used if not set to null
 grdi_validate_result_type grdi_validate_complete_transaction(

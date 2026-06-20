@@ -124,7 +124,9 @@ size_t grdu_int64_to_string_known_string_size(char *buffer, int64_t value, size_
     return grdu_uint64_to_string_known_string_size(buffer, (uint64_t)value, stringSize);
   } else {
     buffer[0] = '-';
-    return grdu_uint64_to_string_known_string_size(&buffer[1], (uint64_t)(value * -1), stringSize) +
+    return grdu_uint64_to_string_known_string_size(
+               &buffer[1], (uint64_t)(value * -1), stringSize - 1
+           ) +
            1;
   }
 }
@@ -244,6 +246,48 @@ grd_result grdu_binary_from_hex(uint8_t *result_buffer, const char *hex) {
   }
   if (result_bin_size != bin_size) { return GRD_ERROR_INVALID_STATE; }
   return GRD_SUCCESS;
+}
+
+const static int BASE64_VARIANT = sodium_base64_VARIANT_ORIGINAL;
+
+size_t grdu_binary_to_base64_length(size_t binSize) {
+  return sodium_base64_encoded_len(binSize, BASE64_VARIANT);
+}
+
+grd_result grdu_binary_to_base64_with_known_size(
+    grd_memory_block *result_block, const grd_memory_block *data
+) {
+  if (!result_block || !data) { return GRD_ERROR_NULL_POINTER; }
+  if (NULL ==
+      sodium_bin2base64(
+          (char *)result_block->data, result_block->size, data->data, data->size, BASE64_VARIANT
+      )) {
+    return GRD_ERROR_OUT_OF_MEMORY;
+  }
+  return GRD_SUCCESS;
+}
+
+grd_result grdu_binary_to_base64(
+    grd_memory_block *result_block, const grd_memory_block *data, grd_memory *allocator
+) {
+  if (!result_block || !data || !allocator) { return GRD_ERROR_NULL_POINTER; }
+  size_t strSize = sodium_base64_encoded_len(data->size, BASE64_VARIANT);
+  grd_result result = grd_memory_block_alloc(result_block, allocator, strSize);
+  if (result != GRD_SUCCESS) { return result; }
+
+  return grdu_binary_to_base64_with_known_size(result_block, data);
+}
+
+size_t grdu_binary_from_base64(grd_memory_block *result_block, const char *base64_str) {
+  if (!result_block || !base64_str) { return 0; }
+  size_t result_bin_size = 0;
+  if (sodium_base642bin(
+          result_block->data, result_block->size, base64_str, strlen(base64_str), NULL,
+          &result_bin_size, NULL, BASE64_VARIANT
+      )) {
+    return 0;
+  }
+  return result_bin_size;
 }
 
 #endif // USE_SODIUM

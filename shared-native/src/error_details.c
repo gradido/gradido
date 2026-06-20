@@ -13,6 +13,12 @@ grd_result grd_error_details_init(grd_error_details *error_details, grd_memory *
   return GRD_SUCCESS;
 }
 
+grd_error_details *grd_error_details_create(grd_memory *alloc) {
+  grd_error_details *error_details = (grd_error_details *)malloc(sizeof(grd_error_details));
+  grd_error_details_init(error_details, alloc);
+  return error_details;
+}
+
 int grd_error_details_is_initalized_and_empty(grd_error_details *error_details) {
   return error_details && !error_details->message && !error_details->actual &&
          !error_details->expected && !error_details->used_default_malloc_flag;
@@ -73,8 +79,23 @@ static void release_field(char *field, grd_error_details *error_details, int fie
   if (field_flag == (field_flag & error_details->used_default_malloc_flag)) {
     free(field);
   } else {
-    grd_memory_buffer_free(field, error_details->allocator);
+    grd_memory_buffer_free((uint8_t *)field, error_details->allocator);
   }
+}
+
+const char *grd_error_details_get_message(const grd_error_details *error_details) {
+  if (!error_details) { return NULL; }
+  return error_details->message;
+}
+
+const char *grd_error_details_get_actual(const grd_error_details *error_details) {
+  if (!error_details) { return NULL; }
+  return error_details->actual;
+}
+
+const char *grd_error_details_get_expected(const grd_error_details *error_details) {
+  if (!error_details) { return NULL; }
+  return error_details->expected;
 }
 
 void grd_error_details_release(grd_error_details *error_details) {
@@ -83,4 +104,10 @@ void grd_error_details_release(grd_error_details *error_details) {
   release_field(error_details->expected, error_details, 4);
   release_field(error_details->actual, error_details, 2);
   release_field(error_details->message, error_details, 1);
+}
+
+void grd_error_details_free(grd_error_details *error_details) {
+  if (!error_details) { return; }
+  grd_error_details_release(error_details);
+  free(error_details);
 }
