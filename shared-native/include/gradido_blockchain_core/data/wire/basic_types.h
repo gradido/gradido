@@ -39,6 +39,18 @@ typedef struct grdw_account_balance {
   uint8_t community_uuid[UUID_BINARY_SIZE];
 } grdw_account_balance;
 
+int64_t grdw_account_balance_get_balance(const grdw_account_balance *account_balance);
+
+/**
+ * @return uint8_t* pointer to 32 Bytes Public Key
+ */
+const uint8_t *grdw_account_balance_get_public_key(const grdw_account_balance *account_balance);
+
+/**
+ * @return uint8_t* pointer to 16 Bytes Community Uuid
+ */
+const uint8_t *grdw_account_balance_get_community_uuid(const grdw_account_balance *account_balance);
+
 /**
  * @brief Encrypted memo with type identifier and payload.
  *

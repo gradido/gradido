@@ -57,11 +57,11 @@ static grdi_validate_result_type validateCommon(
     return GRDI_VALIDATE_INVALID_FIELD;
   }
   grdd_timestamp diff = grdd_timestamp_minus(&input_tx->created_at, &input_tx->confirmed_at);
-  if (abs(diff.seconds) >
+  if (llabs(diff.seconds) >
       MAGIC_NUMBER_MAX_TIMESPAN_BETWEEN_CREATING_AND_RECEIVING_TRANSACTION_SECONDS) {
     grd_error_details_fill_actual_is_number(
         error_details, "timespan between created at and confirmed at are more than expected",
-        abs(diff.seconds), "120 seconds"
+        llabs(diff.seconds), "120 seconds"
     );
 
     return GRDI_VALIDATE_INVALID_FIELD;
@@ -178,4 +178,11 @@ grdi_validate_result_type grdi_validate_complete_transaction(
   }
   */
   return result;
+}
+
+grdi_validate_result_type grdi_validate_complete_transaction_flat_options(
+    const grdr_complete_transaction *input_tx, bool enable_verify, grd_error_details *error_details
+) {
+  grdi_validate_options options = {.enable_verify = enable_verify};
+  return grdi_validate_complete_transaction(input_tx, &options, error_details);
 }

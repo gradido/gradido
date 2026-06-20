@@ -39,7 +39,7 @@ export const exec = (
     options.log(`executing '${cmd} ${args.join(' ')}'`)
     const proc = cproc.spawn(cmd, args, {
       ...options,
-      stdio: 'pipe',
+      stdio: 'inherit',
     })
 
     proc.once('exit', (code) => {
@@ -49,24 +49,25 @@ export const exec = (
         rej(code)
       }
     })
-
+    /*
     if (options.stdin) {
       options.stdin.pipe(proc.stdin)
     }
 
-    // log stdout and stderr with the provided logger, buffering at newlines
+    // log stdout and stderr with the provided logger, buffering at newlines and carriage return (used by zig)
     for (const stream of ['stdout', 'stderr'] as const) {
       let buffer = Buffer.alloc(0)
       proc[stream].on('data', (data) => {
         buffer = Buffer.concat([buffer, data])
-        const lines = buffer.toString('utf8').split('\n')
+        const lines = buffer.toString('utf8').split(/\r?\n|\r/)
         buffer = Buffer.from(lines.pop()!, 'utf8')
         for (const line of lines) {
           options.log(line)
-        }
+          }
       })
       proc[stream].once('end', () => {
         options.log(buffer.toString('utf8'))
       })
     }
+     */
   })
