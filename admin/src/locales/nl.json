@@ -1,0 +1,314 @@
+{
+  "GDD": "GDD",
+  "actions": "Acties",
+  "ai": {
+    "chat": "Chat",
+    "chat-clear": "Chatgeschiedenis wissen",
+    "chat-open": "Chat openen",
+    "chat-placeholder": "Schrijf een bericht...",
+    "chat-placeholder-loading": "Wacht, ik denk na...",
+    "chat-thread-deleted": "Chatgeschiedenis gewist",
+    "error-chat-thread-deleted": "Fout bij het wissen van de chatgeschiedenis: {error}",
+    "start-prompt": "Taal: Nederlands\nToon: Vriendelijk, je/jij\nContext: Je bent «Crea», een supportassistent in de beheerinterface van het Gradido-account. Je taak is om moderatoren te helpen bij het verwerken van bijdragen aan het algemeen welzijn.\nBegroeting:\n«Hallo, ik ben Crea! Ik help je bij het beantwoorden van ingediende bijdragen aan het algemeen welzijn. Vertel me alsjeblieft je naam, zodat ik je antwoorden kan personaliseren. 😊»\nWacht nu op het invoeren van de naam!\nNa het invoeren van de naam:\n«Bedankt, [naam]! Leuk om met je samen te werken. 😊 Kopieer nu een of meer bijdragen aan het algemeen welzijn in het tekstveld en ik help je bij het verwerken ervan.»"
+  },
+  "alias": "Alias",
+  "all_emails": "Alle gebruikers",
+  "back": "terug",
+  "change_user_role": "Gebruikersrol wijzigen",
+  "close": "Sluiten",
+  "contribution": {
+    "confirmedBy": "Bevestigd door {name}.",
+    "createdBy": "Aangemaakt door {name}.",
+    "deletedBy": "Verwijderd door {name}.",
+    "deniedBy": "Afgewezen door {name}."
+  },
+  "contributionLink": {
+    "amount": "Bedrag",
+    "changeSaved": "Wijzigingen opgeslagen",
+    "clear": "Wissen",
+    "contributionLinks": "Bijdragelinks",
+    "create": "Aanmaken",
+    "cycle": "Cyclus",
+    "deleteNow": "Automatische creaties '{name}' echt verwijderen?",
+    "deleted": "Automatische creatie verwijderd!",
+    "maxPerCycle": "Herhalingen",
+    "memo": "Bericht",
+    "name": "Naam",
+    "newContributionLink": "Nieuwe bijdragelink",
+    "noContributionLinks": "Er is geen bijdragelink aangemaakt.",
+    "noDateSelected": "Geen datum geselecteerd",
+    "noEndDate": "Geen einddatum gekozen.",
+    "noStartDate": "Geen startdatum gekozen.",
+    "options": {
+      "cycle": {
+        "daily": "dagelijks",
+        "once": "eenmalig"
+      }
+    },
+    "saveChange": "Wijzigingen opslaan",
+    "validFrom": "Startdatum",
+    "validTo": "Einddatum"
+  },
+  "contributionMessagesForm": {
+    "hasRegisteredAt": "heeft zich op {createdAt} geregistreerd.",
+    "resubmissionDateInPast": "De herinneringsdatum ligt in het verleden!"
+  },
+  "contributions": {
+    "all": "Alle",
+    "closed": "Gesloten",
+    "confirms": "Bevestigd",
+    "deleted": "Verwijderd",
+    "denied": "Afgewezen",
+    "open": "Open"
+  },
+  "copied-to-clipboard": "Naar klembord gekopieerd",
+  "copy-to-clipboard": "Naar klembord kopiëren",
+  "created": "Gecreëerd",
+  "createdAt": "Aangemaakt op",
+  "creation": "Creatie",
+  "creationList": "Creatielijst",
+  "creation_for_month": "Creatie voor maand",
+  "creation_form": {
+    "creation_for": "Actief basisinkomen voor",
+    "enter_text": "Tekst invoeren",
+    "form": "Creatieformulier",
+    "min_characters": "Voer minstens 10 tekens in",
+    "reset": "Resetten",
+    "select_month": "Maand selecteren",
+    "select_value": "Bedrag selecteren",
+    "submit_creation": "Creatie indienen",
+    "toasted": "De openstaande creatie ({value} GDD) voor {email} is opgeslagen en staat klaar voor bevestiging.",
+    "toasted_created": "De creatie is succesvol opgeslagen",
+    "toasted_delete": "De openstaande creatie is verwijderd",
+    "toasted_denied": "De openstaande creatie is afgewezen",
+    "toasted_update": "De openstaande creatie ({value} GDD) voor {email} is gewijzigd en staat klaar voor bevestiging.",
+    "update_creation": "Creatie bijwerken"
+  },
+  "delete": "Verwijderen",
+  "delete_user": "Gebruiker verwijderen",
+  "deleted": "verwijderd",
+  "deleted_user": "Alle verwijderde gebruikers",
+  "deny": "Afwijzen",
+  "description": "Beschrijving",
+  "details": "Details",
+  "e_mail": "E-mail",
+  "edit": "bewerken",
+  "enabled": "geactiveerd",
+  "error": "Fout",
+  "expired": "verlopen",
+  "federation": {
+    "apiVersion": "API-versie",
+    "authenticatedAt": "geverifieerd op:",
+    "communityUuid": "Community-UUID:",
+    "coordinates": "Coördinaten:",
+    "createdAt": "Aangemaakt op",
+    "gmsApiKey": "GMS API-sleutel:",
+    "gradidoInstances": "Gradido-instanties",
+    "hieroTopicId": "Hiero Topic ID:",
+    "lastAnnouncedAt": "Laatste aankondiging",
+    "lastErrorAt": "Laatste fout op",
+    "name": "Naam",
+    "publicKey": "PublicKey:",
+    "toast_gmsApiKeyAndLocationUpdated": "De GMS API-sleutel en de locatie zijn succesvol bijgewerkt!",
+    "toast_gmsApiKeyUpdated": "De GMS API-sleutel is succesvol bijgewerkt!",
+    "toast_gmsLocationUpdated": "De GMS-locatie is succesvol bijgewerkt!",
+    "toast_hieroTopicIdUpdated": "De Hiero Topic ID is succesvol bijgewerkt!",
+    "url": "Url",
+    "verified": "Geverifieerd",
+    "verifiedAt": "Geverifieerd op"
+  },
+  "filter": {
+    "byEmail": "Filteren op e-mail"
+  },
+  "firstname": "Voornaam",
+  "footer": {
+    "app_version": "App-versie {version}",
+    "copyright": {
+      "link": "Gradido-Akademie beheerconsole",
+      "year": "© {year}"
+    },
+    "short_hash": "({shortHash})"
+  },
+  "form": {
+    "cancel": "Annuleren"
+  },
+  "geo-coordinates": {
+    "both-or-none": "Voer beide of geen in!",
+    "format": "{latitude}, {longitude}",
+    "label": "geo-coördinaten",
+    "latitude-longitude-smart": {
+      "describe": "Splitst coördinaten in het formaat 'breedtegraad, lengtegraad' automatisch op. Voer hier eenvoudig bijvoorbeeld je coördinaten van Google Maps in, bijvoorbeeld: 49.28187664243721, 9.740672183943639."
+    }
+  },
+  "goTo": {
+    "humhubProfile": "Naar Humhub-profiel gaan",
+    "userSearch": "Naar gebruikerszoekopdracht gaan"
+  },
+  "help": {
+    "help": "Help",
+    "transactionlist": {
+      "confirmed": "Wanneer is het door een moderator / admin bevestigd.",
+      "periods": "Voor welke periode is het door het lid ingediend.",
+      "status": "[PENDING = ingediend, DELETED = verwijderd, IN_PROGRESS = in dialoog met moderator, DENIED = afgewezen, CONFIRMED = bevestigd]",
+      "submitted": "Wanneer is het door het lid ingediend"
+    }
+  },
+  "hide_details": "Details verbergen",
+  "hide_resubmission": "Herinneringen verbergen",
+  "hide_resubmission_tooltip": "Verbergt alle creaties waarvoor een moderator een herinneringsdatum heeft ingesteld.",
+  "lastname": "Achternaam",
+  "latitude": "Breedtegraad:",
+  "latitude-longitude-smart": "Breedtegraad, Lengtegraad",
+  "link": "Link",
+  "logo": "Logo",
+  "longitude": "Lengtegraad:",
+  "math": {
+    "equals": "=",
+    "pipe": "|",
+    "plus": "+"
+  },
+  "message": {
+    "request": "De invoer is opgeslagen."
+  },
+  "moderator": {
+    "history": "De gegevens zijn gewijzigd. Dit zijn de oude gegevens.",
+    "memo": "Tekst bewerken",
+    "memo-modified": "Tekst bewerkt door {name}",
+    "memo-tooltip": "De tekst van de bijdrage bewerken",
+    "message": "Bericht",
+    "message-tooltip": "Bericht naar gebruiker schrijven",
+    "moderator": "Moderator",
+    "notice": "Notitie",
+    "notice-tooltip": "De notitie is alleen zichtbaar voor moderatoren",
+    "request": "Dit bericht is alleen zichtbaar voor de moderatoren!",
+    "show-submission-form": "wachten op herinnering?"
+  },
+  "name": "Naam",
+  "navbar": {
+    "automaticContributions": "Automatische bijdragen",
+    "instances": "Instanties",
+    "logout": "Afmelden",
+    "my-account": "Mijn account",
+    "projectBranding": "Projectbranding",
+    "projectBrandingTooltip": "Gebruik je eigen logo in de Gradido-login en voeg nieuwe gebruikers toe aan een Humhub-space",
+    "statistic": "Statistiek",
+    "user_search": "Gebruikers zoeken"
+  },
+  "no_hashtag": "#hashtags verbergen",
+  "no_hashtag_tooltip": "Toont alleen bijdragen zonder hashtag in de tekst",
+  "not_open_creations": "Geen openstaande creaties",
+  "open": "open",
+  "open_creations": "Openstaande creaties",
+  "overlay": {
+    "cancel": "Annuleren",
+    "changeUserRole": {
+      "question": "Wil je de rol van {username} echt wijzigen in {newRole}?",
+      "title": "Gebruikersrol wijzigen",
+      "yes": "Ja, gebruikersrol wijzigen"
+    },
+    "confirm": {
+      "question": "Wil je deze bijdrage aan het algemeen welzijn echt bevestigen en bijschrijven?",
+      "text": "Na het opslaan kan het record niet meer worden gewijzigd. Controleer zorgvuldig of alles klopt.",
+      "title": "Bijdrage aan het algemeen welzijn bevestigen!",
+      "yes": "Ja, bijdrage bevestigen en opslaan!"
+    },
+    "delete": {
+      "question": "Wil je deze bijdrage aan het algemeen welzijn echt definitief verwijderen?",
+      "text": "Na het verwijderen bestaat het record niet meer.",
+      "title": "Bijdrage aan het algemeen welzijn verwijderen!",
+      "yes": "Ja, bijdrage verwijderen!"
+    },
+    "deleteUser": {
+      "question": "Wil je {username} echt verwijderen?",
+      "title": "Gebruiker verwijderen",
+      "yes": "Ja, gebruiker verwijderen"
+    },
+    "deny": {
+      "question": "Wil je deze bijdrage aan het algemeen welzijn echt afwijzen?",
+      "text": "Na het opslaan kan het record niet meer worden gewijzigd of verwijderd. Controleer zorgvuldig of alles klopt.",
+      "title": "Bijdrage aan het algemeen welzijn afwijzen!",
+      "yes": "Ja, bijdrage afwijzen en opslaan!"
+    },
+    "undeleteUser": {
+      "question": "Wil je {username} echt herstellen?",
+      "title": "Gebruiker herstellen",
+      "yes": "Ja, gebruiker herstellen"
+    }
+  },
+  "projectBranding": {
+    "addTooltip": "Nieuwe projectbranding-vermelding toevoegen",
+    "chosenSpace": "Gekozen Humhub-space: {space}",
+    "created": "Er is een nieuwe projectbranding-vermelding aangemaakt.",
+    "error": "Fout bij het aanmaken van de projectbranding-vermelding: {message}",
+    "newUserToSpace": "Gebruiker toevoegen?",
+    "newUserToSpaceTooltip": "Nieuwe gebruikers automatisch aan de space toevoegen, als de space bestaat",
+    "noAccessRightSpace": "Geselecteerde space: {spaceId} (Geen toegangsrechten)",
+    "openSpaceInHumhub": "Openen in Humhub",
+    "selectSpace": "Humhub-space selecteren",
+    "spaceId": "Humhub-space-ID",
+    "title": "Projectbranding",
+    "updated": "De projectbranding-vermelding is bijgewerkt."
+  },
+  "redeemed": "ingewisseld",
+  "registered": "Geregistreerd",
+  "registered_at": "Geregistreerd op",
+  "removeNotSelf": "Als admin/moderator kun je jezelf niet verwijderen.",
+  "reset": "Resetten",
+  "save": "Opslaan",
+  "send": "Verzenden",
+  "statistic": {
+    "activeUsers": "Actieve leden",
+    "count": "Aantal",
+    "deletedUsers": "Verwijderde leden",
+    "details": "Details",
+    "totalGradidoAvailable": "Totaal GDD in omloop",
+    "totalGradidoCreated": "Totaal gecreëerde GDD",
+    "totalGradidoDecayed": "Totaal vervallen GDD",
+    "totalGradidoUnbookedDecayed": "Niet-geboekt GDD-verval",
+    "totalUsers": "Leden"
+  },
+  "status": "Status",
+  "success": "Succes",
+  "text": "Tekst",
+  "transactionlink": {
+    "created": "Aangemaakt",
+    "name": "Transactielinks",
+    "valid_until": "Geldig tot"
+  },
+  "transactionlist": {
+    "amount": "Bedrag",
+    "confirmed": "Bevestigd",
+    "memo": "Bericht",
+    "period": "Periode",
+    "status": "Status",
+    "submitted": "Ingediend",
+    "title": "Alle creatie-transacties voor de gebruiker"
+  },
+  "undelete_user": "Gebruiker herstellen",
+  "unregister_mail": {
+    "button": "Registratie-e-mail bevestigen, nu verzenden",
+    "error": "Fout bij het verzenden van de bevestigingslink naar de gebruiker: {message}",
+    "info": "E-mail bevestigen, herhaaldelijk verzenden naar:",
+    "never_sent": "Het lijkt erop dat we nooit een e-mail naar het lid {email} hebben gestuurd",
+    "success": "De bevestigingslink is succesvol naar de e-mail van de gebruiker verzonden! ({email})",
+    "text_false": "De laatste e-mail is op {date} naar het lid ({email}) verzonden.",
+    "text_true": "De e-mail is bevestigd."
+  },
+  "unregistered_emails": "Alleen niet-geregistreerde gebruikers",
+  "userRole": {
+    "notChangeYourSelf": "Als admin/moderator kun je je eigen rol niet wijzigen.",
+    "selectLabel": "Rol:",
+    "selectRoles": {
+      "admin": "beheerder",
+      "moderator": "moderator",
+      "moderatorAi": "AI-moderator",
+      "user": "gewone gebruiker"
+    },
+    "successfullyChangedTo": "Gebruiker is nu «{role}».",
+    "tabTitle": "Gebruikersrol"
+  },
+  "user_deleted": "Gebruiker is verwijderd.",
+  "user_memo_search": "Gebruikers- en tekstzoekopdracht",
+  "user_recovered": "Gebruiker is hersteld.",
+  "user_search": "Gebruikers zoeken"
+}

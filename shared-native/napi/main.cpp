@@ -9,6 +9,7 @@
 
 // Module initialization
 Napi::Object Init(Napi::Env env, Napi::Object exports) {
+    // functions
     exports.Set("calculateDecay", Napi::Function::New(env, gradidoUnit::CalculateDecay));
     exports.Set("getDecayStartTime", Napi::Function::New(env, gradidoUnit::GetDecayStartTime));
     exports.Set("getDecayRespiteCent", Napi::Function::New(env, gradidoUnit::GetDecayRespiteCent));
@@ -28,6 +29,7 @@ Napi::Object Init(Napi::Env env, Napi::Object exports) {
     exports.Set("grdtMemoKeyToString", Napi::Function::New(env, gradido::types::GrdtMemoKeyToString));
     exports.Set("grdtTransactionToString", Napi::Function::New(env, gradido::types::GrdtTransactionToString));
 
+    // classes
     gradido::data::runtime::CompleteTransaction::Init(env, exports);
     gradido::utils::MonotonicTimer::Init(env, exports);
     gradido::data::wire::LedgerAnchor::Init(env, exports);

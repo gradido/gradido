@@ -1,0 +1,314 @@
+{
+  "GDD": "GDD",
+  "actions": "Actions",
+  "ai": {
+    "chat": "Chat",
+    "chat-clear": "Effacer l'historique du chat",
+    "chat-open": "Ouvrir le chat",
+    "chat-placeholder": "Écris un message...",
+    "chat-placeholder-loading": "Attends, je réfléchis...",
+    "chat-thread-deleted": "Historique du chat effacé",
+    "error-chat-thread-deleted": "Erreur lors de la suppression de l'historique du chat : {error}",
+    "start-prompt": "Langue : Français\nTon : Amical, tutoiement\nContexte : Tu es « Crea », un assistant de support dans l'interface d'administration du compte Gradido. Ta mission est d'aider les modérateurs à traiter les contributions au bien commun.\nSalutation :\n« Bonjour, je suis Crea ! Je t'aide à répondre aux contributions au bien commun soumises. Pour pouvoir personnaliser tes réponses, dis-moi ton nom, s'il te plaît. 😊 »\nAttends maintenant la saisie du nom !\nAprès la saisie du nom :\n« Merci, [nom] ! Quel plaisir de travailler avec toi. 😊 Copie maintenant une ou plusieurs contributions au bien commun dans le champ de texte et je t'aiderai à les traiter. »"
+  },
+  "alias": "Alias",
+  "all_emails": "Tous les utilisateurs",
+  "back": "retour",
+  "change_user_role": "Changer le rôle de l'utilisateur",
+  "close": "Fermer",
+  "contribution": {
+    "confirmedBy": "Confirmé par {name}.",
+    "createdBy": "Créé par {name}.",
+    "deletedBy": "Supprimé par {name}.",
+    "deniedBy": "Refusé par {name}."
+  },
+  "contributionLink": {
+    "amount": "Montant",
+    "changeSaved": "Modifications enregistrées",
+    "clear": "Effacer",
+    "contributionLinks": "Liens de contribution",
+    "create": "Créer",
+    "cycle": "Cycle",
+    "deleteNow": "Supprimer vraiment les créations automatiques '{name}' ?",
+    "deleted": "Création automatique supprimée !",
+    "maxPerCycle": "Répétitions",
+    "memo": "Message",
+    "name": "Nom",
+    "newContributionLink": "Nouveau lien de contribution",
+    "noContributionLinks": "Aucun lien de contribution n'a été créé.",
+    "noDateSelected": "Aucune date sélectionnée",
+    "noEndDate": "Aucune date de fin choisie.",
+    "noStartDate": "Aucune date de début choisie.",
+    "options": {
+      "cycle": {
+        "daily": "quotidien",
+        "once": "une fois"
+      }
+    },
+    "saveChange": "Enregistrer les modifications",
+    "validFrom": "Date de début",
+    "validTo": "Date de fin"
+  },
+  "contributionMessagesForm": {
+    "hasRegisteredAt": "s'est inscrit le {createdAt}.",
+    "resubmissionDateInPast": "La date de rappel est dans le passé !"
+  },
+  "contributions": {
+    "all": "Toutes",
+    "closed": "Fermées",
+    "confirms": "Confirmées",
+    "deleted": "Supprimées",
+    "denied": "Refusées",
+    "open": "Ouvertes"
+  },
+  "copied-to-clipboard": "Copié dans le presse-papiers",
+  "copy-to-clipboard": "Copier dans le presse-papiers",
+  "created": "Créé",
+  "createdAt": "Créé le",
+  "creation": "Création",
+  "creationList": "Liste des créations",
+  "creation_for_month": "Création pour le mois",
+  "creation_form": {
+    "creation_for": "Revenu de base actif pour",
+    "enter_text": "Saisir un texte",
+    "form": "Formulaire de création",
+    "min_characters": "Saisis au moins 10 caractères",
+    "reset": "Réinitialiser",
+    "select_month": "Sélectionner le mois",
+    "select_value": "Sélectionner le montant",
+    "submit_creation": "Soumettre la création",
+    "toasted": "La création ouverte ({value} GDD) pour {email} a été enregistrée et est prête à être confirmée.",
+    "toasted_created": "La création a été enregistrée avec succès",
+    "toasted_delete": "La création ouverte a été supprimée",
+    "toasted_denied": "La création ouverte a été refusée",
+    "toasted_update": "La création ouverte ({value} GDD) pour {email} a été modifiée et est prête à être confirmée.",
+    "update_creation": "Mettre à jour la création"
+  },
+  "delete": "Supprimer",
+  "delete_user": "Supprimer l'utilisateur",
+  "deleted": "supprimé",
+  "deleted_user": "Tous les utilisateurs supprimés",
+  "deny": "Refuser",
+  "description": "Description",
+  "details": "Détails",
+  "e_mail": "E-mail",
+  "edit": "modifier",
+  "enabled": "activé",
+  "error": "Erreur",
+  "expired": "expiré",
+  "federation": {
+    "apiVersion": "Version de l'API",
+    "authenticatedAt": "vérifié le :",
+    "communityUuid": "UUID de la communauté :",
+    "coordinates": "Coordonnées :",
+    "createdAt": "Créé le",
+    "gmsApiKey": "Clé API GMS :",
+    "gradidoInstances": "Instances Gradido",
+    "hieroTopicId": "Hiero Topic ID :",
+    "lastAnnouncedAt": "Dernière annonce",
+    "lastErrorAt": "Dernière erreur le",
+    "name": "Nom",
+    "publicKey": "PublicKey :",
+    "toast_gmsApiKeyAndLocationUpdated": "La clé API GMS et l'emplacement ont été mis à jour avec succès !",
+    "toast_gmsApiKeyUpdated": "La clé API GMS a été mise à jour avec succès !",
+    "toast_gmsLocationUpdated": "L'emplacement GMS a été mis à jour avec succès !",
+    "toast_hieroTopicIdUpdated": "Le Hiero Topic ID a été mis à jour avec succès !",
+    "url": "Url",
+    "verified": "Vérifié",
+    "verifiedAt": "Vérifié le"
+  },
+  "filter": {
+    "byEmail": "Filtrer par e-mail"
+  },
+  "firstname": "Prénom",
+  "footer": {
+    "app_version": "Version de l'app {version}",
+    "copyright": {
+      "link": "Console d'administration de la Gradido-Akademie",
+      "year": "© {year}"
+    },
+    "short_hash": "({shortHash})"
+  },
+  "form": {
+    "cancel": "Annuler"
+  },
+  "geo-coordinates": {
+    "both-or-none": "Saisis les deux ou aucune !",
+    "format": "{latitude}, {longitude}",
+    "label": "coordonnées géographiques",
+    "latitude-longitude-smart": {
+      "describe": "Sépare automatiquement les coordonnées au format 'latitude, longitude'. Saisis simplement ici tes coordonnées de Google Maps, par exemple : 49.28187664243721, 9.740672183943639."
+    }
+  },
+  "goTo": {
+    "humhubProfile": "Aller au profil Humhub",
+    "userSearch": "Aller à la recherche d'utilisateurs"
+  },
+  "help": {
+    "help": "Aide",
+    "transactionlist": {
+      "confirmed": "Quand cela a-t-il été confirmé par un modérateur / administrateur.",
+      "periods": "Pour quelle période le membre l'a-t-il soumis.",
+      "status": "[PENDING = soumis, DELETED = supprimé, IN_PROGRESS = en dialogue avec le modérateur, DENIED = refusé, CONFIRMED = confirmé]",
+      "submitted": "Quand le membre l'a-t-il soumis"
+    }
+  },
+  "hide_details": "Masquer les détails",
+  "hide_resubmission": "Masquer les rappels",
+  "hide_resubmission_tooltip": "Masque toutes les créations pour lesquelles un modérateur a défini une date de rappel.",
+  "lastname": "Nom",
+  "latitude": "Latitude :",
+  "latitude-longitude-smart": "Latitude, Longitude",
+  "link": "Lien",
+  "logo": "Logo",
+  "longitude": "Longitude :",
+  "math": {
+    "equals": "=",
+    "pipe": "|",
+    "plus": "+"
+  },
+  "message": {
+    "request": "La saisie a été enregistrée."
+  },
+  "moderator": {
+    "history": "Les données ont été modifiées. Voici les anciennes données.",
+    "memo": "Modifier le texte",
+    "memo-modified": "Texte modifié par {name}",
+    "memo-tooltip": "Modifier le texte de la contribution",
+    "message": "Message",
+    "message-tooltip": "Écrire un message à l'utilisateur",
+    "moderator": "Modérateur",
+    "notice": "Note",
+    "notice-tooltip": "La note n'est visible que pour les modérateurs",
+    "request": "Ce message n'est visible que pour les modérateurs !",
+    "show-submission-form": "attendre le rappel ?"
+  },
+  "name": "Nom",
+  "navbar": {
+    "automaticContributions": "Contributions automatiques",
+    "instances": "Instances",
+    "logout": "Déconnexion",
+    "my-account": "Mon compte",
+    "projectBranding": "Image du projet",
+    "projectBrandingTooltip": "Utilise ton propre logo sur la page de connexion de Gradido et ajoute de nouveaux utilisateurs à un espace Humhub",
+    "statistic": "Statistique",
+    "user_search": "Recherche d'utilisateurs"
+  },
+  "no_hashtag": "Masquer les #hashtags",
+  "no_hashtag_tooltip": "Affiche uniquement les contributions sans hashtag dans le texte",
+  "not_open_creations": "Aucune création ouverte",
+  "open": "ouverte",
+  "open_creations": "Créations ouvertes",
+  "overlay": {
+    "cancel": "Annuler",
+    "changeUserRole": {
+      "question": "Veux-tu vraiment changer le rôle de {username} en {newRole} ?",
+      "title": "Changer le rôle de l'utilisateur",
+      "yes": "Oui, changer le rôle de l'utilisateur"
+    },
+    "confirm": {
+      "question": "Veux-tu vraiment confirmer cette contribution au bien commun et la créditer ?",
+      "text": "Après l'enregistrement, l'entrée ne peut plus être modifiée. Vérifie attentivement que tout est correct.",
+      "title": "Confirmer la contribution au bien commun !",
+      "yes": "Oui, confirmer et enregistrer la contribution !"
+    },
+    "delete": {
+      "question": "Veux-tu vraiment supprimer définitivement cette contribution au bien commun ?",
+      "text": "Après la suppression, l'entrée n'existe plus.",
+      "title": "Supprimer la contribution au bien commun !",
+      "yes": "Oui, supprimer la contribution !"
+    },
+    "deleteUser": {
+      "question": "Veux-tu vraiment supprimer {username} ?",
+      "title": "Supprimer l'utilisateur",
+      "yes": "Oui, supprimer l'utilisateur"
+    },
+    "deny": {
+      "question": "Veux-tu vraiment refuser cette contribution au bien commun ?",
+      "text": "Après l'enregistrement, l'entrée ne peut plus être modifiée ni supprimée. Vérifie attentivement que tout est correct.",
+      "title": "Refuser la contribution au bien commun !",
+      "yes": "Oui, refuser et enregistrer la contribution !"
+    },
+    "undeleteUser": {
+      "question": "Veux-tu vraiment restaurer {username} ?",
+      "title": "Restaurer l'utilisateur",
+      "yes": "Oui, restaurer l'utilisateur"
+    }
+  },
+  "projectBranding": {
+    "addTooltip": "Ajouter une nouvelle entrée d'image du projet",
+    "chosenSpace": "Espace Humhub choisi : {space}",
+    "created": "Une nouvelle entrée d'image du projet a été créée.",
+    "error": "Erreur lors de la création de l'entrée d'image du projet : {message}",
+    "newUserToSpace": "Ajouter l'utilisateur ?",
+    "newUserToSpaceTooltip": "Ajouter automatiquement les nouveaux utilisateurs à l'espace, si l'espace existe",
+    "noAccessRightSpace": "Espace sélectionné : {spaceId} (Aucun droit d'accès)",
+    "openSpaceInHumhub": "Ouvrir dans Humhub",
+    "selectSpace": "Sélectionner l'espace Humhub",
+    "spaceId": "ID de l'espace Humhub",
+    "title": "Image du projet",
+    "updated": "L'entrée d'image du projet a été mise à jour."
+  },
+  "redeemed": "échangé",
+  "registered": "Inscrit",
+  "registered_at": "Inscrit le",
+  "removeNotSelf": "En tant qu'administrateur/modérateur, tu ne peux pas te supprimer toi-même.",
+  "reset": "Réinitialiser",
+  "save": "Enregistrer",
+  "send": "Envoyer",
+  "statistic": {
+    "activeUsers": "Membres actifs",
+    "count": "Quantité",
+    "deletedUsers": "Membres supprimés",
+    "details": "Détails",
+    "totalGradidoAvailable": "Total des GDD en circulation",
+    "totalGradidoCreated": "Total des GDD créés",
+    "totalGradidoDecayed": "Total des GDD dissipés",
+    "totalGradidoUnbookedDecayed": "Dissipation de GDD non comptabilisée",
+    "totalUsers": "Membres"
+  },
+  "status": "Statut",
+  "success": "Succès",
+  "text": "Texte",
+  "transactionlink": {
+    "created": "Créé",
+    "name": "Liens de transaction",
+    "valid_until": "Valable jusqu'au"
+  },
+  "transactionlist": {
+    "amount": "Montant",
+    "confirmed": "Confirmé",
+    "memo": "Message",
+    "period": "Période",
+    "status": "Statut",
+    "submitted": "Soumis",
+    "title": "Toutes les transactions de création pour l'utilisateur"
+  },
+  "undelete_user": "Restaurer l'utilisateur",
+  "unregister_mail": {
+    "button": "Confirmer l'e-mail d'inscription, envoyer maintenant",
+    "error": "Erreur lors de l'envoi du lien de confirmation à l'utilisateur : {message}",
+    "info": "Confirmer l'e-mail, envoyer à nouveau à :",
+    "never_sent": "Il semble que nous n'ayons jamais envoyé d'e-mail au membre {email}",
+    "success": "Le lien de confirmation a été envoyé avec succès à l'e-mail de l'utilisateur ! ({email})",
+    "text_false": "Le dernier e-mail a été envoyé au membre ({email}) le {date}.",
+    "text_true": "L'e-mail a été confirmé."
+  },
+  "unregistered_emails": "Uniquement les utilisateurs non inscrits",
+  "userRole": {
+    "notChangeYourSelf": "En tant qu'administrateur/modérateur, tu ne peux pas changer ton propre rôle.",
+    "selectLabel": "Rôle :",
+    "selectRoles": {
+      "admin": "administrateur",
+      "moderator": "modérateur",
+      "moderatorAi": "modérateur IA",
+      "user": "utilisateur ordinaire"
+    },
+    "successfullyChangedTo": "L'utilisateur est maintenant « {role} ».",
+    "tabTitle": "Rôle de l'utilisateur"
+  },
+  "user_deleted": "L'utilisateur est supprimé.",
+  "user_memo_search": "Recherche d'utilisateur et de texte",
+  "user_recovered": "L'utilisateur est restauré.",
+  "user_search": "Recherche d'utilisateurs"
+}
