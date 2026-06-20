@@ -9,11 +9,6 @@ const DOWNLOAD_DIR = path.join(os.homedir(), '.zig-build')
 const NODE_DIR = path.join(DOWNLOAD_DIR, 'node')
 const ZIG_DIR = path.join(DOWNLOAD_DIR, 'zig', ZIG_VERSION)
 
-export function getCoreFileName(): string {
-  const platform = os.platform()
-  return platform === 'win32' ? 'core.dll' : 'libcore.so'
-}
-
 export async function isMusl(): Promise<boolean> {
   return (await family()) === MUSL
 }

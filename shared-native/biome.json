@@ -4,7 +4,7 @@
   "vcs": { "enabled": false, "clientKind": "git", "useIgnoreFile": false },
   "files": {
     "ignoreUnknown": false,
-    "includes": ["test/**/*.ts", "**/*.ts", "*.cjs", "!**/node_modules", "!**/coverage"]
+    "includes": ["tests/*.js", "**/*.ts", "*.cjs", "!**/node_modules", "!**/coverage"]
   },
   "formatter": {
     "enabled": true,
