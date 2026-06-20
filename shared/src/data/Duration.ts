@@ -1,3 +1,4 @@
+import { inspect } from 'node:util'
 import { durationToString } from 'shared-native'
 
 /**
@@ -15,6 +16,10 @@ export class Duration {
 
   constructor(seconds: bigint) {
     this._seconds = seconds
+  }
+
+  [inspect.custom]() {
+    return this.toString(4)
   }
 
   /**
