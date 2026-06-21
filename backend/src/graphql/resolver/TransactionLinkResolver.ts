@@ -357,7 +357,7 @@ export class TransactionLinkResolver {
           transaction.typeId = TransactionTypeId.CREATION
           transaction.memo = contribution.memo
           transaction.userId = contribution.userId
-          /* local transaction will not carry homeComUuid for local users
+          /* local transaction will not carry homeComUuid for local users 
           if (homeCom.communityUuid) {
             transaction.userCommunityUuid = homeCom.communityUuid
           }

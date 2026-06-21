@@ -76,7 +76,7 @@ export class CompareConfirmedTransactionRedeemLinkRole extends CompareConfirmedT
       return result
     }
 
-    const transactionLink = this.dbTransaction.transactionLink
+    const transactionLink = this.dbTransaction.transactionLinkDeep
     if (!transactionLink) {
       // we throw because this should be already checked before calling into this interaction
       throw new CompareError('Missing transaction link')
