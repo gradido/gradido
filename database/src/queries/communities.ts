@@ -17,7 +17,7 @@ export async function getHomeCommunity(): Promise<DbCommunity | null> {
   // TODO: return only DbCommunity or throw to reduce unnecessary checks, because there should be always a home community
   return await DbCommunity.findOne({
     where: { foreign: false },
-  })  
+  })
 }
 
 export async function getHomeCommunityDrizzle(): Promise<CommunitiesSelect | null> {
