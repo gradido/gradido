@@ -20,7 +20,7 @@ const transaction = {
       accountNr: 0,
     },
   },
-  type: 'REGISTER_ADDRESS',
+  type: 'GRDT_TRANSACTION_REGISTER_ADDRESS',
   accountType: 'COMMUNITY_HUMAN',
   createdAt: '2022-01-01T00:00:00.000Z',
 }
