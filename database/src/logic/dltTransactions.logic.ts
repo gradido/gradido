@@ -128,14 +128,21 @@ export async function resolveDltTransactionByLedgerAnchor(
       if (!t.dltTransaction) {
         missingJoins.push('dlt_transactions')
       }
-      if (!t.transactionLink) {
+      if (!t.transactionLinkDeep) {
         missingJoins.push('transaction_links')
       }
       if (!t.transactionLinkUser) {
         missingJoins.push('users (on transaction_links)')
       }
     } else if (t.dltTransaction.typeId === DltTransactionType.REDEEM_DEFERRED_TRANSFER) {
-      if (t.dltTransaction && t.transaction && t.linkedTransaction && t.user && t.linkedUser) {
+      if (
+        t.dltTransaction &&
+        t.transaction &&
+        t.linkedTransaction &&
+        t.transactionLinkDeep &&
+        t.user &&
+        t.linkedUser
+      ) {
         return queryResult
       }
       if (!t.dltTransaction) {
@@ -146,6 +153,9 @@ export async function resolveDltTransactionByLedgerAnchor(
       }
       if (!t.linkedTransaction) {
         missingJoins.push('transactions (linked by other transaction)')
+      }
+      if (!t.transactionLinkDeep) {
+        missingJoins.push('transaction_links (linked by transaction)')
       }
       if (!t.user) {
         missingJoins.push('users')

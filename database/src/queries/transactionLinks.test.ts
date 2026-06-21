@@ -1,5 +1,4 @@
-import { CODE_VALID_DAYS_DURATION, Duration, GradidoUnit } from 'shared'
-import { calculateDecay } from 'shared-native'
+import { Duration, GradidoUnit } from 'shared'
 import {
   AppDatabase,
   bibiBloxberg,
