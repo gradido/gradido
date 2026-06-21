@@ -1,3 +1,4 @@
+import { inspect } from 'node:util'
 import { Duration } from './Duration'
 import { GradidoUnit } from './GradidoUnit'
 
@@ -12,6 +13,10 @@ export class TemporalGradidoUnit {
   constructor(balance: GradidoUnit, balanceDate: Date) {
     this.balance = balance
     this.balanceDate = balanceDate
+  }
+
+  [inspect.custom]() {
+    return this.toString()
   }
 
   /**
