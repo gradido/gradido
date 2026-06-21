@@ -13,6 +13,7 @@ let homeCommunityDrizzleCache: CommunitiesSelect | null = null
  * @returns A promise that resolves to the home community, or null if no home community was found
  */
 export async function getHomeCommunity(): Promise<DbCommunity | null> {
+  // TODO: Put in Cache, it is needed nearly always, but needs updating tests
   // TODO: return only DbCommunity or throw to reduce unnecessary checks, because there should be always a home community
   return await DbCommunity.findOne({
     where: { foreign: false },
