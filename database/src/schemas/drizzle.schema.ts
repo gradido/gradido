@@ -22,9 +22,9 @@ export const contributionsTable = mysqlTable(
   {
     id: int().autoincrement().notNull(),
     userId: int('user_id').default(sql`NULL`),
-    createdAt: datetime('created_at', { mode: 'string' }).default(sql`NULL`),
-    resubmissionAt: datetime('resubmission_at', { mode: 'string' }).default(sql`NULL`),
-    contributionDate: datetime('contribution_date', { mode: 'string' }).default(sql`NULL`),
+    createdAt: datetime('created_at', { mode: 'date' }).default(sql`NULL`),
+    resubmissionAt: datetime('resubmission_at', { mode: 'date' }).default(sql`NULL`),
+    contributionDate: datetime('contribution_date', { mode: 'date' }).default(sql`NULL`),
     memo: varchar({ length: 512 }).notNull(),
     amountLegacy: decimal('amount_legacy', { precision: 40, scale: 20, mode: 'string' }).default(
       sql`NULL`,
@@ -33,14 +33,14 @@ export const contributionsTable = mysqlTable(
     moderatorId: int('moderator_id').default(sql`NULL`),
     contributionLinkId: int('contribution_link_id').default(sql`NULL`),
     confirmedBy: int('confirmed_by').default(sql`NULL`),
-    confirmedAt: datetime('confirmed_at', { mode: 'string' }).default(sql`NULL`),
-    deniedAt: datetime('denied_at', { mode: 'string' }).default(sql`NULL`),
+    confirmedAt: datetime('confirmed_at', { mode: 'date' }).default(sql`NULL`),
+    deniedAt: datetime('denied_at', { mode: 'date' }).default(sql`NULL`),
     deniedBy: int('denied_by').default(sql`NULL`),
     type: varchar('contribution_type', { length: 12 }).default(sql`ADMIN`).notNull(),
     status: varchar('contribution_status', { length: 12 }).default(sql`PENDING`).notNull(),
-    deletedAt: datetime('deleted_at', { mode: 'string' }).default(sql`NULL`),
+    deletedAt: datetime('deleted_at', { mode: 'date' }).default(sql`NULL`),
     transactionId: int('transaction_id').default(sql`NULL`),
-    updatedAt: datetime('updated_at', { mode: 'string' }).default(sql`NULL`),
+    updatedAt: datetime('updated_at', { mode: 'date' }).default(sql`NULL`),
     updatedBy: int('updated_by').default(sql`NULL`),
     deletedBy: int('deleted_by').default(sql`NULL`),
   },
@@ -64,10 +64,10 @@ export const dltTransactionsTable = mysqlTable(
     typeId: int('type_id').notNull(),
     hieroTransactionId: varchar('hiero_transaction_id', { length: 255 }).default(sql`NULL`),
     verified: tinyint().default(0).notNull(),
-    createdAt: datetime('created_at', { mode: 'string', fsp: 3 })
-      .default('current_timestamp(3)')
+    createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
+      .default(sql`current_timestamp(3)`)
       .notNull(),
-    verifiedAt: datetime('verified_at', { mode: 'string', fsp: 3 }).default(sql`NULL`),
+    verifiedAt: datetime('verified_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
     error: text().default(sql`NULL`),
   },
   (table) => [
@@ -110,28 +110,14 @@ export const transactionsTable = mysqlTable(
     previous: int().default(sql`NULL`),
     typeId: int('type_id').default(sql`NULL`),
     transactionLinkId: int('transaction_link_id').default(sql`NULL`),
-    amountLegacy: decimal('amount_legacy', { precision: 40, scale: 20, mode: 'string' }).default(
-      sql`NULL`,
-    ),
     amount: customGradidoUnit('amount_gdd4').default(sql`NULL`),
-    balanceLegacy: decimal('balance_legacy', { precision: 40, scale: 20 }).default(sql`NULL`),
     balance: customGradidoUnit('balance_gdd4').default(sql`NULL`),
-    balanceDate: datetime('balance_date', { mode: 'string', fsp: 3 })
+    balanceDate: datetime('balance_date', { mode: 'date', fsp: 3 })
       .default(sql`current_timestamp(3)`)
       .notNull(),
-    decayLegacy: decimal('decay_legacy', { precision: 40, scale: 20 }).default(sql`NULL`),
-    decay: customGradidoUnit('decay_gdd4').default(sql`ŅULL`),
-    decayStart: datetime('decay_start', { mode: 'string', fsp: 3 }).default(sql`NULL`),
     memo: varchar({ length: 512 }).notNull(),
-    creationDate: datetime('creation_date', { mode: 'string', fsp: 3 }).default(sql`NULL`),
     userId: int('user_id').notNull(),
-    userCommunityUuid: char('user_community_uuid', { length: 36 }).default(sql`NULL`),
-    userGradidoId: char('user_gradido_id', { length: 36 }).notNull(),
-    userName: varchar('user_name', { length: 512 }).default(sql`NULL`),
     linkedUserId: int('linked_user_id').default(sql`NULL`),
-    linkedUserCommunityUuid: char('linked_user_community_uuid', { length: 36 }).default(sql`NULL`),
-    linkedUserGradidoId: char('linked_user_gradido_id', { length: 36 }).default(sql`NULL`),
-    linkedUserName: varchar('linked_user_name', { length: 512 }).default(sql`NULL`),
     linkedTransactionId: int('linked_transaction_id').default(sql`NULL`),
   },
   (table) => [
@@ -151,19 +137,14 @@ export const transactionLinksTable = mysqlTable(
   {
     id: int().autoincrement().notNull(),
     userId: int().notNull(),
-    amountLegacy: decimal('amount_legacy', { precision: 40, scale: 20 }).default(sql`NULL`),
     amount: customGradidoUnit('amount_gdd4').default(sql`NULL`),
-    holdAvailableAmountLegacy: decimal('hold_available_amount_legacy', {
-      precision: 40,
-      scale: 20,
-    }).default(sql`NULL`),
     holdAvailableAmount: customGradidoUnit('hold_available_amount_gdd4').default(sql`NULL`),
     memo: varchar({ length: 512 }).notNull(),
     code: varchar({ length: 24 }).notNull(),
-    createdAt: datetime({ mode: 'string' }).notNull(),
-    deletedAt: datetime({ mode: 'string' }).default(sql`NULL`),
-    validUntil: datetime({ mode: 'string' }).notNull(),
-    redeemedAt: datetime({ mode: 'string' }).default(sql`NULL`),
+    createdAt: datetime({ mode: 'date' }).notNull(),
+    deletedAt: datetime({ mode: 'date' }).default(sql`NULL`),
+    validUntil: datetime({ mode: 'date' }).notNull(),
+    redeemedAt: datetime({ mode: 'date' }).default(sql`NULL`),
     redeemedBy: int().default(sql`NULL`),
   },
   (table) => [index('idx_userId').on(table.userId)],
@@ -182,10 +163,10 @@ export const usersTable = mysqlTable(
     lastName: varchar('last_name', { length: 255 }).default(sql`NULL`),
     gmsPublishName: int('gms_publish_name').default(0).notNull(),
     humhubPublishName: int('humhub_publish_name').default(0).notNull(),
-    deletedAt: datetime('deleted_at', { mode: 'string', fsp: 3 }).default(sql`NULL`),
+    deletedAt: datetime('deleted_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
     password: bigint({ mode: 'number' }),
     passwordEncryptionType: int('password_encryption_type').default(0).notNull(),
-    createdAt: datetime('created_at', { mode: 'string', fsp: 3 })
+    createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
       .default(sql`current_timestamp(3)`)
       .notNull(),
     language: varchar({ length: 4 }).default(sql`'de'`).notNull(),
@@ -199,7 +180,7 @@ export const usersTable = mysqlTable(
     // geometryType: geometry("location"),
     gmsPublishLocation: int('gms_publish_location').default(2).notNull(),
     gmsRegistered: tinyint('gms_registered').default(0).notNull(),
-    gmsRegisteredAt: datetime('gms_registered_at', { mode: 'string', fsp: 3 }).default(sql`NULL`),
+    gmsRegisteredAt: datetime('gms_registered_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
     humhubAllowed: tinyint('humhub_allowed').default(0).notNull(),
   },
   (table) => [
@@ -211,3 +192,28 @@ export const usersTable = mysqlTable(
 
 export type UserSelect = typeof usersTable.$inferSelect
 export type UserInsert = typeof usersTable.$inferInsert
+
+export const usersTableIdentity = mysqlTable('users', {
+  id: int().autoincrement().notNull(),
+  foreign: tinyint().default(0).notNull(),
+  gradidoId: char('gradido_id', { length: 36 }).notNull(),
+  communityUuid: varchar('community_uuid', { length: 36 }).default(sql`NULL`),
+  alias: varchar({ length: 20 }).default(sql`NULL`),
+  emailId: int('email_id').default(sql`NULL`),
+  gmsPublishName: int('gms_publish_name').default(0).notNull(),
+  humhubPublishName: int('humhub_publish_name').default(0).notNull(),
+  deletedAt: datetime('deleted_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
+  createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
+    .default(sql`current_timestamp(3)`)
+    .notNull(),
+  language: varchar({ length: 4 }).default(sql`'de'`).notNull(),
+  gmsAllowed: tinyint('gms_allowed').default(1).notNull(),
+  // Warning: Can't parse geometry from database
+  // geometryType: geometry("location"),
+  gmsPublishLocation: int('gms_publish_location').default(2).notNull(),
+  gmsRegistered: tinyint('gms_registered').default(0).notNull(),
+  humhubAllowed: tinyint('humhub_allowed').default(0).notNull(),
+})
+
+export type UserSelectIdentity = typeof usersTableIdentity.$inferSelect
+export type UserInsertIdentity = typeof usersTableIdentity.$inferInsert

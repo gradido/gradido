@@ -1,7 +1,7 @@
+import { transactionLinksDecayed } from 'core'
 import { TransactionLink as dbTransactionLink, getLastTransaction } from 'database'
 import { Decay, GradidoUnit } from 'shared'
 import { validate, version } from 'uuid'
-import { transactionLinksDecayed } from '@/graphql/resolver/util/transactionLinksDecayed'
 
 function isStringBoolean(value: string): boolean {
   const lowerValue = value.toLowerCase()

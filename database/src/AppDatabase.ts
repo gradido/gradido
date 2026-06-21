@@ -52,7 +52,7 @@ export class AppDatabase {
     if (!this.drizzlePool) {
       throw new Error('Drizzle connection pool not initialized')
     }
-    return drizzle({ client: this.drizzlePool })
+    return drizzle(this.drizzlePool)
   }
 
   public getDefaultBatchSize(): number {
