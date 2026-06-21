@@ -143,7 +143,10 @@ export async function dltTransactionTransferJoinsQuery<
       transactionLinksTable,
       eq(transactionLinksTable.id, dltTransactionsTable.transactionLinkId),
     )
-    .leftJoin(transactionLinksTableDeep, eq(transactionLinksTableDeep.id, transactionsTable.transactionLinkId))
+    .leftJoin(
+      transactionLinksTableDeep,
+      eq(transactionLinksTableDeep.id, transactionsTable.transactionLinkId),
+    )
     .leftJoin(
       linkedTransactionsTable,
       eq(linkedTransactionsTable.id, transactionsTable.linkedTransactionId),

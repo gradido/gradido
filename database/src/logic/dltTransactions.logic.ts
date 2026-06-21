@@ -135,7 +135,14 @@ export async function resolveDltTransactionByLedgerAnchor(
         missingJoins.push('users (on transaction_links)')
       }
     } else if (t.dltTransaction.typeId === DltTransactionType.REDEEM_DEFERRED_TRANSFER) {
-      if (t.dltTransaction && t.transaction && t.linkedTransaction && t.transactionLinkDeep && t.user && t.linkedUser) {
+      if (
+        t.dltTransaction &&
+        t.transaction &&
+        t.linkedTransaction &&
+        t.transactionLinkDeep &&
+        t.user &&
+        t.linkedUser
+      ) {
         return queryResult
       }
       if (!t.dltTransaction) {
