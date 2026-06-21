@@ -4,11 +4,12 @@ import {
   dbUpdateConfirmedDltTransaction,
   dbUpdateWithErrorDltTransaction,
   dbUpdateWithErrorDltTransactionByHieroTransactionId,
-  getHomeCommunity,
+  getHomeCommunityDrizzle,
   resolveDltTransactionByLedgerAnchor,
 } from 'database'
 import { getLogger } from 'log4js'
 import { CompleteTransaction, VoidResult } from 'shared'
+import { MonotonicTimer } from 'shared-native'
 import { Arg, Mutation, Resolver } from 'type-graphql'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { ConfirmedTransactionInput } from '../input/ConfirmedTransactionInput'
@@ -24,9 +25,10 @@ export class BlockchainNotificationResolver {
   async blockchainConfirmedTx(
     @Arg('data') args: ConfirmedTransactionInput,
   ): Promise<MutationResult> {
+    const timeUsed = new MonotonicTimer()
     logger.debug('Blockchain notification received:', JSON.stringify(args, null, 2))
     try {
-      const homeCommunity = await getHomeCommunity()
+      const homeCommunity = await getHomeCommunityDrizzle()
       if (homeCommunity?.communityUuid !== args.communityUuid) {
         logger.warn('Notification for non Home-Community')
         return {
@@ -52,6 +54,7 @@ export class BlockchainNotificationResolver {
           },
         }
       }
+
       const validateResult = tx.validate(true)
       if (!validateResult.success) {
         logger.error('validate confirmed transaction failed:', validateResult.error)
@@ -77,10 +80,12 @@ export class BlockchainNotificationResolver {
         // probably our own mistake, didn't need to tell GradidoNode
         return { success: true }
       }
+
       const dltTransactionId = dltTransactionResult.value.dltTransaction.id
       // load balance taking pending transaction links into account
       // will also sync tx balance and balance date with confirmed transaction confirmedAt
       const compareResult = await compareConfirmedTransaction(dltTransactionResult.value, tx, true)
+
       let updateResult: VoidResult<DBNotFoundError>
       if (!compareResult.success) {
         logger.error('Compare Transactions failed', {
@@ -110,6 +115,7 @@ export class BlockchainNotificationResolver {
     } catch (e) {
       logger.fatal(e)
     }
+    logger.info(`blockchainConfirmedTx: ${timeUsed}`)
     return { success: true }
   }
 

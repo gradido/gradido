@@ -1,17 +1,35 @@
+import { eq } from 'drizzle-orm'
 import { Ed25519PublicKey, urlSchema, uuidv4Schema } from 'shared'
 import { FindOptionsOrder, FindOptionsWhere, IsNull, MoreThanOrEqual, Not } from 'typeorm'
+import { drizzleDb } from '../AppDatabase'
 import { Community as DbCommunity } from '../entity'
+import { CommunitiesSelect, communitiesTable } from '../schemas'
 
+// cheap cache
+//let homeCommunityCache: DbCommunity | null = null
+let homeCommunityDrizzleCache: CommunitiesSelect | null = null
 /**
  * Retrieves the home community, i.e., a community that is not foreign.
  * @returns A promise that resolves to the home community, or null if no home community was found
  */
 export async function getHomeCommunity(): Promise<DbCommunity | null> {
-  // TODO: Put in Cache, it is needed nearly always
   // TODO: return only DbCommunity or throw to reduce unnecessary checks, because there should be always a home community
   return await DbCommunity.findOne({
     where: { foreign: false },
-  })
+  })  
+}
+
+export async function getHomeCommunityDrizzle(): Promise<CommunitiesSelect | null> {
+  if (!homeCommunityDrizzleCache) {
+    const resultRows = await drizzleDb()
+      .select()
+      .from(communitiesTable)
+      .where(eq(communitiesTable.foreign, 0))
+    if (resultRows[0]) {
+      homeCommunityDrizzleCache = resultRows[0]
+    }
+  }
+  return homeCommunityDrizzleCache
 }
 
 export async function getHomeCommunityWithFederatedCommunityOrFail(

@@ -45,6 +45,15 @@ describe('GradidoUnit', () => {
     expect(decay.end).toBe(to)
   })
 
+  it('decay 10k times', () => {
+    const gdd = new GradidoUnit(10000n)
+    const from = new Date('2022-01-01')
+    const to = new Date('2022-01-02')
+    for (let i = 0; i < 10000; i++) {
+      gdd.calculateDecay(from, to)
+    }
+  })
+
   it('calculateDecay called with invalid dates', () => {
     const gdd = GradidoUnit.fromGradidoCent(10000n)
     const from = new Date('2022-01-02')

@@ -1,6 +1,7 @@
 import { sql } from 'drizzle-orm'
 import {
   bigint,
+  binary,
   char,
   datetime,
   decimal,
@@ -16,6 +17,36 @@ import {
 } from 'drizzle-orm/mysql-core'
 
 import { customGradidoUnit } from './customTypes'
+
+export const communitiesTable = mysqlTable(
+  'communities',
+  {
+    id: int().autoincrement().notNull(),
+    foreign: tinyint().default(1).notNull(),
+    url: varchar({ length: 255 }).notNull(),
+    publicKey: binary('public_key', { length: 32 }).notNull(),
+    privateKey: binary('private_key', { length: 64 }).default(sql`NULL`),
+    communityUuid: char('community_uuid', { length: 36 }).default(sql`NULL`),
+    authenticatedAt: datetime('authenticated_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
+    name: varchar({ length: 40 }).default(sql`NULL`),
+    description: varchar({ length: 255 }).default(sql`NULL`),
+    gmsApiKey: varchar('gms_api_key', { length: 512 }).default(sql`NULL`),
+    publicJwtKey: varchar('public_jwt_key', { length: 512 }).default(sql`NULL`),
+    privateJwtKey: varchar('private_jwt_key', { length: 2048 }).default(sql`NULL`),
+    // Warning: Can't parse geometry from database
+    // geometryType: geometry("location"),
+    hieroTopicId: varchar('hiero_topic_id', { length: 512 }).default(sql`NULL`),
+    creationDate: datetime('creation_date', { mode: 'date', fsp: 3 }).default(sql`NULL`),
+    createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
+      .default(sql`current_timestamp(3)`)
+      .notNull(),
+    updatedAt: datetime('updated_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
+  },
+  (table) => [unique('url_key').on(table.url), unique('uuid_key').on(table.communityUuid)],
+)
+
+export type CommunitiesSelect = typeof communitiesTable.$inferSelect
+export type CommunitiesInsert = typeof communitiesTable.$inferInsert
 
 export const contributionsTable = mysqlTable(
   'contributions',
@@ -149,6 +180,9 @@ export const transactionLinksTable = mysqlTable(
   },
   (table) => [index('idx_userId').on(table.userId)],
 )
+
+export type TransactionLinksSelect = typeof transactionLinksTable.$inferSelect
+export type TransactionLinksInsert = typeof transactionLinksTable.$inferInsert
 
 export const usersTable = mysqlTable(
   'users',

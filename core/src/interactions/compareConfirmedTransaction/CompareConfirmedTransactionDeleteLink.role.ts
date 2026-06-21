@@ -1,11 +1,5 @@
 import { DltTransactionTransfer } from 'database'
-import {
-  AccountKeyPair,
-  CompareError,
-  CompleteTransaction,
-  TemporalGradidoUnit,
-  VoidResult,
-} from 'shared'
+import { AccountKeyPair, CompareError, CompleteTransaction, VoidResult } from 'shared'
 import { AbstractCompareConfirmedRole } from './AbstractCompareConfirmed.role'
 
 export class CompareConfirmedTransactionDeleteLinkRole extends AbstractCompareConfirmedRole {
@@ -17,7 +11,7 @@ export class CompareConfirmedTransactionDeleteLinkRole extends AbstractCompareCo
   }
 
   async isIdentical(): Promise<VoidResult<CompareError>> {
-    const transactionLink = this.dbTransaction.transactionLinkDeep
+    const transactionLink = this.dbTransaction.transactionLink
     if (!transactionLink) {
       // we throw because this should be already checked before calling into this interaction
       throw new CompareError('Missing transaction_links')

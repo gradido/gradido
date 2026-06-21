@@ -63,7 +63,7 @@ describe('transactionLinksDecayed', () => {
 
     mock.module('database', () => {
       return {
-        transactionLinksPendingFromUserOrderByIdASC: mock(
+        transactionLinksPendingFromUserOrderByIdASCDrizzle: mock(
           async (userId: number, count: number, lastId: number, date: Date) => transactionLinks,
         ),
       }
