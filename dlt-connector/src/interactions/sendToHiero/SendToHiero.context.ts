@@ -146,15 +146,15 @@ async function chooseCorrectRole(
 
   const transaction = transactionParsingResult.output
   switch (transaction.type) {
-    case InputTransactionType.GRADIDO_CREATION:
+    case InputTransactionType.GRDT_TRANSACTION_CREATION:
       return new CreationTransactionRole(transaction)
-    case InputTransactionType.GRADIDO_TRANSFER:
+    case InputTransactionType.GRDT_TRANSACTION_TRANSFER:
       return new TransferTransactionRole(transaction)
-    case InputTransactionType.REGISTER_ADDRESS:
+    case InputTransactionType.GRDT_TRANSACTION_REGISTER_ADDRESS:
       return new RegisterAddressTransactionRole(transaction)
-    case InputTransactionType.GRADIDO_DEFERRED_TRANSFER:
+    case InputTransactionType.GRDT_TRANSACTION_DEFERRED_TRANSFER:
       return new DeferredTransferTransactionRole(transaction)
-    case InputTransactionType.GRADIDO_REDEEM_DEFERRED_TRANSFER: {
+    case InputTransactionType.GRDT_TRANSACTION_REDEEM_DEFERRED_TRANSFER: {
       // load deferred transfer transaction from gradido node
       const seedKeyPairRole = new LinkedTransactionKeyPairRole(
         v.parse(identifierSeedSchema, transaction.user.seed),

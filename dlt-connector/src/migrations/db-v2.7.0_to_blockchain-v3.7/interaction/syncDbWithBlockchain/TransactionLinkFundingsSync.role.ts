@@ -75,7 +75,7 @@ export class TransactionLinkFundingsSyncRole extends AbstractSyncRole<Transactio
       const item = {
         ...row.transactionLinks,
         user: row.users,
-        messageId: row.dltTransactions?.messageId,
+        hieroTransactionId: row.dltTransactions?.hieroTransactionId,
       }
       try {
         return v.parse(transactionLinkDbSchema, item)

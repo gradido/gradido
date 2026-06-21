@@ -88,7 +88,7 @@ export class CreationsSyncRole extends AbstractSyncRole<CreationTransactionDb> {
         ...row.contribution,
         user: row.user,
         confirmedByUser: row.confirmedByUser,
-        messageId: row.dltTransaction?.messageId,
+        hieroTransactionId: row.dltTransaction?.hieroTransactionId,
       }
       try {
         return v.parse(creationTransactionDbSchema, item)

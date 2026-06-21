@@ -83,7 +83,7 @@ export class DeletedTransactionLinksSyncRole extends AbstractSyncRole<DeletedTra
       const item = {
         ...row.transactionLink,
         user: row.user,
-        messageId: row.dltTransaction?.messageId,
+        hieroTransactionId: row.dltTransaction?.hieroTransactionId,
       }
       try {
         return v.parse(deletedTransactionLinKDbSchema, item)
