@@ -124,12 +124,14 @@ export async function dltTransactionTransferJoinsQuery<
   const linkedUsersTable = alias(usersTable, 'linkedUser')
   const linkedTransactionsTable = alias(transactionsTable, 'linkedTransaction')
   const transactionLinkUsersTable = alias(usersTable, 'transactionLinkUser')
+  const transactionLinksTableDeep = alias(transactionLinksTable, 'transactionLinksDeep')
 
   return drizzleDb()
     .select({
       dltTransaction: dltTransactionsTable,
       transaction: transactionsTable,
       transactionLink: transactionLinksTable,
+      transactionLinkDeep: transactionLinksTableDeep,
       linkedTransaction: linkedTransactionsTable,
       user: usersTable,
       linkedUser: linkedUsersTable,
@@ -139,11 +141,9 @@ export async function dltTransactionTransferJoinsQuery<
     .leftJoin(transactionsTable, eq(transactionsTable.id, dltTransactionsTable.transactionId))
     .leftJoin(
       transactionLinksTable,
-      or(
-        eq(transactionLinksTable.id, dltTransactionsTable.transactionLinkId),
-        eq(transactionLinksTable.id, transactionsTable.transactionLinkId),
-      ),
+      eq(transactionLinksTable.id, dltTransactionsTable.transactionLinkId),
     )
+    .leftJoin(transactionLinksTableDeep, eq(transactionLinksTableDeep.id, transactionsTable.transactionLinkId))
     .leftJoin(
       linkedTransactionsTable,
       eq(linkedTransactionsTable.id, transactionsTable.linkedTransactionId),
