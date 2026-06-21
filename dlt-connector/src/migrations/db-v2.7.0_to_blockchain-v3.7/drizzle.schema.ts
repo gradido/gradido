@@ -110,5 +110,5 @@ export const dltTransactionsTable = mysqlTable('dlt_transactions', {
   transactionId: int('transaction_id').default(sql`NULL`),
   userId: int('user_id').default(sql`NULL`),
   transactionLinkId: int('transaction_link_id').default(sql`NULL`),
-  messageId: varchar('message_id', { length: 64 }).default(sql`NULL`),
+  hieroTransactionId: varchar('hiero_transaction_id', { length: 255 }).default(sql`NULL`),
 })

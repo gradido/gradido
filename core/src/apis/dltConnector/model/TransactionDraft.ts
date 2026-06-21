@@ -38,7 +38,7 @@ export class TransactionDraft {
         community.communityUuid!,
         new CommunityAccountIdentifier(user.gradidoID),
       )
-      draft.type = TransactionType.REGISTER_ADDRESS
+      draft.type = TransactionType.GRDT_TRANSACTION_REGISTER_ADDRESS
       draft.createdAt = user.createdAt.toISOString()
       draft.accountType = AccountType.COMMUNITY_HUMAN
       return draft
@@ -66,7 +66,7 @@ export class TransactionDraft {
         community.communityUuid!,
         new CommunityAccountIdentifier(signingUser.gradidoID),
       )
-      draft.type = TransactionType.GRADIDO_CREATION
+      draft.type = TransactionType.GRDT_TRANSACTION_CREATION
       draft.createdAt = createdAt.toISOString()
       draft.amount = contribution.amount.toString()
       draft.memo = contribution.memo
@@ -106,7 +106,7 @@ export class TransactionDraft {
       receivingUser.community.communityUuid!,
       new CommunityAccountIdentifier(receivingUser.gradidoID),
     )
-    draft.type = TransactionType.GRADIDO_TRANSFER
+    draft.type = TransactionType.GRDT_TRANSACTION_TRANSFER
     draft.createdAt = createdAt.toISOString()
     draft.amount = amount
     draft.memo = memo
@@ -137,7 +137,7 @@ export class TransactionDraft {
       sendingUser.community.communityUuid!,
       transactionLink.code,
     )
-    draft.type = TransactionType.GRADIDO_DEFERRED_TRANSFER
+    draft.type = TransactionType.GRDT_TRANSACTION_DEFERRED_TRANSFER
     draft.createdAt = createdAtOnlySeconds.toISOString()
     draft.amount = transactionLink.amount.toString()
     draft.memo = transactionLink.memo
@@ -178,7 +178,7 @@ export class TransactionDraft {
       recipientUser.community.communityUuid!,
       new CommunityAccountIdentifier(recipientUser.gradidoID),
     )
-    draft.type = TransactionType.GRADIDO_REDEEM_DEFERRED_TRANSFER
+    draft.type = TransactionType.GRDT_TRANSACTION_REDEEM_DEFERRED_TRANSFER
     draft.createdAt = createdAtOnlySeconds.toISOString()
     draft.amount = amount
     return draft
