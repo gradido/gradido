@@ -1,4 +1,4 @@
-import { TransactionSelect, UserSelectIdentity as UserSelect } from 'database'
+import { TransactionSelect } from 'database'
 import {
   AccountKeyPair,
   CompareError,
@@ -9,6 +9,16 @@ import {
   VoidResult,
 } from 'shared'
 import { CONFIG } from '../../config'
+
+export type DltUser = {
+  publicKey: string | null
+  communityUuid: string | null
+}
+
+export type DbUser = {
+  communityUuid: string | null
+  gradidoId: string
+}
 
 function abs<T extends number | bigint>(n: T): T {
   if (typeof n === 'bigint') {
@@ -94,22 +104,18 @@ export abstract class AbstractCompareConfirmedRole {
     return { success: false, error }
   }
 
-  isIdenticalUser(
-    dbUser?: UserSelect | null,
-    dltUserPublicKey?: string | null,
-    dltUserCommunityUuid?: string | null,
-  ): VoidResult<CompareError> {
+  isIdenticalUser(dbUser?: DbUser | null, dltUser?: DltUser | null): VoidResult<CompareError> {
     let error: CompareError | undefined
     if (!dbUser) {
       error = new CompareError('User from db is missing')
-    } else if (!dltUserPublicKey) {
-      error = new CompareError('User from dlt connector is missing')
-    } else if (!dltUserCommunityUuid) {
+    } else if (!dltUser || !dltUser.publicKey) {
+      error = new CompareError('User from dlt is missing')
+    } else if (!dltUser.communityUuid) {
       error = new CompareError('User Community Uuid from dlt connector is missing')
-    } else if (dbUser.communityUuid !== dltUserCommunityUuid) {
+    } else if (dbUser.communityUuid !== dltUser.communityUuid) {
       error = new CompareError(
         "Community Uuids doesn't match",
-        `${dbUser.communityUuid} != ${dltUserCommunityUuid}`,
+        `${dbUser.communityUuid} != ${dltUser.communityUuid}`,
       )
     } else if (!CONFIG.HOME_COMMUNITY_SEED) {
       throw new CompareError('Missing Home Community Seed for calculating Account Key Pair')
@@ -119,10 +125,10 @@ export abstract class AbstractCompareConfirmedRole {
         dbUser.gradidoId,
         1,
       )
-      if (accountKeyPair.publicKeyString !== dltUserPublicKey) {
+      if (accountKeyPair.publicKeyString !== dltUser.publicKey) {
         error = new CompareError(
           "Public Keys doesn't match",
-          `${accountKeyPair.publicKeyString} != ${dltUserPublicKey}`,
+          `${accountKeyPair.publicKeyString} != ${dltUser.publicKey}`,
         )
       }
     }

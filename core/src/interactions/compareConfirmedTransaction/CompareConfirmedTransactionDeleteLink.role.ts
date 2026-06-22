@@ -91,22 +91,11 @@ export class CompareConfirmedTransactionDeleteLinkRole extends AbstractCompareCo
       }
     }
 
-    const dltRecipientUser = this.confirmedTx.getRecipientPublicKey()
-    if (!dltRecipientUser) {
-      return {
-        success: false,
-        error: new CompareError('Missing sender user in dlt data'),
-      }
+    const dltRecipientUser = {
+      publicKey: this.confirmedTx.getRecipientPublicKey(),
+      communityUuid: this.confirmedTx.getRecipientCommunityUuid(),
     }
 
-    const dltRecipientUserCommunityUuid = this.confirmedTx.getRecipientCommunityUuid()
-    if (!dltRecipientUserCommunityUuid) {
-      return {
-        success: false,
-        error: new CompareError('Missing recipient user community uuid in dlt data'),
-      }
-    }
-
-    return this.isIdenticalUser(recipientUser, dltRecipientUser, dltRecipientUserCommunityUuid)
+    return this.isIdenticalUser(recipientUser, dltRecipientUser)
   }
 }

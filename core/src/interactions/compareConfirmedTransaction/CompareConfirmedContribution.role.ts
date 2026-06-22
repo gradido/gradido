@@ -18,6 +18,11 @@ export class CompareConfirmedContributionRole extends AbstractCompareConfirmedRo
       throw new CompareError('Missing transaction')
     }
 
+    const contribution = this.dbTransaction.contribution
+    if (!contribution) {
+      throw new CompareError('Missing contribution')
+    }
+
     if (this.confirmedTx.getTransactionType() !== 'GRDT_TRANSACTION_CREATION') {
       return {
         success: false,
@@ -41,7 +46,7 @@ export class CompareConfirmedContributionRole extends AbstractCompareConfirmedRo
     }
     let result = this.isIdenticalDate(
       'contributionDate',
-      this.dbTransaction.contributionDate,
+      contribution.contributionDate,
       this.confirmedTx.getTargetDate(),
     )
     if (!result.success) {
@@ -53,20 +58,21 @@ export class CompareConfirmedContributionRole extends AbstractCompareConfirmedRo
       return { success: false, error: new CompareError('Missing recipient user in db') }
     }
 
-    const dltRecipientUser = this.confirmedTx.getRecipientPublicKey()
-    if (!dltRecipientUser) {
+    const dltRecipientUserPublicKey = this.confirmedTx.getRecipientPublicKey()
+    if (!dltRecipientUserPublicKey) {
       return { success: false, error: new CompareError('Missing recipient user in dlt data') }
     }
-
-    const dltRecipientUserCommunityUuid = this.confirmedTx.getRecipientCommunityUuid()
-    if (!dltRecipientUserCommunityUuid) {
-      return {
-        success: false,
-        error: new CompareError('Missing recipient user community uuid in dlt data'),
-      }
+    const dltRecipientUser = {
+      publicKey: dltRecipientUserPublicKey,
+      communityUuid: this.confirmedTx.getRecipientCommunityUuid(),
     }
 
     result = this.isIdenticalGdd('amount', tx.amount, this.confirmedTx.getAmount())
+    if (!result.success) {
+      return result
+    }
+
+    result = this.isIdenticalGdd('amount', tx.amount, contribution.amount)
     if (!result.success) {
       return result
     }
@@ -76,7 +82,9 @@ export class CompareConfirmedContributionRole extends AbstractCompareConfirmedRo
       tx.userId,
       dbAccountBalanceDate,
     )
-    const accountBalance = this.confirmedTx.getAccountBalanceForPublicKey(dltRecipientUser)
+    const accountBalance = this.confirmedTx.getAccountBalanceForPublicKey(
+      dltRecipientUser.publicKey,
+    )
     if (!accountBalance) {
       return { success: false, error: new CompareError('Dlt balance is missing') }
     }
@@ -98,7 +106,7 @@ export class CompareConfirmedContributionRole extends AbstractCompareConfirmedRo
     }
 
     // most expensive compare at the end
-    result = this.isIdenticalUser(recipientUser, dltRecipientUser, dltRecipientUserCommunityUuid)
+    result = this.isIdenticalUser(recipientUser, dltRecipientUser)
     if (!result.success) {
       return result
     }

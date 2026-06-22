@@ -4,15 +4,9 @@ import {
   dbUpdateBalanceAndDate,
   TransactionSelect,
   TransactionTypeId,
-  UserSelectIdentity,
 } from 'database'
 import { CompareError, CompleteTransaction, TemporalGradidoUnit, VoidResult } from 'shared'
-import { AbstractCompareConfirmedRole } from './AbstractCompareConfirmed.role'
-
-export interface DltUser {
-  publicKey: string
-  communityUuid: string
-}
+import { AbstractCompareConfirmedRole, DbUser, DltUser } from './AbstractCompareConfirmed.role'
 
 export class CompareConfirmedTransferRole extends AbstractCompareConfirmedRole {
   public constructor(
@@ -28,7 +22,7 @@ export class CompareConfirmedTransferRole extends AbstractCompareConfirmedRole {
     dltAccountBalance: TemporalGradidoUnit,
     accountBalance: TemporalGradidoUnit,
     dltUser: DltUser,
-    user: UserSelectIdentity,
+    user: DbUser,
   ): Promise<VoidResult<CompareError>> {
     if (!dbTx.amount) {
       throw new CompareError(`Empty amount on tx with id: ${dbTx.id}`)
@@ -52,7 +46,7 @@ export class CompareConfirmedTransferRole extends AbstractCompareConfirmedRole {
     }
     const txBalanceDiff = balanceCompareDiffResult.value
 
-    result = this.isIdenticalUser(user, dltUser.publicKey, dltUser.communityUuid)
+    result = this.isIdenticalUser(user, dltUser)
     if (!result.success) {
       return result
     }
@@ -150,6 +144,9 @@ export class CompareConfirmedTransferRole extends AbstractCompareConfirmedRole {
       transactionLinksDecayed(linkedUser.id, dbAccountBalanceDate),
     ])
 
+    if (!dltSenderUser.publicKey) {
+      return { success: false, error: new CompareError('Missing sender public key on dlt') }
+    }
     const senderAccountBalance = this.confirmedTx.getAccountBalanceForPublicKey(
       dltSenderUser.publicKey,
     )
@@ -158,6 +155,9 @@ export class CompareConfirmedTransferRole extends AbstractCompareConfirmedRole {
         success: false,
         error: new CompareError(`dlt cannot found account balance for ${dltSenderUser.publicKey}`),
       }
+    }
+    if (!dltRecipientUser.publicKey) {
+      return { success: false, error: new CompareError('Missing recipient public key on dlt') }
     }
     const recipientAccountBalance = this.confirmedTx.getAccountBalanceForPublicKey(
       dltRecipientUser.publicKey,

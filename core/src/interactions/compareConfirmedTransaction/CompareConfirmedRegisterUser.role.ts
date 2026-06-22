@@ -36,11 +36,10 @@ export class CompareConfirmedRegisterUserRole extends AbstractCompareConfirmedRo
     }
 
     return Promise.resolve(
-      this.isIdenticalUser(
-        user,
-        this.confirmedTx.getRegisteredAccount(),
-        this.confirmedTx.getSenderCommunityUuid(),
-      ),
+      this.isIdenticalUser(user, {
+        publicKey: this.confirmedTx.getRegisteredAccount(),
+        communityUuid: this.confirmedTx.getSenderCommunityUuid(),
+      }),
     )
   }
 }

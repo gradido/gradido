@@ -29,7 +29,7 @@ export class CompareConfirmedTransactionLinkRole extends AbstractCompareConfirme
 
     let result = this.isIdenticalDate(
       'createdAt',
-      this.dbTransaction.transactionLink?.createdAt,
+      transactionLink.createdAt,
       this.confirmedTx.getCreatedAt(),
     )
     if (!result.success) {
@@ -44,21 +44,6 @@ export class CompareConfirmedTransactionLinkRole extends AbstractCompareConfirme
       })
     }
 
-    const dltSenderUser = this.confirmedTx.getSenderPublicKey()
-    if (!dltSenderUser) {
-      return Promise.resolve({
-        success: false,
-        error: new CompareError('Missing sender user in dlt data'),
-      })
-    }
-
-    const dltSenderCommunityUuid = this.confirmedTx.getSenderCommunityUuid()
-    if (!dltSenderCommunityUuid) {
-      return Promise.resolve({
-        success: false,
-        error: new CompareError('Missing sender user community uuid in dlt data'),
-      })
-    }
     const dbLinkDuration = Duration.fromDateDiff(
       new Date(transactionLink.createdAt),
       new Date(transactionLink.validUntil),
@@ -106,7 +91,12 @@ export class CompareConfirmedTransactionLinkRole extends AbstractCompareConfirme
       })
     }
 
+    const dltSenderUser = {
+      publicKey: this.confirmedTx.getSenderPublicKey(),
+      communityUuid: this.confirmedTx.getSenderCommunityUuid(),
+    }
+
     // most expensive compare at the end
-    return Promise.resolve(this.isIdenticalUser(senderUser, dltSenderUser, dltSenderCommunityUuid))
+    return Promise.resolve(this.isIdenticalUser(senderUser, dltSenderUser))
   }
 }
