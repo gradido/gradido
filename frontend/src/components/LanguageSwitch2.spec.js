@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import { describe, it, expect, beforeEach, beforeAll, vi } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import LanguageSwitch from './LanguageSwitch2.vue'
 import locales from '@/locales/'
 import { createStore } from 'vuex'
@@ -24,13 +24,20 @@ vi.mock('@vue/apollo-composable', async () => {
 })
 
 const mockToastError = vi.fn()
+const mockToastSuccess = vi.fn()
 vi.mock('@/composables/useToast', () => ({
   useAppToast: vi.fn(() => ({
     toastError: mockToastError,
+    toastSuccess: mockToastSuccess,
   })),
 }))
 
-describe('LanguageSwitch', () => {
+const enabledLocales = locales.filter((lang) => lang.enabled)
+const nameByCode = (code) => locales.find((lang) => lang.code === code).name
+const itemByCode = (wrapper, code) =>
+  wrapper.findAll('.ls-item').find((item) => item.find('.ls-item-name').text() === nameByCode(code))
+
+describe('LanguageSwitch2', () => {
   let wrapper
 
   const store = createStore({
@@ -51,16 +58,14 @@ describe('LanguageSwitch', () => {
     messages: {},
   })
 
-  const globalMocks = {
-    $apollo: {
-      mutate: updateUserInfosMutationMock,
-    },
-  }
-
   const mountOptions = {
     global: {
       plugins: [store, i18n],
-      mocks: globalMocks,
+      mocks: {
+        $apollo: {
+          mutate: updateUserInfosMutationMock,
+        },
+      },
     },
   }
 
@@ -68,109 +73,75 @@ describe('LanguageSwitch', () => {
     return mount(LanguageSwitch, mountOptions)
   }
 
-  describe('mount', () => {
-    beforeEach(() => {
-      wrapper = createWrapper()
+  beforeEach(() => {
+    vi.clearAllMocks()
+    wrapper = createWrapper()
+  })
+
+  it('renders the component', () => {
+    expect(wrapper.find('div.language-switch').exists()).toBe(true)
+  })
+
+  describe('current language label (the trigger)', () => {
+    it('defaults to the navigator language English when the store is empty', async () => {
+      const languageGetter = vi.spyOn(navigator, 'language', 'get')
+      languageGetter.mockReturnValue('en-US')
+      store.state.language = null
+      await wrapper.vm.setCurrentLanguage()
+      expect(wrapper.find('.ls-current').text()).toBe('English')
     })
 
-    it('renders the component', () => {
-      expect(wrapper.find('div.language-switch').exists()).toBe(true)
+    it('falls back to English when there is no navigator language', async () => {
+      const languageGetter = vi.spyOn(navigator, 'language', 'get')
+      languageGetter.mockReturnValue(null)
+      store.state.language = null
+      await wrapper.vm.setCurrentLanguage()
+      expect(wrapper.find('.ls-current').text()).toBe('English')
     })
 
-    describe('with locales en, de, es, fr, nl, and it', () => {
-      describe('empty store', () => {
-        describe('navigator language is "en-US"', () => {
-          const languageGetter = vi.spyOn(navigator, 'language', 'get')
+    it('shows the stored language as its autonym', async () => {
+      store.state.language = 'es'
+      await wrapper.vm.setCurrentLanguage()
+      expect(wrapper.find('.ls-current').text()).toBe('Español')
+    })
+  })
 
-          it('shows English as default navigator language', async () => {
-            languageGetter.mockReturnValue('en-US')
-            await wrapper.vm.setCurrentLanguage()
-            expect(wrapper.findAll('span.locales').at(0).text()).toBe('English')
-          })
-        })
-
-        describe('no navigator language', () => {
-          const languageGetter = vi.spyOn(navigator, 'language', 'get')
-
-          it('shows English as language ', async () => {
-            languageGetter.mockReturnValue(null)
-            await wrapper.vm.setCurrentLanguage()
-            expect(wrapper.findAll('span.locales').at(0).text()).toBe('English')
-          })
-        })
-      })
-
-      describe('language "de" in store', () => {
-        it('shows Deutsch as language', async () => {
-          store.state.language = 'de'
-          await wrapper.vm.setCurrentLanguage()
-          expect(wrapper.findAll('span.locales').at(1).text()).toBe('English')
-        })
-      })
-
-      describe('language "es" in store', () => {
-        it('shows Español as language', async () => {
-          store.state.language = 'es'
-          await wrapper.vm.setCurrentLanguage()
-          expect(wrapper.findAll('span.locales').at(2).text()).toBe('Deutsch')
-        })
-      })
-
-      describe('language "fr" in store', () => {
-        it('shows French as language', async () => {
-          store.state.language = 'fr'
-          await wrapper.vm.setCurrentLanguage()
-          expect(wrapper.findAll('span.locales').at(3).text()).toBe('Español')
-        })
-      })
-
-      describe('language "nl" in store', () => {
-        it('shows Nederlands as language', async () => {
-          store.state.language = 'nl'
-          await wrapper.vm.setCurrentLanguage()
-          expect(wrapper.findAll('span.locales').at(4).text()).toBe('Français')
-        })
-      })
-
-      describe('language menu', () => {
-        beforeAll(async () => {
-          store.state.language = 'en'
-          await wrapper.vm.setCurrentLanguage()
-        })
-
-        it('has all configured languages to choose from', () => {
-          expect(wrapper.findAll('span.locales').length).toBe(locales.length)
-        })
-      })
+  describe('the language menu', () => {
+    beforeEach(async () => {
+      store.state.language = 'de'
+      await wrapper.vm.setCurrentLanguage()
     })
 
-    describe('calls the API', () => {
-      it("with locale 'de'", async () => {
-        await wrapper.findAll('span.locales').at(1).trigger('click')
-        await vi.waitFor(() => {
-          expect(updateUserInfosMutationMock).toHaveBeenCalledWith({ locale: 'de' })
-        })
-      })
+    it('offers every enabled language to choose from', () => {
+      expect(wrapper.findAll('.ls-item').length).toBe(enabledLocales.length)
+    })
 
-      it("with locale 'es'", async () => {
-        await wrapper.findAll('span.locales').at(2).trigger('click')
-        await vi.waitFor(() => {
-          expect(updateUserInfosMutationMock).toHaveBeenCalledWith({ locale: 'es' })
-        })
-      })
+    it('puts the current language first and marks it active', () => {
+      const first = wrapper.findAll('.ls-item')[0]
+      expect(first.find('.ls-item-name').text()).toBe('Deutsch')
+      expect(first.classes()).toContain('ls-item--active')
+    })
 
-      it("with locale 'fr'", async () => {
-        await wrapper.findAll('span.locales').at(3).trigger('click')
-        await vi.waitFor(() => {
-          expect(updateUserInfosMutationMock).toHaveBeenCalledWith({ locale: 'fr' })
-        })
-      })
+    it('sorts the remaining languages alphabetically by autonym', () => {
+      const names = wrapper
+        .findAll('.ls-item')
+        .slice(1)
+        .map((item) => item.find('.ls-item-name').text())
+      const expected = [...names].sort((a, b) => a.localeCompare(b))
+      expect(names).toEqual(expected)
+    })
+  })
 
-      it("with locale 'nl'", async () => {
-        await wrapper.findAll('span.locales').at(4).trigger('click')
-        await vi.waitFor(() => {
-          expect(updateUserInfosMutationMock).toHaveBeenCalledWith({ locale: 'nl' })
-        })
+  describe('selecting a language calls the API', () => {
+    beforeEach(async () => {
+      store.state.language = 'en'
+      await wrapper.vm.setCurrentLanguage()
+    })
+
+    it.each([['de'], ['es'], ['fr'], ['nl']])('with locale "%s"', async (code) => {
+      await itemByCode(wrapper, code).trigger('click')
+      await vi.waitFor(() => {
+        expect(updateUserInfosMutationMock).toHaveBeenCalledWith({ locale: code })
       })
     })
   })
