@@ -16,7 +16,7 @@
         v-for="lang in sortedLocales"
         :key="lang.code"
         class="ls-item"
-        :class="{ 'ls-item--active': lang.code === store.state.language }"
+        :class="{ 'ls-item-active': lang.code === store.state.language }"
         role="option"
         :aria-selected="lang.code === store.state.language"
         @click="select(lang.code)"
@@ -128,6 +128,7 @@ onUnmounted(() => {
   position: relative;
   display: inline-block;
 }
+
 .ls-trigger {
   display: inline-flex;
   align-items: center;
@@ -140,17 +141,21 @@ onUnmounted(() => {
   line-height: 1.2;
   cursor: pointer;
 }
+
 .ls-trigger:hover .ls-current {
   text-decoration: underline;
 }
+
 .ls-globe {
   font-size: 1.15em;
   opacity: 0.7;
 }
+
 .ls-caret {
   font-size: 0.9em;
   opacity: 0.6;
 }
+
 .ls-menu {
   position: absolute;
   top: calc(100% + 4px);
@@ -162,11 +167,12 @@ onUnmounted(() => {
   margin: 0;
   padding: 4px;
   list-style: none;
-  background: #ffffff;
-  border: 0.5px solid rgba(0, 0, 0, 0.15);
+  background: #fff;
+  border: 0.5px solid rgb(0 0 0 / 15%);
   border-radius: 10px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 12%);
 }
+
 .ls-item {
   display: flex;
   align-items: center;
@@ -177,13 +183,16 @@ onUnmounted(() => {
   white-space: nowrap;
   cursor: pointer;
 }
+
 .ls-item:hover {
   background: #f2f4f6;
 }
-.ls-item--active {
+
+.ls-item-active {
   background: #e9f1fb;
   color: #185fa5;
 }
+
 .ls-check {
   font-size: 1em;
 }

@@ -119,7 +119,7 @@ describe('LanguageSwitch2', () => {
     it('puts the current language first and marks it active', () => {
       const first = wrapper.findAll('.ls-item')[0]
       expect(first.find('.ls-item-name').text()).toBe('Deutsch')
-      expect(first.classes()).toContain('ls-item--active')
+      expect(first.classes()).toContain('ls-item-active')
     })
 
     it('sorts the remaining languages alphabetically by autonym', () => {
