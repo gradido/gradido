@@ -55,7 +55,7 @@ const currentName = computed(() => {
   return current ? current.name : store.state.language || ''
 })
 
-// Aktuelle Sprache oben, der Rest alphabetisch nach Autonym (Eigenname).
+// Current language first, the rest sorted alphabetically by autonym (the language's own name).
 const sortedLocales = computed(() => {
   const enabled = locales.filter((lang) => lang.enabled)
   const current = enabled.find((lang) => lang.code === store.state.language)
