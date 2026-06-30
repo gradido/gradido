@@ -1,4 +1,4 @@
-import { Column, ColumnBaseConfig, ColumnDataType, eq, or } from 'drizzle-orm'
+import { Column, ColumnBaseConfig, ColumnDataType, eq } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/mysql-core'
 import { Result, UnhandledEnum, VoidResult } from 'shared'
 import { LedgerAnchor } from 'shared-native'
