@@ -37,7 +37,13 @@ export async function transferGradidos(
     store,
   )
 
-  return await Promise.all([sendResolver, receiveResolver])
+  const [tx1, tx2] = await Promise.all([sendResolver, receiveResolver])
+  if (store) {
+    tx1.linkedTransactionId = tx2.id
+    tx2.linkedTransactionId = tx1.id
+    return await Promise.all([tx1.save(), tx2.save()])
+  }
+  return [tx1, tx2]
 }
 
 export async function createTransaction(
