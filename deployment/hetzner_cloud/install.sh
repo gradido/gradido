@@ -20,6 +20,13 @@ onError() {
 }
 trap onError ERR
 
+# was it called as sudo?
+if [ "$EUID" -ne 0 ]; then
+    log_error "This script requires root privileges. Please run with 'sudo'."
+    log_error "Usage: sudo $0 $@"
+    exit 1
+fi
+
 # check for parameter
 if [ -z "$1" ]; then
     log_error "Usage: Please provide a branch name as the first argument."
@@ -293,6 +300,9 @@ envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $PROJECT_ROOT/federation/.e
 
 # set all created or modified files back to belonging to gradido
 chown -R gradido:gradido $PROJECT_ROOT
+
+# fix folder permission of home folder, which seems to changed on debian 13
+chmod 755 /home/gradido
 
 # create cronjob to delete yarn output in /tmp and for making backups regulary
 sudo -u gradido crontab < $LOCAL_SCRIPT_DIR/crontabs.txt
