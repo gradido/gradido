@@ -30,7 +30,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   for (const user of users) {
     console.log('Processing user:', JSON.stringify(user))
     // generate alias from firstname minus place for three digits plus first letter of name (max 20 chars)
-    let alias = user.first_name.slice(0, 16) + user.last_name.slice(0, 1)
+    let alias = user.first_name.replaceAll(' ', '').slice(0, 16) + user.last_name.slice(0, 1)
     console.log('Generated alias:', alias)
     /*
     if (alias.length > 20) {
