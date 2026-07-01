@@ -3,13 +3,12 @@ import {
   AccountBalance,
   AccountBalances,
   Filter,
+  GRDT_LEDGER_ANCHOR_LEGACY_GRADIDO_DB_TRANSACTION_LINK_ID,
   GradidoDeferredTransfer,
   GradidoTransactionBuilder,
   GradidoTransfer,
   GradidoUnit,
-  HieroTransactionId,
   KeyPairEd25519,
-  LedgerAnchor,
   MemoryBlockPtr,
   TransferAmount,
 } from 'gradido-blockchain-js'
@@ -31,7 +30,7 @@ import { AbstractSyncRole, IndexType } from './AbstractSync.role'
 
 export class DeletedTransactionLinksSyncRole extends AbstractSyncRole<DeletedTransactionLinkDb> {
   constructor(context: Context) {
-    super(context)
+    super(context, GRDT_LEDGER_ANCHOR_LEGACY_GRADIDO_DB_TRANSACTION_LINK_ID)
     this.accountBalances.reserve(2n)
   }
 
@@ -133,7 +132,7 @@ export class DeletedTransactionLinksSyncRole extends AbstractSyncRole<DeletedTra
       communityContext.blockchain,
       communityContext.communityId,
     )
-    fundingUserLastBalance.updateLegacyDecay(senderLastBalance.getBalance(), item.deletedAt)
+    fundingUserLastBalance.update(senderLastBalance.getBalance(), item.deletedAt)
 
     // account of link is set to zero, gdd will be send back to initiator
     this.accountBalances.add(
@@ -183,18 +182,9 @@ export class DeletedTransactionLinksSyncRole extends AbstractSyncRole<DeletedTra
       communityContext.blockchain,
       communityContext.communityId,
     )
-    senderLastBalance.updateLegacyDecay(GradidoUnit.zero(), item.deletedAt)
+    senderLastBalance.update(GradidoUnit.zero(), item.deletedAt)
 
     try {
-      let ledgerAnchor: LedgerAnchor
-      if (item.messageId) {
-        ledgerAnchor = new LedgerAnchor(new HieroTransactionId(item.messageId))
-      } else {
-        ledgerAnchor = new LedgerAnchor(
-          item.id,
-          LedgerAnchor.Type_LEGACY_GRADIDO_DB_TRANSACTION_LINK_ID,
-        )
-      }
       addToBlockchain(
         this.buildTransaction(
           communityContext,
@@ -205,7 +195,7 @@ export class DeletedTransactionLinksSyncRole extends AbstractSyncRole<DeletedTra
           linkFundingPublicKey,
         ).build(),
         blockchain,
-        ledgerAnchor,
+        this.getLedgerAnchor(item),
         this.calculateBalances(
           item,
           deferredTransfer,

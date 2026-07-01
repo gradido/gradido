@@ -2,8 +2,9 @@ import { createHash } from 'crypto'
 import { getHomeCommunity } from 'database'
 import { exportJWK, importSPKI } from 'jose'
 import { getLogger } from 'log4js'
+import { FRONTEND_LOGIN_ROUTE, GRADIDO_REALM } from 'shared'
 import { CONFIG } from '@/config'
-import { FRONTEND_LOGIN_ROUTE, GRADIDO_REALM, LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.openIDConnect`)
 const defaultErrorForCaller = 'Internal Server Error'

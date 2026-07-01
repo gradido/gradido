@@ -6,13 +6,12 @@ import {
   AuthenticatedEncryption,
   EncryptedMemo,
   Filter,
+  GRDT_LEDGER_ANCHOR_LEGACY_GRADIDO_DB_TRANSACTION_LINK_ID,
   GradidoDeferredTransfer,
   GradidoTransactionBuilder,
   GradidoTransfer,
   GradidoUnit,
-  HieroTransactionId,
   KeyPairEd25519,
-  LedgerAnchor,
   MemoryBlockPtr,
   TransferAmount,
 } from 'gradido-blockchain-js'
@@ -39,7 +38,7 @@ import { AbstractSyncRole, IndexType } from './AbstractSync.role'
 
 export class RedeemTransactionLinksSyncRole extends AbstractSyncRole<RedeemedTransactionLinkDb> {
   constructor(context: Context) {
-    super(context)
+    super(context, GRDT_LEDGER_ANCHOR_LEGACY_GRADIDO_DB_TRANSACTION_LINK_ID)
     this.accountBalances.reserve(3n)
   }
 
@@ -178,9 +177,9 @@ export class RedeemTransactionLinksSyncRole extends AbstractSyncRole<RedeemedTra
         `sender has not enough balance (${senderLastBalance.getAccountBalance().getBalance().toString()}) to send ${item.amount.toString()} to ${recipientPublicKey.convertToHex()}`,
       )
     }
-    senderLastBalance.updateLegacyDecay(item.amount.negated(), item.redeemedAt)
-    fundingUserLastBalance.updateLegacyDecay(senderLastBalance.getBalance(), item.redeemedAt)
-    recipientLastBalance.updateLegacyDecay(item.amount, item.redeemedAt)
+    senderLastBalance.update(item.amount.negated(), item.redeemedAt)
+    fundingUserLastBalance.update(senderLastBalance.getBalance(), item.redeemedAt)
+    recipientLastBalance.update(item.amount, item.redeemedAt)
 
     // account of link is set to zero, and change send back to link creator
     this.accountBalances.add(
@@ -226,15 +225,6 @@ export class RedeemTransactionLinksSyncRole extends AbstractSyncRole<RedeemedTra
     }
 
     try {
-      let ledgerAnchor: LedgerAnchor | undefined
-      if (item.messageId) {
-        ledgerAnchor = new LedgerAnchor(new HieroTransactionId(item.messageId))
-      } else {
-        ledgerAnchor = new LedgerAnchor(
-          item.id,
-          LedgerAnchor.Type_LEGACY_GRADIDO_DB_TRANSACTION_LINK_ID,
-        )
-      }
       addToBlockchain(
         this.buildTransaction(
           communityContext,
@@ -244,16 +234,14 @@ export class RedeemTransactionLinksSyncRole extends AbstractSyncRole<RedeemedTra
           recipientKeyPair,
         ).build(),
         blockchain,
-        ledgerAnchor,
-        this.context.isDecayCalculationTypeChanged(item.redeemedAt)
-          ? undefined
-          : this.calculateBalances(
-              item,
-              deferredTransfer,
-              communityContext,
-              senderPublicKey,
-              recipientPublicKey,
-            ),
+        this.getLedgerAnchor(item),
+        this.calculateBalances(
+          item,
+          deferredTransfer,
+          communityContext,
+          senderPublicKey,
+          recipientPublicKey,
+        ),
       )
     } catch (e) {
       throw new BlockchainError(`Error adding ${this.itemTypeName()}`, item, e as Error)

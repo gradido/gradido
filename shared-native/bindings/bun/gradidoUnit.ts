@@ -82,6 +82,9 @@ export function getDecayStartTime(): Date {
 }
 
 export function calculateDecay(value: bigint, seconds: bigint): bigint {
+  if (value < 0) {
+    throw new Error('First Argument must be >= 0')
+  }
   const result = grdd_unit_calculate_decay(value, seconds)
   if (result === INT64_MAX) {
     throw new Error('Decay calculation probably resulted in overflow')

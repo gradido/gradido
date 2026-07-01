@@ -101,6 +101,7 @@ describe('Send', () => {
     expect(wrapper.vm.transactionData).toEqual({
       identifier: '',
       amount: 0,
+      subject: '',
       memo: '',
     })
     expect(wrapper.vm.currentTransactionStep).toBe('transactionForm')
@@ -110,6 +111,7 @@ describe('Send', () => {
     const testData = {
       identifier: 'test@example.com',
       amount: 100,
+      subject: '',
       memo: 'Test transaction',
       selected: 'send',
     }

@@ -200,6 +200,8 @@ export const sendCustomEmail = (
     senderLastName: string
     subject: string
     memo: string
+    senderUuid?: string
+    senderCommunityUuid?: string
   },
 ): Promise<Record<string, unknown> | boolean | null | Error> => {
   const logger = createLogger()

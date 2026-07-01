@@ -2,7 +2,6 @@ import { InMemoryBlockchain, KeyPairEd25519 } from 'gradido-blockchain-js'
 import * as v from 'valibot'
 import { booleanSchema, dateSchema } from '../../schemas/typeConverter.schema'
 import {
-  amountSchema,
   gradidoAmountSchema,
   hieroTransactionIdStringSchema,
   identifierSeedSchema,
@@ -22,31 +21,7 @@ export const userDbSchema = v.object({
   createdAt: dateSchema,
   messageId: v.nullish(hieroTransactionIdStringSchema),
 })
-/*
-declare const validLegacyAmount: unique symbol
-export type LegacyAmount = string & { [validLegacyAmount]: true }
 
-export const legacyAmountSchema = v.pipe(
-  v.string(),
-  v.regex(/^-?[0-9]+(\.[0-9]+)?$/),
-  v.transform<string, LegacyAmount>((input: string) => input as LegacyAmount),
-)
-
-declare const validGradidoAmount: unique symbol
-export type GradidoAmount = GradidoUnit & { [validGradidoAmount]: true }
-
-export const gradidoAmountSchema = v.pipe(
-  v.union([legacyAmountSchema, v.instance(GradidoUnit, 'expect GradidoUnit type')]),
-  v.transform<LegacyAmount | GradidoUnit, GradidoAmount>((input: LegacyAmount | GradidoUnit) => {
-    if (input instanceof GradidoUnit) {
-      return input as GradidoAmount
-    }
-    // round floor with decimal js beforehand
-    const rounded = new Decimal(input).toDecimalPlaces(4, Decimal.ROUND_FLOOR).toString()
-    return GradidoUnit.fromString(rounded) as GradidoAmount
-  }),
-)
-*/
 export const transactionBaseSchema = v.object({
   id: positiveNumberSchema,
   amount: gradidoAmountSchema,
@@ -59,7 +34,6 @@ export const transactionDbSchema = v.pipe(
   v.object({
     ...transactionBaseSchema.entries,
     typeId: v.enum(TransactionTypeId),
-    balanceFull: amountSchema,
     balanceDate: dateSchema,
     linkedUser: userDbSchema,
     decayCalculationType: v.enum(DecayCalculationType),

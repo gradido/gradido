@@ -2,8 +2,11 @@ import {
   AccountBalances,
   Filter,
   GradidoTransactionBuilder,
+  grdt_ledger_anchor,
+  HieroTransactionId,
   InMemoryBlockchain,
   KeyPairEd25519,
+  LedgerAnchor,
   MemoryBlockPtr,
   MonotonicTimer,
   SearchDirection_DESC,
@@ -11,7 +14,7 @@ import {
 import { getLogger, Logger } from 'log4js'
 import { LOG4JS_BASE_CATEGORY } from '../../../../config/const'
 import { deriveFromKeyPairAndIndex, deriveFromKeyPairAndUuid } from '../../../../data/deriveKeyPair'
-import { Uuidv4 } from '../../../../schemas/typeGuard.schema'
+import { HieroTransactionIdString, Uuidv4 } from '../../../../schemas/typeGuard.schema'
 import { Context } from '../../Context'
 import { Balance } from '../../data/Balance'
 import { CommunityContext } from '../../valibot.schema'
@@ -20,22 +23,31 @@ export type IndexType = {
   date: Date
   id: number
 }
+export interface SyncItem {
+  id: number
+  messageId?: HieroTransactionIdString | null | undefined
+}
 export let nanosBalanceForUser = 0
 const lastBalanceOfUserTimeUsed = new MonotonicTimer()
 
-export abstract class AbstractSyncRole<ItemType> {
+export abstract class AbstractSyncRole<ItemType extends SyncItem> {
   private items: ItemType[] = []
   protected lastIndex: IndexType = { date: new Date(0), id: 0 }
   protected logger: Logger
   protected transactionBuilder: GradidoTransactionBuilder
   protected accountBalances: AccountBalances
+  protected legacyAnchorType: grdt_ledger_anchor
 
-  constructor(protected readonly context: Context) {
+  constructor(
+    protected readonly context: Context,
+    legacyAnchorType: grdt_ledger_anchor,
+  ) {
     this.logger = getLogger(
       `${LOG4JS_BASE_CATEGORY}.migrations.db-v2.7.0_to_blockchain-v3.5.interaction.syncDbWithBlockchain`,
     )
     this.transactionBuilder = new GradidoTransactionBuilder()
     this.accountBalances = new AccountBalances()
+    this.legacyAnchorType = legacyAnchorType
   }
 
   getAccountKeyPair(communityContext: CommunityContext, gradidoId: Uuidv4): KeyPairEd25519 {
@@ -82,6 +94,14 @@ export abstract class AbstractSyncRole<ItemType> {
     )
     nanosBalanceForUser += lastBalanceOfUserTimeUsed.nanos()
     return result
+  }
+
+  getLedgerAnchor(item: ItemType): LedgerAnchor {
+    if (item.messageId && !this.context.useOnlyLegacyLedgerAnchorIds) {
+      return new LedgerAnchor(new HieroTransactionId(item.messageId))
+    } else {
+      return new LedgerAnchor(item.id, this.legacyAnchorType)
+    }
   }
 
   logLastBalanceChangingTransactions(

@@ -3,14 +3,14 @@
 #include "gradido_blockchain_core/utils/duration.h"
 
 namespace gradidoUnit {
-    Napi::Value CalculateDecay(const Napi::CallbackInfo& info) 
+    Napi::Value CalculateDecay(const Napi::CallbackInfo& info)
     {
         Napi::Env env = info.Env();
         if (info.Length() != 2) {
             Napi::TypeError::New(env, "Expected two arguments").ThrowAsJavaScriptException();
             return env.Null();
         }
-        
+
         if (!info[0].IsBigInt()) {
             Napi::TypeError::New(env, "Expected first argument to be a bigint").ThrowAsJavaScriptException();
             return env.Null();
@@ -19,11 +19,15 @@ namespace gradidoUnit {
             Napi::TypeError::New(env, "Expected second argument to be a bigint").ThrowAsJavaScriptException();
             return env.Null();
         }
-        
+
         bool lossless = false;
         int64_t amount = info[0].As<Napi::BigInt>().Int64Value(&lossless);
         if (!lossless) {
             Napi::TypeError::New(env, "First Argument is to large for int64").ThrowAsJavaScriptException();
+            return env.Null();
+        }
+        if (amount < 0) {
+            Napi::TypeError::New(env, "First Argument must be >= 0").ThrowAsJavaScriptException();
             return env.Null();
         }
         int64_t duration = info[1].As<Napi::BigInt>().Int64Value(&lossless);
@@ -36,18 +40,18 @@ namespace gradidoUnit {
             Napi::Error::New(env, "Decay calculation probably resulted in overflow").ThrowAsJavaScriptException();
             return env.Null();
         }
-        
+
         return Napi::BigInt::New(env, result);
     }
 
-    
-    Napi::Value GetDecayStartTime(const Napi::CallbackInfo& info) 
+
+    Napi::Value GetDecayStartTime(const Napi::CallbackInfo& info)
     {
         double timestamp = static_cast<double>(grdd_unit_decay_start_time()) * 1000.0;
         return Napi::Date::New(info.Env(), timestamp);
     }
 
-    Napi::Value FromString(const Napi::CallbackInfo& info) 
+    Napi::Value FromString(const Napi::CallbackInfo& info)
     {
         Napi::Env env = info.Env();
         if (info.Length() != 1) {
@@ -66,8 +70,8 @@ namespace gradidoUnit {
         }
         return Napi::BigInt::New(env, unit);
     }
-    
-    Napi::Value ToString(const Napi::CallbackInfo& info) 
+
+    Napi::Value ToString(const Napi::CallbackInfo& info)
     {
         Napi::Env env = info.Env();
         if (info.Length() < 1) {
@@ -125,7 +129,7 @@ namespace gradidoUnit {
             Napi::TypeError::New(env, "Expected second argument to be a number").ThrowAsJavaScriptException();
             return env.Null();
         }
-        
+
         bool lossless = false;
         grdd_unit unit = info[0].As<Napi::BigInt>().Int64Value(&lossless);
         if (!lossless) {
@@ -141,7 +145,7 @@ namespace gradidoUnit {
         return Napi::BigInt::New(env, rounded);
     }
 
-    Napi::Value DurationToString(const Napi::CallbackInfo& info) 
+    Napi::Value DurationToString(const Napi::CallbackInfo& info)
     {
         Napi::Env env = info.Env();
         if (info.Length() < 1) {
@@ -156,7 +160,7 @@ namespace gradidoUnit {
             Napi::TypeError::New(env, "Expected second argument to be a number or undefined").ThrowAsJavaScriptException();
             return env.Null();
         }
-        
+
         bool lossless = false;
         grdu_duration duration = info[0].As<Napi::BigInt>().Int64Value(&lossless);
         if (!lossless) {
@@ -182,10 +186,10 @@ Napi::Object Init(Napi::Env env, Napi::Object exports) {
     exports.Set("calculateDecay", Napi::Function::New(env, gradidoUnit::CalculateDecay));
     exports.Set("getDecayStartTime", Napi::Function::New(env, gradidoUnit::GetDecayStartTime));
     exports.Set("gradidoUnitFromString", Napi::Function::New(env, gradidoUnit::FromString));
-    exports.Set("gradidoUnitToString", Napi::Function::New(env, gradidoUnit::ToString));   
+    exports.Set("gradidoUnitToString", Napi::Function::New(env, gradidoUnit::ToString));
     exports.Set("toDecimalPlaces", Napi::Function::New(env, gradidoUnit::ToDecimalPlaces));
     exports.Set("durationToString", Napi::Function::New(env, gradidoUnit::DurationToString));
-    
+
     return exports;
 }
 

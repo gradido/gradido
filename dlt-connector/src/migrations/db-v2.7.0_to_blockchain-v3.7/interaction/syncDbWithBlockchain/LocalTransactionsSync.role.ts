@@ -1,14 +1,12 @@
-import Decimal from 'decimal.js-light'
 import { and, asc, eq, gt, isNotNull, isNull, or } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/mysql-core'
 import {
   AccountBalances,
   AuthenticatedEncryption,
   EncryptedMemo,
+  GRDT_LEDGER_ANCHOR_LEGACY_GRADIDO_DB_TRANSACTION_ID,
   GradidoTransactionBuilder,
-  HieroTransactionId,
   KeyPairEd25519,
-  LedgerAnchor,
   MemoryBlockPtr,
   TransferAmount,
 } from 'gradido-blockchain-js'
@@ -31,7 +29,7 @@ import { AbstractSyncRole, IndexType } from './AbstractSync.role'
 
 export class LocalTransactionsSyncRole extends AbstractSyncRole<TransactionDb> {
   constructor(context: Context) {
-    super(context)
+    super(context, GRDT_LEDGER_ANCHOR_LEGACY_GRADIDO_DB_TRANSACTION_ID)
     this.accountBalances.reserve(2n)
   }
 
@@ -94,9 +92,6 @@ export class LocalTransactionsSyncRole extends AbstractSyncRole<TransactionDb> {
       if (item.amount) {
         item.amount = -item.amount
       }
-      if (item.balanceFull && new Decimal(item.balanceFull).isNegative()) {
-        item.balanceFull = '0'
-      }
       try {
         return v.parse(transactionDbSchema, item)
       } catch (e) {
@@ -148,14 +143,14 @@ export class LocalTransactionsSyncRole extends AbstractSyncRole<TransactionDb> {
     )
 
     try {
-      senderLastBalance.updateLegacyDecay(item.amount.negated(), item.balanceDate, item.balanceFull)
+      senderLastBalance.update(item.amount.negated(), item.balanceDate)
     } catch (e) {
       if (e instanceof NegativeBalanceError) {
         this.logLastBalanceChangingTransactions(senderPublicKey, communityContext.blockchain)
         throw e
       }
     }
-    recipientLastBalance.updateLegacyDecay(item.amount, item.balanceDate)
+    recipientLastBalance.update(item.amount, item.balanceDate)
 
     this.accountBalances.add(senderLastBalance.getAccountBalance())
     this.accountBalances.add(recipientLastBalance.getAccountBalance())
@@ -181,19 +176,11 @@ export class LocalTransactionsSyncRole extends AbstractSyncRole<TransactionDb> {
     }
 
     try {
-      let ledgerAnchor: LedgerAnchor | undefined
-      if (item.messageId) {
-        ledgerAnchor = new LedgerAnchor(new HieroTransactionId(item.messageId))
-      } else {
-        ledgerAnchor = new LedgerAnchor(item.id, LedgerAnchor.Type_LEGACY_GRADIDO_DB_TRANSACTION_ID)
-      }
       addToBlockchain(
         this.buildTransaction(communityContext, item, senderKeyPair, recipientKeyPair).build(),
         blockchain,
-        ledgerAnchor,
-        item.decayCalculationType === DecayCalculationType.DECIMAL_JS_FIXED_FACTOR
-          ? this.calculateBalances(item, communityContext, senderPublicKey, recipientPublicKey)
-          : undefined,
+        this.getLedgerAnchor(item),
+        this.calculateBalances(item, communityContext, senderPublicKey, recipientPublicKey),
       )
     } catch (e) {
       if (e instanceof NotEnoughGradidoBalanceError) {

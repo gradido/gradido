@@ -1,6 +1,6 @@
 {
   "name": "frontend",
-  "version": "2.7.5",
+  "version": "2.8.3",
   "private": true,
   "scripts": {
     "dev": "concurrently \"yarn watch-scss\" \"vite\"",
@@ -8,10 +8,10 @@
     "start": "vite preview",
     "postbuild": "uname | grep -q Linux && find build -type f -regex '.*\\.\\(html\\|js\\|css\\|svg\\|json\\)' -exec gzip -9 -k {} + || echo 'Skip precompress on non-Linux'",
     "analyse-bundle": "yarn build && webpack-bundle-analyzer build/webpack.stats.json",
-    "lint": "eslint --max-warnings=0 --ext .js,.vue,.json .",
-    "lint:fix": "eslint --max-warnings=0 --ext .js,.vue,.json . --fix",
-    "stylelint": "stylelint --max-warnings=0 '**/*.{scss,vue}'",
-    "stylelint:fix": "stylelint --max-warnings=0 '**/*.{scss,vue}' --fix",
+    "lint": "eslint --ext .js,.vue,.json .",
+    "lint:fix": "eslint --ext .js,.vue,.json . --fix",
+    "stylelint": "stylelint '**/*.{scss,vue}'",
+    "stylelint:fix": "stylelint '**/*.{scss,vue}' --fix",
     "test": "cross-env TZ=UTC vitest run",
     "test:coverage": "cross-env TZ=UTC vitest run --coverage",
     "test:debug": "cross-env TZ=UTC node --inspect-brk ./node_modules/vitest/vitest.mjs",

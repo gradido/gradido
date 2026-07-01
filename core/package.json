@@ -1,6 +1,6 @@
 {
   "name": "core",
-  "version": "2.7.5",
+  "version": "2.8.3",
   "description": "Gradido Core Code, High-Level Shared Code, with dependencies on other modules",
   "main": "./build/index.js",
   "types": "./src/index.ts",
@@ -56,6 +56,7 @@
     "mkdirp": "^3.0.1",
     "ncp": "^2.0.0",
     "type-graphql": "^1.1.1",
+    "typed-rest-client": "^1.8.11",
     "typescript": "^4.9.5"
   },
   "engines": {
