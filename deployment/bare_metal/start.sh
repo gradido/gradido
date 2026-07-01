@@ -170,18 +170,46 @@ trap onError ERR
 
 # stop all services
 log_step "Stop and delete all Gradido services"
+# List of static processes
+PROCESSES=(
+    "gradido-backend"
+    "dlt-connector"
+    "gradido-dht-node"
+)
+
+# IF FEDERATION_COMMUNITY_APIS is Set, add dnamic Federation-Instances
+if [ -n "$FEDERATION_COMMUNITY_APIS" ]; then
+    IFS="," read -ra API_ARRAY <<< "$FEDERATION_COMMUNITY_APIS"
+    for api in "${API_ARRAY[@]}"; do
+        PROCESSES+=("gradido-federation-${api}")
+    done
+fi
+
 # make sure nvm is loaded
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 # check if pm2  has processes, maybe it was already cleared from a failed update
 # pm2 delete all if pm2 has no processes will trigger error and stop script
 # so let's check first
-if [ "$(echo "$(pm2 prettylist)" | tail -n 1)" != "[]" ]; then
-  pm2 delete all
-  pm2 save
-else
-  log_warn "PM2 is already empty"
-fi
+
+stop_module() {
+    local name=$1
+    if pm2 -m list | grep -q "$name"; then
+        if pm2 -m list | grep -A 1 "$name" | grep -q "online"; then
+            pm2 stop "$name"
+        fi
+        pm2 delete "$name"
+        log_info "$name removed from PM2."
+    else
+        log_warn "$name not found in PM2 – skipping."
+    fi
+}
+
+# Check every process 
+for process in "${PROCESSES[@]}"; do
+    stop_module "$process"
+done
+pm2 save
 
 # git
 log_step "Starting with git pull - branch:$BRANCH_NAME"
