@@ -143,6 +143,12 @@ export const executeTransaction = async (
 
       logger.debug(`sendTransaction inserted: ${dbTransaction}`)
 
+      if (sender.aliasFirstUsageAt === null) {
+        sender.aliasFirstUsageAt = new Date()
+        await queryRunner.manager.save(dbUser, sender)
+        logger.debug(`sender updated: ${sender}`)
+      }
+
       const transactionReceive = new dbTransaction()
       transactionReceive.typeId = TransactionTypeId.RECEIVE
       transactionReceive.memo = memo
@@ -166,6 +172,12 @@ export const executeTransaction = async (
       transactionReceive.transactionLinkId = transactionLink ? transactionLink.id : null
       await queryRunner.manager.insert(dbTransaction, transactionReceive)
       logger.debug(`receive Transaction inserted: ${dbTransaction}`)
+
+      if (recipient.aliasFirstUsageAt === null) {
+        recipient.aliasFirstUsageAt = new Date()
+        await queryRunner.manager.save(dbUser, recipient)
+        logger.debug(`recipient updated: ${recipient}`)
+      }
 
       // Save linked transaction id for send
       transactionSend.linkedTransactionId = transactionReceive.id
