@@ -194,6 +194,7 @@ export async function redeemDeferredTransferTransaction(
   amount: string,
   createdAt: Date,
   recipientUser: DbUser,
+  deleteLink: boolean = false,
 ): Promise<DbDltTransaction | null> {
   if (!CONFIG.DLT_ACTIVE) {
     return Promise.resolve(null)
@@ -220,7 +221,12 @@ export async function redeemDeferredTransferTransaction(
       createdAt,
       recipientUser,
     )
-    return await executeDltTransaction(draft, DltTransactionType.REDEEM_DEFERRED_TRANSFER)
+    return await executeDltTransaction(
+      draft,
+      deleteLink
+        ? DltTransactionType.DELETE_DEFERRED_TRANSFER
+        : DltTransactionType.REDEEM_DEFERRED_TRANSFER,
+    )
   } catch (error) {
     logger.error(`Error in redeemDeferredTransferTransaction: ${error}`)
   }

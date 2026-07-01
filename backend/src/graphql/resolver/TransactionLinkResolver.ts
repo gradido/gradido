@@ -172,6 +172,7 @@ export class TransactionLinkResolver {
       transactionLink.amount.toString(),
       transactionLink.deletedAt!,
       user,
+      true,
     )
 
     await EVENT_TRANSACTION_LINK_DELETE(user, transactionLink)

@@ -40,10 +40,7 @@ export const configSchema = v.object({
     v.length(64, 'expect seed length 64 characters (32 Bytes)'),
     v.transform<string, MemoryBlock>((input: string) => MemoryBlock.fromHex(input)),
   ),
-  HIERO_HEDERA_NETWORK: v.optional(
-    v.union([v.literal('mainnet'), v.literal('testnet'), v.literal('previewnet')]),
-    'testnet',
-  ),
+  HIERO_HEDERA_NETWORK: v.optional(v.picklist(['mainnet', 'testnet', 'previewnet']), 'testnet'),
   HIERO_OPERATOR_ID: v.pipe(
     v.string('The operator ID (Account id) for Hiero integration'),
     v.regex(/^[0-9]+\.[0-9]+\.[0-9]+$/),
@@ -53,6 +50,13 @@ export const configSchema = v.object({
     v.hexadecimal(),
     v.minLength(64),
     v.maxLength(96),
+  ),
+  COMMUNITY_URL: v.optional(
+    v.pipe(
+      v.string('The url of the community'),
+      v.url('When set, need to be a valid http/https url'),
+    ),
+    'http://localhost',
   ),
   CONNECT_TIMEOUT_MS: v.optional(
     v.pipe(v.number('The connection timeout in milliseconds'), v.minValue(200), v.maxValue(120000)),
@@ -79,12 +83,13 @@ export const configSchema = v.object({
     ),
     '8340',
   ),
+  DLT_BLOCK_UPDATE_FEDERATION_API_VERSION: v.optional(v.picklist(['1_0', '1_1']), '1_0'),
   DLT_GRADIDO_NODE_SERVER_VERSION: v.optional(
     v.pipe(
       v.string('The version of the DLT node server, for example: 0.9.0'),
       v.regex(/^\d+\.\d+\.\d+(.\d+)?$/),
     ),
-    '0.9.8.5',
+    '0.9.9.8',
   ),
   DLT_GRADIDO_NODE_SERVER_HOME_FOLDER: v.optional(
     v.string('The home folder for the gradido dlt node server'),
@@ -96,6 +101,12 @@ export const configSchema = v.object({
       v.transform<string, boolean>((input: string) => input === 'true'),
     ),
     'false',
+  ),
+  FEDERATION_COMMUNITY_URL: v.nullish(
+    v.pipe(
+      v.string('The url of the federation community'),
+      v.url('Need a http/https url for requests to federation module.'),
+    ),
   ),
   BACKEND_PORT: v.optional(
     v.pipe(

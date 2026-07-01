@@ -100,6 +100,7 @@ describe('dlt transactions query test', () => {
         { seconds: 1781427358n },
         { accountNum: 21281n },
       )
+      expect(ledgerAnchor.getHieroTransactionId()).toBe('0.0.21281@1781427358.000000000')
       const insertResult = await dbInsertDltTransaction({
         hieroTransactionId: ledgerAnchor.getHieroTransactionId(),
         userId: bibi.id,
@@ -114,9 +115,9 @@ describe('dlt transactions query test', () => {
       expect(result.success).toBeTruthy()
       if (result.success) {
         const dltTransaction = result.value.dltTransaction
-        expect(dltTransaction.hieroTransactionId).toBe('0.0.21281@1781427358.000000000')
+        expect(dltTransaction.id).toBe(insertResult.value.id)
         const user = result.value.user
-        expect(user.id).toBe(bibi.id)
+        expect(user?.gradidoId).toBe(bibi.gradidoID)
       }
     })
 
@@ -125,6 +126,7 @@ describe('dlt transactions query test', () => {
         { seconds: 1781427658n },
         { accountNum: 21281n },
       )
+      expect(ledgerAnchor.getHieroTransactionId()).toBe('0.0.21281@1781427658.000000000')
       const insertResult = await dbInsertDltTransaction({
         hieroTransactionId: ledgerAnchor.getHieroTransactionId(),
         transactionId: contribution!.transactionId,
@@ -139,7 +141,7 @@ describe('dlt transactions query test', () => {
       expect(result.success).toBeTruthy()
       if (result.success) {
         const dltTransaction = result.value.dltTransaction
-        expect(dltTransaction.hieroTransactionId).toBe('0.0.21281@1781427658.000000000')
+        expect(dltTransaction.id).toBe(insertResult.value.id)
         const transaction = result.value.transaction
         expect(transaction.id).toBe(contribution!.transactionId)
         const user = result.value.user
@@ -152,6 +154,7 @@ describe('dlt transactions query test', () => {
         { seconds: 1781427921n },
         { accountNum: 21281n },
       )
+      expect(ledgerAnchor.getHieroTransactionId()).toBe('0.0.21281@1781427921.000000000')
       const insertResult = await dbInsertDltTransaction({
         hieroTransactionId: ledgerAnchor.getHieroTransactionId(),
         transactionId: transferTransactions[0].id,
@@ -166,14 +169,14 @@ describe('dlt transactions query test', () => {
       expect(result.success).toBeTruthy()
       if (result.success) {
         const dltTransaction = result.value.dltTransaction
-        expect(dltTransaction.hieroTransactionId).toBe('0.0.21281@1781427921.000000000')
+        expect(dltTransaction.id).toBe(insertResult.value.id)
         const transaction = result.value.transaction
         expect(transaction.id).toBe(transferTransactions[0].id)
         expect(transaction.typeId).toBe(TransactionTypeId.SEND)
         const user = result.value.user
-        expect(user.id).toBe(bibi.id)
+        expect(user?.gradidoId).toBe(bibi.gradidoID)
         const linkedUser = result.value.linkedUser
-        expect(linkedUser.id).toBe(peter.id)
+        expect(linkedUser?.gradidoId).toBe(peter.gradidoID)
       }
     })
 
@@ -182,6 +185,7 @@ describe('dlt transactions query test', () => {
         { seconds: 1781428262n },
         { accountNum: 21281n },
       )
+      expect(ledgerAnchor.getHieroTransactionId()).toBe('0.0.21281@1781428262.000000000')
       const insertResult = await dbInsertDltTransaction({
         hieroTransactionId: ledgerAnchor.getHieroTransactionId(),
         transactionLinkId: transactionLink.id,
@@ -196,11 +200,11 @@ describe('dlt transactions query test', () => {
       expect(result.success).toBeTruthy()
       if (result.success) {
         const dltTransaction = result.value.dltTransaction
-        expect(dltTransaction.hieroTransactionId).toBe('0.0.21281@1781428262.000000000')
+        expect(dltTransaction.id).toBe(insertResult.value.id)
         const transactionLink = result.value.transactionLink
         expect(transactionLink.id).toBe(transactionLink.id)
         const user = result.value.user
-        expect(user.id).toBe(bibi.id)
+        expect(user?.gradidoId).toBe(bibi.gradidoID)
       }
     })
   })

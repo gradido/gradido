@@ -1,6 +1,10 @@
 /** Open transaction links from a user, calculate decay to target date and return Link Summary*/
 
-import { AppDatabase, TransactionLink, transactionLinksPendingFromUserOrderByIdASC } from 'database'
+import {
+  AppDatabase,
+  transactionLinksBlockedAmounts,
+  transactionLinksPendingFromUserOrderByIdASCDrizzle,
+} from 'database'
 import { GradidoUnit } from 'shared'
 
 export interface TransactionLinksDecayedResult {
@@ -19,11 +23,11 @@ export const transactionLinksDecayed = async (
     transactionLinkCount: 0,
   }
   let lastId = 0
-  let transactionLinks: TransactionLink[] = []
+  let transactionLinks: transactionLinksBlockedAmounts[] = []
   const batchSize = AppDatabase.getInstance().getDefaultBatchSize()
 
   do {
-    transactionLinks = await transactionLinksPendingFromUserOrderByIdASC(
+    transactionLinks = await transactionLinksPendingFromUserOrderByIdASCDrizzle(
       userId,
       batchSize,
       lastId,
@@ -35,6 +39,9 @@ export const transactionLinksDecayed = async (
     lastId = transactionLinks[transactionLinks.length - 1].id
     summary.transactionLinkCount += transactionLinks.length
     for (const tx of transactionLinks) {
+      if (!tx.amount || !tx.holdAvailableAmount) {
+        throw new Error(`NULL amount and/or holdAvailableAmount on transaction_links: ${tx.id}`)
+      }
       summary.sumAmount = summary.sumAmount.add(tx.amount)
       const decayed = tx.holdAvailableAmount.decayed(tx.createdAt, date)
       summary.sumHoldAvailableDecayedAmount = summary.sumHoldAvailableDecayedAmount.add(decayed)

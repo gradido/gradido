@@ -15,7 +15,7 @@ import {
   dltTransactionsTable,
   transactionLinksTable,
   transactionsTable,
-  usersTableIdentity as usersTable,
+  usersTable,
 } from '../schemas'
 
 const DltTransactionNotFound = (where: string) => new DBNotFoundError('dlt_transactions', where)
@@ -101,10 +101,20 @@ export async function dltTransactionContributionJoinsQuery<
 >(field: F, value: V) {
   return drizzleDb()
     .select({
-      dltTransaction: dltTransactionsTable,
+      dltTransaction: {
+        id: dltTransactionsTable.id,
+        typeId: dltTransactionsTable.typeId,
+      },
       transaction: transactionsTable,
-      contributionDate: contributionsTable.contributionDate,
-      user: usersTable,
+      contribution: {
+        amount: contributionsTable.amount,
+        contributionDate: contributionsTable.contributionDate,
+      },
+      user: {
+        id: usersTable.id,
+        communityUuid: usersTable.communityUuid,
+        gradidoId: usersTable.gradidoId,
+      },
     })
     .from(dltTransactionsTable)
     .leftJoin(transactionsTable, eq(transactionsTable.id, dltTransactionsTable.transactionId))
@@ -128,14 +138,28 @@ export async function dltTransactionTransferJoinsQuery<
 
   return drizzleDb()
     .select({
-      dltTransaction: dltTransactionsTable,
+      dltTransaction: {
+        id: dltTransactionsTable.id,
+        typeId: dltTransactionsTable.typeId,
+      },
       transaction: transactionsTable,
       transactionLink: transactionLinksTable,
       transactionLinkDeep: transactionLinksTableDeep,
       linkedTransaction: linkedTransactionsTable,
-      user: usersTable,
-      linkedUser: linkedUsersTable,
-      transactionLinkUser: transactionLinkUsersTable,
+      user: {
+        id: usersTable.id,
+        communityUuid: usersTable.communityUuid,
+        gradidoId: usersTable.gradidoId,
+      },
+      linkedUser: {
+        id: linkedUsersTable.id,
+        communityUuid: linkedUsersTable.communityUuid,
+        gradidoId: linkedUsersTable.gradidoId,
+      },
+      transactionLinkUser: {
+        communityUuid: transactionLinkUsersTable.communityUuid,
+        gradidoId: transactionLinkUsersTable.gradidoId,
+      },
     })
     .from(dltTransactionsTable)
     .leftJoin(transactionsTable, eq(transactionsTable.id, dltTransactionsTable.transactionId))
@@ -167,8 +191,15 @@ export async function dltTransactionRegisterAddressJoinsQuery<
 >(field: F, value: V) {
   return drizzleDb()
     .select({
-      dltTransaction: dltTransactionsTable,
-      user: usersTable,
+      dltTransaction: {
+        id: dltTransactionsTable.id,
+        typeId: dltTransactionsTable.typeId,
+      },
+      user: {
+        communityUuid: usersTable.communityUuid,
+        gradidoId: usersTable.gradidoId,
+        createdAt: usersTable.createdAt,
+      },
     })
     .from(dltTransactionsTable)
     .leftJoin(usersTable, eq(dltTransactionsTable.userId, usersTable.id))
@@ -182,9 +213,20 @@ export async function dltTransactionDeferredTransferJoinsQuery<
 >(field: F, value: V) {
   return drizzleDb()
     .select({
-      dltTransaction: dltTransactionsTable,
-      transactionLink: transactionLinksTable,
-      user: usersTable,
+      dltTransaction: {
+        id: dltTransactionsTable.id,
+        typeId: dltTransactionsTable.typeId,
+      },
+      transactionLink: {
+        code: transactionLinksTable.code,
+        createdAt: transactionLinksTable.createdAt,
+        holdAvailableAmount: transactionLinksTable.holdAvailableAmount,
+        validUntil: transactionLinksTable.validUntil,
+      },
+      user: {
+        communityUuid: usersTable.communityUuid,
+        gradidoId: usersTable.gradidoId,
+      },
     })
     .from(dltTransactionsTable)
     .leftJoin(

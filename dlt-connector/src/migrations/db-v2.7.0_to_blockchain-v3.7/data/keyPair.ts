@@ -24,7 +24,7 @@ export function generateKeyPairCommunity(
     }
     seed = new MemoryBlock(randomBuffer)
   } else {
-    seed = new MemoryBlock(CONFIG.HOME_COMMUNITY_SEED)
+    seed = CONFIG.HOME_COMMUNITY_SEED
   }
   const keyPair = KeyPairEd25519.create(seed)
   if (!keyPair) {
