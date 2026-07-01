@@ -199,7 +199,7 @@ stop_module() {
             pm2 stop "$name"
         fi
         pm2 delete "$name"
-        log_info "$name removed from PM2."
+        log_step "$name removed from PM2."
     else
         log_warn "$name not found in PM2 – skipping."
     fi
