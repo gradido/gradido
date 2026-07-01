@@ -33,6 +33,15 @@ export class AliasHistory extends BaseEntity {
   })
   communityUuid: string
 
+  @Column({
+    name: 'first_usage_at',
+    type: 'datetime',
+    precision: 3,
+    default: null,
+    nullable: true,
+  })
+  firstUsageAt: Date | null
+
   @CreateDateColumn({
     name: 'created_at',
     type: 'datetime',

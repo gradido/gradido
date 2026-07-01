@@ -752,11 +752,20 @@ export class UserResolver {
         user.alias = alias
         user.aliasStartUpdateAt = new Date()
         user.aliasUpdateCount += 1
+        user.aliasFirstUsageAt = null
         updated = true
       } else {
         logger.debug(`user.alias=${user.alias} should be updated with alias=${alias}...`)
 
-        let aliasHistoryEntry: DbAliasHistory | null = null
+        // find existing user-specific alias entry
+        const aliasHistoryEntry = await DbAliasHistory.findOne({
+          where: {
+            userId: user.id,
+            alias: alias,
+            communityUuid: user.communityUuid,
+          },
+        })
+        logger.debug(`found aliasHistoryEntry=${aliasHistoryEntry}`)
         // check last alias-storage time
         const lastAliasStorageTimeDistance = await getLastAliasStorageTimeDistance(user.id, logger)
         logger.debug(`lastAliasStorageTimeDistance=${lastAliasStorageTimeDistance}`)
@@ -767,6 +776,7 @@ export class UserResolver {
           logger.debug(`simply update user.alias=${user.alias} with alias=${alias}`)
           user.alias = alias
           user.aliasUpdateCount += 1
+          user.aliasFirstUsageAt = aliasHistoryEntry?.firstUsageAt ?? null
           updated = true
           // and remove aliasHistory-entry with same alias if exists (comparable with: reuse previous alias again)
           const deleteResult = await DbAliasHistory.delete({
@@ -778,26 +788,22 @@ export class UserResolver {
         } else {
           logger.debug(`alias edit time limit is past, so the previous used alias have to be stored in history`)
 
-          // for update history of existing user-specific alias entries has to be checked
-          aliasHistoryEntry = await DbAliasHistory.findOne({
-            where: {
-              userId: user.id,
-              alias: alias,
-              communityUuid: user.communityUuid,
-            },
-          })
-          logger.debug(`found aliasHistoryEntry=${aliasHistoryEntry}`)
+          let firstUsageAt: Date | null
           // if no history entry exists, create one with the previous user.alias
           if (aliasHistoryEntry === null) {
+            firstUsageAt = null
             // create new history entry
             const aliasHistory = DbAliasHistory.create({
               userId: user.id,
               alias: user.alias,
               communityUuid: user.communityUuid,
+              firstUsageAt: user.aliasFirstUsageAt,
             })
             await DbAliasHistory.save(aliasHistory)
             logger.debug('saved new aliasHistory', aliasHistory)
           } else {
+            // remember optional firstUsageAt of historyEntry
+            firstUsageAt = aliasHistoryEntry.firstUsageAt
             // remove aliasHistory-entry with same alias if exists (comparable with: reuse previous alias again)
             const deleteResult = await DbAliasHistory.delete({
               userId: user.id,
@@ -810,6 +816,7 @@ export class UserResolver {
           user.alias = alias
           user.aliasStartUpdateAt = new Date()
           user.aliasUpdateCount = 0
+          user.aliasFirstUsageAt = firstUsageAt ?? null
           updated = true
         }
       }

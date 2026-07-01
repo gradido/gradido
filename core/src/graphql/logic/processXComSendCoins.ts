@@ -146,6 +146,10 @@ export async function processXComCompleteTransaction(
             memo,
         )
       }
+      if (senderUser.aliasFirstUsageAt === null) {
+        senderUser.aliasFirstUsageAt = new Date()
+        await dbUser.save(senderUser)
+      }
       // after successful x-com-tx store the recipient as foreign user
       methodLogger.debug('store recipient as foreign user...')
       const foreignUser = await storeForeignUser(recipientCom, committingResult)

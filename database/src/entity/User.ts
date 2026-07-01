@@ -75,6 +75,15 @@ export class User extends BaseEntity {
   @Column({ name: 'alias_update_count', type: 'int', unsigned: true, nullable: false, default: 0 })
   aliasUpdateCount: number
 
+  @Column({
+    name: 'alias_first_usage_at',
+    type: 'datetime',
+    precision: 3,
+    default: null,
+    nullable: true,
+  })
+  aliasFirstUsageAt: Date | null
+
   @OneToOne(
     () => require('./UserContact').UserContact,
     (emailContact: UserContactType) => emailContact.user,
