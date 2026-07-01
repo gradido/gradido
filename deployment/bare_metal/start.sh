@@ -171,19 +171,12 @@ trap onError ERR
 # stop all services
 log_step "Stop and delete all Gradido services"
 # List of static processes
-PROCESSES=(
+PROCESS_PATTERNS=(
     "gradido-backend"
-    "dlt-connector"
     "gradido-dht-node"
+    "dlt-connector"
+    "gradido-federation-"
 )
-
-# IF FEDERATION_COMMUNITY_APIS is Set, add dnamic Federation-Instances
-if [ -n "$FEDERATION_COMMUNITY_APIS" ]; then
-    IFS="," read -ra API_ARRAY <<< "$FEDERATION_COMMUNITY_APIS"
-    for api in "${API_ARRAY[@]}"; do
-        PROCESSES+=("gradido-federation-${api}")
-    done
-fi
 
 # make sure nvm is loaded
 export NVM_DIR="$HOME/.nvm"
@@ -191,23 +184,29 @@ export NVM_DIR="$HOME/.nvm"
 # check if pm2  has processes, maybe it was already cleared from a failed update
 # pm2 delete all if pm2 has no processes will trigger error and stop script
 # so let's check first
+# delete only our own process, allow other process running on same server
 
-stop_module() {
-    local name=$1
-    if pm2 -m list | grep -q "$name"; then
-        if pm2 -m list | grep -A 1 "$name" | grep -q "online"; then
-            pm2 stop "$name"
-        fi
-        pm2 delete "$name"
-        log_step "$name removed from PM2."
-    else
-        log_warn "$name not found in PM2 – skipping."
+stop_processes_matching_pattern() {
+    local pattern=$1
+    local matching_processes=$(pm2 -m list | grep -E "$pattern" | awk '{print $2}')
+
+    if [ -z "$matching_processes" ]; then
+        return
     fi
+    for proc in $matching_processes; do
+        if pm2 -m list | grep -q "$proc"; then
+            if pm2 -m list | grep -A 1 "$proc" | grep -q "online"; then
+                pm2 stop "$proc"
+            fi
+            pm2 delete "$proc"
+            log_step "$proc removed from PM2."
+        fi
+    done
 }
 
 # Check every process 
-for process in "${PROCESSES[@]}"; do
-    stop_module "$process"
+for process_pattern in "${PROCESS_PATTERNS[@]}"; do
+    stop_processes_matching_pattern "$process_pattern"
 done
 pm2 save
 
