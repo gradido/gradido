@@ -170,18 +170,44 @@ trap onError ERR
 
 # stop all services
 log_step "Stop and delete all Gradido services"
+# List of static processes
+PROCESS_PATTERNS=(
+    "gradido-backend"
+    "gradido-dht-node"
+    "dlt-connector"
+    "gradido-federation-"
+)
+
 # make sure nvm is loaded
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 # check if pm2  has processes, maybe it was already cleared from a failed update
 # pm2 delete all if pm2 has no processes will trigger error and stop script
 # so let's check first
-if [ "$(echo "$(pm2 prettylist)" | tail -n 1)" != "[]" ]; then
-  pm2 delete all
-  pm2 save
-else
-  log_warn "PM2 is already empty"
-fi
+# delete only our own process, allow other process running on same server
+
+stop_processes_matching_pattern() {
+    local pattern=$1
+    local matching_processes=$(pm2 -m list | grep -E "$pattern" | head -1 |  awk '{print $2}')
+    if [ -z "$matching_processes" ]; then
+        return
+    fi
+    for proc in $matching_processes; do
+        if pm2 -m list | grep -q "$proc"; then
+            if pm2 -m list | grep -A 1 "$proc" | grep -q "online"; then
+                pm2 stop "$proc"
+            fi
+            pm2 delete "$proc"
+            log_step "$proc removed from PM2."
+        fi
+    done
+}
+
+# Check every process 
+for process_pattern in "${PROCESS_PATTERNS[@]}"; do
+    stop_processes_matching_pattern "$process_pattern"
+done
+pm2 save
 
 # git
 log_step "Starting with git pull - branch:$BRANCH_NAME"
