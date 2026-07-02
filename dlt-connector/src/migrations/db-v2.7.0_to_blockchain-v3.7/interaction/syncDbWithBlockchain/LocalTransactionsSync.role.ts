@@ -87,7 +87,7 @@ export class LocalTransactionsSyncRole extends AbstractSyncRole<TransactionDb> {
         ...row.transaction,
         user: row.user,
         linkedUser: row.linkedUser,
-        messageId: row.dltTransaction?.messageId,
+        hieroTransactionId: row.dltTransaction?.hieroTransactionId,
       }
       if (item.amount) {
         item.amount = -item.amount
