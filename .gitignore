@@ -31,3 +31,4 @@ settings.txt
 
 compile_commands.json
 .cache
+.zig-cache

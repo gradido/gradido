@@ -10,38 +10,19 @@ import fs from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
 import AdmZip from 'adm-zip'
+import addonHeaders from 'node-addon-api'
 import headers from 'node-api-headers'
-import { type TargetTriple } from 'zig-build'
-import { getNodeDownloadUrl, getZigDownloadUrl } from './dowload_paths'
+import { type TargetTriple } from '.'
+import { getZigDownloadUrl } from './dowload_paths'
 import { checkFileExist, moveContentsUp } from './filesystem'
 import { getNodePath, getZigPath, isMusl, isWin32 } from './host_configuration'
 
-async function fetchNodeHeaders(): Promise<void> {
-  const headersDir = getNodePath()
-  const includePath = path.join(headersDir, 'include', 'node')
-  const installedIncludePath = headers.include_dir
-
-  fs.mkdirSync(includePath, { recursive: true })
-
-  // copy from installedIncludePath to includePath
-  fs.cpSync(installedIncludePath, includePath, { recursive: true })
-
-  // download node.lib
-  if (isWin32()) {
-    const nodeLibUrl = getNodeDownloadUrl()
-    const nodeLibPath = path.join(headersDir, 'node.lib')
-    const nodeLibResponse = await fetch(nodeLibUrl)
-    const nodeLibBuffer = await nodeLibResponse.arrayBuffer()
-    fs.writeFileSync(nodeLibPath, Buffer.from(nodeLibBuffer))
-  }
-}
-
-export async function fetchZig(): Promise<void> {
+export async function fetchZig(): Promise<string> {
   const binary = isWin32() ? 'zig.exe' : 'zig'
   const binaryPath = path.join(getZigPath(), binary)
 
   if (checkFileExist(binaryPath)) {
-    return
+    return binaryPath
   }
   // biome-ignore lint/suspicious/noConsole: no logging in build.ts
   console.log('Fetching Zig...')
@@ -64,6 +45,7 @@ export async function fetchZig(): Promise<void> {
       cwd: getZigPath(),
     })
   }
+  return binaryPath
 }
 
 export async function detectTargetTriple(): Promise<TargetTriple> {
@@ -116,11 +98,14 @@ export async function detectTargetTriple(): Promise<TargetTriple> {
   throw new Error(`Unsupported platform/arch combination: ${platform}/${arch}`)
 }
 
-export async function setup_dependencies() {
-  if (!fs.existsSync('build')) {
-    fs.mkdirSync('build')
+export async function fetchDeps(): Promise<[flags: string[], zig: string]> {
+  const flags = [
+    `-Dnode-headers=${headers.include_dir}`,
+    `-Dnapi-headers=${addonHeaders.include_dir}`,
+  ]
+  if (isWin32()) {
+    flags.push(`-Dnode-api-def=${headers.def_paths.node_api_def}`)
   }
-  // workaround because node header download from zig-build doesn't work on each platform
-  await fetchNodeHeaders()
-  await fetchZig()
+  const zig = await fetchZig()
+  return [flags, zig]
 }
