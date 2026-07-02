@@ -25,7 +25,9 @@ RUN apt update && apt install -y \
   nginx \
   gettext \
   curl \ 
-  gcc
+  gcc \
+  tar \
+  xz-utils
 
 ##### Install Image #######################################################################
 ## Simulate parts from install script to get a minimal configuration to test start script #
