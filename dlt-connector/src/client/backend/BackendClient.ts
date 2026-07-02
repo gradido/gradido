@@ -130,7 +130,7 @@ export class BackendClient {
       .setIssuedAt()
       .setIssuer('urn:gradido:issuer')
       .setAudience('urn:gradido:audience')
-      .setExpirationTime('1m')
+      .setExpirationTime('10m')
       .sign(secret)
     return token
   }

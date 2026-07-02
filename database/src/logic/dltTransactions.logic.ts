@@ -128,7 +128,7 @@ export async function resolveDltTransactionByLedgerAnchor(
       if (!t.dltTransaction) {
         missingJoins.push('dlt_transactions')
       }
-      if (!t.transactionLinkDeep) {
+      if (!t.transactionLink) {
         missingJoins.push('transaction_links')
       }
       if (!t.transactionLinkUser) {
