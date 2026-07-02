@@ -305,5 +305,6 @@ export default {
 .table-danger {
   --bs-table-bg: #e78d8d;
   --bs-table-striped-bg: #e57373;
+  --bs-table-hover-bg: #e06a6a;
 }
 </style>
