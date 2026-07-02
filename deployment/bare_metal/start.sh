@@ -188,22 +188,16 @@ export NVM_DIR="$HOME/.nvm"
 
 stop_processes_matching_pattern() {
     local pattern=$1
-    local matching_processes=$(pm2 -m list | grep -E "$pattern" | awk '{print $2}')
-    log_step "stop_processes_matching_pattern called with $1"
+    local matching_processes=$(pm2 -m list | grep -E "$pattern" | head -1 |  awk '{print $2}')
     if [ -z "$matching_processes" ]; then
         return
     fi
-    log_step "find in matching_processes: $matching_processes"
     for proc in $matching_processes; do
         if pm2 -m list | grep -q "$proc"; then
-            log_step "find in list"
             if pm2 -m list | grep -A 1 "$proc" | grep -q "online"; then
-                log_step "online"
                 pm2 stop "$proc"
             fi
-            log_step "before delete"
             pm2 delete "$proc"
-            log_step "for log"
             log_step "$proc removed from PM2."
         fi
     done
