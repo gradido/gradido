@@ -16,6 +16,7 @@ import {
   sendTransactionLinkRedeemedEmail,
   sendTransactionReceivedEmail,
   TransactionTypeId,
+  transactionLinksDecayed,
   transferTransaction,
   V1_0_CommandClient,
 } from 'core'
@@ -51,7 +52,6 @@ import { BalanceResolver } from './BalanceResolver'
 import { GdtResolver } from './GdtResolver'
 import { getCommunityName, isHomeCommunity } from './util/communities'
 import { getTransactionList } from './util/getTransactionList'
-import { transactionLinksDecayed } from './util/transactionLinksDecayed'
 
 const db = AppDatabase.getInstance()
 const createLogger = () =>

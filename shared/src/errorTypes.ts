@@ -22,6 +22,23 @@ export class CompareError extends DomainError {
   }
 }
 
+export class UnhandledEnum extends DomainError {
+  constructor(
+    message: string,
+    public enumName?: string,
+    public enumValue?: string,
+  ) {
+    let messageSum = message
+    if (enumName) {
+      messageSum = messageSum.concat(`, enum type: ${enumName}`)
+    }
+    if (enumValue) {
+      messageSum = messageSum.concat(`, enum value: ${enumValue}`)
+    }
+    super(messageSum)
+  }
+}
+
 // general Result Type Template
 export type Result<T, E = Error> = { success: true; value: T } | { success: false; error: E }
 
