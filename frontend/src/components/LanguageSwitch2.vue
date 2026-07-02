@@ -1,41 +1,30 @@
 <template>
-  <div class="language-switch">
-    <div v-b-toggle.collapse-1>
-      <span
-        v-for="lang in locales"
+  <div ref="root" class="language-switch">
+    <button
+      type="button"
+      class="ls-trigger"
+      :aria-expanded="open"
+      aria-haspopup="listbox"
+      @click="toggleOpen"
+    >
+      <IBiGlobe2 class="ls-globe" aria-hidden="true" />
+      <span class="ls-current">{{ currentName }}</span>
+      <IBiCaretDownFill class="ls-caret" aria-hidden="true" />
+    </button>
+    <ul v-show="open" class="ls-menu" role="listbox">
+      <li
+        v-for="lang in sortedLocales"
         :key="lang.code"
-        class="pointer"
-        :class="store.state.language === lang.code ? 'c-grey' : 'c-blau'"
+        class="ls-item"
+        :class="{ 'ls-item-active': lang.code === store.state.language }"
+        role="option"
+        :aria-selected="lang.code === store.state.language"
+        @click="select(lang.code)"
       >
-        <span v-if="lang.code === store.state.language" class="locales me-1">
-          {{ lang.name }}
-        </span>
-      </span>
-      <IBiCaretDownFill />
-    </div>
-    <BCollapse id="collapse-1" class="mt-4">
-      <span
-        v-for="(lang, index) in locales"
-        :key="lang.code"
-        class="pointer"
-        :class="store.state.language === lang.code ? 'c-grey' : 'c-blau'"
-        @click.prevent="saveLocale(lang.code)"
-      >
-        <span v-if="lang.code !== store.state.language" v-b-toggle.collapse-1 class="locales">
-          {{ lang.name }}
-        </span>
-        <span
-          v-if="
-            lang.code !== store.state.language &&
-            (indexOfSelectedLocale !== indexOfLastLocale ||
-              (indexOfSelectedLocale === indexOfLastLocale && index !== indexOfSecondLastLocale))
-          "
-          class="ms-3 me-3"
-        >
-          {{ locales.length - 1 > index ? $t('|') : '' }}
-        </span>
-      </span>
-    </BCollapse>
+        <span class="ls-item-name">{{ lang.name }}</span>
+        <IBiCheck v-if="lang.code === store.state.language" class="ls-check" aria-hidden="true" />
+      </li>
+    </ul>
   </div>
 </template>
 
@@ -45,7 +34,7 @@ import { useI18n } from 'vue-i18n'
 import { useMutation } from '@vue/apollo-composable'
 import { useAppToast } from '@/composables/useToast'
 import locales from '@/locales/'
-import { onMounted, ref, computed } from 'vue'
+import { onMounted, onUnmounted, ref, computed } from 'vue'
 import { updateUserInfos } from '@/graphql/mutations'
 import { setLocale as setValidationI18nLocale } from '@vee-validate/i18n'
 
@@ -54,15 +43,30 @@ const { t, locale } = useI18n()
 const { mutate } = useMutation(updateUserInfos)
 const { toastSuccess, toastError } = useAppToast()
 
-const currentLang = ref({})
+const open = ref(false)
+const root = ref(null)
 
 const getLocaleObject = (localeCode) => {
   return locales.find((lang) => lang.code === localeCode)
 }
 
+const currentName = computed(() => {
+  const current = getLocaleObject(store.state.language)
+  return current ? current.name : store.state.language || ''
+})
+
+// Current language first, the rest sorted alphabetically by autonym (the language's own name).
+const sortedLocales = computed(() => {
+  const enabled = locales.filter((lang) => lang.enabled)
+  const current = enabled.find((lang) => lang.code === store.state.language)
+  const rest = enabled
+    .filter((lang) => lang.code !== store.state.language)
+    .sort((a, b) => a.name.localeCompare(b.name))
+  return current ? [current, ...rest] : rest
+})
+
 const setLocale = (newLocale) => {
   store.commit('language', newLocale)
-  currentLang.value = getLocaleObject(newLocale)
 }
 
 const saveLocale = async (newLocale) => {
@@ -80,6 +84,15 @@ const saveLocale = async (newLocale) => {
   }
 }
 
+const select = (newLocale) => {
+  open.value = false
+  saveLocale(newLocale)
+}
+
+const toggleOpen = () => {
+  open.value = !open.value
+}
+
 const getNavigatorLang = () => {
   const navigatorLang = navigator.language
   if (navigatorLang) return navigatorLang.split('-')[0]
@@ -88,29 +101,99 @@ const getNavigatorLang = () => {
 
 const setCurrentLanguage = () => {
   let newLocale = store.state.language || getNavigatorLang() || 'en'
-  let langObject = getLocaleObject(newLocale)
-  if (!langObject) {
+  if (!getLocaleObject(newLocale)) {
     newLocale = 'en'
-    langObject = getLocaleObject(newLocale)
   }
-
   setLocale(newLocale)
-  currentLang.value = langObject
 }
 
-const indexOfSelectedLocale = computed(() => {
-  return locales.findIndex((element) => element.code === store.state.language)
-})
-
-const indexOfSecondLastLocale = computed(() => {
-  return locales.length - 2
-})
-
-const indexOfLastLocale = computed(() => {
-  return locales.length - 1
-})
+const onDocumentClick = (event) => {
+  if (open.value && root.value && !root.value.contains(event.target)) {
+    open.value = false
+  }
+}
 
 onMounted(() => {
   setCurrentLanguage()
+  document.addEventListener('click', onDocumentClick)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', onDocumentClick)
 })
 </script>
+
+<style scoped>
+.language-switch {
+  position: relative;
+  display: inline-block;
+}
+
+.ls-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.ls-trigger:hover .ls-current {
+  text-decoration: underline;
+}
+
+.ls-globe {
+  font-size: 1.15em;
+  opacity: 0.7;
+}
+
+.ls-caret {
+  font-size: 0.9em;
+  opacity: 0.6;
+}
+
+.ls-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 1060;
+  min-width: 180px;
+  max-height: 280px;
+  overflow-y: auto;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  background: #fff;
+  border: 0.5px solid rgb(0 0 0 / 15%);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 12%);
+}
+
+.ls-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 6px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.ls-item:hover {
+  background: #f2f4f6;
+}
+
+.ls-item-active {
+  background: #e9f1fb;
+  color: #185fa5;
+}
+
+.ls-check {
+  font-size: 1em;
+}
+</style>
