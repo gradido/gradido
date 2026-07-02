@@ -207,6 +207,44 @@ export function grdtLedgerAnchorToString(addressType: number): string
 export function grdtMemoKeyToString(addressType: number): string
 export function grdtTransactionToString(addressType: number): string
 
+export type VoidResult<E = Error> = { success: true } | { success: false; error: E }
+export type ErrorDetails = Error & { actual: string; expected: string }
+
+export class LedgerAnchor {
+  public static createFromHieroTransactionId(
+    transactionValidStart: { seconds: bigint; nanos?: number },
+    hieroAccountId: { accountNum: bigint; shardNum?: bigint; realmNum?: bigint },
+  ): LedgerAnchor
+  public getType(): GrdtLedgerAnchorType
+  public isLegacy(): boolean
+  public isNodeTrigger(): boolean
+  public isHieroTransactionId(): boolean
+  public getLegacyId(): bigint
+  public getNodeTriggerId(): bigint
+  public getHieroTransactionId(): string | null
+}
+
+export class NativeCompleteTransaction {
+  public initFromProtobuf(serialized: Uint8Array, communityUuid: Uint8Array | string): VoidResult
+  public validate(verifySignatures: boolean = true): VoidResult<ErrorDetails>
+  public getConfirmedAt(): Date
+  public getCreatedAt(): Date
+  public getLedgerAnchor(): LedgerAnchor
+  public getSenderPublicKey(): Uint8Array | null
+  public getRecipientPublicKey(): Uint8Array | null
+  public getSenderCommunityUuid(): string | null
+  public getRecipientCommunityUuid(): string | null
+  public getRegisteredAccount(): Uint8Array | null
+  // return 0 if tx type hasn't amount
+  public getAmount(): bigint
+  public getAccountBalanceForPublicKey(
+    publicKey: Uint8Array | string,
+  ): { balance: bigint; coinCommunityUuid: string } | null
+  public getTransactionType(): GrdtTransactionType
+  public getTargetDate(): Date | null
+  public getTimeoutDuration(): bigint
+}
+
 /**
  * A high-precision monotonic timer for simple performance measurements.
  *

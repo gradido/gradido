@@ -1,5 +1,7 @@
+#include "CompleteTransaction.h"
 #include "crypto.h"
 #include "gradidoUnit.h"
+#include "LedgerAnchor.h"
 #include "types.h"
 #include "utils.h"
 
@@ -28,7 +30,9 @@ Napi::Object Init(Napi::Env env, Napi::Object exports) {
     exports.Set("grdtTransactionToString", Napi::Function::New(env, gradido::types::GrdtTransactionToString));
 
     // classes
+    gradido::data::runtime::CompleteTransaction::Init(env, exports);
     gradido::utils::MonotonicTimer::Init(env, exports);
+    gradido::data::wire::LedgerAnchor::Init(env, exports);
 
     return exports;
 }

@@ -1,3 +1,4 @@
+import { inspect } from 'node:util'
 import {
   calculateDecay as calculateDecayNative,
   gradidoUnitFromString,
@@ -12,7 +13,11 @@ export class GradidoUnit {
   protected gddCentValue: bigint = 0n
 
   constructor(value: bigint) {
-    this.gddCentValue = value
+    this.gddCentValue = BigInt(value)
+  }
+
+  [inspect.custom]() {
+    return `${this.toString(4)} GDD`
   }
 
   public static fromNumber(value: number): GradidoUnit {
@@ -27,7 +32,7 @@ export class GradidoUnit {
    * construct from non decimal value, e.g. 10000n = 1.0000 gdd
    */
   public static fromGradidoCent(gddCent: bigint): GradidoUnit {
-    return new GradidoUnit(gddCent)
+    return new GradidoUnit(BigInt(gddCent))
   }
 
   get gddCent(): bigint {
@@ -184,6 +189,10 @@ export class GradidoUnit {
    */
   public negated(): GradidoUnit {
     return new GradidoUnit(-this.gddCentValue)
+  }
+
+  public isNegative(): boolean {
+    return this.gddCentValue < 0n
   }
 
   /**
