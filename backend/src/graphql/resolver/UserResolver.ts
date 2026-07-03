@@ -102,7 +102,7 @@ import { deleteUserRole, setUserRole } from './util/modifyUserRole'
 import { sendUserToGms } from './util/sendUserToGms'
 import { syncHumhub } from './util/syncHumhub'
 
-const LANGUAGES = ['de', 'en', 'es', 'fr', 'nl']
+const LANGUAGES = ['de', 'en', 'es', 'fr', 'nl', 'it', 'tr', 'ru', 'pt', 'el']
 const DEFAULT_LANGUAGE = 'de'
 const db = AppDatabase.getInstance()
 const createLogger = () => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.UserResolver`)
