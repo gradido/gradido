@@ -68,8 +68,7 @@ const calculateRemainingTime = () => {
   const diff = tokenExpirationTime.value - new Date()
   remainingTime.value = Math.max(0, Math.floor(diff / 1000))
   // Single source of truth: the modal is visible only inside the warning window.
-  sessionModalModel.value =
-    remainingTime.value > 0 && remainingTime.value <= MODAL_WARNING_SECONDS
+  sessionModalModel.value = remainingTime.value > 0 && remainingTime.value <= MODAL_WARNING_SECONDS
   if (remainingTime.value <= 0 && intervalId) {
     clearInterval(intervalId)
     intervalId = null
