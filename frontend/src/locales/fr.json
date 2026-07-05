@@ -147,6 +147,7 @@
     "no-transactionlist": "Il y a malheureusement eu une erreur. Aucune transaction n'a été envoyée depuis l'serveur.",
     "no-user": "Pas d'utilisateur pour cet identifiant.",
     "session-expired": "La session a expiré pour des raisons de sécurité.",
+    "session-renewal-failed": "Ta session n'a pas pu être prolongée. Reconnecte-toi.",
     "unknown-error": "Erreur inconnue: "
   },
   "existingGradidoAccount": "Tu as déjà un compte {communityName} ?",

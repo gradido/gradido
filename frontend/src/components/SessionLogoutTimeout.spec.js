@@ -27,6 +27,16 @@ vi.mock('bootstrap-vue-next', () => ({
   BButton: { name: 'BButton', template: '<button><slot></slot></button>' },
 }))
 
+const { toastError } = vi.hoisted(() => ({ toastError: vi.fn() }))
+
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({ t: (key) => key }),
+}))
+
+vi.mock('@/composables/useToast', () => ({
+  useAppToast: () => ({ toastError, toastSuccess: vi.fn() }),
+}))
+
 const setTokenTime = (seconds) => {
   const now = new Date()
   return Math.floor(new Date(now.setSeconds(now.getSeconds() + seconds)).getTime() / 1000)
@@ -123,6 +133,7 @@ describe('SessionLogoutTimeout', () => {
       await flushPromises()
 
       expect(wrapper.emitted('logout')).toBeTruthy()
+      expect(toastError).toHaveBeenCalled()
     })
 
     it('emits logout on the logout button', async () => {

@@ -147,6 +147,7 @@
     "no-transactionlist": "Es gab leider einen Fehler. Es wurden keine Transaktionen vom Server übermittelt.",
     "no-user": "Kein Benutzer mit diesen Anmeldedaten.",
     "session-expired": "Die Sitzung wurde aus Sicherheitsgründen beendet.",
+    "session-renewal-failed": "Deine Sitzung konnte nicht verlängert werden. Bitte melde dich erneut an.",
     "unknown-error": "Unbekannter Fehler: "
   },
   "existingGradidoAccount": "Du hast schon ein {communityName} Konto?",

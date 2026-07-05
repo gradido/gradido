@@ -40,12 +40,16 @@ import { useStore } from 'vuex'
 import { useLazyQuery } from '@vue/apollo-composable'
 import { verifyLogin } from '@/graphql/queries'
 import { BButton, BCard, BCardText, BModal } from 'bootstrap-vue-next'
+import { useI18n } from 'vue-i18n'
+import { useAppToast } from '@/composables/useToast'
 
 // Warn the user this many seconds before the session (JWT) expires.
 const MODAL_WARNING_SECONDS = 75
 
 const store = useStore()
 const emit = defineEmits(['logout'])
+const { t } = useI18n()
+const { toastError } = useAppToast()
 
 const sessionModalModel = ref(false)
 
@@ -67,7 +71,8 @@ const tokenExpirationTime = computed(() => new Date(store.state.tokenTime * 1000
 const calculateRemainingTime = () => {
   const diff = tokenExpirationTime.value - new Date()
   remainingTime.value = Math.max(0, Math.floor(diff / 1000))
-  // Single source of truth: the modal is visible only inside the warning window.
+  // Single source of truth for visibility: show the modal only while the remaining
+  // time is inside the warning span (the final MODAL_WARNING_SECONDS before expiry).
   sessionModalModel.value = remainingTime.value > 0 && remainingTime.value <= MODAL_WARNING_SECONDS
   if (remainingTime.value <= 0 && intervalId) {
     clearInterval(intervalId)
@@ -92,14 +97,21 @@ const renewSession = async () => {
 }
 
 const handleOk = async () => {
+  let renewed = false
   try {
-    const result = await renewSession()
-    if (!result) throw new Error('session renewal returned no result')
+    renewed = Boolean(await renewSession())
+  } catch {
+    renewed = false
+  }
+  if (renewed) {
     // Recompute at once so the modal closes as soon as the new expiry is known.
     calculateRemainingTime()
-  } catch {
-    emit('logout')
+    return
   }
+  // Renewal failed (network error or empty response): tell the user in plain
+  // language before logging out, instead of a silent redirect.
+  toastError(t('error.session-renewal-failed'))
+  emit('logout')
 }
 
 onMounted(() => {
