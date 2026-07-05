@@ -1,8 +1,8 @@
-import { CommunityHandshakeState } from '..'
+import { CommunityHandshakeStateSelect, CommunityHandshakeStateInsert } from '..'
 import { AbstractLoggingView } from './AbstractLogging.view'
 
 export class CommunityHandshakeStateLoggingView extends AbstractLoggingView {
-  public constructor(private self: CommunityHandshakeState) {
+  public constructor(private self: CommunityHandshakeStateSelect | CommunityHandshakeStateInsert) {
     super()
   }
 
@@ -11,7 +11,7 @@ export class CommunityHandshakeStateLoggingView extends AbstractLoggingView {
       id: this.self.id,
       handshakeId: this.self.handshakeId,
       oneTimeCode: this.self.oneTimeCode,
-      publicKey: this.self.publicKey.toString(this.bufferStringFormat),
+      publicKey: this.self.publicKey.toString(),
       status: this.self.status,
       lastError: this.self.lastError,
       createdAt: this.dateToString(this.self.createdAt),

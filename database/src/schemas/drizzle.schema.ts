@@ -1,5 +1,8 @@
 import { sql } from 'drizzle-orm'
 import {
+  binary,
+  datetime,
+  index,
   int,
   mysqlTable,
   text,
@@ -8,7 +11,24 @@ import {
   uniqueIndex,
   varchar,
 } from 'drizzle-orm/mysql-core'
-import { z } from 'zod'
+
+export const communityHandshakeStatesTable = mysqlTable('community_handshake_states', {
+	id: int().autoincrement().notNull(),
+	handshakeId: int('handshake_id').notNull(),
+	oneTimeCode: int('one_time_code').default(sql`NULL`),
+	publicKey: binary('public_key', { length: 32 }).notNull(),
+	apiVersion: varchar('api_version', { length: 255 }).notNull(),
+	status: varchar({ length: 255 }).default('\'OPEN_CONNECTION\'').notNull(),
+	lastError: text('last_error').default(sql`NULL`),
+	createdAt: datetime('created_at', { mode: 'date', fsp: 3 }).default(sql`CURRENT_TIMESTAMP(3)`).notNull(),
+	updatedAt: datetime('updated_at', { mode: 'date', fsp: 3 }).default(sql`CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3)`).notNull(),
+},
+(table) => [
+	index('idx_public_key').on(table.publicKey),
+]);
+
+export type CommunityHandshakeStateSelect = typeof communityHandshakeStatesTable.$inferSelect
+export type CommunityHandshakeStateInsert = typeof communityHandshakeStatesTable.$inferInsert
 
 export const openaiThreadsTable = mysqlTable('openai_threads', {
   id: varchar({ length: 128 }).notNull(),

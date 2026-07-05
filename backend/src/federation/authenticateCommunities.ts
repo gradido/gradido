@@ -5,13 +5,14 @@ import {
   getFederatedCommunityWithApiOrFail,
 } from 'core'
 import {
+  CommunityHandshakeStateInsert,
   CommunityHandshakeStateLoggingView,
   CommunityHandshakeStateType,
-  CommunityHandshakeState as DbCommunityHandshakeState,
   FederatedCommunity as DbFederatedCommunity,
   findPendingCommunityHandshake,
   getCommunityByPublicKeyOrFail,
   getHomeCommunityWithFederatedCommunityOrFail,
+  insertCommunityHandshakeState,
 } from 'database'
 import { getLogger } from 'log4js'
 import {
@@ -84,12 +85,13 @@ export async function startCommunityAuthentication(
     if (!comB.publicJwtKey) {
       throw new Error(`Public JWT key still not exist for comB ${comB.name}`)
     }
-    const state = new DbCommunityHandshakeState()
-    state.publicKey = fedComBPublicKey.asBuffer()
-    state.apiVersion = fedComB.apiVersion
-    state.status = CommunityHandshakeStateType.START_COMMUNITY_AUTHENTICATION
-    state.handshakeId = parseInt(handshakeID)
-    await state.save()
+    const state: CommunityHandshakeStateInsert = {
+      publicKey: fedComBPublicKey.asHex(),
+      apiVersion: fedComB.apiVersion,
+      status: CommunityHandshakeStateType.START_COMMUNITY_AUTHENTICATION,
+      handshakeId: parseInt(handshakeID),
+    }
+    await insertCommunityHandshakeState(state)
     methodLogger.debug('[START_COMMUNITY_AUTHENTICATION] community handshake state created')
 
     //create JWT with url in payload encrypted by foreignCom.publicJwtKey and signed with homeCom.privateJwtKey

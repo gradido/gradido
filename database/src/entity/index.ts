@@ -1,5 +1,4 @@
 import { Community } from './Community'
-import { CommunityHandshakeState } from './CommunityHandshakeState'
 import { Contribution } from './Contribution'
 import { ContributionLink } from './ContributionLink'
 import { ContributionMessage } from './ContributionMessage'
@@ -17,7 +16,6 @@ import { UserRole } from './UserRole'
 
 export {
   Community,
-  CommunityHandshakeState,
   Contribution,
   ContributionLink,
   ContributionMessage,
@@ -36,7 +34,6 @@ export {
 
 export const entities = [
   Community,
-  CommunityHandshakeState,
   Contribution,
   ContributionLink,
   ContributionMessage,
