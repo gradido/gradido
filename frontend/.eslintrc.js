@@ -80,6 +80,7 @@ module.exports = {
           '/pageTitle./',
           'error.empty-transactionlist',
           'error.no-transactionlist',
+          'error.session-renewal-failed',
         ],
         enableFix: false,
       },
