@@ -5,7 +5,6 @@
       class="bg-variant-danger"
       hide-header-close
       hide-header
-      hide-footer
       no-close-on-backdrop
       :model-value="sessionModalModel"
       @update:modelValue="sessionModalModel = $event"
@@ -22,19 +21,12 @@
             {{ $t('time.seconds') }}
           </div>
         </BCardText>
-        <BRow>
-          <BCol class="text-center">
-            <BButton size="lg" variant="success" @click="handleOk">
-              {{ $t('session.extend') }}
-            </BButton>
-          </BCol>
-        </BRow>
       </BCard>
-      <template #modal-footer>
-        <BButton size="sm" variant="danger" @click="emit('logout')">
+      <template #footer>
+        <BButton variant="secondary" @click="emit('logout')">
           {{ $t('navigation.logout') }}
         </BButton>
-        <BButton size="lg" variant="success" @click="handleOk">
+        <BButton variant="gradido" @click="handleOk">
           {{ $t('session.extend') }}
         </BButton>
       </template>
@@ -47,36 +39,44 @@ import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useStore } from 'vuex'
 import { useLazyQuery } from '@vue/apollo-composable'
 import { verifyLogin } from '@/graphql/queries'
-import { BButton, BCard, BCardText, BCol, BModal, BRow, useModal } from 'bootstrap-vue-next'
+import { BButton, BCard, BCardText, BModal } from 'bootstrap-vue-next'
+import { useI18n } from 'vue-i18n'
+import { useAppToast } from '@/composables/useToast'
+
+// Warn the user this many seconds before the session (JWT) expires.
+const MODAL_WARNING_SECONDS = 75
 
 const store = useStore()
 const emit = defineEmits(['logout'])
+const { t } = useI18n()
+const { toastError } = useAppToast()
 
 const sessionModalModel = ref(false)
-const { hide: hideModal } = useModal('modalSessionTimeOut')
 
-const { load: verifyLoginQuery, loading, error } = useLazyQuery(verifyLogin)
+// Renewal must hit the network: every response carries a fresh `token` header that
+// the Apollo afterware writes to the store, sliding the expiry forward. A cache-first
+// query would often skip the network and never actually renew the session.
+const { load: loadVerifyLogin, refetch: refetchVerifyLogin } = useLazyQuery(
+  verifyLogin,
+  {},
+  { fetchPolicy: 'network-only' },
+)
+let verifyLoginLoaded = false
 
 const remainingTime = ref(0)
 let intervalId = null
 
 const tokenExpirationTime = computed(() => new Date(store.state.tokenTime * 1000))
 
-const isTokenValid = computed(() => {
-  return remainingTime.value > 0
-})
-
 const calculateRemainingTime = () => {
-  const now = new Date()
-  const diff = tokenExpirationTime.value - now
+  const diff = tokenExpirationTime.value - new Date()
   remainingTime.value = Math.max(0, Math.floor(diff / 1000))
-  // Show modal if remaining time is 75 seconds or less
-  if (remainingTime.value <= 75) {
-    sessionModalModel.value = true
-  }
-  // Clear interval if time expired
-  if (remainingTime.value <= 0) {
+  // Single source of truth for visibility: show the modal only while the remaining
+  // time is inside the warning span (the final MODAL_WARNING_SECONDS before expiry).
+  sessionModalModel.value = remainingTime.value > 0 && remainingTime.value <= MODAL_WARNING_SECONDS
+  if (remainingTime.value <= 0 && intervalId) {
     clearInterval(intervalId)
+    intervalId = null
   }
 }
 
@@ -85,37 +85,45 @@ const formatTime = (seconds) => {
   return `${seconds.toString().padStart(2, '0')}`
 }
 
+// useLazyQuery's load() runs only once; use refetch() afterwards so every click
+// forces a fresh network round-trip (and therefore a fresh token).
+const renewSession = async () => {
+  if (!verifyLoginLoaded) {
+    verifyLoginLoaded = true
+    const loaded = await loadVerifyLogin()
+    if (loaded) return loaded
+  }
+  return refetchVerifyLogin()
+}
+
+const handleOk = async () => {
+  let renewed = false
+  try {
+    renewed = Boolean(await renewSession())
+  } catch {
+    renewed = false
+  }
+  if (renewed) {
+    // Recompute at once so the modal closes as soon as the new expiry is known.
+    calculateRemainingTime()
+    return
+  }
+  // Renewal failed (network error or empty response): tell the user in plain
+  // language before logging out, instead of a silent redirect.
+  toastError(t('error.session-renewal-failed'))
+  emit('logout')
+}
+
 onMounted(() => {
   calculateRemainingTime()
-
-  if (isTokenValid.value) {
-    intervalId = setInterval(calculateRemainingTime, 1000)
-  }
+  intervalId = setInterval(calculateRemainingTime, 1000)
 })
 
 onUnmounted(() => {
-  if (intervalId) {
-    clearInterval(intervalId)
-  }
+  if (intervalId) clearInterval(intervalId)
 })
 
 watch(remainingTime, (newTime) => {
-  if (newTime <= 0) {
-    emit('logout')
-  }
+  if (newTime <= 0) emit('logout')
 })
-
-const handleOk = async (bvModalEvent) => {
-  bvModalEvent.preventDefault()
-  try {
-    await verifyLoginQuery()
-    if (error.value) {
-      emit('logout')
-      throw new Error('Login verification failed')
-    }
-    hideModal('modalSessionTimeOut')
-  } catch {
-    emit('logout')
-  }
-}
 </script>

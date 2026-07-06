@@ -147,6 +147,7 @@
     "no-transactionlist": "  Helaas was er een fout. Door de server werden er geen transacties overgedragen.",
     "no-user": "Geen gebruiker met deze login gegevens.",
     "session-expired": "De sessie werd om veiligheidsredenen beëindigd.",
+    "session-renewal-failed": "Je sessie kon niet worden verlengd. Log opnieuw in.",
     "unknown-error": "Onbekende fout: "
   },
   "existingGradidoAccount": "Heb je al een {communityName}-account?",

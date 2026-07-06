@@ -147,6 +147,7 @@
     "no-transactionlist": "Maalesef bir hata oluştu. Sunucudan hiçbir işlem gönderilmedi.",
     "no-user": "Bu kimlik bilgilerine sahip kullanıcı yok.",
     "session-expired": "Oturum güvenlik nedeniyle kapatıldı.",
+    "session-renewal-failed": "Oturumun yenilenemedi. Lütfen tekrar giriş yap.",
     "unknown-error": "Bilinmeyen hata: "
   },
   "existingGradidoAccount": "Zaten bir {communityName} hesabın var mı?",

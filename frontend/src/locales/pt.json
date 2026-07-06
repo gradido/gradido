@@ -147,6 +147,7 @@
     "no-transactionlist": "Infelizmente ocorreu um erro. Não foram transmitidas transações pelo servidor.",
     "no-user": "Nenhum utilizador com estes dados de acesso.",
     "session-expired": "A sessão foi terminada por motivos de segurança.",
+    "session-renewal-failed": "Não foi possível renovar a tua sessão. Inicia sessão novamente.",
     "unknown-error": "Erro desconhecido: "
   },
   "existingGradidoAccount": "Já tens uma conta {communityName}?",
