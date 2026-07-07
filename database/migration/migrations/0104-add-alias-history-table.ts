@@ -32,83 +32,55 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
     // generate alias from firstname minus place for three digits plus first letter of name (max 20 chars)
     let alias = user.first_name.replaceAll(' ', '').slice(0, 16) + user.last_name.slice(0, 1)
     console.log('Generated alias:', alias)
-    /*
-    if (alias.length > 20) {
-      alias = alias.slice(0, 20)
-    }
-    */
+
     // check if alias already exists
     const existing = await queryFn(`SELECT alias FROM users WHERE alias LIKE ?`, [alias + '%'])
     console.log('Existing aliases:', JSON.stringify(existing))
     
     if (existing.length > 0) {
-      // find the highest number suffix for this base alias pattern
-      const numberedAliases = await queryFn(
-        `SELECT alias FROM users WHERE alias REGEXP ? ORDER BY alias DESC`,
-        [`^${alias.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[0-9]+$`]
-      )
-      console.log('Numbered aliases:', JSON.stringify(numberedAliases))
+      let maxNumberPart = 0
+      let hasExactMatch = false
       
-      let maxNumber = 0
-      if (numberedAliases.length > 0) {
-        // extract the number from the last alias
-        const lastAlias = numberedAliases[0].alias
-        const match = lastAlias.match(/(\d+)$/)
-        if (match) {
-          maxNumber = parseInt(match[1], 10)
+      // check if existing aliases match the generated alias pattern and distingue only by a following number
+      for (const e of existing) {
+        console.log('Checking existing alias:', e.alias)
+        const numberPart = e.alias.slice(alias.length)
+        console.log('Number part:', numberPart)
+        if(numberPart.length > 0 && !isNaN(parseInt(numberPart))) {
+          const number = parseInt(numberPart)
+          console.log('Number:', number)
+          if (number > maxNumberPart) {
+            maxNumberPart = number
+            console.log('Max number part:', maxNumberPart)
+          }
+        } else if (numberPart.length === 0) {
+          hasExactMatch = true
+          console.log(`Exact match`)
+          continue
+        } else {
+          console.log('Not the same and numbered alias, skipping')
+          // not the same and numbered alias, skip
+          continue
         }
       }
-      console.log('Max number:', maxNumber)
-
-      // append incremented number
-      const newNumber = maxNumber + 1
-      alias = alias + newNumber.toString()
-      console.log('Final alias:', alias)
+      console.log('Max number:', maxNumberPart, 'hasExactMatch:', hasExactMatch)
+      if (maxNumberPart > 0 || hasExactMatch) {
+        // append incremented number
+        const newNumber = maxNumberPart + 1
+        alias = alias + newNumber.toString()
+        console.log('Final alias:', alias)
+      }
     }
     
     // ensure final alias doesn't exceed 20 chars
     if (alias.length > 20) {
-      alias = alias.slice(0, 20)
+      throw Error(`Alias too long: ${alias}`)
     }
     
     // update user with alias
     await queryFn(`UPDATE users SET alias = ? WHERE id = ?`, [alias, user.id])
     console.log('Updated user:', user.id, 'with alias:', alias)
-  }  
-  /*
-  // Loop through all user without an existing alias
-  const users = await queryFn(`SELECT * FROM users where alias is null`)
-  users.forEach(async (user) => {
-    // and migrate for each user firstname and name to an automatic generated alias
-
-    // generate alias from firstname plus first letter of name
-    const alias = user.firstname.slice(0, user.firstname.length > 16 ? 16 : user.firstname.length) + user.name.slice(0, 1);
-    // check if alias already exists
-    const exists = await queryFn(`SELECT count(*) as count FROM users WHERE alias LIKE ?`, [alias + '%']);
-    // if alias exists, generate a new one
-    if (exists[0].count > 0) {
-      const maxCount = await queryFn(`SELECT MAX(CAST(SUBSTRING(alias, LENGTH(?)+2) AS UNSIGNED)) as max_count FROM users WHERE alias LIKE ?`, [alias, alias + '%']);
-      // append a number to the alias
-      const newAlias = alias + (maxCount[0].max_count + 1);
-      // check if new alias already exists
-      const newExists = await queryFn(`SELECT count(*) as count FROM users WHERE alias = ?`, [newAlias]);
-      if (newExists[0].count > 0) {
-        // if new alias exists, append another number
-        const finalAlias = newAlias + '1';
-        // update user with new alias
-        await queryFn(`UPDATE users SET alias = ? WHERE id = ?`, [finalAlias, user.id]);
-      } else {
-        // update user with new alias
-        await queryFn(`UPDATE users SET alias = ? WHERE id = ?`, [newAlias, user.id]);
-      }
-    } else {
-      // update user with new alias
-      await queryFn(`UPDATE users SET alias = ? WHERE id = ?`, [alias, user.id]);
-    }
-  }) 
-  */
-  
-
+  }    
 }
 
 export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
@@ -116,4 +88,27 @@ export async function downgrade(queryFn: (query: string, values?: any[]) => Prom
   await queryFn(`ALTER TABLE users DROP COLUMN alias_startupdate_at;`)
   await queryFn(`ALTER TABLE users DROP COLUMN alias_update_count;`)
   await queryFn(`ALTER TABLE users DROP COLUMN alias_first_usage_at;`)
+
+  // TODO: Revert alias column to original state (remove alias column)
+    // Loop through all user without an existing alias
+  const users = await queryFn(`SELECT * FROM users where alias is not null`)
+  console.log('Users without alias:', users.length)
+  
+  for (const user of users) {
+    console.log('Processing user:', JSON.stringify(user))
+    // generate alias from firstname minus place for three digits plus first letter of name (max 20 chars)
+    let generatedAlias = user.first_name.replaceAll(' ', '').slice(0, 16) + user.last_name.slice(0, 1)
+    console.log('Generated alias:', generatedAlias)
+
+    // check if alias matches the generated alias pattern
+    if (user.alias.startsWith(generatedAlias) && user.alias.substring(generatedAlias.length).match(/^\d+$/)) {
+      console.log(`Alias matches generated alias pattern alias=${user.alias}, generated=${generatedAlias}`)
+      // remove alias because it was a automatic migrated one
+      await queryFn(`UPDATE users SET alias = NULL WHERE id = ?`, [user.id])
+      console.log('Removed alias from user:', user.id)
+    } else {
+      console.log(`Alias does not match generated alias pattern alias=${user.alias}, generated=${generatedAlias}`)
+    }
+  }  
+
 }
