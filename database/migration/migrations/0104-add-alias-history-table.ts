@@ -30,7 +30,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   for (const user of users) {
     console.log('Processing user:', JSON.stringify(user))
     // generate alias from firstname minus place for three digits plus first letter of name (max 20 chars)
-    let alias = user.first_name.replaceAll(' ', '').slice(0, 16) + user.last_name.slice(0, 1)
+    let alias = user.first_name.replaceAll(' ', '').slice(0, 16) + user.last_name.replaceAll(' ', '').slice(0, 1)
     console.log('Generated alias:', alias)
 
     // check if alias already exists
@@ -97,11 +97,12 @@ export async function downgrade(queryFn: (query: string, values?: any[]) => Prom
   for (const user of users) {
     console.log('Processing user:', JSON.stringify(user))
     // generate alias from firstname minus place for three digits plus first letter of name (max 20 chars)
-    let generatedAlias = user.first_name.replaceAll(' ', '').slice(0, 16) + user.last_name.slice(0, 1)
+    let generatedAlias = user.first_name.slice(0, 16) + user.last_name.slice(0, 1) // replaceAll(' ', '').
     console.log('Generated alias:', generatedAlias)
 
     // check if alias matches the generated alias pattern
-    if (user.alias.startsWith(generatedAlias) && user.alias.substring(generatedAlias.length).match(/^\d+$/)) {
+    if ((user.alias === generatedAlias) || 
+        (user.alias.startsWith(generatedAlias) && user.alias.substring(generatedAlias.length).match(/^\d+$/))) {
       console.log(`Alias matches generated alias pattern alias=${user.alias}, generated=${generatedAlias}`)
       // remove alias because it was a automatic migrated one
       await queryFn(`UPDATE users SET alias = NULL WHERE id = ?`, [user.id])
