@@ -84,10 +84,10 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
 }
 
 export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
-  await queryFn(`DROP TABLE alias_history;`)
-  await queryFn(`ALTER TABLE users DROP COLUMN alias_startupdate_at;`)
-  await queryFn(`ALTER TABLE users DROP COLUMN alias_update_count;`)
-  await queryFn(`ALTER TABLE users DROP COLUMN alias_first_usage_at;`)
+  await queryFn(`DROP TABLE IF EXISTS alias_history;`)
+  await queryFn(`ALTER TABLE users DROP COLUMN IF EXISTS alias_startupdate_at;`)
+  await queryFn(`ALTER TABLE users DROP COLUMN IF EXISTS alias_update_count;`)
+  await queryFn(`ALTER TABLE users DROP COLUMN IF EXISTS alias_first_usage_at;`)
 
   // TODO: Revert alias column to original state (remove alias column)
     // Loop through all user without an existing alias
