@@ -46,8 +46,8 @@ async function main() {
       relations: ['emailContact'],
     })
     if (users) {
-      if (!await sendUsersToGms(users, homeCom)) {
-        // early exit on failure 
+      if (!(await sendUsersToGms(users, homeCom))) {
+        // early exit on failure
         logger.warn(`##gms## publishing local users failed after ${timeUsed}...`)
         await con.destroy()
         return

@@ -1,6 +1,6 @@
 import axios from 'axios'
 import { ensureUrlEndsWithSlash } from 'core'
-import { SignJWT, jwtVerify } from 'jose'
+import { jwtVerify, SignJWT } from 'jose'
 import { getLogger } from 'log4js'
 import { httpAgent, httpsAgent } from '@/apis/ConnectionAgents'
 import { CONFIG } from '@/config'
@@ -160,10 +160,7 @@ export async function upsertGmsUsers(apiKey: string, users: GmsUser[]): Promise<
   }
 }
 
-export async function verifyAuthToken(
-  apiKey: string,
-  token: string,
-): Promise<string> {
+export async function verifyAuthToken(apiKey: string, token: string): Promise<string> {
   const baseUrl = ensureUrlEndsWithSlash(CONFIG.GMS_API_URL)
   const service = `verify-auth-token/${token}`
   const config = {
@@ -219,7 +216,7 @@ export async function verifyGmsHandshakeJWTToken(token: string): Promise<string 
       issuer: 'urn:gradido:issuer',
       audience: 'urn:gms:audience',
     })
-    
+
     return payload.uuid as string
   } catch (e) {
     logger.warn(`gms verify call failed with: ${e}`)
