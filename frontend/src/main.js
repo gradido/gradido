@@ -53,6 +53,16 @@ loadAllRules(i18n.global, apolloProvider.defaultClient)
 
 addNavigationGuards(router, store, apolloProvider.defaultClient)
 
+// Restore the persisted UI language before mount. vuex-persistedstate rehydrates
+// state.language without firing the `language` mutation (which is what sets the
+// i18n locale). Previously this was masked by the login layout briefly rendering
+// its language switcher on boot; now that we mount straight into the target route
+// (see router.isReady below), sync the locale here so the app is not stuck on the
+// default language until Settings is opened.
+if (store.state.language) {
+  i18n.global.locale.value = store.state.language
+}
+
 if (!store) {
   setTimeout(
     window.location.assign('https://github.com/gradido/gradido/tree/master/support#cookies'),
@@ -60,13 +70,20 @@ if (!store) {
   )
 }
 
-app.mount('#app', {
-  stub: {
-    ValidationObserver: {
-      template: '<div>Validation Observer MOCK</div>',
+// Wait for the router's initial navigation to resolve before mounting. Otherwise
+// the first render happens on the start location (which has no route meta), so
+// App.vue picks the AuthLayout and the login page flashes for a moment on every
+// reload of an authenticated route before the router lands on it and swaps in the
+// DashboardLayout (also seen when returning from the admin interface).
+router.isReady().then(() => {
+  app.mount('#app', {
+    stub: {
+      ValidationObserver: {
+        template: '<div>Validation Observer MOCK</div>',
+      },
+      ValidationProvider: {
+        template: '<div>Validation Observer MOCK</div>',
+      },
     },
-    ValidationProvider: {
-      template: '<div>Validation Observer MOCK</div>',
-    },
-  },
+  })
 })

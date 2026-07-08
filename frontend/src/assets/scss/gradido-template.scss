@@ -142,40 +142,35 @@ html > body {
   border-color: #f5c6cb;
 }
 
-.b-toast-danger .toast .toast-header {
-  color: #721c24;
-  background-color: rgb(248 215 218 / 85%);
-  border-bottom-color: rgb(245 198 203 / 85%);
-}
-
+// Toasts use the Gradido colours as solid fills in both light and dark mode,
+// replacing the pale Bootstrap pastels: green success, red warning/error, gold
+// info. Success and error carry white text; the gold info toast keeps dark text
+// for readability (matching the gdd-toaster-body / -darken body classes).
+.b-toast-danger .toast .toast-header,
 .b-toast-danger .toast .toast-body {
-  background-color: rgb(252 237 238 / 85%);
-  border-color: rgb(245 198 203 / 85%);
-  color: #721c24;
+  color: #fff;
+  background-color: #c62828;
+  border-color: #a81f1f;
 }
 
-.b-toast-success .toast .toast-header {
-  color: #155724;
-  background-color: rgb(212 237 218 / 58%);
-  border-bottom-color: rgb(195 230 203 / 85%);
-}
-
+.b-toast-success .toast .toast-header,
 .b-toast-success .toast .toast-body {
-  color: #155724;
-  background-color: rgb(212 237 218 / 85%);
-  border-bottom-color: rgb(195 230 203 / 85%);
+  color: #fff;
+  background-color: #047006;
+  border-color: #035c05;
 }
 
-.b-toast-warning .toast .toast-header {
-  color: #fcfcfb;
-  background-color: #c58d38 !important;
-  border-bottom-color: rgb(207 130 14 / 85%);
-}
-
+.b-toast-warning .toast .toast-header,
 .b-toast-warning .toast .toast-body {
-  color: #010602;
-  background-color: rgb(247 248 247 / 85%);
-  border-bottom-color: rgb(207 130 14 / 85%);
+  color: #2c2c2c;
+  background-color: #c58d38;
+  border-color: #a97a2f;
+}
+
+// Close (x) is dark by default; invert it to white on the green/red toasts.
+.b-toast-success .toast .btn-close,
+.b-toast-danger .toast .btn-close {
+  filter: invert(1) grayscale(1) brightness(1.6);
 }
 
 // .btn-primary pim {
