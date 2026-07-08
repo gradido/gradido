@@ -20,8 +20,8 @@
             tabindex="-1"
             @click="toggleShowPassword"
           >
-            <IBiEye v-if="showPassword" />
-            <IBiEyeSlash v-else />
+            <IBiEye v-if="showPassword" class="eye-icon" />
+            <IBiEyeSlash v-else class="eye-icon" />
           </BButton>
         </template>
       </BInputGroup>

@@ -478,6 +478,13 @@
     },
     "showAmountGDD": "Tu importe en GDD está visible.",
     "showAmountGDT": "Tu importe en GDT está visible.",
+    "theme": {
+      "dark": "Oscuro",
+      "hint": "Elige «Seguir la configuración del sistema» para cambiar automáticamente entre el modo claro y oscuro, según la configuración de tu dispositivo o navegador.",
+      "light": "Claro",
+      "system": "Seguir la configuración del sistema (predeterminado)",
+      "title": "Apariencia"
+    },
     "username": {
       "change-success": "Tu nombre de usuario se ha cambiado correctamente.",
       "no-username": "Por favor, introduce un nombre de usuario. Así ayudarás a otros usuarios a encontrarte sin tener que revelar tu dirección de correo electrónico."

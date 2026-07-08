@@ -75,6 +75,9 @@ export const mutations = {
   setDarkMode: (state, darkMode) => {
     state.darkMode = !!darkMode
   },
+  setThemeMode: (state, themeMode) => {
+    state.themeMode = ['system', 'light', 'dark'].includes(themeMode) ? themeMode : 'system'
+  },
   userLocation: (state, userLocation) => {
     state.userLocation = userLocation
   },
@@ -104,10 +107,9 @@ export const actions = {
     commit('roles', data.roles)
     commit('hideAmountGDD', data.hideAmountGDD)
     commit('hideAmountGDT', data.hideAmountGDT)
-    commit('setDarkMode', data.darkMode)
     commit('userLocation', data.userLocation)
   },
-  logout: ({ commit, state }) => {
+  logout: ({ commit, state, dispatch }) => {
     commit('token', null)
     commit('username', '')
     commit('gradidoID', null)
@@ -126,10 +128,25 @@ export const actions = {
     commit('hideAmountGDD', false)
     commit('hideAmountGDT', true)
     commit('email', '')
-    commit('setDarkMode', false)
     commit('userLocation', null)
     commit('redirectPath', '/overview')
+    const themeMode = state.themeMode
     localStorage.clear()
+    // localStorage.clear() wiped the persisted theme; keep the device-local
+    // choice so the login page and the next session stay in the chosen theme.
+    commit('setThemeMode', themeMode)
+    dispatch('applyTheme')
+  },
+  // Compute the effective dark mode from the device-local themeMode
+  // (system | light | dark) plus the OS preference, then set the darkMode flag
+  // that App.vue and the dark stylesheet consume.
+  applyTheme: ({ state, commit }) => {
+    const systemDark =
+      typeof window !== 'undefined' && window.matchMedia
+        ? window.matchMedia('(prefers-color-scheme: dark)').matches
+        : false
+    const effective = state.themeMode === 'dark' || (state.themeMode === 'system' && systemDark)
+    commit('setDarkMode', effective)
   },
   changeTransactionToHighlightId({ commit }, id) {
     commit('setTransactionToHighlightId', id)
@@ -168,6 +185,7 @@ try {
       hideAmountGDT: null,
       email: '',
       darkMode: false,
+      themeMode: 'system',
       userLocation: null,
       redirectPath: '/overview',
       transactionToHighlightId: '',

@@ -52,6 +52,27 @@
 
 </head>
 <body>
+<script>
+  // Apply the device-local theme before first paint to avoid a light flash
+  // (FOUC) on a cold load while in dark mode. Mirrors the store's applyTheme:
+  // dark when themeMode is 'dark', or 'system' (the default) and the OS is dark.
+  // Runs before #app renders; the App.vue watcher then keeps body.dark-mode in sync.
+  ;(function () {
+    try {
+      var mode = 'system'
+      var raw = window.localStorage.getItem('gradido-frontend')
+      if (raw) {
+        var parsed = JSON.parse(raw)
+        if (parsed && parsed.themeMode) mode = parsed.themeMode
+      }
+      var osDark =
+        window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+      if (mode === 'dark' || (mode === 'system' && osDark)) {
+        document.body.classList.add('dark-mode')
+      }
+    } catch (e) {}
+  })()
+</script>
 <div id="app"></div>
 <script type="module" src="/src/main.js"></script>
 <!-- built files will be auto injected -->

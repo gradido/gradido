@@ -1,5 +1,5 @@
 html > body {
-  background-color: #f5f5f5;
+  background-color: var(--bg);
   height: 100%;
   transition: background-color 0.5s ease, color 0.5s ease;
   overflow-x: hidden;
@@ -34,11 +34,11 @@ html > body {
 }
 
 .c-grey {
-  color: #383838 !important;
+  color: var(--text) !important;
 }
 
 .c-blau {
-  color: #0e79bc !important;
+  color: var(--info) !important;
 }
 
 .app-box-shadow {

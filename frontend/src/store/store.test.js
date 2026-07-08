@@ -37,10 +37,11 @@ const {
   hideAmountGDT,
   email,
   setDarkMode,
+  setThemeMode,
   redirectPath,
 } = mutations
 
-const { login, logout } = actions
+const { login, logout, applyTheme } = actions
 
 describe('Vuex store', () => {
   describe('mutations', () => {
@@ -103,6 +104,20 @@ describe('Vuex store', () => {
       })
     })
 
+    describe('setThemeMode', () => {
+      it('sets a valid theme mode', () => {
+        const state = { themeMode: 'system' }
+        setThemeMode(state, 'dark')
+        expect(state.themeMode).toBe('dark')
+      })
+
+      it('falls back to system for an invalid value', () => {
+        const state = { themeMode: 'dark' }
+        setThemeMode(state, 'nonsense')
+        expect(state.themeMode).toBe('system')
+      })
+    })
+
     describe('redirectPath', () => {
       it('sets the state of redirectPath', () => {
         const state = { redirectPath: '/overview' }
@@ -146,35 +161,39 @@ describe('Vuex store', () => {
 
       it('calls seventeen commits', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenCalledTimes(18)
+        expect(commit).toHaveBeenCalledTimes(17)
       })
 
       // ... (other login action tests remain largely the same)
 
-      it('commits setDarkMode', () => {
+      it('does not set the theme from server data (theme is device-local)', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenCalledWith('setDarkMode', true)
+        expect(commit).not.toHaveBeenCalledWith('setDarkMode', expect.anything())
+        expect(commit).not.toHaveBeenCalledWith('setThemeMode', expect.anything())
       })
     })
 
     describe('logout', () => {
       const commit = vi.fn()
-      const state = {}
+      const dispatch = vi.fn()
+      const state = { themeMode: 'dark' }
 
       it('calls twenty-one commits', () => {
-        logout({ commit, state })
+        logout({ commit, state, dispatch })
         expect(commit).toHaveBeenCalledTimes(21)
       })
 
       // ... (other logout action tests remain largely the same)
 
-      it('commits setDarkMode', () => {
-        logout({ commit, state })
-        expect(commit).toHaveBeenCalledWith('setDarkMode', false)
+      it('keeps the device-local theme across logout', () => {
+        logout({ commit, state, dispatch })
+        expect(commit).toHaveBeenCalledWith('setThemeMode', 'dark')
+        expect(dispatch).toHaveBeenCalledWith('applyTheme')
+        expect(commit).not.toHaveBeenCalledWith('setDarkMode', false)
       })
 
       it('commits redirectPath', () => {
-        logout({ commit, state })
+        logout({ commit, state, dispatch })
         expect(commit).toHaveBeenCalledWith('redirectPath', '/overview')
       })
 
@@ -183,9 +202,32 @@ describe('Vuex store', () => {
         vi.stubGlobal('localStorage', {
           clear: clearStorageMock,
         })
-        logout({ commit, state })
+        logout({ commit, state, dispatch })
         expect(clearStorageMock).toHaveBeenCalled()
         vi.unstubAllGlobals()
+      })
+    })
+
+    describe('applyTheme', () => {
+      it('sets darkMode true when themeMode is dark', () => {
+        const commit = vi.fn()
+        applyTheme({ state: { themeMode: 'dark' }, commit })
+        expect(commit).toHaveBeenCalledWith('setDarkMode', true)
+      })
+
+      it('sets darkMode false when themeMode is light', () => {
+        const commit = vi.fn()
+        applyTheme({ state: { themeMode: 'light' }, commit })
+        expect(commit).toHaveBeenCalledWith('setDarkMode', false)
+      })
+
+      it('follows the OS preference when themeMode is system', () => {
+        const commit = vi.fn()
+        const original = window.matchMedia
+        window.matchMedia = vi.fn(() => ({ matches: true }))
+        applyTheme({ state: { themeMode: 'system' }, commit })
+        expect(commit).toHaveBeenCalledWith('setDarkMode', true)
+        window.matchMedia = original
       })
     })
   })

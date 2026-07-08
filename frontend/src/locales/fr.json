@@ -478,6 +478,13 @@
     },
     "showAmountGDD": "Ton montant GDD est visible.",
     "showAmountGDT": "Ton montant GDT est visible.",
+    "theme": {
+      "dark": "Sombre",
+      "hint": "Choisis « Suivre le réglage du système » pour basculer automatiquement entre le mode clair et sombre, selon le réglage de ton appareil ou navigateur.",
+      "light": "Clair",
+      "system": "Suivre le réglage du système (par défaut)",
+      "title": "Apparence"
+    },
     "username": {
       "change-success": "Ton nom d'utilisateur a été modifié avec succès.",
       "no-username": "Saisis un nom d'utilisateur. Tu aideras ainsi les autres utilisateurs à te trouver sans avoir à divulguer ton adresse e-mail."

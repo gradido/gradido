@@ -36,7 +36,7 @@
                 :data-href="`/transactions#transaction-${transaction.id}`"
                 @click="handleRedirect(transaction.id)"
               >
-                <span class="small">
+                <span class="small" :class="{ 'received-amount': Number(transaction.amount) > 0 }">
                   {{ $filters.GDD(transaction.amount) }}
                 </span>
                 <span class="small ms-3 text-end">
