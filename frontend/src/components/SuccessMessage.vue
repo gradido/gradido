@@ -6,7 +6,7 @@
       {{ message }}
     </div>
     <div class="text-center mt-5">
-      <BButton variant="primary" @click="$emit('on-back')">
+      <BButton variant="gradido" @click="$emit('on-back')">
         {{ $t('form.close') }}
       </BButton>
     </div>

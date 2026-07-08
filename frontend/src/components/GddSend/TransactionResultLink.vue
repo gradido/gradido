@@ -11,7 +11,7 @@
     <div class="text-center">
       <div><figure-qr-code :link="link" /></div>
       <div>
-        <BButton variant="secondary" class="mt-4" data-test="close-btn" @click="$emit('on-back')">
+        <BButton variant="gradido" class="mt-4" data-test="close-btn" @click="$emit('on-back')">
           {{ $t('form.close') }}
         </BButton>
       </div>
