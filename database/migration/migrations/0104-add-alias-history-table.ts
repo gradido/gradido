@@ -24,7 +24,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   )
 
   // Loop through all user without an existing alias
-  const users = await queryFn(`SELECT * FROM users where alias is null`)
+  const users = await queryFn(`SELECT * FROM users WHERE foreign is true AND alias is null`)
   console.log('Users without alias:', users.length)
   
   for (const user of users) {
@@ -34,7 +34,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
     console.log('Generated alias:', alias)
 
     // check if alias already exists
-    const existing = await queryFn(`SELECT alias FROM users WHERE alias LIKE ?`, [alias + '%'])
+    const existing = await queryFn(`SELECT alias FROM users WHERE foreign is true AND alias LIKE ?`, [alias + '%'])
     console.log('Existing aliases:', JSON.stringify(existing))
     
     if (existing.length > 0) {
@@ -91,13 +91,13 @@ export async function downgrade(queryFn: (query: string, values?: any[]) => Prom
 
   // TODO: Revert alias column to original state (remove alias column)
     // Loop through all user without an existing alias
-  const users = await queryFn(`SELECT * FROM users where alias is not null`)
+  const users = await queryFn(`SELECT * FROM users WHERE foreign is true AND alias is not null`)
   console.log('Users without alias:', users.length)
   
   for (const user of users) {
     console.log('Processing user:', JSON.stringify(user))
     // generate alias from firstname minus place for three digits plus first letter of name (max 20 chars)
-    let generatedAlias = user.first_name.slice(0, 16) + user.last_name.slice(0, 1) // replaceAll(' ', '').
+    let generatedAlias = user.first_name.replaceAll(' ', '').slice(0, 16) + user.last_name.replaceAll(' ', '').slice(0, 1)
     console.log('Generated alias:', generatedAlias)
 
     // check if alias matches the generated alias pattern
