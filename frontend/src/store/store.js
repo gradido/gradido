@@ -11,6 +11,9 @@ export const mutations = {
     // localeChanged(language)
     state.language = language
   },
+  setPreLoginLanguage: (state, preLoginLanguage) => {
+    state.preLoginLanguage = preLoginLanguage
+  },
   gradidoID: (state, gradidoID) => {
     state.gradidoID = gradidoID
   },
@@ -87,9 +90,13 @@ export const mutations = {
 }
 
 export const actions = {
-  login: ({ dispatch, commit }, data) => {
+  login: ({ commit, state }, data) => {
     commit('gradidoID', data.gradidoID)
-    commit('language', data.language)
+    // A language deliberately chosen on the login page wins over the account
+    // language, then is cleared once consumed. Browser auto-detection does not set
+    // preLoginLanguage, so it never overrides the account language here.
+    commit('language', state.preLoginLanguage || data.language)
+    commit('setPreLoginLanguage', null)
     commit('username', data.alias)
     commit('firstName', data.firstName)
     commit('lastName', data.lastName)
@@ -148,6 +155,7 @@ try {
     ],
     state: {
       language: null,
+      preLoginLanguage: null,
       gradidoID: null,
       firstName: '',
       lastName: '',

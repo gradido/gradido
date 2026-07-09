@@ -81,6 +81,10 @@ const saveLocale = async (newLocale) => {
     } catch (error) {
       toastError(t('settings.language.error'))
     }
+  } else {
+    // Not logged in yet: remember this deliberate choice so the next login keeps it
+    // (and syncs it to the account) instead of overwriting it with the account language.
+    store.commit('setPreLoginLanguage', newLocale)
   }
 }
 
