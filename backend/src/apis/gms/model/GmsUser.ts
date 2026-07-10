@@ -10,29 +10,33 @@ export class GmsUser {
   constructor(user: dbUser) {
     const pnLogic = new PublishNameLogic(user)
 
-    this.userUuid = user.gradidoID
+    this.uuid = user.gradidoID
     // this.communityUuid = user.communityUuid
     this.language = user.language
     this.email = this.getGmsEmail(user)
     this.countryCode = this.getGmsCountryCode(user)
     this.mobile = this.getGmsPhone(user)
-    const fn = pnLogic.getFirstName(user.gmsPublishName as PublishNameType)
-    this.firstName = fn !== '' ? fn : null // getGmsFirstName(user)
-    const ln = pnLogic.getLastName(user.gmsPublishName as PublishNameType)
-    this.lastName = ln !== '' ? ln : null // getGmsLastName(user)
+    // const fn = pnLogic.getFirstName(user.gmsPublishName as PublishNameType)
+    // this.firstName = fn !== '' ? fn : null // getGmsFirstName(user)
+    // const ln = pnLogic.getLastName(user.gmsPublishName as PublishNameType)
+    // this.lastName = ln !== '' ? ln : null // getGmsLastName(user)
     this.alias = pnLogic.getPublicName(user.gmsPublishName as PublishNameType)
-    this.type = user.gmsPublishLocation // GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM
-    this.location = user.location
-    if ((this.type as GmsPublishLocationType) === GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM) {
-      this.type = GmsPublishLocationType.GMS_LOCATION_TYPE_APPROXIMATE
+    if (user.location && user.location.type === 'Point') {
+      this.location = user.location.coordinates
+    }
+    let publishLocationType: GmsPublishLocationType = user.gmsPublishLocation
+    if (publishLocationType === GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM) {
+      publishLocationType = GmsPublishLocationType.GMS_LOCATION_TYPE_APPROXIMATE
     }
     if (!this.location) {
-      this.type = GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM
+      publishLocationType = GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM
     }
+    // use string for http transfer to make sure the correct value reachs the target
+    this.type = GmsPublishLocationType[publishLocationType]
   }
 
   id: number
-  userUuid: string
+  uuid: string
   communityUuid: string
   email: string | undefined
   countryCode: string | undefined
@@ -43,14 +47,14 @@ export class GmsUser {
   firstName: string | null | undefined
   lastName: string | null | undefined
   alias: string | undefined
-  type: number
+  type: string
   address: string | undefined
   city: string | undefined
   state: string
   country: string | undefined
   zipCode: string | undefined
   language: string
-  location: unknown
+  location: number[]
 
   private getGmsAlias(user: dbUser): string | undefined {
     if (

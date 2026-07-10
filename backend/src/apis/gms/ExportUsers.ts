@@ -1,24 +1,21 @@
-import { User as DbUser } from 'database'
-
-// import { createTestClient } from 'apollo-server-testing'
-
-// import { createGmsUser } from '@/apis/gms/GmsClient'
-// import { GmsUser } from '@/apis/gms/model/GmsUser'
 import { CONFIG as CORE_CONFIG } from 'core'
-import { AppDatabase, getHomeCommunity } from 'database'
+import { AppDatabase, User as DbUser, getHomeCommunity } from 'database'
 import { getLogger } from 'log4js'
+import { MonotonicTimer } from 'shared-native'
+import { In } from 'typeorm'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { sendUserToGms } from '@/graphql/resolver/util/sendUserToGms'
+import { sendUsersToGms } from '@/graphql/resolver/util/sendUserToGms'
 import { LogError } from '@/server/LogError'
 import { initLogging } from '@/server/logger'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.apis.gms.ExportUsers`)
 
 CORE_CONFIG.EMAIL = false
-// use force to copy over all user even if gmsRegistered is set to true
-const forceMode = process.argv.includes('--force')
+const BATCH_SIZE = 100
 
 async function main() {
+  const timeUsed = new MonotonicTimer()
+
   initLogging()
   // open mysql connection
   const con = AppDatabase.getInstance()
@@ -34,46 +31,34 @@ async function main() {
   // read the ids of all local users, which are still not gms registered
   const userIds = await DbUser.createQueryBuilder()
     .select('id')
-    .where({ foreign: false })
+    .where({ foreign: false, gmsAllowed: true })
     .andWhere('deleted_at is null')
     .getRawMany()
-  logger.debug('userIds:', userIds)
 
   let alreadyUpdatedUserCount = 0
-  for (const idStr of userIds) {
-    logger.debug('Id:', idStr.id)
-    const user = await DbUser.findOne({
-      where: { id: idStr.id },
+  let current = 0
+  do {
+    const lastIndex = Math.min(current + BATCH_SIZE, userIds.length)
+    const ids = userIds.slice(current, lastIndex).map((idStr) => idStr.id)
+    logger.debug(`ids: ${JSON.stringify(ids)}`)
+    const users = await DbUser.find({
+      where: { id: In(ids) },
       relations: ['emailContact'],
     })
-    if (user) {
-      logger.debug('found local User:', user)
-      if (user.gmsAllowed) {
-        await sendUserToGms(user, homeCom, forceMode)
-        /*
-        const gmsUser = new GmsUser(user)
-        try {
-
-          if (await createGmsUser(homeCom.gmsApiKey, gmsUser)) {
-            logger.debug('GMS user published successfully:', gmsUser)
-            user.gmsRegistered = true
-            user.gmsRegisteredAt = new Date()
-            await DbUser.save(user)
-            logger.debug('mark user as gms published:', user)
-          }
-        } catch (err) {
-          logger.warn('publishing user fails with ', err)
-        }
-        */
-      } else {
-        logger.debug('GMS-Publishing not allowed by user settings:', user)
+    if (users) {
+      if (!(await sendUsersToGms(users, homeCom))) {
+        // early exit on failure
+        logger.warn(`##gms## publishing local users failed after ${timeUsed}...`)
+        await con.destroy()
+        return
       }
     }
-    alreadyUpdatedUserCount++
+    current += BATCH_SIZE
+    alreadyUpdatedUserCount += BATCH_SIZE
     process.stdout.write(`updated user: ${alreadyUpdatedUserCount}/${userIds.length}\r`)
-  }
-  logger.info('##gms## publishing all local users successful...')
+  } while (current < userIds.length)
 
+  logger.info(`##gms## publishing all local users in ${timeUsed} successful...`)
   await con.destroy()
 }
 

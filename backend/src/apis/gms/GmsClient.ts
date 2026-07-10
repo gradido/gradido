@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { ensureUrlEndsWithSlash } from 'core'
+import { jwtVerify, SignJWT } from 'jose'
 import { getLogger } from 'log4js'
 import { httpAgent, httpsAgent } from '@/apis/ConnectionAgents'
 import { CONFIG } from '@/config'
@@ -116,25 +117,30 @@ export async function userByUuid(uuid: string): Promise<GmsUser[] | string | und
 }
 */
 
-export async function createGmsUser(apiKey: string, user: GmsUser): Promise<boolean> {
+export async function upsertGmsUsers(apiKey: string, users: GmsUser[]): Promise<boolean> {
   if (CONFIG.GMS_ACTIVE) {
     const baseUrl = ensureUrlEndsWithSlash(CONFIG.GMS_API_URL)
-    const service = 'community-user'
+    const service = 'community-users'
     const config = {
       headers: {
         accept: 'application/json',
+        'Content-Type': 'application/json',
         language: 'en',
         timezone: 'UTC',
-        authorization: apiKey,
+        authorization: `Bearer ${apiKey}`,
       },
       httpAgent,
       httpsAgent,
     }
     try {
-      const result = await axios.post(baseUrl.concat(service), user, config)
-      logger.debug('POST-Response of community-user:', result)
+      const result = await axios.post(baseUrl.concat(service), users, config)
+      logger.debug('POST-Response of community-users:', result)
       if (result.status !== 200) {
-        throw new LogError('HTTP Status Error in community-user:', result.status, result.statusText)
+        throw new LogError(
+          'HTTP Status Error in community-users:',
+          result.status,
+          result.statusText,
+        )
       }
       logger.debug('responseData:', result.data.responseData)
 
@@ -142,11 +148,11 @@ export async function createGmsUser(apiKey: string, user: GmsUser): Promise<bool
       // logger.debug('gmsUser:', gmsUser)
       return true
     } catch (error: unknown) {
-      logger.error('Error in post community-user:', error)
+      logger.error('Error in post community-users:', error)
       if (error instanceof Error) {
         throw new LogError(error.message)
       }
-      throw new LogError('Unknown error in post community-user')
+      throw new LogError('Unknown error in post community-users')
     }
   } else {
     logger.info('GMS-Communication disabled per ConfigKey GMS_ACTIVE=false!')
@@ -154,58 +160,15 @@ export async function createGmsUser(apiKey: string, user: GmsUser): Promise<bool
   }
 }
 
-export async function updateGmsUser(apiKey: string, user: GmsUser): Promise<boolean> {
-  if (CONFIG.GMS_ACTIVE) {
-    const baseUrl = ensureUrlEndsWithSlash(CONFIG.GMS_API_URL)
-    const service = 'community-user'
-    const config = {
-      headers: {
-        accept: 'application/json',
-        language: 'en',
-        timezone: 'UTC',
-        authorization: apiKey,
-      },
-      httpAgent,
-      httpsAgent,
-    }
-    try {
-      const result = await axios.patch(baseUrl.concat(service), user, config)
-      logger.debug('PATCH-Response of community-user:', result)
-      if (result.status !== 200) {
-        throw new LogError('HTTP Status Error in community-user:', result.status, result.statusText)
-      }
-      logger.debug('responseData:', result.data.responseData)
-
-      // const gmsUser = JSON.parse(result.data.responseData)
-      // logger.debug('gmsUser:', gmsUser)
-      return true
-    } catch (error: unknown) {
-      logger.error('Error in patch community-user:', error)
-      if (error instanceof Error) {
-        throw new LogError(error.message)
-      }
-      throw new LogError('Unknown error in patch community-user')
-    }
-  } else {
-    logger.info('GMS-Communication disabled per ConfigKey GMS_ACTIVE=false!')
-    return false
-  }
-}
-
-export async function verifyAuthToken(
-  // apiKey: string,
-  communityUuid: string,
-  token: string,
-): Promise<string> {
+export async function verifyAuthToken(apiKey: string, token: string): Promise<string> {
   const baseUrl = ensureUrlEndsWithSlash(CONFIG.GMS_API_URL)
-  // TODO: NEVER pass user JWT token to another server - serious security risk! 😱⚠️
-  const service = 'verify-auth-token?token='.concat(token).concat('&uuid=').concat(communityUuid)
+  const service = `verify-auth-token/${token}`
   const config = {
     headers: {
       accept: 'application/json',
       language: 'en',
       timezone: 'UTC',
-      // authorization: apiKey,
+      authorization: `Bearer ${apiKey}`,
     },
     httpAgent,
     httpsAgent,
@@ -220,9 +183,9 @@ export async function verifyAuthToken(
         result.statusText,
       )
     }
-    logger.debug('responseData:', result.data.responseData)
+    logger.debug('data:', result.data)
 
-    const token: string = result.data.responseData.token
+    const token: string = result.data
     logger.debug('verifyAuthToken=', token)
     return token
   } catch (error: unknown) {
@@ -231,5 +194,31 @@ export async function verifyAuthToken(
       throw new LogError(error.message)
     }
     throw new LogError('Unknown error in verifyAuthToken')
+  }
+}
+
+export async function createGmsHandshakeJWTToken(userUuid: string): Promise<string> {
+  const secret = new TextEncoder().encode(CONFIG.JWT_SECRET)
+  const token = await new SignJWT({ 'urn:gradido:check': true, uuid: userUuid })
+    .setProtectedHeader({ alg: 'HS512' })
+    .setIssuedAt()
+    .setIssuer('urn:gradido:issuer')
+    .setAudience('urn:gms:audience')
+    .setExpirationTime('5m')
+    .sign(secret)
+  return token
+}
+
+export async function verifyGmsHandshakeJWTToken(token: string): Promise<string | undefined> {
+  try {
+    const secret = new TextEncoder().encode(CONFIG.JWT_SECRET)
+    const { payload } = await jwtVerify(token, secret, {
+      issuer: 'urn:gradido:issuer',
+      audience: 'urn:gms:audience',
+    })
+
+    return payload.uuid as string
+  } catch (e) {
+    logger.warn(`gms verify call failed with: ${e}`)
   }
 }

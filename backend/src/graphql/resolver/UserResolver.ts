@@ -99,7 +99,7 @@ import { findUsers } from './util/findUsers'
 import { getKlicktippState } from './util/getKlicktippState'
 import { Location2Point, Point2Location } from './util/Location2Point'
 import { deleteUserRole, setUserRole } from './util/modifyUserRole'
-import { sendUserToGms } from './util/sendUserToGms'
+import { sendUsersToGms } from './util/sendUserToGms'
 import { syncHumhub } from './util/syncHumhub'
 
 const LANGUAGES = ['de', 'en', 'es', 'fr', 'nl', 'it', 'tr', 'ru', 'pt', 'el']
@@ -485,7 +485,7 @@ export class UserResolver {
     } else {
       try {
         if (dbUser.gmsAllowed && !dbUser.gmsRegistered) {
-          await sendUserToGms(dbUser, homeCom)
+          await sendUsersToGms([dbUser], homeCom)
         }
       } catch (err) {
         if (CONFIG.GMS_CREATE_USER_THROW_ERRORS) {
@@ -809,7 +809,7 @@ export class UserResolver {
         }
         if (homeCom.gmsApiKey !== null) {
           logger.debug(`send User to Gms...`)
-          await sendUserToGms(user, homeCom)
+          await sendUsersToGms([user], homeCom)
           logger.debug(`sendUserToGms successfully.`)
         }
       }
@@ -860,8 +860,7 @@ export class UserResolver {
       if (!homeCom.gmsApiKey) {
         throw new LogError('authenticateGmsUserSearch missing HomeCommunity GmsApiKey')
       }
-      // TODO: NEVER pass user JWT token to another server - serious security risk! 😱⚠️
-      result = await authenticateGmsUserPlayground(homeCom.gmsApiKey, context.token, dbUser)
+      result = await authenticateGmsUserPlayground(homeCom.gmsApiKey, dbUser)
       logger.info('authenticateGmsUserSearch=', result)
     } else {
       throw new LogError('authenticateGmsUserSearch missing valid user login-token')
