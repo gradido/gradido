@@ -22,13 +22,20 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
+import { useStore } from 'vuex'
 import { useAuthLinks } from '@/composables/useAuthLinks'
 import NavItem from '../Menu/NavItem.vue'
 
 const { routeWithParamsAndQuery } = useAuthLinks()
+const store = useStore()
 
 const backgroundHeader = '/img/template/gradido_background_header.png'
-const logo = '/img/brand/gradido-logo_200x59.png'
+// Dark mode uses a transparent, light-inked logo so it reads on the darkened
+// header blob; light mode keeps the original.
+const logo = computed(() =>
+  store.state.darkMode ? '/img/brand/gradido-logo-white.png' : '/img/brand/gradido-logo_200x59.png',
+)
 const sheet = '/img/template/Blaetter.png'
 </script>
 
