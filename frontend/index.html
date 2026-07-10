@@ -57,17 +57,20 @@
   // (FOUC) on a cold load while in dark mode. Mirrors the store's applyTheme:
   // dark when themeMode is 'dark', or 'system' (the default) and the OS is dark.
   // Runs before #app renders; the App.vue watcher then keeps body.dark-mode in sync.
+  //
+  // This blocks the first paint, so it stays minimal: a single getItem of the
+  // dedicated key (THEME_MODE_STORAGE_KEY in src/store/store.js, kept in sync by
+  // applyTheme) instead of parsing the whole persisted-state blob, and matchMedia
+  // only when the mode really is 'system'.
   ;(function () {
     try {
-      var mode = 'system'
-      var raw = window.localStorage.getItem('gradido-frontend')
-      if (raw) {
-        var parsed = JSON.parse(raw)
-        if (parsed && parsed.themeMode) mode = parsed.themeMode
-      }
-      var osDark =
-        window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
-      if (mode === 'dark' || (mode === 'system' && osDark)) {
+      var mode = window.localStorage.getItem('gradido-theme-mode') || 'system'
+      if (
+        mode === 'dark' ||
+        (mode === 'system' &&
+          window.matchMedia &&
+          window.matchMedia('(prefers-color-scheme: dark)').matches)
+      ) {
         document.body.classList.add('dark-mode')
       }
     } catch (e) {}

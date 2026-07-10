@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { mutations, actions } from './store'
+import { mutations, actions, THEME_MODE_STORAGE_KEY } from './store'
 import i18n from '../i18n'
 import jwtDecode from 'jwt-decode'
 
@@ -228,6 +228,15 @@ describe('Vuex store', () => {
         applyTheme({ state: { themeMode: 'system' }, commit })
         expect(commit).toHaveBeenCalledWith('setDarkMode', true)
         window.matchMedia = original
+      })
+
+      it('mirrors the theme mode into the dedicated storage key', () => {
+        const commit = vi.fn()
+        const setItem = vi.fn()
+        vi.stubGlobal('localStorage', { setItem })
+        applyTheme({ state: { themeMode: 'dark' }, commit })
+        expect(setItem).toHaveBeenCalledWith(THEME_MODE_STORAGE_KEY, 'dark')
+        vi.unstubAllGlobals()
       })
     })
   })
