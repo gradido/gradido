@@ -159,9 +159,22 @@ describe('Vuex store', () => {
         darkMode: true,
       }
 
-      it('calls seventeen commits', () => {
+      it('calls eighteen commits', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenCalledTimes(17)
+        expect(commit).toHaveBeenCalledTimes(18)
+      })
+
+      it('uses the account language when there is no deliberate pre-login choice', () => {
+        const localCommit = vi.fn()
+        login({ commit: localCommit, state: {} }, commitedData)
+        expect(localCommit).toHaveBeenCalledWith('language', 'de')
+      })
+
+      it('prefers a deliberate pre-login language over the account language and clears it', () => {
+        const localCommit = vi.fn()
+        login({ commit: localCommit, state: { preLoginLanguage: 'it' } }, commitedData)
+        expect(localCommit).toHaveBeenCalledWith('language', 'it')
+        expect(localCommit).toHaveBeenCalledWith('setPreLoginLanguage', null)
       })
 
       // ... (other login action tests remain largely the same)
