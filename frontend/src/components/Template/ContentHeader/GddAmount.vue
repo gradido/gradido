@@ -34,8 +34,11 @@
         </BCol>
         <BCol cols="3" class="border-start border-dark">
           <button class="transparent-button" @click="updateHideAmountGDD">
-            <IBiEyeSlash v-if="hideAmount" class="me-3 gradido-global-border-color-accent" />
-            <IBiEye v-else class="me-3 gradido-global-border-color-accent" />
+            <IBiEyeSlash
+              v-if="hideAmount"
+              class="me-3 gradido-global-border-color-accent eye-icon"
+            />
+            <IBiEye v-else class="me-3 gradido-global-border-color-accent eye-icon" />
           </button>
         </BCol>
       </BRow>

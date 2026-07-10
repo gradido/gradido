@@ -1,18 +1,552 @@
-$dark: #171717;
-$mode-toggle-bg: #262626;
+// Dark mode. Everything here is scoped to .dark-mode, so light mode is never
+// touched. Two layers:
+//  1) flip the design-token values to their dark equivalents;
+//  2) a coverage layer for surfaces that still use Bootstrap utilities or
+//     hardcoded colours (the bg-white card pattern etc.). This layer gets
+//     thinner as more surfaces move onto the tokens.
 
-#app {
-  &.dark-mode {
-    background-color: $dark;
-    color: #fff;
+// Token values live on both #app.dark-mode and body.dark-mode (App.vue sets the
+// class on both) so teleported UI (modals, toasts) rendered on <body> resolves
+// the dark values too.
+#app.dark-mode,
+body.dark-mode {
+  --bg: #17181a;
+  --surface: #2a2c30;
+  --surface-muted: #36383c;
+  --nav-track: #33353c; // tab/segment control tracks (send/matching/contributions), a step above surface-muted so they don't read as near-black
+  --text: #e4e4e4;
+  --text-muted: #9a9b9e;
+  --border: #34363b;
+  --success: #46c04a;
+  --success-soft: #1f3a22;
+  --danger: #ef5350;
+  --warning: #f5b539;
+  --info: #4aa3df;
+  --link: #0b9130; // Gradido green, cooler + lighter than light #047006 for dark legibility
+  --gold: #c58d38; // Gradido gold (decay accent) for balances + received amounts
+
+  // Render native controls (the date-picker popup, scrollbars, form defaults) dark
+  // instead of the browser's light default.
+  color-scheme: dark;
+  background-color: var(--bg);
+  color: var(--text);
+}
+
+.dark-mode {
+  .bg-white,
+  .card,
+  .card-body,
+  .list-group-item,
+  .dropdown-menu,
+  .modal-content {
+    background-color: var(--surface) !important;
+    color: var(--text);
+  }
+
+  .text-muted,
+  .text-secondary {
+    color: var(--text-muted) !important;
+  }
+
+  .text-dark,
+  .text-body {
+    color: var(--text) !important;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  .h1,
+  .h2,
+  .h3,
+  .h4,
+  .h5,
+  .h6 {
+    color: var(--text);
+  }
+
+  .border,
+  .border-top,
+  .border-bottom,
+  .border-start,
+  .border-end,
+  .modal-header,
+  .modal-footer,
+  hr {
+    border-color: var(--border) !important;
+  }
+
+  .form-control,
+  .form-select {
+    background-color: var(--surface-muted);
+    color: var(--text);
+    border-color: var(--border);
+  }
+
+  // Links follow the Gradido-green convention (light mode uses #047006); use the
+  // dedicated dark link-green token so they stay legible on the dark canvas --
+  // not the info blue.
+  a:not(.btn) {
+    color: var(--link);
+  }
+
+  // Page watermark: swap the near-white leaves for a dark-anthracite variant so
+  // it stays a subtle watermark instead of a bright shape on the dark canvas.
+  // The ?v= query busts the browser image cache -- the file is served from
+  // /public under a constant name with a 7-day max-age, so earlier (lighter)
+  // iterations otherwise linger. Bump the version when the SVG changes.
+  .main-page {
+    background-image: url('/img/svg/Gradido_Blaetter_Mainpage_dark.svg?v=4') !important;
   }
 }
 
-#app a,
-.navbar-light,
-.navbar-nav,
-.nav-link {
-  &.dark-mode {
-    color: #a7ffa9;
+// Matching tab bar: the scoped light-grey control (#d1d1d1) with black inactive
+// text needs a dark surface and light text in dark mode. #app.dark-mode outweighs
+// the component's scoped !important; the active teal tab keeps its own styling.
+#app.dark-mode .matching-nav {
+  background-color: var(--nav-track);
+}
+
+#app.dark-mode .matching-nav-btn:not(.is-active) {
+  color: var(--text) !important;
+}
+
+// Overview member-search tile: swap the light map screenshot for a crop of the
+// new dark glow-field map, so the tile fits the dark canvas (and previews the
+// coming GMS map). The scoped .container rule carries !important, so this needs
+// the #app.dark-mode weight.
+#app.dark-mode .card-user-search .container {
+  background-image: url('/img/svg/usersearchmap_dark.jpg') !important;
+  background-size: cover !important;
+  background-position: center !important;
+}
+
+// Address search on the location map (leaflet-geosearch, used on the Settings and
+// Matching position maps). Its results dropdown keeps a hardcoded white background
+// (geosearch.css: .results { background: #fff }) while the result items set no
+// colour of their own, so in dark mode they inherit the light --text and render as
+// light-grey on white = unreadable. The map itself is the bright OSM map, so the
+// white dropdown is correct here -- only restore a dark text colour for the results
+// (matching the search input, which keeps its native dark colour).
+#app.dark-mode .leaflet-control-geosearch .results > * {
+  color: #212529;
+}
+
+// Overview watermark cards (Kreise / Community-News) use the same near-white
+// leaves SVG -> dark variant so they are not bright shapes on the dark canvas.
+#app.dark-mode .card-circles .card,
+#app.dark-mode .community-news .card {
+  background-image: url('/img/svg/Gradido_Blaetter_Mainpage_dark.svg?v=4') !important;
+}
+
+// Top decorative leaves image (Blaetter.png) is a brand accent -- keep it, only
+// take a touch of the edge off on the dark canvas.
+#app.dark-mode .sheet-img {
+  opacity: 0.85;
+}
+
+// Mobile nav surfaces that were only styled for light mode. The slide-in
+// hamburger drawer wrapper is a hardcoded white panel around the dark #side-menu
+// card -> surface colour for a seamless dark drawer. It only exists in the mobile
+// nav (below lg), so no width guard is needed.
+// The wrapper is absolutely positioned with top:0/bottom:0, so it spans the full
+// viewport height while the menu itself is only content-height. In light mode the
+// white overhang is invisible; in dark it leaves a large empty surface panel below
+// the menu (most noticeable on long pages). bottom:auto lets the wrapper wrap the
+// menu so the dark surface ends right below the last item.
+#app.dark-mode .mobile-sidebar-wrapper {
+  background-color: var(--surface);
+  bottom: auto;
+}
+
+// The mobile drawer's dim scrim (.simple-overlay) starts at left:200px and only
+// spans the area to the right of the drawer, because in light mode the full-height
+// white drawer covers the left strip down to the bottom. With the dark drawer now
+// wrapping its menu (bottom:auto above), that left strip is exposed and undimmed
+// below the menu. Extend the scrim to the full viewport width in dark mode so the
+// whole page behind the floating menu is dimmed evenly; the menu card stays on top
+// via its higher z-index.
+#app.dark-mode .simple-overlay {
+  left: 0;
+  width: 100vw;
+}
+
+// The fixed top navbar only carries a light frosted background (#f5f5f5e6) inside
+// a max-width:450px media query; above 450px it is transparent (sticky) so the
+// page watermark shows through. Scope the dark override to the same breakpoint --
+// an unscoped rule would cover the desktop watermark. Same 0.9 alpha as original.
+@media screen and (width <= 450px) {
+  #app.dark-mode .navbar-element {
+    background-color: #17181ae6;
   }
+}
+
+// Send tab bar (TransactionForm .nav-send-btn-wrapper): same light-grey control
+// as the Matching bar -> dark surface + light inactive labels. The active tab
+// keeps its teal .router-link-active styling.
+#app.dark-mode .nav-send-btn-wrapper {
+  background-color: var(--nav-track) !important;
+}
+
+#app.dark-mode .nav-send-btn-wrapper > :not(.router-link-active) {
+  color: var(--text) !important;
+}
+
+// Bootstrap nav-tabs (Settings etc.): the active tab is a near-white pill in
+// light mode -> a dark raised surface with light text in dark mode.
+#app.dark-mode .nav-tabs .nav-link.active {
+  background-color: var(--surface-muted) !important;
+  color: var(--text) !important;
+  border-color: var(--border) !important;
+}
+
+// Left sidebar menu: item text is hardcoded dark (#383838) -> light in dark mode.
+// The logout link keeps its own red (its span sets its own colour).
+#app.dark-mode #component-sidebar .nav-item > a,
+#app.dark-mode #component-sidebar .active-route {
+  color: var(--text) !important;
+}
+
+// The active menu item colours its icon black via a filter (brightness(0) invert(0))
+// so it stands out on the light active background; in dark mode lift it to light so
+// the selected icon reads like the active label instead of vanishing.
+#app.dark-mode .active-route .svg-icon {
+  filter: brightness(0) invert(0.894); // brightness(0) blacks it, invert(a) => a*255 = #e4e4e4
+}
+
+// Secondary buttons (Reset in the Send form, Cancel in standard modals) use the
+// near-white $secondary (#f7fafc) in light mode -> give them a dark raised
+// surface with light text. Driving the Bootstrap 5 button CSS variables keeps
+// the hover / active states consistent.
+.dark-mode .btn-secondary {
+  --bs-btn-bg: var(--surface-muted);
+  --bs-btn-color: var(--text);
+  --bs-btn-border-color: var(--border);
+  --bs-btn-hover-bg: var(--border);
+  --bs-btn-hover-color: var(--text);
+  --bs-btn-hover-border-color: var(--border);
+  --bs-btn-active-bg: var(--border);
+  --bs-btn-active-color: var(--text);
+  --bs-btn-active-border-color: var(--border);
+}
+
+// Modal close control (x) is a black Bootstrap icon -> invert it to a light
+// glyph on the dark modal surface.
+.dark-mode .btn-close {
+  filter: invert(1) grayscale(1) brightness(1.6);
+}
+
+// Footer meta links (imprint / privacy / whitepaper / support) are hardcoded
+// #383838 in ContentFooter's scoped style -> barely legible on the dark canvas.
+// Lift them to muted text; #app.dark-mode outweighs the scoped !important rule.
+#app.dark-mode .footer .nav-link {
+  color: var(--text-muted) !important;
+}
+
+// Account balances (GddAmount / GdtAmount) and received-transaction amounts both
+// use gradido-global-color-accent (#047006 green in light mode). In dark mode make
+// them Gradido gold so they stand apart from the green links and the sidebar. The
+// inactive-account dimming stays (it is an opacity on the whole tile).
+.dark-mode .gradido-global-color-accent {
+  color: var(--gold) !important;
+}
+
+// Received amounts in the compact last-transactions list carry .received-amount
+// (added in the component when amount > 0) -> gold too, matching the balances.
+.dark-mode .received-amount {
+  color: var(--gold) !important;
+}
+
+// Top-right user name (.navbar-like-link) is the Bootstrap link green in light
+// mode -> Gradido gold in dark, matching the balances. The address line below it
+// carries .small and keeps the green link colour.
+#app.dark-mode .navbar-like-link:not(.small) {
+  color: var(--gold) !important;
+}
+
+// Contributions tab bar (NavContributions): same light-grey control (#d1d1d1)
+// with black inactive labels as the Matching / Send bars -> dark surface, light
+// inactive labels. The active tab keeps its teal router-link-active styling.
+#app.dark-mode .nav-contributions-btn-wrapper {
+  background-color: var(--nav-track) !important;
+}
+
+#app.dark-mode .nav-contributions-btn-wrapper > :not(.router-link-active) {
+  color: var(--text) !important;
+}
+
+// Inactive tab-bar icons are forced black via `filter: brightness(0) invert(0)`
+// (a mix of <b-img> and inline SVGs, so color/currentColor can't reach them). In
+// dark mode lift them to the light label text: invert(0.894) of black == #e4e4e4
+// == --text. Active icons stay white via the component's own invert(1) rule.
+#app.dark-mode .nav-send-btn-wrapper > :not(.router-link-active) .svg-icon,
+#app.dark-mode .nav-contributions-btn-wrapper > :not(.router-link-active) .svg-icon {
+  filter: brightness(0) invert(0.894) !important;
+}
+
+// Pagination (BPagination pills, used across the transaction and contribution
+// lists): light pills in light mode -> dark surface pills via the Bootstrap 5
+// pagination CSS variables. The active pill takes the teal used by the tab bars.
+.dark-mode .page-link {
+  --bs-pagination-bg: var(--surface-muted);
+  --bs-pagination-color: var(--text);
+  --bs-pagination-border-color: var(--border);
+  --bs-pagination-hover-bg: var(--border);
+  --bs-pagination-hover-color: var(--text);
+  --bs-pagination-hover-border-color: var(--border);
+  --bs-pagination-focus-bg: var(--border);
+  --bs-pagination-focus-color: var(--text);
+  --bs-pagination-active-bg: #178d81;
+  --bs-pagination-active-border-color: #178d81;
+  --bs-pagination-disabled-bg: var(--surface);
+  --bs-pagination-disabled-color: var(--text-muted);
+  --bs-pagination-disabled-border-color: var(--border);
+}
+
+// Transaction-link cards (Offene Links / QR-Codes) use a near-white translucent
+// background (#ebebeba3) -> dark surface in dark mode so the active card is not a
+// bright block. Expired links carry .light-gray-text (#adb5bd, a dim-out in light
+// mode); on the dark card that reads brighter than the active ones, so map it to
+// muted text -> expired links look greyed-out, active ones stay full-contrast.
+.dark-mode .gradido-custom-background {
+  background-color: var(--surface) !important;
+}
+
+// The blanket .card-body rule paints an opaque dark surface; on this rounded card
+// the square body then hides the card's rounded bottom corners (the top stays round
+// because the header row is transparent). Keep the body transparent so the rounded
+// card surface shows through at the bottom too, just like in light mode.
+.dark-mode .gradido-custom-background .card-body {
+  background-color: transparent !important;
+}
+
+// Loading skeletons (DashboardLayout's SkeletonOverview) default to a light
+// gray-200 placeholder and are shown on every authenticated page for up to ~1.5s
+// while data loads. In dark mode give them a dark surface and a fainter shimmer,
+// otherwise all panels flash light on load. The #app id beats the scoped component.
+#app.dark-mode .skeleton-loader {
+  background: var(--surface-muted);
+}
+
+#app.dark-mode .with-animation::after {
+  background: linear-gradient(
+    90deg,
+    rgb(255 255 255 / 0%) 0%,
+    rgb(255 255 255 / 4%) 40%,
+    rgb(255 255 255 / 9%) 60%,
+    rgb(255 255 255 / 0%) 100%
+  );
+}
+
+.dark-mode .light-gray-text {
+  color: #6b6c6f !important; // fainter than --text-muted so expired links clearly recede
+}
+
+// Settings tabs (BTabs .nav-tabs): the strip's bottom border is light grey and
+// the inactive labels are hardcoded #383838 -> border token + light labels. The
+// active pill is already handled by the .nav-tabs .nav-link.active rule above.
+.dark-mode .nav-tabs {
+  border-bottom-color: var(--border) !important;
+}
+
+#app.dark-mode .nav-tabs .nav-link:not(.active) {
+  color: var(--text) !important;
+}
+
+// Open-links header icon (BAvatar variant=light with a dark link glyph #32325d)
+// -> light glyph so it reads like the heading text.
+#app.dark-mode .transaction-slot-link .b-avatar,
+#app.dark-mode .transaction-slot-link .b-avatar svg {
+  color: var(--text) !important;
+  fill: var(--text) !important;
+}
+
+// Dropdown menus (the three-dot link menu etc.): items are dark text in light
+// mode -> light on the dark surface (the menu background is already covered).
+.dark-mode .dropdown-item {
+  color: var(--text);
+}
+
+.dark-mode .dropdown-item:hover,
+.dark-mode .dropdown-item:focus {
+  background-color: var(--surface-muted);
+  color: var(--text);
+}
+
+// "Load more links" button (BButton variant=outline-primary) -> Gradido link green.
+.dark-mode .btn-outline-primary {
+  --bs-btn-color: var(--link);
+  --bs-btn-border-color: var(--link);
+  --bs-btn-hover-bg: var(--link);
+  --bs-btn-hover-border-color: var(--link);
+  --bs-btn-hover-color: var(--bg);
+  --bs-btn-active-bg: var(--link);
+  --bs-btn-active-border-color: var(--link);
+  --bs-btn-active-color: var(--bg);
+}
+
+// Toggle switches (BFormCheckbox switch, Settings + Matching position): the OFF
+// state is a white track with a dark thumb -> dark track + light thumb. The ON
+// state (Bootstrap blue) is fine and left alone.
+.dark-mode .form-check-input:not(:checked) {
+  --bs-form-switch-bg: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%239a9b9e'/%3e%3c/svg%3e");
+
+  background-color: var(--surface-muted);
+  border-color: var(--border);
+}
+
+// Matching position "Bin ich auffindbar?" label inherits a hardcoded #383838 from
+// the scoped matching styles -> light. (The hint below already uses text-muted.)
+#app.dark-mode .matching-page .fw-bold {
+  color: var(--text) !important;
+}
+
+// AppModal (custom teleported modal: QR code, delete link) close button is a plain
+// <button> with a black IBiX glyph inheriting the browser default -> light. (The
+// modal shell + BCard body are already dark via the .modal-content / .card rules.)
+.dark-mode .modal-overlay .close-button {
+  color: var(--text) !important;
+}
+
+// BCard header/footer (e.g. the QR-code modal's "QR Code" title + link footer) are
+// white caps -> dark surface with light text.
+.dark-mode .card-header,
+.dark-mode .card-footer {
+  background-color: var(--surface) !important;
+  color: var(--text);
+}
+
+// The QR box stays white for scan contrast; its download link (#download) then
+// needs the darker Gradido green to stay legible on white, not the lighter
+// dark-mode link green.
+.dark-mode .qrbox #download {
+  color: #047006 !important;
+}
+
+// Form inputs on focus: Bootstrap resets the background to the body bg (white) on
+// :focus, which overrides the dark idle state -> keep the dark surface, light text
+// and muted placeholder in focus too. Applies to every input (send, matching,
+// contributions, settings).
+.dark-mode .form-control:focus,
+.dark-mode .form-select:focus {
+  background-color: var(--surface-muted);
+  color: var(--text);
+  border-color: var(--border);
+}
+
+.dark-mode .form-control::placeholder {
+  color: var(--text-muted);
+}
+
+// Login / auth page (AuthLayout). The brand logo sits on a white PNG "blob"
+// decoration (AuthNavbar background image) -> darken it. The blob filter creates
+// a stacking context that would otherwise paint the blob over the logo, so lift
+// the logo with z-index. AuthNavbar swaps in a transparent white-inked logo
+// (gradido-logo-white.png) for dark mode, so the logo needs no filter here.
+#app.dark-mode .auth-header .navbar-brand img:not(.position-absolute) {
+  filter: brightness(0.13);
+}
+
+#app.dark-mode .auth-header .navbar-brand img.position-absolute {
+  z-index: 2;
+}
+
+// Auth nav links (Register / Login, top right). Light mode hardcodes them blue
+// (#0e79bc); keep the Gradido-green link colour on dark and brighten on hover
+// (the underline already comes from .auth-template a:hover). The active
+// (current-page) span is Bootstrap's near-black --bs-navbar-active-color, which
+// needs !important to become legible.
+/* stylelint-disable-next-line no-descending-specificity */
+#app.dark-mode .auth-navbar > a {
+  color: var(--link);
+}
+
+/* stylelint-disable-next-line no-descending-specificity */
+#app.dark-mode .auth-navbar > a:hover {
+  color: var(--link);
+  filter: brightness(1.35);
+}
+
+#app.dark-mode .auth-navbar .nav-link.active {
+  color: var(--text) !important;
+}
+
+// Login font-size control ("Aa", type.svg) and the password-reveal eye are dark
+// glyphs -> lighten them on the dark canvas.
+#app.dark-mode .svg-type {
+  filter: invert(1);
+}
+
+// Eye toggles share the .eye-icon class (password reveal on login/settings +
+// balance hide/show on GDD/GDT) -> one legible light grey in dark mode; they were
+// dark / dark-blue before.
+#app.dark-mode .eye-icon {
+  color: var(--text-muted);
+}
+
+// Icon hover disc (.hover-icon, e.g. the GDT balance eye): a light #dcd8d9 hover
+// background. On touch devices the :hover state sticks after a tap until the user
+// taps elsewhere, flashing a white disc on the dark canvas -> dark surface instead.
+#app.dark-mode .hover-icon:hover {
+  background-color: var(--surface-muted);
+}
+
+// Language switcher (LanguageSwitch2, used on the login page and in settings):
+// the dropdown list is a hardcoded white panel with a light hover and a
+// light-blue active row -> dark surface, muted hover, green-accented active item.
+#app.dark-mode .ls-menu {
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+#app.dark-mode .ls-item:hover {
+  background: var(--surface-muted);
+}
+
+#app.dark-mode .ls-item-active {
+  background: var(--surface-muted);
+  color: var(--link);
+}
+
+// Collapse chevron (transaction rows, open links/QR list, decay): the "collapse"
+// (up) arrow is text-black. Bootstrap's .text-black carries !important, so this
+// override needs !important too -- higher specificity alone loses to it. Match the
+// "expand" (down) arrow (text-muted) so both chevrons read at the same weight.
+#app.dark-mode .collapse-icon .text-black {
+  color: var(--text-muted) !important;
+}
+
+// Matching entry details box + the "overregional" badge are light panels in light
+// mode -> dark surface / light-outlined with light text on the dark canvas. Paused
+// entries dim to grey via the existing .opacity-05 on the card.
+#app.dark-mode .details-box {
+  background: var(--surface-muted);
+  color: var(--text);
+}
+
+#app.dark-mode .badge-soft {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+// Autofilled inputs (e.g. saved login credentials) keep the browser's light
+// -webkit-autofill background, which overrides .form-control. Cover it with an
+// inset box-shadow in the surface colour and force light text. WebKit-only
+// (Chrome + Safari); there is no standard equivalent.
+.dark-mode input:-webkit-autofill,
+.dark-mode input:-webkit-autofill:hover,
+.dark-mode input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--text);
+  box-shadow: 0 0 0 1000px var(--surface-muted) inset;
+  caret-color: var(--text);
+}
+
+// Matching "+ Neuer Eintrag" action (.btn-add, a subtle grey #5f5f5a in light) is
+// too dark on the dark canvas -> the light-grey muted token.
+#app.dark-mode .btn-add {
+  color: var(--text-muted) !important;
 }

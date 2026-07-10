@@ -53,6 +53,10 @@ loadAllRules(i18n.global, apolloProvider.defaultClient)
 
 addNavigationGuards(router, store, apolloProvider.defaultClient)
 
+// Apply the device-local theme (system | light | dark) before mount so the first
+// paint already carries the correct light/dark class.
+store.dispatch('applyTheme')
+
 // Restore the persisted UI language before mount. vuex-persistedstate rehydrates
 // state.language without firing the `language` mutation (which is what sets the
 // i18n locale). Previously this was masked by the login layout briefly rendering

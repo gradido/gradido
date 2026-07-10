@@ -1,0 +1,27 @@
+// Semantic design tokens (light values).
+// Named by role, not by colour, so dark mode becomes a value flip
+// (see gradido-template-dark.scss). Feature colours (matching RGB, map
+// glow) and social-brand colours are intentionally NOT tokenised.
+// Gold and gradients are added later, together with the button step.
+
+:root {
+  // Surfaces
+  --bg: #f5f5f5; // page background
+  --surface: #fff; // cards / panels
+  --surface-muted: #f2f4f6; // subtle insets / detail boxes
+
+  // Text
+  --text: #383838; // primary text
+  --text-muted: #6c757d; // secondary / muted
+  --text-inverse: #fff; // on dark / gold
+
+  // Borders
+  --border: #dee2e6; // lines / dividers
+
+  // Status
+  --success: #047006; // Gradido green
+  --success-soft: #d4edda; // success surface
+  --danger: #c62828; // error red, tuned to sit next to the green
+  --warning: #f5b539; // warning / amber
+  --info: #0e79bc; // info / links blue
+}

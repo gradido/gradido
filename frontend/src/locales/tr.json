@@ -478,6 +478,13 @@
     },
     "showAmountGDD": "GDD tutarın görünür.",
     "showAmountGDT": "GDT tutarın görünür.",
+    "theme": {
+      "dark": "Koyu",
+      "hint": "Cihazının veya tarayıcının ayarına göre açık ve koyu mod arasında otomatik geçiş için 'Sistem ayarını izle'yi seç.",
+      "light": "Açık",
+      "system": "Sistem ayarını izle (varsayılan)",
+      "title": "Görünüm"
+    },
     "username": {
       "change-success": "Kullanıcı adın başarıyla değiştirildi.",
       "no-username": "Lütfen bir kullanıcı adı gir. Böylece diğer kullanıcıların e-posta adresini açıklamadan seni bulmasına yardımcı olursun."
