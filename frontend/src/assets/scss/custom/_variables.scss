@@ -595,13 +595,6 @@
 // custom-checkbox-indicator-border-radius:       $border-radius-sm !default;
 // $custom-checkbox-indicator-icon-checked:        str-replace(url("data:image/svg+xml !default;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath fill='%23fff' d='M6.564.75l-3.59 3.612-1.538-1.55L0 4.26 2.974 7.25 8 2.193z'/%3E%3C/svg%3E"), "#", "%23") !default;
 
-// Custom toggle
-@import "gradido-custom/custom-toogle";
-
-// $custom-toggle-width:           50px !default;
-// $custom-toggle-slider-bg:       $gray-200 !default;
-// $custom-toggle-checked-bg:      theme-color("primary") !default;
-
 // Form validation
 @import "gradido-custom/form-validation";
 
@@ -617,40 +610,10 @@ $btn-border-radius-xl: $input-border-radius-xl !default;
 $btn-border-radius-lg: $input-border-radius-lg !default;
 $btn-border-radius-sm: $input-border-radius !default;
 
-// Chart
-@import "gradido-custom/chart";
-
-// $chart-height: 350px !default;
-// $chart-height-sm: 230px !default;
-
-// $chart-legend-margin-top: 2.5rem !default;
-// $chart-legend-font-size: $font-size-sm !default;
-// $chart-legend-color: $text-muted !default;
-// $chart-legend-height: $chart-legend-margin-top + $chart-legend-font-size * $line-height-base !default;
-
 // Map
 @import "gradido-custom/map";
 
 // $map-height: 500px !default;
-
-// No UI Slider
-@import "gradido-custom/nouislider";
-
-// $noui-target-bg:                  #eceeef !default;
-// $noui-target-thickness:           5px !default;
-// $noui-target-border-radius:       5px !default;
-// $noui-target-border-color:        0 !default;
-// $noui-target-box-shadow:          inset 0 1px 2px rgba(90,97,105,.1) !default;
-
-// $noui-slider-connect-bg:          $primary !default;
-// $noui-slider-connect-disabled-bg: #b2b2b2 !default;
-
-// $noui-handle-width:               15px !default;
-// $noui-handle-bg:                  theme-color("primary") !default;
-// $noui-handle-border:              0 !default;
-// $noui-handle-border-radius:       100% !default;
-
-// $noui-origin-border-radius:       2px !default;
 
 // Dropdown
 @import "gradido-custom/dropdown";
@@ -738,23 +701,6 @@ $btn-border-radius-sm: $input-border-radius !default;
 // $navbar-search-light-color:          rgba(0, 0, 0, .6) !default;
 // $navbar-search-light-focus-border-color: rgba(0, 0, 0, .9) !default;
 // $navbar-search-light-focus-color:    rgba(0, 0, 0, .9) !default;
-
-// Vertical navbar
-@import "gradido-custom/vertical-navbar";
-
-// $navbar-vertical-box-shadow: 0 0 2rem 0 rgba(136, 152, 170, .15) !important;
-// $navbar-vertical-width: 250px !default;
-// $navbar-vertical-padding-x: 1.5rem !default;
-// $navbar-vertical-nav-link-padding-x:  1.5rem !default;
-// $navbar-vertical-nav-link-padding-y:  .65rem !default;
-
-// $navbar-icon-min-width: 2.25rem !default;
-
-// $navbar-breadcrumb-padding-y: $nav-link-padding-y !default;
-// $navbar-breadcrumb-padding-x: 0 !default;
-
-// $navbar-light-bg: $white !default;
-// $navbar-light-border-color: $border-color !default;
 
 // Main content
 @import "gradido-custom/main-content";
@@ -932,36 +878,6 @@ $btn-border-radius-sm: $input-border-radius !default;
 // $modal-header-border-width:   $modal-content-border-width !default;
 // $modal-footer-border-width:   $modal-header-border-width !default;
 // $modal-header-padding:        1.25rem !default;
-
-// Datepicker
-@import "gradido-custom/datepicker";
-
-// $datepicker-border-radius: $card-border-radius !default;
-// $datepicker-dropdown-padding: 20px 22px !default;
-
-// $datepicker-cell-transition: $transition-base !default;
-// $datepicker-cell-hover-background: lighten($gray-400, 55%);
-// $datepicker-cell-border-radius: 50% !default;
-// $datepicker-cell-width: 36px !default;
-// $datepicker-cell-height: 36px !default;
-
-// $datepicker-disabled-cell-color: $gray-300 !default;
-// $datepicker-disabled-old-new-color: $gray-500 !default;
-
-// $datepicker-header-cell-border-radius: $border-radius !default;
-
-// $datepicker-active-color: $white !default;
-// $datepicker-active-background: theme-color("primary") !default;
-// $datepicker-active-box-shadow:      none !default;
-
-// $datepicker-range-background: theme-color("primary") !default;
-// $datepicker-range-cell-focused-background: darken($datepicker-range-background, 5%);
-// $datepicker-range-color: $white !default;
-// $datepicker-range-highlighted-bg: $gray-200 !default;
-
-// $datepicker-dropdown-border: lighten($gray-400, 40%);
-// $datepicker-dropdown-bg: $white !default;
-// $datepicker-highlighted-bg: $datepicker-active-background !default;
 
 // Footer
 @import "gradido-custom/footer";

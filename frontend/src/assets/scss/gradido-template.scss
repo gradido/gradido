@@ -299,20 +299,6 @@ html > body {
   }
 
   70% {
-    box-shadow: 0 0 0 10px rgb(204 169 44 / 0%);
-  }
-
-  100% {
-    box-shadow: 0 0 0 0 rgb(204 169 44 / 0%);
-  }
-}
-
-@keyframes pulse {
-  0% {
-    box-shadow: 0 0 0 0 #c58d387e;
-  }
-
-  70% {
     box-shadow: 0 0 0 20px rgb(204 169 44 / 0%);
   }
 
