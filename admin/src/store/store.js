@@ -1,6 +1,7 @@
 import { createStore } from 'vuex'
 import createPersistedState from 'vuex-persistedstate'
 import CONFIG from '../config'
+import { clearStoragePreservingPreferences } from './storage'
 
 export const mutations = {
   openCreationsPlus: (state, i) => {
@@ -24,10 +25,14 @@ export const mutations = {
 }
 
 export const actions = {
-  logout: ({ commit, state }) => {
+  logout: ({ commit }) => {
     commit('token', null)
     commit('moderator', null)
-    window.localStorage.clear()
+    // Wallet and admin are served from the same origin and share one
+    // localStorage. Preserve device-local preferences (dark-mode theme, any
+    // pref.* key) instead of wiping everything -- otherwise a logout here also
+    // resets the wallet's theme. See store/storage.js.
+    clearStoragePreservingPreferences()
   },
 }
 

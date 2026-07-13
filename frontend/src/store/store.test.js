@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from 'vitest'
-import { mutations, actions, THEME_MODE_STORAGE_KEY } from './store'
+import { describe, it, expect, vi, afterEach } from 'vitest'
+import { mutations, actions, THEME_MODE_STORAGE_KEY, readInitialThemeMode } from './store'
 import i18n from '../i18n'
 import jwtDecode from 'jwt-decode'
 
@@ -42,6 +42,29 @@ const {
 } = mutations
 
 const { login, logout, applyTheme } = actions
+
+describe('readInitialThemeMode', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it('seeds the theme from the dedicated key so it survives a wiped state blob', () => {
+    vi.stubGlobal('localStorage', {
+      getItem: (key) => (key === THEME_MODE_STORAGE_KEY ? 'dark' : null),
+    })
+    expect(readInitialThemeMode()).toBe('dark')
+  })
+
+  it('falls back to system for an unrecognised value', () => {
+    vi.stubGlobal('localStorage', { getItem: () => 'nonsense' })
+    expect(readInitialThemeMode()).toBe('system')
+  })
+
+  it('falls back to system when the key is absent', () => {
+    vi.stubGlobal('localStorage', { getItem: () => null })
+    expect(readInitialThemeMode()).toBe('system')
+  })
+})
 
 describe('Vuex store', () => {
   describe('mutations', () => {
@@ -214,6 +237,10 @@ describe('Vuex store', () => {
         const clearStorageMock = vi.fn()
         vi.stubGlobal('localStorage', {
           clear: clearStorageMock,
+          getItem: vi.fn(() => null),
+          setItem: vi.fn(),
+          length: 0,
+          key: vi.fn(() => null),
         })
         logout({ commit, state, dispatch })
         expect(clearStorageMock).toHaveBeenCalled()

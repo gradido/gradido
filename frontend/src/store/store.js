@@ -4,11 +4,28 @@ import createPersistedState from 'vuex-persistedstate'
 
 import jwtDecode from 'jwt-decode'
 import i18n from '../i18n'
+import { clearStoragePreservingPreferences } from './storage'
 
 // Dedicated localStorage key mirroring state.themeMode. The pre-paint script in
 // index.html reads it with a single getItem, so it never has to parse the whole
 // persisted-state blob on the blocking boot path. Kept in sync by applyTheme.
 export const THEME_MODE_STORAGE_KEY = 'gradido-theme-mode'
+
+// Seed themeMode from its dedicated key, which survives a logout (see
+// store/storage.js). It is the source of truth when the persisted-state blob was
+// wiped -- e.g. the admin logout clears the shared localStorage on a wallet <->
+// admin round-trip, leaving only this key. Without it the store boots at 'system'
+// and applyTheme overrides the pre-paint's correct theme (a dark->light flicker).
+// When the blob is present, vuex-persistedstate still restores themeMode from it
+// (both are kept in sync by applyTheme).
+export const readInitialThemeMode = () => {
+  try {
+    const stored = localStorage.getItem(THEME_MODE_STORAGE_KEY)
+    return ['system', 'light', 'dark'].includes(stored) ? stored : 'system'
+  } catch {
+    return 'system'
+  }
+}
 
 export const mutations = {
   language: (state, language) => {
@@ -142,10 +159,14 @@ export const actions = {
     commit('email', '')
     commit('userLocation', null)
     commit('redirectPath', '/overview')
+    // Wallet and admin are served from the same origin and share one
+    // localStorage. Preserve device-local preferences (dark-mode theme, any
+    // pref.* key) instead of the blunt clear(). See store/storage.js.
     const themeMode = state.themeMode
-    localStorage.clear()
-    // localStorage.clear() wiped the persisted theme; keep the device-local
-    // choice so the login page and the next session stay in the chosen theme.
+    clearStoragePreservingPreferences()
+    // The wallet reads its theme from the persisted-state blob on boot, which the
+    // wipe cleared; re-commit it so the blob is rewritten and the login page and
+    // the next session stay in the chosen theme.
     commit('setThemeMode', themeMode)
     dispatch('applyTheme')
   },
@@ -208,7 +229,7 @@ try {
       hideAmountGDT: null,
       email: '',
       darkMode: false,
-      themeMode: 'system',
+      themeMode: readInitialThemeMode(),
       userLocation: null,
       redirectPath: '/overview',
       transactionToHighlightId: '',
