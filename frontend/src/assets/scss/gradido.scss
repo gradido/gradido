@@ -1,5 +1,6 @@
-// Bootstrap (4.5.3) functions
-
+// Bootstrap 5.3.3 configuration (functions, variables, mixins, maps). These come
+// before custom/variables so our overrides win, and before the full Bootstrap
+// import below.
 @import "bootstrap/scss/functions";
 @import "bootstrap/scss/variables";
 @import "bootstrap/scss/mixins";
@@ -9,45 +10,10 @@
 @import "gradido-template";
 @import "gradido-template-dark";
 
-
-// @import "~bootstrap/scss/variables"; wird am
-// ende der custom/variables angehangen
-
-// Bootstrap (4.5.3) mixins
-// @import "bootstrap/scss/maps";
-// @import "bootstrap/scss/mixins";
-
-// Bootstrap (4.5.3) components
-
-@import "bootstrap/scss/alert";
-@import "bootstrap/scss/badge";
-@import "bootstrap/scss/dropdown";
-@import "bootstrap/scss/button-group";
-@import "bootstrap/scss/buttons";
-@import "bootstrap/scss/card";
-@import "bootstrap/scss/carousel";
-@import "bootstrap/scss/close";
-@import "bootstrap/scss/forms";
-@import "bootstrap/scss/grid";
-@import "bootstrap/scss/list-group";
-@import "bootstrap/scss/modal";
-@import "bootstrap/scss/nav";
-@import "bootstrap/scss/navbar";
-@import "bootstrap/scss/pagination";
-
-// @import "bootstrap/scss/print";
-@import "bootstrap/scss/progress";
-@import "bootstrap/scss/reboot";
-@import "bootstrap/scss/tables";
-@import "bootstrap/scss/toasts";
-@import "bootstrap/scss/tooltip";
-@import "bootstrap/scss/transitions";
-@import "bootstrap/scss/type";
-@import "bootstrap/scss/utilities";
-
-// @import "bootstrap/scss/variables";
-@import "bootstrap/scss/bootstrap-grid";
-@import "bootstrap/scss/bootstrap-reboot";
+// The full Bootstrap 5.3.3 package. It already pulls in every component that used
+// to be listed individually here (alert, badge, dropdown, buttons, card, modal,
+// pagination, ... plus bootstrap-grid and bootstrap-reboot), so importing those a
+// second time only emitted byte-identical duplicate rules. Import the package once.
 @import "bootstrap/scss/bootstrap";
 
 // Bootstrap-vue (2.21.1) scss
