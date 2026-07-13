@@ -11,6 +11,12 @@ export const verifyLogin = gql`
       klickTipp {
         newsletterState
       }
+      gmsAllowed
+      humhubAllowed
+      gmsPublishName
+      humhubPublishName
+      gmsPublishLocation
+      userLocation
       hasElopage
       publisherId
       roles
