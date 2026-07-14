@@ -27,7 +27,6 @@ import { createBootstrap } from 'bootstrap-vue-next'
 import GlobalDirectives from '@/plugins/globalDirectives'
 import { plugin as vueTransitionsPlugin } from '@morev/vue-transitions/vue3'
 import PortalVue from 'portal-vue'
-import FlatPickr from 'vue-flatpickr-component'
 import '@morev/vue-transitions/styles'
 
 const app = createApp(App)
@@ -38,7 +37,6 @@ app.use(i18n)
 app.use(createBootstrap())
 app.use(GlobalDirectives)
 app.use(PortalVue)
-app.use(FlatPickr)
 app.use(() => apolloProvider)
 // app.use(VueTimers)
 app.use(vueTransitionsPlugin())
