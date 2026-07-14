@@ -56,7 +56,8 @@
   // Apply the device-local theme before first paint to avoid a light flash
   // (FOUC) on a cold load while in dark mode. Mirrors the store's applyTheme:
   // dark when themeMode is 'dark', or 'system' (the default) and the OS is dark.
-  // Runs before #app renders; the App.vue watcher then keeps body.dark-mode in sync.
+  // Runs before #app renders; the App.vue watcher then keeps body.dark-mode and
+  // the data-bs-theme attribute in sync.
   //
   // This blocks the first paint, so it stays minimal: a single getItem of the
   // dedicated key (THEME_MODE_STORAGE_KEY in src/store/store.js, kept in sync by
@@ -72,6 +73,7 @@
           window.matchMedia('(prefers-color-scheme: dark)').matches)
       ) {
         document.body.classList.add('dark-mode')
+        document.body.setAttribute('data-bs-theme', 'dark')
       }
     } catch (e) {}
   })()

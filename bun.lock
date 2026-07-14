@@ -1,6 +1,5 @@
 {
   "lockfileVersion": 1,
-  "configVersion": 1,
   "workspaces": {
     "": {
       "name": "gradido",
@@ -19,7 +18,7 @@
     },
     "admin": {
       "name": "admin",
-      "version": "2.8.3",
+      "version": "2.9.0",
       "dependencies": {
         "@iconify/json": "^2.2.228",
         "@popperjs/core": "^2.11.8",
@@ -89,7 +88,7 @@
     },
     "backend": {
       "name": "backend",
-      "version": "2.8.3",
+      "version": "2.9.0",
       "dependencies": {
         "cross-env": "^7.0.3",
         "email-templates": "^10.0.1",
@@ -165,7 +164,7 @@
     },
     "config-schema": {
       "name": "config-schema",
-      "version": "2.8.3",
+      "version": "2.9.0",
       "dependencies": {
         "esbuild": "^0.25.2",
         "joi": "17.13.3",
@@ -183,7 +182,7 @@
     },
     "core": {
       "name": "core",
-      "version": "2.8.3",
+      "version": "2.9.0",
       "dependencies": {
         "database": "*",
         "email-templates": "^10.0.1",
@@ -220,7 +219,7 @@
     },
     "database": {
       "name": "database",
-      "version": "2.8.3",
+      "version": "2.9.0",
       "dependencies": {
         "@types/uuid": "^8.3.4",
         "cross-env": "^7.0.3",
@@ -256,7 +255,7 @@
     },
     "dht-node": {
       "name": "dht-node",
-      "version": "2.8.3",
+      "version": "2.9.0",
       "dependencies": {
         "cross-env": "^7.0.3",
         "dht-rpc": "6.18.1",
@@ -294,7 +293,7 @@
     },
     "federation": {
       "name": "federation",
-      "version": "2.8.3",
+      "version": "2.9.0",
       "dependencies": {
         "cross-env": "^7.0.3",
         "email-templates": "^10.0.1",
@@ -354,7 +353,7 @@
     },
     "frontend": {
       "name": "frontend",
-      "version": "2.8.3",
+      "version": "2.9.0",
       "dependencies": {
         "@morev/vue-transitions": "^3.0.2",
         "@types/leaflet": "^1.9.12",
@@ -372,7 +371,6 @@
         "clipboard-polyfill": "^4.0.0-rc1",
         "date-fns": "^2.29.3",
         "es6-promise": "^4.1.1",
-        "flatpickr": "^4.5.7",
         "flush-promises": "^1.0.2",
         "graphql": "^15.10.1",
         "graphql-tag": "^2.12.6",
@@ -390,7 +388,6 @@
         "vite-plugin-commonjs": "^0.10.1",
         "vue": "3.5.13",
         "vue-apollo": "^3.1.2",
-        "vue-flatpickr-component": "^12.0.0",
         "vue-i18n": "^9.13.1",
         "vue-router": "^4.4.0",
         "vue-timer-hook": "^1.0.84",
@@ -450,7 +447,7 @@
     },
     "shared": {
       "name": "shared",
-      "version": "2.8.3",
+      "version": "2.9.0",
       "dependencies": {
         "esbuild": "^0.25.2",
         "jose": "^4.14.4",
@@ -470,7 +467,7 @@
     },
     "shared-native": {
       "name": "shared-native",
-      "version": "2.8.3",
+      "version": "2.9.0",
       "devDependencies": {
         "@biomejs/biome": "2.0.0",
         "@types/adm-zip": "^0.5.8",
@@ -2016,8 +2013,6 @@
 
     "flat-cache": ["flat-cache@3.2.0", "", { "dependencies": { "flatted": "^3.2.9", "keyv": "^4.5.3", "rimraf": "^3.0.2" } }, "sha512-CYcENa+FtcUKLmhhqyctpclsq7QF38pKjZHsGNiSQF5r4FtoKDWabFDl3hzaEQMvT1LHEysw5twgLvpYYb4vbw=="],
 
-    "flatpickr": ["flatpickr@4.6.13", "", {}, "sha512-97PMG/aywoYpB4IvbvUJi0RQi8vearvU0oov1WW3k0WZPBMrTQVqekSX5CjSG/M4Q3i6A/0FKXC7RyAoAUUSPw=="],
-
     "flatted": ["flatted@3.4.2", "", {}, "sha512-PjDse7RzhcPkIJwy5t7KPWQSZ9cAbzQXcafsetQoD7sOJRQlGikNbx7yZp2OotDnJyrDcbyRq3Ttb18iYOqkxA=="],
 
     "flush-promises": ["flush-promises@1.0.2", "", {}, "sha512-G0sYfLQERwKz4+4iOZYQEZVpOt9zQrlItIxQAAYAWpfby3gbHrx0osCHz5RLl/XoXevXk0xoN4hDFky/VV9TrA=="],
@@ -3365,8 +3360,6 @@
     "vue-demi": ["vue-demi@0.14.10", "", { "peerDependencies": { "@vue/composition-api": "^1.0.0-rc.1", "vue": "^3.0.0-0 || ^2.6.0" }, "optionalPeers": ["@vue/composition-api"], "bin": { "vue-demi-fix": "bin/vue-demi-fix.js", "vue-demi-switch": "bin/vue-demi-switch.js" } }, "sha512-nMZBOwuzabUO0nLgIcc6rycZEebF6eeUfaiQx9+WSk8e29IbLvPU9feI6tqW4kTo3hvoYAJkMh8n8D0fuISphg=="],
 
     "vue-eslint-parser": ["vue-eslint-parser@8.3.0", "", { "dependencies": { "debug": "^4.3.2", "eslint-scope": "^7.0.0", "eslint-visitor-keys": "^3.1.0", "espree": "^9.0.0", "esquery": "^1.4.0", "lodash": "^4.17.21", "semver": "^7.3.5" }, "peerDependencies": { "eslint": ">=6.0.0" } }, "sha512-dzHGG3+sYwSf6zFBa0Gi9ZDshD7+ad14DGOdTLjruRVgZXe2J+DcZ9iUhyR48z5g1PqRa20yt3Njna/veLJL/g=="],
-
-    "vue-flatpickr-component": ["vue-flatpickr-component@12.0.0", "", { "dependencies": { "flatpickr": "^4.6.13" }, "peerDependencies": { "vue": "^3.2.0" } }, "sha512-CJ5jrgTaeD66Z4mjEocSTAdB/n6IGSlUICwdBanpyCI8hswq5rwXvEYQ5IKA3K3uVjP5pBlY9Rg6o3xoszTPpA=="],
 
     "vue-i18n": ["vue-i18n@9.13.1", "", { "dependencies": { "@intlify/core-base": "9.13.1", "@intlify/shared": "9.13.1", "@vue/devtools-api": "^6.5.0" }, "peerDependencies": { "vue": "^3.0.0" } }, "sha512-mh0GIxx0wPtPlcB1q4k277y0iKgo25xmDPWioVVYanjPufDBpvu5ySTjP5wOrSvlYQ2m1xI+CFhGdauv/61uQg=="],
 
