@@ -143,9 +143,11 @@ export const actions = {
     commit('userLocation', null)
     commit('redirectPath', '/overview')
     const themeMode = state.themeMode
-    localStorage.clear()
-    // localStorage.clear() wiped the persisted theme; keep the device-local
-    // choice so the login page and the next session stay in the chosen theme.
+    // Remove only this app's own persisted state (session + token live in this blob).
+    // The wallet and admin share one origin, so localStorage.clear() would also wipe
+    // the other app's session and the shared dark-mode theme key. Re-commit the theme
+    // so the recreated blob keeps the device-local choice for the next session.
+    localStorage.removeItem('gradido-frontend')
     commit('setThemeMode', themeMode)
     dispatch('applyTheme')
   },

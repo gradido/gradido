@@ -210,13 +210,16 @@ describe('Vuex store', () => {
         expect(commit).toHaveBeenCalledWith('redirectPath', '/overview')
       })
 
-      it('calls localStorage.clear()', () => {
-        const clearStorageMock = vi.fn()
+      it('removes only its own storage blob', () => {
+        const removeItemMock = vi.fn()
+        const clearMock = vi.fn()
         vi.stubGlobal('localStorage', {
-          clear: clearStorageMock,
+          removeItem: removeItemMock,
+          clear: clearMock,
         })
         logout({ commit, state, dispatch })
-        expect(clearStorageMock).toHaveBeenCalled()
+        expect(removeItemMock).toHaveBeenCalledWith('gradido-frontend')
+        expect(clearMock).not.toHaveBeenCalled()
         vi.unstubAllGlobals()
       })
     })

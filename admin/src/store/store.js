@@ -27,7 +27,10 @@ export const actions = {
   logout: ({ commit, state }) => {
     commit('token', null)
     commit('moderator', null)
-    window.localStorage.clear()
+    // Remove only the admin's own persisted state (its token lives in this blob).
+    // The wallet and admin share one origin, so localStorage.clear() would also wipe
+    // the wallet's session and the shared dark-mode theme key.
+    window.localStorage.removeItem('gradido-admin')
   },
 }
 
