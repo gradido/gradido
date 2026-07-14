@@ -55,3 +55,7 @@
 
 @import "auth-navbar";
 @import "navbar";
+
+// Map Bootstrap's native dark color mode onto our tokens. Must stay last so it
+// wins the cascade over Bootstrap's own [data-bs-theme=dark] block.
+@import "color-mode-bridge";

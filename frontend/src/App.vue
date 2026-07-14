@@ -25,11 +25,18 @@ export default {
   },
   watch: {
     // Teleported UI (modals, toasts) renders on <body>, outside #app, so mirror
-    // the dark-mode class there too.
+    // the dark-mode class and Bootstrap's color-mode attribute there too. The
+    // data-bs-theme attribute drives Bootstrap's native dark variables; light
+    // mode carries no attribute so it stays a pure :root fallback.
     darkMode: {
       immediate: true,
       handler(val) {
         document.body.classList.toggle('dark-mode', val)
+        if (val) {
+          document.body.setAttribute('data-bs-theme', 'dark')
+        } else {
+          document.body.removeAttribute('data-bs-theme')
+        }
       },
     },
   },

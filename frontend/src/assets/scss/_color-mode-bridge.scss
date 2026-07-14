@@ -1,0 +1,32 @@
+// Bridge Bootstrap's built-in color mode onto our design tokens.
+
+// Bootstrap 5.3 ships a full [data-bs-theme="dark"] variable block, but the
+// component surfaces used to be pinned to $white in custom/gradido-custom/*,
+// so the mode never reached them. With those overrides gone the components
+// follow --bs-body-bg again. Here we point the handful of Bootstrap surface,
+// border and link variables at our own tokens, so the native dark mode paints
+// from the same values as the .dark-mode sheet (--surface #2a2c30 etc.)
+// instead of Bootstrap's stock #212529.
+
+// data-bs-theme="dark" is set on <body> (next to the .dark-mode class) by
+// App.vue and the pre-paint script in index.html. The tokens themselves live
+// on body.dark-mode / #app.dark-mode -- the same element -- so var(--surface)
+// resolves here. Light mode carries no data-bs-theme attribute, so it stays a
+// pure :root fallback and is left untouched.
+
+// Imported last in gradido.scss so it wins the cascade over Bootstrap's own
+// [data-bs-theme=dark] block (equal specificity, later rule wins).
+[data-bs-theme='dark'] {
+  --bs-body-bg: var(--surface);
+  --bs-body-color: var(--text);
+  --bs-border-color: var(--border);
+  --bs-secondary-bg: var(--surface-muted);
+  --bs-secondary-color: var(--text-muted);
+
+  // Keep links on the Gradido dark-green token instead of Bootstrap's #6ea8fe.
+  // --bs-link-color-rgb feeds .navbar-like-link (Navbar.vue). 0b9130 = 11,145,48.
+  --bs-link-color: var(--link);
+  --bs-link-color-rgb: 11, 145, 48;
+  --bs-link-hover-color: var(--link);
+  --bs-link-hover-color-rgb: 11, 145, 48;
+}
