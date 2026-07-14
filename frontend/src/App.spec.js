@@ -73,4 +73,20 @@ describe('App', () => {
   it('does not apply dark mode class when darkMode is false', () => {
     expect(wrapper.classes('dark-mode')).toBe(false)
   })
+
+  it('mirrors data-bs-theme="dark" onto the body when darkMode is true', () => {
+    wrapper = createWrapper({
+      state: { darkMode: true },
+    })
+
+    expect(document.body.getAttribute('data-bs-theme')).toBe('dark')
+  })
+
+  it('removes data-bs-theme from the body when darkMode is false', () => {
+    wrapper = createWrapper({
+      state: { darkMode: false },
+    })
+
+    expect(document.body.hasAttribute('data-bs-theme')).toBe(false)
+  })
 })
