@@ -85,7 +85,8 @@ describe('Vuex Store', () => {
 
       expect(testStore.state.token).toBeNull()
       expect(testStore.state.moderator).toBeNull()
-      expect(localStorageMock.clear).toHaveBeenCalled()
+      expect(localStorageMock.removeItem).toHaveBeenCalledWith('gradido-admin')
+      expect(localStorageMock.clear).not.toHaveBeenCalled()
     })
   })
 
