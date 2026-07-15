@@ -120,6 +120,7 @@ const emit = defineEmits([
   'get-contribution',
   'update-status',
   'get-list-contribution-messages',
+  'resubmission-saved',
 ])
 
 const { t } = useI18n()
@@ -154,10 +155,19 @@ const isTextTabValid = computed(() => form.value.text !== '')
 
 const isMemoTabValid = computed(() => form.value.memo.length >= 5)
 
+// Removing an existing reminder (the checkbox unchecked on a contribution that had one)
+// is a valid save even without a message -- otherwise a reminder could never be
+// withdrawn. inputResubmissionDate reflects the persisted state, so it stays truthy
+// while the moderator unchecks the box, until the save + refetch clears it.
+const isRemovingResubmission = computed(
+  () => !showResubmissionDate.value && !!props.inputResubmissionDate,
+)
+
 const disabled = computed(
   () =>
     loading.value ||
     (!(showResubmissionDate.value && resubmissionDate.value) &&
+      !isRemovingResubmission.value &&
       ([0, 1].includes(tabindex.value)
         ? !isTextTabValid.value
         : tabindex.value === 2
@@ -221,6 +231,17 @@ const onSubmit = () => {
           emit('update-status', props.contributionId)
         }
       }
+      // Signal a saved reminder change up to the page, which may offer to apply it to
+      // all displayed contributions of this participant (bulk resubmission). Fires both
+      // when a date is set and when an existing reminder is removed; carries this
+      // contribution's id so the bulk loop can skip the row that was just saved here.
+      if ((showResubmissionDate.value && resubmissionAtDate) || isRemovingResubmission.value) {
+        emit('resubmission-saved', {
+          id: props.contributionId,
+          resubmissionAt: resubmissionAtDate ? resubmissionAtDate.toString() : null,
+          unchanged: false,
+        })
+      }
       toastSuccess(t('message.request'))
       form.value = {
         text: '',
@@ -229,6 +250,20 @@ const onSubmit = () => {
       loading.value = false
     })
     .catch((error) => {
+      // A pure resubmission "save" that changes nothing -- the reminder already holds
+      // this exact date, or there is no reminder to add or remove -- makes the backend
+      // throw "wasn't changed". Not a real failure: signal it up marked unchanged
+      // instead of a red error. The page then offers to propagate an existing reminder
+      // to the group, or shows a neutral notice when there is nothing to spread.
+      if (updateOnlyResubmissionAt && error.message?.includes("wasn't changed")) {
+        emit('resubmission-saved', {
+          id: props.contributionId,
+          resubmissionAt: resubmissionAtDate ? resubmissionAtDate.toString() : null,
+          unchanged: true,
+        })
+        loading.value = false
+        return
+      }
       toastError(error.message)
       loading.value = false
     })

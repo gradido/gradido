@@ -18,6 +18,13 @@ export function useAppToast() {
     })
   }
 
+  const toastWarning = (message) => {
+    toast(message, {
+      title: t('notice'),
+      variant: 'warning',
+    })
+  }
+
   const toast = (message, options = {}) => {
     if (message.replace) message = message.replace(/^GraphQL error: /, '')
     options = {
@@ -36,6 +43,7 @@ export function useAppToast() {
   return {
     toastSuccess,
     toastError,
+    toastWarning,
     toast,
   }
 }

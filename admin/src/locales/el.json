@@ -14,6 +14,17 @@
   "alias": "Ψευδώνυμο",
   "all_emails": "Όλοι οι χρήστες",
   "back": "πίσω",
+  "bulkResubmission": {
+    "cancel": "Do not apply",
+    "confirm": "OK",
+    "noChange": "Nothing was changed on this contribution.",
+    "question": "Apply the reminder settings to all displayed contributions of {name}?",
+    "questionRemove": "Remove the reminder from all displayed contributions of {name}?",
+    "success": "Reminder applied.",
+    "successRemove": "Reminder removed.",
+    "title": "Apply reminder?",
+    "titleRemove": "Remove reminder?"
+  },
   "change_user_role": "Αλλαγή ρόλου χρήστη",
   "close": "Κλείσιμο",
   "contribution": {
@@ -197,6 +208,7 @@
   "no_hashtag": "Απόκρυψη #hashtag",
   "no_hashtag_tooltip": "Εμφανίζει μόνο τις συνεισφορές χωρίς hashtag στο κείμενο",
   "not_open_creations": "Καμία ανοιχτή δημιουργία",
+  "notice": "Notice",
   "open": "ανοιχτή",
   "open_creations": "Ανοιχτές δημιουργίες",
   "overlay": {
