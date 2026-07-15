@@ -1,0 +1,516 @@
+[{
+    "id": 1,
+    "gradidoTransaction": {
+        "signatureMap": [
+            {
+                "pubkey": "aad12ba826b9114457554c4c557fa3a878af9f21f81621b0c3e6161506112829",
+                "signature": "71863b95536d8aa24a3f99736bdca7d71af3ff60fa7b15694c1530a436e32c6280bc58f76397b29f7decc11d4ddd3585be52cb53a1bb21ba9241a27ac986e406"
+            }
+        ],
+        "bodyBytes": {
+            "memos": [],
+            "createdAt": "2022-01-08 22:35:24.0000Z",
+            "type": "GRDT_CROSS_GROUP_LOCAL",
+            "communityRoot": {
+                "pubkey": "aad12ba826b9114457554c4c557fa3a878af9f21f81621b0c3e6161506112829",
+                "gmwPubkey": "14b8a6d8563bbb3597df7d8275b70b56a0461a5b791d63c08cc05947d2061c89",
+                "aufPubkey": "466fdd73bb81627f360fc8e68b3dea7fc02094b3a6f1cd2adfbd39a4f32e259e"
+            }
+        },
+        "pairingLedgerAnchor": {
+            "type": "GRDT_LEDGER_ANCHOR_UNSPECIFIED",
+            "value": null
+        }
+    },
+    "confirmedAt": "2022-01-08 22:35:24.0000Z",
+    "runningHash": "d6af59422dc0db1f6c3ca62fda6f40b1e20a836d0e5b1603351d5b93acbed0b1",
+    "ledgerAnchor": {
+        "type": "GRDT_LEDGER_ANCHOR_HIERO_TRANSACTION_ID",
+        "value": "0.0.121@1641681324.0"
+    },
+    "accountBalances": [
+        {
+            "pubkey": "14b8a6d8563bbb3597df7d8275b70b56a0461a5b791d63c08cc05947d2061c89",
+            "balance": "0.0000",
+            "coinCommunityId": "019e347c-540a-73d2-9886-7fece00d5a2e"
+        },
+        {
+            "pubkey": "466fdd73bb81627f360fc8e68b3dea7fc02094b3a6f1cd2adfbd39a4f32e259e",
+            "balance": "0.0000",
+            "coinCommunityId": "019e347c-540a-73d2-9886-7fece00d5a2e"
+        }
+    ],
+    "balanceDerivationType": "GRDT_BALANCE_DERIVATION_NODE"
+}, {
+    "id": 2,
+    "gradidoTransaction": {
+        "signatureMap": [
+            {
+                "pubkey": "bc7125b7e4b7b534d232c215c2cbce344088604a0e8aee3932e9bf416a06cffe",
+                "signature": "8cfcff6adb3fed3e44488aef34d01d21ebc4f827e2d87bbcacc7290f34d5c078e2a260ba709fb3b4d3506804838957fe728174793f27ae86e5c8126ad2b26107"
+            },
+            {
+                "pubkey": "eff2919350a53ac80f898062b7c67ff8028245f4cc44e08ef22f885171554f3b",
+                "signature": "45f2048d1eabfa178df0f8031b4ae34101ded54f5ce4d9e626717266c2c8f1db655dce65aad79b323acd1b1d5a978d4dc71338f91c2b1263b685de21cd89cf0d"
+            },
+            {
+                "pubkey": "aad12ba826b9114457554c4c557fa3a878af9f21f81621b0c3e6161506112829",
+                "signature": "189d3cc933c45b8cefcf61a8353db4f92a98e3b5fc6b1ba8a8d959227cb17254ad54bddfb1922a54499ef0bd6b540bdd93f5c4841398c02f71f5f1c7c2c25905"
+            }
+        ],
+        "bodyBytes": {
+            "memos": [],
+            "createdAt": "2022-01-10 21:12:33.0000Z",
+            "type": "GRDT_CROSS_GROUP_LOCAL",
+            "registerAddress": {
+                "userPubkey": "bc7125b7e4b7b534d232c215c2cbce344088604a0e8aee3932e9bf416a06cffe",
+                "addressType": "GRDT_ADDRESS_COMMUNITY_HUMAN",
+                "nameHash": "1fe41f7966a4b61a963886a0fa4d136d8579424d9c02a2751efba0e8e5559f61",
+                "accountPubkey": "eff2919350a53ac80f898062b7c67ff8028245f4cc44e08ef22f885171554f3b",
+                "derivationIndex": 1
+            }
+        },
+        "pairingLedgerAnchor": {
+            "type": "GRDT_LEDGER_ANCHOR_UNSPECIFIED",
+            "value": null
+        }
+    },
+    "confirmedAt": "2022-01-10 21:13:33.0000Z",
+    "runningHash": "62d11c2d8fa108fea7452c0a53ee0220d0030bf4f3f5a8649e4e39bff96e779d",
+    "ledgerAnchor": {
+        "type": "GRDT_LEDGER_ANCHOR_HIERO_TRANSACTION_ID",
+        "value": "0.0.121@1641849153.0"
+    },
+    "accountBalances": [
+        {
+            "pubkey": "eff2919350a53ac80f898062b7c67ff8028245f4cc44e08ef22f885171554f3b",
+            "balance": "0.0000",
+            "coinCommunityId": "019e347c-540a-73d2-9886-7fece00d5a2e"
+        }
+    ],
+    "balanceDerivationType": "GRDT_BALANCE_DERIVATION_NODE"
+}, {
+    "id": 3,
+    "gradidoTransaction": {
+        "signatureMap": [
+            {
+                "pubkey": "7ef57ee34e4cae5e014034b7f8043ba640d1a26f07d622ac342e64ad75b9f60d",
+                "signature": "3805e1541ad884633db406615a1df5325de59f9284bff69567d8531773b5ca306d5489ae849a78704df60877e80eef96059ea23e8159ead7121ee1883617a903"
+            },
+            {
+                "pubkey": "cb2dd774520a41d98ea3ace740eeb33fa1799d7732adb776e3ddf4c063d601bc",
+                "signature": "336f69d4949f11b03527cb71c4bad9e3d41cd954a57e3cab63ccfdff3a293a4c23dc34fb6e5938e892c0a2164b204679fe4f49683efdce86d541d95562cd9105"
+            },
+            {
+                "pubkey": "aad12ba826b9114457554c4c557fa3a878af9f21f81621b0c3e6161506112829",
+                "signature": "9d2c5d2dedfbbf4498316bcede628960f4a1ba8a5f1a308bd0e0dcc02c622dad8749fdf9465b77fab76d798cb14a0459e7be9479199e22afb7c537763370b401"
+            }
+        ],
+        "bodyBytes": {
+            "memos": [],
+            "createdAt": "2022-01-11 12:40:05.0000Z",
+            "type": "GRDT_CROSS_GROUP_LOCAL",
+            "registerAddress": {
+                "userPubkey": "7ef57ee34e4cae5e014034b7f8043ba640d1a26f07d622ac342e64ad75b9f60d",
+                "addressType": "GRDT_ADDRESS_COMMUNITY_HUMAN",
+                "nameHash": "efdd5db83978f2049092f923f7a28f32215737f5fd58d41a3b19979c13fa4b16",
+                "accountPubkey": "cb2dd774520a41d98ea3ace740eeb33fa1799d7732adb776e3ddf4c063d601bc",
+                "derivationIndex": 1
+            }
+        },
+        "pairingLedgerAnchor": {
+            "type": "GRDT_LEDGER_ANCHOR_UNSPECIFIED",
+            "value": null
+        }
+    },
+    "confirmedAt": "2022-01-11 12:41:05.0000Z",
+    "runningHash": "fa1fec2c8bc08007c797425feca0cc6573de96c243df73461d2d5461b630ea59",
+    "ledgerAnchor": {
+        "type": "GRDT_LEDGER_ANCHOR_HIERO_TRANSACTION_ID",
+        "value": "0.0.121@1641904805.0"
+    },
+    "accountBalances": [
+        {
+            "pubkey": "cb2dd774520a41d98ea3ace740eeb33fa1799d7732adb776e3ddf4c063d601bc",
+            "balance": "0.0000",
+            "coinCommunityId": "019e347c-540a-73d2-9886-7fece00d5a2e"
+        }
+    ],
+    "balanceDerivationType": "GRDT_BALANCE_DERIVATION_NODE"
+}, {
+    "id": 4,
+    "gradidoTransaction": {
+        "signatureMap": [
+            {
+                "pubkey": "47b061b958413a2668dc9fdf40068bb13eb87009e761f3a8ce35079c6cd9c2b8",
+                "signature": "8b1796d8d5c33f422bee539f32737e29e0e59cc1b902d887491667dcd53d8945972ecdc32bdd33fdcc0b6a71b7e79a029d851c815c13c0da50d0e57ebaa3790c"
+            },
+            {
+                "pubkey": "f228adce0ba7c4fa3b104722cc01293348320dea379b8009932d307dd84fe7e4",
+                "signature": "bf49cd3ce92fae47db214d442b14ad8ed4b6a93c6619e175a6d6d84a10ae4566165f841104847becc45f9ecea682e0d745de34ebbce887d3e0c6553e27deff09"
+            },
+            {
+                "pubkey": "aad12ba826b9114457554c4c557fa3a878af9f21f81621b0c3e6161506112829",
+                "signature": "551bca68e4a3cda5da8035ce534c0b2396d9d11db991aa063889851cbc3b5bd1c2b3aa67d3418dd80a267aa0fd575e6728d433e27c0677e425dbd87e83803205"
+            }
+        ],
+        "bodyBytes": {
+            "memos": [],
+            "createdAt": "2022-01-11 22:10:34.0000Z",
+            "type": "GRDT_CROSS_GROUP_LOCAL",
+            "registerAddress": {
+                "userPubkey": "47b061b958413a2668dc9fdf40068bb13eb87009e761f3a8ce35079c6cd9c2b8",
+                "addressType": "GRDT_ADDRESS_COMMUNITY_HUMAN",
+                "nameHash": "5b5b47f17c7501ea02e9c4766aace2ab5309770456885dc53057bac9b5b9d972",
+                "accountPubkey": "f228adce0ba7c4fa3b104722cc01293348320dea379b8009932d307dd84fe7e4",
+                "derivationIndex": 1
+            }
+        },
+        "pairingLedgerAnchor": {
+            "type": "GRDT_LEDGER_ANCHOR_UNSPECIFIED",
+            "value": null
+        }
+    },
+    "confirmedAt": "2022-01-11 22:11:34.0000Z",
+    "runningHash": "813b372424c6f54223d0b34818c03cb80e0c2374eb616fa2d4938043e664a20f",
+    "ledgerAnchor": {
+        "type": "GRDT_LEDGER_ANCHOR_HIERO_TRANSACTION_ID",
+        "value": "0.0.121@1641939034.0"
+    },
+    "accountBalances": [
+        {
+            "pubkey": "f228adce0ba7c4fa3b104722cc01293348320dea379b8009932d307dd84fe7e4",
+            "balance": "0.0000",
+            "coinCommunityId": "019e347c-540a-73d2-9886-7fece00d5a2e"
+        }
+    ],
+    "balanceDerivationType": "GRDT_BALANCE_DERIVATION_NODE"
+}, {
+    "id": 5,
+    "gradidoTransaction": {
+        "signatureMap": [
+            {
+                "pubkey": "eff2919350a53ac80f898062b7c67ff8028245f4cc44e08ef22f885171554f3b",
+                "signature": "1c3ad6b5e8539b78ecd97664fdad78e5b4c9feafc33218e64af5f8540f74c370a3ce4b2fa9e91b6dce05ac43c11c396e187e627f7b7a7fbfb8beb93c660a310d"
+            }
+        ],
+        "bodyBytes": {
+            "memos": [
+                {
+                    "type": "GRDT_MEMO_KEY_PLAIN",
+                    "memo": "dummy memo"
+                }
+            ],
+            "createdAt": "2022-01-12 17:31:19.0000Z",
+            "type": "GRDT_CROSS_GROUP_LOCAL",
+            "creation": {
+                "recipient": {
+                    "pubkey": "cb2dd774520a41d98ea3ace740eeb33fa1799d7732adb776e3ddf4c063d601bc",
+                    "amount": "1000.0000",
+                    "coinCommunityId": "019e347c-540a-73d2-9886-7fece00d5a2e"
+                },
+                "targetDate": "2021-12-12 00:00:00.0000Z"
+            }
+        },
+        "pairingLedgerAnchor": {
+            "type": "GRDT_LEDGER_ANCHOR_UNSPECIFIED",
+            "value": null
+        }
+    },
+    "confirmedAt": "2022-01-12 17:32:19.0000Z",
+    "runningHash": "95dbb645561b62d23afffd62714e0064e3c1c5ef8f51e2b6daaaacd38dc0475e",
+    "ledgerAnchor": {
+        "type": "GRDT_LEDGER_ANCHOR_HIERO_TRANSACTION_ID",
+        "value": "0.0.121@1642008679.0"
+    },
+    "accountBalances": [
+        {
+            "pubkey": "cb2dd774520a41d98ea3ace740eeb33fa1799d7732adb776e3ddf4c063d601bc",
+            "balance": "1000.0000",
+            "coinCommunityId": "019e347c-540a-73d2-9886-7fece00d5a2e"
+        },
+        {
+            "pubkey": "14b8a6d8563bbb3597df7d8275b70b56a0461a5b791d63c08cc05947d2061c89",
+            "balance": "1000.0000",
+            "coinCommunityId": "019e347c-540a-73d2-9886-7fece00d5a2e"
+        },
+        {
+            "pubkey": "466fdd73bb81627f360fc8e68b3dea7fc02094b3a6f1cd2adfbd39a4f32e259e",
+            "balance": "1000.0000",
+            "coinCommunityId": "019e347c-540a-73d2-9886-7fece00d5a2e"
+        }
+    ],
+    "balanceDerivationType": "GRDT_BALANCE_DERIVATION_NODE"
+}, {
+    "id": 6,
+    "gradidoTransaction": {
+        "signatureMap": [
+            {
+                "pubkey": "cb2dd774520a41d98ea3ace740eeb33fa1799d7732adb776e3ddf4c063d601bc",
+                "signature": "f731dcae8dc2d8435cf9ebde1bc3aacf57939a4d746bad76d772a42e8749d0766b0072d1cb0cd5b7777583de301355ed9c1a8c5699ad004126629520b3dc1203"
+            }
+        ],
+        "bodyBytes": {
+            "memos": [
+                {
+                    "type": "GRDT_MEMO_KEY_PLAIN",
+                    "memo": "dummy memo"
+                }
+            ],
+            "createdAt": "2022-01-13 03:31:19.0000Z",
+            "type": "GRDT_CROSS_GROUP_LOCAL",
+            "deferredTransfer": {
+                "transfer": {
+                    "sender": {
+                        "pubkey": "cb2dd774520a41d98ea3ace740eeb33fa1799d7732adb776e3ddf4c063d601bc",
+                        "amount": "560.4132",
+                        "coinCommunityId": "019e347c-540a-73d2-9886-7fece00d5a2e"
+                    },
+                    "recipient": "3a2c6dd12b203026b20e61e0cc5871e14540a06ec8193ad95b0f287d92d9c670"
+                },
+                "timeout": "60 days"
+            }
+        },
+        "pairingLedgerAnchor": {
+            "type": "GRDT_LEDGER_ANCHOR_UNSPECIFIED",
+            "value": null
+        }
+    },
+    "confirmedAt": "2022-01-13 03:32:19.0000Z",
+    "runningHash": "e012ebca0c91daab44c296d2be12ca1f989855fa79d498e46052142ef3e60088",
+    "ledgerAnchor": {
+        "type": "GRDT_LEDGER_ANCHOR_HIERO_TRANSACTION_ID",
+        "value": "0.0.121@1642008679.0"
+    },
+    "accountBalances": [
+        {
+            "pubkey": "cb2dd774520a41d98ea3ace740eeb33fa1799d7732adb776e3ddf4c063d601bc",
+            "balance": "438.7964",
+            "coinCommunityId": "019e347c-540a-73d2-9886-7fece00d5a2e"
+        },
+        {
+            "pubkey": "3a2c6dd12b203026b20e61e0cc5871e14540a06ec8193ad95b0f287d92d9c670",
+            "balance": "560.4132",
+            "coinCommunityId": "019e347c-540a-73d2-9886-7fece00d5a2e"
+        }
+    ],
+    "balanceDerivationType": "GRDT_BALANCE_DERIVATION_NODE"
+}, {
+    "id": 7,
+    "gradidoTransaction": {
+        "signatureMap": [
+            {
+                "pubkey": "3a2c6dd12b203026b20e61e0cc5871e14540a06ec8193ad95b0f287d92d9c670",
+                "signature": "07f53b6f24f3c7b9124aba62120c1a2ab98499eedd3f741469ce70308882179fdf9f52c41eaf5b44ba6164a7cd5809e7bd1d20cabac523ca160c520c1f71f207"
+            }
+        ],
+        "bodyBytes": {
+            "memos": [
+                {
+                    "type": "GRDT_MEMO_KEY_PLAIN",
+                    "memo": "redeem deferred"
+                }
+            ],
+            "createdAt": "2022-01-14 15:32:19.0000Z",
+            "type": "GRDT_CROSS_GROUP_LOCAL",
+            "redeemDeferredTransfer": {
+                "transfer": {
+                    "sender": {
+                        "pubkey": "3a2c6dd12b203026b20e61e0cc5871e14540a06ec8193ad95b0f287d92d9c670",
+                        "amount": "483.0000",
+                        "coinCommunityId": "019e347c-540a-73d2-9886-7fece00d5a2e"
+                    },
+                    "recipient": "cb2dd774520a41d98ea3ace740eeb33fa1799d7732adb776e3ddf4c063d601bc"
+                },
+                "deferredTransferTransactionNr": 6
+            }
+        },
+        "pairingLedgerAnchor": {
+            "type": "GRDT_LEDGER_ANCHOR_UNSPECIFIED",
+            "value": null
+        }
+    },
+    "confirmedAt": "2022-01-14 15:33:19.0000Z",
+    "runningHash": "37f0f6f1715a09f3102638f46522a54dfd59ff210b34eab09a1f13d01ea63b50",
+    "ledgerAnchor": {
+        "type": "GRDT_LEDGER_ANCHOR_HIERO_TRANSACTION_ID",
+        "value": "0.0.121@1642174339.0"
+    },
+    "accountBalances": [
+        {
+            "pubkey": "3a2c6dd12b203026b20e61e0cc5871e14540a06ec8193ad95b0f287d92d9c670",
+            "balance": "0.0000",
+            "coinCommunityId": "019e347c-540a-73d2-9886-7fece00d5a2e"
+        },
+        {
+            "pubkey": "cb2dd774520a41d98ea3ace740eeb33fa1799d7732adb776e3ddf4c063d601bc",
+            "balance": "996.3679",
+            "coinCommunityId": "019e347c-540a-73d2-9886-7fece00d5a2e"
+        }
+    ],
+    "balanceDerivationType": "GRDT_BALANCE_DERIVATION_NODE"
+}, {
+    "id": 8,
+    "gradidoTransaction": {
+        "signatureMap": [
+            {
+                "pubkey": "cb2dd774520a41d98ea3ace740eeb33fa1799d7732adb776e3ddf4c063d601bc",
+                "signature": "6982c959f4e58611cdf7e3df35dcf461744655748846de8accf1908f563ee27496e2d0431f17f1c533d68e59efc56ffd558d1bcca55a830c4eb64a77d47ab604"
+            }
+        ],
+        "bodyBytes": {
+            "memos": [
+                {
+                    "type": "GRDT_MEMO_KEY_PLAIN",
+                    "memo": "dummy memo"
+                }
+            ],
+            "createdAt": "2022-01-16 00:39:27.0000Z",
+            "type": "GRDT_CROSS_GROUP_LOCAL",
+            "deferredTransfer": {
+                "transfer": {
+                    "sender": {
+                        "pubkey": "cb2dd774520a41d98ea3ace740eeb33fa1799d7732adb776e3ddf4c063d601bc",
+                        "amount": "423.4340",
+                        "coinCommunityId": "019e347c-540a-73d2-9886-7fece00d5a2e"
+                    },
+                    "recipient": "42b3c7a10a346da9bb9262dea2db9f7ed4c610e756585e06e9c0e7232faf00f7"
+                },
+                "timeout": "30 days"
+            }
+        },
+        "pairingLedgerAnchor": {
+            "type": "GRDT_LEDGER_ANCHOR_UNSPECIFIED",
+            "value": null
+        }
+    },
+    "confirmedAt": "2022-01-16 00:40:27.0000Z",
+    "runningHash": "2b222a8ce90f152e8f911817854250b4f14a5f2f44a00811c8955127ba3518c9",
+    "ledgerAnchor": {
+        "type": "GRDT_LEDGER_ANCHOR_HIERO_TRANSACTION_ID",
+        "value": "0.0.121@1642293567.0"
+    },
+    "accountBalances": [
+        {
+            "pubkey": "cb2dd774520a41d98ea3ace740eeb33fa1799d7732adb776e3ddf4c063d601bc",
+            "balance": "570.3280",
+            "coinCommunityId": "019e347c-540a-73d2-9886-7fece00d5a2e"
+        },
+        {
+            "pubkey": "42b3c7a10a346da9bb9262dea2db9f7ed4c610e756585e06e9c0e7232faf00f7",
+            "balance": "423.4340",
+            "coinCommunityId": "019e347c-540a-73d2-9886-7fece00d5a2e"
+        }
+    ],
+    "balanceDerivationType": "GRDT_BALANCE_DERIVATION_NODE"
+}, {
+    "id": 9,
+    "gradidoTransaction": {
+        "signatureMap": [
+            {
+                "pubkey": "42b3c7a10a346da9bb9262dea2db9f7ed4c610e756585e06e9c0e7232faf00f7",
+                "signature": "06bd5c72f3dbe2883149304e5947325bdc563a593ffc6550d5555c27b389bc3d44a6473e892ae6e3fce1acdb4ca7570d1b20fda1fa379398a563782923be4c00"
+            }
+        ],
+        "bodyBytes": {
+            "memos": [
+                {
+                    "type": "GRDT_MEMO_KEY_PLAIN",
+                    "memo": "redeem deferred"
+                }
+            ],
+            "createdAt": "2022-01-16 06:14:57.0000Z",
+            "type": "GRDT_CROSS_GROUP_LOCAL",
+            "redeemDeferredTransfer": {
+                "transfer": {
+                    "sender": {
+                        "pubkey": "42b3c7a10a346da9bb9262dea2db9f7ed4c610e756585e06e9c0e7232faf00f7",
+                        "amount": "400.0000",
+                        "coinCommunityId": "019e347c-540a-73d2-9886-7fece00d5a2e"
+                    },
+                    "recipient": "f228adce0ba7c4fa3b104722cc01293348320dea379b8009932d307dd84fe7e4"
+                },
+                "deferredTransferTransactionNr": 8
+            }
+        },
+        "pairingLedgerAnchor": {
+            "type": "GRDT_LEDGER_ANCHOR_UNSPECIFIED",
+            "value": null
+        }
+    },
+    "confirmedAt": "2022-01-16 06:15:57.0000Z",
+    "runningHash": "9413e3ccd132fe13a86491e002f794e1447fc459fd71761aaa67f9b7b0c81cac",
+    "ledgerAnchor": {
+        "type": "GRDT_LEDGER_ANCHOR_HIERO_TRANSACTION_ID",
+        "value": "0.0.121@1642313697.0"
+    },
+    "accountBalances": [
+        {
+            "pubkey": "42b3c7a10a346da9bb9262dea2db9f7ed4c610e756585e06e9c0e7232faf00f7",
+            "balance": "0.0000",
+            "coinCommunityId": "019e347c-540a-73d2-9886-7fece00d5a2e"
+        },
+        {
+            "pubkey": "f228adce0ba7c4fa3b104722cc01293348320dea379b8009932d307dd84fe7e4",
+            "balance": "400.0000",
+            "coinCommunityId": "019e347c-540a-73d2-9886-7fece00d5a2e"
+        },
+        {
+            "pubkey": "cb2dd774520a41d98ea3ace740eeb33fa1799d7732adb776e3ddf4c063d601bc",
+            "balance": "593.3227",
+            "coinCommunityId": "019e347c-540a-73d2-9886-7fece00d5a2e"
+        }
+    ],
+    "balanceDerivationType": "GRDT_BALANCE_DERIVATION_NODE"
+}, {
+    "id": 10,
+    "gradidoTransaction": {
+        "signatureMap": [
+            {
+                "pubkey": "cb2dd774520a41d98ea3ace740eeb33fa1799d7732adb776e3ddf4c063d601bc",
+                "signature": "ba2ed5412fadd60d8a77632aeb6ffe2ac575cad7a630f83498fd697eee7c93d24d3b9955169f1829664b8faa1c94493f9c5762109e8e26fbd65f27fbfbb14408"
+            }
+        ],
+        "bodyBytes": {
+            "memos": [
+                {
+                    "type": "GRDT_MEMO_KEY_PLAIN",
+                    "memo": "dummy memo"
+                }
+            ],
+            "createdAt": "2022-01-14 22:36:40.0000Z",
+            "type": "GRDT_CROSS_GROUP_LOCAL",
+            "transfer": {
+                "sender": {
+                    "pubkey": "cb2dd774520a41d98ea3ace740eeb33fa1799d7732adb776e3ddf4c063d601bc",
+                    "amount": "237.2100",
+                    "coinCommunityId": "019e347c-540a-73d2-9886-7fece00d5a2e"
+                },
+                "recipient": "7ef57ee34e4cae5e014034b7f8043ba640d1a26f07d622ac342e64ad75b9f60d"
+            }
+        },
+        "pairingLedgerAnchor": {
+            "type": "GRDT_LEDGER_ANCHOR_UNSPECIFIED",
+            "value": null
+        }
+    },
+    "confirmedAt": "2022-01-14 22:37:40.0000Z",
+    "runningHash": "d0f407863a1ac579e0584435889384317bd406edb588fc9b4039c2822f2d71bc",
+    "ledgerAnchor": {
+        "type": "GRDT_LEDGER_ANCHOR_HIERO_TRANSACTION_ID",
+        "value": "0.0.121@1642199800.0"
+    },
+    "accountBalances": [
+        {
+            "pubkey": "cb2dd774520a41d98ea3ace740eeb33fa1799d7732adb776e3ddf4c063d601bc",
+            "balance": "354.7036",
+            "coinCommunityId": "019e347c-540a-73d2-9886-7fece00d5a2e"
+        },
+        {
+            "pubkey": "7ef57ee34e4cae5e014034b7f8043ba640d1a26f07d622ac342e64ad75b9f60d",
+            "balance": "237.2100",
+            "coinCommunityId": "019e347c-540a-73d2-9886-7fece00d5a2e"
+        }
+    ],
+    "balanceDerivationType": "GRDT_BALANCE_DERIVATION_NODE"
+}]

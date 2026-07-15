@@ -147,6 +147,7 @@
     "no-transactionlist": "  Helaas was er een fout. Door de server werden er geen transacties overgedragen.",
     "no-user": "Geen gebruiker met deze login gegevens.",
     "session-expired": "De sessie werd om veiligheidsredenen beëindigd.",
+    "session-renewal-failed": "Je sessie kon niet worden verlengd. Log opnieuw in.",
     "unknown-error": "Onbekende fout: "
   },
   "existingGradidoAccount": "Heb je al een {communityName}-account?",
@@ -370,7 +371,7 @@
     "gdt": "Your GDT transactions",
     "information": "{community}",
     "overview": "Welcome {name}",
-    "send": "Send Gradidos",
+    "send": "Gradido en e-mail versturen",
     "settings": "Settings",
     "transactions": "Your transactions",
     "usersearch": "Geografisch leden zoeken (bèta)"
@@ -477,6 +478,13 @@
     },
     "showAmountGDD": "Je GDD-bedrag is zichtbaar.",
     "showAmountGDT": "Je GDT-bedrag is zichtbaar.",
+    "theme": {
+      "dark": "Donker",
+      "hint": "Kies 'Systeeminstelling volgen' om automatisch te wisselen tussen de lichte en donkere modus, op basis van de instelling van je apparaat of browser.",
+      "light": "Licht",
+      "system": "Systeeminstelling volgen (standaard)",
+      "title": "Weergave"
+    },
     "username": {
       "change-success": "Je gebruikersnaam is succesvol gewijzigd.",
       "no-username": "Voer een gebruikersnaam in. Zo help je andere gebruikers om je te vinden zonder je e-mailadres prijs te hoeven geven."

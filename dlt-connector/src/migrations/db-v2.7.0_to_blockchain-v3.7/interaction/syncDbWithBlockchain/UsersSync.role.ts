@@ -70,7 +70,7 @@ export class UsersSyncRole extends AbstractSyncRole<UserDb> {
       try {
         return v.parse(userDbSchema, {
           ...row.user,
-          messageId: row.dltTransaction?.messageId,
+          hieroTransactionId: row.dltTransaction?.hieroTransactionId,
         })
       } catch (e) {
         throw new DatabaseError('loadUsers', row, e as Error)

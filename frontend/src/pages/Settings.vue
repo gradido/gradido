@@ -178,12 +178,13 @@
       </BTab>
     </BTabs>
 
-    <!-- TODO<BRow>
-      <BCol cols="12" md="6" lg="6">{{ $t('settings.darkMode') }}</BCol>
-      <BCol cols="12" md="6" lg="6" class="text-end">
-        <BForm-checkbox v-model="darkMode" name="dark-mode" switch aligne></BForm-checkbox>
+    <BRow class="mt-3">
+      <BCol cols="12">
+        <div class="mb-2">{{ $t('settings.theme.title') }}</div>
+        <BFormRadioGroup v-model="themeMode" name="theme-mode" stacked :options="themeOptions" />
+        <div class="mt-2 text-muted small">{{ $t('settings.theme.hint') }}</div>
       </BCol>
-    </BRow> -->
+    </BRow>
   </div>
 </template>
 <script setup>
@@ -191,7 +192,7 @@ import CONFIG from '../config'
 import { useStore } from 'vuex'
 import { updateUserInfos } from '@/graphql/mutations'
 import { useRoute } from 'vue-router'
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useMutation } from '@vue/apollo-composable'
 import { useI18n } from 'vue-i18n'
 import { useAppToast } from '@/composables/useToast'
@@ -203,7 +204,17 @@ import UserNamingFormat from '@/components/UserSettings/UserNamingFormat'
 import UserGMSLocationFormat from '@/components/UserSettings/UserGMSLocationFormat'
 import UserGmsLocationCapturing from '@/components/UserSettings/UserGmsLocationCapturing'
 import UserNewsletter from '@/components/UserSettings/UserNewsletter.vue'
-import { BTabs, BTab, BRow, BCol, BFormInput, BFormGroup, BForm, BButton } from 'bootstrap-vue-next'
+import {
+  BTabs,
+  BTab,
+  BRow,
+  BCol,
+  BFormInput,
+  BFormGroup,
+  BForm,
+  BButton,
+  BFormRadioGroup,
+} from 'bootstrap-vue-next'
 
 const props = defineProps({
   balance: { type: Number, default: 0 },
@@ -216,7 +227,7 @@ const { toastError, toastSuccess } = useAppToast()
 const store = useStore()
 const state = store.state
 
-const darkMode = ref(state.darkMode)
+const themeMode = ref(state.themeMode)
 const firstName = ref(state.firstName || '')
 const email = ref(state.email || '')
 const newsletterState = ref(state.newsletterState)
@@ -267,14 +278,18 @@ const humhubStateSwitch = (eventData) => {
   humhubAllowed.value = eventData
 }
 
-// TODO: watch: {
-//   darkMode(val) {
-//     this.$store.commit('setDarkMode', this.darkMode)
-//     this.toastSuccess(
-//       this.darkMode ? this.$t('settings.modeDark') : this.$t('settings.modeLight'),
-//     )
-//   },
-// },
+// Theme mode (system | light | dark): apply immediately, persisted device-local.
+// App.vue toggles the .dark-mode class from the effective value.
+const themeOptions = computed(() => [
+  { value: 'system', text: t('settings.theme.system') },
+  { value: 'light', text: t('settings.theme.light') },
+  { value: 'dark', text: t('settings.theme.dark') },
+])
+
+watch(themeMode, (val) => {
+  store.commit('setThemeMode', val)
+  store.dispatch('applyTheme')
+})
 </script>
 <style>
 .community-service-tabs {

@@ -147,6 +147,7 @@
     "no-transactionlist": "Purtroppo si è verificato un errore. Il server non ha trasmesso alcuna transazione.",
     "no-user": "Nessun utente con questi dati di accesso.",
     "session-expired": "La sessione è stata terminata per motivi di sicurezza.",
+    "session-renewal-failed": "Non è stato possibile rinnovare la tua sessione. Accedi di nuovo.",
     "unknown-error": "Errore sconosciuto: "
   },
   "existingGradidoAccount": "Hai già un account {communityName}?",
@@ -370,7 +371,7 @@
     "gdt": "Le tue transazioni GDT",
     "information": "{community}",
     "overview": "Benvenuto {name}",
-    "send": "Invia Gradido",
+    "send": "Invia Gradido ed e-mail",
     "settings": "Impostazioni",
     "transactions": "Le tue transazioni",
     "usersearch": "Ricerca geografica dei membri (beta)"
@@ -477,6 +478,13 @@
     },
     "showAmountGDD": "Il tuo importo in GDD è visibile.",
     "showAmountGDT": "Il tuo importo in GDT è visibile.",
+    "theme": {
+      "dark": "Scuro",
+      "hint": "Scegli «Segui l'impostazione del sistema» per passare automaticamente tra la modalità chiara e scura, in base all'impostazione del tuo dispositivo o browser.",
+      "light": "Chiaro",
+      "system": "Segui l'impostazione del sistema (predefinito)",
+      "title": "Aspetto"
+    },
     "username": {
       "change-success": "Il tuo nome utente è stato modificato con successo.",
       "no-username": "Inserisci un nome utente. In questo modo aiuti gli altri utenti a trovarti senza dover rivelare il tuo indirizzo e-mail."

@@ -147,6 +147,7 @@
     "no-transactionlist": "Unfortunately, there was an error. No transactions have been sent from the server.",
     "no-user": "No user with this credentials.",
     "session-expired": "The session was closed for security reasons.",
+    "session-renewal-failed": "Your session could not be renewed. Please log in again.",
     "unknown-error": "Unknown error: "
   },
   "existingGradidoAccount": "Already have a {communityName} account?",
@@ -370,7 +371,7 @@
     "gdt": "Your GDT transactions",
     "information": "{community}",
     "overview": "Welcome {name}",
-    "send": "Send Gradidos",
+    "send": "Send Gradido and email",
     "settings": "Settings",
     "transactions": "Your transactions",
     "usersearch": "Geographic member search (beta)"
@@ -477,6 +478,13 @@
     },
     "showAmountGDD": "Your GDD amount is visible.",
     "showAmountGDT": "Your GDT amount is visible.",
+    "theme": {
+      "dark": "Dark",
+      "hint": "Choose 'Follow system setting' to switch automatically between light and dark mode, based on your device or browser setting.",
+      "light": "Light",
+      "system": "Follow system setting (default)",
+      "title": "Appearance"
+    },
     "username": {
       "change-success": "Your username has been changed successfully.",
       "no-username": "Please enter a username. This will help other users find you without having to reveal your email address."

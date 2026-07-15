@@ -64,7 +64,7 @@
 import InputPassword from '@/components/Inputs/InputPassword'
 import InputEmail from '@/components/Inputs/InputEmail'
 import Message from '@/components/Message/Message'
-import { login, authenticateHumhubAutoLoginProject } from '@/graphql/mutations'
+import { login, authenticateHumhubAutoLoginProject, updateUserInfos } from '@/graphql/mutations'
 import { ref, computed } from 'vue'
 import { useStore } from 'vuex'
 import { useI18n } from 'vue-i18n'
@@ -83,6 +83,7 @@ const store = useStore()
 const { t } = useI18n()
 const { mutate } = useMutation(login)
 const { mutate: mutateHumhubAutoLogin } = useMutation(authenticateHumhubAutoLoginProject)
+const { mutate: mutateUpdateUserInfos } = useMutation(updateUserInfos)
 // const $loading = useLoading() // TODO needs to be updated but there is some sort of an issue that breaks the app.
 const { toastError } = useAppToast()
 const { routeWithParamsAndQuery } = useAuthLinks()
@@ -114,7 +115,17 @@ const onSubmit = handleSubmit(async (values) => {
       project: store.state.project,
     })
     const { login: loginResponse } = result.data
+    // Capture a deliberate login-page language choice before the login action
+    // consumes it, then persist it to the account so it sticks everywhere.
+    const preLoginLanguage = store.state.preLoginLanguage
     await store.dispatch('login', loginResponse)
+    if (preLoginLanguage && preLoginLanguage !== loginResponse.language) {
+      try {
+        await mutateUpdateUserInfos({ locale: preLoginLanguage })
+      } catch (error) {
+        // best effort: the chosen language already applies locally
+      }
+    }
     store.commit('email', values.email)
     // await loader.hide()
     if (store.state.project) {

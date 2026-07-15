@@ -147,6 +147,7 @@
     "no-transactionlist": "Maalesef bir hata oluştu. Sunucudan hiçbir işlem gönderilmedi.",
     "no-user": "Bu kimlik bilgilerine sahip kullanıcı yok.",
     "session-expired": "Oturum güvenlik nedeniyle kapatıldı.",
+    "session-renewal-failed": "Oturumun yenilenemedi. Lütfen tekrar giriş yap.",
     "unknown-error": "Bilinmeyen hata: "
   },
   "existingGradidoAccount": "Zaten bir {communityName} hesabın var mı?",
@@ -370,7 +371,7 @@
     "gdt": "GDT işlemlerin",
     "information": "{community}",
     "overview": "Hoş geldin {name}",
-    "send": "Gradido gönder",
+    "send": "Gradido ve e-posta gönder",
     "settings": "Ayarlar",
     "transactions": "İşlemlerin",
     "usersearch": "Coğrafi üye arama (beta)"
@@ -477,6 +478,13 @@
     },
     "showAmountGDD": "GDD tutarın görünür.",
     "showAmountGDT": "GDT tutarın görünür.",
+    "theme": {
+      "dark": "Koyu",
+      "hint": "Cihazının veya tarayıcının ayarına göre açık ve koyu mod arasında otomatik geçiş için 'Sistem ayarını izle'yi seç.",
+      "light": "Açık",
+      "system": "Sistem ayarını izle (varsayılan)",
+      "title": "Görünüm"
+    },
     "username": {
       "change-success": "Kullanıcı adın başarıyla değiştirildi.",
       "no-username": "Lütfen bir kullanıcı adı gir. Böylece diğer kullanıcıların e-posta adresini açıklamadan seni bulmasına yardımcı olursun."

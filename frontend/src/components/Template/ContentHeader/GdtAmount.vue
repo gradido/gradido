@@ -31,9 +31,12 @@
           <button class="transparent-button" @click="updateHideAmountGDT">
             <IBiEyeSlash
               v-if="hideAmount"
-              class="me-3 gradido-global-border-color-accent pointer hover-icon"
+              class="me-3 gradido-global-border-color-accent pointer hover-icon eye-icon"
             />
-            <IBiEye v-else class="me-3 gradido-global-border-color-accent pointer hover-icon" />
+            <IBiEye
+              v-else
+              class="me-3 gradido-global-border-color-accent pointer hover-icon eye-icon"
+            />
           </button>
         </BCol>
       </BRow>

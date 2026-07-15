@@ -26,6 +26,7 @@ const COMMUNITY_URL = process.env.COMMUNITY_URL ?? `${URL_PROTOCOL}://${COMMUNIT
 const community = {
   COMMUNITY_SUPPORT_MAIL: process.env.COMMUNITY_SUPPORT_MAIL ?? 'support@supportmail.com',
   COMMUNITY_URL,
+  HOME_COMMUNITY_SEED: process.env.HOME_COMMUNITY_SEED,
 }
 
 const email = {

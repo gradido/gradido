@@ -1,4 +1,5 @@
 import { Balance } from '@model/Balance'
+import { transactionLinksDecayed } from 'core'
 import {
   Transaction as dbTransaction,
   TransactionLink as dbTransactionLink,
@@ -14,7 +15,6 @@ import { BalanceLoggingView } from '@/logging/BalanceLogging.view'
 import { DecayLoggingView } from '@/logging/DecayLogging.view'
 import { Context, getUser } from '@/server/context'
 import { GdtResolver } from './GdtResolver'
-import { transactionLinksDecayed } from './util/transactionLinksDecayed'
 
 @Resolver()
 export class BalanceResolver {

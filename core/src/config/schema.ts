@@ -14,6 +14,16 @@ export const schema = Joi.object({
   DLT_CONNECTOR_URL,
   NODE_ENV,
 
+  HOME_COMMUNITY_SEED: Joi.string()
+    .hex()
+    .length(64)
+    .when('DLT_ACTIVE', {
+      is: true,
+      then: Joi.required(),
+      otherwise: Joi.optional(),
+    })
+    .description('expect seed length 64 characters (32 Bytes)'),
+
   EMAIL: Joi.boolean()
     .default(false)
     .description('Enable or disable email functionality')

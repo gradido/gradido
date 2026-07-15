@@ -28,6 +28,16 @@ server {
       try_files /updating.html =404;
     }
 
+    # Webhook reverse proxy
+    location /hooks/ {
+        limit_req zone=backend burst=20 nodelay;
+        limit_conn addr 20;
+        proxy_pass http://127.0.0.1:9000/hooks/;
+
+        access_log $GRADIDO_LOG_PATH/nginx-access.hooks.log gradido_log;
+        error_log $GRADIDO_LOG_PATH/nginx-error.hooks.log warn;
+    }
+
     access_log $GRADIDO_LOG_PATH/nginx-access.update-page.log gradido_log;
     error_log $GRADIDO_LOG_PATH/nginx-error.update-page.log warn;
 }
