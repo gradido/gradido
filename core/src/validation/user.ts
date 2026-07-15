@@ -8,7 +8,7 @@ const createLogger = (method: string) => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}
 
 export async function validateAlias(alias: string, userId?: number ): Promise<true> {
   const logger = createLogger(`validateAlias`)
-  logger.debug('alias=${alias}, userId=${userId}')
+  logger.debug(`alias=${alias}, userId=${userId}`)
   try {
     aliasSchema.parse(alias)
   } catch (err) {

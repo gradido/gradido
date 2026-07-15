@@ -744,7 +744,7 @@ export class UserResolver {
     // in case alias is set and valid, check if it is new or update
     if (alias) {
       await validateAlias(alias, user.id) // true or throws an error
-      // alias can simply be set in user for the first time    
+      // alias can simply be set in user for the first time, but after alias-migration an impossible case    
       if (!user.alias) {
         logger.debug(`write alias=${alias} the first time in user`)
         user.alias = alias
@@ -752,6 +752,20 @@ export class UserResolver {
         user.aliasUpdateCount += 1
         user.aliasFirstUsageAt = null
         updated = true
+      } else if (user.aliasFirstUsageAt !== null ) {
+        // the current set alias is still in use and have to be historized
+        const aliasHistory = DbAliasHistory.save({
+          userId: user.id,
+          alias: user.alias,
+          communityUuid: user.communityUuid,
+          firstUsageAt: user.aliasFirstUsageAt,
+        })
+        user.alias = alias
+        user.aliasStartUpdateAt = new Date()
+        user.aliasUpdateCount += 1
+        user.aliasFirstUsageAt = null
+        updated = true
+        logger.debug(`saved still in used alias: aliasHistory=${aliasHistory}`)
       } else {
         logger.debug(`user.alias=${user.alias} should be updated with alias=${alias}...`)
 

@@ -80,13 +80,34 @@ export const findUserByIdentifier = async (
     }
   } else if (aliasSchema.safeParse(identifier).success) {
     const normedAlias = Raw((a) => `LOWER(${a}) = LOWER(:alias)`, { alias: identifier })
-    return await DbUser.findOne({
+    let foundUser = await DbUser.findOne({
       where: [
         { alias: normedAlias, community: communityWhere },
-        { aliasHistory: { alias: normedAlias }, community: communityWhere },
       ],
-      relations: ['emailContact', 'community', 'aliasHistory'],
+      relations: ['emailContact', 'community'],
     })
+    console.log(`foundUser=${JSON.stringify(foundUser)}`)
+    if (foundUser === null) {
+      const foundAliasHistory = await DbAliasHistory.findOne({
+        where: [
+          { alias: normedAlias, communityUuid: communityWhere },
+        ],
+        relations: ['user'],
+      })
+      console.log(`foundAliasHistory=${JSON.stringify(foundAliasHistory)}`)
+      if (foundAliasHistory) {
+        foundUser = await DbUser.findOne({
+          where: [
+            { id: foundAliasHistory.userId, community: communityWhere },
+          ],
+          relations: ['emailContact', 'community'],
+        })
+        console.log(`foundUser by aliasHistory =${JSON.stringify(foundUser)}`)
+        return foundUser
+      }
+    } else {
+        return foundUser
+    }
   } else {
     // should don't happen often, so we create only in the rare case a logger for it
     getLogger(`${LOG4JS_QUERIES_CATEGORY_NAME}.user.findUserByIdentifier`).warn(
