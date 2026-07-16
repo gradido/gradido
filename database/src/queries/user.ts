@@ -90,7 +90,7 @@ export const findUserByIdentifier = async (
     if (foundUser === null) {
       const foundAliasHistory = await DbAliasHistory.findOne({
         where: [
-          { alias: normedAlias, communityUuid: communityWhere },
+          { alias: normedAlias, communityUuid: communityIdentifier },
         ],
         relations: ['user'],
       })
