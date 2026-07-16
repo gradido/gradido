@@ -24,7 +24,7 @@
     "lint:fix": "biome check --error-on-warnings . --write",
     "locales": "bun scripts/sortLocales.ts",
     "locales:fix": "bun scripts/sortLocales.ts --fix",
-    "clear": "rm -rf node_modules && rm -rf build && rm -rf .turbo"
+    "clear": "rimraf node_modules && rimraf build && rimraf .turbo"
   },
   "dependencies": {
     "database": "*",
@@ -55,6 +55,7 @@
     "jest": "27.2.4",
     "mkdirp": "^3.0.1",
     "ncp": "^2.0.0",
+    "rimraf": "3.0.2",
     "type-graphql": "^1.1.1",
     "typed-rest-client": "^1.8.11",
     "typescript": "^4.9.5"
