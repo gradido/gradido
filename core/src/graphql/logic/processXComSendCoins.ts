@@ -148,6 +148,10 @@ export async function processXComCompleteTransaction(
             memo,
         )
       }
+      if (senderUser.aliasFirstUsageAt === null) {
+        senderUser.aliasFirstUsageAt = new Date()
+        await dbUser.save(senderUser)
+      }
       // after successful x-com-tx store the recipient as foreign user
       methodLogger.debug('store recipient as foreign user...')
       const foreignUser = await storeForeignUser(recipientCom, committingResult)
@@ -324,10 +328,10 @@ export async function processXComPendingSendCoins(
               pendingTx.linkedUserGradidoID = voteResult.recipGradidoID
             }
             if (voteResult.recipFirstName && voteResult.recipLastName) {
-              pendingTx.linkedUserName = fullName(
-                voteResult.recipFirstName,
-                voteResult.recipLastName,
-              )
+              pendingTx.linkedUserName = voteResult.recipAlias // fullName(
+                // voteResult.recipFirstName,
+                // voteResult.recipLastName,
+              // )
             }
             pendingTx.memo = memo
             pendingTx.previous = senderBalance ? senderBalance.lastTransactionId : null
@@ -338,7 +342,7 @@ export async function processXComPendingSendCoins(
             }
             pendingTx.userId = sender.id
             pendingTx.userGradidoID = sender.gradidoID
-            pendingTx.userName = fullName(sender.firstName, sender.lastName)
+            pendingTx.userName = sender.alias // fullName(sender.firstName, sender.lastName)
             pendingTx.transactionLinkId = transactionLinkId
             if (methodLogger.isDebugEnabled()) {
               methodLogger.debug(

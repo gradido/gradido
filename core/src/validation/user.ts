@@ -4,9 +4,11 @@ import { aliasSchema } from 'shared'
 import { ZodError } from 'zod'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../config/const'
 
-const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.validation.user`)
+const createLogger = (method: string) => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.validation.user.${method}`)
 
-export async function validateAlias(alias: string): Promise<true> {
+export async function validateAlias(alias: string, userId?: number ): Promise<true> {
+  const logger = createLogger(`validateAlias`)
+  logger.debug(`alias=${alias}, userId=${userId}`)
   try {
     aliasSchema.parse(alias)
   } catch (err) {
@@ -17,8 +19,8 @@ export async function validateAlias(alias: string): Promise<true> {
     }
     throw err
   }
-
-  if (await aliasExists(alias)) {
+  // Checks if an alias is already used by any user or by other users’ alias history.
+  if (await aliasExists(alias, userId)) {
     logger.warn('alias already in use', alias)
     throw new Error('Given alias is already in use')
   }

@@ -17,6 +17,7 @@ import { type DltTransaction as DltTransactionType } from './DltTransaction'
 import { type TransactionLink as TransactionLinkType } from './TransactionLink'
 import { GeometryTransformer } from './transformer/GeometryTransformer'
 import { type UserContact as UserContactType } from './UserContact'
+import { type AliasHistory as AliasHistoryType } from './AliasHistory'
 import { type UserRole as UserRoleType } from './UserRole'
 
 @Entity('users', { engine: 'InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci' })
@@ -61,6 +62,27 @@ export class User extends BaseEntity {
     collation: 'utf8mb4_unicode_ci',
   })
   alias: string
+
+  @Column({
+    name: 'alias_startupdate_at',
+    type: 'datetime',
+    precision: 3,
+    default: null,
+    nullable: true,
+  })
+  aliasStartUpdateAt: Date | null
+
+  @Column({ name: 'alias_update_count', type: 'int', unsigned: true, nullable: false, default: 0 })
+  aliasUpdateCount: number
+
+  @Column({
+    name: 'alias_first_usage_at',
+    type: 'datetime',
+    precision: 3,
+    default: null,
+    nullable: true,
+  })
+  aliasFirstUsageAt: Date | null
 
   @OneToOne(
     () => require('./UserContact').UserContact,
@@ -229,4 +251,11 @@ export class User extends BaseEntity {
   )
   @JoinColumn({ name: 'id', referencedColumnName: 'userId' })
   transactionLink?: TransactionLinkType | null
+
+  @OneToMany(
+    () => require('./AliasHistory').AliasHistory,
+    (aliasHistory: AliasHistoryType) => aliasHistory.user,
+  )
+  @JoinColumn({ name: 'user_id' })
+  aliasHistory?: AliasHistoryType[]
 }

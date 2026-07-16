@@ -25,6 +25,9 @@ export const mutations = {
   username: (state, username) => {
     state.username = username
   },
+  aliasFirstUsageAt: (state, aliasFirstUsageAt) => {
+    state.aliasFirstUsageAt = aliasFirstUsageAt
+  },
   firstName: (state, firstName) => {
     state.firstName = firstName
   },
@@ -106,6 +109,7 @@ export const actions = {
     commit('language', state.preLoginLanguage || data.language)
     commit('setPreLoginLanguage', null)
     commit('username', data.alias)
+    commit('aliasFirstUsageAt', data.aliasFirstUsageAt)
     commit('firstName', data.firstName)
     commit('lastName', data.lastName)
     commit('newsletterState', data.klickTipp.newsletterState)
@@ -124,6 +128,7 @@ export const actions = {
   logout: ({ commit, state, dispatch }) => {
     commit('token', null)
     commit('username', '')
+    commit('aliasFirstUsageAt', null)
     commit('gradidoID', null)
     commit('firstName', '')
     commit('lastName', '')
@@ -193,7 +198,8 @@ try {
       gradidoID: null,
       firstName: '',
       lastName: '',
-      // username: '',
+      username: '',
+      aliasFirstUsageAt: null,
       token: null,
       tokenTime: null,
       roles: [],
