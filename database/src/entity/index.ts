@@ -3,6 +3,8 @@ import { CommunityHandshakeState } from './CommunityHandshakeState'
 import { Contribution } from './Contribution'
 import { ContributionLink } from './ContributionLink'
 import { ContributionMessage } from './ContributionMessage'
+import { CreaRecord } from './CreaRecord'
+import { CreaSetting } from './CreaSetting'
 import { DltTransaction } from './DltTransaction'
 import { Event } from './Event'
 import { FederatedCommunity } from './FederatedCommunity'
@@ -21,6 +23,8 @@ export {
   Contribution,
   ContributionLink,
   ContributionMessage,
+  CreaRecord,
+  CreaSetting,
   DltTransaction,
   Event,
   FederatedCommunity,
@@ -40,6 +44,8 @@ export const entities = [
   Contribution,
   ContributionLink,
   ContributionMessage,
+  CreaRecord,
+  CreaSetting,
   DltTransaction,
   Event,
   FederatedCommunity,
