@@ -81,14 +81,14 @@ function compileScss(mode, compiler) {
     if (mode === 'watch') {
       // for process running in background
       // we could also use chokidar but sass --watch is better, because it can trigger partly recompiling
-      const sassProcess = spawn('sass', ['--watch', ...commonSassArgs], { stdio: 'inherit' })
+      const sassProcess = spawn('bun --bun sass', ['--watch', ...commonSassArgs], { stdio: 'inherit' })
       sassProcess.on('error', (error) => {
         console.error('Error starting sass process:', error)
       })
     } else {
       try {
         // for one time running process
-        execSync(`sass --style=compressed ${commonSassArgs.join(' ')}`)
+        execSync(`bun --bun sass --style=compressed ${commonSassArgs.join(' ')}`)
         console.log('SCSS compiled successfully')
       } catch (error) {
         console.error('Error compiling SCSS:', error.message)

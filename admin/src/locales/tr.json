@@ -14,6 +14,17 @@
   "alias": "Takma ad",
   "all_emails": "Tüm kullanıcılar",
   "back": "geri",
+  "bulkResubmission": {
+    "cancel": "Do not apply",
+    "confirm": "OK",
+    "noChange": "Nothing was changed on this contribution.",
+    "question": "Apply the reminder settings to all displayed contributions of {name}?",
+    "questionRemove": "Remove the reminder from all displayed contributions of {name}?",
+    "success": "Reminder applied.",
+    "successRemove": "Reminder removed.",
+    "title": "Apply reminder?",
+    "titleRemove": "Remove reminder?"
+  },
   "change_user_role": "Kullanıcı rolünü değiştir",
   "close": "Kapat",
   "contribution": {
@@ -277,6 +288,7 @@
   "no_hashtag": "#hashtag'leri gizle",
   "no_hashtag_tooltip": "Yalnızca metninde hashtag olmayan katkıları gösterir",
   "not_open_creations": "Açık oluşturma yok",
+  "notice": "Notice",
   "open": "açık",
   "open_creations": "Açık oluşturmalar",
   "overlay": {
