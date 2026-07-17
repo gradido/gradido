@@ -14,6 +14,17 @@
   "alias": "Alias",
   "all_emails": "Tutti gli utenti",
   "back": "indietro",
+  "bulkResubmission": {
+    "cancel": "Do not apply",
+    "confirm": "OK",
+    "noChange": "Nothing was changed on this contribution.",
+    "question": "Apply the reminder settings to all displayed contributions of {name}?",
+    "questionRemove": "Remove the reminder from all displayed contributions of {name}?",
+    "success": "Reminder applied.",
+    "successRemove": "Reminder removed.",
+    "title": "Apply reminder?",
+    "titleRemove": "Remove reminder?"
+  },
   "change_user_role": "Cambia il ruolo dell'utente",
   "close": "Chiudi",
   "contribution": {
@@ -197,6 +208,7 @@
   "no_hashtag": "Nascondi gli #hashtag",
   "no_hashtag_tooltip": "Mostra solo i contributi senza hashtag nel testo",
   "not_open_creations": "Nessuna creazione aperta",
+  "notice": "Notice",
   "open": "aperto",
   "open_creations": "Creazioni aperte",
   "overlay": {

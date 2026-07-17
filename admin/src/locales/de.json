@@ -14,6 +14,17 @@
   "alias": "Alias",
   "all_emails": "Alle Nutzer",
   "back": "zurück",
+  "bulkResubmission": {
+    "cancel": "Nicht übernehmen",
+    "confirm": "OK",
+    "noChange": "An diesem Beitrag wurde nichts geändert.",
+    "question": "Erinnerungseinstellungen auf alle angezeigten Beiträge von {name} übernehmen?",
+    "questionRemove": "Erinnerung bei allen angezeigten Beiträgen von {name} entfernen?",
+    "success": "Wiedervorlage übernommen.",
+    "successRemove": "Wiedervorlage entfernt.",
+    "title": "Wiedervorlage übernehmen?",
+    "titleRemove": "Wiedervorlage entfernen?"
+  },
   "change_user_role": "Nutzerrolle ändern",
   "close": "Schließen",
   "contribution": {
@@ -197,6 +208,7 @@
   "no_hashtag": "#Hashtags verbergen",
   "no_hashtag_tooltip": "Zeigt nur Beiträge ohne Hashtag im Text",
   "not_open_creations": "Keine offenen Schöpfungen",
+  "notice": "Hinweis",
   "open": "offen",
   "open_creations": "Offene Schöpfungen",
   "overlay": {

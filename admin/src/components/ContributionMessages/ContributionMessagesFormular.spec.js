@@ -135,6 +135,75 @@ describe('ContributionMessagesFormular', () => {
     expect(onSubmitSpy).toHaveBeenCalled()
   })
 
+  it('emits resubmission-saved with the contribution id when a reminder is set', async () => {
+    const futureDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+    wrapper = createWrapper()
+    wrapper.vm.showResubmissionDate = true
+    wrapper.vm.resubmissionDate = futureDate
+    wrapper.vm.resubmissionTime = '08:46'
+    await wrapper.vm.$nextTick()
+
+    await wrapper.find('button[type="submit"]').trigger('click')
+    await nextTick()
+
+    const saved = wrapper.emitted('resubmission-saved')
+    expect(saved).toBeTruthy()
+    expect(saved[0][0].id).toBe(42)
+    expect(typeof saved[0][0].resubmissionAt).toBe('string')
+  })
+
+  it('emits resubmission-saved with null when an existing reminder is removed', async () => {
+    const existingDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+    // simulate unchecking the reminder box on a contribution that had one
+    wrapper = createWrapper({ inputResubmissionDate: existingDate.toString() })
+    wrapper.vm.showResubmissionDate = false
+    await wrapper.vm.$nextTick()
+
+    await wrapper.find('button[type="submit"]').trigger('click')
+    await nextTick()
+
+    const saved = wrapper.emitted('resubmission-saved')
+    expect(saved).toBeTruthy()
+    expect(saved[0][0]).toEqual({ id: 42, resubmissionAt: null, unchanged: false })
+  })
+
+  it('signals resubmission-saved (unchanged) instead of erroring when nothing changed', async () => {
+    const futureDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+    wrapper = createWrapper()
+    mockMutate.mockRejectedValueOnce(new Error("the contribution wasn't changed at all"))
+    wrapper.vm.showResubmissionDate = true
+    wrapper.vm.resubmissionDate = futureDate
+    wrapper.vm.resubmissionTime = '08:46'
+    await wrapper.vm.$nextTick()
+
+    await wrapper.find('button[type="submit"]').trigger('click')
+    await nextTick()
+
+    const saved = wrapper.emitted('resubmission-saved')
+    expect(saved).toBeTruthy()
+    expect(saved[0][0].id).toBe(42)
+    expect(saved[0][0].unchanged).toBe(true)
+    expect(mockToastError).not.toHaveBeenCalled()
+  })
+
+  it('signals resubmission-saved (unchanged) with no date when the save is a no-op', async () => {
+    const existingDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+    // isRemovingResubmission keeps the save button active; the mutation then reports the
+    // reminder was already gone (a no-op) instead of a real change.
+    wrapper = createWrapper({ inputResubmissionDate: existingDate.toString() })
+    wrapper.vm.showResubmissionDate = false
+    mockMutate.mockRejectedValueOnce(new Error("the contribution wasn't changed at all"))
+    await wrapper.vm.$nextTick()
+
+    await wrapper.find('button[type="submit"]').trigger('click')
+    await nextTick()
+
+    const saved = wrapper.emitted('resubmission-saved')
+    expect(saved).toBeTruthy()
+    expect(saved[0][0]).toEqual({ id: 42, resubmissionAt: null, unchanged: true })
+    expect(mockToastError).not.toHaveBeenCalled()
+  })
+
   it('updates contribution memo', async () => {
     wrapper = createWrapper()
     const onSubmitSpy = vi.spyOn(wrapper.vm, 'onSubmit')

@@ -34,8 +34,10 @@ describe('CreationConfirm', () => {
   let mockResult
   let mockRefetch
   let mockOnResultCallback
+  let mockMutate
   const mockToastError = vi.fn()
   const mockToastSuccess = vi.fn()
+  const mockToastWarning = vi.fn()
   const mockT = vi.fn((key) => key)
   const mockD = vi.fn((date) => date.toISOString())
 
@@ -56,8 +58,9 @@ describe('CreationConfirm', () => {
       refetch: mockRefetch,
     })
 
+    mockMutate = vi.fn().mockResolvedValue({})
     useMutation.mockReturnValue({
-      mutate: vi.fn(),
+      mutate: mockMutate,
       onDone: vi.fn(),
       onError: vi.fn(),
     })
@@ -70,6 +73,7 @@ describe('CreationConfirm', () => {
     useAppToast.mockReturnValue({
       toastError: mockToastError,
       toastSuccess: mockToastSuccess,
+      toastWarning: mockToastWarning,
     })
 
     wrapper = mount(CreationConfirm, {
@@ -204,5 +208,68 @@ describe('CreationConfirm', () => {
         }),
       }),
     )
+  })
+
+  const openItems = (count, userId) =>
+    Array.from({ length: count }, (_, i) => ({
+      id: i + 1,
+      userId,
+      contributionStatus: 'IN_PROGRESS',
+      user: { firstName: 'Anna', lastName: 'Muster' },
+    }))
+
+  it('excludes the just-saved contribution from the bulk resubmission loop', async () => {
+    await simulateQueryResult({
+      adminListContributions: { contributionCount: 3, contributionList: openItems(3, 7) },
+    })
+
+    wrapper.vm.onResubmissionSaved({ id: 1, resubmissionAt: '2026-08-01T08:46:00' })
+    expect(wrapper.vm.bulkResubmission.show).toBe(true)
+
+    mockMutate.mockClear()
+    await wrapper.vm.applyBulkResubmission()
+
+    const ids = mockMutate.mock.calls.map((call) => call[0].id)
+    expect(ids).toEqual([2, 3])
+    expect(mockToastSuccess).toHaveBeenCalled()
+    expect(mockToastError).not.toHaveBeenCalled()
+  })
+
+  it('does not offer bulk resubmission for a mixed participant list', async () => {
+    await simulateQueryResult({
+      adminListContributions: {
+        contributionCount: 2,
+        contributionList: [...openItems(1, 7), { ...openItems(1, 8)[0], id: 2 }],
+      },
+    })
+
+    wrapper.vm.onResubmissionSaved({ id: 1, resubmissionAt: '2026-08-01T08:46:00' })
+    expect(wrapper.vm.bulkResubmission.show).toBe(false)
+  })
+
+  it('shows a neutral notice when an unchanged save has no group to propagate to', async () => {
+    await simulateQueryResult({
+      adminListContributions: { contributionCount: 1, contributionList: openItems(1, 7) },
+    })
+
+    wrapper.vm.onResubmissionSaved({
+      id: 1,
+      resubmissionAt: '2026-08-01T08:46:00',
+      unchanged: true,
+    })
+
+    expect(wrapper.vm.bulkResubmission.show).toBe(false)
+    expect(mockToastWarning).toHaveBeenCalled()
+  })
+
+  it('shows a neutral notice for a no-reminder no-op even within a group', async () => {
+    await simulateQueryResult({
+      adminListContributions: { contributionCount: 3, contributionList: openItems(3, 7) },
+    })
+
+    wrapper.vm.onResubmissionSaved({ id: 1, resubmissionAt: null, unchanged: true })
+
+    expect(wrapper.vm.bulkResubmission.show).toBe(false)
+    expect(mockToastWarning).toHaveBeenCalled()
   })
 })

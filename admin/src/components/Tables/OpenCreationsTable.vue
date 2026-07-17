@@ -136,6 +136,7 @@
                 @reload-contribution="reloadContribution"
                 @update-contributions="updateContributions"
                 @search-for-email="$emit('search-for-email', $event)"
+                @resubmission-saved="$emit('resubmission-saved', $event)"
               />
             </div>
           </template>
@@ -190,6 +191,7 @@ export default {
     'update-status',
     'show-overlay',
     'search-for-email',
+    'resubmission-saved',
   ],
   data() {
     return {
