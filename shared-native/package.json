@@ -23,7 +23,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "biome check --error-on-warnings .",
     "lint:fix": "biome check --error-on-warnings . --write",
-    "clear": "rm -rf node_modules && rm -rf build && rm -rf .turbo && rm -rf .cache && rm -rf .zig-cache"
+    "clear": "rimraf node_modules && rimraf build && rimraf .turbo && rimraf .cache && rimraf .zig-cache"
   },
   "devDependencies": {
     "@biomejs/biome": "2.0.0",
@@ -35,6 +35,7 @@
     "detect-libc": "^2.1.2",
     "node-addon-api": "^8.7.0",
     "node-api-headers": "^1.8.0",
+    "rimraf": "3.0.2",
     "typescript": "^4.9.5"
   },
   "dependencies": {

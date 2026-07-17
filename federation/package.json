@@ -20,7 +20,7 @@
     "test:coverage": "cross-env TZ=UTC NODE_ENV=development DB_DATABASE=gradido_test_federation jest --coverage --runInBand --forceExit --detectOpenHandles",
     "lint": "biome check --error-on-warnings .",
     "lint:fix": "biome check --error-on-warnings . --write",
-    "clear": "rm -rf node_modules && rm -rf build && rm -rf .turbo"
+    "clear": "rimraf node_modules && rimraf build && rimraf .turbo"
   },
   "dependencies": {
     "cross-env": "^7.0.3",
@@ -68,6 +68,7 @@
     "prettier": "^3.5.3",
     "redis-semaphore": "^5.6.2",
     "reflect-metadata": "^0.1.13",
+    "rimraf": "3.0.2",
     "shared": "*",
     "source-map-support": "^0.5.21",
     "ts-jest": "27.0.5",
