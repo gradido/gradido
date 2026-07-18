@@ -222,7 +222,7 @@ Currently Modules `frontend`, `admin`, `share` and `core` running the tests in p
 `database`, `backend`, `dht-node` and `federation` are running the tests still serially.
 
 ### Clear
-In root folder calling `bun clear` will clear all turbo caches, node_modules and build folders of all workspaces for a clean rebuild.
+In root folder calling `bun clear` will clear all turbo caches, node_modules and build folders of all workspaces for a clean rebuild also the root node_modules and build cache (C/C++) from shared-native
 
 ```bash
 bun clear
