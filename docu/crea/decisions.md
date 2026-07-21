@@ -395,8 +395,10 @@ The model and the effort level moved out of the environment configuration into t
 database, so it can be switched in the UI and applies to all moderators immediately, with
 the environment value as a fallback — nothing changes until someone switches
 deliberately. Global for now, extendable per community. Guarded by a dedicated
-`AI_SETTINGS` right, held by AI moderators and admins, rather than borrowing a general
-admin right. A "test model" probe catches typos before they would break Crea for everyone.
+`AI_SETTINGS` right rather than a borrowed general admin right — and that right is
+**admin-only**: the model applies to every moderator at once and drives both cost and
+answer quality, so moderators inherit the effect but not the control. A "test model" probe
+catches typos before they would break Crea for everyone.
 
 A model self-report label was **rejected**: models do not reliably know their own
 identifier, and a line that merely echoes our own setting would be circular.
