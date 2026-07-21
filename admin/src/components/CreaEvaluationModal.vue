@@ -240,10 +240,12 @@ import { useApolloClient, useMutation } from '@vue/apollo-composable'
 import { useI18n } from 'vue-i18n'
 import { useAppToast } from '@/composables/useToast'
 import { adminListContributions } from '@/graphql/adminListContributions.graphql'
-import { creaEvaluateBatch } from '@/graphql/creaEvaluateBatch'
-import { creaEvaluateContribution } from '@/graphql/creaEvaluateContribution'
-import { creaRewriteBatch } from '@/graphql/creaRewriteBatch'
-import { creaRewriteResponse } from '@/graphql/creaRewriteResponse'
+import {
+  creaEvaluateBatch,
+  creaEvaluateContribution,
+  creaRewriteBatch,
+  creaRewriteResponse,
+} from '@/graphql/crea.graphql'
 import { useBoldShortcut } from '@/composables/useBoldShortcut'
 import { useCreaClipboard } from '@/composables/useCreaClipboard'
 import { useCreaSupplement } from '@/composables/useCreaSupplement'

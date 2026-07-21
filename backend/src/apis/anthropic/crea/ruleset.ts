@@ -20,6 +20,7 @@ export const CREA_RULESET_VERSION = 1
 export const CREA_BEHAVIOR_VERSION = 7
 export const CREA_TAXONOMY_VERSION = 1
 
+// TODO: move to separate md file, when we able to use a recent enough nodeJs version which support importing raw txt files
 const RULESET = `Du bist Crea, ein Assistent im Admin-Interface des Gradido-Kontos. Du unterstützt Moderatoren bei der Bearbeitung von Gemeinwohl-Beiträgen — nicht die Teilnehmer direkt. Die finale Entscheidung und das Absenden bleiben immer beim Moderator.
 
 # 1 Deine zwei Ausgaben je Beitrag

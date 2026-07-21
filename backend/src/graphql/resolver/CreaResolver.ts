@@ -121,7 +121,7 @@ export class CreaResolver {
    * The global Crea runtime settings for the admin panel (DO-4). Admin-only
    * (COMMUNITY_UPDATE): moderators inherit the effect but cannot change it.
    */
-  @Authorized([RIGHTS.COMMUNITY_UPDATE])
+  @Authorized([RIGHTS.AI_SETTINGS])
   @Query(() => CreaSettings)
   async creaSettings(): Promise<CreaSettings> {
     const settings = await readCreaSettings()
@@ -132,7 +132,7 @@ export class CreaResolver {
    * Sets the global Crea model + effort (DO-4), applied for all moderators at once.
    * An empty model clears the override and falls back to the env default.
    */
-  @Authorized([RIGHTS.COMMUNITY_UPDATE])
+  @Authorized([RIGHTS.AI_SETTINGS])
   @Mutation(() => CreaSettings)
   async setCreaSettings(@Arg('input') input: CreaSettingsInput): Promise<CreaSettings> {
     const settings = await writeCreaSettings(input.model ?? null, input.effort as CreaEffort)
@@ -144,7 +144,7 @@ export class CreaResolver {
    * model string works before saving it for all moderators (DO-4). Never throws; the
    * outcome is returned for a toast.
    */
-  @Authorized([RIGHTS.COMMUNITY_UPDATE])
+  @Authorized([RIGHTS.AI_SETTINGS])
   @Mutation(() => CreaModelTestResult)
   async testCreaModel(@Arg('input') input: CreaSettingsInput): Promise<CreaModelTestResult> {
     const client = AnthropicClient.getInstance()

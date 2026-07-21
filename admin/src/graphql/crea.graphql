@@ -1,0 +1,89 @@
+# Batch evaluation (E-020): several open contributions of one participant judged
+# together into ONE overall verdict + ONE reply. Slim result - no per-activity data
+# (activities/discrepancy/appliedRule) and no persistence in batch mode.
+mutation creaEvaluateBatch($input: CreaBatchInput!) {
+  creaEvaluateBatch(input: $input) {
+    overallVerdict
+    confidence
+    reasoning
+    responseText
+    openPoints {
+      question
+      options
+      relatesTo
+    }
+    flags
+  }
+}
+
+mutation creaEvaluateContribution ($input: CreaContributionInput!) {
+  creaEvaluateContribution(input: $input) {
+    beitragRef
+    overallVerdict
+    discrepancy
+    appliedRule
+    confidence
+    reasoning
+    responseText
+    activities {
+      activity
+      categoryKey
+      outputType
+      hours
+      hoursEstimated
+      verdict
+      confidence
+    }
+    openPoints {
+      question
+      options
+      relatesTo
+    }
+    flags
+  }
+}
+
+# Batch rewrite (E-020): the moderator deviates from Crea's overall batch verdict
+# (confirm/inquire/deny + optional context) and Crea writes ONE fresh joint reply for
+# all contributions. Does not re-judge; no memoSupplement in batch mode (the public
+# per-contribution note is single-contribution only, E-019).
+mutation creaRewriteBatch ($input: CreaBatchInput!) {
+  creaRewriteBatch(input: $input) {
+    responseText
+    memoSupplement
+  }
+}
+
+# Rewrite the reply text when the moderator deviates from Crea's recommendation
+# (E-017). A confirm rewrite also returns memoSupplement — the short public note the
+# moderator appends to the contribution ("Text ergänzen", E-019); null otherwise.
+# No re-evaluation, no persistence.
+mutation creaRewriteResponse($input: CreaContributionInput!) {
+  creaRewriteResponse(input: $input) {
+    responseText
+    memoSupplement
+  }
+}
+
+query creaSettings {
+  creaSettings {
+    model
+    effort
+    defaultModel
+  }
+}
+
+mutation setCreaSettings ($input: CreaSettingsInput!) {
+  setCreaSettings(input: $input) {
+    model
+    effort
+    defaultModel
+  }
+}
+
+mutation testCreaModel($input: CreaSettingsInput!) {
+  testCreaModel(input: $input) {
+    ok
+    message
+  }
+}
