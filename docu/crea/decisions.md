@@ -392,11 +392,11 @@ can never spill onto another member's contributions.
 ## E-028 — Model and effort switch in the database
 
 The model and the effort level moved out of the environment configuration into the
-database, so an admin can switch them in the UI and it applies to all moderators
-immediately, with the environment value as a fallback — nothing changes until someone
-switches deliberately. Global for now, extendable per community. Admin-only via the
-existing `COMMUNITY_UPDATE` right. A "test model" probe catches typos before they would
-break Crea for everyone.
+database, so it can be switched in the UI and applies to all moderators immediately, with
+the environment value as a fallback — nothing changes until someone switches
+deliberately. Global for now, extendable per community. Guarded by a dedicated
+`AI_SETTINGS` right, held by AI moderators and admins, rather than borrowing a general
+admin right. A "test model" probe catches typos before they would break Crea for everyone.
 
 A model self-report label was **rejected**: models do not reliably know their own
 identifier, and a line that merely echoes our own setting would be circular.

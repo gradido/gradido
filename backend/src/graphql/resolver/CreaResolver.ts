@@ -118,8 +118,8 @@ export class CreaResolver {
   }
 
   /**
-   * The global Crea runtime settings for the admin panel (DO-4). Admin-only
-   * (COMMUNITY_UPDATE): moderators inherit the effect but cannot change it.
+   * The global Crea runtime settings for the admin panel (DO-4). Guarded by the
+   * dedicated AI_SETTINGS right, which AI moderators and admins hold.
    */
   @Authorized([RIGHTS.AI_SETTINGS])
   @Query(() => CreaSettings)
