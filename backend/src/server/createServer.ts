@@ -16,7 +16,7 @@ import { gmsWebhook } from '@/webhook/gms'
 import { context as serverContext } from './context'
 import { cors } from './cors'
 import { plugins } from './plugins'
-import { getBuildInfo } from './version'
+import { apiVersion } from './version'
 
 // TODO implement
 // import queryComplexity, { simpleEstimator, fieldConfigEstimator } from "graphql-query-complexity";
@@ -90,9 +90,7 @@ export const createServer = async (
 
   // Build version — lets a backend-only deploy be verified from outside (the frontend/
   // admin bundle hashes only track their own builds). Public, read-only, no secrets.
-  app.get('/api/version', (_req, res) => {
-    res.json(getBuildInfo())
-  })
+  app.get('/api/version', apiVersion)
 
   // Apollo Server
   const apollo = new ApolloServer({

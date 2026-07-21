@@ -3,7 +3,7 @@ import fs from 'node:fs'
 import { esbuildDecorators } from '@anatine/esbuild-decorators'
 import { build } from 'esbuild'
 
-// Resolve the build commit ONCE, at build time (not per request — see server/version.ts).
+// Resolve the build commit ONCE, at build time (not per request — see src/server/version.ts).
 // BUILD_COMMIT is set for container builds (docker build-arg); a bare-metal deploy builds
 // inside the git checkout, so `git rev-parse HEAD` returns the deployed commit. The
 // Dockerfile default "0000000" (all-zero) counts as unset and falls through.
@@ -26,8 +26,6 @@ function resolveBuildInfo(): { commit: string; source: 'git' | 'env' | 'unknown'
   return { commit: 'unknown', source: 'unknown' }
 }
 
-const buildInfo = resolveBuildInfo()
-
 build({
   entryPoints: ['src/index.ts', 'src/password/worker.js'],
   outdir: 'build',
@@ -49,8 +47,8 @@ build({
         build.onLoad({ filter: /server[/\\]version\.ts$/ }, async (args) => {
           let source = await fs.promises.readFile(args.path, 'utf8')
           source = source.replace(
-            /import\s*\{\s*BUILD_INFO\s*\}\s*from\s*['"][^'"]+['"]/,
-            `const BUILD_INFO = ${JSON.stringify(buildInfo)}`,
+            /export const BUILD_INFO = {[a-z:', ]*} as const/,
+            `const BUILD_INFO = ${JSON.stringify(resolveBuildInfo())}`,
           )
           return { contents: source, loader: 'ts' }
         })
