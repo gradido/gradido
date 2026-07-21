@@ -27,6 +27,8 @@ const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.apis.anthropic.AnthropicC
 // normal evaluations stop well before it, so a higher limit costs nothing.
 const CREA_MAX_TOKENS = 8192
 
+// TODO: use i18n for prompts in the future so the ai didn't need to translate by non-german moderators which can maybe reduce the accuracy
+
 /**
  * Singleton client for the Anthropic (Claude) API, used by the Crea moderation
  * assistant. Mirrors the OpenaiClient shape: disabled unless the API is active

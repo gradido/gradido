@@ -42,7 +42,7 @@ import {
   creaSettings as creaSettingsQuery,
   setCreaSettings,
   testCreaModel,
-} from '@/graphql/creaSettings'
+} from '@/graphql/crea.graphql'
 
 const { t } = useI18n()
 const store = useStore()
