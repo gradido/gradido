@@ -3,6 +3,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { nextTick } from 'vue'
 import ContributionMessagesFormular from './ContributionMessagesFormular'
 import { BButton, BForm } from 'bootstrap-vue-next'
+import { useCreaClipboard } from '@/composables/useCreaClipboard'
+import { useCreaSupplement } from '@/composables/useCreaSupplement'
+
+vi.mock('vuex', () => ({
+  useStore: () => ({ state: { moderator: { firstName: 'Bernd' } } }),
+}))
 
 const mockToastError = vi.fn()
 vi.mock('@/composables/useToast', () => ({
@@ -65,6 +71,8 @@ describe('ContributionMessagesFormular', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    useCreaClipboard().setLastResponse('')
+    useCreaSupplement().setLastSupplement('')
   })
 
   it('renders the component', () => {
@@ -227,5 +235,51 @@ describe('ContributionMessagesFormular', () => {
     await nextTick()
 
     expect(mockToastError).toHaveBeenCalledWith('OUCH!')
+  })
+
+  it('fills the empty message field with the Crea draft', async () => {
+    useCreaClipboard().setLastResponse('Liebe Anna, danke!')
+    wrapper = createWrapper()
+    wrapper.vm.form.text = ''
+    await wrapper.vm.insertCreaDraft()
+    expect(wrapper.vm.form.text).toBe('Liebe Anna, danke!')
+  })
+
+  it('appends the Crea draft when the field already has text and was not focused', async () => {
+    useCreaClipboard().setLastResponse('draft')
+    wrapper = createWrapper()
+    wrapper.vm.form.text = 'typed'
+    await wrapper.vm.insertCreaDraft()
+    expect(wrapper.vm.form.text).toBe('typed\ndraft')
+  })
+
+  it('shows the Crea insert button only with a held draft and not on the memo tab', async () => {
+    wrapper = createWrapper()
+    expect(wrapper.vm.showCreaInsert).toBe(false)
+    useCreaClipboard().setLastResponse('draft')
+    await nextTick()
+    expect(wrapper.vm.showCreaInsert).toBe(true)
+    wrapper.vm.tabindex = 2
+    await nextTick()
+    expect(wrapper.vm.showCreaInsert).toBe(false)
+  })
+
+  it('appends the Crea supplement to the memo with the marker and switches to the memo tab (E-019)', () => {
+    useCreaSupplement().setLastSupplement('Genehmigt, da frei geteilte Impulse.')
+    wrapper = createWrapper()
+    wrapper.vm.form.memo = 'Impulse geschrieben'
+    wrapper.vm.appendCreaSupplement()
+    expect(wrapper.vm.form.memo.startsWith('Impulse geschrieben')).toBe(true)
+    expect(wrapper.vm.form.memo).toContain('💬 Bernd: Genehmigt, da frei geteilte Impulse.')
+    // append-only: the original text is preserved untouched before the marker.
+    expect(wrapper.vm.tabindex).toBe(2)
+  })
+
+  it('shows the Crea append button only when a supplement is held', async () => {
+    wrapper = createWrapper()
+    expect(wrapper.vm.showCreaAppend).toBe(false)
+    useCreaSupplement().setLastSupplement('a note')
+    await nextTick()
+    expect(wrapper.vm.showCreaAppend).toBe(true)
   })
 })

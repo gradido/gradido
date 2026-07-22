@@ -19,6 +19,32 @@
             <time-picker v-model="resubmissionTime" class="ms-2" />
           </div>
         </BFormGroup>
+        <div v-if="showCreaInsert || showCreaAppend" class="mt-3 d-flex gap-2 align-items-center">
+          <img
+            v-if="showCreaInsert"
+            src="../../../public/img/crea-logo.jpg"
+            :alt="$t('crea.column')"
+            class="crea-inline-logo"
+          />
+          <BButton
+            v-if="showCreaInsert"
+            variant="outline-info"
+            size="sm"
+            data-test="crea-insert-draft"
+            @click="insertCreaDraft"
+          >
+            {{ $t('crea.insertDraft') }}
+          </BButton>
+          <BButton
+            v-if="showCreaAppend"
+            variant="outline-info"
+            size="sm"
+            data-test="crea-append-memo"
+            @click="appendCreaSupplement"
+          >
+            {{ $t('crea.appendToMemo') }}
+          </BButton>
+        </div>
         <BTabs v-model="tabindex" class="mt-3" content-class="mt-3" data-test="message-type-tabs">
           <BTab active>
             <template #title>
@@ -31,7 +57,9 @@
               id="textarea"
               v-model="form.text"
               :placeholder="$t('contributionLink.memo')"
-              rows="3"
+              rows="12"
+              @keydown="onTextKeydown"
+              @focus="captureCreaField"
             />
           </BTab>
           <BTab>
@@ -45,7 +73,9 @@
               id="textarea"
               v-model="form.text"
               :placeholder="$t('moderator.notice')"
-              rows="3"
+              rows="12"
+              @keydown="onTextKeydown"
+              @focus="captureCreaField"
             />
           </BTab>
           <BTab>
@@ -59,8 +89,12 @@
               id="textarea"
               v-model="form.memo"
               :placeholder="$t('contributionLink.memo')"
-              rows="3"
+              rows="12"
+              @keydown="onMemoKeydown"
             />
+            <p v-if="memoTooLong" class="mt-1 mb-0 text-danger small">
+              {{ $t('crea.memoTooLong', { max: MEMO_MAX_LENGTH }) }}
+            </p>
           </BTab>
         </BTabs>
         <BRow class="mt-4 mb-6">
@@ -85,7 +119,8 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, nextTick } from 'vue'
+import { useStore } from 'vuex'
 import { useDateLocale } from '@/composables/useDateLocale'
 import { useMutation } from '@vue/apollo-composable'
 import { useI18n } from 'vue-i18n'
@@ -94,6 +129,19 @@ import TimePicker from '@/components/input/TimePicker'
 import { adminCreateContributionMessage } from '@/graphql/adminCreateContributionMessage'
 import { adminUpdateContribution } from '@/graphql/adminUpdateContribution'
 import { useAppToast } from '@/composables/useToast'
+import { useBoldShortcut } from '@/composables/useBoldShortcut'
+import { useCreaClipboard } from '@/composables/useCreaClipboard'
+import { useCreaSupplement } from '@/composables/useCreaSupplement'
+
+// The memo (the public contribution text) is limited to 512 chars in the backend
+// (migration 0093). We warn and block the save past it rather than auto-cutting — per
+// E-019 the moderator shortens the original himself (append-only, no auto-truncation).
+const MEMO_MAX_LENGTH = 512
+// The moderator comment marker appended to the public contribution (E-019). The 💬 and
+// the dash are content, not code; the dash sets the note off within the running text
+// (Bernd: these memos use no blank lines).
+const MEMO_MARKER = '💬'
+const MEMO_SEPARATOR = ' – '
 
 const props = defineProps({
   contributionId: {
@@ -124,6 +172,7 @@ const emit = defineEmits([
 ])
 
 const { t } = useI18n()
+const store = useStore()
 const dateLocale = useDateLocale()
 const { toastError, toastSuccess } = useAppToast()
 const form = ref({
@@ -131,6 +180,20 @@ const form = ref({
   memo: props.contributionMemo,
 })
 const loading = ref(false)
+
+// Cmd/Ctrl+B bold shortcut for the moderator message fields (rendered on display).
+const { onKeydown: onTextKeydown } = useBoldShortcut(
+  () => form.value.text,
+  (value) => {
+    form.value.text = value
+  },
+)
+const { onKeydown: onMemoKeydown } = useBoldShortcut(
+  () => form.value.memo,
+  (value) => {
+    form.value.memo = value
+  },
+)
 
 const localInputResubmissionDate = props.inputResubmissionDate
   ? new Date(props.inputResubmissionDate)
@@ -151,9 +214,73 @@ const messageType = {
   MODERATOR: 'MODERATOR',
 }
 
+// Crea's last reply draft (held in the browser) drops into the message field with one
+// click - no OS clipboard needed inside the admin. Only on the message/note tabs
+// (tabs 0/1 both bind form.text); the memo tab (2) edits the member's own text.
+const { lastResponse } = useCreaClipboard()
+const creaTextAreaEl = ref(null)
+const captureCreaField = (event) => {
+  creaTextAreaEl.value = event.target
+}
+const showCreaInsert = computed(() => Boolean(lastResponse.value) && tabindex.value !== 2)
+const insertCreaDraft = async () => {
+  const draft = lastResponse.value
+  if (!draft) {
+    return
+  }
+  const current = form.value.text
+  const el = creaTextAreaEl.value
+  if (!current) {
+    // Empty field: just fill it.
+    form.value.text = draft
+    return
+  }
+  if (el) {
+    // Non-empty: splice in at the caret. A textarea keeps its selection even after the
+    // button takes focus, so the moderator's cursor position still applies.
+    const start = el.selectionStart ?? current.length
+    const end = el.selectionEnd ?? start
+    form.value.text = current.slice(0, start) + draft + current.slice(end)
+    await nextTick()
+    const caret = start + draft.length
+    el.focus()
+    el.setSelectionRange(caret, caret)
+  } else {
+    // Never focused: append below what is there.
+    form.value.text = `${current}\n${draft}`
+  }
+}
+
+// Crea's public note for a confirmed contribution (E-019) drops into the memo (the
+// community-visible "Text ändern" tab) with one click. Twin of insertCreaDraft: shown
+// whenever a note is stored, on any tab (it switches to the memo tab itself).
+const { lastSupplement } = useCreaSupplement()
+const showCreaAppend = computed(() => Boolean(lastSupplement.value))
+const appendCreaSupplement = () => {
+  const supplement = lastSupplement.value
+  if (!supplement) {
+    return
+  }
+  // The 💬 + first-name marker is built here, locally — the moderator's name never
+  // reached the AI (like [ANREDE]/[SIGNATUR]). append-only: the original text is untouched.
+  const firstName = store.state.moderator?.firstName ?? ''
+  const marker = firstName
+    ? `${MEMO_MARKER} ${firstName}: ${supplement}`
+    : `${MEMO_MARKER} ${supplement}`
+  const current = form.value.memo.trim()
+  form.value.memo = current ? `${current}${MEMO_SEPARATOR}${marker}` : marker
+  // Switch to the memo tab so the moderator reads the result in place and saves it (E-005).
+  tabindex.value = 2
+}
+
 const isTextTabValid = computed(() => form.value.text !== '')
 
-const isMemoTabValid = computed(() => form.value.memo.length >= 5)
+// Also block the save past the memo limit so the moderator shortens before saving
+// (the warning under the field explains why); no auto-truncation (E-019).
+const memoTooLong = computed(() => form.value.memo.length > MEMO_MAX_LENGTH)
+const isMemoTabValid = computed(
+  () => form.value.memo.length >= 5 && form.value.memo.length <= MEMO_MAX_LENGTH,
+)
 
 // Removing an existing reminder (the checkbox unchecked on a contribution that had one)
 // is a valid save even without a message -- otherwise a reminder could never be
@@ -284,3 +411,13 @@ const onReset = () => {
     props.inputResubmissionDate !== undefined && props.inputResubmissionDate !== null
 }
 </script>
+
+<style scoped>
+.crea-inline-logo {
+  display: block;
+  width: 26px;
+  height: 26px;
+  object-fit: cover;
+  border-radius: 22%;
+}
+</style>

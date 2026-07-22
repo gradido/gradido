@@ -212,6 +212,32 @@ export const schema = Joi.object({
     .when('OPENAI_ACTIVE', { is: true, then: Joi.required(), otherwise: Joi.optional().allow('') })
     .description('Assistant ID for OpenAI'),
 
+  ANTHROPIC_ACTIVE: Joi.boolean()
+    .default(false)
+    .description('Flag to enable or disable the Anthropic (Claude) API used by Crea')
+    .required(),
+
+  ANTHROPIC_API_KEY: Joi.string()
+    .pattern(/^sk-ant-[A-Za-z0-9-_]{20,}$/)
+    .when('ANTHROPIC_ACTIVE', {
+      is: true,
+      then: Joi.required(),
+      otherwise: Joi.optional().allow(''),
+    })
+    .description('API key for the Anthropic (Claude) API, used by the Crea moderation assistant'),
+
+  ANTHROPIC_MODEL: Joi.string()
+    .default('claude-sonnet-5')
+    .description(
+      'Claude model id for Crea (production floor claude-sonnet-5; claude-opus-4-8 for hard cases)',
+    ),
+
+  CREA_STUB: Joi.boolean()
+    .default(false)
+    .description(
+      'Opt-in preview: with no API key, return a canned evaluation (no API call) so the UI/DB/deterministics can be exercised without a key. Off by default in production.',
+    ),
+
   USE_CRYPTO_WORKER: Joi.boolean()
     .default(false)
     .description(

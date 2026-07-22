@@ -35,6 +35,7 @@
   },
   "devDependencies": {
     "@anatine/esbuild-decorators": "^0.2.19",
+    "@anthropic-ai/sdk": "^0.110.0",
     "@biomejs/biome": "2.0.0",
     "@swc/cli": "^0.7.3",
     "@swc/core": "^1.11.24",

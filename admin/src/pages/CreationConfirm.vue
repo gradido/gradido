@@ -54,11 +54,13 @@
       :items="items"
       :fields="fields"
       :hide-resubmission="hideResubmission"
+      :crea-open-only="creaOpenOnly"
       @show-overlay="showOverlay"
       @update-status="updateStatus"
       @reload-contribution="reloadContribution"
       @update-contributions="refetch"
       @search-for-email="query = $event"
+      @crea-evaluate="openCreaModal"
       @resubmission-saved="onResubmissionSaved"
     />
 
@@ -90,6 +92,7 @@
         </template>
       </Overlay>
     </div>
+    <CreaEvaluationModal :contribution="creaItem" />
     <BModal
       v-model="bulkResubmission.show"
       :title="bulkTitle"
@@ -107,11 +110,13 @@ import { ref, computed, watch } from 'vue'
 import { useQuery, useMutation } from '@vue/apollo-composable'
 import { useStore } from 'vuex'
 import { useI18n } from 'vue-i18n'
+import { useModal } from 'bootstrap-vue-next'
 
 import Overlay from '../components/Overlay'
 import OpenCreationsTable from '../components/Tables/OpenCreationsTable'
 import UserQuery from '../components/UserQuery'
 import AiChat from '../components/AiChat'
+import CreaEvaluationModal from '../components/CreaEvaluationModal'
 import { adminListContributions } from '../graphql/adminListContributions.graphql'
 import { adminDeleteContribution } from '../graphql/adminDeleteContribution'
 import { adminUpdateContribution } from '../graphql/adminUpdateContribution'
@@ -174,63 +179,87 @@ const baseFields = {
   },
 }
 
-const fields = computed(
-  () =>
-    [
-      // open contributions
-      [
-        { key: 'bookmark', label: t('delete') },
-        { key: 'deny', label: t('deny') },
-        baseFields.name,
-        baseFields.amount,
-        baseFields.memo,
-        baseFields.contributionDate,
-        { key: 'editCreation', label: t('details') },
-        { key: 'confirm', label: t('save') },
-      ],
-      // confirmed contributions
-      [
-        baseFields.name,
-        baseFields.amount,
-        baseFields.memo,
-        baseFields.contributionDate,
-        baseFields.createdAt,
-        baseFields.closedAt,
-        { key: 'chatCreation', label: t('details') },
-      ],
-      // denied contributions
-      [
-        baseFields.name,
-        baseFields.amount,
-        baseFields.memo,
-        baseFields.contributionDate,
-        baseFields.createdAt,
-        baseFields.closedAt,
-        { key: 'chatCreation', label: t('details') },
-      ],
-      // deleted contributions
-      [
-        baseFields.name,
-        baseFields.amount,
-        baseFields.memo,
-        baseFields.contributionDate,
-        baseFields.createdAt,
-        baseFields.closedAt,
-        { key: 'chatCreation', label: t('details') },
-      ],
-      // all contributions
-      [
-        { key: 'contributionStatus', label: t('status') },
-        baseFields.name,
-        baseFields.amount,
-        baseFields.memo,
-        baseFields.contributionDate,
-        baseFields.createdAt,
-        baseFields.closedAt,
-        { key: 'chatCreation', label: t('details') },
-      ],
-    ][tabIndex.value],
+const roles = computed(() => store.state.moderator?.roles ?? [])
+const isAdmin = computed(() => roles.value.includes('ADMIN'))
+const isAiUser = computed(() => isAdmin.value || roles.value.includes('MODERATOR_AI'))
+// Who sees the Crea button: AI moderators on the open tab (0) and on the "all" tab (4) --
+// there only on still-open contributions (see creaOpenOnly), so they can jump straight
+// from a participant's history to an open item. Administrators additionally see it on the
+// dedicated confirmed/denied/deleted tabs to test Crea against the whole pool. Plain
+// moderators hold no AI_SEND_MESSAGE right and see no button. This only guides the UI --
+// the resolver's @Authorized guard is what actually enforces the right.
+const showCreaColumn = computed(() =>
+  tabIndex.value === 0 || tabIndex.value === 4 ? isAiUser.value : isAdmin.value,
 )
+// The "all" tab (index 4) mixes open and closed contributions; there Crea shows only on
+// the open (blue) rows -- the ones still to be processed. Other tabs are single-status.
+const creaOpenOnly = computed(() => tabIndex.value === 4)
+
+const fields = computed(() => {
+  const tabFields = [
+    // open contributions
+    [
+      { key: 'bookmark', label: t('delete') },
+      { key: 'deny', label: t('deny') },
+      baseFields.name,
+      baseFields.amount,
+      baseFields.memo,
+      baseFields.contributionDate,
+      { key: 'creaEvaluate', label: t('crea.column') },
+      { key: 'editCreation', label: t('details') },
+      { key: 'confirm', label: t('save') },
+    ],
+    // confirmed contributions
+    [
+      baseFields.name,
+      baseFields.amount,
+      baseFields.memo,
+      baseFields.contributionDate,
+      baseFields.createdAt,
+      baseFields.closedAt,
+      { key: 'creaEvaluate', label: t('crea.column') },
+      { key: 'chatCreation', label: t('details') },
+    ],
+    // denied contributions
+    [
+      baseFields.name,
+      baseFields.amount,
+      baseFields.memo,
+      baseFields.contributionDate,
+      baseFields.createdAt,
+      baseFields.closedAt,
+      { key: 'creaEvaluate', label: t('crea.column') },
+      { key: 'chatCreation', label: t('details') },
+    ],
+    // deleted contributions
+    [
+      baseFields.name,
+      baseFields.amount,
+      baseFields.memo,
+      baseFields.contributionDate,
+      baseFields.createdAt,
+      baseFields.closedAt,
+      { key: 'creaEvaluate', label: t('crea.column') },
+      { key: 'chatCreation', label: t('details') },
+    ],
+    // all contributions
+    [
+      { key: 'contributionStatus', label: t('status') },
+      baseFields.name,
+      baseFields.amount,
+      baseFields.memo,
+      baseFields.contributionDate,
+      baseFields.createdAt,
+      baseFields.closedAt,
+      { key: 'creaEvaluate', label: t('crea.column') },
+      { key: 'chatCreation', label: t('details') },
+    ],
+  ][tabIndex.value]
+
+  return showCreaColumn.value
+    ? tabFields
+    : tabFields.filter((field) => field.key !== 'creaEvaluate')
+})
 
 const statusFilter = computed(() => [...FILTER_TAB_MAP[tabIndex.value]])
 
@@ -265,9 +294,6 @@ const overlayIcon = computed(() => {
 const showResubmissionCheckbox = computed(() => tabIndex.value === 0)
 const hideResubmission = computed(() =>
   showResubmissionCheckbox.value ? hideResubmissionModel.value : false,
-)
-const isAiUser = computed(() =>
-  store.state.moderator?.roles.some((role) => ['ADMIN', 'MODERATOR_AI'].includes(role)),
 )
 
 watch(tabIndex, () => {
@@ -413,6 +439,13 @@ const showOverlay = (selectedItem, selectedVariant) => {
   overlay.value = true
   item.value = selectedItem
   variant.value = selectedVariant
+}
+
+const creaItem = ref(null)
+const { show: showCreaModal } = useModal('crea-evaluation-modal')
+const openCreaModal = (selectedItem) => {
+  creaItem.value = selectedItem
+  showCreaModal()
 }
 
 const updateStatus = (id) => {

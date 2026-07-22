@@ -1,5 +1,5 @@
 <template>
-  <div class="mt-2">
+  <div class="mt-2 message-body">
     <span v-for="({ type, text }, index) in parsedMessage" :key="index">
       <b-link v-if="type === 'link'" :href="text" target="_blank">{{ text }}</b-link>
       <span v-else-if="type === 'date'">
@@ -10,7 +10,7 @@
         <br />
         {{ `${$n(Number(text), 'decimal')} GDD` }}
       </span>
-      <span v-else>{{ text }}</span>
+      <span v-else v-html="renderBold(text)"></span>
     </span>
   </div>
 </template>
@@ -54,5 +54,22 @@ export default {
       return linkified
     },
   },
+  methods: {
+    // Render a minimal, safe subset of markdown: **bold**. The text is
+    // HTML-escaped first, then only the bold markers become <strong>, so a
+    // message can never inject markup (messages come from users too).
+    renderBold(text) {
+      const escaped = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      return escaped.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    },
+  },
 }
 </script>
+
+<style scoped>
+.message-body {
+  /* Preserve the line breaks typed into the message (or drafted by Crea); long
+     lines still wrap and runs of spaces still collapse -- chat-friendly. */
+  white-space: pre-line;
+}
+</style>

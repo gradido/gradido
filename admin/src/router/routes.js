@@ -42,6 +42,11 @@ const routes = [
     component: () => import('@/pages/ProjectBranding.vue'),
   },
   {
+    path: '/creaSettings',
+    name: 'creaSettings',
+    component: () => import('@/pages/CreaSettings.vue'),
+  },
+  {
     path: '/:catchAll(.*)',
     name: 'NotFound',
     component: () => import('@/components/NotFoundPage.vue'),
