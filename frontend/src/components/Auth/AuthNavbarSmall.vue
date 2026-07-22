@@ -5,8 +5,7 @@
         <NavItem :to="routeWithParamsAndQuery('Register')" class="auth-navbar">
           {{ $t('signup') }}
         </NavItem>
-        <span class="mt-1">{{ $t('|') }}</span>
-        <NavItem :to="routeWithParamsAndQuery('Login')" class="auth-navbar">
+        <NavItem :to="routeWithParamsAndQuery('Login')" class="auth-navbar separator-start">
           {{ $t('signin') }}
         </NavItem>
       </BNavbarNav>
