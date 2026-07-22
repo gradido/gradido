@@ -18,11 +18,11 @@
     "test:watch": "cross-env TZ=UTC vitest",
     "locales": "bun scripts/sortLocales.ts",
     "locales:fix": "bun scripts/sortLocales.ts --fix",
-    "compile-scss": "node ./scripts/scss.mjs compile",
-    "watch-scss": "node ./scripts/scss.mjs watch",
-    "compile-scss-sass": "node ./scripts/scss.mjs compile sass",
-    "watch-scss-sass": "node ./scripts/scss.mjs watch sass",
-    "clear": "rm -rf node_modules && rm -rf build && rm -rf .turbo"
+    "compile-scss": "bun ./scripts/scss.mjs compile",
+    "watch-scss": "bun ./scripts/scss.mjs watch",
+    "compile-scss-sass": "bun ./scripts/scss.mjs compile sass",
+    "watch-scss-sass": "bun ./scripts/scss.mjs watch sass",
+    "clear": "rimraf node_modules && rimraf build && rimraf .turbo"
   },
   "dependencies": {
     "@morev/vue-transitions": "^3.0.2",
@@ -96,6 +96,7 @@
     "mock-apollo-client": "^1.2.1",
     "postcss-html": "^1.8.0",
     "prettier": "^3.5.3",
+    "rimraf": "3.0.2",
     "sass": "1.83.4",
     "stylelint": "^16.19.1",
     "stylelint-config-recommended-vue": "^1.6.0",

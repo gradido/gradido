@@ -39,6 +39,13 @@
           >
             {{ $t('navbar.projectBranding') }}
           </BNavItem>
+          <BNavItem
+            v-if="store.state.moderator?.roles?.includes('ADMIN')"
+            to="/creaSettings"
+            :active="isActive('creaSettings')"
+          >
+            {{ $t('crea.settings.title') }}
+          </BNavItem>
           <BNavItem to="/statistic" :active="isActive('statistic')">
             {{ $t('navbar.statistic') }}
           </BNavItem>

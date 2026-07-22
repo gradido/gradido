@@ -180,6 +180,37 @@ export class User extends BaseEntity {
   })
   gmsPublishLocation: number
 
+  // Crea salutation/signature fields (E-013), moderator-curated; null = not set.
+  @Column({
+    name: 'gender',
+    type: 'varchar',
+    length: 8,
+    nullable: true,
+    default: null,
+    collation: 'utf8mb4_unicode_ci',
+  })
+  gender: string | null
+
+  @Column({
+    name: 'salutation',
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+    default: null,
+    collation: 'utf8mb4_unicode_ci',
+  })
+  salutation: string | null
+
+  @Column({
+    name: 'crea_signature',
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+    default: null,
+    collation: 'utf8mb4_unicode_ci',
+  })
+  creaSignature: string | null
+
   @Column({ name: 'gms_registered', type: 'bool', default: false })
   gmsRegistered: boolean
 

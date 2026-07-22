@@ -21,7 +21,7 @@
     "lint:fix:unsafe": "biome check --fix --unsafe",
     "start": "cross-env TZ=UTC node build/index.js",
     "typecheck": "tsc --noEmit",
-    "clear": "rm -rf node_modules && rm -rf build && rm -rf .turbo"
+    "clear": "rimraf node_modules && rimraf build && rimraf .turbo"
   },
   "nodemonConfig": {
     "ignore": [
@@ -35,6 +35,7 @@
   },
   "devDependencies": {
     "@anatine/esbuild-decorators": "^0.2.19",
+    "@anthropic-ai/sdk": "^0.110.0",
     "@biomejs/biome": "2.0.0",
     "@swc/cli": "^0.7.3",
     "@swc/core": "^1.11.24",
@@ -87,6 +88,7 @@
     "redis-semaphore": "^5.6.2",
     "reflect-metadata": "^0.1.13",
     "regenerator-runtime": "^0.14.1",
+    "rimraf": "3.0.2",
     "shared": "*",
     "source-map-support": "^0.5.21",
     "ts-jest": "29.4.0",
