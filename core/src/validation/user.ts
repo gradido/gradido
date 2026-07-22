@@ -21,7 +21,7 @@ export async function validateAlias(alias: string, userId?: number ): Promise<tr
   }
   // Checks if an alias is already used by any user or by other users’ alias history.
   if (await aliasExists(alias, userId)) {
-    logger.warn('alias already in use', alias)
+    logger.warn(`alias already in use: alias=${alias}, userId=${userId}`)
     throw new Error('Given alias is already in use')
   }
 
