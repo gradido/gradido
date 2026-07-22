@@ -45,7 +45,7 @@ import { storeForeignUser } from './storeForeignUser'
 import { storeLinkAsRedeemed } from './storeLinkAsRedeemed'
 
 const createLogger = (method: string) =>
-  getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.util.processXComSendCoins.${method}`)
+  getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.logic.processXComSendCoins.${method}`)
 
 export async function processXComCompleteTransaction(
   senderCommunityUuid: string,
@@ -426,7 +426,7 @@ export async function processXComCommittingSendCoins(
     const pendingTx = await DbPendingTransaction.findOneBy({
       userCommunityUuid: senderCom.communityUuid ?? 'homeCom-UUID',
       userGradidoID: sender.gradidoID,
-      userName: fullName(sender.firstName, sender.lastName),
+      userName: sender.alias, // fullName(sender.firstName, sender.lastName),
       linkedUserCommunityUuid:
         receiverCom.communityUuid ?? CONFIG_CORE.FEDERATION_XCOM_RECEIVER_COMMUNITY_UUID,
       linkedUserGradidoID: recipient.recipGradidoID ? recipient.recipGradidoID : undefined,
