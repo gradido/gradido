@@ -104,6 +104,6 @@ export default {
 
 <style scoped lang="scss">
 .is-moderator {
-  background-color: var(--bs-f5);
+  background-color: var(--surface-muted);
 }
 </style>
