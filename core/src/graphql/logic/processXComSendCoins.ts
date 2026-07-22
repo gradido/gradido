@@ -573,9 +573,16 @@ export async function processXComCommittingSendCoins(
       }
     } else {
       if (methodLogger.isDebugEnabled()) {
-        methodLogger.debug(
-          `did not find a pending Tx: ${new PendingTransactionLoggingView(pendingTx)}`,
-        )
+        methodLogger.debug(`didn't find a pending Tx with:`, {
+          receiverCom: new CommunityLoggingView(receiverCom),
+          senderCom: new CommunityLoggingView(senderCom),
+          creationDate: creationDate.toISOString(),
+          amount: amount.toString(),
+          memo: memo.substring(0, 5),
+          sender: new UserLoggingView(sender),
+          recipient: new SendCoinsResultLoggingView(recipient),
+          transactionLinkId,
+        })
       }
     }
   } catch (err) {
