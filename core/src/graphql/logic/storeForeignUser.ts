@@ -33,6 +33,7 @@ export async function storeForeignUser(
         foreignUser.foreign = true
         if (committingResult.recipAlias !== null) {
           foreignUser.alias = committingResult.recipAlias
+          foreignUser.aliasFirstUsageAt = new Date()
         }
         foreignUser.communityUuid = recipCom.communityUuid
         if (committingResult.recipFirstName !== null) {
@@ -85,6 +86,7 @@ export async function storeForeignUser(
         }
         if (committingResult.recipAlias !== null) {
           user.alias = committingResult.recipAlias
+          user.aliasFirstUsageAt = new Date()
         }
         /*
         if (!user.emailContact && committingResult.recipEmail !== null) {
