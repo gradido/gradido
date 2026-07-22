@@ -496,6 +496,7 @@ export async function processXComCommittingSendCoins(
             )
             if (sendCoinsResult.vote) {
               if (pendingTx.linkedUserName) {
+                /*
                 sendCoinsResult.recipFirstName = pendingTx.linkedUserName.slice(
                   0,
                   pendingTx.linkedUserName.indexOf(' '),
@@ -503,7 +504,9 @@ export async function processXComCommittingSendCoins(
                 sendCoinsResult.recipLastName = pendingTx.linkedUserName.slice(
                   pendingTx.linkedUserName.indexOf(' '),
                   pendingTx.linkedUserName.length,
-                )
+                )*/
+                sendCoinsResult.recipFirstName = recipient.recipFirstName
+                sendCoinsResult.recipLastName = recipient.recipLastName
               }
               sendCoinsResult.recipGradidoID = pendingTx.linkedUserGradidoID
               sendCoinsResult.recipAlias = recipient.recipAlias
@@ -567,6 +570,12 @@ export async function processXComCommittingSendCoins(
             throw new Error(errmsg)
           }
         }
+      }
+    } else {
+      if (methodLogger.isDebugEnabled()) {
+        methodLogger.debug(
+          `did not find a pending Tx: ${new PendingTransactionLoggingView(pendingTx)}`,
+        )
       }
     }
   } catch (err) {
