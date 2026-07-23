@@ -276,11 +276,12 @@
   },
   "name": "Имя",
   "navbar": {
-    "automaticContributions": "Автоматические вклады",
+    "automaticContributions": "Начальный баланс",
+    "crea": "Crea",
     "instances": "Экземпляры",
     "logout": "Выйти",
     "my-account": "Мой аккаунт",
-    "projectBranding": "Брендинг проекта",
+    "projectBranding": "Проекты",
     "projectBrandingTooltip": "Используйте собственный логотип при входе в Gradido и добавляйте новых пользователей в пространство Humhub",
     "statistic": "Статистика",
     "user_search": "Поиск пользователей"

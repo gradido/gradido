@@ -9,7 +9,7 @@
       class="mt-5"
     >
       <BButton
-        v-if="!editContributionLink"
+        v-if="isAdmin && !editContributionLink"
         class="my-3 d-flex justify-content-left"
         data-test="new-contribution-link-button"
         @click="visible = !visible"
@@ -70,6 +70,13 @@ export default {
       contributionLinkData: {},
       editContributionLink: false,
     }
+  },
+  computed: {
+    // Creating a starting balance is an administrator's job. Moderators may look the links
+    // up and pass them on, so they keep the list and the QR-code view.
+    isAdmin() {
+      return this.$store.state.moderator?.roles?.includes('ADMIN') ?? false
+    },
   },
   methods: {
     closeContributionForm() {

@@ -44,6 +44,21 @@ const addNavigationGuards = (router, store, apollo, i18n) => {
       next()
     }
   })
+
+  // Routes marked `requiresAdmin` are reserved for administrators. Menu visibility is a
+  // convenience, not an access boundary, so the restriction is enforced here on the route
+  // itself as well; the backend rights remain the final word.
+  router.beforeEach((to, from, next) => {
+    if (
+      !CONFIG.DEBUG_DISABLE_AUTH &&
+      to.meta?.requiresAdmin &&
+      !store.state.moderator?.roles?.includes('ADMIN')
+    ) {
+      next({ path: '/not-found' })
+    } else {
+      next()
+    }
+  })
 }
 
 export default addNavigationGuards

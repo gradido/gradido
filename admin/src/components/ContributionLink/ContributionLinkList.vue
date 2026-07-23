@@ -58,13 +58,14 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useMutation } from '@vue/apollo-composable'
 import { deleteContributionLink } from '@/graphql/deleteContributionLink.js'
 import FigureQrCode from '../FigureQrCode'
 import { useModal } from 'bootstrap-vue-next'
 import { useI18n } from 'vue-i18n'
 import { useAppToast } from '@/composables/useToast'
+import { useIsAdmin } from '@/composables/useIsAdmin'
 
 const props = defineProps({
   items: {
@@ -72,6 +73,8 @@ const props = defineProps({
     required: true,
   },
 })
+
+const isAdmin = useIsAdmin()
 
 const qrLinkModal = ref(false)
 const { show: showQrCodeModal } = useModal('qr-link-modal')
@@ -90,7 +93,7 @@ const { toastError, toastSuccess } = useAppToast()
 
 const modalData = ref({})
 
-const fields = ref([
+const fields = computed(() => [
   'name',
   'memo',
   'amount',
@@ -106,8 +109,7 @@ const fields = ref([
     label: t('contributionLink.validTo'),
     formatter: (value) => (value ? d(new Date(value)) : ''),
   },
-  'delete',
-  'edit',
+  ...(isAdmin.value ? ['delete', 'edit'] : []),
   'show',
 ])
 

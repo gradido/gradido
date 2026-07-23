@@ -176,4 +176,54 @@ describe('Navigation Guards', () => {
       expect(next).toHaveBeenCalledWith()
     })
   })
+
+  // Menu visibility is a convenience, not an access boundary. This third guard enforces the
+  // administrator-only routes for the route itself; the backend rights remain the final word.
+  describe('Third Navigation Guard — administrator-only routes', () => {
+    let thirdGuard, next
+
+    beforeEach(() => {
+      thirdGuard = router.beforeEach.mock.calls[2][0]
+      next = vi.fn()
+      store.state.token = 'valid-token'
+    })
+
+    it('lets an administrator in', () => {
+      store.state.moderator = { roles: ['ADMIN'] }
+      thirdGuard({ path: '/contribution-links', meta: { requiresAdmin: true } }, {}, next)
+      expect(next).toHaveBeenCalledWith()
+    })
+
+    it('turns a moderator away', () => {
+      store.state.moderator = { roles: ['MODERATOR'] }
+      thirdGuard({ path: '/contribution-links', meta: { requiresAdmin: true } }, {}, next)
+      expect(next).toHaveBeenCalledWith({ path: '/not-found' })
+    })
+
+    it('turns a KI-Moderator away just the same', () => {
+      store.state.moderator = { roles: ['MODERATOR_AI'] }
+      thirdGuard({ path: '/projectBranding', meta: { requiresAdmin: true } }, {}, next)
+      expect(next).toHaveBeenCalledWith({ path: '/not-found' })
+    })
+
+    it('leaves the ordinary routes alone', () => {
+      store.state.moderator = { roles: ['MODERATOR'] }
+      thirdGuard({ path: '/creation-confirm', meta: {} }, {}, next)
+      expect(next).toHaveBeenCalledWith()
+    })
+
+    it('leaves a route without meta alone', () => {
+      store.state.moderator = { roles: ['MODERATOR'] }
+      thirdGuard({ path: '/user' }, {}, next)
+      expect(next).toHaveBeenCalledWith()
+    })
+
+    it('allows navigation when auth is disabled for debug', () => {
+      CONFIG.DEBUG_DISABLE_AUTH = true
+      store.state.moderator = { roles: ['MODERATOR'] }
+      thirdGuard({ path: '/contribution-links', meta: { requiresAdmin: true } }, {}, next)
+      expect(next).toHaveBeenCalledWith()
+      CONFIG.DEBUG_DISABLE_AUTH = false
+    })
+  })
 })
