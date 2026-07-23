@@ -44,7 +44,7 @@
             to="/creaSettings"
             :active="isActive('creaSettings')"
           >
-            {{ $t('crea.settings.title') }}
+            {{ $t('navbar.crea') }}
           </BNavItem>
           <BNavItem to="/statistic" :active="isActive('statistic')">
             {{ $t('navbar.statistic') }}
