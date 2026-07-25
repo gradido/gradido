@@ -126,7 +126,12 @@ export class CreaResolver {
   @Query(() => CreaSettings)
   async creaSettings(): Promise<CreaSettings> {
     const settings = await readCreaSettings()
-    return { model: settings.model, effort: settings.effort, defaultModel: defaultCreaModel() }
+    return {
+      model: settings.model,
+      effort: settings.effort,
+      defaultModel: defaultCreaModel(),
+      fastMode: settings.fastMode,
+    }
   }
 
   /**
@@ -136,8 +141,17 @@ export class CreaResolver {
   @Authorized([RIGHTS.AI_SETTINGS])
   @Mutation(() => CreaSettings)
   async setCreaSettings(@Arg('input') input: CreaSettingsInput): Promise<CreaSettings> {
-    const settings = await writeCreaSettings(input.model ?? null, input.effort as CreaEffort)
-    return { model: settings.model, effort: settings.effort, defaultModel: defaultCreaModel() }
+    const settings = await writeCreaSettings(
+      input.model ?? null,
+      input.effort as CreaEffort,
+      input.fastMode ?? false,
+    )
+    return {
+      model: settings.model,
+      effort: settings.effort,
+      defaultModel: defaultCreaModel(),
+      fastMode: settings.fastMode,
+    }
   }
 
   /**
@@ -153,6 +167,6 @@ export class CreaResolver {
       return { ok: false, message: 'Die Anthropic-API ist nicht aktiv (kein Schluessel gesetzt).' }
     }
     const model = input.model?.trim() || defaultCreaModel()
-    return client.probeModel(model, input.effort as CreaEffort)
+    return client.probeModel(model, input.effort as CreaEffort, input.fastMode ?? false)
   }
 }

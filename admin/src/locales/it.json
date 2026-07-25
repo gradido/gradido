@@ -120,6 +120,8 @@
       "effortMax": "Maximum",
       "effortMedium": "Medium",
       "effortXhigh": "Very high",
+      "fastMode": "Fast mode",
+      "fastModeHint": "Same model, faster output. Only available on Opus models, and answers cost twice as much. Where it is unavailable, Crea automatically answers at normal speed.",
       "model": "AI model",
       "modelHint": "Leave empty = default model ({model}). You can type a new model directly.",
       "modelPlaceholder": "Default: {model}",

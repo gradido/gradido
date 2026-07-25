@@ -21,6 +21,12 @@
         <BFormSelect v-model="form.effort" :options="effortOptions" />
         <small class="text-muted d-block mt-1">{{ $t('crea.settings.effortHint') }}</small>
       </BFormGroup>
+      <BFormGroup class="mb-3">
+        <BFormCheckbox v-model="form.fastMode">
+          {{ $t('crea.settings.fastMode') }}
+        </BFormCheckbox>
+        <small class="text-muted d-block mt-1">{{ $t('crea.settings.fastModeHint') }}</small>
+      </BFormGroup>
       <BButton variant="primary" :disabled="saving" @click="save">
         {{ $t('save') }}
       </BButton>
@@ -50,7 +56,7 @@ const { toastSuccess, toastError } = useAppToast()
 
 const isAdmin = computed(() => store.state.moderator.roles.includes('ADMIN'))
 
-const form = ref({ model: '', effort: 'disabled' })
+const form = ref({ model: '', effort: 'disabled', fastMode: false })
 const defaultModel = ref('')
 const saving = ref(false)
 const testing = ref(false)
@@ -58,7 +64,7 @@ const testing = ref(false)
 const modelPresetOptions = computed(() => [
   { value: '', text: t('crea.settings.presetPlaceholder') },
   { value: 'claude-sonnet-5', text: 'claude-sonnet-5' },
-  { value: 'claude-opus-4-8', text: 'claude-opus-4-8' },
+  { value: 'claude-opus-5', text: 'claude-opus-5' },
   { value: 'claude-haiku-4-5', text: 'claude-haiku-4-5' },
   { value: 'claude-fable-5', text: 'claude-fable-5' },
   { value: 'claude-opus-4-7', text: 'claude-opus-4-7' },
@@ -84,7 +90,11 @@ watch(
   () => {
     const settings = result.value?.creaSettings
     if (settings) {
-      form.value = { model: settings.model ?? '', effort: settings.effort ?? 'disabled' }
+      form.value = {
+        model: settings.model ?? '',
+        effort: settings.effort ?? 'disabled',
+        fastMode: settings.fastMode ?? false,
+      }
       defaultModel.value = settings.defaultModel
     }
   },
@@ -100,7 +110,7 @@ const { mutate: testMutation } = useMutation(testCreaModel)
 
 function apiInput() {
   const model = form.value.model.trim()
-  return { model: model || null, effort: form.value.effort }
+  return { model: model || null, effort: form.value.effort, fastMode: form.value.fastMode }
 }
 
 function onPreset(value) {
@@ -112,7 +122,11 @@ async function save() {
   try {
     const { data } = await saveMutation({ input: apiInput() })
     const settings = data.setCreaSettings
-    form.value = { model: settings.model ?? '', effort: settings.effort }
+    form.value = {
+      model: settings.model ?? '',
+      effort: settings.effort,
+      fastMode: settings.fastMode ?? false,
+    }
     defaultModel.value = settings.defaultModel
     toastSuccess(t('crea.settings.saved'))
   } catch (e) {

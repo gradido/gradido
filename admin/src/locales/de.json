@@ -120,6 +120,8 @@
       "effortMax": "Maximal",
       "effortMedium": "Mittel",
       "effortXhigh": "Sehr hoch",
+      "fastMode": "Schneller Modus",
+      "fastModeHint": "Gleiches Modell, schnellere Ausgabe. Nur bei Opus-Modellen möglich, und die Antworten kosten dabei das Doppelte. Wo es nicht geht, antwortet Crea automatisch normal.",
       "model": "KI-Modell",
       "modelHint": "Leer lassen = Standardmodell ({model}). Ein neues Modell kannst Du direkt eintragen.",
       "modelPlaceholder": "Standard: {model}",

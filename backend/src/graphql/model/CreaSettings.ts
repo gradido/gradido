@@ -14,6 +14,10 @@ export class CreaSettings {
 
   @Field()
   defaultModel: string
+
+  // Faster output at premium pricing, where the chosen model supports it.
+  @Field()
+  fastMode: boolean
 }
 
 // Result of the admin "test model" probe: whether a tiny call to the chosen model
