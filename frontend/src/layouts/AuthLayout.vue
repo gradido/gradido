@@ -61,10 +61,12 @@
                   >
                     <div class="text-light">
                       <span class="pointer" @click="setTextSize(0.85)">{{ $t('85') }}</span>
-                      {{ $t('|') }}
-                      <span class="pointer" @click="setTextSize(1)">{{ $t('100') }}</span>
-                      {{ $t('|') }}
-                      <span class="pointer" @click="setTextSize(1.25)">{{ $t('125') }}</span>
+                      <span class="pointer separator-start ms-2 ps-2" @click="setTextSize(1)">
+                        {{ $t('100') }}
+                      </span>
+                      <span class="pointer separator-start ms-2 ps-2" @click="setTextSize(1.25)">
+                        {{ $t('125') }}
+                      </span>
                     </div>
                   </BPopover>
                 </BCol>
