@@ -54,6 +54,21 @@ function isFastModeRejection(error: unknown): boolean {
 // TODO: use i18n for prompts in the future so the ai didn't need to translate by non-german moderators which can maybe reduce the accuracy
 
 /**
+ * What to tell the admin when fast mode was refused. Never claim a cause we have not
+ * checked: fast mode has its own rate limit, so a 429 means "busy right now" rather
+ * than "this model cannot do it", and any other refusal is reported in the API's own
+ * words. Guessing "not available for this model" would send an admin off changing the
+ * model to fix something the model is not responsible for.
+ */
+function fastModeRefusalNote(error: unknown): string {
+  if (error instanceof Anthropic.RateLimitError) {
+    return ' (schneller Modus gerade ausgelastet - Crea antwortet normal)'
+  }
+  const detail = error instanceof Error ? error.message : String(error)
+  return ` (schneller Modus abgelehnt: ${detail} - Crea antwortet normal)`
+}
+
+/**
  * Singleton client for the Anthropic (Claude) API, used by the Crea moderation
  * assistant. Mirrors the OpenaiClient shape: disabled unless the API is active
  * and a key is configured.
@@ -295,9 +310,9 @@ export class AnthropicClient {
             messages: [{ role: 'user', content: 'Antworte nur mit dem Wort: OK' }],
           }
 
-    // With fast mode requested, probe it explicitly: a downgrade is reported rather
-    // than hidden, so the admin learns before saving that this model answers normally
-    // but not in fast mode.
+    // With fast mode requested, probe it explicitly and report a downgrade rather than
+    // hiding it, so the admin learns before saving that this model answers normally but
+    // not in fast mode - and, from the API's own wording, why.
     let fastNote = ''
     if (fastMode) {
       try {
@@ -311,7 +326,7 @@ export class AnthropicClient {
         if (!isFastModeRejection(error)) {
           return { ok: false, message: error instanceof Error ? error.message : String(error) }
         }
-        fastNote = ' (schneller Modus fuer dieses Modell nicht verfuegbar - Crea antwortet normal)'
+        fastNote = fastModeRefusalNote(error)
       }
     }
 
@@ -357,7 +372,7 @@ export class AnthropicClient {
         throw error
       }
       logger.warn(
-        `crea fast mode unavailable for model ${body.model} (${
+        `crea fast mode refused for model ${body.model} (${
           error instanceof Error ? error.message : String(error)
         }); retrying at normal speed`,
       )

@@ -67,7 +67,7 @@ const modelPresetOptions = computed(() => [
   { value: 'claude-opus-5', text: 'claude-opus-5' },
   { value: 'claude-haiku-4-5', text: 'claude-haiku-4-5' },
   { value: 'claude-fable-5', text: 'claude-fable-5' },
-  { value: 'claude-opus-4-7', text: 'claude-opus-4-7' },
+  { value: 'claude-opus-4-8', text: 'claude-opus-4-8' },
   { value: 'claude-sonnet-4-6', text: 'claude-sonnet-4-6' },
 ])
 
