@@ -4,7 +4,7 @@
     v-model="modalVisible"
     size="lg"
     @shown="onShown"
-    @hidden="resetState"
+    @hidden="onHidden"
   >
     <template #title>
       <span class="d-flex align-items-center gap-2">
@@ -196,6 +196,14 @@
         <p class="mt-1 mb-0 text-muted small">{{ $t('crea.supplementHint') }}</p>
       </div>
 
+      <div class="mb-3">
+        <p class="mb-1">
+          <strong>{{ $t('crea.salutation') }}</strong>
+        </p>
+        <BFormInput v-model="salutation" size="sm" />
+        <p class="mt-1 mb-0 text-muted small">{{ $t('crea.salutationHint') }}</p>
+      </div>
+
       <p class="mb-1">
         <strong>{{ $t('crea.response') }}</strong>
       </p>
@@ -245,6 +253,7 @@ import {
   creaEvaluateContribution,
   creaRewriteBatch,
   creaRewriteResponse,
+  setCreaSalutation,
 } from '@/graphql/crea.graphql'
 import { useBoldShortcut } from '@/composables/useBoldShortcut'
 import { useCreaClipboard } from '@/composables/useCreaClipboard'
@@ -260,6 +269,11 @@ const STUB_PREVIEW_FLAG = 'stub_preview'
 const SIGNATURE_STORAGE_KEY = 'crea.moderatorSignature'
 // The placeholder Crea closes its reply with; filled in locally with the signature.
 const SIGNATURE_PLACEHOLDER = '[SIGNATUR]'
+// The placeholder Crea opens its reply with. Unlike the signature, the salutation
+// belongs to the participant and is stored on their record (E-013), so the next
+// moderator starts from it instead of guessing again. Filled locally either way -
+// the participant's name never reaches the API.
+const SALUTATION_PLACEHOLDER = '[ANREDE]'
 
 // Crea's evaluation modal for a single contribution (DO-4 v1 slice). Advisory
 // only: confirm/deny/send stay the existing table buttons; Crea recommends and
@@ -290,6 +304,13 @@ const rawResponseText = ref('')
 const chosenDecision = ref(null)
 const moderatorContext = ref('')
 const rewriting = ref(false)
+// How this participant is addressed. Prefilled with what the backend resolved (a
+// stored salutation if there is one, otherwise the name heuristic) and editable; the
+// draft follows immediately. Saved on closing, and only when the moderator actually
+// changed it - so a heuristic guess never gets frozen onto the participant.
+const salutation = ref('')
+const shownSalutation = ref('')
+
 // The public note Crea drafts for the contribution memo on a confirm rewrite (E-019).
 // Editable; empty unless the moderator confirmed a deviation and Crea returned one.
 const supplementText = ref('')
@@ -306,8 +327,14 @@ const loadingText = computed(() => {
   return count === 1 ? t('crea.loading') : t('crea.loadingPlural')
 })
 
-const applySignature = (text, signature) =>
-  signature ? text.split(SIGNATURE_PLACEHOLDER).join(signature) : text
+// Fills both placeholders for display. Crea's reply arrives with [ANREDE] and
+// [SIGNATUR] intact, so either can be changed and the draft follows at once.
+const renderDraft = (text, salutationValue, signature) => {
+  const withSalutation = salutationValue
+    ? text.split(SALUTATION_PLACEHOLDER).join(salutationValue)
+    : text
+  return signature ? withSalutation.split(SIGNATURE_PLACEHOLDER).join(signature) : withSalutation
+}
 
 // Cmd/Ctrl+B wraps the selected text in ** so the moderator gets the familiar
 // bold shortcut in the editable draft (rendered bold once the reply is sent).
@@ -354,8 +381,22 @@ watch(moderatorSignature, (value, previous) => {
     // ignore storage failures (private mode etc.)
   }
   // Keep the draft's signature in sync as long as the moderator hasn't hand-edited it.
-  if (evaluation.value && responseText.value === applySignature(rawResponseText.value, previous)) {
-    responseText.value = applySignature(rawResponseText.value, value)
+  if (
+    evaluation.value &&
+    responseText.value === renderDraft(rawResponseText.value, salutation.value, previous)
+  ) {
+    responseText.value = renderDraft(rawResponseText.value, salutation.value, value)
+  }
+})
+
+// Same for the salutation: the draft follows while the moderator types, and stops
+// following once they have edited the text by hand.
+watch(salutation, (value, previous) => {
+  if (
+    evaluation.value &&
+    responseText.value === renderDraft(rawResponseText.value, previous, moderatorSignature.value)
+  ) {
+    responseText.value = renderDraft(rawResponseText.value, value, moderatorSignature.value)
   }
 })
 
@@ -437,6 +478,7 @@ const { mutate: evaluateMutation } = useMutation(creaEvaluateContribution)
 const { mutate: rewriteMutation } = useMutation(creaRewriteResponse)
 const { mutate: evaluateBatchMutation } = useMutation(creaEvaluateBatch)
 const { mutate: rewriteBatchMutation } = useMutation(creaRewriteBatch)
+const { mutate: saveSalutationMutation } = useMutation(setCreaSalutation)
 // Not destructured: useApolloClient() is undefined when no Apollo provider is present
 // (e.g. in the CreationConfirm unit tests that mount this modal), and destructuring
 // undefined at setup would throw. loadSiblings guards on it before use.
@@ -450,6 +492,8 @@ const buildInput = (contribution) => ({
   contributionRef: String(contribution.id),
   // Local only: fills the [ANREDE] placeholder, never forwarded to the API (E-012).
   recipientFirstName: contribution.user?.firstName ?? null,
+  // A salutation stored for this participant wins over the name heuristic (E-013).
+  salutation: contribution.user?.salutation ?? null,
   // Pseudonymous handle for the record — the user id, never a name (E-010).
   personPseudonym: contribution.userId != null ? String(contribution.userId) : null,
   date: contribution.contributionDate ?? null,
@@ -467,6 +511,8 @@ const resetState = () => {
   moderatorContext.value = ''
   rewriting.value = false
   supplementText.value = ''
+  salutation.value = ''
+  shownSalutation.value = ''
   contributions.value = []
   selectedIds.value = []
 }
@@ -482,7 +528,13 @@ const runEvaluation = async () => {
     const response = await evaluateMutation({ input: buildInput(props.contribution) })
     evaluation.value = response.data.creaEvaluateContribution
     rawResponseText.value = evaluation.value.responseText
-    responseText.value = applySignature(rawResponseText.value, moderatorSignature.value)
+    salutation.value = evaluation.value.salutation ?? ''
+    shownSalutation.value = salutation.value
+    responseText.value = renderDraft(
+      rawResponseText.value,
+      salutation.value,
+      moderatorSignature.value,
+    )
     // Preselect Crea's own recommendation, so switching away = deviating.
     chosenDecision.value = evaluation.value.overallVerdict
     moderatorContext.value = ''
@@ -530,6 +582,7 @@ const buildBatchInput = () => ({
   // Local only: fills [ANREDE], never forwarded to the API (E-012). All contributions
   // belong to the same participant, so one first name covers them.
   recipientFirstName: props.contribution?.user?.firstName ?? null,
+  salutation: props.contribution?.user?.salutation ?? null,
   uiLanguage: locale.value,
 })
 
@@ -549,7 +602,13 @@ const runBatchEvaluation = async () => {
     const response = await evaluateBatchMutation({ input: buildBatchInput() })
     evaluation.value = response.data.creaEvaluateBatch
     rawResponseText.value = evaluation.value.responseText
-    responseText.value = applySignature(rawResponseText.value, moderatorSignature.value)
+    salutation.value = evaluation.value.salutation ?? ''
+    shownSalutation.value = salutation.value
+    responseText.value = renderDraft(
+      rawResponseText.value,
+      salutation.value,
+      moderatorSignature.value,
+    )
     // Preselect Crea's own overall recommendation, so switching a button = deviating.
     chosenDecision.value = evaluation.value.overallVerdict
     moderatorContext.value = ''
@@ -588,7 +647,11 @@ const rewriteForDecision = async () => {
       })
       const result = response.data.creaRewriteBatch
       rawResponseText.value = result.responseText
-      responseText.value = applySignature(rawResponseText.value, moderatorSignature.value)
+      responseText.value = renderDraft(
+        rawResponseText.value,
+        salutation.value,
+        moderatorSignature.value,
+      )
       // A confirm deviation also carries the public memo note (E-019); surfacing it fills
       // the "Ergänzung" field and enables the "Text ergänzen" button in the reply form.
       supplementText.value = result.memoSupplement ?? ''
@@ -602,7 +665,11 @@ const rewriteForDecision = async () => {
       })
       const result = response.data.creaRewriteResponse
       rawResponseText.value = result.responseText
-      responseText.value = applySignature(rawResponseText.value, moderatorSignature.value)
+      responseText.value = renderDraft(
+        rawResponseText.value,
+        salutation.value,
+        moderatorSignature.value,
+      )
       // A confirm rewrite also carries the public memo note (E-019); inquire/deny return
       // null. Surfacing it fills the editable field above and the "Text ergänzen" button.
       supplementText.value = result.memoSupplement ?? ''
@@ -638,6 +705,29 @@ const onShown = async () => {
     contributions.value = []
     runEvaluation()
   }
+}
+
+// Store the salutation when the window closes, and only when the moderator changed
+// what was shown. Saving the prefilled value would freeze the name heuristic's guess
+// onto the participant; saving on every keystroke would store half-typed nicknames.
+// An emptied field clears the stored salutation and hands the decision back to the
+// heuristic.
+const persistSalutation = async () => {
+  const userId = props.contribution?.userId
+  const value = salutation.value.trim()
+  if (userId == null || value === shownSalutation.value.trim()) {
+    return
+  }
+  try {
+    await saveSalutationMutation({ userId: Number(userId), salutation: value || null })
+  } catch (error) {
+    toastError(error.message)
+  }
+}
+
+const onHidden = async () => {
+  await persistSalutation()
+  resetState()
 }
 
 const verdictVariant = (verdict) => {

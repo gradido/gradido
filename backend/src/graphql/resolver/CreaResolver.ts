@@ -5,7 +5,8 @@ import { CreaBatchEvaluation } from '@model/CreaBatchEvaluation'
 import { CreaEvaluation } from '@model/CreaEvaluation'
 import { CreaRewriteResult } from '@model/CreaRewriteResult'
 import { CreaModelTestResult, CreaSettings } from '@model/CreaSettings'
-import { Arg, Authorized, Mutation, Query, Resolver } from 'type-graphql'
+import { User as DbUser } from 'database'
+import { Arg, Authorized, Int, Mutation, Query, Resolver } from 'type-graphql'
 import { AnthropicClient } from '@/apis/anthropic/AnthropicClient'
 import { metaFromInput, persistCreaRecords } from '@/apis/anthropic/crea/records'
 import {
@@ -115,6 +116,30 @@ export class CreaResolver {
       return buildStubBatchRewrite(input)
     }
     throw new Error('Anthropic API is not enabled')
+  }
+
+  /**
+   * Stores how this participant is addressed, so the next moderator starts from the
+   * same salutation instead of guessing again (E-013). Set from Crea's evaluation
+   * window, where the wrong salutation is noticed. An empty value clears it and hands
+   * the decision back to the first-name heuristic.
+   *
+   * Same right as the rest of the moderation: whoever may have Crea draft a reply to
+   * this person may also record how that person is addressed.
+   */
+  @Authorized([RIGHTS.AI_SEND_MESSAGE])
+  @Mutation(() => Boolean)
+  async setCreaSalutation(
+    @Arg('userId', () => Int) userId: number,
+    @Arg('salutation', () => String, { nullable: true }) salutation?: string | null,
+  ): Promise<boolean> {
+    const user = await DbUser.findOneBy({ id: userId })
+    if (!user) {
+      throw new Error('User not found')
+    }
+    user.salutation = salutation?.trim() || null
+    await DbUser.save(user)
+    return true
   }
 
   /**

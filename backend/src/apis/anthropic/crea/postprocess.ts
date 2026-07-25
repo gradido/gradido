@@ -4,35 +4,37 @@ import {
   buildSalutation,
   computeDiscrepancy,
   resolveEnteredHours,
-  SALUTATION_PLACEHOLDER,
   SIGNATURE_PLACEHOLDER,
   sumActivityHours,
 } from './deterministics'
 
 /**
- * Fills the [ANREDE] placeholder locally from the recipient's first name (E-012 —
- * PII stays local). Shared by the full evaluation, the rewrite call, the batch call
- * and the stub, so all paths build the salutation identically. Takes only the
- * salutation fields (not the whole input) so the batch input can reuse it. Returns
- * the filled text plus whether the salutation is uncertain (so callers can flag it,
- * E-005).
+ * Resolves the salutation locally (E-012 — PII stays local): a salutation stored for
+ * this participant wins, otherwise the first-name heuristic decides. Shared by the
+ * full evaluation, the rewrite call, the batch call and the stub, so all paths
+ * resolve it identically. Takes only the salutation fields (not the whole input) so
+ * the batch input can reuse it. Also reports whether the salutation is uncertain, so
+ * callers can flag it (E-005).
+ *
+ * The [ANREDE] placeholder itself is left in the text and filled in the browser, the
+ * same reactive pattern the signature already uses: the moderator can correct the
+ * salutation and watch the draft follow immediately. The recipient's name still never
+ * reaches the API — it is only read here and in the client, never sent to the model.
  */
-export function fillSalutation(
-  recipient: { recipientFirstName?: string | null; salutation?: string | null },
-  text: string,
-): { text: string; uncertain: boolean } {
-  const { salutation, uncertain } = buildSalutation(
-    recipient.recipientFirstName,
-    recipient.salutation,
-  )
-  return { text: text.split(SALUTATION_PLACEHOLDER).join(salutation), uncertain }
+export function resolveSalutation(recipient: {
+  recipientFirstName?: string | null
+  salutation?: string | null
+}): { salutation: string; uncertain: boolean } {
+  return buildSalutation(recipient.recipientFirstName, recipient.salutation)
 }
 
 /**
  * Layer-3 post-processing, shared by the live Anthropic client and the stub
  * preview (design docs `G` ch. 5-6, E-009 / E-012 / E-013). The CODE owns the
- * discrepancy flag and fills the [ANREDE] / [SIGNATUR] placeholders locally, so
- * neither the recipient's nor the moderator's name ever reaches the API.
+ * discrepancy flag and resolves the salutation, so neither the recipient's nor the
+ * moderator's name ever reaches the API. Both the [ANREDE] and the [SIGNATUR]
+ * placeholder are filled in the browser, where the moderator can change either one
+ * and see the draft follow.
  *
  * Mutates and returns the passed evaluation (always a freshly parsed/built
  * object, so in-place editing is safe).
@@ -52,10 +54,11 @@ export function applyCreaDeterministics(
   }
   evaluation.discrepancy = authoritative
 
-  // Fill [ANREDE] locally from the recipient's first name; flag an uncertain
-  // salutation for the moderator (E-005).
-  const { text, uncertain } = fillSalutation(input, evaluation.responseText)
-  evaluation.responseText = text
+  // Resolve the salutation locally and hand it to the client, which fills [ANREDE]
+  // reactively. An uncertain salutation is flagged for the moderator (E-005); once a
+  // salutation is stored for this participant it wins and the flag stays away.
+  const { salutation, uncertain } = resolveSalutation(input)
+  evaluation.salutation = salutation
   if (uncertain) {
     evaluation.flags = [...(evaluation.flags ?? []), 'anrede_unsicher']
   }

@@ -67,6 +67,13 @@ export class CreaEvaluation {
   @Field()
   responseText: string
 
+  // The salutation the code resolved for this participant — a stored one if there is
+  // one, otherwise the first-name heuristic. The reply still carries the [ANREDE]
+  // placeholder; the client fills it with this and lets the moderator change it
+  // (E-013). Sent to the client, never to the model.
+  @Field()
+  salutation: string
+
   @Field(() => [CreaOpenPoint])
   openPoints: CreaOpenPoint[]
 

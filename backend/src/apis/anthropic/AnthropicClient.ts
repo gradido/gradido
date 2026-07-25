@@ -14,7 +14,7 @@ import {
   SIGNATURE_PLACEHOLDER,
 } from './crea/deterministics'
 import { CREA_BATCH_SCHEMA, CREA_OUTPUT_SCHEMA, CREA_REWRITE_SCHEMA } from './crea/outputSchema'
-import { applyCreaDeterministics, fillSalutation } from './crea/postprocess'
+import { applyCreaDeterministics, resolveSalutation } from './crea/postprocess'
 import { buildCreaSystemPrompt, moderatorDecisionLabel } from './crea/ruleset'
 import { type CreaEffort, resolveCreaModelParams } from './crea/settings'
 
@@ -133,13 +133,14 @@ export class AnthropicClient {
       responseText: string
       memoSupplement?: string | null
     }
-    // Fill [ANREDE] locally on the reply (PII stays local); [SIGNATUR] is left for
-    // the client to fill reactively (E-013 / E-014). No discrepancy recompute: the
-    // rewrite does not re-judge, it only reformulates for the chosen outcome.
-    // memoSupplement is the plain note only — the 💬 marker + moderator first name
-    // are added locally by the client, so that name never reaches the API either.
+    // [ANREDE] and [SIGNATUR] both stay for the client to fill reactively (E-013 /
+    // E-014), so the salutation the moderator just corrected carries over into the
+    // rewritten reply. No discrepancy recompute: the rewrite does not re-judge, it
+    // only reformulates for the chosen outcome. memoSupplement is the plain note only
+    // — the 💬 marker + moderator first name are added locally by the client, so that
+    // name never reaches the API either.
     return {
-      responseText: fillSalutation(input, parsed.responseText).text,
+      responseText: parsed.responseText,
       memoSupplement: parsed.memoSupplement?.trim() || null,
     }
   }
@@ -177,13 +178,14 @@ export class AnthropicClient {
 
     this.assertNotTruncated(message)
     const parsed = JSON.parse(this.firstTextBlock(message)) as Omit<CreaBatchEvaluation, 'flags'>
-    // Fill [ANREDE] locally (PII stays local); [SIGNATUR] stays for the client to fill
-    // reactively (E-013 / E-014). No discrepancy recompute: batch mode carries no
-    // per-activity hours, so there is nothing to check the entered hours against.
-    const { text, uncertain } = fillSalutation(input, parsed.responseText)
+    // Resolve the salutation locally (PII stays local); [ANREDE] and [SIGNATUR] stay
+    // for the client to fill reactively (E-013 / E-014). No discrepancy recompute:
+    // batch mode carries no per-activity hours, so there is nothing to check the
+    // entered hours against.
+    const { salutation, uncertain } = resolveSalutation(input)
     return {
       ...parsed,
-      responseText: text,
+      salutation,
       flags: uncertain ? ['anrede_unsicher'] : [],
     }
   }
@@ -224,11 +226,12 @@ export class AnthropicClient {
       responseText: string
       memoSupplement?: string | null
     }
-    // Fill [ANREDE] locally; [SIGNATUR] left for the client. On a confirm deviation Crea
-    // also drafts the public memo note (E-019); the moderator appends it to ONE of the
-    // contributions via "Text ergaenzen". The 💬 marker + first name are added client-side.
+    // [ANREDE] and [SIGNATUR] both stay for the client to fill. On a confirm deviation
+    // Crea also drafts the public memo note (E-019); the moderator appends it to ONE of
+    // the contributions via "Text ergaenzen". The 💬 marker + first name are added
+    // client-side.
     return {
-      responseText: fillSalutation(input, parsed.responseText).text,
+      responseText: parsed.responseText,
       memoSupplement: parsed.memoSupplement?.trim() || null,
     }
   }

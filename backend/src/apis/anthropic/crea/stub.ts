@@ -8,7 +8,7 @@ import {
   SALUTATION_PLACEHOLDER,
   SIGNATURE_PLACEHOLDER,
 } from './deterministics'
-import { applyCreaDeterministics, fillSalutation } from './postprocess'
+import { applyCreaDeterministics, resolveSalutation } from './postprocess'
 
 // Flag the stub carries so the admin UI shows a clear "preview, no AI" banner
 // (E-005 — never let a canned result look like a real evaluation).
@@ -52,6 +52,8 @@ export function buildStubEvaluation(input: CreaContributionInput): CreaEvaluatio
     confidence: 'medium',
     reasoning,
     responseText: `${SALUTATION_PLACEHOLDER},\n\n${body}\n\n${SIGNATURE_PLACEHOLDER}`,
+    // Overwritten by applyCreaDeterministics below, which resolves the real one.
+    salutation: '',
     openPoints: [],
     flags: [CREA_STUB_FLAG],
   }
@@ -90,13 +92,13 @@ export function buildStubRewrite(input: CreaContributionInput): CreaRewriteResul
         ? 'Approved as a genuine contribution to the common good (preview note).'
         : 'Als echter Gemeinwohl-Beitrag genehmigt (Vorschau-Hinweis).'
       : null
-  return { responseText: fillSalutation(input, text).text, memoSupplement }
+  return { responseText: text, memoSupplement }
 }
 
 /**
  * Canned batch evaluation for the staging preview (E-020): mirrors evaluateBatch
  * without calling the API. One overall verdict + one reply for all contributions,
- * with [ANREDE] filled locally and [SIGNATUR] left for the client. Only reached when
+ * with [ANREDE] and [SIGNATUR] both left for the client to fill. Only reached when
  * no real client is configured (no key).
  */
 export function buildStubBatch(input: CreaBatchInput): CreaBatchEvaluation {
@@ -109,12 +111,13 @@ export function buildStubBatch(input: CreaBatchInput): CreaBatchEvaluation {
     ? 'thank you very much for **your contributions to the common good**. (This is a preview reply — the real wording will come from Crea once the AI is connected.)'
     : 'vielen Dank für **Deine Gemeinwohl-Beiträge**. (Dies ist ein Vorschau-Text — die echte Formulierung kommt von Crea, sobald die KI verbunden ist.)'
   const raw = `${SALUTATION_PLACEHOLDER},\n\n${body}\n\n${SIGNATURE_PLACEHOLDER}`
-  const { text, uncertain } = fillSalutation(input, raw)
+  const { salutation, uncertain } = resolveSalutation(input)
   return {
     overallVerdict: 'confirm',
     confidence: 'medium',
     reasoning,
-    responseText: text,
+    responseText: raw,
+    salutation,
     openPoints: [],
     flags: uncertain ? [CREA_STUB_FLAG, 'anrede_unsicher'] : [CREA_STUB_FLAG],
   }
@@ -152,5 +155,5 @@ export function buildStubBatchRewrite(input: CreaBatchInput): CreaRewriteResult 
         ? 'Approved as genuine contributions to the common good (preview note).'
         : 'Als echte Gemeinwohl-Beiträge genehmigt (Vorschau-Hinweis).'
       : null
-  return { responseText: fillSalutation(input, text).text, memoSupplement }
+  return { responseText: text, memoSupplement }
 }
