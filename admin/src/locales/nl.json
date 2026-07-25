@@ -276,11 +276,12 @@
   },
   "name": "Naam",
   "navbar": {
-    "automaticContributions": "Automatische bijdragen",
+    "automaticContributions": "Startsaldo",
+    "crea": "Crea",
     "instances": "Instanties",
     "logout": "Afmelden",
     "my-account": "Mijn account",
-    "projectBranding": "Projectbranding",
+    "projectBranding": "Projecten",
     "projectBrandingTooltip": "Gebruik je eigen logo in de Gradido-login en voeg nieuwe gebruikers toe aan een Humhub-space",
     "statistic": "Statistiek",
     "user_search": "Gebruikers zoeken"

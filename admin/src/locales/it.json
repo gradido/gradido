@@ -276,11 +276,12 @@
   },
   "name": "Nome",
   "navbar": {
-    "automaticContributions": "Contributi automatici",
+    "automaticContributions": "Saldo iniziale",
+    "crea": "Crea",
     "instances": "Istanze",
     "logout": "Esci",
     "my-account": "Il mio account",
-    "projectBranding": "Branding del progetto",
+    "projectBranding": "Progetti",
     "projectBrandingTooltip": "Usa il tuo logo nel login di Gradido e aggiungi nuovi utenti a uno spazio Humhub",
     "statistic": "Statistica",
     "user_search": "Ricerca utenti"

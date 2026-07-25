@@ -1,7 +1,10 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach } from 'vitest'
+import { createStore } from 'vuex'
 import ContributionLink from './ContributionLink.vue'
 import { BButton, BCard, BCardText, BCollapse } from 'bootstrap-vue-next'
+
+const createVuexStore = (roles = ['ADMIN']) => createStore({ state: { moderator: { roles } } })
 
 const mockItems = [
   {
@@ -21,13 +24,14 @@ const mockItems = [
 describe('ContributionLink', () => {
   let wrapper
 
-  const createWrapper = () => {
+  const createWrapper = (roles = ['ADMIN']) => {
     return mount(ContributionLink, {
       props: {
         items: mockItems,
         count: 1,
       },
       global: {
+        plugins: [createVuexStore(roles)],
         mocks: {
           $t: (key) => key,
           $d: (d) => d,
@@ -120,6 +124,28 @@ describe('ContributionLink', () => {
 
     it('resets contributionLinkData', () => {
       expect(wrapper.vm.contributionLinkData).toEqual({})
+    })
+  })
+
+  // Creating one is an administrator's job — offering the button to a moderator would only
+  // produce a 401 from the backend.
+  describe('as a moderator', () => {
+    beforeEach(() => {
+      wrapper = createWrapper(['MODERATOR'])
+    })
+
+    it('does not offer the new-contribution-link button', () => {
+      expect(wrapper.find('[data-test="new-contribution-link-button"]').exists()).toBe(false)
+    })
+  })
+
+  describe('as an administrator', () => {
+    beforeEach(() => {
+      wrapper = createWrapper(['ADMIN'])
+    })
+
+    it('offers the new-contribution-link button', () => {
+      expect(wrapper.find('[data-test="new-contribution-link-button"]').exists()).toBe(true)
     })
   })
 })

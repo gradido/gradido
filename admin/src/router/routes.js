@@ -34,16 +34,19 @@ const routes = [
   {
     path: '/federation',
     name: 'federation',
+    meta: { requiresAdmin: true },
     component: () => import('@/pages/FederationVisualize.vue'),
   },
   {
     path: '/projectBranding',
     name: 'projectBranding',
+    meta: { requiresAdmin: true },
     component: () => import('@/pages/ProjectBranding.vue'),
   },
   {
     path: '/creaSettings',
     name: 'creaSettings',
+    meta: { requiresAdmin: true },
     component: () => import('@/pages/CreaSettings.vue'),
   },
   {

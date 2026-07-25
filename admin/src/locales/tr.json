@@ -276,11 +276,12 @@
   },
   "name": "Ad",
   "navbar": {
-    "automaticContributions": "Otomatik katkılar",
+    "automaticContributions": "Başlangıç bakiyesi",
+    "crea": "Crea",
     "instances": "Örnekler",
     "logout": "Çıkış yap",
     "my-account": "Hesabım",
-    "projectBranding": "Proje markalaması",
+    "projectBranding": "Projeler",
     "projectBrandingTooltip": "Gradido girişinde kendi logonu kullan ve yeni kullanıcıları bir Humhub alanına ekle",
     "statistic": "İstatistik",
     "user_search": "Kullanıcı arama"

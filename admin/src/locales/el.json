@@ -276,11 +276,12 @@
   },
   "name": "Όνομα",
   "navbar": {
-    "automaticContributions": "Αυτόματες συνεισφορές",
+    "automaticContributions": "Αρχικό υπόλοιπο",
+    "crea": "Crea",
     "instances": "Στιγμιότυπα",
     "logout": "Αποσύνδεση",
     "my-account": "Ο λογαριασμός μου",
-    "projectBranding": "Επωνυμία έργου",
+    "projectBranding": "Έργα",
     "projectBrandingTooltip": "Χρησιμοποίησε το δικό σου λογότυπο στη σύνδεση Gradido και πρόσθεσε νέους χρήστες σε έναν χώρο Humhub",
     "statistic": "Στατιστικά",
     "user_search": "Αναζήτηση χρηστών"
