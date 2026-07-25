@@ -113,6 +113,22 @@ function apiInput() {
   return { model: model || null, effort: form.value.effort, fastMode: form.value.fastMode }
 }
 
+// Turns the fast-mode outcome code into a localized note. A rate limit means "busy
+// right now", which is something quite different from "this model cannot do it" - so
+// the two never share a sentence.
+function fastModeNote(testResult) {
+  if (testResult.fastMode === 'active') {
+    return ` ${t('crea.settings.fastModeActive')}`
+  }
+  if (testResult.fastMode === 'rate_limited') {
+    return ` ${t('crea.settings.fastModeBusy')}`
+  }
+  if (testResult.fastMode === 'refused') {
+    return ` ${t('crea.settings.fastModeRefused', { detail: testResult.fastModeDetail })}`
+  }
+  return ''
+}
+
 function onPreset(value) {
   if (value) form.value.model = value
 }
@@ -141,8 +157,13 @@ async function test() {
   try {
     const { data } = await testMutation({ input: apiInput() })
     const testResult = data.testCreaModel
-    if (testResult.ok) {
-      toastSuccess(t('crea.settings.testOk', { message: testResult.message }))
+    if (testResult.code === 'api_inactive') {
+      toastError(t('crea.settings.testInactive'))
+    } else if (testResult.ok) {
+      // The backend hands over codes and payload only; the sentence is built here, in
+      // the moderator's language.
+      const answer = testResult.message || t('crea.settings.testNoText')
+      toastSuccess(t('crea.settings.testOk', { message: answer }) + fastModeNote(testResult))
     } else {
       toastError(t('crea.settings.testFail', { message: testResult.message }))
     }

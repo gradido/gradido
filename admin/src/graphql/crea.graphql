@@ -86,6 +86,9 @@ mutation setCreaSettings ($input: CreaSettingsInput!) {
 mutation testCreaModel($input: CreaSettingsInput!) {
   testCreaModel(input: $input) {
     ok
+    code
     message
+    fastMode
+    fastModeDetail
   }
 }

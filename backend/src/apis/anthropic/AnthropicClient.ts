@@ -54,18 +54,14 @@ function isFastModeRejection(error: unknown): boolean {
 // TODO: use i18n for prompts in the future so the ai didn't need to translate by non-german moderators which can maybe reduce the accuracy
 
 /**
- * What to tell the admin when fast mode was refused. Never claim a cause we have not
- * checked: fast mode has its own rate limit, so a 429 means "busy right now" rather
- * than "this model cannot do it", and any other refusal is reported in the API's own
- * words. Guessing "not available for this model" would send an admin off changing the
- * model to fix something the model is not responsible for.
+ * Why fast mode was refused, as a code the admin renders in its own language. Never
+ * claim a cause we have not checked: fast mode has its own rate limit, so a 429 means
+ * "busy right now" rather than "this model cannot do it". Guessing "not available for
+ * this model" would send an admin off changing the model to fix something the model is
+ * not responsible for.
  */
-function fastModeRefusalNote(error: unknown): string {
-  if (error instanceof Anthropic.RateLimitError) {
-    return ' (schneller Modus gerade ausgelastet - Crea antwortet normal)'
-  }
-  const detail = error instanceof Error ? error.message : String(error)
-  return ` (schneller Modus abgelehnt: ${detail} - Crea antwortet normal)`
+function fastModeRefusalCode(error: unknown): 'rate_limited' | 'refused' {
+  return error instanceof Anthropic.RateLimitError ? 'rate_limited' : 'refused'
 }
 
 /**
@@ -293,27 +289,42 @@ export class AnthropicClient {
     model: string,
     effort: CreaEffort,
     fastMode: boolean,
-  ): Promise<{ ok: boolean; message: string }> {
+  ): Promise<{
+    ok: boolean
+    code: string
+    message: string
+    fastMode: string
+    fastModeDetail: string
+  }> {
     const body: Anthropic.MessageCreateParamsNonStreaming =
       effort === 'disabled'
         ? {
             model,
             max_tokens: 64,
             thinking: { type: 'disabled' },
-            messages: [{ role: 'user', content: 'Antworte nur mit dem Wort: OK' }],
+            messages: [{ role: 'user', content: 'Reply with the single word: OK' }],
           }
         : {
             model,
             max_tokens: 4096,
             thinking: { type: 'adaptive' },
             output_config: { effort },
-            messages: [{ role: 'user', content: 'Antworte nur mit dem Wort: OK' }],
+            messages: [{ role: 'user', content: 'Reply with the single word: OK' }],
           }
 
     // With fast mode requested, probe it explicitly and report a downgrade rather than
     // hiding it, so the admin learns before saving that this model answers normally but
     // not in fast mode - and, from the API's own wording, why.
-    let fastNote = ''
+    const failed = (error: unknown) => ({
+      ok: false,
+      code: 'error',
+      message: error instanceof Error ? error.message : String(error),
+      fastMode: 'off',
+      fastModeDetail: '',
+    })
+
+    let fastModeOutcome = 'off'
+    let fastModeDetail = ''
     if (fastMode) {
       try {
         const message = await this.anthropic.beta.messages.create({
@@ -321,20 +332,33 @@ export class AnthropicClient {
           speed: 'fast',
           betas: [FAST_MODE_BETA],
         })
-        return { ok: true, message: `${this.probeText(message)} (schneller Modus aktiv)` }
+        return {
+          ok: true,
+          code: 'ok',
+          message: this.probeText(message),
+          fastMode: 'active',
+          fastModeDetail: '',
+        }
       } catch (error) {
         if (!isFastModeRejection(error)) {
-          return { ok: false, message: error instanceof Error ? error.message : String(error) }
+          return failed(error)
         }
-        fastNote = fastModeRefusalNote(error)
+        fastModeOutcome = fastModeRefusalCode(error)
+        fastModeDetail = error instanceof Error ? error.message : String(error)
       }
     }
 
     try {
       const message = await this.anthropic.messages.create(body)
-      return { ok: true, message: `${this.probeText(message)}${fastNote}` }
+      return {
+        ok: true,
+        code: 'ok',
+        message: this.probeText(message),
+        fastMode: fastModeOutcome,
+        fastModeDetail,
+      }
     } catch (error) {
-      return { ok: false, message: error instanceof Error ? error.message : String(error) }
+      return failed(error)
     }
   }
 
@@ -342,7 +366,7 @@ export class AnthropicClient {
   // or the beta (fast mode) response, whose block unions are separate TypeScript types.
   private probeText(message: { content: Array<{ type: string; text?: string }> }): string {
     const block = message.content.find((content) => content.type === 'text')
-    return block?.text?.trim() || '(kein Text in der Antwort)'
+    return block?.text?.trim() ?? ''
   }
 
   /**
