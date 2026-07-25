@@ -4,11 +4,14 @@ import type { CreaBatchEvaluation } from '@/graphql/model/CreaBatchEvaluation'
 import type { CreaEvaluation } from '@/graphql/model/CreaEvaluation'
 import type { CreaRewriteResult } from '@/graphql/model/CreaRewriteResult'
 import {
+  buildSalutation,
+  defaultSalutationFor,
   resolveEnteredHours,
   SALUTATION_PLACEHOLDER,
+  SALUTATION_UNCERTAIN_FLAG,
   SIGNATURE_PLACEHOLDER,
 } from './deterministics'
-import { applyCreaDeterministics, resolveSalutation } from './postprocess'
+import { applyCreaDeterministics } from './postprocess'
 
 // Flag the stub carries so the admin UI shows a clear "preview, no AI" banner
 // (E-005 — never let a canned result look like a real evaluation).
@@ -52,8 +55,7 @@ export function buildStubEvaluation(input: CreaContributionInput): CreaEvaluatio
     confidence: 'medium',
     reasoning,
     responseText: `${SALUTATION_PLACEHOLDER},\n\n${body}\n\n${SIGNATURE_PLACEHOLDER}`,
-    // Both overwritten by applyCreaDeterministics below, which resolves them.
-    salutation: '',
+    // Overwritten by applyCreaDeterministics below, which works it out from the name.
     defaultSalutation: '',
     openPoints: [],
     flags: [CREA_STUB_FLAG],
@@ -64,7 +66,7 @@ export function buildStubEvaluation(input: CreaContributionInput): CreaEvaluatio
 /**
  * Canned rewrite for the staging preview (E-017 / E-019): mirrors rewriteResponse
  * without calling the API. Returns a fixed reply text for the moderator's target
- * decision (with [ANREDE] filled locally and [SIGNATUR] left for the client), plus —
+ * decision (with [ANREDE] and [SIGNATUR] both left for the client to fill), plus —
  * only on a confirm rewrite — a canned memoSupplement so the preview exercises the
  * whole "Text ergaenzen" append path. Only reached when no real client is configured.
  */
@@ -112,24 +114,22 @@ export function buildStubBatch(input: CreaBatchInput): CreaBatchEvaluation {
     ? 'thank you very much for **your contributions to the common good**. (This is a preview reply — the real wording will come from Crea once the AI is connected.)'
     : 'vielen Dank für **Deine Gemeinwohl-Beiträge**. (Dies ist ein Vorschau-Text — die echte Formulierung kommt von Crea, sobald die KI verbunden ist.)'
   const raw = `${SALUTATION_PLACEHOLDER},\n\n${body}\n\n${SIGNATURE_PLACEHOLDER}`
-  const { salutation, uncertain } = resolveSalutation(input)
+  const { uncertain } = buildSalutation(input.recipientFirstName, input.salutation)
   return {
     overallVerdict: 'confirm',
     confidence: 'medium',
     reasoning,
     responseText: raw,
-    salutation,
-    defaultSalutation: resolveSalutation({ recipientFirstName: input.recipientFirstName })
-      .salutation,
+    defaultSalutation: defaultSalutationFor(input.recipientFirstName),
     openPoints: [],
-    flags: uncertain ? [CREA_STUB_FLAG, 'anrede_unsicher'] : [CREA_STUB_FLAG],
+    flags: uncertain ? [CREA_STUB_FLAG, SALUTATION_UNCERTAIN_FLAG] : [CREA_STUB_FLAG],
   }
 }
 
 /**
  * Canned batch rewrite for the staging preview (E-020): mirrors rewriteBatch without
  * calling the API. Returns a fixed joint reply for the moderator's target decision,
- * [ANREDE] filled locally and [SIGNATUR] left for the client. No memoSupplement in
+ * [ANREDE] and [SIGNATUR] both left for the client to fill. No memoSupplement in
  * batch mode. Only reached when no real client is configured.
  */
 export function buildStubBatchRewrite(input: CreaBatchInput): CreaRewriteResult {

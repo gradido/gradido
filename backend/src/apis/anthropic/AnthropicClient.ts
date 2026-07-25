@@ -8,13 +8,16 @@ import type { CreaBatchEvaluation } from '@/graphql/model/CreaBatchEvaluation'
 import type { CreaEvaluation } from '@/graphql/model/CreaEvaluation'
 import type { CreaRewriteResult } from '@/graphql/model/CreaRewriteResult'
 import {
+  buildSalutation,
+  defaultSalutationFor,
   resolveEnteredGdd,
   resolveEnteredHours,
   SALUTATION_PLACEHOLDER,
+  SALUTATION_UNCERTAIN_FLAG,
   SIGNATURE_PLACEHOLDER,
 } from './crea/deterministics'
 import { CREA_BATCH_SCHEMA, CREA_OUTPUT_SCHEMA, CREA_REWRITE_SCHEMA } from './crea/outputSchema'
-import { applyCreaDeterministics, resolveSalutation } from './crea/postprocess'
+import { applyCreaDeterministics } from './crea/postprocess'
 import { buildCreaSystemPrompt, moderatorDecisionLabel } from './crea/ruleset'
 import { type CreaEffort, resolveCreaModelParams } from './crea/settings'
 
@@ -178,17 +181,15 @@ export class AnthropicClient {
 
     this.assertNotTruncated(message)
     const parsed = JSON.parse(this.firstTextBlock(message)) as Omit<CreaBatchEvaluation, 'flags'>
-    // Resolve the salutation locally (PII stays local); [ANREDE] and [SIGNATUR] stay
+    // Work the salutation out locally (PII stays local); [ANREDE] and [SIGNATUR] stay
     // for the client to fill reactively (E-013 / E-014). No discrepancy recompute:
     // batch mode carries no per-activity hours, so there is nothing to check the
     // entered hours against.
-    const { salutation, uncertain } = resolveSalutation(input)
+    const { uncertain } = buildSalutation(input.recipientFirstName, input.salutation)
     return {
       ...parsed,
-      salutation,
-      defaultSalutation: resolveSalutation({ recipientFirstName: input.recipientFirstName })
-        .salutation,
-      flags: uncertain ? ['anrede_unsicher'] : [],
+      defaultSalutation: defaultSalutationFor(input.recipientFirstName),
+      flags: uncertain ? [SALUTATION_UNCERTAIN_FLAG] : [],
     }
   }
 

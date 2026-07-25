@@ -1,7 +1,7 @@
 import type { CreaContributionInput } from '@/graphql/input/CreaContributionInput'
 import type { CreaEvaluation } from '@/graphql/model/CreaEvaluation'
-import { SALUTATION_PLACEHOLDER } from './deterministics'
-import { applyCreaDeterministics, resolveSalutation } from './postprocess'
+import { SALUTATION_PLACEHOLDER, SALUTATION_UNCERTAIN_FLAG } from './deterministics'
+import { applyCreaDeterministics } from './postprocess'
 
 const evaluationWith = (responseText: string): CreaEvaluation =>
   ({
@@ -13,28 +13,14 @@ const evaluationWith = (responseText: string): CreaEvaluation =>
     confidence: 'medium',
     reasoning: 'reason',
     responseText,
-    salutation: '',
     defaultSalutation: '',
     openPoints: [],
     flags: [],
   }) as CreaEvaluation
 
 describe('crea postprocess — salutation', () => {
-  it('resolves the salutation from the first name when none is stored', () => {
-    expect(resolveSalutation({ recipientFirstName: 'Thomas' })).toEqual({
-      salutation: 'Lieber Thomas',
-      uncertain: false,
-    })
-  })
-
-  it('lets a stored salutation win over the name heuristic', () => {
-    expect(
-      resolveSalutation({ recipientFirstName: 'Hans-Juergen', salutation: 'Lieber Jogi' }),
-    ).toEqual({ salutation: 'Lieber Jogi', uncertain: false })
-  })
-
-  // The client fills [ANREDE] so the moderator can correct the salutation and watch
-  // the draft follow. If the backend substituted it again, that field would go dead.
+  // The client fills [ANREDE] so the moderator can correct the salutation and watch the
+  // draft follow. If the backend substituted it again, that field would go dead.
   it('leaves the placeholder in the reply for the client to fill', () => {
     const input = { recipientFirstName: 'Thomas' } as CreaContributionInput
     const result = applyCreaDeterministics(
@@ -42,18 +28,40 @@ describe('crea postprocess — salutation', () => {
       evaluationWith(`${SALUTATION_PLACEHOLDER}, danke!`),
     )
     expect(result.responseText).toBe(`${SALUTATION_PLACEHOLDER}, danke!`)
-    expect(result.salutation).toBe('Lieber Thomas')
+  })
+
+  it('reports what the name heuristic alone gives', () => {
+    const input = { recipientFirstName: 'Thomas' } as CreaContributionInput
+    const result = applyCreaDeterministics(input, evaluationWith(`${SALUTATION_PLACEHOLDER}!`))
+    expect(result.defaultSalutation).toBe('Lieber Thomas')
+  })
+
+  // A stored salutation must not bleed into defaultSalutation. The client shows the
+  // default as the field's hint and renders the draft with it whenever the moderator
+  // empties the field, so merging the two would resurrect the value just cleared. The two
+  // are deliberately unlike each other here: with a stored salutation the heuristic would
+  // have produced anyway, this test would still pass if they were merged into one.
+  it('keeps the heuristic default apart from a stored salutation', () => {
+    const input = {
+      recipientFirstName: 'Thomas',
+      salutation: 'Hallo Tom',
+    } as CreaContributionInput
+    const result = applyCreaDeterministics(input, evaluationWith(`${SALUTATION_PLACEHOLDER}!`))
+    expect(result.defaultSalutation).toBe('Lieber Thomas')
   })
 
   it('flags an uncertain salutation, and stops once one is stored', () => {
     const unknown = { recipientFirstName: 'Kim' } as CreaContributionInput
     expect(
       applyCreaDeterministics(unknown, evaluationWith(`${SALUTATION_PLACEHOLDER}, danke!`)).flags,
-    ).toContain('anrede_unsicher')
+    ).toContain(SALUTATION_UNCERTAIN_FLAG)
 
-    const stored = { recipientFirstName: 'Kim', salutation: 'Hallo Kim' } as CreaContributionInput
+    const stored = {
+      recipientFirstName: 'Kim',
+      salutation: 'Liebe Frau Meier',
+    } as CreaContributionInput
     const result = applyCreaDeterministics(stored, evaluationWith(`${SALUTATION_PLACEHOLDER}!`))
-    expect(result.flags).not.toContain('anrede_unsicher')
-    expect(result.salutation).toBe('Hallo Kim')
+    expect(result.flags).not.toContain(SALUTATION_UNCERTAIN_FLAG)
+    expect(result.defaultSalutation).toBe('Hallo Kim')
   })
 })

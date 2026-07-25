@@ -67,16 +67,12 @@ export class CreaEvaluation {
   @Field()
   responseText: string
 
-  // The salutation the code resolved for this participant — a stored one if there is
-  // one, otherwise the first-name heuristic. The reply still carries the [ANREDE]
-  // placeholder; the client fills it with this and lets the moderator change it
-  // (E-013). Sent to the client, never to the model.
-  @Field()
-  salutation: string
-
-  // What the name heuristic alone would say, ignoring any stored salutation. The
-  // client shows it as the field's hint and falls back to it whenever the field is
-  // empty, so an emptied field renders a usable reply instead of a bare placeholder.
+  // What the name heuristic alone says, ignoring any stored salutation. The reply still
+  // carries the [ANREDE] placeholder; the client fills it with the moderator's own entry,
+  // or with this when that entry is empty, so an emptied field still renders a usable
+  // reply instead of a bare placeholder (E-013). The stored salutation is deliberately
+  // NOT returned: the client reads that from the participant's record, where it can tell
+  // "nothing stored" apart from "stored", which one merged value cannot.
   @Field()
   defaultSalutation: string
 

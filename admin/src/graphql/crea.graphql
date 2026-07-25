@@ -7,7 +7,6 @@ mutation creaEvaluateBatch($input: CreaBatchInput!) {
     confidence
     reasoning
     responseText
-    salutation
     defaultSalutation
     openPoints {
       question
@@ -27,7 +26,6 @@ mutation creaEvaluateContribution ($input: CreaContributionInput!) {
     confidence
     reasoning
     responseText
-    salutation
     defaultSalutation
     activities {
       activity

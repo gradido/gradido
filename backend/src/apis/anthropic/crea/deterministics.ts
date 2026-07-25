@@ -56,9 +56,20 @@ export function isCapReached(monthlyHours?: number | null): boolean {
 
 export type SalutationResult = { salutation: string; uncertain: boolean }
 
-// The placeholder Crea emits in its response text; the code replaces it locally
-// with the real salutation so the recipient's name never reaches the API.
+// The placeholder Crea emits in its response text. The backend no longer replaces it -
+// the admin fills it in the browser so the moderator can correct the salutation and watch
+// the draft follow (E-013). The recipient's name still never reaches the API: it is read
+// here for the resolved salutation and in the client, never sent to the model.
+//
+// This literal is therefore a contract with a package that cannot import it (admin has no
+// dependency on shared). Its counterpart lives in CreaEvaluationModal.vue and both sides
+// pin it in a test, so renaming one of them fails loudly instead of shipping a raw
+// placeholder to a participant.
 export const SALUTATION_PLACEHOLDER = '[ANREDE]'
+
+// Flag for a salutation the heuristic is not sure about, so the moderator checks it
+// before sending (E-005).
+export const SALUTATION_UNCERTAIN_FLAG = 'anrede_unsicher'
 
 // The signature placeholder Crea closes with; the code replaces it locally with
 // the moderator's own greeting so the moderator's name never reaches the API (E-013).
@@ -92,6 +103,15 @@ export function buildSalutation(
   // Name known, gender not: keep the name, default to the neutral "Hallo", flag
   // for review — never a risky "Liebe/Lieber" guess (E-014).
   return { salutation: `Hallo ${name}`, uncertain: true }
+}
+
+/**
+ * What the name heuristic alone gives, ignoring any stored salutation. The client shows
+ * it as the salutation field's hint and renders the draft with it whenever the field is
+ * empty, so an emptied field still produces a usable reply instead of a bare placeholder.
+ */
+export function defaultSalutationFor(firstName?: string | null): string {
+  return buildSalutation(firstName).salutation
 }
 
 function isNoHoursInquiryStatus(memberStatus?: string | null): boolean {
