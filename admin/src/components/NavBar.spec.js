@@ -17,11 +17,12 @@ vi.mock('vue-router', async () => {
   }
 })
 
-const createVuexStore = () =>
+const createVuexStore = (roles = ['ADMIN']) =>
   createStore({
     state: {
       openCreations: 1,
       token: 'valid-token',
+      moderator: { roles },
     },
     actions: {
       logout: vi.fn(),
@@ -75,6 +76,8 @@ describe('NavBar', () => {
         { path: '/creation-confirm', name: 'creation-confirm' },
         { path: '/contribution-links', name: 'contribution-links' },
         { path: '/federation', name: 'federation' },
+        { path: '/projectBranding', name: 'projectBranding' },
+        { path: '/creaSettings', name: 'creaSettings' },
         { path: '/statistic', name: 'statistic' },
       ],
     })
@@ -99,15 +102,60 @@ describe('NavBar', () => {
   })
 
   describe('Navbar Menu', () => {
+    const hrefs = () => wrapper.findAll('.nav-item a').map((item) => item.attributes('href'))
+
     it('has correct menu items', () => {
-      const navItems = wrapper.findAll('.nav-item a')
-      expect(navItems).toHaveLength(8)
-      expect(navItems[0].attributes('href')).toBe('/user')
-      expect(navItems[1].attributes('href')).toBe('/creation-confirm')
-      expect(navItems[2].attributes('href')).toBe('/contribution-links')
-      expect(navItems[3].attributes('href')).toBe('/federation')
-      expect(navItems[4].attributes('href')).toBe('/projectBranding')
-      expect(navItems[5].attributes('href')).toBe('/statistic')
+      expect(hrefs()).toEqual([
+        '/user',
+        '/creation-confirm',
+        '/contribution-links',
+        '/federation',
+        '/projectBranding',
+        '/creaSettings',
+        '/statistic',
+        '#',
+        '#',
+      ])
+    })
+
+    // Instances, projects and Crea are administrators' business. Menu visibility is only a
+    // convenience — the route guard and the backend rights are the boundary.
+    describe('as a moderator', () => {
+      beforeEach(() => {
+        store = createVuexStore(['MODERATOR'])
+        wrapper = createWrapper()
+      })
+
+      it('leaves out the administrator-only entries', () => {
+        // Starting balance stays: a moderator may look the links up and pass them on. What
+        // they cannot do — create, change, delete — is hidden on the page itself.
+        expect(hrefs()).toEqual([
+          '/user',
+          '/creation-confirm',
+          '/contribution-links',
+          '/statistic',
+          '#',
+          '#',
+        ])
+      })
+    })
+
+    describe('as a KI-Moderator', () => {
+      beforeEach(() => {
+        store = createVuexStore(['MODERATOR_AI'])
+        wrapper = createWrapper()
+      })
+
+      it('leaves them out just the same', () => {
+        expect(hrefs()).toEqual([
+          '/user',
+          '/creation-confirm',
+          '/contribution-links',
+          '/statistic',
+          '#',
+          '#',
+        ])
+      })
     })
   })
 
