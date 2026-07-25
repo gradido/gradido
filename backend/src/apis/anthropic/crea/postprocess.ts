@@ -59,6 +59,7 @@ export function applyCreaDeterministics(
   // salutation is stored for this participant it wins and the flag stays away.
   const { salutation, uncertain } = resolveSalutation(input)
   evaluation.salutation = salutation
+  evaluation.defaultSalutation = buildSalutation(input.recipientFirstName).salutation
   if (uncertain) {
     evaluation.flags = [...(evaluation.flags ?? []), 'anrede_unsicher']
   }

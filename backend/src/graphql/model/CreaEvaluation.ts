@@ -74,6 +74,12 @@ export class CreaEvaluation {
   @Field()
   salutation: string
 
+  // What the name heuristic alone would say, ignoring any stored salutation. The
+  // client shows it as the field's hint and falls back to it whenever the field is
+  // empty, so an emptied field renders a usable reply instead of a bare placeholder.
+  @Field()
+  defaultSalutation: string
+
   @Field(() => [CreaOpenPoint])
   openPoints: CreaOpenPoint[]
 

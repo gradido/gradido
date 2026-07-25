@@ -52,8 +52,9 @@ export function buildStubEvaluation(input: CreaContributionInput): CreaEvaluatio
     confidence: 'medium',
     reasoning,
     responseText: `${SALUTATION_PLACEHOLDER},\n\n${body}\n\n${SIGNATURE_PLACEHOLDER}`,
-    // Overwritten by applyCreaDeterministics below, which resolves the real one.
+    // Both overwritten by applyCreaDeterministics below, which resolves them.
     salutation: '',
+    defaultSalutation: '',
     openPoints: [],
     flags: [CREA_STUB_FLAG],
   }
@@ -118,6 +119,8 @@ export function buildStubBatch(input: CreaBatchInput): CreaBatchEvaluation {
     reasoning,
     responseText: raw,
     salutation,
+    defaultSalutation: resolveSalutation({ recipientFirstName: input.recipientFirstName })
+      .salutation,
     openPoints: [],
     flags: uncertain ? [CREA_STUB_FLAG, 'anrede_unsicher'] : [CREA_STUB_FLAG],
   }

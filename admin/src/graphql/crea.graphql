@@ -8,6 +8,7 @@ mutation creaEvaluateBatch($input: CreaBatchInput!) {
     reasoning
     responseText
     salutation
+    defaultSalutation
     openPoints {
       question
       options
@@ -27,6 +28,7 @@ mutation creaEvaluateContribution ($input: CreaContributionInput!) {
     reasoning
     responseText
     salutation
+    defaultSalutation
     activities {
       activity
       categoryKey

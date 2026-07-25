@@ -14,6 +14,7 @@ const evaluationWith = (responseText: string): CreaEvaluation =>
     reasoning: 'reason',
     responseText,
     salutation: '',
+    defaultSalutation: '',
     openPoints: [],
     flags: [],
   }) as CreaEvaluation

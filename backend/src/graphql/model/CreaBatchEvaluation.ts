@@ -26,6 +26,10 @@ export class CreaBatchEvaluation {
   @Field()
   salutation: string
 
+  // Same as on CreaEvaluation: what the name heuristic alone would say.
+  @Field()
+  defaultSalutation: string
+
   @Field(() => [CreaOpenPoint])
   openPoints: CreaOpenPoint[]
 

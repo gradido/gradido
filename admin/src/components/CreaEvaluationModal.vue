@@ -201,7 +201,7 @@
           <strong>{{ $t('crea.salutation') }}</strong>
         </p>
         <div class="d-flex align-items-start gap-2">
-          <BFormInput v-model="salutation" size="sm" />
+          <BFormInput v-model="salutation" size="sm" :placeholder="defaultSalutation" />
           <BButton
             v-if="salutationChanged"
             variant="primary"
@@ -320,8 +320,17 @@ const rewriting = ref(false)
 // stored salutation if there is one, otherwise the name heuristic) and editable; the
 // draft follows immediately. Saved on closing, and only when the moderator actually
 // changed it - so a heuristic guess never gets frozen onto the participant.
+// What the moderator typed. Empty means "no salutation stored" - the automatic one
+// is then used, shown as this field's hint.
 const salutation = ref('')
-const shownSalutation = ref('')
+// What is actually in the database for this participant (empty = none). The save
+// button compares against THIS, not against what is displayed: with nothing stored
+// the field shows the automatic salutation as a hint only, so emptying the field
+// leaves nothing to save.
+const storedSalutation = ref('')
+// What the name heuristic alone gives, e.g. "Hallo Gradido". Used whenever the field
+// is empty, so the draft never shows a bare [ANREDE] placeholder.
+const defaultSalutation = ref('')
 const savingSalutation = ref(false)
 // What we saved during this session, per participant. The contribution list is not
 // reloaded after saving, so its copy of the participant goes stale the moment a
@@ -342,7 +351,9 @@ const salutationFor = (contribution) => {
 
 // Something is typed that is not stored yet. Drives the save button, so an unsaved
 // change is visible instead of relying on the moderator remembering.
-const salutationChanged = computed(() => salutation.value.trim() !== shownSalutation.value.trim())
+const salutationChanged = computed(() => salutation.value.trim() !== storedSalutation.value.trim())
+// The salutation the draft is rendered with: what is typed, or the automatic one.
+const effectiveSalutation = computed(() => salutation.value.trim() || defaultSalutation.value)
 
 // The public note Crea drafts for the contribution memo on a confirm rewrite (E-019).
 // Editable; empty unless the moderator confirmed a deviation and Crea returned one.
@@ -413,23 +424,17 @@ watch(moderatorSignature, (value, previous) => {
   } catch {
     // ignore storage failures (private mode etc.)
   }
-  // Keep the draft's signature in sync as long as the moderator hasn't hand-edited it.
-  if (
-    evaluation.value &&
-    responseText.value === renderDraft(rawResponseText.value, salutation.value, previous)
-  ) {
-    responseText.value = renderDraft(rawResponseText.value, salutation.value, value)
-  }
 })
 
-// Same for the salutation: the draft follows while the moderator types, and stops
-// following once they have edited the text by hand.
-watch(salutation, (value, previous) => {
+// Keep the draft in step with both placeholders while the moderator types, and stop
+// following once they have edited the text by hand (then the rendering no longer
+// matches and their edit is safe).
+watch([effectiveSalutation, moderatorSignature], ([sal, sig], [prevSal, prevSig]) => {
   if (
     evaluation.value &&
-    responseText.value === renderDraft(rawResponseText.value, previous, moderatorSignature.value)
+    responseText.value === renderDraft(rawResponseText.value, prevSal, prevSig)
   ) {
-    responseText.value = renderDraft(rawResponseText.value, value, moderatorSignature.value)
+    responseText.value = renderDraft(rawResponseText.value, sal, sig)
   }
 })
 
@@ -545,7 +550,8 @@ const resetState = () => {
   rewriting.value = false
   supplementText.value = ''
   salutation.value = ''
-  shownSalutation.value = ''
+  storedSalutation.value = ''
+  defaultSalutation.value = ''
   contributions.value = []
   selectedIds.value = []
 }
@@ -561,11 +567,12 @@ const runEvaluation = async () => {
     const response = await evaluateMutation({ input: buildInput(props.contribution) })
     evaluation.value = response.data.creaEvaluateContribution
     rawResponseText.value = evaluation.value.responseText
-    salutation.value = evaluation.value.salutation ?? ''
-    shownSalutation.value = salutation.value
+    defaultSalutation.value = evaluation.value.defaultSalutation ?? ''
+    storedSalutation.value = salutationFor(props.contribution) ?? ''
+    salutation.value = storedSalutation.value
     responseText.value = renderDraft(
       rawResponseText.value,
-      salutation.value,
+      effectiveSalutation.value,
       moderatorSignature.value,
     )
     // Preselect Crea's own recommendation, so switching away = deviating.
@@ -635,11 +642,12 @@ const runBatchEvaluation = async () => {
     const response = await evaluateBatchMutation({ input: buildBatchInput() })
     evaluation.value = response.data.creaEvaluateBatch
     rawResponseText.value = evaluation.value.responseText
-    salutation.value = evaluation.value.salutation ?? ''
-    shownSalutation.value = salutation.value
+    defaultSalutation.value = evaluation.value.defaultSalutation ?? ''
+    storedSalutation.value = salutationFor(props.contribution) ?? ''
+    salutation.value = storedSalutation.value
     responseText.value = renderDraft(
       rawResponseText.value,
-      salutation.value,
+      effectiveSalutation.value,
       moderatorSignature.value,
     )
     // Preselect Crea's own overall recommendation, so switching a button = deviating.
@@ -755,7 +763,7 @@ const saveSalutation = async () => {
   try {
     await saveSalutationMutation({ userId: Number(userId), salutation: value || null })
     // New baseline, so the button disappears and a further change shows up again.
-    shownSalutation.value = value
+    storedSalutation.value = value
     savedSalutations.value = { ...savedSalutations.value, [userId]: value || null }
     toastSuccess(t('crea.salutationSaved'))
   } catch (error) {
