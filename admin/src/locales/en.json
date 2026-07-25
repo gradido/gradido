@@ -110,8 +110,9 @@
     "response": "Suggested reply",
     "rewrite": "Write for my decision",
     "salutation": "Salutation",
-    "salutationHint": "How this person is addressed. Change it here and the draft follows at once — next time it is already filled in.",
+    "salutationHint": "How this person is addressed. Change it here and the draft follows at once. Use Save salutation and next time it is already filled in.",
     "salutationSave": "Save salutation",
+    "salutationSaveFailed": "The salutation could not be saved.",
     "salutationSaved": "Salutation saved.",
     "selectHint": "Select the contributions Crea should evaluate together.",
     "settings": {

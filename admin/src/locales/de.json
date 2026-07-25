@@ -110,8 +110,9 @@
     "response": "Antwortvorschlag",
     "rewrite": "Für meine Entscheidung schreiben",
     "salutation": "Anrede",
-    "salutationHint": "So wird dieser Mensch angesprochen. Änderst Du sie hier, zieht der Textvorschlag sofort mit — und beim nächsten Beitrag steht sie schon da.",
+    "salutationHint": "So wird dieser Mensch angesprochen. Änderst Du sie hier, zieht der Textvorschlag sofort mit. Mit „Anrede speichern“ steht sie beim nächsten Beitrag schon da.",
     "salutationSave": "Anrede speichern",
+    "salutationSaveFailed": "Die Anrede konnte nicht gespeichert werden.",
     "salutationSaved": "Anrede gespeichert.",
     "selectHint": "Wähle die Beiträge, die Crea zusammen bewerten soll.",
     "settings": {

@@ -116,7 +116,7 @@
             <template v-if="flag === 'discrepancy_recomputed'">
               {{ $t('crea.flags_map.discrepancy_recomputed') }}
             </template>
-            <template v-else-if="flag === 'anrede_unsicher'">
+            <template v-else-if="flag === SALUTATION_UNCERTAIN_FLAG">
               {{ $t('crea.flags_map.anrede_unsicher') }}
             </template>
             <template v-else>{{ flag }}</template>
@@ -197,11 +197,17 @@
       </div>
 
       <div class="mb-3">
-        <p class="mb-1">
+        <label class="mb-1 d-block" for="crea-salutation">
           <strong>{{ $t('crea.salutation') }}</strong>
-        </p>
+        </label>
         <div class="d-flex align-items-start gap-2">
-          <BFormInput v-model="salutation" size="sm" :placeholder="defaultSalutation" />
+          <BFormInput
+            id="crea-salutation"
+            v-model="salutation"
+            size="sm"
+            :maxlength="SALUTATION_MAX_LENGTH"
+            :placeholder="defaultSalutation"
+          />
           <BButton
             v-if="salutationChanged"
             variant="primary"
@@ -286,6 +292,11 @@ const SIGNATURE_PLACEHOLDER = '[SIGNATUR]'
 // moderator starts from it instead of guessing again. Filled locally either way -
 // the participant's name never reaches the API.
 const SALUTATION_PLACEHOLDER = '[ANREDE]'
+// Crea flags an uncertain salutation (E-005) so the moderator checks it before sending.
+const SALUTATION_UNCERTAIN_FLAG = 'anrede_unsicher'
+// Matches the users.salutation column, so an over-long value is stopped at the field
+// instead of reaching the database and coming back as a driver error.
+const SALUTATION_MAX_LENGTH = 255
 
 // Crea's evaluation modal for a single contribution (DO-4 v1 slice). Advisory
 // only: confirm/deny/send stay the existing table buttons; Crea recommends and
@@ -316,10 +327,6 @@ const rawResponseText = ref('')
 const chosenDecision = ref(null)
 const moderatorContext = ref('')
 const rewriting = ref(false)
-// How this participant is addressed. Prefilled with what the backend resolved (a
-// stored salutation if there is one, otherwise the name heuristic) and editable; the
-// draft follows immediately. Saved on closing, and only when the moderator actually
-// changed it - so a heuristic guess never gets frozen onto the participant.
 // What the moderator typed. Empty means "no salutation stored" - the automatic one
 // is then used, shown as this field's hint.
 const salutation = ref('')
@@ -332,19 +339,32 @@ const storedSalutation = ref('')
 // is empty, so the draft never shows a bare [ANREDE] placeholder.
 const defaultSalutation = ref('')
 const savingSalutation = ref(false)
+// Set once the moderator has stored a salutation for this participant. Crea's
+// "anrede_unsicher" flag is a snapshot of the moment the evaluation arrived, and the
+// field that answers it now sits in the same window - so leaving the warning up after
+// it has been answered would tell the moderator nothing they can act on.
+const salutationSettled = ref(false)
 // What we saved during this session, per participant. The contribution list is not
 // reloaded after saving, so its copy of the participant goes stale the moment a
 // salutation is stored - reading it again would send the old value back into the next
 // evaluation. Keyed by user id; survives closing the window, unlike the fields above.
 const savedSalutations = ref({})
-// The salutation to send into an evaluation. Asks WHETHER we stored something for
-// this participant this session, not WHAT - a cleared salutation is null, and a
-// nullish check would read that as "nothing recorded" and fall back to the list's
-// stale copy, resurrecting the salutation the moderator just deleted.
+// What the participant's record said when this window opened. loadSiblings re-reads the
+// contributions with fetchPolicy "no-cache", so this is current even when the list behind
+// the modal was loaded before another moderator stored a salutation. undefined = not read
+// yet (no participant, no Apollo provider, failed query), which is NOT the same as null.
+const loadedSalutation = ref(undefined)
+// The salutation to send into an evaluation, newest source first. Each step asks WHETHER
+// that source knows something, not WHAT - a cleared salutation is null, and a nullish
+// check would read that as "nothing recorded" and fall through to an older copy,
+// resurrecting the salutation the moderator just deleted.
 const salutationFor = (contribution) => {
   const userId = contribution?.userId
   if (userId != null && userId in savedSalutations.value) {
     return savedSalutations.value[userId]
+  }
+  if (loadedSalutation.value !== undefined) {
+    return loadedSalutation.value
   }
   return contribution?.user?.salutation ?? null
 }
@@ -378,6 +398,18 @@ const renderDraft = (text, salutationValue, signature) => {
     ? text.split(SALUTATION_PLACEHOLDER).join(salutationValue)
     : text
   return signature ? withSalutation.split(SIGNATURE_PLACEHOLDER).join(signature) : withSalutation
+}
+
+// The one place the draft is rendered. Every path - first evaluation, batch evaluation,
+// rewrite - goes through here, so none of them can pick a different salutation than the
+// others. Passing the typed value instead of the effective one leaves a bare [ANREDE] in
+// a reply the moderator then sends, and desyncs the watcher below for good.
+const applyDraft = () => {
+  responseText.value = renderDraft(
+    rawResponseText.value,
+    effectiveSalutation.value,
+    moderatorSignature.value,
+  )
 }
 
 // Cmd/Ctrl+B wraps the selected text in ** so the moderator gets the familiar
@@ -418,7 +450,7 @@ const loadSignature = () => {
   }
 }
 const moderatorSignature = ref(loadSignature())
-watch(moderatorSignature, (value, previous) => {
+watch(moderatorSignature, (value) => {
   try {
     localStorage.setItem(SIGNATURE_STORAGE_KEY, value)
   } catch {
@@ -428,19 +460,25 @@ watch(moderatorSignature, (value, previous) => {
 
 // Keep the draft in step with both placeholders while the moderator types, and stop
 // following once they have edited the text by hand (then the rendering no longer
-// matches and their edit is safe).
-watch([effectiveSalutation, moderatorSignature], ([sal, sig], [prevSal, prevSig]) => {
+// matches and their edit is safe). The guard renders with the PREVIOUS values, which is
+// why every other path has to render through applyDraft: render the draft any other way
+// and this comparison stops matching, so the draft never follows again.
+watch([effectiveSalutation, moderatorSignature], (_current, [prevSal, prevSig]) => {
   if (
     evaluation.value &&
     responseText.value === renderDraft(rawResponseText.value, prevSal, prevSig)
   ) {
-    responseText.value = renderDraft(rawResponseText.value, sal, sig)
+    applyDraft()
   }
 })
 
 const stubPreview = computed(() => evaluation.value?.flags?.includes(STUB_PREVIEW_FLAG) ?? false)
 const visibleFlags = computed(() =>
-  (evaluation.value?.flags ?? []).filter((flag) => flag !== STUB_PREVIEW_FLAG),
+  (evaluation.value?.flags ?? []).filter(
+    (flag) =>
+      flag !== STUB_PREVIEW_FLAG &&
+      !(flag === SALUTATION_UNCERTAIN_FLAG && salutationSettled.value),
+  ),
 )
 // The moderator has picked an outcome other than Crea's recommendation.
 const isDeviation = computed(
@@ -552,8 +590,28 @@ const resetState = () => {
   salutation.value = ''
   storedSalutation.value = ''
   defaultSalutation.value = ''
+  salutationSettled.value = false
   contributions.value = []
   selectedIds.value = []
+}
+
+// Where an arriving evaluation lands - shared by the single and the batch path so the
+// two cannot drift apart. Seeds the salutation field from what is stored, but only when
+// the field still matches its baseline: a batch re-run must not silently throw away a
+// correction the moderator typed and has not saved yet.
+const applyEvaluation = (result) => {
+  evaluation.value = result
+  rawResponseText.value = result.responseText
+  defaultSalutation.value = result.defaultSalutation ?? ''
+  const stored = salutationFor(props.contribution) ?? ''
+  if (!salutationChanged.value) {
+    salutation.value = stored
+  }
+  storedSalutation.value = stored
+  applyDraft()
+  // Preselect Crea's own recommendation, so switching away = deviating.
+  chosenDecision.value = result.overallVerdict
+  moderatorContext.value = ''
 }
 
 const runEvaluation = async () => {
@@ -565,19 +623,7 @@ const runEvaluation = async () => {
   primeCreaSound()
   try {
     const response = await evaluateMutation({ input: buildInput(props.contribution) })
-    evaluation.value = response.data.creaEvaluateContribution
-    rawResponseText.value = evaluation.value.responseText
-    defaultSalutation.value = evaluation.value.defaultSalutation ?? ''
-    storedSalutation.value = salutationFor(props.contribution) ?? ''
-    salutation.value = storedSalutation.value
-    responseText.value = renderDraft(
-      rawResponseText.value,
-      effectiveSalutation.value,
-      moderatorSignature.value,
-    )
-    // Preselect Crea's own recommendation, so switching away = deviating.
-    chosenDecision.value = evaluation.value.overallVerdict
-    moderatorContext.value = ''
+    applyEvaluation(response.data.creaEvaluateContribution)
     playCreaSound()
   } catch (error) {
     // Crea stays dormant on staging until the API key (DO-5) is set; the resolver
@@ -640,19 +686,7 @@ const runBatchEvaluation = async () => {
   primeCreaSound()
   try {
     const response = await evaluateBatchMutation({ input: buildBatchInput() })
-    evaluation.value = response.data.creaEvaluateBatch
-    rawResponseText.value = evaluation.value.responseText
-    defaultSalutation.value = evaluation.value.defaultSalutation ?? ''
-    storedSalutation.value = salutationFor(props.contribution) ?? ''
-    salutation.value = storedSalutation.value
-    responseText.value = renderDraft(
-      rawResponseText.value,
-      effectiveSalutation.value,
-      moderatorSignature.value,
-    )
-    // Preselect Crea's own overall recommendation, so switching a button = deviating.
-    chosenDecision.value = evaluation.value.overallVerdict
-    moderatorContext.value = ''
+    applyEvaluation(response.data.creaEvaluateBatch)
     playCreaSound()
   } catch (error) {
     if (/not enabled/i.test(error.message)) {
@@ -688,11 +722,7 @@ const rewriteForDecision = async () => {
       })
       const result = response.data.creaRewriteBatch
       rawResponseText.value = result.responseText
-      responseText.value = renderDraft(
-        rawResponseText.value,
-        salutation.value,
-        moderatorSignature.value,
-      )
+      applyDraft()
       // A confirm deviation also carries the public memo note (E-019); surfacing it fills
       // the "Ergänzung" field and enables the "Text ergänzen" button in the reply form.
       supplementText.value = result.memoSupplement ?? ''
@@ -706,11 +736,7 @@ const rewriteForDecision = async () => {
       })
       const result = response.data.creaRewriteResponse
       rawResponseText.value = result.responseText
-      responseText.value = renderDraft(
-        rawResponseText.value,
-        salutation.value,
-        moderatorSignature.value,
-      )
+      applyDraft()
       // A confirm rewrite also carries the public memo note (E-019); inquire/deny return
       // null. Surfacing it fills the editable field above and the "Text ergänzen" button.
       supplementText.value = result.memoSupplement ?? ''
@@ -733,11 +759,18 @@ const onShown = async () => {
   // Load the participant's open contributions: two or more -> batch checklist (no
   // auto-evaluate; the moderator prunes then presses "Bewerten"). Otherwise the single
   // contribution is evaluated right away, as before. Fall back to single on any error.
+  loadedSalutation.value = undefined
   let siblings = []
   try {
     siblings = await loadSiblings()
   } catch {
     siblings = []
+  }
+  // Those rows were just read with fetchPolicy "no-cache", so they carry the participant's
+  // current salutation - unlike the list behind the modal, which may predate another
+  // moderator storing one. All rows belong to the same participant, so the first will do.
+  if (siblings.length > 0) {
+    loadedSalutation.value = siblings[0].user?.salutation ?? null
   }
   if (siblings.length >= 2) {
     contributions.value = siblings
@@ -765,9 +798,13 @@ const saveSalutation = async () => {
     // New baseline, so the button disappears and a further change shows up again.
     storedSalutation.value = value
     savedSalutations.value = { ...savedSalutations.value, [userId]: value || null }
+    // A stored salutation answers Crea's "please check the salutation" flag. An emptied
+    // one hands the decision back to the heuristic, so the flag is apt again.
+    salutationSettled.value = value !== ''
     toastSuccess(t('crea.salutationSaved'))
-  } catch (error) {
-    toastError(error.message)
+  } catch {
+    // The backend returns a code, not a sentence: the wording belongs here.
+    toastError(t('crea.salutationSaveFailed'))
   } finally {
     savingSalutation.value = false
   }
