@@ -62,9 +62,12 @@
     "community": "Comunidade",
     "communityMember": "És um membro ativo",
     "continue-to-registration": "Continuar para o registo",
+    "groupsAndModerators": "Grupos e moderadores",
     "moderator": "Moderador",
-    "moderators": "Moderadores",
+    "moderatorsAllGroups": "Para todos os grupos",
+    "moderatorsUntagged": "Contribuições sem grupo",
     "myContributions": "As minhas contribuições",
+    "noModerators": "Ainda sem moderador",
     "submitContribution": "Contribuir"
   },
   "communityInfo": "Informação da comunidade",
@@ -82,8 +85,17 @@
       "myContributionNoteList": "Podes editar ou eliminar a qualquer momento as contribuições que ainda não foram confirmadas.",
       "pending": "Submetido e à espera de confirmação"
     },
-    "delete": "Eliminar contribuição! Tens a certeza?",
-    "deleted": "A contribuição foi eliminada! Mas continuará visível.",
+    "communityWindow": "Contributions from the last {months} months",
+    "delete": "Eliminar mesmo a contribuição? Depois fica visível apenas para ti e os moderadores, invisível para a comunidade.",
+    "deleted": "A contribuição foi eliminada. Agora fica visível apenas para ti e os moderadores, invisível para a comunidade.",
+    "filter": {
+      "all": "(todas)",
+      "byGroup": "Filtrar por grupo",
+      "grouped": "(todos os grupos)",
+      "noGroup": "(sem grupo)",
+      "noResults": "No contributions found.",
+      "search": "Search contributions …"
+    },
     "formText": {
       "bringYourTalentsTo": "Traz os teus talentos para a comunidade! Recompensamos o teu compromisso voluntário com 20 GDD por hora, até um máximo de 1.000 GDD por mês.",
       "describeYourCommunity": "Descreve a tua atividade de bem comum e indica o número de horas! O montante de 20 GDD por hora é calculado automaticamente. Após a confirmação por um moderador, o montante é creditado na tua conta.",
@@ -91,8 +103,14 @@
       "openAmountForMonth": "Para <b>{monthAndYear}</b>, ainda podes submeter <b>{creation}</b> GDD.",
       "yourContribution": "A tua contribuição para o bem comum"
     },
+    "groupTag": {
+      "help": "Optional. It works without a group, too.",
+      "label": "Group",
+      "none": "(sem grupo)"
+    },
     "isEdited": "editou a contribuição",
     "lastContribution": "Últimas contribuições",
+    "memoIsPublic": "Your description appears in the community list, where it is visible to all members. It shows the contribution's number instead of your name.",
     "noContributions": {
       "allContributions": "Ainda não foram submetidas contribuições.",
       "emptyPage": "Esta página está vazia.",
@@ -103,6 +121,7 @@
       "lastMonth": "O limite de criação foi atingido para o mês selecionado.",
       "thisMonth": "O limite de criação foi atingido para o mês atual."
     },
+    "number": "Contribution no. {number}",
     "oldContribution": "Versão anterior",
     "selectDate": "Quando foi a tua contribuição?",
     "submit": "Submeter",
@@ -113,7 +132,6 @@
   "contribution-link": {
     "thanksYouWith": "agradece-te com"
   },
-  "contributionText": "Texto da contribuição",
   "copy-to-clipboard": "Copiar para a área de transferência",
   "creation": "Criação",
   "decay": {

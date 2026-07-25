@@ -26,6 +26,19 @@
         {{ noOpenCreation }}
       </div>
       <div v-else>
+        <BFormGroup
+          v-if="!form.id"
+          id="contribution-group-tag-group"
+          class="mb-4"
+          :label="$t('contribution.groupTag.label')"
+          :description="$t('contribution.groupTag.help')"
+        >
+          <ThemedSelect
+            v-model="selectedGroupTag"
+            :options="groupTagSelectOptions"
+            data-test="contribution-group-tag"
+          />
+        </BFormGroup>
         <ValidatedInput
           id="contribution-memo"
           :model-value="form.memo"
@@ -37,6 +50,12 @@
           :disable-smart-valid-state="disableSmartValidState"
           @update:model-value="updateField"
         />
+        <!-- Data protection: said where the text is written, not buried in a help page.
+             Deliberately without a duration — the wording must stay true if the community
+             list's time window ever changes. -->
+        <div class="form-text mb-3" data-test="contribution-memo-publication-hint">
+          {{ $t('contribution.memoIsPublic') }}
+        </div>
         <ValidatedInput
           name="hours"
           :model-value="form.hours"
@@ -88,14 +107,20 @@
   </div>
 </template>
 <script setup>
-import { reactive, computed, ref, onMounted, onUnmounted, toRaw } from 'vue'
+import { reactive, computed, ref, watch, onMounted, onUnmounted, toRaw } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useQuery } from '@vue/apollo-composable'
 import ValidatedInput from '@/components/Inputs/ValidatedInput'
 import LabeledInput from '@/components/Inputs/LabeledInput'
 import OpenCreationsAmount from './OpenCreationsAmount.vue'
 import { object, date as dateSchema, number, string } from 'yup'
 import { GDD_PER_HOUR } from '../../constants'
 import { useMinimalContributionDate } from '@/composables/useMinimalContributionDate'
+import {
+  groupTags as groupTagsQuery,
+  suggestedGroupTag as suggestedGroupTagQuery,
+} from '@/graphql/contributions.graphql'
+import { groupTagLabel } from '@/utils/groupTagLabel'
 
 const amountToHours = (amount) => parseFloat(amount / GDD_PER_HOUR).toFixed(2)
 const hoursToAmount = (hours) => parseFloat(hours * GDD_PER_HOUR).toFixed(2)
@@ -123,6 +148,43 @@ const entityDataToForm = computed(() => ({
 }))
 
 const form = reactive({ ...entityDataToForm.value })
+
+// Group functions: the group-tag field (create only). Options come from the
+// canonical list — every group stays choosable here, including quiet ones, otherwise a
+// dormant group could never be woken up. Pre-filled with the member's own last statement,
+// derived in the backend, unless something is already chosen. Optional / non-blocking.
+const { result: groupTagsResult } = useQuery(groupTagsQuery)
+// Asked of the server every time, never taken from the cache. Submitting swaps this form
+// out for the success screen (a v-if in ContributionCreate), so coming back mounts a fresh
+// one — and a cached answer would be the one from BEFORE the submission. That is what put
+// the old group back after someone had just switched to "no group". Note that
+// cache-and-network would not do: it hands over the stale value first, and by the time the
+// real answer lands the field is filled, so the guard below refuses to correct it.
+const { result: suggestedGroupTagResult } = useQuery(
+  suggestedGroupTagQuery,
+  {},
+  { fetchPolicy: 'no-cache' },
+)
+
+const selectedGroupTag = ref(form.groupTags?.[0] ?? '')
+
+const groupTagSelectOptions = computed(() => [
+  { value: '', text: t('contribution.groupTag.none') },
+  ...(groupTagsResult.value?.groupTags ?? []).map((groupTag) => ({
+    value: groupTag.tag,
+    text: groupTagLabel(groupTag),
+  })),
+])
+
+watch(
+  () => suggestedGroupTagResult.value?.suggestedGroupTag?.tag ?? '',
+  (suggestion) => {
+    if (!form.id && suggestion && !selectedGroupTag.value) {
+      selectedGroupTag.value = suggestion
+    }
+  },
+  { immediate: true },
+)
 
 const now = ref(new Date()) // checked every minute, updated if day, month or year changed
 const disableSmartValidState = ref(false)
@@ -246,6 +308,7 @@ const updateField = (newValue, name) => {
 
 function submit() {
   submitted.value = true
+  form.groupTags = selectedGroupTag.value ? [selectedGroupTag.value] : []
   emit('upsert-contribution', toRaw(form))
 }
 </script>

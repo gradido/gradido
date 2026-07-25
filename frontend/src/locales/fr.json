@@ -62,9 +62,12 @@
     "community": "Communauté",
     "communityMember": "Tu es un membre actif",
     "continue-to-registration": "Continue l'inscription",
+    "groupsAndModerators": "Groupes et modérateurs",
     "moderator": "Modérateur",
-    "moderators": "Modérateurs",
+    "moderatorsAllGroups": "Pour tous les groupes",
+    "moderatorsUntagged": "Contributions sans groupe",
     "myContributions": "Mes contributions",
+    "noModerators": "Pas encore de modérateur",
     "submitContribution": "Contribuer"
   },
   "communityInfo": "Information communauté^^",
@@ -82,8 +85,17 @@
       "myContributionNoteList": "À tout moment tu peux éditer ou supprimer les données qui n'ont pas été confirmées.",
       "pending": "Inscription en attente de validation"
     },
-    "delete": "Supprimer la contribution ! Es-tu sûr ?",
-    "deleted": "La contribution a été supprimée! Mais elle restera visible.",
+    "communityWindow": "Contributions from the last {months} months",
+    "delete": "Vraiment supprimer la contribution ? Elle ne sera alors visible que pour toi et les modérateurs, invisible pour la communauté.",
+    "deleted": "La contribution a été supprimée. Elle n'est désormais visible que pour toi et les modérateurs, invisible pour la communauté.",
+    "filter": {
+      "all": "(toutes)",
+      "byGroup": "Filtrer par groupe",
+      "grouped": "(tous les groupes)",
+      "noGroup": "(sans groupe)",
+      "noResults": "No contributions found.",
+      "search": "Search contributions …"
+    },
     "formText": {
       "bringYourTalentsTo": "Apporte tes talents à la communauté ! Ta participation bénévole sera récompensée de 20 GDD/heure jusqu'à un plafond de 1000 GDD/mois.",
       "describeYourCommunity": "Décris ton activité/service à la communauté en mentionnant le nombre d'heures, et calcule le montant à raison de 20 GDD/heure ! Après confirmation par l'un de nos collaborateurs, le montant sera crédité sur ton compte.",
@@ -91,8 +103,14 @@
       "openAmountForMonth": "Pour <b>{monthAndYear}</b>, tu peux encore déclarer <b>{creation}</b> GDD.",
       "yourContribution": "Ta contribution au bien commun"
     },
+    "groupTag": {
+      "help": "Optional. It works without a group, too.",
+      "label": "Group",
+      "none": "(sans groupe)"
+    },
     "isEdited": "a modifié la contribution",
     "lastContribution": "Dernières contributions",
+    "memoIsPublic": "Your description appears in the community list, where it is visible to all members. It shows the contribution's number instead of your name.",
     "noContributions": {
       "allContributions": "Aucune contribution n'a encore été soumise.",
       "emptyPage": "Cette page est vide.",
@@ -103,6 +121,7 @@
       "lastMonth": "La limite de création est atteinte pour le mois sélectionné.",
       "thisMonth": "La limite de création est atteinte pour le mois en cours."
     },
+    "number": "Contribution no. {number}",
     "oldContribution": "Version précédente",
     "selectDate": "Quand a été effectuée ta contribution ?",
     "submit": "Soumettre",
@@ -113,7 +132,6 @@
   "contribution-link": {
     "thanksYouWith": "te remercie avec"
   },
-  "contributionText": "Texte de la contribution",
   "copy-to-clipboard": "Copier dans le presse-papier",
   "creation": "Création",
   "decay": {

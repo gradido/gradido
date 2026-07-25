@@ -62,9 +62,12 @@
     "community": "Topluluk",
     "communityMember": "Aktif bir üyesin",
     "continue-to-registration": "Kayıt işlemine devam et",
+    "groupsAndModerators": "Gruplar ve moderatörler",
     "moderator": "Moderatör",
-    "moderators": "Moderatörler",
+    "moderatorsAllGroups": "Tüm gruplar için",
+    "moderatorsUntagged": "Grubu olmayan katkılar",
     "myContributions": "Toplum yararına yaptığım hizmetler",
+    "noModerators": "Henüz moderatör yok",
     "submitContribution": "yaz"
   },
   "communityInfo": "Topluluk Bilgisi",
@@ -82,8 +85,17 @@
       "myContributionNoteList": "Bildirmiş olduğun henüz onaylanmamış olan  faaliyetleri istediğin zaman düzenleyebilir veya silebilirsin.",
       "pending": "Gönderildi ve onay bekleniyor"
     },
-    "delete": "Hizmeti sil! Emin misin?",
-    "deleted": "Hizmet silindi! Fakat hala görünüyor olacak.",
+    "communityWindow": "Contributions from the last {months} months",
+    "delete": "Hizmet gerçekten silinsin mi? Bundan sonra onu yalnızca sen ve moderatörler görebilir, topluluk göremez.",
+    "deleted": "Hizmet silindi. Artık onu yalnızca sen ve moderatörler görebilir, topluluk göremez.",
+    "filter": {
+      "all": "(tümü)",
+      "byGroup": "Gruba göre filtrele",
+      "grouped": "(tüm gruplar)",
+      "noGroup": "(grupsuz)",
+      "noResults": "No contributions found.",
+      "search": "Search contributions …"
+    },
     "formText": {
       "bringYourTalentsTo": "Yeteneklerini topluluğa sun! Gönüllü olarak sunduğun hizmetler ayda max 1,000 GDD olacak şekilde saati 20 GDD olarak ödüllendirilecektir! Bir moderatör tarafından onaylandıktan sonra bu tutar hesabına yatırılacaktır.",
       "describeYourCommunity": "Kamu yararına faaliyetini açıkla ve saat sayısını belirt! Saat başına 20 GDD tutarı otomatik olarak hesaplanır. Bir moderatör onayladıktan sonra tutar hesabına işlenir.",
@@ -91,8 +103,14 @@
       "openAmountForMonth": "<b>{monthAndYear}</b> tarihi için <b>{creation}</b> hala GDD gönderebilirsin.",
       "yourContribution": "Yaptığın hizmetin topluma katkısı"
     },
+    "groupTag": {
+      "help": "Optional. It works without a group, too.",
+      "label": "Group",
+      "none": "(grupsuz)"
+    },
     "isEdited": "katkıyı düzenledi",
     "lastContribution": "Son Katkılar",
+    "memoIsPublic": "Your description appears in the community list, where it is visible to all members. It shows the contribution's number instead of your name.",
     "noContributions": {
       "allContributions": "Henüz hiç katkı gönderilmedi.",
       "emptyPage": "Bu sayfa boş.",
@@ -103,6 +121,7 @@
       "lastMonth": "Seçilen ay için yaratım limitine ulaşıldı.",
       "thisMonth": "İçinde bulunduğun ay için yaratım limitine ulaşıldı."
     },
+    "number": "Contribution no. {number}",
     "oldContribution": "Önceki sürüm",
     "selectDate": "Hizmet ne zaman verildi?",
     "submit": "Başvuru yapıldı",
@@ -113,7 +132,6 @@
   "contribution-link": {
     "thanksYouWith": "Sana gönderiyor"
   },
-  "contributionText": "Katkı Metni",
   "copy-to-clipboard": "Panoya kopyala",
   "creation": "Yarat",
   "decay": {

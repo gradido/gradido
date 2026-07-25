@@ -62,9 +62,12 @@
     "community": "Gemeenschap",
     "communityMember": "Je bent een actief lid",
     "continue-to-registration": "Verder ter registratie",
+    "groupsAndModerators": "Groepen en moderators",
     "moderator": "Moderator",
-    "moderators": "Moderators",
+    "moderatorsAllGroups": "Voor alle groepen",
+    "moderatorsUntagged": "Bijdragen zonder groep",
     "myContributions": "Mijn bijdragen voor het algemeen belang",
+    "noModerators": "Nog geen moderator",
     "submitContribution": "schrijf"
   },
   "communityInfo": "Informatie over de gemeenschap",
@@ -82,8 +85,17 @@
       "myContributionNoteList": "Ingediende bijdragen, die nog niet bevestigd zijn, kun je op elk moment wijzigen of verwijderen.",
       "pending": "Ingediend en wacht op bevestiging"
     },
-    "delete": "Bijdrage verwijderen! Weet je het zeker?",
-    "deleted": "De bijdrage werd verwijderd! Blijft echter zichtbaar.",
+    "communityWindow": "Contributions from the last {months} months",
+    "delete": "Bijdrage echt verwijderen? Daarna is ze alleen nog zichtbaar voor jou en de moderatoren, onzichtbaar voor de gemeenschap.",
+    "deleted": "De bijdrage is verwijderd. Ze is nu alleen nog zichtbaar voor jou en de moderatoren, onzichtbaar voor de gemeenschap.",
+    "filter": {
+      "all": "(alle)",
+      "byGroup": "Filteren op groep",
+      "grouped": "(alle groepen)",
+      "noGroup": "(zonder groep)",
+      "noResults": "No contributions found.",
+      "search": "Search contributions …"
+    },
     "formText": {
       "bringYourTalentsTo": "Bied je met jouw talenten in de gemeenschap aan! Jouw vrijwillige inzet belonen we met 20 GGD per uur, tot maximaal 1.000 GGD per maand.",
       "describeYourCommunity": "Beschrijf jouw activiteit voor het algemeen belang met vermelding van het aantal uren en registreer een bedrag van 20 GDD per uur! Na bevestiging door een moderator wordt het bedrag op jouw rekening bijgeschreven.",
@@ -91,8 +103,14 @@
       "openAmountForMonth": "Voor <b>{monthAndYear}</b> kun je nog <b>{creation}</b> GDD indienen.",
       "yourContribution": "Jouw bijdrage voor het algemeen belang"
     },
+    "groupTag": {
+      "help": "Optional. It works without a group, too.",
+      "label": "Group",
+      "none": "(zonder groep)"
+    },
     "isEdited": "heeft de bijdrage bewerkt",
     "lastContribution": "Laatste bijdragen",
+    "memoIsPublic": "Your description appears in the community list, where it is visible to all members. It shows the contribution's number instead of your name.",
     "noContributions": {
       "allContributions": "Er zijn nog geen bijdragen ingediend.",
       "emptyPage": "Deze pagina is leeg.",
@@ -103,6 +121,7 @@
       "lastMonth": "De creatielimiet is bereikt voor de geselecteerde maand.",
       "thisMonth": "De creatielimiet is bereikt voor de huidige maand."
     },
+    "number": "Contribution no. {number}",
     "oldContribution": "Vorige versie",
     "selectDate": "Wanneer was jouw bijdrage?",
     "submit": "Indienen",
@@ -113,7 +132,6 @@
   "contribution-link": {
     "thanksYouWith": "bedankt jou met"
   },
-  "contributionText": "Bijdragetekst",
   "copy-to-clipboard": "Kopieer naar klembord",
   "creation": "Creatie",
   "decay": {

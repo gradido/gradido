@@ -62,9 +62,12 @@
     "community": "Κοινότητα",
     "communityMember": "Είσαι ενεργό μέλος",
     "continue-to-registration": "Συνέχεια στην εγγραφή",
+    "groupsAndModerators": "Ομάδες και συντονιστές",
     "moderator": "Συντονιστής",
-    "moderators": "Συντονιστές",
+    "moderatorsAllGroups": "Για όλες τις ομάδες",
+    "moderatorsUntagged": "Συνεισφορές χωρίς ομάδα",
     "myContributions": "Οι συνεισφορές μου",
+    "noModerators": "Δεν υπάρχει ακόμη συντονιστής",
     "submitContribution": "Συνεισφορά"
   },
   "communityInfo": "Πληροφορίες κοινότητας",
@@ -82,8 +85,17 @@
       "myContributionNoteList": "Μπορείς ανά πάσα στιγμή να επεξεργαστείς ή να διαγράψεις συνεισφορές που δεν έχουν ακόμη επιβεβαιωθεί.",
       "pending": "Υποβλήθηκε και αναμένει επιβεβαίωση"
     },
-    "delete": "Διαγραφή συνεισφοράς! Είσαι σίγουρος;",
-    "deleted": "Η συνεισφορά διαγράφηκε! Αλλά θα παραμείνει ορατή.",
+    "communityWindow": "Contributions from the last {months} months",
+    "delete": "Να διαγραφεί η συνεισφορά; Στη συνέχεια θα είναι ορατή μόνο σε εσένα και τους συντονιστές, αόρατη για την κοινότητα.",
+    "deleted": "Η συνεισφορά διαγράφηκε. Είναι πλέον ορατή μόνο σε εσένα και τους συντονιστές, αόρατη για την κοινότητα.",
+    "filter": {
+      "all": "(όλα)",
+      "byGroup": "Φιλτράρισμα κατά ομάδα",
+      "grouped": "(όλες οι ομάδες)",
+      "noGroup": "(χωρίς ομάδα)",
+      "noResults": "No contributions found.",
+      "search": "Search contributions …"
+    },
     "formText": {
       "bringYourTalentsTo": "Φέρε τα ταλέντα σου στην κοινότητα! Επιβραβεύουμε την εθελοντική σου προσφορά με 20 GDD την ώρα, έως 1.000 GDD τον μήνα κατ' ανώτατο όριο.",
       "describeYourCommunity": "Περίγραψε τη δραστηριότητά σου για το κοινό καλό και δήλωσε τον αριθμό των ωρών! Το ποσό των 20 GDD την ώρα υπολογίζεται αυτόματα. Μετά την επιβεβαίωση από έναν συντονιστή, το ποσό πιστώνεται στον λογαριασμό σου.",
@@ -91,8 +103,14 @@
       "openAmountForMonth": "Για τον <b>{monthAndYear}</b>, μπορείς ακόμη να υποβάλεις <b>{creation}</b> GDD.",
       "yourContribution": "Η συνεισφορά σου στο κοινό καλό"
     },
+    "groupTag": {
+      "help": "Optional. It works without a group, too.",
+      "label": "Group",
+      "none": "(χωρίς ομάδα)"
+    },
     "isEdited": "επεξεργάστηκε τη συνεισφορά",
     "lastContribution": "Τελευταίες συνεισφορές",
+    "memoIsPublic": "Your description appears in the community list, where it is visible to all members. It shows the contribution's number instead of your name.",
     "noContributions": {
       "allContributions": "Δεν έχουν υποβληθεί ακόμη συνεισφορές.",
       "emptyPage": "Αυτή η σελίδα είναι κενή.",
@@ -103,6 +121,7 @@
       "lastMonth": "Το όριο δημιουργίας έχει επιτευχθεί για τον επιλεγμένο μήνα.",
       "thisMonth": "Το όριο δημιουργίας έχει επιτευχθεί για τον τρέχοντα μήνα."
     },
+    "number": "Contribution no. {number}",
     "oldContribution": "Προηγούμενη έκδοση",
     "selectDate": "Πότε έγινε η συνεισφορά σου;",
     "submit": "Υποβολή",
@@ -113,7 +132,6 @@
   "contribution-link": {
     "thanksYouWith": "σε ευχαριστεί με"
   },
-  "contributionText": "Κείμενο συνεισφοράς",
   "copy-to-clipboard": "Αντιγραφή στο πρόχειρο",
   "creation": "Δημιουργία",
   "decay": {

@@ -62,9 +62,12 @@
     "community": "Gemeinschaft",
     "communityMember": "Du bist aktives Mitglied",
     "continue-to-registration": "Weiter zur Registrierung",
+    "groupsAndModerators": "Gruppen und Moderatoren",
     "moderator": "Moderator",
-    "moderators": "Moderatoren",
+    "moderatorsAllGroups": "Für alle Gruppen",
+    "moderatorsUntagged": "Beiträge ohne Gruppe",
     "myContributions": "Meine Beiträge",
+    "noModerators": "Noch kein Moderator",
     "submitContribution": "Schreiben"
   },
   "communityInfo": "Gemeinschaft Information",
@@ -82,8 +85,17 @@
       "myContributionNoteList": "Eingereichte Beiträge, die noch nicht bestätigt wurden, kannst du jederzeit bearbeiten oder löschen.",
       "pending": "Eingereicht und wartet auf Bestätigung"
     },
-    "delete": "Beitrag löschen! Bist du sicher?",
-    "deleted": "Der Beitrag wurde gelöscht! Wird aber sichtbar bleiben.",
+    "communityWindow": "Beiträge der letzten {months} Monate",
+    "delete": "Beitrag wirklich löschen? Danach ist er nur noch für Dich und die Moderatoren sichtbar, für die Gemeinschaft unsichtbar.",
+    "deleted": "Der Beitrag wurde gelöscht. Er ist nur noch für Dich und die Moderatoren sichtbar, für die Gemeinschaft unsichtbar.",
+    "filter": {
+      "all": "(alle)",
+      "byGroup": "Nach Gruppe filtern",
+      "grouped": "(alle Gruppen)",
+      "noGroup": "(ohne Gruppe)",
+      "noResults": "Keine Beiträge gefunden.",
+      "search": "Beiträge durchsuchen …"
+    },
     "formText": {
       "bringYourTalentsTo": "Bring dich mit deinen Talenten in die Gemeinschaft ein! Dein freiwilliges Engagement honorieren wir mit 20 GDD pro Stunde bis maximal 1.000 GDD im Monat.",
       "describeYourCommunity": "Beschreibe deine Gemeinwohl-Tätigkeit und gib die Anzahl der Stunden an! Der Betrag von 20 GDD pro Stunde wird automatisch berechnet. Nach Bestätigung durch einen Moderator wird der Betrag deinem Konto gutgeschrieben.",
@@ -91,8 +103,14 @@
       "openAmountForMonth": "Für <b>{monthAndYear}</b> kannst du noch <b>{creation}</b> GDD einreichen.",
       "yourContribution": "Dein Beitrag zum Gemeinwohl"
     },
+    "groupTag": {
+      "help": "Optional. Ohne Gruppe geht es auch.",
+      "label": "Gruppe",
+      "none": "(ohne Gruppe)"
+    },
     "isEdited": "hat den Beitrag bearbeitet",
     "lastContribution": "Letzte Beiträge",
+    "memoIsPublic": "Deine Beschreibung erscheint in der Gemeinschafts-Liste und ist dort für alle Mitglieder sichtbar. Statt Deines Namens steht dort die Nummer des Beitrags.",
     "noContributions": {
       "allContributions": "Es wurden noch keine Beiträge eingereicht.",
       "emptyPage": "Diese Seite ist leer.",
@@ -103,6 +121,7 @@
       "lastMonth": "Für den ausgewählten Monat ist das Schöpfungslimit erreicht.",
       "thisMonth": "Für den aktuellen Monat ist das Schöpfungslimit erreicht."
     },
+    "number": "Beitrag Nr. {number}",
     "oldContribution": "Vorherige Version",
     "selectDate": "Wann war dein Beitrag?",
     "submit": "Einreichen",
@@ -113,7 +132,6 @@
   "contribution-link": {
     "thanksYouWith": "dankt dir mit"
   },
-  "contributionText": "Beitragstext",
   "copy-to-clipboard": "In Zwischenablage kopieren",
   "creation": "Schöpfen",
   "decay": {
