@@ -111,6 +111,8 @@
     "rewrite": "Für meine Entscheidung schreiben",
     "salutation": "Anrede",
     "salutationHint": "So wird dieser Mensch angesprochen. Änderst Du sie hier, zieht der Textvorschlag sofort mit — und beim nächsten Beitrag steht sie schon da.",
+    "salutationSave": "Anrede speichern",
+    "salutationSaved": "Anrede gespeichert.",
     "selectHint": "Wähle die Beiträge, die Crea zusammen bewerten soll.",
     "settings": {
       "adminOnly": "Diese Einstellungen sind nur für Administratoren sichtbar.",

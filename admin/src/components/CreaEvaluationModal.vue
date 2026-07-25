@@ -4,7 +4,7 @@
     v-model="modalVisible"
     size="lg"
     @shown="onShown"
-    @hidden="onHidden"
+    @hidden="resetState"
   >
     <template #title>
       <span class="d-flex align-items-center gap-2">
@@ -200,7 +200,19 @@
         <p class="mb-1">
           <strong>{{ $t('crea.salutation') }}</strong>
         </p>
-        <BFormInput v-model="salutation" size="sm" />
+        <div class="d-flex align-items-start gap-2">
+          <BFormInput v-model="salutation" size="sm" />
+          <BButton
+            v-if="salutationChanged"
+            variant="primary"
+            size="sm"
+            class="flex-shrink-0"
+            :disabled="savingSalutation"
+            @click="saveSalutation"
+          >
+            {{ $t('crea.salutationSave') }}
+          </BButton>
+        </div>
         <p class="mt-1 mb-0 text-muted small">{{ $t('crea.salutationHint') }}</p>
       </div>
 
@@ -310,6 +322,15 @@ const rewriting = ref(false)
 // changed it - so a heuristic guess never gets frozen onto the participant.
 const salutation = ref('')
 const shownSalutation = ref('')
+const savingSalutation = ref(false)
+// What we saved during this session, per participant. The contribution list is not
+// reloaded after saving, so its copy of the participant goes stale the moment a
+// salutation is stored - reading it again would send the old value back into the next
+// evaluation. Keyed by user id; survives closing the window, unlike the fields above.
+const savedSalutations = ref({})
+// Something is typed that is not stored yet. Drives the save button, so an unsaved
+// change is visible instead of relying on the moderator remembering.
+const salutationChanged = computed(() => salutation.value.trim() !== shownSalutation.value.trim())
 
 // The public note Crea drafts for the contribution memo on a confirm rewrite (E-019).
 // Editable; empty unless the moderator confirmed a deviation and Crea returned one.
@@ -493,7 +514,7 @@ const buildInput = (contribution) => ({
   // Local only: fills the [ANREDE] placeholder, never forwarded to the API (E-012).
   recipientFirstName: contribution.user?.firstName ?? null,
   // A salutation stored for this participant wins over the name heuristic (E-013).
-  salutation: contribution.user?.salutation ?? null,
+  salutation: savedSalutations.value[contribution.userId] ?? contribution.user?.salutation ?? null,
   // Pseudonymous handle for the record — the user id, never a name (E-010).
   personPseudonym: contribution.userId != null ? String(contribution.userId) : null,
   date: contribution.contributionDate ?? null,
@@ -582,7 +603,10 @@ const buildBatchInput = () => ({
   // Local only: fills [ANREDE], never forwarded to the API (E-012). All contributions
   // belong to the same participant, so one first name covers them.
   recipientFirstName: props.contribution?.user?.firstName ?? null,
-  salutation: props.contribution?.user?.salutation ?? null,
+  salutation:
+    savedSalutations.value[props.contribution?.userId] ??
+    props.contribution?.user?.salutation ??
+    null,
   uiLanguage: locale.value,
 })
 
@@ -707,27 +731,29 @@ const onShown = async () => {
   }
 }
 
-// Store the salutation when the window closes, and only when the moderator changed
-// what was shown. Saving the prefilled value would freeze the name heuristic's guess
-// onto the participant; saving on every keystroke would store half-typed nicknames.
+// Storing the salutation is an explicit act with a visible confirmation. It used to
+// happen silently on closing the window, which left the moderator unable to tell
+// whether anything had been stored - and made a wrong baseline impossible to notice.
 // An emptied field clears the stored salutation and hands the decision back to the
-// heuristic.
-const persistSalutation = async () => {
+// name heuristic.
+const saveSalutation = async () => {
   const userId = props.contribution?.userId
-  const value = salutation.value.trim()
-  if (userId == null || value === shownSalutation.value.trim()) {
+  if (userId == null) {
     return
   }
+  const value = salutation.value.trim()
+  savingSalutation.value = true
   try {
     await saveSalutationMutation({ userId: Number(userId), salutation: value || null })
+    // New baseline, so the button disappears and a further change shows up again.
+    shownSalutation.value = value
+    savedSalutations.value = { ...savedSalutations.value, [userId]: value || null }
+    toastSuccess(t('crea.salutationSaved'))
   } catch (error) {
     toastError(error.message)
+  } finally {
+    savingSalutation.value = false
   }
-}
-
-const onHidden = async () => {
-  await persistSalutation()
-  resetState()
 }
 
 const verdictVariant = (verdict) => {

@@ -111,6 +111,8 @@
     "rewrite": "Write for my decision",
     "salutation": "Salutation",
     "salutationHint": "How this person is addressed. Change it here and the draft follows at once — next time it is already filled in.",
+    "salutationSave": "Save salutation",
+    "salutationSaved": "Salutation saved.",
     "selectHint": "Select the contributions Crea should evaluate together.",
     "settings": {
       "adminOnly": "These settings are visible to administrators only.",
