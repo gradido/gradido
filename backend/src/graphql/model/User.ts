@@ -88,6 +88,10 @@ export class User {
   // (E-013). Null = none set, so the first-name heuristic decides. Kept here rather
   // than a gender field on purpose: what we need is the form of address, not the
   // person's gender.
+  //
+  // This type is shared with the wallet, so the field is guarded by a FieldResolver in
+  // UserResolver: without VIEW_USER_SALUTATION it reads as null. What the moderation
+  // noted about a person is not for the person's counterparties.
   @Field(() => String, { nullable: true })
   salutation: string | null
 
