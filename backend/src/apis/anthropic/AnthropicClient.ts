@@ -89,9 +89,9 @@ export class AnthropicClient {
 
     this.assertNotTruncated(message)
     const evaluation = JSON.parse(this.firstTextBlock(message)) as CreaEvaluation
-    // Layer-3 post-processing (authoritative discrepancy + local [ANREDE] /
-    // [SIGNATUR] fill) is shared with the stub preview so both paths behave
-    // identically (E-012 / E-013).
+    // Layer-3 post-processing (authoritative discrepancy + the locally resolved
+    // salutation) is shared with the stub preview so both paths behave identically
+    // (E-012 / E-013). Both placeholders travel on to the client, which fills them.
     return applyCreaDeterministics(input, evaluation)
   }
 
@@ -150,8 +150,8 @@ export class AnthropicClient {
    * returns a slim result: ONE overall verdict + ONE reply for all of them, so the
    * participant gets a single message instead of many identical mails. Batch mode is
    * lean - no per-activity records, no per-contribution discrepancy (like the old
-   * copy-paste flow). Reuses the cached rules prefix; [ANREDE] is filled locally and
-   * [SIGNATUR] left for the client (E-012 / E-014).
+   * copy-paste flow). Reuses the cached rules prefix; the salutation is resolved
+   * locally and both placeholders are left for the client (E-012 / E-014).
    */
   public async evaluateBatch(input: CreaBatchInput): Promise<CreaBatchEvaluation> {
     const params = await resolveCreaModelParams()
