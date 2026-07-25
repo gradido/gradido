@@ -43,8 +43,15 @@ body.dark-mode {
     color: var(--text);
   }
 
+  // .form-text and .text-body-secondary are what a BFormGroup description renders as
+  // (via BFormText, whose default textVariant is "body-secondary"). Bootstrap gives both
+  // --bs-secondary-color, a near-black at 75% opacity meant for white backgrounds — on the
+  // dark surface that lands at a contrast of 1.08:1, which is invisible. Neither class is
+  // ever written by hand in the wallet, so this one rule covers every form hint there is.
   .text-muted,
-  .text-secondary {
+  .text-secondary,
+  .form-text,
+  .text-body-secondary {
     color: var(--text-muted) !important;
   }
 

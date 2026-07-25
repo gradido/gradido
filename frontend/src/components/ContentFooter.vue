@@ -7,8 +7,11 @@
           <a :href="`https://gradido.net/${$i18n.locale}`" class="fw-bold ms-1" target="_blank">
             {{ $t('footer.copyright.link') }}
           </a>
-          {{ $t('|') }}
-          <a :href="'https://github.com/gradido/gradido/commit/' + hash" target="_blank">
+          <a
+            :href="'https://github.com/gradido/gradido/commit/' + hash"
+            target="_blank"
+            class="separator-start ms-2 ps-2"
+          >
             {{ $t('footer.app_version', { version }) }}
           </a>
         </div>
