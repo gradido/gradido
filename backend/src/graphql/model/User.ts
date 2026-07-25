@@ -50,6 +50,10 @@ export class User {
       this.humhubPublishName = dbUser.humhubPublishName
       this.gmsPublishLocation = dbUser.gmsPublishLocation
       this.userLocation = dbUser.location ? Point2Location(dbUser.location as Point) : null
+      // Unrestricted by default; verifyLogin fills in a scoped moderator's real groups.
+      this.visibleGroupTags = []
+      this.seesAllGroups = true
+      this.seesUntagged = true
     }
   }
 
@@ -128,6 +132,22 @@ export class User {
 
   @Field(() => [String])
   roles: string[]
+
+  // Group functions: the signed-in moderator's visibility scope, so the admin
+  // interface can offer only the groups they may actually work in. Derived the same way as
+  // on the community info page (describeModeratorGroups); filled in by verifyLogin. The
+  // default is unrestricted, which keeps every other User valid and matches an administrator.
+  @Field(() => [String])
+  visibleGroupTags: string[]
+
+  @Field(() => Boolean)
+  seesAllGroups: boolean
+
+  // Whether the scope covers contributions without a group. "No group" is not a group, so
+  // it cannot live in the list above, but the admin needs it to offer a filter that
+  // reaches those contributions.
+  @Field(() => Boolean)
+  seesUntagged: boolean
 
   @Field(() => UserContact, { nullable: true })
   emailContact: UserContact | null

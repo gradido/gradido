@@ -1,13 +1,18 @@
 import { AdminCreateContributionArgs } from '@arg/AdminCreateContributionArgs'
 import { AdminUpdateContributionArgs } from '@arg/AdminUpdateContributionArgs'
 import { ContributionArgs } from '@arg/ContributionArgs'
+import { ContributionFilterArgs } from '@arg/ContributionFilterArgs'
 import { Paginated } from '@arg/Paginated'
 import { SearchContributionsFilterArgs } from '@arg/SearchContributionsFilterArgs'
 import { ContributionMessageType } from '@enum/ContributionMessageType'
 import { ContributionStatus } from '@enum/ContributionStatus'
 import { ContributionType } from '@enum/ContributionType'
 import { AdminUpdateContribution } from '@model/AdminUpdateContribution'
-import { Contribution, ContributionListResult } from '@model/Contribution'
+import {
+  CommunityContributionListResult,
+  Contribution,
+  ContributionListResult,
+} from '@model/Contribution'
 import { OpenCreation } from '@model/OpenCreation'
 import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
 import {
@@ -49,35 +54,60 @@ import {
 import { UpdateUnconfirmedContributionContext } from '@/interactions/updateUnconfirmedContribution/UpdateUnconfirmedContribution.context'
 import { Context, getClientTimezoneOffset, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
+import { attachContributionGroupTags } from './util/attachContributionGroupTags'
+import { setContributionGroupTags } from './util/contributionGroupTags'
 import {
+  COMMUNITY_WINDOW_MONTHS,
   contributionFrontendLink,
   loadAllContributions,
   loadUserContributions,
 } from './util/contributions'
 import { getOpenCreations, getUserCreation, validateContribution } from './util/creations'
 import { extractGraphQLFields } from './util/extractGraphQLFields'
-import { findContributions } from './util/findContributions'
+import { findContributions, parseModeratorScope } from './util/findContributions'
+import {
+  assertContributionInModeratorScope,
+  isScopedModeratorRole,
+} from './util/moderatorGroupScope'
 
 const db = AppDatabase.getInstance()
 const createLogger = () =>
   getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.ContributionResolver`)
 
+// Group functions: the group stays editable while a contribution is still being
+// worked on. Confirmed, denied and deleted ones are closed — their group is part of the
+// record. The admin uses the same list to decide whether to offer the dropdown.
+export const GROUP_TAGS_EDITABLE_STATUS: string[] = [
+  ContributionStatus.PENDING,
+  ContributionStatus.IN_PROGRESS,
+]
+
 @Resolver(() => Contribution)
 export class ContributionResolver {
   @Authorized([RIGHTS.ADMIN_LIST_CONTRIBUTIONS])
   @Query(() => Contribution)
-  async contribution(@Arg('id', () => Int) id: number): Promise<Contribution> {
+  async contribution(
+    @Arg('id', () => Int) id: number,
+    @Ctx() context: Context,
+  ): Promise<Contribution> {
+    // Reading one contribution by id is a way past the list, so it carries the same group
+    // scope as the list and as every action taken by id.
+    await assertContributionInModeratorScope(id, context.user?.userRoles?.[0])
     const dbContribution = await DbContribution.findOne({ where: { id } })
     if (!dbContribution) {
       throw new LogError('Contribution not found', id)
     }
-    return new Contribution(dbContribution)
+    const contribution = new Contribution(dbContribution)
+    // The admin replaces a whole row with this answer, so it has to carry the group too -
+    // otherwise the reloaded row claims the contribution belongs to no group.
+    await attachContributionGroupTags([contribution])
+    return contribution
   }
 
   @Authorized([RIGHTS.CREATE_CONTRIBUTION])
   @Mutation(() => UnconfirmedContribution)
   async createContribution(
-    @Args() { amount, memo, contributionDate }: ContributionArgs,
+    @Args() { amount, memo, contributionDate, groupTags }: ContributionArgs,
     @Ctx() context: Context,
   ): Promise<UnconfirmedContribution> {
     const clientTimezoneOffset = getClientTimezoneOffset(context)
@@ -101,9 +131,37 @@ export class ContributionResolver {
 
     logger.trace('contribution to save', contribution)
     await DbContribution.save(contribution)
+    await setContributionGroupTags(contribution.id, groupTags ?? [])
     await EVENT_CONTRIBUTION_CREATE(user, contribution, amount)
 
     return new UnconfirmedContribution(contribution)
+  }
+
+  // Group functions: a moderator (re)assigns the structured group tags of an
+  // existing contribution (contribution-level healing; user-list healing lives elsewhere).
+  @Authorized([RIGHTS.ADMIN_UPDATE_CONTRIBUTION])
+  @Mutation(() => Boolean)
+  async assignContributionGroupTags(
+    @Arg('contributionId', () => Int) contributionId: number,
+    @Arg('tags', () => [String]) tags: string[],
+    @Ctx() context: Context,
+  ): Promise<boolean> {
+    await assertContributionInModeratorScope(contributionId, context.user?.userRoles?.[0])
+    const contribution = await DbContribution.findOne({ where: { id: contributionId } })
+    if (!contribution) {
+      throw new LogError('Contribution not found', contributionId)
+    }
+    // Only while the contribution is still being worked on. Once it is confirmed, denied or
+    // deleted it is closed, and its group is part of the record — moving it afterwards would
+    // reshuffle what has already been decided and reported on.
+    if (!GROUP_TAGS_EDITABLE_STATUS.includes(contribution.contributionStatus)) {
+      throw new LogError(
+        'Cannot change the group of a closed contribution',
+        contribution.contributionStatus,
+      )
+    }
+    await setContributionGroupTags(contribution.id, tags)
+    return true
   }
 
   @Authorized([RIGHTS.DELETE_CONTRIBUTION])
@@ -138,9 +196,11 @@ export class ContributionResolver {
   async listContributions(
     @Ctx() context: Context,
     @Arg('pagination') pagination: Paginated,
+    @Arg('filter', () => ContributionFilterArgs, { nullable: true })
+    filter?: ContributionFilterArgs | null,
   ): Promise<ContributionListResult> {
     const user = getUser(context)
-    const [dbContributions, count] = await loadUserContributions(user.id, pagination)
+    const [dbContributions, count] = await loadUserContributions(user.id, pagination, filter)
 
     // show contributions in progress first
     const inProgressContributions = dbContributions.filter(
@@ -161,6 +221,7 @@ export class ContributionResolver {
         return contribution
       }),
     )
+    await attachContributionGroupTags(result.contributionList)
     return result
   }
 
@@ -176,12 +237,20 @@ export class ContributionResolver {
   }
 
   @Authorized([RIGHTS.LIST_ALL_CONTRIBUTIONS])
-  @Query(() => ContributionListResult)
+  @Query(() => CommunityContributionListResult)
   async listAllContributions(
     @Arg('pagination') pagination: Paginated,
-  ): Promise<ContributionListResult> {
-    const [dbContributions, count] = await loadAllContributions(pagination)
-    return new ContributionListResult(count, dbContributions)
+    @Arg('filter', () => ContributionFilterArgs, { nullable: true })
+    filter?: ContributionFilterArgs | null,
+  ): Promise<CommunityContributionListResult> {
+    const [dbContributions, count] = await loadAllContributions(pagination, filter)
+    const result = new CommunityContributionListResult(
+      count,
+      dbContributions,
+      COMMUNITY_WINDOW_MONTHS,
+    )
+    await attachContributionGroupTags(result.contributionList)
+    return result
   }
 
   @Authorized([RIGHTS.UPDATE_CONTRIBUTION])
@@ -256,6 +325,13 @@ export class ContributionResolver {
     contribution.moderatorId = moderator.id
     contribution.contributionType = ContributionType.ADMIN
     contribution.contributionStatus = ContributionStatus.PENDING
+    // Group functions: this text was written by a moderator, not by the member, and there is
+    // no group field on this form. Stamping it as "no group" keeps a "#word" in that text
+    // from pulling the contribution into a group nobody chose — and into that group's
+    // moderator scope. The group can still be set afterwards; the contribution is open.
+    // Stamped on the entity rather than through setContributionGroupTags: there are no tags
+    // to write, so it folds into the insert instead of costing two more statements.
+    contribution.groupTagsSetAt = new Date()
     logger.trace('contribution to save', contribution)
     await DbContribution.save(contribution)
     await EVENT_ADMIN_CONTRIBUTION_CREATE(emailContact.user, moderator, contribution, amount)
@@ -269,6 +345,10 @@ export class ContributionResolver {
     @Args() adminUpdateContributionArgs: AdminUpdateContributionArgs,
     @Ctx() context: Context,
   ): Promise<AdminUpdateContribution> {
+    await assertContributionInModeratorScope(
+      adminUpdateContributionArgs.id,
+      context.user?.userRoles?.[0],
+    )
     const logger = createLogger()
     logger.addContext('contribution', adminUpdateContributionArgs.id)
     const updateUnconfirmedContributionContext = new UpdateUnconfirmedContributionContext(
@@ -345,6 +425,7 @@ export class ContributionResolver {
     filter: SearchContributionsFilterArgs,
     @Arg('paginated', () => Paginated, { defaultValue: new Paginated() }) paginated: Paginated,
     @Info() info: GraphQLResolveInfo,
+    @Ctx() context: Context,
   ): Promise<ContributionListResult> {
     // Check if only count was requested (without contributionList)
     const fields = Object.keys(extractGraphQLFields(info))
@@ -357,6 +438,15 @@ export class ContributionResolver {
     const emailContactRequested = fields.includes('user.emailContact') || filter.query !== undefined
     // check if related messages were requested
     const messagesRequested = ['messagesCount', 'messages'].some((field) => fields.includes(field))
+    // Group functions: a group moderator only sees the contributions of their tags. This
+    // covers BOTH moderator kinds — a MODERATOR_AI is a moderator who may additionally use
+    // Crea, so the same visibility scope applies (see isScopedModeratorRole).
+    // Admins (and other roles) are unrestricted -> scope null.
+    const activeRole = context.user?.userRoles?.[0]
+    const moderatorScope =
+      activeRole && isScopedModeratorRole(activeRole.role)
+        ? parseModeratorScope(activeRole.visibleGroupTags)
+        : null
     const [dbContributions, count] = await findContributions(
       paginated,
       filter,
@@ -370,8 +460,10 @@ export class ContributionResolver {
         messages: messagesRequested,
       },
       countOnly,
+      moderatorScope,
     )
     const result = new ContributionListResult(count, dbContributions)
+    await attachContributionGroupTags(result.contributionList)
 
     const uniqueUserIds = new Set<number>()
     const addIfExist = (userId?: number | null) => (userId ? uniqueUserIds.add(userId) : null)
@@ -398,6 +490,7 @@ export class ContributionResolver {
     @Arg('id', () => Int) id: number,
     @Ctx() context: Context,
   ): Promise<boolean> {
+    await assertContributionInModeratorScope(id, context.user?.userRoles?.[0])
     const contribution = await DbContribution.findOne({ where: { id } })
     if (!contribution) {
       throw new LogError('Contribution not found', id)
@@ -449,6 +542,7 @@ export class ContributionResolver {
     @Arg('id', () => Int) id: number,
     @Ctx() context: Context,
   ): Promise<boolean> {
+    await assertContributionInModeratorScope(id, context.user?.userRoles?.[0])
     const logger = createLogger()
     logger.addContext('contribution', id)
     // acquire lock
@@ -603,6 +697,7 @@ export class ContributionResolver {
     @Arg('id', () => Int) id: number,
     @Ctx() context: Context,
   ): Promise<boolean> {
+    await assertContributionInModeratorScope(id, context.user?.userRoles?.[0])
     const contributionToUpdate = await DbContribution.findOne({
       where: {
         id,

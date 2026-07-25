@@ -265,8 +265,18 @@ export const deleteContributionLink = gql`
 `
 
 export const createContribution = gql`
-  mutation ($amount: GradidoUnit!, $memo: String!, $contributionDate: String!) {
-    createContribution(amount: $amount, memo: $memo, contributionDate: $contributionDate) {
+  mutation (
+    $amount: GradidoUnit!
+    $memo: String!
+    $contributionDate: String!
+    $groupTags: [String!]
+  ) {
+    createContribution(
+      amount: $amount
+      memo: $memo
+      contributionDate: $contributionDate
+      groupTags: $groupTags
+    ) {
       id
       amount
       memo

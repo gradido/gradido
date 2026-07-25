@@ -294,6 +294,11 @@ export const adminListContributions = gql`
         messagesCount
         deniedAt
         deniedBy
+        groupTags {
+          id
+          tag
+          name
+        }
       }
     }
   }
@@ -358,6 +363,9 @@ export const searchAdminUsers = gql`
         firstName
         lastName
         role
+        visibleGroupTags
+        seesAllGroups
+        seesUntagged
       }
     }
   }

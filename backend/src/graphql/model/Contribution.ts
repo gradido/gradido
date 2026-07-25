@@ -1,6 +1,7 @@
 import { ContributionStatus } from '@enum/ContributionStatus'
 import { Contribution as DbContribution } from 'database'
 import { Field, Int, ObjectType } from 'type-graphql'
+import { GroupTag } from './GroupTag'
 import { UnconfirmedContribution } from './UnconfirmedContribution'
 
 @ObjectType()
@@ -20,6 +21,7 @@ export class Contribution extends UnconfirmedContribution {
     this.updatedAt = dbContribution.updatedAt
     this.updatedBy = dbContribution.updatedBy
     this.resubmissionAt = dbContribution.resubmissionAt
+    this.groupTagsSetAt = dbContribution.groupTagsSetAt
     if (ContributionStatus.CONFIRMED === dbContribution.contributionStatus) {
       this.closedAt = dbContribution.confirmedAt
       this.closedBy = dbContribution.confirmedBy
@@ -31,6 +33,10 @@ export class Contribution extends UnconfirmedContribution {
       this.closedBy = dbContribution.deniedBy
     }
   }
+
+  // Group functions: not a GraphQL field — attachContributionGroupTags reads it
+  // to decide whether a legacy inline "#tag" may still stand in for the group.
+  groupTagsSetAt: Date | null
 
   @Field(() => Date, { nullable: true })
   closedAt?: Date | null
@@ -82,6 +88,12 @@ export class Contribution extends UnconfirmedContribution {
 
   @Field(() => Date, { nullable: true })
   resubmissionAt: Date | null
+
+  // Group functions: the groups this contribution belongs to, for display in the
+  // wallet lists and the admin text column. Filled in by attachContributionGroupTags;
+  // empty when the contribution belongs to no group.
+  @Field(() => [GroupTag])
+  groupTags: GroupTag[] = []
 }
 
 @ObjectType()
@@ -98,4 +110,18 @@ export class ContributionListResult {
 
   @Field(() => [Contribution])
   contributionList: Contribution[]
+}
+
+// The community list carries its own window length, so the heading above it states the
+// window that is actually in force instead of a number written down a second time in the
+// wallet. A duplicated constant is exactly how such a heading starts telling a lie.
+@ObjectType()
+export class CommunityContributionListResult extends ContributionListResult {
+  constructor(count: number, list: DbContribution[], windowMonths: number) {
+    super(count, list)
+    this.windowMonths = windowMonths
+  }
+
+  @Field(() => Int)
+  windowMonths: number
 }

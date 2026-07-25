@@ -17,6 +17,10 @@ export async function setUserRole(user: DbUser, role: string | null | undefined)
   }
 }
 
+// Note for group functions: the moderator's group scope lives on this row, so it
+// goes with it. Granting the role again starts from an unset scope, which by the rule in
+// describeModeratorGroups means "sees every group" — a re-appointed moderator has to be
+// given their groups again.
 export async function deleteUserRole(user: DbUser): Promise<void> {
   if (user.userRoles.length > 0) {
     // remove all roles of the user
