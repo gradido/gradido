@@ -28,10 +28,16 @@
   "change_user_role": "Αλλαγή ρόλου χρήστη",
   "close": "Κλείσιμο",
   "contribution": {
+    "changeGroup": "Αλλαγή ομάδας",
+    "changeGroupConfirm": "Ναι, μετακίνηση",
+    "changeGroupDone": "Η ομάδα άλλαξε.",
+    "changeGroupHint": "Ανάλογα με τις ορατές ομάδες σας, η συνεισφορά μπορεί να μην εμφανίζεται πλέον στη λίστα σας.",
+    "changeGroupQuestion": "Μετακίνηση αυτής της συνεισφοράς από {from} σε {to};",
     "confirmedBy": "Επιβεβαιώθηκε από {name}.",
     "createdBy": "Δημιουργήθηκε από {name}.",
     "deletedBy": "Διαγράφηκε από {name}.",
-    "deniedBy": "Απορρίφθηκε από {name}."
+    "deniedBy": "Απορρίφθηκε από {name}.",
+    "noGroup": "(χωρίς ομάδα)"
   },
   "contributionLink": {
     "amount": "Ποσό",
@@ -235,6 +241,31 @@
     "humhubProfile": "Μετάβαση στο προφίλ Humhub",
     "userSearch": "Μετάβαση στην αναζήτηση χρηστών"
   },
+  "groupTagFilter": {
+    "all": "(όλα)",
+    "grouped": "(όλες οι ομάδες)",
+    "label": "Group:",
+    "untagged": "(χωρίς ομάδα)"
+  },
+  "groupTagsAdmin": {
+    "add": "Create",
+    "addTitle": "Create a new group",
+    "adminOnly": "Administrators only.",
+    "cancel": "Cancel",
+    "created": "Group created.",
+    "edit": "Edit",
+    "empty": "No groups created yet.",
+    "existingTitle": "Existing groups",
+    "intro": "Create new groups or rename existing ones. Who belongs to a group or moderates it is assigned on the “User role” tab.",
+    "name": "Name",
+    "namePlaceholder": "e.g. Volunteer Fire Brigade Springfield",
+    "save": "Save",
+    "tag": "Tag",
+    "tagHint": "A short tag without spaces — capitals and accented letters are allowed. Matching ignores upper and lower case. The name is what is shown everywhere.",
+    "tagPlaceholder": "e.g. firefighter",
+    "title": "Manage groups",
+    "updated": "Group updated."
+  },
   "help": {
     "help": "Βοήθεια",
     "transactionlist": {
@@ -278,6 +309,7 @@
   "navbar": {
     "automaticContributions": "Αρχικό υπόλοιπο",
     "crea": "Crea",
+    "groupTags": "Groups",
     "instances": "Στιγμιότυπα",
     "logout": "Αποσύνδεση",
     "my-account": "Ο λογαριασμός μου",
@@ -286,8 +318,6 @@
     "statistic": "Στατιστικά",
     "user_search": "Αναζήτηση χρηστών"
   },
-  "no_hashtag": "Απόκρυψη #hashtag",
-  "no_hashtag_tooltip": "Εμφανίζει μόνο τις συνεισφορές χωρίς hashtag στο κείμενο",
   "not_open_creations": "Καμία ανοιχτή δημιουργία",
   "notice": "Notice",
   "open": "ανοιχτή",
@@ -389,7 +419,20 @@
   },
   "unregistered_emails": "Μόνο μη εγγεγραμμένοι χρήστες",
   "userRole": {
+    "groupTags": {
+      "help": "Pre-filled on submission.",
+      "label": "User's main group",
+      "none": "(no group)"
+    },
     "notChangeYourSelf": "Ως διαχειριστής/συντονιστής, δεν μπορείς να αλλάξεις τον δικό σου ρόλο.",
+    "savedGroupTags": "Groups saved.",
+    "savedScope": "Visibility saved.",
+    "scope": {
+      "all": "all groups",
+      "help": "Empty = all contributions.",
+      "label": "Visible groups",
+      "untagged": "no group"
+    },
     "selectLabel": "Ρόλος:",
     "selectRoles": {
       "admin": "διαχειριστής",

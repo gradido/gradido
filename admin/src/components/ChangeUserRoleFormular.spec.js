@@ -14,6 +14,12 @@ vi.mock('@vue/apollo-composable', () => ({
   useMutation: vi.fn(() => ({
     mutate: vi.fn(),
   })),
+  useQuery: vi.fn(() => ({
+    result: { value: undefined },
+    onResult: vi.fn(),
+    onError: vi.fn(),
+    refetch: vi.fn(),
+  })),
 }))
 
 vi.mock('vuex', () => ({
@@ -135,6 +141,28 @@ describe('ChangeUserRoleFormular', () => {
       const button = wrapper.find('[data-testid="mock-bbutton"]')
       expect(button.exists()).toBe(true)
       expect(button.text()).toBe('change_user_role')
+    })
+
+    describe('visibility scope field', () => {
+      // A KI-Moderator has the moderator rights plus Crea, so the group visibility scope
+      // must be settable for them exactly like for a plain moderator.
+      const scopeShownFor = async (role) => {
+        wrapper.vm.roleSelected = role
+        await wrapper.vm.$nextTick()
+        return wrapper.find('[data-test="moderator-scope"]').exists()
+      }
+
+      it('is offered for a moderator', async () => {
+        expect(await scopeShownFor('MODERATOR')).toBe(true)
+      })
+
+      it('is offered for a KI-Moderator (MODERATOR_AI)', async () => {
+        expect(await scopeShownFor('MODERATOR_AI')).toBe(true)
+      })
+
+      it('is not offered for a usual user', async () => {
+        expect(await scopeShownFor('USER')).toBe(false)
+      })
     })
 
     describe('user has role "usual user"', () => {

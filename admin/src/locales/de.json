@@ -28,10 +28,16 @@
   "change_user_role": "Nutzerrolle ändern",
   "close": "Schließen",
   "contribution": {
+    "changeGroup": "Gruppe ändern",
+    "changeGroupConfirm": "Ja, verschieben",
+    "changeGroupDone": "Gruppe geändert.",
+    "changeGroupHint": "Je nach Deinem Sichtbereich erscheint der Beitrag danach nicht mehr in Deiner Liste.",
+    "changeGroupQuestion": "Diesen Beitrag von {from} nach {to} verschieben?",
     "confirmedBy": "Bestätigt von {name}.",
     "createdBy": "Erstellt von {name}.",
     "deletedBy": "Gelöscht von {name}.",
-    "deniedBy": "Abgelehnt von {name}."
+    "deniedBy": "Abgelehnt von {name}.",
+    "noGroup": "(ohne Gruppe)"
   },
   "contributionLink": {
     "amount": "Betrag",
@@ -235,6 +241,31 @@
     "humhubProfile": "Zum Humhub Profil gehen",
     "userSearch": "Zur Nutzersuche gehen"
   },
+  "groupTagFilter": {
+    "all": "(alle)",
+    "grouped": "(alle Gruppen)",
+    "label": "Gruppe:",
+    "untagged": "(ohne Gruppe)"
+  },
+  "groupTagsAdmin": {
+    "add": "Anlegen",
+    "addTitle": "Neue Gruppe anlegen",
+    "adminOnly": "Nur für Administratoren.",
+    "cancel": "Abbrechen",
+    "created": "Gruppe angelegt.",
+    "edit": "Bearbeiten",
+    "empty": "Noch keine Gruppen angelegt.",
+    "existingTitle": "Bestehende Gruppen",
+    "intro": "Lege neue Gruppen an oder benenne bestehende um. Wer zu einer Gruppe gehört oder sie moderiert, wird im Tab „Nutzer-Rolle“ zugeordnet.",
+    "name": "Name",
+    "namePlaceholder": "z. B. Freiwillige Feuerwehr Musterstadt",
+    "save": "Speichern",
+    "tag": "Kürzel",
+    "tagHint": "Kurzes Kürzel ohne Leerzeichen — Großbuchstaben und Umlaute sind erlaubt. Beim Zuordnen wird Groß-/Kleinschreibung nicht unterschieden. Angezeigt wird überall der Name.",
+    "tagPlaceholder": "z. B. feuerwehr",
+    "title": "Gruppen verwalten",
+    "updated": "Gruppe aktualisiert."
+  },
   "help": {
     "help": "Hilfe",
     "transactionlist": {
@@ -278,6 +309,7 @@
   "navbar": {
     "automaticContributions": "Startguthaben",
     "crea": "Crea",
+    "groupTags": "Gruppen",
     "instances": "Instanzen",
     "logout": "Abmelden",
     "my-account": "Mein Konto",
@@ -286,8 +318,6 @@
     "statistic": "Statistik",
     "user_search": "Nutzersuche"
   },
-  "no_hashtag": "#Hashtags verbergen",
-  "no_hashtag_tooltip": "Zeigt nur Beiträge ohne Hashtag im Text",
   "not_open_creations": "Keine offenen Schöpfungen",
   "notice": "Hinweis",
   "open": "offen",
@@ -389,7 +419,20 @@
   },
   "unregistered_emails": "Nur unregistrierte Nutzer",
   "userRole": {
+    "groupTags": {
+      "help": "Wird beim Einreichen vorbelegt.",
+      "label": "Haupt-Gruppe des Nutzers",
+      "none": "(ohne Gruppe)"
+    },
     "notChangeYourSelf": "Als Admin/Moderator kannst du nicht selber deine Rolle ändern.",
+    "savedGroupTags": "Gruppen gespeichert.",
+    "savedScope": "Sichtbarkeit gespeichert.",
+    "scope": {
+      "all": "alle Gruppen",
+      "help": "Leer = alle Beiträge.",
+      "label": "Sichtbare Gruppen",
+      "untagged": "ohne Gruppe"
+    },
     "selectLabel": "Rolle:",
     "selectRoles": {
       "admin": "Administrator",

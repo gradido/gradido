@@ -28,10 +28,16 @@
   "change_user_role": "Изменить роль пользователя",
   "close": "Закрыть",
   "contribution": {
+    "changeGroup": "Изменить группу",
+    "changeGroupConfirm": "Да, переместить",
+    "changeGroupDone": "Группа изменена.",
+    "changeGroupHint": "В зависимости от ваших видимых групп вклад может больше не отображаться в вашем списке.",
+    "changeGroupQuestion": "Переместить этот вклад из {from} в {to}?",
     "confirmedBy": "Подтверждено пользователем {name}.",
     "createdBy": "Создано пользователем {name}.",
     "deletedBy": "Удалено пользователем {name}.",
-    "deniedBy": "Отклонено пользователем {name}."
+    "deniedBy": "Отклонено пользователем {name}.",
+    "noGroup": "(без группы)"
   },
   "contributionLink": {
     "amount": "Сумма",
@@ -235,6 +241,31 @@
     "humhubProfile": "Перейти в профиль Humhub",
     "userSearch": "Перейти к поиску пользователей"
   },
+  "groupTagFilter": {
+    "all": "(все)",
+    "grouped": "(все группы)",
+    "label": "Group:",
+    "untagged": "(без группы)"
+  },
+  "groupTagsAdmin": {
+    "add": "Create",
+    "addTitle": "Create a new group",
+    "adminOnly": "Administrators only.",
+    "cancel": "Cancel",
+    "created": "Group created.",
+    "edit": "Edit",
+    "empty": "No groups created yet.",
+    "existingTitle": "Existing groups",
+    "intro": "Create new groups or rename existing ones. Who belongs to a group or moderates it is assigned on the “User role” tab.",
+    "name": "Name",
+    "namePlaceholder": "e.g. Volunteer Fire Brigade Springfield",
+    "save": "Save",
+    "tag": "Tag",
+    "tagHint": "A short tag without spaces — capitals and accented letters are allowed. Matching ignores upper and lower case. The name is what is shown everywhere.",
+    "tagPlaceholder": "e.g. firefighter",
+    "title": "Manage groups",
+    "updated": "Group updated."
+  },
   "help": {
     "help": "Помощь",
     "transactionlist": {
@@ -278,6 +309,7 @@
   "navbar": {
     "automaticContributions": "Начальный баланс",
     "crea": "Crea",
+    "groupTags": "Groups",
     "instances": "Экземпляры",
     "logout": "Выйти",
     "my-account": "Мой аккаунт",
@@ -286,8 +318,6 @@
     "statistic": "Статистика",
     "user_search": "Поиск пользователей"
   },
-  "no_hashtag": "Скрыть #хештеги",
-  "no_hashtag_tooltip": "Показывает только вклады без хештега в тексте",
   "not_open_creations": "Нет открытых созданий",
   "notice": "Notice",
   "open": "открыто",
@@ -389,7 +419,20 @@
   },
   "unregistered_emails": "Только незарегистрированные пользователи",
   "userRole": {
+    "groupTags": {
+      "help": "Pre-filled on submission.",
+      "label": "User's main group",
+      "none": "(no group)"
+    },
     "notChangeYourSelf": "Будучи администратором/модератором, вы не можете изменить свою собственную роль.",
+    "savedGroupTags": "Groups saved.",
+    "savedScope": "Visibility saved.",
+    "scope": {
+      "all": "all groups",
+      "help": "Empty = all contributions.",
+      "label": "Visible groups",
+      "untagged": "no group"
+    },
     "selectLabel": "Роль:",
     "selectRoles": {
       "admin": "администратор",
