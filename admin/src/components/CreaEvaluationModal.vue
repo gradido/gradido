@@ -328,6 +328,18 @@ const savingSalutation = ref(false)
 // salutation is stored - reading it again would send the old value back into the next
 // evaluation. Keyed by user id; survives closing the window, unlike the fields above.
 const savedSalutations = ref({})
+// The salutation to send into an evaluation. Asks WHETHER we stored something for
+// this participant this session, not WHAT - a cleared salutation is null, and a
+// nullish check would read that as "nothing recorded" and fall back to the list's
+// stale copy, resurrecting the salutation the moderator just deleted.
+const salutationFor = (contribution) => {
+  const userId = contribution?.userId
+  if (userId != null && userId in savedSalutations.value) {
+    return savedSalutations.value[userId]
+  }
+  return contribution?.user?.salutation ?? null
+}
+
 // Something is typed that is not stored yet. Drives the save button, so an unsaved
 // change is visible instead of relying on the moderator remembering.
 const salutationChanged = computed(() => salutation.value.trim() !== shownSalutation.value.trim())
@@ -514,7 +526,7 @@ const buildInput = (contribution) => ({
   // Local only: fills the [ANREDE] placeholder, never forwarded to the API (E-012).
   recipientFirstName: contribution.user?.firstName ?? null,
   // A salutation stored for this participant wins over the name heuristic (E-013).
-  salutation: savedSalutations.value[contribution.userId] ?? contribution.user?.salutation ?? null,
+  salutation: salutationFor(contribution),
   // Pseudonymous handle for the record — the user id, never a name (E-010).
   personPseudonym: contribution.userId != null ? String(contribution.userId) : null,
   date: contribution.contributionDate ?? null,
@@ -603,10 +615,7 @@ const buildBatchInput = () => ({
   // Local only: fills [ANREDE], never forwarded to the API (E-012). All contributions
   // belong to the same participant, so one first name covers them.
   recipientFirstName: props.contribution?.user?.firstName ?? null,
-  salutation:
-    savedSalutations.value[props.contribution?.userId] ??
-    props.contribution?.user?.salutation ??
-    null,
+  salutation: salutationFor(props.contribution),
   uiLanguage: locale.value,
 })
 
