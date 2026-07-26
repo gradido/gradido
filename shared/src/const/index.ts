@@ -29,8 +29,14 @@ export const MAX_CREATION_AMOUNT = 10000000n
 // input validation
 export const CONTRIBUTIONLINK_NAME_MAX_CHARS = 100
 export const CONTRIBUTIONLINK_NAME_MIN_CHARS = 5
+// memo travels with a transaction: it is stored in a varchar(512) column and is
+// re-validated by the dlt-connector, so these bounds must not be widened here.
 export const MEMO_MAX_CHARS = 512
 export const MEMO_MIN_CHARS = 5
+// a person-to-person message carries no amount and is stored in no varchar column,
+// so it can be roomier than a memo. A short reply like "Yes" has to pass as well.
+export const MESSAGE_MAX_CHARS = 2000
+export const MESSAGE_MIN_CHARS = 1
 
 // authentication
 // 10 minutes
