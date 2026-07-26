@@ -21,10 +21,22 @@ export const translateYupErrorString = (error, t) => {
   }
 }
 
+// A memo travels with a transaction: it is stored in a varchar(512) column and is
+// re-validated by the dlt-connector. Keep these bounds in step with MEMO_*_CHARS in
+// the shared package - the frontend cannot import from it.
 export const memo = string()
   .required('form.validation.memo.required')
   .min(5, ({ min }) => ({ key: 'form.validation.memo.min', values: { min } }))
   .max(512, ({ max }) => ({ key: 'form.validation.memo.max', values: { max } }))
+
+// A person-to-person message carries no amount and is stored in no varchar column,
+// so it may be longer than a memo, and a short reply like "Yes" has to pass as well.
+// Keep in step with MESSAGE_*_CHARS in the shared package. Reuses the memo wording:
+// those texts already say "message" and interpolate the bound.
+export const message = string()
+  .required('form.validation.memo.required')
+  .min(1, ({ min }) => ({ key: 'form.validation.memo.min', values: { min } }))
+  .max(2000, ({ max }) => ({ key: 'form.validation.memo.max', values: { max } }))
 
 export const subject = string()
   .required('form.validation.subject.required')
