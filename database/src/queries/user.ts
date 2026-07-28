@@ -1,7 +1,12 @@
 import { getLogger, Logger } from 'log4js'
 import { aliasSchema, emailSchema, uuidv4Schema } from 'shared'
 import { In, Not, Raw } from 'typeorm'
-import { AliasHistory, AliasHistory as DbAliasHistory, User as DbUser, UserContact as DbUserContact } from '../entity'
+import {
+  AliasHistory,
+  AliasHistory as DbAliasHistory,
+  User as DbUser,
+  UserContact as DbUserContact,
+} from '../entity'
 import { findWithCommunityIdentifier, LOG4JS_QUERIES_CATEGORY_NAME } from './index'
 
 export async function aliasExists(alias: string, userId?: number): Promise<boolean> {
@@ -23,7 +28,7 @@ export async function aliasExists(alias: string, userId?: number): Promise<boole
   return user !== null || aliasHistory !== null
 }
 
-export async function  AliasByUserId(userId: number): Promise<string | null> {
+export async function AliasByUserId(userId: number): Promise<string | null> {
   const aliasHistory = await DbAliasHistory.findOne({
     where: { userId },
     order: { createdAt: 'DESC' },
@@ -81,32 +86,26 @@ export const findUserByIdentifier = async (
   } else if (aliasSchema.safeParse(identifier).success) {
     const normedAlias = Raw((a) => `LOWER(${a}) = LOWER(:alias)`, { alias: identifier })
     let foundUser = await DbUser.findOne({
-      where: [
-        { alias: normedAlias, community: communityWhere },
-      ],
+      where: [{ alias: normedAlias, community: communityWhere }],
       relations: ['emailContact', 'community'],
     })
-    console.log(`foundUser=${JSON.stringify(foundUser)}`)
+    // console.log(`foundUser=${JSON.stringify(foundUser)}`)
     if (foundUser === null) {
       const foundAliasHistory = await DbAliasHistory.findOne({
-        where: [
-          { alias: normedAlias, communityUuid: communityIdentifier },
-        ],
+        where: [{ alias: normedAlias, communityUuid: communityIdentifier }],
         relations: ['user'],
       })
-      console.log(`foundAliasHistory=${JSON.stringify(foundAliasHistory)}`)
+      // console.log(`foundAliasHistory=${JSON.stringify(foundAliasHistory)}`)
       if (foundAliasHistory) {
         foundUser = await DbUser.findOne({
-          where: [
-            { id: foundAliasHistory.userId, community: communityWhere },
-          ],
+          where: [{ id: foundAliasHistory.userId, community: communityWhere }],
           relations: ['emailContact', 'community'],
         })
-        console.log(`foundUser by aliasHistory =${JSON.stringify(foundUser)}`)
+        // console.log(`foundUser by aliasHistory =${JSON.stringify(foundUser)}`)
         return foundUser
       }
     } else {
-        return foundUser
+      return foundUser
     }
   } else {
     // should don't happen often, so we create only in the rare case a logger for it
@@ -150,7 +149,10 @@ export async function findUserNamesByIds(userIds: number[]): Promise<Map<number,
   )
 }
 
-export async function getLastAliasStorageTimeDistance(userId: number, logger: Logger): Promise<number | null> {
+export async function getLastAliasStorageTimeDistance(
+  userId: number,
+  logger: Logger,
+): Promise<number | null> {
   const user = await DbUser.findOne({ where: { id: userId } })
   // select separatly because of optional history
   const aliasHistory = await AliasHistory.find({
@@ -162,19 +164,18 @@ export async function getLastAliasStorageTimeDistance(userId: number, logger: Lo
   if (user !== null && user.aliasStartUpdateAt !== null) {
     logger.debug('user has updated alias')
     // but no aliasHistory entries yet
-    if(aliasHistory.length === 0) {
+    if (aliasHistory.length === 0) {
       logger.debug('no aliasHistory entries yet')
       return Date.now() - user.aliasStartUpdateAt.getTime()
     } else if (aliasHistory.length > 0) {
       logger.debug('has aliasHistory entries')
       // check if aliasStartUpdateAt is newer than last aliasHistory entry
-      if(user.aliasStartUpdateAt.getTime() < aliasHistory[0].createdAt?.getTime()) {
+      if (user.aliasStartUpdateAt.getTime() < aliasHistory[0].createdAt?.getTime()) {
         logger.debug('aliasStartUpdateAt is newer than last aliasHistory entry')
         return Date.now() - user.aliasStartUpdateAt.getTime()
-      }
-      else {
+      } else {
         logger.debug('aliasStartUpdateAt is older than last aliasHistory entry')
-        return aliasHistory[0].createdAt ? (Date.now() - aliasHistory[0].createdAt.getTime()) : null
+        return aliasHistory[0].createdAt ? Date.now() - aliasHistory[0].createdAt.getTime() : null
       }
     }
   }

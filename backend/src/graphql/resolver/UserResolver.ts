@@ -25,8 +25,8 @@ import {
   validateAlias,
 } from 'core'
 import {
-  AliasHistory as DbAliasHistory,
   AppDatabase,
+  AliasHistory as DbAliasHistory,
   ContributionLink as DbContributionLink,
   TransactionLink as DbTransactionLink,
   User as DbUser,
@@ -35,9 +35,9 @@ import {
   dbFindProjectSpaceId,
   findUserByIdentifier,
   getHomeCommunity,
+  getLastAliasStorageTimeDistance,
   ProjectBrandingSelect,
   UserLoggingView,
-  getLastAliasStorageTimeDistance as getLastAliasStorageTimeDistance,
 } from 'database'
 import { GraphQLResolveInfo } from 'graphql'
 import { getLogger, Logger } from 'log4js'
@@ -107,7 +107,8 @@ import { syncHumhub } from './util/syncHumhub'
 const LANGUAGES = ['de', 'en', 'es', 'fr', 'nl', 'it', 'tr', 'ru', 'pt', 'el']
 const DEFAULT_LANGUAGE = 'de'
 const db = AppDatabase.getInstance()
-const createLogger = (method: string) => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.UserResolver.${method}`)
+const createLogger = (method: string) =>
+  getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.UserResolver.${method}`)
 const isLanguage = (language: string): boolean => {
   return LANGUAGES.includes(language)
 }
@@ -671,7 +672,10 @@ export class UserResolver {
 
   @Authorized([RIGHTS.CHECK_USERNAME])
   @Query(() => Boolean)
-  async checkUsername(@Arg('username') username: string, @Ctx() context: Context): Promise<boolean> {
+  async checkUsername(
+    @Arg('username') username: string,
+    @Ctx() context: Context,
+  ): Promise<boolean> {
     const user = getUser(context)
     try {
       await validateAlias(username, user?.id)
@@ -744,7 +748,7 @@ export class UserResolver {
     // in case alias is set and valid, check if it is new or update
     if (alias) {
       await validateAlias(alias, user.id) // true or throws an error
-      // alias can simply be set in user for the first time, but after alias-migration an impossible case    
+      // alias can simply be set in user for the first time, but after alias-migration an impossible case
       if (!user.alias) {
         logger.debug(`write alias=${alias} the first time in user`)
         user.alias = alias
@@ -752,7 +756,7 @@ export class UserResolver {
         user.aliasUpdateCount += 1
         user.aliasFirstUsageAt = null
         updated = true
-      } else if (user.aliasFirstUsageAt !== null ) {
+      } else if (user.aliasFirstUsageAt !== null) {
         // the current set alias is still in use and have to be historized
         const aliasHistory = DbAliasHistory.save({
           userId: user.id,
@@ -782,8 +786,10 @@ export class UserResolver {
         const lastAliasStorageTimeDistance = await getLastAliasStorageTimeDistance(user.id, logger)
         logger.debug(`lastAliasStorageTimeDistance=${lastAliasStorageTimeDistance}`)
         // if no aliasHistory entry exists or it is less than ALIAS_GENERAL_EDIT_TIME_LIMIT ago
-        if (lastAliasStorageTimeDistance === null || 
-            (lastAliasStorageTimeDistance < CONFIG.ALIAS_GENERAL_EDIT_TIME_LIMIT)) {
+        if (
+          lastAliasStorageTimeDistance === null ||
+          lastAliasStorageTimeDistance < CONFIG.ALIAS_GENERAL_EDIT_TIME_LIMIT
+        ) {
           // simply update alias in user without changing aliasStartUpdateAt
           logger.debug(`simply update user.alias=${user.alias} with alias=${alias}`)
           user.alias = alias
@@ -796,9 +802,14 @@ export class UserResolver {
             alias: alias,
             communityUuid: user.communityUuid,
           })
-          logger.debug(`remove optional existing DbAliasHistory same alias: deleteResult`, deleteResult)
+          logger.debug(
+            `remove optional existing DbAliasHistory same alias: deleteResult`,
+            deleteResult,
+          )
         } else {
-          logger.debug(`alias edit time limit is past, so the previous used alias have to be stored in history`)
+          logger.debug(
+            `alias edit time limit is past, so the previous used alias have to be stored in history`,
+          )
 
           let firstUsageAt: Date | null
           // if no history entry exists, create one with the previous user.alias
@@ -822,7 +833,10 @@ export class UserResolver {
               alias: alias,
               communityUuid: user.communityUuid,
             })
-            logger.debug(`remove existing and reused DbAliasHistory same alias: deleteResult`, deleteResult)
+            logger.debug(
+              `remove existing and reused DbAliasHistory same alias: deleteResult`,
+              deleteResult,
+            )
           }
           // and store captured alias in user
           user.alias = alias

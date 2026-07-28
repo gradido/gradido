@@ -216,7 +216,9 @@ export const schema = Joi.object({
     .integer()
     .min(60000)
     .default(18000000)
-    .description('Timer interval in milliseconds for editing user alias without writing history-protocol')
+    .description(
+      'Timer interval in milliseconds for editing user alias without writing history-protocol',
+    )
     .required(),
 
   ANTHROPIC_ACTIVE: Joi.boolean()

@@ -116,7 +116,9 @@ const openai = {
 }
 
 const user = {
-  ALIAS_GENERAL_EDIT_TIME_LIMIT: Number(process.env.ALIAS_GENERAL_EDIT_TIME_LIMIT ?? 1000 * 60 * 60 * 5) // 5 hours editing
+  ALIAS_GENERAL_EDIT_TIME_LIMIT: Number(
+    process.env.ALIAS_GENERAL_EDIT_TIME_LIMIT ?? 1000 * 60 * 60 * 5,
+  ), // 5 hours editing
 }
 
 const anthropic = {

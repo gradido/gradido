@@ -4,9 +4,10 @@ import { aliasSchema } from 'shared'
 import { ZodError } from 'zod'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../config/const'
 
-const createLogger = (method: string) => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.validation.user.${method}`)
+const createLogger = (method: string) =>
+  getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.validation.user.${method}`)
 
-export async function validateAlias(alias: string, userId?: number ): Promise<true> {
+export async function validateAlias(alias: string, userId?: number): Promise<true> {
   const logger = createLogger(`validateAlias`)
   logger.debug(`alias=${alias}, userId=${userId}`)
   try {

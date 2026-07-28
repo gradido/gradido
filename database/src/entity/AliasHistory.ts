@@ -1,4 +1,12 @@
-import { BaseEntity, Column, CreateDateColumn, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'typeorm'
+import {
+  BaseEntity,
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm'
 import { User } from './User'
 
 @Entity('alias_history', { engine: 'InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci' })
@@ -59,5 +67,4 @@ export class AliasHistory extends BaseEntity {
 
   @JoinColumn({ name: 'id', referencedColumnName: 'userId' })
   userEntity?: User | null
-  
 }

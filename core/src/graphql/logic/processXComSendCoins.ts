@@ -329,8 +329,8 @@ export async function processXComPendingSendCoins(
             }
             if (voteResult.recipFirstName && voteResult.recipLastName) {
               pendingTx.linkedUserName = voteResult.recipAlias // fullName(
-                // voteResult.recipFirstName,
-                // voteResult.recipLastName,
+              // voteResult.recipFirstName,
+              // voteResult.recipLastName,
               // )
             }
             pendingTx.memo = memo

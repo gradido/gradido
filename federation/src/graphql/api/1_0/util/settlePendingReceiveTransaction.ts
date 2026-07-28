@@ -102,7 +102,7 @@ export async function settlePendingReceiveTransaction(
       logger.debug(`receiverUser updated: ${receiverUser}`)
     }
 
-      // and mark the pendingTx in the pending_transactions table as settled
+    // and mark the pendingTx in the pending_transactions table as settled
     pendingTx.state = PendingTransactionState.SETTLED
     await queryRunner.manager.save(DbPendingTransaction, pendingTx)
 

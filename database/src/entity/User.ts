@@ -10,6 +10,7 @@ import {
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm'
+import { type AliasHistory as AliasHistoryType } from './AliasHistory'
 import { type Community as CommunityType } from './Community'
 import { type Contribution as ContributionType } from './Contribution'
 import { type ContributionMessage as ContributionMessageType } from './ContributionMessage'
@@ -17,7 +18,6 @@ import { type DltTransaction as DltTransactionType } from './DltTransaction'
 import { type TransactionLink as TransactionLinkType } from './TransactionLink'
 import { GeometryTransformer } from './transformer/GeometryTransformer'
 import { type UserContact as UserContactType } from './UserContact'
-import { type AliasHistory as AliasHistoryType } from './AliasHistory'
 import { type UserRole as UserRoleType } from './UserRole'
 
 @Entity('users', { engine: 'InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci' })
