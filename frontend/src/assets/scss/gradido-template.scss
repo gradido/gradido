@@ -29,6 +29,15 @@ html > body {
   word-break: break-word;
 }
 
+// A separator between two neighbouring entries, drawn on the one that follows. It is a
+// line, not a character: nothing lands in the text, so a screen reader passes over it
+// instead of announcing a pipe between every menu entry. currentColor makes it take the
+// colour of whatever text surrounds it, so the same class fits the light footer and the
+// dark size popover without a value to keep in sync.
+.separator-start {
+  border-left: 1px solid color-mix(in srgb, currentcolor 40%, transparent);
+}
+
 .shadow-default {
   box-shadow: rgb(0 0 0 / 14%) 0 4px 10px;
 }

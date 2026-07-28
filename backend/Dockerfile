@@ -12,8 +12,11 @@ ENV DOCKER_WORKDIR="/app"
 ENV BUILD_DATE="1970-01-01T00:00:00.00Z"
 ## We cannot do $(npm run version).${BUILD_NUMBER} here so we default to 0.0.0.0
 ENV BUILD_VERSION="0.0.0.0"
-## We cannot do `$(git rev-parse --short HEAD)` here so we default to 0000000
-ENV BUILD_COMMIT="0000000"
+## We cannot do `$(git rev-parse --short HEAD)` here so we default to 0000000.
+## Passed in as a build-arg (see docker-compose.yml) so esbuild can bake the running
+## commit into the bundle for GET /api/version (mirrors frontend/Dockerfile).
+ARG BUILD_COMMIT
+ENV BUILD_COMMIT=${BUILD_COMMIT:-"0000000"}
 ## SET NODE_ENV
 ENV NODE_ENV=production
 ## App relevant Envs

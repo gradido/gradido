@@ -1,8 +1,11 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { createStore } from 'vuex'
 import ContributionLinkList from './ContributionLinkList.vue'
 import { BButton, BCard, BCardText, BModal, BTable } from 'bootstrap-vue-next'
 import * as apolloComposable from '@vue/apollo-composable'
+
+const createVuexStore = (roles = ['ADMIN']) => createStore({ state: { moderator: { roles } } })
 
 vi.mock('vue-i18n', () => ({
   useI18n: vi.fn(() => ({
@@ -31,7 +34,7 @@ describe('ContributionLinkList', () => {
   let wrapper
   let mutateMock
 
-  const createWrapper = () => {
+  const createWrapper = (roles = ['ADMIN']) => {
     return mount(ContributionLinkList, {
       props: {
         items: [
@@ -50,6 +53,7 @@ describe('ContributionLinkList', () => {
         ],
       },
       global: {
+        plugins: [createVuexStore(roles)],
         components: {
           BTable,
           BButton,
@@ -118,6 +122,30 @@ describe('ContributionLinkList', () => {
       it('toasts an error message', () => {
         expect(mockToastError).toHaveBeenCalledWith('Something went wrong :(')
       })
+    })
+  })
+
+  // Only administrators may change a starting balance. A moderator keeps the "show" column,
+  // which reveals the link and its QR code — that is what they pass on to members.
+  describe('as a moderator', () => {
+    beforeEach(() => {
+      wrapper = createWrapper(['MODERATOR'])
+    })
+
+    it('leaves out the delete and edit columns', () => {
+      expect(wrapper.vm.fields).not.toContain('delete')
+      expect(wrapper.vm.fields).not.toContain('edit')
+    })
+
+    it('keeps the column that reveals the link', () => {
+      expect(wrapper.vm.fields).toContain('show')
+    })
+  })
+
+  describe('as an administrator', () => {
+    it('offers delete and edit', () => {
+      expect(wrapper.vm.fields).toContain('delete')
+      expect(wrapper.vm.fields).toContain('edit')
     })
   })
 })

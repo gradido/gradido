@@ -119,6 +119,16 @@ const user = {
   ALIAS_GENERAL_EDIT_TIME_LIMIT: Number(process.env.ALIAS_GENERAL_EDIT_TIME_LIMIT ?? 1000 * 60 * 60 * 5) // 5 hours editing
 }
 
+const anthropic = {
+  ANTHROPIC_ACTIVE: process.env.ANTHROPIC_ACTIVE === 'true' || false,
+  ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY ?? '',
+  ANTHROPIC_MODEL: process.env.ANTHROPIC_MODEL ?? 'claude-sonnet-5',
+  // Opt-in preview: with no API key set, `CREA_STUB=true` makes Crea return a canned
+  // evaluation (no API call) so the UI/DB path and deterministics can be exercised
+  // without a key. Off by default in production.
+  CREA_STUB: process.env.CREA_STUB === 'true' || false,
+}
+
 export const CONFIG = {
   ...logging,
   ...server,
@@ -133,5 +143,6 @@ export const CONFIG = {
   ...humhub,
   ...openai,
   ...user,
+  ...anthropic,
 }
 validate(schema, CONFIG)

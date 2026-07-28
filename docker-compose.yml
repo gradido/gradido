@@ -126,6 +126,8 @@ services:
       context: ./
       dockerfile: ./backend/Dockerfile
       target: production
+      args:
+        BUILD_COMMIT: ${BUILD_COMMIT}
     networks:
       - internal-net
     ports:

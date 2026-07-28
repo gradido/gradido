@@ -54,11 +54,14 @@
       :items="items"
       :fields="fields"
       :hide-resubmission="hideResubmission"
+      :crea-open-only="creaOpenOnly"
       @show-overlay="showOverlay"
       @update-status="updateStatus"
       @reload-contribution="reloadContribution"
       @update-contributions="refetch"
       @search-for-email="query = $event"
+      @crea-evaluate="openCreaModal"
+      @resubmission-saved="onResubmissionSaved"
     />
 
     <BPagination
@@ -89,6 +92,16 @@
         </template>
       </Overlay>
     </div>
+    <CreaEvaluationModal :contribution="creaItem" />
+    <BModal
+      v-model="bulkResubmission.show"
+      :title="bulkTitle"
+      :ok-title="$t('bulkResubmission.confirm')"
+      :cancel-title="$t('bulkResubmission.cancel')"
+      @ok="applyBulkResubmission"
+    >
+      {{ bulkQuestion }}
+    </BModal>
   </div>
 </template>
 
@@ -97,13 +110,16 @@ import { ref, computed, watch } from 'vue'
 import { useQuery, useMutation } from '@vue/apollo-composable'
 import { useStore } from 'vuex'
 import { useI18n } from 'vue-i18n'
+import { useModal } from 'bootstrap-vue-next'
 
 import Overlay from '../components/Overlay'
 import OpenCreationsTable from '../components/Tables/OpenCreationsTable'
 import UserQuery from '../components/UserQuery'
 import AiChat from '../components/AiChat'
+import CreaEvaluationModal from '../components/CreaEvaluationModal'
 import { adminListContributions } from '../graphql/adminListContributions.graphql'
 import { adminDeleteContribution } from '../graphql/adminDeleteContribution'
+import { adminUpdateContribution } from '../graphql/adminUpdateContribution'
 import { confirmContribution } from '../graphql/confirmContribution'
 import { denyContribution } from '../graphql/denyContribution'
 import { getContribution } from '../graphql/getContribution'
@@ -121,7 +137,7 @@ const FILTER_TAB_MAP = [
 
 const store = useStore()
 const { t } = useI18n()
-const { toastError, toastSuccess } = useAppToast()
+const { toastError, toastSuccess, toastWarning } = useAppToast()
 
 const tabIndex = ref(0)
 const items = ref([])
@@ -163,63 +179,87 @@ const baseFields = {
   },
 }
 
-const fields = computed(
-  () =>
-    [
-      // open contributions
-      [
-        { key: 'bookmark', label: t('delete') },
-        { key: 'deny', label: t('deny') },
-        baseFields.name,
-        baseFields.amount,
-        baseFields.memo,
-        baseFields.contributionDate,
-        { key: 'editCreation', label: t('details') },
-        { key: 'confirm', label: t('save') },
-      ],
-      // confirmed contributions
-      [
-        baseFields.name,
-        baseFields.amount,
-        baseFields.memo,
-        baseFields.contributionDate,
-        baseFields.createdAt,
-        baseFields.closedAt,
-        { key: 'chatCreation', label: t('details') },
-      ],
-      // denied contributions
-      [
-        baseFields.name,
-        baseFields.amount,
-        baseFields.memo,
-        baseFields.contributionDate,
-        baseFields.createdAt,
-        baseFields.closedAt,
-        { key: 'chatCreation', label: t('details') },
-      ],
-      // deleted contributions
-      [
-        baseFields.name,
-        baseFields.amount,
-        baseFields.memo,
-        baseFields.contributionDate,
-        baseFields.createdAt,
-        baseFields.closedAt,
-        { key: 'chatCreation', label: t('details') },
-      ],
-      // all contributions
-      [
-        { key: 'contributionStatus', label: t('status') },
-        baseFields.name,
-        baseFields.amount,
-        baseFields.memo,
-        baseFields.contributionDate,
-        baseFields.createdAt,
-        baseFields.closedAt,
-        { key: 'chatCreation', label: t('details') },
-      ],
-    ][tabIndex.value],
+const roles = computed(() => store.state.moderator?.roles ?? [])
+const isAdmin = computed(() => roles.value.includes('ADMIN'))
+const isAiUser = computed(() => isAdmin.value || roles.value.includes('MODERATOR_AI'))
+// Who sees the Crea button: AI moderators on the open tab (0) and on the "all" tab (4) --
+// there only on still-open contributions (see creaOpenOnly), so they can jump straight
+// from a participant's history to an open item. Administrators additionally see it on the
+// dedicated confirmed/denied/deleted tabs to test Crea against the whole pool. Plain
+// moderators hold no AI_SEND_MESSAGE right and see no button. This only guides the UI --
+// the resolver's @Authorized guard is what actually enforces the right.
+const showCreaColumn = computed(() =>
+  tabIndex.value === 0 || tabIndex.value === 4 ? isAiUser.value : isAdmin.value,
 )
+// The "all" tab (index 4) mixes open and closed contributions; there Crea shows only on
+// the open (blue) rows -- the ones still to be processed. Other tabs are single-status.
+const creaOpenOnly = computed(() => tabIndex.value === 4)
+
+const fields = computed(() => {
+  const tabFields = [
+    // open contributions
+    [
+      { key: 'bookmark', label: t('delete') },
+      { key: 'deny', label: t('deny') },
+      baseFields.name,
+      baseFields.amount,
+      baseFields.memo,
+      baseFields.contributionDate,
+      { key: 'creaEvaluate', label: t('crea.column') },
+      { key: 'editCreation', label: t('details') },
+      { key: 'confirm', label: t('save') },
+    ],
+    // confirmed contributions
+    [
+      baseFields.name,
+      baseFields.amount,
+      baseFields.memo,
+      baseFields.contributionDate,
+      baseFields.createdAt,
+      baseFields.closedAt,
+      { key: 'creaEvaluate', label: t('crea.column') },
+      { key: 'chatCreation', label: t('details') },
+    ],
+    // denied contributions
+    [
+      baseFields.name,
+      baseFields.amount,
+      baseFields.memo,
+      baseFields.contributionDate,
+      baseFields.createdAt,
+      baseFields.closedAt,
+      { key: 'creaEvaluate', label: t('crea.column') },
+      { key: 'chatCreation', label: t('details') },
+    ],
+    // deleted contributions
+    [
+      baseFields.name,
+      baseFields.amount,
+      baseFields.memo,
+      baseFields.contributionDate,
+      baseFields.createdAt,
+      baseFields.closedAt,
+      { key: 'creaEvaluate', label: t('crea.column') },
+      { key: 'chatCreation', label: t('details') },
+    ],
+    // all contributions
+    [
+      { key: 'contributionStatus', label: t('status') },
+      baseFields.name,
+      baseFields.amount,
+      baseFields.memo,
+      baseFields.contributionDate,
+      baseFields.createdAt,
+      baseFields.closedAt,
+      { key: 'creaEvaluate', label: t('crea.column') },
+      { key: 'chatCreation', label: t('details') },
+    ],
+  ][tabIndex.value]
+
+  return showCreaColumn.value
+    ? tabFields
+    : tabFields.filter((field) => field.key !== 'creaEvaluate')
+})
 
 const statusFilter = computed(() => [...FILTER_TAB_MAP[tabIndex.value]])
 
@@ -254,9 +294,6 @@ const overlayIcon = computed(() => {
 const showResubmissionCheckbox = computed(() => tabIndex.value === 0)
 const hideResubmission = computed(() =>
   showResubmissionCheckbox.value ? hideResubmissionModel.value : false,
-)
-const isAiUser = computed(() =>
-  store.state.moderator?.roles.some((role) => ['ADMIN', 'MODERATOR_AI'].includes(role)),
 )
 
 watch(tabIndex, () => {
@@ -404,12 +441,82 @@ const showOverlay = (selectedItem, selectedVariant) => {
   variant.value = selectedVariant
 }
 
+const creaItem = ref(null)
+const { show: showCreaModal } = useModal('crea-evaluation-modal')
+const openCreaModal = (selectedItem) => {
+  creaItem.value = selectedItem
+  showCreaModal()
+}
+
 const updateStatus = (id) => {
   const target = items.value.find((obj) => obj.id === id)
   if (target) {
     target.messagesCount++
     target.contributionStatus = 'IN_PROGRESS'
   }
+}
+
+// Bulk resubmission: after a moderator saves a reminder on one contribution, offer to
+// apply it to all displayed contributions -- but only when the list shows a SINGLE
+// participant (all rows same userId, e.g. filtered to one user) and holds more than one
+// open contribution. This never touches other participants' contributions.
+const { mutate: updateContributionMutation } = useMutation(adminUpdateContribution)
+const bulkResubmission = ref({ show: false, resubmissionAt: null, name: '', currentId: null })
+
+// Clearing a reminder (resubmissionAt === null) makes the modal speak of "removing",
+// otherwise of "applying" the date.
+const isBulkClearing = computed(() => bulkResubmission.value.resubmissionAt === null)
+const bulkTitle = computed(() =>
+  isBulkClearing.value ? t('bulkResubmission.titleRemove') : t('bulkResubmission.title'),
+)
+const bulkQuestion = computed(() => {
+  const name = bulkResubmission.value.name
+  return isBulkClearing.value
+    ? t('bulkResubmission.questionRemove', { name })
+    : t('bulkResubmission.question', { name })
+})
+
+const displayedOpenItems = () =>
+  items.value.filter((c) => FILTER_TAB_MAP[0].includes(c.contributionStatus))
+const isSingleParticipant = () => new Set(items.value.map((c) => c.userId)).size === 1
+
+const onResubmissionSaved = ({ id, resubmissionAt, unchanged }) => {
+  // Offer to propagate only when there is something to spread: a reminder value (a
+  // date), or a real save (a removal propagates the clearing). A no-op with no reminder
+  // has nothing to propagate -- show a neutral notice instead of opening the prompt.
+  const canPropagate = resubmissionAt != null || !unchanged
+  if (canPropagate && isSingleParticipant() && displayedOpenItems().length > 1) {
+    const user = items.value[0]?.user
+    const name = user ? `${user.firstName} ${user.lastName}` : ''
+    bulkResubmission.value = { show: true, resubmissionAt, name, currentId: id }
+  } else if (unchanged) {
+    // Nothing changed and nothing (or no group) to propagate to: a neutral notice
+    // instead of the backend's red "wasn't changed" error.
+    toastWarning(t('bulkResubmission.noChange'))
+  }
+}
+
+const applyBulkResubmission = async () => {
+  const { resubmissionAt, currentId } = bulkResubmission.value
+  // The current contribution was already saved individually -- exclude it so we never
+  // re-send an unchanged value. A backend "wasn't changed at all" rejection (another
+  // displayed contribution already holds this exact date, or already had no reminder
+  // when clearing) is a harmless no-op: it must not abort the batch or raise an error.
+  const targets = displayedOpenItems().filter((c) => c.id !== currentId)
+  const results = await Promise.allSettled(
+    targets.map((c) => updateContributionMutation({ id: c.id, resubmissionAt })),
+  )
+  const failure = results.find(
+    (r) => r.status === 'rejected' && !r.reason?.message?.includes("wasn't changed"),
+  )
+  if (failure) {
+    toastError(failure.reason.message)
+  } else {
+    toastSuccess(
+      isBulkClearing.value ? t('bulkResubmission.successRemove') : t('bulkResubmission.success'),
+    )
+  }
+  refetch()
 }
 </script>
 
