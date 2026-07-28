@@ -86,7 +86,7 @@ export async function storeForeignUser(
         }
         if (committingResult.recipAlias !== null) {
           user.alias = committingResult.recipAlias
-          user.aliasFirstUsageAt = new Date()
+          // user.aliasFirstUsageAt = new Date()
         }
         /*
         if (!user.emailContact && committingResult.recipEmail !== null) {
