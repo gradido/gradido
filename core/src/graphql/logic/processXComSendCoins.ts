@@ -153,7 +153,7 @@ export async function processXComCompleteTransaction(
         await dbUser.save(senderUser)
       }
       // after successful x-com-tx store the recipient as foreign user
-      methodLogger.debug('store recipient as foreign user...')
+      methodLogger.debug('store recipient as foreign user...', committingResult.recipAlias)
       const foreignUser = await storeForeignUser(recipientCom, committingResult)
       if (foreignUser) {
         methodLogger.info(
