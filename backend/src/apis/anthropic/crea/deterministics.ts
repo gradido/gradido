@@ -1,3 +1,4 @@
+// AI-GENERATED — not an architecture reference
 // Deterministic layer 3 for Crea (design docs `G` ch. 5-6, decisions E-009 / E-012).
 //
 // Division of labour: Crea does the semantic extraction (which activities, how
