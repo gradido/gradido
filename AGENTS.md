@@ -40,6 +40,25 @@ Migrating queries proceeds in three separate steps, never merged into one:
 
 Transaction safety while both ORMs coexist: `AppDatabase` holds a TypeORM `DataSource` and a separate Drizzle pool — two connection pools, so **a TypeORM transaction does not cover Drizzle writes**. Anything that must be atomic has to sit on one ORM. Migrate along transaction boundaries, not table by table.
 
+# Running builds, tests and checks
+
+Always go through turbo from the repo root — never `bun run test` (or `jest`, `vitest`, `bun test`) inside a package directory:
+
+```bash
+bunx turbo test --filter=database      # scope to one package
+bunx turbo typecheck --filter=backend
+bunx turbo lint
+bunx turbo build
+```
+
+The `test` task declares `dependsOn: ["^build"]`. Skipping that build is not a matter of speed: the database version check in `AppDatabase.checkDBVersion` then fails in `beforeAll` and the whole suite errors out with *"Wrong database version detected — requires '0106-…' but found '0104-…'"*. Run the same suite through turbo and it passes, with no migration needed.
+
+So do **not** reach for `bun run up:test` to "fix" a version mismatch. That mutates the test database to work around a missing build, and the mismatch is the symptom, not the cause.
+
+Always pass `--filter`. A bare `bunx turbo test` runs every workspace, including the slow serial jest suites in `backend`, `federation` and `dht-node`.
+
+Test frameworks differ per module — bun in `shared`, `core`, `database`; jest in `backend`, `dht-node`, `federation`; vitest in `frontend`, `admin`. This matters for the `config-schema/test/testSetup` import path; see the Testing section in `README.md`.
+
 # Conventions
 
 - Naming: DB tables and columns are `snake_case`; the TypeScript representation is `camelCase`. A table `user_contacts` maps to the schema export `userContactsTable` and the query file `database/src/queries/userContacts.ts`. Existing singular file names (e.g. `queries/user.ts` for `users`) are legacy — new files follow the table name.
