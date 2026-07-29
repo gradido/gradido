@@ -24,7 +24,7 @@ const RESERVED_ALIAS = [
   'var',
   'reserved',
   'undefined',
-  'unknown'
+  'unknown',
 ]
 
 export const aliasSchema = string()
