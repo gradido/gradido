@@ -21,7 +21,6 @@
     "lint:fix": "biome check --error-on-warnings . --write",
     "clearDB": "cross-env TZ=UTC tsx migration/index.ts clear",
     "test": "cross-env TZ=UTC NODE_ENV=development DB_DATABASE=gradido_test bun test",
-    "test:debug": "cross-env TZ=UTC NODE_ENV=development DB_DATABASE=gradido_test bun test --inspect-brk",
     "up": "cross-env TZ=UTC tsx migration/index.ts up",
     "down": "cross-env TZ=UTC tsx migration/index.ts down",
     "reset": "cross-env TZ=UTC tsx migration/index.ts reset",

@@ -18,7 +18,6 @@
     "build": "bun esbuild.config.ts && mkdirp build/templates/ && ncp src/emails/templates build/templates",
     "build:bun": "bun build src/index.ts --outdir=build --target=bun --packages=external",
     "test": "bun test",
-    "test:debug": "bun test --inspect-brk",
     "typecheck": "tsc --noEmit",
     "lint": "biome check --error-on-warnings .",
     "lint:fix": "biome check --error-on-warnings . --write",
