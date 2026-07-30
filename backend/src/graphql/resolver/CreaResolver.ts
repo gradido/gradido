@@ -6,6 +6,7 @@ import { CreaEvaluation } from '@model/CreaEvaluation'
 import { CreaRewriteResult } from '@model/CreaRewriteResult'
 import { CreaModelTestResult, CreaSettings } from '@model/CreaSettings'
 import { User as DbUser } from 'database'
+import { SALUTATION_MAX_LENGTH } from 'shared'
 import { Arg, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
 import { AnthropicClient } from '@/apis/anthropic/AnthropicClient'
 import { metaFromInput, persistCreaRecords } from '@/apis/anthropic/crea/records'
@@ -26,7 +27,6 @@ import { CONFIG } from '@/config'
 import { EVENT_ADMIN_USER_SALUTATION_SET } from '@/event/Events'
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
-import { SALUTATION_MAX_LENGTH } from 'shared'
 
 @Resolver()
 export class CreaResolver {
