@@ -23,7 +23,7 @@ export const translateYupErrorString = (error, t) => {
 
 // A memo travels with a transaction: it is stored in a varchar(512) column and is
 // re-validated by the dlt-connector. Keep these bounds in step with MEMO_*_CHARS in
-// the shared package - the frontend cannot import from it.
+// the shared package - the frontend cannot yet import from it.
 export const memo = string()
   .required('form.validation.memo.required')
   .min(5, ({ min }) => ({ key: 'form.validation.memo.min', values: { min } }))

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { memo, message } from '@/validationSchemas'
 
-// The frontend cannot import from the shared package, so these bounds are written
+// The frontend cannot import yet from the shared package, so these bounds are written
 // out twice: here and in shared/src/const/index.ts. That makes them easy to widen
 // on one side only, which is exactly what these tests are here to catch.
 //
