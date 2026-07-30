@@ -26,10 +26,7 @@ import { CONFIG } from '@/config'
 import { EVENT_ADMIN_USER_SALUTATION_SET } from '@/event/Events'
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
-
-// Mirrors the users.salutation column (varchar 255, migration 0105); the admin field
-// carries the same limit, so an over-long value is stopped before it gets here.
-const SALUTATION_MAX_LENGTH = 255
+import { SALUTATION_MAX_LENGTH } from 'shared'
 
 @Resolver()
 export class CreaResolver {
