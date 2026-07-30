@@ -21,10 +21,21 @@ describe('crea stub preview evaluation', () => {
     expect(buildStubEvaluation(stubInput({ enteredGdd: 200 })).activities[0].hours).toBe(10)
   })
 
-  it('fills the salutation locally from a known male first name', () => {
+  it('leaves the salutation placeholder for the client and reports the heuristic default', () => {
     const result = buildStubEvaluation(stubInput({ recipientFirstName: 'Bernd' }))
-    expect(result.responseText).toContain('Lieber Bernd')
-    expect(result.responseText).not.toContain(SALUTATION_PLACEHOLDER)
+    expect(result.responseText).toContain(SALUTATION_PLACEHOLDER)
+    expect(result.defaultSalutation).toBe('Lieber Bernd')
+  })
+
+  // Pins the literals rather than the constants. The admin declares its own copy of both
+  // placeholders and cannot import these (it has no dependency on the backend or on
+  // shared), and since this branch nothing on the server substitutes [ANREDE] any more -
+  // so a rename here would ship a raw placeholder to a participant with every test still
+  // green. Change this together with SALUTATION_PLACEHOLDER in CreaEvaluationModal.vue.
+  it('emits exactly the placeholders the admin fills', () => {
+    expect(SALUTATION_PLACEHOLDER).toBe('[ANREDE]')
+    expect(SIGNATURE_PLACEHOLDER).toBe('[SIGNATUR]')
+    expect(buildStubEvaluation(stubInput()).responseText).toContain('[ANREDE]')
   })
 
   it('flags an uncertain salutation for an unknown name (E-005)', () => {
@@ -50,12 +61,11 @@ describe('crea stub preview evaluation', () => {
 })
 
 describe('crea stub rewrite (moderator deviates, E-017 / E-019)', () => {
-  it('fills the salutation and keeps the signature placeholder for the client', () => {
+  it('keeps both placeholders for the client to fill', () => {
     const { responseText } = buildStubRewrite(
       stubInput({ moderatorDecision: 'confirm', recipientFirstName: 'Bernd' }),
     )
-    expect(responseText).toContain('Lieber Bernd')
-    expect(responseText).not.toContain(SALUTATION_PLACEHOLDER)
+    expect(responseText).toContain(SALUTATION_PLACEHOLDER)
     expect(responseText).toContain(SIGNATURE_PLACEHOLDER)
   })
 
@@ -106,11 +116,11 @@ describe('crea stub batch evaluation (E-020)', () => {
     expect(result.reasoning).toContain('2')
   })
 
-  it('fills the salutation locally and keeps the signature placeholder for the client', () => {
+  it('keeps both placeholders and reports the heuristic default', () => {
     const result = buildStubBatch(batchInput({ recipientFirstName: 'Bernd' }))
-    expect(result.responseText).toContain('Lieber Bernd')
-    expect(result.responseText).not.toContain(SALUTATION_PLACEHOLDER)
+    expect(result.responseText).toContain(SALUTATION_PLACEHOLDER)
     expect(result.responseText).toContain(SIGNATURE_PLACEHOLDER)
+    expect(result.defaultSalutation).toBe('Lieber Bernd')
   })
 
   it('flags an uncertain salutation for an unknown name (E-005)', () => {

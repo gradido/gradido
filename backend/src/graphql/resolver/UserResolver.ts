@@ -1187,6 +1187,24 @@ export class UserResolver {
     }
     return new UserContact(userContact)
   }
+
+  /**
+   * The salutation is what the moderation noted about a person (E-013), not the person's
+   * own data - and this ObjectType is shared with the wallet, which reaches it through
+   * `user()`, through `transactionList { linkedUser }` and, with no token at all, through
+   * `queryTransactionLink { senderUser }`. So it is guarded here, like emailContact.
+   *
+   * Returns null instead of throwing: the field is nullable by nature ("none set"), a
+   * caller without the right should simply see nothing, and an error here would null the
+   * whole enclosing user for a query that merely asked for too much.
+   */
+  @FieldResolver(() => String, { nullable: true })
+  salutation(@Root() user: User, @Ctx() context: Context): string | null {
+    if (!context.role?.hasRight(RIGHTS.VIEW_USER_SALUTATION)) {
+      return null
+    }
+    return user.salutation ?? null
+  }
 }
 
 export async function findUserByEmail(email: string): Promise<DbUser> {

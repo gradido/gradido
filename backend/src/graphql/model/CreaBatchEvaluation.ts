@@ -20,6 +20,12 @@ export class CreaBatchEvaluation {
   @Field()
   responseText: string
 
+  // Same as on CreaEvaluation: what the name heuristic alone says, with [ANREDE] left in
+  // the text for the client to fill. All contributions belong to one participant, so one
+  // salutation covers the joint reply.
+  @Field()
+  defaultSalutation: string
+
   @Field(() => [CreaOpenPoint])
   openPoints: CreaOpenPoint[]
 
