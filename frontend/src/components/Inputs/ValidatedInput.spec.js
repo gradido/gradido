@@ -89,4 +89,23 @@ describe('ValidatedInput', () => {
     expect(value).toBe('hello')
     expect(name).toBe('testInput')
   })
+
+  // ValidatedInput has no say in the height of a textarea, it only hands the
+  // attributes it was given down to LabeledInput. A caller that asks for a taller
+  // field has to arrive at the textarea, or the field silently stays as it was.
+  describe('textarea height', () => {
+    it('stays at the previous fixed height when the caller asks for nothing', () => {
+      wrapper = createWrapper({ textarea: 'true' })
+      const textarea = wrapper.findComponent(BFormTextarea)
+      expect(textarea.props('rows')).toBe(4)
+      expect(textarea.props('maxRows')).toBe(4)
+    })
+
+    it('passes a larger maximum through to the textarea so the field can grow', () => {
+      wrapper = createWrapper({ textarea: 'true', maxRows: 14 })
+      const textarea = wrapper.findComponent(BFormTextarea)
+      expect(textarea.props('rows')).toBe(4)
+      expect(textarea.props('maxRows')).toBe(14)
+    })
+  })
 })

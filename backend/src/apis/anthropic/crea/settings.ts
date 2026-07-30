@@ -18,18 +18,24 @@ function normalizeEffort(value: string | null | undefined): CreaEffort {
 export interface StoredCreaSettings {
   model: string | null
   effort: CreaEffort
+  fastMode: boolean
 }
 
 /** The raw stored settings for the admin UI (model null = "use the env default"). */
 export async function readCreaSettings(): Promise<StoredCreaSettings> {
   const row = await CreaSetting.findOneBy({ id: SINGLETON_ID })
-  return { model: row?.model ?? null, effort: normalizeEffort(row?.effort) }
+  return {
+    model: row?.model ?? null,
+    effort: normalizeEffort(row?.effort),
+    fastMode: row?.fastMode ?? false,
+  }
 }
 
 /** Upserts the singleton settings row. An empty/blank model clears the override. */
 export async function writeCreaSettings(
   model: string | null,
   effort: CreaEffort,
+  fastMode: boolean,
 ): Promise<StoredCreaSettings> {
   let row = await CreaSetting.findOneBy({ id: SINGLETON_ID })
   if (!row) {
@@ -38,8 +44,9 @@ export async function writeCreaSettings(
   const trimmed = model?.trim()
   row.model = trimmed ? trimmed : null
   row.effort = effort
+  row.fastMode = fastMode
   await CreaSetting.save(row)
-  return { model: row.model, effort: normalizeEffort(row.effort) }
+  return { model: row.model, effort: normalizeEffort(row.effort), fastMode: row.fastMode }
 }
 
 /** The env-configured fallback model, shown to the admin and used when none is stored. */
@@ -52,19 +59,26 @@ export interface CreaModelParams {
   thinking: { type: 'disabled' } | { type: 'adaptive' }
   effort?: Exclude<CreaEffort, 'disabled'>
   maxTokens: number
+  fastMode: boolean
 }
 
 /**
- * The effective request parameters (model + thinking/effort) for one Anthropic call.
- * effort 'disabled' keeps thinking off (the lean single-JSON default, fastest); any
- * level switches on adaptive thinking at that effort and raises max_tokens to leave
- * room for the reasoning before the JSON.
+ * The effective request parameters (model + thinking/effort + fast mode) for one
+ * Anthropic call. effort 'disabled' keeps thinking off (the lean single-JSON default,
+ * fastest); any level switches on adaptive thinking at that effort and raises
+ * max_tokens to leave room for the reasoning before the JSON.
  */
 export async function resolveCreaModelParams(): Promise<CreaModelParams> {
-  const { model, effort } = await readCreaSettings()
+  const { model, effort, fastMode } = await readCreaSettings()
   const effectiveModel = model ?? CONFIG.ANTHROPIC_MODEL
   if (effort === 'disabled') {
-    return { model: effectiveModel, thinking: { type: 'disabled' }, maxTokens: 8192 }
+    return { model: effectiveModel, thinking: { type: 'disabled' }, maxTokens: 8192, fastMode }
   }
-  return { model: effectiveModel, thinking: { type: 'adaptive' }, effort, maxTokens: 16000 }
+  return {
+    model: effectiveModel,
+    thinking: { type: 'adaptive' },
+    effort,
+    maxTokens: 16000,
+    fastMode,
+  }
 }

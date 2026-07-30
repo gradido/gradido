@@ -1,9 +1,10 @@
-import { IsIn, IsOptional, IsString } from 'class-validator'
+import { IsBoolean, IsIn, IsOptional, IsString } from 'class-validator'
 import { Field, InputType } from 'type-graphql'
 import { CREA_EFFORTS } from '@/apis/anthropic/crea/settings'
 
 // Admin input for the Crea settings (DO-4). An empty/null `model` clears the override
-// and falls back to the env default; `effort` must be one of the allowed levels.
+// and falls back to the env default; `effort` must be one of the allowed levels;
+// `fastMode` asks for faster output at premium pricing where the model supports it.
 @InputType()
 export class CreaSettingsInput {
   @Field(() => String, { nullable: true })
@@ -15,4 +16,9 @@ export class CreaSettingsInput {
   @IsString()
   @IsIn([...CREA_EFFORTS])
   effort: string
+
+  @Field(() => Boolean, { nullable: true })
+  @IsOptional()
+  @IsBoolean()
+  fastMode?: boolean | null
 }

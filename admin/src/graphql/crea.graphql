@@ -72,6 +72,7 @@ query creaSettings {
     model
     effort
     defaultModel
+    fastMode
   }
 }
 
@@ -80,13 +81,17 @@ mutation setCreaSettings ($input: CreaSettingsInput!) {
     model
     effort
     defaultModel
+    fastMode
   }
 }
 
 mutation testCreaModel($input: CreaSettingsInput!) {
   testCreaModel(input: $input) {
     ok
+    code
     message
+    fastMode
+    fastModeDetail
   }
 }
 
