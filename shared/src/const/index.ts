@@ -48,3 +48,7 @@ export const GRADIDO_REALM = 'gradido'
 export const DEFAULT_PAGINATION_PAGE_SIZE = 25
 export const FRONTEND_CONTRIBUTIONS_ITEM_ANCHOR_PREFIX = 'contributionListItem-'
 export const FRONTEND_LOGIN_ROUTE = 'login'
+
+// Mirrors the users.salutation column (varchar 255, migration 0105); the admin field
+// carries the same limit, so an over-long value is stopped before it gets here.
+export const SALUTATION_MAX_LENGTH = 255

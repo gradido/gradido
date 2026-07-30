@@ -18,4 +18,8 @@ export const MODERATOR_RIGHTS = [
   RIGHTS.DENY_CONTRIBUTION,
   RIGHTS.ADMIN_OPEN_CREATIONS,
   RIGHTS.VIEW_USER_CONTACT,
+  // Reading the curated salutation is a moderation right, not a user one: the admin
+  // contributions list shows it, so every moderator needs it, while the wallet - which
+  // shares this GraphQL type - must not see what the moderation noted about a person.
+  RIGHTS.VIEW_USER_SALUTATION,
 ]
