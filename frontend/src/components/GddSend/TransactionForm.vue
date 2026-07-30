@@ -147,6 +147,7 @@
                   :placeholder="$t('form.message')"
                   :rules="validationSchema.fields.memo"
                   textarea="true"
+                  :max-rows="14"
                   :disabled="isFormDisabled"
                   :disable-smart-valid-state="disableSmartValidState"
                   @update:model-value="updateField"
@@ -208,6 +209,7 @@ import CommunitySwitch from '@/components/CommunitySwitch.vue'
 import ValidatedInput from '@/components/Inputs/ValidatedInput.vue'
 import {
   memo as memoSchema,
+  message as messageSchema,
   identifier as identifierSchema,
   subject as subjectSchema,
 } from '@/validationSchemas'
@@ -314,7 +316,8 @@ const validationSchema = computed(() => {
     })
   } else if (radioSelected.value === SEND_TYPES.email) {
     return object({
-      memo: memoSchema,
+      // no amount travels with this one, so it gets the roomier message bounds
+      memo: messageSchema,
       subject: subjectSchema,
       identifier: identifierSchema.test(
         'community-is-reachable',
