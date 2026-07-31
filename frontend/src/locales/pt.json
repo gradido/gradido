@@ -104,7 +104,7 @@
       "yourContribution": "A tua contribuição para o bem comum"
     },
     "groupTag": {
-      "help": "Optional. It works without a group, too.",
+      "help": "Opcional. Também funciona sem grupo. Uma #palavra no texto não define um grupo — é para isso que serve este campo.",
       "label": "Group",
       "none": "(sem grupo)"
     },

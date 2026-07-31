@@ -104,7 +104,7 @@
       "yourContribution": "Tu contribución a la comunidad."
     },
     "groupTag": {
-      "help": "Optional. It works without a group, too.",
+      "help": "Opcional. También funciona sin grupo. Una #palabra en el texto no asigna un grupo — para eso está este campo.",
       "label": "Group",
       "none": "(sin grupo)"
     },

@@ -104,7 +104,7 @@
       "yourContribution": "Yaptığın hizmetin topluma katkısı"
     },
     "groupTag": {
-      "help": "Optional. It works without a group, too.",
+      "help": "İsteğe bağlı. Grupsuz da olur. Metindeki bir #kelime grup belirlemez — bunun için bu alan var.",
       "label": "Group",
       "none": "(grupsuz)"
     },

@@ -104,7 +104,7 @@
       "yourContribution": "Ваш вклад в общее благо"
     },
     "groupTag": {
-      "help": "Optional. It works without a group, too.",
+      "help": "Необязательно. Можно и без группы. #Слово в тексте не задаёт группу — для этого есть это поле.",
       "label": "Group",
       "none": "(без группы)"
     },

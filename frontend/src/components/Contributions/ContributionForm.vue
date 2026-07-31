@@ -160,10 +160,12 @@ const { result: groupTagsResult } = useQuery(groupTagsQuery)
 // the old group back after someone had just switched to "no group". Note that
 // cache-and-network would not do: it hands over the stale value first, and by the time the
 // real answer lands the field is filled, so the guard below refuses to correct it.
+// Only when submitting. The same form is mounted for editing, where the group field is
+// hidden (v-if="!form.id") -- asking there would cost a query whose answer is thrown away.
 const { result: suggestedGroupTagResult } = useQuery(
   suggestedGroupTagQuery,
   {},
-  { fetchPolicy: 'no-cache' },
+  { fetchPolicy: 'no-cache', enabled: !form.id },
 )
 
 const selectedGroupTag = ref(form.groupTags?.[0] ?? '')

@@ -104,7 +104,7 @@
       "yourContribution": "Dein Beitrag zum Gemeinwohl"
     },
     "groupTag": {
-      "help": "Optional. Ohne Gruppe geht es auch.",
+      "help": "Optional. Ohne Gruppe geht es auch. Ein #Wort im Text setzt keine Gruppe — dafür ist dieses Feld da.",
       "label": "Gruppe",
       "none": "(ohne Gruppe)"
     },

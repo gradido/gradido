@@ -104,7 +104,7 @@
       "yourContribution": "Your Contributions to the Common Good"
     },
     "groupTag": {
-      "help": "Optional. It works without a group, too.",
+      "help": "Optional. It works without a group, too. A #word in the text does not set a group — this field does.",
       "label": "Group",
       "none": "(no group)"
     },
