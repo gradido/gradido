@@ -5,7 +5,9 @@ import { CreaBatchEvaluation } from '@model/CreaBatchEvaluation'
 import { CreaEvaluation } from '@model/CreaEvaluation'
 import { CreaRewriteResult } from '@model/CreaRewriteResult'
 import { CreaModelTestResult, CreaSettings } from '@model/CreaSettings'
-import { Arg, Authorized, Mutation, Query, Resolver } from 'type-graphql'
+import { User as DbUser } from 'database'
+import { SALUTATION_MAX_LENGTH } from 'shared'
+import { Arg, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
 import { AnthropicClient } from '@/apis/anthropic/AnthropicClient'
 import { metaFromInput, persistCreaRecords } from '@/apis/anthropic/crea/records'
 import {
@@ -22,6 +24,9 @@ import {
 } from '@/apis/anthropic/crea/stub'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { CONFIG } from '@/config'
+import { EVENT_ADMIN_USER_SALUTATION_SET } from '@/event/Events'
+import { Context, getUser } from '@/server/context'
+import { LogError } from '@/server/LogError'
 
 @Resolver()
 export class CreaResolver {
@@ -118,6 +123,40 @@ export class CreaResolver {
   }
 
   /**
+   * Stores how this participant is addressed, so the next moderator starts from the
+   * same salutation instead of guessing again (E-013). Set from Crea's evaluation
+   * window, where the wrong salutation is noticed. An empty value clears it and hands
+   * the decision back to the first-name heuristic.
+   *
+   * This writes to another person's user record, so it carries its own right and leaves
+   * an event behind, like every other cross-user write in this codebase. The messages
+   * thrown here are for the log and for developers; the moderator sees a translated
+   * toast built in the admin.
+   */
+  @Authorized([RIGHTS.SET_USER_SALUTATION])
+  @Mutation(() => Boolean)
+  async setCreaSalutation(
+    @Arg('userId', () => Int) userId: number,
+    @Ctx() context: Context,
+    @Arg('salutation', () => String, { nullable: true }) salutation?: string | null,
+  ): Promise<boolean> {
+    const value = salutation?.trim() || null
+    // The column is varchar(255) (migration 0105). Without this the driver rejects the
+    // write in strict mode, or truncates it mid-word where it does not.
+    if (value && value.length > SALUTATION_MAX_LENGTH) {
+      throw new LogError('Salutation exceeds the maximum length', value.length)
+    }
+    const user = await DbUser.findOneBy({ id: userId })
+    if (!user) {
+      throw new LogError('Could not find user with given ID', userId)
+    }
+    user.salutation = value
+    await DbUser.save(user)
+    await EVENT_ADMIN_USER_SALUTATION_SET(user, getUser(context))
+    return true
+  }
+
+  /**
    * The global Crea runtime settings for the admin panel (DO-4). Guarded by the
    * dedicated AI_SETTINGS right, which is admin-only: the model applies to every
    * moderator at once, so moderators inherit the effect but not the control (E-028).
@@ -126,7 +165,12 @@ export class CreaResolver {
   @Query(() => CreaSettings)
   async creaSettings(): Promise<CreaSettings> {
     const settings = await readCreaSettings()
-    return { model: settings.model, effort: settings.effort, defaultModel: defaultCreaModel() }
+    return {
+      model: settings.model,
+      effort: settings.effort,
+      defaultModel: defaultCreaModel(),
+      fastMode: settings.fastMode,
+    }
   }
 
   /**
@@ -136,8 +180,17 @@ export class CreaResolver {
   @Authorized([RIGHTS.AI_SETTINGS])
   @Mutation(() => CreaSettings)
   async setCreaSettings(@Arg('input') input: CreaSettingsInput): Promise<CreaSettings> {
-    const settings = await writeCreaSettings(input.model ?? null, input.effort as CreaEffort)
-    return { model: settings.model, effort: settings.effort, defaultModel: defaultCreaModel() }
+    const settings = await writeCreaSettings(
+      input.model ?? null,
+      input.effort as CreaEffort,
+      input.fastMode ?? false,
+    )
+    return {
+      model: settings.model,
+      effort: settings.effort,
+      defaultModel: defaultCreaModel(),
+      fastMode: settings.fastMode,
+    }
   }
 
   /**
@@ -150,9 +203,9 @@ export class CreaResolver {
   async testCreaModel(@Arg('input') input: CreaSettingsInput): Promise<CreaModelTestResult> {
     const client = AnthropicClient.getInstance()
     if (!client) {
-      return { ok: false, message: 'Die Anthropic-API ist nicht aktiv (kein Schluessel gesetzt).' }
+      return { ok: false, code: 'api_inactive', message: '', fastMode: 'off', fastModeDetail: '' }
     }
     const model = input.model?.trim() || defaultCreaModel()
-    return client.probeModel(model, input.effort as CreaEffort)
+    return client.probeModel(model, input.effort as CreaEffort, input.fastMode ?? false)
   }
 }

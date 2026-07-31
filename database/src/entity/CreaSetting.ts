@@ -30,6 +30,11 @@ export class CreaSetting extends BaseEntity {
   })
   effort: string | null
 
+  // Fast mode: the same model with faster output at premium pricing. Only some models
+  // support it, so the backend retries without it when the API rejects the request.
+  @Column({ name: 'fast_mode', type: 'bool', nullable: false, default: false })
+  fastMode: boolean
+
   @UpdateDateColumn({ name: 'updated_at', type: 'datetime', precision: 3 })
   updatedAt: Date
 }

@@ -67,6 +67,15 @@ export class CreaEvaluation {
   @Field()
   responseText: string
 
+  // What the name heuristic alone says, ignoring any stored salutation. The reply still
+  // carries the [ANREDE] placeholder; the client fills it with the moderator's own entry,
+  // or with this when that entry is empty, so an emptied field still renders a usable
+  // reply instead of a bare placeholder (E-013). The stored salutation is deliberately
+  // NOT returned: the client reads that from the participant's record, where it can tell
+  // "nothing stored" apart from "stored", which one merged value cannot.
+  @Field()
+  defaultSalutation: string
+
   @Field(() => [CreaOpenPoint])
   openPoints: CreaOpenPoint[]
 

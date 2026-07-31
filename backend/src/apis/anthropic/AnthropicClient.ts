@@ -9,13 +9,16 @@ import type { CreaBatchEvaluation } from '@/graphql/model/CreaBatchEvaluation'
 import type { CreaEvaluation } from '@/graphql/model/CreaEvaluation'
 import type { CreaRewriteResult } from '@/graphql/model/CreaRewriteResult'
 import {
+  buildSalutation,
+  defaultSalutationFor,
   resolveEnteredGdd,
   resolveEnteredHours,
   SALUTATION_PLACEHOLDER,
+  SALUTATION_UNCERTAIN_FLAG,
   SIGNATURE_PLACEHOLDER,
 } from './crea/deterministics'
 import { CREA_BATCH_SCHEMA, CREA_OUTPUT_SCHEMA, CREA_REWRITE_SCHEMA } from './crea/outputSchema'
-import { applyCreaDeterministics, fillSalutation } from './crea/postprocess'
+import { applyCreaDeterministics } from './crea/postprocess'
 import { buildCreaSystemPrompt, moderatorDecisionLabel } from './crea/ruleset'
 import { type CreaEffort, resolveCreaModelParams } from './crea/settings'
 
@@ -28,7 +31,42 @@ const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.apis.anthropic.AnthropicC
 // normal evaluations stop well before it, so a higher limit costs nothing.
 const CREA_MAX_TOKENS = 8192
 
+// Fast mode runs the same model with faster output at premium pricing. It rides the
+// beta messages endpoint and is only available on some models (Opus tier), so a
+// request naming an unsupported model is rejected. Rather than pin a model list in
+// code - the admin model field is deliberately free text so new models work without a
+// release - we ask for fast mode and fall back to a normal call when the API says no.
+const FAST_MODE_BETA = 'fast-mode-2026-02-01'
+
+/**
+ * True when the API refused specifically because of fast mode: either the model does
+ * not support it (400 naming speed/fast) or the separate fast-mode rate limit is
+ * exhausted (429). Any other error is a real failure and must not trigger a silent
+ * retry - that would hide the cause and pay for a second call.
+ */
+function isFastModeRejection(error: unknown): boolean {
+  if (error instanceof Anthropic.RateLimitError) {
+    return true
+  }
+  if (!(error instanceof Anthropic.BadRequestError)) {
+    return false
+  }
+  const message = String(error.message).toLowerCase()
+  return message.includes('speed') || message.includes('fast')
+}
+
 // TODO: use i18n for prompts in the future so the ai didn't need to translate by non-german moderators which can maybe reduce the accuracy
+
+/**
+ * Why fast mode was refused, as a code the admin renders in its own language. Never
+ * claim a cause we have not checked: fast mode has its own rate limit, so a 429 means
+ * "busy right now" rather than "this model cannot do it". Guessing "not available for
+ * this model" would send an admin off changing the model to fix something the model is
+ * not responsible for.
+ */
+function fastModeRefusalCode(error: unknown): 'rate_limited' | 'refused' {
+  return error instanceof Anthropic.RateLimitError ? 'rate_limited' : 'refused'
+}
 
 /**
  * Singleton client for the Anthropic (Claude) API, used by the Crea moderation
@@ -64,25 +102,28 @@ export class AnthropicClient {
    */
   public async evaluateContribution(input: CreaContributionInput): Promise<CreaEvaluation> {
     const params = await resolveCreaModelParams()
-    const message = await this.anthropic.messages.create({
-      model: params.model,
-      max_tokens: params.maxTokens,
-      // Effort 'disabled' keeps thinking off (the lean single-JSON default); any level
-      // switches on adaptive thinking and raises max_tokens for the reasoning that
-      // precedes the JSON. Model + effort come from the admin settings (DO-4).
-      thinking: params.thinking,
-      system: [
-        {
-          type: 'text',
-          text: buildCreaSystemPrompt(),
-          cache_control: { type: 'ephemeral' },
-        },
-      ],
-      messages: [{ role: 'user', content: this.buildUserMessage(input) }],
-      output_config: params.effort
-        ? { effort: params.effort, format: { type: 'json_schema', schema: CREA_OUTPUT_SCHEMA } }
-        : { format: { type: 'json_schema', schema: CREA_OUTPUT_SCHEMA } },
-    })
+    const message = await this.createMessage(
+      {
+        model: params.model,
+        max_tokens: params.maxTokens,
+        // Effort 'disabled' keeps thinking off (the lean single-JSON default); any level
+        // switches on adaptive thinking and raises max_tokens for the reasoning that
+        // precedes the JSON. Model + effort come from the admin settings (DO-4).
+        thinking: params.thinking,
+        system: [
+          {
+            type: 'text',
+            text: buildCreaSystemPrompt(),
+            cache_control: { type: 'ephemeral' },
+          },
+        ],
+        messages: [{ role: 'user', content: this.buildUserMessage(input) }],
+        output_config: params.effort
+          ? { effort: params.effort, format: { type: 'json_schema', schema: CREA_OUTPUT_SCHEMA } }
+          : { format: { type: 'json_schema', schema: CREA_OUTPUT_SCHEMA } },
+      },
+      params.fastMode,
+    )
 
     logger.info(
       `crea usage: input=${message.usage.input_tokens} cacheRead=${message.usage.cache_read_input_tokens} cacheWrite=${message.usage.cache_creation_input_tokens} output=${message.usage.output_tokens}`,
@@ -90,9 +131,9 @@ export class AnthropicClient {
 
     this.assertNotTruncated(message)
     const evaluation = JSON.parse(this.firstTextBlock(message)) as CreaEvaluation
-    // Layer-3 post-processing (authoritative discrepancy + local [ANREDE] /
-    // [SIGNATUR] fill) is shared with the stub preview so both paths behave
-    // identically (E-012 / E-013).
+    // Layer-3 post-processing (authoritative discrepancy + the locally resolved
+    // salutation) is shared with the stub preview so both paths behave identically
+    // (E-012 / E-013). Both placeholders travel on to the client, which fills them.
     return applyCreaDeterministics(input, evaluation)
   }
 
@@ -108,22 +149,25 @@ export class AnthropicClient {
    */
   public async rewriteResponse(input: CreaContributionInput): Promise<CreaRewriteResult> {
     const params = await resolveCreaModelParams()
-    const message = await this.anthropic.messages.create({
-      model: params.model,
-      max_tokens: params.maxTokens,
-      thinking: params.thinking,
-      system: [
-        {
-          type: 'text',
-          text: buildCreaSystemPrompt(),
-          cache_control: { type: 'ephemeral' },
-        },
-      ],
-      messages: [{ role: 'user', content: this.buildRewriteUserMessage(input) }],
-      output_config: params.effort
-        ? { effort: params.effort, format: { type: 'json_schema', schema: CREA_REWRITE_SCHEMA } }
-        : { format: { type: 'json_schema', schema: CREA_REWRITE_SCHEMA } },
-    })
+    const message = await this.createMessage(
+      {
+        model: params.model,
+        max_tokens: params.maxTokens,
+        thinking: params.thinking,
+        system: [
+          {
+            type: 'text',
+            text: buildCreaSystemPrompt(),
+            cache_control: { type: 'ephemeral' },
+          },
+        ],
+        messages: [{ role: 'user', content: this.buildRewriteUserMessage(input) }],
+        output_config: params.effort
+          ? { effort: params.effort, format: { type: 'json_schema', schema: CREA_REWRITE_SCHEMA } }
+          : { format: { type: 'json_schema', schema: CREA_REWRITE_SCHEMA } },
+      },
+      params.fastMode,
+    )
 
     logger.info(
       `crea rewrite usage: input=${message.usage.input_tokens} cacheRead=${message.usage.cache_read_input_tokens} output=${message.usage.output_tokens}`,
@@ -134,13 +178,14 @@ export class AnthropicClient {
       responseText: string
       memoSupplement?: string | null
     }
-    // Fill [ANREDE] locally on the reply (PII stays local); [SIGNATUR] is left for
-    // the client to fill reactively (E-013 / E-014). No discrepancy recompute: the
-    // rewrite does not re-judge, it only reformulates for the chosen outcome.
-    // memoSupplement is the plain note only — the 💬 marker + moderator first name
-    // are added locally by the client, so that name never reaches the API either.
+    // [ANREDE] and [SIGNATUR] both stay for the client to fill reactively (E-013 /
+    // E-014), so the salutation the moderator just corrected carries over into the
+    // rewritten reply. No discrepancy recompute: the rewrite does not re-judge, it
+    // only reformulates for the chosen outcome. memoSupplement is the plain note only
+    // — the 💬 marker + moderator first name are added locally by the client, so that
+    // name never reaches the API either.
     return {
-      responseText: fillSalutation(input, parsed.responseText).text,
+      responseText: parsed.responseText,
       memoSupplement: parsed.memoSupplement?.trim() || null,
     }
   }
@@ -150,27 +195,30 @@ export class AnthropicClient {
    * returns a slim result: ONE overall verdict + ONE reply for all of them, so the
    * participant gets a single message instead of many identical mails. Batch mode is
    * lean - no per-activity records, no per-contribution discrepancy (like the old
-   * copy-paste flow). Reuses the cached rules prefix; [ANREDE] is filled locally and
-   * [SIGNATUR] left for the client (E-012 / E-014).
+   * copy-paste flow). Reuses the cached rules prefix; the salutation is resolved
+   * locally and both placeholders are left for the client (E-012 / E-014).
    */
   public async evaluateBatch(input: CreaBatchInput): Promise<CreaBatchEvaluation> {
     const params = await resolveCreaModelParams()
-    const message = await this.anthropic.messages.create({
-      model: params.model,
-      max_tokens: params.maxTokens,
-      thinking: params.thinking,
-      system: [
-        {
-          type: 'text',
-          text: buildCreaSystemPrompt(),
-          cache_control: { type: 'ephemeral' },
-        },
-      ],
-      messages: [{ role: 'user', content: this.buildBatchUserMessage(input) }],
-      output_config: params.effort
-        ? { effort: params.effort, format: { type: 'json_schema', schema: CREA_BATCH_SCHEMA } }
-        : { format: { type: 'json_schema', schema: CREA_BATCH_SCHEMA } },
-    })
+    const message = await this.createMessage(
+      {
+        model: params.model,
+        max_tokens: params.maxTokens,
+        thinking: params.thinking,
+        system: [
+          {
+            type: 'text',
+            text: buildCreaSystemPrompt(),
+            cache_control: { type: 'ephemeral' },
+          },
+        ],
+        messages: [{ role: 'user', content: this.buildBatchUserMessage(input) }],
+        output_config: params.effort
+          ? { effort: params.effort, format: { type: 'json_schema', schema: CREA_BATCH_SCHEMA } }
+          : { format: { type: 'json_schema', schema: CREA_BATCH_SCHEMA } },
+      },
+      params.fastMode,
+    )
 
     logger.info(
       `crea batch usage: input=${message.usage.input_tokens} cacheRead=${message.usage.cache_read_input_tokens} output=${message.usage.output_tokens}`,
@@ -178,14 +226,15 @@ export class AnthropicClient {
 
     this.assertNotTruncated(message)
     const parsed = JSON.parse(this.firstTextBlock(message)) as Omit<CreaBatchEvaluation, 'flags'>
-    // Fill [ANREDE] locally (PII stays local); [SIGNATUR] stays for the client to fill
-    // reactively (E-013 / E-014). No discrepancy recompute: batch mode carries no
-    // per-activity hours, so there is nothing to check the entered hours against.
-    const { text, uncertain } = fillSalutation(input, parsed.responseText)
+    // Work the salutation out locally (PII stays local); [ANREDE] and [SIGNATUR] stay
+    // for the client to fill reactively (E-013 / E-014). No discrepancy recompute:
+    // batch mode carries no per-activity hours, so there is nothing to check the
+    // entered hours against.
+    const { uncertain } = buildSalutation(input.recipientFirstName, input.salutation)
     return {
       ...parsed,
-      responseText: text,
-      flags: uncertain ? ['anrede_unsicher'] : [],
+      defaultSalutation: defaultSalutationFor(input.recipientFirstName),
+      flags: uncertain ? [SALUTATION_UNCERTAIN_FLAG] : [],
     }
   }
 
@@ -199,22 +248,25 @@ export class AnthropicClient {
    */
   public async rewriteBatch(input: CreaBatchInput): Promise<CreaRewriteResult> {
     const params = await resolveCreaModelParams()
-    const message = await this.anthropic.messages.create({
-      model: params.model,
-      max_tokens: params.maxTokens,
-      thinking: params.thinking,
-      system: [
-        {
-          type: 'text',
-          text: buildCreaSystemPrompt(),
-          cache_control: { type: 'ephemeral' },
-        },
-      ],
-      messages: [{ role: 'user', content: this.buildBatchRewriteUserMessage(input) }],
-      output_config: params.effort
-        ? { effort: params.effort, format: { type: 'json_schema', schema: CREA_REWRITE_SCHEMA } }
-        : { format: { type: 'json_schema', schema: CREA_REWRITE_SCHEMA } },
-    })
+    const message = await this.createMessage(
+      {
+        model: params.model,
+        max_tokens: params.maxTokens,
+        thinking: params.thinking,
+        system: [
+          {
+            type: 'text',
+            text: buildCreaSystemPrompt(),
+            cache_control: { type: 'ephemeral' },
+          },
+        ],
+        messages: [{ role: 'user', content: this.buildBatchRewriteUserMessage(input) }],
+        output_config: params.effort
+          ? { effort: params.effort, format: { type: 'json_schema', schema: CREA_REWRITE_SCHEMA } }
+          : { format: { type: 'json_schema', schema: CREA_REWRITE_SCHEMA } },
+      },
+      params.fastMode,
+    )
 
     logger.info(
       `crea batch rewrite usage: input=${message.usage.input_tokens} cacheRead=${message.usage.cache_read_input_tokens} output=${message.usage.output_tokens}`,
@@ -225,11 +277,12 @@ export class AnthropicClient {
       responseText: string
       memoSupplement?: string | null
     }
-    // Fill [ANREDE] locally; [SIGNATUR] left for the client. On a confirm deviation Crea
-    // also drafts the public memo note (E-019); the moderator appends it to ONE of the
-    // contributions via "Text ergaenzen". The 💬 marker + first name are added client-side.
+    // [ANREDE] and [SIGNATUR] both stay for the client to fill. On a confirm deviation
+    // Crea also drafts the public memo note (E-019); the moderator appends it to ONE of
+    // the contributions via "Text ergaenzen". The 💬 marker + first name are added
+    // client-side.
     return {
-      responseText: fillSalutation(input, parsed.responseText).text,
+      responseText: parsed.responseText,
       memoSupplement: parsed.memoSupplement?.trim() || null,
     }
   }
@@ -242,28 +295,119 @@ export class AnthropicClient {
   public async probeModel(
     model: string,
     effort: CreaEffort,
-  ): Promise<{ ok: boolean; message: string }> {
+    fastMode: boolean,
+  ): Promise<{
+    ok: boolean
+    code: string
+    message: string
+    fastMode: string
+    fastModeDetail: string
+  }> {
+    const body: Anthropic.MessageCreateParamsNonStreaming =
+      effort === 'disabled'
+        ? {
+            model,
+            max_tokens: 64,
+            thinking: { type: 'disabled' },
+            messages: [{ role: 'user', content: 'Reply with the single word: OK' }],
+          }
+        : {
+            model,
+            max_tokens: 4096,
+            thinking: { type: 'adaptive' },
+            output_config: { effort },
+            messages: [{ role: 'user', content: 'Reply with the single word: OK' }],
+          }
+
+    // With fast mode requested, probe it explicitly and report a downgrade rather than
+    // hiding it, so the admin learns before saving that this model answers normally but
+    // not in fast mode - and, from the API's own wording, why.
+    const failed = (error: unknown) => ({
+      ok: false,
+      code: 'error',
+      message: error instanceof Error ? error.message : String(error),
+      fastMode: 'off',
+      fastModeDetail: '',
+    })
+
+    let fastModeOutcome = 'off'
+    let fastModeDetail = ''
+    if (fastMode) {
+      try {
+        const message = await this.anthropic.beta.messages.create({
+          ...body,
+          speed: 'fast',
+          betas: [FAST_MODE_BETA],
+        })
+        return {
+          ok: true,
+          code: 'ok',
+          message: this.probeText(message),
+          fastMode: 'active',
+          fastModeDetail: '',
+        }
+      } catch (error) {
+        if (!isFastModeRejection(error)) {
+          return failed(error)
+        }
+        fastModeOutcome = fastModeRefusalCode(error)
+        fastModeDetail = error instanceof Error ? error.message : String(error)
+      }
+    }
+
     try {
-      const message =
-        effort === 'disabled'
-          ? await this.anthropic.messages.create({
-              model,
-              max_tokens: 64,
-              thinking: { type: 'disabled' },
-              messages: [{ role: 'user', content: 'Antworte nur mit dem Wort: OK' }],
-            })
-          : await this.anthropic.messages.create({
-              model,
-              max_tokens: 4096,
-              thinking: { type: 'adaptive' },
-              output_config: { effort },
-              messages: [{ role: 'user', content: 'Antworte nur mit dem Wort: OK' }],
-            })
-      const block = message.content.find((content) => content.type === 'text')
-      const text = block && block.type === 'text' ? block.text.trim() : ''
-      return { ok: true, message: text || '(kein Text in der Antwort)' }
+      const message = await this.anthropic.messages.create(body)
+      return {
+        ok: true,
+        code: 'ok',
+        message: this.probeText(message),
+        fastMode: fastModeOutcome,
+        fastModeDetail,
+      }
     } catch (error) {
-      return { ok: false, message: error instanceof Error ? error.message : String(error) }
+      return failed(error)
+    }
+  }
+
+  // Structural on purpose: the probe reads the same text block from either the normal
+  // or the beta (fast mode) response, whose block unions are separate TypeScript types.
+  private probeText(message: { content: Array<{ type: string; text?: string }> }): string {
+    const block = message.content.find((content) => content.type === 'text')
+    return block?.text?.trim() ?? ''
+  }
+
+  /**
+   * Sends one Crea request, honouring the admin's fast-mode setting. With fast mode off
+   * this is the plain messages call. With it on we use the beta endpoint and, if the API
+   * rejects fast mode for this model (or its separate rate limit is exhausted), retry the
+   * same request at normal speed so Crea keeps working instead of failing outright.
+   */
+  private async createMessage(
+    body: Anthropic.MessageCreateParamsNonStreaming,
+    fastMode: boolean,
+  ): Promise<Anthropic.Message> {
+    if (!fastMode) {
+      return this.anthropic.messages.create(body)
+    }
+    try {
+      const message = await this.anthropic.beta.messages.create({
+        ...body,
+        speed: 'fast',
+        betas: [FAST_MODE_BETA],
+      })
+      // The beta response carries the same fields Crea reads (content, usage,
+      // stop_reason); only the TypeScript type differs.
+      return message as Anthropic.Message
+    } catch (error) {
+      if (!isFastModeRejection(error)) {
+        throw error
+      }
+      logger.warn(
+        `crea fast mode refused for model ${body.model} (${
+          error instanceof Error ? error.message : String(error)
+        }); retrying at normal speed`,
+      )
+      return this.anthropic.messages.create(body)
     }
   }
 
