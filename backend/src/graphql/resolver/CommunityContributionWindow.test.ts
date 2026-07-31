@@ -44,8 +44,8 @@ const OLD = 'community window: filed long ago and never decided'
 const OLD_BUT_DECIDED = 'community window: filed long ago, confirmed last month'
 const OLD_DENIED = 'community window: denied long ago'
 const BACKDATED_DECISION = 'community window: filed today, decision dated long ago'
-const IN_GROUP_RECENT = '#windowlive community window: the live group'
-const IN_GROUP_OLD = '#windowquiet community window: the quiet group'
+const IN_GROUP_RECENT = 'community window: the live group'
+const IN_GROUP_OLD = 'community window: the quiet group'
 
 const PAGINATED = { currentPage: 1, pageSize: 50, order: Order.DESC }
 
@@ -79,33 +79,24 @@ beforeAll(async () => {
   member = await userFactory(testEnv, bibiBloxberg)
   resetToken()
   await mutate({ mutation: login, variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' } })
-  for (const memo of [
-    RECENT,
-    OLD,
-    OLD_BUT_DECIDED,
-    OLD_DENIED,
-    BACKDATED_DECISION,
-    IN_GROUP_RECENT,
-    IN_GROUP_OLD,
-  ]) {
+  for (const [memo, groupTags] of [
+    [RECENT, []],
+    [OLD, []],
+    [OLD_BUT_DECIDED, []],
+    [OLD_DENIED, []],
+    [BACKDATED_DECISION, []],
+    [IN_GROUP_RECENT, ['windowlive']],
+    [IN_GROUP_OLD, ['windowquiet']],
+  ] as Array<[string, string[]]>) {
     await mutate({
       mutation: createContribution,
-      variables: { amount: '100', memo, contributionDate: new Date().toString() },
+      variables: { amount: '100', memo, contributionDate: new Date().toString(), groupTags },
     })
   }
   resetToken()
 
-  // Submitting stamps group_tags_set_at, which switches the legacy inline-"#tag" route off.
-  // The two group fixtures rely on that route, so clear the stamp to reproduce stock from
-  // before the group field existed.
-  await DbContribution.update(
-    { memo: IN_GROUP_RECENT },
-    { groupTagsSetAt: null, createdAt: monthsAgo(INSIDE) },
-  )
-  await DbContribution.update(
-    { memo: IN_GROUP_OLD },
-    { groupTagsSetAt: null, createdAt: monthsAgo(OUTSIDE) },
-  )
+  await DbContribution.update({ memo: IN_GROUP_RECENT }, { createdAt: monthsAgo(INSIDE) })
+  await DbContribution.update({ memo: IN_GROUP_OLD }, { createdAt: monthsAgo(OUTSIDE) })
 
   await DbContribution.update({ memo: RECENT }, { createdAt: monthsAgo(INSIDE) })
   await DbContribution.update({ memo: OLD }, { createdAt: monthsAgo(OUTSIDE) })

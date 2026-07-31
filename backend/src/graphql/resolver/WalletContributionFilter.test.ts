@@ -1,6 +1,6 @@
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { ApolloServerTestClient } from 'apollo-server-testing'
-import { AppDatabase, Contribution as DbContribution, User } from 'database'
+import { AppDatabase, User } from 'database'
 import { getLogger as originalGetLogger } from 'log4js'
 import { Order } from '@/graphql/enum/Order'
 import { userFactory } from '@/seeds/factory/user'
@@ -32,7 +32,7 @@ let db: AppDatabase
 let member: User
 
 const PLAIN = 'wallet filter test about the garden'
-const TAGGED = '#walletfiltergroup wallet filter test about the choir'
+const TAGGED = 'wallet filter test about the choir'
 const PAGINATED = { currentPage: 1, pageSize: 50, order: Order.DESC }
 
 const memosFor = async (filter: {
@@ -52,16 +52,15 @@ beforeAll(async () => {
   member = await userFactory(testEnv, bibiBloxberg)
   resetToken()
   await mutate({ mutation: login, variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' } })
-  for (const memo of [PLAIN, TAGGED]) {
+  for (const [memo, groupTags] of [
+    [PLAIN, []],
+    [TAGGED, ['walletfiltergroup']],
+  ] as Array<[string, string[]]>) {
     await mutate({
       mutation: createContribution,
-      variables: { amount: '100', memo, contributionDate: new Date().toString() },
+      variables: { amount: '100', memo, contributionDate: new Date().toString(), groupTags },
     })
   }
-  // The tagged fixture relies on the backward-compatible inline-"#tag" route, which only
-  // applies where the group was never set through the group field. Submitting stamps
-  // group_tags_set_at, so clear it to reproduce a contribution from before the field.
-  await DbContribution.update({ memo: TAGGED }, { groupTagsSetAt: null })
   resetToken()
 })
 
@@ -106,7 +105,7 @@ describe('wallet contribution search', () => {
     }
   })
 
-  it('filters by group, matching the legacy inline tag as well', async () => {
+  it('filters by group', async () => {
     const memos = await memosFor({ groupTag: 'walletfiltergroup' })
     expect(memos).toContain(TAGGED)
     expect(memos).not.toContain(PLAIN)

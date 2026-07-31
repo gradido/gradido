@@ -48,9 +48,10 @@ const submit = async (memo: string, groupTags?: string[]): Promise<void> => {
   })
 }
 
-const asLegacy = async (memo: string): Promise<void> => {
+const asPreFieldStock = async (memo: string): Promise<void> => {
   // Submitting always stamps group_tags_set_at. Clearing it reproduces stock from before
-  // the group field existed, where an inline "#tag" is all there is to go on.
+  // the group field existed: no link and no stamp, so it makes no statement at all and the
+  // search for the newest statement has to walk past it.
   await DbContribution.update({ memo }, { groupTagsSetAt: null })
 }
 
@@ -102,41 +103,42 @@ describe('the member has said something themselves', () => {
     expect(await suggestGroupTagForUser(member.id)).toBeNull()
   })
 
-  it('walks past legacy stock that says nothing, without falling through to the main tag', async () => {
-    // A contribution from before the group field, naming no group: not a statement, so the
-    // deliberate "no group" before it still stands.
+  it('walks past pre-field stock that says nothing, without falling through to the main tag', async () => {
+    // A contribution from before the group field: not a statement, so the deliberate
+    // "no group" before it still stands.
     //
     // The main tag is what makes this test bite. Without it, "stopped at the deliberate no
     // group" and "walked off the end and fell through" would both come out null, and the
     // assertion would pass either way.
     await saveUserGroupTags(member.id, ['chor'])
-    await submit('suggestion: legacy without any hashtag')
-    await asLegacy('suggestion: legacy without any hashtag')
+    await submit('suggestion: pre-field stock, says nothing')
+    await asPreFieldStock('suggestion: pre-field stock, says nothing')
     expect(await suggestGroupTagForUser(member.id)).toBeNull()
   })
 })
 
-describe('the member only ever wrote a hashtag', () => {
+describe('the member said something once, long ago', () => {
   let member: User
 
   beforeAll(async () => {
     member = await userFactory(testEnv, raeuberHotzenplotz)
     await loginAs('raeuber@hotzenplotz.de')
-    await submit('suggestion: #hexen long ago')
-    await asLegacy('suggestion: #hexen long ago')
-    await submit('suggestion: later, no hashtag at all')
-    await asLegacy('suggestion: later, no hashtag at all')
+    // A group of theirs from back then -- either chosen in the field, or converted out of
+    // an old "#hexen" memo by migration 0109. Both leave the same thing behind: a link.
+    await submit('suggestion: hexen long ago', ['hexen'])
+    await submit('suggestion: later, pre-field stock')
+    await asPreFieldStock('suggestion: later, pre-field stock')
   })
 
-  it('suggests the group from the old hashtag', async () => {
+  it('suggests that group again', async () => {
     // Bernd's main case: whoever ever named a group gets it back, even when later
     // contributions said nothing.
     expect((await suggestGroupTagForUser(member.id))?.tag).toBe('hexen')
   })
 
-  it('ignores a hashtag that names no group that exists', async () => {
-    await submit('suggestion: #vertipperr is not a group')
-    await asLegacy('suggestion: #vertipperr is not a group')
+  it('is not talked out of it by more silence', async () => {
+    await submit('suggestion: yet more pre-field stock')
+    await asPreFieldStock('suggestion: yet more pre-field stock')
     expect((await suggestGroupTagForUser(member.id))?.tag).toBe('hexen')
   })
 
@@ -169,22 +171,21 @@ describe('the member has never said anything', () => {
 
 describe('a long-standing member whose whole history is silent', () => {
   // The case that cannot be tried out by hand: an account from before the group field
-  // that never wrote a hashtag either. Every one of its contributions is legacy stock
-  // saying nothing, so the walk has to run all the way through without ever mistaking
-  // silence for a statement — and then behave exactly as it did before the field
-  // existed: an empty group field.
+  // whose contributions never named a group either. Every one of them says nothing, so the
+  // search must find no statement at all rather than mistaking silence for one — and then
+  // behave exactly as it did before the field existed: an empty group field.
   let member: User
 
   beforeAll(async () => {
     member = await userFactory(testEnv, bobBaumeister)
     await loginAs('bob@baumeister.de')
     for (const memo of [
-      'suggestion: silent legacy, first',
-      'suggestion: silent legacy, second',
-      'suggestion: silent legacy, third',
+      'suggestion: silent history, first',
+      'suggestion: silent history, second',
+      'suggestion: silent history, third',
     ]) {
       await submit(memo)
-      await asLegacy(memo)
+      await asPreFieldStock(memo)
     }
   })
 
@@ -194,8 +195,8 @@ describe('a long-standing member whose whole history is silent', () => {
 
   it('still lets a main tag through, so seeding reaches such an account', async () => {
     // The second half of the same case, and the one that makes the first bite: silence
-    // must not COUNT as a statement, it must be walked past. If the walk stopped at the
-    // newest silent contribution instead, this would come out null too.
+    // must not COUNT as a statement. If the newest silent contribution were treated as one,
+    // this would come out null too.
     await saveUserGroupTags(member.id, ['chor'])
     expect((await suggestGroupTagForUser(member.id))?.tag).toBe('chor')
   })

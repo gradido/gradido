@@ -25,27 +25,17 @@ function joinRelationsRecursive(
 
 // --- Group functions: group-tag filter + moderator visibility scope ---
 
-// True when a contribution's group was never set through the group field: no structured
-// link and no group_tags_set_at stamp. Only then does a legacy inline "#tag" in the memo
-// still count — see below.
-const NO_ASSIGNMENT_SQL =
-  `(Contribution.group_tags_set_at IS NULL ` +
-  `AND NOT EXISTS (SELECT 1 FROM contribution_group_tags cgt ` +
-  `WHERE cgt.contribution_id = Contribution.id))`
-
-// A contribution "carries" tag T if it has a structured contribution_group_tags entry for
-// T — or, only where no assignment was ever made, a legacy inline "#T" in its memo.
+// A contribution "carries" tag T if it is linked to T. Nothing else — the memo is not
+// consulted. The inline "#tag" convention that predates the group field was converted into
+// real links once, in migration 0109.
 //
-// The inline fallback is deliberately subordinate rather than an equal alternative: a
-// hashtag written for other reasons ("#feuerwehr was great!") must not pull an assigned
-// contribution into a foreign group — neither into that group's search results nor into
-// its moderator's visibility scope, which is a real access boundary. Once the group field
-// has spoken, hashtags in the memo are ordinary text.
+// Both this and UNTAGGED_SQL are served by idx_cgt_contribution_id, so they stay cheap on a
+// large table. That is the point of having converted: the previous version compared the
+// memo against every group with a leading-wildcard LIKE, which no index can help with.
 const tagMatchSql = (key: string): string =>
-  `(EXISTS (SELECT 1 FROM contribution_group_tags cgt ` +
+  `EXISTS (SELECT 1 FROM contribution_group_tags cgt ` +
   `INNER JOIN group_tags gt ON gt.id = cgt.group_tag_id ` +
-  `WHERE cgt.contribution_id = Contribution.id AND gt.tag = :${key}) ` +
-  `OR (${NO_ASSIGNMENT_SQL} AND Contribution.memo LIKE :${key}Like))`
+  `WHERE cgt.contribution_id = Contribution.id AND gt.tag = :${key})`
 
 // The one token that stands for "belongs to no group". Used by the moderator scope and by
 // the group filter, so both mean exactly the same set of contributions.
@@ -55,29 +45,12 @@ export const UNTAGGED_FILTER = '*untagged'
 // group. "all" (the empty filter) plus these two cover every contribution exactly once.
 export const GROUPED_FILTER = '*grouped'
 
-// "Untagged" = no group moderator is looking after this. That means no structured tag,
-// and — only where nothing was ever assigned — no inline hashtag naming a group that
-// actually exists. A contribution deliberately set to "no group" is untagged whatever its
-// memo contains.
-//
-// The inline half asks the canonical list rather than just looking for a '#': a "#thanks"
-// in old stock names no group, so nobody moderates it by that hashtag and it belongs here.
-// Testing for any '#' at all would drop those contributions out of both lists — no group
-// moderator sees them, and the one working through the ungrouped ones would not either.
-//
-// The COLLATE is required, not cosmetic: contributions.memo is utf8mb4_general_ci while
-// group_tags.tag is utf8mb4_unicode_ci, and comparing two columns of different collations
-// is an error (ER_CANT_AGGREGATE_2COLLATIONS). Matching a tag against a bound string does
-// not hit this, which is why the comparisons elsewhere need nothing. utf8mb4_unicode_ci is
-// the right side to land on: it is what the canonical list is compared with everywhere
-// else, case- and accent-insensitive.
+// "Untagged" = no group moderator is looking after this: the contribution is linked to no
+// group. Exactly the complement of "linked to some group", so "all" plus these two cover
+// every contribution once.
 const UNTAGGED_SQL =
-  `(NOT EXISTS (SELECT 1 FROM contribution_group_tags cgt ` +
-  `WHERE cgt.contribution_id = Contribution.id) ` +
-  `AND (Contribution.group_tags_set_at IS NOT NULL ` +
-  `OR NOT EXISTS (SELECT 1 FROM group_tags gt ` +
-  `WHERE Contribution.memo COLLATE utf8mb4_unicode_ci ` +
-  `LIKE CONCAT('%#', gt.tag, '%'))))`
+  `NOT EXISTS (SELECT 1 FROM contribution_group_tags cgt ` +
+  `WHERE cgt.contribution_id = Contribution.id)`
 
 // Parse a moderator's stored scope (JSON text on user_roles.visible_group_tags) into a
 // string array. null (= no restriction) for empty/invalid input.
@@ -116,7 +89,6 @@ export const buildModeratorScopePredicate = (
     const key = `scopeTag${index}`
     parts.push(tagMatchSql(key))
     params[key] = tag
-    params[`${key}Like`] = `%#${tag}%`
   })
   if (includeUntagged) {
     parts.push(UNTAGGED_SQL)
@@ -124,11 +96,10 @@ export const buildModeratorScopePredicate = (
   return { sql: `(${parts.join(' OR ')})`, params }
 }
 
-// A single group filter, as picked from the dropdown in the admin or in the wallet. Matched
-// the same way the list does: a structured link OR a legacy inline "#tag". Two reserved
-// tokens stand beside the real groups: '*untagged' selects the contributions no group
-// moderator is looking after, '*grouped' their complement. A real slug can never collide
-// with either: '*' is rejected when a group is created or renamed.
+// A single group filter, as picked from the dropdown in the admin or in the wallet. Two
+// reserved tokens stand beside the real groups: '*untagged' selects the contributions no
+// group moderator is looking after, '*grouped' their complement. A real slug can never
+// collide with either: '*' is rejected when a group is created or renamed.
 export const buildGroupTagPredicate = (
   tag: string,
 ): { sql: string; params: Record<string, string> } => {
@@ -138,10 +109,7 @@ export const buildGroupTagPredicate = (
   if (tag === GROUPED_FILTER) {
     return { sql: `(NOT ${UNTAGGED_SQL})`, params: {} }
   }
-  return {
-    sql: tagMatchSql('groupTagFilter'),
-    params: { groupTagFilter: tag, groupTagFilterLike: `%#${tag}%` },
-  }
+  return { sql: tagMatchSql('groupTagFilter'), params: { groupTagFilter: tag } }
 }
 
 export const findContributions = async (

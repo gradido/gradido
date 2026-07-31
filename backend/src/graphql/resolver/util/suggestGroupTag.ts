@@ -1,59 +1,56 @@
-import { Contribution as DbContribution } from 'database'
+import { AppDatabase, GroupTag as DbGroupTag } from 'database'
 import { GroupTag } from '@/graphql/model/GroupTag'
-import { attachContributionGroupTags, type GroupTaggable } from './attachContributionGroupTags'
 import { loadUserGroupTags } from './userGroupTags'
 
 // Group functions: what to pre-select in the group field when someone submits.
 //
 // The answer is DERIVED from the member's own history, never stored. Nothing to maintain,
-// nothing to migrate, and it cannot go stale: whoever changes the group they contribute
-// for gets the new one from their next submission on, and a group created later takes
-// effect retroactively for an older "#tag" that used to name nothing.
+// nothing that can go stale: whoever changes the group they contribute for gets the new one
+// from their next submission on.
 //
-// Walking backwards, newest first, each contribution is one of three things:
-//   - it has a group                        -> a statement. Stop, suggest it.
-//   - the group was set to "no group"       -> also a statement. Stop, suggest nothing.
-//   - no stamp and no resolvable inline tag -> no statement. Keep walking.
+// Wanted is the newest contribution that MADE A STATEMENT. A contribution makes a statement
+// when it is linked to a group, or when the group field was used to say "no group" — the
+// group_tags_set_at stamp. Everything in between (old stock that never used the field) says
+// nothing and is skipped.
 //
-// The middle case is what the group_tags_set_at stamp (migration 0108) is for: a
-// deliberate "no group" has to be honoured, while a legacy contribution that simply never
-// said anything must not silence an older, clear choice further back.
+// That is one row, and the database finds it: ORDER BY ... LIMIT 1 over
+// idx_contributions_user_created. The earlier version loaded the member's ENTIRE history
+// into TypeScript and walked it there, which was a full table scan per submission form —
+// contributions had no index on user_id at all.
 //
-// Only when the whole history says nothing does the personal list's main tag apply — the
-// seeding case ("the fire brigade signs ten people up"). A member's own choice therefore
-// always outranks what a moderator entered for them; that is why the fallback sits last.
+// Deleted contributions count, as they did before: they stay visible to their author in
+// "my contributions", so they are still that member's own statement. Raw SQL has no
+// soft-delete filter, so this needs nothing extra — but it also must not grow one.
 //
-// The resolution itself is not re-derived here. attachContributionGroupTags is the one
-// place that decides which group a contribution belongs to, shared with the display, the
-// search and the moderator scope — those have drifted apart once already (LOG-029).
+// A contribution linked to more than one group yields one row per link; gt.tag decides
+// which comes first, so the answer does not depend on physical row order.
+const NEWEST_STATEMENT_SQL = `
+  SELECT gt.id AS id, gt.tag AS tag, gt.name AS name
+    FROM contributions c
+    LEFT JOIN contribution_group_tags cgt ON cgt.contribution_id = c.id
+    LEFT JOIN group_tags gt ON gt.id = cgt.group_tag_id
+   WHERE c.user_id = ?
+     AND (c.group_tags_set_at IS NOT NULL OR cgt.id IS NOT NULL)
+   ORDER BY c.created_at DESC, c.id DESC, gt.tag ASC
+   LIMIT 1`
+
 export const suggestGroupTagForUser = async (userId: number): Promise<GroupTag | null> => {
-  // No cap on how far back this looks. A silent one would quietly break the promise for a
-  // member with a long ungrouped history and one clear choice at the very beginning. Only
-  // the three columns the resolution needs are selected, over that member's own rows.
-  const rows = await DbContribution.find({
-    select: { id: true, memo: true, groupTagsSetAt: true, createdAt: true },
-    where: { userId },
-    order: { createdAt: 'DESC', id: 'DESC' },
-    withDeleted: true,
-  })
+  const rows: Array<{ id: number | null; tag: string | null; name: string | null }> =
+    await AppDatabase.getInstance().getDataSource().query(NEWEST_STATEMENT_SQL, [userId])
 
-  const contributions: GroupTaggable[] = rows.map((row) => ({
-    id: row.id,
-    memo: row.memo,
-    groupTagsSetAt: row.groupTagsSetAt,
-    groupTags: [],
-  }))
-  await attachContributionGroupTags(contributions)
-
-  for (const contribution of contributions) {
-    if (contribution.groupTags.length > 0) {
-      return contribution.groupTags[0]
-    }
-    if (contribution.groupTagsSetAt !== null) {
+  if (rows.length > 0) {
+    const row = rows[0]
+    // A group -> suggest it. Only the stamp -> the member said "no group" on purpose, and
+    // that is honoured rather than reaching further back for an older choice.
+    if (row.id === null || row.tag === null) {
       return null
     }
+    return new GroupTag(DbGroupTag.create({ id: row.id, tag: row.tag, name: row.name }))
   }
 
+  // The whole history says nothing: the seeding case ("the fire brigade signs ten people
+  // up"). Only then does the personal list's main tag apply, so a member's own choice always
+  // outranks what a moderator entered for them.
   const personal = await loadUserGroupTags(userId)
   return personal[0] ? new GroupTag(personal[0]) : null
 }

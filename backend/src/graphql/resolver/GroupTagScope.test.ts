@@ -9,7 +9,6 @@ import {
   UserRole,
 } from 'database'
 import { getLogger as originalGetLogger } from 'log4js'
-import { In } from 'typeorm'
 import { userFactory } from '@/seeds/factory/user'
 import { createContribution, denyContribution, login } from '@/seeds/graphql/mutations'
 import { adminListContributionMessages, adminListContributions } from '@/seeds/graphql/queries'
@@ -18,8 +17,7 @@ import { peterLustig } from '@/seeds/users/peter-lustig'
 import { parseModeratorScope } from './util/findContributions'
 
 // Group functions: the core security check — a scoped moderator must only see
-// the contributions of the group tags they are authorised for. Tested through the
-// backward-compatible inline-"#tag" path, so it needs no structured-tag seeding.
+// the contributions of the group tags they are authorised for.
 
 jest.mock('core', () => {
   const originalModule = jest.requireActual('core')
@@ -43,10 +41,10 @@ let testEnv: {
   db: AppDatabase
 }
 
-const FIREFIGHTER = '#firefighter group-scope test fire brigade'
-const MUSIC = '#music group-scope test choir'
+const FIREFIGHTER = 'group-scope test fire brigade'
+const MUSIC = 'group-scope test choir'
 const UNTAGGED = 'group-scope test contribution without any tag'
-const UMLAUT = '#Grünwald-Süd group-scope test Straßenfest'
+const UMLAUT = 'group-scope test Straßenfest'
 // A hashtag that is not a group: nobody moderates it, so it counts as "no group".
 const STRAY_HASHTAG = '#thanks group-scope test with a hashtag that names no group'
 
@@ -109,9 +107,6 @@ let moderator: User
 
 describe('adminListContributions — moderator visibility scope', () => {
   beforeAll(async () => {
-    // The canonical list is what decides whether an inline "#tag" names a group at all.
-    // In production every real group is in it, so the fixtures put the ones used here in
-    // too -- without them "#firefighter" would name nothing and count as ungrouped.
     for (const tag of ['firefighter', 'music', 'grünwald-süd']) {
       const entry = DbGroupTag.create()
       entry.tag = tag
@@ -123,22 +118,17 @@ describe('adminListContributions — moderator visibility scope', () => {
 
     // The (soon-to-be moderator) submits one contribution per group plus one untagged.
     await loginAs('bibi@bloxberg.de')
-    for (const memo of [FIREFIGHTER, MUSIC, UNTAGGED]) {
+    for (const [memo, groupTags] of [
+      [FIREFIGHTER, ['firefighter']],
+      [MUSIC, ['music']],
+      [UNTAGGED, []],
+    ] as Array<[string, string[]]>) {
       await mutate({
         mutation: createContribution,
-        variables: { amount: '100', memo, contributionDate: new Date().toString() },
+        variables: { amount: '100', memo, contributionDate: new Date().toString(), groupTags },
       })
     }
     resetToken()
-
-    // This suite deliberately exercises the backward-compatible inline-"#tag" path, so the
-    // contributions have to look like the stock that predates the group field: submitting
-    // through the group field stamps group_tags_set_at, and a stamped contribution ignores
-    // hashtags in its memo. Clearing the stamp reproduces the older rows.
-    await DbContribution.update(
-      { memo: In([FIREFIGHTER, MUSIC, UNTAGGED]) },
-      { groupTagsSetAt: null },
-    )
 
     // Promote the user to MODERATOR, scoped to the "firefighter" group only.
     const role = UserRole.create()
@@ -213,15 +203,18 @@ describe('adminListContributions — moderator visibility scope', () => {
   })
 
   it('matches umlaut tags end to end and ignores upper/lower case', async () => {
-    // The contribution carries an inline "#Grünwald-Süd" — capitals and umlauts …
+    // The contribution is filed under "Grünwald-Süd" written with capitals and umlauts …
     await loginAs('bibi@bloxberg.de')
     await mutate({
       mutation: createContribution,
-      variables: { amount: '100', memo: UMLAUT, contributionDate: new Date().toString() },
+      variables: {
+        amount: '100',
+        memo: UMLAUT,
+        contributionDate: new Date().toString(),
+        groupTags: ['Grünwald-Süd'],
+      },
     })
     resetToken()
-    // Legacy stock again — see the note in beforeAll.
-    await DbContribution.update({ memo: UMLAUT }, { groupTagsSetAt: null })
 
     // … while the moderator is scoped to the very same tag written all in lower case.
     // The tables are utf8mb4_unicode_ci, so the comparison ignores case and the two match.
@@ -296,15 +289,13 @@ describe('adminListContributions — the "no group" filter', () => {
   // before the group field is the case that matters: nobody moderates "#thanks", so it
   // has to turn up here — asking merely for a '#' would have dropped it out of every
   // list at once.
-  it('counts a hashtag that names no group as "no group"', async () => {
+  it('counts a hashtag in the text as "no group"', async () => {
     await loginAs('bibi@bloxberg.de')
     await mutate({
       mutation: createContribution,
       variables: { amount: '100', memo: STRAY_HASHTAG, contributionDate: new Date().toString() },
     })
     resetToken()
-    // Legacy stock: written before the group field, so it carries no stamp.
-    await DbContribution.update({ memo: STRAY_HASHTAG }, { groupTagsSetAt: null })
 
     await loginAs('peter@lustig.de')
     expect(await listUntaggedMemos()).toContain(STRAY_HASHTAG)

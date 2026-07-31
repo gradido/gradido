@@ -151,59 +151,56 @@ export const loadAllContributions = async (
   return [contributions, count]
 }
 
-// Which groups have something to show in the community list right now. The dropdown then
-// offers exactly what can be found behind it: a group that has been quiet for longer than
-// the window drops out, and comes back by itself as soon as one of its contributions is
-// filed again — no upkeep, and no line saying "nothing here for six months".
+// Which groups have something to show, for the two filter dropdowns in the wallet.
+// The dropdown then offers exactly what can be found behind it: a group that has nothing to
+// show drops out, and comes back by itself as soon as one of its contributions is filed
+// again — no upkeep, and no line saying "nothing here for six months".
 //
-// Asked group by group through buildGroupTagPredicate — the very condition the filter and
-// the moderator scope use — rather than as one clever join. A second derivation of "belongs
-// to this group" would be a second place to drift apart, and this project has paid for that
-// once already: the structured link wins, and a legacy inline "#tag" counts only where no
-// group was ever assigned. One small count per group, and the list of groups is short.
+// One query, not one per group. Now that a group is a link row rather than something read
+// out of the memo, "which groups occur here" is a plain join — the earlier version ran a
+// COUNT per group, each of them a full scan, on every list render.
 //
-// ⚠️ This is for the wallet's community filter alone. The submission field must go on
-// offering EVERY group — a group dropped from there could never be woken up again, because
-// nobody could file a contribution for it. The admin has to find old contributions, and
-// "my contributions" is not windowed at all.
-export const groupTagsInCommunityWindow = async (tags: string[]): Promise<string[]> => {
-  const windowStart = communityWindowStart()
-  const found = await Promise.all(
-    tags.map(async (tag) => {
-      const predicate = buildGroupTagPredicate(tag)
-      const count = await DbContribution.createQueryBuilder('Contribution')
-        .select('Contribution.id')
-        .where(COMMUNITY_WINDOW_SQL, { communityWindowStart: windowStart })
-        .andWhere(predicate.sql, predicate.params)
-        .getCount()
-      return count > 0 ? tag : null
-    }),
-  )
-  return found.filter((tag): tag is string => tag !== null)
+// ⚠️ This is for the wallet's filters alone. The submission field must go on offering EVERY
+// group — a group dropped from there could never be woken up again, because nobody could
+// file a contribution for it.
+const groupTagsWithContributions = async (
+  tags: string[],
+  narrow: (queryBuilder: SelectQueryBuilder<DbContribution>) => void,
+): Promise<string[]> => {
+  if (tags.length === 0) {
+    return []
+  }
+  const queryBuilder = DbContribution.createQueryBuilder('Contribution')
+    .select('gt.tag', 'tag')
+    .distinct(true)
+    .innerJoin('contribution_group_tags', 'cgt', 'cgt.contribution_id = Contribution.id')
+    .innerJoin('group_tags', 'gt', 'gt.id = cgt.group_tag_id')
+    .andWhere('gt.tag IN (:...tags)', { tags })
+  narrow(queryBuilder)
+  const rows: Array<{ tag: string }> = await queryBuilder.getRawMany()
+  const present = new Set(rows.map((row) => row.tag))
+  // Returned in the order the canonical list came in, so the dropdown keeps its sorting.
+  return tags.filter((tag) => present.has(tag))
 }
 
-// The groups the submitter's own "my contributions" list has something to show for. Same
-// idea as groupTagsInCommunityWindow, but for one user's own list: scoped to the user and
-// NOT windowed, and it counts their deleted contributions too, because that list shows them
-// (loadUserContributions loads withDeleted). So the filter offers exactly the groups that
-// can be found behind it, and never one that would lead into an empty result.
+// The groups the community list currently has something to show for, within its window.
+export const groupTagsInCommunityWindow = async (tags: string[]): Promise<string[]> => {
+  const windowStart = communityWindowStart()
+  return groupTagsWithContributions(tags, (queryBuilder) => {
+    queryBuilder.andWhere(COMMUNITY_WINDOW_SQL, { communityWindowStart: windowStart })
+  })
+}
+
+// The groups the submitter's own "my contributions" list has something to show for: scoped
+// to the user and NOT windowed, and it counts their deleted contributions too, because that
+// list shows them (loadUserContributions loads withDeleted).
 export const groupTagsInUserContributions = async (
   userId: number,
   tags: string[],
 ): Promise<string[]> => {
-  const found = await Promise.all(
-    tags.map(async (tag) => {
-      const predicate = buildGroupTagPredicate(tag)
-      const count = await DbContribution.createQueryBuilder('Contribution')
-        .select('Contribution.id')
-        .where('Contribution.userId = :userId', { userId })
-        .withDeleted()
-        .andWhere(predicate.sql, predicate.params)
-        .getCount()
-      return count > 0 ? tag : null
-    }),
-  )
-  return found.filter((tag): tag is string => tag !== null)
+  return groupTagsWithContributions(tags, (queryBuilder) => {
+    queryBuilder.withDeleted().andWhere('Contribution.userId = :userId', { userId })
+  })
 }
 
 export const contributionFrontendLink = async (
