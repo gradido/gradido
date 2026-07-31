@@ -1,4 +1,8 @@
-import { inlineGroupTagIds } from './0109-migrate_inline_hashtags_to_group_tags'
+import { inlineGroupTagIds } from './migrations/0109-migrate_inline_hashtags_to_group_tags'
+
+// Lives OUTSIDE migrations/ on purpose: the migration runner loads every file in that
+// directory and runs it as a migration, and detectLastDBVersion counts anything named
+// "NNNN-..." as a version. A test file in there breaks both.
 
 // The one-off conversion turns what members SAW into what is stored. Its rule therefore has
 // to be the display rule, not the SQL rule the search used — those two disagreed, and a
