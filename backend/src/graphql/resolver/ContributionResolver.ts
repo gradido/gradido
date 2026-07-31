@@ -160,7 +160,9 @@ export class ContributionResolver {
         contribution.contributionStatus,
       )
     }
-    await setContributionGroupTags(contribution.id, tags)
+    // strict: a moderator moving a contribution onto a tag that does not exist would
+    // otherwise empty its group and still report success.
+    await setContributionGroupTags(contribution.id, tags, { strict: true })
     return true
   }
 

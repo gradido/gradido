@@ -1,6 +1,6 @@
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { ApolloServerTestClient } from 'apollo-server-testing'
-import { AppDatabase, User } from 'database'
+import { AppDatabase, GroupTag as DbGroupTag, User } from 'database'
 import { getLogger as originalGetLogger } from 'log4js'
 import { Order } from '@/graphql/enum/Order'
 import { userFactory } from '@/seeds/factory/user'
@@ -48,6 +48,14 @@ beforeAll(async () => {
   mutate = testEnv.mutate
   db = testEnv.db
   await cleanDB()
+
+  // The group has to exist: a contribution is in a group because it is LINKED to one, and
+  // there is nothing to link to otherwise. The old version got away without it because the
+  // filter matched the memo as a substring, without ever asking the canonical list.
+  const group = DbGroupTag.create()
+  group.tag = 'walletfiltergroup'
+  group.name = 'Wallet filter group'
+  await group.save()
 
   member = await userFactory(testEnv, bibiBloxberg)
   resetToken()

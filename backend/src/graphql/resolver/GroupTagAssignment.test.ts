@@ -1,10 +1,21 @@
 import { RoleNames } from '@enum/RoleNames'
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { ApolloServerTestClient } from 'apollo-server-testing'
-import { AppDatabase, GroupTag as DbGroupTag, User, UserRole } from 'database'
+import {
+  AppDatabase,
+  Contribution as DbContribution,
+  GroupTag as DbGroupTag,
+  User,
+  UserRole,
+} from 'database'
 import { getLogger as originalGetLogger } from 'log4js'
 import { userFactory } from '@/seeds/factory/user'
-import { adminCreateContribution, createContribution, login } from '@/seeds/graphql/mutations'
+import {
+  adminCreateContribution,
+  assignContributionGroupTags,
+  createContribution,
+  login,
+} from '@/seeds/graphql/mutations'
 import { adminListContributions } from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { peterLustig } from '@/seeds/users/peter-lustig'
@@ -185,6 +196,21 @@ describe('only the group field puts a contribution into a group', () => {
   it('does not let a hashtag choose the group of a contribution filed by a moderator', async () => {
     expect(await listMemos('music')).not.toContain(WRITTEN_BY_MODERATOR)
     expect(await groupsShownFor(WRITTEN_BY_MODERATOR)).toEqual([])
+  })
+
+  // A moderator moving a contribution onto a tag that no longer exists -- an admin page
+  // still holding the list from before a rename -- used to empty its group and report
+  // success, taking it out of every group queue at once. Now it refuses, and the
+  // contribution keeps the group it had.
+  it('refuses to move a contribution onto a group that does not exist', async () => {
+    await loginAs('peter@lustig.de')
+    const contribution = await DbContribution.findOneOrFail({ where: { memo: ASSIGNED_MUSIC } })
+    const { errors } = await mutate({
+      mutation: assignContributionGroupTags,
+      variables: { contributionId: contribution.id, tags: ['muusic'] },
+    })
+    expect(errors?.[0]?.message).toContain('Unknown group tag(s)')
+    expect(await groupsShownFor(ASSIGNED_MUSIC)).toEqual(['music'])
   })
 
   it('keeps a hashtag out of a foreign moderator scope', async () => {

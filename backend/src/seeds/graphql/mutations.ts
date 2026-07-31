@@ -142,6 +142,12 @@ export const adminCreateContribution = gql`
   }
 `
 
+export const assignContributionGroupTags = gql`
+  mutation ($contributionId: Int!, $tags: [String!]!) {
+    assignContributionGroupTags(contributionId: $contributionId, tags: $tags)
+  }
+`
+
 export const confirmContribution = gql`
   mutation ($id: Int!) {
     confirmContribution(id: $id)
