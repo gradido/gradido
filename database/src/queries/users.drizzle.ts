@@ -125,7 +125,7 @@ export async function dbListUsers(
     )
   }
   if (lastIndex < 0 || count < 0) {
-    throw new Error('invalid parameter, lastIndex and count must botgh >= 0')
+    throw new Error('invalid parameter, lastIndex and count must both be >= 0')
   }
   return drizzleDb().select().from(usersTable).where(gt(usersTable.id, lastIndex)).limit(count)
 }

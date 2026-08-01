@@ -12,7 +12,7 @@ import { createServer } from './server/createServer'
 import { initLogging } from './server/logger'
 
 async function main() {
-  onShutdown(async (reason, error) => {
+  onShutdown(async () => {
     await terminateEncryptionWorkerPool()
   })
   initLogging()
