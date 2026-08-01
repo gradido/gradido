@@ -43,6 +43,13 @@
           <BNavItem v-if="isAdmin" to="/creaSettings" :active="isActive('creaSettings')">
             {{ $t('navbar.crea') }}
           </BNavItem>
+          <BNavItem
+            v-if="store.state.moderator?.roles?.includes('ADMIN')"
+            to="/group-tags"
+            :active="isActive('group-tags')"
+          >
+            {{ $t('navbar.groupTags') }}
+          </BNavItem>
           <BNavItem to="/statistic" :active="isActive('statistic')">
             {{ $t('navbar.statistic') }}
           </BNavItem>

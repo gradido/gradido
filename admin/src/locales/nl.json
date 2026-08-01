@@ -28,10 +28,16 @@
   "change_user_role": "Gebruikersrol wijzigen",
   "close": "Sluiten",
   "contribution": {
+    "changeGroup": "Groep wijzigen",
+    "changeGroupConfirm": "Ja, verplaatsen",
+    "changeGroupDone": "Groep gewijzigd.",
+    "changeGroupHint": "Afhankelijk van je zichtbare groepen verschijnt de bijdrage daarna mogelijk niet meer in je lijst.",
+    "changeGroupQuestion": "Deze bijdrage verplaatsen van {from} naar {to}?",
     "confirmedBy": "Bevestigd door {name}.",
     "createdBy": "Aangemaakt door {name}.",
     "deletedBy": "Verwijderd door {name}.",
-    "deniedBy": "Afgewezen door {name}."
+    "deniedBy": "Afgewezen door {name}.",
+    "noGroup": "(zonder groep)"
   },
   "contributionLink": {
     "amount": "Bedrag",
@@ -247,6 +253,31 @@
     "humhubProfile": "Naar Humhub-profiel gaan",
     "userSearch": "Naar gebruikerszoekopdracht gaan"
   },
+  "groupTagFilter": {
+    "all": "(alle)",
+    "grouped": "(alle groepen)",
+    "label": "Group:",
+    "untagged": "(zonder groep)"
+  },
+  "groupTagsAdmin": {
+    "add": "Create",
+    "addTitle": "Create a new group",
+    "adminOnly": "Administrators only.",
+    "cancel": "Cancel",
+    "created": "Group created.",
+    "edit": "Edit",
+    "empty": "No groups created yet.",
+    "existingTitle": "Existing groups",
+    "intro": "Create new groups or rename existing ones. Who belongs to a group or moderates it is assigned on the “User role” tab.",
+    "name": "Name",
+    "namePlaceholder": "e.g. Volunteer Fire Brigade Springfield",
+    "save": "Save",
+    "tag": "Tag",
+    "tagHint": "A short tag without spaces — capitals and accented letters are allowed. Matching ignores upper and lower case. The name is what is shown everywhere.",
+    "tagPlaceholder": "e.g. firefighter",
+    "title": "Manage groups",
+    "updated": "Group updated."
+  },
   "help": {
     "help": "Help",
     "transactionlist": {
@@ -290,6 +321,7 @@
   "navbar": {
     "automaticContributions": "Startsaldo",
     "crea": "Crea",
+    "groupTags": "Groups",
     "instances": "Instanties",
     "logout": "Afmelden",
     "my-account": "Mijn account",
@@ -298,8 +330,6 @@
     "statistic": "Statistiek",
     "user_search": "Gebruikers zoeken"
   },
-  "no_hashtag": "#hashtags verbergen",
-  "no_hashtag_tooltip": "Toont alleen bijdragen zonder hashtag in de tekst",
   "not_open_creations": "Geen openstaande creaties",
   "notice": "Notice",
   "open": "open",
@@ -401,7 +431,20 @@
   },
   "unregistered_emails": "Alleen niet-geregistreerde gebruikers",
   "userRole": {
+    "groupTags": {
+      "help": "Pre-filled on submission.",
+      "label": "User's main group",
+      "none": "(no group)"
+    },
     "notChangeYourSelf": "Als admin/moderator kun je je eigen rol niet wijzigen.",
+    "savedGroupTags": "Groups saved.",
+    "savedScope": "Visibility saved.",
+    "scope": {
+      "all": "all groups",
+      "help": "Empty = all contributions.",
+      "label": "Visible groups",
+      "untagged": "no group"
+    },
     "selectLabel": "Rol:",
     "selectRoles": {
       "admin": "beheerder",
