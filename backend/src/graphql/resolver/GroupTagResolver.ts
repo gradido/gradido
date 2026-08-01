@@ -3,10 +3,12 @@ import { Arg, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graph
 import { Like } from 'typeorm'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { GroupTag } from '@/graphql/model/GroupTag'
+import { LegacyHashtagCounts } from '@/graphql/model/LegacyHashtagCounts'
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
 import { groupTagsInCommunityWindow, groupTagsInUserContributions } from './util/contributions'
 import { parseModeratorScope } from './util/findContributions'
+import { adoptLegacyHashtags, countLegacyHashtags } from './util/legacyHashtagAdoption'
 
 // Normalise a slug into the form it is stored in: strip a leading '#' and trim. Rejected
 // are the empty string, inner whitespace (the classic "# Gruppe" error) and a leading '*'
@@ -128,6 +130,44 @@ export class GroupTagResolver {
     if (renamedFrom !== null) {
       await this.renameTagInModeratorScopes(renamedFrom, entry.tag)
     }
+    return new GroupTag(entry)
+  }
+
+  // What adopting the legacy hashtags would find for this group right now. Reads memos, so
+  // it runs only when an administrator opens the panel -- never on a list render.
+  @Authorized([RIGHTS.ADOPT_LEGACY_HASHTAGS])
+  @Query(() => LegacyHashtagCounts)
+  async legacyHashtagCounts(@Arg('id', () => Int) id: number): Promise<LegacyHashtagCounts> {
+    const entry = await DbGroupTag.findOne({ where: { id } })
+    if (!entry) {
+      throw new LogError('Group tag not found', id)
+    }
+    const counts = await countLegacyHashtags(entry.tag)
+    return new LegacyHashtagCounts(counts.exact, counts.loose)
+  }
+
+  // Link the contributions whose memo names this group into it, once and on purpose.
+  //
+  // Returns the group so the caller sees the new state without asking again. The timestamp
+  // is written even when nothing was found: that is how "I looked, there was nothing" is
+  // told apart from "nobody has looked yet", and without it a group with nothing to adopt
+  // would keep asking to be checked forever.
+  @Authorized([RIGHTS.ADOPT_LEGACY_HASHTAGS])
+  @Mutation(() => GroupTag)
+  async adoptLegacyHashtags(
+    @Arg('id', () => Int) id: number,
+    @Arg('includeLoose', () => Boolean) includeLoose: boolean,
+  ): Promise<GroupTag> {
+    const entry = await DbGroupTag.findOne({ where: { id } })
+    if (!entry) {
+      throw new LogError('Group tag not found', id)
+    }
+    const adopted = await adoptLegacyHashtags(entry.id, entry.tag, includeLoose)
+    entry.hashtagsAdoptedAt = new Date()
+    // The count of THIS run, not a running total: it answers "what did the last look do?".
+    // A second run after ticking the loose spelling reports what that second look added.
+    entry.hashtagsAdoptedCount = adopted
+    await DbGroupTag.save(entry)
     return new GroupTag(entry)
   }
 
