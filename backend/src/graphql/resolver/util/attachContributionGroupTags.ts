@@ -11,9 +11,9 @@ export interface GroupTaggable {
 }
 
 // Group functions: fill in the groups a contribution belongs to, for display.
-// A contribution belongs to the groups it is linked to — nothing else. The inline "#tag"
-// convention that predates the group field was converted into real links once, in migration
-// 0109; a "#word" in a memo is ordinary text from then on.
+// A contribution belongs to the groups it is linked to — nothing else. A "#word" in a memo
+// is ordinary text; the inline convention that predates the group field is adopted into
+// real links per group, from the admin.
 // Batched: two queries for the whole page, not one per contribution.
 export const attachContributionGroupTags = async (
   contributions: GroupTaggable[],

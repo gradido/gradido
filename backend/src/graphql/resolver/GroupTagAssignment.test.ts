@@ -23,8 +23,8 @@ import { peterLustig } from '@/seeds/users/peter-lustig'
 // Group functions: the group field is the ONLY thing that puts a contribution into a
 // group. A "#word" in the memo is ordinary text -- it must not pull a contribution into a
 // group's search results, nor into that group's moderator scope, which is a real access
-// boundary. The hashtags that predate the field were converted into real links once, in
-// migration 0109; from then on nothing reads the memo for a group.
+// boundary. The hashtags that predate the field are adopted into real links per group from
+// the admin; nothing reads the memo for a group.
 
 jest.mock('core', () => {
   const originalModule = jest.requireActual('core')
@@ -152,8 +152,8 @@ describe('only the group field puts a contribution into a group', () => {
     resetToken()
   })
 
-  // The counterpart of the one-off conversion in migration 0109: everything written after
-  // it goes through the field. A hashtag on its own means nothing any more.
+  // The counterpart of adopting the old stock in the admin: everything else goes through
+  // the field. A hashtag on its own means nothing any more.
   it('does not put a contribution into a group just because its memo names one', async () => {
     expect(await listMemos('music')).not.toContain(UNCONVERTED)
     expect(await groupsShownFor(UNCONVERTED)).toEqual([])

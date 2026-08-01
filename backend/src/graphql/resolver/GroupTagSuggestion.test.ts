@@ -123,8 +123,8 @@ describe('the member said something once, long ago', () => {
   beforeAll(async () => {
     member = await userFactory(testEnv, raeuberHotzenplotz)
     await loginAs('raeuber@hotzenplotz.de')
-    // A group of theirs from back then -- either chosen in the field, or converted out of
-    // an old "#hexen" memo by migration 0109. Both leave the same thing behind: a link.
+    // A group of theirs from back then -- either chosen in the field, or adopted out of
+    // an old "#hexen" memo in the admin. Both leave the same thing behind: a link.
     await submit('suggestion: hexen long ago', ['hexen'])
     await submit('suggestion: later, pre-field stock')
     await asPreFieldStock('suggestion: later, pre-field stock')

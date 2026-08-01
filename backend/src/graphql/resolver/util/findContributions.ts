@@ -26,11 +26,11 @@ function joinRelationsRecursive(
 // --- Group functions: group-tag filter + moderator visibility scope ---
 
 // A contribution "carries" tag T if it is linked to T. Nothing else — the memo is not
-// consulted. The inline "#tag" convention that predates the group field was converted into
-// real links once, in migration 0109.
+// consulted. The inline "#tag" convention that predates the group field is no longer
+// resolved on read; that stock is adopted into real links per group, from the admin.
 //
 // Both this and UNTAGGED_SQL are served by idx_cgt_contribution_id, so they stay cheap on a
-// large table. That is the point of having converted: the previous version compared the
+// large table. That is the point of reading links only: the previous version compared the
 // memo against every group with a leading-wildcard LIKE, which no index can help with.
 const tagMatchSql = (key: string): string =>
   `EXISTS (SELECT 1 FROM contribution_group_tags cgt ` +

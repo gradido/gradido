@@ -12,8 +12,11 @@
 //   - an index on contributions (user_id, created_at): every per-member query needs it,
 //     and there was none — not even on user_id alone.
 //
-// The existing inline hashtags are converted once, in 0109. From then on a "#word" in a
-// memo is ordinary text; the group field is the only way to set a group.
+// A "#word" in a memo is ordinary text from here on; the group field is the only way to set
+// a group. The hashtags that predate the field are deliberately NOT converted by a
+// migration: group_tags is still empty while this one runs, so there is nothing an inline
+// hashtag could refer to yet, and a migration gets only one attempt. That stock is adopted
+// per group from the admin instead — the first point at which the canonical list exists.
 // No FK constraints (matches the crea_records convention) — indices only.
 
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
