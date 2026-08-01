@@ -1,13 +1,12 @@
 import { clearLogs, getLogger, printLogs } from '../../../config-schema/test/testSetup.bun'
-import { Community as DbCommunity, User as DbUser, UserContact as DbUserContact } from '..'
-import { AppDatabase } from '../AppDatabase'
-import { createCommunity } from '../seeds/community'
-import { userFactory } from '../seeds/factory/user'
-import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
-import { bobBaumeister } from '../seeds/users/bob-baumeister'
-import { peterLustig } from '../seeds/users/peter-lustig'
-import { LOG4JS_QUERIES_CATEGORY_NAME } from '.'
-import { aliasExists, findUserByIdentifier } from './user'
+import {
+  AppDatabase,
+  Community as DbCommunity,
+  User as DbUser,
+  UserContact as DbUserContact,
+} from '..'
+import { bibiBloxberg, bobBaumeister, createCommunity, peterLustig, userFactory } from '../seeds'
+import { aliasExists, findUserByIdentifier, LOG4JS_QUERIES_CATEGORY_NAME } from '.'
 
 const db = AppDatabase.getInstance()
 const userIdentifierLoggerName = `${LOG4JS_QUERIES_CATEGORY_NAME}.user.findUserByIdentifier`

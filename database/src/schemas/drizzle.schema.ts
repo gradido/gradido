@@ -198,7 +198,8 @@ export const usersTable = mysqlTable(
     gmsPublishName: int('gms_publish_name').default(0).notNull(),
     humhubPublishName: int('humhub_publish_name').default(0).notNull(),
     deletedAt: datetime('deleted_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
-    password: bigint({ mode: 'number' }),
+    // 64 bit hash, so it must not be read as a JS number (loses precision above 2^53)
+    password: bigint({ mode: 'bigint' }),
     passwordEncryptionType: int('password_encryption_type').default(0).notNull(),
     createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
       .default(sql`current_timestamp(3)`)
@@ -226,3 +227,51 @@ export const usersTable = mysqlTable(
 
 export type UserSelect = typeof usersTable.$inferSelect
 export type UserInsert = typeof usersTable.$inferInsert
+
+export const userContactsTable = mysqlTable(
+  'user_contacts',
+  {
+    id: int().autoincrement().notNull(),
+    type: varchar({ length: 100 }).notNull(),
+    userId: int('user_id').notNull(),
+    email: varchar({ length: 255 }).notNull(),
+    // 64 bit random value, so it must not be read as a JS number (loses precision above 2^53)
+    emailVerificationCode: bigint('email_verification_code', { mode: 'bigint' }).default(sql`NULL`),
+    emailOptInTypeId: int('email_opt_in_type_id').default(sql`NULL`),
+    emailResendCount: int('email_resend_count').default(0),
+    emailChecked: tinyint('email_checked').default(0).notNull(),
+    gmsPublishEmail: tinyint('gms_publish_email').default(0).notNull(),
+    countryCode: varchar('country_code', { length: 255 }).default(sql`NULL`),
+    phone: varchar({ length: 255 }).default(sql`NULL`),
+    gmsPublishPhone: int('gms_publish_phone').default(0).notNull(),
+    createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
+      .default(sql`current_timestamp(3)`)
+      .notNull(),
+    updatedAt: datetime('updated_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
+    deletedAt: datetime('deleted_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
+  },
+  (table) => [
+    unique('email').on(table.email),
+    unique('email_verification_code').on(table.emailVerificationCode),
+  ],
+)
+
+export type UserContactSelect = typeof userContactsTable.$inferSelect
+export type UserContactInsert = typeof userContactsTable.$inferInsert
+
+export const userRolesTable = mysqlTable(
+  'user_roles',
+  {
+    id: int().autoincrement().notNull(),
+    userId: int('user_id').notNull(),
+    role: varchar({ length: 40 }).notNull(),
+    createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
+      .default(sql`current_timestamp(3)`)
+      .notNull(),
+    updatedAt: datetime('updated_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
+  },
+  (table) => [index('user_id').on(table.userId)],
+)
+
+export type UserRoleSelect = typeof userRolesTable.$inferSelect
+export type UserRoleInsert = typeof userRolesTable.$inferInsert

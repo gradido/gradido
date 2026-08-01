@@ -37,3 +37,13 @@ export class DBInsertFailed<T> extends DomainError {
     super(`DB_INSERT_FAILED in ${table}`)
   }
 }
+
+export class DBNotFoundAfterInsertError<T> extends DomainError {
+  constructor(
+    public readonly table: string,
+    public readonly row: T,
+    public readonly where: string,
+  ) {
+    super(`DB_SELECT_INSERTED_FAILED in ${table} where ${where}`)
+  }
+}
