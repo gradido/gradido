@@ -58,8 +58,9 @@ const SecretKeyCryptographyCreateKeyMock = (
 const configLoginAppSecret = Buffer.from(CONFIG.LOGIN_APP_SECRET, 'hex')
 const configLoginServerKey = Buffer.from(CONFIG.LOGIN_SERVER_KEY, 'hex')
 
-// no worker pool in the mock, nothing to terminate
-export const terminateEncryptionWorkerPool = async (): Promise<void> => {}
+export const terminateEncryptionWorkerPool = async (): Promise<void> => {
+  // no worker pool in the mock, nothing to terminate
+}
 
 // We will reuse this for changePassword
 export const isValidPassword = (password: string): boolean => {

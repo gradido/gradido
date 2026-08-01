@@ -1,15 +1,20 @@
 import 'reflect-metadata'
 import 'source-map-support/register'
 import { getLogger } from 'log4js'
+import { onShutdown } from 'shared'
 import { CONFIG } from './config'
 import {
   startValidateCommunities,
   writeJwtKeyPairInHomeCommunity,
 } from './federation/validateCommunities'
+import { terminateEncryptionWorkerPool } from './password/EncryptorUtils'
 import { createServer } from './server/createServer'
 import { initLogging } from './server/logger'
 
 async function main() {
+  onShutdown(async (reason, error) => {
+    await terminateEncryptionWorkerPool()
+  })
   initLogging()
   const { app } = await createServer(getLogger('apollo'))
 

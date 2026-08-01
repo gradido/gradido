@@ -113,13 +113,13 @@ async function cleanup() {
 async function main() {
   try {
     await run()
-  } catch (err) {
-    // biome-ignore lint/suspicious/noConsole: no logger present
-    console.error('error on seeding', err)
-    process.exitCode = 1
   } finally {
     await cleanup()
   }
 }
 
-void main()
+main().catch((err) => {
+  // biome-ignore lint/suspicious/noConsole: no logger present
+  console.error('error on seeding', err)
+  process.exitCode = 1
+})
