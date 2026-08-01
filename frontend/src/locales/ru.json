@@ -62,9 +62,12 @@
     "community": "Сообщество",
     "communityMember": "Вы — активный участник",
     "continue-to-registration": "Перейти к регистрации",
+    "groupsAndModerators": "Группы и модераторы",
     "moderator": "Модератор",
-    "moderators": "Модераторы",
+    "moderatorsAllGroups": "Для всех групп",
+    "moderatorsUntagged": "Вклады без группы",
     "myContributions": "Мой вклад на всеобщее благо",
+    "noModerators": "Модератора пока нет",
     "submitContribution": "Внести взнос"
   },
   "communityInfo": "Информация о сообществе",
@@ -82,8 +85,17 @@
       "myContributionNoteList": "Внесённые вклады, которые ещё не подтверждены, вы всегда можете изменить или удалить.",
       "pending": "Внесено и ожидает подтверждения"
     },
-    "delete": "Удалить пост! Вы уверены?",
-    "deleted": "Пост удалён! Но будет оставаться доступным для просмотра.",
+    "communityWindow": "Contributions from the last {months} months",
+    "delete": "Действительно удалить пост? После этого он будет виден только Вам и модераторам, а сообществу невидим.",
+    "deleted": "Пост удалён. Теперь он виден только Вам и модераторам, а сообществу невидим.",
+    "filter": {
+      "all": "(все)",
+      "byGroup": "Фильтр по группе",
+      "grouped": "(все группы)",
+      "noGroup": "(без группы)",
+      "noResults": "No contributions found.",
+      "search": "Search contributions …"
+    },
     "formText": {
       "bringYourTalentsTo": "Принесите свои таланты в общество! Мы вознаграждаем вас за добровольную работу 20 GDD в час, но не более 1 000 GDD в месяц.",
       "describeYourCommunity": "Опишите свою общественно-полезную деятельность с подробным указанием часов и введите сумму в размере 20 GDD за час! После подтверждения модератором сумма будет зачислена на ваш счет.",
@@ -91,8 +103,14 @@
       "openAmountForMonth": "За <b>{monthAndYear}</b> вы можете ещё только <b>{creation}</b> GDD указать.",
       "yourContribution": "Ваш вклад в общее благо"
     },
+    "groupTag": {
+      "help": "Необязательно. Можно и без группы. #Слово в тексте не задаёт группу — для этого есть это поле.",
+      "label": "Group",
+      "none": "(без группы)"
+    },
     "isEdited": "отредактировал вклад",
     "lastContribution": "Последние вклады",
+    "memoIsPublic": "Your description appears in the community list, where it is visible to all members. It shows the contribution's number instead of your name.",
     "noContributions": {
       "allContributions": "Пока не внесено ни одного вклада.",
       "emptyPage": "Эта страница пуста.",
@@ -103,6 +121,7 @@
       "lastMonth": "За выбранный месяц достигнут лимит создания.",
       "thisMonth": "За текущий месяц достигнут лимит создания."
     },
+    "number": "Contribution no. {number}",
     "oldContribution": "Предыдущая версия",
     "selectDate": "Когда был сделан ваш вклад?",
     "submit": "Отправить",
@@ -113,7 +132,6 @@
   "contribution-link": {
     "thanksYouWith": "благодарит вас за"
   },
-  "contributionText": "Текст вклада",
   "copy-to-clipboard": "Копировать в буфер обмена",
   "creation": "Создать",
   "decay": {
