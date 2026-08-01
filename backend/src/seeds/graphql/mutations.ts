@@ -142,6 +142,12 @@ export const adminCreateContribution = gql`
   }
 `
 
+export const assignContributionGroupTags = gql`
+  mutation ($contributionId: Int!, $tags: [String!]!) {
+    assignContributionGroupTags(contributionId: $contributionId, tags: $tags)
+  }
+`
+
 export const confirmContribution = gql`
   mutation ($id: Int!) {
     confirmContribution(id: $id)
@@ -265,8 +271,18 @@ export const deleteContributionLink = gql`
 `
 
 export const createContribution = gql`
-  mutation ($amount: GradidoUnit!, $memo: String!, $contributionDate: String!) {
-    createContribution(amount: $amount, memo: $memo, contributionDate: $contributionDate) {
+  mutation (
+    $amount: GradidoUnit!
+    $memo: String!
+    $contributionDate: String!
+    $groupTags: [String!]
+  ) {
+    createContribution(
+      amount: $amount
+      memo: $memo
+      contributionDate: $contributionDate
+      groupTags: $groupTags
+    ) {
       id
       amount
       memo
