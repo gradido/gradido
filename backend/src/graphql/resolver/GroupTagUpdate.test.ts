@@ -110,6 +110,47 @@ describe('group tags with capitals and accented letters', () => {
     const reloaded = await GroupTag.findOneOrFail({ where: { id: tag.id } })
     expect(reloaded.tag).toBe('Öffentlichkeitsarbeit')
   })
+
+  // ⚠️ A group must not clash with ITSELF. The lookup runs on a utf8mb4_unicode_ci column
+  // and is therefore case- and accent-insensitive, so searching for the new spelling
+  // returns the very group being renamed. Without an id check that reads as "already
+  // exists" -- which made every purely cosmetic respelling impossible, and blocked the one
+  // way to reach memos carrying a misspelling: rename the group onto it, adopt, rename back.
+  describe('respelling a group as itself', () => {
+    it('allows dropping an umlaut from its own slug', async () => {
+      const tag = await makeTag('Mönchengladbach', 'Mönchengladbach')
+      await resolver.updateGroupTag(tag.id, 'Monchengladbach', null)
+      const reloaded = await GroupTag.findOneOrFail({ where: { id: tag.id } })
+      expect(reloaded.tag).toBe('Monchengladbach')
+    })
+
+    it('allows changing only the capitalisation', async () => {
+      const tag = await makeTag('feuerwache', 'Feuerwache')
+      await resolver.updateGroupTag(tag.id, 'Feuerwache', null)
+      const reloaded = await GroupTag.findOneOrFail({ where: { id: tag.id } })
+      expect(reloaded.tag).toBe('Feuerwache')
+    })
+
+    // The round trip is the point: rename onto the misspelling, adopt, rename back.
+    it('survives being renamed there and back', async () => {
+      const tag = await makeTag('Grünwald', 'Grünwald')
+      await resolver.updateGroupTag(tag.id, 'Grunwald', null)
+      await resolver.updateGroupTag(tag.id, 'Grünwald', null)
+      const reloaded = await GroupTag.findOneOrFail({ where: { id: tag.id } })
+      expect(reloaded.tag).toBe('Grünwald')
+    })
+
+    // The guard that must stay: a DIFFERENT group already holding that spelling still wins.
+    it('still refuses a slug another group already holds', async () => {
+      const mine = await makeTag('kantine', 'Kantine')
+      await makeTag('Werkstatt', 'Werkstatt')
+      await expect(resolver.updateGroupTag(mine.id, 'werkstatt', null)).rejects.toThrow(
+        'Group tag already exists',
+      )
+      const reloaded = await GroupTag.findOneOrFail({ where: { id: mine.id } })
+      expect(reloaded.tag).toBe('kantine')
+    })
+  })
 })
 
 // The moderator scope and the group filter both read '*all' and '*untagged' as reserved
