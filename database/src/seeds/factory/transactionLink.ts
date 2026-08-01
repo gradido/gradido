@@ -1,7 +1,7 @@
 import { randomBytes } from 'node:crypto'
 import { CODE_VALID_DAYS_DURATION, Duration, GradidoUnit } from 'shared'
 import { AppDatabase } from '../../AppDatabase'
-import { TransactionLink, User } from '../../entity'
+import { TransactionLink } from '../../entity'
 import { findUserByIdentifier } from '../../queries'
 import { TransactionLinkInterface } from '../transactionLink/TransactionLinkInterface'
 
@@ -21,7 +21,8 @@ export async function transactionLinkFactory(
 
 export async function transactionLinkFactoryBulk(
   transactionLinks: TransactionLinkInterface[],
-  userCreationIndexedByEmail: Map<string, User>,
+  // only the id is needed, so this works with either ORM's user representation
+  userCreationIndexedByEmail: Map<string, { id: number }>,
 ): Promise<TransactionLink[]> {
   const dbTransactionLinks: TransactionLink[] = []
   for (const transactionLink of transactionLinks) {

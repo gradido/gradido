@@ -6,6 +6,7 @@ import {
   AppDatabase,
   Community as DbCommunity,
   Event as DbEvent,
+  SeedUser,
   Transaction,
   User,
 } from 'database'
@@ -63,8 +64,8 @@ let bobData: any
 let peterData: any
 let user: User[]
 
-let bob: User
-let peter: User
+let bob: SeedUser
+let peter: SeedUser
 
 let homeCom: DbCommunity
 let foreignCom: DbCommunity
@@ -440,7 +441,7 @@ describe('send coins', () => {
             mutation: sendCoins,
             variables: {
               recipientCommunityIdentifier: homeCom.communityUuid,
-              recipientIdentifier: peter?.gradidoID,
+              recipientIdentifier: peter?.gradidoId,
               amount: '10',
               memo: 'send via gradido ID',
             },
@@ -510,7 +511,7 @@ describe('send coins', () => {
                     amount: '-6.66',
                     linkedUser: {
                       firstName: 'Bob',
-                      gradidoID: bob?.gradidoID,
+                      gradidoID: bob?.gradidoId,
                       lastName: 'der Baumeister',
                     },
                     memo: 'send via alias',
@@ -520,7 +521,7 @@ describe('send coins', () => {
                     amount: '10',
                     linkedUser: {
                       firstName: 'Bob',
-                      gradidoID: bob?.gradidoID,
+                      gradidoID: bob?.gradidoId,
                       lastName: 'der Baumeister',
                     },
                     memo: 'send via gradido ID',
@@ -530,7 +531,7 @@ describe('send coins', () => {
                     amount: '50',
                     linkedUser: {
                       firstName: 'Bob',
-                      gradidoID: bob?.gradidoID,
+                      gradidoID: bob?.gradidoId,
                       lastName: 'der Baumeister',
                     },
                     memo: 'unrepeatable memo',
@@ -593,7 +594,7 @@ describe('send coins', () => {
             mutation: sendCoins,
             variables: {
               recipientCommunityIdentifier: foreignCom.communityUuid,
-              recipientIdentifier: peter?.gradidoID,
+              recipientIdentifier: peter?.gradidoId,
               amount: 10,
               memo: 'x-com send via gradido ID',
             },

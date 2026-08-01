@@ -2,7 +2,7 @@ import { clearLogs, getLogger, printLogs } from '../../../config-schema/test/tes
 import { Community as DbCommunity, User as DbUser, UserContact as DbUserContact } from '..'
 import { AppDatabase } from '../AppDatabase'
 import { createCommunity } from '../seeds/community'
-import { userFactory } from '../seeds/factory/user'
+import { SeedUser, userFactory } from '../seeds/factory/user'
 import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '../seeds/users/bob-baumeister'
 import { peterLustig } from '../seeds/users/peter-lustig'
@@ -47,7 +47,19 @@ describe('user.queries', () => {
     let homeCom: DbCommunity
     let communityUuid: string
     let communityName: string
-    let userBibi: DbUser
+    let userBibi: SeedUser
+
+    // The seed factory returns drizzle types while findUserByIdentifier still returns a
+    // typeorm entity. Field names and column types differ between the two (gradidoId vs
+    // gradidoID, password as bigint vs string), so compare the identifying fields rather
+    // than the whole object. Can go back to a full match once both sides use drizzle.
+    const expectedBibi = () => ({
+      id: userBibi.id,
+      gradidoID: userBibi.gradidoId,
+      alias: userBibi.alias!,
+      firstName: userBibi.firstName,
+      lastName: userBibi.lastName,
+    })
 
     beforeAll(async () => {
       await DbUser.clear()
@@ -66,18 +78,18 @@ describe('user.queries', () => {
     })
     describe('communityIdentifier is community uuid', () => {
       it('userIdentifier is gradido id', async () => {
-        const user = await findUserByIdentifier(userBibi.gradidoID, communityUuid)
-        expect(user).toMatchObject(userBibi)
+        const user = await findUserByIdentifier(userBibi.gradidoId, communityUuid)
+        expect(user).toMatchObject(expectedBibi())
       })
 
       it('userIdentifier is alias', async () => {
-        const user = await findUserByIdentifier(userBibi.alias, communityUuid)
-        expect(user).toMatchObject(userBibi)
+        const user = await findUserByIdentifier(userBibi.alias!, communityUuid)
+        expect(user).toMatchObject(expectedBibi())
       })
 
       it('userIdentifier is email', async () => {
         const user = await findUserByIdentifier(userBibi.emailContact.email, communityUuid)
-        expect(user).toMatchObject(userBibi)
+        expect(user).toMatchObject(expectedBibi())
       })
       it('userIdentifier is unknown', async () => {
         const user = await findUserByIdentifier('unknown', communityUuid)
@@ -87,23 +99,23 @@ describe('user.queries', () => {
 
     describe('communityIdentifier is community name', () => {
       it('userIdentifier is gradido id', async () => {
-        const user = await findUserByIdentifier(userBibi.gradidoID, communityName)
-        expect(user).toMatchObject(userBibi)
+        const user = await findUserByIdentifier(userBibi.gradidoId, communityName)
+        expect(user).toMatchObject(expectedBibi())
       })
 
       it('userIdentifier is alias', async () => {
-        const user = await findUserByIdentifier(userBibi.alias, communityName)
-        expect(user).toMatchObject(userBibi)
+        const user = await findUserByIdentifier(userBibi.alias!, communityName)
+        expect(user).toMatchObject(expectedBibi())
       })
 
       it('userIdentifier is email', async () => {
         const user = await findUserByIdentifier(userBibi.emailContact.email, communityName)
-        expect(user).toMatchObject(userBibi)
+        expect(user).toMatchObject(expectedBibi())
       })
     })
     describe('communityIdentifier is unknown', () => {
       it('userIdentifier is gradido id', async () => {
-        const user = await findUserByIdentifier(userBibi.gradidoID, 'unknown')
+        const user = await findUserByIdentifier(userBibi.gradidoId, 'unknown')
         expect(user).toBeNull()
       })
       it('userIdentifier is unknown', async () => {
@@ -113,18 +125,18 @@ describe('user.queries', () => {
     })
     describe('communityIdentifier is empty', () => {
       it('userIdentifier is gradido id', async () => {
-        const user = await findUserByIdentifier(userBibi.gradidoID)
-        expect(user).toMatchObject(userBibi)
+        const user = await findUserByIdentifier(userBibi.gradidoId)
+        expect(user).toMatchObject(expectedBibi())
       })
 
       it('userIdentifier is alias', async () => {
-        const user = await findUserByIdentifier(userBibi.alias)
-        expect(user).toMatchObject(userBibi)
+        const user = await findUserByIdentifier(userBibi.alias!)
+        expect(user).toMatchObject(expectedBibi())
       })
 
       it('userIdentifier is email', async () => {
         const user = await findUserByIdentifier(userBibi.emailContact.email)
-        expect(user).toMatchObject(userBibi)
+        expect(user).toMatchObject(expectedBibi())
       })
       it('userIdentifier is unknown type', async () => {
         const user = await findUserByIdentifier('sa')

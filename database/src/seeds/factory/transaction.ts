@@ -1,11 +1,23 @@
 import { Decay, fullName, GradidoUnit } from 'shared'
-import { Transaction, User } from '../../entity'
+import { Transaction } from '../../entity'
 import { TransactionTypeId } from '../../enum'
 import { getLastTransaction } from '../../queries'
+/**
+ * The fields the transaction factories need from a user. Kept structural so both
+ * a drizzle-backed SeedUser and a mapped typeorm entity satisfy it while the two
+ * ORMs coexist.
+ */
+export type TransactionUser = {
+  id: number
+  gradidoId: string
+  firstName: string | null
+  lastName: string | null
+  communityUuid: string | null
+}
 
 export async function transferGradidos(
-  sendUser: User,
-  recipientUser: User,
+  sendUser: TransactionUser,
+  recipientUser: TransactionUser,
   amount: GradidoUnit,
   memo: string,
   balanceDate: Date,
@@ -49,8 +61,8 @@ export async function transferGradidos(
 export async function createTransaction(
   amount: GradidoUnit,
   memo: string,
-  user: User,
-  linkedUser: User,
+  user: TransactionUser,
+  linkedUser: TransactionUser,
   type: TransactionTypeId,
   balanceDate: Date,
   creationDate?: Date,
@@ -75,12 +87,12 @@ export async function createTransaction(
   transaction.typeId = type
   transaction.memo = memo
   transaction.userId = user.id
-  transaction.userGradidoID = user.gradidoID
-  transaction.userName = fullName(user.firstName, user.lastName)
+  transaction.userGradidoID = user.gradidoId
+  transaction.userName = fullName(user.firstName ?? '', user.lastName ?? '')
   transaction.userCommunityUuid = user.communityUuid
   transaction.linkedUserId = linkedUser.id
-  transaction.linkedUserGradidoID = linkedUser.gradidoID
-  transaction.linkedUserName = fullName(linkedUser.firstName, linkedUser.lastName)
+  transaction.linkedUserGradidoID = linkedUser.gradidoId
+  transaction.linkedUserName = fullName(linkedUser.firstName ?? '', linkedUser.lastName ?? '')
   transaction.linkedUserCommunityUuid = linkedUser.communityUuid
   transaction.previous = lastTransaction ? lastTransaction.id : null
   transaction.amount = amount

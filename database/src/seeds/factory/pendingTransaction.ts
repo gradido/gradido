@@ -1,9 +1,10 @@
 import { GradidoUnit, PendingTransactionState } from 'shared'
-import { PendingTransaction as DbPendingTransaction, User as DbUser } from '../..'
+import { PendingTransaction as DbPendingTransaction } from '../..'
+import { SeedUser } from './user'
 
 export async function pendingTransactionFactory(
-  sender: DbUser,
-  receiver: DbUser,
+  sender: SeedUser,
+  receiver: SeedUser,
   amount: GradidoUnit,
   memo: string,
   state: PendingTransactionState,
@@ -13,10 +14,10 @@ export async function pendingTransactionFactory(
   pendingTransaction.memo = memo
   pendingTransaction.amount = amount
   pendingTransaction.userId = sender.id
-  pendingTransaction.userGradidoID = sender.gradidoID
+  pendingTransaction.userGradidoID = sender.gradidoId
   pendingTransaction.userCommunityUuid = sender.communityUuid!
   pendingTransaction.linkedUserId = receiver.id
-  pendingTransaction.linkedUserGradidoID = receiver.gradidoID
+  pendingTransaction.linkedUserGradidoID = receiver.gradidoId
   pendingTransaction.linkedUserCommunityUuid = receiver.communityUuid!
   await pendingTransaction.save()
 }

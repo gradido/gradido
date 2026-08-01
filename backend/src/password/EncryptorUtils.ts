@@ -67,12 +67,23 @@ export const SecretKeyCryptographyCreateKey = async (
   }
 }
 
-export const getUserCryptographicSalt = (dbUser: User): string => {
+/**
+ * The fields the salt derivation needs. Structural so the typeorm User entity and
+ * the drizzle-backed seed user both satisfy it while the two ORMs coexist.
+ */
+export type CryptographicSaltUser = {
+  id: number
+  gradidoID: string
+  passwordEncryptionType: number
+  emailContact?: { email: string } | null
+}
+
+export const getUserCryptographicSalt = (dbUser: CryptographicSaltUser): string => {
   switch (dbUser.passwordEncryptionType) {
     case PasswordEncryptionType.NO_PASSWORD:
       throw new LogError('User has no password set', dbUser.id)
     case PasswordEncryptionType.EMAIL:
-      return dbUser.emailContact.email
+      return dbUser.emailContact!.email
     case PasswordEncryptionType.GRADIDO_ID:
       return dbUser.gradidoID
     default:

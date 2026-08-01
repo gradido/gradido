@@ -1,152 +1,174 @@
 import random from 'random-bigint'
 import { OptInType, PasswordEncryptionType, UserContactType } from 'shared'
 import { v4 } from 'uuid'
-import { AppDatabase } from '../..'
-import { Community, User, UserContact, UserRole } from '../../entity'
+import { Community } from '../../entity'
 import { RoleNames } from '../../enum/RoleNames'
 import { getHomeCommunity } from '../../queries/communities'
+import {
+  dbFindLastUserId,
+  dbFindUsersByIds,
+  dbInsertUser,
+  dbInsertUsersWithContactsAndRoles,
+  dbUpdateUserEmailId,
+} from '../../queries/user'
+import {
+  dbFindLastUserContactId,
+  dbFindUserContactsByUserIds,
+  dbInsertUserContact,
+} from '../../queries/userContacts'
+import { dbFindUserRolesByUserIds, dbInsertUserRole } from '../../queries/userRoles'
+import {
+  UserContactInsert,
+  UserContactSelect,
+  UserInsert,
+  UserRoleInsert,
+  UserRoleSelect,
+  UserSelect,
+} from '../../schemas/drizzle.schema'
 import { UserInterface } from '../users/UserInterface'
+
+/**
+ * A seeded user together with the rows written alongside it. Replaces the
+ * TypeORM entity the factory used to return, so field names follow the drizzle
+ * schema (`gradidoId`, not `gradidoID`).
+ */
+export type SeedUser = UserSelect & {
+  community?: Community | null
+  emailContact: UserContactSelect
+  userRoles: UserRoleSelect[]
+}
 
 export async function userFactory(
   user: UserInterface,
   homeCommunity?: Community | null,
-): Promise<User> {
-  // TODO: improve with cascade
-  let dbUser = await createUser(user, homeCommunity)
-  const dbUserContact = await createUserContact(user, dbUser.id)
-  dbUser.emailId = dbUserContact.id
-  dbUser.emailContact = dbUserContact
-  dbUser = await dbUser.save()
+): Promise<SeedUser> {
+  const community = homeCommunity ?? (await getHomeCommunity())
+  const insertedUser = await insertUser(buildUser(user, community))
+  const emailContact = await insertUserContact(buildUserContact(user, insertedUser.id))
 
+  const emailIdResult = await dbUpdateUserEmailId(insertedUser.id, emailContact.id)
+  if (!emailIdResult.success) {
+    throw emailIdResult.error
+  }
+  insertedUser.emailId = emailContact.id
+
+  const userRoles: UserRoleSelect[] = []
   const userRole = user.role as RoleNames
   if (userRole && (userRole === RoleNames.ADMIN || userRole === RoleNames.MODERATOR)) {
-    dbUser.userRoles = [await createUserRole(dbUser.id, userRole)]
+    userRoles.push(await insertUserRole(buildUserRole(insertedUser.id, userRole)))
   }
 
-  return dbUser
+  return { ...insertedUser, community, emailContact, userRoles }
 }
 
 // only use in non-parallel environment (seeding for example)
 export async function userFactoryBulk(
   users: UserInterface[],
   homeCommunity?: Community | null,
-): Promise<User[]> {
-  const dbUsers: User[] = []
-  const dbUserContacts: UserContact[] = []
-  const dbUserRoles: UserRole[] = []
-  const lastUser = await User.findOne({ order: { id: 'DESC' }, select: ['id'], where: {} })
-  const lastUserContact = await UserContact.findOne({
-    order: { id: 'DESC' },
-    select: ['id'],
-    where: {},
-  })
-  let userId = lastUser ? lastUser.id + 1 : 1
-  let emailId = lastUserContact ? lastUserContact.id + 1 : 1
-  // console.log(`start with userId: ${userId} and emailId: ${emailId}`)
+): Promise<SeedUser[]> {
+  const community = homeCommunity ?? (await getHomeCommunity())
+
+  const userRows: UserInsert[] = []
+  const userContactRows: UserContactInsert[] = []
+  const userRoleRows: UserRoleInsert[] = []
+
+  let userId = (await dbFindLastUserId()) + 1
+  let emailId = (await dbFindLastUserContactId()) + 1
+
   for (const user of users) {
-    const dbUser = await createUser(user, homeCommunity, false)
-    dbUser.id = userId
-    dbUser.emailId = emailId
-
-    const dbUserContact = await createUserContact(user, userId, false)
-    dbUserContact.id = emailId
-    dbUserContact.userId = userId
-    dbUser.emailContact = dbUserContact
-
-    dbUsers.push(dbUser)
-    dbUserContacts.push(dbUserContact)
+    userRows.push({ ...buildUser(user, community), id: userId, emailId })
+    userContactRows.push({ ...buildUserContact(user, userId), id: emailId })
 
     const userRole = user.role as RoleNames
     if (userRole && (userRole === RoleNames.ADMIN || userRole === RoleNames.MODERATOR)) {
-      dbUserRoles.push(await createUserRole(dbUser.id, userRole, false))
+      userRoleRows.push(buildUserRole(userId, userRole))
     }
 
     userId++
     emailId++
   }
-  const dataSource = AppDatabase.getInstance().getDataSource()
-  await dataSource.transaction(async (transaction) => {
-    // typeorm change my data what I don't want
-    // because of manuel id assignment
-    const dbUsersCopy = dbUsers.map((user) => ({ ...user }))
-    const dbUserContactsCopy = dbUserContacts.map((userContact) => ({ ...userContact }))
-    const dbUserRolesCopy = dbUserRoles.map((userRole) => ({ ...userRole }))
-    await Promise.all([
-      transaction.getRepository(User).insert(dbUsersCopy),
-      transaction.getRepository(UserContact).insert(dbUserContactsCopy),
-      transaction.getRepository(UserRole).insert(dbUserRolesCopy),
-    ])
-  })
-  return dbUsers
+
+  const result = await dbInsertUsersWithContactsAndRoles(userRows, userContactRows, userRoleRows)
+  if (!result.success) {
+    throw result.error
+  }
+
+  // read the rows back instead of reconstructing them, so defaults filled in by
+  // the database (timestamps, flags) are the ones the caller sees
+  const userIds = userRows.map((userRow) => userRow.id!)
+  const insertedUsers = await dbFindUsersByIds(userIds)
+  const insertedContacts = await dbFindUserContactsByUserIds(userIds)
+  const insertedRoles = await dbFindUserRolesByUserIds(userIds)
+
+  const contactsByUserId = new Map(insertedContacts.map((contact) => [contact.userId, contact]))
+  return insertedUsers.map((insertedUser) => ({
+    ...insertedUser,
+    community,
+    emailContact: contactsByUserId.get(insertedUser.id)!,
+    userRoles: insertedRoles.filter((role) => role.userId === insertedUser.id),
+  }))
 }
 
-export async function createUser(
-  user: UserInterface,
-  homeCommunity?: Community | null,
-  store: boolean = true,
-): Promise<User> {
-  const dbUser = new User()
-  dbUser.firstName = user.firstName ?? ''
-  dbUser.lastName = user.lastName ?? ''
-  if (user.alias) {
-    dbUser.alias = user.alias
+export function buildUser(user: UserInterface, homeCommunity?: Community | null): UserInsert {
+  return {
+    firstName: user.firstName ?? '',
+    lastName: user.lastName ?? '',
+    ...(user.alias ? { alias: user.alias } : {}),
+    language: user.language ?? 'en',
+    createdAt: user.createdAt ?? new Date(),
+    deletedAt: user.deletedAt ?? null,
+    publisherId: user.publisherId ?? 0,
+    humhubAllowed: 1,
+    gradidoId: v4(),
+    // password is set by the caller (the backend seed factory hashes it)
+    passwordEncryptionType: user.emailChecked
+      ? PasswordEncryptionType.GRADIDO_ID
+      : PasswordEncryptionType.NO_PASSWORD,
+    ...(homeCommunity ? { communityUuid: homeCommunity.communityUuid! } : {}),
   }
-  dbUser.language = user.language ?? 'en'
-  dbUser.createdAt = user.createdAt ?? new Date()
-  dbUser.deletedAt = user.deletedAt ?? null
-  dbUser.publisherId = user.publisherId ?? 0
-  dbUser.humhubAllowed = true
-  dbUser.gradidoID = v4()
-
-  if (user.emailChecked) {
-    // dbUser.password =
-    dbUser.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
-  }
-  if (!homeCommunity) {
-    homeCommunity = await getHomeCommunity()
-  }
-  if (homeCommunity) {
-    dbUser.community = homeCommunity
-    dbUser.communityUuid = homeCommunity.communityUuid!
-  }
-
-  return store ? dbUser.save() : dbUser
 }
 
-export async function createUserContact(
-  user: UserInterface,
-  userId?: number,
-  store: boolean = true,
-): Promise<UserContact> {
-  const dbUserContact = new UserContact()
-
-  dbUserContact.email = user.email ?? ''
-  dbUserContact.type = UserContactType.USER_CONTACT_EMAIL
-
-  if (user.createdAt) {
-    dbUserContact.createdAt = user.createdAt
-    dbUserContact.updatedAt = user.createdAt
+export function buildUserContact(user: UserInterface, userId: number): UserContactInsert {
+  return {
+    email: user.email ?? '',
+    type: UserContactType.USER_CONTACT_EMAIL,
+    userId,
+    ...(user.createdAt ? { createdAt: user.createdAt, updatedAt: user.createdAt } : {}),
+    ...(user.emailChecked
+      ? {
+          // random-bigint is typed as the BigInt wrapper, drizzle wants the primitive
+          emailVerificationCode: BigInt(random(64).toString()),
+          emailOptInTypeId: OptInType.EMAIL_OPT_IN_REGISTER,
+          emailChecked: 1,
+        }
+      : {}),
   }
-  if (user.emailChecked) {
-    dbUserContact.emailVerificationCode = random(64).toString()
-    dbUserContact.emailOptInTypeId = OptInType.EMAIL_OPT_IN_REGISTER
-    dbUserContact.emailChecked = true
-  }
-
-  if (userId) {
-    dbUserContact.userId = userId
-  }
-
-  return store ? dbUserContact.save() : dbUserContact
 }
 
-export async function createUserRole(
-  userId: number,
-  role: RoleNames,
-  store: boolean = true,
-): Promise<UserRole> {
-  const dbUserRole = new UserRole()
-  dbUserRole.userId = userId
-  dbUserRole.role = role
-  return store ? dbUserRole.save() : dbUserRole
+export function buildUserRole(userId: number, role: RoleNames): UserRoleInsert {
+  return { userId, role }
+}
+
+async function insertUser(user: UserInsert): Promise<UserSelect> {
+  const result = await dbInsertUser(user)
+  if (!result.success) {
+    throw result.error
+  }
+  return result.value
+}
+
+async function insertUserContact(userContact: UserContactInsert): Promise<UserContactSelect> {
+  const result = await dbInsertUserContact(userContact)
+  if (!result.success) {
+    throw result.error
+  }
+  return result.value
+}
+
+async function insertUserRole(userRole: UserRoleInsert): Promise<UserRoleSelect> {
+  const result = await dbInsertUserRole(userRole)
+  if (!result.success) {
+    throw result.error
+  }
+  return result.value
 }

@@ -19,6 +19,8 @@ import {
   AppDatabase,
   Community as DbCommunity,
   Event as DbEvent,
+  dbUpdateUserPassword,
+  SeedUser,
   TransactionLink,
   User,
   UserContact,
@@ -95,8 +97,8 @@ const logErrorLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)
 
 CONFIG.EMAIL_CODE_REQUEST_TIME = 10
 
-let admin: User
-let user: User
+let admin: SeedUser
+let user: SeedUser
 let mutate: ApolloServerTestClient['mutate']
 let query: ApolloServerTestClient['query']
 let db: AppDatabase
@@ -861,7 +863,10 @@ describe('UserResolver', () => {
         // TODO: we need an user without password set
         const user = await userFactory(testEnv, bibiBloxberg)
         user.password = BigInt(0)
-        await user.save()
+        const passwordResult = await dbUpdateUserPassword(user.id, BigInt(0))
+        if (!passwordResult.success) {
+          throw passwordResult.error
+        }
         result = await mutate({ mutation: login, variables })
       })
 

@@ -4,7 +4,17 @@ import { Contribution, Transaction, User } from '../../entity'
 import { ContributionStatus, ContributionType, TransactionTypeId } from '../../enum'
 import { findUserByIdentifier } from '../../queries'
 import { CreationInterface } from '../creation/CreationInterface'
-import { createTransaction } from './transaction'
+import { createTransaction, TransactionUser } from './transaction'
+
+// findUserByIdentifier still returns a typeorm entity, so map it onto the field
+// names the transaction factory expects
+const toTransactionUser = (user: User): TransactionUser => ({
+  id: user.id,
+  gradidoId: user.gradidoID,
+  firstName: user.firstName,
+  lastName: user.lastName,
+  communityUuid: user.communityUuid,
+})
 
 export function nMonthsBefore(date: Date, months = 1): string {
   return new Date(date.getFullYear(), date.getMonth() - months, 1).toISOString()
@@ -12,11 +22,12 @@ export function nMonthsBefore(date: Date, months = 1): string {
 
 export async function creationFactory(
   creation: CreationInterface,
-  user?: User | null,
-  moderatorUser?: User | null,
+  user?: TransactionUser | null,
+  moderatorUser?: TransactionUser | null,
 ): Promise<Contribution> {
   if (!user) {
-    user = await findUserByIdentifier(creation.email)
+    const foundUser = await findUserByIdentifier(creation.email)
+    user = foundUser ? toTransactionUser(foundUser) : null
   }
   if (!user) {
     throw new Error(`User ${creation.email} not found`)
@@ -24,20 +35,21 @@ export async function creationFactory(
   const contribution = await createContribution(creation, user)
   if (creation.confirmed) {
     if (!moderatorUser) {
-      moderatorUser = await findUserByIdentifier('peter@lustig.de')
+      const foundModerator = await findUserByIdentifier('peter@lustig.de')
+      moderatorUser = foundModerator ? toTransactionUser(foundModerator) : null
     }
     if (!moderatorUser) {
       throw new Error('Moderator user not found')
     }
-    await confirmTransaction(creation, contribution, moderatorUser)
+    await confirmTransaction(creation, contribution, user, moderatorUser)
   }
   return contribution
 }
 
 export async function creationFactoryBulk(
   creations: CreationInterface[],
-  userCreationIndexedByEmail: Map<string, User>,
-  moderatorUser: User,
+  userCreationIndexedByEmail: Map<string, TransactionUser>,
+  moderatorUser: TransactionUser,
 ): Promise<Contribution[]> {
   const lastTransaction = await Transaction.findOne({
     order: { id: 'DESC' },
@@ -58,6 +70,7 @@ export async function creationFactoryBulk(
       const { contribution: _, transaction } = await confirmTransaction(
         creation,
         contribution,
+        user,
         moderatorUser,
         transactionId,
         false,
@@ -77,11 +90,10 @@ export async function creationFactoryBulk(
 
 export async function createContribution(
   creation: CreationInterface,
-  user: User,
+  user: TransactionUser,
   store: boolean = true,
 ): Promise<Contribution> {
   const contribution = new Contribution()
-  contribution.user = user
   contribution.userId = user.id
   contribution.amount = GradidoUnit.fromNumber(creation.amount)
   contribution.createdAt = new Date()
@@ -96,7 +108,8 @@ export async function createContribution(
 export async function confirmTransaction(
   creation: CreationInterface,
   contribution: Contribution,
-  moderatorUser: User,
+  contributionUser: TransactionUser,
+  moderatorUser: TransactionUser,
   transactionId?: number,
   store: boolean = true,
 ): Promise<{ contribution: Contribution; transaction: Transaction }> {
@@ -104,7 +117,7 @@ export async function confirmTransaction(
   const transaction = await createTransaction(
     contribution.amount,
     contribution.memo,
-    contribution.user,
+    contributionUser,
     moderatorUser,
     TransactionTypeId.CREATION,
     balanceDate,

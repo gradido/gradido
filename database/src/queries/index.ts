@@ -10,5 +10,7 @@ export * from './projectBranding'
 export * from './transactionLinks'
 export * from './transactions'
 export * from './user'
+export * from './userContacts'
+export * from './userRoles'
 
 export const LOG4JS_QUERIES_CATEGORY_NAME = `${LOG4JS_BASE_CATEGORY_NAME}.queries`
