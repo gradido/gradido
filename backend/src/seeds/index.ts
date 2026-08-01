@@ -8,6 +8,7 @@ import {
 import { internet, name } from 'faker'
 import { getLogger } from 'log4js'
 import { CONFIG } from '@/config'
+import { terminateEncryptionWorkerPool } from '@/password/EncryptorUtils'
 import { initLogging } from '@/server/logger'
 import { writeHomeCommunityEntry } from './community'
 import { contributionLinks } from './contributionLink/index'
@@ -77,8 +78,6 @@ const run = async () => {
     await contributionLinkFactory(null, contributionLink)
   }
   logger.info('seeding all contributionLinks successful...')
-
-  await db.destroy()
 }
 
 async function clearDatabase(db: AppDatabase) {
@@ -97,7 +96,30 @@ async function clearDatabase(db: AppDatabase) {
   })
 }
 
-run().catch((err) => {
-  // biome-ignore lint/suspicious/noConsole: no logger present
-  console.error('error on seeding', err)
-})
+/**
+ * Close everything which keeps the node process alive, especially the crypto worker
+ * threads, they prevent the process from exiting until they are terminated.
+ */
+async function cleanup() {
+  try {
+    await AppDatabase.getInstance().destroy()
+  } catch (err) {
+    // biome-ignore lint/suspicious/noConsole: no logger present
+    console.error('error on closing database connections', err)
+  }
+  await terminateEncryptionWorkerPool()
+}
+
+async function main() {
+  try {
+    await run()
+  } catch (err) {
+    // biome-ignore lint/suspicious/noConsole: no logger present
+    console.error('error on seeding', err)
+    process.exitCode = 1
+  } finally {
+    await cleanup()
+  }
+}
+
+void main()

@@ -19,6 +19,17 @@ if (CONFIG.USE_CRYPTO_WORKER === true) {
   })
 }
 
+/**
+ * Shut down the worker pool, needed for short living scripts like the seeds,
+ * the worker threads keep the node process alive until they are terminated.
+ */
+export const terminateEncryptionWorkerPool = async (): Promise<void> => {
+  if (encryptionWorkerPool) {
+    await encryptionWorkerPool.terminate()
+    encryptionWorkerPool = undefined
+  }
+}
+
 // We will reuse this for changePassword
 export const isValidPassword = (password: string): boolean => {
   return !!password.match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^a-zA-Z0-9 \\t\\n\\r]).{8,}$/)
