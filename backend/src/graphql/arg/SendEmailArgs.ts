@@ -1,5 +1,5 @@
 import { IsString, MaxLength, MinLength } from 'class-validator'
-import { MEMO_MAX_CHARS, MEMO_MIN_CHARS } from 'shared'
+import { MESSAGE_MAX_CHARS, MESSAGE_MIN_CHARS } from 'shared'
 import { ArgsType, Field } from 'type-graphql'
 
 @ArgsType()
@@ -16,8 +16,10 @@ export class SendEmailArgs {
   @IsString()
   subject: string
 
+  // this memo carries no amount, so it uses the roomier message bounds and not
+  // the memo bounds that a transaction memo has to obey
   @Field(() => String)
-  @MaxLength(MEMO_MAX_CHARS)
-  @MinLength(MEMO_MIN_CHARS)
+  @MaxLength(MESSAGE_MAX_CHARS)
+  @MinLength(MESSAGE_MIN_CHARS)
   memo: string
 }

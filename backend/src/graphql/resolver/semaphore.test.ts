@@ -44,38 +44,39 @@ afterAll(async () => {
   await testEnv.db.destroy()
 })
 
-type WorkData = { start: number; end: number }
-async function fakeWork(workData: WorkData[], index: number) {
+// Count how many callers are inside the critical section instead of reading it off
+// wall clock timestamps. `new Date()` resolves to whole milliseconds, so two entries
+// that happen inside the same millisecond carry the same number - and a strict
+// `toBeLessThan` on those numbers then fails on a test that is doing nothing wrong.
+// A counter answers the question the test actually asks, and it cannot tie.
+type Concurrency = { current: number; peak: number; completed: number }
+
+async function fakeWork(concurrency: Concurrency) {
   // const releaseLock = await TRANSACTIONS_LOCK.acquire()
   // create a new mutex for every function call, like in production code
   const mutex = new Mutex(testEnv.db.getRedisClient(), 'TRANSACTIONS_LOCK')
   await mutex.acquire()
 
-  const startDate = new Date()
-  await new Promise((resolve) => setTimeout(resolve, Math.random() * 50))
-  const endDate = new Date()
-  workData[index] = { start: startDate.getTime(), end: endDate.getTime() }
+  concurrency.current++
+  concurrency.peak = Math.max(concurrency.peak, concurrency.current)
+  // hold the lock across an await: without the mutex every caller would sit in here
+  // at the same time and `current` would climb to the number of callers
+  await new Promise((resolve) => setTimeout(resolve, 5))
+  concurrency.current--
+  concurrency.completed++
+
   // releaseLock()
   await mutex.release()
 }
 
 describe('semaphore', () => {
-  it("didn't should run in parallel", async () => {
-    const workData: WorkData[] = []
+  it('lets only one caller into the critical section at a time', async () => {
+    const concurrency: Concurrency = { current: 0, peak: 0, completed: 0 }
 
-    const promises: Promise<void>[] = []
-    for (let i = 0; i < 20; i++) {
-      promises.push(fakeWork(workData, i))
-    }
-    await Promise.all(promises)
-    workData.sort((a, b) => a.start - b.start)
-    workData.forEach((work, index) => {
-      expect(work.start).toBeLessThan(work.end)
-      if (index < workData.length - 1) {
-        expect(work.start).toBeLessThan(workData[index + 1].start)
-        expect(work.end).toBeLessThanOrEqual(workData[index + 1].start)
-      }
-    })
+    await Promise.all(Array.from({ length: 20 }, () => fakeWork(concurrency)))
+
+    expect(concurrency.completed).toBe(20)
+    expect(concurrency.peak).toBe(1)
   })
 })
 

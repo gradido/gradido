@@ -39,6 +39,7 @@ const evaluation: CreaEvaluation = {
   confidence: 'medium',
   reasoning: 'one clear, one unclear',
   responseText: '[ANREDE], danke!',
+  defaultSalutation: 'Lieber Thomas',
   openPoints: [],
   flags: [],
 }

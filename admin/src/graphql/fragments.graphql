@@ -34,4 +34,5 @@ fragment UserCommonFields on User {
   firstName
   lastName
   alias
+  salutation
 }
