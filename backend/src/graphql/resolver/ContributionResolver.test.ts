@@ -21,7 +21,7 @@ import {
   Contribution,
   Event as DbEvent,
   Transaction as DbTransaction,
-  User,
+  FullUser,
 } from 'database'
 import { GraphQLError } from 'graphql'
 import { getLogger as originalGetLogger } from 'log4js'
@@ -81,7 +81,7 @@ let testEnv: {
   db: AppDatabase
 }
 let creation: Contribution | null
-let admin: User
+let admin: FullUser
 let pendingContribution: any
 let inProgressContribution: any
 let contributionToConfirm: any

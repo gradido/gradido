@@ -1,31 +1,43 @@
 import {
   Community,
+  dbUpdateUser,
   FullUser,
-  User,
   userFactoryBulk as userFactoryBulkDb,
   userFactory as userFactoryDb,
 } from 'database'
-import { In } from 'typeorm'
+import { type CryptographicSaltUser } from '@/password/EncryptorUtils'
 import { encryptPassword } from '@/password/PasswordEncryptor'
 import { writeHomeCommunityEntry } from '@/seeds/community'
 import { UserInterface } from '@/seeds/users/UserInterface'
 
-export const userFactory = async (_client: any, user: UserInterface): Promise<User> => {
+// the seed factory returns drizzle types, the salt derivation expects the typeorm
+// field names — map the two fields that differ
+function toSaltUser(user: FullUser): CryptographicSaltUser {
+  return {
+    id: user.id,
+    gradidoID: user.gradidoId,
+    passwordEncryptionType: user.passwordEncryptionType,
+    emailContact: user.emailContact,
+  }
+}
+
+async function setSeedPassword(user: FullUser): Promise<void> {
+  const passwortHash = await encryptPassword(toSaltUser(user), 'Aa12345_')
+  user.password = passwortHash
+  const result = await dbUpdateUser(user.id, { password: passwortHash })
+  if (!result.success) {
+    throw result.error
+  }
+}
+
+export async function userFactory(_client: any, user: UserInterface): Promise<FullUser> {
   const homeCom = await writeHomeCommunityEntry()
   const seededUser = await userFactoryDb(user, homeCom)
-  // the database seeds work with drizzle now, but the backend still expects the typeorm entity
-  // deleted users are seeded as well, so they must not be filtered out here
-  const dbUser = await User.findOneOrFail({
-    where: { id: seededUser.id },
-    relations: { community: true, emailContact: true },
-    withDeleted: true,
-  })
 
   if (user.emailChecked) {
-    dbUser.password = await encryptPassword(dbUser, 'Aa12345_')
-    await dbUser.save()
+    await setSeedPassword(seededUser)
   }
-  return dbUser
+  return seededUser
 }
 
 export async function userFactoryBulk(
@@ -37,19 +49,9 @@ export async function userFactoryBulk(
   }
   const dbUsers = await userFactoryBulkDb(users, homeCommunity)
 
-  const userIdsWithPassword = dbUsers
-    .filter((dbUser) => dbUser.emailContact.emailChecked)
-    .map((dbUser) => dbUser.id)
-  if (userIdsWithPassword.length > 0) {
-    // password encryption needs the typeorm entity, which isn't migrated to drizzle yet
-    const dbUserEntities = await User.find({
-      where: { id: In(userIdsWithPassword) },
-      relations: { emailContact: true },
-      withDeleted: true,
-    })
-    for (const dbUserEntity of dbUserEntities) {
-      dbUserEntity.password = await encryptPassword(dbUserEntity, 'Aa12345_')
-      await dbUserEntity.save()
+  for (const dbUser of dbUsers) {
+    if (dbUser.emailContact.emailChecked) {
+      await setSeedPassword(dbUser)
     }
   }
   return dbUsers

@@ -19,6 +19,8 @@ import {
   AppDatabase,
   Community as DbCommunity,
   Event as DbEvent,
+  dbUpdateUser,
+  FullUser,
   TransactionLink,
   User,
   UserContact,
@@ -95,8 +97,8 @@ const logErrorLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)
 
 CONFIG.EMAIL_CODE_REQUEST_TIME = 10
 
-let admin: User
-let user: User
+let admin: FullUser
+let user: FullUser
 let mutate: ApolloServerTestClient['mutate']
 let query: ApolloServerTestClient['query']
 let db: AppDatabase
@@ -860,8 +862,7 @@ describe('UserResolver', () => {
         jest.clearAllMocks()
         // TODO: we need an user without password set
         const user = await userFactory(testEnv, bibiBloxberg)
-        user.password = BigInt(0)
-        await user.save()
+        await dbUpdateUser(user.id, { password: 0n })
         result = await mutate({ mutation: login, variables })
       })
 

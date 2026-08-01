@@ -1,6 +1,6 @@
 import { cleanDB, contributionDateFormatter, testEnvironment } from '@test/helpers'
 import { ApolloServerTestClient } from 'apollo-server-testing'
-import { AppDatabase, Contribution, User } from 'database'
+import { AppDatabase, Contribution, FullUser } from 'database'
 import { GradidoUnit } from 'shared'
 import { CONFIG } from '@/config'
 import { userFactory } from '@/seeds/factory/user'
@@ -38,8 +38,8 @@ const setZeroHours = (date: Date): Date => {
 }
 
 describe('util/creation', () => {
-  let user: User
-  let admin: User
+  let user: FullUser
+  let admin: FullUser
 
   const now = new Date()
 

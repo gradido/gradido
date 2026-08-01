@@ -1,5 +1,5 @@
-import { desc, eq, inArray } from 'drizzle-orm'
-import { Result, VoidResult } from 'shared'
+import { desc, eq, gt, inArray } from 'drizzle-orm'
+import { DEFAULT_PAGINATION_PAGE_SIZE, MAX_PAGINATION_PAGE_SIZE, Result, VoidResult } from 'shared'
 import { drizzleDb } from '../AppDatabase'
 import { DBInsertFailed, DBNotFoundAfterInsertError, DBNotFoundError } from '../errorTypes'
 import {
@@ -113,4 +113,19 @@ export async function dbInsertUsersWithContactsAndRoles(
     }
   })
   return { success: true }
+}
+
+export async function dbListUsers(
+  lastIndex: number = 0,
+  count = DEFAULT_PAGINATION_PAGE_SIZE,
+): Promise<UserSelect[]> {
+  if (count > MAX_PAGINATION_PAGE_SIZE) {
+    throw new Error(
+      `${count} db entries were requested, but max allowed by constant is: ${MAX_PAGINATION_PAGE_SIZE}`,
+    )
+  }
+  if (lastIndex < 0 || count < 0) {
+    throw new Error('invalid parameter, lastIndex and count must botgh >= 0')
+  }
+  return drizzleDb().select().from(usersTable).where(gt(usersTable.id, lastIndex)).limit(count)
 }

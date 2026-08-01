@@ -1,7 +1,7 @@
 import { RoleNames } from '@enum/RoleNames'
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { ApolloServerTestClient } from 'apollo-server-testing'
-import { AppDatabase, User, UserRole } from 'database'
+import { AppDatabase, FullUser, UserRole } from 'database'
 import { GraphQLError } from 'graphql'
 import { getLogger as originalGetLogger } from 'log4js'
 import { userFactory } from '@/seeds/factory/user'
@@ -73,7 +73,7 @@ const unauthorized = expect.objectContaining({
 })
 
 describe('contribution links — only administrators may set up a starting balance', () => {
-  let moderator: User
+  let moderator: FullUser
 
   beforeAll(async () => {
     await userFactory(testEnv, peterLustig) // administrator

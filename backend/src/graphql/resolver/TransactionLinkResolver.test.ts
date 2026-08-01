@@ -6,8 +6,8 @@ import {
   AppDatabase,
   ContributionLink as DbContributionLink,
   Event as DbEvent,
+  FullUser,
   Transaction,
-  User,
   UserContact,
 } from 'database'
 import { GraphQLError } from 'graphql'
@@ -55,7 +55,7 @@ let testEnv: {
   db: AppDatabase
 }
 
-let user: User
+let user: FullUser
 
 beforeAll(async () => {
   testEnv = await testEnvironment()
