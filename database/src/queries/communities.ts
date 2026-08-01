@@ -20,17 +20,24 @@ export async function getHomeCommunity(): Promise<DbCommunity | null> {
   })
 }
 
-export async function getHomeCommunityDrizzle(): Promise<CommunitiesSelect | null> {
-  if (!homeCommunityDrizzleCache) {
-    const resultRows = await drizzleDb()
-      .select()
-      .from(communitiesTable)
-      .where(eq(communitiesTable.foreign, 0))
-    if (resultRows[0]) {
-      homeCommunityDrizzleCache = resultRows[0]
-    }
+/**
+ * @param useCache seeds and tests recreate the home community, so they need to bypass the cache
+ */
+export async function getHomeCommunityDrizzle(
+  useCache: boolean = true,
+): Promise<CommunitiesSelect | null> {
+  if (useCache && homeCommunityDrizzleCache) {
+    return homeCommunityDrizzleCache
   }
-  return homeCommunityDrizzleCache
+  const resultRows = await drizzleDb()
+    .select()
+    .from(communitiesTable)
+    .where(eq(communitiesTable.foreign, 0))
+  const homeCommunity = resultRows[0] ?? null
+  if (homeCommunity) {
+    homeCommunityDrizzleCache = homeCommunity
+  }
+  return useCache ? homeCommunityDrizzleCache : homeCommunity
 }
 
 export async function getHomeCommunityWithFederatedCommunityOrFail(

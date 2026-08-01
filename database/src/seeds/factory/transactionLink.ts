@@ -1,16 +1,17 @@
 import { randomBytes } from 'node:crypto'
 import { CODE_VALID_DAYS_DURATION, Duration, GradidoUnit } from 'shared'
 import { AppDatabase } from '../../AppDatabase'
-import { TransactionLink, User } from '../../entity'
-import { findUserByIdentifier } from '../../queries'
+import { TransactionLink } from '../../entity'
+import { FullUser } from '../../schemas'
 import { TransactionLinkInterface } from '../transactionLink/TransactionLinkInterface'
+import { findFullUserByEmail } from './user'
 
 export async function transactionLinkFactory(
   transactionLinkData: TransactionLinkInterface,
   userId?: number,
 ): Promise<TransactionLink> {
   if (!userId) {
-    const user = await findUserByIdentifier(transactionLinkData.email)
+    const user = await findFullUserByEmail(transactionLinkData.email)
     if (!user) {
       throw new Error(`User ${transactionLinkData.email} not found`)
     }
@@ -21,7 +22,7 @@ export async function transactionLinkFactory(
 
 export async function transactionLinkFactoryBulk(
   transactionLinks: TransactionLinkInterface[],
-  userCreationIndexedByEmail: Map<string, User>,
+  userCreationIndexedByEmail: Map<string, FullUser>,
 ): Promise<TransactionLink[]> {
   const dbTransactionLinks: TransactionLink[] = []
   for (const transactionLink of transactionLinks) {

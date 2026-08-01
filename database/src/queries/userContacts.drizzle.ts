@@ -48,6 +48,27 @@ export async function dbFindUserContactsByUserId(userId: number): Promise<UserCo
   return drizzleDb().select().from(userContactsTable).where(eq(userContactsTable.userId, userId))
 }
 
+export async function dbFindUserContactsByUserIds(userIds: number[]): Promise<UserContactSelect[]> {
+  if (userIds.length === 0) {
+    return []
+  }
+  return drizzleDb()
+    .select()
+    .from(userContactsTable)
+    .where(inArray(userContactsTable.userId, userIds))
+}
+
+export async function dbFindUserContactByEmail(
+  email: string,
+): Promise<UserContactSelect | undefined> {
+  const result = await drizzleDb()
+    .select()
+    .from(userContactsTable)
+    .where(eq(userContactsTable.email, email))
+    .limit(1)
+  return result.at(0)
+}
+
 /**
  * Highest id currently in the table, or 0 when it is empty.
  * Used by the bulk seed factory, which assigns ids manually.
