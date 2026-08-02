@@ -19,7 +19,7 @@ function toSaltUser(user: UserInsertedWithContact): CryptographicSaltUser {
   return {
     id: user.id,
     gradidoID: user.gradidoId,
-    passwordEncryptionType: PasswordEncryptionType.EMAIL,
+    passwordEncryptionType: PasswordEncryptionType.GRADIDO_ID,
     emailContact: user.emailContact,
   }
 }
@@ -52,9 +52,9 @@ export async function userFactoryBulk(
   await Promise.all(
     Array.from(emailUserId.values()).map(async (user: UserInsertedWithContact) => {
       if (user.emailContact.emailChecked) {
-        await setSeedPassword(user);
+        await setSeedPassword(user)
       }
-    })
+    }),
   )
   return emailUserId
 }

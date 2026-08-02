@@ -65,7 +65,7 @@ export class AppDatabase {
 
   // create database connection, initialize with automatic retry and check for correct database version
   public async init(): Promise<void> {
-    const timeUsed = new MonotonicTimer
+    const timeUsed = new MonotonicTimer()
     if (this.dataSource?.isInitialized) {
       return
     }
