@@ -1,7 +1,7 @@
 import { GradidoUnit } from 'shared'
 import { ContributionLink } from '../../entity'
 import { ContributionCycleType } from '../../enum'
-import { ContributionLinkInterface } from '../contributionLink/ContributionLinkInterface'
+import { ContributionLinkInterface } from '../contributionLink'
 import { transactionLinkCode } from './transactionLink'
 
 export function contributionLinkFactory(

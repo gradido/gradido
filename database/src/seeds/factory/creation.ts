@@ -2,10 +2,10 @@ import { GradidoUnit } from 'shared'
 import { AppDatabase } from '../../AppDatabase'
 import { Contribution, Transaction } from '../../entity'
 import { ContributionStatus, ContributionType, TransactionTypeId } from '../../enum'
-import { FullUser } from '../../schemas'
+import { dbFindUserByEmail } from '../../queries'
+import { UserInserted, UserInsertedWithContact } from '../../schemas'
 import { CreationInterface } from '../creation/CreationInterface'
 import { createTransaction } from './transaction'
-import { findFullUserByEmail } from './user'
 
 export function nMonthsBefore(date: Date, months = 1): string {
   return new Date(date.getFullYear(), date.getMonth() - months, 1).toISOString()
@@ -13,11 +13,11 @@ export function nMonthsBefore(date: Date, months = 1): string {
 
 export async function creationFactory(
   creation: CreationInterface,
-  user?: FullUser | null,
-  moderatorUser?: FullUser | null,
+  user?: UserInserted | null,
+  moderatorUser?: UserInserted | null,
 ): Promise<Contribution> {
   if (!user) {
-    user = await findFullUserByEmail(creation.email)
+    user = await dbFindUserByEmail(creation.email)
   }
   if (!user) {
     throw new Error(`User ${creation.email} not found`)
@@ -25,7 +25,7 @@ export async function creationFactory(
   const contribution = await createContribution(creation, user)
   if (creation.confirmed) {
     if (!moderatorUser) {
-      moderatorUser = await findFullUserByEmail('peter@lustig.de')
+      moderatorUser = await dbFindUserByEmail('peter@lustig.de')
     }
     if (!moderatorUser) {
       throw new Error('Moderator user not found')
@@ -37,8 +37,8 @@ export async function creationFactory(
 
 export async function creationFactoryBulk(
   creations: CreationInterface[],
-  userCreationIndexedByEmail: Map<string, FullUser>,
-  moderatorUser: FullUser,
+  userCreationIndexedByEmail: Map<string, UserInsertedWithContact>,
+  moderatorUser: UserInserted,
 ): Promise<Contribution[]> {
   const lastTransaction = await Transaction.findOne({
     order: { id: 'DESC' },
@@ -79,7 +79,7 @@ export async function creationFactoryBulk(
 
 export async function createContribution(
   creation: CreationInterface,
-  user: FullUser,
+  user: UserInserted,
   store: boolean = true,
 ): Promise<Contribution> {
   const contribution = new Contribution()
@@ -97,8 +97,8 @@ export async function createContribution(
 export async function confirmTransaction(
   creation: CreationInterface,
   contribution: Contribution,
-  user: FullUser,
-  moderatorUser: FullUser,
+  user: UserInserted,
+  moderatorUser: UserInserted,
   transactionId?: number,
   store: boolean = true,
 ): Promise<{ contribution: Contribution; transaction: Transaction }> {

@@ -1,7 +1,9 @@
+import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
 import {
   Community,
   dbUpdateUser,
   FullUser,
+  UserInsertedWithContact,
   userFactoryBulk as userFactoryBulkDb,
   userFactory as userFactoryDb,
 } from 'database'
@@ -9,20 +11,21 @@ import { type CryptographicSaltUser } from '@/password/EncryptorUtils'
 import { encryptPassword } from '@/password/PasswordEncryptor'
 import { writeHomeCommunityEntry } from '@/seeds/community'
 import { UserInterface } from '@/seeds/users/UserInterface'
+import { SEED_USER_DEFAULT_PASSWORD } from '../users'
 
 // the seed factory returns drizzle types, the salt derivation expects the typeorm
 // field names — map the two fields that differ
-function toSaltUser(user: FullUser): CryptographicSaltUser {
+function toSaltUser(user: UserInsertedWithContact): CryptographicSaltUser {
   return {
     id: user.id,
     gradidoID: user.gradidoId,
-    passwordEncryptionType: user.passwordEncryptionType,
+    passwordEncryptionType: PasswordEncryptionType.EMAIL,
     emailContact: user.emailContact,
   }
 }
 
-async function setSeedPassword(user: FullUser): Promise<void> {
-  const passwortHash = await encryptPassword(toSaltUser(user), 'Aa12345_')
+async function setSeedPassword(user: UserInsertedWithContact): Promise<void> {
+  const passwortHash = await encryptPassword(toSaltUser(user), SEED_USER_DEFAULT_PASSWORD)
   user.password = passwortHash
   const result = await dbUpdateUser(user.id, { password: passwortHash })
   if (!result.success) {
@@ -43,16 +46,15 @@ export async function userFactory(_client: any, user: UserInterface): Promise<Fu
 export async function userFactoryBulk(
   users: UserInterface[],
   homeCommunity?: Community | null,
-): Promise<FullUser[]> {
-  if (!homeCommunity) {
-    homeCommunity = await writeHomeCommunityEntry()
-  }
-  const dbUsers = await userFactoryBulkDb(users, homeCommunity)
+): Promise<Map<string, UserInsertedWithContact>> {
+  const emailUserId = await userFactoryBulkDb(users, homeCommunity)
 
-  for (const dbUser of dbUsers) {
-    if (dbUser.emailContact.emailChecked) {
-      await setSeedPassword(dbUser)
-    }
-  }
-  return dbUsers
+  await Promise.all(
+    Array.from(emailUserId.values()).map(async (user: UserInsertedWithContact) => {
+      if (user.emailContact.emailChecked) {
+        await setSeedPassword(user);
+      }
+    })
+  )
+  return emailUserId
 }

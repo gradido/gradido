@@ -1,12 +1,12 @@
 import {
   AppDatabase,
   creationFactoryBulk,
-  FullUser,
   transactionLinkFactoryBulk,
   UserInterface,
 } from 'database'
 import { internet, name } from 'faker'
 import { getLogger } from 'log4js'
+import { MonotonicTimer } from 'shared-native'
 import { CONFIG } from '@/config'
 import { terminateEncryptionWorkerPool } from '@/password/EncryptorUtils'
 import { initLogging } from '@/server/logger'
@@ -22,6 +22,8 @@ const RANDOM_USER_COUNT = 100
 const logger = getLogger('seed')
 
 const run = async () => {
+  const timeUsed = new MonotonicTimer()
+
   initLogging()
   const db = AppDatabase.getInstance()
   await db.init()
@@ -34,11 +36,7 @@ const run = async () => {
 
   // seed the standard users
   // put into map for later direct access
-  const userCreationIndexedByEmail = new Map<string, FullUser>()
-  const defaultUsers = await userFactoryBulk(users, homeCommunity)
-  for (const dbUser of defaultUsers) {
-    userCreationIndexedByEmail.set(dbUser.emailContact.email, dbUser)
-  }
+  const userCreationIndexedByEmail = await userFactoryBulk(users, homeCommunity)
   logger.info('seeding all standard users successful...')
 
   // seed 100 random users
@@ -77,7 +75,7 @@ const run = async () => {
   for (const contributionLink of contributionLinks) {
     await contributionLinkFactory(null, contributionLink)
   }
-  logger.info('seeding all contributionLinks successful...')
+  logger.info(`seeding all contributionLinks successful... in ${timeUsed}`)
 }
 
 async function clearDatabase(db: AppDatabase) {

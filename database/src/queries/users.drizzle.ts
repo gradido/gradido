@@ -1,11 +1,14 @@
-import { desc, eq, gt, inArray } from 'drizzle-orm'
+import { Column, ColumnBaseConfig, ColumnDataType, desc, eq, gt, inArray, SQL } from 'drizzle-orm'
 import { DEFAULT_PAGINATION_PAGE_SIZE, MAX_PAGINATION_PAGE_SIZE, Result, VoidResult } from 'shared'
 import { drizzleDb } from '../AppDatabase'
 import { DBInsertFailed, DBNotFoundAfterInsertError, DBNotFoundError } from '../errorTypes'
+import { FullUser } from '../schemas'
 import {
+  communitiesTable,
   UserContactInsert,
   UserInsert,
   UserRoleInsert,
+  UserRoleSelect,
   UserSelect,
   userContactsTable,
   userRolesTable,
@@ -33,8 +36,27 @@ export async function dbInsertUser(
 }
 
 export async function dbFindUserById(id: number): Promise<UserSelect | undefined> {
-  const result = await drizzleDb().select().from(usersTable).where(eq(usersTable.id, id)).limit(1)
+  const result = await drizzleDb().select().from(usersTable).where(eq(usersTable.id, id))
+  if (result.length > 1) {
+    throw new Error('get more than one result for a user by id search')
+  }
   return result.at(0)
+}
+
+export async function dbFindUserByEmail(email: string): Promise<UserSelect | undefined> {
+  const result = await drizzleDb()
+    .select()
+    .from(usersTable)
+    .leftJoin(userContactsTable, eq(usersTable.emailId, userContactsTable.id))
+    .where(eq(userContactsTable.email, email))
+
+  if (result.length > 1) {
+    throw new Error('get more than one result for a user by email search')
+  }
+  const firstRow = result[0]
+  if (firstRow) {
+    return firstRow.users
+  }
 }
 
 export async function dbInsertAndSelectUser(
@@ -113,6 +135,80 @@ export async function dbInsertUsersWithContactsAndRoles(
     }
   })
   return { success: true }
+}
+
+async function dbFindUserWithAllRelations<
+  F extends Column<ColumnBaseConfig<ColumnDataType, string>, object, object>,
+  V extends F['_']['data'],
+>(field: F, value: V, operator: typeof eq): Promise<FullUser | undefined>
+
+async function dbFindUserWithAllRelations<
+  F extends Column<ColumnBaseConfig<ColumnDataType, string>, object, object>,
+  V extends F['_']['data'][],
+>(field: F, value: V, operator: typeof inArray): Promise<FullUser[] | undefined>
+
+async function dbFindUserWithAllRelations<
+  F extends Column<ColumnBaseConfig<ColumnDataType, string>, object, object>,
+  V extends F['_']['data'] | F['_']['data'][],
+>(
+  field: F,
+  value: V,
+  operator: (field: F, value: V) => SQL = eq,
+): Promise<FullUser | FullUser[] | undefined> {
+  const result = await drizzleDb()
+    .select()
+    .from(usersTable)
+    .innerJoin(userContactsTable, eq(usersTable.emailId, userContactsTable.id))
+    .leftJoin(userRolesTable, eq(userRolesTable.userId, usersTable.id))
+    .leftJoin(communitiesTable, eq(usersTable.communityUuid, communitiesTable.communityUuid))
+    .where(operator(field, value))
+
+  if (result.length > 1) {
+    throw new Error('please call dbFindUserWithAllRelations only with a unique field value')
+  }
+  const firstRow = result[0]
+  if (firstRow) {
+    const roles = result
+      .map((row) => row.user_roles)
+      .filter((role): role is UserRoleSelect => role !== null)
+
+    return {
+      ...firstRow.users,
+      community: firstRow.communities,
+      userRoles: roles,
+      emailContact: firstRow.user_contacts,
+    }
+  }
+}
+
+export async function dbFindUserByIdWithAllRelations(
+  userId: number,
+): Promise<Result<FullUser, DBNotFoundError>> {
+  const result = await dbFindUserWithAllRelations(usersTable.id, userId, eq)
+  if (result) {
+    return { success: true, value: result }
+  }
+  return { success: false, error: userNotFound(`users.id = ${userId}`) }
+}
+
+export async function dbFindUsersByIdWitlAllRelations(
+  userIds: number[],
+): Promise<Result<FullUser[], DBNotFoundError>> {
+  const result = await dbFindUserWithAllRelations(usersTable.id, userIds, eq)
+  if (result) {
+    return { success: true, value: result }
+  }
+  return { success: false, error: userNotFound(`users.id = in (${userIds})`) }
+}
+
+export async function dbFindUserByEmailWithAllRelations(
+  email: string,
+): Promise<Result<FullUser, DBNotFoundError>> {
+  const result = await dbFindUserWithAllRelations(userContactsTable.email, email, eq)
+  if (result) {
+    return { success: true, value: result }
+  }
+  return { success: false, error: userNotFound(`user_contacts.email = ${email}`) }
 }
 
 export async function dbListUsers(

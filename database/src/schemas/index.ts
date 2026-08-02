@@ -1,2 +1,2 @@
+export * from './composedTypes'
 export * from './drizzle.schema'
-export * from './fullTypes'

@@ -26,7 +26,9 @@ export async function dbFindUserContactById(id: number): Promise<UserContactSele
     .select()
     .from(userContactsTable)
     .where(eq(userContactsTable.id, id))
-    .limit(1)
+  if (result.length > 1) {
+    throw new Error('get more than one result for a user_contacts by id search')
+  }
   return result.at(0)
 }
 
@@ -37,7 +39,7 @@ export async function dbInsertAndSelectUserContact(
   if (result.success) {
     const user = await dbFindUserContactById(result.value)
     if (!user) {
-      throw userContactNotFoundAfterInsertError(userInput, `users.id = ${result.value}`)
+      throw userContactNotFoundAfterInsertError(userInput, `user_contacts.id = ${result.value}`)
     }
     return { success: true, value: user }
   }

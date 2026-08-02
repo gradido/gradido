@@ -1,9 +1,9 @@
 import {
-  TransactionLinkInterface,
+  type TransactionLinkInterface,
   transactionLinkFactory as transactionLinkFactoryDb,
 } from 'database'
 
-export { TransactionLinkInterface }
+export type { TransactionLinkInterface }
 
 export async function transactionLinkFactory(
   _client: any,

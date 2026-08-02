@@ -2,24 +2,14 @@ import random from 'random-bigint'
 import { OptInType, PasswordEncryptionType, UserContactType } from 'shared'
 import { v4 } from 'uuid'
 import { RoleNames } from '../../enum/RoleNames'
-import { DBNotFoundError } from '../../errorTypes'
 import { getHomeCommunityDrizzle } from '../../queries/communities'
 import {
   dbFindLastUserContactId,
-  dbFindUserContactByEmail,
-  dbFindUserContactById,
-  dbFindUserContactsByUserIds,
   dbInsertAndSelectUserContact,
 } from '../../queries/userContacts.drizzle'
-import {
-  dbFindUserRolesByUserId,
-  dbFindUserRolesByUserIds,
-  dbInsertUserRole,
-} from '../../queries/userRoles.drizzle'
+import { dbInsertAndSelectUserRoles } from '../../queries/userRoles.drizzle'
 import {
   dbFindLastUserId,
-  dbFindUserById,
-  dbFindUsersByIds,
   dbInsertAndSelectUser,
   dbInsertUsersWithContactsAndRoles,
   dbUpdateUser,
@@ -28,10 +18,11 @@ import {
   CommunitiesSelect,
   FullUser,
   UserContactInsert,
-  UserContactSelect,
   UserInsert,
+  UserInsertedWithContact,
   UserRoleInsert,
   UserRoleSelect,
+  UserSelect,
 } from '../../schemas'
 import { UserInterface } from '../users/UserInterface'
 
@@ -70,7 +61,7 @@ export async function userFactory(
   const userRoles: UserRoleSelect[] = []
   const userRole = user.role as RoleNames
   if (userRole === RoleNames.ADMIN || userRole === RoleNames.MODERATOR) {
-    const insertedUserRole = await dbInsertUserRole(buildUserRole(dbUser.id, userRole))
+    const insertedUserRole = await dbInsertAndSelectUserRoles(buildUserRole(dbUser.id, userRole))
     if (!insertedUserRole.success) {
       throw insertedUserRole.error
     }
@@ -81,10 +72,11 @@ export async function userFactory(
 }
 
 // only use in non-parallel environment (seeding for example)
+// return map with user email as key and the user id as value
 export async function userFactoryBulk(
   users: UserInterface[],
   homeCommunity?: HomeCommunity | null,
-): Promise<FullUser[]> {
+): Promise<Map<string, UserInsertedWithContact>> {
   if (!homeCommunity) {
     // no cache, seeds and tests recreate the home community
     homeCommunity = await getHomeCommunityDrizzle(false)
@@ -98,13 +90,22 @@ export async function userFactoryBulk(
   const dbUsers: UserInsert[] = []
   const dbUserContacts: UserContactInsert[] = []
   const dbUserRoles: UserRoleInsert[] = []
+  const emailUsers: Map<string, UserInsertedWithContact> = new Map()
 
   for (const user of users) {
-    dbUsers.push({ ...buildUser(user, homeCommunity), id: userId, emailId })
-    dbUserContacts.push({ ...buildUserContact(user, userId), id: emailId })
-
+    const userInsert = { ...buildUser(user, homeCommunity), id: userId, emailId }
+    dbUsers.push(userInsert)
+    const emailContact = { ...buildUserContact(user, userId), id: emailId }
+    dbUserContacts.push(emailContact)
+    if (user.email) {
+      emailUsers.set(user.email, { ...userInsert, emailContact })
+    }
     const userRole = user.role as RoleNames
-    if (userRole === RoleNames.ADMIN || userRole === RoleNames.MODERATOR) {
+    if (
+      userRole === RoleNames.ADMIN ||
+      userRole === RoleNames.MODERATOR ||
+      userRole === RoleNames.MODERATOR_AI
+    ) {
       dbUserRoles.push(buildUserRole(userId, userRole))
     }
     userIds.push(userId)
@@ -116,7 +117,7 @@ export async function userFactoryBulk(
   if (!result.success) {
     throw result.error
   }
-  return findFullUsersByIds(userIds)
+  return emailUsers
 }
 
 export function buildUser(user: UserInterface, homeCommunity?: HomeCommunity | null): UserInsert {
@@ -166,58 +167,4 @@ export function buildUserContact(user: UserInterface, userId: number): UserConta
 
 export function buildUserRole(userId: number, role: RoleNames): UserRoleInsert {
   return { userId, role }
-}
-
-/**
- * Loads a user with his email contact and roles, the shape the seed factories work with.
- */
-export async function findFullUserById(id: number): Promise<FullUser | null> {
-  const dbUser = await dbFindUserById(id)
-  if (!dbUser) {
-    return null
-  }
-  const [emailContact, userRoles] = await Promise.all([
-    dbUser.emailId ? dbFindUserContactById(dbUser.emailId) : undefined,
-    dbFindUserRolesByUserId(dbUser.id),
-  ])
-  if (!emailContact) {
-    throw new DBNotFoundError('user_contacts', `id = ${dbUser.emailId}`)
-  }
-  return { ...dbUser, emailContact, userRoles }
-}
-
-export async function findFullUserByEmail(email: string): Promise<FullUser | null> {
-  const userContact = await dbFindUserContactByEmail(email)
-  if (!userContact) {
-    return null
-  }
-  return findFullUserById(userContact.userId)
-}
-
-export async function findFullUsersByIds(userIds: number[]): Promise<FullUser[]> {
-  const [dbUsers, dbUserContacts, dbUserRoles] = await Promise.all([
-    dbFindUsersByIds(userIds),
-    dbFindUserContactsByUserIds(userIds),
-    dbFindUserRolesByUserIds(userIds),
-  ])
-  const usersById = new Map(dbUsers.map((dbUser) => [dbUser.id, dbUser]))
-  const emailContactsById = new Map<number, UserContactSelect>(
-    dbUserContacts.map((dbUserContact) => [dbUserContact.id, dbUserContact]),
-  )
-  // keep the order of the given ids
-  return userIds.map((userId) => {
-    const dbUser = usersById.get(userId)
-    if (!dbUser) {
-      throw new DBNotFoundError('users', `id = ${userId}`)
-    }
-    const emailContact = dbUser.emailId ? emailContactsById.get(dbUser.emailId) : undefined
-    if (!emailContact) {
-      throw new DBNotFoundError('user_contacts', `id = ${dbUser.emailId}`)
-    }
-    return {
-      ...dbUser,
-      emailContact,
-      userRoles: dbUserRoles.filter((dbUserRole) => dbUserRole.userId === userId),
-    }
-  })
 }

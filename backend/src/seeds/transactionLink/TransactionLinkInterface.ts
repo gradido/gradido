@@ -1,4 +1,4 @@
-export { TransactionLinkInterface } from 'database'
+export type { TransactionLinkInterface } from 'database'
 /*
 export interface TransactionLinkInterface {
   email: string

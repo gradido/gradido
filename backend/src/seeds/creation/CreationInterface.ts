@@ -1,4 +1,4 @@
-export { CreationInterface } from 'database'
+export type { CreationInterface } from 'database'
 /* 
 export interface CreationInterface {
   email: string
