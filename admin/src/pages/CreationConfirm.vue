@@ -2,9 +2,15 @@
 <template>
   <div class="creation-confirm">
     <user-query v-model="query" class="mb-2 mt-2" :placeholder="$t('user_memo_search')" />
-    <p class="mb-2">
-      <input v-model="noHashtag" type="checkbox" class="noHashtag" />
-      <span v-b-tooltip="$t('no_hashtag_tooltip')" class="ms-2">{{ $t('no_hashtag') }}</span>
+    <p class="mb-2 d-flex align-items-center">
+      <span class="me-2">{{ $t('groupTagFilter.label') }}</span>
+      <ThemedSelect
+        v-model="groupTag"
+        :options="groupTagFilterOptions"
+        class="group-tag-filter"
+        style="max-width: 24rem"
+        data-test="group-tag-filter"
+      />
     </p>
     <p v-if="showResubmissionCheckbox" class="mb-4">
       <input v-model="hideResubmissionModel" type="checkbox" class="hideResubmission" />
@@ -55,6 +61,9 @@
       :fields="fields"
       :hide-resubmission="hideResubmission"
       :crea-open-only="creaOpenOnly"
+      :group-tags="groupTagsResult?.groupTags ?? []"
+      :group-change-failures="groupChangeFailures"
+      @assign-group="assignGroup"
       @show-overlay="showOverlay"
       @update-status="updateStatus"
       @reload-contribution="reloadContribution"
@@ -118,6 +127,7 @@ import UserQuery from '../components/UserQuery'
 import AiChat from '../components/AiChat'
 import CreaEvaluationModal from '../components/CreaEvaluationModal'
 import { adminListContributions } from '../graphql/adminListContributions.graphql'
+import { groupTags, assignContributionGroupTags } from '../graphql/groupTags.graphql'
 import { adminDeleteContribution } from '../graphql/adminDeleteContribution'
 import { adminUpdateContribution } from '../graphql/adminUpdateContribution'
 import { confirmContribution } from '../graphql/confirmContribution'
@@ -148,8 +158,9 @@ const rows = ref(0)
 const currentPage = ref(1)
 const pageSize = ref(25)
 const query = ref('')
-const noHashtag = ref(null)
 const hideResubmissionModel = ref(true)
+// Group functions: filter the contribution list by a single group tag.
+const groupTag = ref('')
 
 const { formatDateOrDash } = useDateFormatter()
 
@@ -301,14 +312,83 @@ watch(tabIndex, () => {
   items.value = []
 })
 
+// Narrowing the list has to start over at page one. Picking a group while standing on a
+// later page would otherwise ask for a page the narrowed result does not have, and the
+// empty table reads as "this group has nothing".
+watch(groupTag, () => {
+  currentPage.value = 1
+})
+
+// Group functions: canonical tag options for the filter dropdown.
+const { result: groupTagsResult } = useQuery(groupTags)
+
+// A scoped moderator may only work in the groups their role covers, so the filter offers
+// only those. The backend already restricts what they can load; this keeps the dropdown from
+// offering choices that would return nothing. An administrator — or an unrestricted moderator
+// — gets the full set unchanged.
+const seesAllGroups = computed(() => store.state.moderator?.seesAllGroups ?? true)
+const visibleGroupTags = computed(() => store.state.moderator?.visibleGroupTags ?? [])
+// "No group" is not a group, so it cannot appear in the list above. Without it a scope of
+// "one group plus the ungrouped ones" would look exactly like that one group, and the
+// ungrouped contributions the moderator is assigned to would have no filter that reaches
+// them. Older sessions predate the field, hence the fallback.
+const seesUntagged = computed(() => store.state.moderator?.seesUntagged ?? false)
+
+const groupTagOption = (groupTagItem) => ({
+  value: groupTagItem.tag,
+  text: groupTagItem.name ? `${groupTagItem.name} (#${groupTagItem.tag})` : `#${groupTagItem.tag}`,
+})
+
+const groupTagFilterOptions = computed(() => {
+  const allGroups = groupTagsResult.value?.groupTags ?? []
+  if (seesAllGroups.value) {
+    // Three answers that cover the list exactly once: everything, everything some group
+    // moderator looks after, everything nobody does — plus every group. The two '*…' values
+    // are reserved tokens the backend matches; a real slug can never be '*…', so no collision.
+    return [
+      { value: '', text: t('groupTagFilter.all') },
+      { value: '*grouped', text: t('groupTagFilter.grouped') },
+      { value: '*untagged', text: t('groupTagFilter.untagged') },
+      ...allGroups.map(groupTagOption),
+    ]
+  }
+  // Scoped moderator. The store already says which groups they cover, so the shape is decided
+  // before the full group list has even loaded.
+  if (visibleGroupTags.value.length === 0) {
+    // Scoped to untagged contributions only — the one thing this moderator can see.
+    return [{ value: '*untagged', text: t('groupTagFilter.untagged') }]
+  }
+  // "All my groups" plus each of them, and "no group" when the scope covers it too; never
+  // "all", never a group outside the scope.
+  return [
+    { value: '*grouped', text: t('groupTagFilter.grouped') },
+    ...(seesUntagged.value ? [{ value: '*untagged', text: t('groupTagFilter.untagged') }] : []),
+    ...allGroups
+      .filter((groupTagItem) => visibleGroupTags.value.includes(groupTagItem.tag))
+      .map(groupTagOption),
+  ]
+})
+
+// Keep the chosen filter among the options actually on offer. A scoped moderator has no "all"
+// entry, so the default falls to their first option ("all my groups", or "untagged").
+watch(
+  groupTagFilterOptions,
+  (options) => {
+    if (options.length > 0 && !options.some((option) => option.value === groupTag.value)) {
+      groupTag.value = options[0].value
+    }
+  },
+  { immediate: true },
+)
+
 const { onResult, onError, result, refetch } = useQuery(
   adminListContributions,
   {
     filter: {
       statusFilter: statusFilter.value,
       query: query.value,
-      noHashtag: noHashtag.value,
       hideResubmission: hideResubmission.value,
+      groupTag: groupTag.value,
     },
     paginated: {
       currentPage: currentPage.value,
@@ -321,13 +401,13 @@ const { onResult, onError, result, refetch } = useQuery(
   },
 )
 
-watch([statusFilter, query, noHashtag, hideResubmission, currentPage], () => {
+watch([statusFilter, query, hideResubmission, groupTag, currentPage], () => {
   refetch({
     filter: {
       statusFilter: statusFilter.value,
       query: query.value,
-      noHashtag: noHashtag.value,
       hideResubmission: hideResubmission.value,
+      groupTag: groupTag.value,
     },
     paginated: {
       currentPage: currentPage.value,
@@ -346,6 +426,31 @@ onResult(() => {
   if (statusFilter.value.toString() === FILTER_TAB_MAP[0].toString()) {
     store.commit('setOpenCreations', result.value.adminListContributions.contributionCount)
   }
+})
+
+// Group functions: move a contribution to another group (or to none). The table asks for
+// confirmation first; the backend refuses once the contribution is closed.
+const {
+  mutate: assignGroupMutation,
+  onDone: onAssignGroupDone,
+  onError: onAssignGroupError,
+} = useMutation(assignContributionGroupTags)
+
+const groupChangeFailures = ref(0)
+
+const assignGroup = ({ contributionId, tags }) => {
+  assignGroupMutation({ contributionId, tags })
+}
+
+onAssignGroupDone(() => {
+  refetch()
+  toastSuccess(t('contribution.changeGroupDone'))
+})
+
+onAssignGroupError((error) => {
+  toastError(error.message)
+  // The table still shows the group the moderator picked; tell it the change did not happen.
+  groupChangeFailures.value++
 })
 
 const {

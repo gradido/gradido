@@ -9,8 +9,9 @@ import { OptInType } from '@enum/OptInType'
 import { Order } from '@enum/Order'
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
 import { PublishNameType } from '@enum/PublishNameType'
+import { RoleNames } from '@enum/RoleNames'
 import { UserContactType } from '@enum/UserContactType'
-import { SearchAdminUsersResult } from '@model/AdminUser'
+import { AdminUser, SearchAdminUsersResult } from '@model/AdminUser'
 import { GmsUserAuthenticationResult } from '@model/GmsUserAuthenticationResult'
 import { User } from '@model/User'
 import { SearchUsersResult, UserAdmin } from '@model/UserAdmin'
@@ -30,6 +31,7 @@ import {
   TransactionLink as DbTransactionLink,
   User as DbUser,
   UserContact as DbUserContact,
+  UserRole as DbUserRole,
   dbFindProjectBrandingByAlias,
   dbFindProjectSpaceId,
   findUserByIdentifier,
@@ -98,6 +100,7 @@ import { extractGraphQLFieldsForSelect } from './util/extractGraphQLFields'
 import { findUsers } from './util/findUsers'
 import { getKlicktippState } from './util/getKlicktippState'
 import { Location2Point, Point2Location } from './util/Location2Point'
+import { describeModeratorGroups } from './util/moderatorGroupScope'
 import { deleteUserRole, setUserRole } from './util/modifyUserRole'
 import { sendUsersToGms } from './util/sendUserToGms'
 import { syncHumhub } from './util/syncHumhub'
@@ -152,6 +155,15 @@ export class UserResolver {
     const userEntity = getUser(context)
     logger.addContext('user', userEntity.id)
     const user = new User(userEntity)
+    // Group functions: hand the admin interface the moderator's visibility scope
+    // so its group filter can offer only the groups they may work in. Loaded from the role
+    // directly (like loadModeratorScope), so it does not depend on how the context happened
+    // to load the user's roles. Same derivation as the community info page.
+    const role = await DbUserRole.findOne({ where: { userId: userEntity.id } })
+    const moderatorGroups = describeModeratorGroups(role)
+    user.visibleGroupTags = moderatorGroups.tags
+    user.seesAllGroups = moderatorGroups.seesAllGroups
+    user.seesUntagged = moderatorGroups.seesUntagged
     // Elopage Status & Stored PublisherId
     user.hasElopage = await this.hasElopage(context)
 
@@ -938,10 +950,13 @@ export class UserResolver {
     @Args()
     { currentPage = 1, pageSize = 25, order = Order.DESC }: Paginated,
   ): Promise<SearchAdminUsersResult> {
+    // MODERATOR_AI belongs here too: a KI-Moderator is a moderator who may additionally use
+    // Crea, so leaving the role out would drop real moderators from the community info page
+    // and leave their groups without a contact.
     const [users, count] = await DbUser.findAndCount({
       relations: ['userRoles'],
       where: {
-        userRoles: { role: In(['admin', 'moderator']) },
+        userRoles: { role: In([RoleNames.ADMIN, RoleNames.MODERATOR, RoleNames.MODERATOR_AI]) },
       },
       order: {
         createdAt: order,
@@ -951,13 +966,7 @@ export class UserResolver {
     })
     return {
       userCount: count,
-      userList: users.map((user) => {
-        return {
-          firstName: user.firstName,
-          lastName: user.lastName,
-          role: user.userRoles ? user.userRoles[0].role : '',
-        }
-      }),
+      userList: users.map((user) => new AdminUser(user)),
     }
   }
 

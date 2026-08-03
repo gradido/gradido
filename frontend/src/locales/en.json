@@ -62,9 +62,12 @@
     "community": "Community",
     "communityMember": "You are an active member",
     "continue-to-registration": "Continue to registration",
+    "groupsAndModerators": "Groups and moderators",
     "moderator": "Moderator",
-    "moderators": "Moderators",
+    "moderatorsAllGroups": "For all groups",
+    "moderatorsUntagged": "Contributions without a group",
     "myContributions": "My contributions",
+    "noModerators": "No moderator yet",
     "submitContribution": "Contribute"
   },
   "communityInfo": "Community Information",
@@ -82,8 +85,17 @@
       "myContributionNoteList": "You can edit or delete entries that have not yet been confirmed at any time.",
       "pending": "Submitted and waiting for confirmation"
     },
-    "delete": "Delete Contribution! Are you sure?",
-    "deleted": "The contribution has been deleted! But it will remain visible.",
+    "communityWindow": "Contributions from the last {months} months",
+    "delete": "Really delete this contribution? Afterwards it is visible only to you and the moderators, invisible to the community.",
+    "deleted": "The contribution has been deleted. It is now visible only to you and the moderators, invisible to the community.",
+    "filter": {
+      "all": "(all)",
+      "byGroup": "Filter by group",
+      "grouped": "(all groups)",
+      "noGroup": "(no group)",
+      "noResults": "No contributions found.",
+      "search": "Search contributions …"
+    },
     "formText": {
       "bringYourTalentsTo": "Bring your talents to the community! We reward your voluntary commitment with 20 GDD per hour up to a maximum of 1,000 GDD per month.",
       "describeYourCommunity": "Describe your community service activity and specify the number of hours! The amount of 20 GDD per hour will be calculated automatically. After confirmation by a moderator, the amount will be credited to your account.",
@@ -91,8 +103,14 @@
       "openAmountForMonth": "For  <b>{monthAndYear}</b>, you can still submit <b>{creation}</b> GDD.",
       "yourContribution": "Your Contributions to the Common Good"
     },
+    "groupTag": {
+      "help": "Optional. It works without a group, too. A #word in the text does not set a group — this field does.",
+      "label": "Group",
+      "none": "(no group)"
+    },
     "isEdited": "edited the contribution",
     "lastContribution": "Last Contributions",
+    "memoIsPublic": "Your description appears in the community list, where it is visible to all members. It shows the contribution's number instead of your name.",
     "noContributions": {
       "allContributions": "No contributions have been submitted yet.",
       "emptyPage": "This page is empty.",
@@ -103,6 +121,7 @@
       "lastMonth": "The creation limit is reached for the selected month.",
       "thisMonth": "The creation limit has been reached for the current month."
     },
+    "number": "Contribution no. {number}",
     "oldContribution": "Previous version",
     "selectDate": "When was your contribution?",
     "submit": "Submit",
@@ -113,7 +132,6 @@
   "contribution-link": {
     "thanksYouWith": "thanks you with"
   },
-  "contributionText": "Contribution Text",
   "copy-to-clipboard": "Copy to clipboard",
   "creation": "Creation",
   "decay": {

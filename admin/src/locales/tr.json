@@ -28,10 +28,16 @@
   "change_user_role": "Kullanıcı rolünü değiştir",
   "close": "Kapat",
   "contribution": {
+    "changeGroup": "Grubu değiştir",
+    "changeGroupConfirm": "Evet, taşı",
+    "changeGroupDone": "Grup değiştirildi.",
+    "changeGroupHint": "Görünür gruplarınıza bağlı olarak katkı listenizde artık görünmeyebilir.",
+    "changeGroupQuestion": "Bu katkı {from} grubundan {to} grubuna taşınsın mı?",
     "confirmedBy": "{name} tarafından onaylandı.",
     "createdBy": "{name} tarafından oluşturuldu.",
     "deletedBy": "{name} tarafından silindi.",
-    "deniedBy": "{name} tarafından reddedildi."
+    "deniedBy": "{name} tarafından reddedildi.",
+    "noGroup": "(grupsuz)"
   },
   "contributionLink": {
     "amount": "Tutar",
@@ -247,6 +253,31 @@
     "humhubProfile": "Humhub profiline git",
     "userSearch": "Kullanıcı aramasına git"
   },
+  "groupTagFilter": {
+    "all": "(tümü)",
+    "grouped": "(tüm gruplar)",
+    "label": "Group:",
+    "untagged": "(grupsuz)"
+  },
+  "groupTagsAdmin": {
+    "add": "Create",
+    "addTitle": "Create a new group",
+    "adminOnly": "Administrators only.",
+    "cancel": "Cancel",
+    "created": "Group created.",
+    "edit": "Edit",
+    "empty": "No groups created yet.",
+    "existingTitle": "Existing groups",
+    "intro": "Create new groups or rename existing ones. Who belongs to a group or moderates it is assigned on the “User role” tab.",
+    "name": "Name",
+    "namePlaceholder": "e.g. Volunteer Fire Brigade Springfield",
+    "save": "Save",
+    "tag": "Tag",
+    "tagHint": "A short tag without spaces — capitals and accented letters are allowed. Matching ignores upper and lower case. The name is what is shown everywhere.",
+    "tagPlaceholder": "e.g. firefighter",
+    "title": "Manage groups",
+    "updated": "Group updated."
+  },
   "help": {
     "help": "Yardım",
     "transactionlist": {
@@ -290,6 +321,7 @@
   "navbar": {
     "automaticContributions": "Başlangıç bakiyesi",
     "crea": "Crea",
+    "groupTags": "Groups",
     "instances": "Örnekler",
     "logout": "Çıkış yap",
     "my-account": "Hesabım",
@@ -298,8 +330,6 @@
     "statistic": "İstatistik",
     "user_search": "Kullanıcı arama"
   },
-  "no_hashtag": "#hashtag'leri gizle",
-  "no_hashtag_tooltip": "Yalnızca metninde hashtag olmayan katkıları gösterir",
   "not_open_creations": "Açık oluşturma yok",
   "notice": "Notice",
   "open": "açık",
@@ -401,7 +431,20 @@
   },
   "unregistered_emails": "Yalnızca kayıtsız kullanıcılar",
   "userRole": {
+    "groupTags": {
+      "help": "Pre-filled on submission.",
+      "label": "User's main group",
+      "none": "(no group)"
+    },
     "notChangeYourSelf": "Yönetici/moderatör olarak kendi rolünü değiştiremezsin.",
+    "savedGroupTags": "Groups saved.",
+    "savedScope": "Visibility saved.",
+    "scope": {
+      "all": "all groups",
+      "help": "Empty = all contributions.",
+      "label": "Visible groups",
+      "untagged": "no group"
+    },
     "selectLabel": "Rol:",
     "selectRoles": {
       "admin": "yönetici",

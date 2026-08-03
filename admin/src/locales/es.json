@@ -28,10 +28,16 @@
   "change_user_role": "Cambiar el rol del usuario",
   "close": "Cerrar",
   "contribution": {
+    "changeGroup": "Cambiar grupo",
+    "changeGroupConfirm": "Sí, moverla",
+    "changeGroupDone": "Grupo cambiado.",
+    "changeGroupHint": "Según tus grupos visibles, la contribución puede dejar de aparecer en tu lista.",
+    "changeGroupQuestion": "¿Mover esta contribución de {from} a {to}?",
     "confirmedBy": "Confirmado por {name}.",
     "createdBy": "Creado por {name}.",
     "deletedBy": "Eliminado por {name}.",
-    "deniedBy": "Rechazado por {name}."
+    "deniedBy": "Rechazado por {name}.",
+    "noGroup": "(sin grupo)"
   },
   "contributionLink": {
     "amount": "Importe",
@@ -247,6 +253,31 @@
     "humhubProfile": "Ir al perfil de Humhub",
     "userSearch": "Ir a la búsqueda de usuarios"
   },
+  "groupTagFilter": {
+    "all": "(todas)",
+    "grouped": "(todos los grupos)",
+    "label": "Group:",
+    "untagged": "(sin grupo)"
+  },
+  "groupTagsAdmin": {
+    "add": "Create",
+    "addTitle": "Create a new group",
+    "adminOnly": "Administrators only.",
+    "cancel": "Cancel",
+    "created": "Group created.",
+    "edit": "Edit",
+    "empty": "No groups created yet.",
+    "existingTitle": "Existing groups",
+    "intro": "Create new groups or rename existing ones. Who belongs to a group or moderates it is assigned on the “User role” tab.",
+    "name": "Name",
+    "namePlaceholder": "e.g. Volunteer Fire Brigade Springfield",
+    "save": "Save",
+    "tag": "Tag",
+    "tagHint": "A short tag without spaces — capitals and accented letters are allowed. Matching ignores upper and lower case. The name is what is shown everywhere.",
+    "tagPlaceholder": "e.g. firefighter",
+    "title": "Manage groups",
+    "updated": "Group updated."
+  },
   "help": {
     "help": "Ayuda",
     "transactionlist": {
@@ -290,6 +321,7 @@
   "navbar": {
     "automaticContributions": "Saldo inicial",
     "crea": "Crea",
+    "groupTags": "Groups",
     "instances": "Instancias",
     "logout": "Cerrar sesión",
     "my-account": "Mi cuenta",
@@ -298,8 +330,6 @@
     "statistic": "Estadística",
     "user_search": "Búsqueda de usuarios"
   },
-  "no_hashtag": "Ocultar #hashtags",
-  "no_hashtag_tooltip": "Muestra solo las contribuciones sin hashtag en el texto",
   "not_open_creations": "No hay creaciones abiertas",
   "notice": "Notice",
   "open": "abierta",
@@ -401,7 +431,20 @@
   },
   "unregistered_emails": "Solo usuarios no registrados",
   "userRole": {
+    "groupTags": {
+      "help": "Pre-filled on submission.",
+      "label": "User's main group",
+      "none": "(no group)"
+    },
     "notChangeYourSelf": "Como administrador/moderador, no puedes cambiar tu propio rol.",
+    "savedGroupTags": "Groups saved.",
+    "savedScope": "Visibility saved.",
+    "scope": {
+      "all": "all groups",
+      "help": "Empty = all contributions.",
+      "label": "Visible groups",
+      "untagged": "no group"
+    },
     "selectLabel": "Rol:",
     "selectRoles": {
       "admin": "administrador",
