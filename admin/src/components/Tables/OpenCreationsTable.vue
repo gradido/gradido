@@ -203,6 +203,7 @@ import RowDetails from '../RowDetails'
 import EditCreationFormular from '../EditCreationFormular'
 import ContributionMessagesList from '../ContributionMessages/ContributionMessagesList'
 import { useDateFormatter } from '@/composables/useDateFormatter'
+import { groupTagLabels, groupTagOption } from '@/utils/groupTagLabel'
 
 const iconMap = {
   IN_PROGRESS: 'question-square',
@@ -282,10 +283,7 @@ export default {
     groupSelectOptions() {
       return [
         { value: '', text: this.$t('contribution.noGroup') },
-        ...this.groupTags.map((group) => ({
-          value: group.tag,
-          text: group.name ? `${group.name} (#${group.tag})` : `#${group.tag}`,
-        })),
+        ...this.groupTags.map(groupTagOption),
       ]
     },
   },
@@ -428,12 +426,10 @@ export default {
         delete this.groupSelection[contributionId]
       }
     },
-    // Group functions: "Name (#tag)" for the groups a contribution belongs to, shown above
-    // the text. Several groups are listed one after another.
+    // Group functions: the groups a contribution belongs to, shown above the text. The form
+    // itself is decided once in utils/groupTagLabel.
     groupLabel(item) {
-      return (item.groupTags ?? [])
-        .map((group) => (group.name ? `${group.name} (#${group.tag})` : `#${group.tag}`))
-        .join(', ')
+      return groupTagLabels(item.groupTags)
     },
     isAddCommentToMemo(item) {
       return item.closedBy > 0 || item.moderatorId > 0 || item.updatedBy > 0

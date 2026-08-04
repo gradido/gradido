@@ -53,6 +53,7 @@ import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { BButton, BFormSelect } from 'bootstrap-vue-next'
 import { useMutation, useQuery } from '@vue/apollo-composable'
+import { groupTagOption } from '@/utils/groupTagLabel'
 import { setUserRole as setUserRoleMutation } from '../graphql/setUserRole'
 import {
   groupTags,
@@ -162,10 +163,7 @@ watch(
 )
 const mainTagSelectOptions = computed(() => [
   { value: '', text: t('userRole.groupTags.none') },
-  ...groupTagOptions.value.map((tag) => ({
-    value: tag.tag,
-    text: tag.name ? `${tag.name} (#${tag.tag})` : `#${tag.tag}`,
-  })),
+  ...groupTagOptions.value.map(groupTagOption),
 ])
 const { mutate: setUserGroupTags } = useMutation(setUserGroupTagsMutation)
 const saveUserMainTag = async () => {
@@ -201,10 +199,7 @@ watch(
 const scopeSelectOptions = computed(() => [
   { value: '*all', text: t('userRole.scope.all') },
   { value: '*untagged', text: t('userRole.scope.untagged') },
-  ...groupTagOptions.value.map((tag) => ({
-    value: tag.tag,
-    text: tag.name ? `${tag.name} (#${tag.tag})` : `#${tag.tag}`,
-  })),
+  ...groupTagOptions.value.map(groupTagOption),
 ])
 const { mutate: setModeratorGroupScope } = useMutation(setModeratorGroupScopeMutation)
 const saveScope = async () => {
