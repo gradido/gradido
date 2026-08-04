@@ -232,6 +232,9 @@ const adopting = ref(false)
 const counts = ref(null)
 const countsLoading = ref(false)
 let adoptionId = null
+// Which search the panel is waiting for. Counted rather than compared by group id, so that
+// reopening the SAME group also drops the earlier answer -- see openAdoption.
+let adoptionRequest = 0
 
 function adoptionState(tag) {
   if (!tag.hashtagsAdoptedAt) {
@@ -259,7 +262,18 @@ const adoptionOkTitle = computed(() => {
 // panel opened once per group needs.
 const { client } = useApolloClient()
 
+// ⚠️ Every way out of here has to ask whether this search is still the one being waited
+// for. Closing the panel and opening another group starts a second search while the first
+// is still running, and the first one coming back late must not touch the screen at all:
+// not its counts (they would show under the other group's title, with the confirm button
+// live -- and confirming adopts the group in adoptionId, not the one whose numbers are on
+// screen), not its error (it would close the panel that is now searching for something
+// else), and not its spinner (clearing it leaves the panel blank until the real answer
+// lands). A superseded search is dropped in silence; its outcome is of no interest to
+// anyone, and the search that replaced it reports for itself.
 async function openAdoption(tag) {
+  const request = ++adoptionRequest
+  const current = () => request === adoptionRequest
   adoptionId = tag.id
   adoptionTag.value = tag.tag
   adoptionLabel.value = tag.name || `#${tag.tag}`
@@ -273,6 +287,9 @@ async function openAdoption(tag) {
       variables: { id: tag.id },
       fetchPolicy: 'network-only',
     })
+    if (!current()) {
+      return
+    }
     // No fallback on purpose. A missing answer is not "nothing found" -- reading it as zero
     // is exactly what made a broken query look like an empty result.
     if (!data?.legacyHashtagCounts) {
@@ -280,10 +297,15 @@ async function openAdoption(tag) {
     }
     counts.value = data.legacyHashtagCounts
   } catch (e) {
+    if (!current()) {
+      return
+    }
     toastError(e.message)
     adoptionOpen.value = false
   } finally {
-    countsLoading.value = false
+    if (current()) {
+      countsLoading.value = false
+    }
   }
 }
 

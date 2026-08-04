@@ -211,4 +211,65 @@ describe('GroupTags', () => {
       expect(wrapper.vm.adoptionOpen).toBe(false)
     })
   })
+
+  // Closing the panel and opening another group before the first search answers. The
+  // sibling of the bug above: numbers that look like an answer but belong to a different
+  // group. The panel would show the first group's counts under the second group's title,
+  // with the confirm button live -- and confirming adopts the SECOND group, because the
+  // mutation reads adoptionId. Nothing from a search that has been superseded may reach
+  // the screen, and that covers all three ways out of openAdoption, not just the counts.
+  describe('a second search started before the first one answers', () => {
+    const amstetten = { id: 1, tag: 'amstetten', name: 'Amstetten' }
+    const feuerwehr = { id: 2, tag: 'feuerwehr', name: 'Feuerwehr' }
+
+    // A search that answers only when the test says so.
+    const pending = () => {
+      let settle
+      clientQuery.mockImplementationOnce(
+        ({ variables }) =>
+          new Promise((resolve, reject) => {
+            settle = { resolve, reject, id: variables.id }
+          }),
+      )
+      return () => settle
+    }
+
+    beforeEach(() => {
+      groupTagsResult.value = { groupTags: [amstetten, feuerwehr] }
+      wrapper = createWrapper()
+    })
+
+    it('keeps the second group’s counts when the first answer arrives late', async () => {
+      const first = pending()
+      const second = pending()
+
+      const firstRun = wrapper.vm.openAdoption(amstetten)
+      const secondRun = wrapper.vm.openAdoption(feuerwehr)
+
+      first().resolve({ data: { legacyHashtagCounts: { exact: 10, loose: 1 } } })
+      await firstRun
+      // The second search is still running, so the panel must still be searching.
+      expect(wrapper.vm.counts).toBeNull()
+      expect(wrapper.vm.countsLoading).toBe(true)
+
+      second().resolve({ data: { legacyHashtagCounts: { exact: 20, loose: 2 } } })
+      await secondRun
+      expect(wrapper.vm.counts).toEqual({ exact: 20, loose: 2 })
+      expect(wrapper.vm.countsLoading).toBe(false)
+    })
+
+    it('leaves the second group’s panel open when the first search fails late', async () => {
+      const first = pending()
+
+      const firstRun = wrapper.vm.openAdoption(amstetten)
+      const secondRun = wrapper.vm.openAdoption(feuerwehr)
+      await secondRun
+
+      first().reject(new Error('the first search broke'))
+      await firstRun
+
+      expect(wrapper.vm.adoptionOpen).toBe(true)
+      expect(wrapper.vm.counts).toEqual({ exact: 20, loose: 2 })
+    })
+  })
 })
