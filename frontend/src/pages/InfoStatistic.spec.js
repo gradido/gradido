@@ -5,7 +5,7 @@ import InfoStatistic from './InfoStatistic.vue'
 import { createRouter, createWebHistory } from 'vue-router'
 import { createI18n } from 'vue-i18n'
 import { listContributionLinks, searchAdminUsers } from '@/graphql/queries'
-import { groupTags } from '@/graphql/contributions.graphql'
+import { creationGroups } from '@/graphql/contributions.graphql'
 import { BContainer, BLink } from 'bootstrap-vue-next'
 
 const mockToastError = vi.fn()
@@ -26,7 +26,7 @@ vi.mock('@vue/apollo-composable', () => ({
   },
 }))
 
-const GROUP_TAGS = [
+const CREATION_GROUPS = [
   { id: 1, tag: 'feuerwehr', name: 'Feuerwehr' },
   { id: 2, tag: 'musik', name: null },
   { id: 3, tag: 'chor', name: 'Chor' },
@@ -37,32 +37,32 @@ const ADMIN_USERS = [
     firstName: 'Peter',
     lastName: 'Lustig',
     role: 'ADMIN',
-    visibleGroupTags: [],
-    seesAllGroups: true,
+    visibleCreationGroups: [],
+    seesAllCreationGroups: true,
     seesUntagged: true,
   },
   {
     firstName: 'Bibi',
     lastName: 'Bloxberg',
     role: 'MODERATOR',
-    visibleGroupTags: ['feuerwehr'],
-    seesAllGroups: false,
+    visibleCreationGroups: ['feuerwehr'],
+    seesAllCreationGroups: false,
     seesUntagged: false,
   },
   {
     firstName: 'Garrick',
     lastName: 'Ollivander',
     role: 'MODERATOR_AI',
-    visibleGroupTags: ['feuerwehr', 'musik'],
-    seesAllGroups: false,
+    visibleCreationGroups: ['feuerwehr', 'musik'],
+    seesAllCreationGroups: false,
     seesUntagged: false,
   },
   {
     firstName: 'Super',
     lastName: 'Admin',
     role: 'MODERATOR',
-    visibleGroupTags: [],
-    seesAllGroups: true,
+    visibleCreationGroups: [],
+    seesAllCreationGroups: true,
     seesUntagged: true,
   },
 ]
@@ -103,7 +103,7 @@ describe('InfoStatistic', () => {
     }))
 
     mockQueryImplementation.mockImplementation((query) => ({
-      result: query === groupTags ? ref({ groupTags: GROUP_TAGS }) : ref(null),
+      result: query === creationGroups ? ref({ creationGroups: CREATION_GROUPS }) : ref(null),
       onResult: (callback) => {
         if (query === listContributionLinks) {
           callback({
@@ -216,7 +216,7 @@ describe('InfoStatistic', () => {
     })
 
     // A scope can cover a group AND the contributions that carry none. "No group" is not a
-    // group, so it never shows up in visibleGroupTags -- reading the heading off an empty
+    // group, so it never shows up in visibleCreationGroups -- reading the heading off an empty
     // tag list would drop exactly this moderator from the page.
     it('lists a moderator who looks after a group and the ungrouped ones under both', async () => {
       const mixed = [
@@ -224,13 +224,13 @@ describe('InfoStatistic', () => {
           firstName: 'Mira',
           lastName: 'Muster',
           role: 'MODERATOR',
-          visibleGroupTags: ['feuerwehr'],
-          seesAllGroups: false,
+          visibleCreationGroups: ['feuerwehr'],
+          seesAllCreationGroups: false,
           seesUntagged: true,
         },
       ]
       mockQueryImplementation.mockImplementation((query) => ({
-        result: query === groupTags ? ref({ groupTags: GROUP_TAGS }) : ref(null),
+        result: query === creationGroups ? ref({ creationGroups: CREATION_GROUPS }) : ref(null),
         onResult: (callback) => {
           if (query === searchAdminUsers) {
             callback({

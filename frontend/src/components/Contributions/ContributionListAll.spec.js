@@ -1,4 +1,4 @@
-import { communityGroupTags } from '@/graphql/contributions.graphql'
+import { communityCreationGroups } from '@/graphql/contributions.graphql'
 import { useQuery } from '@vue/apollo-composable'
 import { mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -101,7 +101,7 @@ describe('ContributionListAll', () => {
   // one the group dropdown actually reads — and reading the canonical list there instead of
   // the community one is precisely the mistake this component must not make.
   const communityGroups = ref({
-    communityGroupTags: [
+    communityCreationGroups: [
       { id: 1, tag: 'choir', name: 'Choir' },
       { id: 2, tag: 'fire', name: null },
     ],
@@ -110,7 +110,7 @@ describe('ContributionListAll', () => {
   describe('mount', () => {
     beforeEach(() => {
       vi.mocked(useQuery).mockImplementation((query) => {
-        if (query === communityGroupTags) {
+        if (query === communityCreationGroups) {
           return { result: communityGroups, loading: ref(false) }
         }
         return {

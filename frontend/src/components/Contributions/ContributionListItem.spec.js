@@ -122,7 +122,7 @@ describe('ContributionListItem', () => {
   // file would still pass. These two are what makes that visible.
   describe('the contribution group', () => {
     it('shows the group name, without the tag', () => {
-      const wrapper = mountWrapper({ groupTags: [{ tag: 'choir', name: 'Choir' }] })
+      const wrapper = mountWrapper({ creationGroups: [{ tag: 'choir', name: 'Choir' }] })
 
       expect(wrapper.text()).toContain('Choir')
       expect(wrapper.text()).not.toContain('#choir')
@@ -131,7 +131,9 @@ describe('ContributionListItem', () => {
     // $t is mocked to return the key here, so this pins the key itself -- which is the
     // useful half: a renamed locale key with an unrenamed call site renders raw.
     it('says "no group" when the contribution belongs to none', () => {
-      expect(mountWrapper({ groupTags: [] }).text()).toContain('contribution.groupTag.none')
+      expect(mountWrapper({ creationGroups: [] }).text()).toContain(
+        'contribution.creationGroup.none',
+      )
     })
   })
 

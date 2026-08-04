@@ -90,11 +90,16 @@
       "pending": "Ingediend en wacht op bevestiging"
     },
     "communityWindow": "Contributions from the last {months} months",
+    "creationGroup": {
+      "help": "Optioneel. Het werkt ook zonder groep. Een #woord in de tekst stelt geen groep in — daarvoor is dit veld.",
+      "label": "Creation group",
+      "none": "(zonder groep)"
+    },
     "delete": "Bijdrage echt verwijderen? Daarna is ze alleen nog zichtbaar voor jou en de moderatoren, onzichtbaar voor de gemeenschap.",
     "deleted": "De bijdrage is verwijderd. Ze is nu alleen nog zichtbaar voor jou en de moderatoren, onzichtbaar voor de gemeenschap.",
     "filter": {
       "all": "(alle)",
-      "byGroup": "Filteren op groep",
+      "byGroup": "Filteren op creatiegroep",
       "grouped": "(alle groepen)",
       "noGroup": "(zonder groep)",
       "noResults": "No contributions found.",
@@ -106,11 +111,6 @@
       "maxGDDforMonth": "Je kunt voor de geselecteerde maand nog maximaal {amount} GDD indienen.",
       "openAmountForMonth": "Voor <b>{monthAndYear}</b> kun je nog <b>{creation}</b> GDD indienen.",
       "yourContribution": "Jouw bijdrage voor het algemeen belang"
-    },
-    "groupTag": {
-      "help": "Optioneel. Het werkt ook zonder groep. Een #woord in de tekst stelt geen groep in — daarvoor is dit veld.",
-      "label": "Group",
-      "none": "(zonder groep)"
     },
     "isEdited": "heeft de bijdrage bewerkt",
     "lastContribution": "Laatste bijdragen",

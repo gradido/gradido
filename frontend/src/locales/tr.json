@@ -90,11 +90,16 @@
       "pending": "Gönderildi ve onay bekleniyor"
     },
     "communityWindow": "Contributions from the last {months} months",
+    "creationGroup": {
+      "help": "İsteğe bağlı. Grupsuz da olur. Metindeki bir #kelime grup belirlemez — bunun için bu alan var.",
+      "label": "Creation group",
+      "none": "(grupsuz)"
+    },
     "delete": "Hizmet gerçekten silinsin mi? Bundan sonra onu yalnızca sen ve moderatörler görebilir, topluluk göremez.",
     "deleted": "Hizmet silindi. Artık onu yalnızca sen ve moderatörler görebilir, topluluk göremez.",
     "filter": {
       "all": "(tümü)",
-      "byGroup": "Gruba göre filtrele",
+      "byGroup": "Yaratım grubuna göre filtrele",
       "grouped": "(tüm gruplar)",
       "noGroup": "(grupsuz)",
       "noResults": "No contributions found.",
@@ -106,11 +111,6 @@
       "maxGDDforMonth": "Seçilen ay için yalnızca maksimum {amount} GDD gönderebilirsin.",
       "openAmountForMonth": "<b>{monthAndYear}</b> tarihi için <b>{creation}</b> hala GDD gönderebilirsin.",
       "yourContribution": "Yaptığın hizmetin topluma katkısı"
-    },
-    "groupTag": {
-      "help": "İsteğe bağlı. Grupsuz da olur. Metindeki bir #kelime grup belirlemez — bunun için bu alan var.",
-      "label": "Group",
-      "none": "(grupsuz)"
     },
     "isEdited": "katkıyı düzenledi",
     "lastContribution": "Son Katkılar",

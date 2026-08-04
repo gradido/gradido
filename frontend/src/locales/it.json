@@ -90,11 +90,16 @@
       "pending": "Inviato e in attesa di conferma"
     },
     "communityWindow": "Contributions from the last {months} months",
+    "creationGroup": {
+      "help": "Facoltativo. Funziona anche senza gruppo. Una #parola nel testo non imposta un gruppo — a questo serve questo campo.",
+      "label": "Creation group",
+      "none": "(senza gruppo)"
+    },
     "delete": "Eliminare davvero il contributo? Dopo sarà visibile solo a te e ai moderatori, invisibile alla comunità.",
     "deleted": "Il contributo è stato eliminato. Ora è visibile solo a te e ai moderatori, invisibile alla comunità.",
     "filter": {
       "all": "(tutte)",
-      "byGroup": "Filtra per gruppo",
+      "byGroup": "Filtra per gruppo di creazione",
       "grouped": "(tutti i gruppi)",
       "noGroup": "(senza gruppo)",
       "noResults": "No contributions found.",
@@ -106,11 +111,6 @@
       "maxGDDforMonth": "Per il mese selezionato puoi ancora presentare al massimo {amount} GDD.",
       "openAmountForMonth": "Per <b>{monthAndYear}</b> puoi ancora presentare <b>{creation}</b> GDD.",
       "yourContribution": "Il tuo contributo al bene comune"
-    },
-    "groupTag": {
-      "help": "Facoltativo. Funziona anche senza gruppo. Una #parola nel testo non imposta un gruppo — a questo serve questo campo.",
-      "label": "Group",
-      "none": "(senza gruppo)"
     },
     "isEdited": "ha modificato il contributo",
     "lastContribution": "Ultimi contributi",

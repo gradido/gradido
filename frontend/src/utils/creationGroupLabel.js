@@ -4,6 +4,7 @@
 // The bare "#tag" stays only as a fallback for an old inline hashtag that has no group name.
 // (The admin keeps the tag — there it identifies a mistyped tag on an old contribution — and
 // formats its own labels.)
-export const groupTagLabel = (groupTag) => groupTag.name || `#${groupTag.tag}`
+export const creationGroupLabel = (creationGroup) => creationGroup.name || `#${creationGroup.tag}`
 
-export const groupTagLabels = (groupTags) => (groupTags ?? []).map(groupTagLabel).join(', ')
+export const creationGroupLabels = (creationGroups) =>
+  (creationGroups ?? []).map(creationGroupLabel).join(', ')

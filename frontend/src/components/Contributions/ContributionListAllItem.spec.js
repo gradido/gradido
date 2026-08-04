@@ -21,7 +21,7 @@ const i18n = createI18n({
       contribution: {
         number: 'Contribution no. {number}',
         alert: { denied: 'rejected' },
-        groupTag: { none: '(no group)' },
+        creationGroup: { none: '(no group)' },
       },
     },
   },
@@ -38,7 +38,7 @@ const PROPS = {
   amount: '200',
   contributionDate: '2022-06-07',
   contributionStatus: 'CONFIRMED',
-  groupTags: [],
+  creationGroups: [],
 }
 
 const mountWrapper = (props = {}) =>
@@ -75,7 +75,7 @@ describe('ContributionListAllItem', () => {
   })
 
   it('shows the deed, the group and the amount', () => {
-    const wrapper = mountWrapper({ groupTags: [{ tag: 'choir', name: 'Choir' }] })
+    const wrapper = mountWrapper({ creationGroups: [{ tag: 'choir', name: 'Choir' }] })
     expect(wrapper.text()).toContain('Ich habe 10 Stunden die Elbwiesen von Müll befreit.')
     // The wallet shows the group name only -- the tag is dropped (kept in the admin).
     expect(wrapper.text()).toContain('Choir')
