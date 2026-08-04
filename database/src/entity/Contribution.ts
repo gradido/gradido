@@ -99,8 +99,8 @@ export class Contribution extends BaseEntity {
   // submission and on every later change, including a change to "no group". NULL means it
   // was never set that way, which is the only case where a legacy inline "#tag" in the memo
   // still counts. Once this carries a timestamp, hashtags in the text are free text.
-  @Column({ type: 'datetime', nullable: true, name: 'group_tags_set_at' })
-  groupTagsSetAt: Date | null
+  @Column({ type: 'datetime', nullable: true, name: 'creation_groups_set_at' })
+  creationGroupsSetAt: Date | null
 
   @DeleteDateColumn({ type: 'datetime', name: 'deleted_at' })
   deletedAt: Date | null
