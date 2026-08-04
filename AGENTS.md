@@ -42,22 +42,37 @@ Transaction safety while both ORMs coexist: `AppDatabase` holds a TypeORM `DataS
 
 # Running builds, tests and checks
 
-Always go through turbo from the repo root — never `bun run test` (or `jest`, `vitest`, `bun test`) inside a package directory:
+Always use **Turbo** from the repository root for the **first** build or test run after making changes. This ensures all declared task dependencies are executed.
+
+For routine development, scope commands to the workspace you are working on:
 
 ```bash
-bunx turbo test --filter=database      # scope to one package
-bunx turbo typecheck --filter=backend
-bunx turbo lint
-bunx turbo build
+bunx turbo build --filter=backend
+bunx turbo test --filter=backend
+bunx turbo lint:fix --filter=backend
 ```
 
-The `test` task declares `dependsOn: ["^build"]`. Skipping that build is not a matter of speed: the database version check in `AppDatabase.checkDBVersion` then fails in `beforeAll` and the whole suite errors out with *"Wrong database version detected — requires '0106-…' but found '0104-…'"*. Run the same suite through turbo and it passes, with no migration needed.
+Before considering work complete (for example before opening a pull request), validate the entire repository:
 
-So do **not** reach for `bun run up:test` to "fix" a version mismatch. That mutates the test database to work around a missing build, and the mismatch is the symptom, not the cause.
+```bash
+bunx turbo build
+bunx turbo test
+bunx turbo typecheck
+bunx turbo lint
+```
 
-Always pass `--filter`. A bare `bunx turbo test` runs every workspace, including the slow serial jest suites in `backend`, `federation` and `dht-node`.
+Use `lint:fix` during development to apply Biome's safe automatic fixes. Never use `lint:fix:unsafe` unless explicitly requested.
 
-Test frameworks differ per module — bun in `shared`, `core`, `database`; jest in `backend`, `dht-node`, `federation`; vitest in `frontend`, `admin`. This matters for the `config-schema/test/testSetup` import path; see the Testing section in `README.md`.
+The `test` task declares dependencies. For the first test run, always use `bunx turbo test --filter=<scope>` to ensure all dependent tasks are executed.
+As long as no other workspace has been modified and no new database migration has been added, you can run tests locally afterwards using `bun run test` from the package directory.
+
+Different workspaces use different test frameworks internally:
+
+- `shared`, `core`, `database` → Bun
+- `backend`, `dht-node`, `federation` → Jest
+- `frontend`, `admin` → Vitest
+
+Turbo and `bun run` automatically invoke the correct test runner defined in the package's `package.json`. This also matters for the `config-schema/test/testSetup` import path; see the Testing section in `README.md`.
 
 # Conventions
 
@@ -133,7 +148,7 @@ When an AI creates a whole new file, that file is marked as AI-generated with a 
 // AI-GENERATED — not an architecture reference
 ```
 
-This applies to new files written by an AI, not to edits an AI makes to existing human-written files. The marker is a plain, greppable string on purpose: `grep -rn "AI-GENERATED" --include=*.ts` shows at any time which parts of the tree have not been through a human.
+This applies to new files written by an AI, not to edits an AI makes to existing human-written files. The marker is a plain, greppable string on purpose: `grep -rn "AI-GENERATED" --include='*.ts' --include='*.tsx'  --include='*.js' --include='*.jsx' --include='*.vue' --include='*.graphql' --include='*.c' --include='*.h'` shows at any time which parts of the tree have not been through a human.
 
 **Marked files must not be used as an architecture reference.** Do not copy their structure, their file layout, or their patterns into new code, and do not treat them as evidence of how something is done here. Fluent code and thorough comments are not evidence of a considered design — an AI produces both regardless, which makes generated code more tempting to imitate than it has earned (`apis/anthropic/crea/` is the example in this repo). Take conventions from this document and from the reference implementations it names, never from unreviewed generated code.
 
