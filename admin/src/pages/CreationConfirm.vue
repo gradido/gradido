@@ -120,6 +120,7 @@ import { useQuery, useMutation } from '@vue/apollo-composable'
 import { useStore } from 'vuex'
 import { useI18n } from 'vue-i18n'
 import { useModal } from 'bootstrap-vue-next'
+import { groupTagOption } from '@/utils/groupTagLabel'
 
 import Overlay from '../components/Overlay'
 import OpenCreationsTable from '../components/Tables/OpenCreationsTable'
@@ -333,11 +334,6 @@ const visibleGroupTags = computed(() => store.state.moderator?.visibleGroupTags 
 // ungrouped contributions the moderator is assigned to would have no filter that reaches
 // them. Older sessions predate the field, hence the fallback.
 const seesUntagged = computed(() => store.state.moderator?.seesUntagged ?? false)
-
-const groupTagOption = (groupTagItem) => ({
-  value: groupTagItem.tag,
-  text: groupTagItem.name ? `${groupTagItem.name} (#${groupTagItem.tag})` : `#${groupTagItem.tag}`,
-})
 
 const groupTagFilterOptions = computed(() => {
   const allGroups = groupTagsResult.value?.groupTags ?? []
