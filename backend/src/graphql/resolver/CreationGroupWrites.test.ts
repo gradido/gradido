@@ -68,6 +68,29 @@ describe("a user's personal creation-group list", () => {
     expect(saved.map((group) => group.tag)).toEqual(['secondgroup', 'firstwins'])
   })
 
+  // ⚠️ The half that toLowerCase() silently missed. utf8mb4_unicode_ci is accent-insensitive
+  // as well as case-insensitive, so the database returns "Grünwald" for an input of
+  // "Grunwald" -- and a JavaScript map keyed on the folded spelling then rejected it as an
+  // unknown group. The member was told a group does not exist that the database had just
+  // handed over. Nothing in JavaScript models that collation, so the lookup asks the
+  // database per spelling instead.
+  it('accepts a spelling that differs only in its accents', async () => {
+    await makeGroup('Grünwald')
+
+    const saved = await saveUserCreationGroups(7005, ['Grunwald'])
+
+    expect(saved.map((group) => group.tag)).toEqual(['Grünwald'])
+  })
+
+  it('folds an accented and an unaccented spelling into one entry', async () => {
+    await makeGroup('Mönchengladbach')
+
+    const saved = await saveUserCreationGroups(7006, ['Monchengladbach', 'Mönchengladbach'])
+
+    expect(saved.map((group) => group.tag)).toEqual(['Mönchengladbach'])
+    expect(await UserCreationGroup.find({ where: { userId: 7006 } })).toHaveLength(1)
+  })
+
   it('replaces the previous list rather than adding to it', async () => {
     await makeGroup('oldone')
     await makeGroup('newone')
@@ -119,5 +142,14 @@ describe("a moderator's visibility scope", () => {
     await makeModerator(7103)
 
     expect(await saveModeratorScope(7103, ['CANONICAL'])).toEqual(['canonical'])
+  })
+
+  // Same accent trap as on the personal list, and worse here: a scope silently rejected
+  // leaves a moderator without the group they were meant to work in.
+  it('accepts and canonicalises a spelling that differs only in its accents', async () => {
+    await makeGroup('Ålesund')
+    await makeModerator(7104)
+
+    expect(await saveModeratorScope(7104, ['Alesund'])).toEqual(['Ålesund'])
   })
 })

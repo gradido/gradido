@@ -5,6 +5,7 @@ import {
 } from 'database'
 import { type EntityManager, In } from 'typeorm'
 import { LogError } from '@/server/LogError'
+import { resolveCreationGroups } from './resolveCreationGroups'
 
 const db = AppDatabase.getInstance()
 
@@ -47,27 +48,23 @@ export const saveUserCreationGroups = async (
       normalised.push(tag)
     }
   }
-  const canonical =
-    normalised.length > 0 ? await DbCreationGroup.find({ where: { tag: In(normalised) } }) : []
-  // creation_groups.tag is utf8mb4_unicode_ci, so the lookup above already matched regardless of
-  // case. Comparing the result against the raw input would reject "Feuerwehr" as unknown
-  // while the database just handed back "feuerwehr", so match on the folded spelling.
-  const byTag = new Map(canonical.map((tag) => [tag.tag.toLowerCase(), tag]))
-  const unknown = normalised.filter((tag) => !byTag.has(tag.toLowerCase()))
+  // The database decides which spellings mean the same group -- see resolveCreationGroups.
+  const byTag = await resolveCreationGroups(normalised)
+  const unknown = normalised.filter((tag) => !byTag.has(tag))
   if (unknown.length > 0) {
     throw new LogError('Unknown creation group(s)', unknown.join(', '))
   }
   // ⚠️ Collapsed on the CANONICAL id, not on the typed spelling. The Set above is
-  // case-sensitive while creation_groups.tag is utf8mb4_unicode_ci, so "firefighter" and
-  // "Firefighter" both survive it and then resolve to the same row. Building a link for each
-  // would put two rows with the same (user_id, creation_group_id) into one insert, and
-  // uniq_user_creation_group would answer with a raw driver error -- in front of the member,
-  // for something the code should simply have folded together. The first spelling wins, so
-  // the order the member typed is preserved.
+  // case-sensitive while the database is not, so "firefighter" and "Firefighter" both survive
+  // it and then resolve to the same row. Building a link for each would put two rows with the
+  // same (user_id, creation_group_id) into one insert, and uniq_user_creation_group would
+  // answer with a raw driver error -- in front of the member, for something the code should
+  // simply have folded together. The first spelling wins, so the order the member typed is
+  // preserved, and that order matters: the lowest one is their main group.
   const links: DbUserCreationGroup[] = []
   const placed = new Set<number>()
   for (const tag of normalised) {
-    const canon = byTag.get(tag.toLowerCase())
+    const canon = byTag.get(tag)
     if (!canon) {
       throw new LogError('Unknown creation group', tag)
     }
