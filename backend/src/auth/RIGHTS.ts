@@ -80,4 +80,9 @@ export enum RIGHTS {
   AI_SETTINGS = 'AI_SETTINGS',
   MANAGE_GROUP_TAGS = 'MANAGE_GROUP_TAGS',
   SET_MODERATOR_GROUP_SCOPE = 'SET_MODERATOR_GROUP_SCOPE',
+  // LEGACY-HASHTAG-ADOPTION -- removable with the feature.
+  // Adopting the legacy hashtags writes links onto OTHER members' contributions, in bulk.
+  // Managing the group list itself does not, so it gets a right of its own rather than
+  // riding along on MANAGE_GROUP_TAGS -- a shared right cannot be withdrawn separately.
+  ADOPT_LEGACY_HASHTAGS = 'ADOPT_LEGACY_HASHTAGS',
 }

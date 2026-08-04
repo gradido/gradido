@@ -3,6 +3,8 @@ query groupTags {
     id
     tag
     name
+    hashtagsAdoptedAt
+    hashtagsAdoptedCount
   }
 }
 
@@ -43,6 +45,27 @@ mutation updateGroupTag($id: Int!, $tag: String, $name: String) {
     id
     tag
     name
+  }
+}
+
+# How many contributions still name this group with a hashtag in their memo. Reads memos,
+# so it is asked only when the panel is opened -- never while rendering the list.
+query legacyHashtagCounts($id: Int!) {
+  legacyHashtagCounts(id: $id) {
+    exact
+    loose
+  }
+}
+
+# Link those contributions into the group. Returns the group with its new state, so the
+# list does not have to guess what happened.
+mutation adoptLegacyHashtags($id: Int!, $includeLoose: Boolean!) {
+  adoptLegacyHashtags(id: $id, includeLoose: $includeLoose) {
+    id
+    tag
+    name
+    hashtagsAdoptedAt
+    hashtagsAdoptedCount
   }
 }
 
