@@ -1,9 +1,12 @@
 import {
+  AppDatabase,
   CreationGroup as DbCreationGroup,
   UserCreationGroup as DbUserCreationGroup,
 } from 'database'
-import { In } from 'typeorm'
+import { type EntityManager, In } from 'typeorm'
 import { LogError } from '@/server/LogError'
+
+const db = AppDatabase.getInstance()
 
 // Group functions: a user's personal creation-group list. The entry with the
 // lowest sort order is the user's main tag (pre-filled on submission). Returned as the
@@ -54,20 +57,39 @@ export const saveUserCreationGroups = async (
   if (unknown.length > 0) {
     throw new LogError('Unknown creation group(s)', unknown.join(', '))
   }
-  const links = normalised.map((tag, index) => {
+  // ⚠️ Collapsed on the CANONICAL id, not on the typed spelling. The Set above is
+  // case-sensitive while creation_groups.tag is utf8mb4_unicode_ci, so "firefighter" and
+  // "Firefighter" both survive it and then resolve to the same row. Building a link for each
+  // would put two rows with the same (user_id, creation_group_id) into one insert, and
+  // uniq_user_creation_group would answer with a raw driver error -- in front of the member,
+  // for something the code should simply have folded together. The first spelling wins, so
+  // the order the member typed is preserved.
+  const links: DbUserCreationGroup[] = []
+  const placed = new Set<number>()
+  for (const tag of normalised) {
     const canon = byTag.get(tag.toLowerCase())
     if (!canon) {
       throw new LogError('Unknown creation group', tag)
     }
+    if (placed.has(canon.id)) {
+      continue
+    }
+    placed.add(canon.id)
     const link = DbUserCreationGroup.create()
     link.userId = userId
     link.creationGroupId = canon.id
-    link.sortOrder = index
-    return link
-  })
-  await DbUserCreationGroup.delete({ userId })
-  if (links.length > 0) {
-    await DbUserCreationGroup.save(links)
+    link.sortOrder = links.length
+    links.push(link)
   }
+
+  // ⚠️ One transaction, because this is a REPLACEMENT and the delete alone is destructive.
+  // Committed separately, a failing save would leave the member with no list at all -- and
+  // two calls arriving together could interleave into a mixed one.
+  await db.getDataSource().transaction(async (trx: EntityManager) => {
+    await trx.delete(DbUserCreationGroup, { userId })
+    if (links.length > 0) {
+      await trx.save(links)
+    }
+  })
   return loadUserCreationGroups(userId)
 }

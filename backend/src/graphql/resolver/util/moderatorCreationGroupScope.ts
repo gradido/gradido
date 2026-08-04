@@ -132,9 +132,16 @@ export const saveModeratorScope = async (userId: number, scope: string[]): Promi
     }
     // Store the canonical spelling, not what the caller typed: the predicate and the
     // rename both compare these strings exactly.
-    stored = normalised.map((token) =>
+    //
+    // ⚠️ And collapse again afterwards. The Set above ran on what the caller typed and is
+    // case-sensitive, while creation_groups.tag is utf8mb4_unicode_ci -- so "feuerwehr" and
+    // "Feuerwehr" both survive it and then fold into the same canonical spelling here. Left
+    // alone, the scope would carry the same group twice: harmless to the predicate, but the
+    // admin lists it twice and it is stored that way for good.
+    const canonicalised = normalised.map((token) =>
       token.startsWith('*') ? token : (known.get(token.toLowerCase()) ?? token),
     )
+    stored = [...new Set(canonicalised)]
   }
   role.visibleCreationGroups = stored.length > 0 ? JSON.stringify(stored) : null
   await role.save()

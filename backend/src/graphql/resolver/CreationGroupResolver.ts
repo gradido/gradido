@@ -1,6 +1,6 @@
-import { CreationGroup as DbCreationGroup, UserRole as DbUserRole } from 'database'
+import { AppDatabase, CreationGroup as DbCreationGroup, UserRole as DbUserRole } from 'database'
 import { Arg, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
-import { Like } from 'typeorm'
+import { type EntityManager, Like } from 'typeorm'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { CreationGroup } from '@/graphql/model/CreationGroup'
 import { LegacyHashtagCounts } from '@/graphql/model/LegacyHashtagCounts'
@@ -12,6 +12,8 @@ import {
 } from './util/contributions'
 import { parseModeratorScope } from './util/findContributions'
 import { adoptLegacyHashtags, countLegacyHashtags } from './util/legacyHashtagAdoption'
+
+const db = AppDatabase.getInstance()
 
 // Normalise a slug into the form it is stored in: strip a leading '#' and trim. Rejected
 // are the empty string, inner whitespace (the classic "# Gruppe" error) and a leading '*'
@@ -129,10 +131,22 @@ export class CreationGroupResolver {
     if (name !== undefined) {
       entry.name = name?.trim() ? name.trim() : null
     }
-    await DbCreationGroup.save(entry)
-    if (renamedFrom !== null) {
-      await this.renameTagInModeratorScopes(renamedFrom, entry.tag)
-    }
+    // ⚠️ One transaction, and this is the one that matters most in the feature. The slug and
+    // the moderator scopes that quote it have to move together: the scope predicate compares
+    // the tag EXACTLY, so a scope still holding the old spelling matches nothing. A moderator
+    // it happens to would find their contribution list empty and every action on the
+    // contributions they own refused -- silently, with nothing on screen to say why.
+    //
+    // ⚠️ And there would be no second chance. Repeating the edit does not repair it: a second
+    // call with the same tag stops at `normalised !== entry.tag`, so renamedFrom stays null
+    // and the scopes are never revisited. Committing the two separately meant a failure in
+    // between could only be undone by hand, in SQL.
+    await db.getDataSource().transaction(async (trx: EntityManager) => {
+      await trx.save(entry)
+      if (renamedFrom !== null) {
+        await this.renameTagInModeratorScopes(renamedFrom, entry.tag, trx)
+      }
+    })
     return new CreationGroup(entry)
   }
 
@@ -177,17 +191,32 @@ export class CreationGroupResolver {
   // Migrate a renamed slug through the moderator scopes stored as JSON tag-string arrays
   // on user_roles.visible_creation_groups. Bounded to the few roles that carry the old tag;
   // the sentinels '*all'/'*untagged' and every other tag are left as they are.
-  private async renameTagInModeratorScopes(oldTag: string, newTag: string): Promise<void> {
-    const roles = await DbUserRole.find({ where: { visibleCreationGroups: Like(`%${oldTag}%`) } })
+  // ⚠️ Runs on the caller's entity manager, never on the global connection: it is one half of
+  // the rename and has to roll back with the other half if anything fails.
+  private async renameTagInModeratorScopes(
+    oldTag: string,
+    newTag: string,
+    trx: EntityManager,
+  ): Promise<void> {
+    const roles = await trx.find(DbUserRole, {
+      where: { visibleCreationGroups: Like(`%${oldTag}%`) },
+    })
+    const changed: DbUserRole[] = []
     for (const role of roles) {
       const scope = parseModeratorScope(role.visibleCreationGroups)
+      // The LIKE over-matches on purpose -- it cannot do better on a text column -- so
+      // renaming "feuerwehr" also pulls in a role scoped to "feuerwehr-nord". The exact
+      // comparison here is what keeps that one untouched.
       if (!scope || !scope.includes(oldTag)) {
         continue
       }
       role.visibleCreationGroups = JSON.stringify(
         scope.map((token) => (token === oldTag ? newTag : token)),
       )
-      await role.save()
+      changed.push(role)
+    }
+    if (changed.length > 0) {
+      await trx.save(changed)
     }
   }
 }
