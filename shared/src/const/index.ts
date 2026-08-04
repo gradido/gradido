@@ -46,6 +46,7 @@ export const GRADIDO_REALM = 'gradido'
 
 // communication with frontend
 export const DEFAULT_PAGINATION_PAGE_SIZE = 25
+export const MAX_PAGINATION_PAGE_SIZE = 500
 export const FRONTEND_CONTRIBUTIONS_ITEM_ANCHOR_PREFIX = 'contributionListItem-'
 export const FRONTEND_LOGIN_ROUTE = 'login'
 

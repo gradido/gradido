@@ -1,4 +1,4 @@
-export { ContributionLinkInterface } from 'database'
+export type { ContributionLinkInterface } from 'database'
 
 /*
 export interface ContributionLinkInterface {

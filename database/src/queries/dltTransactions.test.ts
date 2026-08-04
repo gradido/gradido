@@ -5,8 +5,8 @@ import {
   Contribution as DbContribution,
   Transaction as DbTransaction,
   TransactionLink as DbTransactionLink,
-  User as DbUser,
   DltTransactionType,
+  FullUser,
   TransactionTypeId,
 } from '..'
 import { AppDatabase } from '../AppDatabase'
@@ -23,8 +23,8 @@ import { dbInsertDltTransaction, dbUpdateWithErrorDltTransaction } from './dltTr
 
 const appDB = AppDatabase.getInstance()
 
-let bibi: DbUser
-let peter: DbUser
+let bibi: FullUser
+let peter: FullUser
 let contribution: DbContribution
 let transferTransactions: DbTransaction[] = []
 let transactionLink: DbTransactionLink
@@ -117,7 +117,7 @@ describe('dlt transactions query test', () => {
         const dltTransaction = result.value.dltTransaction
         expect(dltTransaction.id).toBe(insertResult.value.id)
         const user = result.value.user
-        expect(user?.gradidoId).toBe(bibi.gradidoID)
+        expect(user?.gradidoId).toBe(bibi.gradidoId)
       }
     })
 
@@ -174,9 +174,9 @@ describe('dlt transactions query test', () => {
         expect(transaction.id).toBe(transferTransactions[0].id)
         expect(transaction.typeId).toBe(TransactionTypeId.SEND)
         const user = result.value.user
-        expect(user?.gradidoId).toBe(bibi.gradidoID)
+        expect(user?.gradidoId).toBe(bibi.gradidoId)
         const linkedUser = result.value.linkedUser
-        expect(linkedUser?.gradidoId).toBe(peter.gradidoID)
+        expect(linkedUser?.gradidoId).toBe(peter.gradidoId)
       }
     })
 
@@ -204,7 +204,7 @@ describe('dlt transactions query test', () => {
         const transactionLink = result.value.transactionLink
         expect(transactionLink.id).toBe(transactionLink.id)
         const user = result.value.user
-        expect(user?.gradidoId).toBe(bibi.gradidoID)
+        expect(user?.gradidoId).toBe(bibi.gradidoId)
       }
     })
   })

@@ -1,10 +1,10 @@
 import { ContributionLink } from '@model/ContributionLink'
 import {
-  ContributionLinkInterface,
+  type ContributionLinkInterface,
   contributionLinkFactory as contributionLinkFactoryDb,
 } from 'database'
 
-export { ContributionLinkInterface }
+export type { ContributionLinkInterface }
 
 export async function contributionLinkFactory(
   _client: any,

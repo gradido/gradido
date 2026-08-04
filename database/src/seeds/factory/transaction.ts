@@ -1,11 +1,12 @@
 import { Decay, fullName, GradidoUnit } from 'shared'
-import { Transaction, User } from '../../entity'
+import { Transaction } from '../../entity'
 import { TransactionTypeId } from '../../enum'
 import { getLastTransaction } from '../../queries'
+import { UserInserted } from '../../schemas'
 
 export async function transferGradidos(
-  sendUser: User,
-  recipientUser: User,
+  sendUser: UserInserted,
+  recipientUser: UserInserted,
   amount: GradidoUnit,
   memo: string,
   balanceDate: Date,
@@ -49,8 +50,8 @@ export async function transferGradidos(
 export async function createTransaction(
   amount: GradidoUnit,
   memo: string,
-  user: User,
-  linkedUser: User,
+  user: UserInserted,
+  linkedUser: UserInserted,
   type: TransactionTypeId,
   balanceDate: Date,
   creationDate?: Date,
@@ -75,13 +76,13 @@ export async function createTransaction(
   transaction.typeId = type
   transaction.memo = memo
   transaction.userId = user.id
-  transaction.userGradidoID = user.gradidoID
-  transaction.userName = fullName(user.firstName, user.lastName)
-  transaction.userCommunityUuid = user.communityUuid
+  transaction.userGradidoID = user.gradidoId
+  transaction.userName = fullName(user.firstName ?? '', user.lastName ?? '')
+  transaction.userCommunityUuid = user.communityUuid ?? null
   transaction.linkedUserId = linkedUser.id
-  transaction.linkedUserGradidoID = linkedUser.gradidoID
-  transaction.linkedUserName = fullName(linkedUser.firstName, linkedUser.lastName)
-  transaction.linkedUserCommunityUuid = linkedUser.communityUuid
+  transaction.linkedUserGradidoID = linkedUser.gradidoId
+  transaction.linkedUserName = fullName(linkedUser.firstName ?? '', linkedUser.lastName ?? '')
+  transaction.linkedUserCommunityUuid = linkedUser.communityUuid ?? null
   transaction.previous = lastTransaction ? lastTransaction.id : null
   transaction.amount = amount
   if (creationDate) {

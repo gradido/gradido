@@ -5,6 +5,7 @@ import {
   TransactionLink as DbTransactionLink,
   User as DbUser,
   UserContact as DbUserContact,
+  FullUser,
   TransactionLinkInterface,
   transactionLinkFactoryBulk,
   transactionLinksPendingFromUserOrderByIdASC,
@@ -20,7 +21,7 @@ afterAll(async () => {
   await db.destroy()
 })
 
-let bibiUser: DbUser
+let bibiUser: FullUser
 const startDate = new Date('2022-03-21T03:33:33Z')
 
 describe('transactionLinks', () => {

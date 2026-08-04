@@ -1,3 +1,4 @@
+export type { ContributionLinkInterface } from 'database'
 export { contributionLinks } from 'database'
 
 /*

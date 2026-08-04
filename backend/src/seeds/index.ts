@@ -2,12 +2,13 @@ import {
   AppDatabase,
   creationFactoryBulk,
   transactionLinkFactoryBulk,
-  User,
   UserInterface,
 } from 'database'
 import { internet, name } from 'faker'
 import { getLogger } from 'log4js'
+import { MonotonicTimer } from 'shared-native'
 import { CONFIG } from '@/config'
+import { terminateEncryptionWorkerPool } from '@/password/EncryptorUtils'
 import { initLogging } from '@/server/logger'
 import { writeHomeCommunityEntry } from './community'
 import { contributionLinks } from './contributionLink/index'
@@ -21,6 +22,8 @@ const RANDOM_USER_COUNT = 100
 const logger = getLogger('seed')
 
 const run = async () => {
+  const timeUsed = new MonotonicTimer()
+
   initLogging()
   const db = AppDatabase.getInstance()
   await db.init()
@@ -33,11 +36,7 @@ const run = async () => {
 
   // seed the standard users
   // put into map for later direct access
-  const userCreationIndexedByEmail = new Map<string, User>()
-  const defaultUsers = await userFactoryBulk(users, homeCommunity)
-  for (const dbUser of defaultUsers) {
-    userCreationIndexedByEmail.set(dbUser.emailContact.email, dbUser)
-  }
+  const userCreationIndexedByEmail = await userFactoryBulk(users, homeCommunity)
   logger.info('seeding all standard users successful...')
 
   // seed 100 random users
@@ -76,9 +75,7 @@ const run = async () => {
   for (const contributionLink of contributionLinks) {
     await contributionLinkFactory(null, contributionLink)
   }
-  logger.info('seeding all contributionLinks successful...')
-
-  await db.destroy()
+  logger.info(`seeding all contributionLinks successful... in ${timeUsed}`)
 }
 
 async function clearDatabase(db: AppDatabase) {
@@ -97,7 +94,30 @@ async function clearDatabase(db: AppDatabase) {
   })
 }
 
-run().catch((err) => {
+/**
+ * Close everything which keeps the node process alive, especially the crypto worker
+ * threads, they prevent the process from exiting until they are terminated.
+ */
+async function cleanup() {
+  try {
+    await AppDatabase.getInstance().destroy()
+  } catch (err) {
+    // biome-ignore lint/suspicious/noConsole: no logger present
+    console.error('error on closing database connections', err)
+  }
+  await terminateEncryptionWorkerPool()
+}
+
+async function main() {
+  try {
+    await run()
+  } finally {
+    await cleanup()
+  }
+}
+
+main().catch((err) => {
   // biome-ignore lint/suspicious/noConsole: no logger present
   console.error('error on seeding', err)
+  process.exitCode = 1
 })

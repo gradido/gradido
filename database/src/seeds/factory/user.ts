@@ -1,152 +1,170 @@
 import random from 'random-bigint'
 import { OptInType, PasswordEncryptionType, UserContactType } from 'shared'
 import { v4 } from 'uuid'
-import { AppDatabase } from '../..'
-import { Community, User, UserContact, UserRole } from '../../entity'
 import { RoleNames } from '../../enum/RoleNames'
-import { getHomeCommunity } from '../../queries/communities'
+import { getHomeCommunityDrizzle } from '../../queries/communities'
+import {
+  dbFindLastUserContactId,
+  dbInsertAndSelectUserContact,
+} from '../../queries/userContacts.drizzle'
+import { dbInsertAndSelectUserRoles } from '../../queries/userRoles.drizzle'
+import {
+  dbFindLastUserId,
+  dbInsertAndSelectUser,
+  dbInsertUsersWithContactsAndRoles,
+  dbUpdateUser,
+} from '../../queries/users.drizzle'
+import {
+  CommunitiesSelect,
+  FullUser,
+  UserContactInsert,
+  UserInsert,
+  UserInsertedWithContact,
+  UserRoleInsert,
+  UserRoleSelect,
+  UserSelect,
+} from '../../schemas'
 import { UserInterface } from '../users/UserInterface'
+
+/**
+ * Only the community uuid is used from the home community, so both the drizzle row
+ * and the (not yet migrated) typeorm entity can be handed in.
+ */
+type HomeCommunity = Pick<CommunitiesSelect, 'communityUuid'>
 
 export async function userFactory(
   user: UserInterface,
-  homeCommunity?: Community | null,
-): Promise<User> {
-  // TODO: improve with cascade
-  let dbUser = await createUser(user, homeCommunity)
-  const dbUserContact = await createUserContact(user, dbUser.id)
-  dbUser.emailId = dbUserContact.id
-  dbUser.emailContact = dbUserContact
-  dbUser = await dbUser.save()
+  homeCommunity?: HomeCommunity | null,
+): Promise<FullUser> {
+  if (!homeCommunity) {
+    // no cache, seeds and tests recreate the home community
+    homeCommunity = await getHomeCommunityDrizzle(false)
+  }
+  const insertedUser = await dbInsertAndSelectUser(buildUser(user, homeCommunity))
+  if (!insertedUser.success) {
+    throw insertedUser.error
+  }
+  const dbUser = insertedUser.value
 
+  const insertedUserContact = await dbInsertAndSelectUserContact(buildUserContact(user, dbUser.id))
+  if (!insertedUserContact.success) {
+    throw insertedUserContact.error
+  }
+  const emailContact = insertedUserContact.value
+
+  const updatedUser = await dbUpdateUser(dbUser.id, { emailId: emailContact.id })
+  if (!updatedUser.success) {
+    throw updatedUser.error
+  }
+  dbUser.emailId = emailContact.id
+
+  const userRoles: UserRoleSelect[] = []
   const userRole = user.role as RoleNames
-  if (userRole && (userRole === RoleNames.ADMIN || userRole === RoleNames.MODERATOR)) {
-    dbUser.userRoles = [await createUserRole(dbUser.id, userRole)]
+  if (userRole === RoleNames.ADMIN || userRole === RoleNames.MODERATOR) {
+    const insertedUserRole = await dbInsertAndSelectUserRoles(buildUserRole(dbUser.id, userRole))
+    if (!insertedUserRole.success) {
+      throw insertedUserRole.error
+    }
+    userRoles.push(insertedUserRole.value)
+  }
+
+  return { ...dbUser, emailContact, userRoles }
+}
+
+// only use in non-parallel environment (seeding for example)
+// return map with user email as key and the user id as value
+export async function userFactoryBulk(
+  users: UserInterface[],
+  homeCommunity?: HomeCommunity | null,
+): Promise<Map<string, UserInsertedWithContact>> {
+  if (!homeCommunity) {
+    // no cache, seeds and tests recreate the home community
+    homeCommunity = await getHomeCommunityDrizzle(false)
+  }
+  // ids are assigned manually, so users, contacts and roles can reference each other
+  // before they are written to the db
+  let userId = (await dbFindLastUserId()) + 1
+  let emailId = (await dbFindLastUserContactId()) + 1
+
+  const userIds: number[] = []
+  const dbUsers: UserInsert[] = []
+  const dbUserContacts: UserContactInsert[] = []
+  const dbUserRoles: UserRoleInsert[] = []
+  const emailUsers: Map<string, UserInsertedWithContact> = new Map()
+
+  for (const user of users) {
+    const userInsert = { ...buildUser(user, homeCommunity), id: userId, emailId }
+    dbUsers.push(userInsert)
+    const emailContact = { ...buildUserContact(user, userId), id: emailId }
+    dbUserContacts.push(emailContact)
+    if (user.email) {
+      emailUsers.set(user.email, { ...userInsert, emailContact })
+    }
+    const userRole = user.role as RoleNames
+    if (
+      userRole === RoleNames.ADMIN ||
+      userRole === RoleNames.MODERATOR ||
+      userRole === RoleNames.MODERATOR_AI
+    ) {
+      dbUserRoles.push(buildUserRole(userId, userRole))
+    }
+    userIds.push(userId)
+    userId++
+    emailId++
+  }
+
+  const result = await dbInsertUsersWithContactsAndRoles(dbUsers, dbUserContacts, dbUserRoles)
+  if (!result.success) {
+    throw result.error
+  }
+  return emailUsers
+}
+
+export function buildUser(user: UserInterface, homeCommunity?: HomeCommunity | null): UserInsert {
+  const dbUser: UserInsert = {
+    gradidoId: v4(),
+    firstName: user.firstName ?? '',
+    lastName: user.lastName ?? '',
+    language: user.language ?? 'en',
+    createdAt: user.createdAt ?? new Date(),
+    deletedAt: user.deletedAt ?? null,
+    publisherId: user.publisherId ?? 0,
+    humhubAllowed: 1,
+  }
+  if (user.alias) {
+    dbUser.alias = user.alias
+  }
+  if (user.emailChecked) {
+    // dbUser.password =
+    dbUser.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
+  }
+  if (homeCommunity?.communityUuid) {
+    dbUser.communityUuid = homeCommunity.communityUuid
   }
 
   return dbUser
 }
 
-// only use in non-parallel environment (seeding for example)
-export async function userFactoryBulk(
-  users: UserInterface[],
-  homeCommunity?: Community | null,
-): Promise<User[]> {
-  const dbUsers: User[] = []
-  const dbUserContacts: UserContact[] = []
-  const dbUserRoles: UserRole[] = []
-  const lastUser = await User.findOne({ order: { id: 'DESC' }, select: ['id'], where: {} })
-  const lastUserContact = await UserContact.findOne({
-    order: { id: 'DESC' },
-    select: ['id'],
-    where: {},
-  })
-  let userId = lastUser ? lastUser.id + 1 : 1
-  let emailId = lastUserContact ? lastUserContact.id + 1 : 1
-  // console.log(`start with userId: ${userId} and emailId: ${emailId}`)
-  for (const user of users) {
-    const dbUser = await createUser(user, homeCommunity, false)
-    dbUser.id = userId
-    dbUser.emailId = emailId
-
-    const dbUserContact = await createUserContact(user, userId, false)
-    dbUserContact.id = emailId
-    dbUserContact.userId = userId
-    dbUser.emailContact = dbUserContact
-
-    dbUsers.push(dbUser)
-    dbUserContacts.push(dbUserContact)
-
-    const userRole = user.role as RoleNames
-    if (userRole && (userRole === RoleNames.ADMIN || userRole === RoleNames.MODERATOR)) {
-      dbUserRoles.push(await createUserRole(dbUser.id, userRole, false))
-    }
-
-    userId++
-    emailId++
+export function buildUserContact(user: UserInterface, userId: number): UserContactInsert {
+  const dbUserContact: UserContactInsert = {
+    email: user.email ?? '',
+    type: UserContactType.USER_CONTACT_EMAIL,
+    userId,
   }
-  const dataSource = AppDatabase.getInstance().getDataSource()
-  await dataSource.transaction(async (transaction) => {
-    // typeorm change my data what I don't want
-    // because of manuel id assignment
-    const dbUsersCopy = dbUsers.map((user) => ({ ...user }))
-    const dbUserContactsCopy = dbUserContacts.map((userContact) => ({ ...userContact }))
-    const dbUserRolesCopy = dbUserRoles.map((userRole) => ({ ...userRole }))
-    await Promise.all([
-      transaction.getRepository(User).insert(dbUsersCopy),
-      transaction.getRepository(UserContact).insert(dbUserContactsCopy),
-      transaction.getRepository(UserRole).insert(dbUserRolesCopy),
-    ])
-  })
-  return dbUsers
-}
-
-export async function createUser(
-  user: UserInterface,
-  homeCommunity?: Community | null,
-  store: boolean = true,
-): Promise<User> {
-  const dbUser = new User()
-  dbUser.firstName = user.firstName ?? ''
-  dbUser.lastName = user.lastName ?? ''
-  if (user.alias) {
-    dbUser.alias = user.alias
-  }
-  dbUser.language = user.language ?? 'en'
-  dbUser.createdAt = user.createdAt ?? new Date()
-  dbUser.deletedAt = user.deletedAt ?? null
-  dbUser.publisherId = user.publisherId ?? 0
-  dbUser.humhubAllowed = true
-  dbUser.gradidoID = v4()
-
-  if (user.emailChecked) {
-    // dbUser.password =
-    dbUser.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
-  }
-  if (!homeCommunity) {
-    homeCommunity = await getHomeCommunity()
-  }
-  if (homeCommunity) {
-    dbUser.community = homeCommunity
-    dbUser.communityUuid = homeCommunity.communityUuid!
-  }
-
-  return store ? dbUser.save() : dbUser
-}
-
-export async function createUserContact(
-  user: UserInterface,
-  userId?: number,
-  store: boolean = true,
-): Promise<UserContact> {
-  const dbUserContact = new UserContact()
-
-  dbUserContact.email = user.email ?? ''
-  dbUserContact.type = UserContactType.USER_CONTACT_EMAIL
 
   if (user.createdAt) {
     dbUserContact.createdAt = user.createdAt
     dbUserContact.updatedAt = user.createdAt
   }
   if (user.emailChecked) {
-    dbUserContact.emailVerificationCode = random(64).toString()
+    dbUserContact.emailVerificationCode = random(64).valueOf()
     dbUserContact.emailOptInTypeId = OptInType.EMAIL_OPT_IN_REGISTER
-    dbUserContact.emailChecked = true
+    dbUserContact.emailChecked = 1
   }
 
-  if (userId) {
-    dbUserContact.userId = userId
-  }
-
-  return store ? dbUserContact.save() : dbUserContact
+  return dbUserContact
 }
 
-export async function createUserRole(
-  userId: number,
-  role: RoleNames,
-  store: boolean = true,
-): Promise<UserRole> {
-  const dbUserRole = new UserRole()
-  dbUserRole.userId = userId
-  dbUserRole.role = role
-  return store ? dbUserRole.save() : dbUserRole
+export function buildUserRole(userId: number, role: RoleNames): UserRoleInsert {
+  return { userId, role }
 }

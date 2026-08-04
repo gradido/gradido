@@ -1,13 +1,13 @@
 import { clearLogs, getLogger, printLogs } from '../../../config-schema/test/testSetup.bun'
-import { Community as DbCommunity, User as DbUser, UserContact as DbUserContact } from '..'
-import { AppDatabase } from '../AppDatabase'
-import { createCommunity } from '../seeds/community'
-import { userFactory } from '../seeds/factory/user'
-import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
-import { bobBaumeister } from '../seeds/users/bob-baumeister'
-import { peterLustig } from '../seeds/users/peter-lustig'
-import { LOG4JS_QUERIES_CATEGORY_NAME } from '.'
-import { aliasExists, findUserByIdentifier } from './user'
+import {
+  AppDatabase,
+  Community as DbCommunity,
+  User as DbUser,
+  UserContact as DbUserContact,
+  FullUser,
+} from '..'
+import { bibiBloxberg, bobBaumeister, createCommunity, peterLustig, userFactory } from '../seeds'
+import { aliasExists, findUserByIdentifier, LOG4JS_QUERIES_CATEGORY_NAME } from '.'
 
 const db = AppDatabase.getInstance()
 const userIdentifierLoggerName = `${LOG4JS_QUERIES_CATEGORY_NAME}.user.findUserByIdentifier`
@@ -47,7 +47,7 @@ describe('user.queries', () => {
     let homeCom: DbCommunity
     let communityUuid: string
     let communityName: string
-    let userBibi: DbUser
+    let userBibi: FullUser
 
     beforeAll(async () => {
       await DbUser.clear()
@@ -66,18 +66,18 @@ describe('user.queries', () => {
     })
     describe('communityIdentifier is community uuid', () => {
       it('userIdentifier is gradido id', async () => {
-        const user = await findUserByIdentifier(userBibi.gradidoID, communityUuid)
-        expect(user).toMatchObject(userBibi)
+        const user = await findUserByIdentifier(userBibi.gradidoId, communityUuid)
+        expect(user?.id).toBe(userBibi.id)
       })
 
       it('userIdentifier is alias', async () => {
         const user = await findUserByIdentifier(userBibi.alias, communityUuid)
-        expect(user).toMatchObject(userBibi)
+        expect(user?.id).toBe(userBibi.id)
       })
 
       it('userIdentifier is email', async () => {
         const user = await findUserByIdentifier(userBibi.emailContact.email, communityUuid)
-        expect(user).toMatchObject(userBibi)
+        expect(user?.id).toBe(userBibi.id)
       })
       it('userIdentifier is unknown', async () => {
         const user = await findUserByIdentifier('unknown', communityUuid)
@@ -87,23 +87,23 @@ describe('user.queries', () => {
 
     describe('communityIdentifier is community name', () => {
       it('userIdentifier is gradido id', async () => {
-        const user = await findUserByIdentifier(userBibi.gradidoID, communityName)
-        expect(user).toMatchObject(userBibi)
+        const user = await findUserByIdentifier(userBibi.gradidoId, communityName)
+        expect(user?.id).toBe(userBibi.id)
       })
 
       it('userIdentifier is alias', async () => {
         const user = await findUserByIdentifier(userBibi.alias, communityName)
-        expect(user).toMatchObject(userBibi)
+        expect(user?.id).toBe(userBibi.id)
       })
 
       it('userIdentifier is email', async () => {
         const user = await findUserByIdentifier(userBibi.emailContact.email, communityName)
-        expect(user).toMatchObject(userBibi)
+        expect(user?.id).toBe(userBibi.id)
       })
     })
     describe('communityIdentifier is unknown', () => {
       it('userIdentifier is gradido id', async () => {
-        const user = await findUserByIdentifier(userBibi.gradidoID, 'unknown')
+        const user = await findUserByIdentifier(userBibi.gradidoId, 'unknown')
         expect(user).toBeNull()
       })
       it('userIdentifier is unknown', async () => {
@@ -113,18 +113,18 @@ describe('user.queries', () => {
     })
     describe('communityIdentifier is empty', () => {
       it('userIdentifier is gradido id', async () => {
-        const user = await findUserByIdentifier(userBibi.gradidoID)
-        expect(user).toMatchObject(userBibi)
+        const user = await findUserByIdentifier(userBibi.gradidoId)
+        expect(user?.id).toBe(userBibi.id)
       })
 
       it('userIdentifier is alias', async () => {
         const user = await findUserByIdentifier(userBibi.alias)
-        expect(user).toMatchObject(userBibi)
+        expect(user?.id).toBe(userBibi.id)
       })
 
       it('userIdentifier is email', async () => {
         const user = await findUserByIdentifier(userBibi.emailContact.email)
-        expect(user).toMatchObject(userBibi)
+        expect(user?.id).toBe(userBibi.id)
       })
       it('userIdentifier is unknown type', async () => {
         const user = await findUserByIdentifier('sa')

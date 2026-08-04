@@ -2,6 +2,7 @@ import { drizzle, MySql2Database } from 'drizzle-orm/mysql2'
 import Redis from 'ioredis'
 import { getLogger } from 'log4js'
 import { Connection, createConnection, createPool, Pool } from 'mysql2/promise'
+import { MonotonicTimer } from 'shared-native'
 import { DataSource as DBDataSource, FileLogger } from 'typeorm'
 import { latestDbVersion } from '.'
 import { CONFIG } from './config'
@@ -64,6 +65,7 @@ export class AppDatabase {
 
   // create database connection, initialize with automatic retry and check for correct database version
   public async init(): Promise<void> {
+    const timeUsed = new MonotonicTimer()
     if (this.dataSource?.isInitialized) {
       return
     }
@@ -127,6 +129,7 @@ export class AppDatabase {
         keepAliveInitialDelay: 10000,
       })
     }
+    logger.info(`DB and Redis connetion in= ${timeUsed}`)
   }
 
   public async destroy(): Promise<void> {

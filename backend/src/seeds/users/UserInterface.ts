@@ -1,4 +1,4 @@
-export { UserInterface } from 'database'
+export type { UserInterface } from 'database'
 /*
 export interface UserInterface {
   alias?: string

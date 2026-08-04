@@ -6,19 +6,17 @@ import {
   AppDatabase,
   Community as DbCommunity,
   Event as DbEvent,
+  dbListUsers,
+  FullUser,
   Transaction,
   User,
+  UserSelect,
 } from 'database'
 import { GraphQLError } from 'graphql'
-import { GradidoUnit } from 'shared'
 import { v4 as uuidv4 } from 'uuid'
 import { CONFIG } from '@/config'
-// import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { EventType } from '@/event/Events'
-// import { V1_0_SendCoinsClient } from 'core'
-// import { SendCoinsArgs } from 'core'
-// import { SendCoinsResult } from 'core'
 import { userFactory } from '@/seeds/factory/user'
 import {
   confirmContribution,
@@ -61,10 +59,10 @@ afterAll(async () => {
 
 let bobData: any
 let peterData: any
-let user: User[]
+let users: UserSelect[]
 
-let bob: User
-let peter: User
+let bob: FullUser
+let peter: FullUser
 
 let homeCom: DbCommunity
 let foreignCom: DbCommunity
@@ -109,7 +107,7 @@ describe('send coins', () => {
       password: 'Aa12345_',
     }
 
-    user = await User.find({ relations: ['emailContact'] })
+    users = await dbListUsers()
   })
 
   afterAll(async () => {
@@ -398,7 +396,7 @@ describe('send coins', () => {
         // Find the exact transaction (sent one is the one with user[1] as user)
         const transaction = await Transaction.find({
           where: {
-            userId: user[1].id,
+            userId: users[1].id,
             memo: 'unrepeatable memo',
           },
         })
@@ -406,9 +404,9 @@ describe('send coins', () => {
         await expect(DbEvent.find()).resolves.toContainEqual(
           expect.objectContaining({
             type: EventType.TRANSACTION_SEND,
-            affectedUserId: user[1].id,
-            actingUserId: user[1].id,
-            involvedUserId: user[0].id,
+            affectedUserId: users[1].id,
+            actingUserId: users[1].id,
+            involvedUserId: users[0].id,
             involvedTransactionId: transaction[0].id,
           }),
         )
@@ -418,16 +416,16 @@ describe('send coins', () => {
         // Find the exact transaction (received one is the one with user[0] as user)
         const transaction = await Transaction.find({
           where: {
-            userId: user[0].id,
+            userId: users[0].id,
             memo: 'unrepeatable memo',
           },
         })
         await expect(DbEvent.find()).resolves.toContainEqual(
           expect.objectContaining({
             type: EventType.TRANSACTION_RECEIVE,
-            affectedUserId: user[0].id,
-            actingUserId: user[1].id,
-            involvedUserId: user[1].id,
+            affectedUserId: users[0].id,
+            actingUserId: users[1].id,
+            involvedUserId: users[1].id,
             involvedTransactionId: transaction[0].id,
           }),
         )
@@ -440,7 +438,7 @@ describe('send coins', () => {
             mutation: sendCoins,
             variables: {
               recipientCommunityIdentifier: homeCom.communityUuid,
-              recipientIdentifier: peter?.gradidoID,
+              recipientIdentifier: peter?.gradidoId,
               amount: '10',
               memo: 'send via gradido ID',
             },
@@ -510,7 +508,7 @@ describe('send coins', () => {
                     amount: '-6.66',
                     linkedUser: {
                       firstName: 'Bob',
-                      gradidoID: bob?.gradidoID,
+                      gradidoID: bob?.gradidoId,
                       lastName: 'der Baumeister',
                     },
                     memo: 'send via alias',
@@ -520,7 +518,7 @@ describe('send coins', () => {
                     amount: '10',
                     linkedUser: {
                       firstName: 'Bob',
-                      gradidoID: bob?.gradidoID,
+                      gradidoID: bob?.gradidoId,
                       lastName: 'der Baumeister',
                     },
                     memo: 'send via gradido ID',
@@ -530,7 +528,7 @@ describe('send coins', () => {
                     amount: '50',
                     linkedUser: {
                       firstName: 'Bob',
-                      gradidoID: bob?.gradidoID,
+                      gradidoID: bob?.gradidoId,
                       lastName: 'der Baumeister',
                     },
                     memo: 'unrepeatable memo',

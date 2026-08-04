@@ -1,8 +1,9 @@
 import { GradidoUnit } from 'shared'
 import { AppDatabase } from '../../AppDatabase'
-import { Contribution, Transaction, User } from '../../entity'
+import { Contribution, Transaction } from '../../entity'
 import { ContributionStatus, ContributionType, TransactionTypeId } from '../../enum'
-import { findUserByIdentifier } from '../../queries'
+import { dbFindUserByEmail } from '../../queries'
+import { UserInserted, UserInsertedWithContact } from '../../schemas'
 import { CreationInterface } from '../creation/CreationInterface'
 import { createTransaction } from './transaction'
 
@@ -12,11 +13,11 @@ export function nMonthsBefore(date: Date, months = 1): string {
 
 export async function creationFactory(
   creation: CreationInterface,
-  user?: User | null,
-  moderatorUser?: User | null,
+  user?: UserInserted | null,
+  moderatorUser?: UserInserted | null,
 ): Promise<Contribution> {
   if (!user) {
-    user = await findUserByIdentifier(creation.email)
+    user = await dbFindUserByEmail(creation.email)
   }
   if (!user) {
     throw new Error(`User ${creation.email} not found`)
@@ -24,20 +25,20 @@ export async function creationFactory(
   const contribution = await createContribution(creation, user)
   if (creation.confirmed) {
     if (!moderatorUser) {
-      moderatorUser = await findUserByIdentifier('peter@lustig.de')
+      moderatorUser = await dbFindUserByEmail('peter@lustig.de')
     }
     if (!moderatorUser) {
       throw new Error('Moderator user not found')
     }
-    await confirmTransaction(creation, contribution, moderatorUser)
+    await confirmTransaction(creation, contribution, user, moderatorUser)
   }
   return contribution
 }
 
 export async function creationFactoryBulk(
   creations: CreationInterface[],
-  userCreationIndexedByEmail: Map<string, User>,
-  moderatorUser: User,
+  userCreationIndexedByEmail: Map<string, UserInsertedWithContact>,
+  moderatorUser: UserInserted,
 ): Promise<Contribution[]> {
   const lastTransaction = await Transaction.findOne({
     order: { id: 'DESC' },
@@ -58,6 +59,7 @@ export async function creationFactoryBulk(
       const { contribution: _, transaction } = await confirmTransaction(
         creation,
         contribution,
+        user,
         moderatorUser,
         transactionId,
         false,
@@ -77,11 +79,10 @@ export async function creationFactoryBulk(
 
 export async function createContribution(
   creation: CreationInterface,
-  user: User,
+  user: UserInserted,
   store: boolean = true,
 ): Promise<Contribution> {
   const contribution = new Contribution()
-  contribution.user = user
   contribution.userId = user.id
   contribution.amount = GradidoUnit.fromNumber(creation.amount)
   contribution.createdAt = new Date()
@@ -96,7 +97,8 @@ export async function createContribution(
 export async function confirmTransaction(
   creation: CreationInterface,
   contribution: Contribution,
-  moderatorUser: User,
+  user: UserInserted,
+  moderatorUser: UserInserted,
   transactionId?: number,
   store: boolean = true,
 ): Promise<{ contribution: Contribution; transaction: Transaction }> {
@@ -104,7 +106,7 @@ export async function confirmTransaction(
   const transaction = await createTransaction(
     contribution.amount,
     contribution.memo,
-    contribution.user,
+    user,
     moderatorUser,
     TransactionTypeId.CREATION,
     balanceDate,

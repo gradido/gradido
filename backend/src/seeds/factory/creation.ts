@@ -1,11 +1,12 @@
 import {
   Contribution,
-  CreationInterface,
+  type CreationInterface,
   creationFactory as creationFactoryDb,
   nMonthsBefore,
 } from 'database'
 
-export { CreationInterface, nMonthsBefore }
+export type { CreationInterface }
+export { nMonthsBefore }
 
 export const creationFactory = async (
   _client: any,

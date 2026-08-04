@@ -1,7 +1,6 @@
 import { cpus } from 'node:os'
 import path from 'node:path'
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
-import { User } from 'database'
 import { crypto_shorthash_KEYBYTES } from 'sodium-native'
 import { Pool, pool } from 'workerpool'
 import { CONFIG } from '@/config'
@@ -18,6 +17,17 @@ if (CONFIG.USE_CRYPTO_WORKER === true) {
   encryptionWorkerPool = pool(path.join(__dirname, 'worker.js'), {
     maxQueueSize: 30 * cpus().length,
   })
+}
+
+/**
+ * Shut down the worker pool, needed for short living scripts like the seeds,
+ * the worker threads keep the node process alive until they are terminated.
+ */
+export const terminateEncryptionWorkerPool = async (): Promise<void> => {
+  if (encryptionWorkerPool) {
+    await encryptionWorkerPool.terminate()
+    encryptionWorkerPool = undefined
+  }
 }
 
 // We will reuse this for changePassword
@@ -67,11 +77,25 @@ export const SecretKeyCryptographyCreateKey = async (
   }
 }
 
-export const getUserCryptographicSalt = (dbUser: User): string => {
+/**
+ * The fields the salt derivation needs. Structural so the typeorm User entity and
+ * the drizzle-backed seed user both satisfy it while the two ORMs coexist.
+ */
+export type CryptographicSaltUser = {
+  id: number
+  gradidoID: string
+  passwordEncryptionType: number
+  emailContact?: { email: string } | null
+}
+
+export const getUserCryptographicSalt = (dbUser: CryptographicSaltUser): string => {
   switch (dbUser.passwordEncryptionType) {
     case PasswordEncryptionType.NO_PASSWORD:
       throw new LogError('User has no password set', dbUser.id)
     case PasswordEncryptionType.EMAIL:
+      if (!dbUser.emailContact) {
+        throw new LogError('Missing email contact on user obj')
+      }
       return dbUser.emailContact.email
     case PasswordEncryptionType.GRADIDO_ID:
       return dbUser.gradidoID
