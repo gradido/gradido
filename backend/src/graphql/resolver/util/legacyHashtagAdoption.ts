@@ -49,6 +49,13 @@ const INSERT_BATCH = 200
 // What the guard still does rule out is the case that matters: a contribution that already
 // belongs to a group keeps it. Only "no group at all" is offered.
 //
+// ★ A DELETED contribution is offered as well, on purpose. This is raw SQL, so TypeORM's
+// automatic `deleted_at IS NULL` never gets added -- and it is deliberately not written by
+// hand either. The admin has its own tab for deleted contributions and that tab filters BY
+// GROUP, so a deleted contribution left without one could not be found there at all. The
+// migration this replaces held it the same way. ⚠️ This is a decision, not an oversight;
+// LegacyHashtagAdoption.test.ts pins it down so a later tidy-up cannot quietly undo it.
+//
 // The SQL pre-filter is the bare tag, not the hashtag: it is a superset of both spellings
 // (each contains the tag), so no candidate can be missed however many blanks sit between
 // the '#' and the word. It over-returns -- memo is utf8mb4_general_ci and therefore
@@ -106,9 +113,21 @@ export const countLegacyHashtags = async (tag: string): Promise<LegacyHashtagCou
 
 // Link the matching contributions to the group. Returns how many rows were written.
 //
-// Safe to run again: the guard above excludes anything that already carries a link, and
-// INSERT IGNORE covers the race. Running twice is in fact the expected path -- adopt the
-// exact spelling first, look at the numbers, then come back for the loose one.
+// Safe to run again: the guard above excludes anything that already carries a link, and the
+// unique index behind INSERT IGNORE absorbs a repeat. Running twice is in fact the expected
+// path -- adopt the exact spelling first, look at the numbers, then come back for the loose
+// one.
+//
+// ⚠️ The guard is read once and NOT re-checked at insert time. A contribution that is given a
+// group between the scan and the write therefore ends up in two. Left as it is on purpose,
+// and the reasoning belongs on the record: a contribution may carry several groups by design,
+// the next assignment deletes them all and rewrites the chosen one, and the alternative --
+// holding contribution-level locks for the whole run -- would put them on a query that
+// already walks the table without an index. The price of leaving it is that `written` counts
+// rows attempted rather than rows inserted, so a run caught by that race reports a few too
+// many. If the race ever has to go, the cheap way is INSERT ... SELECT with the same
+// NOT EXISTS, which the database evaluates in one statement and which also yields the real
+// affected-row count -- not a transaction around this loop.
 export const adoptLegacyHashtags = async (
   groupTagId: number,
   tag: string,

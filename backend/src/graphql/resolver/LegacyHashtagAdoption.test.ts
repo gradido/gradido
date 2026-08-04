@@ -46,10 +46,11 @@ const makeGroup = async (tag: string): Promise<DbGroupTag> => {
 
 // A contribution written straight to the table, so the fixture cannot be quietly reshaped
 // by a mutation's own leniency. `stamped` is the interesting axis: it is what the old guard
-// looked at.
+// looked at. `deleted` is the second one: deleted contributions are adopted too, and the
+// only reason they are is that the scan runs on raw SQL.
 const makeContribution = async (
   memo: string,
-  { stamped }: { stamped: boolean },
+  { stamped, deleted = false }: { stamped: boolean; deleted?: boolean },
 ): Promise<DbContribution> => {
   const contribution = DbContribution.create()
   contribution.userId = 1
@@ -60,8 +61,16 @@ const makeContribution = async (
   contribution.contributionType = ContributionType.USER
   contribution.contributionStatus = ContributionStatus.PENDING
   contribution.groupTagsSetAt = stamped ? new Date() : null
+  contribution.deletedAt = deleted ? new Date() : null
   await contribution.save()
   return contribution
+}
+
+// ⚠️ A deleted fixture that did not actually come out deleted would make both tests below
+// pass for the wrong reason. An ordinary find hides deleted rows, so finding nothing is the
+// proof that the fixture is what it claims to be.
+const expectReallyDeleted = async (contribution: DbContribution): Promise<void> => {
+  expect(await DbContribution.findOne({ where: { id: contribution.id } })).toBeNull()
 }
 
 const linkedContributionIds = async (group: DbGroupTag): Promise<number[]> => {
@@ -107,6 +116,23 @@ describe('legacyHashtagCounts', () => {
     const counts = await resolver.legacyHashtagCounts(group.id)
     expect(counts).toEqual({ exact: 0, loose: 0 })
   })
+
+  // ★ A DECISION, not an accident. The admin's tab for deleted contributions filters by
+  // group, so a deleted contribution left without one could not be found there at all.
+  // The mechanism is implicit -- the scan is raw SQL and therefore never picks up TypeORM's
+  // automatic `deleted_at IS NULL` -- which is exactly why it needs a test: rewriting the
+  // scan with the query builder would reverse it without a word.
+  it('counts a deleted contribution too', async () => {
+    const group = await makeGroup('deletedcount')
+    const gone = await makeContribution('#deletedcount before it went', {
+      stamped: false,
+      deleted: true,
+    })
+    await expectReallyDeleted(gone)
+
+    const counts = await resolver.legacyHashtagCounts(group.id)
+    expect(counts.exact).toBe(1)
+  })
 })
 
 describe('adoptLegacyHashtags', () => {
@@ -146,6 +172,21 @@ describe('adoptLegacyHashtags', () => {
 
     expect(updated.hashtagsAdoptedAt).not.toBeNull()
     expect(updated.hashtagsAdoptedCount).toBe(0)
+  })
+
+  // The other half of the decision above: counting it is of no use if the run then skips it.
+  it('links a deleted contribution too', async () => {
+    const group = await makeGroup('deletedadopt')
+    const gone = await makeContribution('#deletedadopt before it went', {
+      stamped: false,
+      deleted: true,
+    })
+    await expectReallyDeleted(gone)
+
+    const updated = await resolver.adoptLegacyHashtags(group.id, false)
+
+    expect(await linkedContributionIds(group)).toEqual([gone.id])
+    expect(updated.hashtagsAdoptedCount).toBe(1)
   })
 
   it('refuses a group that does not exist', async () => {
