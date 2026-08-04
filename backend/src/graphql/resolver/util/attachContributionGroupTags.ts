@@ -1,6 +1,7 @@
 import { ContributionGroupTag as DbContributionGroupTag, GroupTag as DbGroupTag } from 'database'
 import { In } from 'typeorm'
 import { GroupTag } from '@/graphql/model/GroupTag'
+import { groupTagsByContribution } from './groupTagsByContribution'
 
 // Everything this needs of a contribution. Typed structurally rather than as the
 // Contribution model so callers that only care about the group can hand over the two
@@ -32,20 +33,8 @@ export const attachContributionGroupTags = async (
   }
   const canonical = await DbGroupTag.find({
     where: { id: In(links.map((link) => link.groupTagId)) },
-    order: { tag: 'ASC' },
   })
-  const byId = new Map(canonical.map((tag) => [tag.id, tag]))
-
-  const structured = new Map<number, DbGroupTag[]>()
-  for (const link of links) {
-    const tag = byId.get(link.groupTagId)
-    if (!tag) {
-      continue
-    }
-    const list = structured.get(link.contributionId) ?? []
-    list.push(tag)
-    structured.set(link.contributionId, list)
-  }
+  const structured = groupTagsByContribution(links, canonical)
 
   for (const contribution of contributions) {
     contribution.groupTags = (structured.get(contribution.id) ?? []).map((tag) => new GroupTag(tag))
