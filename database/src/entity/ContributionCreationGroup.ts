@@ -8,13 +8,13 @@ import {
 } from 'typeorm'
 
 // Group functions: join between a contribution and a
-// group tag. A contribution can carry several tags. No FK constraints (matches the
+// creation group. A contribution can carry several tags. No FK constraints (matches the
 // crea_records convention) — indices only.
-@Index('uniq_contribution_group_tag', ['contributionId', 'groupTagId'], { unique: true })
-@Entity('contribution_group_tags', {
+@Index('uniq_contribution_creation_group', ['contributionId', 'creationGroupId'], { unique: true })
+@Entity('contribution_creation_groups', {
   engine: 'InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci',
 })
-export class ContributionGroupTag extends BaseEntity {
+export class ContributionCreationGroup extends BaseEntity {
   @PrimaryGeneratedColumn('increment', { unsigned: true })
   id: number
 
@@ -23,8 +23,8 @@ export class ContributionGroupTag extends BaseEntity {
   contributionId: number
 
   @Index()
-  @Column({ name: 'group_tag_id', type: 'int', unsigned: true, nullable: false })
-  groupTagId: number
+  @Column({ name: 'creation_group_id', type: 'int', unsigned: true, nullable: false })
+  creationGroupId: number
 
   @CreateDateColumn({ name: 'created_at', type: 'datetime', precision: 3 })
   createdAt: Date

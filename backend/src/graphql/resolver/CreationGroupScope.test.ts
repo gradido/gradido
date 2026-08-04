@@ -4,7 +4,7 @@ import { ApolloServerTestClient } from 'apollo-server-testing'
 import {
   AppDatabase,
   Contribution as DbContribution,
-  GroupTag as DbGroupTag,
+  CreationGroup as DbCreationGroup,
   User,
   UserRole,
 } from 'database'
@@ -17,7 +17,7 @@ import { peterLustig } from '@/seeds/users/peter-lustig'
 import { parseModeratorScope } from './util/findContributions'
 
 // Group functions: the core security check — a scoped moderator must only see
-// the contributions of the group tags they are authorised for.
+// the contributions of the creation groups they are authorised for.
 
 jest.mock('core', () => {
   const originalModule = jest.requireActual('core')
@@ -81,13 +81,15 @@ const listMemos = async (): Promise<string[]> => {
 // The same list, narrowed by one of the group-filter tokens. Reports a rejected query
 // instead of tripping over a null `data` three lines later — a broken fixture has to say
 // what broke.
-const listFilteredMemos = async (groupTag: string): Promise<string[]> => {
+const listFilteredMemos = async (creationGroup: string): Promise<string[]> => {
   const { data, errors } = await query({
     query: adminListContributions,
-    variables: { paginated: { pageSize: 100 }, filter: { groupTag } },
+    variables: { paginated: { pageSize: 100 }, filter: { creationGroup } },
   })
   if (errors?.length) {
-    throw new Error(`adminListContributions(groupTag: ${groupTag}) failed: ${errors[0].message}`)
+    throw new Error(
+      `adminListContributions(creationGroup: ${creationGroup}) failed: ${errors[0].message}`,
+    )
   }
   return data.adminListContributions.contributionList.map(
     (contribution: { memo: string }) => contribution.memo,
@@ -108,7 +110,7 @@ let moderator: User
 describe('adminListContributions — moderator visibility scope', () => {
   beforeAll(async () => {
     for (const tag of ['firefighter', 'music', 'grünwald-süd']) {
-      const entry = DbGroupTag.create()
+      const entry = DbCreationGroup.create()
       entry.tag = tag
       entry.name = null
       await entry.save()
@@ -118,14 +120,14 @@ describe('adminListContributions — moderator visibility scope', () => {
 
     // The (soon-to-be moderator) submits one contribution per group plus one untagged.
     await loginAs('bibi@bloxberg.de')
-    for (const [memo, groupTags] of [
+    for (const [memo, creationGroups] of [
       [FIREFIGHTER, ['firefighter']],
       [MUSIC, ['music']],
       [UNTAGGED, []],
     ] as Array<[string, string[]]>) {
       await mutate({
         mutation: createContribution,
-        variables: { amount: '100', memo, contributionDate: new Date().toString(), groupTags },
+        variables: { amount: '100', memo, contributionDate: new Date().toString(), creationGroups },
       })
     }
     resetToken()
@@ -135,7 +137,7 @@ describe('adminListContributions — moderator visibility scope', () => {
     role.createdAt = new Date()
     role.userId = moderator.id
     role.role = RoleNames.MODERATOR
-    role.visibleGroupTags = JSON.stringify(['firefighter'])
+    role.visibleCreationGroups = JSON.stringify(['firefighter'])
     await role.save()
   })
 
@@ -211,7 +213,7 @@ describe('adminListContributions — moderator visibility scope', () => {
         amount: '100',
         memo: UMLAUT,
         contributionDate: new Date().toString(),
-        groupTags: ['Grünwald-Süd'],
+        creationGroups: ['Grünwald-Süd'],
       },
     })
     resetToken()
@@ -219,7 +221,7 @@ describe('adminListContributions — moderator visibility scope', () => {
     // … while the moderator is scoped to the very same tag written all in lower case.
     // The tables are utf8mb4_unicode_ci, so the comparison ignores case and the two match.
     const role = await UserRole.findOneOrFail({ where: { userId: moderator.id } })
-    role.visibleGroupTags = JSON.stringify(['grünwald-süd'])
+    role.visibleCreationGroups = JSON.stringify(['grünwald-süd'])
     await role.save()
 
     await loginAs('bibi@bloxberg.de')
@@ -261,7 +263,7 @@ describe('adminListContributions — the "no group" filter', () => {
     // test needs rather than adding a second one.
     const role = await UserRole.findOneOrFail({ where: { userId: moderator.id } })
     role.role = RoleNames.MODERATOR
-    role.visibleGroupTags = JSON.stringify(['firefighter'])
+    role.visibleCreationGroups = JSON.stringify(['firefighter'])
     await role.save()
 
     await loginAs('bibi@bloxberg.de')
@@ -275,7 +277,7 @@ describe('adminListContributions — the "no group" filter', () => {
   // was asked for.
   it('gives a moderator scoped to "no group" exactly those contributions', async () => {
     const role = await UserRole.findOneOrFail({ where: { userId: moderator.id } })
-    role.visibleGroupTags = JSON.stringify(['*untagged'])
+    role.visibleCreationGroups = JSON.stringify(['*untagged'])
     await role.save()
 
     await loginAs('bibi@bloxberg.de')

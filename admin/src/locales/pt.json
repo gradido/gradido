@@ -32,9 +32,9 @@
   "change_user_role": "Alterar a função do utilizador",
   "close": "Fechar",
   "contribution": {
-    "changeGroup": "Alterar grupo",
+    "changeGroup": "Alterar grupo de criação",
     "changeGroupConfirm": "Sim, mover",
-    "changeGroupDone": "Grupo alterado.",
+    "changeGroupDone": "Grupo de criação alterado.",
     "changeGroupHint": "Dependendo dos seus grupos visíveis, a contribuição pode deixar de aparecer na sua lista.",
     "changeGroupQuestion": "Mover esta contribuição de {from} para {to}?",
     "confirmedBy": "Confirmado por {name}.",
@@ -179,6 +179,47 @@
   "created": "Criado",
   "createdAt": "Criado em",
   "creation": "Criação",
+  "creationGroupFilter": {
+    "all": "(todas)",
+    "grouped": "(todos os grupos)",
+    "label": "Creation group:",
+    "untagged": "(sem grupo)"
+  },
+  "creationGroupsAdmin": {
+    "add": "Create",
+    "addTitle": "Create a new group",
+    "adminOnly": "Administrators only.",
+    "adoption": {
+      "adopt": "Adotar {count}",
+      "check": "Hashtags antigas",
+      "done": "Hashtags antigas adotadas.",
+      "foundExact": "{count} contribuições mais antigas escrevem #{tag} no seu texto.",
+      "foundLoose": "Adotar também {count} contribuições escritas como «# {tag}» (com espaço).",
+      "foundNothing": "Nenhuma contribuição mais antiga nomeia este grupo no seu texto.",
+      "hint": "Só são adotadas contribuições que ainda não têm grupo nenhum. Uma palavra que não nomeia um grupo existente continua a ser texto comum.",
+      "markChecked": "Marcar como verificado",
+      "searchFailed": "A pesquisa falhou. Tenta novamente.",
+      "searching": "A procurar nas contribuições …",
+      "stateAdopted": "verificado em {date} — {count} adotadas",
+      "stateNothing": "verificado em {date} — nada encontrado",
+      "stateUnchecked": "hashtags antigas ainda não verificadas",
+      "title": "Adotar hashtags antigas em {group}"
+    },
+    "cancel": "Cancel",
+    "created": "Group created.",
+    "edit": "Edit",
+    "empty": "No groups created yet.",
+    "existingTitle": "Existing groups",
+    "intro": "Create new groups or rename existing ones. Who belongs to a group or moderates it is assigned on the \"User role\" tab.",
+    "name": "Name",
+    "namePlaceholder": "e.g. Volunteer Fire Brigade Springfield",
+    "save": "Save",
+    "tag": "Tag",
+    "tagHint": "A short tag without spaces — capitals and accented letters are allowed. Matching ignores upper and lower case. The name is what is shown everywhere.",
+    "tagPlaceholder": "e.g. firefighter",
+    "title": "Manage creation groups",
+    "updated": "Group updated."
+  },
   "creationList": "Lista de criações",
   "creation_for_month": "Criação para o mês",
   "creation_form": {
@@ -257,47 +298,6 @@
     "humhubProfile": "Ir para o perfil Humhub",
     "userSearch": "Ir para a pesquisa de utilizadores"
   },
-  "groupTagFilter": {
-    "all": "(todas)",
-    "grouped": "(todos os grupos)",
-    "label": "Group:",
-    "untagged": "(sem grupo)"
-  },
-  "groupTagsAdmin": {
-    "add": "Create",
-    "addTitle": "Create a new group",
-    "adminOnly": "Administrators only.",
-    "adoption": {
-      "adopt": "Adotar {count}",
-      "check": "Hashtags antigas",
-      "done": "Hashtags antigas adotadas.",
-      "foundExact": "{count} contribuições mais antigas escrevem #{tag} no seu texto.",
-      "foundLoose": "Adotar também {count} contribuições escritas como «# {tag}» (com espaço).",
-      "foundNothing": "Nenhuma contribuição mais antiga nomeia este grupo no seu texto.",
-      "hint": "Só são adotadas contribuições que ainda não têm grupo nenhum. Uma palavra que não nomeia um grupo existente continua a ser texto comum.",
-      "markChecked": "Marcar como verificado",
-      "searchFailed": "A pesquisa falhou. Tenta novamente.",
-      "searching": "A procurar nas contribuições …",
-      "stateAdopted": "verificado em {date} — {count} adotadas",
-      "stateNothing": "verificado em {date} — nada encontrado",
-      "stateUnchecked": "hashtags antigas ainda não verificadas",
-      "title": "Adotar hashtags antigas em {group}"
-    },
-    "cancel": "Cancel",
-    "created": "Group created.",
-    "edit": "Edit",
-    "empty": "No groups created yet.",
-    "existingTitle": "Existing groups",
-    "intro": "Create new groups or rename existing ones. Who belongs to a group or moderates it is assigned on the “User role” tab.",
-    "name": "Name",
-    "namePlaceholder": "e.g. Volunteer Fire Brigade Springfield",
-    "save": "Save",
-    "tag": "Tag",
-    "tagHint": "A short tag without spaces — capitals and accented letters are allowed. Matching ignores upper and lower case. The name is what is shown everywhere.",
-    "tagPlaceholder": "e.g. firefighter",
-    "title": "Manage groups",
-    "updated": "Group updated."
-  },
   "help": {
     "help": "Ajuda",
     "transactionlist": {
@@ -341,7 +341,7 @@
   "navbar": {
     "automaticContributions": "Saldo inicial",
     "crea": "Crea",
-    "groupTags": "Groups",
+    "creationGroups": "Creation groups",
     "instances": "Instâncias",
     "logout": "Terminar sessão",
     "my-account": "A minha conta",
@@ -451,18 +451,18 @@
   },
   "unregistered_emails": "Apenas utilizadores não registados",
   "userRole": {
-    "groupTags": {
+    "creationGroups": {
       "help": "Pre-filled on submission.",
-      "label": "User's main group",
+      "label": "User's main creation group",
       "none": "(no group)"
     },
     "notChangeYourSelf": "Como administrador/moderador, não podes alterar a tua própria função.",
-    "savedGroupTags": "Groups saved.",
+    "savedCreationGroups": "Creation groups saved.",
     "savedScope": "Visibility saved.",
     "scope": {
       "all": "all groups",
       "help": "Empty = all contributions.",
-      "label": "Visible groups",
+      "label": "Visible creation groups",
       "untagged": "no group"
     },
     "selectLabel": "Função:",

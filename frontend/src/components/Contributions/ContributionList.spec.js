@@ -1,4 +1,4 @@
-import { listContributions, myContributionGroupTags } from '@/graphql/contributions.graphql'
+import { listContributions, myContributionCreationGroups } from '@/graphql/contributions.graphql'
 import { print } from 'graphql'
 import { useQuery } from '@vue/apollo-composable'
 import { mount } from '@vue/test-utils'
@@ -46,8 +46,8 @@ vi.mock('@/components/Contributions/ContributionListItem.vue', () => ({
     // seam: the item is handed the whole row with v-bind="item", so a field of the query
     // becomes a prop by NAME alone -- nothing imports one from the other. A stub that
     // rendered an empty div could not tell whether the field arrived at all.
-    props: ['groupTags'],
-    template: '<div>{{ (groupTags ?? []).map((g) => g.name).join(", ") }}</div>',
+    props: ['creationGroups'],
+    template: '<div>{{ (creationGroups ?? []).map((g) => g.name).join(", ") }}</div>',
   },
 }))
 
@@ -82,7 +82,7 @@ describe('ContributionList', () => {
           status: 'IN_PROGRESS',
           // A real contribution carries its group. Without it the fixture could not show
           // that the field survives the trip from the query into the item.
-          groupTags: [{ tag: 'choir', name: 'Choir' }],
+          creationGroups: [{ tag: 'choir', name: 'Choir' }],
         },
         {
           id: 1,
@@ -111,7 +111,7 @@ describe('ContributionList', () => {
   const loading = ref(false)
 
   const myGroups = ref({
-    myContributionGroupTags: [
+    myContributionCreationGroups: [
       { id: 1, tag: 'choir', name: 'Choir' },
       { id: 2, tag: 'fire', name: null },
     ],
@@ -125,7 +125,7 @@ describe('ContributionList', () => {
         // This tab asks two queries. Answering both the same way would hide which one the
         // group dropdown reads -- and reading the canonical list instead of the member's
         // own groups is precisely the mistake this component must not make.
-        if (query === myContributionGroupTags) {
+        if (query === myContributionCreationGroups) {
           return { result: myGroups, loading: ref(false) }
         }
         return {
@@ -242,6 +242,6 @@ describe('ContributionList', () => {
   // queries select this field -- so it stayed green even with listContributions renamed.
   // print() renders just this operation.
   it('is the field this query actually selects', () => {
-    expect(print(listContributions)).toMatch(/\bgroupTags\s*\{/)
+    expect(print(listContributions)).toMatch(/\bcreationGroups\s*\{/)
   })
 })

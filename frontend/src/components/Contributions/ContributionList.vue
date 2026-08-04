@@ -49,7 +49,7 @@ import { ref, computed, nextTick, watch } from 'vue'
 import ContributionListItem from '@/components/Contributions/ContributionListItem.vue'
 import {
   listContributions,
-  myContributionGroupTags as groupTagsQuery,
+  myContributionCreationGroups as creationGroupsQuery,
 } from '@/graphql/contributions.graphql'
 import { useQuery } from '@vue/apollo-composable'
 import { PAGE_SIZE } from '@/constants'
@@ -57,7 +57,7 @@ import { useI18n } from 'vue-i18n'
 import CONFIG from '@/config'
 import { useRoute, useRouter } from 'vue-router'
 import PaginatorRouteParamsPage from '@/components/PaginatorRouteParamsPage.vue'
-import { groupTagLabel } from '@/utils/groupTagLabel'
+import { creationGroupLabel } from '@/utils/creationGroupLabel'
 
 const route = useRoute()
 const router = useRouter()
@@ -107,7 +107,7 @@ watch(selectedGroup, () => {
 
 const isFiltered = computed(() => Boolean(searchText.value || selectedGroup.value))
 
-const { result: groupTagsResult } = useQuery(groupTagsQuery)
+const { result: creationGroupsResult } = useQuery(creationGroupsQuery)
 const groupOptions = computed(() => [
   // Same three answers as the community tab: everything, everything that belongs to some
   // group, everything that belongs to none. The last two are reserved tokens the backend
@@ -115,9 +115,9 @@ const groupOptions = computed(() => [
   { value: null, text: t('contribution.filter.all') },
   { value: '*grouped', text: t('contribution.filter.grouped') },
   { value: '*untagged', text: t('contribution.filter.noGroup') },
-  ...(groupTagsResult.value?.myContributionGroupTags ?? []).map((group) => ({
+  ...(creationGroupsResult.value?.myContributionCreationGroups ?? []).map((group) => ({
     value: group.tag,
-    text: groupTagLabel(group),
+    text: creationGroupLabel(group),
   })),
 ])
 
@@ -132,7 +132,7 @@ const { result, loading, refetch, onResult } = useQuery(
     },
     filter: {
       query: searchText.value || null,
-      groupTag: selectedGroup.value,
+      creationGroup: selectedGroup.value,
     },
   }),
   {

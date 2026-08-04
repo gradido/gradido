@@ -48,7 +48,7 @@ import { computed, ref, watch } from 'vue'
 import ContributionListAllItem from '@/components/Contributions/ContributionListAllItem.vue'
 import {
   listAllContributions,
-  communityGroupTags as communityGroupTagsQuery,
+  communityCreationGroups as communityCreationGroupsQuery,
 } from '@/graphql/contributions.graphql'
 import { useQuery } from '@vue/apollo-composable'
 import CONFIG from '@/config'
@@ -56,7 +56,7 @@ import PaginatorRouteParamsPage from '@/components/PaginatorRouteParamsPage.vue'
 import { PAGE_SIZE } from '@/constants'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
-import { groupTagLabel } from '@/utils/groupTagLabel'
+import { creationGroupLabel } from '@/utils/creationGroupLabel'
 
 const route = useRoute()
 const router = useRouter()
@@ -103,9 +103,9 @@ const isFiltered = computed(() => Boolean(searchText.value || selectedGroup.valu
 // Only the groups this list currently has something to show for, so the dropdown offers
 // exactly what can be found behind it. A group that has been quiet longer than the window
 // drops out and returns by itself once one of its contributions is filed again. The
-// submission field keeps asking groupTags — every group has to stay choosable there, or a
+// submission field keeps asking creationGroups — every group has to stay choosable there, or a
 // dormant one could never be woken up.
-const { result: groupTagsResult } = useQuery(communityGroupTagsQuery)
+const { result: creationGroupsResult } = useQuery(communityCreationGroupsQuery)
 const groupOptions = computed(() => [
   // Three answers that cover the list exactly once: everything, everything that belongs
   // to some group, everything that belongs to none. The last two are reserved tokens the
@@ -113,9 +113,9 @@ const groupOptions = computed(() => [
   { value: null, text: t('contribution.filter.all') },
   { value: '*grouped', text: t('contribution.filter.grouped') },
   { value: '*untagged', text: t('contribution.filter.noGroup') },
-  ...(groupTagsResult.value?.communityGroupTags ?? []).map((group) => ({
+  ...(creationGroupsResult.value?.communityCreationGroups ?? []).map((group) => ({
     value: group.tag,
-    text: groupTagLabel(group),
+    text: creationGroupLabel(group),
   })),
 ])
 
@@ -129,7 +129,7 @@ const { result, loading } = useQuery(
     },
     filter: {
       query: searchText.value || null,
-      groupTag: selectedGroup.value,
+      creationGroup: selectedGroup.value,
     },
   }),
   {

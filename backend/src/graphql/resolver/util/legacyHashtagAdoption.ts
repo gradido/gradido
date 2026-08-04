@@ -19,12 +19,12 @@ import { type HashtagMatch, matchLegacyHashtag } from './legacyHashtagRule'
 //
 //   backend  legacyHashtagAdoption.ts + legacyHashtagRule.ts (+ its test)  -- delete
 //            model/LegacyHashtagCounts.ts                                  -- delete
-//            GroupTagResolver: legacyHashtagCounts + adoptLegacyHashtags   -- delete both
+//            CreationGroupResolver: legacyHashtagCounts + adoptLegacyHashtags   -- delete both
 //            RIGHTS.ADOPT_LEGACY_HASHTAGS and its entry in ADMIN_RIGHTS    -- delete
-//   admin    groupTags.graphql: the query + the mutation                   -- delete
-//            GroupTags.vue: the adoption block, the modal, the state cell  -- delete
-//            locales: groupTagsAdmin.adoption in all 10 files              -- delete
-//   database GroupTag entity: hashtagsAdoptedAt / hashtagsAdoptedCount     -- delete
+//   admin    creationGroups.graphql: the query + the mutation                   -- delete
+//            CreationGroups.vue: the adoption block, the modal, the state cell  -- delete
+//            locales: creationGroupsAdmin.adoption in all 10 files              -- delete
+//   database CreationGroup entity: hashtagsAdoptedAt / hashtagsAdoptedCount     -- delete
 //            a new migration dropping those two columns (0109 downgrades)  -- add
 //
 // Nothing else reads the two columns and nothing else imports these files, so the removal
@@ -35,11 +35,11 @@ const INSERT_BATCH = 200
 
 // Candidates are contributions that carry NO group at all.
 //
-// ★ Deliberately NOT also requiring group_tags_set_at IS NULL, although the migration this
+// ★ Deliberately NOT also requiring creation_groups_set_at IS NULL, although the migration this
 // replaces did. Two reasons:
 //
 //   1. It would exclude everything filed since the group field went live, because
-//      setContributionGroupTags stamps on EVERY submission -- including when the field was
+//      setContributionCreationGroups stamps on EVERY submission -- including when the field was
 //      left empty. A member who still types "#Amstetten" out of habit today could never be
 //      found, which is precisely the case this is meant to catch during the changeover.
 //   2. The stamp guards against an AUTOMATIC reading of the memo silently overriding what
@@ -78,7 +78,7 @@ const forEachCandidate = async (
         WHERE c.id > ?
           AND c.memo LIKE CONCAT('%', ?, '%')
           AND NOT EXISTS (
-                SELECT 1 FROM contribution_group_tags cgt WHERE cgt.contribution_id = c.id)
+                SELECT 1 FROM contribution_creation_groups cgt WHERE cgt.contribution_id = c.id)
         ORDER BY c.id
         LIMIT ${READ_BATCH}`,
       [lastId, tag],
@@ -129,7 +129,7 @@ export const countLegacyHashtags = async (tag: string): Promise<LegacyHashtagCou
 // NOT EXISTS, which the database evaluates in one statement and which also yields the real
 // affected-row count -- not a transaction around this loop.
 export const adoptLegacyHashtags = async (
-  groupTagId: number,
+  creationGroupId: number,
   tag: string,
   includeLoose: boolean,
 ): Promise<number> => {
@@ -143,9 +143,9 @@ export const adoptLegacyHashtags = async (
   for (let i = 0; i < ids.length; i += INSERT_BATCH) {
     const chunk = ids.slice(i, i + INSERT_BATCH)
     await DbContribution.query(
-      'INSERT IGNORE INTO contribution_group_tags (contribution_id, group_tag_id) VALUES ' +
+      'INSERT IGNORE INTO contribution_creation_groups (contribution_id, creation_group_id) VALUES ' +
         chunk.map(() => '(?, ?)').join(', '),
-      chunk.flatMap((id) => [id, groupTagId]),
+      chunk.flatMap((id) => [id, creationGroupId]),
     )
     written += chunk.length
   }

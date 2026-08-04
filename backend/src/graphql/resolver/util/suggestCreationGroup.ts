@@ -1,6 +1,6 @@
-import { AppDatabase, GroupTag as DbGroupTag } from 'database'
-import { GroupTag } from '@/graphql/model/GroupTag'
-import { loadUserGroupTags } from './userGroupTags'
+import { AppDatabase, CreationGroup as DbCreationGroup } from 'database'
+import { CreationGroup } from '@/graphql/model/CreationGroup'
+import { loadUserCreationGroups } from './userCreationGroups'
 
 // Group functions: what to pre-select in the group field when someone submits.
 //
@@ -10,7 +10,7 @@ import { loadUserGroupTags } from './userGroupTags'
 //
 // Wanted is the newest contribution that MADE A STATEMENT. A contribution makes a statement
 // when it is linked to a group, or when the group field was used to say "no group" — the
-// group_tags_set_at stamp. Everything in between (old stock that never used the field) says
+// creation_groups_set_at stamp. Everything in between (old stock that never used the field) says
 // nothing and is skipped.
 //
 // That is one row, and the database finds it: ORDER BY ... LIMIT 1 over
@@ -27,14 +27,16 @@ import { loadUserGroupTags } from './userGroupTags'
 const NEWEST_STATEMENT_SQL = `
   SELECT gt.id AS id, gt.tag AS tag, gt.name AS name
     FROM contributions c
-    LEFT JOIN contribution_group_tags cgt ON cgt.contribution_id = c.id
-    LEFT JOIN group_tags gt ON gt.id = cgt.group_tag_id
+    LEFT JOIN contribution_creation_groups cgt ON cgt.contribution_id = c.id
+    LEFT JOIN creation_groups gt ON gt.id = cgt.creation_group_id
    WHERE c.user_id = ?
-     AND (c.group_tags_set_at IS NOT NULL OR cgt.id IS NOT NULL)
+     AND (c.creation_groups_set_at IS NOT NULL OR cgt.id IS NOT NULL)
    ORDER BY c.created_at DESC, c.id DESC, gt.tag ASC
    LIMIT 1`
 
-export const suggestGroupTagForUser = async (userId: number): Promise<GroupTag | null> => {
+export const suggestCreationGroupForUser = async (
+  userId: number,
+): Promise<CreationGroup | null> => {
   const rows: Array<{ id: number | null; tag: string | null; name: string | null }> =
     await AppDatabase.getInstance().getDataSource().query(NEWEST_STATEMENT_SQL, [userId])
 
@@ -45,12 +47,12 @@ export const suggestGroupTagForUser = async (userId: number): Promise<GroupTag |
     if (row.id === null || row.tag === null) {
       return null
     }
-    return new GroupTag(DbGroupTag.create({ id: row.id, tag: row.tag, name: row.name }))
+    return new CreationGroup(DbCreationGroup.create({ id: row.id, tag: row.tag, name: row.name }))
   }
 
   // The whole history says nothing: the seeding case ("the fire brigade signs ten people
   // up"). Only then does the personal list's main tag apply, so a member's own choice always
   // outranks what a moderator entered for them.
-  const personal = await loadUserGroupTags(userId)
-  return personal[0] ? new GroupTag(personal[0]) : null
+  const personal = await loadUserCreationGroups(userId)
+  return personal[0] ? new CreationGroup(personal[0]) : null
 }

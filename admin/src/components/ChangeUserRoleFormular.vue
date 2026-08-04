@@ -19,7 +19,7 @@
 
         <hr />
         <div class="mb-3">
-          <label class="d-block mb-1">{{ $t('userRole.groupTags.label') }}</label>
+          <label class="d-block mb-1">{{ $t('userRole.creationGroups.label') }}</label>
           <ThemedSelect
             v-model="userMainTag"
             class="role-select"
@@ -27,7 +27,7 @@
             data-test="user-main-tag"
             @change="saveUserMainTag"
           />
-          <small class="d-block text-muted mt-1">{{ $t('userRole.groupTags.help') }}</small>
+          <small class="d-block text-muted mt-1">{{ $t('userRole.creationGroups.help') }}</small>
         </div>
 
         <div v-if="showModeratorScope" class="mb-3">
@@ -53,15 +53,15 @@ import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { BButton, BFormSelect } from 'bootstrap-vue-next'
 import { useMutation, useQuery } from '@vue/apollo-composable'
-import { groupTagOption } from '@/utils/groupTagLabel'
+import { creationGroupOption } from '@/utils/creationGroupLabel'
 import { setUserRole as setUserRoleMutation } from '../graphql/setUserRole'
 import {
-  groupTags,
-  userGroupTags,
-  moderatorGroupScope,
-  setUserGroupTags as setUserGroupTagsMutation,
-  setModeratorGroupScope as setModeratorGroupScopeMutation,
-} from '../graphql/groupTags.graphql'
+  creationGroups,
+  userCreationGroups,
+  moderatorCreationGroupScope,
+  setUserCreationGroups as setUserCreationGroupsMutation,
+  setModeratorCreationGroupScope as setModeratorCreationGroupScopeMutation,
+} from '../graphql/creationGroups.graphql'
 import { useStore } from 'vuex'
 import { useAppToast } from '@/composables/useToast'
 
@@ -139,8 +139,8 @@ const updateUserRole = (newRole, oldRole) => {
 }
 
 // --- Group functions: user main tag + moderator visibility scope ---
-const { result: groupTagsResult } = useQuery(groupTags)
-const groupTagOptions = computed(() => groupTagsResult.value?.groupTags ?? [])
+const { result: creationGroupsResult } = useQuery(creationGroups)
+const creationGroupOptions = computed(() => creationGroupsResult.value?.creationGroups ?? [])
 
 // The user's personal main tag (pre-filled on submission). Setting it here heals a
 // forgotten/misspelled tag at the source, not just on a single contribution.
@@ -149,7 +149,7 @@ const groupTagOptions = computed(() => groupTagsResult.value?.groupTags ?? [])
 // The form is mounted and unmounted with the details row, so a cached answer would come
 // back on the next open and show the value from before the change.
 const { result: userTagsResult, refetch: refetchUserTags } = useQuery(
-  userGroupTags,
+  userCreationGroups,
   () => ({ userId: props.item.userId }),
   { fetchPolicy: 'network-only' },
 )
@@ -157,32 +157,32 @@ const userMainTag = ref('')
 watch(
   userTagsResult,
   (value) => {
-    userMainTag.value = value?.userGroupTags?.[0]?.tag ?? ''
+    userMainTag.value = value?.userCreationGroups?.[0]?.tag ?? ''
   },
   { immediate: true },
 )
 const mainTagSelectOptions = computed(() => [
-  { value: '', text: t('userRole.groupTags.none') },
-  ...groupTagOptions.value.map(groupTagOption),
+  { value: '', text: t('userRole.creationGroups.none') },
+  ...creationGroupOptions.value.map(creationGroupOption),
 ])
-const { mutate: setUserGroupTags } = useMutation(setUserGroupTagsMutation)
+const { mutate: setUserCreationGroups } = useMutation(setUserCreationGroupsMutation)
 const saveUserMainTag = async () => {
   try {
-    await setUserGroupTags({
+    await setUserCreationGroups({
       userId: props.item.userId,
       tags: userMainTag.value ? [userMainTag.value] : [],
     })
     await refetchUserTags()
-    toastSuccess(t('userRole.savedGroupTags'))
+    toastSuccess(t('userRole.savedCreationGroups'))
   } catch (error) {
     toastError(error.message)
   }
 }
 
-// The moderator's visibility scope: which group tags they may see/edit. Sentinels
+// The moderator's visibility scope: which creation groups they may see/edit. Sentinels
 // '*all' (everything) and '*untagged' (contributions without a tag). Empty = all.
 const { result: scopeResult, refetch: refetchScope } = useQuery(
-  moderatorGroupScope,
+  moderatorCreationGroupScope,
   () => ({ userId: props.item.userId }),
   // Only an administrator may read a scope, and only a moderator has one, so asking for
   // every expanded row would earn a 401 per ordinary user.
@@ -192,19 +192,21 @@ const moderatorScope = ref([])
 watch(
   scopeResult,
   (value) => {
-    moderatorScope.value = value?.moderatorGroupScope ?? []
+    moderatorScope.value = value?.moderatorCreationGroupScope ?? []
   },
   { immediate: true },
 )
 const scopeSelectOptions = computed(() => [
   { value: '*all', text: t('userRole.scope.all') },
   { value: '*untagged', text: t('userRole.scope.untagged') },
-  ...groupTagOptions.value.map(groupTagOption),
+  ...creationGroupOptions.value.map(creationGroupOption),
 ])
-const { mutate: setModeratorGroupScope } = useMutation(setModeratorGroupScopeMutation)
+const { mutate: setModeratorCreationGroupScope } = useMutation(
+  setModeratorCreationGroupScopeMutation,
+)
 const saveScope = async () => {
   try {
-    await setModeratorGroupScope({
+    await setModeratorCreationGroupScope({
       userId: props.item.userId,
       scope: moderatorScope.value,
     })

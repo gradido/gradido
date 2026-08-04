@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import GroupTags from './GroupTags.vue'
+import CreationGroups from './CreationGroups.vue'
 
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
@@ -10,7 +10,7 @@ vi.mock('vue-i18n', () => ({
 }))
 
 // The groups the list renders. Declared here so a test can swap it before mounting.
-const groupTagsResult = { value: { groupTags: [] } }
+const creationGroupsResult = { value: { creationGroups: [] } }
 
 // The one-shot search. It answers per group id, so a test can tell WHICH group was asked
 // about -- an always-the-same mock could not see the bug this replaced.
@@ -25,7 +25,7 @@ vi.mock('@vue/apollo-composable', () => ({
     mutate: vi.fn(),
   })),
   useQuery: vi.fn(() => ({
-    result: groupTagsResult,
+    result: creationGroupsResult,
     error: { value: null },
     refetch: vi.fn(),
     onResult: vi.fn(),
@@ -76,11 +76,11 @@ const mockBFormCheckbox = {
   template: '<label class="mock-bformcheckbox"><slot></slot></label>',
 }
 
-describe('GroupTags', () => {
+describe('CreationGroups', () => {
   let wrapper
 
   const createWrapper = () =>
-    mount(GroupTags, {
+    mount(CreationGroups, {
       global: {
         stubs: {
           BFormGroup: mockBFormGroup,
@@ -97,18 +97,18 @@ describe('GroupTags', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    groupTagsResult.value = { groupTags: [] }
+    creationGroupsResult.value = { creationGroups: [] }
     wrapper = createWrapper()
   })
 
   it('renders the group management page for an admin', () => {
-    expect(wrapper.find('.group-tags').exists()).toBe(true)
-    expect(wrapper.text()).toContain('groupTagsAdmin.title')
-    expect(wrapper.text()).toContain('groupTagsAdmin.addTitle')
+    expect(wrapper.find('.creation-groups').exists()).toBe(true)
+    expect(wrapper.text()).toContain('creationGroupsAdmin.title')
+    expect(wrapper.text()).toContain('creationGroupsAdmin.addTitle')
   })
 
   it('shows the empty hint when there are no groups yet', () => {
-    expect(wrapper.text()).toContain('groupTagsAdmin.empty')
+    expect(wrapper.text()).toContain('creationGroupsAdmin.empty')
   })
 
   it('offers a create button', () => {
@@ -141,8 +141,8 @@ describe('GroupTags', () => {
   // at" has to be readable off the row.
   describe('adoption state per group', () => {
     const mountWith = (extra) => {
-      groupTagsResult.value = {
-        groupTags: [{ id: 7, tag: 'amstetten', name: 'Amstetten', ...extra }],
+      creationGroupsResult.value = {
+        creationGroups: [{ id: 7, tag: 'amstetten', name: 'Amstetten', ...extra }],
       }
       return createWrapper()
     }
@@ -150,7 +150,7 @@ describe('GroupTags', () => {
     it('flags a group nobody has looked at yet', () => {
       const w = mountWith({ hashtagsAdoptedAt: null, hashtagsAdoptedCount: null })
       expect(w.find('[data-test="adoption-state-7"]').text()).toBe(
-        'groupTagsAdmin.adoption.stateUnchecked',
+        'creationGroupsAdmin.adoption.stateUnchecked',
       )
     })
 
@@ -160,7 +160,7 @@ describe('GroupTags', () => {
         hashtagsAdoptedCount: 987,
       })
       expect(w.find('[data-test="adoption-state-7"]').text()).toBe(
-        'groupTagsAdmin.adoption.stateAdopted',
+        'creationGroupsAdmin.adoption.stateAdopted',
       )
     })
 
@@ -172,7 +172,7 @@ describe('GroupTags', () => {
         hashtagsAdoptedCount: 0,
       })
       expect(w.find('[data-test="adoption-state-7"]').text()).toBe(
-        'groupTagsAdmin.adoption.stateNothing',
+        'creationGroupsAdmin.adoption.stateNothing',
       )
     })
   })
@@ -183,8 +183,8 @@ describe('GroupTags', () => {
   // the missing result was read as zero.
   describe('searching several groups in a row', () => {
     beforeEach(() => {
-      groupTagsResult.value = {
-        groupTags: [
+      creationGroupsResult.value = {
+        creationGroups: [
           { id: 1, tag: 'amstetten', name: 'Amstetten' },
           { id: 2, tag: 'feuerwehr', name: 'Feuerwehr' },
         ],
@@ -235,7 +235,7 @@ describe('GroupTags', () => {
     }
 
     beforeEach(() => {
-      groupTagsResult.value = { groupTags: [amstetten, feuerwehr] }
+      creationGroupsResult.value = { creationGroups: [amstetten, feuerwehr] }
       wrapper = createWrapper()
     })
 

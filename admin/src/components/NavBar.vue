@@ -45,10 +45,10 @@
           </BNavItem>
           <BNavItem
             v-if="store.state.moderator?.roles?.includes('ADMIN')"
-            to="/group-tags"
-            :active="isActive('group-tags')"
+            to="/creation-groups"
+            :active="isActive('creation-groups')"
           >
-            {{ $t('navbar.groupTags') }}
+            {{ $t('navbar.creationGroups') }}
           </BNavItem>
           <BNavItem to="/statistic" :active="isActive('statistic')">
             {{ $t('navbar.statistic') }}

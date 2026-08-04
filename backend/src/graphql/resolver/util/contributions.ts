@@ -5,7 +5,7 @@ import { FRONTEND_CONTRIBUTIONS_ITEM_ANCHOR_PREFIX } from 'shared'
 import { In, SelectQueryBuilder } from 'typeorm'
 import { CONFIG } from '@/config'
 import { Order } from '@/graphql/enum/Order'
-import { buildGroupTagPredicate } from './findContributions'
+import { buildCreationGroupPredicate } from './findContributions'
 
 // Data protection: the community list forgets. It shows a recent stretch and nothing
 // older, so nobody can read a member's deeds back over years, and a decision that was
@@ -64,8 +64,8 @@ const applyWalletFilter = (
   if (query) {
     queryBuilder.andWhere('Contribution.memo LIKE :walletQuery', { walletQuery: `%${query}%` })
   }
-  if (filter.groupTag) {
-    const groupPredicate = buildGroupTagPredicate(filter.groupTag)
+  if (filter.creationGroup) {
+    const groupPredicate = buildCreationGroupPredicate(filter.creationGroup)
     queryBuilder.andWhere(groupPredicate.sql, groupPredicate.params)
   }
 }
@@ -163,7 +163,7 @@ export const loadAllContributions = async (
 // ⚠️ This is for the wallet's filters alone. The submission field must go on offering EVERY
 // group — a group dropped from there could never be woken up again, because nobody could
 // file a contribution for it.
-const groupTagsWithContributions = async (
+const creationGroupsWithContributions = async (
   tags: string[],
   narrow: (queryBuilder: SelectQueryBuilder<DbContribution>) => void,
 ): Promise<string[]> => {
@@ -173,8 +173,8 @@ const groupTagsWithContributions = async (
   const queryBuilder = DbContribution.createQueryBuilder('Contribution')
     .select('gt.tag', 'tag')
     .distinct(true)
-    .innerJoin('contribution_group_tags', 'cgt', 'cgt.contribution_id = Contribution.id')
-    .innerJoin('group_tags', 'gt', 'gt.id = cgt.group_tag_id')
+    .innerJoin('contribution_creation_groups', 'cgt', 'cgt.contribution_id = Contribution.id')
+    .innerJoin('creation_groups', 'gt', 'gt.id = cgt.creation_group_id')
     .andWhere('gt.tag IN (:...tags)', { tags })
   narrow(queryBuilder)
   const rows: Array<{ tag: string }> = await queryBuilder.getRawMany()
@@ -184,9 +184,9 @@ const groupTagsWithContributions = async (
 }
 
 // The groups the community list currently has something to show for, within its window.
-export const groupTagsInCommunityWindow = async (tags: string[]): Promise<string[]> => {
+export const creationGroupsInCommunityWindow = async (tags: string[]): Promise<string[]> => {
   const windowStart = communityWindowStart()
-  return groupTagsWithContributions(tags, (queryBuilder) => {
+  return creationGroupsWithContributions(tags, (queryBuilder) => {
     queryBuilder.andWhere(COMMUNITY_WINDOW_SQL, { communityWindowStart: windowStart })
   })
 }
@@ -194,11 +194,11 @@ export const groupTagsInCommunityWindow = async (tags: string[]): Promise<string
 // The groups the submitter's own "my contributions" list has something to show for: scoped
 // to the user and NOT windowed, and it counts their deleted contributions too, because that
 // list shows them (loadUserContributions loads withDeleted).
-export const groupTagsInUserContributions = async (
+export const creationGroupsInUserContributions = async (
   userId: number,
   tags: string[],
 ): Promise<string[]> => {
-  return groupTagsWithContributions(tags, (queryBuilder) => {
+  return creationGroupsWithContributions(tags, (queryBuilder) => {
     queryBuilder.withDeleted().andWhere('Contribution.userId = :userId', { userId })
   })
 }

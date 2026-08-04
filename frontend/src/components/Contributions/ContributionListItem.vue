@@ -22,7 +22,7 @@
           <div class="mt-3 fw-bold">
             <span v-if="groupLabel">{{ groupLabel }}</span>
             <span v-else class="fw-normal fst-italic text-muted">
-              {{ $t('contribution.groupTag.none') }}
+              {{ $t('contribution.creationGroup.none') }}
             </span>
           </div>
           <div class="mb-3 text-break word-break">{{ memo }}</div>
@@ -119,7 +119,7 @@ import { useMutation } from '@vue/apollo-composable'
 import { GDD_PER_HOUR } from '../../constants'
 import { deleteContribution } from '@/graphql/contributions.graphql'
 import { useContributionStatus } from '@/composables/useContributionStatus'
-import { groupTagLabels } from '@/utils/groupTagLabel'
+import { creationGroupLabels } from '@/utils/creationGroupLabel'
 
 const props = defineProps({
   id: {
@@ -162,7 +162,7 @@ const props = defineProps({
     required: false,
     default: false,
   },
-  groupTags: {
+  creationGroups: {
     type: Array,
     required: false,
     default: () => [],
@@ -171,7 +171,7 @@ const props = defineProps({
 
 // Group functions: the contribution's group takes the place of the old, unhelpful
 // "contribution text" heading. Several groups are listed one after another.
-const groupLabel = computed(() => groupTagLabels(props.groupTags))
+const groupLabel = computed(() => creationGroupLabels(props.creationGroups))
 
 const { toastError, toastSuccess } = useAppToast()
 const { t } = useI18n()

@@ -1,56 +1,56 @@
 <template>
-  <div class="group-tags">
-    <div class="h2 mb-3">{{ $t('groupTagsAdmin.title') }}</div>
-    <div v-if="isAdmin" class="group-tags-body">
-      <p class="text-muted">{{ $t('groupTagsAdmin.intro') }}</p>
+  <div class="creation-groups">
+    <div class="h2 mb-3">{{ $t('creationGroupsAdmin.title') }}</div>
+    <div v-if="isAdmin" class="creation-groups-body">
+      <p class="text-muted">{{ $t('creationGroupsAdmin.intro') }}</p>
 
-      <div class="group-tags-form mb-4">
-        <div class="h5 mb-2">{{ $t('groupTagsAdmin.addTitle') }}</div>
-        <BFormGroup :label="$t('groupTagsAdmin.name')" class="mb-2">
+      <div class="creation-groups-form mb-4">
+        <div class="h5 mb-2">{{ $t('creationGroupsAdmin.addTitle') }}</div>
+        <BFormGroup :label="$t('creationGroupsAdmin.name')" class="mb-2">
           <BFormInput
             v-model="newName"
-            :placeholder="$t('groupTagsAdmin.namePlaceholder')"
+            :placeholder="$t('creationGroupsAdmin.namePlaceholder')"
             @update:model-value="onNewName"
           />
         </BFormGroup>
-        <BFormGroup :label="$t('groupTagsAdmin.tag')" class="mb-2">
+        <BFormGroup :label="$t('creationGroupsAdmin.tag')" class="mb-2">
           <BFormInput
             v-model="newTag"
-            :placeholder="$t('groupTagsAdmin.tagPlaceholder')"
+            :placeholder="$t('creationGroupsAdmin.tagPlaceholder')"
             @update:model-value="tagTouched = true"
           />
-          <small class="text-muted d-block mt-1">{{ $t('groupTagsAdmin.tagHint') }}</small>
+          <small class="text-muted d-block mt-1">{{ $t('creationGroupsAdmin.tagHint') }}</small>
         </BFormGroup>
         <BButton variant="primary" :disabled="creating || !canCreate" @click="create">
-          {{ $t('groupTagsAdmin.add') }}
+          {{ $t('creationGroupsAdmin.add') }}
         </BButton>
       </div>
 
-      <div class="h5 mb-2">{{ $t('groupTagsAdmin.existingTitle') }}</div>
-      <div v-if="tags.length === 0" class="text-muted">{{ $t('groupTagsAdmin.empty') }}</div>
-      <ul v-else class="group-list list-unstyled">
-        <li v-for="tag in tags" :key="tag.id" class="group-row">
+      <div class="h5 mb-2">{{ $t('creationGroupsAdmin.existingTitle') }}</div>
+      <div v-if="tags.length === 0" class="text-muted">{{ $t('creationGroupsAdmin.empty') }}</div>
+      <ul v-else class="creation-group-list list-unstyled">
+        <li v-for="tag in tags" :key="tag.id" class="creation-group-row">
           <template v-if="editingId === tag.id">
             <BFormInput
               v-model="editName"
-              class="group-input"
-              :placeholder="$t('groupTagsAdmin.name')"
+              class="creation-group-input"
+              :placeholder="$t('creationGroupsAdmin.name')"
             />
             <BFormInput
               v-model="editTag"
-              class="group-input"
-              :placeholder="$t('groupTagsAdmin.tag')"
+              class="creation-group-input"
+              :placeholder="$t('creationGroupsAdmin.tag')"
             />
             <BButton size="sm" variant="primary" :disabled="saving" @click="saveEdit(tag)">
-              {{ $t('groupTagsAdmin.save') }}
+              {{ $t('creationGroupsAdmin.save') }}
             </BButton>
             <BButton size="sm" variant="secondary" @click="cancelEdit">
-              {{ $t('groupTagsAdmin.cancel') }}
+              {{ $t('creationGroupsAdmin.cancel') }}
             </BButton>
           </template>
           <template v-else>
-            <span class="group-name">{{ tag.name || '—' }}</span>
-            <span class="group-tag text-muted">#{{ tag.tag }}</span>
+            <span class="creation-group-name">{{ tag.name || '—' }}</span>
+            <span class="creation-group text-muted">#{{ tag.tag }}</span>
             <span class="adoption-state text-muted" :data-test="`adoption-state-${tag.id}`">
               {{ adoptionState(tag) }}
             </span>
@@ -60,10 +60,10 @@
               class="ms-auto"
               @click="openAdoption(tag)"
             >
-              {{ $t('groupTagsAdmin.adoption.check') }}
+              {{ $t('creationGroupsAdmin.adoption.check') }}
             </BButton>
             <BButton size="sm" variant="outline-secondary" @click="startEdit(tag)">
-              {{ $t('groupTagsAdmin.edit') }}
+              {{ $t('creationGroupsAdmin.edit') }}
             </BButton>
           </template>
         </li>
@@ -73,34 +73,40 @@
            it reads every memo, and it writes onto other members' contributions. -->
       <BModal
         v-model="adoptionOpen"
-        :title="$t('groupTagsAdmin.adoption.title', { group: adoptionLabel })"
+        :title="$t('creationGroupsAdmin.adoption.title', { group: adoptionLabel })"
         :ok-title="adoptionOkTitle"
-        :cancel-title="$t('groupTagsAdmin.cancel')"
+        :cancel-title="$t('creationGroupsAdmin.cancel')"
         :ok-disabled="adopting || counts === null"
         @ok.prevent="adopt"
       >
         <div v-if="countsLoading" class="text-muted">
-          {{ $t('groupTagsAdmin.adoption.searching') }}
+          {{ $t('creationGroupsAdmin.adoption.searching') }}
         </div>
         <template v-else-if="counts">
           <p>
             {{
-              $t('groupTagsAdmin.adoption.foundExact', { count: counts.exact, tag: adoptionTag })
+              $t('creationGroupsAdmin.adoption.foundExact', {
+                count: counts.exact,
+                tag: adoptionTag,
+              })
             }}
           </p>
           <BFormCheckbox v-if="counts.loose > 0" v-model="includeLoose" class="mb-2">
             {{
-              $t('groupTagsAdmin.adoption.foundLoose', { count: counts.loose, tag: adoptionTag })
+              $t('creationGroupsAdmin.adoption.foundLoose', {
+                count: counts.loose,
+                tag: adoptionTag,
+              })
             }}
           </BFormCheckbox>
           <p v-if="counts.exact === 0 && counts.loose === 0" class="text-muted">
-            {{ $t('groupTagsAdmin.adoption.foundNothing') }}
+            {{ $t('creationGroupsAdmin.adoption.foundNothing') }}
           </p>
-          <small class="text-muted d-block">{{ $t('groupTagsAdmin.adoption.hint') }}</small>
+          <small class="text-muted d-block">{{ $t('creationGroupsAdmin.adoption.hint') }}</small>
         </template>
       </BModal>
     </div>
-    <div v-else>{{ $t('groupTagsAdmin.adminOnly') }}</div>
+    <div v-else>{{ $t('creationGroupsAdmin.adminOnly') }}</div>
   </div>
 </template>
 
@@ -111,12 +117,12 @@ import { useI18n } from 'vue-i18n'
 import { useStore } from 'vuex'
 import { useAppToast } from '@/composables/useToast'
 import {
-  groupTags as groupTagsQuery,
-  createGroupTag,
-  updateGroupTag,
+  creationGroups as creationGroupsQuery,
+  addCreationGroup,
+  editCreationGroup,
   legacyHashtagCounts as legacyHashtagCountsQuery,
   adoptLegacyHashtags as adoptLegacyHashtagsMutation,
-} from '@/graphql/groupTags.graphql'
+} from '@/graphql/creationGroups.graphql'
 
 const { t, d } = useI18n()
 const store = useStore()
@@ -124,11 +130,11 @@ const { toastSuccess, toastError } = useAppToast()
 
 const isAdmin = computed(() => store.state.moderator.roles.includes('ADMIN'))
 
-const { result, error, refetch } = useQuery(groupTagsQuery, null, {
+const { result, error, refetch } = useQuery(creationGroupsQuery, null, {
   fetchPolicy: 'network-only',
   enabled: isAdmin,
 })
-const tags = computed(() => result.value?.groupTags ?? [])
+const tags = computed(() => result.value?.creationGroups ?? [])
 
 watch(error, () => {
   if (error.value) {
@@ -163,13 +169,13 @@ function onNewName() {
   }
 }
 
-const { mutate: createMutation } = useMutation(createGroupTag)
+const { mutate: createMutation } = useMutation(addCreationGroup)
 
 async function create() {
   creating.value = true
   try {
     await createMutation({ tag: newTag.value.trim(), name: newName.value.trim() || null })
-    toastSuccess(t('groupTagsAdmin.created'))
+    toastSuccess(t('creationGroupsAdmin.created'))
     newName.value = ''
     newTag.value = ''
     tagTouched.value = false
@@ -197,7 +203,7 @@ function cancelEdit() {
   editingId.value = null
 }
 
-const { mutate: updateMutation } = useMutation(updateGroupTag)
+const { mutate: updateMutation } = useMutation(editCreationGroup)
 
 async function saveEdit(tag) {
   saving.value = true
@@ -207,7 +213,7 @@ async function saveEdit(tag) {
       tag: editTag.value.trim(),
       name: editName.value.trim() || null,
     })
-    toastSuccess(t('groupTagsAdmin.updated'))
+    toastSuccess(t('creationGroupsAdmin.updated'))
     editingId.value = null
     await refetch()
   } catch (e) {
@@ -238,12 +244,15 @@ let adoptionRequest = 0
 
 function adoptionState(tag) {
   if (!tag.hashtagsAdoptedAt) {
-    return t('groupTagsAdmin.adoption.stateUnchecked')
+    return t('creationGroupsAdmin.adoption.stateUnchecked')
   }
   const when = d(new Date(tag.hashtagsAdoptedAt), 'short')
   return tag.hashtagsAdoptedCount
-    ? t('groupTagsAdmin.adoption.stateAdopted', { date: when, count: tag.hashtagsAdoptedCount })
-    : t('groupTagsAdmin.adoption.stateNothing', { date: when })
+    ? t('creationGroupsAdmin.adoption.stateAdopted', {
+        date: when,
+        count: tag.hashtagsAdoptedCount,
+      })
+    : t('creationGroupsAdmin.adoption.stateNothing', { date: when })
 }
 
 // Both spellings are ticked by default. The exact one always displayed as the group; the
@@ -252,8 +261,8 @@ function adoptionState(tag) {
 const adoptionOkTitle = computed(() => {
   const total = (counts.value?.exact ?? 0) + (includeLoose.value ? (counts.value?.loose ?? 0) : 0)
   return total > 0
-    ? t('groupTagsAdmin.adoption.adopt', { count: total })
-    : t('groupTagsAdmin.adoption.markChecked')
+    ? t('creationGroupsAdmin.adoption.adopt', { count: total })
+    : t('creationGroupsAdmin.adoption.markChecked')
 })
 
 // ⚠️ NOT useLazyQuery. Its load() answers only on the FIRST call and returns a bare `false`
@@ -293,7 +302,7 @@ async function openAdoption(tag) {
     // No fallback on purpose. A missing answer is not "nothing found" -- reading it as zero
     // is exactly what made a broken query look like an empty result.
     if (!data?.legacyHashtagCounts) {
-      throw new Error(t('groupTagsAdmin.adoption.searchFailed'))
+      throw new Error(t('creationGroupsAdmin.adoption.searchFailed'))
     }
     counts.value = data.legacyHashtagCounts
   } catch (e) {
@@ -317,7 +326,7 @@ async function adopt() {
   adopting.value = true
   try {
     await adoptMutation({ id: adoptionId, includeLoose: includeLoose.value })
-    toastSuccess(t('groupTagsAdmin.adoption.done'))
+    toastSuccess(t('creationGroupsAdmin.adoption.done'))
     adoptionOpen.value = false
     await refetch()
   } catch (e) {
@@ -329,15 +338,15 @@ async function adopt() {
 </script>
 
 <style scoped>
-.group-tags-body {
+.creation-groups-body {
   max-width: 720px;
 }
 
-.group-tags-form {
+.creation-groups-form {
   max-width: 640px;
 }
 
-.group-row {
+.creation-group-row {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -345,15 +354,15 @@ async function adopt() {
   border-bottom: 1px solid rgb(0 0 0 / 7.5%);
 }
 
-.group-name {
+.creation-group-name {
   font-weight: 500;
 }
 
-.group-tag {
+.creation-group {
   font-size: 0.9em;
 }
 
-.group-input {
+.creation-group-input {
   max-width: 220px;
 }
 

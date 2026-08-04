@@ -14,7 +14,7 @@
 //
 // Accent variants are deliberately not adopted: comparison is lower-cased but NOT
 // accent-folded, so "#Alesund" does not become the group "ålesund". It never displayed as
-// one. Note this differs from the database, where group_tags.tag is utf8mb4_unicode_ci and
+// one. Note this differs from the database, where creation_groups.tag is utf8mb4_unicode_ci and
 // therefore accent-insensitive. The JS rule governs here, because the JS rule is what was
 // on screen.
 
@@ -34,7 +34,7 @@ const EXACT_TAG = new RegExp(`#${TOKEN}`, 'gu')
 // stay ordinary text.
 //
 // Blanks only, no line break: a '#' at the end of a line with a word beneath it is far more
-// likely to be layout than intent. (createGroupTag rejects a tag containing whitespace with
+// likely to be layout than intent. (addCreationGroup rejects a tag containing whitespace with
 // this very case in mind, so the group side can never itself be "# x".)
 const LOOSE_TAG = new RegExp(`#[ \\t]+${TOKEN}`, 'gu')
 

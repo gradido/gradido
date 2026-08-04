@@ -54,8 +54,8 @@ import { ref, computed } from 'vue'
 import { useQuery } from '@vue/apollo-composable'
 import CONFIG from '@/config'
 import { listContributionLinks, searchAdminUsers } from '@/graphql/queries'
-import { groupTags as groupTagsQuery } from '@/graphql/contributions.graphql'
-import { groupTagLabel } from '@/utils/groupTagLabel'
+import { creationGroups as creationGroupsQuery } from '@/graphql/contributions.graphql'
+import { creationGroupLabel } from '@/utils/creationGroupLabel'
 import { useAppToast } from '../composables/useToast'
 
 const { toastError } = useAppToast()
@@ -73,7 +73,7 @@ const { onResult: onAdminUsersResult, onError: onAdminUsersError } = useQuery(se
   currentPage: 1,
   order: 'ASC',
 })
-const { result: groupTagsResult } = useQuery(groupTagsQuery)
+const { result: creationGroupsResult } = useQuery(creationGroupsQuery)
 
 // A KI-Moderator is a moderator who may additionally use Crea, so both kinds belong in the
 // same list — the backend applies the very same group scope to them.
@@ -94,24 +94,28 @@ const moderators = computed(() =>
 // Group functions: moderators are listed under every group they look after, so a
 // member can see whom to address. A moderator with several groups appears several times.
 const groupSections = computed(() =>
-  (groupTagsResult.value?.groupTags ?? []).map((groupTag) => ({
-    tag: groupTag.tag,
-    label: groupTagLabel(groupTag),
-    moderators: moderators.value.filter((item) => item.visibleGroupTags?.includes(groupTag.tag)),
+  (creationGroupsResult.value?.creationGroups ?? []).map((creationGroup) => ({
+    tag: creationGroup.tag,
+    label: creationGroupLabel(creationGroup),
+    moderators: moderators.value.filter((item) =>
+      item.visibleCreationGroups?.includes(creationGroup.tag),
+    ),
   })),
 )
 
 // Nobody has assigned them a group yet, which in practice means they look after all of them —
 // that is exactly what the contribution list grants an unscoped moderator. The section
 // disappears by itself once every moderator has their groups.
-const allGroupsModerators = computed(() => moderators.value.filter((item) => item.seesAllGroups))
+const allGroupsModerators = computed(() =>
+  moderators.value.filter((item) => item.seesAllCreationGroups),
+)
 
 // Scoped to contributions that carry no group. Neither a group section nor a free pass, so
 // they get their own heading instead of vanishing from the page. A moderator who looks
 // after both some group and the ungrouped ones belongs under both headings, so this asks
 // the scope directly instead of inferring it from an empty tag list.
 const untaggedModerators = computed(() =>
-  moderators.value.filter((item) => !item.seesAllGroups && item.seesUntagged),
+  moderators.value.filter((item) => !item.seesAllCreationGroups && item.seesUntagged),
 )
 
 onContributionLinksResult(({ data }) => {

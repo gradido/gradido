@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { ref } from 'vue'
 import { useQuery } from '@vue/apollo-composable'
-import { suggestedGroupTag } from '@/graphql/contributions.graphql'
+import { suggestedCreationGroup } from '@/graphql/contributions.graphql'
 import ContributionForm from './ContributionForm.vue'
 
 vi.mock('vue-i18n', () => ({
@@ -201,8 +201,8 @@ describe('ContributionForm', () => {
   describe('group pre-fill', () => {
     const withSuggestion = (tag) => {
       vi.mocked(useQuery).mockImplementation((query) => {
-        if (query === suggestedGroupTag) {
-          return { result: ref(tag ? { suggestedGroupTag: { id: 1, tag, name: null } } : {}) }
+        if (query === suggestedCreationGroup) {
+          return { result: ref(tag ? { suggestedCreationGroup: { id: 1, tag, name: null } } : {}) }
         }
         return { result: ref(undefined) }
       })
@@ -216,7 +216,7 @@ describe('ContributionForm', () => {
 
     it('pre-fills the suggested group', () => {
       withSuggestion('feuerwehr')
-      expect(mountWith().vm.selectedGroupTag).toBe('feuerwehr')
+      expect(mountWith().vm.selectedCreationGroup).toBe('feuerwehr')
     })
 
     it('asks the server for the suggestion instead of trusting the cache', () => {
@@ -228,7 +228,7 @@ describe('ContributionForm', () => {
       withSuggestion('feuerwehr')
       mountWith()
       expect(useQuery).toHaveBeenCalledWith(
-        suggestedGroupTag,
+        suggestedCreationGroup,
         expect.anything(),
         expect.objectContaining({ fetchPolicy: 'no-cache' }),
       )
@@ -238,18 +238,18 @@ describe('ContributionForm', () => {
       // Also the deliberate "no group" case: the backend answers with nothing, and the
       // field must not fall back to some earlier group.
       withSuggestion(null)
-      expect(mountWith().vm.selectedGroupTag).toBe('')
+      expect(mountWith().vm.selectedCreationGroup).toBe('')
     })
 
     it('does not overwrite a group that is already chosen', () => {
       withSuggestion('feuerwehr')
-      expect(mountWith({ groupTags: ['chor'] }).vm.selectedGroupTag).toBe('chor')
+      expect(mountWith({ creationGroups: ['chor'] }).vm.selectedCreationGroup).toBe('chor')
     })
 
     it('does not pre-fill when an existing contribution is edited', () => {
       // Editing must not silently move a contribution into another group.
       withSuggestion('feuerwehr')
-      expect(mountWith({ id: '123' }).vm.selectedGroupTag).toBe('')
+      expect(mountWith({ id: '123' }).vm.selectedCreationGroup).toBe('')
     })
   })
 })

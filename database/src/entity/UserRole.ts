@@ -13,10 +13,10 @@ export class UserRole extends BaseEntity {
   role: string
 
   // Group functions: a moderator's visibility scope, stored as a JSON array
-  // of group-tag strings plus the reserved sentinels '*all' / '*untagged'. NULL = no
+  // of creation-group strings plus the reserved sentinels '*all' / '*untagged'. NULL = no
   // restriction (backward compatible: existing moderators keep full visibility).
-  @Column({ name: 'visible_group_tags', type: 'text', nullable: true, default: null })
-  visibleGroupTags: string | null
+  @Column({ name: 'visible_creation_groups', type: 'text', nullable: true, default: null })
+  visibleCreationGroups: string | null
 
   @Column({
     name: 'created_at',

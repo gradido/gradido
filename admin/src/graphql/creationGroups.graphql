@@ -1,5 +1,5 @@
-query groupTags {
-  groupTags {
+query creationGroups {
+  creationGroups {
     id
     tag
     name
@@ -8,40 +8,40 @@ query groupTags {
   }
 }
 
-query userGroupTags($userId: Int!) {
-  userGroupTags(userId: $userId) {
+query userCreationGroups($userId: Int!) {
+  userCreationGroups(userId: $userId) {
     id
     tag
     name
   }
 }
 
-query moderatorGroupScope($userId: Int!) {
-  moderatorGroupScope(userId: $userId)
+query moderatorCreationGroupScope($userId: Int!) {
+  moderatorCreationGroupScope(userId: $userId)
 }
 
-mutation setUserGroupTags($userId: Int!, $tags: [String!]!) {
-  setUserGroupTags(userId: $userId, tags: $tags) {
+mutation setUserCreationGroups($userId: Int!, $tags: [String!]!) {
+  setUserCreationGroups(userId: $userId, tags: $tags) {
     id
     tag
     name
   }
 }
 
-mutation setModeratorGroupScope($userId: Int!, $scope: [String!]!) {
-  setModeratorGroupScope(userId: $userId, scope: $scope)
+mutation setModeratorCreationGroupScope($userId: Int!, $scope: [String!]!) {
+  setModeratorCreationGroupScope(userId: $userId, scope: $scope)
 }
 
-mutation createGroupTag($tag: String!, $name: String) {
-  createGroupTag(tag: $tag, name: $name) {
+mutation addCreationGroup($tag: String!, $name: String) {
+  addCreationGroup(tag: $tag, name: $name) {
     id
     tag
     name
   }
 }
 
-mutation updateGroupTag($id: Int!, $tag: String, $name: String) {
-  updateGroupTag(id: $id, tag: $tag, name: $name) {
+mutation editCreationGroup($id: Int!, $tag: String, $name: String) {
+  editCreationGroup(id: $id, tag: $tag, name: $name) {
     id
     tag
     name
@@ -71,6 +71,6 @@ mutation adoptLegacyHashtags($id: Int!, $includeLoose: Boolean!) {
 
 # Move a contribution to another group (or to none). Only while it is still open;
 # the backend refuses once it is confirmed, denied or deleted.
-mutation assignContributionGroupTags($contributionId: Int!, $tags: [String!]!) {
-  assignContributionGroupTags(contributionId: $contributionId, tags: $tags)
+mutation assignContributionCreationGroups($contributionId: Int!, $tags: [String!]!) {
+  assignContributionCreationGroups(contributionId: $contributionId, tags: $tags)
 }
