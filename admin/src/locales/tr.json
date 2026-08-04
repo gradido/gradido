@@ -13,6 +13,10 @@
   },
   "alias": "Takma ad",
   "all_emails": "Tüm kullanıcılar",
+  "appOutdated": {
+    "reload": "Yenile",
+    "text": "Daha yeni bir sürüm mevcut. Lütfen sayfayı yenileyin."
+  },
   "back": "geri",
   "bulkResubmission": {
     "cancel": "Do not apply",

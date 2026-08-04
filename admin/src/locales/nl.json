@@ -13,6 +13,10 @@
   },
   "alias": "Alias",
   "all_emails": "Alle gebruikers",
+  "appOutdated": {
+    "reload": "Opnieuw laden",
+    "text": "Er is een nieuwere versie beschikbaar. Laad de pagina opnieuw."
+  },
   "back": "terug",
   "bulkResubmission": {
     "cancel": "Do not apply",

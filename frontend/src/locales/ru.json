@@ -20,6 +20,10 @@
   "PersonalDetails": "Личные данные",
   "advanced-calculation": "заранее начислено",
   "answerNow": "→ Ответить сейчас!",
+  "appOutdated": {
+    "reload": "Обновить",
+    "text": "Доступна более новая версия. Пожалуйста, обновите страницу."
+  },
   "asterisks": "****",
   "auth": {
     "left": {

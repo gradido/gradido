@@ -20,6 +20,10 @@
   "PersonalDetails": "Personal details",
   "advanced-calculation": "Advanced calculation",
   "answerNow": "→ Reply now!",
+  "appOutdated": {
+    "reload": "Reload",
+    "text": "A newer version is available. Please reload the page."
+  },
   "asterisks": "****",
   "auth": {
     "left": {

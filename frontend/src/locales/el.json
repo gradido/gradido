@@ -20,6 +20,10 @@
   "PersonalDetails": "Προσωπικά στοιχεία",
   "advanced-calculation": "Προκαταρκτικός υπολογισμός",
   "answerNow": "→ Απάντησε τώρα!",
+  "appOutdated": {
+    "reload": "Ανανέωση",
+    "text": "Υπάρχει νεότερη έκδοση. Παρακαλώ ανανεώστε τη σελίδα."
+  },
   "asterisks": "****",
   "auth": {
     "left": {

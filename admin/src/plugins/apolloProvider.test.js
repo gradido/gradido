@@ -25,6 +25,13 @@ describe('Apollo Provider Setup', () => {
     vi.clearAllMocks()
   })
 
+  // ★ This file deliberately does NOT mock apollo-boost or @apollo/client/link/error, so
+  // importing the module builds the real chain. That is what makes the assertion below worth
+  // more than it looks: this admin still builds its client from apollo-boost (apollo-link
+  // 1.x) while the outdated-app link comes from @apollo/client 3.x, and if those two
+  // generations could not be chained, ApolloLink.from would throw on import and every test
+  // here would fail. The wiring of that link is covered separately in
+  // apolloOutdatedLink.test.js, which has to mock onError and therefore cannot prove this.
   it('creates an Apollo provider', () => {
     expect(apolloProvider).toBeDefined()
     expect(apolloProvider).toBeInstanceOf(VueApollo)
