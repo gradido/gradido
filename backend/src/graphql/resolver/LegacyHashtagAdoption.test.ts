@@ -4,11 +4,11 @@ import { cleanDB, testEnvironment } from '@test/helpers'
 import {
   AppDatabase,
   Contribution as DbContribution,
-  ContributionGroupTag as DbContributionGroupTag,
-  GroupTag as DbGroupTag,
+  ContributionCreationGroup as DbContributionCreationGroup,
+  CreationGroup as DbCreationGroup,
 } from 'database'
 import { getLogger as originalGetLogger } from 'log4js'
-import { GroupTagResolver } from './GroupTagResolver'
+import { CreationGroupResolver } from './CreationGroupResolver'
 
 // LEGACY-HASHTAG-ADOPTION -- a changeover aid, meant to be removed again.
 //
@@ -16,14 +16,14 @@ import { GroupTagResolver } from './GroupTagResolver'
 // legacyHashtagRule.test.ts. This file covers the other half: WHICH contributions are
 // offered at all, which lives in SQL and therefore needs a real database.
 //
-// ★ The guard deliberately does NOT require group_tags_set_at to be null, although the
-// migration this replaces did. setContributionGroupTags stamps on EVERY submission --
+// ★ The guard deliberately does NOT require creation_groups_set_at to be null, although the
+// migration this replaces did. setContributionCreationGroups stamps on EVERY submission --
 // including when the field was left empty -- so requiring a null stamp excluded everything
 // filed since the group field went live. That is exactly the case the changeover has to
 // catch: someone still typing the hashtag out of habit.
 
 let db: AppDatabase
-const resolver = new GroupTagResolver()
+const resolver = new CreationGroupResolver()
 
 beforeAll(async () => {
   const testEnv = await testEnvironment(originalGetLogger('apollo'))
@@ -36,8 +36,8 @@ afterAll(async () => {
   await db.destroy()
 })
 
-const makeGroup = async (tag: string): Promise<DbGroupTag> => {
-  const entry = DbGroupTag.create()
+const makeGroup = async (tag: string): Promise<DbCreationGroup> => {
+  const entry = DbCreationGroup.create()
   entry.tag = tag
   entry.name = tag
   await entry.save()
@@ -60,7 +60,7 @@ const makeContribution = async (
   contribution.contributionDate = new Date()
   contribution.contributionType = ContributionType.USER
   contribution.contributionStatus = ContributionStatus.PENDING
-  contribution.groupTagsSetAt = stamped ? new Date() : null
+  contribution.creationGroupsSetAt = stamped ? new Date() : null
   contribution.deletedAt = deleted ? new Date() : null
   await contribution.save()
   return contribution
@@ -73,8 +73,8 @@ const expectReallyDeleted = async (contribution: DbContribution): Promise<void> 
   expect(await DbContribution.findOne({ where: { id: contribution.id } })).toBeNull()
 }
 
-const linkedContributionIds = async (group: DbGroupTag): Promise<number[]> => {
-  const links = await DbContributionGroupTag.find({ where: { groupTagId: group.id } })
+const linkedContributionIds = async (group: DbCreationGroup): Promise<number[]> => {
+  const links = await DbContributionCreationGroup.find({ where: { creationGroupId: group.id } })
   return links.map((link) => link.contributionId).sort((a, b) => a - b)
 }
 
@@ -108,9 +108,9 @@ describe('legacyHashtagCounts', () => {
     const contribution = await makeContribution('#alreadythere but already filed', {
       stamped: false,
     })
-    const link = DbContributionGroupTag.create()
+    const link = DbContributionCreationGroup.create()
     link.contributionId = contribution.id
-    link.groupTagId = other.id
+    link.creationGroupId = other.id
     await link.save()
 
     const counts = await resolver.legacyHashtagCounts(group.id)
@@ -190,6 +190,8 @@ describe('adoptLegacyHashtags', () => {
   })
 
   it('refuses a group that does not exist', async () => {
-    await expect(resolver.adoptLegacyHashtags(987654, true)).rejects.toThrow('Group tag not found')
+    await expect(resolver.adoptLegacyHashtags(987654, true)).rejects.toThrow(
+      'Creation group not found',
+    )
   })
 })

@@ -1,7 +1,7 @@
 // Group functions: which groups each contribution belongs to, given the link rows and the
 // canonical group rows.
 //
-// Kept apart from attachContributionGroupTags, and free of any `database` import, so it can
+// Kept apart from attachContributionCreationGroups, and free of any `database` import, so it can
 // be tested without a database -- the two queries around it are plumbing, this is the part
 // that can be wrong.
 //
@@ -20,10 +20,10 @@ interface Taggable {
 
 interface Link {
   contributionId: number
-  groupTagId: number
+  creationGroupId: number
 }
 
-export const groupTagsByContribution = <T extends Taggable>(
+export const creationGroupsByContribution = <T extends Taggable>(
   links: Link[],
   canonical: T[],
 ): Map<number, T[]> => {
@@ -31,7 +31,7 @@ export const groupTagsByContribution = <T extends Taggable>(
   const structured = new Map<number, T[]>()
 
   for (const link of links) {
-    const tag = byId.get(link.groupTagId)
+    const tag = byId.get(link.creationGroupId)
     // A link whose group is gone is skipped rather than rendered as a hole. It cannot
     // happen through the app -- nothing deletes a group -- but the read must not depend on
     // that staying true.

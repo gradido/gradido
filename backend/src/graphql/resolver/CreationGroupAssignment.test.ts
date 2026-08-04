@@ -4,7 +4,7 @@ import { ApolloServerTestClient } from 'apollo-server-testing'
 import {
   AppDatabase,
   Contribution as DbContribution,
-  GroupTag as DbGroupTag,
+  CreationGroup as DbCreationGroup,
   User,
   UserRole,
 } from 'database'
@@ -12,7 +12,7 @@ import { getLogger as originalGetLogger } from 'log4js'
 import { userFactory } from '@/seeds/factory/user'
 import {
   adminCreateContribution,
-  assignContributionGroupTags,
+  assignContributionCreationGroups,
   createContribution,
   login,
 } from '@/seeds/graphql/mutations'
@@ -75,24 +75,24 @@ const loginAs = async (email: string): Promise<void> => {
 
 // Fail loudly when a fixture does not get created — a silently missing contribution turns
 // every assertion below into a puzzle about the wrong thing.
-const submit = async (memo: string, groupTags: string[]): Promise<void> => {
+const submit = async (memo: string, creationGroups: string[]): Promise<void> => {
   const { errors } = await mutate({
     mutation: createContribution,
-    variables: { amount: '100', memo, contributionDate: new Date().toString(), groupTags },
+    variables: { amount: '100', memo, contributionDate: new Date().toString(), creationGroups },
   })
   if (errors) {
     throw new Error(`could not create fixture "${memo}": ${JSON.stringify(errors)}`)
   }
 }
 
-const listMemos = async (groupTag?: string): Promise<string[]> => {
+const listMemos = async (creationGroup?: string): Promise<string[]> => {
   const {
     data: {
       adminListContributions: { contributionList },
     },
   } = await query({
     query: adminListContributions,
-    variables: { paginated: { pageSize: 100 }, filter: groupTag ? { groupTag } : {} },
+    variables: { paginated: { pageSize: 100 }, filter: creationGroup ? { creationGroup } : {} },
   })
   return contributionList.map((contribution: { memo: string }) => contribution.memo)
 }
@@ -106,7 +106,7 @@ const groupsShownFor = async (memo: string): Promise<string[]> => {
   const found = contributionList.find(
     (contribution: { memo: string }) => contribution.memo === memo,
   )
-  return (found?.groupTags ?? []).map((tag: { tag: string }) => tag.tag)
+  return (found?.creationGroups ?? []).map((tag: { tag: string }) => tag.tag)
 }
 
 describe('only the group field puts a contribution into a group', () => {
@@ -117,7 +117,7 @@ describe('only the group field puts a contribution into a group', () => {
     author = await userFactory(testEnv, bibiBloxberg)
 
     for (const tag of ['music', 'sports']) {
-      const entry = DbGroupTag.create()
+      const entry = DbCreationGroup.create()
       entry.tag = tag
       entry.name = null
       await entry.save()
@@ -180,7 +180,7 @@ describe('only the group field puts a contribution into a group', () => {
     entry.createdAt = entry.createdAt ?? new Date()
     entry.userId = author.id
     entry.role = RoleNames.MODERATOR
-    entry.visibleGroupTags = JSON.stringify(['*untagged'])
+    entry.visibleCreationGroups = JSON.stringify(['*untagged'])
     await entry.save()
 
     await loginAs('bibi@bloxberg.de')
@@ -206,16 +206,16 @@ describe('only the group field puts a contribution into a group', () => {
     await loginAs('peter@lustig.de')
     const contribution = await DbContribution.findOneOrFail({ where: { memo: ASSIGNED_MUSIC } })
     const { errors } = await mutate({
-      mutation: assignContributionGroupTags,
+      mutation: assignContributionCreationGroups,
       variables: { contributionId: contribution.id, tags: ['muusic'] },
     })
-    expect(errors?.[0]?.message).toContain('Unknown group tag(s)')
+    expect(errors?.[0]?.message).toContain('Unknown creation group(s)')
     expect(await groupsShownFor(ASSIGNED_MUSIC)).toEqual(['music'])
   })
 
   it('keeps a hashtag out of a foreign moderator scope', async () => {
     const role = await UserRole.findOneOrFail({ where: { userId: author.id } })
-    role.visibleGroupTags = JSON.stringify(['music'])
+    role.visibleCreationGroups = JSON.stringify(['music'])
     await role.save()
 
     await loginAs('bibi@bloxberg.de')

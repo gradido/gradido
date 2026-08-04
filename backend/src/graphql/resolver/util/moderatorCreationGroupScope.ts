@@ -1,7 +1,7 @@
 import { RoleNames } from '@enum/RoleNames'
 import {
   Contribution as DbContribution,
-  GroupTag as DbGroupTag,
+  CreationGroup as DbCreationGroup,
   UserRole as DbUserRole,
 } from 'database'
 import { In } from 'typeorm'
@@ -30,7 +30,7 @@ export const assertContributionInModeratorScope = async (
   if (!role || !isScopedModeratorRole(role.role)) {
     return
   }
-  const scope = parseModeratorScope(role.visibleGroupTags)
+  const scope = parseModeratorScope(role.visibleCreationGroups)
   if (!scope) {
     return
   }
@@ -52,7 +52,7 @@ export const assertContributionInModeratorScope = async (
 }
 
 // Group functions: a moderator's visibility scope, stored as a JSON array on
-// user_roles.visible_group_tags. Values are canonical group tags plus the reserved
+// user_roles.visible_creation_groups. Values are canonical creation groups plus the reserved
 // sentinels '*all' (see everything) and '*untagged' (contributions without a tag).
 const SCOPE_SENTINELS = ['*all', '*untagged']
 
@@ -61,22 +61,24 @@ const SCOPE_SENTINELS = ['*all', '*untagged']
 // all mean "no restriction" — the very reading the contribution list uses — so a moderator
 // nobody has assigned yet is shown as covering everything instead of covering nothing.
 // Roles that are not scoped at all (admins) are unrestricted by definition.
-export interface ModeratorGroups {
+export interface ModeratorCreationGroups {
   tags: string[]
-  seesAllGroups: boolean
+  seesAllCreationGroups: boolean
   seesUntagged: boolean
 }
 
-export const describeModeratorGroups = (role?: DbUserRole | null): ModeratorGroups => {
+export const describeModeratorCreationGroups = (
+  role?: DbUserRole | null,
+): ModeratorCreationGroups => {
   if (!role || !isScopedModeratorRole(role.role)) {
-    return { tags: [], seesAllGroups: true, seesUntagged: true }
+    return { tags: [], seesAllCreationGroups: true, seesUntagged: true }
   }
-  const scope = parseModeratorScope(role.visibleGroupTags)
+  const scope = parseModeratorScope(role.visibleCreationGroups)
   // An empty array reads the same as a missing one: the contribution list applies no
   // predicate for it, so the description has to say "unrestricted" too, or the admin would
   // show a cage the backend does not enforce.
   if (!scope || scope.length === 0 || scope.includes('*all')) {
-    return { tags: [], seesAllGroups: true, seesUntagged: true }
+    return { tags: [], seesAllCreationGroups: true, seesUntagged: true }
   }
   const tags = scope.filter((tag) => tag.length > 0 && !tag.startsWith('*'))
   // '*untagged' is stripped from the tag list — it is not a group — but whether it is part
@@ -84,12 +86,12 @@ export const describeModeratorGroups = (role?: DbUserRole | null): ModeratorGrou
   // ungrouped contributions this moderator is assigned to.
   // Only sentinels left (in practice just '*untagged'): a real, narrow assignment, not a
   // free pass — the page lists these moderators under their own heading.
-  return { tags, seesAllGroups: false, seesUntagged: scope.includes(UNTAGGED_FILTER) }
+  return { tags, seesAllCreationGroups: false, seesUntagged: scope.includes(UNTAGGED_FILTER) }
 }
 
 export const loadModeratorScope = async (userId: number): Promise<string[]> => {
   const role = await DbUserRole.findOne({ where: { userId } })
-  return parseModeratorScope(role?.visibleGroupTags ?? null) ?? []
+  return parseModeratorScope(role?.visibleCreationGroups ?? null) ?? []
 }
 
 export const saveModeratorScope = async (userId: number, scope: string[]): Promise<string[]> => {
@@ -119,14 +121,14 @@ export const saveModeratorScope = async (userId: number, scope: string[]): Promi
   const realTags = normalised.filter((token) => !token.startsWith('*'))
   let stored = normalised
   if (realTags.length > 0) {
-    const canonical = await DbGroupTag.find({ where: { tag: In(realTags) } })
-    // group_tags.tag is utf8mb4_unicode_ci, so the lookup matched regardless of case.
+    const canonical = await DbCreationGroup.find({ where: { tag: In(realTags) } })
+    // creation_groups.tag is utf8mb4_unicode_ci, so the lookup matched regardless of case.
     // Compare on the folded spelling, or "Feuerwehr" would be rejected as unknown while
     // the database just returned "feuerwehr".
     const known = new Map(canonical.map((tag) => [tag.tag.toLowerCase(), tag.tag]))
     const unknown = realTags.filter((tag) => !known.has(tag.toLowerCase()))
     if (unknown.length > 0) {
-      throw new LogError('Unknown group tag(s)', unknown.join(', '))
+      throw new LogError('Unknown creation group(s)', unknown.join(', '))
     }
     // Store the canonical spelling, not what the caller typed: the predicate and the
     // rename both compare these strings exactly.
@@ -134,7 +136,7 @@ export const saveModeratorScope = async (userId: number, scope: string[]): Promi
       token.startsWith('*') ? token : (known.get(token.toLowerCase()) ?? token),
     )
   }
-  role.visibleGroupTags = stored.length > 0 ? JSON.stringify(stored) : null
+  role.visibleCreationGroups = stored.length > 0 ? JSON.stringify(stored) : null
   await role.save()
   return stored
 }

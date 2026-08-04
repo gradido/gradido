@@ -1,6 +1,6 @@
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { ApolloServerTestClient } from 'apollo-server-testing'
-import { AppDatabase, GroupTag as DbGroupTag, User } from 'database'
+import { AppDatabase, CreationGroup as DbCreationGroup, User } from 'database'
 import { getLogger as originalGetLogger } from 'log4js'
 import { Order } from '@/graphql/enum/Order'
 import { userFactory } from '@/seeds/factory/user'
@@ -37,7 +37,7 @@ const PAGINATED = { currentPage: 1, pageSize: 50, order: Order.DESC }
 
 const memosFor = async (filter: {
   query?: string | null
-  groupTag?: string | null
+  creationGroup?: string | null
 }): Promise<string[]> => {
   const [contributions] = await loadAllContributions(PAGINATED, filter)
   return contributions.map((contribution) => contribution.memo)
@@ -52,7 +52,7 @@ beforeAll(async () => {
   // The group has to exist: a contribution is in a group because it is LINKED to one, and
   // there is nothing to link to otherwise. The old version got away without it because the
   // filter matched the memo as a substring, without ever asking the canonical list.
-  const group = DbGroupTag.create()
+  const group = DbCreationGroup.create()
   group.tag = 'walletfiltergroup'
   group.name = 'Wallet filter group'
   await group.save()
@@ -60,13 +60,13 @@ beforeAll(async () => {
   member = await userFactory(testEnv, bibiBloxberg)
   resetToken()
   await mutate({ mutation: login, variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' } })
-  for (const [memo, groupTags] of [
+  for (const [memo, creationGroups] of [
     [PLAIN, []],
     [TAGGED, ['walletfiltergroup']],
   ] as Array<[string, string[]]>) {
     await mutate({
       mutation: createContribution,
-      variables: { amount: '100', memo, contributionDate: new Date().toString(), groupTags },
+      variables: { amount: '100', memo, contributionDate: new Date().toString(), creationGroups },
     })
   }
   resetToken()
@@ -114,7 +114,7 @@ describe('wallet contribution search', () => {
   })
 
   it('filters by group', async () => {
-    const memos = await memosFor({ groupTag: 'walletfiltergroup' })
+    const memos = await memosFor({ creationGroup: 'walletfiltergroup' })
     expect(memos).toContain(TAGGED)
     expect(memos).not.toContain(PLAIN)
   })

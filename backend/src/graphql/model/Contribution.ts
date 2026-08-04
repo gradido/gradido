@@ -1,7 +1,7 @@
 import { ContributionStatus } from '@enum/ContributionStatus'
 import { Contribution as DbContribution } from 'database'
 import { Field, Int, ObjectType } from 'type-graphql'
-import { GroupTag } from './GroupTag'
+import { CreationGroup } from './CreationGroup'
 import { UnconfirmedContribution } from './UnconfirmedContribution'
 
 @ObjectType()
@@ -85,10 +85,10 @@ export class Contribution extends UnconfirmedContribution {
   resubmissionAt: Date | null
 
   // Group functions: the groups this contribution belongs to, for display in the
-  // wallet lists and the admin text column. Filled in by attachContributionGroupTags;
+  // wallet lists and the admin text column. Filled in by attachContributionCreationGroups;
   // empty when the contribution belongs to no group.
-  @Field(() => [GroupTag])
-  groupTags: GroupTag[] = []
+  @Field(() => [CreationGroup])
+  creationGroups: CreationGroup[] = []
 }
 
 @ObjectType()

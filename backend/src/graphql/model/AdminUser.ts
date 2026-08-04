@@ -1,17 +1,17 @@
 import { User } from 'database'
 import { Field, Int, ObjectType } from 'type-graphql'
-import { describeModeratorGroups } from '@/graphql/resolver/util/moderatorGroupScope'
+import { describeModeratorCreationGroups } from '@/graphql/resolver/util/moderatorCreationGroupScope'
 
 @ObjectType()
 export class AdminUser {
   constructor(user: User) {
     const role = user.userRoles.length > 0 ? user.userRoles[0] : null
-    const groups = describeModeratorGroups(role)
+    const groups = describeModeratorCreationGroups(role)
     this.firstName = user.firstName
     this.lastName = user.lastName
     this.role = role ? role.role : ''
-    this.visibleGroupTags = groups.tags
-    this.seesAllGroups = groups.seesAllGroups
+    this.visibleCreationGroups = groups.tags
+    this.seesAllCreationGroups = groups.seesAllCreationGroups
     this.seesUntagged = groups.seesUntagged
   }
 
@@ -28,11 +28,11 @@ export class AdminUser {
   // info page can list them under that group. Canonical tags without the leading '#' —
   // the display names come from the group list itself and are not duplicated here.
   @Field(() => [String])
-  visibleGroupTags: string[]
+  visibleCreationGroups: string[]
 
   // True when no group restriction applies: an unassigned moderator sees every group.
   @Field(() => Boolean)
-  seesAllGroups: boolean
+  seesAllCreationGroups: boolean
 
   // True when the scope covers contributions that carry no group. Separate from the tag
   // list because "no group" is not a group; without it a scope of "one group plus the

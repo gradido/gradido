@@ -294,7 +294,7 @@ export const adminListContributions = gql`
         messagesCount
         deniedAt
         deniedBy
-        groupTags {
+        creationGroups {
           id
           tag
           name
@@ -363,8 +363,8 @@ export const searchAdminUsers = gql`
         firstName
         lastName
         role
-        visibleGroupTags
-        seesAllGroups
+        visibleCreationGroups
+        seesAllCreationGroups
         seesUntagged
       }
     }
