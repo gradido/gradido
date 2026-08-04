@@ -20,6 +20,10 @@
   "PersonalDetails": "Dati personali",
   "advanced-calculation": "Proiezione",
   "answerNow": "→ Rispondi ora!",
+  "appOutdated": {
+    "reload": "Ricarica",
+    "text": "È disponibile una versione più recente. Ricarica la pagina."
+  },
   "asterisks": "****",
   "auth": {
     "left": {

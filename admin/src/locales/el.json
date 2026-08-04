@@ -13,6 +13,10 @@
   },
   "alias": "Ψευδώνυμο",
   "all_emails": "Όλοι οι χρήστες",
+  "appOutdated": {
+    "reload": "Ανανέωση",
+    "text": "Υπάρχει νεότερη έκδοση. Παρακαλώ ανανεώστε τη σελίδα."
+  },
   "back": "πίσω",
   "bulkResubmission": {
     "cancel": "Do not apply",

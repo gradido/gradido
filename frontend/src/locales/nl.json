@@ -20,6 +20,10 @@
   "PersonalDetails": "Persoonlijke gegevens",
   "advanced-calculation": "Voorcalculatie",
   "answerNow": "→ Nu antwoorden!",
+  "appOutdated": {
+    "reload": "Opnieuw laden",
+    "text": "Er is een nieuwere versie beschikbaar. Laad de pagina opnieuw."
+  },
   "asterisks": "****",
   "auth": {
     "left": {

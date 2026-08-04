@@ -20,6 +20,10 @@
   "PersonalDetails": "Kişisel bilgiler",
   "advanced-calculation": "Önceden hesaplama",
   "answerNow": "→ Şimdi yanıtla!",
+  "appOutdated": {
+    "reload": "Yenile",
+    "text": "Daha yeni bir sürüm mevcut. Lütfen sayfayı yenileyin."
+  },
   "asterisks": "****",
   "auth": {
     "left": {

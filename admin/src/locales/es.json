@@ -13,6 +13,10 @@
   },
   "alias": "Alias",
   "all_emails": "Todos los usuarios",
+  "appOutdated": {
+    "reload": "Recargar",
+    "text": "Hay una versión más reciente. Por favor, recarga la página."
+  },
   "back": "atrás",
   "bulkResubmission": {
     "cancel": "Do not apply",
