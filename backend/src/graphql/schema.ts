@@ -12,11 +12,13 @@ import { ContributionMessageResolver } from './resolver/ContributionMessageResol
 import { ContributionResolver } from './resolver/ContributionResolver'
 import { CreaResolver } from './resolver/CreaResolver'
 import { GdtResolver } from './resolver/GdtResolver'
+import { GroupTagResolver } from './resolver/GroupTagResolver'
 import { KlicktippResolver } from './resolver/KlicktippResolver'
 import { ProjectBrandingResolver } from './resolver/ProjectBrandingResolver'
 import { StatisticsResolver } from './resolver/StatisticsResolver'
 import { TransactionLinkResolver } from './resolver/TransactionLinkResolver'
 import { TransactionResolver } from './resolver/TransactionResolver'
+import { UserGroupTagResolver } from './resolver/UserGroupTagResolver'
 import { UserResolver } from './resolver/UserResolver'
 import { DurationScalar } from './scalar/Duration'
 import { LocationScalar } from './scalar/Location'
@@ -32,11 +34,13 @@ export const schema = async (): Promise<GraphQLSchema> => {
       ContributionResolver,
       CreaResolver,
       GdtResolver,
+      GroupTagResolver,
       KlicktippResolver,
       ProjectBrandingResolver,
       StatisticsResolver,
       TransactionLinkResolver,
       TransactionResolver,
+      UserGroupTagResolver,
       UserResolver,
     ],
     authChecker: isAuthorized,

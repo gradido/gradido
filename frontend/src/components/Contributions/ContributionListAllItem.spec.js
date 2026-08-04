@@ -1,217 +1,97 @@
 import { mount } from '@vue/test-utils'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { createI18n } from 'vue-i18n'
-import ContributionListItem from './ContributionListItem'
-import { BRow, BCol, BCollapse, BButton, BForm, BTextArea, BFormTextarea } from 'bootstrap-vue-next'
-import VariantIcon from '@/components/VariantIcon.vue'
+import { BRow, BCol } from 'bootstrap-vue-next'
+import ContributionListAllItem from './ContributionListAllItem'
+
+// This file used to be a byte-identical copy of ContributionListItem.spec.js and mounted
+// that component instead — the community row had no coverage at all. It has now, and the
+// point of it is the data-protection guarantee: this row shows a deed, never its author.
 
 const i18n = createI18n({
   legacy: false,
   locale: 'en',
   messages: {
     en: {
-      short: 'Short format date',
+      creation: 'Creation',
+      '(': '(',
+      ')': ')',
+      h: 'h',
+      moderatorChangedMemo: 'A moderator changed this text',
       contribution: {
-        deleted: 'Deleted contribution',
-        delete: 'Delete contribution',
-        confirmed: 'Confirmed contribution',
+        number: 'Contribution no. {number}',
+        alert: { denied: 'rejected' },
+        groupTag: { none: '(no group)' },
       },
-      form: {
-        reply: 'Reply',
-        memo: 'Memo',
-      },
-      edit: 'Edit',
-      delete: 'Delete',
-      Chat: 'Chat',
     },
   },
   datetimeFormats: {
-    en: {
-      short: {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      },
-    },
+    en: { short: { year: 'numeric', month: 'short', day: 'numeric' } },
   },
 })
 
-vi.mock('@vue/apollo-composable', () => ({
-  useQuery: vi.fn(),
-  useLazyQuery: vi.fn(() => ({
-    onResult: vi.fn(),
-    onError: vi.fn(),
-    load: vi.fn(),
-    refetch: vi.fn(),
-  })),
-  useMutation: vi.fn(() => ({
-    mutate: vi.fn(),
-    onDone: vi.fn(),
-    onError: vi.fn(),
-  })),
-}))
+const mocks = { $filters: { GDD: vi.fn((value) => `${value} GDD`) } }
 
-vi.mock('@/composables/useToast', () => ({
-  useAppToast: vi.fn(() => ({
-    addToast: vi.fn(),
-    toastError: vi.fn(),
-    toastSuccess: vi.fn(),
-  })),
-}))
+const PROPS = {
+  id: 4711,
+  memo: 'Ich habe 10 Stunden die Elbwiesen von Müll befreit.',
+  amount: '200',
+  contributionDate: '2022-06-07',
+  contributionStatus: 'CONFIRMED',
+  groupTags: [],
+}
 
-describe('ContributionListItem', () => {
-  let wrapper
-
-  const mocks = {
-    $filters: {
-      GDD: vi.fn((val) => val),
+const mountWrapper = (props = {}) =>
+  mount(ContributionListAllItem, {
+    global: {
+      plugins: [i18n],
+      mocks,
+      stubs: ['BAvatar', 'VariantIcon'],
+      components: { BRow, BCol },
     },
-    $t: vi.fn((key) => key),
-    $d: (date, format) => date.toISOString(),
-  }
+    props: { ...PROPS, ...props },
+  })
 
-  const propsData = {
-    contributionId: 42,
-    contributionStatus: 'PENDING',
-    messagesCount: 2,
-    id: 1,
-    createdAt: '26/07/2022',
-    contributionDate: '07/06/2022',
-    memo: 'Ich habe 10 Stunden die Elbwiesen von Müll befreit.',
-    amount: '200',
-  }
+describe('ContributionListAllItem', () => {
+  it('has a DIV .contribution-list-item', () => {
+    expect(mountWrapper().find('div.contribution-list-item').exists()).toBe(true)
+  })
 
-  const mountWrapper = () => {
-    return mount(ContributionListItem, {
-      global: {
-        plugins: [i18n],
-        mocks,
-        stubs: [
-          'IBiPencil',
-          'IBiTrash',
-          'IBiChatDots',
-          'BAvatar',
-          'VariantIcon',
-          'BButton',
-          'IBiArrowDownCircle',
-          'IBiArrowUpCircle',
-          'IBiArrowUpShort',
-          'ContributionMessagesListItem',
-        ],
-        components: {
-          BRow,
-          BCol,
-          BCollapse,
-          BButton,
-          BForm,
-          BTextArea,
-          BFormTextarea,
-        },
-      },
-      props: propsData,
+  it('identifies the contribution by its number', () => {
+    const wrapper = mountWrapper()
+    expect(wrapper.find('[data-test="contribution-number"]').text()).toBe('Contribution no. 4711')
+  })
+
+  it('shows no name, even when a person is handed in', () => {
+    // The backend does not send a person (see WalletContributionFilter.test.ts). This is
+    // the second lock: should one ever arrive again, the row must still not print it.
+    const wrapper = mountWrapper({
+      user: { firstName: 'Bibi', lastName: 'Bloxberg', alias: 'bibi-b' },
     })
-  }
+    const text = wrapper.text()
+    for (const name of ['Bibi', 'Bloxberg', 'bibi-b']) {
+      expect(text).not.toContain(name)
+    }
+  })
 
-  describe('mount', () => {
-    beforeEach(() => {
-      vi.clearAllMocks()
-      wrapper = mountWrapper()
-    })
+  it('shows the deed, the group and the amount', () => {
+    const wrapper = mountWrapper({ groupTags: [{ tag: 'choir', name: 'Choir' }] })
+    expect(wrapper.text()).toContain('Ich habe 10 Stunden die Elbwiesen von Müll befreit.')
+    // The wallet shows the group name only -- the tag is dropped (kept in the admin).
+    expect(wrapper.text()).toContain('Choir')
+    expect(wrapper.text()).not.toContain('#choir')
+    expect(wrapper.text()).toContain('200 GDD')
+  })
 
-    it('has a DIV .contribution-list-item', () => {
-      expect(wrapper.find('div.contribution-list-item').exists()).toBe(true)
-    })
+  it('says "(no group)" when the contribution belongs to none', () => {
+    expect(mountWrapper().text()).toContain('(no group)')
+  })
 
-    describe('contribution icon', () => {
-      it('is bell-fill by default', () => {
-        expect(wrapper.vm.icon).toBe('bell-fill')
-      })
+  it('marks a denied contribution as rejected', () => {
+    expect(mountWrapper({ contributionStatus: 'DENIED' }).text()).toContain('rejected')
+  })
 
-      it('is x-circle when contributionStatus is DELETED', async () => {
-        await wrapper.setProps({ contributionStatus: 'DELETED' })
-        expect(wrapper.vm.icon).toBe('trash')
-      })
-
-      it('is check when contributionStatus is CONFIRMED', async () => {
-        await wrapper.setProps({ contributionStatus: 'CONFIRMED' })
-        expect(wrapper.vm.icon).toBe('check')
-      })
-    })
-
-    describe('contribution variant', () => {
-      it('is primary by default', () => {
-        expect(wrapper.vm.variant).toBe('primary')
-      })
-
-      it('is danger when contributionStatus is DELETED', async () => {
-        await wrapper.setProps({ contributionStatus: 'DELETED' })
-        expect(wrapper.vm.variant).toBe('danger')
-      })
-
-      it('is success at when contributionStatus is CONFIRMED', async () => {
-        await wrapper.setProps({ contributionStatus: 'CONFIRMED' })
-        expect(wrapper.vm.variant).toBe('success')
-      })
-
-      it('is warning at when contributionStatus is IN_PROGRESS', async () => {
-        await wrapper.setProps({ contributionStatus: 'IN_PROGRESS' })
-        expect(wrapper.vm.variant).toBe('205')
-      })
-    })
-
-    describe('delete contribution', () => {
-      describe('edit contribution', () => {
-        beforeEach(() => {
-          wrapper.find('div.test-edit-contribution').trigger('click')
-        })
-
-        it('emits update contribution form', () => {
-          expect(wrapper.emitted('update-contribution-form')).toEqual([
-            [
-              {
-                id: 1,
-                contributionDate: '07/06/2022',
-                memo: 'Ich habe 10 Stunden die Elbwiesen von Müll befreit.',
-                amount: '200',
-              },
-            ],
-          ])
-        })
-      })
-
-      describe('confirm deletion', () => {
-        beforeEach(() => {
-          vi.spyOn(window, 'confirm').mockImplementation(() => true)
-          wrapper.find('div.test-delete-contribution').trigger('click')
-        })
-
-        it('emits delete contribution', () => {
-          expect(wrapper.emitted('contribution-changed')).toBeTruthy()
-        })
-      })
-
-      describe('cancel deletion', () => {
-        beforeEach(async () => {
-          vi.spyOn(window, 'confirm').mockImplementation(() => false)
-          await wrapper.find('div.test-delete-contribution').trigger('click')
-        })
-
-        it('does not emit delete contribution', () => {
-          expect(wrapper.emitted('delete-contribution')).toBeFalsy()
-        })
-      })
-    })
-
-    describe('updateStatus', () => {
-      it('updates status of a contribution', async () => {
-        wrapper.vm.contributionStatus = 'IN_PROGRESS'
-
-        wrapper.vm.addContributionMessage({})
-
-        expect(wrapper.vm.localStatus).toBe('PENDING')
-      })
-    })
+  it('does not mark a confirmed contribution as rejected', () => {
+    expect(mountWrapper().text()).not.toContain('rejected')
   })
 })

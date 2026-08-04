@@ -112,14 +112,16 @@ describe('NavBar', () => {
         '/federation',
         '/projectBranding',
         '/creaSettings',
+        '/group-tags',
         '/statistic',
         '#',
         '#',
       ])
     })
 
-    // Instances, projects and Crea are administrators' business. Menu visibility is only a
-    // convenience — the route guard and the backend rights are the boundary.
+    // Instances, projects, Crea and the group list are administrators' business. Menu
+    // visibility is only a convenience — the route guard and the backend rights are the
+    // boundary.
     describe('as a moderator', () => {
       beforeEach(() => {
         store = createVuexStore(['MODERATOR'])

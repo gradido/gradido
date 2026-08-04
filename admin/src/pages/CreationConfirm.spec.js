@@ -115,7 +115,6 @@ describe('CreationConfirm', () => {
     expect(wrapper.vm.currentPage).toBe(1)
     expect(wrapper.vm.pageSize).toBe(25)
     expect(wrapper.vm.query).toBe('')
-    expect(wrapper.vm.noHashtag).toBe(null)
     expect(wrapper.vm.hideResubmissionModel).toBe(true)
   })
 
@@ -168,16 +167,145 @@ describe('CreationConfirm', () => {
       }),
     )
 
-    wrapper.vm.noHashtag = true
+    // The group filter replaced the old "hide #hashtags" switch: it asks which group a
+    // contribution belongs to, not whether its text happens to contain a '#'.
+    wrapper.vm.groupTag = '*untagged'
     await nextTick()
 
     expect(mockRefetch).toHaveBeenCalledWith(
       expect.objectContaining({
         filter: expect.objectContaining({
-          noHashtag: true,
+          groupTag: '*untagged',
         }),
       }),
     )
+  })
+
+  it('offers all, all groups and no group before the real groups', () => {
+    // The real groups follow behind; here the query is mocked away, so only the three
+    // fixed entries remain -- which is exactly what this asserts.
+    expect(wrapper.vm.groupTagFilterOptions.map((option) => option.value)).toEqual([
+      '',
+      '*grouped',
+      '*untagged',
+    ])
+  })
+
+  // A scoped moderator may only work in their own groups, so the filter offers only those.
+  // The backend enforces the boundary; this keeps the dropdown from offering choices that
+  // would return nothing (no "all", no "no group", no group outside the scope).
+  describe('group filter for a scoped moderator', () => {
+    const GROUPS = [
+      { tag: 'firefighter', name: 'Feuerwehr' },
+      { tag: 'garden', name: 'Garten' },
+      { tag: 'other', name: 'Andere' },
+    ]
+
+    const mountWithModerator = (moderator) => {
+      const scopedStore = createStore({
+        state: { openCreations: 0, moderator },
+        mutations: {
+          setOpenCreations(state, count) {
+            state.openCreations = count
+          },
+          openCreationsMinus(state, count) {
+            state.openCreations -= count
+          },
+        },
+      })
+      return mount(CreationConfirm, {
+        global: {
+          plugins: [scopedStore],
+          stubs: {
+            UserQuery: true,
+            BButton: true,
+            BTabs,
+            BTab,
+            BBadge,
+            OpenCreationsTable: true,
+            BPagination,
+            Overlay: true,
+            IBiBellFill: true,
+            IBiCheck: true,
+            IBiXCircle: true,
+            IBiTrash: true,
+            IBiList: true,
+          },
+          mocks: { $t: mockT, $d: mockD },
+        },
+      })
+    }
+
+    beforeEach(() => {
+      // Both queries share the mocked useQuery; this feeds the group list to the dropdown.
+      mockResult.value = { groupTags: GROUPS }
+    })
+
+    it('offers only "all my groups" and the moderator\'s own groups', () => {
+      const scoped = mountWithModerator({
+        roles: ['MODERATOR'],
+        seesAllGroups: false,
+        visibleGroupTags: ['firefighter', 'garden'],
+      })
+      expect(scoped.vm.groupTagFilterOptions.map((option) => option.value)).toEqual([
+        '*grouped',
+        'firefighter',
+        'garden',
+      ])
+    })
+
+    it('defaults the selection to "all my groups"', () => {
+      const scoped = mountWithModerator({
+        roles: ['MODERATOR'],
+        seesAllGroups: false,
+        visibleGroupTags: ['firefighter', 'garden'],
+      })
+      expect(scoped.vm.groupTag).toBe('*grouped')
+    })
+
+    it('offers only "no group" to a moderator scoped to untagged contributions', () => {
+      const scoped = mountWithModerator({
+        roles: ['MODERATOR'],
+        seesAllGroups: false,
+        visibleGroupTags: [],
+      })
+      expect(scoped.vm.groupTagFilterOptions.map((option) => option.value)).toEqual(['*untagged'])
+      expect(scoped.vm.groupTag).toBe('*untagged')
+    })
+
+    // "No group" is not a group, so it never appears in visibleGroupTags. Deciding from that
+    // list alone would leave this moderator with '*grouped' and their group -- and
+    // '*grouped' is the exact complement of "no group", so the ungrouped contributions they
+    // are assigned to would have no reachable filter at all.
+    it('offers "no group" too when the scope covers the ungrouped contributions', () => {
+      const scoped = mountWithModerator({
+        roles: ['MODERATOR'],
+        seesAllGroups: false,
+        seesUntagged: true,
+        visibleGroupTags: ['firefighter'],
+      })
+      expect(scoped.vm.groupTagFilterOptions.map((option) => option.value)).toEqual([
+        '*grouped',
+        '*untagged',
+        'firefighter',
+      ])
+    })
+
+    it('leaves an administrator the full set', () => {
+      const scoped = mountWithModerator({
+        roles: ['ADMIN'],
+        seesAllGroups: true,
+        visibleGroupTags: [],
+      })
+      expect(scoped.vm.groupTagFilterOptions.map((option) => option.value)).toEqual([
+        '',
+        '*grouped',
+        '*untagged',
+        'firefighter',
+        'garden',
+        'other',
+      ])
+    })
   })
 
   it('updates tabIndex and refetches when changing tabs', async () => {

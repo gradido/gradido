@@ -1,9 +1,11 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
+import { ref } from 'vue'
 import InfoStatistic from './InfoStatistic.vue'
 import { createRouter, createWebHistory } from 'vue-router'
 import { createI18n } from 'vue-i18n'
 import { listContributionLinks, searchAdminUsers } from '@/graphql/queries'
+import { groupTags } from '@/graphql/contributions.graphql'
 import { BContainer, BLink } from 'bootstrap-vue-next'
 
 const mockToastError = vi.fn()
@@ -19,9 +21,51 @@ vi.mock('@vue/apollo-composable', () => ({
     return {
       onResult: mockQueryImplementation(query).onResult,
       onError: mockQueryImplementation(query).onError,
+      result: mockQueryImplementation(query).result,
     }
   },
 }))
+
+const GROUP_TAGS = [
+  { id: 1, tag: 'feuerwehr', name: 'Feuerwehr' },
+  { id: 2, tag: 'musik', name: null },
+  { id: 3, tag: 'chor', name: 'Chor' },
+]
+
+const ADMIN_USERS = [
+  {
+    firstName: 'Peter',
+    lastName: 'Lustig',
+    role: 'ADMIN',
+    visibleGroupTags: [],
+    seesAllGroups: true,
+    seesUntagged: true,
+  },
+  {
+    firstName: 'Bibi',
+    lastName: 'Bloxberg',
+    role: 'MODERATOR',
+    visibleGroupTags: ['feuerwehr'],
+    seesAllGroups: false,
+    seesUntagged: false,
+  },
+  {
+    firstName: 'Garrick',
+    lastName: 'Ollivander',
+    role: 'MODERATOR_AI',
+    visibleGroupTags: ['feuerwehr', 'musik'],
+    seesAllGroups: false,
+    seesUntagged: false,
+  },
+  {
+    firstName: 'Super',
+    lastName: 'Admin',
+    role: 'MODERATOR',
+    visibleGroupTags: [],
+    seesAllGroups: true,
+    seesUntagged: true,
+  },
+]
 
 describe('InfoStatistic', () => {
   let wrapper
@@ -41,7 +85,10 @@ describe('InfoStatistic', () => {
         en: {
           communityInfo: 'Community Info',
           'community.admins': 'Admins',
-          'community.moderators': 'Moderators',
+          'community.groupsAndModerators': 'Groups and moderators',
+          'community.moderatorsAllGroups': 'For all groups',
+          'community.moderatorsUntagged': 'Contributions without a group',
+          'community.noModerators': 'No moderator yet',
           contact: 'Contact',
         },
       },
@@ -56,6 +103,7 @@ describe('InfoStatistic', () => {
     }))
 
     mockQueryImplementation.mockImplementation((query) => ({
+      result: query === groupTags ? ref({ groupTags: GROUP_TAGS }) : ref(null),
       onResult: (callback) => {
         if (query === listContributionLinks) {
           callback({
@@ -73,11 +121,8 @@ describe('InfoStatistic', () => {
           callback({
             data: {
               searchAdminUsers: {
-                userCount: 2,
-                userList: [
-                  { firstName: 'Peter', lastName: 'Lustig', role: 'ADMIN' },
-                  { firstName: 'Super', lastName: 'Admin', role: 'MODERATOR' },
-                ],
+                userCount: ADMIN_USERS.length,
+                userList: ADMIN_USERS,
               },
             },
           })
@@ -120,9 +165,105 @@ describe('InfoStatistic', () => {
     expect(wrapper.text()).toContain('support@test.com')
   })
 
+  // Group functions: moderators are listed under the groups they look after.
+  describe('groups and moderators', () => {
+    it('names every group, with and without a display name', async () => {
+      await wrapper.vm.$nextTick()
+      // The wallet shows the group name only; a group without a name falls back to its tag.
+      expect(wrapper.text()).toContain('Feuerwehr')
+      expect(wrapper.text()).not.toContain('#feuerwehr')
+      expect(wrapper.text()).toContain('#musik')
+      expect(wrapper.text()).toContain('Chor')
+      expect(wrapper.text()).not.toContain('#chor')
+    })
+
+    it('lists a moderator under each group they may see', async () => {
+      await wrapper.vm.$nextTick()
+      const sections = wrapper.findAll('.mb-3')
+      const firefighters = sections.find((section) => section.text().includes('Feuerwehr'))
+      const music = sections.find((section) => section.text().includes('#musik'))
+      expect(firefighters.text()).toContain('Bibi Bloxberg')
+      // A moderator with several groups appears under each of them.
+      expect(firefighters.text()).toContain('Garrick Ollivander')
+      expect(music.text()).toContain('Garrick Ollivander')
+      expect(music.text()).not.toContain('Bibi Bloxberg')
+    })
+
+    it('includes KI-Moderatoren, who are moderators with Crea', async () => {
+      await wrapper.vm.$nextTick()
+      expect(wrapper.text()).toContain('Garrick Ollivander')
+    })
+
+    it('puts an unassigned moderator under "for all groups", not under a single group', async () => {
+      await wrapper.vm.$nextTick()
+      const sections = wrapper.findAll('.mb-3')
+      const allGroups = sections.find((section) => section.text().includes('For all groups'))
+      const firefighters = sections.find((section) => section.text().includes('Feuerwehr'))
+      expect(allGroups.text()).toContain('Super Admin')
+      expect(firefighters.text()).not.toContain('Super Admin')
+    })
+
+    it('marks a group that has no moderator yet', async () => {
+      await wrapper.vm.$nextTick()
+      const sections = wrapper.findAll('.mb-3')
+      const choir = sections.find((section) => section.text().includes('Chor'))
+      expect(choir.text()).toContain('No moderator yet')
+    })
+
+    it('leaves out the untagged heading while nobody is scoped that way', async () => {
+      await wrapper.vm.$nextTick()
+      expect(wrapper.text()).not.toContain('Contributions without a group')
+    })
+
+    // A scope can cover a group AND the contributions that carry none. "No group" is not a
+    // group, so it never shows up in visibleGroupTags -- reading the heading off an empty
+    // tag list would drop exactly this moderator from the page.
+    it('lists a moderator who looks after a group and the ungrouped ones under both', async () => {
+      const mixed = [
+        {
+          firstName: 'Mira',
+          lastName: 'Muster',
+          role: 'MODERATOR',
+          visibleGroupTags: ['feuerwehr'],
+          seesAllGroups: false,
+          seesUntagged: true,
+        },
+      ]
+      mockQueryImplementation.mockImplementation((query) => ({
+        result: query === groupTags ? ref({ groupTags: GROUP_TAGS }) : ref(null),
+        onResult: (callback) => {
+          if (query === searchAdminUsers) {
+            callback({
+              data: { searchAdminUsers: { userCount: mixed.length, userList: mixed } },
+            })
+          }
+        },
+        onError: vi.fn(),
+      }))
+      const localWrapper = mount(InfoStatistic, {
+        global: { plugins: [router, i18n], stubs: { BContainer, BLink } },
+      })
+      await localWrapper.vm.$nextTick()
+      const sections = localWrapper.findAll('.mb-3')
+      const firefighters = sections.find((section) => section.text().includes('Feuerwehr'))
+      const untagged = sections.find((section) =>
+        section.text().includes('Contributions without a group'),
+      )
+      expect(firefighters.text()).toContain('Mira Muster')
+      expect(untagged.text()).toContain('Mira Muster')
+    })
+
+    it('keeps administrators out of the group listing', async () => {
+      await wrapper.vm.$nextTick()
+      const sections = wrapper.findAll('.mb-3')
+      expect(sections.every((section) => !section.text().includes('Peter Lustig'))).toBe(true)
+    })
+  })
+
   describe('error handling', () => {
     beforeEach(() => {
-      mockQueryImplementation.mockImplementation((query) => ({
+      mockQueryImplementation.mockImplementation(() => ({
+        result: ref(null),
         onResult: vi.fn(),
         onError: (errorCallback) => {
           errorCallback(new Error('API Error'))

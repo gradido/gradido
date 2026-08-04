@@ -44,6 +44,23 @@
         </span>
       </template>
       <template #cell(memo)="row">
+        <div class="mb-1">
+          <ThemedSelect
+            v-if="canEditGroup(row.item)"
+            :model-value="displayedGroupTag(row.item)"
+            :options="groupSelectOptions"
+            size="sm"
+            class="group-select"
+            :aria-label="$t('contribution.changeGroup')"
+            @update:model-value="onGroupPicked(row.item, $event)"
+          />
+          <div v-else class="fw-bold">
+            <span v-if="groupLabel(row.item)">{{ groupLabel(row.item) }}</span>
+            <span v-else class="fw-normal fst-italic text-muted">
+              {{ $t('contribution.noGroup') }}
+            </span>
+          </div>
+        </div>
         {{ row.value }}
         <small v-if="isAddCommentToMemo(row.item)" class="no-select">
           <hr />
@@ -159,6 +176,25 @@
         </row-details>
       </template>
     </BTableLite>
+
+    <BModal
+      id="change-group-modal"
+      v-model="groupChangeModal"
+      :title="$t('contribution.changeGroup')"
+      :ok-title="$t('contribution.changeGroupConfirm')"
+      :cancel-title="$t('overlay.cancel')"
+      @hide="onGroupModalHide"
+    >
+      <p>
+        {{
+          $t('contribution.changeGroupQuestion', {
+            from: pendingGroupChange.fromLabel,
+            to: pendingGroupChange.toLabel,
+          })
+        }}
+      </p>
+      <p class="fst-italic text-muted mb-0">{{ $t('contribution.changeGroupHint') }}</p>
+    </BModal>
   </div>
 </template>
 
@@ -204,8 +240,21 @@ export default {
       type: Boolean,
       default: false,
     },
+    groupTags: {
+      type: Array,
+      required: false,
+      default: () => [],
+    },
+    // Counts the group changes the backend refused. A change that did not happen must not stay
+    // on screen, and only the page that runs the mutation knows it failed.
+    groupChangeFailures: {
+      type: Number,
+      required: false,
+      default: 0,
+    },
   },
   emits: [
+    'assign-group',
     'update-contributions',
     'reload-contribution',
     'update-status',
@@ -219,7 +268,36 @@ export default {
       slotIndex: 0,
       openRow: null,
       creationUserData: {},
+      groupChangeModal: false,
+      pendingGroupChange: { contributionId: null, tag: '', fromLabel: '', toLabel: '' },
+      // What the group dropdowns show, by contribution id, while a change is waiting for its
+      // answer. A picked group only lands here -- the contribution itself is not touched until
+      // the backend confirms it. See displayedGroupTag() for why this is kept by hand.
+      groupSelection: {},
     }
+  },
+  computed: {
+    // "no group" plus one entry per canonical group, written the way groups are written
+    // everywhere else.
+    groupSelectOptions() {
+      return [
+        { value: '', text: this.$t('contribution.noGroup') },
+        ...this.groupTags.map((group) => ({
+          value: group.tag,
+          text: group.name ? `${group.name} (#${group.tag})` : `#${group.tag}`,
+        })),
+      ]
+    },
+  },
+  watch: {
+    // Fresh contributions are the truth again, so the shown picks have done their job.
+    items() {
+      this.groupSelection = {}
+    },
+    // A refused change never reached the database -- put the dropdowns back.
+    groupChangeFailures() {
+      this.groupSelection = {}
+    },
   },
   mounted() {
     this.addClipboardListener()
@@ -276,6 +354,86 @@ export default {
         this.openRow = row
         this.creationUserData = row.item
       }
+    },
+    // Group functions: the group is editable while the contribution is still being worked
+    // on. Once it is confirmed, denied or deleted it is closed and the group is part of the
+    // record — the backend enforces the same list, this only decides what to offer.
+    canEditGroup(item) {
+      return ['PENDING', 'IN_PROGRESS'].includes(item.contributionStatus)
+    },
+    currentGroupTag(item) {
+      return item.groupTags?.[0]?.tag ?? ''
+    },
+    // A dropdown is a real DOM control: the browser applies the pick itself, so an unchanged
+    // bound value gives Vue nothing to patch and the pick stays on screen even when it was
+    // never saved. Keeping the shown value in our own state makes dropping a pick a real
+    // change again, which is what pulls the dropdown back to the group the contribution has.
+    displayedGroupTag(item) {
+      return this.groupSelection[item.id] ?? this.currentGroupTag(item)
+    },
+    groupOptionLabel(tag) {
+      return this.groupSelectOptions.find((option) => option.value === tag)?.text ?? tag
+    },
+    // Moving a contribution to another group is easy to do by accident and can hand it to a
+    // different moderator, so it goes through a confirmation rather than firing on pick.
+    onGroupPicked(item, tag) {
+      const current = this.currentGroupTag(item)
+      if (tag === current) {
+        return
+      }
+      this.groupSelection[item.id] = tag
+      this.pendingGroupChange = {
+        contributionId: item.id,
+        tag,
+        // Name every group the contribution currently has, not just the one the dropdown
+        // happens to show. A legacy contribution whose text names two groups carries both,
+        // and saving replaces the whole set -- the dialog has to say what is being given up.
+        fromLabel: (item.groupTags ?? []).length
+          ? item.groupTags.map((group) => this.groupOptionLabel(group.tag)).join(', ')
+          : this.groupOptionLabel(''),
+        toLabel: this.groupOptionLabel(tag),
+      }
+      this.groupChangeModal = true
+    },
+    // Every way out of the dialog ends here -- the OK and cancel buttons, the X, Escape and a
+    // click on the backdrop. Only "ok" carries the change out; everything else drops it, so no
+    // exit can leave a group on screen that was never saved.
+    onGroupModalHide(event) {
+      if (event.trigger === 'ok') {
+        this.confirmGroupChange()
+      } else {
+        this.cancelGroupChange()
+      }
+    },
+    // Deliberately keeps the picked group on screen: it stays until the fresh contributions
+    // arrive, so the dropdown does not flick back to the old group and forward again. If the
+    // backend refuses, groupChangeFailures brings it back.
+    confirmGroupChange() {
+      const { contributionId, tag } = this.pendingGroupChange
+      this.$emit('assign-group', { contributionId, tags: tag ? [tag] : [] })
+      this.resetGroupChange()
+    },
+    cancelGroupChange() {
+      this.dropGroupSelection()
+      this.resetGroupChange()
+    },
+    resetGroupChange() {
+      this.pendingGroupChange = { contributionId: null, tag: '', fromLabel: '', toLabel: '' }
+      this.groupChangeModal = false
+    },
+    // Forget the shown pick and let the contribution speak for itself again.
+    dropGroupSelection() {
+      const { contributionId } = this.pendingGroupChange
+      if (contributionId !== null) {
+        delete this.groupSelection[contributionId]
+      }
+    },
+    // Group functions: "Name (#tag)" for the groups a contribution belongs to, shown above
+    // the text. Several groups are listed one after another.
+    groupLabel(item) {
+      return (item.groupTags ?? [])
+        .map((group) => (group.name ? `${group.name} (#${group.tag})` : `#${group.tag}`))
+        .join(', ')
     },
     isAddCommentToMemo(item) {
       return item.closedBy > 0 || item.moderatorId > 0 || item.updatedBy > 0
@@ -337,6 +495,30 @@ export default {
   --bs-table-bg: #e78d8d;
   --bs-table-striped-bg: #e57373;
   --bs-table-hover-bg: #e06a6a;
+}
+
+/* The group dropdown sits on a coloured contribution row. A white box would pull the eye
+   away from the text it belongs to, so the control stays transparent and lets the row
+   colour through -- striped, hovered or plain, it always matches by itself. It only firms
+   up while it is being used. Element + class so it wins over .form-select whatever the
+   stylesheet order is. */
+.group-select {
+  max-width: 28rem;
+}
+
+/* The inline picker is now a BDropdown (its option list follows the app theme in every
+   browser, unlike a native <select> popup). Keep the toggle transparent so the row colour
+   shows through; it only firms up while it is being used. */
+.group-select > .btn.themed-select-toggle {
+  background-color: transparent;
+  border-color: rgb(0 0 0 / 12%);
+}
+
+.group-select > .btn.themed-select-toggle:hover,
+.group-select > .btn.themed-select-toggle:focus,
+.group-select.show > .btn.themed-select-toggle {
+  background-color: rgb(255 255 255 / 35%);
+  border-color: rgb(0 0 0 / 25%);
 }
 
 /* Crea logo used as the per-row trigger button (replaces the former robot icon) */

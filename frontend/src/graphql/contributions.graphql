@@ -31,13 +31,17 @@ fragment contributionMessageFields on ContributionMessage {
   userId
 }
 
-query listContributions ($pagination: Paginated!) {
-  listContributions(pagination: $pagination) {
+query listContributions ($pagination: Paginated!, $filter: ContributionFilterArgs) {
+  listContributions(pagination: $pagination, filter: $filter) {
     contributionCount
     contributionList {
       id
       amount
       memo
+      groupTags {
+        tag
+        name
+      }
       contributionDate
       contributionStatus
       messagesCount
@@ -50,15 +54,18 @@ query listContributions ($pagination: Paginated!) {
   }
 }
 
-query listAllContributions ($pagination: Paginated!) {
-  listAllContributions(pagination: $pagination) {
+query listAllContributions ($pagination: Paginated!, $filter: ContributionFilterArgs) {
+  listAllContributions(pagination: $pagination, filter: $filter) {
     contributionCount
+    windowMonths
     contributionList {
+      id
       amount
       memo
-      user {
-        ...userFields
-      }      
+      groupTags {
+        tag
+        name
+      }
       contributionDate
       updatedBy
       contributionStatus
@@ -84,9 +91,51 @@ query openCreationsAmounts {
   }
 }
 
+# Group functions: canonical tag list (autocomplete) + the user's own list (main tag)
+query groupTags {
+  groupTags {
+    id
+    tag
+    name
+  }
+}
+
+# Only the groups the community list currently has something to show for. For the filter
+# above that list — never for the submission field, which must keep offering every group so
+# a dormant one can be woken up again.
+query communityGroupTags {
+  communityGroupTags {
+    id
+    tag
+    name
+  }
+}
+
+# Only the groups the caller's own "my contributions" list has something to show for, so the
+# filter above that list never offers a group that would come back empty. Not windowed, and
+# it counts deleted contributions too, because that list shows them.
+query myContributionGroupTags {
+  myContributionGroupTags {
+    id
+    tag
+    name
+  }
+}
+
+# What the group field is pre-filled with: the member's own last statement, derived from
+# their history in the backend. Null means "(no group)" — either chosen deliberately last
+# time, or nothing to go on.
+query suggestedGroupTag {
+  suggestedGroupTag {
+    id
+    tag
+    name
+  }
+}
+
 # return unconfirmedContributionFields
-mutation createContribution ($amount: GradidoUnit!, $memo: String!, $contributionDate: String!) {
-  createContribution(amount: $amount, memo: $memo, contributionDate: $contributionDate)  {
+mutation createContribution ($amount: GradidoUnit!, $memo: String!, $contributionDate: String!, $groupTags: [String!]) {
+  createContribution(amount: $amount, memo: $memo, contributionDate: $contributionDate, groupTags: $groupTags)  {
     id
   }
 }

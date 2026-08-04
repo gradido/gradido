@@ -62,9 +62,12 @@
     "community": "Comunidad",
     "communityMember": "Eres un miembro activo",
     "continue-to-registration": "Continuar con el registro",
+    "groupsAndModerators": "Grupos y moderadores",
     "moderator": "Moderador",
-    "moderators": "Moderadores",
+    "moderatorsAllGroups": "Para todos los grupos",
+    "moderatorsUntagged": "Contribuciones sin grupo",
     "myContributions": "Mis contribuciones al bien común",
+    "noModerators": "Todavía no hay moderador",
     "submitContribution": "escribir"
   },
   "communityInfo": "Información de la comunidad",
@@ -82,8 +85,17 @@
       "myContributionNoteList": "Puedes editar o eliminar las contribuciones enviadas que aún no han sido confirmadas en cualquier momento.",
       "pending": "Enviado y a la espera de confirmación"
     },
-    "delete": "Eliminar la contribución. ¿Estás seguro?",
-    "deleted": "¡La contribución ha sido borrada! Pero seguirá siendo visible.",
+    "communityWindow": "Contributions from the last {months} months",
+    "delete": "¿Eliminar realmente la contribución? Después solo será visible para ti y los moderadores, invisible para la comunidad.",
+    "deleted": "La contribución ha sido eliminada. Ahora solo es visible para ti y los moderadores, invisible para la comunidad.",
+    "filter": {
+      "all": "(todas)",
+      "byGroup": "Filtrar por grupo",
+      "grouped": "(todos los grupos)",
+      "noGroup": "(sin grupo)",
+      "noResults": "No contributions found.",
+      "search": "Search contributions …"
+    },
     "formText": {
       "bringYourTalentsTo": "¡Contribuye a la comunidad con tus talentos! Premiamos tu compromiso voluntario con 20 GDD por hora hasta un máximo de 1.000 GDD al mes.",
       "describeYourCommunity": "¡Describe tu contribución al bien-común con detalles de las horas e introduce una cantidad de 20 GDD por hora! Tras la confirmación de un moderador, el importe se abonará en tu cuenta.",
@@ -91,8 +103,14 @@
       "openAmountForMonth": "Para <b>{monthAndYear}</b> aún puedes presentar <b>{creation}</b> GDD.",
       "yourContribution": "Tu contribución a la comunidad."
     },
+    "groupTag": {
+      "help": "Opcional. También funciona sin grupo. Una #palabra en el texto no asigna un grupo — para eso está este campo.",
+      "label": "Group",
+      "none": "(sin grupo)"
+    },
     "isEdited": "ha editado la contribución",
     "lastContribution": "Últimas contribuciones",
+    "memoIsPublic": "Your description appears in the community list, where it is visible to all members. It shows the contribution's number instead of your name.",
     "noContributions": {
       "allContributions": "Aún no se ha enviado ninguna contribución.",
       "emptyPage": "Esta página está vacía.",
@@ -103,6 +121,7 @@
       "lastMonth": "Se ha alcanzado el límite de creación para el mes seleccionado.",
       "thisMonth": "Se ha alcanzado el límite de creación para el mes actual."
     },
+    "number": "Contribution no. {number}",
     "oldContribution": "Versión anterior",
     "selectDate": "¿Cuando fue tu contribución?",
     "submit": "Enviar",
@@ -113,7 +132,6 @@
   "contribution-link": {
     "thanksYouWith": "te agradece con"
   },
-  "contributionText": "Texto de la contribución",
   "copy-to-clipboard": "Copiar al portapapeles",
   "creation": "Creación",
   "decay": {

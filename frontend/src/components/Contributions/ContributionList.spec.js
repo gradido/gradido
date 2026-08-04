@@ -1,3 +1,4 @@
+import { myContributionGroupTags } from '@/graphql/contributions.graphql'
 import { useQuery } from '@vue/apollo-composable'
 import { mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -100,11 +101,24 @@ describe('ContributionList', () => {
 
   const loading = ref(false)
 
+  const myGroups = ref({
+    myContributionGroupTags: [
+      { id: 1, tag: 'choir', name: 'Choir' },
+      { id: 2, tag: 'fire', name: null },
+    ],
+  })
+
   describe('mount', () => {
     const mockListContributionsQuery = vi.fn()
 
     beforeEach(() => {
       vi.mocked(useQuery).mockImplementation((query) => {
+        // This tab asks two queries. Answering both the same way would hide which one the
+        // group dropdown reads -- and reading the canonical list instead of the member's
+        // own groups is precisely the mistake this component must not make.
+        if (query === myContributionGroupTags) {
+          return { result: myGroups, loading: ref(false) }
+        }
         return {
           result: contributions,
           loading,
@@ -128,6 +142,31 @@ describe('ContributionList', () => {
 
     it('has a DIV .contribution-list', () => {
       expect(wrapper.find('div.contribution-list').exists()).toBe(true)
+    })
+
+    // Both contribution tabs carry the same group filter, so both have to offer the same
+    // three answers -- this tab was missed once, and the label it used had already been
+    // renamed. BFormSelect is registered app-wide rather than imported, so the test puts
+    // its own stand-in there to read the options off.
+    it('offers all, all groups and no group before the real groups', () => {
+      const SelectStub = {
+        name: 'ThemedSelect',
+        props: ['options', 'modelValue'],
+        template: '<select></select>',
+      }
+      const localWrapper = mount(ContributionList, {
+        global: { ...global, stubs: { ...global.stubs, ThemedSelect: SelectStub } },
+      })
+      const options = localWrapper.findComponent(SelectStub).props('options')
+      // The real groups are asserted too: the three reserved answers alone would still
+      // pass if the dropdown read the community-wide list instead of the member's own.
+      expect(options.map((option) => option.value)).toEqual([
+        null,
+        '*grouped',
+        '*untagged',
+        'choir',
+        'fire',
+      ])
     })
 
     describe('pagination', () => {
