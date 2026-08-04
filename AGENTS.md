@@ -142,13 +142,28 @@ Reference implementation: `database/src/queries/dltTransactions.ts` — small er
 
 # AI-generated code
 
-When an AI creates a whole new file, that file is marked as AI-generated with a comment on the first line:
+When an AI creates a whole new file, that file is marked as AI-generated with a comment on the first line. In TypeScript, JavaScript and C-family files (`.ts`, `.tsx`, `.js`, `.jsx`, `.c`, `.h`) that is a line comment:
 
 ```ts
 // AI-GENERATED — not an architecture reference
 ```
 
-This applies to new files written by an AI, not to edits an AI makes to existing human-written files. The marker is a plain, greppable string on purpose: `grep -rn "AI-GENERATED" --include='*.ts' --include='*.tsx'  --include='*.js' --include='*.jsx' --include='*.vue' --include='*.graphql' --include='*.c' --include='*.h'` shows at any time which parts of the tree have not been through a human.
+Other file types need their own comment syntax — `//` is not a comment there and would break the file. Use the form that matches the language, with the same marker text:
+
+- **GraphQL** (`.graphql`) — a `#` comment on the first line:
+
+  ```graphql
+  # AI-GENERATED — not an architecture reference
+  ```
+
+- **Vue SFC** (`.vue`) — an HTML comment above the first block, not inside `<template>`:
+
+  ```vue
+  <!-- AI-GENERATED — not an architecture reference -->
+  <template>
+  ```
+
+This applies to new files written by an AI, not to edits an AI makes to existing human-written files. The marker text is identical everywhere and is a plain, greppable string on purpose, so one search covers every comment syntax: `grep -rn "AI-GENERATED" --include='*.ts' --include='*.tsx'  --include='*.js' --include='*.jsx' --include='*.vue' --include='*.graphql' --include='*.c' --include='*.h'` shows at any time which parts of the tree have not been through a human.
 
 **Marked files must not be used as an architecture reference.** Do not copy their structure, their file layout, or their patterns into new code, and do not treat them as evidence of how something is done here. Fluent code and thorough comments are not evidence of a considered design — an AI produces both regardless, which makes generated code more tempting to imitate than it has earned (`apis/anthropic/crea/` is the example in this repo). Take conventions from this document and from the reference implementations it names, never from unreviewed generated code.
 
