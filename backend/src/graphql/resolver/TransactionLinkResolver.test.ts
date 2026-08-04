@@ -6,6 +6,7 @@ import {
   AppDatabase,
   ContributionLink as DbContributionLink,
   Event as DbEvent,
+  SeedUser,
   Transaction,
   User,
   UserContact,
@@ -55,7 +56,7 @@ let testEnv: {
   db: AppDatabase
 }
 
-let user: User
+let user: SeedUser
 
 beforeAll(async () => {
   testEnv = await testEnvironment()

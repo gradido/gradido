@@ -21,6 +21,7 @@ import {
   Contribution,
   Event as DbEvent,
   Transaction as DbTransaction,
+  SeedUser,
   User,
 } from 'database'
 import { GraphQLError } from 'graphql'
@@ -81,7 +82,7 @@ let testEnv: {
   db: AppDatabase
 }
 let creation: Contribution | null
-let admin: User
+let admin: SeedUser
 let pendingContribution: any
 let inProgressContribution: any
 let contributionToConfirm: any

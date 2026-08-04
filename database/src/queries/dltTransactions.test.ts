@@ -15,7 +15,7 @@ import { createCommunity } from '../seeds/community'
 import { creationFactory, nMonthsBefore } from '../seeds/factory/creation'
 import { transferGradidos } from '../seeds/factory/transaction'
 import { createTransactionLink } from '../seeds/factory/transactionLink'
-import { userFactory } from '../seeds/factory/user'
+import { SeedUser, userFactory } from '../seeds/factory/user'
 import { transactionLinks } from '../seeds/transactionLink'
 import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
 import { peterLustig } from '../seeds/users/peter-lustig'
@@ -23,8 +23,8 @@ import { dbInsertDltTransaction, dbUpdateWithErrorDltTransaction } from './dltTr
 
 const appDB = AppDatabase.getInstance()
 
-let bibi: DbUser
-let peter: DbUser
+let bibi: SeedUser
+let peter: SeedUser
 let contribution: DbContribution
 let transferTransactions: DbTransaction[] = []
 let transactionLink: DbTransactionLink
@@ -117,7 +117,7 @@ describe('dlt transactions query test', () => {
         const dltTransaction = result.value.dltTransaction
         expect(dltTransaction.id).toBe(insertResult.value.id)
         const user = result.value.user
-        expect(user?.gradidoId).toBe(bibi.gradidoID)
+        expect(user?.gradidoId).toBe(bibi.gradidoId)
       }
     })
 
@@ -174,9 +174,9 @@ describe('dlt transactions query test', () => {
         expect(transaction.id).toBe(transferTransactions[0].id)
         expect(transaction.typeId).toBe(TransactionTypeId.SEND)
         const user = result.value.user
-        expect(user?.gradidoId).toBe(bibi.gradidoID)
+        expect(user?.gradidoId).toBe(bibi.gradidoId)
         const linkedUser = result.value.linkedUser
-        expect(linkedUser?.gradidoId).toBe(peter.gradidoID)
+        expect(linkedUser?.gradidoId).toBe(peter.gradidoId)
       }
     })
 
@@ -204,7 +204,7 @@ describe('dlt transactions query test', () => {
         const transactionLink = result.value.transactionLink
         expect(transactionLink.id).toBe(transactionLink.id)
         const user = result.value.user
-        expect(user?.gradidoId).toBe(bibi.gradidoID)
+        expect(user?.gradidoId).toBe(bibi.gradidoId)
       }
     })
   })

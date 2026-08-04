@@ -1,8 +1,8 @@
 import {
   AppDatabase,
   creationFactoryBulk,
+  SeedUser,
   transactionLinkFactoryBulk,
-  User,
   UserInterface,
 } from 'database'
 import { internet, name } from 'faker'
@@ -33,7 +33,7 @@ const run = async () => {
 
   // seed the standard users
   // put into map for later direct access
-  const userCreationIndexedByEmail = new Map<string, User>()
+  const userCreationIndexedByEmail = new Map<string, SeedUser>()
   const defaultUsers = await userFactoryBulk(users, homeCommunity)
   for (const dbUser of defaultUsers) {
     userCreationIndexedByEmail.set(dbUser.emailContact.email, dbUser)
