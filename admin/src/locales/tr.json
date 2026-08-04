@@ -32,9 +32,9 @@
   "change_user_role": "Kullanıcı rolünü değiştir",
   "close": "Kapat",
   "contribution": {
-    "changeGroup": "Grubu değiştir",
+    "changeGroup": "Yaratım grubunu değiştir",
     "changeGroupConfirm": "Evet, taşı",
-    "changeGroupDone": "Grup değiştirildi.",
+    "changeGroupDone": "Yaratım grubu değiştirildi.",
     "changeGroupHint": "Görünür gruplarınıza bağlı olarak katkı listenizde artık görünmeyebilir.",
     "changeGroupQuestion": "Bu katkı {from} grubundan {to} grubuna taşınsın mı?",
     "confirmedBy": "{name} tarafından onaylandı.",
@@ -179,6 +179,47 @@
   "created": "Oluşturuldu",
   "createdAt": "Oluşturulma",
   "creation": "Oluşturma",
+  "creationGroupFilter": {
+    "all": "(tümü)",
+    "grouped": "(tüm gruplar)",
+    "label": "Creation group:",
+    "untagged": "(grupsuz)"
+  },
+  "creationGroupsAdmin": {
+    "add": "Create",
+    "addTitle": "Create a new group",
+    "adminOnly": "Administrators only.",
+    "adoption": {
+      "adopt": "{count} tanesini aktar",
+      "check": "Eski etiketler",
+      "done": "Eski etiketler aktarıldı.",
+      "foundExact": "{count} eski katkı metninde #{tag} yazıyor.",
+      "foundLoose": "“# {tag}” şeklinde (boşlukla) yazılmış {count} katkıyı da aktar.",
+      "foundNothing": "Hiçbir eski katkı metninde bu grubu anmıyor.",
+      "hint": "Yalnızca henüz hiçbir grubu olmayan katkılar aktarılır. Var olan bir grubu adlandırmayan bir kelime sıradan metin olarak kalır.",
+      "markChecked": "Denetlendi olarak işaretle",
+      "searchFailed": "Arama başarısız oldu. Lütfen tekrar deneyin.",
+      "searching": "Katkılarda aranıyor …",
+      "stateAdopted": "{date} tarihinde denetlendi — {count} aktarıldı",
+      "stateNothing": "{date} tarihinde denetlendi — bir şey bulunamadı",
+      "stateUnchecked": "eski etiketler henüz denetlenmedi",
+      "title": "Eski etiketleri {group} grubuna aktar"
+    },
+    "cancel": "Cancel",
+    "created": "Group created.",
+    "edit": "Edit",
+    "empty": "No groups created yet.",
+    "existingTitle": "Existing groups",
+    "intro": "Create new groups or rename existing ones. Who belongs to a group or moderates it is assigned on the \"User role\" tab.",
+    "name": "Name",
+    "namePlaceholder": "e.g. Volunteer Fire Brigade Springfield",
+    "save": "Save",
+    "tag": "Tag",
+    "tagHint": "A short tag without spaces — capitals and accented letters are allowed. Matching ignores upper and lower case. The name is what is shown everywhere.",
+    "tagPlaceholder": "e.g. firefighter",
+    "title": "Manage creation groups",
+    "updated": "Group updated."
+  },
   "creationList": "Oluşturma listesi",
   "creation_for_month": "Ay için oluşturma",
   "creation_form": {
@@ -257,47 +298,6 @@
     "humhubProfile": "Humhub profiline git",
     "userSearch": "Kullanıcı aramasına git"
   },
-  "groupTagFilter": {
-    "all": "(tümü)",
-    "grouped": "(tüm gruplar)",
-    "label": "Group:",
-    "untagged": "(grupsuz)"
-  },
-  "groupTagsAdmin": {
-    "add": "Create",
-    "addTitle": "Create a new group",
-    "adminOnly": "Administrators only.",
-    "adoption": {
-      "adopt": "{count} tanesini aktar",
-      "check": "Eski etiketler",
-      "done": "Eski etiketler aktarıldı.",
-      "foundExact": "{count} eski katkı metninde #{tag} yazıyor.",
-      "foundLoose": "“# {tag}” şeklinde (boşlukla) yazılmış {count} katkıyı da aktar.",
-      "foundNothing": "Hiçbir eski katkı metninde bu grubu anmıyor.",
-      "hint": "Yalnızca henüz hiçbir grubu olmayan katkılar aktarılır. Var olan bir grubu adlandırmayan bir kelime sıradan metin olarak kalır.",
-      "markChecked": "Denetlendi olarak işaretle",
-      "searchFailed": "Arama başarısız oldu. Lütfen tekrar deneyin.",
-      "searching": "Katkılarda aranıyor …",
-      "stateAdopted": "{date} tarihinde denetlendi — {count} aktarıldı",
-      "stateNothing": "{date} tarihinde denetlendi — bir şey bulunamadı",
-      "stateUnchecked": "eski etiketler henüz denetlenmedi",
-      "title": "Eski etiketleri {group} grubuna aktar"
-    },
-    "cancel": "Cancel",
-    "created": "Group created.",
-    "edit": "Edit",
-    "empty": "No groups created yet.",
-    "existingTitle": "Existing groups",
-    "intro": "Create new groups or rename existing ones. Who belongs to a group or moderates it is assigned on the “User role” tab.",
-    "name": "Name",
-    "namePlaceholder": "e.g. Volunteer Fire Brigade Springfield",
-    "save": "Save",
-    "tag": "Tag",
-    "tagHint": "A short tag without spaces — capitals and accented letters are allowed. Matching ignores upper and lower case. The name is what is shown everywhere.",
-    "tagPlaceholder": "e.g. firefighter",
-    "title": "Manage groups",
-    "updated": "Group updated."
-  },
   "help": {
     "help": "Yardım",
     "transactionlist": {
@@ -341,7 +341,7 @@
   "navbar": {
     "automaticContributions": "Başlangıç bakiyesi",
     "crea": "Crea",
-    "groupTags": "Groups",
+    "creationGroups": "Creation groups",
     "instances": "Örnekler",
     "logout": "Çıkış yap",
     "my-account": "Hesabım",
@@ -451,18 +451,18 @@
   },
   "unregistered_emails": "Yalnızca kayıtsız kullanıcılar",
   "userRole": {
-    "groupTags": {
+    "creationGroups": {
       "help": "Pre-filled on submission.",
-      "label": "User's main group",
+      "label": "User's main creation group",
       "none": "(no group)"
     },
     "notChangeYourSelf": "Yönetici/moderatör olarak kendi rolünü değiştiremezsin.",
-    "savedGroupTags": "Groups saved.",
+    "savedCreationGroups": "Creation groups saved.",
     "savedScope": "Visibility saved.",
     "scope": {
       "all": "all groups",
       "help": "Empty = all contributions.",
-      "label": "Visible groups",
+      "label": "Visible creation groups",
       "untagged": "no group"
     },
     "selectLabel": "Rol:",

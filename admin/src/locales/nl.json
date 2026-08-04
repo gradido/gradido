@@ -32,9 +32,9 @@
   "change_user_role": "Gebruikersrol wijzigen",
   "close": "Sluiten",
   "contribution": {
-    "changeGroup": "Groep wijzigen",
+    "changeGroup": "Creatiegroep wijzigen",
     "changeGroupConfirm": "Ja, verplaatsen",
-    "changeGroupDone": "Groep gewijzigd.",
+    "changeGroupDone": "Creatiegroep gewijzigd.",
     "changeGroupHint": "Afhankelijk van je zichtbare groepen verschijnt de bijdrage daarna mogelijk niet meer in je lijst.",
     "changeGroupQuestion": "Deze bijdrage verplaatsen van {from} naar {to}?",
     "confirmedBy": "Bevestigd door {name}.",
@@ -179,6 +179,47 @@
   "created": "Gecreëerd",
   "createdAt": "Aangemaakt op",
   "creation": "Creatie",
+  "creationGroupFilter": {
+    "all": "(alle)",
+    "grouped": "(alle groepen)",
+    "label": "Creation group:",
+    "untagged": "(zonder groep)"
+  },
+  "creationGroupsAdmin": {
+    "add": "Create",
+    "addTitle": "Create a new group",
+    "adminOnly": "Administrators only.",
+    "adoption": {
+      "adopt": "{count} overnemen",
+      "check": "Oude hashtags",
+      "done": "Oude hashtags overgenomen.",
+      "foundExact": "{count} oudere bijdragen schrijven #{tag} in hun tekst.",
+      "foundLoose": "Ook {count} bijdragen overnemen die als “# {tag}” zijn geschreven (met een spatie).",
+      "foundNothing": "Geen oudere bijdrage noemt deze groep in de tekst.",
+      "hint": "Alleen bijdragen die nog helemaal geen groep hebben worden overgenomen. Een woord dat geen bestaande groep noemt blijft gewone tekst.",
+      "markChecked": "Als gecontroleerd markeren",
+      "searchFailed": "De zoekopdracht is mislukt. Probeer het opnieuw.",
+      "searching": "Zoeken in de bijdragen …",
+      "stateAdopted": "gecontroleerd op {date} — {count} overgenomen",
+      "stateNothing": "gecontroleerd op {date} — niets gevonden",
+      "stateUnchecked": "oude hashtags nog niet gecontroleerd",
+      "title": "Oude hashtags overnemen in {group}"
+    },
+    "cancel": "Cancel",
+    "created": "Group created.",
+    "edit": "Edit",
+    "empty": "No groups created yet.",
+    "existingTitle": "Existing groups",
+    "intro": "Create new groups or rename existing ones. Who belongs to a group or moderates it is assigned on the \"User role\" tab.",
+    "name": "Name",
+    "namePlaceholder": "e.g. Volunteer Fire Brigade Springfield",
+    "save": "Save",
+    "tag": "Tag",
+    "tagHint": "A short tag without spaces — capitals and accented letters are allowed. Matching ignores upper and lower case. The name is what is shown everywhere.",
+    "tagPlaceholder": "e.g. firefighter",
+    "title": "Manage creation groups",
+    "updated": "Group updated."
+  },
   "creationList": "Creatielijst",
   "creation_for_month": "Creatie voor maand",
   "creation_form": {
@@ -257,47 +298,6 @@
     "humhubProfile": "Naar Humhub-profiel gaan",
     "userSearch": "Naar gebruikerszoekopdracht gaan"
   },
-  "groupTagFilter": {
-    "all": "(alle)",
-    "grouped": "(alle groepen)",
-    "label": "Group:",
-    "untagged": "(zonder groep)"
-  },
-  "groupTagsAdmin": {
-    "add": "Create",
-    "addTitle": "Create a new group",
-    "adminOnly": "Administrators only.",
-    "adoption": {
-      "adopt": "{count} overnemen",
-      "check": "Oude hashtags",
-      "done": "Oude hashtags overgenomen.",
-      "foundExact": "{count} oudere bijdragen schrijven #{tag} in hun tekst.",
-      "foundLoose": "Ook {count} bijdragen overnemen die als “# {tag}” zijn geschreven (met een spatie).",
-      "foundNothing": "Geen oudere bijdrage noemt deze groep in de tekst.",
-      "hint": "Alleen bijdragen die nog helemaal geen groep hebben worden overgenomen. Een woord dat geen bestaande groep noemt blijft gewone tekst.",
-      "markChecked": "Als gecontroleerd markeren",
-      "searchFailed": "De zoekopdracht is mislukt. Probeer het opnieuw.",
-      "searching": "Zoeken in de bijdragen …",
-      "stateAdopted": "gecontroleerd op {date} — {count} overgenomen",
-      "stateNothing": "gecontroleerd op {date} — niets gevonden",
-      "stateUnchecked": "oude hashtags nog niet gecontroleerd",
-      "title": "Oude hashtags overnemen in {group}"
-    },
-    "cancel": "Cancel",
-    "created": "Group created.",
-    "edit": "Edit",
-    "empty": "No groups created yet.",
-    "existingTitle": "Existing groups",
-    "intro": "Create new groups or rename existing ones. Who belongs to a group or moderates it is assigned on the “User role” tab.",
-    "name": "Name",
-    "namePlaceholder": "e.g. Volunteer Fire Brigade Springfield",
-    "save": "Save",
-    "tag": "Tag",
-    "tagHint": "A short tag without spaces — capitals and accented letters are allowed. Matching ignores upper and lower case. The name is what is shown everywhere.",
-    "tagPlaceholder": "e.g. firefighter",
-    "title": "Manage groups",
-    "updated": "Group updated."
-  },
   "help": {
     "help": "Help",
     "transactionlist": {
@@ -341,7 +341,7 @@
   "navbar": {
     "automaticContributions": "Startsaldo",
     "crea": "Crea",
-    "groupTags": "Groups",
+    "creationGroups": "Creation groups",
     "instances": "Instanties",
     "logout": "Afmelden",
     "my-account": "Mijn account",
@@ -451,18 +451,18 @@
   },
   "unregistered_emails": "Alleen niet-geregistreerde gebruikers",
   "userRole": {
-    "groupTags": {
+    "creationGroups": {
       "help": "Pre-filled on submission.",
-      "label": "User's main group",
+      "label": "User's main creation group",
       "none": "(no group)"
     },
     "notChangeYourSelf": "Als admin/moderator kun je je eigen rol niet wijzigen.",
-    "savedGroupTags": "Groups saved.",
+    "savedCreationGroups": "Creation groups saved.",
     "savedScope": "Visibility saved.",
     "scope": {
       "all": "all groups",
       "help": "Empty = all contributions.",
-      "label": "Visible groups",
+      "label": "Visible creation groups",
       "untagged": "no group"
     },
     "selectLabel": "Rol:",

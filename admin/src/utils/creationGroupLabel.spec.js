@@ -1,25 +1,25 @@
 import { describe, it, expect } from 'vitest'
-import { groupTagLabel, groupTagLabels, groupTagOption } from './groupTagLabel'
+import { creationGroupLabel, creationGroupLabels, creationGroupOption } from './creationGroupLabel'
 
 // ⚠️ The admin's form differs from the wallet's on purpose: it keeps the tag, because the
 // tag is what identifies a mistyped one on an old contribution. A test on both sides is the
 // only thing stopping the two from being "unified" by someone who sees them side by side.
-describe('groupTagLabel', () => {
+describe('creationGroupLabel', () => {
   it('writes name and tag together', () => {
-    expect(groupTagLabel({ tag: 'music', name: 'Musik' })).toBe('Musik (#music)')
+    expect(creationGroupLabel({ tag: 'music', name: 'Musik' })).toBe('Musik (#music)')
   })
 
   // An old inline hashtag adopted into a group can have no name yet.
   it('falls back to the bare tag when there is no name', () => {
-    expect(groupTagLabel({ tag: 'sports', name: null })).toBe('#sports')
-    expect(groupTagLabel({ tag: 'sports', name: '' })).toBe('#sports')
+    expect(creationGroupLabel({ tag: 'sports', name: null })).toBe('#sports')
+    expect(creationGroupLabel({ tag: 'sports', name: '' })).toBe('#sports')
   })
 })
 
-describe('groupTagLabels', () => {
+describe('creationGroupLabels', () => {
   it('lists several groups one after another', () => {
     expect(
-      groupTagLabels([
+      creationGroupLabels([
         { tag: 'music', name: 'Musik' },
         { tag: 'sports', name: null },
       ]),
@@ -27,17 +27,17 @@ describe('groupTagLabels', () => {
   })
 
   it('survives an empty or missing list', () => {
-    expect(groupTagLabels([])).toBe('')
-    expect(groupTagLabels(null)).toBe('')
-    expect(groupTagLabels(undefined)).toBe('')
+    expect(creationGroupLabels([])).toBe('')
+    expect(creationGroupLabels(null)).toBe('')
+    expect(creationGroupLabels(undefined)).toBe('')
   })
 })
 
-describe('groupTagOption', () => {
+describe('creationGroupOption', () => {
   // ⚠️ The value is the TAG, never the id. The whole feature keys on the canonical tag
   // string, so an option carrying an id would fail only once someone picks it.
   it('offers the tag as the value and the full label as the text', () => {
-    expect(groupTagOption({ id: 7, tag: 'music', name: 'Musik' })).toEqual({
+    expect(creationGroupOption({ id: 7, tag: 'music', name: 'Musik' })).toEqual({
       value: 'music',
       text: 'Musik (#music)',
     })

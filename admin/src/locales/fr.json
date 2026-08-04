@@ -32,9 +32,9 @@
   "change_user_role": "Changer le rôle de l'utilisateur",
   "close": "Fermer",
   "contribution": {
-    "changeGroup": "Changer de groupe",
+    "changeGroup": "Changer de groupe de création",
     "changeGroupConfirm": "Oui, déplacer",
-    "changeGroupDone": "Groupe modifié.",
+    "changeGroupDone": "Groupe de création modifié.",
     "changeGroupHint": "Selon vos groupes visibles, la contribution pourrait ne plus apparaître dans votre liste.",
     "changeGroupQuestion": "Déplacer cette contribution de {from} vers {to} ?",
     "confirmedBy": "Confirmé par {name}.",
@@ -179,6 +179,47 @@
   "created": "Créé",
   "createdAt": "Créé le",
   "creation": "Création",
+  "creationGroupFilter": {
+    "all": "(toutes)",
+    "grouped": "(tous les groupes)",
+    "label": "Creation group:",
+    "untagged": "(sans groupe)"
+  },
+  "creationGroupsAdmin": {
+    "add": "Create",
+    "addTitle": "Create a new group",
+    "adminOnly": "Administrators only.",
+    "adoption": {
+      "adopt": "Reprendre {count}",
+      "check": "Anciens hashtags",
+      "done": "Anciens hashtags repris.",
+      "foundExact": "{count} contributions plus anciennes écrivent #{tag} dans leur texte.",
+      "foundLoose": "Reprendre aussi {count} contributions écrites « # {tag} » (avec une espace).",
+      "foundNothing": "Aucune contribution ancienne ne nomme ce groupe dans son texte.",
+      "hint": "Seules les contributions qui n’ont encore aucun groupe sont reprises. Un mot qui ne nomme aucun groupe existant reste du texte ordinaire.",
+      "markChecked": "Marquer comme vérifié",
+      "searchFailed": "La recherche a échoué. Merci de réessayer.",
+      "searching": "Recherche dans les contributions …",
+      "stateAdopted": "vérifié le {date} — {count} reprises",
+      "stateNothing": "vérifié le {date} — rien trouvé",
+      "stateUnchecked": "anciens hashtags pas encore vérifiés",
+      "title": "Reprendre les anciens hashtags dans {group}"
+    },
+    "cancel": "Cancel",
+    "created": "Group created.",
+    "edit": "Edit",
+    "empty": "No groups created yet.",
+    "existingTitle": "Existing groups",
+    "intro": "Create new groups or rename existing ones. Who belongs to a group or moderates it is assigned on the \"User role\" tab.",
+    "name": "Name",
+    "namePlaceholder": "e.g. Volunteer Fire Brigade Springfield",
+    "save": "Save",
+    "tag": "Tag",
+    "tagHint": "A short tag without spaces — capitals and accented letters are allowed. Matching ignores upper and lower case. The name is what is shown everywhere.",
+    "tagPlaceholder": "e.g. firefighter",
+    "title": "Manage creation groups",
+    "updated": "Group updated."
+  },
   "creationList": "Liste des créations",
   "creation_for_month": "Création pour le mois",
   "creation_form": {
@@ -257,47 +298,6 @@
     "humhubProfile": "Aller au profil Humhub",
     "userSearch": "Aller à la recherche d'utilisateurs"
   },
-  "groupTagFilter": {
-    "all": "(toutes)",
-    "grouped": "(tous les groupes)",
-    "label": "Group:",
-    "untagged": "(sans groupe)"
-  },
-  "groupTagsAdmin": {
-    "add": "Create",
-    "addTitle": "Create a new group",
-    "adminOnly": "Administrators only.",
-    "adoption": {
-      "adopt": "Reprendre {count}",
-      "check": "Anciens hashtags",
-      "done": "Anciens hashtags repris.",
-      "foundExact": "{count} contributions plus anciennes écrivent #{tag} dans leur texte.",
-      "foundLoose": "Reprendre aussi {count} contributions écrites « # {tag} » (avec une espace).",
-      "foundNothing": "Aucune contribution ancienne ne nomme ce groupe dans son texte.",
-      "hint": "Seules les contributions qui n’ont encore aucun groupe sont reprises. Un mot qui ne nomme aucun groupe existant reste du texte ordinaire.",
-      "markChecked": "Marquer comme vérifié",
-      "searchFailed": "La recherche a échoué. Merci de réessayer.",
-      "searching": "Recherche dans les contributions …",
-      "stateAdopted": "vérifié le {date} — {count} reprises",
-      "stateNothing": "vérifié le {date} — rien trouvé",
-      "stateUnchecked": "anciens hashtags pas encore vérifiés",
-      "title": "Reprendre les anciens hashtags dans {group}"
-    },
-    "cancel": "Cancel",
-    "created": "Group created.",
-    "edit": "Edit",
-    "empty": "No groups created yet.",
-    "existingTitle": "Existing groups",
-    "intro": "Create new groups or rename existing ones. Who belongs to a group or moderates it is assigned on the “User role” tab.",
-    "name": "Name",
-    "namePlaceholder": "e.g. Volunteer Fire Brigade Springfield",
-    "save": "Save",
-    "tag": "Tag",
-    "tagHint": "A short tag without spaces — capitals and accented letters are allowed. Matching ignores upper and lower case. The name is what is shown everywhere.",
-    "tagPlaceholder": "e.g. firefighter",
-    "title": "Manage groups",
-    "updated": "Group updated."
-  },
   "help": {
     "help": "Aide",
     "transactionlist": {
@@ -341,7 +341,7 @@
   "navbar": {
     "automaticContributions": "Solde initial",
     "crea": "Crea",
-    "groupTags": "Groups",
+    "creationGroups": "Creation groups",
     "instances": "Instances",
     "logout": "Déconnexion",
     "my-account": "Mon compte",
@@ -451,18 +451,18 @@
   },
   "unregistered_emails": "Uniquement les utilisateurs non inscrits",
   "userRole": {
-    "groupTags": {
+    "creationGroups": {
       "help": "Pre-filled on submission.",
-      "label": "User's main group",
+      "label": "User's main creation group",
       "none": "(no group)"
     },
     "notChangeYourSelf": "En tant qu'administrateur/modérateur, tu ne peux pas changer ton propre rôle.",
-    "savedGroupTags": "Groups saved.",
+    "savedCreationGroups": "Creation groups saved.",
     "savedScope": "Visibility saved.",
     "scope": {
       "all": "all groups",
       "help": "Empty = all contributions.",
-      "label": "Visible groups",
+      "label": "Visible creation groups",
       "untagged": "no group"
     },
     "selectLabel": "Rôle :",

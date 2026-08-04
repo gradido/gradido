@@ -19,7 +19,7 @@ query adminListContributions(
       }
       amount
       memo
-      groupTags {
+      creationGroups {
         tag
         name
       }

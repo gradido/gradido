@@ -47,7 +47,7 @@
         <div class="mb-1">
           <ThemedSelect
             v-if="canEditGroup(row.item)"
-            :model-value="displayedGroupTag(row.item)"
+            :model-value="displayedCreationGroup(row.item)"
             :options="groupSelectOptions"
             size="sm"
             class="group-select"
@@ -203,7 +203,7 @@ import RowDetails from '../RowDetails'
 import EditCreationFormular from '../EditCreationFormular'
 import ContributionMessagesList from '../ContributionMessages/ContributionMessagesList'
 import { useDateFormatter } from '@/composables/useDateFormatter'
-import { groupTagLabels, groupTagOption } from '@/utils/groupTagLabel'
+import { creationGroupLabels, creationGroupOption } from '@/utils/creationGroupLabel'
 
 const iconMap = {
   IN_PROGRESS: 'question-square',
@@ -241,7 +241,7 @@ export default {
       type: Boolean,
       default: false,
     },
-    groupTags: {
+    creationGroups: {
       type: Array,
       required: false,
       default: () => [],
@@ -273,7 +273,7 @@ export default {
       pendingGroupChange: { contributionId: null, tag: '', fromLabel: '', toLabel: '' },
       // What the group dropdowns show, by contribution id, while a change is waiting for its
       // answer. A picked group only lands here -- the contribution itself is not touched until
-      // the backend confirms it. See displayedGroupTag() for why this is kept by hand.
+      // the backend confirms it. See displayedCreationGroup() for why this is kept by hand.
       groupSelection: {},
     }
   },
@@ -283,7 +283,7 @@ export default {
     groupSelectOptions() {
       return [
         { value: '', text: this.$t('contribution.noGroup') },
-        ...this.groupTags.map(groupTagOption),
+        ...this.creationGroups.map(creationGroupOption),
       ]
     },
   },
@@ -359,15 +359,15 @@ export default {
     canEditGroup(item) {
       return ['PENDING', 'IN_PROGRESS'].includes(item.contributionStatus)
     },
-    currentGroupTag(item) {
-      return item.groupTags?.[0]?.tag ?? ''
+    currentCreationGroup(item) {
+      return item.creationGroups?.[0]?.tag ?? ''
     },
     // A dropdown is a real DOM control: the browser applies the pick itself, so an unchanged
     // bound value gives Vue nothing to patch and the pick stays on screen even when it was
     // never saved. Keeping the shown value in our own state makes dropping a pick a real
     // change again, which is what pulls the dropdown back to the group the contribution has.
-    displayedGroupTag(item) {
-      return this.groupSelection[item.id] ?? this.currentGroupTag(item)
+    displayedCreationGroup(item) {
+      return this.groupSelection[item.id] ?? this.currentCreationGroup(item)
     },
     groupOptionLabel(tag) {
       return this.groupSelectOptions.find((option) => option.value === tag)?.text ?? tag
@@ -375,7 +375,7 @@ export default {
     // Moving a contribution to another group is easy to do by accident and can hand it to a
     // different moderator, so it goes through a confirmation rather than firing on pick.
     onGroupPicked(item, tag) {
-      const current = this.currentGroupTag(item)
+      const current = this.currentCreationGroup(item)
       if (tag === current) {
         return
       }
@@ -386,8 +386,8 @@ export default {
         // Name every group the contribution currently has, not just the one the dropdown
         // happens to show. A legacy contribution whose text names two groups carries both,
         // and saving replaces the whole set -- the dialog has to say what is being given up.
-        fromLabel: (item.groupTags ?? []).length
-          ? item.groupTags.map((group) => this.groupOptionLabel(group.tag)).join(', ')
+        fromLabel: (item.creationGroups ?? []).length
+          ? item.creationGroups.map((group) => this.groupOptionLabel(group.tag)).join(', ')
           : this.groupOptionLabel(''),
         toLabel: this.groupOptionLabel(tag),
       }
@@ -427,9 +427,9 @@ export default {
       }
     },
     // Group functions: the groups a contribution belongs to, shown above the text. The form
-    // itself is decided once in utils/groupTagLabel.
+    // itself is decided once in utils/creationGroupLabel.
     groupLabel(item) {
-      return groupTagLabels(item.groupTags)
+      return creationGroupLabels(item.creationGroups)
     },
     isAddCommentToMemo(item) {
       return item.closedBy > 0 || item.moderatorId > 0 || item.updatedBy > 0
