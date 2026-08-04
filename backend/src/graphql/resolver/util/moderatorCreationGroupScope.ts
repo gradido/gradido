@@ -11,6 +11,7 @@ import {
   parseModeratorScope,
   UNTAGGED_FILTER,
 } from './findContributions'
+import { resolveCreationGroups } from './resolveCreationGroups'
 
 // Both moderator kinds are scoped alike: a MODERATOR_AI is a moderator who may additionally
 // use Crea — not a wider role. Every visibility-scope check goes through this helper, so a
@@ -121,20 +122,24 @@ export const saveModeratorScope = async (userId: number, scope: string[]): Promi
   const realTags = normalised.filter((token) => !token.startsWith('*'))
   let stored = normalised
   if (realTags.length > 0) {
-    const canonical = await DbCreationGroup.find({ where: { tag: In(realTags) } })
-    // creation_groups.tag is utf8mb4_unicode_ci, so the lookup matched regardless of case.
-    // Compare on the folded spelling, or "Feuerwehr" would be rejected as unknown while
-    // the database just returned "feuerwehr".
-    const known = new Map(canonical.map((tag) => [tag.tag.toLowerCase(), tag.tag]))
-    const unknown = realTags.filter((tag) => !known.has(tag.toLowerCase()))
+    // The database decides which spellings mean the same group -- see resolveCreationGroups.
+    const known = await resolveCreationGroups(realTags)
+    const unknown = realTags.filter((tag) => !known.has(tag))
     if (unknown.length > 0) {
       throw new LogError('Unknown creation group(s)', unknown.join(', '))
     }
     // Store the canonical spelling, not what the caller typed: the predicate and the
     // rename both compare these strings exactly.
-    stored = normalised.map((token) =>
-      token.startsWith('*') ? token : (known.get(token.toLowerCase()) ?? token),
+    //
+    // ⚠️ And collapse again afterwards. The Set above ran on what the caller typed and is
+    // case-sensitive, while creation_groups.tag is utf8mb4_unicode_ci -- so "feuerwehr" and
+    // "Feuerwehr" both survive it and then fold into the same canonical spelling here. Left
+    // alone, the scope would carry the same group twice: harmless to the predicate, but the
+    // admin lists it twice and it is stored that way for good.
+    const canonicalised = normalised.map((token) =>
+      token.startsWith('*') ? token : (known.get(token)?.tag ?? token),
     )
+    stored = [...new Set(canonicalised)]
   }
   role.visibleCreationGroups = stored.length > 0 ? JSON.stringify(stored) : null
   await role.save()

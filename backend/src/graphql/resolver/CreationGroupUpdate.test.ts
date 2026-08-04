@@ -83,6 +83,34 @@ describe('editCreationGroup', () => {
     await expect(resolver.editCreationGroup(tag.id, 'has space')).rejects.toThrow()
   })
 
+  // ⚠️ The rename and the scope migration now share one transaction, and they have to:
+  // the scope predicate compares the tag EXACTLY, so a scope left on the old spelling
+  // matches nothing -- an affected moderator sees an empty list and every action on their
+  // own contributions refused, with nothing on screen to say why. And repeating the edit
+  // cannot repair it: a second call with the same tag stops at the "unchanged" check, so the
+  // scopes are never revisited. This test states the property the transaction protects.
+  it('leaves no moderator scope behind on the old slug', async () => {
+    const tag = await makeTag('lockstep', 'Lockstep')
+    await makeModerator(9101, ['lockstep'])
+    await makeModerator(9102, ['lockstep', '*untagged'])
+    await makeModerator(9103, ['somethingelse'])
+
+    await resolver.editCreationGroup(tag.id, 'lockstep-renamed', null)
+
+    const scopes = await Promise.all(
+      [9101, 9102, 9103].map(async (userId) =>
+        parseModeratorScope(
+          (await UserRole.findOneOrFail({ where: { userId } })).visibleCreationGroups,
+        ),
+      ),
+    )
+    expect(scopes[0]).toEqual(['lockstep-renamed'])
+    expect(scopes[1]).toEqual(['lockstep-renamed', '*untagged'])
+    // Untouched, and worth asserting: the lookup uses LIKE and cannot help over-matching on
+    // a text column, so what keeps a neighbouring scope safe is the exact comparison after.
+    expect(scopes[2]).toEqual(['somethingelse'])
+  })
+
   it('throws when the group does not exist', async () => {
     await expect(resolver.editCreationGroup(987654, null, 'x')).rejects.toThrow()
   })
