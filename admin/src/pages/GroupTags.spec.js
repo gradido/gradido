@@ -246,6 +246,12 @@ describe('GroupTags', () => {
       const firstRun = wrapper.vm.openAdoption(amstetten)
       const secondRun = wrapper.vm.openAdoption(feuerwehr)
 
+      // The two searches answer in the order they were made, so say out loud which group
+      // each one was actually about. Without this the test would still pass if both
+      // requests went out for the same group.
+      expect(first().id).toBe(amstetten.id)
+      expect(second().id).toBe(feuerwehr.id)
+
       first().resolve({ data: { legacyHashtagCounts: { exact: 10, loose: 1 } } })
       await firstRun
       // The second search is still running, so the panel must still be searching.
@@ -264,6 +270,11 @@ describe('GroupTags', () => {
       const firstRun = wrapper.vm.openAdoption(amstetten)
       const secondRun = wrapper.vm.openAdoption(feuerwehr)
       await secondRun
+
+      // Same here: which group each search was about, not just the order they answered in.
+      // The second one runs on the standard mock, so its id is read off the call.
+      expect(first().id).toBe(amstetten.id)
+      expect(clientQuery.mock.calls[1][0].variables).toEqual({ id: feuerwehr.id })
 
       first().reject(new Error('the first search broke'))
       await firstRun
