@@ -1,15 +1,15 @@
-import { GroupTag as DbGroupTag } from 'database'
+import { CreationGroup as DbCreationGroup } from 'database'
 import { Field, Int, ObjectType } from 'type-graphql'
 
-// Group functions: a canonical group tag (stored WITHOUT the leading '#').
+// Group functions: a canonical creation group (stored WITHOUT the leading '#').
 @ObjectType()
-export class GroupTag {
-  constructor(dbGroupTag: DbGroupTag) {
-    this.id = dbGroupTag.id
-    this.tag = dbGroupTag.tag
-    this.name = dbGroupTag.name
-    this.hashtagsAdoptedAt = dbGroupTag.hashtagsAdoptedAt
-    this.hashtagsAdoptedCount = dbGroupTag.hashtagsAdoptedCount
+export class CreationGroup {
+  constructor(dbCreationGroup: DbCreationGroup) {
+    this.id = dbCreationGroup.id
+    this.tag = dbCreationGroup.tag
+    this.name = dbCreationGroup.name
+    this.hashtagsAdoptedAt = dbCreationGroup.hashtagsAdoptedAt
+    this.hashtagsAdoptedCount = dbCreationGroup.hashtagsAdoptedCount
   }
 
   @Field(() => Int)

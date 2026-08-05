@@ -20,6 +20,10 @@
   "PersonalDetails": "Informations personnelles",
   "advanced-calculation": "Calcul avancé",
   "answerNow": "→ Répondre maintenant!",
+  "appOutdated": {
+    "reload": "Recharger",
+    "text": "Une version plus récente est disponible. Merci de recharger la page."
+  },
   "asterisks": "****",
   "auth": {
     "left": {
@@ -86,11 +90,16 @@
       "pending": "Inscription en attente de validation"
     },
     "communityWindow": "Contributions from the last {months} months",
+    "creationGroup": {
+      "help": "Facultatif. Cela fonctionne aussi sans groupe. Un #mot dans le texte ne définit pas de groupe — c’est le rôle de ce champ.",
+      "label": "Creation group",
+      "none": "(sans groupe)"
+    },
     "delete": "Vraiment supprimer la contribution ? Elle ne sera alors visible que pour toi et les modérateurs, invisible pour la communauté.",
     "deleted": "La contribution a été supprimée. Elle n'est désormais visible que pour toi et les modérateurs, invisible pour la communauté.",
     "filter": {
       "all": "(toutes)",
-      "byGroup": "Filtrer par groupe",
+      "byGroup": "Filtrer par groupe de création",
       "grouped": "(tous les groupes)",
       "noGroup": "(sans groupe)",
       "noResults": "No contributions found.",
@@ -102,11 +111,6 @@
       "maxGDDforMonth": "Pour le mois sélectionné, tu ne peux plus déclarer que {amount} GDD au maximum.",
       "openAmountForMonth": "Pour <b>{monthAndYear}</b>, tu peux encore déclarer <b>{creation}</b> GDD.",
       "yourContribution": "Ta contribution au bien commun"
-    },
-    "groupTag": {
-      "help": "Facultatif. Cela fonctionne aussi sans groupe. Un #mot dans le texte ne définit pas de groupe — c’est le rôle de ce champ.",
-      "label": "Group",
-      "none": "(sans groupe)"
     },
     "isEdited": "a modifié la contribution",
     "lastContribution": "Dernières contributions",

@@ -1,6 +1,7 @@
 <template>
   <div id="app">
     <BToastOrchestrator />
+    <AppOutdatedBar />
     <default-layout v-if="$store.state.token" />
     <router-view v-else></router-view>
     <BModalOrchestrator />
@@ -9,6 +10,7 @@
 
 <script setup>
 import defaultLayout from '@/layouts/defaultLayout'
+import AppOutdatedBar from '@/components/AppOutdatedBar'
 import { BModalOrchestrator } from 'bootstrap-vue-next'
 </script>
 <style>

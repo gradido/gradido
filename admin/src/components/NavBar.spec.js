@@ -112,7 +112,7 @@ describe('NavBar', () => {
         '/federation',
         '/projectBranding',
         '/creaSettings',
-        '/group-tags',
+        '/creation-groups',
         '/statistic',
         '#',
         '#',

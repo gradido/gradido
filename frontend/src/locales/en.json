@@ -20,6 +20,10 @@
   "PersonalDetails": "Personal details",
   "advanced-calculation": "Advanced calculation",
   "answerNow": "→ Reply now!",
+  "appOutdated": {
+    "reload": "Reload",
+    "text": "A newer version is available. Please reload the page."
+  },
   "asterisks": "****",
   "auth": {
     "left": {
@@ -86,11 +90,16 @@
       "pending": "Submitted and waiting for confirmation"
     },
     "communityWindow": "Contributions from the last {months} months",
+    "creationGroup": {
+      "help": "Optional. It works without a group, too. A #word in the text does not set a group — this field does.",
+      "label": "Creation group",
+      "none": "(no group)"
+    },
     "delete": "Really delete this contribution? Afterwards it is visible only to you and the moderators, invisible to the community.",
     "deleted": "The contribution has been deleted. It is now visible only to you and the moderators, invisible to the community.",
     "filter": {
       "all": "(all)",
-      "byGroup": "Filter by group",
+      "byGroup": "Filter by creation group",
       "grouped": "(all groups)",
       "noGroup": "(no group)",
       "noResults": "No contributions found.",
@@ -102,11 +111,6 @@
       "maxGDDforMonth": "You can only submit a maximum of {amount} GDD for the selected month.",
       "openAmountForMonth": "For  <b>{monthAndYear}</b>, you can still submit <b>{creation}</b> GDD.",
       "yourContribution": "Your Contributions to the Common Good"
-    },
-    "groupTag": {
-      "help": "Optional. It works without a group, too. A #word in the text does not set a group — this field does.",
-      "label": "Group",
-      "none": "(no group)"
     },
     "isEdited": "edited the contribution",
     "lastContribution": "Last Contributions",

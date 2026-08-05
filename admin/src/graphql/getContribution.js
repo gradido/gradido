@@ -16,7 +16,7 @@ export const getContribution = gql`
       updatedBy
       status
       contributionStatus
-      groupTags {
+      creationGroups {
         tag
         name
       }

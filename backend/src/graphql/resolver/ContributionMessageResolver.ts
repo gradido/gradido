@@ -25,7 +25,7 @@ import { LogError } from '@/server/LogError'
 
 import { contributionFrontendLink } from './util/contributions'
 import { findContributionMessages } from './util/findContributionMessages'
-import { assertContributionInModeratorScope } from './util/moderatorGroupScope'
+import { assertContributionInModeratorScope } from './util/moderatorCreationGroupScope'
 
 const db = AppDatabase.getInstance()
 const createLogger = () =>

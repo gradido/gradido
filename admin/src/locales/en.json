@@ -13,6 +13,10 @@
   },
   "alias": "Alias",
   "all_emails": "All users",
+  "appOutdated": {
+    "reload": "Reload",
+    "text": "A newer version is available. Please reload the page."
+  },
   "back": "back",
   "bulkResubmission": {
     "cancel": "Do not apply",
@@ -28,9 +32,9 @@
   "change_user_role": "Change user role",
   "close": "Close",
   "contribution": {
-    "changeGroup": "Change group",
+    "changeGroup": "Change creation group",
     "changeGroupConfirm": "Yes, move it",
-    "changeGroupDone": "Group changed.",
+    "changeGroupDone": "Creation group changed.",
     "changeGroupHint": "Depending on your visible groups, the contribution may no longer appear in your list.",
     "changeGroupQuestion": "Move this contribution from {from} to {to}?",
     "confirmedBy": "Confirmed by {name}.",
@@ -175,6 +179,47 @@
   "created": "Created for",
   "createdAt": "Created at",
   "creation": "Creation",
+  "creationGroupFilter": {
+    "all": "(all)",
+    "grouped": "(all groups)",
+    "label": "Creation group:",
+    "untagged": "(no group)"
+  },
+  "creationGroupsAdmin": {
+    "add": "Create",
+    "addTitle": "Create a new group",
+    "adminOnly": "Administrators only.",
+    "adoption": {
+      "adopt": "Adopt {count}",
+      "check": "Old hashtags",
+      "done": "Old hashtags adopted.",
+      "foundExact": "{count} older contributions write #{tag} in their text.",
+      "foundLoose": "Also adopt {count} contributions written as “# {tag}” (with a blank).",
+      "foundNothing": "No older contribution names this group in its text.",
+      "hint": "Only contributions that have no group at all are adopted. A word that names no existing group stays ordinary text.",
+      "markChecked": "Mark as checked",
+      "searchFailed": "The search failed. Please try again.",
+      "searching": "Searching the contributions …",
+      "stateAdopted": "checked on {date} — {count} adopted",
+      "stateNothing": "checked on {date} — nothing found",
+      "stateUnchecked": "old hashtags not checked yet",
+      "title": "Adopt old hashtags into {group}"
+    },
+    "cancel": "Cancel",
+    "created": "Group created.",
+    "edit": "Edit",
+    "empty": "No groups created yet.",
+    "existingTitle": "Existing groups",
+    "intro": "Create new groups or rename existing ones. Who belongs to a group or moderates it is assigned on the \"User role\" tab.",
+    "name": "Name",
+    "namePlaceholder": "e.g. Volunteer Fire Brigade Springfield",
+    "save": "Save",
+    "tag": "Tag",
+    "tagHint": "A short tag without spaces — capitals and accented letters are allowed. Matching ignores upper and lower case. The name is what is shown everywhere.",
+    "tagPlaceholder": "e.g. firefighter",
+    "title": "Manage creation groups",
+    "updated": "Group updated."
+  },
   "creationList": "Creation list",
   "creation_for_month": "Creation for month",
   "creation_form": {
@@ -253,47 +298,6 @@
     "humhubProfile": "Go to Humhub profile",
     "userSearch": "Go to user search"
   },
-  "groupTagFilter": {
-    "all": "(all)",
-    "grouped": "(all groups)",
-    "label": "Group:",
-    "untagged": "(no group)"
-  },
-  "groupTagsAdmin": {
-    "add": "Create",
-    "addTitle": "Create a new group",
-    "adminOnly": "Administrators only.",
-    "adoption": {
-      "adopt": "Adopt {count}",
-      "check": "Old hashtags",
-      "done": "Old hashtags adopted.",
-      "foundExact": "{count} older contributions write #{tag} in their text.",
-      "foundLoose": "Also adopt {count} contributions written as “# {tag}” (with a blank).",
-      "foundNothing": "No older contribution names this group in its text.",
-      "hint": "Only contributions that have no group at all are adopted. A word that names no existing group stays ordinary text.",
-      "markChecked": "Mark as checked",
-      "searchFailed": "The search failed. Please try again.",
-      "searching": "Searching the contributions …",
-      "stateAdopted": "checked on {date} — {count} adopted",
-      "stateNothing": "checked on {date} — nothing found",
-      "stateUnchecked": "old hashtags not checked yet",
-      "title": "Adopt old hashtags into {group}"
-    },
-    "cancel": "Cancel",
-    "created": "Group created.",
-    "edit": "Edit",
-    "empty": "No groups created yet.",
-    "existingTitle": "Existing groups",
-    "intro": "Create new groups or rename existing ones. Who belongs to a group or moderates it is assigned on the “User role” tab.",
-    "name": "Name",
-    "namePlaceholder": "e.g. Volunteer Fire Brigade Springfield",
-    "save": "Save",
-    "tag": "Tag",
-    "tagHint": "A short tag without spaces — capitals and accented letters are allowed. Matching ignores upper and lower case. The name is what is shown everywhere.",
-    "tagPlaceholder": "e.g. firefighter",
-    "title": "Manage groups",
-    "updated": "Group updated."
-  },
   "help": {
     "help": "Help",
     "transactionlist": {
@@ -337,7 +341,7 @@
   "navbar": {
     "automaticContributions": "Starting balance",
     "crea": "Crea",
-    "groupTags": "Groups",
+    "creationGroups": "Creation groups",
     "instances": "Instances",
     "logout": "Logout",
     "my-account": "My Account",
@@ -447,18 +451,18 @@
   },
   "unregistered_emails": "Only unregistered users",
   "userRole": {
-    "groupTags": {
+    "creationGroups": {
       "help": "Pre-filled on submission.",
-      "label": "User's main group",
+      "label": "User's main creation group",
       "none": "(no group)"
     },
     "notChangeYourSelf": "As an admin/moderator, you cannot change your own role.",
-    "savedGroupTags": "Groups saved.",
+    "savedCreationGroups": "Creation groups saved.",
     "savedScope": "Visibility saved.",
     "scope": {
       "all": "all groups",
       "help": "Empty = all contributions.",
-      "label": "Visible groups",
+      "label": "Visible creation groups",
       "untagged": "no group"
     },
     "selectLabel": "Role:",

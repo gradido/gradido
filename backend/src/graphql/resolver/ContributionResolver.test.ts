@@ -2752,7 +2752,7 @@ describe('ContributionResolver', () => {
             variables: {
               filter: {
                 query: 'Peter',
-                groupTag: '*untagged',
+                creationGroup: '*untagged',
               },
               paginated: { pageSize: 20 },
             },
@@ -2850,7 +2850,7 @@ describe('ContributionResolver', () => {
             variables: {
               filter: {
                 query: '#firefighter',
-                groupTag: '*untagged',
+                creationGroup: '*untagged',
               },
             },
           })

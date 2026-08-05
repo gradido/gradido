@@ -44,8 +44,8 @@ interface ListedUser {
   firstName: string
   lastName: string
   role: string
-  visibleGroupTags: string[]
-  seesAllGroups: boolean
+  visibleCreationGroups: string[]
+  seesAllCreationGroups: boolean
   seesUntagged: boolean
 }
 
@@ -68,14 +68,14 @@ const byFirstName = (users: ListedUser[], firstName: string): ListedUser | undef
 const setRole = async (
   userId: number,
   role: RoleNames,
-  visibleGroupTags: string | null,
+  visibleCreationGroups: string | null,
 ): Promise<void> => {
   const existing = await UserRole.findOne({ where: { userId } })
   const entry = existing ?? UserRole.create()
   entry.createdAt = entry.createdAt ?? new Date()
   entry.userId = userId
   entry.role = role
-  entry.visibleGroupTags = visibleGroupTags
+  entry.visibleCreationGroups = visibleCreationGroups
   await entry.save()
 }
 
@@ -114,22 +114,22 @@ describe('searchAdminUsers — groups shown on the community info page', () => {
   it('reports the groups a scoped moderator looks after', async () => {
     const users = await listAdminUsers()
     const listed = byFirstName(users, MODERATOR)
-    expect(listed?.visibleGroupTags).toEqual(['firefighter'])
-    expect(listed?.seesAllGroups).toBe(false)
+    expect(listed?.visibleCreationGroups).toEqual(['firefighter'])
+    expect(listed?.seesAllCreationGroups).toBe(false)
   })
 
   it('reports a moderator without any scope as covering every group', async () => {
     const users = await listAdminUsers()
     const listed = byFirstName(users, AI_MODERATOR)
-    expect(listed?.visibleGroupTags).toEqual([])
-    expect(listed?.seesAllGroups).toBe(true)
+    expect(listed?.visibleCreationGroups).toEqual([])
+    expect(listed?.seesAllCreationGroups).toBe(true)
   })
 
   it('treats the "*all" sentinel the same as no scope at all', async () => {
     await setRole(scopedModerator.id, RoleNames.MODERATOR, JSON.stringify(['*all', 'firefighter']))
     const users = await listAdminUsers()
     const listed = byFirstName(users, MODERATOR)
-    expect(listed?.seesAllGroups).toBe(true)
+    expect(listed?.seesAllCreationGroups).toBe(true)
   })
 
   it('keeps a moderator scoped only to untagged contributions out of the "all groups" bucket', async () => {
@@ -138,13 +138,13 @@ describe('searchAdminUsers — groups shown on the community info page', () => {
     await setRole(scopedModerator.id, RoleNames.MODERATOR, JSON.stringify(['*untagged']))
     const users = await listAdminUsers()
     const listed = byFirstName(users, MODERATOR)
-    expect(listed?.visibleGroupTags).toEqual([])
-    expect(listed?.seesAllGroups).toBe(false)
+    expect(listed?.visibleCreationGroups).toEqual([])
+    expect(listed?.seesAllCreationGroups).toBe(false)
   })
 
   it('reports the untagged half of a mixed scope separately from the groups', async () => {
     // A scope can cover a group AND the contributions that carry none. '*untagged' is not a
-    // group, so it must not appear in visibleGroupTags — but dropping it silently would
+    // group, so it must not appear in visibleCreationGroups — but dropping it silently would
     // leave the admin unable to offer a filter that reaches those contributions.
     await setRole(
       scopedModerator.id,
@@ -153,8 +153,8 @@ describe('searchAdminUsers — groups shown on the community info page', () => {
     )
     const users = await listAdminUsers()
     const listed = byFirstName(users, MODERATOR)
-    expect(listed?.visibleGroupTags).toEqual(['firefighter'])
-    expect(listed?.seesAllGroups).toBe(false)
+    expect(listed?.visibleCreationGroups).toEqual(['firefighter'])
+    expect(listed?.seesAllCreationGroups).toBe(false)
     expect(listed?.seesUntagged).toBe(true)
   })
 
@@ -169,6 +169,6 @@ describe('searchAdminUsers — groups shown on the community info page', () => {
     const users = await listAdminUsers()
     const listed = byFirstName(users, ADMIN)
     expect(listed?.role).toBe(RoleNames.ADMIN)
-    expect(listed?.seesAllGroups).toBe(true)
+    expect(listed?.seesAllCreationGroups).toBe(true)
   })
 })

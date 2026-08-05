@@ -83,7 +83,7 @@ describe('ContributionListItem', () => {
     amount: '200',
   }
 
-  const mountWrapper = () => {
+  const mountWrapper = (props = {}) => {
     return mount(ContributionListItem, {
       global: {
         plugins: [i18n],
@@ -110,9 +110,32 @@ describe('ContributionListItem', () => {
           BFormTextarea,
         },
       },
-      props: propsData,
+      props: { ...propsData, ...props },
     })
   }
+
+  // ⚠️ This list had NO group coverage at all, while the near-identical community list next
+  // to it has exactly these two cases. The gap matters because ContributionList wires this
+  // item with v-bind="item", so the prop name has to match the GraphQL selection name
+  // character for character: if one of them were renamed and the other were not, every
+  // contribution here would silently fall back to "(no group)" and every other test in this
+  // file would still pass. These two are what makes that visible.
+  describe('the contribution group', () => {
+    it('shows the group name, without the tag', () => {
+      const wrapper = mountWrapper({ creationGroups: [{ tag: 'choir', name: 'Choir' }] })
+
+      expect(wrapper.text()).toContain('Choir')
+      expect(wrapper.text()).not.toContain('#choir')
+    })
+
+    // $t is mocked to return the key here, so this pins the key itself -- which is the
+    // useful half: a renamed locale key with an unrenamed call site renders raw.
+    it('says "no group" when the contribution belongs to none', () => {
+      expect(mountWrapper({ creationGroups: [] }).text()).toContain(
+        'contribution.creationGroup.none',
+      )
+    })
+  })
 
   describe('mount', () => {
     beforeEach(() => {

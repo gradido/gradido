@@ -20,6 +20,10 @@
   "PersonalDetails": "Persönliche Angaben",
   "advanced-calculation": "Vorausberechnung",
   "answerNow": "→ Jetzt antworten!",
+  "appOutdated": {
+    "reload": "Neu laden",
+    "text": "Es gibt eine neuere Fassung. Bitte lade die Seite neu."
+  },
   "asterisks": "****",
   "auth": {
     "left": {
@@ -86,11 +90,16 @@
       "pending": "Eingereicht und wartet auf Bestätigung"
     },
     "communityWindow": "Beiträge der letzten {months} Monate",
+    "creationGroup": {
+      "help": "Optional. Ohne Gruppe geht es auch. Ein #Wort im Text setzt keine Gruppe — dafür ist dieses Feld da.",
+      "label": "Schöpfungsgruppe",
+      "none": "(ohne Gruppe)"
+    },
     "delete": "Beitrag wirklich löschen? Danach ist er nur noch für Dich und die Moderatoren sichtbar, für die Gemeinschaft unsichtbar.",
     "deleted": "Der Beitrag wurde gelöscht. Er ist nur noch für Dich und die Moderatoren sichtbar, für die Gemeinschaft unsichtbar.",
     "filter": {
       "all": "(alle)",
-      "byGroup": "Nach Gruppe filtern",
+      "byGroup": "Nach Schöpfungsgruppe filtern",
       "grouped": "(alle Gruppen)",
       "noGroup": "(ohne Gruppe)",
       "noResults": "Keine Beiträge gefunden.",
@@ -102,11 +111,6 @@
       "maxGDDforMonth": "Du kannst für den ausgewählten Monat nur noch maximal {amount} GDD einreichen.",
       "openAmountForMonth": "Für <b>{monthAndYear}</b> kannst du noch <b>{creation}</b> GDD einreichen.",
       "yourContribution": "Dein Beitrag zum Gemeinwohl"
-    },
-    "groupTag": {
-      "help": "Optional. Ohne Gruppe geht es auch. Ein #Wort im Text setzt keine Gruppe — dafür ist dieses Feld da.",
-      "label": "Gruppe",
-      "none": "(ohne Gruppe)"
     },
     "isEdited": "hat den Beitrag bearbeitet",
     "lastContribution": "Letzte Beiträge",

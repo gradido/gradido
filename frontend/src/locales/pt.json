@@ -20,6 +20,10 @@
   "PersonalDetails": "Dados pessoais",
   "advanced-calculation": "Cálculo antecipado",
   "answerNow": "→ Responde agora!",
+  "appOutdated": {
+    "reload": "Recarregar",
+    "text": "Existe uma versão mais recente. Por favor, recarregue a página."
+  },
   "asterisks": "****",
   "auth": {
     "left": {
@@ -86,11 +90,16 @@
       "pending": "Submetido e à espera de confirmação"
     },
     "communityWindow": "Contributions from the last {months} months",
+    "creationGroup": {
+      "help": "Opcional. Também funciona sem grupo. Uma #palavra no texto não define um grupo — é para isso que serve este campo.",
+      "label": "Creation group",
+      "none": "(sem grupo)"
+    },
     "delete": "Eliminar mesmo a contribuição? Depois fica visível apenas para ti e os moderadores, invisível para a comunidade.",
     "deleted": "A contribuição foi eliminada. Agora fica visível apenas para ti e os moderadores, invisível para a comunidade.",
     "filter": {
       "all": "(todas)",
-      "byGroup": "Filtrar por grupo",
+      "byGroup": "Filtrar por grupo de criação",
       "grouped": "(todos os grupos)",
       "noGroup": "(sem grupo)",
       "noResults": "No contributions found.",
@@ -102,11 +111,6 @@
       "maxGDDforMonth": "Só podes submeter no máximo {amount} GDD para o mês selecionado.",
       "openAmountForMonth": "Para <b>{monthAndYear}</b>, ainda podes submeter <b>{creation}</b> GDD.",
       "yourContribution": "A tua contribuição para o bem comum"
-    },
-    "groupTag": {
-      "help": "Opcional. Também funciona sem grupo. Uma #palavra no texto não define um grupo — é para isso que serve este campo.",
-      "label": "Group",
-      "none": "(sem grupo)"
     },
     "isEdited": "editou a contribuição",
     "lastContribution": "Últimas contribuições",

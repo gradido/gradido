@@ -28,15 +28,15 @@
       <div v-else>
         <BFormGroup
           v-if="!form.id"
-          id="contribution-group-tag-group"
+          id="contribution-creation-group-group"
           class="mb-4"
-          :label="$t('contribution.groupTag.label')"
-          :description="$t('contribution.groupTag.help')"
+          :label="$t('contribution.creationGroup.label')"
+          :description="$t('contribution.creationGroup.help')"
         >
           <ThemedSelect
-            v-model="selectedGroupTag"
-            :options="groupTagSelectOptions"
-            data-test="contribution-group-tag"
+            v-model="selectedCreationGroup"
+            :options="creationGroupSelectOptions"
+            data-test="contribution-creation-group"
           />
         </BFormGroup>
         <ValidatedInput
@@ -117,10 +117,10 @@ import { object, date as dateSchema, number, string } from 'yup'
 import { GDD_PER_HOUR } from '../../constants'
 import { useMinimalContributionDate } from '@/composables/useMinimalContributionDate'
 import {
-  groupTags as groupTagsQuery,
-  suggestedGroupTag as suggestedGroupTagQuery,
+  creationGroups as creationGroupsQuery,
+  suggestedCreationGroup as suggestedCreationGroupQuery,
 } from '@/graphql/contributions.graphql'
-import { groupTagLabel } from '@/utils/groupTagLabel'
+import { creationGroupLabel } from '@/utils/creationGroupLabel'
 
 const amountToHours = (amount) => parseFloat(amount / GDD_PER_HOUR).toFixed(2)
 const hoursToAmount = (hours) => parseFloat(hours * GDD_PER_HOUR).toFixed(2)
@@ -149,11 +149,11 @@ const entityDataToForm = computed(() => ({
 
 const form = reactive({ ...entityDataToForm.value })
 
-// Group functions: the group-tag field (create only). Options come from the
+// Group functions: the creation-group field (create only). Options come from the
 // canonical list — every group stays choosable here, including quiet ones, otherwise a
 // dormant group could never be woken up. Pre-filled with the member's own last statement,
 // derived in the backend, unless something is already chosen. Optional / non-blocking.
-const { result: groupTagsResult } = useQuery(groupTagsQuery)
+const { result: creationGroupsResult } = useQuery(creationGroupsQuery)
 // Asked of the server every time, never taken from the cache. Submitting swaps this form
 // out for the success screen (a v-if in ContributionCreate), so coming back mounts a fresh
 // one — and a cached answer would be the one from BEFORE the submission. That is what put
@@ -162,27 +162,27 @@ const { result: groupTagsResult } = useQuery(groupTagsQuery)
 // real answer lands the field is filled, so the guard below refuses to correct it.
 // Only when submitting. The same form is mounted for editing, where the group field is
 // hidden (v-if="!form.id") -- asking there would cost a query whose answer is thrown away.
-const { result: suggestedGroupTagResult } = useQuery(
-  suggestedGroupTagQuery,
+const { result: suggestedCreationGroupResult } = useQuery(
+  suggestedCreationGroupQuery,
   {},
   { fetchPolicy: 'no-cache', enabled: !form.id },
 )
 
-const selectedGroupTag = ref(form.groupTags?.[0] ?? '')
+const selectedCreationGroup = ref(form.creationGroups?.[0] ?? '')
 
-const groupTagSelectOptions = computed(() => [
-  { value: '', text: t('contribution.groupTag.none') },
-  ...(groupTagsResult.value?.groupTags ?? []).map((groupTag) => ({
-    value: groupTag.tag,
-    text: groupTagLabel(groupTag),
+const creationGroupSelectOptions = computed(() => [
+  { value: '', text: t('contribution.creationGroup.none') },
+  ...(creationGroupsResult.value?.creationGroups ?? []).map((creationGroup) => ({
+    value: creationGroup.tag,
+    text: creationGroupLabel(creationGroup),
   })),
 ])
 
 watch(
-  () => suggestedGroupTagResult.value?.suggestedGroupTag?.tag ?? '',
+  () => suggestedCreationGroupResult.value?.suggestedCreationGroup?.tag ?? '',
   (suggestion) => {
-    if (!form.id && suggestion && !selectedGroupTag.value) {
-      selectedGroupTag.value = suggestion
+    if (!form.id && suggestion && !selectedCreationGroup.value) {
+      selectedCreationGroup.value = suggestion
     }
   },
   { immediate: true },
@@ -310,7 +310,7 @@ const updateField = (newValue, name) => {
 
 function submit() {
   submitted.value = true
-  form.groupTags = selectedGroupTag.value ? [selectedGroupTag.value] : []
+  form.creationGroups = selectedCreationGroup.value ? [selectedCreationGroup.value] : []
   emit('upsert-contribution', toRaw(form))
 }
 </script>

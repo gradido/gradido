@@ -13,6 +13,10 @@
   },
   "alias": "Alias",
   "all_emails": "Alle Nutzer",
+  "appOutdated": {
+    "reload": "Neu laden",
+    "text": "Es gibt eine neuere Fassung. Bitte lade die Seite neu."
+  },
   "back": "zurück",
   "bulkResubmission": {
     "cancel": "Nicht übernehmen",
@@ -28,9 +32,9 @@
   "change_user_role": "Nutzerrolle ändern",
   "close": "Schließen",
   "contribution": {
-    "changeGroup": "Gruppe ändern",
+    "changeGroup": "Schöpfungsgruppe ändern",
     "changeGroupConfirm": "Ja, verschieben",
-    "changeGroupDone": "Gruppe geändert.",
+    "changeGroupDone": "Schöpfungsgruppe geändert.",
     "changeGroupHint": "Je nach Deinem Sichtbereich erscheint der Beitrag danach nicht mehr in Deiner Liste.",
     "changeGroupQuestion": "Diesen Beitrag von {from} nach {to} verschieben?",
     "confirmedBy": "Bestätigt von {name}.",
@@ -175,6 +179,47 @@
   "created": "Geschöpft",
   "createdAt": "Angelegt",
   "creation": "Schöpfung",
+  "creationGroupFilter": {
+    "all": "(alle)",
+    "grouped": "(alle Gruppen)",
+    "label": "Schöpfungsgruppe:",
+    "untagged": "(ohne Gruppe)"
+  },
+  "creationGroupsAdmin": {
+    "add": "Anlegen",
+    "addTitle": "Neue Gruppe anlegen",
+    "adminOnly": "Nur für Administratoren.",
+    "adoption": {
+      "adopt": "{count} übernehmen",
+      "check": "Alt-Hashtags",
+      "done": "Alte Hashtags übernommen.",
+      "foundExact": "{count} ältere Beiträge schreiben #{tag} im Text.",
+      "foundLoose": "Auch {count} Beiträge mit „# {tag}“ übernehmen (mit Leerzeichen geschrieben).",
+      "foundNothing": "Kein älterer Beitrag nennt diese Gruppe im Text.",
+      "hint": "Übernommen werden nur Beiträge, die noch gar keine Gruppe haben. Ein Wort, das keine angelegte Gruppe benennt, bleibt gewöhnlicher Text.",
+      "markChecked": "Als geprüft markieren",
+      "searchFailed": "Die Suche ist fehlgeschlagen. Bitte noch einmal versuchen.",
+      "searching": "Suche in den Beiträgen …",
+      "stateAdopted": "geprüft am {date} — {count} übernommen",
+      "stateNothing": "geprüft am {date} — nichts gefunden",
+      "stateUnchecked": "Alt-Hashtags noch nicht geprüft",
+      "title": "Alte Hashtags in {group} übernehmen"
+    },
+    "cancel": "Abbrechen",
+    "created": "Gruppe angelegt.",
+    "edit": "Bearbeiten",
+    "empty": "Noch keine Gruppen angelegt.",
+    "existingTitle": "Bestehende Gruppen",
+    "intro": "Lege neue Gruppen an oder benenne bestehende um. Wer zu einer Gruppe gehört oder sie moderiert, wird im Tab „Nutzer-Rolle“ zugeordnet.",
+    "name": "Name",
+    "namePlaceholder": "z. B. Freiwillige Feuerwehr Musterstadt",
+    "save": "Speichern",
+    "tag": "Kürzel",
+    "tagHint": "Kurzes Kürzel ohne Leerzeichen — Großbuchstaben und Umlaute sind erlaubt. Beim Zuordnen wird Groß-/Kleinschreibung nicht unterschieden. Angezeigt wird überall der Name.",
+    "tagPlaceholder": "z. B. feuerwehr",
+    "title": "Schöpfungsgruppen verwalten",
+    "updated": "Gruppe aktualisiert."
+  },
   "creationList": "Schöpfungsliste",
   "creation_for_month": "Schöpfung für Monat",
   "creation_form": {
@@ -253,47 +298,6 @@
     "humhubProfile": "Zum Humhub Profil gehen",
     "userSearch": "Zur Nutzersuche gehen"
   },
-  "groupTagFilter": {
-    "all": "(alle)",
-    "grouped": "(alle Gruppen)",
-    "label": "Gruppe:",
-    "untagged": "(ohne Gruppe)"
-  },
-  "groupTagsAdmin": {
-    "add": "Anlegen",
-    "addTitle": "Neue Gruppe anlegen",
-    "adminOnly": "Nur für Administratoren.",
-    "adoption": {
-      "adopt": "{count} übernehmen",
-      "check": "Alt-Hashtags",
-      "done": "Alte Hashtags übernommen.",
-      "foundExact": "{count} ältere Beiträge schreiben #{tag} im Text.",
-      "foundLoose": "Auch {count} Beiträge mit „# {tag}“ übernehmen (mit Leerzeichen geschrieben).",
-      "foundNothing": "Kein älterer Beitrag nennt diese Gruppe im Text.",
-      "hint": "Übernommen werden nur Beiträge, die noch gar keine Gruppe haben. Ein Wort, das keine angelegte Gruppe benennt, bleibt gewöhnlicher Text.",
-      "markChecked": "Als geprüft markieren",
-      "searchFailed": "Die Suche ist fehlgeschlagen. Bitte noch einmal versuchen.",
-      "searching": "Suche in den Beiträgen …",
-      "stateAdopted": "geprüft am {date} — {count} übernommen",
-      "stateNothing": "geprüft am {date} — nichts gefunden",
-      "stateUnchecked": "Alt-Hashtags noch nicht geprüft",
-      "title": "Alte Hashtags in {group} übernehmen"
-    },
-    "cancel": "Abbrechen",
-    "created": "Gruppe angelegt.",
-    "edit": "Bearbeiten",
-    "empty": "Noch keine Gruppen angelegt.",
-    "existingTitle": "Bestehende Gruppen",
-    "intro": "Lege neue Gruppen an oder benenne bestehende um. Wer zu einer Gruppe gehört oder sie moderiert, wird im Tab „Nutzer-Rolle“ zugeordnet.",
-    "name": "Name",
-    "namePlaceholder": "z. B. Freiwillige Feuerwehr Musterstadt",
-    "save": "Speichern",
-    "tag": "Kürzel",
-    "tagHint": "Kurzes Kürzel ohne Leerzeichen — Großbuchstaben und Umlaute sind erlaubt. Beim Zuordnen wird Groß-/Kleinschreibung nicht unterschieden. Angezeigt wird überall der Name.",
-    "tagPlaceholder": "z. B. feuerwehr",
-    "title": "Gruppen verwalten",
-    "updated": "Gruppe aktualisiert."
-  },
   "help": {
     "help": "Hilfe",
     "transactionlist": {
@@ -337,7 +341,7 @@
   "navbar": {
     "automaticContributions": "Startguthaben",
     "crea": "Crea",
-    "groupTags": "Gruppen",
+    "creationGroups": "Schöpfungsgruppen",
     "instances": "Instanzen",
     "logout": "Abmelden",
     "my-account": "Mein Konto",
@@ -447,18 +451,18 @@
   },
   "unregistered_emails": "Nur unregistrierte Nutzer",
   "userRole": {
-    "groupTags": {
+    "creationGroups": {
       "help": "Wird beim Einreichen vorbelegt.",
-      "label": "Haupt-Gruppe des Nutzers",
+      "label": "Haupt-Schöpfungsgruppe des Nutzers",
       "none": "(ohne Gruppe)"
     },
     "notChangeYourSelf": "Als Admin/Moderator kannst du nicht selber deine Rolle ändern.",
-    "savedGroupTags": "Gruppen gespeichert.",
+    "savedCreationGroups": "Schöpfungsgruppen gespeichert.",
     "savedScope": "Sichtbarkeit gespeichert.",
     "scope": {
       "all": "alle Gruppen",
       "help": "Leer = alle Beiträge.",
-      "label": "Sichtbare Gruppen",
+      "label": "Sichtbare Schöpfungsgruppen",
       "untagged": "ohne Gruppe"
     },
     "selectLabel": "Rolle:",

@@ -11,10 +11,10 @@ import {
 // Group functions: the canonical list of valid group
 // tags (admin-managed). `tag` is stored WITHOUT the leading '#'. Submission autocomplete
 // and the moderator visibility scope both draw from this list.
-@Entity('group_tags', {
+@Entity('creation_groups', {
   engine: 'InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci',
 })
-export class GroupTag extends BaseEntity {
+export class CreationGroup extends BaseEntity {
   @PrimaryGeneratedColumn('increment', { unsigned: true })
   id: number
 

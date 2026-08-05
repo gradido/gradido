@@ -1,6 +1,11 @@
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { ApolloServerTestClient } from 'apollo-server-testing'
-import { AppDatabase, Contribution as DbContribution, GroupTag as DbGroupTag, User } from 'database'
+import {
+  AppDatabase,
+  Contribution as DbContribution,
+  CreationGroup as DbCreationGroup,
+  User,
+} from 'database'
 import { getLogger as originalGetLogger } from 'log4js'
 import { Order } from '@/graphql/enum/Order'
 import { userFactory } from '@/seeds/factory/user'
@@ -8,8 +13,8 @@ import { createContribution, login } from '@/seeds/graphql/mutations'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import {
   COMMUNITY_WINDOW_MONTHS,
-  groupTagsInCommunityWindow,
-  groupTagsInUserContributions,
+  creationGroupsInCommunityWindow,
+  creationGroupsInUserContributions,
   loadAllContributions,
   loadUserContributions,
 } from './util/contributions'
@@ -71,15 +76,15 @@ beforeAll(async () => {
   db = testEnv.db
   await cleanDB()
 
-  await DbGroupTag.save([
-    DbGroupTag.create({ tag: 'windowlive', name: 'Live group' }),
-    DbGroupTag.create({ tag: 'windowquiet', name: 'Quiet group' }),
+  await DbCreationGroup.save([
+    DbCreationGroup.create({ tag: 'windowlive', name: 'Live group' }),
+    DbCreationGroup.create({ tag: 'windowquiet', name: 'Quiet group' }),
   ])
 
   member = await userFactory(testEnv, bibiBloxberg)
   resetToken()
   await mutate({ mutation: login, variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' } })
-  for (const [memo, groupTags] of [
+  for (const [memo, creationGroups] of [
     [RECENT, []],
     [OLD, []],
     [OLD_BUT_DECIDED, []],
@@ -90,7 +95,7 @@ beforeAll(async () => {
   ] as Array<[string, string[]]>) {
     await mutate({
       mutation: createContribution,
-      variables: { amount: '100', memo, contributionDate: new Date().toString(), groupTags },
+      variables: { amount: '100', memo, contributionDate: new Date().toString(), creationGroups },
     })
   }
   resetToken()
@@ -168,11 +173,13 @@ describe('the submitter keeps everything', () => {
 
 describe('groups offered by the community filter', () => {
   it('offers a group that has something inside the window', async () => {
-    expect(await groupTagsInCommunityWindow(['windowlive', 'windowquiet'])).toContain('windowlive')
+    expect(await creationGroupsInCommunityWindow(['windowlive', 'windowquiet'])).toContain(
+      'windowlive',
+    )
   })
 
   it('drops a group that has gone quiet', async () => {
-    expect(await groupTagsInCommunityWindow(['windowlive', 'windowquiet'])).not.toContain(
+    expect(await creationGroupsInCommunityWindow(['windowlive', 'windowquiet'])).not.toContain(
       'windowquiet',
     )
   })
@@ -180,7 +187,7 @@ describe('groups offered by the community filter', () => {
   it('leaves the canonical list alone, so a quiet group stays choosable when submitting', async () => {
     // A group missing from the submission field could never be woken up again — nobody
     // could file a contribution for it.
-    const canonical = await DbGroupTag.find({ order: { tag: 'ASC' } })
+    const canonical = await DbCreationGroup.find({ order: { tag: 'ASC' } })
     expect(canonical.map((tag) => tag.tag)).toEqual(['windowlive', 'windowquiet'])
   })
 })
@@ -189,14 +196,14 @@ describe('groups offered by "my contributions"', () => {
   it('is not windowed: keeps a group whose only contribution has gone quiet', async () => {
     // Unlike the community filter (which drops "windowquiet"), the submitter's own list is
     // not windowed, so a group still holding one of their older contributions stays offered.
-    expect(await groupTagsInUserContributions(member.id, ['windowlive', 'windowquiet'])).toEqual(
-      expect.arrayContaining(['windowlive', 'windowquiet']),
-    )
+    expect(
+      await creationGroupsInUserContributions(member.id, ['windowlive', 'windowquiet']),
+    ).toEqual(expect.arrayContaining(['windowlive', 'windowquiet']))
   })
 
   it('drops a group the submitter has no contribution in', async () => {
     expect(
-      await groupTagsInUserContributions(member.id, ['windowlive', 'unfiledgroup']),
+      await creationGroupsInUserContributions(member.id, ['windowlive', 'unfiledgroup']),
     ).not.toContain('unfiledgroup')
   })
 })

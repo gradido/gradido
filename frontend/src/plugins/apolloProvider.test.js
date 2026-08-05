@@ -7,6 +7,7 @@ vi.mock('@/store/store')
 vi.mock('../routes/router')
 vi.mock('../i18n')
 vi.mock('@apollo/client/core')
+vi.mock('@apollo/client/link/error')
 
 describe('apolloProvider', () => {
   let createHttpLink,
@@ -15,6 +16,7 @@ describe('apolloProvider', () => {
     InMemoryCache,
     createApolloProvider,
     provideApolloClient,
+    onError,
     store,
     router,
     i18n
@@ -32,6 +34,8 @@ describe('apolloProvider', () => {
         request: callback,
       }
     })
+    // The chain is assembled with ApolloLink.from, so the mock needs the static too.
+    ApolloLink.from = vi.fn((links) => ({ links }))
     ApolloClient = vi.fn()
     InMemoryCache = vi.fn()
 
@@ -39,6 +43,10 @@ describe('apolloProvider', () => {
     vi.mocked(apolloCore).ApolloLink = ApolloLink
     vi.mocked(apolloCore).ApolloClient = ApolloClient
     vi.mocked(apolloCore).InMemoryCache = InMemoryCache
+
+    const errorLinkModule = await import('@apollo/client/link/error')
+    onError = vi.fn((handler) => ({ handler }))
+    vi.mocked(errorLinkModule).onError = onError
 
     const apolloOption = await import('@vue/apollo-option')
     createApolloProvider = vi.fn()
@@ -176,6 +184,45 @@ describe('apolloProvider', () => {
       authLink({ setContext: setContextMock, getContext: getContextMock }, forwardMock)
 
       expect(store.commit).toHaveBeenCalledWith('token', 'new-token')
+    })
+  })
+
+  // Without this the wiring is untested: the checks above only prove that onError was
+  // called, not what its handler does. Here the handler is taken out of the mock and run,
+  // which is the only place the two halves -- the rule and the flag -- are seen together.
+  describe('the outdated-app link', () => {
+    let handler, appOutdated
+
+    beforeEach(async () => {
+      handler = onError.mock.calls[0][0]
+      const outdatedModule = await import('@/composables/useAppOutdated')
+      outdatedModule.resetAppOutdated()
+      appOutdated = outdatedModule.useAppOutdated().appOutdated
+    })
+
+    it('raises the flag on a validation failure', () => {
+      handler({ graphQLErrors: [{ extensions: { code: 'GRAPHQL_VALIDATION_FAILED' } }] })
+
+      expect(appOutdated.value).toBe(true)
+    })
+
+    it('raises the flag when the failure arrives as a network error', () => {
+      handler({
+        networkError: {
+          result: { errors: [{ extensions: { code: 'GRAPHQL_VALIDATION_FAILED' } }] },
+        },
+      })
+
+      expect(appOutdated.value).toBe(true)
+    })
+
+    // Reloading does not help against an expired session or a rejected amount, and a bar
+    // that says otherwise sends people down the wrong path.
+    it('leaves the flag down for every other failure', () => {
+      handler({ graphQLErrors: [{ extensions: { code: 'UNAUTHENTICATED' } }] })
+      handler({ networkError: { message: 'offline' } })
+
+      expect(appOutdated.value).toBe(false)
     })
   })
 })

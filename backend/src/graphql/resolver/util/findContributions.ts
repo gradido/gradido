@@ -23,18 +23,18 @@ function joinRelationsRecursive(
   }
 }
 
-// --- Group functions: group-tag filter + moderator visibility scope ---
+// --- Group functions: creation-group filter + moderator visibility scope ---
 
 // A contribution "carries" tag T if it is linked to T. Nothing else — the memo is not
 // consulted. The inline "#tag" convention that predates the group field is no longer
 // resolved on read; that stock is adopted into real links per group, from the admin.
 //
-// Both this and UNTAGGED_SQL are served by idx_cgt_contribution_id, so they stay cheap on a
+// Both this and UNTAGGED_SQL are served by idx_ccg_contribution_id, so they stay cheap on a
 // large table. That is the point of reading links only: the previous version compared the
 // memo against every group with a leading-wildcard LIKE, which no index can help with.
 const tagMatchSql = (key: string): string =>
-  `EXISTS (SELECT 1 FROM contribution_group_tags cgt ` +
-  `INNER JOIN group_tags gt ON gt.id = cgt.group_tag_id ` +
+  `EXISTS (SELECT 1 FROM contribution_creation_groups cgt ` +
+  `INNER JOIN creation_groups gt ON gt.id = cgt.creation_group_id ` +
   `WHERE cgt.contribution_id = Contribution.id AND gt.tag = :${key})`
 
 // The one token that stands for "belongs to no group". Used by the moderator scope and by
@@ -49,10 +49,10 @@ export const GROUPED_FILTER = '*grouped'
 // group. Exactly the complement of "linked to some group", so "all" plus these two cover
 // every contribution once.
 const UNTAGGED_SQL =
-  `NOT EXISTS (SELECT 1 FROM contribution_group_tags cgt ` +
+  `NOT EXISTS (SELECT 1 FROM contribution_creation_groups cgt ` +
   `WHERE cgt.contribution_id = Contribution.id)`
 
-// Parse a moderator's stored scope (JSON text on user_roles.visible_group_tags) into a
+// Parse a moderator's stored scope (JSON text on user_roles.visible_creation_groups) into a
 // string array. null (= no restriction) for empty/invalid input.
 export const parseModeratorScope = (raw: string | null | undefined): string[] | null => {
   if (!raw) {
@@ -100,7 +100,7 @@ export const buildModeratorScopePredicate = (
 // reserved tokens stand beside the real groups: '*untagged' selects the contributions no
 // group moderator is looking after, '*grouped' their complement. A real slug can never
 // collide with either: '*' is rejected when a group is created or renamed.
-export const buildGroupTagPredicate = (
+export const buildCreationGroupPredicate = (
   tag: string,
 ): { sql: string; params: Record<string, string> } => {
   if (tag === UNTAGGED_FILTER) {
@@ -109,7 +109,7 @@ export const buildGroupTagPredicate = (
   if (tag === GROUPED_FILTER) {
     return { sql: `(NOT ${UNTAGGED_SQL})`, params: {} }
   }
-  return { sql: tagMatchSql('groupTagFilter'), params: { groupTagFilter: tag } }
+  return { sql: tagMatchSql('creationGroupFilter'), params: { creationGroupFilter: tag } }
 }
 
 export const findContributions = async (
@@ -165,10 +165,10 @@ export const findContributions = async (
       }),
     )
   }
-  // Group-tag filter from the admin UI (a single selected group). Separate from the
+  // Creation-group filter from the admin UI (a single selected group). Separate from the
   // free-text `query` above, so both can be applied at the same time.
-  if (filter.groupTag) {
-    const groupPredicate = buildGroupTagPredicate(filter.groupTag)
+  if (filter.creationGroup) {
+    const groupPredicate = buildCreationGroupPredicate(filter.creationGroup)
     queryBuilder.andWhere(groupPredicate.sql, groupPredicate.params)
   }
   // Hard moderator visibility scope: a group moderator only sees the contributions of the

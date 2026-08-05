@@ -13,6 +13,10 @@
   },
   "alias": "Псевдоним",
   "all_emails": "Все пользователи",
+  "appOutdated": {
+    "reload": "Обновить",
+    "text": "Доступна более новая версия. Пожалуйста, обновите страницу."
+  },
   "back": "назад",
   "bulkResubmission": {
     "cancel": "Do not apply",
@@ -28,9 +32,9 @@
   "change_user_role": "Изменить роль пользователя",
   "close": "Закрыть",
   "contribution": {
-    "changeGroup": "Изменить группу",
+    "changeGroup": "Изменить группу созидания",
     "changeGroupConfirm": "Да, переместить",
-    "changeGroupDone": "Группа изменена.",
+    "changeGroupDone": "Группа созидания изменена.",
     "changeGroupHint": "В зависимости от ваших видимых групп вклад может больше не отображаться в вашем списке.",
     "changeGroupQuestion": "Переместить этот вклад из {from} в {to}?",
     "confirmedBy": "Подтверждено пользователем {name}.",
@@ -175,6 +179,47 @@
   "created": "Создано",
   "createdAt": "Дата создания",
   "creation": "Создание",
+  "creationGroupFilter": {
+    "all": "(все)",
+    "grouped": "(все группы)",
+    "label": "Creation group:",
+    "untagged": "(без группы)"
+  },
+  "creationGroupsAdmin": {
+    "add": "Create",
+    "addTitle": "Create a new group",
+    "adminOnly": "Administrators only.",
+    "adoption": {
+      "adopt": "Перенести {count}",
+      "check": "Старые хештеги",
+      "done": "Старые хештеги перенесены.",
+      "foundExact": "{count} более старых вкладов пишут #{tag} в тексте.",
+      "foundLoose": "Перенести также {count} вкладов, написанных как «# {tag}» (с пробелом).",
+      "foundNothing": "Ни один более старый вклад не называет эту группу в тексте.",
+      "hint": "Переносятся только вклады, у которых ещё нет никакой группы. Слово, не называющее существующую группу, остаётся обычным текстом.",
+      "markChecked": "Отметить как проверенное",
+      "searchFailed": "Поиск не удался. Попробуйте ещё раз.",
+      "searching": "Поиск по вкладам …",
+      "stateAdopted": "проверено {date} — перенесено {count}",
+      "stateNothing": "проверено {date} — ничего не найдено",
+      "stateUnchecked": "старые хештеги ещё не проверены",
+      "title": "Перенести старые хештеги в группу {group}"
+    },
+    "cancel": "Cancel",
+    "created": "Group created.",
+    "edit": "Edit",
+    "empty": "No groups created yet.",
+    "existingTitle": "Existing groups",
+    "intro": "Create new groups or rename existing ones. Who belongs to a group or moderates it is assigned on the \"User role\" tab.",
+    "name": "Name",
+    "namePlaceholder": "e.g. Volunteer Fire Brigade Springfield",
+    "save": "Save",
+    "tag": "Tag",
+    "tagHint": "A short tag without spaces — capitals and accented letters are allowed. Matching ignores upper and lower case. The name is what is shown everywhere.",
+    "tagPlaceholder": "e.g. firefighter",
+    "title": "Manage creation groups",
+    "updated": "Group updated."
+  },
   "creationList": "Список созданий",
   "creation_for_month": "Создание за месяц",
   "creation_form": {
@@ -253,47 +298,6 @@
     "humhubProfile": "Перейти в профиль Humhub",
     "userSearch": "Перейти к поиску пользователей"
   },
-  "groupTagFilter": {
-    "all": "(все)",
-    "grouped": "(все группы)",
-    "label": "Group:",
-    "untagged": "(без группы)"
-  },
-  "groupTagsAdmin": {
-    "add": "Create",
-    "addTitle": "Create a new group",
-    "adminOnly": "Administrators only.",
-    "adoption": {
-      "adopt": "Перенести {count}",
-      "check": "Старые хештеги",
-      "done": "Старые хештеги перенесены.",
-      "foundExact": "{count} более старых вкладов пишут #{tag} в тексте.",
-      "foundLoose": "Перенести также {count} вкладов, написанных как «# {tag}» (с пробелом).",
-      "foundNothing": "Ни один более старый вклад не называет эту группу в тексте.",
-      "hint": "Переносятся только вклады, у которых ещё нет никакой группы. Слово, не называющее существующую группу, остаётся обычным текстом.",
-      "markChecked": "Отметить как проверенное",
-      "searchFailed": "Поиск не удался. Попробуйте ещё раз.",
-      "searching": "Поиск по вкладам …",
-      "stateAdopted": "проверено {date} — перенесено {count}",
-      "stateNothing": "проверено {date} — ничего не найдено",
-      "stateUnchecked": "старые хештеги ещё не проверены",
-      "title": "Перенести старые хештеги в группу {group}"
-    },
-    "cancel": "Cancel",
-    "created": "Group created.",
-    "edit": "Edit",
-    "empty": "No groups created yet.",
-    "existingTitle": "Existing groups",
-    "intro": "Create new groups or rename existing ones. Who belongs to a group or moderates it is assigned on the “User role” tab.",
-    "name": "Name",
-    "namePlaceholder": "e.g. Volunteer Fire Brigade Springfield",
-    "save": "Save",
-    "tag": "Tag",
-    "tagHint": "A short tag without spaces — capitals and accented letters are allowed. Matching ignores upper and lower case. The name is what is shown everywhere.",
-    "tagPlaceholder": "e.g. firefighter",
-    "title": "Manage groups",
-    "updated": "Group updated."
-  },
   "help": {
     "help": "Помощь",
     "transactionlist": {
@@ -337,7 +341,7 @@
   "navbar": {
     "automaticContributions": "Начальный баланс",
     "crea": "Crea",
-    "groupTags": "Groups",
+    "creationGroups": "Creation groups",
     "instances": "Экземпляры",
     "logout": "Выйти",
     "my-account": "Мой аккаунт",
@@ -447,18 +451,18 @@
   },
   "unregistered_emails": "Только незарегистрированные пользователи",
   "userRole": {
-    "groupTags": {
+    "creationGroups": {
       "help": "Pre-filled on submission.",
-      "label": "User's main group",
+      "label": "User's main creation group",
       "none": "(no group)"
     },
     "notChangeYourSelf": "Будучи администратором/модератором, вы не можете изменить свою собственную роль.",
-    "savedGroupTags": "Groups saved.",
+    "savedCreationGroups": "Creation groups saved.",
     "savedScope": "Visibility saved.",
     "scope": {
       "all": "all groups",
       "help": "Empty = all contributions.",
-      "label": "Visible groups",
+      "label": "Visible creation groups",
       "untagged": "no group"
     },
     "selectLabel": "Роль:",

@@ -11,7 +11,7 @@ import { peterLustig } from '@/seeds/users/peter-lustig'
 
 // verifyLogin hands the admin interface the signed-in moderator's group visibility scope, so
 // its contribution filter can offer only the groups they may actually work in. The derivation
-// is describeModeratorGroups (same as the community info page): an administrator or an
+// is describeModeratorCreationGroups (same as the community info page): an administrator or an
 // unassigned moderator is unrestricted, a scoped moderator carries their own groups, and a
 // moderator scoped to untagged contributions only carries no groups. Both moderator kinds are
 // checked, because MODERATOR_AI is scoped exactly like MODERATOR.
@@ -31,8 +31,8 @@ const verifyLoginScope = gql`
   query {
     verifyLogin {
       roles
-      visibleGroupTags
-      seesAllGroups
+      visibleCreationGroups
+      seesAllCreationGroups
       seesUntagged
     }
   }
@@ -64,14 +64,14 @@ const setScope = async (userId: number, role: RoleNames, scope: string[] | null)
   entry.createdAt = entry.createdAt ?? new Date()
   entry.userId = userId
   entry.role = role
-  entry.visibleGroupTags = scope ? JSON.stringify(scope) : null
+  entry.visibleCreationGroups = scope ? JSON.stringify(scope) : null
   await entry.save()
 }
 
 const scopeOf = async (): Promise<{
   roles: string[]
-  visibleGroupTags: string[]
-  seesAllGroups: boolean
+  visibleCreationGroups: string[]
+  seesAllCreationGroups: boolean
   seesUntagged: boolean
 }> => {
   const { data } = await query({ query: verifyLoginScope })
@@ -89,7 +89,11 @@ describe('verifyLogin — moderator group visibility scope', () => {
   it('reports an administrator as unrestricted', async () => {
     await loginAs('peter@lustig.de')
     expect(await scopeOf()).toEqual(
-      expect.objectContaining({ visibleGroupTags: [], seesAllGroups: true, seesUntagged: true }),
+      expect.objectContaining({
+        visibleCreationGroups: [],
+        seesAllCreationGroups: true,
+        seesUntagged: true,
+      }),
     )
   })
 
@@ -98,8 +102,8 @@ describe('verifyLogin — moderator group visibility scope', () => {
     await loginAs('bibi@bloxberg.de')
     expect(await scopeOf()).toEqual({
       roles: ['MODERATOR'],
-      visibleGroupTags: [],
-      seesAllGroups: true,
+      visibleCreationGroups: [],
+      seesAllCreationGroups: true,
       seesUntagged: true,
     })
   })
@@ -109,8 +113,8 @@ describe('verifyLogin — moderator group visibility scope', () => {
     await loginAs('bibi@bloxberg.de')
     expect(await scopeOf()).toEqual({
       roles: ['MODERATOR'],
-      visibleGroupTags: ['firefighter', 'garden'],
-      seesAllGroups: false,
+      visibleCreationGroups: ['firefighter', 'garden'],
+      seesAllCreationGroups: false,
       seesUntagged: false,
     })
   })
@@ -120,8 +124,8 @@ describe('verifyLogin — moderator group visibility scope', () => {
     await loginAs('bibi@bloxberg.de')
     expect(await scopeOf()).toEqual({
       roles: ['MODERATOR_AI'],
-      visibleGroupTags: ['firefighter'],
-      seesAllGroups: false,
+      visibleCreationGroups: ['firefighter'],
+      seesAllCreationGroups: false,
       seesUntagged: false,
     })
   })
@@ -131,8 +135,8 @@ describe('verifyLogin — moderator group visibility scope', () => {
     await loginAs('bibi@bloxberg.de')
     expect(await scopeOf()).toEqual({
       roles: ['MODERATOR'],
-      visibleGroupTags: [],
-      seesAllGroups: false,
+      visibleCreationGroups: [],
+      seesAllCreationGroups: false,
       seesUntagged: true,
     })
   })
@@ -145,8 +149,8 @@ describe('verifyLogin — moderator group visibility scope', () => {
     await loginAs('bibi@bloxberg.de')
     expect(await scopeOf()).toEqual({
       roles: ['MODERATOR'],
-      visibleGroupTags: ['firefighter'],
-      seesAllGroups: false,
+      visibleCreationGroups: ['firefighter'],
+      seesAllCreationGroups: false,
       seesUntagged: true,
     })
   })

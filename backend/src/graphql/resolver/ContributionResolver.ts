@@ -54,8 +54,8 @@ import {
 import { UpdateUnconfirmedContributionContext } from '@/interactions/updateUnconfirmedContribution/UpdateUnconfirmedContribution.context'
 import { Context, getClientTimezoneOffset, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
-import { attachContributionGroupTags } from './util/attachContributionGroupTags'
-import { setContributionGroupTags } from './util/contributionGroupTags'
+import { attachContributionCreationGroups } from './util/attachContributionCreationGroups'
+import { setContributionCreationGroups } from './util/contributionCreationGroups'
 import {
   COMMUNITY_WINDOW_MONTHS,
   contributionFrontendLink,
@@ -68,7 +68,7 @@ import { findContributions, parseModeratorScope } from './util/findContributions
 import {
   assertContributionInModeratorScope,
   isScopedModeratorRole,
-} from './util/moderatorGroupScope'
+} from './util/moderatorCreationGroupScope'
 
 const db = AppDatabase.getInstance()
 const createLogger = () =>
@@ -77,7 +77,7 @@ const createLogger = () =>
 // Group functions: the group stays editable while a contribution is still being
 // worked on. Confirmed, denied and deleted ones are closed — their group is part of the
 // record. The admin uses the same list to decide whether to offer the dropdown.
-export const GROUP_TAGS_EDITABLE_STATUS: string[] = [
+export const CREATION_GROUPS_EDITABLE_STATUS: string[] = [
   ContributionStatus.PENDING,
   ContributionStatus.IN_PROGRESS,
 ]
@@ -100,14 +100,14 @@ export class ContributionResolver {
     const contribution = new Contribution(dbContribution)
     // The admin replaces a whole row with this answer, so it has to carry the group too -
     // otherwise the reloaded row claims the contribution belongs to no group.
-    await attachContributionGroupTags([contribution])
+    await attachContributionCreationGroups([contribution])
     return contribution
   }
 
   @Authorized([RIGHTS.CREATE_CONTRIBUTION])
   @Mutation(() => UnconfirmedContribution)
   async createContribution(
-    @Args() { amount, memo, contributionDate, groupTags }: ContributionArgs,
+    @Args() { amount, memo, contributionDate, creationGroups }: ContributionArgs,
     @Ctx() context: Context,
   ): Promise<UnconfirmedContribution> {
     const clientTimezoneOffset = getClientTimezoneOffset(context)
@@ -131,17 +131,17 @@ export class ContributionResolver {
 
     logger.trace('contribution to save', contribution)
     await DbContribution.save(contribution)
-    await setContributionGroupTags(contribution.id, groupTags ?? [])
+    await setContributionCreationGroups(contribution.id, creationGroups ?? [])
     await EVENT_CONTRIBUTION_CREATE(user, contribution, amount)
 
     return new UnconfirmedContribution(contribution)
   }
 
-  // Group functions: a moderator (re)assigns the structured group tags of an
+  // Group functions: a moderator (re)assigns the structured creation groups of an
   // existing contribution (contribution-level healing; user-list healing lives elsewhere).
   @Authorized([RIGHTS.ADMIN_UPDATE_CONTRIBUTION])
   @Mutation(() => Boolean)
-  async assignContributionGroupTags(
+  async assignContributionCreationGroups(
     @Arg('contributionId', () => Int) contributionId: number,
     @Arg('tags', () => [String]) tags: string[],
     @Ctx() context: Context,
@@ -154,7 +154,7 @@ export class ContributionResolver {
     // Only while the contribution is still being worked on. Once it is confirmed, denied or
     // deleted it is closed, and its group is part of the record — moving it afterwards would
     // reshuffle what has already been decided and reported on.
-    if (!GROUP_TAGS_EDITABLE_STATUS.includes(contribution.contributionStatus)) {
+    if (!CREATION_GROUPS_EDITABLE_STATUS.includes(contribution.contributionStatus)) {
       throw new LogError(
         'Cannot change the group of a closed contribution',
         contribution.contributionStatus,
@@ -162,7 +162,7 @@ export class ContributionResolver {
     }
     // strict: a moderator moving a contribution onto a tag that does not exist would
     // otherwise empty its group and still report success.
-    await setContributionGroupTags(contribution.id, tags, { strict: true })
+    await setContributionCreationGroups(contribution.id, tags, { strict: true })
     return true
   }
 
@@ -223,7 +223,7 @@ export class ContributionResolver {
         return contribution
       }),
     )
-    await attachContributionGroupTags(result.contributionList)
+    await attachContributionCreationGroups(result.contributionList)
     return result
   }
 
@@ -251,7 +251,7 @@ export class ContributionResolver {
       dbContributions,
       COMMUNITY_WINDOW_MONTHS,
     )
-    await attachContributionGroupTags(result.contributionList)
+    await attachContributionCreationGroups(result.contributionList)
     return result
   }
 
@@ -331,9 +331,9 @@ export class ContributionResolver {
     // no group field on this form. Stamping it as "no group" keeps a "#word" in that text
     // from pulling the contribution into a group nobody chose — and into that group's
     // moderator scope. The group can still be set afterwards; the contribution is open.
-    // Stamped on the entity rather than through setContributionGroupTags: there are no tags
+    // Stamped on the entity rather than through setContributionCreationGroups: there are no tags
     // to write, so it folds into the insert instead of costing two more statements.
-    contribution.groupTagsSetAt = new Date()
+    contribution.creationGroupsSetAt = new Date()
     logger.trace('contribution to save', contribution)
     await DbContribution.save(contribution)
     await EVENT_ADMIN_CONTRIBUTION_CREATE(emailContact.user, moderator, contribution, amount)
@@ -447,7 +447,7 @@ export class ContributionResolver {
     const activeRole = context.user?.userRoles?.[0]
     const moderatorScope =
       activeRole && isScopedModeratorRole(activeRole.role)
-        ? parseModeratorScope(activeRole.visibleGroupTags)
+        ? parseModeratorScope(activeRole.visibleCreationGroups)
         : null
     const [dbContributions, count] = await findContributions(
       paginated,
@@ -465,7 +465,7 @@ export class ContributionResolver {
       moderatorScope,
     )
     const result = new ContributionListResult(count, dbContributions)
-    await attachContributionGroupTags(result.contributionList)
+    await attachContributionCreationGroups(result.contributionList)
 
     const uniqueUserIds = new Set<number>()
     const addIfExist = (userId?: number | null) => (userId ? uniqueUserIds.add(userId) : null)

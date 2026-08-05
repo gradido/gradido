@@ -1,17 +1,17 @@
 import { RoleNames } from '@enum/RoleNames'
 import { cleanDB, testEnvironment } from '@test/helpers'
-import { AppDatabase, GroupTag, UserRole } from 'database'
+import { AppDatabase, CreationGroup, UserRole } from 'database'
 import { getLogger as originalGetLogger } from 'log4js'
-import { GroupTagResolver } from './GroupTagResolver'
+import { CreationGroupResolver } from './CreationGroupResolver'
 import { parseModeratorScope } from './util/findContributions'
 
-// Group functions: editing a canonical group tag. Contributions and personal
+// Group functions: editing a canonical creation group. Contributions and personal
 // user tag lists reference the numeric id, so a rename leaves them intact; the moderator
 // visibility scope stores the tag as a string and must be migrated in lock-step.
 // Deleting is intentionally not offered.
 
 let db: AppDatabase
-const resolver = new GroupTagResolver()
+const resolver = new CreationGroupResolver()
 
 beforeAll(async () => {
   const testEnv = await testEnvironment(originalGetLogger('apollo'))
@@ -24,8 +24,8 @@ afterAll(async () => {
   await db.destroy()
 })
 
-const makeTag = async (tag: string, name: string | null): Promise<GroupTag> => {
-  const entry = GroupTag.create()
+const makeTag = async (tag: string, name: string | null): Promise<CreationGroup> => {
+  const entry = CreationGroup.create()
   entry.tag = tag
   entry.name = name
   await entry.save()
@@ -37,15 +37,15 @@ const makeModerator = async (userId: number, scope: string[]): Promise<void> => 
   role.createdAt = new Date()
   role.userId = userId
   role.role = RoleNames.MODERATOR
-  role.visibleGroupTags = JSON.stringify(scope)
+  role.visibleCreationGroups = JSON.stringify(scope)
   await role.save()
 }
 
-describe('updateGroupTag', () => {
+describe('editCreationGroup', () => {
   it('changes only the display name, leaving the slug untouched', async () => {
     const tag = await makeTag('gardening', 'Gardening')
-    await resolver.updateGroupTag(tag.id, null, 'Community Garden')
-    const reloaded = await GroupTag.findOneOrFail({ where: { id: tag.id } })
+    await resolver.editCreationGroup(tag.id, null, 'Community Garden')
+    const reloaded = await CreationGroup.findOneOrFail({ where: { id: tag.id } })
     expect(reloaded.tag).toBe('gardening')
     expect(reloaded.name).toBe('Community Garden')
   })
@@ -56,49 +56,77 @@ describe('updateGroupTag', () => {
     await makeModerator(900002, ['music'])
 
     // A leading '#' is stripped, so '#newbrigade' is stored canonically as 'newbrigade'.
-    await resolver.updateGroupTag(tag.id, '#newbrigade', null)
+    await resolver.editCreationGroup(tag.id, '#newbrigade', null)
 
-    const reloaded = await GroupTag.findOneOrFail({ where: { id: tag.id } })
+    const reloaded = await CreationGroup.findOneOrFail({ where: { id: tag.id } })
     expect(reloaded.tag).toBe('newbrigade')
 
     const scoped = await UserRole.findOneOrFail({ where: { userId: 900001 } })
-    expect(parseModeratorScope(scoped.visibleGroupTags)).toEqual([
+    expect(parseModeratorScope(scoped.visibleCreationGroups)).toEqual([
       'newbrigade',
       'music',
       '*untagged',
     ])
 
     const untouched = await UserRole.findOneOrFail({ where: { userId: 900002 } })
-    expect(parseModeratorScope(untouched.visibleGroupTags)).toEqual(['music'])
+    expect(parseModeratorScope(untouched.visibleCreationGroups)).toEqual(['music'])
   })
 
   it('rejects a slug rename that collides with an existing tag', async () => {
     await makeTag('collide-a', null)
     const b = await makeTag('collide-b', null)
-    await expect(resolver.updateGroupTag(b.id, 'collide-a')).rejects.toThrow()
+    await expect(resolver.editCreationGroup(b.id, 'collide-a')).rejects.toThrow()
   })
 
   it('rejects an invalid slug (inner whitespace)', async () => {
     const tag = await makeTag('valid-slug', null)
-    await expect(resolver.updateGroupTag(tag.id, 'has space')).rejects.toThrow()
+    await expect(resolver.editCreationGroup(tag.id, 'has space')).rejects.toThrow()
+  })
+
+  // ⚠️ The rename and the scope migration now share one transaction, and they have to:
+  // the scope predicate compares the tag EXACTLY, so a scope left on the old spelling
+  // matches nothing -- an affected moderator sees an empty list and every action on their
+  // own contributions refused, with nothing on screen to say why. And repeating the edit
+  // cannot repair it: a second call with the same tag stops at the "unchanged" check, so the
+  // scopes are never revisited. This test states the property the transaction protects.
+  it('leaves no moderator scope behind on the old slug', async () => {
+    const tag = await makeTag('lockstep', 'Lockstep')
+    await makeModerator(9101, ['lockstep'])
+    await makeModerator(9102, ['lockstep', '*untagged'])
+    await makeModerator(9103, ['somethingelse'])
+
+    await resolver.editCreationGroup(tag.id, 'lockstep-renamed', null)
+
+    const scopes = await Promise.all(
+      [9101, 9102, 9103].map(async (userId) =>
+        parseModeratorScope(
+          (await UserRole.findOneOrFail({ where: { userId } })).visibleCreationGroups,
+        ),
+      ),
+    )
+    expect(scopes[0]).toEqual(['lockstep-renamed'])
+    expect(scopes[1]).toEqual(['lockstep-renamed', '*untagged'])
+    // Untouched, and worth asserting: the lookup uses LIKE and cannot help over-matching on
+    // a text column, so what keeps a neighbouring scope safe is the exact comparison after.
+    expect(scopes[2]).toEqual(['somethingelse'])
   })
 
   it('throws when the group does not exist', async () => {
-    await expect(resolver.updateGroupTag(987654, null, 'x')).rejects.toThrow()
+    await expect(resolver.editCreationGroup(987654, null, 'x')).rejects.toThrow()
   })
 })
 
-describe('group tags with capitals and accented letters', () => {
+describe('creation groups with capitals and accented letters', () => {
   // The tables are utf8mb4, so German and Scandinavian umlauts must survive a round trip
   // through the database byte for byte, capitals included.
   const CASES = ['Grünwald-Süd', 'Straßenfest', 'Ålesund', 'Nørrebro', 'Æblegård', 'THW']
 
   it('stores and returns them unchanged', async () => {
     for (const tag of CASES) {
-      const created = await resolver.createGroupTag(tag, `Gruppe ${tag}`)
+      const created = await resolver.addCreationGroup(tag, `Gruppe ${tag}`)
       expect(created.tag).toBe(tag)
 
-      const reloaded = await GroupTag.findOneOrFail({ where: { id: created.id } })
+      const reloaded = await CreationGroup.findOneOrFail({ where: { id: created.id } })
       expect(reloaded.tag).toBe(tag)
       expect(reloaded.name).toBe(`Gruppe ${tag}`)
     }
@@ -106,8 +134,8 @@ describe('group tags with capitals and accented letters', () => {
 
   it('renames to an accented slug without losing characters', async () => {
     const tag = await makeTag('plain-slug', 'Plain')
-    await resolver.updateGroupTag(tag.id, 'Öffentlichkeitsarbeit', null)
-    const reloaded = await GroupTag.findOneOrFail({ where: { id: tag.id } })
+    await resolver.editCreationGroup(tag.id, 'Öffentlichkeitsarbeit', null)
+    const reloaded = await CreationGroup.findOneOrFail({ where: { id: tag.id } })
     expect(reloaded.tag).toBe('Öffentlichkeitsarbeit')
   })
 
@@ -119,24 +147,24 @@ describe('group tags with capitals and accented letters', () => {
   describe('respelling a group as itself', () => {
     it('allows dropping an umlaut from its own slug', async () => {
       const tag = await makeTag('Mönchengladbach', 'Mönchengladbach')
-      await resolver.updateGroupTag(tag.id, 'Monchengladbach', null)
-      const reloaded = await GroupTag.findOneOrFail({ where: { id: tag.id } })
+      await resolver.editCreationGroup(tag.id, 'Monchengladbach', null)
+      const reloaded = await CreationGroup.findOneOrFail({ where: { id: tag.id } })
       expect(reloaded.tag).toBe('Monchengladbach')
     })
 
     it('allows changing only the capitalisation', async () => {
       const tag = await makeTag('feuerwache', 'Feuerwache')
-      await resolver.updateGroupTag(tag.id, 'Feuerwache', null)
-      const reloaded = await GroupTag.findOneOrFail({ where: { id: tag.id } })
+      await resolver.editCreationGroup(tag.id, 'Feuerwache', null)
+      const reloaded = await CreationGroup.findOneOrFail({ where: { id: tag.id } })
       expect(reloaded.tag).toBe('Feuerwache')
     })
 
     // The round trip is the point: rename onto the misspelling, adopt, rename back.
     it('survives being renamed there and back', async () => {
       const tag = await makeTag('Grünwald', 'Grünwald')
-      await resolver.updateGroupTag(tag.id, 'Grunwald', null)
-      await resolver.updateGroupTag(tag.id, 'Grünwald', null)
-      const reloaded = await GroupTag.findOneOrFail({ where: { id: tag.id } })
+      await resolver.editCreationGroup(tag.id, 'Grunwald', null)
+      await resolver.editCreationGroup(tag.id, 'Grünwald', null)
+      const reloaded = await CreationGroup.findOneOrFail({ where: { id: tag.id } })
       expect(reloaded.tag).toBe('Grünwald')
     })
 
@@ -144,10 +172,10 @@ describe('group tags with capitals and accented letters', () => {
     it('still refuses a slug another group already holds', async () => {
       const mine = await makeTag('kantine', 'Kantine')
       await makeTag('Werkstatt', 'Werkstatt')
-      await expect(resolver.updateGroupTag(mine.id, 'werkstatt', null)).rejects.toThrow(
-        'Group tag already exists',
+      await expect(resolver.editCreationGroup(mine.id, 'werkstatt', null)).rejects.toThrow(
+        'Creation group already exists',
       )
-      const reloaded = await GroupTag.findOneOrFail({ where: { id: mine.id } })
+      const reloaded = await CreationGroup.findOneOrFail({ where: { id: mine.id } })
       expect(reloaded.tag).toBe('kantine')
     })
   })
@@ -162,24 +190,26 @@ describe('reserved slugs', () => {
 
   it('refuses to create a group whose slug starts with "*"', async () => {
     for (const tag of RESERVED) {
-      await expect(resolver.createGroupTag(tag, 'Reserved')).rejects.toThrow('Invalid group tag')
-      expect(await GroupTag.findOne({ where: { tag } })).toBeNull()
+      await expect(resolver.addCreationGroup(tag, 'Reserved')).rejects.toThrow(
+        'Invalid creation group',
+      )
+      expect(await CreationGroup.findOne({ where: { tag } })).toBeNull()
     }
   })
 
   it('refuses to rename an existing group onto such a slug', async () => {
     const tag = await makeTag('ordinary', 'Ordinary')
     for (const reserved of RESERVED) {
-      await expect(resolver.updateGroupTag(tag.id, reserved, null)).rejects.toThrow(
-        'Invalid group tag',
+      await expect(resolver.editCreationGroup(tag.id, reserved, null)).rejects.toThrow(
+        'Invalid creation group',
       )
     }
-    const reloaded = await GroupTag.findOneOrFail({ where: { id: tag.id } })
+    const reloaded = await CreationGroup.findOneOrFail({ where: { id: tag.id } })
     expect(reloaded.tag).toBe('ordinary')
   })
 
   it('still accepts a slug that merely contains "*" somewhere else', async () => {
-    const created = await resolver.createGroupTag('a*b', 'Odd but harmless')
+    const created = await resolver.addCreationGroup('a*b', 'Odd but harmless')
     expect(created.tag).toBe('a*b')
   })
 })
