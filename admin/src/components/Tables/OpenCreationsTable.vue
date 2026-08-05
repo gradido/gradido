@@ -34,6 +34,20 @@
           </BButton>
         </div>
       </template>
+      <!-- The same filter that sits inside the details row, lifted into a column of its
+           own so it can be reached without opening a contribution first. Its own column
+           rather than an icon beside the name: the name column wraps, and a click target
+           that moves with the text is hard to hit. -->
+      <template #cell(searchUser)="row">
+        <span
+          v-if="row.item.user && row.item.user.emailContact"
+          class="pointer text-primary"
+          :title="$t('filter.byEmail')"
+          @click="$emit('search-for-email', row.item.user.emailContact.email)"
+        >
+          <IBiSearch />
+        </span>
+      </template>
       <template #cell(name)="row">
         <span v-if="row.item.user">
           {{ row.item.user.firstName }} {{ row.item.user.lastName }}

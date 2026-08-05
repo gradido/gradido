@@ -213,6 +213,7 @@ const fields = computed(() => {
     [
       { key: 'bookmark', label: t('delete') },
       { key: 'deny', label: t('deny') },
+      { key: 'searchUser', label: '' },
       baseFields.name,
       baseFields.amount,
       baseFields.memo,
@@ -223,6 +224,7 @@ const fields = computed(() => {
     ],
     // confirmed contributions
     [
+      { key: 'searchUser', label: '' },
       baseFields.name,
       baseFields.amount,
       baseFields.memo,
@@ -234,6 +236,7 @@ const fields = computed(() => {
     ],
     // denied contributions
     [
+      { key: 'searchUser', label: '' },
       baseFields.name,
       baseFields.amount,
       baseFields.memo,
@@ -245,6 +248,7 @@ const fields = computed(() => {
     ],
     // deleted contributions
     [
+      { key: 'searchUser', label: '' },
       baseFields.name,
       baseFields.amount,
       baseFields.memo,
@@ -257,6 +261,7 @@ const fields = computed(() => {
     // all contributions
     [
       { key: 'contributionStatus', label: t('status') },
+      { key: 'searchUser', label: '' },
       baseFields.name,
       baseFields.amount,
       baseFields.memo,
