@@ -58,9 +58,15 @@ export default {
     // Render a minimal, safe subset of markdown: **bold**. The text is
     // HTML-escaped first, then only the bold markers become <strong>, so a
     // message can never inject markup (messages come from users too).
+    //
+    // [\s\S] rather than . because the bold shortcut wraps whatever is selected,
+    // line breaks included: select two lines, press Cmd/Ctrl+B, and the markers
+    // end up around a newline. A dot does not match one, so that message arrived
+    // with its asterisks showing. The lazy quantifier still takes the shortest
+    // match, so two separate bold runs stay two.
     renderBold(text) {
       const escaped = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-      return escaped.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      return escaped.replace(/\*\*([\s\S]+?)\*\*/g, '<strong>$1</strong>')
     },
   },
 }
