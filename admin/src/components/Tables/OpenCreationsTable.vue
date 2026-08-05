@@ -39,14 +39,16 @@
            rather than an icon beside the name: the name column wraps, and a click target
            that moves with the text is hard to hit. -->
       <template #cell(searchUser)="row">
-        <span
+        <BButton
           v-if="row.item.user && row.item.user.emailContact"
-          class="pointer text-primary"
+          variant="link"
+          class="p-0 border-0 text-primary"
           :title="$t('filter.byEmail')"
+          :aria-label="$t('filter.byEmail')"
           @click="$emit('search-for-email', row.item.user.emailContact.email)"
         >
           <IBiSearch />
-        </span>
+        </BButton>
       </template>
       <template #cell(name)="row">
         <span v-if="row.item.user">

@@ -325,6 +325,14 @@ watch(creationGroup, () => {
   currentPage.value = 1
 })
 
+// The same rule for the search, which narrows the list just as hard. Watched on the
+// value rather than on one of its callers, because two things write it: the search
+// field above the table and the magnifier in the row. Guarding only the magnifier
+// would have left the typed search asking for page 3 of a two-line result.
+watch(query, () => {
+  currentPage.value = 1
+})
+
 // Group functions: canonical tag options for the filter dropdown.
 const { result: creationGroupsResult } = useQuery(creationGroups)
 

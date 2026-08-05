@@ -98,11 +98,18 @@ describe('Vuex Store', () => {
       // logout keeps the key by never touching it: it removes its own blob and
       // nothing else. A return to clear() would fail here.
       localStorageMock.getItem = vi.fn((key) => (key === 'gradido-theme-mode' ? 'dark' : null))
+      // Count only what the logout does. vuex-persistedstate probes the storage when the
+      // store is created (setItem('@@', 1) + removeItem('@@')), so the counter would
+      // otherwise be measuring the library's handshake as well.
+      localStorageMock.removeItem.mockClear()
 
       testStore.dispatch('logout')
 
       expect(localStorageMock.clear).not.toHaveBeenCalled()
-      expect(localStorageMock.removeItem).not.toHaveBeenCalledWith('gradido-theme-mode')
+      // Exactly one removal, and it is the admin's own blob. Naming the theme key alone
+      // would still pass if the logout started removing some other key the wallet owns;
+      // counting closes that off without having to list every key there is.
+      expect(localStorageMock.removeItem).toHaveBeenCalledTimes(1)
       expect(localStorageMock.removeItem).toHaveBeenCalledWith('gradido-admin')
     })
   })
