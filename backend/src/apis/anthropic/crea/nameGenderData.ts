@@ -1,3 +1,4 @@
+// AI-GENERATED — not an architecture reference
 // Curated first-name -> grammatical-gender data for Crea's salutation heuristic.
 //
 // Derived from the "firstnames-to-gender" dataset

@@ -1,3 +1,4 @@
+// AI-GENERATED — not an architecture reference
 // Crea's rules as data (design decision E-002 "Regeln als Daten").
 //
 // v1 SEED: this is a compact, faithful distillation of the reviewed design

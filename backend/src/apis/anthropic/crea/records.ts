@@ -1,3 +1,4 @@
+// AI-GENERATED — not an architecture reference
 import { CreaRecord } from 'database'
 import { v4 as uuidv4 } from 'uuid'
 import type { CreaContributionInput } from '@/graphql/input/CreaContributionInput'

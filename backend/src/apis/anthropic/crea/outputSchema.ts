@@ -1,3 +1,4 @@
+// AI-GENERATED — not an architecture reference
 // Literal JSON schema for Crea's structured output (design doc `H`).
 // Passed to the Anthropic Messages API via `output_config.format` so the model
 // is constrained to return exactly this shape. API constraints: every object

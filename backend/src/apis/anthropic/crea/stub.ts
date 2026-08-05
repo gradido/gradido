@@ -1,3 +1,4 @@
+// AI-GENERATED — not an architecture reference
 import type { CreaBatchInput } from '@/graphql/input/CreaBatchInput'
 import type { CreaContributionInput } from '@/graphql/input/CreaContributionInput'
 import type { CreaBatchEvaluation } from '@/graphql/model/CreaBatchEvaluation'

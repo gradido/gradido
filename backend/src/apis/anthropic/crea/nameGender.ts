@@ -1,3 +1,4 @@
+// AI-GENERATED — not an architecture reference
 // First-name -> grammatical-gender heuristic for Crea's salutation (design doc
 // `G` ch. 4, E-013). The Gradido account has no gender field, so the code guesses
 // "Liebe/Lieber" from a name list. This is only the FIRST GUESS -- the moderator

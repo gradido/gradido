@@ -1,3 +1,4 @@
+// AI-GENERATED — not an architecture reference
 import type { CreaContributionInput } from '@/graphql/input/CreaContributionInput'
 import type { CreaEvaluation } from '@/graphql/model/CreaEvaluation'
 import {

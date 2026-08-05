@@ -1,3 +1,4 @@
+// AI-GENERATED — not an architecture reference
 import Anthropic from '@anthropic-ai/sdk'
 import { getLogger } from 'log4js'
 import { CONFIG } from '@/config'
