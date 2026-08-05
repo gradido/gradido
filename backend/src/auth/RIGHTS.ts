@@ -79,7 +79,7 @@ export enum RIGHTS {
   PROJECT_BRANDING_MUTATE = 'PROJECT_BRANDING_MUTATE',
   AI_SETTINGS = 'AI_SETTINGS',
   MANAGE_CREATION_GROUPS = 'MANAGE_CREATION_GROUPS',
-  SET_MODERATOR_GROUP_SCOPE = 'SET_MODERATOR_GROUP_SCOPE',
+  SET_MODERATOR_CREATION_GROUP_SCOPE = 'SET_MODERATOR_CREATION_GROUP_SCOPE',
   // LEGACY-HASHTAG-ADOPTION -- removable with the feature.
   // Adopting the legacy hashtags writes links onto OTHER members' contributions, in bulk.
   // Managing the group list itself does not, so it gets a right of its own rather than

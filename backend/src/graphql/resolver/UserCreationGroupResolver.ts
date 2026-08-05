@@ -54,13 +54,13 @@ export class UserCreationGroupResolver {
   }
 
   // --- Moderator visibility scope (stored on user_roles; enforced in findContributions) ---
-  @Authorized([RIGHTS.SET_MODERATOR_GROUP_SCOPE])
+  @Authorized([RIGHTS.SET_MODERATOR_CREATION_GROUP_SCOPE])
   @Query(() => [String])
   async moderatorCreationGroupScope(@Arg('userId', () => Int) userId: number): Promise<string[]> {
     return loadModeratorScope(userId)
   }
 
-  @Authorized([RIGHTS.SET_MODERATOR_GROUP_SCOPE])
+  @Authorized([RIGHTS.SET_MODERATOR_CREATION_GROUP_SCOPE])
   @Mutation(() => [String])
   async setModeratorCreationGroupScope(
     @Arg('userId', () => Int) userId: number,
