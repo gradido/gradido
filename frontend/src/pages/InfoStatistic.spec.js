@@ -85,7 +85,7 @@ describe('InfoStatistic', () => {
         en: {
           communityInfo: 'Community Info',
           'community.admins': 'Admins',
-          'community.groupsAndModerators': 'Groups and moderators',
+          'community.groupsAndModerators': 'Creation groups and moderators',
           'community.moderatorsAllGroups': 'For all groups',
           'community.moderatorsUntagged': 'Contributions without a group',
           'community.noModerators': 'No moderator yet',
