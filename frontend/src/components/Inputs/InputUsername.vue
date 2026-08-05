@@ -1,7 +1,8 @@
 <template>
   <div class="input-username">
     <div>
-      <BFormGroup :label="$t('form.username')" :description="$t('settings.usernameInfo')">
+      <BFormGroup :label="$t('form.username')">
+        <!-- " :description="$t('settings.usernameInfo')" -->
         <BInputGroup>
           <BFormInput
             :id="labelFor"

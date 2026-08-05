@@ -115,6 +115,12 @@ const openai = {
   OPENAI_ASSISTANT_ID: process.env.OPENAI_ASSISTANT_ID ?? '',
 }
 
+const user = {
+  ALIAS_GENERAL_EDIT_TIME_LIMIT: Number(
+    process.env.ALIAS_GENERAL_EDIT_TIME_LIMIT ?? 1000 * 60 * 60 * 5,
+  ), // 5 hours editing
+}
+
 const anthropic = {
   ANTHROPIC_ACTIVE: process.env.ANTHROPIC_ACTIVE === 'true' || false,
   ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY ?? '',
@@ -138,6 +144,7 @@ export const CONFIG = {
   ...gms,
   ...humhub,
   ...openai,
+  ...user,
   ...anthropic,
 }
 validate(schema, CONFIG)

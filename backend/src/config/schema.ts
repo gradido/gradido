@@ -212,6 +212,15 @@ export const schema = Joi.object({
     .when('OPENAI_ACTIVE', { is: true, then: Joi.required(), otherwise: Joi.optional().allow('') })
     .description('Assistant ID for OpenAI'),
 
+  ALIAS_GENERAL_EDIT_TIME_LIMIT: Joi.number()
+    .integer()
+    .min(60000)
+    .default(18000000)
+    .description(
+      'Timer interval in milliseconds for editing user alias without writing history-protocol',
+    )
+    .required(),
+
   ANTHROPIC_ACTIVE: Joi.boolean()
     .default(false)
     .description('Flag to enable or disable the Anthropic (Claude) API used by Crea')

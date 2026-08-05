@@ -1,3 +1,4 @@
+import { AliasHistory } from './AliasHistory'
 import { Community } from './Community'
 import { CommunityHandshakeState } from './CommunityHandshakeState'
 import { Contribution } from './Contribution'
@@ -21,6 +22,7 @@ import { UserCreationGroup } from './UserCreationGroup'
 import { UserRole } from './UserRole'
 
 export {
+  AliasHistory,
   Community,
   CommunityHandshakeState,
   Contribution,
@@ -45,6 +47,7 @@ export {
 }
 
 export const entities = [
+  AliasHistory,
   Community,
   CommunityHandshakeState,
   Contribution,

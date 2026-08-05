@@ -125,11 +125,11 @@ export const executeTransaction = async (
       transactionSend.memo = memo
       transactionSend.userId = sender.id
       transactionSend.userGradidoID = sender.gradidoID
-      transactionSend.userName = fullName(sender.firstName, sender.lastName)
+      transactionSend.userName = sender.alias // fullName(sender.firstName, sender.lastName)
       transactionSend.userCommunityUuid = sender.communityUuid
       transactionSend.linkedUserId = recipient.id
       transactionSend.linkedUserGradidoID = recipient.gradidoID
-      transactionSend.linkedUserName = fullName(recipient.firstName, recipient.lastName)
+      transactionSend.linkedUserName = recipient.alias // fullName(recipient.firstName, recipient.lastName)
       transactionSend.linkedUserCommunityUuid = recipient.communityUuid
       transactionSend.amount = negativeAmount
       transactionSend.balance = sendBalance.balance
@@ -143,16 +143,22 @@ export const executeTransaction = async (
 
       logger.debug(`sendTransaction inserted: ${dbTransaction}`)
 
+      if (sender.aliasFirstUsageAt === null) {
+        sender.aliasFirstUsageAt = new Date()
+        await queryRunner.manager.save(dbUser, sender)
+        logger.debug(`sender updated: ${sender}`)
+      }
+
       const transactionReceive = new dbTransaction()
       transactionReceive.typeId = TransactionTypeId.RECEIVE
       transactionReceive.memo = memo
       transactionReceive.userId = recipient.id
       transactionReceive.userGradidoID = recipient.gradidoID
-      transactionReceive.userName = fullName(recipient.firstName, recipient.lastName)
+      transactionReceive.userName = recipient.alias // fullName(recipient.firstName, recipient.lastName)
       transactionReceive.userCommunityUuid = recipient.communityUuid
       transactionReceive.linkedUserId = sender.id
       transactionReceive.linkedUserGradidoID = sender.gradidoID
-      transactionReceive.linkedUserName = fullName(sender.firstName, sender.lastName)
+      transactionReceive.linkedUserName = sender.alias // fullName(sender.firstName, sender.lastName)
       transactionReceive.linkedUserCommunityUuid = sender.communityUuid
       transactionReceive.amount = amount
       const receiveBalance = await calculateBalance(recipient.id, amount, receivedCallDate)
@@ -166,6 +172,12 @@ export const executeTransaction = async (
       transactionReceive.transactionLinkId = transactionLink ? transactionLink.id : null
       await queryRunner.manager.insert(dbTransaction, transactionReceive)
       logger.debug(`receive Transaction inserted: ${dbTransaction}`)
+
+      if (recipient.aliasFirstUsageAt === null) {
+        recipient.aliasFirstUsageAt = new Date()
+        await queryRunner.manager.save(dbUser, recipient)
+        logger.debug(`recipient updated: ${recipient}`)
+      }
 
       // Save linked transaction id for send
       transactionSend.linkedTransactionId = transactionReceive.id

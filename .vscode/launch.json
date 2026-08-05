@@ -7,17 +7,29 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Database Debug Tests",
+      "runtimeExecutable": "tsx",
+      "name": "Database Up Debug",
       "stopOnEntry": true,
-      "runtimeExecutable": "bun",
-      "runtimeArgs": [
-        "run",
-        "test"
-      ],
-      "skipFiles": [
-        "<node_internals>/**"
-      ],
-      "console": "integratedTerminal",
+      "runtimeArgs": ["--inspect-brk", "migration/index.ts", "up"],
+      "env": {
+        "TZ": "UTC",
+        "NODE_ENV": "development",
+      },
+      "internalConsoleOptions": "neverOpen",
+      "cwd": "${workspaceFolder}/database"
+    },
+    {
+      "type": "bun",
+      "request": "launch",
+      "name": "Database Debug Tests",
+      "stopOnEntry": false,
+      "runtimeArgs": ["--inspect-brk", "test"],
+      "args": ["--filter", "*"],
+      "env": {
+        "TZ": "UTC",
+        "NODE_ENV": "development",
+        "DB_DATABASE": "gradido_test"
+      },
       "internalConsoleOptions": "neverOpen",
       "cwd": "${workspaceFolder}/database"
     },
@@ -25,11 +37,20 @@
       "type": "node",
       "request": "launch",
       "name": "DHT-Node Debug Tests",
-      "runtimeExecutable": "bun",
+      "runtimeExecutable": "node",
       "runtimeArgs": [
-        "run",
-        "test:debug"
+        "--inspect-brk",
+        "node_modules/.bin/jest",
+        "--bail",
+        "--runInBand",
+        "--forceExit",
+        "--detectOpenHandles"
       ],
+      "env": {
+        "TZ": "UTC",
+        "NODE_ENV": "development",
+        "DB_DATABASE": "gradido_test_dht"
+      },
       "skipFiles": [
         "<node_internals>/**"
       ],
@@ -42,11 +63,15 @@
       "request": "launch",
       "name": "DHT-Node Debug",
       "stopOnEntry": true,
-      "runtimeExecutable": "bun",
+      "runtimeExecutable": "tsx",
       "runtimeArgs": [
-        "run",
-        "dev"
+        "--inspect-brk",
+        "src/index.ts"
       ],
+      "env": {
+        "TZ": "UTC",
+        "NODE_ENV": "development"
+      },
       "skipFiles": [
         "<node_internals>/**"
       ],
@@ -58,11 +83,20 @@
       "type": "node",
       "request": "launch",
       "name": "Federation Debug Tests",
-      "runtimeExecutable": "bun",
+      "runtimeExecutable": "node",
       "runtimeArgs": [
-        "run",
-        "test:debug"
+        "--inspect-brk",
+        "../node_modules/.bin/jest",
+        "--bail",
+        "--runInBand",
+        "--forceExit",
+        "--detectOpenHandles"
       ],
+      "env": {
+        "TZ": "UTC",
+        "NODE_ENV": "development",
+        "DB_DATABASE": "gradido_test_federation"
+      },
       "skipFiles": [
         "<node_internals>/**"
       ],
@@ -75,10 +109,14 @@
       "request": "launch",
       "name": "Federation Debug",
       "stopOnEntry": true,
-      "runtimeExecutable": "bun",
+      "runtimeExecutable": "node",
       "runtimeArgs": [
-        "run",
-        "dev"
+        "--inspect-brk",
+        "-r",
+        "tsconfig-paths/register",
+        "-r",
+        "ts-node/register",
+        "src/index.ts"
       ],
       "skipFiles": [
         "<node_internals>/**"
@@ -92,33 +130,75 @@
       "request": "launch",
       "name": "Backend Debug",
       "stopOnEntry": true,
-      "runtimeExecutable": "bun",
+      "runtimeExecutable": "node",
       "runtimeArgs": [
-        "run",
-        "dev"
+        "--inspect-brk",
+        "-r",
+        "tsconfig-paths/register",
+        "-r",
+        "ts-node/register",
+        "src/index.ts"
       ],
+      "env": {
+        "TZ": "UTC",
+        "NODE_ENV": "development"
+      },
       "skipFiles": [
         "<node_internals>/**"
       ],
       "console": "integratedTerminal",
       "internalConsoleOptions": "openOnSessionStart",
-      "cwd": "${workspaceFolder}/backend"
+      "cwd": "${workspaceFolder}/backend",
+      "restart": true
     },
     {
       "type": "node",
       "request": "launch",
-      "name": "Shared Debug Test",
-      "runtimeExecutable": "bun",
+      "name": "Backend Debug Tests",
+      "runtimeExecutable": "node",
       "runtimeArgs": [
-        "run",
-        "test:debug"
+        "--inspect-brk",
+        "../node_modules/.bin/jest",
+        "--bail",
+        "--runInBand",
+        "--forceExit",
+        "--detectOpenHandles"
       ],
+      "env": {
+        "TZ": "UTC",
+        "NODE_ENV": "development",
+        "DB_DATABASE": "gradido_test_backend"
+      },
       "skipFiles": [
         "<node_internals>/**"
       ],
       "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "cwd": "${workspaceFolder}/backend"
+    },
+    {
+      "type": "bun",
+      "request": "launch",
+      "name": "Shared Debug Test",
+      "stopOnEntry": false,
+      "runtimeArgs": [
+        "--inspect-brk",
+        "test"
+      ],
       "internalConsoleOptions": "openOnSessionStart",
       "cwd": "${workspaceFolder}/shared"
+    },
+    {
+      "type": "bun",
+      "request": "launch",
+      "name": "Core Debug Test",
+      "stopOnEntry": false,
+      "runtimeArgs": [
+        "--inspect-brk",
+        "test"
+      ],
+      "internalConsoleOptions": "openOnSessionStart",
+      "cwd": "${workspaceFolder}/core"
     }
   ]
 }

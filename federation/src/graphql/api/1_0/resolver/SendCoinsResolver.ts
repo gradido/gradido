@@ -111,7 +111,7 @@ export class SendCoinsResolver {
       pendingTx.creationDate = new Date()
       pendingTx.linkedUserCommunityUuid = authArgs.senderCommunityUuid
       pendingTx.linkedUserGradidoID = authArgs.senderUserUuid
-      pendingTx.linkedUserName = authArgs.senderUserName
+      pendingTx.linkedUserName = authArgs.senderAlias! // senderUserName
       pendingTx.memo = authArgs.memo
       pendingTx.previous = receiveBalance ? receiveBalance.lastTransactionId : null
       pendingTx.state = PendingTransactionState.NEW
@@ -119,7 +119,7 @@ export class SendCoinsResolver {
       pendingTx.userId = receiverUser.id
       pendingTx.userCommunityUuid = authArgs.recipientCommunityUuid
       pendingTx.userGradidoID = receiverUser.gradidoID
-      pendingTx.userName = fullName(receiverUser.firstName, receiverUser.lastName)
+      pendingTx.userName = receiverUser.alias // fullName(receiverUser.firstName, receiverUser.lastName)
       pendingTx.transactionLinkId = authArgs.transactionLinkId
 
       await DbPendingTransaction.insert(pendingTx)

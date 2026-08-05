@@ -1,6 +1,6 @@
 <template>
   <div id="username-form">
-    <div v-if="store.state.username">
+    <!-- div v-if="store.state.username">
       <label>{{ $t('form.username') }}</label>
       <BFormGroup
         class="mb-3"
@@ -15,48 +15,49 @@
         />
       </BFormGroup>
     </div>
-    <div v-else>
-      <div>
-        <BForm @submit.prevent="onSubmit">
-          <BRow class="mb-3">
-            <BCol class="col-12">
-              <input-username
-                name="username"
-                :placeholder="$t('form.username-placeholder')"
-                show-all-errors
-                :unique="true"
-                :rules="rules"
-                data-test="component-input-username"
-                :initial-username-value="username"
-              />
-            </BCol>
-            <BCol class="col-12">
-              <div
-                v-if="!store.state.username"
-                class="alert gradido-border-radius"
-                data-test="username-alert"
+    <div v-else -->
+
+    <div>
+      <BForm @submit.prevent="onSubmit">
+        <BRow class="mb-3">
+          <BCol class="col-12">
+            <input-username
+              name="username"
+              :placeholder="$t('form.username-placeholder')"
+              show-all-errors
+              :unique="true"
+              :rules="rules"
+              data-test="component-input-username"
+              :initial-username-value="username"
+            />
+          </BCol>
+          <!-- BCol class="col-12">
+            <div
+              v-if="!store.state.username"
+              class="alert gradido-border-radius"
+              data-test="username-alert"
+            >
+              {{ $t('settings.username.no-username') }}
+            </div>
+          </BCol -->
+        </BRow>
+        <BRow v-if="newUsername" class="text-end">
+          <BCol>
+            <div ref="submitButton" class="text-end">
+              <BButton
+                :variant="disabled(errors) ? 'light' : 'success'"
+                type="submit"
+                :disabled="disabled(errors)"
+                data-test="submit-username-button"
               >
-                {{ $t('settings.username.no-username') }}
-              </div>
-            </BCol>
-          </BRow>
-          <BRow v-if="newUsername" class="text-end">
-            <BCol>
-              <div ref="submitButton" class="text-end">
-                <BButton
-                  :variant="disabled(errors) ? 'light' : 'success'"
-                  type="submit"
-                  :disabled="disabled(errors)"
-                  data-test="submit-username-button"
-                >
-                  {{ $t('form.save') }}
-                </BButton>
-              </div>
-            </BCol>
-          </BRow>
-        </BForm>
-      </div>
+                {{ $t('form.save') }}
+              </BButton>
+            </div>
+          </BCol>
+        </BRow>
+      </BForm>
     </div>
+    <!-- /div -->
   </div>
 </template>
 

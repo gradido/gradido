@@ -45,7 +45,7 @@ import { storeForeignUser } from './storeForeignUser'
 import { storeLinkAsRedeemed } from './storeLinkAsRedeemed'
 
 const createLogger = (method: string) =>
-  getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.util.processXComSendCoins.${method}`)
+  getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.logic.processXComSendCoins.${method}`)
 
 export async function processXComCompleteTransaction(
   senderCommunityUuid: string,
@@ -148,8 +148,12 @@ export async function processXComCompleteTransaction(
             memo,
         )
       }
+      if (senderUser.aliasFirstUsageAt === null) {
+        senderUser.aliasFirstUsageAt = new Date()
+        await dbUser.save(senderUser)
+      }
       // after successful x-com-tx store the recipient as foreign user
-      methodLogger.debug('store recipient as foreign user...')
+      methodLogger.debug('store recipient as foreign user...', committingResult.recipAlias)
       const foreignUser = await storeForeignUser(recipientCom, committingResult)
       if (foreignUser) {
         methodLogger.info(
@@ -324,10 +328,10 @@ export async function processXComPendingSendCoins(
               pendingTx.linkedUserGradidoID = voteResult.recipGradidoID
             }
             if (voteResult.recipFirstName && voteResult.recipLastName) {
-              pendingTx.linkedUserName = fullName(
-                voteResult.recipFirstName,
-                voteResult.recipLastName,
-              )
+              pendingTx.linkedUserName = voteResult.recipAlias // fullName(
+              // voteResult.recipFirstName,
+              // voteResult.recipLastName,
+              // )
             }
             pendingTx.memo = memo
             pendingTx.previous = senderBalance ? senderBalance.lastTransactionId : null
@@ -338,7 +342,7 @@ export async function processXComPendingSendCoins(
             }
             pendingTx.userId = sender.id
             pendingTx.userGradidoID = sender.gradidoID
-            pendingTx.userName = fullName(sender.firstName, sender.lastName)
+            pendingTx.userName = sender.alias // fullName(sender.firstName, sender.lastName)
             pendingTx.transactionLinkId = transactionLinkId
             if (methodLogger.isDebugEnabled()) {
               methodLogger.debug(
@@ -422,7 +426,7 @@ export async function processXComCommittingSendCoins(
     const pendingTx = await DbPendingTransaction.findOneBy({
       userCommunityUuid: senderCom.communityUuid ?? 'homeCom-UUID',
       userGradidoID: sender.gradidoID,
-      userName: fullName(sender.firstName, sender.lastName),
+      userName: sender.alias, // fullName(sender.firstName, sender.lastName),
       linkedUserCommunityUuid:
         receiverCom.communityUuid ?? CONFIG_CORE.FEDERATION_XCOM_RECEIVER_COMMUNITY_UUID,
       linkedUserGradidoID: recipient.recipGradidoID ? recipient.recipGradidoID : undefined,
@@ -492,6 +496,7 @@ export async function processXComCommittingSendCoins(
             )
             if (sendCoinsResult.vote) {
               if (pendingTx.linkedUserName) {
+                /*
                 sendCoinsResult.recipFirstName = pendingTx.linkedUserName.slice(
                   0,
                   pendingTx.linkedUserName.indexOf(' '),
@@ -499,7 +504,9 @@ export async function processXComCommittingSendCoins(
                 sendCoinsResult.recipLastName = pendingTx.linkedUserName.slice(
                   pendingTx.linkedUserName.indexOf(' '),
                   pendingTx.linkedUserName.length,
-                )
+                )*/
+                sendCoinsResult.recipFirstName = recipient.recipFirstName
+                sendCoinsResult.recipLastName = recipient.recipLastName
               }
               sendCoinsResult.recipGradidoID = pendingTx.linkedUserGradidoID
               sendCoinsResult.recipAlias = recipient.recipAlias
@@ -563,6 +570,19 @@ export async function processXComCommittingSendCoins(
             throw new Error(errmsg)
           }
         }
+      }
+    } else {
+      if (methodLogger.isDebugEnabled()) {
+        methodLogger.debug(`didn't find a pending Tx with:`, {
+          receiverCom: new CommunityLoggingView(receiverCom),
+          senderCom: new CommunityLoggingView(senderCom),
+          creationDate: creationDate.toISOString(),
+          amount: amount.toString(),
+          memo: memo.substring(0, 5),
+          sender: new UserLoggingView(sender),
+          recipient: new SendCoinsResultLoggingView(recipient),
+          transactionLinkId,
+        })
       }
     }
   } catch (err) {

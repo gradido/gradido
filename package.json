@@ -29,7 +29,7 @@
     "docker:rebuild": "cross-env BUILD_COMMIT=$(git rev-parse HEAD) docker compose -f docker-compose.yml build",
     "docker_dev": "cross-env BUILD_COMMIT=$(git rev-parse HEAD) docker compose up",
     "docker_dev:rebuild": "cross-env BUILD_COMMIT=$(git rev-parse HEAD) docker compose build",
-    "clear": "rimraf .turbo && turbo clear && rimraf node_modules"
+    "clear": "turbo daemon stop && bunx rimraf@3.0.2 node_modules && bunx rimraf@3.0.2 .turbo && bunx turbo@2.8.12 clear"
   },
   "dependencies": {
     "auto-changelog": "^2.4.0",
@@ -41,8 +41,7 @@
   "devDependencies": {
     "@biomejs/biome": "2.0.0",
     "@types/minimatch": "6.0.0",
-    "bumpp": "^10.3.1",
-    "rimraf": "3.0.2"
+    "bumpp": "^10.3.1"
   },
   "engines": {
     "node": ">=18"
