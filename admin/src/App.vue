@@ -14,6 +14,13 @@ import AppOutdatedBar from '@/components/AppOutdatedBar'
 import { BModalOrchestrator } from 'bootstrap-vue-next'
 </script>
 <style>
+/* Render native controls (select popups, date pickers, scrollbars) to match the admin's
+   light theme instead of the browser's OS default. The admin has one mode today; when a
+   dark mode is added, this becomes theme-dependent like the wallet. */
+:root {
+  color-scheme: light;
+}
+
 .pointer {
   cursor: pointer;
 }

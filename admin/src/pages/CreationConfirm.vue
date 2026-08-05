@@ -213,6 +213,7 @@ const fields = computed(() => {
     [
       { key: 'bookmark', label: t('delete') },
       { key: 'deny', label: t('deny') },
+      { key: 'searchUser', label: '' },
       baseFields.name,
       baseFields.amount,
       baseFields.memo,
@@ -223,6 +224,7 @@ const fields = computed(() => {
     ],
     // confirmed contributions
     [
+      { key: 'searchUser', label: '' },
       baseFields.name,
       baseFields.amount,
       baseFields.memo,
@@ -234,6 +236,7 @@ const fields = computed(() => {
     ],
     // denied contributions
     [
+      { key: 'searchUser', label: '' },
       baseFields.name,
       baseFields.amount,
       baseFields.memo,
@@ -245,6 +248,7 @@ const fields = computed(() => {
     ],
     // deleted contributions
     [
+      { key: 'searchUser', label: '' },
       baseFields.name,
       baseFields.amount,
       baseFields.memo,
@@ -257,6 +261,7 @@ const fields = computed(() => {
     // all contributions
     [
       { key: 'contributionStatus', label: t('status') },
+      { key: 'searchUser', label: '' },
       baseFields.name,
       baseFields.amount,
       baseFields.memo,
@@ -317,6 +322,14 @@ watch(tabIndex, () => {
 // later page would otherwise ask for a page the narrowed result does not have, and the
 // empty table reads as "this group has nothing".
 watch(creationGroup, () => {
+  currentPage.value = 1
+})
+
+// The same rule for the search, which narrows the list just as hard. Watched on the
+// value rather than on one of its callers, because two things write it: the search
+// field above the table and the magnifier in the row. Guarding only the magnifier
+// would have left the typed search asking for page 3 of a two-line result.
+watch(query, () => {
   currentPage.value = 1
 })
 

@@ -361,6 +361,34 @@ describe('CreationConfirm', () => {
     )
   })
 
+  it('starts over at page one when the search narrows the list', async () => {
+    // A narrowed list is shorter than the one being looked at, so keeping the page
+    // asks for a page the result does not have and the table reads as empty. Both
+    // writers of `query` are covered: the search field and the magnifier in the row.
+    //
+    // The real BPagination is mounted here, and it clamps the page to what the row
+    // count allows -- with no result loaded, page 3 would silently become 0. So the
+    // list gets enough rows for three pages first.
+    await simulateQueryResult({
+      adminListContributions: { contributionCount: 75, contributionList: openItems(75, 7) },
+    })
+
+    wrapper.vm.currentPage = 3
+    await nextTick()
+    expect(wrapper.vm.currentPage).toBe(3)
+
+    wrapper.vm.query = 'someone@example.org'
+    await nextTick()
+
+    expect(wrapper.vm.currentPage).toBe(1)
+    expect(mockRefetch).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        filter: expect.objectContaining({ query: 'someone@example.org' }),
+        paginated: expect.objectContaining({ currentPage: 1 }),
+      }),
+    )
+  })
+
   const openItems = (count, userId) =>
     Array.from({ length: count }, (_, i) => ({
       id: i + 1,
