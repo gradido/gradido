@@ -44,10 +44,17 @@ const routes = [
     component: () => import('@/pages/ProjectBranding.vue'),
   },
   {
-    path: '/creaSettings',
-    name: 'creaSettings',
+    path: '/module',
+    name: 'module',
     meta: { requiresAdmin: true },
-    component: () => import('@/pages/CreaSettings.vue'),
+    component: () => import('@/pages/ModuleSettings.vue'),
+  },
+  // The Crea settings had this page to themselves until the module switches joined them.
+  // Same reason as /group-tags below: a bookmark or an older note must not land on
+  // "not found" just because the page grew a wider job.
+  {
+    path: '/creaSettings',
+    redirect: '/module',
   },
   {
     path: '/creation-groups',

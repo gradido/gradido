@@ -40,8 +40,8 @@
           >
             {{ $t('navbar.projectBranding') }}
           </BNavItem>
-          <BNavItem v-if="isAdmin" to="/creaSettings" :active="isActive('creaSettings')">
-            {{ $t('navbar.crea') }}
+          <BNavItem v-if="isAdmin" to="/module" :active="isActive('module')">
+            {{ $t('navbar.modules') }}
           </BNavItem>
           <BNavItem
             v-if="store.state.moderator?.roles?.includes('ADMIN')"

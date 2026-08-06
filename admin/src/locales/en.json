@@ -126,7 +126,6 @@
     "salutationSaved": "Salutation saved.",
     "selectHint": "Select the contributions Crea should evaluate together.",
     "settings": {
-      "adminOnly": "These settings are visible to administrators only.",
       "effort": "Effort level",
       "effortDisabled": "Off (fast)",
       "effortHigh": "High",
@@ -337,13 +336,29 @@
     "request": "This message is only visible to the moderators!",
     "show-submission-form": "wait for reminder?"
   },
+  "modules": {
+    "adminOnly": "These settings are visible to administrators only.",
+    "gms": {
+      "hint": "Transferring user data to the previous GMS is set in the server configuration (GMS_ACTIVE) and cannot be switched here.",
+      "off": "Inactive",
+      "on": "Active",
+      "title": "GMS transfer"
+    },
+    "matching": {
+      "enable": "Enable matching",
+      "hint": "While matching is off, its pages and its data are closed to everyone, administrators included. New instances start switched off.",
+      "title": "Matching"
+    },
+    "saved": "Module settings saved",
+    "title": "Modules"
+  },
   "name": "Name",
   "navbar": {
     "automaticContributions": "Starting balance",
-    "crea": "Crea",
     "creationGroups": "Creation groups",
     "instances": "Instances",
     "logout": "Logout",
+    "modules": "Modules",
     "my-account": "My Account",
     "projectBranding": "Projects",
     "projectBrandingTooltip": "Use your own logo in the Gradido login and add new users to a Humhub space",

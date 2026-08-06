@@ -77,7 +77,7 @@ describe('NavBar', () => {
         { path: '/contribution-links', name: 'contribution-links' },
         { path: '/federation', name: 'federation' },
         { path: '/projectBranding', name: 'projectBranding' },
-        { path: '/creaSettings', name: 'creaSettings' },
+        { path: '/module', name: 'module' },
         { path: '/statistic', name: 'statistic' },
       ],
     })
@@ -111,7 +111,7 @@ describe('NavBar', () => {
         '/contribution-links',
         '/federation',
         '/projectBranding',
-        '/creaSettings',
+        '/module',
         '/creation-groups',
         '/statistic',
         '#',
@@ -119,9 +119,9 @@ describe('NavBar', () => {
       ])
     })
 
-    // Instances, projects, Crea and the group list are administrators' business. Menu
-    // visibility is only a convenience — the route guard and the backend rights are the
-    // boundary.
+    // Instances, projects, the module switches and the group list are administrators'
+    // business. Menu visibility is only a convenience — the route guard and the backend
+    // rights are the boundary.
     describe('as a moderator', () => {
       beforeEach(() => {
         store = createVuexStore(['MODERATOR'])

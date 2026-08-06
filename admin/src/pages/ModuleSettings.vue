@@ -1,40 +1,62 @@
 <template>
-  <div class="crea-settings">
-    <div class="h2 mb-3">{{ $t('crea.settings.title') }}</div>
-    <div v-if="isAdmin" class="crea-settings-form">
-      <BFormGroup :label="$t('crea.settings.model')" class="mb-3">
-        <BFormInput
-          v-model="form.model"
-          :placeholder="$t('crea.settings.modelPlaceholder', { model: defaultModel })"
-        />
-        <BFormSelect
-          class="mt-2"
-          :model-value="''"
-          :options="modelPresetOptions"
-          @update:model-value="onPreset"
-        />
-        <small class="text-muted d-block mt-1">
-          {{ $t('crea.settings.modelHint', { model: defaultModel }) }}
-        </small>
-      </BFormGroup>
-      <BFormGroup :label="$t('crea.settings.effort')" class="mb-3">
-        <BFormSelect v-model="form.effort" :options="effortOptions" />
-        <small class="text-muted d-block mt-1">{{ $t('crea.settings.effortHint') }}</small>
-      </BFormGroup>
-      <BFormGroup class="mb-3">
-        <BFormCheckbox v-model="form.fastMode">
-          {{ $t('crea.settings.fastMode') }}
-        </BFormCheckbox>
-        <small class="text-muted d-block mt-1">{{ $t('crea.settings.fastModeHint') }}</small>
-      </BFormGroup>
-      <BButton variant="primary" :disabled="saving" @click="save">
-        {{ $t('save') }}
-      </BButton>
-      <BButton variant="secondary" class="ms-2" :disabled="testing" @click="test">
-        {{ $t('crea.settings.testModel') }}
-      </BButton>
+  <div class="module-settings">
+    <div class="h2 mb-3">{{ $t('modules.title') }}</div>
+    <div v-if="isAdmin" class="module-settings-form">
+      <section class="mb-5">
+        <div class="h4 mb-3">{{ $t('modules.matching.title') }}</div>
+        <BFormGroup class="mb-3">
+          <BFormCheckbox v-model="matchingActive" switch>
+            {{ $t('modules.matching.enable') }}
+          </BFormCheckbox>
+          <small class="text-muted d-block mt-1">{{ $t('modules.matching.hint') }}</small>
+        </BFormGroup>
+        <BButton variant="primary" :disabled="savingModules" @click="saveModules">
+          {{ $t('save') }}
+        </BButton>
+      </section>
+
+      <section class="mb-5">
+        <div class="h4 mb-3">{{ $t('crea.settings.title') }}</div>
+        <BFormGroup :label="$t('crea.settings.model')" class="mb-3">
+          <BFormInput
+            v-model="form.model"
+            :placeholder="$t('crea.settings.modelPlaceholder', { model: defaultModel })"
+          />
+          <BFormSelect
+            class="mt-2"
+            :model-value="''"
+            :options="modelPresetOptions"
+            @update:model-value="onPreset"
+          />
+          <small class="text-muted d-block mt-1">
+            {{ $t('crea.settings.modelHint', { model: defaultModel }) }}
+          </small>
+        </BFormGroup>
+        <BFormGroup :label="$t('crea.settings.effort')" class="mb-3">
+          <BFormSelect v-model="form.effort" :options="effortOptions" />
+          <small class="text-muted d-block mt-1">{{ $t('crea.settings.effortHint') }}</small>
+        </BFormGroup>
+        <BFormGroup class="mb-3">
+          <BFormCheckbox v-model="form.fastMode">
+            {{ $t('crea.settings.fastMode') }}
+          </BFormCheckbox>
+          <small class="text-muted d-block mt-1">{{ $t('crea.settings.fastModeHint') }}</small>
+        </BFormGroup>
+        <BButton variant="primary" :disabled="saving" @click="save">
+          {{ $t('save') }}
+        </BButton>
+        <BButton variant="secondary" class="ms-2" :disabled="testing" @click="test">
+          {{ $t('crea.settings.testModel') }}
+        </BButton>
+      </section>
+
+      <section>
+        <div class="h4 mb-3">{{ $t('modules.gms.title') }}</div>
+        <p class="mb-1">{{ gmsActive ? $t('modules.gms.on') : $t('modules.gms.off') }}</p>
+        <small class="text-muted d-block">{{ $t('modules.gms.hint') }}</small>
+      </section>
     </div>
-    <div v-else>{{ $t('crea.settings.adminOnly') }}</div>
+    <div v-else>{{ $t('modules.adminOnly') }}</div>
   </div>
 </template>
 
@@ -49,6 +71,7 @@ import {
   setCreaSettings,
   testCreaModel,
 } from '@/graphql/crea.graphql'
+import { moduleSettings as moduleSettingsQuery, setModuleSettings } from '@/graphql/module.graphql'
 
 const { t } = useI18n()
 const store = useStore()
@@ -60,6 +83,12 @@ const form = ref({ model: '', effort: 'disabled', fastMode: false })
 const defaultModel = ref('')
 const saving = ref(false)
 const testing = ref(false)
+
+// Module switches. matchingActive starts false so the page never shows a module as on
+// before the answer is in - the same direction the backend defaults in.
+const matchingActive = ref(false)
+const gmsActive = ref(false)
+const savingModules = ref(false)
 
 const modelPresetOptions = computed(() => [
   { value: '', text: t('crea.settings.presetPlaceholder') },
@@ -105,8 +134,30 @@ watch(error, () => {
   if (error.value) toastError(error.value.message)
 })
 
+const { result: moduleResult, error: moduleError } = useQuery(moduleSettingsQuery, null, {
+  fetchPolicy: 'network-only',
+  enabled: isAdmin,
+})
+
+watch(
+  moduleResult,
+  () => {
+    const settings = moduleResult.value?.moduleSettings
+    if (settings) {
+      matchingActive.value = settings.matchingActive
+      gmsActive.value = settings.gmsActive
+    }
+  },
+  { immediate: true },
+)
+
+watch(moduleError, () => {
+  if (moduleError.value) toastError(moduleError.value.message)
+})
+
 const { mutate: saveMutation } = useMutation(setCreaSettings)
 const { mutate: testMutation } = useMutation(testCreaModel)
+const { mutate: saveModulesMutation } = useMutation(setModuleSettings)
 
 function apiInput() {
   const model = form.value.model.trim()
@@ -131,6 +182,25 @@ function fastModeNote(testResult) {
 
 function onPreset(value) {
   if (value) form.value.model = value
+}
+
+// Saved on a button press rather than on the toggle: this switch decides what the whole
+// instance offers, and a change that leaves no trace is one nobody can confirm.
+async function saveModules() {
+  savingModules.value = true
+  try {
+    const { data } = await saveModulesMutation({
+      input: { matchingActive: matchingActive.value },
+    })
+    const settings = data.setModuleSettings
+    matchingActive.value = settings.matchingActive
+    gmsActive.value = settings.gmsActive
+    toastSuccess(t('modules.saved'))
+  } catch (e) {
+    toastError(e.message)
+  } finally {
+    savingModules.value = false
+  }
 }
 
 async function save() {
@@ -176,7 +246,7 @@ async function test() {
 </script>
 
 <style scoped>
-.crea-settings-form {
+.module-settings-form {
   max-width: 640px;
 }
 </style>

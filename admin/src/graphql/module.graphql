@@ -1,0 +1,16 @@
+# The per-instance module switches (E-002). gmsActive comes back read-only: it is the
+# server config for the transfer to the old gms.gradido.net, shown so an admin can see
+# what this instance does, and deliberately not settable from here.
+query moduleSettings {
+  moduleSettings {
+    matchingActive
+    gmsActive
+  }
+}
+
+mutation setModuleSettings($input: ModuleSettingsInput!) {
+  setModuleSettings(input: $input) {
+    matchingActive
+    gmsActive
+  }
+}

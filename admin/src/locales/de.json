@@ -126,7 +126,6 @@
     "salutationSaved": "Anrede gespeichert.",
     "selectHint": "Wähle die Beiträge, die Crea zusammen bewerten soll.",
     "settings": {
-      "adminOnly": "Diese Einstellungen sind nur für Administratoren sichtbar.",
       "effort": "Aufwandsstufe",
       "effortDisabled": "Aus (schnell)",
       "effortHigh": "Hoch",
@@ -337,13 +336,29 @@
     "request": "Diese Nachricht ist nur für die Moderatoren sichtbar!",
     "show-submission-form": "warten auf Erinnerung?"
   },
+  "modules": {
+    "adminOnly": "Diese Einstellungen sind nur für Administratoren sichtbar.",
+    "gms": {
+      "hint": "Die Übertragung der Nutzerdaten an das bisherige GMS wird in der Server-Konfiguration gesetzt (GMS_ACTIVE) und lässt sich hier nicht umschalten.",
+      "off": "Inaktiv",
+      "on": "Aktiv",
+      "title": "GMS-Übertragung"
+    },
+    "matching": {
+      "enable": "Matching aktivieren",
+      "hint": "Ist das Matching aus, sind seine Seiten und seine Daten für alle gesperrt, auch für Administratoren. Neue Instanzen starten ausgeschaltet.",
+      "title": "Matching"
+    },
+    "saved": "Modul-Einstellungen gespeichert",
+    "title": "Module"
+  },
   "name": "Name",
   "navbar": {
     "automaticContributions": "Startguthaben",
-    "crea": "Crea",
     "creationGroups": "Schöpfungsgruppen",
     "instances": "Instanzen",
     "logout": "Abmelden",
+    "modules": "Module",
     "my-account": "Mein Konto",
     "projectBranding": "Projekte",
     "projectBrandingTooltip": "Nutze ein eigenes Logo im Gradido Login und füge neue Benutzer einem Humhub-Space hinzu",
