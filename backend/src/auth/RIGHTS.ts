@@ -47,6 +47,14 @@ export enum RIGHTS {
   VIEW_OWN_USER_CONTACT = 'VIEW_OWN_USER_CONTACT',
   LIST_CREATION_GROUPS = 'LIST_CREATION_GROUPS',
   MANAGE_OWN_CREATION_GROUPS = 'MANAGE_OWN_CREATION_GROUPS',
+  // Matching. Every logged-in member may keep an entry of their own, so these sit with
+  // the user rights -- but the matching module ships off, and while it is off the
+  // authorization gate refuses them to everyone, admins included (see MODULE_RIGHTS).
+  // No resolver asks for them yet; the matching backend follows in its own delivery.
+  CREATE_MATCHING_ENTRY = 'CREATE_MATCHING_ENTRY',
+  UPDATE_MATCHING_ENTRY = 'UPDATE_MATCHING_ENTRY',
+  DELETE_MATCHING_ENTRY = 'DELETE_MATCHING_ENTRY',
+  LIST_MATCHING_ENTRY = 'LIST_MATCHING_ENTRY',
   // Moderator
   SEARCH_USERS = 'SEARCH_USERS',
   ADMIN_CREATE_CONTRIBUTION = 'ADMIN_CREATE_CONTRIBUTION',
@@ -78,6 +86,10 @@ export enum RIGHTS {
   COMMUNITY_WITH_API_KEYS = 'COMMUNITY_WITH_API_KEYS',
   PROJECT_BRANDING_MUTATE = 'PROJECT_BRANDING_MUTATE',
   AI_SETTINGS = 'AI_SETTINGS',
+  // Switching an optional module on or off changes what the whole instance offers, so
+  // it gets a right of its own rather than riding along on AI_SETTINGS -- a shared
+  // right cannot be withdrawn separately (E-003).
+  MODULE_SETTINGS = 'MODULE_SETTINGS',
   MANAGE_CREATION_GROUPS = 'MANAGE_CREATION_GROUPS',
   SET_MODERATOR_CREATION_GROUP_SCOPE = 'SET_MODERATOR_CREATION_GROUP_SCOPE',
   // LEGACY-HASHTAG-ADOPTION -- removable with the feature.

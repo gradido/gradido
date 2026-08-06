@@ -13,6 +13,8 @@ import {
   ROLE_UNAUTHORIZED,
   ROLE_USER,
 } from '@/auth/ROLES'
+import { gatingModulesFor } from '@/module/gate'
+import { readModuleSettings } from '@/module/settings'
 import { Context } from '@/server/context'
 import { LogError } from '@/server/LogError'
 
@@ -24,6 +26,22 @@ export const isAuthorized: AuthChecker<Context> = async ({ context }, rights) =>
     (rights as RIGHTS[]).reduce((acc, right) => acc && INALIENABLE_RIGHTS.includes(right), true)
   ) {
     return true
+  }
+
+  // A module switched off in the admin UI denies its rights to everyone, administrators
+  // included: ROLE_ADMIN inherits USER_RIGHTS, and this sits ahead of the role lookup,
+  // so off means off rather than off-for-most (E-004).
+  //
+  // Read fresh, deliberately not cached, so flipping the switch takes effect at once -
+  // that is the point of keeping it in the database instead of the server config. It is
+  // not a cost per request either: a request that asks for no gated right never gets
+  // past gatingModulesFor, and that is every request but the module's own.
+  const gatingModules = gatingModulesFor(rights as RIGHTS[])
+  if (gatingModules.length > 0) {
+    const moduleSettings = await readModuleSettings()
+    if (gatingModules.some((module) => !module.isActive(moduleSettings))) {
+      throw new LogError('401 Unauthorized')
+    }
   }
 
   // Do we have a token?
