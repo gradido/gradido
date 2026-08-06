@@ -15,6 +15,7 @@ import { elopageWebhook } from '@/webhook/elopage'
 import { gmsWebhook } from '@/webhook/gms'
 import { context as serverContext } from './context'
 import { cors } from './cors'
+import { loadModuleActivation } from './moduleActivation'
 import { plugins } from './plugins'
 import { apiVersion } from './version'
 
@@ -40,6 +41,10 @@ export const createServer = async (
   // retry max CONFIG.DB_CONNECT_RETRY_COUNT times, wait CONFIG.DB_CONNECT_RETRY_DELAY ms between tries
   const db = AppDatabase.getInstance()
   await db.init()
+
+  // Read which optional modules this instance offers, once, before anything is served.
+  // The authorization check asks on every request and may not do database work there.
+  await loadModuleActivation()
 
   // Express Server
   const app = express()

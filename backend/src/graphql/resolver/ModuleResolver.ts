@@ -2,11 +2,11 @@
 import { ModuleSettingsInput } from '@input/ModuleSettingsInput'
 import { ActiveModules, ModuleSettings } from '@model/ModuleSettings'
 import { dbUpsertModuleSettings } from 'database'
-import { Arg, Authorized, Ctx, Mutation, Query, Resolver } from 'type-graphql'
+import { Arg, Authorized, Mutation, Query, Resolver } from 'type-graphql'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { CONFIG } from '@/config'
-import { Context, getModuleActivation } from '@/server/context'
 import { LogError } from '@/server/LogError'
+import { getModuleActivation, setModuleActivation } from '@/server/moduleActivation'
 
 @Resolver()
 export class ModuleResolver {
@@ -19,9 +19,8 @@ export class ModuleResolver {
    */
   @Authorized([RIGHTS.LIST_ACTIVE_MODULES])
   @Query(() => ActiveModules)
-  async activeModules(@Ctx() context: Context): Promise<ActiveModules> {
-    const activation = await getModuleActivation(context)
-    return { matchingActive: activation.matchingActive }
+  activeModules(): ActiveModules {
+    return { matchingActive: getModuleActivation().matchingActive }
   }
 
   /**
@@ -31,10 +30,9 @@ export class ModuleResolver {
    */
   @Authorized([RIGHTS.MODULE_SETTINGS])
   @Query(() => ModuleSettings)
-  async moduleSettings(@Ctx() context: Context): Promise<ModuleSettings> {
-    const activation = await getModuleActivation(context)
+  moduleSettings(): ModuleSettings {
     return {
-      matchingActive: activation.matchingActive,
+      matchingActive: getModuleActivation().matchingActive,
       gmsActive: CONFIG.GMS_ACTIVE,
     }
   }
@@ -49,20 +47,17 @@ export class ModuleResolver {
    */
   @Authorized([RIGHTS.MODULE_SETTINGS])
   @Mutation(() => ModuleSettings)
-  async setModuleSettings(
-    @Arg('input') input: ModuleSettingsInput,
-    @Ctx() context: Context,
-  ): Promise<ModuleSettings> {
+  async setModuleSettings(@Arg('input') input: ModuleSettingsInput): Promise<ModuleSettings> {
     const written = await dbUpsertModuleSettings(input.matchingActive)
     if (!written.success) {
       // The edge, where an expected failure has to become a response.
       throw new LogError('Could not write the module settings', written.error)
     }
-    // The switches this request already read are now stale by definition. The role that
-    // isAuthorized narrowed from the old value is deliberately not rebuilt here: nothing
-    // in this response consults it, and every later check re-derives the role from the
-    // value refreshed on this line.
-    context.moduleActivation = Promise.resolve({ matchingActive: written.value })
+    // What this process holds is stale the moment the row changes, so it is replaced here
+    // rather than waited for. The role that isAuthorized narrowed from the old value is
+    // deliberately not rebuilt: nothing in this response consults it, and every later
+    // check derives the role from the value set on this line.
+    setModuleActivation({ matchingActive: written.value })
     return {
       matchingActive: written.value,
       gmsActive: CONFIG.GMS_ACTIVE,

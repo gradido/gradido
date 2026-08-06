@@ -8,6 +8,7 @@ import { MATCHING_RIGHTS } from '@/auth/MATCHING_RIGHTS'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { OPTIONAL_MODULES } from '@/data/Module.logic'
 import { Context } from '@/server/context'
+import { resetModuleActivation, setModuleActivation } from '@/server/moduleActivation'
 
 import { isAuthorized } from './isAuthorized'
 
@@ -50,16 +51,16 @@ const check = (context: Context, rights: RIGHTS[]) =>
 /**
  * Switches the matching module on or off for the next call.
  *
- * Off is a stored row holding 0, not a missing row. That is the state an instance is in
- * once an admin has saved once - the ordinary one - and it is the only one that exercises
- * the conversion of the column value at all. The missing row has its own test below.
+ * Set on the process, not stubbed in the database: the gate reads what this backend
+ * already knows, never the table. Whether the table is read correctly is the subject of
+ * server/moduleActivation.test.ts.
  */
-const matchingIs = (active: boolean) =>
-  dbSelectModuleSettings.mockResolvedValue({ id: 1, matchingActive: active ? 1 : 0 })
+const matchingIs = (active: boolean) => setModuleActivation({ matchingActive: active })
 
 describe('isAuthorized', () => {
   beforeEach(() => {
     jest.clearAllMocks()
+    resetModuleActivation()
     decodeMock.mockResolvedValue({ gradidoID: 'a-member' } as never)
     // A plain member, so nothing but the module switch can explain a refusal.
     findOneOrFail.mockResolvedValue({ id: 7, userRoles: [] })
@@ -116,10 +117,10 @@ describe('isAuthorized', () => {
       expect(context.role?.hasRight(RIGHTS.BALANCE)).toBe(true)
     })
 
-    // The state of a fresh install: the migration writes no row on purpose, and the caller
-    // has to read that as every module off rather than as an error or as every module on.
-    it('reads a database with no row as off as well', async () => {
-      dbSelectModuleSettings.mockResolvedValue(undefined)
+    // What a process holds before anything has been read: the safe state, not an error and
+    // not every module on.
+    it('are off before anything has been read at all', async () => {
+      resetModuleActivation()
       const context = contextForUser()
 
       await expect(check(context, [RIGHTS.SEARCH_ADMIN_USERS])).resolves.toBe(true)
@@ -153,10 +154,12 @@ describe('isAuthorized', () => {
   })
 
   describe('the switches themselves', () => {
-    // In parallel on purpose. The root fields of one operation are dispatched together, so
-    // checks awaited one after another would always meet a memo that is already filled and
-    // could not tell a per-request read from a per-check one.
-    it('are read once per request, not once per check', async () => {
+    // The assertion this whole arrangement exists for. The gate runs on every authorized
+    // root field, and it reads through a second connection pool beside TypeORM's; a query
+    // here once made three timer-faking tests hang and, with --runInBand, took the next
+    // file down with them. So the request path must touch the database not rarely, but
+    // never.
+    it('are never read from the database on the request path', async () => {
       matchingIs(false)
       const context = contextForUser()
 
@@ -166,27 +169,17 @@ describe('isAuthorized', () => {
         check(context, [RIGHTS.SEARCH_ADMIN_USERS]),
       ])
 
-      expect(dbSelectModuleSettings).toHaveBeenCalledTimes(1)
+      expect(dbSelectModuleSettings).not.toHaveBeenCalled()
     })
 
-    // Unreadable switches mean it is unknown what a role may do, so the request is refused
-    // rather than let through. The message has to be ours: no formatError is configured,
-    // so a driver message escaping here would reach the client with its SQL attached.
-    it('refuse the request when they cannot be read', async () => {
-      dbSelectModuleSettings.mockRejectedValue(
-        new Error('select `matching_active` from `module_settings` where `id` = 1'),
-      )
-
-      await expect(check(contextForUser(), [RIGHTS.SEARCH_ADMIN_USERS])).rejects.toThrow(
-        '401 Unauthorized',
-      )
-    })
-
-    it('are not read at all for an inalienable right', async () => {
+    it('do not touch the role at all for an inalienable right', async () => {
       matchingIs(false)
+      const context = contextForUser()
 
-      await expect(check({} as Context, [RIGHTS.LOGIN])).resolves.toBe(true)
+      await expect(check(context, [RIGHTS.LOGIN])).resolves.toBe(true)
 
+      // The short-circuit returns before the withdrawal, leaving the unauthorized role.
+      expect(context.role?.id).toBe(RoleNames.UNAUTHORIZED)
       expect(dbSelectModuleSettings).not.toHaveBeenCalled()
     })
 
