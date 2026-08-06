@@ -339,7 +339,7 @@
   "modules": {
     "adminOnly": "These settings are visible to administrators only.",
     "gms": {
-      "hint": "Transferring user data to the previous GMS is set in the server configuration (GMS_ACTIVE) and cannot be switched here.",
+      "hint": "Transferring user data to the previous GMS is set in the server configuration (GMS_ACTIVE) and cannot be switched here. While it is active, the previous GMS people search stays available to members as well. The matching switch above does not cover it.",
       "off": "Inactive",
       "on": "Active",
       "title": "GMS transfer",

@@ -339,7 +339,7 @@
   "modules": {
     "adminOnly": "Diese Einstellungen sind nur für Administratoren sichtbar.",
     "gms": {
-      "hint": "Die Übertragung der Nutzerdaten an das bisherige GMS wird in der Server-Konfiguration gesetzt (GMS_ACTIVE) und lässt sich hier nicht umschalten.",
+      "hint": "Die Übertragung der Nutzerdaten an das bisherige GMS wird in der Server-Konfiguration gesetzt (GMS_ACTIVE) und lässt sich hier nicht umschalten. Solange sie aktiv ist, bleibt auch die bisherige GMS-Personensuche für die Mitglieder erreichbar. Der Matching-Schalter oben nimmt sie nicht mit.",
       "off": "Inaktiv",
       "on": "Aktiv",
       "title": "GMS-Übertragung",
