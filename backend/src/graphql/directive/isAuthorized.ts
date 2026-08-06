@@ -13,9 +13,9 @@ import {
   ROLE_UNAUTHORIZED,
   ROLE_USER,
 } from '@/auth/ROLES'
-import { gatingModulesFor } from '@/module/gate'
-import { readModuleSettings } from '@/module/settings'
-import { Context } from '@/server/context'
+import { Role } from '@/auth/Role'
+import { withdrawnRights } from '@/data/Module.logic'
+import { Context, getModuleActivation } from '@/server/context'
 import { LogError } from '@/server/LogError'
 
 export const isAuthorized: AuthChecker<Context> = async ({ context }, rights) => {
@@ -26,22 +26,6 @@ export const isAuthorized: AuthChecker<Context> = async ({ context }, rights) =>
     (rights as RIGHTS[]).reduce((acc, right) => acc && INALIENABLE_RIGHTS.includes(right), true)
   ) {
     return true
-  }
-
-  // A module switched off in the admin UI denies its rights to everyone, administrators
-  // included: ROLE_ADMIN inherits USER_RIGHTS, and the check never consults context.role,
-  // so off means off rather than off-for-most.
-  //
-  // Read fresh, deliberately not cached, so flipping the switch takes effect at once -
-  // that is the point of keeping it in the database instead of the server config. It is
-  // not a cost per request either: a request that asks for no gated right never gets
-  // past gatingModulesFor, and that is every request but the module's own.
-  const gatingModules = gatingModulesFor(rights as RIGHTS[])
-  if (gatingModules.length > 0) {
-    const moduleSettings = await readModuleSettings()
-    if (gatingModules.some((module) => !module.isActive(moduleSettings))) {
-      throw new LogError('401 Unauthorized')
-    }
   }
 
   // Do we have a token?
@@ -89,6 +73,22 @@ export const isAuthorized: AuthChecker<Context> = async ({ context }, rights) =>
       // in case the database query fails (user deleted)
       throw new LogError('401 Unauthorized')
     }
+  }
+
+  // A module switched off in the admin UI takes its rights away from the role itself,
+  // rather than being checked separately here. That matters because @Authorized is not
+  // the only path that asks: field resolvers call context.role.hasRight() directly, and
+  // a separate check in this function would leave every one of them answering yes with
+  // the module off. Withdrawing the rights covers both, and any later caller too.
+  //
+  // It applies to administrators as well - ROLE_ADMIN inherits USER_RIGHTS, so off means
+  // off rather than off-for-most.
+  const withdrawn = withdrawnRights(await getModuleActivation(context))
+  if (withdrawn.size > 0 && context.role) {
+    context.role = new Role(
+      context.role.id,
+      context.role.rights.filter((right) => !withdrawn.has(right)),
+    )
   }
 
   // check for correct rights

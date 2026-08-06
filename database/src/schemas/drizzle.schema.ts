@@ -116,6 +116,21 @@ export const openaiThreadsTable = mysqlTable('openai_threads', {
   userId: int('user_id').notNull(),
 })
 
+// Per-instance switches for optional modules, flipped by an admin in the admin UI
+// instead of by an env variable on the server. A single-row singleton (id = 1) that may
+// be absent: nothing writes it until an admin saves for the first time, and an absent
+// row reads as "every module off".
+export const moduleSettingsTable = mysqlTable('module_settings', {
+  id: int().notNull(),
+  matchingActive: tinyint('matching_active').default(0).notNull(),
+  updatedAt: datetime('updated_at', { mode: 'date', fsp: 3 })
+    .default(sql`CURRENT_TIMESTAMP(3)`)
+    .notNull(),
+})
+
+export type ModuleSettingsSelect = typeof moduleSettingsTable.$inferSelect
+export type ModuleSettingsInsert = typeof moduleSettingsTable.$inferInsert
+
 export const projectBrandingsTable = mysqlTable(
   'project_brandings',
   {

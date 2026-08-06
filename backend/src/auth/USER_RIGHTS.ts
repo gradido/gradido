@@ -38,6 +38,7 @@ export const USER_RIGHTS = [
   RIGHTS.VIEW_USER_CONTACT,
   RIGHTS.LIST_CREATION_GROUPS,
   RIGHTS.MANAGE_OWN_CREATION_GROUPS,
+  RIGHTS.LIST_ACTIVE_MODULES,
   // Matching: a member's own entry. Inert while the matching module is off, which is how
   // it ships -- the gate in isAuthorized refuses these on the @Authorized path. Note what
   // that does NOT cover: Role.hasRight() answers from this list directly, so a field-level

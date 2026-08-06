@@ -1,8 +1,9 @@
+// AI-GENERATED — not an architecture reference
 // Per-instance switches for optional modules, flipped by an admin in the admin UI
 // rather than by an env variable on the server: a community can turn a module on or
 // off itself, without a deploy and without anyone touching the server config.
 //
-// A single-row global settings table (id = 1), the same shape as crea_settings.
+// A single-row global settings table (id = 1).
 // Deliberately NO INSERT: an absent row reads as "every module off", so a fresh
 // database and an upgraded one start from the same safe state, and the very first
 // run has nothing it could get wrong. The admin UI writes the row on first save.

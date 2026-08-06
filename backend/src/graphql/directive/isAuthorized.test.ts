@@ -1,120 +1,136 @@
+// AI-GENERATED — not an architecture reference
 import { ResolverData } from 'type-graphql'
 
 import { INALIENABLE_RIGHTS } from '@/auth/INALIENABLE_RIGHTS'
 import { decode } from '@/auth/JWT'
 import { MATCHING_RIGHTS } from '@/auth/MATCHING_RIGHTS'
 import { RIGHTS } from '@/auth/RIGHTS'
-import { GATED_MODULES } from '@/module/gate'
-import { readModuleSettings } from '@/module/settings'
+import { OPTIONAL_MODULES } from '@/data/Module.logic'
 import { Context } from '@/server/context'
 
 import { isAuthorized } from './isAuthorized'
 
-// The gate refuses before any query runs, so nothing here needs a database; stubbing the
-// package keeps the test honest about that. It does NOT make the suite runnable without
-// the Rust binding: jest.config's setupFiles loads core -> database -> shared ->
-// shared-native before any mock is registered, so `shared-native` must be built either
-// way. If this suite dies on `shared_native.node`, that is the binding, not the mock.
-jest.mock('database', () => ({
-  RoleNames: {
-    ADMIN: 'ADMIN',
-    MODERATOR: 'MODERATOR',
-    MODERATOR_AI: 'MODERATOR_AI',
-    USER: 'USER',
-    UNAUTHORIZED: 'UNAUTHORIZED',
-    DLT_CONNECTOR: 'DLT_CONNECTOR',
-  },
-  User: { findOneOrFail: jest.fn() },
-  Transaction: class {},
-}))
+// A stub rather than a database: this exercises the rights arithmetic, not storage.
+// It does NOT make the suite runnable without the Rust binding - jest.config's
+// setupFiles loads core -> database -> shared -> shared-native before any mock is
+// registered. If this suite dies on `shared_native.node`, that is the binding.
+const dbSelectModuleSettings = jest.fn()
+const findOneOrFail = jest.fn()
 
-jest.mock('@/module/settings', () => ({
-  readModuleSettings: jest.fn(),
+jest.mock('database', () => ({
+  RoleNames: { ADMIN: 'ADMIN', MODERATOR: 'MODERATOR', MODERATOR_AI: 'MODERATOR_AI', USER: 'USER' },
+  User: { findOneOrFail: (...args: unknown[]) => findOneOrFail(...args) },
+  Transaction: class {},
+  dbSelectModuleSettings: () => dbSelectModuleSettings(),
 }))
 
 jest.mock('@/auth/JWT', () => ({
   decode: jest.fn(),
-  encode: jest.fn(),
+  encode: jest.fn().mockResolvedValue('a-fresh-token'),
 }))
 
-const readModuleSettingsMock = readModuleSettings as jest.MockedFunction<typeof readModuleSettings>
 const decodeMock = decode as jest.MockedFunction<typeof decode>
 
-// A context that carries a token, so a request that gets past the module gate reaches
-// the token check next. That next step is what proves the gate let it through: it
-// fails with a DIFFERENT error than the gate does. Both refusals say "401" otherwise,
-// and a test that matched on the message alone could not tell them apart.
-const contextWithToken = () => ({ token: 'a-token', setHeaders: [] }) as unknown as Context
+const contextForUser = (): Context => ({ token: 'a-token', setHeaders: [] }) as unknown as Context
 
 const check = (context: Context, rights: RIGHTS[]) =>
   isAuthorized({ context } as ResolverData<Context>, rights)
 
+/** Switches the matching module on or off for the next call. */
+const matchingIs = (active: boolean) =>
+  dbSelectModuleSettings.mockResolvedValue(active ? { id: 1, matchingActive: 1 } : undefined)
+
 describe('isAuthorized', () => {
   beforeEach(() => {
     jest.clearAllMocks()
-    decodeMock.mockResolvedValue(null)
+    decodeMock.mockResolvedValue({ gradidoID: 'a-member' } as never)
+    // A plain member, so nothing but the module switch can explain a refusal.
+    findOneOrFail.mockResolvedValue({ id: 7, userRoles: [] })
   })
 
-  describe('module gate', () => {
-    it('refuses a right of a module that is switched off', async () => {
-      readModuleSettingsMock.mockResolvedValue({ matchingActive: false })
+  describe('a module that is switched off', () => {
+    it('refuses its rights', async () => {
+      matchingIs(false)
 
-      await expect(check(contextWithToken(), [RIGHTS.LIST_MATCHING_ENTRY])).rejects.toThrow(
+      await expect(check(contextForUser(), [RIGHTS.LIST_MATCHING_ENTRY])).rejects.toThrow(
         '401 Unauthorized',
       )
-      // The switches WERE read here. The two "not called" assertions further down only
-      // mean something next to this one - without it they would hold just as well if
-      // the gate had never been written.
-      expect(readModuleSettingsMock).toHaveBeenCalled()
-      // Refused before the token is even looked at - so it is the gate refusing, and
-      // it refuses everyone alike, administrators included.
-      expect(decodeMock).not.toHaveBeenCalled()
     })
 
-    it('lets a right of a module that is switched on through to the token check', async () => {
-      readModuleSettingsMock.mockResolvedValue({ matchingActive: true })
+    // The assertion that matters most. @Authorized is not the only path that asks:
+    // every field-level guard in this backend calls context.role.hasRight() directly,
+    // so a check that only lived in this function would leave them all answering yes.
+    it('takes them off the role, so hasRight answers no as well', async () => {
+      matchingIs(false)
+      const context = contextForUser()
 
-      // Past the gate, the mocked token fails to decode - a different refusal, and the
-      // proof that the gate did not stop this request.
-      await expect(check(contextWithToken(), [RIGHTS.LIST_MATCHING_ENTRY])).rejects.toThrow(
-        '403.13 - Client certificate revoked',
-      )
-      expect(decodeMock).toHaveBeenCalled()
-    })
-
-    // Reads the list rather than repeating it, so a right added to MATCHING_RIGHTS is
-    // covered here without anyone remembering to extend the test.
-    it('covers every matching right, not just the one the tests happen to name', async () => {
-      readModuleSettingsMock.mockResolvedValue({ matchingActive: false })
+      await expect(check(context, [RIGHTS.SEARCH_ADMIN_USERS])).resolves.toBe(true)
 
       for (const right of MATCHING_RIGHTS) {
-        await expect(check(contextWithToken(), [right])).rejects.toThrow('401 Unauthorized')
+        expect(context.role?.hasRight(right)).toBe(false)
       }
-      expect(decodeMock).not.toHaveBeenCalled()
     })
 
-    // The inalienable short-circuit returns before the gate, so a gated right that ever
-    // landed in that list would leave the gate silently. This states the invariant for
-    // every module, not just today's.
-    it('gates no right that is also inalienable', () => {
-      const gated = GATED_MODULES.flatMap((module) => module.rights)
+    it('leaves every other right alone', async () => {
+      matchingIs(false)
+      const context = contextForUser()
 
-      expect(gated.filter((right) => INALIENABLE_RIGHTS.includes(right))).toEqual([])
+      await expect(check(context, [RIGHTS.SEARCH_ADMIN_USERS])).resolves.toBe(true)
+      expect(context.role?.hasRight(RIGHTS.SEARCH_ADMIN_USERS)).toBe(true)
+      expect(context.role?.hasRight(RIGHTS.BALANCE)).toBe(true)
+    })
+
+    // Otherwise a switched-off module could not report that it is off, and the wallet
+    // would have no way to learn it.
+    it('still lets a member read which modules are active', async () => {
+      matchingIs(false)
+      const context = contextForUser()
+
+      await expect(check(context, [RIGHTS.LIST_ACTIVE_MODULES])).resolves.toBe(true)
+      expect(context.role?.hasRight(RIGHTS.LIST_ACTIVE_MODULES)).toBe(true)
     })
   })
 
-  describe('costs nothing where no module is involved', () => {
-    it('does not read the switches for an inalienable right', async () => {
-      await expect(check({} as Context, [RIGHTS.LOGIN])).resolves.toBe(true)
+  describe('a module that is switched on', () => {
+    it('grants its rights, and hasRight agrees', async () => {
+      matchingIs(true)
+      const context = contextForUser()
 
-      expect(readModuleSettingsMock).not.toHaveBeenCalled()
+      await expect(check(context, [RIGHTS.LIST_MATCHING_ENTRY])).resolves.toBe(true)
+
+      for (const right of MATCHING_RIGHTS) {
+        expect(context.role?.hasRight(right)).toBe(true)
+      }
+    })
+  })
+
+  describe('the switches themselves', () => {
+    it('are read once per request, not once per check', async () => {
+      matchingIs(false)
+      const context = contextForUser()
+
+      await check(context, [RIGHTS.SEARCH_ADMIN_USERS])
+      await check(context, [RIGHTS.BALANCE])
+      await check(context, [RIGHTS.SEARCH_ADMIN_USERS])
+
+      expect(dbSelectModuleSettings).toHaveBeenCalledTimes(1)
     })
 
-    it('does not read the switches for an ordinary right', async () => {
-      // No token: this refusal is the pre-existing one and none of the gate's business.
-      await expect(check({} as Context, [RIGHTS.SEARCH_USERS])).rejects.toThrow('401 Unauthorized')
+    it('are not read at all for an inalienable right', async () => {
+      matchingIs(false)
 
-      expect(readModuleSettingsMock).not.toHaveBeenCalled()
+      await expect(check({} as Context, [RIGHTS.LOGIN])).resolves.toBe(true)
+
+      expect(dbSelectModuleSettings).not.toHaveBeenCalled()
+    })
+
+    // The inalienable short-circuit returns before any of this, so a right that ever
+    // landed in both lists would leave the mechanism silently. States the invariant for
+    // every module, not just today's.
+    it('never govern a right that is also inalienable', () => {
+      const governed = OPTIONAL_MODULES.flatMap((optionalModule) => optionalModule.rights)
+
+      expect(governed.filter((right) => INALIENABLE_RIGHTS.includes(right))).toEqual([])
     })
   })
 })

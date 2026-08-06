@@ -48,9 +48,14 @@ export enum RIGHTS {
   LIST_CREATION_GROUPS = 'LIST_CREATION_GROUPS',
   MANAGE_OWN_CREATION_GROUPS = 'MANAGE_OWN_CREATION_GROUPS',
   // Matching. Every logged-in member may keep an entry of their own, so these sit with
-  // the user rights -- but the matching module ships off, and while it is off the
-  // authorization gate refuses them to everyone, admins included (see module/gate.ts).
+  // the user rights -- but the matching module ships off, and while it is off they are
+  // withdrawn from every role, administrators included (see data/Module.logic.ts).
   // No resolver asks for them yet; the matching backend follows in its own delivery.
+  // Which optional modules are switched on. Every member needs this to know whether the
+  // wallet should offer a module at all, so it sits with the user rights -- and it must
+  // never belong to a module itself, or a switched-off module could not report that it
+  // is off.
+  LIST_ACTIVE_MODULES = 'LIST_ACTIVE_MODULES',
   CREATE_MATCHING_ENTRY = 'CREATE_MATCHING_ENTRY',
   UPDATE_MATCHING_ENTRY = 'UPDATE_MATCHING_ENTRY',
   DELETE_MATCHING_ENTRY = 'DELETE_MATCHING_ENTRY',

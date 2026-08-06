@@ -1,3 +1,4 @@
+# AI-GENERATED — not an architecture reference
 # The per-instance module switches. gmsActive comes back read-only: it is the
 # server config for the transfer to the old gms.gradido.net, shown so an admin can see
 # what this instance does, and deliberately not settable from here.

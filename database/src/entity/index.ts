@@ -12,7 +12,6 @@ import { Event } from './Event'
 import { FederatedCommunity } from './FederatedCommunity'
 import { LoginElopageBuys } from './LoginElopageBuys'
 import { Migration } from './Migration'
-import { ModuleSetting } from './ModuleSetting'
 import { PendingTransaction } from './PendingTransaction'
 import { Transaction } from './Transaction'
 import { TransactionLink } from './TransactionLink'
@@ -36,7 +35,6 @@ export {
   CreationGroup,
   LoginElopageBuys,
   Migration,
-  ModuleSetting,
   PendingTransaction,
   Transaction,
   TransactionLink,
@@ -61,7 +59,6 @@ export const entities = [
   CreationGroup,
   LoginElopageBuys,
   Migration,
-  ModuleSetting,
   PendingTransaction,
   Transaction,
   TransactionLink,
