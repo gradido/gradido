@@ -40,8 +40,9 @@ export const USER_RIGHTS = [
   RIGHTS.MANAGE_OWN_CREATION_GROUPS,
   RIGHTS.LIST_ACTIVE_MODULES,
   // Matching: a member's own entry. Inert while the matching module is off, which is how
-  // it ships -- the gate in isAuthorized refuses these on the @Authorized path. Note what
-  // that does NOT cover: Role.hasRight() answers from this list directly, so a field-level
-  // guard written that way would say yes with the module off.
+  // it ships. Granting them here is safe because isAuthorized does not merely refuse them
+  // on the @Authorized path -- it takes them off the role itself, so Role.hasRight()
+  // answers no as well and a field-level guard written that way is covered too. See
+  // data/Module.logic.ts, and isAuthorized.test.ts, which holds that invariant.
   ...MATCHING_RIGHTS,
 ]
