@@ -77,7 +77,7 @@ does Crea draft the rejection text.
 | Runtime settings (model, effort) | `backend/src/apis/anthropic/crea/settings.ts`, `database/src/entity/CreaSetting.ts` |
 | Preview without an API key | `backend/src/apis/anthropic/crea/stub.ts` (opt-in via `CREA_STUB`) |
 | GraphQL entry point | `backend/src/graphql/resolver/CreaResolver.ts` |
-| Admin modal and settings page | `admin/src/components/CreaEvaluationModal.vue`, `admin/src/pages/CreaSettings.vue` |
+| Admin modal and settings page | `admin/src/components/CreaEvaluationModal.vue`, `admin/src/pages/ModuleSettings.vue` (the Crea settings share the module settings page) |
 
 ## Build steps referenced in comments
 
