@@ -8,9 +8,9 @@ import { readModuleSettings, writeModuleSettings } from '@/module/settings'
 @Resolver()
 export class ModuleResolver {
   /**
-   * The per-instance module switches for the admin panel (E-002). Guarded by the
+   * The per-instance module switches for the admin panel. Guarded by the
    * dedicated MODULE_SETTINGS right, which is admin-only: switching a module changes
-   * what the whole instance offers, so it is not a moderator's decision (E-003).
+   * what the whole instance offers, so it is not a moderator's decision.
    */
   @Authorized([RIGHTS.MODULE_SETTINGS])
   @Query(() => ModuleSettings)

@@ -1,11 +1,16 @@
+import { MATCHING_RIGHTS } from '@/auth/MATCHING_RIGHTS'
 import { RIGHTS } from '@/auth/RIGHTS'
 
 import { StoredModuleSettings } from './settings'
 
-// Which rights belong to which optional module (E-001). This is the ONE place a new
-// module is registered: add an entry here and the authorization gate covers every
-// resolver that asks for those rights, today's and tomorrow's, without anyone having
-// to remember to add a check.
+// Which rights belong to which optional module. This is the one place a new module is
+// registered for the backend's @Authorized path: add an entry here and every resolver
+// asking for those rights is covered, today's and tomorrow's.
+//
+// Scope, so nobody reads more into it than it does: this reaches the backend GraphQL
+// schema only. The federation service builds its own schema with no authChecker, and
+// webhooks, the standalone export scripts and dlt-connector never pass through here.
+// A module with a surface outside the @Authorized path needs its own check there.
 
 interface GatedModule {
   /** For logs and error messages that stay inside the backend. */
@@ -18,12 +23,7 @@ interface GatedModule {
 export const GATED_MODULES: GatedModule[] = [
   {
     name: 'matching',
-    rights: [
-      RIGHTS.CREATE_MATCHING_ENTRY,
-      RIGHTS.UPDATE_MATCHING_ENTRY,
-      RIGHTS.DELETE_MATCHING_ENTRY,
-      RIGHTS.LIST_MATCHING_ENTRY,
-    ],
+    rights: MATCHING_RIGHTS,
     isActive: (settings) => settings.matchingActive,
   },
 ]

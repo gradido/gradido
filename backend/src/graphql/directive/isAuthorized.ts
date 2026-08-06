@@ -29,8 +29,8 @@ export const isAuthorized: AuthChecker<Context> = async ({ context }, rights) =>
   }
 
   // A module switched off in the admin UI denies its rights to everyone, administrators
-  // included: ROLE_ADMIN inherits USER_RIGHTS, and this sits ahead of the role lookup,
-  // so off means off rather than off-for-most (E-004).
+  // included: ROLE_ADMIN inherits USER_RIGHTS, and the check never consults context.role,
+  // so off means off rather than off-for-most.
   //
   // Read fresh, deliberately not cached, so flipping the switch takes effect at once -
   // that is the point of keeping it in the database instead of the server config. It is

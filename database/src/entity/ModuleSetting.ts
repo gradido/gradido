@@ -14,8 +14,10 @@ export class ModuleSetting extends BaseEntity {
   @PrimaryColumn({ type: 'int', unsigned: true })
   id: number
 
-  // The matching module: the map, the search and the matching entries. Off means the
-  // backend refuses its rights outright, not just that the menu hides them.
+  // The matching module: the matching entries. Off means the backend refuses their
+  // rights outright, not just that the menu hides them. The matching map and search
+  // follow in their own delivery; the legacy GMS playground is a different feature and
+  // is deliberately not covered by this switch.
   @Column({ name: 'matching_active', type: 'bool', nullable: false, default: false })
   matchingActive: boolean
 

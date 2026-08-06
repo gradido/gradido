@@ -1,3 +1,4 @@
+import { MATCHING_RIGHTS } from './MATCHING_RIGHTS'
 import { RIGHTS } from './RIGHTS'
 
 export const USER_RIGHTS = [
@@ -37,11 +38,9 @@ export const USER_RIGHTS = [
   RIGHTS.VIEW_USER_CONTACT,
   RIGHTS.LIST_CREATION_GROUPS,
   RIGHTS.MANAGE_OWN_CREATION_GROUPS,
-  // Matching: a member's own entry. Inert while the matching module is off, which is
-  // how it ships -- the gate in isAuthorized refuses these before the role is even
-  // resolved, so listing them here does not hand anyone anything today.
-  RIGHTS.CREATE_MATCHING_ENTRY,
-  RIGHTS.UPDATE_MATCHING_ENTRY,
-  RIGHTS.DELETE_MATCHING_ENTRY,
-  RIGHTS.LIST_MATCHING_ENTRY,
+  // Matching: a member's own entry. Inert while the matching module is off, which is how
+  // it ships -- the gate in isAuthorized refuses these on the @Authorized path. Note what
+  // that does NOT cover: Role.hasRight() answers from this list directly, so a field-level
+  // guard written that way would say yes with the module off.
+  ...MATCHING_RIGHTS,
 ]

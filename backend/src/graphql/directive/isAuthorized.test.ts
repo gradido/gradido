@@ -1,15 +1,20 @@
 import { ResolverData } from 'type-graphql'
 
+import { INALIENABLE_RIGHTS } from '@/auth/INALIENABLE_RIGHTS'
 import { decode } from '@/auth/JWT'
+import { MATCHING_RIGHTS } from '@/auth/MATCHING_RIGHTS'
 import { RIGHTS } from '@/auth/RIGHTS'
+import { GATED_MODULES } from '@/module/gate'
 import { readModuleSettings } from '@/module/settings'
 import { Context } from '@/server/context'
 
 import { isAuthorized } from './isAuthorized'
 
-// The gate under test sits ahead of every database access, so nothing here needs a
-// database. Stubbing the package keeps it that way and keeps the suite runnable
-// without the Rust binding that `database` pulls in transitively.
+// The gate refuses before any query runs, so nothing here needs a database; stubbing the
+// package keeps the test honest about that. It does NOT make the suite runnable without
+// the Rust binding: jest.config's setupFiles loads core -> database -> shared ->
+// shared-native before any mock is registered, so `shared-native` must be built either
+// way. If this suite dies on `shared_native.node`, that is the binding, not the mock.
 jest.mock('database', () => ({
   RoleNames: {
     ADMIN: 'ADMIN',
@@ -77,18 +82,24 @@ describe('isAuthorized', () => {
       expect(decodeMock).toHaveBeenCalled()
     })
 
+    // Reads the list rather than repeating it, so a right added to MATCHING_RIGHTS is
+    // covered here without anyone remembering to extend the test.
     it('covers every matching right, not just the one the tests happen to name', async () => {
       readModuleSettingsMock.mockResolvedValue({ matchingActive: false })
 
-      for (const right of [
-        RIGHTS.CREATE_MATCHING_ENTRY,
-        RIGHTS.UPDATE_MATCHING_ENTRY,
-        RIGHTS.DELETE_MATCHING_ENTRY,
-        RIGHTS.LIST_MATCHING_ENTRY,
-      ]) {
+      for (const right of MATCHING_RIGHTS) {
         await expect(check(contextWithToken(), [right])).rejects.toThrow('401 Unauthorized')
       }
       expect(decodeMock).not.toHaveBeenCalled()
+    })
+
+    // The inalienable short-circuit returns before the gate, so a gated right that ever
+    // landed in that list would leave the gate silently. This states the invariant for
+    // every module, not just today's.
+    it('gates no right that is also inalienable', () => {
+      const gated = GATED_MODULES.flatMap((module) => module.rights)
+
+      expect(gated.filter((right) => INALIENABLE_RIGHTS.includes(right))).toEqual([])
     })
   })
 
