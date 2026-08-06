@@ -1,4 +1,5 @@
 // AI-GENERATED — not an architecture reference
+import { RoleNames } from 'database'
 import { ResolverData } from 'type-graphql'
 
 import { INALIENABLE_RIGHTS } from '@/auth/INALIENABLE_RIGHTS'
@@ -17,8 +18,18 @@ import { isAuthorized } from './isAuthorized'
 const dbSelectModuleSettings = jest.fn()
 const findOneOrFail = jest.fn()
 
+// RoleNames has to match the real enum member for member, values included: ROLES.ts builds
+// every role singleton from it, so a missing entry gives that role an undefined id - and
+// the id is on the path this suite guards, because the narrowed role copies it.
 jest.mock('database', () => ({
-  RoleNames: { ADMIN: 'ADMIN', MODERATOR: 'MODERATOR', MODERATOR_AI: 'MODERATOR_AI', USER: 'USER' },
+  RoleNames: {
+    UNAUTHORIZED: 'UNAUTHORIZED',
+    USER: 'USER',
+    MODERATOR: 'MODERATOR',
+    MODERATOR_AI: 'MODERATOR_AI',
+    ADMIN: 'ADMIN',
+    DLT_CONNECTOR: 'DLT_CONNECTOR_ROLE',
+  },
   User: { findOneOrFail: (...args: unknown[]) => findOneOrFail(...args) },
   Transaction: class {},
   dbSelectModuleSettings: () => dbSelectModuleSettings(),
@@ -36,9 +47,15 @@ const contextForUser = (): Context => ({ token: 'a-token', setHeaders: [] }) as 
 const check = (context: Context, rights: RIGHTS[]) =>
   isAuthorized({ context } as ResolverData<Context>, rights)
 
-/** Switches the matching module on or off for the next call. */
+/**
+ * Switches the matching module on or off for the next call.
+ *
+ * Off is a stored row holding 0, not a missing row. That is the state an instance is in
+ * once an admin has saved once - the ordinary one - and it is the only one that exercises
+ * the conversion of the column value at all. The missing row has its own test below.
+ */
 const matchingIs = (active: boolean) =>
-  dbSelectModuleSettings.mockResolvedValue(active ? { id: 1, matchingActive: 1 } : undefined)
+  dbSelectModuleSettings.mockResolvedValue({ id: 1, matchingActive: active ? 1 : 0 })
 
 describe('isAuthorized', () => {
   beforeEach(() => {
@@ -71,6 +88,25 @@ describe('isAuthorized', () => {
       }
     })
 
+    // The rest of the suite runs as a plain member, where this could not show: ROLE_ADMIN
+    // inherits USER_RIGHTS, so it carries the matching rights too. Off has to mean off for
+    // administrators as well, not off-for-most.
+    it('refuses them to an administrator too', async () => {
+      matchingIs(false)
+      findOneOrFail.mockResolvedValue({ id: 7, userRoles: [{ role: RoleNames.ADMIN }] })
+
+      await expect(check(contextForUser(), [RIGHTS.LIST_MATCHING_ENTRY])).rejects.toThrow(
+        '401 Unauthorized',
+      )
+
+      const context = contextForUser()
+      await expect(check(context, [RIGHTS.MODULE_SETTINGS])).resolves.toBe(true)
+      expect(context.role?.id).toBe(RoleNames.ADMIN)
+      for (const right of MATCHING_RIGHTS) {
+        expect(context.role?.hasRight(right)).toBe(false)
+      }
+    })
+
     it('leaves every other right alone', async () => {
       matchingIs(false)
       const context = contextForUser()
@@ -78,6 +114,18 @@ describe('isAuthorized', () => {
       await expect(check(context, [RIGHTS.SEARCH_ADMIN_USERS])).resolves.toBe(true)
       expect(context.role?.hasRight(RIGHTS.SEARCH_ADMIN_USERS)).toBe(true)
       expect(context.role?.hasRight(RIGHTS.BALANCE)).toBe(true)
+    })
+
+    // The state of a fresh install: the migration writes no row on purpose, and the caller
+    // has to read that as every module off rather than as an error or as every module on.
+    it('reads a database with no row as off as well', async () => {
+      dbSelectModuleSettings.mockResolvedValue(undefined)
+      const context = contextForUser()
+
+      await expect(check(context, [RIGHTS.SEARCH_ADMIN_USERS])).resolves.toBe(true)
+      for (const right of MATCHING_RIGHTS) {
+        expect(context.role?.hasRight(right)).toBe(false)
+      }
     })
 
     // Otherwise a switched-off module could not report that it is off, and the wallet
@@ -105,15 +153,33 @@ describe('isAuthorized', () => {
   })
 
   describe('the switches themselves', () => {
+    // In parallel on purpose. The root fields of one operation are dispatched together, so
+    // checks awaited one after another would always meet a memo that is already filled and
+    // could not tell a per-request read from a per-check one.
     it('are read once per request, not once per check', async () => {
       matchingIs(false)
       const context = contextForUser()
 
-      await check(context, [RIGHTS.SEARCH_ADMIN_USERS])
-      await check(context, [RIGHTS.BALANCE])
-      await check(context, [RIGHTS.SEARCH_ADMIN_USERS])
+      await Promise.all([
+        check(context, [RIGHTS.SEARCH_ADMIN_USERS]),
+        check(context, [RIGHTS.BALANCE]),
+        check(context, [RIGHTS.SEARCH_ADMIN_USERS]),
+      ])
 
       expect(dbSelectModuleSettings).toHaveBeenCalledTimes(1)
+    })
+
+    // Unreadable switches mean it is unknown what a role may do, so the request is refused
+    // rather than let through. The message has to be ours: no formatError is configured,
+    // so a driver message escaping here would reach the client with its SQL attached.
+    it('refuse the request when they cannot be read', async () => {
+      dbSelectModuleSettings.mockRejectedValue(
+        new Error('select `matching_active` from `module_settings` where `id` = 1'),
+      )
+
+      await expect(check(contextForUser(), [RIGHTS.SEARCH_ADMIN_USERS])).rejects.toThrow(
+        '401 Unauthorized',
+      )
     })
 
     it('are not read at all for an inalienable right', async () => {
