@@ -41,24 +41,34 @@ export async function dbSelectModuleSettings(): Promise<
 export async function dbUpsertModuleSettings(
   matchingActive: boolean,
 ): Promise<Result<boolean, DBInsertFailed<ModuleSettingsInsert>>> {
+  // One clock for both paths. Left to the column, the insert would be stamped by the
+  // database server and the update by this process, and the two disagree by the server's
+  // timezone offset. The explicit stamp is also what makes the update path move at all:
+  // ON UPDATE CURRENT_TIMESTAMP only fires when some other column actually changes, and
+  // saving a switch that is already in that position changes nothing.
+  const now = new Date()
   const row: ModuleSettingsInsert = {
     id: MODULE_SETTINGS_ID,
     matchingActive: matchingActive ? 1 : 0,
+    updatedAt: now,
   }
 
-  const result = await drizzleDb()
-    .insert(moduleSettingsTable)
-    .values(row)
-    .onDuplicateKeyUpdate({ set: { matchingActive: row.matchingActive, updatedAt: new Date() } })
-
-  // Deliberately NOT a check on affectedRows: MySQL answers 1 for an insert, 2 for an
-  // update that changed something, and 0 when the stored row already held these values.
-  // Saving a switch that is already in that position is a success, not a failure, so
-  // counting rows here would report the most ordinary case as broken.
-  const firstRow = result.at(0)
-  if (firstRow) {
-    return { success: true, value: matchingActive }
+  // The failure has to be caught, not read off the result. Drizzle answers a statement
+  // that ran with [ResultSetHeader, FieldPacket[]], so index 0 is always there and always
+  // truthy - inspecting it would leave this branch unreachable. A statement that failed
+  // rejects instead, and without this catch the driver's own message, failing SQL
+  // included, would travel out of here to the caller.
+  //
+  // Deliberately NOT a check on affectedRows either: MySQL answers 1 for an insert and 2
+  // for an update, and saving a switch that is already in that position is a success.
+  try {
+    await drizzleDb()
+      .insert(moduleSettingsTable)
+      .values(row)
+      .onDuplicateKeyUpdate({ set: { matchingActive: row.matchingActive, updatedAt: now } })
+  } catch {
+    return { success: false, error: ModuleSettingsUpsertFailed(row) }
   }
 
-  return { success: false, error: ModuleSettingsUpsertFailed(row) }
+  return { success: true, value: matchingActive }
 }
