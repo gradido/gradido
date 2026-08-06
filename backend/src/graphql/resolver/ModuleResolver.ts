@@ -58,8 +58,11 @@ export class ModuleResolver {
       // The edge, where an expected failure has to become a response.
       throw new LogError('Could not write the module settings', written.error)
     }
-    // The switches this request already read are now stale by definition.
-    context.moduleActivation = { matchingActive: written.value }
+    // The switches this request already read are now stale by definition. The role that
+    // isAuthorized narrowed from the old value is deliberately not rebuilt here: nothing
+    // in this response consults it, and every later check re-derives the role from the
+    // value refreshed on this line.
+    context.moduleActivation = Promise.resolve({ matchingActive: written.value })
     return {
       matchingActive: written.value,
       gmsActive: CONFIG.GMS_ACTIVE,
