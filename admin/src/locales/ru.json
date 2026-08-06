@@ -342,7 +342,8 @@
       "hint": "Transferring user data to the previous GMS is set in the server configuration (GMS_ACTIVE) and cannot be switched here.",
       "off": "Inactive",
       "on": "Active",
-      "title": "GMS transfer"
+      "title": "GMS transfer",
+      "unknown": "Unknown"
     },
     "matching": {
       "enable": "Enable matching",
@@ -350,7 +351,8 @@
       "title": "Matching"
     },
     "saved": "Module settings saved",
-    "title": "Modules"
+    "title": "Modules",
+    "unavailable": "The settings are not loaded yet. The switches stay locked until the server has answered."
   },
   "name": "Имя",
   "navbar": {

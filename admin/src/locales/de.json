@@ -342,7 +342,8 @@
       "hint": "Die Übertragung der Nutzerdaten an das bisherige GMS wird in der Server-Konfiguration gesetzt (GMS_ACTIVE) und lässt sich hier nicht umschalten.",
       "off": "Inaktiv",
       "on": "Aktiv",
-      "title": "GMS-Übertragung"
+      "title": "GMS-Übertragung",
+      "unknown": "Unbekannt"
     },
     "matching": {
       "enable": "Matching aktivieren",
@@ -350,7 +351,8 @@
       "title": "Matching"
     },
     "saved": "Modul-Einstellungen gespeichert",
-    "title": "Module"
+    "title": "Module",
+    "unavailable": "Die Einstellungen sind noch nicht geladen. Die Schalter bleiben gesperrt, bis der Stand vom Server bekannt ist."
   },
   "name": "Name",
   "navbar": {

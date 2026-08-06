@@ -5,14 +5,21 @@
       <section class="mb-5">
         <div class="h4 mb-3">{{ $t('modules.matching.title') }}</div>
         <BFormGroup class="mb-3">
-          <BFormCheckbox v-model="matchingActive" switch>
+          <BFormCheckbox v-model="matchingActive" switch :disabled="!settingsLoaded">
             {{ $t('modules.matching.enable') }}
           </BFormCheckbox>
           <small class="text-muted d-block mt-1">{{ $t('modules.matching.hint') }}</small>
         </BFormGroup>
-        <BButton variant="primary" :disabled="savingModules" @click="saveModules">
+        <BButton
+          variant="primary"
+          :disabled="savingModules || !settingsLoaded"
+          @click="saveModules"
+        >
           {{ $t('save') }}
         </BButton>
+        <small v-if="!settingsLoaded" class="text-muted d-block mt-2">
+          {{ $t('modules.unavailable') }}
+        </small>
       </section>
 
       <section class="mb-5">
@@ -52,7 +59,10 @@
 
       <section>
         <div class="h4 mb-3">{{ $t('modules.gms.title') }}</div>
-        <p class="mb-1">{{ gmsActive ? $t('modules.gms.on') : $t('modules.gms.off') }}</p>
+        <p class="mb-1">
+          <template v-if="!settingsLoaded">{{ $t('modules.gms.unknown') }}</template>
+          <template v-else>{{ gmsActive ? $t('modules.gms.on') : $t('modules.gms.off') }}</template>
+        </p>
         <small class="text-muted d-block">{{ $t('modules.gms.hint') }}</small>
       </section>
     </div>
@@ -84,10 +94,14 @@ const defaultModel = ref('')
 const saving = ref(false)
 const testing = ref(false)
 
-// Module switches. matchingActive starts false so the page never shows a module as on
-// before the answer is in - the same direction the backend defaults in.
+// Module switches. The placeholder values are a display default, never a payload: until
+// settingsLoaded turns true nothing here is the server's answer, so the switch, the Save
+// button and the GMS status line all stay out of service. Without that, a query that is
+// merely slow - or that failed and left the refs untouched - would show every module as
+// off, and one click on Save would make it true for the whole instance.
 const matchingActive = ref(false)
 const gmsActive = ref(false)
+const settingsLoaded = ref(false)
 const savingModules = ref(false)
 
 const modelPresetOptions = computed(() => [
@@ -139,17 +153,16 @@ const { result: moduleResult, error: moduleError } = useQuery(moduleSettingsQuer
   enabled: isAdmin,
 })
 
-watch(
-  moduleResult,
-  () => {
-    const settings = moduleResult.value?.moduleSettings
-    if (settings) {
-      matchingActive.value = settings.matchingActive
-      gmsActive.value = settings.gmsActive
-    }
-  },
-  { immediate: true },
-)
+// First answer wins. A later result must not overwrite a switch the admin has just
+// flipped and not yet saved - they would then press Save on a value they did not choose.
+watch(moduleResult, () => {
+  const settings = moduleResult.value?.moduleSettings
+  if (settings && !settingsLoaded.value) {
+    matchingActive.value = settings.matchingActive
+    gmsActive.value = settings.gmsActive
+    settingsLoaded.value = true
+  }
+})
 
 watch(moduleError, () => {
   if (moduleError.value) toastError(moduleError.value.message)
