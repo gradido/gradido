@@ -1,3 +1,4 @@
+<!-- AI-GENERATED — not an architecture reference -->
 <template>
   <div class="module-settings">
     <div class="h2 mb-3">{{ $t('modules.title') }}</div>
@@ -5,7 +6,11 @@
       <section class="mb-5">
         <div class="h4 mb-3">{{ $t('modules.matching.title') }}</div>
         <BFormGroup class="mb-3">
-          <BFormCheckbox v-model="matchingActive" switch :disabled="!settingsLoaded">
+          <BFormCheckbox
+            v-model="matchingActive"
+            switch
+            :disabled="!settingsLoaded || savingModules"
+          >
             {{ $t('modules.matching.enable') }}
           </BFormCheckbox>
           <small class="text-muted d-block mt-1">{{ $t('modules.matching.hint') }}</small>
@@ -15,7 +20,7 @@
           :disabled="savingModules || !settingsLoaded"
           @click="saveModules"
         >
-          {{ $t('save') }}
+          {{ $t('modules.save') }}
         </BButton>
         <small v-if="!settingsLoaded" class="text-muted d-block mt-2">
           {{ $t('modules.unavailable') }}
@@ -49,12 +54,15 @@
           </BFormCheckbox>
           <small class="text-muted d-block mt-1">{{ $t('crea.settings.fastModeHint') }}</small>
         </BFormGroup>
-        <BButton variant="primary" :disabled="saving" @click="save">
+        <BButton variant="primary" :disabled="saving || !creaLoaded" @click="save">
           {{ $t('save') }}
         </BButton>
-        <BButton variant="secondary" class="ms-2" :disabled="testing" @click="test">
+        <BButton variant="secondary" class="ms-2" :disabled="testing || !creaLoaded" @click="test">
           {{ $t('crea.settings.testModel') }}
         </BButton>
+        <small v-if="!creaLoaded" class="text-muted d-block mt-2">
+          {{ $t('modules.unavailable') }}
+        </small>
       </section>
 
       <section>
@@ -74,7 +82,7 @@
 import { computed, ref, watch } from 'vue'
 import { useMutation, useQuery } from '@vue/apollo-composable'
 import { useI18n } from 'vue-i18n'
-import { useStore } from 'vuex'
+import { useIsAdmin } from '@/composables/useIsAdmin'
 import { useAppToast } from '@/composables/useToast'
 import {
   creaSettings as creaSettingsQuery,
@@ -84,13 +92,17 @@ import {
 import { moduleSettings as moduleSettingsQuery, setModuleSettings } from '@/graphql/module.graphql'
 
 const { t } = useI18n()
-const store = useStore()
 const { toastSuccess, toastError } = useAppToast()
 
-const isAdmin = computed(() => store.state.moderator.roles.includes('ADMIN'))
+const isAdmin = useIsAdmin()
 
+// Same rule as for the module switches below: until creaLoaded turns true the form holds
+// display defaults, not the server's answer, so saving or testing it would write those
+// defaults over the configured model and effort - and a query that merely failed leaves
+// them standing forever.
 const form = ref({ model: '', effort: 'disabled', fastMode: false })
 const defaultModel = ref('')
+const creaLoaded = ref(false)
 const saving = ref(false)
 const testing = ref(false)
 
@@ -139,6 +151,7 @@ watch(
         fastMode: settings.fastMode ?? false,
       }
       defaultModel.value = settings.defaultModel
+      creaLoaded.value = true
     }
   },
   { immediate: true },

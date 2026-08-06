@@ -350,6 +350,7 @@
       "hint": "While matching is off, its pages and its data are closed to everyone, administrators included. New instances start switched off.",
       "title": "Matching"
     },
+    "save": "Save modules",
     "saved": "Module settings saved",
     "title": "Modules",
     "unavailable": "The settings are not loaded yet. The switches stay locked until the server has answered."

@@ -350,6 +350,7 @@
       "hint": "Ist das Matching aus, sind seine Seiten und seine Daten für alle gesperrt, auch für Administratoren. Neue Instanzen starten ausgeschaltet.",
       "title": "Matching"
     },
+    "save": "Module speichern",
     "saved": "Modul-Einstellungen gespeichert",
     "title": "Module",
     "unavailable": "Die Einstellungen sind noch nicht geladen. Die Schalter bleiben gesperrt, bis der Stand vom Server bekannt ist."
