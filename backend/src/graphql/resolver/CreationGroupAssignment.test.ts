@@ -163,6 +163,19 @@ describe('only the group field puts a contribution into a group', () => {
     expect(await listMemos('music')).toContain(ASSIGNED_MUSIC)
   })
 
+  // The stamp is what tells "deliberately no group" apart from "never said anything". Two
+  // features read it and neither would complain if it went missing: the submission field
+  // pre-fills from the last contribution that carries one, and the legacy-hashtag adoption
+  // deliberately passes over any contribution that has one. Submitting writes it either way
+  // -- a group was chosen, or none was -- and it rides along on the insert, so a change to
+  // that path could drop it without a single other test noticing.
+  it('stamps every submission, whether or not a group was chosen', async () => {
+    const withGroup = await DbContribution.findOneOrFail({ where: { memo: ASSIGNED_MUSIC } })
+    const withoutGroup = await DbContribution.findOneOrFail({ where: { memo: DELIBERATELY_NONE } })
+    expect(withGroup.creationGroupsSetAt).toBeInstanceOf(Date)
+    expect(withoutGroup.creationGroupsSetAt).toBeInstanceOf(Date)
+  })
+
   it('ignores a hashtag in a contribution assigned to another group', async () => {
     // The memo says "#music", the group field says sports. The field wins.
     expect(await listMemos('music')).not.toContain(ASSIGNED_ELSEWHERE)
