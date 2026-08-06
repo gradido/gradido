@@ -118,7 +118,7 @@
   "browserslist": [
     "> 1%",
     "last 2 versions",
-    "not ie <= 10"
+    "not dead"
   ],
   "author": "Gradido-Akademie - https://www.gradido.net/",
   "license": "Apache-2.0",
