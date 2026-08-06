@@ -41,10 +41,29 @@ describe('moduleSettings query test', () => {
   })
 
   it('reports success when the stored value is written again', async () => {
-    // MySQL answers affectedRows 0 here, because the row already holds this value.
-    // Saving a switch that is already in that position must not read as a failure.
+    // The most ordinary case of all: saving a switch that is already in that position. It
+    // has to read as a success and leave the stored row exactly as it was. The returned
+    // value alone would prove nothing - it is the argument handed back - so the row is
+    // read again here.
     await dbUpsertModuleSettings(false)
 
     expect(await dbUpsertModuleSettings(false)).toEqual({ success: true, value: false })
+    expect(await dbSelectModuleSettings()).toMatchObject({ matchingActive: 0 })
+    expect(await db.select().from(moduleSettingsTable)).toHaveLength(1)
+  })
+
+  it('stamps updated_at on the update path, not only on the insert', async () => {
+    // The column's own ON UPDATE clause does not fire when no other column changes, so
+    // without the explicit stamp a repeated save would leave the timestamp behind and
+    // nobody could tell when a switch was last confirmed.
+    await dbUpsertModuleSettings(true)
+    const first = (await dbSelectModuleSettings())?.updatedAt
+
+    await new Promise((resolve) => setTimeout(resolve, 5))
+    await dbUpsertModuleSettings(true)
+    const second = (await dbSelectModuleSettings())?.updatedAt
+
+    expect(first).toBeInstanceOf(Date)
+    expect(second?.getTime()).toBeGreaterThan((first as Date).getTime())
   })
 })
