@@ -55,7 +55,11 @@ import { UpdateUnconfirmedContributionContext } from '@/interactions/updateUncon
 import { Context, getClientTimezoneOffset, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
 import { attachContributionCreationGroups } from './util/attachContributionCreationGroups'
-import { setContributionCreationGroups } from './util/contributionCreationGroups'
+import {
+  linkContributionCreationGroups,
+  resolveContributionCreationGroups,
+  setContributionCreationGroups,
+} from './util/contributionCreationGroups'
 import {
   COMMUNITY_WINDOW_MONTHS,
   contributionFrontendLink,
@@ -120,6 +124,10 @@ export class ContributionResolver {
     const contributionDateObj = new Date(contributionDate)
     validateContribution(creations, amount, contributionDateObj, clientTimezoneOffset)
 
+    // Group functions: resolved before the row exists, so a lookup that fails leaves no
+    // half-written contribution behind.
+    const canonicalGroups = await resolveContributionCreationGroups(creationGroups ?? [])
+
     const contribution = DbContribution.create()
     contribution.userId = user.id
     contribution.amount = amount
@@ -128,10 +136,17 @@ export class ContributionResolver {
     contribution.memo = memo
     contribution.contributionType = ContributionType.USER
     contribution.contributionStatus = ContributionStatus.PENDING
+    // Group functions: stamped on the entity, the same way adminCreateContribution does it,
+    // and for the same reason. A row on its way in has no links to replace and no stamp to
+    // correct, so setContributionCreationGroups would spend a delete that can never match
+    // plus an update on the row inserted one statement earlier. The stamp is written whether
+    // or not a group was chosen -- that is what tells "deliberately no group" apart from
+    // "never said anything".
+    contribution.creationGroupsSetAt = new Date()
 
     logger.trace('contribution to save', contribution)
     await DbContribution.save(contribution)
-    await setContributionCreationGroups(contribution.id, creationGroups ?? [])
+    await linkContributionCreationGroups(contribution.id, canonicalGroups)
     await EVENT_CONTRIBUTION_CREATE(user, contribution, amount)
 
     return new UnconfirmedContribution(contribution)
