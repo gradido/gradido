@@ -175,10 +175,14 @@ const creationGroupsWithContributions = async (
     .distinct(true)
     .innerJoin('contribution_creation_groups', 'cgt', 'cgt.contribution_id = Contribution.id')
     .innerJoin('creation_groups', 'gt', 'gt.id = cgt.creation_group_id')
-    .andWhere('gt.tag IN (:...tags)', { tags })
   narrow(queryBuilder)
   const rows: Array<{ tag: string }> = await queryBuilder.getRawMany()
   const present = new Set(rows.map((row) => row.tag))
+  // Narrowed to the caller's list here rather than in SQL. Both callers hand in the WHOLE
+  // canonical list, so an "IN (every group there is)" could never exclude a row -- the inner
+  // join already reaches creation_groups and nothing else -- while the parameter it ships
+  // grows with every group ever created. This line also covers the one thing that predicate
+  // could not: a group added between the caller reading its list and this query running.
   // Returned in the order the canonical list came in, so the dropdown keeps its sorting.
   return tags.filter((tag) => present.has(tag))
 }
