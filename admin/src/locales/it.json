@@ -150,7 +150,8 @@
       "testModel": "Test model",
       "testNoText": "(no text in the response)",
       "testOk": "Model responds: {message}",
-      "title": "Crea settings"
+      "title": "Crea settings",
+      "unavailable": "The settings are not loaded yet. Saving and testing stay disabled until the values from the server are known."
     },
     "signature": "Your signature",
     "signatureHint": "Saved in your browser (preview). Persistent storage will follow.",
