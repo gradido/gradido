@@ -1,3 +1,4 @@
+// AI-GENERATED — not an architecture reference
 // CreaChat: the moderator's running exchange with Crea in the admin chat window.
 //
 // The OpenAI Assistants API kept the conversation on its own servers and handed us

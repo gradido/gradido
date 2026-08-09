@@ -7,6 +7,7 @@ import {
   decimal,
   index,
   int,
+  longtext,
   mysqlTable,
   text,
   timestamp,
@@ -84,6 +85,29 @@ export const contributionsTable = mysqlTable(
 
 export type ContributionsSelect = typeof contributionsTable.$inferSelect
 export type ContributionsInsert = typeof contributionsTable.$inferInsert
+
+// One moderator conversation with Crea in the admin chat window (CreaChat). The
+// Anthropic Messages API is stateless, so the whole exchange lives here as a JSON array
+// in `messages` — that is the shape every access needs: read the complete thread, append
+// a user/assistant pair, save. Nothing ever reads or writes a single message.
+export const creachatThreadsTable = mysqlTable(
+  'creachat_threads',
+  {
+    id: char({ length: 36 }).notNull(),
+    userId: int('user_id').notNull(),
+    messages: longtext().notNull(),
+    createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
+      .default(sql`current_timestamp(3)`)
+      .notNull(),
+    updatedAt: datetime('updated_at', { mode: 'date', fsp: 3 })
+      .default(sql`current_timestamp(3)`)
+      .notNull(),
+  },
+  (table) => [index('idx_creachat_threads_user_id').on(table.userId)],
+)
+
+export type CreachatThreadSelect = typeof creachatThreadsTable.$inferSelect
+export type CreachatThreadInsert = typeof creachatThreadsTable.$inferInsert
 
 export const dltTransactionsTable = mysqlTable(
   'dlt_transactions',

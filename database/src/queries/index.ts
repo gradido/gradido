@@ -2,6 +2,7 @@ import { LOG4JS_BASE_CATEGORY_NAME } from '../config/const'
 
 export * from './communities'
 export * from './communityHandshakes'
+export * from './creachatThreads'
 export * from './dltTransactions'
 export * from './events'
 export * from './pendingTransactions'

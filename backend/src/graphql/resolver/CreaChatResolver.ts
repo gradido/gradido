@@ -1,3 +1,4 @@
+// AI-GENERATED — not an architecture reference
 import { CreaChatInput } from '@input/CreaChatInput'
 import { CreaChatMessage } from '@model/CreaChatMessage'
 import { Arg, Authorized, Ctx, Mutation, Query, Resolver } from 'type-graphql'
@@ -88,7 +89,7 @@ export class CreaChatResolver {
     }
 
     const answer = await client.chatWithCrea(historyForRequest(turns), message)
-    await appendTurns(activeThreadId, [
+    await appendTurns(activeThreadId, context.user.id, [
       { role: 'user', content: message },
       { role: 'assistant', content: answer },
     ])
