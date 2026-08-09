@@ -43,6 +43,7 @@
 
       <div class="input-area">
         <BFormTextarea
+          ref="chatInput"
           v-model="newMessage"
           class="fs-6"
           :placeholder="textareaPlaceholder"
@@ -84,6 +85,7 @@ const { result: resumeChatResult, refetch: resumeChatRefetch } = useQuery(resume
 
 const isChatOpen = ref(false)
 const chatContainer = ref(null)
+const chatInput = ref(null)
 const newMessage = ref('')
 const threadId = ref('')
 const messages = ref([])
@@ -175,6 +177,15 @@ function scrollDown() {
 
 const sendMessage = () => {
   if (newMessage.value.trim()) {
+    // Erst den Fokus vom Feld nehmen, dann leeren — sonst kommt der Text zurück.
+    // Grund: `loading` schaltet das Feld gleich auf `disabled`, ein deaktiviertes Feld
+    // verliert den Fokus, und der Browser feuert dabei `change` mit dem DOM-Wert. Der ist
+    // dann noch der alte Text, weil Vue das Leeren erst im nächsten Durchlauf schreibt —
+    // und bootstrap-vue-next schreibt in seinem `change`-Behandler jeden Wert ins Modell
+    // zurück, der davon abweicht. Blurrt man vorher, sind Modell und Feld beim `change`
+    // noch gleich und es wird nichts zurückgeschrieben. Genau deshalb war der Absende-Knopf
+    // nie betroffen: ein Klick nimmt den Fokus ohnehin vorher weg.
+    chatInput.value?.element?.blur()
     loading.value = true
     if (newMessage.value !== t('ai.start-prompt')) {
       messages.value.push({ content: newMessage.value, role: 'user' })
