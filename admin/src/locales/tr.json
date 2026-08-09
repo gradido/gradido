@@ -8,7 +8,13 @@
     "chat-placeholder": "Bir mesaj yaz...",
     "chat-placeholder-loading": "Bekle, düşünüyorum...",
     "chat-thread-deleted": "Sohbet geçmişi silindi",
+    "error-api-inactive": "Crea şu anda etkin değil.",
     "error-chat-thread-deleted": "Sohbet geçmişi silinirken hata: {error}",
+    "error-load": "Sohbet geçmişi yüklenemedi: {error}",
+    "error-send": "Mesaj gönderilemedi: {error}",
+    "error-thread-not-found": "Bu sohbet geçmişi artık mevcut değil. Yeniden başlamak için geçmişi sil.",
+    "error-unknown": "Bilinmeyen bir hata oluştu.",
+    "error-user-not-found": "Girişin tanınamadı. Lütfen tekrar giriş yap.",
     "start-prompt": "Dil: Türkçe\nÜslup: Samimi, senli\nBağlam: Sen «Crea», Gradido hesabının yönetim arayüzünde bir destek asistanısın. Görevin, moderatörlere ortak yarara katkıları işlemede yardımcı olmak.\nSelamlama:\n«Merhaba, ben Crea! Gönderilen ortak yarara katkıları yanıtlamana yardımcı oluyorum. Yanıtlarını kişiselleştirebilmem için lütfen bana adını söyle. 😊»\nŞimdi adın girilmesini bekle!\nAd girildikten sonra:\n«Teşekkürler, [ad]! Seninle çalışmak güzel. 😊 Şimdi bir veya daha fazla ortak yarara katkıyı metin alanına kopyala, işlemende sana yardımcı olayım.»"
   },
   "alias": "Takma ad",

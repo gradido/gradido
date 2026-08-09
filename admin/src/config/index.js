@@ -55,14 +55,14 @@ const humhub = {
   HUMHUB_API_URL: process.env.HUMHUB_API_URL ?? COMMUNITY_URL + '/community/',
 }
 
-const OPENAI_ACTIVE = process.env.OPENAI_ACTIVE === 'true'
+const ANTHROPIC_ACTIVE = process.env.ANTHROPIC_ACTIVE === 'true'
 
 const CONFIG = {
   ...version,
   ...environment,
   ...endpoints,
   ...debug,
-  OPENAI_ACTIVE,
+  ANTHROPIC_ACTIVE,
   ...humhub,
   ADMIN_MODULE_URL,
   COMMUNITY_URL,

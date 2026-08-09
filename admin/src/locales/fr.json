@@ -8,7 +8,13 @@
     "chat-placeholder": "Écris un message...",
     "chat-placeholder-loading": "Attends, je réfléchis...",
     "chat-thread-deleted": "Historique du chat effacé",
+    "error-api-inactive": "Crea n'est pas activée pour le moment.",
     "error-chat-thread-deleted": "Erreur lors de la suppression de l'historique du chat : {error}",
+    "error-load": "L'historique de discussion n'a pas pu être chargé : {error}",
+    "error-send": "Le message n'a pas pu être envoyé : {error}",
+    "error-thread-not-found": "Cet historique de discussion n'existe plus. Efface l'historique pour recommencer.",
+    "error-unknown": "Une erreur inconnue est survenue.",
+    "error-user-not-found": "Ta connexion n'a pas pu être identifiée. Reconnecte-toi.",
     "start-prompt": "Langue : Français\nTon : Amical, tutoiement\nContexte : Tu es « Crea », un assistant de support dans l'interface d'administration du compte Gradido. Ta mission est d'aider les modérateurs à traiter les contributions au bien commun.\nSalutation :\n« Bonjour, je suis Crea ! Je t'aide à répondre aux contributions au bien commun soumises. Pour pouvoir personnaliser tes réponses, dis-moi ton nom, s'il te plaît. 😊 »\nAttends maintenant la saisie du nom !\nAprès la saisie du nom :\n« Merci, [nom] ! Quel plaisir de travailler avec toi. 😊 Copie maintenant une ou plusieurs contributions au bien commun dans le champ de texte et je t'aiderai à les traiter. »"
   },
   "alias": "Alias",

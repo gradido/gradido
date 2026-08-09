@@ -18,12 +18,12 @@
           <div
             v-for="(message, index) in messages"
             :key="index"
-            :class="['message', message.role, { 'message-error': message.isError }]"
+            :class="['message', message.role, { 'message-error': message.errorCode }]"
           >
             <div class="message-content position-relative inner-container">
               <span v-html="formatMessage(message)"></span>
               <b-button
-                v-if="message.role === 'assistant'"
+                v-if="message.role === 'assistant' && !message.errorCode"
                 variant="light"
                 class="copy-clipboard-button"
                 :title="$t('copy-to-clipboard')"
@@ -94,8 +94,35 @@ const textareaPlaceholder = computed(() =>
   loading.value ? t('ai.chat-placeholder-loading') : t('ai.chat-placeholder'),
 )
 
+// An error reaches us as a code, not as a sentence — the backend has no business
+// picking the moderator's language. Spelled out one by one so an unknown code falls
+// back to a real sentence instead of showing a raw key.
+function errorText(code) {
+  if (code === 'api_inactive') {
+    return t('ai.error-api-inactive')
+  }
+  if (code === 'user_not_found') {
+    return t('ai.error-user-not-found')
+  }
+  if (code === 'thread_not_found') {
+    return t('ai.error-thread-not-found')
+  }
+  return t('ai.error-unknown')
+}
+
+// Crea writes plain text — her rules say so — so anything resembling markup came in
+// through a pasted contribution and has no business being handed to v-html.
+function escapeHtml(text) {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+}
+
 function formatMessage(message) {
-  return message.content.replace(/\n/g, '<br>')
+  const text = message.errorCode ? errorText(message.errorCode) : message.content
+  return escapeHtml(text).replace(/\n/g, '<br>')
 }
 
 function copyToClipboard(content) {
@@ -165,7 +192,7 @@ const sendMessage = () => {
       })
       .catch((error) => {
         loading.value = false
-        toastError('Error sending message:', error)
+        toastError(t('ai.error-send', { error: error.message }))
       })
     newMessage.value = ''
   }
@@ -178,15 +205,16 @@ onMounted(async () => {
       await resumeChatRefetch()
     } catch (error) {
       if (error.graphQLErrors && error.graphQLErrors.length > 0) {
-        toastError(`Error loading chat: ${error.graphQLErrors[0].message}`)
+        toastError(t('ai.error-load', { error: error.graphQLErrors[0].message }))
         return
       } else {
         // eslint-disable-next-line no-console
         console.log(JSON.stringify(error, null, 2))
-        toastError(`Error loading chat: ${error}`)
+        toastError(t('ai.error-load', { error }))
       }
     }
-    const messagesFromServer = resumeChatResult.value.resumeChat
+    // A refetch can fail without throwing, which used to blow up on the next line.
+    const messagesFromServer = resumeChatResult.value?.resumeChat
     if (messagesFromServer && messagesFromServer.length > 0) {
       threadId.value = messagesFromServer[0].threadId
       messages.value = messagesFromServer.filter(
@@ -222,12 +250,13 @@ onMounted(async () => {
   font-size: 12px;
 }
 
+/* Half the former 250x142: the button sat over the contribution list and got in the way. */
 .bg-crea-img {
   background-image: url('../../public/img/Crea.webp');
   background-size: cover;
   background-position: center;
-  width: 250px;
-  height: 142px;
+  width: 125px;
+  height: 71px;
   z-index: 100;
 }
 

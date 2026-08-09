@@ -4,12 +4,12 @@ import { GraphQLSchema } from 'graphql'
 import { Duration, GradidoUnit } from 'shared'
 import { buildSchema } from 'type-graphql'
 import { isAuthorized } from './directive/isAuthorized'
-import { AiChatResolver } from './resolver/AiChatResolver'
 import { BalanceResolver } from './resolver/BalanceResolver'
 import { CommunityResolver } from './resolver/CommunityResolver'
 import { ContributionLinkResolver } from './resolver/ContributionLinkResolver'
 import { ContributionMessageResolver } from './resolver/ContributionMessageResolver'
 import { ContributionResolver } from './resolver/ContributionResolver'
+import { CreaChatResolver } from './resolver/CreaChatResolver'
 import { CreaResolver } from './resolver/CreaResolver'
 import { CreationGroupResolver } from './resolver/CreationGroupResolver'
 import { GdtResolver } from './resolver/GdtResolver'
@@ -26,12 +26,12 @@ import { LocationScalar } from './scalar/Location'
 export const schema = async (): Promise<GraphQLSchema> => {
   return buildSchema({
     resolvers: [
-      AiChatResolver,
       BalanceResolver,
       CommunityResolver,
       ContributionLinkResolver,
       ContributionMessageResolver,
       ContributionResolver,
+      CreaChatResolver,
       CreaResolver,
       GdtResolver,
       CreationGroupResolver,

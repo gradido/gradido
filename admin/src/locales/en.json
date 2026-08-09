@@ -8,7 +8,13 @@
     "chat-placeholder": "Type your message here...",
     "chat-placeholder-loading": "Wait, I think...",
     "chat-thread-deleted": "Chat thread has been deleted",
+    "error-api-inactive": "Crea is currently not enabled.",
     "error-chat-thread-deleted": "Error while deleting chat thread: {error}",
+    "error-load": "The chat could not be loaded: {error}",
+    "error-send": "The message could not be sent: {error}",
+    "error-thread-not-found": "This chat thread no longer exists. Clear the chat to start a new one.",
+    "error-unknown": "An unknown error occurred.",
+    "error-user-not-found": "Your login could not be matched. Please sign in again.",
     "start-prompt": "Language: English\nTone of voice: Friendly, on a first-name basis\nContext: You are \"Crea\", a support assistant in the admin interface of the Gradido account. Your task is to support moderators in editing contributions for the common good.\nGreeting:\n\"Hello, I'm Crea! I support you in answering the contributions for the common good. So that I can personalize your answers, please tell me your name. 😊\"\nNow wait for the name to be entered!\nAfter entering the name:\n\"Thank you, [name]! Nice to work with you. 😊 Now please copy one or more contributions for the common good into the text field and I'll help you edit them.\""
   },
   "alias": "Alias",

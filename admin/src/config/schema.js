@@ -1,4 +1,5 @@
 import {
+  ANTHROPIC_ACTIVE,
   APP_VERSION,
   BUILD_COMMIT,
   BUILD_COMMIT_SHORT,
@@ -8,12 +9,12 @@ import {
   HUMHUB_ACTIVE,
   HUMHUB_API_URL,
   NODE_ENV,
-  OPENAI_ACTIVE,
   PRODUCTION,
 } from 'config-schema'
 import Joi from 'joi'
 
 module.exports = Joi.object({
+  ANTHROPIC_ACTIVE,
   APP_VERSION,
   BUILD_COMMIT,
   BUILD_COMMIT_SHORT,
@@ -23,7 +24,6 @@ module.exports = Joi.object({
   HUMHUB_ACTIVE,
   HUMHUB_API_URL,
   NODE_ENV,
-  OPENAI_ACTIVE,
   PRODUCTION,
 
   ADMIN_HOSTING: Joi.string()

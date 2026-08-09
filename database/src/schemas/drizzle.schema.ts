@@ -109,13 +109,6 @@ export const dltTransactionsTable = mysqlTable(
 export type DltTransactionSelect = typeof dltTransactionsTable.$inferSelect
 export type DltTransactionInsert = typeof dltTransactionsTable.$inferInsert
 
-export const openaiThreadsTable = mysqlTable('openai_threads', {
-  id: varchar({ length: 128 }).notNull(),
-  createdAt: timestamp({ mode: 'date' }).defaultNow().notNull(),
-  updatedAt: timestamp({ mode: 'date' }).defaultNow().onUpdateNow().notNull(),
-  userId: int('user_id').notNull(),
-})
-
 export const projectBrandingsTable = mysqlTable(
   'project_brandings',
   {

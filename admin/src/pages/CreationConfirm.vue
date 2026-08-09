@@ -82,7 +82,7 @@
       align="center"
       :hide-ellipsis="true"
     />
-    <ai-chat v-if="CONFIG.OPENAI_ACTIVE && isAiUser" />
+    <ai-chat v-if="CONFIG.ANTHROPIC_ACTIVE && isAiUser" />
     <div v-if="overlay" id="overlay" @dblclick="overlay = false">
       <Overlay :item="item" @overlay-cancel="overlay = false">
         <template #title>

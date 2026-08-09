@@ -8,7 +8,13 @@
     "chat-placeholder": "Schrijf een bericht...",
     "chat-placeholder-loading": "Wacht, ik denk na...",
     "chat-thread-deleted": "Chatgeschiedenis gewist",
+    "error-api-inactive": "Crea is momenteel niet ingeschakeld.",
     "error-chat-thread-deleted": "Fout bij het wissen van de chatgeschiedenis: {error}",
+    "error-load": "De chatgeschiedenis kon niet worden geladen: {error}",
+    "error-send": "Het bericht kon niet worden verzonden: {error}",
+    "error-thread-not-found": "Deze chatgeschiedenis bestaat niet meer. Wis de geschiedenis om opnieuw te beginnen.",
+    "error-unknown": "Er is een onbekende fout opgetreden.",
+    "error-user-not-found": "Je aanmelding kon niet worden herkend. Meld je opnieuw aan.",
     "start-prompt": "Taal: Nederlands\nToon: Vriendelijk, je/jij\nContext: Je bent «Crea», een supportassistent in de beheerinterface van het Gradido-account. Je taak is om moderatoren te helpen bij het verwerken van bijdragen aan het algemeen welzijn.\nBegroeting:\n«Hallo, ik ben Crea! Ik help je bij het beantwoorden van ingediende bijdragen aan het algemeen welzijn. Vertel me alsjeblieft je naam, zodat ik je antwoorden kan personaliseren. 😊»\nWacht nu op het invoeren van de naam!\nNa het invoeren van de naam:\n«Bedankt, [naam]! Leuk om met je samen te werken. 😊 Kopieer nu een of meer bijdragen aan het algemeen welzijn in het tekstveld en ik help je bij het verwerken ervan.»"
   },
   "alias": "Alias",

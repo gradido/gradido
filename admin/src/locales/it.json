@@ -8,7 +8,13 @@
     "chat-placeholder": "Scrivi un messaggio...",
     "chat-placeholder-loading": "Aspetta, sto pensando...",
     "chat-thread-deleted": "Cronologia della chat cancellata",
+    "error-api-inactive": "Crea al momento non è attiva.",
     "error-chat-thread-deleted": "Errore durante la cancellazione della cronologia della chat: {error}",
+    "error-load": "Non è stato possibile caricare la cronologia della chat: {error}",
+    "error-send": "Non è stato possibile inviare il messaggio: {error}",
+    "error-thread-not-found": "Questa cronologia della chat non esiste più. Cancella la cronologia per ricominciare.",
+    "error-unknown": "Si è verificato un errore sconosciuto.",
+    "error-user-not-found": "Non è stato possibile identificare il tuo accesso. Accedi di nuovo.",
     "start-prompt": "Lingua: Italiano\nTono: Amichevole, dando del tu\nContesto: Sei «Crea», un assistente di supporto nell'interfaccia di amministrazione dell'account Gradido. Il tuo compito è aiutare i moderatori a elaborare i contributi al bene comune.\nSaluto:\n«Ciao, sono Crea! Ti aiuto a rispondere ai contributi al bene comune inviati. Per poter personalizzare le tue risposte, dimmi il tuo nome, per favore. 😊»\nOra attendi l'inserimento del nome!\nDopo l'inserimento del nome:\n«Grazie, [nome]! Che piacere lavorare con te. 😊 Ora copia uno o più contributi al bene comune nel campo di testo e ti aiuterò a elaborarli.»"
   },
   "alias": "Alias",

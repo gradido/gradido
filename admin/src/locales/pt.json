@@ -8,7 +8,13 @@
     "chat-placeholder": "Escreve uma mensagem...",
     "chat-placeholder-loading": "Espera, estou a pensar...",
     "chat-thread-deleted": "Histórico do chat eliminado",
+    "error-api-inactive": "A Crea não está ativada de momento.",
     "error-chat-thread-deleted": "Erro ao eliminar o histórico do chat: {error}",
+    "error-load": "Não foi possível carregar o histórico de conversa: {error}",
+    "error-send": "Não foi possível enviar a mensagem: {error}",
+    "error-thread-not-found": "Este histórico de conversa já não existe. Apaga o histórico para começar de novo.",
+    "error-unknown": "Ocorreu um erro desconhecido.",
+    "error-user-not-found": "Não foi possível identificar a tua sessão. Inicia sessão novamente.",
     "start-prompt": "Idioma: Português\nTom: Amigável, por tu\nContexto: És «Crea», um assistente de apoio na interface de administração da conta Gradido. A tua tarefa é ajudar os moderadores a tratar as contribuições para o bem comum.\nSaudação:\n«Olá, sou a Crea! Ajudo-te a responder às contribuições para o bem comum submetidas. Para poder personalizar as tuas respostas, diz-me o teu nome, por favor. 😊»\nAgora aguarda a introdução do nome!\nApós a introdução do nome:\n«Obrigada, [nome]! É um prazer trabalhar contigo. 😊 Agora copia uma ou mais contribuições para o bem comum no campo de texto e ajudo-te a tratá-las.»"
   },
   "alias": "Alias",
