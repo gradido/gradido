@@ -50,7 +50,7 @@
           v-model="newMessage"
           class="fs-6"
           :placeholder="textareaPlaceholder"
-          rows="2"
+          rows="4"
           no-resize
           :disabled="loading"
           @keydown.ctrl.enter.prevent="sendMessage"
@@ -326,7 +326,12 @@ onMounted(async () => {
 
 .chat-window {
   width: 550px;
-  height: 330px;
+
+  /* Crea's chat answers are letters now - paragraphs, a salutation and a closing line,
+     the same shape as in the contribution window. Half again as much room for the
+     conversation, and a four-row input, because what gets pasted in here is a whole
+     contribution. */
+  height: 480px;
   background-color: white;
   border: 1px solid #ccc;
   border-radius: 8px;
