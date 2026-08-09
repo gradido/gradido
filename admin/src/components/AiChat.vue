@@ -49,8 +49,8 @@
           rows="2"
           no-resize
           :disabled="loading"
-          @keydown.ctrl.enter="sendMessage"
-          @keydown.meta.enter="sendMessage"
+          @keydown.ctrl.enter.prevent="sendMessage"
+          @keydown.meta.enter.prevent="sendMessage"
         ></BFormTextarea>
         <b-button variant="light" :disabled="loading" @click="sendMessage">
           {{ buttonText }}
